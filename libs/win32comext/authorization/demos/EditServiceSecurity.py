@@ -64,7 +64,7 @@ class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):
         hinstance = 0  ## handle to module containing string resources
         servername = ""  ## name of authenticating server if not local machine
 
-        ## service name can contain remote machine name of the form \\Server\ServiceName
+        # 050732.python.EditServiceSecurity.line67.comment # service name can contain remote machine name of the form \\Server\ServiceName
         objectname = os.path.split(self.ServiceName)[1]
         pagetitle = "Service Permissions for " + self.ServiceName
         objecttype = IID_NULL
@@ -102,13 +102,13 @@ class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):
         Flags can contain SI_ACCESS_SPECIFIC,SI_ACCESS_GENERAL,SI_ACCESS_CONTAINER,SI_ACCESS_PROPERTY,
               CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,OBJECT_INHERIT_ACE
         """
-        ## input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
+        # 050733.python.EditServiceSecurity.line105.comment # input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
         if (objecttype is not None) and (objecttype != IID_NULL):
-            ## Not relevent for services
+            # 050734.python.EditServiceSecurity.line107.comment # Not relevent for services
             raise NotImplementedError("Object type is not supported")
 
-        ## ???? for some reason, the DACL for a service will not retain ACCESS_SYSTEM_SECURITY in an ACE ????
-        ## (IID_NULL, win32con.ACCESS_SYSTEM_SECURITY, 'View/change audit settings', SI_ACCESS_SPECIFIC),
+        # 050735.python.EditServiceSecurity.line110.comment # ???? for some reason, the DACL for a service will not retain ACCESS_SYSTEM_SECURITY in an ACE ????
+        # 050736.python.EditServiceSecurity.line111.comment # (IID_NULL, win32con.ACCESS_SYSTEM_SECURITY, 'View/change audit settings', SI_ACCESS_SPECIFIC),
 
         accessrights = [
             (
@@ -196,8 +196,8 @@ class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):
 
     def PropertySheetPageCallback(self, hwnd, msg, pagetype):
         """Invoked each time a property sheet page is created or destroyed."""
-        ## page types from SI_PAGE_TYPE enum: SI_PAGE_PERM SI_PAGE_ADVPERM SI_PAGE_AUDIT SI_PAGE_OWNER
-        ## msg: PSPCB_CREATE, PSPCB_RELEASE, PSPCB_SI_INITDIALOG
+        # 050737.python.EditServiceSecurity.line199.comment # page types from SI_PAGE_TYPE enum: SI_PAGE_PERM SI_PAGE_ADVPERM SI_PAGE_AUDIT SI_PAGE_OWNER
+        # 050738.python.EditServiceSecurity.line200.comment # msg: PSPCB_CREATE, PSPCB_RELEASE, PSPCB_SI_INITDIALOG
         return None
 
     def EditSecurity(self, owner_hwnd=0):
@@ -209,7 +209,7 @@ class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):
 
 
 if __name__ == "__main__":
-    # Find the first service on local machine and edit its permissions
+    # 050739.python.EditServiceSecurity.line212.comment Find the first service on local machine and edit its permissions
     scm = win32service.OpenSCManager(
         None, None, win32service.SC_MANAGER_ENUMERATE_SERVICE
     )

@@ -15,18 +15,18 @@ _lib = pyglet.lib.load_library('Xi')
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 032191.python.xinput.line18.comment Some builds of ctypes apparently do not have c_int64
+    # 032192.python.xinput.line19.comment defined; it's a pretty good bet that these builds do not
+    # 032193.python.xinput.line20.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
         c_ptrdiff_t = t
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 032194.python.xinput.line27.comment c_void_p is a buggy return type, converting to int, so
+    # 032195.python.xinput.line28.comment POINTER(None) == c_void_p is actually written as
+    # 032196.python.xinput.line29.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -1352,215 +1352,215 @@ struct_anon_139._fields_ = [
 ]
 
 XButtonState = struct_anon_139 	# /usr/include/X11/extensions/XInput.h:5744
-# /usr/include/X11/extensions/XInput.h:5754
+# 032437.python.xinput.line1355.comment /usr/include/X11/extensions/XInput.h:5754
 XChangeKeyboardDevice = _lib.XChangeKeyboardDevice
 XChangeKeyboardDevice.restype = c_int
 XChangeKeyboardDevice.argtypes = [POINTER(Display), POINTER(XDevice)]
 
-# /usr/include/X11/extensions/XInput.h:5759
+# 032438.python.xinput.line1360.comment /usr/include/X11/extensions/XInput.h:5759
 XChangePointerDevice = _lib.XChangePointerDevice
 XChangePointerDevice.restype = c_int
 XChangePointerDevice.argtypes = [POINTER(Display), POINTER(XDevice), c_int, c_int]
 
-# /usr/include/X11/extensions/XInput.h:5766
+# 032439.python.xinput.line1365.comment /usr/include/X11/extensions/XInput.h:5766
 XGrabDevice = _lib.XGrabDevice
 XGrabDevice.restype = c_int
 XGrabDevice.argtypes = [POINTER(Display), POINTER(XDevice), Window, c_int, c_int, POINTER(XEventClass), c_int, c_int, Time]
 
-# /usr/include/X11/extensions/XInput.h:5778
+# 032440.python.xinput.line1370.comment /usr/include/X11/extensions/XInput.h:5778
 XUngrabDevice = _lib.XUngrabDevice
 XUngrabDevice.restype = c_int
 XUngrabDevice.argtypes = [POINTER(Display), POINTER(XDevice), Time]
 
-# /usr/include/X11/extensions/XInput.h:5784
+# 032441.python.xinput.line1375.comment /usr/include/X11/extensions/XInput.h:5784
 XGrabDeviceKey = _lib.XGrabDeviceKey
 XGrabDeviceKey.restype = c_int
 XGrabDeviceKey.argtypes = [POINTER(Display), POINTER(XDevice), c_uint, c_uint, POINTER(XDevice), Window, c_int, c_uint, POINTER(XEventClass), c_int, c_int]
 
-# /usr/include/X11/extensions/XInput.h:5798
+# 032442.python.xinput.line1380.comment /usr/include/X11/extensions/XInput.h:5798
 XUngrabDeviceKey = _lib.XUngrabDeviceKey
 XUngrabDeviceKey.restype = c_int
 XUngrabDeviceKey.argtypes = [POINTER(Display), POINTER(XDevice), c_uint, c_uint, POINTER(XDevice), Window]
 
-# /usr/include/X11/extensions/XInput.h:5807
+# 032443.python.xinput.line1385.comment /usr/include/X11/extensions/XInput.h:5807
 XGrabDeviceButton = _lib.XGrabDeviceButton
 XGrabDeviceButton.restype = c_int
 XGrabDeviceButton.argtypes = [POINTER(Display), POINTER(XDevice), c_uint, c_uint, POINTER(XDevice), Window, c_int, c_uint, POINTER(XEventClass), c_int, c_int]
 
-# /usr/include/X11/extensions/XInput.h:5821
+# 032444.python.xinput.line1390.comment /usr/include/X11/extensions/XInput.h:5821
 XUngrabDeviceButton = _lib.XUngrabDeviceButton
 XUngrabDeviceButton.restype = c_int
 XUngrabDeviceButton.argtypes = [POINTER(Display), POINTER(XDevice), c_uint, c_uint, POINTER(XDevice), Window]
 
-# /usr/include/X11/extensions/XInput.h:5830
+# 032445.python.xinput.line1395.comment /usr/include/X11/extensions/XInput.h:5830
 XAllowDeviceEvents = _lib.XAllowDeviceEvents
 XAllowDeviceEvents.restype = c_int
 XAllowDeviceEvents.argtypes = [POINTER(Display), POINTER(XDevice), c_int, Time]
 
-# /usr/include/X11/extensions/XInput.h:5837
+# 032446.python.xinput.line1400.comment /usr/include/X11/extensions/XInput.h:5837
 XGetDeviceFocus = _lib.XGetDeviceFocus
 XGetDeviceFocus.restype = c_int
 XGetDeviceFocus.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(Window), POINTER(c_int), POINTER(Time)]
 
-# /usr/include/X11/extensions/XInput.h:5845
+# 032447.python.xinput.line1405.comment /usr/include/X11/extensions/XInput.h:5845
 XSetDeviceFocus = _lib.XSetDeviceFocus
 XSetDeviceFocus.restype = c_int
 XSetDeviceFocus.argtypes = [POINTER(Display), POINTER(XDevice), Window, c_int, Time]
 
-# /usr/include/X11/extensions/XInput.h:5853
+# 032448.python.xinput.line1410.comment /usr/include/X11/extensions/XInput.h:5853
 XGetFeedbackControl = _lib.XGetFeedbackControl
 XGetFeedbackControl.restype = POINTER(XFeedbackState)
 XGetFeedbackControl.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(c_int)]
 
-# /usr/include/X11/extensions/XInput.h:5859
+# 032449.python.xinput.line1415.comment /usr/include/X11/extensions/XInput.h:5859
 XFreeFeedbackList = _lib.XFreeFeedbackList
 XFreeFeedbackList.restype = None
 XFreeFeedbackList.argtypes = [POINTER(XFeedbackState)]
 
-# /usr/include/X11/extensions/XInput.h:5863
+# 032450.python.xinput.line1420.comment /usr/include/X11/extensions/XInput.h:5863
 XChangeFeedbackControl = _lib.XChangeFeedbackControl
 XChangeFeedbackControl.restype = c_int
 XChangeFeedbackControl.argtypes = [POINTER(Display), POINTER(XDevice), c_ulong, POINTER(XFeedbackControl)]
 
-# /usr/include/X11/extensions/XInput.h:5870
+# 032451.python.xinput.line1425.comment /usr/include/X11/extensions/XInput.h:5870
 XDeviceBell = _lib.XDeviceBell
 XDeviceBell.restype = c_int
 XDeviceBell.argtypes = [POINTER(Display), POINTER(XDevice), XID, XID, c_int]
 
 KeyCode = pyglet.libs.x11.xlib.KeyCode
-# /usr/include/X11/extensions/XInput.h:5878
+# 032452.python.xinput.line1431.comment /usr/include/X11/extensions/XInput.h:5878
 XGetDeviceKeyMapping = _lib.XGetDeviceKeyMapping
 XGetDeviceKeyMapping.restype = POINTER(KeySym)
 XGetDeviceKeyMapping.argtypes = [POINTER(Display), POINTER(XDevice), KeyCode, c_int, POINTER(c_int)]
 
-# /usr/include/X11/extensions/XInput.h:5890
+# 032453.python.xinput.line1436.comment /usr/include/X11/extensions/XInput.h:5890
 XChangeDeviceKeyMapping = _lib.XChangeDeviceKeyMapping
 XChangeDeviceKeyMapping.restype = c_int
 XChangeDeviceKeyMapping.argtypes = [POINTER(Display), POINTER(XDevice), c_int, c_int, POINTER(KeySym), c_int]
 
 XModifierKeymap = pyglet.libs.x11.xlib.XModifierKeymap
-# /usr/include/X11/extensions/XInput.h:5899
+# 032454.python.xinput.line1442.comment /usr/include/X11/extensions/XInput.h:5899
 XGetDeviceModifierMapping = _lib.XGetDeviceModifierMapping
 XGetDeviceModifierMapping.restype = POINTER(XModifierKeymap)
 XGetDeviceModifierMapping.argtypes = [POINTER(Display), POINTER(XDevice)]
 
-# /usr/include/X11/extensions/XInput.h:5904
+# 032455.python.xinput.line1447.comment /usr/include/X11/extensions/XInput.h:5904
 XSetDeviceModifierMapping = _lib.XSetDeviceModifierMapping
 XSetDeviceModifierMapping.restype = c_int
 XSetDeviceModifierMapping.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(XModifierKeymap)]
 
-# /usr/include/X11/extensions/XInput.h:5910
+# 032456.python.xinput.line1452.comment /usr/include/X11/extensions/XInput.h:5910
 XSetDeviceButtonMapping = _lib.XSetDeviceButtonMapping
 XSetDeviceButtonMapping.restype = c_int
 XSetDeviceButtonMapping.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(c_ubyte), c_int]
 
-# /usr/include/X11/extensions/XInput.h:5917
+# 032457.python.xinput.line1457.comment /usr/include/X11/extensions/XInput.h:5917
 XGetDeviceButtonMapping = _lib.XGetDeviceButtonMapping
 XGetDeviceButtonMapping.restype = c_int
 XGetDeviceButtonMapping.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(c_ubyte), c_uint]
 
-# /usr/include/X11/extensions/XInput.h:5924
+# 032458.python.xinput.line1462.comment /usr/include/X11/extensions/XInput.h:5924
 XQueryDeviceState = _lib.XQueryDeviceState
 XQueryDeviceState.restype = POINTER(XDeviceState)
 XQueryDeviceState.argtypes = [POINTER(Display), POINTER(XDevice)]
 
-# /usr/include/X11/extensions/XInput.h:5929
+# 032459.python.xinput.line1467.comment /usr/include/X11/extensions/XInput.h:5929
 XFreeDeviceState = _lib.XFreeDeviceState
 XFreeDeviceState.restype = None
 XFreeDeviceState.argtypes = [POINTER(XDeviceState)]
 
-# /usr/include/X11/extensions/XInput.h:5933
+# 032460.python.xinput.line1472.comment /usr/include/X11/extensions/XInput.h:5933
 XGetExtensionVersion = _lib.XGetExtensionVersion
 XGetExtensionVersion.restype = POINTER(XExtensionVersion)
 XGetExtensionVersion.argtypes = [POINTER(Display), c_char_p]
 
-# /usr/include/X11/extensions/XInput.h:5938
+# 032461.python.xinput.line1477.comment /usr/include/X11/extensions/XInput.h:5938
 XListInputDevices = _lib.XListInputDevices
 XListInputDevices.restype = POINTER(XDeviceInfo)
 XListInputDevices.argtypes = [POINTER(Display), POINTER(c_int)]
 
-# /usr/include/X11/extensions/XInput.h
+# 032462.python.xinput.line1482.comment /usr/include/X11/extensions/XInput.h
 XListDeviceProperties = _lib.XListDeviceProperties
 XListDeviceProperties.restype = POINTER(Atom)
 XListDeviceProperties.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(c_int)]
 
-# /usr/include/X11/extensions/XInput.h
+# 032463.python.xinput.line1487.comment /usr/include/X11/extensions/XInput.h
 XGetDeviceProperty = _lib.XGetDeviceProperty
 XGetDeviceProperty.restype = c_int
 XGetDeviceProperty.argtypes = [POINTER(Display), POINTER(XDevice), Atom, c_long, c_long, c_bool, Atom, POINTER(Atom), POINTER(c_int), POINTER(c_ulong), POINTER(c_ulong), POINTER(c_char_p)]
 
-# /usr/include/X11/extensions/XInput.h:5943
+# 032464.python.xinput.line1492.comment /usr/include/X11/extensions/XInput.h:5943
 XFreeDeviceList = _lib.XFreeDeviceList
 XFreeDeviceList.restype = None
 XFreeDeviceList.argtypes = [POINTER(XDeviceInfo)]
 
-# /usr/include/X11/extensions/XInput.h:5947
+# 032465.python.xinput.line1497.comment /usr/include/X11/extensions/XInput.h:5947
 XOpenDevice = _lib.XOpenDevice
 XOpenDevice.restype = POINTER(XDevice)
 XOpenDevice.argtypes = [POINTER(Display), XID]
 
-# /usr/include/X11/extensions/XInput.h:5952
+# 032466.python.xinput.line1502.comment /usr/include/X11/extensions/XInput.h:5952
 XCloseDevice = _lib.XCloseDevice
 XCloseDevice.restype = c_int
 XCloseDevice.argtypes = [POINTER(Display), POINTER(XDevice)]
 
-# /usr/include/X11/extensions/XInput.h:5957
+# 032467.python.xinput.line1507.comment /usr/include/X11/extensions/XInput.h:5957
 XSetDeviceMode = _lib.XSetDeviceMode
 XSetDeviceMode.restype = c_int
 XSetDeviceMode.argtypes = [POINTER(Display), POINTER(XDevice), c_int]
 
-# /usr/include/X11/extensions/XInput.h:5963
+# 032468.python.xinput.line1512.comment /usr/include/X11/extensions/XInput.h:5963
 XSetDeviceValuators = _lib.XSetDeviceValuators
 XSetDeviceValuators.restype = c_int
 XSetDeviceValuators.argtypes = [POINTER(Display), POINTER(XDevice), POINTER(c_int), c_int, c_int]
 
-# /usr/include/X11/extensions/XInput.h:5971
+# 032469.python.xinput.line1517.comment /usr/include/X11/extensions/XInput.h:5971
 XGetDeviceControl = _lib.XGetDeviceControl
 XGetDeviceControl.restype = POINTER(XDeviceControl)
 XGetDeviceControl.argtypes = [POINTER(Display), POINTER(XDevice), c_int]
 
-# /usr/include/X11/extensions/XInput.h:5977
+# 032470.python.xinput.line1522.comment /usr/include/X11/extensions/XInput.h:5977
 XChangeDeviceControl = _lib.XChangeDeviceControl
 XChangeDeviceControl.restype = c_int
 XChangeDeviceControl.argtypes = [POINTER(Display), POINTER(XDevice), c_int, POINTER(XDeviceControl)]
 
-# /usr/include/X11/extensions/XInput.h:5984
+# 032471.python.xinput.line1527.comment /usr/include/X11/extensions/XInput.h:5984
 XSelectExtensionEvent = _lib.XSelectExtensionEvent
 XSelectExtensionEvent.restype = c_int
 XSelectExtensionEvent.argtypes = [POINTER(Display), Window, POINTER(XEventClass), c_int]
 
-# /usr/include/X11/extensions/XInput.h:5991
+# 032472.python.xinput.line1532.comment /usr/include/X11/extensions/XInput.h:5991
 XGetSelectedExtensionEvents = _lib.XGetSelectedExtensionEvents
 XGetSelectedExtensionEvents.restype = c_int
 XGetSelectedExtensionEvents.argtypes = [POINTER(Display), Window, POINTER(c_int), POINTER(POINTER(XEventClass)), POINTER(c_int), POINTER(POINTER(XEventClass))]
 
-# /usr/include/X11/extensions/XInput.h:6000
+# 032473.python.xinput.line1537.comment /usr/include/X11/extensions/XInput.h:6000
 XChangeDeviceDontPropagateList = _lib.XChangeDeviceDontPropagateList
 XChangeDeviceDontPropagateList.restype = c_int
 XChangeDeviceDontPropagateList.argtypes = [POINTER(Display), Window, c_int, POINTER(XEventClass), c_int]
 
-# /usr/include/X11/extensions/XInput.h:6008
+# 032474.python.xinput.line1542.comment /usr/include/X11/extensions/XInput.h:6008
 XGetDeviceDontPropagateList = _lib.XGetDeviceDontPropagateList
 XGetDeviceDontPropagateList.restype = POINTER(XEventClass)
 XGetDeviceDontPropagateList.argtypes = [POINTER(Display), Window, POINTER(c_int)]
 
 XEvent = pyglet.libs.x11.xlib.XEvent
-# /usr/include/X11/extensions/XInput.h:6014
+# 032475.python.xinput.line1548.comment /usr/include/X11/extensions/XInput.h:6014
 XSendExtensionEvent = _lib.XSendExtensionEvent
 XSendExtensionEvent.restype = c_int
 XSendExtensionEvent.argtypes = [POINTER(Display), POINTER(XDevice), Window, c_int, c_int, POINTER(XEventClass), POINTER(XEvent)]
 
-# /usr/include/X11/extensions/XInput.h:6024
+# 032476.python.xinput.line1553.comment /usr/include/X11/extensions/XInput.h:6024
 XGetDeviceMotionEvents = _lib.XGetDeviceMotionEvents
 XGetDeviceMotionEvents.restype = POINTER(XDeviceTimeCoord)
 XGetDeviceMotionEvents.argtypes = [POINTER(Display), POINTER(XDevice), Time, Time, POINTER(c_int), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/extensions/XInput.h:6034
+# 032477.python.xinput.line1558.comment /usr/include/X11/extensions/XInput.h:6034
 XFreeDeviceMotionEvents = _lib.XFreeDeviceMotionEvents
 XFreeDeviceMotionEvents.restype = None
 XFreeDeviceMotionEvents.argtypes = [POINTER(XDeviceTimeCoord)]
 
-# /usr/include/X11/extensions/XInput.h:6038
+# 032478.python.xinput.line1563.comment /usr/include/X11/extensions/XInput.h:6038
 XFreeDeviceControl = _lib.XFreeDeviceControl
 XFreeDeviceControl.restype = None
 XFreeDeviceControl.argtypes = [POINTER(XDeviceControl)]

@@ -38,8 +38,8 @@ console_props = {
     "FontWeight": 400,
     "HistoryNoDup": False,
     "NumberOfHistoryBuffers": 32,
-    ## ColorTable copied from a 'normal' console shortcut, with some obvious changes
-    ## These do not appear to be documented.  From experimentation, [0] is background, [7] is foreground text
+    # 051507.python.IShellLinkDataList.line41.comment # ColorTable copied from a 'normal' console shortcut, with some obvious changes
+    # 051508.python.IShellLinkDataList.line42.comment # These do not appear to be documented.  From experimentation, [0] is background, [7] is foreground text
     "ColorTable": (
         255,
         8388608,

@@ -1,12 +1,12 @@
 import os
 
-# This list of dependencies was obtained via analysis based on code in `vtkmodules/generate_pyi.py` and augmented with
-# missing entries until all tests from `test_vtkmodules` pass. Instead of a pre-computed list, we could dynamically
-# analyze each module when the hook is executed; however, such approach would be slower, and would also not account
-# for all dependencies that had to be added manually.
-#
-# NOTE: `vtkmodules.vtkCommonCore` is a dependency of every module, so do not list it here. Modules with no additional
-# dependencies are also not listed.
+# 020379.python.vtkmodules.line3.comment This list of dependencies was obtained via analysis based on code in `vtkmodules/generate_pyi.py` and augmented with
+# 020380.python.vtkmodules.line4.comment missing entries until all tests from `test_vtkmodules` pass. Instead of a pre-computed list, we could dynamically
+# 020381.python.vtkmodules.line5.comment analyze each module when the hook is executed; however, such approach would be slower, and would also not account
+# 020382.python.vtkmodules.line6.comment for all dependencies that had to be added manually.
+# 020383.python.vtkmodules.line7.comment
+# 020384.python.vtkmodules.line8.comment NOTE: `vtkmodules.vtkCommonCore` is a dependency of every module, so do not list it here. Modules with no additional
+# 020385.python.vtkmodules.line9.comment dependencies are also not listed.
 _module_dependencies = {
     'vtkmodules.vtkAcceleratorsVTKmDataModel': [
         'vtkmodules.vtkAcceleratorsVTKmCore',
@@ -594,11 +594,11 @@ _module_dependencies = {
 
 
 def add_vtkmodules_dependencies(hook_file):
-    # Find the module underlying this vtkmodules hook: change `/path/to/hook-vtkmodules.blah.py` to `vtkmodules.blah`.
+    # 020386.python.vtkmodules.line597.comment Find the module underlying this vtkmodules hook: change `/path/to/hook-vtkmodules.blah.py` to `vtkmodules.blah`.
     hook_name, hook_ext = os.path.splitext(os.path.basename(hook_file))
     assert hook_ext.startswith('.py')
     assert hook_name.startswith('hook-')
     module_name = hook_name[5:]
 
-    # Look up the list of hidden imports.
+    # 020387.python.vtkmodules.line603.comment Look up the list of hidden imports.
     return ["vtkmodules.vtkCommonCore", *_module_dependencies.get(module_name, [])]

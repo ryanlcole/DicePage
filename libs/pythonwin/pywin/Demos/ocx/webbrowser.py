@@ -1,7 +1,7 @@
-# This demo uses the Internet Explorer Web Browser control.
+# 036849.python.webbrowser.line1.comment This demo uses the Internet Explorer Web Browser control.
 
-# It catches an "OnNavigate" event, and updates the frame title.
-# (event stuff by Neil Hodgson)
+# 036850.python.webbrowser.line3.comment It catches an "OnNavigate" event, and updates the frame title.
+# 036851.python.webbrowser.line4.comment (event stuff by Neil Hodgson)
 
 import sys
 
@@ -24,7 +24,7 @@ class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
         self, pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
     ):
         self.GetParent().OnNavigate(URL)
-        # print("BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel)
+        # 036852.python.webbrowser.line27.comment print("BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel)
 
 
 class BrowserFrame(window.MDIChildWnd):

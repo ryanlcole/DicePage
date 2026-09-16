@@ -1,7 +1,7 @@
-##################################################################
-##
-## Interactive Shell Window
-##
+# 037672.python.interact.line1.comment #################################################################
+# 037673.python.interact.line2.comment #
+# 037674.python.interact.line3.comment # Interactive Shell Window
+# 037675.python.interact.line4.comment #
 
 import array
 import code
@@ -21,7 +21,7 @@ import win32con
 import win32ui
 from pywin.mfc import afxres
 
-## sequential after ID_GOTO_LINE defined in editor.py
+# 037677.python.interact.line24.comment # sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
 ID_EDIT_EXEC_CLIPBOARD = 0x2003
 
@@ -31,7 +31,7 @@ import re
 
 from . import winout
 
-# from IDLE.
+# 037678.python.interact.line34.comment from IDLE.
 _is_block_opener = re.compile(r":\s*(#.*)?$").search
 _is_block_closer = re.compile(
     r"""
@@ -55,7 +55,7 @@ valueFormatInput = "FormatInput"
 valueFormatOutput = "FormatOutput"
 valueFormatOutputError = "FormatOutputError"
 
-# These are defaults only.  Values are read from the registry.
+# 037679.python.interact.line58.comment These are defaults only.  Values are read from the registry.
 formatTitle = (-536870897, 0, 220, 0, 16711680, 184, 34, "Arial")
 formatInput = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
 formatOutput = (-402653169, 0, 200, 0, 8421376, 0, 49, "Courier New")
@@ -94,11 +94,11 @@ def GetPromptPrefix(line):
         return ps2
 
 
-#############################################################
-#
-# Colorizer related code.
-#
-#############################################################
+# 037680.python.interact.line97.comment ############################################################
+# 037681.python.interact.line98.comment
+# 037682.python.interact.line99.comment Colorizer related code.
+# 037683.python.interact.line100.comment
+# 037684.python.interact.line101.comment ############################################################
 STYLE_INTERACTIVE_EOL = "Interactive EOL"
 STYLE_INTERACTIVE_OUTPUT = "Interactive Output"
 STYLE_INTERACTIVE_PROMPT = "Interactive Prompt"
@@ -146,10 +146,10 @@ class InteractiveFormatter(FormatterParent):
         if lengthDoc == 0:
             return
         state = styleStart
-        # As per comments in Colorize(), we work with the raw utf8
-        # bytes. To avoid too much pain, we treat each utf8 byte
-        # as a latin-1 unicode character - we only use it to compare
-        # against ascii chars anyway...
+        # 037685.python.interact.line149.comment As per comments in Colorize(), we work with the raw utf8
+        # 037686.python.interact.line150.comment bytes. To avoid too much pain, we treat each utf8 byte
+        # 037687.python.interact.line151.comment as a latin-1 unicode character - we only use it to compare
+        # 037688.python.interact.line152.comment against ascii chars anyway...
         chNext = cdoc[0:1].decode("latin-1")
         startSeg = 0
         i = 0
@@ -158,7 +158,7 @@ class InteractiveFormatter(FormatterParent):
             ch = chNext
             chNext = cdoc[i + 1 : i + 2].decode("latin-1")
 
-            # 			trace("ch=%r, i=%d, next=%r, state=%s" % (ch, i, chNext, state))
+            # 037690.python.interact.line161.comment trace("ch=%r, i=%d, next=%r, state=%s" % (ch, i, chNext, state))
             if state == STYLE_INTERACTIVE_EOL:
                 if ch not in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
@@ -184,14 +184,14 @@ class InteractiveFormatter(FormatterParent):
                     state = STYLE_INTERACTIVE_EOL
             elif state == STYLE_INTERACTIVE_ERROR:
                 if ch in "\r\n" and chNext and chNext not in string.whitespace:
-                    # Everything including me
+                    # 037692.python.interact.line187.comment Everything including me
                     self.ColorSeg(startSeg, i, state)
                     startSeg = i + 1
                     state = STYLE_INTERACTIVE_ERROR_FINALLINE
                 elif i == 0 and ch not in string.whitespace:
-                    # If we are coloring from the start of a line,
-                    # we need this better check for the last line
-                    # Color up to not including me
+                    # 037693.python.interact.line192.comment If we are coloring from the start of a line,
+                    # 037694.python.interact.line193.comment we need this better check for the last line
+                    # 037695.python.interact.line194.comment Color up to not including me
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
                     state = STYLE_INTERACTIVE_ERROR_FINALLINE
@@ -202,13 +202,13 @@ class InteractiveFormatter(FormatterParent):
                     state = STYLE_INTERACTIVE_EOL
             elif state == STYLE_INTERACTIVE_BANNER:
                 if ch in "\r\n" and (chNext == "" or chNext in ">["):
-                    # Everything including me
+                    # 037696.python.interact.line205.comment Everything including me
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
                     state = STYLE_INTERACTIVE_EOL
             else:
-                # It is a PythonColorizer state - seek past the end of the line
-                # and ask the Python colorizer to color that.
+                # 037697.python.interact.line210.comment It is a PythonColorizer state - seek past the end of the line
+                # 037698.python.interact.line211.comment and ask the Python colorizer to color that.
                 end = startSeg
                 while end < lengthDoc and cdoc[end] not in b"\r\n":
                     end += 1
@@ -225,22 +225,22 @@ class InteractiveFormatter(FormatterParent):
             if lastState != state:
                 lastState = state
             i += 1
-        # and the rest
+        # 037700.python.interact.line228.comment and the rest
         if startSeg < i:
             self.ColorSeg(startSeg, i - 1, state)
 
     def Colorize(self, start=0, end=-1):
-        # scintilla's formatting is all done in terms of utf, so
-        # we work with utf8 bytes instead of unicode.  This magically
-        # works as any extended chars found in the utf8 don't change
-        # the semantics.
+        # 037701.python.interact.line233.comment scintilla's formatting is all done in terms of utf, so
+        # 037702.python.interact.line234.comment we work with utf8 bytes instead of unicode.  This magically
+        # 037703.python.interact.line235.comment works as any extended chars found in the utf8 don't change
+        # 037704.python.interact.line236.comment the semantics.
         stringVal = self.scintilla.GetTextRange(start, end, decode=False)
         styleStart = None
         stylePyStart = None
         if start > 1:
-            # Likely we are being asked to color from the start of the line.
-            # We find the last formatted character on the previous line.
-            # If TQString, we continue it.  Otherwise, we reset.
+            # 037705.python.interact.line241.comment Likely we are being asked to color from the start of the line.
+            # 037706.python.interact.line242.comment We find the last formatted character on the previous line.
+            # 037707.python.interact.line243.comment If TQString, we continue it.  Otherwise, we reset.
             look = start - 1
             while look and self.scintilla.SCIGetCharAt(look) in "\n\r":
                 look -= 1
@@ -253,8 +253,8 @@ class InteractiveFormatter(FormatterParent):
                     elif strstyle.name == pywin.scintilla.formatter.STYLE_TQDSTRING:
                         quote_char = '"'
                     if quote_char is not None:
-                        # It is a TQS.  If the TQS is not terminated, we
-                        # carry the style through.
+                        # 037709.python.interact.line256.comment It is a TQS.  If the TQS is not terminated, we
+                        # 037710.python.interact.line257.comment carry the style through.
                         if look > 2:
                             look_str = (
                                 self.scintilla.SCIGetCharAt(look - 2)
@@ -281,16 +281,16 @@ class InteractiveFormatter(FormatterParent):
         self.style_buffer = None
 
 
-###############################################################
-#
-# This class handles the Python interactive interpreter.
-#
-# It uses a basic EditWindow, and does all the magic.
-# This is triggered by the enter key hander attached by the
-# start-up code.  It determines if a command is to be executed
-# or continued (ie, emit "... ") by snooping around the current
-# line, looking for the prompts
-#
+# 037711.python.interact.line284.comment ##############################################################
+# 037712.python.interact.line285.comment
+# 037713.python.interact.line286.comment This class handles the Python interactive interpreter.
+# 037714.python.interact.line287.comment
+# 037715.python.interact.line288.comment It uses a basic EditWindow, and does all the magic.
+# 037716.python.interact.line289.comment This is triggered by the enter key hander attached by the
+# 037717.python.interact.line290.comment start-up code.  It determines if a command is to be executed
+# 037718.python.interact.line291.comment or continued (ie, emit "... ") by snooping around the current
+# 037719.python.interact.line292.comment line, looking for the prompts
+# 037720.python.interact.line293.comment
 class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
     def __init__(self, locals=None, globals=None):
         if locals is None:
@@ -319,11 +319,11 @@ class InteractiveCore:
     def __init__(self, banner=None):
         self.banner = banner
 
-    # 		LoadFontPreferences()
+    # 037722.python.interact.line322.comment LoadFontPreferences()
     def Init(self):
         self.oldStdOut = self.oldStdErr = None
 
-        # 		self.SetWordWrap(win32ui.CRichEditView_WrapNone)
+        # 037723.python.interact.line326.comment self.SetWordWrap(win32ui.CRichEditView_WrapNone)
         self.interp = PythonwinInteractiveInterpreter()
 
         self.OutputGrab()  # Release at cleanup.
@@ -365,7 +365,7 @@ class InteractiveCore:
     def SetContext(self, globals, locals, name="Dbg"):
         oldPrompt = sys.ps1
         if globals is None:
-            # Reset
+            # 037725.python.interact.line368.comment Reset
             sys.ps1 = ">>> "
             sys.ps2 = "... "
             locals = globals = __main__.__dict__
@@ -410,7 +410,7 @@ class InteractiveCore:
         self.flush()
 
     def EnsureNoPrompt(self):
-        # Get ready to write some text NOT at a Python prompt.
+        # 037726.python.interact.line413.comment Get ready to write some text NOT at a Python prompt.
         self.flush()
         lastLineNo = self.GetLineCount() - 1
         line = self.DoGetLine(lastLineNo)
@@ -418,14 +418,14 @@ class InteractiveCore:
             self.SetSel(self.GetTextLength() - len(line), self.GetTextLength())
             self.ReplaceSel("")
         else:
-            # Just add a new line.
+            # 037727.python.interact.line421.comment Just add a new line.
             self.write("\n")
 
     def _GetSubConfigNames(self):
         return ["interactive"]  # Allow [Keys:Interactive] sections to be specific
 
     def HookHandlers(self):
-        # Hook menu command (executed when a menu item with that ID is selected from a menu/toolbar
+        # 037729.python.interact.line428.comment Hook menu command (executed when a menu item with that ID is selected from a menu/toolbar
         self.HookCommand(self.OnSelectBlock, win32ui.ID_EDIT_SELECT_BLOCK)
         self.HookCommand(self.OnEditCopyCode, ID_EDIT_COPY_CODE)
         self.HookCommand(self.OnEditExecClipboard, ID_EDIT_EXEC_CLIPBOARD)
@@ -434,16 +434,16 @@ class InteractiveCore:
             self.history = mod.History(self.idle.text, "\n" + sys.ps2)
         else:
             self.history = None
-        # hack for now for event handling.
+        # 037730.python.interact.line437.comment hack for now for event handling.
 
-    # GetBlockBoundary takes a line number, and will return the
-    # start and and line numbers of the block, and a flag indicating if the
-    # block is a Python code block.
-    # If the line specified has a Python prompt, then the lines are parsed
-    # backwards and forwards, and the flag is true.
-    # If the line does not start with a prompt, the block is searched forward
-    # and backward until a prompt _is_ found, and all lines in between without
-    # prompts are returned, and the flag is false.
+    # 037731.python.interact.line439.comment GetBlockBoundary takes a line number, and will return the
+    # 037732.python.interact.line440.comment start and and line numbers of the block, and a flag indicating if the
+    # 037733.python.interact.line441.comment block is a Python code block.
+    # 037734.python.interact.line442.comment If the line specified has a Python prompt, then the lines are parsed
+    # 037735.python.interact.line443.comment backwards and forwards, and the flag is true.
+    # 037736.python.interact.line444.comment If the line does not start with a prompt, the block is searched forward
+    # 037737.python.interact.line445.comment and backward until a prompt _is_ found, and all lines in between without
+    # 037738.python.interact.line446.comment prompts are returned, and the flag is false.
     def GetBlockBoundary(self, lineNo):
         line = self.DoGetLine(lineNo)
         maxLineNo = self.GetLineCount() - 1
@@ -467,7 +467,7 @@ class InteractiveCore:
                 prefix = GetPromptPrefix(self.DoGetLine(startLineNo - 1))
                 if prefix is None:
                     break
-                    # there is no prompt.
+                    # 037743.python.interact.line470.comment there is no prompt.
                 startLineNo -= 1
             endLineNo = lineNo
             while endLineNo < maxLineNo:
@@ -477,7 +477,7 @@ class InteractiveCore:
                 if prefix == str(sys.ps1):
                     break  # this is another command
                 endLineNo += 1
-                # continue until end of buffer, or no prompt
+                # 037746.python.interact.line480.comment continue until end of buffer, or no prompt
         return (startLineNo, endLineNo, flag)
 
     def ExtractCommand(self, lines):
@@ -491,7 +491,7 @@ class InteractiveCore:
         return retList
 
     def OutputGrab(self):
-        # 		import win32traceutil; return
+        # 037747.python.interact.line494.comment import win32traceutil; return
         self.oldStdOut = sys.stdout
         self.oldStdErr = sys.stderr
         sys.stdout = self
@@ -499,7 +499,7 @@ class InteractiveCore:
         self.flush()
 
     def OutputRelease(self):
-        # a command may have overwritten these - only restore if not.
+        # 037748.python.interact.line502.comment a command may have overwritten these - only restore if not.
         if self.oldStdOut is not None:
             if sys.stdout == self:
                 sys.stdout = self.oldStdOut
@@ -510,28 +510,28 @@ class InteractiveCore:
         self.oldStdErr = None
         self.flush()
 
-    ###################################
-    #
-    # Message/Command/Key Hooks.
-    #
-    # Enter key handler
-    #
+    # 037749.python.interact.line513.comment ##################################
+    # 037750.python.interact.line514.comment
+    # 037751.python.interact.line515.comment Message/Command/Key Hooks.
+    # 037752.python.interact.line516.comment
+    # 037753.python.interact.line517.comment Enter key handler
+    # 037754.python.interact.line518.comment
     def ProcessEnterEvent(self, event):
-        # If autocompletion has been triggered, complete and do not process event
+        # 037755.python.interact.line520.comment If autocompletion has been triggered, complete and do not process event
         if self.SCIAutoCActive():
             self.SCIAutoCComplete()
             self.SCICancel()
             return
 
         self.SCICancel()
-        # First, check for an error message
+        # 037756.python.interact.line527.comment First, check for an error message
         haveGrabbedOutput = 0
         if self.HandleSpecialLine():
             return 0
 
         lineNo = self.LineFromChar()
         start, end, isCode = self.GetBlockBoundary(lineNo)
-        # If we are not in a code block just go to the prompt (or create a new one)
+        # 037757.python.interact.line534.comment If we are not in a code block just go to the prompt (or create a new one)
         if not isCode:
             self.AppendToPrompt([])
             win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
@@ -539,15 +539,15 @@ class InteractiveCore:
 
         lines = self.ExtractCommand((start, end))
 
-        # If we are in a code-block, but it isn't at the end of the buffer
-        # then copy it to the end ready for editing and subsequent execution
+        # 037758.python.interact.line542.comment If we are in a code-block, but it isn't at the end of the buffer
+        # 037759.python.interact.line543.comment then copy it to the end ready for editing and subsequent execution
         if end != self.GetLineCount() - 1:
             win32ui.SetStatusText("Press ENTER to execute command")
             self.AppendToPrompt(lines)
             self.SetSel(-2)
             return
 
-        # If SHIFT held down, we want new code here and now!
+        # 037760.python.interact.line550.comment If SHIFT held down, we want new code here and now!
         bNeedIndent = (
             win32api.GetKeyState(win32con.VK_SHIFT) < 0
             or win32api.GetKeyState(win32con.VK_CONTROL) < 0
@@ -567,19 +567,19 @@ class InteractiveCore:
                 ):  # Need more input!
                     bNeedIndent = 1
                 else:
-                    # If the last line isn't empty, append a newline
+                    # 037763.python.interact.line570.comment If the last line isn't empty, append a newline
                     if self.history is not None:
                         self.history.history_store(source)
                     self.AppendToPrompt([])
                     win32ui.SetStatusText(
                         win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE)
                     )
-            # 					win32ui.SetStatusText('Successfully executed statement')
+            # 037764.python.interact.line577.comment win32ui.SetStatusText('Successfully executed statement')
             finally:
                 self.OutputRelease()
         if bNeedIndent:
             win32ui.SetStatusText("Ready to continue the command")
-            # Now attempt correct indentation (should use IDLE?)
+            # 037765.python.interact.line582.comment Now attempt correct indentation (should use IDLE?)
             curLine = self.DoGetLine(lineNo)[len(sys.ps2) :]
             pos = 0
             indent = ""
@@ -590,13 +590,13 @@ class InteractiveCore:
                 indent += "\t"
             elif _is_block_closer(curLine):
                 indent = indent[:-1]
-            # use ReplaceSel to ensure it goes at the cursor rather than end of buffer.
+            # 037766.python.interact.line593.comment use ReplaceSel to ensure it goes at the cursor rather than end of buffer.
             self.ReplaceSel(sys.ps2 + indent)
         return 0
 
-    # ESC key handler
+    # 037767.python.interact.line597.comment ESC key handler
     def ProcessEscEvent(self, event):
-        # Implement a cancel.
+        # 037768.python.interact.line599.comment Implement a cancel.
         if self.SCIAutoCActive() or self.SCICallTipActive():
             self.SCICancel()
         else:
@@ -651,7 +651,7 @@ class InteractiveCore:
             traceback.print_exc()
 
     def GetRightMenuItems(self):
-        # Just override parents
+        # 037772.python.interact.line654.comment Just override parents
         ret = []
         flags = 0
         ret.append((flags, win32ui.ID_EDIT_UNDO, "&Undo"))
@@ -683,18 +683,18 @@ class InteractiveCore:
     def WindowBackEvent(self, event):
         parent = self.GetParentFrame()
         if parent == win32ui.GetMainFrame():
-            # It is docked.
+            # 037773.python.interact.line686.comment It is docked.
             try:
                 wnd, isactive = parent.MDIGetActive()
                 wnd.SetFocus()
             except win32ui.error:
-                # No MDI window active!
+                # 037774.python.interact.line691.comment No MDI window active!
                 pass
         else:
-            # Normal Window
+            # 037775.python.interact.line694.comment Normal Window
             try:
                 lastActive = self.GetParentFrame().lastActive
-                # If the window is invalid, reset it.
+                # 037776.python.interact.line697.comment If the window is invalid, reset it.
                 if lastActive is not None and (
                     lastActive._obj_ is None or lastActive.GetSafeHwnd() == 0
                 ):
@@ -762,11 +762,11 @@ class InteractiveFrame(winout.WindowOutputFrame):
             self.lastActive = wndDeactive
 
 
-######################################################################
-##
-## Dockable Window Support
-##
-######################################################################
+# 037777.python.interact.line765.comment #####################################################################
+# 037778.python.interact.line766.comment #
+# 037779.python.interact.line767.comment # Dockable Window Support
+# 037780.python.interact.line768.comment #
+# 037781.python.interact.line769.comment #####################################################################
 ID_DOCKED_INTERACTIVE_CONTROLBAR = 0xE802
 
 DockedInteractiveViewParent = InteractiveView
@@ -783,7 +783,7 @@ class DockedInteractiveView(DockedInteractiveViewParent):
         return 1
 
     def OnKillFocus(self, msg):
-        # If we are losing focus to another in this app, reset the main frame's active view.
+        # 037782.python.interact.line786.comment If we are losing focus to another in this app, reset the main frame's active view.
         hwnd = wparam = msg[2]
         try:
             wnd = win32ui.CreateWindowFromHandle(hwnd)
@@ -859,7 +859,7 @@ class CDockedInteractivePython(CInteractivePython):
             doc.SetTitle(self.title)
 
 
-# The factory we pass to the dockable window support.
+# 037788.python.interact.line862.comment The factory we pass to the dockable window support.
 def InteractiveViewCreator(parent):
     global edit
     edit = CDockedInteractivePython(parent)
@@ -867,8 +867,8 @@ def InteractiveViewCreator(parent):
 
 
 def CreateDockedInteractiveWindow():
-    # Later, the DockingBar should be capable of hosting multiple
-    # children.
+    # 037789.python.interact.line870.comment Later, the DockingBar should be capable of hosting multiple
+    # 037790.python.interact.line871.comment children.
     from pywin.docking.DockingBar import DockingBar
 
     bar = DockingBar()
@@ -889,16 +889,16 @@ def CreateDockedInteractiveWindow():
     win32ui.GetMainFrame().DockControlBar(bar, afxres.AFX_IDW_DOCKBAR_BOTTOM)
 
 
-######################################################################
-#
-# The public interface to this module.
-#
-######################################################################
-# No extra functionality now, but maybe later, so
-# publicize these names.
+# 037791.python.interact.line892.comment #####################################################################
+# 037792.python.interact.line893.comment
+# 037793.python.interact.line894.comment The public interface to this module.
+# 037794.python.interact.line895.comment
+# 037795.python.interact.line896.comment #####################################################################
+# 037796.python.interact.line897.comment No extra functionality now, but maybe later, so
+# 037797.python.interact.line898.comment publicize these names.
 InteractiveDocument = winout.WindowOutputDocument
 
-# We remember our one and only interactive window in the "edit" variable.
+# 037798.python.interact.line901.comment We remember our one and only interactive window in the "edit" variable.
 edit = None
 
 
@@ -941,10 +941,10 @@ def DestroyInteractiveWindow():
     global edit
     if edit is not None and edit.currentView is not None:
         if edit.currentView.GetParentFrame() == win32ui.GetMainFrame():
-            # It is docked - do nothing now (this is only called at shutdown!)
+            # 037799.python.interact.line944.comment It is docked - do nothing now (this is only called at shutdown!)
             pass
         else:
-            # It is a standard window - call Close on the container.
+            # 037800.python.interact.line947.comment It is a standard window - call Close on the container.
             edit.Close()
             edit = None
 
@@ -954,12 +954,12 @@ def CloseInteractiveWindow():
     global edit
     if edit is not None and edit.currentView is not None:
         if edit.currentView.GetParentFrame() == win32ui.GetMainFrame():
-            # It is docked, just hide the dock bar.
+            # 037801.python.interact.line957.comment It is docked, just hide the dock bar.
             frame = win32ui.GetMainFrame()
             cb = frame.GetControlBar(ID_DOCKED_INTERACTIVE_CONTROLBAR)
             frame.ShowControlBar(cb, 0, 1)
         else:
-            # It is a standard window - destroy the frame/view, allowing the object itself to remain.
+            # 037802.python.interact.line962.comment It is a standard window - destroy the frame/view, allowing the object itself to remain.
             edit.currentView.GetParentFrame().DestroyWindow()
 
 
@@ -971,7 +971,7 @@ def ToggleInteractiveWindow():
         if edit.NeedRecreateWindow():
             edit.RecreateWindow()
         else:
-            # Close it, allowing a reopen.
+            # 037803.python.interact.line974.comment Close it, allowing a reopen.
             CloseInteractiveWindow()
 
 

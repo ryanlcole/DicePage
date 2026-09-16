@@ -1,9 +1,9 @@
-# testCollections.py
-#
-# This code tests both the client and server side of collections
-# and enumerators.
-#
-# Also has the side effect of testing some of the PythonCOM error semantics.
+# 049973.python.testCollections.line1.comment testCollections.py
+# 049974.python.testCollections.line2.comment
+# 049975.python.testCollections.line3.comment This code tests both the client and server side of collections
+# 049976.python.testCollections.line4.comment and enumerators.
+# 049977.python.testCollections.line5.comment
+# 049978.python.testCollections.line6.comment Also has the side effect of testing some of the PythonCOM error semantics.
 import sys
 import unittest
 
@@ -15,17 +15,17 @@ import winerror
 
 
 def MakeEmptyEnum():
-    # create the Python enumerator object as a real COM object
+    # 049979.python.testCollections.line18.comment create the Python enumerator object as a real COM object
     o = win32com.server.util.wrap(win32com.server.util.Collection())
     return win32com.client.Dispatch(o)
 
 
 def MakeTestEnum():
-    # create a sub-collection, just to make sure it works :-)
+    # 049980.python.testCollections.line24.comment create a sub-collection, just to make sure it works :-)
     sub = win32com.server.util.wrap(
         win32com.server.util.Collection(["Sub1", 2, "Sub3"])
     )
-    # create the Python enumerator object as a real COM object
+    # 049981.python.testCollections.line28.comment create the Python enumerator object as a real COM object
     o = win32com.server.util.wrap(win32com.server.util.Collection([1, "Two", 3, sub]))
     return win32com.client.Dispatch(o)
 
@@ -41,7 +41,7 @@ def TestEnumAgainst(o, check):
             f"Using Item method gave the incorrect value - {o(i)!r}/{check[i]!r}"
         )
 
-    # First try looping.
+    # 049982.python.testCollections.line44.comment First try looping.
     cmp = []
     for s in o:
         cmp.append(s)
@@ -68,7 +68,7 @@ def TestEnum(quiet=None):
     sub = o[3]
     TestEnumAgainst(sub, ["Sub1", 2, "Sub3"])
 
-    # Remove the sublist for this test!
+    # 049983.python.testCollections.line71.comment Remove the sublist for this test!
     o.Remove(o.Count() - 1)
 
     if not quiet:
@@ -89,11 +89,11 @@ def TestEnum(quiet=None):
     check.insert(2, -1)
     TestEnumAgainst(o, check)
 
-    ### This does not work!
-    # if not quiet: print("Indexed replace item test")
-    # o[2] = 'Replaced Item'
-    # check[2] = 'Replaced Item'
-    # TestEnumAgainst(o, check)
+    # 049984.python.testCollections.line92.comment ## This does not work!
+    # 049985.python.testCollections.line93.comment if not quiet: print("Indexed replace item test")
+    # 049986.python.testCollections.line94.comment o[2] = 'Replaced Item'
+    # 049987.python.testCollections.line95.comment check[2] = 'Replaced Item'
+    # 049988.python.testCollections.line96.comment TestEnumAgainst(o, check)
 
     try:
         o()
@@ -113,7 +113,7 @@ def TestEnum(quiet=None):
             f"Expected DISP_E_TYPEMISMATCH - got {exc}"
         )
 
-    # Remove the sublist for this test!
+    # 049989.python.testCollections.line116.comment Remove the sublist for this test!
     try:
         o.Remove(o.Count())
         raise AssertionError("Remove worked when it shouldn't have!")
@@ -122,7 +122,7 @@ def TestEnum(quiet=None):
             f"Expected DISP_E_BADINDEX - got {exc}"
         )
 
-    # Test an empty collection
+    # 049990.python.testCollections.line125.comment Test an empty collection
     if not quiet:
         print("Empty collection test")
     o = MakeEmptyEnum()

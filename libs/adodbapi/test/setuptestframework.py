@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-# Configure this in order to run the testcases.
+# 021188.python.setuptestframework.line2.comment Configure this in order to run the testcases.
 "setuptestframework.py v 2.6.0.8"
 
 import os
@@ -39,7 +39,7 @@ def find_ado_path():
     return adoPackage
 
 
-# make a new package directory for the test copy of ado
+# 021191.python.setuptestframework.line42.comment make a new package directory for the test copy of ado
 def makeadopackage(testfolder):
     adoName = os.path.normpath(os.getcwd() + "/../adodbapi.py")
     adoPath = os.path.dirname(adoName)
@@ -60,8 +60,8 @@ def makeadopackage(testfolder):
 
 
 def makemdb(testfolder, mdb_name):
-    # following setup code borrowed from pywin32 odbc test suite
-    # kindly contributed by Frank Millman.
+    # 021192.python.setuptestframework.line63.comment following setup code borrowed from pywin32 odbc test suite
+    # 021193.python.setuptestframework.line64.comment kindly contributed by Frank Millman.
     import os
 
     _accessdatasource = os.path.join(testfolder, mdb_name)
@@ -71,7 +71,7 @@ def makemdb(testfolder, mdb_name):
         from win32com.client import constants
         from win32com.client.gencache import EnsureDispatch
 
-        # Create a brand-new database - what is the story with these?
+        # 021194.python.setuptestframework.line74.comment Create a brand-new database - what is the story with these?
         dbe = None
         for suffix in (".36", ".35", ".30"):
             try:

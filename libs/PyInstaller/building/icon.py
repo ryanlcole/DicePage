@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2022-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 000982.python.icon.line1.comment -----------------------------------------------------------------------------
+# 000983.python.icon.line2.comment Copyright (c) 2022-2023, PyInstaller Development Team.
+# 000984.python.icon.line3.comment
+# 000985.python.icon.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 000986.python.icon.line5.comment or later) with exception for distributing the bootloader.
+# 000987.python.icon.line6.comment
+# 000988.python.icon.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 000989.python.icon.line8.comment
+# 000990.python.icon.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 000991.python.icon.line10.comment -----------------------------------------------------------------------------
 
 from typing import Tuple
 
@@ -29,23 +29,23 @@ def normalize_icon_type(icon_path: str, allowed_types: Tuple[str], convert_type:
     workpath - the temp directory to save any newly generated image files
     """
 
-    # explicitly error if file not found
+    # 000992.python.icon.line32.comment explicitly error if file not found
     if not os.path.exists(icon_path):
         raise FileNotFoundError(f"Icon input file {icon_path} not found")
 
     _, extension = os.path.splitext(icon_path)
     extension = extension[1:]  # get rid of the "." in ".whatever"
 
-    # if the file is already in the right format, pass it back unchanged
+    # 000994.python.icon.line39.comment if the file is already in the right format, pass it back unchanged
     if extension in allowed_types:
-        # Check both the suffix and the header of the file to guard against the user confusing image types.
+        # 000995.python.icon.line41.comment Check both the suffix and the header of the file to guard against the user confusing image types.
         signatures = hex_signatures[extension]
         with open(icon_path, "rb") as f:
             header = f.read(max(len(s) for s in signatures))
         if any(list(header)[:len(s)] == s for s in signatures):
             return icon_path
 
-    # The icon type is wrong! Let's try and import PIL
+    # 000996.python.icon.line48.comment The icon type is wrong! Let's try and import PIL
     try:
         from PIL import Image as PILImage
         import PIL
@@ -58,15 +58,15 @@ def normalize_icon_type(icon_path: str, allowed_types: Tuple[str], convert_type:
             f"and try again."
         )
 
-    # Let's try to use PIL to convert the icon file type
+    # 000997.python.icon.line61.comment Let's try to use PIL to convert the icon file type
     try:
         _generated_name = f"generated-{hashlib.sha256(icon_path.encode()).hexdigest()}.{convert_type}"
         generated_icon = os.path.join(workpath, _generated_name)
         with PILImage.open(icon_path) as im:
-            # If an image uses a custom palette + transparency, convert it to RGBA for a better alpha mask depth.
+            # 000998.python.icon.line66.comment If an image uses a custom palette + transparency, convert it to RGBA for a better alpha mask depth.
             if im.mode == "P" and im.info.get("transparency", None) is not None:
-                # The bit depth of the alpha channel will be higher, and the images will look better when eventually
-                # scaled to multiple sizes (16,24,32,..) for the ICO format for example.
+                # 000999.python.icon.line68.comment The bit depth of the alpha channel will be higher, and the images will look better when eventually
+                # 001000.python.icon.line69.comment scaled to multiple sizes (16,24,32,..) for the ICO format for example.
                 im = im.convert("RGBA")
             im.save(generated_icon)
         icon_path = generated_icon
@@ -80,8 +80,8 @@ def normalize_icon_type(icon_path: str, allowed_types: Tuple[str], convert_type:
     return icon_path
 
 
-# Possible initial bytes of icon types PyInstaller needs to be able to recognise.
-# Taken from: https://en.wikipedia.org/wiki/List_of_file_signatures
+# 001001.python.icon.line83.comment Possible initial bytes of icon types PyInstaller needs to be able to recognise.
+# 001002.python.icon.line84.comment Taken from: https://en.wikipedia.org/wiki/List_of_file_signatures
 hex_signatures = {
     "png": [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
     "exe": [[0x4D, 0x5A], [0x5A, 0x4D]],

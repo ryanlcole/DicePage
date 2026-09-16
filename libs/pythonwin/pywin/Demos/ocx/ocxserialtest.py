@@ -1,9 +1,9 @@
-# ocxserialtest.py
-#
-# Sample that uses the mscomm OCX to talk to a serial
-# device.
+# 036817.python.ocxserialtest.line1.comment ocxserialtest.py
+# 036818.python.ocxserialtest.line2.comment
+# 036819.python.ocxserialtest.line3.comment Sample that uses the mscomm OCX to talk to a serial
+# 036820.python.ocxserialtest.line4.comment device.
 
-# Very simple -  queries a modem for ATI responses
+# 036821.python.ocxserialtest.line6.comment Very simple -  queries a modem for ATI responses
 
 import pythoncom
 import win32con
@@ -51,10 +51,10 @@ def MakeDlgTemplate():
     return dlg
 
 
-####################################
-#
-# Serial Control
-#
+# 036822.python.ocxserialtest.line54.comment ###################################
+# 036823.python.ocxserialtest.line55.comment
+# 036824.python.ocxserialtest.line56.comment Serial Control
+# 036825.python.ocxserialtest.line57.comment
 class MySerialControl(activex.Control, serialModule.MSComm):
     def __init__(self, parent):
         activex.Control.__init__(self)

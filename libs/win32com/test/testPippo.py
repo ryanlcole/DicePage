@@ -12,7 +12,7 @@ class PippoTester(unittest.TestCase):
         from win32com.test.util import RegisterPythonServer
 
         RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
-        # create it.
+        # 050185.python.testPippo.line15.comment create it.
         self.object = Dispatch("Python.Test.Pippo")
 
     def testLeaks(self):
@@ -21,7 +21,7 @@ class PippoTester(unittest.TestCase):
         except AttributeError:
             print("Please run this with python_d for leak tests")
             gtrc = lambda: 0
-        # note creating self.object() should have consumed our "one time" leaks
+        # 050186.python.testPippo.line24.comment note creating self.object() should have consumed our "one time" leaks
         self.object.Method1()
         start = gtrc()
         for i in range(1000):
@@ -64,7 +64,7 @@ class PippoTester(unittest.TestCase):
         except AttributeError:
             print("Please run this with python_d for leak tests")
             gtrc = lambda: 0
-        # note creating self.object() should have consumed our "one time" leaks
+        # 050187.python.testPippo.line67.comment note creating self.object() should have consumed our "one time" leaks
         object = EnsureDispatch("Python.Test.Pippo")
         start = gtrc()
         for i in range(1000):

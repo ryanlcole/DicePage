@@ -8,7 +8,7 @@ import win32com.test.util
 from win32timezone import TimeZoneInfo
 
 
-# A COM object so we can pass dates to and from the COM boundary.
+# 049998.python.testDates.line11.comment A COM object so we can pass dates to and from the COM boundary.
 class Tester:
     _public_methods_ = ["TestDate"]
 
@@ -51,7 +51,7 @@ class TestCase(win32com.test.util.TestCase):
         )
 
     def testMSTruncated(self):
-        # milliseconds are kept but microseconds are lost after rounding.
+        # 049999.python.testDates.line54.comment milliseconds are kept but microseconds are lost after rounding.
         self.check(
             datetime(
                 year=2000,

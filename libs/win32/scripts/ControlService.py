@@ -1,30 +1,30 @@
-# ControlService.py
-#
-# A simple app which duplicates some of the functionality in the
-# Services applet of the control panel.
-#
-# Suggested enhancements (in no particular order):
-#
-# 1. When changing the service status, continue to query the status
-# of the service until the status change is complete.  Use this
-# information to put up some kind of a progress dialog like the CP
-# applet does.  Unlike the CP, allow canceling out in the event that
-# the status change hangs.
-# 2. When starting or stopping a service with dependencies, alert
-# the user about the dependent services, then start (or stop) all
-# dependent services as appropriate.
-# 3. Allow toggling between service view and device view
-# 4. Allow configuration of other service parameters such as startup
-# name and password.
-# 5. Allow connection to remote SCMs.  This is just a matter of
-# reconnecting to the SCM on the remote machine; the rest of the
-# code should still work the same.
-# 6. Either implement the startup parameters or get rid of the editbox.
-# 7. Either implement or get rid of "H/W Profiles".
-# 8. Either implement or get rid of "Help".
-# 9. Improve error handling.  Ideally, this would also include falling
-# back to lower levels of functionality for users with less rights.
-# Right now, we always try to get all the rights and fail when we can't
+# 047888.python.ControlService.line1.comment ControlService.py
+# 047889.python.ControlService.line2.comment
+# 047890.python.ControlService.line3.comment A simple app which duplicates some of the functionality in the
+# 047891.python.ControlService.line4.comment Services applet of the control panel.
+# 047892.python.ControlService.line5.comment
+# 047893.python.ControlService.line6.comment Suggested enhancements (in no particular order):
+# 047894.python.ControlService.line7.comment
+# 047895.python.ControlService.line8.comment 1. When changing the service status, continue to query the status
+# 047896.python.ControlService.line9.comment of the service until the status change is complete.  Use this
+# 047897.python.ControlService.line10.comment information to put up some kind of a progress dialog like the CP
+# 047898.python.ControlService.line11.comment applet does.  Unlike the CP, allow canceling out in the event that
+# 047899.python.ControlService.line12.comment the status change hangs.
+# 047900.python.ControlService.line13.comment 2. When starting or stopping a service with dependencies, alert
+# 047901.python.ControlService.line14.comment the user about the dependent services, then start (or stop) all
+# 047902.python.ControlService.line15.comment dependent services as appropriate.
+# 047903.python.ControlService.line16.comment 3. Allow toggling between service view and device view
+# 047904.python.ControlService.line17.comment 4. Allow configuration of other service parameters such as startup
+# 047905.python.ControlService.line18.comment name and password.
+# 047906.python.ControlService.line19.comment 5. Allow connection to remote SCMs.  This is just a matter of
+# 047907.python.ControlService.line20.comment reconnecting to the SCM on the remote machine; the rest of the
+# 047908.python.ControlService.line21.comment code should still work the same.
+# 047909.python.ControlService.line22.comment 6. Either implement the startup parameters or get rid of the editbox.
+# 047910.python.ControlService.line23.comment 7. Either implement or get rid of "H/W Profiles".
+# 047911.python.ControlService.line24.comment 8. Either implement or get rid of "Help".
+# 047912.python.ControlService.line25.comment 9. Improve error handling.  Ideally, this would also include falling
+# 047913.python.ControlService.line26.comment back to lower levels of functionality for users with less rights.
+# 047914.python.ControlService.line27.comment Right now, we always try to get all the rights and fail when we can't
 
 
 import win32con
@@ -58,10 +58,10 @@ class StartupDlg(dialog.Dialog):
         if (status[0] & win32service.SERVICE_KERNEL_DRIVER) or (
             status[0] & win32service.SERVICE_FILE_SYSTEM_DRIVER
         ):
-            # driver
+            # 047915.python.ControlService.line61.comment driver
             self.GetDlgItem(self.IDC_LABEL).SetWindowText("Device:")
         else:
-            # service
+            # 047916.python.ControlService.line64.comment service
             self.GetDlgItem(self.IDC_LABEL).SetWindowText("Service:")
             self.GetDlgItem(self.IDC_BOOT).EnableWindow(0)
             self.GetDlgItem(self.IDC_SYSTEM).EnableWindow(0)
@@ -305,7 +305,7 @@ class ServiceDlg(dialog.Dialog):
                 startup = "Unknown"
             win32service.CloseServiceHandle(s)
 
-            # svc[2][2] control buttons
+            # 047917.python.ControlService.line308.comment svc[2][2] control buttons
             pos = self.listCtrl.AddString(str(svc[1]) + "\t" + status + "\t" + startup)
             self.listCtrl.SetItemData(pos, i)
             self.data.append(

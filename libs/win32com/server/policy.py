@@ -75,7 +75,7 @@ import win32api
 import win32con
 import winerror
 
-# Import a few important constants to speed lookups.
+# 049645.python.policy.line78.comment Import a few important constants to speed lookups.
 from pythoncom import (
     DISPATCH_METHOD,
     DISPATCH_PROPERTYGET,
@@ -94,7 +94,7 @@ __author__ = "Greg Stein and Mark Hammond"
 
 S_OK = 0
 
-# Few more globals to speed things.
+# 049646.python.policy.line97.comment Few more globals to speed things.
 IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 IUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
@@ -116,7 +116,7 @@ def CreateInstance(clsid, reqIID):
     Exactly how the policy creates the instance is up to the policy.  See the
     specific policy documentation for more details.
     """
-    # First see is sys.path should have something on it.
+    # 049647.python.policy.line119.comment First see is sys.path should have something on it.
     try:
         addnPaths = win32api.RegQueryValue(
             win32con.HKEY_CLASSES_ROOT, regAddnPath % clsid
@@ -228,8 +228,8 @@ class BasicWrapPolicy:
         This function keeps a reference to the passed
         object, and may interogate it to determine how to respond to COM requests, etc.
         """
-        # We "clobber" certain of our own methods with ones
-        # provided by the wrapped object, iff they exist.
+        # 049648.python.policy.line231.comment We "clobber" certain of our own methods with ones
+        # 049649.python.policy.line232.comment provided by the wrapped object, iff they exist.
         self._name_to_dispid_ = {}
         ob = self._obj_ = object
         if hasattr(ob, "_query_interface_"):
@@ -247,13 +247,13 @@ class BasicWrapPolicy:
         if hasattr(ob, "_getdispid_"):
             self._getdispid_ = ob._getdispid_
 
-        # Allow for override of certain special attributes.
+        # 049650.python.policy.line250.comment Allow for override of certain special attributes.
         if hasattr(ob, "_com_interfaces_"):
             self._com_interfaces_ = []
-            # Allow interfaces to be specified by name.
+            # 049651.python.policy.line253.comment Allow interfaces to be specified by name.
             for i in ob._com_interfaces_:
                 if not isinstance(i, pywintypes.IIDType):
-                    # Prolly a string!
+                    # 049652.python.policy.line256.comment Prolly a string!
                     if i[0] != "{":
                         i = pythoncom.InterfaceNames[i]
                     else:
@@ -262,7 +262,7 @@ class BasicWrapPolicy:
         else:
             self._com_interfaces_ = []
 
-    # "QueryInterface" handling.
+    # 049653.python.policy.line265.comment "QueryInterface" handling.
     def _QueryInterface_(self, iid):
         """The main COM entry-point for QueryInterface.
 
@@ -281,13 +281,13 @@ class BasicWrapPolicy:
         """
         return 0
 
-    # "Invoke" handling.
+    # 049654.python.policy.line284.comment "Invoke" handling.
     def _Invoke_(self, dispid, lcid, wFlags, args):
         """The main COM entry-point for Invoke.
 
         This calls the _invoke_ helper.
         """
-        # Translate a possible string dispid to real dispid.
+        # 049655.python.policy.line290.comment Translate a possible string dispid to real dispid.
         if isinstance(dispid, str):
             try:
                 dispid = self._name_to_dispid_[dispid.lower()]
@@ -298,11 +298,11 @@ class BasicWrapPolicy:
         return self._invoke_(dispid, lcid, wFlags, args)
 
     def _invoke_(self, dispid, lcid, wFlags, args):
-        # Delegates to the _invokeex_ implementation.  This allows
-        # a custom policy to define _invokeex_, and automatically get _invoke_ too.
+        # 049656.python.policy.line301.comment Delegates to the _invokeex_ implementation.  This allows
+        # 049657.python.policy.line302.comment a custom policy to define _invokeex_, and automatically get _invoke_ too.
         return S_OK, -1, self._invokeex_(dispid, lcid, wFlags, args, None, None)
 
-    # "GetIDsOfNames" handling.
+    # 049658.python.policy.line305.comment "GetIDsOfNames" handling.
     def _GetIDsOfNames_(self, names, lcid):
         """The main COM entry-point for GetIDsOfNames.
 
@@ -316,30 +316,30 @@ class BasicWrapPolicy:
         return self._getidsofnames_(names, lcid)
 
     def _getidsofnames_(self, names, lcid):
-        ### note: lcid is being ignored...
+        # 049659.python.policy.line319.comment ## note: lcid is being ignored...
         return (self._getdispid_(names[0], 0),)
 
-    # IDispatchEx support for policies.  Most of the IDispathEx functionality
-    # by default will raise E_NOTIMPL.  Thus it is not necessary for derived
-    # policies to explicitly implement all this functionality just to not implement it!
+    # 049660.python.policy.line322.comment IDispatchEx support for policies.  Most of the IDispathEx functionality
+    # 049661.python.policy.line323.comment by default will raise E_NOTIMPL.  Thus it is not necessary for derived
+    # 049662.python.policy.line324.comment policies to explicitly implement all this functionality just to not implement it!
 
     def _GetDispID_(self, name, fdex):
         return self._getdispid_(name, fdex)
 
     def _getdispid_(self, name, fdex):
         try:
-            ### TODO - look at the fdex flags!!!
+            # 049663.python.policy.line331.comment ## TODO - look at the fdex flags!!!
             return self._name_to_dispid_[name.lower()]
         except KeyError:
             raise COMException(scode=winerror.DISP_E_UNKNOWNNAME)
 
-    # "InvokeEx" handling.
+    # 049664.python.policy.line336.comment "InvokeEx" handling.
     def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
         """The main COM entry-point for InvokeEx.
 
         This calls the _invokeex_ helper.
         """
-        # Translate a possible string dispid to real dispid.
+        # 049665.python.policy.line342.comment Translate a possible string dispid to real dispid.
         if isinstance(dispid, str):
             try:
                 dispid = self._name_to_dispid_[dispid.lower()]
@@ -354,7 +354,7 @@ class BasicWrapPolicy:
 
         Simply raises an exception.
         """
-        # Base classes should override this method (and not call the base)
+        # 049666.python.policy.line357.comment Base classes should override this method (and not call the base)
         raise NotImplementedError("This class does not provide _invokeex_ semantics")
 
     def _DeleteMemberByName_(self, name, fdex):
@@ -485,16 +485,16 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
     """
 
     def _wrap_(self, ob):
-        # If we have nominated universal interfaces to support, load them now
+        # 049669.python.policy.line488.comment If we have nominated universal interfaces to support, load them now
         tlb_guid = getattr(ob, "_typelib_guid_", None)
         if tlb_guid is not None:
             tlb_major, tlb_minor = getattr(ob, "_typelib_version_", (1, 0))
             tlb_lcid = getattr(ob, "_typelib_lcid_", 0)
             from win32com import universal
 
-            # XXX - what if the user wants to implement interfaces from multiple
-            # typelibs?
-            # Filter out all 'normal' IIDs (ie, IID objects and strings starting with {
+            # 049670.python.policy.line495.comment XXX - what if the user wants to implement interfaces from multiple
+            # 049671.python.policy.line496.comment typelibs?
+            # 049672.python.policy.line497.comment Filter out all 'normal' IIDs (ie, IID objects and strings starting with {
             interfaces = [
                 i
                 for i in getattr(ob, "_com_interfaces_", [])
@@ -512,7 +512,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 + "as it does not have either _public_methods_ or _typelib_guid_ attributes.",
             )
 
-        # Copy existing _dispid_to_func_ entries to _name_to_dispid_
+        # 049673.python.policy.line515.comment Copy existing _dispid_to_func_ entries to _name_to_dispid_
         for dispid, name in self._dispid_to_func_.items():
             self._name_to_dispid_[name.lower()] = dispid
         for dispid, name in self._dispid_to_get_.items():
@@ -520,7 +520,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         for dispid, name in self._dispid_to_put_.items():
             self._name_to_dispid_[name.lower()] = dispid
 
-        # Patch up the universal stuff.
+        # 049674.python.policy.line523.comment Patch up the universal stuff.
         for dispid, invkind, name in universal_data:
             self._name_to_dispid_[name.lower()] = dispid
             if invkind == DISPATCH_METHOD:
@@ -532,7 +532,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             else:
                 raise ValueError("unexpected invkind: %d (%s)" % (invkind, name))
 
-        # look for reserved methods
+        # 049675.python.policy.line535.comment look for reserved methods
         if hasattr(ob, "_value_"):
             self._dispid_to_get_[DISPID_VALUE] = "_value_"
             self._dispid_to_put_[DISPID_PROPERTYPUT] = "_value_"
@@ -544,7 +544,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             self._dispid_to_func_[DISPID_EVALUATE] = "_Evaluate"
 
         next_dispid = self._allocnextdispid(999)
-        # note: funcs have precedence over attrs (install attrs first)
+        # 049676.python.policy.line547.comment note: funcs have precedence over attrs (install attrs first)
         if hasattr(ob, "_public_attrs_"):
             if hasattr(ob, "_readonly_attrs_"):
                 readonly = ob._readonly_attrs_
@@ -569,15 +569,15 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         self._typeinfos_ = None  # load these on demand.
 
     def _build_typeinfos_(self):
-        # Can only ever be one for now.
+        # 049678.python.policy.line572.comment Can only ever be one for now.
         tlb_guid = getattr(self._obj_, "_typelib_guid_", None)
         if tlb_guid is None:
             return []
         tlb_major, tlb_minor = getattr(self._obj_, "_typelib_version_", (1, 0))
         tlb = pythoncom.LoadRegTypeLib(tlb_guid, tlb_major, tlb_minor)
         typecomp = tlb.GetTypeComp()
-        # Not 100% sure what semantics we should use for the default interface.
-        # Look for the first name in _com_interfaces_ that exists in the typelib.
+        # 049679.python.policy.line579.comment Not 100% sure what semantics we should use for the default interface.
+        # 049680.python.policy.line580.comment Look for the first name in _com_interfaces_ that exists in the typelib.
         for iname in self._obj_._com_interfaces_:
             try:
                 type_info, type_comp = typecomp.BindType(iname)
@@ -610,7 +610,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 return last_dispid
 
     def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):
-        ### note: lcid is being ignored...
+        # 049681.python.policy.line613.comment ## note: lcid is being ignored...
 
         if wFlags & DISPATCH_METHOD:
             try:
@@ -624,14 +624,14 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 try:
                     func = getattr(self._obj_, funcname)
                 except AttributeError:
-                    # May have a dispid, but that doesn't mean we have the function!
+                    # 049683.python.policy.line627.comment May have a dispid, but that doesn't mean we have the function!
                     raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-                # Should check callable here
+                # 049684.python.policy.line629.comment Should check callable here
                 try:
                     return func(*args)
                 except TypeError as v:
-                    # Particularly nasty is "wrong number of args" type error
-                    # This helps you see what 'func' and 'args' actually is
+                    # 049685.python.policy.line633.comment Particularly nasty is "wrong number of args" type error
+                    # 049686.python.policy.line634.comment This helps you see what 'func' and 'args' actually is
                     if str(v).find("arguments") >= 0:
                         print(f"** TypeError {v} calling function {func!r}({args!r})")
                     raise
@@ -651,15 +651,15 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 name = self._dispid_to_put_[dispid]
             except KeyError:
                 raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)  # read-only
-            # If we have a method of that name (ie, a property get function), and
-            # we have an equiv. property set function, use that instead.
+            # 049691.python.policy.line654.comment If we have a method of that name (ie, a property get function), and
+            # 049692.python.policy.line655.comment we have an equiv. property set function, use that instead.
             fn = getattr(self._obj_, "Set" + name, None)
             if isinstance(fn, types.MethodType) and isinstance(
                 getattr(self._obj_, name, None), types.MethodType
             ):
                 fn(*args)
             else:
-                # just set the attribute
+                # 049693.python.policy.line662.comment just set the attribute
                 setattr(self._obj_, name, args[0])
             return
 
@@ -695,7 +695,7 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
         return tuple(ret), kwArgs
 
     def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):
-        # transform the args.
+        # 049695.python.policy.line698.comment transform the args.
         args, kwArgs = self._transform_args_(
             args, kwArgs, dispid, lcid, wFlags, serviceProvider
         )
@@ -733,7 +733,7 @@ class DynamicPolicy(BasicWrapPolicy):
         }
 
     def _getdispid_(self, name, fdex):
-        # TODO - Look at fdex flags.
+        # 049696.python.policy.line736.comment TODO - Look at fdex flags.
         lname = name.lower()
         try:
             return self._name_to_dispid_[lname]
@@ -747,10 +747,10 @@ class DynamicPolicy(BasicWrapPolicy):
         return S_OK, -1, self._invokeex_(dispid, lcid, wFlags, args, None, None)
 
     def _invokeex_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
-        ### note: lcid is being ignored...
-        ### note: kwargs is being ignored...
-        ### note: serviceProvider is being ignored...
-        ### there might be assigned DISPID values to properties, too...
+        # 049698.python.policy.line750.comment ## note: lcid is being ignored...
+        # 049699.python.policy.line751.comment ## note: kwargs is being ignored...
+        # 049700.python.policy.line752.comment ## note: serviceProvider is being ignored...
+        # 049701.python.policy.line753.comment ## there might be assigned DISPID values to properties, too...
         try:
             name = self._dyn_dispid_to_name_[dispid]
         except KeyError:
@@ -773,9 +773,9 @@ def resolve_func(spec):
         idx = spec.rindex(".")
         mname = spec[:idx]
         fname = spec[idx + 1 :]
-        # Don't attempt to optimize by looking in sys.modules,
-        # as another thread may also be performing the import - this
-        # way we take advantage of the built-in import lock.
+        # 049702.python.policy.line776.comment Don't attempt to optimize by looking in sys.modules,
+        # 049703.python.policy.line777.comment as another thread may also be performing the import - this
+        # 049704.python.policy.line778.comment way we take advantage of the built-in import lock.
         module = _import_module(mname)
         return getattr(module, fname)
     except ValueError:  # No "." in name - assume in this module
@@ -798,6 +798,6 @@ def _import_module(mname):
     using the 'exec' keyword.  It is more efficient and obvious to the reader.
     """
     __import__(mname)
-    # Eeek - result of _import_ is "win32com" - not "win32com.a.b.c"
-    # Get the full module from sys.modules
+    # 049706.python.policy.line801.comment Eeek - result of _import_ is "win32com" - not "win32com.a.b.c"
+    # 049707.python.policy.line802.comment Get the full module from sys.modules
     return sys.modules[mname]

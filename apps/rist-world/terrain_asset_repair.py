@@ -274,8 +274,8 @@ def _seamless_texture(image: Image.Image, blend_fraction: float = 0.16) -> Image
     shifted = np.roll(source, (height // 2, width // 2), axis=(0, 1))
     pixels = source * center_weight + shifted * (1 - center_weight)
 
-    # Make paired edge pixels converge over a shallow feather. This preserves
-    # the water detail while guaranteeing that a repeated tile has no hard box.
+    # 000025.python.terrain_asset_repair.line277.comment Make paired edge pixels converge over a shallow feather. This preserves
+    # 000026.python.terrain_asset_repair.line278.comment the water detail while guaranteeing that a repeated tile has no hard box.
     feather = max(6, round(min(width, height) * blend_fraction / 2))
     for distance in range(feather):
         weight = ((feather - distance) / feather) ** 2

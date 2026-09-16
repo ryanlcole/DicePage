@@ -1,6 +1,6 @@
-# Demo of using just windows, without documents and views.
+# 036912.python.threadedgui.line1.comment Demo of using just windows, without documents and views.
 
-# Also demo of a GUI thread, pretty much direct from the MFC C++ sample MTMDI.
+# 036913.python.threadedgui.line3.comment Also demo of a GUI thread, pretty much direct from the MFC C++ sample MTMDI.
 
 import timer
 import win32api
@@ -11,16 +11,16 @@ from pywin.mfc.thread import WinThread
 
 WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32
 
-# font is a dictionary in which the following elements matter:
-# (the best matching font to supplied parameters is returned)
-#   name		string name of the font as known by Windows
-#   size		point size of font in logical units
-#   weight		weight of font (win32con.FW_NORMAL, win32con.FW_BOLD)
-#   italic		boolean; true if set to anything but None
-#   underline	boolean; true if set to anything but None
+# 036914.python.threadedgui.line14.comment font is a dictionary in which the following elements matter:
+# 036915.python.threadedgui.line15.comment (the best matching font to supplied parameters is returned)
+# 036916.python.threadedgui.line16.comment name		string name of the font as known by Windows
+# 036917.python.threadedgui.line17.comment size		point size of font in logical units
+# 036918.python.threadedgui.line18.comment weight		weight of font (win32con.FW_NORMAL, win32con.FW_BOLD)
+# 036919.python.threadedgui.line19.comment italic		boolean; true if set to anything but None
+# 036920.python.threadedgui.line20.comment underline	boolean; true if set to anything but None
 
 
-# This window is a child window of a frame.  It is not the frame window itself.
+# 036921.python.threadedgui.line23.comment This window is a child window of a frame.  It is not the frame window itself.
 class FontWindow(window.Wnd):
     def __init__(self, text="Python Rules!"):
         window.Wnd.__init__(self)
@@ -29,7 +29,7 @@ class FontWindow(window.Wnd):
         self.incr = 1
         self.width = self.height = 0
         self.ChangeAttributes()
-        # set up message handlers
+        # 036922.python.threadedgui.line32.comment set up message handlers
 
     def Create(self, title, style, rect, parent):
         classStyle = win32con.CS_HREDRAW | win32con.CS_VREDRAW
@@ -61,7 +61,7 @@ class FontWindow(window.Wnd):
         self.InvalidateRect()
 
     def OnPaint(self):
-        # print("Paint message from thread", win32api.GetCurrentThreadId())
+        # 036923.python.threadedgui.line64.comment print("Paint message from thread", win32api.GetCurrentThreadId())
         dc, paintStruct = self.BeginPaint()
         self.OnPrepareDC(dc, None)
 
@@ -86,7 +86,7 @@ class FontWindow(window.Wnd):
         self.height = win32api.HIWORD(lParam)
 
     def OnPrepareDC(self, dc, printinfo):
-        # Set up the DC for forthcoming OnDraw call
+        # 036924.python.threadedgui.line89.comment Set up the DC for forthcoming OnDraw call
         dc.SetTextColor(win32api.RGB(0, 0, 255))
         dc.SetBkColor(win32api.GetSysColor(win32con.COLOR_WINDOW))
         dc.SelectObject(self.font)
@@ -176,7 +176,7 @@ def ThreadedDemo():
             title = "Threaded GUI Demo"
         f.Create(title, rect)
         rect = rect[0] + incr, rect[1], rect[2] + incr, rect[3]
-    # Givem a chance to start
+    # 036927.python.threadedgui.line179.comment Givem a chance to start
     win32api.Sleep(100)
     win32ui.PumpWaitingMessages()
 
@@ -186,4 +186,4 @@ if __name__ == "__main__":
 
     if demoutils.NeedGoodGUI():
         ThreadedDemo()
-# 		Demo()
+# 036928.python.threadedgui.line189.comment Demo()

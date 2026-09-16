@@ -4,7 +4,7 @@ import sys
 if sys.version_info < (3, 9):
 
     def removesuffix(self, suffix):
-        # suffix='' should not call self[:-0].
+        # 042077.python.py38.line7.comment suffix='' should not call self[:-0].
         if suffix and self.endswith(suffix):
             return self[: -len(suffix)]
         else:

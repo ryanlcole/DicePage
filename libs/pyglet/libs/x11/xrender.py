@@ -34,7 +34,7 @@ class XRenderPictFormat(Structure):
         ('colormap', c_ulong),
     ]
 
-# XRenderFindVisualFormat(Display *dpy, Visual *visual)
+# 033579.python.xrender.line37.comment XRenderFindVisualFormat(Display *dpy, Visual *visual)
 try:
     XRenderFindVisualFormat = lib.XRenderFindVisualFormat
     XRenderFindVisualFormat.argtypes = [c_void_p, POINTER(Visual)]

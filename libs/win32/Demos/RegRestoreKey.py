@@ -9,10 +9,10 @@ import winnt
 temp_dir = win32api.GetTempPath()
 fname = win32api.GetTempFileName(temp_dir, "rsk")[0]
 print(fname)
-## file can't exist
+# 046016.python.RegRestoreKey.line12.comment # file can't exist
 os.remove(fname)
 
-## enable backup and restore privs
+# 046017.python.RegRestoreKey.line15.comment # enable backup and restore privs
 required_privs = (
     (
         win32security.LookupPrivilegeValue("", ntsecuritycon.SE_BACKUP_NAME),

@@ -1,5 +1,5 @@
-# glyph_ai_core.py — Phase 15
-# Glyph “thinking” with lightweight resonance memory.
+# 000035.python.glyph_ai_core.line1.comment glyph_ai_core.py — Phase 15
+# 000036.python.glyph_ai_core.line2.comment Glyph “thinking” with lightweight resonance memory.
 
 from __future__ import annotations
 import json, os, math, random, time

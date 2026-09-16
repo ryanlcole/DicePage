@@ -15,7 +15,7 @@ import warnings
 from threading import Thread
 from typing import TYPE_CHECKING
 
-# pyobjc
+# 045698.python.fsevents2.line18.comment pyobjc
 import AppKit
 from FSEvents import (
     CFRunLoopGetCurrent,
@@ -111,7 +111,7 @@ class FSEventsQueue(Thread):
         FSEventStreamInvalidate(self._stream_ref)
         FSEventStreamRelease(self._stream_ref)
         del pool
-        # Make sure waiting thread is notified
+        # 045699.python.fsevents2.line114.comment Make sure waiting thread is notified
         self._queue.put(None)
 
     def stop(self) -> None:
@@ -206,16 +206,16 @@ class FSEventsEmitter(EventEmitter):
             event = events[i]
 
             cls: type[FileSystemEvent]
-            # For some reason the create and remove flags are sometimes also
-            # set for rename and modify type events, so let those take
-            # precedence.
+            # 045700.python.fsevents2.line209.comment For some reason the create and remove flags are sometimes also
+            # 045701.python.fsevents2.line210.comment set for rename and modify type events, so let those take
+            # 045702.python.fsevents2.line211.comment precedence.
             if event.is_renamed:
-                # Internal moves appears to always be consecutive in the same
-                # buffer and have IDs differ by exactly one (while others
-                # don't) making it possible to pair up the two events coming
-                # from a single move operation. (None of this is documented!)
-                # Otherwise, guess whether file was moved in or out.
-                # TODO: handle id wrapping
+                # 045703.python.fsevents2.line213.comment Internal moves appears to always be consecutive in the same
+                # 045704.python.fsevents2.line214.comment buffer and have IDs differ by exactly one (while others
+                # 045705.python.fsevents2.line215.comment don't) making it possible to pair up the two events coming
+                # 045706.python.fsevents2.line216.comment from a single move operation. (None of this is documented!)
+                # 045707.python.fsevents2.line217.comment Otherwise, guess whether file was moved in or out.
+                # 045708.python.fsevents2.line218.comment TODO: handle id wrapping
                 if i + 1 < len(events) and events[i + 1].is_renamed and events[i + 1].event_id == event.event_id + 1:
                     cls = DirMovedEvent if event.is_directory else FileMovedEvent
                     self.queue_event(cls(event.path, events[i + 1].path))
@@ -230,7 +230,7 @@ class FSEventsEmitter(EventEmitter):
                     cls = DirDeletedEvent if event.is_directory else FileDeletedEvent
                     self.queue_event(cls(event.path))
                     self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
-                # TODO: generate events for tree
+                # 045709.python.fsevents2.line233.comment TODO: generate events for tree
 
             elif event.is_modified or event.is_inode_meta_mod or event.is_xattr_mod:
                 cls = DirModifiedEvent if event.is_directory else FileModifiedEvent

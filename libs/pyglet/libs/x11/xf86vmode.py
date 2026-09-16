@@ -16,18 +16,18 @@ _lib = pyglet.lib.load_library('Xxf86vm')
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 032112.python.xf86vmode.line19.comment Some builds of ctypes apparently do not have c_int64
+    # 032113.python.xf86vmode.line20.comment defined; it's a pretty good bet that these builds do not
+    # 032114.python.xf86vmode.line21.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
         c_ptrdiff_t = t
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 032115.python.xf86vmode.line28.comment c_void_p is a buggy return type, converting to int, so
+    # 032116.python.xf86vmode.line29.comment POINTER(None) == c_void_p is actually written as
+    # 032117.python.xf86vmode.line30.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -204,112 +204,112 @@ struct_anon_98._fields_ = [
 ]
 
 XF86VidModeGamma = struct_anon_98 	# /usr/include/X11/extensions/xf86vmode.h:5008
-# /usr/include/X11/extensions/xf86vmode.h:5018
+# 032158.python.xf86vmode.line207.comment /usr/include/X11/extensions/xf86vmode.h:5018
 XF86VidModeQueryVersion = _lib.XF86VidModeQueryVersion
 XF86VidModeQueryVersion.restype = c_int
 XF86VidModeQueryVersion.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5024
+# 032159.python.xf86vmode.line212.comment /usr/include/X11/extensions/xf86vmode.h:5024
 XF86VidModeQueryExtension = _lib.XF86VidModeQueryExtension
 XF86VidModeQueryExtension.restype = c_int
 XF86VidModeQueryExtension.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5030
+# 032160.python.xf86vmode.line217.comment /usr/include/X11/extensions/xf86vmode.h:5030
 XF86VidModeSetClientVersion = _lib.XF86VidModeSetClientVersion
 XF86VidModeSetClientVersion.restype = c_int
 XF86VidModeSetClientVersion.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5034
+# 032161.python.xf86vmode.line222.comment /usr/include/X11/extensions/xf86vmode.h:5034
 XF86VidModeGetModeLine = _lib.XF86VidModeGetModeLine
 XF86VidModeGetModeLine.restype = c_int
 XF86VidModeGetModeLine.argtypes = [POINTER(Display), c_int, POINTER(c_int), POINTER(XF86VidModeModeLine)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5041
+# 032162.python.xf86vmode.line227.comment /usr/include/X11/extensions/xf86vmode.h:5041
 XF86VidModeGetAllModeLines = _lib.XF86VidModeGetAllModeLines
 XF86VidModeGetAllModeLines.restype = c_int
 XF86VidModeGetAllModeLines.argtypes = [POINTER(Display), c_int, POINTER(c_int), POINTER(POINTER(POINTER(XF86VidModeModeInfo)))]
 
-# /usr/include/X11/extensions/xf86vmode.h:5048
+# 032163.python.xf86vmode.line232.comment /usr/include/X11/extensions/xf86vmode.h:5048
 XF86VidModeAddModeLine = _lib.XF86VidModeAddModeLine
 XF86VidModeAddModeLine.restype = c_int
 XF86VidModeAddModeLine.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeModeInfo), POINTER(XF86VidModeModeInfo)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5055
+# 032164.python.xf86vmode.line237.comment /usr/include/X11/extensions/xf86vmode.h:5055
 XF86VidModeDeleteModeLine = _lib.XF86VidModeDeleteModeLine
 XF86VidModeDeleteModeLine.restype = c_int
 XF86VidModeDeleteModeLine.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeModeInfo)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5061
+# 032165.python.xf86vmode.line242.comment /usr/include/X11/extensions/xf86vmode.h:5061
 XF86VidModeModModeLine = _lib.XF86VidModeModModeLine
 XF86VidModeModModeLine.restype = c_int
 XF86VidModeModModeLine.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeModeLine)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5067
+# 032166.python.xf86vmode.line247.comment /usr/include/X11/extensions/xf86vmode.h:5067
 XF86VidModeValidateModeLine = _lib.XF86VidModeValidateModeLine
 XF86VidModeValidateModeLine.restype = c_int
 XF86VidModeValidateModeLine.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeModeInfo)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5073
+# 032167.python.xf86vmode.line252.comment /usr/include/X11/extensions/xf86vmode.h:5073
 XF86VidModeSwitchMode = _lib.XF86VidModeSwitchMode
 XF86VidModeSwitchMode.restype = c_int
 XF86VidModeSwitchMode.argtypes = [POINTER(Display), c_int, c_int]
 
-# /usr/include/X11/extensions/xf86vmode.h:5079
+# 032168.python.xf86vmode.line257.comment /usr/include/X11/extensions/xf86vmode.h:5079
 XF86VidModeSwitchToMode = _lib.XF86VidModeSwitchToMode
 XF86VidModeSwitchToMode.restype = c_int
 XF86VidModeSwitchToMode.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeModeInfo)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5085
+# 032169.python.xf86vmode.line262.comment /usr/include/X11/extensions/xf86vmode.h:5085
 XF86VidModeLockModeSwitch = _lib.XF86VidModeLockModeSwitch
 XF86VidModeLockModeSwitch.restype = c_int
 XF86VidModeLockModeSwitch.argtypes = [POINTER(Display), c_int, c_int]
 
-# /usr/include/X11/extensions/xf86vmode.h:5091
+# 032170.python.xf86vmode.line267.comment /usr/include/X11/extensions/xf86vmode.h:5091
 XF86VidModeGetMonitor = _lib.XF86VidModeGetMonitor
 XF86VidModeGetMonitor.restype = c_int
 XF86VidModeGetMonitor.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeMonitor)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5097
+# 032171.python.xf86vmode.line272.comment /usr/include/X11/extensions/xf86vmode.h:5097
 XF86VidModeGetViewPort = _lib.XF86VidModeGetViewPort
 XF86VidModeGetViewPort.restype = c_int
 XF86VidModeGetViewPort.argtypes = [POINTER(Display), c_int, POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5104
+# 032172.python.xf86vmode.line277.comment /usr/include/X11/extensions/xf86vmode.h:5104
 XF86VidModeSetViewPort = _lib.XF86VidModeSetViewPort
 XF86VidModeSetViewPort.restype = c_int
 XF86VidModeSetViewPort.argtypes = [POINTER(Display), c_int, c_int, c_int]
 
-# /usr/include/X11/extensions/xf86vmode.h:5111
+# 032173.python.xf86vmode.line282.comment /usr/include/X11/extensions/xf86vmode.h:5111
 XF86VidModeGetDotClocks = _lib.XF86VidModeGetDotClocks
 XF86VidModeGetDotClocks.restype = c_int
 XF86VidModeGetDotClocks.argtypes = [POINTER(Display), c_int, POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
 
-# /usr/include/X11/extensions/xf86vmode.h:5120
+# 032174.python.xf86vmode.line287.comment /usr/include/X11/extensions/xf86vmode.h:5120
 XF86VidModeGetGamma = _lib.XF86VidModeGetGamma
 XF86VidModeGetGamma.restype = c_int
 XF86VidModeGetGamma.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeGamma)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5126
+# 032175.python.xf86vmode.line292.comment /usr/include/X11/extensions/xf86vmode.h:5126
 XF86VidModeSetGamma = _lib.XF86VidModeSetGamma
 XF86VidModeSetGamma.restype = c_int
 XF86VidModeSetGamma.argtypes = [POINTER(Display), c_int, POINTER(XF86VidModeGamma)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5132
+# 032176.python.xf86vmode.line297.comment /usr/include/X11/extensions/xf86vmode.h:5132
 XF86VidModeSetGammaRamp = _lib.XF86VidModeSetGammaRamp
 XF86VidModeSetGammaRamp.restype = c_int
 XF86VidModeSetGammaRamp.argtypes = [POINTER(Display), c_int, c_int, POINTER(c_ushort), POINTER(c_ushort), POINTER(c_ushort)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5141
+# 032177.python.xf86vmode.line302.comment /usr/include/X11/extensions/xf86vmode.h:5141
 XF86VidModeGetGammaRamp = _lib.XF86VidModeGetGammaRamp
 XF86VidModeGetGammaRamp.restype = c_int
 XF86VidModeGetGammaRamp.argtypes = [POINTER(Display), c_int, c_int, POINTER(c_ushort), POINTER(c_ushort), POINTER(c_ushort)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5150
+# 032178.python.xf86vmode.line307.comment /usr/include/X11/extensions/xf86vmode.h:5150
 XF86VidModeGetGammaRampSize = _lib.XF86VidModeGetGammaRampSize
 XF86VidModeGetGammaRampSize.restype = c_int
 XF86VidModeGetGammaRampSize.argtypes = [POINTER(Display), c_int, POINTER(c_int)]
 
-# /usr/include/X11/extensions/xf86vmode.h:5156
+# 032179.python.xf86vmode.line312.comment /usr/include/X11/extensions/xf86vmode.h:5156
 XF86VidModeGetPermissions = _lib.XF86VidModeGetPermissions
 XF86VidModeGetPermissions.restype = c_int
 XF86VidModeGetPermissions.argtypes = [POINTER(Display), c_int, POINTER(c_int)]

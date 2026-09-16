@@ -80,7 +80,7 @@ def read_pkg_file(self, file):
     self.name = _read_field_from_msg(msg, 'name')
     self.version = _read_field_from_msg(msg, 'version')
     self.description = _read_field_from_msg(msg, 'summary')
-    # we are filling author only.
+    # 039201.python.core_metadata.line83.comment we are filling author only.
     self.author = _read_field_from_msg(msg, 'author')
     self.maintainer = None
     self.author_email = _read_field_from_msg(msg, 'author-email')
@@ -101,7 +101,7 @@ def read_pkg_file(self, file):
     self.platforms = _read_list_from_msg(msg, 'platform')
     self.classifiers = _read_list_from_msg(msg, 'classifier')
 
-    # PEP 314 - these fields only exist in 1.1
+    # 039202.python.core_metadata.line104.comment PEP 314 - these fields only exist in 1.1
     if self.metadata_version == Version('1.1'):
         self.requires = _read_list_from_msg(msg, 'requires')
         self.provides = _read_list_from_msg(msg, 'provides')
@@ -119,11 +119,11 @@ def single_line(val):
     Quick and dirty validation for Summary pypa/setuptools#1390.
     """
     if '\n' in val:
-        # TODO: Replace with `raise ValueError("newlines not allowed")`
-        # after reviewing #2893.
+        # 039203.python.core_metadata.line122.comment TODO: Replace with `raise ValueError("newlines not allowed")`
+        # 039204.python.core_metadata.line123.comment after reviewing #2893.
         msg = "newlines are not allowed in `summary` and will break in the future"
         SetuptoolsDeprecationWarning.emit("Invalid config.", msg)
-        # due_date is undefined. Controversial change, there was a lot of push back.
+        # 039205.python.core_metadata.line126.comment due_date is undefined. Controversial change, there was a lot of push back.
         val = val.strip().split('\n')[0]
     return val
 
@@ -133,8 +133,8 @@ def write_pkg_info(self, base_dir):
     temp = ""
     final = os.path.join(base_dir, 'PKG-INFO')
     try:
-        # Use a temporary file while writing to avoid race conditions
-        # (e.g. `importlib.metadata` reading `.egg-info/PKG-INFO`):
+        # 039206.python.core_metadata.line136.comment Use a temporary file while writing to avoid race conditions
+        # 039207.python.core_metadata.line137.comment (e.g. `importlib.metadata` reading `.egg-info/PKG-INFO`):
         with NamedTemporaryFile("w", encoding="utf-8", dir=base_dir, delete=False) as f:
             temp = f.name
             self.write_pkg_file(f)
@@ -146,7 +146,7 @@ def write_pkg_info(self, base_dir):
             os.remove(temp)
 
 
-# Based on Python 3.5 version
+# 039209.python.core_metadata.line149.comment Based on Python 3.5 version
 def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     """Write the PKG-INFO format data to a file object."""
     version = self.get_metadata_version()
@@ -194,16 +194,16 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
     self._write_list(file, 'Classifier', self.get_classifiers())
 
-    # PEP 314
+    # 039211.python.core_metadata.line197.comment PEP 314
     self._write_list(file, 'Requires', self.get_requires())
     self._write_list(file, 'Provides', self.get_provides())
     self._write_list(file, 'Obsoletes', self.get_obsoletes())
 
-    # Setuptools specific for PEP 345
+    # 039212.python.core_metadata.line202.comment Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
         write_field('Requires-Python', self.python_requires)
 
-    # PEP 566
+    # 039213.python.core_metadata.line206.comment PEP 566
     if self.long_description_content_type:
         write_field('Description-Content-Type', self.long_description_content_type)
 
@@ -228,7 +228,7 @@ def _write_requirements(self, file):
 
     processed_extras = {}
     for augmented_extra, reqs in self.extras_require.items():
-        # Historically, setuptools allows "augmented extras": `<extra>:<condition>`
+        # 039214.python.core_metadata.line231.comment Historically, setuptools allows "augmented extras": `<extra>:<condition>`
         unsafe_extra, _, condition = augmented_extra.partition(":")
         unsafe_extra = unsafe_extra.strip()
         extra = _normalization.safe_extra(unsafe_extra)
@@ -270,7 +270,7 @@ def _write_provides_extra(file, processed_extras, safe, unsafe):
         file.write(f"Provides-Extra: {safe}\n")
 
 
-# from pypa/distutils#244; needed only until that logic is always available
+# 039216.python.core_metadata.line273.comment from pypa/distutils#244; needed only until that logic is always available
 def get_fullname(self):
     return _distribution_fullname(self.get_name(), self.get_version())
 
@@ -295,7 +295,7 @@ def _distribution_fullname(name: str, version: str) -> str:
 
 
 def _safe_license_file(file):
-    # XXX: Do we need this after the deprecation discussed in #4892, #4896??
+    # 039217.python.core_metadata.line298.comment XXX: Do we need this after the deprecation discussed in #4892, #4896??
     normalized = os.path.normpath(file).replace(os.sep, "/")
     if "../" in normalized:
         return os.path.basename(normalized)  # Temporarily restore pre PEP639 behaviour
@@ -303,7 +303,7 @@ def _safe_license_file(file):
 
 
 _POSSIBLE_DYNAMIC_FIELDS = {
-    # Core Metadata Field x related Distribution attribute
+    # 039219.python.core_metadata.line306.comment Core Metadata Field x related Distribution attribute
     "author": "author",
     "author-email": "author_email",
     "classifier": "classifiers",
@@ -313,25 +313,25 @@ _POSSIBLE_DYNAMIC_FIELDS = {
     "home-page": "url",
     "keywords": "keywords",
     "license": "license",
-    # XXX: License-File is complicated because the user gives globs that are expanded
-    #      during the build. Without special handling it is likely always
-    #      marked as Dynamic, which is an acceptable outcome according to:
-    #      https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
+    # 039220.python.core_metadata.line316.comment XXX: License-File is complicated because the user gives globs that are expanded
+    # 039221.python.core_metadata.line317.comment during the build. Without special handling it is likely always
+    # 039222.python.core_metadata.line318.comment marked as Dynamic, which is an acceptable outcome according to:
+    # 039223.python.core_metadata.line319.comment https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
     "license-file": "license_files",
     "license-expression": "license_expression",  # PEP 639
     "maintainer": "maintainer",
     "maintainer-email": "maintainer_email",
     "obsoletes": "obsoletes",
-    # "obsoletes-dist": "obsoletes_dist",  # NOT USED
+    # 039225.python.core_metadata.line325.comment "obsoletes-dist": "obsoletes_dist",  # NOT USED
     "platform": "platforms",
     "project-url": "project_urls",
     "provides": "provides",
-    # "provides-dist": "provides_dist",  # NOT USED
+    # 039226.python.core_metadata.line329.comment "provides-dist": "provides_dist",  # NOT USED
     "provides-extra": "extras_require",
     "requires": "requires",
     "requires-dist": "install_requires",
-    # "requires-external": "requires_external",  # NOT USED
+    # 039227.python.core_metadata.line333.comment "requires-external": "requires_external",  # NOT USED
     "requires-python": "python_requires",
     "summary": "description",
-    # "supported-platform": "supported_platforms",  # NOT USED
+    # 039228.python.core_metadata.line336.comment "supported-platform": "supported_platforms",  # NOT USED
 }

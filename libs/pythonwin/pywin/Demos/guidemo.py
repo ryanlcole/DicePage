@@ -1,4 +1,4 @@
-# GUI Demo - just a worker script to invoke all the other demo/test scripts.
+# 036759.python.guidemo.line1.comment GUI Demo - just a worker script to invoke all the other demo/test scripts.
 import sys
 
 import __main__
@@ -37,7 +37,7 @@ def demo():
             _exec_demo(cmd)
         return
 
-    # Otherwise allow the user to select the demo to run
+    # 036760.python.guidemo.line40.comment Otherwise allow the user to select the demo to run
     while True:
         rc = pywin.dialogs.list.SelectFromLists("Select a Demo", demos, ["Demo Title"])
         if rc is None:

@@ -15,18 +15,18 @@ class TestDepUtil(support.TempdirManager):
         new_file = os.path.join(tmpdir, 'new')
         old_file = os.path.abspath(__file__)
 
-        # Raise DistutilsFileError if 'new_file' does not exist.
+        # 041150.python.test_modified.line18.comment Raise DistutilsFileError if 'new_file' does not exist.
         with pytest.raises(DistutilsFileError):
             newer(new_file, old_file)
 
-        # Return true if 'new_file' exists and is more recently modified than
-        # 'old_file', or if 'new_file' exists and 'old_file' doesn't.
+        # 041151.python.test_modified.line22.comment Return true if 'new_file' exists and is more recently modified than
+        # 041152.python.test_modified.line23.comment 'old_file', or if 'new_file' exists and 'old_file' doesn't.
         self.write_file(new_file)
         assert newer(new_file, 'I_dont_exist')
         assert newer(new_file, old_file)
 
-        # Return false if both exist and 'old_file' is the same age or younger
-        # than 'new_file'.
+        # 041153.python.test_modified.line28.comment Return false if both exist and 'old_file' is the same age or younger
+        # 041154.python.test_modified.line29.comment than 'new_file'.
         assert not newer(old_file, new_file)
 
     def _setup_1234(self):
@@ -75,15 +75,15 @@ class TestDepUtil(support.TempdirManager):
         three = os.path.join(sources, 'three')
         old_file = os.path.abspath(__file__)
 
-        # return true if 'old_file' is out-of-date with respect to any file
-        # listed in 'sources'.
+        # 041156.python.test_modified.line78.comment return true if 'old_file' is out-of-date with respect to any file
+        # 041157.python.test_modified.line79.comment listed in 'sources'.
         self.write_file(one)
         self.write_file(two)
         self.write_file(three)
         assert newer_group([one, two, three], old_file)
         assert not newer_group([one, two, old_file], three)
 
-        # missing handling
+        # 041158.python.test_modified.line86.comment missing handling
         os.remove(one)
         with pytest.raises(OSError):
             newer_group([one, two, old_file], three)
@@ -106,7 +106,7 @@ def groups_target(tmp_path):
     for mtime, path in enumerate(paths):
         path.write_text('', encoding='utf-8')
 
-        # make sure modification times are sequential
+        # 041159.python.test_modified.line109.comment make sure modification times are sequential
         os.utime(path, (mtime, mtime))
 
     return types.SimpleNamespace(older=paths[:2], target=paths[2], newer=paths[3:])

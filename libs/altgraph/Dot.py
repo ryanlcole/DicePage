@@ -150,8 +150,8 @@ class Dot(object):
 
         self.dot, self.dotty, self.neato = dot, dotty, neato
 
-        # self.nodes: node styles
-        # self.edges: edge styles
+        # 021211.python.Dot.line153.comment self.nodes: node styles
+        # 021212.python.Dot.line154.comment self.edges: edge styles
         self.nodes, self.edges = {}, {}
 
         if graph is not None and nodes is None:
@@ -238,7 +238,7 @@ class Dot(object):
             raise GraphError("invalid edge  %s -> %s " % (head, tail))
 
     def iterdot(self):
-        # write graph title
+        # 021213.python.Dot.line241.comment write graph title
         if self.type == "digraph":
             yield "digraph %s {\n" % (self.name,)
         elif self.type == "graph":
@@ -247,23 +247,23 @@ class Dot(object):
         else:
             raise GraphError("unsupported graphtype %s" % (self.type,))
 
-        # write overall graph attributes
+        # 021214.python.Dot.line250.comment write overall graph attributes
         for attr_name, attr_value in sorted(self.attr.items()):
             yield '%s="%s";' % (attr_name, attr_value)
         yield "\n"
 
-        # some reusable patterns
+        # 021215.python.Dot.line255.comment some reusable patterns
         cpatt = '%s="%s",'  # to separate attributes
         epatt = "];\n"  # to end attributes
 
-        # write node attributes
+        # 021218.python.Dot.line259.comment write node attributes
         for node_name, node_attr in sorted(self.nodes.items()):
             yield '\t"%s" [' % (node_name,)
             for attr_name, attr_value in sorted(node_attr.items()):
                 yield cpatt % (attr_name, attr_value)
             yield epatt
 
-        # write edge attributes
+        # 021219.python.Dot.line266.comment write edge attributes
         for head in sorted(self.edges):
             for tail in sorted(self.edges[head]):
                 if self.type == "digraph":
@@ -274,7 +274,7 @@ class Dot(object):
                     yield cpatt % (attr_name, attr_value)
                 yield epatt
 
-        # finish file
+        # 021220.python.Dot.line277.comment finish file
         yield "}\n"
 
     def __iter__(self):

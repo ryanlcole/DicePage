@@ -10,9 +10,9 @@ class TestCase(unittest.TestCase):
     def testPyTimeFormat(self):
         struct_current = time.localtime()
         pytime_current = pywintypes.Time(struct_current)
-        # try and test all the standard parts of the format
-        # Note we used to include '%Z' testing, but that was pretty useless as
-        # it always returned the local timezone.
+        # 048218.python.test_pywintypes.line13.comment try and test all the standard parts of the format
+        # 048219.python.test_pywintypes.line14.comment Note we used to include '%Z' testing, but that was pretty useless as
+        # 048220.python.test_pywintypes.line15.comment it always returned the local timezone.
         format_strings = "%a %A %b %B %c %d %H %I %j %m %M %p %S %U %w %W %x %X %y %Y"
         for fmt in format_strings.split():
             v1 = pytime_current.Format(fmt)
@@ -20,10 +20,10 @@ class TestCase(unittest.TestCase):
             self.assertEqual(v1, v2, f"format {fmt} failed - {v1!r} != {v2!r}")
 
     def testPyTimePrint(self):
-        # This used to crash with an invalid, or too early time.
-        # We don't really want to check that it does cause a ValueError
-        # (as hopefully this won't be true forever).  So either working, or
-        # ValueError is OK.
+        # 048221.python.test_pywintypes.line23.comment This used to crash with an invalid, or too early time.
+        # 048222.python.test_pywintypes.line24.comment We don't really want to check that it does cause a ValueError
+        # 048223.python.test_pywintypes.line25.comment (as hopefully this won't be true forever).  So either working, or
+        # 048224.python.test_pywintypes.line26.comment ValueError is OK.
         try:
             t = pywintypes.Time(-2)
             t.Format()
@@ -55,9 +55,9 @@ class TestCase(unittest.TestCase):
 
     def testTimeTuple(self):
         now = datetime.datetime.now()  # has usec...
-        # timetuple() lost usec - pt must be <=...
+        # 048226.python.test_pywintypes.line58.comment timetuple() lost usec - pt must be <=...
         pt = pywintypes.Time(now.timetuple())
-        # *sob* - only if we have a datetime object can we compare like this.
+        # 048227.python.test_pywintypes.line60.comment *sob* - only if we have a datetime object can we compare like this.
         if isinstance(pt, datetime.datetime):
             self.assertTrue(pt <= now)
 
@@ -65,9 +65,9 @@ class TestCase(unittest.TestCase):
         now = datetime.datetime.now()  # has usec...
         tt = now.timetuple() + (now.microsecond // 1000,)
         pt = pywintypes.Time(tt)
-        # we can't compare if using the old type, as it loses all sub-second res.
+        # 048229.python.test_pywintypes.line68.comment we can't compare if using the old type, as it loses all sub-second res.
         if isinstance(pt, datetime.datetime):
-            # but even with datetime, we lose sub-millisecond.
+            # 048230.python.test_pywintypes.line70.comment but even with datetime, we lose sub-millisecond.
             expectedDelta = datetime.timedelta(milliseconds=1)
             self.assertTrue(-expectedDelta < (now - pt) < expectedDelta)
 

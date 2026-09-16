@@ -1,18 +1,18 @@
-# -----------------------------------------------------------------------------
-# Copyright (c) 2023, PyInstaller Development Team.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: Apache-2.0
-# -----------------------------------------------------------------------------
+# 002814.python.win32.line1.comment -----------------------------------------------------------------------------
+# 002815.python.win32.line2.comment Copyright (c) 2023, PyInstaller Development Team.
+# 002816.python.win32.line3.comment
+# 002817.python.win32.line4.comment Licensed under the Apache License, Version 2.0 (the "License");
+# 002818.python.win32.line5.comment you may not use this file except in compliance with the License.
+# 002819.python.win32.line6.comment
+# 002820.python.win32.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 002821.python.win32.line8.comment
+# 002822.python.win32.line9.comment SPDX-License-Identifier: Apache-2.0
+# 002823.python.win32.line10.comment -----------------------------------------------------------------------------
 
 import ctypes
 import ctypes.wintypes
 
-# Constants from win32 headers
+# 002824.python.win32.line15.comment Constants from win32 headers
 TOKEN_QUERY = 0x0008
 
 TokenUser = 1  # from TOKEN_INFORMATION_CLASS enum
@@ -27,7 +27,7 @@ FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000
 
 SDDL_REVISION1 = 1
 
-# Structures for ConvertSidToStringSidW
+# 002827.python.win32.line30.comment Structures for ConvertSidToStringSidW
 PSID = ctypes.wintypes.LPVOID
 
 
@@ -55,7 +55,7 @@ class TOKEN_APPCONTAINER_INFORMATION(ctypes.Structure):
 
 PTOKEN_APPCONTAINER_INFORMATION = ctypes.POINTER(TOKEN_APPCONTAINER_INFORMATION)
 
-# SECURITY_ATTRIBUTES structure for CreateDirectoryW
+# 002828.python.win32.line58.comment SECURITY_ATTRIBUTES structure for CreateDirectoryW
 PSECURITY_DESCRIPTOR = ctypes.wintypes.LPVOID
 
 
@@ -67,9 +67,9 @@ class SECURITY_ATTRIBUTES(ctypes.Structure):
     ]
 
 
-# win32 API functions, bound via ctypes.
-# NOTE: we do not use ctypes.windll.<dll_name> to avoid modifying its (global) function prototypes, which might affect
-# user's code.
+# 002829.python.win32.line70.comment win32 API functions, bound via ctypes.
+# 002830.python.win32.line71.comment NOTE: we do not use ctypes.windll.<dll_name> to avoid modifying its (global) function prototypes, which might affect
+# 002831.python.win32.line72.comment user's code.
 advapi32 = ctypes.WinDLL("advapi32")
 kernel32 = ctypes.WinDLL("kernel32")
 
@@ -119,10 +119,10 @@ kernel32.FormatMessageW.argtypes = (
 )
 
 kernel32.GetCurrentProcess.restype = ctypes.wintypes.HANDLE
-# kernel32.GetCurrentProcess has no arguments
+# 002853.python.win32.line122.comment kernel32.GetCurrentProcess has no arguments
 
 kernel32.GetLastError.restype = ctypes.wintypes.DWORD
-# kernel32.GetLastError has no arguments
+# 002854.python.win32.line125.comment kernel32.GetLastError has no arguments
 
 kernel32.LocalFree.restype = ctypes.wintypes.BOOL
 kernel32.LocalFree.argtypes = (
@@ -160,7 +160,7 @@ def _win_error_to_message(error_code):
     message = message_wstr.value
     kernel32.LocalFree(message_wstr)
 
-    # Strip trailing CR/LF.
+    # 002864.python.win32.line163.comment Strip trailing CR/LF.
     if message:
         message = message.strip()
     return message
@@ -179,7 +179,7 @@ def _get_process_sid(token_information_class):
     process_token = ctypes.wintypes.HANDLE(INVALID_HANDLE)
 
     try:
-        # Get access token for the current process
+        # 002865.python.win32.line182.comment Get access token for the current process
         ret = kernel32.OpenProcessToken(
             kernel32.GetCurrentProcess(),
             TOKEN_QUERY,
@@ -189,7 +189,7 @@ def _get_process_sid(token_information_class):
             error_code = kernel32.GetLastError()
             raise RuntimeError(f"Failed to open process token! Error code: 0x{error_code:X}")
 
-        # Query buffer size for sid
+        # 002866.python.win32.line192.comment Query buffer size for sid
         token_info_size = ctypes.wintypes.DWORD(0)
 
         ret = advapi32.GetTokenInformation(
@@ -200,7 +200,7 @@ def _get_process_sid(token_information_class):
             ctypes.byref(token_info_size),
         )
 
-        # We expect this call to fail with ERROR_INSUFFICIENT_BUFFER
+        # 002867.python.win32.line203.comment We expect this call to fail with ERROR_INSUFFICIENT_BUFFER
         if ret == 0:
             error_code = kernel32.GetLastError()
             if error_code != ERROR_INSUFFICIENT_BUFFER:
@@ -208,7 +208,7 @@ def _get_process_sid(token_information_class):
         else:
             raise RuntimeError("Unexpected return value from GetTokenInformation!")
 
-        # Allocate buffer
+        # 002868.python.win32.line211.comment Allocate buffer
         token_info = ctypes.create_string_buffer(token_info_size.value)
         ret = advapi32.GetTokenInformation(
             process_token,
@@ -221,9 +221,9 @@ def _get_process_sid(token_information_class):
             error_code = kernel32.GetLastError()
             raise RuntimeError(f"Failed to query token information! Error code: 0x{error_code:X}")
 
-        # Convert SID to string
-        # Technically, when UserToken is used, we need to pass user_info->User.Sid,
-        # but as they are at the beginning of the buffer, just pass the buffer instead...
+        # 002869.python.win32.line224.comment Convert SID to string
+        # 002870.python.win32.line225.comment Technically, when UserToken is used, we need to pass user_info->User.Sid,
+        # 002871.python.win32.line226.comment but as they are at the beginning of the buffer, just pass the buffer instead...
         sid_wstr = ctypes.wintypes.LPWSTR(None)
 
         if token_information_class == TokenUser:
@@ -242,17 +242,17 @@ def _get_process_sid(token_information_class):
     except Exception:
         sid = None
     finally:
-        # Close the process token
+        # 002872.python.win32.line245.comment Close the process token
         if process_token.value != INVALID_HANDLE:
             kernel32.CloseHandle(process_token)
 
     return sid
 
 
-# Get and cache current user's SID
+# 002873.python.win32.line252.comment Get and cache current user's SID
 _user_sid = _get_process_sid(TokenUser)
 
-# Get and cache current app container's SID (if any)
+# 002874.python.win32.line255.comment Get and cache current app container's SID (if any)
 _app_container_sid = _get_process_sid(TokenAppContainerSid)
 
 
@@ -261,24 +261,24 @@ def secure_mkdir(dir_name):
     Replacement for mkdir that limits the access to created directory to current user.
     """
 
-    # Create security descriptor
-    # Prefer actual user SID over SID S-1-3-4 (current owner), because at the time of writing, Wine does not properly
-    # support the latter.
+    # 002875.python.win32.line264.comment Create security descriptor
+    # 002876.python.win32.line265.comment Prefer actual user SID over SID S-1-3-4 (current owner), because at the time of writing, Wine does not properly
+    # 002877.python.win32.line266.comment support the latter.
     user_sid = _user_sid or "S-1-3-4"
 
-    # DACL descriptor (D):
-    # ace_type;ace_flags;rights;object_guid;inherit_object_guid;account_sid;(resource_attribute)
-    # - ace_type = SDDL_ACCESS_ALLOWED (A)
-    # - rights = SDDL_FILE_ALL (FA)
-    # - account_sid = current user (queried SID)
+    # 002878.python.win32.line269.comment DACL descriptor (D):
+    # 002879.python.win32.line270.comment ace_type;ace_flags;rights;object_guid;inherit_object_guid;account_sid;(resource_attribute)
+    # 002880.python.win32.line271.comment - ace_type = SDDL_ACCESS_ALLOWED (A)
+    # 002881.python.win32.line272.comment - rights = SDDL_FILE_ALL (FA)
+    # 002882.python.win32.line273.comment - account_sid = current user (queried SID)
     security_desc_str = f"D:(A;;FA;;;{user_sid})"
 
-    # If the app is running within an AppContainer, the app container SID has to be added to the DACL.
-    # Otherwise our process will not have access to the temp dir.
-    #
-    # Quoting https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer:
-    # "The AppContainer SID is a persistent unique identifier for the appcontainer. ...
-    #  To allow a single AppContainer to access a resource, add its AppContainerSID to the ACL for that resource."
+    # 002883.python.win32.line276.comment If the app is running within an AppContainer, the app container SID has to be added to the DACL.
+    # 002884.python.win32.line277.comment Otherwise our process will not have access to the temp dir.
+    # 002885.python.win32.line278.comment
+    # 002886.python.win32.line279.comment Quoting https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer:
+    # 002887.python.win32.line280.comment "The AppContainer SID is a persistent unique identifier for the appcontainer. ...
+    # 002888.python.win32.line281.comment To allow a single AppContainer to access a resource, add its AppContainerSID to the ACL for that resource."
     if _app_container_sid:
         security_desc_str += f"(A;;FA;;;{_app_container_sid})"
     security_desc = ctypes.wintypes.LPVOID(None)
@@ -301,26 +301,26 @@ def secure_mkdir(dir_name):
     security_attr.lpSecurityDescriptor = security_desc
     security_attr.bInheritHandle = False
 
-    # Create directory
+    # 002889.python.win32.line304.comment Create directory
     ret = kernel32.CreateDirectoryW(
         dir_name,
         security_attr,
     )
     if ret == 0:
-        # Call failed; store error code immediately, to avoid it being overwritten in cleanup below.
+        # 002890.python.win32.line310.comment Call failed; store error code immediately, to avoid it being overwritten in cleanup below.
         error_code = kernel32.GetLastError()
 
-    # Free security descriptor
+    # 002891.python.win32.line313.comment Free security descriptor
     kernel32.LocalFree(security_desc)
 
-    # Exit on succeess
+    # 002892.python.win32.line316.comment Exit on succeess
     if ret != 0:
         return
 
-    # Construct OSError from win error code
+    # 002893.python.win32.line320.comment Construct OSError from win error code
     error_message = _win_error_to_message(error_code)
 
-    # Strip trailing dot to match error message from os.mkdir().
+    # 002894.python.win32.line323.comment Strip trailing dot to match error message from os.mkdir().
     if error_message and error_message[-1] == '.':
         error_message = error_message[:-1]
 

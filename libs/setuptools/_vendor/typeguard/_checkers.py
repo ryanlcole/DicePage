@@ -39,10 +39,10 @@ try:
 except ImportError:
     typing_extensions = None  # type: ignore[assignment]
 
-# Must use this because typing.is_typeddict does not recognize
-# TypedDict from typing_extensions, and as of version 4.12.0
-# typing_extensions.TypedDict is different from typing.TypedDict
-# on all versions.
+# 043383.python.checkers.line42.comment Must use this because typing.is_typeddict does not recognize
+# 043384.python.checkers.line43.comment TypedDict from typing_extensions, and as of version 4.12.0
+# 043385.python.checkers.line44.comment typing_extensions.TypedDict is different from typing.TypedDict
+# 043386.python.checkers.line45.comment on all versions.
 from typing_extensions import is_typeddict
 
 from ._config import ForwardRefPolicy
@@ -93,10 +93,10 @@ protocol_check_cache: WeakKeyDictionary[
     type[Any], dict[type[Any], TypeCheckError | None]
 ] = WeakKeyDictionary()
 
-# Sentinel
+# 043387.python.checkers.line96.comment Sentinel
 _missing = object()
 
-# Lifted from mypy.sharedparse
+# 043388.python.checkers.line99.comment Lifted from mypy.sharedparse
 BINARY_MAGIC_METHODS = {
     "__add__",
     "__and__",
@@ -170,7 +170,7 @@ def check_callable(
         if isinstance(argument_types, list) and not any(
             type(item) is ParamSpec for item in argument_types
         ):
-            # The callable must not have keyword-only arguments without defaults
+            # 043389.python.checkers.line173.comment The callable must not have keyword-only arguments without defaults
             unfulfilled_kwonlyargs = [
                 param.name
                 for param in signature.parameters.values()
@@ -266,7 +266,7 @@ def check_typed_dict(
         keys_formatted = ", ".join(f'"{key}"' for key in sorted(extra_keys, key=repr))
         raise TypeCheckError(f"has unexpected extra key(s): {keys_formatted}")
 
-    # Detect NotRequired fields which are hidden by get_type_hints()
+    # 043391.python.checkers.line269.comment Detect NotRequired fields which are hidden by get_type_hints()
     type_hints: dict[str, type] = {}
     for key, annotation in origin_type.__annotations__.items():
         if isinstance(annotation, ForwardRef):
@@ -358,7 +358,7 @@ def check_tuple(
     args: tuple[Any, ...],
     memo: TypeCheckMemo,
 ) -> None:
-    # Specialized check for NamedTuples
+    # 043392.python.checkers.line361.comment Specialized check for NamedTuples
     if field_types := getattr(origin_type, "__annotations__", None):
         if not isinstance(value, origin_type):
             raise TypeCheckError(
@@ -380,7 +380,7 @@ def check_tuple(
         use_ellipsis = args[-1] is Ellipsis
         tuple_params = args[: -1 if use_ellipsis else None]
     else:
-        # Unparametrized Tuple or plain tuple
+        # 043393.python.checkers.line383.comment Unparametrized Tuple or plain tuple
         return
 
     if use_ellipsis:
@@ -664,7 +664,7 @@ def check_protocol(
             else:
                 return
 
-    # Collect a set of methods and non-method attributes present in the protocol
+    # 043397.python.checkers.line667.comment Collect a set of methods and non-method attributes present in the protocol
     ignored_attrs = set(dir(typing.Protocol)) | {
         "__annotations__",
         "__non_callable_proto_members__",
@@ -672,7 +672,7 @@ def check_protocol(
     expected_methods: dict[str, tuple[Any, Any]] = {}
     expected_noncallable_members: dict[str, Any] = {}
     for attrname in dir(origin_type):
-        # Skip attributes present in typing.Protocol
+        # 043398.python.checkers.line675.comment Skip attributes present in typing.Protocol
         if attrname in ignored_attrs:
             continue
 
@@ -698,7 +698,7 @@ def check_protocol(
 
     subject_annotations = typing.get_type_hints(subject)
 
-    # Check that all required methods are present and their signatures are compatible
+    # 043399.python.checkers.line701.comment Check that all required methods are present and their signatures are compatible
     result_map = protocol_check_cache.setdefault(subject, {})
     try:
         for attrname, callable_args in expected_methods.items():
@@ -722,7 +722,7 @@ def check_protocol(
                     f"because its {attrname!r} attribute is not a callable"
                 )
 
-            # TODO: raise exception on added keyword-only arguments without defaults
+            # 043400.python.checkers.line725.comment TODO: raise exception on added keyword-only arguments without defaults
             try:
                 check_callable(method, Callable, callable_args, memo)
             except TypeCheckError as exc:
@@ -731,9 +731,9 @@ def check_protocol(
                     f"because its {attrname!r} method {exc}"
                 ) from None
 
-        # Check that all required non-callable members are present
+        # 043401.python.checkers.line734.comment Check that all required non-callable members are present
         for attrname in expected_noncallable_members:
-            # TODO: implement assignability checks for non-callable members
+            # 043402.python.checkers.line736.comment TODO: implement assignability checks for non-callable members
             if attrname not in subject_annotations and not hasattr(subject, attrname):
                 raise TypeCheckError(
                     f"is not compatible with the {origin_type.__qualname__} protocol "
@@ -831,7 +831,7 @@ def check_type_internal(
     if annotation is Any or annotation is SubclassableAny or isinstance(value, Mock):
         return
 
-    # Skip type checks if value is an instance of a class that inherits from Any
+    # 043404.python.checkers.line834.comment Skip type checks if value is an instance of a class that inherits from Any
     if not isclass(value) and SubclassableAny in type(value).__bases__:
         return
 
@@ -847,8 +847,8 @@ def check_type_internal(
     if origin_type is not None:
         args = get_args(annotation)
 
-        # Compatibility hack to distinguish between unparametrized and empty tuple
-        # (tuple[()]), necessary due to https://github.com/python/cpython/issues/91137
+        # 043405.python.checkers.line850.comment Compatibility hack to distinguish between unparametrized and empty tuple
+        # 043406.python.checkers.line851.comment (tuple[()]), necessary due to https://github.com/python/cpython/issues/91137
         if origin_type in (tuple, Tuple) and annotation is not Tuple and not args:
             args = ((),)
     else:
@@ -873,7 +873,7 @@ def check_type_internal(
         )
 
 
-# Equality checks are applied to these
+# 043408.python.checkers.line876.comment Equality checks are applied to these
 origin_type_checkers = {
     bytes: check_byteslike,
     AbstractSet: check_set,
@@ -914,11 +914,11 @@ if sys.version_info >= (3, 11):
         {typing.LiteralString: check_literal_string, typing.Self: check_self}
     )
 if typing_extensions is not None:
-    # On some Python versions, these may simply be re-exports from typing,
-    # but exactly which Python versions is subject to change,
-    # so it's best to err on the safe side
-    # and update the dictionary on all Python versions
-    # if typing_extensions is installed
+    # 043409.python.checkers.line917.comment On some Python versions, these may simply be re-exports from typing,
+    # 043410.python.checkers.line918.comment but exactly which Python versions is subject to change,
+    # 043411.python.checkers.line919.comment so it's best to err on the safe side
+    # 043412.python.checkers.line920.comment and update the dictionary on all Python versions
+    # 043413.python.checkers.line921.comment if typing_extensions is installed
     origin_type_checkers[typing_extensions.Literal] = check_literal
     origin_type_checkers[typing_extensions.LiteralString] = check_literal_string
     origin_type_checkers[typing_extensions.Self] = check_self
@@ -937,7 +937,7 @@ def builtin_checker_lookup(
         origin_type,
         Tuple,  # type: ignore[arg-type]
     ):
-        # NamedTuple
+        # 043415.python.checkers.line940.comment NamedTuple
         return check_tuple
     elif getattr(origin_type, "_is_protocol", False):
         return check_protocol
@@ -946,7 +946,7 @@ def builtin_checker_lookup(
     elif isinstance(origin_type, TypeVar):
         return check_typevar
     elif origin_type.__class__ is NewType:
-        # typing.NewType on Python 3.10+
+        # 043416.python.checkers.line949.comment typing.NewType on Python 3.10+
         return check_newtype
     elif (
         isfunction(origin_type)
@@ -954,7 +954,7 @@ def builtin_checker_lookup(
         and getattr(origin_type, "__qualname__", "").startswith("NewType.")
         and hasattr(origin_type, "__supertype__")
     ):
-        # typing.NewType on Python 3.9 and below
+        # 043417.python.checkers.line957.comment typing.NewType on Python 3.9 and below
         return check_newtype
 
     return None

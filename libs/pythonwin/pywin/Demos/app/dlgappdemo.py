@@ -1,10 +1,10 @@
-# dlgappdemo - a demo of a dialog application.
-# This is a demonstration of both a custom "application" module,
-# and a Python program in a dialog box.
-#
-# NOTE:  You CAN NOT import this module from either PythonWin or Python.
-# This module must be specified on the commandline to PythonWin only.
-# eg, PythonWin /app dlgappdemo.py
+# 036602.python.dlgappdemo.line1.comment dlgappdemo - a demo of a dialog application.
+# 036603.python.dlgappdemo.line2.comment This is a demonstration of both a custom "application" module,
+# 036604.python.dlgappdemo.line3.comment and a Python program in a dialog box.
+# 036605.python.dlgappdemo.line4.comment
+# 036606.python.dlgappdemo.line5.comment NOTE:  You CAN NOT import this module from either PythonWin or Python.
+# 036607.python.dlgappdemo.line6.comment This module must be specified on the commandline to PythonWin only.
+# 036608.python.dlgappdemo.line7.comment eg, PythonWin /app dlgappdemo.py
 
 import sys
 
@@ -37,7 +37,7 @@ class TestAppDialog(dlgappcore.AppDialog):
     def write(self, str):
         if self.edit:
             self.edit.SetSel(-2)
-            # translate \n to \n\r
+            # 036609.python.dlgappdemo.line40.comment translate \n to \n\r
             self.edit.ReplaceSel(str.replace("\n", "\r\n"))
         else:
             win32ui.OutputDebug("dlgapp - no edit control! >>\n%s\n<<\n" % str)

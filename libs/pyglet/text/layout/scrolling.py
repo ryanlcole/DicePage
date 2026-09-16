@@ -153,7 +153,7 @@ class ScrollableTextLayout(TextLayout):
         super()._update()
         self._update_scissor_area()
 
-    # Properties
+    # 035900.python.scrolling.line156.comment Properties
 
     @property
     def x(self) -> float:
@@ -234,7 +234,7 @@ class ScrollableTextLayout(TextLayout):
             return 0
         if self._anchor_y == "center":
             if self._line_count == 1 and self._height is None:
-                # This "looks" more centered than considering all of the descent.
+                # 035901.python.scrolling.line237.comment This "looks" more centered than considering all of the descent.
                 return (self._ascent // 2 - self._descent // 4) - height
 
             return offset - height // 2
@@ -243,7 +243,7 @@ class ScrollableTextLayout(TextLayout):
         raise Exception(msg)
 
     def _update_view_translation(self) -> None:
-        # Offset of content within viewport
+        # 035902.python.scrolling.line246.comment Offset of content within viewport
         for _vertex_list in self._vertex_lists:
             _vertex_list.view_translation[:] = (-self._translate_x, -self._translate_y, 0) * _vertex_list.count
 
@@ -281,7 +281,7 @@ class ScrollableTextLayout(TextLayout):
 
     @view_y.setter
     def view_y(self, view_y: int) -> None:
-        # view_y must be negative.
+        # 035903.python.scrolling.line284.comment view_y must be negative.
         translation = min(0, max(self.height - self._content_height, view_y))
         if translation != self._translate_y:
             self._translate_y = translation

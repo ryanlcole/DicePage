@@ -28,7 +28,7 @@ class TestBuildDumb(
 ):
     @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):
-        # let's create a simple package
+        # 040849.python.test_bdist_dumb.line31.comment let's create a simple package
         tmp_dir = self.mkdtemp()
         pkg_dir = os.path.join(tmp_dir, 'foo')
         os.mkdir(pkg_dir)
@@ -51,20 +51,20 @@ class TestBuildDumb(
         sys.argv = ['setup.py']
         cmd = bdist_dumb(dist)
 
-        # so the output is the same no matter
-        # what is the platform
+        # 040850.python.test_bdist_dumb.line54.comment so the output is the same no matter
+        # 040851.python.test_bdist_dumb.line55.comment what is the platform
         cmd.format = 'zip'
 
         cmd.ensure_finalized()
         cmd.run()
 
-        # see what we have
+        # 040852.python.test_bdist_dumb.line61.comment see what we have
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
         base = f"{dist.get_fullname()}.{cmd.plat_name}.zip"
 
         assert dist_created == [base]
 
-        # now let's check what we have in the zip file
+        # 040853.python.test_bdist_dumb.line67.comment now let's check what we have in the zip file
         fp = zipfile.ZipFile(os.path.join('dist', base))
         try:
             contents = fp.namelist()

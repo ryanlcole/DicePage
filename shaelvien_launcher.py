@@ -1,7 +1,7 @@
-# ============================================================
-# SHAELVIEN LAUNCHER — Phase 8.5
-# Fault-tolerant subsystem controller with diagnostic reporting
-# ============================================================
+# 052564.python.shaelvien_launcher.line1.comment ============================================================
+# 052565.python.shaelvien_launcher.line2.comment SHAELVIEN LAUNCHER — Phase 8.5
+# 052566.python.shaelvien_launcher.line3.comment Fault-tolerant subsystem controller with diagnostic reporting
+# 052567.python.shaelvien_launcher.line4.comment ============================================================
 
 import os, sys, time, psutil, subprocess, json, traceback, threading
 from datetime import datetime
@@ -65,14 +65,14 @@ def heartbeat():
     procs = {"daemon": None, "tray": None}
     while True:
         try:
-            # Check if subsystems are alive
+            # 052569.python.shaelvien_launcher.line68.comment Check if subsystems are alive
             for key, path in {"daemon": DAEMON, "tray": TRAY}.items():
                 running = is_running(os.path.basename(path))
                 if running == 0:
                     procs[key] = start_subsystem(path)
                     write_log(f"[RESTART] Relaunched {key}.exe")
                 elif running > 1:
-                    # kill extras (only 1 doppelgänger allowed)
+                    # 052570.python.shaelvien_launcher.line75.comment kill extras (only 1 doppelgänger allowed)
                     write_log(f"[WARN] Multiple {key}.exe detected. Reducing to one.")
                     killed = 0
                     for p in psutil.process_iter(["name", "pid"]):
@@ -85,14 +85,14 @@ def heartbeat():
                             except Exception:
                                 pass
 
-            # Optional fault simulation
+            # 052571.python.shaelvien_launcher.line88.comment Optional fault simulation
             if SIMULATE_FAULTS and int(time.time()) % 30 == 0:
                 write_log("[FAULT] Simulated subsystem crash event.")
                 for proc in list(psutil.process_iter(["name", "pid"])):
                     if "tray" in proc.info["name"].lower():
                         proc.kill()
 
-            # System state report
+            # 052572.python.shaelvien_launcher.line95.comment System state report
             json_report({"daemon": is_running("shaelvien_daemon"),
                          "tray": is_running("shaelvien_tray")})
         except Exception as e:

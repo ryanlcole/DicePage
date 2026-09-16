@@ -18,9 +18,9 @@ struct___GLsync._fields_ = [
     ('_opaque_struct', c_int)
 ]
 
-# END OF gl.template
+# 027622.python.gl_compat.line21.comment END OF gl.template
 
-# GL type definitions
+# 027623.python.gl_compat.line23.comment GL type definitions
 GLenum = c_uint
 GLboolean = c_ubyte
 GLbitfield = c_uint
@@ -46,7 +46,7 @@ GLuint64EXT = c_uint64
 GLsync = POINTER(struct___GLsync)
 GLDEBUGPROC = CFUNCTYPE(None, GLenum, GLenum, GLuint, GLenum, GLsizei, POINTER(GLchar), POINTER(GLvoid))
 
-# GL enumerant (token) definitions
+# 027624.python.gl_compat.line49.comment GL enumerant (token) definitions
 GL_FALSE = 0
 GL_POINTS = 0
 GL_ZERO = 0
@@ -1976,7 +1976,7 @@ GL_ALL_SHADER_BITS = 4294967295
 GL_ALL_BARRIER_BITS = 4294967295
 GL_TIMEOUT_IGNORED = 18446744073709551615
 
-# GL command definitions
+# 027625.python.gl_compat.line1979.comment GL command definitions
 glAccum = _link_function('glAccum', None, [GLenum, GLfloat], requires='OpenGL 1.0')
 glActiveShaderProgram = _link_function('glActiveShaderProgram', None, [GLuint, GLuint], requires='OpenGL 4.1')
 glActiveTexture = _link_function('glActiveTexture', None, [GLenum], requires='OpenGL 1.3')

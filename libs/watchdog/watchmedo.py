@@ -46,7 +46,7 @@ class HelpFormatter(RawDescriptionHelpFormatter):
     """
 
     def __init__(self, *args: Any, max_help_position: int = 6, **kwargs: Any) -> None:
-        # A smaller indent for args help.
+        # 045951.python.watchmedo.line49.comment A smaller indent for args help.
         kwargs["max_help_position"] = max_help_position
         super().__init__(*args, **kwargs)
 
@@ -284,8 +284,8 @@ def tricks_from(args: Namespace) -> None:
 
         observer_cls = FSEventsObserver
     else:
-        # Automatically picks the most appropriate observer for the platform
-        # on which it is running.
+        # 045952.python.watchmedo.line287.comment Automatically picks the most appropriate observer for the platform
+        # 045953.python.watchmedo.line288.comment on which it is running.
         from watchdog.observers import Observer
 
         observer_cls = Observer
@@ -374,7 +374,7 @@ def tricks_generate_yaml(args: Namespace) -> None:
     header = yaml.dump({CONFIG_KEY_PYTHON_PATH: python_paths})
     header += f"{CONFIG_KEY_TRICKS}:\n"
     if args.append_to_file is None:
-        # Output to standard output.
+        # 045954.python.watchmedo.line377.comment Output to standard output.
         if not args.append_only:
             content = header + content
         sys.stdout.write(content)
@@ -487,8 +487,8 @@ def log(args: Namespace) -> None:
 
         observer_cls = FSEventsObserver
     else:
-        # Automatically picks the most appropriate observer for the platform
-        # on which it is running.
+        # 045955.python.watchmedo.line490.comment Automatically picks the most appropriate observer for the platform
+        # 045956.python.watchmedo.line491.comment on which it is running.
         from watchdog.observers import Observer
 
         observer_cls = Observer
@@ -723,18 +723,18 @@ def auto_restart(args: Namespace) -> None:
     if not args.directories:
         args.directories = ["."]
 
-    # Allow either signal name or number.
+    # 045957.python.watchmedo.line726.comment Allow either signal name or number.
     stop_signal = getattr(signal, args.signal) if args.signal.startswith("SIG") else int(args.signal)
 
-    # Handle termination signals by raising a semantic exception which will
-    # allow us to gracefully unwind and stop the observer
+    # 045958.python.watchmedo.line729.comment Handle termination signals by raising a semantic exception which will
+    # 045959.python.watchmedo.line730.comment allow us to gracefully unwind and stop the observer
     termination_signals = {signal.SIGTERM, signal.SIGINT}
 
     if hasattr(signal, "SIGHUP"):
         termination_signals.add(signal.SIGHUP)
 
     def handler_termination_signal(_signum: signal._SIGNUM, _frame: object) -> None:
-        # Neuter all signals so that we don't attempt a double shutdown
+        # 045960.python.watchmedo.line737.comment Neuter all signals so that we don't attempt a double shutdown
         for signum in termination_signals:
             signal.signal(signum, signal.SIG_IGN)
         raise WatchdogShutdownError

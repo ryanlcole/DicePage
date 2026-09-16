@@ -1,8 +1,8 @@
-# Command Handlers for the debugger.
+# 037279.python.dbgcommands.line1.comment Command Handlers for the debugger.
 
-# Not in the debugger package, as I always want these interfaces to be
-# available, even if the debugger has not yet been (or can not be)
-# imported
+# 037280.python.dbgcommands.line3.comment Not in the debugger package, as I always want these interfaces to be
+# 037281.python.dbgcommands.line4.comment available, even if the debugger has not yet been (or can not be)
+# 037282.python.dbgcommands.line5.comment imported
 import warnings
 
 import win32ui
@@ -27,7 +27,7 @@ class DebuggerCommandHandler:
             (self.OnClose, self.OnUpdateClose, win32ui.IDC_DBG_CLOSE),
             (self.OnAdd, self.OnUpdateAddBreakpoints, win32ui.IDC_DBG_ADD),
             (self.OnClearAll, self.OnUpdateClearAllBreakpoints, win32ui.IDC_DBG_CLEAR),
-            # 		                  (self.OnDebuggerToolbar, self.OnUpdateDebuggerToolbar, win32ui.ID_DEBUGGER_TOOLBAR),
+            # 037283.python.dbgcommands.line30.comment (self.OnDebuggerToolbar, self.OnUpdateDebuggerToolbar, win32ui.ID_DEBUGGER_TOOLBAR),
         )
 
         frame = win32ui.GetMainFrame()
@@ -99,19 +99,19 @@ class DebuggerCommandHandler:
     def OnAdd(self, msg, code):
         doc, view = scriptutils.GetActiveEditorDocument()
         if doc is None:
-            ## Don't do a messagebox, as this could be triggered from the app's
-            ## idle loop whenever the debug toolbar is visible, giving a never-ending
-            ## series of dialogs.  This can happen when the OnUpdate handler
-            ## for the toolbar button IDC_DBG_ADD fails, since MFC falls back to
-            ## sending a normal command if the UI update command fails.
-            ## win32ui.MessageBox('There is no active window - no breakpoint can be added')
+            # 037284.python.dbgcommands.line102.comment # Don't do a messagebox, as this could be triggered from the app's
+            # 037285.python.dbgcommands.line103.comment # idle loop whenever the debug toolbar is visible, giving a never-ending
+            # 037286.python.dbgcommands.line104.comment # series of dialogs.  This can happen when the OnUpdate handler
+            # 037287.python.dbgcommands.line105.comment # for the toolbar button IDC_DBG_ADD fails, since MFC falls back to
+            # 037288.python.dbgcommands.line106.comment # sending a normal command if the UI update command fails.
+            # 037289.python.dbgcommands.line107.comment # win32ui.MessageBox('There is no active window - no breakpoint can be added')
             warnings.warn(
                 "There is no active window - no breakpoint can be added", stacklevel=1
             )
             return None
         pathName = doc.GetPathName()
         lineNo = view.LineFromChar(view.GetSel()[0]) + 1
-        # If I have a debugger, then tell it, otherwise just add a marker
+        # 037290.python.dbgcommands.line114.comment If I have a debugger, then tell it, otherwise just add a marker
         d = self._GetDebugger()
         if d is None:
             import pywin.framework.editor.color.coloreditor

@@ -71,17 +71,17 @@ def add_user_font(font: UserDefinedFontBase) -> None:
         msg = "Font must be created from the UserDefinedFontBase."
         raise Exception(msg)
 
-    # Locate or create font cache
+    # 026731.python.init.line74.comment Locate or create font cache
     shared_object_space = gl.current_context.object_space
     if not hasattr(shared_object_space, "pyglet_font_font_cache"):
         shared_object_space.pyglet_font_font_cache = weakref.WeakValueDictionary()
         shared_object_space.pyglet_font_font_hold = []
-        # Match a tuple to specific name to reduce lookups.
+        # 026732.python.init.line79.comment Match a tuple to specific name to reduce lookups.
         shared_object_space.pyglet_font_font_name_match = {}
     font_cache = shared_object_space.pyglet_font_font_cache
     font_hold = shared_object_space.pyglet_font_font_hold
 
-    # Look for font name in font cache
+    # 026733.python.init.line84.comment Look for font name in font cache
     descriptor = (font.name, font.size, font.weight, font.italic, font.stretch, font.dpi)
     if descriptor in font_cache:
         msg = f"A font with parameters {descriptor} has already been created."
@@ -92,10 +92,10 @@ def add_user_font(font: UserDefinedFontBase) -> None:
 
     if font.name not in _user_fonts:
         _user_fonts.append(font.name)
-    # Cache font in weak-ref dictionary to avoid reloading while still in use
+    # 026734.python.init.line95.comment Cache font in weak-ref dictionary to avoid reloading while still in use
     font_cache[descriptor] = font
-    # Hold onto refs of last three loaded fonts to prevent them being
-    # collected if momentarily dropped.
+    # 026735.python.init.line97.comment Hold onto refs of last three loaded fonts to prevent them being
+    # 026736.python.init.line98.comment collected if momentarily dropped.
     del font_hold[3:]
     font_hold.insert(0, font)
 
@@ -131,18 +131,18 @@ def load(name: str | Iterable[str] | None = None, size: float | None = None, wei
             The assumed resolution of the display device, for the purposes of
             determining the pixel size of the font.  Defaults to 96.
     """
-    # Arbitrary default size
+    # 026737.python.init.line134.comment Arbitrary default size
     if size is None:
         size = 12
     if dpi is None:
         dpi = 96
 
-    # Locate or create font cache
+    # 026738.python.init.line140.comment Locate or create font cache
     shared_object_space = gl.current_context.object_space
     if not hasattr(shared_object_space, "pyglet_font_font_cache"):
         shared_object_space.pyglet_font_font_cache = weakref.WeakValueDictionary()
         shared_object_space.pyglet_font_font_hold = []
-        # Match a tuple to specific name to reduce lookups.
+        # 026739.python.init.line145.comment Match a tuple to specific name to reduce lookups.
         shared_object_space.pyglet_font_font_name_match = {}
     font_cache = shared_object_space.pyglet_font_font_cache
     font_hold = shared_object_space.pyglet_font_font_hold
@@ -154,7 +154,7 @@ def load(name: str | Iterable[str] | None = None, size: float | None = None, wei
         if name in font_name_match:
             name = font_name_match[name]
         else:
-            # Find first matching name, cache it.
+            # 026740.python.init.line157.comment Find first matching name, cache it.
             found_name = None
             for n in name:
                 if n in _user_fonts or _system_font_class.have_font(n):
@@ -164,26 +164,26 @@ def load(name: str | Iterable[str] | None = None, size: float | None = None, wei
             font_name_match[name] = found_name
             name = found_name
 
-    # Look for font name in font cache
+    # 026741.python.init.line167.comment Look for font name in font cache
     descriptor = (name, size, weight, italic, stretch, dpi)
     if descriptor in font_cache:
         return font_cache[descriptor]
 
-    # Not in cache, create from scratch
+    # 026742.python.init.line172.comment Not in cache, create from scratch
     font = _system_font_class(name, size, weight=weight, italic=italic, stretch=stretch, dpi=dpi)
 
-    # Save parameters for new-style layout classes to recover
-    # TODO: add properties to the base Font so completion is proper:
+    # 026743.python.init.line175.comment Save parameters for new-style layout classes to recover
+    # 026744.python.init.line176.comment TODO: add properties to the base Font so completion is proper:
     font.size = size
     font.weight = weight
     font.italic = italic
     font.stretch = stretch
     font.dpi = dpi
 
-    # Cache font in weak-ref dictionary to avoid reloading while still in use
+    # 026745.python.init.line183.comment Cache font in weak-ref dictionary to avoid reloading while still in use
     font_cache[descriptor] = font
-    # Hold onto refs of last three loaded fonts to prevent them being
-    # collected if momentarily dropped.
+    # 026746.python.init.line185.comment Hold onto refs of last three loaded fonts to prevent them being
+    # 026747.python.init.line186.comment collected if momentarily dropped.
     del font_hold[3:]
     font_hold.insert(0, font)
     return font

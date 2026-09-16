@@ -87,7 +87,7 @@ def make_tarball(
     }
     compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz'}
 
-    # flags for compression program, each element of list will be an argument
+    # 039234.python.archive_util.line90.comment flags for compression program, each element of list will be an argument
     if compress is not None and compress not in compress_ext.keys():
         raise ValueError(
             "bad value for 'compress': must be None, 'gzip', 'bzip2', 'xz'"
@@ -98,7 +98,7 @@ def make_tarball(
 
     mkpath(os.path.dirname(archive_name), dry_run=dry_run)
 
-    # creating the tarball
+    # 039235.python.archive_util.line101.comment creating the tarball
     import tarfile  # late import so Python build itself doesn't break
 
     log.info('Creating tar archive')
@@ -142,8 +142,8 @@ def make_zipfile(  # noqa: C901
     zip_filename = base_name + ".zip"
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
 
-    # If zipfile module is not available, try spawning an external
-    # 'zip' command.
+    # 039238.python.archive_util.line145.comment If zipfile module is not available, try spawning an external
+    # 039239.python.archive_util.line146.comment 'zip' command.
     if zipfile is None:
         if verbose:
             zipoptions = "-r"
@@ -153,8 +153,8 @@ def make_zipfile(  # noqa: C901
         try:
             spawn(["zip", zipoptions, zip_filename, base_dir], dry_run=dry_run)
         except DistutilsExecError:
-            # XXX really should distinguish between "couldn't find
-            # external 'zip' command" and "zip failed".
+            # 039240.python.archive_util.line156.comment XXX really should distinguish between "couldn't find
+            # 039241.python.archive_util.line157.comment external 'zip' command" and "zip failed".
             raise DistutilsExecError(
                 f"unable to create zip file '{zip_filename}': "
                 "could neither import the 'zipfile' module nor "

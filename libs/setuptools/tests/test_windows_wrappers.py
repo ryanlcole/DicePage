@@ -46,7 +46,7 @@ class WrapperTester:
         with (tmpdir / cls.script_name).open('w') as f:
             f.write(script)
 
-        # also copy cli.exe to the sample directory
+        # 045619.python.test_windows_wrappers.line49.comment also copy cli.exe to the sample directory
         with (tmpdir / cls.wrapper_name).open('wb') as f:
             w = resources.files('setuptools').joinpath(cls.wrapper_source).read_bytes()
             f.write(w)

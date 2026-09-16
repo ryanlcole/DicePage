@@ -1,16 +1,16 @@
-# -----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: Apache-2.0
-# -----------------------------------------------------------------------------
+# 002951.python.pyi_splash.line1.comment -----------------------------------------------------------------------------
+# 002952.python.pyi_splash.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 002953.python.pyi_splash.line3.comment
+# 002954.python.pyi_splash.line4.comment Licensed under the Apache License, Version 2.0 (the "License");
+# 002955.python.pyi_splash.line5.comment you may not use this file except in compliance with the License.
+# 002956.python.pyi_splash.line6.comment
+# 002957.python.pyi_splash.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 002958.python.pyi_splash.line8.comment
+# 002959.python.pyi_splash.line9.comment SPDX-License-Identifier: Apache-2.0
+# 002960.python.pyi_splash.line10.comment -----------------------------------------------------------------------------
 
-# This module is not a "fake module" in the classical sense, but a real module that can be imported. It acts as an RPC
-# interface for the functions of the bootloader.
+# 002961.python.pyi_splash.line12.comment This module is not a "fake module" in the classical sense, but a real module that can be imported. It acts as an RPC
+# 002962.python.pyi_splash.line13.comment interface for the functions of the bootloader.
 """
 This module connects to the bootloader to send messages to the splash screen.
 
@@ -33,27 +33,27 @@ is lost.
 import atexit
 import os
 
-# Import the _socket module instead of the socket module. All used functions to connect to the ipc system are
-# provided by the C module and the users program does not necessarily need to include the socket module and all
-# required modules it uses.
+# 002963.python.pyi_splash.line36.comment Import the _socket module instead of the socket module. All used functions to connect to the ipc system are
+# 002964.python.pyi_splash.line37.comment provided by the C module and the users program does not necessarily need to include the socket module and all
+# 002965.python.pyi_splash.line38.comment required modules it uses.
 import _socket
 
 __all__ = ["CLOSE_CONNECTION", "FLUSH_CHARACTER", "is_alive", "close", "update_text"]
 
 try:
-    # The user might have excluded logging from imports.
+    # 002966.python.pyi_splash.line44.comment The user might have excluded logging from imports.
     import logging as _logging
 except ImportError:
     _logging = None
 
 try:
-    # The user might have excluded functools from imports.
+    # 002967.python.pyi_splash.line50.comment The user might have excluded functools from imports.
     from functools import update_wrapper
 except ImportError:
     update_wrapper = None
 
 
-# Utility
+# 002968.python.pyi_splash.line56.comment Utility
 def _log(level, msg, *args, **kwargs):
     """
     Conditional wrapper around logging module. If the user excluded logging from the imports or it was not imported,
@@ -64,14 +64,14 @@ def _log(level, msg, *args, **kwargs):
         logger.log(level, msg, *args, **kwargs)
 
 
-# These constants define single characters which are needed to send commands to the bootloader. Those constants are
-# also set in the tcl script.
+# 002969.python.pyi_splash.line67.comment These constants define single characters which are needed to send commands to the bootloader. Those constants are
+# 002970.python.pyi_splash.line68.comment also set in the tcl script.
 CLOSE_CONNECTION = b'\x04'  # ASCII End-of-Transmission character
 FLUSH_CHARACTER = b'\x0D'  # ASCII Carriage Return character
 
-# Module internal variables
+# 002973.python.pyi_splash.line72.comment Module internal variables
 _initialized = False
-# Keep these variables always synchronized
+# 002974.python.pyi_splash.line74.comment Keep these variables always synchronized
 _ipc_socket_closed = True
 _ipc_socket = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
 
@@ -84,13 +84,13 @@ def _initialize():
     """
     global _initialized, _ipc_socket_closed
 
-    # If _ipc_port is zero, the splash screen is intentionally suppressed (for example, we are in sub-process spawned
-    # via sys.executable). Mark the splash screen as initialized, but do not attempt to connect.
+    # 002975.python.pyi_splash.line87.comment If _ipc_port is zero, the splash screen is intentionally suppressed (for example, we are in sub-process spawned
+    # 002976.python.pyi_splash.line88.comment via sys.executable). Mark the splash screen as initialized, but do not attempt to connect.
     if _ipc_port == 0:
         _initialized = True
         return
 
-    # Attempt to connect to the splash screen process.
+    # 002977.python.pyi_splash.line93.comment Attempt to connect to the splash screen process.
     try:
         _ipc_socket.connect(("127.0.0.1", _ipc_port))
         _ipc_socket_closed = False
@@ -101,24 +101,24 @@ def _initialize():
         raise ConnectionError(f"Could not connect to TCP port {_ipc_port}.") from err
 
 
-# We expect a splash screen from the bootloader, but if _PYI_SPLASH_IPC is not set, the module cannot connect to it.
-# _PYI_SPLASH_IPC being set to zero indicates that splash screen should be (gracefully) suppressed; i.e., the calls
-# in this module should become no-op without generating warning messages.
+# 002979.python.pyi_splash.line104.comment We expect a splash screen from the bootloader, but if _PYI_SPLASH_IPC is not set, the module cannot connect to it.
+# 002980.python.pyi_splash.line105.comment _PYI_SPLASH_IPC being set to zero indicates that splash screen should be (gracefully) suppressed; i.e., the calls
+# 002981.python.pyi_splash.line106.comment in this module should become no-op without generating warning messages.
 try:
     _ipc_port = int(os.environ['_PYI_SPLASH_IPC'])
     del os.environ['_PYI_SPLASH_IPC']
-    # Initialize the connection upon importing this module. This will establish a connection to the bootloader's TCP
-    # server socket.
+    # 002982.python.pyi_splash.line110.comment Initialize the connection upon importing this module. This will establish a connection to the bootloader's TCP
+    # 002983.python.pyi_splash.line111.comment server socket.
     _initialize()
 except (KeyError, ValueError):
-    # log-level: warning
+    # 002984.python.pyi_splash.line114.comment log-level: warning
     _log(
         30,
         "The environment does not allow connecting to the splash screen. Did bootloader fail to initialize it?",
         exc_info=True,
     )
 except ConnectionError:
-    # log-level: error
+    # 002985.python.pyi_splash.line121.comment log-level: error
     _log(40, "Failed to connect to the bootloader's IPC server!", exc_info=True)
 
 
@@ -146,7 +146,7 @@ def _check_connection(func):
         return func(*args, **kwargs)
 
     if update_wrapper:
-        # For runtime introspection
+        # 002987.python.pyi_splash.line149.comment For runtime introspection
         update_wrapper(wrapper, func)
 
     return wrapper

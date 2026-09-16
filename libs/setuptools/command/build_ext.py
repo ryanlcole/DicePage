@@ -19,34 +19,34 @@ from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 
 if TYPE_CHECKING:
-    # Cython not installed on CI tests, causing _build_ext to be `Any`
+    # 044388.python.build_ext.line22.comment Cython not installed on CI tests, causing _build_ext to be `Any`
     from distutils.command.build_ext import build_ext as _build_ext
 else:
     try:
-        # Attempt to use Cython for building extensions, if available
+        # 044389.python.build_ext.line26.comment Attempt to use Cython for building extensions, if available
         from Cython.Distutils.build_ext import build_ext as _build_ext
 
-        # Additionally, assert that the compiler module will load
-        # also. Ref #1229.
+        # 044390.python.build_ext.line29.comment Additionally, assert that the compiler module will load
+        # 044391.python.build_ext.line30.comment also. Ref #1229.
         __import__('Cython.Compiler.Main')
     except ImportError:
         from distutils.command.build_ext import build_ext as _build_ext
 
-# make sure _config_vars is initialized
+# 044392.python.build_ext.line35.comment make sure _config_vars is initialized
 get_config_var("LDSHARED")
-# Not publicly exposed in typeshed distutils stubs, but this is done on purpose
-# See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
+# 044393.python.build_ext.line37.comment Not publicly exposed in typeshed distutils stubs, but this is done on purpose
+# 044394.python.build_ext.line38.comment See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
 from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa: E402
 
 
 def _customize_compiler_for_shlib(compiler):
     if sys.platform == "darwin":
-        # building .dylib requires additional compiler flags on OSX; here we
-        # temporarily substitute the pyconfig.h variables so that distutils'
-        # 'customize_compiler' uses them before we build the shared libraries.
+        # 044396.python.build_ext.line44.comment building .dylib requires additional compiler flags on OSX; here we
+        # 044397.python.build_ext.line45.comment temporarily substitute the pyconfig.h variables so that distutils'
+        # 044398.python.build_ext.line46.comment 'customize_compiler' uses them before we build the shared libraries.
         tmp = _CONFIG_VARS.copy()
         try:
-            # XXX Help!  I don't have any idea whether these are right...
+            # 044399.python.build_ext.line49.comment XXX Help!  I don't have any idea whether these are right...
             _CONFIG_VARS['LDSHARED'] = (
                 "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
             )
@@ -113,17 +113,17 @@ class build_ext(_build_ext):
         for ext in self.extensions:
             inplace_file, regular_file = self._get_inplace_equivalent(build_py, ext)
 
-            # Always copy, even if source is older than destination, to ensure
-            # that the right extensions for the current Python/platform are
-            # used.
+            # 044404.python.build_ext.line116.comment Always copy, even if source is older than destination, to ensure
+            # 044405.python.build_ext.line117.comment that the right extensions for the current Python/platform are
+            # 044406.python.build_ext.line118.comment used.
             if os.path.exists(regular_file) or not ext.optional:
                 self.copy_file(regular_file, inplace_file, level=self.verbose)
 
             if ext._needs_stub:
                 inplace_stub = self._get_equivalent_stub(ext, inplace_file)
                 self._write_stub_file(inplace_stub, ext, compile=True)
-                # Always compile stub and remove the original (leave the cache behind)
-                # (this behaviour was observed in previous iterations of the code)
+                # 044407.python.build_ext.line125.comment Always compile stub and remove the original (leave the cache behind)
+                # 044408.python.build_ext.line126.comment (this behaviour was observed in previous iterations of the code)
 
     def _get_equivalent_stub(self, ext: Extension, output_file: str) -> str:
         dir_ = os.path.dirname(output_file)
@@ -142,12 +142,12 @@ class build_ext(_build_ext):
             yield (regular_file, inplace_file)
 
             if ext._needs_stub:
-                # This version of `build_ext` always builds artifacts in another dir,
-                # when "inplace=True" is given it just copies them back.
-                # This is done in the `copy_extensions_to_source` function, which
-                # always compile stub files via `_compile_and_remove_stub`.
-                # At the end of the process, a `.pyc` stub file is created without the
-                # corresponding `.py`.
+                # 044409.python.build_ext.line145.comment This version of `build_ext` always builds artifacts in another dir,
+                # 044410.python.build_ext.line146.comment when "inplace=True" is given it just copies them back.
+                # 044411.python.build_ext.line147.comment This is done in the `copy_extensions_to_source` function, which
+                # 044412.python.build_ext.line148.comment always compile stub files via `_compile_and_remove_stub`.
+                # 044413.python.build_ext.line149.comment At the end of the process, a `.pyc` stub file is created without the
+                # 044414.python.build_ext.line150.comment corresponding `.py`.
 
                 inplace_stub = self._get_equivalent_stub(ext, inplace_file)
                 regular_stub = self._get_equivalent_stub(ext, regular_file)
@@ -202,8 +202,8 @@ class build_ext(_build_ext):
             fullname = ext._full_name
             self.ext_map[fullname] = ext
 
-            # distutils 3.1 will also ask for module names
-            # XXX what to do with conflicts?
+            # 044416.python.build_ext.line205.comment distutils 3.1 will also ask for module names
+            # 044417.python.build_ext.line206.comment XXX what to do with conflicts?
             self.ext_map[fullname.split('.')[-1]] = ext
 
             ltd = self.shlibs and self.links_to_dynamic(ext) or False
@@ -229,7 +229,7 @@ class build_ext(_build_ext):
         if self.include_dirs is not None:
             compiler.set_include_dirs(self.include_dirs)
         if self.define is not None:
-            # 'define' option is a list of (name,value) tuples
+            # 044418.python.build_ext.line232.comment 'define' option is a list of (name,value) tuples
             for name, value in self.define:
                 compiler.define_macro(name, value)
         if self.undef is not None:
@@ -244,7 +244,7 @@ class build_ext(_build_ext):
         if self.link_objects is not None:
             compiler.set_link_objects(self.link_objects)
 
-        # hack so distutils' build_extension() builds a library instead
+        # 044419.python.build_ext.line247.comment hack so distutils' build_extension() builds a library instead
         compiler.link_shared_object = link_shared_object.__get__(compiler)  # type: ignore[method-assign]
 
     def get_export_symbols(self, ext):
@@ -267,9 +267,9 @@ class build_ext(_build_ext):
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
-        # XXX this should check to ensure the lib is actually being built
-        # XXX as dynamic, and not just using a locally-found version or a
-        # XXX static-compiled version
+        # 044421.python.build_ext.line270.comment XXX this should check to ensure the lib is actually being built
+        # 044422.python.build_ext.line271.comment XXX as dynamic, and not just using a locally-found version or a
+        # 044423.python.build_ext.line272.comment XXX static-compiled version
         libnames = dict.fromkeys([lib._full_name for lib in self.shlibs])
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
         return any(pkg + libname in libnames for libname in ext.libraries)
@@ -326,13 +326,13 @@ class build_ext(_build_ext):
         return dict(sorted(mapping, key=lambda x: x[0]))
 
     def __get_stubs_outputs(self):
-        # assemble the base name for each extension that needs a stub
+        # 044424.python.build_ext.line329.comment assemble the base name for each extension that needs a stub
         ns_ext_bases = (
             os.path.join(self.build_lib, *ext._full_name.split('.'))
             for ext in self.extensions
             if ext._needs_stub
         )
-        # pair each base with the extension
+        # 044425.python.build_ext.line335.comment pair each base with the extension
         pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
         return list(base + fnext for base, fnext in pairs)
 
@@ -401,8 +401,8 @@ class build_ext(_build_ext):
 
 
 if use_stubs or os.name == 'nt':
-    # Build shared libraries
-    #
+    # 044426.python.build_ext.line404.comment Build shared libraries
+    # 044427.python.build_ext.line405.comment
     def link_shared_object(
         self,
         objects,
@@ -435,7 +435,7 @@ if use_stubs or os.name == 'nt':
         )
 
 else:
-    # Build static libraries everywhere else
+    # 044428.python.build_ext.line438.comment Build static libraries everywhere else
     libtype = 'static'
 
     def link_shared_object(
@@ -453,18 +453,18 @@ else:
         build_temp=None,
         target_lang=None,
     ) -> None:
-        # XXX we need to either disallow these attrs on Library instances,
-        # or warn/abort here if set, or something...
-        # libraries=None, library_dirs=None, runtime_library_dirs=None,
-        # export_symbols=None, extra_preargs=None, extra_postargs=None,
-        # build_temp=None
+        # 044429.python.build_ext.line456.comment XXX we need to either disallow these attrs on Library instances,
+        # 044430.python.build_ext.line457.comment or warn/abort here if set, or something...
+        # 044431.python.build_ext.line458.comment libraries=None, library_dirs=None, runtime_library_dirs=None,
+        # 044432.python.build_ext.line459.comment export_symbols=None, extra_preargs=None, extra_postargs=None,
+        # 044433.python.build_ext.line460.comment build_temp=None
 
         assert output_dir is None  # distutils build_ext doesn't pass this
         output_dir, filename = os.path.split(output_libname)
         basename, _ext = os.path.splitext(filename)
         if self.library_filename("x").startswith('lib'):
-            # strip 'lib' prefix; this is kludgy if some platform uses
-            # a different prefix
+            # 044435.python.build_ext.line466.comment strip 'lib' prefix; this is kludgy if some platform uses
+            # 044436.python.build_ext.line467.comment a different prefix
             basename = basename[3:]
 
         self.create_static_lib(objects, basename, output_dir, debug, target_lang)

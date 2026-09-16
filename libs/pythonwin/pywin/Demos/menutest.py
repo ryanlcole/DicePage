@@ -1,4 +1,4 @@
-# Run this as a python script, to gray "close" off the edit window system menu.
+# 036772.python.menutest.line1.comment Run this as a python script, to gray "close" off the edit window system menu.
 import win32con
 from pywin.framework import interact
 

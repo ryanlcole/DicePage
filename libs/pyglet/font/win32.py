@@ -1,4 +1,4 @@
-# Windows Vista: need to call SetProcessDPIAware?  May affect GDI+ calls as well as font.
+# 027241.python.win32.line1.comment Windows Vista: need to call SetProcessDPIAware?  May affect GDI+ calls as well as font.
 from __future__ import annotations
 
 import ctypes
@@ -71,7 +71,7 @@ class GDIPlusGlyphRenderer(base.GlyphRenderer):
         super().__init__(font)
         self.font = font
 
-        # Pessimistically round up width and height to 4 byte alignment
+        # 027242.python.win32.line74.comment Pessimistically round up width and height to 4 byte alignment
         width = font.max_glyph_width
         height = font.ascent - font.descent
         width = (width | 0x3) + 1
@@ -130,40 +130,40 @@ class GDIPlusGlyphRenderer(base.GlyphRenderer):
         ch = ctypes.create_unicode_buffer(text)
         len_ch = len(text)
 
-        # Layout rectangle; not clipped against so not terribly important.
+        # 027244.python.win32.line133.comment Layout rectangle; not clipped against so not terribly important.
         width = 10000
         height = self._bitmap_height
         rect = Rectf(0, self._bitmap_height
                         - self.font.ascent + self.font.descent,
                      width, height)
 
-        # Set up GenericTypographic with 1 character measure range
+        # 027245.python.win32.line140.comment Set up GenericTypographic with 1 character measure range
         generic = ctypes.c_void_p()
         gdiplus.GdipStringFormatGetGenericTypographic(ctypes.byref(generic))
         fmt = ctypes.c_void_p()
         gdiplus.GdipCloneStringFormat(generic, ctypes.byref(fmt))
         gdiplus.GdipDeleteStringFormat(generic)
 
-        # --- Measure advance
+        # 027246.python.win32.line147.comment --- Measure advance
 
-        # XXX HACK HACK HACK
-        # Windows GDI+ is a filthy broken toy.  No way to measure the bounding
-        # box of a string, or to obtain LSB.  What a joke.
-        #
-        # For historical note, GDI cannot be used because it cannot composite
-        # into a bitmap with alpha.
-        #
-        # It looks like MS have abandoned GDI and GDI+ and are finally
-        # supporting accurate text measurement with alpha composition in .NET
-        # 2.0 (WinForms) via the TextRenderer class; this has no C interface
-        # though, so we're entirely screwed.
-        #
-        # So anyway, we first try to get the width with GdipMeasureString.
-        # Then if it's a TrueType font, we use GetCharABCWidthsW to get the
-        # correct LSB. If it's a negative LSB, we move the layoutRect `rect`
-        # to the right so that the whole glyph is rendered on the surface.
-        # For positive LSB, we let the renderer render the correct white
-        # space and we don't pass the LSB info to the Glyph.set_bearings
+        # 027247.python.win32.line149.comment XXX HACK HACK HACK
+        # 027248.python.win32.line150.comment Windows GDI+ is a filthy broken toy.  No way to measure the bounding
+        # 027249.python.win32.line151.comment box of a string, or to obtain LSB.  What a joke.
+        # 027250.python.win32.line152.comment
+        # 027251.python.win32.line153.comment For historical note, GDI cannot be used because it cannot composite
+        # 027252.python.win32.line154.comment into a bitmap with alpha.
+        # 027253.python.win32.line155.comment
+        # 027254.python.win32.line156.comment It looks like MS have abandoned GDI and GDI+ and are finally
+        # 027255.python.win32.line157.comment supporting accurate text measurement with alpha composition in .NET
+        # 027256.python.win32.line158.comment 2.0 (WinForms) via the TextRenderer class; this has no C interface
+        # 027257.python.win32.line159.comment though, so we're entirely screwed.
+        # 027258.python.win32.line160.comment
+        # 027259.python.win32.line161.comment So anyway, we first try to get the width with GdipMeasureString.
+        # 027260.python.win32.line162.comment Then if it's a TrueType font, we use GetCharABCWidthsW to get the
+        # 027261.python.win32.line163.comment correct LSB. If it's a negative LSB, we move the layoutRect `rect`
+        # 027262.python.win32.line164.comment to the right so that the whole glyph is rendered on the surface.
+        # 027263.python.win32.line165.comment For positive LSB, we let the renderer render the correct white
+        # 027264.python.win32.line166.comment space and we don't pass the LSB info to the Glyph.set_bearings
 
         bbox = Rectf()
         flags = (StringFormatFlagsMeasureTrailingSpaces |
@@ -180,31 +180,31 @@ class GDIPlusGlyphRenderer(base.GlyphRenderer):
                                   None,
                                   None)
 
-        # We only care about the advance from this whole thing.
+        # 027265.python.win32.line183.comment We only care about the advance from this whole thing.
         advance = int(math.ceil(bbox.width))
 
-        # GDI functions only work for a single character so we transform
-        # grapheme \r\n into \r
+        # 027266.python.win32.line186.comment GDI functions only work for a single character so we transform
+        # 027267.python.win32.line187.comment grapheme \r\n into \r
         if text == "\r\n":
             text = "\r"
 
-        # XXX END HACK HACK HACK
+        # 027268.python.win32.line191.comment XXX END HACK HACK HACK
 
         abc = ABC()
         width = 0
         lsb = 0
         ttf_font = True
-        # Use GDI to get code points for the text passed. This is almost always 1.
-        # For special unicode characters it may be comprised of 2+ codepoints. Get the width/lsb of each.
-        # Function only works on TTF fonts.
+        # 027269.python.win32.line197.comment Use GDI to get code points for the text passed. This is almost always 1.
+        # 027270.python.win32.line198.comment For special unicode characters it may be comprised of 2+ codepoints. Get the width/lsb of each.
+        # 027271.python.win32.line199.comment Function only works on TTF fonts.
         for codepoint in [ord(c) for c in text]:
             if gdi32.GetCharABCWidthsW(self._dc, codepoint, codepoint, ctypes.byref(abc)):
                 lsb += abc.abcA
                 width += abc.abcB
 
                 if lsb < 0:
-                    # Negative LSB: we shift the layout rect to the right
-                    # Otherwise we will cut the left part of the glyph
+                    # 027272.python.win32.line206.comment Negative LSB: we shift the layout rect to the right
+                    # 027273.python.win32.line207.comment Otherwise we will cut the left part of the glyph
                     rect.x = -lsb
                     width -= lsb
                 else:
@@ -213,20 +213,20 @@ class GDIPlusGlyphRenderer(base.GlyphRenderer):
                 ttf_font = False
                 break
 
-        # Almost always a TTF font. Haven't seen a modern font that GetCharABCWidthsW fails on.
-        # For safety, just use the advance as the width.
+        # 027274.python.win32.line216.comment Almost always a TTF font. Haven't seen a modern font that GetCharABCWidthsW fails on.
+        # 027275.python.win32.line217.comment For safety, just use the advance as the width.
         if not ttf_font:
             width = advance
 
-            # This hack bumps up the width if the font is italic;
-            # this compensates for some common fonts.  It's also a stupid
-            # waste of texture memory.
+            # 027276.python.win32.line221.comment This hack bumps up the width if the font is italic;
+            # 027277.python.win32.line222.comment this compensates for some common fonts.  It's also a stupid
+            # 027278.python.win32.line223.comment waste of texture memory.
             if self.font.italic:
                 width += width // 2
-                # Do not enlarge more than the _rect width.
+                # 027279.python.win32.line226.comment Do not enlarge more than the _rect width.
                 width = min(width, self._rect.Width)
 
-        # Draw character to bitmap
+        # 027280.python.win32.line229.comment Draw character to bitmap
         gdiplus.GdipGraphicsClear(self._graphics, 0x00000000)
         gdiplus.GdipDrawString(self._graphics,
                                ch,
@@ -245,12 +245,12 @@ class GDIPlusGlyphRenderer(base.GlyphRenderer):
             ctypes.byref(self._rect), ImageLockModeRead, self._format,
             ctypes.byref(bitmap_data))
 
-        # Create buffer for RawImage
+        # 027281.python.win32.line248.comment Create buffer for RawImage
         buffer = ctypes.create_string_buffer(
             bitmap_data.Stride * bitmap_data.Height)
         ctypes.memmove(buffer, bitmap_data.Scan0, len(buffer))
 
-        # Unlock data
+        # 027282.python.win32.line253.comment Unlock data
         gdiplus.GdipBitmapUnlockBits(self._bitmap, ctypes.byref(bitmap_data))
 
         image = pyglet.image.ImageData(
@@ -258,7 +258,7 @@ class GDIPlusGlyphRenderer(base.GlyphRenderer):
             "BGRA", buffer, -bitmap_data.Stride)
 
         glyph = self.font.create_glyph(image)
-        # Only pass negative LSB info
+        # 027283.python.win32.line261.comment Only pass negative LSB info
         lsb = min(lsb, 0)
         glyph.set_bearings(-self.font.descent, lsb, advance)
         return glyph
@@ -280,7 +280,7 @@ class Win32Font(base.Font):
         self.logfont = self.get_logfont(name, size, bold, italic, dpi)
         self.hfont = gdi32.CreateFontIndirectW(ctypes.byref(self.logfont))
 
-        # Create a dummy DC for coordinate mapping
+        # 027284.python.win32.line283.comment Create a dummy DC for coordinate mapping
         with device_context(None) as dc:
             metrics = TEXTMETRIC()
             gdi32.SelectObject(dc, self.hfont)
@@ -304,21 +304,21 @@ class Win32Font(base.Font):
             LOGFONTW: a ctypes binding of a Win32 LOGFONTW struct
         """
 
-        # Create a dummy DC for coordinate mapping
+        # 027285.python.win32.line307.comment Create a dummy DC for coordinate mapping
         with device_context(None) as dc:
 
-            # Default to 96 DPI unless otherwise specified
+            # 027286.python.win32.line310.comment Default to 96 DPI unless otherwise specified
             if dpi is None:
                 dpi = 96
             log_pixels_y = dpi
 
-            # Create LOGFONTW font description struct
+            # 027287.python.win32.line315.comment Create LOGFONTW font description struct
             logfont = LOGFONTW()
 
-            # Convert point size to actual device pixels
+            # 027288.python.win32.line318.comment Convert point size to actual device pixels
             logfont.lfHeight = int(-size * log_pixels_y // 72)
 
-            # Configure the LOGFONTW's font properties
+            # 027289.python.win32.line321.comment Configure the LOGFONTW's font properties
             if bold:
                 logfont.lfWeight = FW_BOLD
             else:
@@ -375,25 +375,25 @@ class GDIPlusFont(Win32Font):
 
         family = ctypes.c_void_p()
 
-        # GDI will add @ in front of a localized font for some Asian languages. However, GDI will also not find it
-        # based on that name (???). Here we remove it before checking font collections.
+        # 027291.python.win32.line378.comment GDI will add @ in front of a localized font for some Asian languages. However, GDI will also not find it
+        # 027292.python.win32.line379.comment based on that name (???). Here we remove it before checking font collections.
         if name[0] == "@":
             name = name[1:]
 
         name = ctypes.c_wchar_p(name)
 
-        # Look in private collection first:
+        # 027293.python.win32.line385.comment Look in private collection first:
         if self._private_collection:
             gdiplus.GdipCreateFontFamilyFromName(name, self._private_collection, ctypes.byref(family))
 
-        # Then in system collection:
+        # 027294.python.win32.line389.comment Then in system collection:
         if not family:
             if _debug_font:
                 print(f"Warning: Font '{name}' was not found. Defaulting to: {self._default_name}") 
 
             gdiplus.GdipCreateFontFamilyFromName(name, None, ctypes.byref(family))
 
-        # Nothing found, use default font.
+        # 027295.python.win32.line396.comment Nothing found, use default font.
         if not family:
             self._name = self._default_name
             gdiplus.GdipCreateFontFamilyFromName(ctypes.c_wchar_p(self._name), None, ctypes.byref(family))
@@ -428,7 +428,7 @@ class GDIPlusFont(Win32Font):
         numfonts = ctypes.c_uint32()
         _handle = gdi32.AddFontMemResourceEx(data, len(data), 0, ctypes.byref(numfonts))
 
-        # None means a null handle was returned, ie something went wrong
+        # 027296.python.win32.line431.comment None means a null handle was returned, ie something went wrong
         if _handle is None:
             raise ctypes.WinError()
 
@@ -440,16 +440,16 @@ class GDIPlusFont(Win32Font):
 
     @classmethod
     def have_font(cls: type[GDIPlusFont], name: str) -> bool:
-        # Enumerate the private collection fonts first, as those are most likely to be used.
+        # 027297.python.win32.line443.comment Enumerate the private collection fonts first, as those are most likely to be used.
         if cls._private_collection and _font_exists_in_collection(cls._private_collection, name):
             return True
 
-        # Instead of enumerating all fonts on the system, as there can potentially be thousands, attempt to create
-        # the font family with the name. If it does not error (0), then it exists in the system.
+        # 027298.python.win32.line447.comment Instead of enumerating all fonts on the system, as there can potentially be thousands, attempt to create
+        # 027299.python.win32.line448.comment the font family with the name. If it does not error (0), then it exists in the system.
         family = ctypes.c_void_p()
         status = gdiplus.GdipCreateFontFamilyFromName(name, None, ctypes.byref(family))
         if status == 0:
-            # Delete temp family to prevent leak.
+            # 027300.python.win32.line452.comment Delete temp family to prevent leak.
             gdiplus.GdipDeleteFontFamily(family)
             return True
 

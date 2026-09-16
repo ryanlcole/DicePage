@@ -1,4 +1,4 @@
-# Separate some structure types from the lib to prevent circular imports, as dwrite/d2d render targets use these too.
+# 026909.python.d2d1_types_lib.line1.comment Separate some structure types from the lib to prevent circular imports, as dwrite/d2d render targets use these too.
 from __future__ import annotations
 
 from ctypes import Structure

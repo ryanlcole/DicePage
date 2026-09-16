@@ -21,13 +21,13 @@ class Installer:
         lines = map(self._gen_nspkg_line, nsp)
 
         if self.dry_run:
-            # always generate the lines, even in dry run
+            # 044991.python.namespaces.line24.comment always generate the lines, even in dry run
             list(lines)
             return
 
         with open(filename, 'wt', encoding=py312.PTH_ENCODING) as f:
-            # Python<3.13 requires encoding="locale" instead of "utf-8"
-            # See: python/cpython#77102
+            # 044992.python.namespaces.line29.comment Python<3.13 requires encoding="locale" instead of "utf-8"
+            # 044993.python.namespaces.line30.comment See: python/cpython#77102
             f.writelines(lines)
 
     def uninstall_namespaces(self) -> None:

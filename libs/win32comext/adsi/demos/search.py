@@ -9,7 +9,7 @@ ADsTypeNameMap = {}
 
 
 def getADsTypeName(type_val):
-    # convert integer type to the 'typename' as known in the headerfiles.
+    # 050688.python.search.line12.comment convert integer type to the 'typename' as known in the headerfiles.
     if not ADsTypeNameMap:
         for n, v in adsicon.__dict__.items():
             if n.startswith("ADSTYPE_"):
@@ -44,7 +44,7 @@ def getGC():
         "GC:", options.user, options.password, 0, adsi.IID_IADsContainer
     )
     enum = adsi.ADsBuildEnumerator(cont)
-    # Only 1 child of the global catalog.
+    # 050689.python.search.line47.comment Only 1 child of the global catalog.
     for e in enum:
         gc = e.QueryInterface(adsi.IID_IDirectorySearch)
         return gc
@@ -83,7 +83,7 @@ def search():
     while hr != S_ADS_NOMORE_ROWS:
         print("-- new row --")
         if attributes is None:
-            # Loop over all columns returned
+            # 050690.python.search.line86.comment Loop over all columns returned
             while 1:
                 col_name = gc.GetNextColumnName(h)
                 if col_name is None:
@@ -91,7 +91,7 @@ def search():
                 data = gc.GetColumn(h, col_name)
                 print_attribute(data)
         else:
-            # loop over attributes specified.
+            # 050691.python.search.line94.comment loop over attributes specified.
             for a in attributes:
                 try:
                     data = gc.GetColumn(h, a)

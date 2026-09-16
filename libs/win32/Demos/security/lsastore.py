@@ -7,6 +7,6 @@ win32security.LsaStorePrivateData(policy_handle, keyname, privatedata)
 retrieveddata = win32security.LsaRetrievePrivateData(policy_handle, keyname)
 assert retrieveddata == privatedata
 
-## passing None deletes key
+# 046157.python.lsastore.line10.comment # passing None deletes key
 win32security.LsaStorePrivateData(policy_handle, keyname, None)
 win32security.LsaClose(policy_handle)

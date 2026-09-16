@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009598.python.bindepend.line1.comment -----------------------------------------------------------------------------
+# 009599.python.bindepend.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 009600.python.bindepend.line3.comment
+# 009601.python.bindepend.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009602.python.bindepend.line5.comment or later) with exception for distributing the bootloader.
+# 009603.python.bindepend.line6.comment
+# 009604.python.bindepend.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009605.python.bindepend.line8.comment
+# 009606.python.bindepend.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009607.python.bindepend.line10.comment -----------------------------------------------------------------------------
 """
 Show dll dependencies of executable files or other dynamic libraries.
 """
@@ -40,7 +40,7 @@ def run():
     args = parser.parse_args()
     PyInstaller.log.__process_options(parser, args)
 
-    # Suppress all informative messages from the dependency code.
+    # 009608.python.bindepend.line43.comment Suppress all informative messages from the dependency code.
     PyInstaller.log.getLogger('PyInstaller.build.bindepend').setLevel(PyInstaller.log.WARN)
 
     try:

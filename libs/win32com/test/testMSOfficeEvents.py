@@ -1,4 +1,4 @@
-# OfficeEvents - test/demonstrate events with Word and Excel.
+# 050129.python.testMSOfficeEvents.line1.comment OfficeEvents - test/demonstrate events with Word and Excel.
 import msvcrt
 import sys
 import threading
@@ -40,8 +40,8 @@ def TestExcel():
                 print("You can double-click there...")
             else:
                 print("You can not double-click there...")
-                # This function is a void, so the result ends up in
-                # the only ByRef - Cancel.
+                # 050130.python.testMSOfficeEvents.line43.comment This function is a void, so the result ends up in
+                # 050131.python.testMSOfficeEvents.line44.comment the only ByRef - Cancel.
                 return 1
 
     class WorkbookEvents:
@@ -57,8 +57,8 @@ def TestExcel():
     book = e.Workbooks.Add()
     book = DispatchWithEvents(book, WorkbookEvents)
     print("Have book", book)
-    # sheet = e.Worksheets(1)
-    # sheet = DispatchWithEvents(sheet, WorksheetEvents)
+    # 050132.python.testMSOfficeEvents.line60.comment sheet = e.Worksheets(1)
+    # 050133.python.testMSOfficeEvents.line61.comment sheet = DispatchWithEvents(sheet, WorksheetEvents)
 
     print("Double-click in a few of the Excel cells...")
     print("Press any key when finished with Excel, or wait 10 seconds...")
@@ -104,11 +104,11 @@ def _WaitForFinish(ob, timeout):
             break
         try:
             if not ob.Visible:
-                # Gone invisible - we need to pretend we timed
-                # out, so the app is quit.
+                # 050134.python.testMSOfficeEvents.line107.comment Gone invisible - we need to pretend we timed
+                # 050135.python.testMSOfficeEvents.line108.comment out, so the app is quit.
                 return 0
         except pythoncom.com_error:
-            # Excel is busy (eg, editing the cell) - ignore
+            # 050136.python.testMSOfficeEvents.line111.comment Excel is busy (eg, editing the cell) - ignore
             pass
         if time.time() > end:
             return 0

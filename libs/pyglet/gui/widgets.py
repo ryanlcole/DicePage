@@ -144,7 +144,7 @@ class WidgetBase(EventDispatcher):
     def _update_position(self) -> None:
         raise NotImplementedError('Unable to reposition this Widget')
 
-    # Handlers
+    # 030257.python.widgets.line147.comment Handlers
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         pass
@@ -492,11 +492,11 @@ class TextEntry(WidgetBase):
         bg_group = Group(order=0, parent=group)
         fg_group = Group(order=1, parent=group)
 
-        # Rectangular outline with 2-pixel pad:
+        # 030259.python.widgets.line495.comment Rectangular outline with 2-pixel pad:
         self._pad = p = 2
         self._outline = pyglet.shapes.Rectangle(x-p, y-p, width+p+p, height+p+p, color, batch=batch, group=bg_group)
 
-        # Text and Caret:
+        # 030260.python.widgets.line499.comment Text and Caret:
         self._layout = IncrementalTextLayout(self._doc, x, y, 0, width, height, batch=batch, group=fg_group)
         self._caret = Caret(self._layout, color=caret_color)
         self._caret.visible = False
@@ -581,7 +581,7 @@ class TextEntry(WidgetBase):
         if not self.enabled:
             return
         if self._focus:
-            # Commit on Enter/Return:
+            # 030261.python.widgets.line584.comment Commit on Enter/Return:
             if text in ('\r', '\n'):
                 self.dispatch_event('on_commit', self, self._layout.document.text)
                 self._set_focus(False)

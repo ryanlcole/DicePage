@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2018 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052259.python.system_information.line1.comment
+# 052260.python.system_information.line2.comment (C) Copyright 2018 Enthought, Inc., Austin, TX
+# 052261.python.system_information.line3.comment All right reserved.
+# 052262.python.system_information.line4.comment
+# 052263.python.system_information.line5.comment This file is open source software distributed according to the terms in
+# 052264.python.system_information.line6.comment LICENSE.txt
+# 052265.python.system_information.line7.comment
 import ctypes
 from ctypes.wintypes import LPCWSTR, UINT, LPWSTR, MAX_PATH
 

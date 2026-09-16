@@ -1,9 +1,9 @@
-# Test MSOffice
-#
-# Main purpose of test is to ensure that Dynamic COM objects
-# work as expected.
+# 050112.python.testMSOffice.line1.comment Test MSOffice
+# 050113.python.testMSOffice.line2.comment
+# 050114.python.testMSOffice.line3.comment Main purpose of test is to ensure that Dynamic COM objects
+# 050115.python.testMSOffice.line4.comment work as expected.
 
-# Assumes Word and Excel installed on your machine.
+# 050116.python.testMSOffice.line6.comment Assumes Word and Excel installed on your machine.
 
 import traceback
 
@@ -15,23 +15,23 @@ from win32com.client import gencache
 from win32com.test.util import CheckClean
 
 
-# Test a few of the MSOffice components.
+# 050117.python.testMSOffice.line18.comment Test a few of the MSOffice components.
 def TestWord():
     try:
-        # Office 97 - _totally_ different object model!
+        # 050118.python.testMSOffice.line21.comment Office 97 - _totally_ different object model!
         word7 = win32com.client.Dispatch("Word.Basic")
-        # Check if any property needed by TestWord7 is not None
+        # 050119.python.testMSOffice.line23.comment Check if any property needed by TestWord7 is not None
         if word7.FileNew:
             print("Starting Word 7 for dynamic test")
             TestWord7(word7)
         else:
-            # NOTE - using "client.Dispatch" would return an msword8.py instance!
+            # 050120.python.testMSOffice.line28.comment NOTE - using "client.Dispatch" would return an msword8.py instance!
             print("Starting Word 8 for dynamic test")
             word = win32com.client.dynamic.Dispatch("Word.Application")
             TestWord8(word)
 
             word = None
-            # Now we will test Dispatch without the new "lazy" capabilities
+            # 050121.python.testMSOffice.line34.comment Now we will test Dispatch without the new "lazy" capabilities
             print("Starting Word 8 for non-lazy dynamic test")
             dispatch = win32com.client.dynamic._GetGoodDispatch("Word.Application")
             typeinfo = dispatch.GetTypeInfo()
@@ -57,7 +57,7 @@ def TestWord():
 
 def TestWord7(word):
     word.FileNew()
-    # If not shown, show the app.
+    # 050122.python.testMSOffice.line60.comment If not shown, show the app.
     if not word.AppShow():
         word._proc_("AppShow")
 
@@ -76,14 +76,14 @@ def TestWord8(word):
         wrange.InsertAfter(f"Hello from Python {i + 1}\n")
     paras = doc.Paragraphs
     if int(word.Version.split(".")[0]) >= 16:
-        # With Word 16 / Word 2019
+        # 050123.python.testMSOffice.line79.comment With Word 16 / Word 2019
         for i, p in enumerate(paras):
             p.Range.Font.ColorIndex = i + 1
             p.Range.Font.Size = 12 + (4 * i)
     else:
-        # NOTE: Iterating on paras doesn't seem to work - no error, just doesn't work
-        # for para in paras:
-        #     para().Font...
+        # 050124.python.testMSOffice.line84.comment NOTE: Iterating on paras doesn't seem to work - no error, just doesn't work
+        # 050125.python.testMSOffice.line85.comment for para in paras:
+        # 050126.python.testMSOffice.line86.comment para().Font...
         for i in range(len(paras)):
             p = paras(i + 1)
             p.Font.ColorIndex = i + 1
@@ -137,7 +137,7 @@ def TextExcel(xl):
         (1, 2, 3),
     ), "Range was not what I set it to!"
 
-    # test dates out with Excel
+    # 050128.python.testMSOffice.line140.comment test dates out with Excel
     xl.Cells(5, 1).Value = "Excel time"
     xl.Cells(5, 2).Formula = "=Now()"
 

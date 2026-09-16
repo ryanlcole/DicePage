@@ -98,7 +98,7 @@ class MultiTextureSpriteGroup(pyglet.graphics.Group):
             if texture.id != other._textures[name].id or texture.target != other._textures[name].target:
                 return False
 
-        # Made it this far so just check the remainder
+        # 026386.python.multitexture_sprite.line101.comment Made it this far so just check the remainder
         return (self.program is other.program and
                 self.blend_src == other.blend_src and
                 self.blend_dest == other.blend_dest)
@@ -111,13 +111,13 @@ class MultiTextureSpriteGroup(pyglet.graphics.Group):
                           tuple([texture.target for texture in self._textures.values()]))
 
 
-# Allows the default shader to pick the appropriate sampler for the fragment shader
+# 026387.python.multitexture_sprite.line114.comment Allows the default shader to pick the appropriate sampler for the fragment shader
 _SAMPLER_TYPES = {
     pyglet.gl.GL_TEXTURE_2D: "sampler2D",
     pyglet.gl.GL_TEXTURE_2D_ARRAY: "sampler2DArray"
 }
 
-# Allows the default shader to grab the correct coords based on texture type
+# 026388.python.multitexture_sprite.line120.comment Allows the default shader to grab the correct coords based on texture type
 _SAMPLER_COORDS = {
     pyglet.gl.GL_TEXTURE_2D: ".xy",
     pyglet.gl.GL_TEXTURE_2D_ARRAY: ""
@@ -136,7 +136,7 @@ def _get_default_mt_shader(images: dict[str, Texture]) -> ShaderProgram:
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, max_tex)
     assert len(images) <= max_tex.value, f"Only {max_tex.value} Texture Units are available."
 
-    # Generate the default vertex shader
+    # 026389.python.multitexture_sprite.line139.comment Generate the default vertex shader
     in_tex_coords = '\n'.join([f"in vec3 {name}_coords;" for name in images.keys()])
     out_tex_coords = '\n'.join([f"out vec3 {name}_coords_frag;" for name in images.keys()])
     tex_coords_assignments = '\n'.join([f"{name}_coords_frag = {name}_coords;" for name in images.keys()])
@@ -294,12 +294,12 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
                 default multi-texture overlay shader will be used if one is
                 not provided.
         """
-        # Ensure the images are textures and load them up into a dict.
+        # 026390.python.multitexture_sprite.line297.comment Ensure the images are textures and load them up into a dict.
         self._textures = {}
         self._texture = None
         for name, img in images.items():
             if isinstance(img, pyglet.image.Animation):
-                # Grab the first frame
+                # 026391.python.multitexture_sprite.line302.comment Grab the first frame
                 self._textures[name] = img.frames[0].image.get_texture()
             else:
                 self._textures[name] = img.get_texture()
@@ -312,17 +312,17 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
         else:
             self._program = program
 
-        # Right now don't call super unfortunently so we have to do everything ourselves
+        # 026392.python.multitexture_sprite.line315.comment Right now don't call super unfortunently so we have to do everything ourselves
         self._x = x
         self._y = y
         self._z = z
 
-        # Go through the images and find all animations
+        # 026393.python.multitexture_sprite.line320.comment Go through the images and find all animations
         self._animations = {}
         for name, img in images.items():
             if isinstance(img, pyglet.image.Animation):
-                # Setup all of the animation things
-                # The key needs to match the key for self._textures so we change it out as needed
+                # 026394.python.multitexture_sprite.line324.comment Setup all of the animation things
+                # 026395.python.multitexture_sprite.line325.comment The key needs to match the key for self._textures so we change it out as needed
                 self._animations[name] = { "animation": img, "frame_idx": 0, "next_dt": img.frames[0].duration }
                 if img.frames[0].duration:
                     pyglet.clock.schedule_once(self._animate, self._animations[name]["next_dt"], name)
@@ -333,8 +333,8 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
         self._user_group = group
         self._group = self.get_sprite_group()
         self._subpixel = subpixel
-        # FIXME: This is to satisfy the main sprite code and should be done better
-        #self._texture = list(self._textures.values())[0].get_texture()
+        # 026396.python.multitexture_sprite.line336.comment FIXME: This is to satisfy the main sprite code and should be done better
+        # 026397.python.multitexture_sprite.line337.comment self._texture = list(self._textures.values())[0].get_texture()
         self._create_vertex_list()
 
     def delete(self) -> None:
@@ -376,10 +376,10 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
 
     def _set_multi_texture(self, key, new_tex: Texture) -> None:
         if new_tex.id is not self._textures[key].id:
-            # Need to make a shallow copy to allow the batch object
-            # to correctly split this sprite from other sprite's groups.
-            # if not then you will be modifying all the other sprites
-            # textures dict object as well.
+            # 026398.python.multitexture_sprite.line379.comment Need to make a shallow copy to allow the batch object
+            # 026399.python.multitexture_sprite.line380.comment to correctly split this sprite from other sprite's groups.
+            # 026400.python.multitexture_sprite.line381.comment if not then you will be modifying all the other sprites
+            # 026401.python.multitexture_sprite.line382.comment textures dict object as well.
             self._textures = self._textures.copy()
             self._textures[key] = new_tex
             self._vertex_list.delete()
@@ -467,14 +467,14 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
                The Image or Animation to set
         """
         if name in self._animations:
-            # Need to stop all animations temporarily so we can swap the layer out
+            # 026402.python.multitexture_sprite.line470.comment Need to stop all animations temporarily so we can swap the layer out
             pyglet.clock.unschedule(self._animate)
             self._animations.pop(name)
 
-        # Grab the texture and replace what was there
+        # 026403.python.multitexture_sprite.line474.comment Grab the texture and replace what was there
         tex = None
         if isinstance(img, pyglet.image.Animation):
-            # Add the animation and schedule it based on pause
+            # 026404.python.multitexture_sprite.line477.comment Add the animation and schedule it based on pause
             self._animations[name] = {"animation": img, "frame_idx": 0, "next_dt": img.frames[0].duration}
             if img.frames[0].duration and not self._paused:
                 pyglet.clock.schedule_once(self._animate, self._animations[name]["next_dt"], name)
@@ -488,7 +488,7 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
 
             if (tex.width * tex.height) > (self._texture.width * self._texture.height):
                 self._texture = tex
-                # Only update if we actually changed the "base" texture
+                # 026405.python.multitexture_sprite.line491.comment Only update if we actually changed the "base" texture
                 self._update_position()
 
     @property
@@ -521,7 +521,7 @@ class MultiTextureSprite(pyglet.sprite.Sprite):
         if pause:
             pyglet.clock.unschedule(self._animate)
         else:
-            # Kick off all animations again
+            # 026406.python.multitexture_sprite.line524.comment Kick off all animations again
             for name, animation in self._animations.items():
                 frame = animation["animation"].frames[animation["frame_idx"]]
                 if frame.duration:

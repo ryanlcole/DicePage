@@ -55,9 +55,9 @@ class ParsedRequirement(NamedTuple):
     marker: MarkerList | None
 
 
-# --------------------------------------------------------------------------------------
-# Recursive descent parser for dependency specifier
-# --------------------------------------------------------------------------------------
+# 021753.python.parser.line58.comment --------------------------------------------------------------------------------------
+# 021754.python.parser.line59.comment Recursive descent parser for dependency specifier
+# 021755.python.parser.line60.comment --------------------------------------------------------------------------------------
 def parse_requirement(source: str) -> ParsedRequirement:
     return _parse_requirement(Tokenizer(source, rules=DEFAULT_RULES))
 
@@ -106,7 +106,7 @@ def _parse_requirement_details(
 
         tokenizer.expect("WS", expected="whitespace after URL")
 
-        # The input might end after whitespace.
+        # 021756.python.parser.line109.comment The input might end after whitespace.
         if tokenizer.check("END", peek=True):
             return (url, specifier, marker)
 
@@ -246,9 +246,9 @@ def _parse_version_many(tokenizer: Tokenizer) -> str:
     return parsed_specifiers
 
 
-# --------------------------------------------------------------------------------------
-# Recursive descent parser for marker expression
-# --------------------------------------------------------------------------------------
+# 021757.python.parser.line249.comment --------------------------------------------------------------------------------------
+# 021758.python.parser.line250.comment Recursive descent parser for marker expression
+# 021759.python.parser.line251.comment --------------------------------------------------------------------------------------
 def parse_marker(source: str) -> MarkerList:
     return _parse_full_marker(Tokenizer(source, rules=DEFAULT_RULES))
 

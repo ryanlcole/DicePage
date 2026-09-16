@@ -109,7 +109,7 @@ _uniform_getters: dict[GLDataType, Callable] = {
 }
 
 _uniform_setters: dict[int, tuple[GLDataType, GLFunc, GLFunc, int]] = {
-    # uniform:    gl_type, legacy_setter, setter, length
+    # 030084.python.shader.line112.comment uniform:    gl_type, legacy_setter, setter, length
     gl.GL_BOOL: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_BOOL_VEC2: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 2),
     gl.GL_BOOL_VEC3: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 3),
@@ -125,7 +125,7 @@ _uniform_setters: dict[int, tuple[GLDataType, GLFunc, GLFunc, int]] = {
     gl.GL_FLOAT_VEC3: (gl.GLfloat, gl.glUniform3fv, gl.glProgramUniform3fv, 3),
     gl.GL_FLOAT_VEC4: (gl.GLfloat, gl.glUniform4fv, gl.glProgramUniform4fv, 4),
 
-    # 1D Samplers
+    # 030085.python.shader.line128.comment 1D Samplers
     gl.GL_SAMPLER_1D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_SAMPLER_1D_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_INT_SAMPLER_1D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
@@ -133,19 +133,19 @@ _uniform_setters: dict[int, tuple[GLDataType, GLFunc, GLFunc, int]] = {
     gl.GL_UNSIGNED_INT_SAMPLER_1D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_1D_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
 
-    # 2D Samplers
+    # 030086.python.shader.line136.comment 2D Samplers
     gl.GL_SAMPLER_2D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_SAMPLER_2D_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_INT_SAMPLER_2D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_INT_SAMPLER_2D_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_2D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_2D_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
-    # Multisample
+    # 030087.python.shader.line143.comment Multisample
     gl.GL_SAMPLER_2D_MULTISAMPLE: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_INT_SAMPLER_2D_MULTISAMPLE: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
 
-    # Cube Samplers
+    # 030088.python.shader.line148.comment Cube Samplers
     gl.GL_SAMPLER_CUBE: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_INT_SAMPLER_CUBE: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_CUBE: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
@@ -153,7 +153,7 @@ _uniform_setters: dict[int, tuple[GLDataType, GLFunc, GLFunc, int]] = {
     gl.GL_INT_SAMPLER_CUBE_MAP_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
 
-    # 3D Samplers
+    # 030089.python.shader.line156.comment 3D Samplers
     gl.GL_SAMPLER_3D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_INT_SAMPLER_3D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_UNSIGNED_INT_SAMPLER_3D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
@@ -162,13 +162,13 @@ _uniform_setters: dict[int, tuple[GLDataType, GLFunc, GLFunc, int]] = {
     gl.GL_FLOAT_MAT3: (gl.GLfloat, gl.glUniformMatrix3fv, gl.glProgramUniformMatrix3fv, 6),
     gl.GL_FLOAT_MAT4: (gl.GLfloat, gl.glUniformMatrix4fv, gl.glProgramUniformMatrix4fv, 16),
 
-    # TODO: test/implement these:
-    # GL_FLOAT_MAT2x3: glUniformMatrix2x3fv, glProgramUniformMatrix2x3fv,
-    # GL_FLOAT_MAT2x4: glUniformMatrix2x4fv, glProgramUniformMatrix2x4fv,
-    # GL_FLOAT_MAT3x2: glUniformMatrix3x2fv, glProgramUniformMatrix3x2fv,
-    # GL_FLOAT_MAT3x4: glUniformMatrix3x4fv, glProgramUniformMatrix3x4fv,
-    # GL_FLOAT_MAT4x2: glUniformMatrix4x2fv, glProgramUniformMatrix4x2fv,
-    # GL_FLOAT_MAT4x3: glUniformMatrix4x3fv, glProgramUniformMatrix4x3fv,
+    # 030090.python.shader.line165.comment TODO: test/implement these:
+    # 030091.python.shader.line166.comment GL_FLOAT_MAT2x3: glUniformMatrix2x3fv, glProgramUniformMatrix2x3fv,
+    # 030092.python.shader.line167.comment GL_FLOAT_MAT2x4: glUniformMatrix2x4fv, glProgramUniformMatrix2x4fv,
+    # 030093.python.shader.line168.comment GL_FLOAT_MAT3x2: glUniformMatrix3x2fv, glProgramUniformMatrix3x2fv,
+    # 030094.python.shader.line169.comment GL_FLOAT_MAT3x4: glUniformMatrix3x4fv, glProgramUniformMatrix3x4fv,
+    # 030095.python.shader.line170.comment GL_FLOAT_MAT4x2: glUniformMatrix4x2fv, glProgramUniformMatrix4x2fv,
+    # 030096.python.shader.line171.comment GL_FLOAT_MAT4x3: glUniformMatrix4x3fv, glProgramUniformMatrix4x3fv,
 
     gl.GL_IMAGE_1D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
     gl.GL_IMAGE_2D: (gl.GLint, gl.glUniform1iv, gl.glProgramUniform1iv, 1),
@@ -214,7 +214,7 @@ _attribute_types: dict[int, tuple[int, str]] = {
 }
 
 
-# Accessor classes:
+# 030097.python.shader.line217.comment Accessor classes:
 
 class Attribute:
     """Abstract accessor for an attribute in a mapped buffer."""
@@ -400,7 +400,7 @@ class _UniformArray:
         raise ShaderException(msg)
 
     def __getitem__(self, key: slice | int) -> list[tuple] | tuple:
-        # Return as a tuple. Returning as a list may imply setting inner list elements will update values.
+        # 030099.python.shader.line403.comment Return as a tuple. Returning as a list may imply setting inner list elements will update values.
         if isinstance(key, slice):
             sliced_data = self._c_array[key]
             if self._uniform.length > 1:
@@ -499,12 +499,12 @@ class _Uniform:
         gl_setter = gl_setter_dsa if dsa else gl_setter_legacy
         gl_getter = _uniform_getters[gl_type]
 
-        # Argument length of data
+        # 030101.python.shader.line502.comment Argument length of data
         self.length = length
 
         is_matrix = uniform_type in _gl_matrices
 
-        # If it's an array, use the wrapper object.
+        # 030102.python.shader.line507.comment If it's an array, use the wrapper object.
         if size > 1:
             array = _UniformArray(self, gl_getter, gl_setter, gl_type, is_matrix, dsa)
             self.get = array.get
@@ -598,7 +598,7 @@ class _UBOBindingManager:
 
     def __init__(self) -> None:
         self._ubo_programs = defaultdict(weakref.WeakSet)
-        # Reserve 'WindowBlock' for 0.
+        # 030104.python.shader.line601.comment Reserve 'WindowBlock' for 0.
         self._ubo_names = {'WindowBlock': 0}
         self._max_binding_count = get_maximum_binding_count()
         self._pool = list(range(1, self._max_binding_count))
@@ -645,7 +645,7 @@ class _UBOBindingManager:
         for ubo_name in list(self._ubo_programs):
             if ubo_name != 'WindowBlock' and not self._ubo_programs[ubo_name]:
                 del self._ubo_programs[ubo_name]
-                # Return the binding number to the pool.
+                # 030105.python.shader.line648.comment Return the binding number to the pool.
                 self.return_binding(self._ubo_names[ubo_name])
                 del self._ubo_names[ubo_name]
 
@@ -666,7 +666,7 @@ class _UBOBindingManager:
             msg = f"Uniform binding point: {index} is not in use."
             raise ValueError(msg)
 
-# Regular expression to detect array indices like [0], [1], etc.
+# 030106.python.shader.line669.comment Regular expression to detect array indices like [0], [1], etc.
 array_regex = re.compile(r"(\w+)\[(\d+)\]")
 
 class UniformBlock:
@@ -732,7 +732,7 @@ class UniformBlock:
 
         active_count = self.uniform_count
 
-        # Query the uniform index order and each uniform's offset:
+        # 030107.python.shader.line735.comment Query the uniform index order and each uniform's offset:
         indices = (gl.GLuint * active_count)()
         offsets = (gl.GLint * active_count)()
         indices_ptr = cast(addressof(indices), POINTER(gl.GLint))
@@ -740,18 +740,18 @@ class UniformBlock:
         gl.glGetActiveUniformBlockiv(p_id, index, gl.GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices_ptr)
         gl.glGetActiveUniformsiv(p_id, active_count, indices, gl.GL_UNIFORM_OFFSET, offsets_ptr)
 
-        # Offsets may be returned in non-ascending order, sort them with the corresponding index:
+        # 030108.python.shader.line743.comment Offsets may be returned in non-ascending order, sort them with the corresponding index:
         _oi = sorted(zip(offsets, indices), key=lambda x: x[0])
         offsets = [x[0] for x in _oi] + [self.size]
         indices = (gl.GLuint * active_count)(*(x[1] for x in _oi))
 
-        # # Query other uniform information:
-        # gl_types = (gl.GLint * active_count)()
-        # mat_stride = (gl.GLint * active_count)()
-        # gl_types_ptr = cast(addressof(gl_types), POINTER(gl.GLint))
-        # stride_ptr = cast(addressof(mat_stride), POINTER(gl.GLint))
-        # gl.glGetActiveUniformsiv(p_id, active_count, indices, gl.GL_UNIFORM_TYPE, gl_types_ptr)
-        # gl.glGetActiveUniformsiv(p_id, active_count, indices, gl.GL_UNIFORM_MATRIX_STRIDE, stride_ptr)
+        # 030109.python.shader.line748.comment # Query other uniform information:
+        # 030110.python.shader.line749.comment gl_types = (gl.GLint * active_count)()
+        # 030111.python.shader.line750.comment mat_stride = (gl.GLint * active_count)()
+        # 030112.python.shader.line751.comment gl_types_ptr = cast(addressof(gl_types), POINTER(gl.GLint))
+        # 030113.python.shader.line752.comment stride_ptr = cast(addressof(mat_stride), POINTER(gl.GLint))
+        # 030114.python.shader.line753.comment gl.glGetActiveUniformsiv(p_id, active_count, indices, gl.GL_UNIFORM_TYPE, gl_types_ptr)
+        # 030115.python.shader.line754.comment gl.glGetActiveUniformsiv(p_id, active_count, indices, gl.GL_UNIFORM_MATRIX_STRIDE, stride_ptr)
 
         array_sizes = {}
         dynamic_structs = {}
@@ -763,20 +763,20 @@ class UniformBlock:
             fields = []
             for field_name, field_type in struct_dict.items():
                 if isinstance(field_type, dict):
-                    # Recursive call for nested structures
+                    # 030116.python.shader.line766.comment Recursive call for nested structures
                     element_struct = build_ctypes_struct(field_name, field_type)
                     field_type = element_struct  # noqa: PLW2901
                     if field_name in array_sizes and array_sizes[field_name] > 1:
                         field_type = element_struct * array_sizes[field_name]  # noqa: PLW2901
                 else:
-                    # This handles base types like c_float_Array_2, which isn't a dict.
+                    # 030119.python.shader.line772.comment This handles base types like c_float_Array_2, which isn't a dict.
                     fields.append((field_name, field_type))
                     continue
                 fields.append((field_name, field_type))
 
             return type(name.title(), (Structure,), {"_fields_": fields, "__repr__": rep_func})
 
-        # Build a ctypes Structure of the uniforms including arrays and nested structures.
+        # 030120.python.shader.line779.comment Build a ctypes Structure of the uniforms including arrays and nested structures.
         for i in range(active_count):
             u_name, gl_type, length, u_size = self.uniforms[indices[i]]
 
@@ -793,7 +793,7 @@ class UniformBlock:
                     if part_idx != len(parts) - 1:
                         index = int(index)  # Convert the index to an integer
 
-                        # Track array sizes for the current array name
+                        # 030123.python.shader.line796.comment Track array sizes for the current array name
                         array_sizes[arr_name] = max(array_sizes.get(arr_name, 0), index + 1)
                         if array_sizes[arr_name] > 1:
                             break
@@ -804,10 +804,10 @@ class UniformBlock:
                         current_structure = current_structure[arr_name]  # Move to the correct index of the array
                         continue
 
-                # The end should be a regular attribute
+                # 030125.python.shader.line807.comment The end should be a regular attribute
                 if part_idx == len(parts) - 1:  # The last part is the actual type
                     if u_size > 1:
-                        # If size > 1, treat as an array of type
+                        # 030127.python.shader.line810.comment If size > 1, treat as an array of type
                         if length > 1:
                             current_structure[part_name] = (gl_type * length) * u_size
                         else:
@@ -822,12 +822,12 @@ class UniformBlock:
                     c_type_size = sizeof(current_structure[part_name])
                     padding = offset_size - c_type_size
 
-                    # TODO: Cannot get a different stride on my hardware. Needs testing.
-                    # is_matrix = gl_types[i] in _gl_matrices
-                    # if is_matrix:
-                    #     stride_padding = (mat_stride[i] // 4) * 4 - offset_size
-                    #     if stride_padding > 0:
-                    #         view_fields.append((f'_matrix_stride{i}', c_byte * stride_padding))
+                    # 030128.python.shader.line825.comment TODO: Cannot get a different stride on my hardware. Needs testing.
+                    # 030129.python.shader.line826.comment is_matrix = gl_types[i] in _gl_matrices
+                    # 030130.python.shader.line827.comment if is_matrix:
+                    # 030131.python.shader.line828.comment stride_padding = (mat_stride[i] // 4) * 4 - offset_size
+                    # 030132.python.shader.line829.comment if stride_padding > 0:
+                    # 030133.python.shader.line830.comment view_fields.append((f'_matrix_stride{i}', c_byte * stride_padding))
 
                     if padding > 0:
                         current_structure[f'_padding{p_count}'] = c_byte * padding
@@ -837,7 +837,7 @@ class UniformBlock:
                         current_structure[part_name] = {}
                     current_structure = current_structure[part_name]  # Drill down into nested structures
 
-        # Custom ctypes Structure for Uniform access:
+        # 030135.python.shader.line840.comment Custom ctypes Structure for Uniform access:
         return build_ctypes_struct('View', dynamic_structs)
 
     def _actual_binding_point(self) -> int:
@@ -884,7 +884,7 @@ class UniformBufferObject:
         return data
 
     def __enter__(self) -> Structure:
-        # Return the view to the user in a `with` context:
+        # 030136.python.shader.line887.comment Return the view to the user in a `with` context:
         return self.view
 
     def __exit__(self, _exc_type, _exc_val, _exc_tb) -> None:  # noqa: ANN001
@@ -895,7 +895,7 @@ class UniformBufferObject:
         return f"{self.__class__.__name__}(id={self.buffer.id}, binding={self.binding})"
 
 
-# Utility functions:
+# 030138.python.shader.line898.comment Utility functions:
 
 def _get_number(program_id: int, variable_type: int) -> int:
     """Get the number of active variables of the passed GL type."""
@@ -950,7 +950,7 @@ def _link_program(*shaders: Shader) -> int:
         glAttachShader(program_id, shader.id)
     glLinkProgram(program_id)
 
-    # Check the link status of program
+    # 030140.python.shader.line953.comment Check the link status of program
     status = c_int()
     glGetProgramiv(program_id, GL_LINK_STATUS, byref(status))
     if not status.value:
@@ -961,7 +961,7 @@ def _link_program(*shaders: Shader) -> int:
         msg = f"Error linking shader program:\n{log.value.decode()}"
         raise ShaderException(msg)
 
-    # Shader objects no longer needed
+    # 030141.python.shader.line964.comment Shader objects no longer needed
     for shader in shaders:
         glDetachShader(program_id, shader.id)
 
@@ -1002,7 +1002,7 @@ def _introspect_uniforms(program_id: int, have_dsa: bool) -> dict[str, _Uniform]
     for index in range(_get_number(program_id, gl.GL_ACTIVE_UNIFORMS)):
         u_name, u_type, u_size = _query_uniform(program_id, index)
 
-        # Multidimensional arrays cannot be fully inspected via OpenGL calls and compile errors with 3.3.
+        # 030142.python.shader.line1005.comment Multidimensional arrays cannot be fully inspected via OpenGL calls and compile errors with 3.3.
         array_count = u_name.count("[0]")
         if array_count > 1 and u_name.count("[0][0]") != 0:
             msg = "Multidimensional arrays are not currently supported."
@@ -1012,7 +1012,7 @@ def _introspect_uniforms(program_id: int, have_dsa: bool) -> dict[str, _Uniform]
         if loc == -1:  # Skip uniforms that may be inside a Uniform Block
             continue
 
-        # Strip [0] from array name for a more user-friendly name.
+        # 030144.python.shader.line1015.comment Strip [0] from array name for a more user-friendly name.
         if array_count != 0:
             u_name = u_name.strip('[0]')
 
@@ -1068,7 +1068,7 @@ def _introspect_uniform_blocks(program: ShaderProgram | ComputeShaderProgram) ->
         for block_uniform_index in indices:
             uniform_name, u_type, u_size = _query_uniform(program_id, block_uniform_index)
 
-            # Remove block name.
+            # 030146.python.shader.line1071.comment Remove block name.
             if uniform_name.startswith(f"{name}."):
                 uniform_name = uniform_name[len(name) + 1:]  # Strip 'block_name.' part
 
@@ -1081,15 +1081,15 @@ def _introspect_uniform_blocks(program: ShaderProgram | ComputeShaderProgram) ->
 
         binding_index = binding.value
         if pyglet.options.shader_bind_management:
-            # If no binding is specified in GLSL, then assign it internally.
+            # 030148.python.shader.line1084.comment If no binding is specified in GLSL, then assign it internally.
             if binding.value == 0:
                 binding_index = manager.get_binding(program, name)
 
-                # This might cause an error if index > GL_MAX_UNIFORM_BUFFER_BINDINGS, but surely no
-                # one would be crazy enough to use more than 36 uniform blocks, right?
+                # 030149.python.shader.line1088.comment This might cause an error if index > GL_MAX_UNIFORM_BUFFER_BINDINGS, but surely no
+                # 030150.python.shader.line1089.comment one would be crazy enough to use more than 36 uniform blocks, right?
                 gl.glUniformBlockBinding(program_id, index, binding_index)
             else:
-                # If a binding was manually set in GLSL, just check if the values collide to warn the user.
+                # 030151.python.shader.line1092.comment If a binding was manually set in GLSL, just check if the values collide to warn the user.
                 _block_name = manager.get_name(binding.value)
                 if _block_name and _block_name != name:
                     msg = (f"{program} explicitly set '{name}' to {binding.value} in the shader. '{_block_name}' has "
@@ -1107,7 +1107,7 @@ def _introspect_uniform_blocks(program: ShaderProgram | ComputeShaderProgram) ->
     return uniform_blocks
 
 
-# Shader & program classes:
+# 030152.python.shader.line1110.comment Shader & program classes:
 
 class ShaderSource:
     """GLSL source container for making source parsing simpler.
@@ -1301,7 +1301,7 @@ class ShaderProgram:
         if _debug_gl_shaders:
             print(_get_program_log(self._id))
 
-        # Query if Direct State Access is available:
+        # 030154.python.shader.line1304.comment Query if Direct State Access is available:
         have_dsa = gl_info.have_version(4, 1) or gl_info.have_extension("GL_ARB_separate_shader_objects")
         self._attributes = _introspect_attributes(self._id)
         self._uniforms = _introspect_uniforms(self._id, have_dsa)
@@ -1443,7 +1443,7 @@ class ShaderProgram:
         group = group or pyglet.graphics.ShaderGroup(program=self)
         domain = batch.get_domain(indexed, instanced, mode, group, attributes)
 
-        # Create vertex list and initialize
+        # 030159.python.shader.line1446.comment Create vertex list and initialize
         if indexed:
             vlist = domain.create(count, len(indices))
             vlist.indices = indices

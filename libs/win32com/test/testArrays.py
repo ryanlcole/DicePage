@@ -1,5 +1,5 @@
-# Originally contributed by Stefan Schukat as part of this arbitrary-sized
-# arrays patch.
+# 049955.python.testArrays.line1.comment Originally contributed by Stefan Schukat as part of this arbitrary-sized
+# 049956.python.testArrays.line2.comment arrays patch.
 
 from win32com.client import gencache
 from win32com.test import util

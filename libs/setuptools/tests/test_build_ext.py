@@ -66,17 +66,17 @@ class TestBuildExt:
         cmd.ext_map['for_abi3'] = ext = Extension(
             'for_abi3',
             ['s.c'],
-            # Override shouldn't affect abi3 modules
+            # 045204.python.test_build_ext.line69.comment Override shouldn't affect abi3 modules
             py_limited_api=True,
         )
-        # Mock value needed to pass tests
+        # 045205.python.test_build_ext.line72.comment Mock value needed to pass tests
         ext._links_to_dynamic = False
 
         if not IS_PYPY:
             expect = cmd.get_ext_filename('for_abi3')
         else:
-            # PyPy builds do not use ABI3 tag, so they will
-            # also get the overridden suffix.
+            # 045206.python.test_build_ext.line78.comment PyPy builds do not use ABI3 tag, so they will
+            # 045207.python.test_build_ext.line79.comment also get the overridden suffix.
             expect = 'for_abi3.test-suffix'
 
         try:
@@ -110,7 +110,7 @@ class TestBuildExt:
         monkeypatch.setattr('setuptools.command.build_ext.use_stubs', False)
         dist = self.dist_with_example()
 
-        # Regular build: get_outputs not empty, but get_output_mappings is empty
+        # 045209.python.test_build_ext.line113.comment Regular build: get_outputs not empty, but get_output_mappings is empty
         build_ext = dist.get_command_obj("build_ext")
         build_ext.editable_mode = False
         build_ext.ensure_finalized()
@@ -123,7 +123,7 @@ class TestBuildExt:
         ]
         assert build_ext.get_output_mapping() == {}
 
-        # Editable build: get_output_mappings should contain everything in get_outputs
+        # 045210.python.test_build_ext.line126.comment Editable build: get_output_mappings should contain everything in get_outputs
         dist.reinitialize_command("build_ext")
         build_ext.editable_mode = True
         build_ext.ensure_finalized()
@@ -142,7 +142,7 @@ class TestBuildExt:
         monkeypatch.setattr('setuptools.command.build_ext.use_stubs', True)
         dist = self.dist_with_example()
 
-        # Editable build should create compiled stubs (.pyc files only, no .py)
+        # 045212.python.test_build_ext.line145.comment Editable build should create compiled stubs (.pyc files only, no .py)
         build_ext = dist.get_command_obj("build_ext")
         build_ext.editable_mode = True
         build_ext.ensure_finalized()
@@ -168,11 +168,11 @@ class TestBuildExt:
             f"{build_lib}/mypkg/subpkg/ext2.mp3": "src/mypkg/subpkg/ext2.mp3",
         }
 
-        # Ensure only the compiled stubs are present not the raw .py stub
+        # 045213.python.test_build_ext.line171.comment Ensure only the compiled stubs are present not the raw .py stub
         assert f"{build_lib}/mypkg/ext1.py" not in mapping
         assert f"{build_lib}/mypkg/subpkg/ext2.py" not in mapping
 
-        # Visualize what the cached stub files look like
+        # 045214.python.test_build_ext.line175.comment Visualize what the cached stub files look like
         example_stub = C(f"{build_lib}/mypkg/ext1.py")
         assert example_stub in mapping
         assert example_stub.startswith(f"{build_lib}/mypkg/__pycache__/ext1")
@@ -214,10 +214,10 @@ class TestBuildExtInplace:
             'build_ext: building extension "spam.eggs" failed'
             for msg in self.get_log_messages(caplog, capsys)
         )
-        # No compile error exception should be raised
+        # 045215.python.test_build_ext.line217.comment No compile error exception should be raised
 
     def test_non_optional(self, tmpdir_cwd):
-        # Non-optional extensions should raise an exception
+        # 045216.python.test_build_ext.line220.comment Non-optional extensions should raise an exception
         cmd = self.get_build_ext_cmd(optional=False, inplace=True)
         with pytest.raises(CompileError):
             cmd.run()

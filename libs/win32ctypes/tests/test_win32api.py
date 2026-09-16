@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052334.python.test_win32api.line1.comment
+# 052335.python.test_win32api.line2.comment (C) Copyright 2014 Enthought, Inc., Austin, TX
+# 052336.python.test_win32api.line3.comment All right reserved.
+# 052337.python.test_win32api.line4.comment
+# 052338.python.test_win32api.line5.comment This file is open source software distributed according to the terms in
+# 052339.python.test_win32api.line6.comment LICENSE.txt
+# 052340.python.test_win32api.line7.comment
 import os
 import sys
 import unittest
@@ -25,7 +25,7 @@ skip_on_wine = 'SKIP_WINE_KNOWN_FAILURES' in os.environ
 
 class TestWin32API(unittest.TestCase):
 
-    # the pywin32ctypes implementation
+    # 052341.python.test_win32api.line28.comment the pywin32ctypes implementation
     module = pywin32.win32api
 
     def setUp(self):
@@ -105,7 +105,7 @@ class TestWin32API(unittest.TestCase):
                 resource_names = self.module.EnumResourceNames(
                     handle, resource_type)
                 self.assertEqual(resource_names, expected)
-                # check that the #<index> format works
+                # 052342.python.test_win32api.line108.comment check that the #<index> format works
                 resource_names = self.module.EnumResourceNames(
                     handle, self._id2str(resource_type))
                 self.assertEqual(resource_names, expected)
@@ -125,7 +125,7 @@ class TestWin32API(unittest.TestCase):
                     resource_languages = self.module.EnumResourceLanguages(
                         handle, resource_type, resource_name)
                     self.assertEqual(resource_languages, expected)
-                    # check that the #<index> format works
+                    # 052343.python.test_win32api.line128.comment check that the #<index> format works
                     resource_languages = self.module.EnumResourceLanguages(
                         handle, self._id2str(resource_type),
                         self._id2str(resource_name))
@@ -150,7 +150,7 @@ class TestWin32API(unittest.TestCase):
                         resource = self.module.LoadResource(
                             handle, resource_type, resource_name,
                             resource_language)
-                        # check that the #<index> format works
+                        # 052344.python.test_win32api.line153.comment check that the #<index> format works
                         resource = self.module.LoadResource(
                             handle, self._id2str(resource_type),
                             self._id2str(resource_name),
@@ -166,25 +166,25 @@ class TestWin32API(unittest.TestCase):
         self.assertGreater(self.module.GetTickCount(), 0.0)
 
     def test_begin_and_end_update_resource(self):
-        # given
+        # 052345.python.test_win32api.line169.comment given
         module = self.module
         filename = os.path.join(self.tempdir, 'python.exe')
         with self.load_library(module, filename) as handle:
             count = len(module.EnumResourceTypes(handle))
 
-        # when
+        # 052346.python.test_win32api.line175.comment when
         handle = module.BeginUpdateResource(filename, False)
         module.EndUpdateResource(handle, False)
 
-        # then
+        # 052347.python.test_win32api.line179.comment then
         with self.load_library(module, filename) as handle:
             self.assertEqual(len(module.EnumResourceTypes(handle)), count)
 
-        # when
+        # 052348.python.test_win32api.line183.comment when
         handle = module.BeginUpdateResource(filename, True)
         module.EndUpdateResource(handle, True)
 
-        # then
+        # 052349.python.test_win32api.line187.comment then
         with self.load_library(module, filename) as handle:
             self.assertEqual(len(module.EnumResourceTypes(handle)), count)
 
@@ -192,15 +192,15 @@ class TestWin32API(unittest.TestCase):
         if skip_on_wine:
             self.skipTest('EnumResourceTypes known failure on wine, see #59')
 
-        # given
+        # 052350.python.test_win32api.line195.comment given
         module = self.module
         filename = os.path.join(self.tempdir, 'python.exe')
 
-        # when
+        # 052351.python.test_win32api.line199.comment when
         handle = module.BeginUpdateResource(filename, True)
         module.EndUpdateResource(handle, False)
 
-        # then
+        # 052352.python.test_win32api.line203.comment then
         with self.load_library(module, filename) as handle:
             self.assertEqual(len(module.EnumResourceTypes(handle)), 0)
 
@@ -208,24 +208,24 @@ class TestWin32API(unittest.TestCase):
         if skip_on_wine:
             self.skipTest('BeginUpdateResource known failure on wine, see #59')
 
-            # when/then
+            # 052353.python.test_win32api.line211.comment when/then
         with self.assertRaises(error) as context:
             self.module.BeginUpdateResource('invalid', False)
-        # the errno cannot be 0 (i.e. success)
+        # 052354.python.test_win32api.line214.comment the errno cannot be 0 (i.e. success)
         self.assertNotEqual(context.exception.winerror, 0)
 
     def test_end_update_resource_with_invalid(self):
         if skip_on_wine:
             self.skipTest('EndUpdateResource known failure on wine, see #59')
 
-        # when/then
+        # 052355.python.test_win32api.line221.comment when/then
         with self.assertRaises(error) as context:
             self.module.EndUpdateResource(-3, False)
-        # the errno cannot be 0 (i.e. success)
+        # 052356.python.test_win32api.line224.comment the errno cannot be 0 (i.e. success)
         self.assertNotEqual(context.exception.winerror, 0)
 
     def test_update_resource(self):
-        # given
+        # 052357.python.test_win32api.line228.comment given
         module = self.module
         filename = os.path.join(self.tempdir, 'python.exe')
         with self.load_library(self.module, filename) as handle:
@@ -236,13 +236,13 @@ class TestWin32API(unittest.TestCase):
             resource = module.LoadResource(
                 handle, resource_type, resource_name, resource_language)
 
-        # when
+        # 052358.python.test_win32api.line239.comment when
         with self.resource_update(self.module, filename) as handle:
             module.UpdateResource(
                 handle, resource_type, resource_name, resource[:-2],
                 resource_language)
 
-        # then
+        # 052359.python.test_win32api.line245.comment then
         with self.load_library(self.module, filename) as handle:
             updated = module.LoadResource(
                 handle, resource_type, resource_name, resource_language)
@@ -250,7 +250,7 @@ class TestWin32API(unittest.TestCase):
         self.assertEqual(updated, resource[:-2])
 
     def test_update_resource_with_unicode(self):
-        # given
+        # 052360.python.test_win32api.line253.comment given
         module = self.module
         filename = os.path.join(self.tempdir, 'python.exe')
         with self.load_library(module, filename) as handle:
@@ -260,7 +260,7 @@ class TestWin32API(unittest.TestCase):
                 handle, resource_type, resource_name)[-1]
         resource = u"\N{GREEK CAPITAL LETTER DELTA}"
 
-        # when
+        # 052361.python.test_win32api.line263.comment when
         with self.resource_update(module, filename) as handle:
             with self.assertRaises(TypeError):
                 module.UpdateResource(
@@ -268,27 +268,27 @@ class TestWin32API(unittest.TestCase):
                     resource_language)
 
     def test_get_windows_directory(self):
-        # given
+        # 052362.python.test_win32api.line271.comment given
         expected = win32api.GetWindowsDirectory()
 
-        # when
+        # 052363.python.test_win32api.line274.comment when
         result = self.module.GetWindowsDirectory()
 
-        # then
-        # note: pywin32 returns str on py27, unicode (which is str) on py3
+        # 052364.python.test_win32api.line277.comment then
+        # 052365.python.test_win32api.line278.comment note: pywin32 returns str on py27, unicode (which is str) on py3
         self.assertIsInstance(result, str)
         self.assertEqual(result.lower(), r"c:\windows")
         self.assertEqual(result, expected)
 
     def test_get_system_directory(self):
-        # given
+        # 052366.python.test_win32api.line284.comment given
         expected = win32api.GetSystemDirectory()
 
-        # when
+        # 052367.python.test_win32api.line287.comment when
         result = self.module.GetSystemDirectory()
 
-        # then
-        # note: pywin32 returns str on py27, unicode (which is str) on py3
+        # 052368.python.test_win32api.line290.comment then
+        # 052369.python.test_win32api.line291.comment note: pywin32 returns str on py27, unicode (which is str) on py3
         self.assertIsInstance(result, str)
         self.assertEqual(result.lower(), r"c:\windows\system32")
         self.assertEqual(result, expected)

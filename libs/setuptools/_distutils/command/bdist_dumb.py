@@ -103,8 +103,8 @@ class bdist_dumb(Command):
         log.info("installing to %s", self.bdist_dir)
         self.run_command('install')
 
-        # And make an archive relative to the root of the
-        # pseudo-installation tree.
+        # 039334.python.bdist_dumb.line106.comment And make an archive relative to the root of the
+        # 039335.python.bdist_dumb.line107.comment pseudo-installation tree.
         archive_basename = f"{self.distribution.get_fullname()}.{self.plat_name}"
 
         pseudoinstall_root = os.path.join(self.dist_dir, archive_basename)
@@ -123,7 +123,7 @@ class bdist_dumb(Command):
                     self.bdist_dir, ensure_relative(install.install_base)
                 )
 
-        # Make the archive
+        # 039336.python.bdist_dumb.line126.comment Make the archive
         filename = self.make_archive(
             pseudoinstall_root,
             self.format,

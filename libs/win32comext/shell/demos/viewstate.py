@@ -20,8 +20,8 @@ template_pb = shell.SHGetViewStatePropertyBag(
     pythoncom.IID_IPropertyBag,
 )
 
-# Column info has to be read as a stream
-# This may blow up if folder has never been opened in Explorer and has no ColInfo yet
+# 051973.python.viewstate.line23.comment Column info has to be read as a stream
+# 051974.python.viewstate.line24.comment This may blow up if folder has never been opened in Explorer and has no ColInfo yet
 template_iunk = template_pb.Read("ColInfo", pythoncom.VT_UNKNOWN)
 template_stream = template_iunk.QueryInterface(pythoncom.IID_IStream)
 streamsize = template_stream.Stat()[2]
@@ -40,13 +40,13 @@ def update_colinfo(not_used, dir_name, fnames):
                 shellcon.SHGVSPB_FOLDERNODEFAULTS,
                 pythoncom.IID_IPropertyBag,
             )
-            ## not all folders already have column info, and we're replacing it anyway
+            # 051975.python.viewstate.line43.comment # not all folders already have column info, and we're replacing it anyway
             pb.Write("ColInfo", template_stream)
             iunk = pb.Read("ColInfo", pythoncom.VT_UNKNOWN)
             s = iunk.QueryInterface(pythoncom.IID_IStream)
             s.Write(template_colinfo)
             s = None
-            ## attribute names read from registry, can't find any way to enumerate IPropertyBag
+            # 051976.python.viewstate.line49.comment # attribute names read from registry, can't find any way to enumerate IPropertyBag
             for attr in (
                 "Address",
                 "Buttons",

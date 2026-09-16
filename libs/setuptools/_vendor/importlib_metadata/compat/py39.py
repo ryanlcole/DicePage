@@ -5,7 +5,7 @@ Compatibility layer with Python 3.8/3.9
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:  # pragma: no cover
-    # Prevent circular imports on runtime.
+    # 042123.python.py39.line8.comment Prevent circular imports on runtime.
     from .. import Distribution, EntryPoint
 else:
     Distribution = EntryPoint = Any
@@ -32,5 +32,5 @@ def ep_matches(ep: EntryPoint, **params) -> bool:
     except AttributeError:
         from .. import EntryPoint  # -> delay to prevent circular imports.
 
-        # Reconstruct the EntryPoint object to make sure it is compatible.
+        # 042126.python.py39.line35.comment Reconstruct the EntryPoint object to make sure it is compatible.
         return EntryPoint(ep.name, ep.value, ep.group).matches(**params)

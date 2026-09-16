@@ -32,18 +32,18 @@ class SourcePrecisionBuffer:
             return None
 
         if len(self._buffer) < requested_size:
-            # Buffer is incapable of fulfilling request, get more
+            # 034180.python.base.line35.comment Buffer is incapable of fulfilling request, get more
 
-            # Reduce amount of required bytes by buffer length
+            # 034181.python.base.line37.comment Reduce amount of required bytes by buffer length
             required_bytes = requested_size - len(self._buffer)
 
-            # Don't bother with super-small requests to something that likely does some form of I/O
-            # Also, intentionally overshoot since some sources may just barely undercut.
+            # 034182.python.base.line40.comment Don't bother with super-small requests to something that likely does some form of I/O
+            # 034183.python.base.line41.comment Also, intentionally overshoot since some sources may just barely undercut.
             base_attempt = next_or_equal_power_of_two(max(4096, required_bytes + 16))
             attempts = (base_attempt, base_attempt, base_attempt * 2, base_attempt * 8)
             cur_attempt_idx = 0
-            # A malicious decoder could technically trap us by delivering empty AudioData, though
-            # the argument that this is unnecessarily defensive programming is definitely valid.
+            # 034184.python.base.line45.comment A malicious decoder could technically trap us by delivering empty AudioData, though
+            # 034185.python.base.line46.comment the argument that this is unnecessarily defensive programming is definitely valid.
             empty_bailout = 4
 
             while True:
@@ -102,28 +102,28 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
                 Player to receive EOS and video frame sync events.
 
         """
-        # We only keep weakref to the player and its source to avoid
-        # circular references. It's the player who owns the source and
-        # the audio_player
+        # 034187.python.base.line105.comment We only keep weakref to the player and its source to avoid
+        # 034188.python.base.line106.comment circular references. It's the player who owns the source and
+        # 034189.python.base.line107.comment the audio_player
         self.source = weakref.proxy(source)
         self.player = weakref.proxy(player)
 
         self._precision_buffer = None if source.is_precise() else SourcePrecisionBuffer(source)
 
         afmt = source.audio_format
-        # How much data should ideally be in memory ready to be played.
+        # 034190.python.base.line114.comment How much data should ideally be in memory ready to be played.
         self._buffered_data_ideal_size = max(
             32768,
             afmt.timestamp_to_bytes_aligned(self.audio_buffer_length),
         )
 
-        # At which point a driver should try and refill data from the source
+        # 034191.python.base.line120.comment At which point a driver should try and refill data from the source
         self._buffered_data_comfortable_limit = int(self._buffered_data_ideal_size * (2/3))
 
-        # A deque of (play_cursor, MediaEvent)
+        # 034192.python.base.line123.comment A deque of (play_cursor, MediaEvent)
         self._events = deque()
 
-        # Audio synchronization
+        # 034193.python.base.line126.comment Audio synchronization
         self.desync_bytes_critical = afmt.timestamp_to_bytes_aligned(
             self.audio_desync_time_critical)
         self.desync_bytes_minor = afmt.timestamp_to_bytes_aligned(
@@ -134,9 +134,9 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
         self.audio_sync_measurements = deque(maxlen=self.audio_sync_required_measurements)
         self.audio_sync_cumul_measurements = 0
 
-        # Bytes that have been skipped or artificially added to compensate for audio
-        # desync since initialization or the last call to `clear`.
-        # Negative when data was skipped, positive if it was padded in.
+        # 034194.python.base.line137.comment Bytes that have been skipped or artificially added to compensate for audio
+        # 034195.python.base.line138.comment desync since initialization or the last call to `clear`.
+        # 034196.python.base.line139.comment Negative when data was skipped, positive if it was padded in.
         self._compensated_bytes = 0
 
     def on_driver_destroy(self):
@@ -171,15 +171,15 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
         This method is called before the audio player starts in order to
         have it play as soon as possible.
         """
-        # It is illegal to call this method while the player is playing.
+        # 034197.python.base.line174.comment It is illegal to call this method while the player is playing.
 
     @abstractmethod
     def work(self):
         """Ran regularly by the worker thread. This method should fill up
         the player's buffers if required, and dispatch any necessary events.
         """
-        # This method is tricky to implement. See "Media manual" in pyglet's
-        # development guide.
+        # 034198.python.base.line181.comment This method is tricky to implement. See "Media manual" in pyglet's
+        # 034199.python.base.line182.comment development guide.
         pass
 
     @abstractmethod
@@ -206,8 +206,8 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
     @abstractmethod
     def delete(self):
         """Stop playing and clean up all resources used by player."""
-        # This may be called from high level Players on shutdown after the player's driver
-        # has been deleted. AudioPlayer implementations must handle this.
+        # 034200.python.base.line209.comment This may be called from high level Players on shutdown after the player's driver
+        # 034201.python.base.line210.comment has been deleted. AudioPlayer implementations must handle this.
 
     @abstractmethod
     def get_play_cursor(self):
@@ -216,17 +216,17 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
 
         ``0`` is an acceptable return value when unavailable or unknown.
         """
-        # This method should not/does not need to ask the audio backend for the
-        # most recent play cursor position.
-        # It is not supposed to be accurate; accurate play cursor info is always
-        # passed into the corresponding methods from the implementation subclass.
+        # 034202.python.base.line219.comment This method should not/does not need to ask the audio backend for the
+        # 034203.python.base.line220.comment most recent play cursor position.
+        # 034204.python.base.line221.comment It is not supposed to be accurate; accurate play cursor info is always
+        # 034205.python.base.line222.comment passed into the corresponding methods from the implementation subclass.
 
     def get_time(self):
         """Retrieve the time in the current source the player is at, in seconds.
         By default, calculated using :meth:`get_play_cursor`, divided by the
         bytes per second played.
         """
-        # See notes on `get_play_cursor` as well.
+        # 034206.python.base.line229.comment See notes on `get_play_cursor` as well.
         return self._raw_play_cursor_to_time(self.get_play_cursor()) + self.player.last_seek_time
 
     def _raw_play_cursor_to_time(self, cursor):
@@ -239,13 +239,13 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
 
     def _play_group(self, audio_players):
         """Begin simultaneous playback on a list of audio players."""
-        # This should be overridden by subclasses for better synchrony.
+        # 034207.python.base.line242.comment This should be overridden by subclasses for better synchrony.
         for player in audio_players:
             player.play()
 
     def _stop_group(self, audio_players):
         """Stop simultaneous playback on a list of audio players."""
-        # This should be overridden by subclasses for better synchrony.
+        # 034208.python.base.line248.comment This should be overridden by subclasses for better synchrony.
         for player in audio_players:
             player.stop()
 
@@ -314,19 +314,19 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
             avg_diff = self.source.audio_format.align(
                 self.audio_sync_cumul_measurements // required_measurement_count)
 
-            # print(
-            #     f"{diff_bytes:>6}, {avg_diff:>6} | "
-            #     f"{(diff_bytes / self.source.audio_format.bytes_per_second):>9.6f}, "
-            #     f"{(avg_diff / self.source.audio_format.bytes_per_second):>9.6f}"
-            # )
+            # 034209.python.base.line317.comment print(
+            # 034210.python.base.line318.comment f"{diff_bytes:>6}, {avg_diff:>6} | "
+            # 034211.python.base.line319.comment f"{(diff_bytes / self.source.audio_format.bytes_per_second):>9.6f}, "
+            # 034212.python.base.line320.comment f"{(avg_diff / self.source.audio_format.bytes_per_second):>9.6f}"
+            # 034213.python.base.line321.comment )
             if abs(avg_diff) > self.desync_bytes_minor:
                 return avg_diff, False
-        # else:
-        #     if audio_time is not None:
-        #         print(
-        #             f"{diff_bytes:>6}, | "
-        #             f"{(diff_bytes / self.source.audio_format.bytes_per_second):>9.6f}, "
-        #         )
+        # 034214.python.base.line324.comment else:
+        # 034215.python.base.line325.comment if audio_time is not None:
+        # 034216.python.base.line326.comment print(
+        # 034217.python.base.line327.comment f"{diff_bytes:>6}, | "
+        # 034218.python.base.line328.comment f"{(diff_bytes / self.source.audio_format.bytes_per_second):>9.6f}, "
+        # 034219.python.base.line329.comment )
 
         return 0, False
 
@@ -352,10 +352,10 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
         assert desync_bytes % afmt.bytes_per_frame == 0
 
         if desync_bytes > 0:
-            # Player running ahead
-            # Request at most 12ms less or only enough to not undercut the request size by 1024
-            # We can't do anything if this is a major desync (other than seeking backwards later),
-            # but trying to avoid seeking behind the high level player's back)
+            # 034220.python.base.line355.comment Player running ahead
+            # 034221.python.base.line356.comment Request at most 12ms less or only enough to not undercut the request size by 1024
+            # 034222.python.base.line357.comment We can't do anything if this is a major desync (other than seeking backwards later),
+            # 034223.python.base.line358.comment but trying to avoid seeking behind the high level player's back)
             compensated_bytes = min(
                 requested_size - afmt.align_ceil(1024),
                 desync_bytes,
@@ -375,10 +375,10 @@ class AbstractAudioPlayer(metaclass=ABCMeta):
                 audio_data = AudioData(ad, len(ad), audio_data.events)
 
         elif desync_bytes < 0:
-            # Player falling behind
-            # Skip at most 12ms if this is a minor desync, otherwise skip the entire
-            # difference. this will be noticeable, but the desync is
-            # likely already noticeable in context of whatever the application does.
+            # 034224.python.base.line378.comment Player falling behind
+            # 034225.python.base.line379.comment Skip at most 12ms if this is a minor desync, otherwise skip the entire
+            # 034226.python.base.line380.comment difference. this will be noticeable, but the desync is
+            # 034227.python.base.line381.comment likely already noticeable in context of whatever the application does.
             compensated_bytes = (-desync_bytes
                                  if extreme_desync
                                  else min(-desync_bytes, self.desync_correction_bytes_minor))
@@ -471,7 +471,7 @@ class MediaEvent:
     __slots__ = 'event', 'timestamp', 'args'
 
     def __init__(self, event, timestamp=0.0, *args):
-        # Meaning of timestamp is dependent on context; and not seen by application.
+        # 034228.python.base.line474.comment Meaning of timestamp is dependent on context; and not seen by application.
         self.event = event
         self.timestamp = timestamp
         self.args = args

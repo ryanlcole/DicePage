@@ -1,4 +1,4 @@
-# Tests for the win32security module.
+# 048234.python.test_security.line1.comment Tests for the win32security module.
 import unittest
 
 import ntsecuritycon
@@ -16,8 +16,8 @@ class SecurityTests(unittest.TestCase):
         try:
             self.admin_sid = win32security.LookupAccountName("", "Administrator")[0]
         except pywintypes.error as exc:
-            # in automation we see:
-            # pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
+            # 048235.python.test_security.line19.comment in automation we see:
+            # 048236.python.test_security.line20.comment pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
             if exc.winerror != winerror.ERROR_NONE_MAPPED:
                 raise
             self.admin_sid = None
@@ -92,7 +92,7 @@ class DomainTests(unittest.TestCase):
     def setUp(self):
         self.ds_handle = None
         try:
-            # saving the handle means the other test itself should bind faster.
+            # 048237.python.test_security.line95.comment saving the handle means the other test itself should bind faster.
             self.ds_handle = win32security.DsBind()
         except win32security.error as exc:
             if exc.winerror != winerror.ERROR_NO_SUCH_DOMAIN:
@@ -106,12 +106,12 @@ class DomainTests(unittest.TestCase):
 
 class TestDS(DomainTests):
     def testDsGetDcName(self):
-        # Not sure what we can actually test here!  At least calling it
-        # does something :)
+        # 048238.python.test_security.line109.comment Not sure what we can actually test here!  At least calling it
+        # 048239.python.test_security.line110.comment does something :)
         win32security.DsGetDcName()
 
     def testDsListServerInfo(self):
-        # again, not checking much, just exercising the code.
+        # 048240.python.test_security.line114.comment again, not checking much, just exercising the code.
         h = win32security.DsBind()
         for status, ignore, site in win32security.DsListSites(h):
             for status, ignore, server in win32security.DsListServersInSite(h, site):
@@ -127,8 +127,8 @@ class TestDS(DomainTests):
         self.assertEqual(name, result[0][2])
 
     def testDsCrackNamesSyntax(self):
-        # Do a syntax check only - that allows us to avoid binding.
-        # But must use DS_CANONICAL_NAME (or _EX)
+        # 048241.python.test_security.line130.comment Do a syntax check only - that allows us to avoid binding.
+        # 048242.python.test_security.line131.comment But must use DS_CANONICAL_NAME (or _EX)
         expected = win32api.GetUserNameEx(win32api.NameCanonical)
         fmt_offered = ntsecuritycon.DS_FQDN_1779_NAME
         name = win32api.GetUserNameEx(fmt_offered)

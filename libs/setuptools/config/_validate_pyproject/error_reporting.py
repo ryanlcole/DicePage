@@ -175,7 +175,7 @@ class _SummaryWriter:
 
     def __init__(self, jargon: Optional[Dict[str, str]] = None):
         self.jargon: Dict[str, str] = jargon or {}
-        # Clarify confusing terms
+        # 044649.python.error_reporting.line178.comment Clarify confusing terms
         self._terms = {
             "anyOf": "at least one of the following",
             "oneOf": "exactly one of the following",
@@ -191,8 +191,8 @@ class _SummaryWriter:
             "const": "predefined value",
             "enum": "one of",
         }
-        # Attributes that indicate that the definition is easy and can be done
-        # inline (e.g. string and number)
+        # 044650.python.error_reporting.line194.comment Attributes that indicate that the definition is easy and can be done
+        # 044651.python.error_reporting.line195.comment inline (e.g. string and number)
         self._guess_inline_defs = [
             "enum",
             "const",
@@ -235,7 +235,7 @@ class _SummaryWriter:
                 child_path = [*_path, key]
                 line_prefix = prefix if i == 0 else indent
                 buffer.write(f"{line_prefix}{self._label(child_path)}:")
-                # ^  just the first item should receive the complete prefix
+                # 044652.python.error_reporting.line238.comment ^  just the first item should receive the complete prefix
                 if isinstance(value, dict):
                     filtered = self._filter_unecessary(value, child_path)
                     simple = self._handle_simple_dict(filtered, child_path)
@@ -299,8 +299,8 @@ class _SummaryWriter:
                 break
             counter += 1
 
-        # If the counter if even, the path correspond to a JSON Schema keyword
-        # otherwise it can be any arbitrary string naming a property
+        # 044654.python.error_reporting.line302.comment If the counter if even, the path correspond to a JSON Schema keyword
+        # 044655.python.error_reporting.line303.comment otherwise it can be any arbitrary string naming a property
         return counter % 2 == 1
 
     def _label(self, path: Sequence[str]) -> str:

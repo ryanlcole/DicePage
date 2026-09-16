@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 002789.python.exceptions.line1.comment -----------------------------------------------------------------------------
+# 002790.python.exceptions.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 002791.python.exceptions.line3.comment
+# 002792.python.exceptions.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 002793.python.exceptions.line5.comment or later) with exception for distributing the bootloader.
+# 002794.python.exceptions.line6.comment
+# 002795.python.exceptions.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 002796.python.exceptions.line8.comment
+# 002797.python.exceptions.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 002798.python.exceptions.line10.comment -----------------------------------------------------------------------------
 
 
 class ExecCommandFailed(SystemExit):

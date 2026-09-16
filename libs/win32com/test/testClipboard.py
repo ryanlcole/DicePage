@@ -1,4 +1,4 @@
-# testClipboard.py
+# 049957.python.testClipboard.line1.comment testClipboard.py
 import unittest
 
 import pythoncom
@@ -12,7 +12,7 @@ IDataObject_Methods = """GetData GetDataHere QueryGetData
                          GetCanonicalFormatEtc SetData EnumFormatEtc
                          DAdvise DUnadvise EnumDAdvise""".split()
 
-# A COM object implementing IDataObject used for basic testing.
+# 049958.python.testClipboard.line15.comment A COM object implementing IDataObject used for basic testing.
 num_do_objects = 0
 
 
@@ -96,7 +96,7 @@ class ClipboardTester(unittest.TestCase):
         try:
             pythoncom.OleFlushClipboard()
         except pythoncom.com_error:
-            # We never set anything!
+            # 049960.python.testClipboard.line99.comment We never set anything!
             pass
 
     def testIsCurrentClipboard(self):
@@ -106,28 +106,28 @@ class ClipboardTester(unittest.TestCase):
         self.assertTrue(pythoncom.OleIsCurrentClipboard(do))
 
     def testComToWin32(self):
-        # Set the data via our DataObject
+        # 049961.python.testClipboard.line109.comment Set the data via our DataObject
         do = TestDataObject(b"Hello from Python")
         do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
-        # Then get it back via the standard win32 clipboard functions.
+        # 049962.python.testClipboard.line113.comment Then get it back via the standard win32 clipboard functions.
         win32clipboard.OpenClipboard()
         got = win32clipboard.GetClipboardData(win32con.CF_TEXT)
-        # CF_TEXT gives bytes.
+        # 049963.python.testClipboard.line116.comment CF_TEXT gives bytes.
         expected = b"Hello from Python"
         self.assertEqual(got, expected)
-        # Now check unicode
+        # 049964.python.testClipboard.line119.comment Now check unicode
         got = win32clipboard.GetClipboardData(win32con.CF_UNICODETEXT)
         self.assertEqual(got, "Hello from Python")
         win32clipboard.CloseClipboard()
 
     def testWin32ToCom(self):
-        # Set the data via the std win32 clipboard functions.
+        # 049965.python.testClipboard.line125.comment Set the data via the std win32 clipboard functions.
         val = b"Hello again!"  # always bytes
         win32clipboard.OpenClipboard()
         win32clipboard.SetClipboardData(win32con.CF_TEXT, val)
         win32clipboard.CloseClipboard()
-        # and get it via an IDataObject provided by COM
+        # 049967.python.testClipboard.line130.comment and get it via an IDataObject provided by COM
         do = pythoncom.OleGetClipboard()
         cf = (
             win32con.CF_TEXT,
@@ -138,9 +138,9 @@ class ClipboardTester(unittest.TestCase):
         )
         stg = do.GetData(cf)
         got = stg.data
-        # The data we get back has the \0, as our STGMEDIUM has no way of
-        # knowing if it meant to be a string, or a binary buffer, so
-        # it must return it too.
+        # 049968.python.testClipboard.line141.comment The data we get back has the \0, as our STGMEDIUM has no way of
+        # 049969.python.testClipboard.line142.comment knowing if it meant to be a string, or a binary buffer, so
+        # 049970.python.testClipboard.line143.comment it must return it too.
         self.assertTrue(got, b"Hello again!\0")
 
     def testDataObjectFlush(self):

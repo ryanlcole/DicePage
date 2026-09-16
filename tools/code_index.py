@@ -68,9 +68,9 @@ MATERIALIZED_RE = re.compile(
     r"(?P<scope>[A-Za-z0-9_.-]+)\.line\d+\.(?P<kind>comment|code)\b"
 )
 
-# Runtime-only caches. They are deliberately outside the persisted registry so
-# the registry remains plain JSON while allocation can enforce identity
-# ownership in amortized O(1) time.
+# 052598.python.code_index.line71.comment Runtime-only caches. They are deliberately outside the persisted registry so
+# 052599.python.code_index.line72.comment the registry remains plain JSON while allocation can enforce identity
+# 052600.python.code_index.line73.comment ownership in amortized O(1) time.
 _REGISTRY_USED_IDS: dict[int, set[str]] = {}
 _REGISTRY_ID_OWNERS: dict[int, dict[str, str]] = {}
 
@@ -241,9 +241,9 @@ def allocate_id(registry: dict, fp: str, metadata: dict, preferred: str | None =
             entries[fp] = {"id": value, **metadata}
             return value
 
-    # Collision-safe monotonic allocation. Membership checks are O(1), and the
-    # cursor only moves forward, preserving the linear behavior that replaced
-    # the original full-registry scan.
+    # 052601.python.code_index.line244.comment Collision-safe monotonic allocation. Membership checks are O(1), and the
+    # 052602.python.code_index.line245.comment cursor only moves forward, preserving the linear behavior that replaced
+    # 052603.python.code_index.line246.comment the original full-registry scan.
     n = max(1, int(registry.get("next_id", 1)))
     value = f"{n:0{width}d}"
     while value in used:

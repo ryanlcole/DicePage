@@ -40,7 +40,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-# The name of this function is magical
+# 043427.python.importhook.line43.comment The name of this function is magical
 def _call_with_frames_removed(
     f: Callable[P, T], *args: P.args, **kwargs: P.kwargs
 ) -> T:
@@ -89,8 +89,8 @@ class TypeguardLoader(SourceFileLoader):
         )
 
     def exec_module(self, module: ModuleType) -> None:
-        # Use a custom optimization marker – the import lock should make this monkey
-        # patch safe
+        # 043428.python.importhook.line92.comment Use a custom optimization marker – the import lock should make this monkey
+        # 043429.python.importhook.line93.comment patch safe
         with patch(
             "importlib._bootstrap_external.cache_from_source",
             optimized_cache_from_source,

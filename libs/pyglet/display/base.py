@@ -59,7 +59,7 @@ class Display:
             if screen.x == 0 and screen.y == 0:
                 return screen
 
-        # No Primary screen found?
+        # 026242.python.base.line62.comment No Primary screen found?
         return screens[0]
 
     def get_windows(self) -> list[BaseWindow]:
@@ -168,25 +168,25 @@ class Screen(abc.ABC):
 
         .. versionadded:: 1.2
         """
-        # Best mode is one with the smallest resolution larger than width/height,
-        # with depth and refresh rate equal to current mode.
+        # 026243.python.base.line171.comment Best mode is one with the smallest resolution larger than width/height,
+        # 026244.python.base.line172.comment with depth and refresh rate equal to current mode.
         current = self.get_mode()
 
         best = None
         for mode in self.get_modes():
-            # Reject resolutions that are too small
+            # 026245.python.base.line177.comment Reject resolutions that are too small
             if mode.width < width or mode.height < height:
                 continue
 
             if best is None:
                 best = mode
 
-            # Must strictly dominate dimensions
+            # 026246.python.base.line184.comment Must strictly dominate dimensions
             if (mode.width <= best.width and mode.height <= best.height and
                     (mode.width < best.width or mode.height < best.height)):
                 best = mode
 
-            # Preferably match rate, then depth.
+            # 026247.python.base.line189.comment Preferably match rate, then depth.
             if mode.width == best.width and mode.height == best.height:
                 points = 0
                 if mode.rate == current.rate:

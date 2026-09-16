@@ -1,8 +1,8 @@
-# Windows dialog .RC file parser, by Adam Walker.
+# 047525.python.win32rcparser.line1.comment Windows dialog .RC file parser, by Adam Walker.
 
-# This module was adapted from the spambayes project, and is Copyright
-# 2003/2004 The Python Software Foundation and is covered by the Python
-# Software Foundation license.
+# 047526.python.win32rcparser.line3.comment This module was adapted from the spambayes project, and is Copyright
+# 047527.python.win32rcparser.line4.comment 2003/2004 The Python Software Foundation and is covered by the Python
+# 047528.python.win32rcparser.line5.comment Software Foundation license.
 """
 This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
@@ -39,11 +39,11 @@ _controlMap = {
     "RICHEDIT": "RichEdit20A",
 }
 
-# These are "default styles" for certain controls - ie, Visual Studio assumes
-# the styles will be applied, and emits a "NOT {STYLE_NAME}" if it is to be
-# disabled.  These defaults have been determined by experimentation, so may
-# not be completely accurate (most notably, some styles and/or control-types
-# may be missing.
+# 047529.python.win32rcparser.line42.comment These are "default styles" for certain controls - ie, Visual Studio assumes
+# 047530.python.win32rcparser.line43.comment the styles will be applied, and emits a "NOT {STYLE_NAME}" if it is to be
+# 047531.python.win32rcparser.line44.comment disabled.  These defaults have been determined by experimentation, so may
+# 047532.python.win32rcparser.line45.comment not be completely accurate (most notably, some styles and/or control-types
+# 047533.python.win32rcparser.line46.comment may be missing.
 _addDefaults = {
     "EDITTEXT": win32con.WS_BORDER | win32con.WS_TABSTOP,
     "GROUPBOX": win32con.BS_GROUPBOX,
@@ -80,7 +80,7 @@ class DialogDef:
         self.styles = []
         self.stylesEx = []
         self.controls = []
-        # print("dialog def for ", self.name, self.id)
+        # 047534.python.win32rcparser.line83.comment print("dialog def for ", self.name, self.id)
 
     def createDialogTemplate(self):
         t = None
@@ -93,7 +93,7 @@ class DialogDef:
                 (self.fontSize, self.font),
             ]
         ]
-        # Add the controls
+        # 047535.python.win32rcparser.line96.comment Add the controls
         for control in self.controls:
             self.template.append(control.createDialogTemplate())
         return self.template
@@ -158,7 +158,7 @@ class ControlDef:
             self.style,
             self.styleEx,
         ]
-        # print(t)
+        # 047536.python.win32rcparser.line161.comment print(t)
         return t
 
 
@@ -213,8 +213,8 @@ class RCParser:
     def getCommaToken(self):
         return self.getCheckToken(",")
 
-    # Return the *current* token as a number, only consuming a token
-    # if it is the negative-sign.
+    # 047537.python.win32rcparser.line216.comment Return the *current* token as a number, only consuming a token
+    # 047538.python.win32rcparser.line217.comment if it is the negative-sign.
     def currentNumberToken(self):
         mult = 1
         if self.token == "-":
@@ -222,10 +222,10 @@ class RCParser:
             self.getToken()
         return int(self.token) * mult
 
-    # Return the *current* token as a string literal (ie, self.token will be a
-    # quote.  consumes all tokens until the end of the string
+    # 047539.python.win32rcparser.line225.comment Return the *current* token as a string literal (ie, self.token will be a
+    # 047540.python.win32rcparser.line226.comment quote.  consumes all tokens until the end of the string
     def currentQuotedString(self):
-        # Handle quoted strings - pity shlex doesn't handle it.
+        # 047541.python.win32rcparser.line228.comment Handle quoted strings - pity shlex doesn't handle it.
         assert self.token.startswith('"'), self.token
         bits = [self.token]
         while 1:
@@ -235,8 +235,8 @@ class RCParser:
                 break
             bits.append(tok)
         sval = "".join(bits)[1:-1]  # Remove end quotes.
-        # Fixup quotes in the body, and all (some?) quoted characters back
-        # to their raw value.
+        # 047543.python.win32rcparser.line238.comment Fixup quotes in the body, and all (some?) quoted characters back
+        # 047544.python.win32rcparser.line239.comment to their raw value.
         for i, o in ('""', '"'), ("\\r", "\r"), ("\\n", "\n"), ("\\t", "\t"):
             sval = sval.replace(i, o)
         return sval
@@ -272,13 +272,13 @@ class RCParser:
                     i = int(lex.get_token())
                     self.ids[n] = i
                     if i in self.names:
-                        # Dupe ID really isn't a problem - most consumers
-                        # want to go from name->id, and this is OK.
-                        # It means you can't go from id->name though.
+                        # 047545.python.win32rcparser.line275.comment Dupe ID really isn't a problem - most consumers
+                        # 047546.python.win32rcparser.line276.comment want to go from name->id, and this is OK.
+                        # 047547.python.win32rcparser.line277.comment It means you can't go from id->name though.
                         pass
-                        # ignore AppStudio special ones
-                        # if not n.startswith("_APS_"):
-                        #     print("Duplicate id", i, "for", n, "is", self.names[i])
+                        # 047548.python.win32rcparser.line279.comment ignore AppStudio special ones
+                        # 047549.python.win32rcparser.line280.comment if not n.startswith("_APS_"):
+                        # 047550.python.win32rcparser.line281.comment print("Duplicate id", i, "for", n, "is", self.names[i])
                     else:
                         self.names[i] = n
                     if self.next_id <= i:
@@ -292,7 +292,7 @@ class RCParser:
         id_parsers = {
             "DIALOG": self.parse_dialog,
             "DIALOGEX": self.parse_dialog,
-            #            "TEXTINCLUDE":      self.parse_textinclude,
+            # 047551.python.win32rcparser.line295.comment "TEXTINCLUDE":      self.parse_textinclude,
             "BITMAP": self.parse_bitmap,
             "ICON": self.parse_icon,
         }
@@ -302,17 +302,17 @@ class RCParser:
         if rp is not None:
             rp()
         else:
-            # Not something we parse that isn't prefixed by an ID
-            # See if it is an ID prefixed item - if it is, our token
-            # is the resource ID.
+            # 047552.python.win32rcparser.line305.comment Not something we parse that isn't prefixed by an ID
+            # 047553.python.win32rcparser.line306.comment See if it is an ID prefixed item - if it is, our token
+            # 047554.python.win32rcparser.line307.comment is the resource ID.
             resource_id = self.token
             self.getToken()
             if self.token is None:
                 return
 
             if "BEGIN" == self.token:
-                # A 'BEGIN' for a structure we don't understand - skip to the
-                # matching 'END'
+                # 047555.python.win32rcparser.line314.comment A 'BEGIN' for a structure we don't understand - skip to the
+                # 047556.python.win32rcparser.line315.comment matching 'END'
                 deep = 1
                 while deep != 0 and self.token is not None:
                     self.getToken()
@@ -327,9 +327,9 @@ class RCParser:
                     self.debug(f"Dispatching '{self.token}'")
                     rp(resource_id)
                 else:
-                    # We don't know what the resource type is, but we
-                    # have already consumed the next, which can cause problems,
-                    # so push it back.
+                    # 047557.python.win32rcparser.line330.comment We don't know what the resource type is, but we
+                    # 047558.python.win32rcparser.line331.comment have already consumed the next, which can cause problems,
+                    # 047559.python.win32rcparser.line332.comment so push it back.
                     self.debug("Skipping top-level '%s'" % base_token)
                     self.ungetToken()
 
@@ -337,7 +337,7 @@ class RCParser:
         if id_name in self.ids:
             id = self.ids[id_name]
         else:
-            # IDOK, IDCANCEL etc are special - if a real resource has this value
+            # 047560.python.win32rcparser.line340.comment IDOK, IDCANCEL etc are special - if a real resource has this value
             for n in ["IDOK", "IDCANCEL", "IDYES", "IDNO", "IDABORT"]:
                 if id_name == n:
                     v = getattr(win32con, n)
@@ -493,11 +493,11 @@ class RCParser:
     def controls(self, dlg):
         if self.token == "BEGIN":
             self.getToken()
-        # All controls look vaguely like:
-        # TYPE [text, ] Control_id, l, t, r, b [, style]
-        # .rc parser documents all control types as:
-        # CHECKBOX, COMBOBOX, CONTROL, CTEXT, DEFPUSHBUTTON, EDITTEXT, GROUPBOX,
-        # ICON, LISTBOX, LTEXT, PUSHBUTTON, RADIOBUTTON, RTEXT, SCROLLBAR
+        # 047567.python.win32rcparser.line496.comment All controls look vaguely like:
+        # 047568.python.win32rcparser.line497.comment TYPE [text, ] Control_id, l, t, r, b [, style]
+        # 047569.python.win32rcparser.line498.comment .rc parser documents all control types as:
+        # 047570.python.win32rcparser.line499.comment CHECKBOX, COMBOBOX, CONTROL, CTEXT, DEFPUSHBUTTON, EDITTEXT, GROUPBOX,
+        # 047571.python.win32rcparser.line500.comment ICON, LISTBOX, LTEXT, PUSHBUTTON, RADIOBUTTON, RTEXT, SCROLLBAR
         without_text = ["EDITTEXT", "COMBOBOX", "LISTBOX", "SCROLLBAR"]
         while self.token != "END":
             control = ControlDef()
@@ -506,22 +506,22 @@ class RCParser:
             if control.controlType not in without_text:
                 if self.token[0:1] == '"':
                     control.label = self.currentQuotedString()
-                # Some funny controls, like icons and picture controls use
-                # the "window text" as extra resource ID (ie, the ID of the
-                # icon itself).  This may be either a literal, or an ID string.
+                # 047572.python.win32rcparser.line509.comment Some funny controls, like icons and picture controls use
+                # 047573.python.win32rcparser.line510.comment the "window text" as extra resource ID (ie, the ID of the
+                # 047574.python.win32rcparser.line511.comment icon itself).  This may be either a literal, or an ID string.
                 elif self.token == "-" or self.token.isdigit():
                     control.label = str(self.currentNumberToken())
                 else:
-                    # An ID - use the numeric equiv.
+                    # 047575.python.win32rcparser.line515.comment An ID - use the numeric equiv.
                     control.label = str(self.addId(self.token))
                 self.getCommaToken()
                 self.getToken()
-            # Control IDs may be "names" or literal ints
+            # 047576.python.win32rcparser.line519.comment Control IDs may be "names" or literal ints
             if self.token == "-" or self.token.isdigit():
                 control.id = self.currentNumberToken()
                 control.idNum = control.id
             else:
-                # name of an ID
+                # 047577.python.win32rcparser.line524.comment name of an ID
                 control.id = self.token
                 control.idNum = self.addId(control.id)
             self.getCommaToken()
@@ -532,7 +532,7 @@ class RCParser:
                 thisDefaultStyle = defaultControlStyle | _addDefaults.get(
                     control.subType, 0
                 )
-                # Styles
+                # 047578.python.win32rcparser.line535.comment Styles
                 self.getCommaToken()
                 self.getToken()
                 control.style, control.styles = self.styles([], thisDefaultStyle)
@@ -540,9 +540,9 @@ class RCParser:
                 thisDefaultStyle = defaultControlStyle | _addDefaults.get(
                     control.controlType, 0
                 )
-                # incase no style is specified.
+                # 047579.python.win32rcparser.line543.comment incase no style is specified.
                 control.style = thisDefaultStyle
-            # Rect
+            # 047580.python.win32rcparser.line545.comment Rect
             control.x = int(self.getToken())
             self.getCommaToken()
             control.y = int(self.getToken())
@@ -560,7 +560,7 @@ class RCParser:
                 control.styleEx, control.stylesEx = self.styles(
                     [], defaultControlStyleEx
                 )
-            # print(control.toString())
+            # 047581.python.win32rcparser.line563.comment print(control.toString())
             dlg.controls.append(control)
 
 
@@ -586,17 +586,17 @@ def Parse(rc_name, h_name=None):
     if h_name:
         h_file = open(h_name, "r")
     else:
-        # See if same basename as the .rc
+        # 047582.python.win32rcparser.line589.comment See if same basename as the .rc
         h_name = rc_name[:-2] + "h"
         try:
             h_file = open(h_name, "r")
         except OSError:
-            # See if MSVC default of 'resource.h' in the same dir.
+            # 047583.python.win32rcparser.line594.comment See if MSVC default of 'resource.h' in the same dir.
             h_name = os.path.join(os.path.dirname(rc_name), "resource.h")
             try:
                 h_file = open(h_name, "r")
             except OSError:
-                # .h files are optional anyway
+                # 047584.python.win32rcparser.line599.comment .h files are optional anyway
                 h_file = None
     rc_file = open(rc_name, "r")
     try:

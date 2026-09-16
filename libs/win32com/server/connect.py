@@ -10,7 +10,7 @@ from win32com import olectl
 
 from .exception import COMException
 
-# Methods implemented by the interfaces.
+# 049604.python.connect.line13.comment Methods implemented by the interfaces.
 IConnectionPointContainer_methods = ["EnumConnectionPoints", "FindConnectionPoint"]
 IConnectionPoint_methods = [
     "EnumConnections",
@@ -28,12 +28,12 @@ class ConnectableServer:
         pythoncom.IID_IConnectionPointContainer,
     ]
 
-    # Clients must set _connect_interfaces_ = [...]
+    # 049605.python.connect.line31.comment Clients must set _connect_interfaces_ = [...]
     def __init__(self):
         self.cookieNo = 0
         self.connections = {}
 
-    # IConnectionPoint interfaces
+    # 049606.python.connect.line36.comment IConnectionPoint interfaces
     def EnumConnections(self):
         raise COMException(winerror.E_NOTIMPL)
 
@@ -44,8 +44,8 @@ class ConnectableServer:
         return win32com.server.util.wrap(self)
 
     def Advise(self, pUnk):
-        # Creates a connection to the client.  Simply allocate a new cookie,
-        # find the clients interface, and store it in a dictionary.
+        # 049607.python.connect.line47.comment Creates a connection to the client.  Simply allocate a new cookie,
+        # 049608.python.connect.line48.comment find the clients interface, and store it in a dictionary.
         try:
             interface = pUnk.QueryInterface(
                 self._connect_interfaces_[0], pythoncom.IID_IDispatch
@@ -57,24 +57,24 @@ class ConnectableServer:
         return self.cookieNo
 
     def Unadvise(self, cookie):
-        # Destroy a connection - simply delete interface from the map.
+        # 049609.python.connect.line60.comment Destroy a connection - simply delete interface from the map.
         try:
             del self.connections[cookie]
         except KeyError:
             raise COMException(scode=winerror.E_UNEXPECTED)
 
-    # IConnectionPointContainer interfaces
+    # 049610.python.connect.line66.comment IConnectionPointContainer interfaces
     def EnumConnectionPoints(self):
         raise COMException(winerror.E_NOTIMPL)
 
     def FindConnectionPoint(self, iid):
-        # Find a connection we support.  Only support the single event interface.
+        # 049611.python.connect.line71.comment Find a connection we support.  Only support the single event interface.
         if iid in self._connect_interfaces_:
             return win32com.server.util.wrap(self)
 
     def _BroadcastNotify(self, broadcaster, extraArgs):
-        # Broadcasts a notification to all connections.
-        # Ignores clients that fail.
+        # 049612.python.connect.line76.comment Broadcasts a notification to all connections.
+        # 049613.python.connect.line77.comment Ignores clients that fail.
         for interface in self.connections.values():
             try:
                 broadcaster(*(interface,) + extraArgs)

@@ -1,5 +1,5 @@
-# shaelvien_field.py
-# ShaelvienOS — Field engine (threaded), logger-integrated
+# 052554.python.shaelvien_field.line1.comment shaelvien_field.py
+# 052555.python.shaelvien_field.line2.comment ShaelvienOS — Field engine (threaded), logger-integrated
 
 import math
 import random
@@ -45,7 +45,7 @@ class ShaelvienField(threading.Thread):
         self.global_phase = 0.0
         self.dt = 0.05
 
-        # late import to avoid circular
+        # 052556.python.shaelvien_field.line48.comment late import to avoid circular
         from glyph_core import GlyphCore
         self.glyphs = GlyphCore()
 

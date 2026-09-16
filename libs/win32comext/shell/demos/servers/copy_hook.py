@@ -1,10 +1,10 @@
-# A sample shell copy hook.
+# 051608.python.copy_hook.line1.comment A sample shell copy hook.
 
-# To demonstrate:
-# * Execute this script to register the context menu.
-# * Open Windows Explorer
-# * Attempt to move or copy a directory.
-# * Note our hook's dialog is displayed.
+# 051609.python.copy_hook.line3.comment To demonstrate:
+# 051610.python.copy_hook.line4.comment * Execute this script to register the context menu.
+# 051611.python.copy_hook.line5.comment * Open Windows Explorer
+# 051612.python.copy_hook.line6.comment * Attempt to move or copy a directory.
+# 051613.python.copy_hook.line7.comment * Note our hook's dialog is displayed.
 
 import pythoncom
 import win32con
@@ -12,7 +12,7 @@ import win32gui
 from win32com.shell import shell
 
 
-# Our shell extension.
+# 051614.python.copy_hook.line15.comment Our shell extension.
 class ShellExtension:
     _reg_progid_ = "Python.ShellExtension.CopyHook"
     _reg_desc_ = "Python Sample Shell Extension (copy hook)"
@@ -21,10 +21,10 @@ class ShellExtension:
     _public_methods_ = ["CopyCallBack"]
 
     def CopyCallBack(self, hwnd, func, flags, srcName, srcAttr, destName, destAttr):
-        # This function should return:
-        # IDYES Allows the operation.
-        # IDNO Prevents the operation on this folder but continues with any other operations that have been approved (for example, a batch copy operation).
-        # IDCANCEL Prevents the current operation and cancels any pending operations.
+        # 051615.python.copy_hook.line24.comment This function should return:
+        # 051616.python.copy_hook.line25.comment IDYES Allows the operation.
+        # 051617.python.copy_hook.line26.comment IDNO Prevents the operation on this folder but continues with any other operations that have been approved (for example, a batch copy operation).
+        # 051618.python.copy_hook.line27.comment IDCANCEL Prevents the current operation and cancels any pending operations.
         print("CopyCallBack", hwnd, func, flags, srcName, srcAttr, destName, destAttr)
         return win32gui.MessageBox(
             hwnd, "Allow operation?", "CopyHook", win32con.MB_YESNO
@@ -81,4 +81,4 @@ if __name__ == "__main__":
         finalize_register=DllRegisterServer,
         finalize_unregister=DllUnregisterServer,
     )
-#!/usr/bin/env python
+# 051619.python.copy_hook.line84.comment !/usr/bin/env python

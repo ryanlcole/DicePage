@@ -10,11 +10,11 @@ Other modules may use this information to generate .py files, use the informatio
 dynamically, or possibly even generate .html documentation for objects.
 """
 
-#
-# NOTES: DispatchItem and MapEntry used by dynamic.py.
-#        the rest is used by makepy.py
-#
-#        OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
+# 048674.python.build.line13.comment
+# 048675.python.build.line14.comment NOTES: DispatchItem and MapEntry used by dynamic.py.
+# 048676.python.build.line15.comment the rest is used by makepy.py
+# 048677.python.build.line16.comment
+# 048678.python.build.line17.comment OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
 
 import builtins
 import datetime
@@ -26,9 +26,9 @@ import pythoncom
 import winerror
 from pywintypes import TimeType
 
-# It isn't really clear what the quoting rules are in a C/IDL string and
-# literals like a quote char and backslashes makes life a little painful to
-# always render the string perfectly - so just punt and fall-back to a repr()
+# 048679.python.build.line29.comment It isn't really clear what the quoting rules are in a C/IDL string and
+# 048680.python.build.line30.comment literals like a quote char and backslashes makes life a little painful to
+# 048681.python.build.line31.comment always render the string perfectly - so just punt and fall-back to a repr()
 _makeDocString = repr
 
 
@@ -110,12 +110,12 @@ class MapEntry:
             return None
         return rc
 
-    # Return a string, suitable for output - either "'{...}'" or "None"
+    # 048684.python.build.line113.comment Return a string, suitable for output - either "'{...}'" or "None"
     def GetResultCLSIDStr(self):
         rc = self.GetResultCLSID()
         if rc is None:
             return "None"
-        # Convert the IID object to a string in a string.
+        # 048685.python.build.line118.comment Convert the IID object to a string in a string.
         return f"'{rc}'"
 
     def GetResultName(self):
@@ -212,34 +212,34 @@ class DispatchItem(OleItem):
 
         invkind = fdesc.invkind
 
-        # We need to translate any Alias', Enums, structs etc in result and args
+        # 048692.python.build.line215.comment We need to translate any Alias', Enums, structs etc in result and args
         typerepr, flag, defval = fdesc.rettype
-        # 		sys.stderr.write("%s result - %s -> " % (name, typerepr))
+        # 048693.python.build.line217.comment sys.stderr.write("%s result - %s -> " % (name, typerepr))
         typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
-        # 		sys.stderr.write("%s\n" % (typerepr,))
+        # 048694.python.build.line219.comment sys.stderr.write("%s\n" % (typerepr,))
         fdesc.rettype = typerepr, flag, defval, resultCLSID
-        # Translate any Alias or Enums in argument list.
+        # 048695.python.build.line221.comment Translate any Alias or Enums in argument list.
         argList = []
         for argDesc in fdesc.args:
             typerepr, flag, defval = argDesc
-            # 			sys.stderr.write("%s arg - %s -> " % (name, typerepr))
+            # 048696.python.build.line225.comment sys.stderr.write("%s arg - %s -> " % (name, typerepr))
             arg_type, arg_clsid, arg_doc = _ResolveType(typerepr, typeinfo)
             argDesc = arg_type, flag, defval, arg_clsid
-            # 			sys.stderr.write("%s\n" % (argDesc[0],))
+            # 048697.python.build.line228.comment sys.stderr.write("%s\n" % (argDesc[0],))
             argList.append(argDesc)
         fdesc.args = tuple(argList)
 
         hidden = (funcflags & pythoncom.FUNCFLAG_FHIDDEN) != 0
         if invkind == pythoncom.INVOKE_PROPERTYGET:
             map = self.propMapGet
-        # This is not the best solution, but I don't think there is
-        # one without specific "set" syntax.
-        # If there is a single PUT or PUTREF, it will function as a property.
-        # If there are both, then the PUT remains a property, and the PUTREF
-        # gets transformed into a function.
-        # (in vb, PUT=="obj=other_obj", PUTREF="set obj=other_obj
+        # 048698.python.build.line235.comment This is not the best solution, but I don't think there is
+        # 048699.python.build.line236.comment one without specific "set" syntax.
+        # 048700.python.build.line237.comment If there is a single PUT or PUTREF, it will function as a property.
+        # 048701.python.build.line238.comment If there are both, then the PUT remains a property, and the PUTREF
+        # 048702.python.build.line239.comment gets transformed into a function.
+        # 048703.python.build.line240.comment (in vb, PUT=="obj=other_obj", PUTREF="set obj=other_obj
         elif invkind in (pythoncom.INVOKE_PROPERTYPUT, pythoncom.INVOKE_PROPERTYPUTREF):
-            # Special case
+            # 048704.python.build.line242.comment Special case
             existing = self.propMapPut.get(name, None)
             if existing is not None:
                 if existing.desc[4] == pythoncom.INVOKE_PROPERTYPUT:  # Keep this one
@@ -257,25 +257,25 @@ class DispatchItem(OleItem):
         else:
             map = None
         if not map is None:
-            # 				if map.has_key(name):
-            # 					sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
+            # 048709.python.build.line260.comment if map.has_key(name):
+            # 048710.python.build.line261.comment sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
             map[name] = MapEntry(fdesc, names, doc, resultCLSID, resultDoc, hidden)
-            # any methods that can't be reached via DISPATCH we return None
-            # for, so dynamic dispatch doesn't see it.
+            # 048711.python.build.line263.comment any methods that can't be reached via DISPATCH we return None
+            # 048712.python.build.line264.comment for, so dynamic dispatch doesn't see it.
             if fdesc.funckind != pythoncom.FUNC_DISPATCH:
                 return None
             return (name, map)
         return None
 
     def _AddVar_(self, typeinfo, vardesc, bForUser):
-        ### need pythoncom.VARFLAG_FRESTRICTED ...
-        ### then check it
+        # 048713.python.build.line271.comment ## need pythoncom.VARFLAG_FRESTRICTED ...
+        # 048714.python.build.line272.comment ## then check it
         assert vardesc.desckind == pythoncom.DESCKIND_VARDESC
 
         if vardesc.varkind == pythoncom.VAR_DISPATCH:
             id = vardesc.memid
             names = typeinfo.GetNames(id)
-            # Translate any Alias or Enums in result.
+            # 048715.python.build.line278.comment Translate any Alias or Enums in result.
             typerepr, flags, defval = vardesc.elemdescVar
             typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
             vardesc.elemdescVar = typerepr, flags, defval
@@ -286,9 +286,9 @@ class DispatchItem(OleItem):
             except pythoncom.ole_error:
                 pass
 
-            # handle the enumerator specially
+            # 048716.python.build.line289.comment handle the enumerator specially
             map = self.propMap
-            # Check if the element is hidden.
+            # 048717.python.build.line291.comment Check if the element is hidden.
             hidden = (vardesc.wVarFlags & 0x40) != 0  # VARFLAG_FHIDDEN
             map[names[0]] = MapEntry(
                 vardesc, names, doc, resultCLSID, resultDoc, hidden
@@ -302,19 +302,19 @@ class DispatchItem(OleItem):
         self.bIsDispatch = (attr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE) != 0
         if typeinfo is None:
             return
-        # Loop over all methods
+        # 048719.python.build.line305.comment Loop over all methods
         for j in range(attr[6]):
             fdesc = typeinfo.GetFuncDesc(j)
             self._AddFunc_(typeinfo, fdesc, bForUser)
 
-        # Loop over all variables (ie, properties)
+        # 048720.python.build.line310.comment Loop over all variables (ie, properties)
         for j in range(attr[7]):
             fdesc = typeinfo.GetVarDesc(j)
             self._AddVar_(typeinfo, fdesc, bForUser)
 
-        # Now post-process the maps.  For any "Get" or "Set" properties
-        # that have arguments, we must turn them into methods.  If a method
-        # of the same name already exists, change the name.
+        # 048721.python.build.line315.comment Now post-process the maps.  For any "Get" or "Set" properties
+        # 048722.python.build.line316.comment that have arguments, we must turn them into methods.  If a method
+        # 048723.python.build.line317.comment of the same name already exists, change the name.
         for key, item in list(self.propMapGet.items()):
             self._propMapGetCheck_(key, item)
 
@@ -339,7 +339,7 @@ class DispatchItem(OleItem):
         return ins, out, opts
 
     def MakeFuncMethod(self, entry, name, bMakeClass=1):
-        # If we have a type description, and not varargs...
+        # 048724.python.build.line342.comment If we have a type description, and not varargs...
         if entry.desc is not None and (len(entry.desc) < 6 or entry.desc[6] != -1):
             return self.MakeDispatchFuncMethod(entry, name, bMakeClass)
         else:
@@ -387,13 +387,13 @@ class DispatchItem(OleItem):
             resclsid = "'%s'" % resclsid
         else:
             resclsid = "None"
-        # Strip the default values from the arg desc
+        # 048725.python.build.line390.comment Strip the default values from the arg desc
         retDesc = fdesc[8][:2]
         argsDesc = tuple([what[:2] for what in fdesc[2]])
-        # The runtime translation of the return types is expensive, so when we know the
-        # return type of the function, there is no need to check the type at runtime.
-        # To qualify, this function must return a "simple" type, and have no byref args.
-        # Check if we have byrefs or anything in the args which mean we still need a translate.
+        # 048726.python.build.line393.comment The runtime translation of the return types is expensive, so when we know the
+        # 048727.python.build.line394.comment return type of the function, there is no need to check the type at runtime.
+        # 048728.python.build.line395.comment To qualify, this function must return a "simple" type, and have no byref args.
+        # 048729.python.build.line396.comment Check if we have byrefs or anything in the args which mean we still need a translate.
         param_flags = [what[1] for what in fdesc[2]]
         bad_params = [
             flag
@@ -444,7 +444,7 @@ class DispatchItem(OleItem):
                     argsDesc,
                     _BuildArgList(fdesc, names),
                 )
-            # else s remains None
+            # 048730.python.build.line447.comment else s remains None
         if s is None:
             s = "{}\treturn self._ApplyTypes_({}, {}, {}, {}, {!r}, {}{})".format(
                 linePrefix,
@@ -486,7 +486,7 @@ class DispatchItem(OleItem):
         return ret
 
 
-# Note - "DispatchItem" poorly named - need a new intermediate class.
+# 048731.python.build.line489.comment Note - "DispatchItem" poorly named - need a new intermediate class.
 class VTableItem(DispatchItem):
     def Build(self, typeinfo, attr, bForUser=1):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
@@ -501,16 +501,16 @@ class VTableItem(DispatchItem):
             key=lambda m: m.desc[7],
         )
 
-        # Now turn this list into the run-time representation
-        # (ready for immediate use or writing to gencache)
+        # 048732.python.build.line504.comment Now turn this list into the run-time representation
+        # 048733.python.build.line505.comment (ready for immediate use or writing to gencache)
         self.vtableFuncs = [
             (entry.names, entry.dispid, entry.desc) for entry in meth_list
         ]
 
 
-# A Lazy dispatch item - builds an item on request using info from
-# an ITypeComp.  The dynamic module makes the called to build each item,
-# and also holds the references to the typeinfo and typecomp.
+# 048734.python.build.line511.comment A Lazy dispatch item - builds an item on request using info from
+# 048735.python.build.line512.comment an ITypeComp.  The dynamic module makes the called to build each item,
+# 048736.python.build.line513.comment and also holds the references to the typeinfo and typecomp.
 class LazyDispatchItem(DispatchItem):
     typename = "LazyDispatchItem"
 
@@ -527,18 +527,18 @@ typeSubstMap = {
 
 
 def _ResolveType(typerepr, itypeinfo):
-    # Resolve VT_USERDEFINED (often aliases or typed IDispatches)
+    # 048737.python.build.line530.comment Resolve VT_USERDEFINED (often aliases or typed IDispatches)
 
     if isinstance(typerepr, tuple):
         indir_vt, subrepr = typerepr
         if indir_vt == pythoncom.VT_PTR:
-            # If it is a VT_PTR to a VT_USERDEFINED that is an IDispatch/IUnknown,
-            # then it resolves to simply the object.
-            # Otherwise, it becomes a ByRef of the resolved type
-            # We need to drop an indirection level on pointer to user defined interfaces.
-            # eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
-            # only when "somehandle" is an object.
-            # but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesn't get the indirection dropped.
+            # 048738.python.build.line535.comment If it is a VT_PTR to a VT_USERDEFINED that is an IDispatch/IUnknown,
+            # 048739.python.build.line536.comment then it resolves to simply the object.
+            # 048740.python.build.line537.comment Otherwise, it becomes a ByRef of the resolved type
+            # 048741.python.build.line538.comment We need to drop an indirection level on pointer to user defined interfaces.
+            # 048742.python.build.line539.comment eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
+            # 048743.python.build.line540.comment only when "somehandle" is an object.
+            # 048744.python.build.line541.comment but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesn't get the indirection dropped.
             was_user = (
                 isinstance(subrepr, tuple) and subrepr[0] == pythoncom.VT_USERDEFINED
             )
@@ -547,17 +547,17 @@ def _ResolveType(typerepr, itypeinfo):
                 pythoncom.VT_DISPATCH,
                 pythoncom.VT_UNKNOWN,
             ]:
-                # Drop the VT_PTR indirection
+                # 048745.python.build.line550.comment Drop the VT_PTR indirection
                 return subrepr, sub_clsid, sub_doc
-            # Change PTR indirection to byref
+            # 048746.python.build.line552.comment Change PTR indirection to byref
             return subrepr | pythoncom.VT_BYREF, sub_clsid, sub_doc
         if indir_vt == pythoncom.VT_SAFEARRAY:
-            # resolve the array element, and convert to VT_ARRAY
+            # 048747.python.build.line555.comment resolve the array element, and convert to VT_ARRAY
             subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
             return pythoncom.VT_ARRAY | subrepr, sub_clsid, sub_doc
         if indir_vt == pythoncom.VT_CARRAY:  # runtime has no support for this yet.
-            # resolve the array element, and convert to VT_CARRAY
-            # sheesh - return _something_
+            # 048749.python.build.line559.comment resolve the array element, and convert to VT_CARRAY
+            # 048750.python.build.line560.comment sheesh - return _something_
             return pythoncom.VT_CARRAY, None, None
         if indir_vt == pythoncom.VT_USERDEFINED:
             try:
@@ -567,7 +567,7 @@ def _ResolveType(typerepr, itypeinfo):
                     winerror.TYPE_E_CANTLOADLIBRARY,
                     winerror.TYPE_E_LIBNOTREGISTERED,
                 ]:
-                    # an unregistered interface
+                    # 048751.python.build.line570.comment an unregistered interface
                     return pythoncom.VT_UNKNOWN, None, None
                 raise
 
@@ -577,7 +577,7 @@ def _ResolveType(typerepr, itypeinfo):
                 tdesc = resultAttr.tdescAlias
                 return _ResolveType(tdesc, resultTypeInfo)
             elif typeKind in [pythoncom.TKIND_ENUM, pythoncom.TKIND_MODULE]:
-                # For now, assume Long
+                # 048752.python.build.line580.comment For now, assume Long
                 return pythoncom.VT_I4, None, None
 
             elif typeKind == pythoncom.TKIND_DISPATCH:
@@ -586,7 +586,7 @@ def _ResolveType(typerepr, itypeinfo):
                 return pythoncom.VT_DISPATCH, clsid, retdoc
 
             elif typeKind in [pythoncom.TKIND_INTERFACE, pythoncom.TKIND_COCLASS]:
-                # XXX - should probably get default interface for CO_CLASS???
+                # 048753.python.build.line589.comment XXX - should probably get default interface for CO_CLASS???
                 clsid = resultTypeInfo.GetTypeAttr()[0]
                 retdoc = resultTypeInfo.GetDocumentation(-1)
                 return pythoncom.VT_UNKNOWN, clsid, retdoc
@@ -599,21 +599,21 @@ def _ResolveType(typerepr, itypeinfo):
 
 def _BuildArgList(fdesc, names):
     "Builds list of args to the underlying Invoke method."
-    # Word has TypeInfo for Insert() method, but says "no args"
+    # 048754.python.build.line602.comment Word has TypeInfo for Insert() method, but says "no args"
     numArgs = max(fdesc[6], len(fdesc[2]))
     names = list(names)
     while None in names:
         i = names.index(None)
         names[i] = "arg%d" % (i,)
-    # We've seen 'source safe' libraries offer the name of 'ret' params in
-    # 'names' - although we can't reproduce this, it would be insane to offer
-    # more args than we have arg infos for - hence the upper limit on names...
+    # 048755.python.build.line608.comment We've seen 'source safe' libraries offer the name of 'ret' params in
+    # 048756.python.build.line609.comment 'names' - although we can't reproduce this, it would be insane to offer
+    # 048757.python.build.line610.comment more args than we have arg infos for - hence the upper limit on names...
     names = list(map(MakePublicAttributeName, names[1 : (numArgs + 1)]))
     name_num = 0
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
-    # As per BuildCallList(), avoid huge lines.
-    # Hack a "\n" at the end of every 5th name
+    # 048758.python.build.line615.comment As per BuildCallList(), avoid huge lines.
+    # 048759.python.build.line616.comment Hack a "\n" at the end of every 5th name
     for i in range(0, len(names), 5):
         names[i] += "\n\t\t\t"
     return "," + ", ".join(names)
@@ -630,65 +630,65 @@ def demunge_leading_underscores(className):
     return className[i - 1 :] + className[: i - 1]
 
 
-# Given a "public name" (eg, the name of a class, function, etc)
-# make sure it is a legal (and reasonable!) Python name.
+# 048760.python.build.line633.comment Given a "public name" (eg, the name of a class, function, etc)
+# 048761.python.build.line634.comment make sure it is a legal (and reasonable!) Python name.
 def MakePublicAttributeName(className, is_global=False):
-    # Given a class attribute that needs to be public, convert it to a
-    # reasonable name.
-    # Also need to be careful that the munging doesn't
-    # create duplicates - eg, just removing a leading "_" is likely to cause
-    # a clash.
-    # if is_global is True, then the name is a global variable that may
-    # overwrite a builtin - eg, "None"
+    # 048762.python.build.line636.comment Given a class attribute that needs to be public, convert it to a
+    # 048763.python.build.line637.comment reasonable name.
+    # 048764.python.build.line638.comment Also need to be careful that the munging doesn't
+    # 048765.python.build.line639.comment create duplicates - eg, just removing a leading "_" is likely to cause
+    # 048766.python.build.line640.comment a clash.
+    # 048767.python.build.line641.comment if is_global is True, then the name is a global variable that may
+    # 048768.python.build.line642.comment overwrite a builtin - eg, "None"
     if className[:2] == "__":
         return demunge_leading_underscores(className)
     elif className == "None":
-        # assign to None is evil (and SyntaxError in 2.4, even though
-        # iskeyword says False there) - note that if it was a global
-        # it would get picked up below
+        # 048769.python.build.line646.comment assign to None is evil (and SyntaxError in 2.4, even though
+        # 048770.python.build.line647.comment iskeyword says False there) - note that if it was a global
+        # 048771.python.build.line648.comment it would get picked up below
         className = "NONE"
     elif iskeyword(className):
-        # most keywords are lower case (except True, False, etc)
+        # 048772.python.build.line651.comment most keywords are lower case (except True, False, etc)
         ret = className.capitalize()
-        # but those which aren't get forced upper.
+        # 048773.python.build.line653.comment but those which aren't get forced upper.
         if ret == className:
             ret = ret.upper()
         return ret
     elif is_global and hasattr(builtins, className):
-        # builtins may be mixed case.  If capitalizing it doesn't change it,
-        # force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
+        # 048774.python.build.line658.comment builtins may be mixed case.  If capitalizing it doesn't change it,
+        # 048775.python.build.line659.comment force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
         ret = className.capitalize()
         if ret == className:  # didn't change - force all uppercase.
             ret = ret.upper()
         return ret
     elif className.isidentifier():
-        # some COM objects have identifiers with national characters
+        # 048777.python.build.line665.comment some COM objects have identifiers with national characters
         return className
-    # Strip non printable chars
+    # 048778.python.build.line667.comment Strip non printable chars
     return "".join([char for char in className if char in valid_identifier_chars])
 
 
-# Given a default value passed by a type library, return a string with
-# an appropriate repr() for the type.
-# Takes a raw ELEMDESC and returns a repr string, or None
-# (NOTE: The string itself may be '"None"', which is valid, and different to None.
-# XXX - To do: Dates are probably screwed, but can they come in?
+# 048779.python.build.line671.comment Given a default value passed by a type library, return a string with
+# 048780.python.build.line672.comment an appropriate repr() for the type.
+# 048781.python.build.line673.comment Takes a raw ELEMDESC and returns a repr string, or None
+# 048782.python.build.line674.comment (NOTE: The string itself may be '"None"', which is valid, and different to None.
+# 048783.python.build.line675.comment XXX - To do: Dates are probably screwed, but can they come in?
 def MakeDefaultArgRepr(defArgVal):
     try:
         inOut = defArgVal[1]
     except IndexError:
-        # something strange - assume is in param.
+        # 048784.python.build.line680.comment something strange - assume is in param.
         inOut = pythoncom.PARAMFLAG_FIN
 
     if inOut & pythoncom.PARAMFLAG_FHASDEFAULT:
-        # times need special handling...
+        # 048785.python.build.line684.comment times need special handling...
         val = defArgVal[2]
         if isinstance(val, datetime.datetime):
-            # VARIANT <-> SYSTEMTIME conversions always lose any sub-second
-            # resolution, so just use a 'timetuple' here.
+            # 048786.python.build.line687.comment VARIANT <-> SYSTEMTIME conversions always lose any sub-second
+            # 048787.python.build.line688.comment resolution, so just use a 'timetuple' here.
             return repr(tuple(val.utctimetuple()))
         if isinstance(val, TimeType):
-            # must be the 'old' pywintypes time object...
+            # 048788.python.build.line691.comment must be the 'old' pywintypes time object...
             year = val.year
             month = val.month
             day = val.day
@@ -714,7 +714,7 @@ def BuildCallList(
     is_comment=False,
 ):
     "Builds a Python declaration for a method."
-    # Names[0] is the func name - param names are from 1.
+    # 048789.python.build.line717.comment Names[0] is the func name - param names are from 1.
     numArgs = len(fdesc[2])
     numOptArgs = fdesc[6]
     strval = ""
@@ -732,19 +732,19 @@ def BuildCallList(
         if not namedArg:
             argName = "arg%d" % (arg)
         thisdesc = fdesc[2][arg]
-        # See if the IDL specified a default value
+        # 048791.python.build.line735.comment See if the IDL specified a default value
         defArgVal = MakeDefaultArgRepr(thisdesc)
         if defArgVal is None:
-            # Out params always get their special default
+            # 048792.python.build.line738.comment Out params always get their special default
             if (
                 thisdesc[1] & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FIN)
                 == pythoncom.PARAMFLAG_FOUT
             ):
                 defArgVal = defOutArg
             else:
-                # Unnamed arg - always allow default values.
+                # 048793.python.build.line745.comment Unnamed arg - always allow default values.
                 if namedArg:
-                    # Is a named argument
+                    # 048794.python.build.line747.comment Is a named argument
                     if arg >= firstOptArg:
                         defArgVal = defNamedOptArg
                     else:
@@ -753,9 +753,9 @@ def BuildCallList(
                     defArgVal = defUnnamedArg
 
         argName = MakePublicAttributeName(argName)
-        # keep 5 args per line
-        # This may still fail if the arg names are insane, but that seems
-        # unlikely.  See also _BuildArgList()
+        # 048795.python.build.line756.comment keep 5 args per line
+        # 048796.python.build.line757.comment This may still fail if the arg names are insane, but that seems
+        # 048797.python.build.line758.comment unlikely.  See also _BuildArgList()
         if (arg + 1) % 5 == 0:
             strval += "\n"
             if is_comment:

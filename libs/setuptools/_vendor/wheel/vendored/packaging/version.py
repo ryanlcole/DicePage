@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 044177.python.version.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 044178.python.version.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 044179.python.version.line3.comment for complete details.
 """
 .. testsetup::
 
@@ -70,9 +70,9 @@ class _BaseVersion:
     def __hash__(self) -> int:
         return hash(self._key)
 
-    # Please keep the duplicated `isinstance` check
-    # in the six comparisons hereunder
-    # unless you find a way to avoid adding overhead function calls.
+    # 044180.python.version.line73.comment Please keep the duplicated `isinstance` check
+    # 044181.python.version.line74.comment in the six comparisons hereunder
+    # 044182.python.version.line75.comment unless you find a way to avoid adding overhead function calls.
     def __lt__(self, other: "_BaseVersion") -> bool:
         if not isinstance(other, _BaseVersion):
             return NotImplemented
@@ -110,8 +110,8 @@ class _BaseVersion:
         return self._key != other._key
 
 
-# Deliberately not anchored to the start and end of the string, to make it
-# easier for 3rd party code to reuse
+# 044183.python.version.line113.comment Deliberately not anchored to the start and end of the string, to make it
+# 044184.python.version.line114.comment easier for 3rd party code to reuse
 _VERSION_PATTERN = r"""
     v?
     (?:
@@ -194,12 +194,12 @@ class Version(_BaseVersion):
             exception will be raised.
         """
 
-        # Validate the version and parse it into pieces
+        # 044185.python.version.line197.comment Validate the version and parse it into pieces
         match = self._regex.search(version)
         if not match:
             raise InvalidVersion(f"Invalid version: '{version}'")
 
-        # Store the parsed out pieces of the version
+        # 044186.python.version.line202.comment Store the parsed out pieces of the version
         self._version = _Version(
             epoch=int(match.group("epoch")) if match.group("epoch") else 0,
             release=tuple(int(i) for i in match.group("release").split(".")),
@@ -211,7 +211,7 @@ class Version(_BaseVersion):
             local=_parse_local_version(match.group("local")),
         )
 
-        # Generate a key which will be used for sorting
+        # 044187.python.version.line214.comment Generate a key which will be used for sorting
         self._key = _cmpkey(
             self._version.epoch,
             self._version.release,
@@ -237,26 +237,26 @@ class Version(_BaseVersion):
         """
         parts = []
 
-        # Epoch
+        # 044188.python.version.line240.comment Epoch
         if self.epoch != 0:
             parts.append(f"{self.epoch}!")
 
-        # Release segment
+        # 044189.python.version.line244.comment Release segment
         parts.append(".".join(str(x) for x in self.release))
 
-        # Pre-release
+        # 044190.python.version.line247.comment Pre-release
         if self.pre is not None:
             parts.append("".join(str(x) for x in self.pre))
 
-        # Post-release
+        # 044191.python.version.line251.comment Post-release
         if self.post is not None:
             parts.append(f".post{self.post}")
 
-        # Development release
+        # 044192.python.version.line255.comment Development release
         if self.dev is not None:
             parts.append(f".dev{self.dev}")
 
-        # Local version segment
+        # 044193.python.version.line259.comment Local version segment
         if self.local is not None:
             parts.append(f"+{self.local}")
 
@@ -369,11 +369,11 @@ class Version(_BaseVersion):
         """
         parts = []
 
-        # Epoch
+        # 044194.python.version.line372.comment Epoch
         if self.epoch != 0:
             parts.append(f"{self.epoch}!")
 
-        # Release segment
+        # 044195.python.version.line376.comment Release segment
         parts.append(".".join(str(x) for x in self.release))
 
         return "".join(parts)
@@ -453,17 +453,17 @@ def _parse_letter_version(
     letter: Optional[str], number: Union[str, bytes, SupportsInt, None]
 ) -> Optional[Tuple[str, int]]:
     if letter:
-        # We consider there to be an implicit 0 in a pre-release if there is
-        # not a numeral associated with it.
+        # 044196.python.version.line456.comment We consider there to be an implicit 0 in a pre-release if there is
+        # 044197.python.version.line457.comment not a numeral associated with it.
         if number is None:
             number = 0
 
-        # We normalize any letters to their lower case form
+        # 044198.python.version.line461.comment We normalize any letters to their lower case form
         letter = letter.lower()
 
-        # We consider some words to be alternate spellings of other words and
-        # in those cases we want to normalize the spellings to our preferred
-        # spelling.
+        # 044199.python.version.line464.comment We consider some words to be alternate spellings of other words and
+        # 044200.python.version.line465.comment in those cases we want to normalize the spellings to our preferred
+        # 044201.python.version.line466.comment spelling.
         if letter == "alpha":
             letter = "a"
         elif letter == "beta":
@@ -475,8 +475,8 @@ def _parse_letter_version(
 
         return letter, int(number)
     if not letter and number:
-        # We assume if we are given a number, but we are not given a letter
-        # then this is using the implicit post release syntax (e.g. 1.0-1)
+        # 044202.python.version.line478.comment We assume if we are given a number, but we are not given a letter
+        # 044203.python.version.line479.comment then this is using the implicit post release syntax (e.g. 1.0-1)
         letter = "post"
 
         return letter, int(number)
@@ -507,36 +507,36 @@ def _cmpkey(
     dev: Optional[Tuple[str, int]],
     local: Optional[LocalType],
 ) -> CmpKey:
-    # When we compare a release version, we want to compare it with all of the
-    # trailing zeros removed. So we'll use a reverse the list, drop all the now
-    # leading zeros until we come to something non zero, then take the rest
-    # re-reverse it back into the correct order and make it a tuple and use
-    # that for our sorting key.
+    # 044204.python.version.line510.comment When we compare a release version, we want to compare it with all of the
+    # 044205.python.version.line511.comment trailing zeros removed. So we'll use a reverse the list, drop all the now
+    # 044206.python.version.line512.comment leading zeros until we come to something non zero, then take the rest
+    # 044207.python.version.line513.comment re-reverse it back into the correct order and make it a tuple and use
+    # 044208.python.version.line514.comment that for our sorting key.
     _release = tuple(
         reversed(list(itertools.dropwhile(lambda x: x == 0, reversed(release))))
     )
 
-    # We need to "trick" the sorting algorithm to put 1.0.dev0 before 1.0a0.
-    # We'll do this by abusing the pre segment, but we _only_ want to do this
-    # if there is not a pre or a post segment. If we have one of those then
-    # the normal sorting rules will handle this case correctly.
+    # 044209.python.version.line519.comment We need to "trick" the sorting algorithm to put 1.0.dev0 before 1.0a0.
+    # 044210.python.version.line520.comment We'll do this by abusing the pre segment, but we _only_ want to do this
+    # 044211.python.version.line521.comment if there is not a pre or a post segment. If we have one of those then
+    # 044212.python.version.line522.comment the normal sorting rules will handle this case correctly.
     if pre is None and post is None and dev is not None:
         _pre: CmpPrePostDevType = NegativeInfinity
-    # Versions without a pre-release (except as noted above) should sort after
-    # those with one.
+    # 044213.python.version.line525.comment Versions without a pre-release (except as noted above) should sort after
+    # 044214.python.version.line526.comment those with one.
     elif pre is None:
         _pre = Infinity
     else:
         _pre = pre
 
-    # Versions without a post segment should sort before those with one.
+    # 044215.python.version.line532.comment Versions without a post segment should sort before those with one.
     if post is None:
         _post: CmpPrePostDevType = NegativeInfinity
 
     else:
         _post = post
 
-    # Versions without a development segment should sort after those with one.
+    # 044216.python.version.line539.comment Versions without a development segment should sort after those with one.
     if dev is None:
         _dev: CmpPrePostDevType = Infinity
 
@@ -544,16 +544,16 @@ def _cmpkey(
         _dev = dev
 
     if local is None:
-        # Versions without a local segment should sort before those with one.
+        # 044217.python.version.line547.comment Versions without a local segment should sort before those with one.
         _local: CmpLocalType = NegativeInfinity
     else:
-        # Versions with a local segment need that segment parsed to implement
-        # the sorting rules in PEP440.
-        # - Alpha numeric segments sort before numeric segments
-        # - Alpha numeric segments sort lexicographically
-        # - Numeric segments sort numerically
-        # - Shorter versions sort before longer versions when the prefixes
-        #   match exactly
+        # 044218.python.version.line550.comment Versions with a local segment need that segment parsed to implement
+        # 044219.python.version.line551.comment the sorting rules in PEP440.
+        # 044220.python.version.line552.comment - Alpha numeric segments sort before numeric segments
+        # 044221.python.version.line553.comment - Alpha numeric segments sort lexicographically
+        # 044222.python.version.line554.comment - Numeric segments sort numerically
+        # 044223.python.version.line555.comment - Shorter versions sort before longer versions when the prefixes
+        # 044224.python.version.line556.comment match exactly
         _local = tuple(
             (i, "") if isinstance(i, int) else (NegativeInfinity, i) for i in local
         )

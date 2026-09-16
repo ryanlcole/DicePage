@@ -14,9 +14,9 @@ else:
 
 
 def SkipIfCI():
-    # This test often fails in CI, probably when it is being run multiple times
-    # (ie, for different Python versions)
-    # Github actions always have a `CI` variable.
+    # 048480.python.test_win32trace.line17.comment This test often fails in CI, probably when it is being run multiple times
+    # 048481.python.test_win32trace.line18.comment (ie, for different Python versions)
+    # 048482.python.test_win32trace.line19.comment Github actions always have a `CI` variable.
     if "CI" in os.environ:
         raise TestSkipped("We skip this test on CI")
 
@@ -25,7 +25,7 @@ def CheckNoOtherReaders():
     win32trace.write("Hi")
     time.sleep(0.05)
     if win32trace.read() != "Hi":
-        # Reset everything so following tests still fail with this error!
+        # 048483.python.test_win32trace.line28.comment Reset everything so following tests still fail with this error!
         win32trace.TermRead()
         win32trace.TermWrite()
         raise AssertionError(
@@ -37,7 +37,7 @@ def CheckNoOtherReaders():
 class TestInitOps(unittest.TestCase):
     def setUp(self):
         SkipIfCI()
-        # clear old data
+        # 048484.python.test_win32trace.line40.comment clear old data
         win32trace.InitRead()
         win32trace.read()
         win32trace.TermRead()
@@ -78,16 +78,16 @@ class TestInitOps(unittest.TestCase):
         win32trace.InitWrite()
         win32trace.write("Ta da")
 
-        # if we both Write and Read are terminated at the same time,
-        # we lose the data as the win32 object is closed.  Note that
-        # if another writer is running, we do *not* lose the data - so
-        # test for either the correct data or an empty string
+        # 048485.python.test_win32trace.line81.comment if we both Write and Read are terminated at the same time,
+        # 048486.python.test_win32trace.line82.comment we lose the data as the win32 object is closed.  Note that
+        # 048487.python.test_win32trace.line83.comment if another writer is running, we do *not* lose the data - so
+        # 048488.python.test_win32trace.line84.comment test for either the correct data or an empty string
         win32trace.TermWrite()
         win32trace.InitRead()
         self.assertTrue(win32trace.read() in ("Ta da", ""))
         win32trace.TermRead()
 
-        # we keep the data because we init read before terminating write
+        # 048489.python.test_win32trace.line90.comment we keep the data because we init read before terminating write
         win32trace.InitWrite()
         win32trace.write("Ta da")
         win32trace.InitRead()
@@ -100,9 +100,9 @@ class BasicSetupTearDown(unittest.TestCase):
     def setUp(self):
         SkipIfCI()
         win32trace.InitRead()
-        # If any other writers are running (even if not actively writing),
-        # terminating the module will *not* close the handle, meaning old data
-        # will remain. This can cause other tests to fail.
+        # 048490.python.test_win32trace.line103.comment If any other writers are running (even if not actively writing),
+        # 048491.python.test_win32trace.line104.comment terminating the module will *not* close the handle, meaning old data
+        # 048492.python.test_win32trace.line105.comment will remain. This can cause other tests to fail.
         win32trace.read()
         win32trace.InitWrite()
 
@@ -172,7 +172,7 @@ class WriterThread(threading.Thread):
 
 
 class TestMultipleThreadsWriting(unittest.TestCase):
-    # FullBucket is the thread count
+    # 048493.python.test_win32trace.line175.comment FullBucket is the thread count
     FullBucket = 50
     BucketCount = 9  # buckets must be a single digit number (ie. less than 10)
 
@@ -225,7 +225,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
 
 
 class TestHugeChunks(unittest.TestCase):
-    # BiggestChunk is the size where we stop stressing the writer
+    # 048496.python.test_win32trace.line228.comment BiggestChunk is the size where we stop stressing the writer
     BiggestChunk = 2**16  # 256k should do it.
 
     def setUp(self):
@@ -239,7 +239,7 @@ class TestHugeChunks(unittest.TestCase):
         while len(data) <= self.BiggestChunk:
             win32trace.write(data)
             data += data
-        # If we made it here, we passed.
+        # 048499.python.test_win32trace.line242.comment If we made it here, we passed.
 
     def tearDown(self):
         win32trace.TermRead()
@@ -297,7 +297,7 @@ class TestOutofProcess(unittest.TestCase):
 
     def setUpWriters(self):
         self.processes = []
-        # 5 processes, quot threads in each process
+        # 048507.python.test_win32trace.line300.comment 5 processes, quot threads in each process
         quot, remainder = divmod(self.FullBucket, 5)
         for each in range(5):
             self.processes.append(TraceWriteProcess(quot))
@@ -337,7 +337,7 @@ class TestOutofProcess(unittest.TestCase):
 
 
 def _RunAsTestProcess():
-    # Run as an external process by the main tests.
+    # 048508.python.test_win32trace.line340.comment Run as an external process by the main tests.
     WriterThread.BucketCount = int(sys.argv[2])
     threadCount = int(sys.argv[3])
     threads = [WriterThread() for each in range(threadCount)]
@@ -355,12 +355,12 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["/run_test_process"]:
         _RunAsTestProcess()
         sys.exit(0)
-    # If some other win32traceutil reader is running, these tests fail
-    # badly (as the other reader sometimes sees the output!)
+    # 048509.python.test_win32trace.line358.comment If some other win32traceutil reader is running, these tests fail
+    # 048510.python.test_win32trace.line359.comment badly (as the other reader sometimes sees the output!)
     win32trace.InitRead()
     win32trace.InitWrite()
     CheckNoOtherReaders()
-    # reset state so test env is back to normal
+    # 048511.python.test_win32trace.line363.comment reset state so test env is back to normal
     win32trace.TermRead()
     win32trace.TermWrite()
     unittest.main()

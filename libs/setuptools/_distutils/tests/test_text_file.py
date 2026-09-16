@@ -16,10 +16,10 @@ line 3 \\
 
 class TestTextFile(support.TempdirManager):
     def test_class(self):
-        # old tests moved from text_file.__main__
-        # so they are really called by the buildbots
+        # 041257.python.test_text_file.line19.comment old tests moved from text_file.__main__
+        # 041258.python.test_text_file.line20.comment so they are really called by the buildbots
 
-        # result 1: no fancy options
+        # 041259.python.test_text_file.line22.comment result 1: no fancy options
         result1 = [
             '# test file\n',
             '\n',
@@ -28,10 +28,10 @@ class TestTextFile(support.TempdirManager):
             '  continues on next line\n',
         ]
 
-        # result 2: just strip comments
+        # 041260.python.test_text_file.line31.comment result 2: just strip comments
         result2 = ["\n", "line 3 \\\n", "  continues on next line\n"]
 
-        # result 3: just strip blank lines
+        # 041261.python.test_text_file.line34.comment result 3: just strip blank lines
         result3 = [
             "# test file\n",
             "line 3 \\\n",
@@ -39,16 +39,16 @@ class TestTextFile(support.TempdirManager):
             "  continues on next line\n",
         ]
 
-        # result 4: default, strip comments, blank lines,
-        # and trailing whitespace
+        # 041262.python.test_text_file.line42.comment result 4: default, strip comments, blank lines,
+        # 041263.python.test_text_file.line43.comment and trailing whitespace
         result4 = ["line 3 \\", "  continues on next line"]
 
-        # result 5: strip comments and blanks, plus join lines (but don't
-        # "collapse" joined lines
+        # 041264.python.test_text_file.line46.comment result 5: strip comments and blanks, plus join lines (but don't
+        # 041265.python.test_text_file.line47.comment "collapse" joined lines
         result5 = ["line 3   continues on next line"]
 
-        # result 6: strip comments and blanks, plus join lines (and
-        # "collapse" joined lines
+        # 041266.python.test_text_file.line50.comment result 6: strip comments and blanks, plus join lines (and
+        # 041267.python.test_text_file.line51.comment "collapse" joined lines
         result6 = ["line 3 continues on next line"]
 
         def test_input(count, description, file, expected_result):

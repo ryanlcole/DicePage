@@ -1,12 +1,12 @@
-# A Demo of Pythonwin's Dialog and Property Page support.
+# 036675.python.dlgtest.line1.comment A Demo of Pythonwin's Dialog and Property Page support.
 
-###################
-#
-# First demo - use the built-in to Pythonwin "Tab Stop" dialog, but
-# customise it heavily.
-#
-# ID's for the tabstop dialog - out test.
-#
+# 036676.python.dlgtest.line3.comment ##################
+# 036677.python.dlgtest.line4.comment
+# 036678.python.dlgtest.line5.comment First demo - use the built-in to Pythonwin "Tab Stop" dialog, but
+# 036679.python.dlgtest.line6.comment customise it heavily.
+# 036680.python.dlgtest.line7.comment
+# 036681.python.dlgtest.line8.comment ID's for the tabstop dialog - out test.
+# 036682.python.dlgtest.line9.comment
 import win32con
 import win32ui
 from pywin.mfc import dialog
@@ -24,22 +24,22 @@ class TestDialog(dialog.Dialog):
             self.CreateWindow()
 
     def OnInitDialog(self):
-        # Set the caption of the dialog itself.
+        # 036683.python.dlgtest.line27.comment Set the caption of the dialog itself.
         self.SetWindowText("Used to be Tab Stops!")
-        # Get a child control, remember it, and change its text.
+        # 036684.python.dlgtest.line29.comment Get a child control, remember it, and change its text.
         self.edit = self.GetDlgItem(IDC_EDIT_TABS)  # the text box.
         self.edit.SetWindowText("Test")
-        # Hook a Windows message for the dialog.
+        # 036686.python.dlgtest.line32.comment Hook a Windows message for the dialog.
         self.edit.HookMessage(self.KillFocus, win32con.WM_KILLFOCUS)
-        # Get the prompt control, and change its next.
+        # 036687.python.dlgtest.line34.comment Get the prompt control, and change its next.
         prompt = self.GetDlgItem(IDC_PROMPT_TABS)  # the prompt box.
         prompt.SetWindowText("Prompt")
-        # And the same for the button..
+        # 036689.python.dlgtest.line37.comment And the same for the button..
         cancel = self.GetDlgItem(IDCANCEL)  # the cancel button
         cancel.SetWindowText("&Kill me")
 
-        # And just for demonstration purposes, we hook the notify message for the dialog.
-        # This allows us to be notified when the Edit Control text changes.
+        # 036691.python.dlgtest.line41.comment And just for demonstration purposes, we hook the notify message for the dialog.
+        # 036692.python.dlgtest.line42.comment This allows us to be notified when the Edit Control text changes.
         self.HookCommand(self.OnNotify, IDC_EDIT_TABS)
 
     def OnNotify(self, controlid, code):
@@ -47,21 +47,21 @@ class TestDialog(dialog.Dialog):
             print("Edit text changed!")
         return 1  # I handled this, so no need to call defaults!
 
-    # kill focus for the edit box.
-    # Simply increment the value in the text box.
+    # 036694.python.dlgtest.line50.comment kill focus for the edit box.
+    # 036695.python.dlgtest.line51.comment Simply increment the value in the text box.
     def KillFocus(self, msg):
         self.counter += 1
         if self.edit is not None:
             self.edit.SetWindowText(str(self.counter))
 
-    # Called when the dialog box is terminating...
+    # 036696.python.dlgtest.line57.comment Called when the dialog box is terminating...
     def OnDestroy(self, msg):
         del self.edit
         del self.counter
 
 
-# A very simply Property Sheet.
-# We only make a new class for demonstration purposes.
+# 036697.python.dlgtest.line63.comment A very simply Property Sheet.
+# 036698.python.dlgtest.line64.comment We only make a new class for demonstration purposes.
 class TestSheet(dialog.PropertySheet):
     def __init__(self, title):
         dialog.PropertySheet.__init__(self, title)
@@ -71,29 +71,29 @@ class TestSheet(dialog.PropertySheet):
         pass
 
 
-# A very simply Property Page, which will be "owned" by the above
-# Property Sheet.
-# We create a new class, just so we can hook a control notification.
+# 036699.python.dlgtest.line74.comment A very simply Property Page, which will be "owned" by the above
+# 036700.python.dlgtest.line75.comment Property Sheet.
+# 036701.python.dlgtest.line76.comment We create a new class, just so we can hook a control notification.
 class TestPage(dialog.PropertyPage):
     def OnInitDialog(self):
-        # We use the HookNotify function to allow Python to respond to
-        # Windows WM_NOTIFY messages.
-        # In this case, we are interested in BN_CLICKED messages.
+        # 036702.python.dlgtest.line79.comment We use the HookNotify function to allow Python to respond to
+        # 036703.python.dlgtest.line80.comment Windows WM_NOTIFY messages.
+        # 036704.python.dlgtest.line81.comment In this case, we are interested in BN_CLICKED messages.
         self.HookNotify(self.OnNotify, win32con.BN_CLICKED)
 
     def OnNotify(self, std, extra):
         print("OnNotify", std, extra)
 
 
-# Some code that actually uses these objects.
+# 036705.python.dlgtest.line88.comment Some code that actually uses these objects.
 def demo(modal=0):
     TestDialog(modal)
 
-    # property sheet/page demo
+    # 036706.python.dlgtest.line92.comment property sheet/page demo
     ps = win32ui.CreatePropertySheet("Property Sheet/Page Demo")
-    # Create a completely standard PropertyPage.
+    # 036707.python.dlgtest.line94.comment Create a completely standard PropertyPage.
     page1 = win32ui.CreatePropertyPage(win32ui.IDD_PROPDEMO1)
-    # Create our custom property page.
+    # 036708.python.dlgtest.line96.comment Create our custom property page.
     page2 = TestPage(win32ui.IDD_PROPDEMO2)
     ps.AddPage(page1)
     ps.AddPage(page2)
@@ -112,12 +112,12 @@ def demo(modal=0):
 
 
 def test(modal=1):
-    # 	dlg=dialog.Dialog(1010)
-    # 	dlg.CreateWindow()
-    # 	dlg.EndDialog(0)
-    # 	del dlg
-    # 	return
-    # property sheet/page demo
+    # 036709.python.dlgtest.line115.comment dlg=dialog.Dialog(1010)
+    # 036710.python.dlgtest.line116.comment dlg.CreateWindow()
+    # 036711.python.dlgtest.line117.comment dlg.EndDialog(0)
+    # 036712.python.dlgtest.line118.comment del dlg
+    # 036713.python.dlgtest.line119.comment return
+    # 036714.python.dlgtest.line120.comment property sheet/page demo
     ps = TestSheet("Property Sheet/Page Demo")
     page1 = win32ui.CreatePropertyPage(win32ui.IDD_PROPDEMO1)
     page2 = win32ui.CreatePropertyPage(win32ui.IDD_PROPDEMO2)

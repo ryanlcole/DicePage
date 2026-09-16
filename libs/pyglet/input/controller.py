@@ -31,7 +31,7 @@ from .controller_db import mapping_list
 
 
 if _env_config := _os.environ.get('SDL_GAMECONTROLLERCONFIG'):
-    # insert at the front of the list
+    # 030487.python.controller.line34.comment insert at the front of the list
     mapping_list.insert(0, _env_config)
 
 
@@ -43,7 +43,7 @@ def _swap_le16(value: int) -> int:
 
 
 def create_guid(bus: int, vendor: int, product: int, version: int, name: str, signature: int, data: int) -> str:
-    # byte size      16           16            16            16         str             8          8
+    # 030488.python.controller.line46.comment byte size      16           16            16            16         str             8          8
     """Create an SDL2 style GUID string from a device's identifiers."""
     bus = _swap_le16(bus)
     vendor = _swap_le16(vendor)
@@ -84,7 +84,7 @@ def _parse_mapping(mapping_string: str) -> dict[str, str | Relation] | None:
         return None
 
     for item in split_mapping:
-        # looking for items like: a:b0, b:b1, etc.
+        # 030489.python.controller.line87.comment looking for items like: a:b0, b:b1, etc.
         if ':' not in item:
             continue
 
@@ -93,7 +93,7 @@ def _parse_mapping(mapping_string: str) -> dict[str, str | Relation] | None:
         if key not in valid_keys:
             continue
 
-        # Look for specific flags to signify axis sign:
+        # 030490.python.controller.line96.comment Look for specific flags to signify axis sign:
         if "+" in relation_string:
             relation_string = relation_string.strip('+')
             sign = Sign.POSITIVE
@@ -106,7 +106,7 @@ def _parse_mapping(mapping_string: str) -> dict[str, str | Relation] | None:
         else:
             sign = Sign.DEFAULT
 
-        # All relations will be one of (Button, Axis, or Hat).
+        # 030491.python.controller.line109.comment All relations will be one of (Button, Axis, or Hat).
         if relation_string.startswith("b"):  # Button
             relations[key] = Relation("button", int(relation_string[1:]), sign)
         elif relation_string.startswith("a"):  # Axis

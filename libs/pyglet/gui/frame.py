@@ -85,7 +85,7 @@ class Frame:
             for j in range(min_vec[1], max_vec[1] + 1):
                 self._cells.get((i, j)).remove(widget)
 
-    # Handlers
+    # 030236.python.frame.line88.comment Handlers
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         """Pass the event to any widgets within range of the mouse."""

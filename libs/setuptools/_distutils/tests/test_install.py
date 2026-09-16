@@ -32,14 +32,14 @@ class TestInstall(
         reason="pypa/distutils#148",
     )
     def test_home_installation_scheme(self):
-        # This ensure two things:
-        # - that --home generates the desired set of directory names
-        # - test --home is supported on all platforms
+        # 041108.python.test_install.line35.comment This ensure two things:
+        # 041109.python.test_install.line36.comment - that --home generates the desired set of directory names
+        # 041110.python.test_install.line37.comment - test --home is supported on all platforms
         builddir = self.mkdtemp()
         destination = os.path.join(builddir, "installation")
 
         dist = Distribution({"name": "foopkg"})
-        # script_name need not exist, it just need to be initialized
+        # 041111.python.test_install.line42.comment script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(builddir, "setup.py")
         dist.command_obj["build"] = support.DummyCommand(
             build_base=builddir,
@@ -73,8 +73,8 @@ class TestInstall(
         check_path(cmd.install_data, destination)
 
     def test_user_site(self, monkeypatch):
-        # test install with --user
-        # preparing the environment for the test
+        # 041112.python.test_install.line76.comment test install with --user
+        # 041113.python.test_install.line77.comment preparing the environment for the test
         self.tmpdir = self.mkdtemp()
         orig_site = site.USER_SITE
         orig_base = site.USER_BASE
@@ -96,21 +96,21 @@ class TestInstall(
         dist = Distribution({'name': 'xx'})
         cmd = install(dist)
 
-        # making sure the user option is there
+        # 041114.python.test_install.line99.comment making sure the user option is there
         options = [name for name, short, label in cmd.user_options]
         assert 'user' in options
 
-        # setting a value
+        # 041115.python.test_install.line103.comment setting a value
         cmd.user = True
 
-        # user base and site shouldn't be created yet
+        # 041116.python.test_install.line106.comment user base and site shouldn't be created yet
         assert not os.path.exists(site.USER_BASE)
         assert not os.path.exists(site.USER_SITE)
 
-        # let's run finalize
+        # 041117.python.test_install.line110.comment let's run finalize
         cmd.ensure_finalized()
 
-        # now they should
+        # 041118.python.test_install.line113.comment now they should
         assert os.path.exists(site.USER_BASE)
         assert os.path.exists(site.USER_SITE)
 
@@ -131,27 +131,27 @@ class TestInstall(
         dist = Distribution({'name': 'xx', 'extra_path': 'path,dirs'})
         cmd = install(dist)
 
-        # two elements
+        # 041119.python.test_install.line134.comment two elements
         cmd.handle_extra_path()
         assert cmd.extra_path == ['path', 'dirs']
         assert cmd.extra_dirs == 'dirs'
         assert cmd.path_file == 'path'
 
-        # one element
+        # 041120.python.test_install.line140.comment one element
         cmd.extra_path = ['path']
         cmd.handle_extra_path()
         assert cmd.extra_path == ['path']
         assert cmd.extra_dirs == 'path'
         assert cmd.path_file == 'path'
 
-        # none
+        # 041121.python.test_install.line147.comment none
         dist.extra_path = cmd.extra_path = None
         cmd.handle_extra_path()
         assert cmd.extra_path is None
         assert cmd.extra_dirs == ''
         assert cmd.path_file is None
 
-        # three elements (no way !)
+        # 041122.python.test_install.line154.comment three elements (no way !)
         cmd.extra_path = 'path,dirs,again'
         with pytest.raises(DistutilsOptionError):
             cmd.handle_extra_path()
@@ -160,21 +160,21 @@ class TestInstall(
         dist = Distribution({'name': 'xx'})
         cmd = install(dist)
 
-        # must supply either prefix/exec-prefix/home or
-        # install-base/install-platbase -- not both
+        # 041123.python.test_install.line163.comment must supply either prefix/exec-prefix/home or
+        # 041124.python.test_install.line164.comment install-base/install-platbase -- not both
         cmd.prefix = 'prefix'
         cmd.install_base = 'base'
         with pytest.raises(DistutilsOptionError):
             cmd.finalize_options()
 
-        # must supply either home or prefix/exec-prefix -- not both
+        # 041125.python.test_install.line170.comment must supply either home or prefix/exec-prefix -- not both
         cmd.install_base = None
         cmd.home = 'home'
         with pytest.raises(DistutilsOptionError):
             cmd.finalize_options()
 
-        # can't combine user with prefix/exec_prefix/home or
-        # install_(plat)base
+        # 041126.python.test_install.line176.comment can't combine user with prefix/exec_prefix/home or
+        # 041127.python.test_install.line177.comment install_(plat)base
         cmd.prefix = None
         cmd.user = 'user'
         with pytest.raises(DistutilsOptionError):
@@ -238,7 +238,7 @@ class TestInstall(
         assert found == expected
 
     def test_debug_mode(self, caplog, monkeypatch):
-        # this covers the code called when DEBUG is set
+        # 041128.python.test_install.line241.comment this covers the code called when DEBUG is set
         monkeypatch.setattr(install_module, 'DEBUG', True)
         caplog.set_level(logging.DEBUG)
         self.test_record()

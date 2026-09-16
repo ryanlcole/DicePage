@@ -1,7 +1,7 @@
-# TestExchange = Exchange Server Dump
-# Note that this code uses "CDO", which is unlikely to get the best choice.
-# You should use the Outlook object model, or
-# the win32com.mapi examples for a low-level interface.
+# 050011.python.testExchange.line1.comment TestExchange = Exchange Server Dump
+# 050012.python.testExchange.line2.comment Note that this code uses "CDO", which is unlikely to get the best choice.
+# 050013.python.testExchange.line3.comment You should use the Outlook object model, or
+# 050014.python.testExchange.line4.comment the win32com.mapi examples for a low-level interface.
 
 import os
 
@@ -28,9 +28,9 @@ def GetDefaultProfileName():
         return None
 
 
-#
-# Recursive dump of folders.
-#
+# 050016.python.testExchange.line31.comment
+# 050017.python.testExchange.line32.comment Recursive dump of folders.
+# 050018.python.testExchange.line33.comment
 def DumpFolder(folder, indent=0):
     print(" " * indent, folder.Name)
     folders = folder.Folders
@@ -44,7 +44,7 @@ def DumpFolders(session):
     try:
         infostores = session.InfoStores
     except AttributeError:
-        # later outlook?
+        # 050019.python.testExchange.line47.comment later outlook?
         store = session.DefaultStore
         folder = store.GetRootFolder()
         DumpFolder(folder)
@@ -59,15 +59,15 @@ def DumpFolders(session):
             folder = infostore.RootFolder
         except pythoncom.com_error as details:
             hr, msg, exc, arg = details
-            # -2147221219 == MAPI_E_FAILONEPROVIDER - a single provider temporarily not available.
+            # 050020.python.testExchange.line62.comment -2147221219 == MAPI_E_FAILONEPROVIDER - a single provider temporarily not available.
             if exc and exc[-1] == -2147221219:
                 print("This info store is currently not available")
                 continue
         DumpFolder(folder)
 
 
-# Build a dictionary of property tags, so I can reverse look-up
-#
+# 050021.python.testExchange.line69.comment Build a dictionary of property tags, so I can reverse look-up
+# 050022.python.testExchange.line70.comment
 PropTagsById = {}
 if ammodule:
     for name, val in ammodule.constants.__dict__.items():
@@ -75,8 +75,8 @@ if ammodule:
 
 
 def TestAddress(session):
-    # entry = session.GetAddressEntry("Skip")
-    # print(entry)
+    # 050023.python.testExchange.line78.comment entry = session.GetAddressEntry("Skip")
+    # 050024.python.testExchange.line79.comment print(entry)
     pass
 
 
@@ -100,7 +100,7 @@ def test():
             print("Could not log on to MAPI:", details)
             return
     except pythoncom.error:
-        # no mapi.session - let's try outlook
+        # 050025.python.testExchange.line103.comment no mapi.session - let's try outlook
         app = gencache.EnsureDispatch("Outlook.Application")
         session = app.Session
 
@@ -110,7 +110,7 @@ def test():
         DumpFolders(session)
     finally:
         session.Logoff()
-        # It appears Exchange will change the cwd on us :(
+        # 050026.python.testExchange.line113.comment It appears Exchange will change the cwd on us :(
         os.chdir(oldcwd)
 
 

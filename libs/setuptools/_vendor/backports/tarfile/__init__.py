@@ -1,30 +1,30 @@
-#-------------------------------------------------------------------
-# tarfile.py
-#-------------------------------------------------------------------
-# Copyright (C) 2002 Lars Gustaebel <lars@gustaebel.de>
-# All rights reserved.
-#
-# Permission  is  hereby granted,  free  of charge,  to  any person
-# obtaining a  copy of  this software  and associated documentation
-# files  (the  "Software"),  to   deal  in  the  Software   without
-# restriction,  including  without limitation  the  rights to  use,
-# copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies  of  the  Software,  and to  permit  persons  to  whom the
-# Software  is  furnished  to  do  so,  subject  to  the  following
-# conditions:
-#
-# The above copyright  notice and this  permission notice shall  be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS  IS", WITHOUT WARRANTY OF ANY  KIND,
-# EXPRESS OR IMPLIED, INCLUDING  BUT NOT LIMITED TO  THE WARRANTIES
-# OF  MERCHANTABILITY,  FITNESS   FOR  A  PARTICULAR   PURPOSE  AND
-# NONINFRINGEMENT.  IN  NO  EVENT SHALL  THE  AUTHORS  OR COPYRIGHT
-# HOLDERS  BE LIABLE  FOR ANY  CLAIM, DAMAGES  OR OTHER  LIABILITY,
-# WHETHER  IN AN  ACTION OF  CONTRACT, TORT  OR OTHERWISE,  ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-# OTHER DEALINGS IN THE SOFTWARE.
-#
+# 041717.python.init.line1.comment -------------------------------------------------------------------
+# 041718.python.init.line2.comment tarfile.py
+# 041719.python.init.line3.comment -------------------------------------------------------------------
+# 041720.python.init.line4.comment Copyright (C) 2002 Lars Gustaebel <lars@gustaebel.de>
+# 041721.python.init.line5.comment All rights reserved.
+# 041722.python.init.line6.comment
+# 041723.python.init.line7.comment Permission  is  hereby granted,  free  of charge,  to  any person
+# 041724.python.init.line8.comment obtaining a  copy of  this software  and associated documentation
+# 041725.python.init.line9.comment files  (the  "Software"),  to   deal  in  the  Software   without
+# 041726.python.init.line10.comment restriction,  including  without limitation  the  rights to  use,
+# 041727.python.init.line11.comment copy, modify, merge, publish, distribute, sublicense, and/or sell
+# 041728.python.init.line12.comment copies  of  the  Software,  and to  permit  persons  to  whom the
+# 041729.python.init.line13.comment Software  is  furnished  to  do  so,  subject  to  the  following
+# 041730.python.init.line14.comment conditions:
+# 041731.python.init.line15.comment
+# 041732.python.init.line16.comment The above copyright  notice and this  permission notice shall  be
+# 041733.python.init.line17.comment included in all copies or substantial portions of the Software.
+# 041734.python.init.line18.comment
+# 041735.python.init.line19.comment THE SOFTWARE IS PROVIDED "AS  IS", WITHOUT WARRANTY OF ANY  KIND,
+# 041736.python.init.line20.comment EXPRESS OR IMPLIED, INCLUDING  BUT NOT LIMITED TO  THE WARRANTIES
+# 041737.python.init.line21.comment OF  MERCHANTABILITY,  FITNESS   FOR  A  PARTICULAR   PURPOSE  AND
+# 041738.python.init.line22.comment NONINFRINGEMENT.  IN  NO  EVENT SHALL  THE  AUTHORS  OR COPYRIGHT
+# 041739.python.init.line23.comment HOLDERS  BE LIABLE  FOR ANY  CLAIM, DAMAGES  OR OTHER  LIABILITY,
+# 041740.python.init.line24.comment WHETHER  IN AN  ACTION OF  CONTRACT, TORT  OR OTHERWISE,  ARISING
+# 041741.python.init.line25.comment FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# 041742.python.init.line26.comment OTHER DEALINGS IN THE SOFTWARE.
+# 041743.python.init.line27.comment
 """Read from and write to tar format archives.
 """
 
@@ -32,9 +32,9 @@ version     = "0.9.0"
 __author__  = "Lars Gust\u00e4bel (lars@gustaebel.de)"
 __credits__ = "Gustavo Niemeyer, Niels Gust\u00e4bel, Richard Townsend."
 
-#---------
-# Imports
-#---------
+# 041744.python.init.line35.comment ---------
+# 041745.python.init.line36.comment Imports
+# 041746.python.init.line37.comment ---------
 from builtins import open as bltn_open
 import sys
 import os
@@ -57,12 +57,12 @@ try:
 except ImportError:
     grp = None
 
-# os.symlink on Windows prior to 6.0 raises NotImplementedError
-# OSError (winerror=1314) will be raised if the caller does not hold the
-# SeCreateSymbolicLinkPrivilege privilege
+# 041747.python.init.line60.comment os.symlink on Windows prior to 6.0 raises NotImplementedError
+# 041748.python.init.line61.comment OSError (winerror=1314) will be raised if the caller does not hold the
+# 041749.python.init.line62.comment SeCreateSymbolicLinkPrivilege privilege
 symlink_exception = (AttributeError, NotImplementedError, OSError)
 
-# from tarfile import *
+# 041750.python.init.line65.comment from tarfile import *
 __all__ = ["TarFile", "TarInfo", "is_tarfile", "TarError", "ReadError",
            "CompressionError", "StreamError", "ExtractError", "HeaderError",
            "ENCODING", "USTAR_FORMAT", "GNU_FORMAT", "PAX_FORMAT",
@@ -72,9 +72,9 @@ __all__ = ["TarFile", "TarInfo", "is_tarfile", "TarError", "ReadError",
            "LinkOutsideDestinationError"]
 
 
-#---------------------------------------------------------
-# tar constants
-#---------------------------------------------------------
+# 041751.python.init.line75.comment ---------------------------------------------------------
+# 041752.python.init.line76.comment tar constants
+# 041753.python.init.line77.comment ---------------------------------------------------------
 NUL = b"\0"                     # the null character
 BLOCKSIZE = 512                 # length of processing blocks
 RECORDSIZE = BLOCKSIZE * 20     # length of records
@@ -108,33 +108,33 @@ GNU_FORMAT = 1                  # GNU tar format
 PAX_FORMAT = 2                  # POSIX.1-2001 (pax) format
 DEFAULT_FORMAT = PAX_FORMAT
 
-#---------------------------------------------------------
-# tarfile constants
-#---------------------------------------------------------
-# File types that tarfile supports:
+# 041780.python.init.line111.comment ---------------------------------------------------------
+# 041781.python.init.line112.comment tarfile constants
+# 041782.python.init.line113.comment ---------------------------------------------------------
+# 041783.python.init.line114.comment File types that tarfile supports:
 SUPPORTED_TYPES = (REGTYPE, AREGTYPE, LNKTYPE,
                    SYMTYPE, DIRTYPE, FIFOTYPE,
                    CONTTYPE, CHRTYPE, BLKTYPE,
                    GNUTYPE_LONGNAME, GNUTYPE_LONGLINK,
                    GNUTYPE_SPARSE)
 
-# File types that will be treated as a regular file.
+# 041784.python.init.line121.comment File types that will be treated as a regular file.
 REGULAR_TYPES = (REGTYPE, AREGTYPE,
                  CONTTYPE, GNUTYPE_SPARSE)
 
-# File types that are part of the GNU tar format.
+# 041785.python.init.line125.comment File types that are part of the GNU tar format.
 GNU_TYPES = (GNUTYPE_LONGNAME, GNUTYPE_LONGLINK,
              GNUTYPE_SPARSE)
 
-# Fields from a pax header that override a TarInfo attribute.
+# 041786.python.init.line129.comment Fields from a pax header that override a TarInfo attribute.
 PAX_FIELDS = ("path", "linkpath", "size", "mtime",
               "uid", "gid", "uname", "gname")
 
-# Fields from a pax header that are affected by hdrcharset.
+# 041787.python.init.line133.comment Fields from a pax header that are affected by hdrcharset.
 PAX_NAME_FIELDS = {"path", "linkpath", "uname", "gname"}
 
-# Fields in a pax header that are numbers, all other fields
-# are treated as strings.
+# 041788.python.init.line136.comment Fields in a pax header that are numbers, all other fields
+# 041789.python.init.line137.comment are treated as strings.
 PAX_NUMBER_FIELDS = {
     "atime": float,
     "ctime": float,
@@ -144,17 +144,17 @@ PAX_NUMBER_FIELDS = {
     "size": int
 }
 
-#---------------------------------------------------------
-# initialization
-#---------------------------------------------------------
+# 041790.python.init.line147.comment ---------------------------------------------------------
+# 041791.python.init.line148.comment initialization
+# 041792.python.init.line149.comment ---------------------------------------------------------
 if os.name == "nt":
     ENCODING = "utf-8"
 else:
     ENCODING = sys.getfilesystemencoding()
 
-#---------------------------------------------------------
-# Some useful functions
-#---------------------------------------------------------
+# 041793.python.init.line155.comment ---------------------------------------------------------
+# 041794.python.init.line156.comment Some useful functions
+# 041795.python.init.line157.comment ---------------------------------------------------------
 
 def stn(s, length, encoding, errors):
     """Convert a string to a null-terminated bytes object.
@@ -175,8 +175,8 @@ def nts(s, encoding, errors):
 def nti(s):
     """Convert a number field to a python number.
     """
-    # There are two possible encodings for a number field, see
-    # itn() below.
+    # 041796.python.init.line178.comment There are two possible encodings for a number field, see
+    # 041797.python.init.line179.comment itn() below.
     if s[0] in (0o200, 0o377):
         n = 0
         for i in range(len(s) - 1):
@@ -195,14 +195,14 @@ def nti(s):
 def itn(n, digits=8, format=DEFAULT_FORMAT):
     """Convert a python number to a number field.
     """
-    # POSIX 1003.1-1988 requires numbers to be encoded as a string of
-    # octal digits followed by a null-byte, this allows values up to
-    # (8**(digits-1))-1. GNU tar allows storing numbers greater than
-    # that if necessary. A leading 0o200 or 0o377 byte indicate this
-    # particular encoding, the following digits-1 bytes are a big-endian
-    # base-256 representation. This allows values up to (256**(digits-1))-1.
-    # A 0o200 byte indicates a positive number, a 0o377 byte a negative
-    # number.
+    # 041798.python.init.line198.comment POSIX 1003.1-1988 requires numbers to be encoded as a string of
+    # 041799.python.init.line199.comment octal digits followed by a null-byte, this allows values up to
+    # 041800.python.init.line200.comment (8**(digits-1))-1. GNU tar allows storing numbers greater than
+    # 041801.python.init.line201.comment that if necessary. A leading 0o200 or 0o377 byte indicate this
+    # 041802.python.init.line202.comment particular encoding, the following digits-1 bytes are a big-endian
+    # 041803.python.init.line203.comment base-256 representation. This allows values up to (256**(digits-1))-1.
+    # 041804.python.init.line204.comment A 0o200 byte indicates a positive number, a 0o377 byte a negative
+    # 041805.python.init.line205.comment number.
     original_n = n
     n = int(n)
     if 0 <= n < 8 ** (digits - 1):
@@ -301,9 +301,9 @@ class SubsequentHeaderError(HeaderError):
     """Exception for missing and invalid extended headers."""
     pass
 
-#---------------------------
-# internal stream interface
-#---------------------------
+# 041806.python.init.line304.comment ---------------------------
+# 041807.python.init.line305.comment internal stream interface
+# 041808.python.init.line306.comment ---------------------------
 class _LowLevelFile:
     """Low-level file object. Supports reading and writing.
        It is used instead of a regular file object for streaming
@@ -350,8 +350,8 @@ class _Stream:
             self._extfileobj = False
 
         if comptype == '*':
-            # Enable transparent compression detection for the
-            # stream interface
+            # 041809.python.init.line353.comment Enable transparent compression detection for the
+            # 041810.python.init.line354.comment stream interface
             fileobj = _StreamProxy(fileobj)
             comptype = fileobj.getcomptype()
 
@@ -427,9 +427,9 @@ class _Stream:
         self.__write(b"\037\213\010\010" + timestamp + b"\002\377")
         if self.name.endswith(".gz"):
             self.name = self.name[:-3]
-        # Honor "directory components removed" from RFC1952
+        # 041811.python.init.line430.comment Honor "directory components removed" from RFC1952
         self.name = os.path.basename(self.name)
-        # RFC1952 says we must use ISO-8859-1 for the FNAME field.
+        # 041812.python.init.line432.comment RFC1952 says we must use ISO-8859-1 for the FNAME field.
         self.__write(self.name.encode("iso-8859-1", "replace") + NUL)
 
     def write(self, s):
@@ -479,7 +479,7 @@ class _Stream:
         self.cmp = self.zlib.decompressobj(-self.zlib.MAX_WBITS)
         self.dbuf = b""
 
-        # taken from gzip.GzipFile with some alterations
+        # 041813.python.init.line482.comment taken from gzip.GzipFile with some alterations
         if self.__read(2) != b"\037\213":
             raise ReadError("not a gzip file")
         if self.__read(1) != b"\010":
@@ -538,7 +538,7 @@ class _Stream:
         c = len(self.dbuf)
         t = [self.dbuf]
         while c < size:
-            # Skip underlying buffer to avoid unaligned double buffering.
+            # 041814.python.init.line541.comment Skip underlying buffer to avoid unaligned double buffering.
             if self.buf:
                 buf = self.buf
                 self.buf = b""
@@ -571,7 +571,7 @@ class _Stream:
         t = b"".join(t)
         self.buf = t[size:]
         return t[:size]
-# class _Stream
+# 041815.python.init.line574.comment class _Stream
 
 class _StreamProxy(object):
     """Small proxy class that enables transparent compression
@@ -598,11 +598,11 @@ class _StreamProxy(object):
 
     def close(self):
         self.fileobj.close()
-# class StreamProxy
+# 041816.python.init.line601.comment class StreamProxy
 
-#------------------------
-# Extraction file object
-#------------------------
+# 041817.python.init.line603.comment ------------------------
+# 041818.python.init.line604.comment Extraction file object
+# 041819.python.init.line605.comment ------------------------
 class _FileInFile(object):
     """A thin wrapper around an existing file object that
        provides a part of its data as an individual file
@@ -620,7 +620,7 @@ class _FileInFile(object):
         if blockinfo is None:
             blockinfo = [(0, size)]
 
-        # Construct a map with data and zero blocks.
+        # 041820.python.init.line623.comment Construct a map with data and zero blocks.
         self.map_index = 0
         self.map = []
         lastpos = 0
@@ -709,7 +709,7 @@ class _FileInFile(object):
 
     def close(self):
         self.closed = True
-#class _FileInFile
+# 041821.python.init.line712.comment class _FileInFile
 
 class ExFileObject(io.BufferedReader):
 
@@ -717,12 +717,12 @@ class ExFileObject(io.BufferedReader):
         fileobj = _FileInFile(tarfile.fileobj, tarinfo.offset_data,
                 tarinfo.size, tarinfo.name, tarinfo.sparse)
         super().__init__(fileobj)
-#class ExFileObject
+# 041822.python.init.line720.comment class ExFileObject
 
 
-#-----------------------------
-# extraction filters (PEP 706)
-#-----------------------------
+# 041823.python.init.line723.comment -----------------------------
+# 041824.python.init.line724.comment extraction filters (PEP 706)
+# 041825.python.init.line725.comment -----------------------------
 
 class FilterError(TarError):
     pass
@@ -760,41 +760,41 @@ def _get_filtered_attrs(member, dest_path, for_data=True):
     new_attrs = {}
     name = member.name
     dest_path = os.path.realpath(dest_path)
-    # Strip leading / (tar's directory separator) from filenames.
-    # Include os.sep (target OS directory separator) as well.
+    # 041826.python.init.line763.comment Strip leading / (tar's directory separator) from filenames.
+    # 041827.python.init.line764.comment Include os.sep (target OS directory separator) as well.
     if name.startswith(('/', os.sep)):
         name = new_attrs['name'] = member.path.lstrip('/' + os.sep)
     if os.path.isabs(name):
-        # Path is absolute even after stripping.
-        # For example, 'C:/foo' on Windows.
+        # 041828.python.init.line768.comment Path is absolute even after stripping.
+        # 041829.python.init.line769.comment For example, 'C:/foo' on Windows.
         raise AbsolutePathError(member)
-    # Ensure we stay in the destination
+    # 041830.python.init.line771.comment Ensure we stay in the destination
     target_path = os.path.realpath(os.path.join(dest_path, name))
     if os.path.commonpath([target_path, dest_path]) != dest_path:
         raise OutsideDestinationError(member, target_path)
-    # Limit permissions (no high bits, and go-w)
+    # 041831.python.init.line775.comment Limit permissions (no high bits, and go-w)
     mode = member.mode
     if mode is not None:
-        # Strip high bits & group/other write bits
+        # 041832.python.init.line778.comment Strip high bits & group/other write bits
         mode = mode & 0o755
         if for_data:
-            # For data, handle permissions & file types
+            # 041833.python.init.line781.comment For data, handle permissions & file types
             if member.isreg() or member.islnk():
                 if not mode & 0o100:
-                    # Clear executable bits if not executable by user
+                    # 041834.python.init.line784.comment Clear executable bits if not executable by user
                     mode &= ~0o111
-                # Ensure owner can read & write
+                # 041835.python.init.line786.comment Ensure owner can read & write
                 mode |= 0o600
             elif member.isdir() or member.issym():
-                # Ignore mode for directories & symlinks
+                # 041836.python.init.line789.comment Ignore mode for directories & symlinks
                 mode = None
             else:
-                # Reject special files
+                # 041837.python.init.line792.comment Reject special files
                 raise SpecialFileError(member)
         if mode != member.mode:
             new_attrs['mode'] = mode
     if for_data:
-        # Ignore ownership for 'data'
+        # 041838.python.init.line797.comment Ignore ownership for 'data'
         if member.uid is not None:
             new_attrs['uid'] = None
         if member.gid is not None:
@@ -803,7 +803,7 @@ def _get_filtered_attrs(member, dest_path, for_data=True):
             new_attrs['uname'] = None
         if member.gname is not None:
             new_attrs['gname'] = None
-        # Check link destination for 'data'
+        # 041839.python.init.line806.comment Check link destination for 'data'
         if member.islnk() or member.issym():
             if os.path.isabs(member.linkname):
                 raise AbsoluteLinkError(member)
@@ -840,11 +840,11 @@ _NAMED_FILTERS = {
     "data": data_filter,
 }
 
-#------------------
-# Exported Classes
-#------------------
+# 041840.python.init.line843.comment ------------------
+# 041841.python.init.line844.comment Exported Classes
+# 041842.python.init.line845.comment ------------------
 
-# Sentinel for replace() defaults, meaning "don't change the attribute"
+# 041843.python.init.line847.comment Sentinel for replace() defaults, meaning "don't change the attribute"
 _KEEP = object()
 
 class TarInfo(object):
@@ -1053,17 +1053,17 @@ class TarInfo(object):
         info["magic"] = POSIX_MAGIC
         pax_headers = self.pax_headers.copy()
 
-        # Test string fields for values that exceed the field length or cannot
-        # be represented in ASCII encoding.
+        # 041861.python.init.line1056.comment Test string fields for values that exceed the field length or cannot
+        # 041862.python.init.line1057.comment be represented in ASCII encoding.
         for name, hname, length in (
                 ("name", "path", LENGTH_NAME), ("linkname", "linkpath", LENGTH_LINK),
                 ("uname", "uname", 32), ("gname", "gname", 32)):
 
             if hname in pax_headers:
-                # The pax header has priority.
+                # 041863.python.init.line1063.comment The pax header has priority.
                 continue
 
-            # Try to encode the string as ASCII.
+            # 041864.python.init.line1066.comment Try to encode the string as ASCII.
             try:
                 info[name].encode("ascii", "strict")
             except UnicodeEncodeError:
@@ -1073,8 +1073,8 @@ class TarInfo(object):
             if len(info[name]) > length:
                 pax_headers[hname] = info[name]
 
-        # Test number fields for values that exceed the field limit or values
-        # that like to be stored as float.
+        # 041865.python.init.line1076.comment Test number fields for values that exceed the field limit or values
+        # 041866.python.init.line1077.comment that like to be stored as float.
         for name, digits in (("uid", 8), ("gid", 8), ("size", 12), ("mtime", 12)):
             needs_pax = False
 
@@ -1082,20 +1082,20 @@ class TarInfo(object):
             val_is_float = isinstance(val, float)
             val_int = round(val) if val_is_float else val
             if not 0 <= val_int < 8 ** (digits - 1):
-                # Avoid overflow.
+                # 041867.python.init.line1085.comment Avoid overflow.
                 info[name] = 0
                 needs_pax = True
             elif val_is_float:
-                # Put rounded value in ustar header, and full
-                # precision value in pax header.
+                # 041868.python.init.line1089.comment Put rounded value in ustar header, and full
+                # 041869.python.init.line1090.comment precision value in pax header.
                 info[name] = val_int
                 needs_pax = True
 
-            # The existing pax header has priority.
+            # 041870.python.init.line1094.comment The existing pax header has priority.
             if needs_pax and name not in pax_headers:
                 pax_headers[name] = str(val)
 
-        # Create a pax extended header if necessary.
+        # 041871.python.init.line1098.comment Create a pax extended header if necessary.
         if pax_headers:
             buf = self._create_pax_generic_header(pax_headers, XHDTYPE, encoding)
         else:
@@ -1138,8 +1138,8 @@ class TarInfo(object):
             devmajor = stn("", 8, encoding, errors)
             devminor = stn("", 8, encoding, errors)
 
-        # None values in metadata should cause ValueError.
-        # itn()/stn() do this for all fields except type.
+        # 041872.python.init.line1141.comment None values in metadata should cause ValueError.
+        # 041873.python.init.line1142.comment itn()/stn() do this for all fields except type.
         filetype = info.get("type", REGTYPE)
         if filetype is None:
             raise ValueError("TarInfo.type must not be None")
@@ -1190,7 +1190,7 @@ class TarInfo(object):
         info["size"] = len(name)
         info["magic"] = GNU_MAGIC
 
-        # create extended header + name blocks.
+        # 041875.python.init.line1193.comment create extended header + name blocks.
         return cls._create_header(info, USTAR_FORMAT, encoding, errors) + \
                 cls._create_payload(name)
 
@@ -1200,8 +1200,8 @@ class TarInfo(object):
            that contains a list of keyword, value pairs. The values
            must be strings.
         """
-        # Check if one of the fields contains surrogate characters and thereby
-        # forces hdrcharset=BINARY, see _proc_pax() for more information.
+        # 041876.python.init.line1203.comment Check if one of the fields contains surrogate characters and thereby
+        # 041877.python.init.line1204.comment forces hdrcharset=BINARY, see _proc_pax() for more information.
         binary = False
         for keyword, value in pax_headers.items():
             try:
@@ -1212,14 +1212,14 @@ class TarInfo(object):
 
         records = b""
         if binary:
-            # Put the hdrcharset field at the beginning of the header.
+            # 041878.python.init.line1215.comment Put the hdrcharset field at the beginning of the header.
             records += b"21 hdrcharset=BINARY\n"
 
         for keyword, value in pax_headers.items():
             keyword = keyword.encode("utf-8")
             if binary:
-                # Try to restore the original byte representation of 'value'.
-                # Needless to say, that the encoding must match the string.
+                # 041879.python.init.line1221.comment Try to restore the original byte representation of 'value'.
+                # 041880.python.init.line1222.comment Needless to say, that the encoding must match the string.
                 value = value.encode(encoding, "surrogateescape")
             else:
                 value = value.encode("utf-8")
@@ -1233,15 +1233,15 @@ class TarInfo(object):
                 p = n
             records += bytes(str(p), "ascii") + b" " + keyword + b"=" + value + b"\n"
 
-        # We use a hardcoded "././@PaxHeader" name like star does
-        # instead of the one that POSIX recommends.
+        # 041882.python.init.line1236.comment We use a hardcoded "././@PaxHeader" name like star does
+        # 041883.python.init.line1237.comment instead of the one that POSIX recommends.
         info = {}
         info["name"] = "././@PaxHeader"
         info["type"] = type
         info["size"] = len(records)
         info["magic"] = POSIX_MAGIC
 
-        # Create pax header + record blocks.
+        # 041884.python.init.line1244.comment Create pax header + record blocks.
         return cls._create_header(info, USTAR_FORMAT, "ascii", "replace") + \
                 cls._create_payload(records)
 
@@ -1276,14 +1276,14 @@ class TarInfo(object):
         obj.devminor = nti(buf[337:345])
         prefix = nts(buf[345:500], encoding, errors)
 
-        # Old V7 tar format represents a directory as a regular
-        # file with a trailing slash.
+        # 041885.python.init.line1279.comment Old V7 tar format represents a directory as a regular
+        # 041886.python.init.line1280.comment file with a trailing slash.
         if obj.type == AREGTYPE and obj.name.endswith("/"):
             obj.type = DIRTYPE
 
-        # The old GNU sparse format occupies some of the unused
-        # space in the buffer for up to 4 sparse structures.
-        # Save them for later processing in _proc_sparse().
+        # 041887.python.init.line1284.comment The old GNU sparse format occupies some of the unused
+        # 041888.python.init.line1285.comment space in the buffer for up to 4 sparse structures.
+        # 041889.python.init.line1286.comment Save them for later processing in _proc_sparse().
         if obj.type == GNUTYPE_SPARSE:
             pos = 386
             structs = []
@@ -1299,11 +1299,11 @@ class TarInfo(object):
             origsize = nti(buf[483:495])
             obj._sparse_structs = (structs, isextended, origsize)
 
-        # Remove redundant slashes from directories.
+        # 041890.python.init.line1302.comment Remove redundant slashes from directories.
         if obj.isdir():
             obj.name = obj.name.rstrip("/")
 
-        # Reconstruct a ustar longname.
+        # 041891.python.init.line1306.comment Reconstruct a ustar longname.
         if prefix and obj.type not in GNU_TYPES:
             obj.name = prefix + "/" + obj.name
         return obj
@@ -1318,17 +1318,17 @@ class TarInfo(object):
         obj.offset = tarfile.fileobj.tell() - BLOCKSIZE
         return obj._proc_member(tarfile)
 
-    #--------------------------------------------------------------------------
-    # The following are methods that are called depending on the type of a
-    # member. The entry point is _proc_member() which can be overridden in a
-    # subclass to add custom _proc_*() methods. A _proc_*() method MUST
-    # implement the following
-    # operations:
-    # 1. Set self.offset_data to the position where the data blocks begin,
-    #    if there is data that follows.
-    # 2. Set tarfile.offset to the position where the next member's header will
-    #    begin.
-    # 3. Return self or another valid TarInfo object.
+    # 041892.python.init.line1321.comment --------------------------------------------------------------------------
+    # 041893.python.init.line1322.comment The following are methods that are called depending on the type of a
+    # 041894.python.init.line1323.comment member. The entry point is _proc_member() which can be overridden in a
+    # 041895.python.init.line1324.comment subclass to add custom _proc_*() methods. A _proc_*() method MUST
+    # 041896.python.init.line1325.comment implement the following
+    # 041897.python.init.line1326.comment operations:
+    # 041898.python.init.line1327.comment 1. Set self.offset_data to the position where the data blocks begin,
+    # 041899.python.init.line1328.comment if there is data that follows.
+    # 041900.python.init.line1329.comment 2. Set tarfile.offset to the position where the next member's header will
+    # 041901.python.init.line1330.comment begin.
+    # 041902.python.init.line1331.comment 3. Return self or another valid TarInfo object.
     def _proc_member(self, tarfile):
         """Choose the right processing method depending on
            the type and call it.
@@ -1349,16 +1349,16 @@ class TarInfo(object):
         self.offset_data = tarfile.fileobj.tell()
         offset = self.offset_data
         if self.isreg() or self.type not in SUPPORTED_TYPES:
-            # Skip the following data blocks.
+            # 041903.python.init.line1352.comment Skip the following data blocks.
             offset += self._block(self.size)
         tarfile.offset = offset
 
-        # Patch the TarInfo object with saved global
-        # header information.
+        # 041904.python.init.line1356.comment Patch the TarInfo object with saved global
+        # 041905.python.init.line1357.comment header information.
         self._apply_pax_info(tarfile.pax_headers, tarfile.encoding, tarfile.errors)
 
-        # Remove redundant slashes from directories. This is to be consistent
-        # with frombuf().
+        # 041906.python.init.line1360.comment Remove redundant slashes from directories. This is to be consistent
+        # 041907.python.init.line1361.comment with frombuf().
         if self.isdir():
             self.name = self.name.rstrip("/")
 
@@ -1370,22 +1370,22 @@ class TarInfo(object):
         """
         buf = tarfile.fileobj.read(self._block(self.size))
 
-        # Fetch the next header and process it.
+        # 041908.python.init.line1373.comment Fetch the next header and process it.
         try:
             next = self.fromtarfile(tarfile)
         except HeaderError as e:
             raise SubsequentHeaderError(str(e)) from None
 
-        # Patch the TarInfo object from the next header with
-        # the longname information.
+        # 041909.python.init.line1379.comment Patch the TarInfo object from the next header with
+        # 041910.python.init.line1380.comment the longname information.
         next.offset = self.offset
         if self.type == GNUTYPE_LONGNAME:
             next.name = nts(buf, tarfile.encoding, tarfile.errors)
         elif self.type == GNUTYPE_LONGLINK:
             next.linkname = nts(buf, tarfile.encoding, tarfile.errors)
 
-        # Remove redundant slashes from directories. This is to be consistent
-        # with frombuf().
+        # 041911.python.init.line1387.comment Remove redundant slashes from directories. This is to be consistent
+        # 041912.python.init.line1388.comment with frombuf().
         if next.isdir():
             next.name = removesuffix(next.name, "/")
 
@@ -1394,11 +1394,11 @@ class TarInfo(object):
     def _proc_sparse(self, tarfile):
         """Process a GNU sparse header plus extra headers.
         """
-        # We already collected some sparse structures in frombuf().
+        # 041913.python.init.line1397.comment We already collected some sparse structures in frombuf().
         structs, isextended, origsize = self._sparse_structs
         del self._sparse_structs
 
-        # Collect sparse structures from extended header blocks.
+        # 041914.python.init.line1401.comment Collect sparse structures from extended header blocks.
         while isextended:
             buf = tarfile.fileobj.read(BLOCKSIZE)
             pos = 0
@@ -1423,39 +1423,39 @@ class TarInfo(object):
         """Process an extended or global header as described in
            POSIX.1-2008.
         """
-        # Read the header information.
+        # 041915.python.init.line1426.comment Read the header information.
         buf = tarfile.fileobj.read(self._block(self.size))
 
-        # A pax header stores supplemental information for either
-        # the following file (extended) or all following files
-        # (global).
+        # 041916.python.init.line1429.comment A pax header stores supplemental information for either
+        # 041917.python.init.line1430.comment the following file (extended) or all following files
+        # 041918.python.init.line1431.comment (global).
         if self.type == XGLTYPE:
             pax_headers = tarfile.pax_headers
         else:
             pax_headers = tarfile.pax_headers.copy()
 
-        # Check if the pax header contains a hdrcharset field. This tells us
-        # the encoding of the path, linkpath, uname and gname fields. Normally,
-        # these fields are UTF-8 encoded but since POSIX.1-2008 tar
-        # implementations are allowed to store them as raw binary strings if
-        # the translation to UTF-8 fails.
+        # 041919.python.init.line1437.comment Check if the pax header contains a hdrcharset field. This tells us
+        # 041920.python.init.line1438.comment the encoding of the path, linkpath, uname and gname fields. Normally,
+        # 041921.python.init.line1439.comment these fields are UTF-8 encoded but since POSIX.1-2008 tar
+        # 041922.python.init.line1440.comment implementations are allowed to store them as raw binary strings if
+        # 041923.python.init.line1441.comment the translation to UTF-8 fails.
         match = re.search(br"\d+ hdrcharset=([^\n]+)\n", buf)
         if match is not None:
             pax_headers["hdrcharset"] = match.group(1).decode("utf-8")
 
-        # For the time being, we don't care about anything other than "BINARY".
-        # The only other value that is currently allowed by the standard is
-        # "ISO-IR 10646 2000 UTF-8" in other words UTF-8.
+        # 041924.python.init.line1446.comment For the time being, we don't care about anything other than "BINARY".
+        # 041925.python.init.line1447.comment The only other value that is currently allowed by the standard is
+        # 041926.python.init.line1448.comment "ISO-IR 10646 2000 UTF-8" in other words UTF-8.
         hdrcharset = pax_headers.get("hdrcharset")
         if hdrcharset == "BINARY":
             encoding = tarfile.encoding
         else:
             encoding = "utf-8"
 
-        # Parse pax header information. A record looks like that:
-        # "%d %s=%s\n" % (length, keyword, value). length is the size
-        # of the complete record including the length field itself and
-        # the newline. keyword and value are both UTF-8 encoded strings.
+        # 041927.python.init.line1455.comment Parse pax header information. A record looks like that:
+        # 041928.python.init.line1456.comment "%d %s=%s\n" % (length, keyword, value). length is the size
+        # 041929.python.init.line1457.comment of the complete record including the length field itself and
+        # 041930.python.init.line1458.comment the newline. keyword and value are both UTF-8 encoded strings.
         regex = re.compile(br"(\d+) ([^=]+)=")
         pos = 0
         while match := regex.match(buf, pos):
@@ -1465,13 +1465,13 @@ class TarInfo(object):
                 raise InvalidHeaderError("invalid header")
             value = buf[match.end(2) + 1:match.start(1) + length - 1]
 
-            # Normally, we could just use "utf-8" as the encoding and "strict"
-            # as the error handler, but we better not take the risk. For
-            # example, GNU tar <= 1.23 is known to store filenames it cannot
-            # translate to UTF-8 as raw strings (unfortunately without a
-            # hdrcharset=BINARY header).
-            # We first try the strict standard encoding, and if that fails we
-            # fall back on the user's encoding and error handler.
+            # 041931.python.init.line1468.comment Normally, we could just use "utf-8" as the encoding and "strict"
+            # 041932.python.init.line1469.comment as the error handler, but we better not take the risk. For
+            # 041933.python.init.line1470.comment example, GNU tar <= 1.23 is known to store filenames it cannot
+            # 041934.python.init.line1471.comment translate to UTF-8 as raw strings (unfortunately without a
+            # 041935.python.init.line1472.comment hdrcharset=BINARY header).
+            # 041936.python.init.line1473.comment We first try the strict standard encoding, and if that fails we
+            # 041937.python.init.line1474.comment fall back on the user's encoding and error handler.
             keyword = self._decode_pax_field(keyword, "utf-8", "utf-8",
                     tarfile.errors)
             if keyword in PAX_NAME_FIELDS:
@@ -1484,34 +1484,34 @@ class TarInfo(object):
             pax_headers[keyword] = value
             pos += length
 
-        # Fetch the next header.
+        # 041938.python.init.line1487.comment Fetch the next header.
         try:
             next = self.fromtarfile(tarfile)
         except HeaderError as e:
             raise SubsequentHeaderError(str(e)) from None
 
-        # Process GNU sparse information.
+        # 041939.python.init.line1493.comment Process GNU sparse information.
         if "GNU.sparse.map" in pax_headers:
-            # GNU extended sparse format version 0.1.
+            # 041940.python.init.line1495.comment GNU extended sparse format version 0.1.
             self._proc_gnusparse_01(next, pax_headers)
 
         elif "GNU.sparse.size" in pax_headers:
-            # GNU extended sparse format version 0.0.
+            # 041941.python.init.line1499.comment GNU extended sparse format version 0.0.
             self._proc_gnusparse_00(next, pax_headers, buf)
 
         elif pax_headers.get("GNU.sparse.major") == "1" and pax_headers.get("GNU.sparse.minor") == "0":
-            # GNU extended sparse format version 1.0.
+            # 041942.python.init.line1503.comment GNU extended sparse format version 1.0.
             self._proc_gnusparse_10(next, pax_headers, tarfile)
 
         if self.type in (XHDTYPE, SOLARIS_XHDTYPE):
-            # Patch the TarInfo object with the extended header info.
+            # 041943.python.init.line1507.comment Patch the TarInfo object with the extended header info.
             next._apply_pax_info(pax_headers, tarfile.encoding, tarfile.errors)
             next.offset = self.offset
 
             if "size" in pax_headers:
-                # If the extended header replaces the size field,
-                # we need to recalculate the offset where the next
-                # header starts.
+                # 041944.python.init.line1512.comment If the extended header replaces the size field,
+                # 041945.python.init.line1513.comment we need to recalculate the offset where the next
+                # 041946.python.init.line1514.comment header starts.
                 offset = next.offset_data
                 if next.isreg() or next.type not in SUPPORTED_TYPES:
                     offset += next._block(next.size)
@@ -1630,7 +1630,7 @@ class TarInfo(object):
     def isdev(self):
         'Return True if it is one of character device, block device or FIFO.'
         return self.type in (CHRTYPE, BLKTYPE, FIFOTYPE)
-# class TarInfo
+# 041947.python.init.line1633.comment class TarInfo
 
 class TarFile(object):
     """The TarFile Class provides an interface to tar archives.
@@ -1639,14 +1639,14 @@ class TarFile(object):
     debug = 0                   # May be set from 0 (no msgs) to 3 (all msgs)
 
     dereference = False         # If true, add content of linked file to the
-                                # tar file, else the link.
+                                # 041950.python.init.line1642.comment tar file, else the link.
 
     ignore_zeros = False        # If true, skips empty or invalid blocks and
-                                # continues processing.
+                                # 041952.python.init.line1645.comment continues processing.
 
     errorlevel = 1              # If 0, fatal errors only appear in debug
-                                # messages (if debug >= 0). If > 0, errors
-                                # are passed to the caller as exceptions.
+                                # 041954.python.init.line1648.comment messages (if debug >= 0). If > 0, errors
+                                # 041955.python.init.line1649.comment are passed to the caller as exceptions.
 
     format = DEFAULT_FORMAT     # The format to use when creating an archive.
 
@@ -1680,7 +1680,7 @@ class TarFile(object):
 
         if not fileobj:
             if self.mode == "a" and not os.path.exists(name):
-                # Create nonexistent files in append mode.
+                # 041962.python.init.line1683.comment Create nonexistent files in append mode.
                 self.mode = "w"
                 self._mode = "wb"
             fileobj = bltn_open(name, self._mode)
@@ -1697,7 +1697,7 @@ class TarFile(object):
 
         self.stream = stream
 
-        # Init attributes.
+        # 041963.python.init.line1700.comment Init attributes.
         if format is not None:
             self.format = format
         if tarinfo is not None:
@@ -1720,15 +1720,15 @@ class TarFile(object):
         if errorlevel is not None:
             self.errorlevel = errorlevel
 
-        # Init datastructures.
+        # 041964.python.init.line1723.comment Init datastructures.
         self.copybufsize = copybufsize
         self.closed = False
         self.members = []       # list of members as TarInfo objects
         self._loaded = False    # flag if all members have been read
         self.offset = self.fileobj.tell()
-                                # current position in the archive file
+                                # 041967.python.init.line1729.comment current position in the archive file
         self.inodes = {}        # dictionary caching the inodes of
-                                # archive members already added
+                                # 041969.python.init.line1731.comment archive members already added
 
         try:
             if self.mode == "r":
@@ -1736,8 +1736,8 @@ class TarFile(object):
                 self.firstmember = self.next()
 
             if self.mode == "a":
-                # Move to the end of the archive,
-                # before the first empty block.
+                # 041970.python.init.line1739.comment Move to the end of the archive,
+                # 041971.python.init.line1740.comment before the first empty block.
                 while True:
                     self.fileobj.seek(self.offset)
                     try:
@@ -1762,16 +1762,16 @@ class TarFile(object):
             self.closed = True
             raise
 
-    #--------------------------------------------------------------------------
-    # Below are the classmethods which act as alternate constructors to the
-    # TarFile class. The open() method is the only one that is needed for
-    # public use; it is the "super"-constructor and is able to select an
-    # adequate "sub"-constructor for a particular compression using the mapping
-    # from OPEN_METH.
-    #
-    # This concept allows one to subclass TarFile without losing the comfort of
-    # the super-constructor. A sub-constructor is registered and made available
-    # by adding it to the mapping in OPEN_METH.
+    # 041972.python.init.line1765.comment --------------------------------------------------------------------------
+    # 041973.python.init.line1766.comment Below are the classmethods which act as alternate constructors to the
+    # 041974.python.init.line1767.comment TarFile class. The open() method is the only one that is needed for
+    # 041975.python.init.line1768.comment public use; it is the "super"-constructor and is able to select an
+    # 041976.python.init.line1769.comment adequate "sub"-constructor for a particular compression using the mapping
+    # 041977.python.init.line1770.comment from OPEN_METH.
+    # 041978.python.init.line1771.comment
+    # 041979.python.init.line1772.comment This concept allows one to subclass TarFile without losing the comfort of
+    # 041980.python.init.line1773.comment the super-constructor. A sub-constructor is registered and made available
+    # 041981.python.init.line1774.comment by adding it to the mapping in OPEN_METH.
 
     @classmethod
     def open(cls, name=None, mode="r", fileobj=None, bufsize=RECORDSIZE, **kwargs):
@@ -1814,7 +1814,7 @@ class TarFile(object):
             raise ValueError("nothing to open")
 
         if mode in ("r", "r:*"):
-            # Find out which *open() is appropriate for opening the file.
+            # 041982.python.init.line1817.comment Find out which *open() is appropriate for opening the file.
             def not_compressed(comptype):
                 return cls.OPEN_METH[comptype] == 'taropen'
             error_msgs = []
@@ -1837,8 +1837,8 @@ class TarFile(object):
             filemode = filemode or "r"
             comptype = comptype or "tar"
 
-            # Select the *open() function according to
-            # given compression.
+            # 041983.python.init.line1840.comment Select the *open() function according to
+            # 041984.python.init.line1841.comment given compression.
             if comptype in cls.OPEN_METH:
                 func = getattr(cls, cls.OPEN_METH[comptype])
             else:
@@ -1966,7 +1966,7 @@ class TarFile(object):
         t._extfileobj = False
         return t
 
-    # All *open() methods are registered here.
+    # 041985.python.init.line1969.comment All *open() methods are registered here.
     OPEN_METH = {
         "tar": "taropen",   # uncompressed tar
         "gz":  "gzopen",    # gzip compressed tar
@@ -1974,8 +1974,8 @@ class TarFile(object):
         "xz":  "xzopen"     # lzma compressed tar
     }
 
-    #--------------------------------------------------------------------------
-    # The public methods which TarFile provides:
+    # 041990.python.init.line1977.comment --------------------------------------------------------------------------
+    # 041991.python.init.line1978.comment The public methods which TarFile provides:
 
     def close(self):
         """Close the TarFile. In write-mode, two finishing zero blocks are
@@ -1989,8 +1989,8 @@ class TarFile(object):
             if self.mode in ("a", "w", "x"):
                 self.fileobj.write(NUL * (BLOCKSIZE * 2))
                 self.offset += (BLOCKSIZE * 2)
-                # fill up the end with zero-blocks
-                # (like option -b20 for tar does)
+                # 041992.python.init.line1992.comment fill up the end with zero-blocks
+                # 041993.python.init.line1993.comment (like option -b20 for tar does)
                 blocks, remainder = divmod(self.offset, RECORDSIZE)
                 if remainder > 0:
                     self.fileobj.write(NUL * (RECORDSIZE - remainder))
@@ -2016,7 +2016,7 @@ class TarFile(object):
         self._check()
         if not self._loaded:    # if we want to obtain a list of
             self._load()        # all members, we first have to
-                                # scan the whole archive.
+                                # 041996.python.init.line2019.comment scan the whole archive.
         return self.members
 
     def getnames(self):
@@ -2036,26 +2036,26 @@ class TarFile(object):
         """
         self._check("awx")
 
-        # When fileobj is given, replace name by
-        # fileobj's real name.
+        # 041997.python.init.line2039.comment When fileobj is given, replace name by
+        # 041998.python.init.line2040.comment fileobj's real name.
         if fileobj is not None:
             name = fileobj.name
 
-        # Building the name of the member in the archive.
-        # Backward slashes are converted to forward slashes,
-        # Absolute paths are turned to relative paths.
+        # 041999.python.init.line2044.comment Building the name of the member in the archive.
+        # 042000.python.init.line2045.comment Backward slashes are converted to forward slashes,
+        # 042001.python.init.line2046.comment Absolute paths are turned to relative paths.
         if arcname is None:
             arcname = name
         drv, arcname = os.path.splitdrive(arcname)
         arcname = arcname.replace(os.sep, "/")
         arcname = arcname.lstrip("/")
 
-        # Now, fill the TarInfo object with
-        # information specific for the file.
+        # 042002.python.init.line2053.comment Now, fill the TarInfo object with
+        # 042003.python.init.line2054.comment information specific for the file.
         tarinfo = self.tarinfo()
         tarinfo._tarfile = self  # To be removed in 3.16.
 
-        # Use os.stat or os.lstat, depending on if symlinks shall be resolved.
+        # 042005.python.init.line2058.comment Use os.stat or os.lstat, depending on if symlinks shall be resolved.
         if fileobj is None:
             if not self.dereference:
                 statres = os.lstat(name)
@@ -2070,13 +2070,13 @@ class TarFile(object):
             inode = (statres.st_ino, statres.st_dev)
             if not self.dereference and statres.st_nlink > 1 and \
                     inode in self.inodes and arcname != self.inodes[inode]:
-                # Is it a hardlink to an already
-                # archived file?
+                # 042006.python.init.line2073.comment Is it a hardlink to an already
+                # 042007.python.init.line2074.comment archived file?
                 type = LNKTYPE
                 linkname = self.inodes[inode]
             else:
-                # The inode is added only if its valid.
-                # For win32 it is always 0.
+                # 042008.python.init.line2078.comment The inode is added only if its valid.
+                # 042009.python.init.line2079.comment For win32 it is always 0.
                 type = REGTYPE
                 if inode[0]:
                     self.inodes[inode] = arcname
@@ -2094,8 +2094,8 @@ class TarFile(object):
         else:
             return None
 
-        # Fill the TarInfo object with all
-        # information we can get.
+        # 042010.python.init.line2097.comment Fill the TarInfo object with all
+        # 042011.python.init.line2098.comment information we can get.
         tarinfo.name = arcname
         tarinfo.mode = stmd
         tarinfo.uid = statres.st_uid
@@ -2130,7 +2130,7 @@ class TarFile(object):
            output is produced. 'members' is optional and must be a subset of the
            list returned by getmembers().
         """
-        # Convert tarinfo type to stat type.
+        # 042012.python.init.line2133.comment Convert tarinfo type to stat type.
         type2mode = {REGTYPE: stat.S_IFREG, SYMTYPE: stat.S_IFLNK,
                      FIFOTYPE: stat.S_IFIFO, CHRTYPE: stat.S_IFCHR,
                      DIRTYPE: stat.S_IFDIR, BLKTYPE: stat.S_IFBLK}
@@ -2182,28 +2182,28 @@ class TarFile(object):
         if arcname is None:
             arcname = name
 
-        # Skip if somebody tries to archive the archive...
+        # 042013.python.init.line2185.comment Skip if somebody tries to archive the archive...
         if self.name is not None and os.path.abspath(name) == self.name:
             self._dbg(2, "tarfile: Skipped %r" % name)
             return
 
         self._dbg(1, name)
 
-        # Create a TarInfo object from the file.
+        # 042014.python.init.line2192.comment Create a TarInfo object from the file.
         tarinfo = self.gettarinfo(name, arcname)
 
         if tarinfo is None:
             self._dbg(1, "tarfile: Unsupported type %r" % name)
             return
 
-        # Change or exclude the TarInfo object.
+        # 042015.python.init.line2199.comment Change or exclude the TarInfo object.
         if filter is not None:
             tarinfo = filter(tarinfo)
             if tarinfo is None:
                 self._dbg(2, "tarfile: Excluded %r" % name)
                 return
 
-        # Append the tar header and data to the archive.
+        # 042016.python.init.line2206.comment Append the tar header and data to the archive.
         if tarinfo.isreg():
             with bltn_open(name, "rb") as f:
                 self.addfile(tarinfo, f)
@@ -2235,7 +2235,7 @@ class TarFile(object):
         self.fileobj.write(buf)
         self.offset += len(buf)
         bufsize=self.copybufsize
-        # If there's data to follow, append it.
+        # 042017.python.init.line2238.comment If there's data to follow, append it.
         if fileobj is not None:
             copyfileobj(fileobj, self.fileobj, tarinfo.size, bufsize=bufsize)
             blocks, remainder = divmod(tarinfo.size, BLOCKSIZE)
@@ -2295,17 +2295,17 @@ class TarFile(object):
             if tarinfo is None:
                 continue
             if tarinfo.isdir():
-                # For directories, delay setting attributes until later,
-                # since permissions can interfere with extraction and
-                # extracting contents can reset mtime.
+                # 042018.python.init.line2298.comment For directories, delay setting attributes until later,
+                # 042019.python.init.line2299.comment since permissions can interfere with extraction and
+                # 042020.python.init.line2300.comment extracting contents can reset mtime.
                 directories.append(tarinfo)
             self._extract_one(tarinfo, path, set_attrs=not tarinfo.isdir(),
                               numeric_owner=numeric_owner)
 
-        # Reverse sort directories.
+        # 042021.python.init.line2305.comment Reverse sort directories.
         directories.sort(key=lambda a: a.name, reverse=True)
 
-        # Set correct owner, mtime and filemode on directories.
+        # 042022.python.init.line2308.comment Set correct owner, mtime and filemode on directories.
         for tarinfo in directories:
             dirpath = os.path.join(path, tarinfo.name)
             try:
@@ -2351,7 +2351,7 @@ class TarFile(object):
         if tarinfo is None:
             self._dbg(2, "tarfile: Excluded %r" % unfiltered.name)
             return None
-        # Prepare the link target for makelink().
+        # 042023.python.init.line2354.comment Prepare the link target for makelink().
         if tarinfo.islnk():
             tarinfo = copy.copy(tarinfo)
             tarinfo._link_target = os.path.join(path, tarinfo.linkname)
@@ -2404,21 +2404,21 @@ class TarFile(object):
             tarinfo = member
 
         if tarinfo.isreg() or tarinfo.type not in SUPPORTED_TYPES:
-            # Members with unknown types are treated as regular files.
+            # 042024.python.init.line2407.comment Members with unknown types are treated as regular files.
             return self.fileobject(self, tarinfo)
 
         elif tarinfo.islnk() or tarinfo.issym():
             if isinstance(self.fileobj, _Stream):
-                # A small but ugly workaround for the case that someone tries
-                # to extract a (sym)link as a file-object from a non-seekable
-                # stream of tar blocks.
+                # 042025.python.init.line2412.comment A small but ugly workaround for the case that someone tries
+                # 042026.python.init.line2413.comment to extract a (sym)link as a file-object from a non-seekable
+                # 042027.python.init.line2414.comment stream of tar blocks.
                 raise StreamError("cannot extract (sym)link as file object")
             else:
-                # A (sym)link's file object is its target's file object.
+                # 042028.python.init.line2417.comment A (sym)link's file object is its target's file object.
                 return self.extractfile(self._find_link_target(tarinfo))
         else:
-            # If there's no data associated with the member (directory, chrdev,
-            # blkdev, etc.), return None instead of a file object.
+            # 042029.python.init.line2420.comment If there's no data associated with the member (directory, chrdev,
+            # 042030.python.init.line2421.comment blkdev, etc.), return None instead of a file object.
             return None
 
     def _extract_member(self, tarinfo, targetpath, set_attrs=True,
@@ -2426,17 +2426,17 @@ class TarFile(object):
         """Extract the TarInfo object tarinfo to a physical
            file called targetpath.
         """
-        # Fetch the TarInfo object for the given name
-        # and build the destination pathname, replacing
-        # forward slashes to platform specific separators.
+        # 042031.python.init.line2429.comment Fetch the TarInfo object for the given name
+        # 042032.python.init.line2430.comment and build the destination pathname, replacing
+        # 042033.python.init.line2431.comment forward slashes to platform specific separators.
         targetpath = targetpath.rstrip("/")
         targetpath = targetpath.replace("/", os.sep)
 
-        # Create all upper directories.
+        # 042034.python.init.line2435.comment Create all upper directories.
         upperdirs = os.path.dirname(targetpath)
         if upperdirs and not os.path.exists(upperdirs):
-            # Create directories that are not part of the archive with
-            # default permissions.
+            # 042035.python.init.line2438.comment Create directories that are not part of the archive with
+            # 042036.python.init.line2439.comment default permissions.
             os.makedirs(upperdirs, exist_ok=True)
 
         if tarinfo.islnk() or tarinfo.issym():
@@ -2465,21 +2465,21 @@ class TarFile(object):
                 self.chmod(tarinfo, targetpath)
                 self.utime(tarinfo, targetpath)
 
-    #--------------------------------------------------------------------------
-    # Below are the different file methods. They are called via
-    # _extract_member() when extract() is called. They can be replaced in a
-    # subclass to implement other functionality.
+    # 042037.python.init.line2468.comment --------------------------------------------------------------------------
+    # 042038.python.init.line2469.comment Below are the different file methods. They are called via
+    # 042039.python.init.line2470.comment _extract_member() when extract() is called. They can be replaced in a
+    # 042040.python.init.line2471.comment subclass to implement other functionality.
 
     def makedir(self, tarinfo, targetpath):
         """Make a directory called targetpath.
         """
         try:
             if tarinfo.mode is None:
-                # Use the system's default mode
+                # 042041.python.init.line2478.comment Use the system's default mode
                 os.mkdir(targetpath)
             else:
-                # Use a safe mode for the directory, the real mode is set
-                # later in _extract_member().
+                # 042042.python.init.line2481.comment Use a safe mode for the directory, the real mode is set
+                # 042043.python.init.line2482.comment later in _extract_member().
                 os.mkdir(targetpath, 0o700)
         except FileExistsError:
             if not os.path.isdir(targetpath):
@@ -2525,7 +2525,7 @@ class TarFile(object):
 
         mode = tarinfo.mode
         if mode is None:
-            # Use mknod's default
+            # 042044.python.init.line2528.comment Use mknod's default
             mode = 0o600
         if tarinfo.isblk():
             mode |= stat.S_IFBLK
@@ -2541,10 +2541,10 @@ class TarFile(object):
           instead of a link.
         """
         try:
-            # For systems that support symbolic and hard links.
+            # 042045.python.init.line2544.comment For systems that support symbolic and hard links.
             if tarinfo.issym():
                 if os.path.lexists(targetpath):
-                    # Avoid FileExistsError on following os.symlink.
+                    # 042046.python.init.line2547.comment Avoid FileExistsError on following os.symlink.
                     os.unlink(targetpath)
                 os.symlink(tarinfo.linkname, targetpath)
             else:
@@ -2567,7 +2567,7 @@ class TarFile(object):
            fails.
         """
         if hasattr(os, "geteuid") and os.geteuid() == 0:
-            # We have to be root to do so.
+            # 042047.python.init.line2570.comment We have to be root to do so.
             g = tarinfo.gid
             u = tarinfo.uid
             if not numeric_owner:
@@ -2591,7 +2591,7 @@ class TarFile(object):
                 else:
                     os.chown(targetpath, u, g)
             except (OSError, OverflowError) as e:
-                # OverflowError can be raised if an ID doesn't fit in 'id_t'
+                # 042048.python.init.line2594.comment OverflowError can be raised if an ID doesn't fit in 'id_t'
                 raise ExtractError("could not change owner") from e
 
     def chmod(self, tarinfo, targetpath):
@@ -2617,7 +2617,7 @@ class TarFile(object):
         except OSError as e:
             raise ExtractError("could not change modification time") from e
 
-    #--------------------------------------------------------------------------
+    # 042049.python.init.line2620.comment --------------------------------------------------------------------------
     def next(self):
         """Return the next member of the archive as a TarInfo object, when
            TarFile is opened for reading. Return None if there is no more
@@ -2629,7 +2629,7 @@ class TarFile(object):
             self.firstmember = None
             return m
 
-        # Advance the file pointer.
+        # 042050.python.init.line2632.comment Advance the file pointer.
         if self.offset != self.fileobj.tell():
             if self.offset == 0:
                 return None
@@ -2637,7 +2637,7 @@ class TarFile(object):
             if not self.fileobj.read(1):
                 raise ReadError("unexpected end of data")
 
-        # Read the next block.
+        # 042051.python.init.line2640.comment Read the next block.
         tarinfo = None
         while True:
             try:
@@ -2674,7 +2674,7 @@ class TarFile(object):
             break
 
         if tarinfo is not None:
-            # if streaming the file we do not want to cache the tarinfo
+            # 042052.python.init.line2677.comment if streaming the file we do not want to cache the tarinfo
             if not self.stream:
                 self.members.append(tarinfo)
         else:
@@ -2682,27 +2682,27 @@ class TarFile(object):
 
         return tarinfo
 
-    #--------------------------------------------------------------------------
-    # Little helper methods:
+    # 042053.python.init.line2685.comment --------------------------------------------------------------------------
+    # 042054.python.init.line2686.comment Little helper methods:
 
     def _getmember(self, name, tarinfo=None, normalize=False):
         """Find an archive member by name from bottom to top.
            If tarinfo is given, it is used as the starting point.
         """
-        # Ensure that all members have been loaded.
+        # 042055.python.init.line2692.comment Ensure that all members have been loaded.
         members = self.getmembers()
 
-        # Limit the member search list up to tarinfo.
+        # 042056.python.init.line2695.comment Limit the member search list up to tarinfo.
         skipping = False
         if tarinfo is not None:
             try:
                 index = members.index(tarinfo)
             except ValueError:
-                # The given starting point might be a (modified) copy.
-                # We'll later skip members until we find an equivalent.
+                # 042057.python.init.line2701.comment The given starting point might be a (modified) copy.
+                # 042058.python.init.line2702.comment We'll later skip members until we find an equivalent.
                 skipping = True
             else:
-                # Happy fast path
+                # 042059.python.init.line2705.comment Happy fast path
                 members = members[:index]
 
         if normalize:
@@ -2722,7 +2722,7 @@ class TarFile(object):
                 return member
 
         if skipping:
-            # Starting point was not found
+            # 042060.python.init.line2725.comment Starting point was not found
             raise ValueError(tarinfo)
 
     def _load(self):
@@ -2748,12 +2748,12 @@ class TarFile(object):
            archive.
         """
         if tarinfo.issym():
-            # Always search the entire archive.
+            # 042061.python.init.line2751.comment Always search the entire archive.
             linkname = "/".join(filter(None, (os.path.dirname(tarinfo.name), tarinfo.linkname)))
             limit = None
         else:
-            # Search the archive before the link, because a hard link is
-            # just a reference to an already archived file.
+            # 042062.python.init.line2755.comment Search the archive before the link, because a hard link is
+            # 042063.python.init.line2756.comment just a reference to an already archived file.
             linkname = tarinfo.linkname
             limit = tarinfo
 
@@ -2769,12 +2769,12 @@ class TarFile(object):
             yield from self.members
             return
 
-        # Yield items using TarFile's next() method.
-        # When all members have been read, set TarFile as _loaded.
+        # 042064.python.init.line2772.comment Yield items using TarFile's next() method.
+        # 042065.python.init.line2773.comment When all members have been read, set TarFile as _loaded.
         index = 0
-        # Fix for SF #1100429: Under rare circumstances it can
-        # happen that getmembers() is called during iteration,
-        # which will have already exhausted the next() method.
+        # 042066.python.init.line2775.comment Fix for SF #1100429: Under rare circumstances it can
+        # 042067.python.init.line2776.comment happen that getmembers() is called during iteration,
+        # 042068.python.init.line2777.comment which will have already exhausted the next() method.
         if self.firstmember is not None:
             tarinfo = self.next()
             index += 1
@@ -2807,15 +2807,15 @@ class TarFile(object):
         if type is None:
             self.close()
         else:
-            # An exception occurred. We must not call close() because
-            # it would try to write end-of-archive blocks and padding.
+            # 042069.python.init.line2810.comment An exception occurred. We must not call close() because
+            # 042070.python.init.line2811.comment it would try to write end-of-archive blocks and padding.
             if not self._extfileobj:
                 self.fileobj.close()
             self.closed = True
 
-#--------------------
-# exported functions
-#--------------------
+# 042071.python.init.line2816.comment --------------------
+# 042072.python.init.line2817.comment exported functions
+# 042073.python.init.line2818.comment --------------------
 
 def is_tarfile(name):
     """Return True if name points to a tar archive that we
@@ -2911,13 +2911,13 @@ def main():
         tar_name = args.create.pop(0)
         _, ext = os.path.splitext(tar_name)
         compressions = {
-            # gz
+            # 042074.python.init.line2914.comment gz
             '.gz': 'gz',
             '.tgz': 'gz',
-            # xz
+            # 042075.python.init.line2917.comment xz
             '.xz': 'xz',
             '.txz': 'xz',
-            # bz2
+            # 042076.python.init.line2920.comment bz2
             '.bz2': 'bz2',
             '.tbz': 'bz2',
             '.tbz2': 'bz2',

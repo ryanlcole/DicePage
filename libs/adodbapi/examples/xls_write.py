@@ -25,7 +25,7 @@ with conn:  # will auto commit if no errors
         except:
             pass  # just is case there is one already there
 
-        # create the sheet and the header row and set the types for the columns
+        # 020818.python.xls_write.line28.comment create the sheet and the header row and set the types for the columns
         crsr.execute(
             "create table SheetOne (Name varchar, Rank varchar, SrvcNum integer, Weight float,  Birth date)"
         )

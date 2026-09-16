@@ -1,5 +1,5 @@
-# CallTips.py - An IDLE extension that provides "Call Tips" - ie, a floating window that
-# displays parameter information as you open parens.
+# 038276.python.CallTips.line1.comment CallTips.py - An IDLE extension that provides "Call Tips" - ie, a floating window that
+# 038277.python.CallTips.line2.comment displays parameter information as you open parens.
 
 import inspect
 import string
@@ -33,8 +33,8 @@ class CallTips:
     def close(self):
         self._make_calltip_window = None
 
-    # Makes a Tk based calltip window.  Used by IDLE, but not Pythonwin.
-    # See __init__ above for how this is used.
+    # 038278.python.CallTips.line36.comment Makes a Tk based calltip window.  Used by IDLE, but not Pythonwin.
+    # 038279.python.CallTips.line37.comment See __init__ above for how this is used.
     def _make_tk_calltip_window(self):
         import CallTipWindow
 
@@ -55,16 +55,16 @@ class CallTips:
         return ""  # so the event is handled normally.
 
     def paren_close_event(self, event):
-        # Now just hides, but later we should check if other
-        # paren'd expressions remain open.
+        # 038281.python.CallTips.line58.comment Now just hides, but later we should check if other
+        # 038282.python.CallTips.line59.comment paren'd expressions remain open.
         self._remove_calltip_window()
         return ""  # so the event is handled normally.
 
     def check_calltip_cancel_event(self, event):
         if self.calltip:
-            # If we have moved before the start of the calltip,
-            # or off the calltip line, then cancel the tip.
-            # (Later need to be smarter about multi-line, etc)
+            # 038284.python.CallTips.line65.comment If we have moved before the start of the calltip,
+            # 038285.python.CallTips.line66.comment or off the calltip line, then cancel the tip.
+            # 038286.python.CallTips.line67.comment (Later need to be smarter about multi-line, etc)
             if self.text.compare(
                 "insert", "<=", self.calltip_start
             ) or self.text.compare("insert", ">", self.calltip_start + " lineend"):
@@ -82,8 +82,8 @@ class CallTips:
         + string.ascii_lowercase
         + string.digits,
     ):
-        # XXX - This needs to be moved to a better place
-        # so the "." attribute lookup code can also use it.
+        # 038289.python.CallTips.line85.comment XXX - This needs to be moved to a better place
+        # 038290.python.CallTips.line86.comment so the "." attribute lookup code can also use it.
         text = self.text
         chars = text.get("insert linestart", "insert")
         i = len(chars)
@@ -91,7 +91,7 @@ class CallTips:
             i -= 1
         word = chars[i:]
         if word:
-            # How is this for a hack!
+            # 038291.python.CallTips.line94.comment How is this for a hack!
             import __main__
 
             namespace = sys.modules.copy()
@@ -104,8 +104,8 @@ class CallTips:
 
 
 def _find_constructor(class_ob):
-    # Given a class object, return a function object used for the
-    # constructor (ie, __init__() ) or None if we can't find one.
+    # 038293.python.CallTips.line107.comment Given a class object, return a function object used for the
+    # 038294.python.CallTips.line108.comment constructor (ie, __init__() ) or None if we can't find one.
     try:
         return class_ob.__init__
     except AttributeError:
@@ -117,11 +117,11 @@ def _find_constructor(class_ob):
 
 
 def get_arg_text(ob):
-    # Get a string describing the arguments for the given object.
+    # 038295.python.CallTips.line120.comment Get a string describing the arguments for the given object.
     argText = ""
     if ob is not None:
         if inspect.isclass(ob):
-            # Look for the highest __init__ in the class chain.
+            # 038296.python.CallTips.line124.comment Look for the highest __init__ in the class chain.
             fob = _find_constructor(ob)
             if fob is None:
                 fob = lambda: None
@@ -133,15 +133,15 @@ def get_arg_text(ob):
             except:
                 print("Failed to format the args")
                 traceback.print_exc()
-        # See if we can use the docstring
+        # 038297.python.CallTips.line136.comment See if we can use the docstring
         if hasattr(ob, "__doc__"):
             doc = ob.__doc__
             try:
                 doc = doc.strip()
                 pos = doc.find("\n")
             except AttributeError:
-                ## New style classes may have __doc__ slot without actually
-                ## having a string assigned to it
+                # 038298.python.CallTips.line143.comment # New style classes may have __doc__ slot without actually
+                # 038299.python.CallTips.line144.comment # having a string assigned to it
                 pass
             else:
                 if pos < 0 or pos > 70:
@@ -153,10 +153,10 @@ def get_arg_text(ob):
     return argText
 
 
-#################################################
-#
-# Test code
-#
+# 038300.python.CallTips.line156.comment ################################################
+# 038301.python.CallTips.line157.comment
+# 038302.python.CallTips.line158.comment Test code
+# 038303.python.CallTips.line159.comment
 if __name__ == "__main__":
 
     def t1():

@@ -41,17 +41,17 @@ from winerror import S_OK
 
 
 class DictionaryPolicy(policy.BasicWrapPolicy):
-    ### BasicWrapPolicy looks for this
+    # 049811.python.dictionary.line44.comment ## BasicWrapPolicy looks for this
     _com_interfaces_ = []
 
-    ### BasicWrapPolicy looks for this
+    # 049812.python.dictionary.line47.comment ## BasicWrapPolicy looks for this
     _name_to_dispid_ = {
         "item": pythoncom.DISPID_VALUE,
         "_newenum": pythoncom.DISPID_NEWENUM,
         "count": 1,
     }
 
-    ### Auto-Registration process looks for these...
+    # 049813.python.dictionary.line54.comment ## Auto-Registration process looks for these...
     _reg_desc_ = "Python Dictionary"
     _reg_clsid_ = "{39b61048-c755-11d0-86fa-00c04fc2e03e}"
     _reg_progid_ = "Python.Dictionary"
@@ -75,7 +75,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
 
             key = args[0]
             if not isinstance(key, str):
-                ### the nArgErr thing should be 0-based, not reversed... sigh
+                # 049816.python.dictionary.line78.comment ## the nArgErr thing should be 0-based, not reversed... sigh
                 raise COMException(
                     desc="Key must be a string", scode=winerror.DISP_E_TYPEMISMATCH
                 )
@@ -90,7 +90,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
             if l != 2:
                 raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
             if args[1] is None:
-                # delete a key when None is assigned to it
+                # 049818.python.dictionary.line93.comment delete a key when None is assigned to it
                 try:
                     del self._obj_[key]
                 except KeyError:
@@ -112,7 +112,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
         raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 
     def _getidsofnames_(self, names, lcid):
-        ### this is a copy of MappedWrapPolicy._getidsofnames_ ...
+        # 049821.python.dictionary.line115.comment ## this is a copy of MappedWrapPolicy._getidsofnames_ ...
 
         name = names[0].lower()
         try:

@@ -5,9 +5,9 @@ import win32security
 
 fname, tmp = win32api.GetTempFileName(win32api.GetTempPath(), "tmp")
 print(fname)
-## You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody
-## other than yourself or your primary group.  Most admin logins don't have it by default, so
-## enabling it may fail
+# 046192.python.setnamedsecurityinfo.line8.comment # You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody
+# 046193.python.setnamedsecurityinfo.line9.comment # other than yourself or your primary group.  Most admin logins don't have it by default, so
+# 046194.python.setnamedsecurityinfo.line10.comment # enabling it may fail
 new_privs = (
     (
         win32security.LookupPrivilegeValue("", win32security.SE_SECURITY_NAME),
@@ -99,7 +99,7 @@ new_sd = win32security.GetNamedSecurityInfo(
     fname, win32security.SE_FILE_OBJECT, all_info
 )
 
-## could do additional checking to make sure added ACE contains expected info
+# 046196.python.setnamedsecurityinfo.line102.comment # could do additional checking to make sure added ACE contains expected info
 if new_sd.GetSecurityDescriptorDacl().GetAceCount() != dacl_ace_cnt + 1:
     print("New dacl doesn't contain extra ace ????")
 if new_sd.GetSecurityDescriptorSacl().GetAceCount() != sacl_ace_cnt + 1:

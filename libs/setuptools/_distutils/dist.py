@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from _typeshed import SupportsWrite
     from typing_extensions import TypeAlias
 
-    # type-only import because of mutual dependence between these modules
+    # 040413.python.dist.line46.comment type-only import because of mutual dependence between these modules
     from .cmd import Command
 
 _CommandT = TypeVar("_CommandT", bound="Command")
@@ -52,20 +52,20 @@ _OptionsList: TypeAlias = list[
 ]
 
 
-# Regex to define acceptable Distutils command names.  This is not *quite*
-# the same as a Python NAME -- I don't allow leading underscores.  The fact
-# that they're very similar is no coincidence; the default naming scheme is
-# to look for a Python module named after the command.
+# 040414.python.dist.line55.comment Regex to define acceptable Distutils command names.  This is not *quite*
+# 040415.python.dist.line56.comment the same as a Python NAME -- I don't allow leading underscores.  The fact
+# 040416.python.dist.line57.comment that they're very similar is no coincidence; the default naming scheme is
+# 040417.python.dist.line58.comment to look for a Python module named after the command.
 command_re = re.compile(r'^[a-zA-Z]([a-zA-Z0-9_]*)$')
 
 
 def _ensure_list(value: str | Iterable[str], fieldname) -> str | list[str]:
     if isinstance(value, str):
-        # a string containing comma separated values is okay.  It will
-        # be converted to a list by Distribution.finalize_options().
+        # 040418.python.dist.line64.comment a string containing comma separated values is okay.  It will
+        # 040419.python.dist.line65.comment be converted to a list by Distribution.finalize_options().
         pass
     elif not isinstance(value, list):
-        # passing a tuple or an iterator perhaps, warn and convert
+        # 040420.python.dist.line68.comment passing a tuple or an iterator perhaps, warn and convert
         typename = type(value).__name__
         msg = "Warning: '{fieldname}' should be a list, got type '{typename}'"
         msg = msg.format(**locals())
@@ -88,14 +88,14 @@ class Distribution:
     See the code for 'setup()', in core.py, for details.
     """
 
-    # 'global_options' describes the command-line options that may be
-    # supplied to the setup script prior to any actual commands.
-    # Eg. "./setup.py -n" or "./setup.py --quiet" both take advantage of
-    # these global options.  This list should be kept to a bare minimum,
-    # since every global option is also valid as a command option -- and we
-    # don't want to pollute the commands with too many options that they
-    # have minimal control over.
-    # The fourth entry for verbose means that it can be repeated.
+    # 040421.python.dist.line91.comment 'global_options' describes the command-line options that may be
+    # 040422.python.dist.line92.comment supplied to the setup script prior to any actual commands.
+    # 040423.python.dist.line93.comment Eg. "./setup.py -n" or "./setup.py --quiet" both take advantage of
+    # 040424.python.dist.line94.comment these global options.  This list should be kept to a bare minimum,
+    # 040425.python.dist.line95.comment since every global option is also valid as a command option -- and we
+    # 040426.python.dist.line96.comment don't want to pollute the commands with too many options that they
+    # 040427.python.dist.line97.comment have minimal control over.
+    # 040428.python.dist.line98.comment The fourth entry for verbose means that it can be repeated.
     global_options: ClassVar[_OptionsList] = [
         ('verbose', 'v', "run verbosely (default)", 1),
         ('quiet', 'q', "run quietly (turns verbosity off)"),
@@ -104,8 +104,8 @@ class Distribution:
         ('no-user-cfg', None, 'ignore pydistutils.cfg in your home directory'),
     ]
 
-    # 'common_usage' is a short (2-3 line) string describing the common
-    # usage of the setup script.
+    # 040429.python.dist.line107.comment 'common_usage' is a short (2-3 line) string describing the common
+    # 040430.python.dist.line108.comment usage of the setup script.
     common_usage: ClassVar[str] = """\
 Common commands: (see '--help-commands' for more)
 
@@ -113,7 +113,7 @@ Common commands: (see '--help-commands' for more)
   setup.py install    will install the package
 """
 
-    # options that are not propagated to the commands
+    # 040431.python.dist.line116.comment options that are not propagated to the commands
     display_options: ClassVar[_OptionsList] = [
         ('help-commands', None, "list all available commands"),
         ('name', None, "print package name"),
@@ -145,12 +145,12 @@ Common commands: (see '--help-commands' for more)
         translate_longopt(x[0]) for x in display_options
     ]
 
-    # negative options are options that exclude other options
+    # 040432.python.dist.line148.comment negative options are options that exclude other options
     negative_opt: ClassVar[dict[str, str]] = {'quiet': 'verbose'}
 
-    # -- Creation/initialization methods -------------------------------
+    # 040433.python.dist.line151.comment -- Creation/initialization methods -------------------------------
 
-    # Can't Unpack a TypedDict with optional properties, so using Any instead
+    # 040434.python.dist.line153.comment Can't Unpack a TypedDict with optional properties, so using Any instead
     def __init__(self, attrs: MutableMapping[str, Any] | None = None) -> None:  # noqa: C901
         """Construct a new Distribution instance: initialize all the
         attributes of a Distribution, and then use 'attrs' (a dictionary
@@ -162,64 +162,64 @@ Common commands: (see '--help-commands' for more)
         filled in with real command objects by 'parse_command_line()'.
         """
 
-        # Default values for our command-line options
+        # 040436.python.dist.line165.comment Default values for our command-line options
         self.verbose = True
         self.dry_run = False
         self.help = False
         for attr in self.display_option_names:
             setattr(self, attr, False)
 
-        # Store the distribution meta-data (name, version, author, and so
-        # forth) in a separate object -- we're getting to have enough
-        # information here (and enough command-line options) that it's
-        # worth it.  Also delegate 'get_XXX()' methods to the 'metadata'
-        # object in a sneaky and underhanded (but efficient!) way.
+        # 040437.python.dist.line172.comment Store the distribution meta-data (name, version, author, and so
+        # 040438.python.dist.line173.comment forth) in a separate object -- we're getting to have enough
+        # 040439.python.dist.line174.comment information here (and enough command-line options) that it's
+        # 040440.python.dist.line175.comment worth it.  Also delegate 'get_XXX()' methods to the 'metadata'
+        # 040441.python.dist.line176.comment object in a sneaky and underhanded (but efficient!) way.
         self.metadata = DistributionMetadata()
         for basename in self.metadata._METHOD_BASENAMES:
             method_name = "get_" + basename
             setattr(self, method_name, getattr(self.metadata, method_name))
 
-        # 'cmdclass' maps command names to class objects, so we
-        # can 1) quickly figure out which class to instantiate when
-        # we need to create a new command object, and 2) have a way
-        # for the setup script to override command classes
+        # 040442.python.dist.line182.comment 'cmdclass' maps command names to class objects, so we
+        # 040443.python.dist.line183.comment can 1) quickly figure out which class to instantiate when
+        # 040444.python.dist.line184.comment we need to create a new command object, and 2) have a way
+        # 040445.python.dist.line185.comment for the setup script to override command classes
         self.cmdclass: dict[str, type[Command]] = {}
 
-        # 'command_packages' is a list of packages in which commands
-        # are searched for.  The factory for command 'foo' is expected
-        # to be named 'foo' in the module 'foo' in one of the packages
-        # named here.  This list is searched from the left; an error
-        # is raised if no named package provides the command being
-        # searched for.  (Always access using get_command_packages().)
+        # 040446.python.dist.line188.comment 'command_packages' is a list of packages in which commands
+        # 040447.python.dist.line189.comment are searched for.  The factory for command 'foo' is expected
+        # 040448.python.dist.line190.comment to be named 'foo' in the module 'foo' in one of the packages
+        # 040449.python.dist.line191.comment named here.  This list is searched from the left; an error
+        # 040450.python.dist.line192.comment is raised if no named package provides the command being
+        # 040451.python.dist.line193.comment searched for.  (Always access using get_command_packages().)
         self.command_packages: str | list[str] | None = None
 
-        # 'script_name' and 'script_args' are usually set to sys.argv[0]
-        # and sys.argv[1:], but they can be overridden when the caller is
-        # not necessarily a setup script run from the command-line.
+        # 040452.python.dist.line196.comment 'script_name' and 'script_args' are usually set to sys.argv[0]
+        # 040453.python.dist.line197.comment and sys.argv[1:], but they can be overridden when the caller is
+        # 040454.python.dist.line198.comment not necessarily a setup script run from the command-line.
         self.script_name: str | os.PathLike[str] | None = None
         self.script_args: list[str] | None = None
 
-        # 'command_options' is where we store command options between
-        # parsing them (from config files, the command-line, etc.) and when
-        # they are actually needed -- ie. when the command in question is
-        # instantiated.  It is a dictionary of dictionaries of 2-tuples:
-        #   command_options = { command_name : { option : (source, value) } }
+        # 040455.python.dist.line202.comment 'command_options' is where we store command options between
+        # 040456.python.dist.line203.comment parsing them (from config files, the command-line, etc.) and when
+        # 040457.python.dist.line204.comment they are actually needed -- ie. when the command in question is
+        # 040458.python.dist.line205.comment instantiated.  It is a dictionary of dictionaries of 2-tuples:
+        # 040459.python.dist.line206.comment command_options = { command_name : { option : (source, value) } }
         self.command_options: dict[str, dict[str, tuple[str, str]]] = {}
 
-        # 'dist_files' is the list of (command, pyversion, file) that
-        # have been created by any dist commands run so far. This is
-        # filled regardless of whether the run is dry or not. pyversion
-        # gives sysconfig.get_python_version() if the dist file is
-        # specific to a Python version, 'any' if it is good for all
-        # Python versions on the target platform, and '' for a source
-        # file. pyversion should not be used to specify minimum or
-        # maximum required Python versions; use the metainfo for that
-        # instead.
+        # 040460.python.dist.line209.comment 'dist_files' is the list of (command, pyversion, file) that
+        # 040461.python.dist.line210.comment have been created by any dist commands run so far. This is
+        # 040462.python.dist.line211.comment filled regardless of whether the run is dry or not. pyversion
+        # 040463.python.dist.line212.comment gives sysconfig.get_python_version() if the dist file is
+        # 040464.python.dist.line213.comment specific to a Python version, 'any' if it is good for all
+        # 040465.python.dist.line214.comment Python versions on the target platform, and '' for a source
+        # 040466.python.dist.line215.comment file. pyversion should not be used to specify minimum or
+        # 040467.python.dist.line216.comment maximum required Python versions; use the metainfo for that
+        # 040468.python.dist.line217.comment instead.
         self.dist_files: list[tuple[str, str, str]] = []
 
-        # These options are really the business of various commands, rather
-        # than of the Distribution itself.  We provide aliases for them in
-        # Distribution as a convenience to the developer.
+        # 040469.python.dist.line220.comment These options are really the business of various commands, rather
+        # 040470.python.dist.line221.comment than of the Distribution itself.  We provide aliases for them in
+        # 040471.python.dist.line222.comment Distribution as a convenience to the developer.
         self.packages = None
         self.package_data: dict[str, list[str]] = {}
         self.package_dir = None
@@ -234,33 +234,33 @@ Common commands: (see '--help-commands' for more)
         self.data_files = None
         self.password = ''
 
-        # And now initialize bookkeeping stuff that can't be supplied by
-        # the caller at all.  'command_obj' maps command names to
-        # Command instances -- that's how we enforce that every command
-        # class is a singleton.
+        # 040472.python.dist.line237.comment And now initialize bookkeeping stuff that can't be supplied by
+        # 040473.python.dist.line238.comment the caller at all.  'command_obj' maps command names to
+        # 040474.python.dist.line239.comment Command instances -- that's how we enforce that every command
+        # 040475.python.dist.line240.comment class is a singleton.
         self.command_obj: dict[str, Command] = {}
 
-        # 'have_run' maps command names to boolean values; it keeps track
-        # of whether we have actually run a particular command, to make it
-        # cheap to "run" a command whenever we think we might need to -- if
-        # it's already been done, no need for expensive filesystem
-        # operations, we just check the 'have_run' dictionary and carry on.
-        # It's only safe to query 'have_run' for a command class that has
-        # been instantiated -- a false value will be inserted when the
-        # command object is created, and replaced with a true value when
-        # the command is successfully run.  Thus it's probably best to use
-        # '.get()' rather than a straight lookup.
+        # 040476.python.dist.line243.comment 'have_run' maps command names to boolean values; it keeps track
+        # 040477.python.dist.line244.comment of whether we have actually run a particular command, to make it
+        # 040478.python.dist.line245.comment cheap to "run" a command whenever we think we might need to -- if
+        # 040479.python.dist.line246.comment it's already been done, no need for expensive filesystem
+        # 040480.python.dist.line247.comment operations, we just check the 'have_run' dictionary and carry on.
+        # 040481.python.dist.line248.comment It's only safe to query 'have_run' for a command class that has
+        # 040482.python.dist.line249.comment been instantiated -- a false value will be inserted when the
+        # 040483.python.dist.line250.comment command object is created, and replaced with a true value when
+        # 040484.python.dist.line251.comment the command is successfully run.  Thus it's probably best to use
+        # 040485.python.dist.line252.comment '.get()' rather than a straight lookup.
         self.have_run: dict[str, bool] = {}
 
-        # Now we'll use the attrs dictionary (ultimately, keyword args from
-        # the setup script) to possibly override any or all of these
-        # distribution options.
+        # 040486.python.dist.line255.comment Now we'll use the attrs dictionary (ultimately, keyword args from
+        # 040487.python.dist.line256.comment the setup script) to possibly override any or all of these
+        # 040488.python.dist.line257.comment distribution options.
 
         if attrs:
-            # Pull out the set of command options and work on them
-            # specifically.  Note that this order guarantees that aliased
-            # command options will override any supplied redundantly
-            # through the general options dictionary.
+            # 040489.python.dist.line260.comment Pull out the set of command options and work on them
+            # 040490.python.dist.line261.comment specifically.  Note that this order guarantees that aliased
+            # 040491.python.dist.line262.comment command options will override any supplied redundantly
+            # 040492.python.dist.line263.comment through the general options dictionary.
             options = attrs.get('options')
             if options is not None:
                 del attrs['options']
@@ -275,8 +275,8 @@ Common commands: (see '--help-commands' for more)
                 msg = "'licence' distribution option is deprecated; use 'license'"
                 warnings.warn(msg)
 
-            # Now work on the rest of the attributes.  Any attribute that's
-            # not already defined is invalid!
+            # 040493.python.dist.line278.comment Now work on the rest of the attributes.  Any attribute that's
+            # 040494.python.dist.line279.comment not already defined is invalid!
             for key, val in attrs.items():
                 if hasattr(self.metadata, "set_" + key):
                     getattr(self.metadata, "set_" + key)(val)
@@ -288,16 +288,16 @@ Common commands: (see '--help-commands' for more)
                     msg = f"Unknown distribution option: {key!r}"
                     warnings.warn(msg)
 
-        # no-user-cfg is handled before other command line args
-        # because other args override the config files, and this
-        # one is needed before we can load the config files.
-        # If attrs['script_args'] wasn't passed, assume false.
-        #
-        # This also make sure we just look at the global options
+        # 040495.python.dist.line291.comment no-user-cfg is handled before other command line args
+        # 040496.python.dist.line292.comment because other args override the config files, and this
+        # 040497.python.dist.line293.comment one is needed before we can load the config files.
+        # 040498.python.dist.line294.comment If attrs['script_args'] wasn't passed, assume false.
+        # 040499.python.dist.line295.comment
+        # 040500.python.dist.line296.comment This also make sure we just look at the global options
         self.want_user_cfg = True
 
         if self.script_args is not None:
-            # Coerce any possible iterable from attrs into a list
+            # 040501.python.dist.line300.comment Coerce any possible iterable from attrs into a list
             self.script_args = list(self.script_args)
             for arg in self.script_args:
                 if not arg.startswith('-'):
@@ -343,7 +343,7 @@ Common commands: (see '--help-commands' for more)
                 for line in out.split('\n'):
                     self.announce(indent + "  " + line)
 
-    # -- Config file finding/parsing methods ---------------------------
+    # 040503.python.dist.line346.comment -- Config file finding/parsing methods ---------------------------
 
     def find_config_files(self):
         """Find as many configuration files as should be processed for this
@@ -369,28 +369,28 @@ Common commands: (see '--help-commands' for more)
         return files
 
     def _gen_paths(self):
-        # The system-wide Distutils config file
+        # 040504.python.dist.line372.comment The system-wide Distutils config file
         sys_dir = pathlib.Path(sys.modules['distutils'].__file__).parent
         yield sys_dir / "distutils.cfg"
 
-        # The per-user config file
+        # 040505.python.dist.line376.comment The per-user config file
         prefix = '.' * (os.name == 'posix')
         filename = prefix + 'pydistutils.cfg'
         if self.want_user_cfg:
             with contextlib.suppress(RuntimeError):
                 yield pathlib.Path('~').expanduser() / filename
 
-        # All platforms support local setup.cfg
+        # 040506.python.dist.line383.comment All platforms support local setup.cfg
         yield pathlib.Path('setup.cfg')
 
-        # Additional config indicated in the environment
+        # 040507.python.dist.line386.comment Additional config indicated in the environment
         with contextlib.suppress(TypeError):
             yield pathlib.Path(os.getenv("DIST_EXTRA_CONFIG"))
 
     def parse_config_files(self, filenames=None):  # noqa: C901
         from configparser import ConfigParser
 
-        # Ignore install directory options if we have a venv
+        # 040509.python.dist.line393.comment Ignore install directory options if we have a venv
         if sys.prefix != sys.base_prefix:
             ignore_options = [
                 'install-base',
@@ -433,12 +433,12 @@ Common commands: (see '--help-commands' for more)
                         opt = opt.replace('-', '_')
                         opt_dict[opt] = (filename, val)
 
-            # Make the ConfigParser forget everything (so we retain
-            # the original filenames that options come from)
+            # 040510.python.dist.line436.comment Make the ConfigParser forget everything (so we retain
+            # 040511.python.dist.line437.comment the original filenames that options come from)
             parser.__init__()
 
-        # If there was a "global" section in the config file, use it
-        # to set Distribution options.
+        # 040512.python.dist.line440.comment If there was a "global" section in the config file, use it
+        # 040513.python.dist.line441.comment to set Distribution options.
 
         if 'global' in self.command_options:
             for opt, (_src, val) in self.command_options['global'].items():
@@ -453,7 +453,7 @@ Common commands: (see '--help-commands' for more)
                 except ValueError as msg:
                     raise DistutilsOptionError(msg)
 
-    # -- Command-line parsing methods ----------------------------------
+    # 040515.python.dist.line456.comment -- Command-line parsing methods ----------------------------------
 
     def parse_command_line(self):
         """Parse the setup script's command line, taken from the
@@ -474,18 +474,18 @@ Common commands: (see '--help-commands' for more)
         execute commands (currently, this only happens if user asks for
         help).
         """
-        #
-        # We now have enough information to show the Macintosh dialog
-        # that allows the user to interactively specify the "command line".
-        #
+        # 040516.python.dist.line477.comment
+        # 040517.python.dist.line478.comment We now have enough information to show the Macintosh dialog
+        # 040518.python.dist.line479.comment that allows the user to interactively specify the "command line".
+        # 040519.python.dist.line480.comment
         toplevel_options = self._get_toplevel_options()
 
-        # We have to parse the command line a bit at a time -- global
-        # options, then the first command, then its options, and so on --
-        # because each command will be handled by a different class, and
-        # the options that are valid for a particular class aren't known
-        # until we have loaded the command class, which doesn't happen
-        # until we know what the command is.
+        # 040520.python.dist.line483.comment We have to parse the command line a bit at a time -- global
+        # 040521.python.dist.line484.comment options, then the first command, then its options, and so on --
+        # 040522.python.dist.line485.comment because each command will be handled by a different class, and
+        # 040523.python.dist.line486.comment the options that are valid for a particular class aren't known
+        # 040524.python.dist.line487.comment until we have loaded the command class, which doesn't happen
+        # 040525.python.dist.line488.comment until we know what the command is.
 
         self.commands = []
         parser = FancyGetopt(toplevel_options + self.display_options)
@@ -495,7 +495,7 @@ Common commands: (see '--help-commands' for more)
         option_order = parser.get_option_order()
         logging.getLogger().setLevel(logging.WARN - 10 * self.verbose)
 
-        # for display options we return immediately
+        # 040526.python.dist.line498.comment for display options we return immediately
         if self.handle_display_options(option_order):
             return
         while args:
@@ -503,23 +503,23 @@ Common commands: (see '--help-commands' for more)
             if args is None:  # user asked for help (and got it)
                 return
 
-        # Handle the cases of --help as a "global" option, ie.
-        # "setup.py --help" and "setup.py --help command ...".  For the
-        # former, we show global options (--verbose, --dry-run, etc.)
-        # and display-only options (--name, --version, etc.); for the
-        # latter, we omit the display-only options and show help for
-        # each command listed on the command line.
+        # 040528.python.dist.line506.comment Handle the cases of --help as a "global" option, ie.
+        # 040529.python.dist.line507.comment "setup.py --help" and "setup.py --help command ...".  For the
+        # 040530.python.dist.line508.comment former, we show global options (--verbose, --dry-run, etc.)
+        # 040531.python.dist.line509.comment and display-only options (--name, --version, etc.); for the
+        # 040532.python.dist.line510.comment latter, we omit the display-only options and show help for
+        # 040533.python.dist.line511.comment each command listed on the command line.
         if self.help:
             self._show_help(
                 parser, display_options=len(self.commands) == 0, commands=self.commands
             )
             return
 
-        # Oops, no commands found -- an end-user error
+        # 040534.python.dist.line518.comment Oops, no commands found -- an end-user error
         if not self.commands:
             raise DistutilsArgError("no commands supplied")
 
-        # All is well: return true
+        # 040535.python.dist.line522.comment All is well: return true
         return True
 
     def _get_toplevel_options(self):
@@ -545,32 +545,32 @@ Common commands: (see '--help-commands' for more)
         list if there are no more commands on the command line.  Returns
         None if the user asked for help on this command.
         """
-        # late import because of mutual dependence between these modules
+        # 040537.python.dist.line548.comment late import because of mutual dependence between these modules
         from distutils.cmd import Command
 
-        # Pull the current command from the head of the command line
+        # 040538.python.dist.line551.comment Pull the current command from the head of the command line
         command = args[0]
         if not command_re.match(command):
             raise SystemExit(f"invalid command name '{command}'")
         self.commands.append(command)
 
-        # Dig up the command class that implements this command, so we
-        # 1) know that it's a valid command, and 2) know which options
-        # it takes.
+        # 040539.python.dist.line557.comment Dig up the command class that implements this command, so we
+        # 040540.python.dist.line558.comment 1) know that it's a valid command, and 2) know which options
+        # 040541.python.dist.line559.comment it takes.
         try:
             cmd_class = self.get_command_class(command)
         except DistutilsModuleError as msg:
             raise DistutilsArgError(msg)
 
-        # Require that the command class be derived from Command -- want
-        # to be sure that the basic "command" interface is implemented.
+        # 040542.python.dist.line565.comment Require that the command class be derived from Command -- want
+        # 040543.python.dist.line566.comment to be sure that the basic "command" interface is implemented.
         if not issubclass(cmd_class, Command):
             raise DistutilsClassError(
                 f"command class {cmd_class} must subclass Command"
             )
 
-        # Also make sure that the command object provides a list of its
-        # known options.
+        # 040544.python.dist.line572.comment Also make sure that the command object provides a list of its
+        # 040545.python.dist.line573.comment known options.
         if not (
             hasattr(cmd_class, 'user_options')
             and isinstance(cmd_class.user_options, list)
@@ -581,15 +581,15 @@ Common commands: (see '--help-commands' for more)
             )
             raise DistutilsClassError(msg % cmd_class)
 
-        # If the command class has a list of negative alias options,
-        # merge it in with the global negative aliases.
+        # 040546.python.dist.line584.comment If the command class has a list of negative alias options,
+        # 040547.python.dist.line585.comment merge it in with the global negative aliases.
         negative_opt = self.negative_opt
         if hasattr(cmd_class, 'negative_opt'):
             negative_opt = negative_opt.copy()
             negative_opt.update(cmd_class.negative_opt)
 
-        # Check for help_options in command class.  They have a different
-        # format (tuple of four) so we need to preprocess them here.
+        # 040548.python.dist.line591.comment Check for help_options in command class.  They have a different
+        # 040549.python.dist.line592.comment format (tuple of four) so we need to preprocess them here.
         if hasattr(cmd_class, 'help_options') and isinstance(
             cmd_class.help_options, list
         ):
@@ -597,8 +597,8 @@ Common commands: (see '--help-commands' for more)
         else:
             help_options = []
 
-        # All commands support the global options too, just by adding
-        # in 'global_options'.
+        # 040550.python.dist.line600.comment All commands support the global options too, just by adding
+        # 040551.python.dist.line601.comment in 'global_options'.
         parser.set_option_table(
             self.global_options + cmd_class.user_options + help_options
         )
@@ -626,8 +626,8 @@ Common commands: (see '--help-commands' for more)
             if help_option_found:
                 return
 
-        # Put the options from the command-line into their official
-        # holding pen, the 'command_options' dictionary.
+        # 040552.python.dist.line629.comment Put the options from the command-line into their official
+        # 040553.python.dist.line630.comment holding pen, the 'command_options' dictionary.
         opt_dict = self.get_option_dict(command)
         for name, value in vars(opts).items():
             opt_dict[name] = ("command line", value)
@@ -662,7 +662,7 @@ Common commands: (see '--help-commands' for more)
         lists per-command help for every command name or command class
         in 'commands'.
         """
-        # late import because of mutual dependence between these modules
+        # 040554.python.dist.line665.comment late import because of mutual dependence between these modules
         from distutils.cmd import Command
         from distutils.core import gen_usage
 
@@ -706,18 +706,18 @@ Common commands: (see '--help-commands' for more)
         """
         from distutils.core import gen_usage
 
-        # User just wants a list of commands -- we'll print it out and stop
-        # processing now (ie. if they ran "setup --help-commands foo bar",
-        # we ignore "foo bar").
+        # 040555.python.dist.line709.comment User just wants a list of commands -- we'll print it out and stop
+        # 040556.python.dist.line710.comment processing now (ie. if they ran "setup --help-commands foo bar",
+        # 040557.python.dist.line711.comment we ignore "foo bar").
         if self.help_commands:
             self.print_commands()
             print()
             print(gen_usage(self.script_name))
             return 1
 
-        # If user supplied any of the "display metadata" options, then
-        # display that metadata in the order in which the user supplied the
-        # metadata options.
+        # 040558.python.dist.line718.comment If user supplied any of the "display metadata" options, then
+        # 040559.python.dist.line719.comment display that metadata in the order in which the user supplied the
+        # 040560.python.dist.line720.comment metadata options.
         any_display_options = 0
         is_display_option = set()
         for option in self.display_options:
@@ -786,8 +786,8 @@ Common commands: (see '--help-commands' for more)
         self.cmdclass, but not a standard command).  The descriptions come
         from the command class attribute 'description'.
         """
-        # Currently this is only used on Mac OS, for the Mac-only GUI
-        # Distutils interface (by Jack Jansen)
+        # 040561.python.dist.line789.comment Currently this is only used on Mac OS, for the Mac-only GUI
+        # 040562.python.dist.line790.comment Distutils interface (by Jack Jansen)
         import distutils.command
 
         std_commands = distutils.command.__all__
@@ -807,7 +807,7 @@ Common commands: (see '--help-commands' for more)
             rv.append((cmd, description))
         return rv
 
-    # -- Command class/object methods ----------------------------------
+    # 040563.python.dist.line810.comment -- Command class/object methods ----------------------------------
 
     def get_command_packages(self):
         """Return a list of packages from which commands are loaded."""
@@ -885,11 +885,11 @@ Common commands: (see '--help-commands' for more)
             cmd_obj = self.command_obj[command] = klass(self)
             self.have_run[command] = False
 
-            # Set any options that were supplied in config files
-            # or on the command line.  (NB. support for error
-            # reporting is lame here: any errors aren't reported
-            # until 'finalize_options()' is called, which means
-            # we won't report the source of the error.)
+            # 040564.python.dist.line888.comment Set any options that were supplied in config files
+            # 040565.python.dist.line889.comment or on the command line.  (NB. support for error
+            # 040566.python.dist.line890.comment reporting is lame here: any errors aren't reported
+            # 040567.python.dist.line891.comment until 'finalize_options()' is called, which means
+            # 040568.python.dist.line892.comment we won't report the source of the error.)
             options = self.command_options.get(command)
             if options:
                 self._set_command_options(cmd_obj, options)
@@ -988,7 +988,7 @@ Common commands: (see '--help-commands' for more)
 
         return command
 
-    # -- Methods that operate on the Distribution ----------------------
+    # 040570.python.dist.line991.comment -- Methods that operate on the Distribution ----------------------
 
     def announce(self, msg, level: int = logging.INFO) -> None:
         log.log(level, msg)
@@ -1001,7 +1001,7 @@ Common commands: (see '--help-commands' for more)
         for cmd in self.commands:
             self.run_command(cmd)
 
-    # -- Methods that operate on its Commands --------------------------
+    # 040571.python.dist.line1004.comment -- Methods that operate on its Commands --------------------------
 
     def run_command(self, command: str) -> None:
         """Do whatever it takes to run a command (including nothing at all,
@@ -1011,7 +1011,7 @@ Common commands: (see '--help-commands' for more)
         doesn't even have a command object yet, create one.  Then invoke
         'run()' on that command object (or an existing one).
         """
-        # Already been here, done that? then return silently.
+        # 040572.python.dist.line1014.comment Already been here, done that? then return silently.
         if self.have_run.get(command):
             return
 
@@ -1021,7 +1021,7 @@ Common commands: (see '--help-commands' for more)
         cmd_obj.run()
         self.have_run[command] = True
 
-    # -- Distribution query methods ------------------------------------
+    # 040573.python.dist.line1024.comment -- Distribution query methods ------------------------------------
 
     def has_pure_modules(self) -> bool:
         return len(self.packages or self.py_modules or []) > 0
@@ -1051,14 +1051,14 @@ Common commands: (see '--help-commands' for more)
             and not self.has_c_libraries()
         )
 
-    # -- Metadata query methods ----------------------------------------
+    # 040574.python.dist.line1054.comment -- Metadata query methods ----------------------------------------
 
-    # If you're looking for 'get_name()', 'get_version()', and so forth,
-    # they are defined in a sneaky way: the constructor binds self.get_XXX
-    # to self.metadata.get_XXX.  The actual code is in the
-    # DistributionMetadata class, below.
+    # 040575.python.dist.line1056.comment If you're looking for 'get_name()', 'get_version()', and so forth,
+    # 040576.python.dist.line1057.comment they are defined in a sneaky way: the constructor binds self.get_XXX
+    # 040577.python.dist.line1058.comment to self.metadata.get_XXX.  The actual code is in the
+    # 040578.python.dist.line1059.comment DistributionMetadata class, below.
     if TYPE_CHECKING:
-        # Unfortunately this means we need to specify them manually or not expose statically
+        # 040579.python.dist.line1061.comment Unfortunately this means we need to specify them manually or not expose statically
         def _(self) -> None:
             self.get_name = self.metadata.get_name
             self.get_version = self.metadata.get_version
@@ -1082,7 +1082,7 @@ Common commands: (see '--help-commands' for more)
             self.get_provides = self.metadata.get_provides
             self.get_obsoletes = self.metadata.get_obsoletes
 
-        # Default attributes generated in __init__ from self.display_option_names
+        # 040580.python.dist.line1085.comment Default attributes generated in __init__ from self.display_option_names
         help_commands: bool
         name: str | Literal[False]
         version: str | Literal[False]
@@ -1129,7 +1129,7 @@ class DistributionMetadata:
         "contact_email",
         "classifiers",
         "download_url",
-        # PEP 314
+        # 040581.python.dist.line1132.comment PEP 314
         "provides",
         "requires",
         "obsoletes",
@@ -1155,7 +1155,7 @@ class DistributionMetadata:
             self.platforms: str | list[str] | None = None
             self.classifiers: str | list[str] | None = None
             self.download_url: str | None = None
-            # PEP 314
+            # 040582.python.dist.line1158.comment PEP 314
             self.provides: str | list[str] | None = None
             self.requires: str | list[str] | None = None
             self.obsoletes: str | list[str] | None = None
@@ -1180,7 +1180,7 @@ class DistributionMetadata:
         self.name = _read_field('name')
         self.version = _read_field('version')
         self.description = _read_field('summary')
-        # we are filling author only.
+        # 040583.python.dist.line1183.comment we are filling author only.
         self.author = _read_field('author')
         self.maintainer = None
         self.author_email = _read_field('author-email')
@@ -1202,7 +1202,7 @@ class DistributionMetadata:
         self.platforms = _read_list('platform')
         self.classifiers = _read_list('classifier')
 
-        # PEP 314 - these fields only exist in 1.1
+        # 040584.python.dist.line1205.comment PEP 314 - these fields only exist in 1.1
         if metadata_version == '1.1':
             self.requires = _read_list('requires')
             self.provides = _read_list('provides')
@@ -1231,7 +1231,7 @@ class DistributionMetadata:
         ):
             version = '1.1'
 
-        # required fields
+        # 040585.python.dist.line1234.comment required fields
         file.write(f'Metadata-Version: {version}\n')
         file.write(f'Name: {self.get_name()}\n')
         file.write(f'Version: {self.get_version()}\n')
@@ -1240,7 +1240,7 @@ class DistributionMetadata:
             if val:
                 file.write(f"{header}: {val}\n")
 
-        # optional fields
+        # 040586.python.dist.line1243.comment optional fields
         maybe_write("Summary", self.get_description())
         maybe_write("Home-page", self.get_url())
         maybe_write("Author", self.get_contact())
@@ -1253,7 +1253,7 @@ class DistributionMetadata:
         self._write_list(file, 'Platform', self.get_platforms())
         self._write_list(file, 'Classifier', self.get_classifiers())
 
-        # PEP 314
+        # 040587.python.dist.line1256.comment PEP 314
         self._write_list(file, 'Requires', self.get_requires())
         self._write_list(file, 'Provides', self.get_provides())
         self._write_list(file, 'Obsoletes', self.get_obsoletes())
@@ -1263,7 +1263,7 @@ class DistributionMetadata:
         for value in values:
             file.write(f'{name}: {value}\n')
 
-    # -- Metadata query methods ----------------------------------------
+    # 040588.python.dist.line1266.comment -- Metadata query methods ----------------------------------------
 
     def get_name(self) -> str:
         return self.name or "UNKNOWN"
@@ -1346,7 +1346,7 @@ class DistributionMetadata:
     def get_download_url(self) -> str | None:
         return self.download_url
 
-    # PEP 314
+    # 040589.python.dist.line1349.comment PEP 314
     def get_requires(self) -> str | list[str]:
         return self.requires or []
 

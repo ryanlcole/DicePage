@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025819.python.test_system.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025820.python.test_system.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025821.python.test_system.line5.comment found in the LICENSE file.
 
 """Tests for system APIS."""
 
@@ -50,9 +50,9 @@ from psutil.tests import check_net_address
 from psutil.tests import pytest
 from psutil.tests import retry_on_failure
 
-# ===================================================================
-# --- System-related API tests
-# ===================================================================
+# 025822.python.test_system.line53.comment ===================================================================
+# 025823.python.test_system.line54.comment --- System-related API tests
+# 025824.python.test_system.line55.comment ===================================================================
 
 
 class TestProcessIter(PsutilTestCase):
@@ -95,7 +95,7 @@ class TestProcessIter(PsutilTestCase):
     def test_attrs(self):
         for p in psutil.process_iter(attrs=['pid']):
             assert list(p.info.keys()) == ['pid']
-        # yield again
+        # 025829.python.test_system.line98.comment yield again
         for p in psutil.process_iter(attrs=['pid']):
             assert list(p.info.keys()) == ['pid']
         with pytest.raises(ValueError):
@@ -220,8 +220,8 @@ class TestProcessAPIs(PsutilTestCase):
             try:
                 assert psutil.pid_exists(pid)
             except AssertionError:
-                # in case the process disappeared in meantime fail only
-                # if it is no longer in psutil.pids()
+                # 025831.python.test_system.line223.comment in case the process disappeared in meantime fail only
+                # 025832.python.test_system.line224.comment if it is no longer in psutil.pids()
                 time.sleep(0.1)
                 assert pid not in psutil.pids()
         pids = range(max(pids) + 15000, max(pids) + 16000)
@@ -303,7 +303,7 @@ class TestMiscAPIs(PsutilTestCase):
             assert not psutil.POSIX
             names.remove("WINDOWS")
 
-        # assert all other constants are set to False
+        # 025835.python.test_system.line306.comment assert all other constants are set to False
         for name in names:
             assert not getattr(psutil, name), name
 
@@ -342,7 +342,7 @@ class TestMemoryAPIs(PsutilTestCase):
         assert mem.total >= 0, mem
         assert mem.used >= 0, mem
         if mem.total > 0:
-            # likely a system with no swap partition
+            # 025836.python.test_system.line345.comment likely a system with no swap partition
             assert mem.free > 0, mem
         else:
             assert mem.free == 0, mem
@@ -376,7 +376,7 @@ class TestCpuAPIs(PsutilTestCase):
             assert logical >= cores
 
     def test_cpu_count_none(self):
-        # https://github.com/giampaolo/psutil/issues/1085
+        # 025838.python.test_system.line379.comment https://github.com/giampaolo/psutil/issues/1085
         for val in (-1, 0, None):
             with mock.patch(
                 'psutil._psplatform.cpu_count_logical', return_value=val
@@ -390,7 +390,7 @@ class TestCpuAPIs(PsutilTestCase):
                 assert m.called
 
     def test_cpu_times(self):
-        # Check type, value >= 0, str().
+        # 025839.python.test_system.line393.comment Check type, value >= 0, str().
         total = 0
         times = psutil.cpu_times()
         sum(times)
@@ -400,25 +400,25 @@ class TestCpuAPIs(PsutilTestCase):
             total += cp_time
         assert round(abs(total - sum(times)), 6) == 0
         str(times)
-        # CPU times are always supposed to increase over time
-        # or at least remain the same and that's because time
-        # cannot go backwards.
-        # Surprisingly sometimes this might not be the case (at
-        # least on Windows and Linux), see:
-        # https://github.com/giampaolo/psutil/issues/392
-        # https://github.com/giampaolo/psutil/issues/645
-        # if not WINDOWS:
-        #     last = psutil.cpu_times()
-        #     for x in range(100):
-        #         new = psutil.cpu_times()
-        #         for field in new._fields:
-        #             new_t = getattr(new, field)
-        #             last_t = getattr(last, field)
-        #             assert new_t >= last_t
-        #         last = new
+        # 025840.python.test_system.line403.comment CPU times are always supposed to increase over time
+        # 025841.python.test_system.line404.comment or at least remain the same and that's because time
+        # 025842.python.test_system.line405.comment cannot go backwards.
+        # 025843.python.test_system.line406.comment Surprisingly sometimes this might not be the case (at
+        # 025844.python.test_system.line407.comment least on Windows and Linux), see:
+        # 025845.python.test_system.line408.comment https://github.com/giampaolo/psutil/issues/392
+        # 025846.python.test_system.line409.comment https://github.com/giampaolo/psutil/issues/645
+        # 025847.python.test_system.line410.comment if not WINDOWS:
+        # 025848.python.test_system.line411.comment last = psutil.cpu_times()
+        # 025849.python.test_system.line412.comment for x in range(100):
+        # 025850.python.test_system.line413.comment new = psutil.cpu_times()
+        # 025851.python.test_system.line414.comment for field in new._fields:
+        # 025852.python.test_system.line415.comment new_t = getattr(new, field)
+        # 025853.python.test_system.line416.comment last_t = getattr(last, field)
+        # 025854.python.test_system.line417.comment assert new_t >= last_t
+        # 025855.python.test_system.line418.comment last = new
 
     def test_cpu_times_time_increases(self):
-        # Make sure time increases between calls.
+        # 025856.python.test_system.line421.comment Make sure time increases between calls.
         t1 = sum(psutil.cpu_times())
         stop_at = time.time() + GLOBAL_TIMEOUT
         while time.time() < stop_at:
@@ -428,7 +428,7 @@ class TestCpuAPIs(PsutilTestCase):
         raise pytest.fail("time remained the same")
 
     def test_per_cpu_times(self):
-        # Check type, value >= 0, str().
+        # 025857.python.test_system.line431.comment Check type, value >= 0, str().
         for times in psutil.cpu_times(percpu=True):
             total = 0
             sum(times)
@@ -442,27 +442,27 @@ class TestCpuAPIs(PsutilTestCase):
             psutil.cpu_times(percpu=False)
         )
 
-        # Note: in theory CPU times are always supposed to increase over
-        # time or remain the same but never go backwards. In practice
-        # sometimes this is not the case.
-        # This issue seemd to be afflict Windows:
-        # https://github.com/giampaolo/psutil/issues/392
-        # ...but it turns out also Linux (rarely) behaves the same.
-        # last = psutil.cpu_times(percpu=True)
-        # for x in range(100):
-        #     new = psutil.cpu_times(percpu=True)
-        #     for index in range(len(new)):
-        #         newcpu = new[index]
-        #         lastcpu = last[index]
-        #         for field in newcpu._fields:
-        #             new_t = getattr(newcpu, field)
-        #             last_t = getattr(lastcpu, field)
-        #             assert new_t >= last_t
-        #     last = new
+        # 025858.python.test_system.line445.comment Note: in theory CPU times are always supposed to increase over
+        # 025859.python.test_system.line446.comment time or remain the same but never go backwards. In practice
+        # 025860.python.test_system.line447.comment sometimes this is not the case.
+        # 025861.python.test_system.line448.comment This issue seemd to be afflict Windows:
+        # 025862.python.test_system.line449.comment https://github.com/giampaolo/psutil/issues/392
+        # 025863.python.test_system.line450.comment ...but it turns out also Linux (rarely) behaves the same.
+        # 025864.python.test_system.line451.comment last = psutil.cpu_times(percpu=True)
+        # 025865.python.test_system.line452.comment for x in range(100):
+        # 025866.python.test_system.line453.comment new = psutil.cpu_times(percpu=True)
+        # 025867.python.test_system.line454.comment for index in range(len(new)):
+        # 025868.python.test_system.line455.comment newcpu = new[index]
+        # 025869.python.test_system.line456.comment lastcpu = last[index]
+        # 025870.python.test_system.line457.comment for field in newcpu._fields:
+        # 025871.python.test_system.line458.comment new_t = getattr(newcpu, field)
+        # 025872.python.test_system.line459.comment last_t = getattr(lastcpu, field)
+        # 025873.python.test_system.line460.comment assert new_t >= last_t
+        # 025874.python.test_system.line461.comment last = new
 
     def test_per_cpu_times_2(self):
-        # Simulate some work load then make sure time have increased
-        # between calls.
+        # 025875.python.test_system.line464.comment Simulate some work load then make sure time have increased
+        # 025876.python.test_system.line465.comment between calls.
         tot1 = psutil.cpu_times(percpu=True)
         giveup_at = time.time() + GLOBAL_TIMEOUT
         while True:
@@ -480,9 +480,9 @@ class TestCpuAPIs(PsutilTestCase):
     )
     @retry_on_failure(30)
     def test_cpu_times_comparison(self):
-        # Make sure the sum of all per cpu times is almost equal to
-        # base "one cpu" times. On OpenBSD the sum of per-CPUs is
-        # higher for some reason.
+        # 025877.python.test_system.line483.comment Make sure the sum of all per cpu times is almost equal to
+        # 025878.python.test_system.line484.comment base "one cpu" times. On OpenBSD the sum of per-CPUs is
+        # 025879.python.test_system.line485.comment higher for some reason.
         base = psutil.cpu_times()
         per_cpu = psutil.cpu_times(percpu=True)
         summed_values = base._make([sum(num) for num in zip(*per_cpu)])
@@ -548,7 +548,7 @@ class TestCpuAPIs(PsutilTestCase):
             last = new
 
     def test_per_cpu_times_percent_negative(self):
-        # see: https://github.com/giampaolo/psutil/issues/645
+        # 025880.python.test_system.line551.comment see: https://github.com/giampaolo/psutil/issues/645
         psutil.cpu_times_percent(percpu=True)
         zero_times = [
             x._make([0 for x in range(len(x._fields))])
@@ -560,7 +560,7 @@ class TestCpuAPIs(PsutilTestCase):
                     self._test_cpu_percent(percent, None, None)
 
     def test_cpu_stats(self):
-        # Tested more extensively in per-platform test modules.
+        # 025881.python.test_system.line563.comment Tested more extensively in per-platform test modules.
         infos = psutil.cpu_stats()
         assert infos._fields == (
             'ctx_switches',
@@ -571,11 +571,11 @@ class TestCpuAPIs(PsutilTestCase):
         for name in infos._fields:
             value = getattr(infos, name)
             assert value >= 0
-            # on AIX, ctx_switches is always 0
+            # 025882.python.test_system.line574.comment on AIX, ctx_switches is always 0
             if not AIX and name in {'ctx_switches', 'interrupts'}:
                 assert value > 0
 
-    # TODO: remove this once 1892 is fixed
+    # 025883.python.test_system.line578.comment TODO: remove this once 1892 is fixed
     @pytest.mark.skipif(MACOS and AARCH64, reason="skipped due to #1892")
     @pytest.mark.skipif(not HAS_CPU_FREQ, reason="not supported")
     def test_cpu_freq(self):
@@ -622,24 +622,24 @@ class TestDiskAPIs(PsutilTestCase):
         assert usage.total > usage.free, usage
         assert 0 <= usage.percent <= 100, usage.percent
         if hasattr(shutil, 'disk_usage'):
-            # py >= 3.3, see: http://bugs.python.org/issue12442
+            # 025884.python.test_system.line625.comment py >= 3.3, see: http://bugs.python.org/issue12442
             shutil_usage = shutil.disk_usage(os.getcwd())
             tolerance = 5 * 1024 * 1024  # 5MB
             assert usage.total == shutil_usage.total
             assert abs(usage.free - shutil_usage.free) < tolerance
             if not MACOS_12PLUS:
-                # see https://github.com/giampaolo/psutil/issues/2147
+                # 025886.python.test_system.line631.comment see https://github.com/giampaolo/psutil/issues/2147
                 assert abs(usage.used - shutil_usage.used) < tolerance
 
-        # if path does not exist OSError ENOENT is expected across
-        # all platforms
+        # 025887.python.test_system.line634.comment if path does not exist OSError ENOENT is expected across
+        # 025888.python.test_system.line635.comment all platforms
         fname = self.get_testfn()
         with pytest.raises(FileNotFoundError):
             psutil.disk_usage(fname)
 
     @pytest.mark.skipif(not ASCII_FS, reason="not an ASCII fs")
     def test_disk_usage_unicode(self):
-        # See: https://github.com/giampaolo/psutil/issues/416
+        # 025889.python.test_system.line642.comment See: https://github.com/giampaolo/psutil/issues/416
         with pytest.raises(UnicodeEncodeError):
             psutil.disk_usage(UNICODE_SUFFIX)
 
@@ -653,7 +653,7 @@ class TestDiskAPIs(PsutilTestCase):
             assert isinstance(nt.fstype, str)
             assert isinstance(nt.opts, str)
 
-        # all = False
+        # 025890.python.test_system.line656.comment all = False
         ls = psutil.disk_partitions(all=False)
         assert ls
         for disk in ls:
@@ -663,14 +663,14 @@ class TestDiskAPIs(PsutilTestCase):
             if not POSIX:
                 assert os.path.exists(disk.device), disk
             else:
-                # we cannot make any assumption about this, see:
-                # http://goo.gl/p9c43
+                # 025891.python.test_system.line666.comment we cannot make any assumption about this, see:
+                # 025892.python.test_system.line667.comment http://goo.gl/p9c43
                 disk.device  # noqa: B018
-            # on modern systems mount points can also be files
+            # 025894.python.test_system.line669.comment on modern systems mount points can also be files
             assert os.path.exists(disk.mountpoint), disk
             assert disk.fstype, disk
 
-        # all = True
+        # 025895.python.test_system.line673.comment all = True
         ls = psutil.disk_partitions(all=True)
         assert ls
         for disk in psutil.disk_partitions(all=True):
@@ -681,14 +681,14 @@ class TestDiskAPIs(PsutilTestCase):
                 except OSError as err:
                     if GITHUB_ACTIONS and MACOS and err.errno == errno.EIO:
                         continue
-                    # http://mail.python.org/pipermail/python-dev/
-                    #     2012-June/120787.html
+                    # 025896.python.test_system.line684.comment http://mail.python.org/pipermail/python-dev/
+                    # 025897.python.test_system.line685.comment 2012-June/120787.html
                     if err.errno not in {errno.EPERM, errno.EACCES}:
                         raise
                 else:
                     assert os.path.exists(disk.mountpoint), disk
 
-        # ---
+        # 025898.python.test_system.line691.comment ---
 
         def find_mount_point(path):
             path = os.path.abspath(path)
@@ -733,15 +733,15 @@ class TestDiskAPIs(PsutilTestCase):
         assert ret is not None, "no disks on this system?"
         check_ntuple(ret)
         ret = psutil.disk_io_counters(perdisk=True)
-        # make sure there are no duplicates
+        # 025900.python.test_system.line736.comment make sure there are no duplicates
         assert len(ret) == len(set(ret))
         for key in ret:
             assert key, key
             check_ntuple(ret[key])
 
     def test_disk_io_counters_no_disks(self):
-        # Emulate a case where no disks are installed, see:
-        # https://github.com/giampaolo/psutil/issues/1062
+        # 025901.python.test_system.line743.comment Emulate a case where no disks are installed, see:
+        # 025902.python.test_system.line744.comment https://github.com/giampaolo/psutil/issues/1062
         with mock.patch(
             'psutil._psplatform.disk_io_counters', return_value={}
         ) as m:
@@ -782,8 +782,8 @@ class TestNetAPIs(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_NET_IO_COUNTERS, reason="not supported")
     def test_net_io_counters_no_nics(self):
-        # Emulate a case where no NICs are installed, see:
-        # https://github.com/giampaolo/psutil/issues/1062
+        # 025903.python.test_system.line785.comment Emulate a case where no NICs are installed, see:
+        # 025904.python.test_system.line786.comment https://github.com/giampaolo/psutil/issues/1062
         with mock.patch(
             'psutil._psplatform.net_io_counters', return_value={}
         ) as m:
@@ -797,11 +797,11 @@ class TestNetAPIs(PsutilTestCase):
 
         nic_stats = psutil.net_if_stats()
 
-        # Not reliable on all platforms (net_if_addrs() reports more
-        # interfaces).
-        # assert sorted(nics.keys()) == sorted(
-        #     psutil.net_io_counters(pernic=True).keys()
-        # )
+        # 025905.python.test_system.line800.comment Not reliable on all platforms (net_if_addrs() reports more
+        # 025906.python.test_system.line801.comment interfaces).
+        # 025907.python.test_system.line802.comment assert sorted(nics.keys()) == sorted(
+        # 025908.python.test_system.line803.comment psutil.net_io_counters(pernic=True).keys()
+        # 025909.python.test_system.line804.comment )
 
         families = {socket.AF_INET, socket.AF_INET6, psutil.AF_LINK}
         for nic, addrs in nics.items():
@@ -815,8 +815,8 @@ class TestNetAPIs(PsutilTestCase):
                 assert addr.family in families
                 assert isinstance(addr.family, enum.IntEnum)
                 if nic_stats[nic].isup:
-                    # Do not test binding to addresses of interfaces
-                    # that are down
+                    # 025910.python.test_system.line818.comment Do not test binding to addresses of interfaces
+                    # 025911.python.test_system.line819.comment that are down
                     if addr.family == socket.AF_INET:
                         with socket.socket(addr.family) as s:
                             s.bind((addr.address, 0))
@@ -839,18 +839,18 @@ class TestNetAPIs(PsutilTestCase):
                     addr.ptp,
                 ):
                     if ip is not None:
-                        # TODO: skip AF_INET6 for now because I get:
-                        # AddressValueError: Only hex digits permitted in
-                        # u'c6f3%lxcbr0' in u'fe80::c8e0:fff:fe54:c6f3%lxcbr0'
+                        # 025912.python.test_system.line842.comment TODO: skip AF_INET6 for now because I get:
+                        # 025913.python.test_system.line843.comment AddressValueError: Only hex digits permitted in
+                        # 025914.python.test_system.line844.comment u'c6f3%lxcbr0' in u'fe80::c8e0:fff:fe54:c6f3%lxcbr0'
                         if addr.family != socket.AF_INET6:
                             check_net_address(ip, addr.family)
-                # broadcast and ptp addresses are mutually exclusive
+                # 025915.python.test_system.line847.comment broadcast and ptp addresses are mutually exclusive
                 if addr.broadcast:
                     assert addr.ptp is None
                 elif addr.ptp:
                     assert addr.broadcast is None
 
-                # check broadcast address
+                # 025916.python.test_system.line853.comment check broadcast address
                 if (
                     addr.broadcast
                     and addr.netmask
@@ -867,9 +867,9 @@ class TestNetAPIs(PsutilTestCase):
             assert psutil.AF_LINK == -1
 
     def test_net_if_addrs_mac_null_bytes(self):
-        # Simulate that the underlying C function returns an incomplete
-        # MAC address. psutil is supposed to fill it with null bytes.
-        # https://github.com/giampaolo/psutil/issues/786
+        # 025917.python.test_system.line870.comment Simulate that the underlying C function returns an incomplete
+        # 025918.python.test_system.line871.comment MAC address. psutil is supposed to fill it with null bytes.
+        # 025919.python.test_system.line872.comment https://github.com/giampaolo/psutil/issues/786
         if POSIX:
             ret = [('em1', psutil.AF_LINK, '06:3d:29', None, None, None)]
         else:
@@ -906,7 +906,7 @@ class TestNetAPIs(PsutilTestCase):
         not (LINUX or BSD or MACOS), reason="LINUX or BSD or MACOS specific"
     )
     def test_net_if_stats_enodev(self):
-        # See: https://github.com/giampaolo/psutil/issues/1279
+        # 025920.python.test_system.line909.comment See: https://github.com/giampaolo/psutil/issues/1279
         with mock.patch(
             'psutil._psutil_posix.net_if_mtu',
             side_effect=OSError(errno.ENODEV, ""),

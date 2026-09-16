@@ -24,7 +24,7 @@ _ole32 = DebugLibrary('ole32')
 _oleaut32 = DebugLibrary('oleaut32')
 _shcore = DebugLibrary('shcore')
 
-# _gdi32
+# 031668.python.init.line27.comment _gdi32
 _gdi32.AddFontMemResourceEx.restype = HANDLE
 _gdi32.AddFontMemResourceEx.argtypes = [PVOID, DWORD, PVOID, POINTER(DWORD)]
 _gdi32.ChoosePixelFormat.restype = c_int
@@ -126,7 +126,7 @@ _user32.GetClientRect.restype = BOOL
 _user32.GetClientRect.argtypes = [HWND, LPRECT]
 _user32.GetCursorPos.restype = BOOL
 _user32.GetCursorPos.argtypes = [LPPOINT]
-# workaround for win 64-bit, see issue #664
+# 031671.python.init.line129.comment workaround for win 64-bit, see issue #664
 _user32.GetDC.restype = c_void_p  # HDC
 _user32.GetDC.argtypes = [c_void_p]  # [HWND]
 _user32.GetDesktopWindow.restype = HWND
@@ -167,7 +167,7 @@ _user32.RegisterHotKey.restype = BOOL
 _user32.RegisterHotKey.argtypes = [HWND, c_int, UINT, UINT]
 _user32.ReleaseCapture.restype = BOOL
 _user32.ReleaseCapture.argtypes = []
-# workaround for win 64-bit, see issue #664
+# 031675.python.init.line170.comment workaround for win 64-bit, see issue #664
 _user32.ReleaseDC.restype = c_int32  # c_int
 _user32.ReleaseDC.argtypes = [c_void_p, c_void_p]  # [HWND, HDC]
 _user32.ScreenToClient.restype = BOOL
@@ -213,7 +213,7 @@ _user32.UnregisterClassW.restype = BOOL
 _user32.UnregisterClassW.argtypes = [c_wchar_p, HINSTANCE]
 _user32.UnregisterHotKey.restype = BOOL
 _user32.UnregisterHotKey.argtypes = [HWND, c_int]
-# Raw inputs
+# 031678.python.init.line216.comment Raw inputs
 _user32.RegisterRawInputDevices.restype = BOOL
 _user32.RegisterRawInputDevices.argtypes = [PCRAWINPUTDEVICE, UINT, UINT]
 _user32.GetRawInputData.restype = UINT
@@ -252,7 +252,7 @@ if constants.WINDOWS_10_ANNIVERSARY_UPDATE_OR_GREATER:
     _user32.GetDpiForWindow.restype = UINT
     _user32.GetDpiForWindow.argtypes = [HWND]
 
-# dwmapi
+# 031679.python.init.line255.comment dwmapi
 _dwmapi.DwmIsCompositionEnabled.restype = c_int
 _dwmapi.DwmIsCompositionEnabled.argtypes = [POINTER(INT)]
 _dwmapi.DwmFlush.restype = c_int
@@ -262,7 +262,7 @@ _dwmapi.DwmGetColorizationColor.argtypes = [POINTER(DWORD), POINTER(BOOL)]
 _dwmapi.DwmEnableBlurBehindWindow.restype = HRESULT
 _dwmapi.DwmEnableBlurBehindWindow.argtypes = [HWND, POINTER(DWM_BLURBEHIND)]
 
-# _shell32
+# 031680.python.init.line265.comment _shell32
 _shell32.DragAcceptFiles.restype = c_void
 _shell32.DragAcceptFiles.argtypes = [HWND, BOOL]
 _shell32.DragFinish.restype = c_void
@@ -272,7 +272,7 @@ _shell32.DragQueryFileW.argtypes = [HDROP, UINT, LPWSTR, UINT]
 _shell32.DragQueryPoint.restype = BOOL
 _shell32.DragQueryPoint.argtypes = [HDROP, LPPOINT]
 
-# ole32
+# 031681.python.init.line275.comment ole32
 _ole32.CreateStreamOnHGlobal.argtypes = [HGLOBAL, BOOL, LPSTREAM]
 _ole32.CoInitialize.restype = HRESULT
 _ole32.CoInitialize.argtypes = [LPVOID]
@@ -287,13 +287,13 @@ _ole32.CoCreateInstance.argtypes = [com.REFIID, c_void_p, DWORD, com.REFIID, c_v
 _ole32.CoSetProxyBlanket.restype = HRESULT
 _ole32.CoSetProxyBlanket.argtypes = (c_void_p, DWORD, DWORD, c_void_p, DWORD, DWORD, c_void_p, DWORD)
 
-# oleaut32
+# 031682.python.init.line290.comment oleaut32
 _oleaut32.VariantInit.restype = c_void_p
 _oleaut32.VariantInit.argtypes = [c_void_p]
 _oleaut32.VariantClear.restype = HRESULT
 _oleaut32.VariantClear.argtypes = [c_void_p]
 
-#shcore
+# 031683.python.init.line296.comment shcore
 if constants.WINDOWS_8_1_OR_GREATER:
     _shcore.SetProcessDpiAwareness.argtypes = [PROCESS_DPI_AWARENESS]
     _shcore.SetProcessDpiAwareness.restype = HRESULT
@@ -331,7 +331,7 @@ if _debug_win32:
     set_errchecks(_ole32)
     set_errchecks(_oleaut32)
 
-# Initialize COM. Required for: WIC (DirectWrite), WMF, and XInput
+# 031686.python.init.line334.comment Initialize COM. Required for: WIC (DirectWrite), WMF, and XInput
 try:
     if pyglet.options["com_mta"] is True:
         _ole32.CoInitializeEx(None, constants.COINIT_MULTITHREADED)

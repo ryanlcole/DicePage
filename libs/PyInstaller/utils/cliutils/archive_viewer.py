@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009569.python.archive_viewer.line1.comment -----------------------------------------------------------------------------
+# 009570.python.archive_viewer.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 009571.python.archive_viewer.line3.comment
+# 009572.python.archive_viewer.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009573.python.archive_viewer.line5.comment or later) with exception for distributing the bootloader.
+# 009574.python.archive_viewer.line6.comment
+# 009575.python.archive_viewer.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009576.python.archive_viewer.line8.comment
+# 009577.python.archive_viewer.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009578.python.archive_viewer.line10.comment -----------------------------------------------------------------------------
 """
 Viewer for PyInstaller-generated archives.
 """
@@ -36,39 +36,39 @@ class ArchiveViewer:
 
         self.stack = []
 
-        # Recursive mode implies non-interactive mode
+        # 009579.python.archive_viewer.line39.comment Recursive mode implies non-interactive mode
         if self.recursive_mode:
             self.interactive_mode = False
 
     def main(self):
-        # Open top-level (initial) archive
+        # 009580.python.archive_viewer.line44.comment Open top-level (initial) archive
         archive = self._open_toplevel_archive(self.filename)
         archive_name = os.path.basename(self.filename)
         self.stack.append((archive_name, archive))
 
-        # Not-interactive mode
+        # 009581.python.archive_viewer.line49.comment Not-interactive mode
         if not self.interactive_mode:
             return self._non_interactive_processing()
 
-        # Interactive mode; show top-level archive
+        # 009582.python.archive_viewer.line53.comment Interactive mode; show top-level archive
         self._show_archive_contents(archive_name, archive)
 
-        # Interactive command processing
+        # 009583.python.archive_viewer.line56.comment Interactive command processing
         while True:
-            # Read command
+            # 009584.python.archive_viewer.line58.comment Read command
             try:
                 tokens = input('? ').split(None, 1)
             except EOFError:
-                # Ctrl-D
+                # 009585.python.archive_viewer.line62.comment Ctrl-D
                 print(file=sys.stderr)  # Clear line.
                 break
 
-            # Print usage?
+            # 009587.python.archive_viewer.line66.comment Print usage?
             if not tokens:
                 self._print_usage()
                 continue
 
-            # Process
+            # 009588.python.archive_viewer.line71.comment Process
             command = tokens[0].upper()
             if command == 'Q':
                 break
@@ -98,7 +98,7 @@ class ArchiveViewer:
             if not self.recursive_mode:
                 continue
 
-            # Scan for embedded archives
+            # 009589.python.archive_viewer.line101.comment Scan for embedded archives
             if isinstance(archive, CArchiveReader):
                 for name, (*_, typecode) in archive.toc.items():
                     if typecode == 'z':
@@ -133,16 +133,16 @@ class ArchiveViewer:
         return CArchiveReader(filename)
 
     def _open_embedded_archive(self, archive_name=None):
-        # Ask for name if not provided
+        # 009590.python.archive_viewer.line136.comment Ask for name if not provided
         if not archive_name:
             archive_name = input('Open name? ')
         archive_name = archive_name.strip()
 
-        # No name given; abort
+        # 009591.python.archive_viewer.line141.comment No name given; abort
         if not archive_name:
             return
 
-        # Open the embedded archive
+        # 009592.python.archive_viewer.line145.comment Open the embedded archive
         _, parent_archive = self.stack[-1]
 
         if not hasattr(parent_archive, 'open_embedded_archive'):
@@ -155,20 +155,20 @@ class ArchiveViewer:
             print(f"Could not open embedded archive {archive_name!r}: {e}", file=sys.stderr)
             return
 
-        # Add to stack and display contents
+        # 009593.python.archive_viewer.line158.comment Add to stack and display contents
         self.stack.append((archive_name, archive))
         self._show_archive_contents(archive_name, archive)
 
     def _extract_file(self, name=None):
-        # Ask for name if not provided
+        # 009594.python.archive_viewer.line163.comment Ask for name if not provided
         if not name:
             name = input('Extract name? ')
         name = name.strip()
 
-        # Archive
+        # 009595.python.archive_viewer.line168.comment Archive
         archive_name, archive = self.stack[-1]
 
-        # Retrieve data
+        # 009596.python.archive_viewer.line171.comment Retrieve data
         try:
             if isinstance(archive, CArchiveReader):
                 data = archive.extract(name)
@@ -182,7 +182,7 @@ class ArchiveViewer:
             print(f"Failed to extract data for entry {name!r} from {archive_name!r}: {e}", file=sys.stderr)
             return
 
-        # Write to file
+        # 009597.python.archive_viewer.line185.comment Write to file
         filename = input('Output filename? ')
         if not filename:
             print(repr(data))

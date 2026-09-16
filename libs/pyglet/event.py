@@ -147,7 +147,7 @@ class EventDispatcher:
     See the module docstring for usage.
     """
     event_types: list
-    # Placeholder empty stack; real stack is created only if needed
+    # 026327.python.event.line150.comment Placeholder empty stack; real stack is created only if needed
     _event_stack: tuple | list = ()
 
     @classmethod
@@ -175,11 +175,11 @@ class EventDispatcher:
         other object may also be specified, in which case it will be searched
         for callables with event names.
         """
-        # Create event stack if necessary
+        # 026330.python.event.line178.comment Create event stack if necessary
         if type(self._event_stack) is tuple:
             self._event_stack = []
 
-        # Place dict full of new handlers at beginning of stack
+        # 026331.python.event.line182.comment Place dict full of new handlers at beginning of stack
         self._event_stack.insert(0, {})  # type: ignore reportAttributeAccessIssue
         self.set_handlers(*args, **kwargs)
 
@@ -187,7 +187,7 @@ class EventDispatcher:
         """Implement handler matching on arguments for set_handlers and remove_handlers."""
         for obj in args:
             if inspect.isroutine(obj):
-                # Single magically named function
+                # 026333.python.event.line190.comment Single magically named function
                 name: str = obj.__name__
                 if name not in self.event_types:
                     msg = f'Unknown event "{name}"'
@@ -197,14 +197,14 @@ class EventDispatcher:
                 else:
                     yield name, obj
             else:
-                # Single instance with magically named methods
+                # 026334.python.event.line200.comment Single instance with magically named methods
                 for name in dir(obj):
                     if name in self.event_types:
                         meth = getattr(obj, name)
                         yield name, WeakMethod(meth, partial(self._remove_handler, name))
 
         for name, handler in kwargs.items():
-            # Function for handling given event (no magic)
+            # 026335.python.event.line207.comment Function for handling given event (no magic)
             if name not in self.event_types:
                 msg = f'Unknown event "{name}"'
                 raise EventException(msg)
@@ -219,7 +219,7 @@ class EventDispatcher:
         See :py:meth:`~pyglet.event.EventDispatcher.push_handlers` for the accepted
         argument types.
         """
-        # Create event stack if necessary
+        # 026336.python.event.line222.comment Create event stack if necessary
         if type(self._event_stack) is tuple:
             self._event_stack = [{}]
 
@@ -228,7 +228,7 @@ class EventDispatcher:
 
     def set_handler(self, name: str, handler: Callable) -> None:
         """Attach a single event handler."""
-        # Create event stack if necessary
+        # 026337.python.event.line231.comment Create event stack if necessary
         if type(self._event_stack) is tuple:
             self._event_stack = [{}]
 
@@ -256,7 +256,7 @@ class EventDispatcher:
         """
         handlers = list(self._get_handlers(args, kwargs))
 
-        # Find the first stack frame containing any of the handlers
+        # 026338.python.event.line259.comment Find the first stack frame containing any of the handlers
         def find_frame() -> dict | None:
             for _frame in self._event_stack:
                 for _name, _handler in handlers:
@@ -268,11 +268,11 @@ class EventDispatcher:
 
         frame = find_frame()
 
-        # No frame matched; no error.
+        # 026339.python.event.line271.comment No frame matched; no error.
         if not frame:
             return
 
-        # Remove each handler from the frame.
+        # 026340.python.event.line275.comment Remove each handler from the frame.
         for name, handler in handlers:
             try:
                 if frame[name] == handler:
@@ -280,7 +280,7 @@ class EventDispatcher:
             except KeyError:  # noqa: PERF203
                 pass
 
-        # Remove the frame if it's empty.
+        # 026342.python.event.line283.comment Remove the frame if it's empty.
         if not frame:
             self._event_stack.remove(frame)
 
@@ -309,7 +309,7 @@ class EventDispatcher:
         This is normally called from a dead ``WeakMethod`` to remove itself from the
         event stack.
         """
-        # Iterate over a copy as we might mutate the list
+        # 026343.python.event.line312.comment Iterate over a copy as we might mutate the list
         for frame in list(self._event_stack):
 
             if name in frame:
@@ -319,7 +319,7 @@ class EventDispatcher:
                         if not frame:
                             self._event_stack.remove(frame)
                 except TypeError:
-                    # weakref is already dead
+                    # 026344.python.event.line322.comment weakref is already dead
                     pass
 
     def dispatch_event(self, event_type: str, *args: Any) -> bool | None:
@@ -351,7 +351,7 @@ class EventDispatcher:
 
         invoked = False
 
-        # Search handler stack for matching event handlers
+        # 026345.python.event.line354.comment Search handler stack for matching event handlers
         for frame in list(self._event_stack):
             handler = frame.get(event_type, None)
             if not handler:
@@ -366,7 +366,7 @@ class EventDispatcher:
             except TypeError as exception:
                 self._raise_dispatch_exception(event_type, args, handler, exception)
 
-        # Check instance for an event handler
+        # 026346.python.event.line369.comment Check instance for an event handler
         try:
             if getattr(self, event_type)(*args):
                 return EVENT_HANDLED
@@ -398,18 +398,18 @@ class EventDispatcher:
         pyglet.app.platform_event_loop.post_event(self, event_type, *args)
 
     def _raise_dispatch_exception(self, event_type: str, args: Any, handler: Callable, exception: Exception) -> None:
-        # A common problem in applications is having the wrong number of
-        # arguments in an event handler.  This is caught as a TypeError in
-        # dispatch_event but the error message is obfuscated.
-        #
-        # Here we check if there is indeed a mismatch in argument count,
-        # and construct a more useful exception message if so.  If this method
-        # doesn't find a problem with the number of arguments, the error
-        # is re-raised as if we weren't here.
+        # 026347.python.event.line401.comment A common problem in applications is having the wrong number of
+        # 026348.python.event.line402.comment arguments in an event handler.  This is caught as a TypeError in
+        # 026349.python.event.line403.comment dispatch_event but the error message is obfuscated.
+        # 026350.python.event.line404.comment
+        # 026351.python.event.line405.comment Here we check if there is indeed a mismatch in argument count,
+        # 026352.python.event.line406.comment and construct a more useful exception message if so.  If this method
+        # 026353.python.event.line407.comment doesn't find a problem with the number of arguments, the error
+        # 026354.python.event.line408.comment is re-raised as if we weren't here.
 
         n_args = len(args)
 
-        # Inspect the handler
+        # 026355.python.event.line412.comment Inspect the handler
         argspecs = inspect.getfullargspec(handler)
         handler_args = argspecs.args
         handler_varargs = argspecs.varargs
@@ -417,19 +417,19 @@ class EventDispatcher:
 
         n_handler_args = len(handler_args)
 
-        # Remove "self" arg from handler if it's a bound method
+        # 026356.python.event.line420.comment Remove "self" arg from handler if it's a bound method
         if inspect.ismethod(handler) and handler.__self__:
             n_handler_args -= 1
 
-        # Allow *args varargs to overspecify arguments
+        # 026357.python.event.line424.comment Allow *args varargs to overspecify arguments
         if handler_varargs:
             n_handler_args = max(n_handler_args, n_args)
 
-        # Allow default values to overspecify arguments
+        # 026358.python.event.line428.comment Allow default values to overspecify arguments
         if handler_defaults and n_handler_args > n_args >= n_handler_args - len(handler_defaults):
             n_handler_args = n_args
 
-        # Construct a more informative message
+        # 026359.python.event.line432.comment Construct a more informative message
         if n_handler_args != n_args:
             if inspect.isfunction(handler) or inspect.ismethod(handler):
                 _, filename = os.path.split(handler.__code__.co_filename)
@@ -455,7 +455,7 @@ class EventDispatcher:
             for event_type, handler in handlers.items():
                 print(f" - '{event_type}': {handler}")
 
-    # Decorator
+    # 026360.python.event.line458.comment Decorator
 
     def event(self, *args: Any) -> Callable:
         """Function decorator for an event handler.
@@ -480,7 +480,7 @@ class EventDispatcher:
                 # ...
 
         """
-        # @window.event()
+        # 026361.python.event.line483.comment @window.event()
         if len(args) == 0:
 
             def decorator(function: Callable) -> Callable:
@@ -490,14 +490,14 @@ class EventDispatcher:
 
             return decorator
 
-        # @window.event
+        # 026362.python.event.line493.comment @window.event
         if inspect.isroutine(args[0]):
             func = args[0]
             name = func.__name__
             self.set_handler(name, func)
             return args[0]
 
-        # @window.event('on_resize')
+        # 026363.python.event.line500.comment @window.event('on_resize')
         if isinstance(args[0], str):
             name = args[0]
 

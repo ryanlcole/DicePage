@@ -6,15 +6,15 @@ from win32com.ifilter.ifiltercon import *
 
 
 class FileParser:
-    # Property IDs for the Storage Property Set
+    # 051372.python.filterDemo.line9.comment Property IDs for the Storage Property Set
     PIDS_BODY = 0x00000013
 
-    # property IDs for HTML Storage Property Set
+    # 051373.python.filterDemo.line12.comment property IDs for HTML Storage Property Set
     PIDH_DESCRIPTION = "DESCRIPTION"
     PIDH_HREF = "A.HREF"
     PIDH_IMGSRC = "IMG.SRC"
 
-    # conversion map to convert ifilter properties to more user friendly names
+    # 051374.python.filterDemo.line17.comment conversion map to convert ifilter properties to more user friendly names
     propertyToName = {
         PSGUID_STORAGE: {PIDS_BODY: "body"},
         PSGUID_SUMMARYINFORMATION: {
@@ -54,18 +54,18 @@ class FileParser:
                 errCnt = 0
                 while True:
                     try:
-                        # each chunk returns a tuple with the following:-
-                        # idChunk       = The chunk identifier. each chunk has a unique identifier
-                        # breakType     = The type of break that separates the previous chunk from the current chunk. Values are:-
-                        #                 CHUNK_NO_BREAK=0,CHUNK_EOW=1,CHUNK_EOS= 2,CHUNK_EOP= 3,CHUNK_EOC= 4
-                        # flags         = Flags indicate whether this chunk contains a text-type or a value-type property
-                        #                 locale = The language and sublanguage associated with a chunk of text
-                        # attr          = A tuple containing the property to be applied to the chunk. Tuple is (propertyset GUID, property ID)
-                        #                 Property ID can be a number or string
-                        # idChunkSource = The ID of the source of a chunk. The value of the idChunkSource member depends on the nature of the chunk
-                        # startSource   = The offset from which the source text for a derived chunk starts in the source chunk
-                        # lenSource     = The length in characters of the source text from which the current chunk was derived.
-                        #                 A zero value signifies character-by-character correspondence between the source text and the derived text.
+                        # 051375.python.filterDemo.line57.comment each chunk returns a tuple with the following:-
+                        # 051376.python.filterDemo.line58.comment idChunk       = The chunk identifier. each chunk has a unique identifier
+                        # 051377.python.filterDemo.line59.comment breakType     = The type of break that separates the previous chunk from the current chunk. Values are:-
+                        # 051378.python.filterDemo.line60.comment CHUNK_NO_BREAK=0,CHUNK_EOW=1,CHUNK_EOS= 2,CHUNK_EOP= 3,CHUNK_EOC= 4
+                        # 051379.python.filterDemo.line61.comment flags         = Flags indicate whether this chunk contains a text-type or a value-type property
+                        # 051380.python.filterDemo.line62.comment locale = The language and sublanguage associated with a chunk of text
+                        # 051381.python.filterDemo.line63.comment attr          = A tuple containing the property to be applied to the chunk. Tuple is (propertyset GUID, property ID)
+                        # 051382.python.filterDemo.line64.comment Property ID can be a number or string
+                        # 051383.python.filterDemo.line65.comment idChunkSource = The ID of the source of a chunk. The value of the idChunkSource member depends on the nature of the chunk
+                        # 051384.python.filterDemo.line66.comment startSource   = The offset from which the source text for a derived chunk starts in the source chunk
+                        # 051385.python.filterDemo.line67.comment lenSource     = The length in characters of the source text from which the current chunk was derived.
+                        # 051386.python.filterDemo.line68.comment A zero value signifies character-by-character correspondence between the source text and the derived text.
 
                         (
                             idChunk,
@@ -89,8 +89,8 @@ class FileParser:
                             lenSource,
                         )
 
-                        # attempt to map each property to a more user friendly name. If we don't know what it is just return
-                        # the set guid and property id. (note: the id can be a number or a string.
+                        # 051387.python.filterDemo.line92.comment attempt to map each property to a more user friendly name. If we don't know what it is just return
+                        # 051388.python.filterDemo.line93.comment the set guid and property id. (note: the id can be a number or a string.
                         propSet = self.propertyToName.get(attr[0])
                         if propSet:
                             propName = propSet.get(attr[1], "{}:{}".format(*attr))
@@ -99,14 +99,14 @@ class FileParser:
 
                     except pythoncom.com_error as e:
                         if e[0] == FILTER_E_END_OF_CHUNKS:
-                            # we have read all the chunks
+                            # 051389.python.filterDemo.line102.comment we have read all the chunks
                             break
                         elif e[0] in [
                             FILTER_E_EMBEDDING_UNAVAILABLE,
                             FILTER_E_LINK_UNAVAILABLE,
                         ]:
-                            # the next chunk can't be read. Also keep track of the number of times we
-                            # fail as some filters (ie. the Msoft office ones can get stuck here)
+                            # 051390.python.filterDemo.line108.comment the next chunk can't be read. Also keep track of the number of times we
+                            # 051391.python.filterDemo.line109.comment fail as some filters (ie. the Msoft office ones can get stuck here)
                             errCnt += 1
                             if errCnt > maxErrors:
                                 raise
@@ -119,18 +119,18 @@ class FileParser:
                             self._trace("Password required")
                             raise
                         else:
-                            # any other type of error really can't be recovered from
+                            # 051392.python.filterDemo.line122.comment any other type of error really can't be recovered from
                             raise
 
-                    # reset consecutive errors (some filters may get stuck in a lopp if embedding or link failures occurs
+                    # 051393.python.filterDemo.line125.comment reset consecutive errors (some filters may get stuck in a lopp if embedding or link failures occurs
                     errCnt = 0
 
                     if flags == CHUNK_TEXT:
-                        # it's a text segment - get all available text for this chunk.
+                        # 051394.python.filterDemo.line129.comment it's a text segment - get all available text for this chunk.
                         body_chunks = properties.setdefault(propName, [])
                         self._get_text(body_chunks)
                     elif flags == CHUNK_VALUE:
-                        # it's a data segment - get the value
+                        # 051395.python.filterDemo.line133.comment it's a data segment - get the value
                         properties[propName] = self.f.GetValue()
                     else:
                         self._trace("Unknown flag returned by GetChunk:", flags)

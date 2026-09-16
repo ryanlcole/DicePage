@@ -1,17 +1,17 @@
-# This is a simple serial port terminal demo.
-#
-# Its primary purpose is to demonstrate the native serial port access offered via
-# win32file.
+# 046399.python.win32comport_demo.line1.comment This is a simple serial port terminal demo.
+# 046400.python.win32comport_demo.line2.comment
+# 046401.python.win32comport_demo.line3.comment Its primary purpose is to demonstrate the native serial port access offered via
+# 046402.python.win32comport_demo.line4.comment win32file.
 
-# It uses 3 threads:
-# - The main thread, which cranks up the other 2 threads, then simply waits for them to exit.
-# - The user-input thread - blocks waiting for a keyboard character, and when found sends it
-#   out the COM port.  If the character is Ctrl+C, it stops, signalling the COM port thread to stop.
-# - The COM port thread is simply listening for input on the COM port, and prints it to the screen.
+# 046403.python.win32comport_demo.line6.comment It uses 3 threads:
+# 046404.python.win32comport_demo.line7.comment - The main thread, which cranks up the other 2 threads, then simply waits for them to exit.
+# 046405.python.win32comport_demo.line8.comment - The user-input thread - blocks waiting for a keyboard character, and when found sends it
+# 046406.python.win32comport_demo.line9.comment out the COM port.  If the character is Ctrl+C, it stops, signalling the COM port thread to stop.
+# 046407.python.win32comport_demo.line10.comment - The COM port thread is simply listening for input on the COM port, and prints it to the screen.
 
-# This demo uses userlapped IO, so that none of the read or write operations actually block (however,
-# in this sample, the very next thing we do _is_ block - so it shows off the concepts even though it
-# doesn't exploit them.
+# 046408.python.win32comport_demo.line12.comment This demo uses userlapped IO, so that none of the read or write operations actually block (however,
+# 046409.python.win32comport_demo.line13.comment in this sample, the very next thing we do _is_ block - so it shows off the concepts even though it
+# 046410.python.win32comport_demo.line14.comment doesn't exploit them.
 
 import msvcrt  # For the getch() function.
 import sys
@@ -53,7 +53,7 @@ from win32file import (  # The base COM port and file IO functions.
 
 
 def FindModem():
-    # Snoop over the comports, seeing if it is likely we have a modem.
+    # 046415.python.win32comport_demo.line56.comment Snoop over the comports, seeing if it is likely we have a modem.
     for i in range(1, 5):
         port = "COM%d" % (i,)
         try:
@@ -66,9 +66,9 @@ def FindModem():
                 win32con.FILE_ATTRIBUTE_NORMAL,
                 None,
             )
-            # It appears that an available COM port will always success here,
-            # just return 0 for the status flags.  We only care that it has _any_ status
-            # flags (and therefore probably a real modem)
+            # 046418.python.win32comport_demo.line69.comment It appears that an available COM port will always success here,
+            # 046419.python.win32comport_demo.line70.comment just return 0 for the status flags.  We only care that it has _any_ status
+            # 046420.python.win32comport_demo.line71.comment flags (and therefore probably a real modem)
             if GetCommModemStatus(handle) != 0:
                 return port
         except error:
@@ -76,7 +76,7 @@ def FindModem():
     return None
 
 
-# A basic synchronous COM port file-like object
+# 046422.python.win32comport_demo.line79.comment A basic synchronous COM port file-like object
 class SerialTTY:
     def __init__(self, port):
         if isinstance(port, int):
@@ -90,18 +90,18 @@ class SerialTTY:
             win32con.FILE_ATTRIBUTE_NORMAL | win32con.FILE_FLAG_OVERLAPPED,
             None,
         )
-        # Tell the port we want a notification on each char.
+        # 046425.python.win32comport_demo.line93.comment Tell the port we want a notification on each char.
         SetCommMask(self.handle, EV_RXCHAR)
-        # Setup a 4k buffer
+        # 046426.python.win32comport_demo.line95.comment Setup a 4k buffer
         SetupComm(self.handle, 4096, 4096)
-        # Remove anything that was there
+        # 046427.python.win32comport_demo.line97.comment Remove anything that was there
         PurgeComm(
             self.handle, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR
         )
-        # Setup for overlapped IO.
+        # 046428.python.win32comport_demo.line101.comment Setup for overlapped IO.
         timeouts = 0xFFFFFFFF, 0, 1000, 0, 1000
         SetCommTimeouts(self.handle, timeouts)
-        # Setup the connection info.
+        # 046429.python.win32comport_demo.line104.comment Setup the connection info.
         dcb = GetCommState(self.handle)
         dcb.BaudRate = CBR_115200
         dcb.ByteSize = 8
@@ -119,7 +119,7 @@ class SerialTTY:
                 if ord(ch) == 3:
                     break
                 WriteFile(self.handle, ch, overlapped)
-                # Wait for the write to complete.
+                # 046430.python.win32comport_demo.line122.comment Wait for the write to complete.
                 WaitForSingleObject(overlapped.hEvent, INFINITE)
         finally:
             SetEvent(self.eventStop)
@@ -128,8 +128,8 @@ class SerialTTY:
         overlapped = OVERLAPPED()
         overlapped.hEvent = CreateEvent(None, 1, 0, None)
         while 1:
-            # XXX - note we could _probably_ just use overlapped IO on the win32file.ReadFile() statement
-            # XXX but this tests the COM stuff!
+            # 046431.python.win32comport_demo.line131.comment XXX - note we could _probably_ just use overlapped IO on the win32file.ReadFile() statement
+            # 046432.python.win32comport_demo.line132.comment XXX but this tests the COM stuff!
             rc, mask = WaitCommEvent(self.handle, overlapped)
             if rc == 0:  # Character already ready!
                 SetEvent(overlapped.hEvent)
@@ -137,20 +137,20 @@ class SerialTTY:
                 [overlapped.hEvent, self.eventStop], 0, INFINITE
             )
             if rc == WAIT_OBJECT_0:
-                # Some input - read and print it
+                # 046434.python.win32comport_demo.line140.comment Some input - read and print it
                 flags, comstat = ClearCommError(self.handle)
                 rc, data = ReadFile(self.handle, comstat.cbInQue, overlapped)
                 WaitForSingleObject(overlapped.hEvent, INFINITE)
                 sys.stdout.write(data)
             else:
-                # Stop the thread!
-                # Just incase the user input thread uis still going, close it
+                # 046435.python.win32comport_demo.line146.comment Stop the thread!
+                # 046436.python.win32comport_demo.line147.comment Just incase the user input thread uis still going, close it
                 sys.stdout.close()
                 break
 
     def Run(self):
         self.eventStop = CreateEvent(None, 0, 0, None)
-        # Start the reader and writer threads.
+        # 046437.python.win32comport_demo.line153.comment Start the reader and writer threads.
         user_thread = threading.Thread(target=self._UserInputReaderThread)
         user_thread.start()
         com_thread = threading.Thread(target=self._ComPortThread)

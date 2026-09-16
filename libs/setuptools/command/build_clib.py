@@ -37,9 +37,9 @@ class build_clib(orig.build_clib):
 
             log.info("building '%s' library", lib_name)
 
-            # Make sure everything is the correct type.
-            # obj_deps should be a dictionary of keys as sources
-            # and a list/tuple of files that are its dependencies.
+            # 044375.python.build_clib.line40.comment Make sure everything is the correct type.
+            # 044376.python.build_clib.line41.comment obj_deps should be a dictionary of keys as sources
+            # 044377.python.build_clib.line42.comment and a list/tuple of files that are its dependencies.
             obj_deps = build_info.get('obj_deps', dict())
             if not isinstance(obj_deps, dict):
                 raise DistutilsSetupError(
@@ -49,8 +49,8 @@ class build_clib(orig.build_clib):
                 )
             dependencies = []
 
-            # Get the global dependencies that are specified by the '' key.
-            # These will go into every source's dependency list.
+            # 044378.python.build_clib.line52.comment Get the global dependencies that are specified by the '' key.
+            # 044379.python.build_clib.line53.comment These will go into every source's dependency list.
             global_deps = obj_deps.get('', list())
             if not isinstance(global_deps, (list, tuple)):
                 raise DistutilsSetupError(
@@ -59,8 +59,8 @@ class build_clib(orig.build_clib):
                     "type 'source: list'"
                 )
 
-            # Build the list to be used by newer_pairwise_group
-            # each source will be auto-added to its dependencies.
+            # 044380.python.build_clib.line62.comment Build the list to be used by newer_pairwise_group
+            # 044381.python.build_clib.line63.comment each source will be auto-added to its dependencies.
             for source in sources:
                 src_deps = [source]
                 src_deps.extend(global_deps)
@@ -80,9 +80,9 @@ class build_clib(orig.build_clib):
             )
 
             if newer_pairwise_group(dependencies, expected_objects) != ([], []):
-                # First, compile the source code to object files in the library
-                # directory.  (This should probably change to putting object
-                # files in a temporary build directory.)
+                # 044382.python.build_clib.line83.comment First, compile the source code to object files in the library
+                # 044383.python.build_clib.line84.comment directory.  (This should probably change to putting object
+                # 044384.python.build_clib.line85.comment files in a temporary build directory.)
                 macros = build_info.get('macros')
                 include_dirs = build_info.get('include_dirs')
                 cflags = build_info.get('cflags')
@@ -95,9 +95,9 @@ class build_clib(orig.build_clib):
                     debug=self.debug,
                 )
 
-            # Now "link" the object files together into a static library.
-            # (On Unix at least, this isn't really linking -- it just
-            # builds an archive.  Whatever.)
+            # 044385.python.build_clib.line98.comment Now "link" the object files together into a static library.
+            # 044386.python.build_clib.line99.comment (On Unix at least, this isn't really linking -- it just
+            # 044387.python.build_clib.line100.comment builds an archive.  Whatever.)
             self.compiler.create_static_lib(
                 expected_objects, lib_name, output_dir=self.build_clib, debug=self.debug
             )

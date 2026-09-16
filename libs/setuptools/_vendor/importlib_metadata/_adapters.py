@@ -35,7 +35,7 @@ class Message(email.message.Message):
     def __init__(self, *args, **kwargs):
         self._headers = self._repair_headers()
 
-    # suppress spurious error from mypy
+    # 042095.python.adapters.line38.comment suppress spurious error from mypy
     def __iter__(self):
         return super().__iter__()
 

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 011292.python.winutils.line1.comment -----------------------------------------------------------------------------
+# 011293.python.winutils.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 011294.python.winutils.line3.comment
+# 011295.python.winutils.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 011296.python.winutils.line5.comment or later) with exception for distributing the bootloader.
+# 011297.python.winutils.line6.comment
+# 011298.python.winutils.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 011299.python.winutils.line8.comment
+# 011300.python.winutils.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 011301.python.winutils.line10.comment -----------------------------------------------------------------------------
 """
 Utilities for Windows platform.
 """
@@ -30,10 +30,10 @@ def get_system_path():
     Return the required Windows system paths.
     """
     sys_dir = compat.win32api.GetSystemDirectory()
-    # Ensure C:\Windows\system32  and C:\Windows directories are always present in PATH variable.
-    # C:\Windows\system32 is valid even for 64-bit Windows. Access do DLLs are transparently redirected to
-    # C:\Windows\syswow64 for 64bit applactions.
-    # See http://msdn.microsoft.com/en-us/library/aa384187(v=vs.85).aspx
+    # 011302.python.winutils.line33.comment Ensure C:\Windows\system32  and C:\Windows directories are always present in PATH variable.
+    # 011303.python.winutils.line34.comment C:\Windows\system32 is valid even for 64-bit Windows. Access do DLLs are transparently redirected to
+    # 011304.python.winutils.line35.comment C:\Windows\syswow64 for 64bit applactions.
+    # 011305.python.winutils.line36.comment See http://msdn.microsoft.com/en-us/library/aa384187(v=vs.85).aspx
     return [sys_dir, get_windows_dir()]
 
 
@@ -54,26 +54,26 @@ def set_exe_build_timestamp(exe_path, timestamp):
     import pefile
 
     with pefile.PE(exe_path, fast_load=True) as pe:
-        # Manually perform a full load. We need it to load all headers, but specifying it in the constructor triggers
-        # byte statistics gathering that takes forever with large files. So we try to go around that...
+        # 011306.python.winutils.line57.comment Manually perform a full load. We need it to load all headers, but specifying it in the constructor triggers
+        # 011307.python.winutils.line58.comment byte statistics gathering that takes forever with large files. So we try to go around that...
         pe.full_load()
 
-        # Set build timestamp.
-        # See: https://0xc0decafe.com/malware-analyst-guide-to-pe-timestamps
+        # 011308.python.winutils.line61.comment Set build timestamp.
+        # 011309.python.winutils.line62.comment See: https://0xc0decafe.com/malware-analyst-guide-to-pe-timestamps
         timestamp = int(timestamp)
-        # Set timestamp field in FILE_HEADER
+        # 011310.python.winutils.line64.comment Set timestamp field in FILE_HEADER
         pe.FILE_HEADER.TimeDateStamp = timestamp
-        # MSVC-compiled executables contain (at least?) one DIRECTORY_ENTRY_DEBUG entry that also contains timestamp
-        # with same value as set in FILE_HEADER. So modify that as well, as long as it is set.
+        # 011311.python.winutils.line66.comment MSVC-compiled executables contain (at least?) one DIRECTORY_ENTRY_DEBUG entry that also contains timestamp
+        # 011312.python.winutils.line67.comment with same value as set in FILE_HEADER. So modify that as well, as long as it is set.
         debug_entries = getattr(pe, 'DIRECTORY_ENTRY_DEBUG', [])
         for debug_entry in debug_entries:
             if debug_entry.struct.TimeDateStamp:
                 debug_entry.struct.TimeDateStamp = timestamp
 
-        # Generate updated EXE data
+        # 011313.python.winutils.line73.comment Generate updated EXE data
         data = pe.write()
 
-    # Rewrite the exe
+    # 011314.python.winutils.line76.comment Rewrite the exe
     with open(exe_path, 'wb') as fp:
         fp.write(data)
 
@@ -87,22 +87,22 @@ def update_exe_pe_checksum(exe_path):
     """
     import pefile
 
-    # Compute checksum using our equivalent of the MapFileAndCheckSumW - for large files, it is significantly faster
-    # than pure-pyton pefile.PE.generate_checksum(). However, it requires the file to be on disk (i.e., cannot operate
-    # on a memory buffer).
+    # 011315.python.winutils.line90.comment Compute checksum using our equivalent of the MapFileAndCheckSumW - for large files, it is significantly faster
+    # 011316.python.winutils.line91.comment than pure-pyton pefile.PE.generate_checksum(). However, it requires the file to be on disk (i.e., cannot operate
+    # 011317.python.winutils.line92.comment on a memory buffer).
     try:
         checksum = compute_exe_pe_checksum(exe_path)
     except Exception as e:
         raise RuntimeError("Failed to compute PE checksum!") from e
 
-    # Update the checksum
+    # 011318.python.winutils.line98.comment Update the checksum
     with pefile.PE(exe_path, fast_load=True) as pe:
         pe.OPTIONAL_HEADER.CheckSum = checksum
 
-        # Generate updated EXE data
+        # 011319.python.winutils.line102.comment Generate updated EXE data
         data = pe.write()
 
-    # Rewrite the exe
+    # 011320.python.winutils.line105.comment Rewrite the exe
     with open(exe_path, 'wb') as fp:
         fp.write(data)
 
@@ -117,7 +117,7 @@ def compute_exe_pe_checksum(exe_path):
     This function is based on Wine's implementation of MapFileAndCheckSumW, and due to being based entirely on
     the pure widechar-API functions, it is not limited by the current code page.
     """
-    # ctypes bindings for relevant win32 API functions
+    # 011321.python.winutils.line120.comment ctypes bindings for relevant win32 API functions
     import ctypes
     from ctypes import windll, wintypes
 
@@ -187,7 +187,7 @@ def compute_exe_pe_checksum(exe_path):
     )
     CheckSumMappedFile.restype = wintypes.LPVOID
 
-    # Open file
+    # 011348.python.winutils.line190.comment Open file
     hFile = CreateFileW(
         ctypes.c_wchar_p(exe_path),
         0x80000000,  # dwDesiredAccess = GENERIC_READ
@@ -201,7 +201,7 @@ def compute_exe_pe_checksum(exe_path):
         err = GetLastError()
         raise RuntimeError(f"Failed to open file {exe_path}! Error code: {err}")
 
-    # Query file size
+    # 011355.python.winutils.line204.comment Query file size
     fileLength = wintypes.LARGE_INTEGER(0)
     if GetFileSizeEx(hFile, fileLength) == 0:
         err = GetLastError()
@@ -211,7 +211,7 @@ def compute_exe_pe_checksum(exe_path):
     if fileLength > (2**32 - 1):
         raise RuntimeError("Executable size exceeds maximum allowed executable size on Windows (4 GiB)!")
 
-    # Map the file
+    # 011356.python.winutils.line214.comment Map the file
     hMapping = CreateFileMappingW(
         hFile,
         None,  # lpFileMappingAttributes = NULL
@@ -225,7 +225,7 @@ def compute_exe_pe_checksum(exe_path):
         CloseHandle(hFile)
         raise RuntimeError(f"Failed to map file! Error code: {err}")
 
-    # Create map view
+    # 011362.python.winutils.line228.comment Create map view
     baseAddress = MapViewOfFile(
         hMapping,
         4,  # dwDesiredAccess = FILE_MAP_READ
@@ -239,14 +239,14 @@ def compute_exe_pe_checksum(exe_path):
         CloseHandle(hFile)
         raise RuntimeError(f"Failed to create map view! Error code: {err}")
 
-    # Finally, compute the checksum
+    # 011367.python.winutils.line242.comment Finally, compute the checksum
     headerSum = wintypes.DWORD(0)
     checkSum = wintypes.DWORD(0)
     ret = CheckSumMappedFile(baseAddress, fileLength, ctypes.byref(headerSum), ctypes.byref(checkSum))
     if ret is None:
         err = GetLastError()
 
-    # Cleanup
+    # 011368.python.winutils.line249.comment Cleanup
     UnmapViewOfFile(baseAddress)
     CloseHandle(hMapping)
     CloseHandle(hFile)

@@ -6,7 +6,7 @@ from win32com.client.util import Enumerator
 
 
 def DumpDebugApplicationNode(node, level=0):
-    # Recursive dump of a DebugApplicationNode
+    # 050866.python.dump.line9.comment Recursive dump of a DebugApplicationNode
     spacer = " " * level
     for desc, attr in [
         ("Node Name", axdebug.DOCUMENTNAMETYPE_APPNODE),
@@ -26,7 +26,7 @@ def DumpDebugApplicationNode(node, level=0):
     if doc:
         doctext = doc.QueryInterface(axdebug.IID_IDebugDocumentText)
         numLines, numChars = doctext.GetSize()
-        # text, attr = doctext.GetText(0, 20, 1)
+        # 050867.python.dump.line29.comment text, attr = doctext.GetText(0, 20, 1)
         text, attr = doctext.GetText(0, numChars, 1)
         print(f"{spacer}Text is '{text[:40] + '...'}', {len(text)} bytes long")
     else:

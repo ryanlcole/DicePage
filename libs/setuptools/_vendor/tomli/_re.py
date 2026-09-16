@@ -1,6 +1,6 @@
-# SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
-# Licensed to PSF under a Contributor Agreement.
+# 043369.python.re.line1.comment SPDX-License-Identifier: MIT
+# 043370.python.re.line2.comment SPDX-FileCopyrightText: 2021 Taneli Hukkinen
+# 043371.python.re.line3.comment Licensed to PSF under a Contributor Agreement.
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ from typing import Any
 
 from ._types import ParseFloat
 
-# E.g.
-# - 00:32:00.999999
-# - 00:32:00
+# 043372.python.re.line14.comment E.g.
+# 043373.python.re.line15.comment - 00:32:00.999999
+# 043374.python.re.line16.comment - 00:32:00
 _TIME_RE_STR = r"([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:\.([0-9]{1,6})[0-9]*)?"
 
 RE_NUMBER = re.compile(

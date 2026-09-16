@@ -1,5 +1,5 @@
-# shaelvien_visualizer.py
-# ShaelvienOS — Tkinter visualizer (elemental gravity + orbit + resonance)
+# 052591.python.shaelvien_visualizer.line1.comment shaelvien_visualizer.py
+# 052592.python.shaelvien_visualizer.line2.comment ShaelvienOS — Tkinter visualizer (elemental gravity + orbit + resonance)
 
 import threading, time, random, math, tkinter as tk
 from tkinter import Canvas

@@ -91,7 +91,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         self.paramlb = self.GetDlgItem(self.IDC_PARAMLIST)
         self.listview = self.GetDlgItem(self.IDC_LISTVIEW)
 
-        # Setup the listview columns
+        # 049170.python.tlbrowse.line94.comment Setup the listview columns
         itemDetails = (commctrl.LVCFMT_LEFT, 100, "Item", 0)
         self.listview.InsertColumn(0, itemDetails)
         itemDetails = (commctrl.LVCFMT_LEFT, 1024, "Details", 0)

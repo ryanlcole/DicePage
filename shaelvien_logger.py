@@ -1,5 +1,5 @@
-# shaelvien_logger.py
-# ShaelvienOS Portable – Unified Logging Core (Resonant Log Mode)
+# 052573.python.shaelvien_logger.line1.comment shaelvien_logger.py
+# 052574.python.shaelvien_logger.line2.comment ShaelvienOS Portable – Unified Logging Core (Resonant Log Mode)
 
 import os, time, logging, threading
 from logging.handlers import RotatingFileHandler
@@ -9,8 +9,8 @@ LOGS_DIR = Path(__file__).resolve().parent / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
 LOG_PATH = LOGS_DIR / "daemon.log"
 
-# ---------------------------------------------------------------------
-# Custom level for "SUCCESS" (between INFO and WARNING)
+# 052575.python.shaelvien_logger.line12.comment ---------------------------------------------------------------------
+# 052576.python.shaelvien_logger.line13.comment Custom level for "SUCCESS" (between INFO and WARNING)
 SUCCESS_LEVEL = 25
 logging.addLevelName(SUCCESS_LEVEL, "SUCCESS")
 
@@ -20,8 +20,8 @@ def success(self, message, *args, **kwargs):
 
 logging.Logger.success = success
 
-# ---------------------------------------------------------------------
-# Logger configuration
+# 052577.python.shaelvien_logger.line23.comment ---------------------------------------------------------------------
+# 052578.python.shaelvien_logger.line24.comment Logger configuration
 formatter = logging.Formatter(
     "[%(asctime)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S"
 )
@@ -36,8 +36,8 @@ log.setLevel(logging.WARNING)  # Default: WARNING + ERROR + SUCCESS
 log.addHandler(handler)
 log.propagate = False
 
-# ---------------------------------------------------------------------
-# Adaptive verbosity (switch from tray)
+# 052580.python.shaelvien_logger.line39.comment ---------------------------------------------------------------------
+# 052581.python.shaelvien_logger.line40.comment Adaptive verbosity (switch from tray)
 def set_level(mode: str):
     """Change logging verbosity: silent / normal / verbose"""
     mode = mode.lower().strip()
@@ -53,15 +53,15 @@ def set_level(mode: str):
     else:
         log.warning("Unknown log mode: %s", mode)
 
-# ---------------------------------------------------------------------
-# Cleanup daemon (runs in background)
+# 052582.python.shaelvien_logger.line56.comment ---------------------------------------------------------------------
+# 052583.python.shaelvien_logger.line57.comment Cleanup daemon (runs in background)
 def _cleanup_worker():
     while True:
         try:
             for f in LOGS_DIR.glob("*.log*"):
                 if f.stat().st_mtime < time.time() - 14 * 86400:
                     f.unlink()
-            # remove empty files (0 bytes)
+            # 052584.python.shaelvien_logger.line64.comment remove empty files (0 bytes)
             for f in LOGS_DIR.glob("*.log*"):
                 if f.stat().st_size == 0:
                     f.unlink()
@@ -72,8 +72,8 @@ def _cleanup_worker():
 _cleanup_thread = threading.Thread(target=_cleanup_worker, daemon=True)
 _cleanup_thread.start()
 
-# ---------------------------------------------------------------------
-# Helper wrappers for external use (drop-in replacement for _write_log)
+# 052586.python.shaelvien_logger.line75.comment ---------------------------------------------------------------------
+# 052587.python.shaelvien_logger.line76.comment Helper wrappers for external use (drop-in replacement for _write_log)
 def write(msg: str):
     """Legacy-style simple log (INFO level)."""
     log.info(msg)

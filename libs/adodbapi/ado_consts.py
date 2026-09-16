@@ -1,8 +1,8 @@
-# ADO enumerated constants documented on MSDN:
-# https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
-# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
+# 020390.python.ado_consts.line1.comment ADO enumerated constants documented on MSDN:
+# 020391.python.ado_consts.line2.comment https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
+# 020392.python.ado_consts.line3.comment TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
 
-# IsolationLevelEnum
+# 020393.python.ado_consts.line5.comment IsolationLevelEnum
 adXactUnspecified = -1
 adXactBrowse = 0x100
 adXactChaos = 0x10
@@ -13,23 +13,23 @@ adXactReadUncommitted = 0x100
 adXactRepeatableRead = 0x10000
 adXactSerializable = 0x100000
 
-# CursorLocationEnum
+# 020394.python.ado_consts.line16.comment CursorLocationEnum
 adUseClient = 3
 adUseServer = 2
 
-# CursorTypeEnum
+# 020395.python.ado_consts.line20.comment CursorTypeEnum
 adOpenDynamic = 2
 adOpenForwardOnly = 0
 adOpenKeyset = 1
 adOpenStatic = 3
 adOpenUnspecified = -1
 
-# CommandTypeEnum
+# 020396.python.ado_consts.line27.comment CommandTypeEnum
 adCmdText = 1
 adCmdStoredProc = 4
 adSchemaTables = 20
 
-# ParameterDirectionEnum
+# 020397.python.ado_consts.line32.comment ParameterDirectionEnum
 adParamInput = 1
 adParamInputOutput = 3
 adParamOutput = 2
@@ -51,17 +51,17 @@ def ado_direction_name(ado_dir):
         return f"unknown direction ({ado_dir})"
 
 
-# ObjectStateEnum
+# 020398.python.ado_consts.line54.comment ObjectStateEnum
 adStateClosed = 0
 adStateOpen = 1
 adStateConnecting = 2
 adStateExecuting = 4
 adStateFetching = 8
 
-# FieldAttributeEnum
+# 020399.python.ado_consts.line61.comment FieldAttributeEnum
 adFldMayBeNull = 0x40
 
-# ConnectModeEnum
+# 020400.python.ado_consts.line64.comment ConnectModeEnum
 adModeUnknown = 0
 adModeRead = 1
 adModeWrite = 2
@@ -72,15 +72,15 @@ adModeShareExclusive = 12
 adModeShareDenyNone = 16
 adModeRecursive = 0x400000
 
-# XactAttributeEnum
+# 020401.python.ado_consts.line75.comment XactAttributeEnum
 adXactCommitRetaining = 131072
 adXactAbortRetaining = 262144
 
 ado_error_TIMEOUT = -2147217871
 
-# DataTypeEnum - ADO Data types documented at:
-# http://msdn2.microsoft.com/en-us/library/ms675318.aspx
-# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/datatypeenum
+# 020402.python.ado_consts.line81.comment DataTypeEnum - ADO Data types documented at:
+# 020403.python.ado_consts.line82.comment http://msdn2.microsoft.com/en-us/library/ms675318.aspx
+# 020404.python.ado_consts.line83.comment TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/datatypeenum
 adArray = 0x2000
 adEmpty = 0x0
 adBSTR = 0x8
@@ -121,7 +121,7 @@ adVarNumeric = 0x8B
 adVarWChar = 0xCA
 adVariant = 0xC
 adWChar = 0x82
-# Additional constants used by introspection but not ADO itself
+# 020405.python.ado_consts.line124.comment Additional constants used by introspection but not ADO itself
 AUTO_FIELD_MARKER = -1000
 
 adTypeNames = {
@@ -171,54 +171,54 @@ def ado_type_name(ado_type):
     return adTypeNames.get(ado_type, f"unknown type ({ado_type})")
 
 
-# here in decimal, sorted by value
-# adEmpty 0 Specifies no value (DBTYPE_EMPTY).
-# adSmallInt 2 Indicates a two-byte signed integer (DBTYPE_I2).
-# adInteger 3 Indicates a four-byte signed integer (DBTYPE_I4).
-# adSingle 4 Indicates a single-precision floating-point value (DBTYPE_R4).
-# adDouble 5 Indicates a double-precision floating-point value (DBTYPE_R8).
-# adCurrency 6 Indicates a currency value (DBTYPE_CY). Currency is a fixed-point number
-#   with four digits to the right of the decimal point. It is stored in an eight-byte signed integer scaled by 10,000.
-# adDate 7 Indicates a date value (DBTYPE_DATE). A date is stored as a double, the whole part of which is
-#   the number of days since December 30, 1899, and the fractional part of which is the fraction of a day.
-# adBSTR 8 Indicates a null-terminated character string (Unicode) (DBTYPE_BSTR).
-# adIDispatch 9 Indicates a pointer to an IDispatch interface on a COM object (DBTYPE_IDISPATCH).
-# adError 10 Indicates a 32-bit error code (DBTYPE_ERROR).
-# adBoolean 11 Indicates a boolean value (DBTYPE_BOOL).
-# adVariant 12 Indicates an Automation Variant (DBTYPE_VARIANT).
-# adIUnknown 13 Indicates a pointer to an IUnknown interface on a COM object (DBTYPE_IUNKNOWN).
-# adDecimal 14 Indicates an exact numeric value with a fixed precision and scale (DBTYPE_DECIMAL).
-# adTinyInt 16 Indicates a one-byte signed integer (DBTYPE_I1).
-# adUnsignedTinyInt 17 Indicates a one-byte unsigned integer (DBTYPE_UI1).
-# adUnsignedSmallInt 18 Indicates a two-byte unsigned integer (DBTYPE_UI2).
-# adUnsignedInt 19 Indicates a four-byte unsigned integer (DBTYPE_UI4).
-# adBigInt 20 Indicates an eight-byte signed integer (DBTYPE_I8).
-# adUnsignedBigInt 21 Indicates an eight-byte unsigned integer (DBTYPE_UI8).
-# adFileTime 64 Indicates a 64-bit value representing the number of 100-nanosecond intervals since
-#    January 1, 1601 (DBTYPE_FILETIME).
-# adGUID 72 Indicates a globally unique identifier (GUID) (DBTYPE_GUID).
-# adBinary 128 Indicates a binary value (DBTYPE_BYTES).
-# adChar 129 Indicates a string value (DBTYPE_STR).
-# adWChar 130 Indicates a null-terminated Unicode character string (DBTYPE_WSTR).
-# adNumeric 131 Indicates an exact numeric value with a fixed precision and scale (DBTYPE_NUMERIC).
-#   adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT).
-# adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT).
-# adDBDate 133 Indicates a date value (yyyymmdd) (DBTYPE_DBDATE).
-# adDBTime 134 Indicates a time value (hhmmss) (DBTYPE_DBTIME).
-# adDBTimeStamp 135 Indicates a date/time stamp (yyyymmddhhmmss plus a fraction in billionths) (DBTYPE_DBTIMESTAMP).
-# adChapter 136 Indicates a four-byte chapter value that identifies rows in a child rowset (DBTYPE_HCHAPTER).
-# adPropVariant 138 Indicates an Automation PROPVARIANT (DBTYPE_PROP_VARIANT).
-# adVarNumeric 139 Indicates a numeric value (Parameter object only).
-# adVarChar 200 Indicates a string value (Parameter object only).
-# adLongVarChar 201 Indicates a long string value (Parameter object only).
-# adVarWChar 202 Indicates a null-terminated Unicode character string (Parameter object only).
-# adLongVarWChar 203 Indicates a long null-terminated Unicode string value (Parameter object only).
-# adVarBinary 204 Indicates a binary value (Parameter object only).
-# adLongVarBinary 205 Indicates a long binary value (Parameter object only).
-# adArray (Does not apply to ADOX.) 0x2000 A flag value, always combined with another data type constant,
-#   that indicates an array of that other data type.
+# 020406.python.ado_consts.line174.comment here in decimal, sorted by value
+# 020407.python.ado_consts.line175.comment adEmpty 0 Specifies no value (DBTYPE_EMPTY).
+# 020408.python.ado_consts.line176.comment adSmallInt 2 Indicates a two-byte signed integer (DBTYPE_I2).
+# 020409.python.ado_consts.line177.comment adInteger 3 Indicates a four-byte signed integer (DBTYPE_I4).
+# 020410.python.ado_consts.line178.comment adSingle 4 Indicates a single-precision floating-point value (DBTYPE_R4).
+# 020411.python.ado_consts.line179.comment adDouble 5 Indicates a double-precision floating-point value (DBTYPE_R8).
+# 020412.python.ado_consts.line180.comment adCurrency 6 Indicates a currency value (DBTYPE_CY). Currency is a fixed-point number
+# 020413.python.ado_consts.line181.comment with four digits to the right of the decimal point. It is stored in an eight-byte signed integer scaled by 10,000.
+# 020414.python.ado_consts.line182.comment adDate 7 Indicates a date value (DBTYPE_DATE). A date is stored as a double, the whole part of which is
+# 020415.python.ado_consts.line183.comment the number of days since December 30, 1899, and the fractional part of which is the fraction of a day.
+# 020416.python.ado_consts.line184.comment adBSTR 8 Indicates a null-terminated character string (Unicode) (DBTYPE_BSTR).
+# 020417.python.ado_consts.line185.comment adIDispatch 9 Indicates a pointer to an IDispatch interface on a COM object (DBTYPE_IDISPATCH).
+# 020418.python.ado_consts.line186.comment adError 10 Indicates a 32-bit error code (DBTYPE_ERROR).
+# 020419.python.ado_consts.line187.comment adBoolean 11 Indicates a boolean value (DBTYPE_BOOL).
+# 020420.python.ado_consts.line188.comment adVariant 12 Indicates an Automation Variant (DBTYPE_VARIANT).
+# 020421.python.ado_consts.line189.comment adIUnknown 13 Indicates a pointer to an IUnknown interface on a COM object (DBTYPE_IUNKNOWN).
+# 020422.python.ado_consts.line190.comment adDecimal 14 Indicates an exact numeric value with a fixed precision and scale (DBTYPE_DECIMAL).
+# 020423.python.ado_consts.line191.comment adTinyInt 16 Indicates a one-byte signed integer (DBTYPE_I1).
+# 020424.python.ado_consts.line192.comment adUnsignedTinyInt 17 Indicates a one-byte unsigned integer (DBTYPE_UI1).
+# 020425.python.ado_consts.line193.comment adUnsignedSmallInt 18 Indicates a two-byte unsigned integer (DBTYPE_UI2).
+# 020426.python.ado_consts.line194.comment adUnsignedInt 19 Indicates a four-byte unsigned integer (DBTYPE_UI4).
+# 020427.python.ado_consts.line195.comment adBigInt 20 Indicates an eight-byte signed integer (DBTYPE_I8).
+# 020428.python.ado_consts.line196.comment adUnsignedBigInt 21 Indicates an eight-byte unsigned integer (DBTYPE_UI8).
+# 020429.python.ado_consts.line197.comment adFileTime 64 Indicates a 64-bit value representing the number of 100-nanosecond intervals since
+# 020430.python.ado_consts.line198.comment January 1, 1601 (DBTYPE_FILETIME).
+# 020431.python.ado_consts.line199.comment adGUID 72 Indicates a globally unique identifier (GUID) (DBTYPE_GUID).
+# 020432.python.ado_consts.line200.comment adBinary 128 Indicates a binary value (DBTYPE_BYTES).
+# 020433.python.ado_consts.line201.comment adChar 129 Indicates a string value (DBTYPE_STR).
+# 020434.python.ado_consts.line202.comment adWChar 130 Indicates a null-terminated Unicode character string (DBTYPE_WSTR).
+# 020435.python.ado_consts.line203.comment adNumeric 131 Indicates an exact numeric value with a fixed precision and scale (DBTYPE_NUMERIC).
+# 020436.python.ado_consts.line204.comment adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT).
+# 020437.python.ado_consts.line205.comment adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT).
+# 020438.python.ado_consts.line206.comment adDBDate 133 Indicates a date value (yyyymmdd) (DBTYPE_DBDATE).
+# 020439.python.ado_consts.line207.comment adDBTime 134 Indicates a time value (hhmmss) (DBTYPE_DBTIME).
+# 020440.python.ado_consts.line208.comment adDBTimeStamp 135 Indicates a date/time stamp (yyyymmddhhmmss plus a fraction in billionths) (DBTYPE_DBTIMESTAMP).
+# 020441.python.ado_consts.line209.comment adChapter 136 Indicates a four-byte chapter value that identifies rows in a child rowset (DBTYPE_HCHAPTER).
+# 020442.python.ado_consts.line210.comment adPropVariant 138 Indicates an Automation PROPVARIANT (DBTYPE_PROP_VARIANT).
+# 020443.python.ado_consts.line211.comment adVarNumeric 139 Indicates a numeric value (Parameter object only).
+# 020444.python.ado_consts.line212.comment adVarChar 200 Indicates a string value (Parameter object only).
+# 020445.python.ado_consts.line213.comment adLongVarChar 201 Indicates a long string value (Parameter object only).
+# 020446.python.ado_consts.line214.comment adVarWChar 202 Indicates a null-terminated Unicode character string (Parameter object only).
+# 020447.python.ado_consts.line215.comment adLongVarWChar 203 Indicates a long null-terminated Unicode string value (Parameter object only).
+# 020448.python.ado_consts.line216.comment adVarBinary 204 Indicates a binary value (Parameter object only).
+# 020449.python.ado_consts.line217.comment adLongVarBinary 205 Indicates a long binary value (Parameter object only).
+# 020450.python.ado_consts.line218.comment adArray (Does not apply to ADOX.) 0x2000 A flag value, always combined with another data type constant,
+# 020451.python.ado_consts.line219.comment that indicates an array of that other data type.
 
-# Error codes to names
+# 020452.python.ado_consts.line221.comment Error codes to names
 adoErrors = {
     0xE7B: "adErrBoundToCommand",
     0xE94: "adErrCannotComplete",

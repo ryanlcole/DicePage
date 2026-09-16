@@ -1,17 +1,17 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 012208.python.hook-bacon.line1.comment ------------------------------------------------------------------
+# 012209.python.hook-bacon.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 012210.python.hook-bacon.line3.comment
+# 012211.python.hook-bacon.line4.comment This file is distributed under the terms of the GNU General Public
+# 012212.python.hook-bacon.line5.comment License (version 2.0 or later).
+# 012213.python.hook-bacon.line6.comment
+# 012214.python.hook-bacon.line7.comment The full license is available in LICENSE, distributed with
+# 012215.python.hook-bacon.line8.comment this software.
+# 012216.python.hook-bacon.line9.comment
+# 012217.python.hook-bacon.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 012218.python.hook-bacon.line11.comment ------------------------------------------------------------------
 
-# Hook for Bacon (https://github.com/aholkner/bacon)
-# Bacon requires its native DLLs to be copied alongside frozen executable.
+# 012219.python.hook-bacon.line13.comment Hook for Bacon (https://github.com/aholkner/bacon)
+# 012220.python.hook-bacon.line14.comment Bacon requires its native DLLs to be copied alongside frozen executable.
 
 import os
 import ctypes

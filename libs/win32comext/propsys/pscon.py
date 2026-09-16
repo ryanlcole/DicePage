@@ -1,6 +1,6 @@
-# hand generated from propsys.h
+# 051483.python.pscon.line1.comment hand generated from propsys.h
 
-## PROPENUMTYPE, used with IPropertyEnumType
+# 051484.python.pscon.line3.comment # PROPENUMTYPE, used with IPropertyEnumType
 PET_DISCRETEVALUE = 0
 PET_RANGEDVALUE = 1
 PET_DEFAULTVALUE = 2
@@ -48,7 +48,7 @@ PDGR_DATE = 4
 PDGR_PERCENT = 5
 PDGR_ENUMERATED = 6
 
-## PROPDESC_FORMAT_FLAGS
+# 051485.python.pscon.line51.comment # PROPDESC_FORMAT_FLAGS
 PDFF_DEFAULT = 0
 PDFF_PREFIXNAME = 0x1
 PDFF_FILENAME = 0x2
@@ -107,7 +107,7 @@ PDCIT_NONE = 0
 PDCIT_ONDISK = 1
 PDCIT_INMEMORY = 2
 
-## PROPDESC_ENUMFILTER, used with IPropertySystem::EnumeratePropertyDescriptions
+# 051486.python.pscon.line110.comment # PROPDESC_ENUMFILTER, used with IPropertySystem::EnumeratePropertyDescriptions
 PDEF_ALL = 0
 PDEF_SYSTEM = 1
 PDEF_NONSYSTEM = 2
@@ -116,12 +116,12 @@ PDEF_QUERYABLE = 4
 PDEF_INFULLTEXTQUERY = 5
 PDEF_COLUMN = 6
 
-## PSC_STATE, used with IPropertyStoreCache
+# 051487.python.pscon.line119.comment # PSC_STATE, used with IPropertyStoreCache
 PSC_NORMAL = 0
 PSC_NOTINSOURCE = 1
 PSC_DIRTY = 2
 
-## CONDITION_OPERATION
+# 051488.python.pscon.line124.comment # CONDITION_OPERATION
 COP_IMPLICIT = 0
 COP_EQUAL = 1
 COP_NOTEQUAL = 2
@@ -138,16 +138,16 @@ COP_WORD_EQUAL = 12
 COP_WORD_STARTSWITH = 13
 COP_APPLICATION_SPECIFIC = 14
 
-## PERSIST_SPROPSTORE_FLAGS, used with IPersistSerializedPropStorage
+# 051489.python.pscon.line141.comment # PERSIST_SPROPSTORE_FLAGS, used with IPersistSerializedPropStorage
 FPSPS_READONLY = 1
 
 PKEY_PIDSTR_MAX = 10  # will take care of any long integer value
-# define GUIDSTRING_MAX      (1 + 8 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 12 + 1 + 1)  // "{12345678-1234-1234-1234-123456789012}"
+# 051491.python.pscon.line145.comment define GUIDSTRING_MAX      (1 + 8 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 12 + 1 + 1)  // "{12345678-1234-1234-1234-123456789012}"
 GUIDSTRING_MAX = 1 + 8 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 12 + 1 + 1  # hrm ???
-# define PKEYSTR_MAX         (GUIDSTRING_MAX + 1 + PKEY_PIDSTR_MAX)
+# 051493.python.pscon.line147.comment define PKEYSTR_MAX         (GUIDSTRING_MAX + 1 + PKEY_PIDSTR_MAX)
 PKEYSTR_MAX = GUIDSTRING_MAX + 1 + PKEY_PIDSTR_MAX
 
-## Property keys from propkey.h
+# 051494.python.pscon.line150.comment # Property keys from propkey.h
 from pywintypes import IID
 
 PKEY_Audio_ChannelCount = (IID("{64440490-4C8B-11D1-8B70-080036B11A03}"), 7)
@@ -833,7 +833,7 @@ PKEY_AppUserModel_ExcludeFromShowInNewInstall = (
 )
 PKEY_AppUserModel_PreventPinning = (IID("{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}"), 9)
 
-# PKA_FLAGS, used with IPropertyChange
+# 051495.python.pscon.line836.comment PKA_FLAGS, used with IPropertyChange
 PKA_SET = 0
 PKA_APPEND = 1
 PKA_DELETE = 2

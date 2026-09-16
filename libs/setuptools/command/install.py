@@ -12,7 +12,7 @@ import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
 
 if TYPE_CHECKING:
-    # This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
+    # 044556.python.install.line15.comment This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
     from .easy_install import easy_install as easy_install_cls
 else:
     easy_install_cls = None
@@ -46,8 +46,8 @@ class install(orig.install):
         'old-and-unmanageable',
         'single-version-externally-managed',
     ]
-    # Type the same as distutils.command.install.install.sub_commands
-    # Must keep the second tuple item potentially None due to invariance
+    # 044560.python.install.line49.comment Type the same as distutils.command.install.install.sub_commands
+    # 044561.python.install.line50.comment Must keep the second tuple item potentially None due to invariance
     new_commands: ClassVar[list[tuple[str, Callable[[Any], bool] | None]]] = [
         ('install_egg_info', lambda self: True),
         ('install_scripts', lambda self: True),
@@ -82,11 +82,11 @@ class install(orig.install):
 
     def handle_extra_path(self):
         if self.root or self.single_version_externally_managed:
-            # explicit backward-compatibility mode, allow extra_path to work
+            # 044562.python.install.line85.comment explicit backward-compatibility mode, allow extra_path to work
             return orig.install.handle_extra_path(self)
 
-        # Ignore extra_path when installing an egg (or being run by another
-        # command without --root or --single-version-externally-managed
+        # 044563.python.install.line88.comment Ignore extra_path when installing an egg (or being run by another
+        # 044564.python.install.line89.comment command without --root or --single-version-externally-managed
         self.path_file = None
         self.extra_dirs = ''
         return None
@@ -117,7 +117,7 @@ class install(orig.install):
             caller_module = caller.f_globals.get('__name__', '')
 
             if caller_module == "setuptools.dist" and info.function == "run_command":
-                # Starting from v61.0.0 setuptools overwrites dist.run_command
+                # 044565.python.install.line120.comment Starting from v61.0.0 setuptools overwrites dist.run_command
                 continue
 
             return caller_module == 'distutils.dist' and info.function == 'run_commands'
@@ -125,7 +125,7 @@ class install(orig.install):
         return False
 
 
-# XXX Python 3.1 doesn't see _nc if this is inside the class
+# 044566.python.install.line128.comment XXX Python 3.1 doesn't see _nc if this is inside the class
 install.sub_commands = [
     cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc
 ] + install.new_commands

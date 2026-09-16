@@ -112,8 +112,8 @@ class GdkPixBufLoader:
         return GdkPixBufAnimation(self, anim, gif_delays)
 
     def _get_gif_delays(self):
-        # GDK pixbuf animations will loop indefinitely if looping is enabled for the
-        # gif, so get number of frames and delays from gif metadata
+        # 030350.python.gdkpixbuf2.line115.comment GDK pixbuf animations will loop indefinitely if looping is enabled for the
+        # 030351.python.gdkpixbuf2.line116.comment gif, so get number of frames and delays from gif metadata
         assert self._file is not None
         self._file.seek(0)
         gif_stream = gif.read(self._file)
@@ -125,7 +125,7 @@ class GdkPixBuf:
     Wrapper around GdkPixBuf object.
     """
     def __init__(self, loader, pixbuf):
-        # Keep reference to loader alive
+        # 030352.python.gdkpixbuf2.line128.comment Keep reference to loader alive
         self._loader = loader
         self._pixbuf = pixbuf
         gdk.g_object_ref(pixbuf)
@@ -175,7 +175,7 @@ class GdkPixBuf:
 
         pixels = self.get_pixels()
 
-        # Determine appropriate GL type
+        # 030353.python.gdkpixbuf2.line178.comment Determine appropriate GL type
         if self.channels == 3:
             format = 'RGB'
         else:
@@ -219,7 +219,7 @@ class GdkPixBufAnimationIterator:
     def __del__(self):
         if self._iter is not None:
             gdk.g_object_unref(self._iter)
-        # The pixbuf returned by the iter is owned by the iter, so no need to destroy that one
+        # 030354.python.gdkpixbuf2.line222.comment The pixbuf returned by the iter is owned by the iter, so no need to destroy that one
 
     def __iter__(self):
         return self

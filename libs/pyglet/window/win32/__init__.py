@@ -69,7 +69,7 @@ from pyglet.window import (
     mouse,
 )
 
-# symbol,ctrl -> motion mapping
+# 036323.python.init.line72.comment symbol,ctrl -> motion mapping
 _motion_map: dict[tuple[int, bool], int] = {
     (key.UP, False): key.MOTION_UP,
     (key.RIGHT, False): key.MOTION_RIGHT,
@@ -98,8 +98,8 @@ class Win32MouseCursor(MouseCursor):
         self.cursor = cursor
 
 
-# This is global state, we have to be careful not to set the same state twice,
-# which will throw off the ShowCursor counter.
+# 036324.python.init.line101.comment This is global state, we have to be careful not to set the same state twice,
+# 036325.python.init.line102.comment which will throw off the ShowCursor counter.
 _win32_cursor_visible: bool = True
 
 Win32EventHandler = _PlatformEventHandler
@@ -136,7 +136,7 @@ class Win32Window(BaseWindow):
     _maximum_size: tuple[int, int] | None = None
 
     def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        # Bind event handlers
+        # 036328.python.init.line139.comment Bind event handlers
         self._event_handlers: dict[int, Callable] = {}
         self._view_event_handlers: dict[int, Callable] = {}
         for func_name in self._platform_event_names:
@@ -161,7 +161,7 @@ class Win32Window(BaseWindow):
         self._create()
 
     def _create(self) -> None:
-        # Ensure style is set before determining width/height.
+        # 036330.python.init.line164.comment Ensure style is set before determining width/height.
         if self._fullscreen:
             self._ws_style = constants.WS_POPUP
             self._ex_ws_style = 0  # WS_EX_TOPMOST
@@ -251,7 +251,7 @@ class Win32Window(BaseWindow):
                 self._window_class.hInstance,
                 0)
 
-            # View Hwnd is for the client area so certain events (mouse events) don't trigger outside of area.
+            # 036332.python.init.line254.comment View Hwnd is for the client area so certain events (mouse events) don't trigger outside of area.
             self._view_hwnd = _user32.CreateWindowExW(
                 0,
                 self._view_window_class.lpszClassName,
@@ -265,9 +265,9 @@ class Win32Window(BaseWindow):
 
             self._dc = _user32.GetDC(self._view_hwnd)
 
-            # Only allow files being dropped if specified.
+            # 036333.python.init.line268.comment Only allow files being dropped if specified.
             if self._file_drops:
-                # Allows UAC to not block the drop files request if low permissions. All 3 must be set.
+                # 036334.python.init.line270.comment Allows UAC to not block the drop files request if low permissions. All 3 must be set.
                 if constants.WINDOWS_7_OR_GREATER:
                     _user32.ChangeWindowMessageFilterEx(self._hwnd, constants.WM_DROPFILES, constants.MSGFLT_ALLOW,
                                                         None)
@@ -277,17 +277,17 @@ class Win32Window(BaseWindow):
 
                 _shell32.DragAcceptFiles(self._hwnd, True)
 
-            # Set the raw keyboard to handle shift state. This is required as legacy events cannot handle shift states
-            # when both keys are used together. View Hwnd as none changes focus to follow keyboard.
+            # 036335.python.init.line280.comment Set the raw keyboard to handle shift state. This is required as legacy events cannot handle shift states
+            # 036336.python.init.line281.comment when both keys are used together. View Hwnd as none changes focus to follow keyboard.
             raw_keyboard = RAWINPUTDEVICE(0x01, 0x06, 0, None)
             if not _user32.RegisterRawInputDevices(
                     byref(raw_keyboard), 1, sizeof(RAWINPUTDEVICE)):
                 print('Warning: Failed to unregister raw input keyboard.')
         else:
-            # Window already exists, update it with new style
+            # 036337.python.init.line287.comment Window already exists, update it with new style
 
-            # We need to hide window here, otherwise Windows forgets
-            # to redraw the whole screen after leaving fullscreen.
+            # 036338.python.init.line289.comment We need to hide window here, otherwise Windows forgets
+            # 036339.python.init.line290.comment to redraw the whole screen after leaving fullscreen.
             _user32.ShowWindow(self._hwnd, constants.SW_HIDE)
 
             _user32.SetWindowLongW(self._hwnd,
@@ -297,7 +297,7 @@ class Win32Window(BaseWindow):
                                    constants.GWL_EXSTYLE,
                                    self._ex_ws_style)
 
-        # Position and size window
+        # 036340.python.init.line300.comment Position and size window
         if self._fullscreen:
             hwnd_after = constants.HWND_TOPMOST if self.style == 'overlay' else constants.HWND_NOTOPMOST
             _user32.SetWindowPos(self._hwnd, hwnd_after,
@@ -313,7 +313,7 @@ class Win32Window(BaseWindow):
 
         self._update_view_location(self._width, self._height)
 
-        # Context must be created after window is created.
+        # 036341.python.init.line316.comment Context must be created after window is created.
         if not self._wgl_context:
             self.canvas = Win32Canvas(self.display, self._view_hwnd, self._dc)
             self.context.attach(self.canvas)
@@ -326,7 +326,7 @@ class Win32Window(BaseWindow):
 
         if self._visible:
             self.set_visible()
-            # Might need resize event if going from fullscreen to fullscreen
+            # 036343.python.init.line329.comment Might need resize event if going from fullscreen to fullscreen
             self.dispatch_event('_on_internal_resize', self._width, self._height)
             self.dispatch_event('on_expose')
 
@@ -377,7 +377,7 @@ class Win32Window(BaseWindow):
 
         self._interval = vsync
 
-        # Disable interval if composition is enabled to avoid conflict with DWM.
+        # 036344.python.init.line380.comment Disable interval if composition is enabled to avoid conflict with DWM.
         if not self._fullscreen and (self._always_dwm or self._dwm_composition_enabled()):
             vsync = 0
 
@@ -528,16 +528,16 @@ class Win32Window(BaseWindow):
         return self._width, self._height
 
     def _set_cursor_visibility(self, platform_visible: bool) -> None:
-        # Avoid calling ShowCursor with the current visibility (which would
-        # push the counter too far away from zero).
+        # 036345.python.init.line531.comment Avoid calling ShowCursor with the current visibility (which would
+        # 036346.python.init.line532.comment push the counter too far away from zero).
         global _win32_cursor_visible  # noqa: PLW0603
         if _win32_cursor_visible != platform_visible:
             _user32.ShowCursor(platform_visible)
             _win32_cursor_visible = platform_visible
 
     def _update_clipped_cursor(self) -> None:
-        # Clip to client area, to prevent large mouse movements taking
-        # it outside the client area.
+        # 036348.python.init.line539.comment Clip to client area, to prevent large mouse movements taking
+        # 036349.python.init.line540.comment it outside the client area.
         if self._in_title_bar or self._pending_click:
             return
 
@@ -546,7 +546,7 @@ class Win32Window(BaseWindow):
         _user32.MapWindowPoints(self._view_hwnd, constants.HWND_DESKTOP,
                                 byref(rect), 2)
 
-        # For some reason borders can be off 1 pixel, allowing cursor into frame/minimize/exit buttons?
+        # 036350.python.init.line549.comment For some reason borders can be off 1 pixel, allowing cursor into frame/minimize/exit buttons?
         rect.top += 1
         rect.left += 1
         rect.right -= 1
@@ -559,7 +559,7 @@ class Win32Window(BaseWindow):
                 self._exclusive_mouse_focus == self._has_focus:
             return
 
-        # Mouse: UsagePage = 1, Usage = 2
+        # 036351.python.init.line562.comment Mouse: UsagePage = 1, Usage = 2
         raw_mouse = RAWINPUTDEVICE(0x01, 0x02, 0, None)
         if not exclusive:
             raw_mouse.dwFlags = constants.RIDEV_REMOVE
@@ -575,7 +575,7 @@ class Win32Window(BaseWindow):
         if exclusive and self._has_focus:
             self._update_clipped_cursor()
         else:
-            # Release clip
+            # 036353.python.init.line578.comment Release clip
             _user32.ClipCursor(None)
 
         self._exclusive_mouse = exclusive
@@ -637,24 +637,24 @@ class Win32Window(BaseWindow):
         return Win32MouseCursor(cursor)
 
     def set_icon(self, *images: pyglet.image.ImageData) -> None:
-        # XXX Undocumented AFAICT, but XP seems happy to resize an image
-        # of any size, so no scaling necessary.
+        # 036354.python.init.line640.comment XXX Undocumented AFAICT, but XP seems happy to resize an image
+        # 036355.python.init.line641.comment of any size, so no scaling necessary.
 
         def best_image(width: int, height: int) -> pyglet.image.ImageData:
-            # A heuristic for finding the closest sized image to required size.
+            # 036356.python.init.line644.comment A heuristic for finding the closest sized image to required size.
             b_image = images[0]
             for img in images:
                 if img.width == width and img.height == height:
-                    # Exact match always used
+                    # 036357.python.init.line648.comment Exact match always used
                     return img
                 if img.width >= width and \
                         img.width * img.height > b_image.width * b_image.height:
-                    # At least wide enough, and largest area
+                    # 036358.python.init.line652.comment At least wide enough, and largest area
                     b_image = img
             return b_image
 
         def get_icon(img: pyglet.image.ImageData) -> HICON:
-            # Alpha-blended icon: see http://support.microsoft.com/kb/318876
+            # 036359.python.init.line657.comment Alpha-blended icon: see http://support.microsoft.com/kb/318876
             fmt = 'BGRA'
             pitch = len(fmt) * img.width
 
@@ -693,13 +693,13 @@ class Win32Window(BaseWindow):
 
             return icon_indirect
 
-        # Set large icon
+        # 036360.python.init.line696.comment Set large icon
         image = best_image(_user32.GetSystemMetrics(constants.SM_CXICON),
                            _user32.GetSystemMetrics(constants.SM_CYICON))
         icon = get_icon(image)
         _user32.SetClassLongPtrW(self._hwnd, constants.GCL_HICON, icon)
 
-        # Set small icon
+        # 036361.python.init.line702.comment Set small icon
         image = best_image(_user32.GetSystemMetrics(constants.SM_CXSMICON),
                            _user32.GetSystemMetrics(constants.SM_CYSMICON))
         icon = get_icon(image)
@@ -781,7 +781,7 @@ class Win32Window(BaseWindow):
         _user32.CloseClipboard()
         return text
 
-    # Private util
+    # 036365.python.init.line784.comment Private util
     def _client_to_window_size(self, width: int, height: int, dpi: int) -> tuple[int, int]:
         rect = RECT()
         rect.left = 0
@@ -828,7 +828,7 @@ class Win32Window(BaseWindow):
                 self._ws_style, False, self._ex_ws_style)
         return rect.left, rect.top
 
-    # Event dispatching
+    # 036366.python.init.line831.comment Event dispatching
 
     def dispatch_events(self) -> None:
         """Legacy or manual dispatch."""
@@ -848,10 +848,10 @@ class Win32Window(BaseWindow):
         while self._event_queue:
             event = self._event_queue.pop(0)
             if isinstance(event[0], str):
-                # pyglet event
+                # 036367.python.init.line851.comment pyglet event
                 EventDispatcher.dispatch_event(self, *event)
             else:
-                # win32 event
+                # 036368.python.init.line854.comment win32 event
                 event[0](*event[1:])
 
     def _get_window_proc(self, event_handlers: dict) -> Callable[[HWND, MSG, int, int], int | None]:
@@ -871,7 +871,7 @@ class Win32Window(BaseWindow):
 
         return f
 
-    # Event handlers
+    # 036369.python.init.line874.comment Event handlers
 
     def _get_modifiers(self, key_lParam: int = 0) -> int:
         modifiers = 0
@@ -942,7 +942,7 @@ class Win32Window(BaseWindow):
             else:
                 self.dispatch_event('on_text_motion', motion)
 
-        # Send on to DefWindowProc if not exclusive.
+        # 036374.python.init.line945.comment Send on to DefWindowProc if not exclusive.
         if self._exclusive_keyboard:
             return 0
 
@@ -989,9 +989,9 @@ class Win32Window(BaseWindow):
             if rmouse.usFlags & 0x01 == constants.MOUSE_MOVE_RELATIVE:
                 if rmouse.lLastX != 0 or rmouse.lLastY != 0:
                     scale = self.scale
-                    # Motion event
-                    # In relative motion, Y axis is positive for below.
-                    # We invert it for Pyglet so positive is motion up.
+                    # 036376.python.init.line992.comment Motion event
+                    # 036377.python.init.line993.comment In relative motion, Y axis is positive for below.
+                    # 036378.python.init.line994.comment We invert it for Pyglet so positive is motion up.
                     if self._exclusive_mouse_buttons:
                         self.dispatch_event('on_mouse_drag', 0, 0,
                                             rmouse.lLastX * scale, -rmouse.lLastY * scale,
@@ -1007,7 +1007,7 @@ class Win32Window(BaseWindow):
                 rel_x = rmouse.lLastX - last_x
                 rel_y = rmouse.lLastY - last_y
                 if rel_x != 0 or rel_y != 0.0:
-                    # Motion event
+                    # 036379.python.init.line1010.comment Motion event
                     if self._exclusive_mouse_buttons:
                         self.dispatch_event('on_mouse_drag', 0, 0,
                                             rmouse.lLastX, -rmouse.lLastY,
@@ -1057,10 +1057,10 @@ class Win32Window(BaseWindow):
         dy = y - self._mouse_y
 
         if not self._tracking:
-            # There is no WM_MOUSEENTER message (!), so fake it from the
-            # first WM_MOUSEMOVE event after leaving.  Use self._tracking
-            # to determine when to recreate the tracking structure after
-            # re-entering (to track the next WM_MOUSELEAVE).
+            # 036382.python.init.line1060.comment There is no WM_MOUSEENTER message (!), so fake it from the
+            # 036383.python.init.line1061.comment first WM_MOUSEMOVE event after leaving.  Use self._tracking
+            # 036384.python.init.line1062.comment to determine when to recreate the tracking structure after
+            # 036385.python.init.line1063.comment re-entering (to track the next WM_MOUSELEAVE).
             self._mouse_in_window = True
             self.set_mouse_platform_visible()
             self.dispatch_event('on_mouse_enter', x / self._mouse_scale, y / self._mouse_scale)
@@ -1071,8 +1071,8 @@ class Win32Window(BaseWindow):
             track.hwndTrack = self._view_hwnd
             _user32.TrackMouseEvent(byref(track))
 
-        # Don't generate motion/drag events when mouse hasn't moved. (Issue
-        # 305)
+        # 036386.python.init.line1074.comment Don't generate motion/drag events when mouse hasn't moved. (Issue
+        # 036387.python.init.line1075.comment 305)
         if self._mouse_x == x and self._mouse_y == y:
             return 0
 
@@ -1092,12 +1092,12 @@ class Win32Window(BaseWindow):
             buttons |= mouse.MOUSE5
 
         if buttons:
-            # Drag event
+            # 036388.python.init.line1095.comment Drag event
             modifiers = self._get_modifiers()
             self.dispatch_event('on_mouse_drag',
                                 x / self._mouse_scale, y / self._mouse_scale, dx / self._mouse_scale, dy / self._mouse_scale, buttons, modifiers)
         else:
-            # Motion event
+            # 036389.python.init.line1100.comment Motion event
             self.dispatch_event('on_mouse_motion', x / self._mouse_scale, y / self._mouse_scale, dx * self._mouse_scale, dy * self._mouse_scale)
         return 0
 
@@ -1198,9 +1198,9 @@ class Win32Window(BaseWindow):
     def _event_paint(self, msg: int, wParam: int, lParam: int) -> None:
         self.dispatch_event('on_expose')
 
-        # Validating the window using ValidateRect or ValidateRgn
-        # doesn't clear the paint message when more than one window
-        # is open [why?]; defer to DefWindowProc instead.
+        # 036390.python.init.line1201.comment Validating the window using ValidateRect or ValidateRgn
+        # 036391.python.init.line1202.comment doesn't clear the paint message when more than one window
+        # 036392.python.init.line1203.comment is open [why?]; defer to DefWindowProc instead.
         return
 
     @Win32EventHandler(constants.WM_SIZING)
@@ -1213,17 +1213,17 @@ class Win32Window(BaseWindow):
     @Win32EventHandler(constants.WM_SIZE)
     def _event_size(self, msg: int, wParam: int, lParam: int) -> int | None:
         if not self._dc:
-            # Ignore window creation size event (appears for fullscreen
-            # only) -- we haven't got DC or HWND yet.
+            # 036393.python.init.line1216.comment Ignore window creation size event (appears for fullscreen
+            # 036394.python.init.line1217.comment only) -- we haven't got DC or HWND yet.
             return None
 
         if wParam == constants.SIZE_MINIMIZED:
-            # Minimized, not resized.
+            # 036395.python.init.line1221.comment Minimized, not resized.
             self._hidden = True
             self.dispatch_event('on_hide')
             return 0
         if self._hidden:
-            # Restored
+            # 036396.python.init.line1226.comment Restored
             self._hidden = False
             self.dispatch_event('on_show')
         w, h = self._get_location(lParam)
@@ -1240,8 +1240,8 @@ class Win32Window(BaseWindow):
 
     @Win32EventHandler(constants.WM_SYSCOMMAND)
     def _event_syscommand(self, msg: int, wParam: int, lParam: int) -> int | None:
-        # check for ALT key to prevent app from hanging because there is
-        # no windows menu bar
+        # 036397.python.init.line1243.comment check for ALT key to prevent app from hanging because there is
+        # 036398.python.init.line1244.comment no windows menu bar
         if wParam == constants.SC_KEYMENU and lParam & (1 >> 16) <= 0:
             return 0
 
@@ -1303,16 +1303,16 @@ class Win32Window(BaseWindow):
 
         exclusive_keyboard = self._exclusive_keyboard
         exclusive_mouse = self._exclusive_mouse
-        # Disable both exclusive keyboard and mouse
+        # 036402.python.init.line1306.comment Disable both exclusive keyboard and mouse
         self.set_exclusive_keyboard(False)
         self.set_exclusive_mouse(False)
 
-        # Reset shift state on Window focus loss.
+        # 036403.python.init.line1310.comment Reset shift state on Window focus loss.
         for symbol in self._keyboard_state:
             self._keyboard_state[symbol] = False
 
-        # But save desired state and note that we lost focus
-        # This will allow to reset the correct mode once we regain focus
+        # 036404.python.init.line1314.comment But save desired state and note that we lost focus
+        # 036405.python.init.line1315.comment This will allow to reset the correct mode once we regain focus
         self._exclusive_keyboard = exclusive_keyboard
         self._exclusive_keyboard_focus = False
         self._exclusive_mouse = exclusive_mouse
@@ -1333,7 +1333,7 @@ class Win32Window(BaseWindow):
 
     @Win32EventHandler(constants.WM_ERASEBKGND)
     def _event_erasebkgnd(self, msg: int, wParam: int, lParam: int) -> int:
-        # Prevent flicker during resize; but erase bkgnd if we're fullscreen.
+        # 036406.python.init.line1336.comment Prevent flicker during resize; but erase bkgnd if we're fullscreen.
         if self._fullscreen:
             return 0
 
@@ -1342,17 +1342,17 @@ class Win32Window(BaseWindow):
     @ViewEventHandler
     @Win32EventHandler(constants.WM_ERASEBKGND)
     def _event_erasebkgnd_view(self, msg: int, wParam: int, lParam: int) -> int:
-        # Prevent flicker during resize.
+        # 036407.python.init.line1345.comment Prevent flicker during resize.
         return 1
 
     @Win32EventHandler(constants.WM_DROPFILES)
     def _event_drop_files(self, msg: int, wParam: int, lParam: int) -> int:
         drop = wParam
 
-        # Get the count so we can handle multiple files.
+        # 036408.python.init.line1352.comment Get the count so we can handle multiple files.
         file_count = _shell32.DragQueryFileW(drop, 0xFFFFFFFF, None, 0)
 
-        # Get where drop point was.
+        # 036409.python.init.line1355.comment Get where drop point was.
         point = POINT()
         _shell32.DragQueryPoint(drop, byref(point))
 
@@ -1368,7 +1368,7 @@ class Win32Window(BaseWindow):
 
         _shell32.DragFinish(drop)
 
-        # Reverse Y and call event.
+        # 036411.python.init.line1371.comment Reverse Y and call event.
         self.dispatch_event('on_file_drop', point.x, self._height - point.y, paths)
         return 0
 
@@ -1385,7 +1385,7 @@ class Win32Window(BaseWindow):
             current = RECT()
             result = RECT()
 
-            # Size between current size and future.
+            # 036412.python.init.line1388.comment Size between current size and future.
             _user32.AdjustWindowRectExForDpi(byref(current),
                                              self._ws_style, False, self._ex_ws_style,
                                              _user32.GetDpiForWindow(self._hwnd))

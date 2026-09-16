@@ -22,7 +22,7 @@ class SimpleExtension:
 
         The default implementation uses the classes docstring to
         set the extension description."""
-        # nod to our reload capability - vi is None when we are reloaded.
+        # 021626.python.simple.line25.comment nod to our reload capability - vi is None when we are reloaded.
         if vi is not None:
             vi.ExtensionDesc = self.__doc__
 
@@ -56,7 +56,7 @@ class SimpleFilter:
         """
         if self.filter_flags is None:
             raise RuntimeError("You must specify the filter flags")
-        # nod to our reload capability - fv is None when we are reloaded.
+        # 021627.python.simple.line59.comment nod to our reload capability - fv is None when we are reloaded.
         if fv is not None:
             fv.Flags = self.filter_flags
             fv.FilterDesc = self.__doc__

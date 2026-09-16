@@ -16,9 +16,9 @@ from pyglet.libs.win32 import _kernel32
 from pyglet.input.controller import get_mapping
 from pyglet.input.base import ControllerManager
 
-# These instance names are not defined anywhere, obtained by experiment.  The
-# GUID names (which seem to be ideally what are needed) are wrong/missing for
-# most of my devices.
+# 030602.python.directinput.line19.comment These instance names are not defined anywhere, obtained by experiment.  The
+# 030603.python.directinput.line20.comment GUID names (which seem to be ideally what are needed) are wrong/missing for
+# 030604.python.directinput.line21.comment most of my devices.
 
 _abs_instance_names = {
     0: 'x',
@@ -129,8 +129,8 @@ class DirectInputDevice(base.Device):
             return
 
         if window is None:
-            # Pick any open window, or the shadow window if no windows
-            # have been created yet.
+            # 030605.python.directinput.line132.comment Pick any open window, or the shadow window if no windows
+            # 030606.python.directinput.line133.comment have been created yet.
             window = pyglet.gl._shadow_window
             for window in pyglet.app.windows:
                 break
@@ -233,9 +233,9 @@ class DIDeviceManager(EventDispatcher):
         Returns True if events were successfully registered.
         """
         if not self.registered:
-            # If a specific window is not specified, find one.
+            # 030607.python.directinput.line236.comment If a specific window is not specified, find one.
             if not window:
-                # Pick any open window, or the shadow window if no windows have been created yet.
+                # 030608.python.directinput.line238.comment Pick any open window, or the shadow window if no windows have been created yet.
                 window = pyglet.gl._shadow_window
                 if not window:
                     for window in pyglet.app.windows:
@@ -248,7 +248,7 @@ class DIDeviceManager(EventDispatcher):
                 dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE
                 dbi.dbcc_classguid = GUID_DEVINTERFACE_HID
 
-                # Register we look for HID device unplug/plug.
+                # 030609.python.directinput.line251.comment Register we look for HID device unplug/plug.
                 self._devnotify = _user32.RegisterDeviceNotificationW(self.window._hwnd, ctypes.byref(dbi), DEVICE_NOTIFY_WINDOW_HANDLE)
 
                 self.window._event_handlers[WM_DEVICECHANGE] = self._event_devicechange
@@ -274,7 +274,7 @@ class DIDeviceManager(EventDispatcher):
 
         import pyglet.app
         if len(pyglet.app.windows) != 0:
-            # At this point the closed windows aren't removed from the app.windows list. Check for non-current window.
+            # 030610.python.directinput.line277.comment At this point the closed windows aren't removed from the app.windows list. Check for non-current window.
             for existing_window in pyglet.app.windows:
                 if existing_window != self.window:
                     self.register_device_events(skip_warning=True, window=existing_window)
@@ -302,11 +302,11 @@ class DIDeviceManager(EventDispatcher):
 
         def _device_enum(device_instance, arg):  # DIDEVICEINSTANCE
             guid_id = format(device_instance.contents.guidProduct.Data1, "08x")
-            # Only XInput should handle XInput compatible devices if enabled. Filter them out.
+            # 030612.python.directinput.line305.comment Only XInput should handle XInput compatible devices if enabled. Filter them out.
             if guid_id in _xinput_devices:
                 return dinput.DIENUM_CONTINUE
 
-            # Check if device already exists.
+            # 030613.python.directinput.line309.comment Check if device already exists.
             for dev in list(_missing_devices):
                 if dev.matches(guid_id, device_instance):
                     _missing_devices.remove(dev)
@@ -344,7 +344,7 @@ class DIDeviceManager(EventDispatcher):
         if wParam == DBT_DEVICEARRIVAL or wParam == DBT_DEVICEREMOVECOMPLETE:
             hdr_ptr = ctypes.cast(lParam, ctypes.POINTER(DEV_BROADCAST_HDR))
             if hdr_ptr.contents.dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE:
-                # Need to call this outside the generate OS event to prevent COM deadlock.
+                # 030614.python.directinput.line347.comment Need to call this outside the generate OS event to prevent COM deadlock.
                 pyglet.app.platform_event_loop.post_event(self, '_recheck_devices')
 
 
@@ -407,9 +407,9 @@ def get_devices(display=None):
 
     def _device_enum(device_instance, arg):
         guid_id = format(device_instance.contents.guidProduct.Data1, "08x")
-        # Only XInput should handle DirectInput devices if enabled. Filter them out.
+        # 030616.python.directinput.line410.comment Only XInput should handle DirectInput devices if enabled. Filter them out.
         if guid_id in _xinput_devices:
-            # Log somewhere?
+            # 030617.python.directinput.line412.comment Log somewhere?
             return dinput.DIENUM_CONTINUE
 
         device = dinput.IDirectInputDevice8()

@@ -1,4 +1,4 @@
-# A demo of the win32rcparser module and using win32gui
+# 046639.python.win32rcparser_demo.line1.comment A demo of the win32rcparser module and using win32gui
 
 import os
 
@@ -38,7 +38,7 @@ class DemoWindow:
 
     def OnInitDialog(self, hwnd, msg, wparam, lparam):
         self.hwnd = hwnd
-        # centre the dialog
+        # 046640.python.win32rcparser_demo.line41.comment centre the dialog
         desktop = win32gui.GetDesktopWindow()
         l, t, r, b = win32gui.GetWindowRect(self.hwnd)
         dt_l, dt_t, dt_r, dt_b = win32gui.GetWindowRect(desktop)
@@ -50,7 +50,7 @@ class DemoWindow:
         )
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
-        # Needed to make OK/Cancel work - no other controls are handled.
+        # 046641.python.win32rcparser_demo.line53.comment Needed to make OK/Cancel work - no other controls are handled.
         id = win32api.LOWORD(wparam)
         if id in [win32con.IDOK, win32con.IDCANCEL]:
             win32gui.EndDialog(hwnd, id)
@@ -63,7 +63,7 @@ class DemoWindow:
 
 
 def DemoModal():
-    # Load the .rc file.
+    # 046642.python.win32rcparser_demo.line66.comment Load the .rc file.
     resources = win32rcparser.Parse(g_rcname)
     for id, ddef in resources.dialogs.items():
         print("Displaying dialog", id)
@@ -81,6 +81,6 @@ if __name__ == "__main__":
                    ICC_WIN95_CLASSES  """.split():
         flags |= getattr(commctrl, flag)
     win32gui.InitCommonControlsEx(flags)
-    # Need to do this go get rich-edit working.
+    # 046643.python.win32rcparser_demo.line84.comment Need to do this go get rich-edit working.
     win32api.LoadLibrary("riched20.dll")
     DemoModal()

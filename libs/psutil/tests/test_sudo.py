@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025803.python.test_sudo.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025804.python.test_sudo.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025805.python.test_sudo.line5.comment found in the LICENSE file.
 
 """Tests which are meant to be run as root.
 
@@ -74,12 +74,12 @@ class TestUpdatedSystemTime(PsutilTestCase):
             set_systime(self.orig_time + extra_t)
 
     def update_systime(self):
-        # set system time 1 hour later
+        # 025807.python.test_sudo.line77.comment set system time 1 hour later
         set_systime(self.orig_time + 3600)
         self.time_updated = True
 
     def test_boot_time(self):
-        # Test that boot_time() reflects system clock updates.
+        # 025808.python.test_sudo.line82.comment Test that boot_time() reflects system clock updates.
         t1 = psutil.boot_time()
         self.update_systime()
         t2 = psutil.boot_time()
@@ -89,9 +89,9 @@ class TestUpdatedSystemTime(PsutilTestCase):
 
     @unittest.skipIf(WINDOWS, "broken on WINDOWS")  # TODO: fix it
     def test_proc_create_time(self):
-        # Test that Process.create_time() reflects system clock
-        # updates. On systems such as Linux this is added on top of the
-        # process monotonic time returned by the kernel.
+        # 025810.python.test_sudo.line92.comment Test that Process.create_time() reflects system clock
+        # 025811.python.test_sudo.line93.comment updates. On systems such as Linux this is added on top of the
+        # 025812.python.test_sudo.line94.comment process monotonic time returned by the kernel.
         t1 = psutil.Process().create_time()
         self.update_systime()
         t2 = psutil.Process().create_time()

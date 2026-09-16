@@ -210,9 +210,9 @@ def normalize_imported_images():
 
 normalized_assets = normalize_imported_images()
 
-# The Drive/AWS catalog is the canonical Shaelvien asset registry for both
-# visitors and authenticated users. Do not rebuild a second public catalog
-# from the old tactical prototype registries.
+# 000012.python.prepare_public_data.line213.comment The Drive/AWS catalog is the canonical Shaelvien asset registry for both
+# 000013.python.prepare_public_data.line214.comment visitors and authenticated users. Do not rebuild a second public catalog
+# 000014.python.prepare_public_data.line215.comment from the old tactical prototype registries.
 canonical_catalog_path = web / 'assets' / 'drive-tiles' / 'catalog.json'
 canonical_rows = json.loads(canonical_catalog_path.read_text(encoding='utf-8'))
 if not isinstance(canonical_rows, list):
@@ -246,19 +246,19 @@ for asset in canonical_rows:
         seen_images.add(image_key)
     rows.append(asset)
 
-# WorldSession currently reads atlas-public.json first and then the canonical
-# Drive catalog. Publishing the same canonical rows to both locations keeps
-# compatibility while ensuring the second load is a no-op after dedupe.
+# 000015.python.prepare_public_data.line249.comment WorldSession currently reads atlas-public.json first and then the canonical
+# 000016.python.prepare_public_data.line250.comment Drive catalog. Publishing the same canonical rows to both locations keeps
+# 000017.python.prepare_public_data.line251.comment compatibility while ensuring the second load is a no-op after dedupe.
 (data_dir / 'atlas-public.json').write_text(
     json.dumps(rows, separators=(',', ':')), encoding='utf-8'
 )
 
-# Do not regenerate the obsolete random-world / prototype-region configuration.
+# 000018.python.prepare_public_data.line256.comment Do not regenerate the obsolete random-world / prototype-region configuration.
 legacy_asset_config = data_dir / 'asset-config.json'
 if legacy_asset_config.exists():
     legacy_asset_config.unlink()
 
-# Card definitions remain independent of the asset catalog for now.
+# 000019.python.prepare_public_data.line261.comment Card definitions remain independent of the asset catalog for now.
 cards = json.loads(
     (tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text(encoding='utf-8')
 ).get('cards', [])
@@ -275,10 +275,10 @@ cards = json.loads(
     encoding='utf-8'
 )
 
-# Homepage footer: keep the studio mark and PayPal control together above the
-# copyright. Use PayPal-hosted official Donate button artwork rather than a
-# locally imitated brand button. The existing managed PayPal destination is
-# intentionally preserved.
+# 000020.python.prepare_public_data.line278.comment Homepage footer: keep the studio mark and PayPal control together above the
+# 000021.python.prepare_public_data.line279.comment copyright. Use PayPal-hosted official Donate button artwork rather than a
+# 000022.python.prepare_public_data.line280.comment locally imitated brand button. The existing managed PayPal destination is
+# 000023.python.prepare_public_data.line281.comment intentionally preserved.
 home_path = root / 'site' / 'relic-home' / 'index.html'
 home = home_path.read_text(encoding='utf-8')
 old_footer = '<footer><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal">Donate with PayPal</a></footer>'

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 003706.python.hook-PyQt6.QtDBus.line1.comment -----------------------------------------------------------------------------
+# 003707.python.hook-PyQt6.QtDBus.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 003708.python.hook-PyQt6.QtDBus.line3.comment
+# 003709.python.hook-PyQt6.QtDBus.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 003710.python.hook-PyQt6.QtDBus.line5.comment or later) with exception for distributing the bootloader.
+# 003711.python.hook-PyQt6.QtDBus.line6.comment
+# 003712.python.hook-PyQt6.QtDBus.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 003713.python.hook-PyQt6.QtDBus.line8.comment
+# 003714.python.hook-PyQt6.QtDBus.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 003715.python.hook-PyQt6.QtDBus.line10.comment -----------------------------------------------------------------------------
 
 from PyInstaller.utils.hooks.qt import add_qt6_dependencies
 

@@ -4,11 +4,11 @@ Currently supports version 3 and 4 bitmaps with BI_RGB and BI_BITFIELDS
 encoding.  Alpha channel is supported for 32-bit BI_RGB only.
 """
 
-# Official docs are at
-# http://msdn2.microsoft.com/en-us/library/ms532311.aspx
-#
-# But some details including alignment and bit/byte order are omitted; see
-# http://www.fileformat.info/format/bmp/egff.htm
+# 030322.python.bmp.line7.comment Official docs are at
+# 030323.python.bmp.line8.comment http://msdn2.microsoft.com/en-us/library/ms532311.aspx
+# 030324.python.bmp.line9.comment
+# 030325.python.bmp.line10.comment But some details including alignment and bit/byte order are omitted; see
+# 030326.python.bmp.line11.comment http://www.fileformat.info/format/bmp/egff.htm
 
 import ctypes
 from ctypes.wintypes import DWORD, LONG, WORD
@@ -278,12 +278,12 @@ def get_shift(mask):
     if not mask:
         return 0
 
-    # Shift down
+    # 030327.python.bmp.line281.comment Shift down
     shift = 0
     while not (1 << shift) & mask:
         shift += 1
 
-    # Shift up
+    # 030328.python.bmp.line286.comment Shift up
     shift_up = 0
     while (mask >> shift) >> shift_up:
         shift_up += 1

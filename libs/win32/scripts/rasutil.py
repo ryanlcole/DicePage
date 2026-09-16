@@ -1,11 +1,11 @@
-# A demo of using the RAS API from Python
+# 048105.python.rasutil.line1.comment A demo of using the RAS API from Python
 import sys
 
 import win32api
 import win32ras
 
 
-# The error raised if we can not
+# 048106.python.rasutil.line8.comment The error raised if we can not
 class ConnectionError(Exception):
     pass
 

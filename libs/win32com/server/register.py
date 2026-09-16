@@ -65,10 +65,10 @@ def recurse_delete_key(path, base=win32con.HKEY_CLASSES_ROOT):
         if code != winerror.ERROR_FILE_NOT_FOUND:
             raise win32api.error(code, fn, msg)
     else:
-        # parent key found and opened successfully. do some work, making sure
-        # to always close the thing (error or no).
+        # 049708.python.register.line68.comment parent key found and opened successfully. do some work, making sure
+        # 049709.python.register.line69.comment to always close the thing (error or no).
         try:
-            # remove all of the subkeys
+            # 049710.python.register.line71.comment remove all of the subkeys
             while 1:
                 try:
                     subkeyname = win32api.RegEnumKey(h, 0)
@@ -79,7 +79,7 @@ def recurse_delete_key(path, base=win32con.HKEY_CLASSES_ROOT):
                     break
                 recurse_delete_key(path + "\\" + subkeyname, base)
 
-            # remove the parent key
+            # 049711.python.register.line82.comment remove the parent key
             _remove_key(path, base)
         finally:
             win32api.RegCloseKey(h)
@@ -101,19 +101,19 @@ def _find_localserver_exe(mustfind):
         exeBaseName = "pythonw_d.exe"
     else:
         exeBaseName = "pythonw.exe"
-    # First see if in the same directory as this .EXE
+    # 049712.python.register.line104.comment First see if in the same directory as this .EXE
     exeName = os.path.join(os.path.split(sys.executable)[0], exeBaseName)
     if not os.path.exists(exeName):
-        # See if in our sys.prefix directory
+        # 049713.python.register.line107.comment See if in our sys.prefix directory
         exeName = os.path.join(sys.prefix, exeBaseName)
     if not os.path.exists(exeName):
-        # See if in our sys.prefix/pcbuild directory (for developers)
+        # 049714.python.register.line110.comment See if in our sys.prefix/pcbuild directory (for developers)
         if "64 bit" in sys.version:
             exeName = os.path.join(sys.prefix, "PCbuild", "amd64", exeBaseName)
         else:
             exeName = os.path.join(sys.prefix, "PCbuild", exeBaseName)
     if not os.path.exists(exeName):
-        # See if the registry has some info.
+        # 049715.python.register.line116.comment See if the registry has some info.
         try:
             key = "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % sys.winver
             path = win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE, key)
@@ -136,7 +136,7 @@ def _find_localserver_module():
     try:
         os.stat(pyfile)
     except OSError:
-        # See if we have a compiled extension
+        # 049716.python.register.line139.comment See if we have a compiled extension
         if __debug__:
             ext = ".pyc"
         else:
@@ -191,8 +191,8 @@ def RegisterServer(
                 before attempting to create the object.
     """
 
-    ### backwards-compat check
-    ### Certain policies do not require a "class name", just the policy itself.
+    # 049717.python.register.line194.comment ## backwards-compat check
+    # 049718.python.register.line195.comment ## Certain policies do not require a "class name", just the policy itself.
     if not pythonInstString and not policy:
         raise TypeError(
             "You must specify either the Python Class or Python Policy which implement the COM object."
@@ -201,14 +201,14 @@ def RegisterServer(
     keyNameRoot = "CLSID\\%s" % str(clsid)
     _set_string(keyNameRoot, desc)
 
-    # Also register as an "Application" so DCOM etc all see us.
+    # 049719.python.register.line204.comment Also register as an "Application" so DCOM etc all see us.
     _set_string("AppID\\%s" % clsid, progID)
-    # Depending on contexts requested, register the specified server type.
-    # Set default clsctx.
+    # 049720.python.register.line206.comment Depending on contexts requested, register the specified server type.
+    # 049721.python.register.line207.comment Set default clsctx.
     if not clsctx:
         clsctx = pythoncom.CLSCTX_INPROC_SERVER | pythoncom.CLSCTX_LOCAL_SERVER
-    # And if we are frozen, ignore the ones that don't make sense in this
-    # context.
+    # 049722.python.register.line210.comment And if we are frozen, ignore the ones that don't make sense in this
+    # 049723.python.register.line211.comment context.
     if pythoncom.frozen:
         assert sys.frozen, (
             "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
@@ -217,12 +217,12 @@ def RegisterServer(
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:
             clsctx &= pythoncom.CLSCTX_LOCAL_SERVER
-    # Now setup based on the clsctx left over.
+    # 049724.python.register.line220.comment Now setup based on the clsctx left over.
     if clsctx & pythoncom.CLSCTX_INPROC_SERVER:
-        # get the module to use for registration.
-        # nod to Gordon's installer - if sys.frozen and sys.frozendllhandle
-        # exist, then we are being registered via a DLL - use this DLL as the
-        # file name.
+        # 049725.python.register.line222.comment get the module to use for registration.
+        # 049726.python.register.line223.comment nod to Gordon's installer - if sys.frozen and sys.frozendllhandle
+        # 049727.python.register.line224.comment exist, then we are being registered via a DLL - use this DLL as the
+        # 049728.python.register.line225.comment file name.
         if pythoncom.frozen:
             if hasattr(sys, "frozendllhandle"):
                 dllName = win32api.GetModuleFileName(sys.frozendllhandle)
@@ -231,9 +231,9 @@ def RegisterServer(
                     "We appear to have a frozen DLL, but I don't know the DLL to use"
                 )
         else:
-            # Normal case - running from .py file, so register pythoncom's DLL.
-            # Although now we prefer a 'loader' DLL if it exists to avoid some
-            # manifest issues (the 'loader' DLL has a manifest, but pythoncom does not)
+            # 049729.python.register.line234.comment Normal case - running from .py file, so register pythoncom's DLL.
+            # 049730.python.register.line235.comment Although now we prefer a 'loader' DLL if it exists to avoid some
+            # 049731.python.register.line236.comment manifest issues (the 'loader' DLL has a manifest, but pythoncom does not)
             pythoncom_dir = os.path.dirname(pythoncom.__file__)
             suffix = (
                 "_d"
@@ -242,7 +242,7 @@ def RegisterServer(
                 )
                 else ""
             )
-            # Always register with the full path to the DLLs.
+            # 049732.python.register.line245.comment Always register with the full path to the DLLs.
             loadername = os.path.join(
                 pythoncom_dir,
                 "pythoncomloader%d%d%s.dll"
@@ -262,13 +262,13 @@ def RegisterServer(
 
     if clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
         if pythoncom.frozen:
-            # If we are frozen, we write "{exe} /Automate", just
-            # like "normal" .EXEs do
+            # 049734.python.register.line265.comment If we are frozen, we write "{exe} /Automate", just
+            # 049735.python.register.line266.comment like "normal" .EXEs do
             exeName = win32api.GetShortPathName(sys.executable)
             command = f"{exeName} /Automate"
         else:
-            # Running from .py sources - we need to write
-            # 'python.exe win32com\server\localserver.py {clsid}"
+            # 049736.python.register.line270.comment Running from .py sources - we need to write
+            # 049737.python.register.line271.comment 'python.exe win32com\server\localserver.py {clsid}"
             exeName = _find_localserver_exe(1)
             exeName = win32api.GetShortPathName(exeName)
             pyfile = _find_localserver_module()
@@ -306,37 +306,37 @@ def RegisterServer(
     if addPyComCat:
         catids = catids + [CATID_PythonCOMServer]
 
-    # Set up the implemented categories
+    # 049739.python.register.line309.comment Set up the implemented categories
     if catids:
         regCat = _cat_registrar()
         regCat.RegisterClassImplCategories(clsid, catids)
 
-    # set up any other reg values they might have
+    # 049740.python.register.line314.comment set up any other reg values they might have
     if other:
         for key, value in other.items():
             _set_string(keyNameRoot + "\\" + key, value)
 
     if progID:
-        # set the progID as the most specific that was given to us
+        # 049741.python.register.line320.comment set the progID as the most specific that was given to us
         if verProgID:
             _set_string(keyNameRoot + "\\ProgID", verProgID)
         else:
             _set_string(keyNameRoot + "\\ProgID", progID)
 
-        # Set up the root entries - version independent.
+        # 049742.python.register.line326.comment Set up the root entries - version independent.
         if desc:
             _set_string(progID, desc)
         _set_string(progID + "\\CLSID", str(clsid))
 
-        # Set up the root entries - version dependent.
+        # 049743.python.register.line331.comment Set up the root entries - version dependent.
         if verProgID:
-            # point from independent to the current version
+            # 049744.python.register.line333.comment point from independent to the current version
             _set_string(progID + "\\CurVer", verProgID)
 
-            # point to the version-independent one
+            # 049745.python.register.line336.comment point to the version-independent one
             _set_string(keyNameRoot + "\\VersionIndependentProgID", progID)
 
-            # set up the versioned progID
+            # 049746.python.register.line339.comment set up the versioned progID
             if desc:
                 _set_string(verProgID, desc)
             _set_string(verProgID + "\\CLSID", str(clsid))
@@ -346,19 +346,19 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys=None)
     """Given a server, return a list of of ("key", root), which are keys recursively
     and uncondtionally deleted at unregister or uninstall time.
     """
-    # remove the main CLSID registration
+    # 049747.python.register.line349.comment remove the main CLSID registration
     ret = [("CLSID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT)]
-    # remove the versioned ProgID registration
+    # 049748.python.register.line351.comment remove the versioned ProgID registration
     if verProgID:
         ret.append((verProgID, win32con.HKEY_CLASSES_ROOT))
-    # blow away the independent ProgID. we can't leave it since we just
-    # torched the class.
-    ### could potentially check the CLSID... ?
+    # 049749.python.register.line354.comment blow away the independent ProgID. we can't leave it since we just
+    # 049750.python.register.line355.comment torched the class.
+    # 049751.python.register.line356.comment ## could potentially check the CLSID... ?
     if progID:
         ret.append((progID, win32con.HKEY_CLASSES_ROOT))
-    # The DCOM config tool may write settings to the AppID key for our CLSID
+    # 049752.python.register.line359.comment The DCOM config tool may write settings to the AppID key for our CLSID
     ret.append(("AppID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT))
-    # Any custom keys?
+    # 049753.python.register.line361.comment Any custom keys?
     if customKeys:
         ret.extend(customKeys)
 
@@ -371,14 +371,14 @@ def UnregisterServer(clsid, progID=None, verProgID=None, customKeys=None):
     for args in GetUnregisterServerKeys(clsid, progID, verProgID, customKeys):
         recurse_delete_key(*args)
 
-    ### it might be nice at some point to "roll back" the independent ProgID
-    ### to an earlier version if one exists, and just blowing away the
-    ### specified version of the ProgID (and its corresponding CLSID)
-    ### another time, though...
+    # 049754.python.register.line374.comment ## it might be nice at some point to "roll back" the independent ProgID
+    # 049755.python.register.line375.comment ## to an earlier version if one exists, and just blowing away the
+    # 049756.python.register.line376.comment ## specified version of the ProgID (and its corresponding CLSID)
+    # 049757.python.register.line377.comment ## another time, though...
 
-    ### NOTE: ATL simply blows away the above three keys without the
-    ### potential checks that I describe.  Assuming that defines the
-    ### "standard" then we have no additional changes necessary.
+    # 049758.python.register.line379.comment ## NOTE: ATL simply blows away the above three keys without the
+    # 049759.python.register.line380.comment ## potential checks that I describe.  Assuming that defines the
+    # 049760.python.register.line381.comment ## "standard" then we have no additional changes necessary.
 
 
 def GetRegisteredServerOption(clsid, optionName):
@@ -392,11 +392,11 @@ def _get(ob, attr, default=None):
         return getattr(ob, attr)
     except AttributeError:
         pass
-    # look down sub-classes
+    # 049761.python.register.line395.comment look down sub-classes
     try:
         bases = ob.__bases__
     except AttributeError:
-        # ob is not a class - no probs.
+        # 049762.python.register.line399.comment ob is not a class - no probs.
         return default
     for base in bases:
         val = _get(base, attr, None)
@@ -421,16 +421,16 @@ def RegisterClasses(*classes, **flags):
         policySpec = _get(cls, "_reg_policy_spec_")
         clsctx = _get(cls, "_reg_clsctx_")
         tlb_filename = _get(cls, "_reg_typelib_filename_")
-        # default to being a COM category only when not frozen.
+        # 049763.python.register.line424.comment default to being a COM category only when not frozen.
         addPyComCat = not _get(cls, "_reg_disable_pycomcat_", pythoncom.frozen != 0)
         addnPath = None
         if debugging:
-            # If the class has a debugging dispatcher specified, use it, otherwise
-            # use our default dispatcher.
+            # 049764.python.register.line428.comment If the class has a debugging dispatcher specified, use it, otherwise
+            # 049765.python.register.line429.comment use our default dispatcher.
             dispatcherSpec = _get(cls, "_reg_debug_dispatcher_spec_")
             if dispatcherSpec is None:
                 dispatcherSpec = "win32com.server.dispatcher.DefaultDebugDispatcher"
-            # And remember the debugging flag as servers may wish to use it at runtime.
+            # 049766.python.register.line433.comment And remember the debugging flag as servers may wish to use it at runtime.
             debuggingDesc = "(for debugging)"
             options["Debugging"] = "1"
         else:
@@ -441,20 +441,20 @@ def RegisterClasses(*classes, **flags):
         if spec is None:
             moduleName = cls.__module__
             if moduleName == "__main__":
-                # Use argv[0] to determine the module name.
+                # 049767.python.register.line444.comment Use argv[0] to determine the module name.
                 try:
-                    # Use the win32api to find the case-sensitive name
+                    # 049768.python.register.line446.comment Use the win32api to find the case-sensitive name
                     moduleName = os.path.splitext(
                         win32api.FindFiles(sys.argv[0])[0][8]
                     )[0]
                 except (IndexError, win32api.error):
-                    # Can't find the script file - the user must explicitly set the _reg_... attribute.
+                    # 049769.python.register.line451.comment Can't find the script file - the user must explicitly set the _reg_... attribute.
                     raise TypeError(
                         "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
                     )
 
             spec = moduleName + "." + cls.__name__
-            # Frozen apps don't need their directory on sys.path
+            # 049770.python.register.line457.comment Frozen apps don't need their directory on sys.path
             if not pythoncom.frozen:
                 scriptDir = os.path.split(sys.argv[0])[0]
                 if not scriptDir:
@@ -479,7 +479,7 @@ def RegisterClasses(*classes, **flags):
         )
         if not quiet:
             print("Registered:", progID or spec, debuggingDesc)
-        # Register the typelibrary
+        # 049771.python.register.line482.comment Register the typelibrary
         if tlb_filename:
             tlb_filename = os.path.abspath(tlb_filename)
             typelib = pythoncom.LoadTypeLib(tlb_filename)
@@ -506,7 +506,7 @@ def UnregisterClasses(*classes, **flags):
         if unregister_typelib:
             tlb_guid = _get(cls, "_typelib_guid_")
             if tlb_guid is None:
-                # I guess I could load the typelib, but they need the GUID anyway.
+                # 049772.python.register.line509.comment I guess I could load the typelib, but they need the GUID anyway.
                 print("Have typelib filename, but no GUID - can't unregister")
             else:
                 major, minor = _get(cls, "_typelib_version_", (1, 0))
@@ -523,10 +523,10 @@ def UnregisterClasses(*classes, **flags):
         extra()
 
 
-# Unregister info is for installers or external uninstallers.
-# The WISE installer, for example firstly registers the COM server,
-# then queries for the Unregister info, appending it to its
-# install log.  Uninstalling the package will uninstall the server.
+# 049773.python.register.line526.comment Unregister info is for installers or external uninstallers.
+# 049774.python.register.line527.comment The WISE installer, for example firstly registers the COM server,
+# 049775.python.register.line528.comment then queries for the Unregister info, appending it to its
+# 049776.python.register.line529.comment install log.  Uninstalling the package will uninstall the server.
 def UnregisterInfoClasses(*classes, **flags):
     ret = []
     for cls in classes:
@@ -539,7 +539,7 @@ def UnregisterInfoClasses(*classes, **flags):
     return ret
 
 
-# Attempt to 're-execute' our current process with elevation.
+# 049777.python.register.line542.comment Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
     import tempfile
 
@@ -552,26 +552,26 @@ def ReExecuteElevated(flags):
     if not flags["quiet"]:
         print("Requesting elevation and retrying...")
     new_params = " ".join(['"' + a + '"' for a in sys.argv])
-    # If we aren't already in unattended mode, we want our sub-process to
-    # be.
+    # 049779.python.register.line555.comment If we aren't already in unattended mode, we want our sub-process to
+    # 049780.python.register.line556.comment be.
     if not flags["unattended"]:
         new_params += " --unattended"
-    # specifying the parent means the dialog is centered over our window,
-    # which is a good usability clue.
-    # hwnd is unlikely on the command-line, but flags may come from elsewhere
+    # 049781.python.register.line559.comment specifying the parent means the dialog is centered over our window,
+    # 049782.python.register.line560.comment which is a good usability clue.
+    # 049783.python.register.line561.comment hwnd is unlikely on the command-line, but flags may come from elsewhere
     try:
         hwnd = flags.get("hwnd", win32console.GetConsoleWindow())
     except win32console.error:
         hwnd = 0
-    # Redirect output so we give the user some clue what went wrong.  This
-    # also means we need to use COMSPEC.  However, the "current directory"
-    # appears to end up ignored - so we execute things via a temp batch file.
+    # 049784.python.register.line566.comment Redirect output so we give the user some clue what went wrong.  This
+    # 049785.python.register.line567.comment also means we need to use COMSPEC.  However, the "current directory"
+    # 049786.python.register.line568.comment appears to end up ignored - so we execute things via a temp batch file.
     tempbase = tempfile.mktemp("pycomserverreg")
     outfile = tempbase + ".out"
     batfile = tempbase + ".bat"
 
-    # If registering from pythonwin, need to run python console instead since
-    #  pythonwin will just open script for editting
+    # 049787.python.register.line573.comment If registering from pythonwin, need to run python console instead since
+    # 049788.python.register.line574.comment pythonwin will just open script for editting
     current_exe = os.path.split(sys.executable)[1].lower()
     exe_to_run = None
     if current_exe == "pythonwin.exe":
@@ -586,10 +586,10 @@ def ReExecuteElevated(flags):
         try:
             cwd = os.getcwd()
             print("@echo off", file=batf)
-            # nothing is 'inherited' by the elevated process, including the
-            # environment.  I wonder if we need to set more?
+            # 049789.python.register.line589.comment nothing is 'inherited' by the elevated process, including the
+            # 049790.python.register.line590.comment environment.  I wonder if we need to set more?
             print("set PYTHONPATH=%s" % os.environ.get("PYTHONPATH", ""), file=batf)
-            # may be on a different drive - select that before attempting to CD.
+            # 049791.python.register.line592.comment may be on a different drive - select that before attempting to CD.
             print(os.path.splitdrive(cwd)[0], file=batf)
             print('cd "%s"' % os.getcwd(), file=batf)
             print(
@@ -619,10 +619,10 @@ def ReExecuteElevated(flags):
             outf.close()
 
         if exit_code:
-            # Even if quiet you get to see this message.
+            # 049792.python.register.line622.comment Even if quiet you get to see this message.
             print("Error: registration failed (exit code %s)." % exit_code)
-        # if we are quiet then the output if likely to already be nearly
-        # empty, so always print it.
+        # 049793.python.register.line624.comment if we are quiet then the output if likely to already be nearly
+        # 049794.python.register.line625.comment empty, so always print it.
         print(output, end=" ")
     finally:
         for f in (outfile, batfile):
@@ -646,9 +646,9 @@ def UseCommandLine(*classes, **flags):
         else:
             RegisterClasses(*classes, **flags)
     except win32api.error as exc:
-        # If we are on xp+ and have "access denied", retry using
-        # ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
-        # admin login dialog (vista/xp)
+        # 049795.python.register.line649.comment If we are on xp+ and have "access denied", retry using
+        # 049796.python.register.line650.comment ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
+        # 049797.python.register.line651.comment admin login dialog (vista/xp)
         if (
             flags["unattended"]
             or exc.winerror != winerror.ERROR_ACCESS_DENIED

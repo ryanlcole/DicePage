@@ -1,4 +1,4 @@
-# ModuleBrowser.py - A view that provides a module browser for an editor document.
+# 037298.python.ModuleBrowser.line1.comment ModuleBrowser.py - A view that provides a module browser for an editor document.
 import pyclbr
 
 import commctrl
@@ -148,7 +148,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
         self.DestroyList()
 
     def OnActivateView(self, activate, av, dv):
-        # print("AV", self.bDirty, activate)
+        # 037300.python.ModuleBrowser.line151.comment print("AV", self.bDirty, activate)
         if activate:
             self.CheckRefreshList()
         return self._obj_.OnActivateView(activate, av, dv)
@@ -163,7 +163,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
             mod, path = pywin.framework.scriptutils.GetPackageModuleName(path)
             if self.bDirty:
                 what = "Refreshing"
-                # Hack for pyclbr being too smart
+                # 037301.python.ModuleBrowser.line166.comment Hack for pyclbr being too smart
                 try:
                     del pyclbr._modules[mod]
                 except (KeyError, AttributeError):

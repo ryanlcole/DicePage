@@ -1,14 +1,14 @@
-# A sample shell column provider
-# Mainly ported from MSDN article:
-#  Using Shell Column Handlers for Detailed File Information,
-#  Raymond Chen, Microsoft Corporation, February 2000
-#
-# To demonstrate:
-# * Execute this script to register the namespace.
-# * Open Windows Explorer
-# * Right-click an explorer column header - select "More"
-# * Locate column 'pyc size' or 'pyo size', and add it to the view.
-# This handler is providing that column data.
+# 051568.python.column_provider.line1.comment A sample shell column provider
+# 051569.python.column_provider.line2.comment Mainly ported from MSDN article:
+# 051570.python.column_provider.line3.comment Using Shell Column Handlers for Detailed File Information,
+# 051571.python.column_provider.line4.comment Raymond Chen, Microsoft Corporation, February 2000
+# 051572.python.column_provider.line5.comment
+# 051573.python.column_provider.line6.comment To demonstrate:
+# 051574.python.column_provider.line7.comment * Execute this script to register the namespace.
+# 051575.python.column_provider.line8.comment * Open Windows Explorer
+# 051576.python.column_provider.line9.comment * Right-click an explorer column header - select "More"
+# 051577.python.column_provider.line10.comment * Locate column 'pyc size' or 'pyo size', and add it to the view.
+# 051578.python.column_provider.line11.comment This handler is providing that column data.
 import os
 import stat
 
@@ -35,19 +35,19 @@ class ColumnProvider:
     ]
     _public_methods_ = IColumnProvider_Methods
 
-    # IPersist
+    # 051579.python.column_provider.line38.comment IPersist
     def GetClassID(self):
         return self._reg_clsid_
 
-    # IColumnProvider
+    # 051580.python.column_provider.line42.comment IColumnProvider
     def Initialize(self, colInit):
         flags, reserved, name = colInit
         print("ColumnProvider initializing for file", name)
 
     def GetColumnInfo(self, index):
-        # We support exactly 2 columns - 'pyc size' and 'pyo size'
+        # 051581.python.column_provider.line48.comment We support exactly 2 columns - 'pyc size' and 'pyo size'
         if index in [0, 1]:
-            # As per the MSDN sample, use our CLSID as the fmtid
+            # 051582.python.column_provider.line50.comment As per the MSDN sample, use our CLSID as the fmtid
             if index == 0:
                 ext = ".pyc"
             else:
@@ -83,14 +83,14 @@ class ColumnProvider:
             st = os.stat(check_file)
             return st[stat.ST_SIZE]
         except OSError:
-            # No file
+            # 051590.python.column_provider.line86.comment No file
             return None
 
 
 def DllRegisterServer():
     import winreg
 
-    # Special ColumnProvider key
+    # 051591.python.column_provider.line93.comment Special ColumnProvider key
     key = winreg.CreateKey(
         winreg.HKEY_CLASSES_ROOT,
         "Folder\\ShellEx\\ColumnHandlers\\" + str(ColumnProvider._reg_clsid_),

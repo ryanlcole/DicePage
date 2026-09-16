@@ -221,12 +221,12 @@ class TruetypeInfo:
         if platform == 3:  # setup for microsoft
             encodings = self._microsoft_encoding_lookup
             if not languages:
-                # Default to english languages for microsoft
+                # 027227.python.ttf.line224.comment Default to english languages for microsoft
                 languages = (0x409, 0x809, 0xc09, 0x1009, 0x1409, 0x1809)
         elif platform == 1:  # setup for macintosh
             encodings = self.__macintosh_encoding_lookup
             if not languages:
-                # Default to english for macintosh
+                # 027229.python.ttf.line229.comment Default to english for macintosh
                 languages = (0,)
 
         for record in names[(platform, name)]:
@@ -351,7 +351,7 @@ class TruetypeInfo:
         self._character_map = {}
         for record in records:
             if record.platform_id == 3 and record.encoding_id == 1:
-                # Look at Windows Unicode charmaps only
+                # 027230.python.ttf.line354.comment Look at Windows Unicode charmaps only
                 offset = self._tables["cmap"].offset + record.offset
                 format_header = _read_cmap_format_header(self._data, offset)
                 if format_header.format == 4:
@@ -361,9 +361,9 @@ class TruetypeInfo:
         return self._character_map
 
     def _get_character_map_format4(self, offset: int) -> dict[str, int]:
-        # This is absolutely, without question, the *worst* file
-        # format ever.  Whoever the fuckwit is that thought this up is
-        # a fuckwit.
+        # 027231.python.ttf.line364.comment This is absolutely, without question, the *worst* file
+        # 027232.python.ttf.line365.comment format ever.  Whoever the fuckwit is that thought this up is
+        # 027233.python.ttf.line366.comment a fuckwit.
         header = _read_cmap_format4Header(self._data, offset)
         seg_count = header.seg_count_x2 // 2
         array_size = struct.calcsize(f">{seg_count}H")
@@ -452,7 +452,7 @@ def _read_table(*entries: str):
     return TableClass
 
 
-# Table formats (see references)
+# 027235.python.ttf.line455.comment Table formats (see references)
 
 _read_offset_table = _read_table("scalertype:I",
                                  "num_tables:H",

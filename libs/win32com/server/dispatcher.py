@@ -28,8 +28,8 @@ class DispatcherBase:
 
     def __init__(self, policyClass, object):
         self.policy = policyClass(object)
-        # The logger we should dump to.  If None, we should send to the
-        # default location (typically 'print')
+        # 049614.python.dispatcher.line31.comment The logger we should dump to.  If None, we should send to the
+        # 049615.python.dispatcher.line32.comment default location (typically 'print')
         self.logger = getattr(win32com, "logger", None)
 
     def _CreateInstance_(self, clsid, reqIID):
@@ -124,13 +124,13 @@ class DispatcherBase:
 
         Default behaviour is to print the exception.
         """
-        # If not a COM exception, print it for the developer.
+        # 049616.python.dispatcher.line127.comment If not a COM exception, print it for the developer.
         if not IsCOMServerException():
             if self.logger is not None:
                 self.logger.exception("pythoncom server error")
             else:
                 traceback.print_exc()
-        # But still raise it for the framework.
+        # 049617.python.dispatcher.line133.comment But still raise it for the framework.
         raise
 
     def _trace_(self, *args):
@@ -217,7 +217,7 @@ class DispatcherWin32trace(DispatcherTrace):
     def __init__(self, policyClass, object):
         DispatcherTrace.__init__(self, policyClass, object)
         if self.logger is None:
-            # If we have no logger, setup our output.
+            # 049618.python.dispatcher.line220.comment If we have no logger, setup our output.
             import win32traceutil  # Sets up everything.
         self._trace_(f"Object with win32trace dispatcher created (object={object!r})")
 

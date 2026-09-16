@@ -1,4 +1,4 @@
-## demonstrates using BackupSeek to enumerate data streams for a file
+# 045968.python.BackupSeek_streamheaders.line1.comment # demonstrates using BackupSeek to enumerate data streams for a file
 import struct
 
 import pythoncom
@@ -36,7 +36,7 @@ f = open(tempfile + ":anotherstream", "w")
 f.write("z" * 200)
 f.close()
 
-## add Summary Information, which is stored as a separate stream
+# 045969.python.BackupSeek_streamheaders.line39.comment # add Summary Information, which is stored as a separate stream
 m = storagecon.STGM_READWRITE | storagecon.STGM_SHARE_EXCLUSIVE | storagecon.STGM_DIRECT
 pss = pythoncom.StgOpenStorageEx(
     tempfile, m, storagecon.STGFMT_FILE, 0, pythoncom.IID_IPropertySetStorage, None
@@ -93,7 +93,7 @@ def parse_stream_header(h, ctxt, data):
         stream_name_size,
     )
     if stream_name_size > 0:
-        ## ??? sdk says this size is in characters, but it appears to be number of bytes ???
+        # 045970.python.BackupSeek_streamheaders.line96.comment # ??? sdk says this size is in characters, but it appears to be number of bytes ???
         bytes_read, stream_name_buf, ctxt = win32file.BackupRead(
             h, stream_name_size, None, False, True, ctxt
         )

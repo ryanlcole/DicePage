@@ -50,10 +50,10 @@ Collections and Utility Classes
 """
 
 
-# The `select` module varies between platforms.
-# mypy may complain about missing module attributes depending on which platform it's running on.
-# The comment below disables mypy's attribute check.
-# mypy: disable-error-code="attr-defined, name-defined"
+# 045776.python.kqueue.line53.comment The `select` module varies between platforms.
+# 045777.python.kqueue.line54.comment mypy may complain about missing module attributes depending on which platform it's running on.
+# 045778.python.kqueue.line55.comment The comment below disables mypy's attribute check.
+# 045779.python.kqueue.line56.comment mypy: disable-error-code="attr-defined, name-defined"
 
 from __future__ import annotations
 
@@ -91,13 +91,13 @@ if TYPE_CHECKING:
     from watchdog.events import FileSystemEvent
     from watchdog.observers.api import EventQueue, ObservedWatch
 
-# Maximum number of events to process.
+# 045780.python.kqueue.line94.comment Maximum number of events to process.
 MAX_EVENTS = 4096
 
-# O_EVTONLY value from the header files for OS X only.
+# 045781.python.kqueue.line97.comment O_EVTONLY value from the header files for OS X only.
 O_EVTONLY = 0x8000
 
-# Pre-calculated values for the kevent filter, flags, and fflags attributes.
+# 045782.python.kqueue.line100.comment Pre-calculated values for the kevent filter, flags, and fflags attributes.
 WATCHDOG_OS_OPEN_FLAGS = O_EVTONLY if platform.is_darwin() else os.O_RDONLY | os.O_NONBLOCK
 WATCHDOG_KQ_FILTER = select.KQ_FILTER_VNODE
 WATCHDOG_KQ_EV_FLAGS = select.KQ_EV_ADD | select.KQ_EV_ENABLE | select.KQ_EV_CLEAR
@@ -116,7 +116,7 @@ def absolute_path(path: bytes | str) -> bytes | str:
     return os.path.abspath(os.path.normpath(path))
 
 
-# Flag tests.
+# 045783.python.kqueue.line119.comment Flag tests.
 
 
 def is_deleted(kev: select.kevent) -> bool:
@@ -237,7 +237,7 @@ class KeventDescriptorSet:
             self._descriptor_for_path.clear()
             self._kevents = []
 
-    # Thread-unsafe methods. Locking is provided at a higher level.
+    # 045784.python.kqueue.line240.comment Thread-unsafe methods. Locking is provided at a higher level.
     def _get(self, path: bytes | str) -> KeventDescriptor:
         """Returns a kevent descriptor for a given path."""
         return self._descriptor_for_path[path]
@@ -411,7 +411,7 @@ class KqueueEmitter(EventEmitter):
         self._kq = select.kqueue()
         self._lock = threading.RLock()
 
-        # A collection of KeventDescriptor.
+        # 045785.python.kqueue.line414.comment A collection of KeventDescriptor.
         self._descriptors = KeventDescriptorSet()
 
         def custom_stat(path: str, cls: KqueueEmitter = self) -> os.stat_result:
@@ -435,25 +435,25 @@ class KqueueEmitter(EventEmitter):
             self._descriptors.add(path, is_directory=is_directory)
         except OSError as e:
             if e.errno == errno.ENOENT:
-                # Probably dealing with a temporary file that was created
-                # and then quickly deleted before we could open
-                # a descriptor for it. Therefore, simply queue a sequence
-                # of created and deleted events for the path.
+                # 045786.python.kqueue.line438.comment Probably dealing with a temporary file that was created
+                # 045787.python.kqueue.line439.comment and then quickly deleted before we could open
+                # 045788.python.kqueue.line440.comment a descriptor for it. Therefore, simply queue a sequence
+                # 045789.python.kqueue.line441.comment of created and deleted events for the path.
 
-                # TODO: We could simply ignore these files.
-                # Locked files cause the python process to die with
-                # a bus error when we handle temporary files.
-                # eg. .git/index.lock when running tig operations.
-                # I don't fully understand this at the moment.
+                # 045790.python.kqueue.line443.comment TODO: We could simply ignore these files.
+                # 045791.python.kqueue.line444.comment Locked files cause the python process to die with
+                # 045792.python.kqueue.line445.comment a bus error when we handle temporary files.
+                # 045793.python.kqueue.line446.comment eg. .git/index.lock when running tig operations.
+                # 045794.python.kqueue.line447.comment I don't fully understand this at the moment.
                 pass
             elif e.errno == errno.EOPNOTSUPP:
-                # Probably dealing with the socket or special file
-                # mounted through a file system that does not support
-                # access to it (e.g. NFS). On BSD systems look at
-                # EOPNOTSUPP in man 2 open.
+                # 045795.python.kqueue.line450.comment Probably dealing with the socket or special file
+                # 045796.python.kqueue.line451.comment mounted through a file system that does not support
+                # 045797.python.kqueue.line452.comment access to it (e.g. NFS). On BSD systems look at
+                # 045798.python.kqueue.line453.comment EOPNOTSUPP in man 2 open.
                 pass
             else:
-                # All other errors are propagated.
+                # 045799.python.kqueue.line456.comment All other errors are propagated.
                 raise
 
     def _unregister_kevent(self, path: bytes | str) -> None:
@@ -472,10 +472,10 @@ class KqueueEmitter(EventEmitter):
             An instance of :class:`watchdog.events.FileSystemEvent`
             or a subclass.
         """
-        # Handles all the book keeping for queued events.
-        # We do not need to fire moved/deleted events for all subitems in
-        # a directory tree here, because this function is called by kqueue
-        # for all those events anyway.
+        # 045800.python.kqueue.line475.comment Handles all the book keeping for queued events.
+        # 045801.python.kqueue.line476.comment We do not need to fire moved/deleted events for all subitems in
+        # 045802.python.kqueue.line477.comment a directory tree here, because this function is called by kqueue
+        # 045803.python.kqueue.line478.comment for all those events anyway.
         EventEmitter.queue_event(self, event)
         if event.event_type == EVENT_TYPE_CREATED:
             self._register_kevent(event.src_path, is_directory=event.is_directory)
@@ -501,9 +501,9 @@ class KqueueEmitter(EventEmitter):
         src_path = descriptor.path
 
         if is_renamed(kev):
-            # Kqueue does not specify the destination names for renames
-            # to, so we have to process these using the a snapshot
-            # of the directory.
+            # 045804.python.kqueue.line504.comment Kqueue does not specify the destination names for renames
+            # 045805.python.kqueue.line505.comment to, so we have to process these using the a snapshot
+            # 045806.python.kqueue.line506.comment of the directory.
             yield from self._gen_renamed_events(
                 src_path,
                 ref_snapshot,
@@ -518,10 +518,10 @@ class KqueueEmitter(EventEmitter):
         elif is_modified(kev):
             if descriptor.is_directory:
                 if self.watch.is_recursive or self.watch.path == src_path:
-                    # When a directory is modified, it may be due to
-                    # sub-file/directory renames or new file/directory
-                    # creation. We determine all this by comparing
-                    # snapshots later.
+                    # 045807.python.kqueue.line521.comment When a directory is modified, it may be due to
+                    # 045808.python.kqueue.line522.comment sub-file/directory renames or new file/directory
+                    # 045809.python.kqueue.line523.comment creation. We determine all this by comparing
+                    # 045810.python.kqueue.line524.comment snapshots later.
                     yield DirModifiedEvent(src_path)
             else:
                 yield FileModifiedEvent(src_path)
@@ -551,17 +551,17 @@ class KqueueEmitter(EventEmitter):
         try:
             f_inode = ref_snapshot.inode(src_path)
         except KeyError:
-            # Probably caught a temporary file/directory that was renamed
-            # and deleted. Fires a sequence of created and deleted events
-            # for the path.
+            # 045811.python.kqueue.line554.comment Probably caught a temporary file/directory that was renamed
+            # 045812.python.kqueue.line555.comment and deleted. Fires a sequence of created and deleted events
+            # 045813.python.kqueue.line556.comment for the path.
             if is_directory:
                 yield DirCreatedEvent(src_path)
                 yield DirDeletedEvent(src_path)
             else:
                 yield FileCreatedEvent(src_path)
                 yield FileDeletedEvent(src_path)
-                # We don't process any further and bail out assuming
-            # the event represents deletion/creation instead of movement.
+                # 045814.python.kqueue.line563.comment We don't process any further and bail out assuming
+            # 045815.python.kqueue.line564.comment the event represents deletion/creation instead of movement.
             return
 
         dest_path = new_snapshot.path(f_inode)
@@ -574,16 +574,16 @@ class KqueueEmitter(EventEmitter):
             yield self._parent_dir_modified(src_path)
             yield self._parent_dir_modified(dest_path)
             if is_directory and self.watch.is_recursive:
-                # TODO: Do we need to fire moved events for the items
-                # inside the directory tree? Does kqueue does this
-                # all by itself? Check this and then enable this code
-                # only if it doesn't already.
-                # A: It doesn't. So I've enabled this block.
+                # 045816.python.kqueue.line577.comment TODO: Do we need to fire moved events for the items
+                # 045817.python.kqueue.line578.comment inside the directory tree? Does kqueue does this
+                # 045818.python.kqueue.line579.comment all by itself? Check this and then enable this code
+                # 045819.python.kqueue.line580.comment only if it doesn't already.
+                # 045820.python.kqueue.line581.comment A: It doesn't. So I've enabled this block.
                 yield from generate_sub_moved_events(src_path, dest_path)
         else:
-            # If the new snapshot does not have an inode for the
-            # old path, we haven't found the new name. Therefore,
-            # we mark it as deleted and remove unregister the path.
+            # 045821.python.kqueue.line584.comment If the new snapshot does not have an inode for the
+            # 045822.python.kqueue.line585.comment old path, we haven't found the new name. Therefore,
+            # 045823.python.kqueue.line586.comment we mark it as deleted and remove unregister the path.
             if is_directory:
                 yield DirDeletedEvent(src_path)
             else:
@@ -613,17 +613,17 @@ class KqueueEmitter(EventEmitter):
         with self._lock:
             try:
                 event_list = self._read_events(timeout)
-                # TODO: investigate why order appears to be reversed
+                # 045824.python.kqueue.line616.comment TODO: investigate why order appears to be reversed
                 event_list.reverse()
 
-                # Take a fresh snapshot of the directory and update the
-                # saved snapshot.
+                # 045825.python.kqueue.line619.comment Take a fresh snapshot of the directory and update the
+                # 045826.python.kqueue.line620.comment saved snapshot.
                 new_snapshot = DirectorySnapshot(self.watch.path, recursive=self.watch.is_recursive)
                 ref_snapshot = self._snapshot
                 self._snapshot = new_snapshot
                 diff_events = new_snapshot - ref_snapshot
 
-                # Process events
+                # 045827.python.kqueue.line626.comment Process events
                 for directory_created in diff_events.dirs_created:
                     self.queue_event(DirCreatedEvent(directory_created))
                 for file_created in diff_events.files_created:
@@ -640,7 +640,7 @@ class KqueueEmitter(EventEmitter):
                     raise
 
     def on_thread_stop(self) -> None:
-        # Clean up.
+        # 045828.python.kqueue.line643.comment Clean up.
         with self._lock:
             self._descriptors.clear()
             self._kq.close()

@@ -10,7 +10,7 @@ import winerror
 
 class TestBase(unittest.TestCase):
     def _testExceptionIndex(self, exc, index, expected):
-        # Check that exception.args is the same.
+        # 048198.python.test_exceptions.line13.comment Check that exception.args is the same.
         self.assertEqual(exc.args[index], expected)
 
 
@@ -53,20 +53,20 @@ class TestAPISimple(TestBase):
     def testAsStr(self):
         exc = self._getInvalidHandleException()
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
-        # early on the result actually *was* a tuple - it must always look like one
+        # 048199.python.test_exceptions.line56.comment early on the result actually *was* a tuple - it must always look like one
         err_tuple = (winerror.ERROR_INVALID_HANDLE, "CloseHandle", err_msg)
         self.assertEqual(str(exc), str(err_tuple))
 
     def testAsTuple(self):
         exc = self._getInvalidHandleException()
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
-        # early on the result actually *was* a tuple - it must be able to be one
+        # 048200.python.test_exceptions.line63.comment early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.ERROR_INVALID_HANDLE, "CloseHandle", err_msg)
         self.assertEqual(exc.args, err_tuple)
 
     def testClassName(self):
         exc = self._getInvalidHandleException()
-        # The error class has always been named 'error'.  That's not ideal :(
+        # 048201.python.test_exceptions.line69.comment The error class has always been named 'error'.  That's not ideal :(
         self.assertEqual(exc.__class__.__name__, "error")
 
     def testIdentity(self):
@@ -83,7 +83,7 @@ class TestAPISimple(TestBase):
         self.assertEqual(exc.strerror, err_msg)
         self.assertEqual(exc.funcname, "CloseHandle")
 
-    # some tests for 'insane' args.
+    # 048202.python.test_exceptions.line86.comment some tests for 'insane' args.
     def testStrangeArgsNone(self):
         try:
             raise pywintypes.error
@@ -100,7 +100,7 @@ class TestAPISimple(TestBase):
             self.fail("Expected exception")
         except pywintypes.error as exc:
             self.assertEqual(exc.args[0], "foo")
-            # 'winerror' always args[0]
+            # 048203.python.test_exceptions.line103.comment 'winerror' always args[0]
             self.assertEqual(exc.winerror, "foo")
             self.assertEqual(exc.funcname, None)
             self.assertEqual(exc.strerror, None)
@@ -143,14 +143,14 @@ class TestCOMSimple(TestBase):
     def testAsStr(self):
         exc = self._getException()
         err_msg = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
-        # early on the result actually *was* a tuple - it must always look like one
+        # 048204.python.test_exceptions.line146.comment early on the result actually *was* a tuple - it must always look like one
         err_tuple = (winerror.STG_E_INVALIDFLAG, err_msg, None, None)
         self.assertEqual(str(exc), str(err_tuple))
 
     def testAsTuple(self):
         exc = self._getException()
         err_msg = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
-        # early on the result actually *was* a tuple - it must be able to be one
+        # 048205.python.test_exceptions.line153.comment early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.STG_E_INVALIDFLAG, err_msg, None, None)
         self.assertEqual(exc.args, err_tuple)
 

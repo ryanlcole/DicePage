@@ -19,7 +19,7 @@ class install_lib(orig.install_lib):
         self.build()
         outfiles = self.install()
         if outfiles is not None:
-            # always compile, in case we have any extension stubs to deal with
+            # 044572.python.install_lib.line22.comment always compile, in case we have any extension stubs to deal with
             self.byte_compile(outfiles)
 
     def get_exclusions(self):
@@ -59,9 +59,9 @@ class install_lib(orig.install_lib):
         Get namespace packages (list) but only for
         single_version_externally_managed installations and empty otherwise.
         """
-        # TODO: is it necessary to short-circuit here? i.e. what's the cost
-        # if get_finalized_command is called even when namespace_packages is
-        # False?
+        # 044573.python.install_lib.line62.comment TODO: is it necessary to short-circuit here? i.e. what's the cost
+        # 044574.python.install_lib.line63.comment if get_finalized_command is called even when namespace_packages is
+        # 044575.python.install_lib.line64.comment False?
         if not self.distribution.namespace_packages:
             return []
 
@@ -76,7 +76,7 @@ class install_lib(orig.install_lib):
         Generate file paths to be excluded for namespace packages (bytecode
         cache files).
         """
-        # always exclude the package module itself
+        # 044576.python.install_lib.line79.comment always exclude the package module itself
         yield '__init__.py'
 
         yield '__init__.pyc'
@@ -95,7 +95,7 @@ class install_lib(orig.install_lib):
         self,
         infile: StrPath,
         outfile: str,
-        # override: Using actual booleans
+        # 044577.python.install_lib.line98.comment override: Using actual booleans
         preserve_mode: bool = True,  # type: ignore[override]
         preserve_times: bool = True,  # type: ignore[override]
         preserve_symlinks: bool = False,  # type: ignore[override]
@@ -109,7 +109,7 @@ class install_lib(orig.install_lib):
         if not exclude:
             return orig.install_lib.copy_tree(self, infile, outfile)
 
-        # Exclude namespace package __init__.py* files from the output
+        # 044581.python.install_lib.line112.comment Exclude namespace package __init__.py* files from the output
 
         from setuptools.archive_util import unpack_directory
 

@@ -3,7 +3,7 @@ from collections import namedtuple
 CustomField = namedtuple("CustomField", "fields removals repositions")
 Reposition = namedtuple("Reposition", "field after")
 
-# Versions of the loaded libraries
+# 033907.python.compat.line6.comment Versions of the loaded libraries
 versions = {
     'avcodec': 0,
     'avformat': 0,
@@ -12,7 +12,7 @@ versions = {
     'swscale': 0,
 }
 
-# Group codecs by version they are usually packaged with.
+# 033908.python.compat.line15.comment Group codecs by version they are usually packaged with.
 release_versions = {
     4: {'avcodec': 58, 'avformat': 58, 'avutil': 56, 'swresample': 3, 'swscale': 5},  # 4.x
     5: {'avcodec': 59, 'avformat': 59, 'avutil': 57, 'swresample': 4, 'swscale': 6},  # 5.x
@@ -20,7 +20,7 @@ release_versions = {
     7: {'avcodec': 61, 'avformat': 61, 'avutil': 59, 'swresample': 5, 'swscale': 8},  # 7.x
 }
 
-# Removals done per library and version.
+# 033913.python.compat.line23.comment Removals done per library and version.
 _version_changes = {
     'avcodec': {},
     'avformat': {},

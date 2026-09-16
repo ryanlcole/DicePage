@@ -62,7 +62,7 @@ def getIndexedValue(obj, index):
 from collections.abc import Mapping
 
 
-# -----------------  The .connect method -----------------
+# 020453.python.adodbapi.line65.comment -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
         pythoncom.CoInitialize()  # v2.1 Paj
@@ -96,22 +96,22 @@ def connect(*args, **kwargs):  # --> a db-api connection object
         raise api.OperationalError(e, message)
 
 
-# so you could use something like:
-#   myConnection.paramstyle = 'named'
-# The programmer may also change the default.
-#   For example, if I were using django, I would say:
-#     import adodbapi as Database
-#     Database.adodbapi.paramstyle = 'format'
+# 020459.python.adodbapi.line99.comment so you could use something like:
+# 020460.python.adodbapi.line100.comment myConnection.paramstyle = 'named'
+# 020461.python.adodbapi.line101.comment The programmer may also change the default.
+# 020462.python.adodbapi.line102.comment For example, if I were using django, I would say:
+# 020463.python.adodbapi.line103.comment import adodbapi as Database
+# 020464.python.adodbapi.line104.comment Database.adodbapi.paramstyle = 'format'
 
-# ------- other module level defaults --------
+# 020465.python.adodbapi.line106.comment ------- other module level defaults --------
 defaultIsolationLevel = adc.adXactReadCommitted
-#  Set defaultIsolationLevel on module level before creating the connection.
-#   For example:
-#   import adodbapi, ado_consts
-#   adodbapi.adodbapi.defaultIsolationLevel=ado_consts.adXactBrowse"
-#
-#  Set defaultCursorLocation on module level before creating the connection.
-# It may be one of the "adUse..." consts.
+# 020466.python.adodbapi.line108.comment Set defaultIsolationLevel on module level before creating the connection.
+# 020467.python.adodbapi.line109.comment For example:
+# 020468.python.adodbapi.line110.comment import adodbapi, ado_consts
+# 020469.python.adodbapi.line111.comment adodbapi.adodbapi.defaultIsolationLevel=ado_consts.adXactBrowse"
+# 020470.python.adodbapi.line112.comment
+# 020471.python.adodbapi.line113.comment Set defaultCursorLocation on module level before creating the connection.
+# 020472.python.adodbapi.line114.comment It may be one of the "adUse..." consts.
 defaultCursorLocation = adc.adUseClient  # changed from adUseServer as of v 2.3.0
 
 dateconverter = api.pythonDateTimeConverter()  # default
@@ -192,7 +192,7 @@ def _configure_parameter(p, value, adotype, settings_known):
         if settings_known and adotype in api.adoDateTimeTypes:
             p.Value = dateconverter.COMDate(value)
         else:  # probably a string
-            # provide the date as a string in the format 'YYYY-MM-dd'
+            # 020484.python.adodbapi.line195.comment provide the date as a string in the format 'YYYY-MM-dd'
             s = dateconverter.DateObjectToIsoFormatString(value)
             p.Value = s
             p.Size = len(s)
@@ -203,14 +203,14 @@ def _configure_parameter(p, value, adotype, settings_known):
         )  # so we will fake it to be an integer (just to have something)
         p.Value = None  # and pass in a Null *value*
 
-        # For any other type, set the value and let pythoncom do the right thing.
+        # 020488.python.adodbapi.line206.comment For any other type, set the value and let pythoncom do the right thing.
     else:
         p.Value = value
 
 
-# # # # # ----- the Class that defines a connection ----- # # # # #
+# 020489.python.adodbapi.line211.comment # # # # ----- the Class that defines a connection ----- # # # # #
 class Connection:
-    # include connection attributes as class attributes required by api definition.
+    # 020490.python.adodbapi.line213.comment include connection attributes as class attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
     InterfaceError = api.InterfaceError
@@ -222,7 +222,7 @@ class Connection:
     NotSupportedError = api.NotSupportedError
     ProgrammingError = api.ProgrammingError
     FetchFailedError = api.FetchFailedError  # (special for django)
-    # ...class attributes... (can be overridden by instance attributes)
+    # 020492.python.adodbapi.line225.comment ...class attributes... (can be overridden by instance attributes)
     verbose = api.verbose
 
     @property
@@ -338,8 +338,8 @@ class Connection:
             self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
 
         self.connector = None  # v2.4.2.2 fix subtle timeout bug
-        # per M.Hammond: "I expect the benefits of uninitializing are probably fairly small,
-        #    so never uninitializing will probably not cause any problems."
+        # 020511.python.adodbapi.line341.comment per M.Hammond: "I expect the benefits of uninitializing are probably fairly small,
+        # 020512.python.adodbapi.line342.comment so never uninitializing will probably not cause any problems."
 
     def commit(self):
         """Commit any pending transaction to the database.
@@ -360,9 +360,9 @@ class Connection:
                 self._autocommit
                 or (self.connector.Attributes & adc.adXactAbortRetaining)
             ):
-                # If attributes has adXactCommitRetaining it performs retaining commits that is,
-                # calling CommitTrans automatically starts a new transaction. Not all providers support this.
-                # If not, we will have to start a new transaction by this command:
+                # 020513.python.adodbapi.line363.comment If attributes has adXactCommitRetaining it performs retaining commits that is,
+                # 020514.python.adodbapi.line364.comment calling CommitTrans automatically starts a new transaction. Not all providers support this.
+                # 020515.python.adodbapi.line365.comment If not, we will have to start a new transaction by this command:
                 self.transaction_level = self.connector.BeginTrans()
         except Exception as e:
             self._raiseConnectionError(api.ProgrammingError, e)
@@ -393,9 +393,9 @@ class Connection:
                 if not self._autocommit and not (
                     self.connector.Attributes & adc.adXactAbortRetaining
                 ):
-                    # If attributes has adXactAbortRetaining it performs retaining aborts that is,
-                    # calling RollbackTrans automatically starts a new transaction. Not all providers support this.
-                    # If not, we will have to start a new transaction by this command:
+                    # 020517.python.adodbapi.line396.comment If attributes has adXactAbortRetaining it performs retaining aborts that is,
+                    # 020518.python.adodbapi.line397.comment calling RollbackTrans automatically starts a new transaction. Not all providers support this.
+                    # 020519.python.adodbapi.line398.comment If not, we will have to start a new transaction by this command:
                     if not self.transaction_level:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception as e:
@@ -417,7 +417,7 @@ class Connection:
                     f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}",
                 )
         elif name == "variantConversions":
-            # make a new copy -- no changes in the default, please
+            # 020522.python.adodbapi.line420.comment make a new copy -- no changes in the default, please
             value = copy.copy(value)
         object.__setattr__(self, name, value)
 
@@ -515,32 +515,32 @@ class Connection:
         return tables
 
 
-# # # # # ----- the Class that defines a cursor ----- # # # # #
+# 020529.python.adodbapi.line518.comment # # # # ----- the Class that defines a cursor ----- # # # # #
 class Cursor:
-    ## ** api required attributes:
-    ## description...
-    ##    This read-only attribute is a sequence of 7-item sequences.
-    ##    Each of these sequences contains information describing one result column:
-    ##        (name, type_code, display_size, internal_size, precision, scale, null_ok).
-    ##    This attribute will be None for operations that do not return rows or if the
-    ##    cursor has not had an operation invoked via the executeXXX() method yet.
-    ##    The type_code can be interpreted by comparing it to the Type Objects specified in the section below.
-    ## rowcount...
-    ##    This read-only attribute specifies the number of rows that the last executeXXX() produced
-    ##    (for DQL statements like select) or affected (for DML statements like update or insert).
-    ##    The attribute is -1 in case no executeXXX() has been performed on the cursor or
-    ##    the rowcount of the last operation is not determinable by the interface.[7]
-    ## arraysize...
-    ##    This read/write attribute specifies the number of rows to fetch at a time with fetchmany().
-    ##    It defaults to 1 meaning to fetch a single row at a time.
-    ##    Implementations must observe this value with respect to the fetchmany() method,
-    ##    but are free to interact with the database a single row at a time.
-    ##    It may also be used in the implementation of executemany().
-    ## ** extension attributes:
-    ## paramstyle...
-    ##   allows the programmer to override the connection's default paramstyle
-    ## errorhandler...
-    ##   allows the programmer to override the connection's default error handler
+    # 020530.python.adodbapi.line520.comment # ** api required attributes:
+    # 020531.python.adodbapi.line521.comment # description...
+    # 020532.python.adodbapi.line522.comment #    This read-only attribute is a sequence of 7-item sequences.
+    # 020533.python.adodbapi.line523.comment #    Each of these sequences contains information describing one result column:
+    # 020534.python.adodbapi.line524.comment #        (name, type_code, display_size, internal_size, precision, scale, null_ok).
+    # 020535.python.adodbapi.line525.comment #    This attribute will be None for operations that do not return rows or if the
+    # 020536.python.adodbapi.line526.comment #    cursor has not had an operation invoked via the executeXXX() method yet.
+    # 020537.python.adodbapi.line527.comment #    The type_code can be interpreted by comparing it to the Type Objects specified in the section below.
+    # 020538.python.adodbapi.line528.comment # rowcount...
+    # 020539.python.adodbapi.line529.comment #    This read-only attribute specifies the number of rows that the last executeXXX() produced
+    # 020540.python.adodbapi.line530.comment #    (for DQL statements like select) or affected (for DML statements like update or insert).
+    # 020541.python.adodbapi.line531.comment #    The attribute is -1 in case no executeXXX() has been performed on the cursor or
+    # 020542.python.adodbapi.line532.comment #    the rowcount of the last operation is not determinable by the interface.[7]
+    # 020543.python.adodbapi.line533.comment # arraysize...
+    # 020544.python.adodbapi.line534.comment #    This read/write attribute specifies the number of rows to fetch at a time with fetchmany().
+    # 020545.python.adodbapi.line535.comment #    It defaults to 1 meaning to fetch a single row at a time.
+    # 020546.python.adodbapi.line536.comment #    Implementations must observe this value with respect to the fetchmany() method,
+    # 020547.python.adodbapi.line537.comment #    but are free to interact with the database a single row at a time.
+    # 020548.python.adodbapi.line538.comment #    It may also be used in the implementation of executemany().
+    # 020549.python.adodbapi.line539.comment # ** extension attributes:
+    # 020550.python.adodbapi.line540.comment # paramstyle...
+    # 020551.python.adodbapi.line541.comment #   allows the programmer to override the connection's default paramstyle
+    # 020552.python.adodbapi.line542.comment # errorhandler...
+    # 020553.python.adodbapi.line543.comment #   allows the programmer to override the connection's default error handler
 
     def __init__(self, connection):
         self.command = None
@@ -598,7 +598,7 @@ class Cursor:
         self.columnNames = {}  # names of columns {lowercase name : number,...}
         self._description = None
 
-        # if EOF and BOF are true at the same time, there are no records in the recordset
+        # 020562.python.adodbapi.line601.comment if EOF and BOF are true at the same time, there are no records in the recordset
         if (recordset is None) or (recordset.State == adc.adStateClosed):
             self.rs = None
             self.numberOfColumns = 0
@@ -623,7 +623,7 @@ class Cursor:
             self.columnNames[f.Name.lower()] = i  # columnNames lookup
 
     def _makeDescriptionFromRS(self):
-        # Abort if closed or no recordset.
+        # 020566.python.adodbapi.line626.comment Abort if closed or no recordset.
         if self.rs is None:
             self._description = None
             return
@@ -633,7 +633,7 @@ class Cursor:
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
-                # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                # 020567.python.adodbapi.line636.comment TODO: Is this the correct defintion according to the DB API 2 Spec ?
                 display_size = f.ActualSize
             null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
             desc.append(
@@ -731,16 +731,16 @@ class Cursor:
             )
 
     def _execute_command(self):
-        # Stored procedures may have an integer return value
+        # 020575.python.adodbapi.line734.comment Stored procedures may have an integer return value
         self.return_value = None
         recordset = None
         count = -1  # default value
         if verbose:
             print('Executing command="%s"' % self.commandText)
         try:
-            # ----- the actual SQL is executed here ---
+            # 020577.python.adodbapi.line741.comment ----- the actual SQL is executed here ---
             recordset, count = self.cmd.Execute()
-            # ----- ------------------------------- ---
+            # 020578.python.adodbapi.line743.comment ----- ------------------------------- ---
         except Exception as e:
             _message = ""
             if hasattr(e, "args"):
@@ -757,12 +757,12 @@ class Cursor:
             self.rowcount = count
         self.build_column_info(recordset)
 
-        # The ADO documentation hints that obtaining the recordcount may be timeconsuming
-        #   "If the Recordset object does not support approximate positioning, this property
-        #    may be a significant drain on resources # [ekelund]
-        # Therefore, COM will not return rowcount for server-side cursors. [Cole]
-        # Client-side cursors (the default since v2.8) will force a static
-        # cursor, and rowcount will then be set accurately [Cole]
+        # 020579.python.adodbapi.line760.comment The ADO documentation hints that obtaining the recordcount may be timeconsuming
+        # 020580.python.adodbapi.line761.comment "If the Recordset object does not support approximate positioning, this property
+        # 020581.python.adodbapi.line762.comment may be a significant drain on resources # [ekelund]
+        # 020582.python.adodbapi.line763.comment Therefore, COM will not return rowcount for server-side cursors. [Cole]
+        # 020583.python.adodbapi.line764.comment Client-side cursors (the default since v2.8) will force a static
+        # 020584.python.adodbapi.line765.comment cursor, and rowcount will then be set accurately [Cole]
 
     def get_rowcount(self):
         return self.rowcount
@@ -772,7 +772,7 @@ class Cursor:
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
 
-        # store procedures may return altered parameters, including an added "return value" item
+        # 020585.python.adodbapi.line775.comment store procedures may return altered parameters, including an added "return value" item
         retLst = []
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
@@ -840,7 +840,7 @@ class Cursor:
         if parameters is None:
             parameters = []
 
-        # Note: ADO does not preserve the parameter list, even if "Prepared" is True, so we must build every time.
+        # 020590.python.adodbapi.line843.comment Note: ADO does not preserve the parameter list, even if "Prepared" is True, so we must build every time.
         parameters_known = False
         if sproc:  # needed only if we are calling a stored procedure
             try:  # attempt to use ADO's parameter list
@@ -904,7 +904,7 @@ class Cursor:
                             )
                         i += 1
             else:  # -- build own parameter list
-                # we expect a dictionary of parameters, this is the list of expected names
+                # 020599.python.adodbapi.line907.comment we expect a dictionary of parameters, this is the list of expected names
                 if self._parameter_names:
                     for parm_name in self._parameter_names:
                         elem = parameters[parm_name]

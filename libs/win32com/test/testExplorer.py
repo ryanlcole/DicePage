@@ -1,4 +1,4 @@
-# testExplorer -
+# 050027.python.testExplorer.line1.comment testExplorer -
 
 import os
 import time
@@ -14,9 +14,9 @@ from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0
 
-# These are errors we might see when this is run in automation (eg, on GitHub)
-# Not sure exactly what -2125463506 is, but google shows it's a common error
-# possibly related to how IE is configured WRT site permissions etc.
+# 050028.python.testExplorer.line17.comment These are errors we might see when this is run in automation (eg, on GitHub)
+# 050029.python.testExplorer.line18.comment Not sure exactly what -2125463506 is, but google shows it's a common error
+# 050030.python.testExplorer.line19.comment possibly related to how IE is configured WRT site permissions etc.
 HRESULTS_IN_AUTOMATION = [-2125463506, winerror.MK_E_UNAVAILABLE]
 
 
@@ -33,9 +33,9 @@ def TestExplorerEvents():
             "InternetExplorer.Application", ExplorerEvents
         )
     except pythoncom.com_error as exc:
-        # In automation we see this error trying to connect to events
-        # It's a little surprising that the non-event tests seem to work, but
-        # whatever...
+        # 050031.python.testExplorer.line36.comment In automation we see this error trying to connect to events
+        # 050032.python.testExplorer.line37.comment It's a little surprising that the non-event tests seem to work, but
+        # 050033.python.testExplorer.line38.comment whatever...
         if exc.hresult not in HRESULTS_IN_AUTOMATION:
             raise
         print("IE events appear to not be available, so skipping this test")
@@ -57,9 +57,9 @@ def TestExplorerEvents():
 
 
 def TestObjectFromWindow():
-    # Check we can use ObjectFromLresult to get the COM object from the
+    # 050034.python.testExplorer.line60.comment Check we can use ObjectFromLresult to get the COM object from the
     hwnd = win32gui.FindWindow("IEFrame", None)
-    # Thanks https://stackoverflow.com/a/10154498/18450412 for the child stack on IE8+
+    # 050035.python.testExplorer.line62.comment Thanks https://stackoverflow.com/a/10154498/18450412 for the child stack on IE8+
     for child_class in (
         "Frame Tab",
         "TabWindowClass",
@@ -67,15 +67,15 @@ def TestObjectFromWindow():
         "Internet Explorer_Server",
     ):
         hwnd = win32gui.FindWindowEx(hwnd, 0, child_class, None)
-    # Once you have an 'Internet Explorer_Server',
-    # you can send a message and use ObjectFromLresult to get it back.
+    # 050036.python.testExplorer.line70.comment Once you have an 'Internet Explorer_Server',
+    # 050037.python.testExplorer.line71.comment you can send a message and use ObjectFromLresult to get it back.
     msg = win32gui.RegisterWindowMessage("WM_HTML_GETOBJECT")
     rc, result = win32gui.SendMessageTimeout(
         hwnd, msg, 0, 0, win32con.SMTO_ABORTIFHUNG, 1000
     )
     ob = pythoncom.ObjectFromLresult(result, pythoncom.IID_IDispatch, 0)
     doc = Dispatch(ob)
-    # just to prove it works, set the background color of the document.
+    # 050038.python.testExplorer.line78.comment just to prove it works, set the background color of the document.
     for color in "red green blue orange white".split():
         doc.bgColor = color
         time.sleep(0.2)
@@ -92,7 +92,7 @@ def TestExplorer(iexplore):
     try:
         iexplore.Quit()
     except (AttributeError, pythoncom.com_error):
-        # User got sick of waiting :)
+        # 050039.python.testExplorer.line95.comment User got sick of waiting :)
         pass
 
 
@@ -114,13 +114,13 @@ def TestAll():
             win32api.Sleep(1000)
             iexplore = None
 
-            # Test IE events.
+            # 050040.python.testExplorer.line117.comment Test IE events.
             TestExplorerEvents()
-            # Give IE a chance to shutdown, else it can get upset on fast machines.
+            # 050041.python.testExplorer.line119.comment Give IE a chance to shutdown, else it can get upset on fast machines.
             time.sleep(2)
 
-            # Note that the TextExplorerEvents will force makepy - hence
-            # this gencache is really no longer needed.
+            # 050042.python.testExplorer.line122.comment Note that the TextExplorerEvents will force makepy - hence
+            # 050043.python.testExplorer.line123.comment this gencache is really no longer needed.
 
             from win32com.client import gencache
 

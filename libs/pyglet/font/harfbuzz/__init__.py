@@ -43,7 +43,7 @@ def _add_utf32_buffer(text: str, buffer: c_void_p) -> None:
     hb_lib.hb_buffer_add_utf32(buffer, txt_array,char_ct, 0, char_ct)
 
 
-# Set which unicode python is using for the strings.
+# 027067.python.init.line46.comment Set which unicode python is using for the strings.
 if sys.maxunicode == 0x10FFFF:  # UTF-32
     set_buffer_string = _add_utf32_buffer
 elif sys.maxunicode == 0xFFFF:  # UTF-16
@@ -129,11 +129,11 @@ def get_harfbuzz_shaped_glyphs(font: Font, text: str) -> tuple[list[Glyph], list
     clusters = [glyph_data["cluster"] for glyph_data in glyph_info]
     cluster_map = defaultdict(list)
 
-    # Find any clusters that have empty indices.
+    # 027070.python.init.line132.comment Find any clusters that have empty indices.
     empty_clusters = {}
     indices = []
     for glyph_data in glyph_info:
-        # If any clusters have no codepoint, determine the size to pass to fallback.
+        # 027071.python.init.line136.comment If any clusters have no codepoint, determine the size to pass to fallback.
         cluster_num = glyph_data["cluster"]
         glyph_index = glyph_data["codepoint"]
         if glyph_index == 0 and cluster_num not in empty_clusters:
@@ -147,7 +147,7 @@ def get_harfbuzz_shaped_glyphs(font: Font, text: str) -> tuple[list[Glyph], list
 
     font.render_glyph_indices(indices)
 
-    # If a cluster is missing and had 0 indices.
+    # 027072.python.init.line150.comment If a cluster is missing and had 0 indices.
     missing_glyphs = {}
     for cluster_id, cluster_ct in empty_clusters.items():
         missing_text = text[cluster_id:cluster_id + cluster_ct]
@@ -155,7 +155,7 @@ def get_harfbuzz_shaped_glyphs(font: Font, text: str) -> tuple[list[Glyph], list
             if missing_text == '\n':
                 fb_glyph_info = ([font._zero_glyph], [GlyphPosition(0, 0, 0, 0)])
             else:
-                # Get glyphs from fallback, since we need the fallback to actually render it.
+                # 027073.python.init.line158.comment Get glyphs from fallback, since we need the fallback to actually render it.
                 fb_glyph_info = _get_fallback_glyph_shape(font, missing_text)
             font.glyphs[missing_text] = fb_glyph_info  # Cache by string to prevent future fallback paths.
         missing_glyphs[cluster_id] = font.glyphs[missing_text]
@@ -165,13 +165,13 @@ def get_harfbuzz_shaped_glyphs(font: Font, text: str) -> tuple[list[Glyph], list
     for i in range(len(text)):
         cluster_glyph_info = cluster_map[i]
 
-        # Cluster has data, check if it's part of the missing glyphs.
+        # 027075.python.init.line168.comment Cluster has data, check if it's part of the missing glyphs.
         if i in missing_glyphs:
             _glyphs, _offsets = missing_glyphs[i]
             glyphs.extend(_glyphs)
             offsets.extend(_offsets)
 
-        # If this cluster is missing, add some zero glyphs until count matches.
+        # 027076.python.init.line174.comment If this cluster is missing, add some zero glyphs until count matches.
         elif len(cluster_glyph_info) == 0:
             while len(glyphs) - 1 < i:
                 glyphs.append(font._zero_glyph)
@@ -215,10 +215,10 @@ class _HarfbuzzResources:
           - x_advance, y_advance: the advances (including kerning adjustments)
           - x_offset, y_offset: the offsets (shaped adjustments)
         """
-        # Create a new buffer.
+        # 027077.python.init.line218.comment Create a new buffer.
         buf = hb_lib.hb_buffer_create()
 
-        # hb_lib.hb_buffer_set_cluster_level(buf, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
+        # 027078.python.init.line221.comment hb_lib.hb_buffer_set_cluster_level(buf, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
         set_buffer_string(text, buf)
 
         scale = int(pixel_size * 64)
@@ -226,20 +226,20 @@ class _HarfbuzzResources:
 
         hb_lib.hb_buffer_guess_segment_properties(buf)
 
-        # Set text direction (LTR, RTL, etc.).
+        # 027079.python.init.line229.comment Set text direction (LTR, RTL, etc.).
         hb_lib.hb_buffer_set_direction(buf, direction)
 
-        # Perform shaping.
+        # 027080.python.init.line232.comment Perform shaping.
         hb_lib.hb_shape(self.font, buf, None, 0)
 
-        # Retrieve the number of glyphs.
+        # 027081.python.init.line235.comment Retrieve the number of glyphs.
         length = hb_lib.hb_buffer_get_length(buf)
 
-        # Get pointers to the glyph info and position arrays.
+        # 027082.python.init.line238.comment Get pointers to the glyph info and position arrays.
         infos = hb_lib.hb_buffer_get_glyph_infos(buf, None)
         positions = hb_lib.hb_buffer_get_glyph_positions(buf, None)
 
-        # Collect glyph metrics.
+        # 027083.python.init.line242.comment Collect glyph metrics.
         glyphs = []
         for i in range(length):
             info = infos[i]
@@ -253,7 +253,7 @@ class _HarfbuzzResources:
                 "y_offset": pos.y_offset / 64.0,
             })
 
-        # Clean up the buffer.
+        # 027084.python.init.line256.comment Clean up the buffer.
         hb_lib.hb_buffer_destroy(buf)
 
         return glyphs

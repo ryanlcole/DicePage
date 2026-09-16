@@ -63,26 +63,26 @@ class XlibEventLoop(PlatformEventLoop):
         self._notification_device.set()
 
     def step(self, timeout=None):
-        # Timeout is from EventLoop.idle(). Return after that timeout or directly
-        # after receiving a new event. None means: block for user input.
+        # 026171.python.xlib.line66.comment Timeout is from EventLoop.idle(). Return after that timeout or directly
+        # 026172.python.xlib.line67.comment after receiving a new event. None means: block for user input.
 
-        # Poll devices to check for already pending events (select.select is not enough)
+        # 026173.python.xlib.line69.comment Poll devices to check for already pending events (select.select is not enough)
         pending_devices = []
         for device in self.select_devices:
             if device.poll():
                 pending_devices.append(device)
 
-        # If no devices were ready, wait until one gets ready
+        # 026174.python.xlib.line75.comment If no devices were ready, wait until one gets ready
         if not pending_devices:
             pending_devices, _, _ = select.select(self.select_devices, (), (), timeout)
 
         if not pending_devices:
-            # Notify caller that timeout expired without incoming events
+            # 026175.python.xlib.line80.comment Notify caller that timeout expired without incoming events
             return False
 
-        # Dispatch activity on matching devices
+        # 026176.python.xlib.line83.comment Dispatch activity on matching devices
         for device in pending_devices:
             device.select()
 
-        # Notify caller that events were handled before timeout expired
+        # 026177.python.xlib.line87.comment Notify caller that events were handled before timeout expired
         return True

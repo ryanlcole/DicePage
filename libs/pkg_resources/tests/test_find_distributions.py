@@ -12,7 +12,7 @@ class TestFindDistributions:
     @pytest.fixture
     def target_dir(self, tmpdir):
         target_dir = tmpdir.mkdir('target')
-        # place a .egg named directory in the target that is not an egg:
+        # 023240.python.test_find_distributions.line15.comment place a .egg named directory in the target that is not an egg:
         target_dir.mkdir('not.an.egg')
         return target_dir
 

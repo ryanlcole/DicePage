@@ -45,7 +45,7 @@ def validate(config: dict, filepath: StrPath) -> bool:
 
     trove_classifier = validator.FORMAT_FUNCTIONS.get("trove-classifier")
     if hasattr(trove_classifier, "_disable_download"):
-        # Improve reproducibility by default. See abravalheri/validate-pyproject#31
+        # 044708.python.pyprojecttoml.line48.comment Improve reproducibility by default. See abravalheri/validate-pyproject#31
         trove_classifier._disable_download()  # type: ignore[union-attr]
 
     try:
@@ -53,7 +53,7 @@ def validate(config: dict, filepath: StrPath) -> bool:
     except validator.ValidationError as ex:
         summary = f"configuration error: {ex.summary}"
         if ex.name.strip("`") != "project":
-            # Probably it is just a field missing/misnamed, not worthy the verbosity...
+            # 044710.python.pyprojecttoml.line56.comment Probably it is just a field missing/misnamed, not worthy the verbosity...
             _logger.debug(summary)
             _logger.debug(ex.details)
 
@@ -113,21 +113,21 @@ def read_configuration(
         return {}  # User is not using pyproject to configure setuptools
 
     if "setuptools" in asdict.get("tools", {}):
-        # let the user know they probably have a typo in their metadata
+        # 044712.python.pyprojecttoml.line116.comment let the user know they probably have a typo in their metadata
         _ToolsTypoInMetadata.emit()
 
     if "distutils" in tool_table:
         _ExperimentalConfiguration.emit(subject="[tool.distutils]")
 
-    # There is an overall sense in the community that making include_package_data=True
-    # the default would be an improvement.
-    # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
-    # therefore setting a default here is backwards compatible.
+    # 044713.python.pyprojecttoml.line122.comment There is an overall sense in the community that making include_package_data=True
+    # 044714.python.pyprojecttoml.line123.comment the default would be an improvement.
+    # 044715.python.pyprojecttoml.line124.comment `ini2toml` backfills include_package_data=False when nothing is explicitly given,
+    # 044716.python.pyprojecttoml.line125.comment therefore setting a default here is backwards compatible.
     if dist and dist.include_package_data is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
         setuptools_table.setdefault("include-package-data", True)
-    # Persist changes:
+    # 044717.python.pyprojecttoml.line130.comment Persist changes:
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
 
@@ -135,7 +135,7 @@ def read_configuration(
         _ExperimentalConfiguration.emit(subject="[tool.setuptools.ext-modules]")
 
     with _ignore_errors(ignore_option_errors):
-        # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
+        # 044718.python.pyprojecttoml.line138.comment Don't complain about unrelated errors (e.g. tools not using the "tool" table)
         subset = {"project": project_table, "tool": {"setuptools": setuptools_table}}
         validate(subset, filepath)
 
@@ -207,7 +207,7 @@ class _ConfigExpander:
         self._canonic_package_data()
         self._canonic_package_data("exclude-package-data")
 
-        # A distribution object is required for discovering the correct package_dir
+        # 044719.python.pyprojecttoml.line210.comment A distribution object is required for discovering the correct package_dir
         dist = self._ensure_dist()
         ctx = _EnsurePackagesDiscovered(dist, self.project_cfg, self.setuptools_cfg)
         with ctx as ensure_discovered:
@@ -251,7 +251,7 @@ class _ConfigExpander:
             "dependencies",
             "optional-dependencies",
         )
-        # `_obtain` functions are assumed to raise appropriate exceptions/warnings.
+        # 044721.python.pyprojecttoml.line254.comment `_obtain` functions are assumed to raise appropriate exceptions/warnings.
         obtained_dynamic = {
             field: self._obtain(dist, field, package_dir)
             for field in self.dynamic
@@ -265,8 +265,8 @@ class _ConfigExpander:
             dependencies=self._obtain_dependencies(dist),
             optional_dependencies=self._obtain_optional_dependencies(dist),
         )
-        # `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
-        # might have already been set by setup.py/extensions, so avoid overwriting.
+        # 044722.python.pyprojecttoml.line268.comment `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
+        # 044723.python.pyprojecttoml.line269.comment might have already been set by setup.py/extensions, so avoid overwriting.
         updates = {k: v for k, v in obtained_dynamic.items() if v is not None}
         self.project_cfg.update(updates)
 
@@ -306,10 +306,10 @@ class _ConfigExpander:
         return None
 
     def _obtain_version(self, dist: Distribution, package_dir: Mapping[str, str]):
-        # Since plugins can set version, let's silently skip if it cannot be obtained
+        # 044724.python.pyprojecttoml.line309.comment Since plugins can set version, let's silently skip if it cannot be obtained
         if "version" in self.dynamic and "version" in self.dynamic_cfg:
             return _expand.version(
-                # We already do an early check for the presence of "version"
+                # 044725.python.pyprojecttoml.line312.comment We already do an early check for the presence of "version"
                 self._obtain(dist, "version", package_dir)  # pyright: ignore[reportArgumentType]
             )
         return None
@@ -321,7 +321,7 @@ class _ConfigExpander:
         dynamic_cfg = self.dynamic_cfg
         if "readme" in dynamic_cfg:
             return {
-                # We already do an early check for the presence of "readme"
+                # 044727.python.pyprojecttoml.line324.comment We already do an early check for the presence of "readme"
                 "text": self._obtain(dist, "readme", {}),
                 "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
             }  # pyright: ignore[reportReturnType]
@@ -341,7 +341,7 @@ class _ConfigExpander:
             return None
 
         groups = _expand.entry_points(text)
-        # Any is str | dict[str, str], but causes variance issues
+        # 044729.python.pyprojecttoml.line344.comment Any is str | dict[str, str], but causes variance issues
         expanded: dict[str, dict[str, Any]] = {"entry-points": groups}
 
         def _set_scripts(field: str, group: str):
@@ -429,8 +429,8 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
 
         dist.set_defaults._ignore_ext_modules()  # pyproject.toml-specific behaviour
 
-        # Set `name`, `py_modules` and `packages` in dist to short-circuit
-        # auto-discovery, but avoid overwriting empty lists purposefully set by users.
+        # 044732.python.pyprojecttoml.line432.comment Set `name`, `py_modules` and `packages` in dist to short-circuit
+        # 044733.python.pyprojecttoml.line433.comment auto-discovery, but avoid overwriting empty lists purposefully set by users.
         if dist.metadata.name is None:
             dist.metadata.name = self._project_cfg.get("name")
         if dist.py_modules is None:
@@ -449,7 +449,7 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         """When exiting the context, if values of ``packages``, ``py_modules`` and
         ``package_dir`` are missing in ``setuptools_cfg``, copy from ``dist``.
         """
-        # If anything was discovered set them back, so they count in the final config.
+        # 044734.python.pyprojecttoml.line452.comment If anything was discovered set them back, so they count in the final config.
         self._setuptools_cfg.setdefault("packages", self._dist.packages)
         self._setuptools_cfg.setdefault("py-modules", self._dist.py_modules)
         return super().__exit__(exc_type, exc_value, traceback)

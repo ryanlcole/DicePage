@@ -34,8 +34,8 @@ class FileList:
     """
 
     def __init__(self, warn: object = None, debug_print: object = None) -> None:
-        # ignore argument to FileList, but keep them for backwards
-        # compatibility
+        # 040742.python.filelist.line37.comment ignore argument to FileList, but keep them for backwards
+        # 040743.python.filelist.line38.comment compatibility
         self.allfiles: Iterable[str] | None = None
         self.files: list[str] = []
 
@@ -54,7 +54,7 @@ class FileList:
         if DEBUG:
             print(msg)
 
-    # Collection methods
+    # 040744.python.filelist.line57.comment Collection methods
 
     def append(self, item: str) -> None:
         self.files.append(item)
@@ -63,21 +63,21 @@ class FileList:
         self.files.extend(items)
 
     def sort(self) -> None:
-        # Not a strict lexical sort!
+        # 040745.python.filelist.line66.comment Not a strict lexical sort!
         sortable_files = sorted(map(os.path.split, self.files))
         self.files = []
         for sort_tuple in sortable_files:
             self.files.append(os.path.join(*sort_tuple))
 
-    # Other miscellaneous utility methods
+    # 040746.python.filelist.line72.comment Other miscellaneous utility methods
 
     def remove_duplicates(self) -> None:
-        # Assumes list has been sorted!
+        # 040747.python.filelist.line75.comment Assumes list has been sorted!
         for i in range(len(self.files) - 1, 0, -1):
             if self.files[i] == self.files[i - 1]:
                 del self.files[i]
 
-    # "File template" methods
+    # 040748.python.filelist.line80.comment "File template" methods
 
     def _parse_template_line(self, line):
         words = line.split()
@@ -110,16 +110,16 @@ class FileList:
         return (action, patterns, dir, dir_pattern)
 
     def process_template_line(self, line: str) -> None:  # noqa: C901
-        # Parse the line: split it up, make sure the right number of words
-        # is there, and return the relevant words.  'action' is always
-        # defined: it's the first word of the line.  Which of the other
-        # three are defined depends on the action; it'll be either
-        # patterns, (dir and patterns), or (dir_pattern).
+        # 040750.python.filelist.line113.comment Parse the line: split it up, make sure the right number of words
+        # 040751.python.filelist.line114.comment is there, and return the relevant words.  'action' is always
+        # 040752.python.filelist.line115.comment defined: it's the first word of the line.  Which of the other
+        # 040753.python.filelist.line116.comment three are defined depends on the action; it'll be either
+        # 040754.python.filelist.line117.comment patterns, (dir and patterns), or (dir_pattern).
         (action, patterns, dir, dir_pattern) = self._parse_template_line(line)
 
-        # OK, now we know that the action is valid and we have the
-        # right number of words on the line for that action -- so we
-        # can proceed with minimal error-checking.
+        # 040755.python.filelist.line120.comment OK, now we know that the action is valid and we have the
+        # 040756.python.filelist.line121.comment right number of words on the line for that action -- so we
+        # 040757.python.filelist.line122.comment can proceed with minimal error-checking.
         if action == 'include':
             self.debug_print("include " + ' '.join(patterns))
             for pattern in patterns:
@@ -196,7 +196,7 @@ class FileList:
                 f"this cannot happen: invalid action '{action}'"
             )
 
-    # Filtering/selection methods
+    # 040758.python.filelist.line199.comment Filtering/selection methods
     @overload
     def include_pattern(
         self,
@@ -253,12 +253,12 @@ class FileList:
 
         Return True if files are found, False otherwise.
         """
-        # XXX docstring lying about what the special chars are?
+        # 040759.python.filelist.line256.comment XXX docstring lying about what the special chars are?
         files_found = False
         pattern_re = translate_pattern(pattern, anchor, prefix, is_regex)
         self.debug_print(f"include_pattern: applying regex r'{pattern_re.pattern}'")
 
-        # delayed loading of allfiles list
+        # 040760.python.filelist.line261.comment delayed loading of allfiles list
         if self.allfiles is None:
             self.findall()
 
@@ -318,7 +318,7 @@ class FileList:
         return files_found
 
 
-# Utility functions
+# 040761.python.filelist.line321.comment Utility functions
 
 
 def _find_all_simple(path):
@@ -379,15 +379,15 @@ def glob_to_re(pattern):
     """
     pattern_re = fnmatch.translate(pattern)
 
-    # '?' and '*' in the glob pattern become '.' and '.*' in the RE, which
-    # IMHO is wrong -- '?' and '*' aren't supposed to match slash in Unix,
-    # and by extension they shouldn't match such "special characters" under
-    # any OS.  So change all non-escaped dots in the RE to match any
-    # character except the special characters (currently: just os.sep).
+    # 040762.python.filelist.line382.comment '?' and '*' in the glob pattern become '.' and '.*' in the RE, which
+    # 040763.python.filelist.line383.comment IMHO is wrong -- '?' and '*' aren't supposed to match slash in Unix,
+    # 040764.python.filelist.line384.comment and by extension they shouldn't match such "special characters" under
+    # 040765.python.filelist.line385.comment any OS.  So change all non-escaped dots in the RE to match any
+    # 040766.python.filelist.line386.comment character except the special characters (currently: just os.sep).
     sep = os.sep
     if os.sep == '\\':
-        # we're using a regex to manipulate a regex, so we need
-        # to escape the backslash twice
+        # 040767.python.filelist.line389.comment we're using a regex to manipulate a regex, so we need
+        # 040768.python.filelist.line390.comment to escape the backslash twice
         sep = r'\\\\'
     escaped = rf'\1[^{sep}]'
     pattern_re = re.sub(r'((?<!\\)(\\\\)*)\.', escaped, pattern_re)
@@ -406,7 +406,7 @@ def translate_pattern(pattern, anchor=True, prefix=None, is_regex=False):
         else:
             return pattern
 
-    # ditch start and end characters
+    # 040769.python.filelist.line409.comment ditch start and end characters
     start, _, end = glob_to_re('_').partition('_')
 
     if pattern:

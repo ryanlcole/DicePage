@@ -61,7 +61,7 @@ def _iglob(pathname: AnyStr, recursive: bool) -> Iterator[AnyStr]:
             if os.path.lexists(pathname):
                 yield pathname
         else:
-            # Patterns ending with a slash should match only directories
+            # 044897.python.glob.line64.comment Patterns ending with a slash should match only directories
             if os.path.isdir(dirname):
                 yield pathname
         return
@@ -69,9 +69,9 @@ def _iglob(pathname: AnyStr, recursive: bool) -> Iterator[AnyStr]:
     if not dirname:
         yield from glob_in_dir(dirname, basename)
         return
-    # `os.path.split()` returns the argument itself as a dirname if it is a
-    # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
-    # contains magic characters (i.e. r'\\?\C:').
+    # 044898.python.glob.line72.comment `os.path.split()` returns the argument itself as a dirname if it is a
+    # 044899.python.glob.line73.comment drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
+    # 044900.python.glob.line74.comment contains magic characters (i.e. r'\\?\C:').
     if dirname != pathname and has_magic(dirname):
         dirs: Iterable[AnyStr] = _iglob(dirname, recursive)
     else:
@@ -83,9 +83,9 @@ def _iglob(pathname: AnyStr, recursive: bool) -> Iterator[AnyStr]:
             yield os.path.join(dirname, name)
 
 
-# These 2 helper functions non-recursively glob inside a literal directory.
-# They return a list of basenames. `glob1` accepts a pattern while `glob0`
-# takes a literal basename (so it only has to check for its existence).
+# 044901.python.glob.line86.comment These 2 helper functions non-recursively glob inside a literal directory.
+# 044902.python.glob.line87.comment They return a list of basenames. `glob1` accepts a pattern while `glob0`
+# 044903.python.glob.line88.comment takes a literal basename (so it only has to check for its existence).
 
 
 @overload
@@ -102,14 +102,14 @@ def glob1(dirname: StrOrBytesPath, pattern: str | bytes) -> list[str] | list[byt
         names = os.listdir(dirname)
     except OSError:
         return []
-    # mypy false-positives: str or bytes type possibility is always kept in sync
+    # 044904.python.glob.line105.comment mypy false-positives: str or bytes type possibility is always kept in sync
     return fnmatch.filter(names, pattern)  # type: ignore[type-var, return-value]
 
 
 def glob0(dirname, basename):
     if not basename:
-        # `os.path.split()` returns an empty basename for paths ending with a
-        # directory separator.  'q*x/' should match only directories.
+        # 044906.python.glob.line111.comment `os.path.split()` returns an empty basename for paths ending with a
+        # 044907.python.glob.line112.comment directory separator.  'q*x/' should match only directories.
         if os.path.isdir(dirname):
             return [basename]
     else:
@@ -118,8 +118,8 @@ def glob0(dirname, basename):
     return []
 
 
-# This helper function recursively yields relative pathnames inside a literal
-# directory.
+# 044908.python.glob.line121.comment This helper function recursively yields relative pathnames inside a literal
+# 044909.python.glob.line122.comment directory.
 
 
 @overload
@@ -132,7 +132,7 @@ def glob2(dirname: StrOrBytesPath, pattern: str | bytes) -> Iterator[str | bytes
     yield from _rlistdir(dirname)
 
 
-# Recursively yields relative pathnames inside a literal directory.
+# 044910.python.glob.line135.comment Recursively yields relative pathnames inside a literal directory.
 @overload
 def _rlistdir(dirname: StrPath) -> Iterator[str]: ...
 @overload
@@ -149,7 +149,7 @@ def _rlistdir(dirname: StrOrBytesPath) -> Iterator[str | bytes]:
         return
     for x in names:
         yield x
-        # mypy false-positives: str or bytes type possibility is always kept in sync
+        # 044911.python.glob.line152.comment mypy false-positives: str or bytes type possibility is always kept in sync
         path = os.path.join(dirname, x) if dirname else x  # type: ignore[arg-type]
         for y in _rlistdir(path):
             yield os.path.join(x, y)  # type: ignore[arg-type]
@@ -175,8 +175,8 @@ def _isrecursive(pattern: str | bytes) -> bool:
 
 def escape(pathname):
     """Escape all special characters."""
-    # Escaping is done by wrapping any of "*?[" between square brackets.
-    # Metacharacters do not work in the drive part and shouldn't be escaped.
+    # 044914.python.glob.line178.comment Escaping is done by wrapping any of "*?[" between square brackets.
+    # 044915.python.glob.line179.comment Metacharacters do not work in the drive part and shouldn't be escaped.
     drive, pathname = os.path.splitdrive(pathname)
     if isinstance(pathname, bytes):
         pathname = magic_check_bytes.sub(rb'[\1]', pathname)

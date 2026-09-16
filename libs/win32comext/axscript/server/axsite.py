@@ -29,7 +29,7 @@ class AXEngine:
     def AddNamedItem(self, item, flags):
         return self.eScript.AddNamedItem(item, flags)
 
-    # Some helpers.
+    # 051282.python.axsite.line32.comment Some helpers.
     def AddCode(self, code, flags=0):
         self.eParse.ParseScriptText(code, None, None, None, 0, 0, flags)
 
@@ -39,11 +39,11 @@ class AXEngine:
         )
 
     def Start(self):
-        # Should maybe check state?
-        # Do I need to transition through?
+        # 051283.python.axsite.line42.comment Should maybe check state?
+        # 051284.python.axsite.line43.comment Do I need to transition through?
         self.eScript.SetScriptState(axscript.SCRIPTSTATE_STARTED)
 
-    #    self.eScript.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
+    # 051285.python.axsite.line46.comment self.eScript.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
 
     def Close(self):
         if self.eScript:
@@ -76,7 +76,7 @@ class AXSite:
         self.lcid = lcid
         self.objModel = {}
         for name, object in objModel.items():
-            # Gregs code did str.lower this - I think that is callers job if he wants!
+            # 051286.python.axsite.line79.comment Gregs code did str.lower this - I think that is callers job if he wants!
             self.objModel[name] = object
 
         self.engine = None
@@ -103,7 +103,7 @@ class AXSite:
             newEngine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
         return newEngine
 
-    # B/W compat
+    # 051287.python.axsite.line106.comment B/W compat
     _AddEngine = AddEngine
 
     def _Close(self):
@@ -119,7 +119,7 @@ class AXSite:
                 scode=winerror.TYPE_E_ELEMENTNOTFOUND, desc="item not found"
             )
 
-        ### for now, we don't have any type information
+        # 051288.python.axsite.line122.comment ## for now, we don't have any type information
 
         if returnMask & axscript.SCRIPTINFO_IUNKNOWN:
             return (self.objModel[name], None)

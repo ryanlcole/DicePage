@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052303.python.win32cred.line1.comment
+# 052304.python.win32cred.line2.comment (C) Copyright 2014 Enthought, Inc., Austin, TX
+# 052305.python.win32cred.line3.comment All right reserved.
+# 052306.python.win32cred.line4.comment
+# 052307.python.win32cred.line5.comment This file is open source software distributed according to the terms in
+# 052308.python.win32cred.line6.comment LICENSE.txt
+# 052309.python.win32cred.line7.comment
 """ Interface to credentials management functions. """
 from win32ctypes.core import _authentication, _common, _backend
 from win32ctypes.pywin32.pywintypes import pywin32error as _pywin32error

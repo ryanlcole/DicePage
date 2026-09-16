@@ -25,7 +25,7 @@ class InotifyBuffer(BaseThread):
 
     def __init__(self, path: bytes, *, recursive: bool = False, event_mask: int | None = None) -> None:
         super().__init__()
-        # XXX: Remove quotes after Python 3.9 drop
+        # 045714.python.inotify_buffer.line28.comment XXX: Remove quotes after Python 3.9 drop
         self._queue = DelayedQueue["InotifyEvent | tuple[InotifyEvent, InotifyEvent]"](self.delay)
         self._inotify = Inotify(path, recursive=recursive, event_mask=event_mask)
         self.start()
@@ -55,13 +55,13 @@ class InotifyBuffer(BaseThread):
                 return not isinstance(event, tuple) and event.is_moved_from and event.cookie == inotify_event.cookie
 
             if inotify_event.is_moved_to:
-                # Check if move_from is already in the buffer
+                # 045715.python.inotify_buffer.line58.comment Check if move_from is already in the buffer
                 for index, event in enumerate(grouped):
                     if matching_from_event(event):
                         grouped[index] = (event, inotify_event)  # type: ignore[assignment]
                         break
                 else:
-                    # Check if move_from is in delayqueue already
+                    # 045717.python.inotify_buffer.line64.comment Check if move_from is in delayqueue already
                     from_event = self._queue.remove(matching_from_event)
                     if from_event is not None:
                         grouped.append((from_event, inotify_event))  # type: ignore[arg-type]
@@ -84,12 +84,12 @@ class InotifyBuffer(BaseThread):
             for inotify_event in grouped_events:
                 if not isinstance(inotify_event, tuple) and inotify_event.is_ignored:
                     if inotify_event.src_path == self._inotify.path:
-                        # Watch was removed explicitly (inotify_rm_watch(2)) or automatically (file
-                        # was deleted, or filesystem was unmounted), stop watching for events
+                        # 045719.python.inotify_buffer.line87.comment Watch was removed explicitly (inotify_rm_watch(2)) or automatically (file
+                        # 045720.python.inotify_buffer.line88.comment was deleted, or filesystem was unmounted), stop watching for events
                         deleted_self = True
                     continue
 
-                # Only add delay for unmatched move_from events
+                # 045721.python.inotify_buffer.line92.comment Only add delay for unmatched move_from events
                 delay = not isinstance(inotify_event, tuple) and inotify_event.is_moved_from
                 self._queue.put(inotify_event, delay=delay)
 
@@ -98,5 +98,5 @@ class InotifyBuffer(BaseThread):
                     and inotify_event.is_delete_self
                     and inotify_event.src_path == self._inotify.path
                 ):
-                    # Deleted the watched directory, stop watching for events
+                    # 045722.python.inotify_buffer.line101.comment Deleted the watched directory, stop watching for events
                     deleted_self = True

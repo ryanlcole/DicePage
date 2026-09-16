@@ -1,4 +1,4 @@
-# Generate a base file name
+# 047973.python.backupEventLog.line1.comment Generate a base file name
 import os
 import time
 
@@ -24,7 +24,7 @@ def BackupClearLog(logType):
         except OSError:
             fileExists = 0
         retry += 1
-    # OK - have unique file name.
+    # 047974.python.backupEventLog.line27.comment OK - have unique file name.
     try:
         hlog = win32evtlog.OpenEventLog(None, logType)
     except win32evtlog.error as details:

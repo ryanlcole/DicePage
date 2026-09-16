@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 024370.python.psosx.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 024371.python.psosx.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 024372.python.psosx.line3.comment found in the LICENSE file.
 
 """macOS platform implementation."""
 
@@ -27,9 +27,9 @@ from ._common import usage_percent
 __extra__all__ = []
 
 
-# =====================================================================
-# --- globals
-# =====================================================================
+# 024373.python.psosx.line30.comment =====================================================================
+# 024374.python.psosx.line31.comment --- globals
+# 024375.python.psosx.line32.comment =====================================================================
 
 
 PAGESIZE = cext_posix.getpagesize()
@@ -84,40 +84,40 @@ pidtaskinfo_map = dict(
 )
 
 
-# =====================================================================
-# --- named tuples
-# =====================================================================
+# 024376.python.psosx.line87.comment =====================================================================
+# 024377.python.psosx.line88.comment --- named tuples
+# 024378.python.psosx.line89.comment =====================================================================
 
 
-# fmt: off
-# psutil.cpu_times()
+# 024379.python.psosx.line92.comment fmt: off
+# 024380.python.psosx.line93.comment psutil.cpu_times()
 scputimes = namedtuple('scputimes', ['user', 'nice', 'system', 'idle'])
-# psutil.virtual_memory()
+# 024381.python.psosx.line95.comment psutil.virtual_memory()
 svmem = namedtuple(
     'svmem', ['total', 'available', 'percent', 'used', 'free',
               'active', 'inactive', 'wired'])
-# psutil.Process.memory_info()
+# 024382.python.psosx.line99.comment psutil.Process.memory_info()
 pmem = namedtuple('pmem', ['rss', 'vms', 'pfaults', 'pageins'])
-# psutil.Process.memory_full_info()
+# 024383.python.psosx.line101.comment psutil.Process.memory_full_info()
 pfullmem = namedtuple('pfullmem', pmem._fields + ('uss', ))
-# fmt: on
+# 024384.python.psosx.line103.comment fmt: on
 
 
-# =====================================================================
-# --- memory
-# =====================================================================
+# 024385.python.psosx.line106.comment =====================================================================
+# 024386.python.psosx.line107.comment --- memory
+# 024387.python.psosx.line108.comment =====================================================================
 
 
 def virtual_memory():
     """System virtual memory as a namedtuple."""
     total, active, inactive, wired, free, speculative = cext.virtual_mem()
-    # This is how Zabbix calculate avail and used mem:
-    # https://github.com/zabbix/zabbix/blob/master/src/libs/zbxsysinfo/osx/memory.c
-    # Also see: https://github.com/giampaolo/psutil/issues/1277
+    # 024388.python.psosx.line114.comment This is how Zabbix calculate avail and used mem:
+    # 024389.python.psosx.line115.comment https://github.com/zabbix/zabbix/blob/master/src/libs/zbxsysinfo/osx/memory.c
+    # 024390.python.psosx.line116.comment Also see: https://github.com/giampaolo/psutil/issues/1277
     avail = inactive + free
     used = active + wired
-    # This is NOT how Zabbix calculates free mem but it matches "free"
-    # cmdline utility.
+    # 024391.python.psosx.line119.comment This is NOT how Zabbix calculates free mem but it matches "free"
+    # 024392.python.psosx.line120.comment cmdline utility.
     free -= speculative
     percent = usage_percent((total - avail), total, round_=1)
     return svmem(total, avail, percent, used, free, active, inactive, wired)
@@ -130,9 +130,9 @@ def swap_memory():
     return _common.sswap(total, used, free, percent, sin, sout)
 
 
-# =====================================================================
-# --- CPU
-# =====================================================================
+# 024393.python.psosx.line133.comment =====================================================================
+# 024394.python.psosx.line134.comment --- CPU
+# 024395.python.psosx.line135.comment =====================================================================
 
 
 def cpu_times():
@@ -182,9 +182,9 @@ if cext.has_cpu_freq():  # not always available on ARM64
         return [_common.scpufreq(curr, min_, max_)]
 
 
-# =====================================================================
-# --- disks
-# =====================================================================
+# 024397.python.psosx.line185.comment =====================================================================
+# 024398.python.psosx.line186.comment --- disks
+# 024399.python.psosx.line187.comment =====================================================================
 
 
 disk_usage = _psposix.disk_usage
@@ -207,9 +207,9 @@ def disk_partitions(all=False):
     return retlist
 
 
-# =====================================================================
-# --- sensors
-# =====================================================================
+# 024400.python.psosx.line210.comment =====================================================================
+# 024401.python.psosx.line211.comment --- sensors
+# 024402.python.psosx.line212.comment =====================================================================
 
 
 def sensors_battery():
@@ -217,7 +217,7 @@ def sensors_battery():
     try:
         percent, minsleft, power_plugged = cext.sensors_battery()
     except NotImplementedError:
-        # no power source - return None according to interface
+        # 024403.python.psosx.line220.comment no power source - return None according to interface
         return None
     power_plugged = power_plugged == 1
     if power_plugged:
@@ -229,9 +229,9 @@ def sensors_battery():
     return _common.sbattery(percent, secsleft, power_plugged)
 
 
-# =====================================================================
-# --- network
-# =====================================================================
+# 024404.python.psosx.line232.comment =====================================================================
+# 024405.python.psosx.line233.comment --- network
+# 024406.python.psosx.line234.comment =====================================================================
 
 
 net_io_counters = cext.net_io_counters
@@ -240,8 +240,8 @@ net_if_addrs = cext_posix.net_if_addrs
 
 def net_connections(kind='inet'):
     """System-wide network connections."""
-    # Note: on macOS this will fail with AccessDenied unless
-    # the process is owned by root.
+    # 024407.python.psosx.line243.comment Note: on macOS this will fail with AccessDenied unless
+    # 024408.python.psosx.line244.comment the process is owned by root.
     ret = []
     for pid in pids():
         try:
@@ -266,7 +266,7 @@ def net_if_stats():
             flags = cext_posix.net_if_flags(name)
             duplex, speed = cext_posix.net_if_duplex_speed(name)
         except OSError as err:
-            # https://github.com/giampaolo/psutil/issues/1279
+            # 024409.python.psosx.line269.comment https://github.com/giampaolo/psutil/issues/1279
             if err.errno != errno.ENODEV:
                 raise
         else:
@@ -280,9 +280,9 @@ def net_if_stats():
     return ret
 
 
-# =====================================================================
-# --- other system functions
-# =====================================================================
+# 024410.python.psosx.line283.comment =====================================================================
+# 024411.python.psosx.line284.comment --- other system functions
+# 024412.python.psosx.line285.comment =====================================================================
 
 
 def boot_time():
@@ -293,7 +293,7 @@ def boot_time():
 try:
     INIT_BOOT_TIME = boot_time()
 except Exception as err:  # noqa: BLE001
-    # Don't want to crash at import time.
+    # 024414.python.psosx.line296.comment Don't want to crash at import time.
     debug(f"ignoring exception on import: {err!r}")
     INIT_BOOT_TIME = 0
 
@@ -328,17 +328,17 @@ def users():
     return retlist
 
 
-# =====================================================================
-# --- processes
-# =====================================================================
+# 024416.python.psosx.line331.comment =====================================================================
+# 024417.python.psosx.line332.comment --- processes
+# 024418.python.psosx.line333.comment =====================================================================
 
 
 def pids():
     ls = cext.pids()
     if 0 not in ls:
-        # On certain macOS versions pids() C doesn't return PID 0 but
-        # "ps" does and the process is querable via sysctl():
-        # https://travis-ci.org/giampaolo/psutil/jobs/309619941
+        # 024419.python.psosx.line339.comment On certain macOS versions pids() C doesn't return PID 0 but
+        # 024420.python.psosx.line340.comment "ps" does and the process is querable via sysctl():
+        # 024421.python.psosx.line341.comment https://travis-ci.org/giampaolo/psutil/jobs/309619941
         try:
             Process(0).create_time()
             ls.insert(0, 0)
@@ -393,7 +393,7 @@ class Process:
     @wrap_exceptions
     @memoize_when_activated
     def _get_kinfo_proc(self):
-        # Note: should work with all PIDs without permission issues.
+        # 024422.python.psosx.line396.comment Note: should work with all PIDs without permission issues.
         ret = cext.proc_kinfo_oneshot(self.pid)
         assert len(ret) == len(kinfo_proc_map)
         return ret
@@ -401,7 +401,7 @@ class Process:
     @wrap_exceptions
     @memoize_when_activated
     def _get_pidtaskinfo(self):
-        # Note: should work for PIDs owned by user only.
+        # 024423.python.psosx.line404.comment Note: should work for PIDs owned by user only.
         ret = cext.proc_pidtaskinfo_oneshot(self.pid)
         assert len(ret) == len(pidtaskinfo_map)
         return ret
@@ -489,7 +489,7 @@ class Process:
         return _common.pcputimes(
             rawtuple[pidtaskinfo_map['cpuutime']],
             rawtuple[pidtaskinfo_map['cpustime']],
-            # children user / system times are not retrievable (set to 0)
+            # 024424.python.psosx.line492.comment children user / system times are not retrievable (set to 0)
             0.0,
             0.0,
         )
@@ -503,9 +503,9 @@ class Process:
 
     @wrap_exceptions
     def num_ctx_switches(self):
-        # Unvoluntary value seems not to be available;
-        # getrusage() numbers seems to confirm this theory.
-        # We set it to 0.
+        # 024425.python.psosx.line506.comment Unvoluntary value seems not to be available;
+        # 024426.python.psosx.line507.comment getrusage() numbers seems to confirm this theory.
+        # 024427.python.psosx.line508.comment We set it to 0.
         vol = self._get_pidtaskinfo()[pidtaskinfo_map['volctxsw']]
         return _common.pctxsw(vol, 0)
 
@@ -559,7 +559,7 @@ class Process:
     @wrap_exceptions
     def status(self):
         code = self._get_kinfo_proc()[kinfo_proc_map['status']]
-        # XXX is '?' legit? (we're not supposed to return it anyway)
+        # 024428.python.psosx.line562.comment XXX is '?' legit? (we're not supposed to return it anyway)
         return PROC_STATUSES.get(code, '?')
 
     @wrap_exceptions

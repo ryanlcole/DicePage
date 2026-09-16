@@ -124,13 +124,13 @@ class sdist(Command):
     READMES: ClassVar[tuple[str, ...]] = ('README', 'README.txt', 'README.rst')
 
     def initialize_options(self):
-        # 'template' and 'manifest' are, respectively, the names of
-        # the manifest template and manifest file.
+        # 039918.python.sdist.line127.comment 'template' and 'manifest' are, respectively, the names of
+        # 039919.python.sdist.line128.comment the manifest template and manifest file.
         self.template = None
         self.manifest = None
 
-        # 'use_defaults': if true, we will include the default file set
-        # in the manifest
+        # 039920.python.sdist.line132.comment 'use_defaults': if true, we will include the default file set
+        # 039921.python.sdist.line133.comment in the manifest
         self.use_defaults = True
         self.prune = True
 
@@ -162,25 +162,25 @@ class sdist(Command):
             self.dist_dir = "dist"
 
     def run(self) -> None:
-        # 'filelist' contains the list of files that will make up the
-        # manifest
+        # 039922.python.sdist.line165.comment 'filelist' contains the list of files that will make up the
+        # 039923.python.sdist.line166.comment manifest
         self.filelist = FileList()
 
-        # Run sub commands
+        # 039924.python.sdist.line169.comment Run sub commands
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
 
-        # Do whatever it takes to get the list of files to process
-        # (process the manifest template, read an existing manifest,
-        # whatever).  File list is accumulated in 'self.filelist'.
+        # 039925.python.sdist.line173.comment Do whatever it takes to get the list of files to process
+        # 039926.python.sdist.line174.comment (process the manifest template, read an existing manifest,
+        # 039927.python.sdist.line175.comment whatever).  File list is accumulated in 'self.filelist'.
         self.get_file_list()
 
-        # If user just wanted us to regenerate the manifest, stop now.
+        # 039928.python.sdist.line178.comment If user just wanted us to regenerate the manifest, stop now.
         if self.manifest_only:
             return
 
-        # Otherwise, go ahead and create the source distribution tarball,
-        # or zipfile, or whatever.
+        # 039929.python.sdist.line182.comment Otherwise, go ahead and create the source distribution tarball,
+        # 039930.python.sdist.line183.comment or zipfile, or whatever.
         self.make_distribution()
 
     def get_file_list(self) -> None:
@@ -190,13 +190,13 @@ class sdist(Command):
         reading the manifest, or just using the default file set -- it all
         depends on the user's options.
         """
-        # new behavior when using a template:
-        # the file list is recalculated every time because
-        # even if MANIFEST.in or setup.py are not changed
-        # the user might have added some files in the tree that
-        # need to be included.
-        #
-        #  This makes --force the default and only behavior with templates.
+        # 039931.python.sdist.line193.comment new behavior when using a template:
+        # 039932.python.sdist.line194.comment the file list is recalculated every time because
+        # 039933.python.sdist.line195.comment even if MANIFEST.in or setup.py are not changed
+        # 039934.python.sdist.line196.comment the user might have added some files in the tree that
+        # 039935.python.sdist.line197.comment need to be included.
+        # 039936.python.sdist.line198.comment
+        # 039937.python.sdist.line199.comment This makes --force the default and only behavior with templates.
         template_exists = os.path.isfile(self.template)
         if not template_exists and self._manifest_is_not_generated():
             self.read_manifest()
@@ -258,7 +258,7 @@ class sdist(Command):
         """
         if not os.path.exists(fspath):
             return False
-        # make absolute so we always have a directory
+        # 039938.python.sdist.line261.comment make absolute so we always have a directory
         abspath = os.path.abspath(fspath)
         directory, filename = os.path.split(abspath)
         return filename in os.listdir(directory)
@@ -292,32 +292,32 @@ class sdist(Command):
             self.filelist.extend(files)
 
     def _add_defaults_python(self):
-        # build_py is used to get:
-        #  - python modules
-        #  - files defined in package_data
+        # 039939.python.sdist.line295.comment build_py is used to get:
+        # 039940.python.sdist.line296.comment - python modules
+        # 039941.python.sdist.line297.comment - files defined in package_data
         build_py = self.get_finalized_command('build_py')
 
-        # getting python files
+        # 039942.python.sdist.line300.comment getting python files
         if self.distribution.has_pure_modules():
             self.filelist.extend(build_py.get_source_files())
 
-        # getting package_data files
-        # (computed in build_py.data_files by build_py.finalize_options)
+        # 039943.python.sdist.line304.comment getting package_data files
+        # 039944.python.sdist.line305.comment (computed in build_py.data_files by build_py.finalize_options)
         for _pkg, src_dir, _build_dir, filenames in build_py.data_files:
             for filename in filenames:
                 self.filelist.append(os.path.join(src_dir, filename))
 
     def _add_defaults_data_files(self):
-        # getting distribution.data_files
+        # 039945.python.sdist.line311.comment getting distribution.data_files
         if self.distribution.has_data_files():
             for item in self.distribution.data_files:
                 if isinstance(item, str):
-                    # plain file
+                    # 039946.python.sdist.line315.comment plain file
                     item = convert_path(item)
                     if os.path.isfile(item):
                         self.filelist.append(item)
                 else:
-                    # a (dirname, filenames) tuple
+                    # 039947.python.sdist.line320.comment a (dirname, filenames) tuple
                     dirname, filenames = item
                     for f in filenames:
                         f = convert_path(f)
@@ -364,9 +364,9 @@ class sdist(Command):
 
                 try:
                     self.filelist.process_template_line(line)
-                # the call above can raise a DistutilsTemplateError for
-                # malformed lines, or a ValueError from the lower-level
-                # convert_path function
+                # 039949.python.sdist.line367.comment the call above can raise a DistutilsTemplateError for
+                # 039950.python.sdist.line368.comment malformed lines, or a ValueError from the lower-level
+                # 039951.python.sdist.line369.comment convert_path function
                 except (DistutilsTemplateError, ValueError) as msg:
                     self.warn(
                         f"{template.filename}, line {int(template.current_line)}: {msg}"
@@ -417,7 +417,7 @@ class sdist(Command):
         )
 
     def _manifest_is_not_generated(self):
-        # check for special comment used in 3.1.3 and higher
+        # 039952.python.sdist.line420.comment check for special comment used in 3.1.3 and higher
         if not os.path.isfile(self.manifest):
             return False
 
@@ -433,7 +433,7 @@ class sdist(Command):
         log.info("reading manifest file '%s'", self.manifest)
         with open(self.manifest, encoding='utf-8') as lines:
             self.filelist.extend(
-                # ignore comments and blank lines
+                # 039953.python.sdist.line436.comment ignore comments and blank lines
                 filter(None, filterfalse(is_comment, map(str.strip, lines)))
             )
 
@@ -446,18 +446,18 @@ class sdist(Command):
         directory named after the distribution, containing only the files
         to be distributed.
         """
-        # Create all the directories under 'base_dir' necessary to
-        # put 'files' there; the 'mkpath()' is just so we don't die
-        # if the manifest happens to be empty.
+        # 039954.python.sdist.line449.comment Create all the directories under 'base_dir' necessary to
+        # 039955.python.sdist.line450.comment put 'files' there; the 'mkpath()' is just so we don't die
+        # 039956.python.sdist.line451.comment if the manifest happens to be empty.
         self.mkpath(base_dir)
         dir_util.create_tree(base_dir, files, dry_run=self.dry_run)
 
-        # And walk over the list of files, either making a hard link (if
-        # os.link exists) to each one that doesn't already exist in its
-        # corresponding location under 'base_dir', or copying each file
-        # that's out-of-date in 'base_dir'.  (Usually, all files will be
-        # out-of-date, because by default we blow away 'base_dir' when
-        # we're done making the distribution archives.)
+        # 039957.python.sdist.line455.comment And walk over the list of files, either making a hard link (if
+        # 039958.python.sdist.line456.comment os.link exists) to each one that doesn't already exist in its
+        # 039959.python.sdist.line457.comment corresponding location under 'base_dir', or copying each file
+        # 039960.python.sdist.line458.comment that's out-of-date in 'base_dir'.  (Usually, all files will be
+        # 039961.python.sdist.line459.comment out-of-date, because by default we blow away 'base_dir' when
+        # 039962.python.sdist.line460.comment we're done making the distribution archives.)
 
         if hasattr(os, 'link'):  # can make hard links on this system
             link = 'hard'
@@ -487,14 +487,14 @@ class sdist(Command):
         'self.keep_temp' is true).  The list of archive files created is
         stored so it can be retrieved later by 'get_archive_files()'.
         """
-        # Don't warn about missing meta-data here -- should be (and is!)
-        # done elsewhere.
+        # 039965.python.sdist.line490.comment Don't warn about missing meta-data here -- should be (and is!)
+        # 039966.python.sdist.line491.comment done elsewhere.
         base_dir = self.distribution.get_fullname()
         base_name = os.path.join(self.dist_dir, base_dir)
 
         self.make_release_tree(base_dir, self.filelist.files)
         archive_files = []  # remember names of files we create
-        # tar archive must be created last to avoid overwrite and remove
+        # 039968.python.sdist.line497.comment tar archive must be created last to avoid overwrite and remove
         if 'tar' in self.formats:
             self.formats.append(self.formats.pop(self.formats.index('tar')))
 

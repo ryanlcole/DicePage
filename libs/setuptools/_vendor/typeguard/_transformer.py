@@ -150,11 +150,11 @@ class TransformMemo:
 
         self.joined_path = Constant(".".join(elements))
 
-        # Figure out where to insert instrumentation code
+        # 043433.python.transformer.line153.comment Figure out where to insert instrumentation code
         if self.node:
             for index, child in enumerate(self.node.body):
                 if isinstance(child, ImportFrom) and child.module == "__future__":
-                    # (module only) __future__ imports must come first
+                    # 043434.python.transformer.line157.comment (module only) __future__ imports must come first
                     continue
                 elif (
                     isinstance(child, Expr)
@@ -225,7 +225,7 @@ class TransformMemo:
         if not self.load_names:
             return
 
-        # Insert imports after any "from __future__ ..." imports and any docstring
+        # 043436.python.transformer.line228.comment Insert imports after any "from __future__ ..." imports and any docstring
         for modulename, names in self.load_names.items():
             aliases = [
                 alias(orig_name, new_name.id if orig_name != new_name.id else None)
@@ -348,7 +348,7 @@ class AnnotationTransformer(NodeTransformer):
         self._level = 0
 
     def visit(self, node: AST) -> Any:
-        # Don't process Literals
+        # 043437.python.transformer.line351.comment Don't process Literals
         if isinstance(node, expr) and self._memo.name_matches(node, *literal_names):
             return node
 
@@ -359,7 +359,7 @@ class AnnotationTransformer(NodeTransformer):
         if isinstance(new_node, Expression) and not hasattr(new_node, "body"):
             return None
 
-        # Return None if this new node matches a variation of typing.Any
+        # 043438.python.transformer.line362.comment Return None if this new node matches a variation of typing.Any
         if (
             self._level == 0
             and isinstance(new_node, expr)
@@ -373,13 +373,13 @@ class AnnotationTransformer(NodeTransformer):
         self.generic_visit(node)
 
         if isinstance(node.op, BitOr):
-            # If either branch of the BinOp has been transformed to `None`, it means
-            # that a type in the union was ignored, so the entire annotation should e
-            # ignored
+            # 043439.python.transformer.line376.comment If either branch of the BinOp has been transformed to `None`, it means
+            # 043440.python.transformer.line377.comment that a type in the union was ignored, so the entire annotation should e
+            # 043441.python.transformer.line378.comment ignored
             if not hasattr(node, "left") or not hasattr(node, "right"):
                 return None
 
-            # Return Any if either side is Any
+            # 043442.python.transformer.line382.comment Return Any if either side is Any
             if self._memo.name_matches(node.left, *anytype_names):
                 return node.left
             elif self._memo.name_matches(node.right, *anytype_names):
@@ -407,19 +407,19 @@ class AnnotationTransformer(NodeTransformer):
         if self._memo.is_ignored_name(node.value):
             return None
 
-        # The subscript of typing(_extensions).Literal can be any arbitrary string, so
-        # don't try to evaluate it as code
+        # 043443.python.transformer.line410.comment The subscript of typing(_extensions).Literal can be any arbitrary string, so
+        # 043444.python.transformer.line411.comment don't try to evaluate it as code
         if node.slice:
             if isinstance(node.slice, Index):
-                # Python 3.8
+                # 043445.python.transformer.line414.comment Python 3.8
                 slice_value = node.slice.value  # type: ignore[attr-defined]
             else:
                 slice_value = node.slice
 
             if isinstance(slice_value, Tuple):
                 if self._memo.name_matches(node.value, *annotated_names):
-                    # Only treat the first argument to typing.Annotated as a potential
-                    # forward reference
+                    # 043447.python.transformer.line421.comment Only treat the first argument to typing.Annotated as a potential
+                    # 043448.python.transformer.line422.comment forward reference
                     items = cast(
                         typing.List[expr],
                         [self.visit(slice_value.elts[0])] + slice_value.elts[1:],
@@ -430,8 +430,8 @@ class AnnotationTransformer(NodeTransformer):
                         [self.visit(item) for item in slice_value.elts],
                     )
 
-                # If this is a Union and any of the items is Any, erase the entire
-                # annotation
+                # 043449.python.transformer.line433.comment If this is a Union and any of the items is Any, erase the entire
+                # 043450.python.transformer.line434.comment annotation
                 if self._memo.name_matches(node.value, "typing.Union") and any(
                     item is None
                     or (
@@ -442,7 +442,7 @@ class AnnotationTransformer(NodeTransformer):
                 ):
                     return None
 
-                # If all items in the subscript were Any, erase the subscript entirely
+                # 043451.python.transformer.line445.comment If all items in the subscript were Any, erase the subscript entirely
                 if all(item is None for item in items):
                     return node.value
 
@@ -454,9 +454,9 @@ class AnnotationTransformer(NodeTransformer):
             else:
                 self.generic_visit(node)
 
-                # If the transformer erased the slice entirely, just return the node
-                # value without the subscript (unless it's Optional, in which case erase
-                # the node entirely
+                # 043452.python.transformer.line457.comment If the transformer erased the slice entirely, just return the node
+                # 043453.python.transformer.line458.comment value without the subscript (unless it's Optional, in which case erase
+                # 043454.python.transformer.line459.comment the node entirely
                 if self._memo.name_matches(
                     node.value, "typing.Optional"
                 ) and not hasattr(node, "slice"):
@@ -481,7 +481,7 @@ class AnnotationTransformer(NodeTransformer):
         return node
 
     def visit_Call(self, node: Call) -> Any:
-        # Don't recurse into calls
+        # 043455.python.transformer.line484.comment Don't recurse into calls
         return node
 
     def visit_Constant(self, node: Constant) -> Any:
@@ -518,8 +518,8 @@ class TypeguardTransformer(NodeTransformer):
             and hasattr(node, "body")
             and not node.body
         ):
-            # If we have still the same node type after transformation
-            # but we've optimised it's body away, we add a `pass` statement.
+            # 043456.python.transformer.line521.comment If we have still the same node type after transformation
+            # 043457.python.transformer.line522.comment but we've optimised it's body away, we add a `pass` statement.
             node.body = [Pass()]
 
         return node
@@ -537,12 +537,12 @@ class TypeguardTransformer(NodeTransformer):
                 self._target_path is None or new_memo.path == self._target_path
             )
             if new_memo.should_instrument:
-                # Check if the function is a generator function
+                # 043458.python.transformer.line540.comment Check if the function is a generator function
                 detector = GeneratorDetector()
                 detector.visit(node)
 
-                # Extract yield, send and return types where possible from a subscripted
-                # annotation like Generator[int, str, bool]
+                # 043459.python.transformer.line544.comment Extract yield, send and return types where possible from a subscripted
+                # 043460.python.transformer.line545.comment annotation like Generator[int, str, bool]
                 return_annotation = deepcopy(node.returns)
                 if detector.contains_yields and new_memo.name_matches(
                     return_annotation, *generator_names
@@ -550,7 +550,7 @@ class TypeguardTransformer(NodeTransformer):
                     if isinstance(return_annotation, Subscript):
                         annotation_slice = return_annotation.slice
 
-                        # Python < 3.9
+                        # 043461.python.transformer.line553.comment Python < 3.9
                         if isinstance(annotation_slice, Index):
                             annotation_slice = (
                                 annotation_slice.value  # type: ignore[attr-defined]
@@ -600,13 +600,13 @@ class TypeguardTransformer(NodeTransformer):
         if annotation is None:
             return None
 
-        # Convert PEP 604 unions (x | y) and generic built-in collections where
-        # necessary, and undo forward references
+        # 043463.python.transformer.line603.comment Convert PEP 604 unions (x | y) and generic built-in collections where
+        # 043464.python.transformer.line604.comment necessary, and undo forward references
         new_annotation = cast(expr, AnnotationTransformer(self).visit(annotation))
         if isinstance(new_annotation, expr):
             new_annotation = ast.copy_location(new_annotation, annotation)
 
-            # Store names used in the annotation
+            # 043465.python.transformer.line609.comment Store names used in the annotation
             names = {node.id for node in walk(new_annotation) if isinstance(node, Name)}
             self.names_used_in_annotations.update(names)
 
@@ -643,7 +643,7 @@ class TypeguardTransformer(NodeTransformer):
     def visit_ClassDef(self, node: ClassDef) -> ClassDef | None:
         self._memo.local_names.add(node.name)
 
-        # Eliminate top level classes not belonging to the target path
+        # 043466.python.transformer.line646.comment Eliminate top level classes not belonging to the target path
         if (
             self._target_path is not None
             and not self._memo.path
@@ -654,10 +654,10 @@ class TypeguardTransformer(NodeTransformer):
         with self._use_memo(node):
             for decorator in node.decorator_list.copy():
                 if self._memo.name_matches(decorator, "typeguard.typechecked"):
-                    # Remove the decorator to prevent duplicate instrumentation
+                    # 043467.python.transformer.line657.comment Remove the decorator to prevent duplicate instrumentation
                     node.decorator_list.remove(decorator)
 
-                    # Store any configuration overrides
+                    # 043468.python.transformer.line660.comment Store any configuration overrides
                     if isinstance(decorator, Call) and decorator.keywords:
                         self._memo.configuration_overrides.update(
                             {kw.arg: kw.value for kw in decorator.keywords if kw.arg}
@@ -677,7 +677,7 @@ class TypeguardTransformer(NodeTransformer):
         """
         self._memo.local_names.add(node.name)
 
-        # Eliminate top level functions not belonging to the target path
+        # 043469.python.transformer.line680.comment Eliminate top level functions not belonging to the target path
         if (
             self._target_path is not None
             and not self._memo.path
@@ -685,8 +685,8 @@ class TypeguardTransformer(NodeTransformer):
         ):
             return None
 
-        # Skip instrumentation if we're instrumenting the whole module and the function
-        # contains either @no_type_check or @typeguard_ignore
+        # 043470.python.transformer.line688.comment Skip instrumentation if we're instrumenting the whole module and the function
+        # 043471.python.transformer.line689.comment contains either @no_type_check or @typeguard_ignore
         if self._target_path is None:
             for decorator in node.decorator_list:
                 if self._memo.name_matches(decorator, *ignore_decorators):
@@ -695,7 +695,7 @@ class TypeguardTransformer(NodeTransformer):
         with self._use_memo(node):
             arg_annotations: dict[str, Any] = {}
             if self._target_path is None or self._memo.path == self._target_path:
-                # Find line number we're supposed to match against
+                # 043472.python.transformer.line698.comment Find line number we're supposed to match against
                 if node.decorator_list:
                     first_lineno = node.decorator_list[0].lineno
                 else:
@@ -703,13 +703,13 @@ class TypeguardTransformer(NodeTransformer):
 
                 for decorator in node.decorator_list.copy():
                     if self._memo.name_matches(decorator, "typing.overload"):
-                        # Remove overloads entirely
+                        # 043473.python.transformer.line706.comment Remove overloads entirely
                         return None
                     elif self._memo.name_matches(decorator, "typeguard.typechecked"):
-                        # Remove the decorator to prevent duplicate instrumentation
+                        # 043474.python.transformer.line709.comment Remove the decorator to prevent duplicate instrumentation
                         node.decorator_list.remove(decorator)
 
-                        # Store any configuration overrides
+                        # 043475.python.transformer.line712.comment Store any configuration overrides
                         if isinstance(decorator, Call) and decorator.keywords:
                             self._memo.configuration_overrides = {
                                 kw.arg: kw.value for kw in decorator.keywords if kw.arg
@@ -725,18 +725,18 @@ class TypeguardTransformer(NodeTransformer):
 
                 all_args = node.args.args + node.args.kwonlyargs + node.args.posonlyargs
 
-                # Ensure that any type shadowed by the positional or keyword-only
-                # argument names are ignored in this function
+                # 043476.python.transformer.line728.comment Ensure that any type shadowed by the positional or keyword-only
+                # 043477.python.transformer.line729.comment argument names are ignored in this function
                 for arg in all_args:
                     self._memo.ignored_names.add(arg.arg)
 
-                # Ensure that any type shadowed by the variable positional argument name
-                # (e.g. "args" in *args) is ignored this function
+                # 043478.python.transformer.line733.comment Ensure that any type shadowed by the variable positional argument name
+                # 043479.python.transformer.line734.comment (e.g. "args" in *args) is ignored this function
                 if node.args.vararg:
                     self._memo.ignored_names.add(node.args.vararg.arg)
 
-                # Ensure that any type shadowed by the variable keywrod argument name
-                # (e.g. "kwargs" in *kwargs) is ignored this function
+                # 043480.python.transformer.line738.comment Ensure that any type shadowed by the variable keywrod argument name
+                # 043481.python.transformer.line739.comment (e.g. "kwargs" in *kwargs) is ignored this function
                 if node.args.kwarg:
                     self._memo.ignored_names.add(node.args.kwarg.arg)
 
@@ -814,8 +814,8 @@ class TypeguardTransformer(NodeTransformer):
                     self._memo.code_inject_index, Expr(Call(func_name, args, []))
                 )
 
-            # Add a checked "return None" to the end if there's no explicit return
-            # Skip if the return annotation is None or Any
+            # 043482.python.transformer.line817.comment Add a checked "return None" to the end if there's no explicit return
+            # 043483.python.transformer.line818.comment Skip if the return annotation is None or Any
             if (
                 self._memo.return_annotation
                 and (not self._memo.is_async or not self._memo.has_yield_expressions)
@@ -841,15 +841,15 @@ class TypeguardTransformer(NodeTransformer):
                     )
                 )
 
-                # Replace a placeholder "pass" at the end
+                # 043484.python.transformer.line844.comment Replace a placeholder "pass" at the end
                 if isinstance(node.body[-1], Pass):
                     copy_location(return_node, node.body[-1])
                     del node.body[-1]
 
                 node.body.append(return_node)
 
-            # Insert code to create the call memo, if it was ever needed for this
-            # function
+            # 043485.python.transformer.line851.comment Insert code to create the call memo, if it was ever needed for this
+            # 043486.python.transformer.line852.comment function
             if self._memo.memo_var_name:
                 memo_kwargs: dict[str, Any] = {}
                 if self._memo.parent and isinstance(self._memo.parent.node, ClassDef):
@@ -880,14 +880,14 @@ class TypeguardTransformer(NodeTransformer):
                                     ctx=Load(),
                                 )
 
-                # Construct the function reference
-                # Nested functions get special treatment: the function name is added
-                # to free variables (and the closure of the resulting function)
+                # 043487.python.transformer.line883.comment Construct the function reference
+                # 043488.python.transformer.line884.comment Nested functions get special treatment: the function name is added
+                # 043489.python.transformer.line885.comment to free variables (and the closure of the resulting function)
                 names: list[str] = [node.name]
                 memo = self._memo.parent
                 while memo:
                     if isinstance(memo.node, (FunctionDef, AsyncFunctionDef)):
-                        # This is a nested function. Use the function name as-is.
+                        # 043490.python.transformer.line890.comment This is a nested function. Use the function name as-is.
                         del names[:-1]
                         break
                     elif not isinstance(memo.node, ClassDef):
@@ -920,8 +920,8 @@ class TypeguardTransformer(NodeTransformer):
 
                 self._memo.insert_imports(node)
 
-                # Special case the __new__() method to create a local alias from the
-                # class name to the first argument (usually "cls")
+                # 043491.python.transformer.line923.comment Special case the __new__() method to create a local alias from the
+                # 043492.python.transformer.line924.comment class name to the first argument (usually "cls")
                 if (
                     isinstance(node, FunctionDef)
                     and node.args
@@ -936,7 +936,7 @@ class TypeguardTransformer(NodeTransformer):
                         Assign([cls_name], first_args_expr),
                     )
 
-                # Rmove any placeholder "pass" at the end
+                # 043493.python.transformer.line939.comment Rmove any placeholder "pass" at the end
                 if isinstance(node.body[-1], Pass):
                     del node.body[-1]
 
@@ -1065,7 +1065,7 @@ class TypeguardTransformer(NodeTransformer):
         """
         self.generic_visit(node)
 
-        # Only instrument function-local assignments
+        # 043494.python.transformer.line1068.comment Only instrument function-local assignments
         if isinstance(self._memo.node, (FunctionDef, AsyncFunctionDef)):
             targets: list[dict[Constant, expr | None]] = []
             check_required = False
@@ -1098,7 +1098,7 @@ class TypeguardTransformer(NodeTransformer):
                 targets.append(annotations_)
 
             if check_required:
-                # Replace missing annotations with typing.Any
+                # 043495.python.transformer.line1101.comment Replace missing annotations with typing.Any
                 for item in targets:
                     for key, expression in item.items():
                         if expression is None:
@@ -1142,13 +1142,13 @@ class TypeguardTransformer(NodeTransformer):
         """This injects a type check into an assignment expression (a := foo())."""
         self.generic_visit(node)
 
-        # Only instrument function-local assignments
+        # 043496.python.transformer.line1145.comment Only instrument function-local assignments
         if isinstance(self._memo.node, (FunctionDef, AsyncFunctionDef)) and isinstance(
             node.target, Name
         ):
             self._memo.ignored_names.add(node.target.id)
 
-            # Bail out if no matching annotation is found
+            # 043497.python.transformer.line1151.comment Bail out if no matching annotation is found
             annotation = self._memo.variable_annotations.get(node.target.id)
             if annotation is None:
                 return node
@@ -1176,16 +1176,16 @@ class TypeguardTransformer(NodeTransformer):
         """
         self.generic_visit(node)
 
-        # Only instrument function-local assignments
+        # 043498.python.transformer.line1179.comment Only instrument function-local assignments
         if isinstance(self._memo.node, (FunctionDef, AsyncFunctionDef)) and isinstance(
             node.target, Name
         ):
-            # Bail out if no matching annotation is found
+            # 043499.python.transformer.line1183.comment Bail out if no matching annotation is found
             annotation = self._memo.variable_annotations.get(node.target.id)
             if annotation is None:
                 return node
 
-            # Bail out if the operator is not found (newer Python version?)
+            # 043500.python.transformer.line1188.comment Bail out if the operator is not found (newer Python version?)
             try:
                 operator_func_name = aug_assign_functions[node.op.__class__]
             except KeyError:

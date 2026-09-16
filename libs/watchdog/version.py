@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-# When updating this version number, please update the
-# ``docs/source/global.rst.inc`` file as well.
+# 045949.python.version.line3.comment When updating this version number, please update the
+# 045950.python.version.line4.comment ``docs/source/global.rst.inc`` file as well.
 VERSION_MAJOR = 6
 VERSION_MINOR = 0
 VERSION_BUILD = 0

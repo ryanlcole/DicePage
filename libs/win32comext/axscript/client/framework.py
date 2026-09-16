@@ -25,9 +25,9 @@ from . import error  # axscript.client.error
 
 
 def RemoveCR(text):
-    # No longer just "RemoveCR" - should be renamed to
-    # FixNewlines, or something.  Idea is to fix arbitary newlines into
-    # something Python can compile...
+    # 051022.python.framework.line28.comment No longer just "RemoveCR" - should be renamed to
+    # 051023.python.framework.line29.comment FixNewlines, or something.  Idea is to fix arbitary newlines into
+    # 051024.python.framework.line30.comment something Python can compile...
     return re.sub(r"(\r\n)|\r|(\n\r)", "\n", text)
 
 
@@ -51,14 +51,14 @@ def profile(fn, *args):
 
     prof = profile.Profile()
     try:
-        # roll on 1.6 :-)
-        # 		return prof.runcall(fn, *args)
+        # 051026.python.framework.line54.comment roll on 1.6 :-)
+        # 051027.python.framework.line55.comment return prof.runcall(fn, *args)
         return prof.runcall(*(fn,) + args)
     finally:
         import pstats
 
-        # Damn - really want to send this to Excel!
-        #      width, list = pstats.Stats(prof).strip_dirs().get_print_list([])
+        # 051028.python.framework.line60.comment Damn - really want to send this to Excel!
+        # 051029.python.framework.line61.comment width, list = pstats.Stats(prof).strip_dirs().get_print_list([])
         pstats.Stats(prof).strip_dirs().sort_stats("time").print_stats()
 
 
@@ -83,26 +83,26 @@ class SafeOutput:
         pass
 
 
-# Make sure we have a valid sys.stdout/stderr, otherwise out
-# print and trace statements may raise an exception
+# 051030.python.framework.line86.comment Make sure we have a valid sys.stdout/stderr, otherwise out
+# 051031.python.framework.line87.comment print and trace statements may raise an exception
 def MakeValidSysOuts():
     if not isinstance(sys.stdout, SafeOutput):
         sys.stdout = sys.stderr = SafeOutput()
-        # and for the sake of working around something I can't understand...
-        # prevent keyboard interrupts from killing IIS
+        # 051032.python.framework.line91.comment and for the sake of working around something I can't understand...
+        # 051033.python.framework.line92.comment prevent keyboard interrupts from killing IIS
         import signal
 
         def noOp(a, b):
-            # it would be nice to get to the bottom of this, so a warning to
-            # the debug console can't hurt.
+            # 051034.python.framework.line96.comment it would be nice to get to the bottom of this, so a warning to
+            # 051035.python.framework.line97.comment the debug console can't hurt.
             print("WARNING: Ignoring keyboard interrupt from ActiveScripting engine")
 
-        # If someone else has already redirected, then assume they know what they are doing!
+        # 051036.python.framework.line100.comment If someone else has already redirected, then assume they know what they are doing!
         if signal.getsignal(signal.SIGINT) == signal.default_int_handler:
             try:
                 signal.signal(signal.SIGINT, noOp)
             except ValueError:
-                # Not the main thread - can't do much.
+                # 051037.python.framework.line105.comment Not the main thread - can't do much.
                 pass
 
 
@@ -140,8 +140,8 @@ class AXScriptCodeBlock:
         self.beenExecuted = 0
 
     def GetFileName(self):
-        # Gets the "file name" for Python - uses <...> so Python doesn't think
-        # it is a real file.
+        # 051038.python.framework.line143.comment Gets the "file name" for Python - uses <...> so Python doesn't think
+        # 051039.python.framework.line144.comment it is a real file.
         return "<%s>" % self.name
 
     def GetDisplayName(self):
@@ -179,7 +179,7 @@ class Event:
         self.name = typeinfo.GetNames(self.dispid)[0]
 
 
-# print("Event.Build() - Event Name is ", self.name)
+# 051040.python.framework.line182.comment print("Event.Build() - Event Name is ", self.name)
 
 
 class EventSink:
@@ -208,7 +208,7 @@ class EventSink:
         self.events = {}
         self.Disconnect()
 
-    # COM Connection point methods.
+    # 051041.python.framework.line211.comment COM Connection point methods.
     def _query_interface_(self, iid):
         if iid == self.iid:
             return win32com.server.util.wrap(self)
@@ -218,7 +218,7 @@ class EventSink:
             event = self.events[dispid]
         except:
             raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-        # print("Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod)
+        # 051042.python.framework.line221.comment print("Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod)
         return self.myInvokeMethod(self.myScriptItem, event, lcid, wFlags, args)
 
     def GetSourceTypeInfo(self, typeinfo):
@@ -232,8 +232,8 @@ class EventSink:
             )
         cImplType = attr[8]
         for i in range(cImplType):
-            # Look for the [source, default] interface on the coclass
-            # that isn't marked as restricted.
+            # 051043.python.framework.line235.comment Look for the [source, default] interface on the coclass
+            # 051044.python.framework.line236.comment that isn't marked as restricted.
             flags = typeinfo.GetImplTypeFlags(i)
             flagsNeeded = (
                 pythoncom.IMPLTYPEFLAG_FDEFAULT | pythoncom.IMPLTYPEFLAG_FSOURCE
@@ -241,12 +241,12 @@ class EventSink:
             if (flags & (flagsNeeded | pythoncom.IMPLTYPEFLAG_FRESTRICTED)) == (
                 flagsNeeded
             ):
-                # Get the handle to the implemented interface.
+                # 051045.python.framework.line244.comment Get the handle to the implemented interface.
                 href = typeinfo.GetRefTypeOfImplType(i)
                 return typeinfo.GetRefTypeInfo(href)
 
     def BuildEvents(self):
-        # See if it is an extender object.
+        # 051046.python.framework.line249.comment See if it is an extender object.
         try:
             mainTypeInfo = self.coDispatch.QueryInterface(
                 axscript.IID_IProvideMultipleClassInfo
@@ -262,7 +262,7 @@ class EventSink:
                 )
             except pythoncom.com_error:
                 numTypeInfos = 0
-        # Create an event handler for the item.
+        # 051047.python.framework.line265.comment Create an event handler for the item.
         for item in range(numTypeInfos):
             if isMulti:
                 typeinfo, flags = mainTypeInfo.GetInfoOfIndex(
@@ -285,7 +285,7 @@ class EventSink:
     def Connect(self):
         if self.connection is not None or self.iid is None:
             return
-        # 		trace("Connect for sink item", self.myScriptItem.name, "with IID",str(self.iid))
+        # 051048.python.framework.line288.comment trace("Connect for sink item", self.myScriptItem.name, "with IID",str(self.iid))
         self.connection = win32com.client.connect.SimpleConnection(
             self.coDispatch, self, self.iid
         )
@@ -312,7 +312,7 @@ class ScriptItem:
         self.createdConnections = 0
         self.isRegistered = 0
 
-    # 		trace("Creating ScriptItem", name, "of parent", parentItem,"with dispatch", dispatch)
+    # 051050.python.framework.line315.comment trace("Creating ScriptItem", name, "of parent", parentItem,"with dispatch", dispatch)
 
     def __repr__(self):
         flagsDesc = ""
@@ -362,19 +362,19 @@ class ScriptItem:
     def Register(self):
         if self.isRegistered:
             return
-        # Get the type info to use to build this item.
-        # if not self.dispatch:
-        #     id = self.parentItem.dispatch.GetIDsOfNames(self.name)
-        #     print("DispID of me is", id)
-        #     result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
-        #     if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
-        #         self.dispatch = result
-        #     else:
-        #         print("*** No dispatch")
-        #         return
-        #     print("**** Made dispatch")
+        # 051051.python.framework.line365.comment Get the type info to use to build this item.
+        # 051052.python.framework.line366.comment if not self.dispatch:
+        # 051053.python.framework.line367.comment id = self.parentItem.dispatch.GetIDsOfNames(self.name)
+        # 051054.python.framework.line368.comment print("DispID of me is", id)
+        # 051055.python.framework.line369.comment result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
+        # 051056.python.framework.line370.comment if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
+        # 051057.python.framework.line371.comment self.dispatch = result
+        # 051058.python.framework.line372.comment else:
+        # 051059.python.framework.line373.comment print("*** No dispatch")
+        # 051060.python.framework.line374.comment return
+        # 051061.python.framework.line375.comment print("**** Made dispatch")
         self.isRegistered = 1
-        # Register the sub-items.
+        # 051062.python.framework.line377.comment Register the sub-items.
         for item in self.subItems.values():
             if not item.isRegistered:
                 item.Register()
@@ -412,10 +412,10 @@ class ScriptItem:
         keyName = name.lower()
         try:
             rc = self.subItems[keyName]
-            # No changes allowed to existing flags.
+            # 051063.python.framework.line415.comment No changes allowed to existing flags.
             if not rc.flags is None and not flags is None and rc.flags != flags:
                 raise COMException(scode=winerror.E_INVALIDARG)
-            # Existing item must not have a dispatch.
+            # 051064.python.framework.line418.comment Existing item must not have a dispatch.
             if not rc.dispatch is None and not dispatch is None:
                 raise COMException(scode=winerror.E_INVALIDARG)
             rc.flags = flags  # Setup the real flags.
@@ -426,29 +426,29 @@ class ScriptItem:
             )
         return rc
 
-    # 		if self.dispatch is None:
-    # 			RaiseAssert(winerror.E_UNEXPECTED, "??")
+    # 051066.python.framework.line429.comment if self.dispatch is None:
+    # 051067.python.framework.line430.comment RaiseAssert(winerror.E_UNEXPECTED, "??")
 
     def CreateConnections(self):
-        # Create (but do not connect to) the connection points.
+        # 051068.python.framework.line433.comment Create (but do not connect to) the connection points.
         if self.createdConnections:
             return
         self.createdConnections = 1
-        # Nothing to do unless this is an event source
-        # This flags means self, _and_ children, are connectable.
+        # 051069.python.framework.line437.comment Nothing to do unless this is an event source
+        # 051070.python.framework.line438.comment This flags means self, _and_ children, are connectable.
         if self.flags & axscript.SCRIPTITEM_ISSOURCE:
             self.BuildEvents()
             self.FindBuildSubItemEvents()
 
     def Connect(self):
-        # Connect to the already created connection points.
+        # 051071.python.framework.line444.comment Connect to the already created connection points.
         if self.eventSink:
             self.eventSink.Connect()
         for subItem in self.subItems.values():
             subItem.Connect()
 
     def Disconnect(self):
-        # Disconnect from the connection points.
+        # 051072.python.framework.line451.comment Disconnect from the connection points.
         if self.eventSink:
             self.eventSink.Disconnect()
         for subItem in self.subItems.values():
@@ -461,14 +461,14 @@ class ScriptItem:
                 "Item already has built events, or no dispatch available?",
             )
 
-        # 		trace("BuildEvents for named item", self._GetFullItemName())
+        # 051073.python.framework.line464.comment trace("BuildEvents for named item", self._GetFullItemName())
         self.eventSink = EventSink(self, self.dispatch)
         self.eventSink.BuildEvents()
 
     def FindBuildSubItemEvents(self):
-        # Called during connection to event source.  Seeks out and connects to
-        # all children.  As per the AX spec, this is not recursive
-        # (ie, children sub-items are not seeked)
+        # 051074.python.framework.line469.comment Called during connection to event source.  Seeks out and connects to
+        # 051075.python.framework.line470.comment all children.  As per the AX spec, this is not recursive
+        # 051076.python.framework.line471.comment (ie, children sub-items are not seeked)
         try:
             multiTypeInfo = self.dispatch.QueryInterface(
                 axscript.IID_IProvideMultipleClassInfo
@@ -505,21 +505,21 @@ class ScriptItem:
                     isSubObject = 0
                 if isSubObject:
                     try:
-                        # We found a sub-object.
+                        # 051078.python.framework.line508.comment We found a sub-object.
                         names = typeinfo.GetNames(dispid)
                         result = self.dispatch.Invoke(
                             dispid, 0x0, pythoncom.DISPATCH_PROPERTYGET, 1
                         )
-                        # IE has an interesting problem - there are lots of synonyms for the same object.  Eg
-                        # in a simple form, "window.top", "window.window", "window.parent", "window.self"
-                        # all refer to the same object.  Our event implementation code does not differentiate
-                        # eg, "window_onload" will fire for *all* objects named "window".  Thus,
-                        # "window" and "window.window" will fire the same event handler :(
-                        # One option would be to check if the sub-object is indeed the
-                        # parent object - however, this would stop "top_onload" from firing,
-                        # as no event handler for "top" would work.
-                        # I think we simply need to connect to a *single* event handler.
-                        # As use in IE is deprecated, I am not solving this now.
+                        # 051079.python.framework.line513.comment IE has an interesting problem - there are lots of synonyms for the same object.  Eg
+                        # 051080.python.framework.line514.comment in a simple form, "window.top", "window.window", "window.parent", "window.self"
+                        # 051081.python.framework.line515.comment all refer to the same object.  Our event implementation code does not differentiate
+                        # 051082.python.framework.line516.comment eg, "window_onload" will fire for *all* objects named "window".  Thus,
+                        # 051083.python.framework.line517.comment "window" and "window.window" will fire the same event handler :(
+                        # 051084.python.framework.line518.comment One option would be to check if the sub-object is indeed the
+                        # 051085.python.framework.line519.comment parent object - however, this would stop "top_onload" from firing,
+                        # 051086.python.framework.line520.comment as no event handler for "top" would work.
+                        # 051087.python.framework.line521.comment I think we simply need to connect to a *single* event handler.
+                        # 051088.python.framework.line522.comment As use in IE is deprecated, I am not solving this now.
                         if isinstance(
                             result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
                         ):
@@ -527,18 +527,18 @@ class ScriptItem:
                             subObj = self.GetCreateSubItem(
                                 self, name, result, axscript.SCRIPTITEM_ISVISIBLE
                             )
-                            # print(
-                            #     "subobj",
-                            #     name,
-                            #     "flags are",
-                            #     subObj.flags,
-                            #     "mydisp=",
-                            #     self.dispatch,
-                            #     "result disp=",
-                            #     result,
-                            #     "compare=",
-                            #     self.dispatch == result,
-                            # )
+                            # 051089.python.framework.line530.comment print(
+                            # 051090.python.framework.line531.comment "subobj",
+                            # 051091.python.framework.line532.comment name,
+                            # 051092.python.framework.line533.comment "flags are",
+                            # 051093.python.framework.line534.comment subObj.flags,
+                            # 051094.python.framework.line535.comment "mydisp=",
+                            # 051095.python.framework.line536.comment self.dispatch,
+                            # 051096.python.framework.line537.comment "result disp=",
+                            # 051097.python.framework.line538.comment result,
+                            # 051098.python.framework.line539.comment "compare=",
+                            # 051099.python.framework.line540.comment self.dispatch == result,
+                            # 051100.python.framework.line541.comment )
                             subObj.BuildEvents()
                             subObj.Register()
                     except pythoncom.com_error:
@@ -555,8 +555,8 @@ class ScriptItem:
             )
         cImplType = attr[8]
         for i in range(cImplType):
-            # Look for the [source, default] interface on the coclass
-            # that isn't marked as restricted.
+            # 051101.python.framework.line558.comment Look for the [source, default] interface on the coclass
+            # 051102.python.framework.line559.comment that isn't marked as restricted.
             flags = typeinfo.GetImplTypeFlags(i)
             if (
                 flags
@@ -566,7 +566,7 @@ class ScriptItem:
                     | pythoncom.IMPLTYPEFLAG_FRESTRICTED
                 )
             ) == pythoncom.IMPLTYPEFLAG_FDEFAULT:
-                # Get the handle to the implemented interface.
+                # 051103.python.framework.line569.comment Get the handle to the implemented interface.
                 href = typeinfo.GetRefTypeOfImplType(i)
                 defTypeInfo = typeinfo.GetRefTypeInfo(href)
                 attr = defTypeInfo.GetTypeAttr()
@@ -576,8 +576,8 @@ class ScriptItem:
                     typeKind == pythoncom.TKIND_INTERFACE
                     and typeFlags & pythoncom.TYPEFLAG_FDUAL
                 ):
-                    # Get corresponding Disp interface
-                    # -1 is a special value which does this for us.
+                    # 051104.python.framework.line579.comment Get corresponding Disp interface
+                    # 051105.python.framework.line580.comment -1 is a special value which does this for us.
                     href = typeinfo.GetRefTypeOfImplType(-1)
                     return defTypeInfo.GetRefTypeInfo(href)
                 else:
@@ -602,7 +602,7 @@ IActiveScriptMethods = [
 IActiveScriptParseMethods = ["InitNew", "AddScriptlet", "ParseScriptText"]
 IObjectSafetyMethods = ["GetInterfaceSafetyOptions", "SetInterfaceSafetyOptions"]
 
-# ActiveScriptParseProcedure is a new interface with IIS4/IE4.
+# 051106.python.framework.line605.comment ActiveScriptParseProcedure is a new interface with IIS4/IE4.
 IActiveScriptParseProcedureMethods = ["ParseProcedureText"]
 
 
@@ -625,9 +625,9 @@ class COMScript:
     ]  # , axscript.IID_IActiveScriptParseProcedure]
 
     def __init__(self):
-        # Make sure we can print/trace wihout an exception!
+        # 051108.python.framework.line628.comment Make sure we can print/trace wihout an exception!
         MakeValidSysOuts()
-        # 		trace("AXScriptEngine object created", self)
+        # 051109.python.framework.line630.comment trace("AXScriptEngine object created", self)
         self.baseThreadId = -1
         self.debugManager = None
         self.threadState = axscript.SCRIPTTHREADSTATE_NOTINSCRIPT
@@ -641,10 +641,10 @@ class COMScript:
     def _query_interface_(self, iid):
         if self.debugManager:
             return self.debugManager._query_interface_for_debugger_(iid)
-        # 		trace("ScriptEngine QI - unknown IID", iid)
+        # 051110.python.framework.line644.comment trace("ScriptEngine QI - unknown IID", iid)
         return 0
 
-    # IActiveScriptParse
+    # 051111.python.framework.line647.comment IActiveScriptParse
     def InitNew(self):
         if self.scriptSite is not None:
             self.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
@@ -660,7 +660,7 @@ class COMScript:
         sourceContextCookie,
         startLineNumber,
     ):
-        # 		trace ("AddScriptlet", defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber)
+        # 051112.python.framework.line663.comment trace ("AddScriptlet", defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber)
         self.DoAddScriptlet(
             defaultName,
             code,
@@ -683,7 +683,7 @@ class COMScript:
         flags,
         bWantResult,
     ):
-        # 		trace ("ParseScriptText", code[:20],"...", itemName, context, delimiter, sourceContextCookie, startLineNumber, flags, bWantResult)
+        # 051113.python.framework.line686.comment trace ("ParseScriptText", code[:20],"...", itemName, context, delimiter, sourceContextCookie, startLineNumber, flags, bWantResult)
         if (
             bWantResult
             or self.scriptState == axscript.SCRIPTSTATE_STARTED
@@ -695,14 +695,14 @@ class COMScript:
             flags &= ~SCRIPTTEXT_FORCEEXECUTION
 
         if flags & SCRIPTTEXT_FORCEEXECUTION:
-            # About to execute the code.
+            # 051114.python.framework.line698.comment About to execute the code.
             self.RegisterNewNamedItems()
         return self.DoParseScriptText(
             code, sourceContextCookie, startLineNumber, bWantResult, flags
         )
 
-    #
-    # IActiveScriptParseProcedure
+    # 051115.python.framework.line704.comment
+    # 051116.python.framework.line705.comment IActiveScriptParseProcedure
     def ParseProcedureText(
         self,
         code,
@@ -727,21 +727,21 @@ class COMScript:
             startingLineNumber,
             flags,
         )
-        # NOTE - this is never called, as we have disabled this interface.
-        # Problem is, once enabled all even code comes via here, rather than AddScriptlet.
-        # However, the "procName" is always an empty string - ie, itemName is the object whose event we are handling,
-        # but no idea what the specific event is!?
-        # Problem is disabling this block is that AddScriptlet is _not_ passed
-        # <SCRIPT for="whatever" event="onClick" language="Python">
-        # (but even for those blocks, the "onClick" information is still missing!?!?!?)
+        # 051117.python.framework.line730.comment NOTE - this is never called, as we have disabled this interface.
+        # 051118.python.framework.line731.comment Problem is, once enabled all even code comes via here, rather than AddScriptlet.
+        # 051119.python.framework.line732.comment However, the "procName" is always an empty string - ie, itemName is the object whose event we are handling,
+        # 051120.python.framework.line733.comment but no idea what the specific event is!?
+        # 051121.python.framework.line734.comment Problem is disabling this block is that AddScriptlet is _not_ passed
+        # 051122.python.framework.line735.comment <SCRIPT for="whatever" event="onClick" language="Python">
+        # 051123.python.framework.line736.comment (but even for those blocks, the "onClick" information is still missing!?!?!?)
 
-        # 		self.DoAddScriptlet(None, code, itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
+        # 051124.python.framework.line738.comment self.DoAddScriptlet(None, code, itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
         return None
 
-    #
-    # IActiveScript
+    # 051125.python.framework.line741.comment
+    # 051126.python.framework.line742.comment IActiveScript
     def SetScriptSite(self, site):
-        # We should still work with an existing site (or so MSXML believes :)
+        # 051127.python.framework.line744.comment We should still work with an existing site (or so MSXML believes :)
         self.scriptSite = site
         if self.debugManager is not None:
             self.debugManager.Close()
@@ -754,8 +754,8 @@ class COMScript:
 
             self.debugManager = debug.DebugManager(self)
         except pythoncom.com_error:
-            # COM errors will occur if the debugger interface has never been
-            # seen on the target system
+            # 051129.python.framework.line757.comment COM errors will occur if the debugger interface has never been
+            # 051130.python.framework.line758.comment seen on the target system
             trace("Debugging interfaces not available - debugging is disabled..")
             self.debugManager = None
         except ImportError:
@@ -784,15 +784,15 @@ class COMScript:
         return self.scriptSite.QueryInterface(iid)
 
     def SetScriptState(self, state):
-        # print(f"SetScriptState with {state_map.get(state)} - currentstate = {state_map.get(self.scriptState)}"
+        # 051131.python.framework.line787.comment print(f"SetScriptState with {state_map.get(state)} - currentstate = {state_map.get(self.scriptState)}"
         if state == self.scriptState:
             return
-        # If closed, allow no other state transitions
+        # 051132.python.framework.line790.comment If closed, allow no other state transitions
         if self.scriptState == axscript.SCRIPTSTATE_CLOSED:
             raise COMException(scode=winerror.E_INVALIDARG)
 
         if state == axscript.SCRIPTSTATE_INITIALIZED:
-            # Re-initialize - shutdown then reset.
+            # 051133.python.framework.line795.comment Re-initialize - shutdown then reset.
             if self.scriptState in [
                 axscript.SCRIPTSTATE_CONNECTED,
                 axscript.SCRIPTSTATE_STARTED,
@@ -837,7 +837,7 @@ class COMScript:
         return self.scriptState
 
     def Close(self):
-        # 		trace("Close")
+        # 051135.python.framework.line840.comment trace("Close")
         if self.scriptState in [
             axscript.SCRIPTSTATE_CONNECTED,
             axscript.SCRIPTSTATE_DISCONNECTED,
@@ -858,7 +858,7 @@ class COMScript:
             axscript.SCRIPTSTATE_STARTED,
         ]:
             self.ChangeScriptState(axscript.SCRIPTSTATE_CLOSED)
-            # Completely reset all named items (including persistent)
+            # 051137.python.framework.line861.comment Completely reset all named items (including persistent)
             for item in self.subItems.values():
                 item.Close()
             self.subItems = {}
@@ -888,7 +888,7 @@ class COMScript:
             newItem.CreateConnections()
 
     def GetScriptDispatch(self, name):
-        # Base classes should override.
+        # 051138.python.framework.line891.comment Base classes should override.
         raise COMException(scode=winerror.E_NOTIMPL)
 
     def GetCurrentScriptThreadID(self):
@@ -909,36 +909,36 @@ class COMScript:
         return self.threadState
 
     def AddTypeLib(self, uuid, major, minor, flags):
-        # Get the win32com gencache to register this library.
+        # 051139.python.framework.line912.comment Get the win32com gencache to register this library.
         from win32com.client import gencache
 
         gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand=1)
 
-    # This is never called by the C++ framework - it does magic.
-    # See PyGActiveScript.cpp
-    # def InterruptScriptThread(self, stidThread, exc_info, flags):
-    # 	raise COMException("Not Implemented", scode=winerror.E_NOTIMPL)
+    # 051140.python.framework.line917.comment This is never called by the C++ framework - it does magic.
+    # 051141.python.framework.line918.comment See PyGActiveScript.cpp
+    # 051142.python.framework.line919.comment def InterruptScriptThread(self, stidThread, exc_info, flags):
+    # 051143.python.framework.line920.comment raise COMException("Not Implemented", scode=winerror.E_NOTIMPL)
 
     def Clone(self):
         raise COMException("Not Implemented", scode=winerror.E_NOTIMPL)
 
-    #
-    # IObjectSafety
+    # 051144.python.framework.line925.comment
+    # 051145.python.framework.line926.comment IObjectSafety
 
-    # Note that IE seems to insist we say we support all the flags, even tho
-    # we don't accept them all.  If unknown flags come in, they are ignored, and never
-    # reflected in GetInterfaceSafetyOptions and the QIs obviously fail, but still IE
-    # allows our engine to initialize.
+    # 051146.python.framework.line928.comment Note that IE seems to insist we say we support all the flags, even tho
+    # 051147.python.framework.line929.comment we don't accept them all.  If unknown flags come in, they are ignored, and never
+    # 051148.python.framework.line930.comment reflected in GetInterfaceSafetyOptions and the QIs obviously fail, but still IE
+    # 051149.python.framework.line931.comment allows our engine to initialize.
     def SetInterfaceSafetyOptions(self, iid, optionsMask, enabledOptions):
-        # 		trace ("SetInterfaceSafetyOptions", iid, optionsMask, enabledOptions)
+        # 051150.python.framework.line933.comment trace ("SetInterfaceSafetyOptions", iid, optionsMask, enabledOptions)
         if optionsMask & enabledOptions == 0:
             return
 
-        # See comments above.
-        # 		if (optionsMask & enabledOptions & \
-        # 			~(axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER)):
-        # 			# request for options we don't understand
-        # 			RaiseAssert(scode=winerror.E_FAIL, desc="Unknown safety options")
+        # 051151.python.framework.line937.comment See comments above.
+        # 051152.python.framework.line938.comment if (optionsMask & enabledOptions & \
+        # 051153.python.framework.line939.comment ~(axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER)):
+        # 051154.python.framework.line940.comment # request for options we don't understand
+        # 051155.python.framework.line941.comment RaiseAssert(scode=winerror.E_FAIL, desc="Unknown safety options")
 
         if iid in [
             pythoncom.IID_IPersist,
@@ -968,14 +968,14 @@ class COMScript:
         else:
             raise COMException(scode=winerror.E_NOINTERFACE)
 
-    #
-    # Other helpers.
+    # 051156.python.framework.line971.comment
+    # 051157.python.framework.line972.comment Other helpers.
     def ExecutePendingScripts(self):
         self.RegisterNewNamedItems()
         self.DoExecutePendingScripts()
 
     def ProcessScriptItemEvent(self, item, event, lcid, wFlags, args):
-        # 		trace("ProcessScriptItemEvent", item, event, lcid, wFlags, args)
+        # 051158.python.framework.line978.comment trace("ProcessScriptItemEvent", item, event, lcid, wFlags, args)
         self.RegisterNewNamedItems()
         return self.DoProcessScriptItemEvent(item, event, lcid, wFlags, args)
 
@@ -984,7 +984,7 @@ class COMScript:
             item._dump_(0)
 
     def ResetNamedItems(self):
-        # Due to the way we work, we re-create persistent ones.
+        # 051159.python.framework.line987.comment Due to the way we work, we re-create persistent ones.
         existing = self.subItems
         self.subItems = {}
         for item in existing.values():
@@ -996,13 +996,13 @@ class COMScript:
         return self.safetyOptions
 
     def ProcessNewNamedItemsConnections(self):
-        # Process all sub-items.
+        # 051160.python.framework.line999.comment Process all sub-items.
         for item in self.subItems.values():
             if not item.createdConnections:  # Fast-track!
                 item.CreateConnections()
 
     def RegisterNewNamedItems(self):
-        # Register all sub-items.
+        # 051162.python.framework.line1005.comment Register all sub-items.
         for item in self.subItems.values():
             if not item.isRegistered:  # Fast-track!
                 self.RegisterNamedItem(item)
@@ -1027,21 +1027,21 @@ class COMScript:
         self.ConnectEventHandlers()
 
     def Run(self):
-        # 		trace("AXScript running...")
+        # 051164.python.framework.line1030.comment trace("AXScript running...")
         if (
             self.scriptState != axscript.SCRIPTSTATE_INITIALIZED
             and self.scriptState != axscript.SCRIPTSTATE_STARTED
         ):
             raise COMException(scode=winerror.E_UNEXPECTED)
-        # 		self._DumpNamedItems_()
+        # 051165.python.framework.line1036.comment self._DumpNamedItems_()
         self.ExecutePendingScripts()
         self.DoRun()
 
     def Stop(self):
-        # Stop all executing scripts, and disconnect.
+        # 051166.python.framework.line1041.comment Stop all executing scripts, and disconnect.
         if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
             self.Disconnect()
-        # Reset back to initialized.
+        # 051167.python.framework.line1044.comment Reset back to initialized.
         self.Reset()
 
     def Disconnect(self):
@@ -1049,29 +1049,29 @@ class COMScript:
         try:
             self.DisconnectEventHandlers()
         except pythoncom.com_error:
-            # Ignore errors when disconnecting.
+            # 051168.python.framework.line1052.comment Ignore errors when disconnecting.
             pass
 
         self.ChangeScriptState(axscript.SCRIPTSTATE_DISCONNECTED)
 
     def ConnectEventHandlers(self):
-        # 		trace ("Connecting to event handlers")
+        # 051169.python.framework.line1058.comment trace ("Connecting to event handlers")
         for item in self.subItems.values():
             item.Connect()
         self.ChangeScriptState(axscript.SCRIPTSTATE_CONNECTED)
 
     def DisconnectEventHandlers(self):
-        # 		trace ("Disconnecting from event handlers")
+        # 051170.python.framework.line1064.comment trace ("Disconnecting from event handlers")
         for item in self.subItems.values():
             item.Disconnect()
 
     def Reset(self):
-        # Keeping persistent engine state, reset back an initialized state
+        # 051171.python.framework.line1069.comment Keeping persistent engine state, reset back an initialized state
         self.ResetNamedItems()
         self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
 
     def ChangeScriptState(self, state):
-        # print(f"  ChangeScriptState with {state_map.get(state)} - currentstate = {state_map.get(self.scriptState)}")
+        # 051172.python.framework.line1074.comment print(f"  ChangeScriptState with {state_map.get(state)} - currentstate = {state_map.get(self.scriptState)}")
         self.DisableInterrupts()
         try:
             self.scriptState = state
@@ -1083,7 +1083,7 @@ class COMScript:
         finally:
             self.EnableInterrupts()
 
-    # This stack frame is debugged - therefore we do as little as possible in it.
+    # 051173.python.framework.line1086.comment This stack frame is debugged - therefore we do as little as possible in it.
     def _ApplyInScriptedSection(self, fn, args):
         if self.debugManager:
             self.debugManager.OnEnterScript()
@@ -1098,7 +1098,7 @@ class COMScript:
         self.BeginScriptedSection()
         try:
             try:
-                # print("ApplyInSS", codeBlock, fn, args)
+                # 051174.python.framework.line1101.comment print("ApplyInSS", codeBlock, fn, args)
                 return self._ApplyInScriptedSection(fn, args)
             finally:
                 if self.debugManager:
@@ -1107,7 +1107,7 @@ class COMScript:
         except:
             self.HandleException(codeBlock)
 
-    # This stack frame is debugged - therefore we do as little as possible in it.
+    # 051175.python.framework.line1110.comment This stack frame is debugged - therefore we do as little as possible in it.
     def _CompileInScriptedSection(self, code, name, type):
         if self.debugManager:
             self.debugManager.OnEnterScript()
@@ -1136,7 +1136,7 @@ class COMScript:
         except:
             self.HandleException(codeBlock)
 
-    # This stack frame is debugged - therefore we do as little as possible in it.
+    # 051177.python.framework.line1139.comment This stack frame is debugged - therefore we do as little as possible in it.
     def _ExecInScriptedSection(self, codeObject, globals, locals=None):
         if self.debugManager:
             self.debugManager.OnEnterScript()
@@ -1198,23 +1198,23 @@ class COMScript:
     def HandleException(self, codeBlock: AXScriptCodeBlock | None) -> NoReturn:
         """Never returns - raises a ComException"""
         exc_type, exc_value, *_ = sys.exc_info()
-        # If a SERVER exception, re-raise it.  If a client side COM error, it is
-        # likely to have originated from the script code itself, and therefore
-        # needs to be reported like any other exception.
+        # 051178.python.framework.line1201.comment If a SERVER exception, re-raise it.  If a client side COM error, it is
+        # 051179.python.framework.line1202.comment likely to have originated from the script code itself, and therefore
+        # 051180.python.framework.line1203.comment needs to be reported like any other exception.
         if IsCOMServerException(exc_type):
-            # Ensure the traceback doesn't cause a cycle.
+            # 051181.python.framework.line1205.comment Ensure the traceback doesn't cause a cycle.
             raise
-        # It could be an error by another script.
+        # 051182.python.framework.line1207.comment It could be an error by another script.
         if (
             isinstance(exc_value, pythoncom.com_error)
             and exc_value.hresult == axscript.SCRIPT_E_REPORTED
         ):
-            # Ensure the traceback doesn't cause a cycle.
+            # 051183.python.framework.line1212.comment Ensure the traceback doesn't cause a cycle.
             raise COMException(scode=exc_value.hresult)
 
         exception = error.AXScriptException(self, codeBlock, exc_value=exc_value)
 
-        # Ensure the traceback doesn't cause a cycle.
+        # 051184.python.framework.line1217.comment Ensure the traceback doesn't cause a cycle.
         result_exception = error.ProcessAXScriptException(
             self.scriptSite, self.debugManager, exception
         )
@@ -1223,11 +1223,11 @@ class COMScript:
                 self.scriptSite.OnScriptTerminate(None, result_exception)
             except pythoncom.com_error:
                 pass  # Ignore errors telling engine we stopped.
-            # reset ourselves to 'connected' so further events continue to fire.
+            # 051186.python.framework.line1226.comment reset ourselves to 'connected' so further events continue to fire.
             self.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
             raise result_exception
-        # I think that in some cases this should just return - but the code
-        # that could return None above is disabled, so it never happens.
+        # 051187.python.framework.line1229.comment I think that in some cases this should just return - but the code
+        # 051188.python.framework.line1230.comment that could return None above is disabled, so it never happens.
         RaiseAssert(
             winerror.E_UNEXPECTED, "Don't have an exception to raise to the caller!"
         )
@@ -1270,7 +1270,7 @@ if __name__ == "__main__":
 def dumptypeinfo(typeinfo):
     return
     attr = typeinfo.GetTypeAttr()
-    # Loop over all methods
+    # 051189.python.framework.line1273.comment Loop over all methods
     print("Methods")
     for j in range(attr[6]):
         fdesc = list(typeinfo.GetFuncDesc(j))
@@ -1283,7 +1283,7 @@ def dumptypeinfo(typeinfo):
 
         print(" ", names, "has attr", fdesc)
 
-    # Loop over all variables (ie, properties)
+    # 051190.python.framework.line1286.comment Loop over all variables (ie, properties)
     print("Variables")
     for j in range(attr[7]):
         fdesc = list(typeinfo.GetVarDesc(j))

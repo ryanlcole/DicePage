@@ -33,7 +33,7 @@ NSDictionary = cocoapy.ObjCClass('NSDictionary')
 NSNumber = cocoapy.ObjCClass('NSNumber')
 NSNotificationCenter = cocoapy.ObjCClass('NSNotificationCenter')
 
-# Key to mask mapping.
+# 036187.python.pyglet_view.line36.comment Key to mask mapping.
 maskForKey: dict[int, int] = {
     key.LSHIFT: NSLeftShiftKeyMask,
     key.RSHIFT: NSRightShiftKeyMask,
@@ -48,7 +48,7 @@ maskForKey: dict[int, int] = {
 }
 
 
-# Event data helper functions.
+# 036188.python.pyglet_view.line51.comment Event data helper functions.
 
 
 _mouseViewRect = NSMakeRect(0, 0, 0, 0)
@@ -70,7 +70,7 @@ def getMousePosition(self: PygletView_Implementation | cocoapy.ObjCInstance, nse
         in_window = converted.origin
     x = int(in_window.x)
     y = int(in_window.y)
-    # Must record mouse position for BaseWindow.draw_mouse_cursor to work.
+    # 036189.python.pyglet_view.line73.comment Must record mouse position for BaseWindow.draw_mouse_cursor to work.
     self._window._mouse_x = x
     self._window._mouse_y = y
     return x, y
@@ -113,32 +113,32 @@ class PygletView_Implementation:
     @PygletView.method(b'@' + cocoapy.NSRectEncoding + cocoapy.PyObjectEncoding)
     def initWithFrame_cocoaWindow_(self, frame: cocoapy.NSRect, window: CocoaWindow) -> cocoapy.ObjCInstance | None:
 
-        # The tracking area is used to get mouseEntered, mouseExited, and cursorUpdate
-        # events so that we can custom set the mouse cursor within the view.
-        # self._tracking_area = None
+        # 036190.python.pyglet_view.line116.comment The tracking area is used to get mouseEntered, mouseExited, and cursorUpdate
+        # 036191.python.pyglet_view.line117.comment events so that we can custom set the mouse cursor within the view.
+        # 036192.python.pyglet_view.line118.comment self._tracking_area = None
 
         self = cocoapy.ObjCInstance(cocoapy.send_super(self, 'initWithFrame:', frame, argtypes=[cocoapy.NSRect]))
 
         if not self:
             return None
 
-        # CocoaWindow object.
+        # 036193.python.pyglet_view.line125.comment CocoaWindow object.
         self._window = window
 
         self.associate("_tracking_area", None)
 
         self.updateTrackingAreas()
 
-        # Create an instance of PygletTextView to handle text events.
-        # We must do this because NSOpenGLView doesn't conform to the
-        # NSTextInputClient protocol by default, and the insertText: method will
-        # not do the right thing with respect to translating key sequences like
-        # "Option-e", "e" if the protocol isn't implemented.  So the easiest
-        # thing to do is to subclass NSTextView which *does* implement the
-        # protocol and let it handle text input.
+        # 036194.python.pyglet_view.line132.comment Create an instance of PygletTextView to handle text events.
+        # 036195.python.pyglet_view.line133.comment We must do this because NSOpenGLView doesn't conform to the
+        # 036196.python.pyglet_view.line134.comment NSTextInputClient protocol by default, and the insertText: method will
+        # 036197.python.pyglet_view.line135.comment not do the right thing with respect to translating key sequences like
+        # 036198.python.pyglet_view.line136.comment "Option-e", "e" if the protocol isn't implemented.  So the easiest
+        # 036199.python.pyglet_view.line137.comment thing to do is to subclass NSTextView which *does* implement the
+        # 036200.python.pyglet_view.line138.comment protocol and let it handle text input.
         textview = PygletTextView.alloc().initWithCocoaWindow_(window)
         self.associate("_textview", textview)
-        # Add text view to the responder chain.
+        # 036201.python.pyglet_view.line141.comment Add text view to the responder chain.
         self.addSubview_(self._textview)
         return self
 
@@ -152,8 +152,8 @@ class PygletView_Implementation:
 
     @PygletView.method('v')
     def updateTrackingAreas(self) -> None:
-        # This method is called automatically whenever the tracking areas need to be
-        # recreated, for example when window resizes.
+        # 036202.python.pyglet_view.line155.comment This method is called automatically whenever the tracking areas need to be
+        # 036203.python.pyglet_view.line156.comment recreated, for example when window resizes.
         if self._tracking_area:
             self.removeTrackingArea_(self._tracking_area)
             self._tracking_area.release()
@@ -181,18 +181,18 @@ class PygletView_Implementation:
     def isOpaque(self) -> bool:
         return True
 
-    ## Event responders.
+    # 036208.python.pyglet_view.line184.comment # Event responders.
 
-    # This method is called whenever the view changes size.
+    # 036209.python.pyglet_view.line186.comment This method is called whenever the view changes size.
     @PygletView.method(b'v' + cocoapy.NSSizeEncoding)
     def setFrameSize_(self, size: cocoapy.NSSize) -> None:
         cocoapy.send_super(self, 'setFrameSize:', size,
                            superclass_name='NSView',
                            argtypes=[cocoapy.NSSize])
 
-        # This method is called when view is first installed as the
-        # contentView of window.  Don't do anything on first call.
-        # This also helps ensure correct window creation event ordering.
+        # 036210.python.pyglet_view.line193.comment This method is called when view is first installed as the
+        # 036211.python.pyglet_view.line194.comment contentView of window.  Don't do anything on first call.
+        # 036212.python.pyglet_view.line195.comment This also helps ensure correct window creation event ordering.
         if not self._window.context.canvas or self._window._shadow:
             return
 
@@ -202,12 +202,12 @@ class PygletView_Implementation:
         self._window._width, self._window._height = width, height  # noqa: SLF001
         self._window.dispatch_event('_on_internal_resize', width, height)
         self._window.dispatch_event('on_expose')
-        # Can't get app.event_loop.enter_blocking() working with Cocoa, because
-        # when mouse clicks on the window's resize control, Cocoa enters into a
-        # mini-event loop that only responds to mouseDragged and mouseUp events.
-        # This means that using NSTimer to call idle() won't work.  Our kludge
-        # is to override NSWindow's nextEventMatchingMask_etc method and call
-        # idle() from there.
+        # 036214.python.pyglet_view.line205.comment Can't get app.event_loop.enter_blocking() working with Cocoa, because
+        # 036215.python.pyglet_view.line206.comment when mouse clicks on the window's resize control, Cocoa enters into a
+        # 036216.python.pyglet_view.line207.comment mini-event loop that only responds to mouseDragged and mouseUp events.
+        # 036217.python.pyglet_view.line208.comment This means that using NSTimer to call idle() won't work.  Our kludge
+        # 036218.python.pyglet_view.line209.comment is to override NSWindow's nextEventMatchingMask_etc method and call
+        # 036219.python.pyglet_view.line210.comment idle() from there.
         if self.inLiveResize():
             from pyglet import app
             if app.event_loop is not None:
@@ -228,14 +228,14 @@ class PygletView_Implementation:
 
     @PygletView.method('v@')
     def flagsChanged_(self, nsevent: cocoapy.ObjCInstance) -> None:
-        # Handles on_key_press and on_key_release events for modifier keys.
-        # Note that capslock is handled differently than other keys; it acts
-        # as a toggle, so on_key_release is only sent when it's turned off.
+        # 036220.python.pyglet_view.line231.comment Handles on_key_press and on_key_release events for modifier keys.
+        # 036221.python.pyglet_view.line232.comment Note that capslock is handled differently than other keys; it acts
+        # 036222.python.pyglet_view.line233.comment as a toggle, so on_key_release is only sent when it's turned off.
         symbol = keymap.get(nsevent.keyCode(), None)
 
-        # Ignore this event if symbol is not a modifier key.  We must check this
-        # because e.g., we receive a flagsChanged message when using CMD-tab to
-        # switch applications, with symbol == "a" when command key is released.
+        # 036223.python.pyglet_view.line236.comment Ignore this event if symbol is not a modifier key.  We must check this
+        # 036224.python.pyglet_view.line237.comment because e.g., we receive a flagsChanged message when using CMD-tab to
+        # 036225.python.pyglet_view.line238.comment switch applications, with symbol == "a" when command key is released.
         if symbol is None or symbol not in maskForKey:
             return
 
@@ -256,7 +256,7 @@ class PygletView_Implementation:
         if self._window._mouse_ignore_motion:  # noqa: SLF001
             self._window._mouse_ignore_motion = False  # noqa: SLF001
             return
-        # Don't send on_mouse_motion events if we're not inside the content rectangle.
+        # 036228.python.pyglet_view.line259.comment Don't send on_mouse_motion events if we're not inside the content rectangle.
         if not self._window._mouse_in_window:  # noqa: SLF001
             return
         x, y = getMousePosition(self, nsevent)
@@ -340,8 +340,8 @@ class PygletView_Implementation:
     def mouseEntered_(self, nsevent: cocoapy.ObjCInstance) -> None:
         x, y = getMousePosition(self, nsevent)
         self._window._mouse_in_window = True  # noqa: SLF001
-        # Don't call self._window.set_mouse_platform_visible() from here.
-        # Better to do it from cursorUpdate:
+        # 036231.python.pyglet_view.line343.comment Don't call self._window.set_mouse_platform_visible() from here.
+        # 036232.python.pyglet_view.line344.comment Better to do it from cursorUpdate:
         self._window.dispatch_event('on_mouse_enter', x, y)
 
     @PygletView.method('v@')
@@ -354,13 +354,13 @@ class PygletView_Implementation:
 
     @PygletView.method('v@')
     def cursorUpdate_(self, nsevent: cocoapy.ObjCInstance) -> None:
-        # Called when mouse cursor enters view.  Unlike mouseEntered:,
-        # this method will be called if the view appears underneath a
-        # motionless mouse cursor, as can happen during window creation,
-        # or when switching into fullscreen mode.
-        # BUG: If the mouse enters the window via the resize control at the
-        # the bottom right corner, the resize control will set the cursor
-        # to the default arrow and screw up our cursor tracking.
+        # 036235.python.pyglet_view.line357.comment Called when mouse cursor enters view.  Unlike mouseEntered:,
+        # 036236.python.pyglet_view.line358.comment this method will be called if the view appears underneath a
+        # 036237.python.pyglet_view.line359.comment motionless mouse cursor, as can happen during window creation,
+        # 036238.python.pyglet_view.line360.comment or when switching into fullscreen mode.
+        # 036239.python.pyglet_view.line361.comment BUG: If the mouse enters the window via the resize control at the
+        # 036240.python.pyglet_view.line362.comment the bottom right corner, the resize control will set the cursor
+        # 036241.python.pyglet_view.line363.comment to the default arrow and screw up our cursor tracking.
         self._window._mouse_in_window = True  # noqa: SLF001
         if not self._window._mouse_exclusive:  # noqa: SLF001
             self._window.set_mouse_platform_visible()

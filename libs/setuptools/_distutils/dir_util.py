@@ -39,7 +39,7 @@ class SkipRepeatAbsolutePaths(set):
         return wrapper
 
 
-# Python 3.8 compatibility
+# 040408.python.dir_util.line42.comment Python 3.8 compatibility
 wrapper = SkipRepeatAbsolutePaths().wrap
 
 
@@ -86,10 +86,10 @@ def create_tree(base_dir, files, mode=0o777, verbose=True, dry_run=False):
     will be created if it doesn't already exist.  'mode', 'verbose' and
     'dry_run' flags are as for 'mkpath()'.
     """
-    # First get the list of directories to create
+    # 040409.python.dir_util.line89.comment First get the list of directories to create
     need_dir = set(os.path.join(base_dir, os.path.dirname(file)) for file in files)
 
-    # Now create them
+    # 040410.python.dir_util.line92.comment Now create them
     for dir in sorted(need_dir):
         mkpath(dir, mode, verbose=verbose, dry_run=dry_run)
 
@@ -166,7 +166,7 @@ def _copy_one(
     dst_name = os.path.join(dst, name)
 
     if name.startswith('.nfs'):
-        # skip NFS rename files
+        # 040411.python.dir_util.line169.comment skip NFS rename files
         return
 
     if preserve_symlinks and os.path.islink(src_name):
@@ -227,7 +227,7 @@ def remove_tree(directory, verbose=True, dry_run=False):
     for cmd in cmdtuples:
         try:
             cmd[0](cmd[1])
-            # Clear the cache
+            # 040412.python.dir_util.line230.comment Clear the cache
             SkipRepeatAbsolutePaths.clear()
         except OSError as exc:
             log.warning("error removing %s: %s", directory, exc)

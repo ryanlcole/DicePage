@@ -68,9 +68,9 @@ def extract_record(path: Path) -> dict:
     seen = set()
     for match in PUBLIC_CONTENT_RE.finditer(text):
         url = clean_url(match.group(1))
-        # The first attachment-level public-content URL is normally the original.
-        # Deduplicate while preserving order because share HTML also contains md,
-        # thumbnail and unfurl variants later in the payload.
+        # 052604.python.recover_chatgpt_media_assets.line71.comment The first attachment-level public-content URL is normally the original.
+        # 052605.python.recover_chatgpt_media_assets.line72.comment Deduplicate while preserving order because share HTML also contains md,
+        # 052606.python.recover_chatgpt_media_assets.line73.comment thumbnail and unfurl variants later in the payload.
         if url not in seen:
             seen.add(url)
             urls.append(url)

@@ -27,9 +27,9 @@ _lib = pyglet.lib.load_library('pulse')
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 034679.python.lib_pulseaudio.line30.comment Some builds of ctypes apparently do not have c_int64
+    # 034680.python.lib_pulseaudio.line31.comment defined; it's a pretty good bet that these builds do not
+    # 034681.python.lib_pulseaudio.line32.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
@@ -37,9 +37,9 @@ for t in _int_types:
 
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 034682.python.lib_pulseaudio.line40.comment c_void_p is a buggy return type, converting to int, so
+    # 034683.python.lib_pulseaudio.line41.comment POINTER(None) == c_void_p is actually written as
+    # 034684.python.lib_pulseaudio.line42.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -48,7 +48,7 @@ class struct_timeval(Structure):
                 ("tv_usec", c_long)]
 
 
-# /usr/include/pulse/version.h:40
+# 034685.python.lib_pulseaudio.line51.comment /usr/include/pulse/version.h:40
 pa_get_library_version = _lib.pa_get_library_version
 pa_get_library_version.restype = c_char_p
 pa_get_library_version.argtypes = []
@@ -95,94 +95,94 @@ struct_pa_sample_spec._fields_ = [
 
 pa_sample_spec = struct_pa_sample_spec  # /usr/include/pulse/sample.h:257
 pa_usec_t = c_uint64  # /usr/include/pulse/sample.h:260
-# /usr/include/pulse/sample.h:263
+# 034696.python.lib_pulseaudio.line98.comment /usr/include/pulse/sample.h:263
 pa_bytes_per_second = _lib.pa_bytes_per_second
 pa_bytes_per_second.restype = c_size_t
 pa_bytes_per_second.argtypes = [POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:266
+# 034697.python.lib_pulseaudio.line103.comment /usr/include/pulse/sample.h:266
 pa_frame_size = _lib.pa_frame_size
 pa_frame_size.restype = c_size_t
 pa_frame_size.argtypes = [POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:269
+# 034698.python.lib_pulseaudio.line108.comment /usr/include/pulse/sample.h:269
 pa_sample_size = _lib.pa_sample_size
 pa_sample_size.restype = c_size_t
 pa_sample_size.argtypes = [POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:273
+# 034699.python.lib_pulseaudio.line113.comment /usr/include/pulse/sample.h:273
 pa_sample_size_of_format = _lib.pa_sample_size_of_format
 pa_sample_size_of_format.restype = c_size_t
 pa_sample_size_of_format.argtypes = [pa_sample_format_t]
 
-# /usr/include/pulse/sample.h:278
+# 034700.python.lib_pulseaudio.line118.comment /usr/include/pulse/sample.h:278
 pa_bytes_to_usec = _lib.pa_bytes_to_usec
 pa_bytes_to_usec.restype = pa_usec_t
 pa_bytes_to_usec.argtypes = [c_uint64, POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:283
+# 034701.python.lib_pulseaudio.line123.comment /usr/include/pulse/sample.h:283
 pa_usec_to_bytes = _lib.pa_usec_to_bytes
 pa_usec_to_bytes.restype = c_size_t
 pa_usec_to_bytes.argtypes = [pa_usec_t, POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:288
+# 034702.python.lib_pulseaudio.line128.comment /usr/include/pulse/sample.h:288
 pa_sample_spec_init = _lib.pa_sample_spec_init
 pa_sample_spec_init.restype = POINTER(pa_sample_spec)
 pa_sample_spec_init.argtypes = [POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:291
-# pa_sample_format_valid = _lib.pa_sample_format_valid
-# pa_sample_format_valid.restype = c_int
-# pa_sample_format_valid.argtypes = [c_uint]
+# 034703.python.lib_pulseaudio.line133.comment /usr/include/pulse/sample.h:291
+# 034704.python.lib_pulseaudio.line134.comment pa_sample_format_valid = _lib.pa_sample_format_valid
+# 034705.python.lib_pulseaudio.line135.comment pa_sample_format_valid.restype = c_int
+# 034706.python.lib_pulseaudio.line136.comment pa_sample_format_valid.argtypes = [c_uint]
 
-# /usr/include/pulse/sample.h:294
-# pa_sample_rate_valid = _lib.pa_sample_rate_valid
-# pa_sample_rate_valid.restype = c_int
-# pa_sample_rate_valid.argtypes = [c_uint32]
+# 034707.python.lib_pulseaudio.line138.comment /usr/include/pulse/sample.h:294
+# 034708.python.lib_pulseaudio.line139.comment pa_sample_rate_valid = _lib.pa_sample_rate_valid
+# 034709.python.lib_pulseaudio.line140.comment pa_sample_rate_valid.restype = c_int
+# 034710.python.lib_pulseaudio.line141.comment pa_sample_rate_valid.argtypes = [c_uint32]
 
-# /usr/include/pulse/sample.h:298
-# pa_channels_valid = _lib.pa_channels_valid
-# pa_channels_valid.restype = c_int
-# pa_channels_valid.argtypes = [c_uint8]
+# 034711.python.lib_pulseaudio.line143.comment /usr/include/pulse/sample.h:298
+# 034712.python.lib_pulseaudio.line144.comment pa_channels_valid = _lib.pa_channels_valid
+# 034713.python.lib_pulseaudio.line145.comment pa_channels_valid.restype = c_int
+# 034714.python.lib_pulseaudio.line146.comment pa_channels_valid.argtypes = [c_uint8]
 
-# /usr/include/pulse/sample.h:301
+# 034715.python.lib_pulseaudio.line148.comment /usr/include/pulse/sample.h:301
 pa_sample_spec_valid = _lib.pa_sample_spec_valid
 pa_sample_spec_valid.restype = c_int
 pa_sample_spec_valid.argtypes = [POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:304
+# 034716.python.lib_pulseaudio.line153.comment /usr/include/pulse/sample.h:304
 pa_sample_spec_equal = _lib.pa_sample_spec_equal
 pa_sample_spec_equal.restype = c_int
 pa_sample_spec_equal.argtypes = [POINTER(pa_sample_spec), POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/sample.h:307
+# 034717.python.lib_pulseaudio.line158.comment /usr/include/pulse/sample.h:307
 pa_sample_format_to_string = _lib.pa_sample_format_to_string
 pa_sample_format_to_string.restype = c_char_p
 pa_sample_format_to_string.argtypes = [pa_sample_format_t]
 
-# /usr/include/pulse/sample.h:310
+# 034718.python.lib_pulseaudio.line163.comment /usr/include/pulse/sample.h:310
 pa_parse_sample_format = _lib.pa_parse_sample_format
 pa_parse_sample_format.restype = pa_sample_format_t
 pa_parse_sample_format.argtypes = [c_char_p]
 
 PA_SAMPLE_SPEC_SNPRINT_MAX = 32  # /usr/include/pulse/sample.h:317
-# /usr/include/pulse/sample.h:320
+# 034720.python.lib_pulseaudio.line169.comment /usr/include/pulse/sample.h:320
 pa_sample_spec_snprint = _lib.pa_sample_spec_snprint
 pa_sample_spec_snprint.restype = c_char_p
 pa_sample_spec_snprint.argtypes = [c_char_p, c_size_t, POINTER(pa_sample_spec)]
 
 PA_BYTES_SNPRINT_MAX = 11  # /usr/include/pulse/sample.h:327
-# /usr/include/pulse/sample.h:330
+# 034722.python.lib_pulseaudio.line175.comment /usr/include/pulse/sample.h:330
 pa_bytes_snprint = _lib.pa_bytes_snprint
 pa_bytes_snprint.restype = c_char_p
 pa_bytes_snprint.argtypes = [c_char_p, c_size_t, c_uint]
 
-# /usr/include/pulse/sample.h:334
+# 034723.python.lib_pulseaudio.line180.comment /usr/include/pulse/sample.h:334
 pa_sample_format_is_le = _lib.pa_sample_format_is_le
 pa_sample_format_is_le.restype = c_int
 pa_sample_format_is_le.argtypes = [pa_sample_format_t]
 
-# /usr/include/pulse/sample.h:338
+# 034724.python.lib_pulseaudio.line185.comment /usr/include/pulse/sample.h:338
 pa_sample_format_is_be = _lib.pa_sample_format_is_be
 pa_sample_format_is_be.restype = c_int
 pa_sample_format_is_be.argtypes = [pa_sample_format_t]
@@ -509,7 +509,7 @@ pa_defer_event_cb_t = CFUNCTYPE(None, POINTER(pa_mainloop_api), POINTER(pa_defer
                                 POINTER(None))  # /usr/include/pulse/mainloop-api.h:75
 pa_defer_event_destroy_cb_t = CFUNCTYPE(None, POINTER(pa_mainloop_api), POINTER(pa_defer_event),
                                         POINTER(None))  # /usr/include/pulse/mainloop-api.h:77
-# /usr/include/pulse/mainloop-api.h:120
+# 034757.python.lib_pulseaudio.line512.comment /usr/include/pulse/mainloop-api.h:120
 pa_mainloop_api_once = _lib.pa_mainloop_api_once
 pa_mainloop_api_once.restype = None
 pa_mainloop_api_once.argtypes = [POINTER(pa_mainloop_api), CFUNCTYPE(None, POINTER(pa_mainloop_api), POINTER(None)),
@@ -599,103 +599,103 @@ struct_pa_channel_map._fields_ = [
 ]
 
 pa_channel_map = struct_pa_channel_map  # /usr/include/pulse/channelmap.h:268
-# /usr/include/pulse/channelmap.h:273
+# 034762.python.lib_pulseaudio.line602.comment /usr/include/pulse/channelmap.h:273
 pa_channel_map_init = _lib.pa_channel_map_init
 pa_channel_map_init.restype = POINTER(pa_channel_map)
 pa_channel_map_init.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:276
+# 034763.python.lib_pulseaudio.line607.comment /usr/include/pulse/channelmap.h:276
 pa_channel_map_init_mono = _lib.pa_channel_map_init_mono
 pa_channel_map_init_mono.restype = POINTER(pa_channel_map)
 pa_channel_map_init_mono.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:279
+# 034764.python.lib_pulseaudio.line612.comment /usr/include/pulse/channelmap.h:279
 pa_channel_map_init_stereo = _lib.pa_channel_map_init_stereo
 pa_channel_map_init_stereo.restype = POINTER(pa_channel_map)
 pa_channel_map_init_stereo.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:285
+# 034765.python.lib_pulseaudio.line617.comment /usr/include/pulse/channelmap.h:285
 pa_channel_map_init_auto = _lib.pa_channel_map_init_auto
 pa_channel_map_init_auto.restype = POINTER(pa_channel_map)
 pa_channel_map_init_auto.argtypes = [POINTER(pa_channel_map), c_uint, pa_channel_map_def_t]
 
-# /usr/include/pulse/channelmap.h:291
+# 034766.python.lib_pulseaudio.line622.comment /usr/include/pulse/channelmap.h:291
 pa_channel_map_init_extend = _lib.pa_channel_map_init_extend
 pa_channel_map_init_extend.restype = POINTER(pa_channel_map)
 pa_channel_map_init_extend.argtypes = [POINTER(pa_channel_map), c_uint, pa_channel_map_def_t]
 
-# /usr/include/pulse/channelmap.h:294
+# 034767.python.lib_pulseaudio.line627.comment /usr/include/pulse/channelmap.h:294
 pa_channel_position_to_string = _lib.pa_channel_position_to_string
 pa_channel_position_to_string.restype = c_char_p
 pa_channel_position_to_string.argtypes = [pa_channel_position_t]
 
-# /usr/include/pulse/channelmap.h:297
+# 034768.python.lib_pulseaudio.line632.comment /usr/include/pulse/channelmap.h:297
 pa_channel_position_from_string = _lib.pa_channel_position_from_string
 pa_channel_position_from_string.restype = pa_channel_position_t
 pa_channel_position_from_string.argtypes = [c_char_p]
 
-# /usr/include/pulse/channelmap.h:300
+# 034769.python.lib_pulseaudio.line637.comment /usr/include/pulse/channelmap.h:300
 pa_channel_position_to_pretty_string = _lib.pa_channel_position_to_pretty_string
 pa_channel_position_to_pretty_string.restype = c_char_p
 pa_channel_position_to_pretty_string.argtypes = [pa_channel_position_t]
 
 PA_CHANNEL_MAP_SNPRINT_MAX = 336  # /usr/include/pulse/channelmap.h:307
-# /usr/include/pulse/channelmap.h:310
+# 034771.python.lib_pulseaudio.line643.comment /usr/include/pulse/channelmap.h:310
 pa_channel_map_snprint = _lib.pa_channel_map_snprint
 pa_channel_map_snprint.restype = c_char_p
 pa_channel_map_snprint.argtypes = [c_char_p, c_size_t, POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:316
+# 034772.python.lib_pulseaudio.line648.comment /usr/include/pulse/channelmap.h:316
 pa_channel_map_parse = _lib.pa_channel_map_parse
 pa_channel_map_parse.restype = POINTER(pa_channel_map)
 pa_channel_map_parse.argtypes = [POINTER(pa_channel_map), c_char_p]
 
-# /usr/include/pulse/channelmap.h:319
+# 034773.python.lib_pulseaudio.line653.comment /usr/include/pulse/channelmap.h:319
 pa_channel_map_equal = _lib.pa_channel_map_equal
 pa_channel_map_equal.restype = c_int
 pa_channel_map_equal.argtypes = [POINTER(pa_channel_map), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:322
+# 034774.python.lib_pulseaudio.line658.comment /usr/include/pulse/channelmap.h:322
 pa_channel_map_valid = _lib.pa_channel_map_valid
 pa_channel_map_valid.restype = c_int
 pa_channel_map_valid.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:326
+# 034775.python.lib_pulseaudio.line663.comment /usr/include/pulse/channelmap.h:326
 pa_channel_map_compatible = _lib.pa_channel_map_compatible
 pa_channel_map_compatible.restype = c_int
 pa_channel_map_compatible.argtypes = [POINTER(pa_channel_map), POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/channelmap.h:329
+# 034776.python.lib_pulseaudio.line668.comment /usr/include/pulse/channelmap.h:329
 pa_channel_map_superset = _lib.pa_channel_map_superset
 pa_channel_map_superset.restype = c_int
 pa_channel_map_superset.argtypes = [POINTER(pa_channel_map), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:334
+# 034777.python.lib_pulseaudio.line673.comment /usr/include/pulse/channelmap.h:334
 pa_channel_map_can_balance = _lib.pa_channel_map_can_balance
 pa_channel_map_can_balance.restype = c_int
 pa_channel_map_can_balance.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:339
+# 034778.python.lib_pulseaudio.line678.comment /usr/include/pulse/channelmap.h:339
 pa_channel_map_can_fade = _lib.pa_channel_map_can_fade
 pa_channel_map_can_fade.restype = c_int
 pa_channel_map_can_fade.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:345
+# 034779.python.lib_pulseaudio.line683.comment /usr/include/pulse/channelmap.h:345
 pa_channel_map_to_name = _lib.pa_channel_map_to_name
 pa_channel_map_to_name.restype = c_char_p
 pa_channel_map_to_name.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:350
+# 034780.python.lib_pulseaudio.line688.comment /usr/include/pulse/channelmap.h:350
 pa_channel_map_to_pretty_name = _lib.pa_channel_map_to_pretty_name
 pa_channel_map_to_pretty_name.restype = c_char_p
 pa_channel_map_to_pretty_name.argtypes = [POINTER(pa_channel_map)]
 
-# /usr/include/pulse/channelmap.h:354
+# 034781.python.lib_pulseaudio.line693.comment /usr/include/pulse/channelmap.h:354
 pa_channel_map_has_position = _lib.pa_channel_map_has_position
 pa_channel_map_has_position.restype = c_int
 pa_channel_map_has_position.argtypes = [POINTER(pa_channel_map), pa_channel_position_t]
 
-# /usr/include/pulse/channelmap.h:357
+# 034782.python.lib_pulseaudio.line698.comment /usr/include/pulse/channelmap.h:357
 pa_channel_map_mask = _lib.pa_channel_map_mask
 pa_channel_map_mask.restype = pa_channel_position_mask_t
 pa_channel_map_mask.argtypes = [POINTER(pa_channel_map)]
@@ -713,27 +713,27 @@ struct_pa_operation._fields_ = [
 
 pa_operation = struct_pa_operation  # /usr/include/pulse/operation.h:33
 pa_operation_notify_cb_t = CFUNCTYPE(None, POINTER(pa_operation), POINTER(None))  # /usr/include/pulse/operation.h:36
-# /usr/include/pulse/operation.h:39
+# 034785.python.lib_pulseaudio.line716.comment /usr/include/pulse/operation.h:39
 pa_operation_ref = _lib.pa_operation_ref
 pa_operation_ref.restype = POINTER(pa_operation)
 pa_operation_ref.argtypes = [POINTER(pa_operation)]
 
-# /usr/include/pulse/operation.h:42
+# 034786.python.lib_pulseaudio.line721.comment /usr/include/pulse/operation.h:42
 pa_operation_unref = _lib.pa_operation_unref
 pa_operation_unref.restype = None
 pa_operation_unref.argtypes = [POINTER(pa_operation)]
 
-# /usr/include/pulse/operation.h:49
+# 034787.python.lib_pulseaudio.line726.comment /usr/include/pulse/operation.h:49
 pa_operation_cancel = _lib.pa_operation_cancel
 pa_operation_cancel.restype = None
 pa_operation_cancel.argtypes = [POINTER(pa_operation)]
 
-# /usr/include/pulse/operation.h:52
+# 034788.python.lib_pulseaudio.line731.comment /usr/include/pulse/operation.h:52
 pa_operation_get_state = _lib.pa_operation_get_state
 pa_operation_get_state.restype = pa_operation_state_t
 pa_operation_get_state.argtypes = [POINTER(pa_operation)]
 
-# /usr/include/pulse/operation.h:60
+# 034789.python.lib_pulseaudio.line736.comment /usr/include/pulse/operation.h:60
 pa_operation_set_state_callback = _lib.pa_operation_set_state_callback
 pa_operation_set_state_callback.restype = None
 pa_operation_set_state_callback.argtypes = [POINTER(pa_operation), pa_operation_notify_cb_t, POINTER(None)]
@@ -766,44 +766,44 @@ struct_pa_proplist._fields_ = [
 
 pa_proplist = struct_pa_proplist  # /usr/include/pulse/proplist.h:272
 
-# Begin manually transferred pa_proplist definitions #
+# 034794.python.lib_pulseaudio.line769.comment Begin manually transferred pa_proplist definitions #
 
-# /usr/include/pulse/proplist.h:281
+# 034795.python.lib_pulseaudio.line771.comment /usr/include/pulse/proplist.h:281
 pa_proplist_new = _lib.pa_proplist_new
 pa_proplist_new.restype = POINTER(pa_proplist)
 pa_proplist_new.argtypes = []
 
-# /usr/include/pulse/proplist.h:284
+# 034796.python.lib_pulseaudio.line776.comment /usr/include/pulse/proplist.h:284
 pa_proplist_free = _lib.pa_proplist_free
 pa_proplist_free.restype = None
 pa_proplist_free.argtypes = [POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:287
+# 034797.python.lib_pulseaudio.line781.comment /usr/include/pulse/proplist.h:287
 pa_proplist_key_valid = _lib.pa_proplist_key_valid
 pa_proplist_key_valid.restype = c_int
 pa_proplist_key_valid.argtypes = [c_char_p]
 
-# /usr/include/pulse/proplist.h:293
+# 034798.python.lib_pulseaudio.line786.comment /usr/include/pulse/proplist.h:293
 pa_proplist_sets = _lib.pa_proplist_sets
 pa_proplist_sets.restype = c_int
 pa_proplist_sets.argtypes = [POINTER(pa_proplist), c_char_p, c_char_p]
 
-# /usr/include/pulse/proplist.h:301
+# 034799.python.lib_pulseaudio.line791.comment /usr/include/pulse/proplist.h:301
 pa_proplist_setp = _lib.pa_proplist_setp
 pa_proplist_setp.restype = c_int
 pa_proplist_setp.argtypes = [POINTER(pa_proplist), c_char_p]
 
-# /usr/include/pulse/proplist.h:314
+# 034800.python.lib_pulseaudio.line796.comment /usr/include/pulse/proplist.h:314
 pa_proplist_set = _lib.pa_proplist_set
 pa_proplist_set.restype = c_int
 pa_proplist_set.argtypes = [POINTER(pa_proplist), c_char_p, POINTER(None), c_size_t]
 
-# /usr/include/pulse/proplist.h:320
+# 034801.python.lib_pulseaudio.line801.comment /usr/include/pulse/proplist.h:320
 pa_proplist_gets = _lib.pa_proplist_gets
 pa_proplist_gets.restype = c_char_p
 pa_proplist_gets.argtypes = [POINTER(pa_proplist), c_char_p]
 
-# /usr/include/pulse/proplist.h:328
+# 034802.python.lib_pulseaudio.line806.comment /usr/include/pulse/proplist.h:328
 pa_proplist_get = _lib.pa_proplist_get
 pa_proplist_get.restype = c_int
 pa_proplist_get.argtypes = [POINTER(pa_proplist), c_char_p, POINTER(POINTER(None)), POINTER(c_size_t)]
@@ -813,210 +813,210 @@ PA_UPDATE_SET = 0
 PA_UPDATE_MERGE = 1
 PA_UPDATE_REPLACE = 2
 pa_update_mode_t = enum_pa_update_mode  # /usr/include/pulse/proplist.h:345
-# /usr/include/pulse/proplist.h:355
+# 034804.python.lib_pulseaudio.line816.comment /usr/include/pulse/proplist.h:355
 pa_proplist_update = _lib.pa_proplist_update
 pa_proplist_update.restype = None
 pa_proplist_update.argtypes = [POINTER(pa_proplist), pa_update_mode_t, POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:360
+# 034805.python.lib_pulseaudio.line821.comment /usr/include/pulse/proplist.h:360
 pa_proplist_unset = _lib.pa_proplist_unset
 pa_proplist_unset.restype = c_int
 pa_proplist_unset.argtypes = [POINTER(pa_proplist), c_char_p]
 
-# /usr/include/pulse/proplist.h:367
+# 034806.python.lib_pulseaudio.line826.comment /usr/include/pulse/proplist.h:367
 pa_proplist_unset_many = _lib.pa_proplist_unset_many
 pa_proplist_unset_many.restype = c_int
 pa_proplist_unset_many.argtypes = [POINTER(pa_proplist), POINTER(c_char_p)]
 
-# /usr/include/pulse/proplist.h:378
+# 034807.python.lib_pulseaudio.line831.comment /usr/include/pulse/proplist.h:378
 pa_proplist_iterate = _lib.pa_proplist_iterate
 pa_proplist_iterate.restype = c_char_p
 pa_proplist_iterate.argtypes = [POINTER(pa_proplist), POINTER(POINTER(None))]
 
-# /usr/include/pulse/proplist.h:384
+# 034808.python.lib_pulseaudio.line836.comment /usr/include/pulse/proplist.h:384
 pa_proplist_to_string = _lib.pa_proplist_to_string
 pa_proplist_to_string.restype = c_char_p
 pa_proplist_to_string.argtypes = [POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:389
+# 034809.python.lib_pulseaudio.line841.comment /usr/include/pulse/proplist.h:389
 pa_proplist_to_string_sep = _lib.pa_proplist_to_string_sep
 pa_proplist_to_string_sep.restype = c_char_p
 pa_proplist_to_string_sep.argtypes = [POINTER(pa_proplist), c_char_p]
 
-# /usr/include/pulse/proplist.h:393
+# 034810.python.lib_pulseaudio.line846.comment /usr/include/pulse/proplist.h:393
 pa_proplist_from_string = _lib.pa_proplist_from_string
 pa_proplist_from_string.restype = POINTER(pa_proplist)
 pa_proplist_from_string.argtypes = [c_char_p]
 
-# /usr/include/pulse/proplist.h:397
+# 034811.python.lib_pulseaudio.line851.comment /usr/include/pulse/proplist.h:397
 pa_proplist_contains = _lib.pa_proplist_contains
 pa_proplist_contains.restype = c_int
 pa_proplist_contains.argtypes = [POINTER(pa_proplist), c_char_p]
 
-# /usr/include/pulse/proplist.h:400
+# 034812.python.lib_pulseaudio.line856.comment /usr/include/pulse/proplist.h:400
 pa_proplist_clear = _lib.pa_proplist_clear
 pa_proplist_clear.restype = None
 pa_proplist_clear.argtypes = [POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:404
+# 034813.python.lib_pulseaudio.line861.comment /usr/include/pulse/proplist.h:404
 pa_proplist_copy = _lib.pa_proplist_copy
 pa_proplist_copy.restype = POINTER(pa_proplist)
 pa_proplist_copy.argtypes = [POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:407
+# 034814.python.lib_pulseaudio.line866.comment /usr/include/pulse/proplist.h:407
 pa_proplist_size = _lib.pa_proplist_size
 pa_proplist_size.restype = c_uint
 pa_proplist_size.argtypes = [POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:410
+# 034815.python.lib_pulseaudio.line871.comment /usr/include/pulse/proplist.h:410
 pa_proplist_isempty = _lib.pa_proplist_isempty
 pa_proplist_isempty.restype = c_int
 pa_proplist_isempty.argtypes = [POINTER(pa_proplist)]
 
-# /usr/include/pulse/proplist.h:414
+# 034816.python.lib_pulseaudio.line876.comment /usr/include/pulse/proplist.h:414
 pa_proplist_equal = _lib.pa_proplist_equal
 pa_proplist_equal.restype = c_int
 pa_proplist_equal.argtypes = [POINTER(pa_proplist), POINTER(pa_proplist)]
 
-# End of manually transferred pa_proplist definitions #
+# 034817.python.lib_pulseaudio.line881.comment End of manually transferred pa_proplist definitions #
 
 pa_context_event_cb_t = CFUNCTYPE(None, POINTER(pa_context), c_char_p, POINTER(pa_proplist),
                                   POINTER(None))  # /usr/include/pulse/context.h:167
-# /usr/include/pulse/context.h:172
+# 034819.python.lib_pulseaudio.line885.comment /usr/include/pulse/context.h:172
 pa_context_new = _lib.pa_context_new
 pa_context_new.restype = POINTER(pa_context)
 pa_context_new.argtypes = [POINTER(pa_mainloop_api), c_char_p]
 
-# /usr/include/pulse/context.h:177
+# 034820.python.lib_pulseaudio.line890.comment /usr/include/pulse/context.h:177
 pa_context_new_with_proplist = _lib.pa_context_new_with_proplist
 pa_context_new_with_proplist.restype = POINTER(pa_context)
 pa_context_new_with_proplist.argtypes = [POINTER(pa_mainloop_api), c_char_p, POINTER(pa_proplist)]
 
-# /usr/include/pulse/context.h:180
+# 034821.python.lib_pulseaudio.line895.comment /usr/include/pulse/context.h:180
 pa_context_unref = _lib.pa_context_unref
 pa_context_unref.restype = None
 pa_context_unref.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:183
+# 034822.python.lib_pulseaudio.line900.comment /usr/include/pulse/context.h:183
 pa_context_ref = _lib.pa_context_ref
 pa_context_ref.restype = POINTER(pa_context)
 pa_context_ref.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:186
+# 034823.python.lib_pulseaudio.line905.comment /usr/include/pulse/context.h:186
 pa_context_set_state_callback = _lib.pa_context_set_state_callback
 pa_context_set_state_callback.restype = None
 pa_context_set_state_callback.argtypes = [POINTER(pa_context), pa_context_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:190
+# 034824.python.lib_pulseaudio.line910.comment /usr/include/pulse/context.h:190
 pa_context_set_event_callback = _lib.pa_context_set_event_callback
 pa_context_set_event_callback.restype = None
 pa_context_set_event_callback.argtypes = [POINTER(pa_context), pa_context_event_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:193
+# 034825.python.lib_pulseaudio.line915.comment /usr/include/pulse/context.h:193
 pa_context_errno = _lib.pa_context_errno
 pa_context_errno.restype = c_int
 pa_context_errno.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:196
+# 034826.python.lib_pulseaudio.line920.comment /usr/include/pulse/context.h:196
 pa_context_is_pending = _lib.pa_context_is_pending
 pa_context_is_pending.restype = c_int
 pa_context_is_pending.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:199
+# 034827.python.lib_pulseaudio.line925.comment /usr/include/pulse/context.h:199
 pa_context_get_state = _lib.pa_context_get_state
 pa_context_get_state.restype = pa_context_state_t
 pa_context_get_state.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:209
+# 034828.python.lib_pulseaudio.line930.comment /usr/include/pulse/context.h:209
 pa_context_connect = _lib.pa_context_connect
 pa_context_connect.restype = c_int
 pa_context_connect.argtypes = [POINTER(pa_context), c_char_p, pa_context_flags_t, POINTER(pa_spawn_api)]
 
-# /usr/include/pulse/context.h:212
+# 034829.python.lib_pulseaudio.line935.comment /usr/include/pulse/context.h:212
 pa_context_disconnect = _lib.pa_context_disconnect
 pa_context_disconnect.restype = None
 pa_context_disconnect.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:215
+# 034830.python.lib_pulseaudio.line940.comment /usr/include/pulse/context.h:215
 pa_context_drain = _lib.pa_context_drain
 pa_context_drain.restype = POINTER(pa_operation)
 pa_context_drain.argtypes = [POINTER(pa_context), pa_context_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:220
+# 034831.python.lib_pulseaudio.line945.comment /usr/include/pulse/context.h:220
 pa_context_exit_daemon = _lib.pa_context_exit_daemon
 pa_context_exit_daemon.restype = POINTER(pa_operation)
 pa_context_exit_daemon.argtypes = [POINTER(pa_context), pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:223
+# 034832.python.lib_pulseaudio.line950.comment /usr/include/pulse/context.h:223
 pa_context_set_default_sink = _lib.pa_context_set_default_sink
 pa_context_set_default_sink.restype = POINTER(pa_operation)
 pa_context_set_default_sink.argtypes = [POINTER(pa_context), c_char_p, pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:226
+# 034833.python.lib_pulseaudio.line955.comment /usr/include/pulse/context.h:226
 pa_context_set_default_source = _lib.pa_context_set_default_source
 pa_context_set_default_source.restype = POINTER(pa_operation)
 pa_context_set_default_source.argtypes = [POINTER(pa_context), c_char_p, pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:229
+# 034834.python.lib_pulseaudio.line960.comment /usr/include/pulse/context.h:229
 pa_context_is_local = _lib.pa_context_is_local
 pa_context_is_local.restype = c_int
 pa_context_is_local.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:232
+# 034835.python.lib_pulseaudio.line965.comment /usr/include/pulse/context.h:232
 pa_context_set_name = _lib.pa_context_set_name
 pa_context_set_name.restype = POINTER(pa_operation)
 pa_context_set_name.argtypes = [POINTER(pa_context), c_char_p, pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:235
+# 034836.python.lib_pulseaudio.line970.comment /usr/include/pulse/context.h:235
 pa_context_get_server = _lib.pa_context_get_server
 pa_context_get_server.restype = c_char_p
 pa_context_get_server.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:238
+# 034837.python.lib_pulseaudio.line975.comment /usr/include/pulse/context.h:238
 pa_context_get_protocol_version = _lib.pa_context_get_protocol_version
 pa_context_get_protocol_version.restype = c_uint32
 pa_context_get_protocol_version.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:241
+# 034838.python.lib_pulseaudio.line980.comment /usr/include/pulse/context.h:241
 pa_context_get_server_protocol_version = _lib.pa_context_get_server_protocol_version
 pa_context_get_server_protocol_version.restype = c_uint32
 pa_context_get_server_protocol_version.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:248
+# 034839.python.lib_pulseaudio.line985.comment /usr/include/pulse/context.h:248
 pa_context_proplist_update = _lib.pa_context_proplist_update
 pa_context_proplist_update.restype = POINTER(pa_operation)
 pa_context_proplist_update.argtypes = [POINTER(pa_context), pa_update_mode_t, POINTER(pa_proplist),
                                        pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:251
+# 034840.python.lib_pulseaudio.line991.comment /usr/include/pulse/context.h:251
 pa_context_proplist_remove = _lib.pa_context_proplist_remove
 pa_context_proplist_remove.restype = POINTER(pa_operation)
 pa_context_proplist_remove.argtypes = [POINTER(pa_context), POINTER(c_char_p), pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:256
+# 034841.python.lib_pulseaudio.line996.comment /usr/include/pulse/context.h:256
 pa_context_get_index = _lib.pa_context_get_index
 pa_context_get_index.restype = c_uint32
 pa_context_get_index.argtypes = [POINTER(pa_context)]
 
-# /usr/include/pulse/context.h:260
+# 034842.python.lib_pulseaudio.line1001.comment /usr/include/pulse/context.h:260
 pa_context_rttime_new = _lib.pa_context_rttime_new
 pa_context_rttime_new.restype = POINTER(pa_time_event)
 pa_context_rttime_new.argtypes = [POINTER(pa_context), pa_usec_t, pa_time_event_cb_t, POINTER(None)]
 
-# /usr/include/pulse/context.h:264
+# 034843.python.lib_pulseaudio.line1006.comment /usr/include/pulse/context.h:264
 pa_context_rttime_restart = _lib.pa_context_rttime_restart
 pa_context_rttime_restart.restype = None
 pa_context_rttime_restart.argtypes = [POINTER(pa_context), POINTER(pa_time_event), pa_usec_t]
 
-# /usr/include/pulse/context.h:279
+# 034844.python.lib_pulseaudio.line1011.comment /usr/include/pulse/context.h:279
 pa_context_get_tile_size = _lib.pa_context_get_tile_size
 pa_context_get_tile_size.restype = c_size_t
 pa_context_get_tile_size.argtypes = [POINTER(pa_context), POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/context.h:287
-# pa_context_load_cookie_from_file = _lib.pa_context_load_cookie_from_file
-# pa_context_load_cookie_from_file.restype = c_int
-# pa_context_load_cookie_from_file.argtypes = [POINTER(pa_context), c_char_p]
+# 034845.python.lib_pulseaudio.line1016.comment /usr/include/pulse/context.h:287
+# 034846.python.lib_pulseaudio.line1017.comment pa_context_load_cookie_from_file = _lib.pa_context_load_cookie_from_file
+# 034847.python.lib_pulseaudio.line1018.comment pa_context_load_cookie_from_file.restype = c_int
+# 034848.python.lib_pulseaudio.line1019.comment pa_context_load_cookie_from_file.argtypes = [POINTER(pa_context), c_char_p]
 
 pa_volume_t = c_uint32  # /usr/include/pulse/volume.h:120
 
@@ -1034,218 +1034,218 @@ struct_pa_cvolume._fields_ = [
 ]
 
 pa_cvolume = struct_pa_cvolume  # /usr/include/pulse/volume.h:151
-# /usr/include/pulse/volume.h:154
+# 034851.python.lib_pulseaudio.line1037.comment /usr/include/pulse/volume.h:154
 pa_cvolume_equal = _lib.pa_cvolume_equal
 pa_cvolume_equal.restype = c_int
 pa_cvolume_equal.argtypes = [POINTER(pa_cvolume), POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:159
+# 034852.python.lib_pulseaudio.line1042.comment /usr/include/pulse/volume.h:159
 pa_cvolume_init = _lib.pa_cvolume_init
 pa_cvolume_init.restype = POINTER(pa_cvolume)
 pa_cvolume_init.argtypes = [POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:168
+# 034853.python.lib_pulseaudio.line1047.comment /usr/include/pulse/volume.h:168
 pa_cvolume_set = _lib.pa_cvolume_set
 pa_cvolume_set.restype = POINTER(pa_cvolume)
 pa_cvolume_set.argtypes = [POINTER(pa_cvolume), c_uint, pa_volume_t]
 
 PA_CVOLUME_SNPRINT_MAX = 320  # /usr/include/pulse/volume.h:175
-# /usr/include/pulse/volume.h:178
+# 034855.python.lib_pulseaudio.line1053.comment /usr/include/pulse/volume.h:178
 pa_cvolume_snprint = _lib.pa_cvolume_snprint
 pa_cvolume_snprint.restype = c_char_p
 pa_cvolume_snprint.argtypes = [c_char_p, c_size_t, POINTER(pa_cvolume)]
 
 PA_SW_CVOLUME_SNPRINT_DB_MAX = 448  # /usr/include/pulse/volume.h:185
-# /usr/include/pulse/volume.h:188
+# 034857.python.lib_pulseaudio.line1059.comment /usr/include/pulse/volume.h:188
 pa_sw_cvolume_snprint_dB = _lib.pa_sw_cvolume_snprint_dB
 pa_sw_cvolume_snprint_dB.restype = c_char_p
 pa_sw_cvolume_snprint_dB.argtypes = [c_char_p, c_size_t, POINTER(pa_cvolume)]
 
 PA_CVOLUME_SNPRINT_VERBOSE_MAX = 1984  # /usr/include/pulse/volume.h:194
-# /usr/include/pulse/volume.h:200
-# pa_cvolume_snprint_verbose = _lib.pa_cvolume_snprint_verbose
-# pa_cvolume_snprint_verbose.restype = c_char_p
-# pa_cvolume_snprint_verbose.argtypes = [c_char_p, c_size_t, POINTER(pa_cvolume), POINTER(pa_channel_map), c_int]
+# 034859.python.lib_pulseaudio.line1065.comment /usr/include/pulse/volume.h:200
+# 034860.python.lib_pulseaudio.line1066.comment pa_cvolume_snprint_verbose = _lib.pa_cvolume_snprint_verbose
+# 034861.python.lib_pulseaudio.line1067.comment pa_cvolume_snprint_verbose.restype = c_char_p
+# 034862.python.lib_pulseaudio.line1068.comment pa_cvolume_snprint_verbose.argtypes = [c_char_p, c_size_t, POINTER(pa_cvolume), POINTER(pa_channel_map), c_int]
 
 PA_VOLUME_SNPRINT_MAX = 10  # /usr/include/pulse/volume.h:207
-# /usr/include/pulse/volume.h:210
+# 034864.python.lib_pulseaudio.line1071.comment /usr/include/pulse/volume.h:210
 pa_volume_snprint = _lib.pa_volume_snprint
 pa_volume_snprint.restype = c_char_p
 pa_volume_snprint.argtypes = [c_char_p, c_size_t, pa_volume_t]
 
 PA_SW_VOLUME_SNPRINT_DB_MAX = 11  # /usr/include/pulse/volume.h:217
-# /usr/include/pulse/volume.h:220
+# 034866.python.lib_pulseaudio.line1077.comment /usr/include/pulse/volume.h:220
 pa_sw_volume_snprint_dB = _lib.pa_sw_volume_snprint_dB
 pa_sw_volume_snprint_dB.restype = c_char_p
 pa_sw_volume_snprint_dB.argtypes = [c_char_p, c_size_t, pa_volume_t]
 
 PA_VOLUME_SNPRINT_VERBOSE_MAX = 35  # /usr/include/pulse/volume.h:226
-# /usr/include/pulse/volume.h:231
-# pa_volume_snprint_verbose = _lib.pa_volume_snprint_verbose
-# pa_volume_snprint_verbose.restype = c_char_p
-# pa_volume_snprint_verbose.argtypes = [c_char_p, c_size_t, pa_volume_t, c_int]
+# 034868.python.lib_pulseaudio.line1083.comment /usr/include/pulse/volume.h:231
+# 034869.python.lib_pulseaudio.line1084.comment pa_volume_snprint_verbose = _lib.pa_volume_snprint_verbose
+# 034870.python.lib_pulseaudio.line1085.comment pa_volume_snprint_verbose.restype = c_char_p
+# 034871.python.lib_pulseaudio.line1086.comment pa_volume_snprint_verbose.argtypes = [c_char_p, c_size_t, pa_volume_t, c_int]
 
-# /usr/include/pulse/volume.h:234
+# 034872.python.lib_pulseaudio.line1088.comment /usr/include/pulse/volume.h:234
 pa_cvolume_avg = _lib.pa_cvolume_avg
 pa_cvolume_avg.restype = pa_volume_t
 pa_cvolume_avg.argtypes = [POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:241
+# 034873.python.lib_pulseaudio.line1093.comment /usr/include/pulse/volume.h:241
 pa_cvolume_avg_mask = _lib.pa_cvolume_avg_mask
 pa_cvolume_avg_mask.restype = pa_volume_t
 pa_cvolume_avg_mask.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), pa_channel_position_mask_t]
 
-# /usr/include/pulse/volume.h:244
+# 034874.python.lib_pulseaudio.line1098.comment /usr/include/pulse/volume.h:244
 pa_cvolume_max = _lib.pa_cvolume_max
 pa_cvolume_max.restype = pa_volume_t
 pa_cvolume_max.argtypes = [POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:251
+# 034875.python.lib_pulseaudio.line1103.comment /usr/include/pulse/volume.h:251
 pa_cvolume_max_mask = _lib.pa_cvolume_max_mask
 pa_cvolume_max_mask.restype = pa_volume_t
 pa_cvolume_max_mask.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), pa_channel_position_mask_t]
 
-# /usr/include/pulse/volume.h:254
+# 034876.python.lib_pulseaudio.line1108.comment /usr/include/pulse/volume.h:254
 pa_cvolume_min = _lib.pa_cvolume_min
 pa_cvolume_min.restype = pa_volume_t
 pa_cvolume_min.argtypes = [POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:261
+# 034877.python.lib_pulseaudio.line1113.comment /usr/include/pulse/volume.h:261
 pa_cvolume_min_mask = _lib.pa_cvolume_min_mask
 pa_cvolume_min_mask.restype = pa_volume_t
 pa_cvolume_min_mask.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), pa_channel_position_mask_t]
 
-# /usr/include/pulse/volume.h:264
+# 034878.python.lib_pulseaudio.line1118.comment /usr/include/pulse/volume.h:264
 pa_cvolume_valid = _lib.pa_cvolume_valid
 pa_cvolume_valid.restype = c_int
 pa_cvolume_valid.argtypes = [POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:267
+# 034879.python.lib_pulseaudio.line1123.comment /usr/include/pulse/volume.h:267
 pa_cvolume_channels_equal_to = _lib.pa_cvolume_channels_equal_to
 pa_cvolume_channels_equal_to.restype = c_int
 pa_cvolume_channels_equal_to.argtypes = [POINTER(pa_cvolume), pa_volume_t]
 
-# /usr/include/pulse/volume.h:278
+# 034880.python.lib_pulseaudio.line1128.comment /usr/include/pulse/volume.h:278
 pa_sw_volume_multiply = _lib.pa_sw_volume_multiply
 pa_sw_volume_multiply.restype = pa_volume_t
 pa_sw_volume_multiply.argtypes = [pa_volume_t, pa_volume_t]
 
-# /usr/include/pulse/volume.h:283
+# 034881.python.lib_pulseaudio.line1133.comment /usr/include/pulse/volume.h:283
 pa_sw_cvolume_multiply = _lib.pa_sw_cvolume_multiply
 pa_sw_cvolume_multiply.restype = POINTER(pa_cvolume)
 pa_sw_cvolume_multiply.argtypes = [POINTER(pa_cvolume), POINTER(pa_cvolume), POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:289
+# 034882.python.lib_pulseaudio.line1138.comment /usr/include/pulse/volume.h:289
 pa_sw_cvolume_multiply_scalar = _lib.pa_sw_cvolume_multiply_scalar
 pa_sw_cvolume_multiply_scalar.restype = POINTER(pa_cvolume)
 pa_sw_cvolume_multiply_scalar.argtypes = [POINTER(pa_cvolume), POINTER(pa_cvolume), pa_volume_t]
 
-# /usr/include/pulse/volume.h:295
+# 034883.python.lib_pulseaudio.line1143.comment /usr/include/pulse/volume.h:295
 pa_sw_volume_divide = _lib.pa_sw_volume_divide
 pa_sw_volume_divide.restype = pa_volume_t
 pa_sw_volume_divide.argtypes = [pa_volume_t, pa_volume_t]
 
-# /usr/include/pulse/volume.h:300
+# 034884.python.lib_pulseaudio.line1148.comment /usr/include/pulse/volume.h:300
 pa_sw_cvolume_divide = _lib.pa_sw_cvolume_divide
 pa_sw_cvolume_divide.restype = POINTER(pa_cvolume)
 pa_sw_cvolume_divide.argtypes = [POINTER(pa_cvolume), POINTER(pa_cvolume), POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:306
+# 034885.python.lib_pulseaudio.line1153.comment /usr/include/pulse/volume.h:306
 pa_sw_cvolume_divide_scalar = _lib.pa_sw_cvolume_divide_scalar
 pa_sw_cvolume_divide_scalar.restype = POINTER(pa_cvolume)
 pa_sw_cvolume_divide_scalar.argtypes = [POINTER(pa_cvolume), POINTER(pa_cvolume), pa_volume_t]
 
-# /usr/include/pulse/volume.h:309
+# 034886.python.lib_pulseaudio.line1158.comment /usr/include/pulse/volume.h:309
 pa_sw_volume_from_dB = _lib.pa_sw_volume_from_dB
 pa_sw_volume_from_dB.restype = pa_volume_t
 pa_sw_volume_from_dB.argtypes = [c_double]
 
-# /usr/include/pulse/volume.h:312
+# 034887.python.lib_pulseaudio.line1163.comment /usr/include/pulse/volume.h:312
 pa_sw_volume_to_dB = _lib.pa_sw_volume_to_dB
 pa_sw_volume_to_dB.restype = c_double
 pa_sw_volume_to_dB.argtypes = [pa_volume_t]
 
-# /usr/include/pulse/volume.h:316
+# 034888.python.lib_pulseaudio.line1168.comment /usr/include/pulse/volume.h:316
 pa_sw_volume_from_linear = _lib.pa_sw_volume_from_linear
 pa_sw_volume_from_linear.restype = pa_volume_t
 pa_sw_volume_from_linear.argtypes = [c_double]
 
-# /usr/include/pulse/volume.h:319
+# 034889.python.lib_pulseaudio.line1173.comment /usr/include/pulse/volume.h:319
 pa_sw_volume_to_linear = _lib.pa_sw_volume_to_linear
 pa_sw_volume_to_linear.restype = c_double
 pa_sw_volume_to_linear.argtypes = [pa_volume_t]
 
-# /usr/include/pulse/volume.h:329
+# 034890.python.lib_pulseaudio.line1178.comment /usr/include/pulse/volume.h:329
 pa_cvolume_remap = _lib.pa_cvolume_remap
 pa_cvolume_remap.restype = POINTER(pa_cvolume)
 pa_cvolume_remap.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/volume.h:333
+# 034891.python.lib_pulseaudio.line1183.comment /usr/include/pulse/volume.h:333
 pa_cvolume_compatible = _lib.pa_cvolume_compatible
 pa_cvolume_compatible.restype = c_int
 pa_cvolume_compatible.argtypes = [POINTER(pa_cvolume), POINTER(pa_sample_spec)]
 
-# /usr/include/pulse/volume.h:337
+# 034892.python.lib_pulseaudio.line1188.comment /usr/include/pulse/volume.h:337
 pa_cvolume_compatible_with_channel_map = _lib.pa_cvolume_compatible_with_channel_map
 pa_cvolume_compatible_with_channel_map.restype = c_int
 pa_cvolume_compatible_with_channel_map.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/volume.h:344
+# 034893.python.lib_pulseaudio.line1193.comment /usr/include/pulse/volume.h:344
 pa_cvolume_get_balance = _lib.pa_cvolume_get_balance
 pa_cvolume_get_balance.restype = c_float
 pa_cvolume_get_balance.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/volume.h:355
+# 034894.python.lib_pulseaudio.line1198.comment /usr/include/pulse/volume.h:355
 pa_cvolume_set_balance = _lib.pa_cvolume_set_balance
 pa_cvolume_set_balance.restype = POINTER(pa_cvolume)
 pa_cvolume_set_balance.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), c_float]
 
-# /usr/include/pulse/volume.h:362
+# 034895.python.lib_pulseaudio.line1203.comment /usr/include/pulse/volume.h:362
 pa_cvolume_get_fade = _lib.pa_cvolume_get_fade
 pa_cvolume_get_fade.restype = c_float
 pa_cvolume_get_fade.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/volume.h:373
+# 034896.python.lib_pulseaudio.line1208.comment /usr/include/pulse/volume.h:373
 pa_cvolume_set_fade = _lib.pa_cvolume_set_fade
 pa_cvolume_set_fade.restype = POINTER(pa_cvolume)
 pa_cvolume_set_fade.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), c_float]
 
-# /usr/include/pulse/volume.h:378
+# 034897.python.lib_pulseaudio.line1213.comment /usr/include/pulse/volume.h:378
 pa_cvolume_scale = _lib.pa_cvolume_scale
 pa_cvolume_scale.restype = POINTER(pa_cvolume)
 pa_cvolume_scale.argtypes = [POINTER(pa_cvolume), pa_volume_t]
 
-# /usr/include/pulse/volume.h:384
+# 034898.python.lib_pulseaudio.line1218.comment /usr/include/pulse/volume.h:384
 pa_cvolume_scale_mask = _lib.pa_cvolume_scale_mask
 pa_cvolume_scale_mask.restype = POINTER(pa_cvolume)
 pa_cvolume_scale_mask.argtypes = [POINTER(pa_cvolume), pa_volume_t, POINTER(pa_channel_map), pa_channel_position_mask_t]
 
-# /usr/include/pulse/volume.h:391
+# 034899.python.lib_pulseaudio.line1223.comment /usr/include/pulse/volume.h:391
 pa_cvolume_set_position = _lib.pa_cvolume_set_position
 pa_cvolume_set_position.restype = POINTER(pa_cvolume)
 pa_cvolume_set_position.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), pa_channel_position_t, pa_volume_t]
 
-# /usr/include/pulse/volume.h:397
+# 034900.python.lib_pulseaudio.line1228.comment /usr/include/pulse/volume.h:397
 pa_cvolume_get_position = _lib.pa_cvolume_get_position
 pa_cvolume_get_position.restype = pa_volume_t
 pa_cvolume_get_position.argtypes = [POINTER(pa_cvolume), POINTER(pa_channel_map), pa_channel_position_t]
 
-# /usr/include/pulse/volume.h:402
+# 034901.python.lib_pulseaudio.line1233.comment /usr/include/pulse/volume.h:402
 pa_cvolume_merge = _lib.pa_cvolume_merge
 pa_cvolume_merge.restype = POINTER(pa_cvolume)
 pa_cvolume_merge.argtypes = [POINTER(pa_cvolume), POINTER(pa_cvolume), POINTER(pa_cvolume)]
 
-# /usr/include/pulse/volume.h:406
+# 034902.python.lib_pulseaudio.line1238.comment /usr/include/pulse/volume.h:406
 pa_cvolume_inc_clamp = _lib.pa_cvolume_inc_clamp
 pa_cvolume_inc_clamp.restype = POINTER(pa_cvolume)
 pa_cvolume_inc_clamp.argtypes = [POINTER(pa_cvolume), pa_volume_t, pa_volume_t]
 
-# /usr/include/pulse/volume.h:410
+# 034903.python.lib_pulseaudio.line1243.comment /usr/include/pulse/volume.h:410
 pa_cvolume_inc = _lib.pa_cvolume_inc
 pa_cvolume_inc.restype = POINTER(pa_cvolume)
 pa_cvolume_inc.argtypes = [POINTER(pa_cvolume), pa_volume_t]
 
-# /usr/include/pulse/volume.h:414
+# 034904.python.lib_pulseaudio.line1248.comment /usr/include/pulse/volume.h:414
 pa_cvolume_dec = _lib.pa_cvolume_dec
 pa_cvolume_dec.restype = POINTER(pa_cvolume)
 pa_cvolume_dec.argtypes = [POINTER(pa_cvolume), pa_volume_t]
@@ -1267,12 +1267,12 @@ pa_stream_request_cb_t = CFUNCTYPE(None, POINTER(pa_stream), c_size_t, POINTER(N
 pa_stream_notify_cb_t = CFUNCTYPE(None, POINTER(pa_stream), POINTER(None))  # /usr/include/pulse/stream.h:344
 pa_stream_event_cb_t = CFUNCTYPE(None, POINTER(pa_stream), c_char_p, POINTER(pa_proplist),
                                  POINTER(None))  # /usr/include/pulse/stream.h:352
-# /usr/include/pulse/stream.h:357
+# 034910.python.lib_pulseaudio.line1270.comment /usr/include/pulse/stream.h:357
 pa_stream_new = _lib.pa_stream_new
 pa_stream_new.restype = POINTER(pa_stream)
 pa_stream_new.argtypes = [POINTER(pa_context), c_char_p, POINTER(pa_sample_spec), POINTER(pa_channel_map)]
 
-# /usr/include/pulse/stream.h:366
+# 034911.python.lib_pulseaudio.line1275.comment /usr/include/pulse/stream.h:366
 pa_stream_new_with_proplist = _lib.pa_stream_new_with_proplist
 pa_stream_new_with_proplist.restype = POINTER(pa_stream)
 pa_stream_new_with_proplist.argtypes = [POINTER(pa_context), c_char_p, POINTER(pa_sample_spec), POINTER(pa_channel_map),
@@ -1303,271 +1303,271 @@ struct_pa_format_info._fields_ = [
 ]
 
 pa_format_info = struct_pa_format_info  # /usr/include/pulse/format.h:91
-# /usr/include/pulse/stream.h:377
+# 034914.python.lib_pulseaudio.line1306.comment /usr/include/pulse/stream.h:377
 pa_stream_new_extended = _lib.pa_stream_new_extended
 pa_stream_new_extended.restype = POINTER(pa_stream)
 pa_stream_new_extended.argtypes = [POINTER(pa_context), c_char_p, POINTER(POINTER(pa_format_info)), c_uint,
                                    POINTER(pa_proplist)]
 
-# /usr/include/pulse/stream.h:385
+# 034915.python.lib_pulseaudio.line1312.comment /usr/include/pulse/stream.h:385
 pa_stream_unref = _lib.pa_stream_unref
 pa_stream_unref.restype = None
 pa_stream_unref.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:388
+# 034916.python.lib_pulseaudio.line1317.comment /usr/include/pulse/stream.h:388
 pa_stream_ref = _lib.pa_stream_ref
 pa_stream_ref.restype = POINTER(pa_stream)
 pa_stream_ref.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:391
+# 034917.python.lib_pulseaudio.line1322.comment /usr/include/pulse/stream.h:391
 pa_stream_get_state = _lib.pa_stream_get_state
 pa_stream_get_state.restype = pa_stream_state_t
 pa_stream_get_state.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:394
+# 034918.python.lib_pulseaudio.line1327.comment /usr/include/pulse/stream.h:394
 pa_stream_get_context = _lib.pa_stream_get_context
 pa_stream_get_context.restype = POINTER(pa_context)
 pa_stream_get_context.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:400
+# 034919.python.lib_pulseaudio.line1332.comment /usr/include/pulse/stream.h:400
 pa_stream_get_index = _lib.pa_stream_get_index
 pa_stream_get_index.restype = c_uint32
 pa_stream_get_index.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:411
+# 034920.python.lib_pulseaudio.line1337.comment /usr/include/pulse/stream.h:411
 pa_stream_get_device_index = _lib.pa_stream_get_device_index
 pa_stream_get_device_index.restype = c_uint32
 pa_stream_get_device_index.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:422
+# 034921.python.lib_pulseaudio.line1342.comment /usr/include/pulse/stream.h:422
 pa_stream_get_device_name = _lib.pa_stream_get_device_name
 pa_stream_get_device_name.restype = c_char_p
 pa_stream_get_device_name.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:428
+# 034922.python.lib_pulseaudio.line1347.comment /usr/include/pulse/stream.h:428
 pa_stream_is_suspended = _lib.pa_stream_is_suspended
 pa_stream_is_suspended.restype = c_int
 pa_stream_is_suspended.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:432
+# 034923.python.lib_pulseaudio.line1352.comment /usr/include/pulse/stream.h:432
 pa_stream_is_corked = _lib.pa_stream_is_corked
 pa_stream_is_corked.restype = c_int
 pa_stream_is_corked.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:458
+# 034924.python.lib_pulseaudio.line1357.comment /usr/include/pulse/stream.h:458
 pa_stream_connect_playback = _lib.pa_stream_connect_playback
 pa_stream_connect_playback.restype = c_int
 pa_stream_connect_playback.argtypes = [POINTER(pa_stream), c_char_p, POINTER(pa_buffer_attr), pa_stream_flags_t,
                                        POINTER(pa_cvolume), POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:467
+# 034925.python.lib_pulseaudio.line1363.comment /usr/include/pulse/stream.h:467
 pa_stream_connect_record = _lib.pa_stream_connect_record
 pa_stream_connect_record.restype = c_int
 pa_stream_connect_record.argtypes = [POINTER(pa_stream), c_char_p, POINTER(pa_buffer_attr), pa_stream_flags_t]
 
-# /usr/include/pulse/stream.h:474
+# 034926.python.lib_pulseaudio.line1368.comment /usr/include/pulse/stream.h:474
 pa_stream_disconnect = _lib.pa_stream_disconnect
 pa_stream_disconnect.restype = c_int
 pa_stream_disconnect.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:508
+# 034927.python.lib_pulseaudio.line1373.comment /usr/include/pulse/stream.h:508
 pa_stream_begin_write = _lib.pa_stream_begin_write
 pa_stream_begin_write.restype = c_int
 pa_stream_begin_write.argtypes = [POINTER(pa_stream), POINTER(POINTER(None)), POINTER(c_size_t)]
 
-# /usr/include/pulse/stream.h:522
+# 034928.python.lib_pulseaudio.line1378.comment /usr/include/pulse/stream.h:522
 pa_stream_cancel_write = _lib.pa_stream_cancel_write
 pa_stream_cancel_write.restype = c_int
 pa_stream_cancel_write.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:547
+# 034929.python.lib_pulseaudio.line1383.comment /usr/include/pulse/stream.h:547
 pa_stream_write = _lib.pa_stream_write
 pa_stream_write.restype = c_int
 pa_stream_write.argtypes = [POINTER(pa_stream), POINTER(None), c_size_t, pa_free_cb_t, c_int64, pa_seek_mode_t]
 
-# /usr/include/pulse/stream.h:557
-# pa_stream_write_ext_free = _lib.pa_stream_write_ext_free
-# pa_stream_write_ext_free.restype = c_int
-# pa_stream_write_ext_free.argtypes = [POINTER(pa_stream), POINTER(None), c_size_t, pa_free_cb_t, POINTER(None), c_int64, pa_seek_mode_t]
+# 034930.python.lib_pulseaudio.line1388.comment /usr/include/pulse/stream.h:557
+# 034931.python.lib_pulseaudio.line1389.comment pa_stream_write_ext_free = _lib.pa_stream_write_ext_free
+# 034932.python.lib_pulseaudio.line1390.comment pa_stream_write_ext_free.restype = c_int
+# 034933.python.lib_pulseaudio.line1391.comment pa_stream_write_ext_free.argtypes = [POINTER(pa_stream), POINTER(None), c_size_t, pa_free_cb_t, POINTER(None), c_int64, pa_seek_mode_t]
 
-# /usr/include/pulse/stream.h:582
+# 034934.python.lib_pulseaudio.line1393.comment /usr/include/pulse/stream.h:582
 pa_stream_peek = _lib.pa_stream_peek
 pa_stream_peek.restype = c_int
 pa_stream_peek.argtypes = [POINTER(pa_stream), POINTER(POINTER(None)), POINTER(c_size_t)]
 
-# /usr/include/pulse/stream.h:589
+# 034935.python.lib_pulseaudio.line1398.comment /usr/include/pulse/stream.h:589
 pa_stream_drop = _lib.pa_stream_drop
 pa_stream_drop.restype = c_int
 pa_stream_drop.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:592
+# 034936.python.lib_pulseaudio.line1403.comment /usr/include/pulse/stream.h:592
 pa_stream_writable_size = _lib.pa_stream_writable_size
 pa_stream_writable_size.restype = c_size_t
 pa_stream_writable_size.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:595
+# 034937.python.lib_pulseaudio.line1408.comment /usr/include/pulse/stream.h:595
 pa_stream_readable_size = _lib.pa_stream_readable_size
 pa_stream_readable_size.restype = c_size_t
 pa_stream_readable_size.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:601
+# 034938.python.lib_pulseaudio.line1413.comment /usr/include/pulse/stream.h:601
 pa_stream_drain = _lib.pa_stream_drain
 pa_stream_drain.restype = POINTER(pa_operation)
 pa_stream_drain.argtypes = [POINTER(pa_stream), pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:607
+# 034939.python.lib_pulseaudio.line1418.comment /usr/include/pulse/stream.h:607
 pa_stream_update_timing_info = _lib.pa_stream_update_timing_info
 pa_stream_update_timing_info.restype = POINTER(pa_operation)
 pa_stream_update_timing_info.argtypes = [POINTER(pa_stream), pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:610
+# 034940.python.lib_pulseaudio.line1423.comment /usr/include/pulse/stream.h:610
 pa_stream_set_state_callback = _lib.pa_stream_set_state_callback
 pa_stream_set_state_callback.restype = None
 pa_stream_set_state_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:614
+# 034941.python.lib_pulseaudio.line1428.comment /usr/include/pulse/stream.h:614
 pa_stream_set_write_callback = _lib.pa_stream_set_write_callback
 pa_stream_set_write_callback.restype = None
 pa_stream_set_write_callback.argtypes = [POINTER(pa_stream), pa_stream_request_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:617
+# 034942.python.lib_pulseaudio.line1433.comment /usr/include/pulse/stream.h:617
 pa_stream_set_read_callback = _lib.pa_stream_set_read_callback
 pa_stream_set_read_callback.restype = None
 pa_stream_set_read_callback.argtypes = [POINTER(pa_stream), pa_stream_request_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:620
+# 034943.python.lib_pulseaudio.line1438.comment /usr/include/pulse/stream.h:620
 pa_stream_set_overflow_callback = _lib.pa_stream_set_overflow_callback
 pa_stream_set_overflow_callback.restype = None
 pa_stream_set_overflow_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:626
+# 034944.python.lib_pulseaudio.line1443.comment /usr/include/pulse/stream.h:626
 pa_stream_get_underflow_index = _lib.pa_stream_get_underflow_index
 pa_stream_get_underflow_index.restype = c_int64
 pa_stream_get_underflow_index.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:629
+# 034945.python.lib_pulseaudio.line1448.comment /usr/include/pulse/stream.h:629
 pa_stream_set_underflow_callback = _lib.pa_stream_set_underflow_callback
 pa_stream_set_underflow_callback.restype = None
 pa_stream_set_underflow_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:636
+# 034946.python.lib_pulseaudio.line1453.comment /usr/include/pulse/stream.h:636
 pa_stream_set_started_callback = _lib.pa_stream_set_started_callback
 pa_stream_set_started_callback.restype = None
 pa_stream_set_started_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:641
+# 034947.python.lib_pulseaudio.line1458.comment /usr/include/pulse/stream.h:641
 pa_stream_set_latency_update_callback = _lib.pa_stream_set_latency_update_callback
 pa_stream_set_latency_update_callback.restype = None
 pa_stream_set_latency_update_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:648
+# 034948.python.lib_pulseaudio.line1463.comment /usr/include/pulse/stream.h:648
 pa_stream_set_moved_callback = _lib.pa_stream_set_moved_callback
 pa_stream_set_moved_callback.restype = None
 pa_stream_set_moved_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:658
+# 034949.python.lib_pulseaudio.line1468.comment /usr/include/pulse/stream.h:658
 pa_stream_set_suspended_callback = _lib.pa_stream_set_suspended_callback
 pa_stream_set_suspended_callback.restype = None
 pa_stream_set_suspended_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:662
+# 034950.python.lib_pulseaudio.line1473.comment /usr/include/pulse/stream.h:662
 pa_stream_set_event_callback = _lib.pa_stream_set_event_callback
 pa_stream_set_event_callback.restype = None
 pa_stream_set_event_callback.argtypes = [POINTER(pa_stream), pa_stream_event_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:669
+# 034951.python.lib_pulseaudio.line1478.comment /usr/include/pulse/stream.h:669
 pa_stream_set_buffer_attr_callback = _lib.pa_stream_set_buffer_attr_callback
 pa_stream_set_buffer_attr_callback.restype = None
 pa_stream_set_buffer_attr_callback.argtypes = [POINTER(pa_stream), pa_stream_notify_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:681
+# 034952.python.lib_pulseaudio.line1483.comment /usr/include/pulse/stream.h:681
 pa_stream_cork = _lib.pa_stream_cork
 pa_stream_cork.restype = POINTER(pa_operation)
 pa_stream_cork.argtypes = [POINTER(pa_stream), c_int, pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:686
+# 034953.python.lib_pulseaudio.line1488.comment /usr/include/pulse/stream.h:686
 pa_stream_flush = _lib.pa_stream_flush
 pa_stream_flush.restype = POINTER(pa_operation)
 pa_stream_flush.argtypes = [POINTER(pa_stream), pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:690
+# 034954.python.lib_pulseaudio.line1493.comment /usr/include/pulse/stream.h:690
 pa_stream_prebuf = _lib.pa_stream_prebuf
 pa_stream_prebuf.restype = POINTER(pa_operation)
 pa_stream_prebuf.argtypes = [POINTER(pa_stream), pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:695
+# 034955.python.lib_pulseaudio.line1498.comment /usr/include/pulse/stream.h:695
 pa_stream_trigger = _lib.pa_stream_trigger
 pa_stream_trigger.restype = POINTER(pa_operation)
 pa_stream_trigger.argtypes = [POINTER(pa_stream), pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:698
+# 034956.python.lib_pulseaudio.line1503.comment /usr/include/pulse/stream.h:698
 pa_stream_set_name = _lib.pa_stream_set_name
 pa_stream_set_name.restype = POINTER(pa_operation)
 pa_stream_set_name.argtypes = [POINTER(pa_stream), c_char_p, pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:731
+# 034957.python.lib_pulseaudio.line1508.comment /usr/include/pulse/stream.h:731
 pa_stream_get_time = _lib.pa_stream_get_time
 pa_stream_get_time.restype = c_int
 pa_stream_get_time.argtypes = [POINTER(pa_stream), POINTER(pa_usec_t)]
 
-# /usr/include/pulse/stream.h:745
+# 034958.python.lib_pulseaudio.line1513.comment /usr/include/pulse/stream.h:745
 pa_stream_get_latency = _lib.pa_stream_get_latency
 pa_stream_get_latency.restype = c_int
 pa_stream_get_latency.argtypes = [POINTER(pa_stream), POINTER(pa_usec_t), POINTER(c_int)]
 
-# /usr/include/pulse/stream.h:761
+# 034959.python.lib_pulseaudio.line1518.comment /usr/include/pulse/stream.h:761
 pa_stream_get_timing_info = _lib.pa_stream_get_timing_info
 pa_stream_get_timing_info.restype = POINTER(pa_timing_info)
 pa_stream_get_timing_info.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:764
+# 034960.python.lib_pulseaudio.line1523.comment /usr/include/pulse/stream.h:764
 pa_stream_get_sample_spec = _lib.pa_stream_get_sample_spec
 pa_stream_get_sample_spec.restype = POINTER(pa_sample_spec)
 pa_stream_get_sample_spec.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:767
+# 034961.python.lib_pulseaudio.line1528.comment /usr/include/pulse/stream.h:767
 pa_stream_get_channel_map = _lib.pa_stream_get_channel_map
 pa_stream_get_channel_map.restype = POINTER(pa_channel_map)
 pa_stream_get_channel_map.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:770
+# 034962.python.lib_pulseaudio.line1533.comment /usr/include/pulse/stream.h:770
 pa_stream_get_format_info = _lib.pa_stream_get_format_info
 pa_stream_get_format_info.restype = POINTER(pa_format_info)
 pa_stream_get_format_info.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:780
+# 034963.python.lib_pulseaudio.line1538.comment /usr/include/pulse/stream.h:780
 pa_stream_get_buffer_attr = _lib.pa_stream_get_buffer_attr
 pa_stream_get_buffer_attr.restype = POINTER(pa_buffer_attr)
 pa_stream_get_buffer_attr.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/stream.h:790
+# 034964.python.lib_pulseaudio.line1543.comment /usr/include/pulse/stream.h:790
 pa_stream_set_buffer_attr = _lib.pa_stream_set_buffer_attr
 pa_stream_set_buffer_attr.restype = POINTER(pa_operation)
 pa_stream_set_buffer_attr.argtypes = [POINTER(pa_stream), POINTER(pa_buffer_attr), pa_stream_success_cb_t,
                                       POINTER(None)]
 
-# /usr/include/pulse/stream.h:797
+# 034965.python.lib_pulseaudio.line1549.comment /usr/include/pulse/stream.h:797
 pa_stream_update_sample_rate = _lib.pa_stream_update_sample_rate
 pa_stream_update_sample_rate.restype = POINTER(pa_operation)
 pa_stream_update_sample_rate.argtypes = [POINTER(pa_stream), c_uint32, pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:805
+# 034966.python.lib_pulseaudio.line1554.comment /usr/include/pulse/stream.h:805
 pa_stream_proplist_update = _lib.pa_stream_proplist_update
 pa_stream_proplist_update.restype = POINTER(pa_operation)
 pa_stream_proplist_update.argtypes = [POINTER(pa_stream), pa_update_mode_t, POINTER(pa_proplist),
                                       pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:809
+# 034967.python.lib_pulseaudio.line1560.comment /usr/include/pulse/stream.h:809
 pa_stream_proplist_remove = _lib.pa_stream_proplist_remove
 pa_stream_proplist_remove.restype = POINTER(pa_operation)
 pa_stream_proplist_remove.argtypes = [POINTER(pa_stream), POINTER(c_char_p), pa_stream_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/stream.h:815
+# 034968.python.lib_pulseaudio.line1565.comment /usr/include/pulse/stream.h:815
 pa_stream_set_monitor_stream = _lib.pa_stream_set_monitor_stream
 pa_stream_set_monitor_stream.restype = c_int
 pa_stream_set_monitor_stream.argtypes = [POINTER(pa_stream), c_uint32]
 
-# /usr/include/pulse/stream.h:820
+# 034969.python.lib_pulseaudio.line1570.comment /usr/include/pulse/stream.h:820
 pa_stream_get_monitor_stream = _lib.pa_stream_get_monitor_stream
 pa_stream_get_monitor_stream.restype = c_uint32
 pa_stream_get_monitor_stream.argtypes = [POINTER(pa_stream)]
@@ -1651,64 +1651,64 @@ struct_pa_sink_info._fields_ = [
 pa_sink_info = struct_pa_sink_info  # /usr/include/pulse/introspect.h:262
 pa_sink_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_sink_info), c_int,
                               POINTER(None))  # /usr/include/pulse/introspect.h:265
-# /usr/include/pulse/introspect.h:268
+# 034973.python.lib_pulseaudio.line1654.comment /usr/include/pulse/introspect.h:268
 pa_context_get_sink_info_by_name = _lib.pa_context_get_sink_info_by_name
 pa_context_get_sink_info_by_name.restype = POINTER(pa_operation)
 pa_context_get_sink_info_by_name.argtypes = [POINTER(pa_context), c_char_p, pa_sink_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:271
+# 034974.python.lib_pulseaudio.line1659.comment /usr/include/pulse/introspect.h:271
 pa_context_get_sink_info_by_index = _lib.pa_context_get_sink_info_by_index
 pa_context_get_sink_info_by_index.restype = POINTER(pa_operation)
 pa_context_get_sink_info_by_index.argtypes = [POINTER(pa_context), c_uint32, pa_sink_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:274
+# 034975.python.lib_pulseaudio.line1664.comment /usr/include/pulse/introspect.h:274
 pa_context_get_sink_info_list = _lib.pa_context_get_sink_info_list
 pa_context_get_sink_info_list.restype = POINTER(pa_operation)
 pa_context_get_sink_info_list.argtypes = [POINTER(pa_context), pa_sink_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:277
+# 034976.python.lib_pulseaudio.line1669.comment /usr/include/pulse/introspect.h:277
 pa_context_set_sink_volume_by_index = _lib.pa_context_set_sink_volume_by_index
 pa_context_set_sink_volume_by_index.restype = POINTER(pa_operation)
 pa_context_set_sink_volume_by_index.argtypes = [POINTER(pa_context), c_uint32, POINTER(pa_cvolume),
                                                 pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:280
+# 034977.python.lib_pulseaudio.line1675.comment /usr/include/pulse/introspect.h:280
 pa_context_set_sink_volume_by_name = _lib.pa_context_set_sink_volume_by_name
 pa_context_set_sink_volume_by_name.restype = POINTER(pa_operation)
 pa_context_set_sink_volume_by_name.argtypes = [POINTER(pa_context), c_char_p, POINTER(pa_cvolume),
                                                pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:283
+# 034978.python.lib_pulseaudio.line1681.comment /usr/include/pulse/introspect.h:283
 pa_context_set_sink_mute_by_index = _lib.pa_context_set_sink_mute_by_index
 pa_context_set_sink_mute_by_index.restype = POINTER(pa_operation)
 pa_context_set_sink_mute_by_index.argtypes = [POINTER(pa_context), c_uint32, c_int, pa_context_success_cb_t,
                                               POINTER(None)]
 
-# /usr/include/pulse/introspect.h:286
+# 034979.python.lib_pulseaudio.line1687.comment /usr/include/pulse/introspect.h:286
 pa_context_set_sink_mute_by_name = _lib.pa_context_set_sink_mute_by_name
 pa_context_set_sink_mute_by_name.restype = POINTER(pa_operation)
 pa_context_set_sink_mute_by_name.argtypes = [POINTER(pa_context), c_char_p, c_int, pa_context_success_cb_t,
                                              POINTER(None)]
 
-# /usr/include/pulse/introspect.h:289
+# 034980.python.lib_pulseaudio.line1693.comment /usr/include/pulse/introspect.h:289
 pa_context_suspend_sink_by_name = _lib.pa_context_suspend_sink_by_name
 pa_context_suspend_sink_by_name.restype = POINTER(pa_operation)
 pa_context_suspend_sink_by_name.argtypes = [POINTER(pa_context), c_char_p, c_int, pa_context_success_cb_t,
                                             POINTER(None)]
 
-# /usr/include/pulse/introspect.h:292
+# 034981.python.lib_pulseaudio.line1699.comment /usr/include/pulse/introspect.h:292
 pa_context_suspend_sink_by_index = _lib.pa_context_suspend_sink_by_index
 pa_context_suspend_sink_by_index.restype = POINTER(pa_operation)
 pa_context_suspend_sink_by_index.argtypes = [POINTER(pa_context), c_uint32, c_int, pa_context_success_cb_t,
                                              POINTER(None)]
 
-# /usr/include/pulse/introspect.h:295
+# 034982.python.lib_pulseaudio.line1705.comment /usr/include/pulse/introspect.h:295
 pa_context_set_sink_port_by_index = _lib.pa_context_set_sink_port_by_index
 pa_context_set_sink_port_by_index.restype = POINTER(pa_operation)
 pa_context_set_sink_port_by_index.argtypes = [POINTER(pa_context), c_uint32, c_char_p, pa_context_success_cb_t,
                                               POINTER(None)]
 
-# /usr/include/pulse/introspect.h:298
+# 034983.python.lib_pulseaudio.line1711.comment /usr/include/pulse/introspect.h:298
 pa_context_set_sink_port_by_name = _lib.pa_context_set_sink_port_by_name
 pa_context_set_sink_port_by_name.restype = POINTER(pa_operation)
 pa_context_set_sink_port_by_name.argtypes = [POINTER(pa_context), c_char_p, c_char_p, pa_context_success_cb_t,
@@ -1793,64 +1793,64 @@ struct_pa_source_info._fields_ = [
 pa_source_info = struct_pa_source_info  # /usr/include/pulse/introspect.h:342
 pa_source_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_source_info), c_int,
                                 POINTER(None))  # /usr/include/pulse/introspect.h:345
-# /usr/include/pulse/introspect.h:348
+# 034987.python.lib_pulseaudio.line1796.comment /usr/include/pulse/introspect.h:348
 pa_context_get_source_info_by_name = _lib.pa_context_get_source_info_by_name
 pa_context_get_source_info_by_name.restype = POINTER(pa_operation)
 pa_context_get_source_info_by_name.argtypes = [POINTER(pa_context), c_char_p, pa_source_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:351
+# 034988.python.lib_pulseaudio.line1801.comment /usr/include/pulse/introspect.h:351
 pa_context_get_source_info_by_index = _lib.pa_context_get_source_info_by_index
 pa_context_get_source_info_by_index.restype = POINTER(pa_operation)
 pa_context_get_source_info_by_index.argtypes = [POINTER(pa_context), c_uint32, pa_source_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:354
+# 034989.python.lib_pulseaudio.line1806.comment /usr/include/pulse/introspect.h:354
 pa_context_get_source_info_list = _lib.pa_context_get_source_info_list
 pa_context_get_source_info_list.restype = POINTER(pa_operation)
 pa_context_get_source_info_list.argtypes = [POINTER(pa_context), pa_source_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:357
+# 034990.python.lib_pulseaudio.line1811.comment /usr/include/pulse/introspect.h:357
 pa_context_set_source_volume_by_index = _lib.pa_context_set_source_volume_by_index
 pa_context_set_source_volume_by_index.restype = POINTER(pa_operation)
 pa_context_set_source_volume_by_index.argtypes = [POINTER(pa_context), c_uint32, POINTER(pa_cvolume),
                                                   pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:360
+# 034991.python.lib_pulseaudio.line1817.comment /usr/include/pulse/introspect.h:360
 pa_context_set_source_volume_by_name = _lib.pa_context_set_source_volume_by_name
 pa_context_set_source_volume_by_name.restype = POINTER(pa_operation)
 pa_context_set_source_volume_by_name.argtypes = [POINTER(pa_context), c_char_p, POINTER(pa_cvolume),
                                                  pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:363
+# 034992.python.lib_pulseaudio.line1823.comment /usr/include/pulse/introspect.h:363
 pa_context_set_source_mute_by_index = _lib.pa_context_set_source_mute_by_index
 pa_context_set_source_mute_by_index.restype = POINTER(pa_operation)
 pa_context_set_source_mute_by_index.argtypes = [POINTER(pa_context), c_uint32, c_int, pa_context_success_cb_t,
                                                 POINTER(None)]
 
-# /usr/include/pulse/introspect.h:366
+# 034993.python.lib_pulseaudio.line1829.comment /usr/include/pulse/introspect.h:366
 pa_context_set_source_mute_by_name = _lib.pa_context_set_source_mute_by_name
 pa_context_set_source_mute_by_name.restype = POINTER(pa_operation)
 pa_context_set_source_mute_by_name.argtypes = [POINTER(pa_context), c_char_p, c_int, pa_context_success_cb_t,
                                                POINTER(None)]
 
-# /usr/include/pulse/introspect.h:369
+# 034994.python.lib_pulseaudio.line1835.comment /usr/include/pulse/introspect.h:369
 pa_context_suspend_source_by_name = _lib.pa_context_suspend_source_by_name
 pa_context_suspend_source_by_name.restype = POINTER(pa_operation)
 pa_context_suspend_source_by_name.argtypes = [POINTER(pa_context), c_char_p, c_int, pa_context_success_cb_t,
                                               POINTER(None)]
 
-# /usr/include/pulse/introspect.h:372
+# 034995.python.lib_pulseaudio.line1841.comment /usr/include/pulse/introspect.h:372
 pa_context_suspend_source_by_index = _lib.pa_context_suspend_source_by_index
 pa_context_suspend_source_by_index.restype = POINTER(pa_operation)
 pa_context_suspend_source_by_index.argtypes = [POINTER(pa_context), c_uint32, c_int, pa_context_success_cb_t,
                                                POINTER(None)]
 
-# /usr/include/pulse/introspect.h:375
+# 034996.python.lib_pulseaudio.line1847.comment /usr/include/pulse/introspect.h:375
 pa_context_set_source_port_by_index = _lib.pa_context_set_source_port_by_index
 pa_context_set_source_port_by_index.restype = POINTER(pa_operation)
 pa_context_set_source_port_by_index.argtypes = [POINTER(pa_context), c_uint32, c_char_p, pa_context_success_cb_t,
                                                 POINTER(None)]
 
-# /usr/include/pulse/introspect.h:378
+# 034997.python.lib_pulseaudio.line1853.comment /usr/include/pulse/introspect.h:378
 pa_context_set_source_port_by_name = _lib.pa_context_set_source_port_by_name
 pa_context_set_source_port_by_name.restype = POINTER(pa_operation)
 pa_context_set_source_port_by_name.argtypes = [POINTER(pa_context), c_char_p, c_char_p, pa_context_success_cb_t,
@@ -1886,7 +1886,7 @@ struct_pa_server_info._fields_ = [
 pa_server_info = struct_pa_server_info  # /usr/include/pulse/introspect.h:397
 pa_server_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_server_info),
                                 POINTER(None))  # /usr/include/pulse/introspect.h:400
-# /usr/include/pulse/introspect.h:403
+# 035000.python.lib_pulseaudio.line1889.comment /usr/include/pulse/introspect.h:403
 pa_context_get_server_info = _lib.pa_context_get_server_info
 pa_context_get_server_info.restype = POINTER(pa_operation)
 pa_context_get_server_info.argtypes = [POINTER(pa_context), pa_server_info_cb_t, POINTER(None)]
@@ -1915,24 +1915,24 @@ struct_pa_module_info._fields_ = [
 pa_module_info = struct_pa_module_info  # /usr/include/pulse/introspect.h:421
 pa_module_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_module_info), c_int,
                                 POINTER(None))  # /usr/include/pulse/introspect.h:424
-# /usr/include/pulse/introspect.h:427
+# 035003.python.lib_pulseaudio.line1918.comment /usr/include/pulse/introspect.h:427
 pa_context_get_module_info = _lib.pa_context_get_module_info
 pa_context_get_module_info.restype = POINTER(pa_operation)
 pa_context_get_module_info.argtypes = [POINTER(pa_context), c_uint32, pa_module_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:430
+# 035004.python.lib_pulseaudio.line1923.comment /usr/include/pulse/introspect.h:430
 pa_context_get_module_info_list = _lib.pa_context_get_module_info_list
 pa_context_get_module_info_list.restype = POINTER(pa_operation)
 pa_context_get_module_info_list.argtypes = [POINTER(pa_context), pa_module_info_cb_t, POINTER(None)]
 
 pa_context_index_cb_t = CFUNCTYPE(None, POINTER(pa_context), c_uint32,
                                   POINTER(None))  # /usr/include/pulse/introspect.h:433
-# /usr/include/pulse/introspect.h:436
+# 035006.python.lib_pulseaudio.line1930.comment /usr/include/pulse/introspect.h:436
 pa_context_load_module = _lib.pa_context_load_module
 pa_context_load_module.restype = POINTER(pa_operation)
 pa_context_load_module.argtypes = [POINTER(pa_context), c_char_p, c_char_p, pa_context_index_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:439
+# 035007.python.lib_pulseaudio.line1935.comment /usr/include/pulse/introspect.h:439
 pa_context_unload_module = _lib.pa_context_unload_module
 pa_context_unload_module.restype = POINTER(pa_operation)
 pa_context_unload_module.argtypes = [POINTER(pa_context), c_uint32, pa_context_success_cb_t, POINTER(None)]
@@ -1959,17 +1959,17 @@ struct_pa_client_info._fields_ = [
 pa_client_info = struct_pa_client_info  # /usr/include/pulse/introspect.h:454
 pa_client_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_client_info), c_int,
                                 POINTER(None))  # /usr/include/pulse/introspect.h:457
-# /usr/include/pulse/introspect.h:460
+# 035010.python.lib_pulseaudio.line1962.comment /usr/include/pulse/introspect.h:460
 pa_context_get_client_info = _lib.pa_context_get_client_info
 pa_context_get_client_info.restype = POINTER(pa_operation)
 pa_context_get_client_info.argtypes = [POINTER(pa_context), c_uint32, pa_client_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:463
+# 035011.python.lib_pulseaudio.line1967.comment /usr/include/pulse/introspect.h:463
 pa_context_get_client_info_list = _lib.pa_context_get_client_info_list
 pa_context_get_client_info_list.restype = POINTER(pa_operation)
 pa_context_get_client_info_list.argtypes = [POINTER(pa_context), pa_client_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:466
+# 035012.python.lib_pulseaudio.line1972.comment /usr/include/pulse/introspect.h:466
 pa_context_kill_client = _lib.pa_context_kill_client
 pa_context_kill_client.restype = POINTER(pa_operation)
 pa_context_kill_client.argtypes = [POINTER(pa_context), c_uint32, pa_context_success_cb_t, POINTER(None)]
@@ -2085,34 +2085,34 @@ struct_pa_card_info._fields_ = [
 pa_card_info = struct_pa_card_info  # /usr/include/pulse/introspect.h:530
 pa_card_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_card_info), c_int,
                               POINTER(None))  # /usr/include/pulse/introspect.h:533
-# /usr/include/pulse/introspect.h:536
+# 035018.python.lib_pulseaudio.line2088.comment /usr/include/pulse/introspect.h:536
 pa_context_get_card_info_by_index = _lib.pa_context_get_card_info_by_index
 pa_context_get_card_info_by_index.restype = POINTER(pa_operation)
 pa_context_get_card_info_by_index.argtypes = [POINTER(pa_context), c_uint32, pa_card_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:539
+# 035019.python.lib_pulseaudio.line2093.comment /usr/include/pulse/introspect.h:539
 pa_context_get_card_info_by_name = _lib.pa_context_get_card_info_by_name
 pa_context_get_card_info_by_name.restype = POINTER(pa_operation)
 pa_context_get_card_info_by_name.argtypes = [POINTER(pa_context), c_char_p, pa_card_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:542
+# 035020.python.lib_pulseaudio.line2098.comment /usr/include/pulse/introspect.h:542
 pa_context_get_card_info_list = _lib.pa_context_get_card_info_list
 pa_context_get_card_info_list.restype = POINTER(pa_operation)
 pa_context_get_card_info_list.argtypes = [POINTER(pa_context), pa_card_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:545
+# 035021.python.lib_pulseaudio.line2103.comment /usr/include/pulse/introspect.h:545
 pa_context_set_card_profile_by_index = _lib.pa_context_set_card_profile_by_index
 pa_context_set_card_profile_by_index.restype = POINTER(pa_operation)
 pa_context_set_card_profile_by_index.argtypes = [POINTER(pa_context), c_uint32, c_char_p, pa_context_success_cb_t,
                                                  POINTER(None)]
 
-# /usr/include/pulse/introspect.h:548
+# 035022.python.lib_pulseaudio.line2109.comment /usr/include/pulse/introspect.h:548
 pa_context_set_card_profile_by_name = _lib.pa_context_set_card_profile_by_name
 pa_context_set_card_profile_by_name.restype = POINTER(pa_operation)
 pa_context_set_card_profile_by_name.argtypes = [POINTER(pa_context), c_char_p, c_char_p, pa_context_success_cb_t,
                                                 POINTER(None)]
 
-# /usr/include/pulse/introspect.h:551
+# 035023.python.lib_pulseaudio.line2115.comment /usr/include/pulse/introspect.h:551
 pa_context_set_port_latency_offset = _lib.pa_context_set_port_latency_offset
 pa_context_set_port_latency_offset.restype = POINTER(pa_operation)
 pa_context_set_port_latency_offset.argtypes = [POINTER(pa_context), c_char_p, c_char_p, c_int64,
@@ -2166,40 +2166,40 @@ struct_pa_sink_input_info._fields_ = [
 pa_sink_input_info = struct_pa_sink_input_info  # /usr/include/pulse/introspect.h:579
 pa_sink_input_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_sink_input_info), c_int,
                                     POINTER(None))  # /usr/include/pulse/introspect.h:582
-# /usr/include/pulse/introspect.h:585
+# 035026.python.lib_pulseaudio.line2169.comment /usr/include/pulse/introspect.h:585
 pa_context_get_sink_input_info = _lib.pa_context_get_sink_input_info
 pa_context_get_sink_input_info.restype = POINTER(pa_operation)
 pa_context_get_sink_input_info.argtypes = [POINTER(pa_context), c_uint32, pa_sink_input_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:588
+# 035027.python.lib_pulseaudio.line2174.comment /usr/include/pulse/introspect.h:588
 pa_context_get_sink_input_info_list = _lib.pa_context_get_sink_input_info_list
 pa_context_get_sink_input_info_list.restype = POINTER(pa_operation)
 pa_context_get_sink_input_info_list.argtypes = [POINTER(pa_context), pa_sink_input_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:591
+# 035028.python.lib_pulseaudio.line2179.comment /usr/include/pulse/introspect.h:591
 pa_context_move_sink_input_by_name = _lib.pa_context_move_sink_input_by_name
 pa_context_move_sink_input_by_name.restype = POINTER(pa_operation)
 pa_context_move_sink_input_by_name.argtypes = [POINTER(pa_context), c_uint32, c_char_p, pa_context_success_cb_t,
                                                POINTER(None)]
 
-# /usr/include/pulse/introspect.h:594
+# 035029.python.lib_pulseaudio.line2185.comment /usr/include/pulse/introspect.h:594
 pa_context_move_sink_input_by_index = _lib.pa_context_move_sink_input_by_index
 pa_context_move_sink_input_by_index.restype = POINTER(pa_operation)
 pa_context_move_sink_input_by_index.argtypes = [POINTER(pa_context), c_uint32, c_uint32, pa_context_success_cb_t,
                                                 POINTER(None)]
 
-# /usr/include/pulse/introspect.h:597
+# 035030.python.lib_pulseaudio.line2191.comment /usr/include/pulse/introspect.h:597
 pa_context_set_sink_input_volume = _lib.pa_context_set_sink_input_volume
 pa_context_set_sink_input_volume.restype = POINTER(pa_operation)
 pa_context_set_sink_input_volume.argtypes = [POINTER(pa_context), c_uint32, POINTER(pa_cvolume),
                                              pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:600
+# 035031.python.lib_pulseaudio.line2197.comment /usr/include/pulse/introspect.h:600
 pa_context_set_sink_input_mute = _lib.pa_context_set_sink_input_mute
 pa_context_set_sink_input_mute.restype = POINTER(pa_operation)
 pa_context_set_sink_input_mute.argtypes = [POINTER(pa_context), c_uint32, c_int, pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:603
+# 035032.python.lib_pulseaudio.line2202.comment /usr/include/pulse/introspect.h:603
 pa_context_kill_sink_input = _lib.pa_context_kill_sink_input
 pa_context_kill_sink_input.restype = POINTER(pa_operation)
 pa_context_kill_sink_input.argtypes = [POINTER(pa_context), c_uint32, pa_context_success_cb_t, POINTER(None)]
@@ -2252,41 +2252,41 @@ struct_pa_source_output_info._fields_ = [
 pa_source_output_info = struct_pa_source_output_info  # /usr/include/pulse/introspect.h:631
 pa_source_output_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_source_output_info), c_int,
                                        POINTER(None))  # /usr/include/pulse/introspect.h:634
-# /usr/include/pulse/introspect.h:637
+# 035035.python.lib_pulseaudio.line2255.comment /usr/include/pulse/introspect.h:637
 pa_context_get_source_output_info = _lib.pa_context_get_source_output_info
 pa_context_get_source_output_info.restype = POINTER(pa_operation)
 pa_context_get_source_output_info.argtypes = [POINTER(pa_context), c_uint32, pa_source_output_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:640
+# 035036.python.lib_pulseaudio.line2260.comment /usr/include/pulse/introspect.h:640
 pa_context_get_source_output_info_list = _lib.pa_context_get_source_output_info_list
 pa_context_get_source_output_info_list.restype = POINTER(pa_operation)
 pa_context_get_source_output_info_list.argtypes = [POINTER(pa_context), pa_source_output_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:643
+# 035037.python.lib_pulseaudio.line2265.comment /usr/include/pulse/introspect.h:643
 pa_context_move_source_output_by_name = _lib.pa_context_move_source_output_by_name
 pa_context_move_source_output_by_name.restype = POINTER(pa_operation)
 pa_context_move_source_output_by_name.argtypes = [POINTER(pa_context), c_uint32, c_char_p, pa_context_success_cb_t,
                                                   POINTER(None)]
 
-# /usr/include/pulse/introspect.h:646
+# 035038.python.lib_pulseaudio.line2271.comment /usr/include/pulse/introspect.h:646
 pa_context_move_source_output_by_index = _lib.pa_context_move_source_output_by_index
 pa_context_move_source_output_by_index.restype = POINTER(pa_operation)
 pa_context_move_source_output_by_index.argtypes = [POINTER(pa_context), c_uint32, c_uint32, pa_context_success_cb_t,
                                                    POINTER(None)]
 
-# /usr/include/pulse/introspect.h:649
+# 035039.python.lib_pulseaudio.line2277.comment /usr/include/pulse/introspect.h:649
 pa_context_set_source_output_volume = _lib.pa_context_set_source_output_volume
 pa_context_set_source_output_volume.restype = POINTER(pa_operation)
 pa_context_set_source_output_volume.argtypes = [POINTER(pa_context), c_uint32, POINTER(pa_cvolume),
                                                 pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:652
+# 035040.python.lib_pulseaudio.line2283.comment /usr/include/pulse/introspect.h:652
 pa_context_set_source_output_mute = _lib.pa_context_set_source_output_mute
 pa_context_set_source_output_mute.restype = POINTER(pa_operation)
 pa_context_set_source_output_mute.argtypes = [POINTER(pa_context), c_uint32, c_int, pa_context_success_cb_t,
                                               POINTER(None)]
 
-# /usr/include/pulse/introspect.h:655
+# 035041.python.lib_pulseaudio.line2289.comment /usr/include/pulse/introspect.h:655
 pa_context_kill_source_output = _lib.pa_context_kill_source_output
 pa_context_kill_source_output.restype = POINTER(pa_operation)
 pa_context_kill_source_output.argtypes = [POINTER(pa_context), c_uint32, pa_context_success_cb_t, POINTER(None)]
@@ -2313,7 +2313,7 @@ struct_pa_stat_info._fields_ = [
 pa_stat_info = struct_pa_stat_info  # /usr/include/pulse/introspect.h:670
 pa_stat_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_stat_info),
                               POINTER(None))  # /usr/include/pulse/introspect.h:673
-# /usr/include/pulse/introspect.h:676
+# 035044.python.lib_pulseaudio.line2316.comment /usr/include/pulse/introspect.h:676
 pa_context_stat = _lib.pa_context_stat
 pa_context_stat.restype = POINTER(pa_operation)
 pa_context_stat.argtypes = [POINTER(pa_context), pa_stat_info_cb_t, POINTER(None)]
@@ -2350,17 +2350,17 @@ struct_pa_sample_info._fields_ = [
 pa_sample_info = struct_pa_sample_info  # /usr/include/pulse/introspect.h:696
 pa_sample_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_sample_info), c_int,
                                 POINTER(None))  # /usr/include/pulse/introspect.h:699
-# /usr/include/pulse/introspect.h:702
+# 035047.python.lib_pulseaudio.line2353.comment /usr/include/pulse/introspect.h:702
 pa_context_get_sample_info_by_name = _lib.pa_context_get_sample_info_by_name
 pa_context_get_sample_info_by_name.restype = POINTER(pa_operation)
 pa_context_get_sample_info_by_name.argtypes = [POINTER(pa_context), c_char_p, pa_sample_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:705
+# 035048.python.lib_pulseaudio.line2358.comment /usr/include/pulse/introspect.h:705
 pa_context_get_sample_info_by_index = _lib.pa_context_get_sample_info_by_index
 pa_context_get_sample_info_by_index.restype = POINTER(pa_operation)
 pa_context_get_sample_info_by_index.argtypes = [POINTER(pa_context), c_uint32, pa_sample_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:708
+# 035049.python.lib_pulseaudio.line2363.comment /usr/include/pulse/introspect.h:708
 pa_context_get_sample_info_list = _lib.pa_context_get_sample_info_list
 pa_context_get_sample_info_list.restype = POINTER(pa_operation)
 pa_context_get_sample_info_list.argtypes = [POINTER(pa_context), pa_sample_info_cb_t, POINTER(None)]
@@ -2392,146 +2392,146 @@ struct_pa_autoload_info._fields_ = [
 pa_autoload_info = struct_pa_autoload_info  # /usr/include/pulse/introspect.h:731
 pa_autoload_info_cb_t = CFUNCTYPE(None, POINTER(pa_context), POINTER(pa_autoload_info), c_int,
                                   POINTER(None))  # /usr/include/pulse/introspect.h:734
-# /usr/include/pulse/introspect.h:737
+# 035053.python.lib_pulseaudio.line2395.comment /usr/include/pulse/introspect.h:737
 pa_context_get_autoload_info_by_name = _lib.pa_context_get_autoload_info_by_name
 pa_context_get_autoload_info_by_name.restype = POINTER(pa_operation)
 pa_context_get_autoload_info_by_name.argtypes = [POINTER(pa_context), c_char_p, pa_autoload_type_t,
                                                  pa_autoload_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:740
+# 035054.python.lib_pulseaudio.line2401.comment /usr/include/pulse/introspect.h:740
 pa_context_get_autoload_info_by_index = _lib.pa_context_get_autoload_info_by_index
 pa_context_get_autoload_info_by_index.restype = POINTER(pa_operation)
 pa_context_get_autoload_info_by_index.argtypes = [POINTER(pa_context), c_uint32, pa_autoload_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:743
+# 035055.python.lib_pulseaudio.line2406.comment /usr/include/pulse/introspect.h:743
 pa_context_get_autoload_info_list = _lib.pa_context_get_autoload_info_list
 pa_context_get_autoload_info_list.restype = POINTER(pa_operation)
 pa_context_get_autoload_info_list.argtypes = [POINTER(pa_context), pa_autoload_info_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:746
+# 035056.python.lib_pulseaudio.line2411.comment /usr/include/pulse/introspect.h:746
 pa_context_add_autoload = _lib.pa_context_add_autoload
 pa_context_add_autoload.restype = POINTER(pa_operation)
 pa_context_add_autoload.argtypes = [POINTER(pa_context), c_char_p, pa_autoload_type_t, c_char_p, c_char_p,
                                     pa_context_index_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:749
+# 035057.python.lib_pulseaudio.line2417.comment /usr/include/pulse/introspect.h:749
 pa_context_remove_autoload_by_name = _lib.pa_context_remove_autoload_by_name
 pa_context_remove_autoload_by_name.restype = POINTER(pa_operation)
 pa_context_remove_autoload_by_name.argtypes = [POINTER(pa_context), c_char_p, pa_autoload_type_t,
                                                pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/introspect.h:752
+# 035058.python.lib_pulseaudio.line2423.comment /usr/include/pulse/introspect.h:752
 pa_context_remove_autoload_by_index = _lib.pa_context_remove_autoload_by_index
 pa_context_remove_autoload_by_index.restype = POINTER(pa_operation)
 pa_context_remove_autoload_by_index.argtypes = [POINTER(pa_context), c_uint32, pa_context_success_cb_t, POINTER(None)]
 
 pa_context_subscribe_cb_t = CFUNCTYPE(None, POINTER(pa_context), pa_subscription_event_type_t, c_uint32,
                                       POINTER(None))  # /usr/include/pulse/subscribe.h:73
-# /usr/include/pulse/subscribe.h:76
+# 035060.python.lib_pulseaudio.line2430.comment /usr/include/pulse/subscribe.h:76
 pa_context_subscribe = _lib.pa_context_subscribe
 pa_context_subscribe.restype = POINTER(pa_operation)
 pa_context_subscribe.argtypes = [POINTER(pa_context), pa_subscription_mask_t, pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/subscribe.h:79
+# 035061.python.lib_pulseaudio.line2435.comment /usr/include/pulse/subscribe.h:79
 pa_context_set_subscribe_callback = _lib.pa_context_set_subscribe_callback
 pa_context_set_subscribe_callback.restype = None
 pa_context_set_subscribe_callback.argtypes = [POINTER(pa_context), pa_context_subscribe_cb_t, POINTER(None)]
 
 pa_context_play_sample_cb_t = CFUNCTYPE(None, POINTER(pa_context), c_uint32,
                                         POINTER(None))  # /usr/include/pulse/scache.h:85
-# /usr/include/pulse/scache.h:88
+# 035063.python.lib_pulseaudio.line2442.comment /usr/include/pulse/scache.h:88
 pa_stream_connect_upload = _lib.pa_stream_connect_upload
 pa_stream_connect_upload.restype = c_int
 pa_stream_connect_upload.argtypes = [POINTER(pa_stream), c_size_t]
 
-# /usr/include/pulse/scache.h:93
+# 035064.python.lib_pulseaudio.line2447.comment /usr/include/pulse/scache.h:93
 pa_stream_finish_upload = _lib.pa_stream_finish_upload
 pa_stream_finish_upload.restype = c_int
 pa_stream_finish_upload.argtypes = [POINTER(pa_stream)]
 
-# /usr/include/pulse/scache.h:96
+# 035065.python.lib_pulseaudio.line2452.comment /usr/include/pulse/scache.h:96
 pa_context_remove_sample = _lib.pa_context_remove_sample
 pa_context_remove_sample.restype = POINTER(pa_operation)
 pa_context_remove_sample.argtypes = [POINTER(pa_context), c_char_p, pa_context_success_cb_t, POINTER(None)]
 
-# /usr/include/pulse/scache.h:101
+# 035066.python.lib_pulseaudio.line2457.comment /usr/include/pulse/scache.h:101
 pa_context_play_sample = _lib.pa_context_play_sample
 pa_context_play_sample.restype = POINTER(pa_operation)
 pa_context_play_sample.argtypes = [POINTER(pa_context), c_char_p, c_char_p, pa_volume_t, pa_context_success_cb_t,
                                    POINTER(None)]
 
-# /usr/include/pulse/scache.h:113
+# 035067.python.lib_pulseaudio.line2463.comment /usr/include/pulse/scache.h:113
 pa_context_play_sample_with_proplist = _lib.pa_context_play_sample_with_proplist
 pa_context_play_sample_with_proplist.restype = POINTER(pa_operation)
 pa_context_play_sample_with_proplist.argtypes = [POINTER(pa_context), c_char_p, c_char_p, pa_volume_t,
                                                  POINTER(pa_proplist), pa_context_play_sample_cb_t, POINTER(None)]
 
-# /usr/include/pulse/error.h:33
+# 035068.python.lib_pulseaudio.line2469.comment /usr/include/pulse/error.h:33
 pa_strerror = _lib.pa_strerror
 pa_strerror.restype = c_char_p
 pa_strerror.argtypes = [c_int]
 
-# /usr/include/pulse/xmalloc.h:39
+# 035069.python.lib_pulseaudio.line2474.comment /usr/include/pulse/xmalloc.h:39
 pa_xmalloc = _lib.pa_xmalloc
 pa_xmalloc.restype = POINTER(c_void)
 pa_xmalloc.argtypes = [c_size_t]
 
-# /usr/include/pulse/xmalloc.h:42
+# 035070.python.lib_pulseaudio.line2479.comment /usr/include/pulse/xmalloc.h:42
 pa_xmalloc0 = _lib.pa_xmalloc0
 pa_xmalloc0.restype = POINTER(c_void)
 pa_xmalloc0.argtypes = [c_size_t]
 
-# /usr/include/pulse/xmalloc.h:45
+# 035071.python.lib_pulseaudio.line2484.comment /usr/include/pulse/xmalloc.h:45
 pa_xrealloc = _lib.pa_xrealloc
 pa_xrealloc.restype = POINTER(c_void)
 pa_xrealloc.argtypes = [POINTER(None), c_size_t]
 
-# /usr/include/pulse/xmalloc.h:48
+# 035072.python.lib_pulseaudio.line2489.comment /usr/include/pulse/xmalloc.h:48
 pa_xfree = _lib.pa_xfree
 pa_xfree.restype = None
 pa_xfree.argtypes = [POINTER(None)]
 
-# /usr/include/pulse/xmalloc.h:51
+# 035073.python.lib_pulseaudio.line2494.comment /usr/include/pulse/xmalloc.h:51
 pa_xstrdup = _lib.pa_xstrdup
 pa_xstrdup.restype = c_char_p
 pa_xstrdup.argtypes = [c_char_p]
 
-# /usr/include/pulse/xmalloc.h:54
+# 035074.python.lib_pulseaudio.line2499.comment /usr/include/pulse/xmalloc.h:54
 pa_xstrndup = _lib.pa_xstrndup
 pa_xstrndup.restype = c_char_p
 pa_xstrndup.argtypes = [c_char_p, c_size_t]
 
-# /usr/include/pulse/xmalloc.h:57
+# 035075.python.lib_pulseaudio.line2504.comment /usr/include/pulse/xmalloc.h:57
 pa_xmemdup = _lib.pa_xmemdup
 pa_xmemdup.restype = POINTER(c_void)
 pa_xmemdup.argtypes = [POINTER(None), c_size_t]
 
-# /usr/include/pulse/utf8.h:35
+# 035076.python.lib_pulseaudio.line2509.comment /usr/include/pulse/utf8.h:35
 pa_utf8_valid = _lib.pa_utf8_valid
 pa_utf8_valid.restype = c_char_p
 pa_utf8_valid.argtypes = [c_char_p]
 
-# /usr/include/pulse/utf8.h:38
+# 035077.python.lib_pulseaudio.line2514.comment /usr/include/pulse/utf8.h:38
 pa_ascii_valid = _lib.pa_ascii_valid
 pa_ascii_valid.restype = c_char_p
 pa_ascii_valid.argtypes = [c_char_p]
 
-# /usr/include/pulse/utf8.h:41
+# 035078.python.lib_pulseaudio.line2519.comment /usr/include/pulse/utf8.h:41
 pa_utf8_filter = _lib.pa_utf8_filter
 pa_utf8_filter.restype = c_char_p
 pa_utf8_filter.argtypes = [c_char_p]
 
-# /usr/include/pulse/utf8.h:44
+# 035079.python.lib_pulseaudio.line2524.comment /usr/include/pulse/utf8.h:44
 pa_ascii_filter = _lib.pa_ascii_filter
 pa_ascii_filter.restype = c_char_p
 pa_ascii_filter.argtypes = [c_char_p]
 
-# /usr/include/pulse/utf8.h:47
+# 035080.python.lib_pulseaudio.line2529.comment /usr/include/pulse/utf8.h:47
 pa_utf8_to_locale = _lib.pa_utf8_to_locale
 pa_utf8_to_locale.restype = c_char_p
 pa_utf8_to_locale.argtypes = [c_char_p]
 
-# /usr/include/pulse/utf8.h:50
+# 035081.python.lib_pulseaudio.line2534.comment /usr/include/pulse/utf8.h:50
 pa_locale_to_utf8 = _lib.pa_locale_to_utf8
 pa_locale_to_utf8.restype = c_char_p
 pa_locale_to_utf8.argtypes = [c_char_p]
@@ -2548,71 +2548,71 @@ struct_pa_threaded_mainloop._fields_ = [
 
 
 pa_threaded_mainloop = struct_pa_threaded_mainloop  # /usr/include/pulse/thread-mainloop.h:246
-# /usr/include/pulse/thread-mainloop.h:251
+# 035083.python.lib_pulseaudio.line2551.comment /usr/include/pulse/thread-mainloop.h:251
 pa_threaded_mainloop_new = _lib.pa_threaded_mainloop_new
 pa_threaded_mainloop_new.restype = POINTER(pa_threaded_mainloop)
 pa_threaded_mainloop_new.argtypes = []
 
-# /usr/include/pulse/thread-mainloop.h:256
+# 035084.python.lib_pulseaudio.line2556.comment /usr/include/pulse/thread-mainloop.h:256
 pa_threaded_mainloop_free = _lib.pa_threaded_mainloop_free
 pa_threaded_mainloop_free.restype = None
 pa_threaded_mainloop_free.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:259
+# 035085.python.lib_pulseaudio.line2561.comment /usr/include/pulse/thread-mainloop.h:259
 pa_threaded_mainloop_start = _lib.pa_threaded_mainloop_start
 pa_threaded_mainloop_start.restype = c_int
 pa_threaded_mainloop_start.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:263
+# 035086.python.lib_pulseaudio.line2566.comment /usr/include/pulse/thread-mainloop.h:263
 pa_threaded_mainloop_stop = _lib.pa_threaded_mainloop_stop
 pa_threaded_mainloop_stop.restype = None
 pa_threaded_mainloop_stop.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:271
+# 035087.python.lib_pulseaudio.line2571.comment /usr/include/pulse/thread-mainloop.h:271
 pa_threaded_mainloop_lock = _lib.pa_threaded_mainloop_lock
 pa_threaded_mainloop_lock.restype = None
 pa_threaded_mainloop_lock.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:274
+# 035088.python.lib_pulseaudio.line2576.comment /usr/include/pulse/thread-mainloop.h:274
 pa_threaded_mainloop_unlock = _lib.pa_threaded_mainloop_unlock
 pa_threaded_mainloop_unlock.restype = None
 pa_threaded_mainloop_unlock.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:285
+# 035089.python.lib_pulseaudio.line2581.comment /usr/include/pulse/thread-mainloop.h:285
 pa_threaded_mainloop_wait = _lib.pa_threaded_mainloop_wait
 pa_threaded_mainloop_wait.restype = None
 pa_threaded_mainloop_wait.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:292
+# 035090.python.lib_pulseaudio.line2586.comment /usr/include/pulse/thread-mainloop.h:292
 pa_threaded_mainloop_signal = _lib.pa_threaded_mainloop_signal
 pa_threaded_mainloop_signal.restype = None
 pa_threaded_mainloop_signal.argtypes = [POINTER(pa_threaded_mainloop), c_int]
 
-# /usr/include/pulse/thread-mainloop.h:298
+# 035091.python.lib_pulseaudio.line2591.comment /usr/include/pulse/thread-mainloop.h:298
 pa_threaded_mainloop_accept = _lib.pa_threaded_mainloop_accept
 pa_threaded_mainloop_accept.restype = None
 pa_threaded_mainloop_accept.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:302
+# 035092.python.lib_pulseaudio.line2596.comment /usr/include/pulse/thread-mainloop.h:302
 pa_threaded_mainloop_get_retval = _lib.pa_threaded_mainloop_get_retval
 pa_threaded_mainloop_get_retval.restype = c_int
 pa_threaded_mainloop_get_retval.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:307
+# 035093.python.lib_pulseaudio.line2601.comment /usr/include/pulse/thread-mainloop.h:307
 pa_threaded_mainloop_get_api = _lib.pa_threaded_mainloop_get_api
 pa_threaded_mainloop_get_api.restype = POINTER(pa_mainloop_api)
 pa_threaded_mainloop_get_api.argtypes = [POINTER(pa_threaded_mainloop)]
 
-# /usr/include/pulse/thread-mainloop.h:310
+# 035094.python.lib_pulseaudio.line2606.comment /usr/include/pulse/thread-mainloop.h:310
 pa_threaded_mainloop_in_thread = _lib.pa_threaded_mainloop_in_thread
 pa_threaded_mainloop_in_thread.restype = c_int
 pa_threaded_mainloop_in_thread.argtypes = [POINTER(pa_threaded_mainloop)]
 
 
-# /usr/include/pulse/thread-mainloop.h:313
-# pa_threaded_mainloop_set_name = _lib.pa_threaded_mainloop_set_name
-# pa_threaded_mainloop_set_name.restype = None
-# pa_threaded_mainloop_set_name.argtypes = [POINTER(pa_threaded_mainloop), c_char_p]
+# 035095.python.lib_pulseaudio.line2612.comment /usr/include/pulse/thread-mainloop.h:313
+# 035096.python.lib_pulseaudio.line2613.comment pa_threaded_mainloop_set_name = _lib.pa_threaded_mainloop_set_name
+# 035097.python.lib_pulseaudio.line2614.comment pa_threaded_mainloop_set_name.restype = None
+# 035098.python.lib_pulseaudio.line2615.comment pa_threaded_mainloop_set_name.argtypes = [POINTER(pa_threaded_mainloop), c_char_p]
 
 class struct_pa_mainloop(Structure):
     __slots__ = [
@@ -2625,57 +2625,57 @@ struct_pa_mainloop._fields_ = [
 
 
 pa_mainloop = struct_pa_mainloop  # /usr/include/pulse/mainloop.h:78
-# /usr/include/pulse/mainloop.h:81
+# 035100.python.lib_pulseaudio.line2628.comment /usr/include/pulse/mainloop.h:81
 pa_mainloop_new = _lib.pa_mainloop_new
 pa_mainloop_new.restype = POINTER(pa_mainloop)
 pa_mainloop_new.argtypes = []
 
-# /usr/include/pulse/mainloop.h:84
+# 035101.python.lib_pulseaudio.line2633.comment /usr/include/pulse/mainloop.h:84
 pa_mainloop_free = _lib.pa_mainloop_free
 pa_mainloop_free.restype = None
 pa_mainloop_free.argtypes = [POINTER(pa_mainloop)]
 
-# /usr/include/pulse/mainloop.h:89
+# 035102.python.lib_pulseaudio.line2638.comment /usr/include/pulse/mainloop.h:89
 pa_mainloop_prepare = _lib.pa_mainloop_prepare
 pa_mainloop_prepare.restype = c_int
 pa_mainloop_prepare.argtypes = [POINTER(pa_mainloop), c_int]
 
-# /usr/include/pulse/mainloop.h:92
+# 035103.python.lib_pulseaudio.line2643.comment /usr/include/pulse/mainloop.h:92
 pa_mainloop_poll = _lib.pa_mainloop_poll
 pa_mainloop_poll.restype = c_int
 pa_mainloop_poll.argtypes = [POINTER(pa_mainloop)]
 
-# /usr/include/pulse/mainloop.h:96
+# 035104.python.lib_pulseaudio.line2648.comment /usr/include/pulse/mainloop.h:96
 pa_mainloop_dispatch = _lib.pa_mainloop_dispatch
 pa_mainloop_dispatch.restype = c_int
 pa_mainloop_dispatch.argtypes = [POINTER(pa_mainloop)]
 
-# /usr/include/pulse/mainloop.h:99
+# 035105.python.lib_pulseaudio.line2653.comment /usr/include/pulse/mainloop.h:99
 pa_mainloop_get_retval = _lib.pa_mainloop_get_retval
 pa_mainloop_get_retval.restype = c_int
 pa_mainloop_get_retval.argtypes = [POINTER(pa_mainloop)]
 
-# /usr/include/pulse/mainloop.h:107
+# 035106.python.lib_pulseaudio.line2658.comment /usr/include/pulse/mainloop.h:107
 pa_mainloop_iterate = _lib.pa_mainloop_iterate
 pa_mainloop_iterate.restype = c_int
 pa_mainloop_iterate.argtypes = [POINTER(pa_mainloop), c_int, POINTER(c_int)]
 
-# /usr/include/pulse/mainloop.h:110
+# 035107.python.lib_pulseaudio.line2663.comment /usr/include/pulse/mainloop.h:110
 pa_mainloop_run = _lib.pa_mainloop_run
 pa_mainloop_run.restype = c_int
 pa_mainloop_run.argtypes = [POINTER(pa_mainloop), POINTER(c_int)]
 
-# /usr/include/pulse/mainloop.h:115
+# 035108.python.lib_pulseaudio.line2668.comment /usr/include/pulse/mainloop.h:115
 pa_mainloop_get_api = _lib.pa_mainloop_get_api
 pa_mainloop_get_api.restype = POINTER(pa_mainloop_api)
 pa_mainloop_get_api.argtypes = [POINTER(pa_mainloop)]
 
-# /usr/include/pulse/mainloop.h:118
+# 035109.python.lib_pulseaudio.line2673.comment /usr/include/pulse/mainloop.h:118
 pa_mainloop_quit = _lib.pa_mainloop_quit
 pa_mainloop_quit.restype = None
 pa_mainloop_quit.argtypes = [POINTER(pa_mainloop), c_int]
 
-# /usr/include/pulse/mainloop.h:121
+# 035110.python.lib_pulseaudio.line2678.comment /usr/include/pulse/mainloop.h:121
 pa_mainloop_wakeup = _lib.pa_mainloop_wakeup
 pa_mainloop_wakeup.restype = None
 pa_mainloop_wakeup.argtypes = [POINTER(pa_mainloop)]
@@ -2693,7 +2693,7 @@ struct_pollfd._fields_ = [
 
 pa_poll_func = CFUNCTYPE(c_int, POINTER(struct_pollfd), c_ulong, c_int,
                          POINTER(None))  # /usr/include/pulse/mainloop.h:124
-# /usr/include/pulse/mainloop.h:127
+# 035112.python.lib_pulseaudio.line2696.comment /usr/include/pulse/mainloop.h:127
 pa_mainloop_set_poll_func = _lib.pa_mainloop_set_poll_func
 pa_mainloop_set_poll_func.restype = None
 pa_mainloop_set_poll_func.argtypes = [POINTER(pa_mainloop), pa_poll_func, POINTER(None)]
@@ -2714,102 +2714,102 @@ pa_signal_cb_t = CFUNCTYPE(None, POINTER(pa_mainloop_api), POINTER(pa_signal_eve
                            POINTER(None))  # /usr/include/pulse/mainloop-signal.h:42
 pa_signal_destroy_cb_t = CFUNCTYPE(None, POINTER(pa_mainloop_api), POINTER(pa_signal_event),
                                    POINTER(None))  # /usr/include/pulse/mainloop-signal.h:45
-# /usr/include/pulse/mainloop-signal.h:48
+# 035116.python.lib_pulseaudio.line2717.comment /usr/include/pulse/mainloop-signal.h:48
 pa_signal_init = _lib.pa_signal_init
 pa_signal_init.restype = c_int
 pa_signal_init.argtypes = [POINTER(pa_mainloop_api)]
 
-# /usr/include/pulse/mainloop-signal.h:51
+# 035117.python.lib_pulseaudio.line2722.comment /usr/include/pulse/mainloop-signal.h:51
 pa_signal_done = _lib.pa_signal_done
 pa_signal_done.restype = None
 pa_signal_done.argtypes = []
 
-# /usr/include/pulse/mainloop-signal.h:54
+# 035118.python.lib_pulseaudio.line2727.comment /usr/include/pulse/mainloop-signal.h:54
 pa_signal_new = _lib.pa_signal_new
 pa_signal_new.restype = POINTER(pa_signal_event)
 pa_signal_new.argtypes = [c_int, pa_signal_cb_t, POINTER(None)]
 
-# /usr/include/pulse/mainloop-signal.h:57
+# 035119.python.lib_pulseaudio.line2732.comment /usr/include/pulse/mainloop-signal.h:57
 pa_signal_free = _lib.pa_signal_free
 pa_signal_free.restype = None
 pa_signal_free.argtypes = [POINTER(pa_signal_event)]
 
-# /usr/include/pulse/mainloop-signal.h:60
+# 035120.python.lib_pulseaudio.line2737.comment /usr/include/pulse/mainloop-signal.h:60
 pa_signal_set_destroy = _lib.pa_signal_set_destroy
 pa_signal_set_destroy.restype = None
 pa_signal_set_destroy.argtypes = [POINTER(pa_signal_event), pa_signal_destroy_cb_t]
 
-# /usr/include/pulse/util.h:35
+# 035121.python.lib_pulseaudio.line2742.comment /usr/include/pulse/util.h:35
 pa_get_user_name = _lib.pa_get_user_name
 pa_get_user_name.restype = c_char_p
 pa_get_user_name.argtypes = [c_char_p, c_size_t]
 
-# /usr/include/pulse/util.h:38
+# 035122.python.lib_pulseaudio.line2747.comment /usr/include/pulse/util.h:38
 pa_get_host_name = _lib.pa_get_host_name
 pa_get_host_name.restype = c_char_p
 pa_get_host_name.argtypes = [c_char_p, c_size_t]
 
-# /usr/include/pulse/util.h:41
+# 035123.python.lib_pulseaudio.line2752.comment /usr/include/pulse/util.h:41
 pa_get_fqdn = _lib.pa_get_fqdn
 pa_get_fqdn.restype = c_char_p
 pa_get_fqdn.argtypes = [c_char_p, c_size_t]
 
-# /usr/include/pulse/util.h:44
+# 035124.python.lib_pulseaudio.line2757.comment /usr/include/pulse/util.h:44
 pa_get_home_dir = _lib.pa_get_home_dir
 pa_get_home_dir.restype = c_char_p
 pa_get_home_dir.argtypes = [c_char_p, c_size_t]
 
-# /usr/include/pulse/util.h:48
+# 035125.python.lib_pulseaudio.line2762.comment /usr/include/pulse/util.h:48
 pa_get_binary_name = _lib.pa_get_binary_name
 pa_get_binary_name.restype = c_char_p
 pa_get_binary_name.argtypes = [c_char_p, c_size_t]
 
-# /usr/include/pulse/util.h:52
+# 035126.python.lib_pulseaudio.line2767.comment /usr/include/pulse/util.h:52
 pa_path_get_filename = _lib.pa_path_get_filename
 pa_path_get_filename.restype = c_char_p
 pa_path_get_filename.argtypes = [c_char_p]
 
-# /usr/include/pulse/util.h:55
+# 035127.python.lib_pulseaudio.line2772.comment /usr/include/pulse/util.h:55
 pa_msleep = _lib.pa_msleep
 pa_msleep.restype = c_int
 pa_msleep.argtypes = [c_ulong]
 
-# /usr/include/pulse/timeval.h:61
+# 035128.python.lib_pulseaudio.line2777.comment /usr/include/pulse/timeval.h:61
 pa_gettimeofday = _lib.pa_gettimeofday
 pa_gettimeofday.restype = POINTER(struct_timeval)
 pa_gettimeofday.argtypes = [POINTER(struct_timeval)]
 
-# /usr/include/pulse/timeval.h:65
+# 035129.python.lib_pulseaudio.line2782.comment /usr/include/pulse/timeval.h:65
 pa_timeval_diff = _lib.pa_timeval_diff
 pa_timeval_diff.restype = pa_usec_t
 pa_timeval_diff.argtypes = [POINTER(struct_timeval), POINTER(struct_timeval)]
 
-# /usr/include/pulse/timeval.h:68
+# 035130.python.lib_pulseaudio.line2787.comment /usr/include/pulse/timeval.h:68
 pa_timeval_cmp = _lib.pa_timeval_cmp
 pa_timeval_cmp.restype = c_int
 pa_timeval_cmp.argtypes = [POINTER(struct_timeval), POINTER(struct_timeval)]
 
-# /usr/include/pulse/timeval.h:71
+# 035131.python.lib_pulseaudio.line2792.comment /usr/include/pulse/timeval.h:71
 pa_timeval_age = _lib.pa_timeval_age
 pa_timeval_age.restype = pa_usec_t
 pa_timeval_age.argtypes = [POINTER(struct_timeval)]
 
-# /usr/include/pulse/timeval.h:74
+# 035132.python.lib_pulseaudio.line2797.comment /usr/include/pulse/timeval.h:74
 pa_timeval_add = _lib.pa_timeval_add
 pa_timeval_add.restype = POINTER(struct_timeval)
 pa_timeval_add.argtypes = [POINTER(struct_timeval), pa_usec_t]
 
-# /usr/include/pulse/timeval.h:77
+# 035133.python.lib_pulseaudio.line2802.comment /usr/include/pulse/timeval.h:77
 pa_timeval_sub = _lib.pa_timeval_sub
 pa_timeval_sub.restype = POINTER(struct_timeval)
 pa_timeval_sub.argtypes = [POINTER(struct_timeval), pa_usec_t]
 
-# /usr/include/pulse/timeval.h:80
+# 035134.python.lib_pulseaudio.line2807.comment /usr/include/pulse/timeval.h:80
 pa_timeval_store = _lib.pa_timeval_store
 pa_timeval_store.restype = POINTER(struct_timeval)
 pa_timeval_store.argtypes = [POINTER(struct_timeval), pa_usec_t]
 
-# /usr/include/pulse/timeval.h:83
+# 035135.python.lib_pulseaudio.line2812.comment /usr/include/pulse/timeval.h:83
 pa_timeval_load = _lib.pa_timeval_load
 pa_timeval_load.restype = pa_usec_t
 pa_timeval_load.argtypes = [POINTER(struct_timeval)]
@@ -2940,7 +2940,7 @@ __all__ = ['pa_get_library_version', 'PA_API_VERSION', 'PA_PROTOCOL_VERSION',
            'pa_operation_cancel', 'pa_operation_get_state',
            'pa_operation_set_state_callback', 'pa_context', 'pa_context_notify_cb_t',
            'pa_context_success_cb_t',
-           # Begin manually transferred proplist definitions #
+           # 035136.python.lib_pulseaudio.line2943.comment Begin manually transferred proplist definitions #
            'pa_proplist', 'pa_proplist_new', 'pa_proplist_free', 'pa_proplist_key_valid',
            'pa_proplist_sets', 'pa_proplist_setp', 'pa_proplist_set', 'pa_proplist_gets',
            'pa_proplist_get', 'pa_update_mode_t', 'pa_proplist_update',
@@ -2949,7 +2949,7 @@ __all__ = ['pa_get_library_version', 'PA_API_VERSION', 'PA_PROTOCOL_VERSION',
            'pa_proplist_from_string', 'pa_proplist_contains', 'pa_proplist_clear',
            'pa_proplist_copy', 'pa_proplist_size', 'pa_proplist_isempty',
            'pa_proplist_equal',
-           # End manually transferred proplist definitions #
+           # 035137.python.lib_pulseaudio.line2952.comment End manually transferred proplist definitions #
            'pa_context_event_cb_t', 'pa_context_new',
            'pa_context_new_with_proplist', 'pa_context_unref', 'pa_context_ref',
            'pa_context_set_state_callback', 'pa_context_set_event_callback',

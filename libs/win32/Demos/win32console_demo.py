@@ -11,7 +11,7 @@ try:
 except win32console.error as exc:
     if exc.winerror != 5:
         raise
-    ## only free console if one was created successfully
+    # 046438.python.win32console_demo.line14.comment # only free console if one was created successfully
     free_console = False
 
 stdout = win32console.GetStdHandle(win32console.STD_OUTPUT_HANDLE)
@@ -26,8 +26,8 @@ newbuffer.SetConsoleTextAttribute(
 )
 newbuffer.WriteConsole("This is a new screen buffer\n")
 
-## test setting screen buffer and window size
-## screen buffer size cannot be smaller than window size
+# 046439.python.win32console_demo.line29.comment # test setting screen buffer and window size
+# 046440.python.win32console_demo.line30.comment # screen buffer size cannot be smaller than window size
 window_size = newbuffer.GetConsoleScreenBufferInfo()["Window"]
 coord = win32console.PyCOORDType(X=window_size.Right + 20, Y=window_size.Bottom + 20)
 newbuffer.SetConsoleScreenBufferSize(coord)
@@ -36,7 +36,7 @@ window_size.Right += 10
 window_size.Bottom += 10
 newbuffer.SetConsoleWindowInfo(Absolute=True, ConsoleWindow=window_size)
 
-## write some records to the input queue
+# 046441.python.win32console_demo.line39.comment # write some records to the input queue
 x = win32console.PyINPUT_RECORDType(win32console.KEY_EVENT)
 x.Char = "X"
 x.KeyDown = True
@@ -91,7 +91,7 @@ while not breakout:
             if input_record.EventFlags == 0:  ## 0 indicates a button event
                 if input_record.ButtonState != 0:  ## exclude button releases
                     pos = input_record.MousePosition
-                    # switch the foreground and background colors of the character that was clicked
+                    # 046444.python.win32console_demo.line94.comment switch the foreground and background colors of the character that was clicked
                     attr = newbuffer.ReadConsoleOutputAttribute(
                         Length=1, ReadCoord=pos
                     )[0]

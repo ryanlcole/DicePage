@@ -46,11 +46,11 @@ class TestCommand:
             cmd.ensure_string_list('option3')
 
     def test_make_file(self, cmd):
-        # making sure it raises when infiles is not a string or a list/tuple
+        # 041016.python.test_cmd.line49.comment making sure it raises when infiles is not a string or a list/tuple
         with pytest.raises(TypeError):
             cmd.make_file(infiles=True, outfile='', func='func', args=())
 
-        # making sure execute gets called properly
+        # 041017.python.test_cmd.line53.comment making sure execute gets called properly
         def _execute(func, args, exec_msg, level):
             assert exec_msg == 'generating out from in'
 

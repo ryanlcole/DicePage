@@ -1,7 +1,7 @@
 from more_itertools import consume  # noqa: F401
 
 
-# copied from jaraco.itertools 6.1
+# 041498.python.itertools.line4.comment copied from jaraco.itertools 6.1
 def ensure_unique(iterable, key=lambda x: x):
     """
     Wrap an iterable to raise a ValueError if non-unique values are encountered.

@@ -24,7 +24,7 @@ from distutils.dir_util import mkpath, remove_tree
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-# Same as zipfile._ZipFileMode from typeshed
+# 044294.python.bdist_egg.line27.comment Same as zipfile._ZipFileMode from typeshed
 _ZipFileMode: TypeAlias = Literal["r", "w", "x", "a"]
 
 
@@ -115,7 +115,7 @@ class bdist_egg(Command):
         self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
 
         if self.egg_output is None:
-            # Compute filename of the output egg
+            # 044295.python.bdist_egg.line118.comment Compute filename of the output egg
             basename = ei_cmd._get_egg_basename(
                 py_version=get_python_version(),
                 platform=self.distribution.has_ext_modules() and self.plat_name,
@@ -124,7 +124,7 @@ class bdist_egg(Command):
             self.egg_output = os.path.join(self.dist_dir, basename + '.egg')
 
     def do_install_data(self) -> None:
-        # Hack for packages that install data to install's --install-lib
+        # 044296.python.bdist_egg.line127.comment Hack for packages that install data to install's --install-lib
         self.get_finalized_command('install').install_lib = self.bdist_dir
 
         site_packages = os.path.normcase(os.path.realpath(_get_purelib()))
@@ -139,7 +139,7 @@ class bdist_egg(Command):
                         site_packages + os.sep
                     ):
                         item = realpath[len(site_packages) + 1 :], item[1]
-                        # XXX else: raise ???
+                        # 044297.python.bdist_egg.line142.comment XXX else: raise ???
             self.distribution.data_files.append(item)
 
         try:
@@ -162,10 +162,10 @@ class bdist_egg(Command):
         return cmd
 
     def run(self):  # noqa: C901  # is too complex (14)  # FIXME
-        # Generate metadata first
+        # 044299.python.bdist_egg.line165.comment Generate metadata first
         self.run_command("egg_info")
-        # We run install_lib before install_data, because some data hacks
-        # pull their data path from the install_lib command.
+        # 044300.python.bdist_egg.line167.comment We run install_lib before install_data, because some data hacks
+        # 044301.python.bdist_egg.line168.comment pull their data path from the install_lib command.
         log.info("installing library code to %s", self.bdist_dir)
         instcmd = self.get_finalized_command('install')
         old_root = instcmd.root
@@ -193,7 +193,7 @@ class bdist_egg(Command):
         if self.distribution.data_files:
             self.do_install_data()
 
-        # Make the EGG-INFO directory
+        # 044302.python.bdist_egg.line196.comment Make the EGG-INFO directory
         archive_root = self.bdist_dir
         egg_info = os.path.join(archive_root, 'EGG-INFO')
         self.mkpath(egg_info)
@@ -227,7 +227,7 @@ class bdist_egg(Command):
         if self.exclude_source_files:
             self.zap_pyfiles()
 
-        # Make the archive
+        # 044303.python.bdist_egg.line230.comment Make the archive
         make_zipfile(
             self.egg_output,
             archive_root,
@@ -238,7 +238,7 @@ class bdist_egg(Command):
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
-        # Add to 'Distribution.dist_files' so that the "upload" command works
+        # 044304.python.bdist_egg.line241.comment Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, 'dist_files', []).append((
             'bdist_egg',
             get_python_version(),
@@ -280,8 +280,8 @@ class bdist_egg(Command):
 
     def copy_metadata_to(self, target_dir) -> None:
         "Copy metadata (egg info) to the target_dir"
-        # normalize the path (so that a forward-slash in egg_info will
-        # match using startswith below)
+        # 044305.python.bdist_egg.line283.comment normalize the path (so that a forward-slash in egg_info will
+        # 044306.python.bdist_egg.line284.comment match using startswith below)
         norm_egg_info = os.path.normpath(self.egg_info)
         prefix = os.path.join(norm_egg_info, '')
         for path in self.ei_cmd.filelist.files:
@@ -334,7 +334,7 @@ def walk_egg(egg_dir):
 
 
 def analyze_egg(egg_dir, stubs):
-    # check for existing flag in EGG-INFO
+    # 044307.python.bdist_egg.line337.comment check for existing flag in EGG-INFO
     for flag, fn in safety_flags.items():
         if os.path.exists(os.path.join(egg_dir, 'EGG-INFO', fn)):
             return flag
@@ -346,13 +346,13 @@ def analyze_egg(egg_dir, stubs):
             if name.endswith('.py') or name.endswith('.pyw'):
                 continue
             elif name.endswith('.pyc') or name.endswith('.pyo'):
-                # always scan, even if we already know we're not safe
+                # 044308.python.bdist_egg.line349.comment always scan, even if we already know we're not safe
                 safe = scan_module(egg_dir, base, name, stubs) and safe
     return safe
 
 
 def write_safety_flag(egg_dir, safe) -> None:
-    # Write or remove zip safety flag file(s)
+    # 044309.python.bdist_egg.line355.comment Write or remove zip safety flag file(s)
     for flag, fn in safety_flags.items():
         fn = os.path.join(egg_dir, fn)
         if os.path.exists(fn):
@@ -421,7 +421,7 @@ def iter_symbols(code):
 
 def can_scan() -> bool:
     if not sys.platform.startswith('java') and sys.platform != 'cli':
-        # CPython, PyPy, etc.
+        # 044312.python.bdist_egg.line424.comment CPython, PyPy, etc.
         return True
     log.warn("Unable to analyze compiled code on this platform.")
     log.warn(
@@ -431,8 +431,8 @@ def can_scan() -> bool:
     return False
 
 
-# Attribute names of options for commands that might need to be convinced to
-# install to the egg build directory
+# 044313.python.bdist_egg.line434.comment Attribute names of options for commands that might need to be convinced to
+# 044314.python.bdist_egg.line435.comment install to the egg build directory
 
 INSTALL_DIRECTORY_ATTRS = ['install_lib', 'install_dir', 'install_data', 'install_base']
 

@@ -66,8 +66,8 @@ tmp_sid = win32security.LookupAccountName("", "tmp")[0]
 pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
 
 
-## MultipleTrustee,MultipleTrusteeOperation,TrusteeForm,TrusteeType,Identifier
-## first two are ignored
+# 046137.python.explicit_entries.line69.comment # MultipleTrustee,MultipleTrusteeOperation,TrusteeForm,TrusteeType,Identifier
+# 046138.python.explicit_entries.line70.comment # first two are ignored
 my_trustee = {}
 my_trustee["MultipleTrustee"] = None
 my_trustee["MultipleTrusteeOperation"] = 0

@@ -103,9 +103,9 @@ def create_example(path, pkg_root):
 
     if pkg_root == ".":
         files = {**files, **packages}
-        # skip other files: flat-layout will raise error for multi-package dist
+        # 045041.python.test_pyprojecttoml.line106.comment skip other files: flat-layout will raise error for multi-package dist
     else:
-        # Use this opportunity to ensure namespaces are discovered
+        # 045042.python.test_pyprojecttoml.line108.comment Use this opportunity to ensure namespaces are discovered
         files[pkg_root] = {**packages, "other": {"nested": {"__init__.py": ""}}}
 
     jaraco.path.build(files, prefix=path)
@@ -121,7 +121,7 @@ def verify_example(config, path, pkg_root):
     assert expanded_project["readme"]["text"] == "hello world"
     assert "packages" in expanded["tool"]["setuptools"]
     if pkg_root == ".":
-        # Auto-discovery will raise error for multi-package dist
+        # 045043.python.test_pyprojecttoml.line124.comment Auto-discovery will raise error for multi-package dist
         assert set(expanded["tool"]["setuptools"]["packages"]) == {"pkg"}
     else:
         assert set(expanded["tool"]["setuptools"]["packages"]) == {
@@ -213,8 +213,8 @@ class TestEntryPoints:
 
 class TestClassifiers:
     def test_dynamic(self, tmp_path):
-        # Let's create a project example that has dynamic classifiers
-        # coming from a txt file.
+        # 045044.python.test_pyprojecttoml.line216.comment Let's create a project example that has dynamic classifiers
+        # 045045.python.test_pyprojecttoml.line217.comment coming from a txt file.
         create_example(tmp_path, "src")
         classifiers = cleandoc(
             """
@@ -231,8 +231,8 @@ class TestClassifiers:
         dynamic_config = config["tool"]["setuptools"]["dynamic"]
         dynamic_config["classifiers"] = {"file": "classifiers.txt"}
 
-        # When the configuration is expanded,
-        # each line of the file should be an different classifier.
+        # 045046.python.test_pyprojecttoml.line234.comment When the configuration is expanded,
+        # 045047.python.test_pyprojecttoml.line235.comment each line of the file should be an different classifier.
         validate(config, pyproject)
         expanded = expand_configuration(config, tmp_path)
 
@@ -264,7 +264,7 @@ class TestClassifiers:
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text(cleandoc(config), encoding="utf-8")
         dist = Distribution(attrs={"long_description": "42"})
-        # No error should occur because of missing `readme`
+        # 045048.python.test_pyprojecttoml.line267.comment No error should occur because of missing `readme`
         dist = apply_configuration(dist, pyproject)
         assert dist.metadata.long_description == "42"
 
@@ -303,7 +303,7 @@ def test_ignore_unrelated_config(tmp_path, example):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(cleandoc(example), encoding="utf-8")
 
-    # Make sure no error is raised due to 3rd party configs in pyproject.toml
+    # 045049.python.test_pyprojecttoml.line306.comment Make sure no error is raised due to 3rd party configs in pyproject.toml
     assert read_configuration(pyproject) is not None
 
 
@@ -335,7 +335,7 @@ def test_empty(tmp_path, config):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(config, encoding="utf-8")
 
-    # Make sure no error is raised
+    # 045050.python.test_pyprojecttoml.line338.comment Make sure no error is raised
     assert read_configuration(pyproject) == {}
 
 

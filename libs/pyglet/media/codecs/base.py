@@ -32,7 +32,7 @@ class AudioFormat:
         self.sample_size = sample_size
         self.sample_rate = sample_rate
 
-        # Convenience
+        # 033821.python.base.line35.comment Convenience
 
         self.bytes_per_frame = (sample_size // 8) * channels
         self.bytes_per_second = self.bytes_per_frame * sample_rate
@@ -142,8 +142,8 @@ class AudioData:
                  events: Optional[List['MediaEvent']] = None) -> None:
 
         if isinstance(data, bytes):
-            # bytes are treated specially by ctypes and can be cast to a void pointer, get
-            # their content's address like this
+            # 033822.python.base.line145.comment bytes are treated specially by ctypes and can be cast to a void pointer, get
+            # 033823.python.base.line146.comment their content's address like this
             self.pointer = ctypes.cast(data, ctypes.c_void_p).value
         elif isinstance(data, ctypes.Array):
             self.pointer = ctypes.addressof(data)
@@ -154,8 +154,8 @@ class AudioData:
                 raise TypeError("Unsupported AudioData type.")
 
         self.data = data
-        # In any case, `data` will support the buffer protocol by delivering at least
-        # a readable buffer.
+        # 033824.python.base.line157.comment In any case, `data` will support the buffer protocol by delivering at least
+        # 033825.python.base.line158.comment a readable buffer.
 
         self.length = length
         self.timestamp = timestamp
@@ -248,7 +248,7 @@ class Source:
 
         def _on_player_eos():
             Source._players.remove(player)
-            # There is a closure on player. To break up that reference, delete this function.
+            # 033828.python.base.line251.comment There is a closure on player. To break up that reference, delete this function.
             player.on_player_eos = None
             player.delete()
 
@@ -274,7 +274,7 @@ class Source:
         """
         from pyglet.image import Animation, AnimationFrame
         if not self.video_format:
-            # XXX: This causes an assertion in the constructor of Animation
+            # 033829.python.base.line277.comment XXX: This causes an assertion in the constructor of Animation
             return Animation([])
         else:
             frames = []
@@ -336,7 +336,7 @@ class Source:
             import pyglet.media.codecs
             return pyglet.media.codecs.registry.encode(self, filename, file)
 
-    # Internal methods that Player calls on the source:
+    # 033830.python.base.line339.comment Internal methods that Player calls on the source:
 
     def is_precise(self) -> bool:
         """bool: Whether this source is considered precise.
@@ -463,11 +463,11 @@ class StaticSource(Source):
             self._duration = 0.0
             return
 
-        # Arbitrary: number of bytes to request at a time.
+        # 033831.python.base.line466.comment Arbitrary: number of bytes to request at a time.
         buffer_size = 1 << 20  # 1 MB
 
-        # Naive implementation.  Driver-specific implementations may override
-        # to load static audio data into device (or at least driver) memory.
+        # 033833.python.base.line469.comment Naive implementation.  Driver-specific implementations may override
+        # 033834.python.base.line470.comment to load static audio data into device (or at least driver) memory.
         data = io.BytesIO()
         while True:
             audio_data = source.get_audio_data(buffer_size)
@@ -525,7 +525,7 @@ class StaticMemorySource(StaticSource):
             timestamp (float): Time where to seek in the source.
         """
         offset = int(timestamp * self.audio_format.bytes_per_second)
-        # Align to audio frame to not corrupt audio data.
+        # 033835.python.base.line528.comment Align to audio frame to not corrupt audio data.
         self._file.seek(self.audio_format.align(offset))
 
     def get_audio_data(self, num_bytes: float, compensation_time: float = 0.0) -> Optional[AudioData]:

@@ -1,5 +1,5 @@
-# Creates a task-bar icon.  Run from Python.exe to see the
-# messages printed.
+# 046617.python.win32gui_taskbar.line1.comment Creates a task-bar icon.  Run from Python.exe to see the
+# 046618.python.win32gui_taskbar.line2.comment messages printed.
 import os
 import sys
 
@@ -18,7 +18,7 @@ class MainWindow:
             win32con.WM_COMMAND: self.OnCommand,
             win32con.WM_USER + 20: self.OnTaskbarNotify,
         }
-        # Register the Window class.
+        # 046619.python.win32gui_taskbar.line21.comment Register the Window class.
         wc = win32gui.WNDCLASS()
         hinst = wc.hInstance = win32api.GetModuleHandle(None)
         wc.lpszClassName = "PythonTaskbarDemo"
@@ -27,14 +27,14 @@ class MainWindow:
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map  # could also specify a wndproc.
 
-        # Don't blow up if class already registered to make testing easier
+        # 046621.python.win32gui_taskbar.line30.comment Don't blow up if class already registered to make testing easier
         try:
             classAtom = win32gui.RegisterClass(wc)
         except win32gui.error as err_info:
             if err_info.winerror != winerror.ERROR_CLASS_ALREADY_EXISTS:
                 raise
 
-        # Create the Window.
+        # 046622.python.win32gui_taskbar.line37.comment Create the Window.
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
         self.hwnd = win32gui.CreateWindow(
             wc.lpszClassName,
@@ -53,13 +53,13 @@ class MainWindow:
         self._DoCreateIcons()
 
     def _DoCreateIcons(self):
-        # Try and find a custom icon
+        # 046623.python.win32gui_taskbar.line56.comment Try and find a custom icon
         hinst = win32api.GetModuleHandle(None)
         iconPathName = os.path.abspath(
             os.path.join(os.path.split(sys.executable)[0], "pyc.ico")
         )
         if not os.path.isfile(iconPathName):
-            # Look in the source tree.
+            # 046624.python.win32gui_taskbar.line62.comment Look in the source tree.
             iconPathName = os.path.abspath(
                 os.path.join(os.path.split(sys.executable)[0], "..\\PC\\pyc.ico")
             )
@@ -77,11 +77,11 @@ class MainWindow:
         try:
             win32gui.Shell_NotifyIcon(win32gui.NIM_ADD, nid)
         except win32gui.error:
-            # This is common when windows is starting, and this code is hit
-            # before the taskbar has been created.
+            # 046625.python.win32gui_taskbar.line80.comment This is common when windows is starting, and this code is hit
+            # 046626.python.win32gui_taskbar.line81.comment before the taskbar has been created.
             print("Failed to add the taskbar icon - is explorer running?")
-            # but keep running anyway - when explorer starts, we get the
-            # TaskbarCreated message.
+            # 046627.python.win32gui_taskbar.line83.comment but keep running anyway - when explorer starts, we get the
+            # 046628.python.win32gui_taskbar.line84.comment TaskbarCreated message.
 
     def OnRestart(self, hwnd, msg, wparam, lparam):
         self._DoCreateIcons()
@@ -104,7 +104,7 @@ class MainWindow:
             win32gui.AppendMenu(menu, win32con.MF_STRING, 1024, "Say Hello")
             win32gui.AppendMenu(menu, win32con.MF_STRING, 1025, "Exit program")
             pos = win32gui.GetCursorPos()
-            # See https://learn.microsoft.com/en-us/windows/win32/api/_menurc/
+            # 046630.python.win32gui_taskbar.line107.comment See https://learn.microsoft.com/en-us/windows/win32/api/_menurc/
             win32gui.SetForegroundWindow(self.hwnd)
             win32gui.TrackPopupMenu(
                 menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None

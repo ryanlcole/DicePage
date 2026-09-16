@@ -29,22 +29,22 @@ def AddSourceToRegistry(
     blowing the size of the log up.
     """
 
-    # When an application uses the RegisterEventSource or OpenEventLog
-    # function to get a handle of an event log, the event logging service
-    # searches for the specified source name in the registry. You can add a
-    # new source name to the registry by opening a new registry subkey
-    # under the Application key and adding registry values to the new
-    # subkey.
+    # 047286.python.win32evtlogutil.line32.comment When an application uses the RegisterEventSource or OpenEventLog
+    # 047287.python.win32evtlogutil.line33.comment function to get a handle of an event log, the event logging service
+    # 047288.python.win32evtlogutil.line34.comment searches for the specified source name in the registry. You can add a
+    # 047289.python.win32evtlogutil.line35.comment new source name to the registry by opening a new registry subkey
+    # 047290.python.win32evtlogutil.line36.comment under the Application key and adding registry values to the new
+    # 047291.python.win32evtlogutil.line37.comment subkey.
 
     if msgDLL is None:
         msgDLL = win32evtlog.__file__
-    # Create a new key for our application
+    # 047292.python.win32evtlogutil.line41.comment Create a new key for our application
     hkey = win32api.RegCreateKey(
         win32con.HKEY_LOCAL_MACHINE,
         f"SYSTEM\\CurrentControlSet\\Services\\EventLog\\{eventLogType}\\{appName}",
     )
 
-    # Add the Event-ID message-file name to the subkey.
+    # 047293.python.win32evtlogutil.line47.comment Add the Event-ID message-file name to the subkey.
     win32api.RegSetValueEx(
         hkey,
         "EventMessageFile",  # value name \
@@ -53,7 +53,7 @@ def AddSourceToRegistry(
         msgDLL,
     )
 
-    # Set the supported types flags and add it to the subkey.
+    # 047297.python.win32evtlogutil.line56.comment Set the supported types flags and add it to the subkey.
     if eventLogFlags is None:
         eventLogFlags = (
             win32evtlog.EVENTLOG_ERROR_TYPE
@@ -69,7 +69,7 @@ def AddSourceToRegistry(
     )
 
     if categoryCount > 0:
-        # Optionally, you can specify a message file that contains the categories
+        # 047302.python.win32evtlogutil.line72.comment Optionally, you can specify a message file that contains the categories
         if categoryDLL is None:
             categoryDLL = win32evtlog.__file__
         win32api.RegSetValueEx(
@@ -93,7 +93,7 @@ def AddSourceToRegistry(
 def RemoveSourceFromRegistry(appName, eventLogType="Application"):
     """Removes a source of messages from the event log."""
 
-    # Delete our key
+    # 047311.python.win32evtlogutil.line96.comment Delete our key
     try:
         win32api.RegDeleteKey(
             win32con.HKEY_LOCAL_MACHINE,
@@ -114,10 +114,10 @@ def ReportEvent(
     sid=None,
 ):
     """Report an event for a previously added event source."""
-    # Get a handle to the Application event log
+    # 047312.python.win32evtlogutil.line117.comment Get a handle to the Application event log
     hAppLog = win32evtlog.RegisterEventSource(None, appName)
 
-    # Now report the event, which will add this event to the event log */
+    # 047313.python.win32evtlogutil.line120.comment Now report the event, which will add this event to the event log */
     win32evtlog.ReportEvent(
         hAppLog,  # event-log handle \
         eventType,
@@ -140,26 +140,26 @@ def FormatMessage(eventLogRecord, logType="Application"):
     not be processed.
     """
 
-    # From the event log source name, we know the name of the registry
-    # key to look under for the name of the message DLL that contains
-    # the messages we need to extract with FormatMessage. So first get
-    # the event log source name...
+    # 047315.python.win32evtlogutil.line143.comment From the event log source name, we know the name of the registry
+    # 047316.python.win32evtlogutil.line144.comment key to look under for the name of the message DLL that contains
+    # 047317.python.win32evtlogutil.line145.comment the messages we need to extract with FormatMessage. So first get
+    # 047318.python.win32evtlogutil.line146.comment the event log source name...
     keyName = "SYSTEM\\CurrentControlSet\\Services\\EventLog\\{}\\{}".format(
         logType,
         eventLogRecord.SourceName,
     )
 
-    # Now open this key and get the EventMessageFile value, which is
-    # the name of the message DLL.
+    # 047319.python.win32evtlogutil.line152.comment Now open this key and get the EventMessageFile value, which is
+    # 047320.python.win32evtlogutil.line153.comment the name of the message DLL.
     handle = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, keyName)
     try:
         dllNames = win32api.RegQueryValueEx(handle, "EventMessageFile")[0].split(";")
-        # Win2k etc appear to allow multiple DLL names
+        # 047321.python.win32evtlogutil.line157.comment Win2k etc appear to allow multiple DLL names
         data = None
         for dllName in dllNames:
             try:
-                # Expand environment variable strings in the message DLL path name,
-                # in case any are there.
+                # 047322.python.win32evtlogutil.line161.comment Expand environment variable strings in the message DLL path name,
+                # 047323.python.win32evtlogutil.line162.comment in case any are there.
                 dllName = win32api.ExpandEnvironmentStrings(dllName)
 
                 dllHandle = win32api.LoadLibraryEx(

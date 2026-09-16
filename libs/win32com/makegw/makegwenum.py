@@ -8,10 +8,10 @@ This module is notmally not used directly - the @makegw@ module
 automatically calls this.
 """
 
-#
-# INTERNAL FUNCTIONS
-#
-#
+# 049528.python.makegwenum.line11.comment
+# 049529.python.makegwenum.line12.comment INTERNAL FUNCTIONS
+# 049530.python.makegwenum.line13.comment
+# 049531.python.makegwenum.line14.comment
 
 
 def is_interface_enum(enumtype):
@@ -21,7 +21,7 @@ def is_interface_enum(enumtype):
 def _write_enumifc_cpp(f, interface):
     enumtype = interface.name[5:]
     if is_interface_enum(enumtype):
-        # Assume an interface.
+        # 049532.python.makegwenum.line24.comment Assume an interface.
         enum_interface = "I" + enumtype[:-1]
         converter = "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_{enum_interface}, FALSE);".format(
             **locals()
@@ -32,7 +32,7 @@ def _write_enumifc_cpp(f, interface):
             )
         )
     else:
-        # Enum of a simple structure
+        # 049533.python.makegwenum.line35.comment Enum of a simple structure
         converter = "PyObject *ob = PyCom_PyObjectFrom{enumtype}(&rgVar[i]);".format(
             **locals()
         )
@@ -198,7 +198,7 @@ PyComEnumTypeObject PyIEnum{enumtype}::type("PyIEnum{enumtype}",
 def _write_enumgw_cpp(f, interface):
     enumtype = interface.name[5:]
     if is_interface_enum(enumtype):
-        # Assume an interface.
+        # 049534.python.makegwenum.line201.comment Assume an interface.
         enum_interface = "I" + enumtype[:-1]
         converter = "if ( !PyCom_InterfaceFromPyObject(ob, IID_{enum_interface}, (void **)&rgVar[i], FALSE) )".format(
             **locals()

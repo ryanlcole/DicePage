@@ -20,8 +20,8 @@ if typing.TYPE_CHECKING:
 
 _logger = logging.getLogger(__name__)
 
-# -------------------------------------------------------------------------------------
-# PEP 440
+# 044666.python.formats.line23.comment -------------------------------------------------------------------------------------
+# 044667.python.formats.line24.comment PEP 440
 
 VERSION_PATTERN = r"""
     v?
@@ -64,8 +64,8 @@ def pep440(version: str) -> bool:
     return VERSION_REGEX.match(version) is not None
 
 
-# -------------------------------------------------------------------------------------
-# PEP 508
+# 044668.python.formats.line67.comment -------------------------------------------------------------------------------------
+# 044669.python.formats.line68.comment PEP 508
 
 PEP508_IDENTIFIER_PATTERN = r"([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])"
 PEP508_IDENTIFIER_REGEX = re.compile(f"^{PEP508_IDENTIFIER_PATTERN}$", re.I)
@@ -82,7 +82,7 @@ try:
     try:
         from packaging import requirements as _req
     except ImportError:  # pragma: no cover
-        # let's try setuptools vendored version
+        # 044671.python.formats.line85.comment let's try setuptools vendored version
         from setuptools._vendor.packaging import (  # type: ignore[no-redef]
             requirements as _req,
         )
@@ -114,17 +114,17 @@ def pep508_versionspec(value: str) -> bool:
     <pypa:dependency-specifiers>` (initially introduced in :pep:`508`).
     """
     if any(c in value for c in (";", "]", "@")):
-        # In PEP 508:
-        # conditional markers, extras and URL specs are not included in the
-        # versionspec
+        # 044674.python.formats.line117.comment In PEP 508:
+        # 044675.python.formats.line118.comment conditional markers, extras and URL specs are not included in the
+        # 044676.python.formats.line119.comment versionspec
         return False
-    # Let's pretend we have a dependency called `requirement` with the given
-    # version spec, then we can reuse the pep508 function for validation:
+    # 044677.python.formats.line121.comment Let's pretend we have a dependency called `requirement` with the given
+    # 044678.python.formats.line122.comment version spec, then we can reuse the pep508 function for validation:
     return pep508(f"requirement{value}")
 
 
-# -------------------------------------------------------------------------------------
-# PEP 517
+# 044679.python.formats.line126.comment -------------------------------------------------------------------------------------
+# 044680.python.formats.line127.comment PEP 517
 
 
 def pep517_backend_reference(value: str) -> bool:
@@ -138,8 +138,8 @@ def pep517_backend_reference(value: str) -> bool:
     return all(python_identifier(i) for i in identifiers if i)
 
 
-# -------------------------------------------------------------------------------------
-# Classifiers - PEP 301
+# 044681.python.formats.line141.comment -------------------------------------------------------------------------------------
+# 044682.python.formats.line142.comment Classifiers - PEP 301
 
 
 def _download_classifiers() -> str:
@@ -176,7 +176,7 @@ class _TroveClassifier:
         self.__name__ = "trove_classifier"  # Emulate a public function
 
     def _disable_download(self) -> None:
-        # This is a private API. Only setuptools has the consent of using it.
+        # 044686.python.formats.line179.comment This is a private API. Only setuptools has the consent of using it.
         self._skip_download = True
 
     def __call__(self, value: str) -> bool:
@@ -219,8 +219,8 @@ except ImportError:  # pragma: no cover
     trove_classifier = _TroveClassifier()
 
 
-# -------------------------------------------------------------------------------------
-# Stub packages - PEP 561
+# 044688.python.formats.line222.comment -------------------------------------------------------------------------------------
+# 044689.python.formats.line223.comment Stub packages - PEP 561
 
 
 def pep561_stub_name(value: str) -> bool:
@@ -234,8 +234,8 @@ def pep561_stub_name(value: str) -> bool:
     return python_module_name(".".join([top[: -len("-stubs")], *children]))
 
 
-# -------------------------------------------------------------------------------------
-# Non-PEP related
+# 044690.python.formats.line237.comment -------------------------------------------------------------------------------------
+# 044691.python.formats.line238.comment Non-PEP related
 
 
 def url(value: str) -> bool:
@@ -261,7 +261,7 @@ def url(value: str) -> bool:
         return False
 
 
-# https://packaging.python.org/specifications/entry-points/
+# 044692.python.formats.line264.comment https://packaging.python.org/specifications/entry-points/
 ENTRYPOINT_PATTERN = r"[^\[\s=]([^=]*[^\s=])?"
 ENTRYPOINT_REGEX = re.compile(f"^{ENTRYPOINT_PATTERN}$", re.I)
 RECOMMEDED_ENTRYPOINT_PATTERN = r"[\w.-]+"

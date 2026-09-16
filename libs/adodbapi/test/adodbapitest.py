@@ -96,7 +96,7 @@ class CommonDBTests(unittest.TestCase):
             conn.commit()  # Should not be able to use connection after it is closed
         except:
             pass
-        # The Standard errorhandler appends error to messages attribute
+        # 020869.python.adodbapitest.line99.comment The Standard errorhandler appends error to messages attribute
         assert len(conn.messages) > 0, (
             "Setting errorhandler to none  should bring back the standard error handler"
         )
@@ -125,7 +125,7 @@ class CommonDBTests(unittest.TestCase):
             crsr.execute("SELECT abbtytddrf FROM dasdasd")
         except:
             pass
-        # The Standard errorhandler appends error to messages attribute
+        # 020872.python.adodbapitest.line128.comment The Standard errorhandler appends error to messages attribute
         assert len(crsr.messages) > 0, (
             "Setting errorhandler to none  should bring back the standard error handler"
         )
@@ -137,9 +137,9 @@ class CommonDBTests(unittest.TestCase):
 
             self.helpForceDropOnTblTemp()
             conn = self.getConnection()
-            # the variantConversions attribute should not exist on a normal connection object
+            # 020873.python.adodbapitest.line140.comment the variantConversions attribute should not exist on a normal connection object
             self.assertRaises(AttributeError, lambda x: conn.variantConversions[x], [2])
-            # create a variantConversions attribute on the connection
+            # 020874.python.adodbapitest.line142.comment create a variantConversions attribute on the connection
             conn.variantConversions = copy.copy(api.variantConversions)
             crsr = conn.cursor()
             tabdef = (
@@ -153,7 +153,7 @@ class CommonDBTests(unittest.TestCase):
             crsr.execute(
                 "INSERT INTO xx_%s(fldData,fld2) VALUES('hey','yo')" % config.tmp
             )
-            # change converter for ALL adoStringTypes columns
+            # 020875.python.adodbapitest.line156.comment change converter for ALL adoStringTypes columns
             conn.variantConversions[api.adoStringTypes] = duplicatingConverter
             crsr.execute("SELECT fldData,fld2 FROM xx_%s ORDER BY fldData" % config.tmp)
 
@@ -167,7 +167,7 @@ class CommonDBTests(unittest.TestCase):
             upcaseConverter = lambda aStringField: aStringField.upper()
             assert upcaseConverter("upThis") == "UPTHIS"
 
-            # now use a single column converter
+            # 020876.python.adodbapitest.line170.comment now use a single column converter
             rows.converters[1] = upcaseConverter  # convert second column
             self.assertEqual(row[0], "heyhey")  # first will be unchanged
             self.assertEqual(row[1], "YO")  # second will convert to upper case
@@ -203,7 +203,7 @@ class CommonDBTests(unittest.TestCase):
 
         crsr.execute(tabdef)
 
-        # Test Null values mapped to None
+        # 020881.python.adodbapitest.line206.comment Test Null values mapped to None
         crsr.execute("INSERT INTO xx_%s (fldId) VALUES (1)" % config.tmp)
 
         crsr.execute("SELECT fldId,fldData FROM xx_%s" % config.tmp)
@@ -211,7 +211,7 @@ class CommonDBTests(unittest.TestCase):
         self.assertEqual(rs[1], None)  # Null should be mapped to None
         assert rs[0] == 1
 
-        # Test description related
+        # 020883.python.adodbapitest.line214.comment Test description related
         descTuple = crsr.description[1]
         assert descTuple[0] in ["fldData", "flddata"], 'was "%s" expected "%s"' % (
             descTuple[0],
@@ -251,7 +251,7 @@ class CommonDBTests(unittest.TestCase):
         else:
             raise NotImplementedError  # "DBAPIDataTypeString not provided"
 
-        # Test data binding
+        # 020885.python.adodbapitest.line254.comment Test data binding
         inputs = [pyData]
         if pyDataInputAlternatives:
             inputs.extend(pyDataInputAlternatives)
@@ -486,7 +486,7 @@ class CommonDBTests(unittest.TestCase):
             crsr.execute(tabdef)
         for i in range(9):  # note: this poor SQL code, but a valid test
             crsr.execute("INSERT INTO xx_%s (fldData) VALUES (%i)" % (config.tmp, i))
-            # NOTE: building the test table without using parameter substitution
+            # 020895.python.adodbapitest.line489.comment NOTE: building the test table without using parameter substitution
 
     def testFetchAll(self):
         crsr = self.getCursor()
@@ -494,7 +494,7 @@ class CommonDBTests(unittest.TestCase):
         crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
         rs = crsr.fetchall()
         assert len(rs) == 9
-        # test slice of rows
+        # 020896.python.adodbapitest.line497.comment test slice of rows
         i = 3
         for row in rs[3:-2]:  # should have rowid 3..6
             assert row[0] == i
@@ -557,7 +557,7 @@ class CommonDBTests(unittest.TestCase):
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
         if crsr.rowcount == -1:
-            # print("provider does not support rowcount on select")
+            # 020901.python.adodbapitest.line560.comment print("provider does not support rowcount on select")
             pass
         else:
             self.assertEqual(crsr.rowcount, 9)
@@ -639,27 +639,27 @@ class CommonDBTests(unittest.TestCase):
                 [fldId],
             )
             rec = crsr.fetchone()
-            # check that stepping through an emulated row works
+            # 020904.python.adodbapitest.line642.comment check that stepping through an emulated row works
             for j in range(len(inParam)):
                 assert rec[j] == inParam[j], (
                     'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
                 )
-            # check that we can get a complete tuple from a row
+            # 020905.python.adodbapitest.line647.comment check that we can get a complete tuple from a row
             assert tuple(rec) == inParam, (
                 f'returned value:"{rec!r}" != test value:"{inParam!r}"'
             )
-            # test that slices of rows work
+            # 020906.python.adodbapitest.line651.comment test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
             assert slice1 == slice2, (
                 f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
             )
-            # now test named column retrieval
+            # 020907.python.adodbapitest.line657.comment now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
             assert rec.fldThree == inParam[1]
             assert rec.fldFour == inParam[2]
-        # test array operation
-        # note that the fields vv        vv     vv    are out of order
+        # 020908.python.adodbapitest.line661.comment test array operation
+        # 020909.python.adodbapitest.line662.comment note that the fields vv        vv     vv    are out of order
         crsr.execute("select fldThree,fldFour,fldTwo from xx_%s" % config.tmp)
         recs = crsr.fetchall()
         assert recs[1][0] == 103
@@ -714,21 +714,21 @@ class CommonDBTests(unittest.TestCase):
             )
             self.assertEqual(rec[1], "thi%s :may cause? trouble")
 
-        # now try an operation with a "%s" as part of a literal
+        # 020911.python.adodbapitest.line717.comment now try an operation with a "%s" as part of a literal
         sel = (
             "insert into xx_" + config.tmp + " (fldId,fldData) VALUES (%s,'four%sfive')"
         )
         params = (20,)
         crsr.execute(sel, params)
 
-        # test the .query implementation
+        # 020912.python.adodbapitest.line724.comment test the .query implementation
         assert "(?," in crsr.query, 'expected:"%s" in "%s"' % ("(?,", crsr.query)
-        # test the .command attribute
+        # 020913.python.adodbapitest.line726.comment test the .command attribute
         assert crsr.command == sel, 'expected:"%s" but found "%s"' % (sel, crsr.command)
 
-        # test the .parameters attribute
+        # 020914.python.adodbapitest.line729.comment test the .parameters attribute
         self.assertEqual(crsr.parameters, params)
-        # now make sure the data made it
+        # 020915.python.adodbapitest.line731.comment now make sure the data made it
         crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=20" % config.tmp)
         rec = crsr.fetchone()
         self.assertEqual(rec[0], "four%sfive")
@@ -770,7 +770,7 @@ class CommonDBTests(unittest.TestCase):
                 inParam,
                 'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
             )
-        # now a test with a ":" as part of a literal
+        # 020917.python.adodbapitest.line773.comment now a test with a ":" as part of a literal
         crsr.execute(
             "insert into xx_%s (fldId,fldData) VALUES (:xyz,'six:five')" % config.tmp,
             {"xyz": 30},
@@ -817,7 +817,7 @@ class CommonDBTests(unittest.TestCase):
                 inParam,
                 'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
             )
-        # now a test with a "%" as part of a literal
+        # 020919.python.adodbapitest.line820.comment now a test with a "%" as part of a literal
         crsr.execute(
             "insert into xx_%s (fldId,fldData) VALUES (%%(xyz)s,'six%%five')"
             % config.tmp,
@@ -868,7 +868,7 @@ class CommonDBTests(unittest.TestCase):
                 'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
             )
             self.assertEqual(rec[1], trouble)
-        #     inputs = [u'four',u'five',u'six']
+        # 020921.python.adodbapitest.line871.comment inputs = [u'four',u'five',u'six']
         fldId = 10
         for inParam in inputs:
             fldId += 1
@@ -890,7 +890,7 @@ class CommonDBTests(unittest.TestCase):
                 inParam,
                 'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
             )
-        # now a test with a ":" as part of a literal -- and use a prepared query
+        # 020922.python.adodbapitest.line893.comment now a test with a ":" as part of a literal -- and use a prepared query
         ppdcmd = (
             "insert into xx_%s (fldId,fldData) VALUES (:xyz,'six:five')" % config.tmp
         )
@@ -1192,7 +1192,7 @@ class TestADOwithSQLServer(CommonDBTests):
             pass
         crsr.execute(spdef)
 
-        # calling the sproc with a string for the first parameter where a DateTime is expected
+        # 020938.python.adodbapitest.line1195.comment calling the sproc with a string for the first parameter where a DateTime is expected
         result = tryconnection.try_operation_with_expected_exception(
             (api.DataError, api.DatabaseError),
             crsr.callproc,
@@ -1273,37 +1273,37 @@ class TestADOwithMySql(CommonDBTests):
         c = self.db(*config.connStrMySql[0], **config.connStrMySql[1])
         assert c is not None
 
-    # def testStoredProcedure(self):
-    #     crsr = self.conn.cursor()
-    #     try:
-    #         crsr.execute("DROP PROCEDURE DeleteMeOnlyForTesting")
-    #         self.conn.commit()
-    #     except:  # Make sure it is empty
-    #         pass
-    #     spdef = """
-    #             DELIMITER $$
-    #             CREATE PROCEDURE DeleteMeOnlyForTesting (onein CHAR(10), twoin CHAR(10), OUT theout CHAR(20))
-    #             DETERMINISTIC
-    #              BEGIN
-    #                 SET theout = onein //|| twoin;
-    #                 /* (SELECT 'a small string' as result; */
-    #                 END $$
-    #             """
-    #     crsr.execute(spdef)
-    #     retvalues = crsr.callproc(
-    #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
-    #     )
-    #     # print(f"return value (mysql)={crsr.returnValue!r}")
-    #     assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
-    #     assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
-    #     assert (
-    #         retvalues[2] == "DodsworthAnne"
-    #     ), f'{retvalues[2]!r} is not "DodsworthAnne"'
-    #     try:
-    #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
-    #         self.conn.commit()
-    #     except:  # Make sure it is empty
-    #         pass
+    # 020943.python.adodbapitest.line1276.comment def testStoredProcedure(self):
+    # 020944.python.adodbapitest.line1277.comment crsr = self.conn.cursor()
+    # 020945.python.adodbapitest.line1278.comment try:
+    # 020946.python.adodbapitest.line1279.comment crsr.execute("DROP PROCEDURE DeleteMeOnlyForTesting")
+    # 020947.python.adodbapitest.line1280.comment self.conn.commit()
+    # 020948.python.adodbapitest.line1281.comment except:  # Make sure it is empty
+    # 020949.python.adodbapitest.line1282.comment pass
+    # 020950.python.adodbapitest.line1283.comment spdef = """
+    # 020951.python.adodbapitest.line1284.comment DELIMITER $$
+    # 020952.python.adodbapitest.line1285.comment CREATE PROCEDURE DeleteMeOnlyForTesting (onein CHAR(10), twoin CHAR(10), OUT theout CHAR(20))
+    # 020953.python.adodbapitest.line1286.comment DETERMINISTIC
+    # 020954.python.adodbapitest.line1287.comment BEGIN
+    # 020955.python.adodbapitest.line1288.comment SET theout = onein //|| twoin;
+    # 020956.python.adodbapitest.line1289.comment /* (SELECT 'a small string' as result; */
+    # 020957.python.adodbapitest.line1290.comment END $$
+    # 020958.python.adodbapitest.line1291.comment """
+    # 020959.python.adodbapitest.line1292.comment crsr.execute(spdef)
+    # 020960.python.adodbapitest.line1293.comment retvalues = crsr.callproc(
+    # 020961.python.adodbapitest.line1294.comment "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
+    # 020962.python.adodbapitest.line1295.comment )
+    # 020963.python.adodbapitest.line1296.comment # print(f"return value (mysql)={crsr.returnValue!r}")
+    # 020964.python.adodbapitest.line1297.comment assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+    # 020965.python.adodbapitest.line1298.comment assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+    # 020966.python.adodbapitest.line1299.comment assert (
+    # 020967.python.adodbapitest.line1300.comment retvalues[2] == "DodsworthAnne"
+    # 020968.python.adodbapitest.line1301.comment ), f'{retvalues[2]!r} is not "DodsworthAnne"'
+    # 020969.python.adodbapitest.line1302.comment try:
+    # 020970.python.adodbapitest.line1303.comment crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
+    # 020971.python.adodbapitest.line1304.comment self.conn.commit()
+    # 020972.python.adodbapitest.line1305.comment except:  # Make sure it is empty
+    # 020973.python.adodbapitest.line1306.comment pass
 
 
 class TestADOwithPostgres(CommonDBTests):
@@ -1339,34 +1339,34 @@ class TestADOwithPostgres(CommonDBTests):
         c = self.db(*config.connStrPostgres[0], **config.connStrPostgres[1])
         assert c is not None
 
-    # def testStoredProcedure(self):
-    #     crsr = self.conn.cursor()
-    #     spdef = """
-    #         CREATE OR REPLACE FUNCTION DeleteMeOnlyForTesting (text, text)
-    #         RETURNS text AS $funk$
-    #         BEGIN
-    #           RETURN $1 || $2;
-    #         END;
-    #         $funk$
-    #         LANGUAGE SQL;
-    #         """
+    # 020975.python.adodbapitest.line1342.comment def testStoredProcedure(self):
+    # 020976.python.adodbapitest.line1343.comment crsr = self.conn.cursor()
+    # 020977.python.adodbapitest.line1344.comment spdef = """
+    # 020978.python.adodbapitest.line1345.comment CREATE OR REPLACE FUNCTION DeleteMeOnlyForTesting (text, text)
+    # 020979.python.adodbapitest.line1346.comment RETURNS text AS $funk$
+    # 020980.python.adodbapitest.line1347.comment BEGIN
+    # 020981.python.adodbapitest.line1348.comment RETURN $1 || $2;
+    # 020982.python.adodbapitest.line1349.comment END;
+    # 020983.python.adodbapitest.line1350.comment $funk$
+    # 020984.python.adodbapitest.line1351.comment LANGUAGE SQL;
+    # 020985.python.adodbapitest.line1352.comment """
 
-    #     crsr.execute(spdef)
-    #     retvalues = crsr.callproc(
-    #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
-    #     )
-    #     # print(f"return value (pg)={crsr.returnValue!r}")
-    #     assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
-    #     assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
-    #     assert (
-    #         retvalues[2] == "DodsworthAnne"
-    #     ), f'{retvalues[2]!r} is not "DodsworthAnne"'
-    #     self.conn.rollback()
-    #     try:
-    #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
-    #         self.conn.commit()
-    #     except:  # Make sure it is empty
-    #         pass
+    # 020986.python.adodbapitest.line1354.comment crsr.execute(spdef)
+    # 020987.python.adodbapitest.line1355.comment retvalues = crsr.callproc(
+    # 020988.python.adodbapitest.line1356.comment "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
+    # 020989.python.adodbapitest.line1357.comment )
+    # 020990.python.adodbapitest.line1358.comment # print(f"return value (pg)={crsr.returnValue!r}")
+    # 020991.python.adodbapitest.line1359.comment assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+    # 020992.python.adodbapitest.line1360.comment assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+    # 020993.python.adodbapitest.line1361.comment assert (
+    # 020994.python.adodbapitest.line1362.comment retvalues[2] == "DodsworthAnne"
+    # 020995.python.adodbapitest.line1363.comment ), f'{retvalues[2]!r} is not "DodsworthAnne"'
+    # 020996.python.adodbapitest.line1364.comment self.conn.rollback()
+    # 020997.python.adodbapitest.line1365.comment try:
+    # 020998.python.adodbapitest.line1366.comment crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
+    # 020999.python.adodbapitest.line1367.comment self.conn.commit()
+    # 021000.python.adodbapitest.line1368.comment except:  # Make sure it is empty
+    # 021001.python.adodbapitest.line1369.comment pass
 
 
 class TimeConverterInterfaceTest(unittest.TestCase):
@@ -1419,7 +1419,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
     def testCOMDate(self):
         mk = time.mktime((2002, 6, 28, 18, 15, 1, 4, 31 + 28 + 31 + 30 + 31 + 28, -1))
         t = time.localtime(mk)
-        # Fri, 28 Jun 2002 18:15:01 +0000
+        # 021002.python.adodbapitest.line1422.comment Fri, 28 Jun 2002 18:15:01 +0000
         cmd = self.tc.COMDate(t)
         assert abs(cmd - 37435.7604282) < 1.0 / 24, "%f more than an hour wrong" % cmd
 
@@ -1428,7 +1428,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         t1 = time.gmtime(
             time.mktime((2002, 6, 28, 0, 14, 1, 4, 31 + 28 + 31 + 30 + 31 + 28, -1))
         )
-        # there are errors in the implementation of gmtime which we ignore
+        # 021003.python.adodbapitest.line1431.comment there are errors in the implementation of gmtime which we ignore
         t2 = time.gmtime(
             time.mktime((2002, 6, 29, 12, 14, 2, 4, 31 + 28 + 31 + 30 + 31 + 28, -1))
         )
@@ -1462,7 +1462,7 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
 
     def testCOMDate(self):
         t = datetime.datetime(2002, 6, 28, 18, 15, 1)
-        # Fri, 28 Jun 2002 18:15:01 +0000
+        # 021004.python.adodbapitest.line1465.comment Fri, 28 Jun 2002 18:15:01 +0000
         cmd = self.tc.COMDate(t)
         assert abs(cmd - 37435.7604282) < 1.0 / 24, "more than an hour wrong"
 

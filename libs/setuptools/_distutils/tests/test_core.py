@@ -8,7 +8,7 @@ from distutils.dist import Distribution
 
 import pytest
 
-# setup script that uses __file__
+# 041022.python.test_core.line11.comment setup script that uses __file__
 setup_using___file__ = """\
 
 __file__
@@ -67,21 +67,21 @@ def temp_file(tmp_path):
 @pytest.mark.usefixtures('save_argv')
 class TestCore:
     def test_run_setup_provides_file(self, temp_file):
-        # Make sure the script can use __file__; if that's missing, the test
-        # setup.py script will raise NameError.
+        # 041023.python.test_core.line70.comment Make sure the script can use __file__; if that's missing, the test
+        # 041024.python.test_core.line71.comment setup.py script will raise NameError.
         temp_file.write_text(setup_using___file__, encoding='utf-8')
         distutils.core.run_setup(temp_file)
 
     def test_run_setup_preserves_sys_argv(self, temp_file):
-        # Make sure run_setup does not clobber sys.argv
+        # 041025.python.test_core.line76.comment Make sure run_setup does not clobber sys.argv
         argv_copy = sys.argv.copy()
         temp_file.write_text(setup_does_nothing, encoding='utf-8')
         distutils.core.run_setup(temp_file)
         assert sys.argv == argv_copy
 
     def test_run_setup_defines_subclass(self, temp_file):
-        # Make sure the script can use __file__; if that's missing, the test
-        # setup.py script will raise NameError.
+        # 041026.python.test_core.line83.comment Make sure the script can use __file__; if that's missing, the test
+        # 041027.python.test_core.line84.comment setup.py script will raise NameError.
         temp_file.write_text(setup_defines_subclass, encoding='utf-8')
         dist = distutils.core.run_setup(temp_file)
         install = dist.get_command_obj('install')
@@ -95,7 +95,7 @@ class TestCore:
         sys.stdout = io.StringIO()
         cwd = os.getcwd()
 
-        # Create a directory and write the setup.py file there:
+        # 041028.python.test_core.line98.comment Create a directory and write the setup.py file there:
         setup_py = tmp_path / 'setup.py'
         setup_py.write_text(setup_prints_cwd, encoding='utf-8')
         distutils.core.run_setup(setup_py)
@@ -120,7 +120,7 @@ class TestCore:
         assert 'build' in dist.have_run
 
     def test_debug_mode(self, capsys, monkeypatch):
-        # this covers the code called when DEBUG is set
+        # 041029.python.test_core.line123.comment this covers the code called when DEBUG is set
         sys.argv = ['setup.py', '--name']
         distutils.core.setup(name='bar')
         assert capsys.readouterr().out == 'bar\n'

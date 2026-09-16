@@ -8,11 +8,11 @@ identity = ddb.Table(os.environ['IDENTITY_TABLE'])
 cache = ddb.Table(os.environ['CACHE_TABLE'])
 origin = os.environ['FRONTEND_ORIGIN'].rstrip('/')
 
-# Anonymous UI translation is intentionally limited to text shipped by ReLiC.
-# This endpoint powers the public-site language selector as well as the game UI;
-# it must remain usable before authentication while refusing arbitrary proxy text.
+# 000062.python.index.line11.comment Anonymous UI translation is intentionally limited to text shipped by ReLiC.
+# 000063.python.index.line12.comment This endpoint powers the public-site language selector as well as the game UI;
+# 000064.python.index.line13.comment it must remain usable before authentication while refusing arbitrary proxy text.
 UI_TEXT = {
-    # Shared navigation / controls
+    # 000065.python.index.line15.comment Shared navigation / controls
     'About','Shaelvien','RIST','Game Now','Enter Shaelvien','Discover ReLiC','GAME NOW',
     'START','Exit','Back','World','Dice','Language','Video','Picture','Sound','Effects','Manage Storage','Account',
     'Stars','Sky','Calendar','UGC','Clock','Edit','Show SUM','Enabled','Disabled','Loading…',
@@ -21,7 +21,7 @@ UI_TEXT = {
     'Profile','Player Alias','Discord ID','Personal Details','Manage','Parental Controls','Email Preferences','Manage emails','Linked Accounts','Manage accounts','Help',
     'Exactly what the player should read',
 
-    # Start/settings menu explanatory copy
+    # 000066.python.index.line24.comment Start/settings menu explanatory copy
     'Edit shared world context and display time.',
     'GameMaster table controls. Disabling SUM leaves the dice visible but requires players to add their own results.',
     "Common means ordinary human speech and is presented in each user's primary language. In-world languages still require a matching character language; Linguistics determines partial comprehension.",
@@ -34,7 +34,7 @@ UI_TEXT = {
     'Mixing-board foundation. Shaelvien tileset controls and external sound-app integrations can plug into these channels.',
     'Player image, alias and personal account details','Log in with Discord','Unavailable',
 
-    # Homepage headings / calls to action
+    # 000067.python.index.line37.comment Homepage headings / calls to action
     'Build Worlds Together','Journey Beyond Your Campaign','Share Your Imagination','NOW ENTERING','Core Rule TTRPG · Persistent World','Powered by RIST',
     'The Studio','The Game · The World','The Platform','The Open Table','Your Game','A Shared Creative Ecosystem',
     'Multiple GameMasters. One Living World.','Artists Become Part of the Table','Accessible by Design. Inclusive by Default.','Play Across Devices.','Different Worlds Need Different Boundaries','A Business Built Around Participation',
@@ -42,9 +42,9 @@ UI_TEXT = {
     'The campaign is part of the world—not the edge of it.','The World Is Opening','Create something worth entering.',
     'AI transparency:','players','Built for','Donate with PayPal',
 
-    # Homepage body copy. Strong-tag paragraphs are also represented by their
-    # exact adjacent text-node fragments because browser localization operates
-    # on rendered text nodes rather than rewriting HTML.
+    # 000068.python.index.line45.comment Homepage body copy. Strong-tag paragraphs are also represented by their
+    # 000069.python.index.line46.comment exact adjacent text-node fragments because browser localization operates
+    # 000070.python.index.line47.comment on rendered text nodes rather than rewriting HTML.
     'is a Core Rule TTRPG and persistent shared world.',
     'is the recursive tabletop technology beneath it—connecting world creation, roleplaying, tactical encounters, maps, cards, dice, miniatures, tokens, animated sprites, scenery, media, and persistent spaces without losing the freedom of the table.',
     'Friends & family testing is opening first as the world moves toward wider public testing.',

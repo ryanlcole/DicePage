@@ -40,7 +40,7 @@ new_task.SetParameters(
 )
 new_task.SetCreator("test_addtask_1.py")
 new_task.SetAccountInformation(win32api.GetUserName(), None)
-## None is only valid for local system acct or if Flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
+# 052116.python.test_addtask_1.line43.comment # None is only valid for local system acct or if Flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
 
 
 run_time = time.localtime(time.time() + 30)

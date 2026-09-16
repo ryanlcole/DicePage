@@ -12,7 +12,7 @@ from pyglet.util import asbytes, asstr
 if TYPE_CHECKING:
     from pyglet.font.freetype_lib import FT_Face
 
-# fontconfig library definitions
+# 026947.python.fontconfig.line15.comment fontconfig library definitions
 
 (FcResultMatch,
  FcResultNoMatch,
@@ -170,7 +170,7 @@ class FcValue(Structure):
     ]
 
 
-# End of library definitions
+# 026951.python.fontconfig.line173.comment End of library definitions
 
 
 class FontConfig:
@@ -218,7 +218,7 @@ class FontConfig:
 
     def have_font(self, name: str) -> bool:
         if result := self.find_font(name):
-            # Check the name matches, fontconfig can return a default
+            # 026952.python.fontconfig.line221.comment Check the name matches, fontconfig can return a default
             if name and result.name and result.name.lower() != name.lower():
                 return False
             return True

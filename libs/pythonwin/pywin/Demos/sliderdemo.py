@@ -1,5 +1,5 @@
-# sliderdemo.py
-# Demo of the slider control courtesy of Mike Fletcher.
+# 036889.python.sliderdemo.line1.comment sliderdemo.py
+# 036890.python.sliderdemo.line2.comment Demo of the slider control courtesy of Mike Fletcher.
 
 import win32con
 import win32ui
@@ -27,15 +27,15 @@ class MyDialog(dialog.Dialog):
         | win32con.WS_CHILD
         | win32con.WS_VISIBLE
     )
-    ### The static template, contains all "normal" dialog items
+    # 036891.python.sliderdemo.line30.comment ## The static template, contains all "normal" dialog items
     DIALOGTEMPLATE = [
-        # the dialog itself is the first element in the template
+        # 036892.python.sliderdemo.line32.comment the dialog itself is the first element in the template
         ["Example slider", (0, 0, 50, 43), _dialogstyle, None, (8, "MS SansSerif")],
-        # rest of elements are the controls within the dialog
-        # standard "Close" button
+        # 036893.python.sliderdemo.line34.comment rest of elements are the controls within the dialog
+        # 036894.python.sliderdemo.line35.comment standard "Close" button
         [128, "Close", win32con.IDCANCEL, (0, 30, 50, 13), _buttonstyle],
     ]
-    ### ID of the control to be created during dialog initialisation
+    # 036895.python.sliderdemo.line38.comment ## ID of the control to be created during dialog initialisation
     IDC_SLIDER = 9500
 
     def __init__(self):
@@ -43,10 +43,10 @@ class MyDialog(dialog.Dialog):
 
     def OnInitDialog(self):
         rc = dialog.Dialog.OnInitDialog(self)
-        # now initialise your controls that you want to create
-        # programmatically, including those which are OLE controls
-        # those created directly by win32ui.Create*
-        # and your "custom controls" which are subclasses/whatever
+        # 036896.python.sliderdemo.line46.comment now initialise your controls that you want to create
+        # 036897.python.sliderdemo.line47.comment programmatically, including those which are OLE controls
+        # 036898.python.sliderdemo.line48.comment those created directly by win32ui.Create*
+        # 036899.python.sliderdemo.line49.comment and your "custom controls" which are subclasses/whatever
         win32ui.EnableControlContainer()
         self.slider = win32ui.CreateSliderCtrl()
         self.slider.CreateWindow(
@@ -66,7 +66,7 @@ class MyDialog(dialog.Dialog):
         self._obj_.OnCancel()
 
 
-###
+# 036900.python.sliderdemo.line69.comment ##
 def demo():
     dia = MyDialog()
     dia.DoModal()

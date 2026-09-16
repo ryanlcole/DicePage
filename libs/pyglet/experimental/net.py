@@ -100,7 +100,7 @@ class Client(_EventDispatcher):
             if message == self._sentinal:  # bail out on poison pill
                 break
             try:
-                # Attach a 4byte header to the front of the message:
+                # 026410.python.net.line103.comment Attach a 4byte header to the front of the message:
                 packet = _struct.pack('I', len(message)) + message
                 self._socket.sendall(packet)
             except (ConnectionError, OSError):
@@ -180,7 +180,7 @@ class ClientConnection(_EventDispatcher):
             self.close()
 
     def send(self, message):
-        # Synchrounously send a message in an async coroutine.
+        # 026412.python.net.line183.comment Synchrounously send a message in an async coroutine.
         if self._writer.transport is None or self._writer.transport.is_closing():
             self.close()
             return

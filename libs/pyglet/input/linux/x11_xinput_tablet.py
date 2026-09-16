@@ -43,7 +43,7 @@ class XInputTabletCanvas(DeviceResponder, TabletCanvas):
 
             open_device = xi.XOpenDevice(device.display._display, device_id)
             if not open_device:
-                # Ignore this cursor; fail if no cursors added
+                # 030550.python.x11_xinput_tablet.line46.comment Ignore this cursor; fail if no cursors added
                 continue
             self._open_devices.append(open_device)
 
@@ -76,8 +76,8 @@ class XInputTabletCursor(TabletCursor):
 
 
 def get_tablets(display=None):
-    # Each cursor appears as a separate xinput device; find devices that look
-    # like Wacom tablet cursors and amalgamate them into a single tablet. 
+    # 030551.python.x11_xinput_tablet.line79.comment Each cursor appears as a separate xinput device; find devices that look
+    # 030552.python.x11_xinput_tablet.line80.comment like Wacom tablet cursors and amalgamate them into a single tablet.
     valid_names = ('stylus', 'cursor', 'eraser', 'pen', 'pad')
     cursors = []
     devices = get_devices(display)

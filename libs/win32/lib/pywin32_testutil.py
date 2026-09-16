@@ -1,4 +1,4 @@
-# Utilities for the pywin32 tests
+# 046904.python.pywin32_testutil.line1.comment Utilities for the pywin32 tests
 import gc
 import os
 import site
@@ -7,12 +7,12 @@ import unittest
 
 import winerror
 
-##
-## unittest related stuff
-##
+# 046905.python.pywin32_testutil.line10.comment #
+# 046906.python.pywin32_testutil.line11.comment # unittest related stuff
+# 046907.python.pywin32_testutil.line12.comment #
 
 
-# This is a specialized TestCase adaptor which wraps a real test.
+# 046908.python.pywin32_testutil.line15.comment This is a specialized TestCase adaptor which wraps a real test.
 class LeakTestCase(unittest.TestCase):
     """An 'adaptor' which takes another test.  In debug builds we execute the
     test once to remove one-off side-effects, then capture the total
@@ -37,15 +37,15 @@ class LeakTestCase(unittest.TestCase):
         return self.num_test_cases
 
     def __call__(self, result=None):
-        # For the COM suite's sake, always ensure we don't leak
-        # gateways/interfaces
+        # 046910.python.pywin32_testutil.line40.comment For the COM suite's sake, always ensure we don't leak
+        # 046911.python.pywin32_testutil.line41.comment gateways/interfaces
         from pythoncom import _GetGatewayCount, _GetInterfaceCount
 
         gc.collect()
         ni = _GetInterfaceCount()
         ng = _GetGatewayCount()
         self.real_test(result)
-        # Failed - no point checking anything else
+        # 046912.python.pywin32_testutil.line48.comment Failed - no point checking anything else
         if result.shouldStop or not result.wasSuccessful():
             return
         self._do_leak_tests(result)
@@ -68,7 +68,7 @@ class LeakTestCase(unittest.TestCase):
             gtrc = sys.gettotalrefcount
         except AttributeError:
             return  # can't do leak tests in this build
-        # Assume already called once, to prime any caches etc
+        # 046914.python.pywin32_testutil.line71.comment Assume already called once, to prime any caches etc
         gc.collect()
         trc = gtrc()
         for i in range(self.num_leak_iters):
@@ -76,8 +76,8 @@ class LeakTestCase(unittest.TestCase):
             if result.shouldStop:
                 break
         del i  # created after we remembered the refcount!
-        # int division here means one or 2 stray references won't force
-        # failure, but one per loop
+        # 046916.python.pywin32_testutil.line79.comment int division here means one or 2 stray references won't force
+        # 046917.python.pywin32_testutil.line80.comment failure, but one per loop
         gc.collect()
         lost = (gtrc() - trc) // self.num_leak_iters
         if lost < 0:
@@ -107,11 +107,11 @@ class TestLoader(unittest.TestLoader):
             test._tests = [self.fixupTestsForLeakTests(t) for t in test._tests]
             return test
         else:
-            # just a normal test case.
+            # 046918.python.pywin32_testutil.line110.comment just a normal test case.
             return self._getTestWrapper(test)
 
     def _getTestWrapper(self, test):
-        # one or 2 tests in the COM test suite set this...
+        # 046919.python.pywin32_testutil.line114.comment one or 2 tests in the COM test suite set this...
         no_leak_tests = getattr(test, "no_leak_tests", False)
         if no_leak_tests:
             print("Test says it doesn't want leak tests!")
@@ -128,7 +128,7 @@ class TestLoader(unittest.TestLoader):
     def loadTestsFromName(self, name, module=None):
         test = unittest.TestLoader.loadTestsFromName(self, name, module)
         if isinstance(test, unittest.TestSuite):
-            # print("Don't wrap suites yet!", test._tests)
+            # 046920.python.pywin32_testutil.line131.comment print("Don't wrap suites yet!", test._tests)
             pass  # hmmm?
         elif isinstance(test, unittest.TestCase):
             test = self._getTestWrapper(test)
@@ -137,14 +137,14 @@ class TestLoader(unittest.TestLoader):
         return test
 
 
-# Lots of classes necessary to support one simple feature: we want a 3rd
-# test result state - "SKIPPED" - to indicate that the test wasn't able
-# to be executed for various reasons.  Inspired by bzr's tests, but it
-# has other concepts, such as "Expected Failure", which we don't bother
-# with.
+# 046922.python.pywin32_testutil.line140.comment Lots of classes necessary to support one simple feature: we want a 3rd
+# 046923.python.pywin32_testutil.line141.comment test result state - "SKIPPED" - to indicate that the test wasn't able
+# 046924.python.pywin32_testutil.line142.comment to be executed for various reasons.  Inspired by bzr's tests, but it
+# 046925.python.pywin32_testutil.line143.comment has other concepts, such as "Expected Failure", which we don't bother
+# 046926.python.pywin32_testutil.line144.comment with.
 
-# win32 error codes that probably mean we need to be elevated (ie, if we
-# aren't elevated, we treat these error codes as 'skipped')
+# 046927.python.pywin32_testutil.line146.comment win32 error codes that probably mean we need to be elevated (ie, if we
+# 046928.python.pywin32_testutil.line147.comment aren't elevated, we treat these error codes as 'skipped')
 non_admin_error_codes = [
     winerror.ERROR_ACCESS_DENIED,
     winerror.ERROR_PRIVILEGE_NOT_HELD,
@@ -164,18 +164,18 @@ def check_is_admin():
         except pythoncom.com_error as exc:
             if exc.hresult != winerror.E_NOTIMPL:
                 raise
-            # not impl on this platform - must be old - assume is admin
+            # 046929.python.pywin32_testutil.line167.comment not impl on this platform - must be old - assume is admin
             _is_admin = True
     return _is_admin
 
 
-# Find a test "fixture" (eg, binary test file) expected to be very close to
-# the test being run.
-# If the tests are being run from the "installed" version, then these fixtures
-# probably don't exist - the test is "skipped".
-# But it's fatal if we think we might be running from a pywin32 source tree.
+# 046930.python.pywin32_testutil.line172.comment Find a test "fixture" (eg, binary test file) expected to be very close to
+# 046931.python.pywin32_testutil.line173.comment the test being run.
+# 046932.python.pywin32_testutil.line174.comment If the tests are being run from the "installed" version, then these fixtures
+# 046933.python.pywin32_testutil.line175.comment probably don't exist - the test is "skipped".
+# 046934.python.pywin32_testutil.line176.comment But it's fatal if we think we might be running from a pywin32 source tree.
 def find_test_fixture(basename, extra_dir="."):
-    # look for the test file in various places
+    # 046935.python.pywin32_testutil.line178.comment look for the test file in various places
     candidates = [
         os.path.dirname(sys.argv[0]),
         extra_dir,
@@ -186,8 +186,8 @@ def find_test_fixture(basename, extra_dir="."):
         if os.path.isfile(fname):
             return fname
     else:
-        # Can't find it - see if this is expected or not.
-        # This module is typically always in the installed dir, so use argv[0]
+        # 046936.python.pywin32_testutil.line189.comment Can't find it - see if this is expected or not.
+        # 046937.python.pywin32_testutil.line190.comment This module is typically always in the installed dir, so use argv[0]
         this_file = os.path.normcase(os.path.abspath(sys.argv[0]))
         dirs_to_check = site.getsitepackages()[:]
         if site.USER_SITE:
@@ -196,19 +196,19 @@ def find_test_fixture(basename, extra_dir="."):
         for d in dirs_to_check:
             d = os.path.normcase(d)
             if os.path.commonprefix([this_file, d]) == d:
-                # looks like we are in an installed Python, so skip the text.
+                # 046938.python.pywin32_testutil.line199.comment looks like we are in an installed Python, so skip the text.
                 raise TestSkipped(f"Can't find test fixture '{fname}'")
-        # Looks like we are running from source, so this is fatal.
+        # 046939.python.pywin32_testutil.line201.comment Looks like we are running from source, so this is fatal.
         raise RuntimeError(f"Can't find test fixture '{fname}'")
 
 
-# If this exception is raised by a test, the test is reported as a 'skip'
+# 046940.python.pywin32_testutil.line205.comment If this exception is raised by a test, the test is reported as a 'skip'
 class TestSkipped(Exception):
     pass
 
 
-# The 'TestResult' subclass that records the failures and has the special
-# handling for the TestSkipped exception.
+# 046941.python.pywin32_testutil.line210.comment The 'TestResult' subclass that records the failures and has the special
+# 046942.python.pywin32_testutil.line211.comment handling for the TestSkipped exception.
 class TestResult(unittest.TextTestResult):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
@@ -218,35 +218,35 @@ class TestResult(unittest.TextTestResult):
         """Called when an error has occurred. 'err' is a tuple of values as
         returned by sys.exc_info().
         """
-        # translate a couple of 'well-known' exceptions into 'skipped'
+        # 046944.python.pywin32_testutil.line221.comment translate a couple of 'well-known' exceptions into 'skipped'
         import pywintypes
 
         exc_val = err[1]
-        # translate ERROR_ACCESS_DENIED for non-admin users to be skipped.
-        # (access denied errors for an admin user aren't expected.)
+        # 046945.python.pywin32_testutil.line225.comment translate ERROR_ACCESS_DENIED for non-admin users to be skipped.
+        # 046946.python.pywin32_testutil.line226.comment (access denied errors for an admin user aren't expected.)
         if (
             isinstance(exc_val, pywintypes.error)
             and exc_val.winerror in non_admin_error_codes
             and not check_is_admin()
         ):
             exc_val = TestSkipped(exc_val)
-        # and COM errors due to objects not being registered (the com test
-        # suite will attempt to catch this and handle it itself if the user
-        # is admin)
+        # 046947.python.pywin32_testutil.line233.comment and COM errors due to objects not being registered (the com test
+        # 046948.python.pywin32_testutil.line234.comment suite will attempt to catch this and handle it itself if the user
+        # 046949.python.pywin32_testutil.line235.comment is admin)
         elif isinstance(exc_val, pywintypes.com_error) and exc_val.hresult in [
             winerror.CO_E_CLASSSTRING,
             winerror.REGDB_E_CLASSNOTREG,
             winerror.TYPE_E_LIBNOTREGISTERED,
         ]:
             exc_val = TestSkipped(exc_val)
-        # NotImplemented generally means the platform doesn't support the
-        # functionality.
+        # 046950.python.pywin32_testutil.line242.comment NotImplemented generally means the platform doesn't support the
+        # 046951.python.pywin32_testutil.line243.comment functionality.
         elif isinstance(exc_val, NotImplementedError):
             exc_val = TestSkipped(NotImplementedError)
 
         if isinstance(exc_val, TestSkipped):
             reason = exc_val.args[0]
-            # if the reason itself is another exception, get its args.
+            # 046952.python.pywin32_testutil.line249.comment if the reason itself is another exception, get its args.
             try:
                 reason = tuple(reason.args)
             except (AttributeError, TypeError):
@@ -267,22 +267,22 @@ class TestResult(unittest.TextTestResult):
             self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
 
 
-# TestRunner subclass necessary just to get our TestResult hooked up.
+# 046953.python.pywin32_testutil.line270.comment TestRunner subclass necessary just to get our TestResult hooked up.
 class TestRunner(unittest.TextTestRunner):
     def _makeResult(self):
         return TestResult(self.stream, self.descriptions, self.verbosity)
 
 
-# TestProgram subclass necessary just to get our TestRunner hooked up,
-# which is necessary to get our TestResult hooked up *sob*
+# 046954.python.pywin32_testutil.line276.comment TestProgram subclass necessary just to get our TestRunner hooked up,
+# 046955.python.pywin32_testutil.line277.comment which is necessary to get our TestResult hooked up *sob*
 class TestProgram(unittest.TestProgram):
     def runTests(self):
-        # clobber existing runner - *sob* - it shouldn't be this hard
+        # 046956.python.pywin32_testutil.line280.comment clobber existing runner - *sob* - it shouldn't be this hard
         self.testRunner = TestRunner(verbosity=self.verbosity)
         unittest.TestProgram.runTests(self)
 
 
-# A convenient entry-point - if used, 'SKIPPED' exceptions will be suppressed.
+# 046957.python.pywin32_testutil.line285.comment A convenient entry-point - if used, 'SKIPPED' exceptions will be suppressed.
 def testmain(*args, **kw):
     new_kw = kw.copy()
     if "testLoader" not in new_kw:

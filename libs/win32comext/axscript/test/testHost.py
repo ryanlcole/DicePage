@@ -50,7 +50,7 @@ class Test:
         self.last = ""
         self.fail_called = 0
 
-    #    self._connect_server_ = TestConnectServer(self)
+    # 051305.python.testHost.line53.comment self._connect_server_ = TestConnectServer(self)
 
     def echo(self, *args):
         self.last = "".join([str(s) for s in args])
@@ -67,11 +67,11 @@ class Test:
         self.fail_called = 1
 
 
-#    self._connect_server_.Broadcast(last)
+# 051306.python.testHost.line70.comment self._connect_server_.Broadcast(last)
 
 
-#### Connections currently won't work, as there is no way for the engine to
-#### know what events we support.  We need typeinfo support.
+# 051307.python.testHost.line73.comment ### Connections currently won't work, as there is no way for the engine to
+# 051308.python.testHost.line74.comment ### know what events we support.  We need typeinfo support.
 
 IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 
@@ -79,13 +79,13 @@ IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 class TestConnectServer(connect.ConnectableServer):
     _connect_interfaces_ = [IID_ITestEvents]
 
-    # The single public method that the client can call on us
-    # (ie, as a normal COM server, this exposes just this single method.
+    # 051309.python.testHost.line82.comment The single public method that the client can call on us
+    # 051310.python.testHost.line83.comment (ie, as a normal COM server, this exposes just this single method.
     def __init__(self, object):
         self.object = object
 
     def Broadcast(self, arg):
-        # Simply broadcast a notification.
+        # 051311.python.testHost.line88.comment Simply broadcast a notification.
         self._BroadcastNotify(self.NotifyDoneIt, (arg,))
 
     def NotifyDoneIt(self, interface, arg):
@@ -172,7 +172,7 @@ class EngineTester(win32com.test.util.TestCase):
             engine.Start()
             _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
             self.assertTrue(not echoer.fail_called, "Fail should not have been called")
-            # Now call into the scripts IDispatch
+            # 051312.python.testHost.line175.comment Now call into the scripts IDispatch
             ob = Dispatch(engine.GetScriptDispatch())
             try:
                 ob.hello("Goober")
@@ -196,18 +196,18 @@ class EngineTester(win32com.test.util.TestCase):
             ob.testcollection()
             self.assertTrue(not echoer.fail_called, "Fail should not have been called")
 
-            # Now make sure my engines can evaluate stuff.
+            # 051313.python.testHost.line199.comment Now make sure my engines can evaluate stuff.
             result = engine.eParse.ParseScriptText(
                 "1+1", None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION
             )
             self.assertEqual(result, 2)
-            # re-initialize to make sure it transitions back to initialized again.
+            # 051314.python.testHost.line204.comment re-initialize to make sure it transitions back to initialized again.
             engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
             _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
             engine.Start()
             _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
 
-            # Transition back to initialized, then through connected too.
+            # 051315.python.testHost.line210.comment Transition back to initialized, then through connected too.
             engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
             _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
             engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)

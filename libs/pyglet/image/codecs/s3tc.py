@@ -25,7 +25,7 @@ class PackedImageData(AbstractImage):
 
     def unpack(self):
         if self.packed_format == GL_UNSIGNED_SHORT_5_6_5:
-            # Unpack to GL_RGB.  Assume self.data is already 16-bit
+            # 030392.python.s3tc.line28.comment Unpack to GL_RGB.  Assume self.data is already 16-bit
             i = 0
             out = (ctypes.c_ubyte * (self.width * self.height * 3))()
             for c in self.data:
@@ -64,10 +64,10 @@ class PackedImageData(AbstractImage):
 
 
 def decode_dxt1_rgb(data, width, height):
-    # Decode to 16-bit RGB UNSIGNED_SHORT_5_6_5
+    # 030393.python.s3tc.line67.comment Decode to 16-bit RGB UNSIGNED_SHORT_5_6_5
     out = (ctypes.c_uint16 * (width * height))()
 
-    # Read 8 bytes at a time
+    # 030394.python.s3tc.line70.comment Read 8 bytes at a time
     image_offset = 0
     for c0_lo, c0_hi, c1_lo, c1_hi, b0, b1, b2, b3 in split_8byte.findall(data):
         color0 = ord(c0_lo) | ord(c0_hi) << 8
@@ -81,7 +81,7 @@ def decode_dxt1_rgb(data, width, height):
         g1 = (color1 & 0x7e0) >> 5
         b1 = (color1 & 0xf800) >> 11
 
-        # i is the dest ptr for this block
+        # 030395.python.s3tc.line84.comment i is the dest ptr for this block
         i = image_offset
         for y in range(4):
             for x in range(4):
@@ -113,7 +113,7 @@ def decode_dxt1_rgb(data, width, height):
                 i += 1
             i += width - 4
 
-        # Move dest ptr to next 4x4 block
+        # 030396.python.s3tc.line116.comment Move dest ptr to next 4x4 block
         advance_row = (image_offset + 4) % width == 0
         image_offset += width * 3 * advance_row + 4
 
@@ -121,11 +121,11 @@ def decode_dxt1_rgb(data, width, height):
 
 
 def decode_dxt1_rgba(data, width, height):
-    # Decode to GL_RGBA
+    # 030397.python.s3tc.line124.comment Decode to GL_RGBA
     out = (ctypes.c_ubyte * (width * height * 4))()
     pitch = width << 2
 
-    # Read 8 bytes at a time
+    # 030398.python.s3tc.line128.comment Read 8 bytes at a time
     image_offset = 0
     for c0_lo, c0_hi, c1_lo, c1_hi, b0, b1, b2, b3 in split_8byte.findall(data):
         color0 = ord(c0_lo) | ord(c0_hi) << 8
@@ -139,7 +139,7 @@ def decode_dxt1_rgba(data, width, height):
         g1 = (color1 & 0x7e0) >> 5
         b1 = (color1 & 0xf800) >> 11
 
-        # i is the dest ptr for this block
+        # 030399.python.s3tc.line142.comment i is the dest ptr for this block
         i = image_offset
         for y in range(4):
             for x in range(4):
@@ -176,7 +176,7 @@ def decode_dxt1_rgba(data, width, height):
                 i += 4
             i += pitch - 16
 
-        # Move dest ptr to next 4x4 block
+        # 030400.python.s3tc.line179.comment Move dest ptr to next 4x4 block
         advance_row = (image_offset + 16) % pitch == 0
         image_offset += pitch * 3 * advance_row + 16
 
@@ -184,11 +184,11 @@ def decode_dxt1_rgba(data, width, height):
 
 
 def decode_dxt3(data, width, height):
-    # Decode to GL_RGBA
+    # 030401.python.s3tc.line187.comment Decode to GL_RGBA
     out = (ctypes.c_ubyte * (width * height * 4))()
     pitch = width << 2
 
-    # Read 16 bytes at a time
+    # 030402.python.s3tc.line191.comment Read 16 bytes at a time
     image_offset = 0
     for (a0, a1, a2, a3, a4, a5, a6, a7,
          c0_lo, c0_hi, c1_lo, c1_hi,
@@ -206,7 +206,7 @@ def decode_dxt3(data, width, height):
         g1 = (color1 & 0x7e0) >> 5
         b1 = (color1 & 0xf800) >> 11
 
-        # i is the dest ptr for this block
+        # 030403.python.s3tc.line209.comment i is the dest ptr for this block
         i = image_offset
         for y in range(4):
             for x in range(4):
@@ -244,7 +244,7 @@ def decode_dxt3(data, width, height):
                 i += 4
             i += pitch - 16
 
-        # Move dest ptr to next 4x4 block
+        # 030404.python.s3tc.line247.comment Move dest ptr to next 4x4 block
         advance_row = (image_offset + 16) % pitch == 0
         image_offset += pitch * 3 * advance_row + 16
 
@@ -252,11 +252,11 @@ def decode_dxt3(data, width, height):
 
 
 def decode_dxt5(data, width, height):
-    # Decode to GL_RGBA
+    # 030405.python.s3tc.line255.comment Decode to GL_RGBA
     out = (ctypes.c_ubyte * (width * height * 4))()
     pitch = width << 2
 
-    # Read 16 bytes at a time
+    # 030406.python.s3tc.line259.comment Read 16 bytes at a time
     image_offset = 0
     for (alpha0, alpha1, ab0, ab1, ab2, ab3, ab4, ab5, 
          c0_lo, c0_hi, c1_lo, c1_hi, 
@@ -276,7 +276,7 @@ def decode_dxt5(data, width, height):
         g1 = (color1 & 0x7e0) >> 5
         b1 = (color1 & 0xf800) >> 11
 
-        # i is the dest ptr for this block
+        # 030407.python.s3tc.line279.comment i is the dest ptr for this block
         i = image_offset
         for y in range(4):
             for x in range(4):
@@ -347,7 +347,7 @@ def decode_dxt5(data, width, height):
                 i += 4
             i += pitch - 16
 
-        # Move dest ptr to next 4x4 block
+        # 030408.python.s3tc.line350.comment Move dest ptr to next 4x4 block
         advance_row = (image_offset + 16) % pitch == 0
         image_offset += pitch * 3 * advance_row + 16
 

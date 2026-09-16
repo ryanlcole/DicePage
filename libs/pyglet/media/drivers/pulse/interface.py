@@ -154,7 +154,7 @@ class PulseAudioMainloop:
 
     def _get_app_name(self) -> str:
         """Get the application name as advertised to the pulseaudio server."""
-        # TODO move app name into pyglet.app (also useful for OS X menu bar?).
+        # 034669.python.interface.line157.comment TODO move app name into pyglet.app (also useful for OS X menu bar?).
         return sys.argv[0]
 
 
@@ -177,9 +177,9 @@ class PulseAudioContext(PulseAudioMainloopChild):
     def __init__(self, mainloop: PulseAudioMainloop, name: bytes) -> None:
         super().__init__(mainloop)
 
-        # TODO: Filling in stuff like language, IDs and icons is possible here
-        # but gateways to get them down here don't really exist.
-        # pl = Proplist({}); pl.delete()
+        # 034670.python.interface.line180.comment TODO: Filling in stuff like language, IDs and icons is possible here
+        # 034671.python.interface.line181.comment but gateways to get them down here don't really exist.
+        # 034672.python.interface.line182.comment pl = Proplist({}); pl.delete()
         ctx = pa.pa_context_new_with_proplist(mainloop._pa_mainloop_vtab, name, None)
         self.check_ptr_not_null(ctx)
 
@@ -493,8 +493,8 @@ class PulseAudioStream(PulseAudioMainloopChild):
             context.raise_error()
 
         self._refresh_sink_index()
-        # ba = pa.pa_stream_get_buffer_attr(self._pa_stream).contents
-        # print(f"{ba.maxlength=}, {ba.tlength=}, {ba.prebuf=}, {ba.minreq=}, {ba.fragsize=}")
+        # 034677.python.interface.line496.comment ba = pa.pa_stream_get_buffer_attr(self._pa_stream).contents
+        # 034678.python.interface.line497.comment print(f"{ba.maxlength=}, {ba.tlength=}, {ba.prebuf=}, {ba.minreq=}, {ba.fragsize=}")
 
         assert _debug('PulseAudioStream: Playback connected')
 

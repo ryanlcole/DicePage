@@ -17,8 +17,8 @@ class History:
         return "break"
 
     def _get_source(self, start, end):
-        # Get source code from start index to end index.  Lines in the
-        # text control may be separated by sys.ps2 .
+        # 038330.python.IdleHistory.line20.comment Get source code from start index to end index.  Lines in the
+        # 038331.python.IdleHistory.line21.comment text control may be separated by sys.ps2 .
         lines = self.text.get(start, end).split(self.output_sep)
         return "\n".join(lines)
 
@@ -69,7 +69,7 @@ class History:
     def history_store(self, source):
         source = source.strip()
         if len(source) > 2:
-            # avoid duplicates
+            # 038332.python.IdleHistory.line72.comment avoid duplicates
             try:
                 self.history.remove(source)
             except ValueError:

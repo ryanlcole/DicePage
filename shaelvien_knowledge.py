@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# Shaelvien Knowledge Core — Phase 12.0
-# Local persistent memory + subsystem knowledge registry.
+# 052557.python.shaelvien_knowledge.line2.comment Shaelvien Knowledge Core — Phase 12.0
+# 052558.python.shaelvien_knowledge.line3.comment Local persistent memory + subsystem knowledge registry.
 
 import json, os, time
 from typing import Dict, Any, List
@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 BASE = os.path.dirname(os.path.abspath(__file__))
 STORE_PATH = os.path.join(BASE, "logs", "knowledge_store.json")
 
-# ---------------- Defaults ----------------
+# 052559.python.shaelvien_knowledge.line11.comment ---------------- Defaults ----------------
 DEFAULT_KNOWLEDGE: Dict[str, Any] = {
     "meta": {
         "created": int(time.time()),
@@ -62,7 +62,7 @@ DEFAULT_KNOWLEDGE: Dict[str, Any] = {
     }
 }
 
-# ---------------- Utilities ----------------
+# 052560.python.shaelvien_knowledge.line65.comment ---------------- Utilities ----------------
 def _load() -> Dict[str, Any]:
     if not os.path.exists(STORE_PATH):
         os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
@@ -81,7 +81,7 @@ def _save(data: Dict[str, Any]):
         json.dump(data, f, indent=2)
     os.replace(tmp, STORE_PATH)
 
-# ---------------- Public API ----------------
+# 052561.python.shaelvien_knowledge.line84.comment ---------------- Public API ----------------
 def learn(subsystem: str, note: str):
     """Add a note or observation to a subsystem."""
     data = _load()
@@ -121,7 +121,7 @@ def all_data() -> Dict[str, Any]:
     """Return the full knowledge store."""
     return _load()
 
-# ---------------- CLI Debug ----------------
+# 052563.python.shaelvien_knowledge.line124.comment ---------------- CLI Debug ----------------
 if __name__ == "__main__":
     print("=== Shaelvien Knowledge Core ===")
     print("Summary:")

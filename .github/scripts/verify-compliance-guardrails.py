@@ -100,8 +100,8 @@ require_text("apps/rist-world/wwwroot/terms.html", ["not intended for children u
 require_text("apps/rist-world/wwwroot/privacy.html", ["not intended for children under 13"])
 require_text("apps/rist-world/wwwroot/safety.html", ["TAKE IT DOWN", "within 48 hours"])
 
-# Site boot must keep the semantic membrane active. The order matters: core runtime first,
-# then wire/perception/input/client negotiation/adaptive scheduling/planning; language bridge only after language runtime.
+# 000001.python.verify-compliance-guardrails.line103.comment Site boot must keep the semantic membrane active. The order matters: core runtime first,
+# 000002.python.verify-compliance-guardrails.line104.comment then wire/perception/input/client negotiation/adaptive scheduling/planning; language bridge only after language runtime.
 index = require_file("apps/rist-world/wwwroot/index.html").read_text(encoding="utf-8")
 boot_sequence = [
     "shaelvien-semantic-runtime.js",
@@ -125,7 +125,7 @@ for required in [
 if index.find("shaelvien-language-perception-bridge.js") < index.find("ui-language-sitewide.js"):
     raise SystemExit("COMPLIANCE GUARDRAIL FAILED: language perception bridge loads before language runtime")
 
-# Migrated presentation scripts must use evolved cache keys so successful deployment actually reaches returning clients.
+# 000003.python.verify-compliance-guardrails.line128.comment Migrated presentation scripts must use evolved cache keys so successful deployment actually reaches returning clients.
 for cache_key in [
     "shaelvien-perception-planner.js?v=20260916-perception-planner-1",
     "shaelvien-worldbuilder-perception-bridge.js?v=20260916-semantic-worldbuilder-3",
@@ -135,14 +135,14 @@ for cache_key in [
     if cache_key not in index:
         raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: evolved runtime cache key missing from index.html: {cache_key}")
 
-# All Shaelvien runtime/bridge scripts must remain registry-based rather than arbitrary source execution.
+# 000004.python.verify-compliance-guardrails.line138.comment All Shaelvien runtime/bridge scripts must remain registry-based rather than arbitrary source execution.
 for runtime_file in sorted((ROOT / "apps/rist-world/wwwroot").glob("shaelvien-*.js")):
     source = runtime_file.read_text(encoding="utf-8")
     if "eval(" in source or "new Function(" in source:
         relative = runtime_file.relative_to(ROOT)
         raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: arbitrary source execution found in {relative}")
 
-# Capability negotiation must remain privacy-coarse and local by default.
+# 000005.python.verify-compliance-guardrails.line145.comment Capability negotiation must remain privacy-coarse and local by default.
 require_text(
     "apps/rist-world/wwwroot/shaelvien-client-perception.js",
     [
@@ -152,7 +152,7 @@ require_text(
     ],
 )
 
-# The planner may select only among trusted authorized-equivalent offers. It is not an executor or authority layer.
+# 000006.python.verify-compliance-guardrails.line155.comment The planner may select only among trusted authorized-equivalent offers. It is not an executor or authority layer.
 planner_path = "apps/rist-world/wwwroot/shaelvien-perception-planner.js"
 require_text(
     planner_path,
@@ -171,7 +171,7 @@ for forbidden in ["runtime.receive(", "runtime.applyPerception(", "runtime.emitD
     if forbidden in planner_source:
         raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: perception planner acquired execution/transport behavior: {forbidden}")
 
-# Adaptive scheduling is allowed to lose obsolete perception, never truth or intent.
+# 000007.python.verify-compliance-guardrails.line174.comment Adaptive scheduling is allowed to lose obsolete perception, never truth or intent.
 require_text(
     "apps/rist-world/wwwroot/shaelvien-adaptive-perception.js",
     [
@@ -192,8 +192,8 @@ require_text(
     ],
 )
 
-# The first migrated Worldbuilder path is deliberately narrow: automatic camera-window perception.
-# Manual camera controls and non-camera viewer controls remain on the existing synchronous authority path.
+# 000008.python.verify-compliance-guardrails.line195.comment The first migrated Worldbuilder path is deliberately narrow: automatic camera-window perception.
+# 000009.python.verify-compliance-guardrails.line196.comment Manual camera controls and non-camera viewer controls remain on the existing synchronous authority path.
 require_text(
     "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
     [
@@ -215,8 +215,8 @@ require_text(
     ],
 )
 
-# The second migrated Worldbuilder path is transient quick-slot drag preview only.
-# It may supersede stale visual pointer frames, but actual pointer-up placement remains reliable and unscheduled.
+# 000010.python.verify-compliance-guardrails.line218.comment The second migrated Worldbuilder path is transient quick-slot drag preview only.
+# 000011.python.verify-compliance-guardrails.line219.comment It may supersede stale visual pointer frames, but actual pointer-up placement remains reliable and unscheduled.
 require_text(
     "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
     [

@@ -3,7 +3,7 @@ import re
 from ._functools import method_cache
 
 
-# from jaraco.text 3.5
+# 042119.python.text.line6.comment from jaraco.text 3.5
 class FoldedCase(str):
     """
     A case insensitive string class; behaves just like str
@@ -86,7 +86,7 @@ class FoldedCase(str):
         "Does self appear in other?"
         return self in FoldedCase(other)
 
-    # cache lower since it's likely to be called frequently.
+    # 042120.python.text.line89.comment cache lower since it's likely to be called frequently.
     @method_cache
     def lower(self):
         return super().lower()

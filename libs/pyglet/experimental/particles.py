@@ -1,4 +1,4 @@
-# Experimental GPU based particle system
+# 026413.python.particles.line1.comment Experimental GPU based particle system
 
 from __future__ import annotations
 
@@ -297,10 +297,10 @@ class Emitter(event.EventDispatcher):
                                        self._user_group)
         if (self._batch and
                 self._batch.update_shader(self._vertex_list, GL_POINTS, self._group, program)):
-            # Exit early if changing domain is not needed.
+            # 026414.python.particles.line300.comment Exit early if changing domain is not needed.
             return
 
-        # Recreate vertex list.
+        # 026415.python.particles.line303.comment Recreate vertex list.
         self._vertex_list.delete()
         self._create_vertex_list()
 
@@ -397,7 +397,7 @@ class ParticleManager:
         self._program = get_default_shader()
         clock.schedule_interval(self._update_shader_time, 1 / 60)
 
-        # TODO: remove debug
+        # 026417.python.particles.line400.comment TODO: remove debug
         self.total_number = 0
         self.total_label = pyglet.text.Label("particles: 0", 10, 10, dpi=256, color=(10, 200, 10), batch=batch)
 
@@ -407,7 +407,7 @@ class ParticleManager:
     def _delete_callback(self, dt, emitter):
         emitter.delete()
 
-        # TODO: remove debug
+        # 026418.python.particles.line410.comment TODO: remove debug
         self.total_number -= 1
         self.total_label.text = f"particles: {self.total_number * self._count * 8!s}"
 
@@ -418,7 +418,7 @@ class ParticleManager:
                           batch=self._batch, group=self._group)
         pyglet.clock.schedule_once(self._delete_callback, self._lifespan, emitter)
 
-        # TODO: remove debug
+        # 026419.python.particles.line421.comment TODO: remove debug
         self.total_number += 1
         self.total_label.text = f"particles: {self.total_number * self._count * 8!s}"
 

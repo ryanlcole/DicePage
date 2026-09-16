@@ -2,9 +2,9 @@ import win32api
 import win32con
 import win32security
 
-## You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody
-## other than yourself or your primary group.  Most admin logins don't have it by default, so
-## enabling it may fail
+# 046197.python.setsecurityinfo.line5.comment # You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody
+# 046198.python.setsecurityinfo.line6.comment # other than yourself or your primary group.  Most admin logins don't have it by default, so
+# 046199.python.setsecurityinfo.line7.comment # enabling it may fail
 new_privs = (
     (
         win32security.LookupPrivilegeValue("", win32security.SE_SECURITY_NAME),
@@ -67,14 +67,14 @@ all_info = (
 
 pid = win32api.GetCurrentProcessId()
 ph = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, 0, pid)
-## PROCESS_ALL_ACCESS does not contain ACCESS_SYSTEM_SECURITY (neccessy to do SACLs)
+# 046200.python.setsecurityinfo.line70.comment # PROCESS_ALL_ACCESS does not contain ACCESS_SYSTEM_SECURITY (neccessy to do SACLs)
 th = win32security.OpenProcessToken(
     ph, win32security.TOKEN_ALL_ACCESS
 )  ##win32con.TOKEN_ADJUST_PRIVILEGES)
 old_privs = win32security.AdjustTokenPrivileges(th, 0, new_privs)
 my_sid = win32security.GetTokenInformation(th, win32security.TokenUser)[0]
 pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
-## reopen process with ACCESS_SYSTEM_SECURITY now that sufficent privs are enabled
+# 046202.python.setsecurityinfo.line77.comment # reopen process with ACCESS_SYSTEM_SECURITY now that sufficent privs are enabled
 ph = win32api.OpenProcess(
     win32con.PROCESS_ALL_ACCESS | win32con.ACCESS_SYSTEM_SECURITY, 0, pid
 )

@@ -130,10 +130,10 @@ class ImageEncoder(Encoder):
 
 
 def add_default_codecs():
-    # Add the codecs we know about.  These should be listed in order of
-    # preference.  This is called automatically by pyglet.image.
+    # 030311.python.init.line133.comment Add the codecs we know about.  These should be listed in order of
+    # 030312.python.init.line134.comment preference.  This is called automatically by pyglet.image.
 
-    # Compressed texture in DDS format
+    # 030313.python.init.line136.comment Compressed texture in DDS format
     try:
         from pyglet.image.codecs import dds
         registry.add_encoders(dds)
@@ -141,7 +141,7 @@ def add_default_codecs():
     except ImportError:
         pass
 
-    # Mac OS X default: Quartz
+    # 030314.python.init.line144.comment Mac OS X default: Quartz
     if compat_platform == 'darwin':
         try:
             from pyglet.image.codecs import quartz
@@ -150,7 +150,7 @@ def add_default_codecs():
         except ImportError:
             pass
 
-    # Windows 7 default: Windows Imaging Component
+    # 030315.python.init.line153.comment Windows 7 default: Windows Imaging Component
     if compat_platform in ('win32', 'cygwin'):
         from pyglet.libs.win32.constants import WINDOWS_7_OR_GREATER
         if WINDOWS_7_OR_GREATER:  # Supports Vista and above.
@@ -161,7 +161,7 @@ def add_default_codecs():
             except ImportError:
                 pass
 
-    # Windows XP default: GDI+
+    # 030317.python.init.line164.comment Windows XP default: GDI+
     if compat_platform in ('win32', 'cygwin'):
         try:
             from pyglet.image.codecs import gdiplus
@@ -170,7 +170,7 @@ def add_default_codecs():
         except ImportError:
             pass
 
-    # Linux default: GdkPixbuf 2.0
+    # 030318.python.init.line173.comment Linux default: GdkPixbuf 2.0
     if compat_platform.startswith('linux'):
         try:
             from pyglet.image.codecs import gdkpixbuf2
@@ -179,7 +179,7 @@ def add_default_codecs():
         except ImportError:
             pass
 
-    # Fallback: PIL
+    # 030319.python.init.line182.comment Fallback: PIL
     try:
         from pyglet.image.codecs import pil
         registry.add_encoders(pil)
@@ -187,7 +187,7 @@ def add_default_codecs():
     except ImportError:
         pass
 
-    # Fallback: PNG loader (slow)
+    # 030320.python.init.line190.comment Fallback: PNG loader (slow)
     try:
         from pyglet.image.codecs import png
         registry.add_encoders(png)
@@ -195,7 +195,7 @@ def add_default_codecs():
     except ImportError:
         pass
 
-    # Fallback: BMP loader (slow)
+    # 030321.python.init.line198.comment Fallback: BMP loader (slow)
     try:
         from pyglet.image.codecs import bmp
         registry.add_encoders(bmp)

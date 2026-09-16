@@ -4,15 +4,15 @@ import winerror
 from ntsecuritycon import TOKEN_QUERY, TokenUser
 
 
-# This is a Python implementation of win32api.GetDomainName()
+# 046158.python.query_information.line7.comment This is a Python implementation of win32api.GetDomainName()
 def GetDomainName():
     try:
         tok = win32security.OpenThreadToken(win32api.GetCurrentThread(), TOKEN_QUERY, 1)
     except win32api.error as details:
         if details[0] != winerror.ERROR_NO_TOKEN:
             raise
-        # attempt to open the process token, since no thread token
-        # exists
+        # 046159.python.query_information.line14.comment attempt to open the process token, since no thread token
+        # 046160.python.query_information.line15.comment exists
         tok = win32security.OpenProcessToken(win32api.GetCurrentProcess(), TOKEN_QUERY)
     sid, attr = win32security.GetTokenInformation(tok, TokenUser)
     win32api.CloseHandle(tok)

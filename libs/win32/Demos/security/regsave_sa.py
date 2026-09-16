@@ -8,7 +8,7 @@ import win32api
 import win32con
 import win32security
 
-## regsave will not overwrite a file
+# 046161.python.regsave_sa.line11.comment # regsave will not overwrite a file
 if os.path.isfile(fname):
     os.remove(fname)
 

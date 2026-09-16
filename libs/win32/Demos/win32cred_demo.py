@@ -10,7 +10,7 @@ import win32net
 import win32profile
 import win32security
 
-## Prompt for a username/pwd for local computer
+# 046445.python.win32cred_demo.line13.comment # Prompt for a username/pwd for local computer
 uiinfo = {
     "MessageText": "Enter credentials for local machine",
     "CaptionText": "win32cred_demo.py",
@@ -43,11 +43,11 @@ win32cred.CredWrite(cred)
 pwd = None
 print(win32cred.CredRead(target, win32cred.CRED_TYPE_DOMAIN_PASSWORD))
 
-## Marshal saved credential and use it to log on
+# 046446.python.win32cred_demo.line46.comment # Marshal saved credential and use it to log on
 mc = win32cred.CredMarshalCredential(win32cred.UsernameTargetCredential, target)
 
-# As of pywin32 301 this no longer works for markh and unclear when it stopped, or
-# even if it ever did! # Fails in Python 2.7 too, so not a Python 3 regression.
+# 046447.python.win32cred_demo.line49.comment As of pywin32 301 this no longer works for markh and unclear when it stopped, or
+# 046448.python.win32cred_demo.line50.comment even if it ever did! # Fails in Python 2.7 too, so not a Python 3 regression.
 try:
     th = win32security.LogonUser(
         mc,
@@ -60,22 +60,22 @@ try:
     print("GetUserName:", win32api.GetUserName())
     win32security.RevertToSelf()
 
-    ## Load user's profile.  (first check if user has a roaming profile)
+    # 046449.python.win32cred_demo.line63.comment # Load user's profile.  (first check if user has a roaming profile)
     username, domain = win32cred.CredUIParseUserName(target)
     user_info_4 = win32net.NetUserGetInfo(None, username, 4)
     profilepath = user_info_4["profile"]
-    ## LoadUserProfile apparently doesn't like an empty string
+    # 046450.python.win32cred_demo.line67.comment # LoadUserProfile apparently doesn't like an empty string
     if not profilepath:
         profilepath = None
 
-    ## leave Flags in since 2.3 still chokes on some types of optional keyword args
+    # 046451.python.win32cred_demo.line71.comment # leave Flags in since 2.3 still chokes on some types of optional keyword args
     hk = win32profile.LoadUserProfile(
         th, {"UserName": username, "Flags": 0, "ProfilePath": profilepath}
     )
-    ## Get user's environment variables in a form that can be passed to win32process.CreateProcessAsUser
+    # 046452.python.win32cred_demo.line75.comment # Get user's environment variables in a form that can be passed to win32process.CreateProcessAsUser
     env = win32profile.CreateEnvironmentBlock(th, False)
 
-    ## Cleanup should probably be in a finally block
+    # 046453.python.win32cred_demo.line78.comment # Cleanup should probably be in a finally block
     win32profile.UnloadUserProfile(th, hk)
     th.Close()
 except win32security.error as exc:

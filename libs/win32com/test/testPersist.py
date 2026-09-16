@@ -45,7 +45,7 @@ class LockBytes:
         print("WriteAt", offset)
         print("len", len(data))
         print("data:")
-        # print(data)
+        # 050156.python.testPersist.line48.comment print(data)
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))
@@ -137,14 +137,14 @@ class OleClientSite:
 
 
 def test():
-    # create a LockBytes object and
-    # wrap it as a COM object
-    #       import win32com.server.dispatcher
+    # 050158.python.testPersist.line140.comment create a LockBytes object and
+    # 050159.python.testPersist.line141.comment wrap it as a COM object
+    # 050160.python.testPersist.line142.comment import win32com.server.dispatcher
     lbcom = win32com.server.util.wrap(
         LockBytes(), pythoncom.IID_ILockBytes
     )  # , useDispatcher=win32com.server.dispatcher.DispatcherWin32trace)
 
-    # create a structured storage on the ILockBytes object
+    # 050162.python.testPersist.line147.comment create a structured storage on the ILockBytes object
     stcom = pythoncom.StgCreateDocfileOnILockBytes(
         lbcom,
         storagecon.STGM_DIRECT
@@ -154,12 +154,12 @@ def test():
         0,
     )
 
-    # create our ClientSite
+    # 050163.python.testPersist.line157.comment create our ClientSite
     ocs = OleClientSite()
-    # wrap it as a COM object
+    # 050164.python.testPersist.line159.comment wrap it as a COM object
     ocscom = win32com.server.util.wrap(ocs, axcontrol.IID_IOleClientSite)
 
-    # create a Word OLE Document, connect it to our site and our storage
+    # 050165.python.testPersist.line162.comment create a Word OLE Document, connect it to our site and our storage
     oocom = axcontrol.OleCreate(
         "{00020906-0000-0000-C000-000000000046}",
         axcontrol.IID_IOleObject,
@@ -172,29 +172,29 @@ def test():
     mf = win32ui.GetMainFrame()
     hwnd = mf.GetSafeHwnd()
 
-    # Set the host and document name
-    # for unknown reason document name becomes hostname, and document name
-    # is not set, debugged it, but don't know where the problem is?
+    # 050166.python.testPersist.line175.comment Set the host and document name
+    # 050167.python.testPersist.line176.comment for unknown reason document name becomes hostname, and document name
+    # 050168.python.testPersist.line177.comment is not set, debugged it, but don't know where the problem is?
     oocom.SetHostNames("OTPython", "This is Cool")
 
-    # activate the OLE document
+    # 050169.python.testPersist.line180.comment activate the OLE document
     oocom.DoVerb(-1, ocscom, 0, hwnd, mf.GetWindowRect())
 
-    # set the hostnames again
+    # 050170.python.testPersist.line183.comment set the hostnames again
     oocom.SetHostNames("OTPython2", "ThisisCool2")
 
-    # get IDispatch of Word
+    # 050171.python.testPersist.line186.comment get IDispatch of Word
     doc = win32com.client.Dispatch(oocom.QueryInterface(pythoncom.IID_IDispatch))
 
-    # get IPersistStorage of Word
+    # 050172.python.testPersist.line189.comment get IPersistStorage of Word
     dpcom = oocom.QueryInterface(pythoncom.IID_IPersistStorage)
 
-    # let our ClientSite know the interfaces
+    # 050173.python.testPersist.line192.comment let our ClientSite know the interfaces
     ocs.SetIPersistStorage(dpcom)
     ocs.SetIStorage(stcom)
 
-    # use IDispatch to do the Office Word test
-    # pasted from TestOffice.py
+    # 050174.python.testPersist.line196.comment use IDispatch to do the Office Word test
+    # 050175.python.testPersist.line197.comment pasted from TestOffice.py
 
     wrange = doc.Range()
     for i in range(10):
@@ -203,21 +203,21 @@ def test():
     for i in range(len(paras)):
         paras[i]().Font.ColorIndex = i + 1
         paras[i]().Font.Size = 12 + (4 * i)
-    # XXX - note that
-    # for para in paras:
-    #       para().Font...
-    # doesn't seem to work - no error, just doesn't work
-    # Should check if it works for VB!
+    # 050176.python.testPersist.line206.comment XXX - note that
+    # 050177.python.testPersist.line207.comment for para in paras:
+    # 050178.python.testPersist.line208.comment para().Font...
+    # 050179.python.testPersist.line209.comment doesn't seem to work - no error, just doesn't work
+    # 050180.python.testPersist.line210.comment Should check if it works for VB!
 
     dpcom.Save(stcom, 0)
     dpcom.HandsOffStorage()
-    #       oocom.Close(axcontrol.OLECLOSE_NOSAVE) # or OLECLOSE_SAVEIFDIRTY, but it fails???
+    # 050181.python.testPersist.line214.comment oocom.Close(axcontrol.OLECLOSE_NOSAVE) # or OLECLOSE_SAVEIFDIRTY, but it fails???
 
-    # Save the ILockBytes data to "persist2.doc"
+    # 050182.python.testPersist.line216.comment Save the ILockBytes data to "persist2.doc"
     lbcom.Flush()
 
-    # exiting Winword will automatically update the ILockBytes data
-    # and flush it to "%TEMP%\persist.doc"
+    # 050183.python.testPersist.line219.comment exiting Winword will automatically update the ILockBytes data
+    # 050184.python.testPersist.line220.comment and flush it to "%TEMP%\persist.doc"
     doc.Application.Quit()
 
 

@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 021802.python.markers.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 021803.python.markers.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 021804.python.markers.line3.comment for complete details.
 
 from __future__ import annotations
 
@@ -142,10 +142,10 @@ def _format_marker(
 ) -> str:
     assert isinstance(marker, (list, tuple, str))
 
-    # Sometimes we have a structure like [[...]] which is a single item list
-    # where the single item is itself it's own list. In that case we want skip
-    # the rest of this function so that we don't get extraneous () on the
-    # outside.
+    # 021805.python.markers.line145.comment Sometimes we have a structure like [[...]] which is a single item list
+    # 021806.python.markers.line146.comment where the single item is itself it's own list. In that case we want skip
+    # 021807.python.markers.line147.comment the rest of this function so that we don't get extraneous () on the
+    # 021808.python.markers.line148.comment outside.
     if (
         isinstance(marker, list)
         and len(marker) == 1
@@ -196,10 +196,10 @@ def _eval_op(lhs: str, op: Op, rhs: str | AbstractSet[str]) -> bool:
 def _normalize(
     lhs: str, rhs: str | AbstractSet[str], key: str
 ) -> tuple[str, str | AbstractSet[str]]:
-    # PEP 685 – Comparison of extra names for optional distribution dependencies
-    # https://peps.python.org/pep-0685/
-    # > When comparing extra names, tools MUST normalize the names being
-    # > compared using the semantics outlined in PEP 503 for names
+    # 021809.python.markers.line199.comment PEP 685 – Comparison of extra names for optional distribution dependencies
+    # 021810.python.markers.line200.comment https://peps.python.org/pep-0685/
+    # 021811.python.markers.line201.comment > When comparing extra names, tools MUST normalize the names being
+    # 021812.python.markers.line202.comment > compared using the semantics outlined in PEP 503 for names
     if key == "extra":
         assert isinstance(rhs, str), "extra value must be a string"
         return (canonicalize_name(lhs), canonicalize_name(rhs))
@@ -209,7 +209,7 @@ def _normalize(
         else:
             return (canonicalize_name(lhs), {canonicalize_name(v) for v in rhs})
 
-    # other environment markers don't have such standards
+    # 021814.python.markers.line212.comment other environment markers don't have such standards
     return lhs, rhs
 
 
@@ -273,27 +273,27 @@ def default_environment() -> Environment:
 
 class Marker:
     def __init__(self, marker: str) -> None:
-        # Note: We create a Marker object without calling this constructor in
-        #       packaging.requirements.Requirement. If any additional logic is
-        #       added here, make sure to mirror/adapt Requirement.
+        # 021815.python.markers.line276.comment Note: We create a Marker object without calling this constructor in
+        # 021816.python.markers.line277.comment packaging.requirements.Requirement. If any additional logic is
+        # 021817.python.markers.line278.comment added here, make sure to mirror/adapt Requirement.
         try:
             self._markers = _normalize_extra_values(_parse_marker(marker))
-            # The attribute `_markers` can be described in terms of a recursive type:
-            # MarkerList = List[Union[Tuple[Node, ...], str, MarkerList]]
-            #
-            # For example, the following expression:
-            # python_version > "3.6" or (python_version == "3.6" and os_name == "unix")
-            #
-            # is parsed into:
-            # [
-            #     (<Variable('python_version')>, <Op('>')>, <Value('3.6')>),
-            #     'and',
-            #     [
-            #         (<Variable('python_version')>, <Op('==')>, <Value('3.6')>),
-            #         'or',
-            #         (<Variable('os_name')>, <Op('==')>, <Value('unix')>)
-            #     ]
-            # ]
+            # 021818.python.markers.line281.comment The attribute `_markers` can be described in terms of a recursive type:
+            # 021819.python.markers.line282.comment MarkerList = List[Union[Tuple[Node, ...], str, MarkerList]]
+            # 021820.python.markers.line283.comment
+            # 021821.python.markers.line284.comment For example, the following expression:
+            # 021822.python.markers.line285.comment python_version > "3.6" or (python_version == "3.6" and os_name == "unix")
+            # 021823.python.markers.line286.comment
+            # 021824.python.markers.line287.comment is parsed into:
+            # 021825.python.markers.line288.comment [
+            # 021826.python.markers.line289.comment (<Variable('python_version')>, <Op('>')>, <Value('3.6')>),
+            # 021827.python.markers.line290.comment 'and',
+            # 021828.python.markers.line291.comment [
+            # 021829.python.markers.line292.comment (<Variable('python_version')>, <Op('==')>, <Value('3.6')>),
+            # 021830.python.markers.line293.comment 'or',
+            # 021831.python.markers.line294.comment (<Variable('os_name')>, <Op('==')>, <Value('unix')>)
+            # 021832.python.markers.line295.comment ]
+            # 021833.python.markers.line296.comment ]
         except ParserSyntaxError as e:
             raise InvalidMarker(str(e)) from e
 
@@ -339,8 +339,8 @@ class Marker:
             current_environment["extra"] = ""
         if environment is not None:
             current_environment.update(environment)
-            # The API used to allow setting extra to None. We need to handle this
-            # case for backwards compatibility.
+            # 021834.python.markers.line342.comment The API used to allow setting extra to None. We need to handle this
+            # 021835.python.markers.line343.comment case for backwards compatibility.
             if "extra" in current_environment and current_environment["extra"] is None:
                 current_environment["extra"] = ""
 

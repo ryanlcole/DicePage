@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 001522.python.templates.line1.comment -----------------------------------------------------------------------------
+# 001523.python.templates.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 001524.python.templates.line3.comment
+# 001525.python.templates.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 001526.python.templates.line5.comment or later) with exception for distributing the bootloader.
+# 001527.python.templates.line6.comment
+# 001528.python.templates.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 001529.python.templates.line8.comment
+# 001530.python.templates.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 001531.python.templates.line10.comment -----------------------------------------------------------------------------
 """
 Templates to generate .spec files.
 """

@@ -24,8 +24,8 @@ def ProgressRoutine(
         SourceFile,
         DestinationFile,
     )
-    ##if TotalBytesTransferred > 100000:
-    ##    return win32file.PROGRESS_STOP
+    # 045972.python.CopyFileEx.line27.comment #if TotalBytesTransferred > 100000:
+    # 045973.python.CopyFileEx.line28.comment #    return win32file.PROGRESS_STOP
     return win32file.PROGRESS_CONTINUE
 
 
@@ -37,7 +37,7 @@ print(fsrc, fdst)
 f = open(fsrc, "w")
 f.write("xxxxxxxxxxxxxxxx\n" * 32768)
 f.close()
-## add a couple of extra data streams
+# 045974.python.CopyFileEx.line40.comment # add a couple of extra data streams
 f = open(fsrc + ":stream_y", "w")
 f.write("yyyyyyyyyyyyyyyy\n" * 32768)
 f.close()

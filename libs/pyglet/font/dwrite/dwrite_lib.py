@@ -33,15 +33,15 @@ from pyglet.libs.win32 import INT16, INT32, LOGFONTW, UINT8, UINT16, UINT32, UIN
 try:
     dwrite = "dwrite"
 
-    # System32 and SysWOW64 folders are opposite perception in Windows x64.
-    # System32 = x64 dll's | SysWOW64 = x86 dlls
-    # By default ctypes only seems to look in system32 regardless of Python architecture, which has x64 dlls.
+    # 026910.python.dwrite_lib.line36.comment System32 and SysWOW64 folders are opposite perception in Windows x64.
+    # 026911.python.dwrite_lib.line37.comment System32 = x64 dll's | SysWOW64 = x86 dlls
+    # 026912.python.dwrite_lib.line38.comment By default ctypes only seems to look in system32 regardless of Python architecture, which has x64 dlls.
     if platform.architecture()[0] == "32bit" and platform.machine().endswith("64"):  # Machine is x64, Python is x86.
         dwrite = os.path.join(os.environ["WINDIR"], "SysWOW64", "dwrite.dll")
 
     dwrite_lib = windll.LoadLibrary(dwrite)
 except OSError:
-    # Doesn't exist? Should stop import of library.
+    # 026914.python.dwrite_lib.line44.comment Doesn't exist? Should stop import of library.
     msg = "DirectWrite Not Found"
     raise ImportError(msg)  # noqa: B904
 
@@ -178,7 +178,7 @@ def repr_func(self):
 
         value = getattr(self, name)
 
-        # Check if the field is a POINTER to any ctypes structure
+        # 026917.python.dwrite_lib.line181.comment Check if the field is a POINTER to any ctypes structure
         if isinstance(value, _Pointer):
             value = repr(value.contents) if value else "NULL"
 
@@ -1007,7 +1007,7 @@ class IDWriteFontCollectionLoader(com.IUnknown):
          com.STDMETHOD(c_void_p, c_void_p, UINT32, POINTER(POINTER(IDWriteFontFileEnumerator)))),
     ]
 
-# Windows 7
+# 026925.python.dwrite_lib.line1010.comment Windows 7
 IID_IDWriteFactory = com.GUID(0xb859ee5a, 0xd838, 0x4b5b, 0xa2, 0xe8, 0x1a, 0xdc, 0x7d, 0x93, 0xdb, 0x48)
 
 
@@ -1073,7 +1073,7 @@ class IDWriteFactory(com.pIUnknown):
          com.STDMETHOD()),
     ]
 
-# Windows 8
+# 026927.python.dwrite_lib.line1076.comment Windows 8
 IID_IDWriteFactory1 = com.GUID(0x30572f99, 0xdac6, 0x41db, 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a)
 
 
@@ -1140,7 +1140,7 @@ class IDWriteFactory2(IDWriteFactory1, IDWriteFactory, com.pIUnknown):
          com.STDMETHOD()),
     ]
 
-# Windows 8.1
+# 026928.python.dwrite_lib.line1143.comment Windows 8.1
 IID_IDWriteFactory2 = com.GUID(0x0439fc60, 0xca44, 0x4994, 0x8d, 0xee, 0x3a, 0x9a, 0xf7, 0xb7, 0x32, 0xec)
 
 
@@ -1209,8 +1209,8 @@ class IDWriteFactory3(IDWriteFactory2, com.pIUnknown):
          com.STDMETHOD()),
         ("GetFontDownloadQueue",
          com.STDMETHOD()),
-        # ('GetSystemFontSet',
-        # com.STDMETHOD()),
+        # 026929.python.dwrite_lib.line1212.comment ('GetSystemFontSet',
+        # 026930.python.dwrite_lib.line1213.comment com.STDMETHOD()),
     ]
 
 
@@ -1245,7 +1245,7 @@ class IDWriteInMemoryFontFileLoader(com.pIUnknown):
          com.STDMETHOD()),
     ]
 
-# Windows 10 - Creators
+# 026931.python.dwrite_lib.line1248.comment Windows 10 - Creators
 IID_IDWriteFactory5 = com.GUID(0x958DB99A, 0xBE2A, 0x4F09, 0xAF, 0x7D, 0x65, 0x18, 0x98, 0x03, 0xD1, 0xD3)
 
 
@@ -1304,7 +1304,7 @@ DWriteCreateFactory.restype = HRESULT
 DWriteCreateFactory.argtypes = [DWRITE_FACTORY_TYPE, com.REFIID, POINTER(com.pIUnknown)]
 
 
-# ---- COM Interface implementations.
+# 026932.python.dwrite_lib.line1307.comment ---- COM Interface implementations.
 class Run:
     def __init__(self) -> None:
         self.text_start = 0
@@ -1335,7 +1335,7 @@ class TextAnalysis(com.COMObject):
 
         self._script = None
         self._bidi = 0
-        # self._sideways = False  # noqa: ERA001
+        # 026933.python.dwrite_lib.line1338.comment self._sideways = False  # noqa: ERA001
 
     def GenerateResults(self, analyzer: IDWriteTextAnalyzer, text: c_wchar_p, text_length: int) -> None:
         self._text = text
@@ -1354,9 +1354,9 @@ class TextAnalysis(com.COMObject):
 
     def SetScriptAnalysis(self, textPosition: UINT32, textLength: UINT32,
                           scriptAnalysis: POINTER(DWRITE_SCRIPT_ANALYSIS)) -> int:
-        # textPosition - The index of the first character in the string that the result applies to
-        # textLength - How many characters of the string from the index that the result applies to
-        # scriptAnalysis - The analysis information for all glyphs starting at position for length.
+        # 026934.python.dwrite_lib.line1357.comment textPosition - The index of the first character in the string that the result applies to
+        # 026935.python.dwrite_lib.line1358.comment textLength - How many characters of the string from the index that the result applies to
+        # 026936.python.dwrite_lib.line1359.comment scriptAnalysis - The analysis information for all glyphs starting at position for length.
         self.SetCurrentRun(textPosition)
         self.SplitCurrentRun(textPosition)
 
@@ -1369,7 +1369,7 @@ class TextAnalysis(com.COMObject):
             self._script = run.script
 
         return 0
-        # return 0x80004001
+        # 026937.python.dwrite_lib.line1372.comment return 0x80004001
 
     def GetTextBeforePosition(self, textPosition: UINT32, textString: POINTER(POINTER(WCHAR)),
                               textLength: POINTER(UINT32)) -> NoReturn:
@@ -1377,12 +1377,12 @@ class TextAnalysis(com.COMObject):
         raise Exception(msg)
 
     def GetTextAtPosition(self, textPosition: UINT32, textString: c_wchar_p, textLength: POINTER(UINT32)) -> int:
-        # This method will retrieve a substring of the text in this layout
-        #   to be used in an analysis step.
-        # Arguments:
-        # textPosition - The index of the first character of the text to retrieve.
-        # textString - The pointer to the first character of text at the index requested.
-        # textLength - The characters available at/after the textString pointer (string length).
+        # 026938.python.dwrite_lib.line1380.comment This method will retrieve a substring of the text in this layout
+        # 026939.python.dwrite_lib.line1381.comment to be used in an analysis step.
+        # 026940.python.dwrite_lib.line1382.comment Arguments:
+        # 026941.python.dwrite_lib.line1383.comment textPosition - The index of the first character of the text to retrieve.
+        # 026942.python.dwrite_lib.line1384.comment textString - The pointer to the first character of text at the index requested.
+        # 026943.python.dwrite_lib.line1385.comment textLength - The characters available at/after the textString pointer (string length).
 
         if textPosition >= self._textlength:
             self._no_ptr = c_wchar_p(None)
@@ -1418,7 +1418,7 @@ class TextAnalysis(com.COMObject):
             return
 
         if textPosition <= self._current_run.text_start:
-            # Already first start of the run.
+            # 026945.python.dwrite_lib.line1421.comment Already first start of the run.
             return
 
         new_run = copy.copy(self._current_run)

@@ -1,9 +1,9 @@
 import re
 import string
 
-###$ event <<expand-word>>
-###$ win <Alt-slash>
-###$ unix <Alt-slash>
+# 038183.python.AutoExpand.line4.comment ##$ event <<expand-word>>
+# 038184.python.AutoExpand.line5.comment ##$ win <Alt-slash>
+# 038185.python.AutoExpand.line6.comment ##$ unix <Alt-slash>
 
 
 class AutoExpand:
@@ -71,14 +71,14 @@ class AutoExpand:
             return []
         words = []
         dict = {}
-        # search backwards through words before
+        # 038188.python.AutoExpand.line74.comment search backwards through words before
         wbefore.reverse()
         for w in wbefore:
             if dict.get(w):
                 continue
             words.append(w)
             dict[w] = w
-        # search onwards through words after
+        # 038189.python.AutoExpand.line81.comment search onwards through words after
         for w in wafter:
             if dict.get(w):
                 continue

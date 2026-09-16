@@ -60,7 +60,7 @@ Supported iterable types that are known to be:
 for use with `isinstance`.
 """
 _Sequence: TypeAlias = Union[tuple[str, ...], list[str]]
-# This is how stringifying _Sequence would look in Python 3.10
+# 044809.python.dist.line63.comment This is how stringifying _Sequence would look in Python 3.10
 _sequence_type_repr = "tuple[str, ...] | list[str]"
 _OrderedStrSequence: TypeAlias = Union[str, dict[str, Any], Sequence[str]]
 """
@@ -94,10 +94,10 @@ def check_importable(dist, attr, value):
 def assert_string_list(dist, attr: str, value: _Sequence) -> None:
     """Verify that value is a string list"""
     try:
-        # verify that value is a list or tuple to exclude unordered
-        # or single-use iterables
+        # 044812.python.dist.line97.comment verify that value is a list or tuple to exclude unordered
+        # 044813.python.dist.line98.comment or single-use iterables
         assert isinstance(value, _sequence)
-        # verify that elements of value are strings
+        # 044814.python.dist.line100.comment verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
@@ -126,10 +126,10 @@ def check_nsp(dist, attr, value):
             "The namespace_packages parameter is deprecated.",
             "Please replace its usage with implicit namespaces (PEP 420).",
             see_docs="references/keywords.html#keyword-namespace-packages",
-            # TODO: define due_date, it may break old packages that are no longer
-            # maintained (e.g. sphinxcontrib extensions) when installed from source.
-            # Warning officially introduced in May 2022, however the deprecation
-            # was mentioned much earlier in the docs (May 2020, see #2149).
+            # 044815.python.dist.line129.comment TODO: define due_date, it may break old packages that are no longer
+            # 044816.python.dist.line130.comment maintained (e.g. sphinxcontrib extensions) when installed from source.
+            # 044817.python.dist.line131.comment Warning officially introduced in May 2022, however the deprecation
+            # 044818.python.dist.line132.comment was mentioned much earlier in the docs (May 2020, see #2149).
         )
 
 
@@ -171,7 +171,7 @@ def assert_bool(dist, attr, value):
 def invalid_unless_false(dist, attr, value):
     if not value:
         DistDeprecationWarning.emit(f"{attr} is ignored.")
-        # TODO: should there be a `due_date` here?
+        # 044819.python.dist.line174.comment TODO: should there be a `due_date` here?
         return
     raise DistutilsSetupError(f"{attr} is invalid.")
 
@@ -233,7 +233,7 @@ def check_packages(dist, attr, value):
 
 
 if TYPE_CHECKING:
-    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    # 044820.python.dist.line236.comment Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
     from distutils.core import Distribution as _Distribution
 else:
     _Distribution = get_unpatched(distutils.core.Distribution)
@@ -296,10 +296,10 @@ class Distribution(_Distribution):
         'extras_require': dict,
     }
 
-    # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
+    # 044822.python.dist.line299.comment Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
 
-    # Any: Dynamic assignment results in Incompatible types in assignment
+    # 044824.python.dist.line302.comment Any: Dynamic assignment results in Incompatible types in assignment
     def __init__(self, attrs: MutableMapping[str, Any] | None = None) -> None:
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
@@ -308,7 +308,7 @@ class Distribution(_Distribution):
         self.dist_files: list[tuple[str, str, str]] = []
         self.include_package_data: bool | None = None
         self.exclude_package_data: dict[str, list[str]] | None = None
-        # Filter-out setuptools' specific options.
+        # 044825.python.dist.line311.comment Filter-out setuptools' specific options.
         self.src_root: str | None = attrs.pop("src_root", None)
         self.dependency_links: list[str] = attrs.pop('dependency_links', [])
         self.setup_requires: list[str] = attrs.pop('setup_requires', [])
@@ -320,9 +320,9 @@ class Distribution(_Distribution):
         dist_attrs = {k: v for k, v in attrs.items() if k not in metadata_only}
         _Distribution.__init__(self, dist_attrs)
 
-        # Private API (setuptools-use only, not restricted to Distribution)
-        # Stores files that are referenced by the configuration and need to be in the
-        # sdist (e.g. `version = file: VERSION.txt`)
+        # 044826.python.dist.line323.comment Private API (setuptools-use only, not restricted to Distribution)
+        # 044827.python.dist.line324.comment Stores files that are referenced by the configuration and need to be in the
+        # 044828.python.dist.line325.comment sdist (e.g. `version = file: VERSION.txt`)
         self._referenced_files = set[str]()
 
         self.set_defaults = ConfigDiscovery(self)
@@ -360,7 +360,7 @@ class Distribution(_Distribution):
         from . import sic
 
         if isinstance(version, numbers.Number):
-            # Some people apparently take "version number" too literally :)
+            # 044829.python.dist.line363.comment Some people apparently take "version number" too literally :)
             version = str(version)
         elif isinstance(version, sic) or version is None:
             return version
@@ -385,7 +385,7 @@ class Distribution(_Distribution):
 
         if self.extras_require:
             for extra in self.extras_require.keys():
-                # Setuptools allows a weird "<name>:<env markers> syntax for extras
+                # 044830.python.dist.line388.comment Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
                     self.metadata.provides_extras.setdefault(extra)
@@ -395,7 +395,7 @@ class Distribution(_Distribution):
         install_requires = getattr(self, "install_requires", None) or []
         extras_require = getattr(self, "extras_require", None) or {}
 
-        # Preserve the "static"-ness of values parsed from config files
+        # 044831.python.dist.line398.comment Preserve the "static"-ness of values parsed from config files
         list_ = _static.List if _static.is_static(install_requires) else list
         self.install_requires = list_(map(str, _reqs.parse(install_requires)))
 
@@ -439,9 +439,9 @@ class Distribution(_Distribution):
                 "Please consider removing the following classifiers in favor of a "
                 "SPDX license expression:\n\n" + "\n".join(license_classifiers),
                 see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
-                # Warning introduced on 2025-02-17
-                # TODO: Should we add a due date? It may affect old/unmaintained
-                #       packages in the ecosystem and cause problems...
+                # 044832.python.dist.line442.comment Warning introduced on 2025-02-17
+                # 044833.python.dist.line443.comment TODO: Should we add a due date? It may affect old/unmaintained
+                # 044834.python.dist.line444.comment packages in the ecosystem and cause problems...
             )
 
     def _finalize_license_files(self) -> None:
@@ -454,9 +454,9 @@ class Distribution(_Distribution):
             patterns.append(license_file)
 
         if license_files is None and license_file is None:
-            # Default patterns match the ones wheel uses
-            # See https://wheel.readthedocs.io/en/stable/user_guide.html
-            # -> 'Including license files in the generated wheel file'
+            # 044835.python.dist.line457.comment Default patterns match the ones wheel uses
+            # 044836.python.dist.line458.comment See https://wheel.readthedocs.io/en/stable/user_guide.html
+            # 044837.python.dist.line459.comment -> 'Including license files in the generated wheel file'
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
             files = self._expand_patterns(patterns, enforce_match=False)
         else:  # Patterns explicitly given by the user
@@ -513,7 +513,7 @@ class Distribution(_Distribution):
                 """,
                 see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
                 due_date=(2026, 3, 20),  # Introduced in 2025-03-20
-                # Replace with InvalidConfigError after deprecation
+                # 044840.python.dist.line516.comment Replace with InvalidConfigError after deprecation
             )
         if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
             raise InvalidConfigError(
@@ -536,13 +536,13 @@ class Distribution(_Distribution):
                 "Pattern {pattern!r} did not match any files.",
                 pattern=pattern,
                 due_date=(2026, 3, 20),  # Introduced in 2025-02-20
-                # PEP 639 requires us to error, but as a transition period
-                # we will only issue a warning to give people time to prepare.
-                # After the transition, this should raise an InvalidConfigError.
+                # 044843.python.dist.line539.comment PEP 639 requires us to error, but as a transition period
+                # 044844.python.dist.line540.comment we will only issue a warning to give people time to prepare.
+                # 044845.python.dist.line541.comment After the transition, this should raise an InvalidConfigError.
             )
         return found
 
-    # FIXME: 'Distribution._parse_config_files' is too complex (14)
+    # 044846.python.dist.line545.comment FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
         """
         Adapted from distutils.dist.Distribution.parse_config_files,
@@ -551,7 +551,7 @@ class Distribution(_Distribution):
         """
         from configparser import ConfigParser
 
-        # Ignore install directory options if we have a venv
+        # 044848.python.dist.line554.comment Ignore install directory options if we have a venv
         ignore_options = (
             []
             if sys.prefix == sys.base_prefix
@@ -600,15 +600,15 @@ class Distribution(_Distribution):
                     opt = self._enforce_option_lowercase(opt, section)
                     opt_dict[opt] = (filename, val)
 
-            # Make the ConfigParser forget everything (so we retain
-            # the original filenames that options come from)
+            # 044849.python.dist.line603.comment Make the ConfigParser forget everything (so we retain
+            # 044850.python.dist.line604.comment the original filenames that options come from)
             parser.__init__()
 
         if 'global' not in self.command_options:
             return
 
-        # If there was a "global" section in the config file, use it
-        # to set Distribution options.
+        # 044851.python.dist.line610.comment If there was a "global" section in the config file, use it
+        # 044852.python.dist.line611.comment to set Distribution options.
 
         for opt, (src, val) in self.command_options['global'].items():
             alias = self.negative_opt.get(opt)
@@ -638,7 +638,7 @@ class Distribution(_Distribution):
             """,
             see_docs="userguide/declarative_config.html",
             due_date=(2026, 3, 3),
-            # Warning initially introduced in 3 Mar 2021
+            # 044854.python.dist.line641.comment Warning initially introduced in 3 Mar 2021
         )
         return underscore_opt
 
@@ -658,7 +658,7 @@ class Distribution(_Distribution):
             """,
             see_docs="userguide/declarative_config.html",
             due_date=(2026, 3, 3),
-            # Warning initially introduced in 6 Mar 2021
+            # 044855.python.dist.line661.comment Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
 
@@ -679,7 +679,7 @@ class Distribution(_Distribution):
             or section in _setuptools_commands()
         )
 
-    # FIXME: 'Distribution._set_command_options' is too complex (14)
+    # 044856.python.dist.line682.comment FIXME: 'Distribution._set_command_options' is too complex (14)
     def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
         """
         Set the options for 'command_obj' from 'option_dict'.  Basically
@@ -792,7 +792,7 @@ class Distribution(_Distribution):
         See #2765 for more details.
         """
         removed = {
-            # removed 2021-09-05
+            # 044860.python.dist.line795.comment removed 2021-09-05
             '2to3_doctests',
         }
         return ep.name in removed
@@ -835,7 +835,7 @@ class Distribution(_Distribution):
         if command in self.cmdclass:
             return self.cmdclass[command]
 
-        # Special case bdist_wheel so it's never loaded from "wheel"
+        # 044862.python.dist.line838.comment Special case bdist_wheel so it's never loaded from "wheel"
         if command == 'bdist_wheel':
             from .command.bdist_wheel import bdist_wheel
 
@@ -985,11 +985,11 @@ class Distribution(_Distribution):
         list(map(self.exclude_package, packages))
 
     def _parse_command_opts(self, parser, args):
-        # Remove --with-X/--without-X options when processing command args
+        # 044863.python.dist.line988.comment Remove --with-X/--without-X options when processing command args
         self.global_options = self.__class__.global_options
         self.negative_opt = self.__class__.negative_opt
 
-        # First, expand any aliases
+        # 044864.python.dist.line992.comment First, expand any aliases
         command = args[0]
         aliases = self.get_option_dict('aliases')
         while command in aliases:
@@ -1002,7 +1002,7 @@ class Distribution(_Distribution):
 
         nargs = _Distribution._parse_command_opts(self, parser, args)
 
-        # Handle commands that want to consume all remaining arguments
+        # 044866.python.dist.line1005.comment Handle commands that want to consume all remaining arguments
         cmd_class = self.get_command_class(command)
         if getattr(cmd_class, 'command_consumes_arguments', None):
             self.get_option_dict(command)['args'] = ("command line", nargs)
@@ -1077,16 +1077,16 @@ class Distribution(_Distribution):
         if self.help_commands:
             return _Distribution.handle_display_options(self, option_order)
 
-        # Stdout may be StringIO (e.g. in tests)
+        # 044867.python.dist.line1080.comment Stdout may be StringIO (e.g. in tests)
         if not isinstance(sys.stdout, io.TextIOWrapper):
             return _Distribution.handle_display_options(self, option_order)
 
-        # Don't wrap stdout if utf-8 is already the encoding. Provides
-        #  workaround for #334.
+        # 044868.python.dist.line1084.comment Don't wrap stdout if utf-8 is already the encoding. Provides
+        # 044869.python.dist.line1085.comment workaround for #334.
         if sys.stdout.encoding.lower() in ('utf-8', 'utf8'):
             return _Distribution.handle_display_options(self, option_order)
 
-        # Print metadata in UTF-8 no matter the platform
+        # 044870.python.dist.line1089.comment Print metadata in UTF-8 no matter the platform
         encoding = sys.stdout.encoding
         sys.stdout.reconfigure(encoding='utf-8')
         try:
@@ -1096,8 +1096,8 @@ class Distribution(_Distribution):
 
     def run_command(self, command) -> None:
         self.set_defaults()
-        # Postpone defaults until all explicit configuration is considered
-        # (setup() args, config files, command line and plugins)
+        # 044871.python.dist.line1099.comment Postpone defaults until all explicit configuration is considered
+        # 044872.python.dist.line1100.comment (setup() args, config files, command line and plugins)
 
         super().run_command(command)
 
@@ -1105,11 +1105,11 @@ class Distribution(_Distribution):
 @functools.cache
 def _setuptools_commands() -> set[str]:
     try:
-        # Use older API for importlib.metadata compatibility
+        # 044873.python.dist.line1108.comment Use older API for importlib.metadata compatibility
         entry_points = metadata.distribution('setuptools').entry_points
         eps: Iterable[str] = (ep.name for ep in entry_points)
     except metadata.PackageNotFoundError:
-        # during bootstrapping, distribution doesn't exist
+        # 044874.python.dist.line1112.comment during bootstrapping, distribution doesn't exist
         eps = []
     return {*distutils.command.__all__, *eps}
 

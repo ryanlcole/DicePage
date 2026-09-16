@@ -43,8 +43,8 @@ def testSHFileOperation(file_cnt):
 
 
 def testSHNAMEMAPPINGS(file_cnt):
-    ## attemps to move a set of files to names that already exist, and generated filenames should be returned
-    ##   as a sequence of 2-tuples created from SHNAMEMAPPINGS handle
+    # 052097.python.testSHFileOperation.line46.comment # attemps to move a set of files to names that already exist, and generated filenames should be returned
+    # 052098.python.testSHFileOperation.line47.comment #   as a sequence of 2-tuples created from SHNAMEMAPPINGS handle
     temp_dir = os.environ["temp"]
     orig_fnames = [
         win32api.GetTempFileName(temp_dir, "sfo")[0] for x in range(file_cnt)

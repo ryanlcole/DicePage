@@ -2,7 +2,7 @@
 
 Implements the Distutils 'clean' command."""
 
-# contributed by Bastian Kleineidam <calvin@cs.uni-sb.de>, added 2000-03-18
+# 039708.python.clean.line5.comment contributed by Bastian Kleineidam <calvin@cs.uni-sb.de>, added 2000-03-18
 
 import os
 from distutils._log import log
@@ -52,23 +52,23 @@ class clean(Command):
         self.set_undefined_options('bdist', ('bdist_base', 'bdist_base'))
 
     def run(self):
-        # remove the build/temp.<plat> directory (unless it's already
-        # gone)
+        # 039709.python.clean.line55.comment remove the build/temp.<plat> directory (unless it's already
+        # 039710.python.clean.line56.comment gone)
         if os.path.exists(self.build_temp):
             remove_tree(self.build_temp, dry_run=self.dry_run)
         else:
             log.debug("'%s' does not exist -- can't clean it", self.build_temp)
 
         if self.all:
-            # remove build directories
+            # 039711.python.clean.line63.comment remove build directories
             for directory in (self.build_lib, self.bdist_base, self.build_scripts):
                 if os.path.exists(directory):
                     remove_tree(directory, dry_run=self.dry_run)
                 else:
                     log.warning("'%s' does not exist -- can't clean it", directory)
 
-        # just for the heck of it, try to remove the base build directory:
-        # we might have emptied it right now, but if not we don't care
+        # 039712.python.clean.line70.comment just for the heck of it, try to remove the base build directory:
+        # 039713.python.clean.line71.comment we might have emptied it right now, but if not we don't care
         if not self.dry_run:
             try:
                 os.rmdir(self.build_base)

@@ -7,7 +7,7 @@ Perception layer using shaelvien_array for numeric work.
 import time, math, random
 import shaelvien_array as np
 
-# ---- visual ----
+# 052518.python.sensory_input_handler.line10.comment ---- visual ----
 def capture_camera_frame(frame=None):
     brightness=random.uniform(0.2,0.9)
     color_balance=np.Array([random.uniform(0.3,0.8) for _ in range(3)])
@@ -18,7 +18,7 @@ def capture_camera_frame(frame=None):
         "Composition":round(min(composition,1.0),3)
     }
 
-# ---- audio ----
+# 052519.python.sensory_input_handler.line21.comment ---- audio ----
 def capture_audio_sample():
     amplitude=random.uniform(0.0,1.0)
     spectral=random.uniform(0.2,1.0)
@@ -32,7 +32,7 @@ def capture_audio_sample():
         "Energy":round(energy,3)
     }
 
-# ---- empathy ----
+# 052520.python.sensory_input_handler.line35.comment ---- empathy ----
 def read_keyboard_pattern(last_timestamps=None):
     now=time.time()
     if not last_timestamps: return {"Speed":0.0,"Aggression":0.0}
@@ -47,19 +47,19 @@ def interpret_motion_to_empathy(motion_vector):
     empathy=max(0.0,min(1.0-magnitude,1.0))
     return {"EmpathyWeight":round(empathy,3)}
 
-# ---- olfactory ----
+# 052521.python.sensory_input_handler.line50.comment ---- olfactory ----
 def visual_to_aroma(freq):
     aroma_map={261.6:"Citrus",329.6:"Floral",392.0:"Herbal",440.0:"Sweet",493.9:"Savory"}
     closest=min(aroma_map.keys(),key=lambda f:abs(f-freq))
     return {"Aroma":aroma_map[closest],"Frequency":freq}
 
-# ---- tactile ----
+# 052522.python.sensory_input_handler.line56.comment ---- tactile ----
 def evaluate_environment_input(brightness,amplitude,aggression):
     stress=(brightness+amplitude+aggression)/3.0
     comfort=1.0-stress
     return {"StressLevel":round(stress,3),"ComfortLevel":round(comfort,3)}
 
-# ---- master gather ----
+# 052523.python.sensory_input_handler.line62.comment ---- master gather ----
 def gather_sensory_snapshot():
     visual=capture_camera_frame()
     audio=capture_audio_sample()

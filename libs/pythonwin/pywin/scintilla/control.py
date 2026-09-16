@@ -1,8 +1,8 @@
-# An Python interface to the Scintilla control.
-#
-# Exposes Python classes that allow you to use Scintilla as
-# a "standard" MFC edit control (eg, control.GetTextLength(), control.GetSel()
-# plus many Scintilla specific features (eg control.SCIAddStyledText())
+# 038685.python.control.line1.comment An Python interface to the Scintilla control.
+# 038686.python.control.line2.comment
+# 038687.python.control.line3.comment Exposes Python classes that allow you to use Scintilla as
+# 038688.python.control.line4.comment a "standard" MFC edit control (eg, control.GetTextLength(), control.GetSel()
+# 038689.python.control.line5.comment plus many Scintilla specific features (eg control.SCIAddStyledText())
 
 import array
 import os
@@ -16,8 +16,8 @@ from pywin.mfc import window
 
 from . import scintillacon
 
-# Load Scintilla.dll to get access to the control.
-# We expect to find this in the same directory as win32ui.pyd
+# 038690.python.control.line19.comment Load Scintilla.dll to get access to the control.
+# 038691.python.control.line20.comment We expect to find this in the same directory as win32ui.pyd
 dllid = None
 if win32ui.debug:  # If running _d version of Pythonwin...
     try:
@@ -36,12 +36,12 @@ if dllid is None:
     except win32api.error:
         pass
 if dllid is None:
-    # Still not there - let's see if Windows can find it by searching?
+    # 038694.python.control.line39.comment Still not there - let's see if Windows can find it by searching?
     dllid = win32api.LoadLibrary("Scintilla.DLL")
 
 null_byte = b"\0"
 
-## These are from Richedit.h - need to add to win32con or commctrl
+# 038695.python.control.line44.comment # These are from Richedit.h - need to add to win32con or commctrl
 EM_GETTEXTRANGE = 1099
 EM_EXLINEFROMCHAR = 1078
 EM_FINDTEXTEX = 1103
@@ -97,9 +97,9 @@ class ScintillaControlInterface:
         )
 
     def SCIAddStyledText(self, text, style=None):
-        # If style is None, text is assumed to be a "native" Scintilla buffer.
-        # If style is specified, text is a normal string, and the style is
-        # assumed to apply to the entire string.
+        # 038696.python.control.line100.comment If style is None, text is assumed to be a "native" Scintilla buffer.
+        # 038697.python.control.line101.comment If style is specified, text is a normal string, and the style is
+        # 038698.python.control.line102.comment assumed to apply to the entire string.
         if style is not None:
             text = list(map(lambda char, style=style: char + chr(style), text))
             text = "".join(text)
@@ -108,8 +108,8 @@ class ScintillaControlInterface:
         )
 
     def SCIInsertText(self, text, pos=-1):
-        # SCIInsertText allows unicode or bytes - but if they are bytes,
-        # the caller must ensure it is encoded correctly.
+        # 038699.python.control.line111.comment SCIInsertText allows unicode or bytes - but if they are bytes,
+        # 038700.python.control.line112.comment the caller must ensure it is encoded correctly.
         if isinstance(text, str):
             text = text.encode(default_scintilla_encoding)
         self.SendScintilla(scintillacon.SCI_INSERTTEXT, pos, text + null_byte)
@@ -130,7 +130,7 @@ class ScintillaControlInterface:
         return self.SendScintilla(scintillacon.SCI_GETCURRENTPOS)
 
     def SCIGetCharAt(self, pos):
-        # Must ensure char is unsigned!
+        # 038701.python.control.line133.comment Must ensure char is unsigned!
         return chr(self.SendScintilla(scintillacon.SCI_GETCHARAT, pos) & 0xFF)
 
     def SCIGotoLine(self, line):
@@ -145,10 +145,10 @@ class ScintillaControlInterface:
     def SCIBraceBadHighlight(self, pos):
         return self.SendScintilla(scintillacon.SCI_BRACEBADLIGHT, pos)
 
-    ####################################
-    # Styling
-    # 	def SCIColourise(self, start=0, end=-1):
-    #   NOTE - dependent on of we use builtin lexer, so handled below.
+    # 038702.python.control.line148.comment ###################################
+    # 038703.python.control.line149.comment Styling
+    # 038704.python.control.line150.comment def SCIColourise(self, start=0, end=-1):
+    # 038705.python.control.line151.comment NOTE - dependent on of we use builtin lexer, so handled below.
     def SCIGetEndStyled(self):
         return self.SendScintilla(scintillacon.SCI_GETENDSTYLED)
 
@@ -226,7 +226,7 @@ class ScintillaControlInterface:
     def SCISetFoldFlags(self, flags):
         self.SendScintilla(scintillacon.SCI_SETFOLDFLAGS, flags)
 
-    # Markers
+    # 038707.python.control.line229.comment Markers
     def SCIMarkerDefineAll(self, markerNum, markerType, fore, back):
         self.SCIMarkerDefine(markerNum, markerType)
         self.SCIMarkerSetFore(markerNum, fore)
@@ -259,7 +259,7 @@ class ScintillaControlInterface:
     def SCICancel(self):
         self.SendScintilla(scintillacon.SCI_CANCEL)
 
-    # AutoComplete
+    # 038708.python.control.line262.comment AutoComplete
     def SCIAutoCShow(self, text):
         if isinstance(text, (list, tuple)):
             text = " ".join(text)
@@ -285,7 +285,7 @@ class ScintillaControlInterface:
     def SCIAutoCSetFillups(self, fillups):
         self.SendScintilla(scintillacon.SCI_AUTOCSETFILLUPS, fillups)
 
-    # Call tips
+    # 038709.python.control.line288.comment Call tips
     def SCICallTipShow(self, text, pos=-1):
         if pos == -1:
             pos = self.GetSel()[0]
@@ -304,7 +304,7 @@ class ScintillaControlInterface:
     def SCINewline(self):
         self.SendScintilla(scintillacon.SCI_NEWLINE)
 
-    # Lexer etc
+    # 038710.python.control.line307.comment Lexer etc
     def SCISetKeywords(self, keywords, kw_list_no=0):
         buff = (keywords + "\0").encode(default_scintilla_encoding)
         self.SendScintilla(scintillacon.SCI_SETKEYWORDS, kw_list_no, buff)
@@ -323,7 +323,7 @@ class ScintillaControlInterface:
     def SCISetStyleBits(self, nbits):
         self.SendScintilla(scintillacon.SCI_SETSTYLEBITS, nbits)
 
-    # Folding
+    # 038711.python.control.line326.comment Folding
     def SCIGetFoldLevel(self, lineno):
         return self.SendScintilla(scintillacon.SCI_GETFOLDLEVEL, lineno)
 
@@ -336,7 +336,7 @@ class ScintillaControlInterface:
     def SCIGetFoldExpanded(self, lineno):
         return self.SendScintilla(scintillacon.SCI_GETFOLDEXPANDED, lineno)
 
-    # right edge
+    # 038712.python.control.line339.comment right edge
     def SCISetEdgeColumn(self, edge):
         self.SendScintilla(scintillacon.SCI_SETEDGECOLUMN, edge)
 
@@ -355,7 +355,7 @@ class ScintillaControlInterface:
     def SCIGetEdgeColor(self):
         return self.SendScintilla(scintillacon.SCI_GETEDGECOLOR)
 
-    # Multi-doc
+    # 038713.python.control.line358.comment Multi-doc
     def SCIGetDocPointer(self):
         return self.SendScintilla(scintillacon.SCI_GETDOCPOINTER)
 
@@ -387,7 +387,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
                 LONG cpMax;} CHARRANGE;
         """
         findtextex_fmt = "llPll"
-        ## Scintilla does not handle unicode in EM_FINDTEXT msg (FINDTEXTEX struct)
+        # 038714.python.control.line390.comment # Scintilla does not handle unicode in EM_FINDTEXT msg (FINDTEXTEX struct)
         txt_buff = (findText + "\0").encode(default_scintilla_encoding)
         txt_array = array.array("b", txt_buff)
         ft_buff = struct.pack(
@@ -411,14 +411,14 @@ class CScintillaEditInterface(ScintillaControlInterface):
         start, end = self.GetSel()
         txtBuf = array.array("b", null_byte * (end - start + 1))
         addressTxtBuf = txtBuf.buffer_info()[0]
-        # EM_GETSELTEXT is documented as returning the number of chars
-        # not including the NULL, but scintilla includes the NULL.  A
-        # quick glance at the scintilla impl doesn't make this
-        # obvious - the NULL is included in the 'selection' object
-        # and reflected in the length of that 'selection' object.
-        # I expect that is a bug in scintilla and may be fixed by now,
-        # but we just blindly assume that the last char is \0 and
-        # strip it.
+        # 038715.python.control.line414.comment EM_GETSELTEXT is documented as returning the number of chars
+        # 038716.python.control.line415.comment not including the NULL, but scintilla includes the NULL.  A
+        # 038717.python.control.line416.comment quick glance at the scintilla impl doesn't make this
+        # 038718.python.control.line417.comment obvious - the NULL is included in the 'selection' object
+        # 038719.python.control.line418.comment and reflected in the length of that 'selection' object.
+        # 038720.python.control.line419.comment I expect that is a bug in scintilla and may be fixed by now,
+        # 038721.python.control.line420.comment but we just blindly assume that the last char is \0 and
+        # 038722.python.control.line421.comment strip it.
         self.SendScintilla(EM_GETSELTEXT, 0, addressTxtBuf)
         return txtBuf.tobytes()[:-1].decode(default_scintilla_encoding)
 
@@ -456,8 +456,8 @@ class CScintillaEditInterface(ScintillaControlInterface):
         assert charPos >= 0 and charPos <= self.GetTextLength(), (
             f"The charPos postion ({charPos}) is invalid (max={self.GetTextLength()})"
         )
-        # return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
-        # EM_EXLINEFROMCHAR puts charPos in lParam, not wParam
+        # 038723.python.control.line459.comment return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
+        # 038724.python.control.line460.comment EM_EXLINEFROMCHAR puts charPos in lParam, not wParam
         return self.SendScintilla(EM_EXLINEFROMCHAR, 0, charPos)
 
     def LineIndex(self, line):
@@ -518,21 +518,21 @@ class CScintillaEditInterface(ScintillaControlInterface):
 
 
 class CScintillaColorEditInterface(CScintillaEditInterface):
-    ################################
-    # Plug-in colorizer support
+    # 038725.python.control.line521.comment ###############################
+    # 038726.python.control.line522.comment Plug-in colorizer support
     def _GetColorizer(self):
         if not hasattr(self, "colorizer"):
             self.colorizer = self._MakeColorizer()
         return self.colorizer
 
     def _MakeColorizer(self):
-        # Give parent a chance to hook.
+        # 038727.python.control.line529.comment Give parent a chance to hook.
         parent_func = getattr(self.GetParentFrame(), "_MakeColorizer", None)
         if parent_func is not None:
             return parent_func()
         from . import formatter
 
-        ##		return formatter.PythonSourceFormatter(self)
+        # 038728.python.control.line535.comment #		return formatter.PythonSourceFormatter(self)
         return formatter.BuiltinPythonSourceFormatter(self)
 
     def Colorize(self, start=0, end=-1):
@@ -545,7 +545,7 @@ class CScintillaColorEditInterface(CScintillaEditInterface):
         if c is not None:
             c.ApplyFormattingStyles(bReload)
 
-    # The Parent window will normally hook
+    # 038729.python.control.line548.comment The Parent window will normally hook
     def HookFormatter(self, parent=None):
         c = self._GetColorizer()
         if c is not None:  # No need if we have no color!

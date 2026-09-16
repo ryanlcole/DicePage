@@ -1,7 +1,7 @@
-# Demonstrates how to validate a password.
-# See also MSKB article Q180548
-#
-# To use with Kerberos you need to jump through the 'targetspn' hoops.
+# 046238.python.validate_password.line1.comment Demonstrates how to validate a password.
+# 046239.python.validate_password.line2.comment See also MSKB article Q180548
+# 046240.python.validate_password.line3.comment
+# 046241.python.validate_password.line4.comment To use with Kerberos you need to jump through the 'targetspn' hoops.
 
 import sys
 
@@ -18,7 +18,7 @@ def validate(username, password, domain=""):
     while err != 0:
         err, data = ca.authorize(data)
         err, data = sa.authorize(data)
-    # If we get here without exception, we worked!
+    # 046242.python.validate_password.line21.comment If we get here without exception, we worked!
 
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         print(f"Usage: {__file__} username [password [domain]]")
         sys.exit(1)
 
-    # password and domain are optional!
+    # 046243.python.validate_password.line29.comment password and domain are optional!
     password = None
     if len(sys.argv) >= 3:
         password = sys.argv[2]

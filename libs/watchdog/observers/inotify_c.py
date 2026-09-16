@@ -31,7 +31,7 @@ inotify_init = ctypes.CFUNCTYPE(c_int, use_errno=True)(("inotify_init", libc))
 
 
 class InotifyConstants:
-    # User-space events
+    # 045724.python.inotify_c.line34.comment User-space events
     IN_ACCESS = 0x00000001  # File was accessed.
     IN_MODIFY = 0x00000002  # File was modified.
     IN_ATTRIB = 0x00000004  # Meta-data changed.
@@ -45,15 +45,15 @@ class InotifyConstants:
     IN_DELETE_SELF = 0x00000400  # Self was deleted.
     IN_MOVE_SELF = 0x00000800  # Self was moved.
 
-    # Helper user-space events.
+    # 045737.python.inotify_c.line48.comment Helper user-space events.
     IN_MOVE = IN_MOVED_FROM | IN_MOVED_TO  # Moves.
 
-    # Events sent by the kernel to a watch.
+    # 045739.python.inotify_c.line51.comment Events sent by the kernel to a watch.
     IN_UNMOUNT = 0x00002000  # Backing file system was unmounted.
     IN_Q_OVERFLOW = 0x00004000  # Event queued overflowed.
     IN_IGNORED = 0x00008000  # File was ignored.
 
-    # Special flags.
+    # 045743.python.inotify_c.line56.comment Special flags.
     IN_ONLYDIR = 0x01000000  # Only watch the path if it's a directory.
     IN_DONT_FOLLOW = 0x02000000  # Do not follow a symbolic link.
     IN_EXCL_UNLINK = 0x04000000  # Exclude events on unlinked objects
@@ -61,7 +61,7 @@ class InotifyConstants:
     IN_ISDIR = 0x40000000  # Event occurred against directory.
     IN_ONESHOT = 0x80000000  # Only send event once.
 
-    # All user-space events.
+    # 045750.python.inotify_c.line64.comment All user-space events.
     IN_ALL_EVENTS = reduce(
         lambda x, y: x | y,
         [
@@ -80,12 +80,12 @@ class InotifyConstants:
         ],
     )
 
-    # Flags for ``inotify_init1``
+    # 045751.python.inotify_c.line83.comment Flags for ``inotify_init1``
     IN_CLOEXEC = 0x02000000
     IN_NONBLOCK = 0x00004000
 
 
-# Watchdog's API cares only about these events.
+# 045752.python.inotify_c.line88.comment Watchdog's API cares only about these events.
 WATCHDOG_ALL_EVENTS = reduce(
     lambda x, y: x | y,
     [
@@ -143,7 +143,7 @@ class Inotify:
     """
 
     def __init__(self, path: bytes, *, recursive: bool = False, event_mask: int | None = None) -> None:
-        # The file descriptor associated with the inotify instance.
+        # 045753.python.inotify_c.line146.comment The file descriptor associated with the inotify instance.
         inotify_fd = inotify_init()
         if inotify_fd == -1:
             Inotify._raise_error()
@@ -153,7 +153,7 @@ class Inotify:
         self._is_reading = True
         self._kill_r, self._kill_w = os.pipe()
 
-        # _check_inotify_fd will return true if we can read _inotify_fd without blocking
+        # 045754.python.inotify_c.line156.comment _check_inotify_fd will return true if we can read _inotify_fd without blocking
         if hasattr(select, "poll"):
             self._poller = select.poll()
             self._poller.register(self._inotify_fd, select.POLLIN)
@@ -171,12 +171,12 @@ class Inotify:
 
             self._check_inotify_fd = do_select
 
-        # Stores the watch descriptor for a given path.
+        # 045755.python.inotify_c.line174.comment Stores the watch descriptor for a given path.
         self._wd_for_path: dict[bytes, int] = {}
         self._path_for_wd: dict[int, bytes] = {}
 
         self._path = path
-        # Default to all events
+        # 045756.python.inotify_c.line179.comment Default to all events
         if event_mask is None:
             event_mask = WATCHDOG_ALL_EVENTS
         self._event_mask = event_mask
@@ -260,18 +260,18 @@ class Inotify:
                     inotify_rm_watch(self._inotify_fd, wd)
 
                 if self._is_reading:
-                    # inotify_rm_watch() should write data to _inotify_fd and wake
-                    # the thread, but writing to the kill channel will gaurentee this
+                    # 045757.python.inotify_c.line263.comment inotify_rm_watch() should write data to _inotify_fd and wake
+                    # 045758.python.inotify_c.line264.comment the thread, but writing to the kill channel will gaurentee this
                     os.write(self._kill_w, b"!")
                 else:
                     self._close_resources()
 
     def read_events(self, *, event_buffer_size: int = DEFAULT_EVENT_BUFFER_SIZE) -> list[InotifyEvent]:
         """Reads events from inotify and yields them."""
-        # HACK: We need to traverse the directory path
-        # recursively and simulate events for newly
-        # created subdirectories/files. This will handle
-        # mkdir -p foobar/blah/bar; touch foobar/afile
+        # 045759.python.inotify_c.line271.comment HACK: We need to traverse the directory path
+        # 045760.python.inotify_c.line272.comment recursively and simulate events for newly
+        # 045761.python.inotify_c.line273.comment created subdirectories/files. This will handle
+        # 045762.python.inotify_c.line274.comment mkdir -p foobar/blah/bar; touch foobar/afile
 
         def _recursive_simulate(src_path: bytes) -> list[InotifyEvent]:
             events = []
@@ -358,7 +358,7 @@ class Inotify:
                     inotify_event = InotifyEvent(wd, mask, cookie, name, src_path)
 
                 if inotify_event.is_ignored:
-                    # Clean up book-keeping for deleted watches.
+                    # 045764.python.inotify_c.line361.comment Clean up book-keeping for deleted watches.
                     path = self._path_for_wd.pop(wd)
                     if self._wd_for_path[path] == wd:
                         del self._wd_for_path[path]
@@ -366,13 +366,13 @@ class Inotify:
                 event_list.append(inotify_event)
 
                 if self.is_recursive and inotify_event.is_directory and inotify_event.is_create:
-                    # TODO: When a directory from another part of the
-                    # filesystem is moved into a watched directory, this
-                    # will not generate events for the directory tree.
-                    # We need to coalesce IN_MOVED_TO events and those
-                    # IN_MOVED_TO events which don't pair up with
-                    # IN_MOVED_FROM events should be marked IN_CREATE
-                    # instead relative to this directory.
+                    # 045765.python.inotify_c.line369.comment TODO: When a directory from another part of the
+                    # 045766.python.inotify_c.line370.comment filesystem is moved into a watched directory, this
+                    # 045767.python.inotify_c.line371.comment will not generate events for the directory tree.
+                    # 045768.python.inotify_c.line372.comment We need to coalesce IN_MOVED_TO events and those
+                    # 045769.python.inotify_c.line373.comment IN_MOVED_TO events which don't pair up with
+                    # 045770.python.inotify_c.line374.comment IN_MOVED_FROM events should be marked IN_CREATE
+                    # 045771.python.inotify_c.line375.comment instead relative to this directory.
                     try:
                         self._add_watch(src_path, self._event_mask)
                     except OSError:
@@ -387,7 +387,7 @@ class Inotify:
         os.close(self._kill_r)
         os.close(self._kill_w)
 
-    # Non-synchronized methods.
+    # 045772.python.inotify_c.line390.comment Non-synchronized methods.
     def _add_dir_watch(self, path: bytes, mask: int, *, recursive: bool) -> None:
         """Adds a watch (optionally recursively) for the given directory path
         to monitor events specified by the mask.
@@ -565,9 +565,9 @@ class InotifyEvent:
 
     @property
     def is_directory(self) -> bool:
-        # It looks like the kernel does not provide this information for
-        # IN_DELETE_SELF and IN_MOVE_SELF. In this case, assume it's a dir.
-        # See also: https://github.com/seb-m/pyinotify/blob/2c7e8f8/python2/pyinotify.py#L897
+        # 045773.python.inotify_c.line568.comment It looks like the kernel does not provide this information for
+        # 045774.python.inotify_c.line569.comment IN_DELETE_SELF and IN_MOVE_SELF. In this case, assume it's a dir.
+        # 045775.python.inotify_c.line570.comment See also: https://github.com/seb-m/pyinotify/blob/2c7e8f8/python2/pyinotify.py#L897
         return self.is_delete_self or self.is_move_self or self._mask & InotifyConstants.IN_ISDIR > 0
 
     @property

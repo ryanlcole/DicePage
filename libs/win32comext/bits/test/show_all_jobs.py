@@ -1,4 +1,4 @@
-# Dump lots of info about BITS jobs.
+# 051337.python.show_all_jobs.line1.comment Dump lots of info about BITS jobs.
 import pythoncom
 from win32com.bits import bits
 

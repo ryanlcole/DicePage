@@ -95,7 +95,7 @@ class FreeTypeGlyphRenderer(base.GlyphRenderer):
                 if c in mapping:
                     expanded_data[i * dst_len + j] = 255
                 elif c == 'A':
-                    # Default alpha to fully opaque
+                    # 026954.python.freetype.line98.comment Default alpha to fully opaque
                     expanded_data[i * dst_len + j] = default_value
                 else:
                     expanded_data[i * dst_len + j] = 255
@@ -104,15 +104,15 @@ class FreeTypeGlyphRenderer(base.GlyphRenderer):
 
     def _get_bitmap_data(self) -> None:
         if self._mode == FT_PIXEL_MODE_MONO:
-            # BCF fonts always render to 1 bit mono, regardless of render
-            # flags. (freetype 2.3.5)
+            # 026955.python.freetype.line107.comment BCF fonts always render to 1 bit mono, regardless of render
+            # 026956.python.freetype.line108.comment flags. (freetype 2.3.5)
             self._convert_mono_to_gray_bitmap()
         elif self._mode == FT_PIXEL_MODE_GRAY:
-            # Usual case
+            # 026957.python.freetype.line111.comment Usual case
             assert self._glyph_slot.bitmap.num_grays == 256
             self._data = self._glyph_slot.bitmap.buffer
         elif self._mode == FT_PIXEL_MODE_BGRA:
-            # as of freetype 2.5
+            # 026958.python.freetype.line115.comment as of freetype 2.5
             self._data = self._glyph_slot.bitmap.buffer
         else:
             msg = "Unsupported render mode for this glyph"
@@ -125,20 +125,20 @@ class FreeTypeGlyphRenderer(base.GlyphRenderer):
 
             data = (c_ubyte * (self._width * self._height))()
 
-            # Tightly pack the data, as freetype pads it.
+            # 026959.python.freetype.line128.comment Tightly pack the data, as freetype pads it.
             for y in range(self._height):
                 for x in range(self._width):
                     byte = bitmap_data[y * self._pitch + (x // 8)]
                     bit = 7 - (x % 8)  # Data is MSB; left-most pixel in a byte has value 128.
                     data[y * self._width + x] = 255 if (byte & (1 << bit)) else 0
         else:
-            # No pointer in the buffer, no default or fallback in this font.
+            # 026961.python.freetype.line135.comment No pointer in the buffer, no default or fallback in this font.
             data = (c_ubyte * 0)()
         self._data = data
         self._pitch = self._width
 
     def _create_glyph(self) -> base.Glyph:
-        # Textures should be a minimum of 1x1.
+        # 026962.python.freetype.line141.comment Textures should be a minimum of 1x1.
         if self._width == 0 and self._height == 0:
             width = 1
             height = 1
@@ -147,7 +147,7 @@ class FreeTypeGlyphRenderer(base.GlyphRenderer):
         else:
             width = self._width
             height = self._height
-            # If it's not in BGRA, convert it manually.
+            # 026963.python.freetype.line150.comment If it's not in BGRA, convert it manually.
             if self._mode != FT_PIXEL_MODE_BGRA:
                 size = self._width * self._height
                 ptr = cast(self._data, POINTER(c_ubyte * size))
@@ -162,9 +162,9 @@ class FreeTypeGlyphRenderer(base.GlyphRenderer):
         glyph = self.font.create_glyph(img)
         glyph.set_bearings(self._baseline, self._lsb, self._advance_x)
 
-        # In FT positive pitch means `down` flow, in Pyglet ImageData
-        # negative values indicate a top-to-bottom arrangement. So pitch must be inverted.
-        # Using negative pitch causes a CPU re-ordering. For now, swap texture coordinates for speed.
+        # 026964.python.freetype.line165.comment In FT positive pitch means `down` flow, in Pyglet ImageData
+        # 026965.python.freetype.line166.comment negative values indicate a top-to-bottom arrangement. So pitch must be inverted.
+        # 026966.python.freetype.line167.comment Using negative pitch causes a CPU re-ordering. For now, swap texture coordinates for speed.
         if self._pitch > 0:
             t = list(glyph.tex_coords)
             glyph.tex_coords = t[9:12] + t[6:9] + t[3:6] + t[:3]
@@ -211,7 +211,7 @@ class FreeTypeFont(base.Font):
     glyph_renderer_class = FreeTypeGlyphRenderer
     _glyph_renderer: FreeTypeGlyphRenderer
 
-    # Map font (name, weight, italic) to FreeTypeMemoryFace
+    # 026967.python.freetype.line214.comment Map font (name, weight, italic) to FreeTypeMemoryFace
     _memory_faces = MemoryFaceStore()
     face: FreeTypeFace
     fallbacks: list[FreeTypeFont]
@@ -250,7 +250,7 @@ class FreeTypeFont(base.Font):
 
     def _get_slot_from_fallbacks(self, character: str) -> FT_GlyphSlot | None:
         """Checks all fallback fonts in order to find a valid glyph index."""
-        # Check if fallback has this glyph, if so.
+        # 026968.python.freetype.line253.comment Check if fallback has this glyph, if so.
         for fallback_font in self.fallbacks:
             fb_index = fallback_font.face.get_character_index(character)
             if fb_index:
@@ -265,7 +265,7 @@ class FreeTypeFont(base.Font):
 
     def get_glyph_slot(self, character: str) -> FT_GlyphSlot:
         glyph_index = self.face.get_character_index(character)
-        # Glyph index does not exist, so check fallback fonts.
+        # 026969.python.freetype.line268.comment Glyph index does not exist, so check fallback fonts.
         if glyph_index == 0 and (self.name not in self.fallbacks):
             glyph_slot = self._get_slot_from_fallbacks(character)
             if glyph_slot is not None:
@@ -302,14 +302,14 @@ class FreeTypeFont(base.Font):
         face = FreeTypeMemoryFace(font_data, 0)
         cls._memory_faces.add(face)
         count = face.face_count
-        # Some fonts may be a collection. Load each one.
+        # 026970.python.freetype.line305.comment Some fonts may be a collection. Load each one.
         if count > 1:
             for i in range(1, count):
                 face = FreeTypeMemoryFace(font_data, i)
                 cls._memory_faces.add(face)
 
     def render_glyph_indices(self, indices: Sequence[int]):
-        # Process any glyphs that have not been rendered.
+        # 026971.python.freetype.line312.comment Process any glyphs that have not been rendered.
         self._initialize_renderer()
 
         missing = set()
@@ -317,7 +317,7 @@ class FreeTypeFont(base.Font):
             if glyph_indice not in self.glyphs:
                 missing.add(glyph_indice)
 
-        # Missing glyphs, get their info.
+        # 026972.python.freetype.line320.comment Missing glyphs, get their info.
         for glyph_indice in missing:
             self.glyphs[glyph_indice] = self._glyph_renderer.render_index(glyph_indice)
 
@@ -337,8 +337,8 @@ class FreeTypeFont(base.Font):
         else:
             glyphs = []  # glyphs that are committed.
             for idx, c in enumerate(text):
-                # Get the glyph for 'c'.  Hide tabs (Windows and Linux render
-                # boxes)
+                # 026974.python.freetype.line340.comment Get the glyph for 'c'.  Hide tabs (Windows and Linux render
+                # 026975.python.freetype.line341.comment boxes)
                 if c == "\t":
                     c = " "  # noqa: PLW2901
                 if c not in self.glyphs:
@@ -358,7 +358,7 @@ class FreeTypeFont(base.Font):
             slot = self.face.ft_face.contents.glyph.contents
 
             if i == length-1:
-                # Last glyph, use just the width.
+                # 026977.python.freetype.line361.comment Last glyph, use just the width.
                 width += slot.metrics.width >> 6
             else:
                 width += slot.advance.x >> 6
@@ -391,11 +391,11 @@ class FreeTypeFace:
         if bold:
             self._weight = "bold"
         else:
-            # Sometimes it may have a weight, but FT_STYLE_FLAG_BOLD is not accurate. Check the font config.
+            # 026978.python.freetype.line394.comment Sometimes it may have a weight, but FT_STYLE_FLAG_BOLD is not accurate. Check the font config.
             config = get_fontconfig()
             self._weight, italic, self._stretch = config.style_from_face(self.ft_face)
             if italic != self._italic:
-                # Discrepancy in italics?
+                # 026979.python.freetype.line398.comment Discrepancy in italics?
                 self._italic = italic
 
     @classmethod
@@ -505,12 +505,12 @@ class FreeTypeFace:
         return self._get_font_metrics_workaround()
 
     def _get_font_metrics_workaround(self) -> FreeTypeFontMetrics:
-        # Workaround broken fonts with no metrics.  Has been observed with
-        # courR12-ISO8859-1.pcf.gz: "Courier" "Regular"
-        #
-        # None of the metrics fields are filled in, so render a glyph and
-        # grab its height as the ascent, and make up an arbitrary
-        # descent.
+        # 026980.python.freetype.line508.comment Workaround broken fonts with no metrics.  Has been observed with
+        # 026981.python.freetype.line509.comment courR12-ISO8859-1.pcf.gz: "Courier" "Regular"
+        # 026982.python.freetype.line510.comment
+        # 026983.python.freetype.line511.comment None of the metrics fields are filled in, so render a glyph and
+        # 026984.python.freetype.line512.comment grab its height as the ascent, and make up an arbitrary
+        # 026985.python.freetype.line513.comment descent.
         i = self.get_character_index("X")
         self.get_glyph_slot(i)
         ascent = self.ft_face.contents.available_sizes.contents.height
@@ -522,9 +522,9 @@ class FreeTypeFace:
         self._get_font_family_from_ttf()
 
     def _get_font_family_from_ttf(self) -> None:
-        # Replace Freetype's generic family name with TTF/OpenType specific
-        # name if we can find one; there are some instances where Freetype
-        # gets it wrong.
+        # 026987.python.freetype.line525.comment Replace Freetype's generic family name with TTF/OpenType specific
+        # 026988.python.freetype.line526.comment name if we can find one; there are some instances where Freetype
+        # 026989.python.freetype.line527.comment gets it wrong.
 
         return  # FIXME: This is broken
 
@@ -536,7 +536,7 @@ class FreeTypeFace:
                     if not (name.platform_id == TT_PLATFORM_MICROSOFT and
                             name.encoding_id == TT_MS_ID_UNICODE_CS):
                         continue
-                    # name.string is not 0 terminated! use name.string_len
+                    # 026991.python.freetype.line539.comment name.string is not 0 terminated! use name.string_len
                     self._name = name.string.decode("utf-16be", "ignore")
                 except:
                     continue

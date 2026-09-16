@@ -1,5 +1,5 @@
-# shaelvien_sound.py
-# ShaelvienOS — Analog-like continuous output (sounddevice) with silent fallback
+# 052588.python.shaelvien_sound.line1.comment shaelvien_sound.py
+# 052589.python.shaelvien_sound.line2.comment ShaelvienOS — Analog-like continuous output (sounddevice) with silent fallback
 
 import threading, time, math
 
@@ -28,7 +28,7 @@ class ShaelvienSound(threading.Thread):
         self.running = True
         log.success("[Sound] Core started (%s).", AUDIO_MODE)
         if AUDIO_MODE != "analog_stream":
-            # Silent mode: keep thread alive but do nothing
+            # 052590.python.shaelvien_sound.line31.comment Silent mode: keep thread alive but do nothing
             while self.running:
                 time.sleep(0.2)
             log.warning("[Sound] Core stopped (silent mode).")

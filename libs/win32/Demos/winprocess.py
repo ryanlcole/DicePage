@@ -184,7 +184,7 @@ def run(cmd, mSec=None, stdin=None, stdout=None, stderr=None, **kw):
 
 
 if __name__ == "__main__":
-    # Pipe commands to a shell and display the output in notepad
+    # 046664.python.winprocess.line187.comment Pipe commands to a shell and display the output in notepad
     print("Testing winprocess.py...")
 
     import tempfile

@@ -6,15 +6,15 @@ from distutils.tests import support
 
 class TestBuild(support.TempdirManager):
     def test_formats(self):
-        # let's create a command and make sure
-        # we can set the format
+        # 040843.python.test_bdist.line9.comment let's create a command and make sure
+        # 040844.python.test_bdist.line10.comment we can set the format
         dist = self.create_dist()[1]
         cmd = bdist(dist)
         cmd.formats = ['gztar']
         cmd.ensure_finalized()
         assert cmd.formats == ['gztar']
 
-        # what formats does bdist offer?
+        # 040845.python.test_bdist.line17.comment what formats does bdist offer?
         formats = [
             'bztar',
             'gztar',
@@ -28,7 +28,7 @@ class TestBuild(support.TempdirManager):
         assert found == formats
 
     def test_skip_build(self):
-        # bug #10946: bdist --skip-build should trickle down to subcommands
+        # 040846.python.test_bdist.line31.comment bug #10946: bdist --skip-build should trickle down to subcommands
         dist = self.create_dist()[1]
         cmd = bdist(dist)
         cmd.skip_build = True
@@ -42,6 +42,6 @@ class TestBuild(support.TempdirManager):
         for name in names:
             subcmd = cmd.get_finalized_command(name)
             if getattr(subcmd, '_unsupported', False):
-                # command is not supported on this build
+                # 040848.python.test_bdist.line45.comment command is not supported on this build
                 continue
             assert subcmd.skip_build, f'{name} should take --skip-build from bdist'

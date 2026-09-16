@@ -62,8 +62,8 @@ class _VoiceResetter:
             self.remaining_data.clear()
             pyglet.clock.schedule_once(self._finish, 0)
 
-    # Always schedule finish to make sure we're not returning the voice in an
-    # XAudio callback. Should give the correct result for samples played.
+    # 035168.python.interface.line65.comment Always schedule finish to make sure we're not returning the voice in an
+    # 035169.python.interface.line66.comment XAudio callback. Should give the correct result for samples played.
     def _finish(self, *_):
         self.voice._callback.on_buffer_end = None
         self.voice.samples_played_at_last_recycle = self.voice.samples_played
@@ -90,9 +90,9 @@ class XA2EngineCallback(com.COMObject):
         self._lock.release()
 
     def OnCriticalError(self, hresult):
-        # This is a textbook bad example, yes.
-        # It's probably safe though: assuming that XA2 has ceased to operate if we ever end up
-        # here, nothing can release the lock in between.
+        # 035170.python.interface.line93.comment This is a textbook bad example, yes.
+        # 035171.python.interface.line94.comment It's probably safe though: assuming that XA2 has ceased to operate if we ever end up
+        # 035172.python.interface.line95.comment here, nothing can release the lock in between.
         if self._lock.locked():
             self._lock.release()
         raise Exception("Critical Error:", hresult)
@@ -123,19 +123,19 @@ class XAudio2VoiceCallback(com.COMObject):
 
 
 class XAudio2Driver:
-    # Specifies if positional audio should be used. Can be enabled later, but not disabled.
+    # 035173.python.interface.line126.comment Specifies if positional audio should be used. Can be enabled later, but not disabled.
     allow_3d = True
 
-    # Which processor to use. (#1 by default)
+    # 035174.python.interface.line129.comment Which processor to use. (#1 by default)
     processor = lib.XAUDIO2_DEFAULT_PROCESSOR
 
-    # Which stream classification Windows uses on this driver.
+    # 035175.python.interface.line132.comment Which stream classification Windows uses on this driver.
     category = lib.AudioCategory_GameEffects
 
-    # If the driver errors or disappears, it will attempt to restart the engine.
+    # 035176.python.interface.line135.comment If the driver errors or disappears, it will attempt to restart the engine.
     restart_on_error = True
 
-    # Max Frequency a voice can have. Setting this higher/lower will increase/decrease memory allocation.
+    # 035177.python.interface.line138.comment Max Frequency a voice can have. Setting this higher/lower will increase/decrease memory allocation.
     max_frequency_ratio = 2.0
 
     def __init__(self):
@@ -148,15 +148,15 @@ class XAudio2Driver:
         self._xaudio2 = None
         self._dead = False
 
-        # A lock that will prevent XAudio2 from running any callbacks (processing audio at all)
-        # while it is held. Must be acquired by audio players in certain situations in order to
-        # ensure that the following, very unlikely, sequence of events does not happen:
-        # - an on_buffer_end callback is made
-        # - python creates a dummy thread to run its code
-        # - very early on, before it could acquire any protective locks, the thread is suspended
-        #   and the main thread runs
-        # - the main thread runs a critical operation on the player such as `delete` to completion
-        # - the callback is resumed and breaks as the audio player is deleted.
+        # 035178.python.interface.line151.comment A lock that will prevent XAudio2 from running any callbacks (processing audio at all)
+        # 035179.python.interface.line152.comment while it is held. Must be acquired by audio players in certain situations in order to
+        # 035180.python.interface.line153.comment ensure that the following, very unlikely, sequence of events does not happen:
+        # 035181.python.interface.line154.comment - an on_buffer_end callback is made
+        # 035182.python.interface.line155.comment - python creates a dummy thread to run its code
+        # 035183.python.interface.line156.comment - very early on, before it could acquire any protective locks, the thread is suspended
+        # 035184.python.interface.line157.comment and the main thread runs
+        # 035185.python.interface.line158.comment - the main thread runs a critical operation on the player such as `delete` to completion
+        # 035186.python.interface.line159.comment - the callback is resumed and breaks as the audio player is deleted.
         self.lock = threading.Lock()
         self._engine_callback = XA2EngineCallback(self.lock)
 
@@ -189,7 +189,7 @@ class XAudio2Driver:
         else:
             if not self._xaudio2:
                 self._create_xa2()
-                # Notify all active it's reset.
+                # 035191.python.interface.line192.comment Notify all active it's reset.
                 for player in self._players:
                     player.dispatch_event('on_driver_reset')
 
@@ -215,9 +215,9 @@ class XAudio2Driver:
             raise ImportError("XAudio2 driver could not be initialized.")
 
         if _debug:
-            # Debug messages are found in Windows Event Viewer, you must enable event logging:
-            # Applications and Services -> Microsoft -> Windows -> Xaudio2 -> Debug Logging.
-            # Right click -> Enable Logs
+            # 035192.python.interface.line218.comment Debug messages are found in Windows Event Viewer, you must enable event logging:
+            # 035193.python.interface.line219.comment Applications and Services -> Microsoft -> Windows -> Xaudio2 -> Debug Logging.
+            # 035194.python.interface.line220.comment Right click -> Enable Logs
             debug = lib.XAUDIO2_DEBUG_CONFIGURATION()
             debug.LogThreadID = True
             debug.TraceMask = lib.XAUDIO2_LOG_ERRORS | lib.XAUDIO2_LOG_WARNINGS
@@ -265,7 +265,7 @@ class XAudio2Driver:
         self._shutdown_xaudio2()
         self._create_xa2(device.id)
 
-        # Notify all active players it's reset.
+        # 035195.python.interface.line268.comment Notify all active players it's reset.
         for player in self._players:
             player.dispatch_event('on_driver_reset')
 
@@ -282,11 +282,11 @@ class XAudio2Driver:
     def _delete_driver(self):
         if self._xaudio2:
             assert _debug("XAudio2Driver: Deleting")
-            # Stop 3d
+            # 035196.python.interface.line285.comment Stop 3d
             if self.allow_3d:
                 pyglet.clock.unschedule(self._calculate_3d_sources)
 
-            # Destroy all pooled voices as master will change.
+            # 035197.python.interface.line289.comment Destroy all pooled voices as master will change.
             self._destroy_voices()
 
             self._xaudio2.UnregisterForCallbacks(self._engine_callback)
@@ -400,9 +400,9 @@ class XAudio2Driver:
         voice_key = (audio_format.channels, audio_format.sample_size)
         if not self._voice_pool[voice_key]:
             voice = self._create_new_voice(audio_format)
-            # Create a 2nd one for good measure, multiple players might be needing it soon,
-            # and a clear command will probably complete more quickly when swapping out for a
-            # pooled voice
+            # 035198.python.interface.line403.comment Create a 2nd one for good measure, multiple players might be needing it soon,
+            # 035199.python.interface.line404.comment and a clear command will probably complete more quickly when swapping out for a
+            # 035200.python.interface.line405.comment pooled voice
             self._voice_pool[voice_key].append(self._create_new_voice(audio_format))
         else:
             voice = self._voice_pool[voice_key].pop()
@@ -442,24 +442,24 @@ class XA2SourceVoice:
         self.channel_count = channel_count
         self.sample_size = sample_size
 
-        # How many samples the voice had played when it was most recently re-added into the
-        # pool of available voices.
+        # 035202.python.interface.line445.comment How many samples the voice had played when it was most recently re-added into the
+        # 035203.python.interface.line446.comment pool of available voices.
         self.samples_played_at_last_recycle = 0
 
-        # If it's a mono source, then we can make it an emitter.
-        # In the future, non-mono source's can be supported as well.
+        # 035204.python.interface.line449.comment If it's a mono source, then we can make it an emitter.
+        # 035205.python.interface.line450.comment In the future, non-mono source's can be supported as well.
         if channel_count == 1:
             self._emitter = lib.X3DAUDIO_EMITTER()
             self._emitter.ChannelCount = channel_count
             self._emitter.CurveDistanceScaler = 1.0
 
-            # Commented are already set by the Player class.
-            # Leaving for visibility on default values
+            # 035206.python.interface.line456.comment Commented are already set by the Player class.
+            # 035207.python.interface.line457.comment Leaving for visibility on default values
             cone = lib.X3DAUDIO_CONE()
-            # cone.InnerAngle = math.radians(360)
-            # cone.OuterAngle = math.radians(360)
+            # 035208.python.interface.line459.comment cone.InnerAngle = math.radians(360)
+            # 035209.python.interface.line460.comment cone.OuterAngle = math.radians(360)
             cone.InnerVolume = 1.0
-            # cone.OuterVolume = 1.0
+            # 035210.python.interface.line462.comment cone.OuterVolume = 1.0
 
             self._emitter.pCone = pointer(cone)
             self._emitter.pVolumeCurve = None
@@ -631,8 +631,8 @@ class XAudio2Listener:
         self.xa2_driver = weakref.proxy(driver)
         self.listener = lib.X3DAUDIO_LISTENER()
 
-        # Default listener orientations for DirectSound/XAudio2:
-        # Front: (0, 0, 1), Up: (0, 1, 0)
+        # 035211.python.interface.line634.comment Default listener orientations for DirectSound/XAudio2:
+        # 035212.python.interface.line635.comment Front: (0, 0, 1), Up: (0, 1, 0)
         self.listener.OrientFront.x = 0
         self.listener.OrientFront.y = 0
         self.listener.OrientFront.z = 1

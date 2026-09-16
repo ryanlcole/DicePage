@@ -6,10 +6,10 @@ import win32security
 
 
 def ReadLog(computer, logType="Application", dumpEachRecord=0):
-    # read the entire log back.
+    # 046058.python.eventLogDemo.line9.comment read the entire log back.
     h = win32evtlog.OpenEventLog(computer, logType)
     numRecords = win32evtlog.GetNumberOfEventLogRecords(h)
-    # print(f"There are {numRecords} records")
+    # 046059.python.eventLogDemo.line12.comment print(f"There are {numRecords} records")
 
     num = 0
     while 1:
@@ -21,7 +21,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
         if not objects:
             break
         for object in objects:
-            # get it for testing purposes, but don't print it.
+            # 046060.python.eventLogDemo.line24.comment get it for testing purposes, but don't print it.
             msg = win32evtlogutil.SafeFormatMessage(object, logType)
             if object.Sid is not None:
                 try:

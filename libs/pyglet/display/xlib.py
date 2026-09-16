@@ -50,15 +50,15 @@ class NoSuchDisplayException(Exception):
     pass
 
 
-# Set up error handler
+# 026273.python.xlib.line53.comment Set up error handler
 def _error_handler(display, event):
-    # By default, all errors are silently ignored: this has a better chance
-    # of working than the default behaviour of quitting ;-)
-    #
-    # We've actually never seen an error that was our fault; they're always
-    # driver bugs (and so the reports are useless).  Nevertheless, set
-    # environment variable PYGLET_DEBUG_X11 to 1 to get dumps of the error
-    # and a traceback (execution will continue).
+    # 026274.python.xlib.line55.comment By default, all errors are silently ignored: this has a better chance
+    # 026275.python.xlib.line56.comment of working than the default behaviour of quitting ;-)
+    # 026276.python.xlib.line57.comment
+    # 026277.python.xlib.line58.comment We've actually never seen an error that was our fault; they're always
+    # 026278.python.xlib.line59.comment driver bugs (and so the reports are useless).  Nevertheless, set
+    # 026279.python.xlib.line60.comment environment variable PYGLET_DEBUG_X11 to 1 to get dumps of the error
+    # 026280.python.xlib.line61.comment and a traceback (execution will continue).
     if pyglet.options['debug_x11']:
         event = event.contents
         buf = c_buffer(1024)
@@ -84,7 +84,7 @@ class XlibDisplay(XlibSelectDevice, Display):
     _display = None  # POINTER(xlib.Display)
 
     _x_im = None  # X input method
-    # TODO close _x_im when display connection closed.
+    # 026283.python.xlib.line87.comment TODO close _x_im when display connection closed.
     _enable_xsync = False
     _screens: list[XlibScreen | XlibScreenXrandr | XlibScreenXinerama]
 
@@ -112,7 +112,7 @@ class XlibDisplay(XlibSelectDevice, Display):
         self._fileno = xlib.XConnectionNumber(self._display)
         self._window_map = {}
 
-        # Initialise XSync
+        # 026284.python.xlib.line115.comment Initialise XSync
         if _have_xsync:
             event_base = c_int()
             error_base = c_int()
@@ -122,7 +122,7 @@ class XlibDisplay(XlibSelectDevice, Display):
                 if xsync.XSyncInitialize(self._display, byref(major_version), byref(minor_version)):
                     self._enable_xsync = True
 
-        # Add to event loop select list.  Assume we never go away.
+        # 026285.python.xlib.line125.comment Add to event loop select list.  Assume we never go away.
         app.platform_event_loop.select_devices.add(self)
 
     def get_default_screen(self) -> Screen:
@@ -132,13 +132,13 @@ class XlibDisplay(XlibSelectDevice, Display):
                 if screen.is_primary:
                     return screen
 
-        # Couldn't find a default screen, use the first in the list.
+        # 026286.python.xlib.line135.comment Couldn't find a default screen, use the first in the list.
         return self._screens[0]
 
     def get_screens(self) -> list[XlibScreen]:
         self._screens = []
 
-        # Use XRandr if available, as it appears more maintained and widely supported.
+        # 026287.python.xlib.line141.comment Use XRandr if available, as it appears more maintained and widely supported.
         if _have_xrandr:
             root = xlib.XDefaultRootWindow(self._display)
 
@@ -193,13 +193,13 @@ class XlibDisplay(XlibSelectDevice, Display):
                 )
             xlib.XFree(infos)
         elif not self._screens:
-            # No xinerama
+            # 026288.python.xlib.line196.comment No xinerama
             screen_info = xlib.XScreenOfDisplay(self._display, self.x_screen)
             screen = XlibScreen(self, 0, 0, screen_info.contents.width, screen_info.contents.height)
             self._screens = [screen]
         return self._screens
 
-    # XlibSelectDevice interface
+    # 026289.python.xlib.line202.comment XlibSelectDevice interface
 
     def fileno(self) -> int:
         return self._fileno
@@ -209,8 +209,8 @@ class XlibDisplay(XlibSelectDevice, Display):
         while xlib.XPending(self._display):
             xlib.XNextEvent(self._display, e)
 
-            # Key events are filtered by the xlib window event
-            # handler so they get a shot at the prefiltered event.
+            # 026290.python.xlib.line212.comment Key events are filtered by the xlib window event
+            # 026291.python.xlib.line213.comment handler so they get a shot at the prefiltered event.
             if e.xany.type not in (xlib.KeyPress, xlib.KeyRelease):
                 if xlib.XFilterEvent(e, e.xany.window):
                     continue
@@ -255,7 +255,7 @@ class XlibScreen(Screen):
     def get_matching_configs(self, template: Config):
         canvas = XlibCanvas(self.display, None)
         configs = template.match(canvas)
-        # XXX deprecate
+        # 026292.python.xlib.line258.comment XXX deprecate
         for config in configs:
             config.screen = self
         return configs
@@ -270,7 +270,7 @@ class XlibScreen(Screen):
 
         depth = xlib.XDefaultDepth(self.display._display, self.display.x_screen)
 
-        # Copy modes out of list and free list
+        # 026293.python.xlib.line273.comment Copy modes out of list and free list
         modes = []
         for i in range(count.value):
             info = xf86vmode.XF86VidModeModeInfo()
@@ -313,11 +313,11 @@ class XlibScreen(Screen):
             self.set_mode(self._initial_mode)
 
     def get_display_id(self) -> int:
-        # No real unique ID is available, just hash together the properties.
+        # 026294.python.xlib.line316.comment No real unique ID is available, just hash together the properties.
         return hash((self.x, self.y, self.width, self.height))
 
     def get_monitor_name(self) -> str:
-        # No way to get any screen name without XRandr or EDID information.
+        # 026295.python.xlib.line320.comment No way to get any screen name without XRandr or EDID information.
         return "Unknown"
 
     def __repr__(self):
@@ -334,14 +334,14 @@ class XlibScreenXinerama(XlibScreen):
         self.idx = idx
 
     def get_display_id(self) -> int:
-        # No real unique ID is available, just hash together the properties.
+        # 026296.python.xlib.line337.comment No real unique ID is available, just hash together the properties.
         return hash((self.idx, self.x, self.y, self.width, self.height))
 
     def get_modes(self):
         if self._xinerama:
-            # If Xinerama/TwinView is enabled, xf86vidmode's modelines
-            # correspond to metamodes, which don't distinguish one screen from
-            # another.  XRandR (broken) or NV (complicated) extensions needed.
+            # 026297.python.xlib.line342.comment If Xinerama/TwinView is enabled, xf86vidmode's modelines
+            # 026298.python.xlib.line343.comment correspond to metamodes, which don't distinguish one screen from
+            # 026299.python.xlib.line344.comment another.  XRandR (broken) or NV (complicated) extensions needed.
             return []
 
         return super().get_modes()
@@ -435,7 +435,7 @@ class XlibScreenXrandr(XlibScreen):
         return modes
 
     def get_mode(self) -> XlibScreenModeXrandr | None:
-        # Return the current mode.
+        # 026300.python.xlib.line438.comment Return the current mode.
         root = xlib.XDefaultRootWindow(self.display._display)
         res_ptr = xrandr.XRRGetScreenResourcesCurrent(self.display._display, root)
         crtc_info_ptr = xrandr.XRRGetCrtcInfo(self.display._display, res_ptr, self.crtc_id)

@@ -93,7 +93,7 @@ class TestWheelCompatibility:
     )
 
     EGG_INFO_OPTS = [
-        # Related: #3088 #2872
+        # 045363.python.test_dist_info.line96.comment Related: #3088 #2872
         ("", ""),
         (".post", "[egg_info]\ntag_build = post\n"),
         (".post", "[egg_info]\ntag_build = .post\n"),

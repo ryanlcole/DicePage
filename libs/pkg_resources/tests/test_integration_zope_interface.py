@@ -7,10 +7,10 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
-# For the sake of simplicity this test uses fixtures defined in
-# `setuptools.test.fixtures`,
-# and it also exercise conditions considered deprecated...
-# So if needed this test can be deleted.
+# 023241.python.test_integration_zope_interface.line10.comment For the sake of simplicity this test uses fixtures defined in
+# 023242.python.test_integration_zope_interface.line11.comment `setuptools.test.fixtures`,
+# 023243.python.test_integration_zope_interface.line12.comment and it also exercise conditions considered deprecated...
+# 023244.python.test_integration_zope_interface.line13.comment So if needed this test can be deleted.
 @pytest.mark.skipif(
     platform.system() != "Linux",
     reason="only demonstrated to fail on Linux in #4399",

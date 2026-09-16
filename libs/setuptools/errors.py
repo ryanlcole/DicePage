@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from distutils import errors as _distutils_errors
 
-# Re-export errors from distutils to facilitate the migration to PEP632
+# 044875.python.errors.line10.comment Re-export errors from distutils to facilitate the migration to PEP632
 
 ByteCompileError = _distutils_errors.DistutilsByteCompileError
 CCompilerError = _distutils_errors.CCompilerError
@@ -26,7 +26,7 @@ SetupError = _distutils_errors.DistutilsSetupError
 TemplateError = _distutils_errors.DistutilsTemplateError
 UnknownFileError = _distutils_errors.UnknownFileError
 
-# The root error class in the hierarchy
+# 044876.python.errors.line29.comment The root error class in the hierarchy
 BaseError = _distutils_errors.DistutilsError
 
 

@@ -63,11 +63,11 @@ class Caret(EventDispatcher):
     _click_count: int = 0
     _click_time: float = 0
 
-    #: Blink period, in seconds.
+    # 035655.python.caret.line66.comment : Blink period, in seconds.
     PERIOD: float = 0.5
 
-    #: Pixels to scroll viewport per mouse scroll wheel movement.
-    #: Defaults to 12pt at 96dpi.
+    # 035656.python.caret.line69.comment : Pixels to scroll viewport per mouse scroll wheel movement.
+    # 035657.python.caret.line70.comment : Defaults to 12pt at 96dpi.
     SCROLL_INCREMENT: int = 12 * 96 // 72
 
     _mark: int | None = None
@@ -98,10 +98,10 @@ class Caret(EventDispatcher):
         self._batch = batch or layout.batch
         self._group = layout.foreground_decoration_group
 
-        # Handle both 3 and 4 byte colors
+        # 035658.python.caret.line101.comment Handle both 3 and 4 byte colors
         r, g, b, *a = color
 
-        # The alpha value when not in a hidden blink state
+        # 035659.python.caret.line104.comment The alpha value when not in a hidden blink state
         self._visible_alpha = a[0] if a else 255
 
         colors = r, g, b, self._visible_alpha, r, g, b, self._visible_alpha
@@ -151,7 +151,7 @@ class Caret(EventDispatcher):
         else:
             alpha = 0
 
-        # Only set the alpha rather than entire colors
+        # 035661.python.caret.line154.comment Only set the alpha rather than entire colors
         self._list.colors[3] = alpha
         self._list.colors[7] = alpha
 
@@ -199,7 +199,7 @@ class Caret(EventDispatcher):
     def color(self, color: tuple[int, int, int, int] | tuple[int, int, int]) -> None:
         r, g, b, *_a = color
 
-        # Preserve alpha when setting an RGB color
+        # 035663.python.caret.line202.comment Preserve alpha when setting an RGB color
         a = _a[0] if _a else self._list.colors[3]
 
         self._list.colors[:] = r, g, b, a, r, g, b, a

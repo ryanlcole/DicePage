@@ -1,6 +1,6 @@
-# SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
-# Licensed to PSF under a Contributor Agreement.
+# 043307.python.parser.line1.comment SPDX-License-Identifier: MIT
+# 043308.python.parser.line2.comment SPDX-FileCopyrightText: 2021 Taneli Hukkinen
+# 043309.python.parser.line3.comment Licensed to PSF under a Contributor Agreement.
 
 from __future__ import annotations
 
@@ -21,8 +21,8 @@ from ._types import Key, ParseFloat, Pos
 
 ASCII_CTRL = frozenset(chr(i) for i in range(32)) | frozenset(chr(127))
 
-# Neither of these sets include quotation mark or backslash. They are
-# currently handled as separate cases in the parser functions.
+# 043310.python.parser.line24.comment Neither of these sets include quotation mark or backslash. They are
+# 043311.python.parser.line25.comment currently handled as separate cases in the parser functions.
 ILLEGAL_BASIC_STR_CHARS = ASCII_CTRL - frozenset("\t")
 ILLEGAL_MULTILINE_BASIC_STR_CHARS = ASCII_CTRL - frozenset("\t\n")
 
@@ -69,28 +69,28 @@ def load(__fp: BinaryIO, *, parse_float: ParseFloat = float) -> dict[str, Any]:
 def loads(__s: str, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # noqa: C901
     """Parse TOML from a string."""
 
-    # The spec allows converting "\r\n" to "\n", even in string
-    # literals. Let's do so to simplify parsing.
+    # 043320.python.parser.line72.comment The spec allows converting "\r\n" to "\n", even in string
+    # 043321.python.parser.line73.comment literals. Let's do so to simplify parsing.
     src = __s.replace("\r\n", "\n")
     pos = 0
     out = Output(NestedDict(), Flags())
     header: Key = ()
     parse_float = make_safe_parse_float(parse_float)
 
-    # Parse one statement at a time
-    # (typically means one line in TOML source)
+    # 043322.python.parser.line80.comment Parse one statement at a time
+    # 043323.python.parser.line81.comment (typically means one line in TOML source)
     while True:
-        # 1. Skip line leading whitespace
+        # 043324.python.parser.line83.comment 1. Skip line leading whitespace
         pos = skip_chars(src, pos, TOML_WS)
 
-        # 2. Parse rules. Expect one of the following:
-        #    - end of file
-        #    - end of line
-        #    - comment
-        #    - key/value pair
-        #    - append dict to list (and move to its namespace)
-        #    - create dict (and move to its namespace)
-        # Skip trailing whitespace when applicable.
+        # 043325.python.parser.line86.comment 2. Parse rules. Expect one of the following:
+        # 043326.python.parser.line87.comment - end of file
+        # 043327.python.parser.line88.comment - end of line
+        # 043328.python.parser.line89.comment - comment
+        # 043329.python.parser.line90.comment - key/value pair
+        # 043330.python.parser.line91.comment - append dict to list (and move to its namespace)
+        # 043331.python.parser.line92.comment - create dict (and move to its namespace)
+        # 043332.python.parser.line93.comment Skip trailing whitespace when applicable.
         try:
             char = src[pos]
         except IndexError:
@@ -115,10 +115,10 @@ def loads(__s: str, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # no
         elif char != "#":
             raise suffixed_err(src, pos, "Invalid statement")
 
-        # 3. Skip comment
+        # 043333.python.parser.line118.comment 3. Skip comment
         pos = skip_comment(src, pos)
 
-        # 4. Expect end of line or end of file
+        # 043334.python.parser.line121.comment 4. Expect end of line or end of file
         try:
             char = src[pos]
         except IndexError:
@@ -135,10 +135,10 @@ def loads(__s: str, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # no
 class Flags:
     """Flags that map to parsed keys/namespaces."""
 
-    # Marks an immutable namespace (inline array or inline table).
+    # 043335.python.parser.line138.comment Marks an immutable namespace (inline array or inline table).
     FROZEN = 0
-    # Marks a nest that has been explicitly created and can no longer
-    # be opened using the "[table]" syntax.
+    # 043336.python.parser.line140.comment Marks a nest that has been explicitly created and can no longer
+    # 043337.python.parser.line141.comment be opened using the "[table]" syntax.
     EXPLICIT_NEST = 1
 
     def __init__(self) -> None:
@@ -192,7 +192,7 @@ class Flags:
 
 class NestedDict:
     def __init__(self) -> None:
-        # The parsed content of the TOML document
+        # 043340.python.parser.line195.comment The parsed content of the TOML document
         self.dict: dict[str, Any] = {}
 
     def get_or_create_nest(
@@ -306,9 +306,9 @@ def create_list_rule(src: str, pos: Pos, out: Output) -> tuple[Pos, Key]:
 
     if out.flags.is_(key, Flags.FROZEN):
         raise suffixed_err(src, pos, f"Cannot mutate immutable namespace {key}")
-    # Free the namespace now that it points to another empty list item...
+    # 043343.python.parser.line309.comment Free the namespace now that it points to another empty list item...
     out.flags.unset_all(key)
-    # ...but this key precisely is still prohibited from table declaration
+    # 043344.python.parser.line311.comment ...but this key precisely is still prohibited from table declaration
     out.flags.set(key, Flags.EXPLICIT_NEST, recursive=False)
     try:
         out.data.append_nest_to_list(key)
@@ -329,11 +329,11 @@ def key_value_rule(
 
     relative_path_cont_keys = (header + key[:i] for i in range(1, len(key)))
     for cont_key in relative_path_cont_keys:
-        # Check that dotted key syntax does not redefine an existing table
+        # 043345.python.parser.line332.comment Check that dotted key syntax does not redefine an existing table
         if out.flags.is_(cont_key, Flags.EXPLICIT_NEST):
             raise suffixed_err(src, pos, f"Cannot redefine namespace {cont_key}")
-        # Containers in the relative path can't be opened with the table syntax or
-        # dotted key/value syntax in following table sections.
+        # 043346.python.parser.line335.comment Containers in the relative path can't be opened with the table syntax or
+        # 043347.python.parser.line336.comment dotted key/value syntax in following table sections.
         out.flags.add_pending(cont_key, Flags.EXPLICIT_NEST)
 
     if out.flags.is_(abs_key_parent, Flags.FROZEN):
@@ -347,7 +347,7 @@ def key_value_rule(
         raise suffixed_err(src, pos, "Cannot overwrite a value") from None
     if key_stem in nest:
         raise suffixed_err(src, pos, "Cannot overwrite a value")
-    # Mark inline table and array namespaces recursively immutable
+    # 043348.python.parser.line350.comment Mark inline table and array namespaces recursively immutable
     if isinstance(value, (dict, list)):
         out.flags.set(header + key, Flags.FROZEN, recursive=True)
     nest[key_stem] = value
@@ -471,8 +471,8 @@ def parse_basic_str_escape(
     escape_id = src[pos : pos + 2]
     pos += 2
     if multiline and escape_id in {"\\ ", "\\\t", "\\\n"}:
-        # Skip whitespace until next non-whitespace character or end of
-        # the doc. Error if non-whitespace is found before newline.
+        # 043349.python.parser.line474.comment Skip whitespace until next non-whitespace character or end of
+        # 043350.python.parser.line475.comment the doc. Error if non-whitespace is found before newline.
         if escape_id != "\\\n":
             pos = skip_chars(src, pos, TOML_WS)
             try:
@@ -538,8 +538,8 @@ def parse_multiline_str(src: str, pos: Pos, *, literal: bool) -> tuple[Pos, str]
         delim = '"'
         pos, result = parse_basic_str(src, pos, multiline=True)
 
-    # Add at maximum two extra apostrophes/quotes if the end sequence
-    # is 4 or 5 chars long instead of just 3.
+    # 043353.python.parser.line541.comment Add at maximum two extra apostrophes/quotes if the end sequence
+    # 043354.python.parser.line542.comment is 4 or 5 chars long instead of just 3.
     if not src.startswith(delim, pos):
         return pos, result
     pos += 1
@@ -589,21 +589,21 @@ def parse_value(  # noqa: C901
     except IndexError:
         char = None
 
-    # IMPORTANT: order conditions based on speed of checking and likelihood
+    # 043356.python.parser.line592.comment IMPORTANT: order conditions based on speed of checking and likelihood
 
-    # Basic strings
+    # 043357.python.parser.line594.comment Basic strings
     if char == '"':
         if src.startswith('"""', pos):
             return parse_multiline_str(src, pos, literal=False)
         return parse_one_line_basic_str(src, pos)
 
-    # Literal strings
+    # 043358.python.parser.line600.comment Literal strings
     if char == "'":
         if src.startswith("'''", pos):
             return parse_multiline_str(src, pos, literal=True)
         return parse_literal_str(src, pos)
 
-    # Booleans
+    # 043359.python.parser.line606.comment Booleans
     if char == "t":
         if src.startswith("true", pos):
             return pos + 4, True
@@ -611,15 +611,15 @@ def parse_value(  # noqa: C901
         if src.startswith("false", pos):
             return pos + 5, False
 
-    # Arrays
+    # 043360.python.parser.line614.comment Arrays
     if char == "[":
         return parse_array(src, pos, parse_float)
 
-    # Inline tables
+    # 043361.python.parser.line618.comment Inline tables
     if char == "{":
         return parse_inline_table(src, pos, parse_float)
 
-    # Dates and times
+    # 043362.python.parser.line622.comment Dates and times
     datetime_match = RE_DATETIME.match(src, pos)
     if datetime_match:
         try:
@@ -631,14 +631,14 @@ def parse_value(  # noqa: C901
     if localtime_match:
         return localtime_match.end(), match_to_localtime(localtime_match)
 
-    # Integers and "normal" floats.
-    # The regex will greedily match any type starting with a decimal
-    # char, so needs to be located after handling of dates and times.
+    # 043363.python.parser.line634.comment Integers and "normal" floats.
+    # 043364.python.parser.line635.comment The regex will greedily match any type starting with a decimal
+    # 043365.python.parser.line636.comment char, so needs to be located after handling of dates and times.
     number_match = RE_NUMBER.match(src, pos)
     if number_match:
         return number_match.end(), match_to_number(number_match, parse_float)
 
-    # Special floats
+    # 043366.python.parser.line641.comment Special floats
     first_three = src[pos : pos + 3]
     if first_three in {"inf", "nan"}:
         return pos + 3, parse_float(first_three)
@@ -678,7 +678,7 @@ def make_safe_parse_float(parse_float: ParseFloat) -> ParseFloat:
     the parser. The returned decorated callable raises `ValueError`
     instead of returning illegal types.
     """
-    # The default `float` callable never returns illegal types. Optimize it.
+    # 043367.python.parser.line681.comment The default `float` callable never returns illegal types. Optimize it.
     if parse_float is float:  # type: ignore[comparison-overlap]
         return float
 

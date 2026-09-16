@@ -26,12 +26,12 @@ class install_scripts(orig.install_scripts):
         else:
             self.outfiles: list[str] = []
         if self.no_ep:
-            # don't install entry point scripts into .egg file!
+            # 044584.python.install_scripts.line29.comment don't install entry point scripts into .egg file!
             return
         self._install_ep_scripts()
 
     def _install_ep_scripts(self):
-        # Delay import side-effects
+        # 044585.python.install_scripts.line34.comment Delay import side-effects
         from .. import _scripts
         from .._importlib import metadata
 
@@ -41,10 +41,10 @@ class install_scripts(orig.install_scripts):
         exec_param = getattr(bs_cmd, 'executable', None)
         writer = _scripts.ScriptWriter
         if exec_param == sys.executable:
-            # In case the path to the Python executable contains a space, wrap
-            # it so it's not split up.
+            # 044586.python.install_scripts.line44.comment In case the path to the Python executable contains a space, wrap
+            # 044587.python.install_scripts.line45.comment it so it's not split up.
             exec_param = [exec_param]
-        # resolve the writer to the environment
+        # 044588.python.install_scripts.line47.comment resolve the writer to the environment
         writer = writer.best()
         cmd = writer.command_spec_class.best().from_param(exec_param)
         for args in writer.get_args(dist, cmd.as_header()):

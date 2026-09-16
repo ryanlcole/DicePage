@@ -49,10 +49,10 @@ def same_drive(*paths):
 class ArchiveUtilTestCase(support.TempdirManager):
     @pytest.mark.usefixtures('needs_zlib')
     def test_make_tarball(self, name='archive'):
-        # creating something to tar
+        # 040823.python.test_archive_util.line52.comment creating something to tar
         tmpdir = self._create_files()
         self._make_tarball(tmpdir, name, '.tar.gz')
-        # trying an uncompressed one
+        # 040824.python.test_archive_util.line55.comment trying an uncompressed one
         self._make_tarball(tmpdir, name, '.tar', compress=None)
 
     @pytest.mark.usefixtures('needs_zlib')
@@ -92,11 +92,11 @@ class ArchiveUtilTestCase(support.TempdirManager):
 
         base_name = os.path.join(tmpdir2, target_name)
 
-        # working with relative paths to avoid tar warnings
+        # 040827.python.test_archive_util.line95.comment working with relative paths to avoid tar warnings
         with path.Path(tmpdir):
             make_tarball(splitdrive(base_name)[1], 'dist', **kwargs)
 
-        # check if the compressed tarball was created
+        # 040828.python.test_archive_util.line99.comment check if the compressed tarball was created
         tarball = base_name + suffix
         assert os.path.exists(tarball)
         assert self._tarinfo(tarball) == self._created_files
@@ -121,7 +121,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
     _created_files = [p.rstrip('/') for p in _zip_created_files]
 
     def _create_files(self):
-        # creating something to tar
+        # 040829.python.test_archive_util.line124.comment creating something to tar
         tmpdir = self.mkdtemp()
         dist = os.path.join(tmpdir, 'dist')
         os.mkdir(dist)
@@ -145,11 +145,11 @@ class ArchiveUtilTestCase(support.TempdirManager):
         finally:
             os.chdir(old_dir)
 
-        # check if the compressed tarball was created
+        # 040830.python.test_archive_util.line148.comment check if the compressed tarball was created
         tarball = base_name + '.tar.gz'
         assert os.path.exists(tarball)
 
-        # now create another tarball using `tar`
+        # 040831.python.test_archive_util.line152.comment now create another tarball using `tar`
         tarball2 = os.path.join(tmpdir, 'archive2.tar.gz')
         tar_cmd = ['tar', '-cf', 'archive2.tar', 'dist']
         gzip_cmd = ['gzip', '-f', '-9', 'archive2.tar']
@@ -162,11 +162,11 @@ class ArchiveUtilTestCase(support.TempdirManager):
             os.chdir(old_dir)
 
         assert os.path.exists(tarball2)
-        # let's compare both tarballs
+        # 040832.python.test_archive_util.line165.comment let's compare both tarballs
         assert self._tarinfo(tarball) == self._created_files
         assert self._tarinfo(tarball2) == self._created_files
 
-        # trying an uncompressed one
+        # 040833.python.test_archive_util.line169.comment trying an uncompressed one
         base_name = os.path.join(tmpdir2, 'archive')
         old_dir = os.getcwd()
         os.chdir(tmpdir)
@@ -177,7 +177,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         tarball = base_name + '.tar'
         assert os.path.exists(tarball)
 
-        # now for a dry_run
+        # 040834.python.test_archive_util.line180.comment now for a dry_run
         base_name = os.path.join(tmpdir2, 'archive')
         old_dir = os.getcwd()
         os.chdir(tmpdir)
@@ -191,13 +191,13 @@ class ArchiveUtilTestCase(support.TempdirManager):
     @pytest.mark.usefixtures('needs_zlib')
     def test_make_zipfile(self):
         zipfile = pytest.importorskip('zipfile')
-        # creating something to tar
+        # 040835.python.test_archive_util.line194.comment creating something to tar
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         with path.Path(tmpdir):
             make_zipfile(base_name, 'dist')
 
-        # check if the compressed tarball was created
+        # 040836.python.test_archive_util.line200.comment check if the compressed tarball was created
         tarball = base_name + '.zip'
         assert os.path.exists(tarball)
         with zipfile.ZipFile(tarball) as zf:
@@ -217,7 +217,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
 
         patch(self, archive_util.zipfile, 'ZipFile', fake_zipfile)
 
-        # create something to tar and compress
+        # 040838.python.test_archive_util.line220.comment create something to tar and compress
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         with path.Path(tmpdir):
@@ -294,8 +294,8 @@ class ArchiveUtilTestCase(support.TempdirManager):
         assert self._tarinfo(res) == self._created_files
 
     def test_make_archive_owner_group(self):
-        # testing make_archive with owner and group, with various combinations
-        # this works even if there's not gid/uid support
+        # 040839.python.test_archive_util.line297.comment testing make_archive with owner and group, with various combinations
+        # 040840.python.test_archive_util.line298.comment this works even if there's not gid/uid support
         if UID_0_SUPPORT:
             group = grp.getgrgid(0)[0]
             owner = pwd.getpwuid(0)[0]
@@ -340,10 +340,10 @@ class ArchiveUtilTestCase(support.TempdirManager):
         finally:
             os.chdir(old_dir)
 
-        # check if the compressed tarball was created
+        # 040841.python.test_archive_util.line343.comment check if the compressed tarball was created
         assert os.path.exists(archive_name)
 
-        # now checks the rights
+        # 040842.python.test_archive_util.line346.comment now checks the rights
         archive = tarfile.open(archive_name)
         try:
             for member in archive.getmembers():

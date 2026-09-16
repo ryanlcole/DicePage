@@ -1,4 +1,4 @@
-# Contributed by Kelly Kranabetter.
+# 045990.python.FileSecurityTest.line1.comment Contributed by Kelly Kranabetter.
 import os
 import sys
 
@@ -7,9 +7,9 @@ import pywintypes
 import win32security
 import winerror
 
-# get security information
-# name=r"c:\autoexec.bat"
-# name= r"g:\!workgrp\lim"
+# 045991.python.FileSecurityTest.line10.comment get security information
+# 045992.python.FileSecurityTest.line11.comment name=r"c:\autoexec.bat"
+# 045993.python.FileSecurityTest.line12.comment name= r"g:\!workgrp\lim"
 name = sys.argv[0]
 
 if not os.path.exists(name):
@@ -18,20 +18,20 @@ if not os.path.exists(name):
 
 print("On file ", name, "\n")
 
-# get owner SID
+# 045994.python.FileSecurityTest.line21.comment get owner SID
 print("OWNER")
 try:
     sd = win32security.GetFileSecurity(name, win32security.OWNER_SECURITY_INFORMATION)
     sid = sd.GetSecurityDescriptorOwner()
     print("  ", win32security.LookupAccountSid(None, sid))
 except pywintypes.error as exc:
-    # in automation and network shares we see:
-    # pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
+    # 045995.python.FileSecurityTest.line28.comment in automation and network shares we see:
+    # 045996.python.FileSecurityTest.line29.comment pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
     if exc.winerror != winerror.ERROR_NONE_MAPPED:
         raise
     print("No owner information is available")
 
-# get group SID
+# 045997.python.FileSecurityTest.line34.comment get group SID
 try:
     print("GROUP")
     sd = win32security.GetFileSecurity(name, win32security.GROUP_SECURITY_INFORMATION)
@@ -42,7 +42,7 @@ except pywintypes.error as exc:
         raise
     print("No group information is available")
 
-# get ACEs
+# 045998.python.FileSecurityTest.line45.comment get ACEs
 sd = win32security.GetFileSecurity(name, win32security.DACL_SECURITY_INFORMATION)
 dacl = sd.GetSecurityDescriptorDacl()
 if dacl is None:
@@ -76,7 +76,7 @@ else:
 
         print("  -mask", hex(ace[1]))
 
-        # files and directories do permissions differently
+        # 045999.python.FileSecurityTest.line79.comment files and directories do permissions differently
         permissions_file = (
             "DELETE",
             "READ_CONTROL",
@@ -119,7 +119,7 @@ else:
             permissions = permissions_file
         else:
             permissions = permissions_dir
-            # directories also contain an ACE that is inherited by children (files) within them
+            # 046000.python.FileSecurityTest.line122.comment directories also contain an ACE that is inherited by children (files) within them
             if (
                 ace[0][1] & ntsecuritycon.OBJECT_INHERIT_ACE
                 == ntsecuritycon.OBJECT_INHERIT_ACE

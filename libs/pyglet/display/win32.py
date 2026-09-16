@@ -169,7 +169,7 @@ class Win32Screen(Screen):  # noqa: D101
         with device_context(None) as hdc:
             canvas = Win32Canvas(self.display, 0, hdc)
             configs = template.match(canvas)
-            # XXX deprecate config's being screen-specific
+            # 026268.python.win32.line172.comment XXX deprecate config's being screen-specific
             for config in configs:
                 config.screen = self
 

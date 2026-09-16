@@ -120,12 +120,12 @@ def extract_image_data(bitmap: IWICBitmap, target_fmt: com.GUID = GUID_WICPixelF
     width = int(width.value)
     height = int(height.value)
 
-    # Get image pixel format
+    # 030409.python.wic.line123.comment Get image pixel format
     pf = com.GUID(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     bitmap.GetPixelFormat(byref(pf))
 
     fmt = 'BGRA'
-    # If target format is not what we want (32bit BGRA) convert it.
+    # 030410.python.wic.line128.comment If target format is not what we want (32bit BGRA) convert it.
     if pf != target_fmt:
         converter = IWICFormatConverter()
         _factory.CreateFormatConverter(byref(converter))
@@ -133,8 +133,8 @@ def extract_image_data(bitmap: IWICBitmap, target_fmt: com.GUID = GUID_WICPixelF
         conversion_possible = BOOL()
         converter.CanConvert(pf, target_fmt, byref(conversion_possible))
 
-        # 99% of the time conversion will be possible to default.
-        # However, we check to be safe and fallback to 24 bit BGR if not possible.
+        # 030411.python.wic.line136.comment 99% of the time conversion will be possible to default.
+        # 030412.python.wic.line137.comment However, we check to be safe and fallback to 24 bit BGR if not possible.
         if not conversion_possible:
             target_fmt = GUID_WICPixelFormat24bppBGR
             fmt = 'BGR'
@@ -144,8 +144,8 @@ def extract_image_data(bitmap: IWICBitmap, target_fmt: com.GUID = GUID_WICPixelF
         bitmap.Release()
         bitmap = converter
 
-    # Most images are loaded with a negative pitch, which requires list comprehension to fix.
-    # Create a flipped bitmap through the decoder rather through Python to increase performance.
+    # 030413.python.wic.line147.comment Most images are loaded with a negative pitch, which requires list comprehension to fix.
+    # 030414.python.wic.line148.comment Create a flipped bitmap through the decoder rather through Python to increase performance.
     flipper = IWICBitmapFlipRotator()
     _factory.CreateBitmapFlipRotator(byref(flipper))
 
@@ -179,17 +179,17 @@ class WICDecoder(ImageDecoder):
     def _load_bitmap_decoder(self, filename: str, file: BinaryIO | None = None) -> tuple[IWICBitmapDecoder, IStream]:
         data = file.read()
 
-        # Create a HGLOBAL with image data
+        # 030417.python.wic.line182.comment Create a HGLOBAL with image data
         hglob = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(data))
         ptr = kernel32.GlobalLock(hglob)
         memmove(ptr, data, len(data))
         kernel32.GlobalUnlock(hglob)
 
-        # Create IStream for the HGLOBAL
+        # 030418.python.wic.line188.comment Create IStream for the HGLOBAL
         stream = IStream()
         ole32.CreateStreamOnHGlobal(hglob, True, byref(stream))
 
-        # Load image from stream
+        # 030419.python.wic.line192.comment Load image from stream
         decoder = IWICBitmapDecoder()
         status = self._factory.CreateDecoderFromStream(stream, None, WICDecodeMetadataCacheOnDemand, byref(decoder))
         if status != 0:
@@ -266,17 +266,17 @@ class WICEncoder(ImageEncoder):  # noqa: D101
 
         ext = (filename and os.path.splitext(filename)[1]) or '.png'
 
-        # Choose container based on extension. Default to PNG.
+        # 030422.python.wic.line269.comment Choose container based on extension. Default to PNG.
         container = extension_to_container.get(ext, GUID_ContainerFormatPng)
 
         _factory.CreateStream(byref(wicstream))
-        # https://docs.microsoft.com/en-us/windows/win32/wic/-wic-codec-native-pixel-formats#native-image-formats
+        # 030423.python.wic.line273.comment https://docs.microsoft.com/en-us/windows/win32/wic/-wic-codec-native-pixel-formats#native-image-formats
         if container == GUID_ContainerFormatJpeg:
-            # Expects BGR, no transparency available. Hard coded.
+            # 030424.python.wic.line275.comment Expects BGR, no transparency available. Hard coded.
             fmt = 'BGR'
             default_format = GUID_WICPixelFormat24bppBGR
         else:
-            # Windows encodes in BGRA.
+            # 030425.python.wic.line279.comment Windows encodes in BGRA.
             if len(image.format) == 3:
                 fmt = 'BGR'
                 default_format = GUID_WICPixelFormat24bppBGR

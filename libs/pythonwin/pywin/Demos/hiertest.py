@@ -6,10 +6,10 @@ from pywin.mfc import docview, window
 from pywin.tools import hierlist
 
 
-# directory listbox
-# This has obvious limitations - doesn't track subdirs, etc.  Demonstrates
-# simple use of Python code for querying the tree as needed.
-# Only use strings, and lists of strings (from curdir())
+# 036761.python.hiertest.line9.comment directory listbox
+# 036762.python.hiertest.line10.comment This has obvious limitations - doesn't track subdirs, etc.  Demonstrates
+# 036763.python.hiertest.line11.comment simple use of Python code for querying the tree as needed.
+# 036764.python.hiertest.line12.comment Only use strings, and lists of strings (from curdir())
 class DirHierList(hierlist.HierList):
     def __init__(self, root, listBoxID=win32ui.IDC_LIST1):
         hierlist.HierList.__init__(self, root, win32ui.IDB_HIERFOLDERS, listBoxID)
@@ -24,7 +24,7 @@ class DirHierList(hierlist.HierList):
             ret = None
         return ret
 
-    # if the item is a dir, it is expandable.
+    # 036765.python.hiertest.line27.comment if the item is a dir, it is expandable.
     def IsExpandable(self, item):
         return os.path.isdir(item)
 
@@ -89,11 +89,11 @@ def demo():
     template.OpenDocumentFile(None).SetTitle("Hierlist demo")
 
 
-#
-# Demo/Test for HierList items.
-#
-# Easy to make a better directory program.
-#
+# 036767.python.hiertest.line92.comment
+# 036768.python.hiertest.line93.comment Demo/Test for HierList items.
+# 036769.python.hiertest.line94.comment
+# 036770.python.hiertest.line95.comment Easy to make a better directory program.
+# 036771.python.hiertest.line96.comment
 class HLIFileDir(hierlist.HierListItem):
     def __init__(self, filename):
         self.filename = filename

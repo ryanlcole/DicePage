@@ -1,16 +1,16 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 020188.python.hook-xml.dom.html.HTMLDocument.line1.comment ------------------------------------------------------------------
+# 020189.python.hook-xml.dom.html.HTMLDocument.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 020190.python.hook-xml.dom.html.HTMLDocument.line3.comment
+# 020191.python.hook-xml.dom.html.HTMLDocument.line4.comment This file is distributed under the terms of the GNU General Public
+# 020192.python.hook-xml.dom.html.HTMLDocument.line5.comment License (version 2.0 or later).
+# 020193.python.hook-xml.dom.html.HTMLDocument.line6.comment
+# 020194.python.hook-xml.dom.html.HTMLDocument.line7.comment The full license is available in LICENSE, distributed with
+# 020195.python.hook-xml.dom.html.HTMLDocument.line8.comment this software.
+# 020196.python.hook-xml.dom.html.HTMLDocument.line9.comment
+# 020197.python.hook-xml.dom.html.HTMLDocument.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 020198.python.hook-xml.dom.html.HTMLDocument.line11.comment ------------------------------------------------------------------
 
-# xml.dom.html.HTMLDocument
+# 020199.python.hook-xml.dom.html.HTMLDocument.line13.comment xml.dom.html.HTMLDocument
 hiddenimports = ['xml.dom.html.HTMLAnchorElement',
                  'xml.dom.html.HTMLAppletElement',
                  'xml.dom.html.HTMLAreaElement',

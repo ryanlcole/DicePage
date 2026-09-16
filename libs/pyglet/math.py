@@ -11,12 +11,12 @@ order and multiply on the left of vectors, which are treated as columns.
 
 All objects are immutable and hashable.
 """
-# WARNING! DO NOT TRY TO MAKE THIS FILE "PRETTIER"
-#
-# The unusual code style in this module is an intentional sacrifice:
-# * It allows decent performance despite being written in pure Python
-# * It ensures good developer experience outside pyglet.math, especially
-#   on systems without access to compute shaders
+# 033678.python.math.line14.comment WARNING! DO NOT TRY TO MAKE THIS FILE "PRETTIER"
+# 033679.python.math.line15.comment
+# 033680.python.math.line16.comment The unusual code style in this module is an intentional sacrifice:
+# 033681.python.math.line17.comment * It allows decent performance despite being written in pure Python
+# 033682.python.math.line18.comment * It ensures good developer experience outside pyglet.math, especially
+# 033683.python.math.line19.comment on systems without access to compute shaders
 from __future__ import annotations
 
 import math as _math
@@ -269,8 +269,8 @@ class Vec2(_typing.NamedTuple):
         Args:
             vector: A normalized Vec2 or Vec2-like tuple.
         """
-        # Less unrolled equivalent of code below:
-        #  return self - vector * 2 * vector.dot(self)
+        # 033707.python.math.line272.comment Less unrolled equivalent of code below:
+        # 033708.python.math.line273.comment return self - vector * 2 * vector.dot(self)
         twice_dot_value = self.dot(vector) * 2
         return Vec2(
             self[0] - twice_dot_value * vector[0],
@@ -314,7 +314,7 @@ class Vec2(_typing.NamedTuple):
         def clamp(self, min_val: Vec2 | tuple[float, float], max_val: Vec2 | tuple[float, float]) -> Vec2:
             ...
 
-        # -- Begin revert if perf-impacting block --
+        # 033709.python.math.line317.comment -- Begin revert if perf-impacting block --
         @_typing.overload
         def clamp(self, min_val: Vec2 | tuple[float, float], max_val: float) -> Vec2:
             ...
@@ -322,7 +322,7 @@ class Vec2(_typing.NamedTuple):
         @_typing.overload
         def clamp(self, min_val: float, max_val: Vec2 | tuple[float, float]) -> Vec2:
             ...
-        # -- End revert if perf-impacting block --
+        # 033710.python.math.line325.comment -- End revert if perf-impacting block --
 
     def clamp(self, min_val: Vec2 | tuple[float, float] | float, max_val: Vec2 | tuple[float, float] | float) -> Vec2:
         """Restrict the value of the X and Y components of the vector to be within the given values.
@@ -358,7 +358,7 @@ class Vec2(_typing.NamedTuple):
 
     def __getattr__(self, attrs: str) -> Vec2 | Vec3 | Vec4:
         try:
-            # Allow swizzled getting of attrs
+            # 033714.python.math.line361.comment Allow swizzled getting of attrs
             vec_class = {2: Vec2, 3: Vec3, 4: Vec4}[len(attrs)]
             return vec_class(*(self['xy'.index(c)] for c in attrs))
         except (ValueError, KeyError, TypeError) as err:
@@ -616,7 +616,7 @@ class Vec3(_typing.NamedTuple):
         def clamp(self, min_val: Vec3 | tuple[float, float, float], max_val: Vec3 | tuple[float, float, float]) -> Vec3:
             ...
 
-        # -- Begin revert if perf-impacting block --
+        # 033738.python.math.line619.comment -- Begin revert if perf-impacting block --
         @_typing.overload
         def clamp(self, min_val: Vec3 | tuple[float, float, float], max_val: float) -> Vec3:
             ...
@@ -624,7 +624,7 @@ class Vec3(_typing.NamedTuple):
         @_typing.overload
         def clamp(self, min_val: float, max_val: Vec3 | tuple[float, float, float]) -> Vec3:
             ...
-        # -- End revert if perf-impacting block --
+        # 033739.python.math.line627.comment -- End revert if perf-impacting block --
 
     def clamp(self, min_val: float | Vec3 | tuple[float, float, float],
               max_val: float | Vec3 | tuple[float, float, float]) -> Vec3:
@@ -659,7 +659,7 @@ class Vec3(_typing.NamedTuple):
 
     def __getattr__(self, attrs: str) -> Vec2 | Vec3 | Vec4:
         try:
-            # Allow swizzled getting of attrs
+            # 033743.python.math.line662.comment Allow swizzled getting of attrs
             vec_class = {2: Vec2, 3: Vec3, 4: Vec4}[len(attrs)]
             return vec_class(*(self['xyz'.index(c)] for c in attrs))
         except (ValueError, KeyError, TypeError) as err:
@@ -885,7 +885,7 @@ class Vec4(_typing.NamedTuple):
         def clamp(self, min_val: tuple[float, float, float, float], max_val: tuple[float, float, float, float]) -> Vec4:
             ...
 
-        # -- Begin revert if perf-impacting block --
+        # 033767.python.math.line888.comment -- Begin revert if perf-impacting block --
         @_typing.overload
         def clamp(self, min_val: tuple[float, float, float, float], max_val: float) -> Vec4:
             ...
@@ -893,7 +893,7 @@ class Vec4(_typing.NamedTuple):
         @_typing.overload
         def clamp(self, min_val: float, max_val: tuple[float, float, float, float]) -> Vec4:
             ...
-        # -- End revert if perf-impacting block --
+        # 033768.python.math.line896.comment -- End revert if perf-impacting block --
 
     def clamp(
         self,
@@ -942,7 +942,7 @@ class Vec4(_typing.NamedTuple):
 
     def __getattr__(self, attrs: str) -> Vec2 | Vec3 | Vec4:
         try:
-            # Allow swizzled getting of attrs
+            # 033773.python.math.line945.comment Allow swizzled getting of attrs
             vec_class = {2: Vec2, 3: Vec3, 4: Vec4}[len(attrs)]
             return vec_class(*(self['xyzw'.index(c)] for c in attrs))
         except (ValueError, KeyError, TypeError) as err:
@@ -1006,13 +1006,13 @@ class Mat3(_typing.NamedTuple):
         return Mat3(*(-v for v in self))
 
     def __invert__(self) -> Mat3:
-        # extract the elements in row-column form. (matrix is stored column first)
+        # 033774.python.math.line1009.comment extract the elements in row-column form. (matrix is stored column first)
         a11, a12, a13, a21, a22, a23, a31, a32, a33 = self
 
-        # Calculate Adj(self) values column-row order
-        # | a d g |
-        # | b e h |
-        # | c f i |
+        # 033775.python.math.line1012.comment Calculate Adj(self) values column-row order
+        # 033776.python.math.line1013.comment | a d g |
+        # 033777.python.math.line1014.comment | b e h |
+        # 033778.python.math.line1015.comment | c f i |
         a = a22 * a33 - a32 * a23  # +
         b = a31 * a23 - a21 * a33  # -
         c = a21 * a32 - a22 * a31  # +
@@ -1023,17 +1023,17 @@ class Mat3(_typing.NamedTuple):
         h = a21 * a13 - a11 * a23  # -
         i = a11 * a22 - a21 * a12  # +
 
-        # Calculate determinant
+        # 033788.python.math.line1026.comment Calculate determinant
         det = a11 * a + a21 * d + a31 * g
 
         if det == 0:
             _warnings.warn("Unable to calculate inverse of singular Matrix")
             return self
 
-        # get determinant reciprocal
+        # 033789.python.math.line1033.comment get determinant reciprocal
         rep = 1.0 / det
 
-        # get inverse: A^-1 = def(A)^-1 * adj(A)
+        # 033790.python.math.line1036.comment get inverse: A^-1 = def(A)^-1 * adj(A)
         return Mat3(*(a * rep, b * rep, c * rep,
                       d * rep, e * rep, f * rep,
                       g * rep, h * rep, i * rep))
@@ -1053,22 +1053,22 @@ class Mat3(_typing.NamedTuple):
 
     def __matmul__(self, other) -> Vec3 | Mat3:
         try:
-            # extract the elements in row-column form. (matrix is stored column first)
+            # 033791.python.math.line1056.comment extract the elements in row-column form. (matrix is stored column first)
             a11, a12, a13, a21, a22, a23, a31, a32, a33 = self
             b11, b12, b13, b21, b22, b23, b31, b32, b33 = other
 
-            # Multiply and sum rows * columns
+            # 033792.python.math.line1060.comment Multiply and sum rows * columns
             return Mat3(
-                # Column 1
+                # 033793.python.math.line1062.comment Column 1
                 a11 * b11 + a21 * b12 + a31 * b13, a12 * b11 + a22 * b12 + a32 * b13, a13 * b11 + a23 * b12 + a33 * b13,
-                # Column 2
+                # 033794.python.math.line1064.comment Column 2
                 a11 * b21 + a21 * b22 + a31 * b23, a12 * b21 + a22 * b22 + a32 * b23, a13 * b21 + a23 * b22 + a33 * b23,
-                # Column 3
+                # 033795.python.math.line1066.comment Column 3
                 a11 * b31 + a21 * b32 + a31 * b33, a12 * b31 + a22 * b32 + a32 * b33, a13 * b31 + a23 * b32 + a33 * b33,
             )
         except ValueError:
             x, y, z = other
-            # extract the elements in row-column form. (matrix is stored column first)
+            # 033796.python.math.line1071.comment extract the elements in row-column form. (matrix is stored column first)
             a11, a12, a13, a21, a22, a23, a31, a32, a33 = self
             return Vec3(
                 a11 * x + a21 * y + a31 * z,
@@ -1247,10 +1247,10 @@ class Mat4(_typing.NamedTuple):
         rj = 0 + temp_z * y - s * x
         rk = c + temp_z * z
 
-        # ra, rb, rc, --
-        # re, rf, rg, --
-        # ri, rj, rk, --
-        # --, --, --, --
+        # 033797.python.math.line1250.comment ra, rb, rc, --
+        # 033798.python.math.line1251.comment re, rf, rg, --
+        # 033799.python.math.line1252.comment ri, rj, rk, --
+        # 033800.python.math.line1253.comment --, --, --, --
 
         return self @ Mat4(ra, rb, rc, 0, re, rf, rg, 0, ri, rj, rk, 0, 0, 0, 0, 1)
 
@@ -1287,7 +1287,7 @@ class Mat4(_typing.NamedTuple):
         return Mat4(*(-v for v in self))
 
     def __invert__(self) -> Mat4:
-        # extract the elements in row-column form. (matrix is stored column first)
+        # 033801.python.math.line1290.comment extract the elements in row-column form. (matrix is stored column first)
         a11, a12, a13, a14, a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44 = self
 
         a = a33 * a44 - a34 * a43
@@ -1353,27 +1353,27 @@ class Mat4(_typing.NamedTuple):
 
     def __matmul__(self, other):
         try:
-            # extract the elements in row-column form. (matrix is stored column first)
+            # 033802.python.math.line1356.comment extract the elements in row-column form. (matrix is stored column first)
             a11, a12, a13, a14, a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44 = self
             b11, b12, b13, b14, b21, b22, b23, b24, b31, b32, b33, b34, b41, b42, b43, b44 = other
-            # Multiply and sum rows * columns:
+            # 033803.python.math.line1359.comment Multiply and sum rows * columns:
             return Mat4(
-                # Column 1
+                # 033804.python.math.line1361.comment Column 1
                 a11 * b11 + a21 * b12 + a31 * b13 + a41 * b14, a12 * b11 + a22 * b12 + a32 * b13 + a42 * b14,
                 a13 * b11 + a23 * b12 + a33 * b13 + a43 * b14, a14 * b11 + a24 * b12 + a34 * b13 + a44 * b14,
-                # Column 2
+                # 033805.python.math.line1364.comment Column 2
                 a11 * b21 + a21 * b22 + a31 * b23 + a41 * b24, a12 * b21 + a22 * b22 + a32 * b23 + a42 * b24,
                 a13 * b21 + a23 * b22 + a33 * b23 + a43 * b24, a14 * b21 + a24 * b22 + a34 * b23 + a44 * b24,
-                # Column 3
+                # 033806.python.math.line1367.comment Column 3
                 a11 * b31 + a21 * b32 + a31 * b33 + a41 * b34, a12 * b31 + a22 * b32 + a32 * b33 + a42 * b34,
                 a13 * b31 + a23 * b32 + a33 * b33 + a43 * b34, a14 * b31 + a24 * b32 + a34 * b33 + a44 * b34,
-                # Column 4
+                # 033807.python.math.line1370.comment Column 4
                 a11 * b41 + a21 * b42 + a31 * b43 + a41 * b44, a12 * b41 + a22 * b42 + a32 * b43 + a42 * b44,
                 a13 * b41 + a23 * b42 + a33 * b43 + a43 * b44, a14 * b41 + a24 * b42 + a34 * b43 + a44 * b44,
             )
         except ValueError:
             x, y, z, w = other
-            # extract the elements in row-column form. (matrix is stored column first)
+            # 033808.python.math.line1376.comment extract the elements in row-column form. (matrix is stored column first)
             a11, a12, a13, a14, a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44 = self
             return Vec4(
                 x * a11 + y * a21 + z * a31 + w * a41,
@@ -1425,10 +1425,10 @@ class Quaternion(_typing.NamedTuple):
         j = 2 * (y * z + x * w)
         k = 1 - (x**2 + y**2) * 2
 
-        # a, b, c, -
-        # e, f, g, -
-        # i, j, k, -
-        # -, -, -, -
+        # 033809.python.math.line1428.comment a, b, c, -
+        # 033810.python.math.line1429.comment e, f, g, -
+        # 033811.python.math.line1430.comment i, j, k, -
+        # 033812.python.math.line1431.comment -, -, -, -
 
         return Mat4(a, b, c, 0.0, e, f, g, 0.0, i, j, k, 0.0, 0.0, 0.0, 0.0, 1.0)
 
@@ -1452,10 +1452,10 @@ class Quaternion(_typing.NamedTuple):
         j = 2 * (y * z + x * w)
         k = 1 - (x**2 + y**2) * 2
 
-        # a, b, c, -
-        # e, f, g, -
-        # i, j, k, -
-        # -, -, -, -
+        # 033813.python.math.line1455.comment a, b, c, -
+        # 033814.python.math.line1456.comment e, f, g, -
+        # 033815.python.math.line1457.comment i, j, k, -
+        # 033816.python.math.line1458.comment -, -, -, -
 
         return Mat3(*(a, b, c, e, f, g, i, j, k))
 

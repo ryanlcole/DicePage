@@ -1,4 +1,4 @@
-# Utilities for the demos
+# 036781.python.demoutils.line1.comment Utilities for the demos
 
 import sys
 

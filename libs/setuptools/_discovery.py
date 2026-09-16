@@ -4,7 +4,7 @@ import operator
 import packaging.requirements
 
 
-# from coherent.build.discovery
+# 039229.python.discovery.line7.comment from coherent.build.discovery
 def extras_from_dep(dep):
     try:
         markers = packaging.requirements.Requirement(dep).marker._markers

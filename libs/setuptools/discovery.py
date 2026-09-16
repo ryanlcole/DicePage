@@ -61,7 +61,7 @@ chain_iter = itertools.chain.from_iterable
 
 
 def _valid_name(path: StrPath) -> bool:
-    # Ignore invalid names that cannot be imported directly
+    # 044769.python.discovery.line64.comment Ignore invalid names that cannot be imported directly
     return os.path.basename(path).isidentifier()
 
 
@@ -145,7 +145,7 @@ class PackageFinder(_Finder):
         not the 'exclude' filter.
         """
         for root, dirs, files in os.walk(str(where), followlinks=True):
-            # Copy dirs to iterate over it, then empty dirs.
+            # 044770.python.discovery.line148.comment Copy dirs to iterate over it, then empty dirs.
             all_dirs = dirs[:]
             dirs[:] = []
 
@@ -154,20 +154,20 @@ class PackageFinder(_Finder):
                 rel_path = os.path.relpath(full_path, where)
                 package = rel_path.replace(os.path.sep, '.')
 
-                # Skip directory trees that are not valid packages
+                # 044771.python.discovery.line157.comment Skip directory trees that are not valid packages
                 if '.' in dir or not cls._looks_like_package(full_path, package):
                     continue
 
-                # Should this package be included?
+                # 044772.python.discovery.line161.comment Should this package be included?
                 if include(package) and not exclude(package):
                     yield package
 
-                # Early pruning if there is nothing else to be scanned
+                # 044773.python.discovery.line165.comment Early pruning if there is nothing else to be scanned
                 if f"{package}*" in exclude or f"{package}.*" in exclude:
                     continue
 
-                # Keep searching subdirectories, as there may be more packages
-                # down there, even if the parent was excluded.
+                # 044774.python.discovery.line169.comment Keep searching subdirectories, as there may be more packages
+                # 044775.python.discovery.line170.comment down there, even if the parent was excluded.
                 dirs.append(dir)
 
     @staticmethod
@@ -203,8 +203,8 @@ class ModuleFinder(_Finder):
     _looks_like_module = staticmethod(_valid_name)
 
 
-# We have to be extra careful in the case of flat layout to not include files
-# and directories not meant for distribution (e.g. tool-related)
+# 044776.python.discovery.line206.comment We have to be extra careful in the case of flat layout to not include files
+# 044777.python.discovery.line207.comment and directories not meant for distribution (e.g. tool-related)
 
 
 class FlatLayoutPackageFinder(PEP420PackageFinder):
@@ -235,17 +235,17 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "venv",
         "env",
         "requirements",
-        # ---- Task runners / Build tools ----
+        # 044778.python.discovery.line238.comment ---- Task runners / Build tools ----
         "tasks",  # invoke
         "fabfile",  # fabric
         "site_scons",  # SCons
-        # ---- Other tools ----
+        # 044782.python.discovery.line242.comment ---- Other tools ----
         "benchmark",
         "benchmarks",
         "exercise",
         "exercises",
         "htmlcov",  # Coverage.py
-        # ---- Hidden directories/Private packages ----
+        # 044784.python.discovery.line248.comment ---- Hidden directories/Private packages ----
         "[._]*",
     )
 
@@ -255,7 +255,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
     @staticmethod
     def _looks_like_package(_path: StrPath, package_name: str) -> bool:
         names = package_name.split('.')
-        # Consider PEP 561
+        # 044785.python.discovery.line258.comment Consider PEP 561
         root_pkg_is_valid = names[0].isidentifier() or names[0].endswith("-stubs")
         return root_pkg_is_valid and all(name.isidentifier() for name in names[1:])
 
@@ -269,14 +269,14 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "example",
         "examples",
         "build",
-        # ---- Task runners ----
+        # 044786.python.discovery.line272.comment ---- Task runners ----
         "toxfile",
         "noxfile",
         "pavement",
         "dodo",
         "tasks",
         "fabfile",
-        # ---- Other tools ----
+        # 044787.python.discovery.line279.comment ---- Other tools ----
         "[Ss][Cc]onstruct",  # SCons
         "conanfile",  # Connan: C/C++ build tool
         "manage",  # Django
@@ -284,7 +284,7 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "benchmarks",
         "exercise",
         "exercises",
-        # ---- Hidden files/Private modules ----
+        # 044791.python.discovery.line287.comment ---- Hidden files/Private modules ----
         "[._]*",
     )
     """Reserved top-level module names"""
@@ -324,7 +324,7 @@ class ConfigDiscovery:
 
     @property
     def _root_dir(self) -> StrPath:
-        # The best is to wait until `src_root` is set in dist, before using _root_dir.
+        # 044792.python.discovery.line327.comment The best is to wait until `src_root` is set in dist, before using _root_dir.
         return self.dist.src_root or os.curdir
 
     @property
@@ -347,7 +347,7 @@ class ConfigDiscovery:
         ``ConfigDiscovery`` instance).
         """
         if force is False and (self._called or self._disabled):
-            # Avoid overhead of multiple calls
+            # 044793.python.discovery.line350.comment Avoid overhead of multiple calls
             return
 
         self._analyse_package_layout(ignore_ext_modules)
@@ -366,13 +366,13 @@ class ConfigDiscovery:
             or ext_modules
             or hasattr(self.dist, "configuration")
             and self.dist.configuration
-            # ^ Some projects use numpy.distutils.misc_util.Configuration
+            # 044795.python.discovery.line369.comment ^ Some projects use numpy.distutils.misc_util.Configuration
         )
 
     def _analyse_package_layout(self, ignore_ext_modules: bool) -> bool:
         if self._explicitly_specified(ignore_ext_modules):
-            # For backward compatibility, just try to find modules/packages
-            # when nothing is given
+            # 044796.python.discovery.line374.comment For backward compatibility, just try to find modules/packages
+            # 044797.python.discovery.line375.comment when nothing is given
             return True
 
         log.debug(
@@ -383,7 +383,7 @@ class ConfigDiscovery:
         return (
             self._analyse_explicit_layout()
             or self._analyse_src_layout()
-            # flat-layout is the trickiest for discovery so it should be last
+            # 044798.python.discovery.line386.comment flat-layout is the trickiest for discovery so it should be last
             or self._analyse_flat_layout()
         )
 
@@ -484,7 +484,7 @@ class ConfigDiscovery:
         Therefore the name of the distribution can be derived from them.
         """
         if self.dist.metadata.name or self.dist.name:
-            # get_name() is not reliable (can return "UNKNOWN")
+            # 044802.python.discovery.line487.comment get_name() is not reliable (can return "UNKNOWN")
             return
 
         log.debug("No `name` configuration, performing automatic discovery")
@@ -558,10 +558,10 @@ def find_parent_package(
     common_ancestors = []
     for i, name in enumerate(packages):
         if not all(n.startswith(f"{name}.") for n in packages[i + 1 :]):
-            # Since packages are sorted by length, this condition is able
-            # to find a list of all common ancestors.
-            # When there is divergence (e.g. multiple root packages)
-            # the list will be empty
+            # 044803.python.discovery.line561.comment Since packages are sorted by length, this condition is able
+            # 044804.python.discovery.line562.comment to find a list of all common ancestors.
+            # 044805.python.discovery.line563.comment When there is divergence (e.g. multiple root packages)
+            # 044806.python.discovery.line564.comment the list will be empty
             break
         common_ancestors.append(name)
 
@@ -598,7 +598,7 @@ def find_package_path(
     """
     parts = name.split(".")
     for i in range(len(parts), 0, -1):
-        # Look backwards, the most specific package_dir first
+        # 044807.python.discovery.line601.comment Look backwards, the most specific package_dir first
         partial_name = ".".join(parts[:i])
         if partial_name in package_dir:
             parent = package_dir[partial_name]

@@ -34,20 +34,20 @@ def compiler_wrapper(request):
 class TestUnixCCompiler(support.TempdirManager):
     @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
-        # Issue #5900; GitHub Issue #37
-        #
-        # Ensure RUNPATH is added to extension modules with RPATH if
-        # GNU ld is used
+        # 040284.python.test_unix.line37.comment Issue #5900; GitHub Issue #37
+        # 040285.python.test_unix.line38.comment
+        # 040286.python.test_unix.line39.comment Ensure RUNPATH is added to extension modules with RPATH if
+        # 040287.python.test_unix.line40.comment GNU ld is used
 
-        # darwin
+        # 040288.python.test_unix.line42.comment darwin
         sys.platform = 'darwin'
         darwin_ver_var = 'MACOSX_DEPLOYMENT_TARGET'
         darwin_rpath_flag = '-Wl,-rpath,/foo'
         darwin_lib_flag = '-L/foo'
 
-        # (macOS version from syscfg, macOS version from env var) -> flag
-        # Version value of None generates two tests: as None and as empty string
-        # Expected flag value of None means an mismatch exception is expected
+        # 040289.python.test_unix.line48.comment (macOS version from syscfg, macOS version from env var) -> flag
+        # 040290.python.test_unix.line49.comment Version value of None generates two tests: as None and as empty string
+        # 040291.python.test_unix.line50.comment Expected flag value of None means an mismatch exception is expected
         darwin_test_cases = [
             ((None, None), darwin_lib_flag),
             ((None, '11'), darwin_rpath_flag),
@@ -75,11 +75,11 @@ class TestUnixCCompiler(support.TempdirManager):
             env = os.environ
             msg = f"macOS version = (sysconfig={syscfg_macosx_ver!r}, env={env_macosx_ver!r})"
 
-            # Save
+            # 040292.python.test_unix.line78.comment Save
             old_gcv = sysconfig.get_config_var
             old_env_macosx_ver = env.get(darwin_ver_var)
 
-            # Setup environment
+            # 040293.python.test_unix.line82.comment Setup environment
             _clear_cached_macosx_ver()
             sysconfig.get_config_var = make_darwin_gcv(syscfg_macosx_ver)
             if env_macosx_ver is not None:
@@ -87,7 +87,7 @@ class TestUnixCCompiler(support.TempdirManager):
             elif darwin_ver_var in env:
                 env.pop(darwin_ver_var)
 
-            # Run the test
+            # 040294.python.test_unix.line90.comment Run the test
             if expected_flag is not None:
                 assert self.cc.rpath_foo() == expected_flag, msg
             else:
@@ -96,7 +96,7 @@ class TestUnixCCompiler(support.TempdirManager):
                 ):
                     self.cc.rpath_foo()
 
-            # Restore
+            # 040295.python.test_unix.line99.comment Restore
             if old_env_macosx_ver is not None:
                 env[darwin_ver_var] = old_env_macosx_ver
             elif darwin_ver_var in env:
@@ -107,7 +107,7 @@ class TestUnixCCompiler(support.TempdirManager):
         for macosx_vers, expected_flag in darwin_test_cases:
             syscfg_macosx_ver, env_macosx_ver = macosx_vers
             do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag)
-            # Bonus test cases with None interpreted as empty string
+            # 040296.python.test_unix.line110.comment Bonus test cases with None interpreted as empty string
             if syscfg_macosx_ver is None:
                 do_darwin_test("", env_macosx_ver, expected_flag)
             if env_macosx_ver is None:
@@ -117,7 +117,7 @@ class TestUnixCCompiler(support.TempdirManager):
 
         old_gcv = sysconfig.get_config_var
 
-        # hp-ux
+        # 040297.python.test_unix.line120.comment hp-ux
         sys.platform = 'hp-ux'
 
         def gcv(v):
@@ -140,7 +140,7 @@ class TestUnixCCompiler(support.TempdirManager):
 
         sysconfig.get_config_var = old_gcv
 
-        # GCC GNULD
+        # 040298.python.test_unix.line143.comment GCC GNULD
         sys.platform = 'bar'
 
         def gcv(v):
@@ -167,7 +167,7 @@ class TestUnixCCompiler(support.TempdirManager):
             '-Wl,-rpath,/foo',
         ])
 
-        # GCC non-GNULD
+        # 040299.python.test_unix.line170.comment GCC non-GNULD
         sys.platform = 'bar'
 
         def gcv(v):
@@ -179,8 +179,8 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
-        # GCC GNULD with fully qualified configuration prefix
-        # see #7617
+        # 040300.python.test_unix.line182.comment GCC GNULD with fully qualified configuration prefix
+        # 040301.python.test_unix.line183.comment see #7617
         sys.platform = 'bar'
 
         def gcv(v):
@@ -195,7 +195,7 @@ class TestUnixCCompiler(support.TempdirManager):
             '-Wl,-rpath,/foo',
         ])
 
-        # non-GCC GNULD
+        # 040302.python.test_unix.line198.comment non-GCC GNULD
         sys.platform = 'bar'
 
         def gcv(v):
@@ -210,7 +210,7 @@ class TestUnixCCompiler(support.TempdirManager):
             '-Wl,-rpath,/foo',
         ])
 
-        # non-GCC non-GNULD
+        # 040303.python.test_unix.line213.comment non-GCC non-GNULD
         sys.platform = 'bar'
 
         def gcv(v):
@@ -224,8 +224,8 @@ class TestUnixCCompiler(support.TempdirManager):
 
     @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared(self):
-        # Issue #18080:
-        # ensure that setting CC env variable also changes default linker
+        # 040304.python.test_unix.line227.comment Issue #18080:
+        # 040305.python.test_unix.line228.comment ensure that setting CC env variable also changes default linker
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
@@ -270,7 +270,7 @@ class TestUnixCCompiler(support.TempdirManager):
             mock.patch.object(self.cc, 'mkpath', return_value=None),
             EnvironmentVarGuard() as env,
         ):
-            # override environment overrides in case they're specified by CI
+            # 040307.python.test_unix.line273.comment override environment overrides in case they're specified by CI
             del env['CXX']
             del env['LDCXXSHARED']
 
@@ -353,9 +353,9 @@ class TestUnixCCompiler(support.TempdirManager):
 
     @pytest.mark.skipif('platform.system == "Windows"')
     def test_explicit_ldshared(self):
-        # Issue #18080:
-        # ensure that setting CC env variable does not change
-        #   explicit LDSHARED setting for linker
+        # 040308.python.test_unix.line356.comment Issue #18080:
+        # 040309.python.test_unix.line357.comment ensure that setting CC env variable does not change
+        # 040310.python.test_unix.line358.comment explicit LDSHARED setting for linker
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
@@ -375,9 +375,9 @@ class TestUnixCCompiler(support.TempdirManager):
         assert self.cc.linker_so[0] == 'my_ld'
 
     def test_has_function(self):
-        # Issue https://github.com/pypa/distutils/issues/64:
-        # ensure that setting output_dir does not raise
-        # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
+        # 040311.python.test_unix.line378.comment Issue https://github.com/pypa/distutils/issues/64:
+        # 040312.python.test_unix.line379.comment ensure that setting output_dir does not raise
+        # 040313.python.test_unix.line380.comment FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort')

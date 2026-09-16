@@ -21,8 +21,8 @@ POLICY_VERSION = "2026-09-10.2"
 AI_RULESET_VERSION = "AI-RULESET-2026-09-10.2"
 POLICY_SOURCE = "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy — canonical baseline 2026-09-10"
 TIME_AUTHORITY = "UTC"
-# Canonical implementation constant: mean Gregorian year (365.2425 SI days),
-# divided by 360 and rounded down to a whole second.
+# 000047.python.rist_external_ai_gateway.line24.comment Canonical implementation constant: mean Gregorian year (365.2425 SI days),
+# 000048.python.rist_external_ai_gateway.line25.comment divided by 360 and rounded down to a whole second.
 EARTH_ORBITAL_SECONDS = 31_556_952
 SESSION_SECONDS = EARTH_ORBITAL_SECONDS // 360  # 87,658 seconds
 REQUIRED_PREFIX = "AINPC"
@@ -239,8 +239,8 @@ def validate_understanding(req):
         explanation = str(evidence.get(rule) or "").strip()
         if len(explanation) < 20:
             raise ValueError(f"Understanding evidence is insufficient for {rule}")
-    # This is a structural preflight only. The policy requires a meaning-based gate;
-    # final World Builder authority remains PendingHumanReview until an authorized human approves it.
+    # 000050.python.rist_external_ai_gateway.line242.comment This is a structural preflight only. The policy requires a meaning-based gate;
+    # 000051.python.rist_external_ai_gateway.line243.comment final World Builder authority remains PendingHumanReview until an authorized human approves it.
     return {rule: str(evidence[rule]).strip()[:1000] for rule in REQUIRED_RULES}
 
 

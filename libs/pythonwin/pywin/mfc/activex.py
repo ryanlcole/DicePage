@@ -41,7 +41,7 @@ class Control(window.Wnd):
                 self._obj_.HookOleEvent(getattr(self, methodName), dispid)
 
     def __getattr__(self, attr):
-        # Delegate attributes to the windows and the Dispatch object for this class
+        # 038479.python.activex.line44.comment Delegate attributes to the windows and the Dispatch object for this class
         try:
             return window.Wnd.__getattr__(self, attr)
         except AttributeError:

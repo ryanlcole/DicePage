@@ -33,7 +33,7 @@ def test_glob_relative(tmp_path, monkeypatch):
     patterns = ["**/*.txt", "[ab].*", "**/[ac].ini"]
     monkeypatch.chdir(tmp_path)
     assert set(expand.glob_relative(patterns)) == files
-    # Make sure the same APIs work outside cwd
+    # 045027.python.test_expand.line36.comment Make sure the same APIs work outside cwd
     assert set(expand.glob_relative(patterns, tmp_path)) == files
 
 
@@ -60,7 +60,7 @@ def test_read_files(tmp_path, monkeypatch):
         with pytest.raises(DistutilsOptionError, match=cannot_access_secrets_msg):
             expand.read_files(["../dir_secrets/secrets.txt"])
 
-    # Make sure the same APIs work outside cwd
+    # 045028.python.test_expand.line63.comment Make sure the same APIs work outside cwd
     assert expand.read_files(list(files), dir_) == "a\nb\nc"
     with pytest.raises(DistutilsOptionError, match=cannot_access_msg):
         expand.read_files(["../a.txt"], dir_)
@@ -70,9 +70,9 @@ class TestReadAttr:
     @pytest.mark.parametrize(
         "example",
         [
-            # No cookie means UTF-8:
+            # 045029.python.test_expand.line73.comment No cookie means UTF-8:
             b"__version__ = '\xc3\xa9'\nraise SystemExit(1)\n",
-            # If a cookie is present, honor it:
+            # 045030.python.test_expand.line75.comment If a cookie is present, honor it:
             b"# -*- coding: utf-8 -*-\n__version__ = '\xc3\xa9'\nraise SystemExit(1)\n",
             b"# -*- coding: latin1 -*-\n__version__ = '\xe9'\nraise SystemExit(1)\n",
         ],
@@ -93,7 +93,7 @@ class TestReadAttr:
 
         with monkeypatch.context() as m:
             m.chdir(tmp_path)
-            # Make sure it can read the attr statically without evaluating the module
+            # 045031.python.test_expand.line96.comment Make sure it can read the attr statically without evaluating the module
             version = expand.read_attr('pkg.sub.VERSION')
             values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'})
 
@@ -104,7 +104,7 @@ class TestReadAttr:
         assert values['b'] == {42}
         assert is_static(values)
 
-        # Make sure the same APIs work outside cwd
+        # 045032.python.test_expand.line107.comment Make sure the same APIs work outside cwd
         assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
         values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
         assert values['c'] == (0, 1, 1)
@@ -122,7 +122,7 @@ class TestReadAttr:
             "pkg/sub/__init__.py": example,
         }
         write_files(files, tmp_path)
-        # Make sure this attribute can be read statically
+        # 045033.python.test_expand.line125.comment Make sure this attribute can be read statically
         version = expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path)
         assert version == '0.1.1'
         assert is_static(version)
@@ -162,7 +162,7 @@ class TestReadAttr:
         write_files(files, tmp_path)
         attr_desc = "pkg.about.version"
         package_dir = {"": "src"}
-        # `import super_complicated_dep` should not run, otherwise the build fails
+        # 045034.python.test_expand.line165.comment `import super_complicated_dep` should not run, otherwise the build fails
         assert expand.read_attr(attr_desc, package_dir, tmp_path) == "42"
 
 
@@ -208,7 +208,7 @@ def test_find_packages(tmp_path, args, pkgs):
         pkg_path = find_package_path(pkg, package_dir, tmp_path)
         assert os.path.exists(pkg_path)
 
-    # Make sure the same APIs work outside cwd
+    # 045037.python.test_expand.line211.comment Make sure the same APIs work outside cwd
     where = [
         str((tmp_path / p).resolve()).replace(os.sep, "/")  # ensure posix-style paths
         for p in args.pop("where", ["."])

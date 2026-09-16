@@ -1,9 +1,9 @@
-# A demo of an Application object that has some custom print functionality.
+# 036594.python.customprint.line1.comment A demo of an Application object that has some custom print functionality.
 
-# If you desire, you can also run this from inside Pythonwin, in which
-# case it will do the demo inside the Pythonwin environment.
+# 036595.python.customprint.line3.comment If you desire, you can also run this from inside Pythonwin, in which
+# 036596.python.customprint.line4.comment case it will do the demo inside the Pythonwin environment.
 
-# This sample was contributed by Roger Burnham.
+# 036597.python.customprint.line6.comment This sample was contributed by Roger Burnham.
 
 import win32con
 import win32ui
@@ -110,8 +110,8 @@ class PrintDemoView(docview.ScrollView):
         dc.MoveTo(left, top)
         dc.LineTo(right, top)
         top += cyChar
-        # this seems to have not effect...
-        # get what I want with the dc.SetWindowOrg calls
+        # 036598.python.customprint.line113.comment this seems to have not effect...
+        # 036599.python.customprint.line114.comment get what I want with the dc.SetWindowOrg calls
         pInfo.SetDraw((left, top, right, bottom))
         dc.SetWindowOrg((0, -top))
 
@@ -173,7 +173,7 @@ class ImagePrintDialog(dialog.PrintDialog):
 
 
 if __name__ == "__main__":
-    # Running under Pythonwin
+    # 036600.python.customprint.line176.comment Running under Pythonwin
     def test():
         template = PrintDemoTemplate(None, None, None, PrintDemoView)
         template.OpenDocumentFile(None)

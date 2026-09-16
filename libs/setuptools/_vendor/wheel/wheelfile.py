@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     class SizedBuffer(Sized, Buffer, Protocol): ...
 
 
-# Non-greedy matching of an optional build number may be too clever (more
-# invalid wheel filenames will match). Separate regex for .dist-info?
+# 044225.python.wheelfile.line26.comment Non-greedy matching of an optional build number may be too clever (more
+# 044226.python.wheelfile.line27.comment invalid wheel filenames will match). Separate regex for .dist-info?
 WHEEL_INFO_RE = re.compile(
     r"""^(?P<namever>(?P<name>[^\s-]+?)-(?P<ver>[^\s-]+?))(-(?P<build>\d[^\s-]*))?
      -(?P<pyver>[^\s-]+?)-(?P<abi>[^\s-]+?)-(?P<plat>\S+)\.whl$""",
@@ -34,8 +34,8 @@ MINIMUM_TIMESTAMP = 315532800  # 1980-01-01 00:00:00 UTC
 
 
 def get_zipinfo_datetime(timestamp: float | None = None):
-    # Some applications need reproducible .whl files, but they can't do this without
-    # forcing the timestamp of the individual ZipInfo objects. See issue #143.
+    # 044228.python.wheelfile.line37.comment Some applications need reproducible .whl files, but they can't do this without
+    # 044229.python.wheelfile.line38.comment forcing the timestamp of the individual ZipInfo objects. See issue #143.
     timestamp = int(os.environ.get("SOURCE_DATE_EPOCH", timestamp or time.time()))
     timestamp = max(timestamp, MINIMUM_TIMESTAMP)
     return time.gmtime(timestamp)[0:6]
@@ -68,12 +68,12 @@ class WheelFile(ZipFile):
         self._file_hashes: dict[str, tuple[None, None] | tuple[int, bytes]] = {}
         self._file_sizes = {}
         if mode == "r":
-            # Ignore RECORD and any embedded wheel signatures
+            # 044230.python.wheelfile.line71.comment Ignore RECORD and any embedded wheel signatures
             self._file_hashes[self.record_path] = None, None
             self._file_hashes[self.record_path + ".jws"] = None, None
             self._file_hashes[self.record_path + ".p7s"] = None, None
 
-            # Fill in the expected hashes by reading them from RECORD
+            # 044231.python.wheelfile.line76.comment Fill in the expected hashes by reading them from RECORD
             try:
                 record = self.open(self.record_path)
             except KeyError:
@@ -133,8 +133,8 @@ class WheelFile(ZipFile):
         if mode == "r" and not ef_name.endswith("/"):
             algorithm, expected_hash = self._file_hashes[ef_name]
             if expected_hash is not None:
-                # Monkey patch the _update_crc method to also check for the hash from
-                # RECORD
+                # 044232.python.wheelfile.line136.comment Monkey patch the _update_crc method to also check for the hash from
+                # 044233.python.wheelfile.line137.comment RECORD
                 running_hash = hashlib.new(algorithm)
                 update_crc_orig, ef._update_crc = ef._update_crc, _update_crc
 
@@ -144,8 +144,8 @@ class WheelFile(ZipFile):
         log.info(f"creating '{self.filename}' and adding '{base_dir}' to it")
         deferred: list[tuple[str, str]] = []
         for root, dirnames, filenames in os.walk(base_dir):
-            # Sort the directory names so that `os.walk` will walk them in a
-            # defined order on the next iteration.
+            # 044234.python.wheelfile.line147.comment Sort the directory names so that `os.walk` will walk them in a
+            # 044235.python.wheelfile.line148.comment defined order on the next iteration.
             dirnames.sort()
             for name in sorted(filenames):
                 path = os.path.normpath(os.path.join(root, name))
@@ -211,7 +211,7 @@ class WheelFile(ZipFile):
             self._file_sizes[fname] = len(data)
 
     def close(self):
-        # Write RECORD
+        # 044236.python.wheelfile.line214.comment Write RECORD
         if self.fp is not None and self.mode == "w" and self._file_hashes:
             data = StringIO()
             writer = csv.writer(data, delimiter=",", quotechar='"', lineterminator="\n")

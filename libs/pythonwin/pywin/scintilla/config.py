@@ -1,13 +1,13 @@
-# config.py - deals with loading configuration information.
+# 038646.python.config.line1.comment config.py - deals with loading configuration information.
 
-# Loads config data from a .cfg file.  Also caches the compiled
-# data back into a .cfc file.
+# 038647.python.config.line3.comment Loads config data from a .cfg file.  Also caches the compiled
+# 038648.python.config.line4.comment data back into a .cfc file.
 
-# If you are wondering how to avoid needing .cfg files (eg,
-# if you are freezing Pythonwin etc) I suggest you create a
-# .py file, and put the config info in a docstring.  Then
-# pass a CStringIO file (rather than a filename) to the
-# config manager.
+# 038649.python.config.line6.comment If you are wondering how to avoid needing .cfg files (eg,
+# 038650.python.config.line7.comment if you are freezing Pythonwin etc) I suggest you create a
+# 038651.python.config.line8.comment .py file, and put the config info in a docstring.  Then
+# 038652.python.config.line9.comment pass a CStringIO file (rather than a filename) to the
+# 038653.python.config.line10.comment config manager.
 import glob
 import importlib.util
 import marshal
@@ -49,7 +49,7 @@ def split_line(line, lineno):
 
 
 def get_section_header(line):
-    # Returns the section if the line is a section header, else None
+    # 038655.python.config.line52.comment Returns the section if the line is a section header, else None
     if line[0] == "[":
         end = line.find("]")
         if end == -1:
@@ -127,7 +127,7 @@ class ConfigManager:
         lineno = 1
         line = fp.readline()
         while line:
-            # Skip to the next section (maybe already there!)
+            # 038657.python.config.line130.comment Skip to the next section (maybe already there!)
             section, subsection = get_section_header(line)
             while line and section is None:
                 line = fp.readline()
@@ -154,7 +154,7 @@ class ConfigManager:
                 lineno += 1
         if b_close:
             fp.close()
-        # Check critical data.
+        # 038658.python.config.line157.comment Check critical data.
         if not self.cache.get("keys"):
             self.report_error("No keyboard definitions were loaded")
         if not self.last_error and compiled_name:
@@ -171,8 +171,8 @@ class ConfigManager:
                 pass  # Ignore errors - may be read only.
 
     def configure(self, editor, subsections=None):
-        # Execute the extension code, and find any events.
-        # First, we "recursively" connect any we are based on.
+        # 038660.python.config.line174.comment Execute the extension code, and find any events.
+        # 038661.python.config.line175.comment First, we "recursively" connect any we are based on.
         if subsections is None:
             subsections = []
         subsections = [""] + subsections
@@ -203,7 +203,7 @@ class ConfigManager:
                         bindings.bind(name, func)
                         num += 1
                 trace("Configuration Extension code loaded", num, "events")
-        # Load the idle extensions
+        # 038662.python.config.line206.comment Load the idle extensions
         for subsection in subsections:
             for ext in self.get_data("idle extensions", {}).get(subsection, []):
                 try:
@@ -212,7 +212,7 @@ class ConfigManager:
                 except:
                     self.report_error("Can not load the IDLE extension '%s'" % ext)
 
-        # Now bind up the key-map (remembering a reverse map
+        # 038663.python.config.line215.comment Now bind up the key-map (remembering a reverse map
         subsection_keymap = self.get_data("keys")
         num_bound = 0
         for subsection in subsections:
@@ -286,8 +286,8 @@ class ConfigManager:
         return line, lineno
 
     def _load_keys(self, sub_section, fp, lineno):
-        # Builds a nested dictionary of
-        # (scancode, flags) = event_name
+        # 038666.python.config.line289.comment Builds a nested dictionary of
+        # 038667.python.config.line290.comment (scancode, flags) = event_name
         main_map = self.get_data("keys", {})
         map = main_map.get(sub_section, {})
         while 1:
@@ -324,7 +324,7 @@ class ConfigManager:
             self._save_data("extension code", c)
         except SyntaxError as details:
             errlineno = details.lineno + start_lineno
-            # Should handle syntax errors better here, and offset the lineno.
+            # 038669.python.config.line327.comment Should handle syntax errors better here, and offset the lineno.
             self.report_error(
                 "Compiling extension code failed:\r\nFile: %s\r\nLine %d\r\n%s"
                 % (details.filename, errlineno, details.msg)

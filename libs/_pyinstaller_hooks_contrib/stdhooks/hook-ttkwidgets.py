@@ -1,14 +1,14 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 018142.python.hook-ttkwidgets.line1.comment ------------------------------------------------------------------
+# 018143.python.hook-ttkwidgets.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 018144.python.hook-ttkwidgets.line3.comment
+# 018145.python.hook-ttkwidgets.line4.comment This file is distributed under the terms of the GNU General Public
+# 018146.python.hook-ttkwidgets.line5.comment License (version 2.0 or later).
+# 018147.python.hook-ttkwidgets.line6.comment
+# 018148.python.hook-ttkwidgets.line7.comment The full license is available in LICENSE, distributed with
+# 018149.python.hook-ttkwidgets.line8.comment this software.
+# 018150.python.hook-ttkwidgets.line9.comment
+# 018151.python.hook-ttkwidgets.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 018152.python.hook-ttkwidgets.line11.comment ------------------------------------------------------------------
 """
 Hook for use with the ttkwidgets package
 

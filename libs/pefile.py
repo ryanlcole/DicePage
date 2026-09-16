@@ -45,10 +45,10 @@ import ordlookup
 codecs.register_error("backslashreplace_", codecs.lookup_error("backslashreplace"))
 
 long = int
-# lru_cache with a shallow copy of the objects returned (list, dicts, ..)
-# we don't use deepcopy as it's _really_ slow and the data we retrieved using
-# this is enough with copy.copy taken from
-# https://stackoverflow.com/questions/54909357
+# 022278.python.pefile.line48.comment lru_cache with a shallow copy of the objects returned (list, dicts, ..)
+# 022279.python.pefile.line49.comment we don't use deepcopy as it's _really_ slow and the data we retrieved using
+# 022280.python.pefile.line50.comment this is enough with copy.copy taken from
+# 022281.python.pefile.line51.comment https://stackoverflow.com/questions/54909357
 def lru_cache(maxsize=128, typed=False, copy=False):
     if not copy:
         return functools.lru_cache(maxsize, typed)
@@ -58,7 +58,7 @@ def lru_cache(maxsize=128, typed=False, copy=False):
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            # return copymod.deepcopy(cached_func(*args, **kwargs))
+            # 022282.python.pefile.line61.comment return copymod.deepcopy(cached_func(*args, **kwargs))
             return copymod.copy(cached_func(*args, **kwargs))
 
         return wrapper
@@ -78,11 +78,11 @@ def cache_adjust_SectionAlignment(val, section_alignment, file_alignment):
     if section_alignment < 0x1000:  # page size
         section_alignment = file_alignment
 
-    # 0x200 is the minimum valid FileAlignment according to the documentation
-    # although ntoskrnl.exe has an alignment of 0x80 in some Windows versions
-    #
-    # elif section_alignment < 0x80:
-    #    section_alignment = 0x80
+    # 022284.python.pefile.line81.comment 0x200 is the minimum valid FileAlignment according to the documentation
+    # 022285.python.pefile.line82.comment although ntoskrnl.exe has an alignment of 0x80 in some Windows versions
+    # 022286.python.pefile.line83.comment
+    # 022287.python.pefile.line84.comment elif section_alignment < 0x80:
+    # 022288.python.pefile.line85.comment section_alignment = 0x80
 
     if section_alignment and val % section_alignment:
         return section_alignment * (int(val / section_alignment))
@@ -95,29 +95,29 @@ def count_zeroes(data):
 
 fast_load = False
 
-# This will set a maximum length of a string to be retrieved from the file.
-# It's there to prevent loading massive amounts of data from memory mapped
-# files. Strings longer than 1MB should be rather rare.
+# 022289.python.pefile.line98.comment This will set a maximum length of a string to be retrieved from the file.
+# 022290.python.pefile.line99.comment It's there to prevent loading massive amounts of data from memory mapped
+# 022291.python.pefile.line100.comment files. Strings longer than 1MB should be rather rare.
 MAX_STRING_LENGTH = 0x100000  # 2^20
 
-# Maximum number of imports to parse.
+# 022293.python.pefile.line103.comment Maximum number of imports to parse.
 MAX_IMPORT_SYMBOLS = 0x2000
 
-# Limit maximum length for specific string types separately
+# 022294.python.pefile.line106.comment Limit maximum length for specific string types separately
 MAX_IMPORT_NAME_LENGTH = 0x200
 MAX_DLL_LENGTH = 0x200
 MAX_SYMBOL_NAME_LENGTH = 0x200
 
-# Limit maximum number of sections before processing of sections will stop
+# 022295.python.pefile.line111.comment Limit maximum number of sections before processing of sections will stop
 MAX_SECTIONS = 0x800
 
-# The global maximum number of resource entries to parse per file
+# 022296.python.pefile.line114.comment The global maximum number of resource entries to parse per file
 MAX_RESOURCE_ENTRIES = 0x8000
 
-# The maximum depth of nested resource tables
+# 022297.python.pefile.line117.comment The maximum depth of nested resource tables
 MAX_RESOURCE_DEPTH = 32
 
-# Limit number of exported symbols
+# 022298.python.pefile.line120.comment Limit number of exported symbols
 MAX_SYMBOL_EXPORT_COUNT = 0x2000
 
 IMAGE_DOS_SIGNATURE = 0x5A4D
@@ -147,7 +147,7 @@ directory_entry_types = [
     ("IMAGE_DIRECTORY_ENTRY_SECURITY", 4),
     ("IMAGE_DIRECTORY_ENTRY_BASERELOC", 5),
     ("IMAGE_DIRECTORY_ENTRY_DEBUG", 6),
-    # Architecture on non-x86 platforms
+    # 022300.python.pefile.line150.comment Architecture on non-x86 platforms
     ("IMAGE_DIRECTORY_ENTRY_COPYRIGHT", 7),
     ("IMAGE_DIRECTORY_ENTRY_GLOBALPTR", 8),
     ("IMAGE_DIRECTORY_ENTRY_TLS", 9),
@@ -362,7 +362,7 @@ DLL_CHARACTERISTICS = two_way_dict(dll_characteristics)
 FILE_ALIGNMENT_HARDCODED_VALUE = 0x200
 
 
-# Unwind info-related enums
+# 022316.python.pefile.line365.comment Unwind info-related enums
 
 unwind_info_flags = [
     ("UNW_FLAG_EHANDLER", 0x01),
@@ -393,7 +393,7 @@ registers = [
 
 REGISTERS = two_way_dict(registers)
 
-# enum _UNWIND_OP_CODES
+# 022317.python.pefile.line396.comment enum _UNWIND_OP_CODES
 UWOP_PUSH_NONVOL = 0
 UWOP_ALLOC_LARGE = 1
 UWOP_ALLOC_SMALL = 2
@@ -406,7 +406,7 @@ UWOP_SAVE_XMM128_FAR = 9
 UWOP_PUSH_MACHFRAME = 10
 
 
-# Resource types
+# 022318.python.pefile.line409.comment Resource types
 resource_type = [
     ("RT_CURSOR", 1),
     ("RT_BITMAP", 2),
@@ -434,7 +434,7 @@ resource_type = [
 RESOURCE_TYPE = two_way_dict(resource_type)
 
 
-# Language definitions
+# 022319.python.pefile.line437.comment Language definitions
 lang = [
     ("LANG_NEUTRAL", 0x00),
     ("LANG_INVARIANT", 0x7F),
@@ -535,7 +535,7 @@ lang = [
 LANG = two_way_dict(lang)
 
 
-# Sublanguage definitions
+# 022320.python.pefile.line538.comment Sublanguage definitions
 sublang = [
     ("SUBLANG_NEUTRAL", 0x00),
     ("SUBLANG_DEFAULT", 0x01),
@@ -644,30 +644,30 @@ sublang = [
 
 SUBLANG = two_way_dict(sublang)
 
-# Initialize the dictionary with all the name->value pairs
+# 022321.python.pefile.line647.comment Initialize the dictionary with all the name->value pairs
 SUBLANG = dict(sublang)
-# Now add all the value->name information, handling duplicates appropriately
+# 022322.python.pefile.line649.comment Now add all the value->name information, handling duplicates appropriately
 for sublang_name, sublang_value in sublang:
     if sublang_value in SUBLANG:
         SUBLANG[sublang_value].append(sublang_name)
     else:
         SUBLANG[sublang_value] = [sublang_name]
 
-# Resolve a sublang name given the main lang name
-#
+# 022323.python.pefile.line656.comment Resolve a sublang name given the main lang name
+# 022324.python.pefile.line657.comment
 def get_sublang_name_for_lang(lang_value, sublang_value):
     lang_name = LANG.get(lang_value, "*unknown*")
     for sublang_name in SUBLANG.get(sublang_value, []):
-        # if the main language is a substring of sublang's name, then
-        # return that
+        # 022325.python.pefile.line661.comment if the main language is a substring of sublang's name, then
+        # 022326.python.pefile.line662.comment return that
         if lang_name in sublang_name:
             return sublang_name
-    # otherwise return the first sublang name
+    # 022327.python.pefile.line665.comment otherwise return the first sublang name
     return SUBLANG.get(sublang_value, ["*unknown*"])[0]
 
 
-# Ange Albertini's code to process resources' strings
-#
+# 022328.python.pefile.line669.comment Ange Albertini's code to process resources' strings
+# 022329.python.pefile.line670.comment
 def parse_strings(data, counter, l):
     i = 0
     error_count = 0
@@ -898,7 +898,7 @@ def sizeof_type(t):
     count = 1
     _t = t
     if t[0] in string.digits:
-        # extract the count
+        # 022330.python.pefile.line901.comment extract the count
         count = int("".join([d for d in t if d in string.digits]))
         _t = "".join([d for d in t if d not in string.digits])
     return STRUCT_SIZEOF_TYPES[_t] * count
@@ -932,9 +932,9 @@ def set_format(format):
 
             offset += sizeof_type(elm_type)
 
-            # Some PE header structures have unions on them, so a certain
-            # value might have different names, so each key has a list of
-            # all the possible members referring to the data.
+            # 022331.python.pefile.line935.comment Some PE header structures have unions on them, so a certain
+            # 022332.python.pefile.line936.comment value might have different names, so each key has a list of
+            # 022333.python.pefile.line937.comment all the possible members referring to the data.
             __keys__.append(names)
 
     __format_length__ = struct.calcsize(__format_str__)
@@ -956,7 +956,7 @@ class Structure:
     """
 
     def __init__(self, format, name=None, file_offset=None):
-        # Format is forced little endian, for big endian non Intel platforms
+        # 022334.python.pefile.line959.comment Format is forced little endian, for big endian non Intel platforms
         self.__format_str__ = "<"
         self.__keys__ = []
         self.__format_length__ = 0
@@ -964,7 +964,7 @@ class Structure:
         self.__unpacked_data_elms__ = []
 
         d = format[1]
-        # need a tuple to be hashable in set_format using lru cache
+        # 022335.python.pefile.line967.comment need a tuple to be hashable in set_format using lru cache
         if not isinstance(d, tuple):
             d = tuple(d)
 
@@ -1017,11 +1017,11 @@ class Structure:
         if len(data) > self.__format_length__:
             data = data[: self.__format_length__]
 
-        # OC Patch:
-        # Some malware have incorrect header lengths.
-        # Fail gracefully if this occurs
-        # Buggy malware: a29b0118af8b7408444df81701ad5a7f
-        #
+        # 022336.python.pefile.line1020.comment OC Patch:
+        # 022337.python.pefile.line1021.comment Some malware have incorrect header lengths.
+        # 022338.python.pefile.line1022.comment Fail gracefully if this occurs
+        # 022339.python.pefile.line1023.comment Buggy malware: a29b0118af8b7408444df81701ad5a7f
+        # 022340.python.pefile.line1024.comment
         elif len(data) < self.__format_length__:
             raise PEFormatError("Data length less than expected header length.")
 
@@ -1041,8 +1041,8 @@ class Structure:
             new_val = None
             for key in self.__keys__[idx]:
                 new_val = getattr(self, key)
-                # In the case of unions, when the first changed value
-                # is picked the loop is exited
+                # 022341.python.pefile.line1044.comment In the case of unions, when the first changed value
+                # 022342.python.pefile.line1045.comment is picked the loop is exited
                 if new_val != val:
                     break
             new_values.append(new_val)
@@ -1068,8 +1068,8 @@ class Structure:
             ord(i) for i in string.printable if i not in string.whitespace
         ]
 
-        # Refer to the __set_format__ method for an explanation
-        # of the following construct.
+        # 022343.python.pefile.line1071.comment Refer to the __set_format__ method for an explanation
+        # 022344.python.pefile.line1072.comment of the following construct.
         for keys in self.__keys__:
             for key in keys:
 
@@ -1119,8 +1119,8 @@ class Structure:
 
         dump_dict["Structure"] = self.name
 
-        # Refer to the __set_format__ method for an explanation
-        # of the following construct.
+        # 022345.python.pefile.line1122.comment Refer to the __set_format__ method for an explanation
+        # 022346.python.pefile.line1123.comment of the following construct.
         for keys in self.__keys__:
             for key in keys:
 
@@ -1221,9 +1221,9 @@ class SectionStructure(Structure):
         if ignore_padding and end is not None and offset is not None:
             end = min(end, offset + self.Misc_VirtualSize)
 
-        # PointerToRawData is not adjusted here as we might want to read any possible
-        # extra bytes that might get cut off by aligning the start (and hence cutting
-        # something off the end)
+        # 022347.python.pefile.line1224.comment PointerToRawData is not adjusted here as we might want to read any possible
+        # 022348.python.pefile.line1225.comment extra bytes that might get cut off by aligning the start (and hence cutting
+        # 022349.python.pefile.line1226.comment something off the end)
         if self.PointerToRawData is not None and self.SizeOfRawData is not None:
             if end > self.PointerToRawData + self.SizeOfRawData:
                 end = self.PointerToRawData + self.SizeOfRawData
@@ -1234,7 +1234,7 @@ class SectionStructure(Structure):
         if name == "Characteristics":
             section_flags = retrieve_flags(SECTION_CHARACTERISTICS, "IMAGE_SCN_")
 
-            # Set the section's flags according to the Characteristics member
+            # 022350.python.pefile.line1237.comment Set the section's flags according to the Characteristics member
             set_flags(self, val, section_flags)
 
         elif "IMAGE_SCN_" in name and hasattr(self, name):
@@ -1255,8 +1255,8 @@ class SectionStructure(Structure):
         """Check whether the section contains the file offset provided."""
 
         if self.PointerToRawData is None:
-            # bss and other sections containing only uninitialized data must have 0
-            # and do not take space in the file
+            # 022351.python.pefile.line1258.comment bss and other sections containing only uninitialized data must have 0
+            # 022352.python.pefile.line1259.comment and do not take space in the file
             return False
         PointerToRawData_adj = self.get_PointerToRawData_adj()
         return (
@@ -1266,30 +1266,30 @@ class SectionStructure(Structure):
     def contains_rva(self, rva):
         """Check whether the section contains the address provided."""
 
-        # speedup
+        # 022353.python.pefile.line1269.comment speedup
         if self.section_min_addr is not None and self.section_max_addr is not None:
             return self.section_min_addr <= rva < self.section_max_addr
 
         VirtualAddress_adj = self.get_VirtualAddress_adj()
-        # Check if the SizeOfRawData is realistic. If it's bigger than the size of
-        # the whole PE file minus the start address of the section it could be
-        # either truncated or the SizeOfRawData contains a misleading value.
-        # In either of those cases we take the VirtualSize
-        #
+        # 022354.python.pefile.line1274.comment Check if the SizeOfRawData is realistic. If it's bigger than the size of
+        # 022355.python.pefile.line1275.comment the whole PE file minus the start address of the section it could be
+        # 022356.python.pefile.line1276.comment either truncated or the SizeOfRawData contains a misleading value.
+        # 022357.python.pefile.line1277.comment In either of those cases we take the VirtualSize
+        # 022358.python.pefile.line1278.comment
         if len(self.pe.__data__) - self.get_PointerToRawData_adj() < self.SizeOfRawData:
-            # PECOFF documentation v8 says:
-            # VirtualSize: The total size of the section when loaded into memory.
-            # If this value is greater than SizeOfRawData, the section is zero-padded.
-            # This field is valid only for executable images and should be set to zero
-            # for object files.
-            #
+            # 022359.python.pefile.line1280.comment PECOFF documentation v8 says:
+            # 022360.python.pefile.line1281.comment VirtualSize: The total size of the section when loaded into memory.
+            # 022361.python.pefile.line1282.comment If this value is greater than SizeOfRawData, the section is zero-padded.
+            # 022362.python.pefile.line1283.comment This field is valid only for executable images and should be set to zero
+            # 022363.python.pefile.line1284.comment for object files.
+            # 022364.python.pefile.line1285.comment
             size = self.Misc_VirtualSize
         else:
             size = max(self.SizeOfRawData, self.Misc_VirtualSize)
 
-        # Check whether there's any section after the current one that starts before
-        # the calculated end for the current one. If so, cut the current section's size
-        # to fit in the range up to where the next section starts.
+        # 022365.python.pefile.line1290.comment Check whether there's any section after the current one that starts before
+        # 022366.python.pefile.line1291.comment the calculated end for the current one. If so, cut the current section's size
+        # 022367.python.pefile.line1292.comment to fit in the range up to where the next section starts.
         if (
             self.next_section_virtual_address is not None
             and self.next_section_virtual_address > self.VirtualAddress
@@ -1354,8 +1354,8 @@ def set_bitfields_format(format):
     class Accumulator:
         def __init__(self, fmt, comp_fields):
             self._subfields = []
-            # add a prefix to distinguish the artificially created compoud field
-            # from regular fields
+            # 022368.python.pefile.line1357.comment add a prefix to distinguish the artificially created compoud field
+            # 022369.python.pefile.line1358.comment from regular fields
             self._name = "~"
             self._type = None
             self._bits_left = 0
@@ -1466,16 +1466,16 @@ class StructureWithBitfields(Structure):
             self.__keys_ext__,
             self.__compound_fields__,
         ) = set_bitfields_format(format)
-        # create our own unpacked_data_elms to ensure they are not shared among
-        # StructureWithBitfields instances with the same format string
+        # 022370.python.pefile.line1469.comment create our own unpacked_data_elms to ensure they are not shared among
+        # 022371.python.pefile.line1470.comment StructureWithBitfields instances with the same format string
         self.__unpacked_data_elms__ = [None for i in range(self.__format_length__)]
         self.__all_zeroes__ = False
         self.__file_offset__ = file_offset
         self.name = name if name != None else format[0]
 
     def __unpack__(self, data):
-        # calling the original routine to deal with special cases/spurious data
-        # structures
+        # 022372.python.pefile.line1477.comment calling the original routine to deal with special cases/spurious data
+        # 022373.python.pefile.line1478.comment structures
         super(StructureWithBitfields, self).__unpack__(data)
         self._unpack_bitfield_attributes()
 
@@ -1568,10 +1568,10 @@ class ImportData(DataContainer):
 
     def __setattr__(self, name, val):
 
-        # If the instance doesn't yet have an ordinal attribute
-        # it's not fully initialized so can't do any of the
-        # following
-        #
+        # 022374.python.pefile.line1571.comment If the instance doesn't yet have an ordinal attribute
+        # 022375.python.pefile.line1572.comment it's not fully initialized so can't do any of the
+        # 022376.python.pefile.line1573.comment following
+        # 022377.python.pefile.line1574.comment
         if (
             hasattr(self, "ordinal")
             and hasattr(self, "bound")
@@ -1585,7 +1585,7 @@ class ImportData(DataContainer):
                 elif self.pe.PE_TYPE == OPTIONAL_HEADER_MAGIC_PE_PLUS:
                     ordinal_flag = IMAGE_ORDINAL_FLAG64
 
-                # Set the ordinal and flag the entry as importing by ordinal
+                # 022378.python.pefile.line1588.comment Set the ordinal and flag the entry as importing by ordinal
                 self.struct_table.Ordinal = ordinal_flag | (val & 0xFFFF)
                 self.struct_table.AddressOfData = self.struct_table.Ordinal
                 self.struct_table.Function = self.struct_table.Ordinal
@@ -1602,8 +1602,8 @@ class ImportData(DataContainer):
                 self.struct_table.Function = self.struct_table.AddressOfData
                 self.struct_table.ForwarderString = self.struct_table.AddressOfData
             elif name == "name":
-                # Make sure we reset the entry in case the import had been set to
-                # import by ordinal
+                # 022379.python.pefile.line1605.comment Make sure we reset the entry in case the import had been set to
+                # 022380.python.pefile.line1606.comment import by ordinal
                 if self.name_offset:
 
                     name_rva = self.pe.get_rva_from_offset(self.name_offset)
@@ -1611,8 +1611,8 @@ class ImportData(DataContainer):
                         self.ordinal_offset, (0 << 31) | name_rva
                     )
 
-                    # Complain if the length of the new name is longer than the
-                    # existing one
+                    # 022381.python.pefile.line1614.comment Complain if the length of the new name is longer than the
+                    # 022382.python.pefile.line1615.comment existing one
                     if len(val) > len(self.name):
                         raise PEFormatError(
                             "The export name provided is longer than the existing one."
@@ -1644,10 +1644,10 @@ class ExportData(DataContainer):
 
     def __setattr__(self, name, val):
 
-        # If the instance doesn't yet have an ordinal attribute
-        # it's not fully initialized so can't do any of the
-        # following
-        #
+        # 022383.python.pefile.line1647.comment If the instance doesn't yet have an ordinal attribute
+        # 022384.python.pefile.line1648.comment it's not fully initialized so can't do any of the
+        # 022385.python.pefile.line1649.comment following
+        # 022386.python.pefile.line1650.comment
         if (
             hasattr(self, "ordinal")
             and hasattr(self, "address")
@@ -1660,16 +1660,16 @@ class ExportData(DataContainer):
             elif name == "address":
                 self.pe.set_dword_at_offset(self.address_offset, val)
             elif name == "name":
-                # Complain if the length of the new name is longer than the
-                # existing one
+                # 022387.python.pefile.line1663.comment Complain if the length of the new name is longer than the
+                # 022388.python.pefile.line1664.comment existing one
                 if len(val) > len(self.name):
                     raise PEFormatError(
                         "The export name provided is longer than the existing one."
                     )
                 self.pe.set_bytes_at_offset(self.name_offset, val)
             elif name == "forwarder":
-                # Complain if the length of the new name is longer than the
-                # existing one
+                # 022389.python.pefile.line1671.comment Complain if the length of the new name is longer than the
+                # 022390.python.pefile.line1672.comment existing one
                 if len(val) > len(self.forwarder):
                     raise PEFormatError(
                         "The forwarder name provided is longer than the existing one."
@@ -1753,13 +1753,13 @@ class RelocationData(DataContainer):
 
     def __setattr__(self, name, val):
 
-        # If the instance doesn't yet have a struct attribute
-        # it's not fully initialized so can't do any of the
-        # following
-        #
+        # 022391.python.pefile.line1756.comment If the instance doesn't yet have a struct attribute
+        # 022392.python.pefile.line1757.comment it's not fully initialized so can't do any of the
+        # 022393.python.pefile.line1758.comment following
+        # 022394.python.pefile.line1759.comment
         if hasattr(self, "struct"):
-            # Get the word containing the type and data
-            #
+            # 022395.python.pefile.line1761.comment Get the word containing the type and data
+            # 022396.python.pefile.line1762.comment
             word = self.struct.Data
 
             if name == "type":
@@ -1768,8 +1768,8 @@ class RelocationData(DataContainer):
                 offset = max(val - self.base_rva, 0)
                 word = (word & 0xF000) | (offset & 0xFFF)
 
-            # Store the modified data
-            #
+            # 022397.python.pefile.line1771.comment Store the modified data
+            # 022398.python.pefile.line1772.comment
             self.struct.Data = word
 
         self.__dict__[name] = val
@@ -1922,11 +1922,11 @@ class UnwindInfo(StructureWithBitfields):
         return None
 
     def dump(self, indentation=0):
-        # Because __keys_ext__ are shared among all the instances with the same
-        # format string, we have to add and sunsequently remove the optional field
-        # each time.
-        # It saves space (as compared to keeping a copy self.__keys_ext__ per
-        # UnwindInfo instance), but makes our dump() implementation thread-unsafe.
+        # 022399.python.pefile.line1925.comment Because __keys_ext__ are shared among all the instances with the same
+        # 022400.python.pefile.line1926.comment format string, we have to add and sunsequently remove the optional field
+        # 022401.python.pefile.line1927.comment each time.
+        # 022402.python.pefile.line1928.comment It saves space (as compared to keeping a copy self.__keys_ext__ per
+        # 022403.python.pefile.line1929.comment UnwindInfo instance), but makes our dump() implementation thread-unsafe.
         if self._opt_field_name != None:
             self.__field_offsets__[self._opt_field_name] = (
                 self._full_size - STRUCT_SIZEOF_TYPES["I"]
@@ -2197,8 +2197,8 @@ class PrologEpilogOpEpilogMarker(PrologEpilogOp):
         self._epilog_size = unw_info.SizeOfEpilog
 
     def _get_format(self, unw_code):
-        # check if it is the first epilog code among encountered; then its record
-        # will contain size of the epilog
+        # 022404.python.pefile.line2200.comment check if it is the first epilog code among encountered; then its record
+        # 022405.python.pefile.line2201.comment will contain size of the epilog
         if self._first:
             return (
                 "UNWIND_CODE_EPILOG",
@@ -2235,7 +2235,7 @@ class PrologEpilogOpEpilogMarker(PrologEpilogOp):
         return self.get_offset() > 0
 
     def __str__(self):
-        # the EPILOG sequence may have a terminating all-zeros entry
+        # 022406.python.pefile.line2238.comment the EPILOG sequence may have a terminating all-zeros entry
         return (
             "EPILOG: size="
             + hex(self._epilog_size)
@@ -2272,13 +2272,13 @@ class PrologEpilogOpsFactory:
         )
 
 
-# Valid FAT32 8.3 short filename characters according to:
-#  http://en.wikipedia.org/wiki/8.3_filename
-# This will help decide whether DLL ASCII names are likely
-# to be valid or otherwise corrupt data
-#
-# The filename length is not checked because the DLLs filename
-# can be longer that the 8.3
+# 022407.python.pefile.line2275.comment Valid FAT32 8.3 short filename characters according to:
+# 022408.python.pefile.line2276.comment http://en.wikipedia.org/wiki/8.3_filename
+# 022409.python.pefile.line2277.comment This will help decide whether DLL ASCII names are likely
+# 022410.python.pefile.line2278.comment to be valid or otherwise corrupt data
+# 022411.python.pefile.line2279.comment
+# 022412.python.pefile.line2280.comment The filename length is not checked because the DLLs filename
+# 022413.python.pefile.line2281.comment can be longer that the 8.3
 
 allowed_filename = b(
     string.ascii_lowercase
@@ -2291,17 +2291,17 @@ allowed_filename = b(
 def is_valid_dos_filename(s):
     if s is None or not isinstance(s, (str, bytes, bytearray)):
         return False
-    # Allow path separators as import names can contain directories.
+    # 022414.python.pefile.line2294.comment Allow path separators as import names can contain directories.
     allowed = allowed_filename + b"\\/"
     return all(c in allowed for c in set(s))
 
 
-# Check if an imported name uses the valid accepted characters expected in
-# mangled function names. If the symbol's characters don't fall within this
-# charset we will assume the name is invalid.
-# The dot "." character comes from: https://github.com/erocarrera/pefile/pull/346
-# All other symbols can be inserted by adding a name with that symbol to a .def file,
-# and passing it to link.exe (See export_test.py)
+# 022415.python.pefile.line2299.comment Check if an imported name uses the valid accepted characters expected in
+# 022416.python.pefile.line2300.comment mangled function names. If the symbol's characters don't fall within this
+# 022417.python.pefile.line2301.comment charset we will assume the name is invalid.
+# 022418.python.pefile.line2302.comment The dot "." character comes from: https://github.com/erocarrera/pefile/pull/346
+# 022419.python.pefile.line2303.comment All other symbols can be inserted by adding a name with that symbol to a .def file,
+# 022420.python.pefile.line2304.comment and passing it to link.exe (See export_test.py)
 allowed_function_name = b(
     string.ascii_lowercase + string.ascii_uppercase + string.digits
 )
@@ -2390,9 +2390,9 @@ class PE:
     SUBLANG
     """
 
-    #
-    # Format specifications for PE structures.
-    #
+    # 022421.python.pefile.line2393.comment
+    # 022422.python.pefile.line2394.comment Format specifications for PE structures.
+    # 022423.python.pefile.line2395.comment
 
     __IMAGE_DOS_HEADER_format__ = (
         "IMAGE_DOS_HEADER",
@@ -2866,22 +2866,22 @@ class PE:
         if name is None and data is None:
             raise ValueError("Must supply either name or data")
 
-        # This list will keep track of all the structures created.
-        # That will allow for an easy iteration through the list
-        # in order to save the modifications made
+        # 022424.python.pefile.line2869.comment This list will keep track of all the structures created.
+        # 022425.python.pefile.line2870.comment That will allow for an easy iteration through the list
+        # 022426.python.pefile.line2871.comment in order to save the modifications made
         self.__structures__ = []
         self.__from_file = None
 
-        # We only want to print these warnings once
+        # 022427.python.pefile.line2875.comment We only want to print these warnings once
         self.FileAlignment_Warning = False
         self.SectionAlignment_Warning = False
 
-        # Count of total resource entries across nested tables
+        # 022428.python.pefile.line2879.comment Count of total resource entries across nested tables
         self.__total_resource_entries_count = 0
-        # Sum of the size of all resource entries parsed, which should not
-        # exceed the file size.
+        # 022429.python.pefile.line2881.comment Sum of the size of all resource entries parsed, which should not
+        # 022430.python.pefile.line2882.comment exceed the file size.
         self.__total_resource_bytes = 0
-        # The number of imports parsed in this file
+        # 022431.python.pefile.line2884.comment The number of imports parsed in this file
         self.__total_import_symbols = 0
 
         self.dynamic_relocation_format_by_symbol = {
@@ -2975,10 +2975,10 @@ class PE:
                 fd = open(fname, "rb")
                 self.fileno = fd.fileno()
                 if hasattr(mmap, "MAP_PRIVATE"):
-                    # Unix
+                    # 022432.python.pefile.line2978.comment Unix
                     self.__data__ = mmap.mmap(self.fileno, 0, mmap.MAP_PRIVATE)
                 else:
-                    # Windows
+                    # 022433.python.pefile.line2981.comment Windows
                     self.__data__ = mmap.mmap(self.fileno, 0, access=mmap.ACCESS_READ)
                 self.__from_file = True
             except IOError as excp:
@@ -2994,17 +2994,17 @@ class PE:
             self.__data__ = data
             self.__from_file = False
 
-        # Resources should not overlap each other, so they should not exceed the
-        # file size.
+        # 022434.python.pefile.line2997.comment Resources should not overlap each other, so they should not exceed the
+        # 022435.python.pefile.line2998.comment file size.
         self.__resource_size_limit_upperbounds = len(self.__data__)
         self.__resource_size_limit_reached = False
 
         if not fast_load:
             for byte, byte_count in Counter(bytearray(self.__data__)).items():
-                # Only report the cases where a byte makes up for more than 50% (if
-                # zero) or 15% (if non-zero) of the file's contents. There are
-                # legitimate PEs where 0x00 bytes are close to 50% of the whole
-                # file's contents.
+                # 022436.python.pefile.line3004.comment Only report the cases where a byte makes up for more than 50% (if
+                # 022437.python.pefile.line3005.comment zero) or 15% (if non-zero) of the file's contents. There are
+                # 022438.python.pefile.line3006.comment legitimate PEs where 0x00 bytes are close to 50% of the whole
+                # 022439.python.pefile.line3007.comment file's contents.
                 if (byte == 0 and byte_count / len(self.__data__) > 0.5) or (
                     byte != 0 and byte_count / len(self.__data__) > 0.15
                 ):
@@ -3030,9 +3030,9 @@ class PE:
         if not self.DOS_HEADER or self.DOS_HEADER.e_magic != IMAGE_DOS_SIGNATURE:
             raise PEFormatError("DOS Header magic not found.")
 
-        # OC Patch:
-        # Check for sane value in e_lfanew
-        #
+        # 022440.python.pefile.line3033.comment OC Patch:
+        # 022441.python.pefile.line3034.comment Check for sane value in e_lfanew
+        # 022442.python.pefile.line3035.comment
         if self.DOS_HEADER.e_lfanew > len(self.__data__):
             raise PEFormatError("Invalid e_lfanew value, probably not a PE file")
 
@@ -3044,10 +3044,10 @@ class PE:
             file_offset=nt_headers_offset,
         )
 
-        # We better check the signature right here, before the file screws
-        # around with sections:
-        # OC Patch:
-        # Some malware will cause the Signature value to not exist at all
+        # 022443.python.pefile.line3047.comment We better check the signature right here, before the file screws
+        # 022444.python.pefile.line3048.comment around with sections:
+        # 022445.python.pefile.line3049.comment OC Patch:
+        # 022446.python.pefile.line3050.comment Some malware will cause the Signature value to not exist at all
         if not self.NT_HEADERS or not self.NT_HEADERS.Signature:
             raise PEFormatError("NT Headers not found.")
 
@@ -3072,30 +3072,30 @@ class PE:
         if not self.FILE_HEADER:
             raise PEFormatError("File Header missing")
 
-        # Set the image's flags according the the Characteristics member
+        # 022447.python.pefile.line3075.comment Set the image's flags according the the Characteristics member
         set_flags(self.FILE_HEADER, self.FILE_HEADER.Characteristics, image_flags)
 
         optional_header_offset = nt_headers_offset + 4 + self.FILE_HEADER.sizeof()
 
-        # Note: location of sections can be controlled from PE header:
+        # 022448.python.pefile.line3080.comment Note: location of sections can be controlled from PE header:
         sections_offset = optional_header_offset + self.FILE_HEADER.SizeOfOptionalHeader
 
         self.OPTIONAL_HEADER = self.__unpack_data__(
             self.__IMAGE_OPTIONAL_HEADER_format__,
-            # Read up to 256 bytes to allow creating a copy of too much data
+            # 022449.python.pefile.line3085.comment Read up to 256 bytes to allow creating a copy of too much data
             self.__data__[optional_header_offset : optional_header_offset + 256],
             file_offset=optional_header_offset,
         )
 
-        # According to solardesigner's findings for his
-        # Tiny PE project, the optional header does not
-        # need fields beyond "Subsystem" in order to be
-        # loadable by the Windows loader (given that zeros
-        # are acceptable values and the header is loaded
-        # in a zeroed memory page)
-        # If trying to parse a full Optional Header fails
-        # we try to parse it again with some 0 padding
-        #
+        # 022450.python.pefile.line3090.comment According to solardesigner's findings for his
+        # 022451.python.pefile.line3091.comment Tiny PE project, the optional header does not
+        # 022452.python.pefile.line3092.comment need fields beyond "Subsystem" in order to be
+        # 022453.python.pefile.line3093.comment loadable by the Windows loader (given that zeros
+        # 022454.python.pefile.line3094.comment are acceptable values and the header is loaded
+        # 022455.python.pefile.line3095.comment in a zeroed memory page)
+        # 022456.python.pefile.line3096.comment If trying to parse a full Optional Header fails
+        # 022457.python.pefile.line3097.comment we try to parse it again with some 0 padding
+        # 022458.python.pefile.line3098.comment
         MINIMUM_VALID_OPTIONAL_HEADER_RAW_SIZE = 69
 
         if (
@@ -3106,12 +3106,12 @@ class PE:
             >= MINIMUM_VALID_OPTIONAL_HEADER_RAW_SIZE
         ):
 
-            # Add enough zeros to make up for the unused fields
-            #
+            # 022459.python.pefile.line3109.comment Add enough zeros to make up for the unused fields
+            # 022460.python.pefile.line3110.comment
             padding_length = 128
 
-            # Create padding
-            #
+            # 022461.python.pefile.line3113.comment Create padding
+            # 022462.python.pefile.line3114.comment
             padded_data = self.__data__[
                 optional_header_offset : optional_header_offset + 0x200
             ] + (b"\0" * padding_length)
@@ -3122,9 +3122,9 @@ class PE:
                 file_offset=optional_header_offset,
             )
 
-        # Check the Magic in the OPTIONAL_HEADER and set the PE file
-        # type accordingly
-        #
+        # 022463.python.pefile.line3125.comment Check the Magic in the OPTIONAL_HEADER and set the PE file
+        # 022464.python.pefile.line3126.comment type accordingly
+        # 022465.python.pefile.line3127.comment
         if self.OPTIONAL_HEADER is not None:
 
             if self.OPTIONAL_HEADER.Magic == OPTIONAL_HEADER_MAGIC_PE:
@@ -3143,11 +3143,11 @@ class PE:
                     file_offset=optional_header_offset,
                 )
 
-                # Again, as explained above, we try to parse
-                # a reduced form of the Optional Header which
-                # is still valid despite not including all
-                # structure members
-                #
+                # 022466.python.pefile.line3146.comment Again, as explained above, we try to parse
+                # 022467.python.pefile.line3147.comment a reduced form of the Optional Header which
+                # 022468.python.pefile.line3148.comment is still valid despite not including all
+                # 022469.python.pefile.line3149.comment structure members
+                # 022470.python.pefile.line3150.comment
                 MINIMUM_VALID_OPTIONAL_HEADER_RAW_SIZE = 69 + 4
 
                 if (
@@ -3173,9 +3173,9 @@ class PE:
         if not self.FILE_HEADER:
             raise PEFormatError("File Header missing")
 
-        # OC Patch:
-        # Die gracefully if there is no OPTIONAL_HEADER field
-        # 975440f5ad5e2e4a92c4d9a5f22f75c1
+        # 022471.python.pefile.line3176.comment OC Patch:
+        # 022472.python.pefile.line3177.comment Die gracefully if there is no OPTIONAL_HEADER field
+        # 022473.python.pefile.line3178.comment 975440f5ad5e2e4a92c4d9a5f22f75c1
         if self.OPTIONAL_HEADER is None:
             raise PEFormatError("No Optional Header found, invalid PE32 or PE32+ file.")
         if self.PE_TYPE is None:
@@ -3189,7 +3189,7 @@ class PE:
             DLL_CHARACTERISTICS, "IMAGE_DLLCHARACTERISTICS_"
         )
 
-        # Set the Dll Characteristics flags according the the DllCharacteristics member
+        # 022474.python.pefile.line3192.comment Set the Dll Characteristics flags according the the DllCharacteristics member
         set_flags(
             self.OPTIONAL_HEADER,
             self.OPTIONAL_HEADER.DllCharacteristics,
@@ -3197,14 +3197,14 @@ class PE:
         )
 
         self.OPTIONAL_HEADER.DATA_DIRECTORY = []
-        # offset = (optional_header_offset + self.FILE_HEADER.SizeOfOptionalHeader)
+        # 022475.python.pefile.line3200.comment offset = (optional_header_offset + self.FILE_HEADER.SizeOfOptionalHeader)
         offset = optional_header_offset + self.OPTIONAL_HEADER.sizeof()
 
         self.NT_HEADERS.FILE_HEADER = self.FILE_HEADER
         self.NT_HEADERS.OPTIONAL_HEADER = self.OPTIONAL_HEADER
 
-        # Windows 8 specific check
-        #
+        # 022476.python.pefile.line3206.comment Windows 8 specific check
+        # 022477.python.pefile.line3207.comment
         if (
             self.OPTIONAL_HEADER.AddressOfEntryPoint
             < self.OPTIONAL_HEADER.SizeOfHeaders
@@ -3214,9 +3214,9 @@ class PE:
                 "cannot run under Windows 8."
             )
 
-        # The NumberOfRvaAndSizes is sanitized to stay within
-        # reasonable limits so can be casted to an int
-        #
+        # 022478.python.pefile.line3217.comment The NumberOfRvaAndSizes is sanitized to stay within
+        # 022479.python.pefile.line3218.comment reasonable limits so can be casted to an int
+        # 022480.python.pefile.line3219.comment
         if self.OPTIONAL_HEADER.NumberOfRvaAndSizes > 0x10:
             self.__warnings.append(
                 "Suspicious NumberOfRvaAndSizes in the Optional Header. "
@@ -3244,8 +3244,8 @@ class PE:
             if dir_entry is None:
                 break
 
-            # Would fail if missing an entry
-            # 1d4937b2fa4d84ad1bce0309857e70ca offending sample
+            # 022481.python.pefile.line3247.comment Would fail if missing an entry
+            # 022482.python.pefile.line3248.comment 1d4937b2fa4d84ad1bce0309857e70ca offending sample
             try:
                 dir_entry.name = DIRECTORY_ENTRY[i]
             except (KeyError, AttributeError):
@@ -3255,15 +3255,15 @@ class PE:
 
             self.OPTIONAL_HEADER.DATA_DIRECTORY.append(dir_entry)
 
-            # If the offset goes outside the optional header,
-            # the loop is broken, regardless of how many directories
-            # NumberOfRvaAndSizes says there are
-            #
-            # We assume a normally sized optional header, hence that we do
-            # a sizeof() instead of reading SizeOfOptionalHeader.
-            # Then we add a default number of directories times their size,
-            # if we go beyond that, we assume the number of directories
-            # is wrong and stop processing
+            # 022483.python.pefile.line3258.comment If the offset goes outside the optional header,
+            # 022484.python.pefile.line3259.comment the loop is broken, regardless of how many directories
+            # 022485.python.pefile.line3260.comment NumberOfRvaAndSizes says there are
+            # 022486.python.pefile.line3261.comment
+            # 022487.python.pefile.line3262.comment We assume a normally sized optional header, hence that we do
+            # 022488.python.pefile.line3263.comment a sizeof() instead of reading SizeOfOptionalHeader.
+            # 022489.python.pefile.line3264.comment Then we add a default number of directories times their size,
+            # 022490.python.pefile.line3265.comment if we go beyond that, we assume the number of directories
+            # 022491.python.pefile.line3266.comment is wrong and stop processing
             if offset >= (
                 optional_header_offset + self.OPTIONAL_HEADER.sizeof() + 8 * 16
             ):
@@ -3272,13 +3272,13 @@ class PE:
 
         offset = self.parse_sections(sections_offset)
 
-        # OC Patch:
-        # There could be a problem if there are no raw data sections
-        # greater than 0
-        # fc91013eb72529da005110a3403541b6 example
-        # Should this throw an exception in the minimum header offset
-        # can't be found?
-        #
+        # 022492.python.pefile.line3275.comment OC Patch:
+        # 022493.python.pefile.line3276.comment There could be a problem if there are no raw data sections
+        # 022494.python.pefile.line3277.comment greater than 0
+        # 022495.python.pefile.line3278.comment fc91013eb72529da005110a3403541b6 example
+        # 022496.python.pefile.line3279.comment Should this throw an exception in the minimum header offset
+        # 022497.python.pefile.line3280.comment can't be found?
+        # 022498.python.pefile.line3281.comment
         rawDataPointers = [
             self.adjust_FileAlignment(
                 s.PointerToRawData, self.OPTIONAL_HEADER.FileAlignment
@@ -3297,15 +3297,15 @@ class PE:
         else:
             self.header = self.__data__[:lowest_section_offset]
 
-        # Check whether the entry point lies within a section
-        #
+        # 022499.python.pefile.line3300.comment Check whether the entry point lies within a section
+        # 022500.python.pefile.line3301.comment
         if (
             self.get_section_by_rva(self.OPTIONAL_HEADER.AddressOfEntryPoint)
             is not None
         ):
 
-            # Check whether the entry point lies within the file
-            #
+            # 022501.python.pefile.line3307.comment Check whether the entry point lies within the file
+            # 022502.python.pefile.line3308.comment
             ep_offset = self.get_offset_from_rva(
                 self.OPTIONAL_HEADER.AddressOfEntryPoint
             )
@@ -3338,8 +3338,8 @@ class PE:
         XX Rich, checksum, 0, 0,...
         """
 
-        # Rich Header constants
-        #
+        # 022503.python.pefile.line3341.comment Rich Header constants
+        # 022504.python.pefile.line3342.comment
         DANS = 0x536E6144  # 'DanS' as dword
         RICH = 0x68636952  # 'Rich' as dword
 
@@ -3349,14 +3349,14 @@ class PE:
         if rich_index == -1:
             return None
 
-        # Read a block of data
+        # 022507.python.pefile.line3352.comment Read a block of data
         try:
-            # The end of the structure is 8 bytes after the start of the Rich
-            # string.
+            # 022508.python.pefile.line3354.comment The end of the structure is 8 bytes after the start of the Rich
+            # 022509.python.pefile.line3355.comment string.
             rich_data = self.__data__[0x80 : rich_index + 8]
-            # Make the data have length a multiple of 4, otherwise the
-            # subsequent parsing will fail. It's not impossible that we retrieve
-            # truncated data that it's not a multiple.
+            # 022510.python.pefile.line3357.comment Make the data have length a multiple of 4, otherwise the
+            # 022511.python.pefile.line3358.comment subsequent parsing will fail. It's not impossible that we retrieve
+            # 022512.python.pefile.line3359.comment truncated data that it's not a multiple.
             rich_data = rich_data[: 4 * int(len(rich_data) / 4)]
             data = list(
                 struct.unpack("<{0}I".format(int(len(rich_data) / 4)), rich_data)
@@ -3366,7 +3366,7 @@ class PE:
         except PEFormatError:
             return None
 
-        # get key, raw_data and clear_data
+        # 022513.python.pefile.line3369.comment get key, raw_data and clear_data
         key = struct.pack("<L", data[data.index(RICH) + 1])
         result = {"key": key}
 
@@ -3380,8 +3380,8 @@ class PE:
             clear_data.append((ord_(val) ^ ord_(key[idx % len(key)])))
         result["clear_data"] = bytes(clear_data)
 
-        # the checksum should be present 3 times after the DanS signature
-        #
+        # 022514.python.pefile.line3383.comment the checksum should be present 3 times after the DanS signature
+        # 022515.python.pefile.line3384.comment
         checksum = data[1]
         if data[0] ^ checksum != DANS or data[2] != checksum or data[3] != checksum:
             return None
@@ -3393,18 +3393,18 @@ class PE:
         data = data[4:]
         for i in range(int(len(data) / 2)):
 
-            # Stop until the Rich footer signature is found
-            #
+            # 022516.python.pefile.line3396.comment Stop until the Rich footer signature is found
+            # 022517.python.pefile.line3397.comment
             if data[2 * i] == RICH:
 
-                # it should be followed by the checksum
-                #
+                # 022518.python.pefile.line3400.comment it should be followed by the checksum
+                # 022519.python.pefile.line3401.comment
                 if data[2 * i + 1] != checksum:
                     self.__warnings.append("Rich Header is malformed")
                 break
 
-            # header values come by pairs
-            #
+            # 022520.python.pefile.line3406.comment header values come by pairs
+            # 022521.python.pefile.line3407.comment
             headervalues += [data[2 * i] ^ checksum, data[2 * i + 1] ^ checksum]
         return result
 
@@ -3478,10 +3478,10 @@ class PE:
                             for st_entry in entry.StringTable:
                                 for key, entry in list(st_entry.entries.items()):
 
-                                    # Offsets and lengths of the keys and values.
-                                    # Each value in the dictionary is a tuple:
-                                    #  (key length, value length)
-                                    # The lengths are in characters, not in bytes.
+                                    # 022522.python.pefile.line3481.comment Offsets and lengths of the keys and values.
+                                    # 022523.python.pefile.line3482.comment Each value in the dictionary is a tuple:
+                                    # 022524.python.pefile.line3483.comment (key length, value length)
+                                    # 022525.python.pefile.line3484.comment The lengths are in characters, not in bytes.
                                     offsets = st_entry.entries_offsets[key]
                                     lengths = st_entry.entries_lengths[key]
 
@@ -3541,7 +3541,7 @@ class PE:
             section_data = self.__data__[
                 section_offset : section_offset + section.sizeof()
             ]
-            # Check if the section is all nulls and stop if so.
+            # 022526.python.pefile.line3544.comment Check if the section is all nulls and stop if so.
             if count_zeroes(section_data) == section.sizeof():
                 self.__warnings.append(f"Invalid section {i}. Contents are null-bytes.")
                 break
@@ -3610,7 +3610,7 @@ class PE:
 
             section_flags = retrieve_flags(SECTION_CHARACTERISTICS, "IMAGE_SCN_")
 
-            # Set the section's flags according the the Characteristics member
+            # 022527.python.pefile.line3613.comment Set the section's flags according the the Characteristics member
             set_flags(section, section.Characteristics, section_flags)
 
             if section.__dict__.get(
@@ -3618,8 +3618,8 @@ class PE:
             ) and section.__dict__.get("IMAGE_SCN_MEM_EXECUTE", False):
 
                 if section.Name.rstrip(b"\x00") == b"PAGE" and self.is_driver():
-                    # Drivers can have a PAGE section with those flags set without
-                    # implying that it is malicious
+                    # 022528.python.pefile.line3621.comment Drivers can have a PAGE section with those flags set without
+                    # 022529.python.pefile.line3622.comment implying that it is malicious
                     pass
                 else:
                     self.__warnings.append(
@@ -3630,9 +3630,9 @@ class PE:
 
             self.sections.append(section)
 
-        # Sort the sections by their VirtualAddress and add a field to each of them
-        # with the VirtualAddress of the next section. This will allow to check
-        # for potentially overlapping sections in badly constructed PEs.
+        # 022530.python.pefile.line3633.comment Sort the sections by their VirtualAddress and add a field to each of them
+        # 022531.python.pefile.line3634.comment with the VirtualAddress of the next section. This will allow to check
+        # 022532.python.pefile.line3635.comment for potentially overlapping sections in badly constructed PEs.
         self.sections.sort(key=lambda a: a.VirtualAddress)
         for idx, section in enumerate(self.sections):
             if idx == len(self.sections) - 1:
@@ -3698,17 +3698,17 @@ class PE:
                 directories = [directories]
 
         for entry in directory_parsing:
-            # OC Patch:
-            #
+            # 022533.python.pefile.line3701.comment OC Patch:
+            # 022534.python.pefile.line3702.comment
             try:
                 directory_index = DIRECTORY_ENTRY[entry[0]]
                 dir_entry = self.OPTIONAL_HEADER.DATA_DIRECTORY[directory_index]
             except IndexError:
                 break
 
-            # Only process all the directories if no individual ones have
-            # been chosen
-            #
+            # 022535.python.pefile.line3709.comment Only process all the directories if no individual ones have
+            # 022536.python.pefile.line3710.comment been chosen
+            # 022537.python.pefile.line3711.comment
             if directories is None or directory_index in directories:
 
                 value = None
@@ -3754,7 +3754,7 @@ class PE:
         https://auscitte.github.io/systems%20blog/Exception-Directory-pefile#implementation-details
         """
 
-        # "For x64 and Itanium platforms; the format is different for other platforms"
+        # 022538.python.pefile.line3757.comment "For x64 and Itanium platforms; the format is different for other platforms"
         if (
             self.FILE_HEADER.Machine != MACHINE_TYPE["IMAGE_FILE_MACHINE_AMD64"]
             and self.FILE_HEADER.Machine != MACHINE_TYPE["IMAGE_FILE_MACHINE_IA64"]
@@ -3779,9 +3779,9 @@ class PE:
             ui = None
 
             if (rf.UnwindData & 0x1) == 0:
-                # according to "Improving Automated Analysis of Windows x64 Binaries",
-                # if the lowest bit is set, (UnwindData & ~0x1) should point to the
-                # chained RUNTIME_FUNCTION instead of UNWIND_INFO
+                # 022539.python.pefile.line3782.comment according to "Improving Automated Analysis of Windows x64 Binaries",
+                # 022540.python.pefile.line3783.comment if the lowest bit is set, (UnwindData & ~0x1) should point to the
+                # 022541.python.pefile.line3784.comment chained RUNTIME_FUNCTION instead of UNWIND_INFO
 
                 if (
                     rf.UnwindData in rva2infos
@@ -3808,13 +3808,13 @@ class PE:
             rva2rt[rf.BeginAddress] = entry
             rva += rf_size
 
-        # each chained function entry holds a reference to the function first in chain
+        # 022543.python.pefile.line3811.comment each chained function entry holds a reference to the function first in chain
         for rf in rt_funcs:
             if rf.unwindinfo is None:
-                # TODO: have not encountered such a binary yet;
-                # in theory, (UnwindData & ~0x1) should point to the chained
-                # RUNTIME_FUNCTION which could be used to locate the corresponding
-                # ExceptionsDirEntryData and set_chained_function_entry()
+                # 022544.python.pefile.line3814.comment TODO: have not encountered such a binary yet;
+                # 022545.python.pefile.line3815.comment in theory, (UnwindData & ~0x1) should point to the chained
+                # 022546.python.pefile.line3816.comment RUNTIME_FUNCTION which could be used to locate the corresponding
+                # 022547.python.pefile.line3817.comment ExceptionsDirEntryData and set_chained_function_entry()
                 continue
             if not hasattr(rf.unwindinfo, "FunctionEntry"):
                 continue
@@ -3852,9 +3852,9 @@ class PE:
                 file_offset=rva,
             )
             if bnd_descr is None:
-                # If can't parse directory then silently return.
-                # This directory does not necessarily have to be valid to
-                # still have a valid PE file
+                # 022548.python.pefile.line3855.comment If can't parse directory then silently return.
+                # 022549.python.pefile.line3856.comment This directory does not necessarily have to be valid to
+                # 022550.python.pefile.line3857.comment still have a valid PE file
 
                 self.__warnings.append(
                     "The Bound Imports directory exists but can't be parsed."
@@ -3877,8 +3877,8 @@ class PE:
                     if s.PointerToRawData > file_offset
                 ]
                 if sections_after_offset:
-                    # Find the first section starting at a later offset than that
-                    # specified by 'rva'
+                    # 022551.python.pefile.line3880.comment Find the first section starting at a later offset than that
+                    # 022552.python.pefile.line3881.comment specified by 'rva'
                     first_section_after_offset = min(sections_after_offset)
                     section = self.get_section_by_offset(first_section_after_offset)
                     if section is not None:
@@ -3897,18 +3897,18 @@ class PE:
                 return
 
             forwarder_refs = []
-            # 8 is the size of __IMAGE_BOUND_IMPORT_DESCRIPTOR_format__
+            # 022553.python.pefile.line3900.comment 8 is the size of __IMAGE_BOUND_IMPORT_DESCRIPTOR_format__
             for _ in range(
                 min(bnd_descr.NumberOfModuleForwarderRefs, int(safety_boundary / 8))
             ):
-                # Both structures IMAGE_BOUND_IMPORT_DESCRIPTOR and
-                # IMAGE_BOUND_FORWARDER_REF have the same size.
+                # 022554.python.pefile.line3904.comment Both structures IMAGE_BOUND_IMPORT_DESCRIPTOR and
+                # 022555.python.pefile.line3905.comment IMAGE_BOUND_FORWARDER_REF have the same size.
                 bnd_frwd_ref = self.__unpack_data__(
                     self.__IMAGE_BOUND_FORWARDER_REF_format__,
                     self.__data__[rva : rva + bnd_descr_size],
                     file_offset=rva,
                 )
-                # OC Patch:
+                # 022556.python.pefile.line3911.comment OC Patch:
                 if not bnd_frwd_ref:
                     raise PEFormatError("IMAGE_BOUND_FORWARDER_REF cannot be read")
                 rva += bnd_frwd_ref.sizeof()
@@ -3918,10 +3918,10 @@ class PE:
                     0, self.__data__[offset : offset + MAX_STRING_LENGTH]
                 )
 
-                # OffsetModuleName points to a DLL name. These shouldn't be too long.
-                # Anything longer than a safety length of 128 will be taken to indicate
-                # a corrupt entry and abort the processing of these entries.
-                # Names shorter than 4 characters will be taken as invalid as well.
+                # 022557.python.pefile.line3921.comment OffsetModuleName points to a DLL name. These shouldn't be too long.
+                # 022558.python.pefile.line3922.comment Anything longer than a safety length of 128 will be taken to indicate
+                # 022559.python.pefile.line3923.comment a corrupt entry and abort the processing of these entries.
+                # 022560.python.pefile.line3924.comment Names shorter than 4 characters will be taken as invalid as well.
 
                 if name_str:
                     invalid_chars = [
@@ -3959,9 +3959,9 @@ class PE:
     def parse_directory_tls(self, rva, size):
         """"""
 
-        # By default let's pretend the format is a 32-bit PE. It may help
-        # produce some output for files where the Magic in the Optional Header
-        # is incorrect.
+        # 022561.python.pefile.line3962.comment By default let's pretend the format is a 32-bit PE. It may help
+        # 022562.python.pefile.line3963.comment produce some output for files where the Magic in the Optional Header
+        # 022563.python.pefile.line3964.comment is incorrect.
         format = self.__IMAGE_TLS_DIRECTORY_format__
 
         if self.PE_TYPE == OPTIONAL_HEADER_MAGIC_PE_PLUS:
@@ -4000,8 +4000,8 @@ class PE:
             )
             return None
 
-        # load config directory size can be less than represented by 'format' variable,
-        # generate truncated format which correspond load config directory size
+        # 022564.python.pefile.line4003.comment load config directory size can be less than represented by 'format' variable,
+        # 022565.python.pefile.line4004.comment generate truncated format which correspond load config directory size
         fields_counter = 0
         cumulative_sz = 0
         for field in format[1]:
@@ -4139,10 +4139,10 @@ class PE:
         relocations = []
         while rva < end:
 
-            # OC Patch:
-            # Malware that has bad RVA entries will cause an error.
-            # Just continue on after an exception
-            #
+            # 022566.python.pefile.line4142.comment OC Patch:
+            # 022567.python.pefile.line4143.comment Malware that has bad RVA entries will cause an error.
+            # 022568.python.pefile.line4144.comment Just continue on after an exception
+            # 022569.python.pefile.line4145.comment
             try:
                 rlc = self.__unpack_data__(
                     self.__IMAGE_BASE_RELOCATION_format__,
@@ -4159,7 +4159,7 @@ class PE:
             if not rlc:
                 break
 
-            # rlc.VirtualAddress must lie within the Image
+            # 022570.python.pefile.line4162.comment rlc.VirtualAddress must lie within the Image
             if rlc.VirtualAddress > self.OPTIONAL_HEADER.SizeOfImage:
                 self.__warnings.append(
                     "Invalid relocation information. VirtualAddress outside"
@@ -4167,8 +4167,8 @@ class PE:
                 )
                 break
 
-            # rlc.SizeOfBlock must be less or equal than the size of the image
-            # (It's a rather loose sanity test)
+            # 022571.python.pefile.line4170.comment rlc.SizeOfBlock must be less or equal than the size of the image
+            # 022572.python.pefile.line4171.comment (It's a rather loose sanity test)
             if rlc.SizeOfBlock > self.OPTIONAL_HEADER.SizeOfImage:
                 self.__warnings.append(
                     "Invalid relocation information. SizeOfBlock too large"
@@ -4301,17 +4301,17 @@ class PE:
             if not dbg:
                 return None
 
-            # apply structure according to DEBUG_TYPE
-            # http://www.debuginfo.com/articles/debuginfomatch.html
-            #
+            # 022573.python.pefile.line4304.comment apply structure according to DEBUG_TYPE
+            # 022574.python.pefile.line4305.comment http://www.debuginfo.com/articles/debuginfomatch.html
+            # 022575.python.pefile.line4306.comment
             dbg_type = None
 
             if dbg.Type == 1:
-                # IMAGE_DEBUG_TYPE_COFF
+                # 022576.python.pefile.line4310.comment IMAGE_DEBUG_TYPE_COFF
                 pass
 
             elif dbg.Type == 2:
-                # if IMAGE_DEBUG_TYPE_CODEVIEW
+                # 022577.python.pefile.line4314.comment if IMAGE_DEBUG_TYPE_CODEVIEW
                 dbg_type_offset = dbg.PointerToRawData
                 dbg_type_size = dbg.SizeOfData
                 dbg_type_data = self.__data__[
@@ -4319,7 +4319,7 @@ class PE:
                 ]
 
                 if dbg_type_data[:4] == b"RSDS":
-                    # pdb7.0
+                    # 022578.python.pefile.line4322.comment pdb7.0
                     __CV_INFO_PDB70_format__ = [
                         "CV_INFO_PDB70",
                         [
@@ -4337,12 +4337,12 @@ class PE:
                         dbg_type_size - Structure(__CV_INFO_PDB70_format__).sizeof()
                     )
 
-                    # pdbFileName_size can be negative here, as seen in the malware
-                    # sample with hash
-                    # MD5: 7c297600870d026c014d42596bb9b5fd
-                    # SHA256:
-                    #   83f4e63681fcba8a9d7bbb1688c71981b1837446514a1773597e0192bba9fac3
-                    # Checking for positive size here to ensure proper parsing.
+                    # 022580.python.pefile.line4340.comment pdbFileName_size can be negative here, as seen in the malware
+                    # 022581.python.pefile.line4341.comment sample with hash
+                    # 022582.python.pefile.line4342.comment MD5: 7c297600870d026c014d42596bb9b5fd
+                    # 022583.python.pefile.line4343.comment SHA256:
+                    # 022584.python.pefile.line4344.comment 83f4e63681fcba8a9d7bbb1688c71981b1837446514a1773597e0192bba9fac3
+                    # 022585.python.pefile.line4345.comment Checking for positive size here to ensure proper parsing.
                     if pdbFileName_size > 0:
                         __CV_INFO_PDB70_format__[1].append(
                             "{0}s,PdbFileName".format(pdbFileName_size)
@@ -4373,7 +4373,7 @@ class PE:
                         )
 
                 elif dbg_type_data[:4] == b"NB10":
-                    # pdb2.0
+                    # 022586.python.pefile.line4376.comment pdb2.0
                     __CV_INFO_PDB20_format__ = [
                         "CV_INFO_PDB20",
                         [
@@ -4387,10 +4387,10 @@ class PE:
                         dbg_type_size - Structure(__CV_INFO_PDB20_format__).sizeof()
                     )
 
-                    # As with the PDB 7.0 case, ensuring a positive size for
-                    # pdbFileName_size to ensure proper parsing.
+                    # 022587.python.pefile.line4390.comment As with the PDB 7.0 case, ensuring a positive size for
+                    # 022588.python.pefile.line4391.comment pdbFileName_size to ensure proper parsing.
                     if pdbFileName_size > 0:
-                        # Add the last variable-length string field.
+                        # 022589.python.pefile.line4393.comment Add the last variable-length string field.
                         __CV_INFO_PDB20_format__[1].append(
                             "{0}s,PdbFileName".format(pdbFileName_size)
                         )
@@ -4399,7 +4399,7 @@ class PE:
                     )
 
             elif dbg.Type == 4:
-                # IMAGE_DEBUG_TYPE_MISC
+                # 022590.python.pefile.line4402.comment IMAGE_DEBUG_TYPE_MISC
                 dbg_type_offset = dbg.PointerToRawData
                 dbg_type_size = dbg.SizeOfData
                 dbg_type_data = self.__data__[
@@ -4419,23 +4419,23 @@ class PE:
                     ___IMAGE_DEBUG_MISC_format__, dbg_type_data, dbg_type_offset
                 )
 
-                # Need to check that dbg_type_partial contains a correctly unpacked data
-                # structure, as the malware sample with the following hash
-                # MD5:    5e7d6707d693108de5a303045c17d95b
-                # SHA256:
-                #  5dd94a95025f3b6e3dd440d52f7c6d2964fdd1aa119e0ee92e38c7bf83829e5c
-                # contains a value of None for dbg_type_partial after unpacking,
-                # presumably due to a malformed DEBUG entry.
+                # 022591.python.pefile.line4422.comment Need to check that dbg_type_partial contains a correctly unpacked data
+                # 022592.python.pefile.line4423.comment structure, as the malware sample with the following hash
+                # 022593.python.pefile.line4424.comment MD5:    5e7d6707d693108de5a303045c17d95b
+                # 022594.python.pefile.line4425.comment SHA256:
+                # 022595.python.pefile.line4426.comment 5dd94a95025f3b6e3dd440d52f7c6d2964fdd1aa119e0ee92e38c7bf83829e5c
+                # 022596.python.pefile.line4427.comment contains a value of None for dbg_type_partial after unpacking,
+                # 022597.python.pefile.line4428.comment presumably due to a malformed DEBUG entry.
                 if dbg_type_partial:
-                    # The Unicode bool should be set to 0 or 1.
+                    # 022598.python.pefile.line4430.comment The Unicode bool should be set to 0 or 1.
                     if dbg_type_partial.Unicode in (0, 1):
                         data_size = (
                             dbg_type_size
                             - Structure(___IMAGE_DEBUG_MISC_format__).sizeof()
                         )
 
-                        # As with the PDB case, ensuring a positive size for data_size
-                        # here to ensure proper parsing.
+                        # 022599.python.pefile.line4437.comment As with the PDB case, ensuring a positive size for data_size
+                        # 022600.python.pefile.line4438.comment here to ensure proper parsing.
                         if data_size > 0:
                             ___IMAGE_DEBUG_MISC_format__[1].append(
                                 "{0}s,Data".format(data_size)
@@ -4470,7 +4470,7 @@ class PE:
         are available as its attributes.
         """
 
-        # OC Patch:
+        # 022601.python.pefile.line4473.comment OC Patch:
         if dirs is None:
             dirs = [rva]
 
@@ -4485,8 +4485,8 @@ class PE:
             return None
 
         try:
-            # If the RVA is invalid all would blow up. Some EXEs seem to be
-            # specially nasty and have an invalid RVA.
+            # 022602.python.pefile.line4488.comment If the RVA is invalid all would blow up. Some EXEs seem to be
+            # 022603.python.pefile.line4489.comment specially nasty and have an invalid RVA.
             data = self.get_data(
                 rva, Structure(self.__IMAGE_RESOURCE_DIRECTORY_format__).sizeof()
             )
@@ -4497,18 +4497,18 @@ class PE:
             )
             return None
 
-        # Get the resource directory structure, that is, the header
-        # of the table preceding the actual entries
-        #
+        # 022604.python.pefile.line4500.comment Get the resource directory structure, that is, the header
+        # 022605.python.pefile.line4501.comment of the table preceding the actual entries
+        # 022606.python.pefile.line4502.comment
         resource_dir = self.__unpack_data__(
             self.__IMAGE_RESOURCE_DIRECTORY_format__,
             data,
             file_offset=self.get_offset_from_rva(rva),
         )
         if resource_dir is None:
-            # If we can't parse resources directory then silently return.
-            # This directory does not necessarily have to be valid to
-            # still have a valid PE file
+            # 022607.python.pefile.line4509.comment If we can't parse resources directory then silently return.
+            # 022608.python.pefile.line4510.comment This directory does not necessarily have to be valid to
+            # 022609.python.pefile.line4511.comment still have a valid PE file
             self.__warnings.append(
                 "Invalid resources directory. Can't parse "
                 "directory data at RVA: 0x%x" % rva
@@ -4517,16 +4517,16 @@ class PE:
 
         dir_entries = []
 
-        # Advance the RVA to the position immediately following the directory
-        # table header and pointing to the first entry in the table
-        #
+        # 022610.python.pefile.line4520.comment Advance the RVA to the position immediately following the directory
+        # 022611.python.pefile.line4521.comment table header and pointing to the first entry in the table
+        # 022612.python.pefile.line4522.comment
         rva += resource_dir.sizeof()
 
         number_of_entries = (
             resource_dir.NumberOfNamedEntries + resource_dir.NumberOfIdEntries
         )
 
-        # Set a hard limit on the maximum reasonable number of entries
+        # 022613.python.pefile.line4529.comment Set a hard limit on the maximum reasonable number of entries
         MAX_ALLOWED_ENTRIES = 4096
         if number_of_entries > MAX_ALLOWED_ENTRIES:
             self.__warnings.append(
@@ -4547,9 +4547,9 @@ class PE:
 
         strings_to_postprocess = []
 
-        # Keep track of the last name's start and end offsets in order
-        # to be able to detect overlapping entries that might suggest
-        # and invalid or corrupt directory.
+        # 022614.python.pefile.line4550.comment Keep track of the last name's start and end offsets in order
+        # 022615.python.pefile.line4551.comment to be able to detect overlapping entries that might suggest
+        # 022616.python.pefile.line4552.comment and invalid or corrupt directory.
         last_name_begin_end = None
         for idx in range(number_of_entries):
             if (
@@ -4586,15 +4586,15 @@ class PE:
                 try:
                     entry_name = UnicodeStringWrapperPostProcessor(self, ustr_offset)
                     self.__total_resource_bytes += entry_name.get_pascal_16_length()
-                    # If the last entry's offset points before the current's but its end
-                    # is past the current's beginning, assume the overlap indicates a
-                    # corrupt name.
+                    # 022617.python.pefile.line4589.comment If the last entry's offset points before the current's but its end
+                    # 022618.python.pefile.line4590.comment is past the current's beginning, assume the overlap indicates a
+                    # 022619.python.pefile.line4591.comment corrupt name.
                     if last_name_begin_end and (
                         last_name_begin_end[0] < ustr_offset
                         and last_name_begin_end[1] >= ustr_offset
                     ):
-                        # Remove the previous overlapping entry as it's likely to be
-                        # already corrupt data.
+                        # 022620.python.pefile.line4596.comment Remove the previous overlapping entry as it's likely to be
+                        # 022621.python.pefile.line4597.comment already corrupt data.
                         strings_to_postprocess.pop()
                         self.__warnings.append(
                             "Error parsing the resources directory, "
@@ -4618,17 +4618,17 @@ class PE:
                     )
 
             if res.DataIsDirectory:
-                # OC Patch:
-                #
-                # One trick malware can do is to recursively reference
-                # the next directory. This causes hilarity to ensue when
-                # trying to parse everything correctly.
-                # If the original RVA given to this function is equal to
-                # the next one to parse, we assume that it's a trick.
-                # Instead of raising a PEFormatError this would skip some
-                # reasonable data so we just break.
-                #
-                # 9ee4d0a0caf095314fd7041a3e4404dc is the offending sample
+                # 022622.python.pefile.line4621.comment OC Patch:
+                # 022623.python.pefile.line4622.comment
+                # 022624.python.pefile.line4623.comment One trick malware can do is to recursively reference
+                # 022625.python.pefile.line4624.comment the next directory. This causes hilarity to ensue when
+                # 022626.python.pefile.line4625.comment trying to parse everything correctly.
+                # 022627.python.pefile.line4626.comment If the original RVA given to this function is equal to
+                # 022628.python.pefile.line4627.comment the next one to parse, we assume that it's a trick.
+                # 022629.python.pefile.line4628.comment Instead of raising a PEFormatError this would skip some
+                # 022630.python.pefile.line4629.comment reasonable data so we just break.
+                # 022631.python.pefile.line4630.comment
+                # 022632.python.pefile.line4631.comment 9ee4d0a0caf095314fd7041a3e4404dc is the offending sample
                 if base_rva + res.OffsetToDirectory in dirs:
                     break
 
@@ -4643,8 +4643,8 @@ class PE:
                 if not entry_directory:
                     break
 
-                # Ange Albertini's code to process resources' strings
-                #
+                # 022634.python.pefile.line4646.comment Ange Albertini's code to process resources' strings
+                # 022635.python.pefile.line4647.comment
                 strings = None
                 if entry_id == RESOURCE_TYPE["RT_STRING"]:
                     strings = {}
@@ -4669,7 +4669,7 @@ class PE:
                                 string_entry_size = resource_lang.data.struct.Size
                                 string_entry_id = resource_id.id
 
-                                # XXX: has been raising exceptions preventing parsing
+                                # 022636.python.pefile.line4672.comment XXX: has been raising exceptions preventing parsing
                                 try:
                                     string_entry_data = self.get_data(
                                         string_entry_rva, string_entry_size
@@ -4720,8 +4720,8 @@ class PE:
                 else:
                     break
 
-            # Check if this entry contains version information
-            #
+            # 022637.python.pefile.line4723.comment Check if this entry contains version information
+            # 022638.python.pefile.line4724.comment
             if level == 0 and res.Id == RESOURCE_TYPE["RT_VERSION"]:
                 if dir_entries:
                     last_entry = dir_entries[-1]
@@ -4729,8 +4729,8 @@ class PE:
                 try:
                     version_entries = last_entry.directory.entries[0].directory.entries
                 except:
-                    # Maybe a malformed directory structure...?
-                    # Let's ignore it
+                    # 022639.python.pefile.line4732.comment Maybe a malformed directory structure...?
+                    # 022640.python.pefile.line4733.comment Let's ignore it
                     pass
                 else:
                     for version_entry in version_entries:
@@ -4738,8 +4738,8 @@ class PE:
                         try:
                             rt_version_struct = version_entry.data.struct
                         except:
-                            # Maybe a malformed directory structure...?
-                            # Let's ignore it
+                            # 022641.python.pefile.line4741.comment Maybe a malformed directory structure...?
+                            # 022642.python.pefile.line4742.comment Let's ignore it
                             pass
 
                         if rt_version_struct is not None:
@@ -4763,8 +4763,8 @@ class PE:
         """Parse a data entry from the resources directory."""
 
         try:
-            # If the RVA is invalid all would blow up. Some EXEs seem to be
-            # specially nasty and have an invalid RVA.
+            # 022643.python.pefile.line4766.comment If the RVA is invalid all would blow up. Some EXEs seem to be
+            # 022644.python.pefile.line4767.comment specially nasty and have an invalid RVA.
             data = self.get_data(
                 rva, Structure(self.__IMAGE_RESOURCE_DATA_ENTRY_format__).sizeof()
             )
@@ -4791,7 +4791,7 @@ class PE:
                 rva, Structure(self.__IMAGE_RESOURCE_DIRECTORY_ENTRY_format__).sizeof()
             )
         except PEFormatError:
-            # A warning will be added by the caller if this method returns None
+            # 022645.python.pefile.line4794.comment A warning will be added by the caller if this method returns None
             return None
 
         resource = self.__unpack_data__(
@@ -4803,7 +4803,7 @@ class PE:
         if resource is None:
             return None
 
-        # resource.NameIsString = (resource.Name & 0x80000000L) >> 31
+        # 022646.python.pefile.line4806.comment resource.NameIsString = (resource.Name & 0x80000000L) >> 31
         resource.NameOffset = resource.Name & 0x7FFFFFFF
 
         resource.__pad = resource.Name & 0xFFFF0000
@@ -4838,8 +4838,8 @@ class PE:
         named 'entry' which will contain the name and value of the Var.
         """
 
-        # Retrieve the data for the version info resource
-        #
+        # 022647.python.pefile.line4841.comment Retrieve the data for the version info resource
+        # 022648.python.pefile.line4842.comment
         try:
             start_offset = self.get_offset_from_rva(version_struct.OffsetToData)
         except PEFormatError:
@@ -4852,8 +4852,8 @@ class PE:
             return
         raw_data = self.__data__[start_offset : start_offset + version_struct.Size]
 
-        # Map the main structure and the subsequent string
-        #
+        # 022649.python.pefile.line4855.comment Map the main structure and the subsequent string
+        # 022650.python.pefile.line4856.comment
         versioninfo_struct = self.__unpack_data__(
             self.__VS_VERSIONINFO_format__, raw_data, file_offset=start_offset
         )
@@ -4870,10 +4870,10 @@ class PE:
             )
 
         versioninfo_string = None
-        # These should return 'ascii' decoded data. For the case when it's
-        # garbled data the ascii string will retain the byte values while
-        # encoding it to something else may yield values that don't match the
-        # file's contents.
+        # 022651.python.pefile.line4873.comment These should return 'ascii' decoded data. For the case when it's
+        # 022652.python.pefile.line4874.comment garbled data the ascii string will retain the byte values while
+        # 022653.python.pefile.line4875.comment encoding it to something else may yield values that don't match the
+        # 022654.python.pefile.line4876.comment file's contents.
         try:
             if section_end is None:
                 versioninfo_string = self.get_string_u_at_rva(
@@ -4896,12 +4896,12 @@ class PE:
             )
             return
 
-        # If the structure does not contain the expected name, it's assumed to
-        # be invalid
+        # 022655.python.pefile.line4899.comment If the structure does not contain the expected name, it's assumed to
+        # 022656.python.pefile.line4900.comment be invalid
         if versioninfo_string is not None and versioninfo_string != b"VS_VERSION_INFO":
             if len(versioninfo_string) > 128:
                 excerpt = versioninfo_string[:128].decode("ascii")
-                # Don't leave any half-escaped characters
+                # 022657.python.pefile.line4904.comment Don't leave any half-escaped characters
                 excerpt = excerpt[: excerpt.rfind("\\u")]
                 versioninfo_string = b(
                     "{0} ... ({1} bytes, too long to display)".format(
@@ -4918,17 +4918,17 @@ class PE:
         if not hasattr(self, "VS_VERSIONINFO"):
             self.VS_VERSIONINFO = []
 
-        # Set the PE object's VS_VERSIONINFO to this one
+        # 022658.python.pefile.line4921.comment Set the PE object's VS_VERSIONINFO to this one
         vinfo = versioninfo_struct
 
-        # Set the Key attribute to point to the unicode string identifying the structure
+        # 022659.python.pefile.line4924.comment Set the Key attribute to point to the unicode string identifying the structure
         vinfo.Key = versioninfo_string
 
         self.VS_VERSIONINFO.append(vinfo)
 
         if versioninfo_string is None:
             versioninfo_string = ""
-        # Process the fixed version information, get the offset and structure
+        # 022660.python.pefile.line4931.comment Process the fixed version information, get the offset and structure
         fixedfileinfo_offset = self.dword_align(
             versioninfo_struct.sizeof() + 2 * (len(versioninfo_string) + 1),
             version_struct.OffsetToData,
@@ -4945,25 +4945,25 @@ class PE:
         if not hasattr(self, "VS_FIXEDFILEINFO"):
             self.VS_FIXEDFILEINFO = []
 
-        # Set the PE object's VS_FIXEDFILEINFO to this one
+        # 022661.python.pefile.line4948.comment Set the PE object's VS_FIXEDFILEINFO to this one
         self.VS_FIXEDFILEINFO.append(fixedfileinfo_struct)
 
-        # Start parsing all the StringFileInfo and VarFileInfo structures
+        # 022662.python.pefile.line4951.comment Start parsing all the StringFileInfo and VarFileInfo structures
 
-        # Get the first one
+        # 022663.python.pefile.line4953.comment Get the first one
         stringfileinfo_offset = self.dword_align(
             fixedfileinfo_offset + fixedfileinfo_struct.sizeof(),
             version_struct.OffsetToData,
         )
 
-        # Set the PE object's attribute that will contain them all.
+        # 022664.python.pefile.line4959.comment Set the PE object's attribute that will contain them all.
         if not hasattr(self, "FileInfo"):
             self.FileInfo = []
 
         finfo = []
         while True:
 
-            # Process the StringFileInfo/VarFileInfo structure
+            # 022665.python.pefile.line4966.comment Process the StringFileInfo/VarFileInfo structure
             stringfileinfo_struct = self.__unpack_data__(
                 self.__StringFileInfo_format__,
                 raw_data[stringfileinfo_offset:],
@@ -4976,7 +4976,7 @@ class PE:
                 )
                 return None
 
-            # Get the subsequent string defining the structure.
+            # 022666.python.pefile.line4979.comment Get the subsequent string defining the structure.
             ustr_offset = (
                 version_struct.OffsetToData
                 + stringfileinfo_offset
@@ -4992,13 +4992,13 @@ class PE:
                 )
                 break
 
-            # Set such string as the Key attribute
+            # 022667.python.pefile.line4995.comment Set such string as the Key attribute
             stringfileinfo_struct.Key = stringfileinfo_string
 
-            # Append the structure to the PE object's list
+            # 022668.python.pefile.line4998.comment Append the structure to the PE object's list
             finfo.append(stringfileinfo_struct)
 
-            # Parse a StringFileInfo entry
+            # 022669.python.pefile.line5001.comment Parse a StringFileInfo entry
             if stringfileinfo_string and stringfileinfo_string.startswith(
                 b"StringFileInfo"
             ):
@@ -5017,7 +5017,7 @@ class PE:
 
                     stringfileinfo_struct.StringTable = []
 
-                    # Process the String Table entries
+                    # 022670.python.pefile.line5020.comment Process the String Table entries
                     while True:
 
                         stringtable_struct = self.__unpack_data__(
@@ -5059,7 +5059,7 @@ class PE:
                             version_struct.OffsetToData,
                         )
 
-                        # Process all entries in the string table
+                        # 022671.python.pefile.line5062.comment Process all entries in the string table
 
                         while (
                             entry_offset
@@ -5139,8 +5139,8 @@ class PE:
                             version_struct.OffsetToData,
                         )
 
-                        # Check if the entry is crafted in a way that would lead
-                        # to an infinite loop and break if so.
+                        # 022672.python.pefile.line5142.comment Check if the entry is crafted in a way that would lead
+                        # 022673.python.pefile.line5143.comment to an infinite loop and break if so.
                         if new_stringtable_offset == stringtable_offset:
                             break
                         stringtable_offset = new_stringtable_offset
@@ -5148,7 +5148,7 @@ class PE:
                         if stringtable_offset >= stringfileinfo_struct.Length:
                             break
 
-            # Parse a VarFileInfo entry
+            # 022674.python.pefile.line5151.comment Parse a VarFileInfo entry
             elif stringfileinfo_string and stringfileinfo_string.startswith(
                 b"VarFileInfo"
             ):
@@ -5170,7 +5170,7 @@ class PE:
 
                     varfileinfo_struct.Var = []
 
-                    # Process all entries
+                    # 022675.python.pefile.line5173.comment Process all entries
 
                     while True:
                         var_struct = self.__unpack_data__(
@@ -5236,13 +5236,13 @@ class PE:
                         if var_offset <= var_offset + var_struct.Length:
                             break
 
-            # Increment and align the offset
+            # 022676.python.pefile.line5239.comment Increment and align the offset
             stringfileinfo_offset = self.dword_align(
                 stringfileinfo_struct.Length + stringfileinfo_offset,
                 version_struct.OffsetToData,
             )
 
-            # Check if all the StringFileInfo and VarFileInfo items have been processed
+            # 022677.python.pefile.line5245.comment Check if all the StringFileInfo and VarFileInfo items have been processed
             if (
                 stringfileinfo_struct.Length == 0
                 or stringfileinfo_offset >= versioninfo_struct.Length
@@ -5278,9 +5278,9 @@ class PE:
         if not export_dir:
             return
 
-        # We keep track of the bytes left in the file and use it to set a upper
-        # bound in the number of items that can be read from the different
-        # arrays.
+        # 022678.python.pefile.line5281.comment We keep track of the bytes left in the file and use it to set a upper
+        # 022679.python.pefile.line5282.comment bound in the number of items that can be read from the different
+        # 022680.python.pefile.line5283.comment arrays.
         def length_until_eof(rva):
             return len(self.__data__) - self.get_offset_from_rva(rva)
 
@@ -5317,7 +5317,7 @@ class PE:
         max_failed_entries_before_giving_up = 10
 
         section = self.get_section_by_rva(export_dir.AddressOfNames)
-        # Overly generous upper bound
+        # 022681.python.pefile.line5320.comment Overly generous upper bound
         safety_boundary = len(self.__data__)
         if section:
             safety_boundary = (
@@ -5338,15 +5338,15 @@ class PE:
                     address_of_functions, symbol_ordinal
                 )
             else:
-                # Corrupt? a bad pointer... we assume it's all
-                # useless, no exports
+                # 022682.python.pefile.line5341.comment Corrupt? a bad pointer... we assume it's all
+                # 022683.python.pefile.line5342.comment useless, no exports
                 return None
             if symbol_address is None or symbol_address == 0:
                 continue
 
-            # If the function's RVA points within the export directory
-            # it will point to a string with the forwarded symbol's string
-            # instead of pointing the the function start address.
+            # 022684.python.pefile.line5347.comment If the function's RVA points within the export directory
+            # 022685.python.pefile.line5348.comment it will point to a string with the forwarded symbol's string
+            # 022686.python.pefile.line5349.comment instead of pointing the the function start address.
             if symbol_address >= rva and symbol_address < rva + size:
                 forwarder_str = self.get_string_at_rva(symbol_address)
                 try:
@@ -5388,9 +5388,9 @@ class PE:
                         break
                     continue
 
-            # File 0b1d3d3664915577ab9a32188d29bbf3542b86c7b9ce333e245496c3018819f1
-            # was being parsed as potentially containing millions of exports.
-            # Checking for duplicates addresses the issue.
+            # 022687.python.pefile.line5391.comment File 0b1d3d3664915577ab9a32188d29bbf3542b86c7b9ce333e245496c3018819f1
+            # 022688.python.pefile.line5392.comment was being parsed as potentially containing millions of exports.
+            # 022689.python.pefile.line5393.comment Checking for duplicates addresses the issue.
             symbol_counts[(symbol_name, symbol_address)] += 1
             if symbol_counts[(symbol_name, symbol_address)] > 10:
                 self.__warnings.append(
@@ -5434,7 +5434,7 @@ class PE:
         max_failed_entries_before_giving_up = 10
 
         section = self.get_section_by_rva(export_dir.AddressOfFunctions)
-        # Overly generous upper bound
+        # 022690.python.pefile.line5437.comment Overly generous upper bound
         safety_boundary = len(self.__data__)
         if section:
             safety_boundary = (
@@ -5462,7 +5462,7 @@ class PE:
                 if symbol_address == 0:
                     continue
 
-                # Checking for forwarder again.
+                # 022691.python.pefile.line5465.comment Checking for forwarder again.
                 if (
                     symbol_address is not None
                     and symbol_address >= rva
@@ -5472,12 +5472,12 @@ class PE:
                 else:
                     forwarder_str = None
 
-                # File 0b1d3d3664915577ab9a32188d29bbf3542b86c7b9ce333e245496c3018819f1
-                # was being parsed as potentially containing millions of exports.
-                # Checking for duplicates addresses the issue.
+                # 022692.python.pefile.line5475.comment File 0b1d3d3664915577ab9a32188d29bbf3542b86c7b9ce333e245496c3018819f1
+                # 022693.python.pefile.line5476.comment was being parsed as potentially containing millions of exports.
+                # 022694.python.pefile.line5477.comment Checking for duplicates addresses the issue.
                 symbol_counts[symbol_address] += 1
                 if symbol_counts[symbol_address] > self.max_repeated_symbol:
-                    # if most_common and most_common[0][1] > 10:
+                    # 022695.python.pefile.line5480.comment if most_common and most_common[0][1] > 10:
                     self.__warnings.append(
                         "Export directory contains more than {} repeated "
                         "ordinal entries (0x{:x}). Assuming corrupt.".format(
@@ -5521,12 +5521,12 @@ class PE:
 
     def normalize_import_va(self, va):
 
-        # Setup image range
+        # 022696.python.pefile.line5524.comment Setup image range
         begin_of_image = self.OPTIONAL_HEADER.ImageBase
         end_of_image = self.OPTIONAL_HEADER.ImageBase + self.OPTIONAL_HEADER.SizeOfImage
 
-        # Try to avoid bogus VAs, which are out of the image.
-        # This also filters out entries that are zero
+        # 022697.python.pefile.line5528.comment Try to avoid bogus VAs, which are out of the image.
+        # 022698.python.pefile.line5529.comment This also filters out entries that are zero
         if begin_of_image <= va and va < end_of_image:
             va -= begin_of_image
         return va
@@ -5538,8 +5538,8 @@ class PE:
         error_count = 0
         while True:
             try:
-                # If the RVA is invalid all would blow up. Some PEs seem to be
-                # specially nasty and have an invalid RVA.
+                # 022699.python.pefile.line5541.comment If the RVA is invalid all would blow up. Some PEs seem to be
+                # 022700.python.pefile.line5542.comment specially nasty and have an invalid RVA.
                 data = self.get_data(
                     rva,
                     Structure(self.__IMAGE_DELAY_IMPORT_DESCRIPTOR_format__).sizeof(),
@@ -5557,17 +5557,17 @@ class PE:
                 file_offset=file_offset,
             )
 
-            # If the structure is all zeros, we reached the end of the list
+            # 022701.python.pefile.line5560.comment If the structure is all zeros, we reached the end of the list
             if not import_desc or import_desc.all_zeroes():
                 break
             contains_addresses = False
 
-            # Handle old import descriptor that has Virtual Addresses instead of RVAs
-            # This version of import descriptor is created by old Visual Studio versions
-            # (pre 6.0)
-            # Can only be present in 32-bit binaries (no 64-bit compiler existed at the
-            # time)
-            # Sample: e8d3bff0c1a9a6955993f7a441121a2692261421e82fdfadaaded45d3bea9980
+            # 022702.python.pefile.line5565.comment Handle old import descriptor that has Virtual Addresses instead of RVAs
+            # 022703.python.pefile.line5566.comment This version of import descriptor is created by old Visual Studio versions
+            # 022704.python.pefile.line5567.comment (pre 6.0)
+            # 022705.python.pefile.line5568.comment Can only be present in 32-bit binaries (no 64-bit compiler existed at the
+            # 022706.python.pefile.line5569.comment time)
+            # 022707.python.pefile.line5570.comment Sample: e8d3bff0c1a9a6955993f7a441121a2692261421e82fdfadaaded45d3bea9980
             if (
                 import_desc.grAttrs == 0
                 and self.FILE_HEADER.Machine == MACHINE_TYPE["IMAGE_FILE_MACHINE_I386"]
@@ -5584,9 +5584,9 @@ class PE:
 
             rva += import_desc.sizeof()
 
-            # If the array of thunks is somewhere earlier than the import
-            # descriptor we can set a maximum length for the array. Otherwise
-            # just set a maximum length of the size of the file
+            # 022708.python.pefile.line5587.comment If the array of thunks is somewhere earlier than the import
+            # 022709.python.pefile.line5588.comment descriptor we can set a maximum length for the array. Otherwise
+            # 022710.python.pefile.line5589.comment just set a maximum length of the size of the file
             max_len = len(self.__data__) - file_offset
             if rva > import_desc.pINT or rva > import_desc.pIAT:
                 max_len = max(rva - import_desc.pINT, rva - import_desc.pIAT)
@@ -5738,8 +5738,8 @@ class PE:
         ).sizeof()
         while True:
             try:
-                # If the RVA is invalid all would blow up. Some EXEs seem to be
-                # specially nasty and have an invalid RVA.
+                # 022711.python.pefile.line5741.comment If the RVA is invalid all would blow up. Some EXEs seem to be
+                # 022712.python.pefile.line5742.comment specially nasty and have an invalid RVA.
                 data = self.get_data(rva, image_import_descriptor_size)
             except PEFormatError:
                 self.__warnings.append(
@@ -5752,15 +5752,15 @@ class PE:
                 self.__IMAGE_IMPORT_DESCRIPTOR_format__, data, file_offset=file_offset
             )
 
-            # If the structure is all zeros, we reached the end of the list
+            # 022713.python.pefile.line5755.comment If the structure is all zeros, we reached the end of the list
             if not import_desc or import_desc.all_zeroes():
                 break
 
             rva += import_desc.sizeof()
 
-            # If the array of thunks is somewhere earlier than the import
-            # descriptor we can set a maximum length for the array. Otherwise
-            # just set a maximum length of the size of the file
+            # 022714.python.pefile.line5761.comment If the array of thunks is somewhere earlier than the import
+            # 022715.python.pefile.line5762.comment descriptor we can set a maximum length for the array. Otherwise
+            # 022716.python.pefile.line5763.comment just set a maximum length of the size of the file
             max_len = len(self.__data__) - file_offset
             if rva > import_desc.OriginalFirstThunk or rva > import_desc.FirstThunk:
                 max_len = max(
@@ -5791,7 +5791,7 @@ class PE:
 
                 if not import_data:
                     error_count += 1
-                    # TODO: do not continue here
+                    # 022717.python.pefile.line5794.comment TODO: do not continue here
                     continue
 
             dll = self.get_string_at_rva(import_desc.Name, MAX_DLL_LENGTH)
@@ -5851,18 +5851,18 @@ class PE:
 
         imported_symbols = []
 
-        # Import Lookup Table. Contains ordinals or pointers to strings.
+        # 022718.python.pefile.line5854.comment Import Lookup Table. Contains ordinals or pointers to strings.
         ilt = self.get_import_table(
             original_first_thunk, max_length, contains_addresses
         )
-        # Import Address Table. May have identical content to ILT if
-        # PE file is not bound. It will contain the address of the
-        # imported symbols once the binary is loaded or if it is already
-        # bound.
+        # 022719.python.pefile.line5858.comment Import Address Table. May have identical content to ILT if
+        # 022720.python.pefile.line5859.comment PE file is not bound. It will contain the address of the
+        # 022721.python.pefile.line5860.comment imported symbols once the binary is loaded or if it is already
+        # 022722.python.pefile.line5861.comment bound.
         iat = self.get_import_table(first_thunk, max_length, contains_addresses)
 
-        # OC Patch:
-        # Would crash if IAT or ILT had None type
+        # 022723.python.pefile.line5864.comment OC Patch:
+        # 022724.python.pefile.line5865.comment Would crash if IAT or ILT had None type
         if (not iat or len(iat) == 0) and (not ilt or len(ilt) == 0):
             self.__warnings.append(
                 "Damaged Import Table information. "
@@ -5889,9 +5889,9 @@ class PE:
             imp_offset = 8
             address_mask = 0x7FFFFFFFFFFFFFFF
         else:
-            # Some PEs may have an invalid value in the Magic field of the
-            # Optional Header. Just in case the remaining file is parseable
-            # let's pretend it's a 32bit PE32 by default.
+            # 022725.python.pefile.line5892.comment Some PEs may have an invalid value in the Magic field of the
+            # 022726.python.pefile.line5893.comment Optional Header. Just in case the remaining file is parseable
+            # 022727.python.pefile.line5894.comment let's pretend it's a 32bit PE32 by default.
             ordinal_flag = IMAGE_ORDINAL_FLAG
 
         num_invalid = 0
@@ -5904,8 +5904,8 @@ class PE:
             import_by_ordinal = False  # declare it here first
 
             if tbl_entry.AddressOfData:
-                # If imported by ordinal, we will append the ordinal number
-                #
+                # 022729.python.pefile.line5907.comment If imported by ordinal, we will append the ordinal number
+                # 022730.python.pefile.line5908.comment
                 if tbl_entry.AddressOfData & ordinal_flag:
                     import_by_ordinal = True
                     imp_ord = tbl_entry.AddressOfData & 0xFFFF
@@ -5916,7 +5916,7 @@ class PE:
                     try:
                         hint_name_table_rva = tbl_entry.AddressOfData & address_mask
                         data = self.get_data(hint_name_table_rva, 2)
-                        # Get the Hint
+                        # 022731.python.pefile.line5919.comment Get the Hint
                         imp_hint = self.get_word_from_data(data, 0)
                         imp_name = self.get_string_at_rva(
                             tbl_entry.AddressOfData + 2, MAX_IMPORT_NAME_LENGTH
@@ -5930,7 +5930,7 @@ class PE:
                     except PEFormatError:
                         pass
 
-                # by nriva: we want the ThunkRVA and ThunkOffset
+                # 022732.python.pefile.line5933.comment by nriva: we want the ThunkRVA and ThunkOffset
                 thunk_offset = tbl_entry.get_file_offset()
                 thunk_rva = self.get_rva_from_offset(thunk_offset)
 
@@ -5948,23 +5948,23 @@ class PE:
             except IndexError:
                 imp_bound = None
 
-            # The file with hashes:
-            #
-            # MD5: bfe97192e8107d52dd7b4010d12b2924
-            # SHA256: 3d22f8b001423cb460811ab4f4789f277b35838d45c62ec0454c877e7c82c7f5
-            #
-            # has an invalid table built in a way that it's parseable but contains
-            # invalid entries that lead pefile to take extremely long amounts of time to
-            # parse. It also leads to extreme memory consumption.
-            # To prevent similar cases, if invalid entries are found in the middle of a
-            # table the parsing will be aborted
-            #
+            # 022733.python.pefile.line5951.comment The file with hashes:
+            # 022734.python.pefile.line5952.comment
+            # 022735.python.pefile.line5953.comment MD5: bfe97192e8107d52dd7b4010d12b2924
+            # 022736.python.pefile.line5954.comment SHA256: 3d22f8b001423cb460811ab4f4789f277b35838d45c62ec0454c877e7c82c7f5
+            # 022737.python.pefile.line5955.comment
+            # 022738.python.pefile.line5956.comment has an invalid table built in a way that it's parseable but contains
+            # 022739.python.pefile.line5957.comment invalid entries that lead pefile to take extremely long amounts of time to
+            # 022740.python.pefile.line5958.comment parse. It also leads to extreme memory consumption.
+            # 022741.python.pefile.line5959.comment To prevent similar cases, if invalid entries are found in the middle of a
+            # 022742.python.pefile.line5960.comment table the parsing will be aborted
+            # 022743.python.pefile.line5961.comment
             if imp_ord is None and imp_name is None:
                 raise PEFormatError("Invalid entries, aborting parsing.")
 
-            # Some PEs appear to interleave valid and invalid imports. Instead of
-            # aborting the parsing altogether we will simply skip the invalid entries.
-            # Although if we see 1000 invalid entries and no legit ones, we abort.
+            # 022744.python.pefile.line5965.comment Some PEs appear to interleave valid and invalid imports. Instead of
+            # 022745.python.pefile.line5966.comment aborting the parsing altogether we will simply skip the invalid entries.
+            # 022746.python.pefile.line5967.comment Although if we see 1000 invalid entries and no legit ones, we abort.
             if imp_name == b("*invalid*"):
                 if num_invalid > 1000 and num_invalid == idx:
                     raise PEFormatError("Too many invalid names, aborting parsing.")
@@ -5997,9 +5997,9 @@ class PE:
 
         table = []
 
-        # We need the ordinal flag for a simple heuristic
-        # we're implementing within the loop
-        #
+        # 022748.python.pefile.line6000.comment We need the ordinal flag for a simple heuristic
+        # 022749.python.pefile.line6001.comment we're implementing within the loop
+        # 022750.python.pefile.line6002.comment
         if self.PE_TYPE == OPTIONAL_HEADER_MAGIC_PE:
             ordinal_flag = IMAGE_ORDINAL_FLAG
             format = self.__IMAGE_THUNK_DATA_format__
@@ -6007,9 +6007,9 @@ class PE:
             ordinal_flag = IMAGE_ORDINAL_FLAG64
             format = self.__IMAGE_THUNK_DATA64_format__
         else:
-            # Some PEs may have an invalid value in the Magic field of the
-            # Optional Header. Just in case the remaining file is parseable
-            # let's pretend it's a 32bit PE32 by default.
+            # 022751.python.pefile.line6010.comment Some PEs may have an invalid value in the Magic field of the
+            # 022752.python.pefile.line6011.comment Optional Header. Just in case the remaining file is parseable
+            # 022753.python.pefile.line6012.comment let's pretend it's a 32bit PE32 by default.
             ordinal_flag = IMAGE_ORDINAL_FLAG
             format = self.__IMAGE_THUNK_DATA_format__
 
@@ -6027,7 +6027,7 @@ class PE:
                     "Error parsing the import table. Entries go beyond bounds."
                 )
                 break
-            # Enforce an upper bounds on import symbols.
+            # 022755.python.pefile.line6030.comment Enforce an upper bounds on import symbols.
             if self.__total_import_symbols > MAX_IMPORT_SYMBOLS:
                 self.__warnings.append(
                     "Excessive number of imports %d (>%s)"
@@ -6037,14 +6037,14 @@ class PE:
 
             self.__total_import_symbols += 1
 
-            # if we see too many times the same entry we assume it could be
-            # a table containing bogus data (with malicious intent or otherwise)
+            # 022756.python.pefile.line6040.comment if we see too many times the same entry we assume it could be
+            # 022757.python.pefile.line6041.comment a table containing bogus data (with malicious intent or otherwise)
             if repeated_address >= MAX_REPEATED_ADDRESSES:
                 return []
 
-            # if the addresses point somewhere but the difference between the highest
-            # and lowest address is larger than MAX_ADDRESS_SPREAD we assume a bogus
-            # table as the addresses should be contained within a module
+            # 022758.python.pefile.line6045.comment if the addresses point somewhere but the difference between the highest
+            # 022759.python.pefile.line6046.comment and lowest address is larger than MAX_ADDRESS_SPREAD we assume a bogus
+            # 022760.python.pefile.line6047.comment table as the addresses should be contained within a module
             if addresses_of_data_set_32.diff() > MAX_ADDRESS_SPREAD:
                 return []
             if addresses_of_data_set_64.diff() > MAX_ADDRESS_SPREAD:
@@ -6066,7 +6066,7 @@ class PE:
                 format, data, file_offset=self.get_offset_from_rva(rva)
             )
 
-            # If the thunk data contains VAs instead of RVAs, we need to normalize them
+            # 022761.python.pefile.line6069.comment If the thunk data contains VAs instead of RVAs, we need to normalize them
             if contains_addresses:
                 thunk_data.AddressOfData = self.normalize_import_va(
                     thunk_data.AddressOfData
@@ -6077,11 +6077,11 @@ class PE:
                 thunk_data.Function = self.normalize_import_va(thunk_data.Function)
                 thunk_data.Ordinal = self.normalize_import_va(thunk_data.Ordinal)
 
-            # Check if the AddressOfData lies within the range of RVAs that it's
-            # being scanned, abort if that is the case, as it is very unlikely
-            # to be legitimate data.
-            # Seen in PE with SHA256:
-            # 5945bb6f0ac879ddf61b1c284f3b8d20c06b228e75ae4f571fa87f5b9512902c
+            # 022762.python.pefile.line6080.comment Check if the AddressOfData lies within the range of RVAs that it's
+            # 022763.python.pefile.line6081.comment being scanned, abort if that is the case, as it is very unlikely
+            # 022764.python.pefile.line6082.comment to be legitimate data.
+            # 022765.python.pefile.line6083.comment Seen in PE with SHA256:
+            # 022766.python.pefile.line6084.comment 5945bb6f0ac879ddf61b1c284f3b8d20c06b228e75ae4f571fa87f5b9512902c
             if (
                 thunk_data
                 and thunk_data.AddressOfData >= start_rva
@@ -6096,17 +6096,17 @@ class PE:
 
             if thunk_data and thunk_data.AddressOfData:
                 addr_of_data = thunk_data.AddressOfData
-                # If the entry looks like could be an ordinal...
+                # 022767.python.pefile.line6099.comment If the entry looks like could be an ordinal...
                 if addr_of_data & ordinal_flag:
-                    # but its value is beyond 2^16, we will assume it's a
-                    # corrupted and ignore it altogether
+                    # 022768.python.pefile.line6101.comment but its value is beyond 2^16, we will assume it's a
+                    # 022769.python.pefile.line6102.comment corrupted and ignore it altogether
                     if addr_of_data & 0x7FFFFFFF > 0xFFFF:
                         return []
-                # and if it looks like it should be an RVA
+                # 022770.python.pefile.line6105.comment and if it looks like it should be an RVA
                 else:
-                    # keep track of the RVAs seen and store them to study their
-                    # properties. When certain non-standard features are detected
-                    # the parsing will be aborted
+                    # 022771.python.pefile.line6107.comment keep track of the RVAs seen and store them to study their
+                    # 022772.python.pefile.line6108.comment properties. When certain non-standard features are detected
+                    # 022773.python.pefile.line6109.comment the parsing will be aborted
                     if addr_of_data >= ADDR_4GB:
                         the_set = addresses_of_data_set_64
                     else:
@@ -6145,22 +6145,22 @@ class PE:
         that the relocation information is applied permanently.
         """
 
-        # Rebase if requested
-        #
+        # 022774.python.pefile.line6148.comment Rebase if requested
+        # 022775.python.pefile.line6149.comment
         if ImageBase is not None:
 
-            # Keep a copy of the image's data before modifying it by rebasing it
-            #
+            # 022776.python.pefile.line6152.comment Keep a copy of the image's data before modifying it by rebasing it
+            # 022777.python.pefile.line6153.comment
             original_data = self.__data__
 
             self.relocate_image(ImageBase)
 
-        # Collect all sections in one code block
+        # 022778.python.pefile.line6158.comment Collect all sections in one code block
         mapped_data = self.__data__[:]
         for section in self.sections:
 
-            # Miscellaneous integrity tests.
-            # Some packer will set these to bogus values to make tools go nuts.
+            # 022779.python.pefile.line6162.comment Miscellaneous integrity tests.
+            # 022780.python.pefile.line6163.comment Some packer will set these to bogus values to make tools go nuts.
             if section.Misc_VirtualSize == 0 and section.SizeOfRawData == 0:
                 continue
 
@@ -6191,8 +6191,8 @@ class PE:
 
             mapped_data += section.get_data()
 
-        # If the image was rebased, restore it to its original form
-        #
+        # 022781.python.pefile.line6194.comment If the image was rebased, restore it to its original form
+        # 022782.python.pefile.line6195.comment
         if ImageBase is not None:
             self.__data__ = original_data
 
@@ -6244,15 +6244,15 @@ class PE:
             if rva < len(self.header):
                 return self.header[rva:end]
 
-            # Before we give up we check whether the file might
-            # contain the data anyway. There are cases of PE files
-            # without sections that rely on windows loading the first
-            # 8291 bytes into memory and assume the data will be
-            # there
-            # A functional file with these characteristics is:
-            # MD5: 0008892cdfbc3bda5ce047c565e52295
-            # SHA-1: c7116b9ff950f86af256defb95b5d4859d4752a9
-            #
+            # 022783.python.pefile.line6247.comment Before we give up we check whether the file might
+            # 022784.python.pefile.line6248.comment contain the data anyway. There are cases of PE files
+            # 022785.python.pefile.line6249.comment without sections that rely on windows loading the first
+            # 022786.python.pefile.line6250.comment 8291 bytes into memory and assume the data will be
+            # 022787.python.pefile.line6251.comment there
+            # 022788.python.pefile.line6252.comment A functional file with these characteristics is:
+            # 022789.python.pefile.line6253.comment MD5: 0008892cdfbc3bda5ce047c565e52295
+            # 022790.python.pefile.line6254.comment SHA-1: c7116b9ff950f86af256defb95b5d4859d4752a9
+            # 022791.python.pefile.line6255.comment
             if rva < len(self.__data__):
                 return self.__data__[rva:end]
 
@@ -6277,14 +6277,14 @@ class PE:
                     ]
                 )
                 if offset < lowest_rva:
-                    # We will assume that the offset lies within the headers, or
-                    # at least points before where the earliest section starts
-                    # and we will simply return the offset as the RVA
-                    #
-                    # The case illustrating this behavior can be found at:
-                    # http://corkami.blogspot.com/2010/01/hey-hey-hey-whats-in-your-head.html
-                    # where the import table is not contained by any section
-                    # hence the RVA needs to be resolved to a raw offset
+                    # 022792.python.pefile.line6280.comment We will assume that the offset lies within the headers, or
+                    # 022793.python.pefile.line6281.comment at least points before where the earliest section starts
+                    # 022794.python.pefile.line6282.comment and we will simply return the offset as the RVA
+                    # 022795.python.pefile.line6283.comment
+                    # 022796.python.pefile.line6284.comment The case illustrating this behavior can be found at:
+                    # 022797.python.pefile.line6285.comment http://corkami.blogspot.com/2010/01/hey-hey-hey-whats-in-your-head.html
+                    # 022798.python.pefile.line6286.comment where the import table is not contained by any section
+                    # 022799.python.pefile.line6287.comment hence the RVA needs to be resolved to a raw offset
                     return offset
                 return None
             else:
@@ -6301,10 +6301,10 @@ class PE:
         s = self.get_section_by_rva(rva)
         if not s:
 
-            # If not found within a section assume it might
-            # point to overlay data or otherwise data present
-            # but not contained in any section. In those
-            # cases the RVA should equal the offset
+            # 022800.python.pefile.line6304.comment If not found within a section assume it might
+            # 022801.python.pefile.line6305.comment point to overlay data or otherwise data present
+            # 022802.python.pefile.line6306.comment but not contained in any section. In those
+            # 022803.python.pefile.line6307.comment cases the RVA should equal the offset
             if rva < len(self.__data__):
                 return rva
 
@@ -6346,16 +6346,16 @@ class PE:
         if max_length == 0:
             return b""
 
-        # If the RVA is invalid let the exception reach the callers. All
-        # call-sites of get_string_u_at_rva() will handle it.
+        # 022804.python.pefile.line6349.comment If the RVA is invalid let the exception reach the callers. All
+        # 022805.python.pefile.line6350.comment call-sites of get_string_u_at_rva() will handle it.
         data = self.get_data(rva, 2)
-        # max_length is the maximum count of 16bit characters needs to be
-        # doubled to get size in bytes
+        # 022806.python.pefile.line6352.comment max_length is the maximum count of 16bit characters needs to be
+        # 022807.python.pefile.line6353.comment doubled to get size in bytes
         max_length <<= 1
 
         requested = min(max_length, 256)
         data = self.get_data(rva, requested)
-        # try to find null-termination
+        # 022808.python.pefile.line6358.comment try to find null-termination
         null_index = -1
         while True:
             null_index = data.find(b"\x00\x00", null_index + 1)
@@ -6365,7 +6365,7 @@ class PE:
                     null_index = len(data) >> 1
                     break
 
-                # Request remaining part of data limited by max_length
+                # 022809.python.pefile.line6368.comment Request remaining part of data limited by max_length
                 data += self.get_data(rva + data_length, max_length - data_length)
                 null_index = requested - 1
                 requested = max_length
@@ -6374,7 +6374,7 @@ class PE:
                 null_index >>= 1
                 break
 
-        # convert selected part of the string to unicode
+        # 022810.python.pefile.line6377.comment convert selected part of the string to unicode
         uchrs = struct.unpack("<{:d}H".format(null_index), data[: null_index * 2])
         s = "".join(map(chr, uchrs))
 
@@ -6395,8 +6395,8 @@ class PE:
     def get_section_by_rva(self, rva):
         """Get the section containing the given address."""
 
-        # if we look a lot of times at RVA in the same section, "cache" the last used section
-        # to speedup lookups (very useful when parsing import table)
+        # 022811.python.pefile.line6398.comment if we look a lot of times at RVA in the same section, "cache" the last used section
+        # 022812.python.pefile.line6399.comment to speedup lookups (very useful when parsing import table)
         if self._get_section_by_rva_last_used is not None:
             if self._get_section_by_rva_last_used.contains_rva(rva):
                 return self._get_section_by_rva_last_used
@@ -6542,7 +6542,7 @@ class PE:
                                 )
                                 dump.add_newline()
                                 for str_entry in sorted(list(st_entry.entries.items())):
-                                    # try:
+                                    # 022813.python.pefile.line6545.comment try:
                                     dump.add_line(
                                         "    {0}: {1}".format(
                                             str_entry[0].decode(
@@ -6603,7 +6603,7 @@ class PE:
             dump.add_header("Imported symbols")
             for module in self.DIRECTORY_ENTRY_IMPORT:
                 dump.add_lines(module.struct.dump())
-                # Print the name of the DLL if there are no imports.
+                # 022814.python.pefile.line6606.comment Print the name of the DLL if there are no imports.
                 if not module.imports:
                     dump.add(
                         "  Name -> {0}".format(
@@ -7134,7 +7134,7 @@ class PE:
 
         return dump_dict
 
-    # OC Patch
+    # 022815.python.pefile.line7137.comment OC Patch
     def get_physical_by_rva(self, rva):
         """Gets the physical address in the PE file from an RVA value."""
         try:
@@ -7142,9 +7142,9 @@ class PE:
         except Exception:
             return None
 
-    ##
-    # Double-Word get / set
-    ##
+    # 022816.python.pefile.line7145.comment #
+    # 022817.python.pefile.line7146.comment Double-Word get / set
+    # 022818.python.pefile.line7147.comment #
 
     def get_data_from_dword(self, dword):
         """Return a four byte string representing the double word value (little endian)."""
@@ -7192,9 +7192,9 @@ class PE:
         """Set the double word value at the given file offset."""
         return self.set_bytes_at_offset(offset, self.get_data_from_dword(dword))
 
-    ##
-    # Word get / set
-    ##
+    # 022819.python.pefile.line7195.comment #
+    # 022820.python.pefile.line7196.comment Word get / set
+    # 022821.python.pefile.line7197.comment #
 
     def get_data_from_word(self, word):
         """Return a two byte string representing the word value. (little endian)."""
@@ -7242,9 +7242,9 @@ class PE:
         """Set the word value at the given file offset."""
         return self.set_bytes_at_offset(offset, self.get_data_from_word(word))
 
-    ##
-    # Quad-Word get / set
-    ##
+    # 022822.python.pefile.line7245.comment #
+    # 022823.python.pefile.line7246.comment Quad-Word get / set
+    # 022824.python.pefile.line7247.comment #
 
     def get_data_from_qword(self, word):
         """Return an eight byte string representing the quad-word value (little endian)."""
@@ -7292,9 +7292,9 @@ class PE:
         """Set the quad-word value at the given file offset."""
         return self.set_bytes_at_offset(offset, self.get_data_from_qword(qword))
 
-    ##
-    # Set bytes
-    ##
+    # 022825.python.pefile.line7295.comment #
+    # 022826.python.pefile.line7296.comment Set bytes
+    # 022827.python.pefile.line7297.comment #
 
     def set_bytes_at_rva(self, rva, data):
         """Overwrite, with the given string, the bytes at the file offset corresponding
@@ -7383,10 +7383,10 @@ class PE:
             else:
                 for reloc in self.DIRECTORY_ENTRY_BASERELOC:
 
-                    # We iterate with an index because if the relocation is of type
-                    # IMAGE_REL_BASED_HIGHADJ we need to also process the next entry
-                    # at once and skip it for the next iteration
-                    #
+                    # 022828.python.pefile.line7386.comment We iterate with an index because if the relocation is of type
+                    # 022829.python.pefile.line7387.comment IMAGE_REL_BASED_HIGHADJ we need to also process the next entry
+                    # 022830.python.pefile.line7388.comment at once and skip it for the next iteration
+                    # 022831.python.pefile.line7389.comment
                     entry_idx = 0
                     while entry_idx < len(reloc.entries):
 
@@ -7394,14 +7394,14 @@ class PE:
                         entry_idx += 1
 
                         if entry.type == RELOCATION_TYPE["IMAGE_REL_BASED_ABSOLUTE"]:
-                            # Nothing to do for this type of relocation
+                            # 022832.python.pefile.line7397.comment Nothing to do for this type of relocation
                             pass
 
                         elif entry.type == RELOCATION_TYPE["IMAGE_REL_BASED_HIGH"]:
-                            # Fix the high 16-bits of a relocation
-                            #
-                            # Add high 16-bits of relocation_difference to the
-                            # 16-bit value at RVA=entry.rva
+                            # 022833.python.pefile.line7401.comment Fix the high 16-bits of a relocation
+                            # 022834.python.pefile.line7402.comment
+                            # 022835.python.pefile.line7403.comment Add high 16-bits of relocation_difference to the
+                            # 022836.python.pefile.line7404.comment 16-bit value at RVA=entry.rva
 
                             self.set_word_at_rva(
                                 entry.rva,
@@ -7414,10 +7414,10 @@ class PE:
                             )
 
                         elif entry.type == RELOCATION_TYPE["IMAGE_REL_BASED_LOW"]:
-                            # Fix the low 16-bits of a relocation
-                            #
-                            # Add low 16 bits of relocation_difference to the 16-bit
-                            # value at RVA=entry.rva
+                            # 022837.python.pefile.line7417.comment Fix the low 16-bits of a relocation
+                            # 022838.python.pefile.line7418.comment
+                            # 022839.python.pefile.line7419.comment Add low 16 bits of relocation_difference to the 16-bit
+                            # 022840.python.pefile.line7420.comment value at RVA=entry.rva
 
                             self.set_word_at_rva(
                                 entry.rva,
@@ -7429,9 +7429,9 @@ class PE:
                             )
 
                         elif entry.type == RELOCATION_TYPE["IMAGE_REL_BASED_HIGHLOW"]:
-                            # Handle all high and low parts of a 32-bit relocation
-                            #
-                            # Add relocation_difference to the value at RVA=entry.rva
+                            # 022841.python.pefile.line7432.comment Handle all high and low parts of a 32-bit relocation
+                            # 022842.python.pefile.line7433.comment
+                            # 022843.python.pefile.line7434.comment Add relocation_difference to the value at RVA=entry.rva
 
                             self.set_dword_at_rva(
                                 entry.rva,
@@ -7440,15 +7440,15 @@ class PE:
                             )
 
                         elif entry.type == RELOCATION_TYPE["IMAGE_REL_BASED_HIGHADJ"]:
-                            # Fix the high 16-bits of a relocation and adjust
-                            #
-                            # Add high 16-bits of relocation_difference to the 32-bit
-                            # value composed from the (16-bit value at
-                            # RVA=entry.rva)<<16 plus the 16-bit value at the next
-                            # relocation entry.
+                            # 022844.python.pefile.line7443.comment Fix the high 16-bits of a relocation and adjust
+                            # 022845.python.pefile.line7444.comment
+                            # 022846.python.pefile.line7445.comment Add high 16-bits of relocation_difference to the 32-bit
+                            # 022847.python.pefile.line7446.comment value composed from the (16-bit value at
+                            # 022848.python.pefile.line7447.comment RVA=entry.rva)<<16 plus the 16-bit value at the next
+                            # 022849.python.pefile.line7448.comment relocation entry.
 
-                            # If the next entry is beyond the array's limits,
-                            # abort... the table is corrupt
+                            # 022850.python.pefile.line7450.comment If the next entry is beyond the array's limits,
+                            # 022851.python.pefile.line7451.comment abort... the table is corrupt
                             if entry_idx == len(reloc.entries):
                                 break
 
@@ -7466,8 +7466,8 @@ class PE:
                             )
 
                         elif entry.type == RELOCATION_TYPE["IMAGE_REL_BASED_DIR64"]:
-                            # Apply the difference to the 64-bit value at the offset
-                            # RVA=entry.rva
+                            # 022852.python.pefile.line7469.comment Apply the difference to the 64-bit value at the offset
+                            # 022853.python.pefile.line7470.comment RVA=entry.rva
 
                             self.set_qword_at_rva(
                                 entry.rva,
@@ -7477,7 +7477,7 @@ class PE:
 
             self.OPTIONAL_HEADER.ImageBase = new_ImageBase
 
-            # correct VAs(virtual addresses) occurrences in directory information
+            # 022854.python.pefile.line7480.comment correct VAs(virtual addresses) occurrences in directory information
             if hasattr(self, "DIRECTORY_ENTRY_IMPORT"):
                 for dll in self.DIRECTORY_ENTRY_IMPORT:
                     for func in dll.imports:
@@ -7578,32 +7578,32 @@ class PE:
         return self.OPTIONAL_HEADER.CheckSum == self.generate_checksum()
 
     def generate_checksum(self):
-        # This will make sure that the data representing the PE image
-        # is updated with any changes that might have been made by
-        # assigning values to header fields as those are not automatically
-        # updated upon assignment.
-        #
-        # data = self.write()
-        # print('{0}'.format(len(data)))
-        # for idx, b in enumerate(data):
-        #     if b != ord(self.__data__[idx]) or (idx > 1244440 and idx < 1244460):
-        #         print('Idx: {0} G {1:02x} {3} B {2:02x}'.format(
-        #             idx, ord(self.__data__[idx]), b,
-        #             self.__data__[idx], chr(b)))
+        # 022855.python.pefile.line7581.comment This will make sure that the data representing the PE image
+        # 022856.python.pefile.line7582.comment is updated with any changes that might have been made by
+        # 022857.python.pefile.line7583.comment assigning values to header fields as those are not automatically
+        # 022858.python.pefile.line7584.comment updated upon assignment.
+        # 022859.python.pefile.line7585.comment
+        # 022860.python.pefile.line7586.comment data = self.write()
+        # 022861.python.pefile.line7587.comment print('{0}'.format(len(data)))
+        # 022862.python.pefile.line7588.comment for idx, b in enumerate(data):
+        # 022863.python.pefile.line7589.comment if b != ord(self.__data__[idx]) or (idx > 1244440 and idx < 1244460):
+        # 022864.python.pefile.line7590.comment print('Idx: {0} G {1:02x} {3} B {2:02x}'.format(
+        # 022865.python.pefile.line7591.comment idx, ord(self.__data__[idx]), b,
+        # 022866.python.pefile.line7592.comment self.__data__[idx], chr(b)))
         self.__data__ = self.write()
 
-        # Get the offset to the CheckSum field in the OptionalHeader
-        # (The offset is the same in PE32 and PE32+)
+        # 022867.python.pefile.line7595.comment Get the offset to the CheckSum field in the OptionalHeader
+        # 022868.python.pefile.line7596.comment (The offset is the same in PE32 and PE32+)
         checksum_offset = self.OPTIONAL_HEADER.get_file_offset() + 0x40  # 64
 
         checksum = 0
-        # Verify the data is dword-aligned. Add padding if needed
-        #
+        # 022870.python.pefile.line7600.comment Verify the data is dword-aligned. Add padding if needed
+        # 022871.python.pefile.line7601.comment
         remainder = len(self.__data__) % 4
         data_len = len(self.__data__) + ((4 - remainder) * (remainder != 0))
 
         for i in range(int(data_len / 4)):
-            # Skip the checksum field
+            # 022872.python.pefile.line7606.comment Skip the checksum field
             if i == int(checksum_offset / 4):
                 continue
             if i + 1 == (int(data_len / 4)) and remainder:
@@ -7612,7 +7612,7 @@ class PE:
                 )[0]
             else:
                 dword = struct.unpack("I", self.__data__[i * 4 : i * 4 + 4])[0]
-            # Optimized the calculation (thanks to Emmanuel Bourg for pointing it out!)
+            # 022873.python.pefile.line7615.comment Optimized the calculation (thanks to Emmanuel Bourg for pointing it out!)
             checksum += dword
             if checksum >= 2**32:
                 checksum = (checksum & 0xFFFFFFFF) + (checksum >> 32)
@@ -7621,8 +7621,8 @@ class PE:
         checksum = (checksum) + (checksum >> 16)
         checksum = checksum & 0xFFFF
 
-        # The length is the one of the original data, not the padded one
-        #
+        # 022874.python.pefile.line7624.comment The length is the one of the original data, not the padded one
+        # 022875.python.pefile.line7625.comment
         return checksum + len(self.__data__)
 
     def is_exe(self):
@@ -7664,35 +7664,35 @@ class PE:
         being a driver.
         """
 
-        # Checking that the ImageBase field of the OptionalHeader is above or
-        # equal to 0x80000000 (that is, whether it lies in the upper 2GB of
-        # the address space, normally belonging to the kernel) is not a
-        # reliable enough indicator.  For instance, PEs that play the invalid
-        # ImageBase trick to get relocated could be incorrectly assumed to be
-        # drivers.
+        # 022876.python.pefile.line7667.comment Checking that the ImageBase field of the OptionalHeader is above or
+        # 022877.python.pefile.line7668.comment equal to 0x80000000 (that is, whether it lies in the upper 2GB of
+        # 022878.python.pefile.line7669.comment the address space, normally belonging to the kernel) is not a
+        # 022879.python.pefile.line7670.comment reliable enough indicator.  For instance, PEs that play the invalid
+        # 022880.python.pefile.line7671.comment ImageBase trick to get relocated could be incorrectly assumed to be
+        # 022881.python.pefile.line7672.comment drivers.
 
-        # This is not reliable either...
-        #
-        # if any((section.Characteristics &
-        #           SECTION_CHARACTERISTICS['IMAGE_SCN_MEM_NOT_PAGED']) for
-        #        section in self.sections ):
-        #    return True
+        # 022882.python.pefile.line7674.comment This is not reliable either...
+        # 022883.python.pefile.line7675.comment
+        # 022884.python.pefile.line7676.comment if any((section.Characteristics &
+        # 022885.python.pefile.line7677.comment SECTION_CHARACTERISTICS['IMAGE_SCN_MEM_NOT_PAGED']) for
+        # 022886.python.pefile.line7678.comment section in self.sections ):
+        # 022887.python.pefile.line7679.comment return True
 
-        # If the import directory was not parsed (fast_load = True); do it now.
+        # 022888.python.pefile.line7681.comment If the import directory was not parsed (fast_load = True); do it now.
         if not hasattr(self, "DIRECTORY_ENTRY_IMPORT"):
             self.parse_data_directories(
                 directories=[DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_IMPORT"]]
             )
 
-        # If there's still no import directory (the PE doesn't have one or it's
-        # malformed), give up.
+        # 022889.python.pefile.line7687.comment If there's still no import directory (the PE doesn't have one or it's
+        # 022890.python.pefile.line7688.comment malformed), give up.
         if not hasattr(self, "DIRECTORY_ENTRY_IMPORT"):
             return False
 
-        # self.DIRECTORY_ENTRY_IMPORT will now exist, although it may be empty.
-        # If it imports from "ntoskrnl.exe" or other kernel components it should
-        # be a driver
-        #
+        # 022891.python.pefile.line7692.comment self.DIRECTORY_ENTRY_IMPORT will now exist, although it may be empty.
+        # 022892.python.pefile.line7693.comment If it imports from "ntoskrnl.exe" or other kernel components it should
+        # 022893.python.pefile.line7694.comment be a driver
+        # 022894.python.pefile.line7695.comment
         system_DLLs = set(
             (b"ntoskrnl.exe", b"hal.dll", b"ndis.sys", b"bootvid.dll", b"kdcom.dll")
         )
@@ -7752,7 +7752,7 @@ class PE:
                 largest_offset_and_size = update_if_sum_is_larger_and_within_file(
                     (self.get_offset_from_rva(directory.VirtualAddress), directory.Size)
                 )
-            # Ignore directories with RVA out of file
+            # 022895.python.pefile.line7755.comment Ignore directories with RVA out of file
             except PEFormatError:
                 continue
 
@@ -7782,22 +7782,22 @@ class PE:
 
         return self.__data__[:]
 
-    # According to http://corkami.blogspot.com/2010/01/parce-que-la-planche-aura-brule.html
-    # if PointerToRawData is less that 0x200 it's rounded to zero. Loading the test file
-    # in a debugger it's easy to verify that the PointerToRawData value of 1 is rounded
-    # to zero. Hence we reproduce the behavior
-    #
-    # According to the document:
-    # [ Microsoft Portable Executable and Common Object File Format Specification ]
-    # "The alignment factor (in bytes) that is used to align the raw data of sections in
-    #  the image file. The value should be a power of 2 between 512 and 64 K, inclusive.
-    #  The default is 512. If the SectionAlignment is less than the architecture's page
-    #  size, then FileAlignment must match SectionAlignment."
-    #
-    # The following is a hard-coded constant if the Windows loader
+    # 022896.python.pefile.line7785.comment According to http://corkami.blogspot.com/2010/01/parce-que-la-planche-aura-brule.html
+    # 022897.python.pefile.line7786.comment if PointerToRawData is less that 0x200 it's rounded to zero. Loading the test file
+    # 022898.python.pefile.line7787.comment in a debugger it's easy to verify that the PointerToRawData value of 1 is rounded
+    # 022899.python.pefile.line7788.comment to zero. Hence we reproduce the behavior
+    # 022900.python.pefile.line7789.comment
+    # 022901.python.pefile.line7790.comment According to the document:
+    # 022902.python.pefile.line7791.comment [ Microsoft Portable Executable and Common Object File Format Specification ]
+    # 022903.python.pefile.line7792.comment "The alignment factor (in bytes) that is used to align the raw data of sections in
+    # 022904.python.pefile.line7793.comment the image file. The value should be a power of 2 between 512 and 64 K, inclusive.
+    # 022905.python.pefile.line7794.comment The default is 512. If the SectionAlignment is less than the architecture's page
+    # 022906.python.pefile.line7795.comment size, then FileAlignment must match SectionAlignment."
+    # 022907.python.pefile.line7796.comment
+    # 022908.python.pefile.line7797.comment The following is a hard-coded constant if the Windows loader
     def adjust_FileAlignment(self, val, file_alignment):
         if file_alignment > FILE_ALIGNMENT_HARDCODED_VALUE:
-            # If it's not a power of two, report it:
+            # 022909.python.pefile.line7800.comment If it's not a power of two, report it:
             if self.FileAlignment_Warning is False and not power_of_two(file_alignment):
                 self.__warnings.append(
                     "If FileAlignment > 0x200 it should be a power of 2. Value: %x"
@@ -7807,12 +7807,12 @@ class PE:
 
         return cache_adjust_FileAlignment(val, file_alignment)
 
-    # According to the document:
-    # [ Microsoft Portable Executable and Common Object File Format Specification ]
-    # "The alignment (in bytes) of sections when they are loaded into memory. It must be
-    #  greater than or equal to FileAlignment. The default is the page size for the
-    #  architecture."
-    #
+    # 022910.python.pefile.line7810.comment According to the document:
+    # 022911.python.pefile.line7811.comment [ Microsoft Portable Executable and Common Object File Format Specification ]
+    # 022912.python.pefile.line7812.comment "The alignment (in bytes) of sections when they are loaded into memory. It must be
+    # 022913.python.pefile.line7813.comment greater than or equal to FileAlignment. The default is the page size for the
+    # 022914.python.pefile.line7814.comment architecture."
+    # 022915.python.pefile.line7815.comment
     def adjust_SectionAlignment(self, val, section_alignment, file_alignment):
         if file_alignment < FILE_ALIGNMENT_HARDCODED_VALUE:
             if (

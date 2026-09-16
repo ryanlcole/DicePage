@@ -1,4 +1,4 @@
-# testDCOM
+# 049992.python.testDCOM.line1.comment testDCOM
 usage = """\
 testDCOM.py - Simple DCOM test
 Usage: testDCOM.py serverName
@@ -14,8 +14,8 @@ but no special DCOM configuration should be necessary.
 """
 import sys
 
-# NOTE: If you configured the object locally using dcomcnfg, you could
-# simple use Dispatch rather than DispatchEx.
+# 049993.python.testDCOM.line17.comment NOTE: If you configured the object locally using dcomcnfg, you could
+# 049994.python.testDCOM.line18.comment simple use Dispatch rather than DispatchEx.
 import pythoncom
 import win32api
 import win32com.client
@@ -26,9 +26,9 @@ def test(serverName):
         print("You must specify a remote server name, not the local machine!")
         return
 
-    # Hack to overcome a DCOM limitation.  As the Python.Interpreter object
-    # is probably installed locally as an InProc object, DCOM seems to ignore
-    # all settings, and use the local object.
+    # 049995.python.testDCOM.line29.comment Hack to overcome a DCOM limitation.  As the Python.Interpreter object
+    # 049996.python.testDCOM.line30.comment is probably installed locally as an InProc object, DCOM seems to ignore
+    # 049997.python.testDCOM.line31.comment all settings, and use the local object.
     clsctx = pythoncom.CLSCTX_SERVER & ~pythoncom.CLSCTX_INPROC_SERVER
     ob = win32com.client.DispatchEx("Python.Interpreter", serverName, clsctx=clsctx)
     ob.Exec("import win32api")

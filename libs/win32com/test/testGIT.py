@@ -114,7 +114,7 @@ def test(fn):
                 if numFinished >= len(events):
                     break
             elif rc == win32event.WAIT_OBJECT_0 + len(events):  # a message
-                # This is critical - whole apartment model demo will hang.
+                # 050046.python.testGIT.line117.comment This is critical - whole apartment model demo will hang.
                 pythoncom.PumpWaitingMessages()
             else:  # Timeout
                 print(
@@ -131,7 +131,7 @@ def test(fn):
 if __name__ == "__main__":
     test(BeginThreadsSimpleMarshal)
     win32api.Sleep(500)
-    # Doing CoUninit here stop pythoncom.dll hanging when DLLMain shuts-down the process
+    # 050048.python.testGIT.line134.comment Doing CoUninit here stop pythoncom.dll hanging when DLLMain shuts-down the process
     pythoncom.CoUninitialize()
     if pythoncom._GetInterfaceCount() != 0 or pythoncom._GetGatewayCount() != 0:
         print(

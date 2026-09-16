@@ -141,7 +141,7 @@ def c_literal(mnemonic: str) -> int:
     return num
 
 
-# Non-error file & format constants
+# 031210.python.coreaudio.line144.comment Non-error file & format constants
 kAudioFilePropertyMagicCookieData = c_literal('mgic')
 kExtAudioFileProperty_FileDataFormat = c_literal('ffmt')
 kExtAudioFileProperty_ClientDataFormat = c_literal('cfmt')
@@ -157,27 +157,27 @@ kAudioFormatFlagsCanonical = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEn
 kAudioQueueProperty_MagicCookie = c_literal('aqmc')
 
 
-# ERRORS:
+# 031211.python.coreaudio.line160.comment ERRORS:
 
-# General System errors
+# 031212.python.coreaudio.line162.comment General System errors
 kAudio_UnimplementedError = -4
 kAudio_FileNotFoundError = -43
 kAudio_ParamError = -50
 kAudio_MemFullError = -108
 
 
-# All error constants below correspond to identically named errors in
-# Apple's audiotoolbox. The doc for each is at URLs ending with the same
-# names. For example, kAudioFileUnspecifiedError's documentation is at:
-# https://developer.apple.com/documentation/audiotoolbox/
+# 031213.python.coreaudio.line169.comment All error constants below correspond to identically named errors in
+# 031214.python.coreaudio.line170.comment Apple's audiotoolbox. The doc for each is at URLs ending with the same
+# 031215.python.coreaudio.line171.comment names. For example, kAudioFileUnspecifiedError's documentation is at:
+# 031216.python.coreaudio.line172.comment https://developer.apple.com/documentation/audiotoolbox/
 
-# General file read errors
+# 031217.python.coreaudio.line174.comment General file read errors
 kAudioFileNotOpenError = -38
 kAudioFileEndOfFileError = -39
 kAudioFilePositionError = -40
 kAudioFileFileNotFoundError = -43
 
-# File access mnemonic codes                    # Hex       , Base 10
+# 031218.python.coreaudio.line180.comment File access mnemonic codes                    # Hex       , Base 10
 kAudioFileUnspecifiedError = c_literal('wht?')  # 0x7768743F, 2003334207
 kAudioFileUnsupportedFileTypeError = c_literal('typ?')  # 0x7479703F, 1954115647
 kAudioFileUnsupportedDataFormatError = c_literal('fmt?')  # 0x666D743F, 1718449215
@@ -186,7 +186,7 @@ kAudioFileBadPropertySizeError = c_literal('!siz')  # 0x2173697A,  561211770
 kAudioFilePermissionsError = c_literal('prm?')  # 0x70726D3F, 1886547263
 kAudioFileNotOptimizedError = c_literal('optm')  # 0x6F70746D, 1869640813
 
-# Format-specific error codes                    # Hex       , Base 10
+# 031226.python.coreaudio.line189.comment Format-specific error codes                    # Hex       , Base 10
 kAudioFileInvalidChunkError = c_literal('chk?')  # 0x63686B3F, 1667787583
 kAudioFileDoesNotAllow64BitDataSizeError = c_literal('off?')  # 0x6F66663F, 1868981823
 kAudioFileInvalidPacketOffsetError = c_literal('pck?')  # 0x70636B3F, 1885563711
@@ -194,7 +194,7 @@ kAudioFileInvalidFileError = c_literal('dta?')  # 0x6474613F, 1685348671
 kAudioFileOperationNotSupportedError = c_literal('op?')  # 0x6F703F3F, 1869627199
 
 
-# Maps kAudio errors -> error text
+# 031232.python.coreaudio.line197.comment Maps kAudio errors -> error text
 err_str_db: Final[dict[int, str]] = {
     kAudioFileNotOpenError: "The file is closed.",
     kAudioFileEndOfFileError: "End of file.",

@@ -1,5 +1,5 @@
-# world_core.py
-# Phase 11.3 Final — Region ambient system + health linkage
+# 052619.python.world_core.line1.comment world_core.py
+# 052620.python.world_core.line2.comment Phase 11.3 Final — Region ambient system + health linkage
 
 from __future__ import annotations
 import math, time
@@ -23,7 +23,7 @@ def _ambient(h: float) -> dict:
         "saturation": round(0.3 + 0.7 * h, 3)
     }
 
-# ------------------------------------------------------------
+# 052621.python.world_core.line26.comment ------------------------------------------------------------
 def build_world(flags: Dict[str, float]) -> Dict[str, dict]:
     """Global ambient synthesis."""
     health = glyph_core.compute_health()
@@ -46,7 +46,7 @@ def build_world(flags: Dict[str, float]) -> Dict[str, dict]:
         "ts": int(time.time() * 1000),
     }
 
-# ------------------------------------------------------------
+# 052622.python.world_core.line49.comment ------------------------------------------------------------
 def get_region(rid: str, flags: Dict[str, float]) -> dict:
     """Return detailed info for one region (used by /region)."""
     rid = rid.lower().strip()

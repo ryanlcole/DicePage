@@ -3,10 +3,10 @@ import re
 
 DOMAIN_KNOWLEDGE_VERSION = "eios-domain-teaching-2026-09-11-r1"
 
-# This module is a compact teaching capsule for EIOS.  It deliberately separates
-# canonical/lore statements, stabilized implementation behavior, and owner-recorded
-# working doctrine.  The AI may explain or compile these concepts, but it does not
-# gain authority to mutate canonical state merely by knowing them.
+# 000043.python.rist_eios_domain_knowledge.line6.comment This module is a compact teaching capsule for EIOS.  It deliberately separates
+# 000044.python.rist_eios_domain_knowledge.line7.comment canonical/lore statements, stabilized implementation behavior, and owner-recorded
+# 000045.python.rist_eios_domain_knowledge.line8.comment working doctrine.  The AI may explain or compile these concepts, but it does not
+# 000046.python.rist_eios_domain_knowledge.line9.comment gain authority to mutate canonical state merely by knowing them.
 
 DOMAIN_RULES = (
     "NATURAL CODING: ordinary human language is the source language for intent. "

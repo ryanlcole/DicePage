@@ -19,7 +19,7 @@ class SimpleConnection:
         try:
             self.Disconnect()
         except pythoncom.error:
-            # Ignore disconnection as we are torn down.
+            # 048810.python.connect.line22.comment Ignore disconnection as we are torn down.
             pass
 
     def _wrap(self, obj):

@@ -27,7 +27,7 @@ from pyglet.input.linux.evdev_constants import *
 from pyglet.input.controller import get_mapping, Relation, create_guid
 
 
-# From /linux/blob/master/include/uapi/linux/hidraw.h
+# 026370.python.hidraw.line30.comment From /linux/blob/master/include/uapi/linux/hidraw.h
 
 
 class HIDRawDevInfo(ctypes.Structure):
@@ -66,9 +66,9 @@ def HIDIOCGFEATURE(fileno, buffer):
     return _IOWR_len('H', 0x07)(fileno, buffer)
 
 
-# HIDRAW_FIRST_MINOR = 0
-# HIDRAW_MAX_DEVICES = 64
-# HIDRAW_BUFFER_SIZE = 64
+# 026371.python.hidraw.line69.comment HIDRAW_FIRST_MINOR = 0
+# 026372.python.hidraw.line70.comment HIDRAW_MAX_DEVICES = 64
+# 026373.python.hidraw.line71.comment HIDRAW_BUFFER_SIZE = 64
 
 
 def get_set_bits(bytestring):
@@ -97,7 +97,7 @@ class HIDRawDevice(XlibSelectDevice, Device):
         self.uniq = HIDIOCGRAWUNIQ(fileno).decode('utf-8')
         name = HIDIOCGRAWNAME(fileno).decode('utf-8')
 
-        # Query the descriptor size, and pass it as an argument.
+        # 026374.python.hidraw.line100.comment Query the descriptor size, and pass it as an argument.
         desc_size = HIDIOCGRDESCSIZE(fileno)
         self.report_descriptor = HIDIOCGRDESC(fileno, desc_size)
 
@@ -108,7 +108,7 @@ class HIDRawDevice(XlibSelectDevice, Device):
         super().__init__(display, name)
 
     def get_feature_report(self, number=0x00, length=256) -> bytes:
-        # Make a buffer, and set the first byte to the report number:
+        # 026375.python.hidraw.line111.comment Make a buffer, and set the first byte to the report number:
         buffer = create_string_buffer(length + 1)
         buffer[0] = number
 
@@ -116,11 +116,11 @@ class HIDRawDevice(XlibSelectDevice, Device):
 
         return buffer.raw
 
-    # TODO: HIDRaw version
-    # def get_guid(self):
-    #     """Get the device's SDL2 style GUID string"""
-    #     _id = self._id
-    #     return create_guid(_id.bustype, _id.vendor, _id.product, _id.version, self.name, 0, 0)
+    # 026376.python.hidraw.line119.comment TODO: HIDRaw version
+    # 026377.python.hidraw.line120.comment def get_guid(self):
+    # 026378.python.hidraw.line121.comment """Get the device's SDL2 style GUID string"""
+    # 026379.python.hidraw.line122.comment _id = self._id
+    # 026380.python.hidraw.line123.comment return create_guid(_id.bustype, _id.vendor, _id.product, _id.version, self.name, 0, 0)
 
     def open(self, window=None, exclusive=False):
         super().open(window, exclusive)
@@ -145,12 +145,12 @@ class HIDRawDevice(XlibSelectDevice, Device):
     def get_controls(self):
         return self.controls
 
-    # Force Feedback methods
+    # 026381.python.hidraw.line148.comment Force Feedback methods
 
-    # def ff_upload_effect(self, structure):
-    #     os.write(self._fileno, structure)
+    # 026382.python.hidraw.line150.comment def ff_upload_effect(self, structure):
+    # 026383.python.hidraw.line151.comment os.write(self._fileno, structure)
 
-    # XlibSelectDevice interface
+    # 026384.python.hidraw.line153.comment XlibSelectDevice interface
 
     def fileno(self):
         return self._fileno
@@ -163,7 +163,7 @@ class HIDRawDevice(XlibSelectDevice, Device):
             return
 
         try:
-            # TODO:  Read HID reports here
+            # 026385.python.hidraw.line166.comment TODO:  Read HID reports here
             pass
         except OSError:
             self.close()

@@ -1,11 +1,11 @@
-#
-# This assumes that you have MSAccess and DAO installed.
-#  You need to run makepy.py over "msaccess.tlb" and
-#  "dao3032.dll", and ensure the generated files are on the
-#  path.
+# 049928.python.testAccess.line1.comment
+# 049929.python.testAccess.line2.comment This assumes that you have MSAccess and DAO installed.
+# 049930.python.testAccess.line3.comment You need to run makepy.py over "msaccess.tlb" and
+# 049931.python.testAccess.line4.comment "dao3032.dll", and ensure the generated files are on the
+# 049932.python.testAccess.line5.comment path.
 
-# You can run this with no args, and a test database will be generated.
-# You can optionally pass a dbname on the command line, in which case it will be dumped.
+# 049933.python.testAccess.line7.comment You can run this with no args, and a test database will be generated.
+# 049934.python.testAccess.line8.comment You can optionally pass a dbname on the command line, in which case it will be dumped.
 
 import os
 import sys
@@ -16,7 +16,7 @@ from win32com.client import Dispatch, constants, gencache
 
 
 def CreateTestAccessDatabase(dbname=None):
-    # Creates a test access database - returns the filename.
+    # 049935.python.testAccess.line19.comment Creates a test access database - returns the filename.
     if dbname is None:
         dbname = os.path.join(win32api.GetTempPath(), "COMTestSuiteTempDatabase.mdb")
 
@@ -35,7 +35,7 @@ def CreateTestAccessDatabase(dbname=None):
         dbname, constants.dbLangGeneral, constants.dbEncrypt
     )
 
-    # Create one test table.
+    # 049936.python.testAccess.line38.comment Create one test table.
     table = newdb.CreateTableDef("Test Table 1")
     table.Fields.Append(table.CreateField("First Name", constants.dbText))
     table.Fields.Append(table.CreateField("Last Name", constants.dbText))
@@ -48,14 +48,14 @@ def CreateTestAccessDatabase(dbname=None):
 
     newdb.TableDefs.Append(table)
 
-    # Create a second test table.
+    # 049937.python.testAccess.line51.comment Create a second test table.
     table = newdb.CreateTableDef("Test Table 2")
     table.Fields.Append(table.CreateField("First Name", constants.dbText))
     table.Fields.Append(table.CreateField("Last Name", constants.dbText))
 
     newdb.TableDefs.Append(table)
 
-    # Create a relationship between them
+    # 049938.python.testAccess.line58.comment Create a relationship between them
     relation = newdb.CreateRelation("TestRelationship")
     relation.Table = "Test Table 1"
     relation.ForeignTable = "Test Table 2"
@@ -74,7 +74,7 @@ def CreateTestAccessDatabase(dbname=None):
 
     newdb.Relations.Append(relation)
 
-    # Finally we can add some data to the table.
+    # 049939.python.testAccess.line77.comment Finally we can add some data to the table.
     tab1 = newdb.OpenRecordset("Test Table 1")
     tab1.AddNew()
     tab1.Fields("First Name").Value = "Mark"
@@ -82,18 +82,18 @@ def CreateTestAccessDatabase(dbname=None):
     tab1.Update()
 
     tab1.MoveFirst()
-    # We do a simple bookmark test which tests our optimized VT_SAFEARRAY|VT_UI1 support.
-    # The bookmark will be a buffer object - remember it for later.
+    # 049940.python.testAccess.line85.comment We do a simple bookmark test which tests our optimized VT_SAFEARRAY|VT_UI1 support.
+    # 049941.python.testAccess.line86.comment The bookmark will be a buffer object - remember it for later.
     bk = tab1.Bookmark
 
-    # Add a second record.
+    # 049942.python.testAccess.line89.comment Add a second record.
     tab1.AddNew()
     tab1.Fields("First Name").Value = "Second"
     tab1.Fields("Last Name").Value = "Person"
     tab1.Update()
 
-    # Reset the bookmark to the one we saved.
-    # But first check the test is actually doing something!
+    # 049943.python.testAccess.line95.comment Reset the bookmark to the one we saved.
+    # 049944.python.testAccess.line96.comment But first check the test is actually doing something!
     tab1.MoveLast()
     assert tab1.Fields("First Name").Value == "Second", (
         "Unexpected record is last - makes bookmark test pointless!"
@@ -121,9 +121,9 @@ def DoDumpAccessInfo(dbname):
         daodump.DumpDB(db, 1)
         forms = a.Forms
         print("There are %d forms open." % (len(forms)))
-        # Uncommenting these lines means Access remains open.
-        # for form in forms:
-        #     print(f" {form.Name}")
+        # 049945.python.testAccess.line124.comment Uncommenting these lines means Access remains open.
+        # 049946.python.testAccess.line125.comment for form in forms:
+        # 049947.python.testAccess.line126.comment print(f" {form.Name}")
         reports = a.Reports
         print("There are %d reports open" % (len(reports)))
     finally:
@@ -135,12 +135,12 @@ def DoDumpAccessInfo(dbname):
                 pass
 
 
-# Generate all the support we can.
+# 049948.python.testAccess.line138.comment Generate all the support we can.
 def GenerateSupport():
-    # dao
+    # 049949.python.testAccess.line140.comment dao
     gencache.EnsureModule("{00025E01-0000-0000-C000-000000000046}", 0, 4, 0)
-    # Access
-    #       gencache.EnsureModule("{4AFFC9A0-5F99-101B-AF4E-00AA003F0F07}", 0, 8, 0)
+    # 049950.python.testAccess.line142.comment Access
+    # 049951.python.testAccess.line143.comment gencache.EnsureModule("{4AFFC9A0-5F99-101B-AF4E-00AA003F0F07}", 0, 8, 0)
     gencache.EnsureDispatch("Access.Application")
 
 
@@ -149,19 +149,19 @@ def DumpAccessInfo(dbname):
     dmod = gencache.GetModuleForProgID("DAO.DBEngine.35")
     if amod is None and dmod is None:
         DoDumpAccessInfo(dbname)
-        # Now generate all the support we can.
+        # 049952.python.testAccess.line152.comment Now generate all the support we can.
         GenerateSupport()
     else:
         sys.stderr.write(
             "testAccess not doing dynamic test, as generated code already exists\n"
         )
-    # Now a generated version.
+    # 049953.python.testAccess.line158.comment Now a generated version.
     DoDumpAccessInfo(dbname)
 
 
 def test(dbname=None):
     if dbname is None:
-        # We need makepy support to create a database (just for the constants!)
+        # 049954.python.testAccess.line164.comment We need makepy support to create a database (just for the constants!)
         try:
             GenerateSupport()
         except pythoncom.com_error:

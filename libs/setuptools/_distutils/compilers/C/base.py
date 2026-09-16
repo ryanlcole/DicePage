@@ -62,41 +62,41 @@ class Compiler:
     attributes may be varied on a per-compilation or per-link basis.
     """
 
-    # 'compiler_type' is a class attribute that identifies this class.  It
-    # keeps code that wants to know what kind of compiler it's dealing with
-    # from having to import all possible compiler classes just to do an
-    # 'isinstance'.  In concrete CCompiler subclasses, 'compiler_type'
-    # should really, really be one of the keys of the 'compiler_class'
-    # dictionary (see below -- used by the 'new_compiler()' factory
-    # function) -- authors of new compiler interface classes are
-    # responsible for updating 'compiler_class'!
+    # 039981.python.base.line65.comment 'compiler_type' is a class attribute that identifies this class.  It
+    # 039982.python.base.line66.comment keeps code that wants to know what kind of compiler it's dealing with
+    # 039983.python.base.line67.comment from having to import all possible compiler classes just to do an
+    # 039984.python.base.line68.comment 'isinstance'.  In concrete CCompiler subclasses, 'compiler_type'
+    # 039985.python.base.line69.comment should really, really be one of the keys of the 'compiler_class'
+    # 039986.python.base.line70.comment dictionary (see below -- used by the 'new_compiler()' factory
+    # 039987.python.base.line71.comment function) -- authors of new compiler interface classes are
+    # 039988.python.base.line72.comment responsible for updating 'compiler_class'!
     compiler_type: ClassVar[str] = None  # type: ignore[assignment]
 
-    # XXX things not handled by this compiler abstraction model:
-    #   * client can't provide additional options for a compiler,
-    #     e.g. warning, optimization, debugging flags.  Perhaps this
-    #     should be the domain of concrete compiler abstraction classes
-    #     (UnixCCompiler, MSVCCompiler, etc.) -- or perhaps the base
-    #     class should have methods for the common ones.
-    #   * can't completely override the include or library searchg
-    #     path, ie. no "cc -I -Idir1 -Idir2" or "cc -L -Ldir1 -Ldir2".
-    #     I'm not sure how widely supported this is even by Unix
-    #     compilers, much less on other platforms.  And I'm even less
-    #     sure how useful it is; maybe for cross-compiling, but
-    #     support for that is a ways off.  (And anyways, cross
-    #     compilers probably have a dedicated binary with the
-    #     right paths compiled in.  I hope.)
-    #   * can't do really freaky things with the library list/library
-    #     dirs, e.g. "-Ldir1 -lfoo -Ldir2 -lfoo" to link against
-    #     different versions of libfoo.a in different locations.  I
-    #     think this is useless without the ability to null out the
-    #     library search path anyways.
+    # 039990.python.base.line75.comment XXX things not handled by this compiler abstraction model:
+    # 039991.python.base.line76.comment * client can't provide additional options for a compiler,
+    # 039992.python.base.line77.comment e.g. warning, optimization, debugging flags.  Perhaps this
+    # 039993.python.base.line78.comment should be the domain of concrete compiler abstraction classes
+    # 039994.python.base.line79.comment (UnixCCompiler, MSVCCompiler, etc.) -- or perhaps the base
+    # 039995.python.base.line80.comment class should have methods for the common ones.
+    # 039996.python.base.line81.comment * can't completely override the include or library searchg
+    # 039997.python.base.line82.comment path, ie. no "cc -I -Idir1 -Idir2" or "cc -L -Ldir1 -Ldir2".
+    # 039998.python.base.line83.comment I'm not sure how widely supported this is even by Unix
+    # 039999.python.base.line84.comment compilers, much less on other platforms.  And I'm even less
+    # 040000.python.base.line85.comment sure how useful it is; maybe for cross-compiling, but
+    # 040001.python.base.line86.comment support for that is a ways off.  (And anyways, cross
+    # 040002.python.base.line87.comment compilers probably have a dedicated binary with the
+    # 040003.python.base.line88.comment right paths compiled in.  I hope.)
+    # 040004.python.base.line89.comment * can't do really freaky things with the library list/library
+    # 040005.python.base.line90.comment dirs, e.g. "-Ldir1 -lfoo -Ldir2 -lfoo" to link against
+    # 040006.python.base.line91.comment different versions of libfoo.a in different locations.  I
+    # 040007.python.base.line92.comment think this is useless without the ability to null out the
+    # 040008.python.base.line93.comment library search path anyways.
 
     executables: ClassVar[dict]
 
-    # Subclasses that rely on the standard filename generation methods
-    # implemented below should override these; see the comment near
-    # those methods ('object_filenames()' et. al.) for details:
+    # 040009.python.base.line97.comment Subclasses that rely on the standard filename generation methods
+    # 040010.python.base.line98.comment implemented below should override these; see the comment near
+    # 040011.python.base.line99.comment those methods ('object_filenames()' et. al.) for details:
     src_extensions: ClassVar[list[str] | None] = None
     obj_extension: ClassVar[str | None] = None
     static_lib_extension: ClassVar[str | None] = None
@@ -105,12 +105,12 @@ class Compiler:
     shared_lib_format: ClassVar[str | None] = None  # prob. same as static_lib_format
     exe_extension: ClassVar[str | None] = None
 
-    # Default language settings. language_map is used to detect a source
-    # file or Extension target language, checking source filenames.
-    # language_order is used to detect the language precedence, when deciding
-    # what language to use when mixing source types. For example, if some
-    # extension has two files with ".c" extension, and one with ".cpp", it
-    # is still linked as c++.
+    # 040014.python.base.line108.comment Default language settings. language_map is used to detect a source
+    # 040015.python.base.line109.comment file or Extension target language, checking source filenames.
+    # 040016.python.base.line110.comment language_order is used to detect the language precedence, when deciding
+    # 040017.python.base.line111.comment what language to use when mixing source types. For example, if some
+    # 040018.python.base.line112.comment extension has two files with ".c" extension, and one with ".cpp", it
+    # 040019.python.base.line113.comment is still linked as c++.
     language_map: ClassVar[dict[str, str]] = {
         ".c": "c",
         ".cc": "c++",
@@ -137,32 +137,32 @@ class Compiler:
         self.force = force
         self.verbose = verbose
 
-        # 'output_dir': a common output directory for object, library,
-        # shared object, and shared library files
+        # 040020.python.base.line140.comment 'output_dir': a common output directory for object, library,
+        # 040021.python.base.line141.comment shared object, and shared library files
         self.output_dir: str | None = None
 
-        # 'macros': a list of macro definitions (or undefinitions).  A
-        # macro definition is a 2-tuple (name, value), where the value is
-        # either a string or None (no explicit value).  A macro
-        # undefinition is a 1-tuple (name,).
+        # 040022.python.base.line144.comment 'macros': a list of macro definitions (or undefinitions).  A
+        # 040023.python.base.line145.comment macro definition is a 2-tuple (name, value), where the value is
+        # 040024.python.base.line146.comment either a string or None (no explicit value).  A macro
+        # 040025.python.base.line147.comment undefinition is a 1-tuple (name,).
         self.macros: list[_Macro] = []
 
-        # 'include_dirs': a list of directories to search for include files
+        # 040026.python.base.line150.comment 'include_dirs': a list of directories to search for include files
         self.include_dirs = []
 
-        # 'libraries': a list of libraries to include in any link
-        # (library names, not filenames: eg. "foo" not "libfoo.a")
+        # 040027.python.base.line153.comment 'libraries': a list of libraries to include in any link
+        # 040028.python.base.line154.comment (library names, not filenames: eg. "foo" not "libfoo.a")
         self.libraries: list[str] = []
 
-        # 'library_dirs': a list of directories to search for libraries
+        # 040029.python.base.line157.comment 'library_dirs': a list of directories to search for libraries
         self.library_dirs = []
 
-        # 'runtime_library_dirs': a list of directories to search for
-        # shared libraries/objects at runtime
+        # 040030.python.base.line160.comment 'runtime_library_dirs': a list of directories to search for
+        # 040031.python.base.line161.comment shared libraries/objects at runtime
         self.runtime_library_dirs: list[str] = []
 
-        # 'objects': a list of object files (or similar, such as explicitly
-        # named library files) to include on any link
+        # 040032.python.base.line164.comment 'objects': a list of object files (or similar, such as explicitly
+        # 040033.python.base.line165.comment named library files) to include on any link
         self.objects: list[str] = []
 
         for key in self.executables.keys():
@@ -186,13 +186,13 @@ class Compiler:
         'distutils.util.split_quoted()'.)
         """
 
-        # Note that some CCompiler implementation classes will define class
-        # attributes 'cpp', 'cc', etc. with hard-coded executable names;
-        # this is appropriate when a compiler class is for exactly one
-        # compiler/OS combination (eg. MSVCCompiler).  Other compiler
-        # classes (UnixCCompiler, in particular) are driven by information
-        # discovered at run-time, since there are many different ways to do
-        # basically the same things with Unix C compilers.
+        # 040034.python.base.line189.comment Note that some CCompiler implementation classes will define class
+        # 040035.python.base.line190.comment attributes 'cpp', 'cc', etc. with hard-coded executable names;
+        # 040036.python.base.line191.comment this is appropriate when a compiler class is for exactly one
+        # 040037.python.base.line192.comment compiler/OS combination (eg. MSVCCompiler).  Other compiler
+        # 040038.python.base.line193.comment classes (UnixCCompiler, in particular) are driven by information
+        # 040039.python.base.line194.comment discovered at run-time, since there are many different ways to do
+        # 040040.python.base.line195.comment basically the same things with Unix C compilers.
 
         for key in kwargs:
             if key not in self.executables:
@@ -242,7 +242,7 @@ class Compiler:
         """
         return isinstance(name, str) and isinstance(value, (str, type(None)))
 
-    # -- Bookkeeping methods -------------------------------------------
+    # 040041.python.base.line245.comment -- Bookkeeping methods -------------------------------------------
 
     def define_macro(self, name: str, value: str | None = None) -> None:
         """Define a preprocessor macro for all compilations driven by this
@@ -251,8 +251,8 @@ class Compiler:
         without an explicit value and the exact outcome depends on the
         compiler used (XXX true? does ANSI say anything about this?)
         """
-        # Delete from the list of macro definitions/undefinitions if
-        # already there (so that this one will take precedence).
+        # 040042.python.base.line254.comment Delete from the list of macro definitions/undefinitions if
+        # 040043.python.base.line255.comment already there (so that this one will take precedence).
         i = self._find_macro(name)
         if i is not None:
             del self.macros[i]
@@ -268,8 +268,8 @@ class Compiler:
         per-compilation basis (ie. in the call to 'compile()'), then that
         takes precedence.
         """
-        # Delete from the list of macro definitions/undefinitions if
-        # already there (so that this one will take precedence).
+        # 040044.python.base.line271.comment Delete from the list of macro definitions/undefinitions if
+        # 040045.python.base.line272.comment already there (so that this one will take precedence).
         i = self._find_macro(name)
         if i is not None:
             del self.macros[i]
@@ -364,10 +364,10 @@ class Compiler:
         """
         self.objects = objects[:]
 
-    # -- Private utility methods --------------------------------------
-    # (here for the convenience of subclasses)
+    # 040046.python.base.line367.comment -- Private utility methods --------------------------------------
+    # 040047.python.base.line368.comment (here for the convenience of subclasses)
 
-    # Helper method to prep compiler in subclass compile() methods
+    # 040048.python.base.line370.comment Helper method to prep compiler in subclass compile() methods
 
     def _setup_compile(
         self,
@@ -384,7 +384,7 @@ class Compiler:
         if extra is None:
             extra = []
 
-        # Get the list of expected output (object) files
+        # 040049.python.base.line387.comment Get the list of expected output (object) files
         objects = self.object_filenames(sources, strip_dir=False, output_dir=outdir)
         assert len(objects) == len(sources)
 
@@ -401,7 +401,7 @@ class Compiler:
         return macros, objects, extra, pp_opts, build
 
     def _get_cc_args(self, pp_opts, debug, before):
-        # works for unixccompiler, cygwinccompiler
+        # 040050.python.base.line404.comment works for unixccompiler, cygwinccompiler
         cc_args = pp_opts + ['-c']
         if debug:
             cc_args[:0] = ['-g']
@@ -443,7 +443,7 @@ class Compiler:
         else:
             raise TypeError("'include_dirs' (if supplied) must be a list of strings")
 
-        # add include dirs for class
+        # 040051.python.base.line446.comment add include dirs for class
         include_dirs += self.__class__.include_dirs
 
         return output_dir, macros, include_dirs
@@ -456,12 +456,12 @@ class Compiler:
         Return a list of all object files and a dictionary telling
         which source files can be skipped.
         """
-        # Get the list of expected output (object) files
+        # 040052.python.base.line459.comment Get the list of expected output (object) files
         objects = self.object_filenames(sources, output_dir=output_dir)
         assert len(objects) == len(sources)
 
-        # Return an empty dict for the "which source files can be skipped"
-        # return value to preserve API compatibility.
+        # 040053.python.base.line463.comment Return an empty dict for the "which source files can be skipped"
+        # 040054.python.base.line464.comment return value to preserve API compatibility.
         return objects, {}
 
     def _fix_object_args(
@@ -509,7 +509,7 @@ class Compiler:
         else:
             raise TypeError("'library_dirs' (if supplied) must be a list of strings")
 
-        # add library dirs for class
+        # 040055.python.base.line512.comment add library dirs for class
         library_dirs += self.__class__.library_dirs
 
         if runtime_library_dirs is None:
@@ -558,8 +558,8 @@ class Compiler:
                 pass
         return lang
 
-    # -- Worker methods ------------------------------------------------
-    # (must be implemented by subclasses)
+    # 040056.python.base.line561.comment -- Worker methods ------------------------------------------------
+    # 040057.python.base.line562.comment (must be implemented by subclasses)
 
     def preprocess(
         self,
@@ -640,8 +640,8 @@ class Compiler:
 
         Raises CompileError on failure.
         """
-        # A concrete compiler class can either override this method
-        # entirely or implement _compile().
+        # 040058.python.base.line643.comment A concrete compiler class can either override this method
+        # 040059.python.base.line644.comment entirely or implement _compile().
         macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
             output_dir, macros, include_dirs, sources, depends, extra_postargs
         )
@@ -654,13 +654,13 @@ class Compiler:
                 continue
             self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
 
-        # Return *all* object filenames, not just the ones we just built.
+        # 040060.python.base.line657.comment Return *all* object filenames, not just the ones we just built.
         return objects
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compile 'src' to product 'obj'."""
-        # A concrete compiler class that does not override compile()
-        # should implement _compile().
+        # 040061.python.base.line662.comment A concrete compiler class that does not override compile()
+        # 040062.python.base.line663.comment should implement _compile().
         pass
 
     def create_static_lib(
@@ -695,7 +695,7 @@ class Compiler:
         """
         pass
 
-    # values for target_desc parameter in link()
+    # 040063.python.base.line698.comment values for target_desc parameter in link()
     SHARED_OBJECT = "shared_object"
     SHARED_LIBRARY = "shared_library"
     EXECUTABLE = "executable"
@@ -761,7 +761,7 @@ class Compiler:
         """
         raise NotImplementedError
 
-    # Old 'link_*()' methods, rewritten to use the new 'link()' method.
+    # 040064.python.base.line764.comment Old 'link_*()' methods, rewritten to use the new 'link()' method.
 
     def link_shared_lib(
         self,
@@ -854,10 +854,10 @@ class Compiler:
             target_lang,
         )
 
-    # -- Miscellaneous methods -----------------------------------------
-    # These are all used by the 'gen_lib_options() function; there is
-    # no appropriate default implementation so subclasses should
-    # implement all of these.
+    # 040065.python.base.line857.comment -- Miscellaneous methods -----------------------------------------
+    # 040066.python.base.line858.comment These are all used by the 'gen_lib_options() function; there is
+    # 040067.python.base.line859.comment no appropriate default implementation so subclasses should
+    # 040068.python.base.line860.comment implement all of these.
 
     def library_dir_option(self, dir: str) -> str:
         """Return the compiler option to add 'dir' to the list of
@@ -899,9 +899,9 @@ class Compiler:
         symbol is available for linking.
 
         """
-        # this can't be included at module scope because it tries to
-        # import math which might not be available at that point - maybe
-        # the necessary logic should just be inlined?
+        # 040070.python.base.line902.comment this can't be included at module scope because it tries to
+        # 040071.python.base.line903.comment import math which might not be available at that point - maybe
+        # 040072.python.base.line904.comment the necessary logic should just be inlined?
         import tempfile
 
         if includes is None:
@@ -921,13 +921,13 @@ class Compiler:
             for incl in includes:
                 f.write(f"""#include "{incl}"\n""")
             if not includes:
-                # Use "char func(void);" as the prototype to follow
-                # what autoconf does.  This prototype does not match
-                # any well-known function the compiler might recognize
-                # as a builtin, so this ends up as a true link test.
-                # Without a fake prototype, the test would need to
-                # know the exact argument types, and the has_function
-                # interface does not provide that level of information.
+                # 040073.python.base.line924.comment Use "char func(void);" as the prototype to follow
+                # 040074.python.base.line925.comment what autoconf does.  This prototype does not match
+                # 040075.python.base.line926.comment any well-known function the compiler might recognize
+                # 040076.python.base.line927.comment as a builtin, so this ends up as a true link test.
+                # 040077.python.base.line928.comment Without a fake prototype, the test would need to
+                # 040078.python.base.line929.comment know the exact argument types, and the has_function
+                # 040079.python.base.line930.comment interface does not provide that level of information.
                 f.write(
                     f"""\
 #ifdef __cplusplus
@@ -978,39 +978,39 @@ int main (int argc, char **argv) {{
         """
         raise NotImplementedError
 
-    # -- Filename generation methods -----------------------------------
+    # 040080.python.base.line981.comment -- Filename generation methods -----------------------------------
 
-    # The default implementation of the filename generating methods are
-    # prejudiced towards the Unix/DOS/Windows view of the world:
-    #   * object files are named by replacing the source file extension
-    #     (eg. .c/.cpp -> .o/.obj)
-    #   * library files (shared or static) are named by plugging the
-    #     library name and extension into a format string, eg.
-    #     "lib%s.%s" % (lib_name, ".a") for Unix static libraries
-    #   * executables are named by appending an extension (possibly
-    #     empty) to the program name: eg. progname + ".exe" for
-    #     Windows
-    #
-    # To reduce redundant code, these methods expect to find
-    # several attributes in the current object (presumably defined
-    # as class attributes):
-    #   * src_extensions -
-    #     list of C/C++ source file extensions, eg. ['.c', '.cpp']
-    #   * obj_extension -
-    #     object file extension, eg. '.o' or '.obj'
-    #   * static_lib_extension -
-    #     extension for static library files, eg. '.a' or '.lib'
-    #   * shared_lib_extension -
-    #     extension for shared library/object files, eg. '.so', '.dll'
-    #   * static_lib_format -
-    #     format string for generating static library filenames,
-    #     eg. 'lib%s.%s' or '%s.%s'
-    #   * shared_lib_format
-    #     format string for generating shared library filenames
-    #     (probably same as static_lib_format, since the extension
-    #     is one of the intended parameters to the format string)
-    #   * exe_extension -
-    #     extension for executable files, eg. '' or '.exe'
+    # 040081.python.base.line983.comment The default implementation of the filename generating methods are
+    # 040082.python.base.line984.comment prejudiced towards the Unix/DOS/Windows view of the world:
+    # 040083.python.base.line985.comment * object files are named by replacing the source file extension
+    # 040084.python.base.line986.comment (eg. .c/.cpp -> .o/.obj)
+    # 040085.python.base.line987.comment * library files (shared or static) are named by plugging the
+    # 040086.python.base.line988.comment library name and extension into a format string, eg.
+    # 040087.python.base.line989.comment "lib%s.%s" % (lib_name, ".a") for Unix static libraries
+    # 040088.python.base.line990.comment * executables are named by appending an extension (possibly
+    # 040089.python.base.line991.comment empty) to the program name: eg. progname + ".exe" for
+    # 040090.python.base.line992.comment Windows
+    # 040091.python.base.line993.comment
+    # 040092.python.base.line994.comment To reduce redundant code, these methods expect to find
+    # 040093.python.base.line995.comment several attributes in the current object (presumably defined
+    # 040094.python.base.line996.comment as class attributes):
+    # 040095.python.base.line997.comment * src_extensions -
+    # 040096.python.base.line998.comment list of C/C++ source file extensions, eg. ['.c', '.cpp']
+    # 040097.python.base.line999.comment * obj_extension -
+    # 040098.python.base.line1000.comment object file extension, eg. '.o' or '.obj'
+    # 040099.python.base.line1001.comment * static_lib_extension -
+    # 040100.python.base.line1002.comment extension for static library files, eg. '.a' or '.lib'
+    # 040101.python.base.line1003.comment * shared_lib_extension -
+    # 040102.python.base.line1004.comment extension for shared library/object files, eg. '.so', '.dll'
+    # 040103.python.base.line1005.comment * static_lib_format -
+    # 040104.python.base.line1006.comment format string for generating static library filenames,
+    # 040105.python.base.line1007.comment eg. 'lib%s.%s' or '%s.%s'
+    # 040106.python.base.line1008.comment * shared_lib_format
+    # 040107.python.base.line1009.comment format string for generating shared library filenames
+    # 040108.python.base.line1010.comment (probably same as static_lib_format, since the extension
+    # 040109.python.base.line1011.comment is one of the intended parameters to the format string)
+    # 040110.python.base.line1012.comment * exe_extension -
+    # 040111.python.base.line1013.comment extension for executable files, eg. '' or '.exe'
 
     def object_filenames(
         self,
@@ -1044,7 +1044,7 @@ int main (int argc, char **argv) {{
         './bar.o'
         """
         src = pathlib.PurePath(src_name)
-        # Ensure base is relative to honor output_dir (python/cpython#37775).
+        # 040112.python.base.line1047.comment Ensure base is relative to honor output_dir (python/cpython#37775).
         base = cls._make_relative(src)
         try:
             new_ext = extensions[src.suffix]
@@ -1129,7 +1129,7 @@ int main (int argc, char **argv) {{
 
         return os.path.join(output_dir, dir, filename)
 
-    # -- Utility methods -----------------------------------------------
+    # 040114.python.base.line1132.comment -- Utility methods -----------------------------------------------
 
     def announce(self, msg: object, level: int = 1) -> None:
         log.debug(msg)
@@ -1176,17 +1176,17 @@ int main (int argc, char **argv) {{
         mkpath(name, mode, dry_run=self.dry_run)
 
 
-# Map a sys.platform/os.name ('posix', 'nt') to the default compiler
-# type for that platform. Keys are interpreted as re match
-# patterns. Order is important; platform mappings are preferred over
-# OS names.
+# 040115.python.base.line1179.comment Map a sys.platform/os.name ('posix', 'nt') to the default compiler
+# 040116.python.base.line1180.comment type for that platform. Keys are interpreted as re match
+# 040117.python.base.line1181.comment patterns. Order is important; platform mappings are preferred over
+# 040118.python.base.line1182.comment OS names.
 _default_compilers = (
-    # Platform string mappings
-    # on a cygwin built python we can use gcc like an ordinary UNIXish
-    # compiler
+    # 040119.python.base.line1184.comment Platform string mappings
+    # 040120.python.base.line1185.comment on a cygwin built python we can use gcc like an ordinary UNIXish
+    # 040121.python.base.line1186.comment compiler
     ('cygwin.*', 'unix'),
     ('zos', 'zos'),
-    # OS name mappings
+    # 040122.python.base.line1189.comment OS name mappings
     ('posix', 'unix'),
     ('nt', 'msvc'),
 )
@@ -1206,8 +1206,8 @@ def get_default_compiler(osname: str | None = None, platform: str | None = None)
         osname = os.name
     if platform is None:
         platform = sys.platform
-    # Mingw is a special case where sys.platform is 'win32' but we
-    # want to use the 'mingw32' compiler, so check it first
+    # 040123.python.base.line1209.comment Mingw is a special case where sys.platform is 'win32' but we
+    # 040124.python.base.line1210.comment want to use the 'mingw32' compiler, so check it first
     if is_mingw():
         return 'mingw32'
     for pattern, compiler in _default_compilers:
@@ -1216,13 +1216,13 @@ def get_default_compiler(osname: str | None = None, platform: str | None = None)
             or re.match(pattern, osname) is not None
         ):
             return compiler
-    # Default to Unix compiler
+    # 040125.python.base.line1219.comment Default to Unix compiler
     return 'unix'
 
 
-# Map compiler types to (module_name, class_name) pairs -- ie. where to
-# find the code that implements an interface to this compiler.  (The module
-# is assumed to be in the 'distutils' package.)
+# 040126.python.base.line1223.comment Map compiler types to (module_name, class_name) pairs -- ie. where to
+# 040127.python.base.line1224.comment find the code that implements an interface to this compiler.  (The module
+# 040128.python.base.line1225.comment is assumed to be in the 'distutils' package.)
 compiler_class = {
     'unix': ('unixccompiler', 'UnixCCompiler', "standard UNIX-style compiler"),
     'msvc': ('_msvccompiler', 'MSVCCompiler', "Microsoft Visual C++"),
@@ -1245,9 +1245,9 @@ def show_compilers() -> None:
     """Print list of available compilers (used by the "--help-compiler"
     options to "build", "build_ext", "build_clib").
     """
-    # XXX this "knows" that the compiler option it's describing is
-    # "--compiler", which just happens to be the case for the three
-    # commands that use it.
+    # 040129.python.base.line1248.comment XXX this "knows" that the compiler option it's describing is
+    # 040130.python.base.line1249.comment "--compiler", which just happens to be the case for the three
+    # 040131.python.base.line1250.comment commands that use it.
     from distutils.fancy_getopt import FancyGetopt
 
     compilers = sorted(
@@ -1304,9 +1304,9 @@ def new_compiler(
             f"in module '{module_name}'"
         )
 
-    # XXX The None is necessary to preserve backwards compatibility
-    # with classes that expect verbose to be the first positional
-    # argument.
+    # 040132.python.base.line1307.comment XXX The None is necessary to preserve backwards compatibility
+    # 040133.python.base.line1308.comment with classes that expect verbose to be the first positional
+    # 040134.python.base.line1309.comment argument.
     return klass(None, dry_run, force)
 
 
@@ -1322,17 +1322,17 @@ def gen_preprocess_options(
     of command-line options suitable for either Unix compilers or Visual
     C++.
     """
-    # XXX it would be nice (mainly aesthetic, and so we don't generate
-    # stupid-looking command lines) to go over 'macros' and eliminate
-    # redundant definitions/undefinitions (ie. ensure that only the
-    # latest mention of a particular macro winds up on the command
-    # line).  I don't think it's essential, though, since most (all?)
-    # Unix C compilers only pay attention to the latest -D or -U
-    # mention of a macro on their command line.  Similar situation for
-    # 'include_dirs'.  I'm punting on both for now.  Anyways, weeding out
-    # redundancies like this should probably be the province of
-    # CCompiler, since the data structures used are inherited from it
-    # and therefore common to all CCompiler classes.
+    # 040135.python.base.line1325.comment XXX it would be nice (mainly aesthetic, and so we don't generate
+    # 040136.python.base.line1326.comment stupid-looking command lines) to go over 'macros' and eliminate
+    # 040137.python.base.line1327.comment redundant definitions/undefinitions (ie. ensure that only the
+    # 040138.python.base.line1328.comment latest mention of a particular macro winds up on the command
+    # 040139.python.base.line1329.comment line).  I don't think it's essential, though, since most (all?)
+    # 040140.python.base.line1330.comment Unix C compilers only pay attention to the latest -D or -U
+    # 040141.python.base.line1331.comment mention of a macro on their command line.  Similar situation for
+    # 040142.python.base.line1332.comment 'include_dirs'.  I'm punting on both for now.  Anyways, weeding out
+    # 040143.python.base.line1333.comment redundancies like this should probably be the province of
+    # 040144.python.base.line1334.comment CCompiler, since the data structures used are inherited from it
+    # 040145.python.base.line1335.comment and therefore common to all CCompiler classes.
     pp_opts = []
     for macro in macros:
         if not (isinstance(macro, tuple) and 1 <= len(macro) <= 2):
@@ -1347,9 +1347,9 @@ def gen_preprocess_options(
             if macro[1] is None:  # define with no explicit value
                 pp_opts.append(f"-D{macro[0]}")
             else:
-                # XXX *don't* need to be clever about quoting the
-                # macro value here, because we're going to avoid the
-                # shell at all costs when we spawn the command!
+                # 040148.python.base.line1350.comment XXX *don't* need to be clever about quoting the
+                # 040149.python.base.line1351.comment macro value here, because we're going to avoid the
+                # 040150.python.base.line1352.comment shell at all costs when we spawn the command!
                 pp_opts.append("-D{}={}".format(*macro))
 
     pp_opts.extend(f"-I{dir}" for dir in include_dirs)
@@ -1373,11 +1373,11 @@ def gen_lib_options(
     for dir in runtime_library_dirs:
         lib_opts.extend(always_iterable(compiler.runtime_library_dir_option(dir)))
 
-    # XXX it's important that we *not* remove redundant library mentions!
-    # sometimes you really do have to say "-lfoo -lbar -lfoo" in order to
-    # resolve all symbols.  I just hope we never have to say "-lfoo obj.o
-    # -lbar" to get things to work -- that's certainly a possibility, but a
-    # pretty nasty way to arrange your C code.
+    # 040151.python.base.line1376.comment XXX it's important that we *not* remove redundant library mentions!
+    # 040152.python.base.line1377.comment sometimes you really do have to say "-lfoo -lbar -lfoo" in order to
+    # 040153.python.base.line1378.comment resolve all symbols.  I just hope we never have to say "-lfoo obj.o
+    # 040154.python.base.line1379.comment -lbar" to get things to work -- that's certainly a possibility, but a
+    # 040155.python.base.line1380.comment pretty nasty way to arrange your C code.
 
     for lib in libraries:
         (lib_dir, lib_name) = os.path.split(lib)

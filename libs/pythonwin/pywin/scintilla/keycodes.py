@@ -16,7 +16,7 @@ _better_names = {
 
 
 def _fillvkmap():
-    # Pull the VK_names from win32con
+    # 038882.python.keycodes.line19.comment Pull the VK_names from win32con
     names = [entry for entry in win32con.__dict__ if entry.startswith("VK_")]
     for name in names:
         code = getattr(win32con, name)
@@ -33,11 +33,11 @@ _fillvkmap()
 
 def get_vk(chardesc):
     if len(chardesc) == 1:
-        # it is a character.
+        # 038883.python.keycodes.line36.comment it is a character.
         info = win32api.VkKeyScan(chardesc)
         if info == -1:
-            # Note: returning None, None causes an error when keyboard layout is non-English, see the report below
-            # https://stackoverflow.com/questions/45138084/pythonwin-occasionally-gives-an-error-on-opening
+            # 038884.python.keycodes.line39.comment Note: returning None, None causes an error when keyboard layout is non-English, see the report below
+            # 038885.python.keycodes.line40.comment https://stackoverflow.com/questions/45138084/pythonwin-occasionally-gives-an-error-on-opening
             return 0, 0
         vk = win32api.LOBYTE(info)
         state = win32api.HIBYTE(info)
@@ -49,7 +49,7 @@ def get_vk(chardesc):
         if state & 0x4:
             modifiers |= win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
         return vk, modifiers
-    # must be a 'key name'
+    # 038886.python.keycodes.line52.comment must be a 'key name'
     return key_name_to_vk.get(chardesc.lower()), 0
 
 
@@ -77,21 +77,21 @@ def parse_key_name(name):
     while pos < max:
         if name[pos] in "+-":
             tok = name[start:pos]
-            # use the ascii lower() version of tok, so ascii chars require
-            # an explicit shift modifier - ie 'Ctrl+G' should be treated as
-            # 'ctrl+g' - 'ctrl+shift+g' would be needed if desired.
-            # This is mainly to avoid changing all the old keystroke defs
+            # 038889.python.keycodes.line80.comment use the ascii lower() version of tok, so ascii chars require
+            # 038890.python.keycodes.line81.comment an explicit shift modifier - ie 'Ctrl+G' should be treated as
+            # 038891.python.keycodes.line82.comment 'ctrl+g' - 'ctrl+shift+g' would be needed if desired.
+            # 038892.python.keycodes.line83.comment This is mainly to avoid changing all the old keystroke defs
             toks.append(tok.lower())
             pos += 1  # skip the sep
             start = pos
         pos += 1
     flags = 0
-    # do the modifiers
+    # 038894.python.keycodes.line89.comment do the modifiers
     for tok in toks[:-1]:
         mod = modifiers.get(tok.lower())
         if mod is not None:
             flags |= mod
-    # the key name
+    # 038895.python.keycodes.line94.comment the key name
     vk, this_flags = get_vk(toks[-1])
     return vk, flags | this_flags
 
@@ -114,7 +114,7 @@ _checks = [
 
 
 def make_key_name(vk, flags):
-    # Check alt keys.
+    # 038899.python.keycodes.line117.comment Check alt keys.
     flags_done = 0
     parts = []
     for moddata in _checks:
@@ -125,15 +125,15 @@ def make_key_name(vk, flags):
                 break
     if flags_done & flags:
         parts.append(hex(flags & ~flags_done))
-    # Now the key name.
+    # 038900.python.keycodes.line128.comment Now the key name.
     if vk is None:
         parts.append("<Unknown scan code>")
     else:
         try:
             parts.append(key_code_to_name[vk])
         except KeyError:
-            # Not in our virtual key map - ask Windows what character this
-            # key corresponds to.
+            # 038901.python.keycodes.line135.comment Not in our virtual key map - ask Windows what character this
+            # 038902.python.keycodes.line136.comment key corresponds to.
             scancode = win32api.MapVirtualKey(vk, MAPVK_VK_TO_CHAR)
             parts.append(chr(scancode))
     sep = "+"

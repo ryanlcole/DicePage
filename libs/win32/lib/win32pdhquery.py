@@ -123,7 +123,7 @@ Use at your own risk, no warranties, no guarantees, no assurances,
 if you use it, you accept the risk of using it, etceteras.
 """
 
-# Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
+# 047468.python.win32pdhquery.line126.comment Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
 
 import _thread
 import copy
@@ -229,8 +229,8 @@ class BaseQuery:
         If we are already open, then do nothing.
         """
         if not self.active:  # to prevent having multiple open queries
-            # curpaths are made accessible here because of the possibility of volatile paths
-            # which may be dynamically altered by subclasses.
+            # 047470.python.win32pdhquery.line232.comment curpaths are made accessible here because of the possibility of volatile paths
+            # 047471.python.win32pdhquery.line233.comment which may be dynamically altered by subclasses.
             self.curpaths = copy.copy(self.paths)
             try:
                 base = win32pdh.OpenQuery()
@@ -261,14 +261,14 @@ class BaseQuery:
         instead of this method, in case a sub-class has overridden
         close to provide some special functionality.
         """
-        # Kill Pythonic references to the objects in this object's namespace
+        # 047477.python.win32pdhquery.line264.comment Kill Pythonic references to the objects in this object's namespace
         self._base = None
         counters = self.counters
         self.counters = []
-        # we don't kill the curpaths for convenience, this allows the
-        # user to close a query and still access the last paths
+        # 047478.python.win32pdhquery.line268.comment we don't kill the curpaths for convenience, this allows the
+        # 047479.python.win32pdhquery.line269.comment user to close a query and still access the last paths
         self.active = 0
-        # Now call the delete functions on all of the objects
+        # 047480.python.win32pdhquery.line271.comment Now call the delete functions on all of the objects
         try:
             map(win32pdh.RemoveCounter, counters)
         except:
@@ -331,11 +331,11 @@ class BaseQuery:
                 if not ok:
                     temp.append(-1)  # a better way to signal failure???
             return temp
-        # will happen if, for instance, no counters are part of the query and we attempt to collect data for it.
+        # 047486.python.win32pdhquery.line334.comment will happen if, for instance, no counters are part of the query and we attempt to collect data for it.
         except win32api.error:
             return [-1] * len(self.counters)
 
-    # pickle functions
+    # 047487.python.win32pdhquery.line338.comment pickle functions
     def __getinitargs__(self):
         """
         ### Not a public method
@@ -432,7 +432,7 @@ class Query(BaseQuery):
         to allow processing for lists of object-counter pairs.
         """
         items, instances = win32pdh.EnumObjectItems(None, None, objtype, -1)
-        # find out how many instances of this element we have...
+        # 047488.python.win32pdhquery.line435.comment find out how many instances of this element we have...
         instances.sort()
         try:
             cur = instances.index(object)
@@ -447,7 +447,7 @@ class Query(BaseQuery):
             pass
         paths = []
         for ind in range(len(temp)):
-            # can this raise an error?
+            # 047491.python.win32pdhquery.line450.comment can this raise an error?
             paths.append(
                 win32pdh.MakeCounterPath(
                     (machine, "Process", object, None, ind, counter)
@@ -464,9 +464,9 @@ class Query(BaseQuery):
         automatically open and close the query each time it runs.
         There are currently no arguments to open.
         """
-        # do all the normal opening stuff, self._base is now the query object
+        # 047493.python.win32pdhquery.line467.comment do all the normal opening stuff, self._base is now the query object
         BaseQuery.open(*(self,) + args, **namedargs)
-        # should rewrite getinstpaths to take a single tuple
+        # 047494.python.win32pdhquery.line469.comment should rewrite getinstpaths to take a single tuple
         paths = []
         for tup in self.volatilecounters:
             paths[len(paths) :] = self.getinstpaths(*tup)
@@ -549,7 +549,7 @@ class Query(BaseQuery):
         finally:
             self.close()
 
-    # pickle functions
+    # 047498.python.win32pdhquery.line552.comment pickle functions
     def __getinitargs__(self):
         return (self.paths,)
 

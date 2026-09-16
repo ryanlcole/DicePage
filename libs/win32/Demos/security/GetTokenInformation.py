@@ -59,7 +59,7 @@ def dump_token(th):
             sid_desc = win32security.LookupAccountSid("", group_sid)
         print("\t", group_sid, sid_desc, group_attr, flag_desc)
 
-    ## Vista token information types, will throw (87, 'GetTokenInformation', 'The parameter is incorrect.') on earier OS
+    # 046132.python.GetTokenInformation.line62.comment # Vista token information types, will throw (87, 'GetTokenInformation', 'The parameter is incorrect.') on earier OS
     try:
         is_elevated = win32security.GetTokenInformation(
             th, win32security.TokenElevation

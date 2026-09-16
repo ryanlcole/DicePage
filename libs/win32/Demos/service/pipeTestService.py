@@ -1,29 +1,29 @@
-# A Demo of services and named pipes.
+# 046261.python.pipeTestService.line1.comment A Demo of services and named pipes.
 
-# A multi-threaded service that simply echos back its input.
+# 046262.python.pipeTestService.line3.comment A multi-threaded service that simply echos back its input.
 
-# * Install as a service using "pipeTestService.py install"
-# * Use Control Panel to change the user name of the service
-#   to a real user name (ie, NOT the SystemAccount)
-# * Start the service.
-# * Run the "pipeTestServiceClient.py" program as the client pipe side.
+# 046263.python.pipeTestService.line5.comment * Install as a service using "pipeTestService.py install"
+# 046264.python.pipeTestService.line6.comment * Use Control Panel to change the user name of the service
+# 046265.python.pipeTestService.line7.comment to a real user name (ie, NOT the SystemAccount)
+# 046266.python.pipeTestService.line8.comment * Start the service.
+# 046267.python.pipeTestService.line9.comment * Run the "pipeTestServiceClient.py" program as the client pipe side.
 
 import _thread
 import traceback
 
 import pywintypes
 
-# Old versions of the service framework would not let you import this
-# module at the top-level.  Now you can, and can check 'servicemanager.Debugging()'
-# and 'servicemanager.RunningAsService()' to check your context.
+# 046268.python.pipeTestService.line16.comment Old versions of the service framework would not let you import this
+# 046269.python.pipeTestService.line17.comment module at the top-level.  Now you can, and can check 'servicemanager.Debugging()'
+# 046270.python.pipeTestService.line18.comment and 'servicemanager.RunningAsService()' to check your context.
 import servicemanager
 import win32con
 import win32service
 import win32serviceutil
 import winerror
 
-# # Use "import *" to keep this looking as much as a "normal" service
-# as possible.  Real code shouldn't do this.
+# 046271.python.pipeTestService.line25.comment # Use "import *" to keep this looking as much as a "normal" service
+# 046272.python.pipeTestService.line26.comment as possible.  Real code shouldn't do this.
 from ntsecuritycon import *  # nopycln: import
 from win32api import *  # nopycln: import
 from win32event import *  # nopycln: import
@@ -51,8 +51,8 @@ class TestPipeService(win32serviceutil.ServiceFramework):
         self.thread_handles = []
 
     def CreatePipeSecurityObject(self):
-        # Create a security object giving World read/write access,
-        # but only "Owner" modify access.
+        # 046279.python.pipeTestService.line54.comment Create a security object giving World read/write access,
+        # 046280.python.pipeTestService.line55.comment but only "Owner" modify access.
         sa = pywintypes.SECURITY_ATTRIBUTES()
         sidEveryone = pywintypes.SID()
         sidEveryone.Initialize(SECURITY_WORLD_SID_AUTHORITY, 1)
@@ -68,12 +68,12 @@ class TestPipeService(win32serviceutil.ServiceFramework):
         sa.SetSecurityDescriptorDacl(1, acl, 0)
         return sa
 
-    # The functions executed in their own thread to process a client request.
+    # 046281.python.pipeTestService.line71.comment The functions executed in their own thread to process a client request.
     def DoProcessClient(self, pipeHandle, tid):
         try:
             try:
-                # Create a loop, reading large data.  If we knew the data stream was
-                # was small, a simple ReadFile would do.
+                # 046282.python.pipeTestService.line75.comment Create a loop, reading large data.  If we knew the data stream was
+                # 046283.python.pipeTestService.line76.comment was small, a simple ReadFile would do.
                 d = b""
                 hr = winerror.ERROR_MORE_DATA
                 while hr == winerror.ERROR_MORE_DATA:
@@ -82,12 +82,12 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 print("Read", d)
                 ok = 1
             except error:
-                # Client disconnection - do nothing
+                # 046284.python.pipeTestService.line85.comment Client disconnection - do nothing
                 ok = 0
 
-            # A secure service would handle (and ignore!) errors writing to the
-            # pipe, but for the sake of this demo we don't (if only to see what errors
-            # we can get when our clients break at strange times :-)
+            # 046285.python.pipeTestService.line88.comment A secure service would handle (and ignore!) errors writing to the
+            # 046286.python.pipeTestService.line89.comment pipe, but for the sake of this demo we don't (if only to see what errors
+            # 046287.python.pipeTestService.line90.comment we can get when our clients break at strange times :-)
             if ok:
                 msg = (
                     "%s (on thread %d) sent me %s"
@@ -125,8 +125,8 @@ class TestPipeService(win32serviceutil.ServiceFramework):
         SetEvent(self.hWaitStop)
 
     def SvcDoRun(self):
-        # Write an event log record - in debug mode we will also
-        # see this message printed.
+        # 046288.python.pipeTestService.line128.comment Write an event log record - in debug mode we will also
+        # 046289.python.pipeTestService.line129.comment see this message printed.
         servicemanager.LogMsg(
             servicemanager.EVENTLOG_INFORMATION_TYPE,
             servicemanager.PYS_SERVICE_STARTED,
@@ -152,28 +152,28 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 CloseHandle(pipeHandle)
                 break
             if hr == winerror.ERROR_PIPE_CONNECTED:
-                # Client is already connected - signal event
+                # 046291.python.pipeTestService.line155.comment Client is already connected - signal event
                 SetEvent(self.overlapped.hEvent)
             rc = WaitForMultipleObjects(
                 (self.hWaitStop, self.overlapped.hEvent), 0, INFINITE
             )
             if rc == WAIT_OBJECT_0:
-                # Stop event
+                # 046292.python.pipeTestService.line161.comment Stop event
                 break
             else:
-                # Pipe event - spawn thread to deal with it.
+                # 046293.python.pipeTestService.line164.comment Pipe event - spawn thread to deal with it.
                 _thread.start_new_thread(self.ProcessClient, (pipeHandle,))
                 num_connections += 1
 
-        # Sleep to ensure that any new threads are in the list, and then
-        # wait for all current threads to finish.
-        # What is a better way?
+        # 046294.python.pipeTestService.line168.comment Sleep to ensure that any new threads are in the list, and then
+        # 046295.python.pipeTestService.line169.comment wait for all current threads to finish.
+        # 046296.python.pipeTestService.line170.comment What is a better way?
         Sleep(500)
         while self.thread_handles:
             self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING, 5000)
             print("Waiting for %d threads to finish..." % (len(self.thread_handles)))
             WaitForMultipleObjects(self.thread_handles, 1, 3000)
-        # Write another event log record.
+        # 046297.python.pipeTestService.line176.comment Write another event log record.
         servicemanager.LogMsg(
             servicemanager.EVENTLOG_INFORMATION_TYPE,
             servicemanager.PYS_SERVICE_STOPPED,

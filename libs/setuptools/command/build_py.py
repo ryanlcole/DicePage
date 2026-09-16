@@ -57,7 +57,7 @@ class build_py(orig.build_py):
         link: str | None = None,
         level: object = 1,
     ) -> tuple[StrPathT | str, bool]:
-        # Overwrite base class to allow using links
+        # 044440.python.build_py.line60.comment Overwrite base class to allow using links
         if link:
             infile = str(Path(infile).resolve())
             outfile = str(Path(outfile).resolve())  # type: ignore[assignment] # Re-assigning a str when outfile is StrPath is ok
@@ -77,8 +77,8 @@ class build_py(orig.build_py):
             self.build_packages()
             self.build_package_data()
 
-        # Only compile actual .py files, using our base class' idea of what our
-        # output files are.
+        # 044443.python.build_py.line80.comment Only compile actual .py files, using our base class' idea of what our
+        # 044444.python.build_py.line81.comment output files are.
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=False))
 
     def __getattr__(self, attr: str):
@@ -98,19 +98,19 @@ class build_py(orig.build_py):
         Generate list of ``(package,src_dir,build_dir,filenames)`` tuples,
         but without triggering any attempt to analyze or build the manifest.
         """
-        # Prevent eventual errors from unset `manifest_files`
-        # (that would otherwise be set by `analyze_manifest`)
+        # 044445.python.build_py.line101.comment Prevent eventual errors from unset `manifest_files`
+        # 044446.python.build_py.line102.comment (that would otherwise be set by `analyze_manifest`)
         self.__dict__.setdefault('manifest_files', {})
         return list(map(self._get_pkg_data_files, self.packages or ()))
 
     def _get_pkg_data_files(self, package):
-        # Locate package source directory
+        # 044447.python.build_py.line107.comment Locate package source directory
         src_dir = self.get_package_dir(package)
 
-        # Compute package build directory
+        # 044448.python.build_py.line110.comment Compute package build directory
         build_dir = os.path.join(*([self.build_lib] + package.split('.')))
 
-        # Strip directory from globbed filenames
+        # 044449.python.build_py.line113.comment Strip directory from globbed filenames
         filenames = [
             os.path.relpath(file, src_dir)
             for file in self.find_data_files(package, src_dir)
@@ -126,7 +126,7 @@ class build_py(orig.build_py):
             extra_patterns=_IMPLICIT_DATA_FILES,
         )
         globs_expanded = map(partial(glob, recursive=True), patterns)
-        # flatten the expanded globs into an iterable of matches
+        # 044450.python.build_py.line129.comment flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
         files = itertools.chain(
@@ -177,7 +177,7 @@ class build_py(orig.build_py):
             return
         src_dirs: dict[str, str] = {}
         for package in self.packages or ():
-            # Locate package source directory
+            # 044452.python.build_py.line180.comment Locate package source directory
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         if (
@@ -287,11 +287,11 @@ class build_py(orig.build_py):
             src_dir,
         )
         match_groups = (fnmatch.filter(files, pattern) for pattern in patterns)
-        # flatten the groups of matches into an iterable of matches
+        # 044455.python.build_py.line290.comment flatten the groups of matches into an iterable of matches
         matches = itertools.chain.from_iterable(match_groups)
         bad = set(matches)
         keepers = (fn for fn in files if fn not in bad)
-        # ditch dupes
+        # 044456.python.build_py.line294.comment ditch dupes
         return list(unique_everseen(keepers))
 
     @staticmethod
@@ -308,7 +308,7 @@ class build_py(orig.build_py):
             spec.get(package, []),
         )
         return (
-            # Each pattern has to be converted to a platform-specific path
+            # 044457.python.build_py.line311.comment Each pattern has to be converted to a platform-specific path
             os.path.join(src_dir, convert_path(pattern))
             for pattern in raw_patterns
         )
@@ -378,8 +378,8 @@ class _IncludePackageDataAbuse:
               On the other hand, currently there is no concept of package data
               directory, all directories are treated like packages.
         """
-        # _DUE_DATE: still not defined as this is particularly controversial.
-        # Warning initially introduced in May 2022. See issue #3340 for discussion.
+        # 044458.python.build_py.line381.comment _DUE_DATE: still not defined as this is particularly controversial.
+        # 044459.python.build_py.line382.comment Warning initially introduced in May 2022. See issue #3340 for discussion.
 
     def __init__(self):
         self._already_warned = set()

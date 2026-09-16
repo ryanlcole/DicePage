@@ -81,7 +81,7 @@ class TestNamespaces:
         pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmpdir, 'myns.pkgB')
         target = tmpdir / 'packages'
-        # use pip to install to the target directory
+        # 045344.python.test_develop.line84.comment use pip to install to the target directory
         install_cmd = [
             sys.executable,
             '-m',
@@ -102,7 +102,7 @@ class TestNamespaces:
         with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
-        # additionally ensure that pkg_resources import works
+        # 045345.python.test_develop.line105.comment additionally ensure that pkg_resources import works
         pkg_resources_imp = [
             sys.executable,
             '-c',

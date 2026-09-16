@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'
-# Copyright (c) 2017, Arnon Yaari
-# All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 024957.python.test_aix.line3.comment Copyright (c) 2009, Giampaolo Rodola'
+# 024958.python.test_aix.line4.comment Copyright (c) 2017, Arnon Yaari
+# 024959.python.test_aix.line5.comment All rights reserved.
+# 024960.python.test_aix.line6.comment Use of this source code is governed by a BSD-style license that can be
+# 024961.python.test_aix.line7.comment found in the LICENSE file.
 
 """AIX specific tests."""
 
@@ -44,9 +44,9 @@ class AIXSpecificTestCase(PsutilTestCase):
 
         psutil_result = psutil.virtual_memory()
 
-        # TOLERANCE_SYS_MEM from psutil.tests is not enough. For some reason
-        # we're seeing differences of ~1.2 MB. 2 MB is still a good tolerance
-        # when compared to GBs.
+        # 024962.python.test_aix.line47.comment TOLERANCE_SYS_MEM from psutil.tests is not enough. For some reason
+        # 024963.python.test_aix.line48.comment we're seeing differences of ~1.2 MB. 2 MB is still a good tolerance
+        # 024964.python.test_aix.line49.comment when compared to GBs.
         TOLERANCE_SYS_MEM = 2 * KB * KB  # 2 MB
         assert psutil_result.total == total
         assert abs(psutil_result.used - used) < TOLERANCE_SYS_MEM
@@ -55,10 +55,10 @@ class AIXSpecificTestCase(PsutilTestCase):
 
     def test_swap_memory(self):
         out = sh('/usr/sbin/lsps -a')
-        # From the man page, "The size is given in megabytes" so we assume
-        # we'll always have 'MB' in the result
-        # TODO maybe try to use "swap -l" to check "used" too, but its units
-        # are not guaranteed to be "MB" so parsing may not be consistent
+        # 024966.python.test_aix.line58.comment From the man page, "The size is given in megabytes" so we assume
+        # 024967.python.test_aix.line59.comment we'll always have 'MB' in the result
+        # 024968.python.test_aix.line60.comment TODO maybe try to use "swap -l" to check "used" too, but its units
+        # 024969.python.test_aix.line61.comment are not guaranteed to be "MB" so parsing may not be consistent
         matchobj = re.search(
             r"(?P<space>\S+)\s+"
             r"(?P<vol>\S+)\s+"
@@ -72,8 +72,8 @@ class AIXSpecificTestCase(PsutilTestCase):
         total_mb = int(matchobj.group("size"))
         MB = 1024**2
         psutil_result = psutil.swap_memory()
-        # we divide our result by MB instead of multiplying the lsps value by
-        # MB because lsps may round down, so we round down too
+        # 024970.python.test_aix.line75.comment we divide our result by MB instead of multiplying the lsps value by
+        # 024971.python.test_aix.line76.comment MB because lsps may round down, so we round down too
         assert int(psutil_result.total / MB) == total_mb
 
     def test_cpu_stats(self):
@@ -109,7 +109,7 @@ class AIXSpecificTestCase(PsutilTestCase):
 
         assert matchobj is not None
 
-        # numbers are usually in the millions so 1000 is ok for tolerance
+        # 024972.python.test_aix.line112.comment numbers are usually in the millions so 1000 is ok for tolerance
         CPU_STATS_TOLERANCE = 1000
         psutil_result = psutil.cpu_stats()
         assert (

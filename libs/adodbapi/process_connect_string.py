@@ -88,23 +88,23 @@ def process(
         dsn = args[0]
     except IndexError:
         dsn = None
-    # as a convenience the first argument may be django settings
+    # 020840.python.process_connect_string.line91.comment as a convenience the first argument may be django settings
     if isinstance(dsn, dict):
         kwargs.update(dsn)
-    # the connection string is passed to the connection as part of the keyword dictionary
+    # 020841.python.process_connect_string.line94.comment the connection string is passed to the connection as part of the keyword dictionary
     elif dsn:
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]
     except IndexError:
         a1 = None
-    # historically, the second positional argument might be a timeout value
+    # 020842.python.process_connect_string.line101.comment historically, the second positional argument might be a timeout value
     if isinstance(a1, int):
         kwargs["timeout"] = a1
-    # if the second positional argument is a string, then it is user
+    # 020843.python.process_connect_string.line104.comment if the second positional argument is a string, then it is user
     elif isinstance(a1, str):
         kwargs["user"] = a1
-    # if the second positional argument is a dictionary, use it as keyword arguments, too
+    # 020844.python.process_connect_string.line107.comment if the second positional argument is a dictionary, use it as keyword arguments, too
     elif isinstance(a1, dict):
         kwargs.update(a1)
     try:
@@ -114,7 +114,7 @@ def process(
     except IndexError:
         pass
 
-    # make sure connection string is defined somehow
+    # 020848.python.process_connect_string.line117.comment make sure connection string is defined somehow
     if not "connection_string" in kwargs:
         try:  # perhaps 'dsn' was defined
             kwargs["connection_string"] = kwargs["dsn"]

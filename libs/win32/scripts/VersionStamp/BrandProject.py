@@ -1,7 +1,7 @@
-# BrandProject.py
-#
-# Brand a VSS project with a "build number", then optionally
-# stamp DLL/EXE files with version information.
+# 047918.python.BrandProject.line1.comment BrandProject.py
+# 047919.python.BrandProject.line2.comment
+# 047920.python.BrandProject.line3.comment Brand a VSS project with a "build number", then optionally
+# 047921.python.BrandProject.line4.comment stamp DLL/EXE files with version information.
 
 import getopt
 import os
@@ -21,9 +21,9 @@ def BrandProject(
     auto=0,
     bRebrand=0,
 ):
-    # vssProjectName -- The name of the VSS project to brand.
-    # descFile -- A test file containing descriptions of the files in the release.
-    # stampPath -- The full path to where the files referenced in descFile can be found.
+    # 047922.python.BrandProject.line24.comment vssProjectName -- The name of the VSS project to brand.
+    # 047923.python.BrandProject.line25.comment descFile -- A test file containing descriptions of the files in the release.
+    # 047924.python.BrandProject.line26.comment stampPath -- The full path to where the files referenced in descFile can be found.
     path = win32api.GetFullPathName(stampPath)
 
     build = vssutil.MakeNewBuildNo(vssProjectName, buildDesc, auto, bRebrand)

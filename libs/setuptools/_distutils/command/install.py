@@ -66,7 +66,7 @@ INSTALL_SCHEMES = {
     },
 }
 
-# user site schemes
+# 039733.python.install.line69.comment user site schemes
 if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '{usersite}',
@@ -90,9 +90,9 @@ if HAS_USER_SITE:
 INSTALL_SCHEMES.update(fw.schemes)
 
 
-# The keys to an installation scheme; if any new types of files are to be
-# installed, be sure to add an entry to every installation scheme above,
-# and to SCHEME_KEYS here.
+# 039734.python.install.line93.comment The keys to an installation scheme; if any new types of files are to be
+# 039735.python.install.line94.comment installed, be sure to add an entry to every installation scheme above,
+# 039736.python.install.line95.comment and to SCHEME_KEYS here.
 SCHEME_KEYS = ('purelib', 'platlib', 'headers', 'scripts', 'data')
 
 
@@ -159,8 +159,8 @@ def _inject_headers(name, scheme):
     the fallback scheme for the name and use headers
     from it. pypa/distutils#88
     """
-    # Bypass the preferred scheme, which may not
-    # have defined headers.
+    # 039737.python.install.line162.comment Bypass the preferred scheme, which may not
+    # 039738.python.install.line163.comment have defined headers.
     fallback = _load_scheme(name)
     scheme.setdefault('headers', fallback['headers'])
     return scheme
@@ -175,11 +175,11 @@ class install(Command):
     description = "install everything from build directory"
 
     user_options = [
-        # Select installation scheme and set base director(y|ies)
+        # 039739.python.install.line178.comment Select installation scheme and set base director(y|ies)
         ('prefix=', None, "installation prefix"),
         ('exec-prefix=', None, "(Unix only) prefix for platform-specific files"),
         ('home=', None, "(Unix only) home directory to install under"),
-        # Or, just set the base director(y|ies)
+        # 039740.python.install.line182.comment Or, just set the base director(y|ies)
         (
             'install-base=',
             None,
@@ -191,7 +191,7 @@ class install(Command):
             "base installation directory for platform-specific files (instead of --exec-prefix or --home)",
         ),
         ('root=', None, "install everything relative to this alternate root directory"),
-        # Or, explicitly set the installation scheme
+        # 039741.python.install.line194.comment Or, explicitly set the installation scheme
         (
             'install-purelib=',
             None,
@@ -210,9 +210,9 @@ class install(Command):
         ('install-headers=', None, "installation directory for C/C++ headers"),
         ('install-scripts=', None, "installation directory for Python scripts"),
         ('install-data=', None, "installation directory for data files"),
-        # Byte-compilation options -- see install_lib.py for details, as
-        # these are duplicated from there (but only install_lib does
-        # anything with them).
+        # 039742.python.install.line213.comment Byte-compilation options -- see install_lib.py for details, as
+        # 039743.python.install.line214.comment these are duplicated from there (but only install_lib does
+        # 039744.python.install.line215.comment anything with them).
         ('compile', 'c', "compile .py to .pyc [default]"),
         ('no-compile', None, "don't compile .py files"),
         (
@@ -221,14 +221,14 @@ class install(Command):
             "also compile with optimization: -O1 for \"python -O\", "
             "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
         ),
-        # Miscellaneous control options
+        # 039745.python.install.line224.comment Miscellaneous control options
         ('force', 'f', "force installation (overwrite any existing files)"),
         ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),
-        # Where to install documentation (eventually!)
-        # ('doc-format=', None, "format of documentation to generate"),
-        # ('install-man=', None, "directory for Unix man pages"),
-        # ('install-html=', None, "directory for HTML documentation"),
-        # ('install-info=', None, "directory for GNU info files"),
+        # 039746.python.install.line227.comment Where to install documentation (eventually!)
+        # 039747.python.install.line228.comment ('doc-format=', None, "format of documentation to generate"),
+        # 039748.python.install.line229.comment ('install-man=', None, "directory for Unix man pages"),
+        # 039749.python.install.line230.comment ('install-html=', None, "directory for HTML documentation"),
+        # 039750.python.install.line231.comment ('install-info=', None, "directory for GNU info files"),
         ('record=', None, "filename in which to record list of installed files"),
     ]
 
@@ -246,24 +246,24 @@ class install(Command):
 
     def initialize_options(self) -> None:
         """Initializes options."""
-        # High-level options: these select both an installation base
-        # and scheme.
+        # 039751.python.install.line249.comment High-level options: these select both an installation base
+        # 039752.python.install.line250.comment and scheme.
         self.prefix: str | None = None
         self.exec_prefix: str | None = None
         self.home: str | None = None
         self.user = False
 
-        # These select only the installation base; it's up to the user to
-        # specify the installation scheme (currently, that means supplying
-        # the --install-{platlib,purelib,scripts,data} options).
+        # 039753.python.install.line256.comment These select only the installation base; it's up to the user to
+        # 039754.python.install.line257.comment specify the installation scheme (currently, that means supplying
+        # 039755.python.install.line258.comment the --install-{platlib,purelib,scripts,data} options).
         self.install_base = None
         self.install_platbase = None
         self.root: str | None = None
 
-        # These options are the actual installation directories; if not
-        # supplied by the user, they are filled in using the installation
-        # scheme implied by prefix/exec-prefix/home and the contents of
-        # that installation scheme.
+        # 039756.python.install.line263.comment These options are the actual installation directories; if not
+        # 039757.python.install.line264.comment supplied by the user, they are filled in using the installation
+        # 039758.python.install.line265.comment scheme implied by prefix/exec-prefix/home and the contents of
+        # 039759.python.install.line266.comment that installation scheme.
         self.install_purelib = None  # for pure module distributions
         self.install_platlib = None  # non-pure (dists w/ extensions)
         self.install_headers = None  # for C/C++ headers
@@ -276,66 +276,66 @@ class install(Command):
         self.compile = None
         self.optimize = None
 
-        # Deprecated
-        # These two are for putting non-packagized distributions into their
-        # own directory and creating a .pth file if it makes sense.
-        # 'extra_path' comes from the setup file; 'install_path_file' can
-        # be turned off if it makes no sense to install a .pth file.  (But
-        # better to install it uselessly than to guess wrong and not
-        # install it when it's necessary and would be used!)  Currently,
-        # 'install_path_file' is always true unless some outsider meddles
-        # with it.
+        # 039764.python.install.line279.comment Deprecated
+        # 039765.python.install.line280.comment These two are for putting non-packagized distributions into their
+        # 039766.python.install.line281.comment own directory and creating a .pth file if it makes sense.
+        # 039767.python.install.line282.comment 'extra_path' comes from the setup file; 'install_path_file' can
+        # 039768.python.install.line283.comment be turned off if it makes no sense to install a .pth file.  (But
+        # 039769.python.install.line284.comment better to install it uselessly than to guess wrong and not
+        # 039770.python.install.line285.comment install it when it's necessary and would be used!)  Currently,
+        # 039771.python.install.line286.comment 'install_path_file' is always true unless some outsider meddles
+        # 039772.python.install.line287.comment with it.
         self.extra_path = None
         self.install_path_file = True
 
-        # 'force' forces installation, even if target files are not
-        # out-of-date.  'skip_build' skips running the "build" command,
-        # handy if you know it's not necessary.  'warn_dir' (which is *not*
-        # a user option, it's just there so the bdist_* commands can turn
-        # it off) determines whether we warn about installing to a
-        # directory not in sys.path.
+        # 039773.python.install.line291.comment 'force' forces installation, even if target files are not
+        # 039774.python.install.line292.comment out-of-date.  'skip_build' skips running the "build" command,
+        # 039775.python.install.line293.comment handy if you know it's not necessary.  'warn_dir' (which is *not*
+        # 039776.python.install.line294.comment a user option, it's just there so the bdist_* commands can turn
+        # 039777.python.install.line295.comment it off) determines whether we warn about installing to a
+        # 039778.python.install.line296.comment directory not in sys.path.
         self.force = False
         self.skip_build = False
         self.warn_dir = True
 
-        # These are only here as a conduit from the 'build' command to the
-        # 'install_*' commands that do the real work.  ('build_base' isn't
-        # actually used anywhere, but it might be useful in future.)  They
-        # are not user options, because if the user told the install
-        # command where the build directory is, that wouldn't affect the
-        # build command.
+        # 039779.python.install.line301.comment These are only here as a conduit from the 'build' command to the
+        # 039780.python.install.line302.comment 'install_*' commands that do the real work.  ('build_base' isn't
+        # 039781.python.install.line303.comment actually used anywhere, but it might be useful in future.)  They
+        # 039782.python.install.line304.comment are not user options, because if the user told the install
+        # 039783.python.install.line305.comment command where the build directory is, that wouldn't affect the
+        # 039784.python.install.line306.comment build command.
         self.build_base = None
         self.build_lib = None
 
-        # Not defined yet because we don't know anything about
-        # documentation yet.
-        # self.install_man = None
-        # self.install_html = None
-        # self.install_info = None
+        # 039785.python.install.line310.comment Not defined yet because we don't know anything about
+        # 039786.python.install.line311.comment documentation yet.
+        # 039787.python.install.line312.comment self.install_man = None
+        # 039788.python.install.line313.comment self.install_html = None
+        # 039789.python.install.line314.comment self.install_info = None
 
         self.record = None
 
-    # -- Option finalizing methods -------------------------------------
-    # (This is rather more involved than for most commands,
-    # because this is where the policy for installing third-
-    # party Python modules on various platforms given a wide
-    # array of user input is decided.  Yes, it's quite complex!)
+    # 039790.python.install.line318.comment -- Option finalizing methods -------------------------------------
+    # 039791.python.install.line319.comment (This is rather more involved than for most commands,
+    # 039792.python.install.line320.comment because this is where the policy for installing third-
+    # 039793.python.install.line321.comment party Python modules on various platforms given a wide
+    # 039794.python.install.line322.comment array of user input is decided.  Yes, it's quite complex!)
 
     def finalize_options(self) -> None:  # noqa: C901
         """Finalizes options."""
-        # This method (and its helpers, like 'finalize_unix()',
-        # 'finalize_other()', and 'select_scheme()') is where the default
-        # installation directories for modules, extension modules, and
-        # anything else we care to install from a Python module
-        # distribution.  Thus, this code makes a pretty important policy
-        # statement about how third-party stuff is added to a Python
-        # installation!  Note that the actual work of installation is done
-        # by the relatively simple 'install_*' commands; they just take
-        # their orders from the installation directory options determined
-        # here.
+        # 039796.python.install.line326.comment This method (and its helpers, like 'finalize_unix()',
+        # 039797.python.install.line327.comment 'finalize_other()', and 'select_scheme()') is where the default
+        # 039798.python.install.line328.comment installation directories for modules, extension modules, and
+        # 039799.python.install.line329.comment anything else we care to install from a Python module
+        # 039800.python.install.line330.comment distribution.  Thus, this code makes a pretty important policy
+        # 039801.python.install.line331.comment statement about how third-party stuff is added to a Python
+        # 039802.python.install.line332.comment installation!  Note that the actual work of installation is done
+        # 039803.python.install.line333.comment by the relatively simple 'install_*' commands; they just take
+        # 039804.python.install.line334.comment their orders from the installation directory options determined
+        # 039805.python.install.line335.comment here.
 
-        # Check for errors/inconsistencies in the options; first, stuff
-        # that's wrong on any platform.
+        # 039806.python.install.line337.comment Check for errors/inconsistencies in the options; first, stuff
+        # 039807.python.install.line338.comment that's wrong on any platform.
 
         if (self.prefix or self.exec_prefix or self.home) and (
             self.install_base or self.install_platbase
@@ -361,19 +361,19 @@ class install(Command):
                 "exec_prefix/home, or install_(plat)base"
             )
 
-        # Next, stuff that's wrong (or dubious) only on certain platforms.
+        # 039808.python.install.line364.comment Next, stuff that's wrong (or dubious) only on certain platforms.
         if os.name != "posix":
             if self.exec_prefix:
                 self.warn("exec-prefix option ignored on this platform")
                 self.exec_prefix = None
 
-        # Now the interesting logic -- so interesting that we farm it out
-        # to other methods.  The goal of these methods is to set the final
-        # values for the install_{lib,scripts,data,...}  options, using as
-        # input a heady brew of prefix, exec_prefix, home, install_base,
-        # install_platbase, user-supplied versions of
-        # install_{purelib,platlib,lib,scripts,data,...}, and the
-        # install schemes.  Phew!
+        # 039809.python.install.line370.comment Now the interesting logic -- so interesting that we farm it out
+        # 039810.python.install.line371.comment to other methods.  The goal of these methods is to set the final
+        # 039811.python.install.line372.comment values for the install_{lib,scripts,data,...}  options, using as
+        # 039812.python.install.line373.comment input a heady brew of prefix, exec_prefix, home, install_base,
+        # 039813.python.install.line374.comment install_platbase, user-supplied versions of
+        # 039814.python.install.line375.comment install_{purelib,platlib,lib,scripts,data,...}, and the
+        # 039815.python.install.line376.comment install schemes.  Phew!
 
         self.dump_dirs("pre-finalize_{unix,other}")
 
@@ -384,17 +384,17 @@ class install(Command):
 
         self.dump_dirs("post-finalize_{unix,other}()")
 
-        # Expand configuration variables, tilde, etc. in self.install_base
-        # and self.install_platbase -- that way, we can use $base or
-        # $platbase in the other installation directories and not worry
-        # about needing recursive variable expansion (shudder).
+        # 039816.python.install.line387.comment Expand configuration variables, tilde, etc. in self.install_base
+        # 039817.python.install.line388.comment and self.install_platbase -- that way, we can use $base or
+        # 039818.python.install.line389.comment $platbase in the other installation directories and not worry
+        # 039819.python.install.line390.comment about needing recursive variable expansion (shudder).
 
         py_version = sys.version.split()[0]
         (prefix, exec_prefix) = get_config_vars('prefix', 'exec_prefix')
         try:
             abiflags = sys.abiflags
         except AttributeError:
-            # sys.abiflags may not be defined on all platforms.
+            # 039820.python.install.line397.comment sys.abiflags may not be defined on all platforms.
             abiflags = ''
         local_vars = {
             'dist_name': self.distribution.get_name(),
@@ -413,9 +413,9 @@ class install(Command):
             'implementation': _get_implementation(),
         }
 
-        # vars for compatibility on older Pythons
+        # 039821.python.install.line416.comment vars for compatibility on older Pythons
         compat_vars = dict(
-            # Python 3.9 and earlier
+            # 039822.python.install.line418.comment Python 3.9 and earlier
             py_version_nodot_plat=getattr(sys, 'winver', '').replace('.', ''),
         )
 
@@ -434,8 +434,8 @@ class install(Command):
 
         self.dump_dirs("post-expand_basedirs()")
 
-        # Now define config vars for the base directories so we can expand
-        # everything else.
+        # 039823.python.install.line437.comment Now define config vars for the base directories so we can expand
+        # 039824.python.install.line438.comment everything else.
         local_vars['base'] = self.install_base
         local_vars['platbase'] = self.install_platbase
 
@@ -445,28 +445,28 @@ class install(Command):
             print("config vars:")
             pprint(dict(self.config_vars))
 
-        # Expand "~" and configuration variables in the installation
-        # directories.
+        # 039825.python.install.line448.comment Expand "~" and configuration variables in the installation
+        # 039826.python.install.line449.comment directories.
         self.expand_dirs()
 
         self.dump_dirs("post-expand_dirs()")
 
-        # Create directories in the home dir:
+        # 039827.python.install.line454.comment Create directories in the home dir:
         if self.user:
             self.create_home_path()
 
-        # Pick the actual directory to install all modules to: either
-        # install_purelib or install_platlib, depending on whether this
-        # module distribution is pure or not.  Of course, if the user
-        # already specified install_lib, use their selection.
+        # 039828.python.install.line458.comment Pick the actual directory to install all modules to: either
+        # 039829.python.install.line459.comment install_purelib or install_platlib, depending on whether this
+        # 039830.python.install.line460.comment module distribution is pure or not.  Of course, if the user
+        # 039831.python.install.line461.comment already specified install_lib, use their selection.
         if self.install_lib is None:
             if self.distribution.has_ext_modules():  # has extensions: non-pure
                 self.install_lib = self.install_platlib
             else:
                 self.install_lib = self.install_purelib
 
-        # Convert directories from Unix /-separated syntax to the local
-        # convention.
+        # 039833.python.install.line468.comment Convert directories from Unix /-separated syntax to the local
+        # 039834.python.install.line469.comment convention.
         self.convert_paths(
             'lib',
             'purelib',
@@ -478,17 +478,17 @@ class install(Command):
             'usersite',
         )
 
-        # Deprecated
-        # Well, we're not actually fully completely finalized yet: we still
-        # have to deal with 'extra_path', which is the hack for allowing
-        # non-packagized module distributions (hello, Numerical Python!) to
-        # get their own directories.
+        # 039835.python.install.line481.comment Deprecated
+        # 039836.python.install.line482.comment Well, we're not actually fully completely finalized yet: we still
+        # 039837.python.install.line483.comment have to deal with 'extra_path', which is the hack for allowing
+        # 039838.python.install.line484.comment non-packagized module distributions (hello, Numerical Python!) to
+        # 039839.python.install.line485.comment get their own directories.
         self.handle_extra_path()
         self.install_libbase = self.install_lib  # needed for .pth file
         self.install_lib = os.path.join(self.install_lib, self.extra_dirs)
 
-        # If a new root directory was supplied, make all the installation
-        # dirs relative to it.
+        # 039841.python.install.line490.comment If a new root directory was supplied, make all the installation
+        # 039842.python.install.line491.comment dirs relative to it.
         if self.root is not None:
             self.change_roots(
                 'libbase', 'lib', 'purelib', 'platlib', 'scripts', 'data', 'headers'
@@ -496,13 +496,13 @@ class install(Command):
 
         self.dump_dirs("after prepending root")
 
-        # Find out the build directories, ie. where to install from.
+        # 039843.python.install.line499.comment Find out the build directories, ie. where to install from.
         self.set_undefined_options(
             'build', ('build_base', 'build_base'), ('build_lib', 'build_lib')
         )
 
-        # Punt on doc directories for now -- after all, we're punting on
-        # documentation completely!
+        # 039844.python.install.line504.comment Punt on doc directories for now -- after all, we're punting on
+        # 039845.python.install.line505.comment documentation completely!
 
     def dump_dirs(self, msg) -> None:
         """Dumps the list of user options."""
@@ -559,7 +559,7 @@ class install(Command):
                         "must not supply exec-prefix without prefix"
                     )
 
-                # Allow Fedora to add components to the prefix
+                # 039846.python.install.line562.comment Allow Fedora to add components to the prefix
                 _prefix_addition = getattr(sysconfig, '_prefix_addition', "")
 
                 self.prefix = os.path.normpath(sys.prefix) + _prefix_addition
@@ -652,15 +652,15 @@ class install(Command):
                     "comma-separated string with 1 or 2 elements"
                 )
 
-            # convert to local form in case Unix notation used (as it
-            # should be in setup scripts)
+            # 039847.python.install.line655.comment convert to local form in case Unix notation used (as it
+            # 039848.python.install.line656.comment should be in setup scripts)
             extra_dirs = convert_path(extra_dirs)
         else:
             path_file = None
             extra_dirs = ''
 
-        # XXX should we warn if path_file and not extra_dirs? (in which
-        # case the path file would be harmless but pointless)
+        # 039849.python.install.line662.comment XXX should we warn if path_file and not extra_dirs? (in which
+        # 039850.python.install.line663.comment case the path file would be harmless but pointless)
         self.path_file = path_file
         self.extra_dirs = extra_dirs
 
@@ -680,29 +680,29 @@ class install(Command):
                 self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)
 
-    # -- Command execution methods -------------------------------------
+    # 039851.python.install.line683.comment -- Command execution methods -------------------------------------
 
     def run(self):
         """Runs the command."""
-        # Obviously have to build before we can install
+        # 039852.python.install.line687.comment Obviously have to build before we can install
         if not self.skip_build:
             self.run_command('build')
-            # If we built for any other platform, we can't install.
+            # 039853.python.install.line690.comment If we built for any other platform, we can't install.
             build_plat = self.distribution.get_command_obj('build').plat_name
-            # check warn_dir - it is a clue that the 'install' is happening
-            # internally, and not to sys.path, so we don't check the platform
-            # matches what we are running.
+            # 039854.python.install.line692.comment check warn_dir - it is a clue that the 'install' is happening
+            # 039855.python.install.line693.comment internally, and not to sys.path, so we don't check the platform
+            # 039856.python.install.line694.comment matches what we are running.
             if self.warn_dir and build_plat != get_platform():
                 raise DistutilsPlatformError("Can't install when cross-compiling")
 
-        # Run all sub-commands (at least those that need to be run)
+        # 039857.python.install.line698.comment Run all sub-commands (at least those that need to be run)
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
 
         if self.path_file:
             self.create_path_file()
 
-        # write list of installed files, if requested.
+        # 039858.python.install.line705.comment write list of installed files, if requested.
         if self.record:
             outputs = self.get_outputs()
             if self.root:  # strip any package prefix
@@ -742,15 +742,15 @@ class install(Command):
         else:
             self.warn(f"path file '{filename}' not created")
 
-    # -- Reporting methods ---------------------------------------------
+    # 039860.python.install.line745.comment -- Reporting methods ---------------------------------------------
 
     def get_outputs(self):
         """Assembles the outputs of all the sub-commands."""
         outputs = []
         for cmd_name in self.get_sub_commands():
             cmd = self.get_finalized_command(cmd_name)
-            # Add the contents of cmd.get_outputs(), ensuring
-            # that outputs doesn't contain duplicate entries
+            # 039861.python.install.line752.comment Add the contents of cmd.get_outputs(), ensuring
+            # 039862.python.install.line753.comment that outputs doesn't contain duplicate entries
             for filename in cmd.get_outputs():
                 if filename not in outputs:
                     outputs.append(filename)
@@ -762,7 +762,7 @@ class install(Command):
 
     def get_inputs(self):
         """Returns the inputs of all the sub-commands"""
-        # XXX gee, this looks familiar ;-(
+        # 039863.python.install.line765.comment XXX gee, this looks familiar ;-(
         inputs = []
         for cmd_name in self.get_sub_commands():
             cmd = self.get_finalized_command(cmd_name)
@@ -770,7 +770,7 @@ class install(Command):
 
         return inputs
 
-    # -- Predicates for sub-command list -------------------------------
+    # 039864.python.install.line773.comment -- Predicates for sub-command list -------------------------------
 
     def has_lib(self):
         """Returns true if the current distribution has any Python
@@ -794,8 +794,8 @@ class install(Command):
         install."""
         return self.distribution.has_data_files()
 
-    # 'sub_commands': a list of commands this command might have to run to
-    # get its work done.  See cmd.py for more info.
+    # 039865.python.install.line797.comment 'sub_commands': a list of commands this command might have to run to
+    # 039866.python.install.line798.comment get its work done.  See cmd.py for more info.
     sub_commands = [
         ('install_lib', has_lib),
         ('install_headers', has_headers),

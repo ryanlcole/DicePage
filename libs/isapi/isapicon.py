@@ -1,29 +1,29 @@
 """Constants needed by ISAPI filters and extensions."""
 
-#  ======================================================================
-#  Copyright 2002-2003 by Blackdog Software Pty Ltd.
-#
-#                          All Rights Reserved
-#
-#  Permission to use, copy, modify, and distribute this software and
-#  its documentation for any purpose and without fee is hereby
-#  granted, provided that the above copyright notice appear in all
-#  copies and that both that copyright notice and this permission
-#  notice appear in supporting documentation, and that the name of
-#  Blackdog Software not be used in advertising or publicity pertaining to
-#  distribution of the software without specific, written prior
-#  permission.
-#
-#  BLACKDOG SOFTWARE DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
-#  INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
-#  NO EVENT SHALL BLACKDOG SOFTWARE BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-#  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-#  OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
-#  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-#  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#  ======================================================================
+# 021361.python.isapicon.line3.comment ======================================================================
+# 021362.python.isapicon.line4.comment Copyright 2002-2003 by Blackdog Software Pty Ltd.
+# 021363.python.isapicon.line5.comment
+# 021364.python.isapicon.line6.comment All Rights Reserved
+# 021365.python.isapicon.line7.comment
+# 021366.python.isapicon.line8.comment Permission to use, copy, modify, and distribute this software and
+# 021367.python.isapicon.line9.comment its documentation for any purpose and without fee is hereby
+# 021368.python.isapicon.line10.comment granted, provided that the above copyright notice appear in all
+# 021369.python.isapicon.line11.comment copies and that both that copyright notice and this permission
+# 021370.python.isapicon.line12.comment notice appear in supporting documentation, and that the name of
+# 021371.python.isapicon.line13.comment Blackdog Software not be used in advertising or publicity pertaining to
+# 021372.python.isapicon.line14.comment distribution of the software without specific, written prior
+# 021373.python.isapicon.line15.comment permission.
+# 021374.python.isapicon.line16.comment
+# 021375.python.isapicon.line17.comment BLACKDOG SOFTWARE DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+# 021376.python.isapicon.line18.comment INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
+# 021377.python.isapicon.line19.comment NO EVENT SHALL BLACKDOG SOFTWARE BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# 021378.python.isapicon.line20.comment CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+# 021379.python.isapicon.line21.comment OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+# 021380.python.isapicon.line22.comment NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+# 021381.python.isapicon.line23.comment CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+# 021382.python.isapicon.line24.comment ======================================================================
 
-# HTTP reply codes
+# 021383.python.isapicon.line26.comment HTTP reply codes
 
 HTTP_CONTINUE = 100
 HTTP_SWITCHING_PROTOCOLS = 101
@@ -109,7 +109,7 @@ HSE_IO_ASYNC = 0x00000002  # for WriteClient/TF/EU
 HSE_IO_DISCONNECT_AFTER_SEND = 0x00000004  # for TF
 HSE_IO_SEND_HEADERS = 0x00000008  # for TF
 HSE_IO_NODELAY = 0x00001000  # turn off nagling
-# These two are only used by VectorSend
+# 021390.python.isapicon.line112.comment These two are only used by VectorSend
 HSE_IO_FINAL_SEND = 0x00000010
 HSE_IO_CACHE_RESPONSE = 0x00000020
 

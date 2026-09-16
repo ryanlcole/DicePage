@@ -21,7 +21,7 @@ options = None  # set to optparse options object
 
 def open_url(host, url):
     h = http.client.HTTPConnection(host)
-    #    h.set_debuglevel(9)
+    # 046206.python.fetch_url.line24.comment h.set_debuglevel(9)
     h.putrequest("GET", url)
     h.endheaders()
     resp = h.getresponse()
@@ -41,7 +41,7 @@ def open_url(host, url):
     if options.show_body:
         print(body)
     if resp.status == 401:
-        # 401: Unauthorized - here is where the real work starts
+        # 046208.python.fetch_url.line44.comment 401: Unauthorized - here is where the real work starts
         auth_info = None
         if options.user or options.domain or options.password:
             auth_info = options.user, options.domain, options.password
@@ -51,7 +51,7 @@ def open_url(host, url):
         while 1:
             err, out_buf = ca.authorize(data)
             data = out_buf[0].Buffer
-            # Encode it as base64 as required by HTTP
+            # 046209.python.fetch_url.line54.comment Encode it as base64 as required by HTTP
             auth = encodestring(data).replace("\012", "")
             h.putrequest("GET", url)
             h.putheader("Authorization", auth_scheme + " " + auth)
@@ -91,8 +91,8 @@ def open_url(host, url):
             resp.read()
     print("Final response status is", resp.status, resp.reason)
     if resp.status == 200:
-        # Worked!
-        # Check we can read it again without re-authenticating.
+        # 046210.python.fetch_url.line94.comment Worked!
+        # 046211.python.fetch_url.line95.comment Check we can read it again without re-authenticating.
         if resp.will_close:
             print(
                 "EEEK - response will close, but NTLM is per connection - it must stay open"

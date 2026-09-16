@@ -1,4 +1,4 @@
-# don't import any costly modules
+# 011369.python.init.line1.comment don't import any costly modules
 import os
 import sys
 
@@ -65,13 +65,13 @@ def ensure_local_distutils():
 
     clear_distutils()
 
-    # With the DistutilsMetaFinder in place,
-    # perform an import to cause distutils to be
-    # loaded from setuptools._distutils. Ref #2906.
+    # 011370.python.init.line68.comment With the DistutilsMetaFinder in place,
+    # 011371.python.init.line69.comment perform an import to cause distutils to be
+    # 011372.python.init.line70.comment loaded from setuptools._distutils. Ref #2906.
     with shim():
         importlib.import_module('distutils')
 
-    # check that submodules load as expected
+    # 011373.python.init.line74.comment check that submodules load as expected
     core = importlib.import_module('distutils.core')
     assert '_distutils' in core.__file__, core.__file__
     assert 'setuptools._distutils.log' not in sys.modules
@@ -99,8 +99,8 @@ class _TrivialRe:
 
 class DistutilsMetaFinder:
     def find_spec(self, fullname, path, target=None):
-        # optimization: only consider top level modules and those
-        # found in the CPython test suite.
+        # 011374.python.init.line102.comment optimization: only consider top level modules and those
+        # 011375.python.init.line103.comment found in the CPython test suite.
         if path is not None and not fullname.startswith('test.'):
             return None
 
@@ -119,14 +119,14 @@ class DistutilsMetaFinder:
         try:
             mod = importlib.import_module('setuptools._distutils')
         except Exception:
-            # There are a couple of cases where setuptools._distutils
-            # may not be present:
-            # - An older Setuptools without a local distutils is
-            #   taking precedence. Ref #2957.
-            # - Path manipulation during sitecustomize removes
-            #   setuptools from the path but only after the hook
-            #   has been loaded. Ref #2980.
-            # In either case, fall back to stdlib behavior.
+            # 011376.python.init.line122.comment There are a couple of cases where setuptools._distutils
+            # 011377.python.init.line123.comment may not be present:
+            # 011378.python.init.line124.comment - An older Setuptools without a local distutils is
+            # 011379.python.init.line125.comment taking precedence. Ref #2957.
+            # 011380.python.init.line126.comment - Path manipulation during sitecustomize removes
+            # 011381.python.init.line127.comment setuptools from the path but only after the hook
+            # 011382.python.init.line128.comment has been loaded. Ref #2980.
+            # 011383.python.init.line129.comment In either case, fall back to stdlib behavior.
             return None
 
         class DistutilsLoader(importlib.abc.Loader):
@@ -175,7 +175,7 @@ class DistutilsMetaFinder:
         """
         Return True if the indicated frame suggests a setup.py file.
         """
-        # some frames may not have __file__ (#2940)
+        # 011384.python.init.line178.comment some frames may not have __file__ (#2940)
         return frame.f_globals.get('__file__', '').endswith('setup.py')
 
     def spec_for_sensitive_tests(self):
@@ -235,5 +235,5 @@ def _remove_shim():
 
 
 if sys.version_info < (3, 12):
-    # DistutilsMetaFinder can only be disabled in Python < 3.12 (PEP 632)
+    # 011385.python.init.line238.comment DistutilsMetaFinder can only be disabled in Python < 3.12 (PEP 632)
     remove_shim = _remove_shim

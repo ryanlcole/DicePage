@@ -1,21 +1,21 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009345.python.pyimod02_importers.line1.comment -----------------------------------------------------------------------------
+# 009346.python.pyimod02_importers.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 009347.python.pyimod02_importers.line3.comment
+# 009348.python.pyimod02_importers.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009349.python.pyimod02_importers.line5.comment or later) with exception for distributing the bootloader.
+# 009350.python.pyimod02_importers.line6.comment
+# 009351.python.pyimod02_importers.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009352.python.pyimod02_importers.line8.comment
+# 009353.python.pyimod02_importers.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009354.python.pyimod02_importers.line10.comment -----------------------------------------------------------------------------
 """
 PEP-302 and PEP-451 importers for frozen applications.
 """
 
-# **NOTE** This module is used during bootstrap.
-# Import *ONLY* builtin modules or modules that are collected into the base_library.zip archive.
-# List of built-in modules: sys.builtin_module_names
-# List of modules collected into base_library.zip: PyInstaller.compat.PY3_BASE_MODULES
+# 009355.python.pyimod02_importers.line15.comment **NOTE** This module is used during bootstrap.
+# 009356.python.pyimod02_importers.line16.comment Import *ONLY* builtin modules or modules that are collected into the base_library.zip archive.
+# 009357.python.pyimod02_importers.line17.comment List of built-in modules: sys.builtin_module_names
+# 009358.python.pyimod02_importers.line18.comment List of modules collected into base_library.zip: PyInstaller.compat.PY3_BASE_MODULES
 
 import sys
 import os
@@ -43,7 +43,7 @@ def _decode_source(source_bytes):
     Based on CPython's implementation of the same functionality:
     https://github.com/python/cpython/blob/3.9/Lib/importlib/_bootstrap_external.py#L679-L688
     """
-    # Local import to avoid including `tokenize` and its dependencies in `base_library.zip`
+    # 009359.python.pyimod02_importers.line46.comment Local import to avoid including `tokenize` and its dependencies in `base_library.zip`
     from tokenize import detect_encoding
     source_bytes_readline = io.BytesIO(source_bytes).readline
     encoding = detect_encoding(source_bytes_readline)
@@ -51,12 +51,12 @@ def _decode_source(source_bytes):
     return newline_decoder.decode(source_bytes.decode(encoding[0]))
 
 
-# Global instance of PYZ archive reader. Initialized by install().
+# 009360.python.pyimod02_importers.line54.comment Global instance of PYZ archive reader. Initialized by install().
 pyz_archive = None
 
-# Some runtime hooks might need to traverse available frozen package/module hierarchy to simulate filesystem.
-# Such traversals can be efficiently implemented using a prefix tree (trie), whose computation we defer until first
-# access.
+# 009361.python.pyimod02_importers.line57.comment Some runtime hooks might need to traverse available frozen package/module hierarchy to simulate filesystem.
+# 009362.python.pyimod02_importers.line58.comment Such traversals can be efficiently implemented using a prefix tree (trie), whose computation we defer until first
+# 009363.python.pyimod02_importers.line59.comment access.
 _pyz_tree_lock = _thread.RLock()
 _pyz_tree = None
 
@@ -70,21 +70,21 @@ def get_pyz_toc_tree():
         return _pyz_tree
 
 
-# Populate list of unresolved (original) and resolved paths to top-level directory, used when trying to determine
-# relative path.
+# 009364.python.pyimod02_importers.line73.comment Populate list of unresolved (original) and resolved paths to top-level directory, used when trying to determine
+# 009365.python.pyimod02_importers.line74.comment relative path.
 _TOP_LEVEL_DIRECTORY_PATHS = []
 
-# Original sys._MEIPASS value; ensure separators are normalized (e.g., when using msys2 python).
+# 009366.python.pyimod02_importers.line77.comment Original sys._MEIPASS value; ensure separators are normalized (e.g., when using msys2 python).
 _TOP_LEVEL_DIRECTORY = os.path.normpath(sys._MEIPASS)
 _TOP_LEVEL_DIRECTORY_PATHS.append(_TOP_LEVEL_DIRECTORY)
 
-# Fully resolve sys._MEIPASS in case its location is symlinked at some level; for example, system temporary directory
-# (used by onefile builds) is usually a symbolic link under macOS.
+# 009367.python.pyimod02_importers.line81.comment Fully resolve sys._MEIPASS in case its location is symlinked at some level; for example, system temporary directory
+# 009368.python.pyimod02_importers.line82.comment (used by onefile builds) is usually a symbolic link under macOS.
 _RESOLVED_TOP_LEVEL_DIRECTORY = os.path.realpath(_TOP_LEVEL_DIRECTORY)
 if os.path.normcase(_RESOLVED_TOP_LEVEL_DIRECTORY) != os.path.normcase(_TOP_LEVEL_DIRECTORY):
     _TOP_LEVEL_DIRECTORY_PATHS.append(_RESOLVED_TOP_LEVEL_DIRECTORY)
 
-# If we are running as macOS .app bundle, compute the alternative top-level directory path as well.
+# 009369.python.pyimod02_importers.line87.comment If we are running as macOS .app bundle, compute the alternative top-level directory path as well.
 _is_macos_app_bundle = False
 if sys.platform == 'darwin' and _TOP_LEVEL_DIRECTORY.endswith("Contents/Frameworks"):
     _is_macos_app_bundle = True
@@ -103,7 +103,7 @@ if sys.platform == 'darwin' and _TOP_LEVEL_DIRECTORY.endswith("Contents/Framewor
         _TOP_LEVEL_DIRECTORY_PATHS.append(_RESOLVED_ALTERNATIVE_TOP_LEVEL_DIRECTORY)
 
 
-# Helper for computing PYZ prefix tree
+# 009370.python.pyimod02_importers.line106.comment Helper for computing PYZ prefix tree
 def _build_pyz_prefix_tree(pyz_archive):
     tree = dict()
     for entry_name, entry_data in pyz_archive.toc.items():
@@ -111,11 +111,11 @@ def _build_pyz_prefix_tree(pyz_archive):
         typecode = entry_data[0]
         current = tree
         if typecode in {pyimod01_archive.PYZ_ITEM_PKG, pyimod01_archive.PYZ_ITEM_NSPKG}:
-            # Package; create new dictionary node for its modules
+            # 009371.python.pyimod02_importers.line114.comment Package; create new dictionary node for its modules
             for name_component in name_components:
                 current = current.setdefault(name_component, {})
         else:
-            # Module; create the leaf node (empty string)
+            # 009372.python.pyimod02_importers.line118.comment Module; create the leaf node (empty string)
             for name_component in name_components[:-1]:
                 current = current.setdefault(name_component, {})
             current[name_components[-1]] = ''
@@ -150,11 +150,11 @@ class PyiFrozenFinder:
         self._path = path  # Store original path, as given.
         self._pyz_archive = pyz_archive
 
-        # Compute relative path to the top-level application directory. Do not try to resolve the path itself, because
-        # it might contain symbolic links in parts other than the prefix that corresponds to the top-level application
-        # directory. See #8994 for an example (files symlinked from a common directory outside of the top-level
-        # application directory). Instead, try to compute relative path w.r.t. the original and the resolved top-level
-        # application directory.
+        # 009374.python.pyimod02_importers.line153.comment Compute relative path to the top-level application directory. Do not try to resolve the path itself, because
+        # 009375.python.pyimod02_importers.line154.comment it might contain symbolic links in parts other than the prefix that corresponds to the top-level application
+        # 009376.python.pyimod02_importers.line155.comment directory. See #8994 for an example (files symlinked from a common directory outside of the top-level
+        # 009377.python.pyimod02_importers.line156.comment application directory). Instead, try to compute relative path w.r.t. the original and the resolved top-level
+        # 009378.python.pyimod02_importers.line157.comment application directory.
         for top_level_path in _TOP_LEVEL_DIRECTORY_PATHS:
             try:
                 relative_path = os.path.relpath(path, top_level_path)
@@ -168,9 +168,9 @@ class PyiFrozenFinder:
         else:
             raise ImportError("Failed to determine relative path w.r.t. top-level application directory.")
 
-        # Ensure that path does not point to a file on filesystem. Strictly speaking, we should be checking that the
-        # given path is a valid directory, but that would need to check both PYZ and filesystem. So for now, limit the
-        # check to catch paths pointing to file, because that breaks `runpy.run_path()`, as per #8767.
+        # 009382.python.pyimod02_importers.line171.comment Ensure that path does not point to a file on filesystem. Strictly speaking, we should be checking that the
+        # 009383.python.pyimod02_importers.line172.comment given path is a valid directory, but that would need to check both PYZ and filesystem. So for now, limit the
+        # 009384.python.pyimod02_importers.line173.comment check to catch paths pointing to file, because that breaks `runpy.run_path()`, as per #8767.
         if os.path.isfile(path):
             raise ImportError("only directories are supported")
 
@@ -204,7 +204,7 @@ class PyiFrozenFinder:
         if hasattr(self, '_fallback_finder'):
             return self._fallback_finder
 
-        # Try to instantiate fallback finder
+        # 009385.python.pyimod02_importers.line207.comment Try to instantiate fallback finder
         our_hook_found = False
 
         self._fallback_finder = None
@@ -242,8 +242,8 @@ class PyiFrozenFinder:
 
         return self._fallback_finder.find_spec(fullname, target)
 
-    #-- Core PEP451 finder functionality, modeled after importlib.abc.PathEntryFinder
-    # https://docs.python.org/3/library/importlib.html#importlib.abc.PathEntryFinder
+    # 009388.python.pyimod02_importers.line245.comment -- Core PEP451 finder functionality, modeled after importlib.abc.PathEntryFinder
+    # 009389.python.pyimod02_importers.line246.comment https://docs.python.org/3/library/importlib.html#importlib.abc.PathEntryFinder
     def invalidate_caches(self):
         """
         A method which, when called, should invalidate any internal cache used by the finder. Used by
@@ -251,9 +251,9 @@ class PyiFrozenFinder:
 
         https://docs.python.org/3/library/importlib.html#importlib.abc.MetaPathFinder.invalidate_caches
         """
-        # We do not use any caches, but if we have created a fallback finder, propagate the function call.
-        # NOTE: use getattr() with _fallback_finder attribute, in order to avoid unnecessary creation of the
-        # fallback finder in case when it does not exist yet.
+        # 009390.python.pyimod02_importers.line254.comment We do not use any caches, but if we have created a fallback finder, propagate the function call.
+        # 009391.python.pyimod02_importers.line255.comment NOTE: use getattr() with _fallback_finder attribute, in order to avoid unnecessary creation of the
+        # 009392.python.pyimod02_importers.line256.comment fallback finder in case when it does not exist yet.
         fallback_finder = getattr(self, '_fallback_finder', None)
         if fallback_finder is not None:
             if hasattr(fallback_finder, 'invalidate_caches'):
@@ -269,14 +269,14 @@ class PyiFrozenFinder:
         """
         trace(f"{self}: find_spec: called with fullname={fullname!r}, target={fullname!r}")
 
-        # Convert fullname to PYZ entry name.
+        # 009393.python.pyimod02_importers.line272.comment Convert fullname to PYZ entry name.
         pyz_entry_name = self._compute_pyz_entry_name(fullname)
 
-        # Try looking up the entry in the PYZ archive
+        # 009394.python.pyimod02_importers.line275.comment Try looking up the entry in the PYZ archive
         entry_data = self._pyz_archive.toc.get(pyz_entry_name)
         if entry_data is None:
-            # Entry not found - try using fallback finder (for example, python's own FileFinder) to resolve on-disk
-            # resources, such as extension modules and modules that are collected only as source .py files.
+            # 009395.python.pyimod02_importers.line278.comment Entry not found - try using fallback finder (for example, python's own FileFinder) to resolve on-disk
+            # 009396.python.pyimod02_importers.line279.comment resources, such as extension modules and modules that are collected only as source .py files.
             trace(f"{self}: find_spec: {fullname!r} not found in PYZ...")
 
             if self.fallback_finder is not None:
@@ -289,25 +289,25 @@ class PyiFrozenFinder:
 
             return None
 
-        # Entry found
+        # 009397.python.pyimod02_importers.line292.comment Entry found
         typecode = entry_data[0]
         trace(f"{self}: find_spec: found {fullname!r} in PYZ as {pyz_entry_name!r}, typecode={typecode}")
 
         if typecode == pyimod01_archive.PYZ_ITEM_NSPKG:
-            # PEP420 namespace package
-            # We can use regular list for submodule_search_locations; the caller (i.e., python's PathFinder) takes care
-            # of constructing _NamespacePath from it.
+            # 009398.python.pyimod02_importers.line297.comment PEP420 namespace package
+            # 009399.python.pyimod02_importers.line298.comment We can use regular list for submodule_search_locations; the caller (i.e., python's PathFinder) takes care
+            # 009400.python.pyimod02_importers.line299.comment of constructing _NamespacePath from it.
             spec = _frozen_importlib.ModuleSpec(fullname, None)
             spec.submodule_search_locations = [
-                # NOTE: since we are using sys._MEIPASS as prefix, we need to construct path from resolved PYZ entry
-                # name (equivalently, we could combine `self._path` and last part of `fullname`).
+                # 009401.python.pyimod02_importers.line302.comment NOTE: since we are using sys._MEIPASS as prefix, we need to construct path from resolved PYZ entry
+                # 009402.python.pyimod02_importers.line303.comment name (equivalently, we could combine `self._path` and last part of `fullname`).
                 os.path.join(sys._MEIPASS, pyz_entry_name.replace('.', os.path.sep)),
             ]
             return spec
 
         is_package = typecode == pyimod01_archive.PYZ_ITEM_PKG
 
-        # Instantiate frozen loader for the module
+        # 009403.python.pyimod02_importers.line310.comment Instantiate frozen loader for the module
         loader = PyiFrozenLoader(
             name=fullname,
             pyz_archive=self._pyz_archive,
@@ -315,10 +315,10 @@ class PyiFrozenFinder:
             is_package=is_package,
         )
 
-        # Resolve full filename, as if the module/package was located on filesystem. This is done by the loader.
+        # 009404.python.pyimod02_importers.line318.comment Resolve full filename, as if the module/package was located on filesystem. This is done by the loader.
         origin = loader.path
 
-        # Construct spec for module, using all collected information.
+        # 009405.python.pyimod02_importers.line321.comment Construct spec for module, using all collected information.
         spec = _frozen_importlib.ModuleSpec(
             fullname,
             loader,
@@ -326,21 +326,21 @@ class PyiFrozenFinder:
             origin=origin,
         )
 
-        # Make the import machinery set __file__.
-        # PEP 451 says: "has_location" is true if the module is locatable. In that case the spec's origin is used
-        # as the location and __file__ is set to spec.origin. If additional location information is required
-        # (e.g., zipimport), that information may be stored in spec.loader_state.
+        # 009406.python.pyimod02_importers.line329.comment Make the import machinery set __file__.
+        # 009407.python.pyimod02_importers.line330.comment PEP 451 says: "has_location" is true if the module is locatable. In that case the spec's origin is used
+        # 009408.python.pyimod02_importers.line331.comment as the location and __file__ is set to spec.origin. If additional location information is required
+        # 009409.python.pyimod02_importers.line332.comment (e.g., zipimport), that information may be stored in spec.loader_state.
         spec.has_location = True
 
-        # Set submodule_search_locations for packages. Seems to be required for importlib_resources from 3.2.0;
-        # see issue #5395.
+        # 009410.python.pyimod02_importers.line335.comment Set submodule_search_locations for packages. Seems to be required for importlib_resources from 3.2.0;
+        # 009411.python.pyimod02_importers.line336.comment see issue #5395.
         if is_package:
             spec.submodule_search_locations = [os.path.dirname(origin)]
 
         return spec
 
-    # The following methods are part of legacy PEP302 finder interface. They have been deprecated since python 3.4,
-    # and removed in python 3.12. Provide compatibility shims to accommodate code that might still be using them.
+    # 009412.python.pyimod02_importers.line342.comment The following methods are part of legacy PEP302 finder interface. They have been deprecated since python 3.4,
+    # 009413.python.pyimod02_importers.line343.comment and removed in python 3.12. Provide compatibility shims to accommodate code that might still be using them.
     if sys.version_info[:2] < (3, 12):
 
         def find_loader(self, fullname):
@@ -354,8 +354,8 @@ class PyiFrozenFinder:
 
             Deprecated since python 3.4, removed in 3.12.
             """
-            # Based on:
-            # https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L1587-L1600
+            # 009414.python.pyimod02_importers.line357.comment Based on:
+            # 009415.python.pyimod02_importers.line358.comment https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L1587-L1600
             spec = self.find_spec(fullname)
             if spec is None:
                 return None, []
@@ -367,15 +367,15 @@ class PyiFrozenFinder:
 
             Deprecated since python 3.4, removed in 3.12.
             """
-            # Based on:
-            # https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L1585
-            # https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L622-L639
-            #
+            # 009416.python.pyimod02_importers.line370.comment Based on:
+            # 009417.python.pyimod02_importers.line371.comment https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L1585
+            # 009418.python.pyimod02_importers.line372.comment https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L622-L639
+            # 009419.python.pyimod02_importers.line373.comment
             loader, portions = self.find_loader(fullname)
             return loader
 
 
-# Helper for enforcing module name in PyiFrozenLoader methods.
+# 009420.python.pyimod02_importers.line378.comment Helper for enforcing module name in PyiFrozenLoader methods.
 def _check_name(method):
     def _check_name_wrapper(self, name, *args, **kwargs):
         if self.name != name:
@@ -394,37 +394,37 @@ class PyiFrozenLoader:
     Hence, we can avoid any additional validation in the implementation of the loader's methods.
     """
     def __init__(self, name, pyz_archive, pyz_entry_name, is_package):
-        # Store the reference to PYZ archive (for code object retrieval), as well as full PYZ entry name
-        # and typecode, all of which are passed from the PyiFrozenFinder.
+        # 009421.python.pyimod02_importers.line397.comment Store the reference to PYZ archive (for code object retrieval), as well as full PYZ entry name
+        # 009422.python.pyimod02_importers.line398.comment and typecode, all of which are passed from the PyiFrozenFinder.
         self._pyz_archive = pyz_archive
         self._pyz_entry_name = pyz_entry_name
         self._is_package = is_package
 
-        # Compute the module file path, as if module was located on filesystem.
-        #
-        # Rather than returning path to the .pyc file, return the path to .py file - which might actually exist, if it
-        # was explicitly collected into the frozen application). This improves compliance with
-        # https://docs.python.org/3/library/importlib.html#importlib.abc.ExecutionLoader.get_filename
-        # as well as general compatibility with 3rd party code that blindly assumes that module's file path points to
-        # the source .py file.
-        #
-        # NOTE: since we are using sys._MEIPASS as prefix, we need to construct path from full PYZ entry name
-        # (so that a module with `name`=`jaraco.text` and `pyz_entry_name`=`setuptools._vendor.jaraco.text`
-        # ends up with path set to `sys._MEIPASS/setuptools/_vendor/jaraco/text/__init__.pyc` instead of
-        # `sys._MEIPASS/jaraco/text/__init__.pyc`).
+        # 009423.python.pyimod02_importers.line403.comment Compute the module file path, as if module was located on filesystem.
+        # 009424.python.pyimod02_importers.line404.comment
+        # 009425.python.pyimod02_importers.line405.comment Rather than returning path to the .pyc file, return the path to .py file - which might actually exist, if it
+        # 009426.python.pyimod02_importers.line406.comment was explicitly collected into the frozen application). This improves compliance with
+        # 009427.python.pyimod02_importers.line407.comment https://docs.python.org/3/library/importlib.html#importlib.abc.ExecutionLoader.get_filename
+        # 009428.python.pyimod02_importers.line408.comment as well as general compatibility with 3rd party code that blindly assumes that module's file path points to
+        # 009429.python.pyimod02_importers.line409.comment the source .py file.
+        # 009430.python.pyimod02_importers.line410.comment
+        # 009431.python.pyimod02_importers.line411.comment NOTE: since we are using sys._MEIPASS as prefix, we need to construct path from full PYZ entry name
+        # 009432.python.pyimod02_importers.line412.comment (so that a module with `name`=`jaraco.text` and `pyz_entry_name`=`setuptools._vendor.jaraco.text`
+        # 009433.python.pyimod02_importers.line413.comment ends up with path set to `sys._MEIPASS/setuptools/_vendor/jaraco/text/__init__.pyc` instead of
+        # 009434.python.pyimod02_importers.line414.comment `sys._MEIPASS/jaraco/text/__init__.pyc`).
         if is_package:
             module_file = os.path.join(sys._MEIPASS, pyz_entry_name.replace('.', os.path.sep), '__init__.py')
         else:
             module_file = os.path.join(sys._MEIPASS, pyz_entry_name.replace('.', os.path.sep) + '.py')
 
-        # These properties are defined as part of importlib.abc.FileLoader. They are used by our implementation
-        # (e.g., module name validation, get_filename(), get_source(), get_resource_reader()), and might also be used
-        # by 3rd party code that naively expects to be dealing with a FileLoader instance.
+        # 009435.python.pyimod02_importers.line420.comment These properties are defined as part of importlib.abc.FileLoader. They are used by our implementation
+        # 009436.python.pyimod02_importers.line421.comment (e.g., module name validation, get_filename(), get_source(), get_resource_reader()), and might also be used
+        # 009437.python.pyimod02_importers.line422.comment by 3rd party code that naively expects to be dealing with a FileLoader instance.
         self.name = name  # The name of the module the loader can handle.
         self.path = module_file  # Path to the file of the module
 
-    #-- Core PEP451 loader functionality as defined by importlib.abc.Loader
-    # https://docs.python.org/3/library/importlib.html#importlib.abc.Loader
+    # 009440.python.pyimod02_importers.line426.comment -- Core PEP451 loader functionality as defined by importlib.abc.Loader
+    # 009441.python.pyimod02_importers.line427.comment https://docs.python.org/3/library/importlib.html#importlib.abc.Loader
     def create_module(self, spec):
         """
         A method that returns the module object to use when importing a module. This method may return None, indicating
@@ -447,18 +447,18 @@ class PyiFrozenLoader:
         if bytecode is None:
             raise RuntimeError(f"Failed to retrieve bytecode for {spec.name!r}!")
 
-        # Set by the import machinery
+        # 009443.python.pyimod02_importers.line450.comment Set by the import machinery
         assert hasattr(module, '__file__')
 
-        # If `submodule_search_locations` is not None, this is a package; set __path__.
+        # 009444.python.pyimod02_importers.line453.comment If `submodule_search_locations` is not None, this is a package; set __path__.
         if spec.submodule_search_locations is not None:
             module.__path__ = spec.submodule_search_locations
 
         exec(bytecode, module.__dict__)
 
-    # The following method is part of legacy PEP302 loader interface. It has been deprecated since python 3.4, and
-    # slated for removal in python 3.12, although that has not happened yet. Provide compatibility shim to accommodate
-    # code that might still be using it.
+    # 009445.python.pyimod02_importers.line459.comment The following method is part of legacy PEP302 loader interface. It has been deprecated since python 3.4, and
+    # 009446.python.pyimod02_importers.line460.comment slated for removal in python 3.12, although that has not happened yet. Provide compatibility shim to accommodate
+    # 009447.python.pyimod02_importers.line461.comment code that might still be using it.
     if True:
 
         @_check_name
@@ -470,13 +470,13 @@ class PyiFrozenLoader:
             Deprecated since python 3.4, slated for removal in 3.12 (but still present in python's own FileLoader in
             both v3.12.4 and v3.13.0rc1).
             """
-            # Based on:
-            # https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L942-L945
+            # 009448.python.pyimod02_importers.line473.comment Based on:
+            # 009449.python.pyimod02_importers.line474.comment https://github.com/python/cpython/blob/v3.11.9/Lib/importlib/_bootstrap_external.py#L942-L945
             import importlib._bootstrap as _bootstrap
             return _bootstrap._load_module_shim(self, fullname)
 
-    #-- PEP302 protocol extensions as defined by importlib.abc.ExecutionLoader
-    # https://docs.python.org/3/library/importlib.html#importlib.abc.ExecutionLoader
+    # 009450.python.pyimod02_importers.line478.comment -- PEP302 protocol extensions as defined by importlib.abc.ExecutionLoader
+    # 009451.python.pyimod02_importers.line479.comment https://docs.python.org/3/library/importlib.html#importlib.abc.ExecutionLoader
     @_check_name
     def get_filename(self, fullname):
         """
@@ -490,8 +490,8 @@ class PyiFrozenLoader:
         """
         return self.path
 
-    #-- PEP302 protocol extensions as defined by importlib.abc.InspectLoader
-    # https://docs.python.org/3/library/importlib.html#importlib.abc.InspectLoader
+    # 009452.python.pyimod02_importers.line493.comment -- PEP302 protocol extensions as defined by importlib.abc.InspectLoader
+    # 009453.python.pyimod02_importers.line494.comment https://docs.python.org/3/library/importlib.html#importlib.abc.InspectLoader
     @_check_name
     def get_code(self, fullname):
         """
@@ -511,19 +511,19 @@ class PyiFrozenLoader:
 
         https://docs.python.org/3/library/importlib.html#importlib.abc.InspectLoader.get_source
         """
-        # The `path` attribute (which is also returned from `get_filename()`) already points to where the source .py
-        # file should exist, if it is available.
+        # 009454.python.pyimod02_importers.line514.comment The `path` attribute (which is also returned from `get_filename()`) already points to where the source .py
+        # 009455.python.pyimod02_importers.line515.comment file should exist, if it is available.
         filename = self.path
 
         try:
-            # Read in binary mode, then decode
+            # 009456.python.pyimod02_importers.line519.comment Read in binary mode, then decode
             with open(filename, 'rb') as fp:
                 source_bytes = fp.read()
             return _decode_source(source_bytes)
         except FileNotFoundError:
             pass
 
-        # Source code is unavailable.
+        # 009457.python.pyimod02_importers.line526.comment Source code is unavailable.
         return None
 
     @_check_name
@@ -536,8 +536,8 @@ class PyiFrozenLoader:
         """
         return self._is_package
 
-    #-- PEP302 protocol extensions as dfined by importlib.abc.ResourceLoader
-    # https://docs.python.org/3/library/importlib.html#importlib.abc.ResourceLoader
+    # 009458.python.pyimod02_importers.line539.comment -- PEP302 protocol extensions as dfined by importlib.abc.ResourceLoader
+    # 009459.python.pyimod02_importers.line540.comment https://docs.python.org/3/library/importlib.html#importlib.abc.ResourceLoader
     def get_data(self, path):
         """
         A method to return the bytes for the data located at path. Loaders that have a file-like storage back-end that
@@ -547,12 +547,12 @@ class PyiFrozenLoader:
 
         https://docs.python.org/3/library/importlib.html#importlib.abc.ResourceLoader.get_data
         """
-        # Try to fetch the data from the filesystem. Since __file__ attribute works properly, just try to open the file
-        # and read it.
+        # 009460.python.pyimod02_importers.line550.comment Try to fetch the data from the filesystem. Since __file__ attribute works properly, just try to open the file
+        # 009461.python.pyimod02_importers.line551.comment and read it.
         with open(path, 'rb') as fp:
             return fp.read()
 
-    #-- Support for `importlib.resources`.
+    # 009462.python.pyimod02_importers.line555.comment -- Support for `importlib.resources`.
     @_check_name
     def get_resource_reader(self, fullname):
         """
@@ -593,10 +593,10 @@ class PyiFrozenResourceReader:
       https://github.com/python/cpython/blob/839d7893943782ee803536a47f1d4de160314f85/Lib/importlib/abc.py#L312
     """
     def __init__(self, loader):
-        # Local import to avoid including `pathlib` and its dependencies in `base_library.zip`
+        # 009463.python.pyimod02_importers.line596.comment Local import to avoid including `pathlib` and its dependencies in `base_library.zip`
         import pathlib
-        # This covers both modules and (regular) packages. Note that PEP-420 namespace packages are not handled by this
-        # resource reader (since they are not handled by PyiFrozenLoader, which uses this reader).
+        # 009464.python.pyimod02_importers.line598.comment This covers both modules and (regular) packages. Note that PEP-420 namespace packages are not handled by this
+        # 009465.python.pyimod02_importers.line599.comment resource reader (since they are not handled by PyiFrozenLoader, which uses this reader).
         self.path = pathlib.Path(loader.path).parent
 
     def open_resource(self, resource):
@@ -624,8 +624,8 @@ class PyiFrozenEntryPointLoader:
 
     def get_code(self, fullname):
         if fullname == '__main__':
-            # Special handling for __main__ module; the bootloader should store code object to _pyi_main_co
-            # attribute of the module.
+            # 009466.python.pyimod02_importers.line627.comment Special handling for __main__ module; the bootloader should store code object to _pyi_main_co
+            # 009467.python.pyimod02_importers.line628.comment attribute of the module.
             return sys.modules['__main__']._pyi_main_co
 
         raise ImportError(f'{self} cannot handle module {fullname!r}')
@@ -635,11 +635,11 @@ def install():
     """
     Install PyInstaller's frozen finders/loaders/importers into python's import machinery.
     """
-    # Setup PYZ archive reader.
-    #
-    # The bootloader should store the path to PYZ archive (the path to the PKG archive and the offset within it; for
-    # executable-embedded archive, this is for example /path/executable_name?117568) into _pyinstaller_pyz
-    # attribute of the sys module.
+    # 009468.python.pyimod02_importers.line638.comment Setup PYZ archive reader.
+    # 009469.python.pyimod02_importers.line639.comment
+    # 009470.python.pyimod02_importers.line640.comment The bootloader should store the path to PYZ archive (the path to the PKG archive and the offset within it; for
+    # 009471.python.pyimod02_importers.line641.comment executable-embedded archive, this is for example /path/executable_name?117568) into _pyinstaller_pyz
+    # 009472.python.pyimod02_importers.line642.comment attribute of the sys module.
     global pyz_archive
 
     if not hasattr(sys, '_pyinstaller_pyz'):
@@ -652,15 +652,15 @@ def install():
 
     delattr(sys, '_pyinstaller_pyz')
 
-    # On Windows, there is finder called `_frozen_importlib.WindowsRegistryFinder`, which looks for Python module
-    # locations in Windows registry. The frozen application should not look for those, so remove this finder
-    # from `sys.meta_path`.
+    # 009473.python.pyimod02_importers.line655.comment On Windows, there is finder called `_frozen_importlib.WindowsRegistryFinder`, which looks for Python module
+    # 009474.python.pyimod02_importers.line656.comment locations in Windows registry. The frozen application should not look for those, so remove this finder
+    # 009475.python.pyimod02_importers.line657.comment from `sys.meta_path`.
     for entry in sys.meta_path:
         if getattr(entry, '__name__', None) == 'WindowsRegistryFinder':
             sys.meta_path.remove(entry)
             break
 
-    # Insert our hook for `PyiFrozenFinder` into `sys.path_hooks`. Place it after `zipimporter`, if available.
+    # 009476.python.pyimod02_importers.line663.comment Insert our hook for `PyiFrozenFinder` into `sys.path_hooks`. Place it after `zipimporter`, if available.
     for idx, entry in enumerate(sys.path_hooks):
         if getattr(entry, '__name__', None) == 'zipimporter':
             trace(f"PyInstaller: inserting our finder hook at index {idx + 1} in sys.path_hooks.")
@@ -670,97 +670,97 @@ def install():
         trace("PyInstaller: zipimporter hook not found in sys.path_hooks! Prepending our finder hook to the list.")
         sys.path_hooks.insert(0, PyiFrozenFinder.path_hook)
 
-    # Monkey-patch `zipimporter.get_source` to allow loading out-of-zip source .py files for modules that are
-    # in `base_library.zip`.
+    # 009477.python.pyimod02_importers.line673.comment Monkey-patch `zipimporter.get_source` to allow loading out-of-zip source .py files for modules that are
+    # 009478.python.pyimod02_importers.line674.comment in `base_library.zip`.
     _patch_zipimporter_get_source()
 
-    # Python might have already created a `FileFinder` for `sys._MEIPASS`. Remove the entry from path importer cache,
-    # so that next loading attempt creates `PyiFrozenFinder` instead. This could probably be avoided altogether if
-    # we refrained from adding `sys._MEIPASS` to `sys.path` until our importer hooks is in place.
+    # 009479.python.pyimod02_importers.line677.comment Python might have already created a `FileFinder` for `sys._MEIPASS`. Remove the entry from path importer cache,
+    # 009480.python.pyimod02_importers.line678.comment so that next loading attempt creates `PyiFrozenFinder` instead. This could probably be avoided altogether if
+    # 009481.python.pyimod02_importers.line679.comment we refrained from adding `sys._MEIPASS` to `sys.path` until our importer hooks is in place.
     sys.path_importer_cache.pop(sys._MEIPASS, None)
 
-    # Set the PyiFrozenEntryPointLoader as loader for __main__, in order for python to treat __main__ as a module
-    # instead of a built-in, and to allow its code object to be retrieved.
+    # 009482.python.pyimod02_importers.line682.comment Set the PyiFrozenEntryPointLoader as loader for __main__, in order for python to treat __main__ as a module
+    # 009483.python.pyimod02_importers.line683.comment instead of a built-in, and to allow its code object to be retrieved.
     try:
         sys.modules['__main__'].__loader__ = PyiFrozenEntryPointLoader()
     except Exception:
         pass
 
-    # Apply hack for python >= 3.11 and its frozen stdlib modules.
+    # 009484.python.pyimod02_importers.line689.comment Apply hack for python >= 3.11 and its frozen stdlib modules.
     if sys.version_info >= (3, 11):
         _fixup_frozen_stdlib()
 
 
-# A hack for python >= 3.11 and its frozen stdlib modules. Unless `sys._stdlib_dir` is set, these modules end up
-# missing __file__ attribute, which causes problems with 3rd party code. At the time of writing, python interpreter
-# configuration API does not allow us to influence `sys._stdlib_dir` - it always resets it to `None`. Therefore,
-# we manually set the path, and fix __file__ attribute on modules.
+# 009485.python.pyimod02_importers.line694.comment A hack for python >= 3.11 and its frozen stdlib modules. Unless `sys._stdlib_dir` is set, these modules end up
+# 009486.python.pyimod02_importers.line695.comment missing __file__ attribute, which causes problems with 3rd party code. At the time of writing, python interpreter
+# 009487.python.pyimod02_importers.line696.comment configuration API does not allow us to influence `sys._stdlib_dir` - it always resets it to `None`. Therefore,
+# 009488.python.pyimod02_importers.line697.comment we manually set the path, and fix __file__ attribute on modules.
 def _fixup_frozen_stdlib():
     import _imp  # built-in
 
-    # If sys._stdlib_dir is None or empty, override it with sys._MEIPASS
+    # 009490.python.pyimod02_importers.line701.comment If sys._stdlib_dir is None or empty, override it with sys._MEIPASS
     if not sys._stdlib_dir:
         try:
             sys._stdlib_dir = sys._MEIPASS
         except AttributeError:
             pass
 
-    # The sys._stdlib_dir set above should affect newly-imported python-frozen modules. However, most of them have
-    # been already imported during python initialization and our bootstrap, so we need to retroactively fix their
-    # __file__ attribute.
+    # 009491.python.pyimod02_importers.line708.comment The sys._stdlib_dir set above should affect newly-imported python-frozen modules. However, most of them have
+    # 009492.python.pyimod02_importers.line709.comment been already imported during python initialization and our bootstrap, so we need to retroactively fix their
+    # 009493.python.pyimod02_importers.line710.comment __file__ attribute.
     for module_name, module in sys.modules.items():
         if not _imp.is_frozen(module_name):
             continue
 
         is_pkg = _imp.is_frozen_package(module_name)
 
-        # Determine "real" name from __spec__.loader_state.
+        # 009494.python.pyimod02_importers.line717.comment Determine "real" name from __spec__.loader_state.
         loader_state = module.__spec__.loader_state
 
         orig_name = loader_state.origname
         if is_pkg:
             orig_name += '.__init__'
 
-        # We set suffix to .pyc to be consistent with our PyiFrozenLoader.
+        # 009495.python.pyimod02_importers.line724.comment We set suffix to .pyc to be consistent with our PyiFrozenLoader.
         filename = os.path.join(sys._MEIPASS, *orig_name.split('.')) + '.pyc'
 
-        # Fixup the __file__ attribute
+        # 009496.python.pyimod02_importers.line727.comment Fixup the __file__ attribute
         if not hasattr(module, '__file__'):
             try:
                 module.__file__ = filename
             except AttributeError:
                 pass
 
-        # Fixup the loader_state.filename
-        # Except for _frozen_importlib (importlib._bootstrap), whose loader_state.filename appears to be left at
-        # None in python.
+        # 009497.python.pyimod02_importers.line734.comment Fixup the loader_state.filename
+        # 009498.python.pyimod02_importers.line735.comment Except for _frozen_importlib (importlib._bootstrap), whose loader_state.filename appears to be left at
+        # 009499.python.pyimod02_importers.line736.comment None in python.
         if loader_state.filename is None and orig_name != 'importlib._bootstrap':
             loader_state.filename = filename
 
 
-# Monkey-patch the `get_source` implementation of python's `zipimport.zipimporter` with our custom implementation that
-# looks up for source files in top-level application directory instead of within the zip file. This allows us to collect
-# source .py files for modules that are collected in the `base_library.zip` in the same way as for modules in the PYZ
-# archive.
+# 009500.python.pyimod02_importers.line741.comment Monkey-patch the `get_source` implementation of python's `zipimport.zipimporter` with our custom implementation that
+# 009501.python.pyimod02_importers.line742.comment looks up for source files in top-level application directory instead of within the zip file. This allows us to collect
+# 009502.python.pyimod02_importers.line743.comment source .py files for modules that are collected in the `base_library.zip` in the same way as for modules in the PYZ
+# 009503.python.pyimod02_importers.line744.comment archive.
 def _patch_zipimporter_get_source():
     import zipimport
 
     _orig_get_source = zipimport.zipimporter.get_source
 
     def _get_source(self, fullname):
-        # Call original implementation first, in case we are dealing with a zip file other than `base_library.zip` (or
-        # if the source .py file is actually in there, for whatever reason). This also implicitly validates the module
-        # name, as it raises exception if module does not exist and returns None if module exists but the source code
-        # is not present in the archive.
+        # 009504.python.pyimod02_importers.line751.comment Call original implementation first, in case we are dealing with a zip file other than `base_library.zip` (or
+        # 009505.python.pyimod02_importers.line752.comment if the source .py file is actually in there, for whatever reason). This also implicitly validates the module
+        # 009506.python.pyimod02_importers.line753.comment name, as it raises exception if module does not exist and returns None if module exists but the source code
+        # 009507.python.pyimod02_importers.line754.comment is not present in the archive.
         source = _orig_get_source(self, fullname)
         if source is not None:
             return source
 
-        # Our override should apply only to `base_library.zip`.
+        # 009508.python.pyimod02_importers.line759.comment Our override should apply only to `base_library.zip`.
         if os.path.basename(self.archive) != 'base_library.zip':
             return None
 
-        # Translate module/package name into .py filename in the top-level application directory.
+        # 009509.python.pyimod02_importers.line763.comment Translate module/package name into .py filename in the top-level application directory.
         if self.is_package(fullname):
             filename = os.path.join(*fullname.split('.'), '__init__.py')
         else:
@@ -768,14 +768,14 @@ def _patch_zipimporter_get_source():
         filename = os.path.join(_RESOLVED_TOP_LEVEL_DIRECTORY, filename)
 
         try:
-            # Read in binary mode, then decode
+            # 009510.python.pyimod02_importers.line771.comment Read in binary mode, then decode
             with open(filename, 'rb') as fp:
                 source_bytes = fp.read()
             return _decode_source(source_bytes)
         except FileNotFoundError:
             pass
 
-        # Source code is unavailable.
+        # 009511.python.pyimod02_importers.line778.comment Source code is unavailable.
         return None
 
     zipimport.zipimporter.get_source = _get_source

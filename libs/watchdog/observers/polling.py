@@ -72,8 +72,8 @@ class PollingEmitter(EventEmitter):
         self._snapshot = self._take_snapshot()
 
     def queue_events(self, timeout: float) -> None:
-        # We don't want to hit the disk continuously.
-        # timeout behaves like an interval for polling emitters.
+        # 045829.python.polling.line75.comment We don't want to hit the disk continuously.
+        # 045830.python.polling.line76.comment timeout behaves like an interval for polling emitters.
         if self.stopped_event.wait(timeout):
             return
 
@@ -81,8 +81,8 @@ class PollingEmitter(EventEmitter):
             if not self.should_keep_running():
                 return
 
-            # Get event diff between fresh snapshot and previous snapshot.
-            # Update snapshot.
+            # 045831.python.polling.line84.comment Get event diff between fresh snapshot and previous snapshot.
+            # 045832.python.polling.line85.comment Update snapshot.
             try:
                 new_snapshot = self._take_snapshot()
             except OSError:
@@ -93,7 +93,7 @@ class PollingEmitter(EventEmitter):
             events = DirectorySnapshotDiff(self._snapshot, new_snapshot)
             self._snapshot = new_snapshot
 
-            # Files.
+            # 045833.python.polling.line96.comment Files.
             for src_path in events.files_deleted:
                 self.queue_event(FileDeletedEvent(src_path))
             for src_path in events.files_modified:
@@ -103,7 +103,7 @@ class PollingEmitter(EventEmitter):
             for src_path, dest_path in events.files_moved:
                 self.queue_event(FileMovedEvent(src_path, dest_path))
 
-            # Directories.
+            # 045834.python.polling.line106.comment Directories.
             for src_path in events.dirs_deleted:
                 self.queue_event(DirDeletedEvent(src_path))
             for src_path in events.dirs_modified:

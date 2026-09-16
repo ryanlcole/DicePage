@@ -15,12 +15,12 @@ class Scene(ABC):
     def __init__(self, nodes: list[Node] | None = None) -> None:
         self.nodes = nodes or []
 
-    # TODO: test and implement:
-    # def __iter__(self):
-    #     """Iterate over all Nodes and their children (if existing)."""
-    #     for top_node in self.nodes:
-    #         for node in top_node:
-    #             yield node
+    # 035477.python.base.line18.comment TODO: test and implement:
+    # 035478.python.base.line19.comment def __iter__(self):
+    # 035479.python.base.line20.comment """Iterate over all Nodes and their children (if existing)."""
+    # 035480.python.base.line21.comment for top_node in self.nodes:
+    # 035481.python.base.line22.comment for node in top_node:
+    # 035482.python.base.line23.comment yield node
 
     def create_models(self, batch: Batch, group: Group | None = None) -> list[Model]:
         """TBD"""
@@ -39,11 +39,11 @@ class Node:
         self.skins = skins or []
         self.cameras = cameras or []
 
-    # TODO: test and implement:
-    # def __iter__(self):
-    #     yield self
-    #     for child_node in self.nodes:
-    #         yield child_node
+    # 035483.python.base.line42.comment TODO: test and implement:
+    # 035484.python.base.line43.comment def __iter__(self):
+    # 035485.python.base.line44.comment yield self
+    # 035486.python.base.line45.comment for child_node in self.nodes:
+    # 035487.python.base.line46.comment yield child_node
 
     def __repr__(self):
         return (f"Node(nested_nodes={len(self.nodes)}, meshes={len(self.meshes)},"
@@ -112,7 +112,7 @@ class SimpleMaterial(Material):
 
 class PBRMaterial(Material):
     def __init__(self):
-        # TODO: implement this class
+        # 035488.python.base.line115.comment TODO: implement this class
         pass
 
 
@@ -120,13 +120,13 @@ class Camera:
     def __init__(self, camera_type: str, aspect: float, yfov: float,
                  xmag: float, ymag: float, zfar: float, znear: float) -> None:
         self.type = camera_type
-        # Perspective
+        # 035489.python.base.line123.comment Perspective
         self.aspect_ratio = aspect
         self.yfov = yfov
-        # Orthographic
+        # 035490.python.base.line126.comment Orthographic
         self.xmag = xmag
         self.ymag = ymag
-        # Shared
+        # 035491.python.base.line129.comment Shared
         self.zfar = zfar
         self.znear = znear
 
@@ -136,5 +136,5 @@ class Camera:
 
 class Skin:
     def __init__(self) -> None:
-        # TODO: implement this class
+        # 035492.python.base.line139.comment TODO: implement this class
         pass

@@ -21,7 +21,7 @@ from pkg_resources import (
 )
 
 
-# from Python 3.6 docs. Available from itertools on Python 3.10
+# 023274.python.test_resources.line24.comment from Python 3.6 docs. Available from itertools on Python 3.10
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = itertools.tee(iterable)
@@ -50,7 +50,7 @@ dist_from_fn = pkg_resources.Distribution.from_filename
 
 class TestDistro:
     def testCollection(self):
-        # empty path should produce no distributions
+        # 023275.python.test_resources.line53.comment empty path should produce no distributions
         ad = pkg_resources.Environment([], platform=None, python=None)
         assert list(ad) == []
         assert ad['FooPkg'] == []
@@ -58,20 +58,20 @@ class TestDistro:
         ad.add(dist_from_fn("FooPkg-1.4-py2.4-win32.egg"))
         ad.add(dist_from_fn("FooPkg-1.2-py2.4.egg"))
 
-        # Name is in there now
+        # 023276.python.test_resources.line61.comment Name is in there now
         assert ad['FooPkg']
-        # But only 1 package
+        # 023277.python.test_resources.line63.comment But only 1 package
         assert list(ad) == ['foopkg']
 
-        # Distributions sort by version
+        # 023278.python.test_resources.line66.comment Distributions sort by version
         expected = ['1.4', '1.3-1', '1.2']
         assert [dist.version for dist in ad['FooPkg']] == expected
 
-        # Removing a distribution leaves sequence alone
+        # 023279.python.test_resources.line70.comment Removing a distribution leaves sequence alone
         ad.remove(ad['FooPkg'][1])
         assert [dist.version for dist in ad['FooPkg']] == ['1.4', '1.2']
 
-        # And inserting adds them in order
+        # 023280.python.test_resources.line74.comment And inserting adds them in order
         ad.add(dist_from_fn("FooPkg-1.9.egg"))
         assert [dist.version for dist in ad['FooPkg']] == ['1.9', '1.4', '1.2']
 
@@ -80,20 +80,20 @@ class TestDistro:
         foo14 = dist_from_fn("FooPkg-1.4-py2.4-win32.egg")
         (req,) = parse_requirements("FooPkg>=1.3")
 
-        # Nominal case: no distros on path, should yield all applicable
+        # 023281.python.test_resources.line83.comment Nominal case: no distros on path, should yield all applicable
         assert ad.best_match(req, ws).version == '1.9'
-        # If a matching distro is already installed, should return only that
+        # 023282.python.test_resources.line85.comment If a matching distro is already installed, should return only that
         ws.add(foo14)
         assert ad.best_match(req, ws).version == '1.4'
 
-        # If the first matching distro is unsuitable, it's a version conflict
+        # 023283.python.test_resources.line89.comment If the first matching distro is unsuitable, it's a version conflict
         ws = WorkingSet([])
         ws.add(foo12)
         ws.add(foo14)
         with pytest.raises(VersionConflict):
             ad.best_match(req, ws)
 
-        # If more than one match on the path, the first one takes precedence
+        # 023284.python.test_resources.line96.comment If more than one match on the path, the first one takes precedence
         ws = WorkingSet([])
         ws.add(foo14)
         ws.add(foo12)
@@ -180,9 +180,9 @@ class TestDistro:
     def testResolve(self):
         ad = pkg_resources.Environment([])
         ws = WorkingSet([])
-        # Resolving no requirements -> nothing to install
+        # 023285.python.test_resources.line183.comment Resolving no requirements -> nothing to install
         assert list(ws.resolve([], ad)) == []
-        # Request something not in the collection -> DistributionNotFound
+        # 023286.python.test_resources.line185.comment Request something not in the collection -> DistributionNotFound
         with pytest.raises(pkg_resources.DistributionNotFound):
             ws.resolve(parse_requirements("Foo"), ad)
 
@@ -193,7 +193,7 @@ class TestDistro:
         ad.add(Foo)
         ad.add(Distribution.from_filename("Foo-0.9.egg"))
 
-        # Request thing(s) that are available -> list to activate
+        # 023287.python.test_resources.line196.comment Request thing(s) that are available -> list to activate
         for i in range(3):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
             assert targets == [Foo]
@@ -202,7 +202,7 @@ class TestDistro:
             ws.resolve(parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([])  # reset
 
-        # Request an extra that causes an unresolved dependency for "Baz"
+        # 023289.python.test_resources.line205.comment Request an extra that causes an unresolved dependency for "Baz"
         with pytest.raises(pkg_resources.DistributionNotFound):
             ws.resolve(parse_requirements("Foo[bar]"), ad)
         Baz = Distribution.from_filename(
@@ -210,9 +210,9 @@ class TestDistro:
         )
         ad.add(Baz)
 
-        # Activation list now includes resolved dependency
+        # 023290.python.test_resources.line213.comment Activation list now includes resolved dependency
         assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) == [Foo, Baz]
-        # Requests for conflicting versions produce VersionConflict
+        # 023291.python.test_resources.line215.comment Requests for conflicting versions produce VersionConflict
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
 
@@ -373,7 +373,7 @@ class TestWorkingSet:
         Foo = Distribution.from_filename("/foo_dir/Foo-1.2.egg")
         ws.add(Foo)
 
-        # create a requirement that conflicts with Foo 1.2
+        # 023292.python.test_resources.line376.comment create a requirement that conflicts with Foo 1.2
         req = next(parse_requirements("Foo<1.2"))
 
         with pytest.raises(VersionConflict) as vc:
@@ -387,8 +387,8 @@ class TestWorkingSet:
         A ContextualVersionConflict should be raised when a requirement
         conflicts with a prior requirement for a different package.
         """
-        # Create installation where Foo depends on Baz 1.0 and Bar depends on
-        # Baz 2.0.
+        # 023293.python.test_resources.line390.comment Create installation where Foo depends on Baz 1.0 and Bar depends on
+        # 023294.python.test_resources.line391.comment Baz 2.0.
         ws = WorkingSet([])
         md = Metadata(('depends.txt', "Baz==1.0"))
         Foo = Distribution.from_filename("/foo_dir/Foo-1.0.egg", metadata=md)
@@ -451,7 +451,7 @@ class TestEntryPoints:
         assert ep.attrs == ("foo",)
         assert ep.extras == ()
 
-        # plus in the name
+        # 023295.python.test_resources.line454.comment plus in the name
         spec = "html+mako = mako.ext.pygmentplugin:MakoHtmlLexer"
         ep = EntryPoint.parse(spec)
         assert ep.name == 'html+mako'
@@ -467,7 +467,7 @@ class TestEntryPoints:
         """
         Allow any printable character in the name.
         """
-        # Create a name with all printable characters; strip the whitespace.
+        # 023296.python.test_resources.line470.comment Create a name with all printable characters; strip the whitespace.
         name = string.printable.strip()
         spec = "{name} = module:attr".format(**locals())
         ep = EntryPoint.parse(spec)
@@ -601,7 +601,7 @@ class TestRequirements:
         """
 
         assert Requirement.parse('setuptools').project_name == 'setuptools'
-        # setuptools 0.7 and higher means setuptools.
+        # 023297.python.test_resources.line604.comment setuptools 0.7 and higher means setuptools.
         assert Requirement.parse('setuptools == 0.7').project_name == 'setuptools'
         assert Requirement.parse('setuptools == 0.7a1').project_name == 'setuptools'
         assert Requirement.parse('setuptools >= 0.7').project_name == 'setuptools'
@@ -819,13 +819,13 @@ class TestNamespaces:
         with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
             import pkg1  # pyright: ignore[reportMissingImports] # Temporary package for test
         assert "pkg1" in pkg_resources._namespace_packages
-        # attempt to import pkg2 from site-pkgs2
+        # 023299.python.test_resources.line822.comment attempt to import pkg2 from site-pkgs2
         with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
             import pkg1.pkg2  # pyright: ignore[reportMissingImports] # Temporary package for test
-        # check the _namespace_packages dict
+        # 023301.python.test_resources.line825.comment check the _namespace_packages dict
         assert "pkg1.pkg2" in pkg_resources._namespace_packages
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
-        # check the __path__ attribute contains both paths
+        # 023302.python.test_resources.line828.comment check the __path__ attribute contains both paths
         expected = [
             str(real_tmpdir / "site-pkgs" / "pkg1" / "pkg2"),
             str(real_tmpdir / "site-pkgs2" / "pkg1" / "pkg2"),

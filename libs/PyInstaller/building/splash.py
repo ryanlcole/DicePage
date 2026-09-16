@@ -1,13 +1,13 @@
-# -----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-# -----------------------------------------------------------------------------
+# 001417.python.splash.line1.comment -----------------------------------------------------------------------------
+# 001418.python.splash.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 001419.python.splash.line3.comment
+# 001420.python.splash.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 001421.python.splash.line5.comment or later) with exception for distributing the bootloader.
+# 001422.python.splash.line6.comment
+# 001423.python.splash.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 001424.python.splash.line8.comment
+# 001425.python.splash.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 001426.python.splash.line10.comment -----------------------------------------------------------------------------
 import io
 import os
 import re
@@ -30,17 +30,17 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# These requirement files are checked against the current splash screen script. If you wish to modify the splash screen
-# and run into tcl errors/bad behavior, this is a good place to start and add components your implementation of the
-# splash screen might use.
-# NOTE: these paths use the *destination* layout for Tcl/Tk scripts, which uses unversioned tcl and tk directories
-# (see `PyInstaller.utils.hooks.tcl_tk.collect_tcl_tk_files`).
+# 001427.python.splash.line33.comment These requirement files are checked against the current splash screen script. If you wish to modify the splash screen
+# 001428.python.splash.line34.comment and run into tcl errors/bad behavior, this is a good place to start and add components your implementation of the
+# 001429.python.splash.line35.comment splash screen might use.
+# 001430.python.splash.line36.comment NOTE: these paths use the *destination* layout for Tcl/Tk scripts, which uses unversioned tcl and tk directories
+# 001431.python.splash.line37.comment (see `PyInstaller.utils.hooks.tcl_tk.collect_tcl_tk_files`).
 splash_requirements = [
-    # prepended tcl/tk binaries
+    # 001432.python.splash.line39.comment prepended tcl/tk binaries
     os.path.join(tcltk_info.TK_ROOTNAME, "license.terms"),
     os.path.join(tcltk_info.TK_ROOTNAME, "text.tcl"),
     os.path.join(tcltk_info.TK_ROOTNAME, "tk.tcl"),
-    # Used for customizable font
+    # 001433.python.splash.line43.comment Used for customizable font
     os.path.join(tcltk_info.TK_ROOTNAME, "ttk", "ttk.tcl"),
     os.path.join(tcltk_info.TK_ROOTNAME, "ttk", "fonts.tcl"),
     os.path.join(tcltk_info.TK_ROOTNAME, "ttk", "cursors.tcl"),
@@ -127,30 +127,30 @@ class Splash(Target):
         from ..config import CONF
         Target.__init__(self)
 
-        # Splash screen is not supported on macOS. It operates in a secondary thread and macOS disallows UI operations
-        # in any thread other than main.
+        # 001434.python.splash.line130.comment Splash screen is not supported on macOS. It operates in a secondary thread and macOS disallows UI operations
+        # 001435.python.splash.line131.comment in any thread other than main.
         if is_darwin:
             raise SystemExit("ERROR: Splash screen is not supported on macOS.")
 
-        # Ensure tkinter (and thus Tcl/Tk) is available.
+        # 001436.python.splash.line135.comment Ensure tkinter (and thus Tcl/Tk) is available.
         if not tcltk_info.available:
             raise SystemExit(
                 "ERROR: Your platform does not support the splash screen feature, since tkinter is not installed. "
                 "Please install tkinter and try again."
             )
 
-        # Check if the Tcl/Tk version is supported.
+        # 001437.python.splash.line142.comment Check if the Tcl/Tk version is supported.
         logger.info("Verifying Tcl/Tk compatibility with splash screen requirements")
         self._check_tcl_tk_compatibility()
 
-        # Make image path relative to .spec file
+        # 001438.python.splash.line146.comment Make image path relative to .spec file
         if not os.path.isabs(image_file):
             image_file = os.path.join(CONF['specpath'], image_file)
         image_file = os.path.normpath(image_file)
         if not os.path.exists(image_file):
             raise ValueError("Image file '%s' not found" % image_file)
 
-        # Copy all arguments
+        # 001439.python.splash.line153.comment Copy all arguments
         self.image_file = image_file
         self.full_tk = kwargs.get("full_tk", False)
         self.name = kwargs.get("name", None)
@@ -158,28 +158,28 @@ class Splash(Target):
         self.minify_script = kwargs.get("minify_script", True)
         self.max_img_size = kwargs.get("max_img_size", (760, 480))
 
-        # text options
+        # 001440.python.splash.line161.comment text options
         self.text_pos = kwargs.get("text_pos", None)
         self.text_size = kwargs.get("text_size", 12)
         self.text_font = kwargs.get("text_font", "TkDefaultFont")
         self.text_color = kwargs.get("text_color", "black")
         self.text_default = kwargs.get("text_default", "Initializing")
 
-        # always-on-top behavior
+        # 001441.python.splash.line168.comment always-on-top behavior
         self.always_on_top = kwargs.get("always_on_top", True)
 
-        # Save the generated file separately so that it is not necessary to generate the data again and again
+        # 001442.python.splash.line171.comment Save the generated file separately so that it is not necessary to generate the data again and again
         root = os.path.splitext(self.tocfilename)[0]
         if self.name is None:
             self.name = root + '.res'
         if self.script_name is None:
             self.script_name = root + '_script.tcl'
 
-        # Internal variables
-        # Store path to _tkinter extension module, so that guts check can detect if the path changed for some reason.
+        # 001443.python.splash.line178.comment Internal variables
+        # 001444.python.splash.line179.comment Store path to _tkinter extension module, so that guts check can detect if the path changed for some reason.
         self._tkinter_file = tcltk_info.tkinter_extension_file
 
-        # Calculated / analysed values
+        # 001445.python.splash.line182.comment Calculated / analysed values
         self.uses_tkinter = self._uses_tkinter(self._tkinter_file, binaries)
         logger.debug("Program uses tkinter: %r", self.uses_tkinter)
         self.script = self.generate_script()
@@ -193,8 +193,8 @@ class Splash(Target):
         logger.debug("Using Tk shared library: %r", self.tk_lib)
 
         self.splash_requirements = set([
-            # NOTE: the implicit assumption here is that Tcl and Tk shared library are collected into top-level
-            # application directory, which, at tme moment, is true in practically all cases.
+            # 001447.python.splash.line196.comment NOTE: the implicit assumption here is that Tcl and Tk shared library are collected into top-level
+            # 001448.python.splash.line197.comment application directory, which, at tme moment, is true in practically all cases.
             os.path.basename(self.tcl_lib),
             os.path.basename(self.tk_lib),
             *splash_requirements,
@@ -203,33 +203,33 @@ class Splash(Target):
         logger.info("Collect Tcl/Tk data files for the splash screen")
         tcltk_tree = tcltk_info.data_files  # 3-element tuple TOC
         if self.full_tk:
-            # The user wants a full copy of Tk, so make all Tk files a requirement.
+            # 001450.python.splash.line206.comment The user wants a full copy of Tk, so make all Tk files a requirement.
             self.splash_requirements.update(entry[0] for entry in tcltk_tree)
 
-        # Scan for binary dependencies of the Tcl/Tk shared libraries, and add them to `binaries` TOC list (which
-        # should really be called `dependencies` as it is not limited to binaries. But it is too late now, and
-        # existing spec files depend on this naming). We specify these binary dependencies (which include the
-        # Tcl and Tk shared libraries themselves) even if the user's program uses tkinter and they would be collected
-        # anyway; let the collection mechanism deal with potential duplicates.
+        # 001451.python.splash.line209.comment Scan for binary dependencies of the Tcl/Tk shared libraries, and add them to `binaries` TOC list (which
+        # 001452.python.splash.line210.comment should really be called `dependencies` as it is not limited to binaries. But it is too late now, and
+        # 001453.python.splash.line211.comment existing spec files depend on this naming). We specify these binary dependencies (which include the
+        # 001454.python.splash.line212.comment Tcl and Tk shared libraries themselves) even if the user's program uses tkinter and they would be collected
+        # 001455.python.splash.line213.comment anyway; let the collection mechanism deal with potential duplicates.
         tcltk_libs = [(os.path.basename(src_name), src_name, 'BINARY') for src_name in (self.tcl_lib, self.tk_lib)]
         self.binaries = bindepend.binary_dependency_analysis(tcltk_libs)
 
-        # Put all shared library dependencies in `splash_requirements`, so they are made available in onefile mode.
+        # 001456.python.splash.line217.comment Put all shared library dependencies in `splash_requirements`, so they are made available in onefile mode.
         self.splash_requirements.update(entry[0] for entry in self.binaries)
 
-        # If the user's program does not use tkinter, add resources from Tcl/Tk tree to the dependencies list.
-        # Do so only for the resources that are part of splash requirements.
+        # 001457.python.splash.line220.comment If the user's program does not use tkinter, add resources from Tcl/Tk tree to the dependencies list.
+        # 001458.python.splash.line221.comment Do so only for the resources that are part of splash requirements.
         if not self.uses_tkinter:
             self.binaries.extend(entry for entry in tcltk_tree if entry[0] in self.splash_requirements)
 
-        # Check if all requirements were found.
+        # 001459.python.splash.line225.comment Check if all requirements were found.
         collected_files = set(entry[0] for entry in (binaries + datas + self.binaries))
 
         def _filter_requirement(filename):
             if filename not in collected_files:
-                # Item is not bundled, so warn the user about it. This actually may happen on some tkinter installations
-                # that are missing the license.terms file - as this file has no effect on operation of splash screen,
-                # suppress the warning for it.
+                # 001460.python.splash.line230.comment Item is not bundled, so warn the user about it. This actually may happen on some tkinter installations
+                # 001461.python.splash.line231.comment that are missing the license.terms file - as this file has no effect on operation of splash screen,
+                # 001462.python.splash.line232.comment suppress the warning for it.
                 if os.path.basename(filename) == 'license.terms':
                     return False
 
@@ -240,16 +240,16 @@ class Splash(Target):
                 return False
             return True
 
-        # Remove all files which were not found.
+        # 001463.python.splash.line243.comment Remove all files which were not found.
         self.splash_requirements = set(filter(_filter_requirement, self.splash_requirements))
 
         logger.debug("Splash Requirements: %s", self.splash_requirements)
 
-        # On AIX, the Tcl and Tk shared libraries might in fact be ar archives with shared object inside it, and need to
-        # be `dlopen`'ed with full name (for example, `libtcl.a(libtcl.so.8.6)` and `libtk.a(libtk.so.8.6)`. So if the
-        # library's suffix is .a, adjust the name accordingly, assuming fixed format for the shared object name.
-        # Adjust the names at the end of this method, because preceding steps use `self.tcl_lib` and `self.tk_lib` for
-        # filesystem-based operations and need the original filenames.
+        # 001464.python.splash.line248.comment On AIX, the Tcl and Tk shared libraries might in fact be ar archives with shared object inside it, and need to
+        # 001465.python.splash.line249.comment be `dlopen`'ed with full name (for example, `libtcl.a(libtcl.so.8.6)` and `libtk.a(libtk.so.8.6)`. So if the
+        # 001466.python.splash.line250.comment library's suffix is .a, adjust the name accordingly, assuming fixed format for the shared object name.
+        # 001467.python.splash.line251.comment Adjust the names at the end of this method, because preceding steps use `self.tcl_lib` and `self.tk_lib` for
+        # 001468.python.splash.line252.comment filesystem-based operations and need the original filenames.
         if is_aix:
             _, ext = os.path.splitext(self.tcl_lib)
             if ext == '.a':
@@ -263,7 +263,7 @@ class Splash(Target):
         self.__postinit__()
 
     _GUTS = (
-        # input parameters
+        # 001469.python.splash.line266.comment input parameters
         ('image_file', _check_guts_eq),
         ('name', _check_guts_eq),
         ('script_name', _check_guts_eq),
@@ -276,16 +276,16 @@ class Splash(Target):
         ('full_tk', _check_guts_eq),
         ('minify_script', _check_guts_eq),
         ('max_img_size', _check_guts_eq),
-        # calculated/analysed values
+        # 001470.python.splash.line279.comment calculated/analysed values
         ('uses_tkinter', _check_guts_eq),
         ('script', _check_guts_eq),
         ('tcl_lib', _check_guts_eq),
         ('tk_lib', _check_guts_eq),
         ('splash_requirements', _check_guts_eq),
         ('binaries', _check_guts_toc),
-        # internal value
-        # Check if the tkinter installation changed. This is theoretically possible if someone uses two different python
-        # installations of the same version.
+        # 001471.python.splash.line286.comment internal value
+        # 001472.python.splash.line287.comment Check if the tkinter installation changed. This is theoretically possible if someone uses two different python
+        # 001473.python.splash.line288.comment installations of the same version.
         ('_tkinter_file', _check_guts_eq),
     )
 
@@ -293,7 +293,7 @@ class Splash(Target):
         if Target._check_guts(self, data, last_build):
             return True
 
-        # Check if the image has been modified.
+        # 001474.python.splash.line296.comment Check if the image has been modified.
         if misc.mtime(self.image_file) > last_build:
             logger.info("Building %s because file %s changed", self.tocbasename, self.image_file)
             return True
@@ -303,30 +303,30 @@ class Splash(Target):
     def assemble(self):
         logger.info("Building Splash %s", self.name)
 
-        # Function to resize a given image to fit into the area defined by max_img_size.
+        # 001475.python.splash.line306.comment Function to resize a given image to fit into the area defined by max_img_size.
         def _resize_image(_image, _orig_size):
             if PILImage:
                 _w, _h = _orig_size
                 _ratio_w = self.max_img_size[0] / _w
                 if _ratio_w < 1:
-                    # Image width exceeds limit
+                    # 001476.python.splash.line312.comment Image width exceeds limit
                     _h = int(_h * _ratio_w)
                     _w = self.max_img_size[0]
 
                 _ratio_h = self.max_img_size[1] / _h
                 if _ratio_h < 1:
-                    # Image height exceeds limit
+                    # 001477.python.splash.line318.comment Image height exceeds limit
                     _w = int(_w * _ratio_h)
                     _h = self.max_img_size[1]
 
-                # If a file is given it will be open
+                # 001478.python.splash.line322.comment If a file is given it will be open
                 if isinstance(_image, PILImage.Image):
                     _img = _image
                 else:
                     _img = PILImage.open(_image)
                 _img_resized = _img.resize((_w, _h))
 
-                # Save image into a stream
+                # 001479.python.splash.line329.comment Save image into a stream
                 _image_stream = io.BytesIO()
                 _img_resized.save(_image_stream, format='PNG')
                 _img.close()
@@ -342,22 +342,22 @@ class Splash(Target):
                     (_orig_size[0], _orig_size[1], self.max_img_size[0], self.max_img_size[1])
                 )
 
-        # Open image file
+        # 001480.python.splash.line345.comment Open image file
         image_file = open(self.image_file, 'rb')
 
-        # Check header of the file to identify it
+        # 001481.python.splash.line348.comment Check header of the file to identify it
         if image_file.read(8) == b'\x89PNG\r\n\x1a\n':
-            # self.image_file is a PNG file
+            # 001482.python.splash.line350.comment self.image_file is a PNG file
             image_file.seek(16)
             img_size = (struct.unpack("!I", image_file.read(4))[0], struct.unpack("!I", image_file.read(4))[0])
 
             if img_size > self.max_img_size:
-                # The image exceeds the maximum image size, so resize it
+                # 001483.python.splash.line355.comment The image exceeds the maximum image size, so resize it
                 image = _resize_image(self.image_file, img_size)
             else:
                 image = os.path.abspath(self.image_file)
         elif PILImage:
-            # Pillow is installed, meaning the image can be converted automatically
+            # 001484.python.splash.line360.comment Pillow is installed, meaning the image can be converted automatically
             img = PILImage.open(self.image_file, mode='r')
 
             if img.size > self.max_img_size:
@@ -392,34 +392,34 @@ class Splash(Target):
         tk_version = tcltk_info.tk_version
 
         if is_darwin and tcltk_info.is_macos_system_framework:
-            # Outdated Tcl/Tk 8.5 system framework is not supported.
+            # 001488.python.splash.line395.comment Outdated Tcl/Tk 8.5 system framework is not supported.
             raise SystemExit(
                 "ERROR: The splash screen feature does not support macOS system framework version of Tcl/Tk."
             )
 
-        # Test if tcl/tk version is supported
+        # 001489.python.splash.line400.comment Test if tcl/tk version is supported
         if tcl_version < (8, 6) or tk_version < (8, 6):
             logger.warning(
                 "The installed Tcl/Tk (%d.%d / %d.%d) version might not work with the splash screen feature of the "
                 "bootloader, which was tested against Tcl/Tk 8.6", *tcl_version, *tk_version
             )
 
-        # This should be impossible, since tcl/tk is released together with the same version number, but just in case
+        # 001490.python.splash.line407.comment This should be impossible, since tcl/tk is released together with the same version number, but just in case
         if tcl_version != tk_version:
             logger.warning(
                 "The installed version of Tcl (%d.%d) and Tk (%d.%d) do not match. PyInstaller is tested against "
                 "matching versions", *tcl_version, *tk_version
             )
 
-        # Ensure that Tcl is built with multi-threading support.
+        # 001491.python.splash.line414.comment Ensure that Tcl is built with multi-threading support.
         if not tcltk_info.tcl_threaded:
-            # This is a feature breaking problem, so exit.
+            # 001492.python.splash.line416.comment This is a feature breaking problem, so exit.
             raise SystemExit(
                 "ERROR: The installed Tcl version is not threaded. PyInstaller only supports the splash screen "
                 "using threaded Tcl."
             )
 
-        # Ensure that Tcl and Tk shared libraries are available
+        # 001493.python.splash.line422.comment Ensure that Tcl and Tk shared libraries are available
         if tcltk_info.tcl_shared_library is None or tcltk_info.tk_shared_library is None:
             message = \
                 "ERROR: Could not determine the path to Tcl and/or Tk shared library, " \
@@ -451,24 +451,24 @@ class Splash(Target):
         script = splash_templates.build_script(text_options=d, always_on_top=self.always_on_top)
 
         if self.minify_script:
-            # Remove any documentation, empty lines and unnecessary spaces
+            # 001494.python.splash.line454.comment Remove any documentation, empty lines and unnecessary spaces
             script = '\n'.join(
                 line for line in map(lambda line: line.strip(), script.splitlines())
                 if not line.startswith('#')  # documentation
                 and line  # empty lines
             )
-            # Remove unnecessary spaces
+            # 001497.python.splash.line460.comment Remove unnecessary spaces
             script = re.sub(' +', ' ', script)
 
-        # Write script to disk, so that it is transparent to the user what script is executed.
+        # 001498.python.splash.line463.comment Write script to disk, so that it is transparent to the user what script is executed.
         with open(self.script_name, "w", encoding="utf-8") as script_file:
             script_file.write(script)
         return script
 
     @staticmethod
     def _uses_tkinter(tkinter_file, binaries):
-        # Test for _tkinter extension instead of tkinter module, because user might use a different wrapping library for
-        # Tk. Use `pathlib.PurePath` in comparisons to account for case normalization and separator normalization.
+        # 001499.python.splash.line470.comment Test for _tkinter extension instead of tkinter module, because user might use a different wrapping library for
+        # 001500.python.splash.line471.comment Tk. Use `pathlib.PurePath` in comparisons to account for case normalization and separator normalization.
         tkinter_file = pathlib.PurePath(tkinter_file)
         for dest_name, src_name, typecode in binaries:
             if pathlib.PurePath(src_name) == tkinter_file:

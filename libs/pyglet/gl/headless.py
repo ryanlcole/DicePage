@@ -28,7 +28,7 @@ class HeadlessConfig(Config):  # noqa: D101
 
         display_connection = canvas.display._display_connection  # noqa: SLF001
 
-        # Construct array of attributes
+        # 028832.python.headless.line31.comment Construct array of attributes
         attrs = []
         for name, value in self.get_gl_attributes():
             if name == 'double_buffer':

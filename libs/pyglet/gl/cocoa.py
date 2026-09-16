@@ -11,7 +11,7 @@ from pyglet.libs.darwin import cocoapy, quartz
 NSOpenGLPixelFormat = cocoapy.ObjCClass('NSOpenGLPixelFormat')
 NSOpenGLContext = cocoapy.ObjCClass('NSOpenGLContext')
 
-# Version info, needed as OpenGL different Lion and onward
+# 027568.python.cocoa.line14.comment Version info, needed as OpenGL different Lion and onward
 """Version is based on Darwin kernel, not OS-X version.
 OS-X / Darwin version history
 http://en.wikipedia.org/wiki/Darwin_(operating_system)#Release_history
@@ -61,7 +61,7 @@ os_x_release: dict[str, tuple[float] | tuple[float, float] | tuple[float, float,
 def os_x_version() -> tuple[int, ...]:  # noqa: D103
     version = tuple([int(v) for v in platform.release().split('.')])
 
-    # ensure we return a tuple
+    # 027570.python.cocoa.line64.comment ensure we return a tuple
     if len(version) > 0:
         return version
     return (version,)
@@ -69,7 +69,7 @@ def os_x_version() -> tuple[int, ...]:  # noqa: D103
 
 _os_x_version = os_x_version()
 
-# Valid names for GL attributes and their corresponding NSOpenGL constant.
+# 027571.python.cocoa.line72.comment Valid names for GL attributes and their corresponding NSOpenGL constant.
 _gl_attributes = {
     'double_buffer': cocoapy.NSOpenGLPFADoubleBuffer,
     'stereo': cocoapy.NSOpenGLPFAStereo,
@@ -81,14 +81,14 @@ _gl_attributes = {
     'depth_size': cocoapy.NSOpenGLPFADepthSize,
     'stencil_size': cocoapy.NSOpenGLPFAStencilSize,
 
-    # Not exposed by pyglet API (set internally)
+    # 027572.python.cocoa.line84.comment Not exposed by pyglet API (set internally)
     'all_renderers': cocoapy.NSOpenGLPFAAllRenderers,
     'fullscreen': cocoapy.NSOpenGLPFAFullScreen,
     'minimum_policy': cocoapy.NSOpenGLPFAMinimumPolicy,
     'maximum_policy': cocoapy.NSOpenGLPFAMaximumPolicy,
     'screen_mask': cocoapy.NSOpenGLPFAScreenMask,
 
-    # Not supported in current pyglet API
+    # 027573.python.cocoa.line91.comment Not supported in current pyglet API
     'color_float': cocoapy.NSOpenGLPFAColorFloat,
     'offscreen': cocoapy.NSOpenGLPFAOffScreen,
     'sample_alpha': cocoapy.NSOpenGLPFASampleAlpha,
@@ -96,7 +96,7 @@ _gl_attributes = {
     'supersample': cocoapy.NSOpenGLPFASupersample,
 }
 
-# NSOpenGL constants which do not require a value.
+# 027574.python.cocoa.line99.comment NSOpenGL constants which do not require a value.
 _boolean_gl_attributes = frozenset([
     cocoapy.NSOpenGLPFAAllRenderers,
     cocoapy.NSOpenGLPFADoubleBuffer,
@@ -111,10 +111,10 @@ _boolean_gl_attributes = frozenset([
     cocoapy.NSOpenGLPFASampleAlpha,
 ])
 
-# Attributes for which no NSOpenGLPixelFormatAttribute name exists.
-# We could probably compute actual values for these using
-# NSOpenGLPFAColorSize / 4 and NSOpenGLFAAccumSize / 4, but I'm not that
-# confident I know what I'm doing.
+# 027575.python.cocoa.line114.comment Attributes for which no NSOpenGLPixelFormatAttribute name exists.
+# 027576.python.cocoa.line115.comment We could probably compute actual values for these using
+# 027577.python.cocoa.line116.comment NSOpenGLPFAColorSize / 4 and NSOpenGLFAAccumSize / 4, but I'm not that
+# 027578.python.cocoa.line117.comment confident I know what I'm doing.
 _fake_gl_attributes = {
     'red_size': 0,
     'green_size': 0,
@@ -129,7 +129,7 @@ _fake_gl_attributes = {
 class CocoaConfig(Config):  # noqa: D101
 
     def match(self, canvas: CocoaCanvas) -> list[CocoaDisplayConfig]:
-        # Construct array of attributes for NSOpenGLPixelFormat
+        # 027580.python.cocoa.line132.comment Construct array of attributes for NSOpenGLPixelFormat
         attrs = []
         for name, value in self.get_gl_attributes():
             attr = _gl_attributes.get(name)
@@ -139,52 +139,52 @@ class CocoaConfig(Config):  # noqa: D101
             if attr not in _boolean_gl_attributes:
                 attrs.append(int(value))
 
-        # Support for RAGE-II, which is not compliant.
+        # 027581.python.cocoa.line142.comment Support for RAGE-II, which is not compliant.
         attrs.append(cocoapy.NSOpenGLPFAAllRenderers)
 
-        # Force selection policy.
+        # 027582.python.cocoa.line145.comment Force selection policy.
         attrs.append(cocoapy.NSOpenGLPFAMaximumPolicy)
 
-        # NSOpenGLPFAFullScreen is always supplied so we can switch to and
-        # from fullscreen without losing the context.  Also must supply the
-        # NSOpenGLPFAScreenMask attribute with appropriate display ID.
-        # Note that these attributes aren't necessary to render in fullscreen
-        # on Mac OS X 10.6, because there we are simply rendering into a
-        # screen sized window.  See:
-        # http://developer.apple.com/library/mac/#documentation/GraphicsImaging/Conceptual/OpenGL-MacProgGuide/opengl_fullscreen/opengl_cgl.html%23//apple_ref/doc/uid/TP40001987-CH210-SW6
-        # Otherwise, make sure we refer to the correct Profile for OpenGL (Core or
-        # Legacy) on Lion and afterwards
+        # 027583.python.cocoa.line148.comment NSOpenGLPFAFullScreen is always supplied so we can switch to and
+        # 027584.python.cocoa.line149.comment from fullscreen without losing the context.  Also must supply the
+        # 027585.python.cocoa.line150.comment NSOpenGLPFAScreenMask attribute with appropriate display ID.
+        # 027586.python.cocoa.line151.comment Note that these attributes aren't necessary to render in fullscreen
+        # 027587.python.cocoa.line152.comment on Mac OS X 10.6, because there we are simply rendering into a
+        # 027588.python.cocoa.line153.comment screen sized window.  See:
+        # 027589.python.cocoa.line154.comment http://developer.apple.com/library/mac/#documentation/GraphicsImaging/Conceptual/OpenGL-MacProgGuide/opengl_fullscreen/opengl_cgl.html%23//apple_ref/doc/uid/TP40001987-CH210-SW6
+        # 027590.python.cocoa.line155.comment Otherwise, make sure we refer to the correct Profile for OpenGL (Core or
+        # 027591.python.cocoa.line156.comment Legacy) on Lion and afterwards
         if _os_x_version < os_x_release['snow_leopard']:
             attrs.append(cocoapy.NSOpenGLPFAFullScreen)
             attrs.append(cocoapy.NSOpenGLPFAScreenMask)
             attrs.append(quartz.CGDisplayIDToOpenGLDisplayMask(quartz.CGMainDisplayID()))
         elif _os_x_version >= os_x_release['lion']:
-            # check for opengl profile
-            # This requires OS-X Lion (Darwin 11) or higher
+            # 027592.python.cocoa.line162.comment check for opengl profile
+            # 027593.python.cocoa.line163.comment This requires OS-X Lion (Darwin 11) or higher
             version = (getattr(self, 'major_version', None) or 3,
                        getattr(self, 'minor_version', None) or 3)
 
-            # tell os-x we want to request a profile
+            # 027594.python.cocoa.line167.comment tell os-x we want to request a profile
             attrs.append(cocoapy.NSOpenGLPFAOpenGLProfile)
 
-            # check if we're wanting core or legacy
-            # Mavericks (Darwin 13) and up are capable of the Core 4.1 profile,
-            # while Lion and up are only capable of Core 3.2
+            # 027595.python.cocoa.line170.comment check if we're wanting core or legacy
+            # 027596.python.cocoa.line171.comment Mavericks (Darwin 13) and up are capable of the Core 4.1 profile,
+            # 027597.python.cocoa.line172.comment while Lion and up are only capable of Core 3.2
             if version[0] >= 4 and _os_x_version >= os_x_release['mavericks']:
                 attrs.append(int(cocoapy.NSOpenGLProfileVersion4_1Core))
             elif version[0] >= 3:
                 attrs.append(int(cocoapy.NSOpenGLProfileVersion3_2Core))
             else:
                 attrs.append(int(cocoapy.NSOpenGLProfileVersionLegacy))
-        # Terminate the list.
+        # 027598.python.cocoa.line179.comment Terminate the list.
         attrs.append(0)
 
-        # Create the pixel format.
+        # 027599.python.cocoa.line182.comment Create the pixel format.
         attrsArrayType = c_uint32 * len(attrs)
         attrsArray = attrsArrayType(*attrs)
         pixel_format = NSOpenGLPixelFormat.alloc().initWithAttributes_(attrsArray)
 
-        # Return the match list.
+        # 027600.python.cocoa.line187.comment Return the match list.
         if pixel_format is None:
             return []
 
@@ -197,18 +197,18 @@ class CocoaDisplayConfig(DisplayConfig):  # noqa: D101
         super().__init__(canvas, config)
         self._pixel_format = pixel_format
 
-        # Query values for the attributes of the pixel format, and then set the
-        # corresponding attributes of the canvas config.
+        # 027603.python.cocoa.line200.comment Query values for the attributes of the pixel format, and then set the
+        # 027604.python.cocoa.line201.comment corresponding attributes of the canvas config.
         for name, attr in _gl_attributes.items():
             vals = c_int()
             self._pixel_format.getValues_forAttribute_forVirtualScreen_(byref(vals), attr, 0)
             setattr(self, name, vals.value)
 
-        # Set these attributes so that we can run pyglet.info.
+        # 027605.python.cocoa.line207.comment Set these attributes so that we can run pyglet.info.
         for name, value in _fake_gl_attributes.items():
             setattr(self, name, value)
 
-        # Update the minor/major version from profile if (Mountain)Lion
+        # 027606.python.cocoa.line211.comment Update the minor/major version from profile if (Mountain)Lion
         if _os_x_version >= os_x_release['lion']:
             vals = c_int()
             profile = self._pixel_format.getValues_forAttribute_forVirtualScreen_(
@@ -228,13 +228,13 @@ class CocoaDisplayConfig(DisplayConfig):  # noqa: D101
                 self.minor_version = 1
 
     def create_context(self, share: CocoaContext | None) -> CocoaContext:
-        # Determine the shared NSOpenGLContext.
+        # 027607.python.cocoa.line231.comment Determine the shared NSOpenGLContext.
         if share:
             share_context = share._nscontext  # noqa: SLF001
         else:
             share_context = None
 
-        # Create a new NSOpenGLContext.
+        # 027609.python.cocoa.line237.comment Create a new NSOpenGLContext.
         nscontext = NSOpenGLContext.alloc().initWithFormat_shareContext_(
             self._pixel_format,
             share_context)
@@ -243,7 +243,7 @@ class CocoaDisplayConfig(DisplayConfig):  # noqa: D101
             opaque = c_int(0)
             nscontext.setValues_forParameter_(byref(opaque), cocoapy.NSOpenGLCPSurfaceOpacity)
 
-        # No longer needed after context creation.
+        # 027610.python.cocoa.line246.comment No longer needed after context creation.
         if self._pixel_format:
             self._pixel_format.release()
             self._pixel_format = None
@@ -262,14 +262,14 @@ class CocoaContext(Context):  # noqa: D101
         self._nscontext = nscontext
 
     def attach(self, canvas: CocoaCanvas) -> None:
-        # See if we want OpenGL 3 in a non-Lion OS
+        # 027613.python.cocoa.line265.comment See if we want OpenGL 3 in a non-Lion OS
         if _os_x_version < os_x_release['lion']:
             msg = 'OpenGL 3 not supported'
             raise ContextException(msg)
 
         super().attach(canvas)
-        # The NSView instance should be attached to a nondeferred window before calling
-        # setView, otherwise you get an "invalid drawable" message.
+        # 027614.python.cocoa.line271.comment The NSView instance should be attached to a nondeferred window before calling
+        # 027615.python.cocoa.line272.comment setView, otherwise you get an "invalid drawable" message.
         self._nscontext.setView_(canvas.nsview)
 
         self.set_current()
@@ -283,8 +283,8 @@ class CocoaContext(Context):  # noqa: D101
         super().set_current()
 
     def update_geometry(self) -> None:
-        # Need to call this method whenever the context drawable (an NSView)
-        # changes size or location.
+        # 027616.python.cocoa.line286.comment Need to call this method whenever the context drawable (an NSView)
+        # 027617.python.cocoa.line287.comment changes size or location.
         self._nscontext.update()
 
     def set_full_screen(self) -> None:

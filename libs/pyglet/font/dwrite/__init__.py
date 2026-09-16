@@ -249,7 +249,7 @@ class _DWriteTextRenderer(com.COMObject):
         glyph_renderer: DirectWriteGlyphRenderer = cast(drawing_context, py_object).value
         glyph_run = glyph_run_ptr.contents
 
-        # Font reference to cache glyphs otherwise cache misses may occur with other glyph indices.
+        # 026811.python.init.line252.comment Font reference to cache glyphs otherwise cache misses may occur with other glyph indices.
         font_ref = self._get_font_reference(glyph_run.fontFace)
 
         if glyph_run.glyphCount == 0:
@@ -258,14 +258,14 @@ class _DWriteTextRenderer(com.COMObject):
             glyph_renderer.current_offsets.append(GlyphPosition(0, 0, 0, 0))
             return 0
 
-        # Process any glyphs we haven't rendered.
+        # 026813.python.init.line261.comment Process any glyphs we haven't rendered.
         missing = []
         for i in range(glyph_run.glyphCount):
             glyph_indice = glyph_run.glyphIndices[i]
             if (font_ref, glyph_indice) not in glyph_renderer.font.glyphs and glyph_indice not in missing:
                 missing.append(glyph_indice)
 
-        # Missing glyphs, get their info.
+        # 026814.python.init.line268.comment Missing glyphs, get their info.
         if missing:
             metrics = get_glyph_metrics(glyph_run.fontFace, (UINT16 * len(missing))(*missing), len(missing))
 
@@ -273,13 +273,13 @@ class _DWriteTextRenderer(com.COMObject):
                 glyph = glyph_renderer.render_single_glyph(glyph_run.fontFace, glyph_indice, metrics[idx], mode)
                 glyph_renderer.font.glyphs[(font_ref, glyph_indice)] = glyph
 
-        # Set glyphs for run.
+        # 026815.python.init.line276.comment Set glyphs for run.
         current = []
         for i in range(glyph_run.glyphCount):
             glyph_indice = glyph_run.glyphIndices[i]
             glyph = glyph_renderer.font.glyphs[(font_ref, glyph_indice)]
             current.append(glyph)
-            # In some cases (italics) the offsets may be NULL.
+            # 026816.python.init.line282.comment In some cases (italics) the offsets may be NULL.
             if glyph_run.glyphOffsets:
                 offset = base.GlyphPosition(
                             (glyph_run.glyphAdvances[i] - glyph.advance),
@@ -379,7 +379,7 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
         rt = ID2D1RenderTarget()
         d2d_factory.CreateWicBitmapRenderTarget(bitmap, default_target_properties, byref(rt))
 
-        # Font aliasing rendering quality.
+        # 026820.python.init.line382.comment Font aliasing rendering quality.
         rt.SetTextAntialiasMode(self.antialias_mode)
 
         if not self._brush:
@@ -422,35 +422,35 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
             bidiLevel=0,
         )
 
-        # If color drawing is enabled, get a color enumerator.
+        # 026824.python.init.line425.comment If color drawing is enabled, get a color enumerator.
         if self.draw_options & D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT:
             enumerator = self._get_color_enumerator(run)
         else:
             enumerator = None
 
-        # Use the glyph's advance as a width as bitmap width.
-        # Some characters have no glyph width at all, just use a 1x1
+        # 026825.python.init.line431.comment Use the glyph's advance as a width as bitmap width.
+        # 026826.python.init.line432.comment Some characters have no glyph width at all, just use a 1x1
         if glyph_width == 0 and glyph_height == 0:
             render_width = 1
             render_height = 1
         else:
-            # Use the glyph width, or if the advance is larger, use that instead.
-            # Diacritics usually have no proper sizing, but instead have an advance.
-            # Add 1, sometimes AA can add an extra pixel or so.
+            # 026827.python.init.line437.comment Use the glyph width, or if the advance is larger, use that instead.
+            # 026828.python.init.line438.comment Diacritics usually have no proper sizing, but instead have an advance.
+            # 026829.python.init.line439.comment Add 1, sometimes AA can add an extra pixel or so.
             render_width = int(math.ceil(max(glyph_width, glyph_advance) * self.font.font_scale_ratio)) + 1
             render_height = int(math.ceil(self.font.max_glyph_height)) + 1
 
         render_offset_x = 0
         if glyph_lsb < 0:
-            # Negative LSB: we shift the offset, otherwise the glyph will be cut off.
+            # 026830.python.init.line445.comment Negative LSB: we shift the offset, otherwise the glyph will be cut off.
             render_offset_x = glyph_lsb * self.font.font_scale_ratio
 
-        # Create new bitmap.
-        # TODO: We can probably adjust bitmap/baseline to reduce the whitespace and save a lot of texture space.
-        # Note: Floating point precision makes this a giant headache, will need to be solved for this approach.
+        # 026831.python.init.line448.comment Create new bitmap.
+        # 026832.python.init.line449.comment TODO: We can probably adjust bitmap/baseline to reduce the whitespace and save a lot of texture space.
+        # 026833.python.init.line450.comment Note: Floating point precision makes this a giant headache, will need to be solved for this approach.
         self._create_bitmap(render_width, render_height)
 
-        # Glyphs are drawn at the baseline, and with LSB, so we need to offset it based on top left position.
+        # 026834.python.init.line453.comment Glyphs are drawn at the baseline, and with LSB, so we need to offset it based on top left position.
         baseline_offset = D2D_POINT_2F(-render_offset_x,
                                        self.font.ascent)
 
@@ -469,11 +469,11 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
                 color_run = POINTER(DWRITE_COLOR_GLYPH_RUN1)()
                 enumerator.GetCurrentRun1(byref(color_run))
 
-                # Uses current color.
+                # 026835.python.init.line472.comment Uses current color.
                 if color_run.contents.paletteIndex == DWRITE_NO_PALETTE_INDEX:
                     brush = self._brush
                 else:
-                    # Need a temp brush for separate colors.
+                    # 026836.python.init.line476.comment Need a temp brush for separate colors.
                     if not temp_brush:
                         temp_brush = ID2D1SolidColorBrush()
                         self._render_target.CreateSolidColorBrush(color_run.contents.runColor, None, byref(temp_brush))
@@ -558,7 +558,7 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
 
             return enumerator
         except OSError as dw_err:
-            # HRESULT returns -2003283956 (DWRITE_E_NOCOLOR) if no color run is detected. Anything else is unexpected.
+            # 026837.python.init.line561.comment HRESULT returns -2003283956 (DWRITE_E_NOCOLOR) if no color run is detected. Anything else is unexpected.
             if dw_err.winerror != -2003283956:
                 raise dw_err
 
@@ -583,7 +583,7 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
 
         self._create_bitmap(width, height)
 
-        # This offsets the characters if needed.
+        # 026838.python.init.line586.comment This offsets the characters if needed.
         point = D2D_POINT_2F(0, 0)
 
         self._render_target.BeginDraw()
@@ -605,9 +605,9 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
 
     def _create_bitmap(self, width: int, height: int) -> None:
         """Creates a bitmap using Direct2D and WIC."""
-        # Create a new bitmap, try to reuse the bitmap as much as we can to minimize creations.
+        # 026839.python.init.line608.comment Create a new bitmap, try to reuse the bitmap as much as we can to minimize creations.
         if self._bitmap_dimensions[0] != width or self._bitmap_dimensions[1] != height:
-            # If dimensions aren't the same, release bitmap to create new ones.
+            # 026840.python.init.line610.comment If dimensions aren't the same, release bitmap to create new ones.
             if self._render_target:
                 self._render_target.Release()
 
@@ -616,7 +616,7 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
             _render_target = ID2D1RenderTarget()
             d2d_factory.CreateWicBitmapRenderTarget(self._bitmap, default_target_properties, byref(_render_target))
 
-            # Allows drawing SVG/Bitmap glyphs. Check if supported.
+            # 026841.python.init.line619.comment Allows drawing SVG/Bitmap glyphs. Check if supported.
             dev_ctx = ID2D1DeviceContext4()
             if com.is_available(_render_target, IID_ID2D1DeviceContext4, dev_ctx):
                 _render_target.Release()  # Release original.
@@ -625,7 +625,7 @@ class DirectWriteGlyphRenderer(base.GlyphRenderer):  # noqa: D101
             else:
                 self._render_target = _render_target
 
-            # Font aliasing rendering quality.
+            # 026843.python.init.line628.comment Font aliasing rendering quality.
             self._render_target.SetTextAntialiasMode(self.antialias_mode)
 
             if not self._brush:
@@ -672,18 +672,18 @@ def _get_font_ref(font_file: IDWriteFontFile, release_file: bool=True) -> tuple[
 
 class Win32DirectWriteFont(base.Font):
     """DirectWrite Font object for Windows 7+."""
-    # To load fonts from files, we need to produce a custom collection.
+    # 026844.python.init.line675.comment To load fonts from files, we need to produce a custom collection.
     _custom_collection = None
 
-    # Shared loader values
+    # 026845.python.init.line678.comment Shared loader values
     _write_factory = None  # Factory required to run any DirectWrite interfaces.
     _font_loader = None
 
-    # Windows 10 loader values.
+    # 026847.python.init.line682.comment Windows 10 loader values.
     _font_builder = None
     _font_set = None
 
-    # Legacy loader values
+    # 026848.python.init.line686.comment Legacy loader values
     _font_collection_loader = None
     _font_cache = []
     _font_loader_key = None
@@ -718,12 +718,12 @@ class Win32DirectWriteFont(base.Font):
         if self.locale is None:
             self.locale = ""
             self.rtl = False  # Right to left should be handled by pyglet?
-            # Use system locale string?
+            # 026852.python.init.line721.comment Use system locale string?
 
         if self.dpi is None:
             self.dpi = 96
 
-        # From DPI to DIP (Device Independent Pixels) which is what the fonts rely on.
+        # 026853.python.init.line726.comment From DPI to DIP (Device Independent Pixels) which is what the fonts rely on.
         self.pixel_size = (self.size * self.dpi) // 72
 
         self._weight = name_to_weight[self.weight]
@@ -746,7 +746,7 @@ class Win32DirectWriteFont(base.Font):
 
         self._font_index, self._collection = self.get_collection(name)
         write_font = None
-        # If not font found, search all collections for legacy GDI naming.
+        # 026854.python.init.line749.comment If not font found, search all collections for legacy GDI naming.
         if pyglet.options["dw_legacy_naming"] and (self._font_index is None and self._collection is None):
             write_font, self._collection = self.find_font_face(name, self._weight, self._style, self._stretch)
 
@@ -764,8 +764,8 @@ class Win32DirectWriteFont(base.Font):
                 byref(write_font),
             )
 
-        # Create the text format this font will use permanently.
-        # Could technically be recreated, but will keep to be inline with other font objects.
+        # 026855.python.init.line767.comment Create the text format this font will use permanently.
+        # 026856.python.init.line768.comment Could technically be recreated, but will keep to be inline with other font objects.
         self._text_format = IDWriteTextFormat()
         self._write_factory.CreateTextFormat(
             self._name,
@@ -781,13 +781,13 @@ class Win32DirectWriteFont(base.Font):
         font_face = IDWriteFontFace()
         write_font.CreateFontFace(byref(font_face))
 
-        # font_face4 = IDWriteFontFace4()
-        # if com.is_available(font_face, IID_IDWriteFontFace4, font_face4):
-        #     font_face = font_face4
-        # else:
-        #     font_face2 = IDWriteFontFace2()
-        #     if com.is_available(font_face, IID_IDWriteFontFace2, font_face2):
-        #         font_face = font_face2
+        # 026857.python.init.line784.comment font_face4 = IDWriteFontFace4()
+        # 026858.python.init.line785.comment if com.is_available(font_face, IID_IDWriteFontFace4, font_face4):
+        # 026859.python.init.line786.comment font_face = font_face4
+        # 026860.python.init.line787.comment else:
+        # 026861.python.init.line788.comment font_face2 = IDWriteFontFace2()
+        # 026862.python.init.line789.comment if com.is_available(font_face, IID_IDWriteFontFace2, font_face2):
+        # 026863.python.init.line790.comment font_face = font_face2
 
         self.font_face = font_face
         self._font_metrics = DWRITE_FONT_METRICS()
@@ -912,7 +912,7 @@ class Win32DirectWriteFont(base.Font):
 
     def render_glyph_indices(self, indices: list[int]) -> None:
         """Given the indice list, ensure all glyphs are available."""
-        # Process any glyphs we haven't rendered.
+        # 026865.python.init.line915.comment Process any glyphs we haven't rendered.
         self._initialize_renderer()
 
         missing = set()
@@ -921,7 +921,7 @@ class Win32DirectWriteFont(base.Font):
             if glyph_indice not in self.glyphs:
                 missing.add(glyph_indice)
 
-        # Missing glyphs, get their info.
+        # 026866.python.init.line924.comment Missing glyphs, get their info.
         if missing:
             metrics = get_glyph_metrics(self.font_face, (UINT16 * len(missing))(*missing), len(missing))
 
@@ -933,10 +933,10 @@ class Win32DirectWriteFont(base.Font):
     def _get_fallback_glyph(self, text: str) -> base.Glyph:
         for fallback in self.fallbacks:
             indices, missing = fallback.get_glyph_indices(text)
-            # If the amount of indices match what's missing, nothing was retrieved.
+            # 026867.python.init.line936.comment If the amount of indices match what's missing, nothing was retrieved.
             if len(indices) == len(missing):
                 continue
-            # Fallback should render the glyphs it found.
+            # 026868.python.init.line939.comment Fallback should render the glyphs it found.
             fallback.render_glyph_indices(indices)
             for indice in indices:
                 if indice != 0:
@@ -1013,19 +1013,19 @@ class Win32DirectWriteFont(base.Font):
     def _initialize_custom_loaders(cls: type[Win32DirectWriteFont]) -> None:
         """Initialize the loaders needed to load custom fonts."""
         if WINDOWS_10_CREATORS_UPDATE_OR_GREATER:
-            # Windows 10 finally has a built in loader that can take data and make a font out of it w/ COMs.
+            # 026873.python.init.line1016.comment Windows 10 finally has a built in loader that can take data and make a font out of it w/ COMs.
             cls._font_loader = IDWriteInMemoryFontFileLoader()
             cls._write_factory.CreateInMemoryFontFileLoader(byref(cls._font_loader))
             cls._write_factory.RegisterFontFileLoader(cls._font_loader)
 
-            # Used for grouping fonts together.
+            # 026874.python.init.line1021.comment Used for grouping fonts together.
             cls._font_builder = IDWriteFontSetBuilder1()
             cls._write_factory.CreateFontSetBuilder5(byref(cls._font_builder))
         else:
             cls._font_loader = LegacyFontFileLoader()
 
-            # Note: RegisterFontLoader takes a pointer. However, for legacy we implement our own callback interface.
-            # Therefore we need to pass to the actual pointer directly.
+            # 026875.python.init.line1027.comment Note: RegisterFontLoader takes a pointer. However, for legacy we implement our own callback interface.
+            # 026876.python.init.line1028.comment Therefore we need to pass to the actual pointer directly.
             cls._write_factory.RegisterFontFileLoader(cls._font_loader.as_interface(IDWriteFontFileLoader_LI))
 
             cls._font_collection_loader = LegacyCollectionLoader(cls._write_factory, cls._font_loader)
@@ -1053,9 +1053,9 @@ class Win32DirectWriteFont(base.Font):
             if hr != 0:
                 raise Exception("This font file data is not not a font or unsupported.")
 
-            # We have to rebuild collection every time we add a font.
-            # No way to add fonts to the collection once the FontSet and Collection are created.
-            # Release old one and renew.
+            # 026877.python.init.line1056.comment We have to rebuild collection every time we add a font.
+            # 026878.python.init.line1057.comment No way to add fonts to the collection once the FontSet and Collection are created.
+            # 026879.python.init.line1058.comment Release old one and renew.
             if cls._custom_collection:
                 cls._font_set.Release()
                 cls._custom_collection.Release()
@@ -1069,7 +1069,7 @@ class Win32DirectWriteFont(base.Font):
         else:
             cls._font_cache.append(data)
 
-            # If a collection exists, we need to completely remake the collection, delete everything and start over.
+            # 026880.python.init.line1072.comment If a collection exists, we need to completely remake the collection, delete everything and start over.
             if cls._custom_collection:
                 cls._custom_collection = None
 
@@ -1105,7 +1105,7 @@ class Win32DirectWriteFont(base.Font):
         font_index = UINT()
         font_exists = BOOL()
 
-        # Check custom loaded font collections.
+        # 026881.python.init.line1108.comment Check custom loaded font collections.
         if cls._custom_collection:
             cls._custom_collection.FindFamilyName(create_unicode_buffer(font_name),
                                                   byref(font_index),
@@ -1114,8 +1114,8 @@ class Win32DirectWriteFont(base.Font):
             if font_exists.value:
                 return font_index.value, cls._custom_collection
 
-        # Check if font is in the system collection.
-        # Do not cache these values permanently as system font collection can be updated during runtime.
+        # 026882.python.init.line1117.comment Check if font is in the system collection.
+        # 026883.python.init.line1118.comment Do not cache these values permanently as system font collection can be updated during runtime.
         sys_collection = IDWriteFontCollection()
         if not font_exists.value:
             cls._write_factory.GetSystemFontCollection(byref(sys_collection), 1)
@@ -1179,7 +1179,7 @@ class Win32DirectWriteFont(base.Font):
         found_style = style
         found_stretch = stretch
 
-        # Only search if name is split more than once.
+        # 026884.python.init.line1182.comment Only search if name is split more than once.
         if len(split_name) > 1:
             for name, value in name_to_weight.items():
                 if name in split_name:
@@ -1210,7 +1210,7 @@ class Win32DirectWriteFont(base.Font):
             family = IDWriteFontFamily()
             collection.GetFontFamily(i, byref(family))
 
-            # Just check the first character in Family Names to reduce search time. Arial -> A's only.
+            # 026885.python.init.line1213.comment Just check the first character in Family Names to reduce search time. Arial -> A's only.
             family_name_str = IDWriteLocalizedStrings()
             family.GetFamilyNames(byref(family_name_str))
 
@@ -1223,7 +1223,7 @@ class Win32DirectWriteFont(base.Font):
 
             assert _debug_print(f"directwrite: Inspecting family name: {family_name}")
 
-            # Fonts in the family. Full search to search all font faces, typically the first will be good enough to tell
+            # 026886.python.init.line1226.comment Fonts in the family. Full search to search all font faces, typically the first will be good enough to tell
             ft_ct = family.GetFontCount()
 
             face_names = []
@@ -1241,14 +1241,14 @@ class Win32DirectWriteFont(base.Font):
 
                     assert _debug_print(f"directwrite: Face names found: {strings}")
 
-                # Check for GDI compatibility name
+                # 026887.python.init.line1244.comment Check for GDI compatibility name
                 compat_names = IDWriteLocalizedStrings()
                 exists = BOOL()
                 temp_ft.GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_WIN32_FAMILY_NAMES,
                                                 byref(compat_names),
                                                 byref(exists))
 
-                # Successful in finding GDI name.
+                # 026888.python.init.line1251.comment Successful in finding GDI name.
                 match_found = False
                 if exists.value != 0:
                     for compat_name in Win32DirectWriteFont.unpack_localized_string(compat_names, locale):
@@ -1261,17 +1261,17 @@ class Win32DirectWriteFont(base.Font):
                             matches.append((temp_ft.GetWeight(), temp_ft.GetStyle(), temp_ft.GetStretch(), temp_ft))
                             break
 
-                # Release resource if not a match.
+                # 026889.python.init.line1264.comment Release resource if not a match.
                 if not match_found:
                     temp_ft.Release()
 
             family.Release()
 
-            # If we have matches, we've already parsed through the proper family. Now try to match.
+            # 026890.python.init.line1270.comment If we have matches, we've already parsed through the proper family. Now try to match.
             if matches:
                 write_font = Win32DirectWriteFont.match_closest_font(matches, weight, italic, stretch)
 
-                # Cleanup other matches not used.
+                # 026891.python.init.line1274.comment Cleanup other matches not used.
                 for match in matches:
                     if match[3] != write_font:
                         match[3].Release()  # Release all other matches.
@@ -1291,7 +1291,7 @@ class Win32DirectWriteFont(base.Font):
         for match in font_list:
             (f_weight, f_style, f_stretch, writefont) = match
 
-            # Found perfect match, no need for the rest.
+            # 026893.python.init.line1294.comment Found perfect match, no need for the rest.
             if f_weight == weight and f_style == italic and f_stretch == stretch:
                 _debug_print(
                     f"directwrite: full match found. (weight: {f_weight}, italic: {f_style}, stretch: {f_stretch})")
@@ -1299,8 +1299,8 @@ class Win32DirectWriteFont(base.Font):
 
             prop_match = 0
             similar_match = 0
-            # Look for a full match, otherwise look for close enough.
-            # For example, Arial Black only has Oblique, not Italic, but good enough if you want slanted text.
+            # 026894.python.init.line1302.comment Look for a full match, otherwise look for close enough.
+            # 026895.python.init.line1303.comment For example, Arial Black only has Oblique, not Italic, but good enough if you want slanted text.
             if f_weight == weight:
                 prop_match += 1
             elif weight != DWRITE_FONT_WEIGHT_NORMAL and f_weight != DWRITE_FONT_WEIGHT_NORMAL:
@@ -1318,11 +1318,11 @@ class Win32DirectWriteFont(base.Font):
 
             closest.append((prop_match, similar_match, *match))
 
-        # If we get here, no perfect match, sort by highest perfect match, to secondary matches.
+        # 026896.python.init.line1321.comment If we get here, no perfect match, sort by highest perfect match, to secondary matches.
         closest.sort(key=lambda fts: (fts[0], fts[1]), reverse=True)
 
         if closest:
-            # Take the first match after sorting.
+            # 026897.python.init.line1325.comment Take the first match after sorting.
             closest_match = closest[0]
             _debug_print(f"directwrite: falling back to partial match. "
                          f"(weight: {closest_match[2]}, italic: {closest_match[3]}, stretch: {closest_match[4]})")
@@ -1364,7 +1364,7 @@ class Win32DirectWriteFont(base.Font):
             strings.FindLocaleName(locale, byref(idx), byref(exists))
 
             if not exists.value:
-                # fallback to english.
+                # 026898.python.init.line1367.comment fallback to english.
                 strings.FindLocaleName("en-us", byref(idx), byref(exists))
 
                 if not exists:

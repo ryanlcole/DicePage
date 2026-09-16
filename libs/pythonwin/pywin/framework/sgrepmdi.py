@@ -1,22 +1,22 @@
-# SGrepMDI is by Gordon McMillan (gmcm@hypernet.com)
-# It does basically what Find In Files does in MSVC with a couple enhancements.
-# - It saves any directories in the app's ini file (if you want to get rid
-# 	of them you'll have to edit the file)
-# - "Directories" can be directories,
-#  -	semicolon separated lists of "directories",
-#  -	environment variables that evaluate to "directories",
-#  -	registry path names that evaluate to "directories",
-#  -	all of which is recursive, so you can mix them all up.
-# - It is MDI, so you can 'nest' greps and return to earlier ones,
-# 	(ie, have multiple results open at the same time)
-# - Like FIF, double clicking a line opens an editor and takes you to the line.
-# - You can highlight text, right click and start a new grep with the selected
-# 	text as search pattern and same directories etc as before.
-# - You can save grep parameters (so you don't lose your hardearned pattern)
-# 	from File|Save
-# - You can save grep results by right clicking in the result window.
-# Hats off to Mark Hammond for providing an environment where I could cobble
-# something like this together in a couple evenings!
+# 037979.python.sgrepmdi.line1.comment SGrepMDI is by Gordon McMillan (gmcm@hypernet.com)
+# 037980.python.sgrepmdi.line2.comment It does basically what Find In Files does in MSVC with a couple enhancements.
+# 037981.python.sgrepmdi.line3.comment - It saves any directories in the app's ini file (if you want to get rid
+# 037982.python.sgrepmdi.line4.comment of them you'll have to edit the file)
+# 037983.python.sgrepmdi.line5.comment - "Directories" can be directories,
+# 037984.python.sgrepmdi.line6.comment -	semicolon separated lists of "directories",
+# 037985.python.sgrepmdi.line7.comment -	environment variables that evaluate to "directories",
+# 037986.python.sgrepmdi.line8.comment -	registry path names that evaluate to "directories",
+# 037987.python.sgrepmdi.line9.comment -	all of which is recursive, so you can mix them all up.
+# 037988.python.sgrepmdi.line10.comment - It is MDI, so you can 'nest' greps and return to earlier ones,
+# 037989.python.sgrepmdi.line11.comment (ie, have multiple results open at the same time)
+# 037990.python.sgrepmdi.line12.comment - Like FIF, double clicking a line opens an editor and takes you to the line.
+# 037991.python.sgrepmdi.line13.comment - You can highlight text, right click and start a new grep with the selected
+# 037992.python.sgrepmdi.line14.comment text as search pattern and same directories etc as before.
+# 037993.python.sgrepmdi.line15.comment - You can save grep parameters (so you don't lose your hardearned pattern)
+# 037994.python.sgrepmdi.line16.comment from File|Save
+# 037995.python.sgrepmdi.line17.comment - You can save grep results by right clicking in the result window.
+# 037996.python.sgrepmdi.line18.comment Hats off to Mark Hammond for providing an environment where I could cobble
+# 037997.python.sgrepmdi.line19.comment something like this together in a couple evenings!
 
 import glob
 import os
@@ -126,10 +126,10 @@ class dirpath:
             return other.dirs + self.dirs
 
 
-# Group(1) is the filename, group(2) is the lineno.
+# 037998.python.sgrepmdi.line129.comment Group(1) is the filename, group(2) is the lineno.
 regexGrep = re.compile(r"^([a-zA-Z]:[^(]*)\(([0-9]+)\)")
 
-# these are the atom numbers defined by Windows for basic dialog controls
+# 037999.python.sgrepmdi.line132.comment these are the atom numbers defined by Windows for basic dialog controls
 
 BUTTON = 0x80
 EDIT = 0x81
@@ -167,7 +167,7 @@ class GrepTemplate(docview.RichEditDocTemplate):
 
 
 class GrepFrame(window.MDIChildWnd):
-    # The template and doc params will one day be removed.
+    # 038000.python.sgrepmdi.line170.comment The template and doc params will one day be removed.
     def __init__(self, wnd=None):
         window.MDIChildWnd.__init__(self, wnd)
 
@@ -183,9 +183,9 @@ class GrepDocument(docview.RichEditDoc):
         self.verbose = 0
 
     def OnOpenDocument(self, fnm):
-        # this bizarre stuff with params is so right clicking in a result window
-        # and starting a new grep can communicate the default parameters to the
-        # new grep.
+        # 038001.python.sgrepmdi.line186.comment this bizarre stuff with params is so right clicking in a result window
+        # 038002.python.sgrepmdi.line187.comment and starting a new grep can communicate the default parameters to the
+        # 038003.python.sgrepmdi.line188.comment new grep.
         try:
             params = open(fnm, "r").read()
         except:
@@ -201,7 +201,7 @@ class GrepDocument(docview.RichEditDoc):
         return self._obj_.OnCloseDocument()
 
     def saveInitParams(self):
-        # Only save the flags, not the text boxes.
+        # 038004.python.sgrepmdi.line204.comment Only save the flags, not the text boxes.
         paramstr = "\t%s\t\t%d\t%d" % (
             self.filpattern,
             self.casesensitive,
@@ -223,7 +223,7 @@ class GrepDocument(docview.RichEditDoc):
         self.casesensitive = int(params[3])
         self.recurse = int(params[4])
         self.verbose = int(params[5])
-        # setup some reasonable defaults.
+        # 038005.python.sgrepmdi.line226.comment setup some reasonable defaults.
         if not self.dirpattern:
             try:
                 editor = win32ui.GetMainFrame().MDIGetActive()[0].GetEditorView()
@@ -261,7 +261,7 @@ class GrepDocument(docview.RichEditDoc):
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
         self.SetTitle(f"Grep for {self.greppattern} in {self.filpattern}")
-        # self.text = []
+        # 038007.python.sgrepmdi.line264.comment self.text = []
         self.GetFirstView().Append(f"#Search {self.dirpattern}\n")
         if self.verbose:
             self.GetFirstView().Append(f"#   ={self.dp.dirs!r}\n")
@@ -291,8 +291,8 @@ class GrepDocument(docview.RichEditDoc):
             f = self.flist[self.fndx]
             if self.verbose:
                 self.GetFirstView().Append("# .." + f + "\n")
-            # Directories may match the file type pattern, and files may be removed
-            #  while grep is running
+            # 038008.python.sgrepmdi.line294.comment Directories may match the file type pattern, and files may be removed
+            # 038009.python.sgrepmdi.line295.comment while grep is running
             if os.path.isfile(f):
                 win32ui.SetStatusText("Searching " + f, 0)
                 lines = open(f, "r").readlines()
@@ -335,10 +335,10 @@ class GrepDocument(docview.RichEditDoc):
         )
 
     def OnSaveDocument(self, filename):
-        # print("OnSaveDocument() filename=", filename)
+        # 038011.python.sgrepmdi.line338.comment print("OnSaveDocument() filename=", filename)
         savefile = open(filename, "wb")
         txt = self.GetParams() + "\n"
-        # print("writing", txt)
+        # 038012.python.sgrepmdi.line341.comment print("writing", txt)
         savefile.write(txt)
         savefile.close()
         self.SetModifiedFlag(0)
@@ -413,7 +413,7 @@ class GrepView(docview.RichEditView):
         doc = win32ui.GetApp().OpenDocumentFile(self.fnm)
         if doc:
             vw = doc.GetFirstView()
-            # hope you have an editor that implements GotoLine()!
+            # 038016.python.sgrepmdi.line416.comment hope you have an editor that implements GotoLine()!
             try:
                 vw.GotoLine(int(self.lnnum))
             except:
@@ -601,7 +601,7 @@ class GrepDialog(dialog.Dialog):
 
     def getMore(self, section, key):
         self.UpdateData(1)
-        # get the items out of the ini file
+        # 038017.python.sgrepmdi.line604.comment get the items out of the ini file
         ini = win32ui.GetProfileFileName()
         secitems = win32api.GetProfileSection(section, ini)
         items = []
@@ -611,7 +611,7 @@ class GrepDialog(dialog.Dialog):
         if dlg.DoModal() == win32con.IDOK:
             itemstr = ";".join(dlg.getItems())
             self._obj_.data[key] = itemstr
-            # update the ini file with dlg.getNew()
+            # 038018.python.sgrepmdi.line614.comment update the ini file with dlg.getNew()
             i = 0
             newitems = dlg.getNew()
             if newitems:

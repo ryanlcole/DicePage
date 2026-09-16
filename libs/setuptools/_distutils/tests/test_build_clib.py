@@ -13,32 +13,32 @@ class TestBuildCLib(support.TempdirManager):
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 
-        # 'libraries' option must be a list
+        # 040872.python.test_build_clib.line16.comment 'libraries' option must be a list
         with pytest.raises(DistutilsSetupError):
             cmd.check_library_list('foo')
 
-        # each element of 'libraries' must a 2-tuple
+        # 040873.python.test_build_clib.line20.comment each element of 'libraries' must a 2-tuple
         with pytest.raises(DistutilsSetupError):
             cmd.check_library_list(['foo1', 'foo2'])
 
-        # first element of each tuple in 'libraries'
-        # must be a string (the library name)
+        # 040874.python.test_build_clib.line24.comment first element of each tuple in 'libraries'
+        # 040875.python.test_build_clib.line25.comment must be a string (the library name)
         with pytest.raises(DistutilsSetupError):
             cmd.check_library_list([(1, 'foo1'), ('name', 'foo2')])
 
-        # library name may not contain directory separators
+        # 040876.python.test_build_clib.line29.comment library name may not contain directory separators
         with pytest.raises(DistutilsSetupError):
             cmd.check_library_list(
                 [('name', 'foo1'), ('another/name', 'foo2')],
             )
 
-        # second element of each tuple must be a dictionary (build info)
+        # 040877.python.test_build_clib.line35.comment second element of each tuple must be a dictionary (build info)
         with pytest.raises(DistutilsSetupError):
             cmd.check_library_list(
                 [('name', {}), ('another', 'foo2')],
             )
 
-        # those work
+        # 040878.python.test_build_clib.line41.comment those work
         libs = [('name', {}), ('name', {'ok': 'good'})]
         cmd.check_library_list(libs)
 
@@ -46,8 +46,8 @@ class TestBuildCLib(support.TempdirManager):
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 
-        # "in 'libraries' option 'sources' must be present and must be
-        # a list of source filenames
+        # 040879.python.test_build_clib.line49.comment "in 'libraries' option 'sources' must be present and must be
+        # 040880.python.test_build_clib.line50.comment a list of source filenames
         cmd.libraries = [('name', {})]
         with pytest.raises(DistutilsSetupError):
             cmd.get_source_files()
@@ -80,7 +80,7 @@ class TestBuildCLib(support.TempdirManager):
 
         cmd.compiler = FakeCompiler()
 
-        # build_libraries is also doing a bit of typo checking
+        # 040881.python.test_build_clib.line83.comment build_libraries is also doing a bit of typo checking
         lib = [('name', {'sources': 'notvalid'})]
         with pytest.raises(DistutilsSetupError):
             cmd.build_libraries(lib)
@@ -121,14 +121,14 @@ class TestBuildCLib(support.TempdirManager):
         cmd.build_temp = build_temp
         cmd.build_clib = build_temp
 
-        # Before we run the command, we want to make sure
-        # all commands are present on the system.
+        # 040882.python.test_build_clib.line124.comment Before we run the command, we want to make sure
+        # 040883.python.test_build_clib.line125.comment all commands are present on the system.
         ccmd = missing_compiler_executable()
         if ccmd is not None:
             self.skipTest(f'The {ccmd!r} command is not found')
 
-        # this should work
+        # 040884.python.test_build_clib.line130.comment this should work
         cmd.run()
 
-        # let's check the result
+        # 040885.python.test_build_clib.line133.comment let's check the result
         assert 'libfoo.a' in os.listdir(build_temp)

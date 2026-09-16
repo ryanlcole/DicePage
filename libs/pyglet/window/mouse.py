@@ -102,23 +102,23 @@ def buttons_string(buttons: int) -> str:
     return '|'.join(button_names)
 
 
-#: Constant for the left mouse button.
-#:
-#: :meta hide-value:
+# 036308.python.mouse.line105.comment : Constant for the left mouse button.
+# 036309.python.mouse.line106.comment :
+# 036310.python.mouse.line107.comment : :meta hide-value:
 LEFT = 1 << 0
-#: Constant for the middle mouse button.
-#:
-#: :meta hide-value:
+# 036311.python.mouse.line109.comment : Constant for the middle mouse button.
+# 036312.python.mouse.line110.comment :
+# 036313.python.mouse.line111.comment : :meta hide-value:
 MIDDLE = 1 << 1
-#: Constant for the right mouse button.
-#:
-#: :meta hide-value:
+# 036314.python.mouse.line113.comment : Constant for the right mouse button.
+# 036315.python.mouse.line114.comment :
+# 036316.python.mouse.line115.comment : :meta hide-value:
 RIGHT = 1 << 2
-#: Constant for the mouse4 button.
-#:
-#: :meta hide-value:
+# 036317.python.mouse.line117.comment : Constant for the mouse4 button.
+# 036318.python.mouse.line118.comment :
+# 036319.python.mouse.line119.comment : :meta hide-value:
 MOUSE4 = 1 << 3
-#: Constant for the mouse5 button.
-#:
-#: :meta hide-value:
+# 036320.python.mouse.line121.comment : Constant for the mouse5 button.
+# 036321.python.mouse.line122.comment :
+# 036322.python.mouse.line123.comment : :meta hide-value:
 MOUSE5 = 1 << 4

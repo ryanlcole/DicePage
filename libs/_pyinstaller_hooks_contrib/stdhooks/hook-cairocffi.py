@@ -1,14 +1,14 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2021 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 012403.python.hook-cairocffi.line1.comment ------------------------------------------------------------------
+# 012404.python.hook-cairocffi.line2.comment Copyright (c) 2021 PyInstaller Development Team.
+# 012405.python.hook-cairocffi.line3.comment
+# 012406.python.hook-cairocffi.line4.comment This file is distributed under the terms of the GNU General Public
+# 012407.python.hook-cairocffi.line5.comment License (version 2.0 or later).
+# 012408.python.hook-cairocffi.line6.comment
+# 012409.python.hook-cairocffi.line7.comment The full license is available in LICENSE, distributed with
+# 012410.python.hook-cairocffi.line8.comment this software.
+# 012411.python.hook-cairocffi.line9.comment
+# 012412.python.hook-cairocffi.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 012413.python.hook-cairocffi.line11.comment ------------------------------------------------------------------
 import ctypes.util
 import os
 
@@ -19,7 +19,7 @@ datas = collect_data_files("cairocffi")
 
 binaries = []
 
-# NOTE: Update this if cairocffi requires more libraries
+# 012414.python.hook-cairocffi.line22.comment NOTE: Update this if cairocffi requires more libraries
 libs = ["cairo-2", "cairo", "libcairo-2"]
 
 try:
@@ -39,7 +39,7 @@ except Exception as e:
 if not binaries:
     logger.warning("Cairo library not found - cairocffi will likely fail to work!")
 
-# cairocffi 1.6.0 requires cairocffi/constants.py source file, so make sure it is collected.
-# The module collection mode setting requires PyInstaller >= 5.3.
+# 012415.python.hook-cairocffi.line42.comment cairocffi 1.6.0 requires cairocffi/constants.py source file, so make sure it is collected.
+# 012416.python.hook-cairocffi.line43.comment The module collection mode setting requires PyInstaller >= 5.3.
 if is_module_satisfies('cairocffi >= 1.6.0'):
     module_collection_mode = {'cairocffi.constants': 'pyz+py'}

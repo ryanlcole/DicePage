@@ -4,12 +4,12 @@ from ctypes import util
 from .runtime import send_message, ObjCInstance
 from .cocoatypes import *
 
-######################################################################
+# 030724.python.cocoalibs.line7.comment #####################################################################
 
-# CORE FOUNDATION
+# 030725.python.cocoalibs.line9.comment CORE FOUNDATION
 lib = util.find_library('CoreFoundation')
 
-# Hack for compatibility with macOS > 11.0
+# 030726.python.cocoalibs.line12.comment Hack for compatibility with macOS > 11.0
 if lib is None:
     lib = '/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation'
 
@@ -46,7 +46,7 @@ cf.CFStringGetTypeID.argtypes = []
 cf.CFAttributedStringCreate.restype = c_void_p
 cf.CFAttributedStringCreate.argtypes = [CFAllocatorRef, c_void_p, c_void_p]
 
-# Core Foundation type to Python type conversion functions
+# 030727.python.cocoalibs.line49.comment Core Foundation type to Python type conversion functions
 
 def CFSTR(string: str):
     """Create a CFStringRef object.
@@ -55,11 +55,11 @@ def CFSTR(string: str):
     """
     return cf.CFStringCreateWithCString(None, string.encode('utf8'), kCFStringEncodingUTF8)
 
-# Other possible names for this method:
-# at, ampersat, arobe, apenstaartje (little monkey tail), strudel,
-# klammeraffe (spider monkey), little_mouse, arroba, sobachka (doggie)
-# malpa (monkey), snabel (trunk), papaki (small duck), afna (monkey),
-# kukac (caterpillar).
+# 030728.python.cocoalibs.line58.comment Other possible names for this method:
+# 030729.python.cocoalibs.line59.comment at, ampersat, arobe, apenstaartje (little monkey tail), strudel,
+# 030730.python.cocoalibs.line60.comment klammeraffe (spider monkey), little_mouse, arroba, sobachka (doggie)
+# 030731.python.cocoalibs.line61.comment malpa (monkey), snabel (trunk), papaki (small duck), afna (monkey),
+# 030732.python.cocoalibs.line62.comment kukac (caterpillar).
 def get_NSString(string):
     """Autoreleased version of CFSTR"""
     return ObjCInstance(c_void_p(CFSTR(string))).autorelease()
@@ -112,7 +112,7 @@ cf.CFURLCreateWithFileSystemPath.restype = CFURLRef
 cf.CFURLCreateWithFileSystemPath.argtypes = [CFAllocatorRef, CFStringRef, CFURLPathStyle, c_bool]
 
 
-# CFNumber.h
+# 030733.python.cocoalibs.line115.comment CFNumber.h
 kCFNumberSInt8Type     = 1
 kCFNumberSInt16Type    = 2
 kCFNumberSInt32Type    = 3
@@ -151,7 +151,7 @@ def cfnumber_to_number(cfnumber):
     else:
         raise Exception('cfnumber_to_number: unhandled CFNumber type %d' % numeric_type)
 
-# Dictionary of cftypes matched to the method converting them to python values.
+# 030734.python.cocoalibs.line154.comment Dictionary of cftypes matched to the method converting them to python values.
 known_cftypes = { cf.CFStringGetTypeID() : cfstring_to_string,
                   cf.CFNumberGetTypeID() : cfnumber_to_number
                   }
@@ -174,8 +174,8 @@ cf.CFSetGetCount.restype = CFIndex
 cf.CFSetGetCount.argtypes = [c_void_p]
 
 cf.CFSetGetValues.restype = None
-# PyPy 1.7 is fine with 2nd arg as POINTER(c_void_p),
-# but CPython ctypes 1.1.0 complains, so just use c_void_p.
+# 030735.python.cocoalibs.line177.comment PyPy 1.7 is fine with 2nd arg as POINTER(c_void_p),
+# 030736.python.cocoalibs.line178.comment but CPython ctypes 1.1.0 complains, so just use c_void_p.
 cf.CFSetGetValues.argtypes = [c_void_p, c_void_p]
 
 def cfset_to_set(cfset):
@@ -206,15 +206,15 @@ cf.CFRunLoopGetCurrent.argtypes = []
 cf.CFRunLoopGetMain.restype = c_void_p
 cf.CFRunLoopGetMain.argtypes = []
 
-######################################################################
+# 030737.python.cocoalibs.line209.comment #####################################################################
 
-# APPLICATION KIT
+# 030738.python.cocoalibs.line211.comment APPLICATION KIT
 
-# Even though we don't use this directly, it must be loaded so that
-# we can find the NSApplication, NSWindow, and NSView classes.
+# 030739.python.cocoalibs.line213.comment Even though we don't use this directly, it must be loaded so that
+# 030740.python.cocoalibs.line214.comment we can find the NSApplication, NSWindow, and NSView classes.
 lib = util.find_library('AppKit')
 
-# Hack for compatibility with macOS > 11.0
+# 030741.python.cocoalibs.line217.comment Hack for compatibility with macOS > 11.0
 if lib is None:
     lib = '/System/Library/Frameworks/AppKit.framework/AppKit'
 
@@ -235,7 +235,7 @@ NSDragOperationGeneric = 4
 NSStatusWindowLevel = 25
 
 
-# /System/Library/Frameworks/AppKit.framework/Headers/NSEvent.h
+# 030742.python.cocoalibs.line238.comment /System/Library/Frameworks/AppKit.framework/Headers/NSEvent.h
 NSAnyEventMask = 0xFFFFFFFF     # NSUIntegerMax
 
 NSKeyDown            = 10
@@ -243,7 +243,7 @@ NSKeyUp              = 11
 NSFlagsChanged       = 12
 NSApplicationDefined = 15
 
-# Undocumented left/right modifier masks found by experimentation:
+# 030744.python.cocoalibs.line246.comment Undocumented left/right modifier masks found by experimentation:
 NSLeftShiftKeyMask = 1 << 1
 NSRightShiftKeyMask = 1 << 2
 NSLeftControlKeyMask = 1 << 0
@@ -271,29 +271,29 @@ NSEndFunctionKey      = 0xF72B
 NSPageUpFunctionKey   = 0xF72C
 NSPageDownFunctionKey = 0xF72D
 
-# /System/Library/Frameworks/AppKit.framework/Headers/NSWindow.h
+# 030745.python.cocoalibs.line274.comment /System/Library/Frameworks/AppKit.framework/Headers/NSWindow.h
 NSBorderlessWindowMask		= 0
 NSTitledWindowMask		= 1 << 0
 NSClosableWindowMask		= 1 << 1
 NSMiniaturizableWindowMask	= 1 << 2
 NSResizableWindowMask		= 1 << 3
 
-# /System/Library/Frameworks/AppKit.framework/Headers/NSPanel.h
+# 030746.python.cocoalibs.line281.comment /System/Library/Frameworks/AppKit.framework/Headers/NSPanel.h
 NSUtilityWindowMask		= 1 << 4
 
-# /System/Library/Frameworks/AppKit.framework/Headers/NSGraphics.h
+# 030747.python.cocoalibs.line284.comment /System/Library/Frameworks/AppKit.framework/Headers/NSGraphics.h
 NSBackingStoreRetained	        = 0
 NSBackingStoreNonretained	= 1
 NSBackingStoreBuffered	        = 2
 
-# /System/Library/Frameworks/AppKit.framework/Headers/NSTrackingArea.h
+# 030748.python.cocoalibs.line289.comment /System/Library/Frameworks/AppKit.framework/Headers/NSTrackingArea.h
 NSTrackingMouseEnteredAndExited  = 0x01
 NSTrackingMouseMoved             = 0x02
 NSTrackingCursorUpdate 		 = 0x04
 NSTrackingActiveInActiveApp 	 = 0x40
 NSTrackingInVisibleRect             = 0x200    # If set, tracking occurs in visibleRect of view and rect is ignored
 
-# /System/Library/Frameworks/AppKit.framework/Headers/NSOpenGL.h
+# 030750.python.cocoalibs.line296.comment /System/Library/Frameworks/AppKit.framework/Headers/NSOpenGL.h
 NSOpenGLPFAAllRenderers       =   1   # choose from all available renderers
 NSOpenGLPFADoubleBuffer       =   5   # choose a double buffered pixel format
 NSOpenGLPFAStereo             =   6   # stereo buffering supported
@@ -340,8 +340,8 @@ NSOpenGLProfileVersion4_1Core = 0x4100    # choose an OpenGL 4.1 Core Implementa
 NSOpenGLCPSwapInterval        = 222
 NSOpenGLCPSurfaceOpacity      = 236
 
-# /System/Library/Frameworks/ApplicationServices.framework/Frameworks/...
-#     CoreGraphics.framework/Headers/CGImage.h
+# 030792.python.cocoalibs.line343.comment /System/Library/Frameworks/ApplicationServices.framework/Frameworks/...
+# 030793.python.cocoalibs.line344.comment CoreGraphics.framework/Headers/CGImage.h
 kCGImageAlphaNone                   = 0
 kCGImageAlphaPremultipliedLast      = 1
 kCGImageAlphaPremultipliedFirst     = 2
@@ -361,25 +361,25 @@ kCGBitmapByteOrder32Little          = 2 << 12
 kCGBitmapByteOrder16Big             = 3 << 12
 kCGBitmapByteOrder32Big             = 4 << 12
 
-# NSApplication.h
+# 030794.python.cocoalibs.line364.comment NSApplication.h
 NSApplicationPresentationDefault = 0
 NSApplicationPresentationHideDock = 1 << 1
 NSApplicationPresentationHideMenuBar = 1 << 3
 NSApplicationPresentationDisableProcessSwitching = 1 << 5
 NSApplicationPresentationDisableHideApplication = 1 << 8
 
-# NSRunningApplication.h
+# 030795.python.cocoalibs.line371.comment NSRunningApplication.h
 NSApplicationActivationPolicyRegular = 0
 NSApplicationActivationPolicyAccessory = 1
 NSApplicationActivationPolicyProhibited = 2
 NSApplicationActivateIgnoringOtherApps = 1 << 1
 
-######################################################################
+# 030796.python.cocoalibs.line377.comment #####################################################################
 
-# QUARTZ / COREGRAPHICS
+# 030797.python.cocoalibs.line379.comment QUARTZ / COREGRAPHICS
 lib = util.find_library('Quartz')
 
-# Hack for compatibility with macOS > 11.0
+# 030798.python.cocoalibs.line382.comment Hack for compatibility with macOS > 11.0
 if lib is None:
     lib = '/System/Library/Frameworks/Quartz.framework/Quartz'
 
@@ -392,13 +392,13 @@ CGContextRef = c_void_p
 CGFontRef = c_void_p
 CTFontRef = c_void_p
 
-# /System/Library/Frameworks/ApplicationServices.framework/Frameworks/...
-#     ImageIO.framework/Headers/CGImageProperties.h
+# 030802.python.cocoalibs.line395.comment /System/Library/Frameworks/ApplicationServices.framework/Frameworks/...
+# 030803.python.cocoalibs.line396.comment ImageIO.framework/Headers/CGImageProperties.h
 kCGImagePropertyGIFDictionary = c_void_p.in_dll(quartz, 'kCGImagePropertyGIFDictionary')
 kCGImagePropertyGIFDelayTime = c_void_p.in_dll(quartz, 'kCGImagePropertyGIFDelayTime')
 
-# /System/Library/Frameworks/ApplicationServices.framework/Frameworks/...
-#     CoreGraphics.framework/Headers/CGColorSpace.h
+# 030804.python.cocoalibs.line400.comment /System/Library/Frameworks/ApplicationServices.framework/Frameworks/...
+# 030805.python.cocoalibs.line401.comment CoreGraphics.framework/Headers/CGColorSpace.h
 kCGRenderingIntentDefault = 0
 
 kCGTextFill = 0
@@ -582,22 +582,22 @@ quartz.CTFontCopyGraphicsFont.argtypes = [c_void_p, c_void_p]
 
 
 
-######################################################################
+# 030806.python.cocoalibs.line585.comment #####################################################################
 
-# CORETEXT
+# 030807.python.cocoalibs.line587.comment CORETEXT
 lib = util.find_library('CoreText')
 
-# Hack for compatibility with macOS > 11.0
+# 030808.python.cocoalibs.line590.comment Hack for compatibility with macOS > 11.0
 if lib is None:
     lib = '/System/Library/Frameworks/CoreText.framework/CoreText'
 
 ct = cdll.LoadLibrary(lib)
 
-# Types
+# 030809.python.cocoalibs.line596.comment Types
 CTFontOrientation = c_uint32      # CTFontDescriptor.h
 CTFontSymbolicTraits = c_uint32   # CTFontTraits.h
 
-# CoreText constants
+# 030812.python.cocoalibs.line600.comment CoreText constants
 kCTFontAttributeName = c_void_p.in_dll(ct, 'kCTFontAttributeName')
 kCTFontFamilyNameAttribute = c_void_p.in_dll(ct, 'kCTFontFamilyNameAttribute')
 kCTFontSymbolicTrait = c_void_p.in_dll(ct, 'kCTFontSymbolicTrait')
@@ -609,7 +609,7 @@ kCTForegroundColorAttributeName = c_void_p.in_dll(ct, 'kCTForegroundColorAttribu
 kCTForegroundColorFromContextAttributeName = c_void_p.in_dll(ct, 'kCTForegroundColorFromContextAttributeName')
 kCFBooleanTrue = c_void_p.in_dll(ct, 'kCFBooleanTrue')
 
-# constants from CTFontTraits.h
+# 030813.python.cocoalibs.line612.comment constants from CTFontTraits.h
 kCTFontItalicTrait = (1 << 0)
 kCTFontBoldTrait   = (1 << 1)
 
@@ -669,12 +669,12 @@ ct.CTFontCopyTraits.argtypes = [c_void_p]
 
 kCTFontURLAttribute = c_void_p.in_dll(ct, 'kCTFontURLAttribute')
 
-######################################################################
+# 030814.python.cocoalibs.line672.comment #####################################################################
 
-# FOUNDATION
+# 030815.python.cocoalibs.line674.comment FOUNDATION
 lib = util.find_library('Foundation')
 
-# Hack for compatibility with macOS > 11.0
+# 030816.python.cocoalibs.line677.comment Hack for compatibility with macOS > 11.0
 if lib is None:
     lib = '/System/Library/Frameworks/Foundation.framework/Foundation'
 

@@ -1,16 +1,16 @@
-# Configure this to _YOUR_ environment in order to run the testcases.
+# 021007.python.adodbapitestconfig.line1.comment Configure this to _YOUR_ environment in order to run the testcases.
 "testADOdbapiConfig.py v 2.6.2.B00"
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# #
-# #  TESTERS:
-# #
-# #  You will need to make numerous modifications to this file
-# #  to adapt it to your own testing environment.
-# #
-# #  Skip down to the next "# #" line --
-# #  -- the things you need to change are below it.
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# 021008.python.adodbapitestconfig.line4.comment # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# 021009.python.adodbapitestconfig.line5.comment #
+# 021010.python.adodbapitestconfig.line6.comment #  TESTERS:
+# 021011.python.adodbapitestconfig.line7.comment #
+# 021012.python.adodbapitestconfig.line8.comment #  You will need to make numerous modifications to this file
+# 021013.python.adodbapitestconfig.line9.comment #  to adapt it to your own testing environment.
+# 021014.python.adodbapitestconfig.line10.comment #
+# 021015.python.adodbapitestconfig.line11.comment #  Skip down to the next "# #" line --
+# 021016.python.adodbapitestconfig.line12.comment #  -- the things you need to change are below it.
+# 021017.python.adodbapitestconfig.line13.comment # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 import platform
 import random
 import sys
@@ -47,7 +47,7 @@ try:
 except:
     onWindows = False
 
-# create a random name for temporary table names
+# 021019.python.adodbapitestconfig.line50.comment create a random name for temporary table names
 _alphabet = (
     "PYFGCRLAOEUIDHTNSQJKXBMWVZ"  # why, yes, I do happen to use a dvorak keyboard
 )
@@ -56,16 +56,16 @@ mdb_name = "xx_" + tmp + ".mdb"  # generate a non-colliding name for the tempora
 testfolder = setuptestframework.maketemp()
 
 if "--package" in sys.argv:
-    #  create a new adodbapi module
+    # 021022.python.adodbapitestconfig.line59.comment create a new adodbapi module
     pth = setuptestframework.makeadopackage(testfolder)
 else:
-    #  use the adodbapi module in which this file appears
+    # 021023.python.adodbapitestconfig.line62.comment use the adodbapi module in which this file appears
     pth = setuptestframework.find_ado_path()
 if pth not in sys.path:
-    #  look here _first_ to find modules
+    # 021024.python.adodbapitestconfig.line65.comment look here _first_ to find modules
     sys.path.insert(1, pth)
 
-# function to clean up the temporary folder -- calling program must run this function before exit.
+# 021025.python.adodbapitestconfig.line68.comment function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi  # will (hopefully) be imported using the "pth" discovered above
@@ -91,15 +91,15 @@ doMySqlTest = "--mysql" in sys.argv or doAllTests
 doPostgresTest = "--pg" in sys.argv or doAllTests
 doTimeTest = ("--time" in sys.argv or doAllTests) and onWindows
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# # start your environment setup here v v v
+# 021028.python.adodbapitestconfig.line94.comment # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# 021029.python.adodbapitestconfig.line95.comment # start your environment setup here v v v
 SQL_HOST_NODE = "testsql.2txt.us,1430"
 
 if doAccessTest:
     c = {
         "mdb": setuptestframework.makemdb(testfolder, mdb_name),
-        # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
-        # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
+        # 021030.python.adodbapitestconfig.line101.comment macro definition for keyword "provider"  using macro "is64bit" -- see documentation
+        # 021031.python.adodbapitestconfig.line102.comment is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
         "macro_is64bit": [
             "provider",
             "Microsoft.ACE.OLEDB.12.0",  # 64 bit provider
@@ -107,7 +107,7 @@ if doAccessTest:
         ],
     }
 
-    # ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
+    # 021034.python.adodbapitestconfig.line110.comment ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
     connStrAccess = "Provider=%(provider)s;Data Source=%(mdb)s"
     print("    ...Testing ACCESS connection to {} file...".format(c["mdb"]))
     doAccessTest, connStrAccess, dbAccessconnect = tryconnection.try_connection(
@@ -120,7 +120,7 @@ if doSqlServerTest:
         "database": "adotest",
         "user": "adotestuser",  # None implies Windows security
         "password": "Sq1234567",
-        # macro definition for keyword "security" using macro "auto_security"
+        # 021037.python.adodbapitestconfig.line123.comment macro definition for keyword "security" using macro "auto_security"
         "macro_auto_security": "security",
         "provider": "MSOLEDBSQL; MARS Connection=True",
     }
@@ -166,8 +166,8 @@ if doPostgresTest:
         "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
         "Driver=PostgreSQL Unicode",
     ]
-    # get driver from https://www.postgresql.org/ftp/odbc/releases/
-    # test using positional and keyword arguments (bad example for real code)
+    # 021041.python.adodbapitestconfig.line169.comment get driver from https://www.postgresql.org/ftp/odbc/releases/
+    # 021042.python.adodbapitestconfig.line170.comment test using positional and keyword arguments (bad example for real code)
     print("    ...Testing PostgreSQL login to {}...".format(_computername))
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(
         verbose,

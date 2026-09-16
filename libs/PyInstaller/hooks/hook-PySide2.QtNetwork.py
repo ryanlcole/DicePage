@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 004303.python.hook-PySide2.QtNetwork.line1.comment -----------------------------------------------------------------------------
+# 004304.python.hook-PySide2.QtNetwork.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 004305.python.hook-PySide2.QtNetwork.line3.comment
+# 004306.python.hook-PySide2.QtNetwork.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 004307.python.hook-PySide2.QtNetwork.line5.comment or later) with exception for distributing the bootloader.
+# 004308.python.hook-PySide2.QtNetwork.line6.comment
+# 004309.python.hook-PySide2.QtNetwork.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 004310.python.hook-PySide2.QtNetwork.line8.comment
+# 004311.python.hook-PySide2.QtNetwork.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 004312.python.hook-PySide2.QtNetwork.line10.comment -----------------------------------------------------------------------------
 
 from PyInstaller.utils.hooks.qt import add_qt5_dependencies, pyside2_library_info
 

@@ -9,7 +9,7 @@ import sys
 
 def main():  # needed for console script
     if __package__ == "":
-        # To be able to run 'python wheel-0.9.whl/wheel':
+        # 043763.python.main.line12.comment To be able to run 'python wheel-0.9.whl/wheel':
         import os.path
 
         path = os.path.dirname(os.path.dirname(__file__))

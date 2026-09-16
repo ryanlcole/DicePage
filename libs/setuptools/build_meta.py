@@ -131,7 +131,7 @@ def _file_with_extension(directory: StrPath, extension: str | tuple[str, ...]):
 
 def _open_setup_script(setup_script):
     if not os.path.exists(setup_script):
-        # Supply a default setup.py
+        # 044254.python.build_meta.line134.comment Supply a default setup.py
         return io.StringIO("from setuptools import setup; setup()")
 
     return tokenize.open(setup_script)
@@ -165,7 +165,7 @@ class _ConfigSettingsTranslator:
     Only a limited number of options is currently supported.
     """
 
-    # See pypa/setuptools#1928 pypa/setuptools#2491
+    # 044255.python.build_meta.line168.comment See pypa/setuptools#1928 pypa/setuptools#2491
 
     def _get_config(self, key: str, config_settings: _ConfigSettings) -> list[str]:
         """
@@ -305,8 +305,8 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         return requirements
 
     def run_setup(self, setup_script: str = 'setup.py'):
-        # Note that we can reuse our build directory between calls
-        # Correctness comes first, then optimization later
+        # 044256.python.build_meta.line308.comment Note that we can reuse our build directory between calls
+        # 044257.python.build_meta.line309.comment Correctness comes first, then optimization later
         __file__ = os.path.abspath(setup_script)
         __name__ = '__main__'
 
@@ -318,7 +318,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         except SystemExit as e:
             if e.code:
                 raise
-            # We ignore exit code indicating success
+            # 044258.python.build_meta.line321.comment We ignore exit code indicating success
             SetuptoolsDeprecationWarning.emit(
                 "Running `setup.py` directly as CLI tool is deprecated.",
                 "Please avoid using `sys.exit(0)` or similar statements "
@@ -345,7 +345,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         info_dir = self._find_info_directory(metadata_directory, suffix)
         if not same_path(info_dir.parent, metadata_directory):
             shutil.move(str(info_dir), metadata_directory)
-            # PEP 517 allow other files and dirs to exist in metadata_directory
+            # 044259.python.build_meta.line348.comment PEP 517 allow other files and dirs to exist in metadata_directory
         return info_dir.name
 
     def _find_info_directory(self, metadata_directory: StrPath, suffix: str) -> Path:
@@ -386,7 +386,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     ):
         result_directory = os.path.abspath(result_directory)
 
-        # Build in a temporary directory, then copy to the target.
+        # 044260.python.build_meta.line389.comment Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
 
         with tempfile.TemporaryDirectory(
@@ -406,7 +406,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             result_basename = _file_with_extension(tmp_dist_dir, result_extension)
             result_path = os.path.join(result_directory, result_basename)
             if os.path.exists(result_path):
-                # os.rename will fail overwriting on non-Unix.
+                # 044261.python.build_meta.line409.comment os.rename will fail overwriting on non-Unix.
                 os.remove(result_path)
             os.rename(os.path.join(tmp_dist_dir, result_basename), result_path)
 
@@ -434,7 +434,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         try:
             return _build(['bdist_wheel', '--dist-info-dir', str(metadata_directory)])
         except SystemExit as ex:  # pragma: nocover
-            # pypa/setuptools#4683
+            # 044263.python.build_meta.line437.comment pypa/setuptools#4683
             if "--dist-info-dir not recognized" not in str(ex):
                 raise
             _IncompatibleBdistWheel.emit()
@@ -460,7 +460,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         config_settings: _ConfigSettings = None,
         metadata_directory: StrPath | None = None,
     ):
-        # XXX can or should we hide our editable_wheel command normally?
+        # 044264.python.build_meta.line463.comment XXX can or should we hide our editable_wheel command normally?
         info_dir = self._get_dist_info_dir(metadata_directory)
         opts = ["--dist-info-dir", info_dir] if info_dir else []
         cmd = ["editable_wheel", *opts, *self._editable_args(config_settings)]
@@ -493,29 +493,29 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
     """
 
     def run_setup(self, setup_script: str = 'setup.py'):
-        # In order to maintain compatibility with scripts assuming that
-        # the setup.py script is in a directory on the PYTHONPATH, inject
-        # '' into sys.path. (pypa/setuptools#1642)
+        # 044265.python.build_meta.line496.comment In order to maintain compatibility with scripts assuming that
+        # 044266.python.build_meta.line497.comment the setup.py script is in a directory on the PYTHONPATH, inject
+        # 044267.python.build_meta.line498.comment '' into sys.path. (pypa/setuptools#1642)
         sys_path = list(sys.path)  # Save the original path
 
         script_dir = os.path.dirname(os.path.abspath(setup_script))
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)
 
-        # Some setup.py scripts (e.g. in pygame and numpy) use sys.argv[0] to
-        # get the directory of the source code. They expect it to refer to the
-        # setup.py script.
+        # 044269.python.build_meta.line505.comment Some setup.py scripts (e.g. in pygame and numpy) use sys.argv[0] to
+        # 044270.python.build_meta.line506.comment get the directory of the source code. They expect it to refer to the
+        # 044271.python.build_meta.line507.comment setup.py script.
         sys_argv_0 = sys.argv[0]
         sys.argv[0] = setup_script
 
         try:
             super().run_setup(setup_script=setup_script)
         finally:
-            # While PEP 517 frontends should be calling each hook in a fresh
-            # subprocess according to the standard (and thus it should not be
-            # strictly necessary to restore the old sys.path), we'll restore
-            # the original path so that the path manipulation does not persist
-            # within the hook after run_setup is called.
+            # 044272.python.build_meta.line514.comment While PEP 517 frontends should be calling each hook in a fresh
+            # 044273.python.build_meta.line515.comment subprocess according to the standard (and thus it should not be
+            # 044274.python.build_meta.line516.comment strictly necessary to restore the old sys.path), we'll restore
+            # 044275.python.build_meta.line517.comment the original path so that the path manipulation does not persist
+            # 044276.python.build_meta.line518.comment within the hook after run_setup is called.
             sys.path[:] = sys_path
             sys.argv[0] = sys_argv_0
 
@@ -527,11 +527,11 @@ class _IncompatibleBdistWheel(SetuptoolsDeprecationWarning):
     setuptools.command.bdist_wheel.bdist_wheel.
     """
     _DUE_DATE = (2025, 10, 15)
-    # Initially introduced in 2024/10/15, but maybe too disruptive to be enforced?
+    # 044277.python.build_meta.line530.comment Initially introduced in 2024/10/15, but maybe too disruptive to be enforced?
     _SEE_URL = "https://github.com/pypa/wheel/pull/631"
 
 
-# The primary backend
+# 044278.python.build_meta.line534.comment The primary backend
 _BACKEND = _BuildMetaBackend()
 
 get_requires_for_build_wheel = _BACKEND.get_requires_for_build_wheel
@@ -544,5 +544,5 @@ prepare_metadata_for_build_editable = _BACKEND.prepare_metadata_for_build_editab
 build_editable = _BACKEND.build_editable
 
 
-# The legacy backend
+# 044279.python.build_meta.line547.comment The legacy backend
 __legacy__ = _BuildMetaLegacyBackend()

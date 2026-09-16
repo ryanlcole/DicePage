@@ -253,22 +253,22 @@ class TestBuildMetaBackend:
         wheel_file = os.path.join(dist_dir, wheel_name)
         assert os.path.isfile(wheel_file)
 
-        # Temporary files should be removed
+        # 045225.python.test_build_meta.line256.comment Temporary files should be removed
         assert not os.path.isfile('world.py')
 
         with ZipFile(wheel_file) as zipfile:
             wheel_contents = set(zipfile.namelist())
 
-        # Each one of the examples have a single module
-        # that should be included in the distribution
+        # 045226.python.test_build_meta.line262.comment Each one of the examples have a single module
+        # 045227.python.test_build_meta.line263.comment that should be included in the distribution
         python_scripts = (f for f in wheel_contents if f.endswith('.py'))
         modules = [f for f in python_scripts if not f.endswith('setup.py')]
         assert len(modules) == 1
 
     @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
-        # Building a sdist/wheel should still succeed if there's
-        # already a sdist/wheel in the destination directory.
+        # 045228.python.test_build_meta.line270.comment Building a sdist/wheel should still succeed if there's
+        # 045229.python.test_build_meta.line271.comment already a sdist/wheel in the destination directory.
         files = {
             'setup.py': "from setuptools import setup\nsetup()",
             'VERSION': "0.0.1",
@@ -295,22 +295,22 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         build_method = getattr(build_backend, 'build_' + build_type)
 
-        # Build a first sdist/wheel.
-        # Note: this also check the destination directory is
-        # successfully created if it does not exist already.
+        # 045230.python.test_build_meta.line298.comment Build a first sdist/wheel.
+        # 045231.python.test_build_meta.line299.comment Note: this also check the destination directory is
+        # 045232.python.test_build_meta.line300.comment successfully created if it does not exist already.
         first_result = build_method(dist_dir)
 
-        # Change version.
+        # 045233.python.test_build_meta.line303.comment Change version.
         with open("VERSION", "wt", encoding="utf-8") as version_file:
             version_file.write("0.0.2")
 
-        # Build a *second* sdist/wheel.
+        # 045234.python.test_build_meta.line307.comment Build a *second* sdist/wheel.
         second_result = build_method(dist_dir)
 
         assert os.path.isfile(os.path.join(dist_dir, first_result))
         assert first_result != second_result
 
-        # And if rebuilding the exact same sdist/wheel?
+        # 045235.python.test_build_meta.line313.comment And if rebuilding the exact same sdist/wheel?
         open(os.path.join(dist_dir, second_result), 'wb').close()
         third_result = build_method(dist_dir)
         assert third_result == second_result
@@ -463,8 +463,8 @@ class TestBuildMetaBackend:
         assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
 
     def test_static_metadata_in_pyproject_config(self, tmpdir):
-        # Make sure static metadata in pyproject.toml is not overwritten by setup.py
-        # as required by PEP 621
+        # 045239.python.test_build_meta.line466.comment Make sure static metadata in pyproject.toml is not overwritten by setup.py
+        # 045240.python.test_build_meta.line467.comment as required by PEP 621
         files = {
             'pyproject.toml': DALS(
                 """
@@ -558,8 +558,8 @@ class TestBuildMetaBackend:
         assert os.path.isfile(os.path.join(dist_info, 'METADATA'))
 
     def test_build_sdist_explicit_dist(self, build_backend):
-        # explicitly specifying the dist folder should work
-        # the folder sdist_directory and the ``--dist-dir`` can be the same
+        # 045241.python.test_build_meta.line561.comment explicitly specifying the dist folder should work
+        # 045242.python.test_build_meta.line562.comment the folder sdist_directory and the ``--dist-dir`` can be the same
         dist_dir = os.path.abspath('dist')
         sdist_name = build_backend.build_sdist(dist_dir)
         assert os.path.isfile(os.path.join(dist_dir, sdist_name))
@@ -571,9 +571,9 @@ class TestBuildMetaBackend:
         sdist_name = build_backend.build_sdist(sdist_into_directory)
         assert os.path.isfile(os.path.join(sdist_into_directory, sdist_name))
 
-        # if the setup.py changes subsequent call of the build meta
-        # should still succeed, given the
-        # sdist_directory the frontend specifies is empty
+        # 045243.python.test_build_meta.line574.comment if the setup.py changes subsequent call of the build meta
+        # 045244.python.test_build_meta.line575.comment should still succeed, given the
+        # 045245.python.test_build_meta.line576.comment sdist_directory the frontend specifies is empty
         setup_loc = os.path.abspath("setup.py")
         if not os.path.exists(setup_loc):
             setup_loc = os.path.abspath("setup.cfg")
@@ -615,8 +615,8 @@ class TestBuildMetaBackend:
             assert any('pyproject.toml' in name for name in tar.getnames())
 
     def test_build_sdist_setup_py_exists(self, tmpdir_cwd):
-        # If build_sdist is called from a script other than setup.py,
-        # ensure setup.py is included
+        # 045246.python.test_build_meta.line618.comment If build_sdist is called from a script other than setup.py,
+        # 045247.python.test_build_meta.line619.comment ensure setup.py is included
         path.build(defns[0])
 
         build_backend = self.get_build_backend()
@@ -625,7 +625,7 @@ class TestBuildMetaBackend:
             assert any('setup.py' in name for name in tar.getnames())
 
     def test_build_sdist_setup_py_manifest_excluded(self, tmpdir_cwd):
-        # Ensure that MANIFEST.in can exclude setup.py
+        # 045248.python.test_build_meta.line628.comment Ensure that MANIFEST.in can exclude setup.py
         files = {
             'setup.py': DALS(
                 """
@@ -797,16 +797,16 @@ class TestBuildMetaBackend:
         else:
             get_requires = build_backend.get_requires_for_build_sdist
 
-        # Ensure that the build requirements are properly parsed
+        # 045250.python.test_build_meta.line800.comment Ensure that the build requirements are properly parsed
         expected = sorted(requirements)
         actual = get_requires()
 
         assert expected == sorted(actual)
 
     def test_setup_requires_with_auto_discovery(self, tmpdir_cwd):
-        # Make sure patches introduced to retrieve setup_requires don't accidentally
-        # activate auto-discovery and cause problems due to the incomplete set of
-        # attributes passed to MinimalDistribution
+        # 045251.python.test_build_meta.line807.comment Make sure patches introduced to retrieve setup_requires don't accidentally
+        # 045252.python.test_build_meta.line808.comment activate auto-discovery and cause problems due to the incomplete set of
+        # 045253.python.test_build_meta.line809.comment attributes passed to MinimalDistribution
         files = {
             'pyproject.toml': DALS(
                 """
@@ -860,8 +860,8 @@ class TestBuildMetaBackend:
         dist_dir = os.path.abspath('pip-dist-info')
         os.makedirs(dist_dir)
 
-        # does-not-exist can't be satisfied, so if it attempts to install
-        # setup_requires, it will fail.
+        # 045254.python.test_build_meta.line863.comment does-not-exist can't be satisfied, so if it attempts to install
+        # 045255.python.test_build_meta.line864.comment setup_requires, it will fail.
         build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
     _sys_argv_0_passthrough = {
@@ -921,9 +921,9 @@ class TestBuildMetaBackend:
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta:__legacy__'
 
-    # build_meta_legacy-specific tests
+    # 045256.python.test_build_meta.line924.comment build_meta_legacy-specific tests
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
-        # This must fail in build_meta, but must pass in build_meta_legacy
+        # 045257.python.test_build_meta.line926.comment This must fail in build_meta, but must pass in build_meta_legacy
         path.build(self._relative_path_import_files)
 
         build_backend = self.get_build_backend()

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025921.python.test_testutils.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025922.python.test_testutils.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025923.python.test_testutils.line5.comment found in the LICENSE file.
 
 """Tests for testing utils (psutil.tests namespace)."""
 
@@ -56,15 +56,15 @@ from psutil.tests import unix_socketpair
 from psutil.tests import wait_for_file
 from psutil.tests import wait_for_pid
 
-# ===================================================================
-# --- Unit tests for test utilities.
-# ===================================================================
+# 025924.python.test_testutils.line59.comment ===================================================================
+# 025925.python.test_testutils.line60.comment --- Unit tests for test utilities.
+# 025926.python.test_testutils.line61.comment ===================================================================
 
 
 class TestRetryDecorator(PsutilTestCase):
     @mock.patch('time.sleep')
     def test_retry_success(self, sleep):
-        # Fail 3 times out of 5; make sure the decorated fun returns.
+        # 025927.python.test_testutils.line67.comment Fail 3 times out of 5; make sure the decorated fun returns.
 
         @retry(retries=5, interval=1, logfun=None)
         def foo():
@@ -79,7 +79,7 @@ class TestRetryDecorator(PsutilTestCase):
 
     @mock.patch('time.sleep')
     def test_retry_failure(self, sleep):
-        # Fail 6 times out of 5; th function is supposed to raise exc.
+        # 025929.python.test_testutils.line82.comment Fail 6 times out of 5; th function is supposed to raise exc.
         @retry(retries=5, interval=1, logfun=None)
         def foo():
             while queue:
@@ -104,7 +104,7 @@ class TestRetryDecorator(PsutilTestCase):
 
     @mock.patch('time.sleep')
     def test_no_interval_arg(self, sleep):
-        # if interval is not specified sleep is not supposed to be called
+        # 025931.python.test_testutils.line107.comment if interval is not specified sleep is not supposed to be called
 
         @retry(retries=5, interval=None, logfun=None)
         def foo():
@@ -167,7 +167,7 @@ class TestSyncTestUtils(PsutilTestCase):
 
     def test_call_until(self):
         call_until(lambda: 1)
-        # TODO: test for timeout
+        # 025934.python.test_testutils.line170.comment TODO: test for timeout
 
 
 class TestFSTestUtils(PsutilTestCase):
@@ -187,18 +187,18 @@ class TestFSTestUtils(PsutilTestCase):
         assert os.path.isdir(testfn)
 
     def test_safe_rmpath(self):
-        # test file is removed
+        # 025935.python.test_testutils.line190.comment test file is removed
         testfn = self.get_testfn()
         open(testfn, 'w').close()
         safe_rmpath(testfn)
         assert not os.path.exists(testfn)
-        # test no exception if path does not exist
+        # 025936.python.test_testutils.line195.comment test no exception if path does not exist
         safe_rmpath(testfn)
-        # test dir is removed
+        # 025937.python.test_testutils.line197.comment test dir is removed
         os.mkdir(testfn)
         safe_rmpath(testfn)
         assert not os.path.exists(testfn)
-        # test other exceptions are raised
+        # 025938.python.test_testutils.line201.comment test other exceptions are raised
         with mock.patch(
             'psutil.tests.os.stat', side_effect=OSError(errno.EINVAL, "")
         ) as m:
@@ -252,17 +252,17 @@ class TestProcessUtils(PsutilTestCase):
         assert zombie.status() == psutil.STATUS_ZOMBIE
 
     def test_terminate(self):
-        # by subprocess.Popen
+        # 025939.python.test_testutils.line255.comment by subprocess.Popen
         p = self.spawn_subproc()
         terminate(p)
         self.assert_pid_gone(p.pid)
         terminate(p)
-        # by psutil.Process
+        # 025940.python.test_testutils.line260.comment by psutil.Process
         p = psutil.Process(self.spawn_subproc().pid)
         terminate(p)
         self.assert_pid_gone(p.pid)
         terminate(p)
-        # by psutil.Popen
+        # 025941.python.test_testutils.line265.comment by psutil.Popen
         cmd = [
             PYTHON_EXE,
             "-c",
@@ -277,12 +277,12 @@ class TestProcessUtils(PsutilTestCase):
         terminate(p)
         self.assert_pid_gone(p.pid)
         terminate(p)
-        # by PID
+        # 025942.python.test_testutils.line280.comment by PID
         pid = self.spawn_subproc().pid
         terminate(pid)
         self.assert_pid_gone(p.pid)
         terminate(pid)
-        # zombie
+        # 025943.python.test_testutils.line285.comment zombie
         if POSIX:
             parent, zombie = self.spawn_zombie()
             terminate(parent)
@@ -306,7 +306,7 @@ class TestNetUtils(PsutilTestCase):
             assert sock.getsockname() == name
             assert os.path.exists(name)
             assert stat.S_ISSOCK(os.stat(name).st_mode)
-        # UDP
+        # 025944.python.test_testutils.line309.comment UDP
         name = self.get_testfn()
         with bind_unix_socket(name, type=socket.SOCK_DGRAM) as sock:
             assert sock.type == socket.SOCK_DGRAM
@@ -315,7 +315,7 @@ class TestNetUtils(PsutilTestCase):
         addr = ("127.0.0.1", get_free_port())
         server, client = tcp_socketpair(socket.AF_INET, addr=addr)
         with server, client:
-            # Ensure they are connected and the positions are correct.
+            # 025945.python.test_testutils.line318.comment Ensure they are connected and the positions are correct.
             assert server.getsockname() == addr
             assert client.getpeername() == addr
             assert client.getsockname() != addr
@@ -352,7 +352,7 @@ class TestNetUtils(PsutilTestCase):
             types = collections.defaultdict(int)
             for s in socks:
                 fams[s.family] += 1
-                # work around http://bugs.python.org/issue30204
+                # 025946.python.test_testutils.line355.comment work around http://bugs.python.org/issue30204
                 types[s.getsockopt(socket.SOL_SOCKET, socket.SO_TYPE)] += 1
             assert fams[socket.AF_INET] >= 2
             if supports_ipv6():
@@ -396,7 +396,7 @@ class TestMemLeakClass(TestMemoryLeak):
             ls.append("x" * 248 * 1024)
 
         try:
-            # will consume around 60M in total
+            # 025947.python.test_testutils.line399.comment will consume around 60M in total
             with pytest.raises(pytest.fail.Exception, match="extra-mem"):
                 self.execute(fun, times=100)
         finally:
@@ -526,11 +526,11 @@ class TestFakePytest(PsutilTestCase):
             assert suite.countTestCases() == 1
 
     def test_warns(self):
-        # success
+        # 025955.python.test_testutils.line529.comment success
         with fake_pytest.warns(UserWarning):
             warnings.warn("foo", UserWarning, stacklevel=1)
 
-        # failure
+        # 025956.python.test_testutils.line533.comment failure
         try:
             with fake_pytest.warns(UserWarning):
                 warnings.warn("foo", DeprecationWarning, stacklevel=1)
@@ -539,11 +539,11 @@ class TestFakePytest(PsutilTestCase):
         else:
             raise pytest.fail("exception not raised")
 
-        # match success
+        # 025957.python.test_testutils.line542.comment match success
         with fake_pytest.warns(UserWarning, match="foo"):
             warnings.warn("foo", UserWarning, stacklevel=1)
 
-        # match failure
+        # 025958.python.test_testutils.line546.comment match failure
         try:
             with fake_pytest.warns(UserWarning, match="foo"):
                 warnings.warn("bar", UserWarning, stacklevel=1)

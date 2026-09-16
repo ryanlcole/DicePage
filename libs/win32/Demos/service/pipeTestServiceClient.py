@@ -1,10 +1,10 @@
-# A Test Program for pipeTestService.py
-#
-# Install and start the Pipe Test service, then run this test
-# either from the same machine, or from another using the "-s" param.
-#
-# Eg: pipeTestServiceClient.py -s server_name Hi There
-# Should work.
+# 046298.python.pipeTestServiceClient.line1.comment A Test Program for pipeTestService.py
+# 046299.python.pipeTestServiceClient.line2.comment
+# 046300.python.pipeTestServiceClient.line3.comment Install and start the Pipe Test service, then run this test
+# 046301.python.pipeTestServiceClient.line4.comment either from the same machine, or from another using the "-s" param.
+# 046302.python.pipeTestServiceClient.line5.comment
+# 046303.python.pipeTestServiceClient.line6.comment Eg: pipeTestServiceClient.py -s server_name Hi There
+# 046304.python.pipeTestServiceClient.line7.comment Should work.
 
 import os
 import sys
@@ -14,27 +14,27 @@ import pywintypes
 import win32api
 import winerror
 
-# # Use "import *" to keep this looking as much as a "normal" service
-# as possible.  Real code shouldn't do this.
+# 046305.python.pipeTestServiceClient.line17.comment # Use "import *" to keep this looking as much as a "normal" service
+# 046306.python.pipeTestServiceClient.line18.comment as possible.  Real code shouldn't do this.
 from win32event import *  # nopycln: import
 from win32file import *  # nopycln: import
 from win32pipe import *  # nopycln: import
 
 verbose = 0
 
-# def ReadFromPipe(pipeName):
-# Could (Should?) use CallNamedPipe, but this technique allows variable size
-# messages (whereas you must supply a buffer size for CallNamedPipe!
-#       hPipe = CreateFile(pipeName, GENERIC_WRITE, 0, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
-#       more = 1
-#       while more:
-#               hr = ReadFile(hPipe, 256)
-#               if hr==0:
-#                       more = 0
-#               except win32api.error (hr, fn, desc):
-#                       if hr==winerror.ERROR_MORE_DATA:
-#                               data = dat
-#
+# 046310.python.pipeTestServiceClient.line25.comment def ReadFromPipe(pipeName):
+# 046311.python.pipeTestServiceClient.line26.comment Could (Should?) use CallNamedPipe, but this technique allows variable size
+# 046312.python.pipeTestServiceClient.line27.comment messages (whereas you must supply a buffer size for CallNamedPipe!
+# 046313.python.pipeTestServiceClient.line28.comment hPipe = CreateFile(pipeName, GENERIC_WRITE, 0, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+# 046314.python.pipeTestServiceClient.line29.comment more = 1
+# 046315.python.pipeTestServiceClient.line30.comment while more:
+# 046316.python.pipeTestServiceClient.line31.comment hr = ReadFile(hPipe, 256)
+# 046317.python.pipeTestServiceClient.line32.comment if hr==0:
+# 046318.python.pipeTestServiceClient.line33.comment more = 0
+# 046319.python.pipeTestServiceClient.line34.comment except win32api.error (hr, fn, desc):
+# 046320.python.pipeTestServiceClient.line35.comment if hr==winerror.ERROR_MORE_DATA:
+# 046321.python.pipeTestServiceClient.line36.comment data = dat
+# 046322.python.pipeTestServiceClient.line37.comment
 
 
 def CallPipe(fn, args):
@@ -103,12 +103,12 @@ def stressTestClient(server, numThreads, numMessages):
 
     thread_waits = []
     for t_num in range(numThreads):
-        # Note I could just wait on thread handles (after calling DuplicateHandle)
-        # See the service itself for an example of waiting for the clients...
+        # 046324.python.pipeTestServiceClient.line106.comment Note I could just wait on thread handles (after calling DuplicateHandle)
+        # 046325.python.pipeTestServiceClient.line107.comment See the service itself for an example of waiting for the clients...
         wait = CreateEvent(None, 0, 0, None)
         thread_waits.append(wait)
         _thread.start_new_thread(stressThread, (server, numMessages, wait))
-    # Wait for all threads to finish.
+    # 046326.python.pipeTestServiceClient.line111.comment Wait for all threads to finish.
     WaitForMultipleObjects(thread_waits, 1, INFINITE)
 
 

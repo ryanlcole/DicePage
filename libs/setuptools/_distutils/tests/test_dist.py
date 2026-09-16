@@ -75,7 +75,7 @@ class TestDistributionBehavior(support.TempdirManager):
             "-Ssometext",
         ])
         d = self.create_distribution()
-        # let's actually try to load our test command:
+        # 041032.python.test_dist.line78.comment let's actually try to load our test command:
         assert d.get_command_packages() == [
             "distutils.command",
             "foo.bar",
@@ -114,7 +114,7 @@ class TestDistributionBehavior(support.TempdirManager):
                     """,
         })
 
-        # Base case: Not in a Virtual Environment
+        # 041033.python.test_dist.line117.comment Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
             d = self.create_distribution([file])
 
@@ -143,7 +143,7 @@ class TestDistributionBehavior(support.TempdirManager):
         for key, value in d.command_options.get('install').items():
             assert value == result_dict[key]
 
-        # Test case: In a Virtual Environment
+        # 041034.python.test_dist.line146.comment Test case: In a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
             d = self.create_distribution([file])
 
@@ -163,22 +163,22 @@ class TestDistributionBehavior(support.TempdirManager):
         d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
 
-        # ensure command line overrides config:
+        # 041035.python.test_dist.line166.comment ensure command line overrides config:
         sys.argv[1:] = ["--command-packages", "spork", "build"]
         d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "spork"]
 
-        # Setting --command-packages to '' should cause the default to
-        # be used even if a config file specified something else:
+        # 041036.python.test_dist.line171.comment Setting --command-packages to '' should cause the default to
+        # 041037.python.test_dist.line172.comment be used even if a config file specified something else:
         sys.argv[1:] = ["--command-packages", "", "build"]
         d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command"]
 
     def test_empty_options(self, request):
-        # an empty options dictionary should not stay in the
-        # list of attributes
+        # 041038.python.test_dist.line178.comment an empty options dictionary should not stay in the
+        # 041039.python.test_dist.line179.comment list of attributes
 
-        # catching warnings
+        # 041040.python.test_dist.line181.comment catching warnings
         warns = []
 
         def _warn(msg):
@@ -207,7 +207,7 @@ class TestDistributionBehavior(support.TempdirManager):
         dist = Distribution(attrs=attrs)
         dist.finalize_options()
 
-        # finalize_option splits platforms and keywords
+        # 041041.python.test_dist.line210.comment finalize_option splits platforms and keywords
         assert dist.metadata.platforms == ['one', 'two']
         assert dist.metadata.keywords == ['one', 'two']
 
@@ -229,13 +229,13 @@ class TestDistributionBehavior(support.TempdirManager):
         assert cmds == ['distutils.command', 'one', 'two']
 
     def test_announce(self):
-        # make sure the level is known
+        # 041042.python.test_dist.line232.comment make sure the level is known
         dist = Distribution()
         with pytest.raises(TypeError):
             dist.announce('ok', level='ok2')
 
     def test_find_config_files_disable(self, temp_home):
-        # Ticket #1180: Allow user to disable their home config file.
+        # 041043.python.test_dist.line238.comment Ticket #1180: Allow user to disable their home config file.
         jaraco.path.build({pydistutils_cfg: '[distutils]\n'}, temp_home)
 
         d = Distribution()
@@ -244,13 +244,13 @@ class TestDistributionBehavior(support.TempdirManager):
         d = Distribution(attrs={'script_args': ['--no-user-cfg']})
         files = d.find_config_files()
 
-        # make sure --no-user-cfg disables the user cfg file
+        # 041044.python.test_dist.line247.comment make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)
 
     def test_script_args_list_coercion(self):
         d = Distribution(attrs={'script_args': ('build', '--no-user-cfg')})
 
-        # make sure script_args is a list even if it started as a different iterable
+        # 041045.python.test_dist.line253.comment make sure script_args is a list even if it started as a different iterable
         assert d.script_args == ['build', '--no-user-cfg']
 
     @pytest.mark.skipif(
@@ -375,9 +375,9 @@ class TestMetadata(support.TempdirManager):
             'classifiers': ('Programming Language :: Python :: 3',),
         }
         d = Distribution(attrs)
-        # should have warning about passing a non-list
+        # 041046.python.test_dist.line378.comment should have warning about passing a non-list
         assert 'should be a list' in caplog.messages[0]
-        # should be converted to a list
+        # 041047.python.test_dist.line380.comment should be converted to a list
         assert isinstance(d.metadata.classifiers, list)
         assert d.metadata.classifiers == list(attrs['classifiers'])
 
@@ -397,9 +397,9 @@ class TestMetadata(support.TempdirManager):
             'keywords': ('spam', 'eggs', 'life of brian'),
         }
         d = Distribution(attrs)
-        # should have warning about passing a non-list
+        # 041048.python.test_dist.line400.comment should have warning about passing a non-list
         assert 'should be a list' in caplog.messages[0]
-        # should be converted to a list
+        # 041049.python.test_dist.line402.comment should be converted to a list
         assert isinstance(d.metadata.keywords, list)
         assert d.metadata.keywords == list(attrs['keywords'])
 
@@ -419,9 +419,9 @@ class TestMetadata(support.TempdirManager):
             'platforms': ('GNU/Linux', 'Some Evil Platform'),
         }
         d = Distribution(attrs)
-        # should have warning about passing a non-list
+        # 041050.python.test_dist.line422.comment should have warning about passing a non-list
         assert 'should be a list' in caplog.messages[0]
-        # should be converted to a list
+        # 041051.python.test_dist.line424.comment should be converted to a list
         assert isinstance(d.metadata.platforms, list)
         assert d.metadata.platforms == list(attrs['platforms'])
 
@@ -472,7 +472,7 @@ class TestMetadata(support.TempdirManager):
         assert fancy_options[1] == (1, 2, 3)
 
     def test_show_help(self, request, capsys):
-        # smoke test, just makes sure some help is displayed
+        # 041052.python.test_dist.line475.comment smoke test, just makes sure some help is displayed
         dist = Distribution()
         sys.argv = []
         dist.help = True
@@ -498,7 +498,7 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         metadata = dist.metadata
 
-        # write it then reloads it
+        # 041053.python.test_dist.line501.comment write it then reloads it
         PKG_INFO = io.StringIO()
         metadata.write_pkg_file(PKG_INFO)
         PKG_INFO.seek(0)
@@ -519,7 +519,7 @@ class TestMetadata(support.TempdirManager):
         re-generated using ``email.generator.Generator``, some control
         characters might cause problems.
         """
-        # Given a PKG-INFO file ...
+        # 041054.python.test_dist.line522.comment Given a PKG-INFO file ...
         attrs = {
             "name": "package",
             "version": "1.0",
@@ -532,7 +532,7 @@ class TestMetadata(support.TempdirManager):
             metadata.write_pkg_file(buffer)
             msg = buffer.getvalue()
 
-        # ... when it is read and re-written using stdlib's email library,
+        # 041055.python.test_dist.line535.comment ... when it is read and re-written using stdlib's email library,
         orig = email.message_from_string(msg)
         policy = email.policy.EmailPolicy(
             utf8=True,
@@ -545,8 +545,8 @@ class TestMetadata(support.TempdirManager):
             buffer.seek(0)
             regen = email.message_from_file(buffer)
 
-        # ... then it should be the same as the original
-        # (except for the specific line break characters)
+        # 041056.python.test_dist.line548.comment ... then it should be the same as the original
+        # 041057.python.test_dist.line549.comment (except for the specific line break characters)
         orig_desc = set(orig["Description"].splitlines())
         regen_desc = set(regen["Description"].splitlines())
         assert regen_desc == orig_desc

@@ -19,11 +19,11 @@ def run(cmd, env=None):
         text=True,
         encoding="utf-8",
         env={**os.environ, **(env or {})},
-        # ^-- allow overwriting instead of discarding the current env
+        # 045122.python.helpers.line22.comment ^-- allow overwriting instead of discarding the current env
     )
 
     out = r.stdout + "\n" + r.stderr
-    # pytest omits stdout/err by default, if the test fails they help debugging
+    # 045123.python.helpers.line26.comment pytest omits stdout/err by default, if the test fails they help debugging
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print(f"Command: {cmd}\nreturn code: {r.returncode}\n\n{out}")
 
@@ -67,7 +67,7 @@ class Archive:
 def get_sdist_members(sdist_path):
     with tarfile.open(sdist_path, "r:gz") as tar:
         files = [Path(f) for f in tar.getnames()]
-    # remove root folder
+    # 045124.python.helpers.line70.comment remove root folder
     relative_files = ("/".join(f.parts[1:]) for f in files)
     return {f for f in relative_files if f}
 

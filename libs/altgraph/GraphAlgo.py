@@ -73,9 +73,9 @@ def shortest_path(graph, start, end):
     return Path
 
 
-#
-# Utility classes and functions
-#
+# 021242.python.GraphAlgo.line76.comment
+# 021243.python.GraphAlgo.line77.comment Utility classes and functions
+# 021244.python.GraphAlgo.line78.comment
 class _priorityDictionary(dict):
     """
     Priority dictionary using binary heaps (internal use only)

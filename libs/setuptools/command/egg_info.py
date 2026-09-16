@@ -44,7 +44,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     """
     pat = ''
 
-    # This will split on '/' within [character classes]. This is deliberate.
+    # 044495.python.egg_info.line47.comment This will split on '/' within [character classes]. This is deliberate.
     chunks = glob.split(os.path.sep)
 
     sep = re.escape(os.sep)
@@ -53,50 +53,50 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     for c, chunk in enumerate(chunks):
         last_chunk = c == len(chunks) - 1
 
-        # Chunks that are a literal ** are globstars. They match anything.
+        # 044496.python.egg_info.line56.comment Chunks that are a literal ** are globstars. They match anything.
         if chunk == '**':
             if last_chunk:
-                # Match anything if this is the last component
+                # 044497.python.egg_info.line59.comment Match anything if this is the last component
                 pat += '.*'
             else:
-                # Match '(name/)*'
+                # 044498.python.egg_info.line62.comment Match '(name/)*'
                 pat += f'(?:{valid_char}+{sep})*'
             continue  # Break here as the whole path component has been handled
 
-        # Find any special characters in the remainder
+        # 044500.python.egg_info.line66.comment Find any special characters in the remainder
         i = 0
         chunk_len = len(chunk)
         while i < chunk_len:
             char = chunk[i]
             if char == '*':
-                # Match any number of name characters
+                # 044501.python.egg_info.line72.comment Match any number of name characters
                 pat += valid_char + '*'
             elif char == '?':
-                # Match a name character
+                # 044502.python.egg_info.line75.comment Match a name character
                 pat += valid_char
             elif char == '[':
-                # Character class
+                # 044503.python.egg_info.line78.comment Character class
                 inner_i = i + 1
-                # Skip initial !/] chars
+                # 044504.python.egg_info.line80.comment Skip initial !/] chars
                 if inner_i < chunk_len and chunk[inner_i] == '!':
                     inner_i = inner_i + 1
                 if inner_i < chunk_len and chunk[inner_i] == ']':
                     inner_i = inner_i + 1
 
-                # Loop till the closing ] is found
+                # 044505.python.egg_info.line86.comment Loop till the closing ] is found
                 while inner_i < chunk_len and chunk[inner_i] != ']':
                     inner_i = inner_i + 1
 
                 if inner_i >= chunk_len:
-                    # Got to the end of the string without finding a closing ]
-                    # Do not treat this as a matching group, but as a literal [
+                    # 044506.python.egg_info.line91.comment Got to the end of the string without finding a closing ]
+                    # 044507.python.egg_info.line92.comment Do not treat this as a matching group, but as a literal [
                     pat += re.escape(char)
                 else:
-                    # Grab the insides of the [brackets]
+                    # 044508.python.egg_info.line95.comment Grab the insides of the [brackets]
                     inner = chunk[i + 1 : inner_i]
                     char_class = ''
 
-                    # Class negation
+                    # 044509.python.egg_info.line99.comment Class negation
                     if inner[0] == '!':
                         char_class = '^'
                         inner = inner[1:]
@@ -104,13 +104,13 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                     char_class += re.escape(inner)
                     pat += f'[{char_class}]'
 
-                    # Skip to the end ]
+                    # 044510.python.egg_info.line107.comment Skip to the end ]
                     i = inner_i
             else:
                 pat += re.escape(char)
             i += 1
 
-        # Join each chunk with the dir separator
+        # 044511.python.egg_info.line113.comment Join each chunk with the dir separator
         if not last_chunk:
             pat += sep
 
@@ -142,13 +142,13 @@ class InfoCommon:
         )
 
     def _already_tagged(self, version: str) -> bool:
-        # Depending on their format, tags may change with version normalization.
-        # So in addition the regular tags, we have to search for the normalized ones.
+        # 044512.python.egg_info.line145.comment Depending on their format, tags may change with version normalization.
+        # 044513.python.egg_info.line146.comment So in addition the regular tags, we have to search for the normalized ones.
         return version.endswith(self.vtags) or version.endswith(self._safe_tags())
 
     def _safe_tags(self) -> str:
-        # To implement this we can rely on `safe_version` pretending to be version 0
-        # followed by tags. Then we simply discard the starting 0 (fake version number)
+        # 044514.python.egg_info.line150.comment To implement this we can rely on `safe_version` pretending to be version 0
+        # 044515.python.egg_info.line151.comment followed by tags. Then we simply discard the starting 0 (fake version number)
         try:
             return _normalization.safe_version(f"0{self.vtags}")[1:]
         except packaging.version.InvalidVersion:
@@ -192,9 +192,9 @@ class egg_info(InfoCommon, Command):
         self.egg_version = None
         self.ignore_egg_info_in_manifest = False
 
-    ####################################
-    # allow the 'tag_svn_revision' to be detected and
-    # set, supporting sdists built on older Setuptools.
+    # 044516.python.egg_info.line195.comment ###################################
+    # 044517.python.egg_info.line196.comment allow the 'tag_svn_revision' to be detected and
+    # 044518.python.egg_info.line197.comment set, supporting sdists built on older Setuptools.
     @property
     def tag_svn_revision(self) -> None:
         pass
@@ -203,7 +203,7 @@ class egg_info(InfoCommon, Command):
     def tag_svn_revision(self, value):
         pass
 
-    ####################################
+    # 044519.python.egg_info.line206.comment ###################################
 
     def save_version_info(self, filename) -> None:
         """
@@ -211,16 +211,16 @@ class egg_info(InfoCommon, Command):
         build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
-        # follow the order these keys would have been added
-        # when PYTHONHASHSEED=0
+        # 044520.python.egg_info.line214.comment follow the order these keys would have been added
+        # 044521.python.egg_info.line215.comment when PYTHONHASHSEED=0
         egg_info = dict(tag_build=self.tags(), tag_date=0)
         edit_config(filename, dict(egg_info=egg_info))
 
     def finalize_options(self) -> None:
-        # Note: we need to capture the current value returned
-        # by `self.tagged_version()`, so we can later update
-        # `self.distribution.metadata.version` without
-        # repercussions.
+        # 044522.python.egg_info.line220.comment Note: we need to capture the current value returned
+        # 044523.python.egg_info.line221.comment by `self.tagged_version()`, so we can later update
+        # 044524.python.egg_info.line222.comment `self.distribution.metadata.version` without
+        # 044525.python.egg_info.line223.comment repercussions.
         self.egg_name = self.name
         self.egg_version = self.tagged_version()
         parsed_version = packaging.version.Version(self.egg_version)
@@ -243,9 +243,9 @@ class egg_info(InfoCommon, Command):
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
 
-        # Set package version for the benefit of dumber commands
-        # (e.g. sdist, bdist_wininst, etc.)
-        #
+        # 044526.python.egg_info.line246.comment Set package version for the benefit of dumber commands
+        # 044527.python.egg_info.line247.comment (e.g. sdist, bdist_wininst, etc.)
+        # 044528.python.egg_info.line248.comment
         self.distribution.metadata.version = self.egg_version
 
     def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
@@ -290,8 +290,8 @@ class egg_info(InfoCommon, Command):
             os.unlink(filename)
 
     def run(self) -> None:
-        # Pre-load to avoid iterating over entry-points while an empty .egg-info
-        # exists in sys.path. See pypa/pyproject-hooks#206
+        # 044529.python.egg_info.line293.comment Pre-load to avoid iterating over entry-points while an empty .egg-info
+        # 044530.python.egg_info.line294.comment exists in sys.path. See pypa/pyproject-hooks#206
         writers = list(metadata.entry_points(group='egg_info.writers'))
 
         self.mkpath(self.egg_info)
@@ -304,7 +304,7 @@ class egg_info(InfoCommon, Command):
             writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
-        # Get rid of native_libs.txt if it was put there by older bdist_egg
+        # 044531.python.egg_info.line307.comment Get rid of native_libs.txt if it was put there by older bdist_egg
         nl = os.path.join(self.egg_info, "native_libs.txt")
         if os.path.exists(nl):
             self.delete_file(nl)
@@ -322,7 +322,7 @@ class egg_info(InfoCommon, Command):
 
 
 class FileList(_FileList):
-    # Implementations of the various MANIFEST.in commands
+    # 044532.python.egg_info.line325.comment Implementations of the various MANIFEST.in commands
 
     def __init__(
         self, warn=None, debug_print=None, ignore_egg_info_dir: bool = False
@@ -331,11 +331,11 @@ class FileList(_FileList):
         self.ignore_egg_info_dir = ignore_egg_info_dir
 
     def process_template_line(self, line) -> None:
-        # Parse the line: split it up, make sure the right number of words
-        # is there, and return the relevant words.  'action' is always
-        # defined: it's the first word of the line.  Which of the other
-        # three are defined depends on the action; it'll be either
-        # patterns, (dir and patterns), or (dir_pattern).
+        # 044533.python.egg_info.line334.comment Parse the line: split it up, make sure the right number of words
+        # 044534.python.egg_info.line335.comment is there, and return the relevant words.  'action' is always
+        # 044535.python.egg_info.line336.comment defined: it's the first word of the line.  Which of the other
+        # 044536.python.egg_info.line337.comment three are defined depends on the action; it'll be either
+        # 044537.python.egg_info.line338.comment patterns, (dir and patterns), or (dir_pattern).
         (action, patterns, dir, dir_pattern) = self._parse_template_line(line)
 
         action_map: dict[str, Callable] = {
@@ -381,9 +381,9 @@ class FileList(_FileList):
             msg = f"Invalid MANIFEST.in: unknown action {action!r} in {line!r}"
             raise DistutilsInternalError(msg) from None
 
-        # OK, now we know that the action is valid and we have the
-        # right number of words on the line for that action -- so we
-        # can proceed with minimal error-checking.
+        # 044538.python.egg_info.line384.comment OK, now we know that the action is valid and we have the
+        # 044539.python.egg_info.line385.comment right number of words on the line for that action -- so we
+        # 044540.python.egg_info.line386.comment can proceed with minimal error-checking.
 
         action_is_recursive = action.startswith('recursive-')
         if action in {'graft', 'prune'}:
@@ -498,27 +498,27 @@ class FileList(_FileList):
     def _safe_path(self, path):
         enc_warn = "'%s' not %s encodable -- skipping"
 
-        # To avoid accidental trans-codings errors, first to unicode
+        # 044542.python.egg_info.line501.comment To avoid accidental trans-codings errors, first to unicode
         u_path = unicode_utils.filesys_decode(path)
         if u_path is None:
             log.warn(f"'{path}' in unexpected encoding -- skipping")
             return False
 
-        # Must ensure utf-8 encodability
+        # 044543.python.egg_info.line507.comment Must ensure utf-8 encodability
         utf8_path = unicode_utils.try_encode(u_path, "utf-8")
         if utf8_path is None:
             log.warn(enc_warn, path, 'utf-8')
             return False
 
         try:
-            # ignore egg-info paths
+            # 044544.python.egg_info.line514.comment ignore egg-info paths
             is_egg_info = ".egg-info" in u_path or b".egg-info" in utf8_path
             if self.ignore_egg_info_dir and is_egg_info:
                 return False
-            # accept is either way checks out
+            # 044545.python.egg_info.line518.comment accept is either way checks out
             if os.path.exists(u_path) or os.path.exists(utf8_path):
                 return True
-        # this will catch any encode errors decoding u_path
+        # 044546.python.egg_info.line521.comment this will catch any encode errors decoding u_path
         except UnicodeEncodeError:
             log.warn(enc_warn, path, sys.getfilesystemencoding())
 
@@ -561,7 +561,7 @@ class manifest_maker(sdist):
         """
         self.filelist._repair()
 
-        # Now _repairs should encodability, but not unicode
+        # 044548.python.egg_info.line564.comment Now _repairs should encodability, but not unicode
         files = [self._manifest_normalize(f) for f in self.filelist.files]
         msg = f"writing manifest file '{self.manifest}'"
         self.execute(write_file, (self.manifest, files), msg)
@@ -588,8 +588,8 @@ class manifest_maker(sdist):
             self.read_manifest()
 
         if os.path.exists("setup.py"):
-            # setup.py should be included by default, even if it's not
-            # the script called to create the sdist
+            # 044549.python.egg_info.line591.comment setup.py should be included by default, even if it's not
+            # 044550.python.egg_info.line592.comment the script called to create the sdist
             self.filelist.append("setup.py")
 
         ei_cmd = self.get_finalized_command('egg_info')
@@ -604,7 +604,7 @@ class manifest_maker(sdist):
     def _add_referenced_files(self):
         """Add files referenced by the config (e.g. `file:` directive) to filelist"""
         referenced = getattr(self.distribution, '_referenced_files', [])
-        # ^-- fallback if dist comes from distutils or is a custom class
+        # 044551.python.egg_info.line607.comment ^-- fallback if dist comes from distutils or is a custom class
         for rf in referenced:
             log.debug("adding file referenced by config '%s'", rf)
         self.filelist.extend(referenced)
@@ -629,7 +629,7 @@ class manifest_maker(sdist):
             Please extend command classes from setuptools instead of distutils.
             """,
             see_url="https://peps.python.org/pep-0632/",
-            # due_date not defined yet, old projects might still do it?
+            # 044552.python.egg_info.line632.comment due_date not defined yet, old projects might still do it?
         )
         return build_py.get_data_files()
 
@@ -640,7 +640,7 @@ def write_file(filename, contents) -> None:
     """
     contents = "\n".join(contents)
 
-    # assuming the contents has been vetted for utf-8 encoding
+    # 044553.python.egg_info.line643.comment assuming the contents has been vetted for utf-8 encoding
     contents = contents.encode("utf-8")
 
     with open(filename, "wb") as f:  # always write POSIX-style manifest
@@ -674,7 +674,7 @@ def warn_depends_obsolete(cmd, basename, filename) -> None:
     """
 
 
-# Export API used in entry_points
+# 044555.python.egg_info.line677.comment Export API used in entry_points
 write_requirements = _requirestxt.write_requirements
 write_setup_requirements = _requirestxt.write_setup_requirements
 

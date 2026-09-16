@@ -1,12 +1,12 @@
-# A sample icon handler.  Sets the icon for Python files to a random
-# ICO file.  ICO files are found in the Python directory - generally there will
-# be 3 icons found.
-#
-# To demonstrate:
-# * Execute this script to register the context menu.
-# * Open Windows Explorer, and browse to a directory with a .py file.
-# * Note the pretty, random selection of icons!
-# Use glob to locate ico files, and random.choice to pick one.
+# 051787.python.icon_handler.line1.comment A sample icon handler.  Sets the icon for Python files to a random
+# 051788.python.icon_handler.line2.comment ICO file.  ICO files are found in the Python directory - generally there will
+# 051789.python.icon_handler.line3.comment be 3 icons found.
+# 051790.python.icon_handler.line4.comment
+# 051791.python.icon_handler.line5.comment To demonstrate:
+# 051792.python.icon_handler.line6.comment * Execute this script to register the context menu.
+# 051793.python.icon_handler.line7.comment * Open Windows Explorer, and browse to a directory with a .py file.
+# 051794.python.icon_handler.line8.comment * Note the pretty, random selection of icons!
+# 051795.python.icon_handler.line9.comment Use glob to locate ico files, and random.choice to pick one.
 import glob
 import os
 import random
@@ -22,7 +22,7 @@ if not ico_files:
 if not ico_files:
     print("WARNING: Can't find any icon files")
 
-# Our shell extension.
+# 051796.python.icon_handler.line25.comment Our shell extension.
 IExtractIcon_Methods = "Extract GetIconLocation".split()
 IPersistFile_Methods = "IsDirty Load Save SaveCompleted GetCurFile".split()
 
@@ -39,8 +39,8 @@ class ShellExtension:
         self.mode = mode
 
     def GetIconLocation(self, flags):
-        # note - returning a single int will set the HRESULT (eg, S_FALSE,
-        # E_PENDING - see MS docs for details.
+        # 051797.python.icon_handler.line42.comment note - returning a single int will set the HRESULT (eg, S_FALSE,
+        # 051798.python.icon_handler.line43.comment E_PENDING - see MS docs for details.
         return random.choice(ico_files), 0, 0
 
     def Extract(self, fname, index, size):

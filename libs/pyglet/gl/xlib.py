@@ -34,7 +34,7 @@ class XlibConfig(Config):  # noqa: D101
 
         info = glx_info.GLXInfo(x_display)
 
-        # Construct array of attributes
+        # 029908.python.xlib.line37.comment Construct array of attributes
         attrs = []
         for name, value in self.get_gl_attributes():
             attr = XlibDisplayConfig.attribute_ids.get(name, None)
@@ -55,13 +55,13 @@ class XlibConfig(Config):  # noqa: D101
 
         result = [XlibDisplayConfig(canvas, info, c, self) for c in configs]
 
-        # If we intend to have a transparent framebuffer.
+        # 029910.python.xlib.line58.comment If we intend to have a transparent framebuffer.
         if self.transparent_framebuffer:
             result = [fb_cf for fb_cf in result if fb_cf.transparent]
 
-        # Can't free array until all XlibGLConfig's are GC'd.  Too much
-        # hassle, live with leak. XXX
-        # xlib.XFree(configs)
+        # 029911.python.xlib.line62.comment Can't free array until all XlibGLConfig's are GC'd.  Too much
+        # 029912.python.xlib.line63.comment hassle, live with leak. XXX
+        # 029913.python.xlib.line64.comment xlib.XFree(configs)
 
         return result
 
@@ -89,7 +89,7 @@ class XlibDisplayConfig(DisplayConfig):  # noqa: D101
         'sample_buffers': glx.GLX_SAMPLE_BUFFERS,
         'samples': glx.GLX_SAMPLES,
 
-        # Not supported in current pyglet API:
+        # 029917.python.xlib.line92.comment Not supported in current pyglet API:
         'render_type': glx.GLX_RENDER_TYPE,
         'config_caveat': glx.GLX_CONFIG_CAVEAT,
         'transparent_type': glx.GLX_TRANSPARENT_TYPE,
@@ -99,7 +99,7 @@ class XlibDisplayConfig(DisplayConfig):  # noqa: D101
         'transparent_blue_value': glx.GLX_TRANSPARENT_BLUE_VALUE,
         'transparent_alpha_value': glx.GLX_TRANSPARENT_ALPHA_VALUE,
 
-        # Used internally
+        # 029918.python.xlib.line102.comment Used internally
         'x_renderable': glx.GLX_X_RENDERABLE,
     }
 
@@ -118,9 +118,9 @@ class XlibDisplayConfig(DisplayConfig):  # noqa: D101
             if result >= 0:
                 setattr(self, name, value.value)
 
-        # If user intends for a transparent framebuffer, the visual info needs to be
-        # queried for it. Even if a config supports alpha_size 8 and depth_size 32, there is no
-        # guarantee the visual info supports that same configuration.
+        # 029921.python.xlib.line121.comment If user intends for a transparent framebuffer, the visual info needs to be
+        # 029922.python.xlib.line122.comment queried for it. Even if a config supports alpha_size 8 and depth_size 32, there is no
+        # 029923.python.xlib.line123.comment guarantee the visual info supports that same configuration.
         if config.transparent_framebuffer:
             xvi_ptr = glx.glXGetVisualFromFBConfig(canvas.display._display, self.fbconfig)  # noqa: SLF001
             if xvi_ptr:
@@ -141,7 +141,7 @@ class XlibDisplayConfig(DisplayConfig):  # noqa: D101
         return XlibContext(self, share)
 
     def compatible(self, canvas: XlibCanvas) -> bool:
-        # TODO check more
+        # 029927.python.xlib.line144.comment TODO check more
         return isinstance(canvas, XlibCanvas)
 
     def _create_glx_context(self, _share: None) -> NoReturn:
@@ -171,7 +171,7 @@ class XlibContext(Context):  # noqa: D101
 
         self.glx_context = self._create_glx_context(share)
         if not self.glx_context:
-            # TODO: Check Xlib error generated
+            # 029935.python.xlib.line174.comment TODO: Check Xlib error generated
             msg = 'Could not create GL context'
             raise gl.ContextException(msg)
 
@@ -180,15 +180,15 @@ class XlibContext(Context):  # noqa: D101
         self._have_EXT_swap_control = config.glx_info.have_extension('GLX_EXT_swap_control')
         self._have_MESA_swap_control = config.glx_info.have_extension('GLX_MESA_swap_control')
 
-        # In order of preference:
-        # 1. GLX_EXT_swap_control (more likely to work where video_sync will not)
-        # 2. GLX_MESA_swap_control (same as above, but supported by MESA drivers)
-        # 3. GLX_SGI_video_sync (does not work on Intel 945GM, but that has EXT)
-        # 4. GLX_SGI_swap_control (cannot be disabled once enabled)
+        # 029936.python.xlib.line183.comment In order of preference:
+        # 029937.python.xlib.line184.comment 1. GLX_EXT_swap_control (more likely to work where video_sync will not)
+        # 029938.python.xlib.line185.comment 2. GLX_MESA_swap_control (same as above, but supported by MESA drivers)
+        # 029939.python.xlib.line186.comment 3. GLX_SGI_video_sync (does not work on Intel 945GM, but that has EXT)
+        # 029940.python.xlib.line187.comment 4. GLX_SGI_swap_control (cannot be disabled once enabled)
         self._use_video_sync = (self._have_SGI_video_sync and
                                 not (self._have_EXT_swap_control or self._have_MESA_swap_control))
 
-        # XXX Mandate that vsync defaults on across all platforms.
+        # 029941.python.xlib.line191.comment XXX Mandate that vsync defaults on across all platforms.
         self._vsync = True
 
         self.glx_window = None

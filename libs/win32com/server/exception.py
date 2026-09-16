@@ -17,8 +17,8 @@ import sys
 import pythoncom
 
 
-# Note that we derive from com_error, which derives from builtin Exception
-# Also note that we don't support "self.args", as we don't support tuple-unpacking
+# 049622.python.exception.line20.comment Note that we derive from com_error, which derives from builtin Exception
+# 049623.python.exception.line21.comment Also note that we don't support "self.args", as we don't support tuple-unpacking
 class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic module
     """An Exception object that is understood by the framework.
 
@@ -56,11 +56,11 @@ class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic
         hresult -- A short-cut for scode.
         """
 
-        # convert a WIN32 error into an HRESULT
+        # 049625.python.exception.line59.comment convert a WIN32 error into an HRESULT
         scode = scode or hresult
         if scode and scode != 1:  # We don't want S_FALSE mapped!
             if scode >= -32768 and scode < 32768:
-                # this is HRESULT_FROM_WIN32()
+                # 049627.python.exception.line63.comment this is HRESULT_FROM_WIN32()
                 scode = -2147024896 | (scode & 0x0000FFFF)
         self.scode = scode
 
@@ -74,7 +74,7 @@ class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic
         self.helpfile = helpfile
         self.helpcontext = helpContext
 
-        # todo - fill in the exception value
+        # 049628.python.exception.line77.comment todo - fill in the exception value
         pythoncom.com_error.__init__(self, scode, self.description, None, -1)
 
     def __repr__(self):
@@ -85,7 +85,7 @@ def IsCOMException(t=None):
     if t is None:
         t = sys.exc_info()[0]
     if not t is type:
-        # t is not a class (likely None or a str)
+        # 049629.python.exception.line88.comment t is not a class (likely None or a str)
         return False
     return issubclass(t, pythoncom.com_error)
 
@@ -94,6 +94,6 @@ def IsCOMServerException(t=None):
     if t is None:
         t = sys.exc_info()[0]
     if not t is type:
-        # t is not a class (likely None or a str)
+        # 049630.python.exception.line97.comment t is not a class (likely None or a str)
         return False
     return issubclass(t, COMException)

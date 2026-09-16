@@ -9,15 +9,15 @@ import os
 import warnings
 from collections.abc import Iterable
 
-# This class is really only used by the "build_ext" command, so it might
-# make sense to put it in distutils.command.build_ext.  However, that
-# module is already big enough, and I want to make this class a bit more
-# complex to simplify some common cases ("foo" module in "foo.c") and do
-# better error-checking ("foo.c" actually exists).
-#
-# Also, putting this in build_ext.py means every setup script would have to
-# import that large-ish module (indirectly, through distutils.core) in
-# order to do anything.
+# 040591.python.extension.line12.comment This class is really only used by the "build_ext" command, so it might
+# 040592.python.extension.line13.comment make sense to put it in distutils.command.build_ext.  However, that
+# 040593.python.extension.line14.comment module is already big enough, and I want to make this class a bit more
+# 040594.python.extension.line15.comment complex to simplify some common cases ("foo" module in "foo.c") and do
+# 040595.python.extension.line16.comment better error-checking ("foo.c" actually exists).
+# 040596.python.extension.line17.comment
+# 040597.python.extension.line18.comment Also, putting this in build_ext.py means every setup script would have to
+# 040598.python.extension.line19.comment import that large-ish module (indirectly, through distutils.core) in
+# 040599.python.extension.line20.comment order to do anything.
 
 
 class Extension:
@@ -87,8 +87,8 @@ class Extension:
         build process, but simply not install the failing extension.
     """
 
-    # When adding arguments to this constructor, be sure to update
-    # setup_keywords in core.py.
+    # 040600.python.extension.line90.comment When adding arguments to this constructor, be sure to update
+    # 040601.python.extension.line91.comment setup_keywords in core.py.
     def __init__(
         self,
         name: str,
@@ -112,13 +112,13 @@ class Extension:
         if not isinstance(name, str):
             raise TypeError("'name' must be a string")
 
-        # handle the string case first; since strings are iterable, disallow them
+        # 040603.python.extension.line115.comment handle the string case first; since strings are iterable, disallow them
         if isinstance(sources, str):
             raise TypeError(
                 "'sources' must be an iterable of strings or PathLike objects, not a string"
             )
 
-        # now we check if it's iterable and contains valid types
+        # 040604.python.extension.line121.comment now we check if it's iterable and contains valid types
         try:
             self.sources = list(map(os.fspath, sources))
         except TypeError:
@@ -142,7 +142,7 @@ class Extension:
         self.language = language
         self.optional = optional
 
-        # If there are unknown keyword options, warn about them
+        # 040605.python.extension.line145.comment If there are unknown keyword options, warn about them
         if len(kw) > 0:
             options = [repr(option) for option in kw]
             options = ', '.join(sorted(options))
@@ -159,11 +159,11 @@ def read_setup_file(filename):  # noqa: C901
     from distutils.text_file import TextFile
     from distutils.util import split_quoted
 
-    # First pass over the file to gather "VAR = VALUE" assignments.
+    # 040607.python.extension.line162.comment First pass over the file to gather "VAR = VALUE" assignments.
     vars = parse_makefile(filename)
 
-    # Second pass to gobble up the real content: lines of the form
-    #   <module> ... [<sourcefile> ...] [<cpparg> ...] [<library> ...]
+    # 040608.python.extension.line165.comment Second pass to gobble up the real content: lines of the form
+    # 040609.python.extension.line166.comment <module> ... [<sourcefile> ...] [<cpparg> ...] [<library> ...]
     file = TextFile(
         filename,
         strip_comments=True,
@@ -189,11 +189,11 @@ def read_setup_file(filename):  # noqa: C901
             line = expand_makefile_vars(line, vars)
             words = split_quoted(line)
 
-            # NB. this parses a slightly different syntax than the old
-            # makesetup script: here, there must be exactly one extension per
-            # line, and it must be the first word of the line.  I have no idea
-            # why the old syntax supported multiple extensions per line, as
-            # they all wind up being the same.
+            # 040612.python.extension.line192.comment NB. this parses a slightly different syntax than the old
+            # 040613.python.extension.line193.comment makesetup script: here, there must be exactly one extension per
+            # 040614.python.extension.line194.comment line, and it must be the first word of the line.  I have no idea
+            # 040615.python.extension.line195.comment why the old syntax supported multiple extensions per line, as
+            # 040616.python.extension.line196.comment they all wind up being the same.
 
             module = words[0]
             ext = Extension(module, [])
@@ -210,9 +210,9 @@ def read_setup_file(filename):  # noqa: C901
                 value = word[2:]
 
                 if suffix in (".c", ".cc", ".cpp", ".cxx", ".c++", ".m", ".mm"):
-                    # hmm, should we do something about C vs. C++ sources?
-                    # or leave it up to the CCompiler implementation to
-                    # worry about?
+                    # 040617.python.extension.line213.comment hmm, should we do something about C vs. C++ sources?
+                    # 040618.python.extension.line214.comment or leave it up to the CCompiler implementation to
+                    # 040619.python.extension.line215.comment worry about?
                     ext.sources.append(word)
                 elif switch == "-I":
                     ext.include_dirs.append(value)
@@ -243,10 +243,10 @@ def read_setup_file(filename):  # noqa: C901
                     if not value:
                         append_next_word = ext.extra_link_args
                 elif suffix in (".a", ".so", ".sl", ".o", ".dylib"):
-                    # NB. a really faithful emulation of makesetup would
-                    # append a .o file to extra_objects only if it
-                    # had a slash in it; otherwise, it would s/.o/.c/
-                    # and append it to sources.  Hmmmm.
+                    # 040623.python.extension.line246.comment NB. a really faithful emulation of makesetup would
+                    # 040624.python.extension.line247.comment append a .o file to extra_objects only if it
+                    # 040625.python.extension.line248.comment had a slash in it; otherwise, it would s/.o/.c/
+                    # 040626.python.extension.line249.comment and append it to sources.  Hmmmm.
                     ext.extra_objects.append(word)
                 else:
                     file.warn(f"unrecognized argument '{word}'")

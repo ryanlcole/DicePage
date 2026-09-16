@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025347.python.test_memleaks.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025348.python.test_memleaks.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025349.python.test_memleaks.line5.comment found in the LICENSE file.
 
 """Tests for detecting function memory leaks (typically the ones
 implemented in C). It does so by calling a function many times and
@@ -76,9 +76,9 @@ def fewtimes_if_linux():
     return decorator
 
 
-# ===================================================================
-# Process class
-# ===================================================================
+# 025350.python.test_memleaks.line79.comment ===================================================================
+# 025351.python.test_memleaks.line80.comment Process class
+# 025352.python.test_memleaks.line81.comment ===================================================================
 
 
 class TestProcessObjectLeaks(TestMemoryLeak):
@@ -148,7 +148,7 @@ class TestProcessObjectLeaks(TestMemoryLeak):
 
     @pytest.mark.skipif(POSIX, reason="worthless on POSIX")
     def test_username(self):
-        # always open 1 handle on Windows (only once)
+        # 025353.python.test_memleaks.line151.comment always open 1 handle on Windows (only once)
         psutil.Process().username()
         self.execute(self.proc.username)
 
@@ -242,13 +242,13 @@ class TestProcessObjectLeaks(TestMemoryLeak):
         self.execute_w_exc((OSError, ValueError), lambda: self.proc.rlimit(-1))
 
     @fewtimes_if_linux()
-    # Windows implementation is based on a single system-wide
-    # function (tested later).
+    # 025354.python.test_memleaks.line245.comment Windows implementation is based on a single system-wide
+    # 025355.python.test_memleaks.line246.comment function (tested later).
     @pytest.mark.skipif(WINDOWS, reason="worthless on WINDOWS")
     def test_net_connections(self):
-        # TODO: UNIX sockets are temporarily implemented by parsing
-        # 'pfiles' cmd  output; we don't want that part of the code to
-        # be executed.
+        # 025356.python.test_memleaks.line249.comment TODO: UNIX sockets are temporarily implemented by parsing
+        # 025357.python.test_memleaks.line250.comment 'pfiles' cmd  output; we don't want that part of the code to
+        # 025358.python.test_memleaks.line251.comment be executed.
         with create_sockets():
             kind = 'inet' if SUNOS else 'all'
             self.execute(lambda: self.proc.net_connections(kind))
@@ -306,7 +306,7 @@ class TestTerminatedProcessLeaks(TestProcessObjectLeaks):
             self.execute(self.proc.wait)
 
         def test_proc_info(self):
-            # test dual implementation
+            # 025359.python.test_memleaks.line309.comment test dual implementation
             def call():
                 try:
                     return cext.proc_info(self.proc.pid)
@@ -325,9 +325,9 @@ class TestProcessDualImplementation(TestMemoryLeak):
         self.execute(lambda: cext.proc_cmdline(os.getpid(), use_peb=False))
 
 
-# ===================================================================
-# system APIs
-# ===================================================================
+# 025360.python.test_memleaks.line328.comment ===================================================================
+# 025361.python.test_memleaks.line329.comment system APIs
+# 025362.python.test_memleaks.line330.comment ===================================================================
 
 
 class TestModuleFunctionsLeaks(TestMemoryLeak):
@@ -337,7 +337,7 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
         ns = system_namespace()
         ns.test_class_coverage(self, ns.all)
 
-    # --- cpu
+    # 025363.python.test_memleaks.line340.comment --- cpu
 
     @fewtimes_if_linux()
     def test_cpu_count(self):  # logical
@@ -360,7 +360,7 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
         self.execute(psutil.cpu_stats)
 
     @fewtimes_if_linux()
-    # TODO: remove this once 1892 is fixed
+    # 025365.python.test_memleaks.line363.comment TODO: remove this once 1892 is fixed
     @pytest.mark.skipif(MACOS and AARCH64, reason="skipped due to #1892")
     @pytest.mark.skipif(not HAS_CPU_FREQ, reason="not supported")
     def test_cpu_freq(self):
@@ -371,12 +371,12 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
         psutil.getloadavg()
         self.execute(psutil.getloadavg)
 
-    # --- mem
+    # 025366.python.test_memleaks.line374.comment --- mem
 
     def test_virtual_memory(self):
         self.execute(psutil.virtual_memory)
 
-    # TODO: remove this skip when this gets fixed
+    # 025367.python.test_memleaks.line379.comment TODO: remove this skip when this gets fixed
     @pytest.mark.skipif(SUNOS, reason="worthless on SUNOS (uses a subprocess)")
     def test_swap_memory(self):
         self.execute(psutil.swap_memory)
@@ -385,7 +385,7 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
         times = FEW_TIMES if POSIX else self.times
         self.execute(lambda: psutil.pid_exists(os.getpid()), times=times)
 
-    # --- disk
+    # 025368.python.test_memleaks.line388.comment --- disk
 
     def test_disk_usage(self):
         times = FEW_TIMES if POSIX else self.times
@@ -402,13 +402,13 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
     def test_disk_io_counters(self):
         self.execute(lambda: psutil.disk_io_counters(nowrap=False))
 
-    # --- proc
+    # 025369.python.test_memleaks.line405.comment --- proc
 
     @fewtimes_if_linux()
     def test_pids(self):
         self.execute(psutil.pids)
 
-    # --- net
+    # 025370.python.test_memleaks.line411.comment --- net
 
     @fewtimes_if_linux()
     @pytest.mark.skipif(not HAS_NET_IO_COUNTERS, reason="not supported")
@@ -418,20 +418,20 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
     @fewtimes_if_linux()
     @pytest.mark.skipif(MACOS and os.getuid() != 0, reason="need root access")
     def test_net_connections(self):
-        # always opens and handle on Windows() (once)
+        # 025371.python.test_memleaks.line421.comment always opens and handle on Windows() (once)
         psutil.net_connections(kind='all')
         with create_sockets():
             self.execute(lambda: psutil.net_connections(kind='all'))
 
     def test_net_if_addrs(self):
-        # Note: verified that on Windows this was a false positive.
+        # 025372.python.test_memleaks.line427.comment Note: verified that on Windows this was a false positive.
         tolerance = 80 * 1024 if WINDOWS else self.tolerance
         self.execute(psutil.net_if_addrs, tolerance=tolerance)
 
     def test_net_if_stats(self):
         self.execute(psutil.net_if_stats)
 
-    # --- sensors
+    # 025373.python.test_memleaks.line434.comment --- sensors
 
     @fewtimes_if_linux()
     @pytest.mark.skipif(not HAS_SENSORS_BATTERY, reason="not supported")
@@ -448,7 +448,7 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
     def test_sensors_fans(self):
         self.execute(psutil.sensors_fans)
 
-    # --- others
+    # 025374.python.test_memleaks.line451.comment --- others
 
     @fewtimes_if_linux()
     def test_boot_time(self):
@@ -462,7 +462,7 @@ class TestModuleFunctionsLeaks(TestMemoryLeak):
 
     if WINDOWS:
 
-        # --- win services
+        # 025375.python.test_memleaks.line465.comment --- win services
 
         def test_win_service_iter(self):
             self.execute(cext.winservice_enumerate)

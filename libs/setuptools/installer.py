@@ -53,8 +53,8 @@ def _fetch_build_eggs(dist, requires: _reqs._StrOrIter) -> list[metadata.Distrib
     )
     resolved_dists = [_fetch_build_egg_no_warn(dist, req) for req in needed_reqs]
     for dist in resolved_dists:
-        # dist.locate_file('') is the directory containing EGG-INFO, where the importabl
-        # contents can be found.
+        # 044916.python.installer.line56.comment dist.locate_file('') is the directory containing EGG-INFO, where the importabl
+        # 044917.python.installer.line57.comment contents can be found.
         sys.path.insert(0, str(dist.locate_file('')))
     return resolved_dists
 
@@ -68,11 +68,11 @@ def _dist_matches_req(egg_dist, req):
 
 
 def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
-    # Ignore environment markers; if supplied, it is required.
+    # 044919.python.installer.line71.comment Ignore environment markers; if supplied, it is required.
     req = strip_marker(req)
-    # Take easy_install options into account, but do not override relevant
-    # pip environment variables (like PIP_INDEX_URL or PIP_QUIET); they'll
-    # take precedence.
+    # 044920.python.installer.line73.comment Take easy_install options into account, but do not override relevant
+    # 044921.python.installer.line74.comment pip environment variables (like PIP_INDEX_URL or PIP_QUIET); they'll
+    # 044922.python.installer.line75.comment take precedence.
     opts = dist.get_option_dict('easy_install')
     if 'allow_hosts' in opts:
         raise DistutilsError(
@@ -113,9 +113,9 @@ def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  #
             cmd.extend(('--index-url', index_url))
         for link in find_links or []:
             cmd.extend(('--find-links', link))
-        # If requirement is a PEP 508 direct URL, directly pass
-        # the URL to pip, as `req @ url` does not work on the
-        # command line.
+        # 044923.python.installer.line116.comment If requirement is a PEP 508 direct URL, directly pass
+        # 044924.python.installer.line117.comment the URL to pip, as `req @ url` does not work on the
+        # 044925.python.installer.line118.comment command line.
         cmd.append(req.url or str(req))
         try:
             subprocess.check_call(cmd)
@@ -133,7 +133,7 @@ def strip_marker(req):
     calling pip with something like `babel; extra == "i18n"`, which
     would always be ignored.
     """
-    # create a copy to avoid mutating the input
+    # 044926.python.installer.line136.comment create a copy to avoid mutating the input
     req = packaging.requirements.Requirement(str(req))
     req.marker = None
     return req

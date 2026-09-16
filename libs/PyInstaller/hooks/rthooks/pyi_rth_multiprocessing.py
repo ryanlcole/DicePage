@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2017-2023, PyInstaller Development Team.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: Apache-2.0
-#-----------------------------------------------------------------------------
+# 008341.python.pyi_rth_multiprocessing.line1.comment -----------------------------------------------------------------------------
+# 008342.python.pyi_rth_multiprocessing.line2.comment Copyright (c) 2017-2023, PyInstaller Development Team.
+# 008343.python.pyi_rth_multiprocessing.line3.comment
+# 008344.python.pyi_rth_multiprocessing.line4.comment Licensed under the Apache License, Version 2.0 (the "License");
+# 008345.python.pyi_rth_multiprocessing.line5.comment you may not use this file except in compliance with the License.
+# 008346.python.pyi_rth_multiprocessing.line6.comment
+# 008347.python.pyi_rth_multiprocessing.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 008348.python.pyi_rth_multiprocessing.line8.comment
+# 008349.python.pyi_rth_multiprocessing.line9.comment SPDX-License-Identifier: Apache-2.0
+# 008350.python.pyi_rth_multiprocessing.line10.comment -----------------------------------------------------------------------------
 
 
 def _pyi_rthook():
@@ -18,16 +18,16 @@ def _pyi_rthook():
 
     from subprocess import _args_from_interpreter_flags
 
-    # Prevent `spawn` from trying to read `__main__` in from the main script
+    # 008351.python.pyi_rth_multiprocessing.line21.comment Prevent `spawn` from trying to read `__main__` in from the main script
     multiprocessing.process.ORIGINAL_DIR = None
 
     def _freeze_support():
-        # We want to catch the two processes that are spawned by the multiprocessing code:
-        # - the semaphore tracker, which cleans up named semaphores in the `spawn` multiprocessing mode
-        # - the fork server, which keeps track of worker processes in the `forkserver` mode.
-        # Both of these processes are started by spawning a new copy of the running executable, passing it the flags
-        # from `_args_from_interpreter_flags` and then "-c" and an import statement.
-        # Look for those flags and the import statement, then `exec()` the code ourselves.
+        # 008352.python.pyi_rth_multiprocessing.line25.comment We want to catch the two processes that are spawned by the multiprocessing code:
+        # 008353.python.pyi_rth_multiprocessing.line26.comment - the semaphore tracker, which cleans up named semaphores in the `spawn` multiprocessing mode
+        # 008354.python.pyi_rth_multiprocessing.line27.comment - the fork server, which keeps track of worker processes in the `forkserver` mode.
+        # 008355.python.pyi_rth_multiprocessing.line28.comment Both of these processes are started by spawning a new copy of the running executable, passing it the flags
+        # 008356.python.pyi_rth_multiprocessing.line29.comment from `_args_from_interpreter_flags` and then "-c" and an import statement.
+        # 008357.python.pyi_rth_multiprocessing.line30.comment Look for those flags and the import statement, then `exec()` the code ourselves.
 
         if (
             len(sys.argv) >= 2 and sys.argv[-2] == '-c' and sys.argv[-1].startswith(

@@ -1,14 +1,14 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 018131.python.hook-ttkthemes.line1.comment ------------------------------------------------------------------
+# 018132.python.hook-ttkthemes.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 018133.python.hook-ttkthemes.line3.comment
+# 018134.python.hook-ttkthemes.line4.comment This file is distributed under the terms of the GNU General Public
+# 018135.python.hook-ttkthemes.line5.comment License (version 2.0 or later).
+# 018136.python.hook-ttkthemes.line6.comment
+# 018137.python.hook-ttkthemes.line7.comment The full license is available in LICENSE, distributed with
+# 018138.python.hook-ttkthemes.line8.comment this software.
+# 018139.python.hook-ttkthemes.line9.comment
+# 018140.python.hook-ttkthemes.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 018141.python.hook-ttkthemes.line11.comment ------------------------------------------------------------------
 """
 Hook for use with the ttkthemes package
 

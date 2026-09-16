@@ -48,12 +48,12 @@ class AXScriptCodeBlock(framework.AXScriptCodeBlock):
         return "PyScript - " + framework.AXScriptCodeBlock.GetDisplayName(self)
 
 
-# There is only ever _one_ ax object - it exists in the global namespace
-# for all script items.
-# It performs a search from all global/visible objects
-# down.
-# This means that if 2 sub-objects of the same name are used
-# then only one is ever reachable using the ax shortcut.
+# 051206.python.pyscript.line51.comment There is only ever _one_ ax object - it exists in the global namespace
+# 051207.python.pyscript.line52.comment for all script items.
+# 051208.python.pyscript.line53.comment It performs a search from all global/visible objects
+# 051209.python.pyscript.line54.comment down.
+# 051210.python.pyscript.line55.comment This means that if 2 sub-objects of the same name are used
+# 051211.python.pyscript.line56.comment then only one is ever reachable using the ax shortcut.
 class AXScriptAttribute:
     "An attribute in a scripts namespace."
 
@@ -76,7 +76,7 @@ class AXScriptAttribute:
             return obj.subItems[attr.lower()].attributeObject
         except KeyError:
             pass
-        # Check out the sub-items
+        # 051212.python.pyscript.line79.comment Check out the sub-items
         for item in obj.subItems.values():
             try:
                 return self._DoFindAttribute_(item, attr)
@@ -90,21 +90,21 @@ class AXScriptAttribute:
                 return self._DoFindAttribute_(item, attr)
             except AttributeError:
                 pass
-        # All else fails, see if it is a global
-        # (mainly b/w compat)
+        # 051213.python.pyscript.line93.comment All else fails, see if it is a global
+        # 051214.python.pyscript.line94.comment (mainly b/w compat)
         return getattr(self._scriptEngine_.globalNameSpaceModule, attr)
 
 
-# 		raise AttributeError(attr)
+# 051215.python.pyscript.line98.comment raise AttributeError(attr)
 
 
 class NamedScriptAttribute:
     "An explicitly named object in an objects namespace"
 
-    # Each named object holds a reference to one of these.
-    # Whenever a sub-item appears in a namespace, it is really one of these
-    # objects.  Has a circular reference back to the item itself, which is
-    # closed via _Close_()
+    # 051216.python.pyscript.line104.comment Each named object holds a reference to one of these.
+    # 051217.python.pyscript.line105.comment Whenever a sub-item appears in a namespace, it is really one of these
+    # 051218.python.pyscript.line106.comment objects.  Has a circular reference back to the item itself, which is
+    # 051219.python.pyscript.line107.comment closed via _Close_()
     def __init__(self, scriptItem):
         self.__dict__["_scriptItem_"] = scriptItem
 
@@ -112,18 +112,18 @@ class NamedScriptAttribute:
         return f"{self.__class__.__name__}({self._scriptItem_!r})"
 
     def __getattr__(self, attr):
-        # If a known subitem, return it.
+        # 051220.python.pyscript.line115.comment If a known subitem, return it.
         try:
             return self._scriptItem_.subItems[attr.lower()].attributeObject
         except KeyError:
-            # Otherwise see if the dispatch can give it to us
+            # 051221.python.pyscript.line119.comment Otherwise see if the dispatch can give it to us
             if self._scriptItem_.dispatchContainer:
                 return getattr(self._scriptItem_.dispatchContainer, attr)
         raise AttributeError(attr)
 
     def __setattr__(self, attr, value):
-        # XXX - todo - if a known item, then should call its default
-        # dispatch method.
+        # 051222.python.pyscript.line125.comment XXX - todo - if a known item, then should call its default
+        # 051223.python.pyscript.line126.comment dispatch method.
         attr = attr.lower()
         if self._scriptItem_.dispatchContainer:
             try:
@@ -157,7 +157,7 @@ class ScriptItem(framework.ScriptItem):
         framework.ScriptItem.Register(self)
         self.attributeObject = NamedScriptAttribute(self)
         if self.dispatch:
-            # Need to avoid the new Python "lazy" dispatch behaviour.
+            # 051225.python.pyscript.line160.comment Need to avoid the new Python "lazy" dispatch behaviour.
             olerepr = clsid = None
             try:
                 engine = self.GetEngine()
@@ -177,20 +177,20 @@ class ScriptItem(framework.ScriptItem):
             )
 
 
-# 			self.dispatchContainer = win32com.client.dynamic.Dispatch(self.dispatch, userName = self.name)
-# 			self.dispatchContainer = win32com.client.dynamic.DumbDispatch(self.dispatch, userName = self.name)
+# 051226.python.pyscript.line180.comment self.dispatchContainer = win32com.client.dynamic.Dispatch(self.dispatch, userName = self.name)
+# 051227.python.pyscript.line181.comment self.dispatchContainer = win32com.client.dynamic.DumbDispatch(self.dispatch, userName = self.name)
 
-# 	def Connect(self):
-# 		framework.ScriptItem.Connect(self)
-# 	def Disconnect(self):
-# 		framework.ScriptItem.Disconnect(self)
+# 051228.python.pyscript.line183.comment def Connect(self):
+# 051229.python.pyscript.line184.comment framework.ScriptItem.Connect(self)
+# 051230.python.pyscript.line185.comment def Disconnect(self):
+# 051231.python.pyscript.line186.comment framework.ScriptItem.Disconnect(self)
 
 
 class PyScript(framework.COMScript):
-    # Setup the auto-registration stuff...
+    # 051232.python.pyscript.line190.comment Setup the auto-registration stuff...
     _reg_verprogid_ = "Python.AXScript.2"
     _reg_progid_ = "Python"
-    # 	_reg_policy_spec_ = default
+    # 051233.python.pyscript.line193.comment _reg_policy_spec_ = default
     _reg_catids_ = [axscript.CATID_ActiveScript, axscript.CATID_ActiveScriptParse]
     _reg_desc_ = "Python ActiveX Scripting Engine"
     _reg_clsid_ = PyScript_CLSID
@@ -217,13 +217,13 @@ class PyScript(framework.COMScript):
         self.codeBlockCounter = 0
 
     def Stop(self):
-        # Flag every pending script as already done
+        # 051235.python.pyscript.line220.comment Flag every pending script as already done
         for b in self.codeBlocks:
             b.beenExecuted = 1
         return framework.COMScript.Stop(self)
 
     def Reset(self):
-        # Reset all code-blocks that are persistent, and discard the rest
+        # 051236.python.pyscript.line226.comment Reset all code-blocks that are persistent, and discard the rest
         oldCodeBlocks = self.codeBlocks[:]
         self.codeBlocks = []
         for b in oldCodeBlocks:
@@ -240,17 +240,17 @@ class PyScript(framework.COMScript):
         wasReg = item.isRegistered
         framework.COMScript.RegisterNamedItem(self, item)
         if not wasReg:
-            # Insert into our namespace.
-            # Add every item by name
+            # 051237.python.pyscript.line243.comment Insert into our namespace.
+            # 051238.python.pyscript.line244.comment Add every item by name
             if item.IsVisible():
                 self.globalNameSpaceModule.__dict__[item.name] = item.attributeObject
             if item.IsGlobal():
-                # Global items means sub-items are also added...
+                # 051239.python.pyscript.line248.comment Global items means sub-items are also added...
                 for subitem in item.subItems.values():
                     self.globalNameSpaceModule.__dict__[subitem.name] = (
                         subitem.attributeObject
                     )
-                # Also add all methods
+                # 051240.python.pyscript.line253.comment Also add all methods
                 for name, entry in item.dispatchContainer._olerepr_.mapFuncs.items():
                     if not entry.hidden:
                         self.globalNameSpaceModule.__dict__[name] = getattr(
@@ -278,8 +278,8 @@ class PyScript(framework.COMScript):
         framework.COMScript.Close(self)
 
     def GetScriptDispatch(self, name):
-        # 		trace("GetScriptDispatch with", name)
-        # 		if name is not None: return None
+        # 051241.python.pyscript.line281.comment trace("GetScriptDispatch with", name)
+        # 051242.python.pyscript.line282.comment if name is not None: return None
         if self.scriptDispatch is None:
             self.scriptDispatch = scriptdispatch.MakeScriptDispatch(
                 self, self.globalNameSpaceModule
@@ -306,7 +306,7 @@ class PyScript(framework.COMScript):
         sourceContextCookie,
         startLineNumber,
     ):
-        # Just store the code away - compile when called.  (JIT :-)
+        # 051243.python.pyscript.line309.comment Just store the code away - compile when called.  (JIT :-)
         item = self.GetNamedItem(itemName)
         if (
             itemName == subItemName
@@ -323,7 +323,7 @@ class PyScript(framework.COMScript):
         subItem.scriptlets[funcName] = codeBlock
 
     def DoProcessScriptItemEvent(self, item, event, lcid, wFlags, args):
-        # 		trace("ScriptItemEvent", self, item, event, event.name, lcid, wFlags, args)
+        # 051245.python.pyscript.line326.comment trace("ScriptItemEvent", self, item, event, event.name, lcid, wFlags, args)
         funcName = self.MakeEventMethodName(item.name, event.name)
         codeBlock = function = None
         try:
@@ -345,19 +345,19 @@ class PyScript(framework.COMScript):
                 codeBlock, self.globalNameSpaceModule.__dict__, dict
             )
             function = dict[funcName]
-            # cache back in scriptlets as a function.
+            # 051247.python.pyscript.line348.comment cache back in scriptlets as a function.
             item.scriptlets[funcName] = function
         if function is None:
-            # still no function - see if in the global namespace.
+            # 051248.python.pyscript.line351.comment still no function - see if in the global namespace.
             try:
                 function = self.globalNameSpaceModule.__dict__[funcName]
             except KeyError:
-                # Not there _exactly_ - do case ins search.
+                # 051249.python.pyscript.line355.comment Not there _exactly_ - do case ins search.
                 funcNameLook = funcName.lower()
                 for attr in self.globalNameSpaceModule.__dict__:
                     if funcNameLook == attr.lower():
                         function = self.globalNameSpaceModule.__dict__[attr]
-                        # cache back in scriptlets, to avoid this overhead next time
+                        # 051250.python.pyscript.line360.comment cache back in scriptlets, to avoid this overhead next time
                         item.scriptlets[funcName] = function
 
         if function is None:
@@ -390,7 +390,7 @@ class PyScript(framework.COMScript):
                 else:
                     return self.ExecInScriptedSection(codeBlock, globs)
 
-            # else compile failed, but user chose to keep running...
+            # 051252.python.pyscript.line393.comment else compile failed, but user chose to keep running...
         else:
             if flags & SCRIPTTEXT_FORCEEXECUTION:
                 if self.CompileInScriptedSection(codeBlock, exec_type):
@@ -415,7 +415,7 @@ def DllRegisterServer():
     win32com.server.register._set_subkeys(
         klass._reg_progid_ + "\\OLEScript", {}
     )  # Just a CreateKey
-    # Basic Registration for wsh.
+    # 051255.python.pyscript.line418.comment Basic Registration for wsh.
     win32com.server.register._set_string(".pys", "pysFile")
     win32com.server.register._set_string("pysFile\\ScriptEngine", klass._reg_progid_)
     guid_wsh_shellex = "{60254CA5-953B-11CF-8C96-00AA00B8708C}"

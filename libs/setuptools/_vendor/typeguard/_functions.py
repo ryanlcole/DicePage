@@ -164,9 +164,9 @@ def check_return_type(
     try:
         check_type_internal(retval, annotation, memo)
     except TypeCheckError as exc:
-        # Allow NotImplemented if this is a binary magic method (__eq__() et al)
+        # 043425.python.functions.line167.comment Allow NotImplemented if this is a binary magic method (__eq__() et al)
         if retval is NotImplemented and annotation is bool:
-            # This does (and cannot) not check if it's actually a method
+            # 043426.python.functions.line169.comment This does (and cannot) not check if it's actually a method
             func_name = func_name.rsplit(".", 1)[-1]
             if func_name in BINARY_MAGIC_METHODS:
                 return retval

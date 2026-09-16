@@ -13,13 +13,13 @@ EV_PWR = 0x16
 EV_FF_STATUS = 0x17
 EV_MAX = 0x1f
 
-# Synchronization events.
+# 030523.python.evdev_constants.line16.comment Synchronization events.
 
 SYN_REPORT = 0
 SYN_CONFIG = 1
 SYN_DROPPED = 3
 
-# Keys and buttons
+# 030524.python.evdev_constants.line22.comment Keys and buttons
 
 KEY_RESERVED = 0
 KEY_ESC = 1
@@ -464,7 +464,7 @@ BTN_TRIGGER_HAPPY40 = 0x2e7
 
 KEY_MAX = 0x2ff
 
-# Relative axes
+# 030525.python.evdev_constants.line467.comment Relative axes
 
 REL_X = 0x00
 REL_Y = 0x01
@@ -478,7 +478,7 @@ REL_WHEEL = 0x08
 REL_MISC = 0x09
 REL_MAX = 0x0f
 
-# Absolute axes
+# 030526.python.evdev_constants.line481.comment Absolute axes
 
 ABS_X = 0x00
 ABS_Y = 0x01
@@ -508,7 +508,7 @@ ABS_VOLUME = 0x20
 ABS_MISC = 0x28
 ABS_MAX = 0x3f
 
-# Misc events
+# 030527.python.evdev_constants.line511.comment Misc events
 
 MSC_SERIAL = 0x00
 MSC_PULSELED = 0x01
@@ -517,7 +517,7 @@ MSC_RAW = 0x03
 MSC_SCAN = 0x04
 MSC_MAX = 0x07
 
-# LEDs
+# 030528.python.evdev_constants.line520.comment LEDs
 
 LED_NUML = 0x00
 LED_CAPSL = 0x01
@@ -532,20 +532,20 @@ LED_MAIL = 0x09
 LED_CHARGING = 0x0a
 LED_MAX = 0x0f
 
-# Autorepeat values
+# 030529.python.evdev_constants.line535.comment Autorepeat values
 
 REP_DELAY = 0x00
 REP_PERIOD = 0x01
 REP_MAX = 0x01
 
-# Sounds
+# 030530.python.evdev_constants.line541.comment Sounds
 
 SND_CLICK = 0x00
 SND_BELL = 0x01
 SND_TONE = 0x02
 SND_MAX = 0x07
 
-# IDs.
+# 030531.python.evdev_constants.line548.comment IDs.
 
 ID_BUS = 0
 ID_VENDOR = 1
@@ -569,7 +569,7 @@ BUS_ADB = 0x17
 BUS_I2C = 0x18
 BUS_HOST = 0x19
 
-# Values describing the status of an effect
+# 030532.python.evdev_constants.line572.comment Values describing the status of an effect
 FF_STATUS_STOPPED = 0x00
 FF_STATUS_PLAYING = 0x01
 FF_STATUS_MAX = 0x01

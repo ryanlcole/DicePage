@@ -12,9 +12,9 @@ class Win32EventLoop(PlatformEventLoop):
 
         self._next_idle_time = None
 
-        # Force immediate creation of an event queue on this thread -- note
-        # that since event loop is created on pyglet.app import, whatever
-        # imports pyglet.app _must_ own the main run loop.
+        # 026159.python.win32.line15.comment Force immediate creation of an event queue on this thread -- note
+        # 026160.python.win32.line16.comment that since event loop is created on pyglet.app import, whatever
+        # 026161.python.win32.line17.comment imports pyglet.app _must_ own the main run loop.
         msg = types.MSG()
         _user32.PeekMessageW(ctypes.byref(msg), 0,
                              constants.WM_USER, constants.WM_USER,
@@ -29,8 +29,8 @@ class Win32EventLoop(PlatformEventLoop):
         self._timer = _user32.SetTimer(0, 0, constants.USER_TIMER_MAXIMUM, self._timer_proc)
         self._timer_func = None
 
-        # Windows Multimedia timer precision functions
-        # https://learn.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timebeginperiod
+        # 026162.python.win32.line32.comment Windows Multimedia timer precision functions
+        # 026163.python.win32.line33.comment https://learn.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timebeginperiod
         self._winmm = ctypes.windll.LoadLibrary('winmm')
         timecaps = TIMECAPS()
         self._winmm.timeGetDevCaps(ctypes.byref(timecaps), ctypes.sizeof(timecaps))
@@ -91,17 +91,17 @@ class Win32EventLoop(PlatformEventLoop):
             obj, func = self._wait_objects[result]
             func()
 
-        # Return True if timeout was interrupted.
+        # 026165.python.win32.line94.comment Return True if timeout was interrupted.
         return result <= self._wait_objects_n
 
     def stop(self):
         self._winmm.timeEndPeriod(self._timer_precision)
 
     def notify(self):
-        # Nudge the event loop with a message it will discard.  Note that only
-        # user events are actually posted.  The posted event will not
-        # interrupt the window move/size drag loop -- it seems there's no way
-        # to do this.
+        # 026166.python.win32.line101.comment Nudge the event loop with a message it will discard.  Note that only
+        # 026167.python.win32.line102.comment user events are actually posted.  The posted event will not
+        # 026168.python.win32.line103.comment interrupt the window move/size drag loop -- it seems there's no way
+        # 026169.python.win32.line104.comment to do this.
         _user32.PostThreadMessageW(self._event_thread, constants.WM_USER, 0, 0)
 
     def set_timer(self, func, interval):

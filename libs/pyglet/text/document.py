@@ -142,7 +142,7 @@ if TYPE_CHECKING:
 
 _is_pyglet_doc_run = hasattr(sys, "is_pyglet_doc_run") and sys.is_pyglet_doc_run
 
-#: The style attribute takes on multiple values in the document.
+# 035670.python.document.line145.comment : The style attribute takes on multiple values in the document.
 STYLE_INDETERMINATE = "indeterminate"
 
 
@@ -268,8 +268,8 @@ class AbstractDocument(event.EventDispatcher):
 
     def get_paragraph_start(self, pos: int) -> int:
         """Get the starting position of a paragraph from the character position."""
-        # Tricky special case where the $ in pattern matches before the
-        # \n at the end of the string instead of the end of the string.
+        # 035671.python.document.line271.comment Tricky special case where the $ in pattern matches before the
+        # 035672.python.document.line272.comment \n at the end of the string instead of the end of the string.
         if self._text[:pos + 1].endswith("\n") or self._text[:pos + 1].endswith("\u2029"):
             return pos
 
@@ -429,7 +429,7 @@ class AbstractDocument(event.EventDispatcher):
         element._position = position  # noqa: SLF001
         self._elements.append(element)
 
-        # All _elements should have a valid position assigned.
+        # 035683.python.document.line432.comment All _elements should have a valid position assigned.
         self._elements.sort(key=lambda d: d.position)  # type: ignore[arg-type, return-value]
 
     def get_element(self, position: int) -> InlineElement:
@@ -668,7 +668,7 @@ class _ElementIterator(runlist.RunIterator):
 
 
 class _FontStyleRunsRangeIterator(runlist.RunIterator):
-    # XXX subclass runlist
+    # 035698.python.document.line671.comment XXX subclass runlist
     def __init__(self, font_names: runlist.RunIterator, font_sizes: runlist.RunIterator, weights: runlist.RunIterator,
                  italics: runlist.RunIterator, stretch: runlist.RunIterator, dpi: int | None) -> None:
         self.zip_iter = runlist.ZipRunIterator((font_names, font_sizes, weights, italics, stretch))

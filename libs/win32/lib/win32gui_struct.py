@@ -1,31 +1,31 @@
-# This is a work in progress - see Demos/win32gui_menu.py
+# 047326.python.win32gui_struct.line1.comment This is a work in progress - see Demos/win32gui_menu.py
 
-# win32gui_struct.py - helpers for working with various win32gui structures.
-# As win32gui is "light-weight", it does not define objects for all possible
-# win32 structures - in general, "buffer" objects are passed around - it is
-# the callers responsibility to pack the buffer in the correct format.
-#
-# This module defines some helpers for the commonly used structures.
-#
-# In general, each structure has 3 functions:
-#
-# buffer, extras = PackSTRUCTURE(items, ...)
-# item, ... = UnpackSTRUCTURE(buffer)
-# buffer, extras = EmtpySTRUCTURE(...)
-#
-# 'extras' is always items that must be held along with the buffer, as the
-# buffer refers to these object's memory.
-# For structures that support a 'mask', this mask is hidden from the user - if
-# 'None' is passed, the mask flag will not be set, or on return, None will
-# be returned for the value if the mask is not set.
-#
-# NOTE: I considered making these structures look like real classes, and
-# support 'attributes' etc - however, ctypes already has a good structure
-# mechanism - I think it makes more sense to support ctype structures
-# at the win32gui level, then there will be no need for this module at all.
-# XXX - the above makes sense in terms of what is built and passed to
-# win32gui (ie, the Pack* functions) - but doesn't make as much sense for
-# the Unpack* functions, where the aim is user convenience.
+# 047327.python.win32gui_struct.line3.comment win32gui_struct.py - helpers for working with various win32gui structures.
+# 047328.python.win32gui_struct.line4.comment As win32gui is "light-weight", it does not define objects for all possible
+# 047329.python.win32gui_struct.line5.comment win32 structures - in general, "buffer" objects are passed around - it is
+# 047330.python.win32gui_struct.line6.comment the callers responsibility to pack the buffer in the correct format.
+# 047331.python.win32gui_struct.line7.comment
+# 047332.python.win32gui_struct.line8.comment This module defines some helpers for the commonly used structures.
+# 047333.python.win32gui_struct.line9.comment
+# 047334.python.win32gui_struct.line10.comment In general, each structure has 3 functions:
+# 047335.python.win32gui_struct.line11.comment
+# 047336.python.win32gui_struct.line12.comment buffer, extras = PackSTRUCTURE(items, ...)
+# 047337.python.win32gui_struct.line13.comment item, ... = UnpackSTRUCTURE(buffer)
+# 047338.python.win32gui_struct.line14.comment buffer, extras = EmtpySTRUCTURE(...)
+# 047339.python.win32gui_struct.line15.comment
+# 047340.python.win32gui_struct.line16.comment 'extras' is always items that must be held along with the buffer, as the
+# 047341.python.win32gui_struct.line17.comment buffer refers to these object's memory.
+# 047342.python.win32gui_struct.line18.comment For structures that support a 'mask', this mask is hidden from the user - if
+# 047343.python.win32gui_struct.line19.comment 'None' is passed, the mask flag will not be set, or on return, None will
+# 047344.python.win32gui_struct.line20.comment be returned for the value if the mask is not set.
+# 047345.python.win32gui_struct.line21.comment
+# 047346.python.win32gui_struct.line22.comment NOTE: I considered making these structures look like real classes, and
+# 047347.python.win32gui_struct.line23.comment support 'attributes' etc - however, ctypes already has a good structure
+# 047348.python.win32gui_struct.line24.comment mechanism - I think it makes more sense to support ctype structures
+# 047349.python.win32gui_struct.line25.comment at the win32gui level, then there will be no need for this module at all.
+# 047350.python.win32gui_struct.line26.comment XXX - the above makes sense in terms of what is built and passed to
+# 047351.python.win32gui_struct.line27.comment win32gui (ie, the Pack* functions) - but doesn't make as much sense for
+# 047352.python.win32gui_struct.line28.comment the Unpack* functions, where the aim is user convenience.
 
 import array
 import struct
@@ -40,7 +40,7 @@ import win32gui
 
 def _MakeResult(names_str, values):
     names = names_str.split()
-    # TODO: Dynamic namedtuple. This could be made static, also exposing the types
+    # 047353.python.win32gui_struct.line43.comment TODO: Dynamic namedtuple. This could be made static, also exposing the types
     nt = namedtuple(names[0], names[1:])  # noqa: PYI024
     return nt(*values)
 
@@ -48,14 +48,14 @@ def _MakeResult(names_str, values):
 is64bit = "64 bit" in sys.version
 _nmhdr_fmt = "PPi"
 if is64bit:
-    # When the item past the NMHDR gets aligned (eg, when it is a struct)
-    # we need this many bytes padding.
+    # 047355.python.win32gui_struct.line51.comment When the item past the NMHDR gets aligned (eg, when it is a struct)
+    # 047356.python.win32gui_struct.line52.comment we need this many bytes padding.
     _nmhdr_align_padding = "xxxx"
 else:
     _nmhdr_align_padding = ""
 
 
-# Encode a string suitable for passing in a win32gui related structure
+# 047357.python.win32gui_struct.line58.comment Encode a string suitable for passing in a win32gui related structure
 def _make_text_buffer(text):
     if not isinstance(text, str):
         raise TypeError("MENUITEMINFO text must be unicode")
@@ -63,12 +63,12 @@ def _make_text_buffer(text):
     return array.array("b", data)
 
 
-# make an 'empty' buffer, ready for filling with cch characters.
+# 047358.python.win32gui_struct.line66.comment make an 'empty' buffer, ready for filling with cch characters.
 def _make_empty_text_buffer(cch):
     return _make_text_buffer("\0" * cch)
 
 
-# Generic WM_NOTIFY unpacking
+# 047359.python.win32gui_struct.line71.comment Generic WM_NOTIFY unpacking
 def UnpackWMNOTIFY(lparam):
     format = "PPi"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
@@ -78,8 +78,8 @@ def UnpackWMNOTIFY(lparam):
 def UnpackNMITEMACTIVATE(lparam):
     format = _nmhdr_fmt + _nmhdr_align_padding
     if is64bit:
-        # the struct module doesn't handle this correctly as some of the items
-        # are actually structs in structs, which get individually aligned.
+        # 047360.python.win32gui_struct.line81.comment the struct module doesn't handle this correctly as some of the items
+        # 047361.python.win32gui_struct.line82.comment are actually structs in structs, which get individually aligned.
         format += "iiiiiiixxxxP"
     else:
         format += "iiiiiiiP"
@@ -90,12 +90,12 @@ def UnpackNMITEMACTIVATE(lparam):
     )
 
 
-# MENUITEMINFO struct
-# https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-menuiteminfow
-# We use the struct module to pack and unpack strings as MENUITEMINFO
-# structures.  We also have special handling for the 'fMask' item in that
-# structure to avoid the caller needing to explicitly check validity
-# (None is used if the mask excludes/should exclude the value)
+# 047362.python.win32gui_struct.line93.comment MENUITEMINFO struct
+# 047363.python.win32gui_struct.line94.comment https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-menuiteminfow
+# 047364.python.win32gui_struct.line95.comment We use the struct module to pack and unpack strings as MENUITEMINFO
+# 047365.python.win32gui_struct.line96.comment structures.  We also have special handling for the 'fMask' item in that
+# 047366.python.win32gui_struct.line97.comment structure to avoid the caller needing to explicitly check validity
+# 047367.python.win32gui_struct.line98.comment (None is used if the mask excludes/should exclude the value)
 _menuiteminfo_fmt = "5i5PiP"
 
 
@@ -111,14 +111,14 @@ def PackMENUITEMINFO(
     hbmpItem=None,
     dwTypeData=None,
 ):
-    # 'extras' are objects the caller must keep a reference to (as their
-    # memory is used) for the lifetime of the INFO item.
+    # 047368.python.win32gui_struct.line114.comment 'extras' are objects the caller must keep a reference to (as their
+    # 047369.python.win32gui_struct.line115.comment memory is used) for the lifetime of the INFO item.
     extras = []
-    # ack - dwItemData and dwTypeData were confused for a while...
+    # 047370.python.win32gui_struct.line117.comment ack - dwItemData and dwTypeData were confused for a while...
     assert dwItemData is None or dwTypeData is None, (
         "sorry - these were confused - you probably want dwItemData"
     )
-    # if we are a long way past 209, then we can nuke the above...
+    # 047371.python.win32gui_struct.line121.comment if we are a long way past 209, then we can nuke the above...
     if dwTypeData is not None:
         import warnings
 
@@ -165,15 +165,15 @@ def PackMENUITEMINFO(
         fMask |= win32con.MIIM_STRING
         str_buf = _make_text_buffer(text)
         cch = len(text)
-        # We are taking address of strbuf - it must not die until windows
-        # has finished with our structure.
+        # 047372.python.win32gui_struct.line168.comment We are taking address of strbuf - it must not die until windows
+        # 047373.python.win32gui_struct.line169.comment has finished with our structure.
         lptext = str_buf.buffer_info()[0]
         extras.append(str_buf)
     else:
         lptext = 0
         cch = 0
-    # Create the struct.
-    # 'P' format does not accept PyHANDLE's !
+    # 047374.python.win32gui_struct.line175.comment Create the struct.
+    # 047375.python.win32gui_struct.line176.comment 'P' format does not accept PyHANDLE's !
     item = struct.pack(
         _menuiteminfo_fmt,
         struct.calcsize(_menuiteminfo_fmt),  # cbSize
@@ -189,8 +189,8 @@ def PackMENUITEMINFO(
         cch,
         int(hbmpItem),
     )
-    # Now copy the string to a writable buffer, so that the result
-    # could be passed to a 'Get' function
+    # 047377.python.win32gui_struct.line192.comment Now copy the string to a writable buffer, so that the result
+    # 047378.python.win32gui_struct.line193.comment could be passed to a 'Get' function
     return array.array("b", item), extras
 
 
@@ -246,7 +246,7 @@ def UnpackMENUITEMINFO(s):
 
 
 def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
-    # text_buf_size is number of *characters* - not necessarily no of bytes.
+    # 047379.python.win32gui_struct.line249.comment text_buf_size is number of *characters* - not necessarily no of bytes.
     extra = []
     if mask is None:
         mask = (
@@ -259,7 +259,7 @@ def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
             | win32con.MIIM_STRING
             | win32con.MIIM_SUBMENU
         )
-        # Note: No MIIM_TYPE - this screws win2k/98.
+        # 047380.python.win32gui_struct.line262.comment Note: No MIIM_TYPE - this screws win2k/98.
 
     if mask & win32con.MIIM_STRING:
         text_buffer = _make_empty_text_buffer(text_buf_size)
@@ -268,8 +268,8 @@ def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
     else:
         text_addr = text_buf_size = 0
 
-    # Now copy the string to a writable buffer, so that the result
-    # could be passed to a 'Get' function
+    # 047381.python.win32gui_struct.line271.comment Now copy the string to a writable buffer, so that the result
+    # 047382.python.win32gui_struct.line272.comment could be passed to a 'Get' function
     buf = struct.pack(
         _menuiteminfo_fmt,
         struct.calcsize(_menuiteminfo_fmt),  # cbSize
@@ -288,7 +288,7 @@ def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
     return array.array("b", buf), extra
 
 
-# MENUINFO struct
+# 047392.python.win32gui_struct.line291.comment MENUINFO struct
 _menuinfo_fmt = "iiiiPiP"
 
 
@@ -320,7 +320,7 @@ def PackMENUINFO(
         dwMenuData = 0
     else:
         fMask |= win32con.MIM_MENUDATA
-    # Create the struct.
+    # 047393.python.win32gui_struct.line323.comment Create the struct.
     item = struct.pack(
         _menuinfo_fmt,
         struct.calcsize(_menuinfo_fmt),  # cbSize
@@ -378,24 +378,24 @@ def EmptyMENUINFO(mask=None):
     return array.array("b", buf)
 
 
-##########################################################################
-#
-# Tree View structure support - TVITEM, TVINSERTSTRUCT and TVDISPINFO
-#
-##########################################################################
+# 047401.python.win32gui_struct.line381.comment #########################################################################
+# 047402.python.win32gui_struct.line382.comment
+# 047403.python.win32gui_struct.line383.comment Tree View structure support - TVITEM, TVINSERTSTRUCT and TVDISPINFO
+# 047404.python.win32gui_struct.line384.comment
+# 047405.python.win32gui_struct.line385.comment #########################################################################
 
-# XXX - Note that the following implementation of TreeView structures is ripped
-# XXX - from the SpamBayes project.  It may not quite work correctly yet - I
-# XXX - intend checking them later - but having them is better than not at all!
+# 047406.python.win32gui_struct.line387.comment XXX - Note that the following implementation of TreeView structures is ripped
+# 047407.python.win32gui_struct.line388.comment XXX - from the SpamBayes project.  It may not quite work correctly yet - I
+# 047408.python.win32gui_struct.line389.comment XXX - intend checking them later - but having them is better than not at all!
 
 _tvitem_fmt = "iPiiPiiiiP"
 
 
-# Helpers for the ugly win32 structure packing/unpacking
-# XXX - Note that functions using _GetMaskAndVal run 3x faster if they are
-# 'inlined' into the function - see PackLVITEM.  If the profiler points at
-# _GetMaskAndVal(), you should nuke it (patches welcome once they have been
-# tested)
+# 047409.python.win32gui_struct.line394.comment Helpers for the ugly win32 structure packing/unpacking
+# 047410.python.win32gui_struct.line395.comment XXX - Note that functions using _GetMaskAndVal run 3x faster if they are
+# 047411.python.win32gui_struct.line396.comment 'inlined' into the function - see PackLVITEM.  If the profiler points at
+# 047412.python.win32gui_struct.line397.comment _GetMaskAndVal(), you should nuke it (patches welcome once they have been
+# 047413.python.win32gui_struct.line398.comment tested)
 def _GetMaskAndVal(val, default, mask, flag):
     if val is None:
         return mask, default
@@ -447,7 +447,7 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
     return array.array("b", buf), extra
 
 
-# Make a new buffer suitable for querying hitem's attributes.
+# 047416.python.win32gui_struct.line450.comment Make a new buffer suitable for querying hitem's attributes.
 def EmptyTVITEM(hitem, mask=None, text_buf_size=512):
     extra = []  # objects we must keep references to
     if mask is None:
@@ -485,9 +485,9 @@ def UnpackTVITEM(buffer):
         item_cChildren,
         item_param,
     ) = struct.unpack(_tvitem_fmt, buffer)
-    # ensure only items listed by the mask are valid (except we assume the
-    # handle is always valid - some notifications (eg, TVN_ENDLABELEDIT) set a
-    # mask that doesn't include the handle, but the docs explicity say it is.)
+    # 047418.python.win32gui_struct.line488.comment ensure only items listed by the mask are valid (except we assume the
+    # 047419.python.win32gui_struct.line489.comment handle is always valid - some notifications (eg, TVN_ENDLABELEDIT) set a
+    # 047420.python.win32gui_struct.line490.comment mask that doesn't include the handle, but the docs explicity say it is.)
     if not (item_mask & commctrl.TVIF_TEXT):
         item_textptr = item_cchText = None
     if not (item_mask & commctrl.TVIF_CHILDREN):
@@ -521,7 +521,7 @@ def UnpackTVITEM(buffer):
     )
 
 
-# Unpack the lparm from a "TVNOTIFY" message
+# 047421.python.win32gui_struct.line524.comment Unpack the lparm from a "TVNOTIFY" message
 def UnpackTVNOTIFY(lparam):
     item_size = struct.calcsize(_tvitem_fmt)
     format = _nmhdr_fmt + _nmhdr_align_padding
@@ -549,8 +549,8 @@ def UnpackTVDISPINFO(lparam):
     return _MakeResult("TVDISPINFO hwndFrom id code item", (hwndFrom, id, code, item))
 
 
-#
-# List view items
+# 047422.python.win32gui_struct.line552.comment
+# 047423.python.win32gui_struct.line553.comment List view items
 _lvitem_fmt = "iiiiiPiiPi"
 
 
@@ -566,7 +566,7 @@ def PackLVITEM(
 ):
     extra = []  # objects we must keep references to
     mask = 0
-    # _GetMaskAndVal adds quite a bit of overhead to this function.
+    # 047425.python.win32gui_struct.line569.comment _GetMaskAndVal adds quite a bit of overhead to this function.
     if item is None:
         item = 0  # No mask for item
     if subItem is None:
@@ -629,7 +629,7 @@ def UnpackLVITEM(buffer):
         item_param,
         item_indent,
     ) = struct.unpack(_lvitem_fmt, buffer)
-    # ensure only items listed by the mask are valid
+    # 047429.python.win32gui_struct.line632.comment ensure only items listed by the mask are valid
     if not (item_mask & commctrl.LVIF_TEXT):
         item_textptr = item_cchText = None
     if not (item_mask & commctrl.LVIF_IMAGE):
@@ -661,7 +661,7 @@ def UnpackLVITEM(buffer):
     )
 
 
-# Unpack an "LVNOTIFY" message
+# 047430.python.win32gui_struct.line664.comment Unpack an "LVNOTIFY" message
 def UnpackLVDISPINFO(lparam):
     item_size = struct.calcsize(_lvitem_fmt)
     format = _nmhdr_fmt + _nmhdr_align_padding + ("%ds" % (item_size,))
@@ -708,7 +708,7 @@ def UnpackLVNOTIFY(lparam):
     )
 
 
-# Make a new buffer suitable for querying an items attributes.
+# 047432.python.win32gui_struct.line711.comment Make a new buffer suitable for querying an items attributes.
 def EmptyLVITEM(item, subitem, mask=None, text_buf_size=512):
     extra = []  # objects we must keep references to
     if mask is None:
@@ -741,7 +741,7 @@ def EmptyLVITEM(item, subitem, mask=None, text_buf_size=512):
     return array.array("b", buf), extra
 
 
-# List view column structure
+# 047435.python.win32gui_struct.line744.comment List view column structure
 _lvcolumn_fmt = "iiiPiiii"
 
 
@@ -771,7 +771,7 @@ def UnpackLVCOLUMN(lparam):
     mask, fmt, cx, text_addr, text_size, subItem, image, order = struct.unpack(
         _lvcolumn_fmt, lparam
     )
-    # ensure only items listed by the mask are valid
+    # 047437.python.win32gui_struct.line774.comment ensure only items listed by the mask are valid
     if not (mask & commctrl.LVCF_FMT):
         fmt = None
     if not (mask & commctrl.LVCF_WIDTH):
@@ -794,7 +794,7 @@ def UnpackLVCOLUMN(lparam):
     )
 
 
-# Make a new buffer suitable for querying an items attributes.
+# 047438.python.win32gui_struct.line797.comment Make a new buffer suitable for querying an items attributes.
 def EmptyLVCOLUMN(mask=None, text_buf_size=512):
     extra = []  # objects we must keep references to
     if mask is None:
@@ -816,7 +816,7 @@ def EmptyLVCOLUMN(mask=None, text_buf_size=512):
     return array.array("b", buf), extra
 
 
-# List view hit-test.
+# 047440.python.win32gui_struct.line819.comment List view hit-test.
 def PackLVHITTEST(pt):
     format = "iiiii"
     buf = struct.pack(format, pt[0], pt[1], 0, 0, 0)
@@ -859,15 +859,15 @@ def PackHDITEM(
     return array.array("b", buf), extra
 
 
-# Device notification stuff
+# 047442.python.win32gui_struct.line862.comment Device notification stuff
 
 
-# Generic function for packing a DEV_BROADCAST_* structure - generally used
-# by the other PackDEV_BROADCAST_* functions in this module.
+# 047443.python.win32gui_struct.line865.comment Generic function for packing a DEV_BROADCAST_* structure - generally used
+# 047444.python.win32gui_struct.line866.comment by the other PackDEV_BROADCAST_* functions in this module.
 def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=b""):
-    # It seems a requirement is 4 byte alignment, even for the 'BYTE data[1]'
-    # field (eg, that would make DEV_BROADCAST_HANDLE 41 bytes, but we must
-    # be 44.
+    # 047445.python.win32gui_struct.line868.comment It seems a requirement is 4 byte alignment, even for the 'BYTE data[1]'
+    # 047446.python.win32gui_struct.line869.comment field (eg, that would make DEV_BROADCAST_HANDLE 41 bytes, but we must
+    # 047447.python.win32gui_struct.line870.comment be 44.
     extra_data += b"\0" * (4 - len(extra_data) % 4)
     format = "iii" + rest_fmt
     full_size = struct.calcsize(format) + len(extra_data)
@@ -899,14 +899,14 @@ def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
         raise TypeError("Must provide unicode for the name")
     name = name.encode("utf-16le")
 
-    # 16 bytes for the IID followed by \0 term'd string.
+    # 047448.python.win32gui_struct.line902.comment 16 bytes for the IID followed by \0 term'd string.
     rest_fmt = "16s%ds" % len(name)
-    # bytes(memoryview(iid)) hoops necessary to get the raw IID bytes.
+    # 047449.python.win32gui_struct.line904.comment bytes(memoryview(iid)) hoops necessary to get the raw IID bytes.
     rest_data = (bytes(memoryview(pywintypes.IID(classguid))), name)
     return PackDEV_BROADCAST(win32con.DBT_DEVTYP_DEVICEINTERFACE, rest_fmt, rest_data)
 
 
-# An object returned by UnpackDEV_BROADCAST.
+# 047450.python.win32gui_struct.line909.comment An object returned by UnpackDEV_BROADCAST.
 class DEV_BROADCAST_INFO:
     def __init__(self, devicetype, **kw):
         self.devicetype = devicetype
@@ -916,7 +916,7 @@ class DEV_BROADCAST_INFO:
         return "DEV_BROADCAST_INFO:" + str(self.__dict__)
 
 
-# Support for unpacking the 'lparam'
+# 047451.python.win32gui_struct.line919.comment Support for unpacking the 'lparam'
 def UnpackDEV_BROADCAST(lparam):
     if lparam == 0:
         return None
@@ -924,14 +924,14 @@ def UnpackDEV_BROADCAST(lparam):
     hdr_size = struct.calcsize(hdr_format)
     hdr_buf = win32gui.PyGetMemory(lparam, hdr_size)
     size, devtype, reserved = struct.unpack("iii", hdr_buf)
-    # Due to x64 alignment issues, we need to use the full format string over
-    # the entire buffer.  ie, on x64:
-    # calcsize('iiiP') != calcsize('iii')+calcsize('P')
+    # 047452.python.win32gui_struct.line927.comment Due to x64 alignment issues, we need to use the full format string over
+    # 047453.python.win32gui_struct.line928.comment the entire buffer.  ie, on x64:
+    # 047454.python.win32gui_struct.line929.comment calcsize('iiiP') != calcsize('iii')+calcsize('P')
     buf = win32gui.PyGetMemory(lparam, size)
 
     extra = x = {}
     if devtype == win32con.DBT_DEVTYP_HANDLE:
-        # 2 handles, a GUID, a LONG and possibly an array following...
+        # 047455.python.win32gui_struct.line934.comment 2 handles, a GUID, a LONG and possibly an array following...
         fmt = hdr_format + "PP16sl"
         (
             _,
@@ -949,7 +949,7 @@ def UnpackDEV_BROADCAST(lparam):
         x["classguid"] = pywintypes.IID(guid_bytes, True)
         x["name"] = win32gui.PyGetString(lparam + struct.calcsize(fmt))
     elif devtype == win32con.DBT_DEVTYP_VOLUME:
-        # int mask and flags
+        # 047456.python.win32gui_struct.line952.comment int mask and flags
         fmt = hdr_format + "II"
         _, _, _, x["unitmask"], x["flags"] = struct.unpack(
             fmt, buf[: struct.calcsize(fmt)]

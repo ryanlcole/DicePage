@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2018 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052252.python.resource.line1.comment
+# 052253.python.resource.line2.comment (C) Copyright 2018 Enthought, Inc., Austin, TX
+# 052254.python.resource.line3.comment All right reserved.
+# 052255.python.resource.line4.comment
+# 052256.python.resource.line5.comment This file is open source software distributed according to the terms in
+# 052257.python.resource.line6.comment LICENSE.txt
+# 052258.python.resource.line7.comment
 import ctypes
 from ctypes.wintypes import (
     BOOL, DWORD, HANDLE, HMODULE, LPCWSTR, WORD, HRSRC,

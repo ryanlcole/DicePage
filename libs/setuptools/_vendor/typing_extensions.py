@@ -11,7 +11,7 @@ import typing
 import warnings
 
 __all__ = [
-    # Super-special typing primitives.
+    # 043504.python.typing_extensions.line14.comment Super-special typing primitives.
     'Any',
     'ClassVar',
     'Concatenate',
@@ -26,7 +26,7 @@ __all__ = [
     'TypeVarTuple',
     'Unpack',
 
-    # ABCs (from collections.abc).
+    # 043505.python.typing_extensions.line29.comment ABCs (from collections.abc).
     'Awaitable',
     'AsyncIterator',
     'AsyncIterable',
@@ -36,7 +36,7 @@ __all__ = [
     'Buffer',
     'ChainMap',
 
-    # Concrete collection types.
+    # 043506.python.typing_extensions.line39.comment Concrete collection types.
     'ContextManager',
     'Counter',
     'Deque',
@@ -45,7 +45,7 @@ __all__ = [
     'OrderedDict',
     'TypedDict',
 
-    # Structural checks, a.k.a. protocols.
+    # 043507.python.typing_extensions.line48.comment Structural checks, a.k.a. protocols.
     'SupportsAbs',
     'SupportsBytes',
     'SupportsComplex',
@@ -54,7 +54,7 @@ __all__ = [
     'SupportsInt',
     'SupportsRound',
 
-    # One-off things.
+    # 043508.python.typing_extensions.line57.comment One-off things.
     'Annotated',
     'assert_never',
     'assert_type',
@@ -92,7 +92,7 @@ __all__ = [
     'Required',
     'NotRequired',
 
-    # Pure aliases, have always been in typing
+    # 043509.python.typing_extensions.line95.comment Pure aliases, have always been in typing
     'AbstractSet',
     'AnyStr',
     'BinaryIO',
@@ -133,13 +133,13 @@ __all__ = [
     'no_type_check_decorator',
 ]
 
-# for backward compatibility
+# 043510.python.typing_extensions.line136.comment for backward compatibility
 PEP_560 = True
 GenericMeta = type
 _PEP_696_IMPLEMENTED = sys.version_info >= (3, 13, 0, "beta")
 
-# The functions below are modified copies of typing internal helpers.
-# They are needed by _ProtocolMeta and they provide support for PEP 646.
+# 043511.python.typing_extensions.line141.comment The functions below are modified copies of typing internal helpers.
+# 043512.python.typing_extensions.line142.comment They are needed by _ProtocolMeta and they provide support for PEP 646.
 
 
 class _Sentinel:
@@ -165,8 +165,8 @@ else:
 
 NoReturn = typing.NoReturn
 
-# Some unconstrained type variables.  These are used by the container types.
-# (These are not for export.)
+# 043513.python.typing_extensions.line168.comment Some unconstrained type variables.  These are used by the container types.
+# 043514.python.typing_extensions.line169.comment (These are not for export.)
 T = typing.TypeVar('T')  # Any type.
 KT = typing.TypeVar('KT')  # Key type.
 VT = typing.TypeVar('VT')  # Value type.
@@ -217,9 +217,9 @@ Final = typing.Final
 if sys.version_info >= (3, 11):
     final = typing.final
 else:
-    # @final exists in 3.8+, but we backport it for all versions
-    # before 3.11 to keep support for the __final__ attribute.
-    # See https://bugs.python.org/issue46342
+    # 043520.python.typing_extensions.line220.comment @final exists in 3.8+, but we backport it for all versions
+    # 043521.python.typing_extensions.line221.comment before 3.11 to keep support for the __final__ attribute.
+    # 043522.python.typing_extensions.line222.comment See https://bugs.python.org/issue46342
     def final(f):
         """This decorator can be used to indicate to type checkers that
         the decorated method cannot be overridden, and decorated class
@@ -245,9 +245,9 @@ else:
         try:
             f.__final__ = True
         except (AttributeError, TypeError):
-            # Skip the attribute silently if it is not writable.
-            # AttributeError happens if the object has __slots__ or a
-            # read-only property, TypeError if it's a builtin class.
+            # 043523.python.typing_extensions.line248.comment Skip the attribute silently if it is not writable.
+            # 043524.python.typing_extensions.line249.comment AttributeError happens if the object has __slots__ or a
+            # 043525.python.typing_extensions.line250.comment read-only property, TypeError if it's a builtin class.
             pass
         return f
 
@@ -256,7 +256,7 @@ def IntVar(name):
     return typing.TypeVar(name)
 
 
-# A Literal bug was fixed in 3.11.0, 3.10.1 and 3.9.8
+# 043526.python.typing_extensions.line259.comment A Literal bug was fixed in 3.11.0, 3.10.1 and 3.9.8
 if sys.version_info >= (3, 10, 1):
     Literal = typing.Literal
 else:
@@ -300,10 +300,10 @@ else:
             try:
                 deduped_pairs = set(val_type_pairs)
             except TypeError:
-                # unhashable parameters
+                # 043527.python.typing_extensions.line303.comment unhashable parameters
                 pass
             else:
-                # similar logic to typing._deduplicate on Python 3.9+
+                # 043528.python.typing_extensions.line306.comment similar logic to typing._deduplicate on Python 3.9+
                 if len(deduped_pairs) < len(val_type_pairs):
                     new_parameters = []
                     for pair in val_type_pairs:
@@ -338,7 +338,7 @@ if hasattr(typing, "get_overloads"):  # 3.11+
     get_overloads = typing.get_overloads
     clear_overloads = typing.clear_overloads
 else:
-    # {module: {qualname: {firstlineno: func}}}
+    # 043530.python.typing_extensions.line341.comment {module: {qualname: {firstlineno: func}}}
     _overload_registry = collections.defaultdict(
         functools.partial(collections.defaultdict, dict)
     )
@@ -372,20 +372,20 @@ else:
         The overloads for a function can be retrieved at runtime using the
         get_overloads() function.
         """
-        # classmethod and staticmethod
+        # 043531.python.typing_extensions.line375.comment classmethod and staticmethod
         f = getattr(func, "__func__", func)
         try:
             _overload_registry[f.__module__][f.__qualname__][
                 f.__code__.co_firstlineno
             ] = func
         except AttributeError:
-            # Not a normal function; ignore.
+            # 043532.python.typing_extensions.line382.comment Not a normal function; ignore.
             pass
         return _overload_dummy
 
     def get_overloads(func):
         """Return all defined overloads for *func* as a sequence."""
-        # classmethod and staticmethod
+        # 043533.python.typing_extensions.line388.comment classmethod and staticmethod
         f = getattr(func, "__func__", func)
         if f.__module__ not in _overload_registry:
             return []
@@ -399,11 +399,11 @@ else:
         _overload_registry.clear()
 
 
-# This is not a real generic class.  Don't use outside annotations.
+# 043534.python.typing_extensions.line402.comment This is not a real generic class.  Don't use outside annotations.
 Type = typing.Type
 
-# Various ABCs mimicking those in collections.abc.
-# A few are simply re-exported for completeness.
+# 043535.python.typing_extensions.line405.comment Various ABCs mimicking those in collections.abc.
+# 043536.python.typing_extensions.line406.comment A few are simply re-exported for completeness.
 Awaitable = typing.Awaitable
 Coroutine = typing.Coroutine
 AsyncIterable = typing.AsyncIterable
@@ -423,7 +423,7 @@ else:
     def _is_dunder(attr):
         return attr.startswith('__') and attr.endswith('__')
 
-    # Python <3.9 doesn't have typing._SpecialGenericAlias
+    # 043537.python.typing_extensions.line426.comment Python <3.9 doesn't have typing._SpecialGenericAlias
     _special_generic_alias_base = getattr(
         typing, "_SpecialGenericAlias", typing._GenericAlias
     )
@@ -431,19 +431,19 @@ else:
     class _SpecialGenericAlias(_special_generic_alias_base, _root=True):
         def __init__(self, origin, nparams, *, inst=True, name=None, defaults=()):
             if _special_generic_alias_base is typing._GenericAlias:
-                # Python <3.9
+                # 043538.python.typing_extensions.line434.comment Python <3.9
                 self.__origin__ = origin
                 self._nparams = nparams
                 super().__init__(origin, nparams, special=True, inst=inst, name=name)
             else:
-                # Python >= 3.9
+                # 043539.python.typing_extensions.line439.comment Python >= 3.9
                 super().__init__(origin, nparams, inst=inst, name=name)
             self._defaults = defaults
 
         def __setattr__(self, attr, val):
             allowed_attrs = {'_name', '_inst', '_nparams', '_defaults'}
             if _special_generic_alias_base is typing._GenericAlias:
-                # Python <3.9
+                # 043540.python.typing_extensions.line446.comment Python <3.9
                 allowed_attrs.add("__origin__")
             if _is_dunder(attr) or attr in allowed_attrs:
                 object.__setattr__(self, attr, val)
@@ -534,8 +534,8 @@ def _caller(depth=2):
         return None
 
 
-# `__match_args__` attribute was removed from protocol members in 3.13,
-# we want to backport this change to older Python versions.
+# 043543.python.typing_extensions.line537.comment `__match_args__` attribute was removed from protocol members in 3.13,
+# 043544.python.typing_extensions.line538.comment we want to backport this change to older Python versions.
 if sys.version_info >= (3, 13):
     Protocol = typing.Protocol
 else:
@@ -563,19 +563,19 @@ else:
         where relevant, rather than a typing.py-specific error message.
         """
         if not isinstance(arg, type):
-            # Same error message as for issubclass(1, int).
+            # 043545.python.typing_extensions.line566.comment Same error message as for issubclass(1, int).
             raise TypeError('issubclass() arg 1 must be a class')
 
-    # Inheriting from typing._ProtocolMeta isn't actually desirable,
-    # but is necessary to allow typing.Protocol and typing_extensions.Protocol
-    # to mix without getting TypeErrors about "metaclass conflict"
+    # 043546.python.typing_extensions.line569.comment Inheriting from typing._ProtocolMeta isn't actually desirable,
+    # 043547.python.typing_extensions.line570.comment but is necessary to allow typing.Protocol and typing_extensions.Protocol
+    # 043548.python.typing_extensions.line571.comment to mix without getting TypeErrors about "metaclass conflict"
     class _ProtocolMeta(type(typing.Protocol)):
-        # This metaclass is somewhat unfortunate,
-        # but is necessary for several reasons...
-        #
-        # NOTE: DO NOT call super() in any methods in this class
-        # That would call the methods on typing._ProtocolMeta on Python 3.8-3.11
-        # and those are slow
+        # 043549.python.typing_extensions.line573.comment This metaclass is somewhat unfortunate,
+        # 043550.python.typing_extensions.line574.comment but is necessary for several reasons...
+        # 043551.python.typing_extensions.line575.comment
+        # 043552.python.typing_extensions.line576.comment NOTE: DO NOT call super() in any methods in this class
+        # 043553.python.typing_extensions.line577.comment That would call the methods on typing._ProtocolMeta on Python 3.8-3.11
+        # 043554.python.typing_extensions.line578.comment and those are slow
         def __new__(mcls, name, bases, namespace, **kwargs):
             if name == "Protocol" and len(bases) < 2:
                 pass
@@ -611,7 +611,7 @@ else:
                         "@runtime_checkable protocols"
                     )
                 if (
-                    # this attribute is set by @runtime_checkable:
+                    # 043555.python.typing_extensions.line614.comment this attribute is set by @runtime_checkable:
                     cls.__non_callable_proto_members__
                     and cls.__dict__.get("__subclasshook__") is _proto_hook
                 ):
@@ -624,12 +624,12 @@ else:
             return abc.ABCMeta.__subclasscheck__(cls, other)
 
         def __instancecheck__(cls, instance):
-            # We need this method for situations where attributes are
-            # assigned in __init__.
+            # 043556.python.typing_extensions.line627.comment We need this method for situations where attributes are
+            # 043557.python.typing_extensions.line628.comment assigned in __init__.
             if cls is Protocol:
                 return type.__instancecheck__(cls, instance)
             if not getattr(cls, "_is_protocol", False):
-                # i.e., it's a concrete subclass of a protocol
+                # 043558.python.typing_extensions.line632.comment i.e., it's a concrete subclass of a protocol
                 return abc.ABCMeta.__instancecheck__(cls, instance)
 
             if (
@@ -647,7 +647,7 @@ else:
                     val = inspect.getattr_static(instance, attr)
                 except AttributeError:
                     break
-                # this attribute is set by @runtime_checkable:
+                # 043559.python.typing_extensions.line650.comment this attribute is set by @runtime_checkable:
                 if val is None and attr not in cls.__non_callable_proto_members__:
                     break
             else:
@@ -656,16 +656,16 @@ else:
             return False
 
         def __eq__(cls, other):
-            # Hack so that typing.Generic.__class_getitem__
-            # treats typing_extensions.Protocol
-            # as equivalent to typing.Protocol
+            # 043560.python.typing_extensions.line659.comment Hack so that typing.Generic.__class_getitem__
+            # 043561.python.typing_extensions.line660.comment treats typing_extensions.Protocol
+            # 043562.python.typing_extensions.line661.comment as equivalent to typing.Protocol
             if abc.ABCMeta.__eq__(cls, other) is True:
                 return True
             return cls is Protocol and other is typing.Protocol
 
-        # This has to be defined, or the abc-module cache
-        # complains about classes with this metaclass being unhashable,
-        # if we define only __eq__!
+        # 043563.python.typing_extensions.line666.comment This has to be defined, or the abc-module cache
+        # 043564.python.typing_extensions.line667.comment complains about classes with this metaclass being unhashable,
+        # 043565.python.typing_extensions.line668.comment if we define only __eq__!
         def __hash__(cls) -> int:
             return type.__hash__(cls)
 
@@ -676,13 +676,13 @@ else:
 
         for attr in cls.__protocol_attrs__:
             for base in other.__mro__:
-                # Check if the members appears in the class dictionary...
+                # 043566.python.typing_extensions.line679.comment Check if the members appears in the class dictionary...
                 if attr in base.__dict__:
                     if base.__dict__[attr] is None:
                         return NotImplemented
                     break
 
-                # ...or in annotations, if it is a sub-protocol.
+                # 043567.python.typing_extensions.line685.comment ...or in annotations, if it is a sub-protocol.
                 annotations = getattr(base, '__annotations__', {})
                 if (
                     isinstance(annotations, collections.abc.Mapping)
@@ -703,15 +703,15 @@ else:
         def __init_subclass__(cls, *args, **kwargs):
             super().__init_subclass__(*args, **kwargs)
 
-            # Determine if this is a protocol or a concrete subclass.
+            # 043568.python.typing_extensions.line706.comment Determine if this is a protocol or a concrete subclass.
             if not cls.__dict__.get('_is_protocol', False):
                 cls._is_protocol = any(b is Protocol for b in cls.__bases__)
 
-            # Set (or override) the protocol subclass hook.
+            # 043569.python.typing_extensions.line710.comment Set (or override) the protocol subclass hook.
             if '__subclasshook__' not in cls.__dict__:
                 cls.__subclasshook__ = _proto_hook
 
-            # Prohibit instantiation for protocol classes
+            # 043570.python.typing_extensions.line714.comment Prohibit instantiation for protocol classes
             if cls._is_protocol and cls.__init__ is Protocol.__init__:
                 cls.__init__ = _no_init
 
@@ -743,18 +743,18 @@ else:
                             f' got {cls!r}')
         cls._is_runtime_protocol = True
 
-        # typing.Protocol classes on <=3.11 break if we execute this block,
-        # because typing.Protocol classes on <=3.11 don't have a
-        # `__protocol_attrs__` attribute, and this block relies on the
-        # `__protocol_attrs__` attribute. Meanwhile, typing.Protocol classes on 3.12.2+
-        # break if we *don't* execute this block, because *they* assume that all
-        # protocol classes have a `__non_callable_proto_members__` attribute
-        # (which this block sets)
+        # 043571.python.typing_extensions.line746.comment typing.Protocol classes on <=3.11 break if we execute this block,
+        # 043572.python.typing_extensions.line747.comment because typing.Protocol classes on <=3.11 don't have a
+        # 043573.python.typing_extensions.line748.comment `__protocol_attrs__` attribute, and this block relies on the
+        # 043574.python.typing_extensions.line749.comment `__protocol_attrs__` attribute. Meanwhile, typing.Protocol classes on 3.12.2+
+        # 043575.python.typing_extensions.line750.comment break if we *don't* execute this block, because *they* assume that all
+        # 043576.python.typing_extensions.line751.comment protocol classes have a `__non_callable_proto_members__` attribute
+        # 043577.python.typing_extensions.line752.comment (which this block sets)
         if isinstance(cls, _ProtocolMeta) or sys.version_info >= (3, 12, 2):
-            # PEP 544 prohibits using issubclass()
-            # with protocols that have non-method members.
-            # See gh-113320 for why we compute this attribute here,
-            # rather than in `_ProtocolMeta.__init__`
+            # 043578.python.typing_extensions.line754.comment PEP 544 prohibits using issubclass()
+            # 043579.python.typing_extensions.line755.comment with protocols that have non-method members.
+            # 043580.python.typing_extensions.line756.comment See gh-113320 for why we compute this attribute here,
+            # 043581.python.typing_extensions.line757.comment rather than in `_ProtocolMeta.__init__`
             cls.__non_callable_proto_members__ = set()
             for attr in cls.__protocol_attrs__:
                 try:
@@ -771,11 +771,11 @@ else:
         return cls
 
 
-# The "runtime" alias exists for backwards compatibility.
+# 043582.python.typing_extensions.line774.comment The "runtime" alias exists for backwards compatibility.
 runtime = runtime_checkable
 
 
-# Our version of runtime-checkable protocols is faster on Python 3.8-3.11
+# 043583.python.typing_extensions.line778.comment Our version of runtime-checkable protocols is faster on Python 3.8-3.11
 if sys.version_info >= (3, 12):
     SupportsInt = typing.SupportsInt
     SupportsFloat = typing.SupportsFloat
@@ -867,28 +867,28 @@ def _ensure_subclassable(mro_entries):
     return inner
 
 
-# Update this to something like >=3.13.0b1 if and when
-# PEP 728 is implemented in CPython
+# 043584.python.typing_extensions.line870.comment Update this to something like >=3.13.0b1 if and when
+# 043585.python.typing_extensions.line871.comment PEP 728 is implemented in CPython
 _PEP_728_IMPLEMENTED = False
 
 if _PEP_728_IMPLEMENTED:
-    # The standard library TypedDict in Python 3.8 does not store runtime information
-    # about which (if any) keys are optional.  See https://bugs.python.org/issue38834
-    # The standard library TypedDict in Python 3.9.0/1 does not honour the "total"
-    # keyword with old-style TypedDict().  See https://bugs.python.org/issue42059
-    # The standard library TypedDict below Python 3.11 does not store runtime
-    # information about optional and required keys when using Required or NotRequired.
-    # Generic TypedDicts are also impossible using typing.TypedDict on Python <3.11.
-    # Aaaand on 3.12 we add __orig_bases__ to TypedDict
-    # to enable better runtime introspection.
-    # On 3.13 we deprecate some odd ways of creating TypedDicts.
-    # Also on 3.13, PEP 705 adds the ReadOnly[] qualifier.
-    # PEP 728 (still pending) makes more changes.
+    # 043586.python.typing_extensions.line875.comment The standard library TypedDict in Python 3.8 does not store runtime information
+    # 043587.python.typing_extensions.line876.comment about which (if any) keys are optional.  See https://bugs.python.org/issue38834
+    # 043588.python.typing_extensions.line877.comment The standard library TypedDict in Python 3.9.0/1 does not honour the "total"
+    # 043589.python.typing_extensions.line878.comment keyword with old-style TypedDict().  See https://bugs.python.org/issue42059
+    # 043590.python.typing_extensions.line879.comment The standard library TypedDict below Python 3.11 does not store runtime
+    # 043591.python.typing_extensions.line880.comment information about optional and required keys when using Required or NotRequired.
+    # 043592.python.typing_extensions.line881.comment Generic TypedDicts are also impossible using typing.TypedDict on Python <3.11.
+    # 043593.python.typing_extensions.line882.comment Aaaand on 3.12 we add __orig_bases__ to TypedDict
+    # 043594.python.typing_extensions.line883.comment to enable better runtime introspection.
+    # 043595.python.typing_extensions.line884.comment On 3.13 we deprecate some odd ways of creating TypedDicts.
+    # 043596.python.typing_extensions.line885.comment Also on 3.13, PEP 705 adds the ReadOnly[] qualifier.
+    # 043597.python.typing_extensions.line886.comment PEP 728 (still pending) makes more changes.
     TypedDict = typing.TypedDict
     _TypedDictMeta = typing._TypedDictMeta
     is_typeddict = typing.is_typeddict
 else:
-    # 3.10.0 and later
+    # 043598.python.typing_extensions.line891.comment 3.10.0 and later
     _TAKES_MODULE = "module" in inspect.signature(typing._type_check).parameters
 
     def _get_typeddict_qualifiers(annotation_type):
@@ -931,8 +931,8 @@ else:
             else:
                 generic_base = ()
 
-            # typing.py generally doesn't let you inherit from plain Generic, unless
-            # the name of the class happens to be "Protocol"
+            # 043599.python.typing_extensions.line934.comment typing.py generally doesn't let you inherit from plain Generic, unless
+            # 043600.python.typing_extensions.line935.comment the name of the class happens to be "Protocol"
             tp_dict = type.__new__(_TypedDictMeta, "Protocol", (*generic_base, dict), ns)
             tp_dict.__name__ = name
             if tp_dict.__qualname__ == "Protocol":
@@ -945,7 +945,7 @@ else:
             if "__annotations__" in ns:
                 own_annotations = ns["__annotations__"]
             elif "__annotate__" in ns:
-                # TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
+                # 043601.python.typing_extensions.line948.comment TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
                 own_annotations = ns["__annotate__"](1)
             else:
                 own_annotations = {}
@@ -1028,7 +1028,7 @@ else:
         __call__ = dict  # static method
 
         def __subclasscheck__(cls, other):
-            # Typed dicts are only for static structural subtyping.
+            # 043603.python.typing_extensions.line1031.comment Typed dicts are only for static structural subtyping.
             raise TypeError('TypedDict does not support instance and class checks')
 
         __instancecheck__ = __subclasscheck__
@@ -1117,7 +1117,7 @@ else:
         ns = {'__annotations__': dict(fields)}
         module = _caller()
         if module is not None:
-            # Setting correct module is necessary to make typed dict classes pickleable.
+            # 043604.python.typing_extensions.line1120.comment Setting correct module is necessary to make typed dict classes pickleable.
             ns['__module__'] = module
 
         td = _TypedDictMeta(typename, (), ns, total=total, closed=closed)
@@ -1140,7 +1140,7 @@ else:
             is_typeddict(Film)  # => True
             is_typeddict(Union[list, str])  # => False
         """
-        # On 3.8, this would otherwise return True
+        # 043605.python.typing_extensions.line1143.comment On 3.8, this would otherwise return True
         if hasattr(typing, "TypedDict") and tp is typing.TypedDict:
             return False
         return isinstance(tp, _TYPEDDICT_TYPES)
@@ -1169,7 +1169,7 @@ else:
 if hasattr(typing, "ReadOnly"):  # 3.13+
     get_type_hints = typing.get_type_hints
 else:  # <=3.13
-    # replaces _strip_annotations()
+    # 043608.python.typing_extensions.line1172.comment replaces _strip_annotations()
     def _strip_extras(t):
         """Strips Annotated, Required and NotRequired from a given type."""
         if isinstance(t, _AnnotatedAlias):
@@ -1237,13 +1237,13 @@ else:  # <=3.13
         return {k: _strip_extras(t) for k, t in hint.items()}
 
 
-# Python 3.9+ has PEP 593 (Annotated)
+# 043611.python.typing_extensions.line1240.comment Python 3.9+ has PEP 593 (Annotated)
 if hasattr(typing, 'Annotated'):
     Annotated = typing.Annotated
-    # Not exported and not a public API, but needed for get_origin() and get_args()
-    # to work.
+    # 043612.python.typing_extensions.line1243.comment Not exported and not a public API, but needed for get_origin() and get_args()
+    # 043613.python.typing_extensions.line1244.comment to work.
     _AnnotatedAlias = typing._AnnotatedAlias
-# 3.8
+# 043614.python.typing_extensions.line1246.comment 3.8
 else:
     class _AnnotatedAlias(typing._GenericAlias, _root=True):
         """Runtime representation of an annotated type.
@@ -1342,21 +1342,21 @@ else:
                 f"Cannot subclass {cls.__module__}.Annotated"
             )
 
-# Python 3.8 has get_origin() and get_args() but those implementations aren't
-# Annotated-aware, so we can't use those. Python 3.9's versions don't support
-# ParamSpecArgs and ParamSpecKwargs, so only Python 3.10's versions will do.
+# 043615.python.typing_extensions.line1345.comment Python 3.8 has get_origin() and get_args() but those implementations aren't
+# 043616.python.typing_extensions.line1346.comment Annotated-aware, so we can't use those. Python 3.9's versions don't support
+# 043617.python.typing_extensions.line1347.comment ParamSpecArgs and ParamSpecKwargs, so only Python 3.10's versions will do.
 if sys.version_info[:2] >= (3, 10):
     get_origin = typing.get_origin
     get_args = typing.get_args
-# 3.8-3.9
+# 043618.python.typing_extensions.line1351.comment 3.8-3.9
 else:
     try:
-        # 3.9+
+        # 043619.python.typing_extensions.line1354.comment 3.9+
         from typing import _BaseGenericAlias
     except ImportError:
         _BaseGenericAlias = typing._GenericAlias
     try:
-        # 3.9+
+        # 043620.python.typing_extensions.line1359.comment 3.9+
         from typing import GenericAlias as _typing_GenericAlias
     except ImportError:
         _typing_GenericAlias = typing._GenericAlias
@@ -1408,10 +1408,10 @@ else:
         return ()
 
 
-# 3.10+
+# 043621.python.typing_extensions.line1411.comment 3.10+
 if hasattr(typing, 'TypeAlias'):
     TypeAlias = typing.TypeAlias
-# 3.9
+# 043622.python.typing_extensions.line1414.comment 3.9
 elif sys.version_info[:2] >= (3, 9):
     @_ExtensionsSpecialForm
     def TypeAlias(self, parameters):
@@ -1426,7 +1426,7 @@ elif sys.version_info[:2] >= (3, 9):
         It's invalid when used anywhere except as in the example above.
         """
         raise TypeError(f"{self} is not subscriptable")
-# 3.8
+# 043623.python.typing_extensions.line1429.comment 3.8
 else:
     TypeAlias = _ExtensionsSpecialForm(
         'TypeAlias',
@@ -1448,7 +1448,7 @@ if hasattr(typing, "NoDefault"):
 else:
     class NoDefaultTypeMeta(type):
         def __setattr__(cls, attr, value):
-            # TypeError is consistent with the behavior of NoneType
+            # 043624.python.typing_extensions.line1451.comment TypeError is consistent with the behavior of NoneType
             raise TypeError(
                 f"cannot set {attr!r} attribute of immutable type {cls.__name__!r}"
             )
@@ -1477,7 +1477,7 @@ def _set_default(type_param, default):
 
 
 def _set_module(typevarlike):
-    # for pickling:
+    # 043625.python.typing_extensions.line1480.comment for pickling:
     def_mod = _caller(depth=3)
     if def_mod != 'typing_extensions':
         typevarlike.__module__ = def_mod
@@ -1490,7 +1490,7 @@ class _DefaultMixin:
     __init__ = _set_default
 
 
-# Classes using this metaclass must provide a _backported_typevarlike ClassVar
+# 043626.python.typing_extensions.line1493.comment Classes using this metaclass must provide a _backported_typevarlike ClassVar
 class _TypeVarLikeMeta(type):
     def __instancecheck__(cls, __instance: Any) -> bool:
         return isinstance(__instance, cls._backported_typevarlike)
@@ -1499,7 +1499,7 @@ class _TypeVarLikeMeta(type):
 if _PEP_696_IMPLEMENTED:
     from typing import TypeVar
 else:
-    # Add default and infer_variance parameters from PEP 696 and 695
+    # 043627.python.typing_extensions.line1502.comment Add default and infer_variance parameters from PEP 696 and 695
     class TypeVar(metaclass=_TypeVarLikeMeta):
         """Type variable."""
 
@@ -1509,7 +1509,7 @@ else:
                     covariant=False, contravariant=False,
                     default=NoDefault, infer_variance=False):
             if hasattr(typing, "TypeAliasType"):
-                # PEP 695 implemented (3.12+), can pass infer_variance to typing.TypeVar
+                # 043628.python.typing_extensions.line1512.comment PEP 695 implemented (3.12+), can pass infer_variance to typing.TypeVar
                 typevar = typing.TypeVar(name, *constraints, bound=bound,
                                          covariant=covariant, contravariant=contravariant,
                                          infer_variance=infer_variance)
@@ -1538,11 +1538,11 @@ else:
             raise TypeError(f"type '{__name__}.TypeVar' is not an acceptable base type")
 
 
-# Python 3.10+ has PEP 612
+# 043629.python.typing_extensions.line1541.comment Python 3.10+ has PEP 612
 if hasattr(typing, 'ParamSpecArgs'):
     ParamSpecArgs = typing.ParamSpecArgs
     ParamSpecKwargs = typing.ParamSpecKwargs
-# 3.8-3.9
+# 043630.python.typing_extensions.line1545.comment 3.8-3.9
 else:
     class _Immutable:
         """Mixin to indicate that object should not be copied."""
@@ -1604,10 +1604,10 @@ else:
 if _PEP_696_IMPLEMENTED:
     from typing import ParamSpec
 
-# 3.10+
+# 043631.python.typing_extensions.line1607.comment 3.10+
 elif hasattr(typing, 'ParamSpec'):
 
-    # Add default parameter - PEP 696
+    # 043632.python.typing_extensions.line1610.comment Add default parameter - PEP 696
     class ParamSpec(metaclass=_TypeVarLikeMeta):
         """Parameter specification."""
 
@@ -1617,7 +1617,7 @@ elif hasattr(typing, 'ParamSpec'):
                     covariant=False, contravariant=False,
                     infer_variance=False, default=NoDefault):
             if hasattr(typing, "TypeAliasType"):
-                # PEP 695 implemented, can pass infer_variance to typing.TypeVar
+                # 043633.python.typing_extensions.line1620.comment PEP 695 implemented, can pass infer_variance to typing.TypeVar
                 paramspec = typing.ParamSpec(name, bound=bound,
                                              covariant=covariant,
                                              contravariant=contravariant,
@@ -1638,11 +1638,11 @@ elif hasattr(typing, 'ParamSpec'):
                     args = [*args, paramspec.__default__]
                 if i >= len(args):
                     raise TypeError(f"Too few arguments for {alias}")
-                # Special case where Z[[int, str, bool]] == Z[int, str, bool] in PEP 612.
+                # 043634.python.typing_extensions.line1641.comment Special case where Z[[int, str, bool]] == Z[int, str, bool] in PEP 612.
                 if len(params) == 1 and not typing._is_param_expr(args[0]):
                     assert i == 0
                     args = (args,)
-                # Convert lists to tuples to help other libraries cache the results.
+                # 043635.python.typing_extensions.line1645.comment Convert lists to tuples to help other libraries cache the results.
                 elif isinstance(args[i], list):
                     args = (*args[:i], tuple(args[i]), *args[i + 1:])
                 return args
@@ -1653,10 +1653,10 @@ elif hasattr(typing, 'ParamSpec'):
         def __init_subclass__(cls) -> None:
             raise TypeError(f"type '{__name__}.ParamSpec' is not an acceptable base type")
 
-# 3.8-3.9
+# 043636.python.typing_extensions.line1656.comment 3.8-3.9
 else:
 
-    # Inherits from list as a workaround for Callable checks in Python < 3.9.2.
+    # 043637.python.typing_extensions.line1659.comment Inherits from list as a workaround for Callable checks in Python < 3.9.2.
     class ParamSpec(list, _DefaultMixin):
         """Parameter specification variable.
 
@@ -1704,7 +1704,7 @@ else:
         be pickled.
         """
 
-        # Trick Generic __parameters__.
+        # 043638.python.typing_extensions.line1707.comment Trick Generic __parameters__.
         __class__ = typing.TypeVar
 
         @property
@@ -1728,7 +1728,7 @@ else:
                 self.__bound__ = None
             _DefaultMixin.__init__(self, default)
 
-            # for pickling:
+            # 043639.python.typing_extensions.line1731.comment for pickling:
             def_mod = _caller()
             if def_mod != 'typing_extensions':
                 self.__module__ = def_mod
@@ -1753,20 +1753,20 @@ else:
         def __reduce__(self):
             return self.__name__
 
-        # Hack to get typing._type_check to pass.
+        # 043640.python.typing_extensions.line1756.comment Hack to get typing._type_check to pass.
         def __call__(self, *args, **kwargs):
             pass
 
 
-# 3.8-3.9
+# 043641.python.typing_extensions.line1761.comment 3.8-3.9
 if not hasattr(typing, 'Concatenate'):
-    # Inherits from list as a workaround for Callable checks in Python < 3.9.2.
+    # 043642.python.typing_extensions.line1763.comment Inherits from list as a workaround for Callable checks in Python < 3.9.2.
     class _ConcatenateGenericAlias(list):
 
-        # Trick Generic into looking into this for __parameters__.
+        # 043643.python.typing_extensions.line1766.comment Trick Generic into looking into this for __parameters__.
         __class__ = typing._GenericAlias
 
-        # Flag in 3.8.
+        # 043644.python.typing_extensions.line1769.comment Flag in 3.8.
         _special = False
 
         def __init__(self, origin, args):
@@ -1782,7 +1782,7 @@ if not hasattr(typing, 'Concatenate'):
         def __hash__(self):
             return hash((self.__origin__, self.__args__))
 
-        # Hack to get typing._type_check to pass in Generic.
+        # 043645.python.typing_extensions.line1785.comment Hack to get typing._type_check to pass in Generic.
         def __call__(self, *args, **kwargs):
             pass
 
@@ -1793,7 +1793,7 @@ if not hasattr(typing, 'Concatenate'):
             )
 
 
-# 3.8-3.9
+# 043646.python.typing_extensions.line1796.comment 3.8-3.9
 @typing._tp_cache
 def _concatenate_getitem(self, parameters):
     if parameters == ():
@@ -1808,11 +1808,11 @@ def _concatenate_getitem(self, parameters):
     return _ConcatenateGenericAlias(self, parameters)
 
 
-# 3.10+
+# 043647.python.typing_extensions.line1811.comment 3.10+
 if hasattr(typing, 'Concatenate'):
     Concatenate = typing.Concatenate
     _ConcatenateGenericAlias = typing._ConcatenateGenericAlias
-# 3.9
+# 043648.python.typing_extensions.line1815.comment 3.9
 elif sys.version_info[:2] >= (3, 9):
     @_ExtensionsSpecialForm
     def Concatenate(self, parameters):
@@ -1827,7 +1827,7 @@ elif sys.version_info[:2] >= (3, 9):
         See PEP 612 for detailed information.
         """
         return _concatenate_getitem(self, parameters)
-# 3.8
+# 043649.python.typing_extensions.line1830.comment 3.8
 else:
     class _ConcatenateForm(_ExtensionsSpecialForm, _root=True):
         def __getitem__(self, parameters):
@@ -1846,10 +1846,10 @@ else:
         See PEP 612 for detailed information.
         """)
 
-# 3.10+
+# 043650.python.typing_extensions.line1849.comment 3.10+
 if hasattr(typing, 'TypeGuard'):
     TypeGuard = typing.TypeGuard
-# 3.9
+# 043651.python.typing_extensions.line1852.comment 3.9
 elif sys.version_info[:2] >= (3, 9):
     @_ExtensionsSpecialForm
     def TypeGuard(self, parameters):
@@ -1897,7 +1897,7 @@ elif sys.version_info[:2] >= (3, 9):
         """
         item = typing._type_check(parameters, f'{self} accepts only a single type.')
         return typing._GenericAlias(self, (item,))
-# 3.8
+# 043652.python.typing_extensions.line1900.comment 3.8
 else:
     class _TypeGuardForm(_ExtensionsSpecialForm, _root=True):
         def __getitem__(self, parameters):
@@ -1950,10 +1950,10 @@ else:
         PEP 647 (User-Defined Type Guards).
         """)
 
-# 3.13+
+# 043653.python.typing_extensions.line1953.comment 3.13+
 if hasattr(typing, 'TypeIs'):
     TypeIs = typing.TypeIs
-# 3.9
+# 043654.python.typing_extensions.line1956.comment 3.9
 elif sys.version_info[:2] >= (3, 9):
     @_ExtensionsSpecialForm
     def TypeIs(self, parameters):
@@ -1995,7 +1995,7 @@ elif sys.version_info[:2] >= (3, 9):
         """
         item = typing._type_check(parameters, f'{self} accepts only a single type.')
         return typing._GenericAlias(self, (item,))
-# 3.8
+# 043655.python.typing_extensions.line1998.comment 3.8
 else:
     class _TypeIsForm(_ExtensionsSpecialForm, _root=True):
         def __getitem__(self, parameters):
@@ -2043,7 +2043,7 @@ else:
         """)
 
 
-# Vendored from cpython typing._SpecialFrom
+# 043656.python.typing_extensions.line2046.comment Vendored from cpython typing._SpecialFrom
 class _SpecialForm(typing._Final, _root=True):
     __slots__ = ('_name', '__doc__', '_getitem')
 
@@ -2396,7 +2396,7 @@ elif hasattr(typing, "TypeVarTuple"):  # 3.11+
                 newargs.append(arg)
         return newargs
 
-    # Add default parameter - PEP 696
+    # 043669.python.typing_extensions.line2399.comment Add default parameter - PEP 696
     class TypeVarTuple(metaclass=_TypeVarLikeMeta):
         """Type variable tuple."""
 
@@ -2503,7 +2503,7 @@ else:  # <=3.10
 
         """
 
-        # Trick Generic __parameters__.
+        # 043671.python.typing_extensions.line2506.comment Trick Generic __parameters__.
         __class__ = typing.TypeVar
 
         def __iter__(self):
@@ -2513,7 +2513,7 @@ else:  # <=3.10
             self.__name__ = name
             _DefaultMixin.__init__(self, default)
 
-            # for pickling:
+            # 043672.python.typing_extensions.line2516.comment for pickling:
             def_mod = _caller()
             if def_mod != 'typing_extensions':
                 self.__module__ = def_mod
@@ -2596,7 +2596,7 @@ else:  # <=3.10
 
 
 if sys.version_info >= (3, 12):  # 3.12+
-    # dataclass_transform exists in 3.11 but lacks the frozen_default parameter
+    # 043680.python.typing_extensions.line2599.comment dataclass_transform exists in 3.11 but lacks the frozen_default parameter
     dataclass_transform = typing.dataclass_transform
 else:  # <=3.11
     def dataclass_transform(
@@ -2719,9 +2719,9 @@ else:  # <=3.11
         try:
             arg.__override__ = True
         except (AttributeError, TypeError):
-            # Skip the attribute silently if it is not writable.
-            # AttributeError happens if the object has __slots__ or a
-            # read-only property, TypeError if it's a builtin class.
+            # 043684.python.typing_extensions.line2722.comment Skip the attribute silently if it is not writable.
+            # 043685.python.typing_extensions.line2723.comment AttributeError happens if the object has __slots__ or a
+            # 043686.python.typing_extensions.line2724.comment read-only property, TypeError if it's a builtin class.
             pass
         return arg
 
@@ -2791,8 +2791,8 @@ else:
             self.stacklevel = stacklevel
 
         def __call__(self, arg: _T, /) -> _T:
-            # Make sure the inner functions created below don't
-            # retain a reference to self.
+            # 043687.python.typing_extensions.line2794.comment Make sure the inner functions created below don't
+            # 043688.python.typing_extensions.line2795.comment retain a reference to self.
             msg = self.message
             category = self.category
             stacklevel = self.stacklevel
@@ -2811,7 +2811,7 @@ else:
                         warnings.warn(msg, category=category, stacklevel=stacklevel + 1)
                     if original_new is not object.__new__:
                         return original_new(cls, *args, **kwargs)
-                    # Mirrors a similar check in object.__new__.
+                    # 043689.python.typing_extensions.line2814.comment Mirrors a similar check in object.__new__.
                     elif cls.__init__ is object.__init__ and (args or kwargs):
                         raise TypeError(f"{cls.__name__}() takes no arguments")
                     else:
@@ -2820,8 +2820,8 @@ else:
                 arg.__new__ = staticmethod(__new__)
 
                 original_init_subclass = arg.__init_subclass__
-                # We need slightly different behavior if __init_subclass__
-                # is a bound method (likely if it was implemented in Python)
+                # 043690.python.typing_extensions.line2823.comment We need slightly different behavior if __init_subclass__
+                # 043691.python.typing_extensions.line2824.comment is a bound method (likely if it was implemented in Python)
                 if isinstance(original_init_subclass, MethodType):
                     original_init_subclass = original_init_subclass.__func__
 
@@ -2831,8 +2831,8 @@ else:
                         return original_init_subclass(*args, **kwargs)
 
                     arg.__init_subclass__ = classmethod(__init_subclass__)
-                # Or otherwise, which likely means it's a builtin such as
-                # object's implementation of __init_subclass__.
+                # 043692.python.typing_extensions.line2834.comment Or otherwise, which likely means it's a builtin such as
+                # 043693.python.typing_extensions.line2835.comment object's implementation of __init_subclass__.
                 else:
                     @functools.wraps(original_init_subclass)
                     def __init_subclass__(*args, **kwargs):
@@ -2861,13 +2861,13 @@ else:
                 )
 
 
-# We have to do some monkey patching to deal with the dual nature of
-# Unpack/TypeVarTuple:
-# - We want Unpack to be a kind of TypeVar so it gets accepted in
-#   Generic[Unpack[Ts]]
-# - We want it to *not* be treated as a TypeVar for the purposes of
-#   counting generic parameters, so that when we subscript a generic,
-#   the runtime doesn't try to substitute the Unpack with the subscripted type.
+# 043694.python.typing_extensions.line2864.comment We have to do some monkey patching to deal with the dual nature of
+# 043695.python.typing_extensions.line2865.comment Unpack/TypeVarTuple:
+# 043696.python.typing_extensions.line2866.comment - We want Unpack to be a kind of TypeVar so it gets accepted in
+# 043697.python.typing_extensions.line2867.comment Generic[Unpack[Ts]]
+# 043698.python.typing_extensions.line2868.comment - We want it to *not* be treated as a TypeVar for the purposes of
+# 043699.python.typing_extensions.line2869.comment counting generic parameters, so that when we subscript a generic,
+# 043700.python.typing_extensions.line2870.comment the runtime doesn't try to substitute the Unpack with the subscripted type.
 if not hasattr(typing, "TypeVarTuple"):
     def _check_generic(cls, parameters, elen=_marker):
         """Check correct count for parameters of a generic cls (internal helper).
@@ -2889,11 +2889,11 @@ if not hasattr(typing, "TypeVarTuple"):
                 if (num_tv_tuples > 0) and (alen >= elen - num_tv_tuples):
                     return
 
-                # deal with TypeVarLike defaults
-                # required TypeVarLikes cannot appear after a defaulted one.
+                # 043701.python.typing_extensions.line2892.comment deal with TypeVarLike defaults
+                # 043702.python.typing_extensions.line2893.comment required TypeVarLikes cannot appear after a defaulted one.
                 if alen < elen:
-                    # since we validate TypeVarLike default in _collect_type_vars
-                    # or _collect_parameters we can safely check parameters[alen]
+                    # 043703.python.typing_extensions.line2895.comment since we validate TypeVarLike default in _collect_type_vars
+                    # 043704.python.typing_extensions.line2896.comment or _collect_parameters we can safely check parameters[alen]
                     if (
                         getattr(parameters[alen], '__default__', NoDefault)
                         is not NoDefault
@@ -2911,7 +2911,7 @@ if not hasattr(typing, "TypeVarTuple"):
             raise TypeError(f"Too {'many' if alen > elen else 'few'} {things}"
                             f" for {cls}; actual {alen}, expected {expect_val}")
 else:
-    # Python 3.11+
+    # 043705.python.typing_extensions.line2914.comment Python 3.11+
 
     def _check_generic(cls, parameters, elen):
         """Check correct count for parameters of a generic cls (internal helper).
@@ -2926,11 +2926,11 @@ else:
             if hasattr(cls, "__parameters__"):
                 parameters = [p for p in cls.__parameters__ if not _is_unpack(p)]
 
-                # deal with TypeVarLike defaults
-                # required TypeVarLikes cannot appear after a defaulted one.
+                # 043706.python.typing_extensions.line2929.comment deal with TypeVarLike defaults
+                # 043707.python.typing_extensions.line2930.comment required TypeVarLikes cannot appear after a defaulted one.
                 if alen < elen:
-                    # since we validate TypeVarLike default in _collect_type_vars
-                    # or _collect_parameters we can safely check parameters[alen]
+                    # 043708.python.typing_extensions.line2932.comment since we validate TypeVarLike default in _collect_type_vars
+                    # 043709.python.typing_extensions.line2933.comment or _collect_parameters we can safely check parameters[alen]
                     if (
                         getattr(parameters[alen], '__default__', NoDefault)
                         is not NoDefault
@@ -2954,19 +2954,19 @@ if not _PEP_696_IMPLEMENTED:
 def _has_generic_or_protocol_as_origin() -> bool:
     try:
         frame = sys._getframe(2)
-    # - Catch AttributeError: not all Python implementations have sys._getframe()
-    # - Catch ValueError: maybe we're called from an unexpected module
-    #   and the call stack isn't deep enough
+    # 043710.python.typing_extensions.line2957.comment - Catch AttributeError: not all Python implementations have sys._getframe()
+    # 043711.python.typing_extensions.line2958.comment - Catch ValueError: maybe we're called from an unexpected module
+    # 043712.python.typing_extensions.line2959.comment and the call stack isn't deep enough
     except (AttributeError, ValueError):
         return False  # err on the side of leniency
     else:
-        # If we somehow get invoked from outside typing.py,
-        # also err on the side of leniency
+        # 043714.python.typing_extensions.line2963.comment If we somehow get invoked from outside typing.py,
+        # 043715.python.typing_extensions.line2964.comment also err on the side of leniency
         if frame.f_globals.get("__name__") != "typing":
             return False
         origin = frame.f_locals.get("origin")
-        # Cannot use "in" because origin may be an object with a buggy __eq__ that
-        # throws an error.
+        # 043716.python.typing_extensions.line2968.comment Cannot use "in" because origin may be an object with a buggy __eq__ that
+        # 043717.python.typing_extensions.line2969.comment throws an error.
         return origin is typing.Generic or origin is Protocol or origin is typing.Protocol
 
 
@@ -2984,7 +2984,7 @@ def _is_unpacked_typevartuple(x) -> bool:
     )
 
 
-# Python 3.11+ _collect_type_vars was renamed to _collect_parameters
+# 043718.python.typing_extensions.line2987.comment Python 3.11+ _collect_type_vars was renamed to _collect_parameters
 if hasattr(typing, '_collect_type_vars'):
     def _collect_type_vars(types, typevar_types=None):
         """Collect all type variable contained in types in order of
@@ -2996,12 +2996,12 @@ if hasattr(typing, '_collect_type_vars'):
             typevar_types = typing.TypeVar
         tvars = []
 
-        # A required TypeVarLike cannot appear after a TypeVarLike with a default
-        # if it was a direct call to `Generic[]` or `Protocol[]`
+        # 043719.python.typing_extensions.line2999.comment A required TypeVarLike cannot appear after a TypeVarLike with a default
+        # 043720.python.typing_extensions.line3000.comment if it was a direct call to `Generic[]` or `Protocol[]`
         enforce_default_ordering = _has_generic_or_protocol_as_origin()
         default_encountered = False
 
-        # Also, a TypeVarLike with a default cannot appear after a TypeVarTuple
+        # 043721.python.typing_extensions.line3004.comment Also, a TypeVarLike with a default cannot appear after a TypeVarTuple
         type_var_tuple_encountered = False
 
         for t in types:
@@ -3036,21 +3036,21 @@ else:
         """
         parameters = []
 
-        # A required TypeVarLike cannot appear after a TypeVarLike with default
-        # if it was a direct call to `Generic[]` or `Protocol[]`
+        # 043722.python.typing_extensions.line3039.comment A required TypeVarLike cannot appear after a TypeVarLike with default
+        # 043723.python.typing_extensions.line3040.comment if it was a direct call to `Generic[]` or `Protocol[]`
         enforce_default_ordering = _has_generic_or_protocol_as_origin()
         default_encountered = False
 
-        # Also, a TypeVarLike with a default cannot appear after a TypeVarTuple
+        # 043724.python.typing_extensions.line3044.comment Also, a TypeVarLike with a default cannot appear after a TypeVarTuple
         type_var_tuple_encountered = False
 
         for t in args:
             if isinstance(t, type):
-                # We don't want __parameters__ descriptor of a bare Python class.
+                # 043725.python.typing_extensions.line3049.comment We don't want __parameters__ descriptor of a bare Python class.
                 pass
             elif isinstance(t, tuple):
-                # `t` might be a tuple, when `ParamSpec` is substituted with
-                # `[T, int]`, or `[int, *Ts]`, etc.
+                # 043726.python.typing_extensions.line3052.comment `t` might be a tuple, when `ParamSpec` is substituted with
+                # 043727.python.typing_extensions.line3053.comment `[T, int]`, or `[int, *Ts]`, etc.
                 for x in t:
                     for collected in _collect_parameters([x]):
                         if collected not in parameters:
@@ -3085,11 +3085,11 @@ else:
     if not _PEP_696_IMPLEMENTED:
         typing._collect_parameters = _collect_parameters
 
-# Backport typing.NamedTuple as it exists in Python 3.13.
-# In 3.11, the ability to define generic `NamedTuple`s was supported.
-# This was explicitly disallowed in 3.9-3.10, and only half-worked in <=3.8.
-# On 3.12, we added __orig_bases__ to call-based NamedTuples
-# On 3.13, we deprecated kwargs-based NamedTuples
+# 043728.python.typing_extensions.line3088.comment Backport typing.NamedTuple as it exists in Python 3.13.
+# 043729.python.typing_extensions.line3089.comment In 3.11, the ability to define generic `NamedTuple`s was supported.
+# 043730.python.typing_extensions.line3090.comment This was explicitly disallowed in 3.9-3.10, and only half-worked in <=3.8.
+# 043731.python.typing_extensions.line3091.comment On 3.12, we added __orig_bases__ to call-based NamedTuples
+# 043732.python.typing_extensions.line3092.comment On 3.13, we deprecated kwargs-based NamedTuples
 if sys.version_info >= (3, 13):
     NamedTuple = typing.NamedTuple
 else:
@@ -3100,8 +3100,8 @@ else:
         nm_tpl = collections.namedtuple(name, fields,
                                         defaults=defaults, module=module)
         nm_tpl.__annotations__ = nm_tpl.__new__.__annotations__ = annotations
-        # The `_field_types` attribute was removed in 3.9;
-        # in earlier versions, it is the same as the `__annotations__` attribute
+        # 043733.python.typing_extensions.line3103.comment The `_field_types` attribute was removed in 3.9;
+        # 043734.python.typing_extensions.line3104.comment in earlier versions, it is the same as the `__annotations__` attribute
         if sys.version_info < (3, 9):
             nm_tpl._field_types = annotations
         return nm_tpl
@@ -3120,7 +3120,7 @@ else:
             if "__annotations__" in ns:
                 types = ns["__annotations__"]
             elif "__annotate__" in ns:
-                # TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
+                # 043735.python.typing_extensions.line3123.comment TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
                 types = ns["__annotate__"](1)
             else:
                 types = {}
@@ -3145,7 +3145,7 @@ else:
                 else:
                     class_getitem = typing.Generic.__class_getitem__.__func__
                     nm_tpl.__class_getitem__ = classmethod(class_getitem)
-            # update from user namespace without overriding special namedtuple attributes
+            # 043737.python.typing_extensions.line3148.comment update from user namespace without overriding special namedtuple attributes
             for key, val in ns.items():
                 if key in _prohibited_namedtuple_fields:
                     raise AttributeError("Cannot overwrite NamedTuple attribute " + key)
@@ -3164,11 +3164,11 @@ else:
                                 f"Error calling __set_name__ on {type(val).__name__!r} "
                                 f"instance {key!r} in {typename!r}"
                             )
-                            # BaseException.add_note() existed on py311,
-                            # but the __set_name__ machinery didn't start
-                            # using add_note() until py312.
-                            # Making sure exceptions are raised in the same way
-                            # as in "normal" classes seems most important here.
+                            # 043738.python.typing_extensions.line3167.comment BaseException.add_note() existed on py311,
+                            # 043739.python.typing_extensions.line3168.comment but the __set_name__ machinery didn't start
+                            # 043740.python.typing_extensions.line3169.comment using add_note() until py312.
+                            # 043741.python.typing_extensions.line3170.comment Making sure exceptions are raised in the same way
+                            # 043742.python.typing_extensions.line3171.comment as in "normal" classes seems most important here.
                             if sys.version_info >= (3, 12):
                                 e.add_note(msg)
                                 raise
@@ -3275,13 +3275,13 @@ else:
 
         """
 
-    # As a courtesy, register the most common stdlib buffer classes.
+    # 043744.python.typing_extensions.line3278.comment As a courtesy, register the most common stdlib buffer classes.
     Buffer.register(memoryview)
     Buffer.register(bytearray)
     Buffer.register(bytes)
 
 
-# Backport of types.get_original_bases, available on 3.12+ in CPython
+# 043745.python.typing_extensions.line3284.comment Backport of types.get_original_bases, available on 3.12+ in CPython
 if hasattr(_types, "get_original_bases"):
     get_original_bases = _types.get_original_bases
 else:
@@ -3314,8 +3314,8 @@ else:
             ) from None
 
 
-# NewType is a class on Python 3.10+, making it pickleable
-# The error message for subclassing instances of NewType was improved on 3.11+
+# 043746.python.typing_extensions.line3317.comment NewType is a class on Python 3.10+, making it pickleable
+# 043747.python.typing_extensions.line3318.comment The error message for subclassing instances of NewType was improved on 3.11+
 if sys.version_info >= (3, 11):
     NewType = typing.NewType
 else:
@@ -3347,8 +3347,8 @@ else:
                 self.__module__ = def_mod
 
         def __mro_entries__(self, bases):
-            # We defined __mro_entries__ to get a better error message
-            # if a user attempts to subclass a NewType instance. bpo-46170
+            # 043748.python.typing_extensions.line3350.comment We defined __mro_entries__ to get a better error message
+            # 043749.python.typing_extensions.line3351.comment if a user attempts to subclass a NewType instance. bpo-46170
             supercls_name = self.__name__
 
             class Dummy:
@@ -3369,8 +3369,8 @@ else:
             return self.__qualname__
 
         if sys.version_info >= (3, 10):
-            # PEP 604 methods
-            # It doesn't make sense to have these methods on Python <3.10
+            # 043750.python.typing_extensions.line3372.comment PEP 604 methods
+            # 043751.python.typing_extensions.line3373.comment It doesn't make sense to have these methods on Python <3.10
 
             def __or__(self, other):
                 return typing.Union[self, other]
@@ -3435,7 +3435,7 @@ else:
             def_mod = _caller()
             if def_mod != 'typing_extensions':
                 self.__module__ = def_mod
-            # Setting this attribute closes the TypeAliasType from further modification
+            # 043752.python.typing_extensions.line3438.comment Setting this attribute closes the TypeAliasType from further modification
             self.__name__ = name
 
         def __setattr__(self, name: str, value: object, /) -> None:
@@ -3447,7 +3447,7 @@ else:
             self._raise_attribute_error(name)
 
         def _raise_attribute_error(self, name: str) -> Never:
-            # Match the Python 3.12 error messages exactly
+            # 043753.python.typing_extensions.line3450.comment Match the Python 3.12 error messages exactly
             if name == "__name__":
                 raise AttributeError("readonly attribute")
             elif name in {"__value__", "__type_params__", "__parameters__", "__module__"}:
@@ -3482,15 +3482,15 @@ else:
                 "type 'typing_extensions.TypeAliasType' is not an acceptable base type"
             )
 
-        # The presence of this method convinces typing._type_check
-        # that TypeAliasTypes are types.
+        # 043754.python.typing_extensions.line3485.comment The presence of this method convinces typing._type_check
+        # 043755.python.typing_extensions.line3486.comment that TypeAliasTypes are types.
         def __call__(self):
             raise TypeError("Type alias is not callable")
 
         if sys.version_info >= (3, 10):
             def __or__(self, right):
-                # For forward compatibility with 3.12, reject Unions
-                # that are not accepted by the built-in Union.
+                # 043756.python.typing_extensions.line3492.comment For forward compatibility with 3.12, reject Unions
+                # 043757.python.typing_extensions.line3493.comment that are not accepted by the built-in Union.
                 if not _is_unionable(right):
                     return NotImplemented
                 return typing.Union[self, right]
@@ -3599,10 +3599,10 @@ if _CapsuleType is not None:
     __all__.append("CapsuleType")
 
 
-# Aliases for items that have always been in typing.
-# Explicitly assign these (rather than using `from typing import *` at the top),
-# so that we get a CI error if one of these is deleted from typing.py
-# in a future version of Python
+# 043758.python.typing_extensions.line3602.comment Aliases for items that have always been in typing.
+# 043759.python.typing_extensions.line3603.comment Explicitly assign these (rather than using `from typing import *` at the top),
+# 043760.python.typing_extensions.line3604.comment so that we get a CI error if one of these is deleted from typing.py
+# 043761.python.typing_extensions.line3605.comment in a future version of Python
 AbstractSet = typing.AbstractSet
 AnyStr = typing.AnyStr
 BinaryIO = typing.BinaryIO

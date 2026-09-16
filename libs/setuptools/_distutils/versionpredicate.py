@@ -6,11 +6,11 @@ import re
 from . import version
 
 re_validPackage = re.compile(r"(?i)^\s*([a-z_]\w*(?:\.[a-z_]\w*)*)(.*)", re.ASCII)
-# (package) (rest)
+# 041482.python.versionpredicate.line9.comment (package) (rest)
 
 re_paren = re.compile(r"^\s*\((.*)\)\s*$")  # (list) inside of parentheses
 re_splitComparison = re.compile(r"^\s*(<=|>=|<|>|!=|==)\s*([^\s,]+)\s*$")
-# (comp) (version)
+# 041484.python.versionpredicate.line13.comment (comp) (version)
 
 
 def splitUp(pred):
@@ -104,9 +104,9 @@ class VersionPredicate:
 
     def __init__(self, versionPredicateStr):
         """Parse a version predicate string."""
-        # Fields:
-        #    name:  package name
-        #    pred:  list of (comparison string, StrictVersion)
+        # 041485.python.versionpredicate.line107.comment Fields:
+        # 041486.python.versionpredicate.line108.comment name:  package name
+        # 041487.python.versionpredicate.line109.comment pred:  list of (comparison string, StrictVersion)
 
         versionPredicateStr = versionPredicateStr.strip()
         if not versionPredicateStr:

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 000368.python.api.line1.comment -----------------------------------------------------------------------------
+# 000369.python.api.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 000370.python.api.line3.comment
+# 000371.python.api.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 000372.python.api.line5.comment or later) with exception for distributing the bootloader.
+# 000373.python.api.line6.comment
+# 000374.python.api.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 000375.python.api.line8.comment
+# 000376.python.api.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 000377.python.api.line10.comment -----------------------------------------------------------------------------
 """
 This module contains classes that are available for the .spec files.
 
@@ -76,84 +76,84 @@ class PYZ(Target):
         if name is None:
             self.name = os.path.splitext(self.tocfilename)[0] + '.pyz'
 
-        # PyInstaller bootstrapping modules.
+        # 000379.python.api.line79.comment PyInstaller bootstrapping modules.
         bootstrap_dependencies = get_bootstrap_modules()
 
-        # Compile the python modules that are part of bootstrap dependencies, so that they can be collected into the
-        # CArchive/PKG and imported by the bootstrap script.
+        # 000380.python.api.line82.comment Compile the python modules that are part of bootstrap dependencies, so that they can be collected into the
+        # 000381.python.api.line83.comment CArchive/PKG and imported by the bootstrap script.
         self.dependencies = []
         workpath = os.path.join(CONF['workpath'], 'localpycs')
         for name, src_path, typecode in bootstrap_dependencies:
             if typecode == 'PYMODULE':
-                # Compile pymodule and include the compiled .pyc file.
+                # 000382.python.api.line88.comment Compile pymodule and include the compiled .pyc file.
                 pyc_path = compile_pymodule(
                     name,
                     src_path,
                     workpath,
-                    # Never optimize bootstrap dependencies!
+                    # 000383.python.api.line93.comment Never optimize bootstrap dependencies!
                     optimize=0,
                     code_cache=None,
                 )
                 self.dependencies.append((name, pyc_path, typecode))
             else:
-                # Include as is (extensions).
+                # 000384.python.api.line99.comment Include as is (extensions).
                 self.dependencies.append((name, src_path, typecode))
 
-        # Merge input TOC(s) and their code object dictionaries (if available). Skip the bootstrap modules, which will
-        # be passed on to CArchive/PKG.
+        # 000385.python.api.line102.comment Merge input TOC(s) and their code object dictionaries (if available). Skip the bootstrap modules, which will
+        # 000386.python.api.line103.comment be passed on to CArchive/PKG.
         bootstrap_module_names = set(name for name, _, typecode in self.dependencies if typecode == 'PYMODULE')
         self.toc = []
         self.code_dict = {}
         for toc in tocs:
-            # Check if code cache association exists for the given TOC list
+            # 000387.python.api.line108.comment Check if code cache association exists for the given TOC list
             code_cache = CONF['code_cache'].get(id(toc))
             if code_cache is not None:
                 self.code_dict.update(code_cache)
 
             for entry in toc:
                 name, _, typecode = entry
-                # PYZ expects only PYMODULE entries (python code objects).
+                # 000388.python.api.line115.comment PYZ expects only PYMODULE entries (python code objects).
                 assert typecode in {'PYMODULE', 'PYMODULE-1', 'PYMODULE-2'}, f"Invalid entry passed to PYZ: {entry}!"
-                # Module required during bootstrap; skip to avoid collecting a duplicate.
+                # 000389.python.api.line117.comment Module required during bootstrap; skip to avoid collecting a duplicate.
                 if name in bootstrap_module_names:
                     continue
                 self.toc.append(entry)
 
-        # Normalize TOC
+        # 000390.python.api.line122.comment Normalize TOC
         self.toc = normalize_pyz_toc(self.toc)
 
-        # Alphabetically sort the TOC to enable reproducible builds.
+        # 000391.python.api.line125.comment Alphabetically sort the TOC to enable reproducible builds.
         self.toc.sort()
 
         self.__postinit__()
 
     _GUTS = (
-        # input parameters
+        # 000392.python.api.line131.comment input parameters
         ('name', _check_guts_eq),
         ('toc', _check_guts_toc),
-        # no calculated/analysed values
+        # 000393.python.api.line134.comment no calculated/analysed values
     )
 
     def assemble(self):
         logger.info("Building PYZ (ZlibArchive) %s", self.name)
 
-        # Ensure code objects are available for all modules we are about to collect.
-        # NOTE: PEP-420 namespace packages (marked by src_path being set to '-') do not have code objects.
-        # NOTE: `self.toc` is already sorted by names.
+        # 000394.python.api.line140.comment Ensure code objects are available for all modules we are about to collect.
+        # 000395.python.api.line141.comment NOTE: PEP-420 namespace packages (marked by src_path being set to '-') do not have code objects.
+        # 000396.python.api.line142.comment NOTE: `self.toc` is already sorted by names.
         archive_toc = []
         for entry in self.toc:
             name, src_path, typecode = entry
             if src_path not in {'-', None} and name not in self.code_dict:
-                # The code object is not available from the ModuleGraph's cache; re-create it.
+                # 000397.python.api.line147.comment The code object is not available from the ModuleGraph's cache; re-create it.
                 optim_level = {'PYMODULE': 0, 'PYMODULE-1': 1, 'PYMODULE-2': 2}[typecode]
                 try:
                     self.code_dict[name] = get_code_object(name, src_path, optimize=optim_level)
                 except SyntaxError:
-                    # The module was likely written for different Python version; exclude it
+                    # 000398.python.api.line152.comment The module was likely written for different Python version; exclude it
                     continue
             archive_toc.append(entry)
 
-        # Create the archive
+        # 000399.python.api.line156.comment Create the archive
         ZlibArchiveWriter(self.name, archive_toc, code_dict=self.code_dict)
         logger.info("Building PYZ (ZlibArchive) %s completed successfully.", self.name)
 
@@ -164,9 +164,9 @@ class PKG(Target):
     to include various read-only data in a single-file deployment.
     """
     xformdict = {
-        # PYMODULE entries are already byte-compiled, so we do not need to encode optimization level in the low-level
-        # typecodes. PYSOURCE entries are byte-compiled by the underlying writer, so we need to pass the optimization
-        # level via low-level typecodes.
+        # 000400.python.api.line167.comment PYMODULE entries are already byte-compiled, so we do not need to encode optimization level in the low-level
+        # 000401.python.api.line168.comment typecodes. PYSOURCE entries are byte-compiled by the underlying writer, so we need to pass the optimization
+        # 000402.python.api.line169.comment level via low-level typecodes.
         'PYMODULE': 'm',
         'PYMODULE-1': 'm',
         'PYMODULE-2': 'm',
@@ -233,7 +233,7 @@ class PKG(Target):
         self.codesign_identity = codesign_identity
         self.entitlements_file = entitlements_file
 
-        # This dict tells PyInstaller what items embedded in the executable should be compressed.
+        # 000404.python.api.line236.comment This dict tells PyInstaller what items embedded in the executable should be compressed.
         if self.cdict is None:
             self.cdict = {
                 'EXTENSION': COMPRESSED,
@@ -243,9 +243,9 @@ class PKG(Target):
                 'PYSOURCE': COMPRESSED,
                 'PYMODULE': COMPRESSED,
                 'SPLASH': COMPRESSED,
-                # Do not compress PYZ as a whole, as it contains individually-compressed modules.
+                # 000405.python.api.line246.comment Do not compress PYZ as a whole, as it contains individually-compressed modules.
                 'PYZ': UNCOMPRESSED,
-                # Do not compress target names in symbolic links.
+                # 000406.python.api.line248.comment Do not compress target names in symbolic links.
                 'SYMLINK': UNCOMPRESSED,
             }
 
@@ -263,7 +263,7 @@ class PKG(Target):
         ('target_arch', _check_guts_eq),
         ('codesign_identity', _check_guts_eq),
         ('entitlements_file', _check_guts_eq),
-        # no calculated/analysed values
+        # 000409.python.api.line266.comment no calculated/analysed values
     )
 
     def assemble(self):
@@ -275,9 +275,9 @@ class PKG(Target):
         archive_toc = []  # TOC containing all other elements. Sorted to enable reproducible builds.
 
         for dest_name, src_name, typecode in self.toc:
-            # Ensure that the source file exists, if necessary. Skip the check for OPTION entries, where 'src_name' is
-            # None. Also skip DEPENDENCY entries due to special contents of 'dest_name' and/or 'src_name'. Same for the
-            # SYMLINK entries, where 'src_name' is relative target name for symbolic link.
+            # 000413.python.api.line278.comment Ensure that the source file exists, if necessary. Skip the check for OPTION entries, where 'src_name' is
+            # 000414.python.api.line279.comment None. Also skip DEPENDENCY entries due to special contents of 'dest_name' and/or 'src_name'. Same for the
+            # 000415.python.api.line280.comment SYMLINK entries, where 'src_name' is relative target name for symbolic link.
             if typecode not in {'OPTION', 'DEPENDENCY', 'SYMLINK'}:
                 if not os.path.exists(src_name):
                     if strict_collect_mode:
@@ -288,27 +288,27 @@ class PKG(Target):
                         )
                         continue
 
-                # Detect attempt at collecting PKG into itself, as it results in and endless feeding loop and exhaustion
-                # of all available storage space.
+                # 000416.python.api.line291.comment Detect attempt at collecting PKG into itself, as it results in and endless feeding loop and exhaustion
+                # 000417.python.api.line292.comment of all available storage space.
                 if pathlib.Path(src_name).resolve() == pkg_file:
                     raise ValueError(f"Trying to collect PKG file {src_name} into itself!")
 
             if typecode in ('BINARY', 'EXTENSION'):
                 if self.exclude_binaries:
-                    # This is onedir-specific codepath - the EXE and consequently PKG should not be passed the Analysis'
-                    # `datas` and `binaries` TOCs (unless the user messes up the .spec file). However, EXTENSION entries
-                    # might still slip in via `PYZ.dependencies`, which are merged by EXE into its TOC and passed on to
-                    # PKG here. Such entries need to be passed to the parent container (the COLLECT) via
-                    # `PKG.dependencies`.
-                    #
-                    # This codepath formerly performed such pass-through only for EXTENSION entries, but in order to
-                    # keep code simple, we now also do it for BINARY entries. In a sane world, we do not expect to
-                    # encounter them here; but if they do happen to pass through here and we pass them on, the
-                    # container's TOC de-duplication should take care of them (same as with EXTENSION ones, really).
+                    # 000418.python.api.line298.comment This is onedir-specific codepath - the EXE and consequently PKG should not be passed the Analysis'
+                    # 000419.python.api.line299.comment `datas` and `binaries` TOCs (unless the user messes up the .spec file). However, EXTENSION entries
+                    # 000420.python.api.line300.comment might still slip in via `PYZ.dependencies`, which are merged by EXE into its TOC and passed on to
+                    # 000421.python.api.line301.comment PKG here. Such entries need to be passed to the parent container (the COLLECT) via
+                    # 000422.python.api.line302.comment `PKG.dependencies`.
+                    # 000423.python.api.line303.comment
+                    # 000424.python.api.line304.comment This codepath formerly performed such pass-through only for EXTENSION entries, but in order to
+                    # 000425.python.api.line305.comment keep code simple, we now also do it for BINARY entries. In a sane world, we do not expect to
+                    # 000426.python.api.line306.comment encounter them here; but if they do happen to pass through here and we pass them on, the
+                    # 000427.python.api.line307.comment container's TOC de-duplication should take care of them (same as with EXTENSION ones, really).
                     self.dependencies.append((dest_name, src_name, typecode))
                 else:
-                    # This is onefile-specific codepath. The binaries (both EXTENSION and BINARY entries) need to be
-                    # processed using `process_collected_binary` helper.
+                    # 000428.python.api.line310.comment This is onefile-specific codepath. The binaries (both EXTENSION and BINARY entries) need to be
+                    # 000429.python.api.line311.comment processed using `process_collected_binary` helper.
                     src_name = process_collected_binary(
                         src_name,
                         dest_name,
@@ -322,16 +322,16 @@ class PKG(Target):
                     )
                     archive_toc.append((dest_name, src_name, self.cdict.get(typecode, False), self.xformdict[typecode]))
             elif typecode in ('DATA', 'ZIPFILE'):
-                # Same logic as above for BINARY and EXTENSION; if `exclude_binaries` is set, we are in onedir mode;
-                # we should exclude DATA (and ZIPFILE) entries and instead pass them on via PKG's `dependencies`. This
-                # prevents a onedir application from becoming a broken onefile one if user accidentally passes datas
-                # and binaries TOCs to EXE instead of COLLECT.
+                # 000430.python.api.line325.comment Same logic as above for BINARY and EXTENSION; if `exclude_binaries` is set, we are in onedir mode;
+                # 000431.python.api.line326.comment we should exclude DATA (and ZIPFILE) entries and instead pass them on via PKG's `dependencies`. This
+                # 000432.python.api.line327.comment prevents a onedir application from becoming a broken onefile one if user accidentally passes datas
+                # 000433.python.api.line328.comment and binaries TOCs to EXE instead of COLLECT.
                 if self.exclude_binaries:
                     self.dependencies.append((dest_name, src_name, typecode))
                 else:
                     if typecode == 'DATA' and os.access(src_name, os.X_OK):
-                        # DATA with executable bit set (e.g., shell script); turn into binary so that executable bit is
-                        # restored on the extracted file.
+                        # 000434.python.api.line333.comment DATA with executable bit set (e.g., shell script); turn into binary so that executable bit is
+                        # 000435.python.api.line334.comment restored on the extracted file.
                         carchive_typecode = 'b'
                     else:
                         carchive_typecode = self.xformdict[typecode]
@@ -339,22 +339,22 @@ class PKG(Target):
             elif typecode == 'OPTION':
                 archive_toc.append((dest_name, '', False, 'o'))
             elif typecode in {'PYSOURCE', 'PYSOURCE-1', 'PYSOURCE-2', 'PYMODULE', 'PYMODULE-1', 'PYMODULE-2'}:
-                # Collect python script and modules in a TOC that will not be sorted.
+                # 000436.python.api.line342.comment Collect python script and modules in a TOC that will not be sorted.
                 bootstrap_toc.append((dest_name, src_name, self.cdict.get(typecode, False), self.xformdict[typecode]))
             elif typecode == 'PYZ':
-                # Override PYZ name in the PKG archive into PYZ.pyz, regardless of what the original name was. The
-                # bootloader looks for PYZ via the typecode and implicitly expects a single entry, so the name does
-                # not matter. However, having a fixed name matters if we want reproducibility in scenarios where
-                # multiple builds are performed within the same process (for example, on our CI).
+                # 000437.python.api.line345.comment Override PYZ name in the PKG archive into PYZ.pyz, regardless of what the original name was. The
+                # 000438.python.api.line346.comment bootloader looks for PYZ via the typecode and implicitly expects a single entry, so the name does
+                # 000439.python.api.line347.comment not matter. However, having a fixed name matters if we want reproducibility in scenarios where
+                # 000440.python.api.line348.comment multiple builds are performed within the same process (for example, on our CI).
                 archive_toc.append(('PYZ.pyz', src_name, self.cdict.get(typecode, False), self.xformdict[typecode]))
             else:
-                # PKG, DEPENDENCY, SPLASH, SYMLINK
+                # 000441.python.api.line351.comment PKG, DEPENDENCY, SPLASH, SYMLINK
                 archive_toc.append((dest_name, src_name, self.cdict.get(typecode, False), self.xformdict[typecode]))
 
-        # Sort content alphabetically by type and name to enable reproducible builds.
+        # 000442.python.api.line354.comment Sort content alphabetically by type and name to enable reproducible builds.
         archive_toc.sort(key=itemgetter(3, 0))
-        # Do *not* sort modules and scripts, as their order is important.
-        # TODO: Think about having all modules first and then all scripts.
+        # 000443.python.api.line356.comment Do *not* sort modules and scripts, as their order is important.
+        # 000444.python.api.line357.comment TODO: Think about having all modules first and then all scripts.
         CArchiveWriter(self.name, bootstrap_toc + archive_toc, pylib_name=self.python_lib_name)
 
         logger.info("Building PKG (CArchive) %s completed successfully.", os.path.basename(self.name))
@@ -430,7 +430,7 @@ class EXE(Target):
 
         super().__init__()
 
-        # Available options for EXE in .spec files.
+        # 000445.python.api.line433.comment Available options for EXE in .spec files.
         self.exclude_binaries = kwargs.get('exclude_binaries', False)
         self.bootloader_ignore_signals = kwargs.get('bootloader_ignore_signals', False)
         self.console = kwargs.get('console', True)
@@ -446,17 +446,17 @@ class EXE(Target):
         self.upx_exclude = kwargs.get("upx_exclude", [])
         self.runtime_tmpdir = kwargs.get('runtime_tmpdir', None)
         self.contents_directory = kwargs.get("contents_directory", "_internal")
-        # If ``append_pkg`` is false, the archive will not be appended to the exe, but copied beside it.
+        # 000446.python.api.line449.comment If ``append_pkg`` is false, the archive will not be appended to the exe, but copied beside it.
         self.append_pkg = kwargs.get('append_pkg', True)
 
-        # On Windows allows the exe to request admin privileges.
+        # 000447.python.api.line452.comment On Windows allows the exe to request admin privileges.
         self.uac_admin = kwargs.get('uac_admin', False)
         self.uac_uiaccess = kwargs.get('uac_uiaccess', False)
 
-        # macOS argv emulation
+        # 000448.python.api.line456.comment macOS argv emulation
         self.argv_emulation = kwargs.get('argv_emulation', False)
 
-        # Target architecture (macOS only)
+        # 000449.python.api.line459.comment Target architecture (macOS only)
         self.target_arch = kwargs.get('target_arch', None)
         if is_darwin:
             if self.target_arch is None:
@@ -469,19 +469,19 @@ class EXE(Target):
         else:
             self.target_arch = None  # explicitly disable
 
-        # Code signing identity (macOS only)
+        # 000451.python.api.line472.comment Code signing identity (macOS only)
         self.codesign_identity = kwargs.get('codesign_identity', None)
         if is_darwin:
             logger.info("Code signing identity: %s", self.codesign_identity)
         else:
             self.codesign_identity = None  # explicitly disable
-        # Code signing entitlements
+        # 000453.python.api.line478.comment Code signing entitlements
         self.entitlements_file = kwargs.get('entitlements_file', None)
 
-        # UPX needs to be both available and enabled for the target.
+        # 000454.python.api.line481.comment UPX needs to be both available and enabled for the target.
         self.upx = CONF['upx_available'] and kwargs.get('upx', False)
 
-        # Catch and clear options that are unsupported on specific platforms.
+        # 000455.python.api.line484.comment Catch and clear options that are unsupported on specific platforms.
         if self.versrsrc and not is_win:
             logger.warning('Ignoring version information; supported only on Windows!')
             self.versrsrc = None
@@ -513,72 +513,72 @@ class EXE(Target):
                 "Please remove the 'embed_manifest' argument to EXE() in your spec file."
             )
 
-        # Old .spec format included in 'name' the path where to put created app. New format includes only exename.
-        #
-        # Ignore fullpath in the 'name' and prepend DISTPATH or WORKPATH.
-        # DISTPATH - onefile
-        # WORKPATH - onedir
+        # 000457.python.api.line516.comment Old .spec format included in 'name' the path where to put created app. New format includes only exename.
+        # 000458.python.api.line517.comment
+        # 000459.python.api.line518.comment Ignore fullpath in the 'name' and prepend DISTPATH or WORKPATH.
+        # 000460.python.api.line519.comment DISTPATH - onefile
+        # 000461.python.api.line520.comment WORKPATH - onedir
         if self.exclude_binaries:
-            # onedir mode - create executable in WORKPATH.
+            # 000462.python.api.line522.comment onedir mode - create executable in WORKPATH.
             self.name = os.path.join(CONF['workpath'], os.path.basename(self.name))
         else:
-            # onefile mode - create executable in DISTPATH.
+            # 000463.python.api.line525.comment onefile mode - create executable in DISTPATH.
             self.name = os.path.join(CONF['distpath'], os.path.basename(self.name))
 
-        # Old .spec format included on Windows in 'name' .exe suffix.
+        # 000464.python.api.line528.comment Old .spec format included on Windows in 'name' .exe suffix.
         if is_win or is_cygwin:
-            # Append .exe suffix if it is not already there.
+            # 000465.python.api.line530.comment Append .exe suffix if it is not already there.
             if not self.name.endswith('.exe'):
                 self.name += '.exe'
             base_name = os.path.splitext(os.path.basename(self.name))[0]
         else:
             base_name = os.path.basename(self.name)
-        # Create the CArchive PKG in WORKPATH. When instancing PKG(), set name so that guts check can test whether the
-        # file already exists.
+        # 000466.python.api.line536.comment Create the CArchive PKG in WORKPATH. When instancing PKG(), set name so that guts check can test whether the
+        # 000467.python.api.line537.comment file already exists.
         self.pkgname = os.path.join(CONF['workpath'], base_name + '.pkg')
 
         self.toc = []
 
         for arg in args:
-            # Valid arguments: PYZ object, Splash object, and TOC-list iterables
+            # 000468.python.api.line543.comment Valid arguments: PYZ object, Splash object, and TOC-list iterables
             if isinstance(arg, (PYZ, Splash)):
-                # Add object as an entry to the TOC, and merge its dependencies TOC
+                # 000469.python.api.line545.comment Add object as an entry to the TOC, and merge its dependencies TOC
                 if isinstance(arg, PYZ):
                     self.toc.append((os.path.basename(arg.name), arg.name, "PYZ"))
                 else:
                     self.toc.append((os.path.basename(arg.name), arg.name, "SPLASH"))
                 self.toc.extend(arg.dependencies)
             elif miscutils.is_iterable(arg):
-                # TOC-like iterable
+                # 000470.python.api.line552.comment TOC-like iterable
                 self.toc.extend(arg)
             else:
                 raise TypeError(f"Invalid argument type for EXE: {type(arg)!r}")
 
         if is_nogil:
-            # Signal to bootloader that python was built with Py_GIL_DISABLED, in order to select correct `PyConfig`
-            # structure layout at run-time.
+            # 000471.python.api.line558.comment Signal to bootloader that python was built with Py_GIL_DISABLED, in order to select correct `PyConfig`
+            # 000472.python.api.line559.comment structure layout at run-time.
             self.toc.append(("pyi-python-flag Py_GIL_DISABLED", "", "OPTION"))
 
         if self.runtime_tmpdir is not None:
             self.toc.append(("pyi-runtime-tmpdir " + self.runtime_tmpdir, "", "OPTION"))
 
         if self.bootloader_ignore_signals:
-            # no value; presence means "true"
+            # 000473.python.api.line566.comment no value; presence means "true"
             self.toc.append(("pyi-bootloader-ignore-signals", "", "OPTION"))
 
         if self.disable_windowed_traceback:
-            # no value; presence means "true"
+            # 000474.python.api.line570.comment no value; presence means "true"
             self.toc.append(("pyi-disable-windowed-traceback", "", "OPTION"))
 
         if self.argv_emulation:
-            # no value; presence means "true"
+            # 000475.python.api.line574.comment no value; presence means "true"
             self.toc.append(("pyi-macos-argv-emulation", "", "OPTION"))
 
         if self.contents_directory:
             self.toc.append(("pyi-contents-directory " + self.contents_directory, "", "OPTION"))
 
         if self.hide_console:
-            # Validate the value
+            # 000476.python.api.line581.comment Validate the value
             _HIDE_CONSOLE_VALUES = {'hide-early', 'minimize-early', 'hide-late', 'minimize-late'}
             self.hide_console = self.hide_console.lower()
             if self.hide_console not in _HIDE_CONSOLE_VALUES:
@@ -587,7 +587,7 @@ class EXE(Target):
                 )
             self.toc.append((f"pyi-hide-console {self.hide_console}", "", "OPTION"))
 
-        # If the icon path is relative, make it relative to the .spec file.
+        # 000477.python.api.line590.comment If the icon path is relative, make it relative to the .spec file.
         if self.icon and self.icon != "NONE":
             if isinstance(self.icon, list):
                 self.icon = [self._makeabs(ic) for ic in self.icon]
@@ -596,16 +596,16 @@ class EXE(Target):
 
         if is_win:
             if not self.icon:
-                # --icon not specified; use default from bootloader folder
+                # 000478.python.api.line599.comment --icon not specified; use default from bootloader folder
                 if self.console:
                     ico = 'icon-console.ico'
                 else:
                     ico = 'icon-windowed.ico'
                 self.icon = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bootloader', 'images', ico)
 
-            # Prepare manifest for the executable by creating minimal manifest or modifying the supplied one.
+            # 000479.python.api.line606.comment Prepare manifest for the executable by creating minimal manifest or modifying the supplied one.
             if self.manifest:
-                # Determine if we were given a filename or an XML string.
+                # 000480.python.api.line608.comment Determine if we were given a filename or an XML string.
                 if "<" in self.manifest:
                     self.manifest = self.manifest.encode("utf-8")
                 else:
@@ -616,41 +616,41 @@ class EXE(Target):
 
             if self.versrsrc:
                 if isinstance(self.versrsrc, versioninfo.VSVersionInfo):
-                    # We were passed a valid versioninfo.VSVersionInfo structure
+                    # 000481.python.api.line619.comment We were passed a valid versioninfo.VSVersionInfo structure
                     pass
                 elif isinstance(self.versrsrc, (str, bytes, os.PathLike)):
-                    # File path; either absolute, or relative to the spec file
+                    # 000482.python.api.line622.comment File path; either absolute, or relative to the spec file
                     self.versrsrc = self._makeabs(self.versrsrc)
                     logger.debug("Loading version info from file: %r", self.versrsrc)
                     self.versrsrc = versioninfo.load_version_info_from_text_file(self.versrsrc)
                 else:
                     raise TypeError(f"Unsupported type for version info argument: {type(self.versrsrc)!r}")
 
-        # Identify python shared library. This is needed both for PKG (where we need to store the name so that
-        # bootloader can look it up), and for macOS-specific processing of the generated executable (adjusting the SDK
-        # version).
-        #
-        # NOTE: we already performed an equivalent search (using the same `get_python_library_path` helper) during the
-        # analysis stage to ensure that the python shared library is collected. Unfortunately, with the way data passing
-        # works in onedir builds, we cannot look up the value in the TOC at this stage, and we need to search again.
+        # 000483.python.api.line629.comment Identify python shared library. This is needed both for PKG (where we need to store the name so that
+        # 000484.python.api.line630.comment bootloader can look it up), and for macOS-specific processing of the generated executable (adjusting the SDK
+        # 000485.python.api.line631.comment version).
+        # 000486.python.api.line632.comment
+        # 000487.python.api.line633.comment NOTE: we already performed an equivalent search (using the same `get_python_library_path` helper) during the
+        # 000488.python.api.line634.comment analysis stage to ensure that the python shared library is collected. Unfortunately, with the way data passing
+        # 000489.python.api.line635.comment works in onedir builds, we cannot look up the value in the TOC at this stage, and we need to search again.
         self.python_lib = bindepend.get_python_library_path()
         if self.python_lib is None:
             from PyInstaller.exceptions import PythonLibraryNotFoundError
             raise PythonLibraryNotFoundError()
 
-        # On AIX, the python shared library might in fact be an ar archive with shared object inside it, and needs to
-        # be `dlopen`'ed with full name (for example, `libpython3.9.a(libpython3.9.so)`. So if the library's suffix is
-        # .a, adjust the name accordingly, assuming fixed format for the shared object name. NOTE: the information about
-        # shared object name is in fact available from `ldd` but not propagated from our binary dependency analysis. If
-        # we ever need to determine the shared object's name dynamically, we could write a simple ar parser, based on
-        # information from `https://www.ibm.com/docs/en/aix/7.3?topic=formats-ar-file-format-big`.
+        # 000490.python.api.line641.comment On AIX, the python shared library might in fact be an ar archive with shared object inside it, and needs to
+        # 000491.python.api.line642.comment be `dlopen`'ed with full name (for example, `libpython3.9.a(libpython3.9.so)`. So if the library's suffix is
+        # 000492.python.api.line643.comment .a, adjust the name accordingly, assuming fixed format for the shared object name. NOTE: the information about
+        # 000493.python.api.line644.comment shared object name is in fact available from `ldd` but not propagated from our binary dependency analysis. If
+        # 000494.python.api.line645.comment we ever need to determine the shared object's name dynamically, we could write a simple ar parser, based on
+        # 000495.python.api.line646.comment information from `https://www.ibm.com/docs/en/aix/7.3?topic=formats-ar-file-format-big`.
         if is_aix:
             _, ext = os.path.splitext(self.python_lib)
             if ext == '.a':
                 _py_major, _py_minor = sys.version_info[:2]
                 self.python_lib += f"(libpython{_py_major}.{_py_minor}.so)"
 
-        # Normalize TOC
+        # 000496.python.api.line653.comment Normalize TOC
         self.toc = normalize_toc(self.toc)
 
         self.pkg = PKG(
@@ -668,14 +668,14 @@ class EXE(Target):
         )
         self.dependencies = self.pkg.dependencies
 
-        # Get the path of the bootloader and store it in a TOC, so it can be checked for being changed.
+        # 000497.python.api.line671.comment Get the path of the bootloader and store it in a TOC, so it can be checked for being changed.
         exe = self._bootloader_file('run', '.exe' if is_win or is_cygwin else '')
         self.exefiles = [(os.path.basename(exe), exe, 'EXECUTABLE')]
 
         self.__postinit__()
 
     _GUTS = (
-        # input parameters
+        # 000498.python.api.line678.comment input parameters
         ('name', _check_guts_eq),
         ('console', _check_guts_eq),
         ('debug', _check_guts_eq),
@@ -690,14 +690,14 @@ class EXE(Target):
         ('target_arch', _check_guts_eq),
         ('codesign_identity', _check_guts_eq),
         ('entitlements_file', _check_guts_eq),
-        # for the case the directory is shared between platforms:
+        # 000499.python.api.line693.comment for the case the directory is shared between platforms:
         ('pkgname', _check_guts_eq),
         ('toc', _check_guts_eq),
         ('resources', _check_guts_eq),
         ('strip', _check_guts_eq),
         ('upx', _check_guts_eq),
         ('mtm', None),  # checked below
-        # derived values
+        # 000501.python.api.line700.comment derived values
         ('exefiles', _check_guts_toc),
         ('python_lib', _check_guts_eq),
     )
@@ -738,13 +738,13 @@ class EXE(Target):
         """
         Pick up the right bootloader file - debug, console, windowed.
         """
-        # Having console/windowed bootloader makes sense only on Windows and macOS.
+        # 000502.python.api.line741.comment Having console/windowed bootloader makes sense only on Windows and macOS.
         if is_win or is_darwin:
             if not self.console:
                 exe = exe + 'w'
-        # There are two types of bootloaders:
-        # run     - release, no verbose messages in console.
-        # run_d   - contains verbose messages in console.
+        # 000503.python.api.line745.comment There are two types of bootloaders:
+        # 000504.python.api.line746.comment run     - release, no verbose messages in console.
+        # 000505.python.api.line747.comment run_d   - contains verbose messages in console.
         if self.debug:
             exe = exe + '_d'
         if extension:
@@ -754,11 +754,11 @@ class EXE(Target):
         return bootloader_file
 
     def assemble(self):
-        # On Windows, we used to append .notanexecutable to the intermediate/temporary file name to (attempt to)
-        # prevent interference from anti-virus programs with the build process (see #6467). This is now disabled
-        # as we wrap all processing steps that modify the executable in the `_retry_operation` helper; however,
-        # we keep around the `build_name` variable instead of directly using `self.name`, just in case we need
-        # to re-enable it...
+        # 000506.python.api.line757.comment On Windows, we used to append .notanexecutable to the intermediate/temporary file name to (attempt to)
+        # 000507.python.api.line758.comment prevent interference from anti-virus programs with the build process (see #6467). This is now disabled
+        # 000508.python.api.line759.comment as we wrap all processing steps that modify the executable in the `_retry_operation` helper; however,
+        # 000509.python.api.line760.comment we keep around the `build_name` variable instead of directly using `self.name`, just in case we need
+        # 000510.python.api.line761.comment to re-enable it...
         build_name = self.name
 
         logger.info("Building EXE from %s", self.tocbasename)
@@ -773,42 +773,42 @@ class EXE(Target):
         if not os.path.exists(bootloader_exe):
             raise SystemExit(_MISSING_BOOTLOADER_ERRORMSG)
 
-        # Step 1: copy the bootloader file, and perform any operations that need to be done prior to appending the PKG.
+        # 000513.python.api.line776.comment Step 1: copy the bootloader file, and perform any operations that need to be done prior to appending the PKG.
         logger.info("Copying bootloader EXE to %s", build_name)
         self._retry_operation(shutil.copyfile, bootloader_exe, build_name)
         self._retry_operation(os.chmod, build_name, 0o755)
 
         if is_win:
-            # First, remove all resources from the file. This ensures that no manifest is embedded, even if bootloader
-            # was compiled with a toolchain that forcibly embeds a default manifest (e.g., mingw toolchain from msys2).
+            # 000514.python.api.line782.comment First, remove all resources from the file. This ensures that no manifest is embedded, even if bootloader
+            # 000515.python.api.line783.comment was compiled with a toolchain that forcibly embeds a default manifest (e.g., mingw toolchain from msys2).
             self._retry_operation(winresource.remove_all_resources, build_name)
-            # Embed icon.
+            # 000516.python.api.line785.comment Embed icon.
             if self.icon != "NONE":
                 logger.info("Copying icon to EXE")
                 self._retry_operation(icon.CopyIcons, build_name, self.icon)
-            # Embed version info.
+            # 000517.python.api.line789.comment Embed version info.
             if self.versrsrc:
                 logger.info("Copying version information to EXE")
                 self._retry_operation(versioninfo.write_version_info_to_executable, build_name, self.versrsrc)
-            # Embed/copy other resources.
+            # 000518.python.api.line793.comment Embed/copy other resources.
             logger.info("Copying %d resources to EXE", len(self.resources))
             for resource in self.resources:
                 self._retry_operation(self._copy_windows_resource, build_name, resource)
-            # Embed the manifest into the executable.
+            # 000519.python.api.line797.comment Embed the manifest into the executable.
             logger.info("Embedding manifest in EXE")
             self._retry_operation(winmanifest.write_manifest_to_executable, build_name, self.manifest)
         elif is_darwin:
-            # Convert bootloader to the target arch
+            # 000520.python.api.line801.comment Convert bootloader to the target arch
             logger.info("Converting EXE to target arch (%s)", self.target_arch)
             osxutils.binary_to_target_arch(build_name, self.target_arch, display_name='Bootloader EXE')
 
-        # Step 2: append the PKG, if necessary
+        # 000521.python.api.line805.comment Step 2: append the PKG, if necessary
         if self.append_pkg:
             append_file = self.pkg.name  # Append PKG
             append_type = 'PKG archive'  # For debug messages
         else:
-            # In onefile mode, copy the stand-alone PKG next to the executable. In onedir, this will be done by the
-            # COLLECT() target.
+            # 000524.python.api.line810.comment In onefile mode, copy the stand-alone PKG next to the executable. In onedir, this will be done by the
+            # 000525.python.api.line811.comment COLLECT() target.
             if not self.exclude_binaries:
                 pkg_dst = os.path.join(os.path.dirname(build_name), os.path.basename(self.pkgname))
                 logger.info("Copying stand-alone PKG archive from %s to %s", self.pkg.name, pkg_dst)
@@ -816,22 +816,22 @@ class EXE(Target):
             else:
                 logger.info("Stand-alone PKG archive will be handled by COLLECT")
 
-            # The bootloader requires package side-loading to be explicitly enabled, which is done by embedding custom
-            # signature to the executable. This extra signature ensures that the sideload-enabled executable is at least
-            # slightly different from the stock bootloader executables, which should prevent antivirus programs from
-            # flagging our stock bootloaders due to sideload-enabled applications in the wild.
+            # 000526.python.api.line819.comment The bootloader requires package side-loading to be explicitly enabled, which is done by embedding custom
+            # 000527.python.api.line820.comment signature to the executable. This extra signature ensures that the sideload-enabled executable is at least
+            # 000528.python.api.line821.comment slightly different from the stock bootloader executables, which should prevent antivirus programs from
+            # 000529.python.api.line822.comment flagging our stock bootloaders due to sideload-enabled applications in the wild.
 
-            # Write to temporary file
+            # 000530.python.api.line824.comment Write to temporary file
             pkgsig_file = self.pkg.name + '.sig'
             with open(pkgsig_file, "wb") as f:
-                # 8-byte MAGIC; slightly changed PKG MAGIC pattern
+                # 000531.python.api.line827.comment 8-byte MAGIC; slightly changed PKG MAGIC pattern
                 f.write(b'MEI\015\013\012\013\016')
 
             append_file = pkgsig_file  # Append PKG-SIG
             append_type = 'PKG sideload signature'  # For debug messages
 
         if is_linux:
-            # Linux: append data into custom ELF section using objcopy.
+            # 000534.python.api.line834.comment Linux: append data into custom ELF section using objcopy.
             logger.info("Appending %s to custom ELF section in EXE", append_type)
             cmd = ['objcopy', '--add-section', f'pydata={append_file}', build_name]
             p = subprocess.run(cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, encoding='utf-8')
@@ -839,57 +839,57 @@ class EXE(Target):
                 raise SystemError(f"objcopy Failure: {p.returncode} {p.stdout}")
 
         elif is_darwin:
-            # macOS: remove signature, append data, and fix-up headers so that the appended data appears to be part of
-            # the executable (which is required by strict validation during code-signing).
+            # 000535.python.api.line842.comment macOS: remove signature, append data, and fix-up headers so that the appended data appears to be part of
+            # 000536.python.api.line843.comment the executable (which is required by strict validation during code-signing).
 
-            # Strip signatures from all arch slices. Strictly speaking, we need to remove signature (if present) from
-            # the last slice, because we will be appending data to it. When building universal2 bootloaders natively on
-            # macOS, only arm64 slices have a (dummy) signature. However, when cross-compiling with osxcross, we seem to
-            # get dummy signatures on both x86_64 and arm64 slices. While the former should not have any impact, it does
-            # seem to cause issues with further binary signing using real identity. Therefore, we remove all signatures
-            # and re-sign the binary using dummy signature once the data is appended.
+            # 000537.python.api.line845.comment Strip signatures from all arch slices. Strictly speaking, we need to remove signature (if present) from
+            # 000538.python.api.line846.comment the last slice, because we will be appending data to it. When building universal2 bootloaders natively on
+            # 000539.python.api.line847.comment macOS, only arm64 slices have a (dummy) signature. However, when cross-compiling with osxcross, we seem to
+            # 000540.python.api.line848.comment get dummy signatures on both x86_64 and arm64 slices. While the former should not have any impact, it does
+            # 000541.python.api.line849.comment seem to cause issues with further binary signing using real identity. Therefore, we remove all signatures
+            # 000542.python.api.line850.comment and re-sign the binary using dummy signature once the data is appended.
             logger.info("Removing signature(s) from EXE")
             osxutils.remove_signature_from_binary(build_name)
 
-            # Fix Mach-O image UUID(s) in executable to ensure uniqueness across different builds.
-            # NOTE: even if PKG is side-loaded, use the hash of its contents to generate the new UUID.
-            # NOTE: this step is performed *before* PKG is appended and sizes are fixed in the executable's headers;
-            # this ensures that we are operating only on original header size instead of enlarged one (which could
-            # be significantly larger in large onefile builds).
+            # 000543.python.api.line854.comment Fix Mach-O image UUID(s) in executable to ensure uniqueness across different builds.
+            # 000544.python.api.line855.comment NOTE: even if PKG is side-loaded, use the hash of its contents to generate the new UUID.
+            # 000545.python.api.line856.comment NOTE: this step is performed *before* PKG is appended and sizes are fixed in the executable's headers;
+            # 000546.python.api.line857.comment this ensures that we are operating only on original header size instead of enlarged one (which could
+            # 000547.python.api.line858.comment be significantly larger in large onefile builds).
             logger.info("Modifying Mach-O image UUID(s) in EXE")
             osxutils.update_exe_identifier(build_name, self.pkg.name)
 
-            # Append the data
+            # 000548.python.api.line862.comment Append the data
             logger.info("Appending %s to EXE", append_type)
             self._append_data_to_exe(build_name, append_file)
 
-            # Fix Mach-O headers
+            # 000549.python.api.line866.comment Fix Mach-O headers
             logger.info("Fixing EXE headers for code signing")
             osxutils.fix_exe_for_code_signing(build_name)
         else:
-            # Fall back to just appending data at the end of the file
+            # 000550.python.api.line870.comment Fall back to just appending data at the end of the file
             logger.info("Appending %s to EXE", append_type)
             self._retry_operation(self._append_data_to_exe, build_name, append_file)
 
-        # Step 3: post-processing
+        # 000551.python.api.line874.comment Step 3: post-processing
         if is_win:
-            # Set checksum to appease antiviral software. Also set build timestamp to current time to increase entropy
-            # (but honor SOURCE_DATE_EPOCH environment variable for reproducible builds).
+            # 000552.python.api.line876.comment Set checksum to appease antiviral software. Also set build timestamp to current time to increase entropy
+            # 000553.python.api.line877.comment (but honor SOURCE_DATE_EPOCH environment variable for reproducible builds).
             logger.info("Fixing EXE headers")
             build_timestamp = int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))
             self._retry_operation(winutils.set_exe_build_timestamp, build_name, build_timestamp)
             self._retry_operation(winutils.update_exe_pe_checksum, build_name)
         elif is_darwin:
-            # If the version of macOS SDK used to build bootloader exceeds that of macOS SDK used to built Python
-            # library (and, by extension, bundled Tcl/Tk libraries), force the version declared by the frozen executable
-            # to match that of the Python library.
-            # Having macOS attempt to enable new features (based on SDK version) for frozen application has no benefit
-            # if the Python library does not support them as well.
-            # On the other hand, there seem to be UI issues in tkinter due to failed or partial enablement of dark mode
-            # (i.e., the bootloader executable being built against SDK 10.14 or later, which causes macOS to enable dark
-            # mode, and Tk libraries being built against an earlier SDK version that does not support the dark mode).
-            # With python.org Intel macOS installers, this manifests as black Tk windows and UI elements (see issue
-            # #5827), while in Anaconda python, it may result in white text on bright background.
+            # 000554.python.api.line883.comment If the version of macOS SDK used to build bootloader exceeds that of macOS SDK used to built Python
+            # 000555.python.api.line884.comment library (and, by extension, bundled Tcl/Tk libraries), force the version declared by the frozen executable
+            # 000556.python.api.line885.comment to match that of the Python library.
+            # 000557.python.api.line886.comment Having macOS attempt to enable new features (based on SDK version) for frozen application has no benefit
+            # 000558.python.api.line887.comment if the Python library does not support them as well.
+            # 000559.python.api.line888.comment On the other hand, there seem to be UI issues in tkinter due to failed or partial enablement of dark mode
+            # 000560.python.api.line889.comment (i.e., the bootloader executable being built against SDK 10.14 or later, which causes macOS to enable dark
+            # 000561.python.api.line890.comment mode, and Tk libraries being built against an earlier SDK version that does not support the dark mode).
+            # 000562.python.api.line891.comment With python.org Intel macOS installers, this manifests as black Tk windows and UI elements (see issue
+            # 000563.python.api.line892.comment #5827), while in Anaconda python, it may result in white text on bright background.
             pylib_version = osxutils.get_macos_sdk_version(self.python_lib)
             exe_version = osxutils.get_macos_sdk_version(build_name)
             if pylib_version < exe_version:
@@ -900,13 +900,13 @@ class EXE(Target):
                 )
                 osxutils.set_macos_sdk_version(build_name, *pylib_version)
 
-            # Re-sign the binary (either ad-hoc or using real identity, if provided).
+            # 000564.python.api.line903.comment Re-sign the binary (either ad-hoc or using real identity, if provided).
             logger.info("Re-signing the EXE")
             osxutils.sign_binary(build_name, self.codesign_identity, self.entitlements_file)
 
-        # Ensure executable flag is set
+        # 000565.python.api.line907.comment Ensure executable flag is set
         self._retry_operation(os.chmod, build_name, 0o755)
-        # Get mtime for storing into the guts
+        # 000566.python.api.line909.comment Get mtime for storing into the guts
         self.mtm = self._retry_operation(miscutils.mtime, build_name)
         if build_name != self.name:
             self._retry_operation(os.rename, build_name, self.name)
@@ -915,8 +915,8 @@ class EXE(Target):
     def _copy_windows_resource(self, build_name, resource_spec):
         import pefile
 
-        # Helper for optionally converting integer strings to values; resource types and IDs/names can be specified as
-        # either numeric values or custom strings...
+        # 000567.python.api.line918.comment Helper for optionally converting integer strings to values; resource types and IDs/names can be specified as
+        # 000568.python.api.line919.comment either numeric values or custom strings...
         def _to_int(value):
             try:
                 return int(value)
@@ -932,14 +932,14 @@ class EXE(Target):
                 f"Must be in format 'filename,[type],[name],[language]'!"
             )
 
-        # Anchor resource file to spec file location, if necessary.
+        # 000570.python.api.line935.comment Anchor resource file to spec file location, if necessary.
         src_filename = self._makeabs(resource[0])
 
-        # Ensure file exists.
+        # 000571.python.api.line938.comment Ensure file exists.
         if not os.path.isfile(src_filename):
             raise ValueError(f"Resource file {src_filename!r} does not exist!")
 
-        # Check if src_filename points to a PE file or an arbitrary (data) file.
+        # 000572.python.api.line942.comment Check if src_filename points to a PE file or an arbitrary (data) file.
         try:
             with pefile.PE(src_filename, fast_load=True):
                 is_pe_file = True
@@ -947,10 +947,10 @@ class EXE(Target):
             is_pe_file = False
 
         if is_pe_file:
-            # If resource file is PE file, copy all resources from it, subject to specified type, name, and language.
+            # 000573.python.api.line950.comment If resource file is PE file, copy all resources from it, subject to specified type, name, and language.
             logger.debug("Resource file %r is a PE file...", src_filename)
 
-            # Resource type, name, and language serve as filters. If not specified, use "*".
+            # 000574.python.api.line953.comment Resource type, name, and language serve as filters. If not specified, use "*".
             resource_type = _to_int(resource[1]) if len(resource) >= 2 else "*"
             resource_name = _to_int(resource[2]) if len(resource) >= 3 else "*"
             resource_lang = _to_int(resource[3]) if len(resource) >= 4 else "*"
@@ -968,7 +968,7 @@ class EXE(Target):
         else:
             logger.debug("Resource file %r is an arbitrary data file...", src_filename)
 
-            # For arbitrary data file, resource type and name need to be provided.
+            # 000575.python.api.line971.comment For arbitrary data file, resource type and name need to be provided.
             if len(resource) < 3:
                 raise ValueError(
                     f"Invalid Windows resource specifier {resource_spec!r}! "
@@ -979,7 +979,7 @@ class EXE(Target):
             resource_name = _to_int(resource[2])
             resource_lang = _to_int(resource[3]) if len(resource) >= 4 else 0  # LANG_NEUTRAL
 
-            # Prohibit wildcards for resource type and name.
+            # 000577.python.api.line982.comment Prohibit wildcards for resource type and name.
             if resource_type == "*":
                 raise ValueError(
                     f"Invalid Windows resource specifier {resource_spec!r}! "
@@ -1021,33 +1021,33 @@ class EXE(Target):
             Helper to determine whether the given exception is eligible for retry or not.
             """
             if isinstance(e, PermissionError):
-                # Always retry on all instances of PermissionError
+                # 000578.python.api.line1024.comment Always retry on all instances of PermissionError
                 return True
             elif is_win:
                 from PyInstaller.compat import pywintypes
 
-                # Windows-specific errno and winerror codes.
-                # https://learn.microsoft.com/en-us/cpp/c-runtime-library/errno-constants
+                # 000579.python.api.line1029.comment Windows-specific errno and winerror codes.
+                # 000580.python.api.line1030.comment https://learn.microsoft.com/en-us/cpp/c-runtime-library/errno-constants
                 _ALLOWED_ERRNO = {
                     13,  # EACCES (would typically be a PermissionError instead)
                     22,  # EINVAL (reported to be caused by Crowdstrike; see #7840)
                 }
-                # https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
+                # 000583.python.api.line1035.comment https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
                 _ALLOWED_WINERROR = {
                     5,  # ERROR_ACCESS_DENIED (reported in #7825)
                     32,  # ERROR_SHARING_VIOLATION (exclusive lock via `CreateFileW` flags, or via `_locked`).
                     110,  # ERROR_OPEN_FAILED (reported in #8138)
                 }
                 if isinstance(e, OSError):
-                    # For OSError exceptions other than PermissionError, validate errno.
+                    # 000587.python.api.line1042.comment For OSError exceptions other than PermissionError, validate errno.
                     if e.errno in _ALLOWED_ERRNO:
                         return True
-                    # OSError typically translates `winerror` into `errno` equivalent; but try to match the original
-                    # values as a fall back, just in case. `OSError.winerror` attribute exists only on Windows.
+                    # 000588.python.api.line1045.comment OSError typically translates `winerror` into `errno` equivalent; but try to match the original
+                    # 000589.python.api.line1046.comment values as a fall back, just in case. `OSError.winerror` attribute exists only on Windows.
                     if e.winerror in _ALLOWED_WINERROR:
                         return True
                 elif isinstance(e, pywintypes.error):
-                    # pywintypes.error is raised by helper functions that use win32 C API bound via pywin32-ctypes.
+                    # 000590.python.api.line1050.comment pywintypes.error is raised by helper functions that use win32 C API bound via pywin32-ctypes.
                     if e.winerror in _ALLOWED_WINERROR:
                         return True
             return False
@@ -1057,12 +1057,12 @@ class EXE(Target):
             try:
                 return func(*args)
             except Exception as e:
-                # Check if exception is eligible for retry; if not, also check its immediate cause (in case the
-                # exception was thrown from an eligible exception).
+                # 000591.python.api.line1060.comment Check if exception is eligible for retry; if not, also check its immediate cause (in case the
+                # 000592.python.api.line1061.comment exception was thrown from an eligible exception).
                 if not _is_allowed_exception(e) and not _is_allowed_exception(e.__context__):
                     raise
 
-                # Retry after sleep (unless this was our last attempt)
+                # 000593.python.api.line1065.comment Retry after sleep (unless this was our last attempt)
                 if attempt < max_attempts - 1:
                     sleep_duration = 1 / (max_attempts - 1 - attempt)
                     logger.warning(
@@ -1102,11 +1102,11 @@ class COLLECT(Target):
         self.codesign_identity = None
         self.entitlements_file = None
 
-        # UPX needs to be both available and enabled for the taget.
+        # 000594.python.api.line1105.comment UPX needs to be both available and enabled for the taget.
         self.upx_binaries = CONF['upx_available'] and kwargs.get('upx', False)
 
-        # The `name` should be the output directory name, without the parent path (the directory is created in the
-        # DISTPATH). Old .spec formats included parent path, so strip it away.
+        # 000595.python.api.line1108.comment The `name` should be the output directory name, without the parent path (the directory is created in the
+        # 000596.python.api.line1109.comment DISTPATH). Old .spec formats included parent path, so strip it away.
         self.name = os.path.join(CONF['distpath'], os.path.basename(kwargs.get('name')))
 
         for arg in args:
@@ -1118,52 +1118,52 @@ class COLLECT(Target):
 
         self.toc = []
         for arg in args:
-            # Valid arguments: EXE object and TOC-like iterables
+            # 000597.python.api.line1121.comment Valid arguments: EXE object and TOC-like iterables
             if isinstance(arg, EXE):
-                # Add EXE as an entry to the TOC, and merge its dependencies TOC
+                # 000598.python.api.line1123.comment Add EXE as an entry to the TOC, and merge its dependencies TOC
                 self.toc.append((os.path.basename(arg.name), arg.name, 'EXECUTABLE'))
                 self.toc.extend(arg.dependencies)
-                # Inherit settings
+                # 000599.python.api.line1126.comment Inherit settings
                 self.console = arg.console
                 self.target_arch = arg.target_arch
                 self.codesign_identity = arg.codesign_identity
                 self.entitlements_file = arg.entitlements_file
-                # Search for the executable's external manifest, and collect it if available
+                # 000600.python.api.line1131.comment Search for the executable's external manifest, and collect it if available
                 for dest_name, src_name, typecode in arg.toc:
                     if dest_name == os.path.basename(arg.name) + ".manifest":
                         self.toc.append((dest_name, src_name, typecode))
-                # If PKG is not appended to the executable, we need to collect it.
+                # 000601.python.api.line1135.comment If PKG is not appended to the executable, we need to collect it.
                 if not arg.append_pkg:
                     self.toc.append((os.path.basename(arg.pkgname), arg.pkgname, 'PKG'))
             elif miscutils.is_iterable(arg):
-                # TOC-like iterable
+                # 000602.python.api.line1139.comment TOC-like iterable
                 self.toc.extend(arg)
             else:
                 raise TypeError(f"Invalid argument type for COLLECT: {type(arg)!r}")
 
-        # Normalize TOC
+        # 000603.python.api.line1144.comment Normalize TOC
         self.toc = normalize_toc(self.toc)
 
         self.__postinit__()
 
     _GUTS = (
-        # COLLECT always builds, we just want the TOC to be written out.
+        # 000604.python.api.line1150.comment COLLECT always builds, we just want the TOC to be written out.
         ('toc', None),
     )
 
     def _check_guts(self, data, last_build):
-        # COLLECT always needs to be executed, in order to clean the output directory.
+        # 000605.python.api.line1155.comment COLLECT always needs to be executed, in order to clean the output directory.
         return True
 
     def assemble(self):
         _make_clean_directory(self.name)
         logger.info("Building COLLECT %s", self.tocbasename)
         for dest_name, src_name, typecode in self.toc:
-            # Ensure that the source file exists, if necessary. Skip the check for DEPENDENCY entries due to special
-            # contents of 'dest_name' and/or 'src_name'. Same for the SYMLINK entries, where 'src_name' is relative
-            # target name for symbolic link.
+            # 000606.python.api.line1162.comment Ensure that the source file exists, if necessary. Skip the check for DEPENDENCY entries due to special
+            # 000607.python.api.line1163.comment contents of 'dest_name' and/or 'src_name'. Same for the SYMLINK entries, where 'src_name' is relative
+            # 000608.python.api.line1164.comment target name for symbolic link.
             if typecode not in {'DEPENDENCY', 'SYMLINK'} and not os.path.exists(src_name):
-                # If file is contained within python egg, it will be added with the egg.
+                # 000609.python.api.line1166.comment If file is contained within python egg, it will be added with the egg.
                 if strict_collect_mode:
                     raise ValueError(f"Non-existent resource {src_name}, meant to be collected as {dest_name}!")
                 else:
@@ -1171,12 +1171,12 @@ class COLLECT(Target):
                         "Ignoring non-existent resource %s, meant to be collected as %s", src_name, dest_name
                     )
                     continue
-            # Disallow collection outside of the dist directory.
+            # 000610.python.api.line1174.comment Disallow collection outside of the dist directory.
             if os.pardir in os.path.normpath(dest_name).split(os.sep) or os.path.isabs(dest_name):
                 raise SystemExit(
                     'ERROR: attempting to store file outside of the dist directory: %r. Aborting.' % dest_name
                 )
-            # Create parent directory structure, if necessary
+            # 000611.python.api.line1179.comment Create parent directory structure, if necessary
             if typecode in ("EXECUTABLE", "PKG"):
                 dest_path = os.path.join(self.name, dest_name)
             else:
@@ -1202,25 +1202,25 @@ class COLLECT(Target):
                     strict_arch_validation=(typecode == 'EXTENSION'),
                 )
             if typecode == 'SYMLINK':
-                # On Windows, ensure that symlink target path (stored in src_name) is using Windows-style back slash
-                # separators.
+                # 000612.python.api.line1205.comment On Windows, ensure that symlink target path (stored in src_name) is using Windows-style back slash
+                # 000613.python.api.line1206.comment separators.
                 if is_win and os.path.sep == '/':
                     src_name = src_name.replace(os.path.sep, '\\')
 
                 os.symlink(src_name, dest_path)  # Create link at dest_path, pointing at (relative) src_name
             elif typecode != 'DEPENDENCY':
-                # At this point, `src_name` should be a valid file.
+                # 000615.python.api.line1212.comment At this point, `src_name` should be a valid file.
                 if not os.path.isfile(src_name):
                     raise ValueError(f"Resource {src_name!r} is not a valid file!")
-                # If strict collection mode is enabled, the destination should not exist yet.
+                # 000616.python.api.line1215.comment If strict collection mode is enabled, the destination should not exist yet.
                 if strict_collect_mode and os.path.exists(dest_path):
                     raise ValueError(
                         f"Attempting to collect a duplicated file into COLLECT: {dest_name} (type: {typecode})"
                     )
-                # Use `shutil.copyfile` to copy file with default permissions. We do not attempt to preserve original
-                # permissions nor metadata, as they might be too restrictive and cause issues either during subsequent
-                # re-build attempts or when trying to move the application bundle. For binaries (and data files with
-                # executable bit set), we manually set the executable bits after copying the file.
+                # 000617.python.api.line1220.comment Use `shutil.copyfile` to copy file with default permissions. We do not attempt to preserve original
+                # 000618.python.api.line1221.comment permissions nor metadata, as they might be too restrictive and cause issues either during subsequent
+                # 000619.python.api.line1222.comment re-build attempts or when trying to move the application bundle. For binaries (and data files with
+                # 000620.python.api.line1223.comment executable bit set), we manually set the executable bits after copying the file.
                 shutil.copyfile(src_name, dest_path)
             if (
                 typecode in ('EXTENSION', 'BINARY', 'EXECUTABLE')
@@ -1251,76 +1251,76 @@ class MERGE:
         self._dependencies = {}
         self._symlinks = set()
 
-        # Process all given (analysis, identifier, path_to_exe) tuples
+        # 000621.python.api.line1254.comment Process all given (analysis, identifier, path_to_exe) tuples
         for analysis, identifier, path_to_exe in args:
-            # Process analysis.binaries and analysis.datas TOCs. self._process_toc() call returns two TOCs; the first
-            # contains entries that remain within this analysis, while the second contains entries that reference
-            # an entry in another executable.
+            # 000622.python.api.line1256.comment Process analysis.binaries and analysis.datas TOCs. self._process_toc() call returns two TOCs; the first
+            # 000623.python.api.line1257.comment contains entries that remain within this analysis, while the second contains entries that reference
+            # 000624.python.api.line1258.comment an entry in another executable.
             binaries, binaries_refs = self._process_toc(analysis.binaries, path_to_exe)
             datas, datas_refs = self._process_toc(analysis.datas, path_to_exe)
-            # Update `analysis.binaries`, `analysis.datas`, and `analysis.dependencies`.
-            # The entries that are found in preceding executable(s) are removed from `binaries` and `datas`, and their
-            # DEPENDENCY entry counterparts are added to `dependencies`. We cannot simply update the entries in
-            # `binaries` and `datas`, because at least in theory, we need to support both onefile and onedir mode. And
-            # while in onefile, `a.datas`, `a.binaries`, and `a.dependencies` are passed to `EXE` (and its `PKG`), with
-            # onedir, `a.datas` and `a.binaries` need to be passed to `COLLECT` (as they were before the MERGE), while
-            # `a.dependencies` needs to be passed to `EXE`. This split requires DEPENDENCY entries to be in a separate
-            # TOC.
+            # 000625.python.api.line1261.comment Update `analysis.binaries`, `analysis.datas`, and `analysis.dependencies`.
+            # 000626.python.api.line1262.comment The entries that are found in preceding executable(s) are removed from `binaries` and `datas`, and their
+            # 000627.python.api.line1263.comment DEPENDENCY entry counterparts are added to `dependencies`. We cannot simply update the entries in
+            # 000628.python.api.line1264.comment `binaries` and `datas`, because at least in theory, we need to support both onefile and onedir mode. And
+            # 000629.python.api.line1265.comment while in onefile, `a.datas`, `a.binaries`, and `a.dependencies` are passed to `EXE` (and its `PKG`), with
+            # 000630.python.api.line1266.comment onedir, `a.datas` and `a.binaries` need to be passed to `COLLECT` (as they were before the MERGE), while
+            # 000631.python.api.line1267.comment `a.dependencies` needs to be passed to `EXE`. This split requires DEPENDENCY entries to be in a separate
+            # 000632.python.api.line1268.comment TOC.
             analysis.binaries = normalize_toc(binaries)
             analysis.datas = normalize_toc(datas)
             analysis.dependencies += binaries_refs + datas_refs
 
     def _process_toc(self, toc, path_to_exe):
-        # NOTE: unfortunately, these need to keep two separate lists. See the comment in the calling code on why this
-        # is so.
+        # 000633.python.api.line1274.comment NOTE: unfortunately, these need to keep two separate lists. See the comment in the calling code on why this
+        # 000634.python.api.line1275.comment is so.
         toc_keep = []
         toc_refs = []
         for entry in toc:
             dest_name, src_name, typecode = entry
 
-            # Special handling and bookkeeping for symbolic links. We need to account both for dest_name and src_name,
-            # because src_name might be the same in different contexts. For example, when collecting Qt .framework
-            # bundles on macOS, there are multiple relative symbolic links `Current -> A` (one in each .framework).
+            # 000635.python.api.line1281.comment Special handling and bookkeeping for symbolic links. We need to account both for dest_name and src_name,
+            # 000636.python.api.line1282.comment because src_name might be the same in different contexts. For example, when collecting Qt .framework
+            # 000637.python.api.line1283.comment bundles on macOS, there are multiple relative symbolic links `Current -> A` (one in each .framework).
             if typecode == 'SYMLINK':
                 key = dest_name, src_name
                 if key not in self._symlinks:
-                    # First occurrence; keep the entry in "for-keep" TOC, same as we would for binaries and datas.
+                    # 000638.python.api.line1287.comment First occurrence; keep the entry in "for-keep" TOC, same as we would for binaries and datas.
                     logger.debug("Keeping symbolic link %r entry in original TOC.", entry)
                     self._symlinks.add(key)
                     toc_keep.append(entry)
                 else:
-                    # Subsequent occurrence; keep the SYMLINK entry intact, but add it to the references TOC instead of
-                    # "for-keep" TOC, so it ends up in `a.dependencies`.
+                    # 000639.python.api.line1292.comment Subsequent occurrence; keep the SYMLINK entry intact, but add it to the references TOC instead of
+                    # 000640.python.api.line1293.comment "for-keep" TOC, so it ends up in `a.dependencies`.
                     logger.debug("Moving symbolic link %r entry to references TOC.", entry)
                     toc_refs.append(entry)
                 del key  # Block-local variable
                 continue
 
-            # In fact, we need to accout for both dest_name and src_name with regular entries as well; previous
-            # approach that considered only src_name ended tripped up when same file was collected in different
-            # locations (i.e., same src_name but different dest_names).
+            # 000642.python.api.line1299.comment In fact, we need to accout for both dest_name and src_name with regular entries as well; previous
+            # 000643.python.api.line1300.comment approach that considered only src_name ended tripped up when same file was collected in different
+            # 000644.python.api.line1301.comment locations (i.e., same src_name but different dest_names).
             key = dest_name, src_name
             if key not in self._dependencies:
                 logger.debug("Adding dependency %r located in %s", key, path_to_exe)
                 self._dependencies[key] = path_to_exe
-                # Add entry to list of kept TOC entries
+                # 000645.python.api.line1306.comment Add entry to list of kept TOC entries
                 toc_keep.append(entry)
             else:
-                # Construct relative dependency path; i.e., the relative path from this executable (or rather, its
-                # parent directory) to the executable that contains the dependency.
+                # 000646.python.api.line1309.comment Construct relative dependency path; i.e., the relative path from this executable (or rather, its
+                # 000647.python.api.line1310.comment parent directory) to the executable that contains the dependency.
                 dep_path = os.path.relpath(self._dependencies[key], os.path.dirname(path_to_exe))
-                # Ignore references that point to the origin package. This can happen if the same resource is listed
-                # multiple times in TOCs (e.g., once as binary and once as data).
+                # 000648.python.api.line1312.comment Ignore references that point to the origin package. This can happen if the same resource is listed
+                # 000649.python.api.line1313.comment multiple times in TOCs (e.g., once as binary and once as data).
                 if dep_path.endswith(path_to_exe):
                     logger.debug(
                         "Ignoring self-reference of %r for %s, located in %s - duplicated TOC entry?", key, path_to_exe,
                         dep_path
                     )
-                    # The entry is a duplicate, and should be ignored (i.e., do not add it to either of output TOCs).
+                    # 000650.python.api.line1319.comment The entry is a duplicate, and should be ignored (i.e., do not add it to either of output TOCs).
                     continue
                 logger.debug("Referencing %r to be a dependency for %s, located in %s", key, path_to_exe, dep_path)
-                # Create new DEPENDENCY entry; under destination path (first element), we store the original destination
-                # path, while source path contains the relative reference path.
+                # 000651.python.api.line1322.comment Create new DEPENDENCY entry; under destination path (first element), we store the original destination
+                # 000652.python.api.line1323.comment path, while source path contains the relative reference path.
                 toc_refs.append((dest_name, dep_path, "DEPENDENCY"))
 
         return toc_keep, toc_refs

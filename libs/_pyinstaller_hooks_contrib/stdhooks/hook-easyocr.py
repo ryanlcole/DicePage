@@ -1,6 +1,6 @@
 from PyInstaller.utils.hooks import collect_data_files, get_hook_config
 
-# Recognition backends are imported with `importlib.import_module()`.
+# 013059.python.hook-easyocr.line3.comment Recognition backends are imported with `importlib.import_module()`.
 hiddenimports = ['easyocr.model.vgg_model', 'easyocr.model.model']
 
 

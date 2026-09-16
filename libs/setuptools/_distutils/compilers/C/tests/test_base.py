@@ -41,27 +41,27 @@ def test_set_include_dirs(c_file):
     compiler.set_include_dirs([python])
     compiler.compile([c_file])
 
-    # do it again, setting include dirs after any initialization
+    # 040261.python.test_base.line44.comment do it again, setting include dirs after any initialization
     compiler.set_include_dirs([python])
     compiler.compile([c_file])
 
 
 def test_has_function_prototype():
-    # Issue https://github.com/pypa/setuptools/issues/3648
-    # Test prototype-generating behavior.
+    # 040262.python.test_base.line50.comment Issue https://github.com/pypa/setuptools/issues/3648
+    # 040263.python.test_base.line51.comment Test prototype-generating behavior.
 
     compiler = base.new_compiler()
 
-    # Every C implementation should have these.
+    # 040264.python.test_base.line55.comment Every C implementation should have these.
     assert compiler.has_function('abort')
     assert compiler.has_function('exit')
     with pytest.deprecated_call(match='includes is deprecated'):
-        # abort() is a valid expression with the <stdlib.h> prototype.
+        # 040265.python.test_base.line59.comment abort() is a valid expression with the <stdlib.h> prototype.
         assert compiler.has_function('abort', includes=['stdlib.h'])
     with pytest.deprecated_call(match='includes is deprecated'):
-        # But exit() is not valid with the actual prototype in scope.
+        # 040266.python.test_base.line62.comment But exit() is not valid with the actual prototype in scope.
         assert not compiler.has_function('exit', includes=['stdlib.h'])
-    # And setuptools_does_not_exist is not declared or defined at all.
+    # 040267.python.test_base.line64.comment And setuptools_does_not_exist is not declared or defined at all.
     assert not compiler.has_function('setuptools_does_not_exist')
     with pytest.deprecated_call(match='includes is deprecated'):
         assert not compiler.has_function(

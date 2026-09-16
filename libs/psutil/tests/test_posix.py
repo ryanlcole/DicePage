@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025460.python.test_posix.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025461.python.test_posix.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025462.python.test_posix.line5.comment found in the LICENSE file.
 
 """POSIX specific tests."""
 
@@ -84,16 +84,16 @@ def ps(fmt, pid=None):
         return all_output[0]
 
 
-# ps "-o" field names differ wildly between platforms.
-# "comm" means "only executable name" but is not available on BSD platforms.
-# "args" means "command with all its arguments", and is also not available
-# on BSD platforms.
-# "command" is like "args" on most platforms, but like "comm" on AIX,
-# and not available on SUNOS.
-# so for the executable name we can use "comm" on Solaris and split "command"
-# on other platforms.
-# to get the cmdline (with args) we have to use "args" on AIX and
-# Solaris, and can use "command" on all others.
+# 025463.python.test_posix.line87.comment ps "-o" field names differ wildly between platforms.
+# 025464.python.test_posix.line88.comment "comm" means "only executable name" but is not available on BSD platforms.
+# 025465.python.test_posix.line89.comment "args" means "command with all its arguments", and is also not available
+# 025466.python.test_posix.line90.comment on BSD platforms.
+# 025467.python.test_posix.line91.comment "command" is like "args" on most platforms, but like "comm" on AIX,
+# 025468.python.test_posix.line92.comment and not available on SUNOS.
+# 025469.python.test_posix.line93.comment so for the executable name we can use "comm" on Solaris and split "command"
+# 025470.python.test_posix.line94.comment on other platforms.
+# 025471.python.test_posix.line95.comment to get the cmdline (with args) we have to use "args" on AIX and
+# 025472.python.test_posix.line96.comment Solaris, and can use "command" on all others.
 
 
 def ps_name(pid):
@@ -109,7 +109,7 @@ def ps_args(pid):
     if AIX or SUNOS:
         field = "args"
     out = ps(field, pid)
-    # observed on BSD + Github CI: '/usr/local/bin/python3 -E -O (python3.9)'
+    # 025473.python.test_posix.line112.comment observed on BSD + Github CI: '/usr/local/bin/python3 -E -O (python3.9)'
     out = re.sub(r"\(python.*?\)$", "", out)
     return out.strip()
 
@@ -179,9 +179,9 @@ class TestProcess(PsutilTestCase):
         assert username_ps == username_psutil
 
     def test_username_no_resolution(self):
-        # Emulate a case where the system can't resolve the uid to
-        # a username in which case psutil is supposed to return
-        # the stringified uid.
+        # 025474.python.test_posix.line182.comment Emulate a case where the system can't resolve the uid to
+        # 025475.python.test_posix.line183.comment a username in which case psutil is supposed to return
+        # 025476.python.test_posix.line184.comment the stringified uid.
         p = psutil.Process()
         with mock.patch("psutil.pwd.getpwuid", side_effect=KeyError) as fun:
             assert p.username() == str(p.uids().real)
@@ -190,8 +190,8 @@ class TestProcess(PsutilTestCase):
     @skip_on_access_denied()
     @retry_on_failure()
     def test_rss_memory(self):
-        # give python interpreter some time to properly initialize
-        # so that the results are the same
+        # 025477.python.test_posix.line193.comment give python interpreter some time to properly initialize
+        # 025478.python.test_posix.line194.comment so that the results are the same
         time.sleep(0.1)
         rss_ps = ps_rss(self.pid)
         rss_psutil = psutil.Process(self.pid).memory_info()[0] / 1024
@@ -200,8 +200,8 @@ class TestProcess(PsutilTestCase):
     @skip_on_access_denied()
     @retry_on_failure()
     def test_vsz_memory(self):
-        # give python interpreter some time to properly initialize
-        # so that the results are the same
+        # 025479.python.test_posix.line203.comment give python interpreter some time to properly initialize
+        # 025480.python.test_posix.line204.comment so that the results are the same
         time.sleep(0.1)
         vsz_ps = ps_vsz(self.pid)
         vsz_psutil = psutil.Process(self.pid).memory_info()[1] / 1024
@@ -209,22 +209,22 @@ class TestProcess(PsutilTestCase):
 
     def test_name(self):
         name_ps = ps_name(self.pid)
-        # remove path if there is any, from the command
+        # 025481.python.test_posix.line212.comment remove path if there is any, from the command
         name_ps = os.path.basename(name_ps).lower()
         name_psutil = psutil.Process(self.pid).name().lower()
-        # ...because of how we calculate PYTHON_EXE; on MACOS this may
-        # be "pythonX.Y".
+        # 025482.python.test_posix.line215.comment ...because of how we calculate PYTHON_EXE; on MACOS this may
+        # 025483.python.test_posix.line216.comment be "pythonX.Y".
         name_ps = re.sub(r"\d.\d", "", name_ps)
         name_psutil = re.sub(r"\d.\d", "", name_psutil)
-        # ...may also be "python.X"
+        # 025484.python.test_posix.line219.comment ...may also be "python.X"
         name_ps = re.sub(r"\d", "", name_ps)
         name_psutil = re.sub(r"\d", "", name_psutil)
         assert name_ps == name_psutil
 
     def test_name_long(self):
-        # On UNIX the kernel truncates the name to the first 15
-        # characters. In such a case psutil tries to determine the
-        # full name from the cmdline.
+        # 025485.python.test_posix.line225.comment On UNIX the kernel truncates the name to the first 15
+        # 025486.python.test_posix.line226.comment characters. In such a case psutil tries to determine the
+        # 025487.python.test_posix.line227.comment full name from the cmdline.
         name = "long-program-name"
         cmdline = ["long-program-name-extended", "foo", "bar"]
         with mock.patch("psutil._psplatform.Process.name", return_value=name):
@@ -235,9 +235,9 @@ class TestProcess(PsutilTestCase):
                 assert p.name() == "long-program-name-extended"
 
     def test_name_long_cmdline_ad_exc(self):
-        # Same as above but emulates a case where cmdline() raises
-        # AccessDenied in which case psutil is supposed to return
-        # the truncated name instead of crashing.
+        # 025488.python.test_posix.line238.comment Same as above but emulates a case where cmdline() raises
+        # 025489.python.test_posix.line239.comment AccessDenied in which case psutil is supposed to return
+        # 025490.python.test_posix.line240.comment the truncated name instead of crashing.
         name = "long-program-name"
         with mock.patch("psutil._psplatform.Process.name", return_value=name):
             with mock.patch(
@@ -248,8 +248,8 @@ class TestProcess(PsutilTestCase):
                 assert p.name() == "long-program-name"
 
     def test_name_long_cmdline_nsp_exc(self):
-        # Same as above but emulates a case where cmdline() raises NSP
-        # which is supposed to propagate.
+        # 025491.python.test_posix.line251.comment Same as above but emulates a case where cmdline() raises NSP
+        # 025492.python.test_posix.line252.comment which is supposed to propagate.
         name = "long-program-name"
         with mock.patch("psutil._psplatform.Process.name", return_value=name):
             with mock.patch(
@@ -267,8 +267,8 @@ class TestProcess(PsutilTestCase):
         time_psutil_tstamp = datetime.datetime.fromtimestamp(
             time_psutil
         ).strftime("%H:%M:%S")
-        # sometimes ps shows the time rounded up instead of down, so we check
-        # for both possible values
+        # 025493.python.test_posix.line270.comment sometimes ps shows the time rounded up instead of down, so we check
+        # 025494.python.test_posix.line271.comment for both possible values
         round_time_psutil = round(time_psutil)
         round_time_psutil_tstamp = datetime.datetime.fromtimestamp(
             round_time_psutil
@@ -281,20 +281,20 @@ class TestProcess(PsutilTestCase):
         try:
             assert ps_pathname == psutil_pathname
         except AssertionError:
-            # certain platforms such as BSD are more accurate returning:
-            # "/usr/local/bin/python3.7"
-            # ...instead of:
-            # "/usr/local/bin/python"
-            # We do not want to consider this difference in accuracy
-            # an error.
+            # 025495.python.test_posix.line284.comment certain platforms such as BSD are more accurate returning:
+            # 025496.python.test_posix.line285.comment "/usr/local/bin/python3.7"
+            # 025497.python.test_posix.line286.comment ...instead of:
+            # 025498.python.test_posix.line287.comment "/usr/local/bin/python"
+            # 025499.python.test_posix.line288.comment We do not want to consider this difference in accuracy
+            # 025500.python.test_posix.line289.comment an error.
             adjusted_ps_pathname = ps_pathname[: len(ps_pathname)]
             assert ps_pathname == adjusted_ps_pathname
 
-    # On macOS the official python installer exposes a python wrapper that
-    # executes a python executable hidden inside an application bundle inside
-    # the Python framework.
-    # There's a race condition between the ps call & the psutil call below
-    # depending on the completion of the execve call so let's retry on failure
+    # 025501.python.test_posix.line293.comment On macOS the official python installer exposes a python wrapper that
+    # 025502.python.test_posix.line294.comment executes a python executable hidden inside an application bundle inside
+    # 025503.python.test_posix.line295.comment the Python framework.
+    # 025504.python.test_posix.line296.comment There's a race condition between the ps call & the psutil call below
+    # 025505.python.test_posix.line297.comment depending on the completion of the execve call so let's retry on failure
     @retry_on_failure()
     def test_cmdline(self):
         ps_cmdline = ps_args(self.pid)
@@ -304,11 +304,11 @@ class TestProcess(PsutilTestCase):
         else:
             assert ps_cmdline == psutil_cmdline
 
-    # On SUNOS "ps" reads niceness /proc/pid/psinfo which returns an
-    # incorrect value (20); the real deal is getpriority(2) which
-    # returns 0; psutil relies on it, see:
-    # https://github.com/giampaolo/psutil/issues/1082
-    # AIX has the same issue
+    # 025506.python.test_posix.line307.comment On SUNOS "ps" reads niceness /proc/pid/psinfo which returns an
+    # 025507.python.test_posix.line308.comment incorrect value (20); the real deal is getpriority(2) which
+    # 025508.python.test_posix.line309.comment returns 0; psutil relies on it, see:
+    # 025509.python.test_posix.line310.comment https://github.com/giampaolo/psutil/issues/1082
+    # 025510.python.test_posix.line311.comment AIX has the same issue
     @pytest.mark.skipif(SUNOS, reason="not reliable on SUNOS")
     @pytest.mark.skipif(AIX, reason="not reliable on AIX")
     def test_nice(self):
@@ -323,24 +323,24 @@ class TestSystemAPIs(PsutilTestCase):
 
     @retry_on_failure()
     def test_pids(self):
-        # Note: this test might fail if the OS is starting/killing
-        # other processes in the meantime
+        # 025511.python.test_posix.line326.comment Note: this test might fail if the OS is starting/killing
+        # 025512.python.test_posix.line327.comment other processes in the meantime
         pids_ps = sorted(ps("pid"))
         pids_psutil = psutil.pids()
 
-        # on MACOS and OPENBSD ps doesn't show pid 0
+        # 025513.python.test_posix.line331.comment on MACOS and OPENBSD ps doesn't show pid 0
         if MACOS or (OPENBSD and 0 not in pids_ps):
             pids_ps.insert(0, 0)
 
-        # There will often be one more process in pids_ps for ps itself
+        # 025514.python.test_posix.line335.comment There will often be one more process in pids_ps for ps itself
         if len(pids_ps) - len(pids_psutil) > 1:
             difference = [x for x in pids_psutil if x not in pids_ps] + [
                 x for x in pids_ps if x not in pids_psutil
             ]
             raise pytest.fail("difference: " + str(difference))
 
-    # for some reason ifconfig -a does not report all interfaces
-    # returned by psutil
+    # 025515.python.test_posix.line342.comment for some reason ifconfig -a does not report all interfaces
+    # 025516.python.test_posix.line343.comment returned by psutil
     @pytest.mark.skipif(SUNOS, reason="unreliable on SUNOS")
     @pytest.mark.skipif(not shutil.which("ifconfig"), reason="no ifconfig cmd")
     @pytest.mark.skipif(not HAS_NET_IO_COUNTERS, reason="not supported")
@@ -393,22 +393,22 @@ class TestSystemAPIs(PsutilTestCase):
         if not out.strip():
             raise pytest.skip("no users on this system")
         tstamp = None
-        # '2023-04-11 09:31' (Linux)
+        # 025517.python.test_posix.line396.comment '2023-04-11 09:31' (Linux)
         started = re.findall(r"\d\d\d\d-\d\d-\d\d \d\d:\d\d", out)
         if started:
             tstamp = "%Y-%m-%d %H:%M"
         else:
-            # 'Apr 10 22:27' (macOS)
+            # 025518.python.test_posix.line401.comment 'Apr 10 22:27' (macOS)
             started = re.findall(r"[A-Z][a-z][a-z] \d\d \d\d:\d\d", out)
             if started:
                 tstamp = "%b %d %H:%M"
             else:
-                # 'Apr 10'
+                # 025519.python.test_posix.line406.comment 'Apr 10'
                 started = re.findall(r"[A-Z][a-z][a-z] \d\d", out)
                 if started:
                     tstamp = "%b %d"
                 else:
-                    # 'apr 10' (sunOS)
+                    # 025520.python.test_posix.line411.comment 'apr 10' (sunOS)
                     started = re.findall(r"[a-z][a-z][a-z] \d\d", out)
                     if started:
                         tstamp = "%b %d"
@@ -425,9 +425,9 @@ class TestSystemAPIs(PsutilTestCase):
                 assert psutil_value == started[idx]
 
     def test_pid_exists_let_raise(self):
-        # According to "man 2 kill" possible error values for kill
-        # are (EINVAL, EPERM, ESRCH). Test that any other errno
-        # results in an exception.
+        # 025521.python.test_posix.line428.comment According to "man 2 kill" possible error values for kill
+        # 025522.python.test_posix.line429.comment are (EINVAL, EPERM, ESRCH). Test that any other errno
+        # 025523.python.test_posix.line430.comment results in an exception.
         with mock.patch(
             "psutil._psposix.os.kill", side_effect=OSError(errno.EBADF, "")
         ) as m:
@@ -436,8 +436,8 @@ class TestSystemAPIs(PsutilTestCase):
             assert m.called
 
     def test_os_waitpid_let_raise(self):
-        # os.waitpid() is supposed to catch EINTR and ECHILD only.
-        # Test that any other errno results in an exception.
+        # 025524.python.test_posix.line439.comment os.waitpid() is supposed to catch EINTR and ECHILD only.
+        # 025525.python.test_posix.line440.comment Test that any other errno results in an exception.
         with mock.patch(
             "psutil._psposix.os.waitpid", side_effect=OSError(errno.EBADF, "")
         ) as m:
@@ -446,7 +446,7 @@ class TestSystemAPIs(PsutilTestCase):
             assert m.called
 
     def test_os_waitpid_eintr(self):
-        # os.waitpid() is supposed to "retry" on EINTR.
+        # 025526.python.test_posix.line449.comment os.waitpid() is supposed to "retry" on EINTR.
         with mock.patch(
             "psutil._psposix.os.waitpid", side_effect=OSError(errno.EINTR, "")
         ) as m:
@@ -455,7 +455,7 @@ class TestSystemAPIs(PsutilTestCase):
             assert m.called
 
     def test_os_waitpid_bad_ret_status(self):
-        # Simulate os.waitpid() returning a bad status.
+        # 025527.python.test_posix.line458.comment Simulate os.waitpid() returning a bad status.
         with mock.patch(
             "psutil._psposix.os.waitpid", return_value=(1, -1)
         ) as m:
@@ -463,7 +463,7 @@ class TestSystemAPIs(PsutilTestCase):
                 psutil._psposix.wait_pid(os.getpid())
             assert m.called
 
-    # AIX can return '-' in df output instead of numbers, e.g. for /proc
+    # 025528.python.test_posix.line466.comment AIX can return '-' in df output instead of numbers, e.g. for /proc
     @pytest.mark.skipif(AIX, reason="unreliable on AIX")
     @retry_on_failure()
     def test_disk_usage(self):
@@ -473,9 +473,9 @@ class TestSystemAPIs(PsutilTestCase):
             try:
                 sys_total, sys_used, sys_free, sys_percent = df(part.device)
             except RuntimeError as err:
-                # see:
-                # https://travis-ci.org/giampaolo/psutil/jobs/138338464
-                # https://travis-ci.org/giampaolo/psutil/jobs/138343361
+                # 025530.python.test_posix.line476.comment see:
+                # 025531.python.test_posix.line477.comment https://travis-ci.org/giampaolo/psutil/jobs/138338464
+                # 025532.python.test_posix.line478.comment https://travis-ci.org/giampaolo/psutil/jobs/138343361
                 err = str(err).lower()
                 if (
                     "no such file or directory" in err

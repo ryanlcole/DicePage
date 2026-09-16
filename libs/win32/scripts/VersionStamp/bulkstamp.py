@@ -1,34 +1,34 @@
-#
-# bulkstamp.py:
-#    Stamp versions on all files that can be found in a given tree.
-#
-# USAGE: python bulkstamp.py <version> <root directory> <descriptions>
-#
-# Example: python bulkstamp.py 103 ..\win32\Build\ desc.txt
-#
-# <version> corresponds to the build number. It will be concatenated with
-# the major and minor version numbers found in the description file.
-#
-# Description information is pulled from an input text file with lines of
-# the form:
-#
-#    <basename> <white space> <description>
-#
-# For example:
-#
-#    PyWinTypes.dll Common types for Python on Win32
-#    etc
-#
-# The product's name, major, and minor versions are specified as:
-#
-#    name <white space> <value>
-#    major <white space> <value>
-#    minor <white space> <value>
-#
-# The tags are case-sensitive.
-#
-# Any line beginning with "#" will be ignored. Empty lines are okay.
-#
+# 047925.python.bulkstamp.line1.comment
+# 047926.python.bulkstamp.line2.comment bulkstamp.py:
+# 047927.python.bulkstamp.line3.comment Stamp versions on all files that can be found in a given tree.
+# 047928.python.bulkstamp.line4.comment
+# 047929.python.bulkstamp.line5.comment USAGE: python bulkstamp.py <version> <root directory> <descriptions>
+# 047930.python.bulkstamp.line6.comment
+# 047931.python.bulkstamp.line7.comment Example: python bulkstamp.py 103 ..\win32\Build\ desc.txt
+# 047932.python.bulkstamp.line8.comment
+# 047933.python.bulkstamp.line9.comment <version> corresponds to the build number. It will be concatenated with
+# 047934.python.bulkstamp.line10.comment the major and minor version numbers found in the description file.
+# 047935.python.bulkstamp.line11.comment
+# 047936.python.bulkstamp.line12.comment Description information is pulled from an input text file with lines of
+# 047937.python.bulkstamp.line13.comment the form:
+# 047938.python.bulkstamp.line14.comment
+# 047939.python.bulkstamp.line15.comment <basename> <white space> <description>
+# 047940.python.bulkstamp.line16.comment
+# 047941.python.bulkstamp.line17.comment For example:
+# 047942.python.bulkstamp.line18.comment
+# 047943.python.bulkstamp.line19.comment PyWinTypes.dll Common types for Python on Win32
+# 047944.python.bulkstamp.line20.comment etc
+# 047945.python.bulkstamp.line21.comment
+# 047946.python.bulkstamp.line22.comment The product's name, major, and minor versions are specified as:
+# 047947.python.bulkstamp.line23.comment
+# 047948.python.bulkstamp.line24.comment name <white space> <value>
+# 047949.python.bulkstamp.line25.comment major <white space> <value>
+# 047950.python.bulkstamp.line26.comment minor <white space> <value>
+# 047951.python.bulkstamp.line27.comment
+# 047952.python.bulkstamp.line28.comment The tags are case-sensitive.
+# 047953.python.bulkstamp.line29.comment
+# 047954.python.bulkstamp.line30.comment Any line beginning with "#" will be ignored. Empty lines are okay.
+# 047955.python.bulkstamp.line31.comment
 
 import fnmatch
 import os
@@ -39,7 +39,7 @@ from optparse import Values
 try:
     import win32verstamp
 except ModuleNotFoundError:
-    # If run with pywin32 not already installed
+    # 047956.python.bulkstamp.line42.comment If run with pywin32 not already installed
     sys.path.append(os.path.abspath(__file__ + "/../../../Lib"))
     import win32verstamp
 
@@ -57,7 +57,7 @@ def walk(vars: Mapping[str, str], debug, descriptions, dirname, names) -> int:
     for name in names:
         for pat in g_patterns:
             if fnmatch.fnmatch(name, pat):
-                # Handle the "_d" thing.
+                # 047957.python.bulkstamp.line60.comment Handle the "_d" thing.
                 pathname = os.path.join(dirname, name)
                 base, ext = os.path.splitext(name)
                 if base.endswith("_d"):
@@ -82,11 +82,11 @@ def walk(vars: Mapping[str, str], debug, descriptions, dirname, names) -> int:
                         )
                 else:
                     print("WARNING: description not provided for:", name)
-                    # skip branding this - assume already branded or handled elsewhere
+                    # 047958.python.bulkstamp.line85.comment skip branding this - assume already branded or handled elsewhere
     return numStamped
 
 
-# print("Stamped", pathname)
+# 047959.python.bulkstamp.line89.comment print("Stamped", pathname)
 
 
 def load_descriptions(fname, vars):

@@ -21,7 +21,7 @@ class ViewerWindow:
                 font = win32gui.LOGFONT()
                 font.lfHeight = 15  # int(wndheight/20)
                 font.lfWidth = 15  # font.lfHeight
-                #            font.lfWeight=150
+                # 046396.python.win32clipboard_bitmapdemo.line24.comment font.lfWeight=150
                 hf = win32gui.CreateFontIndirect(font)
                 win32gui.SelectObject(dc, hf)
                 win32gui.SetBkMode(dc, win32con.TRANSPARENT)
@@ -60,10 +60,10 @@ class ViewerWindow:
         win32gui.InvalidateRect(hwnd, None, True)
 
     def OnChangeCBChain(self, hwnd, msg, wp, lp):
-        # If the next window is closing, repair the chain.
+        # 046397.python.win32clipboard_bitmapdemo.line63.comment If the next window is closing, repair the chain.
         if wp == self.hwndNextViewer:
             self.hwndNextViewer = lp
-        # Otherwise, pass the message to the next link.
+        # 046398.python.win32clipboard_bitmapdemo.line66.comment Otherwise, pass the message to the next link.
         elif self.hwndNextViewer:
             win32gui.SendMessage(self.hwndNextViewer, msg, wp, lp)
 

@@ -15,8 +15,8 @@ class TestBuildCLib:
         dist = Distribution()
         cmd = build_clib(dist)
 
-        # this will be a long section, just making sure all
-        # exceptions are properly raised
+        # 045196.python.test_build_clib.line18.comment this will be a long section, just making sure all
+        # 045197.python.test_build_clib.line19.comment exceptions are properly raised
         libs = [('example', {'sources': 'broken.c'})]
         with pytest.raises(DistutilsSetupError):
             cmd.build_libraries(libs)
@@ -36,8 +36,8 @@ class TestBuildCLib:
         with pytest.raises(DistutilsSetupError):
             cmd.build_libraries(libs)
 
-        # with that out of the way, let's see if the crude dependency
-        # system works
+        # 045198.python.test_build_clib.line39.comment with that out of the way, let's see if the crude dependency
+        # 045199.python.test_build_clib.line40.comment system works
         cmd.compiler = mock.MagicMock(spec=cmd.compiler)
         mock_newer.return_value = ([], [])
 
@@ -49,7 +49,7 @@ class TestBuildCLib:
         assert not cmd.compiler.compile.called
         assert cmd.compiler.create_static_lib.call_count == 1
 
-        # reset the call numbers so we can test again
+        # 045200.python.test_build_clib.line52.comment reset the call numbers so we can test again
         cmd.compiler.reset_mock()
 
         mock_newer.return_value = ''  # anything as long as it's not ([],[])
@@ -62,8 +62,8 @@ class TestBuildCLib:
         dist = Distribution()
         cmd = build_clib(dist)
 
-        # with that out of the way, let's see if the crude dependency
-        # system works
+        # 045202.python.test_build_clib.line65.comment with that out of the way, let's see if the crude dependency
+        # 045203.python.test_build_clib.line66.comment system works
         cmd.compiler = mock.MagicMock(spec=cmd.compiler)
         mock_newer.return_value = ([], [])
 

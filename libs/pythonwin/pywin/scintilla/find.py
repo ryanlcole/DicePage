@@ -1,4 +1,4 @@
-# find.py - Find and Replace
+# 038785.python.find.line1.comment find.py - Find and Replace
 from __future__ import annotations
 
 import win32api
@@ -27,7 +27,7 @@ class SearchParams:
         else:
             self.__dict__.update(other.__dict__)
 
-    # Helper so we can't misspell attributes :-)
+    # 038786.python.find.line30.comment Helper so we can't misspell attributes :-)
     def __setattr__(self, attr, val):
         if not hasattr(self, attr):
             raise AttributeError(attr)
@@ -81,7 +81,7 @@ def _FindIt(control, searchParams):
     if control is None:
         return FOUND_NOTHING
 
-    # Move to the next char, so we find the next one.
+    # 038787.python.find.line84.comment Move to the next char, so we find the next one.
     flags = 0
     if searchParams.matchWords:
         flags |= win32con.FR_WHOLEWORD
@@ -89,8 +89,8 @@ def _FindIt(control, searchParams):
         flags |= win32con.FR_MATCHCASE
     if searchParams.sel == (-1, -1):
         sel = control.GetSel()
-        # If the position is the same as we found last time,
-        # then we assume it is a "FindNext"
+        # 038788.python.find.line92.comment If the position is the same as we found last time,
+        # 038789.python.find.line93.comment then we assume it is a "FindNext"
         if sel == lastSearch.sel:
             sel = sel[0] + 1, sel[0] + 1
     else:
@@ -100,7 +100,7 @@ def _FindIt(control, searchParams):
         sel = sel[0], control.GetTextLength()
 
     rc = FOUND_NOTHING
-    # (Old edit control will fail here!)
+    # 038790.python.find.line103.comment (Old edit control will fail here!)
     posFind, foundSel = control.FindText(flags, sel, searchParams.findText)
     lastSearch = SearchParams(searchParams)
     if posFind >= 0:
@@ -111,7 +111,7 @@ def _FindIt(control, searchParams):
         control.SetFocus()
         win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
     if rc == FOUND_NOTHING and lastSearch.acrossFiles:
-        # Loop around all documents.  First find this document.
+        # 038791.python.find.line114.comment Loop around all documents.  First find this document.
         try:
             try:
                 doc = control.GetDocument()
@@ -149,7 +149,7 @@ def _FindIt(control, searchParams):
         except win32ui.error:
             pass
     if rc == FOUND_NOTHING:
-        # Loop around this control - attempt to find from the start of the control.
+        # 038794.python.find.line152.comment Loop around this control - attempt to find from the start of the control.
         posFind, foundSel = control.FindText(
             flags, (0, sel[0] - 1), searchParams.findText
         )
@@ -169,7 +169,7 @@ def _FindIt(control, searchParams):
     if lastSearch.remember:
         defaultSearch = lastSearch
 
-        # track search history
+        # 038795.python.find.line172.comment track search history
         try:
             ix = searchHistory.index(searchParams.findText)
         except ValueError:
@@ -210,10 +210,10 @@ class FindReplaceDialog(dialog.Dialog):
 
         self.editFindText.SetWindowText(defaultSearch.findText)
         control = _GetControl()
-        # _GetControl only gets normal MDI windows; if the interactive
-        # window is docked and no document open, we get None.
+        # 038796.python.find.line213.comment _GetControl only gets normal MDI windows; if the interactive
+        # 038797.python.find.line214.comment window is docked and no document open, we get None.
         if control:
-            # If we have a selection, default to that.
+            # 038798.python.find.line216.comment If we have a selection, default to that.
             sel = control.GetSelText()
             if len(sel) != 0:
                 self.editFindText.SetWindowText(sel)
@@ -249,8 +249,8 @@ class FindReplaceDialog(dialog.Dialog):
 
     def OnFindNext(self, id, code):
         if code != 0:  # BN_CLICKED
-            # 3d controls (python.exe + start_pythonwin.pyw) send
-            # other notification codes
+            # 038800.python.find.line252.comment 3d controls (python.exe + start_pythonwin.pyw) send
+            # 038801.python.find.line253.comment other notification codes
             return 1  #
         if not self.editFindText.GetWindowText():
             win32api.MessageBeep()
@@ -461,15 +461,15 @@ class ReplaceDialog(FindReplaceDialog):
         return rc  # 0 when focus set
 
     def CheckButtonStates(self):
-        # We can do a "Replace" or "Replace All" if the current selection
-        # is the same as the search text.
+        # 038804.python.find.line464.comment We can do a "Replace" or "Replace All" if the current selection
+        # 038805.python.find.line465.comment is the same as the search text.
         ft = self.editFindText.GetWindowText()
         control = _GetControl()
-        # 		bCanReplace = len(ft)>0 and control.GetSelText() == ft
+        # 038806.python.find.line468.comment bCanReplace = len(ft)>0 and control.GetSelText() == ft
         bCanReplace = control is not None and lastSearch.sel == control.GetSel()
         self.butReplace.EnableWindow(bCanReplace)
 
-    # 		self.butReplaceAll.EnableWindow(bCanReplace)
+    # 038807.python.find.line472.comment self.butReplaceAll.EnableWindow(bCanReplace)
 
     def OnActivate(self, msg):
         wparam = msg[2]

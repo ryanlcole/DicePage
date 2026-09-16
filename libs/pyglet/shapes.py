@@ -198,38 +198,38 @@ def _get_segment(p0: tuple[float, float] | list[float], p1: tuple[float, float] 
     v_np1p2 = Vec2(p2[0] - p1[0], p2[1] - p1[1]).normalize()
     v_normal = Vec2(-v_np1p2.y, v_np1p2.x)
 
-    # Prep the miter vectors to the normal vector in case it is only one segment
+    # 035582.python.shapes.line201.comment Prep the miter vectors to the normal vector in case it is only one segment
     v_miter2 = v_normal
     scale1 = scale2 = thickness / 2.0
 
-    # miter1 is either already computed or the normal
+    # 035583.python.shapes.line205.comment miter1 is either already computed or the normal
     v_miter1 = v_normal
     if prev_miter and prev_scale:
         v_miter1 = prev_miter
         scale1 = prev_scale
     elif p0:
-        # Compute the miter joint vector for the start of the segment
+        # 035584.python.shapes.line211.comment Compute the miter joint vector for the start of the segment
         v_np0p1 = Vec2(p1[0] - p0[0], p1[1] - p0[1]).normalize()
         v_normal_p0p1 = Vec2(-v_np0p1.y, v_np0p1.x)
-        # Add the 2 normal vectors and normalize to get miter vector
+        # 035585.python.shapes.line214.comment Add the 2 normal vectors and normalize to get miter vector
         v_miter1 = Vec2(v_normal_p0p1.x + v_normal.x, v_normal_p0p1.y + v_normal.y).normalize()
         scale1 = scale1 / math.sin(math.acos(v_np1p2.dot(v_miter1)))
 
     if p3:
-        # Compute the miter joint vector for the end of the segment
+        # 035586.python.shapes.line219.comment Compute the miter joint vector for the end of the segment
         v_np2p3 = Vec2(p3[0] - p2[0], p3[1] - p2[1]).normalize()
         v_normal_p2p3 = Vec2(-v_np2p3.y, v_np2p3.x)
-        # Add the 2 normal vectors and normalize to get miter vector
+        # 035587.python.shapes.line222.comment Add the 2 normal vectors and normalize to get miter vector
         v_miter2 = Vec2(v_normal_p2p3.x + v_normal.x, v_normal_p2p3.y + v_normal.y).normalize()
         scale2 = scale2 / math.sin(math.acos(v_np2p3.dot(v_miter2)))
 
-    # Quick fix for preventing the scaling factors from getting out of hand
-    # with extreme angles.
+    # 035588.python.shapes.line226.comment Quick fix for preventing the scaling factors from getting out of hand
+    # 035589.python.shapes.line227.comment with extreme angles.
     scale1 = min(scale1, 2.0 * thickness)
     scale2 = min(scale2, 2.0 * thickness)
 
-    # Make these tuples instead of Vec2 because accessing
-    # members of Vec2 is surprisingly slow
+    # 035590.python.shapes.line231.comment Make these tuples instead of Vec2 because accessing
+    # 035591.python.shapes.line232.comment members of Vec2 is surprisingly slow
     miter1_scaled_p = (v_miter1.x * scale1, v_miter1.y * scale1)
     miter2_scaled_p = (v_miter2.x * scale2, v_miter2.y * scale2)
 
@@ -302,8 +302,8 @@ class ShapeBase(ABC):
     the provided shapes as reference.
     """
 
-    # _rgba and any class attribute set to None is untyped because
-    # doing so doesn't require None-handling from some type checkers.
+    # 035592.python.shapes.line305.comment _rgba and any class attribute set to None is untyped because
+    # 035593.python.shapes.line306.comment doing so doesn't require None-handling from some type checkers.
     _rgba = (255, 255, 255, 255)
     _rotation: float = 0.0
     _visible: bool = True
@@ -453,10 +453,10 @@ class ShapeBase(ABC):
 
         if (self._batch and
                 self._batch.update_shader(self._vertex_list, GL_TRIANGLES, self._group, program)):
-            # Exit early if changing domain is not needed.
+            # 035594.python.shapes.line456.comment Exit early if changing domain is not needed.
             return
 
-        # Recreate vertex list.
+        # 035595.python.shapes.line459.comment Recreate vertex list.
         self._vertex_list.delete()
         self._create_vertex_list()
 
@@ -842,19 +842,19 @@ class Arc(ShapeBase):
         self._radius = radius
         self._segments = segments or max(14, int(radius / 1.25))
 
-        # handle both 3 and 4 byte colors
+        # 035596.python.shapes.line845.comment handle both 3 and 4 byte colors
         r, g, b, *a = color
         self._rgba = r, g, b, a[0] if a else 255
 
         self._thickness = thickness
         self._angle = angle
         self._start_angle = start_angle
-        # Only set closed if the angle isn't tau
+        # 035597.python.shapes.line852.comment Only set closed if the angle isn't tau
         self._closed = closed if abs(math.tau - self._angle) > 1e-9 else False
         self._rotation = 0
 
         super().__init__(
-            # Each segment is now 6 vertices long
+            # 035598.python.shapes.line857.comment Each segment is now 6 vertices long
             self._segments * 6 + (6 if self._closed else 0),
             blend_src, blend_dest, batch, group, program,
         )
@@ -876,11 +876,11 @@ class Arc(ShapeBase):
         segment_radians = math.radians(self._angle) / self._segments
         start_radians = math.radians(self._start_angle - self._rotation)
 
-        # Calculate the outer points of the arc:
+        # 035599.python.shapes.line879.comment Calculate the outer points of the arc:
         points = [(x + (r * math.cos((i * segment_radians) + start_radians)),
                    y + (r * math.sin((i * segment_radians) + start_radians))) for i in range(self._segments + 1)]
 
-        # Create a list of quads from the points
+        # 035600.python.shapes.line883.comment Create a list of quads from the points
         vertices = []
         prev_miter = None
         prev_scale = None
@@ -1043,7 +1043,7 @@ class BezierCurve(ShapeBase):
         x = -self._anchor_x - self._x
         y = -self._anchor_y - self._y
 
-        # Calculate the points of the curve:
+        # 035601.python.shapes.line1046.comment Calculate the points of the curve:
         points = [(x + self._make_curve(self._t * t / self._segments)[0],
                    y + self._make_curve(self._t * t / self._segments)[1]) for t in range(self._segments + 1)]
         trans_x, trans_y = points[0]
@@ -1051,7 +1051,7 @@ class BezierCurve(ShapeBase):
         trans_y += self._anchor_y
         coords = [[x - trans_x, y - trans_y] for x, y in points]
 
-        # Create a list of doubled-up points from the points:
+        # 035602.python.shapes.line1054.comment Create a list of doubled-up points from the points:
         vertices = []
         prev_miter = None
         prev_scale = None
@@ -1182,11 +1182,11 @@ class Circle(ShapeBase):
         r = self._radius
         tau_segs = math.pi * 2 / self._segments
 
-        # Calculate the outer points of the circle:
+        # 035603.python.shapes.line1185.comment Calculate the outer points of the circle:
         points = [(x + (r * math.cos(i * tau_segs)),
                    y + (r * math.sin(i * tau_segs))) for i in range(self._segments)]
 
-        # Create a list of triangles from the points:
+        # 035604.python.shapes.line1189.comment Create a list of triangles from the points:
         vertices = []
         for i, point in enumerate(points):
             triangle = x, y, *points[i - 1], *point
@@ -1262,8 +1262,8 @@ class Ellipse(ShapeBase):
         self._a = a
         self._b = b
 
-        # Break with conventions in other _Shape constructors
-        # because a & b are used as meaningful variable names.
+        # 035605.python.shapes.line1265.comment Break with conventions in other _Shape constructors
+        # 035606.python.shapes.line1266.comment because a & b are used as meaningful variable names.
         color_r, color_g, color_b, *color_a = color
         self._rgba = color_r, color_g, color_b, color_a[0] if color_a else 255
 
@@ -1278,8 +1278,8 @@ class Ellipse(ShapeBase):
     def __contains__(self, point: tuple[float, float]) -> bool:
         assert len(point) == 2
         point = _rotate_point((self._x, self._y), point, math.radians(self._rotation))
-        # Since directly testing whether a point is inside an ellipse is more
-        # complicated, it is more convenient to transform it into a circle.
+        # 035607.python.shapes.line1281.comment Since directly testing whether a point is inside an ellipse is more
+        # 035608.python.shapes.line1282.comment complicated, it is more convenient to transform it into a circle.
         point = (self._b / self._a * point[0], point[1])
         shape_center = (self._b / self._a * (self._x - self._anchor_x), self._y - self._anchor_y)
         return math.dist(shape_center, point) < self._b
@@ -1299,11 +1299,11 @@ class Ellipse(ShapeBase):
         y = -self._anchor_y
         tau_segs = math.pi * 2 / self._segments
 
-        # Calculate the points of the ellipse by formula:
+        # 035609.python.shapes.line1302.comment Calculate the points of the ellipse by formula:
         points = [(x + self._a * math.cos(i * tau_segs),
                    y + self._b * math.sin(i * tau_segs)) for i in range(self._segments)]
 
-        # Create a list of triangles from the points:
+        # 035610.python.shapes.line1306.comment Create a list of triangles from the points:
         vertices = []
         for i, point in enumerate(points):
             triangle = x, y, *points[i - 1], *point
@@ -1434,11 +1434,11 @@ class Sector(ShapeBase):
         segment_radians = math.radians(self._angle) / self._segments
         start_radians = math.radians(self._start_angle - self._rotation)
 
-        # Calculate the outer points of the sector.
+        # 035611.python.shapes.line1437.comment Calculate the outer points of the sector.
         points = [(x + (r * math.cos((i * segment_radians) + start_radians)),
                    y + (r * math.sin((i * segment_radians) + start_radians))) for i in range(self._segments + 1)]
 
-        # Create a list of triangles from the points
+        # 035612.python.shapes.line1441.comment Create a list of triangles from the points
         vertices = []
         for i, point in enumerate(points[1:], start=1):
             triangle = x, y, *points[i - 1], *point
@@ -1553,8 +1553,8 @@ class Line(ShapeBase):
 
         a, b = point[0] + self._anchor_x, point[1] - self._anchor_y
         x1, y1, x2, y2 = self._x, self._y, self._x2, self._y2
-        # The following is the expansion of the determinant of a 3x3 matrix
-        # used to calculate the area of a triangle.
+        # 035613.python.shapes.line1556.comment The following is the expansion of the determinant of a 3x3 matrix
+        # 035614.python.shapes.line1557.comment used to calculate the area of a triangle.
         double_area = abs(a * y1 + b * x2 + x1 * y2 - x2 * y1 - a * y2 - b * x1)
         h = double_area / math.dist((self._x, self._y), (self._x2, self._y2))
         return h < self._thickness / 2
@@ -1800,22 +1800,22 @@ class BorderedRectangle(ShapeBase):
         fill_r, fill_g, fill_b, *fill_a = color
         border_r, border_g, border_b, *border_a = border_color
 
-        # Start with a default alpha value of 255.
+        # 035615.python.shapes.line1803.comment Start with a default alpha value of 255.
         alpha = 255
-        # Raise Exception if we have conflicting alpha values
+        # 035616.python.shapes.line1805.comment Raise Exception if we have conflicting alpha values
         if fill_a and border_a and fill_a[0] != border_a[0]:
             raise ValueError("When color and border_color are both RGBA values,"
                              "they must both have the same opacity")
 
-        # Choose a value to use if there is no conflict
+        # 035617.python.shapes.line1810.comment Choose a value to use if there is no conflict
         elif fill_a:
             alpha = fill_a[0]
         elif border_a:
             alpha = border_a[0]
 
-        # Although the shape is only allowed one opacity, the alpha is
-        # stored twice to keep other code concise and reduce cpu usage
-        # from stitching together sequences.
+        # 035618.python.shapes.line1816.comment Although the shape is only allowed one opacity, the alpha is
+        # 035619.python.shapes.line1817.comment stored twice to keep other code concise and reduce cpu usage
+        # 035620.python.shapes.line1818.comment from stitching together sequences.
         self._rgba = fill_r, fill_g, fill_b, alpha
         self._border_rgba = border_r, border_g, border_b, alpha
 
@@ -2038,10 +2038,10 @@ class Box(ShapeBase):
         return x < point[0] < x + self._width and y < point[1] < y + self._height
 
     def _create_vertex_list(self) -> None:
-        #   3        6
-        #     2    7
-        #     1    4
-        #   0        5
+        # 035621.python.shapes.line2041.comment 3        6
+        # 035622.python.shapes.line2042.comment 2    7
+        # 035623.python.shapes.line2043.comment 1    4
+        # 035624.python.shapes.line2044.comment 0        5
         indices = [0, 1, 2, 0, 2, 3, 0, 5, 4, 0, 4, 1, 4, 5, 6, 4, 6, 7, 2, 7, 6, 2, 6, 3]
         self._vertex_list = self._program.vertex_list_indexed(
             self._num_verts, self._draw_mode, indices, self._batch, self._group,
@@ -2070,7 +2070,7 @@ class Box(ShapeBase):
         y2 = bottom + t
         y3 = top - t
         y4 = top
-        #     |  0   |   1   |   2   |   3   |   4   |   5   |   6   |   7   |
+        # 035625.python.shapes.line2073.comment |  0   |   1   |   2   |   3   |   4   |   5   |   6   |   7   |
         return x1, y1, x2, y2, x2, y3, x1, y4, x3, y2, x4, y1, x4, y4, x3, y3
 
     def _update_vertices(self) -> None:
@@ -2236,18 +2236,18 @@ class RoundedRectangle(pyglet.shapes.ShapeBase):
         y = -self._anchor_y
 
         points = []
-        # arc_x, arc_y, start_angle
+        # 035626.python.shapes.line2239.comment arc_x, arc_y, start_angle
         arc_positions = [
-            # bottom-left
+            # 035627.python.shapes.line2241.comment bottom-left
             (x + self._radius[0][0],
              y + self._radius[0][1], math.pi * 3 / 2),
-            # top-left
+            # 035628.python.shapes.line2244.comment top-left
             (x + self._radius[1][0],
              y + self._height - self._radius[1][1], math.pi),
-            # top-right
+            # 035629.python.shapes.line2247.comment top-right
             (x + self._width - self._radius[2][0],
              y + self._height - self._radius[2][1], math.pi / 2),
-            # bottom-right
+            # 035630.python.shapes.line2250.comment bottom-right
             (x + self._width - self._radius[3][0],
              y + self._radius[3][1], 0),
         ]
@@ -2525,10 +2525,10 @@ class Star(ShapeBase):
         r_i = self._inner_radius
         r_o = self._outer_radius
 
-        # get angle covered by each line (= half a spike)
+        # 035631.python.shapes.line2528.comment get angle covered by each line (= half a spike)
         d_theta = math.pi / self._num_spikes
 
-        # calculate alternating points on outer and outer circles
+        # 035632.python.shapes.line2531.comment calculate alternating points on outer and outer circles
         points = []
         for i in range(self._num_spikes):
             points.append((x + (r_o * math.cos(2 * i * d_theta)),
@@ -2536,7 +2536,7 @@ class Star(ShapeBase):
             points.append((x + (r_i * math.cos((2 * i + 1) * d_theta)),
                            y + (r_i * math.sin((2 * i + 1) * d_theta))))
 
-        # create a list of doubled-up points from the points
+        # 035633.python.shapes.line2539.comment create a list of doubled-up points from the points
         vertices = []
         for i, point in enumerate(points):
             triangle = x, y, *points[i - 1], *point
@@ -2613,7 +2613,7 @@ class Polygon(ShapeBase):
             program:
                 Optional shader program of the shape.
         """
-        # len(self._coordinates) = the number of vertices and sides in the shape.
+        # 035634.python.shapes.line2616.comment len(self._coordinates) = the number of vertices and sides in the shape.
         self._rotation = 0
         self._coordinates = list(coordinates)
         self._x, self._y = self._coordinates[0]
@@ -2644,13 +2644,13 @@ class Polygon(ShapeBase):
         if not self._visible:
             return (0, 0) * self._num_verts
 
-        # Adjust all coordinates by the anchor.
+        # 035635.python.shapes.line2647.comment Adjust all coordinates by the anchor.
         trans_x, trans_y = self._coordinates[0]
         trans_x += self._anchor_x
         trans_y += self._anchor_y
         coords = [[x - trans_x, y - trans_y] for x, y in self._coordinates]
 
-        # Return the flattened coords.
+        # 035636.python.shapes.line2653.comment Return the flattened coords.
         return earcut.flatten([coords])["vertices"]
 
     def _update_vertices(self) -> None:
@@ -2700,13 +2700,13 @@ class MultiLine(ShapeBase):
             program:
                 Optional shader program of the shape.
         """
-        # len(self._coordinates) = the number of vertices in the shape.
+        # 035637.python.shapes.line2703.comment len(self._coordinates) = the number of vertices in the shape.
         self._thickness = thickness
         self._closed = closed
         self._rotation = 0
         self._coordinates = list(coordinates)
         if closed:
-            # connect final point with first
+            # 035638.python.shapes.line2709.comment connect final point with first
             self._coordinates.append(self._coordinates[0])
         self._x, self._y = self._coordinates[0]
 
@@ -2734,7 +2734,7 @@ class MultiLine(ShapeBase):
         trans_y += self._anchor_y
         coords: list[list[float]] = [[x - trans_x, y - trans_y] for x, y in self._coordinates]
 
-        # Create a list of triangles from segments between 2 points:
+        # 035639.python.shapes.line2737.comment Create a list of triangles from segments between 2 points:
         triangles = []
         prev_miter = None
         prev_scale = None

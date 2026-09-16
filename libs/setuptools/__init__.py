@@ -1,9 +1,9 @@
 """Extensions to the 'distutils' for large or complex distributions"""
-# mypy: disable_error_code=override
-# Command.reinitialize_command has an extra **kw param that distutils doesn't have
-# Can't disable on the exact line because distutils doesn't exists on Python 3.12
-# and mypy isn't aware of distutils_hack, causing distutils.core.Command to be Any,
-# and a [unused-ignore] to be raised on 3.12+
+# 039183.python.init.line2.comment mypy: disable_error_code=override
+# 039184.python.init.line3.comment Command.reinitialize_command has an extra **kw param that distutils doesn't have
+# 039185.python.init.line4.comment Can't disable on the exact line because distutils doesn't exists on Python 3.12
+# 039186.python.init.line5.comment and mypy isn't aware of distutils_hack, causing distutils.core.Command to be Any,
+# 039187.python.init.line6.comment and a [unused-ignore] to be raised on 3.12+
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
-# workaround for #4476
+# 039189.python.init.line18.comment workaround for #4476
 sys.modules.pop('backports', None)
 
 import _distutils_hack.override  # noqa: F401
@@ -50,8 +50,8 @@ find_namespace_packages = PEP420PackageFinder.find
 
 
 def _install_setup_requires(attrs):
-    # Note: do not use `setuptools.Distribution` directly, as
-    # our PEP 517 backend patch `distutils.core.Distribution`.
+    # 039191.python.init.line53.comment Note: do not use `setuptools.Distribution` directly, as
+    # 039192.python.init.line54.comment our PEP 517 backend patch `distutils.core.Distribution`.
     class MinimalDistribution(distutils.core.Distribution):
         """
         A minimal version of a distribution for supporting the
@@ -62,7 +62,7 @@ def _install_setup_requires(attrs):
             _incl = 'dependency_links', 'setup_requires'
             filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
             super().__init__(filtered)
-            # Prevent accidentally triggering discovery with incomplete set of attrs
+            # 039193.python.init.line65.comment Prevent accidentally triggering discovery with incomplete set of attrs
             self.set_defaults._disable()
 
         def _get_project_config_files(self, filenames=None):
@@ -81,7 +81,7 @@ def _install_setup_requires(attrs):
 
     dist = MinimalDistribution(attrs)
 
-    # Honor setup.cfg's options.
+    # 039194.python.init.line84.comment Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
         _fetch_build_eggs(dist)
@@ -110,7 +110,7 @@ def _fetch_build_eggs(dist: Distribution):
 
 def setup(**attrs):
     logging.configure()
-    # Make sure we have any requirements needed to interpret 'attrs'.
+    # 039196.python.init.line113.comment Make sure we have any requirements needed to interpret 'attrs'.
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 
@@ -118,7 +118,7 @@ def setup(**attrs):
 setup.__doc__ = distutils.core.setup.__doc__
 
 if TYPE_CHECKING:
-    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    # 039197.python.init.line121.comment Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
     from distutils.core import Command as _Command
 else:
     _Command = monkey.get_unpatched(distutils.core.Command)
@@ -244,5 +244,5 @@ class sic(str):
     """Treat this string as-is (https://en.wikipedia.org/wiki/Sic)"""
 
 
-# Apply monkey patches
+# 039200.python.init.line247.comment Apply monkey patches
 monkey.patch_all()

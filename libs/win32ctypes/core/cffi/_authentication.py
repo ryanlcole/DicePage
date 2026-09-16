@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2015 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052152.python.authentication.line1.comment
+# 052153.python.authentication.line2.comment (C) Copyright 2015 Enthought, Inc., Austin, TX
+# 052154.python.authentication.line3.comment All right reserved.
+# 052155.python.authentication.line4.comment
+# 052156.python.authentication.line5.comment This file is open source software distributed according to the terms in
+# 052157.python.authentication.line6.comment LICENSE.txt
+# 052158.python.authentication.line7.comment
 from weakref import WeakKeyDictionary
 
 from win32ctypes.core.compat import is_text
@@ -86,13 +86,13 @@ class _CREDENTIAL(object):
 
         factory = cls()
         c_creds = factory()
-        # values to ref and make sure that they will not go away
+        # 052159.python.authentication.line89.comment values to ref and make sure that they will not go away
         values = []
         for key, value in credential.items():
             if key == u'CredentialBlob':
                 blob = make_unicode(value)
                 blob_data = ffi.new('wchar_t[]', blob)
-                # new adds a NULL at the end that we do not want.
+                # 052160.python.authentication.line95.comment new adds a NULL at the end that we do not want.
                 c_creds.CredentialBlobSize = \
                     ffi.sizeof(blob_data) - ffi.sizeof('wchar_t')
                 c_creds.CredentialBlob = ffi.cast('LPBYTE', blob_data)
@@ -106,7 +106,7 @@ class _CREDENTIAL(object):
                 pblob = ffi.new('wchar_t[]', blob)
                 values.append(pblob)
                 setattr(c_creds, key, ffi.cast('LPTSTR', pblob))
-        # keep values alive until c_creds goes away.
+        # 052161.python.authentication.line109.comment keep values alive until c_creds goes away.
         _keep_alive[c_creds] = tuple(values)
         return c_creds
 

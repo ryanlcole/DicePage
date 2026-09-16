@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 000153.python.recursion_too_deep_message.line1.comment -----------------------------------------------------------------------------
+# 000154.python.recursion_too_deep_message.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 000155.python.recursion_too_deep_message.line3.comment
+# 000156.python.recursion_too_deep_message.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 000157.python.recursion_too_deep_message.line5.comment or later) with exception for distributing the bootloader.
+# 000158.python.recursion_too_deep_message.line6.comment
+# 000159.python.recursion_too_deep_message.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 000160.python.recursion_too_deep_message.line8.comment
+# 000161.python.recursion_too_deep_message.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 000162.python.recursion_too_deep_message.line10.comment -----------------------------------------------------------------------------
 
 msg = """
 =============================================================

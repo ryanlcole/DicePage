@@ -14,7 +14,7 @@ class PipeTests(unittest.TestCase):
     pipename = "\\\\.\\pipe\\python_test_pipe"
 
     def _serverThread(self, pipe_handle, event, wait_time):
-        # just do one connection and terminate.
+        # 048458.python.test_win32pipe.line17.comment just do one connection and terminate.
         hr = win32pipe.ConnectNamedPipe(pipe_handle)
         self.assertTrue(
             hr in (0, winerror.ERROR_PIPE_CONNECTED), f"Got error code 0x{hr:x}"
@@ -74,7 +74,7 @@ class PipeTests(unittest.TestCase):
             None,
         )
 
-        # set to message mode.
+        # 048462.python.test_win32pipe.line77.comment set to message mode.
         win32pipe.SetNamedPipeHandleState(
             hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None
         )
@@ -85,8 +85,8 @@ class PipeTests(unittest.TestCase):
         self.assertTrue(event.is_set(), "Pipe server thread didn't terminate")
 
     def testTransactNamedPipeBlockingBuffer(self):
-        # Like testTransactNamedPipeBlocking, but a pre-allocated buffer is
-        # passed (not really that useful, but it exercises the code path)
+        # 048463.python.test_win32pipe.line88.comment Like testTransactNamedPipeBlocking, but a pre-allocated buffer is
+        # 048464.python.test_win32pipe.line89.comment passed (not really that useful, but it exercises the code path)
         event = threading.Event()
         self.startPipeServer(event)
         open_mode = win32con.GENERIC_READ | win32con.GENERIC_WRITE
@@ -101,7 +101,7 @@ class PipeTests(unittest.TestCase):
             None,
         )
 
-        # set to message mode.
+        # 048468.python.test_win32pipe.line104.comment set to message mode.
         win32pipe.SetNamedPipeHandleState(
             hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None
         )
@@ -129,7 +129,7 @@ class PipeTests(unittest.TestCase):
             None,
         )
 
-        # set to message mode.
+        # 048471.python.test_win32pipe.line132.comment set to message mode.
         win32pipe.SetNamedPipeHandleState(
             hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None
         )

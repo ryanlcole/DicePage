@@ -14,11 +14,11 @@ win32com_src_dir = os.path.abspath(os.path.join(this_file, "../.."))
 
 import win32com
 
-# We'd prefer the win32com namespace to be the parent of __file__ - ie, our source-tree,
-# rather than the version installed - otherwise every .py change needs a full install to
-# test!
-# We can't patch win32comext as most of them have a .pyd in their root :(
-# This clearly isn't ideal or perfect :)
+# 050358.python.testall.line17.comment We'd prefer the win32com namespace to be the parent of __file__ - ie, our source-tree,
+# 050359.python.testall.line18.comment rather than the version installed - otherwise every .py change needs a full install to
+# 050360.python.testall.line19.comment test!
+# 050361.python.testall.line20.comment We can't patch win32comext as most of them have a .pyd in their root :(
+# 050362.python.testall.line21.comment This clearly isn't ideal or perfect :)
 win32com.__path__[0] = win32com_src_dir
 
 import pythoncom
@@ -65,7 +65,7 @@ def RemoveRefCountOutput(data):
         if not re.match(r"\[\d+ refs\]", data[last_line_pos + 1 :]):
             break
         if last_line_pos < 0:
-            # All the output
+            # 050366.python.testall.line68.comment All the output
             return ""
         data = data[:last_line_pos]
 
@@ -79,7 +79,7 @@ def ExecuteSilentlyIfOK(cmd, testcase):
     if rc:
         print(data)
         testcase.fail("Executing '%s' failed (%d)" % (cmd, rc))
-    # for "_d" builds, strip the '[xxx refs]' line
+    # 050367.python.testall.line82.comment for "_d" builds, strip the '[xxx refs]' line
     return RemoveRefCountOutput(data)
 
 
@@ -87,9 +87,9 @@ class PyCOMTest(TestCase):
     no_leak_tests = True  # done by the test itself
 
     def testit(self):
-        # Check that the item is registered, so we get the correct
-        # 'skipped' behaviour (and recorded as such) rather than either
-        # error or silence due to non-registration.
+        # 050369.python.testall.line90.comment Check that the item is registered, so we get the correct
+        # 050370.python.testall.line91.comment 'skipped' behaviour (and recorded as such) rather than either
+        # 050371.python.testall.line92.comment error or silence due to non-registration.
         RegisterPythonServer(
             os.path.join(
                 os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"
@@ -97,8 +97,8 @@ class PyCOMTest(TestCase):
             "Python.Test.PyCOMTest",
         )
 
-        # Execute testPyComTest in its own process so it can play
-        # with the Python thread state
+        # 050372.python.testall.line100.comment Execute testPyComTest in its own process so it can play
+        # 050373.python.testall.line101.comment with the Python thread state
         fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
         cmd = f'{sys.executable} "{fname}" -q 2>&1'
         data = ExecuteSilentlyIfOK(cmd, self)
@@ -106,7 +106,7 @@ class PyCOMTest(TestCase):
 
 class PippoTest(TestCase):
     def testit(self):
-        # Check we are registered before spawning the process.
+        # 050374.python.testall.line109.comment Check we are registered before spawning the process.
         from win32com.test import pippo_server
 
         RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
@@ -117,10 +117,10 @@ class PippoTest(TestCase):
         ExecuteSilentlyIfOK(cmd, self)
 
 
-# This is a list of "win32com.test.???" module names, optionally with a
-# function in that module if the module isn't unitest based...
+# 050375.python.testall.line120.comment This is a list of "win32com.test.???" module names, optionally with a
+# 050376.python.testall.line121.comment function in that module if the module isn't unitest based...
 unittest_modules = [
-    # Level 1 tests - fast and few dependencies - good for CI!
+    # 050377.python.testall.line123.comment Level 1 tests - fast and few dependencies - good for CI!
     """testIterators testvbscript_regexp testStorage
           testStreams testWMI policySemantics testShell testROT
           testxslt testCollections
@@ -128,41 +128,41 @@ unittest_modules = [
           testClipboard
           testConversionErrors
         """.split(),
-    # Level 2 tests - wants our demo COM objects registered.
-    # (these are strange; on GitHub CI they get further than expected when
-    # our objects are not installed, so fail to quietly fail with "can't
-    # register" like they do locally. So really just a nod to CI)
+    # 050378.python.testall.line131.comment Level 2 tests - wants our demo COM objects registered.
+    # 050379.python.testall.line132.comment (these are strange; on GitHub CI they get further than expected when
+    # 050380.python.testall.line133.comment our objects are not installed, so fail to quietly fail with "can't
+    # 050381.python.testall.line134.comment register" like they do locally. So really just a nod to CI)
     """
         testAXScript testDictionary testServers testvb testMarshal
         """.split(),
-    # Level 3 tests - Requires Office or other non-free stuff.
+    # 050382.python.testall.line138.comment Level 3 tests - Requires Office or other non-free stuff.
     """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
            testExplorer.TestAll testExchange.test
         """.split(),
-    # Level 4 tests - we try and run `makepy` over every typelib installed!
+    # 050383.python.testall.line142.comment Level 4 tests - we try and run `makepy` over every typelib installed!
     """testmakepy.TestAll
         """.split(),
 ]
 
-# A list of other unittest modules we use - these are fully qualified module
-# names and the module is assumed to be unittest based.
+# 050384.python.testall.line147.comment A list of other unittest modules we use - these are fully qualified module
+# 050385.python.testall.line148.comment names and the module is assumed to be unittest based.
 unittest_other_modules = [
-    # Level 1 tests.
+    # 050386.python.testall.line150.comment Level 1 tests.
     """win32com.directsound.test.ds_test
         """.split(),
-    # Level 2 tests.
+    # 050387.python.testall.line153.comment Level 2 tests.
     [],
-    # Level 3 tests.
+    # 050388.python.testall.line155.comment Level 3 tests.
     [],
-    # Level 4 tests.
+    # 050389.python.testall.line157.comment Level 4 tests.
     [],
 ]
 
 
 output_checked_programs = [
-    # Level 1 tests.
+    # 050390.python.testall.line163.comment Level 1 tests.
     [],
-    # Level 2 tests.
+    # 050391.python.testall.line165.comment Level 2 tests.
     [
         ("cscript.exe /nologo //E:vbscript testInterp.vbs", "VBScript test worked OK"),
         (
@@ -170,24 +170,24 @@ output_checked_programs = [
             "VBScript has successfully tested Python.Dictionary",
         ),
     ],
-    # Level 3 tests
+    # 050392.python.testall.line173.comment Level 3 tests
     [],
-    # Level 4 tests.
+    # 050393.python.testall.line175.comment Level 4 tests.
     [],
 ]
 
 custom_test_cases = [
-    # Level 1 tests.
+    # 050394.python.testall.line180.comment Level 1 tests.
     [
         PyCOMTest,
     ],
-    # Level 2 tests.
+    # 050395.python.testall.line184.comment Level 2 tests.
     [
         PippoTest,
     ],
-    # Level 3 tests
+    # 050396.python.testall.line188.comment Level 3 tests
     [],
-    # Level 4 tests.
+    # 050397.python.testall.line190.comment Level 4 tests.
     [],
 ]
 
@@ -209,7 +209,7 @@ def get_test_mod_and_func(test_name, import_failures):
     return mod, func
 
 
-# Return a test suite all loaded with the tests we want to run
+# 050398.python.testall.line212.comment Return a test suite all loaded with the tests we want to run
 def make_test_suite(test_level=1):
     suite = unittest.TestSuite()
     import_failures = []
@@ -233,7 +233,7 @@ def make_test_suite(test_level=1):
 
         for test_class in custom_test_cases[i]:
             suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
-    # other "normal" unittest modules.
+    # 050399.python.testall.line236.comment other "normal" unittest modules.
     for i in range(testLevel):
         for mod_name in unittest_other_modules[i]:
             try:
@@ -295,7 +295,7 @@ if __name__ == "__main__":
             % (testLevel, suite.countTestCases())
         )
         if verbosity == 1 and suite.countTestCases() < 70:
-            # A little row of markers so the dots show how close to finished
+            # 050401.python.testall.line298.comment A little row of markers so the dots show how close to finished
             print("|" * suite.countTestCases())
     testRunner = TestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
@@ -310,7 +310,7 @@ if __name__ == "__main__":
             "*** %d test(s) could not be run ***" % len(import_failures)
         )
 
-    # re-print unit-test error here so it is noticed
+    # 050402.python.testall.line313.comment re-print unit-test error here so it is noticed
     if not testResult.wasSuccessful():
         print("*" * 20, "- unittest tests FAILED")
 

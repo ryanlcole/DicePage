@@ -1,13 +1,13 @@
-# Demonstrates some advanced menu concepts using win32gui.
-# This creates a taskbar icon which has some fancy menus (but note that
-# selecting the menu items does nothing useful - see win32gui_taskbar.py
-# for examples of this.
+# 046537.python.win32gui_menu.line1.comment Demonstrates some advanced menu concepts using win32gui.
+# 046538.python.win32gui_menu.line2.comment This creates a taskbar icon which has some fancy menus (but note that
+# 046539.python.win32gui_menu.line3.comment selecting the menu items does nothing useful - see win32gui_taskbar.py
+# 046540.python.win32gui_menu.line4.comment for examples of this.
 
-# NOTE: This is a work in progress.  Todo:
-# * The "Checked" menu items don't work correctly - I'm not sure why.
-# * No support for GetMenuItemInfo.
+# 046541.python.win32gui_menu.line6.comment NOTE: This is a work in progress.  Todo:
+# 046542.python.win32gui_menu.line7.comment * The "Checked" menu items don't work correctly - I'm not sure why.
+# 046543.python.win32gui_menu.line8.comment * No support for GetMenuItemInfo.
 
-# Based on Andy McKay's demo code.
+# 046544.python.win32gui_menu.line10.comment Based on Andy McKay's demo code.
 
 import os
 import struct
@@ -82,17 +82,17 @@ class MainWindow:
             win32con.WM_DESTROY: self.OnDestroy,
             win32con.WM_COMMAND: self.OnCommand,
             win32con.WM_USER + 20: self.OnTaskbarNotify,
-            # owner-draw related handlers.
+            # 046545.python.win32gui_menu.line85.comment owner-draw related handlers.
             win32con.WM_MEASUREITEM: self.OnMeasureItem,
             win32con.WM_DRAWITEM: self.OnDrawItem,
         }
-        # Register the Window class.
+        # 046546.python.win32gui_menu.line89.comment Register the Window class.
         wc = WNDCLASS()
         hinst = wc.hInstance = GetModuleHandle(None)
         wc.lpszClassName = "PythonTaskbarDemo"
         wc.lpfnWndProc = message_map  # could also specify a wndproc.
         classAtom = RegisterClass(wc)
-        # Create the Window.
+        # 046548.python.win32gui_menu.line95.comment Create the Window.
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
         self.hwnd = CreateWindow(
             classAtom,
@@ -110,7 +110,7 @@ class MainWindow:
         UpdateWindow(self.hwnd)
         iconPathName = os.path.abspath(os.path.join(sys.prefix, "pyc.ico"))
         if not os.path.isfile(iconPathName):
-            # Look in the source tree.
+            # 046549.python.win32gui_menu.line113.comment Look in the source tree.
             iconPathName = os.path.abspath(
                 os.path.join(os.path.split(sys.executable)[0], "..\\PC\\pyc.ico")
             )
@@ -125,21 +125,21 @@ class MainWindow:
             hicon = LoadIcon(0, win32con.IDI_APPLICATION)
         self.iconPathName = iconPathName
 
-        # Load up some information about menus needed by our owner-draw code.
-        # The font to use on the menu.
+        # 046550.python.win32gui_menu.line128.comment Load up some information about menus needed by our owner-draw code.
+        # 046551.python.win32gui_menu.line129.comment The font to use on the menu.
         ncm = SystemParametersInfo(win32con.SPI_GETNONCLIENTMETRICS)
         self.font_menu = CreateFontIndirect(ncm["lfMenuFont"])
-        # spacing for our ownerdraw menus - not sure exactly what constants
-        # should be used (and if you owner-draw all items on the menu, it
-        # doesn't matter!)
+        # 046552.python.win32gui_menu.line132.comment spacing for our ownerdraw menus - not sure exactly what constants
+        # 046553.python.win32gui_menu.line133.comment should be used (and if you owner-draw all items on the menu, it
+        # 046554.python.win32gui_menu.line134.comment doesn't matter!)
         self.menu_icon_height = GetSystemMetrics(win32con.SM_CYMENU) - 4
         self.menu_icon_width = self.menu_icon_height
         self.icon_x_pad = 8  # space from end of icon to start of text.
-        # A map we use to stash away data we need for ownerdraw.  Keyed
-        # by integer ID - that ID will be set in dwTypeData of the menu item.
+        # 046556.python.win32gui_menu.line138.comment A map we use to stash away data we need for ownerdraw.  Keyed
+        # 046557.python.win32gui_menu.line139.comment by integer ID - that ID will be set in dwTypeData of the menu item.
         self.menu_item_map = {}
 
-        # Finally, create the menu
+        # 046558.python.win32gui_menu.line142.comment Finally, create the menu
         self.createMenu()
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
@@ -149,18 +149,18 @@ class MainWindow:
 
     def createMenu(self):
         self.hmenu = menu = CreatePopupMenu()
-        # Create our 'Exit' item with the standard, ugly 'close' icon.
+        # 046559.python.win32gui_menu.line152.comment Create our 'Exit' item with the standard, ugly 'close' icon.
         item, extras = PackMENUITEMINFO(
             text="Exit", hbmpItem=win32con.HBMMENU_MBAR_CLOSE, wID=1000
         )
         InsertMenuItem(menu, 0, 1, item)
-        # Create a 'text only' menu via InsertMenuItem rather then
-        # AppendMenu, just to prove we can!
+        # 046560.python.win32gui_menu.line157.comment Create a 'text only' menu via InsertMenuItem rather then
+        # 046561.python.win32gui_menu.line158.comment AppendMenu, just to prove we can!
         item, extras = PackMENUITEMINFO(text="Text only item", wID=1001)
         InsertMenuItem(menu, 0, 1, item)
 
         load_bmp_flags = win32con.LR_LOADFROMFILE | win32con.LR_LOADTRANSPARENT
-        # These images are "over sized", so we load them scaled.
+        # 046562.python.win32gui_menu.line163.comment These images are "over sized", so we load them scaled.
         hbmp = LoadImage(
             0,
             os.path.join(this_dir, "images/smiley.bmp"),
@@ -170,22 +170,22 @@ class MainWindow:
             load_bmp_flags,
         )
 
-        # Create a top-level menu with a bitmap
+        # 046563.python.win32gui_menu.line173.comment Create a top-level menu with a bitmap
         item, extras = PackMENUITEMINFO(
             text="Menu with bitmap", hbmpItem=hbmp, wID=1002
         )
         InsertMenuItem(menu, 0, 1, item)
 
-        # Owner-draw menus mainly from:
-        # https://learn.microsoft.com/en-ca/windows/win32/menurc/using-menus
-        # and:
-        # https://www.codeguru.com/cplusplus/owner-drawn-menu-with-icons/
+        # 046564.python.win32gui_menu.line179.comment Owner-draw menus mainly from:
+        # 046565.python.win32gui_menu.line180.comment https://learn.microsoft.com/en-ca/windows/win32/menurc/using-menus
+        # 046566.python.win32gui_menu.line181.comment and:
+        # 046567.python.win32gui_menu.line182.comment https://www.codeguru.com/cplusplus/owner-drawn-menu-with-icons/
 
-        # Create one with an icon - this is *lots* more work - we do it
-        # owner-draw!  The primary reason is to handle transparency better -
-        # converting to a bitmap causes the background to be incorrect when
-        # the menu item is selected.  I can't see a simpler way.
-        # First, load the icon we want to use.
+        # 046568.python.win32gui_menu.line184.comment Create one with an icon - this is *lots* more work - we do it
+        # 046569.python.win32gui_menu.line185.comment owner-draw!  The primary reason is to handle transparency better -
+        # 046570.python.win32gui_menu.line186.comment converting to a bitmap causes the background to be incorrect when
+        # 046571.python.win32gui_menu.line187.comment the menu item is selected.  I can't see a simpler way.
+        # 046572.python.win32gui_menu.line188.comment First, load the icon we want to use.
         ico_x = GetSystemMetrics(win32con.SM_CXSMICON)
         ico_y = GetSystemMetrics(win32con.SM_CYSMICON)
         if self.iconPathName:
@@ -203,8 +203,8 @@ class MainWindow:
             hicon = small[0]
             DestroyIcon(large[0])
 
-        # Stash away the text and hicon in our map, and add the owner-draw
-        # item to the menu.
+        # 046573.python.win32gui_menu.line206.comment Stash away the text and hicon in our map, and add the owner-draw
+        # 046574.python.win32gui_menu.line207.comment item to the menu.
         index = 0
         self.menu_item_map[index] = (hicon, "Menu with owner-draw icon")
         item, extras = PackMENUITEMINFO(
@@ -212,9 +212,9 @@ class MainWindow:
         )
         InsertMenuItem(menu, 0, 1, item)
 
-        # Add another icon-based icon - but this time using HBMMENU_CALLBACK
-        # in the hbmpItem elt, so we only need to draw the icon (ie, not the
-        # text or checkmark)
+        # 046575.python.win32gui_menu.line215.comment Add another icon-based icon - but this time using HBMMENU_CALLBACK
+        # 046576.python.win32gui_menu.line216.comment in the hbmpItem elt, so we only need to draw the icon (ie, not the
+        # 046577.python.win32gui_menu.line217.comment text or checkmark)
         index = 1
         self.menu_item_map[index] = (hicon, None)
         item, extras = PackMENUITEMINFO(
@@ -225,20 +225,20 @@ class MainWindow:
         )
         InsertMenuItem(menu, 0, 1, item)
 
-        # Add another icon-based icon - this time by converting
-        # via bitmap.  Note the icon background when selected is ugly :(
+        # 046578.python.win32gui_menu.line228.comment Add another icon-based icon - this time by converting
+        # 046579.python.win32gui_menu.line229.comment via bitmap.  Note the icon background when selected is ugly :(
         hdcBitmap = CreateCompatibleDC(0)
         hdcScreen = GetDC(0)
         hbm = CreateCompatibleBitmap(hdcScreen, ico_x, ico_y)
         hbmOld = SelectObject(hdcBitmap, hbm)
         SetBkMode(hdcBitmap, win32con.TRANSPARENT)
-        # Fill the background.
+        # 046580.python.win32gui_menu.line235.comment Fill the background.
         brush = GetSysColorBrush(win32con.COLOR_MENU)
         FillRect(hdcBitmap, (0, 0, 16, 16), brush)
-        # unclear if brush needs to be freed.  Best clue I can find is:
-        # "GetSysColorBrush returns a cached brush instead of allocating a new
-        # one." - implies no DeleteObject.
-        # draw the icon
+        # 046581.python.win32gui_menu.line238.comment unclear if brush needs to be freed.  Best clue I can find is:
+        # 046582.python.win32gui_menu.line239.comment "GetSysColorBrush returns a cached brush instead of allocating a new
+        # 046583.python.win32gui_menu.line240.comment one." - implies no DeleteObject.
+        # 046584.python.win32gui_menu.line241.comment draw the icon
         DrawIconEx(hdcBitmap, 0, 0, hicon, ico_x, ico_y, 0, 0, win32con.DI_NORMAL)
         SelectObject(hdcBitmap, hbmOld)
         DeleteDC(hdcBitmap)
@@ -247,14 +247,14 @@ class MainWindow:
         )
         InsertMenuItem(menu, 0, 1, item)
 
-        # Create a sub-menu, and put a few funky ones there.
+        # 046585.python.win32gui_menu.line250.comment Create a sub-menu, and put a few funky ones there.
         self.sub_menu = sub_menu = CreatePopupMenu()
-        # A 'checkbox' menu.
+        # 046586.python.win32gui_menu.line252.comment A 'checkbox' menu.
         item, extras = PackMENUITEMINFO(
             fState=win32con.MFS_CHECKED, text="Checkbox menu", hbmpItem=hbmp, wID=1003
         )
         InsertMenuItem(sub_menu, 0, 1, item)
-        # A 'radio' menu.
+        # 046587.python.win32gui_menu.line257.comment A 'radio' menu.
         InsertMenu(sub_menu, 0, win32con.MF_BYPOSITION, win32con.MF_SEPARATOR, None)
         item, extras = PackMENUITEMINFO(
             fType=win32con.MFT_RADIOCHECK,
@@ -272,11 +272,11 @@ class MainWindow:
             wID=1005,
         )
         InsertMenuItem(sub_menu, 0, 1, item)
-        # And add the sub-menu to the top-level menu.
+        # 046588.python.win32gui_menu.line275.comment And add the sub-menu to the top-level menu.
         item, extras = PackMENUITEMINFO(text="Sub-Menu", hSubMenu=sub_menu)
         InsertMenuItem(menu, 0, 1, item)
 
-        # Set 'Exit' as the default option.
+        # 046589.python.win32gui_menu.line279.comment Set 'Exit' as the default option.
         SetMenuDefaultItem(menu, 1000, 0)
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
@@ -287,7 +287,7 @@ class MainWindow:
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam == win32con.WM_RBUTTONUP:
             print("You right clicked me.")
-            # display the menu at the cursor pos.
+            # 046591.python.win32gui_menu.line290.comment display the menu at the cursor pos.
             pos = GetCursorPos()
             SetForegroundWindow(self.hwnd)
             TrackPopupMenu(
@@ -296,11 +296,11 @@ class MainWindow:
             PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
         elif lparam == win32con.WM_LBUTTONDBLCLK:
             print("You double-clicked me")
-            # find the default menu item and fire it.
+            # 046592.python.win32gui_menu.line299.comment find the default menu item and fire it.
             cmd = GetMenuDefaultItem(self.hmenu, False, 0)
             if cmd == -1:
                 print("Can't find a default!")
-            # and just pretend it came from the menu
+            # 046593.python.win32gui_menu.line303.comment and just pretend it came from the menu
             self.OnCommand(hwnd, win32con.WM_COMMAND, cmd, 0)
         return 1
 
@@ -310,7 +310,7 @@ class MainWindow:
             print("Goodbye")
             DestroyWindow(self.hwnd)
         elif id in (1003, 1004, 1005):
-            # Our 'checkbox' and 'radio' items
+            # 046594.python.win32gui_menu.line313.comment Our 'checkbox' and 'radio' items
             state = GetMenuState(self.sub_menu, id, win32con.MF_BYCOMMAND)
             if state == -1:
                 raise RuntimeError("No item found")
@@ -322,21 +322,21 @@ class MainWindow:
                 print("Menu was unchecked - checking")
 
             if id == 1003:
-                # simple checkbox
+                # 046595.python.win32gui_menu.line325.comment simple checkbox
                 rc = CheckMenuItem(
                     self.sub_menu, id, win32con.MF_BYCOMMAND | check_flags
                 )
             else:
-                # radio button - must pass the first and last IDs in the
-                # "group", and the ID in the group that is to be selected.
+                # 046596.python.win32gui_menu.line330.comment radio button - must pass the first and last IDs in the
+                # 046597.python.win32gui_menu.line331.comment "group", and the ID in the group that is to be selected.
                 rc = CheckMenuRadioItem(
                     self.sub_menu, 1004, 1005, id, win32con.MF_BYCOMMAND
                 )
-            # Get and check the new state - first the simple way...
+            # 046598.python.win32gui_menu.line335.comment Get and check the new state - first the simple way...
             new_state = GetMenuState(self.sub_menu, id, win32con.MF_BYCOMMAND)
             if new_state & win32con.MF_CHECKED != check_flags:
                 raise RuntimeError("The new item didn't get the new checked state!")
-            # Now the long-winded way via GetMenuItemInfo...
+            # 046599.python.win32gui_menu.line339.comment Now the long-winded way via GetMenuItemInfo...
             buf, extras = EmptyMENUITEMINFO()
             win32gui.GetMenuItemInfo(self.sub_menu, id, False, buf)
             (
@@ -356,10 +356,10 @@ class MainWindow:
         else:
             print("OnCommand for ID", id)
 
-    # Owner-draw related functions.  We only have 1 owner-draw item, but
-    # we pretend we have more than that :)
+    # 046600.python.win32gui_menu.line359.comment Owner-draw related functions.  We only have 1 owner-draw item, but
+    # 046601.python.win32gui_menu.line360.comment we pretend we have more than that :)
     def OnMeasureItem(self, hwnd, msg, wparam, lparam):
-        ## Last item of MEASUREITEMSTRUCT is a ULONG_PTR
+        # 046602.python.win32gui_menu.line362.comment # Last item of MEASUREITEMSTRUCT is a ULONG_PTR
         fmt = "5iP"
         buf = PyMakeBuffer(struct.calcsize(fmt), lparam)
         data = struct.unpack(fmt, buf)
@@ -367,11 +367,11 @@ class MainWindow:
 
         hicon, text = self.menu_item_map[itemData]
         if text is None:
-            # Only drawing icon due to HBMMENU_CALLBACK
+            # 046603.python.win32gui_menu.line370.comment Only drawing icon due to HBMMENU_CALLBACK
             cx = self.menu_icon_width
             cy = self.menu_icon_height
         else:
-            # drawing the lot!
+            # 046604.python.win32gui_menu.line374.comment drawing the lot!
             dc = GetDC(hwnd)
             oldFont = SelectObject(dc, self.font_menu)
             cx, cy = GetTextExtentPoint32(dc, text)
@@ -388,7 +388,7 @@ class MainWindow:
         return True
 
     def OnDrawItem(self, hwnd, msg, wparam, lparam):
-        ## lparam is a DRAWITEMSTRUCT
+        # 046605.python.win32gui_menu.line391.comment # lparam is a DRAWITEMSTRUCT
         fmt = "5i2P4iP"
         data = struct.unpack(fmt, PyGetMemory(lparam, struct.calcsize(fmt)))
         (
@@ -410,14 +410,14 @@ class MainWindow:
         hicon, text = self.menu_item_map[itemData]
 
         if text is None:
-            # This means the menu-item had HBMMENU_CALLBACK - so all we
-            # draw is the icon.  rect is the entire area we should use.
+            # 046606.python.win32gui_menu.line413.comment This means the menu-item had HBMMENU_CALLBACK - so all we
+            # 046607.python.win32gui_menu.line414.comment draw is the icon.  rect is the entire area we should use.
             DrawIconEx(
                 hDC, left, top, hicon, right - left, bot - top, 0, 0, win32con.DI_NORMAL
             )
         else:
-            # If the user has selected the item, use the selected
-            # text and background colors to display the item.
+            # 046608.python.win32gui_menu.line419.comment If the user has selected the item, use the selected
+            # 046609.python.win32gui_menu.line420.comment text and background colors to display the item.
             selected = itemState & win32con.ODS_SELECTED
             if selected:
                 crText = SetTextColor(hDC, GetSysColor(win32con.COLOR_HIGHLIGHTTEXT))
@@ -427,15 +427,15 @@ class MainWindow:
             x_icon = left + GetSystemMetrics(win32con.SM_CXMENUCHECK) + each_pad
             x_text = x_icon + self.menu_icon_width + each_pad
 
-            # Draw text first, specifying a complete rect to fill - this sets
-            # up the background (but overwrites anything else already there!)
-            # Select the font, draw it, and restore the previous font.
+            # 046610.python.win32gui_menu.line430.comment Draw text first, specifying a complete rect to fill - this sets
+            # 046611.python.win32gui_menu.line431.comment up the background (but overwrites anything else already there!)
+            # 046612.python.win32gui_menu.line432.comment Select the font, draw it, and restore the previous font.
             hfontOld = SelectObject(hDC, self.font_menu)
             ExtTextOut(hDC, x_text, top + 2, win32con.ETO_OPAQUE, rect, text)
             SelectObject(hDC, hfontOld)
 
-            # Icon image next.  Icons are transparent - no need to handle
-            # selection specially.
+            # 046613.python.win32gui_menu.line437.comment Icon image next.  Icons are transparent - no need to handle
+            # 046614.python.win32gui_menu.line438.comment selection specially.
             DrawIconEx(
                 hDC,
                 x_icon,
@@ -448,8 +448,8 @@ class MainWindow:
                 win32con.DI_NORMAL,
             )
 
-            # Return the text and background colors to their
-            # normal state (not selected).
+            # 046615.python.win32gui_menu.line451.comment Return the text and background colors to their
+            # 046616.python.win32gui_menu.line452.comment normal state (not selected).
             if selected:
                 SetTextColor(hDC, crText)
                 SetBkColor(hDC, crBkgnd)

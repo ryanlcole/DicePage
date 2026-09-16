@@ -63,8 +63,8 @@ class BackgroundJobCallback:
     def JobModification(self, job, reserved):
         state = job.GetState()
         print("Job Modification", job.GetDisplayName(), states.get(state))
-        # Need to catch TRANSIENT_ERROR here, as JobError doesn't get
-        # called (apparently) when the error is transient.
+        # 051340.python.test_bits.line66.comment Need to catch TRANSIENT_ERROR here, as JobError doesn't get
+        # 051341.python.test_bits.line67.comment called (apparently) when the error is transient.
         if state == bits.BG_JOB_STATE_TRANSIENT_ERROR:
             print("Error details:")
             err = job.GetError()
@@ -81,17 +81,17 @@ job.SetNotifyFlags(
 )
 
 
-# The idea here is to intentionally make one of the files fail to be
-# downloaded. Then the JobError notification will be triggered, where
-# we do fix the failing file by calling SetRemoteName to a valid URL
-# and call Resume() on the job, making the job finish successfully.
-#
-# Note to self: A domain that cannot be resolved will cause
-# TRANSIENT_ERROR instead of ERROR, and the JobError notification will
-# not be triggered! This can bite you during testing depending on how
-# your DNS is configured. For example, if you use OpenDNS.org's DNS
-# servers, an invalid hostname will *always* be resolved (they
-# redirect you to a search page), so be careful when testing.
+# 051342.python.test_bits.line84.comment The idea here is to intentionally make one of the files fail to be
+# 051343.python.test_bits.line85.comment downloaded. Then the JobError notification will be triggered, where
+# 051344.python.test_bits.line86.comment we do fix the failing file by calling SetRemoteName to a valid URL
+# 051345.python.test_bits.line87.comment and call Resume() on the job, making the job finish successfully.
+# 051346.python.test_bits.line88.comment
+# 051347.python.test_bits.line89.comment Note to self: A domain that cannot be resolved will cause
+# 051348.python.test_bits.line90.comment TRANSIENT_ERROR instead of ERROR, and the JobError notification will
+# 051349.python.test_bits.line91.comment not be triggered! This can bite you during testing depending on how
+# 051350.python.test_bits.line92.comment your DNS is configured. For example, if you use OpenDNS.org's DNS
+# 051351.python.test_bits.line93.comment servers, an invalid hostname will *always* be resolved (they
+# 051352.python.test_bits.line94.comment redirect you to a search page), so be careful when testing.
 job.AddFile(
     "https://www.python.org/favicon.ico",
     os.path.join(tempfile.gettempdir(), "bits-favicon.ico"),

@@ -47,13 +47,13 @@ class Enumerator:
     def __GetIndex(self, index):
         if not isinstance(index, int):
             raise TypeError("Only integer indexes are supported for enumerators")
-        # NOTE
-        # In this context, self.index is users purely as a flag to say
-        # "am I still in sequence".  The user may call Next() or Reset() if they
-        # so choose, in which case self.index will not be correct (although we
-        # still want to stay in sequence)
+        # 049175.python.util.line50.comment NOTE
+        # 049176.python.util.line51.comment In this context, self.index is users purely as a flag to say
+        # 049177.python.util.line52.comment "am I still in sequence".  The user may call Next() or Reset() if they
+        # 049178.python.util.line53.comment so choose, in which case self.index will not be correct (although we
+        # 049179.python.util.line54.comment still want to stay in sequence)
         if index != self.index + 1:
-            # Index requested out of sequence.
+            # 049180.python.util.line56.comment Index requested out of sequence.
             self._oleobj_.Reset()
             if index:
                 self._oleobj_.Skip(

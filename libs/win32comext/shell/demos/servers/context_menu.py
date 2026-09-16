@@ -1,12 +1,12 @@
-# A sample context menu handler.
-# Adds a 'Hello from Python' menu entry to .py files.  When clicked, a
-# simple message box is displayed.
-#
-# To demonstrate:
-# * Execute this script to register the context menu.
-# * Open Windows Explorer, and browse to a directory with a .py file.
-# * Right-Click on a .py file - locate and click on 'Hello from Python' on
-#   the context menu.
+# 051592.python.context_menu.line1.comment A sample context menu handler.
+# 051593.python.context_menu.line2.comment Adds a 'Hello from Python' menu entry to .py files.  When clicked, a
+# 051594.python.context_menu.line3.comment simple message box is displayed.
+# 051595.python.context_menu.line4.comment
+# 051596.python.context_menu.line5.comment To demonstrate:
+# 051597.python.context_menu.line6.comment * Execute this script to register the context menu.
+# 051598.python.context_menu.line7.comment * Open Windows Explorer, and browse to a directory with a .py file.
+# 051599.python.context_menu.line8.comment * Right-Click on a .py file - locate and click on 'Hello from Python' on
+# 051600.python.context_menu.line9.comment the context menu.
 
 import pythoncom
 import win32con
@@ -27,7 +27,7 @@ class ShellExtension:
 
     def QueryContextMenu(self, hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags):
         print("QCM", hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags)
-        # Query the items clicked on
+        # 051601.python.context_menu.line30.comment Query the items clicked on
         format_etc = win32con.CF_HDROP, None, 1, -1, pythoncom.TYMED_HGLOBAL
         sm = self.dataobj.GetData(format_etc)
         num_files = shell.DragQueryFile(sm.data_handle, -1)
@@ -79,10 +79,10 @@ class ShellExtension:
         win32gui.MessageBox(hwnd, "Hello", "Wow", win32con.MB_OK)
 
     def GetCommandString(self, cmd, typ):
-        # If GetCommandString returns the same string for all items then
-        # the shell seems to ignore all but one.  This is even true in
-        # Win7 etc where there is no status bar (and hence this string seems
-        # ignored)
+        # 051604.python.context_menu.line82.comment If GetCommandString returns the same string for all items then
+        # 051605.python.context_menu.line83.comment the shell seems to ignore all but one.  This is even true in
+        # 051606.python.context_menu.line84.comment Win7 etc where there is no status bar (and hence this string seems
+        # 051607.python.context_menu.line85.comment ignored)
         return "Hello from Python (cmd=%d)!!" % (cmd,)
 
 

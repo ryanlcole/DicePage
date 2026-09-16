@@ -4,7 +4,7 @@ from setuptools import Command
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 
-# Would restrict to Literal["test"], but mypy doesn't support it: https://github.com/python/mypy/issues/8203
+# 044601.python.test.line7.comment Would restrict to Literal["test"], but mypy doesn't support it: https://github.com/python/mypy/issues/8203
 def __getattr__(name: str) -> type[_test]:
     if name == 'test':
         SetuptoolsDeprecationWarning.emit(

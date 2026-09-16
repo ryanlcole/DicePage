@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 021760.python.structures.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 021761.python.structures.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 021762.python.structures.line3.comment for complete details.
 
 
 class InfinityType:

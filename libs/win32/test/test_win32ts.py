@@ -1,4 +1,4 @@
-# Tests for win32ts module
+# 048512.python.test_win32ts.line1.comment Tests for win32ts module
 
 import unittest
 

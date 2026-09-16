@@ -81,32 +81,32 @@ class XAudio2Listener(AbstractListener):
 class XAudio2AudioPlayer(AbstractAudioPlayer):
     def __init__(self, driver: 'XAudio2Driver', source: 'Source', player: 'Player') -> None:
         super().__init__(source, player)
-        # We keep here a strong reference because the AudioDriver is anyway
-        # a singleton object which will only be deleted when the application
-        # shuts down. The AudioDriver does not keep a ref to the AudioPlayer.
+        # 035141.python.adaptation.line84.comment We keep here a strong reference because the AudioDriver is anyway
+        # 035142.python.adaptation.line85.comment a singleton object which will only be deleted when the application
+        # 035143.python.adaptation.line86.comment shuts down. The AudioDriver does not keep a ref to the AudioPlayer.
         self.driver = driver
 
-        # Need to cache these because pyglet API allows update separately, but
-        # XAudio2 requires both to be set at once.
+        # 035144.python.adaptation.line89.comment Need to cache these because pyglet API allows update separately, but
+        # 035145.python.adaptation.line90.comment XAudio2 requires both to be set at once.
         self._cone_inner_angle = 360
         self._cone_outer_angle = 360
 
-        # Desired play state. (`True` doesn't necessarily mean the player is playing.
-        # It may be silent due to either underrun or because a flush is in progress.)
+        # 035146.python.adaptation.line94.comment Desired play state. (`True` doesn't necessarily mean the player is playing.
+        # 035147.python.adaptation.line95.comment It may be silent due to either underrun or because a flush is in progress.)
         self._playing = False
 
-        # Theoretical write and play cursors for an infinite buffer.  play
-        # cursor is always <= write cursor (when equal, underrun is
-        # happening).
+        # 035148.python.adaptation.line98.comment Theoretical write and play cursors for an infinite buffer.  play
+        # 035149.python.adaptation.line99.comment cursor is always <= write cursor (when equal, underrun is
+        # 035150.python.adaptation.line100.comment happening).
         self._write_cursor = 0
         self._play_cursor = 0
 
         self._audio_data_in_use: Deque['AudioData'] = deque()
         self._pyglet_source_exhausted = False
 
-        # A lock to be held whenever modifying things relating to the in-use audio data.
-        # Ensures that the XAudio2 callbacks will not interfere with the
-        # player operations.
+        # 035151.python.adaptation.line107.comment A lock to be held whenever modifying things relating to the in-use audio data.
+        # 035152.python.adaptation.line108.comment Ensures that the XAudio2 callbacks will not interfere with the
+        # 035153.python.adaptation.line109.comment player operations.
         self._audio_data_lock = threading.Lock()
 
         self._xa2_source_voice = self.driver._xa2_driver.get_source_voice(source.audio_format, self)
@@ -118,11 +118,11 @@ class XAudio2AudioPlayer(AbstractAudioPlayer):
     def on_driver_reset(self) -> None:
         self._xa2_source_voice = self.driver._xa2_driver.get_source_voice(self.source.audio_format, self)
 
-        # Queue up any buffers that are still in queue but weren't deleted. This does not
-        # pickup where the last sample played, only where the last buffer was submitted.
-        # As such, audio will be replayed.
-        # TODO: Make best effort by using XAUDIO2_BUFFER.PlayBegin in conjunction
-        # with last playback sample
+        # 035154.python.adaptation.line121.comment Queue up any buffers that are still in queue but weren't deleted. This does not
+        # 035155.python.adaptation.line122.comment pickup where the last sample played, only where the last buffer was submitted.
+        # 035156.python.adaptation.line123.comment As such, audio will be replayed.
+        # 035157.python.adaptation.line124.comment TODO: Make best effort by using XAUDIO2_BUFFER.PlayBegin in conjunction
+        # 035158.python.adaptation.line125.comment with last playback sample
         for audio_data in self._audio_data_in_use:
             xa2_buffer = interface.create_xa2_buffer(audio_data)
             self._xa2_source_voice.submit_buffer(xa2_buffer)
@@ -130,7 +130,7 @@ class XAudio2AudioPlayer(AbstractAudioPlayer):
     def delete(self) -> None:
         if self.driver._xa2_driver is None:
             assert _debug("Xaudio2: Player deleted, driver is gone")
-            # Driver was deleted, voice is gone; just break up some references and return
+            # 035159.python.adaptation.line133.comment Driver was deleted, voice is gone; just break up some references and return
             self.driver = None
             self._xa2_source_voice = None
             self._audio_data_in_use.clear()
@@ -158,7 +158,7 @@ class XAudio2AudioPlayer(AbstractAudioPlayer):
 
         if self._playing:
             self.driver.worker.remove(self)
-            # no callback could possibly be running after this lock is released.
+            # 035160.python.adaptation.line161.comment no callback could possibly be running after this lock is released.
             with self.driver._xa2_driver.lock:
                 self._xa2_source_voice.stop()
             self._playing = False
@@ -186,12 +186,12 @@ class XAudio2AudioPlayer(AbstractAudioPlayer):
             self.driver._xa2_driver.apply3d(self._xa2_source_voice)
 
     def on_buffer_end(self, buffer_context_ptr: int) -> None:
-        # Called from the XAudio2 thread.
-        # A buffer stopped being played by the voice, it should by all means be the first one
+        # 035161.python.adaptation.line189.comment Called from the XAudio2 thread.
+        # 035162.python.adaptation.line190.comment A buffer stopped being played by the voice, it should by all means be the first one
         with self._audio_data_lock:
             assert self._audio_data_in_use
             self._audio_data_in_use.popleft()
-            # This should cause the AudioData to lose all its references and be gc'd
+            # 035163.python.adaptation.line194.comment This should cause the AudioData to lose all its references and be gc'd
 
             if self._audio_data_in_use:
                 assert _debug(f"Buffer ended, others remain: {len(self._audio_data_in_use)=}")
@@ -200,13 +200,13 @@ class XAudio2AudioPlayer(AbstractAudioPlayer):
             assert self._xa2_source_voice.buffers_queued == 0
 
             if self._pyglet_source_exhausted:
-                # Last buffer ran out naturally, out of AudioData; voice will now fall silent
+                # 035164.python.adaptation.line203.comment Last buffer ran out naturally, out of AudioData; voice will now fall silent
                 assert _debug("Last buffer ended normally, dispatching eos")
                 MediaEvent('on_eos').sync_dispatch_to_player(self.player)
             else:
-                # Shouldn't have ran out; supplier is running behind
-                # All we can do is wait; as long as voices are not stopped via `Stop`, they will
-                # immediately continue playing the new buffer once it arrives
+                # 035165.python.adaptation.line207.comment Shouldn't have ran out; supplier is running behind
+                # 035166.python.adaptation.line208.comment All we can do is wait; as long as voices are not stopped via `Stop`, they will
+                # 035167.python.adaptation.line209.comment immediately continue playing the new buffer once it arrives
                 assert _debug("Last buffer ended normally, source is lagging behind")
 
     def _refill(self, refill_size: int) -> None:

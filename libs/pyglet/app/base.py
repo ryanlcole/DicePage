@@ -57,7 +57,7 @@ class PlatformEventLoop:
             except queue.Empty:
                 break
             except ReferenceError:
-                # weakly-referenced object no longer exists
+                # 026113.python.base.line60.comment weakly-referenced object no longer exists
                 pass
 
     def notify(self) -> None:
@@ -108,7 +108,7 @@ class EventLoop(event.EventDispatcher):
 
     @staticmethod
     def _redraw_windows(dt: float) -> None:
-        # Redraw all windows
+        # 026115.python.base.line111.comment Redraw all windows
         for window in app.windows:
             window.draw(dt)
 
@@ -138,7 +138,7 @@ class EventLoop(event.EventDispatcher):
         """
         self._interval = interval
         if interval is None:
-            # User will schedule Window.draw manually
+            # 026116.python.base.line141.comment User will schedule Window.draw manually
             pass
         elif interval == 0:
             self.clock.schedule(self._redraw_windows)
@@ -150,7 +150,7 @@ class EventLoop(event.EventDispatcher):
         from pyglet.window import Window
         Window._enable_event_queue = False
 
-        # Dispatch pending events
+        # 026117.python.base.line153.comment Dispatch pending events
         for window in app.windows:
             window.switch_to()
             window.dispatch_pending_events()
@@ -199,7 +199,7 @@ class EventLoop(event.EventDispatcher):
         if self._interval is None:
             self._redraw_windows(dt)
 
-        # Update timeout
+        # 026118.python.base.line202.comment Update timeout
         timeout = self.clock.get_sleep_time(True)
         app.platform_event_loop.set_timer(self._blocking_timer, timeout)
 
@@ -231,7 +231,7 @@ class EventLoop(event.EventDispatcher):
         dt = self.clock.update_time()
         self.clock.call_scheduled_functions(dt)
 
-        # Update timeout
+        # 026119.python.base.line234.comment Update timeout
         return self.clock.get_sleep_time(True)
 
     @property
@@ -290,7 +290,7 @@ class EventLoop(event.EventDispatcher):
             self.exit()
 
     if _is_pyglet_doc_run:
-        # Events
+        # 026120.python.base.line293.comment Events
 
         def on_window_close(self, window: BaseWindow) -> None:
             """A window was closed.

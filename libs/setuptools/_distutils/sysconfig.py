@@ -36,23 +36,23 @@ else:
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
-# These are needed in a couple of spots, so just compute them once.
+# 040776.python.sysconfig.line39.comment These are needed in a couple of spots, so just compute them once.
 PREFIX = os.path.normpath(sys.prefix)
 EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
 BASE_PREFIX = os.path.normpath(sys.base_prefix)
 BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
 
-# Path to the base directory of the project. On Windows the binary may
-# live in project/PCbuild/win32 or project/PCbuild/amd64.
-# set for cross builds
+# 040777.python.sysconfig.line45.comment Path to the base directory of the project. On Windows the binary may
+# 040778.python.sysconfig.line46.comment live in project/PCbuild/win32 or project/PCbuild/amd64.
+# 040779.python.sysconfig.line47.comment set for cross builds
 if "_PYTHON_PROJECT_BASE" in os.environ:
     project_base = os.path.abspath(os.environ["_PYTHON_PROJECT_BASE"])
 else:
     if sys.executable:
         project_base = os.path.dirname(os.path.abspath(sys.executable))
     else:
-        # sys.executable can be empty if argv[0] has been changed and Python is
-        # unable to retrieve the real program name
+        # 040780.python.sysconfig.line54.comment sys.executable can be empty if argv[0] has been changed and Python is
+        # 040781.python.sysconfig.line55.comment unable to retrieve the real program name
         project_base = os.getcwd()
 
 
@@ -79,7 +79,7 @@ if os.name == 'nt':
 
     @pass_none
     def _fix_pcbuild(d):
-        # In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
+        # 040782.python.sysconfig.line82.comment In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
         prefixes = PREFIX, BASE_PREFIX
         matched = (
             prefix
@@ -101,16 +101,16 @@ def _python_build():
 python_build = _python_build()
 
 
-# Calculate the build qualifier flags if they are defined.  Adding the flags
-# to the include and lib directories only makes sense for an installation, not
-# an in-source build.
+# 040783.python.sysconfig.line104.comment Calculate the build qualifier flags if they are defined.  Adding the flags
+# 040784.python.sysconfig.line105.comment to the include and lib directories only makes sense for an installation, not
+# 040785.python.sysconfig.line106.comment an in-source build.
 build_flags = ''
 try:
     if not python_build:
         build_flags = sys.abiflags
 except AttributeError:
-    # It's not a configure-based build, so the sys module doesn't have
-    # this attribute, which is fine.
+    # 040786.python.sysconfig.line112.comment It's not a configure-based build, so the sys module doesn't have
+    # 040787.python.sysconfig.line113.comment this attribute, which is fine.
     pass
 
 
@@ -135,7 +135,7 @@ def get_python_inc(plat_specific: bool = False, prefix: str | None = None) -> st
     """
     default_prefix = BASE_EXEC_PREFIX if plat_specific else BASE_PREFIX
     resolved_prefix = prefix if prefix is not None else default_prefix
-    # MinGW imitates posix like layout, but os.name != posix
+    # 040788.python.sysconfig.line138.comment MinGW imitates posix like layout, but os.name != posix
     os_name = "posix" if is_mingw() else os.name
     try:
         getter = globals()[f'_get_python_inc_{os_name}']
@@ -210,7 +210,7 @@ def _get_python_inc_posix_prefix(prefix):
 
 def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
     if python_build:
-        # Include both include dirs to ensure we can find pyconfig.h
+        # 040789.python.sysconfig.line213.comment Include both include dirs to ensure we can find pyconfig.h
         return (
             os.path.join(prefix, "include")
             + os.path.pathsep
@@ -219,7 +219,7 @@ def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
     return os.path.join(prefix, "include")
 
 
-# allow this behavior to be monkey-patched. Ref pypa/distutils#2.
+# 040790.python.sysconfig.line222.comment allow this behavior to be monkey-patched. Ref pypa/distutils#2.
 def _posix_lib(standard_lib, libpython, early_prefix, prefix):
     if standard_lib:
         return libpython
@@ -254,11 +254,11 @@ def get_python_lib(
 
     if os.name == "posix" or is_mingw():
         if plat_specific or standard_lib:
-            # Platform-specific modules (any module from a non-pure-Python
-            # module distribution) or standard Python library modules.
+            # 040791.python.sysconfig.line257.comment Platform-specific modules (any module from a non-pure-Python
+            # 040792.python.sysconfig.line258.comment module distribution) or standard Python library modules.
             libdir = getattr(sys, "platlibdir", "lib")
         else:
-            # Pure Python
+            # 040793.python.sysconfig.line261.comment Pure Python
             libdir = "lib"
         implementation = 'pypy' if IS_PYPY else 'python'
         libpython = os.path.join(prefix, libdir, implementation + get_python_version())
@@ -330,8 +330,8 @@ def customize_compiler(compiler: CCompiler) -> None:
         if 'CC' in os.environ:
             newcc = os.environ['CC']
             if 'LDSHARED' not in os.environ and ldshared.startswith(cc):
-                # If CC is overridden, use that as the default
-                #       command for LDSHARED as well
+                # 040794.python.sysconfig.line333.comment If CC is overridden, use that as the default
+                # 040795.python.sysconfig.line334.comment command for LDSHARED as well
                 ldshared = newcc + ldshared[len(cc) :]
             cc = newcc
         cxx = os.environ.get('CXX', cxx)
@@ -399,8 +399,8 @@ def parse_config_h(fp, g=None):
     return sysconfig.parse_config_h(fp, vars=g)
 
 
-# Regexes needed for parsing Makefile (and similar syntaxes,
-# like old-style Setup files).
+# 040797.python.sysconfig.line402.comment Regexes needed for parsing Makefile (and similar syntaxes,
+# 040798.python.sysconfig.line403.comment like old-style Setup files).
 _variable_rx = re.compile(r"([a-zA-Z][a-zA-Z0-9_]+)\s*=\s*(.*)")
 _findvar1_rx = re.compile(r"\$\(([A-Za-z][A-Za-z0-9_]*)\)")
 _findvar2_rx = re.compile(r"\${([A-Za-z][A-Za-z0-9_]*)}")
@@ -436,7 +436,7 @@ def parse_makefile(fn, g=None):  # noqa: C901
         if m:
             n, v = m.group(1, 2)
             v = v.strip()
-            # `$$' is a literal `$' in make
+            # 040801.python.sysconfig.line439.comment `$$' is a literal `$' in make
             tmpv = v.replace('$$', '')
 
             if "$" in tmpv:
@@ -445,18 +445,18 @@ def parse_makefile(fn, g=None):  # noqa: C901
                 try:
                     v = int(v)
                 except ValueError:
-                    # insert literal `$'
+                    # 040802.python.sysconfig.line448.comment insert literal `$'
                     done[n] = v.replace('$$', '$')
                 else:
                     done[n] = v
 
-    # Variables with a 'PY_' prefix in the makefile. These need to
-    # be made available without that prefix through sysconfig.
-    # Special care is needed to ensure that variable expansion works, even
-    # if the expansion uses the name without a prefix.
+    # 040803.python.sysconfig.line453.comment Variables with a 'PY_' prefix in the makefile. These need to
+    # 040804.python.sysconfig.line454.comment be made available without that prefix through sysconfig.
+    # 040805.python.sysconfig.line455.comment Special care is needed to ensure that variable expansion works, even
+    # 040806.python.sysconfig.line456.comment if the expansion uses the name without a prefix.
     renamed_variables = ('CFLAGS', 'LDFLAGS', 'CPPFLAGS')
 
-    # do variable interpolation here
+    # 040807.python.sysconfig.line459.comment do variable interpolation here
     while notdone:
         for name in list(notdone):
             value = notdone[name]
@@ -467,10 +467,10 @@ def parse_makefile(fn, g=None):  # noqa: C901
                 if n in done:
                     item = str(done[n])
                 elif n in notdone:
-                    # get it on a subsequent round
+                    # 040808.python.sysconfig.line470.comment get it on a subsequent round
                     found = False
                 elif n in os.environ:
-                    # do it like make: fall back to environment
+                    # 040809.python.sysconfig.line473.comment do it like make: fall back to environment
                     item = os.environ[n]
 
                 elif n in renamed_variables:
@@ -503,17 +503,17 @@ def parse_makefile(fn, g=None):  # noqa: C901
                             if name not in done:
                                 done[name] = value
             else:
-                # bogus variable reference; just drop it since we can't deal
+                # 040810.python.sysconfig.line506.comment bogus variable reference; just drop it since we can't deal
                 del notdone[name]
 
     fp.close()
 
-    # strip spurious spaces
+    # 040811.python.sysconfig.line511.comment strip spurious spaces
     for k, v in done.items():
         if isinstance(v, str):
             done[k] = v.strip()
 
-    # save the results in the global dictionary
+    # 040812.python.sysconfig.line516.comment save the results in the global dictionary
     g.update(done)
     return g
 
@@ -527,11 +527,11 @@ def expand_makefile_vars(s, vars):
     you're fine.  Returns a variable-expanded version of 's'.
     """
 
-    # This algorithm does multiple expansion, so if vars['foo'] contains
-    # "${bar}", it will expand ${foo} to ${bar}, and then expand
-    # ${bar}... and so forth.  This is fine as long as 'vars' comes from
-    # 'parse_makefile()', which takes care of such expansions eagerly,
-    # according to make's variable expansion semantics.
+    # 040813.python.sysconfig.line530.comment This algorithm does multiple expansion, so if vars['foo'] contains
+    # 040814.python.sysconfig.line531.comment "${bar}", it will expand ${foo} to ${bar}, and then expand
+    # 040815.python.sysconfig.line532.comment ${bar}... and so forth.  This is fine as long as 'vars' comes from
+    # 040816.python.sysconfig.line533.comment 'parse_makefile()', which takes care of such expansions eagerly,
+    # 040817.python.sysconfig.line534.comment according to make's variable expansion semantics.
 
     while True:
         m = _findvar1_rx.search(s) or _findvar2_rx.search(s)

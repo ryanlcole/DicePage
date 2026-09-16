@@ -21,11 +21,11 @@ kw_args.setdefault(
 )  # assumes server is running from examples folder
 kw_args.setdefault("table_name", "Products")  # the name of the demo table
 
-# the server needs to select the provider based on his Python installation
+# 020802.python.db_print.line24.comment the server needs to select the provider based on his Python installation
 provider_switch = ["provider", "Microsoft.ACE.OLEDB.12.0", "Microsoft.Jet.OLEDB.4.0"]
 
-# ------------------------ START HERE -------------------------------------
-# create the connection
+# 020803.python.db_print.line27.comment ------------------------ START HERE -------------------------------------
+# 020804.python.db_print.line28.comment create the connection
 constr = "Provider=%(provider)s;Data Source=%(filename)s"
 import adodbapi as db
 
@@ -36,14 +36,14 @@ if kw_args["table_name"] == "?":
     for name in con.get_table_names():
         print(name)
 else:
-    # make a cursor on the connection
+    # 020805.python.db_print.line39.comment make a cursor on the connection
     with con.cursor() as c:
-        # run an SQL statement on the cursor
+        # 020806.python.db_print.line41.comment run an SQL statement on the cursor
         sql = "select * from %s" % kw_args["table_name"]
         print('performing query="%s"' % sql)
         c.execute(sql)
 
-        # check the results
+        # 020807.python.db_print.line46.comment check the results
         print(
             'result rowcount shows as= %d. (Note: -1 means "not known")' % (c.rowcount,)
         )
@@ -58,10 +58,10 @@ else:
         print("")
         print("str() of first five records are...")
 
-        # get the results
+        # 020808.python.db_print.line61.comment get the results
         db = c.fetchmany(5)
 
-        # print them
+        # 020809.python.db_print.line64.comment print them
         for rec in db:
             print(rec)
 

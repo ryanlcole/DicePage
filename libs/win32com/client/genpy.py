@@ -7,12 +7,12 @@ is nothing more than the command line handler and public interface.
 The makepy command line etc handling is also getting large enough in its own right!
 """
 
-# NOTE - now supports a "demand" mechanism - the top-level is a package, and
-# each class etc can be made individually.
-# This should eventually become the default.
-# Then the old non-package technique should be removed.
-# There should be no b/w compat issues, and will just help clean the code.
-# This will be done once the new "demand" mechanism gets a good workout.
+# 048997.python.genpy.line10.comment NOTE - now supports a "demand" mechanism - the top-level is a package, and
+# 048998.python.genpy.line11.comment each class etc can be made individually.
+# 048999.python.genpy.line12.comment This should eventually become the default.
+# 049000.python.genpy.line13.comment Then the old non-package technique should be removed.
+# 049001.python.genpy.line14.comment There should be no b/w compat issues, and will just help clean the code.
+# 049002.python.genpy.line15.comment This will be done once the new "demand" mechanism gets a good workout.
 import os
 import sys
 import time
@@ -28,10 +28,10 @@ GEN_FULL = "full"
 GEN_DEMAND_BASE = "demand(base)"
 GEN_DEMAND_CHILD = "demand(child)"
 
-# This map is used purely for the users benefit -it shows the
-# raw, underlying type of Alias/Enums, etc.  The COM implementation
-# does not use this map at runtime - all Alias/Enum have already
-# been translated.
+# 049004.python.genpy.line31.comment This map is used purely for the users benefit -it shows the
+# 049005.python.genpy.line32.comment raw, underlying type of Alias/Enums, etc.  The COM implementation
+# 049006.python.genpy.line33.comment does not use this map at runtime - all Alias/Enum have already
+# 049007.python.genpy.line34.comment been translated.
 mapVTToTypeString = {
     pythoncom.VT_I2: "int",
     pythoncom.VT_I4: "int",
@@ -52,12 +52,12 @@ mapVTToTypeString = {
 }
 
 
-# Given a propget function's arg desc, return the default parameters for all
-# params bar the first.  Eg, then Python does a:
-# object.Property = "foo"
-# Python can only pass the "foo" value.  If the property has
-# multiple args, and the rest have default values, this allows
-# Python to correctly pass those defaults.
+# 049008.python.genpy.line55.comment Given a propget function's arg desc, return the default parameters for all
+# 049009.python.genpy.line56.comment params bar the first.  Eg, then Python does a:
+# 049010.python.genpy.line57.comment object.Property = "foo"
+# 049011.python.genpy.line58.comment Python can only pass the "foo" value.  If the property has
+# 049012.python.genpy.line59.comment multiple args, and the rest have default values, this allows
+# 049013.python.genpy.line60.comment Python to correctly pass those defaults.
 def MakeDefaultArgsForPropertyPut(argsDesc):
     ret = []
     for desc in argsDesc[1:]:
@@ -69,7 +69,7 @@ def MakeDefaultArgsForPropertyPut(argsDesc):
 
 
 def MakeMapLineEntry(dispid, wFlags, retType, argTypes, user, resultCLSID):
-    # Strip the default value
+    # 049014.python.genpy.line72.comment Strip the default value
     argTypes = tuple([what[:2] for what in argTypes])
     return '(%s, %d, %s, %s, "%s", %s)' % (
         dispid,
@@ -103,8 +103,8 @@ def WriteSinkEventMap(obj, stream):
     print("\t\t}", file=stream)
 
 
-# MI is used to join my writable helpers, and the OLE
-# classes.
+# 049015.python.genpy.line106.comment MI is used to join my writable helpers, and the OLE
+# 049016.python.genpy.line107.comment classes.
 class WritableItem:
     def __lt__(self, other):
         if self.order == other.order:
@@ -120,12 +120,12 @@ class RecordItem(build.OleItem, WritableItem):
     typename = "RECORD"
 
     def __init__(self, typeInfo, typeAttr, doc=None, bForUser=1):
-        ##    sys.stderr.write("Record %s: size %s\n" % (doc,typeAttr.cbSizeInstance))
-        ##    sys.stderr.write(" cVars = %s\n" % (typeAttr.cVars,))
-        ##    for i in range(typeAttr.cVars):
-        ##        vdesc = typeInfo.GetVarDesc(i)
-        ##        sys.stderr.write(" Var %d has value %s, type %d, desc=%s\n" % (i, vdesc.value, vdesc.varkind, vdesc.elemdescVar))
-        ##        sys.stderr.write(" Doc is %s\n" % (typeInfo.GetDocumentation(vdesc.memid),))
+        # 049017.python.genpy.line123.comment #    sys.stderr.write("Record %s: size %s\n" % (doc,typeAttr.cbSizeInstance))
+        # 049018.python.genpy.line124.comment #    sys.stderr.write(" cVars = %s\n" % (typeAttr.cVars,))
+        # 049019.python.genpy.line125.comment #    for i in range(typeAttr.cVars):
+        # 049020.python.genpy.line126.comment #        vdesc = typeInfo.GetVarDesc(i)
+        # 049021.python.genpy.line127.comment #        sys.stderr.write(" Var %d has value %s, type %d, desc=%s\n" % (i, vdesc.value, vdesc.varkind, vdesc.elemdescVar))
+        # 049022.python.genpy.line128.comment #        sys.stderr.write(" Doc is %s\n" % (typeInfo.GetDocumentation(vdesc.memid),))
 
         build.OleItem.__init__(self, doc)
         self.clsid = typeAttr[0]
@@ -134,8 +134,8 @@ class RecordItem(build.OleItem, WritableItem):
         pass
 
 
-# Given an enum, write all aliases for it.
-# (no longer necessary for new style code, but still used for old code.
+# 049023.python.genpy.line137.comment Given an enum, write all aliases for it.
+# 049024.python.genpy.line138.comment (no longer necessary for new style code, but still used for old code.
 def WriteAliasesForItem(item, aliasItems, stream):
     for alias in aliasItems.values():
         if item.doc and alias.aliasDoc and (alias.aliasDoc[0] == item.doc[0]):
@@ -151,7 +151,7 @@ class AliasItem(build.OleItem, WritableItem):
 
         ai = attr[14]
         self.attr = attr
-        # XXX - This is a hack - why tuples?  Need to resolve?
+        # 049025.python.genpy.line154.comment XXX - This is a hack - why tuples?  Need to resolve?
         if isinstance(ai, tuple) and isinstance(ai[1], int):
             href = ai[1]
             alinfo = typeinfo.GetRefTypeInfo(href)
@@ -162,7 +162,7 @@ class AliasItem(build.OleItem, WritableItem):
             self.aliasAttr = None
 
     def WriteAliasItem(self, aliasDict, stream):
-        # we could have been written as part of an alias dependency
+        # 049026.python.genpy.line165.comment we could have been written as part of an alias dependency
         if self.bWritten:
             return
 
@@ -206,15 +206,15 @@ class EnumerationItem(build.OleItem, WritableItem):
             name = typeinfo.GetNames(vdesc[0])[0]
             self.mapVars[name] = build.MapEntry(vdesc)
 
-    # def WriteEnumerationHeaders(self, aliasItems, stream):
-    #     enumName = self.doc[0]
-    #     print(f"{enumName}=constants # Compatibility with previous versions.", file=stream)
-    #     WriteAliasesForItem(self, aliasItems)
+    # 049027.python.genpy.line209.comment def WriteEnumerationHeaders(self, aliasItems, stream):
+    # 049028.python.genpy.line210.comment enumName = self.doc[0]
+    # 049029.python.genpy.line211.comment print(f"{enumName}=constants # Compatibility with previous versions.", file=stream)
+    # 049030.python.genpy.line212.comment WriteAliasesForItem(self, aliasItems)
 
     def WriteEnumerationItems(self, stream):
         num = 0
         enumName = self.doc[0]
-        # Write in name alpha order
+        # 049031.python.genpy.line217.comment Write in name alpha order
         for name in sorted(self.mapVars):
             entry = self.mapVars[name]
             vdesc = entry.desc
@@ -222,14 +222,14 @@ class EnumerationItem(build.OleItem, WritableItem):
                 val = vdesc[1]
 
                 use = repr(val)
-                # Make sure the repr of the value is valid python syntax
-                # still could cause an error on import if it contains a module or type name
-                # not available in the global namespace
+                # 049032.python.genpy.line225.comment Make sure the repr of the value is valid python syntax
+                # 049033.python.genpy.line226.comment still could cause an error on import if it contains a module or type name
+                # 049034.python.genpy.line227.comment not available in the global namespace
                 try:
                     compile(use, "<makepy>", "eval")
                 except SyntaxError:
-                    # At least add the repr as a string, so it can be investigated further
-                    # Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
+                    # 049035.python.genpy.line231.comment At least add the repr as a string, so it can be investigated further
+                    # 049036.python.genpy.line232.comment Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
                     use = use.replace('"', "'")
                     use = (
                         f'"{use}" # This VARIANT type cannot be converted automatically'
@@ -261,7 +261,7 @@ class VTableItem(build.VTableItem, WritableItem):
             names, dispid, desc = v
             assert desc.desckind == pythoncom.DESCKIND_FUNCDESC
             arg_reprs = []
-            # more hoops so we don't generate huge lines.
+            # 049037.python.genpy.line264.comment more hoops so we don't generate huge lines.
             item_num = 0
             print("\t((", end=" ", file=stream)
             for name in names:
@@ -313,8 +313,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
             and not self.type_attr.typekind == pythoncom.TKIND_DISPATCH
         ):
             return
-        # This is pretty screwey - now we have vtable support we
-        # should probably rethink this (ie, maybe write both sides for sinks, etc)
+        # 049038.python.genpy.line316.comment This is pretty screwey - now we have vtable support we
+        # 049039.python.genpy.line317.comment should probably rethink this (ie, maybe write both sides for sinks, etc)
         if self.bIsSink:
             self.WriteEventSinkClassHeader(generator)
             self.WriteCallbackClassBody(generator)
@@ -448,20 +448,20 @@ class DispatchItem(build.DispatchItem, WritableItem):
             "value": None,
             "_newenum": None,
         }  # If found, will end up with (entry, invoke_tupe)
-        # Write in alpha order.
+        # 049041.python.genpy.line451.comment Write in alpha order.
         for name in sorted(self.mapFuncs):
             entry = self.mapFuncs[name]
             assert entry.desc.desckind == pythoncom.DESCKIND_FUNCDESC
-            # skip [restricted] methods, unless it is the
-            # enumerator (which, being part of the "system",
-            # we know about and can use)
+            # 049042.python.genpy.line455.comment skip [restricted] methods, unless it is the
+            # 049043.python.genpy.line456.comment enumerator (which, being part of the "system",
+            # 049044.python.genpy.line457.comment we know about and can use)
             dispid = entry.desc.memid
             if (
                 entry.desc.wFuncFlags & pythoncom.FUNCFLAG_FRESTRICTED
                 and dispid != pythoncom.DISPID_NEWENUM
             ):
                 continue
-            # If not accessible via IDispatch, then we can't use it here.
+            # 049045.python.genpy.line464.comment If not accessible via IDispatch, then we can't use it here.
             if entry.desc.funckind != pythoncom.FUNC_DISPATCH:
                 continue
             if dispid == pythoncom.DISPID_VALUE:
@@ -524,8 +524,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
                         pythoncom.DISPATCH_PROPERTYGET,
                         mapEntry,
                     )
-                    # All special methods, except _newenum, are written
-                    # "normally".  This is a mess!
+                    # 049049.python.genpy.line527.comment All special methods, except _newenum, are written
+                    # 049050.python.genpy.line528.comment "normally".  This is a mess!
                     if details.memid == pythoncom.DISPID_NEWENUM:
                         continue
 
@@ -570,8 +570,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
                         pythoncom.DISPATCH_PROPERTYGET,
                         mapEntry,
                     )
-                    # All special methods, except _newenum, are written
-                    # "normally".  This is a mess!
+                    # 049052.python.genpy.line573.comment All special methods, except _newenum, are written
+                    # 049053.python.genpy.line574.comment "normally".  This is a mess!
                     if details.memid == pythoncom.DISPID_NEWENUM:
                         continue
                 print(
@@ -582,13 +582,13 @@ class DispatchItem(build.DispatchItem, WritableItem):
         print("\t}", file=stream)
 
         print("\t_prop_map_put_ = {", file=stream)
-        # These are "Invoke" args
+        # 049054.python.genpy.line585.comment These are "Invoke" args
         for key in sorted(self.propMap):
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
                 lkey = key.lower()
                 details = entry.desc
-                # If default arg is None, write an empty tuple
+                # 049055.python.genpy.line591.comment If default arg is None, write an empty tuple
                 defArgDesc = build.MakeDefaultArgRepr(details[2])
                 if defArgDesc is None:
                     defArgDesc = ""
@@ -644,21 +644,21 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print("\tdef __int__(self, *args):", file=stream)
             print("\t\treturn int(self.__call__(*args))", file=stream)
 
-        # _NewEnum (DISPID_NEWENUM) does not appear in typelib for many office objects,
-        # but it can still be retrieved at runtime, so  always create __iter__.
-        # Also, some of those same objects use 1-based indexing, causing the old-style
-        # __getitem__ iteration to fail for index 0 where the dynamic iteration succeeds.
+        # 049056.python.genpy.line647.comment _NewEnum (DISPID_NEWENUM) does not appear in typelib for many office objects,
+        # 049057.python.genpy.line648.comment but it can still be retrieved at runtime, so  always create __iter__.
+        # 049058.python.genpy.line649.comment Also, some of those same objects use 1-based indexing, causing the old-style
+        # 049059.python.genpy.line650.comment __getitem__ iteration to fail for index 0 where the dynamic iteration succeeds.
         if specialItems["_newenum"]:
             enumEntry, invoketype, propArgs = specialItems["_newenum"]
             assert enumEntry.desc.desckind == pythoncom.DESCKIND_FUNCDESC
             invkind = enumEntry.desc.invkind
-            # ??? Wouldn't this be the resultCLSID for the iterator itself, rather than the resultCLSID
-            #  for the result of each Next() call, which is what it's used for ???
+            # 049060.python.genpy.line655.comment ??? Wouldn't this be the resultCLSID for the iterator itself, rather than the resultCLSID
+            # 049061.python.genpy.line656.comment for the result of each Next() call, which is what it's used for ???
             resultCLSID = enumEntry.GetResultCLSIDStr()
         else:
             invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
             resultCLSID = "None"
-        # If we don't have a good CLSID for the enum result, assume it is the same as the Item() method.
+        # 049062.python.genpy.line661.comment If we don't have a good CLSID for the enum result, assume it is the same as the Item() method.
         if resultCLSID == "None" and "Item" in self.mapFuncs:
             resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
         print("\tdef __iter__(self):", file=stream)
@@ -674,7 +674,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             '\t\t\traise TypeError("This object does not support enumeration")',
             file=stream,
         )
-        # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
+        # 049063.python.genpy.line677.comment Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
         print(
             "\t\treturn win32com.client.util.Iterator(ob, %s)" % resultCLSID,
             file=stream,
@@ -719,7 +719,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             )
             for line in ret:
                 print(line, file=stream)
-            # Also include a __bool__
+            # 049064.python.genpy.line722.comment Also include a __bool__
             print(
                 "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE.",
                 file=stream,
@@ -744,7 +744,7 @@ class CoClassItem(build.OleItem, WritableItem):
         doc = self.doc
         stream = generator.file
         if generator.generate_type == GEN_DEMAND_CHILD:
-            # Some special imports we must setup.
+            # 049066.python.genpy.line747.comment Some special imports we must setup.
             referenced_items = []
             for ref, flag in self.sources:
                 referenced_items.append(ref)
@@ -765,7 +765,7 @@ class CoClassItem(build.OleItem, WritableItem):
                     ),
                     file=stream,
                 )
-                # And pretend we have written it - the name is now available as if we had!
+                # 049067.python.genpy.line768.comment And pretend we have written it - the name is now available as if we had!
                 ref.bWritten = 1
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
@@ -783,8 +783,8 @@ class CoClassItem(build.OleItem, WritableItem):
         for item, flag in self.sources:
             if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
                 defItem = item
-            # If we have written a Python class, reference the name -
-            # otherwise just the IID.
+            # 049068.python.genpy.line786.comment If we have written a Python class, reference the name -
+            # 049069.python.genpy.line787.comment otherwise just the IID.
             if item.bWritten:
                 key = item.python_name
             else:
@@ -802,7 +802,7 @@ class CoClassItem(build.OleItem, WritableItem):
         for item, flag in self.interfaces:
             if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:  # and dual:
                 defItem = item
-            # If we have written a class, reference its name, otherwise the IID
+            # 049073.python.genpy.line805.comment If we have written a class, reference its name, otherwise the IID
             if item.bWritten:
                 key = item.python_name
             else:
@@ -866,7 +866,7 @@ class Generator:
         self.sourceFilename = sourceFilename
         self.bBuildHidden = bBuildHidden
         self.progress = progressObject
-        # These 2 are later additions and most of the code still 'print's...
+        # 049076.python.genpy.line869.comment These 2 are later additions and most of the code still 'print's...
         self.file = None
 
     def CollectOleItemInfosFromType(self):
@@ -881,14 +881,14 @@ class Generator:
 
     def _Build_CoClass(self, type_info_tuple):
         info, infotype, doc, attr = type_info_tuple
-        # find the source and dispinterfaces for the coclass
+        # 049077.python.genpy.line884.comment find the source and dispinterfaces for the coclass
         child_infos = []
         for j in range(attr[8]):
             flags = info.GetImplTypeFlags(j)
             try:
                 refType = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
             except pythoncom.com_error:
-                # Can't load a dependent typelib?
+                # 049078.python.genpy.line891.comment Can't load a dependent typelib?
                 continue
             refAttr = refType.GetTypeAttr()
             child_infos.append(
@@ -902,7 +902,7 @@ class Generator:
                 )
             )
 
-        # Done generating children - now the CoClass itself.
+        # 049079.python.genpy.line905.comment Done generating children - now the CoClass itself.
         newItem = CoClassItem(info, attr, doc)
         return newItem, child_infos
 
@@ -910,7 +910,7 @@ class Generator:
         sources = {}
         interfaces = {}
         for info, info_type, refType, doc, refAttr, flags in coclass_info:
-            #          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
+            # 049080.python.genpy.line913.comment sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
             if refAttr.typekind == pythoncom.TKIND_DISPATCH or (
                 refAttr.typekind == pythoncom.TKIND_INTERFACE
                 and refAttr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE
@@ -927,7 +927,7 @@ class Generator:
                     sources[dispItem.clsid] = (dispItem, flags)
                 else:
                     interfaces[dispItem.clsid] = (dispItem, flags)
-                # If dual interface, make do that too.
+                # 049081.python.genpy.line930.comment If dual interface, make do that too.
                 if clsid not in vtableItems and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
                     refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
                     refAttr = refType.GetTypeAttr()
@@ -947,9 +947,9 @@ class Generator:
             and attr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE
         ):
             oleItem = DispatchItem(info, attr, doc)
-            # If this DISPATCH interface dual, then build that too.
+            # 049082.python.genpy.line950.comment If this DISPATCH interface dual, then build that too.
             if attr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL:
-                # Get the vtable interface
+                # 049083.python.genpy.line952.comment Get the vtable interface
                 refhtype = info.GetRefTypeOfImplType(-1)
                 info = info.GetRefTypeInfo(refhtype)
                 attr = info.GetTypeAttr()
@@ -979,8 +979,8 @@ class Generator:
             if infotype == pythoncom.TKIND_ENUM or infotype == pythoncom.TKIND_MODULE:
                 newItem = EnumerationItem(info, attr, doc)
                 enumItems[newItem.doc[0]] = newItem
-            # We never hide interfaces (MSAccess, for example, nominates interfaces as
-            # hidden, assuming that you only ever use them via the CoClass)
+            # 049084.python.genpy.line982.comment We never hide interfaces (MSAccess, for example, nominates interfaces as
+            # 049085.python.genpy.line983.comment hidden, assuming that you only ever use them via the CoClass)
             elif infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]:
                 if clsid not in oleItems:
                     oleItem, vtableItem = self._Build_Interface(type_info_tuple)
@@ -993,7 +993,7 @@ class Generator:
                 newItem = RecordItem(info, attr, doc)
                 recordItems[newItem.clsid] = newItem
             elif infotype == pythoncom.TKIND_ALIAS:
-                # We don't care about alias' - handled intrinsicly.
+                # 049087.python.genpy.line996.comment We don't care about alias' - handled intrinsicly.
                 continue
             elif infotype == pythoncom.TKIND_COCLASS:
                 newItem, child_infos = self._Build_CoClass(type_info_tuple)
@@ -1005,14 +1005,14 @@ class Generator:
         return oleItems, enumItems, recordItems, vtableItems
 
     def open_writer(self, filename, encoding="utf-8"):
-        # A place to put code to open a file with the appropriate encoding.
-        # Does *not* set self.file - just opens and returns a file.
-        # Actually returns a handle to a temp file - finish_writer then deletes
-        # the filename asked for and puts everything back in place.  This
-        # is so errors don't leave a 1/2 generated file around causing bizarre
-        # errors later, and so that multiple processes writing the same file
-        # don't step on each others' toes.
-        # Could be a classmethod one day...
+        # 049088.python.genpy.line1008.comment A place to put code to open a file with the appropriate encoding.
+        # 049089.python.genpy.line1009.comment Does *not* set self.file - just opens and returns a file.
+        # 049090.python.genpy.line1010.comment Actually returns a handle to a temp file - finish_writer then deletes
+        # 049091.python.genpy.line1011.comment the filename asked for and puts everything back in place.  This
+        # 049092.python.genpy.line1012.comment is so errors don't leave a 1/2 generated file around causing bizarre
+        # 049093.python.genpy.line1013.comment errors later, and so that multiple processes writing the same file
+        # 049094.python.genpy.line1014.comment don't step on each others' toes.
+        # 049095.python.genpy.line1015.comment Could be a classmethod one day...
         temp_filename = self.get_temp_filename(filename)
         return open(temp_filename, "wt", encoding=encoding)
 
@@ -1048,13 +1048,13 @@ class Generator:
         if moduleDoc[1]:
             docDesc = moduleDoc[1]
 
-        # Reset all the 'per file' state
+        # 049096.python.genpy.line1051.comment Reset all the 'per file' state
         self.bHaveWrittenDispatchBaseClass = 0
         self.bHaveWrittenCoClassBaseClass = 0
         self.bHaveWrittenEventBaseClass = 0
-        # You must provide a file correctly configured for writing unicode.
-        # We assert this is it may indicate somewhere in pywin32 that needs
-        # upgrading.
+        # 049097.python.genpy.line1055.comment You must provide a file correctly configured for writing unicode.
+        # 049098.python.genpy.line1056.comment We assert this is it may indicate somewhere in pywin32 that needs
+        # 049099.python.genpy.line1057.comment upgrading.
         assert self.file.encoding, self.file
         encoding = self.file.encoding
 
@@ -1119,7 +1119,7 @@ class Generator:
             "Generating...", len(oleItems) + len(enumItems) + len(vtableItems)
         )
 
-        # Generate the constants and their support.
+        # 049100.python.genpy.line1122.comment Generate the constants and their support.
         if enumItems:
             print("class constants:", file=stream)
             num_written = 0
@@ -1155,7 +1155,7 @@ class Generator:
         print("}", file=stream)
         print(file=stream)
 
-        # Write out _all_ my generated CLSID's in the map
+        # 049101.python.genpy.line1158.comment Write out _all_ my generated CLSID's in the map
         if self.generate_type == GEN_FULL:
             print("CLSIDToClassMap = {", file=stream)
             for item in oleItems.values():
@@ -1195,7 +1195,7 @@ class Generator:
             print(file=stream)
 
         print(file=stream)
-        # Bit of a hack - build a temp map of iteItems + vtableItems - coClasses
+        # 049102.python.genpy.line1198.comment Bit of a hack - build a temp map of iteItems + vtableItems - coClasses
         map = {}
         for item in oleItems.values():
             if item is not None and not isinstance(item, CoClassItem):
@@ -1229,10 +1229,10 @@ class Generator:
             "win32com.gen_py." + str(clsid)[1:-1] + f"x{lcid}x{major}x{minor}"
         )
         try:
-            # Process the type library's CoClass objects, looking for the
-            # specified name, or where a child has the specified name.
-            # This ensures that all interesting things (including event interfaces)
-            # are generated correctly.
+            # 049104.python.genpy.line1232.comment Process the type library's CoClass objects, looking for the
+            # 049105.python.genpy.line1233.comment specified name, or where a child has the specified name.
+            # 049106.python.genpy.line1234.comment This ensures that all interesting things (including event interfaces)
+            # 049107.python.genpy.line1235.comment are generated correctly.
             oleItems = {}
             vtableItems = {}
             infos = self.CollectOleItemInfosFromType()
@@ -1243,7 +1243,7 @@ class Generator:
                     coClassItem, child_infos = self._Build_CoClass(type_info_tuple)
                     found = build.MakePublicAttributeName(doc[0]) == child
                     if not found:
-                        # OK, check the child interfaces
+                        # 049108.python.genpy.line1246.comment OK, check the child interfaces
                         for (
                             info,
                             info_type,
@@ -1262,7 +1262,7 @@ class Generator:
                         )
                         break
             if not found:
-                # Doesn't appear in a class defn - look in the interface objects for it
+                # 049109.python.genpy.line1265.comment Doesn't appear in a class defn - look in the interface objects for it
                 for type_info_tuple in infos:
                     info, infotype, doc, attr = type_info_tuple
                     if infotype in [
@@ -1279,7 +1279,7 @@ class Generator:
             assert found, (
                 f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
             )
-            # Make a map of iid: dispitem, vtableitem)
+            # 049111.python.genpy.line1282.comment Make a map of iid: dispitem, vtableitem)
             items = {}
             for key, value in oleItems.items():
                 items[key] = (value, None)
@@ -1295,8 +1295,8 @@ class Generator:
             for oleitem, vtableitem in items.values():
                 an_item = oleitem or vtableitem
                 assert not self.file, "already have a file?"
-                # like makepy.py, we gen to a .temp file so failure doesn't
-                # leave a 1/2 generated mess.
+                # 049112.python.genpy.line1298.comment like makepy.py, we gen to a .temp file so failure doesn't
+                # 049113.python.genpy.line1299.comment leave a 1/2 generated mess.
                 out_name = os.path.join(dir, an_item.python_name) + ".py"
                 worked = False
                 self.file = self.open_writer(out_name)
@@ -1342,9 +1342,9 @@ class Generator:
             self.bHaveWrittenCoClassBaseClass = 1
 
     def checkWriteEventBaseClass(self):
-        # Not a base class as such...
+        # 049114.python.genpy.line1345.comment Not a base class as such...
         if not self.bHaveWrittenEventBaseClass:
-            # Nothing to do any more!
+            # 049115.python.genpy.line1347.comment Nothing to do any more!
             self.bHaveWrittenEventBaseClass = 1
 
 

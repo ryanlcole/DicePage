@@ -88,10 +88,10 @@ class TestSDist(support.TempdirManager):
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_prune_file_list(self):
-        # this test creates a project with some VCS dirs and an NFS rename
-        # file, then launches sdist to check they get pruned on all systems
+        # 041161.python.test_sdist.line91.comment this test creates a project with some VCS dirs and an NFS rename
+        # 041162.python.test_sdist.line92.comment file, then launches sdist to check they get pruned on all systems
 
-        # creating VCS directories with some files in them
+        # 041163.python.test_sdist.line94.comment creating VCS directories with some files in them
         os.mkdir(join(self.tmp_dir, 'somecode', '.svn'))
         self.write_file((self.tmp_dir, 'somecode', '.svn', 'ok.py'), 'xxx')
 
@@ -103,17 +103,17 @@ class TestSDist(support.TempdirManager):
 
         self.write_file((self.tmp_dir, 'somecode', '.nfs0001'), 'xxx')
 
-        # now building a sdist
+        # 041164.python.test_sdist.line106.comment now building a sdist
         dist, cmd = self.get_cmd()
 
-        # zip is available universally
-        # (tar might not be installed under win32)
+        # 041165.python.test_sdist.line109.comment zip is available universally
+        # 041166.python.test_sdist.line110.comment (tar might not be installed under win32)
         cmd.formats = ['zip']
 
         cmd.ensure_finalized()
         cmd.run()
 
-        # now let's check what we have
+        # 041167.python.test_sdist.line116.comment now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
         assert files == ['ns_fake_pkg-1.0.zip']
@@ -124,7 +124,7 @@ class TestSDist(support.TempdirManager):
         finally:
             zip_file.close()
 
-        # making sure everything has been pruned correctly
+        # 041168.python.test_sdist.line127.comment making sure everything has been pruned correctly
         expected = [
             '',
             'PKG-INFO',
@@ -139,15 +139,15 @@ class TestSDist(support.TempdirManager):
     @pytest.mark.skipif("not shutil.which('tar')")
     @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution(self):
-        # now building a sdist
+        # 041169.python.test_sdist.line142.comment now building a sdist
         dist, cmd = self.get_cmd()
 
-        # creating a gztar then a tar
+        # 041170.python.test_sdist.line145.comment creating a gztar then a tar
         cmd.formats = ['gztar', 'tar']
         cmd.ensure_finalized()
         cmd.run()
 
-        # making sure we have two files
+        # 041171.python.test_sdist.line150.comment making sure we have two files
         dist_folder = join(self.tmp_dir, 'dist')
         result = os.listdir(dist_folder)
         result.sort()
@@ -156,7 +156,7 @@ class TestSDist(support.TempdirManager):
         os.remove(join(dist_folder, 'ns_fake_pkg-1.0.tar'))
         os.remove(join(dist_folder, 'ns_fake_pkg-1.0.tar.gz'))
 
-        # now trying a tar then a gztar
+        # 041172.python.test_sdist.line159.comment now trying a tar then a gztar
         cmd.formats = ['tar', 'gztar']
 
         cmd.ensure_finalized()
@@ -168,29 +168,29 @@ class TestSDist(support.TempdirManager):
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_add_defaults(self):
-        # https://bugs.python.org/issue2279
+        # 041173.python.test_sdist.line171.comment https://bugs.python.org/issue2279
 
-        # add_default should also include
-        # data_files and package_data
+        # 041174.python.test_sdist.line173.comment add_default should also include
+        # 041175.python.test_sdist.line174.comment data_files and package_data
         dist, cmd = self.get_cmd()
 
-        # filling data_files by pointing files
-        # in package_data
+        # 041176.python.test_sdist.line177.comment filling data_files by pointing files
+        # 041177.python.test_sdist.line178.comment in package_data
         dist.package_data = {'': ['*.cfg', '*.dat'], 'somecode': ['*.txt']}
         self.write_file((self.tmp_dir, 'somecode', 'doc.txt'), '#')
         self.write_file((self.tmp_dir, 'somecode', 'doc.dat'), '#')
 
-        # adding some data in data_files
+        # 041178.python.test_sdist.line183.comment adding some data in data_files
         data_dir = join(self.tmp_dir, 'data')
         os.mkdir(data_dir)
         self.write_file((data_dir, 'data.dt'), '#')
         some_dir = join(self.tmp_dir, 'some')
         os.mkdir(some_dir)
-        # make sure VCS directories are pruned (#14004)
+        # 041179.python.test_sdist.line189.comment make sure VCS directories are pruned (#14004)
         hg_dir = join(self.tmp_dir, '.hg')
         os.mkdir(hg_dir)
         self.write_file((hg_dir, 'last-message.txt'), '#')
-        # a buggy regex used to prevent this from working on windows (#6884)
+        # 041180.python.test_sdist.line193.comment a buggy regex used to prevent this from working on windows (#6884)
         self.write_file((self.tmp_dir, 'buildout.cfg'), '#')
         self.write_file((self.tmp_dir, 'inroot.txt'), '#')
         self.write_file((some_dir, 'file.txt'), '#')
@@ -202,7 +202,7 @@ class TestSDist(support.TempdirManager):
             'some/other_file.txt',
         ]
 
-        # adding a script
+        # 041181.python.test_sdist.line205.comment adding a script
         script_dir = join(self.tmp_dir, 'scripts')
         os.mkdir(script_dir)
         self.write_file((script_dir, 'script.py'), '#')
@@ -214,7 +214,7 @@ class TestSDist(support.TempdirManager):
         cmd.ensure_finalized()
         cmd.run()
 
-        # now let's check what we have
+        # 041182.python.test_sdist.line217.comment now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
         assert files == ['ns_fake_pkg-1.0.zip']
@@ -225,7 +225,7 @@ class TestSDist(support.TempdirManager):
         finally:
             zip_file.close()
 
-        # making sure everything was added
+        # 041183.python.test_sdist.line228.comment making sure everything was added
         expected = [
             '',
             'PKG-INFO',
@@ -247,7 +247,7 @@ class TestSDist(support.TempdirManager):
         ]
         assert sorted(content) == ['ns_fake_pkg-1.0/' + x for x in expected]
 
-        # checking the MANIFEST
+        # 041184.python.test_sdist.line250.comment checking the MANIFEST
         manifest = pathlib.Path(self.tmp_dir, 'MANIFEST').read_text(encoding='utf-8')
         assert manifest == MANIFEST % {'sep': os.sep}
 
@@ -257,16 +257,16 @@ class TestSDist(support.TempdirManager):
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_metadata_check_option(self, caplog):
-        # testing the `medata-check` option
+        # 041185.python.test_sdist.line260.comment testing the `medata-check` option
         dist, cmd = self.get_cmd(metadata={})
 
-        # this should raise some warnings !
-        # with the `check` subcommand
+        # 041186.python.test_sdist.line263.comment this should raise some warnings !
+        # 041187.python.test_sdist.line264.comment with the `check` subcommand
         cmd.ensure_finalized()
         cmd.run()
         assert len(self.warnings(caplog.messages, 'warning: check: ')) == 1
 
-        # trying with a complete set of metadata
+        # 041188.python.test_sdist.line269.comment trying with a complete set of metadata
         caplog.clear()
         dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
@@ -277,7 +277,7 @@ class TestSDist(support.TempdirManager):
     def test_show_formats(self, capsys):
         show_formats()
 
-        # the output should be a header line + one line per format
+        # 041189.python.test_sdist.line280.comment the output should be a header line + one line per format
         num_formats = len(ARCHIVE_FORMATS.keys())
         output = [
             line
@@ -290,26 +290,26 @@ class TestSDist(support.TempdirManager):
         dist, cmd = self.get_cmd()
         cmd.finalize_options()
 
-        # default options set by finalize
+        # 041190.python.test_sdist.line293.comment default options set by finalize
         assert cmd.manifest == 'MANIFEST'
         assert cmd.template == 'MANIFEST.in'
         assert cmd.dist_dir == 'dist'
 
-        # formats has to be a string splitable on (' ', ',') or
-        # a stringlist
+        # 041191.python.test_sdist.line298.comment formats has to be a string splitable on (' ', ',') or
+        # 041192.python.test_sdist.line299.comment a stringlist
         cmd.formats = 1
         with pytest.raises(DistutilsOptionError):
             cmd.finalize_options()
         cmd.formats = ['zip']
         cmd.finalize_options()
 
-        # formats has to be known
+        # 041193.python.test_sdist.line306.comment formats has to be known
         cmd.formats = 'supazipa'
         with pytest.raises(DistutilsOptionError):
             cmd.finalize_options()
 
-    # the following tests make sure there is a nice error message instead
-    # of a traceback when parsing an invalid manifest template
+    # 041194.python.test_sdist.line311.comment the following tests make sure there is a nice error message instead
+    # 041195.python.test_sdist.line312.comment of a traceback when parsing an invalid manifest template
 
     def _check_template(self, content, caplog):
         dist, cmd = self.get_cmd()
@@ -324,21 +324,21 @@ class TestSDist(support.TempdirManager):
         self._check_template('taunt knights *', caplog)
 
     def test_invalid_template_wrong_arguments(self, caplog):
-        # this manifest command takes one argument
+        # 041196.python.test_sdist.line327.comment this manifest command takes one argument
         self._check_template('prune', caplog)
 
     @pytest.mark.skipif("platform.system() != 'Windows'")
     def test_invalid_template_wrong_path(self, caplog):
-        # on Windows, trailing slashes are not allowed
-        # this used to crash instead of raising a warning: #8286
+        # 041197.python.test_sdist.line332.comment on Windows, trailing slashes are not allowed
+        # 041198.python.test_sdist.line333.comment this used to crash instead of raising a warning: #8286
         self._check_template('include examples/', caplog)
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_get_file_list(self):
-        # make sure MANIFEST is recalculated
+        # 041199.python.test_sdist.line338.comment make sure MANIFEST is recalculated
         dist, cmd = self.get_cmd()
 
-        # filling data_files by pointing files in package_data
+        # 041200.python.test_sdist.line341.comment filling data_files by pointing files in package_data
         dist.package_data = {'somecode': ['*.txt']}
         self.write_file((self.tmp_dir, 'somecode', 'doc.txt'), '#')
         cmd.formats = ['gztar']
@@ -347,10 +347,10 @@ class TestSDist(support.TempdirManager):
 
         assert ilen(clean_lines(cmd.manifest)) == 5
 
-        # adding a file
+        # 041201.python.test_sdist.line350.comment adding a file
         self.write_file((self.tmp_dir, 'somecode', 'doc2.txt'), '#')
 
-        # make sure build_py is reinitialized, like a fresh run
+        # 041202.python.test_sdist.line353.comment make sure build_py is reinitialized, like a fresh run
         build_py = dist.get_command_obj('build_py')
         build_py.finalized = False
         build_py.ensure_finalized()
@@ -359,13 +359,13 @@ class TestSDist(support.TempdirManager):
 
         manifest2 = list(clean_lines(cmd.manifest))
 
-        # do we have the new file in MANIFEST ?
+        # 041203.python.test_sdist.line362.comment do we have the new file in MANIFEST ?
         assert len(manifest2) == 6
         assert 'doc2.txt' in manifest2[-1]
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_manifest_marker(self):
-        # check that autogenerated MANIFESTs have a marker
+        # 041204.python.test_sdist.line368.comment check that autogenerated MANIFESTs have a marker
         dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
         cmd.run()
@@ -377,7 +377,7 @@ class TestSDist(support.TempdirManager):
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_manifest_comments(self):
-        # make sure comments don't cause exceptions or wrong includes
+        # 041205.python.test_sdist.line380.comment make sure comments don't cause exceptions or wrong includes
         contents = dedent(
             """\
             # bad.py
@@ -396,7 +396,7 @@ class TestSDist(support.TempdirManager):
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_manual_manifest(self):
-        # check that a MANIFEST without a marker is left alone
+        # 041206.python.test_sdist.line399.comment check that a MANIFEST without a marker is left alone
         dist, cmd = self.get_cmd()
         cmd.formats = ['gztar']
         cmd.ensure_finalized()
@@ -428,17 +428,17 @@ class TestSDist(support.TempdirManager):
     @pytest.mark.skipif("not shutil.which('tar')")
     @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution_owner_group(self):
-        # now building a sdist
+        # 041207.python.test_sdist.line431.comment now building a sdist
         dist, cmd = self.get_cmd()
 
-        # creating a gztar and specifying the owner+group
+        # 041208.python.test_sdist.line434.comment creating a gztar and specifying the owner+group
         cmd.formats = ['gztar']
         cmd.owner = pwd.getpwuid(0)[0]
         cmd.group = grp.getgrgid(0)[0]
         cmd.ensure_finalized()
         cmd.run()
 
-        # making sure we have the good rights
+        # 041209.python.test_sdist.line441.comment making sure we have the good rights
         archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
         archive = tarfile.open(archive_name)
         try:
@@ -448,21 +448,21 @@ class TestSDist(support.TempdirManager):
         finally:
             archive.close()
 
-        # building a sdist again
+        # 041210.python.test_sdist.line451.comment building a sdist again
         dist, cmd = self.get_cmd()
 
-        # creating a gztar
+        # 041211.python.test_sdist.line454.comment creating a gztar
         cmd.formats = ['gztar']
         cmd.ensure_finalized()
         cmd.run()
 
-        # making sure we have the good rights
+        # 041212.python.test_sdist.line459.comment making sure we have the good rights
         archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
         archive = tarfile.open(archive_name)
 
-        # note that we are not testing the group ownership here
-        # because, depending on the platforms and the container
-        # rights (see #7408)
+        # 041213.python.test_sdist.line463.comment note that we are not testing the group ownership here
+        # 041214.python.test_sdist.line464.comment because, depending on the platforms and the container
+        # 041215.python.test_sdist.line465.comment rights (see #7408)
         try:
             for member in archive.getmembers():
                 assert member.uid == os.getuid()

@@ -25,7 +25,7 @@ from ._memo import TypeCheckMemo as TypeCheckMemo
 from ._suppression import suppress_type_checks as suppress_type_checks
 from ._utils import Unset as Unset
 
-# Re-export imports so they look like they live directly in this package
+# 043380.python.init.line28.comment Re-export imports so they look like they live directly in this package
 for value in list(locals().values()):
     if getattr(value, "__module__", "").startswith(f"{__name__}."):
         value.__module__ = __name__
@@ -43,6 +43,6 @@ def __getattr__(name: str) -> Any:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-# Automatically load checker lookup functions unless explicitly disabled
+# 043381.python.init.line46.comment Automatically load checker lookup functions unless explicitly disabled
 if "TYPEGUARD_DISABLE_PLUGIN_AUTOLOAD" not in os.environ:
     load_plugins()

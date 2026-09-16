@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 024485.python.pssunos.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 024486.python.pssunos.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 024487.python.pssunos.line3.comment found in the LICENSE file.
 
 """Sun OS Solaris platform implementation."""
 
@@ -33,9 +33,9 @@ from ._common import usage_percent
 __extra__all__ = ["CONN_IDLE", "CONN_BOUND", "PROCFS_PATH"]
 
 
-# =====================================================================
-# --- globals
-# =====================================================================
+# 024488.python.pssunos.line36.comment =====================================================================
+# 024489.python.pssunos.line37.comment --- globals
+# 024490.python.pssunos.line38.comment =====================================================================
 
 
 PAGE_SIZE = cext_posix.getpagesize()
@@ -88,42 +88,42 @@ proc_info_map = dict(
 )
 
 
-# =====================================================================
-# --- named tuples
-# =====================================================================
+# 024494.python.pssunos.line91.comment =====================================================================
+# 024495.python.pssunos.line92.comment --- named tuples
+# 024496.python.pssunos.line93.comment =====================================================================
 
 
-# psutil.cpu_times()
+# 024497.python.pssunos.line96.comment psutil.cpu_times()
 scputimes = namedtuple('scputimes', ['user', 'system', 'idle', 'iowait'])
-# psutil.cpu_times(percpu=True)
+# 024498.python.pssunos.line98.comment psutil.cpu_times(percpu=True)
 pcputimes = namedtuple(
     'pcputimes', ['user', 'system', 'children_user', 'children_system']
 )
-# psutil.virtual_memory()
+# 024499.python.pssunos.line102.comment psutil.virtual_memory()
 svmem = namedtuple('svmem', ['total', 'available', 'percent', 'used', 'free'])
-# psutil.Process.memory_info()
+# 024500.python.pssunos.line104.comment psutil.Process.memory_info()
 pmem = namedtuple('pmem', ['rss', 'vms'])
 pfullmem = pmem
-# psutil.Process.memory_maps(grouped=True)
+# 024501.python.pssunos.line107.comment psutil.Process.memory_maps(grouped=True)
 pmmap_grouped = namedtuple(
     'pmmap_grouped', ['path', 'rss', 'anonymous', 'locked']
 )
-# psutil.Process.memory_maps(grouped=False)
+# 024502.python.pssunos.line111.comment psutil.Process.memory_maps(grouped=False)
 pmmap_ext = namedtuple(
     'pmmap_ext', 'addr perms ' + ' '.join(pmmap_grouped._fields)
 )
 
 
-# =====================================================================
-# --- memory
-# =====================================================================
+# 024503.python.pssunos.line117.comment =====================================================================
+# 024504.python.pssunos.line118.comment --- memory
+# 024505.python.pssunos.line119.comment =====================================================================
 
 
 def virtual_memory():
     """Report virtual memory metrics."""
-    # we could have done this with kstat, but IMHO this is good enough
+    # 024506.python.pssunos.line124.comment we could have done this with kstat, but IMHO this is good enough
     total = os.sysconf('SC_PHYS_PAGES') * PAGE_SIZE
-    # note: there's no difference on Solaris
+    # 024507.python.pssunos.line126.comment note: there's no difference on Solaris
     free = avail = os.sysconf('SC_AVPHYS_PAGES') * PAGE_SIZE
     used = total - free
     percent = usage_percent(used, total, round_=1)
@@ -133,12 +133,12 @@ def virtual_memory():
 def swap_memory():
     """Report swap memory metrics."""
     sin, sout = cext.swap_mem()
-    # XXX
-    # we are supposed to get total/free by doing so:
-    # http://cvs.opensolaris.org/source/xref/onnv/onnv-gate/
-    #     usr/src/cmd/swap/swap.c
-    # ...nevertheless I can't manage to obtain the same numbers as 'swap'
-    # cmdline utility, so let's parse its output (sigh!)
+    # 024508.python.pssunos.line136.comment XXX
+    # 024509.python.pssunos.line137.comment we are supposed to get total/free by doing so:
+    # 024510.python.pssunos.line138.comment http://cvs.opensolaris.org/source/xref/onnv/onnv-gate/
+    # 024511.python.pssunos.line139.comment usr/src/cmd/swap/swap.c
+    # 024512.python.pssunos.line140.comment ...nevertheless I can't manage to obtain the same numbers as 'swap'
+    # 024513.python.pssunos.line141.comment cmdline utility, so let's parse its output (sigh!)
     p = subprocess.Popen(
         [
             '/usr/bin/env',
@@ -171,9 +171,9 @@ def swap_memory():
     )
 
 
-# =====================================================================
-# --- CPU
-# =====================================================================
+# 024514.python.pssunos.line174.comment =====================================================================
+# 024515.python.pssunos.line175.comment --- CPU
+# 024516.python.pssunos.line176.comment =====================================================================
 
 
 def cpu_times():
@@ -193,7 +193,7 @@ def cpu_count_logical():
     try:
         return os.sysconf("SC_NPROCESSORS_ONLN")
     except ValueError:
-        # mimic os.cpu_count() behavior
+        # 024517.python.pssunos.line196.comment mimic os.cpu_count() behavior
         return None
 
 
@@ -211,9 +211,9 @@ def cpu_stats():
     )
 
 
-# =====================================================================
-# --- disks
-# =====================================================================
+# 024518.python.pssunos.line214.comment =====================================================================
+# 024519.python.pssunos.line215.comment --- disks
+# 024520.python.pssunos.line216.comment =====================================================================
 
 
 disk_io_counters = cext.disk_io_counters
@@ -222,8 +222,8 @@ disk_usage = _psposix.disk_usage
 
 def disk_partitions(all=False):
     """Return system disk partitions."""
-    # TODO - the filtering logic should be better checked so that
-    # it tries to reflect 'df' as much as possible
+    # 024521.python.pssunos.line225.comment TODO - the filtering logic should be better checked so that
+    # 024522.python.pssunos.line226.comment it tries to reflect 'df' as much as possible
     retlist = []
     partitions = cext.disk_partitions()
     for partition in partitions:
@@ -231,14 +231,14 @@ def disk_partitions(all=False):
         if device == 'none':
             device = ''
         if not all:
-            # Differently from, say, Linux, we don't have a list of
-            # common fs types so the best we can do, AFAIK, is to
-            # filter by filesystem having a total size > 0.
+            # 024523.python.pssunos.line234.comment Differently from, say, Linux, we don't have a list of
+            # 024524.python.pssunos.line235.comment common fs types so the best we can do, AFAIK, is to
+            # 024525.python.pssunos.line236.comment filter by filesystem having a total size > 0.
             try:
                 if not disk_usage(mountpoint).total:
                     continue
             except OSError as err:
-                # https://github.com/giampaolo/psutil/issues/1674
+                # 024526.python.pssunos.line241.comment https://github.com/giampaolo/psutil/issues/1674
                 debug(f"skipping {mountpoint!r}: {err}")
                 continue
         ntuple = _common.sdiskpart(device, mountpoint, fstype, opts)
@@ -246,9 +246,9 @@ def disk_partitions(all=False):
     return retlist
 
 
-# =====================================================================
-# --- network
-# =====================================================================
+# 024527.python.pssunos.line249.comment =====================================================================
+# 024528.python.pssunos.line250.comment --- network
+# 024529.python.pssunos.line251.comment =====================================================================
 
 
 net_io_counters = cext.net_io_counters
@@ -269,7 +269,7 @@ def net_connections(kind, _pid=-1):
             continue
         if type_ not in types:
             continue
-        # TODO: refactor and use _common.conn_to_ntuple.
+        # 024530.python.pssunos.line272.comment TODO: refactor and use _common.conn_to_ntuple.
         if fam in {AF_INET, AF_INET6}:
             if laddr:
                 laddr = _common.addr(*laddr)
@@ -297,9 +297,9 @@ def net_if_stats():
     return ret
 
 
-# =====================================================================
-# --- other system functions
-# =====================================================================
+# 024531.python.pssunos.line300.comment =====================================================================
+# 024532.python.pssunos.line301.comment --- other system functions
+# 024533.python.pssunos.line302.comment =====================================================================
 
 
 def boot_time():
@@ -314,9 +314,9 @@ def users():
     localhost = (':0.0', ':0')
     for item in rawlist:
         user, tty, hostname, tstamp, user_process, pid = item
-        # note: the underlying C function includes entries about
-        # system boot, run level and others.  We might want
-        # to use them in the future.
+        # 024534.python.pssunos.line317.comment note: the underlying C function includes entries about
+        # 024535.python.pssunos.line318.comment system boot, run level and others.  We might want
+        # 024536.python.pssunos.line319.comment to use them in the future.
         if not user_process:
             continue
         if hostname in localhost:
@@ -326,9 +326,9 @@ def users():
     return retlist
 
 
-# =====================================================================
-# --- processes
-# =====================================================================
+# 024537.python.pssunos.line329.comment =====================================================================
+# 024538.python.pssunos.line330.comment --- processes
+# 024539.python.pssunos.line331.comment =====================================================================
 
 
 def pids():
@@ -353,9 +353,9 @@ def wrap_exceptions(fun):
         try:
             return fun(self, *args, **kwargs)
         except (FileNotFoundError, ProcessLookupError) as err:
-            # ENOENT (no such file or directory) gets raised on open().
-            # ESRCH (no such process) can get raised on read() if
-            # process is gone in meantime.
+            # 024540.python.pssunos.line356.comment ENOENT (no such file or directory) gets raised on open().
+            # 024541.python.pssunos.line357.comment ESRCH (no such process) can get raised on read() if
+            # 024542.python.pssunos.line358.comment process is gone in meantime.
             if not pid_exists(pid):
                 raise NoSuchProcess(pid, name) from err
             raise ZombieProcess(pid, name, ppid) from err
@@ -384,8 +384,8 @@ class Process:
 
     def _assert_alive(self):
         """Raise NSP if the process disappeared on us."""
-        # For those C function who do not raise NSP, possibly returning
-        # incorrect or incomplete result.
+        # 024543.python.pssunos.line387.comment For those C function who do not raise NSP, possibly returning
+        # 024544.python.pssunos.line388.comment incorrect or incomplete result.
         os.stat(f"{self._procfs_path}/{self.pid}")
 
     def oneshot_enter(self):
@@ -421,7 +421,7 @@ class Process:
 
     @wrap_exceptions
     def name(self):
-        # note: max len == 15
+        # 024545.python.pssunos.line424.comment note: max len == 15
         return self._proc_name_and_args()[0]
 
     @wrap_exceptions
@@ -430,9 +430,9 @@ class Process:
             return os.readlink(f"{self._procfs_path}/{self.pid}/path/a.out")
         except OSError:
             pass  # continue and guess the exe name from the cmdline
-        # Will be guessed later from cmdline but we want to explicitly
-        # invoke cmdline here in order to get an AccessDenied
-        # exception if the user has not enough privileges.
+        # 024547.python.pssunos.line433.comment Will be guessed later from cmdline but we want to explicitly
+        # 024548.python.pssunos.line434.comment invoke cmdline here in order to get an AccessDenied
+        # 024549.python.pssunos.line435.comment exception if the user has not enough privileges.
         self.cmdline()
         return ""
 
@@ -454,18 +454,18 @@ class Process:
 
     @wrap_exceptions
     def nice_get(self):
-        # Note #1: getpriority(3) doesn't work for realtime processes.
-        # Psinfo is what ps uses, see:
-        # https://github.com/giampaolo/psutil/issues/1194
+        # 024550.python.pssunos.line457.comment Note #1: getpriority(3) doesn't work for realtime processes.
+        # 024551.python.pssunos.line458.comment Psinfo is what ps uses, see:
+        # 024552.python.pssunos.line459.comment https://github.com/giampaolo/psutil/issues/1194
         return self._proc_basic_info()[proc_info_map['nice']]
 
     @wrap_exceptions
     def nice_set(self, value):
         if self.pid in {2, 3}:
-            # Special case PIDs: internally setpriority(3) return ESRCH
-            # (no such process), no matter what.
-            # The process actually exists though, as it has a name,
-            # creation time, etc.
+            # 024553.python.pssunos.line465.comment Special case PIDs: internally setpriority(3) return ESRCH
+            # 024554.python.pssunos.line466.comment (no such process), no matter what.
+            # 024555.python.pssunos.line467.comment The process actually exists though, as it has a name,
+            # 024556.python.pssunos.line468.comment creation time, etc.
             raise AccessDenied(self.pid, self._name)
         return cext_posix.setpriority(self.pid, value)
 
@@ -500,13 +500,13 @@ class Process:
             times = cext.proc_cpu_times(self.pid, self._procfs_path)
         except OSError as err:
             if err.errno == errno.EOVERFLOW and not IS_64_BIT:
-                # We may get here if we attempt to query a 64bit process
-                # with a 32bit python.
-                # Error originates from read() and also tools like "cat"
-                # fail in the same way (!).
-                # Since there simply is no way to determine CPU times we
-                # return 0.0 as a fallback. See:
-                # https://github.com/giampaolo/psutil/issues/857
+                # 024557.python.pssunos.line503.comment We may get here if we attempt to query a 64bit process
+                # 024558.python.pssunos.line504.comment with a 32bit python.
+                # 024559.python.pssunos.line505.comment Error originates from read() and also tools like "cat"
+                # 024560.python.pssunos.line506.comment fail in the same way (!).
+                # 024561.python.pssunos.line507.comment Since there simply is no way to determine CPU times we
+                # 024562.python.pssunos.line508.comment return 0.0 as a fallback. See:
+                # 024563.python.pssunos.line509.comment https://github.com/giampaolo/psutil/issues/857
                 times = (0.0, 0.0, 0.0, 0.0)
             else:
                 raise
@@ -533,10 +533,10 @@ class Process:
 
     @wrap_exceptions
     def cwd(self):
-        # /proc/PID/path/cwd may not be resolved by readlink() even if
-        # it exists (ls shows it). If that's the case and the process
-        # is still alive return None (we can return None also on BSD).
-        # Reference: https://groups.google.com/g/comp.unix.solaris/c/tcqvhTNFCAs
+        # 024564.python.pssunos.line536.comment /proc/PID/path/cwd may not be resolved by readlink() even if
+        # 024565.python.pssunos.line537.comment it exists (ls shows it). If that's the case and the process
+        # 024566.python.pssunos.line538.comment is still alive return None (we can return None also on BSD).
+        # 024567.python.pssunos.line539.comment Reference: https://groups.google.com/g/comp.unix.solaris/c/tcqvhTNFCAs
         procfs_path = self._procfs_path
         try:
             return os.readlink(f"{procfs_path}/{self.pid}/path/cwd")
@@ -556,7 +556,7 @@ class Process:
     @wrap_exceptions
     def status(self):
         code = self._proc_basic_info()[proc_info_map['status']]
-        # XXX is '?' legit? (we're not supposed to return it anyway)
+        # 024569.python.pssunos.line559.comment XXX is '?' legit? (we're not supposed to return it anyway)
         return PROC_STATUSES.get(code, '?')
 
     @wrap_exceptions
@@ -573,15 +573,15 @@ class Process:
                 )
             except OSError as err:
                 if err.errno == errno.EOVERFLOW and not IS_64_BIT:
-                    # We may get here if we attempt to query a 64bit process
-                    # with a 32bit python.
-                    # Error originates from read() and also tools like "cat"
-                    # fail in the same way (!).
-                    # Since there simply is no way to determine CPU times we
-                    # return 0.0 as a fallback. See:
-                    # https://github.com/giampaolo/psutil/issues/857
+                    # 024570.python.pssunos.line576.comment We may get here if we attempt to query a 64bit process
+                    # 024571.python.pssunos.line577.comment with a 32bit python.
+                    # 024572.python.pssunos.line578.comment Error originates from read() and also tools like "cat"
+                    # 024573.python.pssunos.line579.comment fail in the same way (!).
+                    # 024574.python.pssunos.line580.comment Since there simply is no way to determine CPU times we
+                    # 024575.python.pssunos.line581.comment return 0.0 as a fallback. See:
+                    # 024576.python.pssunos.line582.comment https://github.com/giampaolo/psutil/issues/857
                     continue
-                # ENOENT == thread gone in meantime
+                # 024577.python.pssunos.line584.comment ENOENT == thread gone in meantime
                 if err.errno == errno.ENOENT:
                     hit_enoent = True
                     continue
@@ -616,8 +616,8 @@ class Process:
 
     def _get_unix_sockets(self, pid):
         """Get UNIX sockets used by process by parsing 'pfiles' output."""
-        # TODO: rewrite this in C (...but the damn netstat source code
-        # does not include this part! Argh!!)
+        # 024578.python.pssunos.line619.comment TODO: rewrite this in C (...but the damn netstat source code
+        # 024579.python.pssunos.line620.comment does not include this part! Argh!!)
         cmd = ["pfiles", str(pid)]
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -651,16 +651,16 @@ class Process:
     @wrap_exceptions
     def net_connections(self, kind='inet'):
         ret = net_connections(kind, _pid=self.pid)
-        # The underlying C implementation retrieves all OS connections
-        # and filters them by PID.  At this point we can't tell whether
-        # an empty list means there were no connections for process or
-        # process is no longer active so we force NSP in case the PID
-        # is no longer there.
+        # 024580.python.pssunos.line654.comment The underlying C implementation retrieves all OS connections
+        # 024581.python.pssunos.line655.comment and filters them by PID.  At this point we can't tell whether
+        # 024582.python.pssunos.line656.comment an empty list means there were no connections for process or
+        # 024583.python.pssunos.line657.comment process is no longer active so we force NSP in case the PID
+        # 024584.python.pssunos.line658.comment is no longer there.
         if not ret:
-            # will raise NSP if process is gone
+            # 024585.python.pssunos.line660.comment will raise NSP if process is gone
             os.stat(f"{self._procfs_path}/{self.pid}")
 
-        # UNIX sockets
+        # 024586.python.pssunos.line663.comment UNIX sockets
         if kind in {'all', 'unix'}:
             ret.extend([
                 _common.pconn(*conn)
@@ -684,13 +684,13 @@ class Process:
             rawlist = cext.proc_memory_maps(self.pid, procfs_path)
         except OSError as err:
             if err.errno == errno.EOVERFLOW and not IS_64_BIT:
-                # We may get here if we attempt to query a 64bit process
-                # with a 32bit python.
-                # Error originates from read() and also tools like "cat"
-                # fail in the same way (!).
-                # Since there simply is no way to determine CPU times we
-                # return 0.0 as a fallback. See:
-                # https://github.com/giampaolo/psutil/issues/857
+                # 024587.python.pssunos.line687.comment We may get here if we attempt to query a 64bit process
+                # 024588.python.pssunos.line688.comment with a 32bit python.
+                # 024589.python.pssunos.line689.comment Error originates from read() and also tools like "cat"
+                # 024590.python.pssunos.line690.comment fail in the same way (!).
+                # 024591.python.pssunos.line691.comment Since there simply is no way to determine CPU times we
+                # 024592.python.pssunos.line692.comment return 0.0 as a fallback. See:
+                # 024593.python.pssunos.line693.comment https://github.com/giampaolo/psutil/issues/857
                 return []
             else:
                 raise
@@ -703,12 +703,12 @@ class Process:
                     name = os.readlink(f"{procfs_path}/{self.pid}/path/{name}")
                 except OSError as err:
                     if err.errno == errno.ENOENT:
-                        # sometimes the link may not be resolved by
-                        # readlink() even if it exists (ls shows it).
-                        # If that's the case we just return the
-                        # unresolved link path.
-                        # This seems an inconsistency with /proc similar
-                        # to: http://goo.gl/55XgO
+                        # 024594.python.pssunos.line706.comment sometimes the link may not be resolved by
+                        # 024595.python.pssunos.line707.comment readlink() even if it exists (ls shows it).
+                        # 024596.python.pssunos.line708.comment If that's the case we just return the
+                        # 024597.python.pssunos.line709.comment unresolved link path.
+                        # 024598.python.pssunos.line710.comment This seems an inconsistency with /proc similar
+                        # 024599.python.pssunos.line711.comment to: http://goo.gl/55XgO
                         name = f"{procfs_path}/{self.pid}/path/{name}"
                         hit_enoent = True
                     else:

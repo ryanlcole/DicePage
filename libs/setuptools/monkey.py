@@ -72,16 +72,16 @@ def get_unpatched_class(cls: type[_T]) -> type[_T]:
 def patch_all():
     import setuptools
 
-    # we can't patch distutils.cmd, alas
+    # 044935.python.monkey.line75.comment we can't patch distutils.cmd, alas
     distutils.core.Command = setuptools.Command  # type: ignore[misc,assignment] # monkeypatching
 
     _patch_distribution_metadata()
 
-    # Install Distribution throughout the distutils
+    # 044937.python.monkey.line80.comment Install Distribution throughout the distutils
     for module in distutils.dist, distutils.core, distutils.cmd:
         module.Distribution = setuptools.dist.Distribution
 
-    # Install the patched Extension
+    # 044938.python.monkey.line84.comment Install the patched Extension
     distutils.core.Extension = setuptools.extension.Extension  # type: ignore[misc,assignment] # monkeypatching
     distutils.extension.Extension = setuptools.extension.Extension  # type: ignore[misc,assignment] # monkeypatching
     if 'distutils.command.build_ext' in sys.modules:
@@ -114,11 +114,11 @@ def patch_func(replacement, target_mod, func_name):
     """
     original = getattr(target_mod, func_name)
 
-    # set the 'unpatched' attribute on the replacement to
-    # point to the original.
+    # 044941.python.monkey.line117.comment set the 'unpatched' attribute on the replacement to
+    # 044942.python.monkey.line118.comment point to the original.
     vars(replacement).setdefault('unpatched', original)
 
-    # replace the function in the original module
+    # 044943.python.monkey.line121.comment replace the function in the original module
     setattr(target_mod, func_name, replacement)
 
 

@@ -8,7 +8,7 @@ import os
 from ._log import log
 from .errors import DistutilsFileError
 
-# for generating verbose output in 'copy_file()'
+# 040720.python.file_util.line11.comment for generating verbose output in 'copy_file()'
 _copy_action = {None: 'copying', 'hard': 'hard linking', 'sym': 'symbolically linking'}
 
 
@@ -19,8 +19,8 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
     bytes (default 16k).  No attempt is made to handle anything apart from
     regular files.
     """
-    # Stolen from shutil module in the standard library, but with
-    # custom error-handling added.
+    # 040722.python.file_util.line22.comment Stolen from shutil module in the standard library, but with
+    # 040723.python.file_util.line23.comment custom error-handling added.
     fsrc = None
     fdst = None
     try:
@@ -94,12 +94,12 @@ def copy_file(  # noqa: C901
     the output file, and 'copied' is true if the file was copied (or would
     have been copied, if 'dry_run' true).
     """
-    # XXX if the destination file already exists, we clobber it if
-    # copying, but blow up if linking.  Hmmm.  And I don't know what
-    # macostools.copyfile() does.  Should definitely be consistent, and
-    # should probably blow up if destination exists and we would be
-    # changing it (ie. it's not already a hard/soft link to src OR
-    # (not update) and (src newer than dst).
+    # 040725.python.file_util.line97.comment XXX if the destination file already exists, we clobber it if
+    # 040726.python.file_util.line98.comment copying, but blow up if linking.  Hmmm.  And I don't know what
+    # 040727.python.file_util.line99.comment macostools.copyfile() does.  Should definitely be consistent, and
+    # 040728.python.file_util.line100.comment should probably blow up if destination exists and we would be
+    # 040729.python.file_util.line101.comment changing it (ie. it's not already a hard/soft link to src OR
+    # 040730.python.file_util.line102.comment (not update) and (src newer than dst).
 
     from distutils._modified import newer
     from stat import S_IMODE, ST_ATIME, ST_MODE, ST_MTIME
@@ -134,16 +134,16 @@ def copy_file(  # noqa: C901
     if dry_run:
         return (dst, True)
 
-    # If linking (hard or symbolic), use the appropriate system call
-    # (Unix only, of course, but that's the caller's responsibility)
+    # 040731.python.file_util.line137.comment If linking (hard or symbolic), use the appropriate system call
+    # 040732.python.file_util.line138.comment (Unix only, of course, but that's the caller's responsibility)
     elif link == 'hard':
         if not (os.path.exists(dst) and os.path.samefile(src, dst)):
             try:
                 os.link(src, dst)
             except OSError:
-                # If hard linking fails, fall back on copying file
-                # (some special filesystems don't support hard linking
-                #  even under Unix, see issue #8876).
+                # 040733.python.file_util.line144.comment If hard linking fails, fall back on copying file
+                # 040734.python.file_util.line145.comment (some special filesystems don't support hard linking
+                # 040735.python.file_util.line146.comment even under Unix, see issue #8876).
                 pass
             else:
                 return (dst, True)
@@ -152,14 +152,14 @@ def copy_file(  # noqa: C901
             os.symlink(src, dst)
             return (dst, True)
 
-    # Otherwise (non-Mac, not linking), copy the file contents and
-    # (optionally) copy the times and mode.
+    # 040736.python.file_util.line155.comment Otherwise (non-Mac, not linking), copy the file contents and
+    # 040737.python.file_util.line156.comment (optionally) copy the times and mode.
     _copy_file_contents(src, dst)
     if preserve_mode or preserve_times:
         st = os.stat(src)
 
-        # According to David Ascher <da@ski.org>, utime() should be done
-        # before chmod() (at least under NT).
+        # 040738.python.file_util.line161.comment According to David Ascher <da@ski.org>, utime() should be done
+        # 040739.python.file_util.line162.comment before chmod() (at least under NT).
         if preserve_times:
             os.utime(dst, (st[ST_ATIME], st[ST_MTIME]))
         if preserve_mode:
@@ -168,7 +168,7 @@ def copy_file(  # noqa: C901
     return (dst, True)
 
 
-# XXX I suspect this is Unix-specific -- need porting help!
+# 040740.python.file_util.line171.comment XXX I suspect this is Unix-specific -- need porting help!
 def move_file(src, dst, verbose=True, dry_run=False):  # noqa: C901
     """Move a file 'src' to 'dst'.  If 'dst' is a directory, the file will
     be moved into it with the same name; otherwise, 'src' is just renamed

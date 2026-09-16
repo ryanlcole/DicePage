@@ -1,9 +1,9 @@
 import sys
 
-# Most of this file is win32con.py from Python for Windows Extensions:
-# http://www.python.net/crew/mhammond/win32/
+# 031720.python.constants.line3.comment Most of this file is win32con.py from Python for Windows Extensions:
+# 031721.python.constants.line4.comment http://www.python.net/crew/mhammond/win32/
 
-# From Windows 2000 API SuperBible:
+# 031722.python.constants.line6.comment From Windows 2000 API SuperBible:
 
 VK_OEM_1 = 0xba
 VK_OEM_PLUS = 0xbb
@@ -19,37 +19,37 @@ VK_OEM_7 = 0xde
 VK_OEM_8 = 0xdf
 VK_OEM_102 = 0xe2
 
-# Copyright (c) 1994-2001, Mark Hammond 
-# All rights reserved.
-# 
-# Redistribution and use in source and binary forms, with or without 
-# modification, are permitted provided that the following conditions 
-# are met:
-# 
-# Redistributions of source code must retain the above copyright notice, 
-# this list of conditions and the following disclaimer.
-# 
-# Redistributions in binary form must reproduce the above copyright 
-# notice, this list of conditions and the following disclaimer in 
-# the documentation and/or other materials provided with the distribution.
-# 
-# Neither name of Mark Hammond nor the name of contributors may be used 
-# to endorse or promote products derived from this software without 
-# specific prior written permission. 
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS
-# IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. P
+# 031723.python.constants.line22.comment Copyright (c) 1994-2001, Mark Hammond
+# 031724.python.constants.line23.comment All rights reserved.
+# 031725.python.constants.line24.comment
+# 031726.python.constants.line25.comment Redistribution and use in source and binary forms, with or without
+# 031727.python.constants.line26.comment modification, are permitted provided that the following conditions
+# 031728.python.constants.line27.comment are met:
+# 031729.python.constants.line28.comment
+# 031730.python.constants.line29.comment Redistributions of source code must retain the above copyright notice,
+# 031731.python.constants.line30.comment this list of conditions and the following disclaimer.
+# 031732.python.constants.line31.comment
+# 031733.python.constants.line32.comment Redistributions in binary form must reproduce the above copyright
+# 031734.python.constants.line33.comment notice, this list of conditions and the following disclaimer in
+# 031735.python.constants.line34.comment the documentation and/or other materials provided with the distribution.
+# 031736.python.constants.line35.comment
+# 031737.python.constants.line36.comment Neither name of Mark Hammond nor the name of contributors may be used
+# 031738.python.constants.line37.comment to endorse or promote products derived from this software without
+# 031739.python.constants.line38.comment specific prior written permission.
+# 031740.python.constants.line39.comment
+# 031741.python.constants.line40.comment THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS
+# 031742.python.constants.line41.comment IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# 031743.python.constants.line42.comment TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# 031744.python.constants.line43.comment PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+# 031745.python.constants.line44.comment CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# 031746.python.constants.line45.comment EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# 031747.python.constants.line46.comment PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# 031748.python.constants.line47.comment PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# 031749.python.constants.line48.comment LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# 031750.python.constants.line49.comment NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# 031751.python.constants.line50.comment SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. P
 
-# From WinGDI.h
+# 031752.python.constants.line52.comment From WinGDI.h
 PFD_TYPE_RGBA = 0
 PFD_TYPE_COLORINDEX = 1
 PFD_MAIN_PLANE = 0
@@ -73,7 +73,7 @@ PFD_DEPTH_DONTCARE = 0x20000000
 PFD_DOUBLEBUFFER_DONTCARE = 0x40000000
 PFD_STEREO_DONTCARE = 0x80000000
 
-# Generated by h2py from commdlg.h (plus modifications 4jan98)
+# 031753.python.constants.line76.comment Generated by h2py from commdlg.h (plus modifications 4jan98)
 WINVER = 1280
 WM_USER = 1024
 PY_0U = 0
@@ -261,7 +261,7 @@ PSD_ENABLEPAGEPAINTHOOK = 262144
 PSD_DISABLEPAGEPAINTING = 524288
 PSD_NONETWORKBUTTON = 2097152 # must be same as PD_*
 
-# Generated by h2py from winreg.h
+# 031772.python.constants.line264.comment Generated by h2py from winreg.h
 HKEY_CLASSES_ROOT = -2147483648
 HKEY_CURRENT_USER = -2147483647
 HKEY_LOCAL_MACHINE = -2147483646
@@ -272,7 +272,7 @@ HKEY_DYN_DATA = -2147483642
 HKEY_PERFORMANCE_TEXT = -2147483568  # ?? 4Jan98
 HKEY_PERFORMANCE_NLSTEXT = -2147483552  # ?? 4Jan98
 
-# Generated by h2py from winuser.h
+# 031775.python.constants.line275.comment Generated by h2py from winuser.h
 HWND_BROADCAST = 65535
 HWND_DESKTOP = 0
 HWND_TOP = 0
@@ -281,7 +281,7 @@ HWND_TOPMOST = -1
 HWND_NOTOPMOST = -2
 HWND_MESSAGE = -3
 
-# winuser.h line 4601
+# 031776.python.constants.line284.comment winuser.h line 4601
 SM_CXSCREEN = 0
 SM_CYSCREEN = 1
 SM_CXVSCROLL = 2
@@ -540,7 +540,7 @@ MB_ICONMASK = 240
 MB_DEFMASK = 3840
 MB_MODEMASK = 12288
 MB_MISCMASK = 49152
-# winuser.h line 6373
+# 031778.python.constants.line543.comment winuser.h line 6373
 CWP_ALL = 0
 CWP_SKIPINVISIBLE = 1
 CWP_SKIPDISABLED = 2
@@ -758,7 +758,7 @@ OCR_ICOCUR = 32647
 OCR_NO = 32648
 OCR_HAND = 32649
 OCR_APPSTARTING = 32650
-# winuser.h line 7455
+# 031781.python.constants.line761.comment winuser.h line 7455
 OIC_SAMPLE = 32512
 OIC_HAND = 32513
 OIC_QUES = 32514
@@ -960,7 +960,7 @@ DDL_POSTMSGS = 8192
 DDL_DRIVES = 16384
 DDL_EXCLUSIVE = 32768
 
-#from winuser.h line 153
+# 031782.python.constants.line963.comment from winuser.h line 153
 RT_CURSOR = 1
 RT_BITMAP = 2
 RT_ICON = 3
@@ -982,7 +982,7 @@ RT_VXD = 20
 RT_ANICURSOR = 21
 RT_ANIICON = 22
 RT_HTML = 23
-# from winuser.h line 218
+# 031783.python.constants.line985.comment from winuser.h line 218
 SB_HORZ = 0
 SB_VERT = 1
 SB_CTL = 2
@@ -1143,7 +1143,7 @@ VK_ZOOM = 251
 VK_NONAME = 252
 VK_PA1 = 253
 VK_OEM_CLEAR = 254
-# multi-media related "keys"
+# 031785.python.constants.line1146.comment multi-media related "keys"
 MOUSEEVENTF_XDOWN = 0x0080
 MOUSEEVENTF_XUP = 0x0100
 MOUSEEVENTF_WHEEL = 0x0800
@@ -1206,11 +1206,11 @@ HCBT_SETFOCUS = 9
 MSGF_DIALOGBOX = 0
 MSGF_MESSAGEBOX = 1
 MSGF_MENU = 2
-#MSGF_MOVE = 3
-#MSGF_SIZE = 4
+# 031786.python.constants.line1209.comment MSGF_MOVE = 3
+# 031787.python.constants.line1210.comment MSGF_SIZE = 4
 MSGF_SCROLLBAR = 5
 MSGF_NEXTWINDOW = 6
-#MSGF_MAINLOOP = 8
+# 031788.python.constants.line1213.comment MSGF_MAINLOOP = 8
 MSGF_MAX = 8
 MSGF_USER = 4096
 HSHELL_WINDOWCREATED = 1
@@ -1225,13 +1225,13 @@ HSHELL_ACCESSIBILITYSTATE = 11
 ACCESS_STICKYKEYS = 1
 ACCESS_FILTERKEYS = 2
 ACCESS_MOUSEKEYS = 3
-# winuser.h line 624
+# 031789.python.constants.line1228.comment winuser.h line 624
 LLKHF_EXTENDED = 1
 LLKHF_INJECTED = 16
 LLKHF_ALTDOWN = 32
 LLKHF_UP = 128
 LLMHF_INJECTED = 1
-# line 692
+# 031790.python.constants.line1234.comment line 692
 HKL_PREV = 0
 HKL_NEXT = 1
 KLF_ACTIVATE = 1
@@ -1284,7 +1284,7 @@ GCL_WNDPROC = (-24)
 GCL_STYLE = (-26)
 GCW_ATOM = (-32)
 GCL_HICONSM = (-34)
-# line 1291
+# 031791.python.constants.line1287.comment line 1291
 WM_NULL = 0
 WM_CREATE = 1
 WM_DESTROY = 2
@@ -1531,8 +1531,8 @@ WMSZ_TOPRIGHT = 5
 WMSZ_BOTTOM = 6
 WMSZ_BOTTOMLEFT = 7
 WMSZ_BOTTOMRIGHT = 8
-#ST_BEGINSWP = 0
-#ST_ENDSWP = 1
+# 031794.python.constants.line1534.comment ST_BEGINSWP = 0
+# 031795.python.constants.line1535.comment ST_ENDSWP = 1
 HTERROR = (-2)
 HTTRANSPARENT = (-1)
 HTNOWHERE = 0
@@ -1665,12 +1665,12 @@ WS_EX_NOACTIVATE = 0x08000000
 
 CS_VREDRAW = 1
 CS_HREDRAW = 2
-#CS_KEYCVTWINDOW = 0x0004
+# 031796.python.constants.line1668.comment CS_KEYCVTWINDOW = 0x0004
 CS_DBLCLKS = 8
 CS_OWNDC = 32
 CS_CLASSDC = 64
 CS_PARENTDC = 128
-#CS_NOKEYCVT = 0x0100
+# 031797.python.constants.line1673.comment CS_NOKEYCVT = 0x0100
 CS_NOCLOSE = 512
 CS_SAVEBITS = 2048
 CS_BYTEALIGNCLIENT = 4096
@@ -1689,14 +1689,14 @@ BDR_RAISEDINNER = 4
 BDR_SUNKENINNER = 8
 BDR_OUTER = 3
 BDR_INNER = 12
-#BDR_RAISED = 0x0005
-#BDR_SUNKEN = 0x000a
+# 031798.python.constants.line1692.comment BDR_RAISED = 0x0005
+# 031799.python.constants.line1693.comment BDR_SUNKEN = 0x000a
 EDGE_RAISED = (BDR_RAISEDOUTER | BDR_RAISEDINNER)
 EDGE_SUNKEN = (BDR_SUNKENOUTER | BDR_SUNKENINNER)
 EDGE_ETCHED = (BDR_SUNKENOUTER | BDR_RAISEDINNER)
 EDGE_BUMP = (BDR_RAISEDOUTER | BDR_SUNKENINNER)
 
-# winuser.h line 2879
+# 031800.python.constants.line1699.comment winuser.h line 2879
 ISMEX_NOSEND = 0
 ISMEX_SEND = 1
 ISMEX_NOTIFY = 2
@@ -1710,7 +1710,7 @@ FLASHW_ALL = (FLASHW_CAPTION | FLASHW_TRAY)
 FLASHW_TIMER = 4
 FLASHW_TIMERNOFG = 12
 
-# winuser.h line 7963
+# 031801.python.constants.line1713.comment winuser.h line 7963
 DS_ABSALIGN = 1
 DS_SYSMODAL = 2
 DS_LOCALEDIT = 32
@@ -1728,18 +1728,18 @@ DS_CONTEXTHELP = 8192
 DM_GETDEFID = (WM_USER+0)
 DM_SETDEFID = (WM_USER+1)
 DM_REPOSITION = (WM_USER+2)
-#PSM_PAGEINFO = (WM_USER+100)
-#PSM_SHEETINFO = (WM_USER+101)
-#PSI_SETACTIVE = 0x0001
-#PSI_KILLACTIVE = 0x0002
-#PSI_APPLY = 0x0003
-#PSI_RESET = 0x0004
-#PSI_HASHELP = 0x0005
-#PSI_HELP = 0x0006
-#PSI_CHANGED = 0x0001
-#PSI_GUISTART = 0x0002
-#PSI_REBOOT = 0x0003
-#PSI_GETSIBLINGS = 0x0004
+# 031802.python.constants.line1731.comment PSM_PAGEINFO = (WM_USER+100)
+# 031803.python.constants.line1732.comment PSM_SHEETINFO = (WM_USER+101)
+# 031804.python.constants.line1733.comment PSI_SETACTIVE = 0x0001
+# 031805.python.constants.line1734.comment PSI_KILLACTIVE = 0x0002
+# 031806.python.constants.line1735.comment PSI_APPLY = 0x0003
+# 031807.python.constants.line1736.comment PSI_RESET = 0x0004
+# 031808.python.constants.line1737.comment PSI_HASHELP = 0x0005
+# 031809.python.constants.line1738.comment PSI_HELP = 0x0006
+# 031810.python.constants.line1739.comment PSI_CHANGED = 0x0001
+# 031811.python.constants.line1740.comment PSI_GUISTART = 0x0002
+# 031812.python.constants.line1741.comment PSI_REBOOT = 0x0003
+# 031813.python.constants.line1742.comment PSI_GETSIBLINGS = 0x0004
 DC_HASDEFID = 21323
 DLGC_WANTARROWS = 1
 DLGC_WANTTAB = 2
@@ -1920,8 +1920,8 @@ IMC_GETSTATUSWINDOWPOS = 15
 IMC_SETSTATUSWINDOWPOS = 16
 IMC_CLOSESTATUSWINDOW = 33
 IMC_OPENSTATUSWINDOW = 34
-# Generated by h2py from \msvc20\include\winnt.h
-# hacked and split by mhammond.
+# 031814.python.constants.line1923.comment Generated by h2py from \msvc20\include\winnt.h
+# 031815.python.constants.line1924.comment hacked and split by mhammond.
 DELETE = (65536)
 READ_CONTROL = (131072)
 WRITE_DAC = (262144)
@@ -2044,8 +2044,8 @@ TAPE_DRIVE_FORMAT_IMMEDIATE = -1073741824
 TAPE_FIXED_PARTITIONS = 0
 TAPE_SELECT_PARTITIONS = 1
 TAPE_INITIATOR_PARTITIONS = 2
-# Generated by h2py from \msvc20\include\winnt.h
-# hacked and split by mhammond.
+# 031816.python.constants.line2047.comment Generated by h2py from \msvc20\include\winnt.h
+# 031817.python.constants.line2048.comment hacked and split by mhammond.
 
 APPLICATION_ERROR_MASK = 536870912
 ERROR_SEVERITY_SUCCESS = 0
@@ -2206,8 +2206,8 @@ MEM_PRIVATE = 131072
 MEM_MAPPED = 262144
 MEM_TOP_DOWN = 1048576
 
-# Generated by h2py from \msvc20\include\winnt.h
-# hacked and split by mhammond.
+# 031818.python.constants.line2209.comment Generated by h2py from \msvc20\include\winnt.h
+# 031819.python.constants.line2210.comment hacked and split by mhammond.
 SEC_FILE = 8388608
 SEC_IMAGE = 16777216
 SEC_RESERVE = 67108864
@@ -2392,7 +2392,7 @@ REG_RESOURCE_REQUIREMENTS_LIST = ( 10 )
 REG_NONE =                   ( 0 )   # No value type
 REG_SZ =                     ( 1 )   # Unicode nul terminated string
 REG_EXPAND_SZ =              ( 2 )   # Unicode nul terminated string
-                                     # (with environment variable references)
+                                     # 031823.python.constants.line2395.comment (with environment variable references)
 REG_BINARY =                 ( 3 )   # Free form binary
 REG_DWORD =                  ( 4 )   # 32-bit number
 REG_DWORD_LITTLE_ENDIAN =    ( 4 )   # 32-bit number (same as REG_DWORD)
@@ -2406,9 +2406,9 @@ REG_QWORD =                 ( 11 )  # 64-bit number
 REG_QWORD_LITTLE_ENDIAN =   ( 11 )  # 64-bit number (same as REG_QWORD)
 
 
-# Generated by h2py from \msvc20\include\winnt.h
-# hacked and split by mhammond.
-# Included from string.h
+# 031834.python.constants.line2409.comment Generated by h2py from \msvc20\include\winnt.h
+# 031835.python.constants.line2410.comment hacked and split by mhammond.
+# 031836.python.constants.line2411.comment Included from string.h
 _NLSCMPERROR = 2147483647
 NULL = 0
 HEAP_NO_SERIALIZE = 1
@@ -2462,8 +2462,8 @@ EVENTLOG_END_PAIRED_EVENT = 2
 EVENTLOG_END_ALL_PAIRED_EVENTS = 4
 EVENTLOG_PAIRED_EVENT_ACTIVE = 8
 EVENTLOG_PAIRED_EVENT_INACTIVE = 16
-# Generated by h2py from \msvc20\include\winnt.h
-# hacked and split by mhammond.
+# 031837.python.constants.line2465.comment Generated by h2py from \msvc20\include\winnt.h
+# 031838.python.constants.line2466.comment hacked and split by mhammond.
 OWNER_SECURITY_INFORMATION = (0X00000001)
 GROUP_SECURITY_INFORMATION = (0X00000002)
 DACL_SECURITY_INFORMATION = (0X00000004)
@@ -2587,8 +2587,8 @@ FRAME_TSS = 2
 SIZEOF_RFPO_DATA = 16
 IMAGE_DEBUG_MISC_EXENAME = 1
 IMAGE_SEPARATE_DEBUG_SIGNATURE = 18756
-# Generated by h2py from \msvcnt\include\wingdi.h
-# hacked and split manually by mhammond.
+# 031839.python.constants.line2590.comment Generated by h2py from \msvcnt\include\wingdi.h
+# 031840.python.constants.line2591.comment hacked and split manually by mhammond.
 NEWFRAME = 1
 ABORTDOC = 2
 NEXTBAND = 3
@@ -2767,8 +2767,8 @@ FW_REGULAR = FW_NORMAL
 FW_DEMIBOLD = FW_SEMIBOLD
 FW_ULTRABOLD = FW_EXTRABOLD
 FW_BLACK = FW_HEAVY
-# Generated by h2py from \msvcnt\include\wingdi.h
-# hacked and split manually by mhammond.
+# 031841.python.constants.line2770.comment Generated by h2py from \msvcnt\include\wingdi.h
+# 031842.python.constants.line2771.comment hacked and split manually by mhammond.
 BS_SOLID = 0
 BS_NULL = 1
 BS_HOLLOW = BS_NULL
@@ -2941,10 +2941,10 @@ FLOODFILLBORDER = 0
 FLOODFILLSURFACE = 1
 CCHDEVICENAME = 32
 CCHFORMNAME = 32
-# Generated by h2py from \msvcnt\include\wingdi.h
-# hacked and split manually by mhammond.
+# 031843.python.constants.line2944.comment Generated by h2py from \msvcnt\include\wingdi.h
+# 031844.python.constants.line2945.comment hacked and split manually by mhammond.
 
-# DEVMODE.dmFields
+# 031845.python.constants.line2947.comment DEVMODE.dmFields
 DM_SPECVERSION = 800
 DM_ORIENTATION = 1
 DM_PAPERSIZE = 2
@@ -2977,22 +2977,22 @@ DM_PANNINGWIDTH = 134217728
 DM_PANNINGHEIGHT = 268435456
 DM_DISPLAYFIXEDOUTPUT = 536870912
 
-# DEVMODE.dmOrientation
+# 031846.python.constants.line2980.comment DEVMODE.dmOrientation
 DMORIENT_PORTRAIT = 1
 DMORIENT_LANDSCAPE = 2
 
-# DEVMODE.dmDisplayOrientation
+# 031847.python.constants.line2984.comment DEVMODE.dmDisplayOrientation
 DMDO_DEFAULT = 0
 DMDO_90 = 1
 DMDO_180 = 2
 DMDO_270 = 3
 
-# DEVMODE.dmDisplayFixedOutput
+# 031848.python.constants.line2990.comment DEVMODE.dmDisplayFixedOutput
 DMDFO_DEFAULT = 0
 DMDFO_STRETCH = 1
 DMDFO_CENTER = 2
 
-# DEVMODE.dmPaperSize
+# 031849.python.constants.line2995.comment DEVMODE.dmPaperSize
 DMPAPER_LETTER = 1
 DMPAPER_LETTERSMALL = 2
 DMPAPER_TABLOID = 3
@@ -3114,7 +3114,7 @@ DMPAPER_PENV_10_ROTATED = 118
 DMPAPER_LAST = DMPAPER_PENV_10_ROTATED
 DMPAPER_USER = 256
 
-# DEVMODE.dmDefaultSource
+# 031850.python.constants.line3117.comment DEVMODE.dmDefaultSource
 DMBIN_UPPER = 1
 DMBIN_ONLYONE = 1
 DMBIN_LOWER = 2
@@ -3131,56 +3131,56 @@ DMBIN_CASSETTE = 14
 DMBIN_LAST = DMBIN_CASSETTE
 DMBIN_USER = 256
 
-# DEVMODE.dmPrintQuality
+# 031851.python.constants.line3134.comment DEVMODE.dmPrintQuality
 DMRES_DRAFT = (-1)
 DMRES_LOW = (-2)
 DMRES_MEDIUM = (-3)
 DMRES_HIGH = (-4)
 
-# DEVMODE.dmColor
+# 031852.python.constants.line3140.comment DEVMODE.dmColor
 DMCOLOR_MONOCHROME = 1
 DMCOLOR_COLOR = 2
 
-# DEVMODE.dmDuplex
+# 031853.python.constants.line3144.comment DEVMODE.dmDuplex
 DMDUP_SIMPLEX = 1
 DMDUP_VERTICAL = 2
 DMDUP_HORIZONTAL = 3
 
-# DEVMODE.dmTTOption
+# 031854.python.constants.line3149.comment DEVMODE.dmTTOption
 DMTT_BITMAP = 1
 DMTT_DOWNLOAD = 2
 DMTT_SUBDEV = 3
 DMTT_DOWNLOAD_OUTLINE = 4
 
-# DEVMODE.dmCollate
+# 031855.python.constants.line3155.comment DEVMODE.dmCollate
 DMCOLLATE_FALSE = 0
 DMCOLLATE_TRUE = 1
 
-# DEVMODE.dmDisplayFlags
+# 031856.python.constants.line3159.comment DEVMODE.dmDisplayFlags
 DM_GRAYSCALE = 1
 DM_INTERLACED = 2
 
-# DEVMODE.dmICMMethod
+# 031857.python.constants.line3163.comment DEVMODE.dmICMMethod
 DMICMMETHOD_NONE = 1
 DMICMMETHOD_SYSTEM = 2
 DMICMMETHOD_DRIVER = 3
 DMICMMETHOD_DEVICE = 4
 DMICMMETHOD_USER = 256
 
-# DEVMODE.dmICMIntent
+# 031858.python.constants.line3170.comment DEVMODE.dmICMIntent
 DMICM_SATURATE = 1
 DMICM_CONTRAST = 2
 DMICM_COLORIMETRIC = 3
 DMICM_ABS_COLORIMETRIC = 4
 DMICM_USER = 256
 
-# DEVMODE.dmMediaType
+# 031859.python.constants.line3177.comment DEVMODE.dmMediaType
 DMMEDIA_STANDARD = 1
 DMMEDIA_TRANSPARENCY = 2
 DMMEDIA_GLOSSY = 3
 DMMEDIA_USER = 256
 
-# DEVMODE.dmDitherType
+# 031860.python.constants.line3183.comment DEVMODE.dmDitherType
 DMDITHER_NONE = 1
 DMDITHER_COARSE = 2
 DMDITHER_FINE = 3
@@ -3193,7 +3193,7 @@ DMDITHER_RESERVED9 = 9
 DMDITHER_GRAYSCALE = 10
 DMDITHER_USER = 256
 
-# DEVMODE.dmNup
+# 031861.python.constants.line3196.comment DEVMODE.dmNup
 DMNUP_SYSTEM = 1
 DMNUP_ONEUP = 2
 
@@ -3215,7 +3215,7 @@ DM_IN_PROMPT = DM_PROMPT
 DM_OUT_BUFFER = DM_COPY
 DM_OUT_DEFAULT = DM_UPDATE
 
-# DISPLAY_DEVICE.StateFlags
+# 031862.python.constants.line3218.comment DISPLAY_DEVICE.StateFlags
 DISPLAY_DEVICE_ATTACHED_TO_DESKTOP = 1
 DISPLAY_DEVICE_MULTI_DRIVER = 2
 DISPLAY_DEVICE_PRIMARY_DEVICE = 4
@@ -3226,7 +3226,7 @@ DISPLAY_DEVICE_MODESPRUNED = 134217728
 DISPLAY_DEVICE_REMOTE = 67108864
 DISPLAY_DEVICE_DISCONNECT = 33554432
 
-# DeviceCapabilities types
+# 031863.python.constants.line3229.comment DeviceCapabilities types
 DC_FIELDS = 1
 DC_PAPERS = 2
 DC_PAPERSIZE = 3
@@ -3268,7 +3268,7 @@ PRINTRATEUNIT_CPS = 2
 PRINTRATEUNIT_LPM = 3
 PRINTRATEUNIT_IPM = 4
 
-# TrueType constants
+# 031864.python.constants.line3271.comment TrueType constants
 DCTT_BITMAP = 1
 DCTT_DOWNLOAD = 2
 DCTT_SUBDEV = 4
@@ -3291,8 +3291,8 @@ ILLUMINANT_DAYLIGHT = ILLUMINANT_C
 ILLUMINANT_FLUORESCENT = ILLUMINANT_F2
 ILLUMINANT_NTSC = ILLUMINANT_C
 
-# Generated by h2py from \msvcnt\include\wingdi.h
-# hacked and split manually by mhammond.
+# 031865.python.constants.line3294.comment Generated by h2py from \msvcnt\include\wingdi.h
+# 031866.python.constants.line3295.comment hacked and split manually by mhammond.
 FONTMAPPER_MAX = 10
 ENHMETA_SIGNATURE = 1179469088
 ENHMETA_STOCK_OBJECT = -2147483648
@@ -3394,8 +3394,8 @@ EMR_POLYTEXTOUTA = 96
 EMR_POLYTEXTOUTW = 97
 EMR_MIN = 1
 EMR_MAX = 97
-# Generated by h2py from \msvcnt\include\wingdi.h
-# hacked and split manually by mhammond.
+# 031867.python.constants.line3397.comment Generated by h2py from \msvcnt\include\wingdi.h
+# 031868.python.constants.line3398.comment hacked and split manually by mhammond.
 PANOSE_COUNT = 10
 PAN_FAMILYTYPE_INDEX = 0
 PAN_SERIFSTYLE_INDEX = 1
@@ -3563,7 +3563,7 @@ SYSTEM_FIXED_FONT = 16
 STOCK_LAST = 16
 CLR_INVALID = -1
 
-# Exception/Status codes from winuser.h and winnt.h
+# 031869.python.constants.line3566.comment Exception/Status codes from winuser.h and winnt.h
 STATUS_WAIT_0                    = 0    
 STATUS_ABANDONED_WAIT_0          = 128    
 STATUS_USER_APC                  = 192    
@@ -3629,8 +3629,8 @@ EXCEPTION_GUARD_PAGE                = STATUS_GUARD_PAGE_VIOLATION
 EXCEPTION_INVALID_HANDLE            = STATUS_INVALID_HANDLE
 CONTROL_C_EXIT                      = STATUS_CONTROL_C_EXIT
 
-# winuser.h line 8594
-# constants used with SystemParametersInfo
+# 031870.python.constants.line3632.comment winuser.h line 8594
+# 031871.python.constants.line3633.comment constants used with SystemParametersInfo
 SPI_GETBEEP = 1
 SPI_SETBEEP = 2
 SPI_GETMOUSE = 3
@@ -3807,12 +3807,12 @@ SPI_SETFOCUSBORDERHEIGHT = 8209
 SPI_GETFONTSMOOTHINGORIENTATION = 8210
 SPI_SETFONTSMOOTHINGORIENTATION = 8211
 
-# fWinIni flags for SystemParametersInfo
+# 031872.python.constants.line3810.comment fWinIni flags for SystemParametersInfo
 SPIF_UPDATEINIFILE = 1
 SPIF_SENDWININICHANGE = 2
 SPIF_SENDCHANGE = SPIF_SENDWININICHANGE
 
-# used with SystemParametersInfo and SPI_GETFONTSMOOTHINGTYPE/SPI_SETFONTSMOOTHINGTYPE
+# 031873.python.constants.line3815.comment used with SystemParametersInfo and SPI_GETFONTSMOOTHINGTYPE/SPI_SETFONTSMOOTHINGTYPE
 FE_FONTSMOOTHINGSTANDARD = 1
 FE_FONTSMOOTHINGCLEARTYPE = 2
 FE_FONTSMOOTHINGDOCKING = 32768
@@ -3830,7 +3830,7 @@ ARW_RIGHT = 0
 ARW_UP = 4
 ARW_DOWN = 4
 ARW_HIDE = 8
-#ARW_VALID = 0x000F
+# 031874.python.constants.line3833.comment ARW_VALID = 0x000F
 SERKF_SERIALKEYSON = 1
 SERKF_AVAILABLE = 2
 SERKF_INDICATOR = 4
@@ -3850,7 +3850,7 @@ CDS_RESET = 1073741824
 CDS_SETRECT = 536870912
 CDS_NORESET = 268435456
 
-# return values from ChangeDisplaySettings and ChangeDisplaySettingsEx
+# 031875.python.constants.line3853.comment return values from ChangeDisplaySettings and ChangeDisplaySettingsEx
 DISP_CHANGE_SUCCESSFUL = 0
 DISP_CHANGE_RESTART = 1
 DISP_CHANGE_FAILED = -1
@@ -4068,7 +4068,7 @@ GA_ROOT = 2
 GA_ROOTOWNER = 3
 GA_MAC = 4
 
-# winuser.h line 1979
+# 031876.python.constants.line4071.comment winuser.h line 1979
 BF_LEFT = 1
 BF_TOP = 2
 BF_RIGHT = 4
@@ -4185,16 +4185,16 @@ ODS_INACTIVE = 128
 PM_NOREMOVE = 0
 PM_REMOVE = 1
 PM_NOYIELD = 2
-# Name clashes with key.MOD_ALT, key.MOD_CONTROL and key.MOD_SHIFT
+# 031877.python.constants.line4188.comment Name clashes with key.MOD_ALT, key.MOD_CONTROL and key.MOD_SHIFT
 WIN32_MOD_ALT = 1 
 WIN32_MOD_CONTROL = 2
 WIN32_MOD_SHIFT = 4
 WIN32_MOD_WIN = 8
 IDHOT_SNAPWINDOW = (-1)
 IDHOT_SNAPDESKTOP = (-2)
-#EW_RESTARTWINDOWS = 0x0042
-#EW_REBOOTSYSTEM = 0x0043
-#EW_EXITANDEXECAPP = 0x0044
+# 031878.python.constants.line4195.comment EW_RESTARTWINDOWS = 0x0042
+# 031879.python.constants.line4196.comment EW_REBOOTSYSTEM = 0x0043
+# 031880.python.constants.line4197.comment EW_EXITANDEXECAPP = 0x0044
 ENDSESSION_LOGOFF = -2147483648
 EWX_LOGOFF = 0
 EWX_SHUTDOWN = 1
@@ -4219,7 +4219,7 @@ BROADCAST_QUERY_DENY = 1112363332  # Return this value to deny a query.
 
 DBWF_LPARAMPOINTER = 32768
 
-# winuser.h line 3232
+# 031882.python.constants.line4222.comment winuser.h line 3232
 SWP_NOSIZE = 1
 SWP_NOMOVE = 2
 SWP_NOZORDER = 4
@@ -4237,7 +4237,7 @@ SWP_DEFERERASE = 8192
 SWP_ASYNCWINDOWPOS = 16384
 
 DLGWINDOWEXTRA = 30
-# winuser.h line 4249
+# 031883.python.constants.line4240.comment winuser.h line 4249
 KEYEVENTF_EXTENDEDKEY = 1
 KEYEVENTF_KEYUP = 2
 MOUSEEVENTF_MOVE = 1
@@ -4296,7 +4296,7 @@ IMN_SETSTATUSWINDOWPOS = 12
 IMN_GUIDELINE = 13
 IMN_PRIVATE = 14
 
-# winuser.h line 8518
+# 031884.python.constants.line4299.comment winuser.h line 8518
 HELP_CONTEXT = 1
 HELP_QUIT = 2
 HELP_INDEX = 3
@@ -4326,8 +4326,8 @@ IDH_CANCEL = 28444
 IDH_HELP = 28445
 GR_GDIOBJECTS = 0      # Count of GDI objects
 GR_USEROBJECTS = 1     # Count of USER objects
-# Generated by h2py from \msvcnt\include\wingdi.h
-# manually added (missed by generation some how!
+# 031889.python.constants.line4329.comment Generated by h2py from \msvcnt\include\wingdi.h
+# 031890.python.constants.line4330.comment manually added (missed by generation some how!
 SRCCOPY		= 13369376	# dest = source
 SRCPAINT	= 15597702	# dest = source OR dest
 SRCAND		= 8913094	# dest = source AND dest
@@ -4344,7 +4344,7 @@ DSTINVERT	= 5570569	# dest = (NOT dest)
 BLACKNESS	= 66	# dest = BLACK
 WHITENESS	= 16711778	# dest = WHITE
 
-# hacked and split manually by mhammond.
+# 031906.python.constants.line4347.comment hacked and split manually by mhammond.
 R2_BLACK = 1
 R2_NOTMERGEPEN = 2
 R2_MASKNOTPEN = 3
@@ -4650,7 +4650,7 @@ OF_REOPEN = 32768
 OFS_MAXPATHNAME = 128
 MAXINTATOM = 49152
 
-# winbase.h
+# 031907.python.constants.line4653.comment winbase.h
 PROCESS_HEAP_REGION = 1
 PROCESS_HEAP_UNCOMMITTED_RANGE = 2
 PROCESS_HEAP_ENTRY_BUSY = 4
@@ -4742,7 +4742,7 @@ BATTERY_FLAG_UNKNOWN = 255
 BATTERY_PERCENTAGE_UNKNOWN = 255
 BATTERY_LIFE_UNKNOWN = -1
 
-# Generated by h2py from d:\msdev\include\richedit.h
+# 031908.python.constants.line4745.comment Generated by h2py from d:\msdev\include\richedit.h
 cchTextLimitDefault = 32767
 WM_CONTEXTMENU = 123
 WM_PRINTCLIENT = 792
@@ -4857,7 +4857,7 @@ CF_RTF = "Rich Text Format"
 CF_RTFNOOBJS = "Rich Text Format Without Objects"
 CF_RETEXTOBJ = "RichEdit Text and Objects"
 
-# From wincon.h
+# 031909.python.constants.line4860.comment From wincon.h
 RIGHT_ALT_PRESSED     = 1 # the right alt key is pressed.
 LEFT_ALT_PRESSED      = 2 # the left alt key is pressed.
 RIGHT_CTRL_PRESSED    = 4 # the right ctrl key is pressed.
@@ -4891,7 +4891,7 @@ MOUSE_MOVED   = 1
 DOUBLE_CLICK  = 2
 MOUSE_WHEELED = 4
 
-#property sheet window messages from prsht.h
+# 031926.python.constants.line4894.comment property sheet window messages from prsht.h
 PSM_SETCURSEL = (WM_USER + 101)
 PSM_REMOVEPAGE = (WM_USER + 102)
 PSM_ADDPAGE = (WM_USER + 103)
@@ -4926,7 +4926,7 @@ PSM_INDEXTOID = (WM_USER + 134)
 PSM_GETRESULT = (WM_USER + 135)
 PSM_RECALCPAGESIZES = (WM_USER + 136)
 
-# GetUserNameEx/GetComputerNameEx
+# 031927.python.constants.line4929.comment GetUserNameEx/GetComputerNameEx
 NameUnknown = 0
 NameFullyQualifiedDN = 1
 NameSamCompatible = 2
@@ -4953,11 +4953,11 @@ ULW_COLORKEY = 0x00000001
 ULW_ALPHA = 0x00000002
 ULW_OPAQUE = 0x00000004
 
-# WinDef.h
+# 031928.python.constants.line4956.comment WinDef.h
 TRUE = 1
 FALSE = 0
 MAX_PATH = 260
-# WinGDI.h
+# 031929.python.constants.line4960.comment WinGDI.h
 AC_SRC_OVER = 0
 AC_SRC_ALPHA = 1
 GRADIENT_FILL_RECT_H = 0
@@ -4965,8 +4965,8 @@ GRADIENT_FILL_RECT_V = 1
 GRADIENT_FILL_TRIANGLE = 2
 GRADIENT_FILL_OP_FLAG = 255
 
-# Bizarrely missing from any platform header.  Ref:
-# http://www.codeguru.com/forum/archive/index.php/t-426785.html
+# 031930.python.constants.line4968.comment Bizarrely missing from any platform header.  Ref:
+# 031931.python.constants.line4969.comment http://www.codeguru.com/forum/archive/index.php/t-426785.html
 MAPVK_VK_TO_VSC = 0
 MAPVK_VSC_TO_VK = 1
 MAPVK_VK_TO_CHAR = 2
@@ -4974,10 +4974,10 @@ MAPVK_VSC_TO_VK_EX = 3
 
 USER_TIMER_MAXIMUM = 0x7fffffff
 
-# From WinBase.h
+# 031932.python.constants.line4977.comment From WinBase.h
 INFINITE = 0xffffffff
 
-# From Winuser.h
+# 031933.python.constants.line4980.comment From Winuser.h
 RIDEV_REMOVE = 0x00000001
 RIDEV_EXCLUDE = 0x00000010
 RIDEV_PAGEONLY = 0x00000020
@@ -5063,7 +5063,7 @@ MF_FILEFLAGS_NOBUFFERING = 1
 
 CLSCTX_INPROC_SERVER = 0x1
 
-# From Dwmapi.h
+# 031939.python.constants.line5066.comment From Dwmapi.h
 DWM_BB_ENABLE = 0x00000001
 DWM_BB_BLURREGION = 0x00000002
 DWM_BB_TRANSITIONONMAXIMIZED = 0x00000004

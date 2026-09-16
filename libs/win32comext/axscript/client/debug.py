@@ -22,8 +22,8 @@ def trace(*args):
     print()
 
 
-# Note that the DebugManager is not a COM gateway class for the
-# debugger - but it does create and manage them.
+# 050977.python.debug.line25.comment Note that the DebugManager is not a COM gateway class for the
+# 050978.python.debug.line26.comment debugger - but it does create and manage them.
 class DebugManager:
     _debugger_interfaces_ = [axdebug.IID_IActiveScriptDebug]
 
@@ -38,14 +38,14 @@ class DebugManager:
                 axdebug.IID_IActiveScriptSiteDebug
             )
         except pythoncom.com_error:
-            # No debugger interface (ie, dumb host).  Do the extra work.
+            # 050979.python.debug.line41.comment No debugger interface (ie, dumb host).  Do the extra work.
             trace("Scripting site has no debugger interface")
             self.scriptSiteDebug = None
-        # Get the debug application object.
+        # 050980.python.debug.line44.comment Get the debug application object.
         self.debugApplication = None
         if self.scriptSiteDebug is not None:
-            # Spec says that we should test for this, and if it fails revert to
-            # PDM application.
+            # 050981.python.debug.line47.comment Spec says that we should test for this, and if it fails revert to
+            # 050982.python.debug.line48.comment PDM application.
             try:
                 self.debugApplication = self.scriptSiteDebug.GetApplication()
                 self.rootNode = self.scriptSiteDebug.GetRootApplicationNode()
@@ -53,9 +53,9 @@ class DebugManager:
                 self.debugApplication = None
 
         if self.debugApplication is None:
-            # Try to get/create the default one
-            # NOTE - Don't catch exceptions here - let the parent do it,
-            # so it knows debug support is available.
+            # 050983.python.debug.line56.comment Try to get/create the default one
+            # 050984.python.debug.line57.comment NOTE - Don't catch exceptions here - let the parent do it,
+            # 050985.python.debug.line58.comment so it knows debug support is available.
             pdm = pythoncom.CoCreateInstance(
                 axdebug.CLSID_ProcessDebugManager,
                 None,
@@ -78,7 +78,7 @@ class DebugManager:
         )
 
     def Close(self):
-        # Called by the language engine when it receives a close request
+        # 050986.python.debug.line81.comment Called by the language engine when it receives a close request
         self.activeScriptDebug = None
         self.scriptEngine = None
         self.rootNode = None
@@ -92,7 +92,7 @@ class DebugManager:
             self.adb.CloseApp()
             self.adb = None
 
-    # print("Close complete")
+    # 050987.python.debug.line95.comment print("Close complete")
 
     def IsAnyHost(self):
         "Do we have _any_ debugging interfaces installed?"
@@ -108,11 +108,11 @@ class DebugManager:
         The result is a boolean which indicates if the error handler should call
         IActiveScriptSite::OnScriptError()
         """
-        # 		if self.IsAnyHost:
-        # 			site = _wrap(self, axdebug.IID_IActiveScriptSite)
-        # 			breakResume, errorResume, fCallOnError = self.debugApplication(activeScriptErrorDebug, site)
-        # Do something with these!
-        # 		else:
+        # 050988.python.debug.line111.comment if self.IsAnyHost:
+        # 050989.python.debug.line112.comment site = _wrap(self, axdebug.IID_IActiveScriptSite)
+        # 050990.python.debug.line113.comment breakResume, errorResume, fCallOnError = self.debugApplication(activeScriptErrorDebug, site)
+        # 050991.python.debug.line114.comment Do something with these!
+        # 050992.python.debug.line115.comment else:
         trace("HandleRuntimeError")
         fCallOnError = 1
         return fCallOnError
@@ -132,7 +132,7 @@ class DebugManager:
         self.adb.ResetAXDebugging()
 
     def AddScriptBlock(self, codeBlock):
-        # If we don't have debugging support, don't bother.
+        # 050993.python.debug.line135.comment If we don't have debugging support, don't bother.
         cc = DebugCodeBlockContainer(codeBlock, self.scriptSiteDebug)
         if self.IsSimpleHost():
             document = documents.DebugDocumentText(cc)
@@ -166,8 +166,8 @@ class DebugCodeBlockContainer(SourceCodeContainer):
             return self.codeBlock.GetDisplayName()
         elif dnt == axdebug.DOCUMENTNAMETYPE_TITLE:
             return self.codeBlock.GetDisplayName()
-        # 		elif dnt==axdebug.DOCUMENTNAMETYPE_FILE_TAIL:
-        # 		elif dnt==axdebug.DOCUMENTNAMETYPE_URL:
+        # 050995.python.debug.line169.comment elif dnt==axdebug.DOCUMENTNAMETYPE_FILE_TAIL:
+        # 050996.python.debug.line170.comment elif dnt==axdebug.DOCUMENTNAMETYPE_URL:
         else:
             raise COMException(scode=winerror.S_FALSE)
 

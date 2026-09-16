@@ -40,9 +40,9 @@ if TYPE_CHECKING:
 
 kernel32 = WinDLL("kernel32", use_last_error=True)
 
-###
-# https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/core/ctypes/_util.py
-###
+# 046665.python.win32verstamp_pywin32ctypes.line43.comment ##
+# 046666.python.win32verstamp_pywin32ctypes.line44.comment https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/core/ctypes/_util.py
+# 046667.python.win32verstamp_pywin32ctypes.line45.comment ##
 
 
 def make_error(function: _NamedFuncPointer) -> OSError:
@@ -67,9 +67,9 @@ def check_false(result: int | None, function: _NamedFuncPointer, *_) -> Literal[
         return True
 
 
-###
-# https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/core/cffi/_resource.py
-###
+# 046668.python.win32verstamp_pywin32ctypes.line70.comment ##
+# 046669.python.win32verstamp_pywin32ctypes.line71.comment https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/core/cffi/_resource.py
+# 046670.python.win32verstamp_pywin32ctypes.line72.comment ##
 
 _BeginUpdateResource = kernel32.BeginUpdateResourceW
 _BeginUpdateResource.argtypes = [LPCWSTR, BOOL]
@@ -88,9 +88,9 @@ _UpdateResource.restype = BOOL
 _UpdateResource.errcheck = check_false  # type: ignore[assignment] # ctypes is badly typed
 
 
-###
-# https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/pywin32/win32api.py
-###
+# 046674.python.win32verstamp_pywin32ctypes.line91.comment ##
+# 046675.python.win32verstamp_pywin32ctypes.line92.comment https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/pywin32/win32api.py
+# 046676.python.win32verstamp_pywin32ctypes.line93.comment ##
 
 LANG_NEUTRAL = 0x00
 

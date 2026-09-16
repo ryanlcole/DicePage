@@ -2,8 +2,8 @@
 Base class for Dialogs.  Also contains a few useful utility functions
 """
 
-# dialog.py
-# Python class for Dialog Boxes in PythonWin.
+# 038481.python.dialog.line5.comment dialog.py
+# 038482.python.dialog.line6.comment Python class for Dialog Boxes in PythonWin.
 
 import win32con
 import win32ui
@@ -31,7 +31,7 @@ class Dialog(window.Wnd):
     def __init__(self, id, dllid=None):
         """id is the resource ID, or a template
         dllid may be None, a dll object, or a string with a dll name"""
-        # must take a reference to the DLL until InitDialog.
+        # 038483.python.dialog.line34.comment must take a reference to the DLL until InitDialog.
         self.dll = dllFromDll(dllid)
         if isinstance(id, list):  # a template
             dlg = win32ui.CreateDialogIndirect(id)
@@ -48,7 +48,7 @@ class Dialog(window.Wnd):
         self.data = self._obj_.data
         window.Wnd.OnAttachedObjectDeath(self)
 
-    # provide virtuals.
+    # 038485.python.dialog.line51.comment provide virtuals.
     def OnOK(self):
         self._obj_.OnOK()
 
@@ -64,11 +64,11 @@ class Dialog(window.Wnd):
     def OnDestroy(self, msg):
         self.dll = None  # theoretically not needed if object destructs normally.
 
-    # DDX support
+    # 038488.python.dialog.line67.comment DDX support
     def AddDDX(self, *args):
         self._obj_.datalist.append(args)
 
-    # Make a dialog object look like a dictionary for the DDX support
+    # 038489.python.dialog.line71.comment Make a dialog object look like a dictionary for the DDX support
     def __bool__(self):
         return True
 
@@ -122,7 +122,7 @@ class PrintDialog(Dialog):
         self.HookCommands()
         self.bHaveInit = None
         self.pInfo = pInfo
-        # init values (if PrintSetup is called, values still available)
+        # 038492.python.dialog.line125.comment init values (if PrintSetup is called, values still available)
         flags = pInfo.GetFlags()
         self["toFile"] = flags & win32ui.PD_PRINTTOFILE != 0
         self["direct"] = pInfo.GetDirect()
@@ -138,7 +138,7 @@ class PrintDialog(Dialog):
         self["offsetPage"] = pInfo.GetOffsetPage()
         self["fromPage"] = pInfo.GetFromPage()
         self["toPage"] = pInfo.GetToPage()
-        # these values updated after OnOK
+        # 038493.python.dialog.line141.comment these values updated after OnOK
         self["copies"] = 0
         self["deviceName"] = ""
         self["driverName"] = ""
@@ -158,7 +158,7 @@ class PrintDialog(Dialog):
         """DoModal has finished. Can now access the users choices"""
         self._obj_.OnOK()
         pInfo = self.pInfo
-        # user values
+        # 038495.python.dialog.line161.comment user values
         flags = pInfo.GetFlags()
         self["toFile"] = flags & win32ui.PD_PRINTTOFILE != 0
         self["direct"] = pInfo.GetDirect()
@@ -200,7 +200,7 @@ class PropertyPage(Dialog):
             dlg = win32ui.CreatePropertyPage(id, caption)
         if self.dll:
             win32ui.SetResource(oldRes)
-        # don't call dialog init!
+        # 038496.python.dialog.line203.comment don't call dialog init!
         window.Wnd.__init__(self, dlg)
         self.HookCommands()
 
@@ -208,7 +208,7 @@ class PropertyPage(Dialog):
 class PropertySheet(window.Wnd):
     def __init__(self, caption, dll=None, pageList=None):  # parent=None, style,etc):
         "Initialize a property sheet.  pageList is a list of ID's"
-        # must take a reference to the DLL until InitDialog.
+        # 038498.python.dialog.line211.comment must take a reference to the DLL until InitDialog.
         self.dll = dllFromDll(dll)
         self.sheet = win32ui.CreatePropertySheet(caption)
         window.Wnd.__init__(self, self.sheet)
@@ -250,11 +250,11 @@ class PropertySheet(window.Wnd):
             self.sheet.AddPage(page)
 
 
-# define some app utility functions.
+# 038500.python.dialog.line253.comment define some app utility functions.
 def GetSimpleInput(prompt, defValue="", title=None):
     """displays a dialog, and returns a string, or None if cancelled.
     args prompt, defValue='', title=main frames title"""
-    # uses a simple dialog to return a string object.
+    # 038501.python.dialog.line257.comment uses a simple dialog to return a string object.
     if title is None:
         title = win32ui.GetMainFrame().GetWindowText()
 

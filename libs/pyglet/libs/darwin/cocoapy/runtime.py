@@ -1,33 +1,33 @@
-# objective-ctypes
-#
-# Copyright (c) 2011, Phillip Nguyen
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-# Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-# Neither the name of objective-ctypes nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
+# 030827.python.runtime.line1.comment objective-ctypes
+# 030828.python.runtime.line2.comment
+# 030829.python.runtime.line3.comment Copyright (c) 2011, Phillip Nguyen
+# 030830.python.runtime.line4.comment All rights reserved.
+# 030831.python.runtime.line5.comment
+# 030832.python.runtime.line6.comment Redistribution and use in source and binary forms, with or without
+# 030833.python.runtime.line7.comment modification, are permitted provided that the following conditions
+# 030834.python.runtime.line8.comment are met:
+# 030835.python.runtime.line9.comment
+# 030836.python.runtime.line10.comment Redistributions of source code must retain the above copyright
+# 030837.python.runtime.line11.comment notice, this list of conditions and the following disclaimer.
+# 030838.python.runtime.line12.comment Redistributions in binary form must reproduce the above copyright
+# 030839.python.runtime.line13.comment notice, this list of conditions and the following disclaimer in the
+# 030840.python.runtime.line14.comment documentation and/or other materials provided with the distribution.
+# 030841.python.runtime.line15.comment Neither the name of objective-ctypes nor the names of its
+# 030842.python.runtime.line16.comment contributors may be used to endorse or promote products derived from
+# 030843.python.runtime.line17.comment this software without specific prior written permission.
+# 030844.python.runtime.line18.comment
+# 030845.python.runtime.line19.comment THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# 030846.python.runtime.line20.comment "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# 030847.python.runtime.line21.comment LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# 030848.python.runtime.line22.comment FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# 030849.python.runtime.line23.comment COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# 030850.python.runtime.line24.comment INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# 030851.python.runtime.line25.comment BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# 030852.python.runtime.line26.comment LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# 030853.python.runtime.line27.comment CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# 030854.python.runtime.line28.comment LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# 030855.python.runtime.line29.comment ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# 030856.python.runtime.line30.comment POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import sys
@@ -51,327 +51,327 @@ if sizeof(c_void_p) == 4:
 elif sizeof(c_void_p) == 8:
     c_ptrdiff_t = c_int64
 
-######################################################################
+# 030857.python.runtime.line54.comment #####################################################################
 
 lib = util.find_library('objc')
 
-# Hack for compatibility with macOS > 11.0
+# 030858.python.runtime.line58.comment Hack for compatibility with macOS > 11.0
 if lib is None:
     lib = '/usr/lib/libobjc.dylib'
 
 objc = cdll.LoadLibrary(lib)
 libc = cdll.LoadLibrary(util.find_library('c'))
 
-# void free(void *)
+# 030859.python.runtime.line65.comment void free(void *)
 libc.free.restype = None
 libc.free.argtypes = [c_void_p]
 
-######################################################################
+# 030860.python.runtime.line69.comment #####################################################################
 
-# BOOL class_addIvar(Class cls, const char *name, size_t size, uint8_t alignment, const char *types)
+# 030861.python.runtime.line71.comment BOOL class_addIvar(Class cls, const char *name, size_t size, uint8_t alignment, const char *types)
 objc.class_addIvar.restype = c_bool
 objc.class_addIvar.argtypes = [c_void_p, c_char_p, c_size_t, c_uint8, c_char_p]
 
-# BOOL class_addMethod(Class cls, SEL name, IMP imp, const char *types)
+# 030862.python.runtime.line75.comment BOOL class_addMethod(Class cls, SEL name, IMP imp, const char *types)
 objc.class_addMethod.restype = c_bool
 
-# BOOL class_addProtocol(Class cls, Protocol *protocol)
+# 030863.python.runtime.line78.comment BOOL class_addProtocol(Class cls, Protocol *protocol)
 objc.class_addProtocol.restype = c_bool
 objc.class_addProtocol.argtypes = [c_void_p, c_void_p]
 
-# BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
+# 030864.python.runtime.line82.comment BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
 objc.class_conformsToProtocol.restype = c_bool
 objc.class_conformsToProtocol.argtypes = [c_void_p, c_void_p]
 
-# Ivar * class_copyIvarList(Class cls, unsigned int *outCount)
-# Returns an array of pointers of type Ivar describing instance variables.
-# The array has *outCount pointers followed by a NULL terminator.
-# You must free() the returned array.
+# 030865.python.runtime.line86.comment Ivar * class_copyIvarList(Class cls, unsigned int *outCount)
+# 030866.python.runtime.line87.comment Returns an array of pointers of type Ivar describing instance variables.
+# 030867.python.runtime.line88.comment The array has *outCount pointers followed by a NULL terminator.
+# 030868.python.runtime.line89.comment You must free() the returned array.
 objc.class_copyIvarList.restype = POINTER(c_void_p)
 objc.class_copyIvarList.argtypes = [c_void_p, POINTER(c_uint)]
 
-# Method * class_copyMethodList(Class cls, unsigned int *outCount)
-# Returns an array of pointers of type Method describing instance methods.
-# The array has *outCount pointers followed by a NULL terminator.
-# You must free() the returned array.
+# 030869.python.runtime.line93.comment Method * class_copyMethodList(Class cls, unsigned int *outCount)
+# 030870.python.runtime.line94.comment Returns an array of pointers of type Method describing instance methods.
+# 030871.python.runtime.line95.comment The array has *outCount pointers followed by a NULL terminator.
+# 030872.python.runtime.line96.comment You must free() the returned array.
 objc.class_copyMethodList.restype = POINTER(c_void_p)
 objc.class_copyMethodList.argtypes = [c_void_p, POINTER(c_uint)]
 
-# objc_property_t * class_copyPropertyList(Class cls, unsigned int *outCount)
-# Returns an array of pointers of type objc_property_t describing properties.
-# The array has *outCount pointers followed by a NULL terminator.
-# You must free() the returned array.
+# 030873.python.runtime.line100.comment objc_property_t * class_copyPropertyList(Class cls, unsigned int *outCount)
+# 030874.python.runtime.line101.comment Returns an array of pointers of type objc_property_t describing properties.
+# 030875.python.runtime.line102.comment The array has *outCount pointers followed by a NULL terminator.
+# 030876.python.runtime.line103.comment You must free() the returned array.
 objc.class_copyPropertyList.restype = POINTER(c_void_p)
 objc.class_copyPropertyList.argtypes = [c_void_p, POINTER(c_uint)]
 
-# Protocol ** class_copyProtocolList(Class cls, unsigned int *outCount)
-# Returns an array of pointers of type Protocol* describing protocols.
-# The array has *outCount pointers followed by a NULL terminator.
-# You must free() the returned array.
+# 030877.python.runtime.line107.comment Protocol ** class_copyProtocolList(Class cls, unsigned int *outCount)
+# 030878.python.runtime.line108.comment Returns an array of pointers of type Protocol* describing protocols.
+# 030879.python.runtime.line109.comment The array has *outCount pointers followed by a NULL terminator.
+# 030880.python.runtime.line110.comment You must free() the returned array.
 objc.class_copyProtocolList.restype = POINTER(c_void_p)
 objc.class_copyProtocolList.argtypes = [c_void_p, POINTER(c_uint)]
 
-# id class_createInstance(Class cls, size_t extraBytes)
+# 030881.python.runtime.line114.comment id class_createInstance(Class cls, size_t extraBytes)
 objc.class_createInstance.restype = c_void_p
 objc.class_createInstance.argtypes = [c_void_p, c_size_t]
 
-# Method class_getClassMethod(Class aClass, SEL aSelector)
-# Will also search superclass for implementations.
+# 030882.python.runtime.line118.comment Method class_getClassMethod(Class aClass, SEL aSelector)
+# 030883.python.runtime.line119.comment Will also search superclass for implementations.
 objc.class_getClassMethod.restype = c_void_p
 objc.class_getClassMethod.argtypes = [c_void_p, c_void_p]
 
-# Ivar class_getClassVariable(Class cls, const char* name)
+# 030884.python.runtime.line123.comment Ivar class_getClassVariable(Class cls, const char* name)
 objc.class_getClassVariable.restype = c_void_p
 objc.class_getClassVariable.argtypes = [c_void_p, c_char_p]
 
-# Method class_getInstanceMethod(Class aClass, SEL aSelector)
-# Will also search superclass for implementations.
+# 030885.python.runtime.line127.comment Method class_getInstanceMethod(Class aClass, SEL aSelector)
+# 030886.python.runtime.line128.comment Will also search superclass for implementations.
 objc.class_getInstanceMethod.restype = c_void_p
 objc.class_getInstanceMethod.argtypes = [c_void_p, c_void_p]
 
-# size_t class_getInstanceSize(Class cls)
+# 030887.python.runtime.line132.comment size_t class_getInstanceSize(Class cls)
 objc.class_getInstanceSize.restype = c_size_t
 objc.class_getInstanceSize.argtypes = [c_void_p]
 
-# Ivar class_getInstanceVariable(Class cls, const char* name)
+# 030888.python.runtime.line136.comment Ivar class_getInstanceVariable(Class cls, const char* name)
 objc.class_getInstanceVariable.restype = c_void_p
 objc.class_getInstanceVariable.argtypes = [c_void_p, c_char_p]
 
-# const char *class_getIvarLayout(Class cls)
+# 030889.python.runtime.line140.comment const char *class_getIvarLayout(Class cls)
 objc.class_getIvarLayout.restype = c_char_p
 objc.class_getIvarLayout.argtypes = [c_void_p]
 
-# IMP class_getMethodImplementation(Class cls, SEL name)
+# 030890.python.runtime.line144.comment IMP class_getMethodImplementation(Class cls, SEL name)
 objc.class_getMethodImplementation.restype = c_void_p
 objc.class_getMethodImplementation.argtypes = [c_void_p, c_void_p]
 
-# The function is marked as OBJC_ARM64_UNAVAILABLE.
+# 030891.python.runtime.line148.comment The function is marked as OBJC_ARM64_UNAVAILABLE.
 if not __arm64__:
-    # IMP class_getMethodImplementation_stret(Class cls, SEL name)
+    # 030892.python.runtime.line150.comment IMP class_getMethodImplementation_stret(Class cls, SEL name)
     objc.class_getMethodImplementation_stret.restype = c_void_p
     objc.class_getMethodImplementation_stret.argtypes = [c_void_p, c_void_p]
 
-# const char * class_getName(Class cls)
+# 030893.python.runtime.line154.comment const char * class_getName(Class cls)
 objc.class_getName.restype = c_char_p
 objc.class_getName.argtypes = [c_void_p]
 
-# objc_property_t class_getProperty(Class cls, const char *name)
+# 030894.python.runtime.line158.comment objc_property_t class_getProperty(Class cls, const char *name)
 objc.class_getProperty.restype = c_void_p
 objc.class_getProperty.argtypes = [c_void_p, c_char_p]
 
-# Class class_getSuperclass(Class cls)
+# 030895.python.runtime.line162.comment Class class_getSuperclass(Class cls)
 objc.class_getSuperclass.restype = c_void_p
 objc.class_getSuperclass.argtypes = [c_void_p]
 
-# int class_getVersion(Class theClass)
+# 030896.python.runtime.line166.comment int class_getVersion(Class theClass)
 objc.class_getVersion.restype = c_int
 objc.class_getVersion.argtypes = [c_void_p]
 
-# const char *class_getWeakIvarLayout(Class cls)
+# 030897.python.runtime.line170.comment const char *class_getWeakIvarLayout(Class cls)
 objc.class_getWeakIvarLayout.restype = c_char_p
 objc.class_getWeakIvarLayout.argtypes = [c_void_p]
 
-# BOOL class_isMetaClass(Class cls)
+# 030898.python.runtime.line174.comment BOOL class_isMetaClass(Class cls)
 objc.class_isMetaClass.restype = c_bool
 objc.class_isMetaClass.argtypes = [c_void_p]
 
-# IMP class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
+# 030899.python.runtime.line178.comment IMP class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
 objc.class_replaceMethod.restype = c_void_p
 objc.class_replaceMethod.argtypes = [c_void_p, c_void_p, c_void_p, c_char_p]
 
-# BOOL class_respondsToSelector(Class cls, SEL sel)
+# 030900.python.runtime.line182.comment BOOL class_respondsToSelector(Class cls, SEL sel)
 objc.class_respondsToSelector.restype = c_bool
 objc.class_respondsToSelector.argtypes = [c_void_p, c_void_p]
 
-# void class_setIvarLayout(Class cls, const char *layout)
+# 030901.python.runtime.line186.comment void class_setIvarLayout(Class cls, const char *layout)
 objc.class_setIvarLayout.restype = None
 objc.class_setIvarLayout.argtypes = [c_void_p, c_char_p]
 
-# Class class_setSuperclass(Class cls, Class newSuper)
+# 030902.python.runtime.line190.comment Class class_setSuperclass(Class cls, Class newSuper)
 objc.class_setSuperclass.restype = c_void_p
 objc.class_setSuperclass.argtypes = [c_void_p, c_void_p]
 
-# void class_setVersion(Class theClass, int version)
+# 030903.python.runtime.line194.comment void class_setVersion(Class theClass, int version)
 objc.class_setVersion.restype = None
 objc.class_setVersion.argtypes = [c_void_p, c_int]
 
-# void class_setWeakIvarLayout(Class cls, const char *layout)
+# 030904.python.runtime.line198.comment void class_setWeakIvarLayout(Class cls, const char *layout)
 objc.class_setWeakIvarLayout.restype = None
 objc.class_setWeakIvarLayout.argtypes = [c_void_p, c_char_p]
 
-######################################################################
+# 030905.python.runtime.line202.comment #####################################################################
 
-# const char * ivar_getName(Ivar ivar)
+# 030906.python.runtime.line204.comment const char * ivar_getName(Ivar ivar)
 objc.ivar_getName.restype = c_char_p
 objc.ivar_getName.argtypes = [c_void_p]
 
-# ptrdiff_t ivar_getOffset(Ivar ivar)
+# 030907.python.runtime.line208.comment ptrdiff_t ivar_getOffset(Ivar ivar)
 objc.ivar_getOffset.restype = c_ptrdiff_t
 objc.ivar_getOffset.argtypes = [c_void_p]
 
-# const char * ivar_getTypeEncoding(Ivar ivar)
+# 030908.python.runtime.line212.comment const char * ivar_getTypeEncoding(Ivar ivar)
 objc.ivar_getTypeEncoding.restype = c_char_p
 objc.ivar_getTypeEncoding.argtypes = [c_void_p]
 
-######################################################################
+# 030909.python.runtime.line216.comment #####################################################################
 
-# char * method_copyArgumentType(Method method, unsigned int index)
-# You must free() the returned string.
+# 030910.python.runtime.line218.comment char * method_copyArgumentType(Method method, unsigned int index)
+# 030911.python.runtime.line219.comment You must free() the returned string.
 objc.method_copyArgumentType.restype = c_char_p
 objc.method_copyArgumentType.argtypes = [c_void_p, c_uint]
 
-# char * method_copyReturnType(Method method)
-# You must free() the returned string.
+# 030912.python.runtime.line223.comment char * method_copyReturnType(Method method)
+# 030913.python.runtime.line224.comment You must free() the returned string.
 objc.method_copyReturnType.restype = POINTER(c_char)
 objc.method_copyReturnType.argtypes = [c_void_p]
 
-# void method_exchangeImplementations(Method m1, Method m2)
+# 030914.python.runtime.line228.comment void method_exchangeImplementations(Method m1, Method m2)
 objc.method_exchangeImplementations.restype = None
 objc.method_exchangeImplementations.argtypes = [c_void_p, c_void_p]
 
-# void method_getArgumentType(Method method, unsigned int index, char *dst, size_t dst_len)
-# Functionally similar to strncpy(dst, parameter_type, dst_len).
+# 030915.python.runtime.line232.comment void method_getArgumentType(Method method, unsigned int index, char *dst, size_t dst_len)
+# 030916.python.runtime.line233.comment Functionally similar to strncpy(dst, parameter_type, dst_len).
 objc.method_getArgumentType.restype = None
 objc.method_getArgumentType.argtypes = [c_void_p, c_uint, c_char_p, c_size_t]
 
-# IMP method_getImplementation(Method method)
+# 030917.python.runtime.line237.comment IMP method_getImplementation(Method method)
 objc.method_getImplementation.restype = c_void_p
 objc.method_getImplementation.argtypes = [c_void_p]
 
-# SEL method_getName(Method method)
+# 030918.python.runtime.line241.comment SEL method_getName(Method method)
 objc.method_getName.restype = c_void_p
 objc.method_getName.argtypes = [c_void_p]
 
-# unsigned method_getNumberOfArguments(Method method)
+# 030919.python.runtime.line245.comment unsigned method_getNumberOfArguments(Method method)
 objc.method_getNumberOfArguments.restype = c_uint
 objc.method_getNumberOfArguments.argtypes = [c_void_p]
 
-# void method_getReturnType(Method method, char *dst, size_t dst_len)
-# Functionally similar to strncpy(dst, return_type, dst_len)
+# 030920.python.runtime.line249.comment void method_getReturnType(Method method, char *dst, size_t dst_len)
+# 030921.python.runtime.line250.comment Functionally similar to strncpy(dst, return_type, dst_len)
 objc.method_getReturnType.restype = None
 objc.method_getReturnType.argtypes = [c_void_p, c_char_p, c_size_t]
 
-# const char * method_getTypeEncoding(Method method)
+# 030922.python.runtime.line254.comment const char * method_getTypeEncoding(Method method)
 objc.method_getTypeEncoding.restype = c_char_p
 objc.method_getTypeEncoding.argtypes = [c_void_p]
 
-# IMP method_setImplementation(Method method, IMP imp)
+# 030923.python.runtime.line258.comment IMP method_setImplementation(Method method, IMP imp)
 objc.method_setImplementation.restype = c_void_p
 objc.method_setImplementation.argtypes = [c_void_p, c_void_p]
 
-######################################################################
+# 030924.python.runtime.line262.comment #####################################################################
 
-# Class objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes)
+# 030925.python.runtime.line264.comment Class objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes)
 objc.objc_allocateClassPair.restype = c_void_p
 objc.objc_allocateClassPair.argtypes = [c_void_p, c_char_p, c_size_t]
 
-# Protocol **objc_copyProtocolList(unsigned int *outCount)
-# Returns an array of *outcount pointers followed by NULL terminator.
-# You must free() the array.
+# 030926.python.runtime.line268.comment Protocol **objc_copyProtocolList(unsigned int *outCount)
+# 030927.python.runtime.line269.comment Returns an array of *outcount pointers followed by NULL terminator.
+# 030928.python.runtime.line270.comment You must free() the array.
 objc.objc_copyProtocolList.restype = POINTER(c_void_p)
 objc.objc_copyProtocolList.argtypes = [POINTER(c_int)]
 
-# id objc_getAssociatedObject(id object, void *key)
+# 030929.python.runtime.line274.comment id objc_getAssociatedObject(id object, void *key)
 objc.objc_getAssociatedObject.restype = c_void_p
 objc.objc_getAssociatedObject.argtypes = [c_void_p, c_void_p]
 
-# id objc_getClass(const char *name)
+# 030930.python.runtime.line278.comment id objc_getClass(const char *name)
 objc.objc_getClass.restype = c_void_p
 objc.objc_getClass.argtypes = [c_char_p]
 
-# int objc_getClassList(Class *buffer, int bufferLen)
-# Pass None for buffer to obtain just the total number of classes.
+# 030931.python.runtime.line282.comment int objc_getClassList(Class *buffer, int bufferLen)
+# 030932.python.runtime.line283.comment Pass None for buffer to obtain just the total number of classes.
 objc.objc_getClassList.restype = c_int
 objc.objc_getClassList.argtypes = [c_void_p, c_int]
 
-# id objc_getMetaClass(const char *name)
+# 030933.python.runtime.line287.comment id objc_getMetaClass(const char *name)
 objc.objc_getMetaClass.restype = c_void_p
 objc.objc_getMetaClass.argtypes = [c_char_p]
 
-# Protocol *objc_getProtocol(const char *name)
+# 030934.python.runtime.line291.comment Protocol *objc_getProtocol(const char *name)
 objc.objc_getProtocol.restype = c_void_p
 objc.objc_getProtocol.argtypes = [c_char_p]
 
-# You should set return and argument types depending on context.
-# id objc_msgSend(id theReceiver, SEL theSelector, ...)
-# id objc_msgSendSuper(struct objc_super *super, SEL op,  ...)
+# 030935.python.runtime.line295.comment You should set return and argument types depending on context.
+# 030936.python.runtime.line296.comment id objc_msgSend(id theReceiver, SEL theSelector, ...)
+# 030937.python.runtime.line297.comment id objc_msgSendSuper(struct objc_super *super, SEL op,  ...)
 
-# The function is marked as OBJC_ARM64_UNAVAILABLE.
+# 030938.python.runtime.line299.comment The function is marked as OBJC_ARM64_UNAVAILABLE.
 if not __arm64__:
-    # void objc_msgSendSuper_stret(struct objc_super *super, SEL op, ...)
+    # 030939.python.runtime.line301.comment void objc_msgSendSuper_stret(struct objc_super *super, SEL op, ...)
     objc.objc_msgSendSuper_stret.restype = None
 
-# double objc_msgSend_fpret(id self, SEL op, ...)
-# objc.objc_msgSend_fpret.restype = c_double
+# 030940.python.runtime.line304.comment double objc_msgSend_fpret(id self, SEL op, ...)
+# 030941.python.runtime.line305.comment objc.objc_msgSend_fpret.restype = c_double
 
-# The function is marked as OBJC_ARM64_UNAVAILABLE.
+# 030942.python.runtime.line307.comment The function is marked as OBJC_ARM64_UNAVAILABLE.
 if not __arm64__:
-    # void objc_msgSend_stret(void * stretAddr, id theReceiver, SEL theSelector,  ...)
+    # 030943.python.runtime.line309.comment void objc_msgSend_stret(void * stretAddr, id theReceiver, SEL theSelector,  ...)
     objc.objc_msgSend_stret.restype = None
 
-# void objc_registerClassPair(Class cls)
+# 030944.python.runtime.line312.comment void objc_registerClassPair(Class cls)
 objc.objc_registerClassPair.restype = None
 objc.objc_registerClassPair.argtypes = [c_void_p]
 
-# void objc_removeAssociatedObjects(id object)
+# 030945.python.runtime.line316.comment void objc_removeAssociatedObjects(id object)
 objc.objc_removeAssociatedObjects.restype = None
 objc.objc_removeAssociatedObjects.argtypes = [c_void_p]
 
-# void objc_setAssociatedObject(id object, void *key, id value, objc_AssociationPolicy policy)
+# 030946.python.runtime.line320.comment void objc_setAssociatedObject(id object, void *key, id value, objc_AssociationPolicy policy)
 objc.objc_setAssociatedObject.restype = None
 objc.objc_setAssociatedObject.argtypes = [c_void_p, c_void_p, c_void_p, c_int]
 
-######################################################################
+# 030947.python.runtime.line324.comment #####################################################################
 
-# id object_copy(id obj, size_t size)
+# 030948.python.runtime.line326.comment id object_copy(id obj, size_t size)
 objc.object_copy.restype = c_void_p
 objc.object_copy.argtypes = [c_void_p, c_size_t]
 
-# id object_dispose(id obj)
+# 030949.python.runtime.line330.comment id object_dispose(id obj)
 objc.object_dispose.restype = c_void_p
 objc.object_dispose.argtypes = [c_void_p]
 
-# Class object_getClass(id object)
+# 030950.python.runtime.line334.comment Class object_getClass(id object)
 objc.object_getClass.restype = c_void_p
 objc.object_getClass.argtypes = [c_void_p]
 
-# const char *object_getClassName(id obj)
+# 030951.python.runtime.line338.comment const char *object_getClassName(id obj)
 objc.object_getClassName.restype = c_char_p
 objc.object_getClassName.argtypes = [c_void_p]
 
-# Ivar object_getInstanceVariable(id obj, const char *name, void **outValue)
+# 030952.python.runtime.line342.comment Ivar object_getInstanceVariable(id obj, const char *name, void **outValue)
 objc.object_getInstanceVariable.restype = c_void_p
 objc.object_getInstanceVariable.argtypes = [c_void_p, c_char_p, c_void_p]
 
-# id object_getIvar(id object, Ivar ivar)
+# 030953.python.runtime.line346.comment id object_getIvar(id object, Ivar ivar)
 objc.object_getIvar.restype = c_void_p
 objc.object_getIvar.argtypes = [c_void_p, c_void_p]
 
-# Class object_setClass(id object, Class cls)
+# 030954.python.runtime.line350.comment Class object_setClass(id object, Class cls)
 objc.object_setClass.restype = c_void_p
 objc.object_setClass.argtypes = [c_void_p, c_void_p]
 
-# Ivar object_setInstanceVariable(id obj, const char *name, void *value)
-# Set argtypes based on the data type of the instance variable.
+# 030955.python.runtime.line354.comment Ivar object_setInstanceVariable(id obj, const char *name, void *value)
+# 030956.python.runtime.line355.comment Set argtypes based on the data type of the instance variable.
 objc.object_setInstanceVariable.restype = c_void_p
 
-# void object_setIvar(id object, Ivar ivar, id value)
+# 030957.python.runtime.line358.comment void object_setIvar(id object, Ivar ivar, id value)
 objc.object_setIvar.restype = None
 objc.object_setIvar.argtypes = [c_void_p, c_void_p, c_void_p]
 
-######################################################################
+# 030958.python.runtime.line362.comment #####################################################################
 
-# const char *property_getAttributes(objc_property_t property)
+# 030959.python.runtime.line364.comment const char *property_getAttributes(objc_property_t property)
 objc.property_getAttributes.restype = c_char_p
 objc.property_getAttributes.argtypes = [c_void_p]
 
-# const char *property_getName(objc_property_t property)
+# 030960.python.runtime.line368.comment const char *property_getName(objc_property_t property)
 objc.property_getName.restype = c_char_p
 objc.property_getName.argtypes = [c_void_p]
 
-######################################################################
+# 030961.python.runtime.line372.comment #####################################################################
 
-# BOOL protocol_conformsToProtocol(Protocol *proto, Protocol *other)
+# 030962.python.runtime.line374.comment BOOL protocol_conformsToProtocol(Protocol *proto, Protocol *other)
 objc.protocol_conformsToProtocol.restype = c_bool
 objc.protocol_conformsToProtocol.argtypes = [c_void_p, c_void_p]
 
@@ -380,56 +380,56 @@ class OBJC_METHOD_DESCRIPTION(Structure):
     _fields_ = [("name", c_void_p), ("types", c_char_p)]
 
 
-# struct objc_method_description *protocol_copyMethodDescriptionList(Protocol *p, BOOL isRequiredMethod, BOOL isInstanceMethod, unsigned int *outCount)
-# You must free() the returned array.
+# 030963.python.runtime.line383.comment struct objc_method_description *protocol_copyMethodDescriptionList(Protocol *p, BOOL isRequiredMethod, BOOL isInstanceMethod, unsigned int *outCount)
+# 030964.python.runtime.line384.comment You must free() the returned array.
 objc.protocol_copyMethodDescriptionList.restype = POINTER(OBJC_METHOD_DESCRIPTION)
 objc.protocol_copyMethodDescriptionList.argtypes = [c_void_p, c_bool, c_bool, POINTER(c_uint)]
 
-# objc_property_t * protocol_copyPropertyList(Protocol *protocol, unsigned int *outCount)
+# 030965.python.runtime.line388.comment objc_property_t * protocol_copyPropertyList(Protocol *protocol, unsigned int *outCount)
 objc.protocol_copyPropertyList.restype = c_void_p
 objc.protocol_copyPropertyList.argtypes = [c_void_p, POINTER(c_uint)]
 
-# Protocol **protocol_copyProtocolList(Protocol *proto, unsigned int *outCount)
+# 030966.python.runtime.line392.comment Protocol **protocol_copyProtocolList(Protocol *proto, unsigned int *outCount)
 objc.protocol_copyProtocolList = POINTER(c_void_p)
 objc.protocol_copyProtocolList.argtypes = [c_void_p, POINTER(c_uint)]
 
-# struct objc_method_description protocol_getMethodDescription(Protocol *p, SEL aSel, BOOL isRequiredMethod, BOOL isInstanceMethod)
+# 030967.python.runtime.line396.comment struct objc_method_description protocol_getMethodDescription(Protocol *p, SEL aSel, BOOL isRequiredMethod, BOOL isInstanceMethod)
 objc.protocol_getMethodDescription.restype = OBJC_METHOD_DESCRIPTION
 objc.protocol_getMethodDescription.argtypes = [c_void_p, c_void_p, c_bool, c_bool]
 
-# const char *protocol_getName(Protocol *p)
+# 030968.python.runtime.line400.comment const char *protocol_getName(Protocol *p)
 objc.protocol_getName.restype = c_char_p
 objc.protocol_getName.argtypes = [c_void_p]
 
-######################################################################
+# 030969.python.runtime.line404.comment #####################################################################
 
-# const char* sel_getName(SEL aSelector)
+# 030970.python.runtime.line406.comment const char* sel_getName(SEL aSelector)
 objc.sel_getName.restype = c_char_p
 objc.sel_getName.argtypes = [c_void_p]
 
-# SEL sel_getUid(const char *str)
-# Use sel_registerName instead.
+# 030971.python.runtime.line410.comment SEL sel_getUid(const char *str)
+# 030972.python.runtime.line411.comment Use sel_registerName instead.
 
-# BOOL sel_isEqual(SEL lhs, SEL rhs)
+# 030973.python.runtime.line413.comment BOOL sel_isEqual(SEL lhs, SEL rhs)
 objc.sel_isEqual.restype = c_bool
 objc.sel_isEqual.argtypes = [c_void_p, c_void_p]
 
-# SEL sel_registerName(const char *str)
+# 030974.python.runtime.line417.comment SEL sel_registerName(const char *str)
 objc.sel_registerName.restype = c_void_p
 objc.sel_registerName.argtypes = [c_char_p]
 
 
-######################################################################
-# void *objc_autoreleasePoolPush(void)
+# 030975.python.runtime.line422.comment #####################################################################
+# 030976.python.runtime.line423.comment void *objc_autoreleasePoolPush(void)
 objc.objc_autoreleasePoolPush.restype = c_void_p
 objc.objc_autoreleasePoolPush.argtypes = []
 
-# void objc_autoreleasePoolPop(void *pool)
+# 030977.python.runtime.line427.comment void objc_autoreleasePoolPop(void *pool)
 objc.objc_autoreleasePoolPop.restype = None
 objc.objc_autoreleasePoolPop.argtypes = [c_void_p]
 
-######################################################################
-# Constants
+# 030978.python.runtime.line431.comment #####################################################################
+# 030979.python.runtime.line432.comment Constants
 OBJC_ASSOCIATION_ASSIGN = 0  # Weak reference to the associated object.
 OBJC_ASSOCIATION_RETAIN = 0x0301  # Strong reference to the associated object. The association is made atomically.
 OBJC_ASSOCIATION_COPY = 0x0303  # Specifies that the associated object is copied. The association is made atomically.
@@ -455,7 +455,7 @@ def ensure_bytes(x: bytes | str) -> bytes:
     return x.encode('ascii')
 
 
-######################################################################
+# 030983.python.runtime.line458.comment #####################################################################
 
 def get_selector(name: str | bytes) -> c_void_p:
     """Return a void pointer for a named ObjectiveC selector.
@@ -553,7 +553,7 @@ def get_superclass_of_object(obj: c_void_p) -> c_void_p | None:
     return c_void_p(objc.class_getSuperclass(cls))
 
 
-# executive summary: on x86-64, who knows?
+# 030984.python.runtime.line556.comment executive summary: on x86-64, who knows?
 def x86_should_use_stret(restype: Type) -> bool:
     """True when a message should be sent via struct-specific function.
 
@@ -588,7 +588,7 @@ def x86_should_use_stret(restype: Type) -> bool:
         return False
     if not __LP64__ and sizeof(restype) <= 8:  # type: ignore
         return False
-    # maybe? I don't know?
+    # 030986.python.runtime.line591.comment maybe? I don't know?
     if __LP64__ and sizeof(restype) <= 16:  # type: ignore
         return False
     return True
@@ -617,18 +617,18 @@ def should_use_fpret(restype: Type) -> bool:
         otherwise.
     """
     if not __i386__:
-        # Unneeded on non-intel processors
+        # 030988.python.runtime.line620.comment Unneeded on non-intel processors
         return False
     if __LP64__ and restype == c_longdouble:
-        # Use only for long double on x86_64
+        # 030989.python.runtime.line623.comment Use only for long double on x86_64
         return True
     if not __LP64__ and restype in (c_float, c_double, c_longdouble):
         return True
     return False
 
 
-# There's no way to cleanly annotate a ctypes object right now.
-# For the moment, we'll use this to define message result types.
+# 030990.python.runtime.line630.comment There's no way to cleanly annotate a ctypes object right now.
+# 030991.python.runtime.line631.comment For the moment, we'll use this to define message result types.
 _CTypesResType = TypeVar('_CTypesResType')
 
 
@@ -693,21 +693,21 @@ def send_message(
 
     """
 
-    # print('send_message', receiver, selector_name, args, restype, argtypes)
+    # 030993.python.runtime.line696.comment print('send_message', receiver, selector_name, args, restype, argtypes)
 
-    # Shared preprocessing & default filling
+    # 030994.python.runtime.line698.comment Shared preprocessing & default filling
     if isinstance(receiver, str):
         receiver = get_class(receiver)
     if not argtypes:  # Skips casting for empty tuples
         argtypes = []
     selector = get_selector(selector_name)
 
-    # Use restype to select the correct version of objc_msgSend
+    # 030996.python.runtime.line705.comment Use restype to select the correct version of objc_msgSend
 
-    # Non-integer numbers get special treatment
-    # https://developer.apple.com/documentation/objectivec/1456697-objc_msgsend_fpret
+    # 030997.python.runtime.line707.comment Non-integer numbers get special treatment
+    # 030998.python.runtime.line708.comment https://developer.apple.com/documentation/objectivec/1456697-objc_msgsend_fpret
     if should_use_fpret(restype):
-        # Configure the message
+        # 030999.python.runtime.line710.comment Configure the message
         objc.objc_msgSend_fpret.restype = restype
         full_message_arg_types = [
             c_void_p,  # ObjectiveC self
@@ -718,8 +718,8 @@ def send_message(
 
         result = objc.objc_msgSend_fpret(receiver, selector, *args)
 
-    # Structs use a special call except for tiny ones on x86/AMD64
-    # https://developer.apple.com/documentation/objectivec/1456730-objc_msgsend_stret
+    # 031002.python.runtime.line721.comment Structs use a special call except for tiny ones on x86/AMD64
+    # 031003.python.runtime.line722.comment https://developer.apple.com/documentation/objectivec/1456730-objc_msgsend_stret
     elif x86_should_use_stret(restype):
         full_message_arg_types = [
             POINTER(restype),  # ObjectiveC Struct instance
@@ -729,12 +729,12 @@ def send_message(
         full_message_arg_types.extend(argtypes)
         objc.objc_msgSend_stret.argtypes = full_message_arg_types
 
-        # Allocate a struct instance to hold results & pass a pointer to it
+        # 031007.python.runtime.line732.comment Allocate a struct instance to hold results & pass a pointer to it
         result = restype()
         objc.objc_msgSend_stret(byref(result), receiver, selector, *args)
 
-    # Default to objc_msgSend for "simple values"
-    # https://developer.apple.com/documentation/objectivec/1456712-objc_msgsend
+    # 031008.python.runtime.line736.comment Default to objc_msgSend for "simple values"
+    # 031009.python.runtime.line737.comment https://developer.apple.com/documentation/objectivec/1456712-objc_msgsend
     else:
         objc.objc_msgSend.restype = restype
         full_message_arg_types = [
@@ -744,7 +744,7 @@ def send_message(
         full_message_arg_types.extend(argtypes)
         objc.objc_msgSend.argtypes = full_message_arg_types
 
-        # Unless restype is specified, wrap the result in a void pointer
+        # 031012.python.runtime.line747.comment Unless restype is specified, wrap the result in a void pointer
         result = objc.objc_msgSend(receiver, selector, *args)
         if restype == c_void_p:
             result = c_void_p(result)
@@ -759,12 +759,12 @@ class OBJC_SUPER(Structure):
 OBJC_SUPER_PTR = POINTER(OBJC_SUPER)
 
 
-# http://stackoverflow.com/questions/3095360/what-exactly-is-super-in-objective-c
-#
-# `superclass_name` is optional and can be used to force finding the superclass
-# by name. It is used to circumvent a bug in which the superclass was resolved
-# incorrectly which lead to an infinite recursion:
-# https://github.com/pyglet/pyglet/issues/5
+# 031013.python.runtime.line762.comment http://stackoverflow.com/questions/3095360/what-exactly-is-super-in-objective-c
+# 031014.python.runtime.line763.comment
+# 031015.python.runtime.line764.comment `superclass_name` is optional and can be used to force finding the superclass
+# 031016.python.runtime.line765.comment by name. It is used to circumvent a bug in which the superclass was resolved
+# 031017.python.runtime.line766.comment incorrectly which lead to an infinite recursion:
+# 031018.python.runtime.line767.comment https://github.com/pyglet/pyglet/issues/5
 def send_super(receiver, selName, *args, superclass_name=None, **kwargs):
     if hasattr(receiver, '_as_parameter_'):
         receiver = receiver._as_parameter_
@@ -787,7 +787,7 @@ def send_super(receiver, selName, *args, superclass_name=None, **kwargs):
     return result
 
 
-######################################################################
+# 031019.python.runtime.line790.comment #####################################################################
 
 cfunctype_table = {}
 
@@ -807,13 +807,13 @@ def parse_type_encoding(encoding):
     bracket_count = 0  # number of unclosed square brackets
     typecode = b''
     for c in encoding:
-        # In Python 3, c comes out as an integer in the range 0-255.  In Python 2, c is a single character string.
-        # To fix the disparity, we convert c to a bytes object if necessary.
+        # 031022.python.runtime.line810.comment In Python 3, c comes out as an integer in the range 0-255.  In Python 2, c is a single character string.
+        # 031023.python.runtime.line811.comment To fix the disparity, we convert c to a bytes object if necessary.
         if isinstance(c, int):
             c = bytes([c])
 
         if c == b'{':
-            # Check if this marked the end of previous type code.
+            # 031024.python.runtime.line816.comment Check if this marked the end of previous type code.
             if typecode and typecode[-1:] != b'^' and brace_count == 0 and bracket_count == 0:
                 type_encodings.append(typecode)
                 typecode = b''
@@ -824,7 +824,7 @@ def parse_type_encoding(encoding):
             brace_count -= 1
             assert (brace_count >= 0)
         elif c == b'[':
-            # Check if this marked the end of previous type code.
+            # 031025.python.runtime.line827.comment Check if this marked the end of previous type code.
             if typecode and typecode[-1:] != b'^' and brace_count == 0 and bracket_count == 0:
                 type_encodings.append(typecode)
                 typecode = b''
@@ -835,42 +835,42 @@ def parse_type_encoding(encoding):
             bracket_count -= 1
             assert (bracket_count >= 0)
         elif brace_count or bracket_count:
-            # Anything encountered while inside braces or brackets gets stuck on.
+            # 031026.python.runtime.line838.comment Anything encountered while inside braces or brackets gets stuck on.
             typecode += c
         elif c in b'0123456789':
-            # Ignore field width specifiers for now.
+            # 031027.python.runtime.line841.comment Ignore field width specifiers for now.
             pass
         elif c in b'rnNoORV':
-            # Also ignore type specifiers.
+            # 031028.python.runtime.line844.comment Also ignore type specifiers.
             pass
         elif c in b'^cislqCISLQfdBv*@#:b?':
             if typecode and typecode[-1:] == b'^':
-                # Previous char was pointer specifier, so keep going.
+                # 031029.python.runtime.line848.comment Previous char was pointer specifier, so keep going.
                 typecode += c
             else:
-                # Add previous type code to the list.
+                # 031030.python.runtime.line851.comment Add previous type code to the list.
                 if typecode:
                     type_encodings.append(typecode)
-                # Start a new type code.
+                # 031031.python.runtime.line854.comment Start a new type code.
                 typecode = c
 
-    # Add the last type code to the list
+    # 031032.python.runtime.line857.comment Add the last type code to the list
     if typecode:
         type_encodings.append(typecode)
 
     return type_encodings
 
 
-# Limited to basic types and pointers to basic types.
-# Does not try to handle arrays, arbitrary structs, unions, or bitfields.
-# Assume that encoding is a bytes object and not unicode.
+# 031033.python.runtime.line864.comment Limited to basic types and pointers to basic types.
+# 031034.python.runtime.line865.comment Does not try to handle arrays, arbitrary structs, unions, or bitfields.
+# 031035.python.runtime.line866.comment Assume that encoding is a bytes object and not unicode.
 def cfunctype_for_encoding(encoding):
-    # Check if we've already created a CFUNCTYPE for this encoding.
-    # If so, then return the cached CFUNCTYPE.
+    # 031036.python.runtime.line868.comment Check if we've already created a CFUNCTYPE for this encoding.
+    # 031037.python.runtime.line869.comment If so, then return the cached CFUNCTYPE.
     if encoding in cfunctype_table:
         return cfunctype_table[encoding]
 
-    # Otherwise, create a new CFUNCTYPE for the encoding.
+    # 031038.python.runtime.line873.comment Otherwise, create a new CFUNCTYPE for the encoding.
     typecodes = {b'c': c_char, b'i': c_int, b's': c_short, b'l': c_long, b'q': c_longlong,
                  b'C': c_ubyte, b'I': c_uint, b'S': c_ushort, b'L': c_ulong, b'Q': c_ulonglong,
                  b'f': c_float, b'd': c_double, b'B': c_bool, b'v': None, b'*': c_char_p,
@@ -888,19 +888,19 @@ def cfunctype_for_encoding(encoding):
 
     cfunctype = CFUNCTYPE(*argtypes)
 
-    # Cache the new CFUNCTYPE in the cfunctype_table.
-    # We do this mainly because it prevents the CFUNCTYPE
-    # from being garbage-collected while we need it.
+    # 031039.python.runtime.line891.comment Cache the new CFUNCTYPE in the cfunctype_table.
+    # 031040.python.runtime.line892.comment We do this mainly because it prevents the CFUNCTYPE
+    # 031041.python.runtime.line893.comment from being garbage-collected while we need it.
     cfunctype_table[encoding] = cfunctype
     return cfunctype
 
 
-######################################################################
+# 031042.python.runtime.line898.comment #####################################################################
 
-# After calling create_subclass, you must first register
-# it with register_subclass before you may use it.
-# You can add new methods after the class is registered,
-# but you cannot add any new ivars.
+# 031043.python.runtime.line900.comment After calling create_subclass, you must first register
+# 031044.python.runtime.line901.comment it with register_subclass before you may use it.
+# 031045.python.runtime.line902.comment You can add new methods after the class is registered,
+# 031046.python.runtime.line903.comment but you cannot add any new ivars.
 def create_subclass(superclass, name):
     if isinstance(superclass, str):
         superclass = get_class(superclass)
@@ -911,11 +911,11 @@ def register_subclass(subclass):
     objc.objc_registerClassPair(subclass)
 
 
-# types is a string encoding the argument types of the method.
-# The first type code of types is the return type (e.g. 'v' if void)
-# The second type code must be '@' for id self.
-# The third type code must be ':' for SEL cmd.
-# Additional type codes are for types of other arguments if any.
+# 031047.python.runtime.line914.comment types is a string encoding the argument types of the method.
+# 031048.python.runtime.line915.comment The first type code of types is the return type (e.g. 'v' if void)
+# 031049.python.runtime.line916.comment The second type code must be '@' for id self.
+# 031050.python.runtime.line917.comment The third type code must be ':' for SEL cmd.
+# 031051.python.runtime.line918.comment Additional type codes are for types of other arguments if any.
 def add_method(cls, selName, method, types):
     type_encodings = parse_type_encoding(types)
     assert (type_encodings[1] == b'@')  # ensure id self typecode
@@ -943,14 +943,14 @@ def get_instance_variable(obj, varname, vartype):
     return variable.value
 
 
-######################################################################
+# 031054.python.runtime.line946.comment #####################################################################
 
 class ObjCMethod:
     """This represents an unbound Objective-C method (really an IMP)."""
 
-    # Note, need to map 'c' to c_byte rather than c_char, because otherwise
-    # ctypes converts the value into a one-character string which is generally
-    # not what we want at all, especially when the 'c' represents a bool var.
+    # 031055.python.runtime.line951.comment Note, need to map 'c' to c_byte rather than c_char, because otherwise
+    # 031056.python.runtime.line952.comment ctypes converts the value into a one-character string which is generally
+    # 031057.python.runtime.line953.comment not what we want at all, especially when the 'c' represents a bool var.
     typecodes = {b'c': c_byte, b'i': c_int, b's': c_short, b'l': c_long, b'q': c_longlong,
                  b'C': c_ubyte, b'I': c_uint, b'S': c_ushort, b'L': c_ulong, b'Q': c_ulonglong,
                  b'f': c_float, b'd': c_double, b'B': c_bool, b'v': None, b'Vv': None, b'*': c_char_p,
@@ -980,13 +980,13 @@ class ObjCMethod:
             objc.method_getArgumentType(method, i, buffer, len(buffer))
             self.argument_types.append(buffer.value)
 
-        # Get types for all the arguments.
+        # 031058.python.runtime.line983.comment Get types for all the arguments.
         try:
             self.argtypes = [self.ctype_for_encoding(t) for t in self.argument_types]
         except:
-            # print(f'no argtypes encoding for {self.name} ({self.argument_types})')
+            # 031059.python.runtime.line987.comment print(f'no argtypes encoding for {self.name} ({self.argument_types})')
             self.argtypes = None
-        # Get types for the return type.
+        # 031060.python.runtime.line989.comment Get types for the return type.
 
         try:
             if self.return_type == b'@':
@@ -996,7 +996,7 @@ class ObjCMethod:
             else:
                 self.restype = self.ctype_for_encoding(self.return_type)
         except:
-            # print(f'no restype encoding for {self.name} ({self.return_type})')
+            # 031061.python.runtime.line999.comment print(f'no restype encoding for {self.name} ({self.return_type})')
             self.restype = None
 
         self.func = None
@@ -1011,13 +1011,13 @@ class ObjCMethod:
         elif encoding[0:1] == b'^' and encoding[1:] in self.typecodes:
             return POINTER(self.typecodes[encoding[1:]])
         elif encoding[0:1] == b'^' and encoding[1:] in [CGImageEncoding, NSZoneEncoding]:
-            # special cases
+            # 031062.python.runtime.line1014.comment special cases
             return c_void_p
         elif encoding[0:1] == b'r' and encoding[1:] in self.typecodes:
-            # const decorator, don't care
+            # 031063.python.runtime.line1017.comment const decorator, don't care
             return self.typecodes[encoding[1:]]
         elif encoding[0:2] == b'r^' and encoding[2:] in self.typecodes:
-            # const pointer, also don't care
+            # 031064.python.runtime.line1020.comment const pointer, also don't care
             return POINTER(self.typecodes[encoding[2:]])
         else:
             raise Exception('unknown encoding for %s: %s' % (self.name, encoding))
@@ -1025,10 +1025,10 @@ class ObjCMethod:
     def get_prototype(self):
         """Returns a ctypes CFUNCTYPE for the method."""
         if self.restype == ObjCInstance or self.restype == ObjCClass:
-            # Some hacky stuff to get around ctypes issues on 64-bit.  Can't let
-            # ctypes convert the return value itself, because it truncates the pointer
-            # along the way.  So instead, we must do set the return type to c_void_p to
-            # ensure we get 64-bit addresses and then convert the return value manually.
+            # 031065.python.runtime.line1028.comment Some hacky stuff to get around ctypes issues on 64-bit.  Can't let
+            # 031066.python.runtime.line1029.comment ctypes convert the return value itself, because it truncates the pointer
+            # 031067.python.runtime.line1030.comment along the way.  So instead, we must do set the return type to c_void_p to
+            # 031068.python.runtime.line1031.comment ensure we get 64-bit addresses and then convert the return value manually.
             self.prototype = CFUNCTYPE(c_void_p, *self.argtypes)
         else:
             self.prototype = CFUNCTYPE(self.restype, *self.argtypes)
@@ -1057,10 +1057,10 @@ class ObjCMethod:
         try:
             result = f(objc_id, self.selector, *args)
 
-            # Convert result to python type if it is an instance or class pointer.
+            # 031069.python.runtime.line1060.comment Convert result to python type if it is an instance or class pointer.
             if self.restype == ObjCInstance:
                 result = ObjCInstance(result)
-                # Only retain instances that have been allocated.
+                # 031070.python.runtime.line1063.comment Only retain instances that have been allocated.
                 if self.name.startswith((b'alloc', b'new', b'copy', b'mutableCopy')):
                     assert result._retained is False
                     result._retained = True
@@ -1068,14 +1068,14 @@ class ObjCMethod:
                 result = ObjCClass(result)
             return result
         except ArgumentError as error:
-            # Add more useful info to argument error exceptions, then reraise.
+            # 031071.python.runtime.line1071.comment Add more useful info to argument error exceptions, then reraise.
             error.args += ('selector = ' + str(self.name),
                            'argtypes =' + str(self.argtypes),
                            'encoding = ' + str(self.encoding))
             raise
 
 
-######################################################################
+# 031072.python.runtime.line1078.comment #####################################################################
 
 class ObjCBoundMethod:
     """This represents an Objective-C method (an IMP) which has been bound
@@ -1094,40 +1094,40 @@ class ObjCBoundMethod:
         return self.method(self.objc_id, *args)
 
 
-######################################################################
+# 031073.python.runtime.line1097.comment #####################################################################
 
 class ObjCClass:
     """Python wrapper for an Objective-C class."""
 
-    # We only create one Python object for each Objective-C class.
-    # Any future calls with the same class will return the previously
-    # created Python object.  Note that these aren't weak references.
-    # After you create an ObjCClass, it will exist until the end of the
-    # program.
+    # 031074.python.runtime.line1102.comment We only create one Python object for each Objective-C class.
+    # 031075.python.runtime.line1103.comment Any future calls with the same class will return the previously
+    # 031076.python.runtime.line1104.comment created Python object.  Note that these aren't weak references.
+    # 031077.python.runtime.line1105.comment After you create an ObjCClass, it will exist until the end of the
+    # 031078.python.runtime.line1106.comment program.
     _registered_classes = {}
 
     def __new__(cls, class_name_or_ptr):
         """Create a new ObjCClass instance or return a previously created
         instance for the given Objective-C class.  The argument may be either
         the name of the class to retrieve, or a pointer to the class."""
-        # Determine name and ptr values from passed in argument.
+        # 031079.python.runtime.line1113.comment Determine name and ptr values from passed in argument.
         if isinstance(class_name_or_ptr, str):
             name = class_name_or_ptr
             ptr = get_class(name)
         else:
             ptr = class_name_or_ptr
-            # Make sure that ptr value is wrapped in c_void_p object
-            # for safety when passing as ctypes argument.
+            # 031080.python.runtime.line1119.comment Make sure that ptr value is wrapped in c_void_p object
+            # 031081.python.runtime.line1120.comment for safety when passing as ctypes argument.
             if not isinstance(ptr, c_void_p):
                 ptr = c_void_p(ptr)
             name = objc.class_getName(ptr)
 
-        # Check if we've already created a Python object for this class
-        # and if so, return it rather than making a new one.
+        # 031082.python.runtime.line1125.comment Check if we've already created a Python object for this class
+        # 031083.python.runtime.line1126.comment and if so, return it rather than making a new one.
         if name in cls._registered_classes:
             return cls._registered_classes[name]
 
-        # Otherwise create a new Python object and then initialize it.
+        # 031084.python.runtime.line1130.comment Otherwise create a new Python object and then initialize it.
         objc_class = super(ObjCClass, cls).__new__(cls)
         objc_class.ptr = ptr
         objc_class.name = name
@@ -1135,10 +1135,10 @@ class ObjCClass:
         objc_class.class_methods = {}  # mapping of name -> class method
         objc_class._as_parameter_ = ptr  # for ctypes argument passing
 
-        # Store the new class in dictionary of registered classes.
+        # 031088.python.runtime.line1138.comment Store the new class in dictionary of registered classes.
         cls._registered_classes[name] = objc_class
 
-        # Not sure this is necessary...
+        # 031089.python.runtime.line1141.comment Not sure this is necessary...
         objc_class.cache_instance_methods()
         objc_class.cache_class_methods()
 
@@ -1179,8 +1179,8 @@ class ObjCClass:
         if name in self.instance_methods:
             return self.instance_methods[name]
         else:
-            # If method name isn't in the cached list, it might be a method of
-            # the superclass, so call class_getInstanceMethod to check.
+            # 031090.python.runtime.line1182.comment If method name isn't in the cached list, it might be a method of
+            # 031091.python.runtime.line1183.comment the superclass, so call class_getInstanceMethod to check.
             selector = get_selector(name.replace(b'_', b':'))
             method = c_void_p(objc.class_getInstanceMethod(self.ptr, selector))
             if method.value:
@@ -1196,8 +1196,8 @@ class ObjCClass:
         if name in self.class_methods:
             return self.class_methods[name]
         else:
-            # If method name isn't in the cached list, it might be a method of
-            # the superclass, so call class_getInstanceMethod to check.
+            # 031092.python.runtime.line1199.comment If method name isn't in the cached list, it might be a method of
+            # 031093.python.runtime.line1200.comment the superclass, so call class_getInstanceMethod to check.
             selector = get_selector(name.replace(b'_', b':'))
             method = c_void_p(objc.class_getClassMethod(self.ptr, selector))
             if method.value:
@@ -1208,23 +1208,23 @@ class ObjCClass:
 
     def __getattr__(self, name):
         """Returns a callable method object with the given name."""
-        # If name refers to a class method, then return a callable object
-        # for the class method with self.ptr as hidden first parameter.
+        # 031094.python.runtime.line1211.comment If name refers to a class method, then return a callable object
+        # 031095.python.runtime.line1212.comment for the class method with self.ptr as hidden first parameter.
         name = ensure_bytes(name)
         method = self.get_class_method(name)
         if method:
             return ObjCBoundMethod(method, self.ptr)
-        # If name refers to an instance method, then simply return the method.
-        # The caller will need to supply an instance as the first parameter.
+        # 031096.python.runtime.line1217.comment If name refers to an instance method, then simply return the method.
+        # 031097.python.runtime.line1218.comment The caller will need to supply an instance as the first parameter.
         method = self.get_instance_method(name)
         if method:
             return method
 
-        # Otherwise, raise an exception.
+        # 031098.python.runtime.line1223.comment Otherwise, raise an exception.
         raise AttributeError('ObjCClass %s has no attribute %s' % (self.name, name))
 
 
-######################################################################
+# 031099.python.runtime.line1227.comment #####################################################################
 
 
 class _AutoreleasepoolManager:
@@ -1258,32 +1258,32 @@ class ObjCInstance:
     def __new__(cls, object_ptr: int):
         """Create a new ObjCInstance or return a previously created one
         for the given object_ptr which should be an Objective-C id."""
-        # Make sure that object_ptr is wrapped in a c_void_p.
+        # 031104.python.runtime.line1261.comment Make sure that object_ptr is wrapped in a c_void_p.
         if not isinstance(object_ptr, c_void_p):
             object_ptr = c_void_p(object_ptr)
 
-        # If given a nil pointer, return None.
+        # 031105.python.runtime.line1265.comment If given a nil pointer, return None.
         if not object_ptr.value:
             return None
 
-        # Check if we've already created an python ObjCInstance for this
-        # object_ptr id and if so, then return it.  A single ObjCInstance will
-        # be created for any object pointer when it is first encountered.
-        # This same ObjCInstance will then persist until the object is
-        # deallocated.
+        # 031106.python.runtime.line1269.comment Check if we've already created an python ObjCInstance for this
+        # 031107.python.runtime.line1270.comment object_ptr id and if so, then return it.  A single ObjCInstance will
+        # 031108.python.runtime.line1271.comment be created for any object pointer when it is first encountered.
+        # 031109.python.runtime.line1272.comment This same ObjCInstance will then persist until the object is
+        # 031110.python.runtime.line1273.comment deallocated.
         if object_ptr.value in cls._cached_objects:
             return cls._cached_objects[object_ptr.value]
 
-        # Otherwise, create a new ObjCInstance.
+        # 031111.python.runtime.line1277.comment Otherwise, create a new ObjCInstance.
         objc_instance = super(ObjCInstance, cls).__new__(cls)
         objc_instance.ptr = object_ptr
         objc_instance._as_parameter_ = object_ptr
-        # Determine class of this object.
+        # 031112.python.runtime.line1281.comment Determine class of this object.
         class_ptr = c_void_p(objc.object_getClass(object_ptr))
         objc_instance.objc_class = ObjCClass(class_ptr)
 
-        # Store new object in the dictionary of cached objects, keyed
-        # by the (integer) memory address pointed to by the object_ptr.
+        # 031113.python.runtime.line1285.comment Store new object in the dictionary of cached objects, keyed
+        # 031114.python.runtime.line1286.comment by the (integer) memory address pointed to by the object_ptr.
         cls._cached_objects[object_ptr.value] = objc_instance
         return objc_instance
 
@@ -1321,7 +1321,7 @@ class ObjCInstance:
 
     def __repr__(self):
         if self.objc_class.name == b'NSCFString':
-            # Display contents of NSString objects
+            # 031115.python.runtime.line1324.comment Display contents of NSString objects
             from .cocoalibs import cfstring_to_string
             string = cfstring_to_string(self)
             return "<ObjCInstance %#x: %s (%s) at %s>" % (id(self), self.objc_class.name, string, str(self.ptr.value))
@@ -1333,23 +1333,23 @@ class ObjCInstance:
 
         This is only called when the name doesn't exist in __dict__.
         """
-        # Search for named instance method in the class object and if it
-        # exists, return callable object with self as hidden argument.
-        # Note: you should give self and not self.ptr as a parameter to
-        # ObjCBoundMethod, so that it will be able to keep the ObjCInstance
-        # alive for chained calls like MyClass.alloc().init() where the
-        # object created by alloc() is not assigned to a variable.
+        # 031116.python.runtime.line1336.comment Search for named instance method in the class object and if it
+        # 031117.python.runtime.line1337.comment exists, return callable object with self as hidden argument.
+        # 031118.python.runtime.line1338.comment Note: you should give self and not self.ptr as a parameter to
+        # 031119.python.runtime.line1339.comment ObjCBoundMethod, so that it will be able to keep the ObjCInstance
+        # 031120.python.runtime.line1340.comment alive for chained calls like MyClass.alloc().init() where the
+        # 031121.python.runtime.line1341.comment object created by alloc() is not assigned to a variable.
         name_bytes = ensure_bytes(name)
         method = self.objc_class.get_instance_method(name_bytes)
         if method:
             return ObjCBoundMethod(method, self)
-        # Else, search for class method with given name in the class object.
-        # If it exists, return callable object with a pointer to the class
-        # as a hidden argument.
+        # 031122.python.runtime.line1346.comment Else, search for class method with given name in the class object.
+        # 031123.python.runtime.line1347.comment If it exists, return callable object with a pointer to the class
+        # 031124.python.runtime.line1348.comment as a hidden argument.
         method = self.objc_class.get_class_method(name_bytes)
         if method:
             return ObjCBoundMethod(method, self.objc_class.ptr)
-        # Otherwise raise an exception.
+        # 031125.python.runtime.line1352.comment Otherwise raise an exception.
 
         internal_name = _assigned_internal_name(name)
         observer = objc.objc_getAssociatedObject(self, internal_name)
@@ -1384,58 +1384,58 @@ def convert_method_arguments(encoding, args):
     return new_args
 
 
-# ObjCSubclass is used to define an Objective-C subclass of an existing
-# class registered with the runtime.  When you create an instance of
-# ObjCSubclass, it registers the new subclass with the Objective-C
-# runtime and creates a set of function decorators that you can use to
-# add instance methods or class methods to the subclass.
-#
-# Typical usage would be to first create and register the subclass:
-#
-#     MySubclass = ObjCSubclass('NSObject', 'MySubclassName')
-#
-# then add methods with:
-#
-#     @MySubclass.method('v')
-#     def methodThatReturnsVoid(self):
-#         pass
-#
-#     @MySubclass.method('Bi')
-#     def boolReturningMethodWithInt_(self, x):
-#         return True
-#
-#     @MySubclass.classmethod('@')
-#     def classMethodThatReturnsId(self):
-#         return self
-#
-# It is probably a good idea to organize the code related to a single
-# subclass by either putting it in its own module (note that you don't
-# actually need to expose any of the method names or the ObjCSubclass)
-# or by bundling it all up inside a python class definition, perhaps
-# called MySubclassImplementation.
-#
-# It is also possible to add Objective-C ivars to the subclass, however
-# if you do so, you must call the __init__ method with register=False,
-# and then call the register method after the ivars have been added.
-# But rather than creating the ivars in Objective-C land, it is easier
-# to just define python-based instance variables in your subclass's init
-# method.
-#
-# This class is used only to *define* the interface and implementation
-# of an Objective-C subclass from python.  It should not be used in
-# any other way.  If you want a python representation of the resulting
-# class, create it with ObjCClass.
-#
-# Instances are created as a pointer to the objc object by using:
-#
-#     myinstance = send_message('MySubclassName', 'alloc')
-#     myinstance = send_message(myinstance, 'init')
-#
-# or wrapped inside an ObjCInstance object by using:
-#
-#     myclass = ObjCClass('MySubclassName')
-#     myinstance = myclass.alloc().init()
-#
+# 031126.python.runtime.line1387.comment ObjCSubclass is used to define an Objective-C subclass of an existing
+# 031127.python.runtime.line1388.comment class registered with the runtime.  When you create an instance of
+# 031128.python.runtime.line1389.comment ObjCSubclass, it registers the new subclass with the Objective-C
+# 031129.python.runtime.line1390.comment runtime and creates a set of function decorators that you can use to
+# 031130.python.runtime.line1391.comment add instance methods or class methods to the subclass.
+# 031131.python.runtime.line1392.comment
+# 031132.python.runtime.line1393.comment Typical usage would be to first create and register the subclass:
+# 031133.python.runtime.line1394.comment
+# 031134.python.runtime.line1395.comment MySubclass = ObjCSubclass('NSObject', 'MySubclassName')
+# 031135.python.runtime.line1396.comment
+# 031136.python.runtime.line1397.comment then add methods with:
+# 031137.python.runtime.line1398.comment
+# 031138.python.runtime.line1399.comment @MySubclass.method('v')
+# 031139.python.runtime.line1400.comment def methodThatReturnsVoid(self):
+# 031140.python.runtime.line1401.comment pass
+# 031141.python.runtime.line1402.comment
+# 031142.python.runtime.line1403.comment @MySubclass.method('Bi')
+# 031143.python.runtime.line1404.comment def boolReturningMethodWithInt_(self, x):
+# 031144.python.runtime.line1405.comment return True
+# 031145.python.runtime.line1406.comment
+# 031146.python.runtime.line1407.comment @MySubclass.classmethod('@')
+# 031147.python.runtime.line1408.comment def classMethodThatReturnsId(self):
+# 031148.python.runtime.line1409.comment return self
+# 031149.python.runtime.line1410.comment
+# 031150.python.runtime.line1411.comment It is probably a good idea to organize the code related to a single
+# 031151.python.runtime.line1412.comment subclass by either putting it in its own module (note that you don't
+# 031152.python.runtime.line1413.comment actually need to expose any of the method names or the ObjCSubclass)
+# 031153.python.runtime.line1414.comment or by bundling it all up inside a python class definition, perhaps
+# 031154.python.runtime.line1415.comment called MySubclassImplementation.
+# 031155.python.runtime.line1416.comment
+# 031156.python.runtime.line1417.comment It is also possible to add Objective-C ivars to the subclass, however
+# 031157.python.runtime.line1418.comment if you do so, you must call the __init__ method with register=False,
+# 031158.python.runtime.line1419.comment and then call the register method after the ivars have been added.
+# 031159.python.runtime.line1420.comment But rather than creating the ivars in Objective-C land, it is easier
+# 031160.python.runtime.line1421.comment to just define python-based instance variables in your subclass's init
+# 031161.python.runtime.line1422.comment method.
+# 031162.python.runtime.line1423.comment
+# 031163.python.runtime.line1424.comment This class is used only to *define* the interface and implementation
+# 031164.python.runtime.line1425.comment of an Objective-C subclass from python.  It should not be used in
+# 031165.python.runtime.line1426.comment any other way.  If you want a python representation of the resulting
+# 031166.python.runtime.line1427.comment class, create it with ObjCClass.
+# 031167.python.runtime.line1428.comment
+# 031168.python.runtime.line1429.comment Instances are created as a pointer to the objc object by using:
+# 031169.python.runtime.line1430.comment
+# 031170.python.runtime.line1431.comment myinstance = send_message('MySubclassName', 'alloc')
+# 031171.python.runtime.line1432.comment myinstance = send_message(myinstance, 'init')
+# 031172.python.runtime.line1433.comment
+# 031173.python.runtime.line1434.comment or wrapped inside an ObjCInstance object by using:
+# 031174.python.runtime.line1435.comment
+# 031175.python.runtime.line1436.comment myclass = ObjCClass('MySubclassName')
+# 031176.python.runtime.line1437.comment myinstance = myclass.alloc().init()
+# 031177.python.runtime.line1438.comment
 class ObjCSubclass:
     """Use this to create a subclass of an existing Objective-C class.
     It consists primarily of function decorators which you use to add methods
@@ -1452,7 +1452,7 @@ class ObjCSubclass:
     def register(self):
         """Register the new class with the Objective-C runtime."""
         objc.objc_registerClassPair(self.objc_cls)
-        # We can get the metaclass only after the class is registered.
+        # 031178.python.runtime.line1455.comment We can get the metaclass only after the class is registered.
         self.objc_metaclass = get_metaclass(self.name)
 
     def add_ivar(self, varname, vartype):
@@ -1466,7 +1466,7 @@ class ObjCSubclass:
         imp = add_method(self.objc_cls, name, method, encoding)
         self._imp_table[name] = imp
 
-    # http://iphonedevelopment.blogspot.com/2008/08/dynamically-adding-class-objects.html
+    # 031179.python.runtime.line1469.comment http://iphonedevelopment.blogspot.com/2008/08/dynamically-adding-class-objects.html
     def add_class_method(self, method, name, encoding):
         imp = add_method(self.objc_metaclass, name, method, encoding)
         self._imp_table[name] = imp
@@ -1475,7 +1475,7 @@ class ObjCSubclass:
         """Decorator for instance methods without any fancy shenanigans.
         The function must have the signature f(self, cmd, *args)
         where both self and cmd are just pointers to objc objects."""
-        # Add encodings for hidden self and cmd arguments.
+        # 031180.python.runtime.line1478.comment Add encodings for hidden self and cmd arguments.
         encoding = ensure_bytes(encoding)
         typecodes = parse_type_encoding(encoding)
         typecodes.insert(1, b'@:')
@@ -1490,7 +1490,7 @@ class ObjCSubclass:
 
     def method(self, encoding):
         """Function decorator for instance methods."""
-        # Add encodings for hidden self and cmd arguments.
+        # 031181.python.runtime.line1493.comment Add encodings for hidden self and cmd arguments.
         encoding = ensure_bytes(encoding)
         typecodes = parse_type_encoding(encoding)
         typecodes.insert(1, b'@:')
@@ -1515,7 +1515,7 @@ class ObjCSubclass:
 
     def classmethod(self, encoding):
         """Function decorator for class methods."""
-        # Add encodings for hidden self and cmd arguments.
+        # 031182.python.runtime.line1518.comment Add encodings for hidden self and cmd arguments.
         encoding = ensure_bytes(encoding)
         typecodes = parse_type_encoding(encoding)
         typecodes.insert(1, b'@:')
@@ -1539,25 +1539,25 @@ class ObjCSubclass:
         return decorator
 
 
-######################################################################
+# 031183.python.runtime.line1542.comment #####################################################################
 
 _dealloc_argtype = [c_void_p]  # Just to prevent list creation every call.
 
-# Cache Python objects we want to keep when associating with an instance.
+# 031185.python.runtime.line1546.comment Cache Python objects we want to keep when associating with an instance.
 _python_objects = {}
 
-# Instances of DeallocationObserver are associated with every
-# Objective-C object that gets wrapped inside an ObjCInstance.
-# Their sole purpose is to watch for when the Objective-C object
-# is deallocated, and then remove the object from the dictionary
-# of cached ObjCInstance objects kept by the ObjCInstance class.
-#
-# The methods of the class defined below are decorated with
-# rawmethod() instead of method() because DeallocationObservers
-# are created inside of ObjCInstance's __new__ method and we have
-# to be careful to not create another ObjCInstance here (which
-# happens when the usual method decorator turns the self argument
-# into an ObjCInstance), or else get trapped in an infinite recursion.
+# 031186.python.runtime.line1549.comment Instances of DeallocationObserver are associated with every
+# 031187.python.runtime.line1550.comment Objective-C object that gets wrapped inside an ObjCInstance.
+# 031188.python.runtime.line1551.comment Their sole purpose is to watch for when the Objective-C object
+# 031189.python.runtime.line1552.comment is deallocated, and then remove the object from the dictionary
+# 031190.python.runtime.line1553.comment of cached ObjCInstance objects kept by the ObjCInstance class.
+# 031191.python.runtime.line1554.comment
+# 031192.python.runtime.line1555.comment The methods of the class defined below are decorated with
+# 031193.python.runtime.line1556.comment rawmethod() instead of method() because DeallocationObservers
+# 031194.python.runtime.line1557.comment are created inside of ObjCInstance's __new__ method and we have
+# 031195.python.runtime.line1558.comment to be careful to not create another ObjCInstance here (which
+# 031196.python.runtime.line1559.comment happens when the usual method decorator turns the self argument
+# 031197.python.runtime.line1560.comment into an ObjCInstance), or else get trapped in an infinite recursion.
 class DeallocationObserver_Implementation:
     DeallocationObserver = ObjCSubclass('NSObject', 'DeallocationObserver', register=False)
     DeallocationObserver.add_ivar('observed_object', c_void_p)
@@ -1581,11 +1581,11 @@ class DeallocationObserver_Implementation:
 
     @DeallocationObserver.rawmethod('v')
     def finalize(self, cmd):
-        # Called instead of dealloc if using garbage collection.
-        # (which would have to be explicitly started with
-        # objc_startCollectorThread(), so probably not too much reason
-        # to have this here, but I guess it can't hurt.)
-        # _obj_observer_dealloc(self, 'finalize')
+        # 031198.python.runtime.line1584.comment Called instead of dealloc if using garbage collection.
+        # 031199.python.runtime.line1585.comment (which would have to be explicitly started with
+        # 031200.python.runtime.line1586.comment objc_startCollectorThread(), so probably not too much reason
+        # 031201.python.runtime.line1587.comment to have this here, but I guess it can't hurt.)
+        # 031202.python.runtime.line1588.comment _obj_observer_dealloc(self, 'finalize')
         if objc_ptr := get_instance_variable(self, 'observed_object', c_void_p):
             del _python_objects[(self, objc_ptr.value)]
 
@@ -1608,18 +1608,18 @@ def _assigned_internal_name(name: str):
     return get_selector(key)
 
 def _set_dealloc_observer(self, name, python_obj):
-    # Create a DeallocationObserver and associate it with this object.
-    # When the Objective-C object is deallocated, the observer will remove
-    # the ObjCInstance corresponding to the object from the cached objects
-    # dictionary, effectively destroying the ObjCInstance.
+    # 031203.python.runtime.line1611.comment Create a DeallocationObserver and associate it with this object.
+    # 031204.python.runtime.line1612.comment When the Objective-C object is deallocated, the observer will remove
+    # 031205.python.runtime.line1613.comment the ObjCInstance corresponding to the object from the cached objects
+    # 031206.python.runtime.line1614.comment dictionary, effectively destroying the ObjCInstance.
     observer = send_message('DeallocationObserver', 'alloc')
     observer = send_message(observer, 'initWithObjectId:', id(python_obj), argtypes=_dealloc_argtype)
 
     objc.objc_setAssociatedObject(self, _assigned_internal_name(name), observer, OBJC_ASSOCIATION_RETAIN)
 
-    # The observer is retained by the object we associate it to.  We release
-    # the observer now so that it will be deallocated when the associated
-    # object is deallocated.
+    # 031207.python.runtime.line1620.comment The observer is retained by the object we associate it to.  We release
+    # 031208.python.runtime.line1621.comment the observer now so that it will be deallocated when the associated
+    # 031209.python.runtime.line1622.comment object is deallocated.
     send_message(observer, 'release')
     return observer
 

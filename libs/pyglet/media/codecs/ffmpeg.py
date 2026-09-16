@@ -147,7 +147,7 @@ class MemoryFileObject:
         if not getattr(self.file, 'seek', None) or not getattr(self.file, 'tell', None):
             raise Exception("File object does not support seeking.")
 
-        # Seek to end of file to get the filesize.
+        # 033844.python.ffmpeg.line150.comment Seek to end of file to get the filesize.
         self.file.seek(0, 2)
         self.file_size = self.file.tell()
         self.file.seek(0)  # Put cursor back at the beginning.
@@ -352,7 +352,7 @@ def ffmpeg_stream_info(file: FFmpegFile, stream_index: int) -> StreamAudioInfo |
             print(" initial_padding=", context.initial_padding)
             print(" trailing_padding=", context.trailing_padding)
             print(" seek_preroll=", context.seek_preroll)
-        #
+        # 033847.python.ffmpeg.line355.comment
         frame_rate = avformat.av_guess_frame_rate(file.context, av_stream, None)
 
         info = StreamVideoInfo(
@@ -365,7 +365,7 @@ def ffmpeg_stream_info(file: FFmpegFile, stream_index: int) -> StreamAudioInfo |
             context.codec_id,
         )
     elif context.codec_type == AVMEDIA_TYPE_AUDIO:
-        # Format changed in 7.x
+        # 033848.python.ffmpeg.line368.comment Format changed in 7.x
         if avformat_version >= 61:
             channel_count = context.ch_layout.nb_channels
         else:
@@ -407,8 +407,8 @@ def ffmpeg_open_stream(file: FFmpegFile, index: int) -> FFmpegStream:
     if _debug:
         print("Found Codec=", codec_id, "=", codec.contents.long_name.decode())
 
-    # VP8 and VP9 default codec don't support alpha transparency.
-    # Force libvpx codec in this case.
+    # 033849.python.ffmpeg.line410.comment VP8 and VP9 default codec don't support alpha transparency.
+    # 033850.python.ffmpeg.line411.comment Force libvpx codec in this case.
     if codec_id == AV_CODEC_ID_VP9:
         newcodec = avcodec.avcodec_find_decoder_by_name(b"libvpx-vp9")
         codec = newcodec or codec
@@ -550,7 +550,7 @@ class VideoPacket(_Packet):
 
     def __init__(self, packet, timestamp):
         super().__init__(packet, timestamp)
-        # Decoded image.  0 == not decoded yet; None == Error or discarded
+        # 033851.python.ffmpeg.line553.comment Decoded image.  0 == not decoded yet; None == Error or discarded
         self.image = 0
         self.id = self._next_id
         VideoPacket._next_id += 1
@@ -561,10 +561,10 @@ class AudioPacket(_Packet):
 
 
 class FFmpegSource(StreamingSource):
-    # Max increase/decrease of original sample size
+    # 033852.python.ffmpeg.line564.comment Max increase/decrease of original sample size
     SAMPLE_CORRECTION_PERCENT_MAX = 10
 
-    # Maximum amount of packets to create for video and audio queues.
+    # 033853.python.ffmpeg.line567.comment Maximum amount of packets to create for video and audio queues.
     MAX_QUEUE_SIZE = 100
 
     def __init__(self, filename: str, file: BinaryIO | None=None):
@@ -604,7 +604,7 @@ class FFmpegSource(StreamingSource):
         self.info.track = file_info.track
         self.info.genre = file_info.genre
 
-        # Pick the first video and audio streams found, ignore others.
+        # 033854.python.ffmpeg.line607.comment Pick the first video and audio streams found, ignore others.
         for i in range(file_info.n_streams):
             info = ffmpeg_stream_info(self._file, i)
 
@@ -635,7 +635,7 @@ class FFmpegSource(StreamingSource):
                 if info.sample_format in (AV_SAMPLE_FMT_U8, AV_SAMPLE_FMT_U8P):
                     self.tgt_format = AV_SAMPLE_FMT_U8
                 else:
-                    # No matter the input format, produce S16 samples.
+                    # 033855.python.ffmpeg.line638.comment No matter the input format, produce S16 samples.
                     sample_bits = 16
                     self.tgt_format = AV_SAMPLE_FMT_S16
 
@@ -660,10 +660,10 @@ class FFmpegSource(StreamingSource):
         self._events = []  # They don't seem to be used!
 
         self.audioq = deque()
-        # Make queue big enough to accommodate 1.2 sec?
+        # 033857.python.ffmpeg.line663.comment Make queue big enough to accommodate 1.2 sec?
         self._max_len_audioq = self.MAX_QUEUE_SIZE  # Need to figure out a correct amount
         if self.audio_format:
-             # Buffer 1 sec worth of audio
+             # 033859.python.ffmpeg.line666.comment Buffer 1 sec worth of audio
              nbytes = ffmpeg_get_audio_buffer_size(self.audio_format)
              self._audio_buffer = (c_uint8 * nbytes)()
 
@@ -674,19 +674,19 @@ class FFmpegSource(StreamingSource):
         self._duration = timestamp_from_ffmpeg(file_info.duration)
         self._duration -= self.start_time
 
-        # Flag to determine if the _fillq method was already scheduled
+        # 033861.python.ffmpeg.line677.comment Flag to determine if the _fillq method was already scheduled
         self._fillq_scheduled = False
         self._fillq()
-        # Don't understand why, but some files show that seeking without
-        # reading the first few packets results in a seeking where we lose
-        # many packets at the beginning.
-        # We only seek back to 0 for media which have a start_time > 0
+        # 033862.python.ffmpeg.line680.comment Don't understand why, but some files show that seeking without
+        # 033863.python.ffmpeg.line681.comment reading the first few packets results in a seeking where we lose
+        # 033864.python.ffmpeg.line682.comment many packets at the beginning.
+        # 033865.python.ffmpeg.line683.comment We only seek back to 0 for media which have a start_time > 0
         if self.start_time > 0:
             self.seek(0.0)
 
     def get_formatted_swr_context(self, channel_output: AVChannelLayout | int, sample_rate: int,
                                   channel_input: AVChannelLayout | int, sample_format: int) -> int | SwrContext:
-        # Newer FFmpeg versions use the AVChannelLayout
+        # 033866.python.ffmpeg.line689.comment Newer FFmpeg versions use the AVChannelLayout
         if swresample_version < 5:
             return swresample.swr_alloc_set_opts(None,
                                           channel_output, self.tgt_format, sample_rate,
@@ -739,13 +739,13 @@ class FFmpegSource(StreamingSource):
         self._clear_video_audio_queues()
         self._fillq()
 
-        # Consume video and audio packets until we arrive at the correct
-        # timestamp location
+        # 033867.python.ffmpeg.line742.comment Consume video and audio packets until we arrive at the correct
+        # 033868.python.ffmpeg.line743.comment timestamp location
         if not self.audio_format:
             while len(self.videoq) > 1:
-                # We only advance if there is at least 2 packets in the queue
-                # The queue is only left with 1 packet if we have reached the
-                #  end of the stream.
+                # 033869.python.ffmpeg.line746.comment We only advance if there is at least 2 packets in the queue
+                # 033870.python.ffmpeg.line747.comment The queue is only left with 1 packet if we have reached the
+                # 033871.python.ffmpeg.line748.comment end of the stream.
                 if timestamp < self.videoq[1].timestamp:
                     break
                 else:
@@ -753,9 +753,9 @@ class FFmpegSource(StreamingSource):
 
         elif not self.video_format:
             while len(self.audioq) > 1:
-                # We only advance if there is at least 2 packets in the queue
-                # The queue is only left with 1 packet if we have reached the
-                #  end of the stream.
+                # 033872.python.ffmpeg.line756.comment We only advance if there is at least 2 packets in the queue
+                # 033873.python.ffmpeg.line757.comment The queue is only left with 1 packet if we have reached the
+                # 033874.python.ffmpeg.line758.comment end of the stream.
                 if timestamp < self.audioq[1].timestamp:
                     break
                 else:
@@ -763,9 +763,9 @@ class FFmpegSource(StreamingSource):
 
         else:
             while len(self.audioq) > 1 and len(self.videoq) > 1:
-                # We only advance if there is at least 2 packets in the queue
-                # The queue is only left with 1 packet if we have reached the
-                #  end of the stream.
+                # 033875.python.ffmpeg.line766.comment We only advance if there is at least 2 packets in the queue
+                # 033876.python.ffmpeg.line767.comment The queue is only left with 1 packet if we have reached the
+                # 033877.python.ffmpeg.line768.comment end of the stream.
                 audioq_is_first = self.audioq[0].timestamp < self.videoq[0].timestamp
                 correct_audio_pos = timestamp < self.audioq[1].timestamp
                 correct_video_pos = timestamp < self.videoq[1].timestamp
@@ -816,7 +816,7 @@ class FFmpegSource(StreamingSource):
 
     def _fillq(self) -> None:
         """Fill up both Audio and Video queues if space is available in both"""
-        # We clear our flag.
+        # 033878.python.ffmpeg.line819.comment We clear our flag.
         self._fillq_scheduled = False
         while (len(self.audioq) < self._max_len_audioq and
                len(self.videoq) < self._max_len_videoq):
@@ -843,8 +843,8 @@ class FFmpegSource(StreamingSource):
         return False
 
     def _get_packet(self) -> bool:
-        # Read a packet into self._packet. Returns True if OK, False if no
-        # more packets are in stream.
+        # 033879.python.ffmpeg.line846.comment Read a packet into self._packet. Returns True if OK, False if no
+        # 033880.python.ffmpeg.line847.comment more packets are in stream.
         return ffmpeg_read(self._file, self._packet)
 
     def _process_packet(self) -> AudioPacket | VideoPacket:
@@ -887,10 +887,10 @@ class FFmpegSource(StreamingSource):
                 break
             data += buffer
 
-        # No data and no audio queue left
+        # 033881.python.ffmpeg.line890.comment No data and no audio queue left
         if not data and not self.audioq:
             if not self._stream_end:
-                # No more audio data in queue, but we haven't hit the stream end.
+                # 033882.python.ffmpeg.line893.comment No more audio data in queue, but we haven't hit the stream end.
                 if _debug:
                     print("Audio queue was starved by the audio driver.")
 
@@ -1010,8 +1010,8 @@ class FFmpegSource(StreamingSource):
                                                    byref(p_data_out), out_samples,
                                                    data_in, nb_samples)
         while True:
-            # We loop because there could be some more samples buffered in
-            # SwrContext. We advance the pointer where we write our samples.
+            # 033883.python.ffmpeg.line1013.comment We loop because there could be some more samples buffered in
+            # 033884.python.ffmpeg.line1014.comment SwrContext. We advance the pointer where we write our samples.
             offset = (total_samples_out * channels_out * bytes_per_sample)
             p_data_offset = cast(
                 addressof(p_data_out.contents) + offset,
@@ -1022,7 +1022,7 @@ class FFmpegSource(StreamingSource):
                                                  byref(p_data_offset),
                                                  out_samples - total_samples_out, None, 0)
             if samples_out == 0:
-                # No more samples. We can continue.
+                # 033885.python.ffmpeg.line1025.comment No more samples. We can continue.
                 break
             total_samples_out += samples_out
 
@@ -1031,16 +1031,16 @@ class FFmpegSource(StreamingSource):
         return size_out
 
     def _decode_video_packet(self, video_packet: VideoPacket) -> None:
-        # # Some timing and profiling
-        # pr = cProfile.Profile()
-        # pr.enable()
-        # clock = pyglet.clock.get_default()
-        # t0 = clock.time()
+        # 033886.python.ffmpeg.line1034.comment # Some timing and profiling
+        # 033887.python.ffmpeg.line1035.comment pr = cProfile.Profile()
+        # 033888.python.ffmpeg.line1036.comment pr.enable()
+        # 033889.python.ffmpeg.line1037.comment clock = pyglet.clock.get_default()
+        # 033890.python.ffmpeg.line1038.comment t0 = clock.time()
 
         width = self.video_format.width
         height = self.video_format.height
         pitch = width * 4
-        # https://ffmpeg.org/doxygen/3.3/group__lavc__decoding.html#ga8f5b632a03ce83ac8e025894b1fc307a
+        # 033891.python.ffmpeg.line1043.comment https://ffmpeg.org/doxygen/3.3/group__lavc__decoding.html#ga8f5b632a03ce83ac8e025894b1fc307a
         nbytes = (pitch * height + FF_INPUT_BUFFER_PADDING_SIZE)
         buffer = (c_uint8 * nbytes)()
         try:
@@ -1058,13 +1058,13 @@ class FFmpegSource(StreamingSource):
         if _debug:
             print('Decoding video packet at timestamp', video_packet, video_packet.timestamp)
 
-            # t2 = clock.time()
-            # pr.disable()
-            # print("Time in _decode_video_packet: {:.4f} s for timestamp {} s".format(t2-t0, packet.timestamp))
-            # if t2-t0 > 0.01:
-            #     import pstats
-            #     ps = pstats.Stats(pr).sort_stats("cumulative")
-            #     ps.print_stats()
+            # 033892.python.ffmpeg.line1061.comment t2 = clock.time()
+            # 033893.python.ffmpeg.line1062.comment pr.disable()
+            # 033894.python.ffmpeg.line1063.comment print("Time in _decode_video_packet: {:.4f} s for timestamp {} s".format(t2-t0, packet.timestamp))
+            # 033895.python.ffmpeg.line1064.comment if t2-t0 > 0.01:
+            # 033896.python.ffmpeg.line1065.comment import pstats
+            # 033897.python.ffmpeg.line1066.comment ps = pstats.Stats(pr).sort_stats("cumulative")
+            # 033898.python.ffmpeg.line1067.comment ps.print_stats()
 
     def _ffmpeg_decode_video(self, packet: AVPacket, data_out: Array[c_uint8]) -> int:
         stream = self._video_stream
@@ -1124,8 +1124,8 @@ class FFmpegSource(StreamingSource):
 
         if self.videoq:
             while True:
-                # We skip video packets which are not video frames
-                # This happens in mkv files for the first few frames.
+                # 033899.python.ffmpeg.line1127.comment We skip video packets which are not video frames
+                # 033900.python.ffmpeg.line1128.comment This happens in mkv files for the first few frames.
                 try:
                     video_packet = self.videoq.popleft()
                 except IndexError:
@@ -1149,8 +1149,8 @@ class FFmpegSource(StreamingSource):
             return None
 
         while True:
-            # We skip video packets which are not video frames
-            # This happens in mkv files for the first few frames.
+            # 033902.python.ffmpeg.line1152.comment We skip video packets which are not video frames
+            # 033903.python.ffmpeg.line1153.comment This happens in mkv files for the first few frames.
             video_packet = self._get_video_packet()
             if not video_packet:
                 return None
@@ -1206,9 +1206,9 @@ else:
     avutil.av_log_set_level(8)
 
 
-#########################################
-#   Decoder class:
-#########################################
+# 033904.python.ffmpeg.line1209.comment ########################################
+# 033905.python.ffmpeg.line1210.comment Decoder class:
+# 033906.python.ffmpeg.line1211.comment ########################################
 
 class FFmpegDecoder(MediaDecoder):
 

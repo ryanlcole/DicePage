@@ -31,16 +31,16 @@ class error_not_supported(Exception):
 VERBOSE = 0
 DEBUG = 0
 
-## NOTE : For interfaces as params to work correctly, you must
-## make sure any PythonCOM extensions which expose the interface are loaded
-## before generating.
+# 049535.python.makegwparse.line34.comment # NOTE : For interfaces as params to work correctly, you must
+# 049536.python.makegwparse.line35.comment # make sure any PythonCOM extensions which expose the interface are loaded
+# 049537.python.makegwparse.line36.comment # before generating.
 
 
 class ArgFormatter:
     """An instance for a specific type of argument. Knows how to convert itself"""
 
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
-        # print("init:", arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel)
+        # 049538.python.makegwparse.line43.comment print("init:", arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel)
         self.arg = arg
         self.builtinIndirection = builtinIndirection
         self.declaredIndirection = declaredIndirection
@@ -67,18 +67,18 @@ class ArgFormatter:
             raise error_not_supported("Can't indirect this far - please fix me :-)")
 
     def GetIndirectedArgName(self, indirectFrom, indirectionTo):
-        # print(
-        #     "get:",
-        #     self.arg.name,
-        #     indirectFrom,
-        #     self._GetDeclaredIndirection() + self.builtinIndirection,
-        #     indirectionTo,
-        #     self.arg.indirectionLevel,
-        # )
+        # 049539.python.makegwparse.line70.comment print(
+        # 049540.python.makegwparse.line71.comment "get:",
+        # 049541.python.makegwparse.line72.comment self.arg.name,
+        # 049542.python.makegwparse.line73.comment indirectFrom,
+        # 049543.python.makegwparse.line74.comment self._GetDeclaredIndirection() + self.builtinIndirection,
+        # 049544.python.makegwparse.line75.comment indirectionTo,
+        # 049545.python.makegwparse.line76.comment self.arg.indirectionLevel,
+        # 049546.python.makegwparse.line77.comment )
 
         if indirectFrom is None:
-            ### ACK! this does not account for [in][out] variables.
-            ### when this method is called, we need to know which
+            # 049547.python.makegwparse.line80.comment ## ACK! this does not account for [in][out] variables.
+            # 049548.python.makegwparse.line81.comment ## when this method is called, we need to know which
             indirectFrom = self._GetDeclaredIndirection() + self.builtinIndirection
 
         return self._IndirectPrefix(indirectFrom, indirectionTo) + self.arg.name
@@ -90,9 +90,9 @@ class ArgFormatter:
     def GetParseTupleArg(self):
         "Get the argument to be passed to PyArg_ParseTuple"
         if self.gatewayMode:
-            # use whatever they were declared with
+            # 049549.python.makegwparse.line93.comment use whatever they were declared with
             return self.GetIndirectedArgName(None, 1)
-        # local declarations have just their builtin indirection
+        # 049550.python.makegwparse.line95.comment local declarations have just their builtin indirection
         return self.GetIndirectedArgName(self.builtinIndirection, 1)
 
     def GetInterfaceCppObjectInfo(self):
@@ -111,13 +111,13 @@ class ArgFormatter:
         Result is a tuple of (variableName, [DeclareType|None|""])
         """
 
-        # the first return element is the variable to be passed as
-        # 	 an argument to an interface method. the variable was
-        # 	 declared with only its builtin indirection level. when
-        # 	 we pass it, we'll need to pass in whatever amount of
-        # 	 indirection was applied (plus the builtin amount)
-        # the second return element is the variable declaration; it
-        # 	 should simply be builtin indirection
+        # 049551.python.makegwparse.line114.comment the first return element is the variable to be passed as
+        # 049552.python.makegwparse.line115.comment an argument to an interface method. the variable was
+        # 049553.python.makegwparse.line116.comment declared with only its builtin indirection level. when
+        # 049554.python.makegwparse.line117.comment we pass it, we'll need to pass in whatever amount of
+        # 049555.python.makegwparse.line118.comment indirection was applied (plus the builtin amount)
+        # 049556.python.makegwparse.line119.comment the second return element is the variable declaration; it
+        # 049557.python.makegwparse.line120.comment should simply be builtin indirection
         return (
             self.GetIndirectedArgName(
                 self.builtinIndirection,
@@ -160,10 +160,10 @@ class ArgFormatter:
 
     def DeclareParseArgTupleInputConverter(self):
         "Declare the variable used as the PyArg_ParseTuple param for a gateway"
-        # Only declare it??
-        # if self.arg.indirectionLevel==0:
-        # 	return "\t%s %s;\n" % (self.arg.type, self.arg.name)
-        # else:
+        # 049558.python.makegwparse.line163.comment Only declare it??
+        # 049559.python.makegwparse.line164.comment if self.arg.indirectionLevel==0:
+        # 049560.python.makegwparse.line165.comment return "\t%s %s;\n" % (self.arg.type, self.arg.name)
+        # 049561.python.makegwparse.line166.comment else:
         if DEBUG:
             return (
                 "/* Declare ParseArgTupleInputConverter goes here: %s */\n"
@@ -224,13 +224,13 @@ class ArgFormatter:
         return 0
 
 
-# Special formatter for floats since they're smaller than Python floats.
+# 049564.python.makegwparse.line227.comment Special formatter for floats since they're smaller than Python floats.
 class ArgFormatterFloat(ArgFormatter):
     def GetFormatChar(self):
         return "f"
 
     def DeclareParseArgTupleInputConverter(self):
-        # Declare a double variable
+        # 049565.python.makegwparse.line233.comment Declare a double variable
         return "\tdouble dbl%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
@@ -262,14 +262,14 @@ class ArgFormatterFloat(ArgFormatter):
         return s
 
 
-# Special formatter for Shorts because they're
-# a different size than Python ints!
+# 049566.python.makegwparse.line265.comment Special formatter for Shorts because they're
+# 049567.python.makegwparse.line266.comment a different size than Python ints!
 class ArgFormatterShort(ArgFormatter):
     def GetFormatChar(self):
         return "i"
 
     def DeclareParseArgTupleInputConverter(self):
-        # Declare a double variable
+        # 049568.python.makegwparse.line272.comment Declare a double variable
         return "\tINT i%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
@@ -301,13 +301,13 @@ class ArgFormatterShort(ArgFormatter):
         return s
 
 
-# for types which are 64bits on AMD64 - eg, HWND
+# 049569.python.makegwparse.line304.comment for types which are 64bits on AMD64 - eg, HWND
 class ArgFormatterLONG_PTR(ArgFormatter):
     def GetFormatChar(self):
         return "O"
 
     def DeclareParseArgTupleInputConverter(self):
-        # Declare a PyObject variable
+        # 049570.python.makegwparse.line310.comment Declare a PyObject variable
         return "\tPyObject *ob%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
@@ -341,11 +341,11 @@ class ArgFormatterPythonCOM(ArgFormatter):
     def GetFormatChar(self):
         return "O"
 
-    # def GetInterfaceCppObjectInfo(self):
-    # 	return ArgFormatter.GetInterfaceCppObjectInfo(self)[0], \
-    # 		"%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
+    # 049571.python.makegwparse.line344.comment def GetInterfaceCppObjectInfo(self):
+    # 049572.python.makegwparse.line345.comment return ArgFormatter.GetInterfaceCppObjectInfo(self)[0], \
+    # 049573.python.makegwparse.line346.comment "%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
     def DeclareParseArgTupleInputConverter(self):
-        # Declare a PyObject variable
+        # 049574.python.makegwparse.line348.comment Declare a PyObject variable
         return "\tPyObject *ob%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
@@ -403,12 +403,12 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
         return "\tSysFreeString(%s);\n" % self.GetIndirectedArgName(None, 1)
 
     def GetBuildForInterfacePreCode(self):
-        # the variable was declared with just its builtin indirection
+        # 049575.python.makegwparse.line406.comment the variable was declared with just its builtin indirection
         notdirected = self.GetIndirectedArgName(self.builtinIndirection, 1)
         return f"\tob{self.arg.name} = MakeOLECHARToObj({notdirected});\n"
 
     def GetBuildForInterfacePostCode(self):
-        # memory returned into an OLECHAR should be freed
+        # 049576.python.makegwparse.line411.comment memory returned into an OLECHAR should be freed
         return (
             f"\tCoTaskMemFree({self.arg.name});\n"
             + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
@@ -437,7 +437,7 @@ class ArgFormatterTCHAR(ArgFormatterPythonCOM):
         return "\tPyWinObject_FreeTCHAR(%s);\n" % self.GetIndirectedArgName(None, 1)
 
     def GetBuildForInterfacePreCode(self):
-        # the variable was declared with just its builtin indirection
+        # 049577.python.makegwparse.line440.comment the variable was declared with just its builtin indirection
         notdirected = self.GetIndirectedArgName(self.builtinIndirection, 1)
         return f"\tob{self.arg.name} = PyWinObject_FromTCHAR({notdirected});\n"
 
@@ -459,7 +459,7 @@ class ArgFormatterIID(ArgFormatterPythonCOM):
         )
 
     def GetBuildForInterfacePreCode(self):
-        # 		notdirected = self.GetIndirectedArgName(self.arg.indirectionLevel, 0)
+        # 049578.python.makegwparse.line462.comment notdirected = self.GetIndirectedArgName(self.arg.indirectionLevel, 0)
         notdirected = self.GetIndirectedArgName(None, 0)
         return f"\tob{self.arg.name} = PyWinObject_FromIID({notdirected});\n"
 
@@ -469,10 +469,10 @@ class ArgFormatterIID(ArgFormatterPythonCOM):
 
 class ArgFormatterTime(ArgFormatterPythonCOM):
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
-        # we don't want to declare LPSYSTEMTIME / LPFILETIME objects
+        # 049579.python.makegwparse.line472.comment we don't want to declare LPSYSTEMTIME / LPFILETIME objects
         if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
             arg.unc_type = arg.unc_type[2:]
-            # reduce the builtin and increment the declaration
+            # 049580.python.makegwparse.line475.comment reduce the builtin and increment the declaration
             arg.indirectionLevel += 1
             builtinIndirection = 0
         ArgFormatterPythonCOM.__init__(
@@ -483,8 +483,8 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
         return "<o PyDateTime>"
 
     def GetParsePostCode(self):
-        # variable was declared with only the builtinIndirection
-        ### NOTE: this is an [in] ... so use only builtin
+        # 049581.python.makegwparse.line486.comment variable was declared with only the builtinIndirection
+        # 049582.python.makegwparse.line487.comment ## NOTE: this is an [in] ... so use only builtin
         return '\tif (!PyTime_Check(ob{})) {{\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}}\n\tif (!((PyTime *)ob{})->GetTime({})) bPythonIsHappy = FALSE;\n'.format(
             self.arg.name,
             self.arg.name,
@@ -492,15 +492,15 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
         )
 
     def GetBuildForInterfacePreCode(self):
-        ### use just the builtinIndirection again...
+        # 049583.python.makegwparse.line495.comment ## use just the builtinIndirection again...
         notdirected = self.GetIndirectedArgName(self.builtinIndirection, 0)
         return f"\tob{self.arg.name} = new PyTime({notdirected});\n"
 
     def GetBuildForInterfacePostCode(self):
-        ### hack to determine if we need to free stuff
+        # 049584.python.makegwparse.line500.comment ## hack to determine if we need to free stuff
         ret = ""
         if self.builtinIndirection + self.arg.indirectionLevel > 1:
-            # memory returned into an OLECHAR should be freed
+            # 049585.python.makegwparse.line503.comment memory returned into an OLECHAR should be freed
             ret = "\tCoTaskMemFree(%s);\n" % self.arg.name
         return ret + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
 
@@ -622,11 +622,11 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
         )
 
     def GetParsePostCode(self):
-        # This gets called for out params in gateway mode
+        # 049586.python.makegwparse.line625.comment This gets called for out params in gateway mode
         if self.gatewayMode:
             sArg = self.GetIndirectedArgName(None, 2)
         else:
-            # vs. in params for interface mode.
+            # 049587.python.makegwparse.line629.comment vs. in params for interface mode.
             sArg = self.GetIndirectedArgName(1, 2)
         return "\tif (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(ob{}, IID_{}, (void **){}, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n".format(
             self.arg.name, self.arg.type, sArg
@@ -665,7 +665,7 @@ class ArgFormatterVARIANT(ArgFormatterPythonCOM):
     def GetBuildForGatewayPostCode(self):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
-        # Key :		, Python Type Description, ParseTuple format char
+        # 049588.python.makegwparse.line668.comment Key :		, Python Type Description, ParseTuple format char
 
 
 ConvertSimpleTypes = {
@@ -771,7 +771,7 @@ AllConverters: dict[
     "const PUITEMID_CHILD": (ArgFormatterIDLIST, 0),
     "PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
     "const PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
-    # Auto-add all the simple types
+    # 049589.python.makegwparse.line774.comment Auto-add all the simple types
     **dict.fromkeys(ConvertSimpleTypes, (ArgFormatterSimple, 0)),
 }
 
@@ -791,9 +791,9 @@ def make_arg_converter(arg):
         raise error_not_supported(f"The type '{arg.type}' ({arg.name}) is unknown.")
 
 
-#############################################################
-#
-# The instances that represent the args, methods and interface
+# 049590.python.makegwparse.line794.comment ############################################################
+# 049591.python.makegwparse.line795.comment
+# 049592.python.makegwparse.line796.comment The instances that represent the args, methods and interface
 class Argument:
     """A representation of an argument to a COM method
 
@@ -802,8 +802,8 @@ class Argument:
     to/from Python arguments.
     """
 
-    # 									  in,out					  type			  name			 [	]
-    # 								   --------------				--------	  ------------		------
+    # 049593.python.makegwparse.line805.comment in,out					  type			  name			 [	]
+    # 049594.python.makegwparse.line806.comment --------------				--------	  ------------		------
     regex = re.compile(r"/\* \[([^\]]*.*?)] \*/[ \t](.*[* ]+)(\w+)(\[ *])?[\),]")
 
     @classmethod
@@ -886,8 +886,8 @@ class Method:
     a list of all @Argument@s
     """
 
-    # 										 options	 ret type callconv	 name
-    # 								   ----------------- -------- -------- --------
+    # 049596.python.makegwparse.line889.comment options	 ret type callconv	 name
+    # 049597.python.makegwparse.line890.comment ----------------- -------- -------- --------
     regex = re.compile(r"virtual (/\*.*?\*/ )?(.*?) (.*?) (.*?)\(\w?")
 
     def __init__(self, good_interface_names):
@@ -917,7 +917,7 @@ class Method:
                 print(
                     "Method %s - Only HRESULT return types are supported." % self.name
                 )
-            # 				raise error_not_supported,		if VERBOSE:
+            # 049599.python.makegwparse.line920.comment raise error_not_supported,		if VERBOSE:
             print(f"     Method {self.result} {self.name}(")
         while 1:
             arg = Argument(self.good_interface_names)
@@ -935,8 +935,8 @@ class Interface:
     a list of all @Method@s
     """
 
-    # 									  name				 base
-    # 									 --------		   --------
+    # 049600.python.makegwparse.line938.comment name				 base
+    # 049601.python.makegwparse.line939.comment --------		   --------
     regex = re.compile(r"(interface|) ([^ ]*) : public (.*)$")
 
     def __init__(self, mo):
@@ -948,7 +948,7 @@ class Interface:
 
     def BuildMethods(self, file):
         """Build all sub-methods for this interface"""
-        # skip the next 2 lines.
+        # 049602.python.makegwparse.line951.comment skip the next 2 lines.
         file.readline()
         file.readline()
         while 1:

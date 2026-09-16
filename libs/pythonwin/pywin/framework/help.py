@@ -1,4 +1,4 @@
-# help.py - help utilities for PythonWin.
+# 037650.python.help.line1.comment help.py - help utilities for PythonWin.
 import os
 
 import regutil
@@ -21,7 +21,7 @@ def FinalizeHelp():
         import win32help
 
         try:
-            # frame = win32ui.GetMainFrame().GetSafeHwnd()
+            # 037654.python.help.line24.comment frame = win32ui.GetMainFrame().GetSafeHwnd()
             frame = 0
             win32help.HtmlHelp(frame, None, win32help.HH_UNINITIALIZE, htmlhelp_handle)
         except win32help.error:
@@ -31,7 +31,7 @@ def FinalizeHelp():
 
 def OpenHelpFile(fileName, helpCmd=None, helpArg=None):
     "Open a help file, given a full path"
-    # default help arg.
+    # 037655.python.help.line34.comment default help arg.
     win32ui.DoWaitCursor(1)
     try:
         if helpCmd is None:
@@ -41,18 +41,18 @@ def OpenHelpFile(fileName, helpCmd=None, helpArg=None):
             win32api.WinHelp(
                 win32ui.GetMainFrame().GetSafeHwnd(), fileName, helpCmd, helpArg
             )
-        # XXX - using the htmlhelp API wreaks havoc with keyboard shortcuts
-        # so we disable it, forcing ShellExecute, which works fine (but
-        # doesn't close the help file when Pythonwin is closed.
-        # Tom Heller also points out
-        # https://web.archive.org/web/20070519165457/http://www.microsoft.com:80/mind/0499/faq/faq0499.asp ,
-        # which may or may not be related.
+        # 037656.python.help.line44.comment XXX - using the htmlhelp API wreaks havoc with keyboard shortcuts
+        # 037657.python.help.line45.comment so we disable it, forcing ShellExecute, which works fine (but
+        # 037658.python.help.line46.comment doesn't close the help file when Pythonwin is closed.
+        # 037659.python.help.line47.comment Tom Heller also points out
+        # 037660.python.help.line48.comment https://web.archive.org/web/20070519165457/http://www.microsoft.com:80/mind/0499/faq/faq0499.asp ,
+        # 037661.python.help.line49.comment which may or may not be related.
         elif 0 and ext == ".chm":
             import win32help
 
             global htmlhelp_handle
             helpCmd = html_help_command_translators.get(helpCmd, helpCmd)
-            # frame = win32ui.GetMainFrame().GetSafeHwnd()
+            # 037662.python.help.line55.comment frame = win32ui.GetMainFrame().GetSafeHwnd()
             frame = 0  # Don't want it overlapping ours!
             if htmlhelp_handle is None:
                 htmlhelp_hwnd, htmlhelp_handle = win32help.HtmlHelp(
@@ -60,7 +60,7 @@ def OpenHelpFile(fileName, helpCmd=None, helpArg=None):
                 )
             win32help.HtmlHelp(frame, fileName, helpCmd, helpArg)
         else:
-            # Hope that the extension is registered, and we know what to do!
+            # 037664.python.help.line63.comment Hope that the extension is registered, and we know what to do!
             win32api.ShellExecute(0, "open", fileName, None, "", win32con.SW_SHOW)
         return fileName
     finally:
@@ -70,7 +70,7 @@ def OpenHelpFile(fileName, helpCmd=None, helpArg=None):
 def ListAllHelpFiles():
     ret = []
     ret = _ListAllHelpFilesInRoot(win32con.HKEY_LOCAL_MACHINE)
-    # Ensure we don't get dups.
+    # 037665.python.help.line73.comment Ensure we don't get dups.
     for item in _ListAllHelpFilesInRoot(win32con.HKEY_CURRENT_USER):
         if item not in ret:
             ret.append(item)
@@ -115,7 +115,7 @@ def SelectAndRunHelpFile():
 
     helpFiles = ListAllHelpFiles()
     if len(helpFiles) == 1:
-        # only 1 help file registered - probably ours - no point asking
+        # 037666.python.help.line118.comment only 1 help file registered - probably ours - no point asking
         index = 0
     else:
         index = list.SelectFromLists("Select Help file", helpFiles, ["Title"])
@@ -131,15 +131,15 @@ def SetHelpMenuOtherHelp(mainMenu):
     mainMenu -- The main menu to modify - usually from docTemplate.GetSharedMenu()
     """
 
-    # Load all help files from the registry.
+    # 037667.python.help.line134.comment Load all help files from the registry.
     global helpIDMap
     if helpIDMap is None:
         helpIDMap = {}
         cmdID = win32ui.ID_HELP_OTHER
         excludeList = ["Main Python Documentation", "Pythonwin Reference"]
         firstList = ListAllHelpFiles()
-        # We actually want to not only exclude these entries, but
-        # their help file names (as many entries may share the same name)
+        # 037668.python.help.line141.comment We actually want to not only exclude these entries, but
+        # 037669.python.help.line142.comment their help file names (as many entries may share the same name)
         excludeFnames = []
         for desc, fname in firstList:
             if desc in excludeList:

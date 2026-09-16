@@ -1,4 +1,4 @@
-# Does Python source formatting for Scintilla controls.
+# 038808.python.formatter.line1.comment Does Python source formatting for Scintilla controls.
 import array
 import string
 
@@ -10,13 +10,13 @@ from . import scintillacon
 
 WM_KICKIDLE = 0x036A
 
-# Used to indicate that style should use default color
+# 038809.python.formatter.line13.comment Used to indicate that style should use default color
 from win32con import CLR_INVALID
 
 debugging = 0
 if debugging:
-    # Output must go to another process else the result of
-    # the printing itself will trigger again trigger a trace.
+    # 038810.python.formatter.line18.comment Output must go to another process else the result of
+    # 038811.python.formatter.line19.comment the printing itself will trigger again trigger a trace.
 
     import win32trace
     import win32traceutil
@@ -33,8 +33,8 @@ class Style:
 
     def __init__(self, name, format, background=CLR_INVALID):
         self.name = name  # Name the format representes eg, "String", "Class"
-        # Default background for each style is only used when there are no
-        # saved settings (generally on first startup)
+        # 038813.python.formatter.line36.comment Default background for each style is only used when there are no
+        # 038814.python.formatter.line37.comment saved settings (generally on first startup)
         self.background = self.default_background = background
         if isinstance(format, str):
             self.aliased = format
@@ -47,8 +47,8 @@ class Style:
     def IsBasedOnDefault(self):
         return len(self.format) == 5
 
-    # If the currently extended font defintion matches the
-    # default format, restore the format to the "simple" format.
+    # 038816.python.formatter.line50.comment If the currently extended font defintion matches the
+    # 038817.python.formatter.line51.comment default format, restore the format to the "simple" format.
     def NormalizeAgainstDefault(self, defaultFormat):
         if self.IsBasedOnDefault():
             return 0  # No more to do, and not changed.
@@ -63,7 +63,7 @@ class Style:
         self.format = self.format[:5]
 
     def GetCompleteFormat(self, defaultFormat):
-        # Get the complete style after applying any relevant defaults.
+        # 038819.python.formatter.line66.comment Get the complete style after applying any relevant defaults.
         if len(self.format) == 5:  # It is a default one
             fmt = self.format + defaultFormat[5:]
         else:
@@ -79,8 +79,8 @@ class Style:
         return (flags,) + fmt[1:]
 
 
-# The Formatter interface
-# used primarily when the actual formatting is done by Scintilla!
+# 038821.python.formatter.line82.comment The Formatter interface
+# 038822.python.formatter.line83.comment used primarily when the actual formatting is done by Scintilla!
 class FormatterBase:
     def __init__(self, scintilla):
         self.scintilla = scintilla
@@ -94,12 +94,12 @@ class FormatterBase:
     def HookFormatter(self, parent=None):
         raise NotImplementedError
 
-    # Used by the IDLE extensions to quickly determine if a character is a string.
+    # 038825.python.formatter.line97.comment Used by the IDLE extensions to quickly determine if a character is a string.
     def GetStringStyle(self, pos):
         try:
             style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
         except KeyError:
-            # A style we don't know about - probably not even a .py file - can't be a string
+            # 038826.python.formatter.line102.comment A style we don't know about - probably not even a .py file - can't be a string
             return None
         if style.name in self.string_style_names:
             return style
@@ -124,28 +124,28 @@ class FormatterBase:
             return self.baseFormatFixed
         return self.baseFormatProp
 
-    # Update the control with the new style format.
+    # 038827.python.formatter.line127.comment Update the control with the new style format.
     def _ReformatStyle(self, style):
-        ## Selection (background only for now)
-        ## Passing False for WPARAM to SCI_SETSELBACK is documented as resetting to scintilla default,
-        ## but does not work - selection background is not visible at all.
-        ## Default value in SPECIAL_STYLES taken from scintilla source.
+        # 038828.python.formatter.line129.comment # Selection (background only for now)
+        # 038829.python.formatter.line130.comment # Passing False for WPARAM to SCI_SETSELBACK is documented as resetting to scintilla default,
+        # 038830.python.formatter.line131.comment # but does not work - selection background is not visible at all.
+        # 038831.python.formatter.line132.comment # Default value in SPECIAL_STYLES taken from scintilla source.
         if style.name == STYLE_SELECTION:
             clr = style.background
             self.scintilla.SendScintilla(scintillacon.SCI_SETSELBACK, True, clr)
 
-            ## Can't change font for selection, but could set color
-            ## However, the font color dropbox has no option for default, and thus would
-            ## always override syntax coloring
-            ## clr = style.format[4]
-            ## self.scintilla.SendScintilla(scintillacon.SCI_SETSELFORE, clr != CLR_INVALID, clr)
+            # 038832.python.formatter.line137.comment # Can't change font for selection, but could set color
+            # 038833.python.formatter.line138.comment # However, the font color dropbox has no option for default, and thus would
+            # 038834.python.formatter.line139.comment # always override syntax coloring
+            # 038835.python.formatter.line140.comment # clr = style.format[4]
+            # 038836.python.formatter.line141.comment # self.scintilla.SendScintilla(scintillacon.SCI_SETSELFORE, clr != CLR_INVALID, clr)
             return
 
         assert style.stylenum is not None, "Unregistered style."
-        # print("Reformat style", style.name, style.stylenum)
+        # 038837.python.formatter.line145.comment print("Reformat style", style.name, style.stylenum)
         scintilla = self.scintilla
         stylenum = style.stylenum
-        # Now we have the style number, indirect for the actual style.
+        # 038838.python.formatter.line148.comment Now we have the style number, indirect for the actual style.
         if style.aliased is not None:
             style = self.styles[style.aliased]
         f = style.format
@@ -166,8 +166,8 @@ class FormatterBase:
         scintilla.SCIStyleSetSize(stylenum, int(baseFormat[2] / 20))
         scintilla.SCIStyleSetEOLFilled(stylenum, 1)  # Only needed for unclosed strings.
 
-        ## Default style background to whitespace background if set,
-        ##	otherwise use system window color
+        # 038840.python.formatter.line169.comment # Default style background to whitespace background if set,
+        # 038841.python.formatter.line170.comment #	otherwise use system window color
         bg = style.background
         if bg == CLR_INVALID:
             bg = self.styles[STYLE_DEFAULT].background
@@ -191,8 +191,8 @@ class FormatterBase:
             self._ReformatStyle(style)
         self.scintilla.InvalidateRect()
 
-    # Some functions for loading and saving preferences.  By default
-    # an INI file (well, MFC maps this to the registry) is used.
+    # 038842.python.formatter.line194.comment Some functions for loading and saving preferences.  By default
+    # 038843.python.formatter.line195.comment an INI file (well, MFC maps this to the registry) is used.
     def LoadPreferences(self):
         self.baseFormatFixed = eval(
             self.LoadPreference("Base Format Fixed", str(self.baseFormatFixed))
@@ -208,7 +208,7 @@ class FormatterBase:
                 style.format = eval(new)
             except:
                 print("Error loading style data for", style.name)
-            # Use "vanilla" background hardcoded in PYTHON_STYLES if no settings in registry
+            # 038844.python.formatter.line211.comment Use "vanilla" background hardcoded in PYTHON_STYLES if no settings in registry
             style.background = int(
                 self.LoadPreference(
                     style.name + " background", style.default_background
@@ -232,9 +232,9 @@ class FormatterBase:
         win32ui.WriteProfileVal("Format", name, value)
 
 
-# An abstract formatter
-# For all formatters we actually implement here.
-# (as opposed to those formatters built in to Scintilla)
+# 038845.python.formatter.line235.comment An abstract formatter
+# 038846.python.formatter.line236.comment For all formatters we actually implement here.
+# 038847.python.formatter.line237.comment (as opposed to those formatters built in to Scintilla)
 class Formatter(FormatterBase):
     def __init__(self, scintilla):
         self.bCompleteWhileIdle = 0
@@ -252,26 +252,26 @@ class Formatter(FormatterBase):
         endStyledChar = self.scintilla.SendScintilla(scintillacon.SCI_GETENDSTYLED)
         lineEndStyled = self.scintilla.LineFromChar(endStyledChar)
         endStyled = self.scintilla.LineIndex(lineEndStyled)
-        # print(
-        #     "endPosPaint",
-        #     endPosPaint,
-        #     "endStyledChar",
-        #     endStyledChar,
-        #     "lineEndStyled",
-        #     lineEndStyled,
-        #     "endStyled",
-        #     endStyled,
-        # )
+        # 038850.python.formatter.line255.comment print(
+        # 038851.python.formatter.line256.comment "endPosPaint",
+        # 038852.python.formatter.line257.comment endPosPaint,
+        # 038853.python.formatter.line258.comment "endStyledChar",
+        # 038854.python.formatter.line259.comment endStyledChar,
+        # 038855.python.formatter.line260.comment "lineEndStyled",
+        # 038856.python.formatter.line261.comment lineEndStyled,
+        # 038857.python.formatter.line262.comment "endStyled",
+        # 038858.python.formatter.line263.comment endStyled,
+        # 038859.python.formatter.line264.comment )
         self.Colorize(endStyled, notify.position)
 
     def ColorSeg(self, start, end, styleName):
         end += 1
-        # 		assert end-start>=0, "Can't have negative styling"
+        # 038860.python.formatter.line269.comment assert end-start>=0, "Can't have negative styling"
         stylenum = self.styles[styleName].stylenum
         while start < end:
             self.style_buffer[start] = stylenum
             start += 1
-        # self.scintilla.SCISetStyling(end - start + 1, stylenum)
+        # 038861.python.formatter.line274.comment self.scintilla.SCISetStyling(end - start + 1, stylenum)
 
     def RegisterStyle(self, style, stylenum=None):
         if stylenum is None:
@@ -284,23 +284,23 @@ class Formatter(FormatterBase):
 
     def Colorize(self, start=0, end=-1):
         scintilla = self.scintilla
-        # scintilla's formatting is all done in terms of utf, so
-        # we work with utf8 bytes instead of unicode.  This magically
-        # works as any extended chars found in the utf8 don't change
-        # the semantics.
+        # 038862.python.formatter.line287.comment scintilla's formatting is all done in terms of utf, so
+        # 038863.python.formatter.line288.comment we work with utf8 bytes instead of unicode.  This magically
+        # 038864.python.formatter.line289.comment works as any extended chars found in the utf8 don't change
+        # 038865.python.formatter.line290.comment the semantics.
         stringVal = scintilla.GetTextRange(start, end, decode=False)
         if start > 0:
             stylenum = scintilla.SCIGetStyleAt(start - 1)
             styleStart = self.GetStyleByNum(stylenum).name
         else:
             styleStart = None
-        # 		trace("Coloring", start, end, end-start, len(stringVal), styleStart, self.scintilla.SCIGetCharAt(start))
+        # 038866.python.formatter.line297.comment trace("Coloring", start, end, end-start, len(stringVal), styleStart, self.scintilla.SCIGetCharAt(start))
         scintilla.SCIStartStyling(start, 31)
         self.style_buffer = array.array("b", (0,) * len(stringVal))
         self.ColorizeString(stringVal, styleStart)
         scintilla.SCISetStylingEx(self.style_buffer)
         self.style_buffer = None
-        # 		trace("After styling, end styled is", self.scintilla.SCIGetEndStyled())
+        # 038867.python.formatter.line303.comment trace("After styling, end styled is", self.scintilla.SCIGetEndStyled())
         if (
             self.bCompleteWhileIdle
             and not self.bHaveIdleHandler
@@ -309,9 +309,9 @@ class Formatter(FormatterBase):
         ):
             self.bHaveIdleHandler = 1
             win32ui.GetApp().AddIdleHandler(self.DoMoreColoring)
-            # Kicking idle makes the app seem slower when initially repainting!
+            # 038868.python.formatter.line312.comment Kicking idle makes the app seem slower when initially repainting!
 
-    # 			win32ui.GetMainFrame().PostMessage(WM_KICKIDLE, 0, 0)
+    # 038869.python.formatter.line314.comment win32ui.GetMainFrame().PostMessage(WM_KICKIDLE, 0, 0)
 
     def DoMoreColoring(self, handler, count):
         try:
@@ -327,7 +327,7 @@ class Formatter(FormatterBase):
             finished = end >= textlen
             self.Colorize(start, end)
         except (win32ui.error, AttributeError):
-            # Window may have closed before we finished - no big deal!
+            # 038870.python.formatter.line330.comment Window may have closed before we finished - no big deal!
             finished = 1
 
         if finished:
@@ -336,7 +336,7 @@ class Formatter(FormatterBase):
         return not finished
 
 
-# A Formatter that knows how to format Python source
+# 038871.python.formatter.line339.comment A Formatter that knows how to format Python source
 from keyword import iskeyword, kwlist
 
 wordstarts = "_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -371,10 +371,10 @@ STRING_STYLES = [
     STYLE_STRINGEOL,
 ]
 
-# These styles can have any ID - they are not special to scintilla itself.
-# However, if we use the built-in lexer, then we must use its style numbers
-# so in that case, they _are_ special.
-# (name, format, background, scintilla id)
+# 038872.python.formatter.line374.comment These styles can have any ID - they are not special to scintilla itself.
+# 038873.python.formatter.line375.comment However, if we use the built-in lexer, then we must use its style numbers
+# 038874.python.formatter.line376.comment so in that case, they _are_ special.
+# 038875.python.formatter.line377.comment (name, format, background, scintilla id)
 PYTHON_STYLES = [
     (STYLE_DEFAULT, (0, 0, 200, 0, 0x808080), CLR_INVALID, scintillacon.SCE_P_DEFAULT),
     (
@@ -412,8 +412,8 @@ PYTHON_STYLES = [
     ),
 ]
 
-# These styles _always_ have this specific style number, regardless of
-# internal or external formatter.
+# 038876.python.formatter.line415.comment These styles _always_ have this specific style number, regardless of
+# 038877.python.formatter.line416.comment internal or external formatter.
 SPECIAL_STYLES = [
     (STYLE_BRACE, (0, 0, 200, 0, 0x000000), 0xFFFF80, scintillacon.STYLE_BRACELIGHT),
     (STYLE_BRACEBAD, (0, 0, 200, 0, 0x000000), 0x8EA5F2, scintillacon.STYLE_BRACEBAD),
@@ -429,7 +429,7 @@ SPECIAL_STYLES = [
         CLR_INVALID,
         scintillacon.STYLE_INDENTGUIDE,
     ),
-    ## Not actually a style; requires special handling to send appropriate messages to scintilla
+    # 038878.python.formatter.line432.comment # Not actually a style; requires special handling to send appropriate messages to scintilla
     (
         STYLE_SELECTION,
         (0, 0, 200, 0, CLR_INVALID),
@@ -485,7 +485,7 @@ class PythonSourceFormatter(Formatter):
         return self.ColorizePythonCode(str, 0, styleStart)
 
     def ColorizePythonCode(self, cdoc, charStart, styleStart):
-        # Straight translation of C++, should do better
+        # 038879.python.formatter.line488.comment Straight translation of C++, should do better
         lengthDoc = len(cdoc)
         if lengthDoc <= charStart:
             return
@@ -636,7 +636,7 @@ class PythonSourceFormatter(Formatter):
                 self.ColorSeg(startSeg, lengthDoc - 1, state)
 
 
-# These taken from the SciTE properties file.
+# 038880.python.formatter.line639.comment These taken from the SciTE properties file.
 source_formatter_extensions = [
     (".py .pys .pyw".split(), scintillacon.SCLEX_PYTHON),
     (".html .htm .asp .shtml".split(), scintillacon.SCLEX_HTML),
@@ -656,7 +656,7 @@ source_formatter_extensions = [
 
 
 class BuiltinSourceFormatter(FormatterBase):
-    # A class that represents a formatter built-in to Scintilla
+    # 038881.python.formatter.line659.comment A class that represents a formatter built-in to Scintilla
     def __init__(self, scintilla, ext):
         self.ext = ext
         FormatterBase.__init__(self, scintilla)

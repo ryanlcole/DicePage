@@ -100,7 +100,7 @@ class ShellCommandTrick(Trick):
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         if event.event_type in {EVENT_TYPE_OPENED, EVENT_TYPE_CLOSED_NO_WRITE}:
-            # FIXME: see issue #949, and find a way to better handle that scenario
+            # 045909.python.init.line103.comment FIXME: see issue #949, and find a way to better handle that scenario
             return
 
         from string import Template
@@ -204,7 +204,7 @@ class AutoRestartTrick(Trick):
         self._start_process()
 
     def stop(self) -> None:
-        # Ensure the body of the function is only run once.
+        # 045910.python.init.line207.comment Ensure the body of the function is only run once.
         with self._stopping_lock:
             if self._is_trick_stopping:
                 return
@@ -215,7 +215,7 @@ class AutoRestartTrick(Trick):
             self.event_debouncer.stop()
         self._stop_process()
 
-        # Don't leak threads: Wait for background threads to stop.
+        # 045911.python.init.line218.comment Don't leak threads: Wait for background threads to stop.
         if self.event_debouncer is not None:
             self.event_debouncer.join()
         if process_watcher is not None:
@@ -225,14 +225,14 @@ class AutoRestartTrick(Trick):
         if self._is_trick_stopping:
             return
 
-        # windows doesn't have setsid
+        # 045912.python.init.line228.comment windows doesn't have setsid
         self.process = subprocess.Popen(self.command, preexec_fn=getattr(os, "setsid", None))
         if self.restart_on_command_exit:
             self.process_watcher = ProcessWatcher(self.process, self._restart_process)
             self.process_watcher.start()
 
     def _stop_process(self) -> None:
-        # Ensure the body of the function is not run in parallel in different threads.
+        # 045913.python.init.line235.comment Ensure the body of the function is not run in parallel in different threads.
         with self._stopping_lock:
             if self._is_process_stopping:
                 return
@@ -247,7 +247,7 @@ class AutoRestartTrick(Trick):
                 try:
                     kill_process(self.process.pid, self.stop_signal)
                 except OSError:
-                    # Process is already gone
+                    # 045914.python.init.line250.comment Process is already gone
                     pass
                 else:
                     kill_time = time.time() + self.kill_after
@@ -256,7 +256,7 @@ class AutoRestartTrick(Trick):
                             break
                         time.sleep(0.25)
                     else:
-                        # Process is already gone
+                        # 045915.python.init.line259.comment Process is already gone
                         with contextlib.suppress(OSError):
                             kill_process(self.process.pid, 9)
                 self.process = None
@@ -266,7 +266,7 @@ class AutoRestartTrick(Trick):
     @echo_events
     def on_any_event(self, event: FileSystemEvent) -> None:
         if event.event_type in {EVENT_TYPE_OPENED, EVENT_TYPE_CLOSED_NO_WRITE}:
-            # FIXME: see issue #949, and find a way to better handle that scenario
+            # 045916.python.init.line269.comment FIXME: see issue #949, and find a way to better handle that scenario
             return
 
         if self.event_debouncer is not None:

@@ -101,8 +101,8 @@ def _image_media_type(source, source_key):
 
 def _safe_frame(frame):
     copied = frame.copy()
-    # TIFF can preserve these common raster modes losslessly. Convert uncommon
-    # decoder modes to RGBA rather than risking a lossy RGB flattening.
+    # 000055.python.app.line104.comment TIFF can preserve these common raster modes losslessly. Convert uncommon
+    # 000056.python.app.line105.comment decoder modes to RGBA rather than risking a lossy RGB flattening.
     if copied.mode not in {"1", "L", "LA", "P", "RGB", "RGBA", "CMYK", "I", "F", "I;16", "I;16B", "I;16L"}:
         copied = copied.convert("RGBA")
     return copied
@@ -129,8 +129,8 @@ def _canonicalize_image(source_bytes):
             frame_count = 1
 
         if len(frames) > 1:
-            # Multi-frame TIFF is the preservation master. Normalizing frame mode
-            # avoids Pillow silently dropping pages when source frames differ.
+            # 000057.python.app.line132.comment Multi-frame TIFF is the preservation master. Normalizing frame mode
+            # 000058.python.app.line133.comment avoids Pillow silently dropping pages when source frames differ.
             common_mode = "RGBA" if any("A" in f.mode or f.mode == "P" for f in frames) else "RGB"
             frames = [f if f.mode == common_mode else f.convert(common_mode) for f in frames]
 
@@ -192,9 +192,9 @@ def _normalize_manifest(manifest_key):
 
     media_type = _image_media_type(source, source_relative)
     if not media_type:
-        # Non-image codecs intentionally remain their original canonical payload
-        # until a media-specific preservation worker (for example MediaConvert)
-        # is attached. Hashing still makes the hot source archive-verifiable.
+        # 000059.python.app.line195.comment Non-image codecs intentionally remain their original canonical payload
+        # 000060.python.app.line196.comment until a media-specific preservation worker (for example MediaConvert)
+        # 000061.python.app.line197.comment is attached. Hashing still makes the hot source archive-verifiable.
         manifest["Source"] = source
         manifest["Canonical"] = dict(source)
         manifest["StorageState"] = HOT

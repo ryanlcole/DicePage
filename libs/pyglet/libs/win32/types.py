@@ -65,9 +65,9 @@ from . import com
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 032048.python.types.line68.comment Some builds of ctypes apparently do not have c_int64
+    # 032049.python.types.line69.comment defined; it's a pretty good bet that these builds do not
+    # 032050.python.types.line70.comment have 64-bit pointers.
     _int_types += (c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
@@ -77,17 +77,17 @@ del _int_types
 
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 032051.python.types.line80.comment c_void_p is a buggy return type, converting to int, so
+    # 032052.python.types.line81.comment POINTER(None) == c_void_p is actually written as
+    # 032053.python.types.line82.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
 def POINTER_(obj):
     p = ctypes.POINTER(obj)
 
-    # Convert None to a real NULL pointer to work around bugs
-    # in how ctypes handles None on 64-bit platforms
+    # 032054.python.types.line89.comment Convert None to a real NULL pointer to work around bugs
+    # 032055.python.types.line90.comment in how ctypes handles None on 64-bit platforms
     if not isinstance(p.from_param, classmethod):
         def from_param(cls, x):
             if x is None:
@@ -127,8 +127,8 @@ INT64 = c_int64
 UINT64 = c_uint64
 VOID = None
 
-# Fixed in python 3.12. Ctypes defined BYTE as c_byte in previous versions.
-# Ensure it's the same across all versions.
+# 032056.python.types.line130.comment Fixed in python 3.12. Ctypes defined BYTE as c_byte in previous versions.
+# 032057.python.types.line131.comment Ensure it's the same across all versions.
 if sys.version_info < (3, 12):
     BYTE = c_ubyte
 
@@ -319,7 +319,7 @@ class LOGFONT(Structure):
 
 
 class LOGFONTW(Structure):
-    # https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-logfontw
+    # 032059.python.types.line322.comment https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-logfontw
     _fields_ = [
         ('lfHeight', LONG),
         ('lfWidth', LONG),
@@ -444,9 +444,9 @@ class DEVMODE(Structure):
         ('dmSize', WORD),
         ('dmDriverExtra', WORD),
         ('dmFields', DWORD),
-        # Just using the largest union member here
+        # 032061.python.types.line447.comment Just using the largest union member here
         ('_dummyUnion', _DUMMYDEVUNION),
-        # End union
+        # 032062.python.types.line449.comment End union
         ('dmColor', c_short),
         ('dmDuplex', c_short),
         ('dmYResolution', c_short),
@@ -563,7 +563,7 @@ class RAWINPUT(Structure):
     ]
 
 
-# PROPVARIANT wrapper, doesn't require InitPropVariantFromInt64 this way.
+# 032064.python.types.line566.comment PROPVARIANT wrapper, doesn't require InitPropVariantFromInt64 this way.
 class _VarTable(Union):
     """Must be in an anonymous union or values will not work across various VT's."""
     _fields_ = [
@@ -689,7 +689,7 @@ class DISPLAY_DEVICEW(ctypes.Structure):
     ]
 
 
-# Structures below are to retrieve a monitor name...
+# 032065.python.types.line692.comment Structures below are to retrieve a monitor name...
 class LUID(ctypes.Structure):
     _fields_ = [('LowPart', DWORD), ('HighPart', LONG)]
 

@@ -133,7 +133,7 @@ class TestMetadata:
         tmpdir.join('README').write('readme contents\nline2')
 
         meta_initial = {
-            # This will be used so `otherlic` won't replace it.
+            # 045051.python.test_setupcfg.line136.comment This will be used so `otherlic` won't replace it.
             'license': 'BSD 3-Clause License',
         }
 
@@ -360,7 +360,7 @@ class TestMetadata:
             'Programming Language :: Python :: 3.5',
         ])
 
-        # From file.
+        # 045054.python.test_setupcfg.line363.comment From file.
         _, config = fake_env(tmpdir, '[metadata]\nclassifiers = file: classifiers\n')
 
         tmpdir.join('classifiers').write(
@@ -372,7 +372,7 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
-        # From list notation
+        # 045055.python.test_setupcfg.line375.comment From list notation
         config.write(
             '[metadata]\n'
             'classifiers =\n'
@@ -451,9 +451,9 @@ class TestMetadata:
     def test_invalid_options_previously_deprecated(
         self, tmpdir, error_msg, config, invalid
     ):
-        # This test and related methods can be removed when no longer needed.
-        # Deprecation postponed due to push-back from the community in
-        # https://github.com/pypa/setuptools/issues/4910
+        # 045056.python.test_setupcfg.line454.comment This test and related methods can be removed when no longer needed.
+        # 045057.python.test_setupcfg.line455.comment Deprecation postponed due to push-back from the community in
+        # 045058.python.test_setupcfg.line456.comment https://github.com/pypa/setuptools/issues/4910
         fake_env(tmpdir, config)
         with pytest.warns(SetuptoolsDeprecationWarning, match=re.escape(error_msg)):
             dist = get_dist(tmpdir).__enter__()
@@ -751,7 +751,7 @@ class TestOptions:
         num_warnings = len(recwarn)
         with get_dist(tmpdir) as _:
             pass
-        # The examples are valid, no warnings shown
+        # 045059.python.test_setupcfg.line754.comment The examples are valid, no warnings shown
         assert len(recwarn) == num_warnings
 
     def test_dash_preserved_extras_require(self, tmpdir):
@@ -785,7 +785,7 @@ class TestOptions:
 
         tmpdir.join('entry_points').write(expected)
 
-        # From file.
+        # 045060.python.test_setupcfg.line788.comment From file.
         config.write('[options]\nentry_points = file: entry_points\n')
 
         with get_dist(tmpdir) as dist:
@@ -841,7 +841,7 @@ class TestOptions:
             '      sounds.db\n',
         )
 
-        # Create dummy files for glob()'s sake:
+        # 045061.python.test_setupcfg.line844.comment Create dummy files for glob()'s sake:
         tmpdir.join('a.dat').write('')
         tmpdir.join('b.dat').write('')
         tmpdir.join('c.dat').write('')
@@ -947,21 +947,21 @@ saved_dist_init = _Distribution.__init__
 
 
 class TestExternalSetters:
-    # During creation of the setuptools Distribution() object, we call
-    # the init of the parent distutils Distribution object via
-    # _Distribution.__init__ ().
-    #
-    # It's possible distutils calls out to various keyword
-    # implementations (i.e. distutils.setup_keywords entry points)
-    # that may set a range of variables.
-    #
-    # This wraps distutil's Distribution.__init__ and simulates
-    # pbr or something else setting these values.
+    # 045063.python.test_setupcfg.line950.comment During creation of the setuptools Distribution() object, we call
+    # 045064.python.test_setupcfg.line951.comment the init of the parent distutils Distribution object via
+    # 045065.python.test_setupcfg.line952.comment _Distribution.__init__ ().
+    # 045066.python.test_setupcfg.line953.comment
+    # 045067.python.test_setupcfg.line954.comment It's possible distutils calls out to various keyword
+    # 045068.python.test_setupcfg.line955.comment implementations (i.e. distutils.setup_keywords entry points)
+    # 045069.python.test_setupcfg.line956.comment that may set a range of variables.
+    # 045070.python.test_setupcfg.line957.comment
+    # 045071.python.test_setupcfg.line958.comment This wraps distutil's Distribution.__init__ and simulates
+    # 045072.python.test_setupcfg.line959.comment pbr or something else setting these values.
     def _fake_distribution_init(self, dist, attrs):
         saved_dist_init(dist, attrs)
-        # see self._DISTUTILS_UNSUPPORTED_METADATA
+        # 045073.python.test_setupcfg.line962.comment see self._DISTUTILS_UNSUPPORTED_METADATA
         dist.metadata.long_description_content_type = 'text/something'
-        # Test overwrite setup() args
+        # 045074.python.test_setupcfg.line964.comment Test overwrite setup() args
         dist.metadata.project_urls = {
             'Link One': 'https://example.com/one/',
             'Link Two': 'https://example.com/two/',

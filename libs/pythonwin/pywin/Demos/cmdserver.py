@@ -1,6 +1,6 @@
-# cmdserver.py
+# 036642.python.cmdserver.line1.comment cmdserver.py
 
-# Demo code that is not Pythonwin related, but too good to throw away...
+# 036643.python.cmdserver.line3.comment Demo code that is not Pythonwin related, but too good to throw away...
 
 import _thread
 import sys
@@ -64,8 +64,8 @@ def StartServer(cmd, title=None, bCloseOnEnd=0, serverFlags=flags.SERVER_BEST):
     if not title:
         title = cmd
     out.Create(title)
-    # 	ServerThread((out, cmd, title, bCloseOnEnd))
-    # 	out = sys.stdout
+    # 036644.python.cmdserver.line67.comment ServerThread((out, cmd, title, bCloseOnEnd))
+    # 036645.python.cmdserver.line68.comment out = sys.stdout
     _thread.start_new_thread(ServerThread, (out, cmd, title, bCloseOnEnd))
 
 
@@ -92,7 +92,7 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
         if bOK and bCloseOnEnd:
             myout.frame.DestroyWindow()
 
-    # Unhandled exception of any kind in a thread kills the gui!
+    # 036647.python.cmdserver.line95.comment Unhandled exception of any kind in a thread kills the gui!
     except:
         t, v, tb = sys.exc_info()
         print(t, ": ", v)
@@ -101,8 +101,8 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
         print("Thread failed")
 
 
-# assist for reloading (when debugging) - use only 1 tracer object,
-# else a large chain of tracer objects will exist.
+# 036648.python.cmdserver.line104.comment assist for reloading (when debugging) - use only 1 tracer object,
+# 036649.python.cmdserver.line105.comment else a large chain of tracer objects will exist.
 try:
     writer
 except NameError:

@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2018 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052169.python.dll.line1.comment
+# 052170.python.dll.line2.comment (C) Copyright 2018 Enthought, Inc., Austin, TX
+# 052171.python.dll.line3.comment All right reserved.
+# 052172.python.dll.line4.comment
+# 052173.python.dll.line5.comment This file is open source software distributed according to the terms in
+# 052174.python.dll.line6.comment LICENSE.txt
+# 052175.python.dll.line7.comment
 from ._util import ffi, check_null, check_false, dlls, HMODULE, PVOID
 
 

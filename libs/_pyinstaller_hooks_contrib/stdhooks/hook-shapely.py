@@ -1,14 +1,14 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 016676.python.hook-shapely.line1.comment ------------------------------------------------------------------
+# 016677.python.hook-shapely.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 016678.python.hook-shapely.line3.comment
+# 016679.python.hook-shapely.line4.comment This file is distributed under the terms of the GNU General Public
+# 016680.python.hook-shapely.line5.comment License (version 2.0 or later).
+# 016681.python.hook-shapely.line6.comment
+# 016682.python.hook-shapely.line7.comment The full license is available in LICENSE, distributed with
+# 016683.python.hook-shapely.line8.comment this software.
+# 016684.python.hook-shapely.line9.comment
+# 016685.python.hook-shapely.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 016686.python.hook-shapely.line11.comment ------------------------------------------------------------------
 
 import os
 from ctypes.util import find_library
@@ -17,12 +17,12 @@ from PyInstaller.utils.hooks import get_package_paths
 from PyInstaller.utils.hooks import is_module_satisfies
 from PyInstaller import compat
 
-# Necessary when using the vectorized subpackage
+# 016687.python.hook-shapely.line20.comment Necessary when using the vectorized subpackage
 hiddenimports = ['shapely.prepared']
 
 if is_module_satisfies('shapely >= 2.0.0'):
-    # An import made in the `shapely.geometry_helpers` extension; both `shapely.geometry_helpers` and `shapely._geos`
-    # extensions were introduced in v2.0.0.
+    # 016688.python.hook-shapely.line24.comment An import made in the `shapely.geometry_helpers` extension; both `shapely.geometry_helpers` and `shapely._geos`
+    # 016689.python.hook-shapely.line25.comment extensions were introduced in v2.0.0.
     hiddenimports += ['shapely._geos']
 
 pkg_base, pkg_dir = get_package_paths('shapely')
@@ -32,8 +32,8 @@ datas = []
 if compat.is_win:
     geos_c_dll_found = False
 
-    # Search conda directory if conda is active, then search standard
-    # directory. This is the same order of precidence used in shapely.
+    # 016690.python.hook-shapely.line35.comment Search conda directory if conda is active, then search standard
+    # 016691.python.hook-shapely.line36.comment directory. This is the same order of precidence used in shapely.
     standard_path = os.path.join(pkg_dir, 'DLLs')
     lib_paths = [standard_path, os.environ['PATH']]
     if compat.is_conda:
@@ -49,17 +49,17 @@ if compat.is_win:
         binaries += [(dll_path, '.')]
         geos_c_dll_found = True
 
-    # Starting with shapely 1.8.1, the DLLs shipped with PyPI wheels are stored in
-    # site-packages/Shapely.libs instead of sub-directory in site-packages/shapely.
+    # 016692.python.hook-shapely.line52.comment Starting with shapely 1.8.1, the DLLs shipped with PyPI wheels are stored in
+    # 016693.python.hook-shapely.line53.comment site-packages/Shapely.libs instead of sub-directory in site-packages/shapely.
     if is_module_satisfies("shapely >= 1.8.1"):
         lib_dir = os.path.join(pkg_base, "Shapely.libs")
         if os.path.isdir(lib_dir):
-            # We collect DLLs as data files instead of binaries to suppress binary
-            # analysis, which would result in duplicates (because it collects a copy
-            # into the top-level directory instead of preserving the original layout).
-            # In addition to DLls, this also collects .load-order* file (required on
-            # python < 3.8), and ensures that Shapely.libs directory exists (required
-            # on python >= 3.8 due to os.add_dll_directory call).
+            # 016694.python.hook-shapely.line57.comment We collect DLLs as data files instead of binaries to suppress binary
+            # 016695.python.hook-shapely.line58.comment analysis, which would result in duplicates (because it collects a copy
+            # 016696.python.hook-shapely.line59.comment into the top-level directory instead of preserving the original layout).
+            # 016697.python.hook-shapely.line60.comment In addition to DLls, this also collects .load-order* file (required on
+            # 016698.python.hook-shapely.line61.comment python < 3.8), and ensures that Shapely.libs directory exists (required
+            # 016699.python.hook-shapely.line62.comment on python >= 3.8 due to os.add_dll_directory call).
             datas += [
                 (os.path.join(lib_dir, lib_file), 'Shapely.libs')
                 for lib_file in os.listdir(lib_dir)
@@ -76,28 +76,28 @@ if compat.is_win:
             "Please check your installation or provide a pull request to "
             "PyInstaller to update hook-shapely.py.")
 elif compat.is_linux and is_module_satisfies('shapely < 1.7'):
-    # This duplicates the libgeos*.so* files in the build.  PyInstaller will
-    # copy them into the root of the build by default, but shapely cannot load
-    # them from there in linux IF shapely was installed via a whl file. The
-    # whl bundles its own libgeos with a different name, something like
-    # libgeos_c-*.so.* but shapely tries to load libgeos_c.so if there isn't a
-    # ./libs directory under its package.
-    #
-    # The fix for this (https://github.com/Toblerity/Shapely/pull/485) has
-    # been available in shapely since version 1.7.
+    # 016700.python.hook-shapely.line79.comment This duplicates the libgeos*.so* files in the build.  PyInstaller will
+    # 016701.python.hook-shapely.line80.comment copy them into the root of the build by default, but shapely cannot load
+    # 016702.python.hook-shapely.line81.comment them from there in linux IF shapely was installed via a whl file. The
+    # 016703.python.hook-shapely.line82.comment whl bundles its own libgeos with a different name, something like
+    # 016704.python.hook-shapely.line83.comment libgeos_c-*.so.* but shapely tries to load libgeos_c.so if there isn't a
+    # 016705.python.hook-shapely.line84.comment ./libs directory under its package.
+    # 016706.python.hook-shapely.line85.comment
+    # 016707.python.hook-shapely.line86.comment The fix for this (https://github.com/Toblerity/Shapely/pull/485) has
+    # 016708.python.hook-shapely.line87.comment been available in shapely since version 1.7.
     lib_dir = os.path.join(pkg_dir, '.libs')
     dest_dir = os.path.join('shapely', '.libs')
 
     binaries += [(os.path.join(lib_dir, f), dest_dir) for f in os.listdir(lib_dir)]
 elif compat.is_darwin and is_module_satisfies('shapely >= 1.8.1'):
-    # In shapely 1.8.1, the libgeos_c library bundled in macOS PyPI wheels is not
-    # called libgeos.1.dylib anymore, but rather has a fullly-versioned name
-    # (e.g., libgeos_c.1.16.0.dylib).
-    # Shapely fails to find such a library unless it is located in the .dylibs
-    # directory. So we need to ensure that the libraries are collected into
-    # .dylibs directory; however, this will result in duplication due to binary
-    # analysis of the python extensions that are linked against these libraries
-    # as well (as that will copy the libraries to top-level directory).
+    # 016709.python.hook-shapely.line93.comment In shapely 1.8.1, the libgeos_c library bundled in macOS PyPI wheels is not
+    # 016710.python.hook-shapely.line94.comment called libgeos.1.dylib anymore, but rather has a fullly-versioned name
+    # 016711.python.hook-shapely.line95.comment (e.g., libgeos_c.1.16.0.dylib).
+    # 016712.python.hook-shapely.line96.comment Shapely fails to find such a library unless it is located in the .dylibs
+    # 016713.python.hook-shapely.line97.comment directory. So we need to ensure that the libraries are collected into
+    # 016714.python.hook-shapely.line98.comment .dylibs directory; however, this will result in duplication due to binary
+    # 016715.python.hook-shapely.line99.comment analysis of the python extensions that are linked against these libraries
+    # 016716.python.hook-shapely.line100.comment as well (as that will copy the libraries to top-level directory).
     lib_dir = os.path.join(pkg_dir, '.dylibs')
     dest_dir = os.path.join('shapely', '.dylibs')
 

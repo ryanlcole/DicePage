@@ -15,7 +15,7 @@ class TestModuleFinder:
         return set(ModuleFinder.find(str(path), *args, **kwargs))
 
     EXAMPLES = {
-        # circumstance: (files, kwargs, expected_modules)
+        # 045473.python.test_find_py_modules.line18.comment circumstance: (files, kwargs, expected_modules)
         "simple_folder": (
             ["file.py", "other.py"],
             {},  # kwargs
@@ -53,7 +53,7 @@ class TestFlatLayoutModuleFinder:
         return set(FlatLayoutModuleFinder.find(str(path)))
 
     EXAMPLES = {
-        # circumstance: (files, expected_modules)
+        # 045475.python.test_find_py_modules.line56.comment circumstance: (files, expected_modules)
         "hidden-files": ([".module.py"], []),
         "private-modules": (["_module.py"], []),
         "common-names": (

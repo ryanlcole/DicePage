@@ -67,10 +67,10 @@ from typing import (
 )
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
-# workaround for #4476
+# 023054.python.init.line70.comment workaround for #4476
 sys.modules.pop('backports', None)
 
-# capture these to bypass sandboxing
+# 023055.python.init.line73.comment capture these to bypass sandboxing
 from os import open as os_open, utime  # isort: skip
 from os.path import isdir, split  # isort: skip
 
@@ -79,7 +79,7 @@ try:
 
     WRITE_SUPPORT = True
 except ImportError:
-    # no write support, probably under GAE
+    # 023058.python.init.line82.comment no write support, probably under GAE
     WRITE_SUPPORT = False
 
 import packaging.markers
@@ -107,7 +107,7 @@ warnings.warn(
 
 _T = TypeVar("_T")
 _DistributionT = TypeVar("_DistributionT", bound="Distribution")
-# Type aliases
+# 023059.python.init.line110.comment Type aliases
 _NestedStr: TypeAlias = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
 _StrictInstallerType: TypeAlias = Callable[["Requirement"], "_DistributionT"]
 _InstallerType: TypeAlias = Callable[["Requirement"], Union["Distribution", None]]
@@ -116,9 +116,9 @@ _EPDistType: TypeAlias = Union["Distribution", _PkgReqType]
 _MetadataType: TypeAlias = Union["IResourceProvider", None]
 _ResolvedEntryPoint: TypeAlias = Any  # Can be any attribute in the module
 _ResourceStream: TypeAlias = Any  # TODO / Incomplete: A readable file-like object
-# Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
+# 023062.python.init.line119.comment Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
 _ModuleLike: TypeAlias = Union[object, types.ModuleType]
-# Any: Should be _ModuleLike but we end up with issues where _ModuleLike doesn't have _ZipLoaderModule's __loader__
+# 023063.python.init.line121.comment Any: Should be _ModuleLike but we end up with issues where _ModuleLike doesn't have _ZipLoaderModule's __loader__
 _ProviderFactoryType: TypeAlias = Callable[[Any], "IResourceProvider"]
 _DistFinderType: TypeAlias = Callable[[_T, str, bool], Iterable["Distribution"]]
 _NSHandlerType: TypeAlias = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
@@ -207,13 +207,13 @@ def get_supported_platform():
             build = m.group(3)
             plat = f'macosx-{major_minor}-{build}'
         except ValueError:
-            # not macOS
+            # 023064.python.init.line210.comment not macOS
             pass
     return plat
 
 
 __all__ = [
-    # Basic resource access and distribution/entry point discovery
+    # 023065.python.init.line216.comment Basic resource access and distribution/entry point discovery
     'require',
     'run_script',
     'get_provider',
@@ -228,7 +228,7 @@ __all__ = [
     'resource_listdir',
     'resource_exists',
     'resource_isdir',
-    # Environmental control
+    # 023066.python.init.line231.comment Environmental control
     'declare_namespace',
     'working_set',
     'add_activation_listener',
@@ -236,22 +236,22 @@ __all__ = [
     'set_extraction_path',
     'cleanup_resources',
     'get_default_cache',
-    # Primary implementation classes
+    # 023067.python.init.line239.comment Primary implementation classes
     'Environment',
     'WorkingSet',
     'ResourceManager',
     'Distribution',
     'Requirement',
     'EntryPoint',
-    # Exceptions
+    # 023068.python.init.line246.comment Exceptions
     'ResolutionError',
     'VersionConflict',
     'DistributionNotFound',
     'UnknownExtra',
     'ExtractionError',
-    # Warnings
+    # 023069.python.init.line252.comment Warnings
     'PEP440Warning',
-    # Parsing functions and string utilities
+    # 023070.python.init.line254.comment Parsing functions and string utilities
     'parse_requirements',
     'parse_version',
     'safe_name',
@@ -264,16 +264,16 @@ __all__ = [
     'to_filename',
     'invalid_marker',
     'evaluate_marker',
-    # filesystem utilities
+    # 023071.python.init.line267.comment filesystem utilities
     'ensure_directory',
     'normalize_path',
-    # Distribution "precedence" constants
+    # 023072.python.init.line270.comment Distribution "precedence" constants
     'EGG_DIST',
     'BINARY_DIST',
     'SOURCE_DIST',
     'CHECKOUT_DIST',
     'DEVELOP_DIST',
-    # "Provider" interfaces, implementations, and registration/lookup APIs
+    # 023073.python.init.line276.comment "Provider" interfaces, implementations, and registration/lookup APIs
     'IMetadataProvider',
     'IResourceProvider',
     'FileMetadata',
@@ -290,9 +290,9 @@ __all__ = [
     'register_loader_type',
     'fixup_namespace_packages',
     'get_importer',
-    # Warnings
+    # 023074.python.init.line293.comment Warnings
     'PkgResourcesDeprecationWarning',
-    # Deprecated/backward compatibility only
+    # 023075.python.init.line295.comment Deprecated/backward compatibility only
     'run_main',
     'AvailableDistributions',
 ]
@@ -427,7 +427,7 @@ def get_provider(moduleOrReq: str | Requirement) -> IResourceProvider | Distribu
 @functools.cache
 def _macos_vers():
     version = platform.mac_ver()[0]
-    # fallback for MacPorts
+    # 023076.python.init.line430.comment fallback for MacPorts
     if version == '':
         plist = '/System/Library/CoreServices/SystemVersion.plist'
         if os.path.exists(plist):
@@ -453,15 +453,15 @@ def get_build_platform():
             machine = _macos_arch(os.uname()[4].replace(" ", "_"))
             return f"macosx-{version[0]}.{version[1]}-{machine}"
         except ValueError:
-            # if someone is running a non-Mac darwin system, this will fall
-            # through to the default implementation
+            # 023077.python.init.line456.comment if someone is running a non-Mac darwin system, this will fall
+            # 023078.python.init.line457.comment through to the default implementation
             pass
     return plat
 
 
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
-# XXX backward compat
+# 023079.python.init.line464.comment XXX backward compat
 get_platform = get_build_platform
 
 
@@ -473,19 +473,19 @@ def compatible_platforms(provided: str | None, required: str | None) -> bool:
     XXX Needs compatibility checks for Linux and other unixy OSes.
     """
     if provided is None or required is None or provided == required:
-        # easy case
+        # 023080.python.init.line476.comment easy case
         return True
 
-    # macOS special cases
+    # 023081.python.init.line479.comment macOS special cases
     reqMac = macosVersionString.match(required)
     if reqMac:
         provMac = macosVersionString.match(provided)
 
-        # is this a Mac package?
+        # 023082.python.init.line484.comment is this a Mac package?
         if not provMac:
-            # this is backwards compatibility for packages built before
-            # setuptools 0.6. All packages built after this point will
-            # use the new macOS designation.
+            # 023083.python.init.line486.comment this is backwards compatibility for packages built before
+            # 023084.python.init.line487.comment setuptools 0.6. All packages built after this point will
+            # 023085.python.init.line488.comment use the new macOS designation.
             provDarwin = darwinVersionString.match(provided)
             if provDarwin:
                 dversion = int(provDarwin.group(1))
@@ -497,20 +497,20 @@ def compatible_platforms(provided: str | None, required: str | None) -> bool:
                     and macosversion >= "10.4"
                 ):
                     return True
-            # egg isn't macOS or legacy darwin
+            # 023086.python.init.line500.comment egg isn't macOS or legacy darwin
             return False
 
-        # are they the same major version and machine type?
+        # 023087.python.init.line503.comment are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or provMac.group(3) != reqMac.group(3):
             return False
 
-        # is the required OS major update >= the provided one?
+        # 023088.python.init.line507.comment is the required OS major update >= the provided one?
         if int(provMac.group(2)) > int(reqMac.group(2)):
             return False
 
         return True
 
-    # XXX Linux and other platforms' special cases should go here
+    # 023089.python.init.line513.comment XXX Linux and other platforms' special cases should go here
     return False
 
 
@@ -645,10 +645,10 @@ class WorkingSet:
         try:
             from __main__ import __requires__
         except ImportError:
-            # The main program does not list any requirements
+            # 023090.python.init.line648.comment The main program does not list any requirements
             return ws
 
-        # ensure the requirements are met
+        # 023091.python.init.line651.comment ensure the requirements are met
         try:
             ws.require(__requires__)
         except VersionConflict:
@@ -661,20 +661,20 @@ class WorkingSet:
         """
         Build a working set from a requirement spec. Rewrites sys.path.
         """
-        # try it without defaults already on sys.path
-        # by starting with an empty path
+        # 023092.python.init.line664.comment try it without defaults already on sys.path
+        # 023093.python.init.line665.comment by starting with an empty path
         ws = cls([])
         reqs = parse_requirements(req_spec)
         dists = ws.resolve(reqs, Environment())
         for dist in dists:
             ws.add(dist)
 
-        # add any missing entries from sys.path
+        # 023094.python.init.line672.comment add any missing entries from sys.path
         for entry in sys.path:
             if entry not in ws.entries:
                 ws.add_entry(entry)
 
-        # then copy back to sys.path
+        # 023095.python.init.line677.comment then copy back to sys.path
         sys.path[:] = ws.entries
         return ws
 
@@ -722,7 +722,7 @@ class WorkingSet:
                 break
 
         if dist is not None and dist not in req:
-            # XXX add more info
+            # 023096.python.init.line725.comment XXX add more info
             raise VersionConflict(dist, req)
         return dist
 
@@ -759,7 +759,7 @@ class WorkingSet:
         seen = set()
         for item in self.entries:
             if item not in self.entry_keys:
-                # workaround a cache issue
+                # 023097.python.init.line762.comment workaround a cache issue
                 continue
 
             for key in self.entry_keys[item]:
@@ -793,7 +793,7 @@ class WorkingSet:
         keys = self.entry_keys.setdefault(entry, [])
         keys2 = self.entry_keys.setdefault(dist.location, [])
         if not replace and dist.key in self.by_key:
-            # ignore hidden distros
+            # 023098.python.init.line796.comment ignore hidden distros
             return
 
         self.by_key[dist.key] = dist
@@ -865,25 +865,25 @@ class WorkingSet:
         requirements are truly required.
         """
 
-        # set up the stack
+        # 023099.python.init.line868.comment set up the stack
         requirements = list(requirements)[::-1]
-        # set of processed requirements
+        # 023100.python.init.line870.comment set of processed requirements
         processed = set()
-        # key -> dist
+        # 023101.python.init.line872.comment key -> dist
         best: dict[str, Distribution] = {}
         to_activate: list[Distribution] = []
 
         req_extras = _ReqExtras()
 
-        # Mapping of requirement to set of distributions that required it;
-        # useful for reporting info about conflicts.
+        # 023102.python.init.line878.comment Mapping of requirement to set of distributions that required it;
+        # 023103.python.init.line879.comment useful for reporting info about conflicts.
         required_by = collections.defaultdict[Requirement, set[str]](set)
 
         while requirements:
-            # process dependencies breadth-first
+            # 023104.python.init.line883.comment process dependencies breadth-first
             req = requirements.pop(0)
             if req in processed:
-                # Ignore cyclic or redundant dependencies
+                # 023105.python.init.line886.comment Ignore cyclic or redundant dependencies
                 continue
 
             if not req_extras.markers_pass(req, extras):
@@ -893,18 +893,18 @@ class WorkingSet:
                 req, best, replace_conflicting, env, installer, required_by, to_activate
             )
 
-            # push the new requirements onto the stack
+            # 023106.python.init.line896.comment push the new requirements onto the stack
             new_requirements = dist.requires(req.extras)[::-1]
             requirements.extend(new_requirements)
 
-            # Register the new requirements needed by req
+            # 023107.python.init.line900.comment Register the new requirements needed by req
             for new_requirement in new_requirements:
                 required_by[new_requirement].add(req.project_name)
                 req_extras[new_requirement] = req.extras
 
             processed.add(req)
 
-        # return list of distros to activate
+        # 023108.python.init.line907.comment return list of distros to activate
         return to_activate
 
     def _resolve_dist(
@@ -912,7 +912,7 @@ class WorkingSet:
     ) -> Distribution:
         dist = best.get(req.key)
         if dist is None:
-            # Find the best distribution and add it to the map
+            # 023109.python.init.line915.comment Find the best distribution and add it to the map
             dist = self.by_key.get(req.key)
             if dist is None or (dist not in req and replace_conflicting):
                 ws = self
@@ -920,9 +920,9 @@ class WorkingSet:
                     if dist is None:
                         env = Environment(self.entries)
                     else:
-                        # Use an empty environment and workingset to avoid
-                        # any further conflicts with the conflicting
-                        # distribution
+                        # 023110.python.init.line923.comment Use an empty environment and workingset to avoid
+                        # 023111.python.init.line924.comment any further conflicts with the conflicting
+                        # 023112.python.init.line925.comment distribution
                         env = Environment([])
                         ws = WorkingSet([])
                 dist = best[req.key] = env.best_match(
@@ -933,7 +933,7 @@ class WorkingSet:
                     raise DistributionNotFound(req, requirers)
             to_activate.append(dist)
         if dist not in req:
-            # Oops, the "best" so far conflicts with a dependency
+            # 023113.python.init.line936.comment Oops, the "best" so far conflicts with a dependency
             dependent_req = required_by[req]
             raise VersionConflict(dist, req).with_context(dependent_req)
         return dist
@@ -1008,7 +1008,7 @@ class WorkingSet:
         """
 
         plugin_projects = list(plugin_env)
-        # scan project names in alphabetic order
+        # 023114.python.init.line1011.comment scan project names in alphabetic order
         plugin_projects.sort()
 
         error_info: dict[Distribution, Exception] = {}
@@ -1021,7 +1021,7 @@ class WorkingSet:
             env = full_env + plugin_env
 
         shadow_set = self.__class__([])
-        # put all our entries in shadow_set
+        # 023115.python.init.line1024.comment put all our entries in shadow_set
         list(map(shadow_set.add, self))
 
         for project_name in plugin_projects:
@@ -1032,20 +1032,20 @@ class WorkingSet:
                     resolvees = shadow_set.resolve(req, env, installer)
 
                 except ResolutionError as v:
-                    # save error info
+                    # 023116.python.init.line1035.comment save error info
                     error_info[dist] = v
                     if fallback:
-                        # try the next older version of project
+                        # 023117.python.init.line1038.comment try the next older version of project
                         continue
                     else:
-                        # give up on this project, keep going
+                        # 023118.python.init.line1041.comment give up on this project, keep going
                         break
 
                 else:
                     list(map(shadow_set.add, resolvees))
                     distributions.update(dict.fromkeys(resolvees))
 
-                    # success, no need to try any more versions of this project
+                    # 023119.python.init.line1048.comment success, no need to try any more versions of this project
                     break
 
         sorted_distributions = list(distributions)
@@ -1262,7 +1262,7 @@ class Environment:
         for dist in self[req.key]:
             if dist in req:
                 return dist
-        # try to download/install
+        # 023120.python.init.line1265.comment try to download/install
         return self.obtain(req, installer)
 
     @overload
@@ -1327,7 +1327,7 @@ class Environment:
         return new
 
 
-# XXX backward compatibility
+# 023121.python.init.line1330.comment XXX backward compatibility
 AvailableDistributions = Environment
 
 
@@ -1357,7 +1357,7 @@ class ResourceManager:
     extraction_path: str | None = None
 
     def __init__(self) -> None:
-        # acts like a set
+        # 023122.python.init.line1360.comment acts like a set
         self.cached_files: dict[str, Literal[True]] = {}
 
     def resource_exists(
@@ -1468,9 +1468,9 @@ class ResourceManager:
         See Distribute #375 for more details.
         """
         if os.name == 'nt' and not path.startswith(os.environ['windir']):
-            # On Windows, permissions are generally restrictive by default
-            #  and temp directories are not writable by other users, so
-            #  bypass the warning.
+            # 023123.python.init.line1471.comment On Windows, permissions are generally restrictive by default
+            # 023124.python.init.line1472.comment and temp directories are not writable by other users, so
+            # 023125.python.init.line1473.comment bypass the warning.
             return
         mode = os.stat(path).st_mode
         if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
@@ -1500,7 +1500,7 @@ class ResourceManager:
         """
 
         if os.name == 'posix':
-            # Make the resource executable
+            # 023126.python.init.line1503.comment Make the resource executable
             mode = ((os.stat(tempname).st_mode) | 0o555) & 0o7777
             os.chmod(tempname, mode)
 
@@ -1539,7 +1539,7 @@ class ResourceManager:
         ``atexit`` function if you wish to ensure cleanup of a temporary
         directory used for extractions.
         """
-        # XXX
+        # 023127.python.init.line1542.comment XXX
         return []
 
 
@@ -1565,7 +1565,7 @@ def safe_version(version: str) -> str:
     Convert an arbitrary string to a standard version string
     """
     try:
-        # normalize the version
+        # 023128.python.init.line1568.comment normalize the version
         return str(packaging.version.Version(version))
     except packaging.version.InvalidVersion:
         version = version.replace(' ', '.')
@@ -1697,8 +1697,8 @@ class NullProvider:
         try:
             return value.decode('utf-8')
         except UnicodeDecodeError as exc:
-            # Include the path in the error message to simplify
-            # troubleshooting, and without changing the exception type.
+            # 023129.python.init.line1700.comment Include the path in the error message to simplify
+            # 023130.python.init.line1701.comment troubleshooting, and without changing the exception type.
             exc.reason += f' in {name} file at path: {path}'
             raise
 
@@ -1837,12 +1837,12 @@ is not allowed.
 
         msg = "Use of .. or absolute path in a resource path is not allowed."
 
-        # Aggressively disallow Windows absolute paths
+        # 023131.python.init.line1840.comment Aggressively disallow Windows absolute paths
         if (path.startswith("\\") or ntpath.isabs(path)) and not posixpath.isabs(path):
             raise ValueError(msg)
 
-        # for compatibility, warn; in future
-        # raise ValueError(msg)
+        # 023132.python.init.line1844.comment for compatibility, warn; in future
+        # 023133.python.init.line1845.comment raise ValueError(msg)
         issue_warning(
             msg[:-1] + " and will raise exceptions in a future release.",
             DeprecationWarning,
@@ -1850,7 +1850,7 @@ is not allowed.
 
     def _get(self, path) -> bytes:
         if hasattr(self.loader, 'get_data') and self.loader:
-            # Already checked get_data exists
+            # 023134.python.init.line1853.comment Already checked get_data exists
             return self.loader.get_data(path)  # type: ignore[attr-defined]
         raise NotImplementedError(
             "Can't perform this operation for loaders without 'get_data()'"
@@ -1879,8 +1879,8 @@ class EggProvider(NullProvider):
         self._setup_prefix()
 
     def _setup_prefix(self):
-        # Assume that metadata may be nested inside a "basket"
-        # of multiple eggs and use module_path instead of .archive.
+        # 023136.python.init.line1882.comment Assume that metadata may be nested inside a "basket"
+        # 023137.python.init.line1883.comment of multiple eggs and use module_path instead of .archive.
         eggs = filter(_is_egg_path, _parents(self.module_path))
         egg = next(eggs, None)
         egg and self._set_egg(egg)
@@ -1929,7 +1929,7 @@ DefaultProvider._register()
 class EmptyProvider(NullProvider):
     """Provider that returns nothing for all requests"""
 
-    # A special case, we don't want all Providers inheriting from NullProvider to have a potentially None module_path
+    # 023138.python.init.line1932.comment A special case, we don't want all Providers inheriting from NullProvider to have a potentially None module_path
     module_path: str | None = None  # type: ignore[assignment]
 
     _isdir = _has = lambda self, path: False
@@ -1952,7 +1952,7 @@ class ZipManifests(dict[str, "MemoizedZipManifests.manifest_mod"]):
     zip manifest builder
     """
 
-    # `path` could be `StrPath | IO[bytes]` but that violates the LSP for `MemoizedZipManifests.load`
+    # 023140.python.init.line1955.comment `path` could be `StrPath | IO[bytes]` but that violates the LSP for `MemoizedZipManifests.load`
     @classmethod
     def build(cls, path: str) -> dict[str, zipfile.ZipInfo]:
         """
@@ -2003,7 +2003,7 @@ class ZipProvider(EggProvider):
 
     eagers: list[str] | None = None
     _zip_manifests = MemoizedZipManifests()
-    # ZipProvider's loader should always be a zipimporter or equivalent
+    # 023142.python.init.line2006.comment ZipProvider's loader should always be a zipimporter or equivalent
     loader: zipimport.zipimporter
 
     def __init__(self, module: _ZipLoaderModule) -> None:
@@ -2011,8 +2011,8 @@ class ZipProvider(EggProvider):
         self.zip_pre = self.loader.archive + os.sep
 
     def _zipinfo_name(self, fspath):
-        # Convert a virtual filename (full path to file) into a zipfile subpath
-        # usable with the zipimport directory cache for our target archive
+        # 023143.python.init.line2014.comment Convert a virtual filename (full path to file) into a zipfile subpath
+        # 023144.python.init.line2015.comment usable with the zipimport directory cache for our target archive
         fspath = fspath.rstrip(os.sep)
         if fspath == self.loader.archive:
             return ''
@@ -2021,8 +2021,8 @@ class ZipProvider(EggProvider):
         raise AssertionError(f"{fspath} is not a subpath of {self.zip_pre}")
 
     def _parts(self, zip_path):
-        # Convert a zipfile subpath into an egg-relative path part list.
-        # pseudo-fs path
+        # 023145.python.init.line2024.comment Convert a zipfile subpath into an egg-relative path part list.
+        # 023146.python.init.line2025.comment pseudo-fs path
         fspath = self.zip_pre + zip_path
         if fspath.startswith(self.egg_root + os.sep):
             return fspath[len(self.egg_root) + 1 :].split(os.sep)
@@ -2039,7 +2039,7 @@ class ZipProvider(EggProvider):
             raise NotImplementedError(
                 "resource_filename() only supported for .egg, not .zip"
             )
-        # no need to lock for extraction, since we use temp names
+        # 023147.python.init.line2042.comment no need to lock for extraction, since we use temp names
         zip_path = self._resource_to_zip(resource_name)
         eagers = self._get_eager_resources()
         if '/'.join(self._parts(zip_path)) in eagers:
@@ -2050,18 +2050,18 @@ class ZipProvider(EggProvider):
     @staticmethod
     def _get_date_and_size(zip_stat):
         size = zip_stat.file_size
-        # ymdhms+wday, yday, dst
+        # 023148.python.init.line2053.comment ymdhms+wday, yday, dst
         date_time = zip_stat.date_time + (0, 0, -1)
-        # 1980 offset already done
+        # 023149.python.init.line2055.comment 1980 offset already done
         timestamp = time.mktime(date_time)
         return timestamp, size
 
-    # FIXME: 'ZipProvider._extract_resource' is too complex (12)
+    # 023150.python.init.line2059.comment FIXME: 'ZipProvider._extract_resource' is too complex (12)
     def _extract_resource(self, manager: ResourceManager, zip_path) -> str:  # noqa: C901
         if zip_path in self._index():
             for name in self._index()[zip_path]:
                 last = self._extract_resource(manager, os.path.join(zip_path, name))
-            # return the extracted directory name
+            # 023152.python.init.line2064.comment return the extracted directory name
             return os.path.dirname(last)
 
         timestamp, _size = self._get_date_and_size(self.zipinfo[zip_path])
@@ -2095,10 +2095,10 @@ class ZipProvider(EggProvider):
             except OSError:
                 if os.path.isfile(real_path):
                     if self._is_current(real_path, zip_path):
-                        # the file became current since it was checked above,
-                        #  so proceed.
+                        # 023153.python.init.line2098.comment the file became current since it was checked above,
+                        # 023154.python.init.line2099.comment so proceed.
                         return real_path
-                    # Windows, del old file and retry
+                    # 023155.python.init.line2101.comment Windows, del old file and retry
                     elif os.name == 'nt':
                         unlink(real_path)
                         rename(tmpnam, real_path)
@@ -2106,7 +2106,7 @@ class ZipProvider(EggProvider):
                 raise
 
         except OSError:
-            # report a user-friendly error
+            # 023156.python.init.line2109.comment report a user-friendly error
             manager.extraction_error()
 
         return real_path
@@ -2121,7 +2121,7 @@ class ZipProvider(EggProvider):
         stat = os.stat(file_path)
         if stat.st_size != size or stat.st_mtime != timestamp:
             return False
-        # check that the contents match
+        # 023157.python.init.line2124.comment check that the contents match
         zip_contents = self.loader.get_data(zip_path)
         with open(file_path, 'rb') as f:
             file_contents = f.read()
@@ -2285,14 +2285,14 @@ def find_eggs_in_zip(
     Find eggs in zip files; possibly multiple nested eggs.
     """
     if importer.archive.endswith('.whl'):
-        # wheels are not supported with this finder
-        # they don't have PKG-INFO metadata, and won't ever contain eggs
+        # 023158.python.init.line2288.comment wheels are not supported with this finder
+        # 023159.python.init.line2289.comment they don't have PKG-INFO metadata, and won't ever contain eggs
         return
     metadata = EggMetadata(importer)
     if metadata.has_metadata('PKG-INFO'):
         yield Distribution.from_filename(path_item, metadata=metadata)
     if only:
-        # don't yield nested distros
+        # 023160.python.init.line2295.comment don't yield nested distros
         return
     for subitem in metadata.resource_listdir(''):
         if _is_egg_path(subitem):
@@ -2331,7 +2331,7 @@ def find_on_path(importer: object | None, path_item, only=False):
 
     entries = (os.path.join(path_item, child) for child in safe_listdir(path_item))
 
-    # scan for .egg and .egg-info in directory
+    # 023161.python.init.line2334.comment scan for .egg and .egg-info in directory
     for entry in sorted(entries):
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
@@ -2382,8 +2382,8 @@ def safe_listdir(path: StrOrBytesPath):
     except (PermissionError, NotADirectoryError):
         pass
     except OSError as e:
-        # Ignore the directory if does not exist, not a directory or
-        # permission denied
+        # 023162.python.init.line2385.comment Ignore the directory if does not exist, not a directory or
+        # 023163.python.init.line2386.comment permission denied
         if e.errno not in (errno.ENOTDIR, errno.EACCES, errno.ENOENT):
             raise
     return ()
@@ -2393,7 +2393,7 @@ def distributions_from_metadata(path: str):
     root = os.path.dirname(path)
     if os.path.isdir(path):
         if len(os.listdir(path)) == 0:
-            # empty metadata dir; skip
+            # 023164.python.init.line2396.comment empty metadata dir; skip
             return
         metadata: _MetadataType = PathMetadata(root, path)
     else:
@@ -2470,11 +2470,11 @@ def _handle_ns(packageName, path_item):
     if importer is None:
         return None
 
-    # use find_spec (PEP 451) and fall-back to find_module (PEP 302)
+    # 023165.python.init.line2473.comment use find_spec (PEP 451) and fall-back to find_module (PEP 302)
     try:
         spec = importer.find_spec(packageName)
     except AttributeError:
-        # capture warnings due to #1111
+        # 023166.python.init.line2477.comment capture warnings due to #1111
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             loader = importer.find_module(packageName)
@@ -2563,14 +2563,14 @@ def declare_namespace(packageName: str) -> None:
             except AttributeError as e:
                 raise TypeError("Not a package:", parent) from e
 
-        # Track what packages are namespaces, so when new path items are added,
-        # they can be updated
+        # 023167.python.init.line2566.comment Track what packages are namespaces, so when new path items are added,
+        # 023168.python.init.line2567.comment they can be updated
         _namespace_packages.setdefault(parent or None, []).append(packageName)
         _namespace_packages.setdefault(packageName, [])
 
         for path_item in path:
-            # Ensure all the parent's path items are reflected in the child,
-            # if they apply
+            # 023169.python.init.line2572.comment Ensure all the parent's path items are reflected in the child,
+            # 023170.python.init.line2573.comment if they apply
             _handle_ns(packageName, path_item)
 
     finally:
@@ -2603,7 +2603,7 @@ def file_ns_handler(
         if _normalize_cached(item) == normalized:
             break
     else:
-        # Only return the path if it's not already there
+        # 023171.python.init.line2606.comment Only return the path if it's not already there
         return subpath
 
 
@@ -2647,8 +2647,8 @@ def _cygwin_patch(filename: StrOrBytesPath):  # pragma: nocover
 
 
 if TYPE_CHECKING:
-    # https://github.com/python/mypy/issues/16261
-    # https://github.com/python/typeshed/issues/6347
+    # 023173.python.init.line2650.comment https://github.com/python/mypy/issues/16261
+    # 023174.python.init.line2651.comment https://github.com/python/typeshed/issues/6347
     @overload
     def _normalize_cached(filename: StrPath) -> str: ...
     @overload
@@ -2771,8 +2771,8 @@ class EntryPoint:
                 stacklevel=2,
             )
         if require:
-            # We could pass `env` and `installer` directly,
-            # but keeping `*args` and `**kwargs` for backwards compatibility
+            # 023175.python.init.line2774.comment We could pass `env` and `installer` directly,
+            # 023176.python.init.line2775.comment but keeping `*args` and `**kwargs` for backwards compatibility
             self.require(*args, **kwargs)  # type: ignore[arg-type]
         return self.resolve()
 
@@ -2795,11 +2795,11 @@ class EntryPoint:
             error_cls = UnknownExtra if self.extras else AttributeError
             raise error_cls("Can't require() without a distribution", self)
 
-        # Get the requirements for this entry point with all its extras and
-        # then resolve them. We have to pass `extras` along when resolving so
-        # that the working set knows what extras we want. Otherwise, for
-        # dist-info distributions, the working set will assume that the
-        # requirements for that extra are purely optional and skip over them.
+        # 023178.python.init.line2798.comment Get the requirements for this entry point with all its extras and
+        # 023179.python.init.line2799.comment then resolve them. We have to pass `extras` along when resolving so
+        # 023180.python.init.line2800.comment that the working set knows what extras we want. Otherwise, for
+        # 023181.python.init.line2801.comment dist-info distributions, the working set will assume that the
+        # 023182.python.init.line2802.comment requirements for that extra are purely optional and skip over them.
         reqs = self.dist.requires(self.extras)
         items = working_set.resolve(reqs, env, installer, extras=self.extras)
         list(map(working_set.add, items))
@@ -2983,16 +2983,16 @@ class Distribution:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
-            # It's not a Distribution, so they are not equal
+            # 023184.python.init.line2986.comment It's not a Distribution, so they are not equal
             return False
         return self.hashcmp == other.hashcmp
 
     def __ne__(self, other: object) -> bool:
         return not self == other
 
-    # These properties have to be lazy so that we don't have to load any
-    # metadata until/unless it's actually needed.  (i.e., some distributions
-    # may not know their name or version without loading PKG-INFO)
+    # 023185.python.init.line2993.comment These properties have to be lazy so that we don't have to load any
+    # 023186.python.init.line2994.comment metadata until/unless it's actually needed.  (i.e., some distributions
+    # 023187.python.init.line2995.comment may not know their name or version without loading PKG-INFO)
 
     @property
     def key(self):
@@ -3114,13 +3114,13 @@ class Distribution:
         Return the path to the given metadata file, if available.
         """
         try:
-            # We need to access _get_metadata_path() on the provider object
-            # directly rather than through this class's __getattr__()
-            # since _get_metadata_path() is marked private.
+            # 023190.python.init.line3117.comment We need to access _get_metadata_path() on the provider object
+            # 023191.python.init.line3118.comment directly rather than through this class's __getattr__()
+            # 023192.python.init.line3119.comment since _get_metadata_path() is marked private.
             path = self._provider._get_metadata_path(name)
 
-        # Handle exceptions e.g. in case the distribution's metadata
-        # provider doesn't support _get_metadata_path().
+        # 023193.python.init.line3122.comment Handle exceptions e.g. in case the distribution's metadata
+        # 023194.python.init.line3123.comment provider doesn't support _get_metadata_path().
         except Exception:
             return '[could not detect]'
 
@@ -3224,7 +3224,7 @@ class Distribution:
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
-    # FIXME: 'Distribution.insert_on' is too complex (13)
+    # 023196.python.init.line3227.comment FIXME: 'Distribution.insert_on' is too complex (13)
     def insert_on(  # noqa: C901
         self,
         path: list[str],
@@ -3263,12 +3263,12 @@ class Distribution:
                 if replace:
                     break
                 else:
-                    # don't modify path (even removing duplicates) if
-                    # found and not replace
+                    # 023198.python.init.line3266.comment don't modify path (even removing duplicates) if
+                    # 023199.python.init.line3267.comment found and not replace
                     return
             elif item == bdir and self.precedence == EGG_DIST:
-                # if it's an .egg, give it precedence over its directory
-                # UNLESS it's already been added to sys.path and replace=False
+                # 023200.python.init.line3270.comment if it's an .egg, give it precedence over its directory
+                # 023201.python.init.line3271.comment UNLESS it's already been added to sys.path and replace=False
                 if (not replace) and nloc in npath[p:]:
                     return
                 if path is sys.path:
@@ -3285,7 +3285,7 @@ class Distribution:
                 path.append(loc)
             return
 
-        # p is the spot where we found or inserted loc; now remove duplicates
+        # 023202.python.init.line3288.comment p is the spot where we found or inserted loc; now remove duplicates
         while True:
             try:
                 np = npath.index(nloc, p + 1)
@@ -3293,14 +3293,14 @@ class Distribution:
                 break
             else:
                 del npath[np], path[np]
-                # ha!
+                # 023203.python.init.line3296.comment ha!
                 p = np
 
         return
 
     def check_version_conflict(self):
         if self.key == 'setuptools':
-            # ignore the inevitable setuptools self-conflicts  :(
+            # 023204.python.init.line3303.comment ignore the inevitable setuptools self-conflicts  :(
             return
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
@@ -3331,7 +3331,7 @@ class Distribution:
             issue_warning("Unbuilt egg for " + repr(self))
             return False
         except SystemError:
-            # TODO: remove this except clause when python/cpython#103632 is fixed.
+            # 023205.python.init.line3334.comment TODO: remove this except clause when python/cpython#103632 is fixed.
             return False
         return True
 
@@ -3341,7 +3341,7 @@ class Distribution:
         for attr in names.split():
             kw.setdefault(attr, getattr(self, attr, None))
         kw.setdefault('metadata', self._provider)
-        # Unsafely unpacking. But keeping **kw for backwards and subclassing compatibility
+        # 023206.python.init.line3344.comment Unsafely unpacking. But keeping **kw for backwards and subclassing compatibility
         return self.__class__(**kw)  # type:ignore[arg-type]
 
     @property
@@ -3400,7 +3400,7 @@ class DistInfoDistribution(Distribution):
         self.__dep_map: dict[str | None, list[Requirement]] = {None: []}
 
         reqs: list[Requirement] = []
-        # Including any condition expressions
+        # 023208.python.init.line3403.comment Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
             reqs.extend(parse_requirements(req))
 
@@ -3432,8 +3432,8 @@ def issue_warning(*args, **kw):
     level = 1
     g = globals()
     try:
-        # find the first stack frame that is *not* code in
-        # the pkg_resources module, to use for the warning
+        # 023209.python.init.line3435.comment find the first stack frame that is *not* code in
+        # 023210.python.init.line3436.comment the pkg_resources module, to use for the warning
         while sys._getframe(level).f_globals is g:
             level += 1
     except ValueError:
@@ -3455,8 +3455,8 @@ class RequirementParseError(packaging.requirements.InvalidRequirement):
 
 
 class Requirement(packaging.requirements.Requirement):
-    # prefer variable length tuple to set (as found in
-    # packaging.requirements.Requirement)
+    # 023211.python.init.line3458.comment prefer variable length tuple to set (as found in
+    # 023212.python.init.line3459.comment packaging.requirements.Requirement)
     extras: tuple[str, ...]  # type: ignore[assignment]
 
     def __init__(self, requirement_string: str) -> None:
@@ -3493,9 +3493,9 @@ class Requirement(packaging.requirements.Requirement):
         else:
             version = item
 
-        # Allow prereleases always in order to match the previous behavior of
-        # this method. In the future this should be smarter and follow PEP 440
-        # more accurately.
+        # 023214.python.init.line3496.comment Allow prereleases always in order to match the previous behavior of
+        # 023215.python.init.line3497.comment this method. In the future this should be smarter and follow PEP 440
+        # 023216.python.init.line3498.comment more accurately.
         return self.specifier.contains(
             version,
             prereleases=True,
@@ -3529,8 +3529,8 @@ def _find_adapter(registry: Mapping[type, _AdapterT], ob: object) -> _AdapterT:
     for t in types:
         if t in registry:
             return registry[t]
-    # _find_adapter would previously return None, and immediately be called.
-    # So we're raising a TypeError to keep backward compatibility if anyone depended on that behaviour.
+    # 023217.python.init.line3532.comment _find_adapter would previously return None, and immediately be called.
+    # 023218.python.init.line3533.comment So we're raising a TypeError to keep backward compatibility if anyone depended on that behaviour.
     raise TypeError(f"Could not find adapter for {registry} and {ob}")
 
 
@@ -3575,25 +3575,25 @@ def split_sections(s: _NestedStr) -> Iterator[tuple[str | None, list[str]]]:
         else:
             content.append(line)
 
-    # wrap up last segment
+    # 023219.python.init.line3578.comment wrap up last segment
     yield section, content
 
 
 def _mkstemp(*args, **kw):
     old_open = os.open
     try:
-        # temporarily bypass sandboxing
+        # 023220.python.init.line3585.comment temporarily bypass sandboxing
         os.open = os_open
         return tempfile.mkstemp(*args, **kw)
     finally:
-        # and then put it back
+        # 023221.python.init.line3589.comment and then put it back
         os.open = old_open
 
 
-# Silence the PEP440Warning by default, so that end users don't get hit by it
-# randomly just because they use pkg_resources. We want to append the rule
-# because we want earlier uses of filterwarnings to take precedence over this
-# one.
+# 023222.python.init.line3593.comment Silence the PEP440Warning by default, so that end users don't get hit by it
+# 023223.python.init.line3594.comment randomly just because they use pkg_resources. We want to append the rule
+# 023224.python.init.line3595.comment because we want earlier uses of filterwarnings to take precedence over this
+# 023225.python.init.line3596.comment one.
 warnings.filterwarnings("ignore", category=PEP440Warning, append=True)
 
 
@@ -3606,11 +3606,11 @@ class PkgResourcesDeprecationWarning(Warning):
     """
 
 
-# Ported from ``setuptools`` to avoid introducing an import inter-dependency:
+# 023226.python.init.line3609.comment Ported from ``setuptools`` to avoid introducing an import inter-dependency:
 _LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
 
 
-# This must go before calls to `_call_aside`. See https://github.com/pypa/setuptools/pull/4422
+# 023227.python.init.line3613.comment This must go before calls to `_call_aside`. See https://github.com/pypa/setuptools/pull/4422
 def _read_utf8_with_fallback(file: str, fallback_encoding=_LOCALE_ENCODING) -> str:
     """See setuptools.unicode_utils._read_utf8_with_fallback"""
     try:
@@ -3632,14 +3632,14 @@ def _read_utf8_with_fallback(file: str, fallback_encoding=_LOCALE_ENCODING) -> s
         might solve the problem.
         ********************************************************************************
         """
-        # TODO: Add a deadline?
-        #       See comment in setuptools.unicode_utils._Utf8EncodingNeeded
+        # 023229.python.init.line3635.comment TODO: Add a deadline?
+        # 023230.python.init.line3636.comment See comment in setuptools.unicode_utils._Utf8EncodingNeeded
         warnings.warn(msg, PkgResourcesDeprecationWarning, stacklevel=2)
         with open(file, "r", encoding=fallback_encoding) as f:
             return f.read()
 
 
-# from jaraco.functools 1.3
+# 023231.python.init.line3642.comment from jaraco.functools 1.3
 def _call_aside(f, *args, **kwargs):
     f(*args, **kwargs)
     return f
@@ -3676,25 +3676,25 @@ def _initialize_master_working_set() -> None:
     iter_entry_points = working_set.iter_entry_points
     add_activation_listener = working_set.subscribe
     run_script = working_set.run_script
-    # backward compatibility
+    # 023232.python.init.line3679.comment backward compatibility
     run_main = run_script
-    # Activate all distributions already on sys.path with replace=False and
-    # ensure that all distributions added to the working set in the future
-    # (e.g. by calling ``require()``) will get activated as well,
-    # with higher priority (replace=True).
+    # 023233.python.init.line3681.comment Activate all distributions already on sys.path with replace=False and
+    # 023234.python.init.line3682.comment ensure that all distributions added to the working set in the future
+    # 023235.python.init.line3683.comment (e.g. by calling ``require()``) will get activated as well,
+    # 023236.python.init.line3684.comment with higher priority (replace=True).
     tuple(dist.activate(replace=False) for dist in working_set)
     add_activation_listener(
         lambda dist: dist.activate(replace=True),
         existing=False,
     )
     working_set.entries = []
-    # match order
+    # 023237.python.init.line3691.comment match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
 
 
 if TYPE_CHECKING:
-    # All of these are set by the @_call_aside methods above
+    # 023238.python.init.line3697.comment All of these are set by the @_call_aside methods above
     __resource_manager = ResourceManager()  # Won't exist at runtime
     resource_exists = __resource_manager.resource_exists
     resource_isdir = __resource_manager.resource_isdir

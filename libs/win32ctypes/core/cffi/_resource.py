@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2015 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052183.python.resource.line1.comment
+# 052184.python.resource.line2.comment (C) Copyright 2015 Enthought, Inc., Austin, TX
+# 052185.python.resource.line3.comment All right reserved.
+# 052186.python.resource.line4.comment
+# 052187.python.resource.line5.comment This file is open source software distributed according to the terms in
+# 052188.python.resource.line6.comment LICENSE.txt
+# 052189.python.resource.line7.comment
 from ._util import (
     ffi, check_null, check_zero, check_false, HMODULE,
     PVOID, RESOURCE, resource, dlls)

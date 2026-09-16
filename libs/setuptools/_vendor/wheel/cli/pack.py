@@ -21,7 +21,7 @@ def pack(directory: str, dest_dir: str, build_number: str | None) -> None:
     :param directory: The unpacked wheel directory
     :param dest_dir: Destination directory (defaults to the current directory)
     """
-    # Find the .dist-info directory
+    # 043837.python.pack.line24.comment Find the .dist-info directory
     dist_info_dirs = [
         fn
         for fn in os.listdir(directory)
@@ -32,11 +32,11 @@ def pack(directory: str, dest_dir: str, build_number: str | None) -> None:
     elif not dist_info_dirs:
         raise WheelError(f"No .dist-info directories found in {directory}")
 
-    # Determine the target wheel filename
+    # 043838.python.pack.line35.comment Determine the target wheel filename
     dist_info_dir = dist_info_dirs[0]
     name_version = DIST_INFO_RE.match(dist_info_dir).group("namever")
 
-    # Read the tags and the existing build number from .dist-info/WHEEL
+    # 043839.python.pack.line39.comment Read the tags and the existing build number from .dist-info/WHEEL
     wheel_file_path = os.path.join(directory, dist_info_dir, "WHEEL")
     with open(wheel_file_path, "rb") as f:
         info = BytesParser(policy=email.policy.compat32).parse(f)
@@ -49,7 +49,7 @@ def pack(directory: str, dest_dir: str, build_number: str | None) -> None:
                 f"wheel filename"
             )
 
-    # Set the wheel file name and add/replace/remove the Build tag in .dist-info/WHEEL
+    # 043840.python.pack.line52.comment Set the wheel file name and add/replace/remove the Build tag in .dist-info/WHEEL
     build_number = build_number if build_number is not None else existing_build_number
     if build_number is not None:
         del info["Build"]
@@ -61,10 +61,10 @@ def pack(directory: str, dest_dir: str, build_number: str | None) -> None:
             with open(wheel_file_path, "wb") as f:
                 BytesGenerator(f, maxheaderlen=0).flatten(info)
 
-    # Reassemble the tags for the wheel file
+    # 043841.python.pack.line64.comment Reassemble the tags for the wheel file
     tagline = compute_tagline(tags)
 
-    # Repack the wheel
+    # 043842.python.pack.line67.comment Repack the wheel
     wheel_path = os.path.join(dest_dir, f"{name_version}-{tagline}.whl")
     with WheelFile(wheel_path, "w") as wf:
         print(f"Repacking wheel as {wheel_path}...", end="", flush=True)

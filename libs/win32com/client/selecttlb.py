@@ -9,10 +9,10 @@ class TypelibSpec:
     def __init__(self, clsid, lcid, major, minor, flags=0):
         self.clsid = str(clsid)
         self.lcid = int(lcid)
-        # We avoid assuming 'major' or 'minor' are integers - when
-        # read from the registry there is some confusion about if
-        # they are base 10 or base 16 (they *should* be base 16, but
-        # how they are written is beyond our control.)
+        # 049146.python.selecttlb.line12.comment We avoid assuming 'major' or 'minor' are integers - when
+        # 049147.python.selecttlb.line13.comment read from the registry there is some confusion about if
+        # 049148.python.selecttlb.line14.comment they are base 10 or base 16 (they *should* be base 16, but
+        # 049149.python.selecttlb.line15.comment how they are written is beyond our control.)
         self.major = major
         self.minor = minor
         self.dll = None
@@ -20,7 +20,7 @@ class TypelibSpec:
         self.ver_desc = None
         self.flags = flags
 
-    # For the SelectList
+    # 049150.python.selecttlb.line23.comment For the SelectList
     def __getitem__(self, item):
         if item == 0:
             return self.ver_desc
@@ -75,8 +75,8 @@ def EnumKeys(root):
         except win32api.error:
             break
         try:
-            # Note this doesn't handle REG_EXPAND_SZ, but the implementation
-            # here doesn't need to - that is handled as the data is read.
+            # 049151.python.selecttlb.line78.comment Note this doesn't handle REG_EXPAND_SZ, but the implementation
+            # 049152.python.selecttlb.line79.comment here doesn't need to - that is handled as the data is read.
             val = win32api.RegQueryValue(root, item)
         except win32api.error:
             val = ""  # code using this assumes a string.
@@ -100,26 +100,26 @@ def EnumTlbs(excludeFlags=0):
         try:
             key2 = win32api.RegOpenKey(key, str(iid))
         except win32api.error:
-            # A few good reasons for this, including "access denied".
+            # 049154.python.selecttlb.line103.comment A few good reasons for this, including "access denied".
             continue
         for version, tlbdesc in EnumKeys(key2):
             major_minor = version.split(".", 1)
             if len(major_minor) < 2:
                 major_minor.append("0")
-            # For some reason, this code used to assume the values were hex.
-            # This seems to not be true - particularly for CDO 1.21
-            # *sigh* - it appears there are no rules here at all, so when we need
-            # to know the info, we must load the tlb by filename and request it.
-            # The Resolve() method on the TypelibSpec does this.
-            # For this reason, keep the version numbers as strings - that
-            # way we can't be wrong!  Let code that really needs an int to work
-            # out what to do.  FWIW, https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/816970
-            # is pretty clear that they *should* be hex.
+            # 049155.python.selecttlb.line109.comment For some reason, this code used to assume the values were hex.
+            # 049156.python.selecttlb.line110.comment This seems to not be true - particularly for CDO 1.21
+            # 049157.python.selecttlb.line111.comment *sigh* - it appears there are no rules here at all, so when we need
+            # 049158.python.selecttlb.line112.comment to know the info, we must load the tlb by filename and request it.
+            # 049159.python.selecttlb.line113.comment The Resolve() method on the TypelibSpec does this.
+            # 049160.python.selecttlb.line114.comment For this reason, keep the version numbers as strings - that
+            # 049161.python.selecttlb.line115.comment way we can't be wrong!  Let code that really needs an int to work
+            # 049162.python.selecttlb.line116.comment out what to do.  FWIW, https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/816970
+            # 049163.python.selecttlb.line117.comment is pretty clear that they *should* be hex.
             major = major_minor[0]
             minor = major_minor[1]
             key3 = win32api.RegOpenKey(key2, str(version))
             try:
-                # The "FLAGS" are at this point
+                # 049164.python.selecttlb.line122.comment The "FLAGS" are at this point
                 flags = int(win32api.RegQueryValue(key3, "FLAGS"))
             except (win32api.error, ValueError):
                 flags = 0
@@ -129,7 +129,7 @@ def EnumTlbs(excludeFlags=0):
                         lcid = int(lcid)
                     except ValueError:  # not an LCID entry
                         continue
-                    # Check for both "{lcid}\win32" and "{lcid}\win64" keys.
+                    # 049166.python.selecttlb.line132.comment Check for both "{lcid}\win32" and "{lcid}\win64" keys.
                     try:
                         key4 = win32api.RegOpenKey(key3, f"{lcid}\\win32")
                     except win32api.error:
@@ -166,7 +166,7 @@ def SelectTlb(title="Select Library", excludeFlags=0):
     import pywin.dialogs.list
 
     items = EnumTlbs(excludeFlags)
-    # fixup versions - we assume hex (see __init__ above)
+    # 049167.python.selecttlb.line169.comment fixup versions - we assume hex (see __init__ above)
     for i in items:
         i.major = int(i.major, 16)
         i.minor = int(i.minor, 16)
@@ -177,6 +177,6 @@ def SelectTlb(title="Select Library", excludeFlags=0):
     return items[rc]
 
 
-# Test code.
+# 049168.python.selecttlb.line180.comment Test code.
 if __name__ == "__main__":
     print(SelectTlb().__dict__)

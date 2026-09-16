@@ -1,6 +1,6 @@
-# Demo RegisterDeviceNotification etc.  Creates a hidden window to receive
-# notifications.  See serviceEvents.py for an example of a service doing
-# that.
+# 046465.python.win32gui_devicenotify.line1.comment Demo RegisterDeviceNotification etc.  Creates a hidden window to receive
+# 046466.python.win32gui_devicenotify.line2.comment notifications.  See serviceEvents.py for an example of a service doing
+# 046467.python.win32gui_devicenotify.line3.comment that.
 import sys
 import time
 
@@ -10,26 +10,26 @@ import win32gui
 import win32gui_struct
 import winnt
 
-# These device GUIDs are from Ioevent.h in the Windows SDK.  Ideally they
-# could be collected somewhere for pywin32...
+# 046468.python.win32gui_devicenotify.line13.comment These device GUIDs are from Ioevent.h in the Windows SDK.  Ideally they
+# 046469.python.win32gui_devicenotify.line14.comment could be collected somewhere for pywin32...
 GUID_DEVINTERFACE_USB_DEVICE = "{A5DCBF10-6530-11D2-901F-00C04FB951ED}"
 
 
-# WM_DEVICECHANGE message handler.
+# 046470.python.win32gui_devicenotify.line18.comment WM_DEVICECHANGE message handler.
 def OnDeviceChange(hwnd, msg, wp, lp):
-    # Unpack the 'lp' into the appropriate DEV_BROADCAST_* structure,
-    # using the self-identifying data inside the DEV_BROADCAST_HDR.
+    # 046471.python.win32gui_devicenotify.line20.comment Unpack the 'lp' into the appropriate DEV_BROADCAST_* structure,
+    # 046472.python.win32gui_devicenotify.line21.comment using the self-identifying data inside the DEV_BROADCAST_HDR.
     info = win32gui_struct.UnpackDEV_BROADCAST(lp)
     print("Device change notification:", wp, str(info))
     if (
         wp == win32con.DBT_DEVICEQUERYREMOVE
         and info.devicetype == win32con.DBT_DEVTYP_HANDLE
     ):
-        # Our handle is stored away in the structure - just close it
+        # 046473.python.win32gui_devicenotify.line28.comment Our handle is stored away in the structure - just close it
         print("Device being removed - closing handle")
         win32file.CloseHandle(info.handle)
-        # and cancel our notifications - if it gets plugged back in we get
-        # the same notification and try and close the same handle...
+        # 046474.python.win32gui_devicenotify.line31.comment and cancel our notifications - if it gets plugged back in we get
+        # 046475.python.win32gui_devicenotify.line32.comment the same notification and try and close the same handle...
         win32gui.UnregisterDeviceNotification(info.hdevnotify)
     return True
 
@@ -44,7 +44,7 @@ def TestDeviceNotifications(dir_names):
     hwnd = win32gui.CreateWindow(
         wc.lpszClassName,
         "Testing some devices",
-        # no need for it to be visible.
+        # 046476.python.win32gui_devicenotify.line47.comment no need for it to be visible.
         win32con.WS_CAPTION,
         100,
         100,
@@ -57,7 +57,7 @@ def TestDeviceNotifications(dir_names):
     )
 
     hdevs = []
-    # Watch for all USB device notifications
+    # 046477.python.win32gui_devicenotify.line60.comment Watch for all USB device notifications
     filter = win32gui_struct.PackDEV_BROADCAST_DEVICEINTERFACE(
         GUID_DEVINTERFACE_USB_DEVICE
     )
@@ -65,7 +65,7 @@ def TestDeviceNotifications(dir_names):
         hwnd, filter, win32con.DEVICE_NOTIFY_WINDOW_HANDLE
     )
     hdevs.append(hdev)
-    # and create handles for all specified directories
+    # 046478.python.win32gui_devicenotify.line68.comment and create handles for all specified directories
     for d in dir_names:
         hdir = win32file.CreateFile(
             d,
@@ -84,7 +84,7 @@ def TestDeviceNotifications(dir_names):
         )
         hdevs.append(hdev)
 
-    # now start a message pump and wait for messages to be delivered.
+    # 046481.python.win32gui_devicenotify.line87.comment now start a message pump and wait for messages to be delivered.
     print("Watching", len(hdevs), "handles - press Ctrl+C to terminate, or")
     print("add and remove some USB devices...")
     if not dir_names:
@@ -99,8 +99,8 @@ def TestDeviceNotifications(dir_names):
 
 
 if __name__ == "__main__":
-    # optionally pass device/directory names to watch for notifications.
-    # Eg, plug in a USB device - assume it connects as E: - then execute:
-    # % win32gui_devicenotify.py E:
-    # Then remove and insert the device.
+    # 046482.python.win32gui_devicenotify.line102.comment optionally pass device/directory names to watch for notifications.
+    # 046483.python.win32gui_devicenotify.line103.comment Eg, plug in a USB device - assume it connects as E: - then execute:
+    # 046484.python.win32gui_devicenotify.line104.comment % win32gui_devicenotify.py E:
+    # 046485.python.win32gui_devicenotify.line105.comment Then remove and insert the device.
     TestDeviceNotifications(sys.argv[1:])

@@ -41,8 +41,8 @@ class MediaEncoder(Encoder):
 
 
 def add_default_codecs():
-    # Add all bundled codecs. These should be listed in order of
-    # preference.  This is called automatically by pyglet.media.
+    # 033818.python.init.line44.comment Add all bundled codecs. These should be listed in order of
+    # 033819.python.init.line45.comment preference.  This is called automatically by pyglet.media.
 
     try:
         from . import wave

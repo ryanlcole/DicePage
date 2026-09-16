@@ -128,7 +128,7 @@ class TestResourceManager:
         assert isinstance(path, str), message
 
     def test_get_cache_path_race(self, tmpdir):
-        # Patch to os.path.isdir to create a race condition
+        # 023249.python.test_pkg_resources.line131.comment Patch to os.path.isdir to create a race condition
         def patched_isdir(dirname, unpatched_isdir=pkg_resources.isdir):
             patched_isdir.dirnames.append(dirname)
 
@@ -139,7 +139,7 @@ class TestResourceManager:
 
         patched_isdir.dirnames = []
 
-        # Get a cache path with a "race condition"
+        # 023250.python.test_pkg_resources.line142.comment Get a cache path with a "race condition"
         mgr = pkg_resources.ResourceManager()
         mgr.set_extraction_path(str(tmpdir))
 
@@ -147,9 +147,9 @@ class TestResourceManager:
         with mock.patch.object(pkg_resources, 'isdir', new=patched_isdir):
             mgr.get_cache_path(archive_name)
 
-        # Because this test relies on the implementation details of this
-        # function, these assertions are a sentinel to ensure that the
-        # test suite will not fail silently if the implementation changes.
+        # 023251.python.test_pkg_resources.line150.comment Because this test relies on the implementation details of this
+        # 023252.python.test_pkg_resources.line151.comment function, these assertions are a sentinel to ensure that the
+        # 023253.python.test_pkg_resources.line152.comment test suite will not fail silently if the implementation changes.
         called_dirnames = patched_isdir.dirnames
         assert len(called_dirnames) == 2
         assert called_dirnames[0].split(os.sep)[-2:] == ['foo', 'bar']
@@ -198,9 +198,9 @@ def test_get_metadata__bad_utf8(tmpdir):
     Test a metadata file with bytes that can't be decoded as utf-8.
     """
     filename = 'METADATA'
-    # Convert the tmpdir LocalPath object to a string before joining.
+    # 023254.python.test_pkg_resources.line201.comment Convert the tmpdir LocalPath object to a string before joining.
     metadata_path = os.path.join(str(tmpdir), 'foo.dist-info', filename)
-    # Encode a non-ascii string with the wrong encoding (not utf-8).
+    # 023255.python.test_pkg_resources.line203.comment Encode a non-ascii string with the wrong encoding (not utf-8).
     metadata = 'née'.encode('iso-8859-1')
     dist = make_test_distribution(metadata_path, metadata=metadata)
 
@@ -210,8 +210,8 @@ def test_get_metadata__bad_utf8(tmpdir):
     exc = excinfo.value
     actual = str(exc)
     expected = (
-        # The error message starts with "'utf-8' codec ..." However, the
-        # spelling of "utf-8" can vary (e.g. "utf8") so we don't include it
+        # 023256.python.test_pkg_resources.line213.comment The error message starts with "'utf-8' codec ..." However, the
+        # 023257.python.test_pkg_resources.line214.comment spelling of "utf-8" can vary (e.g. "utf8") so we don't include it
         "codec can't decode byte 0xe9 in position 1: "
         'invalid continuation byte in METADATA file at path: '
     )
@@ -225,8 +225,8 @@ def make_distribution_no_version(tmpdir, basename):
     """
     dist_dir = tmpdir / basename
     dist_dir.ensure_dir()
-    # Make the directory non-empty so distributions_from_metadata()
-    # will detect it and yield it.
+    # 023258.python.test_pkg_resources.line228.comment Make the directory non-empty so distributions_from_metadata()
+    # 023259.python.test_pkg_resources.line229.comment will detect it and yield it.
     dist_dir.join('temp.txt').ensure()
 
     dists = list(pkg_resources.distributions_from_metadata(dist_dir))
@@ -261,19 +261,19 @@ def test_distribution_version_missing(
     )
     metadata_path = os.path.join(dist_dir, expected_filename)
 
-    # Now check the exception raised when the "version" attribute is accessed.
+    # 023260.python.test_pkg_resources.line264.comment Now check the exception raised when the "version" attribute is accessed.
     with pytest.raises(ValueError) as excinfo:
         dist.version
 
     err = str(excinfo.value)
-    # Include a string expression after the assert so the full strings
-    # will be visible for inspection on failure.
+    # 023261.python.test_pkg_resources.line269.comment Include a string expression after the assert so the full strings
+    # 023262.python.test_pkg_resources.line270.comment will be visible for inspection on failure.
     assert expected_text in err, str((expected_text, err))
 
-    # Also check the args passed to the ValueError.
+    # 023263.python.test_pkg_resources.line273.comment Also check the args passed to the ValueError.
     msg, dist = excinfo.value.args
     assert expected_text in msg
-    # Check that the message portion contains the path.
+    # 023264.python.test_pkg_resources.line276.comment Check that the message portion contains the path.
     assert metadata_path in msg, str((metadata_path, msg))
     assert type(dist) is expected_dist_type
 
@@ -287,8 +287,8 @@ def test_distribution_version_missing_undetected_path():
     Test Distribution.version when the "Version" header is missing and
     the path can't be detected.
     """
-    # Create a Distribution object with no metadata argument, which results
-    # in an empty metadata provider.
+    # 023265.python.test_pkg_resources.line290.comment Create a Distribution object with no metadata argument, which results
+    # 023266.python.test_pkg_resources.line291.comment in an empty metadata provider.
     dist = Distribution('/foo')
     with pytest.raises(ValueError) as excinfo:
         dist.version
@@ -312,20 +312,20 @@ def test_macos_vers_fallback(monkeypatch, tmp_path):
     """Regression test for pkg_resources._macos_vers"""
     orig_open = builtins.open
 
-    # Pretend we need to use the plist file
+    # 023267.python.test_pkg_resources.line315.comment Pretend we need to use the plist file
     monkeypatch.setattr('platform.mac_ver', mock.Mock(return_value=('', (), '')))
 
-    # Create fake content for the fake plist file
+    # 023268.python.test_pkg_resources.line318.comment Create fake content for the fake plist file
     with open(tmp_path / 'fake.plist', 'wb') as fake_file:
         plistlib.dump({"ProductVersion": "11.4"}, fake_file)
 
-    # Pretend the fake file exists
+    # 023269.python.test_pkg_resources.line322.comment Pretend the fake file exists
     monkeypatch.setattr('os.path.exists', mock.Mock(return_value=True))
 
     def fake_open(file, *args, **kwargs):
         return orig_open(tmp_path / 'fake.plist', *args, **kwargs)
 
-    # Ensure that the _macos_vers works correctly
+    # 023270.python.test_pkg_resources.line328.comment Ensure that the _macos_vers works correctly
     with mock.patch('builtins.open', mock.Mock(side_effect=fake_open)) as m:
         pkg_resources._macos_vers.cache_clear()
         assert pkg_resources._macos_vers() == ["11", "4"]
@@ -370,8 +370,8 @@ class TestDeepVersionLookupDistutils:
         version = '1.11.0.dev0+2329eae'
         self.create_foo_pkg(env, version)
 
-        # this requirement parsing will raise a VersionConflict unless the
-        # .egg-info file is parsed (see #419 on BitBucket)
+        # 023271.python.test_pkg_resources.line373.comment this requirement parsing will raise a VersionConflict unless the
+        # 023272.python.test_pkg_resources.line374.comment .egg-info file is parsed (see #419 on BitBucket)
         req = pkg_resources.Requirement.parse('foo>=1.9')
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
         assert dist.version == version
@@ -473,7 +473,7 @@ class TestWorkdirRequire:
     def test_require_non_normalised_name(
         self, tmp_path, monkeypatch, version, requirement
     ):
-        # https://github.com/pypa/setuptools/issues/4853
+        # 023273.python.test_pkg_resources.line476.comment https://github.com/pypa/setuptools/issues/4853
         site_packages = self.fake_site_packages(tmp_path, monkeypatch, self.FILES)
         ws = pkg_resources.WorkingSet([site_packages])
 

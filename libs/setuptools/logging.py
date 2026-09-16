@@ -28,10 +28,10 @@ def configure() -> None:
     )
     if inspect.ismodule(distutils.dist.log):
         monkey.patch_func(set_threshold, distutils.log, 'set_threshold')
-        # For some reason `distutils.log` module is getting cached in `distutils.dist`
-        # and then loaded again when patched,
-        # implying: id(distutils.log) != id(distutils.dist.log).
-        # Make sure the same module object is used everywhere:
+        # 044929.python.logging.line31.comment For some reason `distutils.log` module is getting cached in `distutils.dist`
+        # 044930.python.logging.line32.comment and then loaded again when patched,
+        # 044931.python.logging.line33.comment implying: id(distutils.log) != id(distutils.dist.log).
+        # 044932.python.logging.line34.comment Make sure the same module object is used everywhere:
         distutils.dist.log = distutils.log
 
 

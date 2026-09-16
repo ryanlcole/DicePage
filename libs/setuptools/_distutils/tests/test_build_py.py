@@ -26,7 +26,7 @@ class TestBuildPy(support.TempdirManager):
         destination = self.mkdtemp()
 
         dist = Distribution({"packages": ["pkg"], "package_dir": {"pkg": sources}})
-        # script_name need not exist, it just need to be initialized
+        # 040973.python.test_build_py.line29.comment script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.command_obj["build"] = support.DummyCommand(
             force=False, build_lib=destination
@@ -42,9 +42,9 @@ class TestBuildPy(support.TempdirManager):
 
         cmd.run()
 
-        # This makes sure the list of outputs includes byte-compiled
-        # files for Python modules but not for package data files
-        # (there shouldn't *be* byte-code files for those!).
+        # 040974.python.test_build_py.line45.comment This makes sure the list of outputs includes byte-compiled
+        # 040975.python.test_build_py.line46.comment files for Python modules but not for package data files
+        # 040976.python.test_build_py.line47.comment (there shouldn't *be* byte-code files for those!).
         assert len(cmd.get_outputs()) == 3
         pkgdest = os.path.join(destination, "pkg")
         files = os.listdir(pkgdest)
@@ -58,7 +58,7 @@ class TestBuildPy(support.TempdirManager):
             assert f"__init__.{sys.implementation.cache_tag}.pyc" in pyc_files
 
     def test_empty_package_dir(self):
-        # See bugs #1668596/#1720897
+        # 040977.python.test_build_py.line61.comment See bugs #1668596/#1720897
         sources = self.mkdtemp()
         jaraco.path.build({'__init__.py': '', 'doc': {'testfile': ''}}, sources)
 
@@ -68,7 +68,7 @@ class TestBuildPy(support.TempdirManager):
             "package_dir": {"pkg": ""},
             "package_data": {"pkg": ["doc/*"]},
         })
-        # script_name need not exist, it just need to be initialized
+        # 040978.python.test_build_py.line71.comment script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.script_args = ["build"]
         dist.parse_command_line()
@@ -116,7 +116,7 @@ class TestBuildPy(support.TempdirManager):
         """
         A directory in package_data should not be added to the filelist.
         """
-        # See bug 19286
+        # 040979.python.test_build_py.line119.comment See bug 19286
         sources = self.mkdtemp()
         jaraco.path.build(
             {
@@ -124,7 +124,7 @@ class TestBuildPy(support.TempdirManager):
                     '__init__.py': '',
                     'doc': {
                         'testfile': '',
-                        # create a directory that could be incorrectly detected as a file
+                        # 040980.python.test_build_py.line127.comment create a directory that could be incorrectly detected as a file
                         'otherdir': {},
                     },
                 }
@@ -134,7 +134,7 @@ class TestBuildPy(support.TempdirManager):
 
         os.chdir(sources)
         dist = Distribution({"packages": ["pkg"], "package_data": {"pkg": ["doc/*"]}})
-        # script_name need not exist, it just need to be initialized
+        # 040981.python.test_build_py.line137.comment script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.script_args = ["build"]
         dist.parse_command_line()
@@ -145,7 +145,7 @@ class TestBuildPy(support.TempdirManager):
             self.fail("failed package_data when data dir includes a dir")
 
     def test_dont_write_bytecode(self, caplog):
-        # makes sure byte_compile is not used
+        # 040982.python.test_build_py.line148.comment makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = build_py(dist)
         cmd.compile = True
@@ -168,12 +168,12 @@ class TestBuildPy(support.TempdirManager):
         After the acceptance of PEP 420, these warnings don't make more sense
         so we want to ensure there are not displayed to not confuse the users.
         """
-        # Create a fake project structure with a package namespace:
+        # 040983.python.test_build_py.line171.comment Create a fake project structure with a package namespace:
         tmp = self.mkdtemp()
         jaraco.path.build({'ns': {'pkg': {'module.py': ''}}}, tmp)
         os.chdir(tmp)
 
-        # Configure the package:
+        # 040984.python.test_build_py.line176.comment Configure the package:
         attrs = {
             "name": "ns.pkg",
             "packages": ["ns", "ns.pkg"],
@@ -181,7 +181,7 @@ class TestBuildPy(support.TempdirManager):
         }
         dist = Distribution(attrs)
 
-        # Run code paths that would trigger the trap:
+        # 040985.python.test_build_py.line184.comment Run code paths that would trigger the trap:
         cmd = dist.get_command_obj("build_py")
         cmd.finalize_options()
         modules = cmd.find_all_modules()

@@ -63,7 +63,7 @@ FT_Long = c_long
 FT_ULong = c_ulong
 FT_Bool = c_char
 FT_Offset = c_size_t
-# FT_PtrDist = ?
+# 026993.python.freetype_lib.line66.comment FT_PtrDist = ?
 FT_String = c_char
 FT_String_Ptr = c_char_p
 FT_Tag = FT_UInt32
@@ -400,7 +400,7 @@ class FT_FaceRec(Structure):
         ("size", FT_Size),
         ("charmap", c_void_p),
 
-        # Internal
+        # 027022.python.freetype_lib.line403.comment Internal
         ("driver", c_void_p),
         ("memory", c_void_p),
         ("stream", POINTER(FT_Stream)),
@@ -419,7 +419,7 @@ class FT_FaceRec(Structure):
 
 FT_Face = POINTER(FT_FaceRec)
 
-# face_flags values
+# 027023.python.freetype_lib.line422.comment face_flags values
 FT_FACE_FLAG_SCALABLE          = 1 << 0   # Vector-based (TTF/OTF
 FT_FACE_FLAG_FIXED_SIZES       = 1 << 1   # Has pre-rendered bitmap sizes
 FT_FACE_FLAG_FIXED_WIDTH       = 1 << 2   # Monospaced font
@@ -653,7 +653,7 @@ try:
 except ImportError:
     FT_Select_Size = None
 
-# SFNT interface
+# 027064.python.freetype_lib.line656.comment SFNT interface
 
 class FT_SfntName(Structure):
     _fields_ = [

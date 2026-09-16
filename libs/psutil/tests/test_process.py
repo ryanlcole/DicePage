@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025533.python.test_process.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025534.python.test_process.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025535.python.test_process.line5.comment found in the LICENSE file.
 
 """Tests for psutil.Process class."""
 
@@ -64,9 +64,9 @@ from psutil.tests import skip_on_access_denied
 from psutil.tests import skip_on_not_implemented
 from psutil.tests import wait_for_pid
 
-# ===================================================================
-# --- psutil.Process class tests
-# ===================================================================
+# 025536.python.test_process.line67.comment ===================================================================
+# 025537.python.test_process.line68.comment --- psutil.Process class tests
+# 025538.python.test_process.line69.comment ===================================================================
 
 
 class TestProcess(PsutilTestCase):
@@ -123,26 +123,26 @@ class TestProcess(PsutilTestCase):
                 p.send_signal(sig)
 
     def test_wait_exited(self):
-        # Test waitpid() + WIFEXITED -> WEXITSTATUS.
-        # normal return, same as exit(0)
+        # 025539.python.test_process.line126.comment Test waitpid() + WIFEXITED -> WEXITSTATUS.
+        # 025540.python.test_process.line127.comment normal return, same as exit(0)
         cmd = [PYTHON_EXE, "-c", "pass"]
         p = self.spawn_psproc(cmd)
         code = p.wait()
         assert code == 0
         self.assert_proc_gone(p)
-        # exit(1), implicit in case of error
+        # 025541.python.test_process.line133.comment exit(1), implicit in case of error
         cmd = [PYTHON_EXE, "-c", "1 / 0"]
         p = self.spawn_psproc(cmd, stderr=subprocess.PIPE)
         code = p.wait()
         assert code == 1
         self.assert_proc_gone(p)
-        # via sys.exit()
+        # 025542.python.test_process.line139.comment via sys.exit()
         cmd = [PYTHON_EXE, "-c", "import sys; sys.exit(5);"]
         p = self.spawn_psproc(cmd)
         code = p.wait()
         assert code == 5
         self.assert_proc_gone(p)
-        # via os._exit()
+        # 025543.python.test_process.line145.comment via os._exit()
         cmd = [PYTHON_EXE, "-c", "import os; os._exit(5);"]
         p = self.spawn_psproc(cmd)
         code = p.wait()
@@ -153,8 +153,8 @@ class TestProcess(PsutilTestCase):
     def test_wait_stopped(self):
         p = self.spawn_psproc()
         if POSIX:
-            # Test waitpid() + WIFSTOPPED and WIFCONTINUED.
-            # Note: if a process is stopped it ignores SIGTERM.
+            # 025544.python.test_process.line156.comment Test waitpid() + WIFSTOPPED and WIFCONTINUED.
+            # 025545.python.test_process.line157.comment Note: if a process is stopped it ignores SIGTERM.
             p.send_signal(signal.SIGSTOP)
             with pytest.raises(psutil.TimeoutExpired):
                 p.wait(timeout=0.001)
@@ -176,23 +176,23 @@ class TestProcess(PsutilTestCase):
             assert p.wait() == signal.SIGTERM
 
     def test_wait_non_children(self):
-        # Test wait() against a process which is not our direct
-        # child.
+        # 025546.python.test_process.line179.comment Test wait() against a process which is not our direct
+        # 025547.python.test_process.line180.comment child.
         child, grandchild = self.spawn_children_pair()
         with pytest.raises(psutil.TimeoutExpired):
             child.wait(0.01)
         with pytest.raises(psutil.TimeoutExpired):
             grandchild.wait(0.01)
-        # We also terminate the direct child otherwise the
-        # grandchild will hang until the parent is gone.
+        # 025548.python.test_process.line186.comment We also terminate the direct child otherwise the
+        # 025549.python.test_process.line187.comment grandchild will hang until the parent is gone.
         child.terminate()
         grandchild.terminate()
         child_ret = child.wait()
         grandchild_ret = grandchild.wait()
         if POSIX:
             assert child_ret == -signal.SIGTERM
-            # For processes which are not our children we're supposed
-            # to get None.
+            # 025550.python.test_process.line194.comment For processes which are not our children we're supposed
+            # 025551.python.test_process.line195.comment to get None.
             assert grandchild_ret is None
         else:
             assert child_ret == signal.SIGTERM
@@ -240,7 +240,7 @@ class TestProcess(PsutilTestCase):
             p.cpu_percent(interval=-1)
 
     def test_cpu_percent_numcpus_none(self):
-        # See: https://github.com/giampaolo/psutil/issues/1087
+        # 025552.python.test_process.line243.comment See: https://github.com/giampaolo/psutil/issues/1087
         with mock.patch('psutil.cpu_count', return_value=None) as m:
             psutil.Process().cpu_percent()
             assert m.called
@@ -253,7 +253,7 @@ class TestProcess(PsutilTestCase):
         assert times.children_system >= 0.0, times
         if LINUX:
             assert times.iowait >= 0.0, times
-        # make sure returned values can be pretty printed with strftime
+        # 025553.python.test_process.line256.comment make sure returned values can be pretty printed with strftime
         for name in times._fields:
             time.strftime("%H:%M:%S", time.localtime(getattr(times, name)))
 
@@ -282,9 +282,9 @@ class TestProcess(PsutilTestCase):
     def test_create_time(self):
         p = self.spawn_psproc()
         now = time.time()
-        # Fail if the difference with current time is > 2s.
+        # 025554.python.test_process.line285.comment Fail if the difference with current time is > 2s.
         assert abs(p.create_time() - now) < 2
-        # make sure returned value can be pretty printed with strftime
+        # 025555.python.test_process.line287.comment make sure returned value can be pretty printed with strftime
         time.strftime("%Y %m %d %H:%M:%S", time.localtime(p.create_time()))
 
     @pytest.mark.skipif(not POSIX, reason="POSIX only")
@@ -294,7 +294,7 @@ class TestProcess(PsutilTestCase):
             try:
                 tty = os.path.realpath(sh('tty'))
             except RuntimeError:
-                # Note: happens if pytest is run without the `-s` opt.
+                # 025556.python.test_process.line297.comment Note: happens if pytest is run without the `-s` opt.
                 raise pytest.skip("can't rely on `tty` CLI")
             else:
                 assert terminal == tty
@@ -303,7 +303,7 @@ class TestProcess(PsutilTestCase):
     @skip_on_not_implemented(only_if=LINUX)
     def test_io_counters(self):
         p = psutil.Process()
-        # test reads
+        # 025557.python.test_process.line306.comment test reads
         io1 = p.io_counters()
         with open(PYTHON_EXE, 'rb') as f:
             f.read()
@@ -318,7 +318,7 @@ class TestProcess(PsutilTestCase):
             assert io2.read_bytes >= io1.read_bytes
             assert io2.write_bytes >= io1.write_bytes
 
-        # test writes
+        # 025558.python.test_process.line321.comment test writes
         io1 = p.io_counters()
         with open(self.get_testfn(), 'wb') as f:
             f.write(bytes("x" * 1000000, 'ascii'))
@@ -331,10 +331,10 @@ class TestProcess(PsutilTestCase):
             assert io2.write_chars > io1.write_chars
             assert io2.read_chars >= io1.read_chars
 
-        # sanity check
+        # 025559.python.test_process.line334.comment sanity check
         for i in range(len(io2)):
             if BSD and i >= 2:
-                # On BSD read_bytes and write_bytes are always set to -1.
+                # 025560.python.test_process.line337.comment On BSD read_bytes and write_bytes are always set to -1.
                 continue
             assert io2[i] >= 0
             assert io2[i] >= 0
@@ -358,12 +358,12 @@ class TestProcess(PsutilTestCase):
         init = p.ionice()
         self.addCleanup(cleanup, init)
 
-        # low
+        # 025564.python.test_process.line361.comment low
         p.ionice(psutil.IOPRIO_CLASS_IDLE)
         assert tuple(p.ionice()) == (psutil.IOPRIO_CLASS_IDLE, 0)
         with pytest.raises(ValueError):  # accepts no value
             p.ionice(psutil.IOPRIO_CLASS_IDLE, value=7)
-        # normal
+        # 025566.python.test_process.line366.comment normal
         p.ionice(psutil.IOPRIO_CLASS_BE)
         assert tuple(p.ionice()) == (psutil.IOPRIO_CLASS_BE, 0)
         p.ionice(psutil.IOPRIO_CLASS_BE, value=7)
@@ -374,7 +374,7 @@ class TestProcess(PsutilTestCase):
             p.ionice(psutil.IOPRIO_CLASS_RT, value=7)
         except psutil.AccessDenied:
             pass
-        # errs
+        # 025567.python.test_process.line377.comment errs
         with pytest.raises(ValueError, match="ioclass accepts no value"):
             p.ionice(psutil.IOPRIO_CLASS_NONE, 1)
         with pytest.raises(ValueError, match="ioclass accepts no value"):
@@ -395,7 +395,7 @@ class TestProcess(PsutilTestCase):
         init = p.ionice()
         self.addCleanup(p.ionice, init)
 
-        # base
+        # 025568.python.test_process.line398.comment base
         p.ionice(psutil.IOPRIO_VERYLOW)
         assert p.ionice() == psutil.IOPRIO_VERYLOW
         p.ionice(psutil.IOPRIO_LOW)
@@ -406,7 +406,7 @@ class TestProcess(PsutilTestCase):
             pass
         else:
             assert p.ionice() == psutil.IOPRIO_HIGH
-        # errs
+        # 025569.python.test_process.line409.comment errs
         with pytest.raises(
             TypeError, match="value argument not accepted on Windows"
         ):
@@ -426,9 +426,9 @@ class TestProcess(PsutilTestCase):
             assert value >= 0
             if name in dir(resource):
                 assert value == getattr(resource, name)
-                # XXX - On PyPy RLIMIT_INFINITY returned by
-                # resource.getrlimit() is reported as a very big long
-                # number instead of -1. It looks like a bug with PyPy.
+                # 025570.python.test_process.line429.comment XXX - On PyPy RLIMIT_INFINITY returned by
+                # 025571.python.test_process.line430.comment resource.getrlimit() is reported as a very big long
+                # 025572.python.test_process.line431.comment number instead of -1. It looks like a bug with PyPy.
                 if PYPY:
                     continue
                 assert p.rlimit(value) == resource.getrlimit(value)
@@ -443,8 +443,8 @@ class TestProcess(PsutilTestCase):
         p = self.spawn_psproc()
         p.rlimit(psutil.RLIMIT_NOFILE, (5, 5))
         assert p.rlimit(psutil.RLIMIT_NOFILE) == (5, 5)
-        # If pid is 0 prlimit() applies to the calling process and
-        # we don't want that.
+        # 025573.python.test_process.line446.comment If pid is 0 prlimit() applies to the calling process and
+        # 025574.python.test_process.line447.comment we don't want that.
         if LINUX:
             with pytest.raises(ValueError, match="can't use prlimit"):
                 psutil._psplatform.Process(0).rlimit(0)
@@ -460,8 +460,8 @@ class TestProcess(PsutilTestCase):
             p.rlimit(psutil.RLIMIT_FSIZE, (1024, hard))
             with open(testfn, "wb") as f:
                 f.write(b"X" * 1024)
-            # write() or flush() doesn't always cause the exception
-            # but close() will.
+            # 025575.python.test_process.line463.comment write() or flush() doesn't always cause the exception
+            # 025576.python.test_process.line464.comment but close() will.
             with pytest.raises(OSError) as exc:
                 with open(testfn, "wb") as f:
                     f.write(b"X" * 1025)
@@ -472,8 +472,8 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_RLIMIT, reason="not supported")
     def test_rlimit_infinity(self):
-        # First set a limit, then re-set it by specifying INFINITY
-        # and assume we overridden the previous limit.
+        # 025577.python.test_process.line475.comment First set a limit, then re-set it by specifying INFINITY
+        # 025578.python.test_process.line476.comment and assume we overridden the previous limit.
         p = psutil.Process()
         soft, hard = p.rlimit(psutil.RLIMIT_FSIZE)
         try:
@@ -487,11 +487,11 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_RLIMIT, reason="not supported")
     def test_rlimit_infinity_value(self):
-        # RLIMIT_FSIZE should be RLIM_INFINITY, which will be a really
-        # big number on a platform with large file support.  On these
-        # platforms we need to test that the get/setrlimit functions
-        # properly convert the number to a C long long and that the
-        # conversion doesn't raise an error.
+        # 025579.python.test_process.line490.comment RLIMIT_FSIZE should be RLIM_INFINITY, which will be a really
+        # 025580.python.test_process.line491.comment big number on a platform with large file support.  On these
+        # 025581.python.test_process.line492.comment platforms we need to test that the get/setrlimit functions
+        # 025582.python.test_process.line493.comment properly convert the number to a C long long and that the
+        # 025583.python.test_process.line494.comment conversion doesn't raise an error.
         p = psutil.Process()
         soft, hard = p.rlimit(psutil.RLIMIT_FSIZE)
         assert hard == psutil.RLIM_INFINITY
@@ -499,9 +499,9 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.xdist_group(name="serial")
     def test_num_threads(self):
-        # on certain platforms such as Linux we might test for exact
-        # thread number, since we always have with 1 thread per process,
-        # but this does not apply across all platforms (MACOS, Windows)
+        # 025584.python.test_process.line502.comment on certain platforms such as Linux we might test for exact
+        # 025585.python.test_process.line503.comment thread number, since we always have with 1 thread per process,
+        # 025586.python.test_process.line504.comment but this does not apply across all platforms (MACOS, Windows)
         p = psutil.Process()
         if OPENBSD:
             try:
@@ -517,7 +517,7 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not WINDOWS, reason="WINDOWS only")
     def test_num_handles(self):
-        # a better test is done later into test/_windows.py
+        # 025587.python.test_process.line520.comment a better test is done later into test/_windows.py
         p = psutil.Process()
         assert p.num_handles() > 0
 
@@ -536,7 +536,7 @@ class TestProcess(PsutilTestCase):
             step2 = p.threads()
             assert len(step2) == len(step1) + 1
             athread = step2[0]
-            # test named tuple
+            # 025588.python.test_process.line539.comment test named tuple
             assert athread.id == athread[0]
             assert athread.user_time == athread[1]
             assert athread.system_time == athread[2]
@@ -564,19 +564,19 @@ class TestProcess(PsutilTestCase):
     def test_memory_info(self):
         p = psutil.Process()
 
-        # step 1 - get a base value to compare our results
+        # 025589.python.test_process.line567.comment step 1 - get a base value to compare our results
         rss1, vms1 = p.memory_info()[:2]
         percent1 = p.memory_percent()
         assert rss1 > 0
         assert vms1 > 0
 
-        # step 2 - allocate some memory
+        # 025590.python.test_process.line573.comment step 2 - allocate some memory
         memarr = [None] * 1500000
 
         rss2, vms2 = p.memory_info()[:2]
         percent2 = p.memory_percent()
 
-        # step 3 - make sure that the memory usage bumped up
+        # 025591.python.test_process.line579.comment step 3 - make sure that the memory usage bumped up
         assert rss2 > rss1
         assert vms2 >= vms1  # vms might be equal
         assert percent2 > percent1
@@ -629,15 +629,15 @@ class TestProcess(PsutilTestCase):
                 except AssertionError:
                     if not LINUX:
                         raise
-                    # https://github.com/giampaolo/psutil/issues/759
+                    # 025593.python.test_process.line632.comment https://github.com/giampaolo/psutil/issues/759
                     with open_text('/proc/self/smaps') as f:
                         data = f.read()
                     if f"{nt.path} (deleted)" not in data:
                         raise
             elif '64' not in os.path.basename(nt.path):
-                # XXX - On Windows we have this strange behavior with
-                # 64 bit dlls: they are visible via explorer but cannot
-                # be accessed via os.stat() (wtf?).
+                # 025594.python.test_process.line638.comment XXX - On Windows we have this strange behavior with
+                # 025595.python.test_process.line639.comment 64 bit dlls: they are visible via explorer but cannot
+                # 025596.python.test_process.line640.comment be accessed via os.stat() (wtf?).
                 try:
                     st = os.stat(nt.path)
                 except FileNotFoundError:
@@ -658,7 +658,7 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_MEMORY_MAPS, reason="not supported")
     def test_memory_maps_lists_lib(self):
-        # Make sure a newly loaded shared lib is listed.
+        # 025597.python.test_process.line661.comment Make sure a newly loaded shared lib is listed.
         p = psutil.Process()
         with copyload_shared_lib() as path:
 
@@ -692,21 +692,21 @@ class TestProcess(PsutilTestCase):
             assert exe == PYTHON_EXE
         except AssertionError:
             if WINDOWS and len(exe) == len(PYTHON_EXE):
-                # on Windows we don't care about case sensitivity
+                # 025598.python.test_process.line695.comment on Windows we don't care about case sensitivity
                 normcase = os.path.normcase
                 assert normcase(exe) == normcase(PYTHON_EXE)
             else:
-                # certain platforms such as BSD are more accurate returning:
-                # "/usr/local/bin/python3.7"
-                # ...instead of:
-                # "/usr/local/bin/python"
-                # We do not want to consider this difference in accuracy
-                # an error.
+                # 025599.python.test_process.line699.comment certain platforms such as BSD are more accurate returning:
+                # 025600.python.test_process.line700.comment "/usr/local/bin/python3.7"
+                # 025601.python.test_process.line701.comment ...instead of:
+                # 025602.python.test_process.line702.comment "/usr/local/bin/python"
+                # 025603.python.test_process.line703.comment We do not want to consider this difference in accuracy
+                # 025604.python.test_process.line704.comment an error.
                 ver = f"{sys.version_info[0]}.{sys.version_info[1]}"
                 try:
                     assert exe.replace(ver, '') == PYTHON_EXE.replace(ver, '')
                 except AssertionError:
-                    # Typically MACOS. Really not sure what to do here.
+                    # 025605.python.test_process.line709.comment Typically MACOS. Really not sure what to do here.
                     pass
 
         out = sh([exe, "-c", "import os; print('hey')"])
@@ -721,14 +721,14 @@ class TestProcess(PsutilTestCase):
         p = self.spawn_psproc(cmdline)
 
         if NETBSD and p.cmdline() == []:
-            # https://github.com/giampaolo/psutil/issues/2250
+            # 025606.python.test_process.line724.comment https://github.com/giampaolo/psutil/issues/2250
             raise pytest.skip("OPENBSD: returned EBUSY")
 
-        # XXX - most of the times the underlying sysctl() call on Net
-        # and Open BSD returns a truncated string.
-        # Also /proc/pid/cmdline behaves the same so it looks
-        # like this is a kernel bug.
-        # XXX - AIX truncates long arguments in /proc/pid/cmdline
+        # 025607.python.test_process.line727.comment XXX - most of the times the underlying sysctl() call on Net
+        # 025608.python.test_process.line728.comment and Open BSD returns a truncated string.
+        # 025609.python.test_process.line729.comment Also /proc/pid/cmdline behaves the same so it looks
+        # 025610.python.test_process.line730.comment like this is a kernel bug.
+        # 025611.python.test_process.line731.comment XXX - AIX truncates long arguments in /proc/pid/cmdline
         if NETBSD or OPENBSD or AIX:
             assert p.cmdline()[0] == PYTHON_EXE
         else:
@@ -747,13 +747,13 @@ class TestProcess(PsutilTestCase):
         )
         p = self.spawn_psproc(cmdline)
 
-        # XXX - flaky test: exclude the python exe which, for some
-        # reason, and only sometimes, on OSX appears different.
+        # 025612.python.test_process.line750.comment XXX - flaky test: exclude the python exe which, for some
+        # 025613.python.test_process.line751.comment reason, and only sometimes, on OSX appears different.
         cmdline = cmdline[1:]
 
         if OPENBSD:
-            # XXX: for some reason the test process may turn into a
-            # zombie (don't know why).
+            # 025614.python.test_process.line755.comment XXX: for some reason the test process may turn into a
+            # 025615.python.test_process.line756.comment zombie (don't know why).
             try:
                 assert p.cmdline()[1:] == cmdline
             except psutil.ZombieProcess:
@@ -761,7 +761,7 @@ class TestProcess(PsutilTestCase):
         else:
             ret = p.cmdline()[1:]
             if NETBSD and ret == []:
-                # https://github.com/giampaolo/psutil/issues/2250
+                # 025616.python.test_process.line764.comment https://github.com/giampaolo/psutil/issues/2250
                 raise pytest.skip("OPENBSD: returned EBUSY")
             assert ret == cmdline
 
@@ -781,13 +781,13 @@ class TestProcess(PsutilTestCase):
         ]
         p = self.spawn_psproc(cmdline)
         if OPENBSD:
-            # XXX: for some reason the test process may turn into a
-            # zombie (don't know why). Because the name() is long, all
-            # UNIX kernels truncate it to 15 chars, so internally psutil
-            # tries to guess the full name() from the cmdline(). But the
-            # cmdline() of a zombie on OpenBSD fails (internally), so we
-            # just compare the first 15 chars. Full explanation:
-            # https://github.com/giampaolo/psutil/issues/2239
+            # 025617.python.test_process.line784.comment XXX: for some reason the test process may turn into a
+            # 025618.python.test_process.line785.comment zombie (don't know why). Because the name() is long, all
+            # 025619.python.test_process.line786.comment UNIX kernels truncate it to 15 chars, so internally psutil
+            # 025620.python.test_process.line787.comment tries to guess the full name() from the cmdline(). But the
+            # 025621.python.test_process.line788.comment cmdline() of a zombie on OpenBSD fails (internally), so we
+            # 025622.python.test_process.line789.comment just compare the first 15 chars. Full explanation:
+            # 025623.python.test_process.line790.comment https://github.com/giampaolo/psutil/issues/2239
             try:
                 assert p.name() == os.path.basename(pyexe)
             except AssertionError:
@@ -802,12 +802,12 @@ class TestProcess(PsutilTestCase):
     def test_uids(self):
         p = psutil.Process()
         real, effective, _saved = p.uids()
-        # os.getuid() refers to "real" uid
+        # 025624.python.test_process.line805.comment os.getuid() refers to "real" uid
         assert real == os.getuid()
-        # os.geteuid() refers to "effective" uid
+        # 025625.python.test_process.line807.comment os.geteuid() refers to "effective" uid
         assert effective == os.geteuid()
-        # No such thing as os.getsuid() ("saved" uid), but we have
-        # os.getresuid() which returns all of them.
+        # 025626.python.test_process.line809.comment No such thing as os.getsuid() ("saved" uid), but we have
+        # 025627.python.test_process.line810.comment os.getresuid() which returns all of them.
         if hasattr(os, "getresuid"):
             assert os.getresuid() == p.uids()
 
@@ -815,12 +815,12 @@ class TestProcess(PsutilTestCase):
     def test_gids(self):
         p = psutil.Process()
         real, effective, _saved = p.gids()
-        # os.getuid() refers to "real" uid
+        # 025628.python.test_process.line818.comment os.getuid() refers to "real" uid
         assert real == os.getgid()
-        # os.geteuid() refers to "effective" uid
+        # 025629.python.test_process.line820.comment os.geteuid() refers to "effective" uid
         assert effective == os.getegid()
-        # No such thing as os.getsgid() ("saved" gid), but we have
-        # os.getresgid() which returns all of them.
+        # 025630.python.test_process.line822.comment No such thing as os.getsgid() ("saved" gid), but we have
+        # 025631.python.test_process.line823.comment os.getresgid() which returns all of them.
         if hasattr(os, "getresuid"):
             assert os.getresgid() == p.gids()
 
@@ -854,10 +854,10 @@ class TestProcess(PsutilTestCase):
                         pass
                     else:
                         new_prio = p.nice()
-                        # The OS may limit our maximum priority,
-                        # even if the function succeeds. For higher
-                        # priorities, we match either the expected
-                        # value or the highest so far.
+                        # 025632.python.test_process.line857.comment The OS may limit our maximum priority,
+                        # 025633.python.test_process.line858.comment even if the function succeeds. For higher
+                        # 025634.python.test_process.line859.comment priorities, we match either the expected
+                        # 025635.python.test_process.line860.comment value or the highest so far.
                         if prio in {
                             psutil.ABOVE_NORMAL_PRIORITY_CLASS,
                             psutil.HIGH_PRIORITY_CLASS,
@@ -882,8 +882,8 @@ class TestProcess(PsutilTestCase):
                         os.getpriority(os.PRIO_PROCESS, os.getpid())
                         == p.nice()
                     )
-                # XXX - going back to previous nice value raises
-                # AccessDenied on MACOS
+                # 025636.python.test_process.line885.comment XXX - going back to previous nice value raises
+                # 025637.python.test_process.line886.comment AccessDenied on MACOS
                 if not MACOS:
                     p.nice(0)
                     assert p.nice() == 0
@@ -901,9 +901,9 @@ class TestProcess(PsutilTestCase):
             domain, username = username.split('\\')
             getpass_user = getpass.getuser()
             if getpass_user.endswith('$'):
-                # When running as a service account (most likely to be
-                # NetworkService), these user name calculations don't produce
-                # the same result, causing the test to fail.
+                # 025638.python.test_process.line904.comment When running as a service account (most likely to be
+                # 025639.python.test_process.line905.comment NetworkService), these user name calculations don't produce
+                # 025640.python.test_process.line906.comment the same result, causing the test to fail.
                 raise pytest.skip('running as service account')
             assert username == getpass_user
             if 'USERDOMAIN' in os.environ:
@@ -944,13 +944,13 @@ class TestProcess(PsutilTestCase):
             assert p.cpu_affinity() == [n]
             if hasattr(os, "sched_getaffinity"):
                 assert p.cpu_affinity() == list(os.sched_getaffinity(p.pid))
-            # also test num_cpu()
+            # 025641.python.test_process.line947.comment also test num_cpu()
             if hasattr(p, "num_cpu"):
                 assert p.cpu_affinity()[0] == p.num_cpu()
 
-        # [] is an alias for "all eligible CPUs"; on Linux this may
-        # not be equal to all available CPUs, see:
-        # https://github.com/giampaolo/psutil/issues/956
+        # 025642.python.test_process.line951.comment [] is an alias for "all eligible CPUs"; on Linux this may
+        # 025643.python.test_process.line952.comment not be equal to all available CPUs, see:
+        # 025644.python.test_process.line953.comment https://github.com/giampaolo/psutil/issues/956
         p.cpu_affinity([])
         if LINUX:
             assert p.cpu_affinity() == p._proc._get_eligible_cpus()
@@ -962,7 +962,7 @@ class TestProcess(PsutilTestCase):
         with pytest.raises(TypeError):
             p.cpu_affinity(1)
         p.cpu_affinity(initial)
-        # it should work with all iterables, not only lists
+        # 025645.python.test_process.line965.comment it should work with all iterables, not only lists
         p.cpu_affinity(set(all_cpus))
         p.cpu_affinity(tuple(all_cpus))
 
@@ -986,7 +986,7 @@ class TestProcess(PsutilTestCase):
         assert initial, initial
         self.addCleanup(p.cpu_affinity, initial)
 
-        # All possible CPU set combinations.
+        # 025646.python.test_process.line989.comment All possible CPU set combinations.
         if len(initial) > 12:
             initial = initial[:12]  # ...otherwise it will take forever
         combos = []
@@ -1001,7 +1001,7 @@ class TestProcess(PsutilTestCase):
             p.cpu_affinity(combo)
             assert sorted(p.cpu_affinity()) == sorted(combo)
 
-    # TODO: #595
+    # 025648.python.test_process.line1004.comment TODO: #595
     @pytest.mark.skipif(BSD, reason="broken on BSD")
     def test_open_files(self):
         p = psutil.Process()
@@ -1011,7 +1011,7 @@ class TestProcess(PsutilTestCase):
         with open(testfn, 'wb') as f:
             f.write(b'x' * 1024)
             f.flush()
-            # give the kernel some time to see the new file
+            # 025649.python.test_process.line1014.comment give the kernel some time to see the new file
             call_until(lambda: len(p.open_files()) != len(files))
             files = p.open_files()
             filenames = [os.path.normcase(x.path) for x in files]
@@ -1023,7 +1023,7 @@ class TestProcess(PsutilTestCase):
         for file in files:
             assert os.path.isfile(file.path), file
 
-        # another process
+        # 025650.python.test_process.line1026.comment another process
         cmdline = (
             f"import time; f = open(r'{testfn}', 'r'); [time.sleep(0.1) for x"
             " in range(100)];"
@@ -1040,10 +1040,10 @@ class TestProcess(PsutilTestCase):
         for file in filenames:
             assert os.path.isfile(file), file
 
-    # TODO: #595
+    # 025651.python.test_process.line1043.comment TODO: #595
     @pytest.mark.skipif(BSD, reason="broken on BSD")
     def test_open_files_2(self):
-        # test fd and path fields
+        # 025652.python.test_process.line1046.comment test fd and path fields
         p = psutil.Process()
         normcase = os.path.normcase
         testfn = self.get_testfn()
@@ -1061,11 +1061,11 @@ class TestProcess(PsutilTestCase):
                 assert file.fd == -1
             else:
                 assert file.fd == fileobj.fileno()
-            # test positions
+            # 025653.python.test_process.line1064.comment test positions
             ntuple = p.open_files()[0]
             assert ntuple[0] == ntuple.path
             assert ntuple[1] == ntuple.fd
-            # test file is gone
+            # 025654.python.test_process.line1068.comment test file is gone
             assert fileobj.name not in p.open_files()
 
     @pytest.mark.skipif(not POSIX, reason="POSIX only")
@@ -1109,11 +1109,11 @@ class TestProcess(PsutilTestCase):
         assert psutil.Process(lowest_pid).parent() is None
 
     def test_parent_mocked_ctime(self):
-        # Make sure we get a fresh copy of the ctime before processing
-        # parent().We make the assumption that the parent pid MUST have
-        # a creation time < than the child. If system clock is updated
-        # this assumption was broken.
-        # https://github.com/giampaolo/psutil/issues/2542
+        # 025656.python.test_process.line1112.comment Make sure we get a fresh copy of the ctime before processing
+        # 025657.python.test_process.line1113.comment parent().We make the assumption that the parent pid MUST have
+        # 025658.python.test_process.line1114.comment a creation time < than the child. If system clock is updated
+        # 025659.python.test_process.line1115.comment this assumption was broken.
+        # 025660.python.test_process.line1116.comment https://github.com/giampaolo/psutil/issues/2542
         p = self.spawn_psproc()
         p.create_time()  # trigger cache
         assert p._create_time
@@ -1139,9 +1139,9 @@ class TestProcess(PsutilTestCase):
         parent = psutil.Process()
         assert not parent.children()
         assert not parent.children(recursive=True)
-        # On Windows we set the flag to 0 in order to cancel out the
-        # CREATE_NO_WINDOW flag (enabled by default) which creates
-        # an extra "conhost.exe" child.
+        # 025662.python.test_process.line1142.comment On Windows we set the flag to 0 in order to cancel out the
+        # 025663.python.test_process.line1143.comment CREATE_NO_WINDOW flag (enabled by default) which creates
+        # 025664.python.test_process.line1144.comment an extra "conhost.exe" child.
         child = self.spawn_psproc(creationflags=0)
         children1 = parent.children()
         children2 = parent.children(recursive=True)
@@ -1151,11 +1151,11 @@ class TestProcess(PsutilTestCase):
             assert children[0].ppid() == parent.pid
 
     def test_children_mocked_ctime(self):
-        # Make sure we get a fresh copy of the ctime before processing
-        # children(). We make the assumption that process children MUST
-        # have a creation time > than the parent. If system clock is
-        # updated this assumption was broken.
-        # https://github.com/giampaolo/psutil/issues/2542
+        # 025665.python.test_process.line1154.comment Make sure we get a fresh copy of the ctime before processing
+        # 025666.python.test_process.line1155.comment children(). We make the assumption that process children MUST
+        # 025667.python.test_process.line1156.comment have a creation time > than the parent. If system clock is
+        # 025668.python.test_process.line1157.comment updated this assumption was broken.
+        # 025669.python.test_process.line1158.comment https://github.com/giampaolo/psutil/issues/2542
         parent = psutil.Process()
         parent.create_time()  # trigger cache
         assert parent._create_time
@@ -1163,9 +1163,9 @@ class TestProcess(PsutilTestCase):
 
         assert not parent.children()
         assert not parent.children(recursive=True)
-        # On Windows we set the flag to 0 in order to cancel out the
-        # CREATE_NO_WINDOW flag (enabled by default) which creates
-        # an extra "conhost.exe" child.
+        # 025671.python.test_process.line1166.comment On Windows we set the flag to 0 in order to cancel out the
+        # 025672.python.test_process.line1167.comment CREATE_NO_WINDOW flag (enabled by default) which creates
+        # 025673.python.test_process.line1168.comment an extra "conhost.exe" child.
         child = self.spawn_psproc(creationflags=0)
         children1 = parent.children()
         children2 = parent.children(recursive=True)
@@ -1175,27 +1175,27 @@ class TestProcess(PsutilTestCase):
             assert children[0].ppid() == parent.pid
 
     def test_children_recursive(self):
-        # Test children() against two sub processes, p1 and p2, where
-        # p1 (our child) spawned p2 (our grandchild).
+        # 025674.python.test_process.line1178.comment Test children() against two sub processes, p1 and p2, where
+        # 025675.python.test_process.line1179.comment p1 (our child) spawned p2 (our grandchild).
         parent = psutil.Process()
         child, grandchild = self.spawn_children_pair()
         assert parent.children() == [child]
         assert parent.children(recursive=True) == [child, grandchild]
-        # If the intermediate process is gone there's no way for
-        # children() to recursively find it.
+        # 025676.python.test_process.line1184.comment If the intermediate process is gone there's no way for
+        # 025677.python.test_process.line1185.comment children() to recursively find it.
         child.terminate()
         child.wait()
         assert not parent.children(recursive=True)
 
     def test_children_duplicates(self):
-        # find the process which has the highest number of children
+        # 025678.python.test_process.line1191.comment find the process which has the highest number of children
         table = collections.defaultdict(int)
         for p in psutil.process_iter():
             try:
                 table[p.ppid()] += 1
             except psutil.Error:
                 pass
-        # this is the one, now let's make sure there are no duplicates
+        # 025679.python.test_process.line1198.comment this is the one, now let's make sure there are no duplicates
         pid = max(table.items(), key=lambda x: x[1])[0]
         if LINUX and pid == 0:
             raise pytest.skip("PID 0")
@@ -1210,12 +1210,12 @@ class TestProcess(PsutilTestCase):
     def test_parents_and_children(self):
         parent = psutil.Process()
         child, grandchild = self.spawn_children_pair()
-        # forward
+        # 025681.python.test_process.line1213.comment forward
         children = parent.children(recursive=True)
         assert len(children) == 2
         assert children[0] == child
         assert children[1] == grandchild
-        # backward
+        # 025682.python.test_process.line1218.comment backward
         parents = grandchild.parents()
         assert parents[0] == child
         assert parents[1] == parent
@@ -1246,13 +1246,13 @@ class TestProcess(PsutilTestCase):
         if not isinstance(d['net_connections'], list):
             assert d['net_connections'] == 'foo'
 
-        # Test ad_value is set on AccessDenied.
+        # 025683.python.test_process.line1249.comment Test ad_value is set on AccessDenied.
         with mock.patch(
             'psutil.Process.nice', create=True, side_effect=psutil.AccessDenied
         ):
             assert p.as_dict(attrs=["nice"], ad_value=1) == {"nice": 1}
 
-        # Test that NoSuchProcess bubbles up.
+        # 025684.python.test_process.line1255.comment Test that NoSuchProcess bubbles up.
         with mock.patch(
             'psutil.Process.nice',
             create=True,
@@ -1261,7 +1261,7 @@ class TestProcess(PsutilTestCase):
             with pytest.raises(psutil.NoSuchProcess):
                 p.as_dict(attrs=["nice"])
 
-        # Test that ZombieProcess is swallowed.
+        # 025685.python.test_process.line1264.comment Test that ZombieProcess is swallowed.
         with mock.patch(
             'psutil.Process.nice',
             create=True,
@@ -1269,18 +1269,18 @@ class TestProcess(PsutilTestCase):
         ):
             assert p.as_dict(attrs=["nice"], ad_value="foo") == {"nice": "foo"}
 
-        # By default APIs raising NotImplementedError are
-        # supposed to be skipped.
+        # 025686.python.test_process.line1272.comment By default APIs raising NotImplementedError are
+        # 025687.python.test_process.line1273.comment supposed to be skipped.
         with mock.patch(
             'psutil.Process.nice', create=True, side_effect=NotImplementedError
         ):
             d = p.as_dict()
             assert 'nice' not in list(d.keys())
-            # ...unless the user explicitly asked for some attr.
+            # 025688.python.test_process.line1279.comment ...unless the user explicitly asked for some attr.
             with pytest.raises(NotImplementedError):
                 p.as_dict(attrs=["nice"])
 
-        # errors
+        # 025689.python.test_process.line1283.comment errors
         with pytest.raises(TypeError):
             p.as_dict('name')
         with pytest.raises(ValueError):
@@ -1302,8 +1302,8 @@ class TestProcess(PsutilTestCase):
         assert m.call_count == 2
 
     def test_oneshot_twice(self):
-        # Test the case where the ctx manager is __enter__ed twice.
-        # The second __enter__ is supposed to resut in a NOOP.
+        # 025690.python.test_process.line1305.comment Test the case where the ctx manager is __enter__ed twice.
+        # 025691.python.test_process.line1306.comment The second __enter__ is supposed to resut in a NOOP.
         p = psutil.Process()
         with mock.patch("psutil._psplatform.Process.cpu_times") as m1:
             with mock.patch("psutil._psplatform.Process.oneshot_enter") as m2:
@@ -1322,9 +1322,9 @@ class TestProcess(PsutilTestCase):
         assert m.call_count == 2
 
     def test_oneshot_cache(self):
-        # Make sure oneshot() cache is nonglobal. Instead it's
-        # supposed to be bound to the Process instance, see:
-        # https://github.com/giampaolo/psutil/issues/1373
+        # 025692.python.test_process.line1325.comment Make sure oneshot() cache is nonglobal. Instead it's
+        # 025693.python.test_process.line1326.comment supposed to be bound to the Process instance, see:
+        # 025694.python.test_process.line1327.comment https://github.com/giampaolo/psutil/issues/1373
         p1, p2 = self.spawn_children_pair()
         p1_ppid = p1.ppid()
         p2_ppid = p2.ppid()
@@ -1337,13 +1337,13 @@ class TestProcess(PsutilTestCase):
             assert p2.ppid() == p2_ppid
 
     def test_halfway_terminated_process(self):
-        # Test that NoSuchProcess exception gets raised in case the
-        # process dies after we create the Process object.
-        # Example:
-        # >>> proc = Process(1234)
-        # >>> time.sleep(2)  # time-consuming task, process dies in meantime
-        # >>> proc.name()
-        # Refers to Issue #15
+        # 025695.python.test_process.line1340.comment Test that NoSuchProcess exception gets raised in case the
+        # 025696.python.test_process.line1341.comment process dies after we create the Process object.
+        # 025697.python.test_process.line1342.comment Example:
+        # 025698.python.test_process.line1343.comment >>> proc = Process(1234)
+        # 025699.python.test_process.line1344.comment >>> time.sleep(2)  # time-consuming task, process dies in meantime
+        # 025700.python.test_process.line1345.comment >>> proc.name()
+        # 025701.python.test_process.line1346.comment Refers to Issue #15
         def assert_raises_nsp(fun, fun_name):
             try:
                 ret = fun()
@@ -1356,7 +1356,7 @@ class TestProcess(PsutilTestCase):
                     return
                 raise
             else:
-                # NtQuerySystemInformation succeeds even if process is gone.
+                # 025703.python.test_process.line1359.comment NtQuerySystemInformation succeeds even if process is gone.
                 if WINDOWS and fun_name in {'exe', 'name'}:
                     return
                 raise pytest.fail(
@@ -1381,8 +1381,8 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not POSIX, reason="POSIX only")
     def test_zombie_process_is_running_w_exc(self):
-        # Emulate a case where internally is_running() raises
-        # ZombieProcess.
+        # 025705.python.test_process.line1384.comment Emulate a case where internally is_running() raises
+        # 025706.python.test_process.line1385.comment ZombieProcess.
         p = psutil.Process()
         with mock.patch(
             "psutil.Process", side_effect=psutil.ZombieProcess(0)
@@ -1392,8 +1392,8 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not POSIX, reason="POSIX only")
     def test_zombie_process_status_w_exc(self):
-        # Emulate a case where internally status() raises
-        # ZombieProcess.
+        # 025707.python.test_process.line1395.comment Emulate a case where internally status() raises
+        # 025708.python.test_process.line1396.comment ZombieProcess.
         p = psutil.Process()
         with mock.patch(
             "psutil._psplatform.Process.status",
@@ -1403,7 +1403,7 @@ class TestProcess(PsutilTestCase):
             assert m.called
 
     def test_reused_pid(self):
-        # Emulate a case where PID has been reused by another process.
+        # 025709.python.test_process.line1406.comment Emulate a case where PID has been reused by another process.
         subp = self.spawn_subproc()
         p = psutil.Process(subp.pid)
         p._ident = (p.pid, p.create_time() + 100)
@@ -1412,8 +1412,8 @@ class TestProcess(PsutilTestCase):
         assert p.pid in psutil._pmap
         assert not p.is_running()
 
-        # make sure is_running() removed PID from process_iter()
-        # internal cache
+        # 025710.python.test_process.line1415.comment make sure is_running() removed PID from process_iter()
+        # 025711.python.test_process.line1416.comment internal cache
         with mock.patch.object(psutil._common, "PSUTIL_DEBUG", True):
             with contextlib.redirect_stderr(io.StringIO()) as f:
                 list(psutil.process_iter())
@@ -1444,12 +1444,12 @@ class TestProcess(PsutilTestCase):
             p.children()
 
     def test_pid_0(self):
-        # Process(0) is supposed to work on all platforms except Linux
+        # 025712.python.test_process.line1447.comment Process(0) is supposed to work on all platforms except Linux
         if 0 not in psutil.pids():
             with pytest.raises(psutil.NoSuchProcess):
                 psutil.Process(0)
-            # These 2 are a contradiction, but "ps" says PID 1's parent
-            # is PID 0.
+            # 025713.python.test_process.line1451.comment These 2 are a contradiction, but "ps" says PID 1's parent
+            # 025714.python.test_process.line1452.comment is PID 0.
             assert not psutil.pid_exists(0)
             assert psutil.Process(1).ppid() == 0
             return
@@ -1469,7 +1469,7 @@ class TestProcess(PsutilTestCase):
         with pytest.raises(exc):
             p.send_signal(signal.SIGTERM)
 
-        # test all methods
+        # 025715.python.test_process.line1472.comment test all methods
         ns = process_namespace(p)
         for fun, name in ns.iter(ns.getters + ns.setters):
             try:
@@ -1526,7 +1526,7 @@ class TestProcess(PsutilTestCase):
         NETBSD, reason="sometimes fails on `assert is_running()`"
     )
     def test_weird_environ(self):
-        # environment variables can contain values without an equals sign
+        # 025716.python.test_process.line1529.comment environment variables can contain values without an equals sign
         code = textwrap.dedent("""
             #include <unistd.h>
             #include <fcntl.h>
@@ -1549,14 +1549,14 @@ class TestProcess(PsutilTestCase):
         p = psutil.Process(sproc.pid)
         wait_for_pid(p.pid)
         assert p.is_running()
-        # Wait for process to exec or exit.
+        # 025717.python.test_process.line1552.comment Wait for process to exec or exit.
         assert sproc.stderr.read() == b""
         if MACOS and CI_TESTING:
             try:
                 env = p.environ()
             except psutil.AccessDenied:
-                # XXX: fails sometimes with:
-                # PermissionError from 'sysctl(KERN_PROCARGS2) -> EIO'
+                # 025718.python.test_process.line1558.comment XXX: fails sometimes with:
+                # 025719.python.test_process.line1559.comment PermissionError from 'sysctl(KERN_PROCARGS2) -> EIO'
                 return
         else:
             env = p.environ()
@@ -1565,9 +1565,9 @@ class TestProcess(PsutilTestCase):
         assert sproc.returncode == 0
 
 
-# ===================================================================
-# --- psutil.Popen tests
-# ===================================================================
+# 025720.python.test_process.line1568.comment ===================================================================
+# 025721.python.test_process.line1569.comment --- psutil.Popen tests
+# 025722.python.test_process.line1570.comment ===================================================================
 
 
 class TestPopen(PsutilTestCase):
@@ -1579,9 +1579,9 @@ class TestPopen(PsutilTestCase):
 
     @pytest.mark.skipif(MACOS and GITHUB_ACTIONS, reason="hangs on OSX + CI")
     def test_misc(self):
-        # XXX this test causes a ResourceWarning because
-        # psutil.__subproc instance doesn't get properly freed.
-        # Not sure what to do though.
+        # 025723.python.test_process.line1582.comment XXX this test causes a ResourceWarning because
+        # 025724.python.test_process.line1583.comment psutil.__subproc instance doesn't get properly freed.
+        # 025725.python.test_process.line1584.comment Not sure what to do though.
         cmd = [
             PYTHON_EXE,
             "-c",
@@ -1620,9 +1620,9 @@ class TestPopen(PsutilTestCase):
         assert proc.returncode == 0
 
     def test_kill_terminate(self):
-        # subprocess.Popen()'s terminate(), kill() and send_signal() do
-        # not raise exception after the process is gone. psutil.Popen
-        # diverges from that.
+        # 025728.python.test_process.line1623.comment subprocess.Popen()'s terminate(), kill() and send_signal() do
+        # 025729.python.test_process.line1624.comment not raise exception after the process is gone. psutil.Popen
+        # 025730.python.test_process.line1625.comment diverges from that.
         cmd = [
             PYTHON_EXE,
             "-c",

@@ -99,9 +99,9 @@ _ld_args = {
 }
 
 
-# Python on z/OS is built with no compiler specific options in it's CFLAGS.
-# But each compiler requires it's own specific options to build successfully,
-# though some of the options are common between them
+# 040372.python.zos.line102.comment Python on z/OS is built with no compiler specific options in it's CFLAGS.
+# 040373.python.zos.line103.comment But each compiler requires it's own specific options to build successfully,
+# 040374.python.zos.line104.comment though some of the options are common between them
 class Compiler(unix.Compiler):
     src_extensions = ['.c', '.C', '.cc', '.cxx', '.cpp', '.m', '.s']
     _cpp_extensions = ['.cc', '.cpp', '.cxx', '.C']
@@ -179,8 +179,8 @@ class Compiler(unix.Compiler):
         build_temp=None,
         target_lang=None,
     ):
-        # For a built module to use functions from cpython, it needs to use Pythons
-        # side deck file. The side deck is located beside the libpython3.xx.so
+        # 040375.python.zos.line182.comment For a built module to use functions from cpython, it needs to use Pythons
+        # 040376.python.zos.line183.comment side deck file. The side deck is located beside the libpython3.xx.so
         ldversion = sysconfig.get_config_var('LDVERSION')
         if sysconfig.python_build:
             side_deck_path = os.path.join(
@@ -200,7 +200,7 @@ class Compiler(unix.Compiler):
             else:
                 extra_postargs = [side_deck_path]
 
-        # Check and replace libraries included side deck files
+        # 040377.python.zos.line203.comment Check and replace libraries included side deck files
         if runtime_library_dirs:
             for dir in runtime_library_dirs:
                 for library in libraries[:]:
@@ -210,7 +210,7 @@ class Compiler(unix.Compiler):
                         extra_postargs.append(library_side_deck)
                         break
 
-        # Any required ld args for the given compiler
+        # 040378.python.zos.line213.comment Any required ld args for the given compiler
         extra_postargs.extend(_ld_args[self.zos_compiler])
 
         super().link(

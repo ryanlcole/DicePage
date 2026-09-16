@@ -108,8 +108,8 @@ def maybe_close(f):
     return contextlib.closing(f)
 
 
-# Some objects are not available on some platforms.
-# XXX it'd be better to test assertions about bytecode instead.
+# 044762.python.depends.line111.comment Some objects are not available on some platforms.
+# 044763.python.depends.line112.comment XXX it'd be better to test assertions about bytecode instead.
 if not sys.platform.startswith('java') and sys.platform != 'cli':
 
     def get_module_constant(
@@ -124,7 +124,7 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
         try:
             f, path, (_suffix, _mode, kind) = info = find_module(module, paths)
         except ImportError:
-            # Module doesn't exist
+            # 044764.python.depends.line127.comment Module doesn't exist
             return None
 
         with maybe_close(f):
@@ -136,7 +136,7 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
             elif kind == PY_SOURCE:
                 code = compile(f.read(), path, 'exec')
             else:
-                # Not something we can parse; we'll have to import it.  :(
+                # 044766.python.depends.line139.comment Not something we can parse; we'll have to import it.  :(
                 imported = _imp.get_module(module, paths, info)
                 return getattr(imported, symbol, None)
 
@@ -157,7 +157,7 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
         must be present in 'code.co_names'.
         """
         if symbol not in code.co_names:
-            # name's not there, can't possibly be an assignment
+            # 044767.python.depends.line160.comment name's not there, can't possibly be an assignment
             return None
 
         name_idx = list(code.co_names).index(symbol)

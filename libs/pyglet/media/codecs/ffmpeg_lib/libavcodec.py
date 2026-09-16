@@ -158,7 +158,7 @@ class AVCodec(Structure):
         ('sample_fmts', POINTER(c_int)),
         ('channel_layouts', POINTER(c_uint64)),
         ('max_lowres', c_uint8),
-        # And more...
+        # 033924.python.libavcodec.line161.comment And more...
     ]
 
 
@@ -188,15 +188,15 @@ AVClass = libavutil.AVClass
 AVFrame = libavutil.AVFrame
 AV_NUM_DATA_POINTERS = libavutil.AV_NUM_DATA_POINTERS
 
-# Significant deprecation and re-ordering of the entire structure makes it unmanagable to
-# track of all the changes via compat module. Re-define the structure and compat the new one going forward.
+# 033925.python.libavcodec.line191.comment Significant deprecation and re-ordering of the entire structure makes it unmanagable to
+# 033926.python.libavcodec.line192.comment track of all the changes via compat module. Re-define the structure and compat the new one going forward.
 if avcodec_version >= 61:
     AVCodecContext_Fields = [
-        # Basic fields
+        # 033927.python.libavcodec.line195.comment Basic fields
         ("av_class", POINTER(AVClass)),
         ("log_level_offset", c_int),
 
-        # Codec fields
+        # 033928.python.libavcodec.line199.comment Codec fields
         ("codec_type", c_int),  # enum AVMediaType
         ("codec", POINTER(AVCodec)),
         ("codec_id", c_int),  # enum AVCodecID
@@ -211,12 +211,12 @@ if avcodec_version >= 61:
         ("extradata", POINTER(c_uint8)),
         ("extradata_size", c_int),
 
-        # Timebase
+        # 033931.python.libavcodec.line214.comment Timebase
         ("time_base", AVRational),
         ("pkt_timebase", AVRational),
         ("framerate", AVRational),
 
-        # Video fields
+        # 033932.python.libavcodec.line219.comment Video fields
         ("ticks_per_frame", c_int),  # Deprecated in 61.
         ("delay", c_int),
         ("width", c_int),
@@ -239,7 +239,7 @@ if avcodec_version >= 61:
         ("draw_horiz_band", CFUNCTYPE(None, POINTER(AVCodecContext), POINTER(AVFrame), POINTER(c_int), c_int, c_int, c_int)),
         ("get_format", CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(c_int))),
 
-        # Video encoding parameters
+        # 033943.python.libavcodec.line242.comment Video encoding parameters
         ("max_b_frames", c_int),
         ("b_quant_factor", c_float),
         ("b_quant_offset", c_float),
@@ -274,7 +274,7 @@ if avcodec_version >= 61:
         ("mv0_threshold", c_int),
         ("slices", c_int),
 
-        # Audio fields
+        # 033944.python.libavcodec.line277.comment Audio fields
         ("sample_rate", c_int),
         ("sample_fmt", c_int),  # enum AVSampleFormat
         ("ch_layout", AVChannelLayout),  # AVChannelLayout
@@ -287,7 +287,7 @@ if avcodec_version >= 61:
         ("trailing_padding", c_int),
         ("seek_preroll", c_int),
 
-        # Encoding parameters
+        # 033949.python.libavcodec.line290.comment Encoding parameters
         ("bit_rate_tolerance", c_int),
         ("global_quality", c_int),
         ("compression_level", c_int),
@@ -541,7 +541,7 @@ else:
         ('side_data_only_packets', c_int),  # Deprecated. Removed in 59.
         ('initial_padding', c_int),
         ('framerate', AVRational),
-        # !
+        # 033989.python.libavcodec.line544.comment !
         ('sw_pix_fmt', c_int),
         ('pkt_timebase', AVRational),
         ('codec_dexcriptor', AVCodecDescriptor),

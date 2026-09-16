@@ -3,10 +3,10 @@ from __future__ import annotations
 from pyglet.libs.darwin import cocoapy
 
 
-# This class is a wrapper around NSCursor which prevents us from
-# sending too many hide or unhide messages in a row.  Apparently
-# NSCursor treats them like retain/release messages, which can be
-# problematic when we are e.g. switching between window & fullscreen.
+# 036260.python.systemcursor.line6.comment This class is a wrapper around NSCursor which prevents us from
+# 036261.python.systemcursor.line7.comment sending too many hide or unhide messages in a row.  Apparently
+# 036262.python.systemcursor.line8.comment NSCursor treats them like retain/release messages, which can be
+# 036263.python.systemcursor.line9.comment problematic when we are e.g. switching between window & fullscreen.
 class SystemCursor:
     cursor_is_hidden = False
 

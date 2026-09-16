@@ -41,32 +41,32 @@ from . import CLSIDToClass
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also makepy.py
 
-# The global dictionary
+# 048902.python.gencache.line44.comment The global dictionary
 clsidToTypelib: dict[str, tuple[str, int, int, int]] = {}
 
-# If we have a different version of the typelib generated, this
-# maps the "requested version" to the "generated version".
+# 048903.python.gencache.line47.comment If we have a different version of the typelib generated, this
+# 048904.python.gencache.line48.comment maps the "requested version" to the "generated version".
 versionRedirectMap: dict[tuple[str, int, int, int], ModuleType | None] = {}
 
-# There is no reason we *must* be readonly in a .zip, but we are now,
-# Rather than check for ".zip" or other tricks, PEP302 defines
-# a "__loader__" attribute, so we use that.
-# (Later, it may become necessary to check if the __loader__ can update files,
-# as a .zip loader potentially could - but punt all that until a need arises)
+# 048905.python.gencache.line51.comment There is no reason we *must* be readonly in a .zip, but we are now,
+# 048906.python.gencache.line52.comment Rather than check for ".zip" or other tricks, PEP302 defines
+# 048907.python.gencache.line53.comment a "__loader__" attribute, so we use that.
+# 048908.python.gencache.line54.comment (Later, it may become necessary to check if the __loader__ can update files,
+# 048909.python.gencache.line55.comment as a .zip loader potentially could - but punt all that until a need arises)
 is_readonly = is_zip = hasattr(win32com, "__loader__") and hasattr(
     win32com.__loader__, "archive"
 )
 
-# A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
-# Keyed by usual clsid, lcid, major, minor
-# Typing as Any because PyITypeLib is not exposed
+# 048910.python.gencache.line60.comment A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
+# 048911.python.gencache.line61.comment Keyed by usual clsid, lcid, major, minor
+# 048912.python.gencache.line62.comment Typing as Any because PyITypeLib is not exposed
 demandGeneratedTypeLibraries: dict[tuple[str, int, int, int], Any] = {}
 
 import pickle
 
 
 def __init__():
-    # Initialize the module.  Called once explicitly at module import below.
+    # 048913.python.gencache.line69.comment Initialize the module.  Called once explicitly at module import below.
     try:
         _LoadDicts()
     except OSError:
@@ -91,7 +91,7 @@ def _SaveDicts():
 
 
 def _LoadDicts():
-    # Load the dictionary from a .zip file if that is where we live.
+    # 048914.python.gencache.line94.comment Load the dictionary from a .zip file if that is where we live.
     if is_zip:
         import io
 
@@ -101,29 +101,29 @@ def _LoadDicts():
         if dicts_path.startswith(arc_path):
             dicts_path = dicts_path[len(arc_path) + 1 :]
         else:
-            # Hm. See below.
+            # 048915.python.gencache.line104.comment Hm. See below.
             return
         try:
             data = loader.get_data(dicts_path)
         except AttributeError:
-            # The __loader__ has no get_data method.  See below.
+            # 048916.python.gencache.line109.comment The __loader__ has no get_data method.  See below.
             return
         except OSError:
-            # Our gencache is in a .zip file (and almost certainly readonly)
-            # but no dicts file.  That actually needn't be fatal for a frozen
-            # application.  Assuming they call "EnsureModule" with the same
-            # typelib IDs they have been frozen with, that EnsureModule will
-            # correctly re-build the dicts on the fly.  However, objects that
-            # rely on the gencache but have not done an EnsureModule will
-            # fail (but their apps are likely to fail running from source
-            # with a clean gencache anyway, as then they would be getting
-            # Dynamic objects until the cache is built - so the best answer
-            # for these apps is to call EnsureModule, rather than freezing
-            # the dict)
+            # 048917.python.gencache.line112.comment Our gencache is in a .zip file (and almost certainly readonly)
+            # 048918.python.gencache.line113.comment but no dicts file.  That actually needn't be fatal for a frozen
+            # 048919.python.gencache.line114.comment application.  Assuming they call "EnsureModule" with the same
+            # 048920.python.gencache.line115.comment typelib IDs they have been frozen with, that EnsureModule will
+            # 048921.python.gencache.line116.comment correctly re-build the dicts on the fly.  However, objects that
+            # 048922.python.gencache.line117.comment rely on the gencache but have not done an EnsureModule will
+            # 048923.python.gencache.line118.comment fail (but their apps are likely to fail running from source
+            # 048924.python.gencache.line119.comment with a clean gencache anyway, as then they would be getting
+            # 048925.python.gencache.line120.comment Dynamic objects until the cache is built - so the best answer
+            # 048926.python.gencache.line121.comment for these apps is to call EnsureModule, rather than freezing
+            # 048927.python.gencache.line122.comment the dict)
             return
         f = io.BytesIO(data)
     else:
-        # NOTE: OSError on file open must be caught by caller.
+        # 048928.python.gencache.line126.comment NOTE: OSError on file open must be caught by caller.
         f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
     try:
         p = pickle.Unpickler(f)
@@ -143,7 +143,7 @@ def ModuleMutex(module_name):
     """
     mutex = win32event.CreateMutex(None, False, module_name)
     with contextlib.closing(mutex):
-        # acquire mutex
+        # 048929.python.gencache.line146.comment acquire mutex
         win32event.WaitForSingleObject(mutex, win32event.INFINITE)
         try:
             yield
@@ -170,7 +170,7 @@ def GetGeneratePath():
     assert not is_readonly, "Why do you want the genpath for a readonly store?"
     try:
         os.makedirs(win32com.__gen_path__)
-        # os.mkdir(win32com.__gen_path__)
+        # 048930.python.gencache.line173.comment os.mkdir(win32com.__gen_path__)
     except OSError:
         pass
     try:
@@ -190,9 +190,9 @@ def GetGeneratePath():
     return win32com.__gen_path__
 
 
-#
-# The helpers for win32com.client.Dispatch and OCX clients.
-#
+# 048931.python.gencache.line193.comment
+# 048932.python.gencache.line194.comment The helpers for win32com.client.Dispatch and OCX clients.
+# 048933.python.gencache.line195.comment
 def GetClassForProgID(progid):
     """Get a Python class for a Program ID
 
@@ -217,7 +217,7 @@ def GetClassForCLSID(clsid):
     Params
     clsid -- A COM CLSID (or string repr of one)
     """
-    # first, take a short-cut - we may already have generated support ready-to-roll.
+    # 048935.python.gencache.line220.comment first, take a short-cut - we may already have generated support ready-to-roll.
     clsid = str(clsid)
     if CLSIDToClass.HasClass(clsid):
         return CLSIDToClass.GetClass(clsid)
@@ -280,14 +280,14 @@ def GetModuleForCLSID(clsid):
                     __import__(sub_mod_name)
             except ImportError:
                 info = typelibCLSID, lcid, major, minor
-                # Force the generation.  If this typelibrary has explicitly been added,
-                # use it (it may not be registered, causing a lookup by clsid to fail)
+                # 048936.python.gencache.line283.comment Force the generation.  If this typelibrary has explicitly been added,
+                # 048937.python.gencache.line284.comment use it (it may not be registered, causing a lookup by clsid to fail)
                 if info in demandGeneratedTypeLibraries:
                     info = demandGeneratedTypeLibraries[info]
                 from . import makepy
 
                 makepy.GenerateChildFromTypeLibSpec(sub_mod, info)
-                # Generate does an import...
+                # 048938.python.gencache.line290.comment Generate does an import...
             mod = sys.modules[sub_mod_name]
     return mod
 
@@ -306,8 +306,8 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
     """
     modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
     mod = _GetModule(modName)
-    # If the import worked, it doesn't mean we have actually added this
-    # module to our cache though - check that here.
+    # 048939.python.gencache.line309.comment If the import worked, it doesn't mean we have actually added this
+    # 048940.python.gencache.line310.comment module to our cache though - check that here.
     if "_in_gencache_" not in mod.__dict__:
         AddModuleToCache(typelibCLSID, lcid, major, minor)
         assert "_in_gencache_" in mod.__dict__
@@ -407,7 +407,7 @@ def EnsureModuleForTypelibInterface(
     major = tla[3]
     minor = tla[4]
 
-    # If demand generated, save the typelib interface away for later use
+    # 048941.python.gencache.line410.comment If demand generated, save the typelib interface away for later use
     if bForDemand:
         demandGeneratedTypeLibraries[(str(guid), lcid, major, minor)] = typelib_ob
 
@@ -415,7 +415,7 @@ def EnsureModuleForTypelibInterface(
         return GetModuleForTypelib(guid, lcid, major, minor)
     except ImportError:
         pass
-    # Generate it.
+    # 048942.python.gencache.line418.comment Generate it.
     return MakeModuleForTypelibInterface(
         typelib_ob, progressInstance, bForDemand, bBuildHidden
     )
@@ -432,13 +432,13 @@ def ForgetAboutTypelibInterface(typelib_ob):
     try:
         del demandGeneratedTypeLibraries[info]
     except KeyError:
-        # Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
+        # 048943.python.gencache.line435.comment Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
         print(
             "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
                 info
             )
         )
-    # and drop any version redirects to it
+    # 048944.python.gencache.line441.comment and drop any version redirects to it
     for key, val in versionRedirectMap.items():
         if val == info:
             del versionRedirectMap[key]
@@ -480,30 +480,30 @@ def EnsureModule(
         try:
             module = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
         except ImportError:
-            # If we get an ImportError
-            # We may still find a valid cache file under a different MinorVersion #
-            # (which windows will search out for us)
-            # print("Loading reg typelib", typelibCLSID, major, minor, lcid)
+            # 048945.python.gencache.line483.comment If we get an ImportError
+            # 048946.python.gencache.line484.comment We may still find a valid cache file under a different MinorVersion #
+            # 048947.python.gencache.line485.comment (which windows will search out for us)
+            # 048948.python.gencache.line486.comment print("Loading reg typelib", typelibCLSID, major, minor, lcid)
             module = None
             try:
                 tlbAttr = pythoncom.LoadRegTypeLib(
                     typelibCLSID, major, minor, lcid
                 ).GetLibAttr()
-                # if the above line doesn't throw a pythoncom.com_error, check if
-                # it is actually a different lib than we requested, and if so, suck it in
+                # 048949.python.gencache.line492.comment if the above line doesn't throw a pythoncom.com_error, check if
+                # 048950.python.gencache.line493.comment it is actually a different lib than we requested, and if so, suck it in
                 if tlbAttr[1] != lcid or tlbAttr[4] != minor:
-                    # print("Trying 2nd minor #", tlbAttr[1], tlbAttr[3], tlbAttr[4])
+                    # 048951.python.gencache.line495.comment print("Trying 2nd minor #", tlbAttr[1], tlbAttr[3], tlbAttr[4])
                     try:
                         module = GetModuleForTypelib(
                             typelibCLSID, tlbAttr[1], tlbAttr[3], tlbAttr[4]
                         )
                     except ImportError:
-                        # We don't have a module, but we do have a better minor
-                        # version - remember that.
+                        # 048952.python.gencache.line501.comment We don't have a module, but we do have a better minor
+                        # 048953.python.gencache.line502.comment version - remember that.
                         minor = tlbAttr[4]
-                # else module remains None
+                # 048954.python.gencache.line504.comment else module remains None
             except pythoncom.com_error:
-                # couldn't load any typelib - mod remains None
+                # 048955.python.gencache.line506.comment couldn't load any typelib - mod remains None
                 pass
         if module is not None and bValidateFile:
             assert not is_readonly, "Can't validate in a read-only gencache"
@@ -511,13 +511,13 @@ def EnsureModule(
                 typLibPath = pythoncom.QueryPathOfRegTypeLib(
                     typelibCLSID, major, minor, lcid
                 )
-                # windows seems to add an extra \0 (via the underlying BSTR)
-                # The mainwin toolkit does not add this erroneous \0
+                # 048956.python.gencache.line514.comment windows seems to add an extra \0 (via the underlying BSTR)
+                # 048957.python.gencache.line515.comment The mainwin toolkit does not add this erroneous \0
                 if typLibPath[-1] == "\0":
                     typLibPath = typLibPath[:-1]
                 suf = getattr(os.path, "supports_unicode_filenames", 0)
                 if not suf:
-                    # can't pass unicode filenames directly - convert
+                    # 048958.python.gencache.line520.comment can't pass unicode filenames directly - convert
                     try:
                         typLibPath = typLibPath.encode(sys.getfilesystemencoding())
                     except AttributeError:  # no sys.getfilesystemencoding
@@ -526,9 +526,9 @@ def EnsureModule(
                     typelibCLSID, major, minor, lcid
                 ).GetLibAttr()
             except pythoncom.com_error:
-                # We have a module, but no type lib - we should still
-                # run with what we have though - the typelib may not be
-                # deployed here.
+                # 048960.python.gencache.line529.comment We have a module, but no type lib - we should still
+                # 048961.python.gencache.line530.comment run with what we have though - the typelib may not be
+                # 048962.python.gencache.line531.comment deployed here.
                 bValidateFile = 0
         if module is not None and bValidateFile:
             assert not is_readonly, "Can't validate in a read-only gencache"
@@ -542,16 +542,16 @@ def EnsureModule(
                 filePathPyc += "c"
             else:
                 filePathPyc += "o"
-            # Verify that type library is up to date.
-            # If we have a differing MinorVersion or genpy has bumped versions, update the file
+            # 048963.python.gencache.line545.comment Verify that type library is up to date.
+            # 048964.python.gencache.line546.comment If we have a differing MinorVersion or genpy has bumped versions, update the file
             from . import genpy
 
             if (
                 module.MinorVersion != tlbAttributes[4]
                 or genpy.makepy_version != module.makepy_version
             ):
-                # print(f"Version skew: {module.MinorVersion}, {tlbAttributes[4]}")
-                # try to erase the bad file from the cache
+                # 048965.python.gencache.line553.comment print(f"Version skew: {module.MinorVersion}, {tlbAttributes[4]}")
+                # 048966.python.gencache.line554.comment try to erase the bad file from the cache
                 try:
                     os.unlink(filePath)
                 except OSError:
@@ -575,21 +575,21 @@ def EnsureModule(
                 )
                 filePath = filePathPrefix + ".py"
                 filePathPyc = filePathPrefix + ".pyc"
-                # print("Trying py stat: ", filePath)
+                # 048967.python.gencache.line578.comment print("Trying py stat: ", filePath)
                 fModTimeSet = 0
                 try:
                     pyModTime = os.stat(filePath)[8]
                     fModTimeSet = 1
                 except OSError as e:
-                    # If .py file fails, try .pyc file
-                    # print("Trying pyc stat", filePathPyc)
+                    # 048968.python.gencache.line584.comment If .py file fails, try .pyc file
+                    # 048969.python.gencache.line585.comment print("Trying pyc stat", filePathPyc)
                     try:
                         pyModTime = os.stat(filePathPyc)[8]
                         fModTimeSet = 1
                     except OSError as e:
                         pass
-                # print("Trying stat typelib", pyModTime)
-                # print(typLibPath)
+                # 048970.python.gencache.line591.comment print("Trying stat typelib", pyModTime)
+                # 048971.python.gencache.line592.comment print(typLibPath)
                 typLibModTime = os.stat(typLibPath)[8]
                 if fModTimeSet and (typLibModTime > pyModTime):
                     bReloadNeeded = 1
@@ -597,33 +597,33 @@ def EnsureModule(
     except (ImportError, OSError):
         module = None
     if module is None:
-        # We need to build an item.  If we are in a read-only cache, we
-        # can't/don't want to do this - so before giving up, check for
-        # a different minor version in our cache - according to COM, this is OK
+        # 048972.python.gencache.line600.comment We need to build an item.  If we are in a read-only cache, we
+        # 048973.python.gencache.line601.comment can't/don't want to do this - so before giving up, check for
+        # 048974.python.gencache.line602.comment a different minor version in our cache - according to COM, this is OK
         if is_readonly:
             key = str(typelibCLSID), lcid, major, minor
-            # If we have been asked before, get last result.
+            # 048975.python.gencache.line605.comment If we have been asked before, get last result.
             try:
                 return versionRedirectMap[key]
             except KeyError:
                 pass
-            # Find other candidates.
+            # 048976.python.gencache.line610.comment Find other candidates.
             items = []
             for desc in GetGeneratedInfos():
                 if key[0] == desc[0] and key[1] == desc[1] and key[2] == desc[2]:
                     items.append(desc)
             if items:
-                # Items are all identical, except for last tuple element
-                # We want the latest minor version we have - so just sort and grab last
+                # 048977.python.gencache.line616.comment Items are all identical, except for last tuple element
+                # 048978.python.gencache.line617.comment We want the latest minor version we have - so just sort and grab last
                 items.sort()
                 new_minor = items[-1][3]
                 ret = GetModuleForTypelib(typelibCLSID, lcid, major, new_minor)
             else:
                 ret = None
-            # remember and return
+            # 048979.python.gencache.line623.comment remember and return
             versionRedirectMap[key] = ret
             return ret
-        # print("Rebuilding: ", major, minor)
+        # 048980.python.gencache.line626.comment print("Rebuilding: ", major, minor)
         module = MakeModuleForTypelib(
             typelibCLSID,
             lcid,
@@ -633,7 +633,7 @@ def EnsureModule(
             bForDemand=bForDemand,
             bBuildHidden=bBuildHidden,
         )
-        # If we replaced something, reload it
+        # 048981.python.gencache.line636.comment If we replaced something, reload it
         if bReloadNeeded:
             module = reload(module)
             AddModuleToCache(typelibCLSID, lcid, major, minor)
@@ -653,7 +653,7 @@ def EnsureDispatch(
             tla = tlb.GetLibAttr()
             mod = EnsureModule(tla[0], tla[1], tla[3], tla[4], bForDemand=bForDemand)
             GetModuleForCLSID(disp_clsid)
-            # Get the class from the module.
+            # 048984.python.gencache.line656.comment Get the class from the module.
             from . import CLSIDToClass
 
             disp_class = CLSIDToClass.GetClass(str(disp_clsid))
@@ -671,8 +671,8 @@ def AddModuleToCache(
     """Add a newly generated file to the cache dictionary."""
     fname = GetGeneratedFileName(typelibclsid, lcid, major, minor)
     mod = _GetModule(fname)
-    # if mod._in_gencache_ is already true, then we are reloading this
-    # module - this doesn't mean anything special though!
+    # 048985.python.gencache.line674.comment if mod._in_gencache_ is already true, then we are reloading this
+    # 048986.python.gencache.line675.comment module - this doesn't mean anything special though!
     mod._in_gencache_ = 1
     info = str(typelibclsid), lcid, major, minor
     dict_modified = False
@@ -689,7 +689,7 @@ def AddModuleToCache(
     SetTypelibForAllClsids(mod.VTablesToClassMap)
     SetTypelibForAllClsids(mod.VTablesToPackageMap)
 
-    # If this lib was previously redirected, drop it
+    # 048987.python.gencache.line692.comment If this lib was previously redirected, drop it
     if info in versionRedirectMap:
         del versionRedirectMap[info]
     if bFlushNow and dict_modified:
@@ -718,13 +718,13 @@ def GetGeneratedInfos():
             except ValueError:
                 continue
             except pywintypes.com_error:
-                # invalid IID
+                # 048988.python.gencache.line721.comment invalid IID
                 continue
             infos.add((iid, lcid, major, minor))
         zf.close()
         return list(infos)
     else:
-        # on the file system
+        # 048989.python.gencache.line727.comment on the file system
         files = glob.glob(win32com.__gen_path__ + "\\*")
         ret = []
         for file in files:
@@ -740,7 +740,7 @@ def GetGeneratedInfos():
             except ValueError:
                 continue
             except pywintypes.com_error:
-                # invalid IID
+                # 048990.python.gencache.line743.comment invalid IID
                 continue
             ret.append((iid, lcid, major, minor))
         return ret
@@ -779,14 +779,14 @@ def Rebuild(verbose=1):
 
 def _Dump():
     print("Cache is in directory", win32com.__gen_path__)
-    # Build a unique dir
+    # 048993.python.gencache.line782.comment Build a unique dir
     d = set(clsidToTypelib.values())
     for typelibCLSID, lcid, major, minor in d:
         mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
         print(f"{mod.__doc__} - {typelibCLSID}")
 
 
-# Boot up
+# 048994.python.gencache.line789.comment Boot up
 __init__()
 
 
@@ -811,7 +811,7 @@ if __name__ == "__main__":
         print(message)
         usage()
 
-    # we only have options - complain about real args, or none at all!
+    # 048995.python.gencache.line814.comment we only have options - complain about real args, or none at all!
     if len(sys.argv) == 1 or args:
         print(usage())
 

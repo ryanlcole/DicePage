@@ -72,15 +72,15 @@ class Graph(object):
 
         The node must be a hashable value.
         """
-        #
-        # the nodes will contain tuples that will store incoming edges,
-        # outgoing edges and data
-        #
-        # index 0 -> incoming edges
-        # index 1 -> outgoing edges
+        # 021221.python.Graph.line75.comment
+        # 021222.python.Graph.line76.comment the nodes will contain tuples that will store incoming edges,
+        # 021223.python.Graph.line77.comment outgoing edges and data
+        # 021224.python.Graph.line78.comment
+        # 021225.python.Graph.line79.comment index 0 -> incoming edges
+        # 021226.python.Graph.line80.comment index 1 -> outgoing edges
 
         if node in self.hidden_nodes:
-            # Node is present, but hidden
+            # 021227.python.Graph.line83.comment Node is present, but hidden
             return
 
         if node not in self.nodes:
@@ -98,17 +98,17 @@ class Graph(object):
         :param create_nodes: (optional) creates the head_id or tail_id
             node in case they did not exist
         """
-        # shorcut
+        # 021228.python.Graph.line101.comment shorcut
         edge = self.next_edge
 
-        # add nodes if on automatic node creation
+        # 021229.python.Graph.line104.comment add nodes if on automatic node creation
         if create_nodes:
             self.add_node(head_id)
             self.add_node(tail_id)
 
-        # update the corresponding incoming and outgoing lists in the nodes
-        # index 0 -> incoming edges
-        # index 1 -> outgoing edges
+        # 021230.python.Graph.line109.comment update the corresponding incoming and outgoing lists in the nodes
+        # 021231.python.Graph.line110.comment index 0 -> incoming edges
+        # 021232.python.Graph.line111.comment index 1 -> outgoing edges
 
         try:
             self.nodes[tail_id][0].append(edge)
@@ -116,7 +116,7 @@ class Graph(object):
         except KeyError:
             raise GraphError("Invalid nodes %s -> %s" % (head_id, tail_id))
 
-        # store edge information
+        # 021233.python.Graph.line119.comment store edge information
         self.edges[edge] = (head_id, tail_id, edge_data)
 
         self.next_edge += 1
@@ -388,7 +388,7 @@ class Graph(object):
         queue = deque()
         indeg = {}
 
-        # select the operation that will be performed
+        # 021234.python.Graph.line391.comment select the operation that will be performed
         if forward:
             get_edges = self.out_edges
             get_degree = self.inc_degree
@@ -418,7 +418,7 @@ class Graph(object):
         if len(topo_list) == len(self.node_list()):
             valid = True
         else:
-            # the graph has cycles, invalid topological sort
+            # 021235.python.Graph.line421.comment the graph has cycles, invalid topological sort
             valid = False
 
         return (valid, topo_list)
@@ -551,7 +551,7 @@ class Graph(object):
         """
         queue, visited = deque([(start, 0)]), {start}
 
-        # the direction of the bfs depends on the edges that are sampled
+        # 021236.python.Graph.line554.comment the direction of the bfs depends on the edges that are sampled
         if forward:
             get_edges = self.out_edges
             get_next = self.tail

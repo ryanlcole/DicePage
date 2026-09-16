@@ -177,24 +177,24 @@ class GDIPlusDecoder(ImageDecoder):
         return ['.bmp', '.gif', '.jpg', '.jpeg', '.exif', '.png', '.tif', '.tiff']
 
     def get_animation_file_extensions(self):
-        # TIFF also supported as a multi-page image; but that's not really an
-        # animation, is it?
+        # 030335.python.gdiplus.line180.comment TIFF also supported as a multi-page image; but that's not really an
+        # 030336.python.gdiplus.line181.comment animation, is it?
         return ['.gif']
 
     def _load_bitmap(self, filename, file):
         data = file.read()
 
-        # Create a HGLOBAL with image data
+        # 030337.python.gdiplus.line187.comment Create a HGLOBAL with image data
         hglob = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(data))
         ptr = kernel32.GlobalLock(hglob)
         memmove(ptr, data, len(data))
         kernel32.GlobalUnlock(hglob)
 
-        # Create IStream for the HGLOBAL
+        # 030338.python.gdiplus.line193.comment Create IStream for the HGLOBAL
         self.stream = pIUnknown()
         ole32.CreateStreamOnHGlobal(hglob, True, byref(self.stream))
 
-        # Load image from stream
+        # 030339.python.gdiplus.line197.comment Load image from stream
         bitmap = c_void_p()
         status = gdiplus.GdipCreateBitmapFromStream(self.stream, byref(bitmap))
         if status != 0:
@@ -205,19 +205,19 @@ class GDIPlusDecoder(ImageDecoder):
 
     @staticmethod
     def _get_image(bitmap):
-        # Get size of image (Bitmap subclasses Image)
+        # 030340.python.gdiplus.line208.comment Get size of image (Bitmap subclasses Image)
         width = REAL()
         height = REAL()
         gdiplus.GdipGetImageDimension(bitmap, byref(width), byref(height))
         width = int(width.value)
         height = int(height.value)
 
-        # Get image pixel format
+        # 030341.python.gdiplus.line215.comment Get image pixel format
         pf = c_int()
         gdiplus.GdipGetImagePixelFormat(bitmap, byref(pf))
         pf = pf.value
 
-        # Reverse from what's documented because of Intel little-endianness.
+        # 030342.python.gdiplus.line220.comment Reverse from what's documented because of Intel little-endianness.
         fmt = 'BGRA'
         if pf == PixelFormat24bppRGB:
             fmt = 'BGR'
@@ -232,7 +232,7 @@ class GDIPlusDecoder(ImageDecoder):
             fmt = 'BGR'
             pf = PixelFormat24bppRGB
 
-        # Lock pixel data in best format
+        # 030343.python.gdiplus.line235.comment Lock pixel data in best format
         rect = Rect()
         rect.X = 0
         rect.Y = 0
@@ -241,17 +241,17 @@ class GDIPlusDecoder(ImageDecoder):
         bitmap_data = BitmapData()
         gdiplus.GdipBitmapLockBits(bitmap, byref(rect), ImageLockModeRead, pf, byref(bitmap_data))
         
-        # Create buffer for RawImage
+        # 030344.python.gdiplus.line244.comment Create buffer for RawImage
         buffer = create_string_buffer(bitmap_data.Stride * height)
         memmove(buffer, bitmap_data.Scan0, len(buffer))
         
-        # Unlock data
+        # 030345.python.gdiplus.line248.comment Unlock data
         gdiplus.GdipBitmapUnlockBits(bitmap, byref(bitmap_data))
 
         return ImageData(width, height, fmt, buffer, -bitmap_data.Stride)
 
     def _delete_bitmap(self, bitmap):
-        # Release image and stream
+        # 030346.python.gdiplus.line254.comment Release image and stream
         gdiplus.GdipDisposeImage(bitmap)
         self.stream.Release()
 
@@ -274,7 +274,7 @@ class GDIPlusDecoder(ImageDecoder):
             self._delete_bitmap(bitmap)
             raise ImageDecodeException('Image has no frame dimensions')
 
-        # XXX Make sure this dimension is time?
+        # 030347.python.gdiplus.line277.comment XXX Make sure this dimension is time?
         dimensions = (c_void_p * dimension_count.value)()
         gdiplus.GdipImageGetFrameDimensionsList(bitmap, dimensions, dimension_count.value)
 
@@ -323,8 +323,8 @@ def init():
     startup_out = GdiplusStartupOutput()
     gdiplus.GdiplusStartup(byref(token), byref(startup_in), byref(startup_out))
 
-    # Shutdown later?
-    # gdiplus.GdiplusShutdown(token)
+    # 030348.python.gdiplus.line326.comment Shutdown later?
+    # 030349.python.gdiplus.line327.comment gdiplus.GdiplusShutdown(token)
 
 
 init()

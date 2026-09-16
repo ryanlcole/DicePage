@@ -39,9 +39,9 @@ def get_host_platform() -> str:
     platform-specific built distributions.
     """
 
-    # This function initially exposed platforms as defined in Python 3.9
-    # even with older Python versions when distutils was split out.
-    # Now it delegates to stdlib sysconfig.
+    # 041329.python.util.line42.comment This function initially exposed platforms as defined in Python 3.9
+    # 041330.python.util.line43.comment even with older Python versions when distutils was split out.
+    # 041331.python.util.line44.comment Now it delegates to stdlib sysconfig.
 
     return sysconfig.get_platform()
 
@@ -94,12 +94,12 @@ def get_macosx_target_ver():
     env_ver = os.environ.get(MACOSX_VERSION_VAR)
 
     if env_ver:
-        # Validate overridden version against sysconfig version, if have both.
-        # Ensure that the deployment target of the build process is not less
-        # than 10.3 if the interpreter was built for 10.3 or later.  This
-        # ensures extension modules are built with correct compatibility
-        # values, specifically LDSHARED which can use
-        # '-undefined dynamic_lookup' which only works on >= 10.3.
+        # 041333.python.util.line97.comment Validate overridden version against sysconfig version, if have both.
+        # 041334.python.util.line98.comment Ensure that the deployment target of the build process is not less
+        # 041335.python.util.line99.comment than 10.3 if the interpreter was built for 10.3 or later.  This
+        # 041336.python.util.line100.comment ensures extension modules are built with correct compatibility
+        # 041337.python.util.line101.comment values, specifically LDSHARED which can use
+        # 041338.python.util.line102.comment '-undefined dynamic_lookup' which only works on >= 10.3.
         if (
             syscfg_ver
             and split_version(syscfg_ver) >= [10, 3]
@@ -177,8 +177,8 @@ def check_environ() -> None:
 
             os.environ['HOME'] = pwd.getpwuid(os.getuid())[5]
         except (ImportError, KeyError):
-            # bpo-10496: if the current user identifier doesn't exist in the
-            # password database, do nothing
+            # 041339.python.util.line180.comment bpo-10496: if the current user identifier doesn't exist in the
+            # 041340.python.util.line181.comment password database, do nothing
             pass
 
     if 'PLAT' not in os.environ:
@@ -225,13 +225,13 @@ def _subst_compat(s):
 
 
 def grok_environment_error(exc: object, prefix: str = "error: ") -> str:
-    # Function kept for backward compatibility.
-    # Used to try clever things with EnvironmentErrors,
-    # but nowadays str(exception) produces good messages.
+    # 041341.python.util.line228.comment Function kept for backward compatibility.
+    # 041342.python.util.line229.comment Used to try clever things with EnvironmentErrors,
+    # 041343.python.util.line230.comment but nowadays str(exception) produces good messages.
     return prefix + str(exc)
 
 
-# Needed by 'split_quoted()'
+# 041344.python.util.line234.comment Needed by 'split_quoted()'
 _wordchars_re = _squote_re = _dquote_re = None
 
 
@@ -253,9 +253,9 @@ def split_quoted(s: str) -> list[str]:
     words.
     """
 
-    # This is a nice algorithm for splitting up a single string, since it
-    # doesn't require character-by-character examination.  It was a little
-    # bit of a brain-bender to get it working right, though...
+    # 041345.python.util.line256.comment This is a nice algorithm for splitting up a single string, since it
+    # 041346.python.util.line257.comment doesn't require character-by-character examination.  It was a little
+    # 041347.python.util.line258.comment bit of a brain-bender to get it working right, though...
     if _wordchars_re is None:
         _init_regex()
 
@@ -271,15 +271,15 @@ def split_quoted(s: str) -> list[str]:
             break
 
         if s[end] in string.whitespace:
-            # unescaped, unquoted whitespace: now
-            # we definitely have a word delimiter
+            # 041348.python.util.line274.comment unescaped, unquoted whitespace: now
+            # 041349.python.util.line275.comment we definitely have a word delimiter
             words.append(s[:end])
             s = s[end:].lstrip()
             pos = 0
 
         elif s[end] == '\\':
-            # preserve whatever is being escaped;
-            # will become part of the current word
+            # 041350.python.util.line281.comment preserve whatever is being escaped;
+            # 041351.python.util.line282.comment will become part of the current word
             s = s[:end] + s[end + 1 :]
             pos = end + 1
 
@@ -305,7 +305,7 @@ def split_quoted(s: str) -> list[str]:
     return words
 
 
-# split_quoted ()
+# 041354.python.util.line308.comment split_quoted ()
 
 
 def execute(
@@ -389,25 +389,25 @@ def byte_compile(  # noqa: C901
     it set to None.
     """
 
-    # nothing is done if sys.dont_write_bytecode is True
+    # 041357.python.util.line392.comment nothing is done if sys.dont_write_bytecode is True
     if sys.dont_write_bytecode:
         raise DistutilsByteCompileError('byte-compiling is disabled.')
 
-    # First, if the caller didn't force us into direct or indirect mode,
-    # figure out which mode we should be in.  We take a conservative
-    # approach: choose direct mode *only* if the current interpreter is
-    # in debug mode and optimize is 0.  If we're not in debug mode (-O
-    # or -OO), we don't know which level of optimization this
-    # interpreter is running with, so we can't do direct
-    # byte-compilation and be certain that it's the right thing.  Thus,
-    # always compile indirectly if the current interpreter is in either
-    # optimize mode, or if either optimization level was requested by
-    # the caller.
+    # 041358.python.util.line396.comment First, if the caller didn't force us into direct or indirect mode,
+    # 041359.python.util.line397.comment figure out which mode we should be in.  We take a conservative
+    # 041360.python.util.line398.comment approach: choose direct mode *only* if the current interpreter is
+    # 041361.python.util.line399.comment in debug mode and optimize is 0.  If we're not in debug mode (-O
+    # 041362.python.util.line400.comment or -OO), we don't know which level of optimization this
+    # 041363.python.util.line401.comment interpreter is running with, so we can't do direct
+    # 041364.python.util.line402.comment byte-compilation and be certain that it's the right thing.  Thus,
+    # 041365.python.util.line403.comment always compile indirectly if the current interpreter is in either
+    # 041366.python.util.line404.comment optimize mode, or if either optimization level was requested by
+    # 041367.python.util.line405.comment the caller.
     if direct is None:
         direct = __debug__ and optimize == 0
 
-    # "Indirect" byte-compilation: write a temporary script and then
-    # run it with the appropriate flags.
+    # 041368.python.util.line409.comment "Indirect" byte-compilation: write a temporary script and then
+    # 041369.python.util.line410.comment run it with the appropriate flags.
     if not direct:
         (script_fd, script_name) = tempfile.mkstemp(".py")
         log.info("writing byte-compilation script '%s'", script_name)
@@ -422,15 +422,15 @@ files = [
 """
                 )
 
-                # XXX would be nice to write absolute filenames, just for
-                # safety's sake (script should be more robust in the face of
-                # chdir'ing before running it).  But this requires abspath'ing
-                # 'prefix' as well, and that breaks the hack in build_lib's
-                # 'byte_compile()' method that carefully tacks on a trailing
-                # slash (os.sep really) to make sure the prefix here is "just
-                # right".  This whole prefix business is rather delicate -- the
-                # problem is that it's really a directory, but I'm treating it
-                # as a dumb string, so trailing slashes and so forth matter.
+                # 041370.python.util.line425.comment XXX would be nice to write absolute filenames, just for
+                # 041371.python.util.line426.comment safety's sake (script should be more robust in the face of
+                # 041372.python.util.line427.comment chdir'ing before running it).  But this requires abspath'ing
+                # 041373.python.util.line428.comment 'prefix' as well, and that breaks the hack in build_lib's
+                # 041374.python.util.line429.comment 'byte_compile()' method that carefully tacks on a trailing
+                # 041375.python.util.line430.comment slash (os.sep really) to make sure the prefix here is "just
+                # 041376.python.util.line431.comment right".  This whole prefix business is rather delicate -- the
+                # 041377.python.util.line432.comment problem is that it's really a directory, but I'm treating it
+                # 041378.python.util.line433.comment as a dumb string, so trailing slashes and so forth matter.
 
                 script.write(",\n".join(map(repr, py_files)) + "]\n")
                 script.write(
@@ -448,22 +448,22 @@ byte_compile(files, optimize={optimize!r}, force={force!r},
         spawn(cmd, dry_run=dry_run)
         execute(os.remove, (script_name,), f"removing {script_name}", dry_run=dry_run)
 
-    # "Direct" byte-compilation: use the py_compile module to compile
-    # right here, right now.  Note that the script generated in indirect
-    # mode simply calls 'byte_compile()' in direct mode, a weird sort of
-    # cross-process recursion.  Hey, it works!
+    # 041379.python.util.line451.comment "Direct" byte-compilation: use the py_compile module to compile
+    # 041380.python.util.line452.comment right here, right now.  Note that the script generated in indirect
+    # 041381.python.util.line453.comment mode simply calls 'byte_compile()' in direct mode, a weird sort of
+    # 041382.python.util.line454.comment cross-process recursion.  Hey, it works!
     else:
         from py_compile import compile
 
         for file in py_files:
             if file[-3:] != ".py":
-                # This lets us be lazy and not filter filenames in
-                # the "install_lib" command.
+                # 041383.python.util.line460.comment This lets us be lazy and not filter filenames in
+                # 041384.python.util.line461.comment the "install_lib" command.
                 continue
 
-            # Terminology from the py_compile module:
-            #   cfile - byte-compiled file
-            #   dfile - purported source filename (same as 'file' by default)
+            # 041385.python.util.line464.comment Terminology from the py_compile module:
+            # 041386.python.util.line465.comment cfile - byte-compiled file
+            # 041387.python.util.line466.comment dfile - purported source filename (same as 'file' by default)
             if optimize >= 0:
                 opt = '' if optimize == 0 else optimize
                 cfile = importlib.util.cache_from_source(file, optimization=opt)
@@ -496,8 +496,8 @@ def rfc822_escape(header: str) -> str:
     indent = 8 * " "
     lines = header.splitlines(keepends=True)
 
-    # Emulate the behaviour of `str.split`
-    # (the terminal line break in `splitlines` does not result in an extra line):
+    # 041388.python.util.line499.comment Emulate the behaviour of `str.split`
+    # 041389.python.util.line500.comment (the terminal line break in `splitlines` does not result in an extra line):
     ends_in_newline = lines and lines[-1].splitlines()[0] != lines[-1]
     suffix = indent if ends_in_newline else ""
 

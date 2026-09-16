@@ -174,7 +174,7 @@ def test_read_metadata(name, attrs):
     metadata_out = dist.metadata
     dist_class = metadata_out.__class__
 
-    # Write to PKG_INFO and then load into a new metadata object
+    # 045304.python.test_core_metadata.line177.comment Write to PKG_INFO and then load into a new metadata object
     PKG_INFO = io.StringIO()
 
     metadata_out.write_pkg_file(PKG_INFO)
@@ -286,7 +286,7 @@ def test_maintainer_author(name, attrs, tmpdir):
         'maintainer_email': 'Maintainer-email',
     }
 
-    # Generate a PKG-INFO file
+    # 045305.python.test_core_metadata.line289.comment Generate a PKG-INFO file
     dist = Distribution(attrs)
     fn = tmpdir.mkdir('pkg_info')
     fn_s = str(fn)
@@ -298,13 +298,13 @@ def test_maintainer_author(name, attrs, tmpdir):
 
     assert _valid_metadata(pkg_info)
 
-    # Drop blank lines and strip lines from default description
+    # 045306.python.test_core_metadata.line301.comment Drop blank lines and strip lines from default description
     raw_pkg_lines = pkg_info.splitlines()
     pkg_lines = list(filter(None, raw_pkg_lines[:-2]))
 
     pkg_lines_set = set(pkg_lines)
 
-    # Duplicate lines should not be generated
+    # 045307.python.test_core_metadata.line307.comment Duplicate lines should not be generated
     assert len(pkg_lines) == len(pkg_lines_set)
 
     for fkey, dkey in tested_keys.items():
@@ -321,7 +321,7 @@ class TestParityWithMetadataFromPyPaWheel:
     def base_example(self):
         attrs = dict(
             **EXAMPLE_BASE_INFO,
-            # Example with complex requirement definition
+            # 045308.python.test_core_metadata.line324.comment Example with complex requirement definition
             python_requires=">=3.8",
             install_requires="""
             packaging==23.2
@@ -343,7 +343,7 @@ class TestParityWithMetadataFromPyPaWheel:
                 "other": [],
             },
         )
-        # Generate a PKG-INFO file using setuptools
+        # 045309.python.test_core_metadata.line346.comment Generate a PKG-INFO file using setuptools
         return Distribution(attrs)
 
     def test_requires_dist(self, tmp_path):
@@ -351,7 +351,7 @@ class TestParityWithMetadataFromPyPaWheel:
         pkg_info = _get_pkginfo(dist)
         assert _valid_metadata(pkg_info)
 
-        # Ensure Requires-Dist is present
+        # 045310.python.test_core_metadata.line354.comment Ensure Requires-Dist is present
         expected = [
             'Metadata-Version:',
             'Requires-Python: >=3.8',
@@ -379,14 +379,14 @@ class TestParityWithMetadataFromPyPaWheel:
         if request.param is None:
             yield self.base_example()
         else:
-            # Real-world usage
+            # 045311.python.test_core_metadata.line382.comment Real-world usage
             config = retrieve_file(request.param)
             yield setupcfg.apply_configuration(Distribution({}), config)
 
     @pytest.mark.uses_network
     def test_equivalent_output(self, tmp_path, dist):
         """Ensure output from setuptools is equivalent to the one from `pypa/wheel`"""
-        # Generate a METADATA file using pypa/wheel for comparison
+        # 045312.python.test_core_metadata.line389.comment Generate a METADATA file using pypa/wheel for comparison
         wheel_metadata = importlib.import_module("wheel.metadata")
         pkginfo_to_metadata = getattr(wheel_metadata, "pkginfo_to_metadata", None)
 
@@ -396,23 +396,23 @@ class TestParityWithMetadataFromPyPaWheel:
                 "(this is likely to be caused by API changes in pypa/wheel"
             )
 
-        # Generate an simplified "egg-info" dir for pypa/wheel to convert
+        # 045314.python.test_core_metadata.line399.comment Generate an simplified "egg-info" dir for pypa/wheel to convert
         pkg_info = _get_pkginfo(dist)
         egg_info_dir = tmp_path / "pkg.egg-info"
         egg_info_dir.mkdir(parents=True)
         (egg_info_dir / "PKG-INFO").write_text(pkg_info, encoding="utf-8")
         write_requirements(egg_info(dist), egg_info_dir, egg_info_dir / "requires.txt")
 
-        # Get pypa/wheel generated METADATA but normalize requirements formatting
+        # 045315.python.test_core_metadata.line406.comment Get pypa/wheel generated METADATA but normalize requirements formatting
         metadata_msg = pkginfo_to_metadata(egg_info_dir, egg_info_dir / "PKG-INFO")
         metadata_str = _normalize_metadata(metadata_msg)
         pkg_info_msg = message_from_string(pkg_info)
         pkg_info_str = _normalize_metadata(pkg_info_msg)
 
-        # Compare setuptools PKG-INFO x pypa/wheel METADATA
+        # 045316.python.test_core_metadata.line412.comment Compare setuptools PKG-INFO x pypa/wheel METADATA
         assert metadata_str == pkg_info_str
 
-        # Make sure it parses/serializes well in pypa/wheel
+        # 045317.python.test_core_metadata.line415.comment Make sure it parses/serializes well in pypa/wheel
         _assert_roundtrip_message(pkg_info)
 
 
@@ -465,12 +465,12 @@ class TestPEP643:
     @pytest.mark.parametrize(
         "fields",
         [
-            # Single dynamic field
+            # 045318.python.test_core_metadata.line468.comment Single dynamic field
             {"requires-python": ("python_requires", ">=3.12")},
             {"author-email": ("author_email", "snoopy@peanuts.com")},
             {"keywords": ("keywords", ["hello", "world"])},
             {"platform": ("platforms", ["abcd"])},
-            # Multiple dynamic fields
+            # 045319.python.test_core_metadata.line473.comment Multiple dynamic fields
             {
                 "summary": ("description", "hello world"),
                 "description": ("long_description", "bla bla bla bla"),
@@ -479,19 +479,19 @@ class TestPEP643:
         ],
     )
     def test_modified_fields_marked_as_dynamic(self, file, fields, tmpdir_cwd):
-        # We start with a static config
+        # 045320.python.test_core_metadata.line482.comment We start with a static config
         Path(file).write_text(self.STATIC_CONFIG[file], encoding="utf-8")
         dist = _makedist()
 
-        # ... but then we simulate the effects of a plugin modifying the distribution
+        # 045321.python.test_core_metadata.line486.comment ... but then we simulate the effects of a plugin modifying the distribution
         for attr, value in fields.values():
-            # `dist` and `dist.metadata` are complicated...
-            # Some attributes work when set on `dist`, others on `dist.metadata`...
-            # Here we set in both just in case (this also avoids calling `_finalize_*`)
+            # 045322.python.test_core_metadata.line488.comment `dist` and `dist.metadata` are complicated...
+            # 045323.python.test_core_metadata.line489.comment Some attributes work when set on `dist`, others on `dist.metadata`...
+            # 045324.python.test_core_metadata.line490.comment Here we set in both just in case (this also avoids calling `_finalize_*`)
             setattr(dist, attr, value)
             setattr(dist.metadata, attr, value)
 
-        # Then we should be able to list the modified fields as Dynamic
+        # 045325.python.test_core_metadata.line494.comment Then we should be able to list the modified fields as Dynamic
         metadata = _get_metadata(dist)
         assert set(metadata.get_all("Dynamic")) == set(fields)
 
@@ -503,11 +503,11 @@ class TestPEP643:
         ],
     )
     def test_license_files_dynamic(self, extra_toml, tmpdir_cwd):
-        # For simplicity (and for the time being) setuptools is not making
-        # any special handling to guarantee `License-File` is considered static.
-        # Instead we rely in the fact that, although suboptimal, it is OK to have
-        # it as dynamics, as per:
-        # https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
+        # 045326.python.test_core_metadata.line506.comment For simplicity (and for the time being) setuptools is not making
+        # 045327.python.test_core_metadata.line507.comment any special handling to guarantee `License-File` is considered static.
+        # 045328.python.test_core_metadata.line508.comment Instead we rely in the fact that, although suboptimal, it is OK to have
+        # 045329.python.test_core_metadata.line509.comment it as dynamics, as per:
+        # 045330.python.test_core_metadata.line510.comment https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
         files = {
             "pyproject.toml": self.STATIC_CONFIG["pyproject.toml"].replace(
                 'license = "AGPL-3.0-or-later"',
@@ -517,7 +517,7 @@ class TestPEP643:
             "NOTICE": "--- mock notice ---",
             "AUTHORS.txt": "--- me ---",
         }
-        # Sanity checks:
+        # 045331.python.test_core_metadata.line520.comment Sanity checks:
         assert extra_toml in files["pyproject.toml"]
         assert 'license = "AGPL-3.0-or-later"' not in extra_toml
 
@@ -561,7 +561,7 @@ def _assert_roundtrip_message(metadata: str) -> None:
         regenerated = buffer.getvalue()
 
     raw_metadata = bytes(metadata, "utf-8")
-    # Normalise newlines to avoid test errors on Windows:
+    # 045332.python.test_core_metadata.line564.comment Normalise newlines to avoid test errors on Windows:
     raw_metadata = b"\n".join(raw_metadata.splitlines())
     regenerated = b"\n".join(regenerated.splitlines())
     assert regenerated == raw_metadata
@@ -569,15 +569,15 @@ def _assert_roundtrip_message(metadata: str) -> None:
 
 def _normalize_metadata(msg: Message) -> str:
     """Allow equivalent metadata to be compared directly"""
-    # The main challenge regards the requirements and extras.
-    # Both setuptools and wheel already apply some level of normalization
-    # but they differ regarding which character is chosen, according to the
-    # following spec it should be "-":
-    # https://packaging.python.org/en/latest/specifications/name-normalization/
+    # 045333.python.test_core_metadata.line572.comment The main challenge regards the requirements and extras.
+    # 045334.python.test_core_metadata.line573.comment Both setuptools and wheel already apply some level of normalization
+    # 045335.python.test_core_metadata.line574.comment but they differ regarding which character is chosen, according to the
+    # 045336.python.test_core_metadata.line575.comment following spec it should be "-":
+    # 045337.python.test_core_metadata.line576.comment https://packaging.python.org/en/latest/specifications/name-normalization/
 
-    # Related issues:
-    # https://github.com/pypa/packaging/issues/845
-    # https://github.com/pypa/packaging/issues/644#issuecomment-2429813968
+    # 045338.python.test_core_metadata.line578.comment Related issues:
+    # 045339.python.test_core_metadata.line579.comment https://github.com/pypa/packaging/issues/845
+    # 045340.python.test_core_metadata.line580.comment https://github.com/pypa/packaging/issues/644#issuecomment-2429813968
 
     extras = {x.replace("_", "-"): x for x in msg.get_all("Provides-Extra", [])}
     reqs = [
@@ -587,13 +587,13 @@ def _normalize_metadata(msg: Message) -> str:
     del msg["Requires-Dist"]
     del msg["Provides-Extra"]
 
-    # Ensure consistent ord
+    # 045341.python.test_core_metadata.line590.comment Ensure consistent ord
     for req in sorted(reqs):
         msg["Requires-Dist"] = req
     for extra in sorted(extras):
         msg["Provides-Extra"] = extra
 
-    # TODO: Handle lack of PEP 643 implementation in pypa/wheel?
+    # 045342.python.test_core_metadata.line596.comment TODO: Handle lack of PEP 643 implementation in pypa/wheel?
     del msg["Metadata-Version"]
 
     return msg.as_string()

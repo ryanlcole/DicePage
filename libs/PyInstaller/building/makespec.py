@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 001003.python.makespec.line1.comment -----------------------------------------------------------------------------
+# 001004.python.makespec.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 001005.python.makespec.line3.comment
+# 001006.python.makespec.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 001007.python.makespec.line5.comment or later) with exception for distributing the bootloader.
+# 001008.python.makespec.line6.comment
+# 001009.python.makespec.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 001010.python.makespec.line8.comment
+# 001011.python.makespec.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 001012.python.makespec.line10.comment -----------------------------------------------------------------------------
 """
 Automatically build spec files containing a description of the project.
 """
@@ -24,14 +24,14 @@ from PyInstaller.compat import is_darwin, is_win
 
 logger = logging.getLogger(__name__)
 
-# This list gives valid choices for the ``--debug`` command-line option, except for the ``all`` choice.
+# 001013.python.makespec.line27.comment This list gives valid choices for the ``--debug`` command-line option, except for the ``all`` choice.
 DEBUG_ARGUMENT_CHOICES = ['imports', 'bootloader', 'noarchive']
-# This is the ``all`` choice.
+# 001014.python.makespec.line29.comment This is the ``all`` choice.
 DEBUG_ALL_CHOICE = ['all']
 
 
 def escape_win_filepath(path):
-    # escape all \ with another \ after using normpath to clean up the path
+    # 001015.python.makespec.line34.comment escape all \ with another \ after using normpath to clean up the path
     return os.path.normpath(path).replace('\\', '\\\\')
 
 
@@ -44,14 +44,14 @@ def make_path_spec_relative(filename, spec_dir):
         return filename
     else:
         filename = os.path.abspath(filename)
-        # Make it relative.
+        # 001016.python.makespec.line47.comment Make it relative.
         filename = os.path.relpath(filename, start=spec_dir)
         return filename
 
 
-# Support for trying to avoid hard-coded paths in the .spec files. Eg, all files rooted in the Installer directory tree
-# will be written using "HOMEPATH", thus allowing this spec file to be used with any Installer installation. Same thing
-# could be done for other paths too.
+# 001017.python.makespec.line52.comment Support for trying to avoid hard-coded paths in the .spec files. Eg, all files rooted in the Installer directory tree
+# 001018.python.makespec.line53.comment will be written using "HOMEPATH", thus allowing this spec file to be used with any Installer installation. Same thing
+# 001019.python.makespec.line54.comment could be done for other paths too.
 path_conversions = ((HOMEPATH, "HOMEPATH"),)
 
 
@@ -64,19 +64,19 @@ class SourceDestAction(argparse.Action):
 
     def __call__(self, parser, namespace, value, option_string=None):
         try:
-            # Find the only separator that isn't a Windows drive.
+            # 001020.python.makespec.line67.comment Find the only separator that isn't a Windows drive.
             separator, = (m for m in re.finditer(rf"(^\w:[/\\])|[:{os.pathsep}]", value) if not m[1])
         except ValueError:
-            # Split into SRC and DEST failed, wrong syntax
+            # 001021.python.makespec.line70.comment Split into SRC and DEST failed, wrong syntax
             raise argparse.ArgumentError(self, f'Wrong syntax, should be {self.option_strings[0]}=SOURCE:DEST')
         src = value[:separator.start()]
         dest = value[separator.end():]
         if not src or not dest:
-            # Syntax was correct, but one or both of SRC and DEST was not given
+            # 001022.python.makespec.line75.comment Syntax was correct, but one or both of SRC and DEST was not given
             raise argparse.ArgumentError(self, "You have to specify both SOURCE and DEST")
 
-        # argparse is not particularly smart with copy by reference typed defaults. If the current list is the default,
-        # replace it before modifying it to avoid changing the default.
+        # 001023.python.makespec.line78.comment argparse is not particularly smart with copy by reference typed defaults. If the current list is the default,
+        # 001024.python.makespec.line79.comment replace it before modifying it to avoid changing the default.
         if getattr(namespace, self.dest) is self.default:
             setattr(namespace, self.dest, [])
         getattr(namespace, self.dest).append((src, dest))
@@ -84,16 +84,16 @@ class SourceDestAction(argparse.Action):
 
 def make_variable_path(filename, conversions=path_conversions):
     if not os.path.isabs(filename):
-        # os.path.commonpath can not compare relative and absolute paths, and if filename is not absolute, none of the
-        # paths in conversions will match anyway.
+        # 001025.python.makespec.line87.comment os.path.commonpath can not compare relative and absolute paths, and if filename is not absolute, none of the
+        # 001026.python.makespec.line88.comment paths in conversions will match anyway.
         return None, filename
     for (from_path, to_name) in conversions:
         assert os.path.abspath(from_path) == from_path, ("path '%s' should already be absolute" % from_path)
         try:
             common_path = os.path.commonpath([filename, from_path])
         except ValueError:
-            # Per https://docs.python.org/3/library/os.path.html#os.path.commonpath, this raises ValueError in several
-            # cases which prevent computing a common path.
+            # 001027.python.makespec.line95.comment Per https://docs.python.org/3/library/os.path.html#os.path.commonpath, this raises ValueError in several
+            # 001028.python.makespec.line96.comment cases which prevent computing a common path.
             common_path = None
         if common_path == from_path:
             rest = filename[len(from_path):]
@@ -133,8 +133,8 @@ class _RemovedWinNoPreferRedirectsAction(_RemovedFlagAction):
         raise RemovedWinSideBySideSupportError("Please remove your --win-no-prefer-redirects argument.")
 
 
-# An object used in place of a "path string", which knows how to repr() itself using variable names instead of
-# hard-coded paths.
+# 001029.python.makespec.line136.comment An object used in place of a "path string", which knows how to repr() itself using variable names instead of
+# 001030.python.makespec.line137.comment hard-coded paths.
 class Path:
     def __init__(self, *parts):
         self.path = os.path.join(*parts)
@@ -148,21 +148,21 @@ class Path:
         return "os.path.join(" + self.variable_prefix + "," + repr(self.filename_suffix) + ")"
 
 
-# An object used to construct extra preamble for the spec file, in order to accommodate extra collect_*() calls from the
-# command-line
+# 001031.python.makespec.line151.comment An object used to construct extra preamble for the spec file, in order to accommodate extra collect_*() calls from the
+# 001032.python.makespec.line152.comment command-line
 class Preamble:
     def __init__(
         self, datas, binaries, hiddenimports, collect_data, collect_binaries, collect_submodules, collect_all,
         copy_metadata, recursive_copy_metadata
     ):
-        # Initialize with literal values - will be switched to preamble variable name later, if necessary
+        # 001033.python.makespec.line158.comment Initialize with literal values - will be switched to preamble variable name later, if necessary
         self.binaries = binaries or []
         self.hiddenimports = hiddenimports or []
         self.datas = datas or []
-        # Preamble content
+        # 001034.python.makespec.line162.comment Preamble content
         self.content = []
 
-        # Import statements
+        # 001035.python.makespec.line165.comment Import statements
         if collect_data:
             self._add_hookutil_import('collect_data_files')
         if collect_binaries:
@@ -175,7 +175,7 @@ class Preamble:
             self._add_hookutil_import('copy_metadata')
         if self.content:
             self.content += ['']  # empty line to separate the section
-        # Variables
+        # 001037.python.makespec.line178.comment Variables
         if collect_data or copy_metadata or collect_all or recursive_copy_metadata:
             self._add_var('datas', self.datas)
             self.datas = 'datas'  # switch to variable
@@ -185,25 +185,25 @@ class Preamble:
         if collect_submodules or collect_all:
             self._add_var('hiddenimports', self.hiddenimports)
             self.hiddenimports = 'hiddenimports'  # switch to variable
-        # Content - collect_data_files
+        # 001041.python.makespec.line188.comment Content - collect_data_files
         for entry in collect_data:
             self._add_collect_data(entry)
-        # Content - copy_metadata
+        # 001042.python.makespec.line191.comment Content - copy_metadata
         for entry in copy_metadata:
             self._add_copy_metadata(entry)
-        # Content - copy_metadata(..., recursive=True)
+        # 001043.python.makespec.line194.comment Content - copy_metadata(..., recursive=True)
         for entry in recursive_copy_metadata:
             self._add_recursive_copy_metadata(entry)
-        # Content - collect_binaries
+        # 001044.python.makespec.line197.comment Content - collect_binaries
         for entry in collect_binaries:
             self._add_collect_binaries(entry)
-        # Content - collect_submodules
+        # 001045.python.makespec.line200.comment Content - collect_submodules
         for entry in collect_submodules:
             self._add_collect_submodules(entry)
-        # Content - collect_all
+        # 001046.python.makespec.line203.comment Content - collect_all
         for entry in collect_all:
             self._add_collect_all(entry)
-        # Merge
+        # 001047.python.makespec.line206.comment Merge
         if self.content and self.content[-1] != '':
             self.content += ['']  # empty line
         self.content = '\n'.join(self.content)
@@ -405,16 +405,16 @@ def __add_options(parser):
     g.add_argument(
         "-d",
         "--debug",
-        # If this option is not specified, then its default value is an empty list (no debug options selected).
+        # 001049.python.makespec.line408.comment If this option is not specified, then its default value is an empty list (no debug options selected).
         default=[],
-        # Note that ``nargs`` is omitted. This produces a single item not stored in a list, as opposed to a list
-        # containing one item, as per `nargs <https://docs.python.org/3/library/argparse.html#nargs>`_.
+        # 001050.python.makespec.line410.comment Note that ``nargs`` is omitted. This produces a single item not stored in a list, as opposed to a list
+        # 001051.python.makespec.line411.comment containing one item, as per `nargs <https://docs.python.org/3/library/argparse.html#nargs>`_.
         nargs=None,
-        # The options specified must come from this list.
+        # 001052.python.makespec.line413.comment The options specified must come from this list.
         choices=DEBUG_ALL_CHOICE + DEBUG_ARGUMENT_CHOICES,
-        # Append choice, rather than storing them (which would overwrite any previous selections).
+        # 001053.python.makespec.line415.comment Append choice, rather than storing them (which would overwrite any previous selections).
         action='append',
-        # Allow newlines in the help text; see the ``_SmartFormatter`` in ``__main__.py``.
+        # 001054.python.makespec.line417.comment Allow newlines in the help text; see the ``_SmartFormatter`` in ``__main__.py``.
         help=(
             "R|Provide assistance with debugging a frozen\n"
             "application. This argument may be provided multiple\n"
@@ -705,32 +705,32 @@ def main(
     optimize=None,
     **_kwargs
 ):
-    # Default values for onefile and console when not explicitly specified on command-line (indicated by None)
+    # 001055.python.makespec.line708.comment Default values for onefile and console when not explicitly specified on command-line (indicated by None)
     if onefile is None:
         onefile = False
 
     if console is None:
         console = True
 
-    # If appname is not specified - use the basename of the main script as name.
+    # 001056.python.makespec.line715.comment If appname is not specified - use the basename of the main script as name.
     if name is None:
         name = os.path.splitext(os.path.basename(scripts[0]))[0]
 
-    # If specpath not specified - use default value - current working directory.
+    # 001057.python.makespec.line719.comment If specpath not specified - use default value - current working directory.
     if specpath is None:
         specpath = DEFAULT_SPECPATH
     else:
-        # Expand starting tilde into user's home directory, as a work-around for tilde not being expanded by shell when
-        # using `--specpath=~/path/abc` instead of `--specpath ~/path/abc` (or when the path argument is quoted).
+        # 001058.python.makespec.line723.comment Expand starting tilde into user's home directory, as a work-around for tilde not being expanded by shell when
+        # 001059.python.makespec.line724.comment using `--specpath=~/path/abc` instead of `--specpath ~/path/abc` (or when the path argument is quoted).
         specpath = os.path.expanduser(specpath)
-    # If cwd is the root directory of PyInstaller, generate the .spec file in ./appname/ subdirectory.
+    # 001060.python.makespec.line726.comment If cwd is the root directory of PyInstaller, generate the .spec file in ./appname/ subdirectory.
     if specpath == HOMEPATH:
         specpath = os.path.join(HOMEPATH, name)
-    # Create directory tree if missing.
+    # 001061.python.makespec.line729.comment Create directory tree if missing.
     if not os.path.exists(specpath):
         os.makedirs(specpath)
 
-    # Handle additional EXE options.
+    # 001062.python.makespec.line733.comment Handle additional EXE options.
     exe_options = ''
     if version_file:
         exe_options += "\n    version='%s'," % escape_win_filepath(version_file)
@@ -739,18 +739,18 @@ def main(
     if uac_uiaccess:
         exe_options += "\n    uac_uiaccess=True,"
     if icon_file:
-        # Icon file for Windows.
-        # On Windows, the default icon is embedded in the bootloader executable.
+        # 001063.python.makespec.line742.comment Icon file for Windows.
+        # 001064.python.makespec.line743.comment On Windows, the default icon is embedded in the bootloader executable.
         if icon_file[0] == 'NONE':
             exe_options += "\n    icon='NONE',"
         else:
             exe_options += "\n    icon=[%s]," % ','.join("'%s'" % escape_win_filepath(ic) for ic in icon_file)
-        # Icon file for macOS.
-        # We need to encapsulate it into apostrofes.
+        # 001065.python.makespec.line748.comment Icon file for macOS.
+        # 001066.python.makespec.line749.comment We need to encapsulate it into apostrofes.
         icon_file = "'%s'" % icon_file[0]
     else:
-        # On macOS, the default icon has to be copied into the .app bundle.
-        # The the text value 'None' means - use default icon.
+        # 001067.python.makespec.line752.comment On macOS, the default icon has to be copied into the .app bundle.
+        # 001068.python.makespec.line753.comment The the text value 'None' means - use default icon.
         icon_file = 'None'
     if contents_directory:
         exe_options += "\n    contents_directory='%s'," % (contents_directory or "_internal")
@@ -758,7 +758,7 @@ def main(
         exe_options += "\n    hide_console='%s'," % hide_console
 
     if bundle_identifier:
-        # We need to encapsulate it into apostrofes.
+        # 001069.python.makespec.line761.comment We need to encapsulate it into apostrofes.
         bundle_identifier = "'%s'" % bundle_identifier
 
     if _kwargs["shorthand_manifest"]:
@@ -769,10 +769,10 @@ def main(
         )
     if manifest:
         if "<" in manifest:
-            # Assume XML string
+            # 001070.python.makespec.line772.comment Assume XML string
             exe_options += "\n    manifest='%s'," % manifest.replace("'", "\\'")
         else:
-            # Assume filename
+            # 001071.python.makespec.line775.comment Assume filename
             exe_options += "\n    manifest='%s'," % escape_win_filepath(manifest)
     if resources:
         resources = list(map(escape_win_filepath, resources))
@@ -785,23 +785,23 @@ def main(
         from PyInstaller.building.osx import WINDOWED_ONEFILE_DEPRCATION
         logger.log(logging.DEPRECATION, WINDOWED_ONEFILE_DEPRCATION)
 
-    # If file extension of the first script is '.pyw', force --windowed option.
+    # 001072.python.makespec.line788.comment If file extension of the first script is '.pyw', force --windowed option.
     if is_win and os.path.splitext(scripts[0])[-1] == '.pyw':
         console = False
 
-    # If script paths are relative, make them relative to the directory containing .spec file.
+    # 001073.python.makespec.line792.comment If script paths are relative, make them relative to the directory containing .spec file.
     scripts = [make_path_spec_relative(x, specpath) for x in scripts]
-    # With absolute paths replace prefix with variable HOMEPATH.
+    # 001074.python.makespec.line794.comment With absolute paths replace prefix with variable HOMEPATH.
     scripts = list(map(Path, scripts))
 
-    # Translate the default of ``debug=None`` to an empty list.
+    # 001075.python.makespec.line797.comment Translate the default of ``debug=None`` to an empty list.
     if debug is None:
         debug = []
-    # Translate the ``all`` option.
+    # 001076.python.makespec.line800.comment Translate the ``all`` option.
     if DEBUG_ALL_CHOICE[0] in debug:
         debug = DEBUG_ARGUMENT_CHOICES
 
-    # Create preamble (for collect_*() calls)
+    # 001077.python.makespec.line804.comment Create preamble (for collect_*() calls)
     preamble = Preamble(
         datas, binaries, hiddenimports, collect_data, collect_binaries, collect_submodules, collect_all, copy_metadata,
         recursive_copy_metadata
@@ -814,7 +814,7 @@ def main(
     else:
         splash_init = splash_binaries = splash_target = ""
 
-    # Infer byte-code optimization level.
+    # 001078.python.makespec.line817.comment Infer byte-code optimization level.
     opt_level = sum([opt == 'O' for opt in python_options])
     if opt_level > 2:
         logger.warning(
@@ -825,10 +825,10 @@ def main(
 
     if optimize is None:
         if opt_level == 0:
-            # Infer from running python process
+            # 001079.python.makespec.line828.comment Infer from running python process
             optimize = sys.flags.optimize
         else:
-            # Infer from `--python-option O` switch(es).
+            # 001080.python.makespec.line831.comment Infer from `--python-option O` switch(es).
             optimize = opt_level
     elif optimize != opt_level and opt_level != 0:
         logger.warning(
@@ -839,10 +839,10 @@ def main(
         )
 
     if optimize >= 0:
-        # Ensure OPTIONs passed to bootloader match the optimization settings.
+        # 001081.python.makespec.line842.comment Ensure OPTIONs passed to bootloader match the optimization settings.
         python_options += max(0, optimize - opt_level) * ['O']
 
-    # Create OPTIONs array
+    # 001082.python.makespec.line845.comment Create OPTIONs array
     if 'imports' in debug and 'v' not in python_options:
         python_options.append('v')
     python_options_array = [(opt, None, 'OPTION') for opt in python_options]
@@ -865,44 +865,44 @@ def main(
         'upx_exclude': upx_exclude,
         'runtime_tmpdir': runtime_tmpdir,
         'exe_options': exe_options,
-        # Directory with additional custom import hooks.
+        # 001083.python.makespec.line868.comment Directory with additional custom import hooks.
         'hookspath': hookspath,
-        # List with custom runtime hook files.
+        # 001084.python.makespec.line870.comment List with custom runtime hook files.
         'runtime_hooks': runtime_hooks or [],
-        # List of modules/packages to ignore.
+        # 001085.python.makespec.line872.comment List of modules/packages to ignore.
         'excludes': excludes or [],
-        # only Windows and macOS distinguish windowed and console apps
+        # 001086.python.makespec.line874.comment only Windows and macOS distinguish windowed and console apps
         'console': console,
         'disable_windowed_traceback': disable_windowed_traceback,
-        # Icon filename. Only macOS uses this item.
+        # 001087.python.makespec.line877.comment Icon filename. Only macOS uses this item.
         'icon': icon_file,
-        # .app bundle identifier. Only macOS uses this item.
+        # 001088.python.makespec.line879.comment .app bundle identifier. Only macOS uses this item.
         'bundle_identifier': bundle_identifier,
-        # argv emulation (macOS only)
+        # 001089.python.makespec.line881.comment argv emulation (macOS only)
         'argv_emulation': argv_emulation,
-        # Target architecture (macOS only)
+        # 001090.python.makespec.line883.comment Target architecture (macOS only)
         'target_arch': target_arch,
-        # Code signing identity (macOS only)
+        # 001091.python.makespec.line885.comment Code signing identity (macOS only)
         'codesign_identity': codesign_identity,
-        # Entitlements file (macOS only)
+        # 001092.python.makespec.line887.comment Entitlements file (macOS only)
         'entitlements_file': entitlements_file,
-        # splash screen
+        # 001093.python.makespec.line889.comment splash screen
         'splash_init': splash_init,
         'splash_target': splash_target,
         'splash_binaries': splash_binaries,
     }
 
-    # Write down .spec file to filesystem.
+    # 001094.python.makespec.line895.comment Write down .spec file to filesystem.
     specfnm = os.path.join(specpath, name + '.spec')
     with open(specfnm, 'w', encoding='utf-8') as specfile:
         if onefile:
             specfile.write(onefiletmplt % d)
-            # For macOS create .app bundle.
+            # 001095.python.makespec.line900.comment For macOS create .app bundle.
             if is_darwin and not console:
                 specfile.write(bundleexetmplt % d)
         else:
             specfile.write(onedirtmplt % d)
-            # For macOS create .app bundle.
+            # 001096.python.makespec.line905.comment For macOS create .app bundle.
             if is_darwin and not console:
                 specfile.write(bundletmplt % d)
 

@@ -440,15 +440,15 @@ class Distribution(metaclass=abc.ABCMeta):
         Custom providers may provide the METADATA file or override this
         property.
         """
-        # deferred for performance (python/cpython#109829)
+        # 042081.python.init.line443.comment deferred for performance (python/cpython#109829)
         from . import _adapters
 
         opt_text = (
             self.read_text('METADATA')
             or self.read_text('PKG-INFO')
-            # This last clause is here to support old egg-info files.  Its
-            # effect is to just end up using the PathDistribution's self._path
-            # (which points to the egg-info file) attribute unchanged.
+            # 042082.python.init.line449.comment This last clause is here to support old egg-info files.  Its
+            # 042083.python.init.line450.comment effect is to just end up using the PathDistribution's self._path
+            # 042084.python.init.line451.comment (which points to the egg-info file) attribute unchanged.
             or self.read_text('')
         )
         text = cast(str, opt_text)
@@ -504,8 +504,8 @@ class Distribution(metaclass=abc.ABCMeta):
 
         @pass_none
         def make_files(lines):
-            # Delay csv import, since Distribution.files is not as widely used
-            # as other parts of importlib.metadata
+            # 042085.python.init.line507.comment Delay csv import, since Distribution.files is not as widely used
+            # 042086.python.init.line508.comment as other parts of importlib.metadata
             import csv
 
             return starmap(make_file, csv.reader(lines))
@@ -541,9 +541,9 @@ class Distribution(metaclass=abc.ABCMeta):
         Assume the file is accurate if it exists.
         """
         text = self.read_text('installed-files.txt')
-        # Prepend the .egg-info/ subdir to the lines in this file.
-        # But this subdir is only available from PathDistribution's
-        # self._path.
+        # 042087.python.init.line544.comment Prepend the .egg-info/ subdir to the lines in this file.
+        # 042088.python.init.line545.comment But this subdir is only available from PathDistribution's
+        # 042089.python.init.line546.comment self._path.
         subdir = getattr(self, '_path', None)
         if not text or not subdir:
             return
@@ -616,7 +616,7 @@ class Distribution(metaclass=abc.ABCMeta):
             PEP 508 requires a space between the url_spec and the quoted_marker.
             Ref python/importlib_metadata#357.
             """
-            # '@' is uniquely indicative of a url_req.
+            # 042090.python.init.line619.comment '@' is uniquely indicative of a url_req.
             return ' ' * ('@' in req)
 
         for section in sections:
@@ -772,7 +772,7 @@ class Lookup:
         for child in path.children():
             low = child.lower()
             if low.endswith((".dist-info", ".egg-info")):
-                # rpartition is faster than splitext and suitable for this purpose.
+                # 042092.python.init.line775.comment rpartition is faster than splitext and suitable for this purpose.
                 name = low.rpartition(".")[0].partition("-")[0]
                 normalized = Prepared.normalize(name)
                 self.infos[normalized].append(path.joinpath(child))
@@ -1068,7 +1068,7 @@ def _get_toplevel_name(name: PackagePath) -> str:
     'foo.dist-info'
     """
     return _topmost(name) or (
-        # python/typeshed#10328
+        # 042093.python.init.line1071.comment python/typeshed#10328
         inspect.getmodulename(name)  # type: ignore
         or str(name)
     )

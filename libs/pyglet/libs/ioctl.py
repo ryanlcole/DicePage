@@ -59,9 +59,9 @@ _IOC_WRITE = 1
 _IOC_READ = 2
 
 
-# To avoid name conflicts with Python, the following names are substituted:
-# 'io_dir' instead of 'dir' to indicate the transfer direction (READ, WRITE, NONE).
-# 'code' instead of 'type' to indicate the ioctl "magic number" ('H', 'E', etc.).
+# 031520.python.ioctl.line62.comment To avoid name conflicts with Python, the following names are substituted:
+# 031521.python.ioctl.line63.comment 'io_dir' instead of 'dir' to indicate the transfer direction (READ, WRITE, NONE).
+# 031522.python.ioctl.line64.comment 'code' instead of 'type' to indicate the ioctl "magic number" ('H', 'E', etc.).
 
 
 def _IOC(io_dir: Union[_IOC_NONE, _IOC_READ, _IOC_WRITE], code: int, nr: int, size: int) -> int:

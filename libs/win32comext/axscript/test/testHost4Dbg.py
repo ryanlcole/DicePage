@@ -41,35 +41,35 @@ def TestEngine():
     scriptDir = "."
     site = MySite(model)
     pyEngine = site._AddEngine("Python")
-    #  pyEngine2 = site._AddEngine("Python")
+    # 051316.python.testHost4Dbg.line44.comment pyEngine2 = site._AddEngine("Python")
     vbEngine = site._AddEngine("VBScript")
-    #  forthEngine = site._AddEngine("ForthScript")
+    # 051317.python.testHost4Dbg.line46.comment forthEngine = site._AddEngine("ForthScript")
     try:
-        #    code = open(os.path.join(scriptDir, "debugTest.4ths"),"rb").read()
-        #    forthEngine.AddCode(code)
+        # 051318.python.testHost4Dbg.line48.comment code = open(os.path.join(scriptDir, "debugTest.4ths"),"rb").read()
+        # 051319.python.testHost4Dbg.line49.comment forthEngine.AddCode(code)
         code = open(os.path.join(scriptDir, "debugTest.pys"), "rb").read()
         pyEngine.AddCode(code)
         code = open(os.path.join(scriptDir, "debugTest.vbs"), "rb").read()
         vbEngine.AddCode(code)
-        #    code = open(os.path.join(scriptDir, "debugTestFail.pys"),"rb").read()
-        #    pyEngine2.AddCode(code)
+        # 051320.python.testHost4Dbg.line54.comment code = open(os.path.join(scriptDir, "debugTestFail.pys"),"rb").read()
+        # 051321.python.testHost4Dbg.line55.comment pyEngine2.AddCode(code)
 
-        #    from win32com.axdebug import axdebug
-        #    sessionProvider=pythoncom.CoCreateInstance(axdebug.CLSID_DefaultDebugSessionProvider,None,pythoncom.CLSCTX_ALL, axdebug.IID_IDebugSessionProvider)
-        #    sessionProvider.StartDebugSession(None)
+        # 051322.python.testHost4Dbg.line57.comment from win32com.axdebug import axdebug
+        # 051323.python.testHost4Dbg.line58.comment sessionProvider=pythoncom.CoCreateInstance(axdebug.CLSID_DefaultDebugSessionProvider,None,pythoncom.CLSCTX_ALL, axdebug.IID_IDebugSessionProvider)
+        # 051324.python.testHost4Dbg.line59.comment sessionProvider.StartDebugSession(None)
 
         input("Press enter to continue")
-        #   forthEngine.Start()
+        # 051325.python.testHost4Dbg.line62.comment forthEngine.Start()
         pyEngine.Start()  # Actually run the Python code
         vbEngine.Start()  # Actually run the VB code
     except pythoncom.com_error as details:
         print(f"Script failed: {details[1]} (0x{details[0]:x})")
-    # Now run the code expected to fail!
-    # try:
-    #     pyEngine2.Start()  # Actually run the Python code that fails!
-    #     print("Script code worked when it should have failed.")
-    # except pythoncom.com_error:
-    #     pass
+    # 051328.python.testHost4Dbg.line67.comment Now run the code expected to fail!
+    # 051329.python.testHost4Dbg.line68.comment try:
+    # 051330.python.testHost4Dbg.line69.comment pyEngine2.Start()  # Actually run the Python code that fails!
+    # 051331.python.testHost4Dbg.line70.comment print("Script code worked when it should have failed.")
+    # 051332.python.testHost4Dbg.line71.comment except pythoncom.com_error:
+    # 051333.python.testHost4Dbg.line72.comment pass
 
     site._Close()
 

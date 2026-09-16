@@ -79,7 +79,7 @@ def link_GL(name: str, restype: Any, argtypes: Any, requires: str | None = None,
         decorate_function(func, name)
         return func
     except AttributeError:
-        # Not in opengl32.dll. Try and get a pointer from WGL.
+        # 028867.python.lib_wgl.line82.comment Not in opengl32.dll. Try and get a pointer from WGL.
         try:
             fargs = (restype,) + tuple(argtypes)
             ftype = ctypes.WINFUNCTYPE(*fargs)
@@ -92,10 +92,10 @@ def link_GL(name: str, restype: Any, argtypes: Any, requires: str | None = None,
                         decorate_function(func, name)
                         return func
                 else:
-                    # Insert proxy until we have a context
+                    # 028868.python.lib_wgl.line95.comment Insert proxy until we have a context
                     return WGLFunctionProxy(name, ftype, requires, suggestions)
         except:  # noqa: E722, S110
-            # TODO: Figure out what exception this can cause instead of catching all.
+            # 028870.python.lib_wgl.line98.comment TODO: Figure out what exception this can cause instead of catching all.
             pass
 
         return missing_function(name, requires, suggestions)

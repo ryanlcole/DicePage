@@ -60,9 +60,9 @@ class install_egg_info(Command):
         return self.outputs
 
 
-# The following routines are taken from setuptools' pkg_resources module and
-# can be replaced by importing them from pkg_resources once it is included
-# in the stdlib.
+# 039874.python.install_egg_info.line63.comment The following routines are taken from setuptools' pkg_resources module and
+# 039875.python.install_egg_info.line64.comment can be replaced by importing them from pkg_resources once it is included
+# 039876.python.install_egg_info.line65.comment in the stdlib.
 
 
 def safe_name(name):

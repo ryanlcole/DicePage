@@ -1,4 +1,4 @@
-# shaelvien_daemon.py
+# 052552.python.shaelvien_dignostic.line1.comment shaelvien_daemon.py
 from __future__ import annotations
 import json, os, sys, time, traceback, socket, mimetypes
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -21,7 +21,7 @@ def log_success(m): logger.warning("SUCCESS: %s",m)
 def log_warn(m): logger.warning(m)
 def log_error(m): logger.error(m)
 
-# ---------- INLINE HUD (patched with /control fetch) ----------
+# 052553.python.shaelvien_dignostic.line24.comment ---------- INLINE HUD (patched with /control fetch) ----------
 _HUD_INLINE_HTML = r"""<!doctype html><html><head><meta charset='utf-8'>
 <title>Shaelvien HUD — World</title>
 <meta name='viewport' content='width=device-width,initial-scale=1.0'>

@@ -1,16 +1,16 @@
-# Originally written by Curt Hagenlocher, and various bits
-# and pieces by Mark Hammond (and now Greg Stein has had
-# a go too :-)
+# 049116.python.makepy.line1.comment Originally written by Curt Hagenlocher, and various bits
+# 049117.python.makepy.line2.comment and pieces by Mark Hammond (and now Greg Stein has had
+# 049118.python.makepy.line3.comment a go too :-)
 
-# Note that the main worker code has been moved to genpy.py
-# As this is normally run from the command line, it reparses the code each time.
-# Now this is nothing more than the command line handler and public interface.
+# 049119.python.makepy.line5.comment Note that the main worker code has been moved to genpy.py
+# 049120.python.makepy.line6.comment As this is normally run from the command line, it reparses the code each time.
+# 049121.python.makepy.line7.comment Now this is nothing more than the command line handler and public interface.
 
-# XXX - TO DO
-# XXX - Greg and Mark have some ideas for a revamp - just no
-#       time - if you want to help, contact us for details.
-#       Main idea is to drop the classes exported and move to a more
-#       traditional data driven model.
+# 049122.python.makepy.line9.comment XXX - TO DO
+# 049123.python.makepy.line10.comment XXX - Greg and Mark have some ideas for a revamp - just no
+# 049124.python.makepy.line11.comment time - if you want to help, contact us for details.
+# 049125.python.makepy.line12.comment Main idea is to drop the classes exported and move to a more
+# 049126.python.makepy.line13.comment traditional data driven model.
 
 """Generate a .py file from an OLE TypeLibrary file.
 
@@ -152,7 +152,7 @@ class SimpleProgress(genpy.GeneratorProgress):
 
 class GUIProgress(SimpleProgress):
     def __init__(self, verboseLevel):
-        # Import some modules we need to we can trap failure now.
+        # 049129.python.makepy.line155.comment Import some modules we need to we can trap failure now.
         import pywin  # nopycln: import
         import win32ui
 
@@ -196,13 +196,13 @@ def GetTypeLibsForSpec(arg):
             spec.FromTypelib(tlb, arg)
             typelibs.append((tlb, spec))
         except pythoncom.com_error:
-            # See if it is a description
+            # 049131.python.makepy.line199.comment See if it is a description
             tlbs = selecttlb.FindTlbsWithDescription(arg)
             if len(tlbs) == 0:
-                # Maybe it is the name of a COM object?
+                # 049132.python.makepy.line202.comment Maybe it is the name of a COM object?
                 try:
                     ob = Dispatch(arg)
-                    # and if so, it must support typelib info
+                    # 049133.python.makepy.line205.comment and if so, it must support typelib info
                     tlb, index = ob._oleobj_.GetTypeInfo().GetContainingTypeLib()
                     spec = selecttlb.TypelibSpec(None, 0, 0, 0)
                     spec.FromTypelib(tlb)
@@ -212,8 +212,8 @@ def GetTypeLibsForSpec(arg):
             if len(tlbs) == 0:
                 print("Could not locate a type library matching '%s'" % (arg))
             for spec in tlbs:
-                # Version numbers not always reliable if enumerated from registry.
-                # (as some libs use hex, other's don't.  Both examples from MS, of course.)
+                # 049134.python.makepy.line215.comment Version numbers not always reliable if enumerated from registry.
+                # 049135.python.makepy.line216.comment (as some libs use hex, other's don't.  Both examples from MS, of course.)
                 if spec.dll is None:
                     tlb = pythoncom.LoadRegTypeLib(
                         spec.clsid, spec.major, spec.minor, spec.lcid
@@ -221,8 +221,8 @@ def GetTypeLibsForSpec(arg):
                 else:
                     tlb = pythoncom.LoadTypeLib(spec.dll)
 
-                # We have a typelib, but it may not be exactly what we specified
-                # (due to automatic version matching of COM).  So we query what we really have!
+                # 049136.python.makepy.line224.comment We have a typelib, but it may not be exactly what we specified
+                # 049137.python.makepy.line225.comment (due to automatic version matching of COM).  So we query what we really have!
                 attr = tlb.GetLibAttr()
                 spec.major = attr[3]
                 spec.minor = attr[4]
@@ -252,7 +252,7 @@ def GenerateFromTypeLibSpec(
             "You can only perform a demand-build when the output goes to the gen_py directory"
         )
     if isinstance(typelibInfo, tuple):
-        # Tuple
+        # 049140.python.makepy.line255.comment Tuple
         typelibCLSID, lcid, major, minor = typelibInfo
         tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
         spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
@@ -260,7 +260,7 @@ def GenerateFromTypeLibSpec(
         typelibs = [(tlb, spec)]
     elif isinstance(typelibInfo, selecttlb.TypelibSpec):
         if typelibInfo.dll is None:
-            # Version numbers not always reliable if enumerated from registry.
+            # 049141.python.makepy.line263.comment Version numbers not always reliable if enumerated from registry.
             tlb = pythoncom.LoadRegTypeLib(
                 typelibInfo.clsid,
                 typelibInfo.major,
@@ -271,9 +271,9 @@ def GenerateFromTypeLibSpec(
             tlb = pythoncom.LoadTypeLib(typelibInfo.dll)
         typelibs = [(tlb, typelibInfo)]
     elif hasattr(typelibInfo, "GetLibAttr"):
-        # A real typelib object!
-        # Could also use isinstance(typelibInfo, PyITypeLib) instead, but PyITypeLib is not directly exposed by pythoncom.
-        # 	pythoncom.TypeIIDs[pythoncom.IID_ITypeLib] seems to work
+        # 049142.python.makepy.line274.comment A real typelib object!
+        # 049143.python.makepy.line275.comment Could also use isinstance(typelibInfo, PyITypeLib) instead, but PyITypeLib is not directly exposed by pythoncom.
+        # 049144.python.makepy.line276.comment pythoncom.TypeIIDs[pythoncom.IID_ITypeLib] seems to work
         tla = typelibInfo.GetLibAttr()
         guid = tla[0]
         lcid = tla[1]

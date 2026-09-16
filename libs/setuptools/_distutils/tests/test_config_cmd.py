@@ -46,7 +46,7 @@ class TestConfig(support.TempdirManager):
                 'xlc: The -E option overrides the -P, -o, and -qsyntaxonly options'
             )
 
-        # simple pattern searches
+        # 041018.python.test_config_cmd.line49.comment simple pattern searches
         match = cmd.search_cpp(pattern='xxx', body='/* xxx */')
         assert match == 0
 
@@ -54,8 +54,8 @@ class TestConfig(support.TempdirManager):
         assert match == 1
 
     def test_finalize_options(self):
-        # finalize_options does a bit of transformation
-        # on options
+        # 041019.python.test_config_cmd.line57.comment finalize_options does a bit of transformation
+        # 041020.python.test_config_cmd.line58.comment on options
         pkg_dir, dist = self.create_dist()
         cmd = config(dist)
         cmd.include_dirs = f'one{os.pathsep}two'
@@ -68,7 +68,7 @@ class TestConfig(support.TempdirManager):
         assert cmd.library_dirs == ['three', 'four']
 
     def test_clean(self):
-        # _clean removes files
+        # 041021.python.test_config_cmd.line71.comment _clean removes files
         tmp_dir = self.mkdtemp()
         f1 = os.path.join(tmp_dir, 'one')
         f2 = os.path.join(tmp_dir, 'two')

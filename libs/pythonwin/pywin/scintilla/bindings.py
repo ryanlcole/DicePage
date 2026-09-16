@@ -28,7 +28,7 @@ def assign_command_id(event, id=0):
         if id == 0:
             id = next_id
             next_id += 1
-        # Only map the ones we allocated - specified ones are assumed to have a handler
+        # 038627.python.bindings.line31.comment Only map the ones we allocated - specified ones are assumed to have a handler
         command_to_events[id] = event
     event_to_commands[event] = id
     return id
@@ -68,7 +68,7 @@ class BindingsManager:
         try:
             win32ui.SetStatusText(problem, 1)
         except win32ui.error:
-            # No status bar!
+            # 038629.python.bindings.line71.comment No status bar!
             print(problem)
 
     def update_keymap(self, keymap):
@@ -88,7 +88,7 @@ class BindingsManager:
     def get_command_id(self, event):
         id = event_to_commands.get(event)
         if id is None:
-            # See if we even have an event of that name!?
+            # 038630.python.bindings.line91.comment See if we even have an event of that name!?
             if event not in self.bindings:
                 return None
             id = self.bind_command(event)
@@ -115,29 +115,29 @@ class BindingsManager:
             return None
 
     def fire(self, event, event_param=None):
-        # Fire the specified event.  Result is native Pythonwin result
-        # (ie, 1==pass one, 0 or None==handled)
+        # 038631.python.bindings.line118.comment Fire the specified event.  Result is native Pythonwin result
+        # 038632.python.bindings.line119.comment (ie, 1==pass one, 0 or None==handled)
 
-        # First look up the event directly - if there, we are set.
+        # 038633.python.bindings.line121.comment First look up the event directly - if there, we are set.
         binding = self.bindings.get(event)
         if binding is None:
-            # If possible, find it!
-            # A native method name
+            # 038634.python.bindings.line124.comment If possible, find it!
+            # 038635.python.bindings.line125.comment A native method name
             handler = getattr(self.parent_view, event + "Event", None)
             if handler is None:
-                # Can't decide if I should report an error??
+                # 038636.python.bindings.line128.comment Can't decide if I should report an error??
                 self.report_error("The event name '%s' can not be found." % event)
-                # Either way, just let the default handlers grab it.
+                # 038637.python.bindings.line130.comment Either way, just let the default handlers grab it.
                 return 1
             binding = self._new_binding(handler, HANDLER_ARGS_NATIVE)
-            # Cache it.
+            # 038638.python.bindings.line133.comment Cache it.
             self.bindings[event] = binding
 
         handler_args_type = binding.handler_args_type
-        # Now actually fire it.
+        # 038639.python.bindings.line137.comment Now actually fire it.
         if handler_args_type == HANDLER_ARGS_GUESS:
-            # Can't be native, as natives are never added with "guess".
-            # Must be extension or IDLE.
+            # 038640.python.bindings.line139.comment Can't be native, as natives are never added with "guess".
+            # 038641.python.bindings.line140.comment Must be extension or IDLE.
             if event[0] == "<":
                 handler_args_type = HANDLER_ARGS_IDLE
             else:
@@ -149,7 +149,7 @@ class BindingsManager:
                 args = (event_param,)
             rc = binding.handler(*args)
             if handler_args_type == HANDLER_ARGS_IDLE:
-                # Convert to our return code.
+                # 038642.python.bindings.line152.comment Convert to our return code.
                 if rc in (None, "break"):
                     rc = 0
                 else:
@@ -172,8 +172,8 @@ class BindingsManager:
         if win32api.GetKeyState(win32con.VK_MENU) & 0x8000:
             keyState |= win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
         keyinfo = key, keyState
-        # Special hacks for the dead-char key on non-US keyboards.
-        # (XXX - which do not work :-(
+        # 038644.python.bindings.line175.comment Special hacks for the dead-char key on non-US keyboards.
+        # 038645.python.bindings.line176.comment (XXX - which do not work :-(
         event = self.keymap.get(keyinfo)
         if event is None:
             return 1

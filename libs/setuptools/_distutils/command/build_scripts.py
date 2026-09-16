@@ -18,7 +18,7 @@ shebang_pattern = re.compile('^#!.*python[0-9.]*([ \t].*)?$')
 Pattern matching a Python interpreter indicated in first line of a script.
 """
 
-# for Setuptools compatibility
+# 039693.python.build_scripts.line21.comment for Setuptools compatibility
 first_line_re = shebang_pattern
 
 
@@ -85,8 +85,8 @@ class build_scripts(Command):
             log.debug("not copying %s (up-to-date)", script)
             return
 
-        # Always open the file, but ignore failures in dry-run mode
-        # in order to attempt to copy directly.
+        # 039694.python.build_scripts.line88.comment Always open the file, but ignore failures in dry-run mode
+        # 039695.python.build_scripts.line89.comment in order to attempt to copy directly.
         try:
             f = tokenize.open(script)
         except OSError:
@@ -138,19 +138,19 @@ class build_scripts(Command):
 
     @staticmethod
     def _validate_shebang(shebang, encoding):
-        # Python parser starts to read a script using UTF-8 until
-        # it gets a #coding:xxx cookie. The shebang has to be the
-        # first line of a file, the #coding:xxx cookie cannot be
-        # written before. So the shebang has to be encodable to
-        # UTF-8.
+        # 039696.python.build_scripts.line141.comment Python parser starts to read a script using UTF-8 until
+        # 039697.python.build_scripts.line142.comment it gets a #coding:xxx cookie. The shebang has to be the
+        # 039698.python.build_scripts.line143.comment first line of a file, the #coding:xxx cookie cannot be
+        # 039699.python.build_scripts.line144.comment written before. So the shebang has to be encodable to
+        # 039700.python.build_scripts.line145.comment UTF-8.
         try:
             shebang.encode('utf-8')
         except UnicodeEncodeError:
             raise ValueError(f"The shebang ({shebang!r}) is not encodable to utf-8")
 
-        # If the script is encoded to a custom encoding (use a
-        # #coding:xxx cookie), the shebang has to be encodable to
-        # the script encoding too.
+        # 039701.python.build_scripts.line151.comment If the script is encoded to a custom encoding (use a
+        # 039702.python.build_scripts.line152.comment #coding:xxx cookie), the shebang has to be encodable to
+        # 039703.python.build_scripts.line153.comment the script encoding too.
         try:
             shebang.encode(encoding)
         except UnicodeEncodeError:

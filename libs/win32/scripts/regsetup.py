@@ -1,4 +1,4 @@
-# A tool to setup the Python registry.
+# 048108.python.regsetup.line1.comment A tool to setup the Python registry.
 
 
 class error(Exception):
@@ -55,17 +55,17 @@ def FindPackagePath(packageName, knownFileName, searchPaths):
     pathLook = regutil.GetRegisteredNamedPath(packageName)
     if pathLook and IsPackageDir(pathLook, packageName, knownFileName):
         return pathLook, None  # The currently registered one is good.
-    # Search down the search paths.
+    # 048111.python.regsetup.line58.comment Search down the search paths.
     for pathLook in searchPaths:
         if IsPackageDir(pathLook, packageName, knownFileName):
-            # Found it
+            # 048112.python.regsetup.line61.comment Found it
             ret = os.path.abspath(pathLook)
             return ret, ret
     raise error("The package %s can not be located" % packageName)
 
 
 def FindHelpPath(helpFile, helpDesc, searchPaths):
-    # See if the current registry entry is OK
+    # 048113.python.regsetup.line68.comment See if the current registry entry is OK
     import os
 
     import win32api
@@ -104,7 +104,7 @@ def FindAppPath(appName, knownFileName, searchPaths):
     First place looked is the registry for an existing entry.  Then
     the searchPaths are searched.
     """
-    # Look in the first path.
+    # 048115.python.regsetup.line107.comment Look in the first path.
     import os
 
     import regutil
@@ -114,10 +114,10 @@ def FindAppPath(appName, knownFileName, searchPaths):
         pathLook = regPath.split(";")[0]
     if regPath and FileExists(os.path.join(pathLook, knownFileName)):
         return None  # The currently registered one is good.
-    # Search down the search paths.
+    # 048117.python.regsetup.line117.comment Search down the search paths.
     for pathLook in searchPaths:
         if FileExists(os.path.join(pathLook, knownFileName)):
-            # Found it
+            # 048118.python.regsetup.line120.comment Found it
             return os.path.abspath(pathLook)
     raise error(
         f"The file {knownFileName} can not be located for application {appName}"
@@ -139,7 +139,7 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 
     if possibleRealNames is None:
         possibleRealNames = exeAlias
-    # Look first in Python's home.
+    # 048119.python.regsetup.line142.comment Look first in Python's home.
     found = os.path.join(sys.prefix, possibleRealNames)
     if not FileExists(found):  # for developers
         if "64 bit" in sys.version:
@@ -169,7 +169,7 @@ def QuotedFileName(fname):
         fname.index(" ")  # Other chars forcing quote?
         return '"%s"' % fname
     except ValueError:
-        # No space in name.
+        # 048122.python.regsetup.line172.comment No space in name.
         return fname
 
 
@@ -206,7 +206,7 @@ def LocateFileName(fileNamesString, searchPaths):
                 "Need to locate the file %s, but the win32ui module is not available\nPlease run the program again, passing as a parameter the path to this file."
                 % fileName
             )
-        # Display a common dialog to locate the file.
+        # 048123.python.regsetup.line209.comment Display a common dialog to locate the file.
         flags = win32con.OFN_FILEMUSTEXIST
         ext = os.path.splitext(fileName)[1]
         filter = f"Files of requested type (*{ext})|*{ext}||"
@@ -363,7 +363,7 @@ def FindRegisterHelpFile(helpFile, searchPaths, helpDesc=None):
     except error as details:
         print("*** ", details)
         return
-    # print(f"{helpFile} found at {pathLook}")
+    # 048124.python.regsetup.line366.comment print(f"{helpFile} found at {pathLook}")
     regutil.RegisterHelpFile(helpFile, pathLook, helpDesc)
 
 
@@ -388,19 +388,19 @@ def SetupCore(searchPaths):
     import win32con
 
     installPath, corePaths = LocatePythonCore(searchPaths)
-    # Register the core Pythonpath.
+    # 048125.python.regsetup.line391.comment Register the core Pythonpath.
     print(corePaths)
     regutil.RegisterNamedPath(None, ";".join(corePaths))
 
-    # Register the install path.
+    # 048126.python.regsetup.line395.comment Register the install path.
     hKey = win32api.RegCreateKey(regutil.GetRootKey(), regutil.BuildDefaultPythonKey())
     try:
-        # Core Paths.
+        # 048127.python.regsetup.line398.comment Core Paths.
         win32api.RegSetValue(hKey, "InstallPath", win32con.REG_SZ, installPath)
     finally:
         win32api.RegCloseKey(hKey)
 
-    # Register the win32 core paths.
+    # 048128.python.regsetup.line403.comment Register the win32 core paths.
     win32paths = (
         os.path.abspath(os.path.split(win32api.__file__)[0])
         + ";"
@@ -409,10 +409,10 @@ def SetupCore(searchPaths):
         )
     )
 
-    # Python has builtin support for finding a "DLLs" directory, but
-    # not a PCBuild.  Having it in the core paths means it is ignored when
-    # an EXE not in the Python dir is hosting us - so we add it as a named
-    # value
+    # 048129.python.regsetup.line412.comment Python has builtin support for finding a "DLLs" directory, but
+    # 048130.python.regsetup.line413.comment not a PCBuild.  Having it in the core paths means it is ignored when
+    # 048131.python.regsetup.line414.comment an EXE not in the Python dir is hosting us - so we add it as a named
+    # 048132.python.regsetup.line415.comment value
     check = os.path.join(sys.prefix, "PCBuild")
     if "64 bit" in sys.version:
         check = os.path.join(check, "amd64")
@@ -430,7 +430,7 @@ def RegisterShellInfo(searchPaths):
     import win32con
 
     suffix = IsDebug()
-    # Set up a pointer to the .exe's
+    # 048133.python.regsetup.line433.comment Set up a pointer to the .exe's
     exePath = FindRegisterPythonExe("Python%s.exe" % suffix, searchPaths)
     regutil.SetRegistryDefaultValue(".py", "Python.File", win32con.HKEY_CLASSES_ROOT)
     regutil.RegisterShellCommand("Open", QuotedFileName(exePath) + ' "%1" %*', "&Run")
@@ -441,11 +441,11 @@ def RegisterShellInfo(searchPaths):
     FindRegisterHelpFile("Python.hlp", searchPaths, "Main Python Documentation")
     FindRegisterHelpFile("ActivePython.chm", searchPaths, "Main Python Documentation")
 
-    # We consider the win32 core, as it contains all the win32 api type
-    # stuff we need.
+    # 048134.python.regsetup.line444.comment We consider the win32 core, as it contains all the win32 api type
+    # 048135.python.regsetup.line445.comment stuff we need.
 
 
-#       FindRegisterApp("win32", ["win32con.pyc", "win32api%s.pyd" % suffix], searchPaths)
+# 048136.python.regsetup.line448.comment FindRegisterApp("win32", ["win32con.pyc", "win32api%s.pyd" % suffix], searchPaths)
 
 usage = """\
 regsetup.py - Setup/maintain the registry for Python apps.
@@ -494,7 +494,7 @@ See also the "regcheck.py" utility which will check and dump the contents
 of the registry.
 """
 
-# Using raw string so that all paths meant to be copied read correctly inline and when printed
+# 048137.python.regsetup.line497.comment Using raw string so that all paths meant to be copied read correctly inline and when printed
 examples = r"""
 Examples:
 "regsetup c:\weird\spot\1 c:\weird\spot\2"
@@ -524,20 +524,20 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] in ["/?", "-?", "-help", "-h"]:
         print(usage)
     elif len(sys.argv) == 1 or not sys.argv[1][0] in ["/", "-"]:
-        # No args, or useful args.
+        # 048138.python.regsetup.line527.comment No args, or useful args.
         searchPath = sys.path[:]
         for arg in sys.argv[1:]:
             searchPath.append(arg)
-        # Good chance we are being run from the "regsetup.py" directory.
-        # Typically this will be "\somewhere\win32\Scripts" and the
-        # "somewhere" and "..\Lib" should also be searched.
+        # 048139.python.regsetup.line531.comment Good chance we are being run from the "regsetup.py" directory.
+        # 048140.python.regsetup.line532.comment Typically this will be "\somewhere\win32\Scripts" and the
+        # 048141.python.regsetup.line533.comment "somewhere" and "..\Lib" should also be searched.
         searchPath.append("..\\Build")
         searchPath.append("..\\Lib")
         searchPath.append("..")
         searchPath.append("..\\..")
 
-        # for developers:
-        # also search somewhere\lib, ..\build, and ..\..\build
+        # 048142.python.regsetup.line539.comment for developers:
+        # 048143.python.regsetup.line540.comment also search somewhere\lib, ..\build, and ..\..\build
         searchPath.append("..\\..\\lib")
         searchPath.append("..\\build")
         if "64 bit" in sys.version:
@@ -550,7 +550,7 @@ if __name__ == "__main__":
         SetupCore(searchPath)
         RegisterShellInfo(searchPath)
         FindRegisterHelpFile("PyWin32.chm", searchPath, "Pythonwin Reference")
-        # Check the registry.
+        # 048144.python.regsetup.line553.comment Check the registry.
         print("Registration complete - checking the registry...")
         import regcheck
 

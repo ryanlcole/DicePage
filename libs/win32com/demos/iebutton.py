@@ -1,9 +1,9 @@
 # -*- coding: latin-1 -*-
 
-# PyWin32 Internet Explorer Button
-#
-# written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# 049415.python.iebutton.line3.comment PyWin32 Internet Explorer Button
+# 049416.python.iebutton.line4.comment
+# 049417.python.iebutton.line5.comment written by Leonard Ritter (paniq@gmx.net)
+# 049418.python.iebutton.line6.comment and Robert Förtsch (info@robert-foertsch.com)
 
 
 """
@@ -24,15 +24,15 @@ To demonstrate:
 Contribtions to this sample to make it a little "friendlier" welcome!
 """
 
-# imports section
+# 049419.python.iebutton.line27.comment imports section
 
 import pythoncom
 import win32api
 import win32com
 import win32com.server.register
 
-# This demo uses 'print' - use win32traceutil to see it if we have no
-# console.
+# 049420.python.iebutton.line34.comment This demo uses 'print' - use win32traceutil to see it if we have no
+# 049421.python.iebutton.line35.comment console.
 try:
     win32api.GetConsoleTitle()
 except win32api.error:
@@ -41,11 +41,11 @@ except win32api.error:
 
 from win32com.axcontrol import axcontrol
 
-# ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
+# 049422.python.iebutton.line44.comment ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
 win32com.client.gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
 
 
-#
+# 049423.python.iebutton.line48.comment
 IObjectWithSite_methods = ["SetSite", "GetSite"]
 IOleCommandTarget_methods = ["Exec", "QueryStatus"]
 
@@ -84,23 +84,23 @@ class IEButton:
     _hot_icon_ = ""
 
     def __init__(self):
-        # put stubs for non-implemented methods
+        # 049425.python.iebutton.line87.comment put stubs for non-implemented methods
         for method in self._public_methods_:
             if not hasattr(self, method):
                 print("providing default stub for %s" % method)
                 setattr(self, method, Stub(method))
 
     def QueryStatus(self, pguidCmdGroup, prgCmds, cmdtextf):
-        # 'cmdtextf' is the 'cmdtextf' element from the OLECMDTEXT structure,
-        # or None if a NULL pointer was passed.
+        # 049426.python.iebutton.line94.comment 'cmdtextf' is the 'cmdtextf' element from the OLECMDTEXT structure,
+        # 049427.python.iebutton.line95.comment or None if a NULL pointer was passed.
         result = []
         for id, flags in prgCmds:
             flags |= axcontrol.OLECMDF_SUPPORTED | axcontrol.OLECMDF_ENABLED
             result.append((id, flags))
         if cmdtextf is None:
             cmdtext = None  # must return None if nothing requested.
-        # IE never seems to want any text - this code is here for
-        # demo purposes only
+        # 049429.python.iebutton.line102.comment IE never seems to want any text - this code is here for
+        # 049430.python.iebutton.line103.comment demo purposes only
         elif cmdtextf == axcontrol.OLECMDTEXTF_NAME:
             cmdtext = "IEButton Name"
         else:
@@ -110,22 +110,22 @@ class IEButton:
     def Exec(self, pguidCmdGroup, nCmdID, nCmdExecOpt, pvaIn):
         print(pguidCmdGroup, nCmdID, nCmdExecOpt, pvaIn)
         print("IOleCommandTarget::Exec called.")
-        # self.webbrowser.ShowBrowserBar(GUID_IETOOLBAR, not is_ietoolbar_visible())
+        # 049431.python.iebutton.line113.comment self.webbrowser.ShowBrowserBar(GUID_IETOOLBAR, not is_ietoolbar_visible())
 
     def SetSite(self, unknown):
         if unknown:
-            # first get a command target
+            # 049432.python.iebutton.line117.comment first get a command target
             cmdtarget = unknown.QueryInterface(axcontrol.IID_IOleCommandTarget)
-            # then travel over to a service provider
+            # 049433.python.iebutton.line119.comment then travel over to a service provider
             serviceprovider = cmdtarget.QueryInterface(pythoncom.IID_IServiceProvider)
-            # finally ask for the internet explorer application, returned as a dispatch object
+            # 049434.python.iebutton.line121.comment finally ask for the internet explorer application, returned as a dispatch object
             self.webbrowser = win32com.client.Dispatch(
                 serviceprovider.QueryService(
                     "{0002DF05-0000-0000-C000-000000000046}", pythoncom.IID_IDispatch
                 )
             )
         else:
-            # lose all references
+            # 049435.python.iebutton.line128.comment lose all references
             self.webbrowser = None
 
     def GetClassID(self):
@@ -183,9 +183,9 @@ def unregister(classobj):
         print("Deleted Standard toolbar regkey.")
 
 
-#
-# test implementation
-#
+# 049439.python.iebutton.line186.comment
+# 049440.python.iebutton.line187.comment test implementation
+# 049441.python.iebutton.line188.comment
 
 
 class PyWin32InternetExplorerButton(IEButton):

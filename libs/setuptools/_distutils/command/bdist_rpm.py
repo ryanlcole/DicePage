@@ -53,11 +53,11 @@ class bdist_rpm(Command):
         ('source-only', None, "only generate source RPM"),
         ('binary-only', None, "only generate binary RPM"),
         ('use-bzip2', None, "use bzip2 instead of gzip to create source distribution"),
-        # More meta-data: too RPM-specific to put in the setup script,
-        # but needs to go in the .spec file -- so we make these options
-        # to "bdist_rpm".  The idea is that packagers would put this
-        # info in setup.cfg, although they are of course free to
-        # supply it on the command line.
+        # 039337.python.bdist_rpm.line56.comment More meta-data: too RPM-specific to put in the setup script,
+        # 039338.python.bdist_rpm.line57.comment but needs to go in the .spec file -- so we make these options
+        # 039339.python.bdist_rpm.line58.comment to "bdist_rpm".  The idea is that packagers would put this
+        # 039340.python.bdist_rpm.line59.comment info in setup.cfg, although they are of course free to
+        # 039341.python.bdist_rpm.line60.comment supply it on the command line.
         (
             'distribution-name=',
             None,
@@ -87,7 +87,7 @@ class bdist_rpm(Command):
         ('build-requires=', None, "capabilities required to build this package"),
         ('obsoletes=', None, "capabilities made obsolete by this package"),
         ('no-autoreq', None, "do not automatically calculate dependencies"),
-        # Actions to take when building RPM
+        # 039342.python.bdist_rpm.line90.comment Actions to take when building RPM
         ('keep-temp', 'k', "don't clean up RPM build directory"),
         ('no-keep-temp', None, "clean up RPM build directory [default]"),
         (
@@ -98,7 +98,7 @@ class bdist_rpm(Command):
         ('no-rpm-opt-flags', None, "do not pass any RPM CFLAGS to compiler"),
         ('rpm3-mode', None, "RPM 3 compatibility mode (default)"),
         ('rpm2-mode', None, "RPM 2 compatibility mode"),
-        # Add the hooks necessary for specifying custom scripts
+        # 039343.python.bdist_rpm.line101.comment Add the hooks necessary for specifying custom scripts
         ('prep-script=', None, "Specify a script for the PREP phase of RPM building"),
         ('build-script=', None, "Specify a script for the BUILD phase of RPM building"),
         (
@@ -132,7 +132,7 @@ class bdist_rpm(Command):
             None,
             "Specify a script for the VERIFY phase of the RPM build",
         ),
-        # Allow a packager to explicitly force an architecture
+        # 039344.python.bdist_rpm.line135.comment Allow a packager to explicitly force an architecture
         ('force-arch=', None, "Force an architecture onto the RPM build process"),
         ('quiet', 'q', "Run the INSTALL phase of RPM building in quiet mode"),
     ]
@@ -222,7 +222,7 @@ class bdist_rpm(Command):
                 "cannot supply both '--source-only' and '--binary-only'"
             )
 
-        # don't pass CFLAGS to pure python distributions
+        # 039345.python.bdist_rpm.line225.comment don't pass CFLAGS to pure python distributions
         if not self.distribution.has_ext_modules():
             self.use_rpm_opt_flags = False
 
@@ -248,7 +248,7 @@ class bdist_rpm(Command):
         self.ensure_string('distribution_name')
 
         self.ensure_string('changelog')
-        # Format changelog correctly
+        # 039347.python.bdist_rpm.line251.comment Format changelog correctly
         self.changelog = self._format_changelog(self.changelog)
 
         self.ensure_filename('icon')
@@ -263,10 +263,10 @@ class bdist_rpm(Command):
         self.ensure_filename('pre_uninstall')
         self.ensure_filename('post_uninstall')
 
-        # XXX don't forget we punted on summaries and descriptions -- they
-        # should be handled here eventually!
+        # 039348.python.bdist_rpm.line266.comment XXX don't forget we punted on summaries and descriptions -- they
+        # 039349.python.bdist_rpm.line267.comment should be handled here eventually!
 
-        # Now *this* is some meta-data that belongs in the setup script...
+        # 039350.python.bdist_rpm.line269.comment Now *this* is some meta-data that belongs in the setup script...
         self.ensure_string_list('provides')
         self.ensure_string_list('requires')
         self.ensure_string_list('conflicts')
@@ -283,7 +283,7 @@ class bdist_rpm(Command):
             print("doc_files =", self.doc_files)
             print("changelog =", self.changelog)
 
-        # make directories
+        # 039352.python.bdist_rpm.line286.comment make directories
         if self.spec_only:
             spec_dir = self.dist_dir
             self.mkpath(spec_dir)
@@ -294,8 +294,8 @@ class bdist_rpm(Command):
                 self.mkpath(rpm_dir[d])
             spec_dir = rpm_dir['SPECS']
 
-        # Spec file goes into 'dist_dir' if '--spec-only specified',
-        # build/rpm.<plat> otherwise.
+        # 039353.python.bdist_rpm.line297.comment Spec file goes into 'dist_dir' if '--spec-only specified',
+        # 039354.python.bdist_rpm.line298.comment build/rpm.<plat> otherwise.
         spec_path = os.path.join(spec_dir, f"{self.distribution.get_name()}.spec")
         self.execute(
             write_file, (spec_path, self._make_spec_file()), f"writing '{spec_path}'"
@@ -304,8 +304,8 @@ class bdist_rpm(Command):
         if self.spec_only:  # stop if requested
             return
 
-        # Make a source distribution and copy to SOURCES directory with
-        # optional icon.
+        # 039356.python.bdist_rpm.line307.comment Make a source distribution and copy to SOURCES directory with
+        # 039357.python.bdist_rpm.line308.comment optional icon.
         saved_dist_files = self.distribution.dist_files[:]
         sdist = self.reinitialize_command('sdist')
         if self.use_bzip2:
@@ -325,7 +325,7 @@ class bdist_rpm(Command):
             else:
                 raise DistutilsFileError(f"icon file '{self.icon}' does not exist")
 
-        # build package
+        # 039358.python.bdist_rpm.line328.comment build package
         log.info("building RPMs")
         rpm_cmd = ['rpmbuild']
 
@@ -345,10 +345,10 @@ class bdist_rpm(Command):
             rpm_cmd.append('--quiet')
 
         rpm_cmd.append(spec_path)
-        # Determine the binary rpm names that should be built out of this spec
-        # file
-        # Note that some of these may not be really built (if the file
-        # list is empty)
+        # 039360.python.bdist_rpm.line348.comment Determine the binary rpm names that should be built out of this spec
+        # 039361.python.bdist_rpm.line349.comment file
+        # 039362.python.bdist_rpm.line350.comment Note that some of these may not be really built (if the file
+        # 039363.python.bdist_rpm.line351.comment list is empty)
         nvr_string = "%{name}-%{version}-%{release}"
         src_rpm = nvr_string + ".src.rpm"
         non_src_rpm = "%{arch}/" + nvr_string + ".%{arch}.rpm"
@@ -365,7 +365,7 @@ class bdist_rpm(Command):
                 ell = line.strip().split()
                 assert len(ell) == 2
                 binary_rpms.append(ell[1])
-                # The source rpm is named after the first entry in the spec file
+                # 039364.python.bdist_rpm.line368.comment The source rpm is named after the first entry in the spec file
                 if source_rpm is None:
                     source_rpm = ell[0]
 
@@ -410,7 +410,7 @@ class bdist_rpm(Command):
         """Generate the text of an RPM spec file and return it as a
         list of strings (one per line).
         """
-        # definitions and headers
+        # 039366.python.bdist_rpm.line413.comment definitions and headers
         spec_file = [
             '%define name ' + self.distribution.get_name(),
             '%define version ' + self.distribution.get_version().replace('-', '_'),
@@ -420,12 +420,12 @@ class bdist_rpm(Command):
             'Summary: ' + (self.distribution.get_description() or "UNKNOWN"),
         ]
 
-        # Workaround for #14443 which affects some RPM based systems such as
-        # RHEL6 (and probably derivatives)
+        # 039367.python.bdist_rpm.line423.comment Workaround for #14443 which affects some RPM based systems such as
+        # 039368.python.bdist_rpm.line424.comment RHEL6 (and probably derivatives)
         vendor_hook = subprocess.getoutput('rpm --eval %{__os_install_post}')
-        # Generate a potential replacement value for __os_install_post (whilst
-        # normalizing the whitespace to simplify the test for whether the
-        # invocation of brp-python-bytecompile passes in __python):
+        # 039369.python.bdist_rpm.line426.comment Generate a potential replacement value for __os_install_post (whilst
+        # 039370.python.bdist_rpm.line427.comment normalizing the whitespace to simplify the test for whether the
+        # 039371.python.bdist_rpm.line428.comment invocation of brp-python-bytecompile passes in __python):
         vendor_hook = '\n'.join([
             f'  {line.strip()} \\' for line in vendor_hook.splitlines()
         ])
@@ -436,12 +436,12 @@ class bdist_rpm(Command):
             spec_file.append('# Workaround for https://bugs.python.org/issue14443')
             spec_file.append('%define __os_install_post ' + fixed_hook + '\n')
 
-        # put locale summaries into spec file
-        # XXX not supported for now (hard to put a dictionary
-        # in a config file -- arg!)
-        # for locale in self.summaries.keys():
-        #    spec_file.append('Summary(%s): %s' % (locale,
-        #                                          self.summaries[locale]))
+        # 039372.python.bdist_rpm.line439.comment put locale summaries into spec file
+        # 039373.python.bdist_rpm.line440.comment XXX not supported for now (hard to put a dictionary
+        # 039374.python.bdist_rpm.line441.comment in a config file -- arg!)
+        # 039375.python.bdist_rpm.line442.comment for locale in self.summaries.keys():
+        # 039376.python.bdist_rpm.line443.comment spec_file.append('Summary(%s): %s' % (locale,
+        # 039377.python.bdist_rpm.line444.comment self.summaries[locale]))
 
         spec_file.extend([
             'Name: %{name}',
@@ -449,9 +449,9 @@ class bdist_rpm(Command):
             'Release: %{release}',
         ])
 
-        # XXX yuck! this filename is available from the "sdist" command,
-        # but only after it has run: and we create the spec file before
-        # running "sdist", in case of --spec-only.
+        # 039378.python.bdist_rpm.line452.comment XXX yuck! this filename is available from the "sdist" command,
+        # 039379.python.bdist_rpm.line453.comment but only after it has run: and we create the spec file before
+        # 039380.python.bdist_rpm.line454.comment running "sdist", in case of --spec-only.
         if self.use_bzip2:
             spec_file.append('Source0: %{name}-%{unmangled_version}.tar.bz2')
         else:
@@ -465,7 +465,7 @@ class bdist_rpm(Command):
         ])
 
         if not self.force_arch:
-            # noarch if no extension modules
+            # 039381.python.bdist_rpm.line468.comment noarch if no extension modules
             if not self.distribution.has_ext_modules():
                 spec_file.append('BuildArch: noarch')
         else:
@@ -506,28 +506,28 @@ class bdist_rpm(Command):
             self.distribution.get_long_description() or "",
         ])
 
-        # put locale descriptions into spec file
-        # XXX again, suppressed because config file syntax doesn't
-        # easily support this ;-(
-        # for locale in self.descriptions.keys():
-        #    spec_file.extend([
-        #        '',
-        #        '%description -l ' + locale,
-        #        self.descriptions[locale],
-        #        ])
+        # 039382.python.bdist_rpm.line509.comment put locale descriptions into spec file
+        # 039383.python.bdist_rpm.line510.comment XXX again, suppressed because config file syntax doesn't
+        # 039384.python.bdist_rpm.line511.comment easily support this ;-(
+        # 039385.python.bdist_rpm.line512.comment for locale in self.descriptions.keys():
+        # 039386.python.bdist_rpm.line513.comment spec_file.extend([
+        # 039387.python.bdist_rpm.line514.comment '',
+        # 039388.python.bdist_rpm.line515.comment '%description -l ' + locale,
+        # 039389.python.bdist_rpm.line516.comment self.descriptions[locale],
+        # 039390.python.bdist_rpm.line517.comment ])
 
-        # rpm scripts
-        # figure out default build script
+        # 039391.python.bdist_rpm.line519.comment rpm scripts
+        # 039392.python.bdist_rpm.line520.comment figure out default build script
         def_setup_call = f"{self.python} {os.path.basename(sys.argv[0])}"
         def_build = f"{def_setup_call} build"
         if self.use_rpm_opt_flags:
             def_build = 'env CFLAGS="$RPM_OPT_FLAGS" ' + def_build
 
-        # insert contents of files
+        # 039393.python.bdist_rpm.line526.comment insert contents of files
 
-        # XXX this is kind of misleading: user-supplied options are files
-        # that we open and interpolate into the spec file, but the defaults
-        # are just text that we drop in as-is.  Hmmm.
+        # 039394.python.bdist_rpm.line528.comment XXX this is kind of misleading: user-supplied options are files
+        # 039395.python.bdist_rpm.line529.comment that we open and interpolate into the spec file, but the defaults
+        # 039396.python.bdist_rpm.line530.comment are just text that we drop in as-is.  Hmmm.
 
         install_cmd = f'{def_setup_call} install -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES'
 
@@ -544,8 +544,8 @@ class bdist_rpm(Command):
         ]
 
         for rpm_opt, attr, default in script_options:
-            # Insert contents of file referred to, if no file is referred to
-            # use 'default' as contents of script
+            # 039397.python.bdist_rpm.line547.comment Insert contents of file referred to, if no file is referred to
+            # 039398.python.bdist_rpm.line548.comment use 'default' as contents of script
             val = getattr(self, attr)
             if val or default:
                 spec_file.extend([
@@ -558,7 +558,7 @@ class bdist_rpm(Command):
                 else:
                     spec_file.append(default)
 
-        # files section
+        # 039399.python.bdist_rpm.line561.comment files section
         spec_file.extend([
             '',
             '%files -f INSTALLED_FILES',
@@ -591,7 +591,7 @@ class bdist_rpm(Command):
             else:
                 new_changelog.append('  ' + line)
 
-        # strip trailing newline inserted by first changelog entry
+        # 039400.python.bdist_rpm.line594.comment strip trailing newline inserted by first changelog entry
         if not new_changelog[0]:
             del new_changelog[0]
 

@@ -12,7 +12,7 @@ from pyglet.image import codecs
 from pyglet.image.codecs import s3tc, ImageDecodeException
 
 
-# dwFlags of DDSURFACEDESC2
+# 030329.python.dds.line15.comment dwFlags of DDSURFACEDESC2
 DDSD_CAPS           = 0x00000001
 DDSD_HEIGHT         = 0x00000002
 DDSD_WIDTH          = 0x00000004
@@ -22,17 +22,17 @@ DDSD_MIPMAPCOUNT    = 0x00020000
 DDSD_LINEARSIZE     = 0x00080000
 DDSD_DEPTH          = 0x00800000
 
-# ddpfPixelFormat of DDSURFACEDESC2
+# 030330.python.dds.line25.comment ddpfPixelFormat of DDSURFACEDESC2
 DDPF_ALPHAPIXELS  	= 0x00000001
 DDPF_FOURCC 	    = 0x00000004
 DDPF_RGB 	        = 0x00000040
 
-# dwCaps1 of DDSCAPS2
+# 030331.python.dds.line30.comment dwCaps1 of DDSCAPS2
 DDSCAPS_COMPLEX  	= 0x00000008
 DDSCAPS_TEXTURE 	= 0x00001000
 DDSCAPS_MIPMAP 	    = 0x00400000
 
-# dwCaps2 of DDSCAPS2
+# 030332.python.dds.line35.comment dwCaps2 of DDSCAPS2
 DDSCAPS2_CUBEMAP 	        = 0x00000200
 DDSCAPS2_CUBEMAP_POSITIVEX  = 0x00000400
 DDSCAPS2_CUBEMAP_NEGATIVEX  = 0x00000800

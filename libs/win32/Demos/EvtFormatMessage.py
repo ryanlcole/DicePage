@@ -56,7 +56,7 @@ def main():
 
             try:
                 metadata = win32evtlog.EvtOpenPublisherMetadata(provider_name_value)
-            # pywintypes.error: (2, 'EvtOpenPublisherMetadata', 'The system cannot find the file specified.')
+            # 045979.python.EvtFormatMessage.line59.comment pywintypes.error: (2, 'EvtOpenPublisherMetadata', 'The system cannot find the file specified.')
             except Exception:
                 pass
             else:
@@ -64,18 +64,18 @@ def main():
                     message = win32evtlog.EvtFormatMessage(
                         metadata, event, win32evtlog.EvtFormatMessageEvent
                     )
-                # pywintypes.error: (15027, 'EvtFormatMessage: allocated 0, need buffer of size 0', 'The message resource is present but the message was not found in the message table.')
+                # 045980.python.EvtFormatMessage.line67.comment pywintypes.error: (15027, 'EvtFormatMessage: allocated 0, need buffer of size 0', 'The message resource is present but the message was not found in the message table.')
                 except Exception:
                     pass
                 else:
                     try:
                         print(f"    Message: {message}")
                     except UnicodeEncodeError:
-                        # Obscure error when run under subprocess.Popen(), presumably due to
-                        # not knowing the correct encoding for the console.
-                        # > UnicodeEncodeError: \'charmap\' codec can\'t encode character \'\\u200e\' in position 57: character maps to <undefined>\r\n'
-                        # Can't reproduce when running manually, so it seems more a subprocess.Popen()
-                        # than ours:
+                        # 045981.python.EvtFormatMessage.line74.comment Obscure error when run under subprocess.Popen(), presumably due to
+                        # 045982.python.EvtFormatMessage.line75.comment not knowing the correct encoding for the console.
+                        # 045983.python.EvtFormatMessage.line76.comment > UnicodeEncodeError: \'charmap\' codec can\'t encode character \'\\u200e\' in position 57: character maps to <undefined>\r\n'
+                        # 045984.python.EvtFormatMessage.line77.comment Can't reproduce when running manually, so it seems more a subprocess.Popen()
+                        # 045985.python.EvtFormatMessage.line78.comment than ours:
                         print(f" Failed to decode: {message!r}")
 
 

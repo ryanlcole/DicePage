@@ -1,7 +1,7 @@
-# Application stuff.
-# The application is responsible for managing the main frame window.
-#
-# We also grab the FileOpen command, to invoke our Python editor
+# 037184.python.app.line1.comment Application stuff.
+# 037185.python.app.line2.comment The application is responsible for managing the main frame window.
+# 037186.python.app.line3.comment
+# 037187.python.app.line4.comment We also grab the FileOpen command, to invoke our Python editor
 "The PythonWin application code. Manages most aspects of MDI, etc"
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from typing_extensions import Literal
 
 
-# Helper for writing a Window position by name, and later loading it.
+# 037188.python.app.line29.comment Helper for writing a Window position by name, and later loading it.
 def SaveWindowSize(section, rect, state=""):
     """Writes a rectangle to an INI file
     Args: section = section name in the applications INI file
@@ -56,9 +56,9 @@ def RectToCreateStructRect(rect):
     return (rect[3] - rect[1], rect[2] - rect[0], rect[1], rect[0])
 
 
-# Define FrameWindow and Application objects
-#
-# The Main Frame of the application.
+# 037189.python.app.line59.comment Define FrameWindow and Application objects
+# 037190.python.app.line60.comment
+# 037191.python.app.line61.comment The Main Frame of the application.
 class MainFrame(window.MDIFrameWnd):
     sectionPos = "Main Window"
     statusBarIndicators = (
@@ -108,7 +108,7 @@ class MainFrame(window.MDIFrameWnd):
         return cc
 
     def OnDestroy(self, msg):
-        # use GetWindowPlacement(), as it works even when min'd or max'd
+        # 037193.python.app.line111.comment use GetWindowPlacement(), as it works even when min'd or max'd
         rectNow = self.GetWindowPlacement()[4]
         if rectNow != self.startRect:
             SaveWindowSize(self.sectionPos, rectNow)
@@ -128,17 +128,17 @@ class CApp(WinApp):
         HookInput()
         numMRU = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
         win32ui.LoadStdProfileSettings(numMRU)
-        # self._obj_.InitMDIInstance()
+        # 037194.python.app.line131.comment self._obj_.InitMDIInstance()
 
-        # install a "callback caller" - a manager for the callbacks
-        # self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
+        # 037195.python.app.line133.comment install a "callback caller" - a manager for the callbacks
+        # 037196.python.app.line134.comment self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
         self.LoadMainFrame()
         self.SetApplicationPaths()
 
     def ExitInstance(self):
         "Called as the app dies - too late to prevent it here!"
         win32ui.OutputDebug("Application shutdown\n")
-        # Restore the callback manager, if any.
+        # 037197.python.app.line141.comment Restore the callback manager, if any.
         try:
             win32ui.InstallCallbackCaller(self.oldCallbackCaller)
         except AttributeError:
@@ -147,7 +147,7 @@ class CApp(WinApp):
             del self.oldCallbackCaller
         self.frame = None  # clean Python references to the now destroyed window object.
         self.idleHandlers = []
-        # Attempt cleanup if not already done!
+        # 037199.python.app.line150.comment Attempt cleanup if not already done!
         if self._obj_:
             self._obj_.AttachObject(None)
         self._obj_ = None
@@ -216,8 +216,8 @@ class CApp(WinApp):
             tb = None  # Prevent a cycle
 
     def DoLoadModules(self, modules):
-        # XXX - this should go, but the debugger uses it :-(
-        # don't do much checking!
+        # 037204.python.app.line219.comment XXX - this should go, but the debugger uses it :-(
+        # 037205.python.app.line220.comment don't do much checking!
         for module in modules:
             __import__(module)
 
@@ -229,13 +229,13 @@ class CApp(WinApp):
         self.HookCommand(self.OnHelpAbout, win32ui.ID_APP_ABOUT)
         self.HookCommand(self.OnHelp, win32ui.ID_HELP_PYTHON)
         self.HookCommand(self.OnHelp, win32ui.ID_HELP_GUI_REF)
-        # Hook for the right-click menu.
+        # 037206.python.app.line232.comment Hook for the right-click menu.
         self.frame.GetWindow(win32con.GW_CHILD).HookMessage(
             self.OnRClick, win32con.WM_RBUTTONDOWN
         )
 
     def SetApplicationPaths(self):
-        # Load the users/application paths
+        # 037207.python.app.line238.comment Load the users/application paths
         new_path = []
         apppath = win32ui.GetProfileVal("Python", "Application Path", "").split(";")
         for path in apppath:
@@ -254,7 +254,7 @@ class CApp(WinApp):
 
     def OnRClick(self, params):
         "Handle right click message"
-        # put up the entire FILE menu!
+        # 037208.python.app.line257.comment put up the entire FILE menu!
         menu = win32ui.LoadMenu(win32ui.IDR_TEXTTYPE).GetSubMenu(0)
         menu.TrackPopupMenu(params[5])  # track at mouse position.
         return 0
@@ -273,29 +273,29 @@ class CApp(WinApp):
 
         return 0
 
-    # No longer used by Pythonwin, as the C++ code has this same basic functionality
-    # but handles errors slightly better.
-    # It all still works, tho, so if you need similar functionality, you can use it.
-    # Therefore I haven't deleted this code completely!
-    # 	def CallbackManager( self, ob, args = () ):
-    # 		"""Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
-    # 		to the frame-work. """
-    # 		import traceback
-    # 		try:
-    # 			ret = apply(ob, args)
-    # 			return ret
-    # 		except:
-    # 			# take copies of the exception values, else other (handled) exceptions may get
-    # 			# copied over by the other fns called.
-    # 			win32ui.SetStatusText('An exception occurred in a windows command handler.')
-    # 			t, v, tb = sys.exc_info()
-    # 			traceback.print_exception(t, v, tb.tb_next)
-    # 			try:
-    # 				sys.stdout.flush()
-    # 			except (NameError, AttributeError):
-    # 				pass
+    # 037211.python.app.line276.comment No longer used by Pythonwin, as the C++ code has this same basic functionality
+    # 037212.python.app.line277.comment but handles errors slightly better.
+    # 037213.python.app.line278.comment It all still works, tho, so if you need similar functionality, you can use it.
+    # 037214.python.app.line279.comment Therefore I haven't deleted this code completely!
+    # 037215.python.app.line280.comment def CallbackManager( self, ob, args = () ):
+    # 037216.python.app.line281.comment """Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
+    # 037217.python.app.line282.comment to the frame-work. """
+    # 037218.python.app.line283.comment import traceback
+    # 037219.python.app.line284.comment try:
+    # 037220.python.app.line285.comment ret = apply(ob, args)
+    # 037221.python.app.line286.comment return ret
+    # 037222.python.app.line287.comment except:
+    # 037223.python.app.line288.comment # take copies of the exception values, else other (handled) exceptions may get
+    # 037224.python.app.line289.comment # copied over by the other fns called.
+    # 037225.python.app.line290.comment win32ui.SetStatusText('An exception occurred in a windows command handler.')
+    # 037226.python.app.line291.comment t, v, tb = sys.exc_info()
+    # 037227.python.app.line292.comment traceback.print_exception(t, v, tb.tb_next)
+    # 037228.python.app.line293.comment try:
+    # 037229.python.app.line294.comment sys.stdout.flush()
+    # 037230.python.app.line295.comment except (NameError, AttributeError):
+    # 037231.python.app.line296.comment pass
 
-    # Command handlers.
+    # 037232.python.app.line298.comment Command handlers.
     def OnFileMRU(self, id, code):
         "Called when a File 1-n message is received"
         fileName = win32ui.GetRecentFileList()[id - win32ui.ID_FILE_MRU_FILE1]
@@ -317,7 +317,7 @@ class CApp(WinApp):
 
 
 def _GetRegistryValue(key, val, default=None):
-    # val is registry value - None for default val.
+    # 037233.python.app.line320.comment val is registry value - None for default val.
     try:
         hkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, key)
         return win32api.RegQueryValueEx(hkey, val)[0]
@@ -334,7 +334,7 @@ idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and ot
 contributors = "Thanks to the following people for making significant contributions: Roger Upole, Sidnei da Silva, Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson, Laramie Leavitt. (let me know if I have forgotten you!)"
 
 
-# The About Box
+# 037234.python.app.line337.comment The About Box
 class AboutBox(dialog.Dialog):
     def __init__(self, idd=win32ui.IDD_ABOUTBOX):
         dialog.Dialog.__init__(self, idd)
@@ -369,7 +369,7 @@ class AboutBox(dialog.Dialog):
 
 def Win32Input(prompt=None):
     "Provide input() for gui apps"
-    # flush stderr/out first.
+    # 037235.python.app.line372.comment flush stderr/out first.
     try:
         sys.stdout.flush()
         sys.stderr.flush()
@@ -398,7 +398,7 @@ def CreateDefaultGUI(appClass=None):
         from . import intpyapp  # Bring in the default app - could be param'd later.
 
         appClass = intpyapp.InteractivePythonApp
-    # Create and init the app.
+    # 037237.python.app.line401.comment Create and init the app.
     appClass().InitInstance()
 
 

@@ -15,12 +15,12 @@ import winerror
 from win32com.server.exception import COMException
 
 
-# Expose the Python interpreter.
+# 049822.python.interp.line18.comment Expose the Python interpreter.
 class Interpreter:
     """The interpreter object exposed via COM"""
 
     _public_methods_ = ["Exec", "Eval"]
-    # All registration stuff to support fully automatic register/unregister
+    # 049823.python.interp.line23.comment All registration stuff to support fully automatic register/unregister
     _reg_verprogid_ = "Python.Interpreter.2"
     _reg_progid_ = "Python.Interpreter"
     _reg_desc_ = "Python Interpreter"

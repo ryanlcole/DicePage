@@ -29,7 +29,7 @@ if not pyglet.options["win32_disable_xinput"]:
 
         _xinput_enabled = True
     except OSError:
-        # Fail to import XInput.
+        # 030600.python.init.line32.comment Fail to import XInput.
         pass
 
 

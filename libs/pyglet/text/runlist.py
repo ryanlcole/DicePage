@@ -90,7 +90,7 @@ class RunList:
             i += run.count
         self.runs = [r for r in self.runs if r.count > 0]
 
-        # Don't leave an empty list
+        # 035904.python.runlist.line93.comment Don't leave an empty list
         if not self.runs:
             self.runs = [_Run(run.value, 0)]
 
@@ -109,7 +109,7 @@ class RunList:
         if end - start <= 0:
             return
 
-        # Find runs that need to be split
+        # 035905.python.runlist.line112.comment Find runs that need to be split
         i = 0
         start_i = None
         start_trim = 0
@@ -125,7 +125,7 @@ class RunList:
                 end_trim = end - i
             i += count
 
-        # Split runs
+        # 035906.python.runlist.line128.comment Split runs
         if start_i is not None:
             run = self.runs[start_i]
             self.runs.insert(start_i, _Run(run.value, start_trim))
@@ -139,14 +139,14 @@ class RunList:
             self.runs.insert(end_i, _Run(run.value, end_trim))
             run.count -= end_trim
 
-        # Set new value on runs
+        # 035907.python.runlist.line142.comment Set new value on runs
         i = 0
         for run in self.runs:
             if start <= i and i + run.count <= end:
                 run.value = value
             i += run.count
 
-        # Merge adjacent runs
+        # 035908.python.runlist.line149.comment Merge adjacent runs
         last_run = self.runs[0]
         for run in self.runs[1:]:
             if run.value == last_run.value:
@@ -154,7 +154,7 @@ class RunList:
                 last_run.count = 0
             last_run = run
 
-        # Delete collapsed runs
+        # 035909.python.runlist.line157.comment Delete collapsed runs
         self.runs = [r for r in self.runs if r.count > 0]
 
     def __iter__(self) -> Generator[tuple[int, int, Any], Any, None]:
@@ -181,7 +181,7 @@ class RunList:
                 return run.value
             i += run.count
 
-        # Append insertion point
+        # 035910.python.runlist.line184.comment Append insertion point
         if index == i:
             return self.runs[-1].value
 
@@ -264,7 +264,7 @@ class RunIterator(AbstractRunIterator):
     def __getitem__(self, index: int) -> Any:
         try:
             while index >= self.end and index > self.start:
-                # condition has special case for 0-length run (fixes issue 471)
+                # 035911.python.runlist.line267.comment condition has special case for 0-length run (fixes issue 471)
                 self.start, self.end, self.value = next(self)
             return self.value
         except StopIteration:
@@ -306,11 +306,11 @@ class OverriddenRunIterator(AbstractRunIterator):
 
     def ranges(self, start: int, end: int) -> Generator[tuple[int, int, Any], None, None]:
         if end <= self.override_start or start >= self.override_end:
-            # No overlap
+            # 035912.python.runlist.line309.comment No overlap
             for r in self.iter.ranges(start, end):
                 yield r
         else:
-            # Overlap: before, override, after
+            # 035913.python.runlist.line313.comment Overlap: before, override, after
             if start < self.override_start < end:
                 for r in self.iter.ranges(start, self.override_start):
                     yield r

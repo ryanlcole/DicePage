@@ -1,4 +1,4 @@
-# Ported from the win32 and MFC OpenGL Samples.
+# 036854.python.openGLDemo.line1.comment Ported from the win32 and MFC OpenGL Samples.
 
 import sys
 
@@ -85,14 +85,14 @@ PFD_DOUBLEBUFFER_DONTCARE = 0x40000000
 PFD_STEREO_DONTCARE = 0x80000000
 
 
-# threeto8 = [0, 0o111>>1, 0o222>>1, 0o333>>1, 0o444>>1, 0o555>>1, 0o666>>1, 0o377]
+# 036855.python.openGLDemo.line88.comment threeto8 = [0, 0o111>>1, 0o222>>1, 0o333>>1, 0o444>>1, 0o555>>1, 0o666>>1, 0o377]
 threeto8 = [0, 73 >> 1, 146 >> 1, 219 >> 1, 292 >> 1, 365 >> 1, 438 >> 1, 255]
 twoto8 = [0, 0x55, 0xAA, 0xFF]
 oneto8 = [0, 255]
 
 
 def ComponentFromIndex(i, nbits, shift):
-    # val = (unsigned char) (i >> shift);
+    # 036856.python.openGLDemo.line95.comment val = (unsigned char) (i >> shift);
     val = (i >> shift) & 0xF
     if nbits == 1:
         val &= 0x1
@@ -113,9 +113,9 @@ OpenGLViewParent = docview.ScrollView
 class OpenGLView(OpenGLViewParent):
     def PreCreateWindow(self, cc):
         self.HookMessage(self.OnSize, win32con.WM_SIZE)
-        # An OpenGL window must be created with the following flags and must not
-        # include CS_PARENTDC for the class style. Refer to SetPixelFormat
-        # documentation in the "Comments" section for further information.
+        # 036857.python.openGLDemo.line116.comment An OpenGL window must be created with the following flags and must not
+        # 036858.python.openGLDemo.line117.comment include CS_PARENTDC for the class style. Refer to SetPixelFormat
+        # 036859.python.openGLDemo.line118.comment documentation in the "Comments" section for further information.
         style = cc[5]
         style |= win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
         cc = cc[0], cc[1], cc[2], cc[3], cc[4], style, cc[6], cc[7], cc[8]
@@ -141,7 +141,7 @@ class OpenGLView(OpenGLViewParent):
         )  # or SetScrollSizes() - A Pythonwin requirement
         return self._obj_.OnInitialUpdate()
 
-    # 		return rc
+    # 036861.python.openGLDemo.line144.comment return rc
 
     def OnCreate(self, cs):
         self.oldrect = self.GetClientRect()
@@ -159,7 +159,7 @@ class OpenGLView(OpenGLViewParent):
     def OnEraseBkgnd(self, dc):
         return 1
 
-    # The OpenGL helpers
+    # 036862.python.openGLDemo.line162.comment The OpenGL helpers
     def _SetupPixelFormat(self):
         dc = self.dc.GetSafeHdc()
         pfd = PIXELFORMATDESCRIPTOR()
@@ -203,7 +203,7 @@ class OpenGLView(OpenGLViewParent):
         if hrc:
             wglDeleteContext(hrc)
 
-    # The methods to support OpenGL
+    # 036863.python.openGLDemo.line206.comment The methods to support OpenGL
     def DrawScene(self):
         raise NotImplementedError("You must override this method")
 
@@ -265,7 +265,7 @@ class TestView(OpenGLView):
         gluQuadricDrawStyle(quadObj, GLU_FILL)
         gluQuadricNormals(quadObj, GLU_SMOOTH)
         gluCylinder(quadObj, 1.0, 0.0, 1.0, 20, 10)
-        # 		gluDeleteQuadric(quadObj);
+        # 036865.python.openGLDemo.line268.comment gluDeleteQuadric(quadObj);
         glPopMatrix()
 
     def _DrawPyramid(self):
@@ -407,7 +407,7 @@ class CubeView(OpenGLView):
 
 def test():
     template = docview.DocTemplate(None, None, None, CubeView)
-    # 	template = docview.DocTemplate(None, None, None, TestView )
+    # 036867.python.openGLDemo.line410.comment template = docview.DocTemplate(None, None, None, TestView )
     template.OpenDocumentFile(None)
 
 

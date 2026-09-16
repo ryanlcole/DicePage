@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009619.python.makespec.line1.comment -----------------------------------------------------------------------------
+# 009620.python.makespec.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 009621.python.makespec.line3.comment
+# 009622.python.makespec.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009623.python.makespec.line5.comment or later) with exception for distributing the bootloader.
+# 009624.python.makespec.line6.comment
+# 009625.python.makespec.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009626.python.makespec.line8.comment
+# 009627.python.makespec.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009628.python.makespec.line10.comment -----------------------------------------------------------------------------
 """
 Automatically build a spec file containing the description of the project.
 """
@@ -43,7 +43,7 @@ def run():
     args = p.parse_args()
     PyInstaller.log.__process_options(p, args)
 
-    # Split pathex by using the path separator.
+    # 009629.python.makespec.line46.comment Split pathex by using the path separator.
     temppaths = args.pathex[:]
     args.pathex = []
     for p in temppaths:

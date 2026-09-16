@@ -44,7 +44,7 @@ def safe_id(value, label):
 
 
 def safe_note(value, maximum=1000):
-    # Human-authored review notes may be retained, but security payloads never use this helper.
+    # 000052.python.rist_external_ai_handler.line47.comment Human-authored review notes may be retained, but security payloads never use this helper.
     return str(value or "").strip()[:maximum]
 
 
@@ -287,8 +287,8 @@ def human_handler(event, context):
         return response(401, {"error": "Authentication required"})
     user_id = session["userId"]
     if not (owner_user_id and user_id == owner_user_id):
-        # GM/world-role authorization will be connected to the platform membership table before public release.
-        # Until then, this console is platform-owner-only and therefore fails closed.
+        # 000053.python.rist_external_ai_handler.line290.comment GM/world-role authorization will be connected to the platform membership table before public release.
+        # 000054.python.rist_external_ai_handler.line291.comment Until then, this console is platform-owner-only and therefore fails closed.
         return response(403, {"error": "Platform owner authority required"})
 
     q = event.get("queryStringParameters") or {}

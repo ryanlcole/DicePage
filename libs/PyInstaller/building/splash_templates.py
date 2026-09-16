@@ -1,13 +1,13 @@
-# -----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-# -----------------------------------------------------------------------------
+# 001501.python.splash_templates.line1.comment -----------------------------------------------------------------------------
+# 001502.python.splash_templates.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 001503.python.splash_templates.line3.comment
+# 001504.python.splash_templates.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 001505.python.splash_templates.line5.comment or later) with exception for distributing the bootloader.
+# 001506.python.splash_templates.line6.comment
+# 001507.python.splash_templates.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 001508.python.splash_templates.line8.comment
+# 001509.python.splash_templates.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 001510.python.splash_templates.line10.comment -----------------------------------------------------------------------------
 """
 Templates for the splash screen tcl script.
 """
@@ -151,7 +151,7 @@ wm attributes . -transparentcolor magenta
 """
 
 elif is_darwin:
-    # This is untested, but should work following: https://stackoverflow.com/a/44296157/5869139
+    # 001511.python.splash_templates.line154.comment This is untested, but should work following: https://stackoverflow.com/a/44296157/5869139
     transparent_setup = r"""
 wm attributes . -transparent 1
 . configure -background systemTransparent
@@ -159,7 +159,7 @@ wm attributes . -transparent 1
 """
 
 else:
-    # For Linux there is no common way to create a transparent window
+    # 001512.python.splash_templates.line162.comment For Linux there is no common way to create a transparent window
     transparent_setup = r""
 
 pack_widgets = r"""
@@ -168,7 +168,7 @@ pack .root
 grid .root.canvas   -column 0 -row 0 -columnspan 1 -rowspan 2
 """
 
-# Enable always-on-top behavior, by setting overrideredirect and the topmost attribute.
+# 001513.python.splash_templates.line171.comment Enable always-on-top behavior, by setting overrideredirect and the topmost attribute.
 position_window_on_top = r"""
 # Set position and mode of the window - always-on-top behavior
 wm overrideredirect . 1
@@ -176,10 +176,10 @@ wm geometry         . +${x_position}+${y_position}
 wm attributes       . -topmost 1
 """
 
-# Disable always-on-top behavior
+# 001514.python.splash_templates.line179.comment Disable always-on-top behavior
 if is_win or is_cygwin or is_darwin:
-    # On Windows, we disable the always-on-top behavior while still setting overrideredirect
-    # (to disable window decorations), but set topmost attribute to 0.
+    # 001515.python.splash_templates.line181.comment On Windows, we disable the always-on-top behavior while still setting overrideredirect
+    # 001516.python.splash_templates.line182.comment (to disable window decorations), but set topmost attribute to 0.
     position_window = r"""
 # Set position and mode of the window
 wm overrideredirect . 1
@@ -187,9 +187,9 @@ wm geometry         . +${x_position}+${y_position}
 wm attributes       . -topmost 0
 """
 else:
-    # On Linux, we must not use overrideredirect; instead, we set X11-specific type attribute to splash,
-    # which lets the window manager to properly handle the splash screen (without window decorations
-    # but allowing other windows to be brought to front).
+    # 001517.python.splash_templates.line190.comment On Linux, we must not use overrideredirect; instead, we set X11-specific type attribute to splash,
+    # 001518.python.splash_templates.line191.comment which lets the window manager to properly handle the splash screen (without window decorations
+    # 001519.python.splash_templates.line192.comment but allowing other windows to be brought to front).
     position_window = r"""
 # Set position and mode of the window
 wm geometry         . +${x_position}+${y_position}
@@ -205,7 +205,7 @@ def build_script(text_options=None, always_on_top=False):
     """
     This function builds the tcl script for the splash screen.
     """
-    # Order is important!
+    # 001520.python.splash_templates.line208.comment Order is important!
     script = [
         ipc_script,
         image_script,
@@ -213,7 +213,7 @@ def build_script(text_options=None, always_on_top=False):
     ]
 
     if text_options:
-        # If the default font is used we need a different syntax
+        # 001521.python.splash_templates.line216.comment If the default font is used we need a different syntax
         if text_options['font'] == "TkDefaultFont":
             script.append(splash_canvas_default_font % text_options)
         else:

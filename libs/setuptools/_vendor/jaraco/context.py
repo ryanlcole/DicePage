@@ -54,10 +54,10 @@ def tarball(
     """
     if target_dir is None:
         target_dir = os.path.basename(url).replace('.tar.gz', '').replace('.tgz', '')
-    # In the tar command, use --strip-components=1 to strip the first path and
-    #  then
-    #  use -C to cause the files to be extracted to {target_dir}. This ensures
-    #  that we always know where the files were extracted.
+    # 042371.python.context.line57.comment In the tar command, use --strip-components=1 to strip the first path and
+    # 042372.python.context.line58.comment then
+    # 042373.python.context.line59.comment use -C to cause the files to be extracted to {target_dir}. This ensures
+    # 042374.python.context.line60.comment that we always know where the files were extracted.
     os.mkdir(target_dir)
     try:
         req = urllib.request.urlopen(url)
@@ -139,10 +139,10 @@ def infer_compression(url):
         DeprecationWarning,
         stacklevel=2,
     )
-    # cheat and just assume it's the last two characters
+    # 042375.python.context.line142.comment cheat and just assume it's the last two characters
     compression_indicator = url[-2:]
     mapping = dict(gz='z', bz='j', xz='J')
-    # Assume 'z' (gzip) if no match
+    # 042376.python.context.line145.comment Assume 'z' (gzip) if no match
     return mapping.get(compression_indicator, 'z')
 
 

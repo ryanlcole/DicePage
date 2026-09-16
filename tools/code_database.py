@@ -535,21 +535,21 @@ def ingest_errors(db: sqlite3.Connection) -> dict:
                        (error_id, fingerprint, language, error_code, normalized, seen_at, seen_at, count))
         canonical = db.execute("SELECT error_id FROM error_signatures WHERE fingerprint=?", (fingerprint,)).fetchone()[0]
         code_id, chid = lookup_code_context(db, path, code_line)
-        # Avoid double-counting the same persistent log record on every rebuild.
+        # 052595.python.code_database.line538.comment Avoid double-counting the same persistent log record on every rebuild.
         duplicate = db.execute("SELECT 1 FROM error_events WHERE error_id=? AND source_log=? AND source_log_line=? AND raw_message=? LIMIT 1",
                                (canonical, record["source"], record["source_line"], message)).fetchone()
         if duplicate: continue
         db.execute("INSERT INTO error_events(error_id, seen_at, raw_message, source_log, source_log_line, language, code_path, code_line, code_id, chid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                    (canonical, seen_at, message, record["source"], record["source_line"], language, path, code_line, code_id, chid))
         events += 1
-    # Recompute occurrence counts from actual unique events so rebuilds stay deterministic.
+    # 052596.python.code_database.line545.comment Recompute occurrence counts from actual unique events so rebuilds stay deterministic.
     db.execute("UPDATE error_signatures SET occurrence_count=(SELECT COUNT(*) FROM error_events e WHERE e.error_id=error_signatures.error_id)")
     db.execute("UPDATE error_signatures SET repeat_flag=CASE WHEN occurrence_count>=? THEN 1 ELSE 0 END", (repeat_threshold,))
     return {"new_error_events": events, "repeat_observations": repeats, "regression_observations": regressions}
 
 
 def build_database(rows: list[dict], symbols: list[Symbol], refs: list[Ref], registry: dict) -> dict:
-    # Preserve prior error/resolution history across graph regeneration.
+    # 052597.python.code_database.line552.comment Preserve prior error/resolution history across graph regeneration.
     old_errors: list[tuple] = []; old_events: list[tuple] = []; old_resolutions: list[tuple] = []
     if DATABASE_PATH.exists():
         try:

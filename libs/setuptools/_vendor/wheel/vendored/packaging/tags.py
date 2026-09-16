@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 044113.python.tags.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 044114.python.tags.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 044115.python.tags.line3.comment for complete details.
 
 import logging
 import platform
@@ -56,11 +56,11 @@ class Tag:
         self._interpreter = interpreter.lower()
         self._abi = abi.lower()
         self._platform = platform.lower()
-        # The __hash__ of every single element in a Set[Tag] will be evaluated each time
-        # that a set calls its `.disjoint()` method, which may be called hundreds of
-        # times when scanning a page of links for packages with tags matching that
-        # Set[Tag]. Pre-computing the value here produces significant speedups for
-        # downstream consumers.
+        # 044117.python.tags.line59.comment The __hash__ of every single element in a Set[Tag] will be evaluated each time
+        # 044118.python.tags.line60.comment that a set calls its `.disjoint()` method, which may be called hundreds of
+        # 044119.python.tags.line61.comment times when scanning a page of links for packages with tags matching that
+        # 044120.python.tags.line62.comment Set[Tag]. Pre-computing the value here produces significant speedups for
+        # 044121.python.tags.line63.comment downstream consumers.
         self._hash = hash((self._interpreter, self._abi, self._platform))
 
     @property
@@ -133,7 +133,7 @@ def _is_threaded_cpython(abis: List[str]) -> bool:
     """
     if len(abis) == 0:
         return False
-    # expect e.g., cp313
+    # 044123.python.tags.line136.comment expect e.g., cp313
     m = re.match(r"cp\d+(.*)", abis[0])
     if not m:
         return False
@@ -158,9 +158,9 @@ def _cpython_abis(py_version: PythonVersion, warn: bool = False) -> List[str]:
     threading = debug = pymalloc = ucs4 = ""
     with_debug = _get_config_var("Py_DEBUG", warn)
     has_refcount = hasattr(sys, "gettotalrefcount")
-    # Windows doesn't set Py_DEBUG, so checking for support of debug-compiled
-    # extension modules is the best option.
-    # https://github.com/pypa/pip/issues/3383#issuecomment-173267692
+    # 044125.python.tags.line161.comment Windows doesn't set Py_DEBUG, so checking for support of debug-compiled
+    # 044126.python.tags.line162.comment extension modules is the best option.
+    # 044127.python.tags.line163.comment https://github.com/pypa/pip/issues/3383#issuecomment-173267692
     has_ext = "_d.pyd" in EXTENSION_SUFFIXES
     if with_debug or (with_debug is None and (has_refcount or has_ext)):
         debug = "d"
@@ -177,8 +177,8 @@ def _cpython_abis(py_version: PythonVersion, warn: bool = False) -> List[str]:
             ):
                 ucs4 = "u"
     elif debug:
-        # Debug builds can also load "normal" extension modules.
-        # We can also assume no UCS-4 or pymalloc requirement.
+        # 044128.python.tags.line180.comment Debug builds can also load "normal" extension modules.
+        # 044129.python.tags.line181.comment We can also assume no UCS-4 or pymalloc requirement.
         abis.append(f"cp{version}{threading}")
     abis.insert(0, f"cp{version}{threading}{debug}{pymalloc}{ucs4}")
     return abis
@@ -217,7 +217,7 @@ def cpython_tags(
         else:
             abis = []
     abis = list(abis)
-    # 'abi3' and 'none' are explicitly handled later.
+    # 044130.python.tags.line220.comment 'abi3' and 'none' are explicitly handled later.
     for explicit_abi in ("abi3", "none"):
         try:
             abis.remove(explicit_abi)
@@ -248,37 +248,37 @@ def _generic_abi() -> List[str]:
     """
     Return the ABI tag based on EXT_SUFFIX.
     """
-    # The following are examples of `EXT_SUFFIX`.
-    # We want to keep the parts which are related to the ABI and remove the
-    # parts which are related to the platform:
-    # - linux:   '.cpython-310-x86_64-linux-gnu.so' => cp310
-    # - mac:     '.cpython-310-darwin.so'           => cp310
-    # - win:     '.cp310-win_amd64.pyd'             => cp310
-    # - win:     '.pyd'                             => cp37 (uses _cpython_abis())
-    # - pypy:    '.pypy38-pp73-x86_64-linux-gnu.so' => pypy38_pp73
-    # - graalpy: '.graalpy-38-native-x86_64-darwin.dylib'
-    #                                               => graalpy_38_native
+    # 044131.python.tags.line251.comment The following are examples of `EXT_SUFFIX`.
+    # 044132.python.tags.line252.comment We want to keep the parts which are related to the ABI and remove the
+    # 044133.python.tags.line253.comment parts which are related to the platform:
+    # 044134.python.tags.line254.comment - linux:   '.cpython-310-x86_64-linux-gnu.so' => cp310
+    # 044135.python.tags.line255.comment - mac:     '.cpython-310-darwin.so'           => cp310
+    # 044136.python.tags.line256.comment - win:     '.cp310-win_amd64.pyd'             => cp310
+    # 044137.python.tags.line257.comment - win:     '.pyd'                             => cp37 (uses _cpython_abis())
+    # 044138.python.tags.line258.comment - pypy:    '.pypy38-pp73-x86_64-linux-gnu.so' => pypy38_pp73
+    # 044139.python.tags.line259.comment - graalpy: '.graalpy-38-native-x86_64-darwin.dylib'
+    # 044140.python.tags.line260.comment => graalpy_38_native
 
     ext_suffix = _get_config_var("EXT_SUFFIX", warn=True)
     if not isinstance(ext_suffix, str) or ext_suffix[0] != ".":
         raise SystemError("invalid sysconfig.get_config_var('EXT_SUFFIX')")
     parts = ext_suffix.split(".")
     if len(parts) < 3:
-        # CPython3.7 and earlier uses ".pyd" on Windows.
+        # 044141.python.tags.line267.comment CPython3.7 and earlier uses ".pyd" on Windows.
         return _cpython_abis(sys.version_info[:2])
     soabi = parts[1]
     if soabi.startswith("cpython"):
-        # non-windows
+        # 044142.python.tags.line271.comment non-windows
         abi = "cp" + soabi.split("-")[1]
     elif soabi.startswith("cp"):
-        # windows
+        # 044143.python.tags.line274.comment windows
         abi = soabi.split("-")[0]
     elif soabi.startswith("pypy"):
         abi = "-".join(soabi.split("-")[:2])
     elif soabi.startswith("graalpy"):
         abi = "-".join(soabi.split("-")[:3])
     elif soabi:
-        # pyston, ironpython, others?
+        # 044144.python.tags.line281.comment pyston, ironpython, others?
         abi = soabi
     else:
         return []
@@ -379,7 +379,7 @@ def _mac_binary_formats(version: MacVersion, cpu_arch: str) -> List[str]:
         formats.extend(["intel", "fat32", "fat"])
 
     elif cpu_arch == "ppc64":
-        # TODO: Need to care about 32-bit PPC for ppc64 through 10.2?
+        # 044145.python.tags.line382.comment TODO: Need to care about 32-bit PPC for ppc64 through 10.2?
         if version > (10, 5) or version < (10, 4):
             return []
         formats.append("fat64")
@@ -413,8 +413,8 @@ def mac_platforms(
     if version is None:
         version = cast("MacVersion", tuple(map(int, version_str.split(".")[:2])))
         if version == (10, 16):
-            # When built against an older macOS SDK, Python will report macOS 10.16
-            # instead of the real version.
+            # 044146.python.tags.line416.comment When built against an older macOS SDK, Python will report macOS 10.16
+            # 044147.python.tags.line417.comment instead of the real version.
             version_str = subprocess.run(
                 [
                     sys.executable,
@@ -436,8 +436,8 @@ def mac_platforms(
         arch = arch
 
     if (10, 0) <= version and version < (11, 0):
-        # Prior to Mac OS 11, each yearly release of Mac OS bumped the
-        # "minor" version number.  The major version was always 10.
+        # 044148.python.tags.line439.comment Prior to Mac OS 11, each yearly release of Mac OS bumped the
+        # 044149.python.tags.line440.comment "minor" version number.  The major version was always 10.
         for minor_version in range(version[1], -1, -1):
             compat_version = 10, minor_version
             binary_formats = _mac_binary_formats(compat_version, arch)
@@ -447,8 +447,8 @@ def mac_platforms(
                 )
 
     if version >= (11, 0):
-        # Starting with Mac OS 11, each yearly release bumps the major version
-        # number.   The minor versions are now the midyear updates.
+        # 044150.python.tags.line450.comment Starting with Mac OS 11, each yearly release bumps the major version
+        # 044151.python.tags.line451.comment number.   The minor versions are now the midyear updates.
         for major_version in range(version[0], 10, -1):
             compat_version = major_version, 0
             binary_formats = _mac_binary_formats(compat_version, arch)
@@ -458,13 +458,13 @@ def mac_platforms(
                 )
 
     if version >= (11, 0):
-        # Mac OS 11 on x86_64 is compatible with binaries from previous releases.
-        # Arm64 support was introduced in 11.0, so no Arm binaries from previous
-        # releases exist.
-        #
-        # However, the "universal2" binary format can have a
-        # macOS version earlier than 11.0 when the x86_64 part of the binary supports
-        # that version of macOS.
+        # 044152.python.tags.line461.comment Mac OS 11 on x86_64 is compatible with binaries from previous releases.
+        # 044153.python.tags.line462.comment Arm64 support was introduced in 11.0, so no Arm binaries from previous
+        # 044154.python.tags.line463.comment releases exist.
+        # 044155.python.tags.line464.comment
+        # 044156.python.tags.line465.comment However, the "universal2" binary format can have a
+        # 044157.python.tags.line466.comment macOS version earlier than 11.0 when the x86_64 part of the binary supports
+        # 044158.python.tags.line467.comment that version of macOS.
         if arch == "x86_64":
             for minor_version in range(16, 3, -1):
                 compat_version = 10, minor_version
@@ -489,7 +489,7 @@ def mac_platforms(
 def _linux_platforms(is_32bit: bool = _32_BIT_INTERPRETER) -> Iterator[str]:
     linux = _normalize_string(sysconfig.get_platform())
     if not linux.startswith("linux_"):
-        # we should never be here, just yield the sysconfig one and return
+        # 044159.python.tags.line492.comment we should never be here, just yield the sysconfig one and return
         yield linux
         return
     if is_32bit:

@@ -85,7 +85,7 @@ class GUID(ctypes.Structure):
             msg = f"Invalid GUID format: {text}"
             raise ValueError(msg)
 
-        # Convert matched hex values into integers
+        # 031687.python.com.line88.comment Convert matched hex values into integers
         d1 = int(match.group(1), 16)
         d2 = int(match.group(2), 16)
         d3 = int(match.group(3), 16)
@@ -175,31 +175,31 @@ class _InterfaceMeta(_StructMeta):
         super().__init__(name, bases, dct)
 
         if create_pointer_type:
-            # Unless this is the construction of `Interface` or we're already being created
-            # from a pInterface subclass as a helper interface, create a special
-            # _pInterfaceMeta-based subclass so a link is created in the ctypes pointer cache
+            # 031689.python.com.line178.comment Unless this is the construction of `Interface` or we're already being created
+            # 031690.python.com.line179.comment from a pInterface subclass as a helper interface, create a special
+            # 031691.python.com.line180.comment _pInterfaceMeta-based subclass so a link is created in the ctypes pointer cache
             _pInterfaceMeta(f"p{name}", (ctypes.POINTER(bases[0]),), {'_type_': self})
 
 
 class _pInterfaceMeta(_PointerMeta):
     def __new__(cls, name, bases, dct):
-        # Interfaces can also be declared by inheritance of pInterface subclasses.
-        # If this happens, create the interface and then become pointer to its struct.
+        # 031692.python.com.line186.comment Interfaces can also be declared by inheritance of pInterface subclasses.
+        # 031693.python.com.line187.comment If this happens, create the interface and then become pointer to its struct.
 
         target = dct.get('_type_', None)
-        # If we weren't created due to an Interface subclass definition (don't have a _type_),
-        # just define that Interface subclass from our base's _type_
+        # 031694.python.com.line190.comment If we weren't created due to an Interface subclass definition (don't have a _type_),
+        # 031695.python.com.line191.comment just define that Interface subclass from our base's _type_
         if target is None:
             interface_base = bases[0]._type_
 
-            # Create corresponding interface type and then set it as target
+            # 031696.python.com.line195.comment Create corresponding interface type and then set it as target
             target = _InterfaceMeta(f"_{name}_HelperInterface",
                                     (interface_base,),
                                     {'_methods_': dct.get('_methods_', ())},
                                     create_pointer_type=False)
             dct['_type_'] = target
 
-        # Create method proxies that will forward ourselves into the interface's methods
+        # 031697.python.com.line202.comment Create method proxies that will forward ourselves into the interface's methods
         for i, (method_name, method) in enumerate(target._methods_):
             m = method.get_com_proxy(i + target.vtbl_own_offset, method_name)
             def pinterface_method_forward(self, *args, _m=m, _i=i):
@@ -210,14 +210,14 @@ class _pInterfaceMeta(_PointerMeta):
 
         pointer_type = super().__new__(cls, name, bases, dct)
 
-        # Hack selves into the ctypes pointer cache so all uses of `ctypes.POINTER` on the
-        # interface type will yield it instead of the inflexible standard pointer type.
-        # NOTE: This is done pretty much exclusively to help convert COMObjects.
-        # Some additional work from callers like
-        # RegisterCallback(callback_obj.as_interface(ICallback))
-        # instead of
-        # RegisterCallback(callback_obj)
-        # could make it obsolete.
+        # 031698.python.com.line213.comment Hack selves into the ctypes pointer cache so all uses of `ctypes.POINTER` on the
+        # 031699.python.com.line214.comment interface type will yield it instead of the inflexible standard pointer type.
+        # 031700.python.com.line215.comment NOTE: This is done pretty much exclusively to help convert COMObjects.
+        # 031701.python.com.line216.comment Some additional work from callers like
+        # 031702.python.com.line217.comment RegisterCallback(callback_obj.as_interface(ICallback))
+        # 031703.python.com.line218.comment instead of
+        # 031704.python.com.line219.comment RegisterCallback(callback_obj)
+        # 031705.python.com.line220.comment could make it obsolete.
         from ctypes import _pointer_type_cache  # noqa
         _pointer_type_cache[target] = pointer_type
 
@@ -284,7 +284,7 @@ def _found_impl(interface_name, method_name, method_func, self_distance):
         assert _debug_com(f"COMObject method {method_name} called through interface {interface_name}")
         self = ctypes.cast(p + self_distance, ctypes.POINTER(ctypes.py_object)).contents.value
         result = method_func(self, *args)
-        # Assume no return statement translates to success
+        # 031707.python.com.line287.comment Assume no return statement translates to success
         return S_OK if result is None else result
 
     return self_extracting_cb_func
@@ -331,15 +331,15 @@ class COMObject:
                 if issubclass(interface_type, other):
                     raise TypeError("Only specify the leaf interfaces")
 
-        # Sanity check done
+        # 031708.python.com.line334.comment Sanity check done
 
         _ptr_size = ctypes.sizeof(ctypes.c_void_p)
 
         _vtbl_pointers = []
         implemented_methods = {}
 
-        # Map all leaf and inherited interfaces to the offset of the vtable containing
-        # their implementations
+        # 031709.python.com.line341.comment Map all leaf and inherited interfaces to the offset of the vtable containing
+        # 031710.python.com.line342.comment their implementations
         _interface_to_vtbl_offset = {}
         for i, interface_type in enumerate(implemented_leaf_interfaces):
             bases = interface_type.get_interface_inheritance()
@@ -373,9 +373,9 @@ class COMObject:
 
             for method_name, method_type in interface_type._vtbl_struct_type._fields_:
                 if method_name in implemented_methods:
-                    # Method is already implemented on a previous interface; redirect to it
-                    # See https://devblogs.microsoft.com/oldnewthing/20040206-00/?p=40723
-                    # NOTE: Never tested, might be totally wrong
+                    # 031711.python.com.line376.comment Method is already implemented on a previous interface; redirect to it
+                    # 031712.python.com.line377.comment See https://devblogs.microsoft.com/oldnewthing/20040206-00/?p=40723
+                    # 031713.python.com.line378.comment NOTE: Never tested, might be totally wrong
                     func, implementing_vtbl_idx = implemented_methods[method_name]
                     mth = _adjust_impl(interface_type.__name__,
                                        method_name,
@@ -412,11 +412,11 @@ class COMObject:
         self._struct = self._struct_type(*self._vtbl_pointers, ctypes.py_object(self))
 
     def as_interface(self, interface_type):
-        # This method ignores the QueryInterface mechanism completely; no GUIDs are
-        # associated with Interfaces on the python side, it can't be supported.
-        # Still works, as so far none of the python-made COMObjects are expected to
-        # support it by any C code.
-        # (Also no need to always implement it, some COMObjects do not inherit from IUnknown.)
+        # 031714.python.com.line415.comment This method ignores the QueryInterface mechanism completely; no GUIDs are
+        # 031715.python.com.line416.comment associated with Interfaces on the python side, it can't be supported.
+        # 031716.python.com.line417.comment Still works, as so far none of the python-made COMObjects are expected to
+        # 031717.python.com.line418.comment support it by any C code.
+        # 031718.python.com.line419.comment (Also no need to always implement it, some COMObjects do not inherit from IUnknown.)
         if (offset := self._interface_to_vtbl_offset.get(interface_type, None)) is None:
             raise TypeError(f"Does not implement {interface_type}")
 

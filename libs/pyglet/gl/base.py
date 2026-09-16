@@ -34,37 +34,37 @@ class Config:
     are set with a string key and a value which is integer or boolean.
     """
 
-    #: Specify the presence of a back-buffer for every color buffer.
+    # 027530.python.base.line37.comment : Specify the presence of a back-buffer for every color buffer.
     double_buffer: bool
-    #: Specify the presence of separate left and right buffer sets.
+    # 027531.python.base.line39.comment : Specify the presence of separate left and right buffer sets.
     stereo: bool
-    #: Total bits per sample per color buffer.
+    # 027532.python.base.line41.comment : Total bits per sample per color buffer.
     buffer_size: int
-    #: The number of auxiliary color buffers.
+    # 027533.python.base.line43.comment : The number of auxiliary color buffers.
     aux_buffers: int
-    #: The number of multisample buffers.
+    # 027534.python.base.line45.comment : The number of multisample buffers.
     sample_buffers: int
-    #: The number of samples per pixel, or 0 if there are no multisample buffers.
+    # 027535.python.base.line47.comment : The number of samples per pixel, or 0 if there are no multisample buffers.
     samples: int
-    #: Bits per sample per buffer devoted to the red component.
+    # 027536.python.base.line49.comment : Bits per sample per buffer devoted to the red component.
     red_size: int
-    #: Bits per sample per buffer devoted to the green component.
+    # 027537.python.base.line51.comment : Bits per sample per buffer devoted to the green component.
     green_size: int
-    #: Bits per sample per buffer devoted to the blue component.
+    # 027538.python.base.line53.comment : Bits per sample per buffer devoted to the blue component.
     blue_size: int
-    #: Bits per sample per buffer devoted to the alpha component.
+    # 027539.python.base.line55.comment : Bits per sample per buffer devoted to the alpha component.
     alpha_size: int
-    #: Bits per sample in the depth buffer.
+    # 027540.python.base.line57.comment : Bits per sample in the depth buffer.
     depth_size: int
-    #: Bits per sample in the stencil buffer.
+    # 027541.python.base.line59.comment : Bits per sample in the stencil buffer.
     stencil_size: int
-    #: Bits per pixel devoted to the red component in the accumulation buffer.
+    # 027542.python.base.line61.comment : Bits per pixel devoted to the red component in the accumulation buffer.
     accum_red_size: int
-    #: Bits per pixel devoted to the green component in the accumulation buffer.
+    # 027543.python.base.line63.comment : Bits per pixel devoted to the green component in the accumulation buffer.
     accum_green_size: int
-    #: Bits per pixel devoted to the blue component in the accumulation buffer.
+    # 027544.python.base.line65.comment : Bits per pixel devoted to the blue component in the accumulation buffer.
     accum_blue_size: int
-    #: Bits per pixel devoted to the alpha component in the accumulation buffer.
+    # 027545.python.base.line67.comment : Bits per pixel devoted to the alpha component in the accumulation buffer.
     accum_alpha_size: int
 
     _attribute_names = (
@@ -92,17 +92,17 @@ class Config:
         'transparent_framebuffer',
     )
 
-    #: The OpenGL major version.
+    # 027546.python.base.line95.comment : The OpenGL major version.
     major_version: int
-    #: The OpenGL minor version.
+    # 027547.python.base.line97.comment : The OpenGL minor version.
     minor_version: int
-    #: Whether to use forward compatibility mode.
+    # 027548.python.base.line99.comment : Whether to use forward compatibility mode.
     forward_compatible: bool
-    #: The OpenGL API, such as "gl" or "gles".
+    # 027549.python.base.line101.comment : The OpenGL API, such as "gl" or "gles".
     opengl_api: str
-    #: Debug mode.
+    # 027550.python.base.line103.comment : Debug mode.
     debug: bool
-    #: If the framebuffer should be transparent.
+    # 027551.python.base.line105.comment : If the framebuffer should be transparent.
     transparent_framebuffer: bool
 
     def __init__(self, **kwargs: float) -> None:
@@ -175,7 +175,7 @@ class DisplayConfig(Config, abc.ABC):
     canvas: Canvas
 
     def __init__(self, canvas: Canvas, base_config: Config) -> None:
-        #: The canvas this config is valid on.
+        # 027553.python.base.line178.comment : The canvas this config is valid on.
         self.canvas: Canvas = canvas
 
         self.major_version = base_config.major_version
@@ -207,7 +207,7 @@ class ObjectSpace:
 
     def __init__(self) -> None:
         """Initialize the context object space."""
-        # Objects scheduled for deletion the next time this object space is active.
+        # 027554.python.base.line210.comment Objects scheduled for deletion the next time this object space is active.
         self.doomed_textures = []
         self.doomed_buffers = []
         self.doomed_shader_programs = []
@@ -220,10 +220,10 @@ class Context:
 
     Use ``DisplayConfig.create_context`` to create a context.
     """
-    #: gl_info.GLInfo instance, filled in on first set_current
+    # 027555.python.base.line223.comment : gl_info.GLInfo instance, filled in on first set_current
     _info: GLInfo | None = None
 
-    #: A container which is shared between all contexts that share GL objects.
+    # 027556.python.base.line226.comment : A container which is shared between all contexts that share GL objects.
     object_space: ObjectSpace
     config: DisplayConfig
     context_share: Context | None
@@ -285,10 +285,10 @@ class Context:
             msg = 'Canvas has not been attached'
             raise RuntimeError(msg)
 
-        # Not per-thread
+        # 027558.python.base.line288.comment Not per-thread
         gl.current_context = self
 
-        # Set active context.
+        # 027559.python.base.line291.comment Set active context.
         gl_info.set_active_context()
 
         if not self._info:
@@ -312,11 +312,11 @@ class Context:
         if self.doomed_framebuffers:
             self._delete_objects(self.doomed_framebuffers, gl.glDeleteFramebuffers)
 
-    # For the static functions below:
-    # The garbage collector introduces a race condition.
-    # The provided list might be appended to (and only appended to) while this
-    # method runs, as it's a `doomed_*` list either on the context or its object
-    # space. If `count` wasn't stored in a local, this method might leak objects.
+    # 027560.python.base.line315.comment For the static functions below:
+    # 027561.python.base.line316.comment The garbage collector introduces a race condition.
+    # 027562.python.base.line317.comment The provided list might be appended to (and only appended to) while this
+    # 027563.python.base.line318.comment method runs, as it's a `doomed_*` list either on the context or its object
+    # 027564.python.base.line319.comment space. If `count` wasn't stored in a local, this method might leak objects.
     @staticmethod
     def _delete_objects(list_: list, deletion_func: Callable[[int, Array[gl.GLuint]], None]) -> None:
         """Release all OpenGL objects in the given list.
@@ -358,7 +358,7 @@ class Context:
             gl.current_context = None
             gl_info.remove_active_context()
 
-            # Switch back to shadow context.
+            # 027565.python.base.line361.comment Switch back to shadow context.
             if gl._shadow_window is not None:  # noqa: SLF001
                 gl._shadow_window.switch_to()  # noqa: SLF001
 

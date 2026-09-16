@@ -113,27 +113,27 @@ class NinePatch(Sprite):
         return cls(img, x, y, z, width, height, blend_src, blend_dest, batch, group)
 
     def _create_vertex_list(self) -> None:
-        # Vertex layout for 9 quads:
-        #
-        #   12----13----14----15
-        #   |  /  |  /  |  /  |
-        #   8-----9-----10----11
-        #   |  /  |  /  |  /  |
-        #   4-----5-----6-----7
-        #   |  /  |  /  |  /  |
-        #   0-----1-----2-----3
+        # 030238.python.ninepatch.line116.comment Vertex layout for 9 quads:
+        # 030239.python.ninepatch.line117.comment
+        # 030240.python.ninepatch.line118.comment 12----13----14----15
+        # 030241.python.ninepatch.line119.comment |  /  |  /  |  /  |
+        # 030242.python.ninepatch.line120.comment 8-----9-----10----11
+        # 030243.python.ninepatch.line121.comment |  /  |  /  |  /  |
+        # 030244.python.ninepatch.line122.comment 4-----5-----6-----7
+        # 030245.python.ninepatch.line123.comment |  /  |  /  |  /  |
+        # 030246.python.ninepatch.line124.comment 0-----1-----2-----3
 
-        # Triangle strip indices, including degenerates (duplicates)
+        # 030247.python.ninepatch.line126.comment Triangle strip indices, including degenerates (duplicates)
         indices = (0, 0, 4, 1, 5, 2, 6, 3, 7,       # bottom row -->
                    11, 6, 10, 5, 9, 4, 8,           # center row <--
                    12, 9, 13, 10, 14, 11, 15, 15)   # upper row  -->
 
-        # Get the 1/3 size of texture width & height:
+        # 030251.python.ninepatch.line131.comment Get the 1/3 size of texture width & height:
         uv_x, uv_y, uv_w, uv_h = self._texture.uv
         seg_w = (uv_w - uv_x) / 3
         seg_h = (uv_h - uv_y) / 3
 
-        # Create new UV coordinates for each of the 9 quads:
+        # 030252.python.ninepatch.line136.comment Create new UV coordinates for each of the 9 quads:
         uvs = [i for v in range(4) for h in range(4) for i in (uv_x + seg_w * h, uv_y + seg_h * v, 0)]
 
         self._vertex_list = self.program.vertex_list_indexed(
@@ -305,11 +305,11 @@ class NinePatch(Sprite):
 
     @color.setter
     def color(self, rgba: tuple[int, int, int, int] | tuple[int, int, int]):
-        # ValueError raised by unpacking if len(rgba) < 3
+        # 030254.python.ninepatch.line308.comment ValueError raised by unpacking if len(rgba) < 3
         r, g, b, *a = rgba
         new_color = r, g, b, a[0] if a else 255
 
-        # Only update if we actually have to
+        # 030255.python.ninepatch.line312.comment Only update if we actually have to
         if new_color != self._rgba:
             self._rgba = new_color
             self._vertex_list.colors[:] = new_color * 16

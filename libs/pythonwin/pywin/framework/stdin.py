@@ -1,8 +1,8 @@
-# Copyright (c) 2000 David Abrahams. Permission to copy, use, modify, sell
-# and distribute this software is granted provided this copyright
-# notice appears in all copies. This software is provided "as is" without
-# express or implied warranty, and with no claim as to its suitability for
-# any purpose.
+# 038050.python.stdin.line1.comment Copyright (c) 2000 David Abrahams. Permission to copy, use, modify, sell
+# 038051.python.stdin.line2.comment and distribute this software is granted provided this copyright
+# 038052.python.stdin.line3.comment notice appears in all copies. This software is provided "as is" without
+# 038053.python.stdin.line4.comment express or implied warranty, and with no claim as to its suitability for
+# 038054.python.stdin.line5.comment any purpose.
 """Provides a class Stdin which can be used to emulate the regular old
 sys.stdin for the PythonWin interactive window. Right now it just pops
 up a input() dialog. With luck, someone will integrate it into the
@@ -157,7 +157,7 @@ Sell you soul to the devil, baby
 
     get_input_line = fake_input
 
-    # Some completely inadequate tests, just to make sure the code's not totally broken
+    # 038059.python.stdin.line160.comment Some completely inadequate tests, just to make sure the code's not totally broken
     try:
         x = Stdin()
         print(x.read())

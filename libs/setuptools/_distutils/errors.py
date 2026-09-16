@@ -5,7 +5,7 @@ Distutils modules may raise these or standard exceptions,
 including :exc:`SystemExit`.
 """
 
-# compiler exceptions aliased for compatibility
+# 040590.python.errors.line8.comment compiler exceptions aliased for compatibility
 from .compilers.C.errors import CompileError as CompileError
 from .compilers.C.errors import Error as _Error
 from .compilers.C.errors import LibError as LibError

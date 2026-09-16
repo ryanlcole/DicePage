@@ -8,7 +8,7 @@ from typing import Union, Literal
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
 else:
-    # Best-effort placeholder for older Python versions
+    # 026238.python.customtypes.line11.comment Best-effort placeholder for older Python versions
     Buffer = Union[bytes, bytearray, memoryview, ctypes.Array]
 
 HorizontalAlign = Literal["left", "center", "right"]

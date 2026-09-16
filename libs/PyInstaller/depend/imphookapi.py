@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 002686.python.imphookapi.line1.comment -----------------------------------------------------------------------------
+# 002687.python.imphookapi.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 002688.python.imphookapi.line3.comment
+# 002689.python.imphookapi.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 002690.python.imphookapi.line5.comment or later) with exception for distributing the bootloader.
+# 002691.python.imphookapi.line6.comment
+# 002692.python.imphookapi.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 002693.python.imphookapi.line8.comment
+# 002694.python.imphookapi.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 002695.python.imphookapi.line10.comment -----------------------------------------------------------------------------
 """
 Classes facilitating communication between PyInstaller and import hooks.
 
@@ -71,7 +71,7 @@ class PreSafeImportModuleAPI:
         self.module_name = module_name
         self._parent_package = parent_package
 
-    # Immutable properties. No corresponding setters are defined.
+    # 002696.python.imphookapi.line74.comment Immutable properties. No corresponding setters are defined.
     @property
     def module_graph(self):
         """
@@ -224,14 +224,14 @@ class PreFindModulePathAPI:
         module_name,
         search_dirs,
     ):
-        # Mutable attributes.
+        # 002697.python.imphookapi.line227.comment Mutable attributes.
         self.search_dirs = search_dirs
 
-        # Immutable attributes.
+        # 002698.python.imphookapi.line230.comment Immutable attributes.
         self._module_graph = module_graph
         self._module_name = module_name
 
-    # Immutable properties. No corresponding setters are defined.
+    # 002699.python.imphookapi.line234.comment Immutable properties. No corresponding setters are defined.
     @property
     def module_graph(self):
         """
@@ -311,25 +311,25 @@ class PostGraphAPI:
         not generate symbolic links into top-level application directory.
     """
     def __init__(self, module_name, module_graph, analysis):
-        # Mutable attributes.
+        # 002700.python.imphookapi.line314.comment Mutable attributes.
         self.module_graph = module_graph
         self.module = module_graph.find_node(module_name)
         assert self.module is not None  # should not occur
 
-        # Immutable attributes.
+        # 002702.python.imphookapi.line319.comment Immutable attributes.
         self.___name__ = module_name
         self.___file__ = self.module.filename
         self._co = self.module.code
         self._analysis = analysis
 
-        # To enforce immutability, convert this module's package path if any into an immutable tuple.
+        # 002703.python.imphookapi.line325.comment To enforce immutability, convert this module's package path if any into an immutable tuple.
         self.___path__ = tuple(self.module.packagepath) \
             if self.module.packagepath is not None else None
 
-        #FIXME: Refactor "_added_datas", "_added_binaries", and "_deleted_imports" into sets. Since order of
-        #import is important, "_added_imports" must remain a list.
+        # 002704.python.imphookapi.line329.comment FIXME: Refactor "_added_datas", "_added_binaries", and "_deleted_imports" into sets. Since order of
+        # 002705.python.imphookapi.line330.comment import is important, "_added_imports" must remain a list.
 
-        # Private attributes.
+        # 002706.python.imphookapi.line332.comment Private attributes.
         self._added_binaries = []
         self._added_datas = []
         self._added_imports = []
@@ -337,7 +337,7 @@ class PostGraphAPI:
         self._module_collection_mode = {}
         self._bindepend_symlink_suppression = set()
 
-    # Immutable properties. No corresponding setters are defined.
+    # 002707.python.imphookapi.line340.comment Immutable properties. No corresponding setters are defined.
     @property
     def __file__(self):
         """
@@ -375,7 +375,7 @@ class PostGraphAPI:
         """
         return self._analysis
 
-    # Obsolete immutable properties provided to preserve backward compatibility.
+    # 002708.python.imphookapi.line378.comment Obsolete immutable properties provided to preserve backward compatibility.
     @property
     def name(self):
         """
@@ -403,10 +403,10 @@ class PostGraphAPI:
         """
         return self.module
 
-    # TODO: This incorrectly returns the list of the graph nodes of all modules *TRANSITIVELY* (rather than directly)
-    #       imported by this module. Unfortunately, this implies that most uses of this property are currently broken
-    #       (e.g., "hook-PIL.SpiderImagePlugin.py"). We only require this for the aforementioned hook, so contemplate
-    #       alternative approaches.
+    # 002709.python.imphookapi.line406.comment TODO: This incorrectly returns the list of the graph nodes of all modules *TRANSITIVELY* (rather than directly)
+    # 002710.python.imphookapi.line407.comment imported by this module. Unfortunately, this implies that most uses of this property are currently broken
+    # 002711.python.imphookapi.line408.comment (e.g., "hook-PIL.SpiderImagePlugin.py"). We only require this for the aforementioned hook, so contemplate
+    # 002712.python.imphookapi.line409.comment alternative approaches.
     @property
     def imports(self):
         """
@@ -421,7 +421,7 @@ class PostGraphAPI:
 
         This is equivalent to appending such names to the hook-specific `hiddenimports` attribute.
         """
-        # Append such names to the current list of all such names.
+        # 002713.python.imphookapi.line424.comment Append such names to the current list of all such names.
         self._added_imports.extend(module_names)
 
     def del_imports(self, *module_names):
@@ -441,12 +441,12 @@ class PostGraphAPI:
         For convenience, the `binaries` may also be a list of TOC-style 3-tuples `(dest_name, src_name, typecode)`.
         """
 
-        # Detect TOC 3-tuple list by checking the length of the first entry
+        # 002714.python.imphookapi.line444.comment Detect TOC 3-tuple list by checking the length of the first entry
         if binaries and len(binaries[0]) == 3:
             self._added_binaries.extend(entry[:2] for entry in binaries)
         else:
-            # NOTE: `format_binaries_and_datas` changes tuples from input format `(src_name, dest_name)` to output
-            # format `(dest_name, src_name)`.
+            # 002715.python.imphookapi.line448.comment NOTE: `format_binaries_and_datas` changes tuples from input format `(src_name, dest_name)` to output
+            # 002716.python.imphookapi.line449.comment format `(dest_name, src_name)`.
             self._added_binaries.extend(format_binaries_and_datas(binaries))
 
     def add_datas(self, datas):
@@ -457,12 +457,12 @@ class PostGraphAPI:
         For convenience, the `datas` may also be a list of TOC-style 3-tuples `(dest_name, src_name, typecode)`.
         """
 
-        # Detect TOC 3-tuple list by checking the length of the first entry
+        # 002717.python.imphookapi.line460.comment Detect TOC 3-tuple list by checking the length of the first entry
         if datas and len(datas[0]) == 3:
             self._added_datas.extend(entry[:2] for entry in datas)
         else:
-            # NOTE: `format_binaries_and_datas` changes tuples from input format `(src_name, dest_name)` to output
-            # format `(dest_name, src_name)`.
+            # 002718.python.imphookapi.line464.comment NOTE: `format_binaries_and_datas` changes tuples from input format `(src_name, dest_name)` to output
+            # 002719.python.imphookapi.line465.comment format `(dest_name, src_name)`.
             self._added_datas.extend(format_binaries_and_datas(datas))
 
     def set_module_collection_mode(self, name, mode):

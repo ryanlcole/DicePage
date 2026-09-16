@@ -1,4 +1,4 @@
-# win32traceutil like utility for Pythonwin
+# 039037.python.TraceCollector.line1.comment win32traceutil like utility for Pythonwin
 import _thread
 
 import win32api
@@ -12,8 +12,8 @@ outputWindow = None
 def CollectorThread(stopEvent, file):
     win32trace.InitRead()
     handle = win32trace.GetHandle()
-    # Run this thread at a lower priority to the main message-loop (and printing output)
-    # thread can keep up
+    # 039038.python.TraceCollector.line15.comment Run this thread at a lower priority to the main message-loop (and printing output)
+    # 039039.python.TraceCollector.line16.comment thread can keep up
     import win32process
 
     win32process.SetThreadPriority(
@@ -26,10 +26,10 @@ def CollectorThread(stopEvent, file):
                 (handle, stopEvent), 0, win32event.INFINITE
             )
             if rc == win32event.WAIT_OBJECT_0:
-                # About the only char we can't live with is \0!
+                # 039040.python.TraceCollector.line29.comment About the only char we can't live with is \0!
                 file.write(win32trace.read().replace("\0", "<null>"))
             else:
-                # Stop event
+                # 039041.python.TraceCollector.line32.comment Stop event
                 break
     finally:
         win32trace.TermRead()
@@ -49,28 +49,28 @@ class WindowOutput(winout.WindowOutput):
     def Close(self):
         self._StopThread()
         winout.WindowOutput.Close(self)
-        # def OnViewDestroy(self, frame):
-        #     return winout.WindowOutput.OnViewDestroy(self, frame)
-        # def Create(self, title=None, style = None):
-        #     rc = winout.WindowOutput.Create(self, title, style)
-        #     return rc
+        # 039042.python.TraceCollector.line52.comment def OnViewDestroy(self, frame):
+        # 039043.python.TraceCollector.line53.comment return winout.WindowOutput.OnViewDestroy(self, frame)
+        # 039044.python.TraceCollector.line54.comment def Create(self, title=None, style = None):
+        # 039045.python.TraceCollector.line55.comment rc = winout.WindowOutput.Create(self, title, style)
+        # 039046.python.TraceCollector.line56.comment return rc
 
 
 def MakeOutputWindow():
-    # Note that it will not show until the first string written or
-    # you pass bShow = 1
+    # 039047.python.TraceCollector.line60.comment Note that it will not show until the first string written or
+    # 039048.python.TraceCollector.line61.comment you pass bShow = 1
     global outputWindow
     if outputWindow is None:
         title = "Python Trace Collector"
-        # queueingFlag doesn't matter, as all output will come from new thread
+        # 039049.python.TraceCollector.line65.comment queueingFlag doesn't matter, as all output will come from new thread
         outputWindow = WindowOutput(title, title)
-        # Let people know what this does!
+        # 039050.python.TraceCollector.line67.comment Let people know what this does!
         msg = """\
 # This window will display output from any programs that import win32traceutil
 # win32com servers registered with '--debug' are in this category.
 """
         outputWindow.write(msg)
-    # force existing window open
+    # 039051.python.TraceCollector.line73.comment force existing window open
     outputWindow.write("")
     return outputWindow
 

@@ -35,7 +35,7 @@ class TestParser(unittest.TestCase):
         notabstop_ids = [self.resources.ids[name] for name in notabstop_names]
         num_ok = 0
         for cdef in d[1:]:  # skip dlgdef
-            # print(cdef)
+            # 048476.python.test_win32rcparser.line38.comment print(cdef)
             cid = cdef[2]
             style = cdef[-2]
             styleex = cdef[-1]
@@ -50,7 +50,7 @@ class TestParser(unittest.TestCase):
 
 class TestGenerated(TestParser):
     def setUp(self):
-        # don't call base!
+        # 048477.python.test_win32rcparser.line53.comment don't call base!
         rc_file = os.path.join(os.path.dirname(__file__), "win32rcparser", "test.rc")
         py_file = tempfile.mktemp("test_win32rcparser.py")
         try:
@@ -60,7 +60,7 @@ class TestGenerated(TestParser):
             if os.path.isfile(py_file):
                 os.unlink(py_file)
 
-        # poor-man's import :)
+        # 048478.python.test_win32rcparser.line63.comment poor-man's import :)
         globs = {}
         exec(py_source, globs, globs)
         self.resources = globs["FakeParser"]()

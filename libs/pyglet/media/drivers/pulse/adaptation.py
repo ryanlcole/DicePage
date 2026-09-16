@@ -46,7 +46,7 @@ class PulseAudioDriver(AbstractAudioDriver):
                 server (which may be spawned as a daemon if no server is
                 found).
         """
-        # TODO disconnect from old
+        # 034636.python.adaptation.line49.comment TODO disconnect from old
         assert not self.context, 'Already connected'
 
         self.context = self.mainloop.create_context()
@@ -163,22 +163,22 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         self._pyglet_source_exhausted = False
         self._pending_bytes = 0
 
-        # PA has a playback buffer it makes requests for via callbacks, but those callbacks
-        # can not decode data. The decoding happens in a PlayerWorkerThread as usual, and the
-        # result is kept in an _AudioDataBuffer, splitting up the ideal size between
-        # them. The data is copied when the PulseAudio buffer runs low, at which point the
-        # thread will ensure refilling of the _AudioDataBuffer.
+        # 034637.python.adaptation.line166.comment PA has a playback buffer it makes requests for via callbacks, but those callbacks
+        # 034638.python.adaptation.line167.comment can not decode data. The decoding happens in a PlayerWorkerThread as usual, and the
+        # 034639.python.adaptation.line168.comment result is kept in an _AudioDataBuffer, splitting up the ideal size between
+        # 034640.python.adaptation.line169.comment them. The data is copied when the PulseAudio buffer runs low, at which point the
+        # 034641.python.adaptation.line170.comment thread will ensure refilling of the _AudioDataBuffer.
         ideal_size = audio_format.align_ceil(self._buffered_data_ideal_size // 2)
         comf_limit = audio_format.align_ceil(self._buffered_data_comfortable_limit // 2)
 
         self._audio_data_buffer = _AudioDataBuffer(ideal_size, comf_limit)
 
-        # A lock that should be held whenever the audio data buffer is accessed, or
-        # any variables really, if they are shared between PA callbacks and the rest of
-        # implemented methods.
-        # Should prevent The PA callback from interfering with the work method.
-        # Don't ever acquire the PA mainloop lock when this is held, might risk a deadlock
-        # if a callback runs at an unfortunate time.
+        # 034642.python.adaptation.line176.comment A lock that should be held whenever the audio data buffer is accessed, or
+        # 034643.python.adaptation.line177.comment any variables really, if they are shared between PA callbacks and the rest of
+        # 034644.python.adaptation.line178.comment implemented methods.
+        # 034645.python.adaptation.line179.comment Should prevent The PA callback from interfering with the work method.
+        # 034646.python.adaptation.line180.comment Don't ever acquire the PA mainloop lock when this is held, might risk a deadlock
+        # 034647.python.adaptation.line181.comment if a callback runs at an unfortunate time.
         self._audio_data_lock = threading.Lock()
 
         self._has_underrun = False
@@ -193,7 +193,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         assert _debug('PulseAudioPlayer: __init__ finished')
 
     def _write_callback(self, _stream, nbytes: int, _userdata) -> None:
-        # Called from within PA thread
+        # 034648.python.adaptation.line196.comment Called from within PA thread
         assert _debug(f'PulseAudioPlayer: Write requested, {nbytes}B')
         assert self.source.audio_format.align(nbytes) == nbytes
 
@@ -208,7 +208,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         self.stream.mainloop.signal()
 
     def _underflow_callback(self, _stream, _userdata) -> None:
-        # Called from within PA thread
+        # 034649.python.adaptation.line211.comment Called from within PA thread
         assert _debug('PulseAudioPlayer: underflow')
         with self._audio_data_lock:
             if self._pyglet_source_exhausted and self._audio_data_buffer.available == 0:
@@ -217,11 +217,11 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         self.stream.mainloop.signal()
 
     def _maybe_fill_audio_data_buffer(self) -> None:
-        # PA as opposed to the other backends works on requests which are relatively small (or on a
-        # polling model not used here which also requires the client to adjust to an ideal remaining
-        # space), so this chops up AudioData in an attempt of not hitting source.get_audio_data too
-        # often.
-        # Hold the audio_data_lock when calling this.
+        # 034650.python.adaptation.line220.comment PA as opposed to the other backends works on requests which are relatively small (or on a
+        # 034651.python.adaptation.line221.comment polling model not used here which also requires the client to adjust to an ideal remaining
+        # 034652.python.adaptation.line222.comment space), so this chops up AudioData in an attempt of not hitting source.get_audio_data too
+        # 034653.python.adaptation.line223.comment often.
+        # 034654.python.adaptation.line224.comment Hold the audio_data_lock when calling this.
         if self._pyglet_source_exhausted:
             return
 
@@ -274,9 +274,9 @@ class PulseAudioPlayer(AbstractAudioPlayer):
 
             self._has_underrun = False
 
-        # If the stream has underrun, trigger it again for immediate playback.
-        # Unsure whether this is really needed, but better be safe.
-        # Make sure to not hold the audio data lock, as `wait` reenters the PA loop.
+        # 034656.python.adaptation.line277.comment If the stream has underrun, trigger it again for immediate playback.
+        # 034657.python.adaptation.line278.comment Unsure whether this is really needed, but better be safe.
+        # 034658.python.adaptation.line279.comment Make sure to not hold the audio data lock, as `wait` reenters the PA loop.
         self.stream.trigger().wait().delete()
 
     def work(self) -> None:
@@ -296,8 +296,8 @@ class PulseAudioPlayer(AbstractAudioPlayer):
 
         if self.driver.mainloop is None:
             assert _debug('PulseAudioPlayer.delete: PulseAudioDriver already deleted.')
-            # This is fine otherwise. If the mainloop's gone, the context is gone too,
-            # having cleaned up all its streams.
+            # 034659.python.adaptation.line299.comment This is fine otherwise. If the mainloop's gone, the context is gone too,
+            # 034660.python.adaptation.line300.comment having cleaned up all its streams.
         else:
             with self.driver.mainloop.lock:
                 self.stream.delete()
@@ -307,16 +307,16 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         assert _debug('PulseAudioPlayer.clear')
         super().clear()
 
-        # Do not reset pending_bytes as PA doesn't always seem to issue new write
-        # requests despite being flushed. Should still end up fine since PA replies with
-        # how many bytes it actually accepts in `_write_to_stream`.
-        # self._pending_bytes = 0
+        # 034661.python.adaptation.line310.comment Do not reset pending_bytes as PA doesn't always seem to issue new write
+        # 034662.python.adaptation.line311.comment requests despite being flushed. Should still end up fine since PA replies with
+        # 034663.python.adaptation.line312.comment how many bytes it actually accepts in `_write_to_stream`.
+        # 034664.python.adaptation.line313.comment self._pending_bytes = 0
         self._pyglet_source_exhausted = False
         self._audio_data_buffer.clear()
         self._has_underrun = False
 
         with self.stream.mainloop.lock:
-            # Just hope that the read index is frozen while we're paused.
+            # 034665.python.adaptation.line319.comment Just hope that the read index is frozen while we're paused.
             ti = self._update_and_get_timing_info()
             assert not ti.read_index_corrupt
             self._last_clear_read_index = ti.read_index
@@ -348,9 +348,9 @@ class PulseAudioPlayer(AbstractAudioPlayer):
             return 0
 
         read_idx = t_info.read_index - self._last_clear_read_index
-        # bps = self.source.audio_format.bytes_per_second
-        # (t_info.transport_usec / 1000000.0) * bps -
-        # (t_info.sink_usec / 1000000.0) * bps
+        # 034666.python.adaptation.line351.comment bps = self.source.audio_format.bytes_per_second
+        # 034667.python.adaptation.line352.comment (t_info.transport_usec / 1000000.0) * bps -
+        # 034668.python.adaptation.line353.comment (t_info.sink_usec / 1000000.0) * bps
 
         assert _debug(f'_get_read_index -> {read_idx}')
         return read_idx

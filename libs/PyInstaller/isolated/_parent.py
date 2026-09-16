@@ -1,13 +1,13 @@
-# -----------------------------------------------------------------------------
-# Copyright (c) 2021-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) or, at the user's discretion, the MIT License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception OR MIT)
-# -----------------------------------------------------------------------------
+# 008623.python.parent.line1.comment -----------------------------------------------------------------------------
+# 008624.python.parent.line2.comment Copyright (c) 2021-2023, PyInstaller Development Team.
+# 008625.python.parent.line3.comment
+# 008626.python.parent.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 008627.python.parent.line5.comment or later) or, at the user's discretion, the MIT License.
+# 008628.python.parent.line6.comment
+# 008629.python.parent.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 008630.python.parent.line8.comment
+# 008631.python.parent.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception OR MIT)
+# 008632.python.parent.line10.comment -----------------------------------------------------------------------------
 
 import os
 from pathlib import Path
@@ -22,13 +22,13 @@ from PyInstaller import log as logging
 
 logger = logging.getLogger(__name__)
 
-# WinAPI bindings for Windows-specific codepath
+# 008633.python.parent.line25.comment WinAPI bindings for Windows-specific codepath
 if os.name == "nt":
     import msvcrt
     import ctypes
     import ctypes.wintypes
 
-    # CreatePipe
+    # 008634.python.parent.line31.comment CreatePipe
     class SECURITY_ATTRIBUTES(ctypes.Structure):
         _fields_ = [
             ("nLength", ctypes.wintypes.DWORD),
@@ -49,7 +49,7 @@ if os.name == "nt":
     ]
     CreatePipe.restype = ctypes.wintypes.BOOL
 
-    # CloseHandle
+    # 008635.python.parent.line52.comment CloseHandle
     CloseHandle = ctypes.windll.kernel32.CloseHandle
     CloseHandle.argtypes = [ctypes.wintypes.HANDLE]
     CloseHandle.restype = ctypes.wintypes.BOOL
@@ -87,19 +87,19 @@ def close_pipe_endpoint(pipe_handle):
 if os.name == "nt":
 
     def _create_pipe_impl(read_handle_inheritable, write_handle_inheritable):
-        # Use WinAPI CreatePipe function to create the pipe. Python's os.pipe() does the same, but wraps the resulting
-        # handles into inheritable file descriptors (https://github.com/python/cpython/issues/77046). Instead, we want
-        # just handles, and will set the inheritable flag on corresponding handle ourselves.
+        # 008636.python.parent.line90.comment Use WinAPI CreatePipe function to create the pipe. Python's os.pipe() does the same, but wraps the resulting
+        # 008637.python.parent.line91.comment handles into inheritable file descriptors (https://github.com/python/cpython/issues/77046). Instead, we want
+        # 008638.python.parent.line92.comment just handles, and will set the inheritable flag on corresponding handle ourselves.
         read_handle = ctypes.wintypes.HANDLE()
         write_handle = ctypes.wintypes.HANDLE()
 
-        # SECURITY_ATTRIBUTES with inherit handle set to True
+        # 008639.python.parent.line96.comment SECURITY_ATTRIBUTES with inherit handle set to True
         security_attributes = SECURITY_ATTRIBUTES()
         security_attributes.nLength = ctypes.sizeof(security_attributes)
         security_attributes.bInheritHandle = True
         security_attributes.lpSecurityDescriptor = None
 
-        # CreatePipe()
+        # 008640.python.parent.line102.comment CreatePipe()
         succeeded = CreatePipe(
             ctypes.byref(read_handle),  # hReadPipe
             ctypes.byref(write_handle),  # hWritePipe
@@ -109,8 +109,8 @@ if os.name == "nt":
         if not succeeded:
             raise ctypes.WinError()
 
-        # Set inheritable flags. Instead of binding and using SetHandleInformation WinAPI function, we can use
-        # os.set_handle_inheritable().
+        # 008645.python.parent.line112.comment Set inheritable flags. Instead of binding and using SetHandleInformation WinAPI function, we can use
+        # 008646.python.parent.line113.comment os.set_handle_inheritable().
         os.set_handle_inheritable(read_handle.value, read_handle_inheritable)
         os.set_handle_inheritable(write_handle.value, write_handle_inheritable)
 
@@ -123,11 +123,11 @@ if os.name == "nt":
 else:
 
     def _create_pipe_impl(read_fd_inheritable, write_fd_inheritable):
-        # Create pipe, using os.pipe()
+        # 008647.python.parent.line126.comment Create pipe, using os.pipe()
         read_fd, write_fd = os.pipe()
 
-        # The default behaviour of pipes is that they are process specific. I.e., they can only be used by this
-        # process to talk to itself. Setting inheritable flags means that child processes may also use these pipes.
+        # 008648.python.parent.line129.comment The default behaviour of pipes is that they are process specific. I.e., they can only be used by this
+        # 008649.python.parent.line130.comment process to talk to itself. Setting inheritable flags means that child processes may also use these pipes.
         os.set_inheritable(read_fd, read_fd_inheritable)
         os.set_inheritable(write_fd, write_fd_inheritable)
 
@@ -142,25 +142,25 @@ def child(read_from_parent: int, write_to_parent: int):
     Spawn a Python subprocess sending it the two file descriptors it needs to talk back to this parent process.
     """
     if os.name != 'nt':
-        # Explicitly disabling close_fds is a requirement for making file descriptors inheritable by child processes.
+        # 008650.python.parent.line145.comment Explicitly disabling close_fds is a requirement for making file descriptors inheritable by child processes.
         extra_kwargs = {
             "env": _subprocess_env(),
             "close_fds": False,
         }
     else:
-        # On Windows, we can use subprocess.STARTUPINFO to explicitly pass the list of file handles to be inherited,
-        # so we can avoid disabling close_fds
+        # 008651.python.parent.line151.comment On Windows, we can use subprocess.STARTUPINFO to explicitly pass the list of file handles to be inherited,
+        # 008652.python.parent.line152.comment so we can avoid disabling close_fds
         extra_kwargs = {
             "env": _subprocess_env(),
             "close_fds": True,
             "startupinfo": subprocess.STARTUPINFO(lpAttributeList={"handle_list": [read_from_parent, write_to_parent]})
         }
 
-    # Run the _child.py script directly passing it the two file descriptors it needs to talk back to the parent.
+    # 008653.python.parent.line159.comment Run the _child.py script directly passing it the two file descriptors it needs to talk back to the parent.
     cmd, options = compat.__wrap_python([str(CHILD_PY), str(read_from_parent), str(write_to_parent)], extra_kwargs)
 
-    # I'm intentionally leaving stdout and stderr alone so that print() can still be used for emergency debugging and
-    # unhandled errors in the child are still visible.
+    # 008654.python.parent.line162.comment I'm intentionally leaving stdout and stderr alone so that print() can still be used for emergency debugging and
+    # 008655.python.parent.line163.comment unhandled errors in the child are still visible.
     return subprocess.Popen(cmd, **options)
 
 
@@ -207,41 +207,41 @@ class Python:
     def __init__(self, strict_mode=None):
         self._child = None
 
-        # Re-use the compat.strict_collect_mode and its PYINSTALLER_STRICT_COLLECT_MODE environment variable for
-        # default strict-mode setting.
+        # 008656.python.parent.line210.comment Re-use the compat.strict_collect_mode and its PYINSTALLER_STRICT_COLLECT_MODE environment variable for
+        # 008657.python.parent.line211.comment default strict-mode setting.
         self._strict_mode = strict_mode if strict_mode is not None else compat.strict_collect_mode
 
-        # Check if we are already running in PyInstaller's isolated  subprocess, to prevent further nesting.
+        # 008658.python.parent.line214.comment Check if we are already running in PyInstaller's isolated  subprocess, to prevent further nesting.
         self._already_isolated = getattr(sys, '_pyi_isolated_subprocess', False)
 
     def __enter__(self):
-        # No-op if already running in an isolated subprocess.
+        # 008659.python.parent.line218.comment No-op if already running in an isolated subprocess.
         if self._already_isolated:
             return self
 
-        # We need two pipes. One for the child to send data to the parent. The (write) end-point passed to the
-        # child needs to be marked as inheritable.
+        # 008660.python.parent.line222.comment We need two pipes. One for the child to send data to the parent. The (write) end-point passed to the
+        # 008661.python.parent.line223.comment child needs to be marked as inheritable.
         read_from_child, write_to_parent = create_pipe(False, True)
-        # And one for the parent to send data to the child. The (read) end-point passed to the child needs to be
-        # marked as inheritable.
+        # 008662.python.parent.line225.comment And one for the parent to send data to the child. The (read) end-point passed to the child needs to be
+        # 008663.python.parent.line226.comment marked as inheritable.
         read_from_parent, write_to_child = create_pipe(True, False)
 
-        # Spawn a Python subprocess sending it the two file descriptors it needs to talk back to this parent process.
+        # 008664.python.parent.line229.comment Spawn a Python subprocess sending it the two file descriptors it needs to talk back to this parent process.
         self._child = child(read_from_parent, write_to_parent)
 
-        # Close the end-points that were inherited by the child.
+        # 008665.python.parent.line232.comment Close the end-points that were inherited by the child.
         close_pipe_endpoint(read_from_parent)
         close_pipe_endpoint(write_to_parent)
         del read_from_parent
         del write_to_parent
 
-        # Open file handles to talk to the child. This should fully transfer ownership of the underlying file
-        # descriptor to the opened handle; so when we close the latter, the former should be closed as well.
+        # 008666.python.parent.line238.comment Open file handles to talk to the child. This should fully transfer ownership of the underlying file
+        # 008667.python.parent.line239.comment descriptor to the opened handle; so when we close the latter, the former should be closed as well.
         if os.name == 'nt':
-            # On Windows, we must first open file descriptor on top of the handle using _open_osfhandle (which
-            # python wraps in msvcrt.open_osfhandle). According to MSDN, this transfers the ownership of the
-            # underlying file handle to the file descriptors; i.e., they are both closed when the file descriptor
-            # is closed).
+            # 008668.python.parent.line241.comment On Windows, we must first open file descriptor on top of the handle using _open_osfhandle (which
+            # 008669.python.parent.line242.comment python wraps in msvcrt.open_osfhandle). According to MSDN, this transfers the ownership of the
+            # 008670.python.parent.line243.comment underlying file handle to the file descriptors; i.e., they are both closed when the file descriptor
+            # 008671.python.parent.line244.comment is closed).
             self._write_handle = os.fdopen(msvcrt.open_osfhandle(write_to_child, 0), "wb")
             self._read_handle = os.fdopen(msvcrt.open_osfhandle(read_from_child, 0), "rb")
         else:
@@ -253,7 +253,7 @@ class Python:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # No-op if already running in an isolated subprocess.
+        # 008672.python.parent.line256.comment No-op if already running in an isolated subprocess.
         if self._already_isolated:
             return
 
@@ -263,17 +263,17 @@ class Python:
             del self._read_handle, self._write_handle
             self._child = None
             return
-        # Send the signal (a blank line) to the child to tell it that it's time to stop.
+        # 008673.python.parent.line266.comment Send the signal (a blank line) to the child to tell it that it's time to stop.
         self._write_handle.write(b"\n")
         self._write_handle.flush()
 
-        # Wait for the child process to exit. The timeout is necessary for corner cases when the sub-process fails to
-        # exit (such as due to dangling non-daemon threads; see #7290). At this point, the subprocess already did all
-        # its work, so it should be safe to terminate. And as we expect it to shut down quickly (or not at all), the
-        # timeout is relatively short.
-        #
-        # In strict build mode, we raise an error when the subprocess fails to exit on its own, but do so only after
-        # we attempt to kill the subprocess, to avoid leaving zombie processes.
+        # 008674.python.parent.line270.comment Wait for the child process to exit. The timeout is necessary for corner cases when the sub-process fails to
+        # 008675.python.parent.line271.comment exit (such as due to dangling non-daemon threads; see #7290). At this point, the subprocess already did all
+        # 008676.python.parent.line272.comment its work, so it should be safe to terminate. And as we expect it to shut down quickly (or not at all), the
+        # 008677.python.parent.line273.comment timeout is relatively short.
+        # 008678.python.parent.line274.comment
+        # 008679.python.parent.line275.comment In strict build mode, we raise an error when the subprocess fails to exit on its own, but do so only after
+        # 008680.python.parent.line276.comment we attempt to kill the subprocess, to avoid leaving zombie processes.
         shutdown_error = False
 
         try:
@@ -286,16 +286,16 @@ class Python:
                 self._child.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 logger.warning("Timed out while waiting for the child process to be killed!")
-                # Give up and fall through
+                # 008681.python.parent.line289.comment Give up and fall through
 
-        # Close the handles. This should also close the underlying file descriptors.
+        # 008682.python.parent.line291.comment Close the handles. This should also close the underlying file descriptors.
         self._write_handle.close()
         self._read_handle.close()
         del self._read_handle, self._write_handle
 
         self._child = None
 
-        # Raise an error in strict mode, after all clean-up has been performed.
+        # 008683.python.parent.line298.comment Raise an error in strict mode, after all clean-up has been performed.
         if shutdown_error and self._strict_mode:
             raise RuntimeError("Timed out while waiting for the child process to exit!")
 
@@ -304,7 +304,7 @@ class Python:
         Call a function in the child Python. Retrieve its return value. Usage of this method is identical to that
         of the :func:`call` function.
         """
-        # If already running in an isolated subprocess, directly execute the function.
+        # 008684.python.parent.line307.comment If already running in an isolated subprocess, directly execute the function.
         if self._already_isolated:
             return function(*args, **kwargs)
 
@@ -313,32 +313,32 @@ class Python:
 
         self._send(function.__code__, function.__defaults__, function.__kwdefaults__, args, kwargs)
 
-        # Read a single line of output back from the child. This contains if the function worked and either its return
-        # value or a traceback. This will block indefinitely until it receives a '\n' byte.
+        # 008685.python.parent.line316.comment Read a single line of output back from the child. This contains if the function worked and either its return
+        # 008686.python.parent.line317.comment value or a traceback. This will block indefinitely until it receives a '\n' byte.
         try:
             ok, output = loads(b64decode(self._read_handle.readline()))
         except (EOFError, BrokenPipeError):
-            # Subprocess appears to have died in an unhandleable way (e.g. SIGSEV). Raise an error.
+            # 008687.python.parent.line321.comment Subprocess appears to have died in an unhandleable way (e.g. SIGSEV). Raise an error.
             raise SubprocessDiedError(
                 f"Child process died calling {function.__name__}() with args={args} and "
                 f"kwargs={kwargs}. Its exit code was {self._child.wait()}."
             ) from None
 
-        # If all went well, then ``output`` is the return value.
+        # 008688.python.parent.line327.comment If all went well, then ``output`` is the return value.
         if ok:
             return output
 
-        # Otherwise an error happened and ``output`` is a string-ified stacktrace. Raise an error appending the
-        # stacktrace. Having the output in this order gives a nice fluent transition from parent to child in the stack
-        # trace.
+        # 008689.python.parent.line331.comment Otherwise an error happened and ``output`` is a string-ified stacktrace. Raise an error appending the
+        # 008690.python.parent.line332.comment stacktrace. Having the output in this order gives a nice fluent transition from parent to child in the stack
+        # 008691.python.parent.line333.comment trace.
         raise RuntimeError(f"Child process call to {function.__name__}() failed with:\n" + output)
 
     def _send(self, *objects):
         for object in objects:
             self._write_handle.write(b64encode(dumps(object)))
             self._write_handle.write(b"\n")
-        # Flushing is very important. Without it, the data is not sent but forever sits in a buffer so that the child is
-        # forever waiting for its data and the parent in turn is forever waiting for the child's response.
+        # 008692.python.parent.line340.comment Flushing is very important. Without it, the data is not sent but forever sits in a buffer so that the child is
+        # 008693.python.parent.line341.comment forever waiting for its data and the parent in turn is forever waiting for the child's response.
         self._write_handle.flush()
 
 

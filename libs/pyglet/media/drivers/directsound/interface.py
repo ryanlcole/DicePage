@@ -69,9 +69,9 @@ class DirectSoundDriver:
             lib.DirectSoundCreate(None, ctypes.byref(self._native_dsound), None)
         )
 
-        # A trick used by mplayer.. use desktop as window handle since it
-        # would be complex to use pyglet window handles (and what to do when
-        # application is audio only?).
+        # 034256.python.interface.line72.comment A trick used by mplayer.. use desktop as window handle since it
+        # 034257.python.interface.line73.comment would be complex to use pyglet window handles (and what to do when
+        # 034258.python.interface.line74.comment application is audio only?).
         hwnd = _user32.GetDesktopWindow()
         _check(
             self._native_dsound.SetCooperativeLevel(hwnd, lib.DSSCL_NORMAL)

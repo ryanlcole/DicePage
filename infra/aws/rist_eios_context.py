@@ -6,10 +6,10 @@ CANON_REVISION = "SCR-001 r1.0"
 AI_POLICY_VERSION = "ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline"
 NEURON_MODE = "sanitized-drive-snapshot"
 
-# This module is deliberately a compact, read-only knowledge capsule derived from
-# owner-controlled Google Drive sources. It is not a live Drive mount and it does
-# not contain private Drive identifiers, raw documents, credentials, or user data.
-# Authority labels are part of the data and must not be flattened.
+# 000037.python.rist_eios_context.line9.comment This module is deliberately a compact, read-only knowledge capsule derived from
+# 000038.python.rist_eios_context.line10.comment owner-controlled Google Drive sources. It is not a live Drive mount and it does
+# 000039.python.rist_eios_context.line11.comment not contain private Drive identifiers, raw documents, credentials, or user data.
+# 000040.python.rist_eios_context.line12.comment Authority labels are part of the data and must not be flattened.
 
 CORE_AUTHORITY = (
     "ReLiC/Shaelvien authority order: explicit current Owner decision and previously "
@@ -20,8 +20,8 @@ CORE_AUTHORITY = (
     "of being the Owner as canonical authority."
 )
 
-# These are project AI-policy constraints, not a claim that project policy is sovereign law.
-# Applicable law controls where legally required, exactly as the source policy states.
+# 000041.python.rist_eios_context.line23.comment These are project AI-policy constraints, not a claim that project policy is sovereign law.
+# 000042.python.rist_eios_context.line24.comment Applicable law controls where legally required, exactly as the source policy states.
 CORE_AI_RULES = (
     "ReLiC/RIST AI participation policy baseline 2026-09-10 is binding project-policy context. "
     "AI access requires machine-readable notice; human-style consent checkboxes are not a substitute. "

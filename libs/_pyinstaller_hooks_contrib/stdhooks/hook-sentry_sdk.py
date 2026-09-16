@@ -1,14 +1,14 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 016652.python.hook-sentry_sdk.line1.comment ------------------------------------------------------------------
+# 016653.python.hook-sentry_sdk.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 016654.python.hook-sentry_sdk.line3.comment
+# 016655.python.hook-sentry_sdk.line4.comment This file is distributed under the terms of the GNU General Public
+# 016656.python.hook-sentry_sdk.line5.comment License (version 2.0 or later).
+# 016657.python.hook-sentry_sdk.line6.comment
+# 016658.python.hook-sentry_sdk.line7.comment The full license is available in LICENSE, distributed with
+# 016659.python.hook-sentry_sdk.line8.comment this software.
+# 016660.python.hook-sentry_sdk.line9.comment
+# 016661.python.hook-sentry_sdk.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 016662.python.hook-sentry_sdk.line11.comment ------------------------------------------------------------------
 import json
 from PyInstaller.utils.hooks import exec_statement
 

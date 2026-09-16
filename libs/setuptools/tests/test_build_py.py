@@ -166,18 +166,18 @@ def test_excluded_subpackages(tmpdir_cwd):
 
     msg = r"Python recognizes 'mypkg\.tests' as an importable package"
     with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
-        # TODO: To fix #3260 we need some transition period to deprecate the
-        # existing behavior of `include_package_data`. After the transition, we
-        # should remove the warning and fix the behavior.
+        # 045258.python.test_build_py.line169.comment TODO: To fix #3260 we need some transition period to deprecate the
+        # 045259.python.test_build_py.line170.comment existing behavior of `include_package_data`. After the transition, we
+        # 045260.python.test_build_py.line171.comment should remove the warning and fix the behavior.
 
         if os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib":
-            # pytest.warns reset the warning filter temporarily
-            # https://github.com/pytest-dev/pytest/issues/4011#issuecomment-423494810
+            # 045261.python.test_build_py.line174.comment pytest.warns reset the warning filter temporarily
+            # 045262.python.test_build_py.line175.comment https://github.com/pytest-dev/pytest/issues/4011#issuecomment-423494810
             warnings.filterwarnings(
                 "ignore",
                 "'encoding' argument not specified",
                 module="distutils.text_file",
-                # This warning is already fixed in pypa/distutils but not in stdlib
+                # 045263.python.test_build_py.line180.comment This warning is already fixed in pypa/distutils but not in stdlib
             )
 
         build_py.finalize_options()
@@ -187,8 +187,8 @@ def test_excluded_subpackages(tmpdir_cwd):
     assert (build_dir / "mypkg/__init__.py").exists()
     assert (build_dir / "mypkg/resource_file.txt").exists()
 
-    # Setuptools is configured to ignore `mypkg.tests`, therefore the following
-    # files/dirs should not be included in the distribution.
+    # 045264.python.test_build_py.line190.comment Setuptools is configured to ignore `mypkg.tests`, therefore the following
+    # 045265.python.test_build_py.line191.comment files/dirs should not be included in the distribution.
     for f in [
         "mypkg/tests/__init__.py",
         "mypkg/tests/test_mypkg.py",
@@ -196,8 +196,8 @@ def test_excluded_subpackages(tmpdir_cwd):
         "mypkg/tests",
     ]:
         with pytest.raises(AssertionError):
-            # TODO: Enforce the following assertion once #3260 is fixed
-            # (remove context manager and the following xfail).
+            # 045266.python.test_build_py.line199.comment TODO: Enforce the following assertion once #3260 is fixed
+            # 045267.python.test_build_py.line200.comment (remove context manager and the following xfail).
             assert not (build_dir / f).exists()
 
     pytest.xfail("#3260")
@@ -208,8 +208,8 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
     """When provided with the ``existing_egg_info_dir`` attribute, build_py should not
     attempt to run egg_info again.
     """
-    # == Pre-condition ==
-    # Generate an egg-info dir
+    # 045268.python.test_build_py.line211.comment == Pre-condition ==
+    # 045269.python.test_build_py.line212.comment Generate an egg-info dir
     jaraco.path.build(EXAMPLE_WITH_MANIFEST)
     dist = Distribution({"script_name": "%PEP 517%"})
     dist.parse_config_files()
@@ -220,38 +220,38 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
     egg_info_dir = next(Path(egg_info.egg_base).glob("*.egg-info"))
     assert egg_info_dir.is_dir()
 
-    # == Setup ==
+    # 045270.python.test_build_py.line223.comment == Setup ==
     build_py = dist.get_command_obj("build_py")
     build_py.finalize_options()
     egg_info = dist.get_command_obj("egg_info")
     egg_info_run = Mock(side_effect=egg_info.run)
     monkeypatch.setattr(egg_info, "run", egg_info_run)
 
-    # == Remove caches ==
-    # egg_info is called when build_py looks for data_files, which gets cached.
-    # We need to ensure it is not cached yet, otherwise it may impact on the tests
+    # 045271.python.test_build_py.line230.comment == Remove caches ==
+    # 045272.python.test_build_py.line231.comment egg_info is called when build_py looks for data_files, which gets cached.
+    # 045273.python.test_build_py.line232.comment We need to ensure it is not cached yet, otherwise it may impact on the tests
     build_py.__dict__.pop('data_files', None)
     dist.reinitialize_command(egg_info)
 
-    # == Sanity check ==
-    # Ensure that if existing_egg_info is not given, build_py attempts to run egg_info
+    # 045274.python.test_build_py.line236.comment == Sanity check ==
+    # 045275.python.test_build_py.line237.comment Ensure that if existing_egg_info is not given, build_py attempts to run egg_info
     build_py.existing_egg_info_dir = None
     build_py.run()
     egg_info_run.assert_called()
 
-    # == Remove caches ==
+    # 045276.python.test_build_py.line242.comment == Remove caches ==
     egg_info_run.reset_mock()
     build_py.__dict__.pop('data_files', None)
     dist.reinitialize_command(egg_info)
 
-    # == Actual test ==
-    # Ensure that if existing_egg_info_dir is given, egg_info doesn't run
+    # 045277.python.test_build_py.line247.comment == Actual test ==
+    # 045278.python.test_build_py.line248.comment Ensure that if existing_egg_info_dir is given, egg_info doesn't run
     build_py.existing_egg_info_dir = egg_info_dir
     build_py.run()
     egg_info_run.assert_not_called()
     assert build_py.data_files
 
-    # Make sure the list of outputs is actually OK
+    # 045279.python.test_build_py.line254.comment Make sure the list of outputs is actually OK
     outputs = map(lambda x: x.replace(os.sep, "/"), build_py.get_outputs())
     assert outputs
     example = str(Path(build_py.build_lib, "mypkg/__init__.py")).replace(os.sep, "/")

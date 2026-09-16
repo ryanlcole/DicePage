@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025015.python.test_connections.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025016.python.test_connections.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025017.python.test_connections.line5.comment found in the LICENSE file.
 
 """Tests for psutil.net_connections() and Process.net_connections() APIs."""
 
@@ -58,7 +58,7 @@ class ConnectionTestCase(PsutilTestCase):
         assert this_proc_net_connections(kind='all') == []
 
     def tearDown(self):
-        # Make sure we closed all resources.
+        # 025018.python.test_connections.line61.comment Make sure we closed all resources.
         assert this_proc_net_connections(kind='all') == []
 
     def compare_procsys_connections(self, pid, proc_cons, kind='all'):
@@ -69,13 +69,13 @@ class ConnectionTestCase(PsutilTestCase):
         try:
             sys_cons = psutil.net_connections(kind=kind)
         except psutil.AccessDenied:
-            # On MACOS, system-wide connections are retrieved by iterating
-            # over all processes
+            # 025019.python.test_connections.line72.comment On MACOS, system-wide connections are retrieved by iterating
+            # 025020.python.test_connections.line73.comment over all processes
             if MACOS:
                 return
             else:
                 raise
-        # Filter for this proc PID and exlucde PIDs from the tuple.
+        # 025021.python.test_connections.line78.comment Filter for this proc PID and exlucde PIDs from the tuple.
         sys_cons = [c[:-1] for c in sys_cons if c.pid == pid]
         sys_cons.sort()
         proc_cons.sort()
@@ -109,8 +109,8 @@ class TestUnconnectedSockets(ConnectionTestCase):
         cons = this_proc_net_connections(kind='all')
         smap = {c.fd: c for c in cons}
         if NETBSD or FREEBSD:
-            # NetBSD opens a UNIX socket to /var/log/run
-            # so there may be more connections.
+            # 025022.python.test_connections.line112.comment NetBSD opens a UNIX socket to /var/log/run
+            # 025023.python.test_connections.line113.comment so there may be more connections.
             return smap[sock.fileno()]
         else:
             assert len(cons) == 1
@@ -126,23 +126,23 @@ class TestUnconnectedSockets(ConnectionTestCase):
         conn = self.get_conn_from_sock(sock)
         check_connection_ntuple(conn)
 
-        # fd, family, type
+        # 025024.python.test_connections.line129.comment fd, family, type
         if conn.fd != -1:
             assert conn.fd == sock.fileno()
         assert conn.family == sock.family
-        # see: http://bugs.python.org/issue30204
+        # 025025.python.test_connections.line133.comment see: http://bugs.python.org/issue30204
         assert conn.type == sock.getsockopt(socket.SOL_SOCKET, socket.SO_TYPE)
 
-        # local address
+        # 025026.python.test_connections.line136.comment local address
         laddr = sock.getsockname()
         if not laddr and isinstance(laddr, bytes):
-            # See: http://bugs.python.org/issue30205
+            # 025027.python.test_connections.line139.comment See: http://bugs.python.org/issue30205
             laddr = laddr.decode()
         if sock.family == AF_INET6:
             laddr = laddr[:2]
         assert conn.laddr == laddr
 
-        # XXX Solaris can't retrieve system-wide UNIX sockets
+        # 025028.python.test_connections.line145.comment XXX Solaris can't retrieve system-wide UNIX sockets
         if sock.family == AF_UNIX and HAS_NET_CONNECTIONS_UNIX:
             cons = this_proc_net_connections(kind='all')
             self.compare_procsys_connections(os.getpid(), cons, kind='all')
@@ -201,8 +201,8 @@ class TestConnectedSocket(ConnectionTestCase):
     each other.
     """
 
-    # On SunOS, even after we close() it, the server socket stays around
-    # in TIME_WAIT state.
+    # 025029.python.test_connections.line204.comment On SunOS, even after we close() it, the server socket stays around
+    # 025030.python.test_connections.line205.comment in TIME_WAIT state.
     @pytest.mark.skipif(SUNOS, reason="unreliable on SUNOS")
     def test_tcp(self):
         addr = ("127.0.0.1", 0)
@@ -213,12 +213,12 @@ class TestConnectedSocket(ConnectionTestCase):
             assert len(cons) == 2
             assert cons[0].status == psutil.CONN_ESTABLISHED
             assert cons[1].status == psutil.CONN_ESTABLISHED
-            # May not be fast enough to change state so it stays
-            # commenteed.
-            # client.close()
-            # cons = this_proc_net_connections(kind='all')
-            # assert len(cons) == 1
-            # assert cons[0].status == psutil.CONN_CLOSE_WAIT
+            # 025031.python.test_connections.line216.comment May not be fast enough to change state so it stays
+            # 025032.python.test_connections.line217.comment commenteed.
+            # 025033.python.test_connections.line218.comment client.close()
+            # 025034.python.test_connections.line219.comment cons = this_proc_net_connections(kind='all')
+            # 025035.python.test_connections.line220.comment assert len(cons) == 1
+            # 025036.python.test_connections.line221.comment assert cons[0].status == psutil.CONN_CLOSE_WAIT
         finally:
             server.close()
             client.close()
@@ -232,19 +232,19 @@ class TestConnectedSocket(ConnectionTestCase):
             assert not (cons[0].laddr and cons[0].raddr), cons
             assert not (cons[1].laddr and cons[1].raddr), cons
             if NETBSD or FREEBSD:
-                # On NetBSD creating a UNIX socket will cause
-                # a UNIX connection to  /var/run/log.
+                # 025037.python.test_connections.line235.comment On NetBSD creating a UNIX socket will cause
+                # 025038.python.test_connections.line236.comment a UNIX connection to  /var/run/log.
                 cons = [c for c in cons if c.raddr != '/var/run/log']
             assert len(cons) == 2
             if LINUX or FREEBSD or SUNOS or OPENBSD:
-                # remote path is never set
+                # 025039.python.test_connections.line240.comment remote path is never set
                 assert cons[0].raddr == ""
                 assert cons[1].raddr == ""
-                # one local address should though
+                # 025040.python.test_connections.line243.comment one local address should though
                 assert testfn == (cons[0].laddr or cons[1].laddr)
             else:
-                # On other systems either the laddr or raddr
-                # of both peers are set.
+                # 025041.python.test_connections.line246.comment On other systems either the laddr or raddr
+                # 025042.python.test_connections.line247.comment of both peers are set.
                 assert (cons[0].laddr or cons[1].laddr) == testfn
         finally:
             server.close()
@@ -312,9 +312,9 @@ class TestFilters(ConnectionTestCase):
                     assert cons != []
                 else:
                     assert cons == []
-            # compare against system-wide connections
-            # XXX Solaris can't retrieve system-wide UNIX
-            # sockets.
+            # 025043.python.test_connections.line315.comment compare against system-wide connections
+            # 025044.python.test_connections.line316.comment XXX Solaris can't retrieve system-wide UNIX
+            # 025045.python.test_connections.line317.comment sockets.
             if HAS_NET_CONNECTIONS_UNIX:
                 self.compare_procsys_connections(proc.pid, [conn])
 
@@ -337,7 +337,7 @@ class TestFilters(ConnectionTestCase):
             [time.sleep(0.1) for x in range(100)]
             """)
 
-        # must be relative on Windows
+        # 025046.python.test_connections.line340.comment must be relative on Windows
         testfile = os.path.basename(self.get_testfn(dir=os.getcwd()))
         tcp4_template = tcp_template.format(
             family=int(AF_INET), addr="127.0.0.1", testfn=testfile
@@ -352,8 +352,8 @@ class TestFilters(ConnectionTestCase):
             family=int(AF_INET6), addr="::1", testfn=testfile
         )
 
-        # launch various subprocess instantiating a socket of various
-        # families and types to enrich psutil results
+        # 025047.python.test_connections.line355.comment launch various subprocess instantiating a socket of various
+        # 025048.python.test_connections.line356.comment families and types to enrich psutil results
         tcp4_proc = self.pyrun(tcp4_template)
         tcp4_addr = eval(wait_for_file(testfile, delete=True))
         udp4_proc = self.pyrun(udp4_template)
@@ -373,7 +373,7 @@ class TestFilters(ConnectionTestCase):
             cons = p.net_connections()
             assert len(cons) == 1
             for conn in cons:
-                # TCP v4
+                # 025049.python.test_connections.line376.comment TCP v4
                 if p.pid == tcp4_proc.pid:
                     check_conn(
                         p,
@@ -385,7 +385,7 @@ class TestFilters(ConnectionTestCase):
                         psutil.CONN_LISTEN,
                         ("all", "inet", "inet4", "tcp", "tcp4"),
                     )
-                # UDP v4
+                # 025050.python.test_connections.line388.comment UDP v4
                 elif p.pid == udp4_proc.pid:
                     check_conn(
                         p,
@@ -397,7 +397,7 @@ class TestFilters(ConnectionTestCase):
                         psutil.CONN_NONE,
                         ("all", "inet", "inet4", "udp", "udp4"),
                     )
-                # TCP v6
+                # 025051.python.test_connections.line400.comment TCP v6
                 elif p.pid == getattr(tcp6_proc, "pid", None):
                     check_conn(
                         p,
@@ -409,7 +409,7 @@ class TestFilters(ConnectionTestCase):
                         psutil.CONN_LISTEN,
                         ("all", "inet", "inet6", "tcp", "tcp6"),
                     )
-                # UDP v6
+                # 025052.python.test_connections.line412.comment UDP v6
                 elif p.pid == getattr(udp6_proc, "pid", None):
                     check_conn(
                         p,
@@ -424,55 +424,55 @@ class TestFilters(ConnectionTestCase):
 
     def test_count(self):
         with create_sockets():
-            # tcp
+            # 025053.python.test_connections.line427.comment tcp
             cons = this_proc_net_connections(kind='tcp')
             assert len(cons) == (2 if supports_ipv6() else 1)
             for conn in cons:
                 assert conn.family in {AF_INET, AF_INET6}
                 assert conn.type == SOCK_STREAM
-            # tcp4
+            # 025054.python.test_connections.line433.comment tcp4
             cons = this_proc_net_connections(kind='tcp4')
             assert len(cons) == 1
             assert cons[0].family == AF_INET
             assert cons[0].type == SOCK_STREAM
-            # tcp6
+            # 025055.python.test_connections.line438.comment tcp6
             if supports_ipv6():
                 cons = this_proc_net_connections(kind='tcp6')
                 assert len(cons) == 1
                 assert cons[0].family == AF_INET6
                 assert cons[0].type == SOCK_STREAM
-            # udp
+            # 025056.python.test_connections.line444.comment udp
             cons = this_proc_net_connections(kind='udp')
             assert len(cons) == (2 if supports_ipv6() else 1)
             for conn in cons:
                 assert conn.family in {AF_INET, AF_INET6}
                 assert conn.type == SOCK_DGRAM
-            # udp4
+            # 025057.python.test_connections.line450.comment udp4
             cons = this_proc_net_connections(kind='udp4')
             assert len(cons) == 1
             assert cons[0].family == AF_INET
             assert cons[0].type == SOCK_DGRAM
-            # udp6
+            # 025058.python.test_connections.line455.comment udp6
             if supports_ipv6():
                 cons = this_proc_net_connections(kind='udp6')
                 assert len(cons) == 1
                 assert cons[0].family == AF_INET6
                 assert cons[0].type == SOCK_DGRAM
-            # inet
+            # 025059.python.test_connections.line461.comment inet
             cons = this_proc_net_connections(kind='inet')
             assert len(cons) == (4 if supports_ipv6() else 2)
             for conn in cons:
                 assert conn.family in {AF_INET, AF_INET6}
                 assert conn.type in {SOCK_STREAM, SOCK_DGRAM}
-            # inet6
+            # 025060.python.test_connections.line467.comment inet6
             if supports_ipv6():
                 cons = this_proc_net_connections(kind='inet6')
                 assert len(cons) == 2
                 for conn in cons:
                     assert conn.family == AF_INET6
                     assert conn.type in {SOCK_STREAM, SOCK_DGRAM}
-            # Skipped on BSD becayse by default the Python process
-            # creates a UNIX socket to '/var/run/log'.
+            # 025061.python.test_connections.line474.comment Skipped on BSD becayse by default the Python process
+            # 025062.python.test_connections.line475.comment creates a UNIX socket to '/var/run/log'.
             if HAS_NET_CONNECTIONS_UNIX and not (FREEBSD or NETBSD):
                 cons = this_proc_net_connections(kind='unix')
                 assert len(cons) == 3
@@ -497,7 +497,7 @@ class TestSystemWideConnections(ConnectionTestCase):
             from psutil._common import conn_tmap
 
             for kind, groups in conn_tmap.items():
-                # XXX: SunOS does not retrieve UNIX sockets.
+                # 025063.python.test_connections.line500.comment XXX: SunOS does not retrieve UNIX sockets.
                 if kind == 'unix' and not HAS_NET_CONNECTIONS_UNIX:
                     continue
                 families, types_ = groups
@@ -507,12 +507,12 @@ class TestSystemWideConnections(ConnectionTestCase):
 
     @retry_on_failure()
     def test_multi_sockets_procs(self):
-        # Creates multiple sub processes, each creating different
-        # sockets. For each process check that proc.net_connections()
-        # and psutil.net_connections() return the same results.
-        # This is done mainly to check whether net_connections()'s
-        # pid is properly set, see:
-        # https://github.com/giampaolo/psutil/issues/1013
+        # 025064.python.test_connections.line510.comment Creates multiple sub processes, each creating different
+        # 025065.python.test_connections.line511.comment sockets. For each process check that proc.net_connections()
+        # 025066.python.test_connections.line512.comment and psutil.net_connections() return the same results.
+        # 025067.python.test_connections.line513.comment This is done mainly to check whether net_connections()'s
+        # 025068.python.test_connections.line514.comment pid is properly set, see:
+        # 025069.python.test_connections.line515.comment https://github.com/giampaolo/psutil/issues/1013
         with create_sockets() as socks:
             expected = len(socks)
         pids = []
@@ -532,7 +532,7 @@ class TestSystemWideConnections(ConnectionTestCase):
             sproc = self.pyrun(src)
             pids.append(sproc.pid)
 
-        # sync
+        # 025070.python.test_connections.line535.comment sync
         for fname in fnames:
             wait_for_file(fname)
 

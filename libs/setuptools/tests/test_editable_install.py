@@ -232,7 +232,7 @@ def test_editable_with_single_module(tmp_path, venv, editable_opts):
 
 
 class TestLegacyNamespaces:
-    # legacy => pkg_resources.declare_namespace(...) + setup(namespace_packages=...)
+    # 045371.python.test_editable_install.line235.comment legacy => pkg_resources.declare_namespace(...) + setup(namespace_packages=...)
 
     def test_nspkg_file_is_unique(self, tmp_path, monkeypatch):
         deprecation = pytest.warns(
@@ -264,7 +264,7 @@ class TestLegacyNamespaces:
         "impl",
         (
             "pkg_resources",
-            #  "pkgutil",  => does not work
+            # 045372.python.test_editable_install.line267.comment "pkgutil",  => does not work
         ),
     )
     @pytest.mark.parametrize("ns", ("myns.n",))
@@ -287,13 +287,13 @@ class TestLegacyNamespaces:
         pkg_B = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgB", impl=impl)
         (pkg_A / "pyproject.toml").write_text(build_system, encoding="utf-8")
         (pkg_B / "pyproject.toml").write_text(build_system, encoding="utf-8")
-        # use pip to install to the target directory
+        # 045373.python.test_editable_install.line290.comment use pip to install to the target directory
         opts = editable_opts[:]
         opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", f"import {ns}.pkgA; import {ns}.pkgB"])
-        # additionally ensure that pkg_resources import works
+        # 045375.python.test_editable_install.line296.comment additionally ensure that pkg_resources import works
         venv.run(["python", "-c", "import pkg_resources"])
 
 
@@ -306,7 +306,7 @@ class TestPep420Namespaces:
         """
         pkg_A = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgA')
         pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
-        # use pip to install to the target directory
+        # 045376.python.test_editable_install.line309.comment use pip to install to the target directory
         opts = editable_opts[:]
         opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
@@ -339,7 +339,7 @@ class TestPep420Namespaces:
         pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
         pkg_C = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgC')
 
-        # use pip to install to the target directory
+        # 045378.python.test_editable_install.line342.comment use pip to install to the target directory
         opts = editable_opts[:]
         opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
@@ -383,7 +383,7 @@ class TestPep420Namespaces:
         jaraco.path.build(files, prefix=tmp_path)
         pkg_A = tmp_path / "pkgA"
 
-        # use pip to install to the target directory
+        # 045380.python.test_editable_install.line386.comment use pip to install to the target directory
         opts = ["--no-build-isolation"]  # force current version of setuptools
         venv.run(["python", "-m", "pip", "-v", "install", "-e", str(pkg_A), *opts])
         out = venv.run(["python", "-c", "from mypkg.n import pkgA; print(pkgA.a)"])
@@ -404,7 +404,7 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     """
     prefix = tmp_path / 'prefix'
 
-    # figure out where pip will likely install the package
+    # 045382.python.test_editable_install.line407.comment figure out where pip will likely install the package
     site_packages_all = [
         prefix / Path(path).relative_to(sys.prefix)
         for path in sys.path
@@ -414,7 +414,7 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     for sp in site_packages_all:
         sp.mkdir(parents=True)
 
-    # install workaround
+    # 045383.python.test_editable_install.line417.comment install workaround
     _addsitedirs(site_packages_all)
 
     env = dict(os.environ, PYTHONPATH=os.pathsep.join(map(str, site_packages_all)))
@@ -432,7 +432,7 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     ]
     subprocess.check_call(cmd, env=env)
 
-    # now run 'sample' with the prefix on the PYTHONPATH
+    # 045384.python.test_editable_install.line435.comment now run 'sample' with the prefix on the PYTHONPATH
     bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
     exe = prefix / bin / 'sample'
     subprocess.check_call([exe], env=env)
@@ -501,7 +501,7 @@ class TestFinderTemplate:
             assert_path(pkg, expected)
             assert pkg.a == 13
 
-            # Make sure resources can also be found
+            # 045385.python.test_editable_install.line504.comment Make sure resources can also be found
             assert text.read_text(encoding="utf-8") == "abc"
 
     def test_combine_namespaces(self, tmp_path):
@@ -575,7 +575,7 @@ class TestFinderTemplate:
             assert mod2.b == 37
 
     def test_dynamic_path_computation(self, tmp_path):
-        # Follows the example in PEP 420
+        # 045386.python.test_editable_install.line578.comment Follows the example in PEP 420
         files = {
             "project1": {"parent": {"child": {"one.py": "x = 1"}}},
             "project2": {"parent": {"child": {"two.py": "x = 2"}}},
@@ -611,7 +611,7 @@ class TestFinderTemplate:
             assert three.x == 3
 
     def test_no_recursion(self, tmp_path):
-        # See issue #3550
+        # 045387.python.test_editable_install.line614.comment See issue #3550
         files = {
             "pkg": {
                 "__init__.py": "from . import pkg",
@@ -842,7 +842,7 @@ class TestOverallBehaviour:
         version = "3.14159"
         """
 
-    # Any: Would need a TypedDict. Keep it simple for tests
+    # 045388.python.test_editable_install.line845.comment Any: Would need a TypedDict. Keep it simple for tests
     FLAT_LAYOUT: dict[str, Any] = {
         "pyproject.toml": dedent(PYPROJECT),
         "MANIFEST.in": EXAMPLE["MANIFEST.in"],
@@ -905,7 +905,7 @@ class TestOverallBehaviour:
             "mypkg", venv, tmp_path, self.EXAMPLES[layout], *editable_opts
         )
 
-        # Ensure stray files are not importable
+        # 045389.python.test_editable_install.line908.comment Ensure stray files are not importable
         cmd_import_error = """\
         try:
             import otherfile
@@ -915,7 +915,7 @@ class TestOverallBehaviour:
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
         assert "No module named 'otherfile'" in out
 
-        # Ensure the modules are importable
+        # 045390.python.test_editable_install.line918.comment Ensure the modules are importable
         cmd_get_vars = """\
         import mypkg, mypkg.mod1, mypkg.subpackage.mod2
         print(mypkg.mod1.var, mypkg.subpackage.mod2.var)
@@ -923,7 +923,7 @@ class TestOverallBehaviour:
         out = venv.run(["python", "-c", dedent(cmd_get_vars)])
         assert "42 13" in out
 
-        # Ensure resources are reachable
+        # 045391.python.test_editable_install.line926.comment Ensure resources are reachable
         cmd_get_resource = """\
         import mypkg.subpackage
         from setuptools._importlib import resources as importlib_resources
@@ -933,7 +933,7 @@ class TestOverallBehaviour:
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
         assert "resource 39" in out
 
-        # Ensure files are editable
+        # 045392.python.test_editable_install.line936.comment Ensure files are editable
         mod1 = next(project.glob("**/mod1.py"))
         mod2 = next(project.glob("**/mod2.py"))
         resource_file = next(project.glob("**/resource_file.txt"))
@@ -1009,7 +1009,7 @@ class TestLinkTree:
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
         assert "42" in out
 
-        # Ensure packages excluded from distribution are not importable
+        # 045393.python.test_editable_install.line1012.comment Ensure packages excluded from distribution are not importable
         cmd_import_error = """\
         try:
             from mypkg import subpackage
@@ -1019,7 +1019,7 @@ class TestLinkTree:
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
         assert "cannot import name 'subpackage'" in out
 
-        # Ensure resource files excluded from distribution are not reachable
+        # 045394.python.test_editable_install.line1022.comment Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
         import mypkg
         from setuptools._importlib import resources as importlib_resources
@@ -1036,7 +1036,7 @@ class TestLinkTree:
 
 @pytest.mark.filterwarnings("ignore:.*compat.*:setuptools.SetuptoolsDeprecationWarning")
 def test_compat_install(tmp_path, venv):
-    # TODO: Remove `compat` after Dec/2022.
+    # 045395.python.test_editable_install.line1039.comment TODO: Remove `compat` after Dec/2022.
     opts = ["--config-settings", "editable-mode=compat"]
     files = TestOverallBehaviour.EXAMPLES["custom-layout"]
     install_project("mypkg", venv, tmp_path, files, *opts)
@@ -1046,8 +1046,8 @@ def test_compat_install(tmp_path, venv):
 
     expected_path = comparable_path(str(tmp_path))
 
-    # Compatible behaviour will make spurious modules and excluded
-    # files importable directly from the original path
+    # 045396.python.test_editable_install.line1049.comment Compatible behaviour will make spurious modules and excluded
+    # 045397.python.test_editable_install.line1050.comment files importable directly from the original path
     for cmd in (
         "import otherfile; print(otherfile)",
         "import other; print(other)",
@@ -1056,7 +1056,7 @@ def test_compat_install(tmp_path, venv):
         out = comparable_path(venv.run(["python", "-c", cmd]))
         assert expected_path in out
 
-    # Compatible behaviour will not consider custom mappings
+    # 045398.python.test_editable_install.line1059.comment Compatible behaviour will not consider custom mappings
     cmd = """\
     try:
         from mypkg import subpackage;
@@ -1096,7 +1096,7 @@ class TestCustomBuildPy:
     happening due to those assumptions.
     """
 
-    # TODO: Remove tests after _run_build_steps is removed.
+    # 045399.python.test_editable_install.line1099.comment TODO: Remove tests after _run_build_steps is removed.
 
     FILES = {
         **TestOverallBehaviour.EXAMPLES["flat-layout"],
@@ -1118,11 +1118,11 @@ class TestCustomBuildPy:
 
     def test_safeguarded_from_errors(self, tmp_path, venv):
         """Ensure that errors in custom build_py are reported as warnings"""
-        # Warnings should show up
+        # 045400.python.test_editable_install.line1121.comment Warnings should show up
         _, out = install_project("mypkg", venv, tmp_path, self.FILES)
         assert "SetuptoolsDeprecationWarning" in out
         assert "ValueError: TEST_RAISE" in out
-        # but installation should be successful
+        # 045401.python.test_editable_install.line1125.comment but installation should be successful
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
         assert "42" in out
 
@@ -1133,8 +1133,8 @@ class TestCustomBuildWheel:
 
         class MyBdistWheel(bdist_wheel_cls):
             def get_tag(self):
-                # In issue #3513, we can see that some extensions may try to access
-                # the `plat_name` property in bdist_wheel
+                # 045402.python.test_editable_install.line1136.comment In issue #3513, we can see that some extensions may try to access
+                # 045403.python.test_editable_install.line1137.comment the `plat_name` property in bdist_wheel
                 if self.plat_name.startswith("macosx-"):
                     _ = "macOS platform"
                 return super().get_tag()
@@ -1142,8 +1142,8 @@ class TestCustomBuildWheel:
         dist.cmdclass["bdist_wheel"] = MyBdistWheel
 
     def test_access_plat_name(self, tmpdir_cwd):
-        # Even when a custom bdist_wheel tries to access plat_name the build should
-        # be successful
+        # 045404.python.test_editable_install.line1145.comment Even when a custom bdist_wheel tries to access plat_name the build should
+        # 045405.python.test_editable_install.line1146.comment be successful
         jaraco.path.build({"module.py": "x = 42"})
         dist = Distribution()
         dist.script_name = "setup.py"
@@ -1238,11 +1238,11 @@ def _addsitedirs(new_dirs):
     (new_dirs[0] / "sitecustomize.py").write_text(content, encoding="utf-8")
 
 
-# ---- Assertion Helpers ----
+# 045408.python.test_editable_install.line1241.comment ---- Assertion Helpers ----
 
 
 def assert_path(pkg, expected):
-    # __path__ is not guaranteed to exist, so we have to account for that
+    # 045409.python.test_editable_install.line1245.comment __path__ is not guaranteed to exist, so we have to account for that
     if pkg.__path__:
         path = next(iter(pkg.__path__), None)
         if path:

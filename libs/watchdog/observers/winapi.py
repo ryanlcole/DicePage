@@ -21,10 +21,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Any
 
-# Invalid handle value.
+# 045836.python.winapi.line24.comment Invalid handle value.
 INVALID_HANDLE_VALUE = ctypes.c_void_p(-1).value
 
-# File notification constants.
+# 045837.python.winapi.line27.comment File notification constants.
 FILE_NOTIFY_CHANGE_FILE_NAME = 0x01
 FILE_NOTIFY_CHANGE_DIR_NAME = 0x02
 FILE_NOTIFY_CHANGE_ATTRIBUTES = 0x04
@@ -44,7 +44,7 @@ OPEN_EXISTING = 3
 
 VOLUME_NAME_NT = 0x02
 
-# File action constants.
+# 045838.python.winapi.line47.comment File action constants.
 FILE_ACTION_CREATED = 1
 FILE_ACTION_DELETED = 2
 FILE_ACTION_MODIFIED = 3
@@ -53,20 +53,20 @@ FILE_ACTION_RENAMED_NEW_NAME = 5
 FILE_ACTION_DELETED_SELF = 0xFFFE
 FILE_ACTION_OVERFLOW = 0xFFFF
 
-# Aliases
+# 045839.python.winapi.line56.comment Aliases
 FILE_ACTION_ADDED = FILE_ACTION_CREATED
 FILE_ACTION_REMOVED = FILE_ACTION_DELETED
 FILE_ACTION_REMOVED_SELF = FILE_ACTION_DELETED_SELF
 
 THREAD_TERMINATE = 0x0001
 
-# IO waiting constants.
+# 045840.python.winapi.line63.comment IO waiting constants.
 WAIT_ABANDONED = 0x00000080
 WAIT_IO_COMPLETION = 0x000000C0
 WAIT_OBJECT_0 = 0x00000000
 WAIT_TIMEOUT = 0x00000102
 
-# Error codes
+# 045841.python.winapi.line69.comment Error codes
 ERROR_OPERATION_ABORTED = 995
 
 
@@ -221,8 +221,8 @@ class FileNotifyInformation(ctypes.Structure):
 LPFNI = ctypes.POINTER(FileNotifyInformation)
 
 
-# We don't need to recalculate these flags every time a call is made to
-# the win32 API functions.
+# 045890.python.winapi.line224.comment We don't need to recalculate these flags every time a call is made to
+# 045891.python.winapi.line225.comment the win32 API functions.
 WATCHDOG_FILE_FLAGS = FILE_FLAG_BACKUP_SEMANTICS
 WATCHDOG_FILE_SHARE_FLAGS = reduce(
     lambda x, y: x | y,
@@ -246,16 +246,16 @@ WATCHDOG_FILE_NOTIFY_FLAGS = reduce(
     ],
 )
 
-# ReadDirectoryChangesW buffer length.
-# To handle cases with lot of changes, this seems the highest safest value we can use.
-# Note: it will fail with ERROR_INVALID_PARAMETER when it is greater than 64 KB and
-#       the application is monitoring a directory over the network.
-#       This is due to a packet size limitation with the underlying file sharing protocols.
-#       https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks
+# 045892.python.winapi.line249.comment ReadDirectoryChangesW buffer length.
+# 045893.python.winapi.line250.comment To handle cases with lot of changes, this seems the highest safest value we can use.
+# 045894.python.winapi.line251.comment Note: it will fail with ERROR_INVALID_PARAMETER when it is greater than 64 KB and
+# 045895.python.winapi.line252.comment the application is monitoring a directory over the network.
+# 045896.python.winapi.line253.comment This is due to a packet size limitation with the underlying file sharing protocols.
+# 045897.python.winapi.line254.comment https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks
 BUFFER_SIZE = 64000
 
-# Buffer length for path-related stuff.
-# Introduced to keep the old behavior when we bumped BUFFER_SIZE from 2048 to 64000 in v1.0.0.
+# 045898.python.winapi.line257.comment Buffer length for path-related stuff.
+# 045899.python.winapi.line258.comment Introduced to keep the old behavior when we bumped BUFFER_SIZE from 2048 to 64000 in v1.0.0.
 PATH_BUFFER_SIZE = 2048
 
 
@@ -275,16 +275,16 @@ def _parse_event_buffer(read_buffer: bytes, n_bytes: int) -> list[tuple[int, str
 
 
 def _is_observed_path_deleted(handle: HANDLE, path: str) -> bool:
-    # Comparison of observed path and actual path, returned by
-    # GetFinalPathNameByHandleW. If directory moved to the trash bin, or
-    # deleted, actual path will not be equal to observed path.
+    # 045902.python.winapi.line278.comment Comparison of observed path and actual path, returned by
+    # 045903.python.winapi.line279.comment GetFinalPathNameByHandleW. If directory moved to the trash bin, or
+    # 045904.python.winapi.line280.comment deleted, actual path will not be equal to observed path.
     buff = ctypes.create_unicode_buffer(PATH_BUFFER_SIZE)
     GetFinalPathNameByHandleW(handle, buff, PATH_BUFFER_SIZE, VOLUME_NAME_NT)
     return buff.value != path
 
 
 def _generate_observed_path_deleted_event() -> tuple[bytes, int]:
-    # Create synthetic event for notify that observed directory is deleted
+    # 045905.python.winapi.line287.comment Create synthetic event for notify that observed directory is deleted
     path = ctypes.create_unicode_buffer(".")
     event = FileNotifyInformation(0, FILE_ACTION_DELETED_SELF, len(path), path.value.encode("utf-8"))
     event_size = ctypes.sizeof(event)
@@ -337,7 +337,7 @@ def read_directory_changes(handle: HANDLE, path: str, *, recursive: bool) -> tup
         if e.winerror == ERROR_OPERATION_ABORTED:  # type: ignore[attr-defined]
             return event_buffer.raw, 0
 
-        # Handle the case when the root path is deleted
+        # 045908.python.winapi.line340.comment Handle the case when the root path is deleted
         if _is_observed_path_deleted(handle, path):
             return _generate_observed_path_deleted_event()
 

@@ -6,7 +6,7 @@ from .compat import py39
 from .warnings import SetuptoolsDeprecationWarning
 
 
-# HFS Plus uses decomposed UTF-8
+# 045620.python.unicode_utils.line9.comment HFS Plus uses decomposed UTF-8
 def decompose(path):
     if isinstance(path, str):
         return unicodedata.normalize('NFD', path)
@@ -96,7 +96,7 @@ class _Utf8EncodingNeeded(SetuptoolsDeprecationWarning):
     (e.g. by updating `build-system.requires` in its `pyproject.toml`)
     might solve the problem.
     """
-    # TODO: Add a deadline?
-    #       Will we be able to remove this?
-    #       The question comes to mind mainly because of sdists that have been produced
-    #       by old versions of setuptools and published to PyPI...
+    # 045624.python.unicode_utils.line99.comment TODO: Add a deadline?
+    # 045625.python.unicode_utils.line100.comment Will we be able to remove this?
+    # 045626.python.unicode_utils.line101.comment The question comes to mind mainly because of sdists that have been produced
+    # 045627.python.unicode_utils.line102.comment by old versions of setuptools and published to PyPI...

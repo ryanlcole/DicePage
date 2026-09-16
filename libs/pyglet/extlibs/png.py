@@ -1,34 +1,34 @@
 #!/usr/bin/env python
 
-# png.py - PNG encoder/decoder in pure Python
-#
-# Copyright (C) 2006 Johann C. Rocholl <johann@browsershots.org>
-# Portions Copyright (C) 2009 David Jones <drj@pobox.com>
-# And probably portions Copyright (C) 2006 Nicko van Someren <nicko@nicko.org>
-#
-# Original concept by Johann C. Rocholl.
-#
-# LICENCE (MIT)
-#
-# Permission is hereby granted, free of charge, to any person
-# obtaining a copy of this software and associated documentation files
-# (the "Software"), to deal in the Software without restriction,
-# including without limitation the rights to use, copy, modify, merge,
-# publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so,
-# subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# 026505.python.png.line3.comment png.py - PNG encoder/decoder in pure Python
+# 026506.python.png.line4.comment
+# 026507.python.png.line5.comment Copyright (C) 2006 Johann C. Rocholl <johann@browsershots.org>
+# 026508.python.png.line6.comment Portions Copyright (C) 2009 David Jones <drj@pobox.com>
+# 026509.python.png.line7.comment And probably portions Copyright (C) 2006 Nicko van Someren <nicko@nicko.org>
+# 026510.python.png.line8.comment
+# 026511.python.png.line9.comment Original concept by Johann C. Rocholl.
+# 026512.python.png.line10.comment
+# 026513.python.png.line11.comment LICENCE (MIT)
+# 026514.python.png.line12.comment
+# 026515.python.png.line13.comment Permission is hereby granted, free of charge, to any person
+# 026516.python.png.line14.comment obtaining a copy of this software and associated documentation files
+# 026517.python.png.line15.comment (the "Software"), to deal in the Software without restriction,
+# 026518.python.png.line16.comment including without limitation the rights to use, copy, modify, merge,
+# 026519.python.png.line17.comment publish, distribute, sublicense, and/or sell copies of the Software,
+# 026520.python.png.line18.comment and to permit persons to whom the Software is furnished to do so,
+# 026521.python.png.line19.comment subject to the following conditions:
+# 026522.python.png.line20.comment
+# 026523.python.png.line21.comment The above copyright notice and this permission notice shall be
+# 026524.python.png.line22.comment included in all copies or substantial portions of the Software.
+# 026525.python.png.line23.comment
+# 026526.python.png.line24.comment THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# 026527.python.png.line25.comment EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# 026528.python.png.line26.comment MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# 026529.python.png.line27.comment NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# 026530.python.png.line28.comment BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# 026531.python.png.line29.comment ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# 026532.python.png.line30.comment CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# 026533.python.png.line31.comment SOFTWARE.
 
 """
 The ``png`` module can read and write PNG files.
@@ -175,12 +175,12 @@ import collections
 import io   # For io.BytesIO
 import itertools
 import math
-# http://www.python.org/doc/2.4.4/lib/module-operator.html
+# 026535.python.png.line178.comment http://www.python.org/doc/2.4.4/lib/module-operator.html
 import operator
 import re
 import struct
 import sys
-# http://www.python.org/doc/2.4.4/lib/module-warnings.html
+# 026536.python.png.line183.comment http://www.python.org/doc/2.4.4/lib/module-warnings.html
 import warnings
 import zlib
 
@@ -190,11 +190,11 @@ from array import array
 __all__ = ['Image', 'Reader', 'Writer', 'write_chunks', 'from_array']
 
 
-# The PNG signature.
-# http://www.w3.org/TR/PNG/#5PNG-file-signature
+# 026537.python.png.line193.comment The PNG signature.
+# 026538.python.png.line194.comment http://www.w3.org/TR/PNG/#5PNG-file-signature
 signature = struct.pack('8B', 137, 80, 78, 71, 13, 10, 26, 10)
 
-# The xstart, ystart, xstep, ystep for the Adam7 interlace passes.
+# 026539.python.png.line197.comment The xstart, ystart, xstep, ystep for the Adam7 interlace passes.
 adam7 = ((0, 0, 8, 8),
          (4, 0, 8, 8),
          (0, 4, 4, 8),
@@ -222,7 +222,7 @@ def adam7_generate(width, height):
         yield ((xstart, y, xstep) for y in range(ystart, height, ystep))
 
 
-# Models the 'pHYs' chunk (used by the Reader)
+# 026540.python.png.line225.comment Models the 'pHYs' chunk (used by the Reader)
 Resolution = collections.namedtuple('_Resolution', 'x y unit_is_meter')
 
 
@@ -241,7 +241,7 @@ def check_palette(palette):
     raises an exception otherwise.
     """
 
-    # None is the default and is allowed.
+    # 026541.python.png.line244.comment None is the default and is allowed.
     if palette is None:
         return None
 
@@ -520,11 +520,11 @@ class Writer:
         multiple ``IDAT`` chunks may be created.
         """
 
-        # At the moment the `planes` argument is ignored;
-        # its purpose is to act as a dummy so that
-        # ``Writer(x, y, **info)`` works, where `info` is a dictionary
-        # returned by Reader.read and friends.
-        # Ditto for `colormap`.
+        # 026542.python.png.line523.comment At the moment the `planes` argument is ignored;
+        # 026543.python.png.line524.comment its purpose is to act as a dummy so that
+        # 026544.python.png.line525.comment ``Writer(x, y, **info)`` works, where `info` is a dictionary
+        # 026545.python.png.line526.comment returned by Reader.read and friends.
+        # 026546.python.png.line527.comment Ditto for `colormap`.
 
         width, height = check_sizes(size, width, height)
         del size
@@ -533,7 +533,7 @@ class Writer:
             raise ProtocolError("width and height must be integers")
         if width <= 0 or height <= 0:
             raise ProtocolError("width and height must be greater than zero")
-        # http://www.w3.org/TR/PNG/#7Integers-and-byte-order
+        # 026547.python.png.line536.comment http://www.w3.org/TR/PNG/#7Integers-and-byte-order
         if width > 2 ** 31 - 1 or height > 2 ** 31 - 1:
             raise ProtocolError("width and height cannot exceed 2**31-1")
 
@@ -541,8 +541,8 @@ class Writer:
             raise ProtocolError(
                 "transparent colour not allowed with alpha channel")
 
-        # bitdepth is either single integer, or tuple of integers.
-        # Convert to tuple.
+        # 026548.python.png.line544.comment bitdepth is either single integer, or tuple of integers.
+        # 026549.python.png.line545.comment Convert to tuple.
         try:
             len(bitdepth)
         except TypeError:
@@ -553,8 +553,8 @@ class Writer:
                 raise ProtocolError(
                     f"each bitdepth {bitdepth} must be a positive integer <= 16")
 
-        # Calculate channels, and
-        # expand bitdepth to be one element per channel.
+        # 026550.python.png.line556.comment Calculate channels, and
+        # 026551.python.png.line557.comment expand bitdepth to be one element per channel.
         palette = check_palette(palette)
         alpha = bool(alpha)
         colormap = bool(palette)
@@ -575,8 +575,8 @@ class Writer:
                 bitdepth,
                 transparent, alpha, greyscale)
 
-        # These are assertions, because above logic should have
-        # corrected or raised all problematic cases.
+        # 026552.python.png.line578.comment These are assertions, because above logic should have
+        # 026553.python.png.line579.comment corrected or raised all problematic cases.
         if bitdepth < 8:
             assert greyscale or palette
             assert not alpha
@@ -586,9 +586,9 @@ class Writer:
         transparent = check_color(transparent, greyscale, 'transparent')
         background = check_color(background, greyscale, 'background')
 
-        # It's important that the true boolean values
-        # (greyscale, alpha, colormap, interlace) are converted
-        # to bool because Iverson's convention is relied upon later on.
+        # 026554.python.png.line589.comment It's important that the true boolean values
+        # 026555.python.png.line590.comment (greyscale, alpha, colormap, interlace) are converted
+        # 026556.python.png.line591.comment to bool because Iverson's convention is relied upon later on.
         self.width = width
         self.height = height
         self.transparent = transparent
@@ -613,7 +613,7 @@ class Writer:
 
         self.color_planes = color_planes
         self.planes = planes
-        # :todo: fix for bitdepth < 8
+        # 026557.python.png.line616.comment :todo: fix for bitdepth < 8
         self.psize = (self.bitdepth / 8) * self.planes
 
     def write(self, outfile, rows):
@@ -634,7 +634,7 @@ class Writer:
           Interlacing requires the entire image to be in working memory.
         """
 
-        # Values per row
+        # 026558.python.png.line637.comment Values per row
         vpr = self.width * self.planes
 
         def check_rows(rows):
@@ -646,12 +646,12 @@ class Writer:
                 try:
                     wrong_length = len(row) != vpr
                 except TypeError:
-                    # When using an itertools.ichain object or
-                    # other generator not supporting __len__,
-                    # we set this to False to skip the check.
+                    # 026559.python.png.line649.comment When using an itertools.ichain object or
+                    # 026560.python.png.line650.comment other generator not supporting __len__,
+                    # 026561.python.png.line651.comment we set this to False to skip the check.
                     wrong_length = False
                 if wrong_length:
-                    # Note: row numbers start at 0.
+                    # 026562.python.png.line654.comment Note: row numbers start at 0.
                     raise ProtocolError(
                         f"Expected {vpr} values but got {len(row)} values, in row {i}")
                 yield row
@@ -684,8 +684,8 @@ class Writer:
         (each row being a sequence of values).
         """
 
-        # Ensure rows are scaled (to 4-/8-/16-bit),
-        # and packed into bytes.
+        # 026563.python.png.line687.comment Ensure rows are scaled (to 4-/8-/16-bit),
+        # 026564.python.png.line688.comment and packed into bytes.
 
         if self.rescale:
             rows = rescale_rows(rows, self.rescale)
@@ -717,27 +717,27 @@ class Writer:
 
         self.write_preamble(outfile)
 
-        # http://www.w3.org/TR/PNG/#11IDAT
+        # 026565.python.png.line720.comment http://www.w3.org/TR/PNG/#11IDAT
         if self.compression is not None:
             compressor = zlib.compressobj(self.compression)
         else:
             compressor = zlib.compressobj()
 
-        # data accumulates bytes to be compressed for the IDAT chunk;
-        # it's compressed when sufficiently large.
+        # 026566.python.png.line726.comment data accumulates bytes to be compressed for the IDAT chunk;
+        # 026567.python.png.line727.comment it's compressed when sufficiently large.
         data = bytearray()
 
-        # raise i scope out of the for loop. set to -1, because the for loop
-        # sets i to 0 on the first pass
+        # 026568.python.png.line730.comment raise i scope out of the for loop. set to -1, because the for loop
+        # 026569.python.png.line731.comment sets i to 0 on the first pass
         i = -1
         for i, row in enumerate(rows):
-            # Add "None" filter type.
-            # Currently, it's essential that this filter type be used
-            # for every scanline as
-            # we do not mark the first row of a reduced pass image;
-            # that means we could accidentally compute
-            # the wrong filtered scanline if we used
-            # "up", "average", or "paeth" on such a line.
+            # 026570.python.png.line734.comment Add "None" filter type.
+            # 026571.python.png.line735.comment Currently, it's essential that this filter type be used
+            # 026572.python.png.line736.comment for every scanline as
+            # 026573.python.png.line737.comment we do not mark the first row of a reduced pass image;
+            # 026574.python.png.line738.comment that means we could accidentally compute
+            # 026575.python.png.line739.comment the wrong filtered scanline if we used
+            # 026576.python.png.line740.comment "up", "average", or "paeth" on such a line.
             data.append(0)
             data.extend(row)
             if len(data) > self.chunk_limit:
@@ -750,47 +750,47 @@ class Writer:
         flushed = compressor.flush()
         if len(compressed) or len(flushed):
             write_chunk(outfile, b'IDAT', compressed + flushed)
-        # http://www.w3.org/TR/PNG/#11IEND
+        # 026577.python.png.line753.comment http://www.w3.org/TR/PNG/#11IEND
         write_chunk(outfile, b'IEND')
         return i + 1
 
     def write_preamble(self, outfile):
-        # http://www.w3.org/TR/PNG/#5PNG-file-signature
+        # 026578.python.png.line758.comment http://www.w3.org/TR/PNG/#5PNG-file-signature
         outfile.write(signature)
 
-        # http://www.w3.org/TR/PNG/#11IHDR
+        # 026579.python.png.line761.comment http://www.w3.org/TR/PNG/#11IHDR
         write_chunk(outfile, b'IHDR',
                     struct.pack("!2I5B", self.width, self.height,
                                 self.bitdepth, self.color_type,
                                 0, 0, self.interlace))
 
-        # See :chunk:order
-        # http://www.w3.org/TR/PNG/#11gAMA
+        # 026580.python.png.line767.comment See :chunk:order
+        # 026581.python.png.line768.comment http://www.w3.org/TR/PNG/#11gAMA
         if self.gamma is not None:
             write_chunk(outfile, b'gAMA',
                         struct.pack("!L", int(round(self.gamma * 1e5))))
 
-        # See :chunk:order
-        # http://www.w3.org/TR/PNG/#11sBIT
+        # 026582.python.png.line773.comment See :chunk:order
+        # 026583.python.png.line774.comment http://www.w3.org/TR/PNG/#11sBIT
         if self.rescale:
             write_chunk(
                 outfile, b'sBIT',
                 struct.pack(f'{self.planes,* [s[0] for s in self.rescale]}B' ))
 
-        # :chunk:order: Without a palette (PLTE chunk),
-        # ordering is relatively relaxed.
-        # With one, gAMA chunk must precede PLTE chunk
-        # which must precede tRNS and bKGD.
-        # See http://www.w3.org/TR/PNG/#5ChunkOrdering
+        # 026584.python.png.line780.comment :chunk:order: Without a palette (PLTE chunk),
+        # 026585.python.png.line781.comment ordering is relatively relaxed.
+        # 026586.python.png.line782.comment With one, gAMA chunk must precede PLTE chunk
+        # 026587.python.png.line783.comment which must precede tRNS and bKGD.
+        # 026588.python.png.line784.comment See http://www.w3.org/TR/PNG/#5ChunkOrdering
         if self.palette:
             p, t = make_palette_chunks(self.palette)
             write_chunk(outfile, b'PLTE', p)
             if t:
-                # tRNS chunk is optional;
-                # Only needed if palette entries have alpha.
+                # 026589.python.png.line789.comment tRNS chunk is optional;
+                # 026590.python.png.line790.comment Only needed if palette entries have alpha.
                 write_chunk(outfile, b'tRNS', t)
 
-        # http://www.w3.org/TR/PNG/#11tRNS
+        # 026591.python.png.line793.comment http://www.w3.org/TR/PNG/#11tRNS
         if self.transparent is not None:
             if self.greyscale:
                 fmt = "!1H"
@@ -799,7 +799,7 @@ class Writer:
             write_chunk(outfile, b'tRNS',
                         struct.pack(fmt, *self.transparent))
 
-        # http://www.w3.org/TR/PNG/#11bKGD
+        # 026592.python.png.line802.comment http://www.w3.org/TR/PNG/#11bKGD
         if self.background is not None:
             if self.greyscale:
                 fmt = "!1H"
@@ -808,7 +808,7 @@ class Writer:
             write_chunk(outfile, b'bKGD',
                         struct.pack(fmt, *self.background))
 
-        # http://www.w3.org/TR/PNG/#11pHYs
+        # 026593.python.png.line811.comment http://www.w3.org/TR/PNG/#11pHYs
         if (self.x_pixels_per_unit is not None and
                 self.y_pixels_per_unit is not None):
             tup = (self.x_pixels_per_unit,
@@ -825,7 +825,7 @@ class Writer:
 
         if self.interlace:
             if type(pixels) != array:
-                # Coerce to array type
+                # 026594.python.png.line828.comment Coerce to array type
                 fmt = 'BH'[self.bitdepth > 8]
                 pixels = array(fmt, pixels)
             return self.write_passes(
@@ -844,7 +844,7 @@ class Writer:
         a single array of values.
         """
 
-        # Values per row
+        # 026595.python.png.line847.comment Values per row
         vpr = self.width * self.planes
         stop = 0
         for y in range(self.height):
@@ -860,30 +860,30 @@ class Writer:
         each scanline being a sequence of values.
         """
 
-        # http://www.w3.org/TR/PNG/#8InterlaceMethods
-        # Array type.
+        # 026596.python.png.line863.comment http://www.w3.org/TR/PNG/#8InterlaceMethods
+        # 026597.python.png.line864.comment Array type.
         fmt = 'BH'[self.bitdepth > 8]
-        # Value per row
+        # 026598.python.png.line866.comment Value per row
         vpr = self.width * self.planes
 
-        # Each iteration generates a scanline starting at (x, y)
-        # and consisting of every xstep pixels.
+        # 026599.python.png.line869.comment Each iteration generates a scanline starting at (x, y)
+        # 026600.python.png.line870.comment and consisting of every xstep pixels.
         for lines in adam7_generate(self.width, self.height):
             for x, y, xstep in lines:
-                # Pixels per row (of reduced image)
+                # 026601.python.png.line873.comment Pixels per row (of reduced image)
                 ppr = int(math.ceil((self.width - x) / float(xstep)))
-                # Values per row (of reduced image)
+                # 026602.python.png.line875.comment Values per row (of reduced image)
                 reduced_row_len = ppr * self.planes
                 if xstep == 1:
-                    # Easy case: line is a simple slice.
+                    # 026603.python.png.line878.comment Easy case: line is a simple slice.
                     offset = y * vpr
                     yield pixels[offset: offset + vpr]
                     continue
-                # We have to step by xstep,
-                # which we can do one plane at a time
-                # using the step in Python slices.
+                # 026604.python.png.line882.comment We have to step by xstep,
+                # 026605.python.png.line883.comment which we can do one plane at a time
+                # 026606.python.png.line884.comment using the step in Python slices.
                 row = array(fmt)
-                # There's no easier way to set the length of an array
+                # 026607.python.png.line886.comment There's no easier way to set the length of an array
                 row.extend(pixels[0:reduced_row_len])
                 offset = y * vpr + x * self.planes
                 end_offset = (y + 1) * vpr
@@ -901,7 +901,7 @@ def write_chunk(outfile, tag, data=b''):
     """
 
     data = bytes(data)
-    # http://www.w3.org/TR/PNG/#5Chunk-layout
+    # 026608.python.png.line904.comment http://www.w3.org/TR/PNG/#5Chunk-layout
     outfile.write(struct.pack("!I", len(data)))
     outfile.write(tag)
     outfile.write(data)
@@ -929,17 +929,17 @@ def rescale_rows(rows, rescale):
     with one element per channel.
     """
 
-    # One factor for each channel
+    # 026609.python.png.line932.comment One factor for each channel
     fs = [float(2 ** s[1] - 1)/float(2 ** s[0] - 1)
           for s in rescale]
 
-    # Assume all target_bitdepths are the same
+    # 026610.python.png.line936.comment Assume all target_bitdepths are the same
     target_bitdepths = set(s[1] for s in rescale)
     assert len(target_bitdepths) == 1
     (target_bitdepth, ) = target_bitdepths
     typecode = 'BH'[target_bitdepth > 8]
 
-    # Number of channels
+    # 026611.python.png.line942.comment Number of channels
     n_chans = len(rescale)
 
     for row in rows:
@@ -960,7 +960,7 @@ def pack_rows(rows, bitdepth):
     assert bitdepth < 8
     assert 8 % bitdepth == 0
 
-    # samples per byte
+    # 026612.python.png.line963.comment samples per byte
     spb = int(8 / bitdepth)
 
     def make_byte(block):
@@ -975,13 +975,13 @@ def pack_rows(rows, bitdepth):
 
     for row in rows:
         a = bytearray(row)
-        # Adding padding bytes so we can group into a whole
-        # number of spb-tuples.
+        # 026613.python.png.line978.comment Adding padding bytes so we can group into a whole
+        # 026614.python.png.line979.comment number of spb-tuples.
         n = float(len(a))
         extra = math.ceil(n / spb) * spb - n
         a.extend([0] * int(extra))
-        # Pack into bytes.
-        # Each block is the samples for one byte.
+        # 026615.python.png.line983.comment Pack into bytes.
+        # 026616.python.png.line984.comment Each block is the samples for one byte.
         blocks = group(a, spb)
         yield bytearray(make_byte(block) for block in blocks)
 
@@ -1037,10 +1037,10 @@ def check_bitdepth_rescale(
             raise ProtocolError("greyscale and palette not compatible")
         return bitdepth, None
 
-    # No palette, check for sBIT chunk generation.
+    # 026617.python.png.line1040.comment No palette, check for sBIT chunk generation.
 
     if greyscale and not alpha:
-        # Single channel, L.
+        # 026618.python.png.line1043.comment Single channel, L.
         (bitdepth,) = bitdepth
         if bitdepth in (1, 2, 4, 8, 16):
             return bitdepth, None
@@ -1057,7 +1057,7 @@ def check_bitdepth_rescale(
 
     depth_set = tuple(set(bitdepth))
     if depth_set in [(8,), (16,)]:
-        # No sBIT required.
+        # 026619.python.png.line1060.comment No sBIT required.
         (bitdepth, ) = depth_set
         return bitdepth, None
 
@@ -1065,7 +1065,7 @@ def check_bitdepth_rescale(
     return targetbitdepth, [(b, targetbitdepth) for b in bitdepth]
 
 
-# Regex for decoding mode string
+# 026620.python.png.line1068.comment Regex for decoding mode string
 RegexModeDecode = re.compile("(LA?|RGBA?);?([0-9]*)", flags=re.IGNORECASE)
 
 
@@ -1152,11 +1152,11 @@ def from_array(a, mode=None, info={}):
     false when mode is ``'RGB'`` or ``'RGBA'``.
     """
 
-    # We abuse the *info* parameter by modifying it.  Take a copy here.
-    # (Also typechecks *info* to some extent).
+    # 026621.python.png.line1155.comment We abuse the *info* parameter by modifying it.  Take a copy here.
+    # 026622.python.png.line1156.comment (Also typechecks *info* to some extent).
     info = dict(info)
 
-    # Syntax check mode string.
+    # 026623.python.png.line1159.comment Syntax check mode string.
     match = RegexModeDecode.match(mode)
     if not match:
         raise Error("mode string should be 'RGB' or 'L;16' or similar.")
@@ -1165,7 +1165,7 @@ def from_array(a, mode=None, info={}):
     if bitdepth:
         bitdepth = int(bitdepth)
 
-    # Colour format.
+    # 026624.python.png.line1168.comment Colour format.
     if 'greyscale' in info:
         if bool(info['greyscale']) != ('L' in mode):
             raise ProtocolError("info['greyscale'] should match mode.")
@@ -1177,15 +1177,15 @@ def from_array(a, mode=None, info={}):
             raise ProtocolError("info['alpha'] should match mode.")
     info['alpha'] = alpha
 
-    # Get bitdepth from *mode* if possible.
+    # 026625.python.png.line1180.comment Get bitdepth from *mode* if possible.
     if bitdepth:
         if info.get("bitdepth") and bitdepth != info['bitdepth']:
             raise ProtocolError(
                 f"bitdepth ({bitdepth}) should match bitdepth of info ({info[bitdepth]}).")
         info['bitdepth'] = bitdepth
 
-    # Fill in and/or check entries in *info*.
-    # Dimensions.
+    # 026626.python.png.line1187.comment Fill in and/or check entries in *info*.
+    # 026627.python.png.line1188.comment Dimensions.
     width, height = check_sizes(
         info.get("size"),
         info.get("width"),
@@ -1207,9 +1207,9 @@ def from_array(a, mode=None, info={}):
         if info['planes'] != planes:
             raise Error("info['planes'] should match mode.")
 
-    # In order to work out whether we the array is 2D or 3D we need its
-    # first row, which requires that we take a copy of its iterator.
-    # We may also need the first row to derive width and bitdepth.
+    # 026628.python.png.line1210.comment In order to work out whether we the array is 2D or 3D we need its
+    # 026629.python.png.line1211.comment first row, which requires that we take a copy of its iterator.
+    # 026630.python.png.line1212.comment We may also need the first row to derive width and bitdepth.
     a, t = itertools.tee(a)
     row = next(t)
     del t
@@ -1222,18 +1222,18 @@ def from_array(a, mode=None, info={}):
     if 'bitdepth' not in info:
         try:
             dtype = testelement.dtype
-            # goto the "else:" clause.  Sorry.
+            # 026631.python.png.line1225.comment goto the "else:" clause.  Sorry.
         except AttributeError:
             try:
-                # Try a Python array.array.
+                # 026632.python.png.line1228.comment Try a Python array.array.
                 bitdepth = 8 * testelement.itemsize
             except AttributeError:
-                # We can't determine it from the array element's datatype,
-                # use a default of 8.
+                # 026633.python.png.line1231.comment We can't determine it from the array element's datatype,
+                # 026634.python.png.line1232.comment use a default of 8.
                 bitdepth = 8
         else:
-            # If we got here without exception,
-            # we now assume that the array is a numpy array.
+            # 026635.python.png.line1235.comment If we got here without exception,
+            # 026636.python.png.line1236.comment we now assume that the array is a numpy array.
             if dtype.kind == 'b':
                 bitdepth = 1
             else:
@@ -1246,7 +1246,7 @@ def from_array(a, mode=None, info={}):
     return Image(a, info)
 
 
-# So that refugee's from PIL feel more at home.  Not documented.
+# 026637.python.png.line1249.comment So that refugee's from PIL feel more at home.  Not documented.
 fromarray = from_array
 
 
@@ -1325,13 +1325,13 @@ class Reader:
         if keywords_supplied != 1:
             raise TypeError("Reader() takes exactly 1 argument")
 
-        # Will be the first 8 bytes, later on.  See validate_signature.
+        # 026638.python.png.line1328.comment Will be the first 8 bytes, later on.  See validate_signature.
         self.signature = None
         self.transparent = None
-        # A pair of (len,type) if a chunk has been read but its data and
-        # checksum have not (in other words the file position is just
-        # past the 4 bytes that specify the chunk type).
-        # See preamble method for how this is used.
+        # 026639.python.png.line1331.comment A pair of (len,type) if a chunk has been read but its data and
+        # 026640.python.png.line1332.comment checksum have not (in other words the file position is just
+        # 026641.python.png.line1333.comment past the 4 bytes that specify the chunk type).
+        # 026642.python.png.line1334.comment See preamble method for how this is used.
         self.atchunk = None
 
         if _guess is not None:
@@ -1365,7 +1365,7 @@ class Reader:
 
         self.validate_signature()
 
-        # http://www.w3.org/TR/PNG/#5Chunk-layout
+        # 026643.python.png.line1368.comment http://www.w3.org/TR/PNG/#5Chunk-layout
         if not self.atchunk:
             self.atchunk = self._chunk_len_type()
         if not self.atchunk:
@@ -1423,7 +1423,7 @@ class Reader:
         the result will be returned as a fresh sequence of bytes.
         """
 
-        # :todo: Would it be better to update scanline in place?
+        # 026644.python.png.line1426.comment :todo: Would it be better to update scanline in place?
         result = scanline
 
         if filter_type == 0:
@@ -1434,21 +1434,21 @@ class Reader:
                 'Invalid PNG Filter Type.  '
                 'See http://www.w3.org/TR/2003/REC-PNG-20031110/#9Filters .')
 
-        # Filter unit.  The stride from one pixel to the corresponding
-        # byte from the previous pixel.  Normally this is the pixel
-        # size in bytes, but when this is smaller than 1, the previous
-        # byte is used instead.
+        # 026645.python.png.line1437.comment Filter unit.  The stride from one pixel to the corresponding
+        # 026646.python.png.line1438.comment byte from the previous pixel.  Normally this is the pixel
+        # 026647.python.png.line1439.comment size in bytes, but when this is smaller than 1, the previous
+        # 026648.python.png.line1440.comment byte is used instead.
         fu = max(1, self.psize)
 
-        # For the first line of a pass, synthesize a dummy previous
-        # line.  An alternative approach would be to observe that on the
-        # first line 'up' is the same as 'null', 'paeth' is the same
-        # as 'sub', with only 'average' requiring any special case.
+        # 026649.python.png.line1443.comment For the first line of a pass, synthesize a dummy previous
+        # 026650.python.png.line1444.comment line.  An alternative approach would be to observe that on the
+        # 026651.python.png.line1445.comment first line 'up' is the same as 'null', 'paeth' is the same
+        # 026652.python.png.line1446.comment as 'sub', with only 'average' requiring any special case.
         if not previous:
             previous = bytearray([0] * len(scanline))
 
-        # Call appropriate filter algorithm.  Note that 0 has already
-        # been dealt with.
+        # 026653.python.png.line1450.comment Call appropriate filter algorithm.  Note that 0 has already
+        # 026654.python.png.line1451.comment been dealt with.
         fn = (None,
               undo_filter_sub,
               undo_filter_up,
@@ -1463,14 +1463,14 @@ class Reader:
         Return a single array of values.
         """
 
-        # Values per row (of the target image)
+        # 026655.python.png.line1466.comment Values per row (of the target image)
         vpr = self.width * self.planes
 
-        # Values per image
+        # 026656.python.png.line1469.comment Values per image
         vpi = vpr * self.height
-        # Interleaving writes to the output array randomly
-        # (well, not quite), so the entire output array must be in memory.
-        # Make a result array, and make it big enough.
+        # 026657.python.png.line1471.comment Interleaving writes to the output array randomly
+        # 026658.python.png.line1472.comment (well, not quite), so the entire output array must be in memory.
+        # 026659.python.png.line1473.comment Make a result array, and make it big enough.
         if self.bitdepth > 8:
             a = array('H', [0] * vpi)
         else:
@@ -1478,14 +1478,14 @@ class Reader:
         source_offset = 0
 
         for lines in adam7_generate(self.width, self.height):
-            # The previous (reconstructed) scanline.
-            # `None` at the beginning of a pass
-            # to indicate that there is no previous line.
+            # 026660.python.png.line1481.comment The previous (reconstructed) scanline.
+            # 026661.python.png.line1482.comment `None` at the beginning of a pass
+            # 026662.python.png.line1483.comment to indicate that there is no previous line.
             recon = None
             for x, y, xstep in lines:
-                # Pixels per row (reduced pass image)
+                # 026663.python.png.line1486.comment Pixels per row (reduced pass image)
                 ppr = int(math.ceil((self.width - x) / float(xstep)))
-                # Row size in bytes for this pass.
+                # 026664.python.png.line1488.comment Row size in bytes for this pass.
                 row_size = int(math.ceil(self.psize * ppr))
 
                 filter_type = raw[source_offset]
@@ -1493,7 +1493,7 @@ class Reader:
                 scanline = raw[source_offset: source_offset + row_size]
                 source_offset += row_size
                 recon = self.undo_filter(filter_type, scanline, recon)
-                # Convert so that there is one element per pixel value
+                # 026665.python.png.line1496.comment Convert so that there is one element per pixel value
                 flat = self._bytes_to_values(recon, width=ppr)
                 if xstep == 1:
                     assert x == 0
@@ -1535,7 +1535,7 @@ class Reader:
         assert self.bitdepth < 8
         if width is None:
             width = self.width
-        # Samples per byte
+        # 026666.python.png.line1538.comment Samples per byte
         spb = 8 // self.bitdepth
         out = bytearray()
         mask = 2**self.bitdepth - 1
@@ -1553,11 +1553,11 @@ class Reader:
         in blocks of arbitrary size.
         """
 
-        # length of row, in bytes
+        # 026667.python.png.line1556.comment length of row, in bytes
         rb = self.row_bytes
         a = bytearray()
-        # The previous (reconstructed) scanline.
-        # None indicates first line of image.
+        # 026668.python.png.line1559.comment The previous (reconstructed) scanline.
+        # 026669.python.png.line1560.comment None indicates first line of image.
         recon = None
         for some_bytes in byte_blocks:
             a.extend(some_bytes)
@@ -1568,9 +1568,9 @@ class Reader:
                 recon = self.undo_filter(filter_type, scanline, recon)
                 yield recon
         if len(a) != 0:
-            # :file:format We get here with a file format error:
-            # when the available bytes (after decompressing) do not
-            # pack into exact rows.
+            # 026670.python.png.line1571.comment :file:format We get here with a file format error:
+            # 026671.python.png.line1572.comment when the available bytes (after decompressing) do not
+            # 026672.python.png.line1573.comment pack into exact rows.
             raise FormatError('Wrong size for decompressed IDAT chunk.')
         assert len(a) == 0
 
@@ -1626,8 +1626,8 @@ class Reader:
         length, type = struct.unpack('!I4s', x)
         if length > 2 ** 31 - 1:
             raise FormatError(f'Chunk {type} is too large: {length}.')
-        # Check that all bytes are in valid ASCII range.
-        # https://www.w3.org/TR/2003/REC-PNG-20031110/#5Chunk-layout
+        # 026673.python.png.line1629.comment Check that all bytes are in valid ASCII range.
+        # 026674.python.png.line1630.comment https://www.w3.org/TR/2003/REC-PNG-20031110/#5Chunk-layout
         type_bytes = set(bytearray(type))
         if not(type_bytes <= set(range(65, 91)) | set(range(97, 123))):
             raise FormatError(
@@ -1652,7 +1652,7 @@ class Reader:
             m(data)
 
     def _process_IHDR(self, data):
-        # http://www.w3.org/TR/PNG/#11IHDR
+        # 026675.python.png.line1655.comment http://www.w3.org/TR/PNG/#11IHDR
         if len(data) != 13:
             raise FormatError('IHDR chunk has incorrect length.')
         (self.width, self.height, self.bitdepth, self.color_type,
@@ -1675,8 +1675,8 @@ class Reader:
                 "http://www.w3.org/TR/2003/REC-PNG-20031110/#8InterlaceMethods"
                 " .")
 
-        # Derived values
-        # http://www.w3.org/TR/PNG/#6Colour-values
+        # 026676.python.png.line1678.comment Derived values
+        # 026677.python.png.line1679.comment http://www.w3.org/TR/PNG/#6Colour-values
         colormap = bool(self.color_type & 1)
         greyscale = not(self.color_type & 2)
         alpha = bool(self.color_type & 4)
@@ -1692,17 +1692,17 @@ class Reader:
         if int(self.psize) == self.psize:
             self.psize = int(self.psize)
         self.row_bytes = int(math.ceil(self.width * self.psize))
-        # Stores PLTE chunk if present, and is used to check
-        # chunk ordering constraints.
+        # 026678.python.png.line1695.comment Stores PLTE chunk if present, and is used to check
+        # 026679.python.png.line1696.comment chunk ordering constraints.
         self.plte = None
-        # Stores tRNS chunk if present, and is used to check chunk
-        # ordering constraints.
+        # 026680.python.png.line1698.comment Stores tRNS chunk if present, and is used to check chunk
+        # 026681.python.png.line1699.comment ordering constraints.
         self.trns = None
-        # Stores sBIT chunk if present.
+        # 026682.python.png.line1701.comment Stores sBIT chunk if present.
         self.sbit = None
 
     def _process_PLTE(self, data):
-        # http://www.w3.org/TR/PNG/#11PLTE
+        # 026683.python.png.line1705.comment http://www.w3.org/TR/PNG/#11PLTE
         if self.plte:
             warnings.warn("Multiple PLTE chunks present.")
         self.plte = data
@@ -1728,15 +1728,15 @@ class Reader:
             raise FormatError("bKGD chunk has incorrect length.")
 
     def _process_tRNS(self, data):
-        # http://www.w3.org/TR/PNG/#11tRNS
+        # 026684.python.png.line1731.comment http://www.w3.org/TR/PNG/#11tRNS
         self.trns = data
         if self.colormap:
             if not self.plte:
                 warnings.warn("PLTE chunk is required before tRNS chunk.")
             else:
                 if len(data) > len(self.plte) / 3:
-                    # Was warning, but promoted to Error as it
-                    # would otherwise cause pain later on.
+                    # 026685.python.png.line1738.comment Was warning, but promoted to Error as it
+                    # 026686.python.png.line1739.comment would otherwise cause pain later on.
                     raise FormatError("tRNS chunk is too long.")
         else:
             if self.alpha:
@@ -1761,7 +1761,7 @@ class Reader:
             raise FormatError("sBIT chunk has incorrect length.")
 
     def _process_pHYs(self, data):
-        # http://www.w3.org/TR/PNG/#11pHYs
+        # 026687.python.png.line1764.comment http://www.w3.org/TR/PNG/#11pHYs
         self.phys = data
         fmt = "!LLB"
         if len(data) != struct.calcsize(fmt):
@@ -1789,12 +1789,12 @@ class Reader:
             while True:
                 type, data = self.chunk(lenient=lenient)
                 if type == b'IEND':
-                    # http://www.w3.org/TR/PNG/#11IEND
+                    # 026688.python.png.line1792.comment http://www.w3.org/TR/PNG/#11IEND
                     break
                 if type != b'IDAT':
                     continue
-                # type == b'IDAT'
-                # http://www.w3.org/TR/PNG/#11IDAT
+                # 026689.python.png.line1796.comment type == b'IDAT'
+                # 026690.python.png.line1797.comment http://www.w3.org/TR/PNG/#11IDAT
                 if self.colormap and not self.plte:
                     warnings.warn("PLTE chunk is required before IDAT chunk")
                 yield data
@@ -1805,12 +1805,12 @@ class Reader:
         if self.interlace:
             def rows_from_interlace():
                 """Yield each row from an interlaced PNG."""
-                # It's important that this iterator doesn't read
-                # IDAT chunks until it yields the first row.
+                # 026691.python.png.line1808.comment It's important that this iterator doesn't read
+                # 026692.python.png.line1809.comment IDAT chunks until it yields the first row.
                 bs = bytearray(itertools.chain(*raw))
                 arraycode = 'BH'[self.bitdepth > 8]
-                # Like :meth:`group` but
-                # producing an array.array object for each row.
+                # 026693.python.png.line1812.comment Like :meth:`group` but
+                # 026694.python.png.line1813.comment producing an array.array object for each row.
                 values = self._deinterlace(bs)
                 vpr = self.width * self.planes
                 for i in range(0, len(values), vpr):
@@ -1927,7 +1927,7 @@ class Reader:
 
         self.preamble()
 
-        # Simple case, no conversion necessary.
+        # 026695.python.png.line1930.comment Simple case, no conversion necessary.
         if not self.colormap and not self.trns and not self.sbit:
             return self.read()
 
@@ -1946,13 +1946,13 @@ class Reader:
                     yield array('B', itertools.chain(*row))
             pixels = iterpal(pixels)
         elif self.trns:
-            # It would be nice if there was some reasonable way
-            # of doing this without generating a whole load of
-            # intermediate tuples.  But tuples does seem like the
-            # easiest way, with no other way clearly much simpler or
-            # much faster.  (Actually, the L to LA conversion could
-            # perhaps go faster (all those 1-tuples!), but I still
-            # wonder whether the code proliferation is worth it)
+            # 026696.python.png.line1949.comment It would be nice if there was some reasonable way
+            # 026697.python.png.line1950.comment of doing this without generating a whole load of
+            # 026698.python.png.line1951.comment intermediate tuples.  But tuples does seem like the
+            # 026699.python.png.line1952.comment easiest way, with no other way clearly much simpler or
+            # 026700.python.png.line1953.comment much faster.  (Actually, the L to LA conversion could
+            # 026701.python.png.line1954.comment perhaps go faster (all those 1-tuples!), but I still
+            # 026702.python.png.line1955.comment wonder whether the code proliferation is worth it)
             it = self.transparent
             maxval = 2 ** info['bitdepth'] - 1
             planes = info['planes']
@@ -1962,11 +1962,11 @@ class Reader:
 
             def itertrns(pixels):
                 for row in pixels:
-                    # For each row we group it into pixels, then form a
-                    # characterisation vector that says whether each
-                    # pixel is opaque or not.  Then we convert
-                    # True/False to 0/maxval (by multiplication),
-                    # and add it as the extra channel.
+                    # 026703.python.png.line1965.comment For each row we group it into pixels, then form a
+                    # 026704.python.png.line1966.comment characterisation vector that says whether each
+                    # 026705.python.png.line1967.comment pixel is opaque or not.  Then we convert
+                    # 026706.python.png.line1968.comment True/False to 0/maxval (by multiplication),
+                    # 026707.python.png.line1969.comment and add it as the extra channel.
                     row = group(row, planes)
                     opa = map(it.__ne__, row)
                     opa = map(maxval.__mul__, opa)
@@ -2110,17 +2110,17 @@ class Reader:
                 return bytearray(maxbuffer)
 
         if info['alpha'] and info['greyscale']:
-            # LA to RGBA
+            # 026709.python.png.line2113.comment LA to RGBA
             def convert():
                 for row in pixels:
-                    # Create a fresh target row, then copy L channel
-                    # into first three target channels, and A channel
-                    # into fourth channel.
+                    # 026710.python.png.line2116.comment Create a fresh target row, then copy L channel
+                    # 026711.python.png.line2117.comment into first three target channels, and A channel
+                    # 026712.python.png.line2118.comment into fourth channel.
                     a = newarray()
                     convert_la_to_rgba(row, a)
                     yield a
         elif info['greyscale']:
-            # L to RGBA
+            # 026713.python.png.line2123.comment L to RGBA
             def convert():
                 for row in pixels:
                     a = newarray()
@@ -2128,7 +2128,7 @@ class Reader:
                     yield a
         else:
             assert not info['alpha'] and not info['greyscale']
-            # RGB to RGBA
+            # 026714.python.png.line2131.comment RGB to RGBA
 
             def convert():
                 for row in pixels:
@@ -2148,14 +2148,14 @@ def decompress(data_blocks):
     This yields decompressed byte strings.
     """
 
-    # Currently, with no max_length parameter to decompress,
-    # this routine will do one yield per IDAT chunk: Not very
-    # incremental.
+    # 026715.python.png.line2151.comment Currently, with no max_length parameter to decompress,
+    # 026716.python.png.line2152.comment this routine will do one yield per IDAT chunk: Not very
+    # 026717.python.png.line2153.comment incremental.
     d = zlib.decompressobj()
-    # Each IDAT chunk is passed to the decompressor, then any
-    # remaining state is decompressed out.
+    # 026718.python.png.line2155.comment Each IDAT chunk is passed to the decompressor, then any
+    # 026719.python.png.line2156.comment remaining state is decompressed out.
     for data in data_blocks:
-        # :todo: add a max_length argument here to limit output size.
+        # 026720.python.png.line2158.comment :todo: add a max_length argument here to limit output size.
         yield bytearray(d.decompress(data))
     yield bytearray(d.flush())
 
@@ -2171,9 +2171,9 @@ def check_bitdepth_colortype(bitdepth, colortype):
         raise FormatError(f"invalid bit depth {bitdepth}")
     if colortype not in (0, 2, 3, 4, 6):
         raise FormatError(f"invalid colour type {colortype}")
-    # Check indexed (palettized) images have 8 or fewer bits
-    # per pixel; check only indexed or greyscale images have
-    # fewer than 8 bits per pixel.
+    # 026721.python.png.line2174.comment Check indexed (palettized) images have 8 or fewer bits
+    # 026722.python.png.line2175.comment per pixel; check only indexed or greyscale images have
+    # 026723.python.png.line2176.comment fewer than 8 bits per pixel.
     if colortype & 1 and bitdepth > 8:
         raise FormatError(
             f"Indexed images (colour type {bitdepth}) cannot"
@@ -2200,9 +2200,9 @@ def undo_filter_sub(filter_unit, scanline, previous, result):
     """Undo sub filter."""
 
     ai = 0
-    # Loops starts at index fu.  Observe that the initial part
-    # of the result is already filled in correctly with
-    # scanline.
+    # 026724.python.png.line2203.comment Loops starts at index fu.  Observe that the initial part
+    # 026725.python.png.line2204.comment of the result is already filled in correctly with
+    # 026726.python.png.line2205.comment scanline.
     for i in range(filter_unit, len(result)):
         x = scanline[i]
         a = result[ai]
@@ -2237,7 +2237,7 @@ def undo_filter_average(filter_unit, scanline, previous, result):
 def undo_filter_paeth(filter_unit, scanline, previous, result):
     """Undo Paeth filter."""
 
-    # Also used for ci.
+    # 026727.python.png.line2240.comment Also used for ci.
     ai = -filter_unit
     for i in range(len(result)):
         x = scanline[i]
@@ -2287,8 +2287,8 @@ def convert_rgb_to_rgba(row, result):
         result[i::4] = row[i::3]
 
 
-# Only reason to include this in this module is that
-# several utilities need it, and it is small.
+# 026728.python.png.line2290.comment Only reason to include this in this module is that
+# 026729.python.png.line2291.comment several utilities need it, and it is small.
 def binary_stdin():
     """
     A sys.stdin that returns bytes.
@@ -2304,7 +2304,7 @@ def binary_stdout():
 
     stdout = sys.stdout.buffer
 
-    # On Windows the C runtime file orientation needs changing.
+    # 026730.python.png.line2307.comment On Windows the C runtime file orientation needs changing.
     if sys.platform == "win32":
         import msvcrt
         import os

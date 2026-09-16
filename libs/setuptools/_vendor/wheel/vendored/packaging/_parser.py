@@ -41,10 +41,10 @@ class Op(Node):
 
 MarkerVar = Union[Variable, Value]
 MarkerItem = Tuple[MarkerVar, Op, MarkerVar]
-# MarkerAtom = Union[MarkerItem, List["MarkerAtom"]]
-# MarkerList = List[Union["MarkerList", MarkerAtom, str]]
-# mypy does not support recursive type definition
-# https://github.com/python/mypy/issues/731
+# 043927.python.parser.line44.comment MarkerAtom = Union[MarkerItem, List["MarkerAtom"]]
+# 043928.python.parser.line45.comment MarkerList = List[Union["MarkerList", MarkerAtom, str]]
+# 043929.python.parser.line46.comment mypy does not support recursive type definition
+# 043930.python.parser.line47.comment https://github.com/python/mypy/issues/731
 MarkerAtom = Any
 MarkerList = List[Any]
 
@@ -57,9 +57,9 @@ class ParsedRequirement(NamedTuple):
     marker: Optional[MarkerList]
 
 
-# --------------------------------------------------------------------------------------
-# Recursive descent parser for dependency specifier
-# --------------------------------------------------------------------------------------
+# 043931.python.parser.line60.comment --------------------------------------------------------------------------------------
+# 043932.python.parser.line61.comment Recursive descent parser for dependency specifier
+# 043933.python.parser.line62.comment --------------------------------------------------------------------------------------
 def parse_requirement(source: str) -> ParsedRequirement:
     return _parse_requirement(Tokenizer(source, rules=DEFAULT_RULES))
 
@@ -108,7 +108,7 @@ def _parse_requirement_details(
 
         tokenizer.expect("WS", expected="whitespace after URL")
 
-        # The input might end after whitespace.
+        # 043934.python.parser.line111.comment The input might end after whitespace.
         if tokenizer.check("END", peek=True):
             return (url, specifier, marker)
 
@@ -248,9 +248,9 @@ def _parse_version_many(tokenizer: Tokenizer) -> str:
     return parsed_specifiers
 
 
-# --------------------------------------------------------------------------------------
-# Recursive descent parser for marker expression
-# --------------------------------------------------------------------------------------
+# 043935.python.parser.line251.comment --------------------------------------------------------------------------------------
+# 043936.python.parser.line252.comment Recursive descent parser for marker expression
+# 043937.python.parser.line253.comment --------------------------------------------------------------------------------------
 def parse_marker(source: str) -> MarkerList:
     return _parse_full_marker(Tokenizer(source, rules=DEFAULT_RULES))
 

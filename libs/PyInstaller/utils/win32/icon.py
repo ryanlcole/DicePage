@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 011163.python.icon.line1.comment -----------------------------------------------------------------------------
+# 011164.python.icon.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 011165.python.icon.line3.comment
+# 011166.python.icon.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 011167.python.icon.line5.comment or later) with exception for distributing the bootloader.
+# 011168.python.icon.line6.comment
+# 011169.python.icon.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 011170.python.icon.line8.comment
+# 011171.python.icon.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 011172.python.icon.line10.comment -----------------------------------------------------------------------------
 """
 The code in this module supports the --icon parameter on Windows.
 (For --icon support under macOS, see building/osx.py.)
@@ -92,16 +92,16 @@ class GRPICONDIRENTRY(Structure):
     _format_ = "bbbbhhih"
 
 
-# An IconFile instance is created for each .ico file given.
+# 011173.python.icon.line95.comment An IconFile instance is created for each .ico file given.
 class IconFile:
     def __init__(self, path):
         self.path = path
         try:
-            # The path is from the user parameter, don't trust it.
+            # 011174.python.icon.line100.comment The path is from the user parameter, don't trust it.
             file = open(self.path, "rb")
         except OSError:
-            # The icon file can't be opened for some reason. Stop the
-            # program with an informative message.
+            # 011175.python.icon.line103.comment The icon file can't be opened for some reason. Stop the
+            # 011176.python.icon.line104.comment program with an informative message.
             raise SystemExit(f'ERROR: Unable to open icon file {self.path}!')
         with file:
             self.entries = []
@@ -144,8 +144,8 @@ def CopyIcons_FromIco(dstpath, srcpath, id=1):
     hdst = win32api.BeginUpdateResource(dstpath, 0)
 
     iconid = 1
-    # Each step in the following enumerate() will instantiate an IconFile object, as a result of deferred execution
-    # of the map() above.
+    # 011177.python.icon.line147.comment Each step in the following enumerate() will instantiate an IconFile object, as a result of deferred execution
+    # 011178.python.icon.line148.comment of the map() above.
     for i, f in enumerate(icons):
         data = f.grp_icon_dir()
         data = data + f.grp_icondir_entries(iconid)
@@ -170,9 +170,9 @@ def CopyIcons(dstpath, srcpath):
     """
 
     if isinstance(srcpath, (str, os.PathLike)):
-        # Just a single string, make it a one-element list.
+        # 011179.python.icon.line173.comment Just a single string, make it a one-element list.
         srcpath = [srcpath]
-    # Convert possible PathLike elements to strings to allow the splitter function to work.
+    # 011180.python.icon.line175.comment Convert possible PathLike elements to strings to allow the splitter function to work.
     srcpath = [str(path) for path in srcpath]
 
     def splitter(s):
@@ -186,44 +186,44 @@ def CopyIcons(dstpath, srcpath):
         except ValueError:
             return s, None
 
-    # split all the items in the list into tuples as above.
+    # 011181.python.icon.line189.comment split all the items in the list into tuples as above.
     srcpath = list(map(splitter, srcpath))
 
     if len(srcpath) > 1:
-        # More than one icon source given. We currently handle multiple icons by calling CopyIcons_FromIco(), which only
-        # allows .ico, but will convert to that format if needed.
-        #
-        # Note that a ",index" on a .ico is just ignored in the single or multiple case.
+        # 011182.python.icon.line193.comment More than one icon source given. We currently handle multiple icons by calling CopyIcons_FromIco(), which only
+        # 011183.python.icon.line194.comment allows .ico, but will convert to that format if needed.
+        # 011184.python.icon.line195.comment
+        # 011185.python.icon.line196.comment Note that a ",index" on a .ico is just ignored in the single or multiple case.
         srcs = []
         for s in srcpath:
             srcs.append(normalize_icon_type(s[0], ("ico",), "ico", config.CONF["workpath"]))
         return CopyIcons_FromIco(dstpath, srcs)
 
-    # Just one source given.
+    # 011186.python.icon.line202.comment Just one source given.
     srcpath, index = srcpath[0]
 
-    # Makes sure the icon exists and attempts to convert to the proper format if applicable
+    # 011187.python.icon.line205.comment Makes sure the icon exists and attempts to convert to the proper format if applicable
     srcpath = normalize_icon_type(srcpath, ("exe", "ico"), "ico", config.CONF["workpath"])
 
     srcext = os.path.splitext(srcpath)[1]
 
-    # Handle the simple case of foo.ico, ignoring any index.
+    # 011188.python.icon.line210.comment Handle the simple case of foo.ico, ignoring any index.
     if srcext.lower() == '.ico':
         return CopyIcons_FromIco(dstpath, [srcpath])
 
-    # Single source is not .ico, presumably it is .exe (and if not, some error will occur).
+    # 011189.python.icon.line214.comment Single source is not .ico, presumably it is .exe (and if not, some error will occur).
     if index is not None:
         logger.debug("Copying icon from %s, %d", srcpath, index)
     else:
         logger.debug("Copying icons from %s", srcpath)
 
     try:
-        # Attempt to load the .ico or .exe containing the icon into memory using the same mechanism as if it were a DLL.
-        # If this fails for any reason (for example if the file does not exist or is not a .ico/.exe) then LoadLibraryEx
-        # returns a null handle and win32api raises a unique exception with a win error code and a string.
+        # 011190.python.icon.line221.comment Attempt to load the .ico or .exe containing the icon into memory using the same mechanism as if it were a DLL.
+        # 011191.python.icon.line222.comment If this fails for any reason (for example if the file does not exist or is not a .ico/.exe) then LoadLibraryEx
+        # 011192.python.icon.line223.comment returns a null handle and win32api raises a unique exception with a win error code and a string.
         hsrc = win32api.LoadLibraryEx(srcpath, 0, LOAD_LIBRARY_AS_DATAFILE)
     except pywintypes.error as W32E:
-        # We could continue with no icon (i.e., just return), but it seems best to terminate the build with a message.
+        # 011193.python.icon.line226.comment We could continue with no icon (i.e., just return), but it seems best to terminate the build with a message.
         raise SystemExit(
             "ERROR: Unable to load icon file {}\n    {} (Error code {})".format(srcpath, W32E.strerror, W32E.winerror)
         )

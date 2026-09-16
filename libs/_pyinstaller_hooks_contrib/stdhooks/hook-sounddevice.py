@@ -1,14 +1,14 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2020 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 017173.python.hook-sounddevice.line1.comment ------------------------------------------------------------------
+# 017174.python.hook-sounddevice.line2.comment Copyright (c) 2020 PyInstaller Development Team.
+# 017175.python.hook-sounddevice.line3.comment
+# 017176.python.hook-sounddevice.line4.comment This file is distributed under the terms of the GNU General Public
+# 017177.python.hook-sounddevice.line5.comment License (version 2.0 or later).
+# 017178.python.hook-sounddevice.line6.comment
+# 017179.python.hook-sounddevice.line7.comment The full license is available in LICENSE, distributed with
+# 017180.python.hook-sounddevice.line8.comment this software.
+# 017181.python.hook-sounddevice.line9.comment
+# 017182.python.hook-sounddevice.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 017183.python.hook-sounddevice.line11.comment ------------------------------------------------------------------
 """
 sounddevice:
 https://github.com/spatialaudio/python-sounddevice/
@@ -21,23 +21,23 @@ from PyInstaller.utils.hooks import get_module_file_attribute, logger
 binaries = []
 datas = []
 
-# PyPI wheels for Windows and macOS ship the sndfile shared library in _sounddevice_data directory,
-# located next to the sounddevice.py module file (i.e., in the site-packages directory).
+# 017184.python.hook-sounddevice.line24.comment PyPI wheels for Windows and macOS ship the sndfile shared library in _sounddevice_data directory,
+# 017185.python.hook-sounddevice.line25.comment located next to the sounddevice.py module file (i.e., in the site-packages directory).
 module_dir = pathlib.Path(get_module_file_attribute('sounddevice')).parent
 data_dir = module_dir / '_sounddevice_data' / 'portaudio-binaries'
 if data_dir.is_dir():
     destdir = str(data_dir.relative_to(module_dir))
 
-    # Collect the shared library (known variants: libportaudio64bit.dll, libportaudio32bit.dll, libportaudio.dylib)
+    # 017186.python.hook-sounddevice.line31.comment Collect the shared library (known variants: libportaudio64bit.dll, libportaudio32bit.dll, libportaudio.dylib)
     for lib_file in data_dir.glob("libportaudio*.*"):
         binaries += [(str(lib_file), destdir)]
 
-    # Collect the README.md file
+    # 017187.python.hook-sounddevice.line35.comment Collect the README.md file
     readme_file = data_dir / "README.md"
     if readme_file.is_file():
         datas += [(str(readme_file), destdir)]
 else:
-    # On linux and in Anaconda in all OSes, the system-installed portaudio library needs to be collected.
+    # 017188.python.hook-sounddevice.line40.comment On linux and in Anaconda in all OSes, the system-installed portaudio library needs to be collected.
     def _find_system_portaudio_library():
         import os
         import ctypes.util

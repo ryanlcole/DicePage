@@ -58,7 +58,7 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
          enabled and ``XDG_DATA_DIRS`` is set and a multi path the response is also a multi path separated by the
          OS path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
         """
-        # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
+        # 043268.python.unix.line61.comment XDG default for $XDG_DATA_DIRS; only first, if multipath is False
         dirs = self._site_data_dirs
         if not self.multipath:
             return dirs[0]
@@ -89,7 +89,7 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
          is enabled and ``XDG_CONFIG_DIRS`` is set and a multi path the response is also a multi path separated by
          the OS path separator), e.g. ``/etc/xdg/$appname/$version``
         """
-        # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
+        # 043270.python.unix.line92.comment XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
         dirs = self._site_config_dirs
         if not self.multipath:
             return dirs[0]
@@ -220,7 +220,7 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
 
     def _first_item_as_path_if_multipath(self, directory: str) -> Path:
         if self.multipath:
-            # If multipath is True, the first path is returned.
+            # 043275.python.unix.line223.comment If multipath is True, the first path is returned.
             directory = directory.split(os.pathsep)[0]
         return Path(directory)
 
@@ -257,14 +257,14 @@ def _get_user_dirs_folder(key: str) -> str | None:
         parser = ConfigParser()
 
         with user_dirs_config_path.open() as stream:
-            # Add fake section header, so ConfigParser doesn't complain
+            # 043277.python.unix.line260.comment Add fake section header, so ConfigParser doesn't complain
             parser.read_string(f"[top]\n{stream.read()}")
 
         if key not in parser["top"]:
             return None
 
         path = parser["top"][key].strip('"')
-        # Handle relative home paths
+        # 043278.python.unix.line267.comment Handle relative home paths
         return path.replace("$HOME", os.path.expanduser("~"))  # noqa: PTH111
 
     return None

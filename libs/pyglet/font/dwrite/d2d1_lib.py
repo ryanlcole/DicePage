@@ -32,19 +32,19 @@ from pyglet.image.codecs.wincodec_lib import IWICBitmap, IWICBitmapSource
 from pyglet.libs.win32 import c_void, com
 from pyglet.libs.win32.types import BYTE, UINT32, UINT64
 
-# --- Direct2D
+# 026899.python.d2d1_lib.line35.comment --- Direct2D
 try:
     d2d1 = "d2d1"
 
-    # System32 and SysWOW64 folders are opposite perception in Windows x64.
-    # System32 = x64 dll's | SysWOW64 = x86 dlls
-    # By default ctypes only seems to look in system32 regardless of Python architecture, which has x64 dlls.
+    # 026900.python.d2d1_lib.line39.comment System32 and SysWOW64 folders are opposite perception in Windows x64.
+    # 026901.python.d2d1_lib.line40.comment System32 = x64 dll's | SysWOW64 = x86 dlls
+    # 026902.python.d2d1_lib.line41.comment By default ctypes only seems to look in system32 regardless of Python architecture, which has x64 dlls.
     if platform.architecture()[0] == "32bit" and platform.machine().endswith("64"):  # Machine is x64, Python is x86.
         d2d1 = os.path.join(os.environ["WINDIR"], "SysWOW64", "d2d1.dll")
 
     d2d_lib = windll.LoadLibrary(d2d1)
 except OSError:
-    # Doesn't exist? Should stop import of library.
+    # 026904.python.d2d1_lib.line47.comment Doesn't exist? Should stop import of library.
     msg = "d2d1 Not Found"
     raise ImportError(msg)  # noqa: B904
 
@@ -597,11 +597,11 @@ class ID2D1Factory5(ID2D1Factory4):
 
 IID_ID2D1Factory = com.GUID(0x06152247, 0x6f50, 0x465a, 0x92, 0x45, 0x11, 0x8b, 0xfd, 0x3b, 0x60, 0x07)
 IID_ID2D1Factory1 = com.GUID(0xbb12d362,0xdaee,0x4b9a,0xaa,0x1d,0x14,0xba,0x40,0x1c,0xfa,0x1f)
-#IID_ID2D1Factory2 = com.GUID.from_string("94f81a73-9212-4376-9c58-b16a3a0d3992")
+# 026907.python.d2d1_lib.line600.comment IID_ID2D1Factory2 = com.GUID.from_string("94f81a73-9212-4376-9c58-b16a3a0d3992")
 IID_ID2D1Factory4 = com.GUID.from_string("bd4ec2d2-0662-4bee-ba8e-6f29f032e096")
 IID_ID2D1Factory5 = com.GUID.from_string("c4349994-838e-4b0f-8cab-44997d9eeacc")
 
-# Default render parameters for D2D.
+# 026908.python.d2d1_lib.line604.comment Default render parameters for D2D.
 default_target_properties = D2D1_RENDER_TARGET_PROPERTIES(
     type=D2D1_RENDER_TARGET_TYPE_DEFAULT,
     pixelFormat=D2D1_PIXEL_FORMAT(

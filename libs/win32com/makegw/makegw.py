@@ -106,10 +106,10 @@ def make_framework_support(
 #include "shell_pch.h"
 """
         )
-        #    if bMakeGateway:
-        #      fout.write('#include "PythonCOMServer.h"\n')
-        #    if interface.base not in ["IUnknown", "IDispatch"]:
-        #      fout.write('#include "Py%s.h"\n' % interface.base)
+        # 049512.python.makegw.line109.comment if bMakeGateway:
+        # 049513.python.makegw.line110.comment fout.write('#include "PythonCOMServer.h"\n')
+        # 049514.python.makegw.line111.comment if interface.base not in ["IUnknown", "IDispatch"]:
+        # 049515.python.makegw.line112.comment fout.write('#include "Py%s.h"\n' % interface.base)
         fout.write(
             '#include "Py%s.h"\n\n// @doc - This file contains autoduck documentation\n'
             % interface.name
@@ -140,11 +140,11 @@ def make_framework_support(
         fout.close()
 
 
-###########################################################################
-#
-# INTERNAL FUNCTIONS
-#
-#
+# 049516.python.makegw.line143.comment ##########################################################################
+# 049517.python.makegw.line144.comment
+# 049518.python.makegw.line145.comment INTERNAL FUNCTIONS
+# 049519.python.makegw.line146.comment
+# 049520.python.makegw.line147.comment
 
 
 def _write_ifc_h(f, interface):
@@ -223,7 +223,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
             codeCobjects
         ) = cleanup = cleanup_gil = ""
         needConversion = 0
-        #    if method.name=="Stat": import win32dbg;win32dbg.brk()
+        # 049521.python.makegw.line226.comment if method.name=="Stat": import win32dbg;win32dbg.brk()
         for arg in method.args:
             try:
                 argCvt = makegwparse.make_arg_converter(arg)
@@ -504,7 +504,7 @@ STDMETHODIMP {gname}::{method.name}(
             f.write(
                 "\t// Process the Python results, and convert back to the real params\n"
             )
-            # process the output arguments.
+            # 049523.python.makegw.line507.comment process the output arguments.
             formatChars = codePobjects = codePost = argsParseTuple = ""
             needConversion = 0
             for arg in method.args:
@@ -551,12 +551,12 @@ STDMETHODIMP {gname}::{method.name}(
 
 
 def test():
-    # 	make_framework_support("d:\\msdev\\include\\objidl.h", "ILockBytes")
+    # 049525.python.makegw.line554.comment make_framework_support("d:\\msdev\\include\\objidl.h", "ILockBytes")
     make_framework_support("d:\\msdev\\include\\objidl.h", "IStorage")
 
 
-# 	make_framework_support("d:\\msdev\\include\\objidl.h", "IEnumSTATSTG")
-# python -m com.win32com.makegw.makegw -f "C:\Windows Kits\10\Include\10.0.19041.0\um\ShObjIdl_core.h" -n IFolderView1 -o com\win32comext\shell\src
+# 049526.python.makegw.line558.comment make_framework_support("d:\\msdev\\include\\objidl.h", "IEnumSTATSTG")
+# 049527.python.makegw.line559.comment python -m com.win32com.makegw.makegw -f "C:\Windows Kits\10\Include\10.0.19041.0\um\ShObjIdl_core.h" -n IFolderView1 -o com\win32comext\shell\src
 
 
 def parse_arguments():

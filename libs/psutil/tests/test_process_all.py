@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025732.python.test_process_all.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025733.python.test_process_all.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025734.python.test_process_all.line5.comment found in the LICENSE file.
 
 """Iterate over all process PIDs and for each one of them invoke and
 test all psutil.Process() methods.
@@ -38,8 +38,8 @@ from psutil.tests import is_win_secure_system_proc
 from psutil.tests import process_namespace
 from psutil.tests import pytest
 
-# Cuts the time in half, but (e.g.) on macOS the process pool stays
-# alive after join() (multiprocessing bug?), messing up other tests.
+# 025735.python.test_process_all.line41.comment Cuts the time in half, but (e.g.) on macOS the process pool stays
+# 025736.python.test_process_all.line42.comment alive after join() (multiprocessing bug?), messing up other tests.
 USE_PROC_POOL = LINUX and not CI_TESTING and not PYTEST_PARALLEL
 
 
@@ -80,8 +80,8 @@ def proc_info(pid):
         name, ppid = d['name'], d['ppid']
         info = {'pid': proc.pid}
         ns = process_namespace(proc)
-        # We don't use oneshot() because in order not to fool
-        # check_exception() in case of NSP.
+        # 025737.python.test_process_all.line83.comment We don't use oneshot() because in order not to fool
+        # 025738.python.test_process_all.line84.comment check_exception() in case of NSP.
         for fun, fun_name in ns.iter(ns.getters, clear_cache=False):
             try:
                 info[fun_name] = fun()
@@ -100,8 +100,8 @@ class TestFetchAllProcesses(PsutilTestCase):
 
     def setUp(self):
         psutil._set_debug(False)
-        # Using a pool in a CI env may result in deadlock, see:
-        # https://github.com/giampaolo/psutil/issues/2104
+        # 025739.python.test_process_all.line103.comment Using a pool in a CI env may result in deadlock, see:
+        # 025740.python.test_process_all.line104.comment https://github.com/giampaolo/psutil/issues/2104
         if USE_PROC_POOL:
             self.pool = multiprocessing.Pool()
 
@@ -112,8 +112,8 @@ class TestFetchAllProcesses(PsutilTestCase):
             self.pool.join()
 
     def iter_proc_info(self):
-        # Fixes "can't pickle <function proc_info>: it's not the
-        # same object as test_process_all.proc_info".
+        # 025741.python.test_process_all.line115.comment Fixes "can't pickle <function proc_info>: it's not the
+        # 025742.python.test_process_all.line116.comment same object as test_process_all.proc_info".
         from psutil.tests.test_process_all import proc_info
 
         if USE_PROC_POOL:
@@ -161,12 +161,12 @@ class TestFetchAllProcesses(PsutilTestCase):
             if WINDOWS and not ret.endswith('.exe'):
                 return  # May be "Registry", "MemCompression", ...
             assert os.path.isabs(ret), ret
-            # Note: os.stat() may return False even if the file is there
-            # hence we skip the test, see:
-            # http://stackoverflow.com/questions/3112546/os-path-exists-lies
+            # 025745.python.test_process_all.line164.comment Note: os.stat() may return False even if the file is there
+            # 025746.python.test_process_all.line165.comment hence we skip the test, see:
+            # 025747.python.test_process_all.line166.comment http://stackoverflow.com/questions/3112546/os-path-exists-lies
             if POSIX and os.path.isfile(ret):
                 if hasattr(os, 'access') and hasattr(os, "X_OK"):
-                    # XXX: may fail on MACOS
+                    # 025748.python.test_process_all.line169.comment XXX: may fail on MACOS
                     try:
                         assert os.access(ret, os.X_OK)
                     except AssertionError:
@@ -185,9 +185,9 @@ class TestFetchAllProcesses(PsutilTestCase):
     def name(self, ret, info):
         assert isinstance(ret, str)
         if WINDOWS and not ret and is_win_secure_system_proc(info['pid']):
-            # https://github.com/giampaolo/psutil/issues/2338
+            # 025749.python.test_process_all.line188.comment https://github.com/giampaolo/psutil/issues/2338
             return
-        # on AIX, "<exiting>" processes don't have names
+        # 025750.python.test_process_all.line190.comment on AIX, "<exiting>" processes don't have names
         if not AIX:
             assert ret, repr(ret)
 
@@ -196,15 +196,15 @@ class TestFetchAllProcesses(PsutilTestCase):
         try:
             assert ret >= 0
         except AssertionError:
-            # XXX
+            # 025751.python.test_process_all.line199.comment XXX
             if OPENBSD and info['status'] == psutil.STATUS_ZOMBIE:
                 pass
             else:
                 raise
-        # this can't be taken for granted on all platforms
-        # assert ret >= psutil.boot_time())
-        # make sure returned value can be pretty printed
-        # with strftime
+        # 025752.python.test_process_all.line204.comment this can't be taken for granted on all platforms
+        # 025753.python.test_process_all.line205.comment assert ret >= psutil.boot_time())
+        # 025754.python.test_process_all.line206.comment make sure returned value can be pretty printed
+        # 025755.python.test_process_all.line207.comment with strftime
         time.strftime("%Y %m %d %H:%M:%S", time.localtime(ret))
 
     def uids(self, ret, info):
@@ -215,8 +215,8 @@ class TestFetchAllProcesses(PsutilTestCase):
 
     def gids(self, ret, info):
         assert is_namedtuple(ret)
-        # note: testing all gids as above seems not to be reliable for
-        # gid == 30 (nodoby); not sure why.
+        # 025756.python.test_process_all.line218.comment note: testing all gids as above seems not to be reliable for
+        # 025757.python.test_process_all.line219.comment gid == 30 (nodoby); not sure why.
         for gid in ret:
             assert isinstance(gid, int)
             if not MACOS and not NETBSD:
@@ -260,7 +260,7 @@ class TestFetchAllProcesses(PsutilTestCase):
     def num_threads(self, ret, info):
         assert isinstance(ret, int)
         if WINDOWS and ret == 0 and is_win_secure_system_proc(info['pid']):
-            # https://github.com/giampaolo/psutil/issues/2338
+            # 025760.python.test_process_all.line263.comment https://github.com/giampaolo/psutil/issues/2338
             return
         assert ret >= 1
 
@@ -279,7 +279,7 @@ class TestFetchAllProcesses(PsutilTestCase):
         for n in ret:
             assert isinstance(n, float)
             assert n >= 0
-        # TODO: check ntuple fields
+        # 025761.python.test_process_all.line282.comment TODO: check ntuple fields
 
     def cpu_percent(self, ret, info):
         assert isinstance(ret, float)
@@ -313,8 +313,8 @@ class TestFetchAllProcesses(PsutilTestCase):
             assert isinstance(value, int)
             assert value >= 0
             if LINUX or (OSX and name in {'vms', 'data'}):
-                # On Linux there are processes (e.g. 'goa-daemon') whose
-                # VMS is incredibly high for some reason.
+                # 025762.python.test_process_all.line316.comment On Linux there are processes (e.g. 'goa-daemon') whose
+                # 025763.python.test_process_all.line317.comment VMS is incredibly high for some reason.
                 continue
             assert value <= total, name
 
@@ -337,7 +337,7 @@ class TestFetchAllProcesses(PsutilTestCase):
                 assert f.mode in {'r', 'w', 'a', 'r+', 'a+'}
                 assert f.flags > 0
             elif BSD and not f.path:
-                # XXX see: https://github.com/giampaolo/psutil/issues/595
+                # 025764.python.test_process_all.line340.comment XXX see: https://github.com/giampaolo/psutil/issues/595
                 continue
             assert os.path.isabs(f.path), f
             try:
@@ -368,7 +368,7 @@ class TestFetchAllProcesses(PsutilTestCase):
             except OSError as err:
                 if WINDOWS and psutil._psplatform.is_permission_err(err):
                     pass
-                # directory has been removed in mean time
+                # 025765.python.test_process_all.line371.comment directory has been removed in mean time
                 elif err.errno != errno.ENOENT:
                     raise
             else:
@@ -408,9 +408,9 @@ class TestFetchAllProcesses(PsutilTestCase):
                     if BSD and value == "pvclock":  # seen on FreeBSD
                         continue
                     assert os.path.isabs(nt.path), nt.path
-                    # commented as on Linux we might get
-                    # '/foo/bar (deleted)'
-                    # assert os.path.exists(nt.path), nt.path
+                    # 025768.python.test_process_all.line411.comment commented as on Linux we might get
+                    # 025769.python.test_process_all.line412.comment '/foo/bar (deleted)'
+                    # 025770.python.test_process_all.line413.comment assert os.path.exists(nt.path), nt.path
                 elif fname == 'addr':
                     assert value, repr(value)
                 elif fname == 'perms':
@@ -490,16 +490,16 @@ class TestPidsRange(PsutilTestCase):
                     for line in f:
                         if line.startswith(b"Tgid:"):
                             tgid = int(line.split()[1])
-                            # If tgid and pid are different then we're
-                            # dealing with a process TID.
+                            # 025772.python.test_process_all.line493.comment If tgid and pid are different then we're
+                            # 025773.python.test_process_all.line494.comment dealing with a process TID.
                             return tgid != pid
                     raise ValueError("'Tgid' line not found")
 
         def check(pid):
-            # In case of failure retry up to 3 times in order to avoid
-            # race conditions, especially when running in a CI
-            # environment where PIDs may appear and disappear at any
-            # time.
+            # 025774.python.test_process_all.line499.comment In case of failure retry up to 3 times in order to avoid
+            # 025775.python.test_process_all.line500.comment race conditions, especially when running in a CI
+            # 025776.python.test_process_all.line501.comment environment where PIDs may appear and disappear at any
+            # 025777.python.test_process_all.line502.comment time.
             x = 3
             while True:
                 exists = psutil.pid_exists(pid)
@@ -509,9 +509,9 @@ class TestPidsRange(PsutilTestCase):
                         if not WINDOWS:  # see docstring
                             assert pid in psutil.pids()
                     else:
-                        # On OpenBSD thread IDs can be instantiated,
-                        # and oneshot() succeeds, but other APIs fail
-                        # with EINVAL.
+                        # 025779.python.test_process_all.line512.comment On OpenBSD thread IDs can be instantiated,
+                        # 025780.python.test_process_all.line513.comment and oneshot() succeeds, but other APIs fail
+                        # 025781.python.test_process_all.line514.comment with EINVAL.
                         if not OPENBSD:
                             with pytest.raises(psutil.NoSuchProcess):
                                 psutil.Process(pid)
@@ -526,8 +526,8 @@ class TestPidsRange(PsutilTestCase):
 
         for pid in range(1, 3000):
             if LINUX and is_linux_tid(pid):
-                # On Linux a TID (thread ID) can be passed to the
-                # Process class and is querable like a PID (process
-                # ID). Skip it.
+                # 025783.python.test_process_all.line529.comment On Linux a TID (thread ID) can be passed to the
+                # 025784.python.test_process_all.line530.comment Process class and is querable like a PID (process
+                # 025785.python.test_process_all.line531.comment ID). Skip it.
                 continue
             check(pid)

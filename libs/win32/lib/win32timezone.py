@@ -276,8 +276,8 @@ _VT = TypeVar("_VT")
 log = logging.getLogger(__file__)
 
 
-# A couple of objects for working with objects as if they were native C-type
-# structures.
+# 047724.python.win32timezone.line279.comment A couple of objects for working with objects as if they were native C-type
+# 047725.python.win32timezone.line280.comment structures.
 class _SimpleStruct:
     _fields_: ClassVar[list[tuple[str, type]]] = []  # must be overridden by subclasses
 
@@ -294,8 +294,8 @@ class _SimpleStruct:
             else:
                 def_arg = ()
             if len(def_arg) == 1 and isinstance(def_arg[0], typ):
-                # already an object of this type.
-                # XXX - should copy.copy???
+                # 047727.python.win32timezone.line297.comment already an object of this type.
+                # 047728.python.win32timezone.line298.comment XXX - should copy.copy???
                 def_val = def_arg[0]
             else:
                 def_val = typ(*def_arg)
@@ -430,15 +430,15 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         if not isinstance(other, TIME_ZONE_INFORMATION):
             raise TypeError("Not a TIME_ZONE_INFORMATION")
         for name in other.field_names():
-            # explicitly get the value from the underlying structure
+            # 047729.python.win32timezone.line433.comment explicitly get the value from the underlying structure
             value = super(TIME_ZONE_INFORMATION, other).__getattribute__(name)
             setattr(self, name, value)
-        # consider instead of the loop above just copying the memory directly
-        # size = max(ctypes.sizeof(DYNAMIC_TIME_ZONE_INFO), ctypes.sizeof(other))
-        # ctypes.memmove(ctypes.addressof(self), other, size)
+        # 047730.python.win32timezone.line436.comment consider instead of the loop above just copying the memory directly
+        # 047731.python.win32timezone.line437.comment size = max(ctypes.sizeof(DYNAMIC_TIME_ZONE_INFO), ctypes.sizeof(other))
+        # 047732.python.win32timezone.line438.comment ctypes.memmove(ctypes.addressof(self), other, size)
 
     if TYPE_CHECKING:
-        # TIME_ZONE_INFORMATION fields as obtained by __getattribute__
+        # 047733.python.win32timezone.line441.comment TIME_ZONE_INFORMATION fields as obtained by __getattribute__
         bias: datetime.timedelta
         standard_name: str
         standard_start: SYSTEMTIME
@@ -464,7 +464,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         win32api.SetTimeZoneInformation(tzi)
 
     def copy(self) -> Self:
-        # XXX - this is no longer a copy!
+        # 047734.python.win32timezone.line467.comment XXX - this is no longer a copy!
         return self.__class__(self)
 
     def locate_daylight_start(self, year) -> datetime.datetime:
@@ -492,12 +492,12 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         >>> TimeZoneDefinition._locate_day(2009, st) == expected_date
         True
         """
-        # MS stores Sunday as 0, Python datetime stores Monday as zero
+        # 047735.python.win32timezone.line495.comment MS stores Sunday as 0, Python datetime stores Monday as zero
         target_weekday = (cutoff.day_of_week + 6) % 7
-        # For SYSTEMTIMEs relating to time zone information, cutoff.day
-        #  is the week of the month
+        # 047736.python.win32timezone.line497.comment For SYSTEMTIMEs relating to time zone information, cutoff.day
+        # 047737.python.win32timezone.line498.comment is the week of the month
         week_of_month = cutoff.day
-        # so the following is the first day of that week
+        # 047738.python.win32timezone.line500.comment so the following is the first day of that week
         day = (week_of_month - 1) * 7 + 1
         result = datetime.datetime(
             year,
@@ -508,14 +508,14 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
             cutoff.second,
             cutoff.millisecond,
         )
-        # now the result is the correct week, but not necessarily the correct day of the week
+        # 047739.python.win32timezone.line511.comment now the result is the correct week, but not necessarily the correct day of the week
         days_to_go = (target_weekday - result.weekday()) % 7
         result += datetime.timedelta(days_to_go)
-        # if we selected a day in the month following the target month,
-        #  move back a week or two.
-        # This is necessary because Microsoft defines the fifth week in a month
-        #  to be the last week in a month and adding the time delta might have
-        #  pushed the result into the next month.
+        # 047740.python.win32timezone.line514.comment if we selected a day in the month following the target month,
+        # 047741.python.win32timezone.line515.comment move back a week or two.
+        # 047742.python.win32timezone.line516.comment This is necessary because Microsoft defines the fifth week in a month
+        # 047743.python.win32timezone.line517.comment to be the last week in a month and adding the time delta might have
+        # 047744.python.win32timezone.line518.comment pushed the result into the next month.
         while result.month == cutoff.month + 1:
             result -= datetime.timedelta(weeks=1)
         return result
@@ -557,7 +557,7 @@ class TimeZoneInfo(datetime.tzinfo):
     ValueError: subkey name cannot be empty
     """
 
-    # this key works for WinNT+, but not for the Win95 line.
+    # 047745.python.win32timezone.line560.comment this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
     def __init__(
@@ -572,23 +572,23 @@ class TimeZoneInfo(datetime.tzinfo):
             self._LoadInfoFromKey()
         self.fixedStandardTime = fix_standard_time
 
-    # For tzinfo pickle support
+    # 047746.python.win32timezone.line575.comment For tzinfo pickle support
     def __getinitargs__(self) -> tuple[TimeZoneDefinition, bool]:
         return (self.staticInfo, self.fixedStandardTime)
 
     def _FindTimeZoneKey(self) -> _RegKeyDict:
         """Find the registry key for the time zone name (self.timeZoneName)."""
-        # for multi-language compatability, match the time zone name in the
-        # "Std" key of the time zone key.
+        # 047747.python.win32timezone.line581.comment for multi-language compatability, match the time zone name in the
+        # 047748.python.win32timezone.line582.comment "Std" key of the time zone key.
         zoneNames = dict(self._get_indexed_time_zone_keys("Std"))
-        # Also match the time zone key name itself, to be compatible with
-        # English-based hard-coded time zones.
+        # 047749.python.win32timezone.line584.comment Also match the time zone key name itself, to be compatible with
+        # 047750.python.win32timezone.line585.comment English-based hard-coded time zones.
         timeZoneName = zoneNames.get(self.timeZoneName, self.timeZoneName)
         key = _RegKeyDict.open(winreg.HKEY_LOCAL_MACHINE, self.tzRegKey)
         try:
             result = key.subkey(timeZoneName)
         except FileNotFoundError:
-            # Don't catch ValueError, keep the original error message
+            # 047751.python.win32timezone.line591.comment Don't catch ValueError, keep the original error message
             raise ValueError(f"Timezone Name {timeZoneName!r} not found")
         return result
 
@@ -654,8 +654,8 @@ class TimeZoneInfo(datetime.tzinfo):
         infos = [
             (int(year), TimeZoneDefinition(values)) for year, values in info.items()
         ]
-        # create a range mapping that searches by descending year and matches
-        # if the target year is greater or equal.
+        # 047752.python.win32timezone.line657.comment create a range mapping that searches by descending year and matches
+        # 047753.python.win32timezone.line658.comment if the target year is greater or equal.
         self.dynamicInfo = RangeMap(
             infos,
             sort_params={"reverse": True},
@@ -686,9 +686,9 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> MST.tzname(None)
 
         """
-        # https://docs.python.org/3/library/datetime.html#datetime.tzinfo.tzname
-        # > [...] returning `None` is appropriate if the class wishes to say
-        # > that `time` objects don’t participate in the `tzinfo` protocols.
+        # 047755.python.win32timezone.line689.comment https://docs.python.org/3/library/datetime.html#datetime.tzinfo.tzname
+        # 047756.python.win32timezone.line690.comment > [...] returning `None` is appropriate if the class wishes to say
+        # 047757.python.win32timezone.line691.comment > that `time` objects don’t participate in the `tzinfo` protocols.
         if dt is None:
             return None
 
@@ -714,9 +714,9 @@ class TimeZoneInfo(datetime.tzinfo):
         """
         if not getattr(self, "dynamicInfo", {}):
             return self.staticInfo
-        # Find the greatest year entry in self.dynamicInfo which is for
-        #  a year greater than or equal to our targetYear. If not found,
-        #  default to the earliest year.
+        # 047758.python.win32timezone.line717.comment Find the greatest year entry in self.dynamicInfo which is for
+        # 047759.python.win32timezone.line718.comment a year greater than or equal to our targetYear. If not found,
+        # 047760.python.win32timezone.line719.comment default to the earliest year.
         return self.dynamicInfo.get(targetYear, self.dynamicInfo[RangeMap.last_item])
 
     def _getStandardBias(self, dt):
@@ -763,24 +763,24 @@ class TimeZoneInfo(datetime.tzinfo):
             dstStart = self.GetDSTStartTime(dt.year)
             dstEnd = self.GetDSTEndTime(dt.year)
 
-            # at the end of DST, when clocks are moved back, there's a period
-            #  of daylight_bias where it's ambiguous whether we're in DST or
-            #  not.
+            # 047763.python.win32timezone.line766.comment at the end of DST, when clocks are moved back, there's a period
+            # 047764.python.win32timezone.line767.comment of daylight_bias where it's ambiguous whether we're in DST or
+            # 047765.python.win32timezone.line768.comment not.
             dstEndAdj = dstEnd + winInfo.daylight_bias
 
-            # the same thing could theoretically happen at the start of DST
-            #  if there's a standard_bias (which I suspect is always 0).
+            # 047766.python.win32timezone.line771.comment the same thing could theoretically happen at the start of DST
+            # 047767.python.win32timezone.line772.comment if there's a standard_bias (which I suspect is always 0).
             dstStartAdj = dstStart + winInfo.standard_bias
 
             if dstStart < dstEnd:
                 in_dst = dstStartAdj <= dt < dstEndAdj
             else:
-                # in the southern hemisphere, daylight savings time
-                #  typically ends before it begins in a given year.
+                # 047768.python.win32timezone.line778.comment in the southern hemisphere, daylight savings time
+                # 047769.python.win32timezone.line779.comment typically ends before it begins in a given year.
                 in_dst = not (dstEndAdj < dt <= dstStartAdj)
         except ValueError:
-            # there was an error parsing the time zone, which is normal when a
-            #  start and end time are not specified.
+            # 047770.python.win32timezone.line782.comment there was an error parsing the time zone, which is normal when a
+            # 047771.python.win32timezone.line783.comment start and end time are not specified.
             in_dst = False
 
         return in_dst
@@ -823,14 +823,14 @@ class TimeZoneInfo(datetime.tzinfo):
         True
         """
         code, info = TimeZoneDefinition.current()
-        # code is 0 if daylight savings is disabled or not defined
-        #  code is 1 or 2 if daylight savings is enabled, 2 if currently active
+        # 047772.python.win32timezone.line826.comment code is 0 if daylight savings is disabled or not defined
+        # 047773.python.win32timezone.line827.comment code is 1 or 2 if daylight savings is enabled, 2 if currently active
         fix_standard_time = not code
-        # note that although the given information is sufficient
-        # to construct a WinTZI object, it's
-        # not sufficient to represent the time zone in which
-        # the current user is operating due
-        # to dynamic time zones.
+        # 047774.python.win32timezone.line829.comment note that although the given information is sufficient
+        # 047775.python.win32timezone.line830.comment to construct a WinTZI object, it's
+        # 047776.python.win32timezone.line831.comment not sufficient to represent the time zone in which
+        # 047777.python.win32timezone.line832.comment the current user is operating due
+        # 047778.python.win32timezone.line833.comment to dynamic time zones.
         return cls(info, fix_standard_time)
 
     _tzutc: ClassVar[Self | None] = None
@@ -849,7 +849,7 @@ class TimeZoneInfo(datetime.tzinfo):
             cls._tzutc = cls("GMT Standard Time", True)
         return cls._tzutc
 
-    # helper methods for accessing the timezone info from the registry
+    # 047779.python.win32timezone.line852.comment helper methods for accessing the timezone info from the registry
     @staticmethod
     def _get_time_zone_key(subkey=None):
         "Return the registry key that stores time zone details"
@@ -1045,7 +1045,7 @@ def resolveMUITimeZone(spec: str) -> str | None:
     return result
 
 
-# from jaraco.collections 5.1
+# 047780.python.win32timezone.line1048.comment from jaraco.collections 5.1
 class RangeMap(Dict[_RangeMapKT, _VT]):
     """
     A dictionary-like object that uses the keys as bounds for a range.
@@ -1171,7 +1171,7 @@ class RangeMap(Dict[_RangeMapKT, _VT]):
         If default is not given, it defaults to None, so that this method
         never raises a KeyError.
         """
-        # Necessary to use our own __getitem__ and not dict's
+        # 047782.python.win32timezone.line1174.comment Necessary to use our own __getitem__ and not dict's
         try:
             return self[key]
         except KeyError:
@@ -1191,7 +1191,7 @@ class RangeMap(Dict[_RangeMapKT, _VT]):
         sorted_keys = sorted(self, **self.sort_params)
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
-    # some special values for the RangeMap
+    # 047783.python.win32timezone.line1194.comment some special values for the RangeMap
     undefined_value = type("RangeValueUndefined", (), {})()
 
     class Item(int):

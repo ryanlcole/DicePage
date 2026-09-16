@@ -22,8 +22,8 @@ NSArray = ObjCClass('NSArray')
 NSApplication = ObjCClass('NSApplication')
 NSColor = ObjCClass('NSColor')
 
-# This custom NSTextView subclass is used for capturing all of the
-# on_text, on_text_motion, and on_text_motion_select events.
+# 036168.python.pyglet_textview.line25.comment This custom NSTextView subclass is used for capturing all of the
+# 036169.python.pyglet_textview.line26.comment on_text, on_text_motion, and on_text_motion_select events.
 class PygletTextView_Implementation:
     PygletTextView = ObjCSubclass('NSTextView', 'PygletTextView')
 
@@ -33,18 +33,18 @@ class PygletTextView_Implementation:
         if not self:
             return None
         self._window = window
-        # Interpret tab and return as raw characters
+        # 036170.python.pyglet_textview.line36.comment Interpret tab and return as raw characters
         self.setFieldEditor_(False)
         empty_string = CFSTR('')
         self.associate("empty_string", empty_string)
 
-        # Prevent a blinking cursor in bottom left corner Python 3.9 w/ ARM mac.
+        # 036171.python.pyglet_textview.line41.comment Prevent a blinking cursor in bottom left corner Python 3.9 w/ ARM mac.
         self.setInsertionPointColor_(NSColor.clearColor())
         return self
 
     @PygletTextView.method("v@")
     def mouseMoved_(self, event):
-        # prevent cursor from being set to I-beam
+        # 036172.python.pyglet_textview.line47.comment prevent cursor from being set to I-beam
         self.nextResponder().mouseMoved_(event)
 
     @PygletTextView.method('v')
@@ -53,12 +53,12 @@ class PygletTextView_Implementation:
         cf.CFRelease(self.empty_string)
         send_super(self, 'dealloc')
 
-    # Other functions still seem to work?
+    # 036173.python.pyglet_textview.line56.comment Other functions still seem to work?
     @PygletTextView.method('v@')
     def keyDown_(self, nsevent: ObjCInstance) -> None:
 
-        # Ignore F5 key text editing action
-        # to prevent showing autocomplete suggestions
+        # 036174.python.pyglet_textview.line60.comment Ignore F5 key text editing action
+        # 036175.python.pyglet_textview.line61.comment to prevent showing autocomplete suggestions
         if nsevent.keyCode() != 96:
             array = NSArray.arrayWithObject_(nsevent)
             self.interpretKeyEvents_(array)
@@ -74,14 +74,14 @@ class PygletTextView_Implementation:
     def insertText_(self, text: CFSTR) -> None:
         text = cfstring_to_string(text)
         self.setString_(self.empty_string)
-        # Don't send control characters (tab, newline) as on_text events.
+        # 036176.python.pyglet_textview.line77.comment Don't send control characters (tab, newline) as on_text events.
         if text and unicodedata.category(text[0]) != 'Cc':
             self._window.dispatch_event('on_text', text)
 
     @PygletTextView.method('v@')
     def insertNewline_(self, sender: ObjCInstance) -> None:
-        # Distinguish between carriage return (u'\r') and enter (u'\x03').
-        # Only the return key press gets sent as an on_text event.
+        # 036177.python.pyglet_textview.line83.comment Distinguish between carriage return (u'\r') and enter (u'\x03').
+        # 036178.python.pyglet_textview.line84.comment Only the return key press gets sent as an on_text event.
         event = NSApplication.sharedApplication().currentEvent()
         chars = event.charactersIgnoringModifiers()
         ch = chr(chars.characterAtIndex_(0))

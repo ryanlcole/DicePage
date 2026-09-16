@@ -65,12 +65,12 @@ if TYPE_CHECKING:
 
 _is_pyglet_doc_run = hasattr(_sys, "is_pyglet_doc_run") and _sys.is_pyglet_doc_run
 
-#: The active OpenGL context.
-#:
-#: You can change the current context by calling `Context.set_current`;
-#: do not modify this global.
-#:
-#: .. versionadded:: 1.1
+# 027305.python.init.line68.comment : The active OpenGL context.
+# 027306.python.init.line69.comment :
+# 027307.python.init.line70.comment : You can change the current context by calling `Context.set_current`;
+# 027308.python.init.line71.comment : do not modify this global.
+# 027309.python.init.line72.comment :
+# 027310.python.init.line73.comment : .. versionadded:: 1.1
 current_context: Context | None = None
 
 
@@ -198,9 +198,9 @@ elif compat_platform == 'darwin':
 
 _shadow_window: Window | None = None
 
-# Import pyglet.window now if it isn't currently being imported (this creates the shadow window).
+# 027313.python.init.line201.comment Import pyglet.window now if it isn't currently being imported (this creates the shadow window).
 if not _is_pyglet_doc_run and 'pyglet.window' not in _sys.modules and _pyglet.options['shadow_window']:
-    # trickery is for circular import
+    # 027314.python.init.line203.comment trickery is for circular import
     _pyglet.gl = _sys.modules[__name__]
     import pyglet.window  # noqa: F401
 

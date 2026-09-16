@@ -71,7 +71,7 @@ class check(Command):
 
     def run(self):
         """Runs the command."""
-        # perform the various tests
+        # 039704.python.check.line74.comment perform the various tests
         if self.metadata:
             self.check_metadata()
         if self.restructuredtext:
@@ -83,8 +83,8 @@ class check(Command):
             elif self.strict:
                 raise DistutilsSetupError('The docutils package is needed.')
 
-        # let's raise an error in strict mode, if we have at least
-        # one warning
+        # 039705.python.check.line86.comment let's raise an error in strict mode, if we have at least
+        # 039706.python.check.line87.comment one warning
         if self.strict and self._warnings > 0:
             raise DistutilsSetupError('Please correct your package.')
 
@@ -118,7 +118,7 @@ class check(Command):
 
     def _check_rst_data(self, data):
         """Returns warnings when the provided data doesn't compile."""
-        # the include and csv_table directives need this to be a path
+        # 039707.python.check.line121.comment the include and csv_table directives need this to be a path
         source_path = self.distribution.script_name or 'setup.py'
         parser = docutils.parsers.rst.Parser()
         settings = docutils.frontend.OptionParser(

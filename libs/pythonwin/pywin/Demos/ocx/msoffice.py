@@ -1,8 +1,8 @@
-# This demo uses some of the Microsoft Office components.
-#
-# It was taken from an MSDN article showing how to embed excel.
-# It is not comlpete yet, but it _does_ show an Excel spreadsheet in a frame!
-#
+# 036790.python.msoffice.line1.comment This demo uses some of the Microsoft Office components.
+# 036791.python.msoffice.line2.comment
+# 036792.python.msoffice.line3.comment It was taken from an MSDN article showing how to embed excel.
+# 036793.python.msoffice.line4.comment It is not comlpete yet, but it _does_ show an Excel spreadsheet in a frame!
+# 036794.python.msoffice.line5.comment
 
 import win32con
 import win32ui
@@ -16,11 +16,11 @@ class OleClientItem(object.CmdTarget):
         object.CmdTarget.__init__(self, win32uiole.CreateOleClientItem(doc))
 
     def OnGetItemPosition(self):
-        # For now return a hard-coded rect.
+        # 036795.python.msoffice.line19.comment For now return a hard-coded rect.
         return (10, 10, 210, 210)
 
     def OnActivate(self):
-        # Allow only one inplace activate item per frame
+        # 036796.python.msoffice.line23.comment Allow only one inplace activate item per frame
         view = self.GetActiveView()
         item = self.GetDocument().GetInPlaceActiveItem(view)
         if item is not None and item._obj_ != self._obj_:
@@ -32,19 +32,19 @@ class OleClientItem(object.CmdTarget):
         self.GetDocument().UpdateAllViews(None)
 
     def OnChangeItemPosition(self, rect):
-        # During in-place activation CEmbed_ExcelCntrItem::OnChangeItemPosition
-        #  is called by the server to change the position of the in-place
-        #  window.  Usually, this is a result of the data in the server
-        #  document changing such that the extent has changed or as a result
-        #  of in-place resizing.
-        #
-        # The default here is to call the base class, which will call
-        #  COleClientItem::SetItemRects to move the item
-        #  to the new position.
+        # 036797.python.msoffice.line35.comment During in-place activation CEmbed_ExcelCntrItem::OnChangeItemPosition
+        # 036798.python.msoffice.line36.comment is called by the server to change the position of the in-place
+        # 036799.python.msoffice.line37.comment window.  Usually, this is a result of the data in the server
+        # 036800.python.msoffice.line38.comment document changing such that the extent has changed or as a result
+        # 036801.python.msoffice.line39.comment of in-place resizing.
+        # 036802.python.msoffice.line40.comment
+        # 036803.python.msoffice.line41.comment The default here is to call the base class, which will call
+        # 036804.python.msoffice.line42.comment COleClientItem::SetItemRects to move the item
+        # 036805.python.msoffice.line43.comment to the new position.
         if not self._obj_.OnChangeItemPosition(self, rect):
             return 0
 
-        # TODO: update any cache you may have of the item's rectangle/extent
+        # 036806.python.msoffice.line47.comment TODO: update any cache you may have of the item's rectangle/extent
         return 1
 
 
@@ -77,8 +77,8 @@ class ExcelView(docview.ScrollView):
         clientItem, pos = doc.GetNextItem(pos)
         clientItem.Draw(dc, (10, 10, 210, 210))
 
-    # Special handling of OnSetFocus and OnSize are required for a container
-    #  when an object is being edited in-place.
+    # 036807.python.msoffice.line80.comment Special handling of OnSetFocus and OnSize are required for a container
+    # 036808.python.msoffice.line81.comment when an object is being edited in-place.
     def OnSetFocus(self, msg):
         item = self.GetDocument().GetInPlaceActiveItem(self)
         if (
@@ -115,7 +115,7 @@ class WordFrame(window.MDIChildWnd):
     def __init__(self, doc=None):
         self._obj_ = win32ui.CreateMDIChild()
         self._obj_.AttachObject(self)
-        # Don't call base class doc/view version...
+        # 036812.python.msoffice.line118.comment Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         WordModule = gencache.EnsureModule(
@@ -126,7 +126,7 @@ class WordFrame(window.MDIChildWnd):
                 "Microsoft Word version 8 does not appear to be installed."
             )
 
-        # WordModule.Word doesn't exist in WordModule, WordModule.Words does, but CreateControl still fails
+        # 036813.python.msoffice.line129.comment WordModule.Word doesn't exist in WordModule, WordModule.Words does, but CreateControl still fails
         class MyWordControl(activex.Control, WordModule.Word): ...
 
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
@@ -150,9 +150,9 @@ def Demo():
         docName = win32api.GetFullPathName(sys.argv[1])
     OleTemplate().OpenDocumentFile(docName)
 
-    # ActiveX not currently working
-    # f = WordFrame(docName)
-    # f.Create("Microsoft Office")
+    # 036814.python.msoffice.line153.comment ActiveX not currently working
+    # 036815.python.msoffice.line154.comment f = WordFrame(docName)
+    # 036816.python.msoffice.line155.comment f.Create("Microsoft Office")
 
 
 if __name__ == "__main__":

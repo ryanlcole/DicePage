@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025973.python.test_windows.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025974.python.test_windows.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025975.python.test_windows.line5.comment found in the LICENSE file.
 
 """Windows specific tests."""
 
@@ -88,9 +88,9 @@ def wmic(path, what, converter=int):
         return data
 
 
-# ===================================================================
-# System APIs
-# ===================================================================
+# 025980.python.test_windows.line91.comment ===================================================================
+# 025981.python.test_windows.line92.comment System APIs
+# 025982.python.test_windows.line93.comment ===================================================================
 
 
 class TestCpuAPIs(WindowsTestCase):
@@ -99,14 +99,14 @@ class TestCpuAPIs(WindowsTestCase):
         reason="NUMBER_OF_PROCESSORS env var is not available",
     )
     def test_cpu_count_vs_NUMBER_OF_PROCESSORS(self):
-        # Will likely fail on many-cores systems:
-        # https://stackoverflow.com/questions/31209256
+        # 025983.python.test_windows.line102.comment Will likely fail on many-cores systems:
+        # 025984.python.test_windows.line103.comment https://stackoverflow.com/questions/31209256
         num_cpus = int(os.environ['NUMBER_OF_PROCESSORS'])
         assert num_cpus == psutil.cpu_count()
 
     def test_cpu_count_vs_GetSystemInfo(self):
-        # Will likely fail on many-cores systems:
-        # https://stackoverflow.com/questions/31209256
+        # 025985.python.test_windows.line108.comment Will likely fail on many-cores systems:
+        # 025986.python.test_windows.line109.comment https://stackoverflow.com/questions/31209256
         sys_value = win32api.GetSystemInfo()[5]
         psutil_value = psutil.cpu_count()
         assert sys_value == psutil_value
@@ -169,30 +169,30 @@ class TestSystemAPIs(WindowsTestCase):
     def test_percent_swapmem(self):
         if psutil.swap_memory().total > 0:
             w = wmi.WMI().Win32_PerfRawData_PerfOS_PagingFile(Name="_Total")[0]
-            # calculate swap usage to percent
+            # 025987.python.test_windows.line172.comment calculate swap usage to percent
             percentSwap = int(w.PercentUsage) * 100 / int(w.PercentUsage_Base)
-            # exact percent may change but should be reasonable
-            # assert within +/- 5% and between 0 and 100%
+            # 025988.python.test_windows.line174.comment exact percent may change but should be reasonable
+            # 025989.python.test_windows.line175.comment assert within +/- 5% and between 0 and 100%
             assert psutil.swap_memory().percent >= 0
             assert abs(psutil.swap_memory().percent - percentSwap) < 5
             assert psutil.swap_memory().percent <= 100
 
-    # @pytest.mark.skipif(wmi is None, reason="wmi module is not installed")
-    # def test__UPTIME(self):
-    #     # _UPTIME constant is not public but it is used internally
-    #     # as value to return for pid 0 creation time.
-    #     # WMI behaves the same.
-    #     w = wmi.WMI().Win32_Process(ProcessId=self.pid)[0]
-    #     p = psutil.Process(0)
-    #     wmic_create = str(w.CreationDate.split('.')[0])
-    #     psutil_create = time.strftime("%Y%m%d%H%M%S",
-    #                                   time.localtime(p.create_time()))
+    # 025990.python.test_windows.line180.comment @pytest.mark.skipif(wmi is None, reason="wmi module is not installed")
+    # 025991.python.test_windows.line181.comment def test__UPTIME(self):
+    # 025992.python.test_windows.line182.comment # _UPTIME constant is not public but it is used internally
+    # 025993.python.test_windows.line183.comment # as value to return for pid 0 creation time.
+    # 025994.python.test_windows.line184.comment # WMI behaves the same.
+    # 025995.python.test_windows.line185.comment w = wmi.WMI().Win32_Process(ProcessId=self.pid)[0]
+    # 025996.python.test_windows.line186.comment p = psutil.Process(0)
+    # 025997.python.test_windows.line187.comment wmic_create = str(w.CreationDate.split('.')[0])
+    # 025998.python.test_windows.line188.comment psutil_create = time.strftime("%Y%m%d%H%M%S",
+    # 025999.python.test_windows.line189.comment time.localtime(p.create_time()))
 
-    # Note: this test is not very reliable
+    # 026000.python.test_windows.line191.comment Note: this test is not very reliable
     @retry_on_failure()
     def test_pids(self):
-        # Note: this test might fail if the OS is starting/killing
-        # other processes in the meantime
+        # 026001.python.test_windows.line194.comment Note: this test might fail if the OS is starting/killing
+        # 026002.python.test_windows.line195.comment other processes in the meantime
         w = wmi.WMI().Win32_Process()
         wmi_pids = {x.ProcessId for x in w}
         psutil_pids = set(psutil.pids())
@@ -206,7 +206,7 @@ class TestSystemAPIs(WindowsTestCase):
             for wmi_part in wmi_parts:
                 if ps_part.device.replace('\\', '') == wmi_part.DeviceID:
                     if not ps_part.mountpoint:
-                        # this is usually a CD-ROM with no disk inserted
+                        # 026003.python.test_windows.line209.comment this is usually a CD-ROM with no disk inserted
                         break
                     if 'cdrom' in ps_part.opts:
                         break
@@ -215,12 +215,12 @@ class TestSystemAPIs(WindowsTestCase):
                     try:
                         usage = psutil.disk_usage(ps_part.mountpoint)
                     except FileNotFoundError:
-                        # usually this is the floppy
+                        # 026005.python.test_windows.line218.comment usually this is the floppy
                         break
                     assert usage.total == int(wmi_part.Size)
                     wmi_free = int(wmi_part.FreeSpace)
                     assert usage.free == wmi_free
-                    # 10 MB tolerance
+                    # 026006.python.test_windows.line223.comment 10 MB tolerance
                     if abs(usage.free - wmi_free) > 10 * 1024 * 1024:
                         raise pytest.fail(
                             f"psutil={usage.free}, wmi={wmi_free}"
@@ -258,12 +258,12 @@ class TestSystemAPIs(WindowsTestCase):
     def test_convert_dos_path_drive(self):
         winpath = 'C:\\Windows\\Temp'
         driveletter = 'C:'
-        # Mocked NT device path for C:
+        # 026007.python.test_windows.line261.comment Mocked NT device path for C:
         devicepath = '\\Device\\HarddiskVolume1'
 
-        # Path returned by RtlDosPathNameToNtPathName
+        # 026008.python.test_windows.line264.comment Path returned by RtlDosPathNameToNtPathName
         ntpath1 = '\\??\\C:\\Windows\\Temp'
-        # Mocked normalized NT path
+        # 026009.python.test_windows.line266.comment Mocked normalized NT path
         ntpath2 = '\\Device\\HarddiskVolume1\\Windows\\Temp'
 
         devices = {devicepath: driveletter}
@@ -276,11 +276,11 @@ class TestSystemAPIs(WindowsTestCase):
             assert m.called
 
     def test_convert_dos_path_unc(self):
-        # UNC path
+        # 026010.python.test_windows.line279.comment UNC path
         winpath = '\\\\localhost\\C$\\Windows\\Temp'
-        # Path returned by RtlDosPathNameToNtPathName
+        # 026011.python.test_windows.line281.comment Path returned by RtlDosPathNameToNtPathName
         ntpath1 = '\\??\\UNC\\localhost\\C$\\Windows\\Temp'
-        # Normalized NT path
+        # 026012.python.test_windows.line283.comment Normalized NT path
         ntpath2 = '\\Device\\Mup\\localhost\\C$\\Windows\\Temp'
 
         assert psutil._pswindows.convert_dos_path(winpath) == winpath
@@ -309,16 +309,16 @@ class TestSystemAPIs(WindowsTestCase):
         assert diff <= 5, (psutil_dt, wmi_btime_dt)
 
     def test_uptime(self):
-        # ...against GetTickCount64() (Windows < 7, does not include
-        # time spent during suspend / hybernate).
+        # 026013.python.test_windows.line312.comment ...against GetTickCount64() (Windows < 7, does not include
+        # 026014.python.test_windows.line313.comment time spent during suspend / hybernate).
         ms = ctypes.windll.kernel32.GetTickCount64()
         secs = ms / 1000.0
         assert abs(cext.uptime() - secs) < 0.5
 
 
-# ===================================================================
-# sensors_battery()
-# ===================================================================
+# 026015.python.test_windows.line319.comment ===================================================================
+# 026016.python.test_windows.line320.comment sensors_battery()
+# 026017.python.test_windows.line321.comment ===================================================================
 
 
 class TestSensorsBattery(WindowsTestCase):
@@ -343,8 +343,8 @@ class TestSensorsBattery(WindowsTestCase):
         w = wmi.WMI()
         battery_wmi = w.query('select * from Win32_Battery')[0]
         battery_psutil = psutil.sensors_battery()
-        # Status codes:
-        # https://msdn.microsoft.com/en-us/library/aa394074(v=vs.85).aspx
+        # 026018.python.test_windows.line346.comment Status codes:
+        # 026019.python.test_windows.line347.comment https://msdn.microsoft.com/en-us/library/aa394074(v=vs.85).aspx
         assert battery_psutil.power_plugged == (battery_wmi.BatteryStatus == 2)
 
     def test_emulate_no_battery(self):
@@ -386,9 +386,9 @@ class TestSensorsBattery(WindowsTestCase):
             assert m.called
 
 
-# ===================================================================
-# Process APIs
-# ===================================================================
+# 026020.python.test_windows.line389.comment ===================================================================
+# 026021.python.test_windows.line390.comment Process APIs
+# 026022.python.test_windows.line391.comment ===================================================================
 
 
 class TestProcess(WindowsTestCase):
@@ -408,15 +408,15 @@ class TestProcess(WindowsTestCase):
     def test_special_pid(self):
         p = psutil.Process(4)
         assert p.name() == 'System'
-        # use __str__ to access all common Process properties to check
-        # that nothing strange happens
+        # 026023.python.test_windows.line411.comment use __str__ to access all common Process properties to check
+        # 026024.python.test_windows.line412.comment that nothing strange happens
         str(p)
         p.username()
         assert p.create_time() >= 0.0
         try:
             rss, _vms = p.memory_info()[:2]
         except psutil.AccessDenied:
-            # expected on Windows Vista and Windows 7
+            # 026025.python.test_windows.line419.comment expected on Windows Vista and Windows 7
             if platform.uname()[1] not in {'vista', 'win-7', 'win7'}:
                 raise
         else:
@@ -452,9 +452,9 @@ class TestProcess(WindowsTestCase):
     def test_username(self):
         name = win32api.GetUserNameEx(win32con.NameSamCompatible)
         if name.endswith('$'):
-            # When running as a service account (most likely to be
-            # NetworkService), these user name calculations don't produce the
-            # same result, causing the test to fail.
+            # 026026.python.test_windows.line455.comment When running as a service account (most likely to be
+            # 026027.python.test_windows.line456.comment NetworkService), these user name calculations don't produce the
+            # 026028.python.test_windows.line457.comment same result, causing the test to fail.
             raise pytest.skip('running as service account')
         assert psutil.Process().username() == name
 
@@ -462,24 +462,24 @@ class TestProcess(WindowsTestCase):
         sys_value = re.sub(r"[ ]+", " ", win32api.GetCommandLine()).strip()
         psutil_value = ' '.join(psutil.Process().cmdline())
         if sys_value[0] == '"' != psutil_value[0]:
-            # The PyWin32 command line may retain quotes around argv[0] if they
-            # were used unnecessarily, while psutil will omit them. So remove
-            # the first 2 quotes from sys_value if not in psutil_value.
-            # A path to an executable will not contain quotes, so this is safe.
+            # 026029.python.test_windows.line465.comment The PyWin32 command line may retain quotes around argv[0] if they
+            # 026030.python.test_windows.line466.comment were used unnecessarily, while psutil will omit them. So remove
+            # 026031.python.test_windows.line467.comment the first 2 quotes from sys_value if not in psutil_value.
+            # 026032.python.test_windows.line468.comment A path to an executable will not contain quotes, so this is safe.
             sys_value = sys_value.replace('"', '', 2)
         assert sys_value == psutil_value
 
-    # XXX - occasional failures
+    # 026033.python.test_windows.line472.comment XXX - occasional failures
 
-    # def test_cpu_times(self):
-    #     handle = win32api.OpenProcess(
-    #         win32con.PROCESS_QUERY_INFORMATION, win32con.FALSE, os.getpid()
-    #     )
-    #     self.addCleanup(win32api.CloseHandle, handle)
-    #     a = psutil.Process().cpu_times()
-    #     b = win32process.GetProcessTimes(handle)
-    #     assert abs(a.user - b['UserTime'] / 10000000.0) < 0.2
-    #     assert abs(a.user - b['KernelTime'] / 10000000.0) < 0.2
+    # 026034.python.test_windows.line474.comment def test_cpu_times(self):
+    # 026035.python.test_windows.line475.comment handle = win32api.OpenProcess(
+    # 026036.python.test_windows.line476.comment win32con.PROCESS_QUERY_INFORMATION, win32con.FALSE, os.getpid()
+    # 026037.python.test_windows.line477.comment )
+    # 026038.python.test_windows.line478.comment self.addCleanup(win32api.CloseHandle, handle)
+    # 026039.python.test_windows.line479.comment a = psutil.Process().cpu_times()
+    # 026040.python.test_windows.line480.comment b = win32process.GetProcessTimes(handle)
+    # 026041.python.test_windows.line481.comment assert abs(a.user - b['UserTime'] / 10000000.0) < 0.2
+    # 026042.python.test_windows.line482.comment assert abs(a.user - b['KernelTime'] / 10000000.0) < 0.2
 
     def test_nice(self):
         handle = win32api.OpenProcess(
@@ -575,7 +575,7 @@ class TestProcess(WindowsTestCase):
         assert psutil_value == sys_value
 
     def test_error_partial_copy(self):
-        # https://github.com/giampaolo/psutil/issues/875
+        # 026043.python.test_windows.line578.comment https://github.com/giampaolo/psutil/issues/875
         exc = OSError()
         exc.winerror = 299
         with mock.patch("psutil._psplatform.cext.proc_cwd", side_effect=exc):
@@ -586,8 +586,8 @@ class TestProcess(WindowsTestCase):
         assert m.call_count >= 5
 
     def test_exe(self):
-        # NtQuerySystemInformation succeeds if process is gone. Make sure
-        # it raises NSP for a non existent pid.
+        # 026044.python.test_windows.line589.comment NtQuerySystemInformation succeeds if process is gone. Make sure
+        # 026045.python.test_windows.line590.comment it raises NSP for a non existent pid.
         pid = psutil.pids()[-1] + 99999
         proc = psutil._psplatform.Process(pid)
         with pytest.raises(psutil.NoSuchProcess):
@@ -610,15 +610,15 @@ class TestProcessWMI(WindowsTestCase):
         p = psutil.Process(self.pid)
         assert p.name() == w.Caption
 
-    # This fail on github because using virtualenv for test environment
+    # 026046.python.test_windows.line613.comment This fail on github because using virtualenv for test environment
     @pytest.mark.skipif(
         GITHUB_ACTIONS, reason="unreliable path on GITHUB_ACTIONS"
     )
     def test_exe(self):
         w = wmi.WMI().Win32_Process(ProcessId=self.pid)[0]
         p = psutil.Process(self.pid)
-        # Note: wmi reports the exe as a lower case string.
-        # Being Windows paths case-insensitive we ignore that.
+        # 026047.python.test_windows.line620.comment Note: wmi reports the exe as a lower case string.
+        # 026048.python.test_windows.line621.comment Being Windows paths case-insensitive we ignore that.
         assert p.exe().lower() == w.ExecutablePath.lower()
 
     def test_cmdline(self):
@@ -645,10 +645,10 @@ class TestProcessWMI(WindowsTestCase):
         w = wmi.WMI().Win32_Process(ProcessId=self.pid)[0]
         p = psutil.Process(self.pid)
         vms = p.memory_info().vms
-        # http://msdn.microsoft.com/en-us/library/aa394372(VS.85).aspx
-        # ...claims that PageFileUsage is represented in Kilo
-        # bytes but funnily enough on certain platforms bytes are
-        # returned instead.
+        # 026049.python.test_windows.line648.comment http://msdn.microsoft.com/en-us/library/aa394372(VS.85).aspx
+        # 026050.python.test_windows.line649.comment ...claims that PageFileUsage is represented in Kilo
+        # 026051.python.test_windows.line650.comment bytes but funnily enough on certain platforms bytes are
+        # 026052.python.test_windows.line651.comment returned instead.
         wmi_usage = int(w.PageFileUsage)
         if vms not in {wmi_usage, wmi_usage * 1024}:
             raise pytest.fail(f"wmi={wmi_usage}, psutil={vms}")
@@ -663,7 +663,7 @@ class TestProcessWMI(WindowsTestCase):
         assert wmic_create == psutil_create
 
 
-# ---
+# 026053.python.test_windows.line666.comment ---
 
 
 @pytest.mark.skipif(not WINDOWS, reason="WINDOWS only")
@@ -764,11 +764,11 @@ class RemoteProcessTestCase(PsutilTestCase):
 
     @staticmethod
     def find_other_interpreter():
-        # find a python interpreter that is of the opposite bitness from us
+        # 026054.python.test_windows.line767.comment find a python interpreter that is of the opposite bitness from us
         code = "import sys; sys.stdout.write(str(sys.maxsize > 2**32))"
 
-        # XXX: a different and probably more stable approach might be to access
-        # the registry but accessing 64 bit paths from a 32 bit process
+        # 026055.python.test_windows.line770.comment XXX: a different and probably more stable approach might be to access
+        # 026056.python.test_windows.line771.comment the registry but accessing 64 bit paths from a 32 bit process
         for filename in glob.glob(r"C:\Python*\python.exe"):
             proc = subprocess.Popen(
                 args=[filename, "-c", code],
@@ -843,9 +843,9 @@ class RemoteProcessTestCase(PsutilTestCase):
             pass
 
 
-# ===================================================================
-# Windows services
-# ===================================================================
+# 026057.python.test_windows.line846.comment ===================================================================
+# 026058.python.test_windows.line847.comment Windows services
+# 026059.python.test_windows.line848.comment ===================================================================
 
 
 @pytest.mark.skipif(not WINDOWS, reason="WINDOWS only")
@@ -872,9 +872,9 @@ class TestServices(PsutilTestCase):
         }
         for serv in psutil.win_service_iter():
             if serv.name() == "WaaSMedicSvc":
-                # known issue in Windows 11 reading the description
-                # https://learn.microsoft.com/en-us/answers/questions/1320388/in-windows-11-version-22h2-there-it-shows-(failed
-                # https://github.com/giampaolo/psutil/issues/2383
+                # 026060.python.test_windows.line875.comment known issue in Windows 11 reading the description
+                # 026061.python.test_windows.line876.comment https://learn.microsoft.com/en-us/answers/questions/1320388/in-windows-11-version-22h2-there-it-shows-(failed
+                # 026062.python.test_windows.line877.comment https://github.com/giampaolo/psutil/issues/2383
                 continue
             data = serv.as_dict()
             assert isinstance(data['name'], str)
@@ -894,9 +894,9 @@ class TestServices(PsutilTestCase):
             if pid is not None:
                 p = psutil.Process(pid)
                 assert p.is_running()
-            # win_service_get
+            # 026063.python.test_windows.line897.comment win_service_get
             s = psutil.win_service_get(serv.name())
-            # test __eq__
+            # 026064.python.test_windows.line899.comment test __eq__
             assert serv == s
 
     def test_win_service_get(self):
@@ -910,7 +910,7 @@ class TestServices(PsutilTestCase):
             psutil.win_service_get(name + '???')
         assert cm.value.name == name + '???'
 
-        # test NoSuchProcess
+        # 026065.python.test_windows.line913.comment test NoSuchProcess
         service = psutil.win_service_get(name)
         exc = OSError(0, "msg", 0)
         exc.winerror = ERROR_SERVICE_DOES_NOT_EXIST
@@ -925,7 +925,7 @@ class TestServices(PsutilTestCase):
             with pytest.raises(psutil.NoSuchProcess):
                 service.username()
 
-        # test AccessDenied
+        # 026066.python.test_windows.line928.comment test AccessDenied
         exc = OSError(0, "msg", 0)
         exc.winerror = ERROR_ACCESS_DENIED
         with mock.patch(
@@ -939,7 +939,7 @@ class TestServices(PsutilTestCase):
             with pytest.raises(psutil.AccessDenied):
                 service.username()
 
-        # test __str__ and __repr__
+        # 026067.python.test_windows.line942.comment test __str__ and __repr__
         assert service.name() in str(service)
         assert service.display_name() in str(service)
         assert service.name() in repr(service)

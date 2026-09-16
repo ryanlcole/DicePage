@@ -44,7 +44,7 @@ else:
             return forwardref._evaluate(memo.globals, memo.locals, *evaluate_extra_args)
         except NameError:
             if sys.version_info < (3, 10):
-                # Try again, with the type substitutions (list -> List etc.) in place
+                # 043501.python.utils.line47.comment Try again, with the type substitutions (list -> List etc.) in place
                 new_globals = memo.globals.copy()
                 new_globals.setdefault("Union", Union)
                 if sys.version_info < (3, 9):
@@ -125,8 +125,8 @@ def function_name(func: Callable[..., Any]) -> str:
     the module name stripped from the generated name.
 
     """
-    # For partial functions and objects with __call__ defined, __qualname__ does not
-    # exist
+    # 043502.python.utils.line128.comment For partial functions and objects with __call__ defined, __qualname__ does not
+    # 043503.python.utils.line129.comment exist
     module = getattr(func, "__module__", "")
     qualname = (module + ".") if module not in ("builtins", "") else ""
     return qualname + getattr(func, "__qualname__", repr(func))

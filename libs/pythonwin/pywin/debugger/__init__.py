@@ -10,7 +10,7 @@ def _CheckNeedGUI():
 
         isInprocApp = win32ui.GetApp().IsInproc()
     if isInprocApp:
-        # MAY Need it - may already have one
+        # 036946.python.init.line13.comment MAY Need it - may already have one
         need = "pywin.framework.app" not in sys.modules
     else:
         need = 0
@@ -22,13 +22,13 @@ def _CheckNeedGUI():
         pywin.framework.app.CreateDefaultGUI(dbgpyapp.DebuggerPythonApp)
 
     else:
-        # Check we have the appropriate editor
-        # No longer necessary!
+        # 036947.python.init.line25.comment Check we have the appropriate editor
+        # 036948.python.init.line26.comment No longer necessary!
         pass
     return need
 
 
-# Inject some methods in the top level name-space.
+# 036949.python.init.line31.comment Inject some methods in the top level name-space.
 currentDebugger = None  # Wipe out any old one on reload.
 
 
@@ -43,10 +43,10 @@ def _GetCurrentDebugger():
 
 
 def GetDebugger():
-    # An error here is not nice - as we are probably trying to
-    # break into the debugger on a Python error, any
-    # error raised by this is usually silent, and causes
-    # big problems later!
+    # 036951.python.init.line46.comment An error here is not nice - as we are probably trying to
+    # 036952.python.init.line47.comment break into the debugger on a Python error, any
+    # 036953.python.init.line48.comment error raised by this is usually silent, and causes
+    # 036954.python.init.line49.comment big problems later!
     try:
         rc = _GetCurrentDebugger()
         rc.GUICheckInit()
@@ -85,7 +85,7 @@ def set_trace():
         return  # App closing
 
     if d.stopframe != d.botframe:
-        # If I'm not "running"
+        # 036956.python.init.line88.comment If I'm not "running"
         return
 
     sys.settrace(None)  # May be hooked
@@ -93,10 +93,10 @@ def set_trace():
     d.set_trace()
 
 
-# "brk" is an alias for "set_trace" ("break" is a reserved word :-(
+# 036958.python.init.line96.comment "brk" is an alias for "set_trace" ("break" is a reserved word :-(
 brk = set_trace
 
-# Post-Mortem interface
+# 036959.python.init.line99.comment Post-Mortem interface
 
 
 def post_mortem(t=None):
@@ -114,7 +114,7 @@ def post_mortem(t=None):
     p = _GetCurrentDebugger()
     if p.frameShutdown:
         return  # App closing
-    # No idea why I need to settrace to None - it should have been reset by now?
+    # 036962.python.init.line117.comment No idea why I need to settrace to None - it should have been reset by now?
     sys.settrace(None)
     p.reset()
     while t.tb_next is not None:

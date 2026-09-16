@@ -1,5 +1,5 @@
-# The start of a win32gui generic demo.
-# Feel free to contribute more demos back ;-)
+# 046463.python.win32gui_demo.line1.comment The start of a win32gui generic demo.
+# 046464.python.win32gui_demo.line2.comment Feel free to contribute more demos back ;-)
 
 import math
 import random

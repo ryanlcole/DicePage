@@ -1,5 +1,5 @@
-# Sample implementation of IFileOperationProgressSink that just prints
-# some basic info
+# 051502.python.IFileOperationProgressSink.line1.comment Sample implementation of IFileOperationProgressSink that just prints
+# 051503.python.IFileOperationProgressSink.line2.comment some basic info
 
 import pythoncom
 from win32com.server.policy import DesignatedWrapPolicy

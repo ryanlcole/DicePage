@@ -4,8 +4,8 @@ from typing import Sequence
 
 from pyglet.display.headless import HeadlessCanvas
 
-# from pyglet.window import key
-# from pyglet.window import mouse
+# 036266.python.init.line7.comment from pyglet.window import key
+# 036267.python.init.line8.comment from pyglet.window import mouse
 from pyglet.event import EventDispatcher
 from pyglet.libs.egl import egl
 from pyglet.window import (
@@ -20,7 +20,7 @@ from pyglet.window import (
     _ViewEventHandler,
 )
 
-# Platform event data is single item, so use platform event handler directly.
+# 036274.python.init.line23.comment Platform event data is single item, so use platform event handler directly.
 HeadlessEventHandler = _PlatformEventHandler
 ViewEventHandler = _ViewEventHandler
 

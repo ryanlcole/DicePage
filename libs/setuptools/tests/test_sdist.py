@@ -61,7 +61,7 @@ def quiet():
         sys.stdout, sys.stderr = old_stdout, old_stderr
 
 
-# Convert to POSIX path
+# 045514.python.test_sdist.line64.comment Convert to POSIX path
 def posix(path):
     if not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b'/')
@@ -69,7 +69,7 @@ def posix(path):
         return path.replace(os.sep, '/')
 
 
-# HFS Plus uses decomposed UTF-8
+# 045515.python.test_sdist.line72.comment HFS Plus uses decomposed UTF-8
 def decompose(path):
     if isinstance(path, str):
         return unicodedata.normalize('NFD', path)
@@ -134,18 +134,18 @@ class TestSdistTest:
 
         (tmpdir / 'setup.py').write_text(SETUP_PY, encoding='utf-8')
 
-        # Set up the rest of the test package
+        # 045517.python.test_sdist.line137.comment Set up the rest of the test package
         test_pkg = tmpdir / 'sdist_test'
         test_pkg.mkdir()
         data_folder = tmpdir / 'd'
         data_folder.mkdir()
-        # *.rst was not included in package_data, so c.rst should not be
-        # automatically added to the manifest when not under version control
+        # 045518.python.test_sdist.line142.comment *.rst was not included in package_data, so c.rst should not be
+        # 045519.python.test_sdist.line143.comment automatically added to the manifest when not under version control
         for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
             touch(test_pkg / fname)
         touch(data_folder / 'e.dat')
-        # C sources are not included by default, but they will be,
-        # if an extension module uses them as sources or depends
+        # 045520.python.test_sdist.line147.comment C sources are not included by default, but they will be,
+        # 045521.python.test_sdist.line148.comment if an extension module uses them as sources or depends
         for fname in EXTENSION_SOURCES:
             touch(tmpdir / fname)
 
@@ -343,7 +343,7 @@ class TestSdistTest:
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # Make sure we use the custom command
+        # 045525.python.test_sdist.line346.comment Make sure we use the custom command
         cmd.cmdclass = {'build_py': CustomBuildPy}
         cmd.distribution.cmdclass = {'build_py': CustomBuildPy}
         assert cmd.distribution.get_command_class('build_py') == CustomBuildPy
@@ -406,9 +406,9 @@ class TestSdistTest:
         touch(source_dir / 'SETUP.cfg')
 
         dist = Distribution(SETUP_ATTRS)
-        # the extension deliberately capitalized for this test
-        # to make sure the actual filename (not capitalized) gets added
-        # to the manifest
+        # 045526.python.test_sdist.line409.comment the extension deliberately capitalized for this test
+        # 045527.python.test_sdist.line410.comment to make sure the actual filename (not capitalized) gets added
+        # 045528.python.test_sdist.line411.comment to the manifest
         dist.script_name = 'setup.PY'
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -416,9 +416,9 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        # lowercase all names so we can test in a
-        # case-insensitive way to make sure the files
-        # are not included.
+        # 045529.python.test_sdist.line419.comment lowercase all names so we can test in a
+        # 045530.python.test_sdist.line420.comment case-insensitive way to make sure the files
+        # 045531.python.test_sdist.line421.comment are not included.
         manifest = map(lambda x: x.lower(), cmd.filelist.files)
         assert 'readme.rst' not in manifest, manifest
         assert 'setup.py' not in manifest, manifest
@@ -426,25 +426,25 @@ class TestSdistTest:
 
     def test_exclude_dev_only_cache_folders(self, source_dir):
         included = {
-            # Emulate problem in https://github.com/pypa/setuptools/issues/4601
+            # 045532.python.test_sdist.line429.comment Emulate problem in https://github.com/pypa/setuptools/issues/4601
             "MANIFEST.in": (
                 "global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*\n"
                 "global-include *.txt\n"
             ),
-            # For the sake of being conservative and limiting unforeseen side-effects
-            # we just exclude dev-only cache folders at the root of the repository:
+            # 045533.python.test_sdist.line434.comment For the sake of being conservative and limiting unforeseen side-effects
+            # 045534.python.test_sdist.line435.comment we just exclude dev-only cache folders at the root of the repository:
             "test/.venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
             "src/.nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
             "doc/.tox/default/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
-            # Let's test against false positives with similarly named files:
+            # 045535.python.test_sdist.line439.comment Let's test against false positives with similarly named files:
             ".venv-requirements.txt": "",
             ".tox-coveragerc.txt": "",
             ".noxy/coveragerc.txt": "",
         }
 
         excluded = {
-            # .tox/.nox/.venv are well-know folders present at the root of Python repos
-            # and therefore should be excluded
+            # 045536.python.test_sdist.line446.comment .tox/.nox/.venv are well-know folders present at the root of Python repos
+            # 045537.python.test_sdist.line447.comment and therefore should be excluded
             ".tox/release/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
             ".nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
             ".venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
@@ -466,20 +466,20 @@ class TestSdistTest:
 
     @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
-        # Test for #303.
+        # 045538.python.test_sdist.line469.comment Test for #303.
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         mm = manifest_maker(dist)
         mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         os.mkdir('sdist_test.egg-info')
 
-        # UTF-8 filename
+        # 045539.python.test_sdist.line476.comment UTF-8 filename
         filename = os.path.join('sdist_test', 'smörbröd.py')
 
-        # Must create the file or it will get stripped.
+        # 045540.python.test_sdist.line479.comment Must create the file or it will get stripped.
         touch(filename)
 
-        # Add UTF-8 filename and write manifest
+        # 045541.python.test_sdist.line482.comment Add UTF-8 filename and write manifest
         with quiet():
             mm.run()
             mm.filelist.append(filename)
@@ -487,15 +487,15 @@ class TestSdistTest:
 
         contents = read_all_bytes(mm.manifest)
 
-        # The manifest should be UTF-8 encoded
+        # 045542.python.test_sdist.line490.comment The manifest should be UTF-8 encoded
         u_contents = contents.decode('UTF-8')
 
-        # The manifest should contain the UTF-8 filename
+        # 045543.python.test_sdist.line493.comment The manifest should contain the UTF-8 filename
         assert posix(filename) in u_contents
 
     @fail_on_ascii
     def test_write_manifest_allows_utf8_filenames(self):
-        # Test for #303.
+        # 045544.python.test_sdist.line498.comment Test for #303.
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         mm = manifest_maker(dist)
@@ -504,26 +504,26 @@ class TestSdistTest:
 
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
 
-        # Must touch the file or risk removal
+        # 045545.python.test_sdist.line507.comment Must touch the file or risk removal
         touch(filename)
 
-        # Add filename and write manifest
+        # 045546.python.test_sdist.line510.comment Add filename and write manifest
         with quiet():
             mm.run()
             u_filename = filename.decode('utf-8')
             mm.filelist.files.append(u_filename)
-            # Re-write manifest
+            # 045547.python.test_sdist.line515.comment Re-write manifest
             mm.write_manifest()
 
         contents = read_all_bytes(mm.manifest)
 
-        # The manifest should be UTF-8 encoded
+        # 045548.python.test_sdist.line520.comment The manifest should be UTF-8 encoded
         contents.decode('UTF-8')
 
-        # The manifest should contain the UTF-8 filename
+        # 045549.python.test_sdist.line523.comment The manifest should contain the UTF-8 filename
         assert posix(filename) in contents
 
-        # The filelist should have been updated as well
+        # 045550.python.test_sdist.line526.comment The filelist should have been updated as well
         assert u_filename in mm.filelist.files
 
     @skip_under_xdist
@@ -540,94 +540,94 @@ class TestSdistTest:
         mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         os.mkdir('sdist_test.egg-info')
 
-        # Latin-1 filename
+        # 045551.python.test_sdist.line543.comment Latin-1 filename
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
 
-        # Add filename with surrogates and write manifest
+        # 045552.python.test_sdist.line546.comment Add filename with surrogates and write manifest
         with quiet():
             mm.run()
             u_filename = filename.decode('utf-8', 'surrogateescape')
             mm.filelist.append(u_filename)
-            # Re-write manifest
+            # 045553.python.test_sdist.line551.comment Re-write manifest
             mm.write_manifest()
 
         contents = read_all_bytes(mm.manifest)
 
-        # The manifest should be UTF-8 encoded
+        # 045554.python.test_sdist.line556.comment The manifest should be UTF-8 encoded
         contents.decode('UTF-8')
 
-        # The Latin-1 filename should have been skipped
+        # 045555.python.test_sdist.line559.comment The Latin-1 filename should have been skipped
         assert posix(filename) not in contents
 
-        # The filelist should have been updated as well
+        # 045556.python.test_sdist.line562.comment The filelist should have been updated as well
         assert u_filename not in mm.filelist.files
 
     @fail_on_ascii
     def test_manifest_is_read_with_utf8_encoding(self):
-        # Test for #303.
+        # 045557.python.test_sdist.line567.comment Test for #303.
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # Create manifest
+        # 045558.python.test_sdist.line573.comment Create manifest
         with quiet():
             cmd.run()
 
-        # Add UTF-8 filename to manifest
+        # 045559.python.test_sdist.line577.comment Add UTF-8 filename to manifest
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         manifest = open(cmd.manifest, 'ab')
         manifest.write(b'\n' + filename)
         manifest.close()
 
-        # The file must exist to be included in the filelist
+        # 045560.python.test_sdist.line584.comment The file must exist to be included in the filelist
         touch(filename)
 
-        # Re-read manifest
+        # 045561.python.test_sdist.line587.comment Re-read manifest
         cmd.filelist.files = []
         with quiet():
             cmd.read_manifest()
 
-        # The filelist should contain the UTF-8 filename
+        # 045562.python.test_sdist.line592.comment The filelist should contain the UTF-8 filename
         filename = filename.decode('utf-8')
         assert filename in cmd.filelist.files
 
     @fail_on_latin1_encoded_filenames
     def test_read_manifest_skips_non_utf8_filenames(self):
-        # Test for #303.
+        # 045563.python.test_sdist.line598.comment Test for #303.
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # Create manifest
+        # 045564.python.test_sdist.line604.comment Create manifest
         with quiet():
             cmd.run()
 
-        # Add Latin-1 filename to manifest
+        # 045565.python.test_sdist.line608.comment Add Latin-1 filename to manifest
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         manifest = open(cmd.manifest, 'ab')
         manifest.write(b'\n' + filename)
         manifest.close()
 
-        # The file must exist to be included in the filelist
+        # 045566.python.test_sdist.line615.comment The file must exist to be included in the filelist
         touch(filename)
 
-        # Re-read manifest
+        # 045567.python.test_sdist.line618.comment Re-read manifest
         cmd.filelist.files = []
         with quiet():
             cmd.read_manifest()
 
-        # The Latin-1 filename should have been skipped
+        # 045568.python.test_sdist.line623.comment The Latin-1 filename should have been skipped
         filename = filename.decode('latin-1')
         assert filename not in cmd.filelist.files
 
     @fail_on_ascii
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_utf8_encoded_filename(self):
-        # Test for #303.
+        # 045569.python.test_sdist.line630.comment Test for #303.
         dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
@@ -646,7 +646,7 @@ class TestSdistTest:
 
         if sys.platform == 'win32':
             if fs_enc == 'cp1252':
-                # Python mangles the UTF-8 filename
+                # 045570.python.test_sdist.line649.comment Python mangles the UTF-8 filename
                 filename = filename.decode('cp1252')
                 assert filename in cmd.filelist.files
             else:
@@ -667,13 +667,13 @@ class TestSdistTest:
     @fail_on_latin1_encoded_filenames
     @skip_under_xdist
     def test_sdist_with_latin1_encoded_filename(self):
-        # Test for #303.
+        # 045571.python.test_sdist.line670.comment Test for #303.
         dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # Latin-1 filename
+        # 045572.python.test_sdist.line676.comment Latin-1 filename
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
         touch(filename)
         assert os.path.isfile(filename)
@@ -681,10 +681,10 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        # not all windows systems have a default FS encoding of cp1252
+        # 045573.python.test_sdist.line684.comment not all windows systems have a default FS encoding of cp1252
         if sys.platform == 'win32':
-            # Latin-1 is similar to Windows-1252 however
-            # on mbcs filesys it is not in latin-1 encoding
+            # 045574.python.test_sdist.line686.comment Latin-1 is similar to Windows-1252 however
+            # 045575.python.test_sdist.line687.comment on mbcs filesys it is not in latin-1 encoding
             fs_enc = sys.getfilesystemencoding()
             if fs_enc != 'mbcs':
                 fs_enc = 'latin-1'
@@ -692,7 +692,7 @@ class TestSdistTest:
 
             assert filename in cmd.filelist.files
         else:
-            # The Latin-1 filename should have been skipped
+            # 045576.python.test_sdist.line695.comment The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')
             assert filename not in cmd.filelist.files
 
@@ -798,7 +798,7 @@ class TestSdistTest:
     def test_build_subcommand_source_files(self, source_dir):
         touch(source_dir / '.myfile~')
 
-        # Sanity check: without custom commands file list should not be affected
+        # 045577.python.test_sdist.line801.comment Sanity check: without custom commands file list should not be affected
         dist = Distribution({**SETUP_ATTRS, "script_name": "setup.py"})
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -807,7 +807,7 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert '.myfile~' not in manifest
 
-        # Test: custom command should be able to augment file list
+        # 045578.python.test_sdist.line810.comment Test: custom command should be able to augment file list
         dist = Distribution({**SETUP_ATTRS, "script_name": "setup.py"})
         build = dist.get_command_obj("build")
         build.sub_commands = [*build.sub_commands, ("build_custom", None)]
@@ -906,14 +906,14 @@ class TestRegressions:
         "dep_path", ("myheaders/dir/file.h", "myheaders/dir/../dir/file.h")
     )
     def test_symlink_in_extension_depends(self, monkeypatch, tmp_path, dep_path):
-        # Given a project with a symlinked dir and a "depends" targeting that dir
+        # 045579.python.test_sdist.line909.comment Given a project with a symlinked dir and a "depends" targeting that dir
         files = self.files_for_symlink_in_extension_depends(tmp_path, dep_path)
         jaraco.path.build(files, prefix=str(tmp_path))
         symlink_or_skip_test(tmp_path / "external", tmp_path / "project/myheaders")
 
-        # When `sdist` runs, there should be no error
+        # 045580.python.test_sdist.line914.comment When `sdist` runs, there should be no error
         members = run_sdist(monkeypatch, tmp_path / "project")
-        # and the sdist should contain the symlinked files
+        # 045581.python.test_sdist.line916.comment and the sdist should contain the symlinked files
         for expected in (
             "myproj-42/hello.pyx",
             "myproj-42/myheaders/dir/file.h",
@@ -954,12 +954,12 @@ class TestRegressions:
         "dep_path", ("$tmp_path$/external/dir/file.h", "../external/dir/file.h")
     )
     def test_external_path_in_extension_depends(self, monkeypatch, tmp_path, dep_path):
-        # Given a project with a "depends" targeting an external dir
+        # 045582.python.test_sdist.line957.comment Given a project with a "depends" targeting an external dir
         files = self.files_for_external_path_in_extension_depends(tmp_path, dep_path)
         jaraco.path.build(files, prefix=str(tmp_path))
-        # When `sdist` runs, there should be no error
+        # 045583.python.test_sdist.line960.comment When `sdist` runs, there should be no error
         members = run_sdist(monkeypatch, tmp_path / "project")
-        # and the sdist should not contain the external file
+        # 045584.python.test_sdist.line962.comment and the sdist should not contain the external file
         for name in members:
             assert "file.h" not in name
 
@@ -979,6 +979,6 @@ def test_sanity_check_setuptools_own_sdist(setuptools_sdist):
     with tarfile.open(setuptools_sdist) as tar:
         files = tar.getnames()
 
-    # setuptools sdist should not include the .tox folder
+    # 045585.python.test_sdist.line982.comment setuptools sdist should not include the .tox folder
     tox_files = [name for name in files if ".tox" in name]
     assert len(tox_files) == 0, f"not empty {tox_files}"

@@ -328,10 +328,10 @@ class Sprite(event.EventDispatcher):
                                        self._user_group)
         if (self._batch and
                 self._batch.update_shader(self._vertex_list, GL_POINTS, self._group, program)):
-            # Exit early if changing domain is not needed.
+            # 026364.python.geoshader_sprite.line331.comment Exit early if changing domain is not needed.
             return
 
-        # Recreate vertex list.
+        # 026365.python.geoshader_sprite.line334.comment Recreate vertex list.
         self._vertex_list.delete()
         self._create_vertex_list()
 
@@ -602,7 +602,7 @@ class Sprite(event.EventDispatcher):
         """
         translations_outdated = False
 
-        # only bother updating if the translation actually changed
+        # 026367.python.geoshader_sprite.line605.comment only bother updating if the translation actually changed
         if x is not None:
             self._x = x
             translations_outdated = True
@@ -622,7 +622,7 @@ class Sprite(event.EventDispatcher):
 
         scales_outdated = False
 
-        # only bother updating if the scale actually changed
+        # 026368.python.geoshader_sprite.line625.comment only bother updating if the scale actually changed
         if scale is not None:
             self._scale = scale
             scales_outdated = True
@@ -759,7 +759,7 @@ class Sprite(event.EventDispatcher):
 
     @frame_index.setter
     def frame_index(self, index):
-        # Bound to available number of frames
+        # 026369.python.geoshader_sprite.line762.comment Bound to available number of frames
         if self._animation is None:
             return
         self._frame_index = max(0, min(index, len(self._animation.frames) - 1))

@@ -20,7 +20,7 @@ class TestException(Exception):
     pass
 
 
-# The object we try and pass - pywin32 will call __float__ as a last resort.
+# 049991.python.testConversionErrors.line23.comment The object we try and pass - pywin32 will call __float__ as a last resort.
 class BadConversions:
     def __float__(self):
         raise TestException

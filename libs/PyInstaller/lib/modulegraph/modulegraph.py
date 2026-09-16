@@ -7,11 +7,11 @@ but uses a graph data structure and 2.3 features
 XXX: Verify all calls to _import_hook (and variants) to ensure that
 imports are done in the right way.
 """
-#FIXME: To decrease the likelihood of ModuleGraph exceeding the recursion limit
-#and hence unpredictably raising fatal exceptions, increase the recursion
-#limit at PyInstaller startup (i.e., in the
-#PyInstaller.building.build_main.build() function). For details, see:
-#    https://github.com/pyinstaller/pyinstaller/issues/1919#issuecomment-216016176
+# 008707.python.modulegraph.line10.comment FIXME: To decrease the likelihood of ModuleGraph exceeding the recursion limit
+# 008708.python.modulegraph.line11.comment and hence unpredictably raising fatal exceptions, increase the recursion
+# 008709.python.modulegraph.line12.comment limit at PyInstaller startup (i.e., in the
+# 008710.python.modulegraph.line13.comment PyInstaller.building.build_main.build() function). For details, see:
+# 008711.python.modulegraph.line14.comment https://github.com/pyinstaller/pyinstaller/issues/1919#issuecomment-216016176
 
 import ast
 import os
@@ -24,16 +24,16 @@ import warnings
 import importlib.util
 import importlib.machinery
 
-# The logic in PyInstaller.compat ensures that these are available and
-# of correct version.
+# 008712.python.modulegraph.line27.comment The logic in PyInstaller.compat ensures that these are available and
+# 008713.python.modulegraph.line28.comment of correct version.
 if sys.version_info >= (3, 10):
     import importlib.metadata as importlib_metadata
 else:
     import importlib_metadata
 
-# The latest version of altgraph at the time of writing (v0.17.4) still
-# uses pkg_resources to query its own version. With setuptools >= 80.9.0,
-# this triggers deprecation warnings. For now, suppress them.
+# 008714.python.modulegraph.line34.comment The latest version of altgraph at the time of writing (v0.17.4) still
+# 008715.python.modulegraph.line35.comment uses pkg_resources to query its own version. With setuptools >= 80.9.0,
+# 008716.python.modulegraph.line36.comment this triggers deprecation warnings. For now, suppress them.
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore",
@@ -59,7 +59,7 @@ class NAMESPACE_PACKAGE:
         return True
 
 
-#FIXME: Leverage this rather than magic numbers below.
+# 008717.python.modulegraph.line62.comment FIXME: Leverage this rather than magic numbers below.
 ABSOLUTE_OR_RELATIVE_IMPORT_LEVEL = -1
 """
 Constant instructing the builtin `__import__()` function to attempt both
@@ -67,7 +67,7 @@ absolute and relative imports.
 """
 
 
-#FIXME: Leverage this rather than magic numbers below.
+# 008718.python.modulegraph.line70.comment FIXME: Leverage this rather than magic numbers below.
 ABSOLUTE_IMPORT_LEVEL = 0
 """
 Constant instructing the builtin `__import__()` function to attempt only
@@ -75,7 +75,7 @@ absolute imports.
 """
 
 
-#FIXME: Leverage this rather than magic numbers below.
+# 008719.python.modulegraph.line78.comment FIXME: Leverage this rather than magic numbers below.
 DEFAULT_IMPORT_LEVEL = ABSOLUTE_IMPORT_LEVEL
 """
 Constant instructing the builtin `__import__()` function to attempt the default
@@ -93,8 +93,8 @@ class InvalidRelativeImportError (ImportError):
 
 
 def _path_from_importerror(exc, default):
-    # This is a hack, but sadly enough the necessary information
-    # isn't available otherwise.
+    # 008720.python.modulegraph.line96.comment This is a hack, but sadly enough the necessary information
+    # 008721.python.modulegraph.line97.comment isn't available otherwise.
     m = re.match(r'^No module named (\S+)$', str(exc))
     if m is not None:
         return m.group(1)
@@ -102,10 +102,10 @@ def _path_from_importerror(exc, default):
     return default
 
 
-#FIXME: What is this? Do we actually need this? This appears to provide
-#significantly more fine-grained metadata than PyInstaller will ever require.
-#It consumes a great deal of space (slots or no slots), since we store an
-#instance of this class for each edge of the graph.
+# 008722.python.modulegraph.line105.comment FIXME: What is this? Do we actually need this? This appears to provide
+# 008723.python.modulegraph.line106.comment significantly more fine-grained metadata than PyInstaller will ever require.
+# 008724.python.modulegraph.line107.comment It consumes a great deal of space (slots or no slots), since we store an
+# 008725.python.modulegraph.line108.comment instance of this class for each edge of the graph.
 class DependencyInfo (namedtuple("DependencyInfo",
                       ["conditional", "function", "tryexcept", "fromlist"])):
     __slots__ = ()
@@ -127,16 +127,16 @@ class DependencyInfo (namedtuple("DependencyInfo",
                     fromlist=self.fromlist and other.fromlist)
 
 
-#FIXME: Shift the following Node class hierarchy into a new
-#"PyInstaller.lib.modulegraph.node" module. This module is much too long.
-#FIXME: Refactor "_deferred_imports" from a tuple into a proper lightweight
-#class leveraging "__slots__". If not for backward compatibility, we'd just
-#leverage a named tuple -- but this should do just as well.
-#FIXME: Move the "packagepath" attribute into the "Package" class. Only
-#packages define the "__path__" special attribute. The codebase currently
-#erroneously tests whether "module.packagepath is not None" to determine
-#whether a node is a package or not. However, "isinstance(module, Package)" is
-#a significantly more reliable test. Refactor the former into the latter.
+# 008726.python.modulegraph.line130.comment FIXME: Shift the following Node class hierarchy into a new
+# 008727.python.modulegraph.line131.comment "PyInstaller.lib.modulegraph.node" module. This module is much too long.
+# 008728.python.modulegraph.line132.comment FIXME: Refactor "_deferred_imports" from a tuple into a proper lightweight
+# 008729.python.modulegraph.line133.comment class leveraging "__slots__". If not for backward compatibility, we'd just
+# 008730.python.modulegraph.line134.comment leverage a named tuple -- but this should do just as well.
+# 008731.python.modulegraph.line135.comment FIXME: Move the "packagepath" attribute into the "Package" class. Only
+# 008732.python.modulegraph.line136.comment packages define the "__path__" special attribute. The codebase currently
+# 008733.python.modulegraph.line137.comment erroneously tests whether "module.packagepath is not None" to determine
+# 008734.python.modulegraph.line138.comment whether a node is a package or not. However, "isinstance(module, Package)" is
+# 008735.python.modulegraph.line139.comment a significantly more reliable test. Refactor the former into the latter.
 class Node:
     """
     Abstract base class (ABC) of all objects added to a `ModuleGraph`.
@@ -558,16 +558,16 @@ class AliasNode(Node):
         """
         super(AliasNode, self).__init__(name)
 
-        # Copy attributes from referred node, if provided
+        # 008736.python.modulegraph.line561.comment Copy attributes from referred node, if provided
         self.copyAttributesFromReferredNode(node)
 
     def copyAttributesFromReferredNode(self, node):
         """
         Copy a subset of attributes from referred node (source module) into this target alias.
         """
-        # FIXME: Why only some? Why not *EVERYTHING* except "graphident", which
-        # must remain equal to "name" for lookup purposes? This is, after all,
-        # an alias. The idea is for the two nodes to effectively be the same.
+        # 008737.python.modulegraph.line568.comment FIXME: Why only some? Why not *EVERYTHING* except "graphident", which
+        # 008738.python.modulegraph.line569.comment must remain equal to "name" for lookup purposes? This is, after all,
+        # 008739.python.modulegraph.line570.comment an alias. The idea is for the two nodes to effectively be the same.
         for attr_name in (
             'identifier', 'packagepath',
             '_global_attr_names', '_starimported_ignored_module_names',
@@ -715,8 +715,8 @@ class RuntimePackage(Package):
     pass
 
 
-#FIXME: Safely removable. We don't actually use this anywhere. After removing
-#this class, remove the corresponding entry from "compat".
+# 008740.python.modulegraph.line718.comment FIXME: Safely removable. We don't actually use this anywhere. After removing
+# 008741.python.modulegraph.line719.comment this class, remove the corresponding entry from "compat".
 class FlatPackage(BaseModule):
     def __init__(self, *args, **kwds):
         warnings.warn(
@@ -725,8 +725,8 @@ class FlatPackage(BaseModule):
         super(FlatPackage, *args, **kwds)
 
 
-#FIXME: Safely removable. We don't actually use this anywhere. After removing
-#this class, remove the corresponding entry from "compat".
+# 008742.python.modulegraph.line728.comment FIXME: Safely removable. We don't actually use this anywhere. After removing
+# 008743.python.modulegraph.line729.comment this class, remove the corresponding entry from "compat".
 class ArchiveModule(BaseModule):
     def __init__(self, *args, **kwds):
         warnings.warn(
@@ -735,7 +735,7 @@ class ArchiveModule(BaseModule):
         super(FlatPackage, *args, **kwds)
 
 
-# HTML templates for ModuleGraph generator
+# 008744.python.modulegraph.line738.comment HTML templates for ModuleGraph generator
 header = """\
 <!DOCTYPE html>
 <html>
@@ -785,7 +785,7 @@ def _ast_names(names):
 
 def uniq(seq):
     """Remove duplicates from a list, preserving order"""
-    # Taken from https://stackoverflow.com/questions/480214
+    # 008745.python.modulegraph.line788.comment Taken from https://stackoverflow.com/questions/480214
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
@@ -824,8 +824,8 @@ class _Visitor(ast.NodeVisitor):
                 fromlist.remove('*')
                 have_star = True
 
-        # Record this import as originating from this module for subsequent
-        # handling by the _process_imports() method.
+        # 008746.python.modulegraph.line827.comment Record this import as originating from this module for subsequent
+        # 008747.python.modulegraph.line828.comment handling by the _process_imports() method.
         self._module._deferred_imports.append(
             (have_star,
              (name, self._module, fromlist, level),
@@ -867,12 +867,12 @@ class _Visitor(ast.NodeVisitor):
         self._in_tryexcept.pop()
 
     def visit_Expression(self, node):
-        # Expression node's cannot contain import statements or
-        # other nodes that are relevant for us.
+        # 008748.python.modulegraph.line870.comment Expression node's cannot contain import statements or
+        # 008749.python.modulegraph.line871.comment other nodes that are relevant for us.
         pass
 
-    # Expression isn't actually used as such in AST trees,
-    # therefore define visitors for all kinds of expression nodes.
+    # 008750.python.modulegraph.line874.comment Expression isn't actually used as such in AST trees,
+    # 008751.python.modulegraph.line875.comment therefore define visitors for all kinds of expression nodes.
     visit_BoolOp = visit_Expression
     visit_BinOp = visit_Expression
     visit_UnaryOp = visit_Expression
@@ -903,7 +903,7 @@ class ModuleGraph(ObjectGraph):
         m = self.find_node(name)
 
         if m is None:
-            #assert m is None, m
+            # 008752.python.modulegraph.line906.comment assert m is None, m
             m = super(ModuleGraph, self).createNode(cls, name, *args, **kw)
 
         return m
@@ -915,17 +915,17 @@ class ModuleGraph(ObjectGraph):
             path = sys.path
         self.path = path
         self.lazynodes = {}
-        # excludes is stronger than implies
+        # 008753.python.modulegraph.line918.comment excludes is stronger than implies
         self.lazynodes.update(dict(implies))
         for m in excludes:
             self.lazynodes[m] = None
         self.replace_paths = replace_paths
 
-        # Maintain own list of package path mappings in the scope of Modulegraph
-        # object.
+        # 008754.python.modulegraph.line924.comment Maintain own list of package path mappings in the scope of Modulegraph
+        # 008755.python.modulegraph.line925.comment object.
         self._package_path_map = {}
 
-        # Legacy namespace-package paths. Initialized by scan_legacy_namespace_packages.
+        # 008756.python.modulegraph.line928.comment Legacy namespace-package paths. Initialized by scan_legacy_namespace_packages.
         self._legacy_ns_packages = {}
 
     def scan_legacy_namespace_packages(self):
@@ -941,7 +941,7 @@ class ModuleGraph(ObjectGraph):
             if ns_packages is None:
                 continue
             ns_packages = ns_packages.splitlines()
-            # Obtain path to dist metadata directory
+            # 008757.python.modulegraph.line944.comment Obtain path to dist metadata directory
             dist_path = getattr(dist, '_path')
             if dist_path is None:
                 continue
@@ -952,7 +952,7 @@ class ModuleGraph(ObjectGraph):
                 )
                 legacy_ns_packages[package_name].add(path)
 
-        # Convert into dictionary of lists
+        # 008759.python.modulegraph.line955.comment Convert into dictionary of lists
         self._legacy_ns_packages = {
             package_name: list(paths)
             for package_name, paths in legacy_ns_packages.items()
@@ -1051,12 +1051,12 @@ class ModuleGraph(ObjectGraph):
                     continue
 
                 if not self.hasEdge(pkg, other):
-                    # Ignore circular dependencies
+                    # 008760.python.modulegraph.line1054.comment Ignore circular dependencies
                     self._updateReference(pkg, other, 'pkg-internal-import')
 
             for other in iter_inc:
                 if other.identifier.startswith(pkg.identifier + '.'):
-                    # Ignore circular dependencies
+                    # 008761.python.modulegraph.line1059.comment Ignore circular dependencies
                     continue
 
                 if not self.hasEdge(other, pkg):
@@ -1064,10 +1064,10 @@ class ModuleGraph(ObjectGraph):
 
             self.graph.hide_node(n)
 
-    # TODO: unfoldReferences(pkg) that restore the submodule nodes and
-    #       removes 'pkg-import' and 'pkg-internal-import' edges. Care should
-    #       be taken to ensure that references are correct if multiple packages
-    #       are folded and then one of them in unfolded
+    # 008762.python.modulegraph.line1067.comment TODO: unfoldReferences(pkg) that restore the submodule nodes and
+    # 008763.python.modulegraph.line1068.comment removes 'pkg-import' and 'pkg-internal-import' edges. Care should
+    # 008764.python.modulegraph.line1069.comment be taken to ensure that references are correct if multiple packages
+    # 008765.python.modulegraph.line1070.comment are folded and then one of them in unfolded
 
     def _updateReference(self, fromnode, tonode, edge_data):
         try:
@@ -1129,24 +1129,24 @@ class ModuleGraph(ObjectGraph):
             deps = self.lazynodes.pop(name)
 
             if deps is None:
-                # excluded module
+                # 008767.python.modulegraph.line1132.comment excluded module
                 m = self.createNode(ExcludedModule, name)
             elif isinstance(deps, Alias):
-                # NOTE: the AliasNode must be created and added to graph
-                # before trying to create the referred node; that might
-                # (due to recursive import analysis) lead to another
-                # attempt to resolve the aliased node (and if there is
-                # a real node that we are trying to shadow with the alias,
-                # that will end up added to the graph and prevent the
-                # alias node from being added).
+                # 008768.python.modulegraph.line1135.comment NOTE: the AliasNode must be created and added to graph
+                # 008769.python.modulegraph.line1136.comment before trying to create the referred node; that might
+                # 008770.python.modulegraph.line1137.comment (due to recursive import analysis) lead to another
+                # 008771.python.modulegraph.line1138.comment attempt to resolve the aliased node (and if there is
+                # 008772.python.modulegraph.line1139.comment a real node that we are trying to shadow with the alias,
+                # 008773.python.modulegraph.line1140.comment that will end up added to the graph and prevent the
+                # 008774.python.modulegraph.line1141.comment alias node from being added).
                 m = self.createNode(AliasNode, name)
 
-                # Create the referred node.
+                # 008775.python.modulegraph.line1144.comment Create the referred node.
                 other = self._safe_import_hook(deps, None, None).pop()
 
-                # Copy attributes; this used to be done by AliasNode
-                # constructor, back when referred node was created before
-                # the AliasNode (and could thus be passed to its constructor).
+                # 008776.python.modulegraph.line1147.comment Copy attributes; this used to be done by AliasNode
+                # 008777.python.modulegraph.line1148.comment constructor, back when referred node was created before
+                # 008778.python.modulegraph.line1149.comment the AliasNode (and could thus be passed to its constructor).
                 m.copyAttributesFromReferredNode(other)
 
                 self.implyNodeReference(m, other)
@@ -1190,10 +1190,10 @@ class ModuleGraph(ObjectGraph):
         return m
 
 
-    #FIXME: For safety, the "source_module" parameter should default to the
-    #root node of the current graph if unpassed. This parameter currently
-    #defaults to None, thus disconnected modules imported in this manner (e.g.,
-    #hidden imports imported by depend.analysis.initialize_modgraph()).
+    # 008779.python.modulegraph.line1193.comment FIXME: For safety, the "source_module" parameter should default to the
+    # 008780.python.modulegraph.line1194.comment root node of the current graph if unpassed. This parameter currently
+    # 008781.python.modulegraph.line1195.comment defaults to None, thus disconnected modules imported in this manner (e.g.,
+    # 008782.python.modulegraph.line1196.comment hidden imports imported by depend.analysis.initialize_modgraph()).
     def import_hook(
         self,
         target_module_partname,
@@ -1271,8 +1271,8 @@ class ModuleGraph(ObjectGraph):
             submodule = self._safe_import_module(head, mname, submodule)
 
             if submodule is None:
-                # FIXME: Why do we no longer return a MissingModule instance?
-                # result = self.createNode(MissingModule, mname)
+                # 008783.python.modulegraph.line1274.comment FIXME: Why do we no longer return a MissingModule instance?
+                # 008784.python.modulegraph.line1275.comment result = self.createNode(MissingModule, mname)
                 self.msgout(4, "raise ImportError: No module named", mname)
                 raise ImportError("No module named " + repr(mname))
 
@@ -1281,17 +1281,17 @@ class ModuleGraph(ObjectGraph):
         target_module = submodule
         target_modules = [target_module]
 
-        # If this is a "from"-style import *AND* this target module is
-        # actually a package, import all submodules of this package specified
-        # by the "import" half of this import (e.g., the submodules "bar" and
-        # "car" of the target package "foo" in "from foo import bar, car").
-        #
-        # If this target module is a non-package, it could still contain
-        # importable submodules (e.g., the non-package `os` module containing
-        # the `os.path` submodule). In this case, these submodules are already
-        # imported by this target module's pure-Python code. Since our import
-        # scanner already detects such imports, these submodules need *NOT* be
-        # reimported here.
+        # 008785.python.modulegraph.line1284.comment If this is a "from"-style import *AND* this target module is
+        # 008786.python.modulegraph.line1285.comment actually a package, import all submodules of this package specified
+        # 008787.python.modulegraph.line1286.comment by the "import" half of this import (e.g., the submodules "bar" and
+        # 008788.python.modulegraph.line1287.comment "car" of the target package "foo" in "from foo import bar, car").
+        # 008789.python.modulegraph.line1288.comment
+        # 008790.python.modulegraph.line1289.comment If this target module is a non-package, it could still contain
+        # 008791.python.modulegraph.line1290.comment importable submodules (e.g., the non-package `os` module containing
+        # 008792.python.modulegraph.line1291.comment the `os.path` submodule). In this case, these submodules are already
+        # 008793.python.modulegraph.line1292.comment imported by this target module's pure-Python code. Since our import
+        # 008794.python.modulegraph.line1293.comment scanner already detects such imports, these submodules need *NOT* be
+        # 008795.python.modulegraph.line1294.comment reimported here.
         if target_attr_names and isinstance(target_module,
                                             (Package, AliasNode)):
             for target_submodule in self._import_importable_package_submodules(
@@ -1299,7 +1299,7 @@ class ModuleGraph(ObjectGraph):
                 if target_submodule not in target_modules:
                     target_modules.append(target_submodule)
 
-        # Add an edge from this source module to each target module.
+        # 008796.python.modulegraph.line1302.comment Add an edge from this source module to each target module.
         for target_module in target_modules:
             self._updateReference(
                 source_module, target_module, edge_data=edge_attr)
@@ -1325,8 +1325,8 @@ class ModuleGraph(ObjectGraph):
                 parent = self.find_node(pname)
 
             elif caller.packagepath:
-                # XXX: I have no idea why this line
-                # is necessary.
+                # 008797.python.modulegraph.line1328.comment XXX: I have no idea why this line
+                # 008798.python.modulegraph.line1329.comment is necessary.
                 parent = self.find_node(pname)
 
         self.msgout(4, "determine_parent ->", parent)
@@ -1375,31 +1375,31 @@ class ModuleGraph(ObjectGraph):
         """
         self.msgin(4, "find_head_package", source_package, target_module_partname, level)
 
-        #FIXME: Rename all local variable names to something sensible. No,
-        #"p_fqdn" is not a sensible name.
+        # 008799.python.modulegraph.line1378.comment FIXME: Rename all local variable names to something sensible. No,
+        # 008800.python.modulegraph.line1379.comment "p_fqdn" is not a sensible name.
 
-        # If this target module is a submodule...
+        # 008801.python.modulegraph.line1381.comment If this target module is a submodule...
         if '.' in target_module_partname:
             target_module_headname, target_module_tailname = (
                 target_module_partname.split('.', 1))
-        # Else, this target module is a top-level module.
+        # 008802.python.modulegraph.line1385.comment Else, this target module is a top-level module.
         else:
             target_module_headname = target_module_partname
             target_module_tailname = ''
 
-        # If attempting both absolute and relative imports...
+        # 008803.python.modulegraph.line1390.comment If attempting both absolute and relative imports...
         if level == ABSOLUTE_OR_RELATIVE_IMPORT_LEVEL:
             if source_package:
                 target_package_name = source_package.identifier + '.' + target_module_headname
             else:
                 target_package_name = target_module_headname
-        # Else if attempting only absolute imports...
+        # 008804.python.modulegraph.line1396.comment Else if attempting only absolute imports...
         elif level == ABSOLUTE_IMPORT_LEVEL:
             target_package_name = target_module_headname
 
-            # Absolute import, ignore the parent
+            # 008805.python.modulegraph.line1400.comment Absolute import, ignore the parent
             source_package = None
-        # Else if attempting only relative imports...
+        # 008806.python.modulegraph.line1402.comment Else if attempting only relative imports...
         else:
             if source_package is None:
                 self.msg(2, "Relative import outside of package")
@@ -1417,7 +1417,7 @@ class ModuleGraph(ObjectGraph):
                 p_fqdn = source_package.identifier.rsplit('.', 1)[0]
                 new_parent = self.find_node(p_fqdn)
                 if new_parent is None:
-                    #FIXME: Repetition detected. Exterminate. Exterminate.
+                    # 008807.python.modulegraph.line1420.comment FIXME: Repetition detected. Exterminate. Exterminate.
                     self.msg(2, "Relative import outside of package")
                     raise InvalidRelativeImportError(
                         "Relative import outside of package (name=%r, parent=%r, level=%r)" % (
@@ -1433,44 +1433,44 @@ class ModuleGraph(ObjectGraph):
             else:
                 target_package_name = source_package.identifier
 
-        # Graph node of this target package.
+        # 008808.python.modulegraph.line1436.comment Graph node of this target package.
         target_package = self._safe_import_module(
             target_module_headname, target_package_name, source_package)
 
-        # If this target package is *NOT* importable and a source package was
-        # passed, attempt to import this target package as an absolute import.
-        #
-        # ADDENDUM: but do this only if the passed "level" is either
-        # ABSOLUTE_IMPORT_LEVEL (0) or ABSOLUTE_OR_RELATIVE_IMPORT_LEVEL (-1).
-        # Otherwise, an attempt at relative import of a missing sub-module
-        # (from .module import something) might pull in an unrelated
-        # but eponymous top-level module, which should not happen.
+        # 008809.python.modulegraph.line1440.comment If this target package is *NOT* importable and a source package was
+        # 008810.python.modulegraph.line1441.comment passed, attempt to import this target package as an absolute import.
+        # 008811.python.modulegraph.line1442.comment
+        # 008812.python.modulegraph.line1443.comment ADDENDUM: but do this only if the passed "level" is either
+        # 008813.python.modulegraph.line1444.comment ABSOLUTE_IMPORT_LEVEL (0) or ABSOLUTE_OR_RELATIVE_IMPORT_LEVEL (-1).
+        # 008814.python.modulegraph.line1445.comment Otherwise, an attempt at relative import of a missing sub-module
+        # 008815.python.modulegraph.line1446.comment (from .module import something) might pull in an unrelated
+        # 008816.python.modulegraph.line1447.comment but eponymous top-level module, which should not happen.
         if target_package is None and source_package is not None and level <= ABSOLUTE_IMPORT_LEVEL:
             target_package_name = target_module_headname
             source_package = None
 
-            # Graph node for the target package, again.
+            # 008817.python.modulegraph.line1452.comment Graph node for the target package, again.
             target_package = self._safe_import_module(
                 target_module_headname, target_package_name, source_package)
 
-        # If this target package is importable, return this package.
+        # 008818.python.modulegraph.line1456.comment If this target package is importable, return this package.
         if target_package is not None:
             self.msgout(4, "find_head_package ->", (target_package, target_module_tailname))
             return target_package, target_module_tailname
 
-        # Else, raise an exception.
+        # 008819.python.modulegraph.line1461.comment Else, raise an exception.
         self.msgout(4, "raise ImportError: No module named", target_package_name)
         raise ImportError("No module named " + target_package_name)
 
 
 
 
-    #FIXME: Refactor from a generator yielding graph nodes into a non-generator
-    #returning a list or tuple of all yielded graph nodes. This method is only
-    #called once above and the return value of that call is only iterated over
-    #as a list or tuple. There's no demonstrable reason for this to be a
-    #generator. Generators are great for their intended purposes (e.g., as
-    #continuations). This isn't one of those purposes.
+    # 008820.python.modulegraph.line1468.comment FIXME: Refactor from a generator yielding graph nodes into a non-generator
+    # 008821.python.modulegraph.line1469.comment returning a list or tuple of all yielded graph nodes. This method is only
+    # 008822.python.modulegraph.line1470.comment called once above and the return value of that call is only iterated over
+    # 008823.python.modulegraph.line1471.comment as a list or tuple. There's no demonstrable reason for this to be a
+    # 008824.python.modulegraph.line1472.comment generator. Generators are great for their intended purposes (e.g., as
+    # 008825.python.modulegraph.line1473.comment continuations). This isn't one of those purposes.
     def _import_importable_package_submodules(self, package, attr_names):
         """
         Generator importing and yielding each importable submodule (of the
@@ -1515,110 +1515,110 @@ class ModuleGraph(ObjectGraph):
             this package.
         """
 
-        # Ignore duplicate submodule names in the passed list.
+        # 008826.python.modulegraph.line1518.comment Ignore duplicate submodule names in the passed list.
         attr_names = set(attr_names)
         self.msgin(4, "_import_importable_package_submodules", package, attr_names)
 
-        #FIXME: This test *SHOULD* be superfluous and hence safely removable.
-        #The higher-level _scan_bytecode() and _collect_import() methods
-        #already guarantee "*" characters to be removed from fromlists.
+        # 008827.python.modulegraph.line1522.comment FIXME: This test *SHOULD* be superfluous and hence safely removable.
+        # 008828.python.modulegraph.line1523.comment The higher-level _scan_bytecode() and _collect_import() methods
+        # 008829.python.modulegraph.line1524.comment already guarantee "*" characters to be removed from fromlists.
         if '*' in attr_names:
             attr_names.update(self._find_all_submodules(package))
             attr_names.remove('*')
 
-        # self.msg(4, '_import_importable_package_submodules (global attrs)', package.identifier, package._global_attr_names)
+        # 008830.python.modulegraph.line1529.comment self.msg(4, '_import_importable_package_submodules (global attrs)', package.identifier, package._global_attr_names)
 
-        # For the name of each attribute to be imported from this package...
+        # 008831.python.modulegraph.line1531.comment For the name of each attribute to be imported from this package...
         for attr_name in attr_names:
-            # self.msg(4, '_import_importable_package_submodules (fromlist attr)', package.identifier, attr_name)
+            # 008832.python.modulegraph.line1533.comment self.msg(4, '_import_importable_package_submodules (fromlist attr)', package.identifier, attr_name)
 
-            # Graph node of this attribute if this attribute is a previously
-            # imported module or None otherwise.
+            # 008833.python.modulegraph.line1535.comment Graph node of this attribute if this attribute is a previously
+            # 008834.python.modulegraph.line1536.comment imported module or None otherwise.
             submodule = package.get_submodule_or_none(attr_name)
 
-            # If this attribute is *NOT* a previously imported module, attempt
-            # to import this attribute as a submodule of this package.
+            # 008835.python.modulegraph.line1539.comment If this attribute is *NOT* a previously imported module, attempt
+            # 008836.python.modulegraph.line1540.comment to import this attribute as a submodule of this package.
             if submodule is None:
-                # Fully-qualified name of this submodule.
+                # 008837.python.modulegraph.line1542.comment Fully-qualified name of this submodule.
                 submodule_name = package.identifier + '.' + attr_name
 
-                # Graph node of this submodule if importable or None otherwise.
+                # 008838.python.modulegraph.line1545.comment Graph node of this submodule if importable or None otherwise.
                 submodule = self._safe_import_module(
                     attr_name, submodule_name, package)
 
-                # If this submodule is unimportable...
+                # 008839.python.modulegraph.line1549.comment If this submodule is unimportable...
                 if submodule is None:
-                    # If this attribute is a global (e.g., class, variable)
-                    # defined at the top level of this package's "__init__"
-                    # submodule, this importation is safely ignorable. Do so
-                    # and skip to the next attribute.
-                    #
-                    # This behaviour is non-conformant with Python behaviour,
-                    # which is bad, but is required to sanely handle all
-                    # possible edge cases, which is good. In Python, a global
-                    # attribute defined at the top level of a package's
-                    # "__init__" submodule shadows a submodule of the same name
-                    # in that package. Attempting to import that submodule
-                    # instead imports that attribute; thus, that submodule is
-                    # effectively unimportable. In this method and elsewhere,
-                    # that submodule is tested for first and hence shadows that
-                    # attribute -- the opposite logic. Attempts to import that
-                    # attribute are mistakenly seen as attempts to import that
-                    # submodule! Why?
-                    #
-                    # Edge cases. PyInstaller (and by extension ModuleGraph)
-                    # only cares about module imports. Global attribute imports
-                    # are parsed only as the means to this ends and are
-                    # otherwise ignorable. The cost of erroneously shadowing:
-                    #
-                    # * Submodules by attributes is significant. Doing so
-                    #   prevents such submodules from being frozen and hence
-                    #   imported at application runtime.
-                    # * Attributes by submodules is insignificant. Doing so
-                    #   could erroneously freeze such submodules despite their
-                    #   never being imported at application runtime. However,
-                    #   ModuleGraph is incapable of determining with certainty
-                    #   that Python logic in another module other than the
-                    #   "__init__" submodule containing these attributes does
-                    #   *NOT* delete these attributes and hence unshadow these
-                    #   submodules, which would then become importable at
-                    #   runtime and require freezing. Hence, ModuleGraph *MUST*
-                    #   permissively assume submodules of the same name as
-                    #   attributes to be unshadowed elsewhere and require
-                    #   freezing -- even if they do not.
-                    #
-                    # It is practically difficult (albeit technically feasible)
-                    # for ModuleGraph to determine whether or not the target
-                    # attribute names of "from"-style import statements (e.g.,
-                    # "bar" and "car" in "from foo import bar, car") refer to
-                    # non-ignorable submodules or ignorable non-module globals
-                    # during opcode scanning. Distinguishing these two cases
-                    # during opcode scanning would require a costly call to the
-                    # _find_module() method, which would subsequently be
-                    # repeated during import-graph construction. This could be
-                    # ameliorated with caching, which itself would require
-                    # costly space consumption and developer time.
-                    #
-                    # Since opcode scanning fails to distinguish these two
-                    # cases, this and other methods subsequently called at
-                    # import-graph construction time (e.g.,
-                    # _safe_import_hook()) must do so. Since submodules of the
-                    # same name as attributes must assume to be unshadowed
-                    # elsewhere and require freezing, the only solution is to
-                    # attempt to import an attribute as a non-ignorable module
-                    # *BEFORE* assuming an attribute to be an ignorable
-                    # non-module. Which is what this and other methods do.
-                    #
-                    # See Package.is_global_attr() for similar discussion.
+                    # 008840.python.modulegraph.line1551.comment If this attribute is a global (e.g., class, variable)
+                    # 008841.python.modulegraph.line1552.comment defined at the top level of this package's "__init__"
+                    # 008842.python.modulegraph.line1553.comment submodule, this importation is safely ignorable. Do so
+                    # 008843.python.modulegraph.line1554.comment and skip to the next attribute.
+                    # 008844.python.modulegraph.line1555.comment
+                    # 008845.python.modulegraph.line1556.comment This behaviour is non-conformant with Python behaviour,
+                    # 008846.python.modulegraph.line1557.comment which is bad, but is required to sanely handle all
+                    # 008847.python.modulegraph.line1558.comment possible edge cases, which is good. In Python, a global
+                    # 008848.python.modulegraph.line1559.comment attribute defined at the top level of a package's
+                    # 008849.python.modulegraph.line1560.comment "__init__" submodule shadows a submodule of the same name
+                    # 008850.python.modulegraph.line1561.comment in that package. Attempting to import that submodule
+                    # 008851.python.modulegraph.line1562.comment instead imports that attribute; thus, that submodule is
+                    # 008852.python.modulegraph.line1563.comment effectively unimportable. In this method and elsewhere,
+                    # 008853.python.modulegraph.line1564.comment that submodule is tested for first and hence shadows that
+                    # 008854.python.modulegraph.line1565.comment attribute -- the opposite logic. Attempts to import that
+                    # 008855.python.modulegraph.line1566.comment attribute are mistakenly seen as attempts to import that
+                    # 008856.python.modulegraph.line1567.comment submodule! Why?
+                    # 008857.python.modulegraph.line1568.comment
+                    # 008858.python.modulegraph.line1569.comment Edge cases. PyInstaller (and by extension ModuleGraph)
+                    # 008859.python.modulegraph.line1570.comment only cares about module imports. Global attribute imports
+                    # 008860.python.modulegraph.line1571.comment are parsed only as the means to this ends and are
+                    # 008861.python.modulegraph.line1572.comment otherwise ignorable. The cost of erroneously shadowing:
+                    # 008862.python.modulegraph.line1573.comment
+                    # 008863.python.modulegraph.line1574.comment * Submodules by attributes is significant. Doing so
+                    # 008864.python.modulegraph.line1575.comment prevents such submodules from being frozen and hence
+                    # 008865.python.modulegraph.line1576.comment imported at application runtime.
+                    # 008866.python.modulegraph.line1577.comment * Attributes by submodules is insignificant. Doing so
+                    # 008867.python.modulegraph.line1578.comment could erroneously freeze such submodules despite their
+                    # 008868.python.modulegraph.line1579.comment never being imported at application runtime. However,
+                    # 008869.python.modulegraph.line1580.comment ModuleGraph is incapable of determining with certainty
+                    # 008870.python.modulegraph.line1581.comment that Python logic in another module other than the
+                    # 008871.python.modulegraph.line1582.comment "__init__" submodule containing these attributes does
+                    # 008872.python.modulegraph.line1583.comment *NOT* delete these attributes and hence unshadow these
+                    # 008873.python.modulegraph.line1584.comment submodules, which would then become importable at
+                    # 008874.python.modulegraph.line1585.comment runtime and require freezing. Hence, ModuleGraph *MUST*
+                    # 008875.python.modulegraph.line1586.comment permissively assume submodules of the same name as
+                    # 008876.python.modulegraph.line1587.comment attributes to be unshadowed elsewhere and require
+                    # 008877.python.modulegraph.line1588.comment freezing -- even if they do not.
+                    # 008878.python.modulegraph.line1589.comment
+                    # 008879.python.modulegraph.line1590.comment It is practically difficult (albeit technically feasible)
+                    # 008880.python.modulegraph.line1591.comment for ModuleGraph to determine whether or not the target
+                    # 008881.python.modulegraph.line1592.comment attribute names of "from"-style import statements (e.g.,
+                    # 008882.python.modulegraph.line1593.comment "bar" and "car" in "from foo import bar, car") refer to
+                    # 008883.python.modulegraph.line1594.comment non-ignorable submodules or ignorable non-module globals
+                    # 008884.python.modulegraph.line1595.comment during opcode scanning. Distinguishing these two cases
+                    # 008885.python.modulegraph.line1596.comment during opcode scanning would require a costly call to the
+                    # 008886.python.modulegraph.line1597.comment _find_module() method, which would subsequently be
+                    # 008887.python.modulegraph.line1598.comment repeated during import-graph construction. This could be
+                    # 008888.python.modulegraph.line1599.comment ameliorated with caching, which itself would require
+                    # 008889.python.modulegraph.line1600.comment costly space consumption and developer time.
+                    # 008890.python.modulegraph.line1601.comment
+                    # 008891.python.modulegraph.line1602.comment Since opcode scanning fails to distinguish these two
+                    # 008892.python.modulegraph.line1603.comment cases, this and other methods subsequently called at
+                    # 008893.python.modulegraph.line1604.comment import-graph construction time (e.g.,
+                    # 008894.python.modulegraph.line1605.comment _safe_import_hook()) must do so. Since submodules of the
+                    # 008895.python.modulegraph.line1606.comment same name as attributes must assume to be unshadowed
+                    # 008896.python.modulegraph.line1607.comment elsewhere and require freezing, the only solution is to
+                    # 008897.python.modulegraph.line1608.comment attempt to import an attribute as a non-ignorable module
+                    # 008898.python.modulegraph.line1609.comment *BEFORE* assuming an attribute to be an ignorable
+                    # 008899.python.modulegraph.line1610.comment non-module. Which is what this and other methods do.
+                    # 008900.python.modulegraph.line1611.comment
+                    # 008901.python.modulegraph.line1612.comment See Package.is_global_attr() for similar discussion.
                     if package.is_global_attr(attr_name):
                         self.msg(4, '_import_importable_package_submodules: ignoring from-imported global', package.identifier, attr_name)
                         continue
-                    # Else, this attribute is an unimportable submodule. Since
-                    # this is *NOT* safely ignorable, raise an exception.
+                    # 008902.python.modulegraph.line1616.comment Else, this attribute is an unimportable submodule. Since
+                    # 008903.python.modulegraph.line1617.comment this is *NOT* safely ignorable, raise an exception.
                     else:
                         raise ImportError("No module named " + submodule_name)
 
-            # Yield this submodule's graph node to the caller.
+            # 008904.python.modulegraph.line1621.comment Yield this submodule's graph node to the caller.
             yield submodule
 
         self.msgin(4, "_import_importable_package_submodules ->")
@@ -1627,9 +1627,9 @@ class ModuleGraph(ObjectGraph):
     def _find_all_submodules(self, m):
         if not m.packagepath:
             return
-        # 'suffixes' used to be a list hardcoded to [".py", ".pyc", ".pyo"].
-        # But we must also collect Python extension modules - although
-        # we cannot separate normal dlls from Python extensions.
+        # 008905.python.modulegraph.line1630.comment 'suffixes' used to be a list hardcoded to [".py", ".pyc", ".pyo"].
+        # 008906.python.modulegraph.line1631.comment But we must also collect Python extension modules - although
+        # 008907.python.modulegraph.line1632.comment we cannot separate normal dlls from Python extensions.
         for path in m.packagepath:
             try:
                 names = os.listdir(path)
@@ -1666,12 +1666,12 @@ class ModuleGraph(ObjectGraph):
             the alias to be created).
         """
         self.msg(3, 'alias_module "%s" -> "%s"' % (src_module_name, trg_module_name))
-        # print('alias_module "%s" -> "%s"' % (src_module_name, trg_module_name))
+        # 008908.python.modulegraph.line1669.comment print('alias_module "%s" -> "%s"' % (src_module_name, trg_module_name))
         assert isinstance(src_module_name, str), '"%s" not a module name.' % str(src_module_name)
         assert isinstance(trg_module_name, str), '"%s" not a module name.' % str(trg_module_name)
 
-        # If the target module has already been added to the graph as either a
-        # non-alias or as a different alias, raise an exception.
+        # 008909.python.modulegraph.line1673.comment If the target module has already been added to the graph as either a
+        # 008910.python.modulegraph.line1674.comment non-alias or as a different alias, raise an exception.
         trg_module = self.find_node(trg_module_name)
         if trg_module is not None and not (
            isinstance(trg_module, AliasNode) and
@@ -1680,7 +1680,7 @@ class ModuleGraph(ObjectGraph):
                 'Target module "%s" already imported as "%s".' % (
                     trg_module_name, trg_module))
 
-        # See findNode() for details.
+        # 008911.python.modulegraph.line1683.comment See findNode() for details.
         self.lazynodes[trg_module_name] = Alias(src_module_name)
 
 
@@ -1703,15 +1703,15 @@ class ModuleGraph(ObjectGraph):
         """
         self.msg(3, 'add_module', module)
 
-        # If no node exists for this module, add such a node.
+        # 008912.python.modulegraph.line1706.comment If no node exists for this module, add such a node.
         module_added = self.find_node(module.identifier)
         if module_added is None:
             self.addNode(module)
         else:
             assert module == module_added, 'New module %r != previous %r.' % (module, module_added)
 
-        # If this module has a previously added parent, reference this module to
-        # its parent and add this module to its parent's namespace.
+        # 008913.python.modulegraph.line1713.comment If this module has a previously added parent, reference this module to
+        # 008914.python.modulegraph.line1714.comment its parent and add this module to its parent's namespace.
         parent_name, _, module_basename = module.identifier.rpartition('.')
         if parent_name:
             parent = self.find_node(parent_name)
@@ -1781,20 +1781,20 @@ class ModuleGraph(ObjectGraph):
         """
         self.msgin(3, "safe_import_module", module_partname, module_name, parent_module)
 
-        # If this module has *NOT* already been imported, do so.
+        # 008915.python.modulegraph.line1784.comment If this module has *NOT* already been imported, do so.
         module = self.find_node(module_name)
         if module is None:
-            # List of the absolute paths of all directories to be searched for
-            # this module. This effectively defaults to "sys.path".
+            # 008916.python.modulegraph.line1787.comment List of the absolute paths of all directories to be searched for
+            # 008917.python.modulegraph.line1788.comment this module. This effectively defaults to "sys.path".
             search_dirs = None
 
-            # If this module has a parent package...
+            # 008918.python.modulegraph.line1791.comment If this module has a parent package...
             if parent_module is not None:
-                # ...with a list of the absolute paths of all directories
-                # comprising this package, prefer that to "sys.path".
+                # 008919.python.modulegraph.line1793.comment ...with a list of the absolute paths of all directories
+                # 008920.python.modulegraph.line1794.comment comprising this package, prefer that to "sys.path".
                 if parent_module.packagepath is not None:
                     search_dirs = parent_module.packagepath
-                # Else, something is horribly wrong. Return emptiness.
+                # 008921.python.modulegraph.line1797.comment Else, something is horribly wrong. Return emptiness.
                 else:
                     self.msgout(3, "safe_import_module -> None (parent_parent.packagepath is None)")
                     return None
@@ -1827,11 +1827,11 @@ class ModuleGraph(ObjectGraph):
                     cls = InvalidSourceModule
                     module = self.createNode(cls, module_name)
 
-        # If this is a submodule rather than top-level module...
+        # 008922.python.modulegraph.line1830.comment If this is a submodule rather than top-level module...
         if parent_module is not None:
             self.msg(4, "safe_import_module create reference", module, "->", parent_module)
 
-            # Add an edge from this submodule to its parent module.
+            # 008923.python.modulegraph.line1834.comment Add an edge from this submodule to its parent module.
             self._updateReference(
                 module, parent_module, edge_data=DependencyInfo(
                     conditional=False,
@@ -1840,10 +1840,10 @@ class ModuleGraph(ObjectGraph):
                     tryexcept=False,
             ))
 
-            # Add this submodule to its parent module.
+            # 008924.python.modulegraph.line1843.comment Add this submodule to its parent module.
             parent_module.add_submodule(module_partname, module)
 
-        # Return this module.
+        # 008925.python.modulegraph.line1846.comment Return this module.
         self.msgout(3, "safe_import_module ->", module)
         return module
 
@@ -1855,19 +1855,19 @@ class ModuleGraph(ObjectGraph):
 
         if loader.is_package(partname):
             if isinstance(loader, NAMESPACE_PACKAGE):
-                # This is a PEP-420 namespace package.
+                # 008926.python.modulegraph.line1858.comment This is a PEP-420 namespace package.
                 m = self.createNode(NamespacePackage, fqname)
                 m.filename = '-'
                 m.packagepath = loader.namespace_dirs[:]  # copy for safety
             else:
-                # Regular package.
-                #
-                # NOTE: this might be a legacy setuptools (pkg_resources)
-                # based namespace package (with __init__.py, but calling
-                # `pkg_resources.declare_namespace(__name__)`). To properly
-                # handle the case when such a package is split across
-                # multiple locations, we need to resolve the package
-                # paths via metadata.
+                # 008928.python.modulegraph.line1863.comment Regular package.
+                # 008929.python.modulegraph.line1864.comment
+                # 008930.python.modulegraph.line1865.comment NOTE: this might be a legacy setuptools (pkg_resources)
+                # 008931.python.modulegraph.line1866.comment based namespace package (with __init__.py, but calling
+                # 008932.python.modulegraph.line1867.comment `pkg_resources.declare_namespace(__name__)`). To properly
+                # 008933.python.modulegraph.line1868.comment handle the case when such a package is split across
+                # 008934.python.modulegraph.line1869.comment multiple locations, we need to resolve the package
+                # 008935.python.modulegraph.line1870.comment paths via metadata.
                 ns_pkgpaths = self._legacy_ns_packages.get(fqname, [])
 
                 if isinstance(loader, ExtensionFileLoader):
@@ -1875,13 +1875,13 @@ class ModuleGraph(ObjectGraph):
                 else:
                     m = self.createNode(Package, fqname)
                 m.filename = pathname
-                # PEP-302-compliant loaders return the pathname of the
-                # `__init__`-file, not the package directory.
+                # 008936.python.modulegraph.line1878.comment PEP-302-compliant loaders return the pathname of the
+                # 008937.python.modulegraph.line1879.comment `__init__`-file, not the package directory.
                 assert os.path.basename(pathname).startswith('__init__.')
                 m.packagepath = [os.path.dirname(pathname)] + ns_pkgpaths
 
-            # As per comment at top of file, simulate runtime packagepath
-            # additions
+            # 008938.python.modulegraph.line1883.comment As per comment at top of file, simulate runtime packagepath
+            # 008939.python.modulegraph.line1884.comment additions
             m.packagepath = m.packagepath + self._package_path_map.get(
                 fqname, [])
 
@@ -1894,8 +1894,8 @@ class ModuleGraph(ObjectGraph):
         elif isinstance(loader, ExtensionFileLoader):
             cls = Extension
 
-            # Look for accompanying .py or .pyi file, which might allow
-            # us to perform basic import analysis for the extension.
+            # 008940.python.modulegraph.line1897.comment Look for accompanying .py or .pyi file, which might allow
+            # 008941.python.modulegraph.line1898.comment us to perform basic import analysis for the extension.
             def _co_from_accompanying_source(extension_filename):
                 path = os.path.dirname(extension_filename)
                 basename = os.path.basename(extension_filename).split('.')[0]
@@ -1918,24 +1918,24 @@ class ModuleGraph(ObjectGraph):
             try:
                 src = loader.get_source(partname)
             except (UnicodeDecodeError, SyntaxError) as e:
-                # The `UnicodeDecodeError` is typically raised here when the
-                # source file contains non-ASCII characters in some local
-                # encoding that is different from UTF-8, but fails to
-                # declare it via PEP361 encoding header. Python seems to
-                # be able to load and run such module, but we cannot retrieve
-                # the source for it via the `loader.get_source()`.
-                #
-                # The `UnicodeDecoreError` in turn triggers a `SyntaxError`
-                # when such invalid character appears on the first line of
-                # the source file (and interrupts the scan for PEP361
-                # encoding header).
-                #
-                # In such cases, we try to fall back to reading the source
-                # as raw data file.
+                # 008942.python.modulegraph.line1921.comment The `UnicodeDecodeError` is typically raised here when the
+                # 008943.python.modulegraph.line1922.comment source file contains non-ASCII characters in some local
+                # 008944.python.modulegraph.line1923.comment encoding that is different from UTF-8, but fails to
+                # 008945.python.modulegraph.line1924.comment declare it via PEP361 encoding header. Python seems to
+                # 008946.python.modulegraph.line1925.comment be able to load and run such module, but we cannot retrieve
+                # 008947.python.modulegraph.line1926.comment the source for it via the `loader.get_source()`.
+                # 008948.python.modulegraph.line1927.comment
+                # 008949.python.modulegraph.line1928.comment The `UnicodeDecoreError` in turn triggers a `SyntaxError`
+                # 008950.python.modulegraph.line1929.comment when such invalid character appears on the first line of
+                # 008951.python.modulegraph.line1930.comment the source file (and interrupts the scan for PEP361
+                # 008952.python.modulegraph.line1931.comment encoding header).
+                # 008953.python.modulegraph.line1932.comment
+                # 008954.python.modulegraph.line1933.comment In such cases, we try to fall back to reading the source
+                # 008955.python.modulegraph.line1934.comment as raw data file.
 
-                # If `SyntaxError` was not raised during handling of
-                # a `UnicodeDecodeError`, it was likely a genuine syntax
-                # error, so re-raise it.
+                # 008956.python.modulegraph.line1936.comment If `SyntaxError` was not raised during handling of
+                # 008957.python.modulegraph.line1937.comment a `UnicodeDecodeError`, it was likely a genuine syntax
+                # 008958.python.modulegraph.line1938.comment error, so re-raise it.
                 if isinstance(e, SyntaxError):
                     if not isinstance(e.__context__, UnicodeDecodeError):
                         raise
@@ -1959,7 +1959,7 @@ class ModuleGraph(ObjectGraph):
                     self.msg(2, "load_module: InvalidSourceModule", pathname,
                              exc)
             else:
-                # no src available
+                # 008960.python.modulegraph.line1962.comment no src available
                 try:
                     co = loader.get_code(partname)
                     cls = (CompiledModule if co is not None
@@ -2076,27 +2076,27 @@ class ModuleGraph(ObjectGraph):
             return "automatically generated by SWIG" in first_line
 
 
-        # List of the graph nodes created for all target modules both
-        # imported by and returned from this call, whose:
-        #
-        # * First element is the graph node for the core target module
-        #   specified by the "target_module_partname" parameter.
-        # * Remaining elements are the graph nodes for all target submodules
-        #   specified by the "target_attr_names" parameter.
+        # 008962.python.modulegraph.line2079.comment List of the graph nodes created for all target modules both
+        # 008963.python.modulegraph.line2080.comment imported by and returned from this call, whose:
+        # 008964.python.modulegraph.line2081.comment
+        # 008965.python.modulegraph.line2082.comment * First element is the graph node for the core target module
+        # 008966.python.modulegraph.line2083.comment specified by the "target_module_partname" parameter.
+        # 008967.python.modulegraph.line2084.comment * Remaining elements are the graph nodes for all target submodules
+        # 008968.python.modulegraph.line2085.comment specified by the "target_attr_names" parameter.
         target_modules = None
 
-        # True if this is a Python 2-style implicit relative import of a
-        # SWIG-generated C extension. False if we checked and it is not SWIG.
-        # None if we haven't checked yet.
+        # 008969.python.modulegraph.line2088.comment True if this is a Python 2-style implicit relative import of a
+        # 008970.python.modulegraph.line2089.comment SWIG-generated C extension. False if we checked and it is not SWIG.
+        # 008971.python.modulegraph.line2090.comment None if we haven't checked yet.
         is_swig_import = None
 
-        # Attempt to import this target module in the customary way.
+        # 008972.python.modulegraph.line2093.comment Attempt to import this target module in the customary way.
         try:
             target_modules = self.import_hook(
                 target_module_partname, source_module,
                 target_attr_names=None, level=level, edge_attr=edge_attr)
-        # Failing that, defer to custom module importers handling non-standard
-        # import schemes (namely, SWIG).
+        # 008973.python.modulegraph.line2098.comment Failing that, defer to custom module importers handling non-standard
+        # 008974.python.modulegraph.line2099.comment import schemes (namely, SWIG).
         except InvalidRelativeImportError:
             self.msgout(2, "Invalid relative import", level,
                         target_module_partname, target_attr_names)
@@ -2108,39 +2108,39 @@ class ModuleGraph(ObjectGraph):
                 result.append(m)
             return result
         except ImportError as msg:
-            # If this is an absolute top-level import under Python 3 and if the
-            # name to be imported is the caller's name prefixed by "_", this
-            # could be a SWIG-generated Python 2-style implicit relative import.
-            # SWIG-generated files contain functions named swig_import_helper()
-            # importing dynamic libraries residing in the same directory. For
-            # example, a SWIG-generated caller module "csr.py" might resemble:
-            #
-            #     # This file was automatically generated by SWIG (http://www.swig.org).
-            #     ...
-            #     def swig_import_helper():
-            #         ...
-            #         try:
-            #             fp, pathname, description = imp.find_module('_csr',
-            #                   [dirname(__file__)])
-            #         except ImportError:
-            #             import _csr
-            #             return _csr
-            #
-            # While there exists no reasonable means for modulegraph to parse
-            # the call to imp.find_module(), the subsequent implicit relative
-            # import is trivially parsable. This import is prohibited under
-            # Python 3, however, and thus parsed only if the caller's file is
-            # parsable plaintext (as indicated by a filetype of ".py") and the
-            # first line of this file is the above SWIG header comment.
-            #
-            # The constraint that this library's name be the caller's name
-            # prefixed by '_' is explicitly mandated by SWIG and thus a
-            # reliable indicator of "SWIG-ness". The SWIG documentation states:
-            # "When linking the module, the name of the output file has to match
-            #  the name of the module prefixed by an underscore."
-            #
-            # Only source modules (e.g., ".py"-suffixed files) are SWIG import
-            # candidates. All other node types are safely ignorable.
+            # 008975.python.modulegraph.line2111.comment If this is an absolute top-level import under Python 3 and if the
+            # 008976.python.modulegraph.line2112.comment name to be imported is the caller's name prefixed by "_", this
+            # 008977.python.modulegraph.line2113.comment could be a SWIG-generated Python 2-style implicit relative import.
+            # 008978.python.modulegraph.line2114.comment SWIG-generated files contain functions named swig_import_helper()
+            # 008979.python.modulegraph.line2115.comment importing dynamic libraries residing in the same directory. For
+            # 008980.python.modulegraph.line2116.comment example, a SWIG-generated caller module "csr.py" might resemble:
+            # 008981.python.modulegraph.line2117.comment
+            # 008982.python.modulegraph.line2118.comment # This file was automatically generated by SWIG (http://www.swig.org).
+            # 008983.python.modulegraph.line2119.comment ...
+            # 008984.python.modulegraph.line2120.comment def swig_import_helper():
+            # 008985.python.modulegraph.line2121.comment ...
+            # 008986.python.modulegraph.line2122.comment try:
+            # 008987.python.modulegraph.line2123.comment fp, pathname, description = imp.find_module('_csr',
+            # 008988.python.modulegraph.line2124.comment [dirname(__file__)])
+            # 008989.python.modulegraph.line2125.comment except ImportError:
+            # 008990.python.modulegraph.line2126.comment import _csr
+            # 008991.python.modulegraph.line2127.comment return _csr
+            # 008992.python.modulegraph.line2128.comment
+            # 008993.python.modulegraph.line2129.comment While there exists no reasonable means for modulegraph to parse
+            # 008994.python.modulegraph.line2130.comment the call to imp.find_module(), the subsequent implicit relative
+            # 008995.python.modulegraph.line2131.comment import is trivially parsable. This import is prohibited under
+            # 008996.python.modulegraph.line2132.comment Python 3, however, and thus parsed only if the caller's file is
+            # 008997.python.modulegraph.line2133.comment parsable plaintext (as indicated by a filetype of ".py") and the
+            # 008998.python.modulegraph.line2134.comment first line of this file is the above SWIG header comment.
+            # 008999.python.modulegraph.line2135.comment
+            # 009000.python.modulegraph.line2136.comment The constraint that this library's name be the caller's name
+            # 009001.python.modulegraph.line2137.comment prefixed by '_' is explicitly mandated by SWIG and thus a
+            # 009002.python.modulegraph.line2138.comment reliable indicator of "SWIG-ness". The SWIG documentation states:
+            # 009003.python.modulegraph.line2139.comment "When linking the module, the name of the output file has to match
+            # 009004.python.modulegraph.line2140.comment the name of the module prefixed by an underscore."
+            # 009005.python.modulegraph.line2141.comment
+            # 009006.python.modulegraph.line2142.comment Only source modules (e.g., ".py"-suffixed files) are SWIG import
+            # 009007.python.modulegraph.line2143.comment candidates. All other node types are safely ignorable.
             if is_swig_candidate():
                 self.msg(
                     4,
@@ -2148,18 +2148,18 @@ class ModuleGraph(ObjectGraph):
                         target_module_partname, source_module, level))
                 is_swig_import = is_swig_wrapper(source_module)
                 if is_swig_import:
-                    # Convert this Python 2-compliant implicit relative
-                    # import prohibited by Python 3 into a Python
-                    # 3-compliant explicit relative "from"-style import for
-                    # the duration of this function call by overwriting the
-                    # original parameters passed to this call.
+                    # 009008.python.modulegraph.line2151.comment Convert this Python 2-compliant implicit relative
+                    # 009009.python.modulegraph.line2152.comment import prohibited by Python 3 into a Python
+                    # 009010.python.modulegraph.line2153.comment 3-compliant explicit relative "from"-style import for
+                    # 009011.python.modulegraph.line2154.comment the duration of this function call by overwriting the
+                    # 009012.python.modulegraph.line2155.comment original parameters passed to this call.
                     target_attr_names = [target_module_partname]
                     target_module_partname = ''
                     level = 1
                     self.msg(2,
                              'SWIG import (caller=%r, fromlist=%r, level=%r)'
                              % (source_module, target_attr_names, level))
-                    # Import this target SWIG C extension's package.
+                    # 009013.python.modulegraph.line2162.comment Import this target SWIG C extension's package.
                     try:
                         target_modules = self.import_hook(
                             target_module_partname, source_module,
@@ -2169,97 +2169,97 @@ class ModuleGraph(ObjectGraph):
                     except ImportError as msg:
                         self.msg(2, "SWIG ImportError:", str(msg))
 
-            # If this module remains unimportable...
+            # 009014.python.modulegraph.line2172.comment If this module remains unimportable...
             if target_modules is None:
                 self.msg(2, "ImportError:", str(msg))
 
-                # Add this module as a MissingModule node.
+                # 009015.python.modulegraph.line2176.comment Add this module as a MissingModule node.
                 target_module = self.createNode(
                     MissingModule,
                     _path_from_importerror(msg, target_module_partname))
                 self._updateReference(
                     source_module, target_module, edge_data=edge_attr)
 
-                # Initialize this list to this node.
+                # 009016.python.modulegraph.line2183.comment Initialize this list to this node.
                 target_modules = [target_module]
 
-        # Ensure that the above logic imported exactly one target module.
+        # 009017.python.modulegraph.line2186.comment Ensure that the above logic imported exactly one target module.
         assert len(target_modules) == 1, (
             'Expected import_hook() to'
             'return only one module but received: {}'.format(target_modules))
 
-        # Target module imported above.
+        # 009018.python.modulegraph.line2191.comment Target module imported above.
         target_module = target_modules[0]
 
         if isinstance(target_module, MissingModule) \
            and is_swig_import is None and is_swig_candidate() \
            and is_swig_wrapper(source_module):
-            # if this possible swig C module was previously imported from
-            # a python module other than its corresponding swig python
-            # module, then it may have been considered a MissingModule.
-            # Try to reimport it now. For details see pull-request #2578
-            # and issue #1522.
-            #
-            # If this module was takes as a SWIG candidate above, but failed
-            # to import, this would be a MissingModule, too. Thus check if
-            # this was the case (is_swig_import would be not None) to avoid
-            # recursion error. If `is_swig_import` is None and we are still a
-            # swig candidate then that means we haven't properly imported this
-            # swig module yet so do that below.
-            #
-            # Remove the MissingModule node from the graph so that we can
-            # attempt a reimport and avoid collisions. This node should be
-            # fine to remove because the proper module will be imported and
-            # added to the graph in the next line (call to _safe_import_hook).
+            # 009019.python.modulegraph.line2197.comment if this possible swig C module was previously imported from
+            # 009020.python.modulegraph.line2198.comment a python module other than its corresponding swig python
+            # 009021.python.modulegraph.line2199.comment module, then it may have been considered a MissingModule.
+            # 009022.python.modulegraph.line2200.comment Try to reimport it now. For details see pull-request #2578
+            # 009023.python.modulegraph.line2201.comment and issue #1522.
+            # 009024.python.modulegraph.line2202.comment
+            # 009025.python.modulegraph.line2203.comment If this module was takes as a SWIG candidate above, but failed
+            # 009026.python.modulegraph.line2204.comment to import, this would be a MissingModule, too. Thus check if
+            # 009027.python.modulegraph.line2205.comment this was the case (is_swig_import would be not None) to avoid
+            # 009028.python.modulegraph.line2206.comment recursion error. If `is_swig_import` is None and we are still a
+            # 009029.python.modulegraph.line2207.comment swig candidate then that means we haven't properly imported this
+            # 009030.python.modulegraph.line2208.comment swig module yet so do that below.
+            # 009031.python.modulegraph.line2209.comment
+            # 009032.python.modulegraph.line2210.comment Remove the MissingModule node from the graph so that we can
+            # 009033.python.modulegraph.line2211.comment attempt a reimport and avoid collisions. This node should be
+            # 009034.python.modulegraph.line2212.comment fine to remove because the proper module will be imported and
+            # 009035.python.modulegraph.line2213.comment added to the graph in the next line (call to _safe_import_hook).
             self.removeNode(target_module)
-            # Reimport the SWIG C module relative to the wrapper
+            # 009036.python.modulegraph.line2215.comment Reimport the SWIG C module relative to the wrapper
             target_modules = self._safe_import_hook(
                 target_module_partname, source_module,
                 target_attr_names=None, level=1, edge_attr=edge_attr)
-            # return the output regardless because it would just be
-            # duplicating the processing below
+            # 009037.python.modulegraph.line2219.comment return the output regardless because it would just be
+            # 009038.python.modulegraph.line2220.comment duplicating the processing below
             return target_modules
 
         if isinstance(edge_attr, DependencyInfo):
             edge_attr = edge_attr._replace(fromlist=True)
 
-        # If this is a "from"-style import *AND* this target module is a
-        # package, import all attributes listed by the "import" clause of this
-        # import that are submodules of this package. If this target module is
-        # *NOT* a package, these attributes are always ignorable globals (e.g.,
-        # classes, variables) defined at the top level of this module.
-        #
-        # If this target module is a non-package, it could still contain
-        # importable submodules (e.g., the non-package `os` module containing
-        # the `os.path` submodule). In this case, these submodules are already
-        # imported by this target module's pure-Python code. Since our import
-        # scanner already detects these imports, these submodules need *NOT* be
-        # reimported here. (Doing so would be harmless but inefficient.)
+        # 009039.python.modulegraph.line2226.comment If this is a "from"-style import *AND* this target module is a
+        # 009040.python.modulegraph.line2227.comment package, import all attributes listed by the "import" clause of this
+        # 009041.python.modulegraph.line2228.comment import that are submodules of this package. If this target module is
+        # 009042.python.modulegraph.line2229.comment *NOT* a package, these attributes are always ignorable globals (e.g.,
+        # 009043.python.modulegraph.line2230.comment classes, variables) defined at the top level of this module.
+        # 009044.python.modulegraph.line2231.comment
+        # 009045.python.modulegraph.line2232.comment If this target module is a non-package, it could still contain
+        # 009046.python.modulegraph.line2233.comment importable submodules (e.g., the non-package `os` module containing
+        # 009047.python.modulegraph.line2234.comment the `os.path` submodule). In this case, these submodules are already
+        # 009048.python.modulegraph.line2235.comment imported by this target module's pure-Python code. Since our import
+        # 009049.python.modulegraph.line2236.comment scanner already detects these imports, these submodules need *NOT* be
+        # 009050.python.modulegraph.line2237.comment reimported here. (Doing so would be harmless but inefficient.)
         if target_attr_names and isinstance(target_module,
                                             (Package, AliasNode)):
-            # For the name of each attribute imported from this target package
-            # into this source module...
+            # 009051.python.modulegraph.line2240.comment For the name of each attribute imported from this target package
+            # 009052.python.modulegraph.line2241.comment into this source module...
             for target_submodule_partname in target_attr_names:
-                #FIXME: Is this optimization *REALLY* an optimization or at all
-                #necessary? The findNode() method called below should already
-                #be heavily optimized, in which case this optimization here is
-                #premature, senseless, and should be eliminated.
+                # 009053.python.modulegraph.line2243.comment FIXME: Is this optimization *REALLY* an optimization or at all
+                # 009054.python.modulegraph.line2244.comment necessary? The findNode() method called below should already
+                # 009055.python.modulegraph.line2245.comment be heavily optimized, in which case this optimization here is
+                # 009056.python.modulegraph.line2246.comment premature, senseless, and should be eliminated.
 
-                # If this attribute is a previously imported submodule of this
-                # target module, optimize this edge case.
+                # 009057.python.modulegraph.line2248.comment If this attribute is a previously imported submodule of this
+                # 009058.python.modulegraph.line2249.comment target module, optimize this edge case.
                 if target_module.is_submodule(target_submodule_partname):
-                    # Graph node for this submodule.
+                    # 009059.python.modulegraph.line2251.comment Graph node for this submodule.
                     target_submodule = target_module.get_submodule(
                         target_submodule_partname)
 
-                    #FIXME: What? Shouldn't "target_submodule" *ALWAYS* be
-                    #non-None here? Assert this to be non-None instead.
+                    # 009060.python.modulegraph.line2255.comment FIXME: What? Shouldn't "target_submodule" *ALWAYS* be
+                    # 009061.python.modulegraph.line2256.comment non-None here? Assert this to be non-None instead.
                     if target_submodule is not None:
-                        #FIXME: Why does duplication matter? List searches are
-                        #mildly expensive.
+                        # 009062.python.modulegraph.line2258.comment FIXME: Why does duplication matter? List searches are
+                        # 009063.python.modulegraph.line2259.comment mildly expensive.
 
-                        # If this submodule has not already been added to the
-                        # list of submodules to be returned, do so.
+                        # 009064.python.modulegraph.line2261.comment If this submodule has not already been added to the
+                        # 009065.python.modulegraph.line2262.comment list of submodules to be returned, do so.
                         if target_submodule not in target_modules:
                             self._updateReference(
                                 source_module,
@@ -2268,75 +2268,75 @@ class ModuleGraph(ObjectGraph):
                             target_modules.append(target_submodule)
                         continue
 
-                # Fully-qualified name of this submodule.
+                # 009066.python.modulegraph.line2271.comment Fully-qualified name of this submodule.
                 target_submodule_name = (
                     target_module.identifier + '.' + target_submodule_partname)
 
-                # Graph node of this submodule if previously imported or None.
+                # 009067.python.modulegraph.line2275.comment Graph node of this submodule if previously imported or None.
                 target_submodule = self.find_node(target_submodule_name)
 
-                # If this submodule has not been imported, do so as if this
-                # submodule were the only attribute listed by the "import"
-                # clause of this import (e.g., as "from foo import bar" rather
-                # than "from foo import car, far, bar").
+                # 009068.python.modulegraph.line2278.comment If this submodule has not been imported, do so as if this
+                # 009069.python.modulegraph.line2279.comment submodule were the only attribute listed by the "import"
+                # 009070.python.modulegraph.line2280.comment clause of this import (e.g., as "from foo import bar" rather
+                # 009071.python.modulegraph.line2281.comment than "from foo import car, far, bar").
                 if target_submodule is None:
-                    # Attempt to import this submodule.
+                    # 009072.python.modulegraph.line2283.comment Attempt to import this submodule.
                     try:
-                        # Ignore the list of graph nodes returned by this
-                        # method. If both this submodule's package and this
-                        # submodule are importable, this method returns a
-                        # 2-element list whose second element is this
-                        # submodule's graph node. However, if this submodule's
-                        # package is importable but this submodule is not,
-                        # this submodule is either:
-                        #
-                        # * An ignorable global attribute defined at the top
-                        #   level of this package's "__init__" submodule. In
-                        #   this case, this method returns a 1-element list
-                        #   without raising an exception.
-                        # * A non-ignorable unimportable submodule. In this
-                        #   case, this method raises an "ImportError".
-                        #
-                        # While the first two cases are disambiguatable by the
-                        # length of this list, doing so would render this code
-                        # dependent on import_hook() details subject to change.
-                        # Instead, call findNode() to decide the truthiness.
+                        # 009073.python.modulegraph.line2285.comment Ignore the list of graph nodes returned by this
+                        # 009074.python.modulegraph.line2286.comment method. If both this submodule's package and this
+                        # 009075.python.modulegraph.line2287.comment submodule are importable, this method returns a
+                        # 009076.python.modulegraph.line2288.comment 2-element list whose second element is this
+                        # 009077.python.modulegraph.line2289.comment submodule's graph node. However, if this submodule's
+                        # 009078.python.modulegraph.line2290.comment package is importable but this submodule is not,
+                        # 009079.python.modulegraph.line2291.comment this submodule is either:
+                        # 009080.python.modulegraph.line2292.comment
+                        # 009081.python.modulegraph.line2293.comment * An ignorable global attribute defined at the top
+                        # 009082.python.modulegraph.line2294.comment level of this package's "__init__" submodule. In
+                        # 009083.python.modulegraph.line2295.comment this case, this method returns a 1-element list
+                        # 009084.python.modulegraph.line2296.comment without raising an exception.
+                        # 009085.python.modulegraph.line2297.comment * A non-ignorable unimportable submodule. In this
+                        # 009086.python.modulegraph.line2298.comment case, this method raises an "ImportError".
+                        # 009087.python.modulegraph.line2299.comment
+                        # 009088.python.modulegraph.line2300.comment While the first two cases are disambiguatable by the
+                        # 009089.python.modulegraph.line2301.comment length of this list, doing so would render this code
+                        # 009090.python.modulegraph.line2302.comment dependent on import_hook() details subject to change.
+                        # 009091.python.modulegraph.line2303.comment Instead, call findNode() to decide the truthiness.
                         self.import_hook(
                             target_module_partname, source_module,
                             target_attr_names=[target_submodule_partname],
                             level=level,
                             edge_attr=edge_attr)
 
-                        # Graph node of this submodule imported by the prior
-                        # call if importable or None otherwise.
+                        # 009092.python.modulegraph.line2310.comment Graph node of this submodule imported by the prior
+                        # 009093.python.modulegraph.line2311.comment call if importable or None otherwise.
                         target_submodule = self.find_node(target_submodule_name)
 
-                        # If this submodule does not exist, this *MUST* be an
-                        # ignorable global attribute defined at the top level
-                        # of this package's "__init__" submodule.
+                        # 009094.python.modulegraph.line2314.comment If this submodule does not exist, this *MUST* be an
+                        # 009095.python.modulegraph.line2315.comment ignorable global attribute defined at the top level
+                        # 009096.python.modulegraph.line2316.comment of this package's "__init__" submodule.
                         if target_submodule is None:
-                            # Assert this to actually be the case.
+                            # 009097.python.modulegraph.line2318.comment Assert this to actually be the case.
                             assert target_module.is_global_attr(
                                 target_submodule_partname), (
                                 'No global named {} in {}.__init__'.format(
                                     target_submodule_partname,
                                     target_module.identifier))
 
-                            # Skip this safely ignorable importation to the
-                            # next attribute. See similar logic in the body of
-                            # _import_importable_package_submodules().
+                            # 009098.python.modulegraph.line2325.comment Skip this safely ignorable importation to the
+                            # 009099.python.modulegraph.line2326.comment next attribute. See similar logic in the body of
+                            # 009100.python.modulegraph.line2327.comment _import_importable_package_submodules().
                             self.msg(4, '_safe_import_hook', 'ignoring imported non-module global', target_module.identifier, target_submodule_partname)
                             continue
 
-                        # If this is a SWIG C extension, instruct PyInstaller
-                        # to freeze this extension under its unqualified rather
-                        # than qualified name (e.g., as "_csr" rather than
-                        # "scipy.sparse.sparsetools._csr"), permitting the
-                        # implicit relative import in its parent SWIG module to
-                        # successfully find this extension.
+                        # 009101.python.modulegraph.line2331.comment If this is a SWIG C extension, instruct PyInstaller
+                        # 009102.python.modulegraph.line2332.comment to freeze this extension under its unqualified rather
+                        # 009103.python.modulegraph.line2333.comment than qualified name (e.g., as "_csr" rather than
+                        # 009104.python.modulegraph.line2334.comment "scipy.sparse.sparsetools._csr"), permitting the
+                        # 009105.python.modulegraph.line2335.comment implicit relative import in its parent SWIG module to
+                        # 009106.python.modulegraph.line2336.comment successfully find this extension.
                         if is_swig_import:
-                            # If a graph node with this name already exists,
-                            # avoid collisions by emitting an error instead.
+                            # 009107.python.modulegraph.line2338.comment If a graph node with this name already exists,
+                            # 009108.python.modulegraph.line2339.comment avoid collisions by emitting an error instead.
                             if self.find_node(target_submodule_partname):
                                 self.msg(
                                     2,
@@ -2352,13 +2352,13 @@ class ModuleGraph(ObjectGraph):
                                         target_submodule_partname))
                                 target_submodule.identifier = (
                                     target_submodule_partname)
-                    # If this submodule is unimportable, add a MissingModule.
+                    # 009109.python.modulegraph.line2355.comment If this submodule is unimportable, add a MissingModule.
                     except ImportError as msg:
                         self.msg(2, "ImportError:", str(msg))
                         target_submodule = self.createNode(
                             MissingModule, target_submodule_name)
 
-                # Add this submodule to its package.
+                # 009110.python.modulegraph.line2361.comment Add this submodule to its package.
                 target_module.add_submodule(
                     target_submodule_partname, target_submodule)
                 if target_submodule is not None:
@@ -2370,7 +2370,7 @@ class ModuleGraph(ObjectGraph):
                     if target_submodule not in target_modules:
                         target_modules.append(target_submodule)
 
-        # Return the list of all target modules imported by this call.
+        # 009111.python.modulegraph.line2373.comment Return the list of all target modules imported by this call.
         return target_modules
 
 
@@ -2417,22 +2417,22 @@ class ModuleGraph(ObjectGraph):
             Graph node of the module to be parsed.
         """
 
-        # For safety, guard against multiple scans of the same module by
-        # resetting this module's list of deferred target imports.
+        # 009112.python.modulegraph.line2420.comment For safety, guard against multiple scans of the same module by
+        # 009113.python.modulegraph.line2421.comment resetting this module's list of deferred target imports.
         module._deferred_imports = []
 
-        # Parse all imports from this module *BEFORE* adding these imports to
-        # the graph. If an AST is provided, parse that rather than this
-        # module's code object.
+        # 009114.python.modulegraph.line2424.comment Parse all imports from this module *BEFORE* adding these imports to
+        # 009115.python.modulegraph.line2425.comment the graph. If an AST is provided, parse that rather than this
+        # 009116.python.modulegraph.line2426.comment module's code object.
         if module_code_object_ast is not None:
-            # Parse this module's AST for imports.
+            # 009117.python.modulegraph.line2428.comment Parse this module's AST for imports.
             self._scan_ast(module, module_code_object_ast)
 
-            # Parse this module's code object for all relevant non-imports
-            # (e.g., global variable declarations and undeclarations).
+            # 009118.python.modulegraph.line2431.comment Parse this module's code object for all relevant non-imports
+            # 009119.python.modulegraph.line2432.comment (e.g., global variable declarations and undeclarations).
             self._scan_bytecode(
                 module, module_code_object, is_scanning_imports=False)
-        # Else, parse this module's code object for imports.
+        # 009120.python.modulegraph.line2435.comment Else, parse this module's code object for imports.
         else:
             self._scan_bytecode(
                 module, module_code_object, is_scanning_imports=True)
@@ -2455,16 +2455,16 @@ class ModuleGraph(ObjectGraph):
         visitor = _Visitor(self, module)
         visitor.visit(module_code_object_ast)
 
-    #FIXME: Optimize. Global attributes added by this method are tested by
-    #other methods *ONLY* for packages, implying this method should scan and
-    #handle opcodes pertaining to global attributes (e.g.,
-    #"STORE_NAME", "DELETE_GLOBAL") only if the passed "module"
-    #object is an instance of the "Package" class. For all other module types,
-    #these opcodes should simply be ignored.
-    #
-    #After doing so, the "Node._global_attr_names" attribute and all methods
-    #using this attribute (e.g., Node.is_global()) should be moved from the
-    #"Node" superclass to the "Package" subclass.
+    # 009121.python.modulegraph.line2458.comment FIXME: Optimize. Global attributes added by this method are tested by
+    # 009122.python.modulegraph.line2459.comment other methods *ONLY* for packages, implying this method should scan and
+    # 009123.python.modulegraph.line2460.comment handle opcodes pertaining to global attributes (e.g.,
+    # 009124.python.modulegraph.line2461.comment "STORE_NAME", "DELETE_GLOBAL") only if the passed "module"
+    # 009125.python.modulegraph.line2462.comment object is an instance of the "Package" class. For all other module types,
+    # 009126.python.modulegraph.line2463.comment these opcodes should simply be ignored.
+    # 009127.python.modulegraph.line2464.comment
+    # 009128.python.modulegraph.line2465.comment After doing so, the "Node._global_attr_names" attribute and all methods
+    # 009129.python.modulegraph.line2466.comment using this attribute (e.g., Node.is_global()) should be moved from the
+    # 009130.python.modulegraph.line2467.comment "Node" superclass to the "Package" subclass.
     def _scan_bytecode(
         self, module, module_code_object, is_scanning_imports):
         """
@@ -2531,29 +2531,29 @@ class ModuleGraph(ObjectGraph):
         level = None
         fromlist = None
 
-        # 'deque' is a list-like container with fast appends, pops on
-        # either end, and automatically discarding elements too much.
+        # 009131.python.modulegraph.line2534.comment 'deque' is a list-like container with fast appends, pops on
+        # 009132.python.modulegraph.line2535.comment either end, and automatically discarding elements too much.
         prev_insts = deque(maxlen=2)
         for inst in util.iterate_instructions(module_code_object):
             if not inst:
                 continue
-            # If this is an import statement originating from this module,
-            # parse this import.
-            #
-            # Note that the related "IMPORT_FROM" opcode need *NOT* be parsed.
-            # "IMPORT_NAME" suffices. For further details, see
-            #     http://probablyprogramming.com/2008/04/14/python-import_name
+            # 009133.python.modulegraph.line2540.comment If this is an import statement originating from this module,
+            # 009134.python.modulegraph.line2541.comment parse this import.
+            # 009135.python.modulegraph.line2542.comment
+            # 009136.python.modulegraph.line2543.comment Note that the related "IMPORT_FROM" opcode need *NOT* be parsed.
+            # 009137.python.modulegraph.line2544.comment "IMPORT_NAME" suffices. For further details, see
+            # 009138.python.modulegraph.line2545.comment http://probablyprogramming.com/2008/04/14/python-import_name
             if inst.opname == 'IMPORT_NAME':
-                # If this method is ignoring import statements, skip to the
-                # next opcode.
+                # 009139.python.modulegraph.line2547.comment If this method is ignoring import statements, skip to the
+                # 009140.python.modulegraph.line2548.comment next opcode.
                 if not is_scanning_imports:
                     continue
 
-                # Python >=2.5: LOAD_CONST flags, LOAD_CONST names, IMPORT_NAME name
-                #
-                # Python 3.14 split LOAD_CONST into LOAD_CONST, LOAD_CONST_IMMORTAL,
-                # and LOAD_SMALL_INT. The former two can be used to load the names,
-                # while LOAD_SMALL_INT can be also used to load the flags.
+                # 009141.python.modulegraph.line2552.comment Python >=2.5: LOAD_CONST flags, LOAD_CONST names, IMPORT_NAME name
+                # 009142.python.modulegraph.line2553.comment
+                # 009143.python.modulegraph.line2554.comment Python 3.14 split LOAD_CONST into LOAD_CONST, LOAD_CONST_IMMORTAL,
+                # 009144.python.modulegraph.line2555.comment and LOAD_SMALL_INT. The former two can be used to load the names,
+                # 009145.python.modulegraph.line2556.comment while LOAD_SMALL_INT can be also used to load the flags.
                 if sys.version_info >= (3, 14):
                     assert prev_insts[-2].opname in {'LOAD_CONST', 'LOAD_CONST_IMMORTAL', 'LOAD_SMALL_INT'}
                     assert prev_insts[-1].opname in {'LOAD_CONST', 'LOAD_CONST_IMMORTAL'}
@@ -2567,18 +2567,18 @@ class ModuleGraph(ObjectGraph):
                 assert fromlist is None or type(fromlist) is tuple
                 target_module_partname = inst.argval
 
-                #FIXME: The exact same logic appears in _collect_import(),
-                #which isn't particularly helpful. Instead, defer this logic
-                #until later by:
-                #
-                #* Refactor the "_deferred_imports" list to contain 2-tuples
-                #  "(_safe_import_hook_args, _safe_import_hook_kwargs)" rather
-                #  than 3-tuples "(have_star, _safe_import_hook_args,
-                #  _safe_import_hook_kwargs)".
-                #* Stop prepending these tuples by a "have_star" boolean both
-                #  here, in _collect_import(), and in _process_imports().
-                #* Shift the logic below to _process_imports().
-                #* Remove the same logic from _collect_import().
+                # 009146.python.modulegraph.line2570.comment FIXME: The exact same logic appears in _collect_import(),
+                # 009147.python.modulegraph.line2571.comment which isn't particularly helpful. Instead, defer this logic
+                # 009148.python.modulegraph.line2572.comment until later by:
+                # 009149.python.modulegraph.line2573.comment
+                # 009150.python.modulegraph.line2574.comment * Refactor the "_deferred_imports" list to contain 2-tuples
+                # 009151.python.modulegraph.line2575.comment "(_safe_import_hook_args, _safe_import_hook_kwargs)" rather
+                # 009152.python.modulegraph.line2576.comment than 3-tuples "(have_star, _safe_import_hook_args,
+                # 009153.python.modulegraph.line2577.comment _safe_import_hook_kwargs)".
+                # 009154.python.modulegraph.line2578.comment * Stop prepending these tuples by a "have_star" boolean both
+                # 009155.python.modulegraph.line2579.comment here, in _collect_import(), and in _process_imports().
+                # 009156.python.modulegraph.line2580.comment * Shift the logic below to _process_imports().
+                # 009157.python.modulegraph.line2581.comment * Remove the same logic from _collect_import().
                 have_star = False
                 if fromlist is not None:
                     fromlist = uniq(fromlist)
@@ -2586,8 +2586,8 @@ class ModuleGraph(ObjectGraph):
                         fromlist.remove('*')
                         have_star = True
 
-                # Record this import as originating from this module for
-                # subsequent handling by the _process_imports() method.
+                # 009158.python.modulegraph.line2589.comment Record this import as originating from this module for
+                # 009159.python.modulegraph.line2590.comment subsequent handling by the _process_imports() method.
                 module._deferred_imports.append((
                     have_star,
                     (target_module_partname, module, fromlist, level),
@@ -2595,26 +2595,26 @@ class ModuleGraph(ObjectGraph):
                 ))
 
             elif inst.opname in ('STORE_NAME', 'STORE_GLOBAL'):
-                # If this is the declaration of a global attribute (e.g.,
-                # class, variable) in this module, store this declaration for
-                # subsequent lookup. See method docstring for further details.
-                #
-                # Global attributes are usually irrelevant to import parsing, but
-                # remain the only means of distinguishing erroneous non-ignorable
-                # attempts to import non-existent submodules of a package from
-                # successful ignorable attempts to import existing global
-                # attributes of a package's "__init__" submodule (e.g., the "bar"
-                # in "from foo import bar", which is either a non-ignorable
-                # submodule of "foo" or an ignorable global attribute of
-                # "foo.__init__").
+                # 009160.python.modulegraph.line2598.comment If this is the declaration of a global attribute (e.g.,
+                # 009161.python.modulegraph.line2599.comment class, variable) in this module, store this declaration for
+                # 009162.python.modulegraph.line2600.comment subsequent lookup. See method docstring for further details.
+                # 009163.python.modulegraph.line2601.comment
+                # 009164.python.modulegraph.line2602.comment Global attributes are usually irrelevant to import parsing, but
+                # 009165.python.modulegraph.line2603.comment remain the only means of distinguishing erroneous non-ignorable
+                # 009166.python.modulegraph.line2604.comment attempts to import non-existent submodules of a package from
+                # 009167.python.modulegraph.line2605.comment successful ignorable attempts to import existing global
+                # 009168.python.modulegraph.line2606.comment attributes of a package's "__init__" submodule (e.g., the "bar"
+                # 009169.python.modulegraph.line2607.comment in "from foo import bar", which is either a non-ignorable
+                # 009170.python.modulegraph.line2608.comment submodule of "foo" or an ignorable global attribute of
+                # 009171.python.modulegraph.line2609.comment "foo.__init__").
                 name = inst.argval
                 module.add_global_attr(name)
 
             elif inst.opname in ('DELETE_NAME', 'DELETE_GLOBAL'):
-                # If this is the undeclaration of a previously declared global
-                # attribute (e.g., class, variable) in this module, remove that
-                # declaration to prevent subsequent lookup. See method docstring
-                # for further details.
+                # 009172.python.modulegraph.line2614.comment If this is the undeclaration of a previously declared global
+                # 009173.python.modulegraph.line2615.comment attribute (e.g., class, variable) in this module, remove that
+                # 009174.python.modulegraph.line2616.comment declaration to prevent subsequent lookup. See method docstring
+                # 009175.python.modulegraph.line2617.comment for further details.
                 name = inst.argval
                 module.remove_global_attr_if_found(name)
 
@@ -2634,54 +2634,54 @@ class ModuleGraph(ObjectGraph):
             Graph node of the source module to graph target imports for.
         """
 
-        # If this source module imported no target modules, noop.
+        # 009176.python.modulegraph.line2637.comment If this source module imported no target modules, noop.
         if not source_module._deferred_imports:
             return
 
-        # For each target module imported by this source module...
+        # 009177.python.modulegraph.line2641.comment For each target module imported by this source module...
         for have_star, import_info, kwargs in source_module._deferred_imports:
-            # Graph node of the target module specified by the "from" portion
-            # of this "from"-style star import (e.g., an import resembling
-            # "from {target_module_name} import *") or ignored otherwise.
+            # 009178.python.modulegraph.line2643.comment Graph node of the target module specified by the "from" portion
+            # 009179.python.modulegraph.line2644.comment of this "from"-style star import (e.g., an import resembling
+            # 009180.python.modulegraph.line2645.comment "from {target_module_name} import *") or ignored otherwise.
             target_modules = self._safe_import_hook(*import_info, **kwargs)
             if not target_modules:
-                # If _safe_import_hook suppressed the module, quietly drop it.
-                # Do not create an ExcludedModule instance, because that might
-                # completely suppress the module whereas it might need to be
-                # included due to reference from another module (that does
-                # not exclude it via hook).
+                # 009181.python.modulegraph.line2648.comment If _safe_import_hook suppressed the module, quietly drop it.
+                # 009182.python.modulegraph.line2649.comment Do not create an ExcludedModule instance, because that might
+                # 009183.python.modulegraph.line2650.comment completely suppress the module whereas it might need to be
+                # 009184.python.modulegraph.line2651.comment included due to reference from another module (that does
+                # 009185.python.modulegraph.line2652.comment not exclude it via hook).
                 continue
             target_module = target_modules[0]
 
-            # If this is a "from"-style star import, process this import.
+            # 009186.python.modulegraph.line2656.comment If this is a "from"-style star import, process this import.
             if have_star:
-                #FIXME: Sadly, the current approach to importing attributes
-                #from "from"-style star imports is... simplistic. This should
-                #be revised as follows. If this target module is:
-                #
-                #* A package:
-                #  * Whose "__init__" submodule defines the "__all__" global
-                #    attribute, only attributes listed by this attribute should
-                #    be imported.
-                #  * Else, *NO* attributes should be imported.
-                #* A non-package:
-                #  * Defining the "__all__" global attribute, only attributes
-                #    listed by this attribute should be imported.
-                #  * Else, only public attributes whose names are *NOT*
-                #    prefixed by "_" should be imported.
+                # 009187.python.modulegraph.line2658.comment FIXME: Sadly, the current approach to importing attributes
+                # 009188.python.modulegraph.line2659.comment from "from"-style star imports is... simplistic. This should
+                # 009189.python.modulegraph.line2660.comment be revised as follows. If this target module is:
+                # 009190.python.modulegraph.line2661.comment
+                # 009191.python.modulegraph.line2662.comment * A package:
+                # 009192.python.modulegraph.line2663.comment * Whose "__init__" submodule defines the "__all__" global
+                # 009193.python.modulegraph.line2664.comment attribute, only attributes listed by this attribute should
+                # 009194.python.modulegraph.line2665.comment be imported.
+                # 009195.python.modulegraph.line2666.comment * Else, *NO* attributes should be imported.
+                # 009196.python.modulegraph.line2667.comment * A non-package:
+                # 009197.python.modulegraph.line2668.comment * Defining the "__all__" global attribute, only attributes
+                # 009198.python.modulegraph.line2669.comment listed by this attribute should be imported.
+                # 009199.python.modulegraph.line2670.comment * Else, only public attributes whose names are *NOT*
+                # 009200.python.modulegraph.line2671.comment prefixed by "_" should be imported.
                 source_module.add_global_attrs_from_module(target_module)
 
                 source_module._starimported_ignored_module_names.update(
                     target_module._starimported_ignored_module_names)
 
-                # If this target module has no code object and hence is
-                # unparsable, record its name for posterity.
+                # 009201.python.modulegraph.line2677.comment If this target module has no code object and hence is
+                # 009202.python.modulegraph.line2678.comment unparsable, record its name for posterity.
                 if target_module.code is None:
                     target_module_name = import_info[0]
                     source_module._starimported_ignored_module_names.add(
                         target_module_name)
 
-        # For safety, prevent these imports from being reprocessed.
+        # 009203.python.modulegraph.line2684.comment For safety, prevent these imports from being reprocessed.
         source_module._deferred_imports = None
 
 
@@ -2717,7 +2717,7 @@ class ModuleGraph(ObjectGraph):
         """
 
         if parent is not None:
-            # assert path is not None
+            # 009204.python.modulegraph.line2720.comment assert path is not None
             fullname = parent.identifier + '.' + name
         else:
             fullname = name
@@ -2777,97 +2777,97 @@ class ModuleGraph(ObjectGraph):
         """
         self.msgin(4, "_find_module_path <-", fullname, search_dirs)
 
-        # Top-level 2-tuple to be returned.
+        # 009205.python.modulegraph.line2780.comment Top-level 2-tuple to be returned.
         path_data = None
 
-        # List of the absolute paths of all directories comprising the
-        # namespace package to which this module belongs if any.
+        # 009206.python.modulegraph.line2783.comment List of the absolute paths of all directories comprising the
+        # 009207.python.modulegraph.line2784.comment namespace package to which this module belongs if any.
         namespace_dirs = []
 
         try:
             for search_dir in search_dirs:
-                # PEP 302-compliant importer making loaders for this directory.
+                # 009208.python.modulegraph.line2789.comment PEP 302-compliant importer making loaders for this directory.
                 importer = pkgutil.get_importer(search_dir)
 
-                # If this directory is not importable, continue.
+                # 009209.python.modulegraph.line2792.comment If this directory is not importable, continue.
                 if importer is None:
-                    # self.msg(4, "_find_module_path importer not found", search_dir)
+                    # 009210.python.modulegraph.line2794.comment self.msg(4, "_find_module_path importer not found", search_dir)
                     continue
 
-                # Get the PEP 302-compliant loader object loading this module.
-                #
-                # If this importer defines the PEP 451-compliant find_spec()
-                # method, use that, and obtain loader from spec. This should
-                # be available on python >= 3.4.
+                # 009211.python.modulegraph.line2797.comment Get the PEP 302-compliant loader object loading this module.
+                # 009212.python.modulegraph.line2798.comment
+                # 009213.python.modulegraph.line2799.comment If this importer defines the PEP 451-compliant find_spec()
+                # 009214.python.modulegraph.line2800.comment method, use that, and obtain loader from spec. This should
+                # 009215.python.modulegraph.line2801.comment be available on python >= 3.4.
                 if hasattr(importer, 'find_spec'):
                     loader = None
                     spec = importer.find_spec(module_name)
                     if spec is not None:
                         loader = spec.loader
                         namespace_dirs.extend(spec.submodule_search_locations or [])
-                # Else if this importer defines the PEP 302-compliant find_loader()
-                # method, use that.
+                # 009216.python.modulegraph.line2808.comment Else if this importer defines the PEP 302-compliant find_loader()
+                # 009217.python.modulegraph.line2809.comment method, use that.
                 elif hasattr(importer, 'find_loader'):
                     loader, loader_namespace_dirs = importer.find_loader(
                         module_name)
                     namespace_dirs.extend(loader_namespace_dirs)
-                # Else if this importer defines the Python 2-specific
-                # find_module() method, fall back to that. Despite the method
-                # name, this method returns a loader rather than a module.
+                # 009218.python.modulegraph.line2814.comment Else if this importer defines the Python 2-specific
+                # 009219.python.modulegraph.line2815.comment find_module() method, fall back to that. Despite the method
+                # 009220.python.modulegraph.line2816.comment name, this method returns a loader rather than a module.
                 elif hasattr(importer, 'find_module'):
                     loader = importer.find_module(module_name)
-                # Else, raise an exception.
+                # 009221.python.modulegraph.line2819.comment Else, raise an exception.
                 else:
                     raise ImportError(
                         "Module %r importer %r loader unobtainable" % (module_name, importer))
 
-                # If this module is not loadable from this directory, continue.
+                # 009222.python.modulegraph.line2824.comment If this module is not loadable from this directory, continue.
                 if loader is None:
-                    # self.msg(4, "_find_module_path loader not found", search_dir)
+                    # 009223.python.modulegraph.line2826.comment self.msg(4, "_find_module_path loader not found", search_dir)
                     continue
 
-                # Absolute path of this module. If this module resides in a
-                # compressed archive, this is the absolute path of this module
-                # after extracting this module from that archive and hence
-                # should not exist; else, this path should typically exist.
+                # 009224.python.modulegraph.line2829.comment Absolute path of this module. If this module resides in a
+                # 009225.python.modulegraph.line2830.comment compressed archive, this is the absolute path of this module
+                # 009226.python.modulegraph.line2831.comment after extracting this module from that archive and hence
+                # 009227.python.modulegraph.line2832.comment should not exist; else, this path should typically exist.
                 pathname = None
 
-                # If this loader defines the PEP 302-compliant get_filename()
-                # method, preferably call that method first. Most if not all
-                # loaders (including zipimporter objects) define this method.
+                # 009228.python.modulegraph.line2835.comment If this loader defines the PEP 302-compliant get_filename()
+                # 009229.python.modulegraph.line2836.comment method, preferably call that method first. Most if not all
+                # 009230.python.modulegraph.line2837.comment loaders (including zipimporter objects) define this method.
                 if hasattr(loader, 'get_filename'):
                     pathname = loader.get_filename(module_name)
-                # Else if this loader provides a "path" attribute, defer to that.
+                # 009231.python.modulegraph.line2840.comment Else if this loader provides a "path" attribute, defer to that.
                 elif hasattr(loader, 'path'):
                     pathname = loader.path
-                # Else, raise an exception.
+                # 009232.python.modulegraph.line2843.comment Else, raise an exception.
                 else:
                     raise ImportError(
                         "Module %r loader %r path unobtainable" % (module_name, loader))
 
-                # If no path was found, this is probably a namespace package. In
-                # such case, continue collecting namespace directories.
+                # 009233.python.modulegraph.line2848.comment If no path was found, this is probably a namespace package. In
+                # 009234.python.modulegraph.line2849.comment such case, continue collecting namespace directories.
                 if pathname is None:
                     self.msg(4, "_find_module_path path not found", pathname)
                     continue
 
-                # Return such metadata.
+                # 009235.python.modulegraph.line2854.comment Return such metadata.
                 path_data = (pathname, loader)
                 break
-            # Else if this is a namespace package, return such metadata.
+            # 009236.python.modulegraph.line2857.comment Else if this is a namespace package, return such metadata.
             else:
                 if namespace_dirs:
                     path_data = (namespace_dirs[0],
                                  NAMESPACE_PACKAGE(namespace_dirs))
         except UnicodeDecodeError as exc:
             self.msgout(1, "_find_module_path -> unicode error", exc)
-        # Ensure that exceptions are logged, as this function is typically
-        # called by the import_module() method which squelches ImportErrors.
+        # 009237.python.modulegraph.line2864.comment Ensure that exceptions are logged, as this function is typically
+        # 009238.python.modulegraph.line2865.comment called by the import_module() method which squelches ImportErrors.
         except Exception as exc:
             self.msgout(4, "_find_module_path -> exception", exc)
             raise
 
-        # If this module was not found, raise an exception.
+        # 009239.python.modulegraph.line2870.comment If this module was not found, raise an exception.
         self.msgout(4, "_find_module_path ->", path_data)
         if path_data is None:
             raise ImportError("No module named " + repr(module_name))
@@ -2917,25 +2917,25 @@ class ModuleGraph(ObjectGraph):
                 links = []
                 for n in oute:
                     links.append("""  <a href="#%s">%s</a>\n""" % (n, n))
-                # #8226 = bullet-point; can't use html-entities since the
-                # test-suite uses xml.etree.ElementTree.XMLParser, which
-                # does't supprot them.
+                # 009240.python.modulegraph.line2920.comment #8226 = bullet-point; can't use html-entities since the
+                # 009241.python.modulegraph.line2921.comment test-suite uses xml.etree.ElementTree.XMLParser, which
+                # 009242.python.modulegraph.line2922.comment does't supprot them.
                 links = " &#8226; ".join(links)
                 content += imports % {"HEAD": "imports", "LINKS": links}
             if ince:
                 links = []
                 for n in ince:
                     links.append("""  <a href="#%s">%s</a>\n""" % (n, n))
-                # #8226 = bullet-point; can't use html-entities since the
-                # test-suite uses xml.etree.ElementTree.XMLParser, which
-                # does't supprot them.
+                # 009243.python.modulegraph.line2929.comment #8226 = bullet-point; can't use html-entities since the
+                # 009244.python.modulegraph.line2930.comment test-suite uses xml.etree.ElementTree.XMLParser, which
+                # 009245.python.modulegraph.line2931.comment does't supprot them.
                 links = " &#8226; ".join(links)
                 content += imports % {"HEAD": "imported by", "LINKS": links}
             print(entry % {"NAME": name, "CONTENT": content}, file=out)
         print(footer, file=out)
 
     def itergraphreport(self, name='G', flatpackages=()):
-        # XXX: Can this be implemented using Dot()?
+        # 009246.python.modulegraph.line2938.comment XXX: Can this be implemented using Dot()?
         nodes = list(map(self.graph.describe_node, self.graph.iterdfs(self)))
         describe_edge = self.graph.describe_edge
         edges = deque()
@@ -2945,14 +2945,14 @@ class ModuleGraph(ObjectGraph):
         inpackages = {}
         mainedges = set()
 
-        # XXX - implement
+        # 009247.python.modulegraph.line2948.comment XXX - implement
         flatpackages = dict(flatpackages)
 
         def nodevisitor(node, data, outgoing, incoming):
             if not isinstance(data, Node):
                 return {'label': str(node)}
-            #if isinstance(d, (ExcludedModule, MissingModule, BadModule)):
-            #    return None
+            # 009248.python.modulegraph.line2954.comment if isinstance(d, (ExcludedModule, MissingModule, BadModule)):
+            # 009249.python.modulegraph.line2955.comment return None
             s = '<f0> ' + type(data).__name__
             for i, v in enumerate(data.infoTuple()[:1], 1):
                 s += '| <f%d> %s' % (i, v)
@@ -2960,8 +2960,8 @@ class ModuleGraph(ObjectGraph):
 
 
         def edgevisitor(edge, data, head, tail):
-            # XXX: This method nonsense, the edge
-            # data is never initialized.
+            # 009250.python.modulegraph.line2963.comment XXX: This method nonsense, the edge
+            # 009251.python.modulegraph.line2964.comment data is never initialized.
             if data == 'orphan':
                 return {'style': 'dashed'}
             elif data == 'pkgref':
@@ -2974,7 +2974,7 @@ class ModuleGraph(ObjectGraph):
         for item in attr.items():
             yield '\t%s;\n' % (cpatt % item,)
 
-        # find all packages (subgraphs)
+        # 009252.python.modulegraph.line2977.comment find all packages (subgraphs)
         for (node, data, outgoing, incoming) in nodes:
             nodetoident[node] = getattr(data, 'graphident', None)
             if isinstance(data, Package):
@@ -2982,13 +2982,13 @@ class ModuleGraph(ObjectGraph):
                 inpackages[node] = set([node])
                 packagenodes.add(node)
 
-        # create sets for subgraph, write out descriptions
+        # 009253.python.modulegraph.line2985.comment create sets for subgraph, write out descriptions
         for (node, data, outgoing, incoming) in nodes:
-            # update edges
+            # 009254.python.modulegraph.line2987.comment update edges
             for edge in (describe_edge(e) for e in outgoing):
                 edges.append(edge)
 
-            # describe node
+            # 009255.python.modulegraph.line2991.comment describe node
             yield '\t"%s" [%s];\n' % (
                 node,
                 ','.join([
@@ -3040,7 +3040,7 @@ class ModuleGraph(ObjectGraph):
 
         def do_graph(edges, tabs):
             edgestr = tabs + '"%s" -> "%s" [%s];\n'
-            # describe edge
+            # 009256.python.modulegraph.line3043.comment describe edge
             for (edge, data, head, tail) in edges:
                 attribs = edgevisitor(edge, data, head, tail)
                 yield edgestr % (

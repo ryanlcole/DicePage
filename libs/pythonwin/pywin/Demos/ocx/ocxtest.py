@@ -1,9 +1,9 @@
-# OCX Tester for Pythonwin
-#
-# This file _is_ ready to run.  All that is required is that the OCXs being tested
-# are installed on your machine.
-#
-# The .py files behind the OCXs will be automatically generated and imported.
+# 036826.python.ocxtest.line1.comment OCX Tester for Pythonwin
+# 036827.python.ocxtest.line2.comment
+# 036828.python.ocxtest.line3.comment This file _is_ ready to run.  All that is required is that the OCXs being tested
+# 036829.python.ocxtest.line4.comment are installed on your machine.
+# 036830.python.ocxtest.line5.comment
+# 036831.python.ocxtest.line6.comment The .py files behind the OCXs will be automatically generated and imported.
 
 import glob
 import os
@@ -29,9 +29,9 @@ def MakeDlgTemplate():
         ["OCX Demos", (0, 0, 350, 350), style, None, (8, "MS Sans Serif")],
     ]
     s = win32con.WS_TABSTOP | cs
-    # 	dlg.append([131, None, 130, (5, 40, 110, 48),
-    # 		s | win32con.LBS_NOTIFY | win32con.LBS_SORT | win32con.LBS_NOINTEGRALHEIGHT | win32con.WS_VSCROLL | win32con.WS_BORDER])
-    # 	dlg.append(["{8E27C92B-1264-101C-8A2F-040224009C02}", None, 131, (5, 40, 110, 48),win32con.WS_TABSTOP])
+    # 036832.python.ocxtest.line32.comment dlg.append([131, None, 130, (5, 40, 110, 48),
+    # 036833.python.ocxtest.line33.comment s | win32con.LBS_NOTIFY | win32con.LBS_SORT | win32con.LBS_NOINTEGRALHEIGHT | win32con.WS_VSCROLL | win32con.WS_BORDER])
+    # 036834.python.ocxtest.line34.comment dlg.append(["{8E27C92B-1264-101C-8A2F-040224009C02}", None, 131, (5, 40, 110, 48),win32con.WS_TABSTOP])
 
     dlg.append(
         [128, "About", win32con.IDOK, (124, 5, 50, 14), s | win32con.BS_DEFPUSHBUTTON]
@@ -42,10 +42,10 @@ def MakeDlgTemplate():
     return dlg
 
 
-####################################
-#
-# Calendar test code
-#
+# 036835.python.ocxtest.line45.comment ###################################
+# 036836.python.ocxtest.line46.comment
+# 036837.python.ocxtest.line47.comment Calendar test code
+# 036838.python.ocxtest.line48.comment
 
 
 def GetTestCalendarClass():
@@ -111,10 +111,10 @@ def GetTestCalendarClass():
     return TestCalDialog
 
 
-####################################
-#
-# Video Control
-#
+# 036839.python.ocxtest.line114.comment ###################################
+# 036840.python.ocxtest.line115.comment
+# 036841.python.ocxtest.line116.comment Video Control
+# 036842.python.ocxtest.line117.comment
 def GetTestVideoModule():
     global videoControlModule, videoControlFileName
     win32ui.DoWaitCursor(1)
@@ -157,7 +157,7 @@ def GetTestVideoDialogClass():
                 return
 
             self.olectl.FileName = videoControlFileName
-            # 			self.olectl.Run()
+            # 036843.python.ocxtest.line160.comment self.olectl.Run()
             return rc
 
         def OnOK(self):
@@ -166,10 +166,10 @@ def GetTestVideoDialogClass():
     return TestVideoDialog
 
 
-###############
-#
-# An OCX in an MDI Frame
-#
+# 036844.python.ocxtest.line169.comment ##############
+# 036845.python.ocxtest.line170.comment
+# 036846.python.ocxtest.line171.comment An OCX in an MDI Frame
+# 036847.python.ocxtest.line172.comment
 class OCXFrame(window.MDIChildWnd):
     def __init__(self):
         pass  # Don't call base class doc/view version...

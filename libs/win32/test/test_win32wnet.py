@@ -38,7 +38,7 @@ NCB_attributes = [
     ("Retcode", int),
     ("Lsn", int),
     ("Num", int),
-    #    ("Bufflen", int), - read-only
+    # 048513.python.test_win32wnet.line41.comment ("Bufflen", int), - read-only
     ("Callname", str),
     ("Name", str),
     ("Rto", int),
@@ -64,7 +64,7 @@ class TestCase(unittest.TestCase):
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
-                    # must be string
+                    # 048514.python.test_win32wnet.line67.comment must be string
                     self.assertTrue(
                         isinstance(val, str), f"Attr {attr!r} has value {val!r}"
                     )
@@ -73,7 +73,7 @@ class TestCase(unittest.TestCase):
                     new_val = "new value"
             else:
                 self.fail(f"Don't know what {typ} is")
-            # set the attribute just to make sure we can.
+            # 048515.python.test_win32wnet.line76.comment set the attribute just to make sure we can.
             setattr(item, attr, new_val)
 
     def testNETRESOURCE(self):
@@ -97,7 +97,7 @@ class TestCase(unittest.TestCase):
         self._checkItemAttributes(ncb, NCB_attributes)
 
     def testNetbios(self):
-        # taken from the demo code in netbios.py
+        # 048516.python.test_win32wnet.line100.comment taken from the demo code in netbios.py
         ncb = win32wnet.NCB()
         ncb.Command = netbios.NCBENUM
         la_enum = netbios.LANA_ENUM()
@@ -117,7 +117,7 @@ class TestCase(unittest.TestCase):
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
             win32wnet.Netbios(ncb)
-            # expect 6 bytes in the mac address.
+            # 048517.python.test_win32wnet.line120.comment expect 6 bytes in the mac address.
             self.assertTrue(len(adapter.adapter_address), 6)
 
     def iterConnectableShares(self):

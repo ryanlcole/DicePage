@@ -86,15 +86,15 @@ class TextFile:
                 "you must supply either or both of 'filename' and 'file'"
             )
 
-        # set values for all options -- either from client option hash
-        # or fallback to default_options
+        # 041279.python.text_file.line89.comment set values for all options -- either from client option hash
+        # 041280.python.text_file.line90.comment or fallback to default_options
         for opt in self.default_options.keys():
             if opt in options:
                 setattr(self, opt, options[opt])
             else:
                 setattr(self, opt, self.default_options[opt])
 
-        # sanity check client option hash
+        # 041281.python.text_file.line97.comment sanity check client option hash
         for opt in options.keys():
             if opt not in self.default_options:
                 raise KeyError(f"invalid TextFile option '{opt}'")
@@ -106,9 +106,9 @@ class TextFile:
             self.file = file
             self.current_line = 0  # assuming that file is at BOF!
 
-        # 'linebuf' is a stack of lines that will be emptied before we
-        # actually read from the file; it's only populated by an
-        # 'unreadline()' operation
+        # 041283.python.text_file.line109.comment 'linebuf' is a stack of lines that will be emptied before we
+        # 041284.python.text_file.line110.comment actually read from the file; it's only populated by an
+        # 041285.python.text_file.line111.comment 'unreadline()' operation
         self.linebuf = []
 
     def open(self, filename):
@@ -162,10 +162,10 @@ class TextFile:
         line(s) just read.  Returns None on end-of-file, since the empty
         string can occur if 'rstrip_ws' is true but 'strip_blanks' is
         not."""
-        # If any "unread" lines waiting in 'linebuf', return the top
-        # one.  (We don't actually buffer read-ahead data -- lines only
-        # get put in 'linebuf' if the client explicitly does an
-        # 'unreadline()'.
+        # 041287.python.text_file.line165.comment If any "unread" lines waiting in 'linebuf', return the top
+        # 041288.python.text_file.line166.comment one.  (We don't actually buffer read-ahead data -- lines only
+        # 041289.python.text_file.line167.comment get put in 'linebuf' if the client explicitly does an
+        # 041290.python.text_file.line168.comment 'unreadline()'.
         if self.linebuf:
             line = self.linebuf[-1]
             del self.linebuf[-1]
@@ -174,51 +174,51 @@ class TextFile:
         buildup_line = ''
 
         while True:
-            # read the line, make it None if EOF
+            # 041291.python.text_file.line177.comment read the line, make it None if EOF
             line = self.file.readline()
             if line == '':
                 line = None
 
             if self.strip_comments and line:
-                # Look for the first "#" in the line.  If none, never
-                # mind.  If we find one and it's the first character, or
-                # is not preceded by "\", then it starts a comment --
-                # strip the comment, strip whitespace before it, and
-                # carry on.  Otherwise, it's just an escaped "#", so
-                # unescape it (and any other escaped "#"'s that might be
-                # lurking in there) and otherwise leave the line alone.
+                # 041292.python.text_file.line183.comment Look for the first "#" in the line.  If none, never
+                # 041293.python.text_file.line184.comment mind.  If we find one and it's the first character, or
+                # 041294.python.text_file.line185.comment is not preceded by "\", then it starts a comment --
+                # 041295.python.text_file.line186.comment strip the comment, strip whitespace before it, and
+                # 041296.python.text_file.line187.comment carry on.  Otherwise, it's just an escaped "#", so
+                # 041297.python.text_file.line188.comment unescape it (and any other escaped "#"'s that might be
+                # 041298.python.text_file.line189.comment lurking in there) and otherwise leave the line alone.
 
                 pos = line.find("#")
                 if pos == -1:  # no "#" -- no comments
                     pass
 
-                # It's definitely a comment -- either "#" is the first
-                # character, or it's elsewhere and unescaped.
+                # 041300.python.text_file.line195.comment It's definitely a comment -- either "#" is the first
+                # 041301.python.text_file.line196.comment character, or it's elsewhere and unescaped.
                 elif pos == 0 or line[pos - 1] != "\\":
-                    # Have to preserve the trailing newline, because it's
-                    # the job of a later step (rstrip_ws) to remove it --
-                    # and if rstrip_ws is false, we'd better preserve it!
-                    # (NB. this means that if the final line is all comment
-                    # and has no trailing newline, we will think that it's
-                    # EOF; I think that's OK.)
+                    # 041302.python.text_file.line198.comment Have to preserve the trailing newline, because it's
+                    # 041303.python.text_file.line199.comment the job of a later step (rstrip_ws) to remove it --
+                    # 041304.python.text_file.line200.comment and if rstrip_ws is false, we'd better preserve it!
+                    # 041305.python.text_file.line201.comment (NB. this means that if the final line is all comment
+                    # 041306.python.text_file.line202.comment and has no trailing newline, we will think that it's
+                    # 041307.python.text_file.line203.comment EOF; I think that's OK.)
                     eol = (line[-1] == '\n') and '\n' or ''
                     line = line[0:pos] + eol
 
-                    # If all that's left is whitespace, then skip line
-                    # *now*, before we try to join it to 'buildup_line' --
-                    # that way constructs like
-                    #   hello \\
-                    #   # comment that should be ignored
-                    #   there
-                    # result in "hello there".
+                    # 041308.python.text_file.line207.comment If all that's left is whitespace, then skip line
+                    # 041309.python.text_file.line208.comment *now*, before we try to join it to 'buildup_line' --
+                    # 041310.python.text_file.line209.comment that way constructs like
+                    # 041311.python.text_file.line210.comment hello \\
+                    # 041312.python.text_file.line211.comment # comment that should be ignored
+                    # 041313.python.text_file.line212.comment there
+                    # 041314.python.text_file.line213.comment result in "hello there".
                     if line.strip() == "":
                         continue
                 else:  # it's an escaped "#"
                     line = line.replace("\\#", "#")
 
-            # did previous line end with a backslash? then accumulate
+            # 041316.python.text_file.line219.comment did previous line end with a backslash? then accumulate
             if self.join_lines and buildup_line:
-                # oops: end of file
+                # 041317.python.text_file.line221.comment oops: end of file
                 if line is None:
                     self.warn("continuation line immediately precedes end-of-file")
                     return buildup_line
@@ -227,24 +227,24 @@ class TextFile:
                     line = line.lstrip()
                 line = buildup_line + line
 
-                # careful: pay attention to line number when incrementing it
+                # 041318.python.text_file.line230.comment careful: pay attention to line number when incrementing it
                 if isinstance(self.current_line, list):
                     self.current_line[1] = self.current_line[1] + 1
                 else:
                     self.current_line = [self.current_line, self.current_line + 1]
-            # just an ordinary line, read it as usual
+            # 041319.python.text_file.line235.comment just an ordinary line, read it as usual
             else:
                 if line is None:  # eof
                     return None
 
-                # still have to be careful about incrementing the line number!
+                # 041321.python.text_file.line240.comment still have to be careful about incrementing the line number!
                 if isinstance(self.current_line, list):
                     self.current_line = self.current_line[1] + 1
                 else:
                     self.current_line = self.current_line + 1
 
-            # strip whitespace however the client wants (leading and
-            # trailing, or one or the other, or neither)
+            # 041322.python.text_file.line246.comment strip whitespace however the client wants (leading and
+            # 041323.python.text_file.line247.comment trailing, or one or the other, or neither)
             if self.lstrip_ws and self.rstrip_ws:
                 line = line.strip()
             elif self.lstrip_ws:
@@ -252,8 +252,8 @@ class TextFile:
             elif self.rstrip_ws:
                 line = line.rstrip()
 
-            # blank line (whether we rstrip'ed or not)? skip to next line
-            # if appropriate
+            # 041324.python.text_file.line255.comment blank line (whether we rstrip'ed or not)? skip to next line
+            # 041325.python.text_file.line256.comment if appropriate
             if line in ('', '\n') and self.skip_blanks:
                 continue
 
@@ -266,7 +266,7 @@ class TextFile:
                     buildup_line = line[0:-2] + '\n'
                     continue
 
-            # well, I guess there's some actual content there: return it
+            # 041326.python.text_file.line269.comment well, I guess there's some actual content there: return it
             return line
 
     def readlines(self):

@@ -36,20 +36,20 @@ from .errors import (
     LinkError,
 )
 
-# XXX Things not currently handled:
-#   * optimization/debug/warning flags; we just use whatever's in Python's
-#     Makefile and live with it.  Is this adequate?  If not, we might
-#     have to have a bunch of subclasses GNUCCompiler, SGICCompiler,
-#     SunCCompiler, and I suspect down that road lies madness.
-#   * even if we don't know a warning flag from an optimization flag,
-#     we need some way for outsiders to feed preprocessor/compiler/linker
-#     flags in to us -- eg. a sysadmin might want to mandate certain flags
-#     via a site config file, or a user might want to set something for
-#     compiling this module distribution only via the setup.py command
-#     line, whatever.  As long as these options come from something on the
-#     current system, they can be as system-dependent as they like, and we
-#     should just happily stuff them into the preprocessor/compiler/linker
-#     options and carry on.
+# 040314.python.unix.line39.comment XXX Things not currently handled:
+# 040315.python.unix.line40.comment * optimization/debug/warning flags; we just use whatever's in Python's
+# 040316.python.unix.line41.comment Makefile and live with it.  Is this adequate?  If not, we might
+# 040317.python.unix.line42.comment have to have a bunch of subclasses GNUCCompiler, SGICCompiler,
+# 040318.python.unix.line43.comment SunCCompiler, and I suspect down that road lies madness.
+# 040319.python.unix.line44.comment * even if we don't know a warning flag from an optimization flag,
+# 040320.python.unix.line45.comment we need some way for outsiders to feed preprocessor/compiler/linker
+# 040321.python.unix.line46.comment flags in to us -- eg. a sysadmin might want to mandate certain flags
+# 040322.python.unix.line47.comment via a site config file, or a user might want to set something for
+# 040323.python.unix.line48.comment compiling this module distribution only via the setup.py command
+# 040324.python.unix.line49.comment line, whatever.  As long as these options come from something on the
+# 040325.python.unix.line50.comment current system, they can be as system-dependent as they like, and we
+# 040326.python.unix.line51.comment should just happily stuff them into the preprocessor/compiler/linker
+# 040327.python.unix.line52.comment options and carry on.
 
 
 def _split_env(cmd):
@@ -115,12 +115,12 @@ def _linker_params(linker_cmd, compiler_cmd):
 class Compiler(base.Compiler):
     compiler_type = 'unix'
 
-    # These are used by CCompiler in two places: the constructor sets
-    # instance attributes 'preprocessor', 'compiler', etc. from them, and
-    # 'set_executable()' allows any of these to be set.  The defaults here
-    # are pretty generic; they will probably have to be set by an outsider
-    # (eg. using information discovered by the sysconfig about building
-    # Python extensions).
+    # 040328.python.unix.line118.comment These are used by CCompiler in two places: the constructor sets
+    # 040329.python.unix.line119.comment instance attributes 'preprocessor', 'compiler', etc. from them, and
+    # 040330.python.unix.line120.comment 'set_executable()' allows any of these to be set.  The defaults here
+    # 040331.python.unix.line121.comment are pretty generic; they will probably have to be set by an outsider
+    # 040332.python.unix.line122.comment (eg. using information discovered by the sysconfig about building
+    # 040333.python.unix.line123.comment Python extensions).
     executables = {
         'preprocessor': None,
         'compiler': ["cc"],
@@ -138,11 +138,11 @@ class Compiler(base.Compiler):
     if sys.platform[:6] == "darwin":
         executables['ranlib'] = ["ranlib"]
 
-    # Needed for the filename generation methods provided by the base
-    # class, CCompiler.  NB. whoever instantiates/uses a particular
-    # UnixCCompiler instance should set 'shared_lib_ext' -- we set a
-    # reasonable common default here, but it's not necessarily used on all
-    # Unices!
+    # 040334.python.unix.line141.comment Needed for the filename generation methods provided by the base
+    # 040335.python.unix.line142.comment class, CCompiler.  NB. whoever instantiates/uses a particular
+    # 040336.python.unix.line143.comment UnixCCompiler instance should set 'shared_lib_ext' -- we set a
+    # 040337.python.unix.line144.comment reasonable common default here, but it's not necessarily used on all
+    # 040338.python.unix.line145.comment Unices!
 
     src_extensions = [".c", ".C", ".cc", ".cxx", ".cpp", ".m"]
     obj_extension = ".o"
@@ -193,10 +193,10 @@ class Compiler(base.Compiler):
             pp_args.extend(extra_postargs)
         pp_args.append(source)
 
-        # reasons to preprocess:
-        # - force is indicated
-        # - output is directed to stdout
-        # - source file is newer than the target
+        # 040339.python.unix.line196.comment reasons to preprocess:
+        # 040340.python.unix.line197.comment - force is indicated
+        # 040341.python.unix.line198.comment - output is directed to stdout
+        # 040342.python.unix.line199.comment - source file is newer than the target
         preprocess = self.force or output_file is None or newer(source, output_file)
         if not preprocess:
             return
@@ -233,11 +233,11 @@ class Compiler(base.Compiler):
             self.mkpath(os.path.dirname(output_filename))
             self.spawn(self.archiver + [output_filename] + objects + self.objects)
 
-            # Not many Unices required ranlib anymore -- SunOS 4.x is, I
-            # think the only major Unix that does.  Maybe we need some
-            # platform intelligence here to skip ranlib if it's not
-            # needed -- or maybe Python's configure script took care of
-            # it for us, hence the check for leading colon.
+            # 040343.python.unix.line236.comment Not many Unices required ranlib anymore -- SunOS 4.x is, I
+            # 040344.python.unix.line237.comment think the only major Unix that does.  Maybe we need some
+            # 040345.python.unix.line238.comment platform intelligence here to skip ranlib if it's not
+            # 040346.python.unix.line239.comment needed -- or maybe Python's configure script took care of
+            # 040347.python.unix.line240.comment it for us, hence the check for leading colon.
             if self.ranlib:
                 try:
                     self.spawn(self.ranlib + [output_filename])
@@ -282,9 +282,9 @@ class Compiler(base.Compiler):
                 ld_args.extend(extra_postargs)
             self.mkpath(os.path.dirname(output_filename))
             try:
-                # Select a linker based on context: linker_exe when
-                # building an executable or linker_so (with shared options)
-                # when building a shared library.
+                # 040348.python.unix.line285.comment Select a linker based on context: linker_exe when
+                # 040349.python.unix.line286.comment building an executable or linker_so (with shared options)
+                # 040350.python.unix.line287.comment when building a shared library.
                 building_exe = target_desc == base.Compiler.EXECUTABLE
                 target_cxx = target_lang == "c++"
                 linker = (
@@ -310,9 +310,9 @@ class Compiler(base.Compiler):
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-    # -- Miscellaneous methods -----------------------------------------
-    # These are all used by the 'gen_lib_options() function, in
-    # ccompiler.py.
+    # 040351.python.unix.line313.comment -- Miscellaneous methods -----------------------------------------
+    # 040352.python.unix.line314.comment These are all used by the 'gen_lib_options() function, in
+    # 040353.python.unix.line315.comment ccompiler.py.
 
     def library_dir_option(self, dir):
         return "-L" + dir
@@ -323,18 +323,18 @@ class Compiler(base.Compiler):
         return "gcc" in compiler or "g++" in compiler
 
     def runtime_library_dir_option(self, dir: str) -> str | list[str]:  # type: ignore[override] # Fixed in pypa/distutils#339
-        # XXX Hackish, at the very least.  See Python bug #445902:
-        # https://bugs.python.org/issue445902
-        # Linkers on different platforms need different options to
-        # specify that directories need to be added to the list of
-        # directories searched for dependencies when a dynamic library
-        # is sought.  GCC on GNU systems (Linux, FreeBSD, ...) has to
-        # be told to pass the -R option through to the linker, whereas
-        # other compilers and gcc on other systems just know this.
-        # Other compilers may need something slightly different.  At
-        # this time, there's no way to determine this information from
-        # the configuration data stored in the Python installation, so
-        # we use this hack.
+        # 040355.python.unix.line326.comment XXX Hackish, at the very least.  See Python bug #445902:
+        # 040356.python.unix.line327.comment https://bugs.python.org/issue445902
+        # 040357.python.unix.line328.comment Linkers on different platforms need different options to
+        # 040358.python.unix.line329.comment specify that directories need to be added to the list of
+        # 040359.python.unix.line330.comment directories searched for dependencies when a dynamic library
+        # 040360.python.unix.line331.comment is sought.  GCC on GNU systems (Linux, FreeBSD, ...) has to
+        # 040361.python.unix.line332.comment be told to pass the -R option through to the linker, whereas
+        # 040362.python.unix.line333.comment other compilers and gcc on other systems just know this.
+        # 040363.python.unix.line334.comment Other compilers may need something slightly different.  At
+        # 040364.python.unix.line335.comment this time, there's no way to determine this information from
+        # 040365.python.unix.line336.comment the configuration data stored in the Python installation, so
+        # 040366.python.unix.line337.comment we use this hack.
         if sys.platform[:6] == "darwin":
             from distutils.util import get_macosx_target_ver, split_version
 
@@ -351,11 +351,11 @@ class Compiler(base.Compiler):
                 "-L" + dir,
             ]
 
-        # For all compilers, `-Wl` is the presumed way to pass a
-        # compiler option to the linker
+        # 040368.python.unix.line354.comment For all compilers, `-Wl` is the presumed way to pass a
+        # 040369.python.unix.line355.comment compiler option to the linker
         if sysconfig.get_config_var("GNULD") == "yes":
             return consolidate_linker_args([
-                # Force RUNPATH instead of RPATH
+                # 040370.python.unix.line358.comment Force RUNPATH instead of RPATH
                 "-Wl,--enable-new-dtags",
                 "-Wl,-rpath," + dir,
             ])
@@ -418,5 +418,5 @@ class Compiler(base.Compiler):
 
         found = filter(os.path.exists, searched)
 
-        # Return None if it could not be found in any dir.
+        # 040371.python.unix.line421.comment Return None if it could not be found in any dir.
         return next(found, None)

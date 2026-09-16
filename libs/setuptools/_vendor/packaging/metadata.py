@@ -57,10 +57,10 @@ class InvalidMetadata(ValueError):
         super().__init__(message)
 
 
-# The RawMetadata class attempts to make as few assumptions about the underlying
-# serialization formats as possible. The idea is that as long as a serialization
-# formats offer some very basic primitives in *some* way then we can support
-# serializing to and from that format.
+# 042724.python.metadata.line60.comment The RawMetadata class attempts to make as few assumptions about the underlying
+# 042725.python.metadata.line61.comment serialization formats as possible. The idea is that as long as a serialization
+# 042726.python.metadata.line62.comment formats offer some very basic primitives in *some* way then we can support
+# 042727.python.metadata.line63.comment serializing to and from that format.
 class RawMetadata(TypedDict, total=False):
     """A dictionary of raw core metadata.
 
@@ -77,7 +77,7 @@ class RawMetadata(TypedDict, total=False):
 
     """
 
-    # Metadata 1.0 - PEP 241
+    # 042728.python.metadata.line80.comment Metadata 1.0 - PEP 241
     metadata_version: str
     name: str
     version: str
@@ -90,7 +90,7 @@ class RawMetadata(TypedDict, total=False):
     author_email: str
     license: str
 
-    # Metadata 1.1 - PEP 314
+    # 042729.python.metadata.line93.comment Metadata 1.1 - PEP 314
     supported_platforms: list[str]
     download_url: str
     classifiers: list[str]
@@ -98,7 +98,7 @@ class RawMetadata(TypedDict, total=False):
     provides: list[str]
     obsoletes: list[str]
 
-    # Metadata 1.2 - PEP 345
+    # 042730.python.metadata.line101.comment Metadata 1.2 - PEP 345
     maintainer: str
     maintainer_email: str
     requires_dist: list[str]
@@ -108,27 +108,27 @@ class RawMetadata(TypedDict, total=False):
     requires_external: list[str]
     project_urls: dict[str, str]
 
-    # Metadata 2.0
-    # PEP 426 attempted to completely revamp the metadata format
-    # but got stuck without ever being able to build consensus on
-    # it and ultimately ended up withdrawn.
-    #
-    # However, a number of tools had started emitting METADATA with
-    # `2.0` Metadata-Version, so for historical reasons, this version
-    # was skipped.
+    # 042731.python.metadata.line111.comment Metadata 2.0
+    # 042732.python.metadata.line112.comment PEP 426 attempted to completely revamp the metadata format
+    # 042733.python.metadata.line113.comment but got stuck without ever being able to build consensus on
+    # 042734.python.metadata.line114.comment it and ultimately ended up withdrawn.
+    # 042735.python.metadata.line115.comment
+    # 042736.python.metadata.line116.comment However, a number of tools had started emitting METADATA with
+    # 042737.python.metadata.line117.comment `2.0` Metadata-Version, so for historical reasons, this version
+    # 042738.python.metadata.line118.comment was skipped.
 
-    # Metadata 2.1 - PEP 566
+    # 042739.python.metadata.line120.comment Metadata 2.1 - PEP 566
     description_content_type: str
     provides_extra: list[str]
 
-    # Metadata 2.2 - PEP 643
+    # 042740.python.metadata.line124.comment Metadata 2.2 - PEP 643
     dynamic: list[str]
 
-    # Metadata 2.3 - PEP 685
-    # No new fields were added in PEP 685, just some edge case were
-    # tightened up to provide better interoptability.
+    # 042741.python.metadata.line127.comment Metadata 2.3 - PEP 685
+    # 042742.python.metadata.line128.comment No new fields were added in PEP 685, just some edge case were
+    # 042743.python.metadata.line129.comment tightened up to provide better interoptability.
 
-    # Metadata 2.4 - PEP 639
+    # 042744.python.metadata.line131.comment Metadata 2.4 - PEP 639
     license_expression: str
     license_files: list[str]
 
@@ -181,36 +181,36 @@ def _parse_project_urls(data: list[str]) -> dict[str, str]:
     """Parse a list of label/URL string pairings separated by a comma."""
     urls = {}
     for pair in data:
-        # Our logic is slightly tricky here as we want to try and do
-        # *something* reasonable with malformed data.
-        #
-        # The main thing that we have to worry about, is data that does
-        # not have a ',' at all to split the label from the Value. There
-        # isn't a singular right answer here, and we will fail validation
-        # later on (if the caller is validating) so it doesn't *really*
-        # matter, but since the missing value has to be an empty str
-        # and our return value is dict[str, str], if we let the key
-        # be the missing value, then they'd have multiple '' values that
-        # overwrite each other in a accumulating dict.
-        #
-        # The other potentional issue is that it's possible to have the
-        # same label multiple times in the metadata, with no solid "right"
-        # answer with what to do in that case. As such, we'll do the only
-        # thing we can, which is treat the field as unparseable and add it
-        # to our list of unparsed fields.
+        # 042745.python.metadata.line184.comment Our logic is slightly tricky here as we want to try and do
+        # 042746.python.metadata.line185.comment *something* reasonable with malformed data.
+        # 042747.python.metadata.line186.comment
+        # 042748.python.metadata.line187.comment The main thing that we have to worry about, is data that does
+        # 042749.python.metadata.line188.comment not have a ',' at all to split the label from the Value. There
+        # 042750.python.metadata.line189.comment isn't a singular right answer here, and we will fail validation
+        # 042751.python.metadata.line190.comment later on (if the caller is validating) so it doesn't *really*
+        # 042752.python.metadata.line191.comment matter, but since the missing value has to be an empty str
+        # 042753.python.metadata.line192.comment and our return value is dict[str, str], if we let the key
+        # 042754.python.metadata.line193.comment be the missing value, then they'd have multiple '' values that
+        # 042755.python.metadata.line194.comment overwrite each other in a accumulating dict.
+        # 042756.python.metadata.line195.comment
+        # 042757.python.metadata.line196.comment The other potentional issue is that it's possible to have the
+        # 042758.python.metadata.line197.comment same label multiple times in the metadata, with no solid "right"
+        # 042759.python.metadata.line198.comment answer with what to do in that case. As such, we'll do the only
+        # 042760.python.metadata.line199.comment thing we can, which is treat the field as unparseable and add it
+        # 042761.python.metadata.line200.comment to our list of unparsed fields.
         parts = [p.strip() for p in pair.split(",", 1)]
         parts.extend([""] * (max(0, 2 - len(parts))))  # Ensure 2 items
 
-        # TODO: The spec doesn't say anything about if the keys should be
-        #       considered case sensitive or not... logically they should
-        #       be case-preserving and case-insensitive, but doing that
-        #       would open up more cases where we might have duplicate
-        #       entries.
+        # 042763.python.metadata.line204.comment TODO: The spec doesn't say anything about if the keys should be
+        # 042764.python.metadata.line205.comment considered case sensitive or not... logically they should
+        # 042765.python.metadata.line206.comment be case-preserving and case-insensitive, but doing that
+        # 042766.python.metadata.line207.comment would open up more cases where we might have duplicate
+        # 042767.python.metadata.line208.comment entries.
         label, url = parts
         if label in urls:
-            # The label already exists in our set of urls, so this field
-            # is unparseable, and we can just add the whole thing to our
-            # unparseable data and stop processing it.
+            # 042768.python.metadata.line211.comment The label already exists in our set of urls, so this field
+            # 042769.python.metadata.line212.comment is unparseable, and we can just add the whole thing to our
+            # 042770.python.metadata.line213.comment unparseable data and stop processing it.
             raise KeyError("duplicate labels in project urls")
         urls[label] = url
 
@@ -219,14 +219,14 @@ def _parse_project_urls(data: list[str]) -> dict[str, str]:
 
 def _get_payload(msg: email.message.Message, source: bytes | str) -> str:
     """Get the body of the message."""
-    # If our source is a str, then our caller has managed encodings for us,
-    # and we don't need to deal with it.
+    # 042771.python.metadata.line222.comment If our source is a str, then our caller has managed encodings for us,
+    # 042772.python.metadata.line223.comment and we don't need to deal with it.
     if isinstance(source, str):
         payload = msg.get_payload()
         assert isinstance(payload, str)
         return payload
-    # If our source is a bytes, then we're managing the encoding and we need
-    # to deal with it.
+    # 042773.python.metadata.line228.comment If our source is a bytes, then we're managing the encoding and we need
+    # 042774.python.metadata.line229.comment to deal with it.
     else:
         bpayload = msg.get_payload(decode=True)
         assert isinstance(bpayload, bytes)
@@ -236,18 +236,18 @@ def _get_payload(msg: email.message.Message, source: bytes | str) -> str:
             raise ValueError("payload in an invalid encoding") from exc
 
 
-# The various parse_FORMAT functions here are intended to be as lenient as
-# possible in their parsing, while still returning a correctly typed
-# RawMetadata.
-#
-# To aid in this, we also generally want to do as little touching of the
-# data as possible, except where there are possibly some historic holdovers
-# that make valid data awkward to work with.
-#
-# While this is a lower level, intermediate format than our ``Metadata``
-# class, some light touch ups can make a massive difference in usability.
+# 042775.python.metadata.line239.comment The various parse_FORMAT functions here are intended to be as lenient as
+# 042776.python.metadata.line240.comment possible in their parsing, while still returning a correctly typed
+# 042777.python.metadata.line241.comment RawMetadata.
+# 042778.python.metadata.line242.comment
+# 042779.python.metadata.line243.comment To aid in this, we also generally want to do as little touching of the
+# 042780.python.metadata.line244.comment data as possible, except where there are possibly some historic holdovers
+# 042781.python.metadata.line245.comment that make valid data awkward to work with.
+# 042782.python.metadata.line246.comment
+# 042783.python.metadata.line247.comment While this is a lower level, intermediate format than our ``Metadata``
+# 042784.python.metadata.line248.comment class, some light touch ups can make a massive difference in usability.
 
-# Map METADATA fields to RawMetadata.
+# 042785.python.metadata.line250.comment Map METADATA fields to RawMetadata.
 _EMAIL_TO_RAW_MAPPING = {
     "author": "author",
     "author-email": "author_email",
@@ -307,131 +307,131 @@ def parse_email(data: bytes | str) -> tuple[RawMetadata, dict[str, list[str]]]:
     else:
         parsed = email.parser.BytesParser(policy=email.policy.compat32).parsebytes(data)
 
-    # We have to wrap parsed.keys() in a set, because in the case of multiple
-    # values for a key (a list), the key will appear multiple times in the
-    # list of keys, but we're avoiding that by using get_all().
+    # 042786.python.metadata.line310.comment We have to wrap parsed.keys() in a set, because in the case of multiple
+    # 042787.python.metadata.line311.comment values for a key (a list), the key will appear multiple times in the
+    # 042788.python.metadata.line312.comment list of keys, but we're avoiding that by using get_all().
     for name in frozenset(parsed.keys()):
-        # Header names in RFC are case insensitive, so we'll normalize to all
-        # lower case to make comparisons easier.
+        # 042789.python.metadata.line314.comment Header names in RFC are case insensitive, so we'll normalize to all
+        # 042790.python.metadata.line315.comment lower case to make comparisons easier.
         name = name.lower()
 
-        # We use get_all() here, even for fields that aren't multiple use,
-        # because otherwise someone could have e.g. two Name fields, and we
-        # would just silently ignore it rather than doing something about it.
+        # 042791.python.metadata.line318.comment We use get_all() here, even for fields that aren't multiple use,
+        # 042792.python.metadata.line319.comment because otherwise someone could have e.g. two Name fields, and we
+        # 042793.python.metadata.line320.comment would just silently ignore it rather than doing something about it.
         headers = parsed.get_all(name) or []
 
-        # The way the email module works when parsing bytes is that it
-        # unconditionally decodes the bytes as ascii using the surrogateescape
-        # handler. When you pull that data back out (such as with get_all() ),
-        # it looks to see if the str has any surrogate escapes, and if it does
-        # it wraps it in a Header object instead of returning the string.
-        #
-        # As such, we'll look for those Header objects, and fix up the encoding.
+        # 042794.python.metadata.line323.comment The way the email module works when parsing bytes is that it
+        # 042795.python.metadata.line324.comment unconditionally decodes the bytes as ascii using the surrogateescape
+        # 042796.python.metadata.line325.comment handler. When you pull that data back out (such as with get_all() ),
+        # 042797.python.metadata.line326.comment it looks to see if the str has any surrogate escapes, and if it does
+        # 042798.python.metadata.line327.comment it wraps it in a Header object instead of returning the string.
+        # 042799.python.metadata.line328.comment
+        # 042800.python.metadata.line329.comment As such, we'll look for those Header objects, and fix up the encoding.
         value = []
-        # Flag if we have run into any issues processing the headers, thus
-        # signalling that the data belongs in 'unparsed'.
+        # 042801.python.metadata.line331.comment Flag if we have run into any issues processing the headers, thus
+        # 042802.python.metadata.line332.comment signalling that the data belongs in 'unparsed'.
         valid_encoding = True
         for h in headers:
-            # It's unclear if this can return more types than just a Header or
-            # a str, so we'll just assert here to make sure.
+            # 042803.python.metadata.line335.comment It's unclear if this can return more types than just a Header or
+            # 042804.python.metadata.line336.comment a str, so we'll just assert here to make sure.
             assert isinstance(h, (email.header.Header, str))
 
-            # If it's a header object, we need to do our little dance to get
-            # the real data out of it. In cases where there is invalid data
-            # we're going to end up with mojibake, but there's no obvious, good
-            # way around that without reimplementing parts of the Header object
-            # ourselves.
-            #
-            # That should be fine since, if mojibacked happens, this key is
-            # going into the unparsed dict anyways.
+            # 042805.python.metadata.line339.comment If it's a header object, we need to do our little dance to get
+            # 042806.python.metadata.line340.comment the real data out of it. In cases where there is invalid data
+            # 042807.python.metadata.line341.comment we're going to end up with mojibake, but there's no obvious, good
+            # 042808.python.metadata.line342.comment way around that without reimplementing parts of the Header object
+            # 042809.python.metadata.line343.comment ourselves.
+            # 042810.python.metadata.line344.comment
+            # 042811.python.metadata.line345.comment That should be fine since, if mojibacked happens, this key is
+            # 042812.python.metadata.line346.comment going into the unparsed dict anyways.
             if isinstance(h, email.header.Header):
-                # The Header object stores it's data as chunks, and each chunk
-                # can be independently encoded, so we'll need to check each
-                # of them.
+                # 042813.python.metadata.line348.comment The Header object stores it's data as chunks, and each chunk
+                # 042814.python.metadata.line349.comment can be independently encoded, so we'll need to check each
+                # 042815.python.metadata.line350.comment of them.
                 chunks: list[tuple[bytes, str | None]] = []
                 for bin, encoding in email.header.decode_header(h):
                     try:
                         bin.decode("utf8", "strict")
                     except UnicodeDecodeError:
-                        # Enable mojibake.
+                        # 042816.python.metadata.line356.comment Enable mojibake.
                         encoding = "latin1"
                         valid_encoding = False
                     else:
                         encoding = "utf8"
                     chunks.append((bin, encoding))
 
-                # Turn our chunks back into a Header object, then let that
-                # Header object do the right thing to turn them into a
-                # string for us.
+                # 042817.python.metadata.line363.comment Turn our chunks back into a Header object, then let that
+                # 042818.python.metadata.line364.comment Header object do the right thing to turn them into a
+                # 042819.python.metadata.line365.comment string for us.
                 value.append(str(email.header.make_header(chunks)))
-            # This is already a string, so just add it.
+            # 042820.python.metadata.line367.comment This is already a string, so just add it.
             else:
                 value.append(h)
 
-        # We've processed all of our values to get them into a list of str,
-        # but we may have mojibake data, in which case this is an unparsed
-        # field.
+        # 042821.python.metadata.line371.comment We've processed all of our values to get them into a list of str,
+        # 042822.python.metadata.line372.comment but we may have mojibake data, in which case this is an unparsed
+        # 042823.python.metadata.line373.comment field.
         if not valid_encoding:
             unparsed[name] = value
             continue
 
         raw_name = _EMAIL_TO_RAW_MAPPING.get(name)
         if raw_name is None:
-            # This is a bit of a weird situation, we've encountered a key that
-            # we don't know what it means, so we don't know whether it's meant
-            # to be a list or not.
-            #
-            # Since we can't really tell one way or another, we'll just leave it
-            # as a list, even though it may be a single item list, because that's
-            # what makes the most sense for email headers.
+            # 042824.python.metadata.line380.comment This is a bit of a weird situation, we've encountered a key that
+            # 042825.python.metadata.line381.comment we don't know what it means, so we don't know whether it's meant
+            # 042826.python.metadata.line382.comment to be a list or not.
+            # 042827.python.metadata.line383.comment
+            # 042828.python.metadata.line384.comment Since we can't really tell one way or another, we'll just leave it
+            # 042829.python.metadata.line385.comment as a list, even though it may be a single item list, because that's
+            # 042830.python.metadata.line386.comment what makes the most sense for email headers.
             unparsed[name] = value
             continue
 
-        # If this is one of our string fields, then we'll check to see if our
-        # value is a list of a single item. If it is then we'll assume that
-        # it was emitted as a single string, and unwrap the str from inside
-        # the list.
-        #
-        # If it's any other kind of data, then we haven't the faintest clue
-        # what we should parse it as, and we have to just add it to our list
-        # of unparsed stuff.
+        # 042831.python.metadata.line390.comment If this is one of our string fields, then we'll check to see if our
+        # 042832.python.metadata.line391.comment value is a list of a single item. If it is then we'll assume that
+        # 042833.python.metadata.line392.comment it was emitted as a single string, and unwrap the str from inside
+        # 042834.python.metadata.line393.comment the list.
+        # 042835.python.metadata.line394.comment
+        # 042836.python.metadata.line395.comment If it's any other kind of data, then we haven't the faintest clue
+        # 042837.python.metadata.line396.comment what we should parse it as, and we have to just add it to our list
+        # 042838.python.metadata.line397.comment of unparsed stuff.
         if raw_name in _STRING_FIELDS and len(value) == 1:
             raw[raw_name] = value[0]
-        # If this is one of our list of string fields, then we can just assign
-        # the value, since email *only* has strings, and our get_all() call
-        # above ensures that this is a list.
+        # 042839.python.metadata.line400.comment If this is one of our list of string fields, then we can just assign
+        # 042840.python.metadata.line401.comment the value, since email *only* has strings, and our get_all() call
+        # 042841.python.metadata.line402.comment above ensures that this is a list.
         elif raw_name in _LIST_FIELDS:
             raw[raw_name] = value
-        # Special Case: Keywords
-        # The keywords field is implemented in the metadata spec as a str,
-        # but it conceptually is a list of strings, and is serialized using
-        # ", ".join(keywords), so we'll do some light data massaging to turn
-        # this into what it logically is.
+        # 042842.python.metadata.line405.comment Special Case: Keywords
+        # 042843.python.metadata.line406.comment The keywords field is implemented in the metadata spec as a str,
+        # 042844.python.metadata.line407.comment but it conceptually is a list of strings, and is serialized using
+        # 042845.python.metadata.line408.comment ", ".join(keywords), so we'll do some light data massaging to turn
+        # 042846.python.metadata.line409.comment this into what it logically is.
         elif raw_name == "keywords" and len(value) == 1:
             raw[raw_name] = _parse_keywords(value[0])
-        # Special Case: Project-URL
-        # The project urls is implemented in the metadata spec as a list of
-        # specially-formatted strings that represent a key and a value, which
-        # is fundamentally a mapping, however the email format doesn't support
-        # mappings in a sane way, so it was crammed into a list of strings
-        # instead.
-        #
-        # We will do a little light data massaging to turn this into a map as
-        # it logically should be.
+        # 042847.python.metadata.line412.comment Special Case: Project-URL
+        # 042848.python.metadata.line413.comment The project urls is implemented in the metadata spec as a list of
+        # 042849.python.metadata.line414.comment specially-formatted strings that represent a key and a value, which
+        # 042850.python.metadata.line415.comment is fundamentally a mapping, however the email format doesn't support
+        # 042851.python.metadata.line416.comment mappings in a sane way, so it was crammed into a list of strings
+        # 042852.python.metadata.line417.comment instead.
+        # 042853.python.metadata.line418.comment
+        # 042854.python.metadata.line419.comment We will do a little light data massaging to turn this into a map as
+        # 042855.python.metadata.line420.comment it logically should be.
         elif raw_name == "project_urls":
             try:
                 raw[raw_name] = _parse_project_urls(value)
             except KeyError:
                 unparsed[name] = value
-        # Nothing that we've done has managed to parse this, so it'll just
-        # throw it in our unparseable data and move on.
+        # 042856.python.metadata.line426.comment Nothing that we've done has managed to parse this, so it'll just
+        # 042857.python.metadata.line427.comment throw it in our unparseable data and move on.
         else:
             unparsed[name] = value
 
-    # We need to support getting the Description from the message payload in
-    # addition to getting it from the the headers. This does mean, though, there
-    # is the possibility of it being set both ways, in which case we put both
-    # in 'unparsed' since we don't know which is right.
+    # 042858.python.metadata.line431.comment We need to support getting the Description from the message payload in
+    # 042859.python.metadata.line432.comment addition to getting it from the the headers. This does mean, though, there
+    # 042860.python.metadata.line433.comment is the possibility of it being set both ways, in which case we put both
+    # 042861.python.metadata.line434.comment in 'unparsed' since we don't know which is right.
     try:
         payload = _get_payload(parsed, data)
     except ValueError:
@@ -440,8 +440,8 @@ def parse_email(data: bytes | str) -> tuple[RawMetadata, dict[str, list[str]]]:
         )
     else:
         if payload:
-            # Check to see if we've already got a description, if so then both
-            # it, and this body move to unparseable.
+            # 042863.python.metadata.line443.comment Check to see if we've already got a description, if so then both
+            # 042864.python.metadata.line444.comment it, and this body move to unparseable.
             if "description" in raw:
                 description_header = cast(str, raw.pop("description"))
                 unparsed.setdefault("description", []).extend(
@@ -452,17 +452,17 @@ def parse_email(data: bytes | str) -> tuple[RawMetadata, dict[str, list[str]]]:
             else:
                 raw["description"] = payload
 
-    # We need to cast our `raw` to a metadata, because a TypedDict only support
-    # literal key names, but we're computing our key names on purpose, but the
-    # way this function is implemented, our `TypedDict` can only have valid key
-    # names.
+    # 042865.python.metadata.line455.comment We need to cast our `raw` to a metadata, because a TypedDict only support
+    # 042866.python.metadata.line456.comment literal key names, but we're computing our key names on purpose, but the
+    # 042867.python.metadata.line457.comment way this function is implemented, our `TypedDict` can only have valid key
+    # 042868.python.metadata.line458.comment names.
     return cast(RawMetadata, raw), unparsed
 
 
 _NOT_FOUND = object()
 
 
-# Keep the two values in sync.
+# 042869.python.metadata.line465.comment Keep the two values in sync.
 _VALID_METADATA_VERSIONS = ["1.0", "1.1", "1.2", "2.1", "2.2", "2.3", "2.4"]
 _MetadataVersion = Literal["1.0", "1.1", "1.2", "2.1", "2.2", "2.3", "2.4"]
 
@@ -495,16 +495,16 @@ class _Validator(Generic[T]):
         self.raw_name = _RAW_TO_EMAIL_MAPPING[name]
 
     def __get__(self, instance: Metadata, _owner: type[Metadata]) -> T:
-        # With Python 3.8, the caching can be replaced with functools.cached_property().
-        # No need to check the cache as attribute lookup will resolve into the
-        # instance's __dict__ before __get__ is called.
+        # 042870.python.metadata.line498.comment With Python 3.8, the caching can be replaced with functools.cached_property().
+        # 042871.python.metadata.line499.comment No need to check the cache as attribute lookup will resolve into the
+        # 042872.python.metadata.line500.comment instance's __dict__ before __get__ is called.
         cache = instance.__dict__
         value = instance._raw.get(self.name)
 
-        # To make the _process_* methods easier, we'll check if the value is None
-        # and if this field is NOT a required attribute, and if both of those
-        # things are true, we'll skip the the converter. This will mean that the
-        # converters never have to deal with the None union.
+        # 042873.python.metadata.line504.comment To make the _process_* methods easier, we'll check if the value is None
+        # 042874.python.metadata.line505.comment and if this field is NOT a required attribute, and if both of those
+        # 042875.python.metadata.line506.comment things are true, we'll skip the the converter. This will mean that the
+        # 042876.python.metadata.line507.comment converters never have to deal with the None union.
         if self.name in _REQUIRED_ATTRS or value is not None:
             try:
                 converter: Callable[[Any], T] = getattr(self, f"_process_{self.name}")
@@ -531,7 +531,7 @@ class _Validator(Generic[T]):
         return exc
 
     def _process_metadata_version(self, value: str) -> _MetadataVersion:
-        # Implicitly makes Metadata-Version required.
+        # 042878.python.metadata.line534.comment Implicitly makes Metadata-Version required.
         if value not in _VALID_METADATA_VERSIONS:
             raise self._invalid_metadata(f"{value!r} is not a valid metadata version")
         return cast(_MetadataVersion, value)
@@ -539,7 +539,7 @@ class _Validator(Generic[T]):
     def _process_name(self, value: str) -> str:
         if not value:
             raise self._invalid_metadata("{field} is a required field")
-        # Validate the name as a side-effect.
+        # 042879.python.metadata.line542.comment Validate the name as a side-effect.
         try:
             utils.canonicalize_name(value, validate=True)
         except utils.InvalidName as exc:
@@ -571,12 +571,12 @@ class _Validator(Generic[T]):
         message["content-type"] = value
 
         content_type, parameters = (
-            # Defaults to `text/plain` if parsing failed.
+            # 042880.python.metadata.line574.comment Defaults to `text/plain` if parsing failed.
             message.get_content_type().lower(),
             message["content-type"].params,
         )
-        # Check if content-type is valid or defaulted to `text/plain` and thus was
-        # not parseable.
+        # 042881.python.metadata.line578.comment Check if content-type is valid or defaulted to `text/plain` and thus was
+        # 042882.python.metadata.line579.comment not parseable.
         if content_type not in content_types or content_type not in value.lower():
             raise self._invalid_metadata(
                 f"{{field}} must be one of {list(content_types)}, not {value!r}"
@@ -715,17 +715,17 @@ class Metadata:
                 exceptions.append(metadata_version_exc)
                 metadata_version = None
 
-            # Make sure to check for the fields that are present, the required
-            # fields (so their absence can be reported).
+            # 042885.python.metadata.line718.comment Make sure to check for the fields that are present, the required
+            # 042886.python.metadata.line719.comment fields (so their absence can be reported).
             fields_to_check = frozenset(ins._raw) | _REQUIRED_ATTRS
-            # Remove fields that have already been checked.
+            # 042887.python.metadata.line721.comment Remove fields that have already been checked.
             fields_to_check -= {"metadata_version"}
 
             for key in fields_to_check:
                 try:
                     if metadata_version:
-                        # Can't use getattr() as that triggers descriptor protocol which
-                        # will fail due to no value for the instance argument.
+                        # 042888.python.metadata.line727.comment Can't use getattr() as that triggers descriptor protocol which
+                        # 042889.python.metadata.line728.comment will fail due to no value for the instance argument.
                         try:
                             field_metadata_version = cls.__dict__[key].added
                         except KeyError:
@@ -784,8 +784,8 @@ class Metadata:
     metadata_version: _Validator[_MetadataVersion] = _Validator()
     """:external:ref:`core-metadata-metadata-version`
     (required; validated to be a valid metadata version)"""
-    # `name` is not normalized/typed to NormalizedName so as to provide access to
-    # the original/raw name.
+    # 042890.python.metadata.line787.comment `name` is not normalized/typed to NormalizedName so as to provide access to
+    # 042891.python.metadata.line788.comment the original/raw name.
     name: _Validator[str] = _Validator()
     """:external:ref:`core-metadata-name`
     (required; validated using :func:`~packaging.utils.canonicalize_name` and its
@@ -839,14 +839,14 @@ class Metadata:
         added="1.2"
     )
     """:external:ref:`core-metadata-requires-python`"""
-    # Because `Requires-External` allows for non-PEP 440 version specifiers, we
-    # don't do any processing on the values.
+    # 042893.python.metadata.line842.comment Because `Requires-External` allows for non-PEP 440 version specifiers, we
+    # 042894.python.metadata.line843.comment don't do any processing on the values.
     requires_external: _Validator[list[str] | None] = _Validator(added="1.2")
     """:external:ref:`core-metadata-requires-external`"""
     project_urls: _Validator[dict[str, str] | None] = _Validator(added="1.2")
     """:external:ref:`core-metadata-project-url`"""
-    # PEP 685 lets us raise an error if an extra doesn't pass `Name` validation
-    # regardless of metadata version.
+    # 042895.python.metadata.line848.comment PEP 685 lets us raise an error if an extra doesn't pass `Name` validation
+    # 042896.python.metadata.line849.comment regardless of metadata version.
     provides_extra: _Validator[list[utils.NormalizedName] | None] = _Validator(
         added="2.1",
     )

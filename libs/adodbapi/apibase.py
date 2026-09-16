@@ -14,13 +14,13 @@ import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
 
-# noinspection PyUnresolvedReferences
+# 020616.python.apibase.line17.comment noinspection PyUnresolvedReferences
 from . import ado_consts as adc
 
 verbose = False  # debugging flag
 
 
-# ------- Error handlers ------
+# 020618.python.apibase.line23.comment ------- Error handlers ------
 def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     err = (errorclass, errorvalue)
     try:
@@ -37,11 +37,11 @@ def standardErrorHandler(connection, cursor, errorclass, errorvalue):
 
 class Error(Exception):
     pass  # Exception that is the base class of all other error
-    # exceptions. You can use this to catch all errors with one
-    # single 'except' statement. Warnings are not considered
-    # errors and thus should not use this class as base. It must
-    # be a subclass of the Python StandardError (defined in the
-    # module exceptions).
+    # 020620.python.apibase.line40.comment exceptions. You can use this to catch all errors with one
+    # 020621.python.apibase.line41.comment single 'except' statement. Warnings are not considered
+    # 020622.python.apibase.line42.comment errors and thus should not use this class as base. It must
+    # 020623.python.apibase.line43.comment be a subclass of the Python StandardError (defined in the
+    # 020624.python.apibase.line44.comment module exceptions).
 
 
 class Warning(Exception):
@@ -90,67 +90,67 @@ class FetchFailedError(OperationalError):
     pass
 
 
-# # # # # ----- Type Objects and Constructors ----- # # # # #
-# Many databases need to have the input in a particular format for binding to an operation's input parameters.
-# For example, if an input is destined for a DATE column, then it must be bound to the database in a particular
-# string format. Similar problems exist for "Row ID" columns or large binary items (e.g. blobs or RAW columns).
-# This presents problems for Python since the parameters to the executeXXX() method are untyped.
-# When the database module sees a Python string object, it doesn't know if it should be bound as a simple CHAR
-# column, as a raw BINARY item, or as a DATE.
-#
-# To overcome this problem, a module must provide the constructors defined below to create objects that can
-# hold special values. When passed to the cursor methods, the module can then detect the proper type of
-# the input parameter and bind it accordingly.
+# 020625.python.apibase.line93.comment # # # # ----- Type Objects and Constructors ----- # # # # #
+# 020626.python.apibase.line94.comment Many databases need to have the input in a particular format for binding to an operation's input parameters.
+# 020627.python.apibase.line95.comment For example, if an input is destined for a DATE column, then it must be bound to the database in a particular
+# 020628.python.apibase.line96.comment string format. Similar problems exist for "Row ID" columns or large binary items (e.g. blobs or RAW columns).
+# 020629.python.apibase.line97.comment This presents problems for Python since the parameters to the executeXXX() method are untyped.
+# 020630.python.apibase.line98.comment When the database module sees a Python string object, it doesn't know if it should be bound as a simple CHAR
+# 020631.python.apibase.line99.comment column, as a raw BINARY item, or as a DATE.
+# 020632.python.apibase.line100.comment
+# 020633.python.apibase.line101.comment To overcome this problem, a module must provide the constructors defined below to create objects that can
+# 020634.python.apibase.line102.comment hold special values. When passed to the cursor methods, the module can then detect the proper type of
+# 020635.python.apibase.line103.comment the input parameter and bind it accordingly.
 
-# A Cursor Object's description attribute returns information about each of the result columns of a query.
-# The type_code must compare equal to one of Type Objects defined below. Type Objects may be equal to more than
-# one type code (e.g. DATETIME could be equal to the type codes for date, time and timestamp columns;
-# see the Implementation Hints below for details).
+# 020636.python.apibase.line105.comment A Cursor Object's description attribute returns information about each of the result columns of a query.
+# 020637.python.apibase.line106.comment The type_code must compare equal to one of Type Objects defined below. Type Objects may be equal to more than
+# 020638.python.apibase.line107.comment one type code (e.g. DATETIME could be equal to the type codes for date, time and timestamp columns;
+# 020639.python.apibase.line108.comment see the Implementation Hints below for details).
 
-# SQL NULL values are represented by the Python None singleton on input and output.
+# 020640.python.apibase.line110.comment SQL NULL values are represented by the Python None singleton on input and output.
 
-# Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
+# 020641.python.apibase.line112.comment Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
 
 
-# def Date(year,month,day):
-#     "This function constructs an object holding a date value. "
-#     return dateconverter.date(year,month,day)  #dateconverter.Date(year,month,day)
-#
-# def Time(hour,minute,second):
-#     "This function constructs an object holding a time value. "
-#     return dateconverter.time(hour, minute, second) # dateconverter.Time(hour,minute,second)
-#
-# def Timestamp(year,month,day,hour,minute,second):
-#     "This function constructs an object holding a time stamp value. "
-#     return dateconverter.datetime(year,month,day,hour,minute,second)
-#
-# def DateFromTicks(ticks):
-#     """This function constructs an object holding a date value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
-#     return Date(*time.gmtime(ticks)[:3])
-#
-# def TimeFromTicks(ticks):
-#     """This function constructs an object holding a time value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
-#     return Time(*time.gmtime(ticks)[3:6])
-#
-# def TimestampFromTicks(ticks):
-#     """This function constructs an object holding a time stamp value from the given
-#     ticks value (number of seconds since the epoch;
-#     see the documentation of the standard Python time module for details). """
-#     return Timestamp(*time.gmtime(ticks)[:6])
-#
-# def Binary(aString):
-#     """This function constructs an object capable of holding a binary (long) string value. """
-#     b = bytes(aString)
-#     return b
-# -----     Time converters ----------------------------------------------
+# 020642.python.apibase.line115.comment def Date(year,month,day):
+# 020643.python.apibase.line116.comment "This function constructs an object holding a date value. "
+# 020644.python.apibase.line117.comment return dateconverter.date(year,month,day)  #dateconverter.Date(year,month,day)
+# 020645.python.apibase.line118.comment
+# 020646.python.apibase.line119.comment def Time(hour,minute,second):
+# 020647.python.apibase.line120.comment "This function constructs an object holding a time value. "
+# 020648.python.apibase.line121.comment return dateconverter.time(hour, minute, second) # dateconverter.Time(hour,minute,second)
+# 020649.python.apibase.line122.comment
+# 020650.python.apibase.line123.comment def Timestamp(year,month,day,hour,minute,second):
+# 020651.python.apibase.line124.comment "This function constructs an object holding a time stamp value. "
+# 020652.python.apibase.line125.comment return dateconverter.datetime(year,month,day,hour,minute,second)
+# 020653.python.apibase.line126.comment
+# 020654.python.apibase.line127.comment def DateFromTicks(ticks):
+# 020655.python.apibase.line128.comment """This function constructs an object holding a date value from the given ticks value
+# 020656.python.apibase.line129.comment (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+# 020657.python.apibase.line130.comment return Date(*time.gmtime(ticks)[:3])
+# 020658.python.apibase.line131.comment
+# 020659.python.apibase.line132.comment def TimeFromTicks(ticks):
+# 020660.python.apibase.line133.comment """This function constructs an object holding a time value from the given ticks value
+# 020661.python.apibase.line134.comment (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+# 020662.python.apibase.line135.comment return Time(*time.gmtime(ticks)[3:6])
+# 020663.python.apibase.line136.comment
+# 020664.python.apibase.line137.comment def TimestampFromTicks(ticks):
+# 020665.python.apibase.line138.comment """This function constructs an object holding a time stamp value from the given
+# 020666.python.apibase.line139.comment ticks value (number of seconds since the epoch;
+# 020667.python.apibase.line140.comment see the documentation of the standard Python time module for details). """
+# 020668.python.apibase.line141.comment return Timestamp(*time.gmtime(ticks)[:6])
+# 020669.python.apibase.line142.comment
+# 020670.python.apibase.line143.comment def Binary(aString):
+# 020671.python.apibase.line144.comment """This function constructs an object capable of holding a binary (long) string value. """
+# 020672.python.apibase.line145.comment b = bytes(aString)
+# 020673.python.apibase.line146.comment return b
+# 020674.python.apibase.line147.comment -----     Time converters ----------------------------------------------
 class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
         self._ordinal_1899_12_31 = datetime.date(1899, 12, 31).toordinal() - 1
-        # Use cls.types to compare if an input parameter is a datetime
+        # 020677.python.apibase.line151.comment Use cls.types to compare if an input parameter is a datetime
         self.types = {
-            # Dynamically get the types as the methods may be overriden
+            # 020678.python.apibase.line153.comment Dynamically get the types as the methods may be overriden
             type(self.Date(2000, 1, 1)),
             type(self.Time(12, 1, 1)),
             type(self.Timestamp(2000, 1, 1, 12, 1, 1)),
@@ -197,7 +197,7 @@ class TimeConverter:  # this is a generic time converter skeleton
     def Timestamp(self, year, month, day, hour, minute, second):
         "This function constructs an object holding a time stamp value."
         raise NotImplementedError  # "Abstract class"
-        # all purpose date to ISO format converter
+        # 020685.python.apibase.line200.comment all purpose date to ISO format converter
 
     def DateObjectToIsoFormatString(self, obj):
         "This function should return a string in the format 'YYYY-MM-dd HH:MM:SS:ms' (ms optional)"
@@ -224,17 +224,17 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
             tim = comDate.time()
             new = datetime.datetime.combine(datetime.datetime.fromordinal(odn), tim)
             return new
-            # return comDate.replace(tzinfo=None) # make non aware
+            # 020690.python.apibase.line227.comment return comDate.replace(tzinfo=None) # make non aware
         else:
             fComDate = float(comDate)  # ComDate is number of days since 1899-12-31
         integerPart = int(fComDate)
         floatpart = fComDate - integerPart
-        ##if floatpart == 0.0:
-        ##    return datetime.date.fromordinal(integerPart + self._ordinal_1899_12_31)
+        # 020692.python.apibase.line232.comment #if floatpart == 0.0:
+        # 020693.python.apibase.line233.comment #    return datetime.date.fromordinal(integerPart + self._ordinal_1899_12_31)
         dte = datetime.datetime.fromordinal(
             integerPart + self._ordinal_1899_12_31
         ) + datetime.timedelta(milliseconds=floatpart * 86400000)
-        # millisecondsperday=86400000 # 24*60*60*1000
+        # 020694.python.apibase.line237.comment millisecondsperday=86400000 # 24*60*60*1000
         return dte
 
     def Date(self, year, month, day):
@@ -259,7 +259,7 @@ class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
         else:
             fcomDate = float(comDate)
         secondsperday = 86400  # 24*60*60
-        # ComDate is number of days since 1899-12-31, gmtime epoch is 1970-1-1 = 25569 days
+        # 020698.python.apibase.line262.comment ComDate is number of days since 1899-12-31, gmtime epoch is 1970-1-1 = 25569 days
         t = time.gmtime(secondsperday * (fcomDate - 25569.0))
         return t  # year,month,day,hour,minute,second,weekday,julianday,daylightsaving=t
 
@@ -277,18 +277,18 @@ class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
 
 base_dateconverter = pythonDateTimeConverter()
 
-# ------ DB API required module attributes ---------------------
+# 020700.python.apibase.line280.comment ------ DB API required module attributes ---------------------
 threadsafety = 1  # TODO -- find out whether this module is actually BETTER than 1.
 
 apilevel = "2.0"  # String constant stating the supported DB API level.
 
 paramstyle = "qmark"  # the default parameter style
 
-# ------ control for an extension which may become part of DB API 3.0 ---
+# 020704.python.apibase.line287.comment ------ control for an extension which may become part of DB API 3.0 ---
 accepted_paramstyles = ("qmark", "named", "format", "pyformat", "dynamic")
 
-# ------------------------------------------------------------------------------------------
-# define similar types for generic conversion routines
+# 020705.python.apibase.line290.comment ------------------------------------------------------------------------------------------
+# 020706.python.apibase.line291.comment define similar types for generic conversion routines
 adoIntegerTypes = (
     adc.adInteger,
     adc.adSmallInt,
@@ -331,7 +331,7 @@ adoRemainingTypes = (
 )
 
 
-# this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
+# 020711.python.apibase.line334.comment this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
 class DBAPITypeObject:
     def __init__(self, valuesTuple):
         self.values = frozenset(valuesTuple)
@@ -362,7 +362,7 @@ ROWID = DBAPITypeObject(adoRowIdTypes)
 
 OTHER = DBAPITypeObject(adoRemainingTypes)
 
-# ------- utilities for translating python data types to ADO data types ---------------------------------
+# 020712.python.apibase.line365.comment ------- utilities for translating python data types to ADO data types ---------------------------------
 typeMap = {
     memoryview: adc.adVarBinary,
     float: adc.adDouble,
@@ -382,10 +382,10 @@ def pyTypeToADOType(d):
     except KeyError:  #   The type was not defined in the pre-computed Type table
         from . import dateconverter
 
-        # maybe it is one of our supported Date/Time types
+        # 020715.python.apibase.line385.comment maybe it is one of our supported Date/Time types
         if tp in dateconverter.types:
             return adc.adDate
-        #  otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
+        # 020716.python.apibase.line388.comment otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
         if isinstance(d, str):
             return adc.adBSTR
         if isinstance(d, numbers.Integral):
@@ -395,10 +395,10 @@ def pyTypeToADOType(d):
         raise DataError(f'cannot convert "{d!r}" (type={tp}) to ADO')
 
 
-# # # # # # # # # # # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# functions to convert database values to Python objects
-# ------------------------------------------------------------------------
-# variant type : function converting variant to Python value
+# 020717.python.apibase.line398.comment # # # # # # # # # # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 020718.python.apibase.line399.comment functions to convert database values to Python objects
+# 020719.python.apibase.line400.comment ------------------------------------------------------------------------
+# 020720.python.apibase.line401.comment variant type : function converting variant to Python value
 def variantConvertDate(v):
     from . import dateconverter  # this function only called when adodbapi is running
 
@@ -465,11 +465,11 @@ def convert_to_python(variant, func):  # convert DB value into Python value
 
 
 class MultiMap(dict[int, Callable[[object], object]]):
-    # builds a dictionary from {(iterable,of,keys) : function}
+    # 020729.python.apibase.line468.comment builds a dictionary from {(iterable,of,keys) : function}
     """A dictionary of ado.type : function
     -- but you can set multiple items by passing an iterable of keys"""
 
-    # useful for defining conversion functions for groups of similar data types.
+    # 020730.python.apibase.line472.comment useful for defining conversion functions for groups of similar data types.
     def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[object], object]]):
         for k, v in aDict.items():
             self[k] = v  # we must call __setitem__
@@ -479,17 +479,17 @@ class MultiMap(dict[int, Callable[[object], object]]):
     ):
         "set a single item, or a whole iterable of items"
         if isinstance(adoType, Iterable):
-            # user passed us an iterable, set them individually
+            # 020732.python.apibase.line482.comment user passed us an iterable, set them individually
             for type in adoType:
                 dict.__setitem__(self, type, cvtFn)
         else:
             dict.__setitem__(self, adoType, cvtFn)
 
 
-# initialize variantConversions dictionary used to convert SQL to Python
-# this is the dictionary of default conversion functions, built by the class above.
-# this becomes a class attribute for the Connection, and that attribute is used
-# to build the list of column conversion functions for the Cursor
+# 020733.python.apibase.line489.comment initialize variantConversions dictionary used to convert SQL to Python
+# 020734.python.apibase.line490.comment this is the dictionary of default conversion functions, built by the class above.
+# 020735.python.apibase.line491.comment this becomes a class attribute for the Connection, and that attribute is used
+# 020736.python.apibase.line492.comment to build the list of column conversion functions for the Cursor
 variantConversions = MultiMap(
     {
         adoDateTimeTypes: variantConvertDate,
@@ -504,13 +504,13 @@ variantConversions = MultiMap(
     }
 )
 
-# # # # # classes to emulate the result of cursor.fetchxxx() as a sequence of sequences # # # # #
-# "an ENUM of how my low level records are laid out"
+# 020738.python.apibase.line507.comment # # # # classes to emulate the result of cursor.fetchxxx() as a sequence of sequences # # # # #
+# 020739.python.apibase.line508.comment "an ENUM of how my low level records are laid out"
 RS_WIN_32, RS_ARRAY, RS_REMOTE = list(range(1, 4))
 
 
 class SQLrow:  # a single database row
-    # class to emulate a sequence, so that a column may be retrieved by either number or name
+    # 020741.python.apibase.line513.comment class to emulate a sequence, so that a column may be retrieved by either number or name
     def __init__(self, rows, index):  # "rows" is an _SQLrows object, index is which row
         self.rows = rows  # parent 'fetch' container object
         self.index = index  # my row number within parent
@@ -574,17 +574,17 @@ class SQLrow:  # a single database row
             tuple(str(self._getValue(i)) for i in range(self.rows.numberOfColumns))
         )
 
-    # TO-DO implement pickling an SQLrow directly
-    # def __getstate__(self): return self.__dict__
-    # def __setstate__(self, d): self.__dict__.update(d)
-    # which basically tell pickle to treat your class just like a normal one,
-    # taking self.__dict__ as representing the whole of the instance state,
-    #  despite the existence of the __getattr__.
-    # # # #
+    # 020754.python.apibase.line577.comment TO-DO implement pickling an SQLrow directly
+    # 020755.python.apibase.line578.comment def __getstate__(self): return self.__dict__
+    # 020756.python.apibase.line579.comment def __setstate__(self, d): self.__dict__.update(d)
+    # 020757.python.apibase.line580.comment which basically tell pickle to treat your class just like a normal one,
+    # 020758.python.apibase.line581.comment taking self.__dict__ as representing the whole of the instance state,
+    # 020759.python.apibase.line582.comment despite the existence of the __getattr__.
+    # 020760.python.apibase.line583.comment # # #
 
 
 class SQLrows:
-    # class to emulate a sequence for multiple rows using a container object
+    # 020761.python.apibase.line587.comment class to emulate a sequence for multiple rows using a container object
     def __init__(self, ado_results, numberOfRows, cursor):
         self.ado_results = ado_results  # raw result of SQL get
         try:
@@ -609,7 +609,7 @@ class SQLrows:
             indices = item.indices(self.numberOfRows)
             return [SQLrow(self, k) for k in range(*indices)]
         elif isinstance(item, tuple) and len(item) == 2:
-            # d = some_rowsObject[i,j] will return a datum from a two-dimension address
+            # 020765.python.apibase.line612.comment d = some_rowsObject[i,j] will return a datum from a two-dimension address
             i, j = item
             if not isinstance(j, int):
                 try:
@@ -636,9 +636,9 @@ class SQLrows:
         for n in range(self.numberOfRows):
             row = SQLrow(self, n)
             yield row
-            # # # # #
+            # 020770.python.apibase.line639.comment # # # #
 
-    # # # # # functions to re-format SQL requests to other paramstyle requirements # # # # # # # # # #
+    # 020771.python.apibase.line641.comment # # # # functions to re-format SQL requests to other paramstyle requirements # # # # # # # # # #
 
 
 def changeNamedToQmark(

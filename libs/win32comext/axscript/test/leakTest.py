@@ -38,7 +38,7 @@ class Test:
         self.collection = util.wrap(MyCollection([1, "Two", 3]))
         self.last = ""
 
-    #    self._connect_server_ = TestConnectServer(self)
+    # 051289.python.leakTest.line41.comment self._connect_server_ = TestConnectServer(self)
 
     def echo(self, *args):
         self.last = "".join(map(str, args))
@@ -48,11 +48,11 @@ class Test:
             print()
 
 
-#    self._connect_server_.Broadcast(last)
+# 051290.python.leakTest.line51.comment self._connect_server_.Broadcast(last)
 
 
-#### Connections currently won't work, as there is no way for the engine to
-#### know what events we support.  We need typeinfo support.
+# 051291.python.leakTest.line54.comment ### Connections currently won't work, as there is no way for the engine to
+# 051292.python.leakTest.line55.comment ### know what events we support.  We need typeinfo support.
 
 IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 
@@ -60,13 +60,13 @@ IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 class TestConnectServer(connect.ConnectableServer):
     _connect_interfaces_ = [IID_ITestEvents]
 
-    # The single public method that the client can call on us
-    # (ie, as a normal COM server, this exposes just this single method.
+    # 051293.python.leakTest.line63.comment The single public method that the client can call on us
+    # 051294.python.leakTest.line64.comment (ie, as a normal COM server, this exposes just this single method.
     def __init__(self, object):
         self.object = object
 
     def Broadcast(self, arg):
-        # Simply broadcast a notification.
+        # 051295.python.leakTest.line69.comment Simply broadcast a notification.
         self._BroadcastNotify(self.NotifyDoneIt, (arg,))
 
     def NotifyDoneIt(self, interface, arg):
@@ -125,17 +125,17 @@ def TestEngine(engineName, code, bShouldWork=1):
             engine.Close()
             return
     doTestEngine(engine, echoer)
-    # re-transition the engine back to the UNINITIALIZED state, a-la ASP.
+    # 051296.python.leakTest.line128.comment re-transition the engine back to the UNINITIALIZED state, a-la ASP.
     engine.eScript.SetScriptState(axscript.SCRIPTSTATE_UNINITIALIZED)
     engine.eScript.SetScriptSite(util.wrap(site))
     print("restarting")
     engine.Start()
-    # all done!
+    # 051297.python.leakTest.line133.comment all done!
     engine.Close()
 
 
 def doTestEngine(engine, echoer):
-    # Now call into the scripts IDispatch
+    # 051298.python.leakTest.line138.comment Now call into the scripts IDispatch
     from win32com.client.dynamic import Dispatch
 
     ob = Dispatch(engine.GetScriptDispatch())
@@ -152,7 +152,7 @@ def doTestEngine(engine, echoer):
 
     ob.testcollection()
 
-    # Now make sure my engines can evaluate stuff.
+    # 051299.python.leakTest.line155.comment Now make sure my engines can evaluate stuff.
     result = engine.eParse.ParseScriptText(
         "1+1", None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION
     )
@@ -166,11 +166,11 @@ def dotestall():
         print(sys.gettotalrefcount())
 
 
-# print("Testing Exceptions")
-# try:
-#     TestEngine("Python", ErrScript, 0)
-# except pythoncom.com_error:
-#     pass
+# 051300.python.leakTest.line169.comment print("Testing Exceptions")
+# 051301.python.leakTest.line170.comment try:
+# 051302.python.leakTest.line171.comment TestEngine("Python", ErrScript, 0)
+# 051303.python.leakTest.line172.comment except pythoncom.com_error:
+# 051304.python.leakTest.line173.comment pass
 
 
 def testall():

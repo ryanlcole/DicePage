@@ -24,14 +24,14 @@ def DumpClipboard():
         ]
         print("Clipboard format", format_name_map.get(fmt, str(fmt)))
         for t_this in tymeds_this:
-            # As we are enumerating there should be no need to call
-            # QueryGetData, but we do anyway!
+            # 049213.python.dump_clipboard.line27.comment As we are enumerating there should be no need to call
+            # 049214.python.dump_clipboard.line28.comment QueryGetData, but we do anyway!
             fetc_query = fmt, td, aspect, index, t_this
             try:
                 do.QueryGetData(fetc_query)
             except pythoncom.com_error:
                 print("Eeek - QGD indicated failure for tymed", t_this)
-            # now actually get it.
+            # 049215.python.dump_clipboard.line34.comment now actually get it.
             try:
                 medium = do.GetData(fetc_query)
             except pythoncom.com_error as exc:

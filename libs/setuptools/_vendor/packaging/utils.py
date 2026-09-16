@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 043100.python.utils.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 043101.python.utils.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 043102.python.utils.line3.comment for complete details.
 
 from __future__ import annotations
 
@@ -33,20 +33,20 @@ class InvalidSdistFilename(ValueError):
     """
 
 
-# Core metadata spec for `Name`
+# 043103.python.utils.line36.comment Core metadata spec for `Name`
 _validate_regex = re.compile(
     r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.IGNORECASE
 )
 _canonicalize_regex = re.compile(r"[-_.]+")
 _normalized_regex = re.compile(r"^([a-z0-9]|[a-z0-9]([a-z0-9-](?!--))*[a-z0-9])$")
-# PEP 427: The build number must start with a digit.
+# 043104.python.utils.line42.comment PEP 427: The build number must start with a digit.
 _build_tag_regex = re.compile(r"(\d+)(.*)")
 
 
 def canonicalize_name(name: str, *, validate: bool = False) -> NormalizedName:
     if validate and not _validate_regex.match(name):
         raise InvalidName(f"name is invalid: {name!r}")
-    # This is taken from PEP 503.
+    # 043105.python.utils.line49.comment This is taken from PEP 503.
     value = _canonicalize_regex.sub("-", name).lower()
     return cast(NormalizedName, value)
 
@@ -86,7 +86,7 @@ def _(version: str, *, strip_trailing_zero: bool = True) -> str:
     try:
         parsed = Version(version)
     except InvalidVersion:
-        # Legacy versions cannot be normalized
+        # 043106.python.utils.line89.comment Legacy versions cannot be normalized
         return version
     return canonicalize_version(parsed, strip_trailing_zero=strip_trailing_zero)
 
@@ -108,7 +108,7 @@ def parse_wheel_filename(
 
     parts = filename.split("-", dashes - 2)
     name_part = parts[0]
-    # See PEP 427 for the rules on escaping the project name.
+    # 043107.python.utils.line111.comment See PEP 427 for the rules on escaping the project name.
     if "__" in name_part or re.match(r"^[\w\d._]*$", name_part, re.UNICODE) is None:
         raise InvalidWheelFilename(f"Invalid project name: {filename!r}")
     name = canonicalize_name(name_part)
@@ -145,8 +145,8 @@ def parse_sdist_filename(filename: str) -> tuple[NormalizedName, Version]:
             f" {filename!r}"
         )
 
-    # We are requiring a PEP 440 version, which cannot contain dashes,
-    # so we split on the last dash.
+    # 043108.python.utils.line148.comment We are requiring a PEP 440 version, which cannot contain dashes,
+    # 043109.python.utils.line149.comment so we split on the last dash.
     name_part, sep, version_part = file_stem.rpartition("-")
     if not sep:
         raise InvalidSdistFilename(f"Invalid sdist filename: {filename!r}")

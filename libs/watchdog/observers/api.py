@@ -83,7 +83,7 @@ class ObservedWatch:
         return f"<{type(self).__name__}: path={self.path!r}, is_recursive={self.is_recursive}{event_filter_str}>"
 
 
-# Observer classes
+# 045654.python.api.line86.comment Observer classes
 class EventEmitter(BaseThread):
     """Producer thread base class subclassed by event emitters
     that generate events and populate a queue with them.
@@ -305,7 +305,7 @@ class BaseObserver(EventDispatcher):
             watch = ObservedWatch(path, recursive=recursive, event_filter=event_filter)
             self._add_handler_for_watch(event_handler, watch)
 
-            # If we don't have an emitter for this watch already, create it.
+            # 045655.python.api.line308.comment If we don't have an emitter for this watch already, create it.
             if watch not in self._emitter_for_watch:
                 emitter = self._emitter_class(self.event_queue, watch, timeout=self.timeout, event_filter=event_filter)
                 if self.is_alive():
@@ -383,9 +383,9 @@ class BaseObserver(EventDispatcher):
         event, watch = entry
 
         with self._lock:
-            # To allow unschedule/stop and safe removal of event handlers
-            # within event handlers itself, check if the handler is still
-            # registered after every dispatch.
+            # 045656.python.api.line386.comment To allow unschedule/stop and safe removal of event handlers
+            # 045657.python.api.line387.comment within event handlers itself, check if the handler is still
+            # 045658.python.api.line388.comment registered after every dispatch.
             for handler in self._handlers[watch].copy():
                 if handler in self._handlers[watch]:
                     handler.dispatch(event)

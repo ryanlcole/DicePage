@@ -1,15 +1,15 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009935.python.conda.line1.comment -----------------------------------------------------------------------------
+# 009936.python.conda.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 009937.python.conda.line3.comment
+# 009938.python.conda.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009939.python.conda.line5.comment or later) with exception for distributing the bootloader.
+# 009940.python.conda.line6.comment
+# 009941.python.conda.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009942.python.conda.line8.comment
+# 009943.python.conda.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009944.python.conda.line10.comment -----------------------------------------------------------------------------
 
-# language=rst
+# 009945.python.conda.line12.comment language=rst
 """
 Additional helper methods for working specifically with Anaconda distributions are found at
 :mod:`PyInstaller.utils.hooks.conda_support<PyInstaller.utils.hooks.conda>`
@@ -45,12 +45,12 @@ from importlib.metadata import PackagePath as _PackagePath
 from PyInstaller import compat
 from PyInstaller.log import logger
 
-# Conda virtual environments each get their own copy of `conda-meta` so the use of `sys.prefix` instead of
-# `sys.base_prefix`, `sys.real_prefix` or anything from our `compat` module is intentional.
+# 009946.python.conda.line48.comment Conda virtual environments each get their own copy of `conda-meta` so the use of `sys.prefix` instead of
+# 009947.python.conda.line49.comment `sys.base_prefix`, `sys.real_prefix` or anything from our `compat` module is intentional.
 CONDA_ROOT = pathlib.Path(sys.prefix)
 CONDA_META_DIR = CONDA_ROOT / "conda-meta"
 
-# Find all paths in `sys.path` that are inside Conda root.
+# 009948.python.conda.line53.comment Find all paths in `sys.path` that are inside Conda root.
 PYTHONPATH_PREFIXES = []
 for _path in sys.path:
     _path = pathlib.Path(_path)
@@ -88,10 +88,10 @@ class Distribution:
                 "`distribution({})` instead?".format(repr(json_path))
             )
 
-        # Everything we need (including this distribution's name) is kept in the metadata json.
+        # 009949.python.conda.line91.comment Everything we need (including this distribution's name) is kept in the metadata json.
         self.raw: dict = json.loads(self._json_path.read_text())
 
-        # Unpack the more useful contents of the json.
+        # 009950.python.conda.line94.comment Unpack the more useful contents of the json.
         self.name: str = self.raw["name"]
         self.version: str = self.raw["version"]
         self.files = [PackagePath(i) for i in self.raw["files"]]
@@ -111,9 +111,9 @@ class Distribution:
         The names in ``self.raw["depends"]`` come with extra version constraint information which must be stripped.
         """
         dependencies = []
-        # For each dependency:
+        # 009951.python.conda.line114.comment For each dependency:
         for dependency in self.raw["depends"]:
-            # ``dependency`` is a string of the form: "[name] [version constraints]"
+            # 009952.python.conda.line116.comment ``dependency`` is a string of the form: "[name] [version constraints]"
             name, *version_constraints = dependency.split(maxsplit=1)
             dependencies.append(name)
         return dependencies
@@ -200,16 +200,16 @@ def walk_dependency_tree(initial: str, excludes: Iterable[str] | None = None):
     if excludes is not None:
         excludes = set(excludes)
 
-    # Rather than use true recursion, mimic it with a to-do queue.
+    # 009953.python.conda.line203.comment Rather than use true recursion, mimic it with a to-do queue.
     from collections import deque
     done = {}
     names_to_do = deque([initial])
 
     while names_to_do:
-        # Grab a distribution name from the to-do list.
+        # 009954.python.conda.line209.comment Grab a distribution name from the to-do list.
         name = names_to_do.pop()
         try:
-            # Collect and save it's metadata.
+            # 009955.python.conda.line212.comment Collect and save it's metadata.
             done[name] = distribution = Distribution.from_name(name)
             logger.debug("Collected Conda distribution '%s', a dependency of '%s'.", name, initial)
         except ModuleNotFoundError:
@@ -218,17 +218,17 @@ def walk_dependency_tree(initial: str, excludes: Iterable[str] | None = None):
                 "If you installed this distribution with pip then you may ignore this warning.", name, initial
             )
             continue
-        # For each dependency:
+        # 009956.python.conda.line221.comment For each dependency:
         for _name in distribution.dependencies:
             if _name in done:
-                # Skip anything already done.
+                # 009957.python.conda.line224.comment Skip anything already done.
                 continue
             if _name == name:
-                # Avoid infinite recursion if a distribution depends on itself. This will probably never happen but I
-                # certainly would not chance it.
+                # 009958.python.conda.line227.comment Avoid infinite recursion if a distribution depends on itself. This will probably never happen but I
+                # 009959.python.conda.line228.comment certainly would not chance it.
                 continue
             if excludes is not None and _name in excludes:
-                # Do not recurse to excluded dependencies.
+                # 009960.python.conda.line231.comment Do not recurse to excluded dependencies.
                 continue
             names_to_do.append(_name)
     return done
@@ -307,20 +307,20 @@ def collect_dynamic_libs(name: str, dest: str = ".", dependencies: bool = True, 
     DLL_SUFFIXES = ("*.dll", "*.dylib", "*.so", "*.so.*")
     _files = []
     for file in files(name, dependencies, excludes):
-        # A file is classified as a dynamic library if:
-        #  1) it lives inside the dedicated ``lib_dir`` DLL folder.
-        #
-        # NOTE: `file` is an instance of `PackagePath`, which inherits from `pathlib.PurePosixPath` even on Windows.
-        # Therefore, it does not properly handle cases when metadata paths contain Windows-style separator, which does
-        # seem to be used on some Windows installations (see #9113). Therefore, cast `file` to `pathlib.PurePath`
-        # before comparing its parent to `lib_dir` (which should also be a `pathlib.PurePath`).
+        # 009961.python.conda.line310.comment A file is classified as a dynamic library if:
+        # 009962.python.conda.line311.comment 1) it lives inside the dedicated ``lib_dir`` DLL folder.
+        # 009963.python.conda.line312.comment
+        # 009964.python.conda.line313.comment NOTE: `file` is an instance of `PackagePath`, which inherits from `pathlib.PurePosixPath` even on Windows.
+        # 009965.python.conda.line314.comment Therefore, it does not properly handle cases when metadata paths contain Windows-style separator, which does
+        # 009966.python.conda.line315.comment seem to be used on some Windows installations (see #9113). Therefore, cast `file` to `pathlib.PurePath`
+        # 009967.python.conda.line316.comment before comparing its parent to `lib_dir` (which should also be a `pathlib.PurePath`).
         if pathlib.PurePath(file).parent != lib_dir:
             continue
-        #  2) it is a file (and not a directory or a symbolic link pointing to a directory)
+        # 009968.python.conda.line319.comment 2) it is a file (and not a directory or a symbolic link pointing to a directory)
         resolved_file = file.locate()
         if not resolved_file.is_file():
             continue
-        #  3) has a correct suffix
+        # 009969.python.conda.line323.comment 3) has a correct suffix
         if not any([resolved_file.match(suffix) for suffix in DLL_SUFFIXES]):
             continue
 
@@ -328,7 +328,7 @@ def collect_dynamic_libs(name: str, dest: str = ".", dependencies: bool = True, 
     return _files
 
 
-# --- Map packages to distributions and vice-versa ---
+# 009970.python.conda.line331.comment --- Map packages to distributions and vice-versa ---
 
 
 def _get_package_name(file: PackagePath):
@@ -345,38 +345,38 @@ def _get_package_name(file: PackagePath):
     Anything else is ignored (returning ``None``).
     """
     file = pathlib.Path(file)
-    # TODO: Handle PEP 420 namespace packages (which are missing `__init__` module). No such Conda PEP 420 namespace
-    # packages are known.
+    # 009971.python.conda.line348.comment TODO: Handle PEP 420 namespace packages (which are missing `__init__` module). No such Conda PEP 420 namespace
+    # 009972.python.conda.line349.comment packages are known.
 
-    # Get top-level folders by finding parents of `__init__.xyz`s
+    # 009973.python.conda.line351.comment Get top-level folders by finding parents of `__init__.xyz`s
     if file.stem == "__init__" and file.suffix in compat.ALL_SUFFIXES:
         file = file.parent
     elif file.suffix not in compat.ALL_SUFFIXES:
-        # Keep single-file packages but skip DLLs, data and junk files.
+        # 009974.python.conda.line355.comment Keep single-file packages but skip DLLs, data and junk files.
         return
 
-    # Check if this file/folder's parent is in ``sys.path`` i.e. it's directly importable. This intentionally excludes
-    # submodules which would cause confusion because ``sys.prefix`` is in ``sys.path``, meaning that every file in an
-    # Conda installation is a submodule.
+    # 009975.python.conda.line358.comment Check if this file/folder's parent is in ``sys.path`` i.e. it's directly importable. This intentionally excludes
+    # 009976.python.conda.line359.comment submodules which would cause confusion because ``sys.prefix`` is in ``sys.path``, meaning that every file in an
+    # 009977.python.conda.line360.comment Conda installation is a submodule.
     for prefix in PYTHONPATH_PREFIXES:
         if len(file.parts) != len(prefix.parts) + 1:
-            # This check is redundant but speeds it up quite a bit.
+            # 009978.python.conda.line363.comment This check is redundant but speeds it up quite a bit.
             continue
-        # There are no wildcards involved here. The use of ``fnmatch`` is simply to handle the `if case-insensitive
-        # file system: use case-insensitive string matching.`
+        # 009979.python.conda.line365.comment There are no wildcards involved here. The use of ``fnmatch`` is simply to handle the `if case-insensitive
+        # 009980.python.conda.line366.comment file system: use case-insensitive string matching.`
         if fnmatch.fnmatch(str(file.parent), str(prefix)):
             return file.stem
 
 
-# All the information we want is organised the wrong way.
+# 009981.python.conda.line371.comment All the information we want is organised the wrong way.
 
-# We want to look up distribution based on package names, but we can only search for packages using distribution names.
-# And we would like to search for a distribution's json file, but, due to the noisy filenames of the jsons, we can only
-# find a json's distribution rather than a distribution's json.
+# 009982.python.conda.line373.comment We want to look up distribution based on package names, but we can only search for packages using distribution names.
+# 009983.python.conda.line374.comment And we would like to search for a distribution's json file, but, due to the noisy filenames of the jsons, we can only
+# 009984.python.conda.line375.comment find a json's distribution rather than a distribution's json.
 
-# So we have to read everything, then regroup distributions in the ways we want them grouped. This will likely be a
-# spectacular bottleneck on full-blown Conda (non miniconda) with 250+ packages by default at several GiBs. I suppose we
-# could cache this on a per-json basis if it gets too much.
+# 009985.python.conda.line377.comment So we have to read everything, then regroup distributions in the ways we want them grouped. This will likely be a
+# 009986.python.conda.line378.comment spectacular bottleneck on full-blown Conda (non miniconda) with 250+ packages by default at several GiBs. I suppose we
+# 009987.python.conda.line379.comment could cache this on a per-json basis if it gets too much.
 
 
 def _init_distributions():

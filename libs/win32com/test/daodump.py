@@ -1,12 +1,12 @@
-# import dao3032
-# No longer imported here - callers responsibility to load
-#
+# 049850.python.daodump.line1.comment import dao3032
+# 049851.python.daodump.line2.comment No longer imported here - callers responsibility to load
+# 049852.python.daodump.line3.comment
 import pythoncom
 import win32com.client
 
 
 def DumpDB(db, bDeep=1):
-    # MUST be a DB object.
+    # 049853.python.daodump.line9.comment MUST be a DB object.
     DumpTables(db, bDeep)
     DumpRelations(db, bDeep)
     DumpAllContainers(db, bDeep)
@@ -42,8 +42,8 @@ def DumpRelations(db, bDeep=1):
         print(f"Relation {relation.Name} - {relation.Table}->{relation.ForeignTable}")
 
 
-#### This don't work.  TLB says it is a Fields collection, but apparently not!
-####            if bDeep: DumpFields(relation.Fields)
+# 049855.python.daodump.line45.comment ### This don't work.  TLB says it is a Fields collection, but apparently not!
+# 049856.python.daodump.line46.comment ###            if bDeep: DumpFields(relation.Fields)
 
 
 def DumpAllContainers(db, bDeep=1):

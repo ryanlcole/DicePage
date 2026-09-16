@@ -70,7 +70,7 @@ class TestUtil:
         assert convert_path('.') == os.curdir
 
     def test_change_root(self):
-        # linux/mac
+        # 041268.python.test_util.line73.comment linux/mac
         os.name = 'posix'
 
         def _isabs(path):
@@ -86,7 +86,7 @@ class TestUtil:
         assert change_root('/root', '/old/its/here') == '/root/old/its/here'
         assert change_root('/root', 'its/here') == '/root/its/here'
 
-        # windows
+        # 041269.python.test_util.line89.comment windows
         os.name = 'nt'
         os.sep = '\\'
 
@@ -112,12 +112,12 @@ class TestUtil:
         )
         assert change_root('c:\\root', 'its\\here') == 'c:\\root\\its\\here'
 
-        # BugsBunny os (it's a great os)
+        # 041270.python.test_util.line115.comment BugsBunny os (it's a great os)
         os.name = 'BugsBunny'
         with pytest.raises(DistutilsPlatformError):
             change_root('c:\\root', 'its\\here')
 
-        # XXX platforms to be covered: mac
+        # 041271.python.test_util.line120.comment XXX platforms to be covered: mac
 
     def test_check_environ(self):
         util.check_environ.cache_clear()
@@ -134,7 +134,7 @@ class TestUtil:
 
         import pwd
 
-        # only set pw_dir field, other fields are not used
+        # 041272.python.test_util.line137.comment only set pw_dir field, other fields are not used
         result = pwd.struct_passwd((
             None,
             None,
@@ -151,7 +151,7 @@ class TestUtil:
         util.check_environ.cache_clear()
         os.environ.pop('HOME', None)
 
-        # bpo-10496: Catch pwd.getpwuid() error
+        # 041273.python.test_util.line154.comment bpo-10496: Catch pwd.getpwuid() error
         with mock.patch.object(pwd, 'getpwuid', side_effect=KeyError):
             check_environ()
             assert 'HOME' not in os.environ
@@ -179,7 +179,7 @@ class TestUtil:
     @pytest.mark.parametrize(
         "given,wanted",
         [
-            # 0x0b, 0x0c, ..., etc are also considered a line break by Python
+            # 041274.python.test_util.line182.comment 0x0b, 0x0c, ..., etc are also considered a line break by Python
             ("hello\x0b\nworld\n", f"hello\x0b{indent}\n{indent}world\n{indent}"),
             ("hello\x1eworld", f"hello\x1e{indent}world"),
             ("", ""),
@@ -220,14 +220,14 @@ class TestUtil:
         for msg in (orig, regen):
             assert msg.get_payload() == "payload\n"
             assert msg["other-header"] == "42"
-            # Generator may replace control chars with `\n`
+            # 041275.python.test_util.line223.comment Generator may replace control chars with `\n`
             assert set(msg["header"].splitlines()) == set(res.splitlines())
 
         assert res == wanted
 
     def test_dont_write_bytecode(self):
-        # makes sure byte_compile raise a DistutilsError
-        # if sys.dont_write_bytecode is True
+        # 041276.python.test_util.line229.comment makes sure byte_compile raise a DistutilsError
+        # 041277.python.test_util.line230.comment if sys.dont_write_bytecode is True
         old_dont_write_bytecode = sys.dont_write_bytecode
         sys.dont_write_bytecode = True
         try:
@@ -237,7 +237,7 @@ class TestUtil:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
     def test_grok_environment_error(self):
-        # test obsolete function to ensure backward compat (#4931)
+        # 041278.python.test_util.line240.comment test obsolete function to ensure backward compat (#4931)
         exc = OSError("Unable to find batch file")
         msg = grok_environment_error(exc)
         assert msg == "error: Unable to find batch file"

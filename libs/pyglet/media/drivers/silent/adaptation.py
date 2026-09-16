@@ -89,9 +89,9 @@ class SilentAudioPlayer(AbstractAudioPlayer):
             else:
                 self.append_events(self._pseudo_write_cursor, data.events)
 
-                # The silent player always cheats itself to be 100% accurate, compensation is
-                # effectless and actually throws off audio syncing as well as accurate
-                # on_eos dispatching. Undo it here.
+                # 035138.python.adaptation.line92.comment The silent player always cheats itself to be 100% accurate, compensation is
+                # 035139.python.adaptation.line93.comment effectless and actually throws off audio syncing as well as accurate
+                # 035140.python.adaptation.line94.comment on_eos dispatching. Undo it here.
                 self._pseudo_write_cursor += data.length - self._compensated_bytes
                 self._compensated_bytes = 0
                 return

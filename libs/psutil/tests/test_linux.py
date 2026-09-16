@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025095.python.test_linux.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025096.python.test_linux.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025097.python.test_linux.line5.comment found in the LICENSE file.
 
 """Linux specific tests."""
 
@@ -58,9 +58,9 @@ SIOCGIFNETMASK = 0x891B
 SIOCGIFBRDADDR = 0x8919
 if LINUX:
     SECTOR_SIZE = 512
-# =====================================================================
-# --- utils
-# =====================================================================
+# 025098.python.test_linux.line61.comment =====================================================================
+# 025099.python.test_linux.line62.comment --- utils
+# 025100.python.test_linux.line63.comment =====================================================================
 
 
 def get_ipv4_address(ifname):
@@ -150,10 +150,10 @@ def free_physmem():
     """Parse 'free' cmd and return physical memory's total, used
     and free values.
     """
-    # Note: free can have 2 different formats, invalidating 'shared'
-    # and 'cached' memory which may have different positions so we
-    # do not return them.
-    # https://github.com/giampaolo/psutil/issues/538#issuecomment-57059946
+    # 025101.python.test_linux.line153.comment Note: free can have 2 different formats, invalidating 'shared'
+    # 025102.python.test_linux.line154.comment and 'cached' memory which may have different positions so we
+    # 025103.python.test_linux.line155.comment do not return them.
+    # 025104.python.test_linux.line156.comment https://github.com/giampaolo/psutil/issues/538#issuecomment-57059946
     out = sh(["free", "-b"], env={"LANG": "C.UTF-8"})
     lines = out.split('\n')
     for line in lines:
@@ -219,9 +219,9 @@ def mock_open_exception(for_path, exc):
         yield m
 
 
-# =====================================================================
-# --- system virtual memory
-# =====================================================================
+# 025105.python.test_linux.line222.comment =====================================================================
+# 025106.python.test_linux.line223.comment --- system virtual memory
+# 025107.python.test_linux.line224.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -233,14 +233,14 @@ class TestSystemVirtualMemoryAgainstFree(PsutilTestCase):
 
     @retry_on_failure()
     def test_used(self):
-        # Older versions of procps used slab memory to calculate used memory.
-        # This got changed in:
-        # https://gitlab.com/procps-ng/procps/commit/
-        #     05d751c4f076a2f0118b914c5e51cfbb4762ad8e
-        # Newer versions of procps are using yet another way to compute used
-        # memory.
-        # https://gitlab.com/procps-ng/procps/commit/
-        #     2184e90d2e7cdb582f9a5b706b47015e56707e4d
+        # 025108.python.test_linux.line236.comment Older versions of procps used slab memory to calculate used memory.
+        # 025109.python.test_linux.line237.comment This got changed in:
+        # 025110.python.test_linux.line238.comment https://gitlab.com/procps-ng/procps/commit/
+        # 025111.python.test_linux.line239.comment 05d751c4f076a2f0118b914c5e51cfbb4762ad8e
+        # 025112.python.test_linux.line240.comment Newer versions of procps are using yet another way to compute used
+        # 025113.python.test_linux.line241.comment memory.
+        # 025114.python.test_linux.line242.comment https://gitlab.com/procps-ng/procps/commit/
+        # 025115.python.test_linux.line243.comment 2184e90d2e7cdb582f9a5b706b47015e56707e4d
         if get_free_version_info() < (4, 0, 0):
             raise pytest.skip("free version too old")
         cli_value = free_physmem().used
@@ -266,8 +266,8 @@ class TestSystemVirtualMemoryAgainstFree(PsutilTestCase):
 
     @retry_on_failure()
     def test_available(self):
-        # "free" output format has changed at some point:
-        # https://github.com/giampaolo/psutil/issues/538#issuecomment-147192098
+        # 025116.python.test_linux.line269.comment "free" output format has changed at some point:
+        # 025117.python.test_linux.line270.comment https://github.com/giampaolo/psutil/issues/538#issuecomment-147192098
         out = sh(["free", "-b"])
         lines = out.split('\n')
         if 'available' not in lines[0]:
@@ -286,14 +286,14 @@ class TestSystemVirtualMemoryAgainstVmstat(PsutilTestCase):
 
     @retry_on_failure()
     def test_used(self):
-        # Older versions of procps used slab memory to calculate used memory.
-        # This got changed in:
-        # https://gitlab.com/procps-ng/procps/commit/
-        #     05d751c4f076a2f0118b914c5e51cfbb4762ad8e
-        # Newer versions of procps are using yet another way to compute used
-        # memory.
-        # https://gitlab.com/procps-ng/procps/commit/
-        #     2184e90d2e7cdb582f9a5b706b47015e56707e4d
+        # 025118.python.test_linux.line289.comment Older versions of procps used slab memory to calculate used memory.
+        # 025119.python.test_linux.line290.comment This got changed in:
+        # 025120.python.test_linux.line291.comment https://gitlab.com/procps-ng/procps/commit/
+        # 025121.python.test_linux.line292.comment 05d751c4f076a2f0118b914c5e51cfbb4762ad8e
+        # 025122.python.test_linux.line293.comment Newer versions of procps are using yet another way to compute used
+        # 025123.python.test_linux.line294.comment memory.
+        # 025124.python.test_linux.line295.comment https://gitlab.com/procps-ng/procps/commit/
+        # 025125.python.test_linux.line296.comment 2184e90d2e7cdb582f9a5b706b47015e56707e4d
         if get_free_version_info() < (4, 0, 0):
             raise pytest.skip("free version too old")
         vmstat_value = vmstat('used memory') * 1024
@@ -328,9 +328,9 @@ class TestSystemVirtualMemoryAgainstVmstat(PsutilTestCase):
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
 class TestSystemVirtualMemoryMocks(PsutilTestCase):
     def test_warnings_on_misses(self):
-        # Emulate a case where /proc/meminfo provides few info.
-        # psutil is supposed to set the missing fields to 0 and
-        # raise a warning.
+        # 025126.python.test_linux.line331.comment Emulate a case where /proc/meminfo provides few info.
+        # 025127.python.test_linux.line332.comment psutil is supposed to set the missing fields to 0 and
+        # 025128.python.test_linux.line333.comment raise a warning.
         content = textwrap.dedent("""\
             Active(anon):    6145416 kB
             Active(file):    2950064 kB
@@ -365,8 +365,8 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
 
     @retry_on_failure()
     def test_avail_old_percent(self):
-        # Make sure that our calculation of avail mem for old kernels
-        # is off by max 15%.
+        # 025129.python.test_linux.line368.comment Make sure that our calculation of avail mem for old kernels
+        # 025130.python.test_linux.line369.comment is off by max 15%.
         mems = {}
         with open_binary('/proc/meminfo') as f:
             for line in f:
@@ -380,8 +380,8 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
             assert diff_percent < 15
 
     def test_avail_old_comes_from_kernel(self):
-        # Make sure "MemAvailable:" coluimn is used instead of relying
-        # on our internal algorithm to calculate avail mem.
+        # 025131.python.test_linux.line383.comment Make sure "MemAvailable:" coluimn is used instead of relying
+        # 025132.python.test_linux.line384.comment on our internal algorithm to calculate avail mem.
         content = textwrap.dedent("""\
             Active:          9444728 kB
             Active(anon):    6145416 kB
@@ -408,9 +408,9 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
             )
 
     def test_avail_old_missing_fields(self):
-        # Remove Active(file), Inactive(file) and SReclaimable
-        # from /proc/meminfo and make sure the fallback is used
-        # (free + cached),
+        # 025133.python.test_linux.line411.comment Remove Active(file), Inactive(file) and SReclaimable
+        # 025134.python.test_linux.line412.comment from /proc/meminfo and make sure the fallback is used
+        # 025135.python.test_linux.line413.comment (free + cached),
         content = textwrap.dedent("""\
             Active:          9444728 kB
             Active(anon):    6145416 kB
@@ -433,8 +433,8 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
             )
 
     def test_avail_old_missing_zoneinfo(self):
-        # Remove /proc/zoneinfo file. Make sure fallback is used
-        # (free + cached).
+        # 025136.python.test_linux.line436.comment Remove /proc/zoneinfo file. Make sure fallback is used
+        # 025137.python.test_linux.line437.comment (free + cached).
         content = textwrap.dedent("""\
             Active:          9444728 kB
             Active(anon):    6145416 kB
@@ -461,7 +461,7 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
                     )
 
     def test_virtual_memory_mocked(self):
-        # Emulate /proc/meminfo because neither vmstat nor free return slab.
+        # 025138.python.test_linux.line464.comment Emulate /proc/meminfo because neither vmstat nor free return slab.
         content = textwrap.dedent("""\
             MemTotal:              100 kB
             MemFree:               2 kB
@@ -518,7 +518,7 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
             assert mem.total == 100 * 1024
             assert mem.free == 2 * 1024
             assert mem.buffers == 4 * 1024
-            # cached mem also includes reclaimable memory
+            # 025139.python.test_linux.line521.comment cached mem also includes reclaimable memory
             assert mem.cached == (5 + 23) * 1024
             assert mem.shared == 21 * 1024
             assert mem.active == 7 * 1024
@@ -527,9 +527,9 @@ class TestSystemVirtualMemoryMocks(PsutilTestCase):
             assert mem.available == 3 * 1024
 
 
-# =====================================================================
-# --- system swap memory
-# =====================================================================
+# 025140.python.test_linux.line530.comment =====================================================================
+# 025141.python.test_linux.line531.comment --- system swap memory
+# 025142.python.test_linux.line532.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -574,7 +574,7 @@ class TestSystemSwapMemory(PsutilTestCase):
                 assert ret.sout == 0
 
     def test_no_vmstat_mocked(self):
-        # see https://github.com/giampaolo/psutil/issues/722
+        # 025143.python.test_linux.line577.comment see https://github.com/giampaolo/psutil/issues/722
         with mock_open_exception("/proc/vmstat", FileNotFoundError) as m:
             with warnings.catch_warnings(record=True) as ws:
                 warnings.simplefilter("always")
@@ -591,9 +591,9 @@ class TestSystemSwapMemory(PsutilTestCase):
                 assert ret.sout == 0
 
     def test_meminfo_against_sysinfo(self):
-        # Make sure the content of /proc/meminfo about swap memory
-        # matches sysinfo() syscall, see:
-        # https://github.com/giampaolo/psutil/issues/1015
+        # 025144.python.test_linux.line594.comment Make sure the content of /proc/meminfo about swap memory
+        # 025145.python.test_linux.line595.comment matches sysinfo() syscall, see:
+        # 025146.python.test_linux.line596.comment https://github.com/giampaolo/psutil/issues/1015
         if not self.meminfo_has_swap_info():
             raise pytest.skip("/proc/meminfo has no swap metrics")
         with mock.patch('psutil._pslinux.cext.linux_sysinfo') as m:
@@ -608,17 +608,17 @@ class TestSystemSwapMemory(PsutilTestCase):
         assert abs(swap.free - free) < TOLERANCE_SYS_MEM
 
     def test_emulate_meminfo_has_no_metrics(self):
-        # Emulate a case where /proc/meminfo provides no swap metrics
-        # in which case sysinfo() syscall is supposed to be used
-        # as a fallback.
+        # 025147.python.test_linux.line611.comment Emulate a case where /proc/meminfo provides no swap metrics
+        # 025148.python.test_linux.line612.comment in which case sysinfo() syscall is supposed to be used
+        # 025149.python.test_linux.line613.comment as a fallback.
         with mock_open_content({"/proc/meminfo": b""}) as m:
             psutil.swap_memory()
             assert m.called
 
 
-# =====================================================================
-# --- system CPU
-# =====================================================================
+# 025150.python.test_linux.line619.comment =====================================================================
+# 025151.python.test_linux.line620.comment --- system CPU
+# 025152.python.test_linux.line621.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -682,24 +682,24 @@ class TestSystemCPUCountLogical(PsutilTestCase):
         import psutil._pslinux
 
         original = psutil._pslinux.cpu_count_logical()
-        # Here we want to mock os.sysconf("SC_NPROCESSORS_ONLN") in
-        # order to cause the parsing of /proc/cpuinfo and /proc/stat.
+        # 025153.python.test_linux.line685.comment Here we want to mock os.sysconf("SC_NPROCESSORS_ONLN") in
+        # 025154.python.test_linux.line686.comment order to cause the parsing of /proc/cpuinfo and /proc/stat.
         with mock.patch(
             'psutil._pslinux.os.sysconf', side_effect=ValueError
         ) as m:
             assert psutil._pslinux.cpu_count_logical() == original
             assert m.called
 
-            # Let's have open() return empty data and make sure None is
-            # returned ('cause we mimic os.cpu_count()).
+            # 025155.python.test_linux.line693.comment Let's have open() return empty data and make sure None is
+            # 025156.python.test_linux.line694.comment returned ('cause we mimic os.cpu_count()).
             with mock.patch('psutil._common.open', create=True) as m:
                 assert psutil._pslinux.cpu_count_logical() is None
                 assert m.call_count == 2
-                # /proc/stat should be the last one
+                # 025157.python.test_linux.line698.comment /proc/stat should be the last one
                 assert m.call_args[0][0] == '/proc/stat'
 
-            # Let's push this a bit further and make sure /proc/cpuinfo
-            # parsing works as expected.
+            # 025158.python.test_linux.line701.comment Let's push this a bit further and make sure /proc/cpuinfo
+            # 025159.python.test_linux.line702.comment parsing works as expected.
             with open('/proc/cpuinfo', 'rb') as f:
                 cpuinfo_data = f.read()
             fake_file = io.BytesIO(cpuinfo_data)
@@ -708,8 +708,8 @@ class TestSystemCPUCountLogical(PsutilTestCase):
             ) as m:
                 assert psutil._pslinux.cpu_count_logical() == original
 
-            # Finally, let's make /proc/cpuinfo return meaningless data;
-            # this way we'll fall back on relying on /proc/stat
+            # 025160.python.test_linux.line711.comment Finally, let's make /proc/cpuinfo return meaningless data;
+            # 025161.python.test_linux.line712.comment this way we'll fall back on relying on /proc/stat
             with mock_open_content({"/proc/cpuinfo": b""}) as m:
                 assert psutil._pslinux.cpu_count_logical() == original
                 assert m.called
@@ -755,7 +755,7 @@ class TestSystemCPUFrequency(PsutilTestCase):
         AARCH64, reason="aarch64 does not always expose frequency"
     )
     def test_emulate_use_second_file(self):
-        # https://github.com/giampaolo/psutil/issues/981
+        # 025162.python.test_linux.line758.comment https://github.com/giampaolo/psutil/issues/981
         def path_exists_mock(path):
             if path.startswith("/sys/devices/system/cpu/cpufreq/policy"):
                 return False
@@ -774,8 +774,8 @@ class TestSystemCPUFrequency(PsutilTestCase):
         reason=f"{platform.machine()} does not report mhz in /proc/cpuinfo",
     )
     def test_emulate_use_cpuinfo(self):
-        # Emulate a case where /sys/devices/system/cpu/cpufreq* does not
-        # exist and /proc/cpuinfo is used instead.
+        # 025163.python.test_linux.line777.comment Emulate a case where /sys/devices/system/cpu/cpufreq* does not
+        # 025164.python.test_linux.line778.comment exist and /proc/cpuinfo is used instead.
         def path_exists_mock(path):
             if path.startswith('/sys/devices/system/cpu/'):
                 return False
@@ -822,8 +822,8 @@ class TestSystemCPUFrequency(PsutilTestCase):
             with mock.patch('os.path.exists', return_value=True):
                 freq = psutil.cpu_freq()
                 assert freq.current == 500.0
-                # when /proc/cpuinfo is used min and max frequencies are not
-                # available and are set to 0.
+                # 025165.python.test_linux.line825.comment when /proc/cpuinfo is used min and max frequencies are not
+                # 025166.python.test_linux.line826.comment available and are set to 0.
                 if freq.min != 0.0:
                     assert freq.min == 600.0
                 if freq.max != 0.0:
@@ -882,7 +882,7 @@ class TestSystemCPUFrequency(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_CPU_FREQ, reason="not supported")
     def test_emulate_no_scaling_cur_freq_file(self):
-        # See: https://github.com/giampaolo/psutil/issues/1071
+        # 025167.python.test_linux.line885.comment See: https://github.com/giampaolo/psutil/issues/1071
         def open_mock(name, *args, **kwargs):
             if name.endswith('/scaling_cur_freq'):
                 raise FileNotFoundError
@@ -906,11 +906,11 @@ class TestSystemCPUFrequency(PsutilTestCase):
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
 class TestSystemCPUStats(PsutilTestCase):
 
-    # XXX: fails too often.
-    # def test_ctx_switches(self):
-    #     vmstat_value = vmstat("context switches")
-    #     psutil_value = psutil.cpu_stats().ctx_switches
-    #     assert abs(vmstat_value - psutil_value) < 500
+    # 025168.python.test_linux.line909.comment XXX: fails too often.
+    # 025169.python.test_linux.line910.comment def test_ctx_switches(self):
+    # 025170.python.test_linux.line911.comment vmstat_value = vmstat("context switches")
+    # 025171.python.test_linux.line912.comment psutil_value = psutil.cpu_stats().ctx_switches
+    # 025172.python.test_linux.line913.comment assert abs(vmstat_value - psutil_value) < 500
 
     def test_interrupts(self):
         vmstat_value = vmstat("interrupts")
@@ -931,9 +931,9 @@ class TestLoadAvg(PsutilTestCase):
         assert abs(float(proc_value[2]) - psutil_value[2]) < 1
 
 
-# =====================================================================
-# --- system network
-# =====================================================================
+# 025173.python.test_linux.line934.comment =====================================================================
+# 025174.python.test_linux.line935.comment --- system network
+# 025175.python.test_linux.line936.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -951,29 +951,29 @@ class TestSystemNetIfAddrs(PsutilTestCase):
                     else:
                         assert get_ipv4_broadcast(name) == '0.0.0.0'
                 elif addr.family == socket.AF_INET6:
-                    # IPv6 addresses can have a percent symbol at the end.
-                    # E.g. these 2 are equivalent:
-                    # "fe80::1ff:fe23:4567:890a"
-                    # "fe80::1ff:fe23:4567:890a%eth0"
-                    # That is the "zone id" portion, which usually is the name
-                    # of the network interface.
+                    # 025176.python.test_linux.line954.comment IPv6 addresses can have a percent symbol at the end.
+                    # 025177.python.test_linux.line955.comment E.g. these 2 are equivalent:
+                    # 025178.python.test_linux.line956.comment "fe80::1ff:fe23:4567:890a"
+                    # 025179.python.test_linux.line957.comment "fe80::1ff:fe23:4567:890a%eth0"
+                    # 025180.python.test_linux.line958.comment That is the "zone id" portion, which usually is the name
+                    # 025181.python.test_linux.line959.comment of the network interface.
                     address = addr.address.split('%')[0]
                     assert address in get_ipv6_addresses(name)
 
-    # XXX - not reliable when having virtual NICs installed by Docker.
-    # @pytest.mark.skipif(not shutil.which("ip"),
-    #                     reason="'ip' utility not available")
-    # def test_net_if_names(self):
-    #     out = sh("ip addr").strip()
-    #     nics = [x for x in psutil.net_if_addrs().keys() if ':' not in x]
-    #     found = 0
-    #     for line in out.split('\n'):
-    #         line = line.strip()
-    #         if re.search(r"^\d+:", line):
-    #             found += 1
-    #             name = line.split(':')[1].strip()
-    #             assert name in nics
-    #     assert len(nics) == found
+    # 025182.python.test_linux.line963.comment XXX - not reliable when having virtual NICs installed by Docker.
+    # 025183.python.test_linux.line964.comment @pytest.mark.skipif(not shutil.which("ip"),
+    # 025184.python.test_linux.line965.comment reason="'ip' utility not available")
+    # 025185.python.test_linux.line966.comment def test_net_if_names(self):
+    # 025186.python.test_linux.line967.comment out = sh("ip addr").strip()
+    # 025187.python.test_linux.line968.comment nics = [x for x in psutil.net_if_addrs().keys() if ':' not in x]
+    # 025188.python.test_linux.line969.comment found = 0
+    # 025189.python.test_linux.line970.comment for line in out.split('\n'):
+    # 025190.python.test_linux.line971.comment line = line.strip()
+    # 025191.python.test_linux.line972.comment if re.search(r"^\d+:", line):
+    # 025192.python.test_linux.line973.comment found += 1
+    # 025193.python.test_linux.line974.comment name = line.split(':')[1].strip()
+    # 025194.python.test_linux.line975.comment assert name in nics
+    # 025195.python.test_linux.line976.comment assert len(nics) == found
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -1002,8 +1002,8 @@ class TestSystemNetIfStats(PsutilTestCase):
         not shutil.which("ifconfig"), reason="ifconfig utility not available"
     )
     def test_flags(self):
-        # first line looks like this:
-        # "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500"
+        # 025196.python.test_linux.line1005.comment first line looks like this:
+        # 025197.python.test_linux.line1006.comment "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500"
         matches_found = 0
         for name, stats in psutil.net_if_stats().items():
             try:
@@ -1018,8 +1018,8 @@ class TestSystemNetIfStats(PsutilTestCase):
                     psutil_flags = set(stats.flags.split(","))
                     assert ifconfig_flags == psutil_flags
                 else:
-                    # ifconfig has a different output on CentOS 6
-                    # let's try that
+                    # 025198.python.test_linux.line1021.comment ifconfig has a different output on CentOS 6
+                    # 025199.python.test_linux.line1022.comment let's try that
                     match = re.search(r"(.*)  MTU:(\d+)  Metric:(\d+)", out)
                     if match and len(match.groups()) >= 3:
                         matches_found += 1
@@ -1088,7 +1088,7 @@ class TestSystemNetConnections(PsutilTestCase):
     @mock.patch('psutil._pslinux.socket.inet_ntop', side_effect=ValueError)
     @mock.patch('psutil._pslinux.supports_ipv6', return_value=False)
     def test_emulate_ipv6_unsupported(self, supports_ipv6, inet_ntop):
-        # see: https://github.com/giampaolo/psutil/issues/623
+        # 025200.python.test_linux.line1091.comment see: https://github.com/giampaolo/psutil/issues/623
         with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
             try:
                 s.bind(("::1", 0))
@@ -1108,9 +1108,9 @@ class TestSystemNetConnections(PsutilTestCase):
             assert m.called
 
 
-# =====================================================================
-# --- system disks
-# =====================================================================
+# 025201.python.test_linux.line1111.comment =====================================================================
+# 025202.python.test_linux.line1112.comment --- system disks
+# 025203.python.test_linux.line1113.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -1120,8 +1120,8 @@ class TestSystemDiskPartitions(PsutilTestCase):
     )
     @skip_on_not_implemented()
     def test_against_df(self):
-        # test psutil.disk_usage() and psutil.disk_partitions()
-        # against "df -a"
+        # 025204.python.test_linux.line1123.comment test psutil.disk_usage() and psutil.disk_partitions()
+        # 025205.python.test_linux.line1124.comment against "df -a"
         def df(path):
             out = sh(f'df -P -B 1 "{path}"').strip()
             lines = out.split('\n')
@@ -1141,7 +1141,7 @@ class TestSystemDiskPartitions(PsutilTestCase):
             assert abs(usage.used - used) < TOLERANCE_DISK_USAGE
 
     def test_zfs_fs(self):
-        # Test that ZFS partitions are returned.
+        # 025206.python.test_linux.line1144.comment Test that ZFS partitions are returned.
         with open("/proc/filesystems") as f:
             data = f.read()
         if 'zfs' in data:
@@ -1149,7 +1149,7 @@ class TestSystemDiskPartitions(PsutilTestCase):
                 if part.fstype == 'zfs':
                     return
 
-        # No ZFS partitions on this system. Let's fake one.
+        # 025207.python.test_linux.line1152.comment No ZFS partitions on this system. Let's fake one.
         fake_file = io.StringIO("nodev\tzfs\n")
         with mock.patch(
             'psutil._common.open', return_value=fake_file, create=True
@@ -1165,7 +1165,7 @@ class TestSystemDiskPartitions(PsutilTestCase):
                 assert ret[0].fstype == 'zfs'
 
     def test_emulate_realpath_fail(self):
-        # See: https://github.com/giampaolo/psutil/issues/1307
+        # 025208.python.test_linux.line1168.comment See: https://github.com/giampaolo/psutil/issues/1307
         try:
             with mock.patch(
                 'os.path.realpath', return_value='/non/existent'
@@ -1180,8 +1180,8 @@ class TestSystemDiskPartitions(PsutilTestCase):
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
 class TestSystemDiskIoCounters(PsutilTestCase):
     def test_emulate_kernel_2_4(self):
-        # Tests /proc/diskstats parsing format for 2.4 kernels, see:
-        # https://github.com/giampaolo/psutil/issues/767
+        # 025209.python.test_linux.line1183.comment Tests /proc/diskstats parsing format for 2.4 kernels, see:
+        # 025210.python.test_linux.line1184.comment https://github.com/giampaolo/psutil/issues/767
         content = "   3     0   1 hda 2 3 4 5 6 7 8 9 10 11 12"
         with mock_open_content({'/proc/diskstats': content}):
             with mock.patch(
@@ -1199,9 +1199,9 @@ class TestSystemDiskIoCounters(PsutilTestCase):
                 assert ret.busy_time == 10
 
     def test_emulate_kernel_2_6_full(self):
-        # Tests /proc/diskstats parsing format for 2.6 kernels,
-        # lines reporting all metrics:
-        # https://github.com/giampaolo/psutil/issues/767
+        # 025211.python.test_linux.line1202.comment Tests /proc/diskstats parsing format for 2.6 kernels,
+        # 025212.python.test_linux.line1203.comment lines reporting all metrics:
+        # 025213.python.test_linux.line1204.comment https://github.com/giampaolo/psutil/issues/767
         content = "   3    0   hda 1 2 3 4 5 6 7 8 9 10 11"
         with mock_open_content({"/proc/diskstats": content}):
             with mock.patch(
@@ -1219,11 +1219,11 @@ class TestSystemDiskIoCounters(PsutilTestCase):
                 assert ret.busy_time == 10
 
     def test_emulate_kernel_2_6_limited(self):
-        # Tests /proc/diskstats parsing format for 2.6 kernels,
-        # where one line of /proc/partitions return a limited
-        # amount of metrics when it bumps into a partition
-        # (instead of a disk). See:
-        # https://github.com/giampaolo/psutil/issues/767
+        # 025214.python.test_linux.line1222.comment Tests /proc/diskstats parsing format for 2.6 kernels,
+        # 025215.python.test_linux.line1223.comment where one line of /proc/partitions return a limited
+        # 025216.python.test_linux.line1224.comment amount of metrics when it bumps into a partition
+        # 025217.python.test_linux.line1225.comment (instead of a disk). See:
+        # 025218.python.test_linux.line1226.comment https://github.com/giampaolo/psutil/issues/767
         with mock_open_content({"/proc/diskstats": "   3    1   hda 1 2 3 4"}):
             with mock.patch(
                 'psutil._pslinux.is_storage_device', return_value=True
@@ -1241,9 +1241,9 @@ class TestSystemDiskIoCounters(PsutilTestCase):
                 assert ret.busy_time == 0
 
     def test_emulate_include_partitions(self):
-        # Make sure that when perdisk=True disk partitions are returned,
-        # see:
-        # https://github.com/giampaolo/psutil/pull/1313#issuecomment-408626842
+        # 025219.python.test_linux.line1244.comment Make sure that when perdisk=True disk partitions are returned,
+        # 025220.python.test_linux.line1245.comment see:
+        # 025221.python.test_linux.line1246.comment https://github.com/giampaolo/psutil/pull/1313#issuecomment-408626842
         content = textwrap.dedent("""\
             3    0   nvme0n1 1 2 3 4 5 6 7 8 9 10 11
             3    0   nvme0n1p1 1 2 3 4 5 6 7 8 9 10 11
@@ -1260,9 +1260,9 @@ class TestSystemDiskIoCounters(PsutilTestCase):
                 assert ret['nvme0n1p1'].write_count == 5
 
     def test_emulate_exclude_partitions(self):
-        # Make sure that when perdisk=False partitions (e.g. 'sda1',
-        # 'nvme0n1p1') are skipped and not included in the total count.
-        # https://github.com/giampaolo/psutil/pull/1313#issuecomment-408626842
+        # 025222.python.test_linux.line1263.comment Make sure that when perdisk=False partitions (e.g. 'sda1',
+        # 025223.python.test_linux.line1264.comment 'nvme0n1p1') are skipped and not included in the total count.
+        # 025224.python.test_linux.line1265.comment https://github.com/giampaolo/psutil/pull/1313#issuecomment-408626842
         content = textwrap.dedent("""\
             3    0   nvme0n1 1 2 3 4 5 6 7 8 9 10 11
             3    0   nvme0n1p1 1 2 3 4 5 6 7 8 9 10 11
@@ -1377,9 +1377,9 @@ class TestRootFsDeviceFinder(PsutilTestCase):
                 assert part.device == "/dev/root"
 
 
-# =====================================================================
-# --- misc
-# =====================================================================
+# 025225.python.test_linux.line1380.comment =====================================================================
+# 025226.python.test_linux.line1381.comment --- misc
+# 025227.python.test_linux.line1382.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -1427,16 +1427,16 @@ class TestMisc(PsutilTestCase):
                 assert psutil.cpu_percent() == 0
                 assert sum(psutil.cpu_times_percent()) == 0
 
-                # since we don't know the number of CPUs at import time,
-                # we awkwardly say there are none until the second call
+                # 025228.python.test_linux.line1430.comment since we don't know the number of CPUs at import time,
+                # 025229.python.test_linux.line1431.comment we awkwardly say there are none until the second call
                 per_cpu_percent = psutil.cpu_percent(percpu=True)
                 assert sum(per_cpu_percent) == 0
 
-                # ditto awkward length
+                # 025230.python.test_linux.line1435.comment ditto awkward length
                 per_cpu_times_percent = psutil.cpu_times_percent(percpu=True)
                 assert sum(map(sum, per_cpu_times_percent)) == 0
 
-                # much user, very busy
+                # 025231.python.test_linux.line1439.comment much user, very busy
                 with open(os.path.join(my_procfs, 'stat'), 'w') as f:
                     f.write('cpu   1 0 0 0 0 0 0 0 0 0\n')
                     f.write('cpu0  1 0 0 0 0 0 0 0 0 0\n')
@@ -1455,17 +1455,17 @@ class TestMisc(PsutilTestCase):
         assert psutil.PROCFS_PATH == '/proc'
 
     def test_cpu_steal_decrease(self):
-        # Test cumulative cpu stats decrease. We should ignore this.
-        # See issue #1210.
+        # 025232.python.test_linux.line1458.comment Test cumulative cpu stats decrease. We should ignore this.
+        # 025233.python.test_linux.line1459.comment See issue #1210.
         content = textwrap.dedent("""\
             cpu   0 0 0 0 0 0 0 1 0 0
             cpu0  0 0 0 0 0 0 0 1 0 0
             cpu1  0 0 0 0 0 0 0 1 0 0
             """).encode()
         with mock_open_content({"/proc/stat": content}) as m:
-            # first call to "percent" functions should read the new stat file
-            # and compare to the "real" file read at import time - so the
-            # values are meaningless
+            # 025234.python.test_linux.line1466.comment first call to "percent" functions should read the new stat file
+            # 025235.python.test_linux.line1467.comment and compare to the "real" file read at import time - so the
+            # 025236.python.test_linux.line1468.comment values are meaningless
             psutil.cpu_percent()
             assert m.called
             psutil.cpu_percent(percpu=True)
@@ -1478,7 +1478,7 @@ class TestMisc(PsutilTestCase):
             cpu1  1 0 0 0 0 0 0 0 0 0
             """).encode()
         with mock_open_content({"/proc/stat": content}):
-            # Increase "user" while steal goes "backwards" to zero.
+            # 025237.python.test_linux.line1481.comment Increase "user" while steal goes "backwards" to zero.
             cpu_percent = psutil.cpu_percent()
             assert m.called
             cpu_percent_percpu = psutil.cpu_percent(percpu=True)
@@ -1500,8 +1500,8 @@ class TestMisc(PsutilTestCase):
             assert m.called
 
     def test_users(self):
-        # Make sure the C extension converts ':0' and ':0.0' to
-        # 'localhost'.
+        # 025238.python.test_linux.line1503.comment Make sure the C extension converts ':0' and ':0.0' to
+        # 025239.python.test_linux.line1504.comment 'localhost'.
         for user in psutil.users():
             assert user.host not in {":0", ":0.0"}
 
@@ -1534,11 +1534,11 @@ class TestMisc(PsutilTestCase):
     @retry_on_failure()
     @pytest.mark.xdist_group(name="serial")
     def test_issue_687(self):
-        # In case of thread ID:
-        # - pid_exists() is supposed to return False
-        # - Process(tid) is supposed to work
-        # - pids() should not return the TID
-        # See: https://github.com/giampaolo/psutil/issues/687
+        # 025240.python.test_linux.line1537.comment In case of thread ID:
+        # 025241.python.test_linux.line1538.comment - pid_exists() is supposed to return False
+        # 025242.python.test_linux.line1539.comment - Process(tid) is supposed to work
+        # 025243.python.test_linux.line1540.comment - pids() should not return the TID
+        # 025244.python.test_linux.line1541.comment See: https://github.com/giampaolo/psutil/issues/687
 
         p = psutil.Process()
         nthreads = len(p.threads())
@@ -1552,17 +1552,17 @@ class TestMisc(PsutilTestCase):
             assert tid not in psutil.pids()
 
     def test_pid_exists_no_proc_status(self):
-        # Internally pid_exists relies on /proc/{pid}/status.
-        # Emulate a case where this file is empty in which case
-        # psutil is supposed to fall back on using pids().
+        # 025245.python.test_linux.line1555.comment Internally pid_exists relies on /proc/{pid}/status.
+        # 025246.python.test_linux.line1556.comment Emulate a case where this file is empty in which case
+        # 025247.python.test_linux.line1557.comment psutil is supposed to fall back on using pids().
         with mock_open_content({"/proc/%s/status": ""}) as m:
             assert psutil.pid_exists(os.getpid())
             assert m.called
 
 
-# =====================================================================
-# --- sensors
-# =====================================================================
+# 025248.python.test_linux.line1563.comment =====================================================================
+# 025249.python.test_linux.line1564.comment --- sensors
+# 025250.python.test_linux.line1565.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -1578,7 +1578,7 @@ class TestSensorsBattery(PsutilTestCase):
         assert abs(acpi_value - psutil_value) < 1
 
     def test_emulate_power_plugged(self):
-        # Pretend the AC power cable is connected.
+        # 025251.python.test_linux.line1581.comment Pretend the AC power cable is connected.
         def open_mock(name, *args, **kwargs):
             if name.endswith(('AC0/online', 'AC/online')):
                 return io.BytesIO(b"1")
@@ -1595,8 +1595,8 @@ class TestSensorsBattery(PsutilTestCase):
             assert m.called
 
     def test_emulate_power_plugged_2(self):
-        # Same as above but pretend /AC0/online does not exist in which
-        # case code relies on /status file.
+        # 025252.python.test_linux.line1598.comment Same as above but pretend /AC0/online does not exist in which
+        # 025253.python.test_linux.line1599.comment case code relies on /status file.
         def open_mock(name, *args, **kwargs):
             if name.endswith(('AC0/online', 'AC/online')):
                 raise FileNotFoundError
@@ -1611,7 +1611,7 @@ class TestSensorsBattery(PsutilTestCase):
             assert m.called
 
     def test_emulate_power_not_plugged(self):
-        # Pretend the AC power cable is not connected.
+        # 025254.python.test_linux.line1614.comment Pretend the AC power cable is not connected.
         def open_mock(name, *args, **kwargs):
             if name.endswith(('AC0/online', 'AC/online')):
                 return io.BytesIO(b"0")
@@ -1624,8 +1624,8 @@ class TestSensorsBattery(PsutilTestCase):
             assert m.called
 
     def test_emulate_power_not_plugged_2(self):
-        # Same as above but pretend /AC0/online does not exist in which
-        # case code relies on /status file.
+        # 025255.python.test_linux.line1627.comment Same as above but pretend /AC0/online does not exist in which
+        # 025256.python.test_linux.line1628.comment case code relies on /status file.
         def open_mock(name, *args, **kwargs):
             if name.endswith(('AC0/online', 'AC/online')):
                 raise FileNotFoundError
@@ -1640,8 +1640,8 @@ class TestSensorsBattery(PsutilTestCase):
             assert m.called
 
     def test_emulate_power_undetermined(self):
-        # Pretend we can't know whether the AC power cable not
-        # connected (assert fallback to False).
+        # 025257.python.test_linux.line1643.comment Pretend we can't know whether the AC power cable not
+        # 025258.python.test_linux.line1644.comment connected (assert fallback to False).
         def open_mock(name, *args, **kwargs):
             if name.startswith((
                 '/sys/class/power_supply/AC0/online',
@@ -1659,7 +1659,7 @@ class TestSensorsBattery(PsutilTestCase):
             assert m.called
 
     def test_emulate_energy_full_0(self):
-        # Emulate a case where energy_full files returns 0.
+        # 025259.python.test_linux.line1662.comment Emulate a case where energy_full files returns 0.
         with mock_open_content(
             {"/sys/class/power_supply/BAT0/energy_full": b"0"}
         ) as m:
@@ -1667,8 +1667,8 @@ class TestSensorsBattery(PsutilTestCase):
             assert m.called
 
     def test_emulate_energy_full_not_avail(self):
-        # Emulate a case where energy_full file does not exist.
-        # Expected fallback on /capacity.
+        # 025260.python.test_linux.line1670.comment Emulate a case where energy_full file does not exist.
+        # 025261.python.test_linux.line1671.comment Expected fallback on /capacity.
         with mock_open_exception(
             "/sys/class/power_supply/BAT0/energy_full",
             FileNotFoundError,
@@ -1683,7 +1683,7 @@ class TestSensorsBattery(PsutilTestCase):
                     assert psutil.sensors_battery().percent == 88
 
     def test_emulate_no_power(self):
-        # Emulate a case where /AC0/online file nor /BAT0/status exist.
+        # 025262.python.test_linux.line1686.comment Emulate a case where /AC0/online file nor /BAT0/status exist.
         with mock_open_exception(
             "/sys/class/power_supply/AC/online", FileNotFoundError
         ):
@@ -1737,7 +1737,7 @@ class TestSensorsTemperatures(PsutilTestCase):
 
         orig_open = open
         with mock.patch("builtins.open", side_effect=open_mock):
-            # Test case with /sys/class/hwmon
+            # 025263.python.test_linux.line1740.comment Test case with /sys/class/hwmon
             with mock.patch(
                 'glob.glob', return_value=['/sys/class/hwmon/hwmon0/temp1']
             ):
@@ -1808,9 +1808,9 @@ class TestSensorsFans(PsutilTestCase):
                 assert fan.current == 2000
 
 
-# =====================================================================
-# --- test process
-# =====================================================================
+# 025264.python.test_linux.line1811.comment =====================================================================
+# 025265.python.test_linux.line1812.comment --- test process
+# 025266.python.test_linux.line1813.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")
@@ -1828,7 +1828,7 @@ class TestProcess(PsutilTestCase):
         assert abs(swap - sum(x.swap for x in maps)) < 4096
 
     def test_parse_smaps_mocked(self):
-        # See: https://github.com/giampaolo/psutil/issues/1222
+        # 025267.python.test_linux.line1831.comment See: https://github.com/giampaolo/psutil/issues/1222
         content = textwrap.dedent("""\
             fffff0 r-xp 00000000 00:00 0                  [vsyscall]
             Size:                  1 kB
@@ -1894,12 +1894,12 @@ class TestProcess(PsutilTestCase):
             assert get_test_file(testfn).mode == "r+"
 
     def test_open_files_file_gone(self):
-        # simulates a file which gets deleted during open_files()
-        # execution
+        # 025268.python.test_linux.line1897.comment simulates a file which gets deleted during open_files()
+        # 025269.python.test_linux.line1898.comment execution
         p = psutil.Process()
         files = p.open_files()
         with open(self.get_testfn(), 'w'):
-            # give the kernel some time to see the new file
+            # 025270.python.test_linux.line1902.comment give the kernel some time to see the new file
             call_until(lambda: len(p.open_files()) != len(files))
             with mock.patch(
                 'psutil._pslinux.os.readlink',
@@ -1907,8 +1907,8 @@ class TestProcess(PsutilTestCase):
             ) as m:
                 assert p.open_files() == []
                 assert m.called
-            # also simulate the case where os.readlink() returns EINVAL
-            # in which case psutil is supposed to 'continue'
+            # 025271.python.test_linux.line1910.comment also simulate the case where os.readlink() returns EINVAL
+            # 025272.python.test_linux.line1911.comment in which case psutil is supposed to 'continue'
             with mock.patch(
                 'psutil._pslinux.os.readlink',
                 side_effect=OSError(errno.EINVAL, ""),
@@ -1917,13 +1917,13 @@ class TestProcess(PsutilTestCase):
                 assert m.called
 
     def test_open_files_fd_gone(self):
-        # Simulate a case where /proc/{pid}/fdinfo/{fd} disappears
-        # while iterating through fds.
-        # https://travis-ci.org/giampaolo/psutil/jobs/225694530
+        # 025273.python.test_linux.line1920.comment Simulate a case where /proc/{pid}/fdinfo/{fd} disappears
+        # 025274.python.test_linux.line1921.comment while iterating through fds.
+        # 025275.python.test_linux.line1922.comment https://travis-ci.org/giampaolo/psutil/jobs/225694530
         p = psutil.Process()
         files = p.open_files()
         with open(self.get_testfn(), 'w'):
-            # give the kernel some time to see the new file
+            # 025276.python.test_linux.line1926.comment give the kernel some time to see the new file
             call_until(lambda: len(p.open_files()) != len(files))
             with mock.patch(
                 "builtins.open", side_effect=FileNotFoundError
@@ -1932,13 +1932,13 @@ class TestProcess(PsutilTestCase):
                 assert m.called
 
     def test_open_files_enametoolong(self):
-        # Simulate a case where /proc/{pid}/fd/{fd} symlink
-        # points to a file with full path longer than PATH_MAX, see:
-        # https://github.com/giampaolo/psutil/issues/1940
+        # 025277.python.test_linux.line1935.comment Simulate a case where /proc/{pid}/fd/{fd} symlink
+        # 025278.python.test_linux.line1936.comment points to a file with full path longer than PATH_MAX, see:
+        # 025279.python.test_linux.line1937.comment https://github.com/giampaolo/psutil/issues/1940
         p = psutil.Process()
         files = p.open_files()
         with open(self.get_testfn(), 'w'):
-            # give the kernel some time to see the new file
+            # 025280.python.test_linux.line1941.comment give the kernel some time to see the new file
             call_until(lambda: len(p.open_files()) != len(files))
             patch_point = 'psutil._pslinux.os.readlink'
             with mock.patch(
@@ -1948,7 +1948,7 @@ class TestProcess(PsutilTestCase):
                     assert p.open_files() == []
                     assert m.called
 
-    # --- mocked tests
+    # 025281.python.test_linux.line1951.comment --- mocked tests
 
     def test_terminal_mocked(self):
         with mock.patch(
@@ -1958,7 +1958,7 @@ class TestProcess(PsutilTestCase):
             assert m.called
 
     def test_cmdline_mocked(self):
-        # see: https://github.com/giampaolo/psutil/issues/639
+        # 025282.python.test_linux.line1961.comment see: https://github.com/giampaolo/psutil/issues/639
         p = psutil.Process()
         fake_file = io.StringIO('foo\x00bar\x00')
         with mock.patch(
@@ -1974,7 +1974,7 @@ class TestProcess(PsutilTestCase):
             assert m.called
 
     def test_cmdline_spaces_mocked(self):
-        # see: https://github.com/giampaolo/psutil/issues/1179
+        # 025283.python.test_linux.line1977.comment see: https://github.com/giampaolo/psutil/issues/1179
         p = psutil.Process()
         fake_file = io.StringIO('foo bar ')
         with mock.patch(
@@ -1990,8 +1990,8 @@ class TestProcess(PsutilTestCase):
             assert m.called
 
     def test_cmdline_mixed_separators(self):
-        # https://github.com/giampaolo/psutil/issues/
-        #    1179#issuecomment-552984549
+        # 025284.python.test_linux.line1993.comment https://github.com/giampaolo/psutil/issues/
+        # 025285.python.test_linux.line1994.comment 1179#issuecomment-552984549
         p = psutil.Process()
         fake_file = io.StringIO('foo\x20bar\x00')
         with mock.patch(
@@ -2008,10 +2008,10 @@ class TestProcess(PsutilTestCase):
             assert psutil.Process().cwd() == "/home/foo"
 
     def test_threads_mocked(self):
-        # Test the case where os.listdir() returns a file (thread)
-        # which no longer exists by the time we open() it (race
-        # condition). threads() is supposed to ignore that instead
-        # of raising NSP.
+        # 025286.python.test_linux.line2011.comment Test the case where os.listdir() returns a file (thread)
+        # 025287.python.test_linux.line2012.comment which no longer exists by the time we open() it (race
+        # 025288.python.test_linux.line2013.comment condition). threads() is supposed to ignore that instead
+        # 025289.python.test_linux.line2014.comment of raising NSP.
         def open_mock_1(name, *args, **kwargs):
             if name.startswith(f"/proc/{os.getpid()}/task"):
                 raise FileNotFoundError
@@ -2023,8 +2023,8 @@ class TestProcess(PsutilTestCase):
             assert m.called
             assert ret == []
 
-        # ...but if it bumps into something != ENOENT we want an
-        # exception.
+        # 025290.python.test_linux.line2026.comment ...but if it bumps into something != ENOENT we want an
+        # 025291.python.test_linux.line2027.comment exception.
         def open_mock_2(name, *args, **kwargs):
             if name.startswith(f"/proc/{os.getpid()}/task"):
                 raise PermissionError
@@ -2038,7 +2038,7 @@ class TestProcess(PsutilTestCase):
         with mock.patch(
             'psutil._pslinux.readlink', side_effect=FileNotFoundError
         ) as m:
-            # de-activate guessing from cmdline()
+            # 025292.python.test_linux.line2041.comment de-activate guessing from cmdline()
             with mock.patch(
                 'psutil._pslinux.Process.cmdline', return_value=[]
             ):
@@ -2047,7 +2047,7 @@ class TestProcess(PsutilTestCase):
                 assert ret == ""
 
     def test_cwd_mocked(self):
-        # https://github.com/giampaolo/psutil/issues/2514
+        # 025293.python.test_linux.line2050.comment https://github.com/giampaolo/psutil/issues/2514
         with mock.patch(
             'psutil._pslinux.readlink', side_effect=FileNotFoundError
         ) as m:
@@ -2056,8 +2056,8 @@ class TestProcess(PsutilTestCase):
             assert ret == ""
 
     def test_issue_1014(self):
-        # Emulates a case where smaps file does not exist. In this case
-        # wrap_exception decorator should not raise NoSuchProcess.
+        # 025294.python.test_linux.line2059.comment Emulates a case where smaps file does not exist. In this case
+        # 025295.python.test_linux.line2060.comment wrap_exception decorator should not raise NoSuchProcess.
         with mock_open_exception(
             f"/proc/{os.getpid()}/smaps", FileNotFoundError
         ) as m:
@@ -2077,9 +2077,9 @@ class TestProcess(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_RLIMIT, reason="not supported")
     def test_rlimit_zombie(self):
-        # Emulate a case where rlimit() raises ENOSYS, which may
-        # happen in case of zombie process:
-        # https://travis-ci.org/giampaolo/psutil/jobs/51368273
+        # 025296.python.test_linux.line2080.comment Emulate a case where rlimit() raises ENOSYS, which may
+        # 025297.python.test_linux.line2081.comment happen in case of zombie process:
+        # 025298.python.test_linux.line2082.comment https://travis-ci.org/giampaolo/psutil/jobs/51368273
         with mock.patch(
             "resource.prlimit", side_effect=OSError(errno.ENOSYS, "")
         ) as m1:
@@ -2180,9 +2180,9 @@ class TestProcess(PsutilTestCase):
             assert p._proc._get_eligible_cpus() == list(range(8))
 
     def test_net_connections_enametoolong(self):
-        # Simulate a case where /proc/{pid}/fd/{fd} symlink points to
-        # a file with full path longer than PATH_MAX, see:
-        # https://github.com/giampaolo/psutil/issues/1940
+        # 025341.python.test_linux.line2183.comment Simulate a case where /proc/{pid}/fd/{fd} symlink points to
+        # 025342.python.test_linux.line2184.comment a file with full path longer than PATH_MAX, see:
+        # 025343.python.test_linux.line2185.comment https://github.com/giampaolo/psutil/issues/1940
         with mock.patch(
             'psutil._pslinux.os.readlink',
             side_effect=OSError(errno.ENAMETOOLONG, ""),
@@ -2276,9 +2276,9 @@ class TestProcessAgainstStatus(PsutilTestCase):
             assert m.called
 
 
-# =====================================================================
-# --- test utils
-# =====================================================================
+# 025344.python.test_linux.line2279.comment =====================================================================
+# 025345.python.test_linux.line2280.comment --- test utils
+# 025346.python.test_linux.line2281.comment =====================================================================
 
 
 @pytest.mark.skipif(not LINUX, reason="LINUX only")

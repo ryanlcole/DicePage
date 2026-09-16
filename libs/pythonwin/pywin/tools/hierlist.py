@@ -1,17 +1,17 @@
-# hierlist
-#
-# IMPORTANT - Please read before using.
+# 039094.python.hierlist.line1.comment hierlist
+# 039095.python.hierlist.line2.comment
+# 039096.python.hierlist.line3.comment IMPORTANT - Please read before using.
 
-# This module exposes an API for a Hierarchical Tree Control.
-# Previously, a custom tree control was included in Pythonwin which
-# has an API very similar to this.
+# 039097.python.hierlist.line5.comment This module exposes an API for a Hierarchical Tree Control.
+# 039098.python.hierlist.line6.comment Previously, a custom tree control was included in Pythonwin which
+# 039099.python.hierlist.line7.comment has an API very similar to this.
 
-# The current control used is the common "Tree Control".  This module exists now
-# to provide an API similar to the old control, but for the new Tree control.
+# 039100.python.hierlist.line9.comment The current control used is the common "Tree Control".  This module exists now
+# 039101.python.hierlist.line10.comment to provide an API similar to the old control, but for the new Tree control.
 
-# If you need to use the Tree Control, you may still find this API a reasonable
-# choice.  However, you should investigate using the tree control directly
-# to provide maximum flexibility (but with extra work).
+# 039102.python.hierlist.line12.comment If you need to use the Tree Control, you may still find this API a reasonable
+# 039103.python.hierlist.line13.comment choice.  However, you should investigate using the tree control directly
+# 039104.python.hierlist.line14.comment to provide maximum flexibility (but with extra work).
 from __future__ import annotations
 
 import commctrl
@@ -22,7 +22,7 @@ from pywin.mfc import dialog, object
 from win32api import RGB
 
 
-# helper to get the text of an arbitary item
+# 039105.python.hierlist.line25.comment helper to get the text of an arbitary item
 def GetItemText(item):
     if isinstance(item, (tuple, list)):
         use = item[0]
@@ -49,7 +49,7 @@ class HierDialog(dialog.Dialog):
         self.dlgID = dlgID
         self.title = title
 
-    # 		self.childListBoxID = childListBoxID
+    # 039107.python.hierlist.line52.comment self.childListBoxID = childListBoxID
     def OnInitDialog(self):
         self.SetWindowText(self.title)
         self.hierList.HierInit(self)
@@ -83,8 +83,8 @@ class HierList(object.Object):
         win32api.SetWindowLong(hwnd, win32con.GWL_STYLE, (style | newStyle))
 
     def HierInit(self, parent, listControl=None):  # Used when window first exists.
-        # this also calls "Create" on the listbox.
-        # params - id of listbbox, ID of bitmap, size of bitmaps
+        # 039110.python.hierlist.line86.comment this also calls "Create" on the listbox.
+        # 039111.python.hierlist.line87.comment params - id of listbbox, ID of bitmap, size of bitmaps
         if self.bitmapMask is None:
             bitmapMask = RGB(0, 0, 255)
         else:
@@ -104,7 +104,7 @@ class HierList(object.Object):
             )
             self.listBoxId = lbid
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
-        # 		self.list.AttachObject(self)
+        # 039112.python.hierlist.line107.comment self.list.AttachObject(self)
 
         parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
         parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
@@ -121,7 +121,7 @@ class HierList(object.Object):
         self.filledItemHandlesMap = {}
 
     def HierTerm(self):
-        # Don't want notifies as we kill the list.
+        # 039113.python.hierlist.line124.comment Don't want notifies as we kill the list.
         parent = self.notify_parent  # GetParentFrame()
         parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
         parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
@@ -191,23 +191,23 @@ class HierList(object.Object):
                 ret.append(handle)
                 handle = self.listControl.GetNextItem(handle, commctrl.TVGN_NEXT)
         except win32ui.error:
-            # out of children
+            # 039117.python.hierlist.line194.comment out of children
             pass
         return ret
 
     def Refresh(self, hparent=None):
-        # Attempt to refresh the given item's sub-entries, but maintain the tree state
-        # (ie, the selected item, expanded items, etc)
+        # 039118.python.hierlist.line199.comment Attempt to refresh the given item's sub-entries, but maintain the tree state
+        # 039119.python.hierlist.line200.comment (ie, the selected item, expanded items, etc)
         if hparent is None:
             hparent = commctrl.TVI_ROOT
         if hparent not in self.filledItemHandlesMap:
-            # This item has never been expanded, so no refresh can possibly be required.
+            # 039120.python.hierlist.line204.comment This item has never been expanded, so no refresh can possibly be required.
             return
         root_item = self.itemHandleMap[hparent]
         old_handles = self._GetChildHandles(hparent)
         old_items = list(map(self.ItemFromHandle, old_handles))
         new_items = self.GetSubList(root_item)
-        # Now an inefficient technique for synching the items.
+        # 039121.python.hierlist.line210.comment Now an inefficient technique for synching the items.
         inew = 0
         hAfter = commctrl.TVI_FIRST
         for iold in range(len(old_items)):
@@ -219,31 +219,31 @@ class HierList(object.Object):
                     break
                 inewlook += 1
             if matched:
-                # Insert the new items.
-                # print("Inserting after", old_items[iold], old_handles[iold])
+                # 039122.python.hierlist.line222.comment Insert the new items.
+                # 039123.python.hierlist.line223.comment print("Inserting after", old_items[iold], old_handles[iold])
                 for i in range(inew, inewlook):
-                    # print(f"Inserting index {i} ({new_items[i]})")
+                    # 039124.python.hierlist.line225.comment print(f"Inserting index {i} ({new_items[i]})")
                     hAfter = self.AddItem(hparent, new_items[i], hAfter)
 
                 inew = inewlook + 1
-                # And recursively refresh iold
+                # 039125.python.hierlist.line229.comment And recursively refresh iold
                 hold = old_handles[iold]
                 if hold in self.filledItemHandlesMap:
                     self.Refresh(hold)
             else:
-                # Remove the deleted items.
-                # print(f"Deleting {iold} ({old_items[iold]})")
+                # 039126.python.hierlist.line234.comment Remove the deleted items.
+                # 039127.python.hierlist.line235.comment print(f"Deleting {iold} ({old_items[iold]})")
                 hdelete = old_handles[iold]
-                # First recurse and remove the children from the map.
+                # 039128.python.hierlist.line237.comment First recurse and remove the children from the map.
                 for hchild in self._GetChildHandles(hdelete):
                     del self.itemHandleMap[hchild]
                     if hchild in self.filledItemHandlesMap:
                         del self.filledItemHandlesMap[hchild]
                 self.listControl.DeleteItem(hdelete)
             hAfter = old_handles[iold]
-        # Fill any remaining new items:
+        # 039129.python.hierlist.line244.comment Fill any remaining new items:
         for newItem in new_items[inew:]:
-            # print("Inserting new item", newItem)
+            # 039130.python.hierlist.line246.comment print("Inserting new item", newItem)
             self.AddItem(hparent, newItem)
 
     def AcceptRoot(self, root):
@@ -278,11 +278,11 @@ class HierList(object.Object):
         win32ui.MessageBox("Got item " + self.GetText(item))
 
 
-##########################################################################
-#
-# Classes for use with seperate HierListItems.
-#
-#
+# 039132.python.hierlist.line281.comment #########################################################################
+# 039133.python.hierlist.line282.comment
+# 039134.python.hierlist.line283.comment Classes for use with seperate HierListItems.
+# 039135.python.hierlist.line284.comment
+# 039136.python.hierlist.line285.comment
 class HierListWithItems(HierList):
     def __init__(
         self, root, bitmapID=win32ui.IDB_HIERFOLDERS, listBoxID=None, bitmapMask=None
@@ -325,7 +325,7 @@ class HierListWithItems(HierList):
             return self.DelegateCall(func)
 
 
-# A hier list item - for use with a HierListWithItems
+# 039138.python.hierlist.line328.comment A hier list item - for use with a HierListWithItems
 class HierListItem:
     def __init__(self):
         pass
@@ -346,7 +346,7 @@ class HierListItem:
         return None  # same as other
 
     def __lt__(self, other):
-        # we want unrelated items to be sortable...
+        # 039141.python.hierlist.line349.comment we want unrelated items to be sortable...
         return id(self) < id(other)
 
     def __eq__(self, other):

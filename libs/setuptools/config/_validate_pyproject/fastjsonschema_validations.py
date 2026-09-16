@@ -1,13 +1,13 @@
-# noqa
-# ruff: noqa
-# flake8: noqa
-# pylint: skip-file
-# mypy: ignore-errors
-# yapf: disable
-# pylama:skip=1
+# 044658.python.fastjsonschema_validations.line1.comment noqa
+# 044659.python.fastjsonschema_validations.line2.comment ruff: noqa
+# 044660.python.fastjsonschema_validations.line3.comment flake8: noqa
+# 044661.python.fastjsonschema_validations.line4.comment pylint: skip-file
+# 044662.python.fastjsonschema_validations.line5.comment mypy: ignore-errors
+# 044663.python.fastjsonschema_validations.line6.comment yapf: disable
+# 044664.python.fastjsonschema_validations.line7.comment pylama:skip=1
 
 
-# *** PLEASE DO NOT MODIFY DIRECTLY: Automatically generated code *** 
+# 044665.python.fastjsonschema_validations.line10.comment *** PLEASE DO NOT MODIFY DIRECTLY: Automatically generated code ***
 
 
 VERSION = "2.20.0"

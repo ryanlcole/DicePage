@@ -11,7 +11,7 @@ while data:
     data = sys.stdin.read(1)
     sys.stdout.write(data)
     sys.stdout.flush()
-# Just here to have something to read from stderr.
+# 046075.python.cat.line14.comment Just here to have something to read from stderr.
 sys.stderr.write("Blah...")
 
-# end of cat.py
+# 046076.python.cat.line17.comment end of cat.py

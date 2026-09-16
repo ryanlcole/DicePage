@@ -1,23 +1,23 @@
-# earcut-python - A earcut triangulation library
-#
-# The code can be found at:
-# https://github.com/joshuaskelly/earcut-python
-#
-# LICENSE (ISC)
-#
-# Copyright (c) 2016, Mapbox
-#
-# Permission to use, copy, modify, and/or distribute this software for any purpose
-# with or without fee is hereby granted, provided that the above copyright notice
-# and this permission notice appear in all copies.
-#
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
-# FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
-# THIS SOFTWARE.
+# 026420.python.earcut.line1.comment earcut-python - A earcut triangulation library
+# 026421.python.earcut.line2.comment
+# 026422.python.earcut.line3.comment The code can be found at:
+# 026423.python.earcut.line4.comment https://github.com/joshuaskelly/earcut-python
+# 026424.python.earcut.line5.comment
+# 026425.python.earcut.line6.comment LICENSE (ISC)
+# 026426.python.earcut.line7.comment
+# 026427.python.earcut.line8.comment Copyright (c) 2016, Mapbox
+# 026428.python.earcut.line9.comment
+# 026429.python.earcut.line10.comment Permission to use, copy, modify, and/or distribute this software for any purpose
+# 026430.python.earcut.line11.comment with or without fee is hereby granted, provided that the above copyright notice
+# 026431.python.earcut.line12.comment and this permission notice appear in all copies.
+# 026432.python.earcut.line13.comment
+# 026433.python.earcut.line14.comment THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# 026434.python.earcut.line15.comment REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# 026435.python.earcut.line16.comment FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# 026436.python.earcut.line17.comment INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+# 026437.python.earcut.line18.comment OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+# 026438.python.earcut.line19.comment TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+# 026439.python.earcut.line20.comment THIS SOFTWARE.
 
 import math
 
@@ -46,7 +46,7 @@ def earcut(data, holeIndices=None, dim=None):
     if hasHoles:
         outerNode = eliminateHoles(data, holeIndices, outerNode, dim)
 
-    # if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
+    # 026440.python.earcut.line49.comment if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
     if (len(data) > 80 * dim):
         minX = maxX = data[0]
         minY = maxY = data[1]
@@ -63,7 +63,7 @@ def earcut(data, holeIndices=None, dim=None):
             if y > maxY:
                 maxY = y
 
-        # minX, minY and size are later used to transform coords into integers for z-order calculation
+        # 026441.python.earcut.line66.comment minX, minY and size are later used to transform coords into integers for z-order calculation
         size = max(maxX - minX, maxY - minY)
 
     earcutLinked(outerNode, triangles, dim, minX, minY, size)
@@ -71,7 +71,7 @@ def earcut(data, holeIndices=None, dim=None):
     return triangles
 
 
-# create a circular doubly linked _list from polygon points in the specified winding order
+# 026442.python.earcut.line74.comment create a circular doubly linked _list from polygon points in the specified winding order
 def linkedList(data, start, end, dim, clockwise):
     i = None
     last = None
@@ -91,7 +91,7 @@ def linkedList(data, start, end, dim, clockwise):
     return last
 
 
-# eliminate colinear or duplicate points
+# 026443.python.earcut.line94.comment eliminate colinear or duplicate points
 def filterPoints(start, end=None):
     if not start:
         return start
@@ -117,12 +117,12 @@ def filterPoints(start, end=None):
 
     return end
 
-# main ear slicing loop which triangulates a polygon (given as a linked _list)
+# 026444.python.earcut.line120.comment main ear slicing loop which triangulates a polygon (given as a linked _list)
 def earcutLinked(ear, triangles, dim, minX, minY, size, _pass=None):
     if not ear:
         return
 
-    # interlink polygon nodes in z-order
+    # 026445.python.earcut.line125.comment interlink polygon nodes in z-order
     if not _pass and size:
         indexCurve(ear, minX, minY, size)
 
@@ -130,20 +130,20 @@ def earcutLinked(ear, triangles, dim, minX, minY, size, _pass=None):
     prev = None
     next = None
 
-    # iterate through ears, slicing them one by one
+    # 026446.python.earcut.line133.comment iterate through ears, slicing them one by one
     while ear.prev != ear.next:
         prev = ear.prev
         next = ear.next
 
         if isEarHashed(ear, minX, minY, size) if size else isEar(ear):
-            # cut off the triangle
+            # 026447.python.earcut.line139.comment cut off the triangle
             triangles.append(prev.i // dim)
             triangles.append(ear.i // dim)
             triangles.append(next.i // dim)
 
             removeNode(ear)
 
-            # skipping the next vertice leads to less sliver triangles
+            # 026448.python.earcut.line146.comment skipping the next vertice leads to less sliver triangles
             ear = next.next
             stop = next.next
 
@@ -151,24 +151,24 @@ def earcutLinked(ear, triangles, dim, minX, minY, size, _pass=None):
 
         ear = next
 
-        # if we looped through the whole remaining polygon and can't find any more ears
+        # 026449.python.earcut.line154.comment if we looped through the whole remaining polygon and can't find any more ears
         if ear == stop:
-            # try filtering points and slicing again
+            # 026450.python.earcut.line156.comment try filtering points and slicing again
             if not _pass:
                 earcutLinked(filterPoints(ear), triangles, dim, minX, minY, size, 1)
 
-                # if this didn't work, try curing all small self-intersections locally
+                # 026451.python.earcut.line160.comment if this didn't work, try curing all small self-intersections locally
             elif _pass == 1:
                 ear = cureLocalIntersections(ear, triangles, dim)
                 earcutLinked(ear, triangles, dim, minX, minY, size, 2)
 
-                # as a last resort, try splitting the remaining polygon into two
+                # 026452.python.earcut.line165.comment as a last resort, try splitting the remaining polygon into two
             elif _pass == 2:
                 splitEarcut(ear, triangles, dim, minX, minY, size)
 
             break
 
-# check whether a polygon node forms a valid ear with adjacent nodes
+# 026453.python.earcut.line171.comment check whether a polygon node forms a valid ear with adjacent nodes
 def isEar(ear):
     a = ear.prev
     b = ear
@@ -177,7 +177,7 @@ def isEar(ear):
     if area(a, b, c) >= 0:
         return False # reflex, can't be an ear
 
-    # now make sure we don't have other points inside the potential ear
+    # 026455.python.earcut.line180.comment now make sure we don't have other points inside the potential ear
     p = ear.next.next
 
     while p != ear.prev:
@@ -195,17 +195,17 @@ def isEarHashed(ear, minX, minY, size):
     if area(a, b, c) >= 0:
         return False # reflex, can't be an ear
 
-    # triangle bbox; min & max are calculated like this for speed
+    # 026457.python.earcut.line198.comment triangle bbox; min & max are calculated like this for speed
     minTX = (a.x if a.x < c.x else c.x) if a.x < b.x else (b.x if b.x < c.x else c.x)
     minTY = (a.y if a.y < c.y else c.y) if a.y < b.y else (b.y if b.y < c.y else c.y)
     maxTX = (a.x if a.x > c.x else c.x) if a.x > b.x else (b.x if b.x > c.x else c.x)
     maxTY = (a.y if a.y > c.y else c.y) if a.y > b.y else (b.y if b.y > c.y else c.y)
 
-    # z-order range for the current triangle bbox;
+    # 026458.python.earcut.line204.comment z-order range for the current triangle bbox;
     minZ = zOrder(minTX, minTY, minX, minY, size)
     maxZ = zOrder(maxTX, maxTY, minX, minY, size)
 
-    # first look for points inside the triangle in increasing z-order
+    # 026459.python.earcut.line208.comment first look for points inside the triangle in increasing z-order
     p = ear.nextZ
 
     while p and p.z <= maxZ:
@@ -213,7 +213,7 @@ def isEarHashed(ear, minX, minY, size):
             return False
         p = p.nextZ
 
-    # then look for points in decreasing z-order
+    # 026460.python.earcut.line216.comment then look for points in decreasing z-order
     p = ear.prevZ
 
     while p and p.z >= minZ:
@@ -223,7 +223,7 @@ def isEarHashed(ear, minX, minY, size):
 
     return True
 
-# go through all polygon nodes and cure small local self-intersections
+# 026461.python.earcut.line226.comment go through all polygon nodes and cure small local self-intersections
 def cureLocalIntersections(start, triangles, dim):
     do = True
     p = start
@@ -239,7 +239,7 @@ def cureLocalIntersections(start, triangles, dim):
             triangles.append(p.i // dim)
             triangles.append(b.i // dim)
 
-            # remove two nodes involved
+            # 026462.python.earcut.line242.comment remove two nodes involved
             removeNode(p)
             removeNode(p.next)
 
@@ -249,9 +249,9 @@ def cureLocalIntersections(start, triangles, dim):
 
     return p
 
-# try splitting polygon into two and triangulate them independently
+# 026463.python.earcut.line252.comment try splitting polygon into two and triangulate them independently
 def splitEarcut(start, triangles, dim, minX, minY, size):
-    # look for a valid diagonal that divides the polygon into two
+    # 026464.python.earcut.line254.comment look for a valid diagonal that divides the polygon into two
     do = True
     a = start
 
@@ -261,14 +261,14 @@ def splitEarcut(start, triangles, dim, minX, minY, size):
 
         while b != a.prev:
             if a.i != b.i and isValidDiagonal(a, b):
-                # split the polygon in two by the diagonal
+                # 026465.python.earcut.line264.comment split the polygon in two by the diagonal
                 c = splitPolygon(a, b)
 
-                # filter colinear points around the cuts
+                # 026466.python.earcut.line267.comment filter colinear points around the cuts
                 a = filterPoints(a, a.next)
                 c = filterPoints(c, c.next)
 
-                # run earcut on each half
+                # 026467.python.earcut.line271.comment run earcut on each half
                 earcutLinked(a, triangles, dim, minX, minY, size)
                 earcutLinked(c, triangles, dim, minX, minY, size)
                 return
@@ -277,7 +277,7 @@ def splitEarcut(start, triangles, dim, minX, minY, size):
 
         a = a.next
 
-# link every hole into the outer loop, producing a single-ring polygon without holes
+# 026468.python.earcut.line280.comment link every hole into the outer loop, producing a single-ring polygon without holes
 def eliminateHoles(data, holeIndices, outerNode, dim):
     queue = []
     i = None
@@ -298,7 +298,7 @@ def eliminateHoles(data, holeIndices, outerNode, dim):
 
     queue = sorted(queue, key=lambda i: i.x)
 
-    # process holes from left to right
+    # 026469.python.earcut.line301.comment process holes from left to right
     for i in range(len(queue)):
         eliminateHole(queue[i], outerNode)
         outerNode = filterPoints(outerNode, outerNode.next)
@@ -308,14 +308,14 @@ def eliminateHoles(data, holeIndices, outerNode, dim):
 def compareX(a, b):
     return a.x - b.x
 
-# find a bridge between vertices that connects hole with an outer ring and and link it
+# 026470.python.earcut.line311.comment find a bridge between vertices that connects hole with an outer ring and and link it
 def eliminateHole(hole, outerNode):
     outerNode = findHoleBridge(hole, outerNode)
     if outerNode:
         b = splitPolygon(outerNode, hole)
         filterPoints(b, b.next)
 
-# David Eberly's algorithm for finding a bridge between hole and outer polygon
+# 026471.python.earcut.line318.comment David Eberly's algorithm for finding a bridge between hole and outer polygon
 def findHoleBridge(hole, outerNode):
     do = True
     p = outerNode
@@ -324,8 +324,8 @@ def findHoleBridge(hole, outerNode):
     qx = -math.inf
     m = None
 
-    # find a segment intersected by a ray from the hole's leftmost point to the left;
-    # segment's endpoint with lesser x will be potential connection point
+    # 026472.python.earcut.line327.comment find a segment intersected by a ray from the hole's leftmost point to the left;
+    # 026473.python.earcut.line328.comment segment's endpoint with lesser x will be potential connection point
     while do or p != outerNode:
         do = False
         if hy <= p.y and hy >= p.next.y and p.next.y - p.y != 0:
@@ -350,9 +350,9 @@ def findHoleBridge(hole, outerNode):
     if hx == qx:
         return m.prev # hole touches outer segment; pick lower endpoint
 
-    # look for points inside the triangle of hole point, segment intersection and endpoint;
-    # if there are no points found, we have a valid connection;
-    # otherwise choose the point of the minimum angle with the ray as connection point
+    # 026475.python.earcut.line353.comment look for points inside the triangle of hole point, segment intersection and endpoint;
+    # 026476.python.earcut.line354.comment if there are no points found, we have a valid connection;
+    # 026477.python.earcut.line355.comment otherwise choose the point of the minimum angle with the ray as connection point
 
     stop = m
     mx = m.x
@@ -378,7 +378,7 @@ def findHoleBridge(hole, outerNode):
 
     return m
 
-# interlink polygon nodes in z-order
+# 026479.python.earcut.line381.comment interlink polygon nodes in z-order
 def indexCurve(start, minX, minY, size):
     do = True
     p = start
@@ -398,8 +398,8 @@ def indexCurve(start, minX, minY, size):
 
     sortLinked(p)
 
-# Simon Tatham's linked _list merge sort algorithm
-# http:#www.chiark.greenend.org.uk/~sgtatham/algorithms/_listsort.html
+# 026480.python.earcut.line401.comment Simon Tatham's linked _list merge sort algorithm
+# 026481.python.earcut.line402.comment http:#www.chiark.greenend.org.uk/~sgtatham/algorithms/_listsort.html
 def sortLinked(_list):
     do = True
     i = None
@@ -470,9 +470,9 @@ def sortLinked(_list):
     return _list
 
 
-# z-order of a point given coords and size of the data bounding box
+# 026482.python.earcut.line473.comment z-order of a point given coords and size of the data bounding box
 def zOrder(x, y, minX, minY, size):
-    # coords are transformed into non-negative 15-bit integer range
+    # 026483.python.earcut.line475.comment coords are transformed into non-negative 15-bit integer range
     x = int(32767 * (x - minX) / size)
     y = int(32767 * (y - minY) / size)
 
@@ -488,7 +488,7 @@ def zOrder(x, y, minX, minY, size):
 
     return x | (y << 1)
 
-# find the leftmost node of a polygon ring
+# 026484.python.earcut.line491.comment find the leftmost node of a polygon ring
 def getLeftmost(start):
     do = True
     p = start
@@ -502,27 +502,27 @@ def getLeftmost(start):
 
     return leftmost
 
-# check if a point lies within a convex triangle
+# 026485.python.earcut.line505.comment check if a point lies within a convex triangle
 def pointInTriangle(ax, ay, bx, by, cx, cy, px, py):
     return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 and \
         (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0 and \
         (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0
 
-# check if a diagonal between two polygon nodes is valid (lies in polygon interior)
+# 026486.python.earcut.line511.comment check if a diagonal between two polygon nodes is valid (lies in polygon interior)
 def isValidDiagonal(a, b):
     return a.next.i != b.i and a.prev.i != b.i and not intersectsPolygon(a, b) and \
         locallyInside(a, b) and locallyInside(b, a) and middleInside(a, b)
 
-# signed area of a triangle
+# 026487.python.earcut.line516.comment signed area of a triangle
 def area(p, q, r):
     return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
 
-# check if two points are equal
+# 026488.python.earcut.line520.comment check if two points are equal
 def equals(p1, p2):
     return p1.x == p2.x and p1.y == p2.y
 
 
-# check if two segments intersect
+# 026489.python.earcut.line525.comment check if two segments intersect
 def intersects(p1, q1, p2, q2):
     if (equals(p1, q1) and equals(p2, q2)) or (equals(p1, q2) and equals(p2, q1)):
         return True
@@ -530,7 +530,7 @@ def intersects(p1, q1, p2, q2):
     return area(p1, q1, p2) > 0 != area(p1, q1, q2) > 0 and \
         area(p2, q2, p1) > 0 != area(p2, q2, q1) > 0
 
-# check if a polygon diagonal intersects any polygon segments
+# 026490.python.earcut.line533.comment check if a polygon diagonal intersects any polygon segments
 def intersectsPolygon(a, b):
     do = True
     p = a
@@ -544,14 +544,14 @@ def intersectsPolygon(a, b):
 
     return False
 
-# check if a polygon diagonal is locally inside the polygon
+# 026491.python.earcut.line547.comment check if a polygon diagonal is locally inside the polygon
 def locallyInside(a, b):
     if area(a.prev, a, a.next) < 0:
         return  area(a, b, a.next) >= 0 and area(a, a.prev, b) >= 0
     else:
         return area(a, b, a.prev) < 0 or area(a, a.next, b) < 0
 
-# check if the middle point of a polygon diagonal is inside the polygon
+# 026492.python.earcut.line554.comment check if the middle point of a polygon diagonal is inside the polygon
 def middleInside(a, b):
     do = True
     p = a
@@ -568,8 +568,8 @@ def middleInside(a, b):
 
     return inside
 
-# link two polygon vertices with a bridge; if the vertices belong to the same ring, it splits polygon into two;
-# if one belongs to the outer ring and another to a hole, it merges it into a single ring
+# 026493.python.earcut.line571.comment link two polygon vertices with a bridge; if the vertices belong to the same ring, it splits polygon into two;
+# 026494.python.earcut.line572.comment if one belongs to the outer ring and another to a hole, it merges it into a single ring
 def splitPolygon(a, b):
     a2 = Node(a.i, a.x, a.y)
     b2 = Node(b.i, b.x, b.y)
@@ -591,7 +591,7 @@ def splitPolygon(a, b):
     return b2
 
 
-# create a node and optionally link it with previous one (in a circular doubly linked _list)
+# 026495.python.earcut.line594.comment create a node and optionally link it with previous one (in a circular doubly linked _list)
 def insertNode(i, x, y, last):
     p = Node(i, x, y)
 
@@ -619,31 +619,31 @@ def removeNode(p):
 
 class Node(object):
     def __init__(self, i, x, y):
-    # vertice index in coordinates array
+    # 026496.python.earcut.line622.comment vertice index in coordinates array
         self.i = i
 
-        # vertex coordinates
+        # 026497.python.earcut.line625.comment vertex coordinates
 
         self.x = x
         self.y = y
 
-        # previous and next vertice nodes in a polygon ring
+        # 026498.python.earcut.line630.comment previous and next vertice nodes in a polygon ring
         self.prev = None
         self.next = None
 
-        # z-order curve value
+        # 026499.python.earcut.line634.comment z-order curve value
         self.z = None
 
-        # previous and next nodes in z-order
+        # 026500.python.earcut.line637.comment previous and next nodes in z-order
         self.prevZ = None
         self.nextZ = None
 
-        # indicates whether this is a steiner point
+        # 026501.python.earcut.line641.comment indicates whether this is a steiner point
         self.steiner = False
 
 
-# return a percentage difference between the polygon area and its triangulation area;
-# used to verify correctness of triangulation
+# 026502.python.earcut.line645.comment return a percentage difference between the polygon area and its triangulation area;
+# 026503.python.earcut.line646.comment used to verify correctness of triangulation
 def deviation(data, holeIndices, dim, triangles):
     _len = len(holeIndices)
     hasHoles = holeIndices and len(holeIndices)
@@ -684,7 +684,7 @@ def signedArea(data, start, end, dim):
     return sum
 
 
-# turn a polygon in a multi-dimensional array form (e.g. as in GeoJSON) into a form Earcut accepts
+# 026504.python.earcut.line687.comment turn a polygon in a multi-dimensional array form (e.g. as in GeoJSON) into a form Earcut accepts
 def flatten(data):
     dim = len(data[0][0])
     result = {

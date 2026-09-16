@@ -1,16 +1,16 @@
-# LocalServer .EXE support for Python.
-#
-# This is designed to be used as a _script_ file by pythonw.exe
-#
-# In some cases, you could also use Python.exe, which will create
-# a console window useful for debugging.
-#
-# NOTE: When NOT running in any sort of debugging mode,
-# 'print' statements may fail, as sys.stdout is not valid!!!
+# 049633.python.localserver.line1.comment LocalServer .EXE support for Python.
+# 049634.python.localserver.line2.comment
+# 049635.python.localserver.line3.comment This is designed to be used as a _script_ file by pythonw.exe
+# 049636.python.localserver.line4.comment
+# 049637.python.localserver.line5.comment In some cases, you could also use Python.exe, which will create
+# 049638.python.localserver.line6.comment a console window useful for debugging.
+# 049639.python.localserver.line7.comment
+# 049640.python.localserver.line8.comment NOTE: When NOT running in any sort of debugging mode,
+# 049641.python.localserver.line9.comment 'print' statements may fail, as sys.stdout is not valid!!!
 
-#
-# Usage:
-#  wpython.exe LocalServer.py clsid [, clsid]
+# 049642.python.localserver.line11.comment
+# 049643.python.localserver.line12.comment Usage:
+# 049644.python.localserver.line13.comment wpython.exe LocalServer.py clsid [, clsid]
 import sys
 
 sys.coinit_flags = 2

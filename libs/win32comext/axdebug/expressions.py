@@ -9,7 +9,7 @@ from . import axdebug, gateways
 from .util import RaiseNotImpl, _wrap
 
 
-# Given an object, return a nice string
+# 050869.python.expressions.line12.comment Given an object, return a nice string
 def MakeNiceString(ob):
     stream = io.StringIO()
     pprint(ob, stream)
@@ -31,7 +31,7 @@ class ExpressionContext(gateways.DebugExpressionContext):
         )
 
     def GetLanguageInfo(self):
-        # print("GetLanguageInfo")
+        # 050870.python.expressions.line34.comment print("GetLanguageInfo")
         return "Python", "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
 
@@ -62,7 +62,7 @@ class Expression(gateways.DebugExpression):
                 l = traceback.format_exception_only(
                     sys.exc_info()[0], sys.exc_info()[1]
                 )
-                # l is a list of strings with trailing "\n"
+                # 050871.python.expressions.line65.comment l is a list of strings with trailing "\n"
                 self.result = "\n".join(s[:-1] for s in l)
                 self.hresult = winerror.E_FAIL
         finally:
@@ -76,7 +76,7 @@ class Expression(gateways.DebugExpression):
         return self.isComplete
 
     def GetResultAsString(self):
-        # print("GetStrAsResult returning", self.result)
+        # 050872.python.expressions.line79.comment print("GetStrAsResult returning", self.result)
         return self.hresult, MakeNiceString(self.result)
 
     def GetResultAsDebugProperty(self):
@@ -106,7 +106,7 @@ def MakeEnumDebugProperty(object, dwFieldSpec, nRadix, iid, stackFrame=None):
 def GetPropertyInfo(
     obname, obvalue, dwFieldSpec, nRadix, hresult=0, dictionary=None, stackFrame=None
 ):
-    # returns a tuple
+    # 050875.python.expressions.line109.comment returns a tuple
     name = typ = value = fullname = attrib = dbgprop = None
     if dwFieldSpec & axdebug.DBGPROP_INFO_VALUE:
         value = MakeNiceString(obvalue)
@@ -202,11 +202,11 @@ class DebugProperty:
             RaiseNotImpl("DebugProperty::SetValueAsString")
 
     def EnumMembers(self, dwFieldSpec, nRadix, iid):
-        # Returns IEnumDebugPropertyInfo
+        # 050878.python.expressions.line205.comment Returns IEnumDebugPropertyInfo
         return MakeEnumDebugProperty(
             self.value, dwFieldSpec, nRadix, iid, self.stackFrame
         )
 
     def GetParent(self):
-        # return IDebugProperty
+        # 050879.python.expressions.line211.comment return IDebugProperty
         RaiseNotImpl("DebugProperty::GetParent")

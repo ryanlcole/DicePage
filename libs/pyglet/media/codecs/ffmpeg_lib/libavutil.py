@@ -80,7 +80,7 @@ class AVBuffer(Structure):
     _fields_ = [
         ('data', POINTER(c_uint8)),
         ('size', c_int),
-        # .. more
+        # 034008.python.libavutil.line83.comment .. more
     ]
 
 
@@ -222,11 +222,11 @@ avutil.av_frame_free.argtypes = [POINTER(POINTER(AVFrame))]
 AVSampleFormat = c_int
 
 if avutil_version <= 57:
-    # Removed in 7.x (avutil 58)
+    # 034031.python.libavutil.line225.comment Removed in 7.x (avutil 58)
     avutil.av_get_default_channel_layout.restype = c_int64
     avutil.av_get_default_channel_layout.argtypes = [c_int]
 else:
-    # Available in 6.x  (avutil 58, 57)
+    # 034032.python.libavutil.line229.comment Available in 6.x  (avutil 58, 57)
     avutil.av_channel_layout_default.restype = None
     avutil.av_channel_layout_default.argtypes = [POINTER(AVChannelLayout), c_int]
 

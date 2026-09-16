@@ -1,19 +1,19 @@
-# Copyright 2014-2015 Nathan West
-#
-# This file is part of autocommand.
-#
-# autocommand is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# autocommand is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with autocommand.  If not, see <http://www.gnu.org/licenses/>.
+# 041644.python.autoparse.line1.comment Copyright 2014-2015 Nathan West
+# 041645.python.autoparse.line2.comment
+# 041646.python.autoparse.line3.comment This file is part of autocommand.
+# 041647.python.autoparse.line4.comment
+# 041648.python.autoparse.line5.comment autocommand is free software: you can redistribute it and/or modify
+# 041649.python.autoparse.line6.comment it under the terms of the GNU Lesser General Public License as published by
+# 041650.python.autoparse.line7.comment the Free Software Foundation, either version 3 of the License, or
+# 041651.python.autoparse.line8.comment (at your option) any later version.
+# 041652.python.autoparse.line9.comment
+# 041653.python.autoparse.line10.comment autocommand is distributed in the hope that it will be useful,
+# 041654.python.autoparse.line11.comment but WITHOUT ANY WARRANTY; without even the implied warranty of
+# 041655.python.autoparse.line12.comment MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# 041656.python.autoparse.line13.comment GNU Lesser General Public License for more details.
+# 041657.python.autoparse.line14.comment
+# 041658.python.autoparse.line15.comment You should have received a copy of the GNU Lesser General Public License
+# 041659.python.autoparse.line16.comment along with autocommand.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from re import compile as compile_regex
@@ -90,86 +90,86 @@ def _add_arguments(param, parser, used_char_args, add_nos):
     and --no-verbose.
     '''
 
-    # Impl note: This function is kept separate from make_parser because it's
-    # already very long and I wanted to separate out as much as possible into
-    # its own call scope, to prevent even the possibility of suble mutation
-    # bugs.
+    # 041660.python.autoparse.line93.comment Impl note: This function is kept separate from make_parser because it's
+    # 041661.python.autoparse.line94.comment already very long and I wanted to separate out as much as possible into
+    # 041662.python.autoparse.line95.comment its own call scope, to prevent even the possibility of suble mutation
+    # 041663.python.autoparse.line96.comment bugs.
     if param.kind is param.POSITIONAL_ONLY:
         raise PositionalArgError(param)
     elif param.kind is param.VAR_KEYWORD:
         raise KWArgError(param)
 
-    # These are the kwargs for the add_argument function.
+    # 041664.python.autoparse.line102.comment These are the kwargs for the add_argument function.
     arg_spec = {}
     is_option = False
 
-    # Get the type and default from the annotation.
+    # 041665.python.autoparse.line106.comment Get the type and default from the annotation.
     arg_type, description = _get_type_description(param.annotation)
 
-    # Get the default value
+    # 041666.python.autoparse.line109.comment Get the default value
     default = param.default
 
-    # If there is no explicit type, and the default is present and not None,
-    # infer the type from the default.
+    # 041667.python.autoparse.line112.comment If there is no explicit type, and the default is present and not None,
+    # 041668.python.autoparse.line113.comment infer the type from the default.
     if arg_type is None and default not in {_empty, None}:
         arg_type = type(default)
 
-    # Add default. The presence of a default means this is an option, not an
-    # argument.
+    # 041669.python.autoparse.line117.comment Add default. The presence of a default means this is an option, not an
+    # 041670.python.autoparse.line118.comment argument.
     if default is not _empty:
         arg_spec['default'] = default
         is_option = True
 
-    # Add the type
+    # 041671.python.autoparse.line123.comment Add the type
     if arg_type is not None:
-        # Special case for bool: make it just a --switch
+        # 041672.python.autoparse.line125.comment Special case for bool: make it just a --switch
         if arg_type is bool:
             if not default or default is _empty:
                 arg_spec['action'] = 'store_true'
             else:
                 arg_spec['action'] = 'store_false'
 
-            # Switches are always options
+            # 041673.python.autoparse.line132.comment Switches are always options
             is_option = True
 
-        # Special case for file types: make it a string type, for filename
+        # 041674.python.autoparse.line135.comment Special case for file types: make it a string type, for filename
         elif isinstance(default, IOBase):
             arg_spec['type'] = str
 
-        # TODO: special case for list type.
-        #   - How to specificy type of list members?
-        #       - param: [int]
-        #       - param: int =[]
-        #   - action='append' vs nargs='*'
+        # 041675.python.autoparse.line139.comment TODO: special case for list type.
+        # 041676.python.autoparse.line140.comment - How to specificy type of list members?
+        # 041677.python.autoparse.line141.comment - param: [int]
+        # 041678.python.autoparse.line142.comment - param: int =[]
+        # 041679.python.autoparse.line143.comment - action='append' vs nargs='*'
 
         else:
             arg_spec['type'] = arg_type
 
-    # nargs: if the signature includes *args, collect them as trailing CLI
-    # arguments in a list. *args can't have a default value, so it can never be
-    # an option.
+    # 041680.python.autoparse.line148.comment nargs: if the signature includes *args, collect them as trailing CLI
+    # 041681.python.autoparse.line149.comment arguments in a list. *args can't have a default value, so it can never be
+    # 041682.python.autoparse.line150.comment an option.
     if param.kind is param.VAR_POSITIONAL:
-        # TODO: consider depluralizing metavar/name here.
+        # 041683.python.autoparse.line152.comment TODO: consider depluralizing metavar/name here.
         arg_spec['nargs'] = '*'
 
-    # Add description.
+    # 041684.python.autoparse.line155.comment Add description.
     if description is not None:
         arg_spec['help'] = description
 
-    # Get the --flags
+    # 041685.python.autoparse.line159.comment Get the --flags
     flags = []
     name = param.name
 
     if is_option:
-        # Add the first letter as a -short option.
+        # 041686.python.autoparse.line164.comment Add the first letter as a -short option.
         for letter in name[0], name[0].swapcase():
             if letter not in used_char_args:
                 used_char_args.add(letter)
                 flags.append('-{}'.format(letter))
                 break
 
-        # If the parameter is a --long option, or is a -short option that
-        # somehow failed to get a flag, add it.
+        # 041687.python.autoparse.line171.comment If the parameter is a --long option, or is a -short option that
+        # 041688.python.autoparse.line172.comment somehow failed to get a flag, add it.
         if len(name) > 1 or not flags:
             flags.append('--{}'.format(name))
 
@@ -179,7 +179,7 @@ def _add_arguments(param, parser, used_char_args, add_nos):
 
     parser.add_argument(*flags, **arg_spec)
 
-    # Create the --no- version for boolean switches
+    # 041689.python.autoparse.line182.comment Create the --no- version for boolean switches
     if add_nos and arg_type is bool:
         parser.add_argument(
             '--no-{}'.format(name),
@@ -196,9 +196,9 @@ def make_parser(func_sig, description, epilog, add_nos):
 
     used_char_args = {'h'}
 
-    # Arange the params so that single-character arguments are first. This
-    # esnures they don't have to get --long versions. sorted is stable, so the
-    # parameters will otherwise still be in relative order.
+    # 041690.python.autoparse.line199.comment Arange the params so that single-character arguments are first. This
+    # 041691.python.autoparse.line200.comment esnures they don't have to get --long versions. sorted is stable, so the
+    # 041692.python.autoparse.line201.comment parameters will otherwise still be in relative order.
     params = sorted(
         func_sig.parameters.values(),
         key=lambda param: len(param.name) > 1)
@@ -268,7 +268,7 @@ def autoparse(
     and the parser is attached as the `parser` attribute.
     '''
 
-    # If @autoparse(...) is used instead of @autoparse
+    # 041693.python.autoparse.line271.comment If @autoparse(...) is used instead of @autoparse
     if func is None:
         return lambda f: autoparse(
             f, description=description,
@@ -292,17 +292,17 @@ def autoparse(
         if argv is None:
             argv = sys.argv[1:]
 
-        # Get empty argument binding, to fill with parsed arguments. This
-        # object does all the heavy lifting of turning named arguments into
-        # into correctly bound *args and **kwargs.
+        # 041694.python.autoparse.line295.comment Get empty argument binding, to fill with parsed arguments. This
+        # 041695.python.autoparse.line296.comment object does all the heavy lifting of turning named arguments into
+        # 041696.python.autoparse.line297.comment into correctly bound *args and **kwargs.
         parsed_args = func_sig.bind_partial()
         parsed_args.arguments.update(vars(parser.parse_args(argv)))
 
         return func(*parsed_args.args, **parsed_args.kwargs)
 
-    # TODO: attach an updated __signature__ to autoparse_wrapper, just in case.
+    # 041697.python.autoparse.line303.comment TODO: attach an updated __signature__ to autoparse_wrapper, just in case.
 
-    # Attach the wrapped function and parser, and return the wrapper.
+    # 041698.python.autoparse.line305.comment Attach the wrapped function and parser, and return the wrapper.
     autoparse_wrapper.func = func
     autoparse_wrapper.parser = parser
     return autoparse_wrapper

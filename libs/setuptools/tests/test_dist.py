@@ -80,7 +80,7 @@ def test_provides_extras_deterministic_order():
 
 
 CHECK_PACKAGE_DATA_TESTS = (
-    # Valid.
+    # 045346.python.test_dist.line83.comment Valid.
     (
         {
             '': ['*.txt', '*.rst'],
@@ -88,7 +88,7 @@ CHECK_PACKAGE_DATA_TESTS = (
         },
         None,
     ),
-    # Not a dictionary.
+    # 045347.python.test_dist.line91.comment Not a dictionary.
     (
         (
             ('', ['*.txt', '*.rst']),
@@ -99,14 +99,14 @@ CHECK_PACKAGE_DATA_TESTS = (
             " names to lists of string wildcard patterns"
         ),
     ),
-    # Invalid key type.
+    # 045348.python.test_dist.line102.comment Invalid key type.
     (
         {
             400: ['*.txt', '*.rst'],
         },
         ("keys of 'package_data' dict must be strings (got 400)"),
     ),
-    # Invalid value type.
+    # 045349.python.test_dist.line109.comment Invalid value type.
     (
         {
             'hello': '*.msg',
@@ -116,7 +116,7 @@ CHECK_PACKAGE_DATA_TESTS = (
             " (got '*.msg')"
         ),
     ),
-    # Invalid value type (generators are single use)
+    # 045350.python.test_dist.line119.comment Invalid value type (generators are single use)
     (
         {
             'hello': (x for x in "generator"),
@@ -139,7 +139,7 @@ def test_check_package_data(package_data, expected_message):
 
 
 def test_check_specifier():
-    # valid specifier value
+    # 045351.python.test_dist.line142.comment valid specifier value
     attrs = {'name': 'foo', 'python_requires': '>=3.0, !=3.1'}
     dist = Distribution(attrs)
     check_specifier(dist, attrs, attrs['python_requires'])
@@ -148,7 +148,7 @@ def test_check_specifier():
     dist = Distribution(attrs)
     check_specifier(dist, attrs, attrs['python_requires'])
 
-    # invalid specifier value
+    # 045352.python.test_dist.line151.comment invalid specifier value
     attrs = {'name': 'foo', 'python_requires': '>=invalid-version'}
     with pytest.raises(DistutilsSetupError):
         dist = Distribution(attrs)
@@ -173,18 +173,18 @@ def test_dist_default_py_modules(tmp_path, dist_name, py_module):
 
     (tmp_path / "setup.py").touch()
     (tmp_path / "noxfile.py").touch()
-    # ^-- make sure common tool files are ignored
+    # 045353.python.test_dist.line176.comment ^-- make sure common tool files are ignored
 
     attrs = {**EXAMPLE_BASE_INFO, "name": dist_name, "src_root": str(tmp_path)}
-    # Find `py_modules` corresponding to dist_name if not given
+    # 045354.python.test_dist.line179.comment Find `py_modules` corresponding to dist_name if not given
     dist = Distribution(attrs)
     dist.set_defaults()
     assert dist.py_modules == [py_module]
-    # When `py_modules` is given, don't do anything
+    # 045355.python.test_dist.line183.comment When `py_modules` is given, don't do anything
     dist = Distribution({**attrs, "py_modules": ["explicity_py_module"]})
     dist.set_defaults()
     assert dist.py_modules == ["explicity_py_module"]
-    # When `packages` is given, don't do anything
+    # 045356.python.test_dist.line187.comment When `packages` is given, don't do anything
     dist = Distribution({**attrs, "packages": ["explicity_package"]})
     dist.set_defaults()
     assert not dist.py_modules
@@ -218,7 +218,7 @@ def test_dist_default_packages(
 
     (tmp_path / "setup.py").touch()
     (tmp_path / "noxfile.py").touch()
-    # ^-- should not be included by default
+    # 045357.python.test_dist.line221.comment ^-- should not be included by default
 
     attrs = {
         **EXAMPLE_BASE_INFO,
@@ -226,18 +226,18 @@ def test_dist_default_packages(
         "src_root": str(tmp_path),
         "package_dir": package_dir,
     }
-    # Find `packages` either corresponding to dist_name or inside src
+    # 045358.python.test_dist.line229.comment Find `packages` either corresponding to dist_name or inside src
     dist = Distribution(attrs)
     dist.set_defaults()
     assert not dist.py_modules
     assert not dist.py_modules
     assert set(dist.packages) == set(packages)
-    # When `py_modules` is given, don't do anything
+    # 045359.python.test_dist.line235.comment When `py_modules` is given, don't do anything
     dist = Distribution({**attrs, "py_modules": ["explicit_py_module"]})
     dist.set_defaults()
     assert not dist.packages
     assert set(dist.py_modules) == {"explicit_py_module"}
-    # When `packages` is given, don't do anything
+    # 045360.python.test_dist.line240.comment When `packages` is given, don't do anything
     dist = Distribution({**attrs, "packages": ["explicit_package"]})
     dist.set_defaults()
     assert not dist.py_modules
@@ -257,7 +257,7 @@ def test_dist_default_packages(
             {"my_pkg": "lib", "my_pkg.lib2": "lib2"},
             ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
         ),
-        # Should not try to guess a name from multiple py_modules/packages
+        # 045361.python.test_dist.line260.comment Should not try to guess a name from multiple py_modules/packages
         ("UNKNOWN", None, ["src/mod1.py", "src/mod2.py"]),
         ("UNKNOWN", None, ["src/pkg1/__ini__.py", "src/pkg2/__init__.py"]),
     ],

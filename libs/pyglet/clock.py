@@ -101,13 +101,13 @@ class _ScheduledIntervalItem:
 
 class Clock:
 
-    # List of functions to call every tick.
+    # 026178.python.clock.line104.comment List of functions to call every tick.
     _schedule_items: list
 
-    # List of schedule interval items kept in sort order.
+    # 026179.python.clock.line107.comment List of schedule interval items kept in sort order.
     _schedule_interval_items: list
 
-    # If True, a sleep(0) is inserted on every tick.
+    # 026180.python.clock.line110.comment If True, a sleep(0) is inserted on every tick.
     _force_sleep: bool = False
 
     def __init__(self, time_function: Callable = _time.perf_counter) -> None:
@@ -122,7 +122,7 @@ class Clock:
         self.last_ts = None
         self.next_ts = self.time()
 
-        # Used by self.get_frequency to show update frequency
+        # 026181.python.clock.line125.comment Used by self.get_frequency to show update frequency
         self.times: _deque = _deque()
         self.cumulative_time = 0.0
         self.window_size = 60
@@ -173,74 +173,74 @@ class Clock:
         now = self.last_ts or self.time()
         result = False  # flag indicates if any function was called
 
-        # handle items scheduled for every tick
+        # 026183.python.clock.line176.comment handle items scheduled for every tick
         if self._schedule_items:
             result = True
-            # duplicate list in case event unschedules itself
+            # 026184.python.clock.line179.comment duplicate list in case event unschedules itself
             for item in list(self._schedule_items):
                 item.func(dt, *item.args, **item.kwargs)
 
-        # check the next scheduled item that is not called each tick
-        # if it is scheduled in the future, then exit
+        # 026185.python.clock.line183.comment check the next scheduled item that is not called each tick
+        # 026186.python.clock.line184.comment if it is scheduled in the future, then exit
         interval_items = self._schedule_interval_items
         try:
             if interval_items[0].next_ts > now:
                 return result
         except IndexError:
-            # The interval_items list is empty
+            # 026187.python.clock.line190.comment The interval_items list is empty
             return result
 
-        # NOTE: there is no special handling required to manage things
-        #       that are scheduled during this loop, due to the heap
+        # 026188.python.clock.line193.comment NOTE: there is no special handling required to manage things
+        # 026189.python.clock.line194.comment that are scheduled during this loop, due to the heap
         self._current_interval_item = item = None
         get_soft_next_ts = self._get_soft_next_ts
         while interval_items:
 
-            # the scheduler will hold onto a reference to an item in
-            # case it needs to be rescheduled.  it is more efficient
-            # to push and pop the heap at once rather than two operations
+            # 026190.python.clock.line199.comment the scheduler will hold onto a reference to an item in
+            # 026191.python.clock.line200.comment case it needs to be rescheduled.  it is more efficient
+            # 026192.python.clock.line201.comment to push and pop the heap at once rather than two operations
             if item is None:
                 item = _heappop(interval_items)
             else:
                 item = _heappushpop(interval_items, item)
 
-            # a scheduled function may try to unschedule itself,
-            # so we need to keep a reference to the current
-            # item no longer on heap to be able to check
+            # 026193.python.clock.line207.comment a scheduled function may try to unschedule itself,
+            # 026194.python.clock.line208.comment so we need to keep a reference to the current
+            # 026195.python.clock.line209.comment item no longer on heap to be able to check
             self._current_interval_item = item
 
-            # if next item is scheduled in the future then break
+            # 026196.python.clock.line212.comment if next item is scheduled in the future then break
             if item.next_ts > now:
                 break
 
-            # execute the callback
+            # 026197.python.clock.line216.comment execute the callback
             item.func(now - item.last_ts, *item.args, **item.kwargs)
 
             if item.interval:
 
-                # Try to keep timing regular, even if overslept this time;
-                # but don't schedule in the past (which could lead to
-                # infinitely-worsening error).
+                # 026198.python.clock.line221.comment Try to keep timing regular, even if overslept this time;
+                # 026199.python.clock.line222.comment but don't schedule in the past (which could lead to
+                # 026200.python.clock.line223.comment infinitely-worsening error).
                 item.next_ts = item.last_ts + item.interval
                 item.last_ts = now
 
-                # test the schedule for the next execution
+                # 026201.python.clock.line227.comment test the schedule for the next execution
                 if item.next_ts <= now:
-                    # the scheduled time of this item has already
-                    # passed, so it must be rescheduled
+                    # 026202.python.clock.line229.comment the scheduled time of this item has already
+                    # 026203.python.clock.line230.comment passed, so it must be rescheduled
                     if now - item.next_ts < 0.05:
-                        # missed execution time by 'reasonable' amount, so
-                        # reschedule at normal interval
+                        # 026204.python.clock.line232.comment missed execution time by 'reasonable' amount, so
+                        # 026205.python.clock.line233.comment reschedule at normal interval
                         item.next_ts = now + item.interval
                     else:
-                        # missed by significant amount, now many events have
-                        # likely missed execution. do a soft re-schedule to
-                        # avoid lumping many events together.
-                        # in this case, the next dt will not be accurate
+                        # 026206.python.clock.line236.comment missed by significant amount, now many events have
+                        # 026207.python.clock.line237.comment likely missed execution. do a soft re-schedule to
+                        # 026208.python.clock.line238.comment avoid lumping many events together.
+                        # 026209.python.clock.line239.comment in this case, the next dt will not be accurate
                         item.next_ts = get_soft_next_ts(now, item.interval)
                         item.last_ts = item.next_ts - item.interval
             else:
-                # not an interval, so this item will not be rescheduled
+                # 026210.python.clock.line243.comment not an interval, so this item will not be rescheduled
                 self._current_interval_item = item = None
 
         if item is not None:
@@ -326,8 +326,8 @@ class Clock:
 
         def taken(ts: float, e: float) -> bool:
             """Check if `ts` has already got an item scheduled nearby."""
-            # TODO this function is slow and called very often.
-            # Optimise it, maybe?
+            # 026211.python.clock.line329.comment TODO this function is slow and called very often.
+            # 026212.python.clock.line330.comment Optimise it, maybe?
             for item in self._schedule_interval_items:
                 if abs(item.next_ts - ts) <= e:
                     return True
@@ -336,27 +336,27 @@ class Clock:
 
             return False
 
-        # sorted list is required to produce expected results
-        # taken() will iterate through the heap, expecting it to be sorted
-        # and will not always catch the smallest value, so sort here.
-        # do not remove the sort key...it is faster than relaying comparisons
-        # NOTE: do not rewrite as popping from heap, as that is super slow!
+        # 026213.python.clock.line339.comment sorted list is required to produce expected results
+        # 026214.python.clock.line340.comment taken() will iterate through the heap, expecting it to be sorted
+        # 026215.python.clock.line341.comment and will not always catch the smallest value, so sort here.
+        # 026216.python.clock.line342.comment do not remove the sort key...it is faster than relaying comparisons
+        # 026217.python.clock.line343.comment NOTE: do not rewrite as popping from heap, as that is super slow!
         self._schedule_interval_items.sort(key=_attrgetter('next_ts'))
 
-        # Binary division over interval:
-        #
-        # 0                          interval
-        # |--------------------------|
-        #   5  3   6   2   7  4  8   1          Order of search
-        #
-        # i.e., first scheduled at interval,
-        #       then at            interval/2
-        #       then at            interval/4
-        #       then at            interval*3/4
-        #       then at            ...
-        #
-        # Schedule is hopefully then evenly distributed for any interval,
-        # and any number of scheduled functions.
+        # 026218.python.clock.line346.comment Binary division over interval:
+        # 026219.python.clock.line347.comment
+        # 026220.python.clock.line348.comment 0                          interval
+        # 026221.python.clock.line349.comment |--------------------------|
+        # 026222.python.clock.line350.comment 5  3   6   2   7  4  8   1          Order of search
+        # 026223.python.clock.line351.comment
+        # 026224.python.clock.line352.comment i.e., first scheduled at interval,
+        # 026225.python.clock.line353.comment then at            interval/2
+        # 026226.python.clock.line354.comment then at            interval/4
+        # 026227.python.clock.line355.comment then at            interval*3/4
+        # 026228.python.clock.line356.comment then at            ...
+        # 026229.python.clock.line357.comment
+        # 026230.python.clock.line358.comment Schedule is hopefully then evenly distributed for any interval,
+        # 026231.python.clock.line359.comment and any number of scheduled functions.
 
         next_ts = last_ts + interval
         if not taken(next_ts, interval / 4):
@@ -373,7 +373,7 @@ class Clock:
             dt /= 2
             divs *= 2
 
-            # Avoid infinite loop in pathological case
+            # 026232.python.clock.line376.comment Avoid infinite loop in pathological case
             if divs > 16:
                 return next_ts
 
@@ -448,7 +448,7 @@ class Clock:
             duration:
                 The number of seconds for which the function is scheduled.
         """
-        # NOTE: unschedule wrapper that takes `dt` argument
+        # 026233.python.clock.line451.comment NOTE: unschedule wrapper that takes `dt` argument
         def _unschedule(_dt: float, _func: Callable) -> None:
             self.unschedule(_func)
 
@@ -486,9 +486,9 @@ class Clock:
         If the function appears in the schedule more than once, all occurrences
         are removed.  If the function was not scheduled, no error is raised.
         """
-        # clever remove item without disturbing the heap:
-        # 1. set function to an empty lambda -- original function is not called
-        # 2. set interval to 0               -- item will be removed from heap eventually
+        # 026234.python.clock.line489.comment clever remove item without disturbing the heap:
+        # 026235.python.clock.line490.comment 1. set function to an empty lambda -- original function is not called
+        # 026236.python.clock.line491.comment 2. set interval to 0               -- item will be removed from heap eventually
         valid_items = {item for item in self._schedule_interval_items if item.func == func}
 
         if self._current_interval_item and self._current_interval_item.func == func:
@@ -501,7 +501,7 @@ class Clock:
         self._schedule_items = [i for i in self._schedule_items if i.func != func]
 
 
-# Default clock.
+# 026237.python.clock.line504.comment Default clock.
 _default = Clock()
 
 

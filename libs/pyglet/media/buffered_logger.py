@@ -14,7 +14,7 @@ class BufferedLogger:
         self.outfile = outfile
         self.log_entries = []
         self.start_wall_time = None
-        # (fn, args)
+        # 033817.python.buffered_logger.line17.comment (fn, args)
         self.on_close_callback_info = None
 
     def init_wall_time(self):

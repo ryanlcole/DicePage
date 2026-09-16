@@ -1,10 +1,10 @@
-# DockingBar.py
+# 037139.python.DockingBar.line1.comment DockingBar.py
 
-# Ported directly (comments and all) from the samples at www.codeguru.com
+# 037140.python.DockingBar.line3.comment Ported directly (comments and all) from the samples at www.codeguru.com
 
-# WARNING: Use at your own risk, as this interface is highly likely to change.
-# Currently we support only one child per DockingBar.  Later we need to add
-# support for multiple children.
+# 037141.python.DockingBar.line5.comment WARNING: Use at your own risk, as this interface is highly likely to change.
+# 037142.python.DockingBar.line6.comment Currently we support only one child per DockingBar.  Later we need to add
+# 037143.python.DockingBar.line7.comment support for multiple children.
 
 import struct
 
@@ -56,7 +56,7 @@ class DockingBar(window.Wnd):
         self.brushBkgd = win32ui.CreateBrush()
         self.brushBkgd.CreateSolidBrush(win32api.GetSysColor(win32con.COLOR_BTNFACE))
 
-        # Support for diagonal resizing
+        # 037144.python.DockingBar.line59.comment Support for diagonal resizing
         self.cyBorder = 3
         self.cCaptionSize = win32api.GetSystemMetrics(win32con.SM_CYSMCAPTION)
         self.cMinWidth = win32api.GetSystemMetrics(win32con.SM_CXMIN)
@@ -85,7 +85,7 @@ class DockingBar(window.Wnd):
             0,
         )
 
-        # save the style
+        # 037145.python.DockingBar.line88.comment save the style
         self._obj_.dwStyle = style & afxres.CBRS_ALL
 
         cursor = win32api.LoadCursor(0, win32con.IDC_ARROW)
@@ -95,10 +95,10 @@ class DockingBar(window.Wnd):
 
         self._obj_.CreateWindow(wndClass, title, style, (0, 0, 0, 0), parent, id)
 
-        # Create the child dialog
+        # 037146.python.DockingBar.line98.comment Create the child dialog
         self.dialog = childCreator(*(self,) + childCreatorArgs)
 
-        # use the dialog dimensions as default base dimensions
+        # 037147.python.DockingBar.line101.comment use the dialog dimensions as default base dimensions
         assert self.dialog.IsWindow(), (
             "The childCreator function %s did not create a window!" % childCreator
         )
@@ -133,7 +133,7 @@ class DockingBar(window.Wnd):
         return self.sizeVert[0], nVertDockBarHeight
 
     def CalcDynamicLayout(self, length, mode):
-        # Support for diagonal sizing.
+        # 037148.python.DockingBar.line136.comment Support for diagonal sizing.
         if self.IsFloating():
             self.GetParent().GetParent().ModifyStyle(win32ui.MFS_4THICKFRAME, 0)
         if mode & (win32ui.LM_HORZDOCK | win32ui.LM_VERTDOCK):
@@ -162,7 +162,7 @@ class DockingBar(window.Wnd):
         if mode & win32ui.LM_COMMIT:
             self.sizeFloat = length, self.sizeFloat[1]
             return self.sizeFloat
-        # More diagonal sizing.
+        # 037149.python.DockingBar.line165.comment More diagonal sizing.
         if self.IsFloating():
             dc = self.dockContext
             pt = win32api.GetCursorPos()
@@ -251,10 +251,10 @@ class DockingBar(window.Wnd):
             rc = self.GetClientRect()
             self.dialog.MoveWindow(rc)
             return 0
-        # Find on which side are we docked
+        # 037150.python.DockingBar.line254.comment Find on which side are we docked
         nDockBarID = self.GetParent().GetDlgCtrlID()
-        # Return if dropped at same location
-        # no docking side change and no size change
+        # 037151.python.DockingBar.line256.comment Return if dropped at same location
+        # 037152.python.DockingBar.line257.comment no docking side change and no size change
         if (
             (nDockBarID == self.nDockBarID)
             and (flags & win32con.SWP_NOSIZE)
@@ -265,7 +265,7 @@ class DockingBar(window.Wnd):
             return
         self.nDockBarID = nDockBarID
 
-        # Force recalc the non-client area
+        # 037153.python.DockingBar.line268.comment Force recalc the non-client area
         self.bInRecalcNC = 1
         try:
             swpflags = (
@@ -279,7 +279,7 @@ class DockingBar(window.Wnd):
             self.bInRecalcNC = 0
         return 0
 
-    # This is a virtual and not a message hook.
+    # 037154.python.DockingBar.line282.comment This is a virtual and not a message hook.
     def OnSetCursor(self, window, nHitTest, wMouseMsg):
         if nHitTest != win32con.HTSIZE or self.bTracking:
             return self._obj_.OnSetCursor(window, nHitTest, wMouseMsg)
@@ -290,7 +290,7 @@ class DockingBar(window.Wnd):
             win32api.SetCursor(win32api.LoadCursor(0, win32con.IDC_SIZEWE))
         return 1
 
-    # Mouse Handling
+    # 037155.python.DockingBar.line293.comment Mouse Handling
     def OnLButtonUp(self, msg):
         if not self.bTracking:
             return 1  # pass it on.
@@ -298,10 +298,10 @@ class DockingBar(window.Wnd):
         return 0  # Don't pass on
 
     def OnLButtonDown(self, msg):
-        # UINT nFlags, CPoint point)
-        # only start dragging if clicked in "void" space
+        # 037158.python.DockingBar.line301.comment UINT nFlags, CPoint point)
+        # 037159.python.DockingBar.line302.comment only start dragging if clicked in "void" space
         if self.dockBar is not None:
-            # start the drag
+            # 037160.python.DockingBar.line304.comment start the drag
             pt = msg[5]
             pt = self.ClientToScreen(pt)
             self.dockContext.StartDrag(pt)
@@ -331,18 +331,18 @@ class DockingBar(window.Wnd):
         return 0
 
     def OnLButtonDblClk(self, msg):
-        # only toggle docking if clicked in "void" space
+        # 037161.python.DockingBar.line334.comment only toggle docking if clicked in "void" space
         if self.dockBar is not None:
-            # toggle docking
+            # 037162.python.DockingBar.line336.comment toggle docking
             self.dockContext.ToggleDocking()
             return 0
         return 1
 
     def OnNcLButtonDblClk(self, msg):
         nHitTest = wparam = msg[2]
-        # UINT nHitTest, CPoint point)
+        # 037163.python.DockingBar.line343.comment UINT nHitTest, CPoint point)
         if self.dockBar is not None and nHitTest == win32con.HTCAPTION:
-            # toggle docking
+            # 037164.python.DockingBar.line345.comment toggle docking
             self.dockContext.ToggleDocking()
             return 0
         return 1
@@ -353,7 +353,7 @@ class DockingBar(window.Wnd):
         if self.IsFloating() or not self.bTracking:
             return 1
 
-        # Convert unsigned 16 bit to signed 32 bit.
+        # 037165.python.DockingBar.line356.comment Convert unsigned 16 bit to signed 32 bit.
         x = win32api.LOWORD(lparam)
         if x & 32768:
             x |= -65536
@@ -376,7 +376,7 @@ class DockingBar(window.Wnd):
 
         return 0  # Don't pass it on.
 
-    # 	def OnBarStyleChange(self, old, new):
+    # 037167.python.DockingBar.line379.comment def OnBarStyleChange(self, old, new):
 
     def OnNcCalcSize(self, bCalcValid, size_info):
         (rc0, rc1, rc2, pos) = size_info
@@ -476,7 +476,7 @@ class DockingBar(window.Wnd):
     def StartTracking(self):
         self.SetCapture()
 
-        # make sure no updates are pending
+        # 037169.python.DockingBar.line479.comment make sure no updates are pending
         self.RedrawWindow(None, None, win32con.RDW_ALLCHILDREN | win32con.RDW_UPDATENOW)
         self.dockSite.LockWindowUpdate()
 
@@ -571,15 +571,15 @@ class DockingBar(window.Wnd):
         return x, y
 
     def DrawGripper(self, dc):
-        # no gripper if floating
+        # 037171.python.DockingBar.line574.comment no gripper if floating
         if self._obj_.dwStyle & afxres.CBRS_FLOATING:
             return
 
-        # -==HACK==-
-        # in order to calculate the client area properly after docking,
-        # the client area must be recalculated twice (I have no idea why)
+        # 037172.python.DockingBar.line578.comment -==HACK==-
+        # 037173.python.DockingBar.line579.comment in order to calculate the client area properly after docking,
+        # 037174.python.DockingBar.line580.comment the client area must be recalculated twice (I have no idea why)
         self.dockSite.RecalcLayout()
-        # -==END HACK==-
+        # 037175.python.DockingBar.line582.comment -==END HACK==-
 
         gripper = self.GetWindowRect()
         gripper = self.ScreenToClient(gripper)
@@ -587,14 +587,14 @@ class DockingBar(window.Wnd):
         gl, gt, gr, gb = gripper
 
         if self._obj_.dwStyle & afxres.CBRS_ORIENT_HORZ:
-            # gripper at left
+            # 037176.python.DockingBar.line590.comment gripper at left
             self.rectGripper = gl, gt + 40, gl + 20, gb
-            # draw close box
+            # 037177.python.DockingBar.line592.comment draw close box
             self.rectClose = gl + 7, gt + 10, gl + 19, gt + 22
             dc.DrawFrameControl(
                 self.rectClose, win32con.DFC_CAPTION, win32con.DFCS_CAPTIONCLOSE
             )
-            # draw docking toggle box
+            # 037178.python.DockingBar.line597.comment draw docking toggle box
             self.rectUndock = OffsetRect(self.rectClose, (0, 13))
             dc.DrawFrameControl(
                 self.rectUndock, win32con.DFC_CAPTION, win32con.DFCS_CAPTIONMAX
@@ -608,14 +608,14 @@ class DockingBar(window.Wnd):
             dc.Draw3dRect(gripper, clrBtnHilight, clrBtnShadow)
             dc.Draw3dRect(OffsetRect(gripper, (4, 0)), clrBtnHilight, clrBtnShadow)
         else:
-            # gripper at top
+            # 037179.python.DockingBar.line611.comment gripper at top
             self.rectGripper = gl, gt, gr - 40, gt + 20
-            # draw close box
+            # 037180.python.DockingBar.line613.comment draw close box
             self.rectClose = gr - 21, gt + 7, gr - 10, gt + 18
             dc.DrawFrameControl(
                 self.rectClose, win32con.DFC_CAPTION, win32con.DFCS_CAPTIONCLOSE
             )
-            #  draw docking toggle box
+            # 037181.python.DockingBar.line618.comment draw docking toggle box
             self.rectUndock = OffsetRect(self.rectClose, (-13, 0))
             dc.DrawFrameControl(
                 self.rectUndock, win32con.DFC_CAPTION, win32con.DFCS_CAPTIONMAX
@@ -641,7 +641,7 @@ class DockingBar(window.Wnd):
         self.HookMessage(self.OnWindowPosChanged, win32con.WM_WINDOWPOSCHANGED)
 
 
-# 		self.HookMessage(self.OnSize, win32con.WM_SIZE)
+# 037182.python.DockingBar.line644.comment self.HookMessage(self.OnSize, win32con.WM_SIZE)
 
 
 def EditCreator(parent):
@@ -661,7 +661,7 @@ def test():
     bar = DockingBar()
     creator = EditCreator
     bar.CreateWindow(win32ui.GetMainFrame(), creator, "Coolbar Demo", 0xFFFFF)
-    # 	win32ui.GetMainFrame().ShowControlBar(bar, 1, 0)
+    # 037183.python.DockingBar.line664.comment win32ui.GetMainFrame().ShowControlBar(bar, 1, 0)
     bar.SetBarStyle(
         bar.GetBarStyle()
         | afxres.CBRS_TOOLTIPS

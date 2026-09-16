@@ -6,16 +6,16 @@ import win32api
 import win32con
 import win32gui
 
-## some of these tests will fail for systems prior to XP
+# 046018.python.SystemParametersInfo.line9.comment # some of these tests will fail for systems prior to XP
 
 for pname in (
-    ## Set actions all take an unsigned int in pvParam
+    # 046019.python.SystemParametersInfo.line12.comment # Set actions all take an unsigned int in pvParam
     "SPI_GETMOUSESPEED",
     "SPI_GETACTIVEWNDTRKTIMEOUT",
     "SPI_GETCARETWIDTH",
     "SPI_GETFOREGROUNDFLASHCOUNT",
     "SPI_GETFOREGROUNDLOCKTIMEOUT",
-    ## Set actions all take an unsigned int in uiParam
+    # 046020.python.SystemParametersInfo.line18.comment # Set actions all take an unsigned int in uiParam
     "SPI_GETWHEELSCROLLLINES",
     "SPI_GETKEYBOARDDELAY",
     "SPI_GETKEYBOARDSPEED",
@@ -27,7 +27,7 @@ for pname in (
     "SPI_GETLOWPOWERTIMEOUT",
     "SPI_GETPOWEROFFTIMEOUT",
     "SPI_GETBORDER",
-    ## below are winxp only:
+    # 046021.python.SystemParametersInfo.line30.comment # below are winxp only:
     "SPI_GETFONTSMOOTHINGCONTRAST",
     "SPI_GETFONTSMOOTHINGTYPE",
     "SPI_GETFOCUSBORDERHEIGHT",
@@ -42,8 +42,8 @@ for pname in (
     win32gui.SystemParametersInfo(cset, orig_value + 1)
     new_value = win32gui.SystemParametersInfo(cget)
     print("\tnew value:", new_value)
-    # On Vista, some of these values seem to be ignored.  So only "fail" if
-    # the new value isn't what we set or the original
+    # 046022.python.SystemParametersInfo.line45.comment On Vista, some of these values seem to be ignored.  So only "fail" if
+    # 046023.python.SystemParametersInfo.line46.comment the new value isn't what we set or the original
     if new_value != orig_value + 1:
         assert new_value == orig_value
         print(f"Strange - setting {pname} seems to have been ignored")
@@ -51,8 +51,8 @@ for pname in (
     assert win32gui.SystemParametersInfo(cget) == orig_value
 
 
-# these take a boolean value in pvParam
-# change to opposite, check that it was changed and change back
+# 046024.python.SystemParametersInfo.line54.comment these take a boolean value in pvParam
+# 046025.python.SystemParametersInfo.line55.comment change to opposite, check that it was changed and change back
 for pname in (
     "SPI_GETFLATMENU",
     "SPI_GETDROPSHADOW",
@@ -84,8 +84,8 @@ for pname in (
     assert win32gui.SystemParametersInfo(cget) == orig_value
 
 
-# these take a boolean in uiParam
-#  could combine with above section now that SystemParametersInfo only takes a single parameter
+# 046026.python.SystemParametersInfo.line87.comment these take a boolean in uiParam
+# 046027.python.SystemParametersInfo.line88.comment could combine with above section now that SystemParametersInfo only takes a single parameter
 for pname in (
     "SPI_GETFONTSMOOTHING",
     "SPI_GETICONTITLEWRAP",
@@ -102,8 +102,8 @@ for pname in (
     orig_value = win32gui.SystemParametersInfo(cget)
     win32gui.SystemParametersInfo(cset, not orig_value)
     new_value = win32gui.SystemParametersInfo(cget)
-    # Some of these also can't be changed (eg, SPI_GETSCREENSAVEACTIVE) so
-    # don't actually get upset.
+    # 046028.python.SystemParametersInfo.line105.comment Some of these also can't be changed (eg, SPI_GETSCREENSAVEACTIVE) so
+    # 046029.python.SystemParametersInfo.line106.comment don't actually get upset.
     if orig_value != new_value:
         print("successfully toggled", pname, "from", orig_value, "to", new_value)
     else:

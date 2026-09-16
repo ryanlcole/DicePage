@@ -28,7 +28,7 @@ t.SetFlags(taskscheduler.TASK_FLAG_DELETE_WHEN_DONE)
 t.SetAccountInformation(
     "", None
 )  ## empty string for account name means to use local system
-## None is only valid for local system acct or if task flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
+# 052119.python.test_addtask_2.line31.comment # None is only valid for local system acct or if task flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
 
 run_time = time.localtime(time.time() + 60)
 tr_ind, tr = t.CreateTrigger()

@@ -132,7 +132,7 @@ class HLIHeadingCategory(HLICOM):
             for catid, lcid, desc in enum:
                 ret.append(HLICategory((catid, lcid, desc)))
         except pythoncom.com_error:
-            # Registered categories occasionally seem to give spurious errors.
+            # 048799.python.combrowse.line135.comment Registered categories occasionally seem to give spurious errors.
             pass  # Use what we already have.
         return ret
 
@@ -219,7 +219,7 @@ class HLIRegisteredTypeLibrary(HLICOM):
                     try:
                         lcid = int(subKey)
                         lcidkey = win32api.RegOpenKey(key, subKey)
-                        # Enumerate the platforms
+                        # 048801.python.combrowse.line222.comment Enumerate the platforms
                         lcidnum = 0
                         while 1:
                             try:
@@ -242,9 +242,9 @@ class HLIRegisteredTypeLibrary(HLICOM):
         finally:
             win32ui.DoWaitCursor(0)
             win32api.RegCloseKey(key)
-        # Now, loop over my collected objects, adding a TypeLib and a HelpFile
+        # 048802.python.combrowse.line245.comment Now, loop over my collected objects, adding a TypeLib and a HelpFile
         ret = []
-        #               if helpPath: ret.append(browser.MakeHLI(helpPath, "Help Path"))
+        # 048803.python.combrowse.line247.comment if helpPath: ret.append(browser.MakeHLI(helpPath, "Help Path"))
         ret.append(HLICLSID(clsidstr))
         for lcid, platform, fname in collected:
             extraDescs = []
@@ -490,8 +490,8 @@ class HLITypeLibFunction(HLICOM):
         ret.append(browser.MakeHLI(fkind, "Function Kind"))
         ikind = self.invokekinds.get([fd[4]], "Unknown")
         ret.append(browser.MakeHLI(ikind, "Invoke Kind"))
-        # 5 = call conv
-        # 5 = offset vtbl
+        # 048804.python.combrowse.line493.comment 5 = call conv
+        # 048805.python.combrowse.line494.comment 5 = offset vtbl
         ret.append(browser.MakeHLI(fd[6], "Number Optional Params"))
         flagDescs = []
         for flag, desc in self.funcflags:
@@ -539,7 +539,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
         return "Registered Type Libraries"
 
     def GetSubList(self):
-        # Explicit lookup in the registry.
+        # 048806.python.combrowse.line542.comment Explicit lookup in the registry.
         ret = []
         key = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, "TypeLib")
         win32ui.DoWaitCursor(1)
@@ -550,7 +550,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
                     keyName = win32api.RegEnumKey(key, num)
                 except win32api.error:
                     break
-                # Enumerate all version info
+                # 048807.python.combrowse.line553.comment Enumerate all version info
                 subKey = win32api.RegOpenKey(key, keyName)
                 name = None
                 try:
@@ -584,7 +584,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 def main(modal=True, mdi=False):
     root = HLIRoot("COM Browser")
     if mdi and "pywin.framework.app" in sys.modules:
-        # do it in a MDI window
+        # 048809.python.combrowse.line587.comment do it in a MDI window
         browser.MakeTemplate()
         browser.template.OpenObject(root)
     else:

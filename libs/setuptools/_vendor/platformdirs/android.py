@@ -120,11 +120,11 @@ class Android(PlatformDirsABC):
 def _android_folder() -> str | None:  # noqa: C901, PLR0912
     """:return: base folder for the Android OS or None if it cannot be found"""
     result: str | None = None
-    # type checker isn't happy with our "import android", just don't do this when type checking see
-    # https://stackoverflow.com/a/61394121
+    # 043218.python.android.line123.comment type checker isn't happy with our "import android", just don't do this when type checking see
+    # 043219.python.android.line124.comment https://stackoverflow.com/a/61394121
     if not TYPE_CHECKING:
         try:
-            # First try to get a path to android app using python4android (if available)...
+            # 043220.python.android.line127.comment First try to get a path to android app using python4android (if available)...
             from android import mActivity  # noqa: PLC0415
 
             context = cast("android.content.Context", mActivity.getApplicationContext())  # noqa: F821
@@ -133,8 +133,8 @@ def _android_folder() -> str | None:  # noqa: C901, PLR0912
             result = None
     if result is None:
         try:
-            # ...and fall back to using plain pyjnius, if python4android isn't available or doesn't deliver any useful
-            # result...
+            # 043224.python.android.line136.comment ...and fall back to using plain pyjnius, if python4android isn't available or doesn't deliver any useful
+            # 043225.python.android.line137.comment result...
             from jnius import autoclass  # noqa: PLC0415
 
             context = autoclass("android.content.Context")
@@ -142,8 +142,8 @@ def _android_folder() -> str | None:  # noqa: C901, PLR0912
         except Exception:  # noqa: BLE001
             result = None
     if result is None:
-        # and if that fails, too, find an android folder looking at path on the sys.path
-        # warning: only works for apps installed under /data, not adopted storage etc.
+        # 043228.python.android.line145.comment and if that fails, too, find an android folder looking at path on the sys.path
+        # 043229.python.android.line146.comment warning: only works for apps installed under /data, not adopted storage etc.
         pattern = re.compile(r"/data/(data|user/\d+)/(.+)/files")
         for path in sys.path:
             if pattern.match(path):
@@ -152,8 +152,8 @@ def _android_folder() -> str | None:  # noqa: C901, PLR0912
         else:
             result = None
     if result is None:
-        # one last try: find an android folder looking at path on the sys.path taking adopted storage paths into
-        # account
+        # 043230.python.android.line155.comment one last try: find an android folder looking at path on the sys.path taking adopted storage paths into
+        # 043231.python.android.line156.comment account
         pattern = re.compile(r"/mnt/expand/[a-fA-F0-9-]{36}/(data|user/\d+)/(.+)/files")
         for path in sys.path:
             if pattern.match(path):
@@ -167,7 +167,7 @@ def _android_folder() -> str | None:  # noqa: C901, PLR0912
 @lru_cache(maxsize=1)
 def _android_documents_folder() -> str:
     """:return: documents folder for the Android OS"""
-    # Get directories with pyjnius
+    # 043232.python.android.line170.comment Get directories with pyjnius
     try:
         from jnius import autoclass  # noqa: PLC0415
 
@@ -183,7 +183,7 @@ def _android_documents_folder() -> str:
 @lru_cache(maxsize=1)
 def _android_downloads_folder() -> str:
     """:return: downloads folder for the Android OS"""
-    # Get directories with pyjnius
+    # 043235.python.android.line186.comment Get directories with pyjnius
     try:
         from jnius import autoclass  # noqa: PLC0415
 
@@ -199,7 +199,7 @@ def _android_downloads_folder() -> str:
 @lru_cache(maxsize=1)
 def _android_pictures_folder() -> str:
     """:return: pictures folder for the Android OS"""
-    # Get directories with pyjnius
+    # 043238.python.android.line202.comment Get directories with pyjnius
     try:
         from jnius import autoclass  # noqa: PLC0415
 
@@ -215,7 +215,7 @@ def _android_pictures_folder() -> str:
 @lru_cache(maxsize=1)
 def _android_videos_folder() -> str:
     """:return: videos folder for the Android OS"""
-    # Get directories with pyjnius
+    # 043241.python.android.line218.comment Get directories with pyjnius
     try:
         from jnius import autoclass  # noqa: PLC0415
 
@@ -231,7 +231,7 @@ def _android_videos_folder() -> str:
 @lru_cache(maxsize=1)
 def _android_music_folder() -> str:
     """:return: music folder for the Android OS"""
-    # Get directories with pyjnius
+    # 043244.python.android.line234.comment Get directories with pyjnius
     try:
         from jnius import autoclass  # noqa: PLC0415
 

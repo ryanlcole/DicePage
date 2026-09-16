@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 024973.python.test_bsd.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 024974.python.test_bsd.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 024975.python.test_bsd.line5.comment found in the LICENSE file.
 
-# TODO: (FreeBSD) add test for comparing connections with 'sockstat' cmd.
+# 024976.python.test_bsd.line7.comment TODO: (FreeBSD) add test for comparing connections with 'sockstat' cmd.
 
 
 """Tests specific to all BSD platforms."""
@@ -33,7 +33,7 @@ if BSD:
     from psutil._psutil_posix import getpagesize
 
     PAGESIZE = getpagesize()
-    # muse requires root privileges
+    # 024977.python.test_bsd.line36.comment muse requires root privileges
     MUSE_AVAILABLE = os.getuid() == 0 and shutil.which("muse")
 else:
     PAGESIZE = None
@@ -66,9 +66,9 @@ def muse(field):
     return int(line.split()[1])
 
 
-# =====================================================================
-# --- All BSD*
-# =====================================================================
+# 024978.python.test_bsd.line69.comment =====================================================================
+# 024979.python.test_bsd.line70.comment --- All BSD*
+# 024980.python.test_bsd.line71.comment =====================================================================
 
 
 @pytest.mark.skipif(not BSD, reason="BSD only")
@@ -94,8 +94,8 @@ class BSDTestCase(PsutilTestCase):
         assert start_ps == start_psutil
 
     def test_disks(self):
-        # test psutil.disk_usage() and psutil.disk_partitions()
-        # against "df -a"
+        # 024981.python.test_bsd.line97.comment test psutil.disk_usage() and psutil.disk_partitions()
+        # 024982.python.test_bsd.line98.comment against "df -a"
         def df(path):
             out = sh(f'df -k "{path}"').strip()
             lines = out.split('\n')
@@ -114,7 +114,7 @@ class BSDTestCase(PsutilTestCase):
             dev, total, used, free = df(part.mountpoint)
             assert part.device == dev
             assert usage.total == total
-            # 10 MB tolerance
+            # 024983.python.test_bsd.line117.comment 10 MB tolerance
             if abs(usage.free - free) > 10 * 1024 * 1024:
                 raise pytest.fail(f"psutil={usage.free}, df={free}")
             if abs(usage.used - used) > 10 * 1024 * 1024:
@@ -152,9 +152,9 @@ class BSDTestCase(PsutilTestCase):
                     assert stats.mtu == int(re.findall(r'mtu (\d+)', out)[0])
 
 
-# =====================================================================
-# --- FreeBSD
-# =====================================================================
+# 024985.python.test_bsd.line155.comment =====================================================================
+# 024986.python.test_bsd.line156.comment --- FreeBSD
+# 024987.python.test_bsd.line157.comment =====================================================================
 
 
 @pytest.mark.skipif(not FREEBSD, reason="FREEBSD only")
@@ -250,20 +250,20 @@ class FreeBSDPsutilTestCase(PsutilTestCase):
 class FreeBSDSystemTestCase(PsutilTestCase):
     @staticmethod
     def parse_swapinfo():
-        # the last line is always the total
+        # 024988.python.test_bsd.line253.comment the last line is always the total
         output = sh("swapinfo -k").splitlines()[-1]
         parts = re.split(r'\s+', output)
 
         if not parts:
             raise ValueError(f"Can't parse swapinfo: {output}")
 
-        # the size is in 1k units, so multiply by 1024
+        # 024989.python.test_bsd.line260.comment the size is in 1k units, so multiply by 1024
         total, used, free = (int(p) * 1024 for p in parts[1:4])
         return total, used, free
 
     def test_cpu_frequency_against_sysctl(self):
-        # Currently only cpu 0 is frequency is supported in FreeBSD
-        # All other cores use the same frequency.
+        # 024990.python.test_bsd.line265.comment Currently only cpu 0 is frequency is supported in FreeBSD
+        # 024991.python.test_bsd.line266.comment All other cores use the same frequency.
         sensor = "dev.cpu.0.freq"
         try:
             sysctl_result = int(sysctl(sensor))
@@ -273,15 +273,15 @@ class FreeBSDSystemTestCase(PsutilTestCase):
 
         sensor = "dev.cpu.0.freq_levels"
         sysctl_result = sysctl(sensor)
-        # sysctl returns a string of the format:
-        # <freq_level_1>/<voltage_level_1> <freq_level_2>/<voltage_level_2>...
-        # Ordered highest available to lowest available.
+        # 024992.python.test_bsd.line276.comment sysctl returns a string of the format:
+        # 024993.python.test_bsd.line277.comment <freq_level_1>/<voltage_level_1> <freq_level_2>/<voltage_level_2>...
+        # 024994.python.test_bsd.line278.comment Ordered highest available to lowest available.
         max_freq = int(sysctl_result.split()[0].split("/")[0])
         min_freq = int(sysctl_result.split()[-1].split("/")[0])
         assert psutil.cpu_freq().max == max_freq
         assert psutil.cpu_freq().min == min_freq
 
-    # --- virtual_memory(); tests against sysctl
+    # 024995.python.test_bsd.line284.comment --- virtual_memory(); tests against sysctl
 
     @retry_on_failure()
     def test_vmem_active(self):
@@ -313,7 +313,7 @@ class FreeBSDSystemTestCase(PsutilTestCase):
         syst = sysctl("vfs.bufspace")
         assert abs(psutil.virtual_memory().buffers - syst) < TOLERANCE_SYS_MEM
 
-    # --- virtual_memory(); tests against muse
+    # 024996.python.test_bsd.line316.comment --- virtual_memory(); tests against muse
 
     @pytest.mark.skipif(not MUSE_AVAILABLE, reason="muse not installed")
     def test_muse_vmem_total(self):
@@ -382,13 +382,13 @@ class FreeBSDSystemTestCase(PsutilTestCase):
 
     @retry_on_failure()
     def test_cpu_stats_syscalls(self):
-        # pretty high tolerance but it looks like it's OK.
+        # 024997.python.test_bsd.line385.comment pretty high tolerance but it looks like it's OK.
         assert (
             abs(psutil.cpu_stats().syscalls - sysctl('vm.stats.sys.v_syscall'))
             < 200000
         )
 
-    # --- swap memory
+    # 024998.python.test_bsd.line391.comment --- swap memory
 
     def test_swapmem_free(self):
         _total, _used, free = self.parse_swapinfo()
@@ -402,7 +402,7 @@ class FreeBSDSystemTestCase(PsutilTestCase):
         total, _used, _free = self.parse_swapinfo()
         assert abs(psutil.swap_memory().total - total) < TOLERANCE_SYS_MEM
 
-    # --- others
+    # 024999.python.test_bsd.line405.comment --- others
 
     def test_boot_time(self):
         s = sysctl('sysctl kern.boottime')
@@ -411,7 +411,7 @@ class FreeBSDSystemTestCase(PsutilTestCase):
         btime = int(s)
         assert btime == psutil.boot_time()
 
-    # --- sensors_battery
+    # 025000.python.test_bsd.line414.comment --- sensors_battery
 
     @pytest.mark.skipif(not HAS_BATTERY, reason="no battery")
     def test_sensors_battery(self):
@@ -447,22 +447,22 @@ class FreeBSDSystemTestCase(PsutilTestCase):
 
     @pytest.mark.skipif(HAS_BATTERY, reason="has battery")
     def test_sensors_battery_no_battery(self):
-        # If no battery is present one of these calls is supposed
-        # to fail, see:
-        # https://github.com/giampaolo/psutil/issues/1074
+        # 025001.python.test_bsd.line450.comment If no battery is present one of these calls is supposed
+        # 025002.python.test_bsd.line451.comment to fail, see:
+        # 025003.python.test_bsd.line452.comment https://github.com/giampaolo/psutil/issues/1074
         with pytest.raises(RuntimeError):
             sysctl("hw.acpi.battery.life")
             sysctl("hw.acpi.battery.time")
             sysctl("hw.acpi.acline")
         assert psutil.sensors_battery() is None
 
-    # --- sensors_temperatures
+    # 025004.python.test_bsd.line459.comment --- sensors_temperatures
 
     def test_sensors_temperatures_against_sysctl(self):
         num_cpus = psutil.cpu_count(True)
         for cpu in range(num_cpus):
             sensor = f"dev.cpu.{cpu}.temperature"
-            # sysctl returns a string in the format 46.0C
+            # 025005.python.test_bsd.line465.comment sysctl returns a string in the format 46.0C
             try:
                 sysctl_result = int(float(sysctl(sensor)[:-1]))
             except RuntimeError:
@@ -483,9 +483,9 @@ class FreeBSDSystemTestCase(PsutilTestCase):
             )
 
 
-# =====================================================================
-# --- OpenBSD
-# =====================================================================
+# 025006.python.test_bsd.line486.comment =====================================================================
+# 025007.python.test_bsd.line487.comment --- OpenBSD
+# 025008.python.test_bsd.line488.comment =====================================================================
 
 
 @pytest.mark.skipif(not OPENBSD, reason="OPENBSD only")
@@ -497,9 +497,9 @@ class OpenBSDTestCase(PsutilTestCase):
         assert sys_bt == psutil_bt
 
 
-# =====================================================================
-# --- NetBSD
-# =====================================================================
+# 025009.python.test_bsd.line500.comment =====================================================================
+# 025010.python.test_bsd.line501.comment --- NetBSD
+# 025011.python.test_bsd.line502.comment =====================================================================
 
 
 @pytest.mark.skipif(not NETBSD, reason="NETBSD only")
@@ -512,7 +512,7 @@ class NetBSDTestCase(PsutilTestCase):
                     return int(line.split()[1]) * 1024
         raise ValueError(f"can't find {look_for}")
 
-    # --- virtual mem
+    # 025012.python.test_bsd.line515.comment --- virtual mem
 
     def test_vmem_total(self):
         assert psutil.virtual_memory().total == self.parse_meminfo("MemTotal:")
@@ -547,7 +547,7 @@ class NetBSDTestCase(PsutilTestCase):
             < TOLERANCE_SYS_MEM
         )
 
-    # --- swap mem
+    # 025013.python.test_bsd.line550.comment --- swap mem
 
     def test_swapmem_total(self):
         assert (
@@ -565,7 +565,7 @@ class NetBSDTestCase(PsutilTestCase):
         smem = psutil.swap_memory()
         assert smem.used == smem.total - smem.free
 
-    # --- others
+    # 025014.python.test_bsd.line568.comment --- others
 
     def test_cpu_stats_interrupts(self):
         with open('/proc/stat', 'rb') as f:

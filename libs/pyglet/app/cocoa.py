@@ -25,7 +25,7 @@ def add_menu_item(menu, title, action, key):
             title, action, key)
         menu.addItem_(menuItem)
 
-        # cleanup
+        # 026121.python.cocoa.line28.comment cleanup
         menuItem.release()
 
 
@@ -33,7 +33,7 @@ def create_menu():
     with AutoReleasePool():
         appMenu = NSMenu.alloc().init()
 
-        # Hide still doesn't work!?
+        # 026122.python.cocoa.line36.comment Hide still doesn't work!?
         add_menu_item(appMenu, 'Hide!', 'hide:', 'h')
         appMenu.addItem_(NSMenuItem.separatorItem())
         add_menu_item(appMenu, 'Quit!', 'terminate:', 'q')
@@ -45,7 +45,7 @@ def create_menu():
         NSApp = NSApplication.sharedApplication()
         NSApp.setMainMenu_(menubar)
 
-        # cleanup
+        # 026123.python.cocoa.line48.comment cleanup
         appMenu.release()
         menubar.release()
         appMenuItem.release()
@@ -73,13 +73,13 @@ class _AppDelegate_Implementation:
     def applicationDidFinishLaunching_(self, notification):
         self._pyglet_loop._finished_launching = True
 
-        # Force App to activate to the foreground due to being an unbundled CLI program.
-        # This prevents an issue where if you move the mouse when launching the program, it's focus can be stolen
-        # by an app under/behind it leading to a weird state of input and the menu bar being greyed out until
-        # reactivating it.
+        # 026125.python.cocoa.line76.comment Force App to activate to the foreground due to being an unbundled CLI program.
+        # 026126.python.cocoa.line77.comment This prevents an issue where if you move the mouse when launching the program, it's focus can be stolen
+        # 026127.python.cocoa.line78.comment by an app under/behind it leading to a weird state of input and the menu bar being greyed out until
+        # 026128.python.cocoa.line79.comment reactivating it.
         NSApp = NSApplication.sharedApplication()
 
-        # Activate dock to ensure all other apps are deactivated.
+        # 026129.python.cocoa.line82.comment Activate dock to ensure all other apps are deactivated.
         dock_str = cocoapy.get_NSString("com.apple.dock")
         running_apps = NSRunningApplication.runningApplicationsWithBundleIdentifier_(dock_str)
         app_count = running_apps.count()
@@ -88,7 +88,7 @@ class _AppDelegate_Implementation:
             running_app.activateWithOptions_(cocoapy.NSApplicationActivateIgnoringOtherApps)
             break
 
-        # Doesn't seem to work unless we add a small sleep for some reason...
+        # 026130.python.cocoa.line91.comment Doesn't seem to work unless we add a small sleep for some reason...
         time.sleep(0.01)
 
         NSApp.activateIgnoringOtherApps_(True)
@@ -126,7 +126,7 @@ class CocoaAlternateEventLoop(EventLoop):
         from pyglet.window import Window
         Window._enable_event_queue = False
 
-        # Dispatch pending events
+        # 026133.python.cocoa.line129.comment Dispatch pending events
         for window in app.windows:
             window.switch_to()
             window.dispatch_pending_events()
@@ -162,17 +162,17 @@ class CocoaPlatformEventLoop(PlatformEventLoop):
         self._timer = None
 
         with AutoReleasePool():
-            # Prepare the default application.
+            # 026134.python.cocoa.line165.comment Prepare the default application.
             self.NSApp = NSApplication.sharedApplication()
             if self.NSApp.isRunning():
-                # Application was already started by GUI library (e.g. wxPython).
+                # 026135.python.cocoa.line168.comment Application was already started by GUI library (e.g. wxPython).
                 return
             if not self.NSApp.mainMenu():
                 create_menu()
             self.NSApp.setActivationPolicy_(cocoapy.NSApplicationActivationPolicyRegular)
-            # Prevent Lion / Mountain Lion from automatically saving application state.
-            # If we don't do this, new windows will not display on 10.8 after finishLaunching
-            # has been called.
+            # 026136.python.cocoa.line173.comment Prevent Lion / Mountain Lion from automatically saving application state.
+            # 026137.python.cocoa.line174.comment If we don't do this, new windows will not display on 10.8 after finishLaunching
+            # 026138.python.cocoa.line175.comment has been called.
             defaults = NSUserDefaults.standardUserDefaults()
             ignoreState = cocoapy.CFSTR("ApplePersistenceIgnoreState")
             if not defaults.objectForKey_(ignoreState):
@@ -195,15 +195,15 @@ class CocoaPlatformEventLoop(PlatformEventLoop):
             if self.NSApp:
                 self.NSApp.terminate_(None)
 
-        # Force NSApp to close if Python receives sig events.
+        # 026139.python.cocoa.line198.comment Force NSApp to close if Python receives sig events.
         signal.signal(signal.SIGINT, term_received)
         signal.signal(signal.SIGTERM, term_received)
 
     def start(self):
         with AutoReleasePool():
             if not self.NSApp.isRunning() and not self._finished_launching:
-                # finishLaunching should be called only once. However isRunning will not
-                # guard this, as we are not using the normal event loop.
+                # 026140.python.cocoa.line205.comment finishLaunching should be called only once. However isRunning will not
+                # 026141.python.cocoa.line206.comment guard this, as we are not using the normal event loop.
                 self.NSApp.finishLaunching()
                 self.NSApp.activateIgnoringOtherApps_(True)
                 self._finished_launching = True
@@ -243,24 +243,24 @@ class CocoaPlatformEventLoop(PlatformEventLoop):
         with AutoReleasePool():
             self.dispatch_posted_events()
 
-            # Determine the timeout date.
+            # 026143.python.cocoa.line246.comment Determine the timeout date.
             if timeout is None:
-                # Using distantFuture as untilDate means that nextEventMatchingMask
-                # will wait until the next event comes along.
+                # 026144.python.cocoa.line248.comment Using distantFuture as untilDate means that nextEventMatchingMask
+                # 026145.python.cocoa.line249.comment will wait until the next event comes along.
                 timeout_date = NSDate.distantFuture()
             elif timeout == 0.0:
                 timeout_date = None
             else:
                 timeout_date = NSDate.dateWithTimeIntervalSinceNow_(timeout)
 
-            # Retrieve the next event (if any).  We wait for an event to show up
-            # and then process it, or if timeout_date expires we simply return.
-            # We only process one event per call of step().
+            # 026146.python.cocoa.line256.comment Retrieve the next event (if any).  We wait for an event to show up
+            # 026147.python.cocoa.line257.comment and then process it, or if timeout_date expires we simply return.
+            # 026148.python.cocoa.line258.comment We only process one event per call of step().
             self._is_running.set()
             event = self.NSApp.nextEventMatchingMask_untilDate_inMode_dequeue_(
                 cocoapy.NSAnyEventMask, timeout_date, cocoapy.NSDefaultRunLoopMode, True)
 
-            # Dispatch the event (if any).
+            # 026149.python.cocoa.line263.comment Dispatch the event (if any).
             if event is not None:
                 event_type = event.type()
                 if event_type != cocoapy.NSApplicationDefined:

@@ -56,11 +56,11 @@ def draw(size: int, mode: int, **data: Any) -> None:
             `position=('f', array)`
 
     """
-    # Create and bind a throwaway VAO
+    # 029944.python.init.line59.comment Create and bind a throwaway VAO
     vao_id = GLuint()
     glGenVertexArrays(1, vao_id)
     glBindVertexArray(vao_id)
-    # Activate shader program:
+    # 029945.python.init.line63.comment Activate shader program:
     program = get_default_shader()
     program.use()
 
@@ -83,9 +83,9 @@ def draw(size: int, mode: int, **data: Any) -> None:
 
     glDrawArrays(mode, 0, size)
 
-    # Deactivate shader program:
+    # 029947.python.init.line86.comment Deactivate shader program:
     program.stop()
-    # Discard everything after drawing:
+    # 029948.python.init.line88.comment Discard everything after drawing:
     del buffers
     glBindVertexArray(0)
     glDeleteVertexArrays(1, vao_id)
@@ -110,11 +110,11 @@ def draw_indexed(size: int, mode: int, indices: Sequence[int], **data: Any) -> N
             `position=('f', array)`
 
     """
-    # Create and bind a throwaway VAO
+    # 029949.python.init.line113.comment Create and bind a throwaway VAO
     vao_id = GLuint()
     glGenVertexArrays(1, vao_id)
     glBindVertexArray(vao_id)
-    # Activate shader program:
+    # 029950.python.init.line117.comment Activate shader program:
     program = get_default_shader()
     program.use()
 
@@ -145,8 +145,8 @@ def draw_indexed(size: int, mode: int, indices: Sequence[int], **data: Any) -> N
         index_type = GL_UNSIGNED_INT
         index_c_type = ctypes.c_uint
 
-    # With GL 3.3 vertex arrays indices needs to be in a buffer
-    # bound to the ELEMENT_ARRAY slot
+    # 029953.python.init.line148.comment With GL 3.3 vertex arrays indices needs to be in a buffer
+    # 029954.python.init.line149.comment bound to the ELEMENT_ARRAY slot
     index_array = (index_c_type * len(indices))(*indices)
     index_buffer = BufferObject(ctypes.sizeof(index_array))
     index_buffer.set_data(index_array)
@@ -155,16 +155,16 @@ def draw_indexed(size: int, mode: int, indices: Sequence[int], **data: Any) -> N
     glDrawElements(mode, len(indices), index_type, 0)
     glFlush()
 
-    # Deactivate shader program:
+    # 029955.python.init.line158.comment Deactivate shader program:
     program.stop()
-    # Discard everything after drawing:
+    # 029956.python.init.line160.comment Discard everything after drawing:
     del buffers
     del index_buffer
     glBindVertexArray(0)
     glDeleteVertexArrays(1, vao_id)
 
 
-# Default Shader source:
+# 029957.python.init.line167.comment Default Shader source:
 
 _vertex_source: str = """#version 330 core
     in vec3 position;
@@ -201,7 +201,7 @@ _fragment_source: str = """#version 330 core
     }
 """
 
-# Default blit source
+# 029958.python.init.line204.comment Default blit source
 _blit_vertex_source: str = """#version 330 core
     in vec3 position;
     in vec3 tex_coords;
@@ -265,7 +265,7 @@ def get_default_blit_shader() -> ShaderProgram:
         return pyglet.gl.current_context.object_space.pyglet_graphics_default_blit_shader
 
 _domain_class_map: dict[tuple[bool, bool], type[vertexdomain.VertexDomain]] = {
-    # Indexed, Instanced : Domain
+    # 029959.python.init.line268.comment Indexed, Instanced : Domain
     (False, False): vertexdomain.VertexDomain,
     (True, False): vertexdomain.IndexedVertexDomain,
     (False, True): vertexdomain.InstancedVertexDomain,
@@ -308,14 +308,14 @@ class Batch:
 
     def __init__(self) -> None:
         """Create a graphics batch."""
-        # Mapping to find domain.
-        # group -> (attributes, mode, indexed) -> domain
+        # 029960.python.init.line311.comment Mapping to find domain.
+        # 029961.python.init.line312.comment group -> (attributes, mode, indexed) -> domain
         self.group_map = {}
 
-        # Mapping of group to list of children.
+        # 029962.python.init.line315.comment Mapping of group to list of children.
         self.group_children = {}
 
-        # List of top-level groups
+        # 029963.python.init.line318.comment List of top-level groups
         self.top_groups = []
 
         self._draw_list = []
@@ -356,11 +356,11 @@ class Batch:
         Returns:
             False if the domain's no longer match. The caller should handle this scenario.
         """
-        # No new attributes.
+        # 029964.python.init.line359.comment No new attributes.
         attributes = program.attributes.copy()
 
-        # Formats may differ (normalization) than what is declared in the shader.
-        # Make those adjustments and attempt to get a domain.
+        # 029965.python.init.line362.comment Formats may differ (normalization) than what is declared in the shader.
+        # 029966.python.init.line363.comment Make those adjustments and attempt to get a domain.
         for a_name in attributes:
             if (a_name in vertex_list.initial_attribs and
                     vertex_list.initial_attribs[a_name]['format'] != attributes[a_name]['format']):
@@ -368,8 +368,8 @@ class Batch:
 
         domain = self.get_domain(vertex_list.indexed, vertex_list.instanced, mode, group, attributes)
 
-        # TODO: Allow migration if we can restore original vertices somehow. Much faster.
-        # If the domain's don't match, we need to re-create the vertex list. Tell caller no match.
+        # 029967.python.init.line371.comment TODO: Allow migration if we can restore original vertices somehow. Much faster.
+        # 029968.python.init.line372.comment If the domain's don't match, we need to re-create the vertex list. Tell caller no match.
         if domain != vertex_list.domain:
             return False
 
@@ -407,11 +407,11 @@ class Batch:
                                   str]) -> (vertexdomain.InstancedVertexDomain |
                                             vertexdomain.InstancedIndexedVertexDomain):
         """Takes a domain from inside the Batch and creates a new instanced version."""
-        # Search for the existing domain.
+        # 029969.python.init.line410.comment Search for the existing domain.
         for group, domain_map in self.group_map.items():
             for key, mapped_domain in domain_map.items():
                 if domain == mapped_domain:
-                    # Set instance attributes.
+                    # 029970.python.init.line414.comment Set instance attributes.
                     new_attributes = mapped_domain.attribute_meta.copy()
                     for name, attribute_dict in new_attributes.items():
                         if name in instance_attributes:
@@ -432,24 +432,24 @@ class Batch:
 
         mode is the render mode such as GL_LINES or GL_TRIANGLES
         """
-        # Batch group
+        # 029971.python.init.line435.comment Batch group
         if group not in self.group_map:
             self._add_group(group)
 
         domain_map = self.group_map[group]
 
-        # If instanced, ensure a separate domain, as multiple instance sources can match the key.
+        # 029972.python.init.line441.comment If instanced, ensure a separate domain, as multiple instance sources can match the key.
         if instanced:
             self._instance_count += 1
             key = (indexed, self._instance_count, mode, str(attributes))
         else:
-            # Find domain given formats, indices and mode
+            # 029973.python.init.line446.comment Find domain given formats, indices and mode
             key = (indexed, 0, mode, str(attributes))
 
         try:
             domain = domain_map[key]
         except KeyError:
-            # Create domain
+            # 029974.python.init.line452.comment Create domain
             domain = _domain_class_map[(indexed, instanced)](attributes)
             domain_map[key] = domain
             self._draw_list_dirty = True
@@ -476,18 +476,18 @@ class Batch:
         def visit(group: Group) -> list:
             draw_list = []
 
-            # Draw domains using this group
+            # 029976.python.init.line479.comment Draw domains using this group
             domain_map = self.group_map[group]
 
-            # indexed, instanced, mode, program, str(attributes))
+            # 029977.python.init.line482.comment indexed, instanced, mode, program, str(attributes))
             for (indexed, instanced, mode, formats), domain in list(domain_map.items()):
-                # Remove unused domains from batch
+                # 029978.python.init.line484.comment Remove unused domains from batch
                 if domain.is_empty:
                     del domain_map[(indexed, instanced, mode, formats)]
                     continue
                 draw_list.append((lambda d, m: lambda: d.draw(m))(domain, mode))  # noqa: PLC3002
 
-            # Sort and visit child groups of this group
+            # 029980.python.init.line490.comment Sort and visit child groups of this group
             children = self.group_children.get(group)
             if children:
                 children.sort()
@@ -498,7 +498,7 @@ class Batch:
             if children or domain_map:
                 return [group.set_state, *draw_list, group.unset_state]
 
-            # Remove unused group from batch
+            # 029981.python.init.line501.comment Remove unused group from batch
             del self.group_map[group]
             group._assigned_batches.remove(self)  # noqa: SLF001
             if group.parent:
@@ -573,18 +573,18 @@ class Batch:
 
         """
 
-        # Horrendously inefficient.
+        # 029984.python.init.line576.comment Horrendously inefficient.
         def visit(group: Group) -> None:
             group.set_state()
 
-            # Draw domains using this group
+            # 029985.python.init.line580.comment Draw domains using this group
             domain_map = self.group_map[group]
             for (_, _, mode, _, _), domain in domain_map.items():
                 for alist in vertex_lists:
                     if alist.domain is domain:
                         alist.draw(mode)
 
-            # Sort and visit child groups of this group
+            # 029986.python.init.line587.comment Sort and visit child groups of this group
             children = self.group_children.get(group)
             if children:
                 children.sort()
@@ -736,7 +736,7 @@ class Group:
             self.parent.unset_state_recursive()
 
 
-# Example Groups.
+# 029987.python.init.line739.comment Example Groups.
 
 class ShaderGroup(Group):
     """A group that enables and binds a ShaderProgram."""

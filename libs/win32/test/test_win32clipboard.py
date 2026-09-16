@@ -1,4 +1,4 @@
-# tests for win32gui
+# 048286.python.test_win32clipboard.line1.comment tests for win32gui
 import unittest
 
 import win32clipboard

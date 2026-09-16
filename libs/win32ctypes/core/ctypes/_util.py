@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052273.python.util.line1.comment
+# 052274.python.util.line2.comment (C) Copyright 2014 Enthought, Inc., Austin, TX
+# 052275.python.util.line3.comment All right reserved.
+# 052276.python.util.line4.comment
+# 052277.python.util.line5.comment This file is open source software distributed according to the terms in
+# 052278.python.util.line6.comment LICENSE.txt
+# 052279.python.util.line7.comment
 """ Utility functions to help with ctypes wrapping.
 """
 from ctypes import get_last_error, FormatError, WinDLL

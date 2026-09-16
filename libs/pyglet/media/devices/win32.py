@@ -11,14 +11,14 @@ from pyglet.util import debug_print
 _debug = debug_print('debug_input')
 
 EDataFlow = UINT
-# Audio rendering stream. Audio data flows from the application to the audio endpoint device, which renders the stream.
+# 034171.python.win32.line14.comment Audio rendering stream. Audio data flows from the application to the audio endpoint device, which renders the stream.
 eRender = 0
 
-# Audio capture stream. Audio data flows from the audio endpoint device that captures the stream, to the application.
+# 034172.python.win32.line17.comment Audio capture stream. Audio data flows from the audio endpoint device that captures the stream, to the application.
 eCapture = 1
 
-# Audio rendering or capture stream. Audio data can flow either from the application to the audio endpoint device,
-# or from the audio endpoint device to the application.
+# 034173.python.win32.line20.comment Audio rendering or capture stream. Audio data can flow either from the application to the audio endpoint device,
+# 034174.python.win32.line21.comment or from the audio endpoint device to the application.
 eAll = 2
 
 EDataFlow_enum_count = 3
@@ -138,7 +138,7 @@ class AudioNotificationCB(com.COMObject):
         self.audio_devices.dispatch_event('on_device_removed', dev)
 
     def OnDefaultDeviceChanged(self, flow, role, pwstrDeviceId):
-        # Only support eConsole role right now
+        # 034178.python.win32.line141.comment Only support eConsole role right now
         if role == 0:
             if pwstrDeviceId is None:
                 device = None
@@ -212,7 +212,7 @@ class Win32AudioDeviceManager(base.AbstractAudioDeviceManager):
         ole32.CoCreateInstance(CLSID_MMDeviceEnumerator, None, CLSCTX_INPROC_SERVER, IID_IMMDeviceEnumerator,
                                byref(self._device_enum))
 
-        # Keep all devices cached, and the callback can keep them updated.
+        # 034179.python.win32.line215.comment Keep all devices cached, and the callback can keep them updated.
         self.devices: List[Win32AudioDevice] = self._query_all_devices()
 
         super().__init__()

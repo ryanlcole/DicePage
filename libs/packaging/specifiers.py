@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 022018.python.specifiers.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 022019.python.specifiers.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 022020.python.specifiers.line3.comment for complete details.
 """
 .. testsetup::
 
@@ -241,29 +241,29 @@ class Specifier(BaseSpecifier):
             match.group("version").strip(),
         )
 
-        # Store whether or not this Specifier should accept prereleases
+        # 022021.python.specifiers.line244.comment Store whether or not this Specifier should accept prereleases
         self._prereleases = prereleases
 
-    # https://github.com/python/mypy/pull/13475#pullrequestreview-1079784515
+    # 022022.python.specifiers.line247.comment https://github.com/python/mypy/pull/13475#pullrequestreview-1079784515
     @property  # type: ignore[override]
     def prereleases(self) -> bool:
-        # If there is an explicit prereleases set for this, then we'll just
-        # blindly use that.
+        # 022024.python.specifiers.line250.comment If there is an explicit prereleases set for this, then we'll just
+        # 022025.python.specifiers.line251.comment blindly use that.
         if self._prereleases is not None:
             return self._prereleases
 
-        # Look at all of our specifiers and determine if they are inclusive
-        # operators, and if they are if they are including an explicit
-        # prerelease.
+        # 022026.python.specifiers.line255.comment Look at all of our specifiers and determine if they are inclusive
+        # 022027.python.specifiers.line256.comment operators, and if they are if they are including an explicit
+        # 022028.python.specifiers.line257.comment prerelease.
         operator, version = self._spec
         if operator in ["==", ">=", "<=", "~=", "===", ">", "<"]:
-            # The == specifier can include a trailing .*, if it does we
-            # want to remove before parsing.
+            # 022029.python.specifiers.line260.comment The == specifier can include a trailing .*, if it does we
+            # 022030.python.specifiers.line261.comment want to remove before parsing.
             if operator == "==" and version.endswith(".*"):
                 version = version[:-2]
 
-            # Parse the version, and if it is a pre-release than this
-            # specifier allows pre-releases.
+            # 022031.python.specifiers.line265.comment Parse the version, and if it is a pre-release than this
+            # 022032.python.specifiers.line266.comment specifier allows pre-releases.
             if Version(version).is_prerelease:
                 return True
 
@@ -366,19 +366,19 @@ class Specifier(BaseSpecifier):
         return operator_callable
 
     def _compare_compatible(self, prospective: Version, spec: str) -> bool:
-        # Compatible releases have an equivalent combination of >= and ==. That
-        # is that ~=2.2 is equivalent to >=2.2,==2.*. This allows us to
-        # implement this in terms of the other specifiers instead of
-        # implementing it ourselves. The only thing we need to do is construct
-        # the other specifiers.
+        # 022033.python.specifiers.line369.comment Compatible releases have an equivalent combination of >= and ==. That
+        # 022034.python.specifiers.line370.comment is that ~=2.2 is equivalent to >=2.2,==2.*. This allows us to
+        # 022035.python.specifiers.line371.comment implement this in terms of the other specifiers instead of
+        # 022036.python.specifiers.line372.comment implementing it ourselves. The only thing we need to do is construct
+        # 022037.python.specifiers.line373.comment the other specifiers.
 
-        # We want everything but the last item in the version, but we want to
-        # ignore suffix segments.
+        # 022038.python.specifiers.line375.comment We want everything but the last item in the version, but we want to
+        # 022039.python.specifiers.line376.comment ignore suffix segments.
         prefix = _version_join(
             list(itertools.takewhile(_is_not_suffix, _version_split(spec)))[:-1]
         )
 
-        # Add the prefix notation to the end of our string
+        # 022040.python.specifiers.line381.comment Add the prefix notation to the end of our string
         prefix += ".*"
 
         return self._get_operator(">=")(prospective, spec) and self._get_operator("==")(
@@ -386,40 +386,40 @@ class Specifier(BaseSpecifier):
         )
 
     def _compare_equal(self, prospective: Version, spec: str) -> bool:
-        # We need special logic to handle prefix matching
+        # 022041.python.specifiers.line389.comment We need special logic to handle prefix matching
         if spec.endswith(".*"):
-            # In the case of prefix matching we want to ignore local segment.
+            # 022042.python.specifiers.line391.comment In the case of prefix matching we want to ignore local segment.
             normalized_prospective = canonicalize_version(
                 prospective.public, strip_trailing_zero=False
             )
-            # Get the normalized version string ignoring the trailing .*
+            # 022043.python.specifiers.line395.comment Get the normalized version string ignoring the trailing .*
             normalized_spec = canonicalize_version(spec[:-2], strip_trailing_zero=False)
-            # Split the spec out by bangs and dots, and pretend that there is
-            # an implicit dot in between a release segment and a pre-release segment.
+            # 022044.python.specifiers.line397.comment Split the spec out by bangs and dots, and pretend that there is
+            # 022045.python.specifiers.line398.comment an implicit dot in between a release segment and a pre-release segment.
             split_spec = _version_split(normalized_spec)
 
-            # Split the prospective version out by bangs and dots, and pretend
-            # that there is an implicit dot in between a release segment and
-            # a pre-release segment.
+            # 022046.python.specifiers.line401.comment Split the prospective version out by bangs and dots, and pretend
+            # 022047.python.specifiers.line402.comment that there is an implicit dot in between a release segment and
+            # 022048.python.specifiers.line403.comment a pre-release segment.
             split_prospective = _version_split(normalized_prospective)
 
-            # 0-pad the prospective version before shortening it to get the correct
-            # shortened version.
+            # 022049.python.specifiers.line406.comment 0-pad the prospective version before shortening it to get the correct
+            # 022050.python.specifiers.line407.comment shortened version.
             padded_prospective, _ = _pad_version(split_prospective, split_spec)
 
-            # Shorten the prospective version to be the same length as the spec
-            # so that we can determine if the specifier is a prefix of the
-            # prospective version or not.
+            # 022051.python.specifiers.line410.comment Shorten the prospective version to be the same length as the spec
+            # 022052.python.specifiers.line411.comment so that we can determine if the specifier is a prefix of the
+            # 022053.python.specifiers.line412.comment prospective version or not.
             shortened_prospective = padded_prospective[: len(split_spec)]
 
             return shortened_prospective == split_spec
         else:
-            # Convert our spec string into a Version
+            # 022054.python.specifiers.line417.comment Convert our spec string into a Version
             spec_version = Version(spec)
 
-            # If the specifier does not have a local segment, then we want to
-            # act as if the prospective version also does not have a local
-            # segment.
+            # 022055.python.specifiers.line420.comment If the specifier does not have a local segment, then we want to
+            # 022056.python.specifiers.line421.comment act as if the prospective version also does not have a local
+            # 022057.python.specifiers.line422.comment segment.
             if not spec_version.local:
                 prospective = Version(prospective.public)
 
@@ -429,69 +429,69 @@ class Specifier(BaseSpecifier):
         return not self._compare_equal(prospective, spec)
 
     def _compare_less_than_equal(self, prospective: Version, spec: str) -> bool:
-        # NB: Local version identifiers are NOT permitted in the version
-        # specifier, so local version labels can be universally removed from
-        # the prospective version.
+        # 022058.python.specifiers.line432.comment NB: Local version identifiers are NOT permitted in the version
+        # 022059.python.specifiers.line433.comment specifier, so local version labels can be universally removed from
+        # 022060.python.specifiers.line434.comment the prospective version.
         return Version(prospective.public) <= Version(spec)
 
     def _compare_greater_than_equal(self, prospective: Version, spec: str) -> bool:
-        # NB: Local version identifiers are NOT permitted in the version
-        # specifier, so local version labels can be universally removed from
-        # the prospective version.
+        # 022061.python.specifiers.line438.comment NB: Local version identifiers are NOT permitted in the version
+        # 022062.python.specifiers.line439.comment specifier, so local version labels can be universally removed from
+        # 022063.python.specifiers.line440.comment the prospective version.
         return Version(prospective.public) >= Version(spec)
 
     def _compare_less_than(self, prospective: Version, spec_str: str) -> bool:
-        # Convert our spec to a Version instance, since we'll want to work with
-        # it as a version.
+        # 022064.python.specifiers.line444.comment Convert our spec to a Version instance, since we'll want to work with
+        # 022065.python.specifiers.line445.comment it as a version.
         spec = Version(spec_str)
 
-        # Check to see if the prospective version is less than the spec
-        # version. If it's not we can short circuit and just return False now
-        # instead of doing extra unneeded work.
+        # 022066.python.specifiers.line448.comment Check to see if the prospective version is less than the spec
+        # 022067.python.specifiers.line449.comment version. If it's not we can short circuit and just return False now
+        # 022068.python.specifiers.line450.comment instead of doing extra unneeded work.
         if not prospective < spec:
             return False
 
-        # This special case is here so that, unless the specifier itself
-        # includes is a pre-release version, that we do not accept pre-release
-        # versions for the version mentioned in the specifier (e.g. <3.1 should
-        # not match 3.1.dev0, but should match 3.0.dev0).
+        # 022069.python.specifiers.line454.comment This special case is here so that, unless the specifier itself
+        # 022070.python.specifiers.line455.comment includes is a pre-release version, that we do not accept pre-release
+        # 022071.python.specifiers.line456.comment versions for the version mentioned in the specifier (e.g. <3.1 should
+        # 022072.python.specifiers.line457.comment not match 3.1.dev0, but should match 3.0.dev0).
         if not spec.is_prerelease and prospective.is_prerelease:
             if Version(prospective.base_version) == Version(spec.base_version):
                 return False
 
-        # If we've gotten to here, it means that prospective version is both
-        # less than the spec version *and* it's not a pre-release of the same
-        # version in the spec.
+        # 022073.python.specifiers.line462.comment If we've gotten to here, it means that prospective version is both
+        # 022074.python.specifiers.line463.comment less than the spec version *and* it's not a pre-release of the same
+        # 022075.python.specifiers.line464.comment version in the spec.
         return True
 
     def _compare_greater_than(self, prospective: Version, spec_str: str) -> bool:
-        # Convert our spec to a Version instance, since we'll want to work with
-        # it as a version.
+        # 022076.python.specifiers.line468.comment Convert our spec to a Version instance, since we'll want to work with
+        # 022077.python.specifiers.line469.comment it as a version.
         spec = Version(spec_str)
 
-        # Check to see if the prospective version is greater than the spec
-        # version. If it's not we can short circuit and just return False now
-        # instead of doing extra unneeded work.
+        # 022078.python.specifiers.line472.comment Check to see if the prospective version is greater than the spec
+        # 022079.python.specifiers.line473.comment version. If it's not we can short circuit and just return False now
+        # 022080.python.specifiers.line474.comment instead of doing extra unneeded work.
         if not prospective > spec:
             return False
 
-        # This special case is here so that, unless the specifier itself
-        # includes is a post-release version, that we do not accept
-        # post-release versions for the version mentioned in the specifier
-        # (e.g. >3.1 should not match 3.0.post0, but should match 3.2.post0).
+        # 022081.python.specifiers.line478.comment This special case is here so that, unless the specifier itself
+        # 022082.python.specifiers.line479.comment includes is a post-release version, that we do not accept
+        # 022083.python.specifiers.line480.comment post-release versions for the version mentioned in the specifier
+        # 022084.python.specifiers.line481.comment (e.g. >3.1 should not match 3.0.post0, but should match 3.2.post0).
         if not spec.is_postrelease and prospective.is_postrelease:
             if Version(prospective.base_version) == Version(spec.base_version):
                 return False
 
-        # Ensure that we do not allow a local version of the version mentioned
-        # in the specifier, which is technically greater than, to match.
+        # 022085.python.specifiers.line486.comment Ensure that we do not allow a local version of the version mentioned
+        # 022086.python.specifiers.line487.comment in the specifier, which is technically greater than, to match.
         if prospective.local is not None:
             if Version(prospective.base_version) == Version(spec.base_version):
                 return False
 
-        # If we've gotten to here, it means that prospective version is both
-        # greater than the spec version *and* it's not a pre-release of the
-        # same version in the spec.
+        # 022087.python.specifiers.line492.comment If we've gotten to here, it means that prospective version is both
+        # 022088.python.specifiers.line493.comment greater than the spec version *and* it's not a pre-release of the
+        # 022089.python.specifiers.line494.comment same version in the spec.
         return True
 
     def _compare_arbitrary(self, prospective: Version, spec: str) -> bool:
@@ -543,22 +543,22 @@ class Specifier(BaseSpecifier):
         True
         """
 
-        # Determine if prereleases are to be allowed or not.
+        # 022090.python.specifiers.line546.comment Determine if prereleases are to be allowed or not.
         if prereleases is None:
             prereleases = self.prereleases
 
-        # Normalize item to a Version, this allows us to have a shortcut for
-        # "2.0" in Specifier(">=2")
+        # 022091.python.specifiers.line550.comment Normalize item to a Version, this allows us to have a shortcut for
+        # 022092.python.specifiers.line551.comment "2.0" in Specifier(">=2")
         normalized_item = _coerce_version(item)
 
-        # Determine if we should be supporting prereleases in this specifier
-        # or not, if we do not support prereleases than we can short circuit
-        # logic if this version is a prereleases.
+        # 022093.python.specifiers.line554.comment Determine if we should be supporting prereleases in this specifier
+        # 022094.python.specifiers.line555.comment or not, if we do not support prereleases than we can short circuit
+        # 022095.python.specifiers.line556.comment logic if this version is a prereleases.
         if normalized_item.is_prerelease and not prereleases:
             return False
 
-        # Actually do the comparison to determine if this item is contained
-        # within this Specifier or not.
+        # 022096.python.specifiers.line560.comment Actually do the comparison to determine if this item is contained
+        # 022097.python.specifiers.line561.comment within this Specifier or not.
         operator_callable: CallableOperator = self._get_operator(self.operator)
         return operator_callable(normalized_item, self.version)
 
@@ -597,28 +597,28 @@ class Specifier(BaseSpecifier):
 
         kw = {"prereleases": prereleases if prereleases is not None else True}
 
-        # Attempt to iterate over all the values in the iterable and if any of
-        # them match, yield them.
+        # 022098.python.specifiers.line600.comment Attempt to iterate over all the values in the iterable and if any of
+        # 022099.python.specifiers.line601.comment them match, yield them.
         for version in iterable:
             parsed_version = _coerce_version(version)
 
             if self.contains(parsed_version, **kw):
-                # If our version is a prerelease, and we were not set to allow
-                # prereleases, then we'll store it for later in case nothing
-                # else matches this specifier.
+                # 022100.python.specifiers.line606.comment If our version is a prerelease, and we were not set to allow
+                # 022101.python.specifiers.line607.comment prereleases, then we'll store it for later in case nothing
+                # 022102.python.specifiers.line608.comment else matches this specifier.
                 if parsed_version.is_prerelease and not (
                     prereleases or self.prereleases
                 ):
                     found_prereleases.append(version)
-                # Either this is not a prerelease, or we should have been
-                # accepting prereleases from the beginning.
+                # 022103.python.specifiers.line613.comment Either this is not a prerelease, or we should have been
+                # 022104.python.specifiers.line614.comment accepting prereleases from the beginning.
                 else:
                     yielded = True
                     yield version
 
-        # Now that we've iterated over everything, determine if we've yielded
-        # any values, and if we have not and we have any prereleases stored up
-        # then we will go ahead and yield the prereleases.
+        # 022105.python.specifiers.line619.comment Now that we've iterated over everything, determine if we've yielded
+        # 022106.python.specifiers.line620.comment any values, and if we have not and we have any prereleases stored up
+        # 022107.python.specifiers.line621.comment then we will go ahead and yield the prereleases.
         if not yielded and found_prereleases:
             for version in found_prereleases:
                 yield version
@@ -669,15 +669,15 @@ def _is_not_suffix(segment: str) -> bool:
 def _pad_version(left: list[str], right: list[str]) -> tuple[list[str], list[str]]:
     left_split, right_split = [], []
 
-    # Get the release segment of our versions
+    # 022108.python.specifiers.line672.comment Get the release segment of our versions
     left_split.append(list(itertools.takewhile(lambda x: x.isdigit(), left)))
     right_split.append(list(itertools.takewhile(lambda x: x.isdigit(), right)))
 
-    # Get the rest of our versions
+    # 022109.python.specifiers.line676.comment Get the rest of our versions
     left_split.append(left[len(left_split[0]) :])
     right_split.append(right[len(right_split[0]) :])
 
-    # Insert our padding
+    # 022110.python.specifiers.line680.comment Insert our padding
     left_split.insert(1, ["0"] * max(0, len(right_split[0]) - len(left_split[0])))
     right_split.insert(1, ["0"] * max(0, len(left_split[0]) - len(right_split[0])))
 
@@ -717,36 +717,36 @@ class SpecifierSet(BaseSpecifier):
         """
 
         if isinstance(specifiers, str):
-            # Split on `,` to break each individual specifier into its own item, and
-            # strip each item to remove leading/trailing whitespace.
+            # 022111.python.specifiers.line720.comment Split on `,` to break each individual specifier into its own item, and
+            # 022112.python.specifiers.line721.comment strip each item to remove leading/trailing whitespace.
             split_specifiers = [s.strip() for s in specifiers.split(",") if s.strip()]
 
-            # Make each individual specifier a Specifier and save in a frozen set
-            # for later.
+            # 022113.python.specifiers.line724.comment Make each individual specifier a Specifier and save in a frozen set
+            # 022114.python.specifiers.line725.comment for later.
             self._specs = frozenset(map(Specifier, split_specifiers))
         else:
-            # Save the supplied specifiers in a frozen set.
+            # 022115.python.specifiers.line728.comment Save the supplied specifiers in a frozen set.
             self._specs = frozenset(specifiers)
 
-        # Store our prereleases value so we can use it later to determine if
-        # we accept prereleases or not.
+        # 022116.python.specifiers.line731.comment Store our prereleases value so we can use it later to determine if
+        # 022117.python.specifiers.line732.comment we accept prereleases or not.
         self._prereleases = prereleases
 
     @property
     def prereleases(self) -> bool | None:
-        # If we have been given an explicit prerelease modifier, then we'll
-        # pass that through here.
+        # 022118.python.specifiers.line737.comment If we have been given an explicit prerelease modifier, then we'll
+        # 022119.python.specifiers.line738.comment pass that through here.
         if self._prereleases is not None:
             return self._prereleases
 
-        # If we don't have any specifiers, and we don't have a forced value,
-        # then we'll just return None since we don't know if this should have
-        # pre-releases or not.
+        # 022120.python.specifiers.line742.comment If we don't have any specifiers, and we don't have a forced value,
+        # 022121.python.specifiers.line743.comment then we'll just return None since we don't know if this should have
+        # 022122.python.specifiers.line744.comment pre-releases or not.
         if not self._specs:
             return None
 
-        # Otherwise we'll see if any of the given specifiers accept
-        # prereleases, if any of them do we'll return True, otherwise False.
+        # 022123.python.specifiers.line748.comment Otherwise we'll see if any of the given specifiers accept
+        # 022124.python.specifiers.line749.comment prereleases, if any of them do we'll return True, otherwise False.
         return any(s.prereleases for s in self._specs)
 
     @prereleases.setter
@@ -911,32 +911,32 @@ class SpecifierSet(BaseSpecifier):
         >>> SpecifierSet(">=1.0.0,!=1.0.1").contains("1.3.0a1", prereleases=True)
         True
         """
-        # Ensure that our item is a Version instance.
+        # 022125.python.specifiers.line914.comment Ensure that our item is a Version instance.
         if not isinstance(item, Version):
             item = Version(item)
 
-        # Determine if we're forcing a prerelease or not, if we're not forcing
-        # one for this particular filter call, then we'll use whatever the
-        # SpecifierSet thinks for whether or not we should support prereleases.
+        # 022126.python.specifiers.line918.comment Determine if we're forcing a prerelease or not, if we're not forcing
+        # 022127.python.specifiers.line919.comment one for this particular filter call, then we'll use whatever the
+        # 022128.python.specifiers.line920.comment SpecifierSet thinks for whether or not we should support prereleases.
         if prereleases is None:
             prereleases = self.prereleases
 
-        # We can determine if we're going to allow pre-releases by looking to
-        # see if any of the underlying items supports them. If none of them do
-        # and this item is a pre-release then we do not allow it and we can
-        # short circuit that here.
-        # Note: This means that 1.0.dev1 would not be contained in something
-        #       like >=1.0.devabc however it would be in >=1.0.debabc,>0.0.dev0
+        # 022129.python.specifiers.line924.comment We can determine if we're going to allow pre-releases by looking to
+        # 022130.python.specifiers.line925.comment see if any of the underlying items supports them. If none of them do
+        # 022131.python.specifiers.line926.comment and this item is a pre-release then we do not allow it and we can
+        # 022132.python.specifiers.line927.comment short circuit that here.
+        # 022133.python.specifiers.line928.comment Note: This means that 1.0.dev1 would not be contained in something
+        # 022134.python.specifiers.line929.comment like >=1.0.devabc however it would be in >=1.0.debabc,>0.0.dev0
         if not prereleases and item.is_prerelease:
             return False
 
         if installed and item.is_prerelease:
             item = Version(item.base_version)
 
-        # We simply dispatch to the underlying specs here to make sure that the
-        # given version is contained within all of them.
-        # Note: This use of all() here means that an empty set of specifiers
-        #       will always return True, this is an explicit design decision.
+        # 022135.python.specifiers.line936.comment We simply dispatch to the underlying specs here to make sure that the
+        # 022136.python.specifiers.line937.comment given version is contained within all of them.
+        # 022137.python.specifiers.line938.comment Note: This use of all() here means that an empty set of specifiers
+        # 022138.python.specifiers.line939.comment will always return True, this is an explicit design decision.
         return all(s.contains(item, prereleases=prereleases) for s in self._specs)
 
     def filter(
@@ -980,22 +980,22 @@ class SpecifierSet(BaseSpecifier):
         >>> list(SpecifierSet("").filter(["1.3", "1.5a1"], prereleases=True))
         ['1.3', '1.5a1']
         """
-        # Determine if we're forcing a prerelease or not, if we're not forcing
-        # one for this particular filter call, then we'll use whatever the
-        # SpecifierSet thinks for whether or not we should support prereleases.
+        # 022139.python.specifiers.line983.comment Determine if we're forcing a prerelease or not, if we're not forcing
+        # 022140.python.specifiers.line984.comment one for this particular filter call, then we'll use whatever the
+        # 022141.python.specifiers.line985.comment SpecifierSet thinks for whether or not we should support prereleases.
         if prereleases is None:
             prereleases = self.prereleases
 
-        # If we have any specifiers, then we want to wrap our iterable in the
-        # filter method for each one, this will act as a logical AND amongst
-        # each specifier.
+        # 022142.python.specifiers.line989.comment If we have any specifiers, then we want to wrap our iterable in the
+        # 022143.python.specifiers.line990.comment filter method for each one, this will act as a logical AND amongst
+        # 022144.python.specifiers.line991.comment each specifier.
         if self._specs:
             for spec in self._specs:
                 iterable = spec.filter(iterable, prereleases=bool(prereleases))
             return iter(iterable)
-        # If we do not have any specifiers, then we need to have a rough filter
-        # which will filter out any pre-releases, unless there are no final
-        # releases.
+        # 022145.python.specifiers.line996.comment If we do not have any specifiers, then we need to have a rough filter
+        # 022146.python.specifiers.line997.comment which will filter out any pre-releases, unless there are no final
+        # 022147.python.specifiers.line998.comment releases.
         else:
             filtered: list[UnparsedVersionVar] = []
             found_prereleases: list[UnparsedVersionVar] = []
@@ -1003,16 +1003,16 @@ class SpecifierSet(BaseSpecifier):
             for item in iterable:
                 parsed_version = _coerce_version(item)
 
-                # Store any item which is a pre-release for later unless we've
-                # already found a final version or we are accepting prereleases
+                # 022148.python.specifiers.line1006.comment Store any item which is a pre-release for later unless we've
+                # 022149.python.specifiers.line1007.comment already found a final version or we are accepting prereleases
                 if parsed_version.is_prerelease and not prereleases:
                     if not filtered:
                         found_prereleases.append(item)
                 else:
                     filtered.append(item)
 
-            # If we've found no items except for pre-releases, then we'll go
-            # ahead and use the pre-releases
+            # 022150.python.specifiers.line1014.comment If we've found no items except for pre-releases, then we'll go
+            # 022151.python.specifiers.line1015.comment ahead and use the pre-releases
             if not filtered and found_prereleases and prereleases is None:
                 return iter(found_prereleases)
 

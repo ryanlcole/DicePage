@@ -116,7 +116,7 @@ class EggFileSource(ConvertSource):
         if not (match := egg_filename_re.match(path.name)):
             raise ValueError(f"Invalid egg file name: {path.name}")
 
-        # Binary wheels are assumed to be for CPython
+        # 043822.python.convert.line119.comment Binary wheels are assumed to be for CPython
         self.path = path
         self.name = normalize(match.group("name"))
         self.version = match.group("ver")
@@ -131,12 +131,12 @@ class EggFileSource(ConvertSource):
     def generate_contents(self) -> Iterator[tuple[str, bytes]]:
         with ZipFile(self.path, "r") as zip_file:
             for filename in sorted(zip_file.namelist()):
-                # Skip pure directory entries
+                # 043823.python.convert.line134.comment Skip pure directory entries
                 if filename.endswith("/"):
                     continue
 
-                # Handle files in the egg-info directory specially, selectively moving
-                # them to the dist-info directory while converting as needed
+                # 043824.python.convert.line138.comment Handle files in the egg-info directory specially, selectively moving
+                # 043825.python.convert.line139.comment them to the dist-info directory while converting as needed
                 if filename.startswith("EGG-INFO/"):
                     if filename == "EGG-INFO/requires.txt":
                         requires = zip_file.read(filename).decode("utf-8")
@@ -152,7 +152,7 @@ class EggFileSource(ConvertSource):
 
                     continue
 
-                # For any other file, just pass it through
+                # 043826.python.convert.line155.comment For any other file, just pass it through
                 yield filename, zip_file.read(filename)
 
 
@@ -181,7 +181,7 @@ class EggDirectorySource(EggFileSource):
 
                     continue
 
-                # For any other file, just pass it through
+                # 043827.python.convert.line184.comment For any other file, just pass it through
                 yield str(path.relative_to(self.path)), path.read_bytes()
 
 
@@ -219,14 +219,14 @@ class WininstFileSource(ConvertSource):
         self.path = path
         self.metadata = Message()
 
-        # Determine the initial architecture and Python version from the file name
-        # (if possible)
+        # 043828.python.convert.line222.comment Determine the initial architecture and Python version from the file name
+        # 043829.python.convert.line223.comment (if possible)
         if match := wininst_re.search(path.name):
             self.platform = normalize(match.group("platform"))
             if pyver := match.group("pyver"):
                 self.pyver = pyver.replace(".", "")
 
-        # Look for an .egg-info directory and any .pyd files for more precise info
+        # 043830.python.convert.line229.comment Look for an .egg-info directory and any .pyd files for more precise info
         egg_info_found = pyd_found = False
         with ZipFile(self.path) as zip_file:
             for filename in zip_file.namelist():
@@ -250,12 +250,12 @@ class WininstFileSource(ConvertSource):
         data_dir = f"{self.name}-{self.version}.data"
         with ZipFile(self.path, "r") as zip_file:
             for filename in sorted(zip_file.namelist()):
-                # Skip pure directory entries
+                # 043831.python.convert.line253.comment Skip pure directory entries
                 if filename.endswith("/"):
                     continue
 
-                # Handle files in the egg-info directory specially, selectively moving
-                # them to the dist-info directory while converting as needed
+                # 043832.python.convert.line257.comment Handle files in the egg-info directory specially, selectively moving
+                # 043833.python.convert.line258.comment them to the dist-info directory while converting as needed
                 prefix, target_filename = filename.split("/", 1)
                 if egg_info_re.search(target_filename):
                     basename = target_filename.rsplit("/", 1)[-1]
@@ -275,7 +275,7 @@ class WininstFileSource(ConvertSource):
                 elif prefix == "SCRIPTS":
                     target_filename = f"{data_dir}/scripts/{target_filename}"
 
-                # For any other file, just pass it through
+                # 043834.python.convert.line278.comment For any other file, just pass it through
                 yield target_filename, zip_file.read(filename)
 
 
@@ -302,7 +302,7 @@ def convert(files: list[str], dest_dir: str, verbose: bool) -> None:
                 for name_or_zinfo, contents in source.generate_contents():
                     wheelfile.writestr(name_or_zinfo, contents)
 
-                # Write the METADATA file
+                # 043835.python.convert.line305.comment Write the METADATA file
                 wheelfile.writestr(
                     f"{source.dist_info_dir}/METADATA",
                     source.metadata.as_string(policy=serialization_policy).encode(
@@ -310,7 +310,7 @@ def convert(files: list[str], dest_dir: str, verbose: bool) -> None:
                     ),
                 )
 
-                # Write the WHEEL file
+                # 043836.python.convert.line313.comment Write the WHEEL file
                 wheel_message = Message()
                 wheel_message.add_header("Wheel-Version", "1.0")
                 wheel_message.add_header("Generator", GENERATOR)

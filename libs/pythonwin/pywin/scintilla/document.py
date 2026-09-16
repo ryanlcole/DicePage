@@ -12,7 +12,7 @@ from . import scintillacon
 crlf_bytes = b"\r\n"
 lf_bytes = b"\n"
 
-# re from pep263 - but we use it both on bytes and strings.
+# 038731.python.document.line15.comment re from pep263 - but we use it both on bytes and strings.
 re_encoding_bytes = re.compile(rb"coding[:=]\s*([-\w.]+)")
 re_encoding_text = re.compile(r"coding[:=]\s*([-\w.]+)")
 
@@ -24,11 +24,11 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def __init__(self, *args):
         self.bom = None  # the BOM, if any, read from the file.
-        # the encoding we detected from the source.  Might have
-        # detected via the BOM or an encoding decl.  Note that in
-        # the latter case (ie, while self.bom is None), it can't be
-        # trusted - the user may have edited the encoding decl between
-        # open and save.
+        # 038733.python.document.line27.comment the encoding we detected from the source.  Might have
+        # 038734.python.document.line28.comment detected via the BOM or an encoding decl.  Note that in
+        # 038735.python.document.line29.comment the latter case (ie, while self.bom is None), it can't be
+        # 038736.python.document.line30.comment trusted - the user may have edited the encoding decl between
+        # 038737.python.document.line31.comment open and save.
         self.source_encoding = None
         ParentScintillaDocument.__init__(self, *args)
 
@@ -36,12 +36,12 @@ class CScintillaDocument(ParentScintillaDocument):
         pass
 
     def OnOpenDocument(self, filename):
-        # init data members
-        # print("Opening", filename)
+        # 038738.python.document.line39.comment init data members
+        # 038739.python.document.line40.comment print("Opening", filename)
         self.SetPathName(filename)  # Must set this early!
         try:
-            # load the text as binary we can get smart
-            # about detecting any existing EOL conventions.
+            # 038741.python.document.line43.comment load the text as binary we can get smart
+            # 038742.python.document.line44.comment about detecting any existing EOL conventions.
             f = open(filename, "rb")
             try:
                 self._LoadTextFromFile(f)
@@ -77,22 +77,22 @@ class CScintillaDocument(ParentScintillaDocument):
     def ApplyFormattingStyles(self):
         self._ApplyOptionalToViews("ApplyFormattingStyles")
 
-    # #####################
-    # File related functions
-    # Helper to transfer text from the MFC document to the control.
+    # 038743.python.document.line80.comment #####################
+    # 038744.python.document.line81.comment File related functions
+    # 038745.python.document.line82.comment Helper to transfer text from the MFC document to the control.
     def _LoadTextFromFile(self, f):
-        # detect EOL mode - we don't support \r only - so find the
-        # first '\n' and guess based on the char before.
+        # 038746.python.document.line84.comment detect EOL mode - we don't support \r only - so find the
+        # 038747.python.document.line85.comment first '\n' and guess based on the char before.
         l = f.readline()
         l2 = f.readline()
-        # If line ends with \r\n or has no line ending, use CRLF.
+        # 038748.python.document.line88.comment If line ends with \r\n or has no line ending, use CRLF.
         if l.endswith(crlf_bytes) or not l.endswith(lf_bytes):
             eol_mode = scintillacon.SC_EOL_CRLF
         else:
             eol_mode = scintillacon.SC_EOL_LF
 
-        # Detect the encoding - first look for a BOM, and if not found,
-        # look for a pep263 encoding declaration.
+        # 038749.python.document.line94.comment Detect the encoding - first look for a BOM, and if not found,
+        # 038750.python.document.line95.comment look for a pep263 encoding declaration.
         for bom, encoding in (
             (codecs.BOM_UTF8, "utf8"),
             (codecs.BOM_UTF16_LE, "utf_16_le"),
@@ -104,32 +104,32 @@ class CScintillaDocument(ParentScintillaDocument):
                 l = l[len(bom) :]  # remove it.
                 break
         else:
-            # no bom detected - look for pep263 encoding decl.
+            # 038752.python.document.line107.comment no bom detected - look for pep263 encoding decl.
             for look in (l, l2):
-                # Note we are looking at raw bytes here: so
-                # both the re itself uses bytes and the result
-                # is bytes - but we need the result as a string.
+                # 038753.python.document.line109.comment Note we are looking at raw bytes here: so
+                # 038754.python.document.line110.comment both the re itself uses bytes and the result
+                # 038755.python.document.line111.comment is bytes - but we need the result as a string.
                 match = re_encoding_bytes.search(look)
                 if match is not None:
                     self.source_encoding = match.group(1).decode("ascii")
                     break
 
-        # reading by lines would be too slow?  Maybe we can use the
-        # incremental encoders? For now just stick with loading the
-        # entire file in memory.
+        # 038756.python.document.line117.comment reading by lines would be too slow?  Maybe we can use the
+        # 038757.python.document.line118.comment incremental encoders? For now just stick with loading the
+        # 038758.python.document.line119.comment entire file in memory.
         text = l + l2 + f.read()
 
-        # Translate from source encoding to UTF-8 bytes for Scintilla
+        # 038759.python.document.line122.comment Translate from source encoding to UTF-8 bytes for Scintilla
         source_encoding = self.source_encoding
-        # If we don't know an encoding, try utf-8 - if that fails we will
-        # fallback to latin-1 to treat it as bytes...
+        # 038760.python.document.line124.comment If we don't know an encoding, try utf-8 - if that fails we will
+        # 038761.python.document.line125.comment fallback to latin-1 to treat it as bytes...
         if source_encoding is None:
             source_encoding = "utf-8"
-        # we could optimize this by avoiding utf8 to-ing and from-ing,
-        # but then we would lose the ability to handle invalid utf8
-        # (and even then, the use of encoding aliases makes this tricky)
-        # To create an invalid utf8 file:
-        # >>> open(filename, "wb").write(codecs.BOM_UTF8+"bad \xa9har\r\n")
+        # 038762.python.document.line128.comment we could optimize this by avoiding utf8 to-ing and from-ing,
+        # 038763.python.document.line129.comment but then we would lose the ability to handle invalid utf8
+        # 038764.python.document.line130.comment (and even then, the use of encoding aliases makes this tricky)
+        # 038765.python.document.line131.comment To create an invalid utf8 file:
+        # 038766.python.document.line132.comment >>> open(filename, "wb").write(codecs.BOM_UTF8+"bad \xa9har\r\n")
         try:
             dec = text.decode(source_encoding)
         except UnicodeError:
@@ -144,20 +144,20 @@ class CScintillaDocument(ParentScintillaDocument):
                 % source_encoding
             )
             dec = text.decode("latin1")
-        # and put it back as utf8 - this shouldn't fail.
+        # 038767.python.document.line147.comment and put it back as utf8 - this shouldn't fail.
         text = dec.encode(default_scintilla_encoding)
 
         view = self.GetFirstView()
         if view.IsWindow():
-            # Turn off undo collection while loading
+            # 038768.python.document.line152.comment Turn off undo collection while loading
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 0, 0)
-            # Make sure the control isn't read-only
+            # 038769.python.document.line154.comment Make sure the control isn't read-only
             view.SetReadOnly(0)
             view.SendScintilla(scintillacon.SCI_CLEARALL)
             view.SendMessage(scintillacon.SCI_ADDTEXT, text)
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 1, 0)
             view.SendScintilla(win32con.EM_EMPTYUNDOBUFFER, 0, 0)
-            # set EOL mode
+            # 038770.python.document.line160.comment set EOL mode
             view.SendScintilla(scintillacon.SCI_SETEOLMODE, eol_mode)
 
     def _SaveTextToFile(self, view, filename, encoding=None):
@@ -167,7 +167,7 @@ class CScintillaDocument(ParentScintillaDocument):
             if self.bom:
                 source_encoding = self.source_encoding
             else:
-                # no BOM - look for an encoding.
+                # 038772.python.document.line170.comment no BOM - look for an encoding.
                 bits = re.split(r"[\r\n]+", s, 3)
                 for look in bits[:-1]:
                     match = re_encoding_text.search(look)
@@ -179,10 +179,10 @@ class CScintillaDocument(ParentScintillaDocument):
             if source_encoding is None:
                 source_encoding = "utf-8"
 
-        ## encode data before opening file so script is not lost if encoding fails
+        # 038773.python.document.line182.comment # encode data before opening file so script is not lost if encoding fails
         file_contents = s.encode(source_encoding)
-        # Open in binary mode as scintilla itself ensures the
-        # line endings are already appropriate
+        # 038774.python.document.line184.comment Open in binary mode as scintilla itself ensures the
+        # 038775.python.document.line185.comment line endings are already appropriate
         f = open(filename, "wb")
         try:
             if self.bom:
@@ -219,7 +219,7 @@ class CScintillaDocument(ParentScintillaDocument):
             DocumentNotifyDelegate(self, "OnModifyAttemptRO"),
             scintillacon.SCN_MODIFYATTEMPTRO,
         )
-        # Tell scintilla what characters should abort auto-complete.
+        # 038776.python.document.line222.comment Tell scintilla what characters should abort auto-complete.
         view.SCIAutoCStops(string.whitespace + "()[]:;+-/*=\\?'!#@$%^&,<>\"'|")
 
         if view != self.GetFirstView():
@@ -234,7 +234,7 @@ class CScintillaDocument(ParentScintillaDocument):
     def OnModifyAttemptRO(self, std, extra):
         self.MakeDocumentWritable()
 
-    # All Marker functions are 1 based.
+    # 038777.python.document.line237.comment All Marker functions are 1 based.
     def MarkerAdd(self, lineNo, marker):
         self.GetEditorView().SCIMarkerAdd(lineNo - 1, marker)
 
@@ -264,7 +264,7 @@ class CScintillaDocument(ParentScintillaDocument):
         markerState = self.GetEditorView().SCIMarkerGet(lineNo - 1)
         return markerState & (1 << marker)
 
-    # Helper for reflecting functions to views.
+    # 038779.python.document.line267.comment Helper for reflecting functions to views.
     def _ApplyToViews(self, funcName, *args):
         for view in self.GetAllViews():
             func = getattr(view, funcName)
@@ -277,9 +277,9 @@ class CScintillaDocument(ParentScintillaDocument):
                 func(*args)
 
     def GetEditorView(self):
-        # Find the first frame with a view,
-        # then ask it to give the editor view
-        # as it knows which one is "active"
+        # 038780.python.document.line280.comment Find the first frame with a view,
+        # 038781.python.document.line281.comment then ask it to give the editor view
+        # 038782.python.document.line282.comment as it knows which one is "active"
         try:
             frame_gev = self.GetFirstView().GetParentFrame().GetEditorView
         except AttributeError:
@@ -287,7 +287,7 @@ class CScintillaDocument(ParentScintillaDocument):
         return frame_gev()
 
 
-# Delegate to the correct view, based on the control that sent it.
+# 038783.python.document.line290.comment Delegate to the correct view, based on the control that sent it.
 class ViewNotifyDelegate:
     def __init__(self, doc, name):
         self.doc = doc
@@ -300,7 +300,7 @@ class ViewNotifyDelegate:
                 return getattr(v, self.name)(*(std, extra))
 
 
-# Delegate to the document, but only from a single view (as each view sends it seperately)
+# 038784.python.document.line303.comment Delegate to the document, but only from a single view (as each view sends it seperately)
 class DocumentNotifyDelegate:
     def __init__(self, doc, name):
         self.doc = doc

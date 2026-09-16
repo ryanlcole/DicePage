@@ -1,4 +1,4 @@
-# cmdline - command line utilities.
+# 037277.python.cmdline.line1.comment cmdline - command line utilities.
 import string
 import sys
 
@@ -45,7 +45,7 @@ def FixArgFileName(fileName):
     if len(path) == 0:
         path = os.curdir
     path = os.path.abspath(path)
-    # must check that the command line arg's path is in sys.path
+    # 037278.python.cmdline.line48.comment must check that the command line arg's path is in sys.path
     for syspath in sys.path:
         if os.path.abspath(syspath) == path:
             break

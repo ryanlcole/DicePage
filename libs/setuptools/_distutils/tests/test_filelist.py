@@ -50,11 +50,11 @@ class TestFileList:
             sep = re.escape(os.sep)
 
         for glob, regex in (
-            # simple cases
+            # 041082.python.test_filelist.line53.comment simple cases
             ('foo*', r'(?s:foo[^%(sep)s]*)\Z'),
             ('foo?', r'(?s:foo[^%(sep)s])\Z'),
             ('foo??', r'(?s:foo[^%(sep)s][^%(sep)s])\Z'),
-            # special cases
+            # 041083.python.test_filelist.line57.comment special cases
             (r'foo\\*', r'(?s:foo\\\\[^%(sep)s]*)\Z'),
             (r'foo\\\*', r'(?s:foo\\\\\\[^%(sep)s]*)\Z'),
             ('foo????', r'(?s:foo[^%(sep)s][^%(sep)s][^%(sep)s][^%(sep)s])\Z'),
@@ -64,19 +64,19 @@ class TestFileList:
             assert glob_to_re(glob) == regex
 
     def test_process_template_line(self):
-        # testing  all MANIFEST.in template patterns
+        # 041084.python.test_filelist.line67.comment testing  all MANIFEST.in template patterns
         file_list = FileList()
         mlp = make_local_path
 
-        # simulated file list
+        # 041085.python.test_filelist.line71.comment simulated file list
         file_list.allfiles = [
             'foo.tmp',
             'ok',
             'xo',
             'four.txt',
             'buildout.cfg',
-            # filelist does not filter out VCS directories,
-            # it's sdist that does
+            # 041086.python.test_filelist.line78.comment filelist does not filter out VCS directories,
+            # 041087.python.test_filelist.line79.comment it's sdist that does
             mlp('.hg/last-message.txt'),
             mlp('global/one.txt'),
             mlp('global/two.txt'),
@@ -126,55 +126,55 @@ class TestFileList:
     def test_remove_duplicates(self):
         file_list = FileList()
         file_list.files = ['a', 'b', 'a', 'g', 'c', 'g']
-        # files must be sorted beforehand (sdist does it)
+        # 041088.python.test_filelist.line129.comment files must be sorted beforehand (sdist does it)
         file_list.sort()
         file_list.remove_duplicates()
         assert file_list.files == ['a', 'b', 'c', 'g']
 
     def test_translate_pattern(self):
-        # not regex
+        # 041089.python.test_filelist.line135.comment not regex
         assert hasattr(translate_pattern('a', anchor=True, is_regex=False), 'search')
 
-        # is a regex
+        # 041090.python.test_filelist.line138.comment is a regex
         regex = re.compile('a')
         assert translate_pattern(regex, anchor=True, is_regex=True) == regex
 
-        # plain string flagged as regex
+        # 041091.python.test_filelist.line142.comment plain string flagged as regex
         assert hasattr(translate_pattern('a', anchor=True, is_regex=True), 'search')
 
-        # glob support
+        # 041092.python.test_filelist.line145.comment glob support
         assert translate_pattern('*.py', anchor=True, is_regex=False).search(
             'filelist.py'
         )
 
     def test_exclude_pattern(self):
-        # return False if no match
+        # 041093.python.test_filelist.line151.comment return False if no match
         file_list = FileList()
         assert not file_list.exclude_pattern('*.py')
 
-        # return True if files match
+        # 041094.python.test_filelist.line155.comment return True if files match
         file_list = FileList()
         file_list.files = ['a.py', 'b.py']
         assert file_list.exclude_pattern('*.py')
 
-        # test excludes
+        # 041095.python.test_filelist.line160.comment test excludes
         file_list = FileList()
         file_list.files = ['a.py', 'a.txt']
         file_list.exclude_pattern('*.py')
         assert file_list.files == ['a.txt']
 
     def test_include_pattern(self):
-        # return False if no match
+        # 041096.python.test_filelist.line167.comment return False if no match
         file_list = FileList()
         file_list.set_allfiles([])
         assert not file_list.include_pattern('*.py')
 
-        # return True if files match
+        # 041097.python.test_filelist.line172.comment return True if files match
         file_list = FileList()
         file_list.set_allfiles(['a.py', 'b.txt'])
         assert file_list.include_pattern('*.py')
 
-        # test * matches all files
+        # 041098.python.test_filelist.line177.comment test * matches all files
         file_list = FileList()
         assert file_list.allfiles is None
         file_list.set_allfiles(['a.py', 'b.txt'])
@@ -183,7 +183,7 @@ class TestFileList:
 
     def test_process_template(self, caplog):
         mlp = make_local_path
-        # invalid lines
+        # 041099.python.test_filelist.line186.comment invalid lines
         file_list = FileList()
         for action in (
             'include',
@@ -199,7 +199,7 @@ class TestFileList:
             with pytest.raises(DistutilsTemplateError):
                 file_list.process_template_line(action)
 
-        # include
+        # 041100.python.test_filelist.line202.comment include
         file_list = FileList()
         file_list.set_allfiles(['a.py', 'b.txt', mlp('d/c.py')])
 
@@ -211,7 +211,7 @@ class TestFileList:
         assert file_list.files == ['a.py']
         self.assertWarnings(caplog)
 
-        # exclude
+        # 041101.python.test_filelist.line214.comment exclude
         file_list = FileList()
         file_list.files = ['a.py', 'b.txt', mlp('d/c.py')]
 
@@ -223,7 +223,7 @@ class TestFileList:
         assert file_list.files == ['b.txt', mlp('d/c.py')]
         self.assertWarnings(caplog)
 
-        # global-include
+        # 041102.python.test_filelist.line226.comment global-include
         file_list = FileList()
         file_list.set_allfiles(['a.py', 'b.txt', mlp('d/c.py')])
 
@@ -235,7 +235,7 @@ class TestFileList:
         assert file_list.files == ['a.py', mlp('d/c.py')]
         self.assertWarnings(caplog)
 
-        # global-exclude
+        # 041103.python.test_filelist.line238.comment global-exclude
         file_list = FileList()
         file_list.files = ['a.py', 'b.txt', mlp('d/c.py')]
 
@@ -247,7 +247,7 @@ class TestFileList:
         assert file_list.files == ['b.txt']
         self.assertWarnings(caplog)
 
-        # recursive-include
+        # 041104.python.test_filelist.line250.comment recursive-include
         file_list = FileList()
         file_list.set_allfiles(['a.py', mlp('d/b.py'), mlp('d/c.txt'), mlp('d/d/e.py')])
 
@@ -259,7 +259,7 @@ class TestFileList:
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
         self.assertWarnings(caplog)
 
-        # recursive-exclude
+        # 041105.python.test_filelist.line262.comment recursive-exclude
         file_list = FileList()
         file_list.files = ['a.py', mlp('d/b.py'), mlp('d/c.txt'), mlp('d/d/e.py')]
 
@@ -271,7 +271,7 @@ class TestFileList:
         assert file_list.files == ['a.py', mlp('d/c.txt')]
         self.assertWarnings(caplog)
 
-        # graft
+        # 041106.python.test_filelist.line274.comment graft
         file_list = FileList()
         file_list.set_allfiles(['a.py', mlp('d/b.py'), mlp('d/d/e.py'), mlp('f/f.py')])
 
@@ -283,7 +283,7 @@ class TestFileList:
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
         self.assertWarnings(caplog)
 
-        # prune
+        # 041107.python.test_filelist.line286.comment prune
         file_list = FileList()
         file_list.files = ['a.py', mlp('d/b.py'), mlp('d/d/e.py'), mlp('f/f.py')]
 

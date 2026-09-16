@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from _typeshed import ExcInfo, StrOrBytesPath
     from typing_extensions import TypeAlias
 
-# Same as shutil._OnExcCallback from typeshed
+# 044604.python.py311.line11.comment Same as shutil._OnExcCallback from typeshed
 _OnExcCallback: TypeAlias = Callable[[Callable[..., Any], str, BaseException], object]
 
 

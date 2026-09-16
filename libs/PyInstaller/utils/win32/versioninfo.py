@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 011194.python.versioninfo.line1.comment -----------------------------------------------------------------------------
+# 011195.python.versioninfo.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 011196.python.versioninfo.line3.comment
+# 011197.python.versioninfo.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 011198.python.versioninfo.line5.comment or later) with exception for distributing the bootloader.
+# 011199.python.versioninfo.line6.comment
+# 011200.python.versioninfo.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 011201.python.versioninfo.line8.comment
+# 011202.python.versioninfo.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 011203.python.versioninfo.line10.comment -----------------------------------------------------------------------------
 
 import struct
 
@@ -33,14 +33,14 @@ def pefile_check_control_flow_guard(filename):
     """
     try:
         pe = pefile.PE(filename, fast_load=True)
-        # https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
-        # IMAGE_DLLCHARACTERISTICS_GUARD_CF = 0x4000
+        # 011204.python.versioninfo.line36.comment https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
+        # 011205.python.versioninfo.line37.comment IMAGE_DLLCHARACTERISTICS_GUARD_CF = 0x4000
         return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x4000)
     except Exception:
         return False
 
 
-# Ensures no code from the executable is executed.
+# 011206.python.versioninfo.line43.comment Ensures no code from the executable is executed.
 LOAD_LIBRARY_AS_DATAFILE = 2
 
 
@@ -93,9 +93,9 @@ class VSVersionInfo:
 
     def fromRaw(self, data):
         i, (sublen, vallen, wType, nm) = parseCommon(data)
-        #vallen is length of the ffi, typ is 0, nm is 'VS_VERSION_INFO'.
+        # 011207.python.versioninfo.line96.comment vallen is length of the ffi, typ is 0, nm is 'VS_VERSION_INFO'.
         i = nextDWord(i)
-        # Now a VS_FIXEDFILEINFO
+        # 011208.python.versioninfo.line98.comment Now a VS_FIXEDFILEINFO
         self.ffi = FixedFileInfo()
         j = self.ffi.fromRaw(data, i)
         i = j
@@ -436,7 +436,7 @@ class StringStruct:
     def toRaw(self):
         raw_name = getRaw(self.name)
         raw_val = getRaw(self.val)
-        # TODO: document the size of vallen and sublen.
+        # 011214.python.versioninfo.line439.comment TODO: document the size of vallen and sublen.
         vallen = len(self.val) + 1  # Number of (wide-)characters, not bytes!
         typ = 1
         sublen = 6 + len(raw_name) + 2
@@ -562,18 +562,18 @@ def load_version_info_from_text_file(filename):
     text from the file and running it through `eval()`.
     """
 
-    # Read and parse the version file. It may have a byte order marker or encoding cookie - respect it if it does.
+    # 011216.python.versioninfo.line565.comment Read and parse the version file. It may have a byte order marker or encoding cookie - respect it if it does.
     import PyInstaller.utils.misc as miscutils
     with open(filename, 'rb') as fp:
         text = miscutils.decode(fp.read())
 
-    # Deserialize via eval()
+    # 011217.python.versioninfo.line570.comment Deserialize via eval()
     try:
         info = eval(text)
     except Exception as e:
         raise ValueError("Failed to deserialize VSVersionInfo from text-based representation!") from e
 
-    # Sanity check
+    # 011218.python.versioninfo.line576.comment Sanity check
     assert isinstance(info, VSVersionInfo), \
         f"Loaded incompatible structure type! Expected VSVersionInfo, got: {type(info)!r}"
 
@@ -583,7 +583,7 @@ def load_version_info_from_text_file(filename):
 def write_version_info_to_executable(exe_filename, info):
     assert isinstance(info, VSVersionInfo)
 
-    # Remember overlay
+    # 011219.python.versioninfo.line586.comment Remember overlay
     pe = pefile.PE(exe_filename, fast_load=True)
     overlay_before = pe.get_overlay()
     pe.close()
@@ -593,12 +593,12 @@ def write_version_info_to_executable(exe_filename, info):
     win32api.EndUpdateResource(hdst, 0)
 
     if overlay_before:
-        # Check if the overlay is still present
+        # 011220.python.versioninfo.line596.comment Check if the overlay is still present
         pe = pefile.PE(exe_filename, fast_load=True)
         overlay_after = pe.get_overlay()
         pe.close()
 
-        # If the update removed the overlay data, re-append it
+        # 011221.python.versioninfo.line601.comment If the update removed the overlay data, re-append it
         if not overlay_after:
             with open(exe_filename, 'ab') as exef:
                 exef.write(overlay_before)

@@ -32,13 +32,13 @@ class ShellTester(win32com.test.util.TestCase):
                 persistFile.Load(name, STGM_READ)
             except pythoncom.com_error:
                 continue
-            # Resolve is slow - avoid it for our tests.
-            # shellLink.Resolve(0, shell.SLR_ANY_MATCH | shell.SLR_NO_UI)
+            # 050324.python.testShell.line35.comment Resolve is slow - avoid it for our tests.
+            # 050325.python.testShell.line36.comment shellLink.Resolve(0, shell.SLR_ANY_MATCH | shell.SLR_NO_UI)
             fname, findData = shellLink.GetPath(0)
             unc = shellLink.GetPath(shell.SLGP_UNCPRIORITY)[0]
             num += 1
         if num == 0:
-            # This isn't a fatal error, but is unlikely.
+            # 050326.python.testShell.line41.comment This isn't a fatal error, but is unlikely.
             print(
                 "Could not find any links on your desktop or programs dir, which is unusual"
             )
@@ -50,7 +50,7 @@ class ShellTester(win32com.test.util.TestCase):
             name = sf.GetDisplayNameOf(i, SHGDN_NORMAL)
             names_1.append(name)
 
-        # And get the enumerator manually
+        # 050328.python.testShell.line53.comment And get the enumerator manually
         enum = sf.EnumObjects(
             0, SHCONTF_FOLDERS | SHCONTF_NONFOLDERS | SHCONTF_INCLUDEHIDDEN
         )
@@ -80,13 +80,13 @@ class PIDLTester(win32com.test.util.TestCase):
         self.assertEqual(cida_str_rt, cida_str)
 
     def testPIDL(self):
-        # A PIDL of "\1" is: cb + pidl + cb
+        # 050329.python.testShell.line83.comment A PIDL of "\1" is: cb + pidl + cb
         expect = b"\03\00" + b"\1" + b"\0\0"
         self.assertEqual(shell.PIDLAsString([b"\1"]), expect)
         self._rtPIDL([b"\0"])
         self._rtPIDL([b"\1", b"\2", b"\3"])
         self._rtPIDL([b"\0" * 2048] * 2048)
-        # PIDL must be a list
+        # 050330.python.testShell.line89.comment PIDL must be a list
         self.assertRaises(TypeError, shell.PIDLAsString, "foo")
 
     def testCIDA(self):
@@ -95,19 +95,19 @@ class PIDLTester(win32com.test.util.TestCase):
         self._rtCIDA([b"\0"], [[b"\0"], [b"\1"], [b"\2"]])
 
     def testBadShortPIDL(self):
-        # A too-short child element: cb + pidl + cb
+        # 050331.python.testShell.line98.comment A too-short child element: cb + pidl + cb
         pidl = b"\01\00" + b"\1"
         self.assertRaises(ValueError, shell.StringAsPIDL, pidl)
 
-        # ack - tried to test too long PIDLs, but a len of 0xFFFF may not
-        # always fail.
+        # 050332.python.testShell.line102.comment ack - tried to test too long PIDLs, but a len of 0xFFFF may not
+        # 050333.python.testShell.line103.comment always fail.
 
 
 class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
     def _getTestTimes(self):
         if issubclass(pywintypes.TimeType, datetime.datetime):
             ctime = win32timezone.now()
-            # FILETIME only has ms precision...
+            # 050334.python.testShell.line110.comment FILETIME only has ms precision...
             ctime = ctime.replace(microsecond=ctime.microsecond // 1000 * 1000)
             atime = ctime + datetime.timedelta(seconds=1)
             wtime = atime + datetime.timedelta(seconds=1)
@@ -124,7 +124,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         fd = fd.copy()
         fd2 = fd2.copy()
 
-        # The returned objects *always* have dwFlags and cFileName.
+        # 050335.python.testShell.line127.comment The returned objects *always* have dwFlags and cFileName.
         if "dwFlags" not in fd:
             del fd2["dwFlags"]
         if "cFileName" not in fd:
@@ -167,7 +167,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         self._testRT(d)
 
     def testUnicode(self):
-        # exercise a bug fixed in build 210 - multiple unicode objects failed.
+        # 050336.python.testShell.line170.comment exercise a bug fixed in build 210 - multiple unicode objects failed.
         ctime, atime, wtime = self._getTestTimes()
         d = [
             {
@@ -203,7 +203,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         ]
         s = shell.FILEGROUPDESCRIPTORAsString(d, 1)
         d2 = shell.StringAsFILEGROUPDESCRIPTOR(s)
-        # clobber 'dwFlags' - they are not expected to be identical
+        # 050337.python.testShell.line206.comment clobber 'dwFlags' - they are not expected to be identical
         for t in d2:
             del t["dwFlags"]
         self.assertEqual(d, d2)

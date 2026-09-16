@@ -261,7 +261,7 @@ class Sprite(event.EventDispatcher):
     _visible = True
     _vertex_list = None
 
-    #: Default class used to create the rendering group.
+    # 035640.python.sprite.line264.comment : Default class used to create the rendering group.
     group_class: ClassVar[type[SpriteGroup | Group]] = SpriteGroup
 
     def __init__(self,
@@ -352,7 +352,7 @@ class Sprite(event.EventDispatcher):
         self._vertex_list = None
         self._texture = None
 
-        # Easy way to break circular reference, speeds up GC
+        # 035642.python.sprite.line355.comment Easy way to break circular reference, speeds up GC
         self._group = None
 
     def _animate(self, dt: float) -> None:
@@ -412,10 +412,10 @@ class Sprite(event.EventDispatcher):
 
         if (self._batch and
                 self._batch.update_shader(self._vertex_list, GL_TRIANGLES, self._group, program)):
-            # Exit early if changing domain is not needed.
+            # 035644.python.sprite.line415.comment Exit early if changing domain is not needed.
             return
 
-        # Recreate vertex list.
+        # 035645.python.sprite.line418.comment Recreate vertex list.
         self._vertex_list.delete()
         self._create_vertex_list()
 
@@ -669,7 +669,7 @@ class Sprite(event.EventDispatcher):
         """
         translations_outdated = False
 
-        # only bother updating if the translation actually changed
+        # 035646.python.sprite.line672.comment only bother updating if the translation actually changed
         if x is not None:
             self._x = x
             translations_outdated = True
@@ -689,7 +689,7 @@ class Sprite(event.EventDispatcher):
 
         scales_outdated = False
 
-        # only bother updating if the scale actually changed
+        # 035647.python.sprite.line692.comment only bother updating if the scale actually changed
         if scale is not None:
             self._scale = scale
             scales_outdated = True
@@ -769,11 +769,11 @@ class Sprite(event.EventDispatcher):
 
     @color.setter
     def color(self, rgba: tuple[int, int, int, int] | tuple[int, int, int]):
-        # ValueError raised by unpacking if len(rgba) < 3
+        # 035648.python.sprite.line772.comment ValueError raised by unpacking if len(rgba) < 3
         r, g, b, *a = rgba
         new_color = r, g, b, a[0] if a else 255
 
-        # Only update if we actually have to
+        # 035649.python.sprite.line776.comment Only update if we actually have to
         if new_color != self._rgba:
             self._rgba = new_color
             self._vertex_list.colors[:] = new_color * 4
@@ -831,7 +831,7 @@ class Sprite(event.EventDispatcher):
         Updates the currently displayed frame of an animation immediately even if
         the animation is paused.  If not an Animation, this has no effect.
         """
-        # Bound to available number of frames
+        # 035650.python.sprite.line834.comment Bound to available number of frames
         if self._animation is None:
             return
         self._frame_index = max(0, min(index, len(self._animation.frames) - 1))
@@ -849,7 +849,7 @@ class Sprite(event.EventDispatcher):
         self._group.unset_state_recursive()
 
     if _is_pyglet_doc_run:
-        # Events
+        # 035651.python.sprite.line852.comment Events
 
         def on_animation_end(self) -> None | Literal[True]:
             """The sprite animation reached the final frame.

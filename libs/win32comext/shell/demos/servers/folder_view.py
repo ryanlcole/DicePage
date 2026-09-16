@@ -1,10 +1,10 @@
-# This is a port of the Vista SDK "FolderView" sample, and associated
-# notes at https://web.archive.org/web/20081225011615/http://shellrevealed.com/blogs/shellblog/archive/2007/03/15/Shell-Namespace-Extension_3A00_-Creating-and-Using-the-System-Folder-View-Object.aspx
-# A key difference to shell_view.py is that this version uses the default
-# IShellView provided by the shell (via SHCreateShellFolderView) rather
-# than our own.
-# XXX - sadly, it doesn't work quite like the original sample.  Oh well,
-# another day...
+# 051668.python.folder_view.line1.comment This is a port of the Vista SDK "FolderView" sample, and associated
+# 051669.python.folder_view.line2.comment notes at https://web.archive.org/web/20081225011615/http://shellrevealed.com/blogs/shellblog/archive/2007/03/15/Shell-Namespace-Extension_3A00_-Creating-and-Using-the-System-Folder-View-Object.aspx
+# 051670.python.folder_view.line3.comment A key difference to shell_view.py is that this version uses the default
+# 051671.python.folder_view.line4.comment IShellView provided by the shell (via SHCreateShellFolderView) rather
+# 051672.python.folder_view.line5.comment than our own.
+# 051673.python.folder_view.line6.comment XXX - sadly, it doesn't work quite like the original sample.  Oh well,
+# 051674.python.folder_view.line7.comment another day...
 import os
 import pickle
 import random
@@ -24,11 +24,11 @@ from win32com.shell import shell, shellcon
 
 GUID = pythoncom.MakeIID
 
-# If set, output spews to the win32traceutil collector...
+# 051676.python.folder_view.line27.comment If set, output spews to the win32traceutil collector...
 debug = 0
 
 
-# wrap a python object in a COM pointer
+# 051677.python.folder_view.line31.comment wrap a python object in a COM pointer
 def wrap(ob, iid=None):
     return _wrap(ob, iid, useDispatcher=(debug > 0))
 
@@ -37,8 +37,8 @@ def NewEnum(seq, iid):
     return _NewEnum(seq, iid=iid, useDispatcher=(debug > 0))
 
 
-# The sample makes heavy use of "string ids" (ie, integer IDs defined in .h
-# files, loaded at runtime from a (presumably localized) DLL.  We cheat.
+# 051678.python.folder_view.line40.comment The sample makes heavy use of "string ids" (ie, integer IDs defined in .h
+# 051679.python.folder_view.line41.comment files, loaded at runtime from a (presumably localized) DLL.  We cheat.
 _sids = {}  # strings, indexed bystring_id,
 
 
@@ -46,7 +46,7 @@ def LoadString(sid):
     return _sids[sid]
 
 
-# fn to create a unique string ID
+# 051681.python.folder_view.line49.comment fn to create a unique string ID
 _last_ids = 0
 
 
@@ -57,9 +57,9 @@ def _make_ids(s):
     return _last_ids
 
 
-# These strings are what the user sees and would be localized.
-# XXX - it's possible that the shell might persist these values, so
-# this scheme wouldn't really be suitable in a real ap.
+# 051682.python.folder_view.line60.comment These strings are what the user sees and would be localized.
+# 051683.python.folder_view.line61.comment XXX - it's possible that the shell might persist these values, so
+# 051684.python.folder_view.line62.comment this scheme wouldn't really be suitable in a real ap.
 IDS_UNSPECIFIED = _make_ids("unspecified")
 IDS_SMALL = _make_ids("small")
 IDS_MEDIUM = _make_ids("medium")
@@ -82,18 +82,18 @@ IDS_LESSTHAN5 = _make_ids("Less Than 5")
 IDS_5ORGREATER = _make_ids("Five or Greater")
 del _make_ids, _last_ids
 
-# Other misc resource stuff
+# 051685.python.folder_view.line85.comment Other misc resource stuff
 IDI_ICON1 = 100
 IDI_SETTINGS = 101
 
-# The sample defines a number of "category ids".  Each one gets
-# its own GUID.
+# 051686.python.folder_view.line89.comment The sample defines a number of "category ids".  Each one gets
+# 051687.python.folder_view.line90.comment its own GUID.
 CAT_GUID_NAME = GUID("{de094c9d-c65a-11dc-ba21-005056c00008}")
 CAT_GUID_SIZE = GUID("{de094c9e-c65a-11dc-ba21-005056c00008}")
 CAT_GUID_SIDES = GUID("{de094c9f-c65a-11dc-ba21-005056c00008}")
 CAT_GUID_LEVEL = GUID("{de094ca0-c65a-11dc-ba21-005056c00008}")
-# The next category guid is NOT based on a column (see
-# ViewCategoryProvider::EnumCategories()...)
+# 051688.python.folder_view.line95.comment The next category guid is NOT based on a column (see
+# 051689.python.folder_view.line96.comment ViewCategoryProvider::EnumCategories()...)
 CAT_GUID_VALUE = "{de094ca1-c65a-11dc-ba21-005056c00008}"
 
 GUID_Display = GUID("{4d6c2fdd-c689-11dc-ba21-005056c00008}")
@@ -102,35 +102,35 @@ GUID_Setting1 = GUID("{4d6c2fdf-c689-11dc-ba21-005056c00008}")
 GUID_Setting2 = GUID("{4d6c2fe0-c689-11dc-ba21-005056c00008}")
 GUID_Setting3 = GUID("{4d6c2fe1-c689-11dc-ba21-005056c00008}")
 
-# Hrm - not sure what to do about the std keys.
-# Probably need a simple parser for propkey.h
+# 051690.python.folder_view.line105.comment Hrm - not sure what to do about the std keys.
+# 051691.python.folder_view.line106.comment Probably need a simple parser for propkey.h
 PKEY_ItemNameDisplay = ("{B725F130-47EF-101A-A5F1-02608C9EEBAC}", 10)
 PKEY_PropList_PreviewDetails = ("{C9944A21-A406-48FE-8225-AEC7E24C211B}", 8)
 
-# Not sure what the "3" here refers to - docs say PID_FIRST_USABLE (2) be
-# used.  Presumably it is the 'propID' value in the .propdesc file!
-# note that the following GUIDs are also references in the .propdesc file
+# 051692.python.folder_view.line110.comment Not sure what the "3" here refers to - docs say PID_FIRST_USABLE (2) be
+# 051693.python.folder_view.line111.comment used.  Presumably it is the 'propID' value in the .propdesc file!
+# 051694.python.folder_view.line112.comment note that the following GUIDs are also references in the .propdesc file
 PID_SOMETHING = 3
-# These are our 'private' PKEYs
-# Col 2, name="Sample.AreaSize"
+# 051695.python.folder_view.line114.comment These are our 'private' PKEYs
+# 051696.python.folder_view.line115.comment Col 2, name="Sample.AreaSize"
 PKEY_Sample_AreaSize = ("{d6f5e341-c65c-11dc-ba21-005056c00008}", PID_SOMETHING)
-# Col 3, name="Sample.NumberOfSides"
+# 051697.python.folder_view.line117.comment Col 3, name="Sample.NumberOfSides"
 PKEY_Sample_NumberOfSides = ("{d6f5e342-c65c-11dc-ba21-005056c00008}", PID_SOMETHING)
-# Col 4, name="Sample.DirectoryLevel"
+# 051698.python.folder_view.line119.comment Col 4, name="Sample.DirectoryLevel"
 PKEY_Sample_DirectoryLevel = ("{d6f5e343-c65c-11dc-ba21-005056c00008}", PID_SOMETHING)
 
 
-# We construct a PIDL from a pickle of a dict - turn it back into a
-# dict (we should *never* be called with a PIDL that the last elt is not
-# ours, so it is safe to assume we created it (assume->"ass" = "u" + "me" :)
+# 051699.python.folder_view.line123.comment We construct a PIDL from a pickle of a dict - turn it back into a
+# 051700.python.folder_view.line124.comment dict (we should *never* be called with a PIDL that the last elt is not
+# 051701.python.folder_view.line125.comment ours, so it is safe to assume we created it (assume->"ass" = "u" + "me" :)
 def pidl_to_item(pidl):
-    # Note that only the *last* elt in the PIDL is certainly ours,
-    # but it contains everything we need encoded as a dict.
+    # 051702.python.folder_view.line127.comment Note that only the *last* elt in the PIDL is certainly ours,
+    # 051703.python.folder_view.line128.comment but it contains everything we need encoded as a dict.
     return pickle.loads(pidl[-1])
 
 
-# Start of msdn sample port...
-# make_item_enum replaces the sample's entire EnumIDList.cpp :)
+# 051704.python.folder_view.line132.comment Start of msdn sample port...
+# 051705.python.folder_view.line133.comment make_item_enum replaces the sample's entire EnumIDList.cpp :)
 def make_item_enum(level, flags):
     pidls = []
     nums = """zero one two three four five size seven eight nine ten""".split()
@@ -140,8 +140,8 @@ def make_item_enum(level, flags):
         while sides in [1, 2]:
             sides = random.randint(0, 5)
         is_folder = (i % 2) != 0
-        # check the flags say to include it.
-        # (This seems strange; if you ask the same folder for, but appear
+        # 051706.python.folder_view.line143.comment check the flags say to include it.
+        # 051707.python.folder_view.line144.comment (This seems strange; if you ask the same folder for, but appear
         skip = False
         if not (flags & shellcon.SHCONTF_STORAGE):
             if is_folder:
@@ -160,9 +160,9 @@ def make_item_enum(level, flags):
     return NewEnum(pidls, shell.IID_IEnumIDList)
 
 
-# start of Utils.cpp port
+# 051708.python.folder_view.line163.comment start of Utils.cpp port
 def DisplayItem(shell_item_array, hwnd_parent=0):
-    # Get the first ShellItem and display its name
+    # 051709.python.folder_view.line165.comment Get the first ShellItem and display its name
     if shell_item_array is None:
         msg = "You must select something!"
     else:
@@ -172,10 +172,10 @@ def DisplayItem(shell_item_array, hwnd_parent=0):
     win32gui.MessageBox(hwnd_parent, msg, "Hello", win32con.MB_OK)
 
 
-# end of Utils.cpp port
+# 051710.python.folder_view.line175.comment end of Utils.cpp port
 
 
-# start of sample's FVCommands.cpp port
+# 051711.python.folder_view.line178.comment start of sample's FVCommands.cpp port
 class Command:
     def __init__(self, guid, ids, ids_tt, idi, flags, callback, children):
         self.guid = guid
@@ -199,7 +199,7 @@ class Command:
         )
 
 
-# command callbacks - called back directly by us - see ExplorerCommand.Invoke
+# 051712.python.folder_view.line202.comment command callbacks - called back directly by us - see ExplorerCommand.Invoke
 def onDisplay(items, bindctx):
     DisplayItem(items)
 
@@ -258,7 +258,7 @@ class ExplorerCommand:
     def __init__(self, cmd):
         self.cmd = cmd
 
-    # The sample also appears to ignore the pidl args!?
+    # 051713.python.folder_view.line261.comment The sample also appears to ignore the pidl args!?
     def GetTitle(self, pidl):
         return LoadString(self.cmd.ids)
 
@@ -266,8 +266,8 @@ class ExplorerCommand:
         return LoadString(self.cmd.ids_tt)
 
     def GetIcon(self, pidl):
-        # Return a string of the usual "dll,resource_id" format
-        # todo - just return any ".ico that comes with python" + ",0" :)
+        # 051714.python.folder_view.line269.comment Return a string of the usual "dll,resource_id" format
+        # 051715.python.folder_view.line270.comment todo - just return any ".ico that comes with python" + ",0" :)
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def GetState(self, shell_items, slow_ok):
@@ -280,7 +280,7 @@ class ExplorerCommand:
         return self.cmd.guid
 
     def Invoke(self, items, bind_ctx):
-        # If no function defined - just return S_OK
+        # 051716.python.folder_view.line283.comment If no function defined - just return S_OK
         if self.cmd.callback:
             self.cmd.callback(items, bind_ctx)
         else:
@@ -293,10 +293,10 @@ class ExplorerCommand:
         return NewEnum(items, shell.IID_IEnumExplorerCommand)
 
 
-# end of sample's FVCommands.cpp port
+# 051717.python.folder_view.line296.comment end of sample's FVCommands.cpp port
 
 
-# start of sample's Category.cpp port
+# 051718.python.folder_view.line299.comment start of sample's Category.cpp port
 class FolderViewCategorizer:
     _com_interfaces_ = [shell.IID_ICategorizer]
     _public_methods_ = shellcon.ICategorizer_Methods
@@ -306,19 +306,19 @@ class FolderViewCategorizer:
     def __init__(self, shell_folder):
         self.sf = shell_folder
 
-    #  Determines the relative order of two items in their item identifier lists.
+    # 051720.python.folder_view.line309.comment Determines the relative order of two items in their item identifier lists.
     def CompareCategory(self, flags, cat1, cat2):
         return cat1 - cat2
 
-    #  Retrieves the name of a categorizer, such as "Group By Device
-    #  Type", that can be displayed in the user interface.
+    # 051721.python.folder_view.line313.comment Retrieves the name of a categorizer, such as "Group By Device
+    # 051722.python.folder_view.line314.comment Type", that can be displayed in the user interface.
     def GetDescription(self, cch):
         return self.description
 
-    # Retrieves information about a category, such as the default
-    # display and the text to display in the user interface.
+    # 051723.python.folder_view.line318.comment Retrieves information about a category, such as the default
+    # 051724.python.folder_view.line319.comment display and the text to display in the user interface.
     def GetCategoryInfo(self, catid):
-        # Note: this isn't always appropriate!  See overrides below
+        # 051725.python.folder_view.line321.comment Note: this isn't always appropriate!  See overrides below
         return 0, str(catid)  # ????
 
 
@@ -339,7 +339,7 @@ class FolderViewCategorizer_Size(FolderViewCategorizer):
     def GetCategory(self, pidls):
         ret = []
         for pidl in pidls:
-            # Why don't we just get the size of the PIDL?
+            # 051727.python.folder_view.line342.comment Why don't we just get the size of the PIDL?
             val = self.sf.GetDetailsEx(pidl, PKEY_Sample_AreaSize)
             val = int(val)  # it probably came in a VT_BSTR variant
             if val < 255 // 3:
@@ -420,7 +420,7 @@ class ViewCategoryProvider:
             PKEY_Sample_DirectoryLevel,
         ]
 
-    #  Creates a category object.
+    # 051729.python.folder_view.line423.comment Creates a category object.
     def CreateCategory(self, guid, iid):
         if iid == shell.IID_ICategorizer:
             if guid == CAT_GUID_NAME:
@@ -438,14 +438,14 @@ class ViewCategoryProvider:
             return wrap(klass(self.shell_folder))
         raise COMException(hresult=winerror.E_NOINTERFACE)
 
-    #  Retrieves the enumerator for the categories.
+    # 051730.python.folder_view.line441.comment Retrieves the enumerator for the categories.
     def EnumCategories(self):
-        # These are additional categories beyond the columns
+        # 051731.python.folder_view.line443.comment These are additional categories beyond the columns
         seq = [CAT_GUID_VALUE]
         return NewEnum(seq, pythoncom.IID_IEnumGUID)
 
-    #  Retrieves a globally unique identifier (GUID) that represents
-    #  the categorizer to use for the specified Shell column.
+    # 051732.python.folder_view.line447.comment Retrieves a globally unique identifier (GUID) that represents
+    # 051733.python.folder_view.line448.comment the categorizer to use for the specified Shell column.
     def GetCategoryForSCID(self, scid):
         if scid == PKEY_ItemNameDisplay:
             guid = CAT_GUID_NAME
@@ -456,32 +456,32 @@ class ViewCategoryProvider:
         elif scid == PKEY_Sample_DirectoryLevel:
             guid = CAT_GUID_LEVEL
         elif scid == pythoncom.IID_NULL:
-            # This can be called with a NULL
-            # format ID. This will happen if you have a category,
-            # not based on a column, that gets stored in the
-            # property bag. When a return is made to this item,
-            # it will call this function with a NULL format id.
+            # 051734.python.folder_view.line459.comment This can be called with a NULL
+            # 051735.python.folder_view.line460.comment format ID. This will happen if you have a category,
+            # 051736.python.folder_view.line461.comment not based on a column, that gets stored in the
+            # 051737.python.folder_view.line462.comment property bag. When a return is made to this item,
+            # 051738.python.folder_view.line463.comment it will call this function with a NULL format id.
             guid = CAT_GUID_VALUE
         else:
             raise COMException(hresult=winerror.E_INVALIDARG)
         return guid
 
-    #  Retrieves the name of the specified category. This is where
-    #  additional categories that appear under the column
-    #  related categories in the UI, get their display names.
+    # 051739.python.folder_view.line469.comment Retrieves the name of the specified category. This is where
+    # 051740.python.folder_view.line470.comment additional categories that appear under the column
+    # 051741.python.folder_view.line471.comment related categories in the UI, get their display names.
     def GetCategoryName(self, guid, cch):
         if guid == CAT_GUID_VALUE:
             return "Value"
         raise COMException(hresult=winerror.E_FAIL)
 
-    #  Enables the folder to override the default grouping.
+    # 051742.python.folder_view.line477.comment Enables the folder to override the default grouping.
     def GetDefaultCategory(self):
         return CAT_GUID_LEVEL, (pythoncom.IID_NULL, 0)
 
 
-# end of sample's Category.cpp port
+# 051743.python.folder_view.line482.comment end of sample's Category.cpp port
 
-# start of sample's ContextMenu.cpp port
+# 051744.python.folder_view.line484.comment start of sample's ContextMenu.cpp port
 MENUVERB_DISPLAY = 0
 
 folderViewImplContextMenuIDs = [
@@ -522,14 +522,14 @@ class ContextMenu:
             hMenu, indexMenu, win32con.MF_BYPOSITION, idCmdFirst + MENUVERB_DISPLAY, s
         )
         indexMenu += 1
-        # other verbs could go here...
+        # 051745.python.folder_view.line525.comment other verbs could go here...
 
-        # indicate that we added one verb.
+        # 051746.python.folder_view.line527.comment indicate that we added one verb.
         return 1
 
     def InvokeCommand(self, ci):
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
-        # this seems very convoluted, but it's what the sample does :)
+        # 051747.python.folder_view.line532.comment this seems very convoluted, but it's what the sample does :)
         for verb_name, verb_id, flag in folderViewImplContextMenuIDs:
             if isinstance(verb, int):
                 matches = verb == verb_id
@@ -555,10 +555,10 @@ class ContextMenu:
         return self.site
 
 
-# end of sample's ContextMenu.cpp port
+# 051748.python.folder_view.line558.comment end of sample's ContextMenu.cpp port
 
 
-# start of sample's ShellFolder.cpp port
+# 051749.python.folder_view.line561.comment start of sample's ShellFolder.cpp port
 class ShellFolder:
     _com_interfaces_ = [
         shell.IID_IBrowserFrameOptions,
@@ -586,7 +586,7 @@ class ShellFolder:
         self.pidl = None  # set when Initialize is called
 
     def ParseDisplayName(self, hwnd, reserved, displayName, attr):
-        # print("ParseDisplayName", displayName)
+        # 051751.python.folder_view.line589.comment print("ParseDisplayName", displayName)
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def EnumObjects(self, hwndOwner, flags):
@@ -596,14 +596,14 @@ class ShellFolder:
 
     def BindToObject(self, pidl, bc, iid):
         tail = pidl_to_item(pidl)
-        # assert tail['is_folder'], "BindToObject should only be called on folders?"
-        # *sob*
-        # No point creating object just to have QI fail.
+        # 051752.python.folder_view.line599.comment assert tail['is_folder'], "BindToObject should only be called on folders?"
+        # 051753.python.folder_view.line600.comment *sob*
+        # 051754.python.folder_view.line601.comment No point creating object just to have QI fail.
         if iid not in ShellFolder._com_interfaces_:
             raise COMException(hresult=winerror.E_NOTIMPL)
         child = ShellFolder(self.current_level + 1)
-        # hrmph - not sure what multiple PIDLs here mean?
-        #        assert len(pidl)==1, pidl # expecting just relative child PIDL
+        # 051755.python.folder_view.line605.comment hrmph - not sure what multiple PIDLs here mean?
+        # 051756.python.folder_view.line606.comment assert len(pidl)==1, pidl # expecting just relative child PIDL
         child.Initialize(self.pidl + pidl)
         return wrap(child, iid)
 
@@ -639,8 +639,8 @@ class ShellFolder:
             flags |= shellcon.SFGAO_HASSUBFOLDER
         return flags
 
-    #  Retrieves an OLE interface that can be used to carry out
-    #  actions on the specified file objects or folders.
+    # 051758.python.folder_view.line642.comment Retrieves an OLE interface that can be used to carry out
+    # 051759.python.folder_view.line643.comment actions on the specified file objects or folders.
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
         assert len(pidls) == 1, "oops - aren't expecting more than one!"
         assert len(pidls[0]) == 1, "assuming relative pidls!"
@@ -651,12 +651,12 @@ class ShellFolder:
             return shell.SHCreateDefaultContextMenu(dcm, iid)
         elif iid == shell.IID_IExtractIconW:
             dxi = shell.SHCreateDefaultExtractIcon()
-            # dxi is IDefaultExtractIconInit
+            # 051760.python.folder_view.line654.comment dxi is IDefaultExtractIconInit
             if item["is_folder"]:
                 dxi.SetNormalIcon("shell32.dll", 4)
             else:
                 dxi.SetNormalIcon("shell32.dll", 1)
-            # just return the dxi - let Python QI for IID_IExtractIconW
+            # 051761.python.folder_view.line659.comment just return the dxi - let Python QI for IID_IExtractIconW
             return dxi
 
         elif iid == pythoncom.IID_IDataObject:
@@ -673,7 +673,7 @@ class ShellFolder:
 
         raise COMException(hresult=winerror.E_NOINTERFACE)
 
-    #  Retrieves the display name for the specified file object or subfolder.
+    # 051762.python.folder_view.line676.comment Retrieves the display name for the specified file object or subfolder.
     def GetDisplayNameOf(self, pidl, flags):
         item = pidl_to_item(pidl)
         if flags & shellcon.SHGDN_FORPARSING:
@@ -695,30 +695,30 @@ class ShellFolder:
     def GetClassID(self):
         return self._reg_clsid_
 
-    #  IPersistFolder method
+    # 051763.python.folder_view.line698.comment IPersistFolder method
     def Initialize(self, pidl):
         self.pidl = pidl
 
-    #  IShellFolder2 methods
+    # 051764.python.folder_view.line702.comment IShellFolder2 methods
     def EnumSearches(self):
         raise COMException(hresult=winerror.E_NOINTERFACE)
 
-    #  Retrieves the default sorting and display columns.
+    # 051765.python.folder_view.line706.comment Retrieves the default sorting and display columns.
     def GetDefaultColumn(self, dwres):
-        # result is (sort, display)
+        # 051766.python.folder_view.line708.comment result is (sort, display)
         return 0, 0
 
-    #  Retrieves the default state for a specified column.
+    # 051767.python.folder_view.line711.comment Retrieves the default state for a specified column.
     def GetDefaultColumnState(self, iCol):
         if iCol < 3:
             return shellcon.SHCOLSTATE_ONBYDEFAULT | shellcon.SHCOLSTATE_TYPE_STR
         raise COMException(hresult=winerror.E_INVALIDARG)
 
-    #  Requests the GUID of the default search object for the folder.
+    # 051768.python.folder_view.line717.comment Requests the GUID of the default search object for the folder.
     def GetDefaultSearchGUID(self):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
-    #  Helper function for getting the display name for a column.
+    # 051769.python.folder_view.line721.comment Helper function for getting the display name for a column.
     def _GetColumnDisplayName(self, pidl, pkey):
         item = pidl_to_item(pidl)
         is_folder = item["is_folder"]
@@ -734,9 +734,9 @@ class ShellFolder:
             val = ""
         return val
 
-    #  Retrieves detailed information, identified by a
-    #  property set ID (FMTID) and property ID (PID),
-    #  on an item in a Shell folder.
+    # 051771.python.folder_view.line737.comment Retrieves detailed information, identified by a
+    # 051772.python.folder_view.line738.comment property set ID (FMTID) and property ID (PID),
+    # 051773.python.folder_view.line739.comment on an item in a Shell folder.
     def GetDetailsEx(self, pidl, pkey):
         item = pidl_to_item(pidl)
         is_folder = item["is_folder"]
@@ -744,8 +744,8 @@ class ShellFolder:
             return "prop:Sample.AreaSize;Sample.NumberOfSides;Sample.DirectoryLevel"
         return self._GetColumnDisplayName(pidl, pkey)
 
-    #  Retrieves detailed information, identified by a
-    #  column index, on an item in a Shell folder.
+    # 051774.python.folder_view.line747.comment Retrieves detailed information, identified by a
+    # 051775.python.folder_view.line748.comment column index, on an item in a Shell folder.
     def GetDetailsOf(self, pidl, iCol):
         key = self.MapColumnToSCID(iCol)
         if pidl is None:
@@ -764,8 +764,8 @@ class ShellFolder:
         cxChar = 24
         return fmt, cxChar, val
 
-    #  Converts a column name to the appropriate
-    #  property set ID (FMTID) and property ID (PID).
+    # 051777.python.folder_view.line767.comment Converts a column name to the appropriate
+    # 051778.python.folder_view.line768.comment property set ID (FMTID) and property ID (PID).
     def MapColumnToSCID(self, iCol):
         data = [
             PKEY_ItemNameDisplay,
@@ -777,15 +777,15 @@ class ShellFolder:
             raise COMException(hresult=winerror.E_FAIL)
         return data[iCol]
 
-    #  IPersistFolder2 methods
-    #  Retrieves the PIDLIST_ABSOLUTE for the folder object.
+    # 051779.python.folder_view.line780.comment IPersistFolder2 methods
+    # 051780.python.folder_view.line781.comment Retrieves the PIDLIST_ABSOLUTE for the folder object.
     def GetCurFolder(self):
-        # The docs say this is OK, but I suspect it's a problem in this case :)
-        # assert self.pidl, "haven't been initialized?"
+        # 051781.python.folder_view.line783.comment The docs say this is OK, but I suspect it's a problem in this case :)
+        # 051782.python.folder_view.line784.comment assert self.pidl, "haven't been initialized?"
         return self.pidl
 
 
-# end of sample's ShellFolder.cpp port
+# 051783.python.folder_view.line788.comment end of sample's ShellFolder.cpp port
 
 
 def get_schema_fname():
@@ -808,11 +808,11 @@ def DllRegisterServer():
         "Explorer\\Desktop\\Namespace\\" + ShellFolder._reg_clsid_,
     )
     winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ShellFolder._reg_desc_)
-    # And special shell keys under our CLSID
+    # 051784.python.folder_view.line811.comment And special shell keys under our CLSID
     key = winreg.CreateKey(
         winreg.HKEY_CLASSES_ROOT, "CLSID\\" + ShellFolder._reg_clsid_ + "\\ShellFolder"
     )
-    # 'Attributes' is an int stored as a binary! use struct
+    # 051785.python.folder_view.line815.comment 'Attributes' is an int stored as a binary! use struct
     attr = (
         shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | shellcon.SFGAO_BROWSABLE
     )
@@ -820,7 +820,7 @@ def DllRegisterServer():
 
     s = struct.pack("i", attr)
     winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
-    # register the context menu handler under the FolderViewSampleType type.
+    # 051786.python.folder_view.line823.comment register the context menu handler under the FolderViewSampleType type.
     keypath = "{}\\shellex\\ContextMenuHandlers\\{}".format(
         ContextMenu._context_menu_type_,
         ContextMenu._reg_desc_,

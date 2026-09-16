@@ -40,10 +40,10 @@ class OpenALDriver(AbstractAudioDriver):
         assert _debug("Delete OpenALDriver")
         self.worker.stop()
 
-        # A device may only be closed if no more contexts and no more buffers exist on it
-        # A buffer may only be deleted if no source is using it anymore
-        # A context may only be deleted if it is free of sources
-        # Buffers need a context to report errors to when being deleted
+        # 034268.python.adaptation.line43.comment A device may only be closed if no more contexts and no more buffers exist on it
+        # 034269.python.adaptation.line44.comment A buffer may only be deleted if no source is using it anymore
+        # 034270.python.adaptation.line45.comment A context may only be deleted if it is free of sources
+        # 034271.python.adaptation.line46.comment Buffers need a context to report errors to when being deleted
         self.context.delete_sources()
         self.device.buffer_pool.delete()
         self.context.delete()
@@ -96,30 +96,30 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
         self.driver = driver
         self.alsource = driver.context.create_source()
 
-        # Cursor positions, like DSound and Pulse drivers, refer to a
-        # hypothetical infinite-length buffer.  Cursor units are in bytes.
+        # 034272.python.adaptation.line99.comment Cursor positions, like DSound and Pulse drivers, refer to a
+        # 034273.python.adaptation.line100.comment hypothetical infinite-length buffer.  Cursor units are in bytes.
 
-        # The following should be true at all times:
-        # buffer <= play <= write; buffer >= 0; play >= 0; write >= 0
+        # 034274.python.adaptation.line102.comment The following should be true at all times:
+        # 034275.python.adaptation.line103.comment buffer <= play <= write; buffer >= 0; play >= 0; write >= 0
 
-        # Start of the current (head) AL buffer
+        # 034276.python.adaptation.line105.comment Start of the current (head) AL buffer
         self._buffer_cursor = 0
 
-        # Estimated playback cursor position (last seen)
+        # 034277.python.adaptation.line108.comment Estimated playback cursor position (last seen)
         self._play_cursor = 0
 
-        # Cursor position of end of the last queued AL buffer.
+        # 034278.python.adaptation.line111.comment Cursor position of end of the last queued AL buffer.
         self._write_cursor = 0
 
-        # Whether the source has been exhausted of all data.
-        # Don't bother trying to refill then and brace for eos.
+        # 034279.python.adaptation.line114.comment Whether the source has been exhausted of all data.
+        # 034280.python.adaptation.line115.comment Don't bother trying to refill then and brace for eos.
         self._pyglet_source_exhausted = False
 
-        # Whether the OpenAL source has played to its end.
-        # Prevent duplicate dispatches of on_eos events.
+        # 034281.python.adaptation.line118.comment Whether the OpenAL source has played to its end.
+        # 034282.python.adaptation.line119.comment Prevent duplicate dispatches of on_eos events.
         self._has_underrun = False
 
-        # Deque of the currently queued buffer's sizes
+        # 034283.python.adaptation.line122.comment Deque of the currently queued buffer's sizes
         self._queued_buffer_sizes = deque()
 
     def delete(self) -> None:
@@ -165,8 +165,8 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
     def _check_processed_buffers(self) -> None:
         buffers_processed = self.alsource.unqueue_buffers()
         for _ in range(buffers_processed):
-            # Buffers have been processed (and already been removed from the ALSource);
-            # Adjust buffer cursor.
+            # 034284.python.adaptation.line168.comment Buffers have been processed (and already been removed from the ALSource);
+            # 034285.python.adaptation.line169.comment Adjust buffer cursor.
             self._buffer_cursor += self._queued_buffer_sizes.popleft()
 
     def _update_play_cursor(self) -> None:
@@ -187,8 +187,8 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
         refilled = self._maybe_refill()
 
         if refilled and not self.alsource.is_playing:
-            # Very unlikely case where the refill was delayed by so much the
-            # source underran and stopped. If it did, restart it.
+            # 034286.python.adaptation.line190.comment Very unlikely case where the refill was delayed by so much the
+            # 034287.python.adaptation.line191.comment source underran and stopped. If it did, restart it.
             self.alsource.play()
 
     def _maybe_refill(self) -> bool:
@@ -213,15 +213,15 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
             self._pyglet_source_exhausted = True
             return
 
-        # We got new audio data; first queue its events
+        # 034288.python.adaptation.line216.comment We got new audio data; first queue its events
         self.append_events(self._write_cursor, audio_data.events)
 
-        # Get, fill and queue OpenAL buffer using the entire AudioData
+        # 034289.python.adaptation.line219.comment Get, fill and queue OpenAL buffer using the entire AudioData
         buf = self.alsource.get_buffer()
         buf.data(audio_data, self.source.audio_format)
         self.alsource.queue_buffer(buf)
 
-        # Adjust the write cursor and memorize buffer length
+        # 034290.python.adaptation.line224.comment Adjust the write cursor and memorize buffer length
         self._write_cursor += audio_data.length
         self._queued_buffer_sizes.append(audio_data.length)
 

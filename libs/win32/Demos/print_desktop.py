@@ -9,9 +9,9 @@ print(pname)
 p = win32print.OpenPrinter(pname)
 print("Printer handle: ", p)
 print_processor = win32print.GetPrinter(p, 2)["pPrintProcessor"]
-## call with last parm set to 0 to get total size needed for printer's DEVMODE
+# 046113.python.print_desktop.line12.comment # call with last parm set to 0 to get total size needed for printer's DEVMODE
 dmsize = win32print.DocumentProperties(0, p, pname, None, None, 0)
-## dmDriverExtra should be total size - fixed size
+# 046114.python.print_desktop.line14.comment # dmDriverExtra should be total size - fixed size
 driverextra = (
     dmsize - pywintypes.DEVMODEType().Size
 )  ## need a better way to get DEVMODE.dmSize

@@ -16,9 +16,9 @@ needs_winreg = pytest.mark.skipif('not hasattr(msvc, "winreg")')
 
 class Testmsvccompiler(support.TempdirManager):
     def test_no_compiler(self, monkeypatch):
-        # makes sure query_vcvarsall raises
-        # a DistutilsPlatformError if the compiler
-        # is not found
+        # 040277.python.test_msvc.line19.comment makes sure query_vcvarsall raises
+        # 040278.python.test_msvc.line20.comment a DistutilsPlatformError if the compiler
+        # 040279.python.test_msvc.line21.comment is not found
         def _find_vcvarsall(plat_spec):
             return None, None
 
@@ -58,7 +58,7 @@ class Testmsvccompiler(support.TempdirManager):
         test_var = 'ṰḖṤṪ┅ṼẨṜ'
         test_value = '₃⁴₅'
 
-        # Ensure we don't early exit from _get_vc_env
+        # 040280.python.test_msvc.line61.comment Ensure we don't early exit from _get_vc_env
         old_distutils_use_sdk = os.environ.pop('DISTUTILS_USE_SDK', None)
         os.environ[test_var] = test_value
         try:
@@ -73,8 +73,8 @@ class Testmsvccompiler(support.TempdirManager):
     @needs_winreg
     @pytest.mark.parametrize('ver', (2015, 2017))
     def test_get_vc(self, ver):
-        # This function cannot be mocked, so pass if VC is found
-        # and skip otherwise.
+        # 040281.python.test_msvc.line76.comment This function cannot be mocked, so pass if VC is found
+        # 040282.python.test_msvc.line77.comment and skip otherwise.
         lookup = getattr(msvc, f'_find_vc{ver}')
         expected_version = {2015: 14, 2017: 15}[ver]
         version, path = lookup()

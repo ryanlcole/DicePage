@@ -1,4 +1,4 @@
-# Test module for win32crypt
+# 048288.python.test_win32crypt.line1.comment Test module for win32crypt
 
 import contextlib
 import unittest
@@ -50,7 +50,7 @@ class Crypt(unittest.TestCase):
         self.assertEqual(desc, got_desc)
 
 
-# via https://github.com/mhammond/pywin32/issues/1859
+# 048289.python.test_win32crypt.line53.comment via https://github.com/mhammond/pywin32/issues/1859
 _LOCAL_MACHINE = "LocalMachine"
 _CURRENT_USER = "CurrentUser"
 
@@ -95,11 +95,11 @@ class TestCerts(unittest.TestCase):
             )
 
     def testReadCertFiles(self):
-        # readCertFile has Python read the file and load it as a blob.
-        # win32crypt can read the file directly - let's check that works too
-        # (ideally we'd compare the 2 approaches etc, but the objects don't support
-        # equality checks etc, so this will do for now.)
-        # No need to do this for different filenames!
+        # 048290.python.test_win32crypt.line98.comment readCertFile has Python read the file and load it as a blob.
+        # 048291.python.test_win32crypt.line99.comment win32crypt can read the file directly - let's check that works too
+        # 048292.python.test_win32crypt.line100.comment (ideally we'd compare the 2 approaches etc, but the objects don't support
+        # 048293.python.test_win32crypt.line101.comment equality checks etc, so this will do for now.)
+        # 048294.python.test_win32crypt.line102.comment No need to do this for different filenames!
         filename = "win32crypt_testcert_base64.cer"
         cert = win32crypt.CryptQueryObject(
             CERT_QUERY_OBJECT_FILE,
@@ -120,7 +120,7 @@ class TestCerts(unittest.TestCase):
             context = store.CertAddCertificateContextToStore(
                 cert["Context"], CERT_STORE_ADD_REPLACE_EXISTING
             )
-            # Getting 2 certs here - main thing is we get 1!
+            # 048295.python.test_win32crypt.line123.comment Getting 2 certs here - main thing is we get 1!
             self.assertTrue(len(store.CertEnumCertificatesInStore()))
             self.assertFalse(len(store.CertEnumCTLsInStore()))
             context.CertFreeCertificateContext()

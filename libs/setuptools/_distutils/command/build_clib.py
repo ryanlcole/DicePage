@@ -4,14 +4,14 @@ Implements the Distutils 'build_clib' command, to build a C/C++ library
 that is included in the module distribution and needed by an extension
 module."""
 
-# XXX this module has *lots* of code ripped-off quite transparently from
-# build_ext.py -- not surprisingly really, as the work required to build
-# a static library from a collection of C source files is not really all
-# that different from what's required to build a shared object file from
-# a collection of C source files.  Nevertheless, I haven't done the
-# necessary refactoring to account for the overlap in code between the
-# two modules, mainly because a number of subtle details changed in the
-# cut 'n paste.  Sigh.
+# 039425.python.build_clib.line7.comment XXX this module has *lots* of code ripped-off quite transparently from
+# 039426.python.build_clib.line8.comment build_ext.py -- not surprisingly really, as the work required to build
+# 039427.python.build_clib.line9.comment a static library from a collection of C source files is not really all
+# 039428.python.build_clib.line10.comment that different from what's required to build a shared object file from
+# 039429.python.build_clib.line11.comment a collection of C source files.  Nevertheless, I haven't done the
+# 039430.python.build_clib.line12.comment necessary refactoring to account for the overlap in code between the
+# 039431.python.build_clib.line13.comment two modules, mainly because a number of subtle details changed in the
+# 039432.python.build_clib.line14.comment cut 'n paste.  Sigh.
 from __future__ import annotations
 
 import os
@@ -46,10 +46,10 @@ class build_clib(Command):
         self.build_clib = None
         self.build_temp = None
 
-        # List of libraries to build
+        # 039433.python.build_clib.line49.comment List of libraries to build
         self.libraries = None
 
-        # Compilation options for all libraries
+        # 039434.python.build_clib.line52.comment Compilation options for all libraries
         self.include_dirs = None
         self.define = None
         self.undef = None
@@ -58,11 +58,11 @@ class build_clib(Command):
         self.compiler = None
 
     def finalize_options(self) -> None:
-        # This might be confusing: both build-clib and build-temp default
-        # to build-temp as defined by the "build" command.  This is because
-        # I think that C libraries are really just temporary build
-        # by-products, at least from the point of view of building Python
-        # extensions -- but I want to keep my options open.
+        # 039435.python.build_clib.line61.comment This might be confusing: both build-clib and build-temp default
+        # 039436.python.build_clib.line62.comment to build-temp as defined by the "build" command.  This is because
+        # 039437.python.build_clib.line63.comment I think that C libraries are really just temporary build
+        # 039438.python.build_clib.line64.comment by-products, at least from the point of view of building Python
+        # 039439.python.build_clib.line65.comment extensions -- but I want to keep my options open.
         self.set_undefined_options(
             'build',
             ('build_temp', 'build_clib'),
@@ -81,8 +81,8 @@ class build_clib(Command):
         if isinstance(self.include_dirs, str):
             self.include_dirs = self.include_dirs.split(os.pathsep)
 
-        # XXX same as for build_ext -- what about 'self.define' and
-        # 'self.undef' ?
+        # 039440.python.build_clib.line84.comment XXX same as for build_ext -- what about 'self.define' and
+        # 039441.python.build_clib.line85.comment 'self.undef' ?
 
     def run(self) -> None:
         if not self.libraries:
@@ -96,7 +96,7 @@ class build_clib(Command):
         if self.include_dirs is not None:
             self.compiler.set_include_dirs(self.include_dirs)
         if self.define is not None:
-            # 'define' option is a list of (name,value) tuples
+            # 039442.python.build_clib.line99.comment 'define' option is a list of (name,value) tuples
             for name, value in self.define:
                 self.compiler.define_macro(name, value)
         if self.undef is not None:
@@ -142,8 +142,8 @@ class build_clib(Command):
                 )
 
     def get_library_names(self):
-        # Assume the library list is valid -- 'check_library_list()' is
-        # called from 'finalize_options()', so it should be!
+        # 039443.python.build_clib.line145.comment Assume the library list is valid -- 'check_library_list()' is
+        # 039444.python.build_clib.line146.comment called from 'finalize_options()', so it should be!
         if not self.libraries:
             return None
 
@@ -180,9 +180,9 @@ class build_clib(Command):
 
             log.info("building '%s' library", lib_name)
 
-            # First, compile the source code to object files in the library
-            # directory.  (This should probably change to putting object
-            # files in a temporary build directory.)
+            # 039445.python.build_clib.line183.comment First, compile the source code to object files in the library
+            # 039446.python.build_clib.line184.comment directory.  (This should probably change to putting object
+            # 039447.python.build_clib.line185.comment files in a temporary build directory.)
             macros = build_info.get('macros')
             include_dirs = build_info.get('include_dirs')
             objects = self.compiler.compile(
@@ -193,9 +193,9 @@ class build_clib(Command):
                 debug=self.debug,
             )
 
-            # Now "link" the object files together into a static library.
-            # (On Unix at least, this isn't really linking -- it just
-            # builds an archive.  Whatever.)
+            # 039448.python.build_clib.line196.comment Now "link" the object files together into a static library.
+            # 039449.python.build_clib.line197.comment (On Unix at least, this isn't really linking -- it just
+            # 039450.python.build_clib.line198.comment builds an archive.  Whatever.)
             self.compiler.create_static_lib(
                 objects, lib_name, output_dir=self.build_clib, debug=self.debug
             )

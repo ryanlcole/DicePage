@@ -1,7 +1,7 @@
-# postinstall script for pywin32
-#
-# copies pywintypesXX.dll and pythoncomXX.dll into the system directory,
-# and creates a pth file
+# 048002.python.pywin32_postinstall.line1.comment postinstall script for pywin32
+# 048003.python.pywin32_postinstall.line2.comment
+# 048004.python.pywin32_postinstall.line3.comment copies pywintypesXX.dll and pythoncomXX.dll into the system directory,
+# 048005.python.pywin32_postinstall.line4.comment and creates a pth file
 import argparse
 import glob
 import os
@@ -45,17 +45,17 @@ sys.stderr = Tee(sys.stderr)
 sys.stdout = Tee(sys.stdout)
 
 com_modules = [
-    # module_name,                      class_names
+    # 048007.python.pywin32_postinstall.line48.comment module_name,                      class_names
     ("win32com.servers.interp", "Interpreter"),
     ("win32com.servers.dictionary", "DictionaryPolicy"),
     ("win32com.axscript.client.pyscript", "PyScript"),
 ]
 
-# Is this a 'silent' install - ie, avoid all dialogs.
-# Different than 'verbose'
+# 048008.python.pywin32_postinstall.line54.comment Is this a 'silent' install - ie, avoid all dialogs.
+# 048009.python.pywin32_postinstall.line55.comment Different than 'verbose'
 silent = 0
 
-# Verbosity of output messages.
+# 048010.python.pywin32_postinstall.line58.comment Verbosity of output messages.
 verbose = 1
 
 root_key_name = "Software\\Python\\PythonCore\\" + sys.winver
@@ -68,13 +68,13 @@ def get_root_hkey():
         )
         return winreg.HKEY_LOCAL_MACHINE
     except OSError:
-        # Either not exist, or no permissions to create subkey means
-        # must be HKCU
+        # 048011.python.pywin32_postinstall.line71.comment Either not exist, or no permissions to create subkey means
+        # 048012.python.pywin32_postinstall.line72.comment must be HKCU
         return winreg.HKEY_CURRENT_USER
 
 
-# Create a function with the same signature as create_shortcut
-# previously provided by bdist_wininst
+# 048013.python.pywin32_postinstall.line76.comment Create a function with the same signature as create_shortcut
+# 048014.python.pywin32_postinstall.line77.comment previously provided by bdist_wininst
 def create_shortcut(
     path, description, filename, arguments="", workdir="", iconpath="", iconindex=0
 ):
@@ -95,12 +95,12 @@ def create_shortcut(
         ilink.SetWorkingDirectory(workdir)
     if iconpath or iconindex:
         ilink.SetIconLocation(iconpath, iconindex)
-    # now save it.
+    # 048015.python.pywin32_postinstall.line98.comment now save it.
     ipf = ilink.QueryInterface(pythoncom.IID_IPersistFile)
     ipf.Save(filename, 0)
 
 
-# Support the same list of "path names" as bdist_wininst used to
+# 048016.python.pywin32_postinstall.line103.comment Support the same list of "path names" as bdist_wininst used to
 def get_special_folder_path(path_name):
     from win32com.shell import shell, shellcon
 
@@ -128,7 +128,7 @@ def CopyTo(desc, src, dest):
             if details.winerror == 5:  # access denied - user not admin.
                 raise
             if silent:
-                # Running silent mode - just re-raise the error.
+                # 048018.python.pywin32_postinstall.line131.comment Running silent mode - just re-raise the error.
                 raise
             full_desc = (
                 f"Error {desc}\n\n"
@@ -142,17 +142,17 @@ def CopyTo(desc, src, dest):
                 raise
             elif rc == win32con.IDIGNORE:
                 return
-            # else retry - around we go again.
+            # 048019.python.pywin32_postinstall.line145.comment else retry - around we go again.
 
 
-# We need to import win32api to determine the Windows system directory,
-# so we can copy our system files there - but importing win32api will
-# load the pywintypes.dll already in the system directory preventing us
-# from updating them!
-# So, we pull the same trick pywintypes.py does, but it loads from
-# our pywintypes_system32 directory.
+# 048020.python.pywin32_postinstall.line148.comment We need to import win32api to determine the Windows system directory,
+# 048021.python.pywin32_postinstall.line149.comment so we can copy our system files there - but importing win32api will
+# 048022.python.pywin32_postinstall.line150.comment load the pywintypes.dll already in the system directory preventing us
+# 048023.python.pywin32_postinstall.line151.comment from updating them!
+# 048024.python.pywin32_postinstall.line152.comment So, we pull the same trick pywintypes.py does, but it loads from
+# 048025.python.pywin32_postinstall.line153.comment our pywintypes_system32 directory.
 def LoadSystemModule(lib_dir, modname):
-    # See if this is a debug build.
+    # 048026.python.pywin32_postinstall.line155.comment See if this is a debug build.
     import importlib.machinery
     import importlib.util
 
@@ -231,10 +231,10 @@ def RegisterHelpFile(register=True, lib_dir=None):
     if lib_dir is None:
         lib_dir = sysconfig.get_paths()["platlib"]
     if register:
-        # Register the .chm help file.
+        # 048028.python.pywin32_postinstall.line234.comment Register the .chm help file.
         chm_file = os.path.join(lib_dir, "PyWin32.chm")
         if os.path.isfile(chm_file):
-            # This isn't recursive, so if 'Help' doesn't exist, we croak
+            # 048029.python.pywin32_postinstall.line237.comment This isn't recursive, so if 'Help' doesn't exist, we croak
             SetPyKeyVal("Help", None, None)
             SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
             return chm_file
@@ -256,7 +256,7 @@ def RegisterPythonwin(register=True, lib_dir=None):
     if lib_dir is None:
         lib_dir = sysconfig.get_paths()["platlib"]
     classes_root = get_root_hkey()
-    ## Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build
+    # 048030.python.pywin32_postinstall.line259.comment # Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build
     pythonwin_exe = os.path.join(lib_dir, "Pythonwin", "Pythonwin.exe")
     pythonwin_edit_command = pythonwin_exe + ' -edit "%1"'
 
@@ -281,8 +281,8 @@ def RegisterPythonwin(register=True, lib_dir=None):
     try:
         if register:
             for key, sub_key, val in keys_vals:
-                ## Since winreg only uses the character Api functions, this can fail if Python
-                ##  is installed to a path containing non-ascii characters
+                # 048031.python.pywin32_postinstall.line284.comment # Since winreg only uses the character Api functions, this can fail if Python
+                # 048032.python.pywin32_postinstall.line285.comment #  is installed to a path containing non-ascii characters
                 hkey = winreg.CreateKey(classes_root, key)
                 if sub_key:
                     hkey = winreg.CreateKey(hkey, sub_key)
@@ -301,7 +301,7 @@ def RegisterPythonwin(register=True, lib_dir=None):
                     if winerror != 2:  # file not found
                         raise
     finally:
-        # tell windows about the change
+        # 048034.python.pywin32_postinstall.line304.comment tell windows about the change
         from win32com.shell import shell, shellcon
 
         shell.SHChangeNotify(
@@ -314,10 +314,10 @@ def get_shortcuts_folder():
         try:
             fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
         except OSError:
-            # No CSIDL_COMMON_PROGRAMS on this platform
+            # 048035.python.pywin32_postinstall.line317.comment No CSIDL_COMMON_PROGRAMS on this platform
             fldr = get_special_folder_path("CSIDL_PROGRAMS")
     else:
-        # non-admin install - always goes in this user's start menu.
+        # 048036.python.pywin32_postinstall.line320.comment non-admin install - always goes in this user's start menu.
         fldr = get_special_folder_path("CSIDL_PROGRAMS")
 
     try:
@@ -332,8 +332,8 @@ def get_shortcuts_folder():
     return os.path.join(fldr, install_group)
 
 
-# Get the system directory, which may be the Wow64 directory if we are a 32bit
-# python on a 64bit OS.
+# 048037.python.pywin32_postinstall.line335.comment Get the system directory, which may be the Wow64 directory if we are a 32bit
+# 048038.python.pywin32_postinstall.line336.comment python on a 64bit OS.
 def get_system_dir():
     import win32api  # we assume this exists.
 
@@ -353,9 +353,9 @@ def get_system_dir():
 
 
 def fixup_dbi():
-    # We used to have a dbi.pyd with our .pyd files, but now have a .py file.
-    # If the user didn't uninstall, they will find the .pyd which will cause
-    # problems - so handle that.
+    # 048040.python.pywin32_postinstall.line356.comment We used to have a dbi.pyd with our .pyd files, but now have a .py file.
+    # 048041.python.pywin32_postinstall.line357.comment If the user didn't uninstall, they will find the .pyd which will cause
+    # 048042.python.pywin32_postinstall.line358.comment problems - so handle that.
     import win32api
     import win32con
 
@@ -381,18 +381,18 @@ def fixup_dbi():
 def install(lib_dir):
     import traceback
 
-    # The .pth file is now installed as a regular file.
-    # Create the .pth file in the site-packages dir, and use only relative paths
-    # We used to write a .pth directly to sys.prefix - clobber it.
+    # 048043.python.pywin32_postinstall.line384.comment The .pth file is now installed as a regular file.
+    # 048044.python.pywin32_postinstall.line385.comment Create the .pth file in the site-packages dir, and use only relative paths
+    # 048045.python.pywin32_postinstall.line386.comment We used to write a .pth directly to sys.prefix - clobber it.
     if os.path.isfile(os.path.join(sys.prefix, "pywin32.pth")):
         os.unlink(os.path.join(sys.prefix, "pywin32.pth"))
-    # The .pth may be new and therefore not loaded in this session.
-    # Setup the paths just in case.
+    # 048046.python.pywin32_postinstall.line389.comment The .pth may be new and therefore not loaded in this session.
+    # 048047.python.pywin32_postinstall.line390.comment Setup the paths just in case.
     for name in "win32 win32\\lib Pythonwin".split():
         sys.path.append(os.path.join(lib_dir, name))
-    # It is possible people with old versions installed with still have
-    # pywintypes and pythoncom registered.  We no longer need this, and stale
-    # entries hurt us.
+    # 048048.python.pywin32_postinstall.line393.comment It is possible people with old versions installed with still have
+    # 048049.python.pywin32_postinstall.line394.comment pywintypes and pythoncom registered.  We no longer need this, and stale
+    # 048050.python.pywin32_postinstall.line395.comment entries hurt us.
     for name in "pythoncom pywintypes".split():
         keyname = "Software\\Python\\PythonCore\\" + sys.winver + "\\Modules\\" + name
         for root in winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER:
@@ -408,14 +408,14 @@ def install(lib_dir):
     LoadSystemModule(lib_dir, "pythoncom")
     import win32api
 
-    # and now we can get the system directory:
+    # 048051.python.pywin32_postinstall.line411.comment and now we can get the system directory:
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
     if not files:
         raise RuntimeError("No system files to copy!!")
-    # Try the system32 directory first - if that fails due to "access denied",
-    # it implies a non-admin user, and we use sys.prefix
+    # 048052.python.pywin32_postinstall.line415.comment Try the system32 directory first - if that fails due to "access denied",
+    # 048053.python.pywin32_postinstall.line416.comment it implies a non-admin user, and we use sys.prefix
     for dest_dir in [get_system_dir(), sys.prefix]:
-        # and copy some files over there
+        # 048054.python.pywin32_postinstall.line418.comment and copy some files over there
         worked = 0
         try:
             for fname in files:
@@ -425,8 +425,8 @@ def install(lib_dir):
                 if verbose:
                     print(f"Copied {base} to {dst}")
                 worked = 1
-                # Nuke any other versions that may exist - having
-                # duplicates causes major headaches.
+                # 048055.python.pywin32_postinstall.line428.comment Nuke any other versions that may exist - having
+                # 048056.python.pywin32_postinstall.line429.comment duplicates causes major headaches.
                 bad_dest_dirs = [
                     os.path.join(sys.prefix, "Library\\bin"),
                     os.path.join(sys.prefix, "Lib\\site-packages\\win32"),
@@ -436,15 +436,15 @@ def install(lib_dir):
                 for bad_dest_dir in bad_dest_dirs:
                     bad_fname = os.path.join(bad_dest_dir, base)
                     if os.path.exists(bad_fname):
-                        # let exceptions go here - delete must succeed
+                        # 048057.python.pywin32_postinstall.line439.comment let exceptions go here - delete must succeed
                         os.unlink(bad_fname)
             if worked:
                 break
         except win32api.error as details:
             if details.winerror == 5:
-                # access denied - user not admin - try sys.prefix dir,
-                # but first check that a version doesn't already exist
-                # in that place - otherwise that one will still get used!
+                # 048058.python.pywin32_postinstall.line445.comment access denied - user not admin - try sys.prefix dir,
+                # 048059.python.pywin32_postinstall.line446.comment but first check that a version doesn't already exist
+                # 048060.python.pywin32_postinstall.line447.comment in that place - otherwise that one will still get used!
                 if os.path.exists(dst):
                     msg = (
                         "The file '%s' exists, but can not be replaced "
@@ -460,7 +460,7 @@ def install(lib_dir):
             "You don't have enough permissions to install the system files"
         )
 
-    # Register our demo COM objects.
+    # 048061.python.pywin32_postinstall.line463.comment Register our demo COM objects.
     try:
         try:
             RegisterCOMObjects()
@@ -473,8 +473,8 @@ def install(lib_dir):
         print("FAILED to register the Python COM objects")
         traceback.print_exc()
 
-    # There may be no main Python key in HKCU if, eg, an admin installed
-    # python itself.
+    # 048063.python.pywin32_postinstall.line476.comment There may be no main Python key in HKCU if, eg, an admin installed
+    # 048064.python.pywin32_postinstall.line477.comment python itself.
     winreg.CreateKey(get_root_hkey(), root_key_name)
 
     chm_file = None
@@ -487,10 +487,10 @@ def install(lib_dir):
         if verbose:
             print("Registered help file")
 
-    # misc other fixups.
+    # 048065.python.pywin32_postinstall.line490.comment misc other fixups.
     fixup_dbi()
 
-    # Register Pythonwin in context menu
+    # 048066.python.pywin32_postinstall.line493.comment Register Pythonwin in context menu
     try:
         RegisterPythonwin(True, lib_dir)
     except Exception:
@@ -500,7 +500,7 @@ def install(lib_dir):
         if verbose:
             print("Pythonwin has been registered in context menu")
 
-    # Create the win32com\gen_py directory.
+    # 048067.python.pywin32_postinstall.line503.comment Create the win32com\gen_py directory.
     make_dir = os.path.join(lib_dir, "win32com", "gen_py")
     if not os.path.isdir(make_dir):
         if verbose:
@@ -508,12 +508,12 @@ def install(lib_dir):
         os.mkdir(make_dir)
 
     try:
-        # create shortcuts
-        # CSIDL_COMMON_PROGRAMS only available works on NT/2000/XP, and
-        # will fail there if the user has no admin rights.
+        # 048068.python.pywin32_postinstall.line511.comment create shortcuts
+        # 048069.python.pywin32_postinstall.line512.comment CSIDL_COMMON_PROGRAMS only available works on NT/2000/XP, and
+        # 048070.python.pywin32_postinstall.line513.comment will fail there if the user has no admin rights.
         fldr = get_shortcuts_folder()
-        # If the group doesn't exist, then we don't make shortcuts - its
-        # possible that this isn't a "normal" install.
+        # 048071.python.pywin32_postinstall.line515.comment If the group doesn't exist, then we don't make shortcuts - its
+        # 048072.python.pywin32_postinstall.line516.comment possible that this isn't a "normal" install.
         if os.path.isdir(fldr):
             dst = os.path.join(fldr, "PythonWin.lnk")
             create_shortcut(
@@ -525,7 +525,7 @@ def install(lib_dir):
             )
             if verbose:
                 print("Shortcut for Pythonwin created")
-            # And the docs.
+            # 048073.python.pywin32_postinstall.line528.comment And the docs.
             if chm_file:
                 dst = os.path.join(fldr, "Python for Windows Documentation.lnk")
                 doc = "Documentation for the PyWin32 extensions"
@@ -538,19 +538,19 @@ def install(lib_dir):
     except Exception as details:
         print(details)
 
-    # importing win32com.client ensures the gen_py dir created - not strictly
-    # necessary to do now, but this makes the installation "complete"
+    # 048074.python.pywin32_postinstall.line541.comment importing win32com.client ensures the gen_py dir created - not strictly
+    # 048075.python.pywin32_postinstall.line542.comment necessary to do now, but this makes the installation "complete"
     try:
         import win32com.client  # noqa
     except ImportError:
-        # Don't let this error sound fatal
+        # 048077.python.pywin32_postinstall.line546.comment Don't let this error sound fatal
         pass
     print("The pywin32 extensions were successfully installed.")
 
 
 def uninstall(lib_dir):
-    # First ensure our system modules are loaded from pywin32_system, so
-    # we can remove the ones we copied...
+    # 048078.python.pywin32_postinstall.line552.comment First ensure our system modules are loaded from pywin32_system, so
+    # 048079.python.pywin32_postinstall.line553.comment we can remove the ones we copied...
     LoadSystemModule(lib_dir, "pywintypes")
     LoadSystemModule(lib_dir, "pythoncom")
 
@@ -576,19 +576,19 @@ def uninstall(lib_dir):
             print("Unregistered Pythonwin")
 
     try:
-        # remove gen_py directory.
+        # 048080.python.pywin32_postinstall.line579.comment remove gen_py directory.
         gen_dir = os.path.join(lib_dir, "win32com", "gen_py")
         if os.path.isdir(gen_dir):
             shutil.rmtree(gen_dir)
             if verbose:
                 print(f"Removed directory {gen_dir}")
 
-        # Remove pythonwin compiled "config" files.
+        # 048081.python.pywin32_postinstall.line586.comment Remove pythonwin compiled "config" files.
         pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
         for fname in glob.glob(os.path.join(pywin_dir, "*.cfc")):
             os.remove(fname)
 
-        # The dbi.pyd.old files we may have created.
+        # 048082.python.pywin32_postinstall.line591.comment The dbi.pyd.old files we may have created.
         try:
             os.remove(os.path.join(lib_dir, "win32", "dbi.pyd.old"))
         except OSError:
@@ -611,13 +611,13 @@ def uninstall(lib_dir):
                     print(f"Removed {link}")
     except Exception as why:
         print(f"Failed to remove shortcuts: {why}")
-    # Now remove the system32 files.
+    # 048083.python.pywin32_postinstall.line614.comment Now remove the system32 files.
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
-    # Try the system32 directory first - if that fails due to "access denied",
-    # it implies a non-admin user, and we use sys.prefix
+    # 048084.python.pywin32_postinstall.line616.comment Try the system32 directory first - if that fails due to "access denied",
+    # 048085.python.pywin32_postinstall.line617.comment it implies a non-admin user, and we use sys.prefix
     try:
         for dest_dir in [get_system_dir(), sys.prefix]:
-            # and copy some files over there
+            # 048086.python.pywin32_postinstall.line620.comment and copy some files over there
             worked = 0
             for fname in files:
                 base = os.path.basename(fname)
@@ -636,10 +636,10 @@ def uninstall(lib_dir):
         print(f"FAILED to remove system files: {why}")
 
 
-# NOTE: This used to be run from inside the bdist_wininst created binary un/installer.
-# From inside the binary installer this script HAD to NOT
-# call sys.exit() or raise SystemExit, otherwise the installer would also terminate!
-# Out of principle, we're still not using system exits.
+# 048087.python.pywin32_postinstall.line639.comment NOTE: This used to be run from inside the bdist_wininst created binary un/installer.
+# 048088.python.pywin32_postinstall.line640.comment From inside the binary installer this script HAD to NOT
+# 048089.python.pywin32_postinstall.line641.comment call sys.exit() or raise SystemExit, otherwise the installer would also terminate!
+# 048090.python.pywin32_postinstall.line642.comment Out of principle, we're still not using system exits.
 
 
 def verify_destination(location: str) -> str:
@@ -716,7 +716,7 @@ def main():
         try:
             os.waitpid(args.wait, 0)
         except OSError:
-            # child already dead
+            # 048091.python.pywin32_postinstall.line719.comment child already dead
             pass
 
     silent = args.silent

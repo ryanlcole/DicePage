@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025447.python.test_osx.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025448.python.test_osx.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025449.python.test_osx.line5.comment found in the LICENSE file.
 
 """macOS specific tests."""
 
@@ -76,12 +76,12 @@ class TestProcess(PsutilTestCase):
 @pytest.mark.skipif(not MACOS, reason="MACOS only")
 class TestSystemAPIs(PsutilTestCase):
 
-    # --- disk
+    # 025450.python.test_osx.line79.comment --- disk
 
     @retry_on_failure()
     def test_disks(self):
-        # test psutil.disk_usage() and psutil.disk_partitions()
-        # against "df -a"
+        # 025451.python.test_osx.line83.comment test psutil.disk_usage() and psutil.disk_partitions()
+        # 025452.python.test_osx.line84.comment against "df -a"
         def df(path):
             out = sh(f'df -k "{path}"').strip()
             lines = out.split('\n')
@@ -103,7 +103,7 @@ class TestSystemAPIs(PsutilTestCase):
             assert abs(usage.free - free) < TOLERANCE_DISK_USAGE
             assert abs(usage.used - used) < TOLERANCE_DISK_USAGE
 
-    # --- cpu
+    # 025453.python.test_osx.line106.comment --- cpu
 
     def test_cpu_count_logical(self):
         num = sysctl("sysctl hw.logicalcpu")
@@ -113,7 +113,7 @@ class TestSystemAPIs(PsutilTestCase):
         num = sysctl("sysctl hw.physicalcpu")
         assert num == psutil.cpu_count(logical=False)
 
-    # TODO: remove this once 1892 is fixed
+    # 025454.python.test_osx.line116.comment TODO: remove this once 1892 is fixed
     @pytest.mark.skipif(MACOS and AARCH64, reason="skipped due to #1892")
     def test_cpu_freq(self):
         freq = psutil.cpu_freq()
@@ -121,7 +121,7 @@ class TestSystemAPIs(PsutilTestCase):
         assert freq.min * 1000 * 1000 == sysctl("sysctl hw.cpufrequency_min")
         assert freq.max * 1000 * 1000 == sysctl("sysctl hw.cpufrequency_max")
 
-    # --- virtual mem
+    # 025455.python.test_osx.line124.comment --- virtual mem
 
     def test_vmem_total(self):
         sysctl_hwphymem = sysctl('sysctl hw.memsize')
@@ -159,7 +159,7 @@ class TestSystemAPIs(PsutilTestCase):
         psutil_val = psutil.virtual_memory().wired
         assert abs(psutil_val - vmstat_val) < TOLERANCE_SYS_MEM
 
-    # --- swap mem
+    # 025456.python.test_osx.line162.comment --- swap mem
 
     @retry_on_failure()
     def test_swapmem_sin(self):
@@ -173,7 +173,7 @@ class TestSystemAPIs(PsutilTestCase):
         psutil_val = psutil.swap_memory().sout
         assert abs(psutil_val - vmstat_val) < TOLERANCE_SYS_MEM
 
-    # --- network
+    # 025457.python.test_osx.line176.comment --- network
 
     def test_net_if_stats(self):
         for name, stats in psutil.net_if_stats().items():
@@ -185,7 +185,7 @@ class TestSystemAPIs(PsutilTestCase):
                 assert stats.isup == ('RUNNING' in out), out
                 assert stats.mtu == int(re.findall(r'mtu (\d+)', out)[0])
 
-    # --- sensors_battery
+    # 025458.python.test_osx.line188.comment --- sensors_battery
 
     @pytest.mark.skipif(not HAS_BATTERY, reason="no battery")
     def test_sensors_battery(self):
@@ -197,7 +197,7 @@ class TestSystemAPIs(PsutilTestCase):
         assert psutil_result.power_plugged == power_plugged
         assert psutil_result.percent == int(percent)
 
-    # --- others
+    # 025459.python.test_osx.line200.comment --- others
 
     def test_boot_time(self):
         out = sh('sysctl kern.boottime')

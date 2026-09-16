@@ -66,7 +66,7 @@ def split_sections(
         else:
             content.append(line)
 
-    # wrap up last segment
+    # 043857.python.metadata.line69.comment wrap up last segment
     yield section, content
 
 
@@ -151,7 +151,7 @@ def pkginfo_to_metadata(egg_info_path: str, pkginfo_path: str) -> Message:
         pkg_info = Parser().parse(headers)
 
     pkg_info.replace_header("Metadata-Version", "2.1")
-    # Those will be regenerated from `requires.txt`.
+    # 043859.python.metadata.line154.comment Those will be regenerated from `requires.txt`.
     del pkg_info["Provides-Extra"]
     del pkg_info["Requires-Dist"]
     requires_path = os.path.join(egg_info_path, "requires.txt")
@@ -169,8 +169,8 @@ def pkginfo_to_metadata(egg_info_path: str, pkginfo_path: str) -> Message:
     if description:
         description_lines = pkg_info["Description"].splitlines()
         dedented_description = "\n".join(
-            # if the first line of long_description is blank,
-            # the first line here will be indented.
+            # 043860.python.metadata.line172.comment if the first line of long_description is blank,
+            # 043861.python.metadata.line173.comment the first line here will be indented.
             (
                 description_lines[0].lstrip(),
                 textwrap.dedent("\n".join(description_lines[1:])),

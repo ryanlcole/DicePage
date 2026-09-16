@@ -27,7 +27,7 @@ def wrap(ob, iid=None, usePolicy=None, useDispatcher=None):
     else:
         ob = useDispatcher(usePolicy, ob)
 
-    # get a PyIDispatch, which interfaces to PyGDispatch
+    # 049800.python.util.line30.comment get a PyIDispatch, which interfaces to PyGDispatch
     ob = pythoncom.WrapObject(ob)
     if iid is not None:
         ob = ob.QueryInterface(iid)  # Ask the PyIDispatch if it supports it?
@@ -41,7 +41,7 @@ def unwrap(ob):
     the gateway.
     """
     ob = pythoncom.UnwrapObject(ob)
-    # see if the object is a dispatcher
+    # 049802.python.util.line44.comment see if the object is a dispatcher
     if hasattr(ob, "policy"):
         ob = ob.policy
     return ob._obj_
@@ -138,15 +138,15 @@ class Collection:
             data = []
         self.data = data
 
-        # disable Add/Remove if read-only. note that we adjust _public_methods_
-        # on this instance only.
+        # 049803.python.util.line141.comment disable Add/Remove if read-only. note that we adjust _public_methods_
+        # 049804.python.util.line142.comment on this instance only.
         if readOnly:
             self._public_methods_ = ["Item", "Count"]
 
-    # This method is also used as the "default" method.
-    # Thus "print(ob)" will cause this to be called with zero
-    # params.  Handle this slightly more elegantly here.
-    # Ideally the  policy should handle this.
+    # 049805.python.util.line146.comment This method is also used as the "default" method.
+    # 049806.python.util.line147.comment Thus "print(ob)" will cause this to be called with zero
+    # 049807.python.util.line148.comment params.  Handle this slightly more elegantly here.
+    # 049808.python.util.line149.comment Ideally the  policy should handle this.
     def Item(self, *args):
         if len(args) != 1:
             raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
@@ -221,7 +221,7 @@ class FileStream:
         return cbread, cbread
 
     def Seek(self, offset, origin):
-        # how convient that the 'origin' values are the same as the CRT :)
+        # 049810.python.util.line224.comment how convient that the 'origin' values are the same as the CRT :)
         self.file.seek(offset, origin)
         return self.file.tell()
 

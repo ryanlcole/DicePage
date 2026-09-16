@@ -1,5 +1,5 @@
-# dump_link.py - dumps information about shell shortcuts
-#
+# 051541.python.dump_link.line1.comment dump_link.py - dumps information about shell shortcuts
+# 051542.python.dump_link.line2.comment
 import glob
 import os
 import sys
@@ -27,7 +27,7 @@ def DumpLink(fname):
 
 
 def FavDumper(nothing, path, names):
-    # called by os.path.walk
+    # 051543.python.dump_link.line30.comment called by os.path.walk
     for name in names:
         print(name, end=" ")
         try:

@@ -1,7 +1,7 @@
 """Installation utilities for Python ISAPI filters and extensions."""
 
-# this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
-# Created July 2004, Mark Hammond.
+# 021265.python.install.line3.comment this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
+# 021266.python.install.line4.comment Created July 2004, Mark Hammond.
 from __future__ import annotations
 
 import importlib.machinery
@@ -31,8 +31,8 @@ _DEFAULT_SERVER_NAME = "Default Web Site"
 _DEFAULT_HEADERS = "X-Powered-By: Python"
 _DEFAULT_PROTECTION = _APP_POOLED
 
-# Default is for 'execute' only access - ie, only the extension
-# can be used.  This can be overridden via your install script.
+# 021267.python.install.line34.comment Default is for 'execute' only access - ie, only the extension
+# 021268.python.install.line35.comment can be used.  This can be overridden via your install script.
 _DEFAULT_ACCESS_EXECUTE = True
 _DEFAULT_ACCESS_READ = False
 _DEFAULT_ACCESS_WRITE = False
@@ -49,7 +49,7 @@ class FilterParameters:
     Description = None
     Path = None
     Server = None
-    # Params that control if/how AddExtensionFile is called.
+    # 021269.python.install.line52.comment Params that control if/how AddExtensionFile is called.
     AddExtensionFile = True
     AddExtensionFile_Enabled = True
     AddExtensionFile_GroupID = None  # defaults to Name
@@ -96,7 +96,7 @@ class ScriptMapParams:
     Module = None
     Flags = 5
     Verbs = ""
-    # Params that control if/how AddExtensionFile is called.
+    # 021277.python.install.line99.comment Params that control if/how AddExtensionFile is called.
     AddExtensionFile = True
     AddExtensionFile_Enabled = True
     AddExtensionFile_GroupID = None  # defaults to Name
@@ -109,7 +109,7 @@ class ScriptMapParams:
     def __str__(self):
         "Format this parameter suitable for IIS"
         items = [self.Extension, self.Module, self.Flags]
-        # IIS gets upset if there is a trailing verb comma, but no verbs
+        # 021280.python.install.line112.comment IIS gets upset if there is a trailing verb comma, but no verbs
         if self.Verbs:
             items.append(self.Verbs)
         items = [str(item) for item in items]
@@ -118,7 +118,7 @@ class ScriptMapParams:
 
 class ISAPIParameters:
     ServerName = _DEFAULT_SERVER_NAME
-    # Description = None
+    # 021281.python.install.line121.comment Description = None
     Filters: list[FilterParameters] = []
     VirtualDirs: list[VirtualDirParameters] = []
 
@@ -134,10 +134,10 @@ def log(level, what):
         print(what)
 
 
-# Convert an ADSI COM exception to the Win32 error code embedded in it.
+# 021283.python.install.line137.comment Convert an ADSI COM exception to the Win32 error code embedded in it.
 def _GetWin32ErrorCode(com_exc):
     hr = com_exc.hresult
-    # If we have more details in the 'excepinfo' struct, use it.
+    # 021284.python.install.line140.comment If we have more details in the 'excepinfo' struct, use it.
     if com_exc.excepinfo:
         hr = com_exc.excepinfo[-1]
     if winerror.HRESULT_FACILITY(hr) != winerror.FACILITY_WIN32:
@@ -181,7 +181,7 @@ def LocateWebServerPath(description):
     iis = GetObject(_IIS_OBJECT)
     description = description.lower().strip()
     for site in iis:
-        # Name is generally a number, but no need to assume that.
+        # 021285.python.install.line184.comment Name is generally a number, but no need to assume that.
         site_attributes = [
             getattr(site, attr, "").lower().strip()
             for attr in ("Name", "ServerComment")
@@ -222,14 +222,14 @@ def FindWebServer(options, server_desc):
     Legacy function to allow options to define a .server property
     to override the other parameter.  Use GetWebServer instead.
     """
-    # options takes precedence
+    # 021286.python.install.line225.comment options takes precedence
     server_desc = options.server or server_desc
-    # make sure server_desc is unicode (could be mbcs if passed in
-    #  sys.argv).
+    # 021287.python.install.line227.comment make sure server_desc is unicode (could be mbcs if passed in
+    # 021288.python.install.line228.comment sys.argv).
     if server_desc and not isinstance(server_desc, str):
         server_desc = server_desc.decode("mbcs")
 
-    # get the server (if server_desc is None, the default site is acquired)
+    # 021289.python.install.line232.comment get the server (if server_desc is None, the default site is acquired)
     server = GetWebServer(server_desc)
     return server.adsPath
 
@@ -263,14 +263,14 @@ def split_path(path):
 
 
 def _CreateDirectory(iis_dir, name, params):
-    # We used to go to lengths to keep an existing virtual directory
-    # in place.  However, in some cases the existing directories got
-    # into a bad state, and an update failed to get them working.
-    # So we nuke it first.  If this is a problem, we could consider adding
-    # a --keep-existing option.
+    # 021290.python.install.line266.comment We used to go to lengths to keep an existing virtual directory
+    # 021291.python.install.line267.comment in place.  However, in some cases the existing directories got
+    # 021292.python.install.line268.comment into a bad state, and an update failed to get them working.
+    # 021293.python.install.line269.comment So we nuke it first.  If this is a problem, we could consider adding
+    # 021294.python.install.line270.comment a --keep-existing option.
     try:
-        # Also seen the Class change to a generic IISObject - so nuke
-        # *any* existing object, regardless of Class
+        # 021295.python.install.line272.comment Also seen the Class change to a generic IISObject - so nuke
+        # 021296.python.install.line273.comment *any* existing object, regardless of Class
         assert name.strip("/"), "mustn't delete the root!"
         iis_dir.Delete("", name)
         log(2, f"Deleted old directory '{name}'")
@@ -283,18 +283,18 @@ def _CreateDirectory(iis_dir, name, params):
     friendly = params.Description or params.Name
     newDir.AppFriendlyName = friendly
 
-    # Note that the new directory won't be visible in the IIS UI
-    # unless the directory exists on the filesystem.
+    # 021297.python.install.line286.comment Note that the new directory won't be visible in the IIS UI
+    # 021298.python.install.line287.comment unless the directory exists on the filesystem.
     try:
         path = params.Path or iis_dir.Path
         newDir.Path = path
     except AttributeError:
-        # If params.Type is IIS_WEBDIRECTORY, an exception is thrown
+        # 021299.python.install.line292.comment If params.Type is IIS_WEBDIRECTORY, an exception is thrown
         pass
     newDir.AppCreate2(params.AppProtection)
-    # XXX - note that these Headers only work in IIS6 and earlier.  IIS7
-    # only supports them on the w3svc node - not even on individial sites,
-    # let alone individual extensions in the site!
+    # 021300.python.install.line295.comment XXX - note that these Headers only work in IIS6 and earlier.  IIS7
+    # 021301.python.install.line296.comment only supports them on the w3svc node - not even on individial sites,
+    # 021302.python.install.line297.comment let alone individual extensions in the site!
     if params.Headers:
         newDir.HttpCustomHeaders = params.Headers
 
@@ -339,16 +339,16 @@ def AssignScriptMaps(script_maps, target, update="replace"):
     update is a string indicating how to update the maps, one of  ('start',
     'end', or 'replace')
     """
-    # determine which function to use to assign script maps
+    # 021303.python.install.line342.comment determine which function to use to assign script maps
     script_map_func = "_AssignScriptMaps" + update.capitalize()
     try:
         script_map_func = eval(script_map_func)
     except NameError:
         msg = "Unknown ScriptMapUpdate option '%s'" % update
         raise ConfigurationError(msg)
-    # use the str method to format the script maps for IIS
+    # 021304.python.install.line349.comment use the str method to format the script maps for IIS
     script_maps = [str(s) for s in script_maps]
-    # call the correct function
+    # 021305.python.install.line351.comment call the correct function
     script_map_func(target, script_maps)
     target.SetInfo()
 
@@ -378,8 +378,8 @@ def CreateISAPIFilter(filterParams, options):
     try:
         filters = GetObject(server + "/Filters")
     except pythoncom.com_error as exc:
-        # Brand new sites don't have the '/Filters' collection - create it.
-        # Any errors other than 'not found' we shouldn't ignore.
+        # 021306.python.install.line381.comment Brand new sites don't have the '/Filters' collection - create it.
+        # 021307.python.install.line382.comment Any errors other than 'not found' we shouldn't ignore.
         if (
             winerror.HRESULT_FACILITY(exc.hresult) != winerror.FACILITY_WIN32
             or winerror.HRESULT_CODE(exc.hresult) != winerror.ERROR_PATH_NOT_FOUND
@@ -390,7 +390,7 @@ def CreateISAPIFilter(filterParams, options):
         filters.FilterLoadOrder = ""
         filters.SetInfo()
 
-    # As for VirtualDir, delete an existing one.
+    # 021308.python.install.line393.comment As for VirtualDir, delete an existing one.
     assert filterParams.Name.strip("/"), "mustn't delete the root!"
     try:
         filters.Delete(_IIS_FILTER, filterParams.Name)
@@ -420,8 +420,8 @@ def DeleteISAPIFilter(filterParams, options):
     try:
         filters = GetObject(ob_path)
     except pythoncom.com_error as details:
-        # failure to open the filters just means a totally clean IIS install
-        # (IIS5 at least has no 'Filters' key when freshly installed).
+        # 021309.python.install.line423.comment failure to open the filters just means a totally clean IIS install
+        # 021310.python.install.line424.comment (IIS5 at least has no 'Filters' key when freshly installed).
         log(2, f"ISAPI filter path '{ob_path}' did not exist.")
         return
     try:
@@ -433,7 +433,7 @@ def DeleteISAPIFilter(filterParams, options):
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
         log(2, f"ISAPI filter '{filterParams.Name}' did not exist.")
-    # Remove from the load order
+    # 021311.python.install.line436.comment Remove from the load order
     load_order = [b.strip() for b in filters.FilterLoadOrder.split(",") if b]
     if filterParams.Name in load_order:
         load_order.remove(filterParams.Name)
@@ -457,15 +457,15 @@ def _AddExtensionFile(module, def_groupid, def_desc, params, options):
         )
         log(2, f"Added extension file '{module}' ({desc})")
     except (pythoncom.com_error, AttributeError) as details:
-        # IIS5 always fails.  Probably should upgrade this to
-        # complain more loudly if IIS6 fails.
+        # 021312.python.install.line460.comment IIS5 always fails.  Probably should upgrade this to
+        # 021313.python.install.line461.comment complain more loudly if IIS6 fails.
         log(2, f"Failed to add extension file '{module}': {details}")
 
 
 def AddExtensionFiles(params, options):
     """Register the modules used by the filters/extensions as a trusted
     'extension module' - required by the default IIS6 security settings."""
-    # Add each module only once.
+    # 021314.python.install.line468.comment Add each module only once.
     added = {}
     for vd in params.VirtualDirs:
         for smp in vd.ScriptMaps:
@@ -507,9 +507,9 @@ def CheckLoaderModule(dll_name):
     template = os.path.join(this_dir, "PyISAPI_loader" + suffix + ".dll")
     if not os.path.isfile(template):
         raise ConfigurationError(f"Template loader '{template}' does not exist")
-    # We can't do a simple "is newer" check, as the DLL is specific to the
-    # Python version.  So we check the date-time and size are identical,
-    # and skip the copy in that case.
+    # 021316.python.install.line510.comment We can't do a simple "is newer" check, as the DLL is specific to the
+    # 021317.python.install.line511.comment Python version.  So we check the date-time and size are identical,
+    # 021318.python.install.line512.comment and skip the copy in that case.
     src_stat = os.stat(template)
     try:
         dest_stat = os.stat(dll_name)
@@ -560,13 +560,13 @@ def RemoveDirectory(params, options):
         log(2, "VirtualDirectory '%s' did not exist" % params.Name)
         directory = None
     if directory is not None:
-        # Be robust should IIS get upset about unloading.
+        # 021319.python.install.line563.comment Be robust should IIS get upset about unloading.
         try:
             directory.AppUnLoad()
         except:
             exc_val = sys.exc_info()[1]
             log(2, f"AppUnLoad() for {params.Name} failed: {exc_val}")
-        # Continue trying to delete it.
+        # 021320.python.install.line569.comment Continue trying to delete it.
         try:
             parent = GetObject(directory.Parent)
             parent.Delete(directory.Class, directory.Name)
@@ -598,8 +598,8 @@ def Uninstall(params, options):
 
         RemoveDirectory(vd, options)
         if vd.is_root():
-            # if this is installed to the root virtual directory, we can't delete it
-            #  so remove the script maps.
+            # 021321.python.install.line601.comment if this is installed to the root virtual directory, we can't delete it
+            # 021322.python.install.line602.comment so remove the script maps.
             RemoveScriptMaps(vd, options)
 
         _CallHook(vd, "PostRemove", options)
@@ -609,14 +609,14 @@ def Uninstall(params, options):
     _CallHook(params, "PostRemove", options)
 
 
-# Patch up any missing module names in the params, replacing them with
-# the DLL name that hosts this extension/filter.
+# 021323.python.install.line612.comment Patch up any missing module names in the params, replacing them with
+# 021324.python.install.line613.comment the DLL name that hosts this extension/filter.
 def _PatchParamsModule(params, dll_name, file_must_exist=True):
     if file_must_exist:
         if not os.path.isfile(dll_name):
             raise ConfigurationError(f"{dll_name} does not exist")
 
-    # Patch up all references to the DLL.
+    # 021325.python.install.line619.comment Patch up all references to the DLL.
     for f in params.Filters:
         if f.Path is None:
             f.Path = dll_name
@@ -627,25 +627,25 @@ def _PatchParamsModule(params, dll_name, file_must_exist=True):
 
 
 def GetLoaderModuleName(mod_name, check_module=None):
-    # find the name of the DLL hosting us.
-    # By default, this is "_{module_base_name}.dll"
+    # 021326.python.install.line630.comment find the name of the DLL hosting us.
+    # 021327.python.install.line631.comment By default, this is "_{module_base_name}.dll"
     if hasattr(sys, "frozen"):
-        # What to do?  The .dll knows its name, but this is likely to be
-        # executed via a .exe, which does not know.
+        # 021328.python.install.line633.comment What to do?  The .dll knows its name, but this is likely to be
+        # 021329.python.install.line634.comment executed via a .exe, which does not know.
         base, ext = os.path.splitext(mod_name)
         path, base = os.path.split(base)
-        # handle the common case of 'foo.exe'/'foow.exe'
+        # 021330.python.install.line637.comment handle the common case of 'foo.exe'/'foow.exe'
         if base.endswith("w"):
             base = base[:-1]
-        # For py2exe, we have '_foo.dll' as the standard pyisapi loader - but
-        # 'foo.dll' is what we use (it just delegates).
-        # So no leading '_' on the installed name.
+        # 021331.python.install.line640.comment For py2exe, we have '_foo.dll' as the standard pyisapi loader - but
+        # 021332.python.install.line641.comment 'foo.dll' is what we use (it just delegates).
+        # 021333.python.install.line642.comment So no leading '_' on the installed name.
         dll_name = os.path.abspath(os.path.join(path, base + ".dll"))
     else:
         base, ext = os.path.splitext(mod_name)
         path, base = os.path.split(base)
         dll_name = os.path.abspath(os.path.join(path, "_" + base + ".dll"))
-    # Check we actually have it.
+    # 021334.python.install.line648.comment Check we actually have it.
     if check_module is None:
         check_module = not hasattr(sys, "frozen")
     if check_module:
@@ -653,11 +653,11 @@ def GetLoaderModuleName(mod_name, check_module=None):
     return dll_name
 
 
-# Note the 'log' params to these 'builtin' args - old versions of pywin32
-# didn't log at all in this function (by intent; anyone calling this was
-# responsible). So existing code that calls this function with the old
-# signature (ie, without a 'log' param) still gets the same behaviour as
-# before...
+# 021335.python.install.line656.comment Note the 'log' params to these 'builtin' args - old versions of pywin32
+# 021336.python.install.line657.comment didn't log at all in this function (by intent; anyone calling this was
+# 021337.python.install.line658.comment responsible). So existing code that calls this function with the old
+# 021338.python.install.line659.comment signature (ie, without a 'log' param) still gets the same behaviour as
+# 021339.python.install.line660.comment before...
 
 
 def InstallModule(conf_module_name, params, options, log=lambda *args: None):
@@ -703,17 +703,17 @@ def MergeStandardOptions(options, params):
     pass
 
 
-# We support 2 ways of extending our command-line/install support.
-# * Many of the installation items allow you to specify "PreInstall",
-#   "PostInstall", "PreRemove" and "PostRemove" hooks
-#   All hooks are called with the 'params' object being operated on, and
-#   the 'optparser' options for this session (ie, the command-line options)
-#   PostInstall for VirtualDirectories and Filters both have an additional
-#   param - the ADSI object just created.
-# * You can pass your own option parser for us to use, and/or define a map
-#   with your own custom arg handlers.  It is a map of 'arg'->function.
-#   The function is called with (options, log_fn, arg).  The function's
-#   docstring is used in the usage output.
+# 021340.python.install.line706.comment We support 2 ways of extending our command-line/install support.
+# 021341.python.install.line707.comment * Many of the installation items allow you to specify "PreInstall",
+# 021342.python.install.line708.comment "PostInstall", "PreRemove" and "PostRemove" hooks
+# 021343.python.install.line709.comment All hooks are called with the 'params' object being operated on, and
+# 021344.python.install.line710.comment the 'optparser' options for this session (ie, the command-line options)
+# 021345.python.install.line711.comment PostInstall for VirtualDirectories and Filters both have an additional
+# 021346.python.install.line712.comment param - the ADSI object just created.
+# 021347.python.install.line713.comment * You can pass your own option parser for us to use, and/or define a map
+# 021348.python.install.line714.comment with your own custom arg handlers.  It is a map of 'arg'->function.
+# 021349.python.install.line715.comment The function is called with (options, log_fn, arg).  The function's
+# 021350.python.install.line716.comment docstring is used in the usage output.
 def HandleCommandLine(
     params,
     argv=None,
@@ -738,10 +738,10 @@ def HandleCommandLine(
     argv = argv or sys.argv
     if not conf_module_name:
         conf_module_name = sys.argv[0]
-        # convert to a long name so that if we were somehow registered with
-        # the "short" version but unregistered with the "long" version we
-        # still work (that will depend on exactly how the installer was
-        # started)
+        # 021351.python.install.line741.comment convert to a long name so that if we were somehow registered with
+        # 021352.python.install.line742.comment the "short" version but unregistered with the "long" version we
+        # 021353.python.install.line743.comment still work (that will depend on exactly how the installer was
+        # 021354.python.install.line744.comment started)
         try:
             conf_module_name = win32api.GetLongPathName(conf_module_name)
         except win32api.error as exc:
@@ -751,21 +751,21 @@ def HandleCommandLine(
             )
 
     if opt_parser is None:
-        # Build our own parser.
+        # 021355.python.install.line754.comment Build our own parser.
         parser = OptionParser(usage="")
     else:
-        # The caller is providing their own filter, presumably with their
-        # own options all setup.
+        # 021356.python.install.line757.comment The caller is providing their own filter, presumably with their
+        # 021357.python.install.line758.comment own options all setup.
         parser = opt_parser
 
-    # build a usage string if we don't have one.
+    # 021358.python.install.line761.comment build a usage string if we don't have one.
     if not parser.get_usage():
         all_handlers = standard_arguments.copy()
         all_handlers.update(custom_arg_handlers)
         parser.set_usage(build_usage(all_handlers))
 
-    # allow the user to use uninstall as a synonym for remove if it wasn't
-    #  defined by the custom arg handlers.
+    # 021359.python.install.line767.comment allow the user to use uninstall as a synonym for remove if it wasn't
+    # 021360.python.install.line768.comment defined by the custom arg handlers.
     all_handlers.setdefault("uninstall", all_handlers["remove"])
 
     parser.add_option(

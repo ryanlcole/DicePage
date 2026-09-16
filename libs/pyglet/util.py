@@ -27,8 +27,8 @@ def asstr(s: Optional[Union[str, Buffer]]) -> str:
     return s.decode("utf-8")  # type: ignore
 
 
-# Keep these outside of the function since we don't need to re-define
-# the function each time we make a call since no state is persisted.
+# 035915.python.util.line30.comment Keep these outside of the function since we don't need to re-define
+# 035916.python.util.line31.comment the function each time we make a call since no state is persisted.
 def _debug_print_real(arg: str) -> bool:
     print(arg)
     return True
@@ -83,7 +83,7 @@ def debug_print(pyglet_option_name: str = 'debug') -> Callable[[str], bool]:
     return _debug_print_dummy
 
 
-# Based on: https://stackoverflow.com/a/56225940
+# 035917.python.util.line86.comment Based on: https://stackoverflow.com/a/56225940
 def closest_power_of_two(x: int) -> int:
     if x <= 2:
         return 2

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 011145.python.tests.line1.comment -----------------------------------------------------------------------------
+# 011146.python.tests.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 011147.python.tests.line3.comment
+# 011148.python.tests.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 011149.python.tests.line5.comment or later) with exception for distributing the bootloader.
+# 011150.python.tests.line6.comment
+# 011151.python.tests.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 011152.python.tests.line8.comment
+# 011153.python.tests.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 011154.python.tests.line10.comment -----------------------------------------------------------------------------
 """
 Decorators for skipping PyInstaller tests when specific requirements are not met.
 """
@@ -20,13 +20,13 @@ import pytest
 
 from PyInstaller.utils.hooks import check_requirement
 
-# Wrap some pytest decorators to be consistent in tests.
+# 011155.python.tests.line23.comment Wrap some pytest decorators to be consistent in tests.
 parametrize = pytest.mark.parametrize
 skipif = pytest.mark.skipif
 xfail = pytest.mark.xfail
 skip = pytest.mark.skip
 
-# Use these decorators to use the `pyi_builder` fixture only in onedir or only in onefile mode instead of both.
+# 011156.python.tests.line29.comment Use these decorators to use the `pyi_builder` fixture only in onedir or only in onefile mode instead of both.
 onedir_only = pytest.mark.parametrize('pyi_builder', ['onedir'], indirect=True)
 onefile_only = pytest.mark.parametrize('pyi_builder', ['onefile'], indirect=True)
 
@@ -53,13 +53,13 @@ def importorskip(package: str):
 def importable(package: str):
     from importlib.util import find_spec
 
-    # The find_spec() function is used by the importlib machinery to locate a module to import. Using it finds the
-    # module but does not run it. Unfortunately, it does import parent modules to check submodules.
+    # 011157.python.tests.line56.comment The find_spec() function is used by the importlib machinery to locate a module to import. Using it finds the
+    # 011158.python.tests.line57.comment module but does not run it. Unfortunately, it does import parent modules to check submodules.
     if "." in package:
-        # Using subprocesses is slow. If the top level module doesn't exist then we can skip it.
+        # 011159.python.tests.line59.comment Using subprocesses is slow. If the top level module doesn't exist then we can skip it.
         if not importable(package.split(".")[0]):
             return False
-        # This is a submodule, import it in isolation.
+        # 011160.python.tests.line62.comment This is a submodule, import it in isolation.
         from subprocess import DEVNULL, run
         return run([sys.executable, "-c", "import " + package], stdout=DEVNULL, stderr=DEVNULL).returncode == 0
 
@@ -101,10 +101,10 @@ def gen_sourcefile(tmp_path, source, test_id=None):
     """
     testname = inspect.stack()[1][3]
     if test_id:
-        # For parametrized test append the test-id.
+        # 011161.python.tests.line104.comment For parametrized test append the test-id.
         testname = testname + '__' + test_id
 
-    # Periods are not allowed in Python module names.
+    # 011162.python.tests.line107.comment Periods are not allowed in Python module names.
     testname = testname.replace('.', '_')
     scriptfile = tmp_path / (testname + '.py')
     source = textwrap.dedent(source)

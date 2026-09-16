@@ -15,8 +15,8 @@ from pythoncom import _GetGatewayCount, _GetInterfaceCount
 
 
 def CheckClean():
-    # Ensure no lingering exceptions - Python should have zero outstanding
-    # COM objects
+    # 050500.python.util.line18.comment Ensure no lingering exceptions - Python should have zero outstanding
+    # 050501.python.util.line19.comment COM objects
     c = _GetInterfaceCount()
     if c:
         print("Warning - %d com interface objects still alive" % c)
@@ -29,22 +29,22 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
     if progids:
         if isinstance(progids, str):
             progids = [progids]
-        # we know the CLSIDs we need, but we might not be an admin user
-        # and otherwise unable to register them.  So as long as the progids
-        # exist and the DLL points at our version, assume it already is.
+        # 050502.python.util.line32.comment we know the CLSIDs we need, but we might not be an admin user
+        # 050503.python.util.line33.comment and otherwise unable to register them.  So as long as the progids
+        # 050504.python.util.line34.comment exist and the DLL points at our version, assume it already is.
         why_not = None
         for progid in progids:
             try:
                 clsid = pywintypes.IID(progid)
             except pythoncom.com_error:
-                # not registered.
+                # 050505.python.util.line40.comment not registered.
                 break
             try:
                 HKCR = winreg.HKEY_CLASSES_ROOT
                 hk = winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = winreg.QueryValue(hk, "InprocServer32")
             except OSError:
-                # no CLSID or InProcServer32 - not registered
+                # 050506.python.util.line47.comment no CLSID or InProcServer32 - not registered
                 break
             ok_files = [
                 os.path.basename(pythoncom.__file__),
@@ -60,9 +60,9 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 )
                 break
         else:
-            # print(f"Skipping registration of '{filename}' - already registered")
+            # 050507.python.util.line63.comment print(f"Skipping registration of '{filename}' - already registered")
             return
-    # needs registration - see if it's likely!
+    # 050508.python.util.line65.comment needs registration - see if it's likely!
     try:
         from win32com.shell.shell import IsUserAnAdmin
     except ImportError:
@@ -72,7 +72,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         try:
             is_admin = IsUserAnAdmin()
         except pythoncom.com_error:
-            # old, less-secure OS - assume *is* admin.
+            # 050509.python.util.line75.comment old, less-secure OS - assume *is* admin.
             is_admin = True
     if not is_admin:
         msg = (
@@ -81,14 +81,14 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         )
         if why_not:
             msg += "\n(registration check failed as %s)" % why_not
-        # throw a normal "class not registered" exception - we don't report
-        # them the same way as "real" errors.
+        # 050510.python.util.line84.comment throw a normal "class not registered" exception - we don't report
+        # 050511.python.util.line85.comment them the same way as "real" errors.
         raise pythoncom.com_error(winerror.CO_E_CLASSSTRING, msg, None, -1)
-    # so theoretically we are able to register it.
+    # 050512.python.util.line87.comment so theoretically we are able to register it.
     cmd = f'{win32api.GetModuleFileName(0)} "{filename}" --unattended > nul 2>&1'
     if verbose:
         print("Registering engine", filename)
-        # print(cmd)
+        # 050513.python.util.line91.comment print(cmd)
     rc = os.system(cmd)
     if rc:
         print("Registration command was:")
@@ -169,8 +169,8 @@ class CaptureWriter:
         return len("".join(self.captured).split("\n"))
 
 
-# Utilities to set the win32com logger to something what just captures
-# records written and doesn't print them.
+# 050516.python.util.line172.comment Utilities to set the win32com logger to something what just captures
+# 050517.python.util.line173.comment records written and doesn't print them.
 class LogHandler(logging.Handler):
     def __init__(self):
         self.emitted = []
@@ -205,7 +205,7 @@ def restore_test_logger(prev_logger):
         win32com.logger = prev_logger
 
 
-# We used to override some of this (and may later!)
+# 050518.python.util.line208.comment We used to override some of this (and may later!)
 TestCase = unittest.TestCase
 
 
@@ -219,7 +219,7 @@ class _CapturingFunctionTestCase(unittest.FunctionTestCase):  # , TestCaseMixin)
         if result is None:
             result = self.defaultTestResult()
         writer = CaptureWriter()
-        # self._preTest()
+        # 050520.python.util.line222.comment self._preTest()
         writer.capture()
         try:
             unittest.FunctionTestCase.__call__(self, result)
@@ -227,7 +227,7 @@ class _CapturingFunctionTestCase(unittest.FunctionTestCase):  # , TestCaseMixin)
                 self.run_leak_tests(result)
         finally:
             writer.release()
-            # self._postTest(result)
+            # 050521.python.util.line230.comment self._postTest(result)
         output = writer.get_captured()
         self.checkOutput(output, result)
         if result.showAll:

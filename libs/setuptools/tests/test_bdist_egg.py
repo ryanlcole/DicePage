@@ -44,7 +44,7 @@ class Test:
             dist.parse_command_line()
             dist.run_commands()
 
-        # let's see if we got our egg link at the right place
+        # 045177.python.test_bdist_egg.line47.comment let's see if we got our egg link at the right place
         [content] = os.listdir('dist')
         assert re.match(r'foo-0.0.0-py[23].\d+.egg$', content)
 

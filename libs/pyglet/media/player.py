@@ -97,7 +97,7 @@ class _PlayerProperty:
 class Player(pyglet.event.EventDispatcher):
     """High-level sound and video player."""
 
-    # Specialisation attributes, preserved between audio players
+    # 035376.python.player.line100.comment Specialisation attributes, preserved between audio players
     _volume = 1.0
     _min_distance = 1.0
     _max_distance = 100000000.
@@ -119,18 +119,18 @@ class Player(pyglet.event.EventDispatcher):
         self._context = pyglet.gl.current_context
         self._texture = None
 
-        # Desired play state (not an indication of actual state).
+        # 035377.python.player.line122.comment Desired play state (not an indication of actual state).
         self._playing = False
 
         self.last_seek_time = 0.0
 
         self._timer = PlaybackTimer()
-        #: Loop the current source indefinitely or until
-        #: :meth:`~Player.next_source` is called. Defaults to ``False``.
-        #:
-        #: :type: bool
-        #:
-        #: .. versionadded:: 1.4
+        # 035378.python.player.line128.comment : Loop the current source indefinitely or until
+        # 035379.python.player.line129.comment : :meth:`~Player.next_source` is called. Defaults to ``False``.
+        # 035380.python.player.line130.comment :
+        # 035381.python.player.line131.comment : :type: bool
+        # 035382.python.player.line132.comment :
+        # 035383.python.player.line133.comment : .. versionadded:: 1.4
         self.loop = False
 
     def __del__(self) -> None:
@@ -165,7 +165,7 @@ class Player(pyglet.event.EventDispatcher):
             self._source = new_source.get_queue_source()
 
     def _set_playing(self, playing: bool) -> None:
-        # stopping = self._playing and not playing
+        # 035384.python.player.line168.comment stopping = self._playing and not playing
         starting = not self._playing and playing
 
         self._playing = playing
@@ -190,10 +190,10 @@ class Player(pyglet.event.EventDispatcher):
                 self._audio_player.play()
             if source.video_format is not None:
                 pyglet.clock.schedule_once(self.update_texture, 0)
-            # For audio synchronization tests, the following will
-            # add a delay to de-synchronize the audio.
-            # Negative number means audio runs ahead.
-            # self._mclock._systime += -0.3
+            # 035385.python.player.line193.comment For audio synchronization tests, the following will
+            # 035386.python.player.line194.comment add a delay to de-synchronize the audio.
+            # 035387.python.player.line195.comment Negative number means audio runs ahead.
+            # 035388.python.player.line196.comment self._mclock._systime += -0.3
             self._timer.start()
             if self._audio_player is None and source.video_format is None:
                 pyglet.clock.schedule_once(lambda dt: self.dispatch_event("on_eos"), source.duration)
@@ -272,7 +272,7 @@ class Player(pyglet.event.EventDispatcher):
             if not playlists:
                 new_source = None
             else:
-                # Could someone queue an iterator which is empty??
+                # 035389.python.player.line275.comment Could someone queue an iterator which is empty??
                 new_source = next(playlists[0])
 
         if new_source is None:
@@ -280,8 +280,8 @@ class Player(pyglet.event.EventDispatcher):
             self.delete()
             self.dispatch_event('on_player_eos')
         else:
-            # Keeping a strong reference to old source directly as `_audio_player` only has
-            # a weakref and still accesses it in `set_source`
+            # 035390.python.player.line283.comment Keeping a strong reference to old source directly as `_audio_player` only has
+            # 035391.python.player.line284.comment a weakref and still accesses it in `set_source`
             old_source = self._source
             self._set_source(new_source)
 
@@ -317,9 +317,9 @@ class Player(pyglet.event.EventDispatcher):
 
         timestamp = max(timestamp, 0.0)
         if self._source.duration is not None:
-            # TODO: If the duration is reported as None and the source clamps anyways,
-            # this will have pretty bad effects.
-            # Maybe have seek methods return the timestamp they actually seeked to
+            # 035392.python.player.line320.comment TODO: If the duration is reported as None and the source clamps anyways,
+            # 035393.python.player.line321.comment this will have pretty bad effects.
+            # 035394.python.player.line322.comment Maybe have seek methods return the timestamp they actually seeked to
             timestamp = min(timestamp, self._source.duration)
 
         self._timer.set_time(timestamp)
@@ -327,8 +327,8 @@ class Player(pyglet.event.EventDispatcher):
         self.last_seek_time = timestamp
 
         if self._audio_player is not None:
-            # XXX: According to docstring in AbstractAudioPlayer this cannot
-            # be called when the player is not stopped
+            # 035395.python.player.line330.comment XXX: According to docstring in AbstractAudioPlayer this cannot
+            # 035396.python.player.line331.comment be called when the player is not stopped
             self._audio_player.clear()
         if self.source.video_format is not None:
             self.update_texture()
@@ -342,12 +342,12 @@ class Player(pyglet.event.EventDispatcher):
         source = self.source
         audio_driver = get_audio_driver()
         if audio_driver is None:
-            # Failed to find a valid audio driver
+            # 035397.python.player.line345.comment Failed to find a valid audio driver
             return
 
         self._audio_player = audio_driver.create_audio_player(source, self)
 
-        # Set the audio player attributes
+        # 035398.python.player.line350.comment Set the audio player attributes
         for attr in ('volume', 'min_distance', 'max_distance', 'position',
                      'pitch', 'cone_orientation', 'cone_inner_angle',
                      'cone_outer_angle', 'cone_outer_gain'):
@@ -374,8 +374,8 @@ class Player(pyglet.event.EventDispatcher):
         video_format = self.source.video_format
         self._texture = pyglet.image.Texture.create(video_format.width, video_format.height, GL_TEXTURE_2D)
         self._texture = self._texture.get_transform(flip_y=True)
-        # After flipping the texture along the y axis, the anchor_y is set
-        # to the top of the image. We want to keep it at the bottom.
+        # 035399.python.player.line377.comment After flipping the texture along the y axis, the anchor_y is set
+        # 035400.python.player.line378.comment to the top of the image. We want to keep it at the bottom.
         self._texture.anchor_y = 0
         return self._texture
 
@@ -405,12 +405,12 @@ class Player(pyglet.event.EventDispatcher):
             dt:
                 The time elapsed since the last call to ``update_texture``.
         """
-        # self.pr.disable()
-        # if dt > 0.05:
-        #     print("update_texture dt:", dt)
-        #     import pstats
-        #     ps = pstats.Stats(self.pr).sort_stats("cumulative")
-        #     ps.print_stats()
+        # 035401.python.player.line408.comment self.pr.disable()
+        # 035402.python.player.line409.comment if dt > 0.05:
+        # 035403.python.player.line410.comment print("update_texture dt:", dt)
+        # 035404.python.player.line411.comment import pstats
+        # 035405.python.player.line412.comment ps = pstats.Stats(self.pr).sort_stats("cumulative")
+        # 035406.python.player.line413.comment ps.print_stats()
         source = self.source
         time = self.time
         if bl.logger is not None:
@@ -423,7 +423,7 @@ class Player(pyglet.event.EventDispatcher):
         frame_rate = source.video_format.frame_rate
         frame_duration = 1 / frame_rate
         ts = source.get_next_video_timestamp()
-        # Allow up to frame_duration difference
+        # 035407.python.player.line426.comment Allow up to frame_duration difference
         while ts is not None and ts + frame_duration < time:
             source.get_next_video_frame()  # Discard frame
             if bl.logger is not None:
@@ -434,14 +434,14 @@ class Player(pyglet.event.EventDispatcher):
             bl.logger.log("p.P.ut.1.6", ts)
 
         if ts is None:
-            # No more video frames to show. End of video stream.
+            # 035409.python.player.line437.comment No more video frames to show. End of video stream.
             if bl.logger is not None:
                 bl.logger.log("p.P.ut.1.7", frame_duration)
 
             pyglet.clock.schedule_once(self._video_finished, 0)
             return
         elif ts > time:
-            # update_texture called too early (probably manually!)
+            # 035410.python.player.line444.comment update_texture called too early (probably manually!)
             pyglet.clock.schedule_once(self.update_texture, ts - time)
             return
 
@@ -465,7 +465,7 @@ class Player(pyglet.event.EventDispatcher):
         if bl.logger is not None:
             bl.logger.log("p.P.ut.1.9", delay, ts)
         pyglet.clock.schedule_once(self.update_texture, delay)
-        # self.pr.enable()
+        # 035411.python.player.line468.comment self.pr.enable()
 
     def _video_finished(self, _dt: float) -> None:
         if self._audio_player is None:
@@ -542,7 +542,7 @@ class Player(pyglet.event.EventDispatcher):
     cone, this gain is applied instead of :attr:`volume`.
     """)
 
-    # Events
+    # 035412.python.player.line545.comment Events
 
     def on_player_eos(self):
         """The player ran out of sources. The playlist is empty."""
@@ -570,7 +570,7 @@ class Player(pyglet.event.EventDispatcher):
             self._timer.reset()
 
             if self.source is not None:
-                # Reset source to the beginning
+                # 035413.python.player.line573.comment Reset source to the beginning
                 self.seek(0.0)
             self._set_playing(was_playing)
 
@@ -597,7 +597,7 @@ class Player(pyglet.event.EventDispatcher):
 
         self._audio_player.on_driver_reset()
 
-        # Voice has been changed, will need to reset all options on the voice.
+        # 035414.python.player.line600.comment Voice has been changed, will need to reset all options on the voice.
         for attr in ('volume', 'min_distance', 'max_distance', 'position', 'pitch',
                      'cone_orientation', 'cone_inner_angle', 'cone_outer_angle', 'cone_outer_gain'):
             value = getattr(self, attr)

@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052287.python.pywintypes.line1.comment
+# 052288.python.pywintypes.line2.comment (C) Copyright 2014 Enthought, Inc., Austin, TX
+# 052289.python.pywintypes.line3.comment All right reserved.
+# 052290.python.pywintypes.line4.comment
+# 052291.python.pywintypes.line5.comment This file is open source software distributed according to the terms in
+# 052292.python.pywintypes.line6.comment LICENSE.txt
+# 052293.python.pywintypes.line7.comment
 """ A module which supports common Windows types. """
 import contextlib
 import collections

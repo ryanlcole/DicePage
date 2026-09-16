@@ -1,4 +1,4 @@
-# Class factory utilities.
+# 049631.python.factory.line1.comment Class factory utilities.
 import pythoncom
 
 
@@ -13,7 +13,7 @@ def RegisterClassFactories(clsids, flags=None, clsctx=None):
         clsctx = pythoncom.CLSCTX_LOCAL_SERVER
     ret = []
     for clsid in clsids:
-        # Some server append '-Embedding' etc
+        # 049632.python.factory.line16.comment Some server append '-Embedding' etc
         if clsid[0] not in ["-", "/"]:
             factory = pythoncom.MakePyFactory(clsid)
             regId = pythoncom.CoRegisterClassObject(clsid, factory, clsctx, flags)

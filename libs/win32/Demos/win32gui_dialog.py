@@ -1,11 +1,11 @@
-# A demo of a fairly complex dialog.
-#
-# Features:
-# * Uses a "dynamic dialog resource" to build the dialog.
-# * Uses a ListView control.
-# * Dynamically resizes content.
-# * Uses a second worker thread to fill the list.
-# * Demonstrates support for windows XP themes.
+# 046486.python.win32gui_dialog.line1.comment A demo of a fairly complex dialog.
+# 046487.python.win32gui_dialog.line2.comment
+# 046488.python.win32gui_dialog.line3.comment Features:
+# 046489.python.win32gui_dialog.line4.comment * Uses a "dynamic dialog resource" to build the dialog.
+# 046490.python.win32gui_dialog.line5.comment * Uses a ListView control.
+# 046491.python.win32gui_dialog.line6.comment * Dynamically resizes content.
+# 046492.python.win32gui_dialog.line7.comment * Uses a second worker thread to fill the list.
+# 046493.python.win32gui_dialog.line8.comment * Demonstrates support for windows XP themes.
 
 import array
 import os
@@ -52,7 +52,7 @@ class _WIN32MASKEDSTRUCT:
         full_fmt = ""
         vals = []
         mask = 0
-        # calc the mask
+        # 046494.python.win32gui_dialog.line55.comment calc the mask
         for name, fmt, default, this_mask in self._struct_items_:
             if this_mask is not None and self.__dict__.get(name) is not None:
                 mask |= this_mask
@@ -65,10 +65,10 @@ class _WIN32MASKEDSTRUCT:
                     vals.append(0)
                     vals.append(0)
                 else:
-                    # Note this demo still works with byte strings.  An
-                    # alternate strategy would be to use unicode natively
-                    # and use the 'W' version of the messages - eg,
-                    # LVM_SETITEMW etc.
+                    # 046495.python.win32gui_dialog.line68.comment Note this demo still works with byte strings.  An
+                    # 046496.python.win32gui_dialog.line69.comment alternate strategy would be to use unicode natively
+                    # 046497.python.win32gui_dialog.line70.comment and use the 'W' version of the messages - eg,
+                    # 046498.python.win32gui_dialog.line71.comment LVM_SETITEMW etc.
                     val += "\x00"
                     if isinstance(val, str):
                         val = val.encode("mbcs")
@@ -84,8 +84,8 @@ class _WIN32MASKEDSTRUCT:
         return struct.pack(*(full_fmt,) + tuple(vals))
 
 
-# NOTE: See the win32gui_struct module for an alternative way of dealing
-# with these structures
+# 046500.python.win32gui_dialog.line87.comment NOTE: See the win32gui_struct module for an alternative way of dealing
+# 046501.python.win32gui_dialog.line88.comment with these structures
 class LVITEM(_WIN32MASKEDSTRUCT):
     _struct_items_ = [
         ("mask", "I", 0, None),
@@ -129,11 +129,11 @@ class DemoWindowBase:
         wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
         wc.hbrBackground = win32con.COLOR_WINDOW + 1
         wc.lpfnWndProc = message_map  # could also specify a wndproc.
-        # C code: wc.cbWndExtra = DLGWINDOWEXTRA + sizeof(HBRUSH) + (sizeof(COLORREF));
+        # 046504.python.win32gui_dialog.line132.comment C code: wc.cbWndExtra = DLGWINDOWEXTRA + sizeof(HBRUSH) + (sizeof(COLORREF));
         wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
         icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
 
-        ## load icon from executable
+        # 046505.python.win32gui_dialog.line136.comment # load icon from executable
         this_app = win32api.GetModuleHandle(None)
         try:
             wc.hIcon = win32gui.LoadIcon(this_app, 1)  ## python.exe and pythonw.exe
@@ -159,7 +159,7 @@ class DemoWindowBase:
         cs = win32con.WS_CHILD | win32con.WS_VISIBLE
         title = "Dynamic Dialog Demo"
 
-        # Window frame and title
+        # 046508.python.win32gui_dialog.line162.comment Window frame and title
         dlg = [
             [
                 title,
@@ -172,13 +172,13 @@ class DemoWindowBase:
             ],
         ]
 
-        # ID label and text box
+        # 046509.python.win32gui_dialog.line175.comment ID label and text box
         dlg.append([130, "Enter something", -1, (5, 5, 200, 9), cs | win32con.SS_LEFT])
         s = cs | win32con.WS_TABSTOP | win32con.WS_BORDER
         dlg.append(["EDIT", None, IDC_SEARCHTEXT, (5, 15, 200, 12), s])
 
-        # Search/Display Buttons
-        # (x positions don't matter here)
+        # 046510.python.win32gui_dialog.line180.comment Search/Display Buttons
+        # 046511.python.win32gui_dialog.line181.comment (x positions don't matter here)
         s = cs | win32con.WS_TABSTOP
         dlg.append(
             [
@@ -192,10 +192,10 @@ class DemoWindowBase:
         s = win32con.BS_PUSHBUTTON | s
         dlg.append([128, "Display", IDC_BUTTON_DISPLAY, (100, 35, 50, 14), s])
 
-        # List control.
-        # Can't make this work :(
-        ##        s = cs | win32con.WS_TABSTOP
-        ##        dlg.append(['SysListView32', "Title", IDC_LISTBOX, (5, 505, 200, 200), s])
+        # 046512.python.win32gui_dialog.line195.comment List control.
+        # 046513.python.win32gui_dialog.line196.comment Can't make this work :(
+        # 046514.python.win32gui_dialog.line197.comment #        s = cs | win32con.WS_TABSTOP
+        # 046515.python.win32gui_dialog.line198.comment #        dlg.append(['SysListView32', "Title", IDC_LISTBOX, (5, 505, 200, 200), s])
 
         return dlg
 
@@ -247,9 +247,9 @@ class DemoWindowBase:
             self.hwndList, commctrl.LVM_SETEXTENDEDLISTVIEWSTYLE, 0, child_ex_style
         )
 
-        # Add an image list - use the builtin shell folder icon - this
-        # demonstrates that the problem with alpha-blending of icons
-        # present on XP is not a problem anymore.
+        # 046516.python.win32gui_dialog.line250.comment Add an image list - use the builtin shell folder icon - this
+        # 046517.python.win32gui_dialog.line251.comment demonstrates that the problem with alpha-blending of icons
+        # 046518.python.win32gui_dialog.line252.comment present on XP is not a problem anymore.
         il = win32gui.ImageList_Create(
             win32api.GetSystemMetrics(win32con.SM_CXSMICON),
             win32api.GetSystemMetrics(win32con.SM_CYSMICON),
@@ -267,7 +267,7 @@ class DemoWindowBase:
             self.hwndList, commctrl.LVM_SETIMAGELIST, commctrl.LVSIL_SMALL, il
         )
 
-        # Setup the list control columns.
+        # 046521.python.win32gui_dialog.line270.comment Setup the list control columns.
         lvc = LVCOLUMN(
             mask=commctrl.LVCF_FMT
             | commctrl.LVCF_WIDTH
@@ -305,7 +305,7 @@ class DemoWindowBase:
 
     def OnInitDialog(self, hwnd, msg, wparam, lparam):
         self.hwnd = hwnd
-        # centre the dialog
+        # 046522.python.win32gui_dialog.line308.comment centre the dialog
         desktop = win32gui.GetDesktopWindow()
         l, t, r, b = win32gui.GetWindowRect(self.hwnd)
         dt_l, dt_t, dt_r, dt_b = win32gui.GetWindowRect(desktop)
@@ -320,13 +320,13 @@ class DemoWindowBase:
         self._DoSize(r - l, b - t, 1)
 
     def _DoSize(self, cx, cy, repaint=1):
-        # right-justify the textbox.
+        # 046523.python.win32gui_dialog.line323.comment right-justify the textbox.
         ctrl = win32gui.GetDlgItem(self.hwnd, IDC_SEARCHTEXT)
         l, t, r, b = win32gui.GetWindowRect(ctrl)
         l, t = win32gui.ScreenToClient(self.hwnd, (l, t))
         r, b = win32gui.ScreenToClient(self.hwnd, (r, b))
         win32gui.MoveWindow(ctrl, l, t, cx - l - 5, b - t, repaint)
-        # The button.
+        # 046524.python.win32gui_dialog.line329.comment The button.
         ctrl = win32gui.GetDlgItem(self.hwnd, IDC_BUTTON_DISPLAY)
         l, t, r, b = win32gui.GetWindowRect(ctrl)
         l, t = win32gui.ScreenToClient(self.hwnd, (l, t))
@@ -335,9 +335,9 @@ class DemoWindowBase:
         w = r - l
         win32gui.MoveWindow(ctrl, cx - 5 - w, t, w, b - t, repaint)
 
-        # The list control
+        # 046525.python.win32gui_dialog.line338.comment The list control
         win32gui.MoveWindow(self.hwndList, 0, list_y, cx, cy - list_y, repaint)
-        # The last column of the list control.
+        # 046526.python.win32gui_dialog.line340.comment The last column of the list control.
         new_width = cx - win32gui.SendMessage(
             self.hwndList, commctrl.LVM_GETCOLUMNWIDTH, 0
         )
@@ -394,7 +394,7 @@ class DemoWindowBase:
             )
             print("The selected item is", sel + 1)
 
-    # These function differ based on how the window is used, so may be overridden
+    # 046527.python.win32gui_dialog.line397.comment These function differ based on how the window is used, so may be overridden
     def OnClose(self, hwnd, msg, wparam, lparam):
         raise NotImplementedError
 
@@ -402,24 +402,24 @@ class DemoWindowBase:
         pass
 
 
-# An implementation suitable for use with the Win32 Window functions (ie, not
-# a true dialog)
+# 046528.python.win32gui_dialog.line405.comment An implementation suitable for use with the Win32 Window functions (ie, not
+# 046529.python.win32gui_dialog.line406.comment a true dialog)
 class DemoWindow(DemoWindowBase):
     def CreateWindow(self):
-        # Create the window via CreateDialogBoxIndirect - it can then
-        # work as a "normal" window, once a message loop is established.
+        # 046530.python.win32gui_dialog.line409.comment Create the window via CreateDialogBoxIndirect - it can then
+        # 046531.python.win32gui_dialog.line410.comment work as a "normal" window, once a message loop is established.
         self._DoCreate(win32gui.CreateDialogIndirect)
 
     def OnClose(self, hwnd, msg, wparam, lparam):
         win32gui.DestroyWindow(hwnd)
 
-    # We need to arrange to a WM_QUIT message to be sent to our
-    # PumpMessages() loop.
+    # 046532.python.win32gui_dialog.line416.comment We need to arrange to a WM_QUIT message to be sent to our
+    # 046533.python.win32gui_dialog.line417.comment PumpMessages() loop.
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         win32gui.PostQuitMessage(0)  # Terminate the app.
 
 
-# An implementation suitable for use with the Win32 Dialog functions.
+# 046535.python.win32gui_dialog.line422.comment An implementation suitable for use with the Win32 Dialog functions.
 class DemoDialog(DemoWindowBase):
     def DoModal(self):
         return self._DoCreate(win32gui.DialogBoxIndirect)
@@ -436,7 +436,7 @@ def DemoModal():
 def DemoCreateWindow():
     w = DemoWindow()
     w.CreateWindow()
-    # PumpMessages runs until PostQuitMessage() is called by someone.
+    # 046536.python.win32gui_dialog.line439.comment PumpMessages runs until PostQuitMessage() is called by someone.
     win32gui.PumpMessages()
 
 

@@ -23,7 +23,7 @@ def ensure_valid(ep):
     try:
         ep.extras
     except (AttributeError, AssertionError) as ex:
-        # Why both? See https://github.com/python/importlib_metadata/issues/488
+        # 041488.python.entry_points.line26.comment Why both? See https://github.com/python/importlib_metadata/issues/488
         msg = (
             f"Problems to parse {ep}.\nPlease ensure entry-point follows the spec: "
             "https://packaging.python.org/en/latest/specifications/entry-points/"
@@ -36,7 +36,7 @@ def load_group(value, group):
     Given a value of an entry point or series of entry points,
     return each as an EntryPoint.
     """
-    # normalize to a single sequence of lines
+    # 041489.python.entry_points.line39.comment normalize to a single sequence of lines
     lines = yield_lines(value)
     text = f'[{group}]\n' + '\n'.join(lines)
     return metadata.EntryPoints._from_text(text)

@@ -212,9 +212,9 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
 
 def get_win_folder_via_ctypes(csidl_name: str) -> str:
     """Get folder with ctypes."""
-    # There is no 'CSIDL_DOWNLOADS'.
-    # Use 'CSIDL_PROFILE' (40) and append the default folder 'Downloads' instead.
-    # https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
+    # 043292.python.windows.line215.comment There is no 'CSIDL_DOWNLOADS'.
+    # 043293.python.windows.line216.comment Use 'CSIDL_PROFILE' (40) and append the default folder 'Downloads' instead.
+    # 043294.python.windows.line217.comment https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
 
     import ctypes  # noqa: PLC0415
 
@@ -237,7 +237,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
     windll = getattr(ctypes, "windll")  # noqa: B009 # using getattr to avoid false positive with mypy type checker
     windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
 
-    # Downgrade to short path name if it has high-bit chars.
+    # 043297.python.windows.line240.comment Downgrade to short path name if it has high-bit chars.
     if any(ord(c) > 255 for c in buf):  # noqa: PLR2004
         buf2 = ctypes.create_unicode_buffer(1024)
         if windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):

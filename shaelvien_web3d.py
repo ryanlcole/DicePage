@@ -1,5 +1,5 @@
-# shaelvien_web3d.py
-# ShaelvienOS – WebGL2 viewer (points + bonds + smooth lerp; no external libs)
+# 052593.python.shaelvien_web3d.line1.comment shaelvien_web3d.py
+# 052594.python.shaelvien_web3d.line2.comment ShaelvienOS – WebGL2 viewer (points + bonds + smooth lerp; no external libs)
 
 import json, threading
 from http.server import HTTPServer, BaseHTTPRequestHandler

@@ -124,8 +124,8 @@ class InotifyEmitter(EventEmitter):
             self._inotify = None
 
     def queue_events(self, timeout: float, *, full_events: bool = False) -> None:
-        # If "full_events" is true, then the method will report unmatched move events as separate events
-        # This behavior is by default only called by a InotifyFullEmitter
+        # 045710.python.inotify.line127.comment If "full_events" is true, then the method will report unmatched move events as separate events
+        # 045711.python.inotify.line128.comment This behavior is by default only called by a InotifyFullEmitter
         if self._inotify is None:
             logger.error("InotifyEmitter.queue_events() called when the thread is inactive")
             return
@@ -203,7 +203,7 @@ class InotifyEmitter(EventEmitter):
         if self._event_filter is None:
             return None
 
-        # Always listen to delete self
+        # 045712.python.inotify.line206.comment Always listen to delete self
         event_mask = InotifyConstants.IN_DELETE_SELF
 
         for cls in self._event_filter:

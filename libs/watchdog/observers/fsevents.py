@@ -84,8 +84,8 @@ class FSEventsEmitter(EventEmitter):
         _fsevents.stop(self)
 
     def queue_event(self, event: FileSystemEvent) -> None:
-        # fsevents defaults to be recursive, so if the watch was meant to be non-recursive then we need to drop
-        # all the events here which do not have a src_path / dest_path that matches the watched path
+        # 045659.python.fsevents.line87.comment fsevents defaults to be recursive, so if the watch was meant to be non-recursive then we need to drop
+        # 045660.python.fsevents.line88.comment all the events here which do not have a src_path / dest_path that matches the watched path
         if self._watch.is_recursive or not self._is_recursive_event(event):
             logger.debug("queue_event %s", event)
             EventEmitter.queue_event(self, event)
@@ -98,8 +98,8 @@ class FSEventsEmitter(EventEmitter):
             return False
 
         if isinstance(event, (FileMovedEvent, DirMovedEvent)):
-            # when moving something into the watch path we must always take the dirname,
-            # otherwise we miss out on `DirMovedEvent`s
+            # 045661.python.fsevents.line101.comment when moving something into the watch path we must always take the dirname,
+            # 045662.python.fsevents.line102.comment otherwise we miss out on `DirMovedEvent`s
             dest_path = os.path.dirname(event.dest_path)
             if dest_path == self._absolute_watch_path:
                 return False
@@ -135,8 +135,8 @@ class FSEventsEmitter(EventEmitter):
         self.queue_event(DirModifiedEvent(dst_dirname))
 
     def _is_historic_created_event(self, event: _fsevents.NativeEvent) -> bool:
-        # We only queue a created event if the item was created after we
-        # started the FSEventsStream.
+        # 045663.python.fsevents.line138.comment We only queue a created event if the item was created after we
+        # 045664.python.fsevents.line139.comment started the FSEventsStream.
 
         in_history = event.inode in self._fs_view
 
@@ -163,7 +163,7 @@ class FSEventsEmitter(EventEmitter):
                 logger.debug("%s: %s", event, flags)
 
         if time.monotonic() - self._start_time > 60:
-            # Event history is no longer needed, let's free some memory.
+            # 045666.python.fsevents.line166.comment Event history is no longer needed, let's free some memory.
             self._starting_state = None
 
         while events:
@@ -179,28 +179,28 @@ class FSEventsEmitter(EventEmitter):
 
             exists = stat and stat.st_ino == event.inode
 
-            # FSevents may coalesce multiple events for the same item + path into a
-            # single event. However, events are never coalesced for different items at
-            # the same path or for the same item at different paths. Therefore, the
-            # event chains "removed -> created" and "created -> renamed -> removed" will
-            # never emit a single native event and a deleted event *always* means that
-            # the item no longer existed at the end of the event chain.
+            # 045667.python.fsevents.line182.comment FSevents may coalesce multiple events for the same item + path into a
+            # 045668.python.fsevents.line183.comment single event. However, events are never coalesced for different items at
+            # 045669.python.fsevents.line184.comment the same path or for the same item at different paths. Therefore, the
+            # 045670.python.fsevents.line185.comment event chains "removed -> created" and "created -> renamed -> removed" will
+            # 045671.python.fsevents.line186.comment never emit a single native event and a deleted event *always* means that
+            # 045672.python.fsevents.line187.comment the item no longer existed at the end of the event chain.
 
-            # Some events will have a spurious `is_created` flag set, coalesced from an
-            # already emitted and processed CreatedEvent. To filter those, we keep track
-            # of all inodes which we know to be already created. This is safer than
-            # keeping track of paths since paths are more likely to be reused than
-            # inodes.
+            # 045673.python.fsevents.line189.comment Some events will have a spurious `is_created` flag set, coalesced from an
+            # 045674.python.fsevents.line190.comment already emitted and processed CreatedEvent. To filter those, we keep track
+            # 045675.python.fsevents.line191.comment of all inodes which we know to be already created. This is safer than
+            # 045676.python.fsevents.line192.comment keeping track of paths since paths are more likely to be reused than
+            # 045677.python.fsevents.line193.comment inodes.
 
-            # Likewise, some events will have a spurious `is_modified`,
-            # `is_inode_meta_mod` or `is_xattr_mod` flag set. We currently do not
-            # suppress those but could do so if the item still exists by caching the
-            # stat result and verifying that it did change.
+            # 045678.python.fsevents.line195.comment Likewise, some events will have a spurious `is_modified`,
+            # 045679.python.fsevents.line196.comment `is_inode_meta_mod` or `is_xattr_mod` flag set. We currently do not
+            # 045680.python.fsevents.line197.comment suppress those but could do so if the item still exists by caching the
+            # 045681.python.fsevents.line198.comment stat result and verifying that it did change.
 
             if event.is_created and event.is_removed:
-                # Events will only be coalesced for the same item / inode.
-                # The sequence deleted -> created therefore cannot occur.
-                # Any combination with renamed cannot occur either.
+                # 045682.python.fsevents.line201.comment Events will only be coalesced for the same item / inode.
+                # 045683.python.fsevents.line202.comment The sequence deleted -> created therefore cannot occur.
+                # 045684.python.fsevents.line203.comment Any combination with renamed cannot occur either.
 
                 if not self._is_historic_created_event(event):
                     self._queue_created_event(event, src_path, src_dirname)
@@ -223,14 +223,14 @@ class FSEventsEmitter(EventEmitter):
                     self._queue_modified_event(event, src_path, src_dirname)
 
                 if event.is_renamed:
-                    # Check if we have a corresponding destination event in the watched path.
+                    # 045685.python.fsevents.line226.comment Check if we have a corresponding destination event in the watched path.
                     dst_event = next(
                         iter(e for e in events if e.is_renamed and e.inode == event.inode),
                         None,
                     )
 
                     if dst_event:
-                        # Item was moved within the watched folder.
+                        # 045686.python.fsevents.line233.comment Item was moved within the watched folder.
                         logger.debug("Destination event for rename is %s", dst_event)
 
                         dst_path = self._encode_path(dst_event.path)
@@ -242,7 +242,7 @@ class FSEventsEmitter(EventEmitter):
                         for sub_moved_event in generate_sub_moved_events(src_path, dst_path):
                             self.queue_event(sub_moved_event)
 
-                        # Process any coalesced flags for the dst_event.
+                        # 045687.python.fsevents.line245.comment Process any coalesced flags for the dst_event.
 
                         events.remove(dst_event)
 
@@ -254,8 +254,8 @@ class FSEventsEmitter(EventEmitter):
                             self._fs_view.discard(dst_event.inode)
 
                     elif exists:
-                        # This is the destination event, item was moved into the watched
-                        # folder.
+                        # 045688.python.fsevents.line257.comment This is the destination event, item was moved into the watched
+                        # 045689.python.fsevents.line258.comment folder.
                         self._queue_created_event(event, src_path, src_dirname)
                         self._fs_view.add(event.inode)
 
@@ -263,22 +263,22 @@ class FSEventsEmitter(EventEmitter):
                             self.queue_event(sub_created_event)
 
                     else:
-                        # This is the source event, item was moved out of the watched
-                        # folder.
+                        # 045690.python.fsevents.line266.comment This is the source event, item was moved out of the watched
+                        # 045691.python.fsevents.line267.comment folder.
                         self._queue_deleted_event(event, src_path, src_dirname)
                         self._fs_view.discard(event.inode)
 
-                        # Skip further coalesced processing.
+                        # 045692.python.fsevents.line271.comment Skip further coalesced processing.
                         continue
 
                 if event.is_removed:
-                    # Won't occur together with renamed.
+                    # 045693.python.fsevents.line275.comment Won't occur together with renamed.
                     self._queue_deleted_event(event, src_path, src_dirname)
                     self._fs_view.discard(event.inode)
 
             if event.is_root_changed:
-                # This will be set if root or any of its parents is renamed or deleted.
-                # TODO: find out new path and generate DirMovedEvent?
+                # 045694.python.fsevents.line280.comment This will be set if root or any of its parents is renamed or deleted.
+                # 045695.python.fsevents.line281.comment TODO: find out new path and generate DirMovedEvent?
                 self.queue_event(DirDeletedEvent(self.watch.path))
                 logger.debug("Stopping because root path was changed")
                 self.stop()
@@ -331,8 +331,8 @@ class FSEventsObserver(BaseObserver):
         recursive: bool = False,
         event_filter: list[type[FileSystemEvent]] | None = None,
     ) -> ObservedWatch:
-        # Fix for issue #26: Trace/BPT error when given a unicode path
-        # string. https://github.com/gorakhargosh/watchdog/issues#issue/26
+        # 045696.python.fsevents.line334.comment Fix for issue #26: Trace/BPT error when given a unicode path
+        # 045697.python.fsevents.line335.comment string. https://github.com/gorakhargosh/watchdog/issues#issue/26
         if isinstance(path, str):
             path = unicodedata.normalize("NFC", path)
 

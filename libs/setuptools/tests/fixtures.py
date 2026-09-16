@@ -73,12 +73,12 @@ def sample_project_cwd(sample_project):
         yield
 
 
-# sdist and wheel artifacts should be stable across a round of tests
-# so we can build them once per session and use the files as "readonly"
+# 045097.python.fixtures.line76.comment sdist and wheel artifacts should be stable across a round of tests
+# 045098.python.fixtures.line77.comment so we can build them once per session and use the files as "readonly"
 
-# In the case of setuptools, building the wheel without sdist may cause
-# it to contain the `build` directory, and therefore create situations with
-# `setuptools/build/lib/build/lib/...`. To avoid that, build both artifacts at once.
+# 045099.python.fixtures.line79.comment In the case of setuptools, building the wheel without sdist may cause
+# 045100.python.fixtures.line80.comment it to contain the `build` directory, and therefore create situations with
+# 045101.python.fixtures.line81.comment `setuptools/build/lib/build/lib/...`. To avoid that, build both artifacts at once.
 
 
 def _build_distributions(tmp_path_factory, request):
@@ -90,7 +90,7 @@ def _build_distributions(tmp_path_factory, request):
         if sdist and wheel:
             return (sdist, wheel)
 
-        # Sanity check: should not create recursive setuptools/build/lib/build/lib/...
+        # 045103.python.fixtures.line93.comment Sanity check: should not create recursive setuptools/build/lib/build/lib/...
         assert not Path(request.config.rootdir, "build/lib/build").exists()
 
         subprocess.check_output([
@@ -102,7 +102,7 @@ def _build_distributions(tmp_path_factory, request):
             str(request.config.rootdir),
         ])
 
-        # Sanity check: should not create recursive setuptools/build/lib/build/lib/...
+        # 045104.python.fixtures.line105.comment Sanity check: should not create recursive setuptools/build/lib/build/lib/...
         assert not Path(request.config.rootdir, "build/lib/build").exists()
 
         return next(tmp.glob("*.tar.gz")), next(tmp.glob("*.whl"))
@@ -134,18 +134,18 @@ def venv(tmp_path, setuptools_wheel):
     env = environment.VirtualEnv()
     env.root = path.Path(tmp_path / 'venv')
     env.create_opts = ['--no-setuptools', '--wheel=bundle']
-    # TODO: Use `--no-wheel` when setuptools implements its own bdist_wheel
+    # 045107.python.fixtures.line137.comment TODO: Use `--no-wheel` when setuptools implements its own bdist_wheel
     env.req = str(setuptools_wheel)
-    # In some environments (eg. downstream distro packaging),
-    # where tox isn't used to run tests and PYTHONPATH is set to point to
-    # a specific setuptools codebase, PYTHONPATH will leak into the spawned
-    # processes.
-    # env.create() should install the just created setuptools
-    # wheel, but it doesn't if it finds another existing matching setuptools
-    # installation present on PYTHONPATH:
-    # `setuptools is already installed with the same version as the provided
-    # wheel. Use --force-reinstall to force an installation of the wheel.`
-    # This prevents leaking PYTHONPATH to the created environment.
+    # 045108.python.fixtures.line139.comment In some environments (eg. downstream distro packaging),
+    # 045109.python.fixtures.line140.comment where tox isn't used to run tests and PYTHONPATH is set to point to
+    # 045110.python.fixtures.line141.comment a specific setuptools codebase, PYTHONPATH will leak into the spawned
+    # 045111.python.fixtures.line142.comment processes.
+    # 045112.python.fixtures.line143.comment env.create() should install the just created setuptools
+    # 045113.python.fixtures.line144.comment wheel, but it doesn't if it finds another existing matching setuptools
+    # 045114.python.fixtures.line145.comment installation present on PYTHONPATH:
+    # 045115.python.fixtures.line146.comment `setuptools is already installed with the same version as the provided
+    # 045116.python.fixtures.line147.comment wheel. Use --force-reinstall to force an installation of the wheel.`
+    # 045117.python.fixtures.line148.comment This prevents leaking PYTHONPATH to the created environment.
     with contexts.environment(PYTHONPATH=None):
         return env.create()
 
@@ -176,7 +176,7 @@ def make_sdist(dist_path, files):
     listed in ``files`` as ``(filename, content)`` tuples.
     """
 
-    # Distributions with only one file don't play well with pip.
+    # 045118.python.fixtures.line179.comment Distributions with only one file don't play well with pip.
     assert len(files) > 1
     with tarfile.open(dist_path, 'w:gz') as dist:
         for filename, content in files:
@@ -219,7 +219,7 @@ def make_nspkg_sdist(dist_path, distname, version):
     package with the same name as distname.  The top-level package is
     designated a namespace package).
     """
-    # Assert that the distname contains at least one period
+    # 045119.python.fixtures.line222.comment Assert that the distname contains at least one period
     assert '.' in distname
 
     parts = distname.split('.')
@@ -304,7 +304,7 @@ def create_setup_requires_package(
     test_pkg = os.path.join(path, 'test_pkg')
     os.mkdir(test_pkg)
 
-    # setup.cfg
+    # 045120.python.fixtures.line307.comment setup.cfg
     if use_setup_cfg:
         options = []
         metadata = []
@@ -333,7 +333,7 @@ def create_setup_requires_package(
     with open(os.path.join(test_pkg, 'setup.cfg'), 'w', encoding="utf-8") as f:
         f.write(test_setup_cfg_contents)
 
-    # setup.py
+    # 045121.python.fixtures.line336.comment setup.py
     if setup_py_template is None:
         setup_py_template = DALS(
             """\

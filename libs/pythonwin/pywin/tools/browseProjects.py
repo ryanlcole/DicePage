@@ -24,9 +24,9 @@ class HLIErrorItem(hierlist.HierListItem):
 
 class HLICLBRItem(hierlist.HierListItem):
     def __init__(self, name: str, file, lineno, suffix=""):
-        # If the 'name' object itself has a .name, use it.  Not sure
-        # how this happens, but seems pyclbr related.
-        # See PyWin32 bug 817035
+        # 039052.python.browseProjects.line27.comment If the 'name' object itself has a .name, use it.  Not sure
+        # 039053.python.browseProjects.line28.comment how this happens, but seems pyclbr related.
+        # 039054.python.browseProjects.line29.comment See PyWin32 bug 817035
         self.name = getattr(name, "name", name)
         self.file = file
         self.lineno = lineno
@@ -319,5 +319,5 @@ def DockablePathBrowser():
     win32ui.GetMainFrame().DockControlBar(bar)
 
 
-# The "default" entry point
+# 039061.python.browseProjects.line322.comment The "default" entry point
 Browse = DockablePathBrowser

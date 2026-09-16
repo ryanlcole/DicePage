@@ -8,7 +8,7 @@ from typing import ClassVar
 from ..core import Command
 
 
-# XXX force is never used
+# 039877.python.install_headers.line11.comment XXX force is never used
 class install_headers(Command):
     description = "install C/C++ header files"
 

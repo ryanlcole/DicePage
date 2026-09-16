@@ -23,7 +23,7 @@ import distutils.core
 
 class TestFindParentPackage:
     def test_single_package(self, tmp_path):
-        # find_parent_package should find a non-namespace parent package
+        # 045281.python.test_config_discovery.line26.comment find_parent_package should find a non-namespace parent package
         (tmp_path / "src/namespace/pkg/nested").mkdir(exist_ok=True, parents=True)
         (tmp_path / "src/namespace/pkg/nested/__init__.py").touch()
         (tmp_path / "src/namespace/pkg/__init__.py").touch()
@@ -31,8 +31,8 @@ class TestFindParentPackage:
         assert find_parent_package(packages, {"": "src"}, tmp_path) == "namespace.pkg"
 
     def test_multiple_toplevel(self, tmp_path):
-        # find_parent_package should return null if the given list of packages does not
-        # have a single parent package
+        # 045282.python.test_config_discovery.line34.comment find_parent_package should return null if the given list of packages does not
+        # 045283.python.test_config_discovery.line35.comment have a single parent package
         multiple = ["pkg", "pkg1", "pkg2"]
         for name in multiple:
             (tmp_path / f"src/{name}").mkdir(exist_ok=True, parents=True)
@@ -46,7 +46,7 @@ class TestDiscoverPackagesAndPyModules:
     """
 
     OPTIONS = {
-        # Different options according to the circumstance being tested
+        # 045284.python.test_config_discovery.line49.comment Different options according to the circumstance being tested
         "explicit-src": {"package_dir": {"": "src"}, "packages": ["pkg"]},
         "variation-lib": {
             "package_dir": {"": "lib"},  # variation of the source-layout
@@ -89,7 +89,7 @@ class TestDiscoverPackagesAndPyModules:
         files, options = self._get_info(circumstance)
         _populate_project_dir(tmp_path, files, options)
 
-        # Simulate a pre-existing `build` directory
+        # 045286.python.test_config_discovery.line92.comment Simulate a pre-existing `build` directory
         (tmp_path / "build").mkdir()
         (tmp_path / "build/lib").mkdir()
         (tmp_path / "build/bdist.linux-x86_64").mkdir()
@@ -112,7 +112,7 @@ class TestDiscoverPackagesAndPyModules:
         orig_files = {f.replace("src/", "").replace("lib/", "") for f in files}
         assert wheel_files >= orig_files
 
-        # Make sure build files are not included by mistake
+        # 045287.python.test_config_discovery.line115.comment Make sure build files are not included by mistake
         for file in wheel_files:
             assert "build" not in files
             assert "dist" not in files
@@ -175,7 +175,7 @@ class TestDiscoverPackagesAndPyModules:
         if config_file == "pyproject.toml":
             template_param = param.replace("_", "-")
         else:
-            # Make sure build works with or without setup.cfg
+            # 045288.python.test_config_discovery.line178.comment Make sure build works with or without setup.cfg
             pyproject = self.PURPOSEFULLY_EMPY["template-pyproject.toml"]
             (tmp_path / "pyproject.toml").write_text(pyproject, encoding="utf-8")
             template_param = param
@@ -184,8 +184,8 @@ class TestDiscoverPackagesAndPyModules:
         (tmp_path / config_file).write_text(config, encoding="utf-8")
 
         dist = _get_dist(tmp_path, {})
-        # When either parameter package or py_modules is an empty list,
-        # then there should be no discovery
+        # 045289.python.test_config_discovery.line187.comment When either parameter package or py_modules is an empty list,
+        # 045290.python.test_config_discovery.line188.comment then there should be no discovery
         assert getattr(dist, param) == []
         other = {"py_modules": "packages", "packages": "py_modules"}[param]
         assert getattr(dist, other) is None
@@ -197,12 +197,12 @@ class TestDiscoverPackagesAndPyModules:
             (["pkg-stubs/__init__.pyi"], {"pkg", "pkg-stubs"}),
             (["other-stubs/__init__.pyi"], {"pkg", "other-stubs"}),
             (
-                # Type stubs can also be namespaced
+                # 045291.python.test_config_discovery.line200.comment Type stubs can also be namespaced
                 ["namespace-stubs/pkg/__init__.pyi"],
                 {"pkg", "namespace-stubs", "namespace-stubs.pkg"},
             ),
             (
-                # Just the top-level package can have `-stubs`, ignore nested ones
+                # 045292.python.test_config_discovery.line205.comment Just the top-level package can have `-stubs`, ignore nested ones
                 ["namespace-stubs/pkg-stubs/__init__.pyi"],
                 {"pkg", "namespace-stubs"},
             ),
@@ -250,7 +250,7 @@ class TestDiscoverPackagesAndPyModules:
         (tmp_path / "foo.py").touch()
         with jaraco.path.DirectoryStack().context(tmp_path):
             build_meta.build_wheel(".")
-        # Ensure py_modules are found
+        # 045293.python.test_config_discovery.line253.comment Ensure py_modules are found
         wheel_files = get_wheel_members(next(tmp_path.glob("*.whl")))
         assert "foo.py" in wheel_files
 
@@ -277,7 +277,7 @@ class TestNoConfig:
         files = ["src/ns/nested/pkg/__init__.py"]
         _populate_project_dir(tmp_path, files, {})
         _run_build(tmp_path, "--sdist")
-        # Expected distribution file
+        # 045295.python.test_config_discovery.line280.comment Expected distribution file
         dist_file = tmp_path / f"dist/ns_nested_pkg-{self.DEFAULT_VERSION}.tar.gz"
         assert dist_file.is_file()
 
@@ -332,7 +332,7 @@ class TestWithAttrDirective:
 
 class TestWithCExtension:
     def _simulate_package_with_extension(self, tmp_path):
-        # This example is based on: https://github.com/nucleic/kiwi/tree/1.4.0
+        # 045296.python.test_config_discovery.line335.comment This example is based on: https://github.com/nucleic/kiwi/tree/1.4.0
         files = [
             "benchmarks/file.py",
             "docs/Makefile",
@@ -557,8 +557,8 @@ def test_preserve_explicit_name_with_dynamic_version(tmpdir_cwd, monkeypatch):
     orig_analyse_name = dist.set_defaults.analyse_name
 
     def spy_analyse_name():
-        # We can check if name discovery was triggered by ensuring the original
-        # name remains instead of the package name.
+        # 045298.python.test_config_discovery.line560.comment We can check if name discovery was triggered by ensuring the original
+        # 045299.python.test_config_discovery.line561.comment name remains instead of the package name.
         orig_analyse_name()
         assert dist.get_name() == "myproj"
 
@@ -569,9 +569,9 @@ def test_preserve_explicit_name_with_dynamic_version(tmpdir_cwd, monkeypatch):
 
 
 def _populate_project_dir(root, files, options):
-    # NOTE: Currently pypa/build will refuse to build the project if no
-    # `pyproject.toml` or `setup.py` is found. So it is impossible to do
-    # completely "config-less" projects.
+    # 045300.python.test_config_discovery.line572.comment NOTE: Currently pypa/build will refuse to build the project if no
+    # 045301.python.test_config_discovery.line573.comment `pyproject.toml` or `setup.py` is found. So it is impossible to do
+    # 045302.python.test_config_discovery.line574.comment completely "config-less" projects.
     basic = {
         "setup.py": "import setuptools\nsetuptools.setup()",
         "README.md": "# Example Package",

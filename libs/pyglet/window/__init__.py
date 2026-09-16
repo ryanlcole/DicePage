@@ -133,7 +133,7 @@ class MouseCursorException(WindowException):
 class MouseCursor:
     """An abstract mouse cursor."""
 
-    #: Indicates if the cursor is drawn using OpenGL, or natively.
+    # 035922.python.init.line136.comment : Indicates if the cursor is drawn using OpenGL, or natively.
     gl_drawable: bool = True
     hw_drawable: bool = False
 
@@ -273,93 +273,93 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
     be the active context.
     """
 
-    # Filled in by metaclass with the names of all methods on this (sub)class
-    # that are platform event handlers.
+    # 035929.python.init.line276.comment Filled in by metaclass with the names of all methods on this (sub)class
+    # 035930.python.init.line277.comment that are platform event handlers.
     _platform_event_names: set[_PlatformEventHandler] = set()  # noqa: RUF012
 
-    #: The default window style.
+    # 035932.python.init.line280.comment : The default window style.
     WINDOW_STYLE_DEFAULT: None = None
-    #: The window style for pop-up dialogs.
+    # 035933.python.init.line282.comment : The window style for pop-up dialogs.
     WINDOW_STYLE_DIALOG: str = 'dialog'
-    #: The window style for tool windows.
+    # 035934.python.init.line284.comment : The window style for tool windows.
     WINDOW_STYLE_TOOL: str = 'tool'
-    #: A window style without any decoration.
+    # 035935.python.init.line286.comment : A window style without any decoration.
     WINDOW_STYLE_BORDERLESS: str = 'borderless'
-    #: A window style for transparent, interactable windows
+    # 035936.python.init.line288.comment : A window style for transparent, interactable windows
     WINDOW_STYLE_TRANSPARENT: str = 'transparent'
-    #: A window style for transparent, topmost, click-through-able overlays
+    # 035937.python.init.line290.comment : A window style for transparent, topmost, click-through-able overlays
     WINDOW_STYLE_OVERLAY: str = 'overlay'
 
-    #: The default mouse cursor.
+    # 035938.python.init.line293.comment : The default mouse cursor.
     CURSOR_DEFAULT = None
-    #: A crosshair mouse cursor.
+    # 035939.python.init.line295.comment : A crosshair mouse cursor.
     CURSOR_CROSSHAIR: str = 'crosshair'
-    #: A pointing hand mouse cursor.
+    # 035940.python.init.line297.comment : A pointing hand mouse cursor.
     CURSOR_HAND: str = 'hand'
-    #: A "help" mouse cursor; typically a question mark and an arrow.
+    # 035941.python.init.line299.comment : A "help" mouse cursor; typically a question mark and an arrow.
     CURSOR_HELP: str = 'help'
-    #: A mouse cursor indicating that the selected operation is not permitted.
+    # 035942.python.init.line301.comment : A mouse cursor indicating that the selected operation is not permitted.
     CURSOR_NO: str = 'no'
-    #: A mouse cursor indicating the element can be resized.
+    # 035943.python.init.line303.comment : A mouse cursor indicating the element can be resized.
     CURSOR_SIZE: str = 'size'
-    #: A mouse cursor indicating the element can be resized from the top
-    #: border.
+    # 035944.python.init.line305.comment : A mouse cursor indicating the element can be resized from the top
+    # 035945.python.init.line306.comment : border.
     CURSOR_SIZE_UP: str = 'size_up'
-    #: A mouse cursor indicating the element can be resized from the
-    #: upper-right corner.
+    # 035946.python.init.line308.comment : A mouse cursor indicating the element can be resized from the
+    # 035947.python.init.line309.comment : upper-right corner.
     CURSOR_SIZE_UP_RIGHT: str = 'size_up_right'
-    #: A mouse cursor indicating the element can be resized from the right
-    #: border.
+    # 035948.python.init.line311.comment : A mouse cursor indicating the element can be resized from the right
+    # 035949.python.init.line312.comment : border.
     CURSOR_SIZE_RIGHT: str = 'size_right'
-    #: A mouse cursor indicating the element can be resized from the lower-right
-    #: corner.
+    # 035950.python.init.line314.comment : A mouse cursor indicating the element can be resized from the lower-right
+    # 035951.python.init.line315.comment : corner.
     CURSOR_SIZE_DOWN_RIGHT: str = 'size_down_right'
-    #: A mouse cursor indicating the element can be resized from the bottom
-    #: border.
+    # 035952.python.init.line317.comment : A mouse cursor indicating the element can be resized from the bottom
+    # 035953.python.init.line318.comment : border.
     CURSOR_SIZE_DOWN: str = 'size_down'
-    #: A mouse cursor indicating the element can be resized from the lower-left
-    #: corner.
+    # 035954.python.init.line320.comment : A mouse cursor indicating the element can be resized from the lower-left
+    # 035955.python.init.line321.comment : corner.
     CURSOR_SIZE_DOWN_LEFT: str = 'size_down_left'
-    #: A mouse cursor indicating the element can be resized from the left
-    #: border.
+    # 035956.python.init.line323.comment : A mouse cursor indicating the element can be resized from the left
+    # 035957.python.init.line324.comment : border.
     CURSOR_SIZE_LEFT: str = 'size_left'
-    #: A mouse cursor indicating the element can be resized from the upper-left
-    #: corner.
+    # 035958.python.init.line326.comment : A mouse cursor indicating the element can be resized from the upper-left
+    # 035959.python.init.line327.comment : corner.
     CURSOR_SIZE_UP_LEFT: str = 'size_up_left'
-    #: A mouse cursor indicating the element can be resized vertically.
+    # 035960.python.init.line329.comment : A mouse cursor indicating the element can be resized vertically.
     CURSOR_SIZE_UP_DOWN: str = 'size_up_down'
-    #: A mouse cursor indicating the element can be resized horizontally.
+    # 035961.python.init.line331.comment : A mouse cursor indicating the element can be resized horizontally.
     CURSOR_SIZE_LEFT_RIGHT: str = 'size_left_right'
-    #: A text input mouse cursor (I-beam).
+    # 035962.python.init.line333.comment : A text input mouse cursor (I-beam).
     CURSOR_TEXT: str = 'text'
-    #: A "wait" mouse cursor; typically an hourglass or watch.
+    # 035963.python.init.line335.comment : A "wait" mouse cursor; typically an hourglass or watch.
     CURSOR_WAIT: str = 'wait'
-    #: The "wait" mouse cursor combined with an arrow.
+    # 035964.python.init.line337.comment : The "wait" mouse cursor combined with an arrow.
     CURSOR_WAIT_ARROW: str = 'wait_arrow'
 
-    #: True if the user has attempted to close the window.
-    #:
-    #: :deprecated: Windows are closed immediately by the default
-    #:      :py:meth:`~pyglet.window.Window.on_close` handler when `pyglet.app.event_loop` is being
-    #:      used.
+    # 035965.python.init.line340.comment : True if the user has attempted to close the window.
+    # 035966.python.init.line341.comment :
+    # 035967.python.init.line342.comment : :deprecated: Windows are closed immediately by the default
+    # 035968.python.init.line343.comment :      :py:meth:`~pyglet.window.Window.on_close` handler when `pyglet.app.event_loop` is being
+    # 035969.python.init.line344.comment :      used.
     has_exit: bool = False
 
-    #: Window display contents validity.  The :py:mod:`pyglet.app` event loop
-    #: examines every window each iteration and only dispatches the :py:meth:`~pyglet.window.Window.on_draw`
-    #: event to windows that have `invalid` set.  By default, windows always
-    #: have `invalid` set to ``True``.
-    #:
-    #: You can prevent redundant redraws by setting this variable to ``False``
-    #: in the window's :py:meth:`~pyglet.window.Window.on_draw` handler, and setting it to True again in
-    #: response to any events that actually do require a window contents
-    #: update.
-    #:
-    #: :type: bool
-    #:
-    #: .. versionadded:: 1.1
+    # 035970.python.init.line347.comment : Window display contents validity.  The :py:mod:`pyglet.app` event loop
+    # 035971.python.init.line348.comment : examines every window each iteration and only dispatches the :py:meth:`~pyglet.window.Window.on_draw`
+    # 035972.python.init.line349.comment : event to windows that have `invalid` set.  By default, windows always
+    # 035973.python.init.line350.comment : have `invalid` set to ``True``.
+    # 035974.python.init.line351.comment :
+    # 035975.python.init.line352.comment : You can prevent redundant redraws by setting this variable to ``False``
+    # 035976.python.init.line353.comment : in the window's :py:meth:`~pyglet.window.Window.on_draw` handler, and setting it to True again in
+    # 035977.python.init.line354.comment : response to any events that actually do require a window contents
+    # 035978.python.init.line355.comment : update.
+    # 035979.python.init.line356.comment :
+    # 035980.python.init.line357.comment : :type: bool
+    # 035981.python.init.line358.comment :
+    # 035982.python.init.line359.comment : .. versionadded:: 1.1
     invalid: bool = True
 
-    # Instance variables accessible only via properties
+    # 035983.python.init.line362.comment Instance variables accessible only via properties
     _dpi: int = 96
     _width: int | None = None
     _height: int | None = None
@@ -377,7 +377,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
     _view_matrix: Mat4 = pyglet.math.Mat4()
     _viewport: tuple[int, int, int, int] = 0, 0, 0, 0
 
-    # Used to restore window size and position after fullscreen
+    # 035984.python.init.line380.comment Used to restore window size and position after fullscreen
     _windowed_size: tuple[int, int] | None = None
     _windowed_location: tuple[int, int] | None = None
 
@@ -388,7 +388,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
 
     _shadow: bool = False
 
-    # Subclasses should update these after relevant events
+    # 035985.python.init.line391.comment Subclasses should update these after relevant events
     _mouse_cursor: MouseCursor | ImageMouseCursor = DefaultMouseCursor()
     _mouse_x: int = 0
     _mouse_y: int = 0
@@ -400,15 +400,15 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
     _enable_event_queue: bool = True  # overridden by EventLoop.
     _allow_dispatch_event: bool = False  # controlled by dispatch_events stack frame
 
-    # Class attributes
+    # 035988.python.init.line403.comment Class attributes
     _default_width: int = 1280
     _default_height: int = 720
 
     _requested_width: int
     _requested_height: int
 
-    # Create a default ShaderProgram, so the Window instance can
-    # update the `WindowBlock` UBO shared by all default shaders.
+    # 035989.python.init.line410.comment Create a default ShaderProgram, so the Window instance can
+    # 035990.python.init.line411.comment update the `WindowBlock` UBO shared by all default shaders.
     _default_vertex_source = """#version 150 core
         in vec4 position;
 
@@ -513,9 +513,9 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         if not config:
             alpha_size = None
             transparent_fb = False
-            # Override config settings if intention is transparency.
+            # 035991.python.init.line516.comment Override config settings if intention is transparency.
             if style in ('transparent', 'overlay'):
-                # Ensure the framebuffer is large enough to support transparency.
+                # 035992.python.init.line518.comment Ensure the framebuffer is large enough to support transparency.
                 alpha_size = 8
                 transparent_fb = True
 
@@ -545,11 +545,11 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         if not context:
             context = config.create_context(gl.current_context)
 
-        # Set these in reverse order as above, to ensure we get user preference
+        # 035993.python.init.line548.comment Set these in reverse order as above, to ensure we get user preference
         self._context = context
         self._config = self._context.config
 
-        # XXX deprecate config's being screen-specific
+        # 035994.python.init.line552.comment XXX deprecate config's being screen-specific
         if hasattr(self._config, 'screen'):
             self._screen = self._config.screen
         else:
@@ -610,9 +610,9 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         self.projection = Mat4.orthogonal_projection(0, width, 0, height, -8192, 8192)
 
     def __del__(self) -> None:
-        # Always try to clean up the window when it is dereferenced.
-        # Makes sure there are no dangling pointers or memory leaks.
-        # If the window is already closed, pass silently.
+        # 035995.python.init.line613.comment Always try to clean up the window when it is dereferenced.
+        # 035996.python.init.line614.comment Makes sure there are no dangling pointers or memory leaks.
+        # 035997.python.init.line615.comment If the window is already closed, pass silently.
         try:  # noqa: SIM105
             self.close()
         except:  # XXX  Avoid a NoneType error if already closed.  # noqa: E722, S110
@@ -636,7 +636,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
                 is given if the window is to be toggled to or from fullscreen.
         """
 
-    # Public methods (sort alphabetically):
+    # 036000.python.init.line639.comment Public methods (sort alphabetically):
     @abstractmethod
     def activate(self) -> None:
         """Attempt to restore keyboard focus to the window.
@@ -721,10 +721,10 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         :py:class:`MouseCursor` and provide your own
         :py:meth:`~MouseCursor.draw` method.
         """
-        # Draw mouse cursor if set and visible.
+        # 036001.python.init.line724.comment Draw mouse cursor if set and visible.
 
         if self._mouse_cursor.gl_drawable and self._mouse_visible and self._mouse_in_window:
-            # TODO: consider projection differences
+            # 036002.python.init.line727.comment TODO: consider projection differences
             self._mouse_cursor.draw(self._mouse_x, self._mouse_y)
 
     @abstractmethod
@@ -954,7 +954,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
             return
 
         if not self._fullscreen:
-            # Save windowed size
+            # 036003.python.init.line957.comment Save windowed size
             self._windowed_size = self.get_size()
             self._windowed_location = self.get_location()
 
@@ -977,7 +977,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         self._recreate(['fullscreen'])
 
         if not self._fullscreen and self._windowed_location:
-            # Restore windowed location.
+            # 036004.python.init.line980.comment Restore windowed location.
             self.set_location(*self._windowed_location)
 
     def _set_fullscreen_mode(self, mode: ScreenMode, width: int, height: int) -> tuple[int, int]:
@@ -996,7 +996,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
             if mode is not None:
                 self.screen.set_mode(mode)
             elif self.screen.get_modes():
-                # Only raise exception if mode switching is at all possible.
+                # 036005.python.init.line999.comment Only raise exception if mode switching is at all possible.
                 msg = f'No mode matching {width}x{height}'
                 raise NoSuchScreenModeException(msg)
         else:
@@ -1202,7 +1202,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         you.
         """
 
-    # Attributes (sort alphabetically):
+    # 036006.python.init.line1205.comment Attributes (sort alphabetically):
     @property
     def caption(self) -> str:
         """The window caption (title). Read-only."""
@@ -1253,7 +1253,7 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         """The OpenGL context attached to this window.  Read-only."""
         return self._context
 
-    # These are the only properties that can be set
+    # 036007.python.init.line1256.comment These are the only properties that can be set
     @property
     def width(self) -> int:
         """The width of the window, in pixels.  Read-write."""
@@ -1367,8 +1367,8 @@ class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
         x, y, w, h = values
         pyglet.gl.glViewport(int(x * pr), int(y * pr), int(w * pr), int(h * pr))
 
-    # If documenting, show the event methods.  Otherwise, leave them out
-    # as they are not really methods.
+    # 036008.python.init.line1370.comment If documenting, show the event methods.  Otherwise, leave them out
+    # 036009.python.init.line1371.comment as they are not really methods.
     if _is_pyglet_doc_run:
         def on_activate(self) -> EVENT_HANDLE_STATE:
             """The window was activated.
@@ -1817,10 +1817,10 @@ class FPSDisplay:
              inaccurate readings.
     """
 
-    #: Time in seconds between updates.
+    # 036010.python.init.line1820.comment : Time in seconds between updates.
     update_period = 0.25
 
-    #: The text label displaying the framerate.
+    # 036011.python.init.line1823.comment : The text label displaying the framerate.
     label: Label
 
     def __init__(self, window: pyglet.window.Window, color: tuple[int, int, int, int] = (127, 127, 127, 127),
@@ -1843,7 +1843,7 @@ class FPSDisplay:
         self._time = time
         self._mean = mean
 
-        # Hook into the Window.flip method:
+        # 036012.python.init.line1846.comment Hook into the Window.flip method:
         self._window_flip, window.flip = window.flip, self._hook_flip
         self.label = Label('', x=10, y=10, font_size=24, weight='bold', color=color)
 
@@ -1876,19 +1876,19 @@ class FPSDisplay:
 
 
 if _is_pyglet_doc_run:
-    # We are building documentation. Trick docs into thinking BaseWindow is Window.
+    # 036013.python.init.line1879.comment We are building documentation. Trick docs into thinking BaseWindow is Window.
     import inspect
 
     Window = BaseWindow
     Window.__name__ = 'Window'
     Window.__qualname__ = 'Window'
 
-    # We also need to replace all qualname members so Sphinx and Typing modules pick up the correct class.
+    # 036014.python.init.line1886.comment We also need to replace all qualname members so Sphinx and Typing modules pick up the correct class.
     for _, method_obj in inspect.getmembers(Window, predicate=inspect.isfunction):
         method_obj.__qualname__ = method_obj.__qualname__.replace('BaseWindow', 'Window')
 
 else:
-    # Try to determine which platform to use.
+    # 036015.python.init.line1891.comment Try to determine which platform to use.
     if pyglet.options['headless']:
         from pyglet.window.headless import HeadlessWindow as Window
     elif pyglet.compat_platform == 'darwin':
@@ -1898,24 +1898,24 @@ else:
     else:
         from pyglet.window.xlib import XlibWindow as Window
 
-# Create shadow window. (trickery is for circular import)
+# 036016.python.init.line1901.comment Create shadow window. (trickery is for circular import)
 if not _is_pyglet_doc_run:
     pyglet.window = sys.modules[__name__]
     gl._create_shadow_window()  # noqa: SLF001
 
 
 __all__ = (
-    # imported
+    # 036018.python.init.line1908.comment imported
     "event",
     "key",
-    # classes
+    # 036019.python.init.line1911.comment classes
     "BaseWindow",
     "Window",
     "MouseCursor",
     "DefaultMouseCursor",
     "ImageMouseCursor",
     "FPSDisplay",
-    # errors
+    # 036020.python.init.line1918.comment errors
     "WindowException",
     "NoSuchScreenModeException",
     "NoSuchDisplayException",

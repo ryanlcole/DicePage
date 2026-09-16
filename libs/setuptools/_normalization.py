@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 import packaging
 
-# https://packaging.python.org/en/latest/specifications/core-metadata/#name
+# 041499.python.normalization.line11.comment https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.I)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
@@ -132,20 +132,20 @@ def filename_component_broken(value: str) -> str:
 
 def safer_name(value: str) -> str:
     """Like ``safe_name`` but can be used as filename component for wheel"""
-    # See bdist_wheel.safer_name
+    # 041500.python.normalization.line135.comment See bdist_wheel.safer_name
     return (
-        # Per https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
+        # 041501.python.normalization.line137.comment Per https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
         re.sub(r"[-_.]+", "-", safe_name(value))
         .lower()
-        # Per https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode
+        # 041502.python.normalization.line140.comment Per https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode
         .replace("-", "_")
     )
 
 
 def safer_best_effort_version(value: str) -> str:
     """Like ``best_effort_version`` but can be used as filename component for wheel"""
-    # See bdist_wheel.safer_verion
-    # TODO: Replace with only safe_version in the future (no need for best effort)
+    # 041503.python.normalization.line147.comment See bdist_wheel.safer_verion
+    # 041504.python.normalization.line148.comment TODO: Replace with only safe_version in the future (no need for best effort)
     return filename_component(best_effort_version(value))
 
 
@@ -173,5 +173,5 @@ try:
     )
 except ImportError:  # pragma: nocover
     if not TYPE_CHECKING:
-        # XXX: pyright is still upset even with # pyright: ignore[reportAssignmentType]
+        # 041506.python.normalization.line176.comment XXX: pyright is still upset even with # pyright: ignore[reportAssignmentType]
         _canonicalize_license_expression = _missing_canonicalize_license_expression

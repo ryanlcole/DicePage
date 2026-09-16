@@ -19,9 +19,9 @@ VOS_NT_WINDOWS32 = 0x00040004
 null_byte = b"\0"
 
 
-#
-# Set VS_FF_PRERELEASE and DEBUG if Debug
-#
+# 047808.python.win32verstamp.line22.comment
+# 047809.python.win32verstamp.line23.comment Set VS_FF_PRERELEASE and DEBUG if Debug
+# 047810.python.win32verstamp.line24.comment
 def file_flags(debug):
     if debug:
         return 3  # VS_FF_DEBUG | VS_FF_PRERELEASE
@@ -54,12 +54,12 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 
 def nullterm(s):
-    # get raw bytes for a NULL terminated unicode string.
+    # 047827.python.win32verstamp.line57.comment get raw bytes for a NULL terminated unicode string.
     return (str(s) + "\0").encode("utf-16le")
 
 
 def pad32(s, extra=2):
-    # extra is normally 2 to deal with wLength
+    # 047828.python.win32verstamp.line62.comment extra is normally 2 to deal with wLength
     l = 4 - ((len(s) + extra) & 3)
     if l < 4:
         return s + (null_byte * l)
@@ -92,7 +92,7 @@ def StringTable(key, data):
 def StringFileInfo(data):
     result = struct.pack("hh", 0, 1)  # wValueLength, wType
     result += nullterm("StringFileInfo")
-    #  result = pad32(result) + StringTable('040904b0', data)
+    # 047832.python.win32verstamp.line95.comment result = pad32(result) + StringTable('040904b0', data)
     result = pad32(result) + StringTable("040904E4", data)
     return addlen(result)
 
@@ -123,9 +123,9 @@ def VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug=0, is_dll=1):
 
 
 def stamp(pathname, options):
-    # For some reason, the API functions report success if the file is open
-    # but doesn't work!  Try and open the file for writing, just to see if it is
-    # likely the stamp will work!
+    # 047836.python.win32verstamp.line126.comment For some reason, the API functions report success if the file is open
+    # 047837.python.win32verstamp.line127.comment but doesn't work!  Try and open the file for writing, just to see if it is
+    # 047838.python.win32verstamp.line128.comment likely the stamp will work!
     try:
         f = open(pathname, "a+b")
         f.close()
@@ -167,7 +167,7 @@ def stamp(pathname, options):
     is_debug = options.debug
     if is_debug is None:
         is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")
-    # convert None to blank strings
+    # 047839.python.win32verstamp.line170.comment convert None to blank strings
     for k, v in sdata.items():
         if v is None:
             sdata[k] = ""

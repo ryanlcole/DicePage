@@ -76,7 +76,7 @@ if _is_pyglet_doc_run:
 class LibraryLoader:  # noqa: D101
 
     platform = pyglet.compat_platform
-    # this is only for library loading, don't include it in pyglet.platform
+    # 030665.python.lib.line79.comment this is only for library loading, don't include it in pyglet.platform
     if platform == 'cygwin':
         platform = 'win32'
 
@@ -154,7 +154,7 @@ class MacOSLibraryLoader(LibraryLoader):  # noqa: D101
             self.ld_library_path = []
 
         if _local_lib_paths:
-            # search first for local libs
+            # 030669.python.lib.line157.comment search first for local libs
             self.ld_library_path = _local_lib_paths + self.ld_library_path
             os.environ['LD_LIBRARY_PATH'] = ':'.join(self.ld_library_path)
 
@@ -168,14 +168,14 @@ class MacOSLibraryLoader(LibraryLoader):  # noqa: D101
         else:
             self.dyld_fallback_library_path = [os.path.expanduser('~/lib'), '/usr/local/lib', '/usr/lib']
 
-            # Homebrew path on Apple Silicon is no longer in local.
+            # 030670.python.lib.line171.comment Homebrew path on Apple Silicon is no longer in local.
             if 'HOMEBREW_PREFIX' in os.environ:
-                # if HOMEBREW_PREFIX is defined, add its lib directory.
+                # 030671.python.lib.line173.comment if HOMEBREW_PREFIX is defined, add its lib directory.
                 brew_lib_path = os.path.join(os.environ['HOMEBREW_PREFIX'], 'lib')
                 if os.path.exists(brew_lib_path):
                     self.dyld_fallback_library_path.append(brew_lib_path)
             else:
-                # Check the typical path if the environmental variable is missing.
+                # 030672.python.lib.line178.comment Check the typical path if the environmental variable is missing.
                 if os.path.exists('/opt/homebrew/lib'):
                     self.dyld_fallback_library_path.append('/opt/homebrew/lib')
 
@@ -195,23 +195,23 @@ class MacOSLibraryLoader(LibraryLoader):  # noqa: D101
         if '.dylib' not in libname:
             libname = 'lib' + libname + '.dylib'
 
-        # py2app support
+        # 030674.python.lib.line198.comment py2app support
         if getattr(sys, 'frozen', None) == 'macosx_app' and 'RESOURCEPATH' in os.environ:
             search_path.append(os.path.join(os.environ['RESOURCEPATH'],
                                             '..',
                                             'Frameworks',
                                             libname))
 
-        # conda support
+        # 030675.python.lib.line205.comment conda support
         if os.environ.get('CONDA_PREFIX', False):
             search_path.append(os.path.join(os.environ['CONDA_PREFIX'], 'lib', libname))
 
-        # pyinstaller.py sets sys.frozen to True, and puts dylibs in
-        # Contents/macOS, which path pyinstaller puts in sys._MEIPASS
+        # 030676.python.lib.line209.comment pyinstaller.py sets sys.frozen to True, and puts dylibs in
+        # 030677.python.lib.line210.comment Contents/macOS, which path pyinstaller puts in sys._MEIPASS
         if getattr(sys, 'frozen', False) and (meipass := getattr(sys, '_MEIPASS', None)):
             search_path.append(os.path.join(meipass, libname))
 
-        # conda support
+        # 030678.python.lib.line214.comment conda support
         if os.environ.get('CONDA_PREFIX', False):
             search_path.append(os.path.join(os.environ['CONDA_PREFIX'], 'lib', libname))
 
@@ -235,7 +235,7 @@ class MacOSLibraryLoader(LibraryLoader):  # noqa: D101
     def load_framework(name: str) -> ctypes.CDLL | _TraceLibrary:
         path = ctypes.util.find_library(name)
 
-        # Hack for compatibility with macOS > 11.0  # noqa: FIX004
+        # 030679.python.lib.line238.comment Hack for compatibility with macOS > 11.0  # noqa: FIX004
         if path is None:
             frameworks = {
                 'AGL': '/System/Library/Frameworks/AGL.framework/AGL',
@@ -270,11 +270,11 @@ class LinuxLibraryLoader(LibraryLoader):  # noqa: D101
                 for file in os.listdir(directory):
                     match = lib_re.match(file)
                     if match:
-                        # Index by filename
+                        # 030681.python.lib.line273.comment Index by filename
                         path = os.path.join(directory, file)
                         if file not in libs:
                             libs[file] = path
-                        # Index by library name
+                        # 030682.python.lib.line277.comment Index by library name
                         library = match.group(1)
                         if library not in libs:
                             libs[library] = path
@@ -283,12 +283,12 @@ class LinuxLibraryLoader(LibraryLoader):  # noqa: D101
         return libs
 
     def _create_ld_so_cache(self) -> None:
-        # Recreate search path followed by ld.so.  This is going to be
-        # slow to build, and incorrect (ld.so uses ld.so.cache, which may
-        # not be up-to-date).  Used only as fallback for distros without
-        # /sbin/ldconfig.
-        #
-        # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
+        # 030684.python.lib.line286.comment Recreate search path followed by ld.so.  This is going to be
+        # 030685.python.lib.line287.comment slow to build, and incorrect (ld.so uses ld.so.cache, which may
+        # 030686.python.lib.line288.comment not be up-to-date).  Used only as fallback for distros without
+        # 030687.python.lib.line289.comment /sbin/ldconfig.
+        # 030688.python.lib.line290.comment
+        # 030689.python.lib.line291.comment We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
         directories = []
         with contextlib.suppress(KeyError):
@@ -303,16 +303,16 @@ class LinuxLibraryLoader(LibraryLoader):  # noqa: D101
 
     def find_library(self, path: str) -> str:
 
-        # search first for local libs
+        # 030690.python.lib.line306.comment search first for local libs
         if _local_lib_paths:
             if not self._local_libs_cache:
                 self._local_libs_cache = self._find_libs(_local_lib_paths)
             if path in self._local_libs_cache:
                 return self._local_libs_cache[path]
 
-        # ctypes tries ldconfig, gcc and objdump.  If none of these are
-        # present, we implement the ld-linux.so search path as described in
-        # the man page.
+        # 030691.python.lib.line313.comment ctypes tries ldconfig, gcc and objdump.  If none of these are
+        # 030692.python.lib.line314.comment present, we implement the ld-linux.so search path as described in
+        # 030693.python.lib.line315.comment the man page.
 
         result = ctypes.util.find_library(path)
 

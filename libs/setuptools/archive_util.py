@@ -84,7 +84,7 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> N
             target = os.path.join(dst, f)
             target = progress_filter(src + f, target)
             if not target:
-                # skip non-files
+                # 044244.python.archive_util.line87.comment skip non-files
                 continue
             ensure_directory(target)
             f = os.path.join(base, f)
@@ -115,7 +115,7 @@ def _unpack_zipfile_obj(zipfile_obj, extract_dir, progress_filter=default_filter
     for info in zipfile_obj.infolist():
         name = info.filename
 
-        # don't extract absolute paths or ones with .. in them
+        # 044245.python.archive_util.line118.comment don't extract absolute paths or ones with .. in them
         if name.startswith('/') or '..' in name.split('/'):
             continue
 
@@ -124,10 +124,10 @@ def _unpack_zipfile_obj(zipfile_obj, extract_dir, progress_filter=default_filter
         if not target:
             continue
         if name.endswith('/'):
-            # directory
+            # 044246.python.archive_util.line127.comment directory
             ensure_directory(target)
         else:
-            # file
+            # 044247.python.archive_util.line130.comment file
             ensure_directory(target)
             data = zipfile_obj.read(info.filename)
             with open(target, 'wb') as f:
@@ -160,13 +160,13 @@ def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
 
 def _iter_open_tar(tar_obj, extract_dir, progress_filter):
     """Emit member-destination pairs from a tar archive."""
-    # don't do any chowning!
+    # 044248.python.archive_util.line163.comment don't do any chowning!
     tar_obj.chown = lambda *args: None
 
     with contextlib.closing(tar_obj):
         for member in tar_obj:
             name = member.name
-            # don't extract absolute paths or ones with .. in them
+            # 044249.python.archive_util.line169.comment don't extract absolute paths or ones with .. in them
             if name.startswith('/') or '..' in name.split('/'):
                 continue
 
@@ -207,10 +207,10 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter) -> boo
         progress_filter,
     ):
         try:
-            # XXX Ugh
+            # 044250.python.archive_util.line210.comment XXX Ugh
             tarobj._extract_member(member, final_dst)
         except tarfile.ExtractError:
-            # chown/chmod/mkfifo/mknode/makedev failed
+            # 044251.python.archive_util.line213.comment chown/chmod/mkfifo/mknode/makedev failed
             pass
 
     return True

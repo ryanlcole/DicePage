@@ -1,4 +1,4 @@
-## Demonstrates a "push" subscription with a callback function
+# 045989.python.EvtSubscribe_push.line1.comment # Demonstrates a "push" subscription with a callback function
 from __future__ import annotations
 
 from time import sleep

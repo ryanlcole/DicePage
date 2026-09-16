@@ -12,8 +12,8 @@ If you need finer control than offered here, just use the win32security
 functions directly.
 """
 
-# Based on Roger Upole's sspi demos.
-# $Id$
+# 047039.python.sspi.line15.comment Based on Roger Upole's sspi demos.
+# 047040.python.sspi.line16.comment $Id$
 import sspicon
 import win32security
 
@@ -31,7 +31,7 @@ class _BaseAuth:
         self.initiator_name = None
         self.service_name = None
 
-        # The next seq_num for an encrypt/sign operation
+        # 047042.python.sspi.line34.comment The next seq_num for an encrypt/sign operation
         self.next_seq_num = 0
 
     def _get_next_seq_num(self):
@@ -107,14 +107,14 @@ class _BaseAuth:
         Return the clear text, and a boolean that is True if the token was encrypted.
         """
         buffer = win32security.PySecBufferDescType()
-        # This buffer will contain a "stream", which is the token coming from the other side
+        # 047043.python.sspi.line110.comment This buffer will contain a "stream", which is the token coming from the other side
         buffer.append(
             win32security.PySecBufferType(len(token), sspicon.SECBUFFER_STREAM)
         )
         buffer[0].Buffer = token
 
-        # This buffer will receive the clear, or just unwrapped text if no encryption was used.
-        # Will be resized by the lib.
+        # 047044.python.sspi.line116.comment This buffer will receive the clear, or just unwrapped text if no encryption was used.
+        # 047045.python.sspi.line117.comment Will be resized by the lib.
         buffer.append(win32security.PySecBufferType(0, sspicon.SECBUFFER_DATA))
 
         pfQOP = self.ctxt.DecryptMessage(buffer, self._get_next_seq_num())
@@ -138,16 +138,16 @@ class _BaseAuth:
 
         buffer = win32security.PySecBufferDescType()
 
-        # This buffer will contain unencrypted data to wrap, and maybe encrypt.
+        # 047046.python.sspi.line141.comment This buffer will contain unencrypted data to wrap, and maybe encrypt.
         buffer.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
         buffer[0].Buffer = msg
 
-        # Will receive the token that forms the beginning of the msg
+        # 047047.python.sspi.line145.comment Will receive the token that forms the beginning of the msg
         buffer.append(
             win32security.PySecBufferType(trailer_size, sspicon.SECBUFFER_TOKEN)
         )
 
-        # The trailer is needed in case of block encryption
+        # 047048.python.sspi.line150.comment The trailer is needed in case of block encryption
         buffer.append(
             win32security.PySecBufferType(block_size, sspicon.SECBUFFER_PADDING)
         )
@@ -155,7 +155,7 @@ class _BaseAuth:
         fQOP = 0 if encrypt else sspicon.SECQOP_WRAP_NO_ENCRYPT
         self.ctxt.EncryptMessage(fQOP, buffer, self._get_next_seq_num())
 
-        # Sec token, then data, then padding
+        # 047049.python.sspi.line158.comment Sec token, then data, then padding
         r = buffer[1].Buffer + buffer[0].Buffer + buffer[2].Buffer
         return r
 
@@ -167,7 +167,7 @@ class _BaseAuth:
         try:
             names = self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_NATIVE_NAMES)
         except error:
-            # The SSP doesn't provide these attributes.
+            # 047050.python.sspi.line170.comment The SSP doesn't provide these attributes.
             pass
         else:
             self.initiator_name, self.service_name = names
@@ -213,7 +213,7 @@ class ClientAuth(_BaseAuth):
         if sec_buffer_in is not None and not isinstance(
             sec_buffer_in, win32security.PySecBufferDescType
         ):
-            # User passed us the raw data - wrap it into a SecBufferDesc
+            # 047056.python.sspi.line216.comment User passed us the raw data - wrap it into a SecBufferDesc
             sec_buffer_new = win32security.PySecBufferDescType()
             tokenbuf = win32security.PySecBufferType(
                 self.pkg_info["MaxToken"], sspicon.SECBUFFER_TOKEN
@@ -226,7 +226,7 @@ class ClientAuth(_BaseAuth):
             self.pkg_info["MaxToken"], sspicon.SECBUFFER_TOKEN
         )
         sec_buffer_out.append(tokenbuf)
-        ## input context handle should be NULL on first call
+        # 047057.python.sspi.line229.comment # input context handle should be NULL on first call
         ctxtin = self.ctxt
         if self.ctxt is None:
             self.ctxt = win32security.PyCtxtHandleType()
@@ -240,8 +240,8 @@ class ClientAuth(_BaseAuth):
             self.ctxt,
             sec_buffer_out,
         )
-        # Stash these away incase someone needs to know the state from the
-        # final call.
+        # 047058.python.sspi.line243.comment Stash these away incase someone needs to know the state from the
+        # 047059.python.sspi.line244.comment final call.
         self.ctxt_attr = attr
         self.ctxt_expiry = exp
 
@@ -271,8 +271,8 @@ class ServerAuth(_BaseAuth):
                 | sspicon.ASC_REQ_REPLAY_DETECT
                 | sspicon.ASC_REQ_CONFIDENTIALITY
             )
-        # Should we default to sspicon.KerbAddExtraCredentialsMessage
-        # if pkg_name=='Kerberos'?
+        # 047060.python.sspi.line274.comment Should we default to sspicon.KerbAddExtraCredentialsMessage
+        # 047061.python.sspi.line275.comment if pkg_name=='Kerberos'?
         self.scflags = scflags
 
         self.pkg_info = win32security.QuerySecurityPackageInfo(pkg_name)
@@ -290,7 +290,7 @@ class ServerAuth(_BaseAuth):
         if sec_buffer_in is not None and not isinstance(
             sec_buffer_in, win32security.PySecBufferDescType
         ):
-            # User passed us the raw data - wrap it into a SecBufferDesc
+            # 047062.python.sspi.line293.comment User passed us the raw data - wrap it into a SecBufferDesc
             sec_buffer_new = win32security.PySecBufferDescType()
             tokenbuf = win32security.PySecBufferType(
                 self.pkg_info["MaxToken"], sspicon.SECBUFFER_TOKEN
@@ -304,7 +304,7 @@ class ServerAuth(_BaseAuth):
             self.pkg_info["MaxToken"], sspicon.SECBUFFER_TOKEN
         )
         sec_buffer_out.append(tokenbuf)
-        ## input context handle is None initially, then handle returned from last call thereafter
+        # 047063.python.sspi.line307.comment # input context handle is None initially, then handle returned from last call thereafter
         ctxtin = self.ctxt
         if self.ctxt is None:
             self.ctxt = win32security.PyCtxtHandleType()
@@ -318,8 +318,8 @@ class ServerAuth(_BaseAuth):
             sec_buffer_out,
         )
 
-        # Stash these away incase someone needs to know the state from the
-        # final call.
+        # 047064.python.sspi.line321.comment Stash these away incase someone needs to know the state from the
+        # 047065.python.sspi.line322.comment final call.
         self.ctxt_attr = attr
         self.ctxt_expiry = exp
 
@@ -334,10 +334,10 @@ class ServerAuth(_BaseAuth):
 
 
 if __name__ == "__main__":
-    # This is the security package (the security support provider / the security backend)
-    # we want to use for this example.
+    # 047066.python.sspi.line337.comment This is the security package (the security support provider / the security backend)
+    # 047067.python.sspi.line338.comment we want to use for this example.
     ssp = "Kerberos"  # or "NTLM" or "Negotiate" which enable negotiation between
-    # Kerberos (prefered) and NTLM (if not supported on the other side).
+    # 047069.python.sspi.line340.comment Kerberos (prefered) and NTLM (if not supported on the other side).
 
     flags = (
         sspicon.ISC_REQ_MUTUAL_AUTH
@@ -347,17 +347,17 @@ if __name__ == "__main__":
         | sspicon.ISC_REQ_REPLAY_DETECT  # request confidentiality  # request replay detection
     )
 
-    # Get our identity, mandatory for the Kerberos case *for this example*
-    # Kerberos cannot be used if we don't tell it the target we want
-    # to authenticate to.
+    # 047074.python.sspi.line350.comment Get our identity, mandatory for the Kerberos case *for this example*
+    # 047075.python.sspi.line351.comment Kerberos cannot be used if we don't tell it the target we want
+    # 047076.python.sspi.line352.comment to authenticate to.
     cred_handle, exp = win32security.AcquireCredentialsHandle(
         None, ssp, sspicon.SECPKG_CRED_INBOUND, None, None
     )
     cred = cred_handle.QueryCredentialsAttributes(sspicon.SECPKG_CRED_ATTR_NAMES)
     print("We are:", cred)
 
-    # Setup the 2 contexts. In real life, only one is needed: the other one is
-    # created in the process we want to communicate with.
+    # 047077.python.sspi.line359.comment Setup the 2 contexts. In real life, only one is needed: the other one is
+    # 047078.python.sspi.line360.comment created in the process we want to communicate with.
     sspiclient = ClientAuth(ssp, scflags=flags, targetspn=cred)
     sspiserver = ServerAuth(ssp, scflags=flags)
 
@@ -367,8 +367,8 @@ if __name__ == "__main__":
         )
     )
 
-    # Perform the authentication dance, each loop exchanging more information
-    # on the way to completing authentication.
+    # 047079.python.sspi.line370.comment Perform the authentication dance, each loop exchanging more information
+    # 047080.python.sspi.line371.comment on the way to completing authentication.
     sec_buffer = None
     client_step = 0
     server_step = 0
@@ -383,28 +383,28 @@ if __name__ == "__main__":
         err, sec_buffer = sspiserver.authorize(sec_buffer)
         print("Server step %s" % server_step)
 
-    # Authentication process is finished.
+    # 047081.python.sspi.line386.comment Authentication process is finished.
     print("Initiator name from the service side:", sspiserver.initiator_name)
     print("Service name from the client side:   ", sspiclient.service_name)
 
     data = b"hello"
 
-    # Simple signature, not compatible with GSSAPI.
+    # 047082.python.sspi.line392.comment Simple signature, not compatible with GSSAPI.
     sig = sspiclient.sign(data)
     sspiserver.verify(data, sig)
 
-    # Encryption
+    # 047083.python.sspi.line396.comment Encryption
     encrypted, sig = sspiclient.encrypt(data)
     decrypted = sspiserver.decrypt(encrypted, sig)
     assert decrypted == data
 
-    # GSSAPI wrapping, no encryption (NTLM always encrypts)
+    # 047084.python.sspi.line401.comment GSSAPI wrapping, no encryption (NTLM always encrypts)
     wrapped = sspiclient.wrap(data)
     unwrapped, was_encrypted = sspiserver.unwrap(wrapped)
     print("encrypted ?", was_encrypted)
     assert data == unwrapped
 
-    # GSSAPI wrapping, with encryption
+    # 047085.python.sspi.line407.comment GSSAPI wrapping, with encryption
     wrapped = sspiserver.wrap(data, encrypt=True)
     unwrapped, was_encrypted = sspiclient.unwrap(wrapped)
     print("encrypted ?", was_encrypted)

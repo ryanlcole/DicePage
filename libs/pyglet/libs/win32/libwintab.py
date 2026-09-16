@@ -113,7 +113,7 @@ class SLIDERDATA(ctypes.Structure):  # 1.4
         ('nMode', BYTE),  # Zero-based current active mode of control. Mode selected by control's toggle button.
         ('nReserved', BYTE),  # Reserved - not used
         ('nPosition', DWORD)  # An integer representing the position of the user's finger on the control.
-        # When there is no finger on the control, this value is negative.
+        # 031963.python.libwintab.line116.comment When there is no finger on the control, this value is negative.
     )
 
 
@@ -130,16 +130,16 @@ class EXTPROPERTY(ctypes.Structure):  # 1.4
     )
 
 
-# Custom packet format with fields
-#   PK_CHANGED
-#   PK_CURSOR
-#   PK_BUTTONS
-#   PK_X
-#   PK_Y
-#   PK_Z
-#   PK_NORMAL_PRESSURE
-#   PK_TANGENT_PRESSURE
-#   PK_ORIENTATION (check for tilt extension instead)?
+# 031973.python.libwintab.line133.comment Custom packet format with fields
+# 031974.python.libwintab.line134.comment PK_CHANGED
+# 031975.python.libwintab.line135.comment PK_CURSOR
+# 031976.python.libwintab.line136.comment PK_BUTTONS
+# 031977.python.libwintab.line137.comment PK_X
+# 031978.python.libwintab.line138.comment PK_Y
+# 031979.python.libwintab.line139.comment PK_Z
+# 031980.python.libwintab.line140.comment PK_NORMAL_PRESSURE
+# 031981.python.libwintab.line141.comment PK_TANGENT_PRESSURE
+# 031982.python.libwintab.line142.comment PK_ORIENTATION (check for tilt extension instead)?
 class PACKET(ctypes.Structure):
     _fields_ = (
         ('pkChanged', WTPKT),
@@ -183,7 +183,7 @@ TU_INCHES = 1
 TU_CENTIMETERS = 2
 TU_CIRCLE = 3
 
-# messages
+# 032001.python.libwintab.line186.comment messages
 WT_DEFBASE = 0x7ff0
 WT_MAXOFFSET = 0xf
 WT_PACKET = 0  # remember to add base
@@ -196,7 +196,7 @@ WT_INFOCHANGE = 6
 WT_CSRCHANGE = 7
 WT_PACKETEXT = 8
 
-# system button assignment values 
+# 032003.python.libwintab.line199.comment system button assignment values
 SBN_NONE = 0x00
 SBN_LCLICK = 0x01
 SBN_LDBLCLICK = 0x02
@@ -208,7 +208,7 @@ SBN_MCLICK = 0x07
 SBN_MDBLCLICK = 0x08
 SBN_MDRAG = 0x09
 
-# for Pen Windows 
+# 032004.python.libwintab.line211.comment for Pen Windows
 SBN_PTCLICK = 0x10
 SBN_PTDBLCLICK = 0x20
 SBN_PTDRAG = 0x30
@@ -361,18 +361,18 @@ CXO_MARGIN = 0x8000
 CXO_MGNINSIDE = 0x4000
 CXO_CSRMESSAGES = 0x0008  # 1.1
 
-# context status values 
+# 032021.python.libwintab.line364.comment context status values
 CXS_DISABLED = 0x0001
 CXS_OBSCURED = 0x0002
 CXS_ONTOP = 0x0004
 
-# context lock values 
+# 032022.python.libwintab.line369.comment context lock values
 CXL_INSIZE = 0x0001
 CXL_INASPECT = 0x0002
 CXL_SENSITIVITY = 0x0004
 CXL_MARGIN = 0x0008
 CXL_SYSOUT = 0x0010
-# packet status values 
+# 032023.python.libwintab.line375.comment packet status values
 TPS_PROXIMITY = 0x0001
 TPS_QUEUE_ERR = 0x0002
 TPS_MARGIN = 0x0004
@@ -385,7 +385,7 @@ TBN_DOWN = 2
 PKEXT_ABSOLUTE = 1
 PKEXT_RELATIVE = 2
 
-# Extension tags. 
+# 032025.python.libwintab.line388.comment Extension tags.
 WTX_OBT = 0  # Out of bounds tracking
 WTX_FKEYS = 1  # Function keys
 WTX_TILT = 2  # Raw Cartesian tilt; 1.1

@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2015 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052206.python.util.line1.comment
+# 052207.python.util.line2.comment (C) Copyright 2015 Enthought, Inc., Austin, TX
+# 052208.python.util.line3.comment All right reserved.
+# 052209.python.util.line4.comment
+# 052210.python.util.line5.comment This file is open source software distributed according to the terms in
+# 052211.python.util.line6.comment LICENSE.txt
+# 052212.python.util.line7.comment
 """ Utility functions to help with cffi wrapping.
 """
 from win32ctypes.core.compat import is_bytes, is_integer

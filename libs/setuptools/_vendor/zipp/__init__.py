@@ -137,8 +137,8 @@ class SanitizedNames:
         def allowed(part):
             return part and part not in {'..', '.'}
 
-        # Remove the drive letter.
-        # Don't use ntpath.splitdrive, because that also strips UNC paths
+        # 044237.python.init.line140.comment Remove the drive letter.
+        # 044238.python.init.line141.comment Don't use ntpath.splitdrive, because that also strips UNC paths
         bare = re.sub('^([A-Z]):', r'\1', name, flags=re.IGNORECASE)
         clean = bare.replace('\\', '/')
         parts = clean.split('/')
@@ -205,7 +205,7 @@ class CompleteDirs(InitializedState, SanitizedNames, zipfile.ZipFile):
         if not isinstance(source, zipfile.ZipFile):
             return cls(source)
 
-        # Only allow for FastLookup when supplied zipfile is read-only
+        # 044239.python.init.line208.comment Only allow for FastLookup when supplied zipfile is read-only
         if 'r' not in source.mode:
             cls = CompleteDirs
 
@@ -243,7 +243,7 @@ class FastLookup(CompleteDirs):
 
 
 def _extract_text_encoding(encoding=None, *args, **kwargs):
-    # compute stack level so that the caller of the caller sees any warning.
+    # 044240.python.init.line246.comment compute stack level so that the caller of the caller sees any warning.
     is_pypy = sys.implementation.name == 'pypy'
     stack_level = 3 + is_pypy
     return text_encoding(encoding, stack_level), args, kwargs
@@ -395,7 +395,7 @@ class Path:
             if args or kwargs:
                 raise ValueError("encoding args invalid for binary operation")
             return stream
-        # Text mode:
+        # 044241.python.init.line398.comment Text mode:
         encoding, args, kwargs = _extract_text_encoding(*args, **kwargs)
         return io.TextIOWrapper(stream, encoding, *args, **kwargs)
 

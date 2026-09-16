@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014-18 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052220.python.authentication.line1.comment
+# 052221.python.authentication.line2.comment (C) Copyright 2014-18 Enthought, Inc., Austin, TX
+# 052222.python.authentication.line3.comment All right reserved.
+# 052223.python.authentication.line4.comment
+# 052224.python.authentication.line5.comment This file is open source software distributed according to the terms in
+# 052225.python.authentication.line6.comment LICENSE.txt
+# 052226.python.authentication.line7.comment
 import ctypes
 from ctypes import POINTER, Structure, c_void_p, c_wchar_p, c_char_p, cast
 from ctypes.wintypes import (
@@ -47,7 +47,7 @@ class CREDENTIAL(Structure):
         c_creds = cls()
         c_pcreds = PCREDENTIAL(c_creds)
 
-        # zero-out memory
+        # 052227.python.authentication.line50.comment zero-out memory
         ctypes.memset(c_pcreds, 0, ctypes.sizeof(c_creds))
 
         for key in SUPPORTED_CREDKEYS:
@@ -57,8 +57,8 @@ class CREDENTIAL(Structure):
                 else:
                     blob = make_unicode(credential['CredentialBlob'])
                     blob_data = ctypes.create_unicode_buffer(blob)
-                    # Create_unicode_buffer adds a NULL at the end of the
-                    # string we do not want that.
+                    # 052228.python.authentication.line60.comment Create_unicode_buffer adds a NULL at the end of the
+                    # 052229.python.authentication.line61.comment string we do not want that.
                     c_creds.CredentialBlobSize = \
                         ctypes.sizeof(blob_data) - \
                         ctypes.sizeof(ctypes.c_wchar)

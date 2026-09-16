@@ -1,17 +1,17 @@
-# pydumper.py
-#
-# This is being worked on - it does not yet work at all, in ay way
-# shape or form :-)
-#
-# A new script engine, derived from the standard scripting engine,
-# which dumps information.
+# 051191.python.pydumper.line1.comment pydumper.py
+# 051192.python.pydumper.line2.comment
+# 051193.python.pydumper.line3.comment This is being worked on - it does not yet work at all, in ay way
+# 051194.python.pydumper.line4.comment shape or form :-)
+# 051195.python.pydumper.line5.comment
+# 051196.python.pydumper.line6.comment A new script engine, derived from the standard scripting engine,
+# 051197.python.pydumper.line7.comment which dumps information.
 
-# This generally can be used to grab all sorts of useful details about
-# an engine - expose bugs in it or Python, dump the object model, etc.
+# 051198.python.pydumper.line9.comment This generally can be used to grab all sorts of useful details about
+# 051199.python.pydumper.line10.comment an engine - expose bugs in it or Python, dump the object model, etc.
 
-# As it is derived from the standard engine, it fully supports Python
-# as a scripting language - meaning the dumps produced can be quite dynamic,
-# and based on the script code you execute.
+# 051200.python.pydumper.line12.comment As it is derived from the standard engine, it fully supports Python
+# 051201.python.pydumper.line13.comment as a scripting language - meaning the dumps produced can be quite dynamic,
+# 051202.python.pydumper.line14.comment and based on the script code you execute.
 
 import sys
 
@@ -68,7 +68,7 @@ def Register():
     )
 
     win32api.RegCreateKey(win32con.HKEY_CLASSES_ROOT, languageName + "\\OLEScript")
-    # Basic Registration for wsh.
+    # 051205.python.pydumper.line71.comment Basic Registration for wsh.
     _set_string(".pysDump", "pysDumpFile")
     _set_string("pysDumpFile\\ScriptEngine", languageName)
     print("Dumping Server registered.")

@@ -67,7 +67,7 @@ class _MessageHandler:
 
         self.source.audio_format = AudioFormat(channels=channels, sample_size=sample_size, sample_rate=sample_rate)
 
-        # Allow GStreamerSource.__init__ to complete:
+        # 034033.python.gstreamer.line70.comment Allow GStreamerSource.__init__ to complete:
         self.source.is_ready.set()
 
     def pad_added(self, element, pad):
@@ -86,9 +86,9 @@ class _MessageHandler:
 
     def new_sample(self, sink):
         """new-sample callback"""
-        # Pull the sample, and get its buffer:
+        # 034034.python.gstreamer.line89.comment Pull the sample, and get its buffer:
         buffer = sink.emit('pull-sample').get_buffer()
-        # Extract a copy of the memory in the buffer:
+        # 034035.python.gstreamer.line91.comment Extract a copy of the memory in the buffer:
         mem = buffer.extract_dup(0, buffer.get_size())
         self.source.queue.put(mem)
         return Gst.FlowReturn.OK
@@ -118,7 +118,7 @@ class GStreamerSource(StreamingSource):
             self._file.write(file.read())
             filename = self._file.name
 
-        # Create the major parts of the pipeline:
+        # 034036.python.gstreamer.line121.comment Create the major parts of the pipeline:
         self.filesrc = Gst.ElementFactory.make("filesrc", None)
         self.decoder = Gst.ElementFactory.make("decodebin", None)
         self.converter = Gst.ElementFactory.make("audioconvert", None)
@@ -126,47 +126,47 @@ class GStreamerSource(StreamingSource):
         if not all((self.filesrc, self.decoder, self.converter, self.appsink)):
             raise GStreamerDecodeException("Could not initialize GStreamer.")
 
-        # Set callbacks for EOS and error messages:
+        # 034037.python.gstreamer.line129.comment Set callbacks for EOS and error messages:
         self._pipeline.bus.add_signal_watch()
         self._pipeline.bus.connect("message", msg_handler.message)
 
-        # Set the file path to load:
+        # 034038.python.gstreamer.line133.comment Set the file path to load:
         self.filesrc.set_property("location", filename)
 
-        # Set decoder callback handlers:
+        # 034039.python.gstreamer.line136.comment Set decoder callback handlers:
         self.decoder.connect("pad-added", msg_handler.pad_added)
         self.decoder.connect("no-more-pads", msg_handler.no_more_pads)
         self.decoder.connect("unknown-type", msg_handler.unknown_type)
 
-        # Set the sink's capabilities and behavior:
+        # 034040.python.gstreamer.line141.comment Set the sink's capabilities and behavior:
         self.appsink.set_property('caps', Gst.Caps.from_string('audio/x-raw,format=S16LE,layout=interleaved'))
         self.appsink.set_property('drop', False)
         self.appsink.set_property('sync', False)
         self.appsink.set_property('max-buffers', 0)     # unlimited
         self.appsink.set_property('emit-signals', True)
-        # The callback to receive decoded data:
+        # 034042.python.gstreamer.line147.comment The callback to receive decoded data:
         self.appsink.connect("new-sample", msg_handler.new_sample)
 
-        # Add all components to the pipeline:
+        # 034043.python.gstreamer.line150.comment Add all components to the pipeline:
         self._pipeline.add(self.filesrc)
         self._pipeline.add(self.decoder)
         self._pipeline.add(self.converter)
         self._pipeline.add(self.appsink)
-        # Link together necessary components:
+        # 034044.python.gstreamer.line155.comment Link together necessary components:
         self.filesrc.link(self.decoder)
         self.decoder.link(self.converter)
         self.converter.link(self.appsink)
 
-        # Callback to notify once the sink is ready:
+        # 034045.python.gstreamer.line160.comment Callback to notify once the sink is ready:
         self.caps_handler = self.appsink.get_static_pad("sink").connect("notify::caps", msg_handler.notify_caps)
 
-        # Set by callbacks:
+        # 034046.python.gstreamer.line163.comment Set by callbacks:
         self.pads = False
         self.caps = False
         self._pipeline.set_state(Gst.State.PLAYING)
         self.queue = queue.Queue(5)
         self._finished = Event()
-        # Wait until the is_ready event is set by a callback:
+        # 034047.python.gstreamer.line169.comment Wait until the is_ready event is set by a callback:
         self.is_ready = Event()
         if not self.is_ready.wait(timeout=1):
             raise GStreamerDecodeException('Initialization Error')
@@ -213,7 +213,7 @@ class GStreamerSource(StreamingSource):
         return AudioData(data, len(data), timestamp, duration, [])
 
     def seek(self, timestamp):
-        # First clear any data in the queue:
+        # 034048.python.gstreamer.line216.comment First clear any data in the queue:
         while not self.queue.empty():
             self.queue.get_nowait()
 
@@ -224,8 +224,8 @@ class GStreamerSource(StreamingSource):
 
 
 def _cleanup():
-    # At exist, ensure any remaining Source instances are cleaned up.
-    # If this is not done, GStreamer may hang due to dangling callbacks.
+    # 034049.python.gstreamer.line227.comment At exist, ensure any remaining Source instances are cleaned up.
+    # 034050.python.gstreamer.line228.comment If this is not done, GStreamer may hang due to dangling callbacks.
     for src in GStreamerSource.source_instances:
         src.delete()
 
@@ -233,9 +233,9 @@ def _cleanup():
 atexit.register(_cleanup)
 
 
-#########################################
-#   Decoder class:
-#########################################
+# 034051.python.gstreamer.line236.comment ########################################
+# 034052.python.gstreamer.line237.comment Decoder class:
+# 034053.python.gstreamer.line238.comment ########################################
 
 class GStreamerDecoder(MediaDecoder):
 
@@ -249,11 +249,11 @@ class GStreamerDecoder(MediaDecoder):
     def decode(self, filename, file, streaming=True):
 
         if not any(filename.endswith(ext) for ext in self.get_file_extensions()):
-            # Refuse to decode anything not specifically listed in the supported
-            # file extensions list. This decoder does not yet support video, but
-            # it would still decode it and return only the Audio track. This is
-            # not desired, since the other decoders will not get a turn. Instead
-            # we bail out and let pyglet pass it to the next codec (FFmpeg).
+            # 034054.python.gstreamer.line252.comment Refuse to decode anything not specifically listed in the supported
+            # 034055.python.gstreamer.line253.comment file extensions list. This decoder does not yet support video, but
+            # 034056.python.gstreamer.line254.comment it would still decode it and return only the Audio track. This is
+            # 034057.python.gstreamer.line255.comment not desired, since the other decoders will not get a turn. Instead
+            # 034058.python.gstreamer.line256.comment we bail out and let pyglet pass it to the next codec (FFmpeg).
             raise GStreamerDecodeException('Unsupported format.')
 
         if streaming:

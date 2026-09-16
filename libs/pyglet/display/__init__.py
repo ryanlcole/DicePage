@@ -69,11 +69,11 @@ def get_display() -> Display:
 
     .. versionadded:: 1.2
     """
-    # If there are existing displays, return one of them arbitrarily.
+    # 026240.python.init.line72.comment If there are existing displays, return one of them arbitrarily.
     for display in _displays:
         return display
 
-    # Otherwise, create a new display and return it.
+    # 026241.python.init.line76.comment Otherwise, create a new display and return it.
     return Display()
 
 

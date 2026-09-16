@@ -32,9 +32,9 @@ def missing_function(name: str, requires: str | None =None, suggestions: Sequenc
 
 _int_types = (ctypes.c_int16, ctypes.c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 028848.python.lib.line35.comment Some builds of ctypes apparently do not have c_int64
+    # 028849.python.lib.line36.comment defined; it's a pretty good bet that these builds do not
+    # 028850.python.lib.line37.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if ctypes.sizeof(t) == ctypes.sizeof(ctypes.c_size_t):
@@ -42,9 +42,9 @@ for t in _int_types:
 
 
 class c_void(ctypes.Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 028851.python.lib.line45.comment c_void_p is a buggy return type, converting to int, so
+    # 028852.python.lib.line46.comment POINTER(None) == c_void_p is actually written as
+    # 028853.python.lib.line47.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', ctypes.c_int)]
 
 
@@ -69,7 +69,7 @@ def errcheck(result: Any, func: Callable, arguments: Sequence) -> Any:
         raise GLException('No GL context; create a Window first')
     error = gl.glGetError()
     if error:
-        # These are the 6 possible error codes we can get in opengl core 3.3+
+        # 028854.python.lib.line72.comment These are the 6 possible error codes we can get in opengl core 3.3+
         error_types = {
             gl.GL_INVALID_ENUM: "Invalid enum. An unacceptable value is specified for an enumerated argument.",
             gl.GL_INVALID_VALUE: "Invalid value. A numeric argument is out of range.",

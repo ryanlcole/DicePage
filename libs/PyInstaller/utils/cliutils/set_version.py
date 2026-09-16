@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009630.python.set_version.line1.comment -----------------------------------------------------------------------------
+# 009631.python.set_version.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 009632.python.set_version.line3.comment
+# 009633.python.set_version.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009634.python.set_version.line5.comment or later) with exception for distributing the bootloader.
+# 009635.python.set_version.line6.comment
+# 009636.python.set_version.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009637.python.set_version.line8.comment
+# 009638.python.set_version.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009639.python.set_version.line10.comment -----------------------------------------------------------------------------
 
 import argparse
 import os

@@ -26,7 +26,7 @@ class DebuggerOptionsPropPage(dialog.PropertyPage):
                     dirty = 1
         if dirty:
             dbgcon.SaveDebuggerOptions(self.options)
-        # If there is a debugger open, then set its options.
+        # 036963.python.configui.line29.comment If there is a debugger open, then set its options.
         import pywin.debugger
 
         if pywin.debugger.currentDebugger is not None:

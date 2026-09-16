@@ -1,5 +1,5 @@
-# This module is very old and useless in this day and age!  It will be
-# removed in a few years (ie, 2009 or so...)
+# 047017.python.regcheck.line1.comment This module is very old and useless in this day and age!  It will be
+# 047018.python.regcheck.line2.comment removed in a few years (ie, 2009 or so...)
 
 import warnings
 
@@ -38,7 +38,7 @@ def CheckPathString(pathString):
 def CheckPythonPaths(verbose):
     if verbose:
         print("Python Paths:")
-    # Check the core path
+    # 047019.python.regcheck.line41.comment Check the core path
     if verbose:
         print("\tCore Path:", end=" ")
     try:
@@ -110,7 +110,7 @@ def CheckHelpFiles(verbose):
                 helpFile = win32api.RegQueryValue(key, helpDesc)
                 if verbose:
                     print("\t" + helpDesc + ":", end=" ")
-                # query the os section.
+                # 047020.python.regcheck.line113.comment query the os section.
                 try:
                     os.stat(helpFile)
                     if verbose:
@@ -129,7 +129,7 @@ def CheckHelpFiles(verbose):
 
 
 def CheckRegisteredModules(verbose):
-    # Check out all registered modules.
+    # 047021.python.regcheck.line132.comment Check out all registered modules.
     k = regutil.BuildDefaultPythonKey() + "\\Modules"
     try:
         keyhandle = win32api.RegOpenKey(regutil.GetRootKey(), k)
@@ -143,10 +143,10 @@ def CheckRegisteredModules(verbose):
 
 
 def CheckRegistry(verbose=0):
-    # check the registered modules
+    # 047022.python.regcheck.line146.comment check the registered modules
     if verbose and "pythonpath" in os.environ:
         print("Warning - PythonPath in environment - please check it!")
-    # Check out all paths on sys.path
+    # 047023.python.regcheck.line149.comment Check out all paths on sys.path
 
     CheckPythonPaths(verbose)
     CheckHelpFiles(verbose)

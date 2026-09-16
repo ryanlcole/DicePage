@@ -34,7 +34,7 @@ byte_lf = b"\n"
 byte_crlf = b"\r\n"
 
 
-# A dialog box for the "Run Script" command.
+# 037906.python.scriptutils.line37.comment A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
     "A class for the 'run script' dialog"
 
@@ -87,10 +87,10 @@ def GetDebugger():
 
 def IsOnPythonPath(path):
     "Given a path only, see if it is on the Pythonpath.  Assumes path is a full path spec."
-    # must check that the command line arg's path is in sys.path
+    # 037908.python.scriptutils.line90.comment must check that the command line arg's path is in sys.path
     for syspath in sys.path:
         try:
-            # sys.path can have an empty entry.
+            # 037909.python.scriptutils.line93.comment sys.path can have an empty entry.
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:
@@ -109,11 +109,11 @@ def GetPackageModuleName(fileName):
     modBits = []
     newPathReturn = None
     if not IsOnPythonPath(path):
-        # Module not directly on the search path - see if under a package.
+        # 037910.python.scriptutils.line112.comment Module not directly on the search path - see if under a package.
         while len(path) > 3:  # ie 'C:\'
             path, modBit = os.path.split(path)
             modBits.append(modBit)
-            # If on path, _and_ existing package of that name loaded.
+            # 037912.python.scriptutils.line116.comment If on path, _and_ existing package of that name loaded.
             if (
                 IsOnPythonPath(path)
                 and modBit in sys.modules
@@ -125,7 +125,7 @@ def GetPackageModuleName(fileName):
             ):
                 modBits.reverse()
                 return ".".join(modBits) + "." + fname, newPathReturn
-            # Not found - look a level higher
+            # 037913.python.scriptutils.line128.comment Not found - look a level higher
         else:
             newPathReturn = origPath
 
@@ -193,7 +193,7 @@ def GetActiveFileName(bAutoSave=1):
                     doc.OnSaveDocument(pathName)
                     pathName = doc.GetPathName()
 
-                    # clear the linecache buffer
+                    # 037917.python.scriptutils.line196.comment clear the linecache buffer
                     linecache.clearcache()
 
                 except win32ui.error:
@@ -215,7 +215,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     global lastScript, lastArgs, lastDebuggingType
     _debugger_stop_frame_ = 1  # Magic variable so the debugger will hide me!
 
-    # Get the debugger - may be None!
+    # 037919.python.scriptutils.line218.comment Get the debugger - may be None!
     debugger = GetDebugger()
 
     if defName is None:
@@ -249,12 +249,12 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         if not script:
             return
         if debuggingType == RS_DEBUGGER_GO and debugger is not None:
-            # This may surprise users - they select "Run under debugger", but
-            # it appears not to!  Only warn when they pick from the dialog!
-            # First - ensure the debugger is activated to pickup any break-points
-            # set in the editor.
+            # 037921.python.scriptutils.line252.comment This may surprise users - they select "Run under debugger", but
+            # 037922.python.scriptutils.line253.comment it appears not to!  Only warn when they pick from the dialog!
+            # 037923.python.scriptutils.line254.comment First - ensure the debugger is activated to pickup any break-points
+            # 037924.python.scriptutils.line255.comment set in the editor.
             try:
-                # Create the debugger, but _dont_ init the debugger GUI.
+                # 037925.python.scriptutils.line257.comment Create the debugger, but _dont_ init the debugger GUI.
                 rd = debugger._GetCurrentDebugger()
             except AttributeError:
                 rd = None
@@ -276,12 +276,12 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     else:
         script = pathName
 
-    # try and open the script.
+    # 037926.python.scriptutils.line279.comment try and open the script.
     if (
         len(os.path.splitext(script)[1]) == 0
     ):  # check if no extension supplied, and give one.
         script += ".py"
-    # If no path specified, try and locate the file
+    # 037928.python.scriptutils.line284.comment If no path specified, try and locate the file
     path, fnameonly = os.path.split(script)
     if len(path) == 0:
         try:
@@ -298,13 +298,13 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         if not IsOnPythonPath(path):
             sys.path.append(path)
 
-    # py3k fun: If we use text mode to open the file, we get \r\n
-    # translated so Python allows the syntax (good!), but we get back
-    # text already decoded from the default encoding (bad!) and Python
-    # ignores any encoding decls (bad!).  If we use binary mode we get
-    # the raw bytes and Python looks at the encoding (good!) but \r\n
-    # chars stay in place so Python throws a syntax error (bad!).
-    # So: do the binary thing and manually normalize \r\n.
+    # 037930.python.scriptutils.line301.comment py3k fun: If we use text mode to open the file, we get \r\n
+    # 037931.python.scriptutils.line302.comment translated so Python allows the syntax (good!), but we get back
+    # 037932.python.scriptutils.line303.comment text already decoded from the default encoding (bad!) and Python
+    # 037933.python.scriptutils.line304.comment ignores any encoding decls (bad!).  If we use binary mode we get
+    # 037934.python.scriptutils.line305.comment the raw bytes and Python looks at the encoding (good!) but \r\n
+    # 037935.python.scriptutils.line306.comment chars stay in place so Python throws a syntax error (bad!).
+    # 037936.python.scriptutils.line307.comment So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
     except OSError as exc:
@@ -313,14 +313,14 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         )
         return
 
-    # Get the source-code - as above, normalize \r\n
+    # 037937.python.scriptutils.line316.comment Get the source-code - as above, normalize \r\n
     code = f.read().replace(byte_crlf, byte_lf).replace(byte_cr, byte_lf) + byte_lf
 
-    # Remember and hack sys.argv for the script.
+    # 037938.python.scriptutils.line319.comment Remember and hack sys.argv for the script.
     oldArgv = sys.argv
     sys.argv = ParseArgs(args)
     sys.argv.insert(0, script)
-    # sys.path[0] is the path of the script
+    # 037939.python.scriptutils.line323.comment sys.path[0] is the path of the script
     oldPath0 = sys.path[0]
     newPath0 = os.path.split(script)[0]
     if not oldPath0:  # if sys.path[0] is empty
@@ -332,27 +332,27 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     bWorked = 0
     win32ui.DoWaitCursor(1)
     base = os.path.split(script)[1]
-    # Allow windows to repaint before starting.
+    # 037941.python.scriptutils.line335.comment Allow windows to repaint before starting.
     win32ui.PumpWaitingMessages()
     win32ui.SetStatusText("Running script %s..." % base, 1)
     exitCode = 0
     from pywin.framework import interact
 
-    # Check the debugger flags
+    # 037942.python.scriptutils.line341.comment Check the debugger flags
     if debugger is None and (debuggingType != RS_DEBUGGER_NONE):
         win32ui.MessageBox(
             "No debugger is installed.  Debugging options have been ignored!"
         )
         debuggingType = RS_DEBUGGER_NONE
 
-    # Get a code object - ignore the debugger for this, as it is probably a syntax error
-    # at this point
+    # 037943.python.scriptutils.line348.comment Get a code object - ignore the debugger for this, as it is probably a syntax error
+    # 037944.python.scriptutils.line349.comment at this point
     try:
         codeObject = compile(code, script, "exec")
     except:
-        # Almost certainly a syntax error!
+        # 037945.python.scriptutils.line353.comment Almost certainly a syntax error!
         _HandlePythonFailure("run script", script)
-        # No code object which to run/debug.
+        # 037946.python.scriptutils.line355.comment No code object which to run/debug.
         return
     __main__.__file__ = script
     try:
@@ -361,11 +361,11 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         elif debuggingType == RS_DEBUGGER_GO:
             debugger.run(codeObject, __main__.__dict__, start_stepping=0)
         else:
-            # Post mortem or no debugging
+            # 037947.python.scriptutils.line364.comment Post mortem or no debugging
             exec(codeObject, __main__.__dict__)
         bWorked = 1
     except bdb.BdbQuit:
-        # Don't print tracebacks when the debugger quit, but do print a message.
+        # 037948.python.scriptutils.line368.comment Don't print tracebacks when the debugger quit, but do print a message.
         print("Debugging session cancelled.")
         exitCode = 1
         bWorked = 1
@@ -373,8 +373,8 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         exitCode = code
         bWorked = 1
     except KeyboardInterrupt:
-        # Consider this successful, as we don't want the debugger.
-        # (but we do want a traceback!)
+        # 037949.python.scriptutils.line376.comment Consider this successful, as we don't want the debugger.
+        # 037950.python.scriptutils.line377.comment (but we do want a traceback!)
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.EnsureNoPrompt()
         traceback.print_exc()
@@ -431,13 +431,13 @@ def ImportFile():
 
         pathName = dlg.GetPathName()
 
-    # If already imported, don't look for package
+    # 037951.python.scriptutils.line434.comment If already imported, don't look for package
     path, modName = os.path.split(pathName)
     modName, modExt = os.path.splitext(modName)
     newPath = None
-    # note that some packages (*cough* email *cough*) use "lazy importers"
-    # meaning sys.modules can change as a side-effect of looking at
-    # module.__file__ - so we must take a copy (ie, list(items()))
+    # 037952.python.scriptutils.line438.comment note that some packages (*cough* email *cough*) use "lazy importers"
+    # 037953.python.scriptutils.line439.comment meaning sys.modules can change as a side-effect of looking at
+    # 037954.python.scriptutils.line440.comment module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in sys.modules.items():
         if getattr(mod, "__file__", None):
             fname = mod.__file__
@@ -462,11 +462,11 @@ def ImportFile():
 
     win32ui.SetStatusText(what.capitalize() + "ing module...", 1)
     win32ui.DoWaitCursor(1)
-    # 	win32ui.GetMainFrame().BeginWaitCursor()
+    # 037956.python.scriptutils.line465.comment win32ui.GetMainFrame().BeginWaitCursor()
 
     try:
-        # always do an import, as it is cheap if it's already loaded.  This ensures
-        # it is in our name space.
+        # 037957.python.scriptutils.line468.comment always do an import, as it is cheap if it's already loaded.  This ensures
+        # 037958.python.scriptutils.line469.comment it is in our name space.
         codeObj = compile("import " + modName, "<auto import>", "exec")
     except SyntaxError:
         win32ui.SetStatusText('Invalid filename for import: "' + modName + '"')
@@ -535,14 +535,14 @@ def RunTabNanny(filename):
         win32ui.MessageBox("The TabNanny is not around, so the children can run amok!")
         return
 
-    # Capture the tab-nanny output
+    # 037959.python.scriptutils.line538.comment Capture the tab-nanny output
     newout = io.StringIO()
     old_out = sys.stderr, sys.stdout
     sys.stderr = sys.stdout = newout
     try:
         tabnanny.check(filename)
     finally:
-        # Restore output
+        # 037960.python.scriptutils.line545.comment Restore output
         sys.stderr, sys.stdout = old_out
     data = newout.getvalue()
     if data:
@@ -567,13 +567,13 @@ def _JumpToPosition(fileName, lineno, col=1):
 
 
 def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
-    # Jump to the position in a file.
-    # If lineno is <= 0, don't move the position - just open/restore.
-    # if nChars > 0, select that many characters.
-    # if bScrollToTop, the specified line will be moved to the top of the window
-    #  (eg, bScrollToTop should be false when jumping to an error line to retain the
-    #  context, but true when jumping to a method defn, where we want the full body.
-    # Return the view which is editing the file, or None on error.
+    # 037962.python.scriptutils.line570.comment Jump to the position in a file.
+    # 037963.python.scriptutils.line571.comment If lineno is <= 0, don't move the position - just open/restore.
+    # 037964.python.scriptutils.line572.comment if nChars > 0, select that many characters.
+    # 037965.python.scriptutils.line573.comment if bScrollToTop, the specified line will be moved to the top of the window
+    # 037966.python.scriptutils.line574.comment (eg, bScrollToTop should be false when jumping to an error line to retain the
+    # 037967.python.scriptutils.line575.comment context, but true when jumping to a method defn, where we want the full body.
+    # 037968.python.scriptutils.line576.comment Return the view which is editing the file, or None on error.
     doc = win32ui.GetApp().OpenDocumentFile(fileName)
     if doc is None:
         return None
@@ -619,13 +619,13 @@ def _HandlePythonFailure(what, syntaxErrorPathName=None):
     tb = None  # Clean up a cycle.
 
 
-# Find the Python TabNanny in either the standard library or the Python Tools/Scripts directory.
+# 037971.python.scriptutils.line622.comment Find the Python TabNanny in either the standard library or the Python Tools/Scripts directory.
 def FindTabNanny():
     try:
         return __import__("tabnanny")
     except ImportError:
         pass
-    # OK - not in the standard library - go looking.
+    # 037972.python.scriptutils.line628.comment OK - not in the standard library - go looking.
     filename = "tabnanny.py"
     try:
         path = win32api.RegQueryValue(
@@ -645,20 +645,20 @@ def FindTabNanny():
 
     tabnannyhome, tabnannybase = os.path.split(fname)
     tabnannybase = os.path.splitext(tabnannybase)[0]
-    # Put tab nanny at the top of the path.
+    # 037973.python.scriptutils.line648.comment Put tab nanny at the top of the path.
     sys.path.insert(0, tabnannyhome)
     try:
         return __import__(tabnannybase)
     finally:
-        # remove the tab-nanny from the path
+        # 037974.python.scriptutils.line653.comment remove the tab-nanny from the path
         del sys.path[0]
 
 
 def LocatePythonFile(fileName, bBrowseIfDir=1):
     "Given a file name, return a fully qualified file name, or None"
-    # first look for the exact file as specified
+    # 037975.python.scriptutils.line659.comment first look for the exact file as specified
     if not os.path.isfile(fileName):
-        # Go looking!
+        # 037976.python.scriptutils.line661.comment Go looking!
         baseName = fileName
         for path in sys.path:
             fileName = os.path.abspath(os.path.join(path, baseName))

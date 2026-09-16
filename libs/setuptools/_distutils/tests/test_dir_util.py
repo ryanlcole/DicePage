@@ -46,7 +46,7 @@ class TestDirUtil(support.TempdirManager):
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
     def test_mkpath_with_custom_mode(self):
-        # Get and set the current umask value for testing mode bits.
+        # 041030.python.test_dir_util.line49.comment Get and set the current umask value for testing mode bits.
         umask = os.umask(0o002)
         os.umask(umask)
         mkpath(self.target, 0o700)

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from types import FrameType
     from typing import Any, Callable, ItemsView, Sized
 
-#: The release version
+# 026068.python.init.line17.comment : The release version
 version = '2.1.9'
 __version__ = version
 
@@ -25,15 +25,15 @@ if sys.version_info < MIN_PYTHON_VERSION:
     msg = f"pyglet {version} requires Python {MIN_PYTHON_VERSION_STR} or newer."
     raise Exception(msg)
 
-# pyglet platform treats *BSD systems as Linux
+# 026069.python.init.line28.comment pyglet platform treats *BSD systems as Linux
 compat_platform = sys.platform
 if "bsd" in compat_platform:
     compat_platform = "linux-compat"
 
 if compat_platform == "cygwin":
-    # This hack pretends that the posix-like ctypes provides windows
-    # functionality.  COM does not work with this hack, so there is no
-    # DirectSound support.
+    # 026070.python.init.line34.comment This hack pretends that the posix-like ctypes provides windows
+    # 026071.python.init.line35.comment functionality.  COM does not work with this hack, so there is no
+    # 026072.python.init.line36.comment DirectSound support.
     import ctypes
 
     ctypes.windll = ctypes.cdll
@@ -310,7 +310,7 @@ class Options:
         self.__dict__[key] = value
 
 
-#: Instance of :py:class:`~pyglet.Options` used to set runtime options.
+# 026073.python.init.line313.comment : Instance of :py:class:`~pyglet.Options` used to set runtime options.
 options: Options = Options()
 
 
@@ -333,8 +333,8 @@ if (__debug__ is False) or getattr(sys, "frozen", False):
     options.debug_gl = False
 
 
-# Call tracing
-# ------------
+# 026074.python.init.line336.comment Call tracing
+# 026075.python.init.line337.comment ------------
 
 _trace_filename_abbreviations: dict[str, str] = {}
 _trace_thread_count = 0
@@ -366,7 +366,7 @@ def _trace_frame(thread: int, frame: FrameType, indent: str) -> None:
         try:
             filename = _trace_filename_abbreviations[path]
         except KeyError:
-            # Trim path down
+            # 026078.python.init.line369.comment Trim path down
             directory = ""
             path, filename = os.path.split(path)
 
@@ -425,8 +425,8 @@ def _install_trace() -> None:
     _trace_thread_count += 1
 
 
-# Lazy loading
-# ------------
+# 026081.python.init.line428.comment Lazy loading
+# 026082.python.init.line429.comment ------------
 
 class _ModuleProxy:
     _module = None
@@ -463,7 +463,7 @@ class _ModuleProxy:
             setattr(module, name, value)
 
 
-# Lazily load all modules, except if performing type checking or code inspection.
+# 026085.python.init.line466.comment Lazily load all modules, except if performing type checking or code inspection.
 if TYPE_CHECKING:
     from . import (
         app,
@@ -509,6 +509,6 @@ else:
     text = _ModuleProxy("text")  # type: ignore
     window = _ModuleProxy("window")  # type: ignore
 
-# Call after creating proxies:
+# 026106.python.init.line512.comment Call after creating proxies:
 if options.debug_trace is True:
     _install_trace()

@@ -19,7 +19,7 @@ from ._log import log
 from .errors import DistutilsOptionError
 
 if TYPE_CHECKING:
-    # type-only import because of mutual dependence between these classes
+    # 039243.python.cmd.line22.comment type-only import because of mutual dependence between these classes
     from distutils.dist import Distribution
 
     from typing_extensions import TypeVarTuple, Unpack
@@ -47,30 +47,30 @@ class Command:
     command class.
     """
 
-    # 'sub_commands' formalizes the notion of a "family" of commands,
-    # eg. "install" as the parent with sub-commands "install_lib",
-    # "install_headers", etc.  The parent of a family of commands
-    # defines 'sub_commands' as a class attribute; it's a list of
-    #    (command_name : string, predicate : unbound_method | string | None)
-    # tuples, where 'predicate' is a method of the parent command that
-    # determines whether the corresponding command is applicable in the
-    # current situation.  (Eg. we "install_headers" is only applicable if
-    # we have any C header files to install.)  If 'predicate' is None,
-    # that command is always applicable.
-    #
-    # 'sub_commands' is usually defined at the *end* of a class, because
-    # predicates can be unbound methods, so they must already have been
-    # defined.  The canonical example is the "install" command.
+    # 039244.python.cmd.line50.comment 'sub_commands' formalizes the notion of a "family" of commands,
+    # 039245.python.cmd.line51.comment eg. "install" as the parent with sub-commands "install_lib",
+    # 039246.python.cmd.line52.comment "install_headers", etc.  The parent of a family of commands
+    # 039247.python.cmd.line53.comment defines 'sub_commands' as a class attribute; it's a list of
+    # 039248.python.cmd.line54.comment (command_name : string, predicate : unbound_method | string | None)
+    # 039249.python.cmd.line55.comment tuples, where 'predicate' is a method of the parent command that
+    # 039250.python.cmd.line56.comment determines whether the corresponding command is applicable in the
+    # 039251.python.cmd.line57.comment current situation.  (Eg. we "install_headers" is only applicable if
+    # 039252.python.cmd.line58.comment we have any C header files to install.)  If 'predicate' is None,
+    # 039253.python.cmd.line59.comment that command is always applicable.
+    # 039254.python.cmd.line60.comment
+    # 039255.python.cmd.line61.comment 'sub_commands' is usually defined at the *end* of a class, because
+    # 039256.python.cmd.line62.comment predicates can be unbound methods, so they must already have been
+    # 039257.python.cmd.line63.comment defined.  The canonical example is the "install" command.
     sub_commands: ClassVar[  # Any to work around variance issues
         list[tuple[str, Callable[[Any], bool] | None]]
     ] = []
 
     user_options: ClassVar[
-        # Specifying both because list is invariant. Avoids mypy override assignment issues
+        # 039259.python.cmd.line69.comment Specifying both because list is invariant. Avoids mypy override assignment issues
         list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
     ] = []
 
-    # -- Creation/initialization methods -------------------------------
+    # 039260.python.cmd.line73.comment -- Creation/initialization methods -------------------------------
 
     def __init__(self, dist: Distribution) -> None:
         """Create and initialize a new Command object.  Most importantly,
@@ -78,7 +78,7 @@ class Command:
         initializer and depends on the actual command being
         instantiated.
         """
-        # late import because of mutual dependence between these classes
+        # 039261.python.cmd.line81.comment late import because of mutual dependence between these classes
         from distutils.dist import Distribution
 
         if not isinstance(dist, Distribution):
@@ -89,37 +89,37 @@ class Command:
         self.distribution = dist
         self.initialize_options()
 
-        # Per-command versions of the global flags, so that the user can
-        # customize Distutils' behaviour command-by-command and let some
-        # commands fall back on the Distribution's behaviour.  None means
-        # "not defined, check self.distribution's copy", while 0 or 1 mean
-        # false and true (duh).  Note that this means figuring out the real
-        # value of each flag is a touch complicated -- hence "self._dry_run"
-        # will be handled by __getattr__, below.
-        # XXX This needs to be fixed.
+        # 039262.python.cmd.line92.comment Per-command versions of the global flags, so that the user can
+        # 039263.python.cmd.line93.comment customize Distutils' behaviour command-by-command and let some
+        # 039264.python.cmd.line94.comment commands fall back on the Distribution's behaviour.  None means
+        # 039265.python.cmd.line95.comment "not defined, check self.distribution's copy", while 0 or 1 mean
+        # 039266.python.cmd.line96.comment false and true (duh).  Note that this means figuring out the real
+        # 039267.python.cmd.line97.comment value of each flag is a touch complicated -- hence "self._dry_run"
+        # 039268.python.cmd.line98.comment will be handled by __getattr__, below.
+        # 039269.python.cmd.line99.comment XXX This needs to be fixed.
         self._dry_run = None
 
-        # verbose is largely ignored, but needs to be set for
-        # backwards compatibility (I think)?
+        # 039270.python.cmd.line102.comment verbose is largely ignored, but needs to be set for
+        # 039271.python.cmd.line103.comment backwards compatibility (I think)?
         self.verbose = dist.verbose
 
-        # Some commands define a 'self.force' option to ignore file
-        # timestamps, but methods defined *here* assume that
-        # 'self.force' exists for all commands.  So define it here
-        # just to be safe.
+        # 039272.python.cmd.line106.comment Some commands define a 'self.force' option to ignore file
+        # 039273.python.cmd.line107.comment timestamps, but methods defined *here* assume that
+        # 039274.python.cmd.line108.comment 'self.force' exists for all commands.  So define it here
+        # 039275.python.cmd.line109.comment just to be safe.
         self.force = None
 
-        # The 'help' flag is just used for command-line parsing, so
-        # none of that complicated bureaucracy is needed.
+        # 039276.python.cmd.line112.comment The 'help' flag is just used for command-line parsing, so
+        # 039277.python.cmd.line113.comment none of that complicated bureaucracy is needed.
         self.help = False
 
-        # 'finalized' records whether or not 'finalize_options()' has been
-        # called.  'finalize_options()' itself should not pay attention to
-        # this flag: it is the business of 'ensure_finalized()', which
-        # always calls 'finalize_options()', to respect/update it.
+        # 039278.python.cmd.line116.comment 'finalized' records whether or not 'finalize_options()' has been
+        # 039279.python.cmd.line117.comment called.  'finalize_options()' itself should not pay attention to
+        # 039280.python.cmd.line118.comment this flag: it is the business of 'ensure_finalized()', which
+        # 039281.python.cmd.line119.comment always calls 'finalize_options()', to respect/update it.
         self.finalized = False
 
-    # XXX A more explicit way to customize dry_run would be better.
+    # 039282.python.cmd.line122.comment XXX A more explicit way to customize dry_run would be better.
     def __getattr__(self, attr):
         if attr == 'dry_run':
             myval = getattr(self, "_" + attr)
@@ -135,18 +135,18 @@ class Command:
             self.finalize_options()
         self.finalized = True
 
-    # Subclasses must define:
-    #   initialize_options()
-    #     provide default values for all options; may be customized by
-    #     setup script, by options from config file(s), or by command-line
-    #     options
-    #   finalize_options()
-    #     decide on the final values for all options; this is called
-    #     after all possible intervention from the outside world
-    #     (command-line, option file, etc.) has been processed
-    #   run()
-    #     run the command: do whatever it is we're here to do,
-    #     controlled by the command's various option values
+    # 039283.python.cmd.line138.comment Subclasses must define:
+    # 039284.python.cmd.line139.comment initialize_options()
+    # 039285.python.cmd.line140.comment provide default values for all options; may be customized by
+    # 039286.python.cmd.line141.comment setup script, by options from config file(s), or by command-line
+    # 039287.python.cmd.line142.comment options
+    # 039288.python.cmd.line143.comment finalize_options()
+    # 039289.python.cmd.line144.comment decide on the final values for all options; this is called
+    # 039290.python.cmd.line145.comment after all possible intervention from the outside world
+    # 039291.python.cmd.line146.comment (command-line, option file, etc.) has been processed
+    # 039292.python.cmd.line147.comment run()
+    # 039293.python.cmd.line148.comment run the command: do whatever it is we're here to do,
+    # 039294.python.cmd.line149.comment controlled by the command's various option values
 
     @abstractmethod
     def initialize_options(self) -> None:
@@ -221,18 +221,18 @@ class Command:
             print(msg)
             sys.stdout.flush()
 
-    # -- Option validation methods -------------------------------------
-    # (these are very handy in writing the 'finalize_options()' method)
-    #
-    # NB. the general philosophy here is to ensure that a particular option
-    # value meets certain type and value constraints.  If not, we try to
-    # force it into conformance (eg. if we expect a list but have a string,
-    # split the string on comma and/or whitespace).  If we can't force the
-    # option into conformance, raise DistutilsOptionError.  Thus, command
-    # classes need do nothing more than (eg.)
-    #   self.ensure_string_list('foo')
-    # and they can be guaranteed that thereafter, self.foo will be
-    # a list of strings.
+    # 039295.python.cmd.line224.comment -- Option validation methods -------------------------------------
+    # 039296.python.cmd.line225.comment (these are very handy in writing the 'finalize_options()' method)
+    # 039297.python.cmd.line226.comment
+    # 039298.python.cmd.line227.comment NB. the general philosophy here is to ensure that a particular option
+    # 039299.python.cmd.line228.comment value meets certain type and value constraints.  If not, we try to
+    # 039300.python.cmd.line229.comment force it into conformance (eg. if we expect a list but have a string,
+    # 039301.python.cmd.line230.comment split the string on comma and/or whitespace).  If we can't force the
+    # 039302.python.cmd.line231.comment option into conformance, raise DistutilsOptionError.  Thus, command
+    # 039303.python.cmd.line232.comment classes need do nothing more than (eg.)
+    # 039304.python.cmd.line233.comment self.ensure_string_list('foo')
+    # 039305.python.cmd.line234.comment and they can be guaranteed that thereafter, self.foo will be
+    # 039306.python.cmd.line235.comment a list of strings.
 
     def _ensure_stringlike(self, option, what, default=None):
         val = getattr(self, option)
@@ -291,7 +291,7 @@ class Command:
             "'%s' does not exist or is not a directory",
         )
 
-    # -- Convenience methods for commands ------------------------------
+    # 039307.python.cmd.line294.comment -- Convenience methods for commands ------------------------------
 
     def get_command_name(self) -> str:
         if hasattr(self, 'command_name'):
@@ -315,15 +315,15 @@ class Command:
         'src_option' in the 'src_cmd' command object, and copy it to
         'dst_option' in the current command object".
         """
-        # Option_pairs: list of (src_option, dst_option) tuples
+        # 039308.python.cmd.line318.comment Option_pairs: list of (src_option, dst_option) tuples
         src_cmd_obj = self.distribution.get_command_obj(src_cmd)
         src_cmd_obj.ensure_finalized()
         for src_option, dst_option in option_pairs:
             if getattr(self, dst_option) is None:
                 setattr(self, dst_option, getattr(src_cmd_obj, src_option))
 
-    # NOTE: Because distutils is private to Setuptools and not all commands are exposed here,
-    # not every possible command is enumerated in the signature.
+    # 039309.python.cmd.line325.comment NOTE: Because distutils is private to Setuptools and not all commands are exposed here,
+    # 039310.python.cmd.line326.comment not every possible command is enumerated in the signature.
     def get_finalized_command(self, command: str, create: bool = True) -> Command:
         """Wrapper around Distribution's 'get_command_obj()' method: find
         (create if necessary and 'create' is true) the command object for
@@ -334,8 +334,8 @@ class Command:
         cmd_obj.ensure_finalized()
         return cmd_obj
 
-    # XXX rename to 'get_reinitialized_command()'? (should do the
-    # same in dist.py, if so)
+    # 039311.python.cmd.line337.comment XXX rename to 'get_reinitialized_command()'? (should do the
+    # 039312.python.cmd.line338.comment same in dist.py, if so)
     @overload
     def reinitialize_command(
         self, command: str, reinit_subcommands: bool = False
@@ -369,7 +369,7 @@ class Command:
                 commands.append(cmd_name)
         return commands
 
-    # -- External world manipulation -----------------------------------
+    # 039313.python.cmd.line372.comment -- External world manipulation -----------------------------------
 
     def warn(self, msg: object) -> None:
         log.warning("warning: %s: %s\n", self.get_command_name(), msg)
@@ -535,7 +535,7 @@ class Command:
         if skip_msg is None:
             skip_msg = f"skipping {outfile} (inputs unchanged)"
 
-        # Allow 'infiles' to be a single string
+        # 039314.python.cmd.line538.comment Allow 'infiles' to be a single string
         if isinstance(infiles, str):
             infiles = (infiles,)
         elif not isinstance(infiles, (list, tuple)):
@@ -544,11 +544,11 @@ class Command:
         if exec_msg is None:
             exec_msg = "generating {} from {}".format(outfile, ', '.join(infiles))
 
-        # If 'outfile' must be regenerated (either because it doesn't
-        # exist, is out-of-date, or the 'force' flag is true) then
-        # perform the action that presumably regenerates it
+        # 039315.python.cmd.line547.comment If 'outfile' must be regenerated (either because it doesn't
+        # 039316.python.cmd.line548.comment exist, is out-of-date, or the 'force' flag is true) then
+        # 039317.python.cmd.line549.comment perform the action that presumably regenerates it
         if self.force or _modified.newer_group(infiles, outfile):
             self.execute(func, args, exec_msg, level)
-        # Otherwise, print the "skip" message
+        # 039318.python.cmd.line552.comment Otherwise, print the "skip" message
         else:
             log.debug(skip_msg)

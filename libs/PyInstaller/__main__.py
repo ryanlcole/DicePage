@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 000104.python.main.line1.comment -----------------------------------------------------------------------------
+# 000105.python.main.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 000106.python.main.line3.comment
+# 000107.python.main.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 000108.python.main.line5.comment or later) with exception for distributing the bootloader.
+# 000109.python.main.line6.comment
+# 000110.python.main.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 000111.python.main.line8.comment
+# 000112.python.main.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 000113.python.main.line10.comment -----------------------------------------------------------------------------
 """
 Main command-line interface to PyInstaller.
 """
@@ -22,7 +22,7 @@ from collections import defaultdict
 
 from PyInstaller import __version__
 from PyInstaller import log as logging
-# Note: do not import anything else until compat.check_requirements function is run!
+# 000114.python.main.line25.comment Note: do not import anything else until compat.check_requirements function is run!
 from PyInstaller import compat
 
 try:
@@ -35,24 +35,24 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Taken from https://stackoverflow.com/a/22157136 to format args more flexibly: any help text which beings with ``R|``
-# will have all newlines preserved; the help text will be line wrapped. See
-# https://docs.python.org/3/library/argparse.html#formatter-class.
+# 000115.python.main.line38.comment Taken from https://stackoverflow.com/a/22157136 to format args more flexibly: any help text which beings with ``R|``
+# 000116.python.main.line39.comment will have all newlines preserved; the help text will be line wrapped. See
+# 000117.python.main.line40.comment https://docs.python.org/3/library/argparse.html#formatter-class.
 
 
-# This is used by the ``--debug`` option.
+# 000118.python.main.line43.comment This is used by the ``--debug`` option.
 class _SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith('R|'):
-            # The underlying implementation of ``RawTextHelpFormatter._split_lines`` invokes this; mimic it.
+            # 000119.python.main.line47.comment The underlying implementation of ``RawTextHelpFormatter._split_lines`` invokes this; mimic it.
             return text[2:].splitlines()
         else:
-            # Invoke the usual formatter.
+            # 000120.python.main.line50.comment Invoke the usual formatter.
             return super()._split_lines(text, width)
 
 
 def run_makespec(filenames, **opts):
-    # Split pathex by using the path separator
+    # 000121.python.main.line55.comment Split pathex by using the path separator
     temppaths = opts['pathex'][:]
     pathex = opts['pathex'] = []
     for p in temppaths:
@@ -119,8 +119,8 @@ class _PyiArgumentParser(argparse.ArgumentParser):
                     options[dest] += "/"
                 options[dest] += name
 
-        # if any options from the forbidden group are not the default values,
-        # the user must have passed them in, so issue an error report
+        # 000123.python.main.line122.comment if any options from the forbidden group are not the default values,
+        # 000124.python.main.line123.comment the user must have passed them in, so issue an error report
         if options:
             sep = "\n  "
             bad = sep.join(options.values())
@@ -181,8 +181,8 @@ def run(pyi_args: list | None = None, pyi_config: dict | None = None):
         spec_args = pyi_args[index + 1:]
         PyInstaller.log.__process_options(parser, args)
 
-        # Print PyInstaller version, Python version, and platform as the first line to stdout. This helps us identify
-        # PyInstaller, Python, and platform version when users report issues.
+        # 000125.python.main.line184.comment Print PyInstaller version, Python version, and platform as the first line to stdout. This helps us identify
+        # 000126.python.main.line185.comment PyInstaller, Python, and platform version when users report issues.
         try:
             from _pyinstaller_hooks_contrib import __version__ as contrib_hooks_version
         except Exception:
@@ -193,19 +193,19 @@ def run(pyi_args: list | None = None, pyi_config: dict | None = None):
         logger.info('Platform: %s', platform.platform())
         logger.info('Python environment: %s', sys.prefix)
 
-        # Skip creating .spec when .spec file is supplied.
+        # 000127.python.main.line196.comment Skip creating .spec when .spec file is supplied.
         if args.filenames[0].endswith('.spec'):
             parser._forbid_options(
                 args, group="makespec", errmsg="makespec options not valid when a .spec file is given"
             )
             spec_file = args.filenames[0]
         else:
-            # Ensure that the given script files exist, before trying to generate the .spec file.
-            # This prevents us from overwriting an existing (and customized) .spec file if user makes a typo in the
-            # .spec file's suffix when trying to  build it, for example, `pyinstaller program.cpes` (see #8276).
-            # It also prevents creation of a .spec file when `pyinstaller program.py` is accidentally ran from a
-            # directory that does not contain the script (for example, due to failing to change the directory prior
-            # to running the command).
+            # 000128.python.main.line203.comment Ensure that the given script files exist, before trying to generate the .spec file.
+            # 000129.python.main.line204.comment This prevents us from overwriting an existing (and customized) .spec file if user makes a typo in the
+            # 000130.python.main.line205.comment .spec file's suffix when trying to  build it, for example, `pyinstaller program.cpes` (see #8276).
+            # 000131.python.main.line206.comment It also prevents creation of a .spec file when `pyinstaller program.py` is accidentally ran from a
+            # 000132.python.main.line207.comment directory that does not contain the script (for example, due to failing to change the directory prior
+            # 000133.python.main.line208.comment to running the command).
             for filename in args.filenames:
                 if not os.path.isfile(filename):
                     raise SystemExit(f"ERROR: Script file {filename!r} does not exist.")
@@ -224,8 +224,8 @@ def run(pyi_args: list | None = None, pyi_config: dict | None = None):
 
 
 def _console_script_run():
-    # Python prepends the main script's parent directory to sys.path. When PyInstaller is ran via the usual
-    # `pyinstaller` CLI entry point, this directory is $pythonprefix/bin which should not be in sys.path.
+    # 000134.python.main.line227.comment Python prepends the main script's parent directory to sys.path. When PyInstaller is ran via the usual
+    # 000135.python.main.line228.comment `pyinstaller` CLI entry point, this directory is $pythonprefix/bin which should not be in sys.path.
     if os.path.basename(sys.path[0]) in ("bin", "Scripts"):
         sys.path.pop(0)
     run()
@@ -236,13 +236,13 @@ def check_unsafe_privileges():
     Forbid dangerous usage of PyInstaller with escalated privileges
     """
     if compat.is_win and not compat.is_win_wine:
-        # Discourage (with the intention to eventually block) people using *run as admin* with PyInstaller.
-        # There are 4 cases, block case 3 but be careful not to also block case 2.
-        #   1. User has no admin access: TokenElevationTypeDefault
-        #   2. User is an admin/UAC disabled (common on CI/VMs): TokenElevationTypeDefault
-        #   3. User has used *run as administrator* to elevate: TokenElevationTypeFull
-        #   4. User can escalate but hasn't: TokenElevationTypeLimited
-        # https://techcommunity.microsoft.com/t5/windows-blog-archive/how-to-determine-if-a-user-is-a-member-of-the-administrators/ba-p/228476
+        # 000136.python.main.line239.comment Discourage (with the intention to eventually block) people using *run as admin* with PyInstaller.
+        # 000137.python.main.line240.comment There are 4 cases, block case 3 but be careful not to also block case 2.
+        # 000138.python.main.line241.comment 1. User has no admin access: TokenElevationTypeDefault
+        # 000139.python.main.line242.comment 2. User is an admin/UAC disabled (common on CI/VMs): TokenElevationTypeDefault
+        # 000140.python.main.line243.comment 3. User has used *run as administrator* to elevate: TokenElevationTypeFull
+        # 000141.python.main.line244.comment 4. User can escalate but hasn't: TokenElevationTypeLimited
+        # 000142.python.main.line245.comment https://techcommunity.microsoft.com/t5/windows-blog-archive/how-to-determine-if-a-user-is-a-member-of-the-administrators/ba-p/228476
         import ctypes
 
         advapi32 = ctypes.CDLL("Advapi32.dll")
@@ -273,12 +273,12 @@ def check_unsafe_privileges():
             )
 
     elif compat.is_darwin or compat.is_linux:
-        # Discourage (with the intention to eventually block) people using *sudo* with PyInstaller.
-        # Again there are 4 cases, block only case 4.
-        #   1. Non-root: os.getuid() != 0
-        #   2. Logged in as root (usually a VM): os.getlogin() == "root", os.getuid() == 0
-        #   3. No named users (e.g. most Docker containers): os.getlogin() fails
-        #   4. Regular user using escalation: os.getlogin() != "root", os.getuid() == 0
+        # 000144.python.main.line276.comment Discourage (with the intention to eventually block) people using *sudo* with PyInstaller.
+        # 000145.python.main.line277.comment Again there are 4 cases, block only case 4.
+        # 000146.python.main.line278.comment 1. Non-root: os.getuid() != 0
+        # 000147.python.main.line279.comment 2. Logged in as root (usually a VM): os.getlogin() == "root", os.getuid() == 0
+        # 000148.python.main.line280.comment 3. No named users (e.g. most Docker containers): os.getlogin() fails
+        # 000149.python.main.line281.comment 4. Regular user using escalation: os.getlogin() != "root", os.getuid() == 0
         try:
             user = os.getlogin()
         except OSError:
@@ -291,7 +291,7 @@ def check_unsafe_privileges():
             )
 
     if compat.is_win:
-        # Do not let people run PyInstaller from admin cmd's default working directory (C:\Windows\system32)
+        # 000150.python.main.line294.comment Do not let people run PyInstaller from admin cmd's default working directory (C:\Windows\system32)
         cwd = pathlib.Path.cwd()
 
         try:
@@ -302,8 +302,8 @@ def check_unsafe_privileges():
 
         inside_win_dir = cwd == win_dir or win_dir in cwd.parents
 
-        # The only exception to the above is if user's home directory is also located under %WINDIR%, which happens
-        # when PyInstaller is ran under SYSTEM user.
+        # 000151.python.main.line305.comment The only exception to the above is if user's home directory is also located under %WINDIR%, which happens
+        # 000152.python.main.line306.comment when PyInstaller is ran under SYSTEM user.
         if inside_win_dir:
             home_dir = pathlib.Path.home().resolve()
             if cwd == home_dir or home_dir in cwd.parents:

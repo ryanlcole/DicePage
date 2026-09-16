@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025816.python.test_sunos.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025817.python.test_sunos.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025818.python.test_sunos.line5.comment found in the LICENSE file.
 
 """Sun OS specific tests."""
 

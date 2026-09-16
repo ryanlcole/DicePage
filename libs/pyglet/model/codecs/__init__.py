@@ -43,7 +43,7 @@ class ModelEncoder(Encoder):
 
 
 def add_default_codecs() -> None:
-    # Add all bundled codecs.
+    # 035476.python.init.line46.comment Add all bundled codecs.
 
     try:
         from pyglet.model.codecs import obj

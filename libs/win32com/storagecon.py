@@ -22,7 +22,7 @@ LOCK_WRITE = 1
 LOCK_EXCLUSIVE = 2
 LOCK_ONLYONCE = 4
 
-# Generated as from here.
+# 049834.python.storagecon.line25.comment Generated as from here.
 
 CWCSTORAGENAME = 32
 STGM_DIRECT = 0x00000000
@@ -49,7 +49,7 @@ STG_TOEND = 0xFFFFFFFF
 STG_LAYOUT_SEQUENTIAL = 0x00000000
 STG_LAYOUT_INTERLEAVED = 0x00000001
 
-## access rights used with COM server ACL's
+# 049835.python.storagecon.line52.comment # access rights used with COM server ACL's
 COM_RIGHTS_EXECUTE = 1
 COM_RIGHTS_EXECUTE_LOCAL = 2
 COM_RIGHTS_EXECUTE_REMOTE = 4
@@ -76,10 +76,10 @@ PID_ILLEGAL = -1
 PID_MIN_READONLY = -2147483648
 PID_MAX_READONLY = -1073741825
 
-## DiscardableInformation
+# 049836.python.storagecon.line79.comment # DiscardableInformation
 PIDDI_THUMBNAIL = 0x00000002
 
-## SummaryInformation
+# 049837.python.storagecon.line82.comment # SummaryInformation
 PIDSI_TITLE = 2
 PIDSI_SUBJECT = 3
 PIDSI_AUTHOR = 4
@@ -99,7 +99,7 @@ PIDSI_THUMBNAIL = 17
 PIDSI_APPNAME = 18
 PIDSI_DOC_SECURITY = 19
 
-## DocSummaryInformation
+# 049838.python.storagecon.line102.comment # DocSummaryInformation
 PIDDSI_CATEGORY = 2
 PIDDSI_PRESFORMAT = 3
 PIDDSI_BYTECOUNT = 4
@@ -117,7 +117,7 @@ PIDDSI_COMPANY = 15
 PIDDSI_LINKSDIRTY = 16
 
 
-## MediaFileSummaryInfo
+# 049839.python.storagecon.line120.comment # MediaFileSummaryInfo
 PIDMSI_EDITOR = 2
 PIDMSI_SUPPLIER = 3
 PIDMSI_SOURCE = 4
@@ -129,14 +129,14 @@ PIDMSI_RATING = 9
 PIDMSI_PRODUCTION = 10
 PIDMSI_COPYRIGHT = 11
 
-## PROPSETFLAG enum
+# 049840.python.storagecon.line132.comment # PROPSETFLAG enum
 PROPSETFLAG_DEFAULT = 0
 PROPSETFLAG_NONSIMPLE = 1
 PROPSETFLAG_ANSI = 2
 PROPSETFLAG_UNBUFFERED = 4
 PROPSETFLAG_CASE_SENSITIVE = 8
 
-## STGMOVE enum
+# 049841.python.storagecon.line139.comment # STGMOVE enum
 STGMOVE_MOVE = 0
 STGMOVE_COPY = 1
 STGMOVE_SHALLOWCOPY = 2

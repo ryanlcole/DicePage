@@ -1,9 +1,9 @@
-# This is a sample file, and shows the basic framework for using an "Object" based
-# document, rather than a "filename" based document.
-# This is referenced by the Pythonwin .html documentation.
+# 036773.python.objdoc.line1.comment This is a sample file, and shows the basic framework for using an "Object" based
+# 036774.python.objdoc.line2.comment document, rather than a "filename" based document.
+# 036775.python.objdoc.line3.comment This is referenced by the Pythonwin .html documentation.
 
-# In the example below, the OpenObject() method is used instead of OpenDocumentFile,
-# and all the core MFC document open functionality is retained.
+# 036776.python.objdoc.line5.comment In the example below, the OpenObject() method is used instead of OpenDocumentFile,
+# 036777.python.objdoc.line6.comment and all the core MFC document open functionality is retained.
 
 import win32ui
 from pywin.mfc import docview
@@ -14,13 +14,13 @@ class object_template(docview.DocTemplate):
         docview.DocTemplate.__init__(self, None, None, None, object_view)
 
     def OpenObject(self, object):  # Use this instead of OpenDocumentFile.
-        # Look for existing open document
+        # 036779.python.objdoc.line17.comment Look for existing open document
         for doc in self.GetDocumentList():
             print("document is ", doc)
             if doc.object is object:
                 doc.GetFirstView().ActivateFrame()
                 return doc
-        # not found - new one.
+        # 036780.python.objdoc.line23.comment not found - new one.
         doc = object_document(self, object)
         frame = self.CreateNewFrame(doc)
         doc.OnNewDocument()

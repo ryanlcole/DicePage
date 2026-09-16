@@ -9,20 +9,20 @@ finished = 0  # Flag for the wait loop from (3) to test
 
 class ADOEvents:  # event handler class
     def OnWillConnect(self, str, user, pw, opt, sts, cn):
-        # Must have this event, as if it is not handled, ADO assumes the
-        # operation is cancelled, and raises an error (Operation cancelled
-        # by the user)
+        # 049912.python.testADOEvents.line12.comment Must have this event, as if it is not handled, ADO assumes the
+        # 049913.python.testADOEvents.line13.comment operation is cancelled, and raises an error (Operation cancelled
+        # 049914.python.testADOEvents.line14.comment by the user)
         pass
 
     def OnConnectComplete(self, error, status, connection):
-        # Assume no errors, until we have the basic stuff
-        # working. Now, "connection" should be an open
-        # connection to my data source
-        # Do the "something" from (2). For now, just
-        # print the connection data source
+        # 049915.python.testADOEvents.line18.comment Assume no errors, until we have the basic stuff
+        # 049916.python.testADOEvents.line19.comment working. Now, "connection" should be an open
+        # 049917.python.testADOEvents.line20.comment connection to my data source
+        # 049918.python.testADOEvents.line21.comment Do the "something" from (2). For now, just
+        # 049919.python.testADOEvents.line22.comment print the connection data source
         print("connection is", connection)
         print("Connected to", connection.Properties("Data Source"))
-        # OK, our work is done. Let the main loop know
+        # 049920.python.testADOEvents.line25.comment OK, our work is done. Let the main loop know
         global finished
         finished = 1
 
@@ -61,21 +61,21 @@ class ADOEvents:  # event handler class
 
 
 def TestConnection(dbname):
-    # Create the ADO connection object, and link the event
-    # handlers into it
+    # 049921.python.testADOEvents.line64.comment Create the ADO connection object, and link the event
+    # 049922.python.testADOEvents.line65.comment handlers into it
     c = DispatchWithEvents("ADODB.Connection", ADOEvents)
 
-    # Initiate the asynchronous open
+    # 049923.python.testADOEvents.line68.comment Initiate the asynchronous open
     dsn = "Driver={Microsoft Access Driver (*.mdb)};Dbq=%s" % dbname
     user = "system"
     pw = "manager"
     c.Open(dsn, user, pw, constants.adAsyncConnect)
 
-    # Sit in a loop, until our event handler (above) sets the
-    # "finished" flag or we time out.
+    # 049924.python.testADOEvents.line74.comment Sit in a loop, until our event handler (above) sets the
+    # 049925.python.testADOEvents.line75.comment "finished" flag or we time out.
     end_time = time.clock() + 10
     while time.clock() < end_time:
-        # Pump messages so that COM gets a look in
+        # 049926.python.testADOEvents.line78.comment Pump messages so that COM gets a look in
         pythoncom.PumpWaitingMessages()
     if not finished:
         print("XXX - Failed to connect!")

@@ -101,7 +101,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
+        # 044735.python.setupcfg.line104.comment TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
         _Distribution.parse_config_files(dist, filenames=cast(list[str], filenames))
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
@@ -278,7 +278,7 @@ class ConfigHandler(Generic[Target]):
     def __setitem__(self, option_name, value) -> None:
         target_obj = self.target_obj
 
-        # Translate alias into real name.
+        # 044737.python.setupcfg.line281.comment Translate alias into real name.
         option_name = self.aliases.get(option_name, option_name)
 
         try:
@@ -287,7 +287,7 @@ class ConfigHandler(Generic[Target]):
             raise KeyError(option_name) from e
 
         if current_value:
-            # Already inhabited. Skipping.
+            # 044738.python.setupcfg.line290.comment Already inhabited. Skipping.
             return
 
         try:
@@ -395,7 +395,7 @@ class ConfigHandler(Generic[Target]):
         spec = value[len(include_directive) :]
         filepaths = [path.strip() for path in spec.split(',')]
         self._referenced_files.update(filepaths)
-        # XXX: Is marking as static contents coming from files too optimistic?
+        # 044740.python.setupcfg.line398.comment XXX: Is marking as static contents coming from files too optimistic?
         return _static.Str(expand.read_files(filepaths, root_dir))
 
     def _parse_attr(self, value, package_dir, root_dir: StrPath):
@@ -414,7 +414,7 @@ class ConfigHandler(Generic[Target]):
 
         attr_desc = value.replace(attr_directive, '')
 
-        # Make sure package_dir is populated correctly, so `attr:` directives can work
+        # 044741.python.setupcfg.line417.comment Make sure package_dir is populated correctly, so `attr:` directives can work
         package_dir.update(self.ensure_discovered.package_dir)
         return expand.read_attr(attr_desc, package_dir, root_dir)
 
@@ -473,7 +473,7 @@ class ConfigHandler(Generic[Target]):
         """
         for name, (_, value) in section_options.items():
             with contextlib.suppress(KeyError):
-                # Keep silent for a new option may appear anytime.
+                # 044742.python.setupcfg.line476.comment Keep silent for a new option may appear anytime.
                 self[name] = value
 
     def parse(self) -> None:
@@ -488,7 +488,7 @@ class ConfigHandler(Generic[Target]):
 
             section_parser_method: Callable | None = getattr(
                 self,
-                # Dots in section names are translated into dunderscores.
+                # 044744.python.setupcfg.line491.comment Dots in section names are translated into dunderscores.
                 f'parse_section{method_postfix}'.replace('.', '__'),
                 None,
             )
@@ -585,8 +585,8 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
 
         if version != value:
             version = version.strip()
-            # Be strict about versions loaded from file because it's easy to
-            # accidentally include newlines and other unintended content
+            # 044746.python.setupcfg.line588.comment Be strict about versions loaded from file because it's easy to
+            # 044747.python.setupcfg.line589.comment accidentally include newlines and other unintended content
             try:
                 Version(version)
             except InvalidVersion as e:
@@ -622,13 +622,13 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         return self._parse_file(value, root_dir=self.root_dir)
 
     def _parse_requirements_list(self, label: str, value: str):
-        # Parse a requirements list, either by reading in a `file:`, or a list.
+        # 044749.python.setupcfg.line625.comment Parse a requirements list, either by reading in a `file:`, or a list.
         parsed = self._parse_list_semicolon(self._parse_file_in_root(value))
         _warn_accidental_env_marker_misconfig(label, value, parsed)
-        # Filter it to only include lines that are not comments. `parse_list`
-        # will have stripped each line and filtered out empties.
+        # 044750.python.setupcfg.line628.comment Filter it to only include lines that are not comments. `parse_list`
+        # 044751.python.setupcfg.line629.comment will have stripped each line and filtered out empties.
         return _static.List(line for line in parsed if not line.startswith("#"))
-        # ^-- Use `_static.List` to mark a non-`Dynamic` Core Metadata
+        # 044752.python.setupcfg.line631.comment ^-- Use `_static.List` to mark a non-`Dynamic` Core Metadata
 
     @property
     def parsers(self):
@@ -648,7 +648,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
                 parse_list,
                 "The namespace_packages parameter is deprecated, "
                 "consider using implicit namespaces instead (PEP 420).",
-                # TODO: define due date, see setuptools.dist:check_nsp.
+                # 044753.python.setupcfg.line651.comment TODO: define due date, see setuptools.dist:check_nsp.
             ),
             'install_requires': partial(  # Core Metadata
                 self._parse_requirements_list, "install_requires"
@@ -677,7 +677,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         if trimmed_value not in find_directives:
             return self._parse_list(value)
 
-        # Read function arguments from a dedicated section.
+        # 044756.python.setupcfg.line680.comment Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
             self.sections.get('packages.find', {})
         )
@@ -745,7 +745,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         )
 
         self['extras_require'] = _static.Dict(parsed)
-        # ^-- Use `_static.Dict` to mark a non-`Dynamic` Core Metadata
+        # 044759.python.setupcfg.line748.comment ^-- Use `_static.Dict` to mark a non-`Dynamic` Core Metadata
 
     def parse_section_data_files(self, section_options) -> None:
         """Parses `data_files` configuration file section.
@@ -767,8 +767,8 @@ class _AmbiguousMarker(SetuptoolsDeprecationWarning):
     You can use dangling lines to avoid this problem.
     """
     _SEE_DOCS = "userguide/declarative_config.html#opt-2"
-    # TODO: should we include due_date here? Initially introduced in 6 Aug 2022.
-    # Does this make sense with latest version of packaging?
+    # 044760.python.setupcfg.line770.comment TODO: should we include due_date here? Initially introduced in 6 Aug 2022.
+    # 044761.python.setupcfg.line771.comment Does this make sense with latest version of packaging?
 
     @classmethod
     def message(cls, **kw):

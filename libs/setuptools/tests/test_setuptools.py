@@ -29,7 +29,7 @@ def makeSetup(**args):
 
     distutils.core._setup_stop_after = "commandline"
 
-    # Don't let system command line leak into tests!
+    # 045586.python.test_setuptools.line32.comment Don't let system command line leak into tests!
     args.setdefault('script_args', ['install'])
 
     try:
@@ -47,7 +47,7 @@ needs_bytecode = pytest.mark.skipif(
 class TestDepends:
     def testExtractConst(self):
         if not hasattr(dep, 'extract_constant'):
-            # skip on non-bytecode platforms
+            # 045587.python.test_setuptools.line50.comment skip on non-bytecode platforms
             return
 
         def f1():
@@ -57,16 +57,16 @@ class TestDepends:
 
         fc = f1.__code__
 
-        # unrecognized name
+        # 045589.python.test_setuptools.line60.comment unrecognized name
         assert dep.extract_constant(fc, 'q', -1) is None
 
-        # constant assigned
+        # 045590.python.test_setuptools.line63.comment constant assigned
         assert dep.extract_constant(fc, 'x', -1) == "test"
 
-        # expression assigned
+        # 045591.python.test_setuptools.line66.comment expression assigned
         assert dep.extract_constant(fc, 'y', -1) == -1
 
-        # recognized name, not assigned
+        # 045592.python.test_setuptools.line69.comment recognized name, not assigned
         assert dep.extract_constant(fc, 'z', -1) is None
 
     def testFindModule(self):
@@ -114,9 +114,9 @@ class TestDepends:
 
     @needs_bytecode
     def test_require_present(self):
-        # In #1896, this test was failing for months with the only
-        # complaint coming from test runners (not end users).
-        # TODO: Evaluate if this code is needed at all.
+        # 045593.python.test_setuptools.line117.comment In #1896, this test was failing for months with the only
+        # 045594.python.test_setuptools.line118.comment complaint coming from test runners (not end users).
+        # 045595.python.test_setuptools.line119.comment TODO: Evaluate if this code is needed at all.
         req = Require('Tests', None, 'tests', homepage="http://example.com")
         assert req.format is None
         assert req.attribute is None
@@ -160,19 +160,19 @@ class TestDistro:
         assert self.dist.py_modules == ['x']
         assert self.dist.ext_modules == [self.e1]
 
-        # test removals from unspecified options
+        # 045596.python.test_setuptools.line163.comment test removals from unspecified options
         makeSetup().exclude_package('x')
 
     def testIncludeExclude(self):
-        # remove an extension
+        # 045597.python.test_setuptools.line167.comment remove an extension
         self.dist.exclude(ext_modules=[self.e1])
         assert self.dist.ext_modules == [self.e2]
 
-        # add it back in
+        # 045598.python.test_setuptools.line171.comment add it back in
         self.dist.include(ext_modules=[self.e1])
         assert self.dist.ext_modules == [self.e2, self.e1]
 
-        # should not add duplicate
+        # 045599.python.test_setuptools.line175.comment should not add duplicate
         self.dist.include(ext_modules=[self.e1])
         assert self.dist.ext_modules == [self.e2, self.e1]
 

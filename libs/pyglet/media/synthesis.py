@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from typing import Generator
 
 
-# Envelope classes:
+# 035420.python.synthesis.line14.comment Envelope classes:
 
 class Envelope:
     """Base class for SynthesisSource amplitude envelopes.
@@ -159,7 +159,7 @@ class TremoloEnvelope(Envelope):
             yield 0
 
 
-# Waveform generators
+# 035421.python.synthesis.line162.comment Waveform generators
 
 def silence_generator(frequency: float, sample_rate: float) -> Generator[float]:
     while True:
@@ -211,7 +211,7 @@ def pulse_generator(frequency: float, sample_rate: float, duty_cycle: float = 50
         i += 1.0
 
 
-# Source classes:
+# 035422.python.synthesis.line214.comment Source classes:
 
 class SynthesisSource(Source):
     """Base class for synthesized waveforms.
@@ -234,9 +234,9 @@ class SynthesisSource(Source):
         self._envelope = envelope or FlatEnvelope(amplitude=1.0)
         self._envelope_generator = self._envelope.get_generator(sample_rate, duration)
 
-        # Two bytes per sample (16-bit):
+        # 035423.python.synthesis.line237.comment Two bytes per sample (16-bit):
         self._bytes_per_second = sample_rate * 2
-        # Maximum offset, aligned to sample:
+        # 035424.python.synthesis.line239.comment Maximum offset, aligned to sample:
         self._max_offset = int(self._bytes_per_second * duration) & 0xfffffffe
         self._offset = 0
 
@@ -250,7 +250,7 @@ class SynthesisSource(Source):
         duration = num_bytes / self._bytes_per_second
         self._offset += num_bytes
 
-        # Generate bytes:
+        # 035425.python.synthesis.line253.comment Generate bytes:
         samples = num_bytes >> 1
         generator = self._generator
         envelope = self._envelope_generator
@@ -260,7 +260,7 @@ class SynthesisSource(Source):
         return AudioData(data, num_bytes, timestamp, duration, [])
 
     def seek(self, timestamp: float) -> None:
-        # Bound within duration & align to sample:
+        # 035426.python.synthesis.line263.comment Bound within duration & align to sample:
         offset = int(timestamp * self._bytes_per_second)
         self._offset = min(max(offset, 0), self._max_offset) & 0xfffffffe
         self._envelope_generator = self._envelope.get_generator(self.audio_format.sample_rate, self._duration)
@@ -305,9 +305,9 @@ class Sawtooth(SynthesisSource):
         super().__init__(sawtooth_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
-#############################################
-#   Experimental multi-operator FM synthesis:
-#############################################
+# 035427.python.synthesis.line308.comment ############################################
+# 035428.python.synthesis.line309.comment Experimental multi-operator FM synthesis:
+# 035429.python.synthesis.line310.comment ############################################
 
 def sine_operator(sample_rate: int = 44800, frequency: float = 440, index: float = 1,
                   modulator: Generator | None = None, envelope: Envelope | None = None) -> Generator[float]:
@@ -334,7 +334,7 @@ def sine_operator(sample_rate: int = 44800, frequency: float = 440, index: float
         envelope:
             An optional Envelope to apply to the waveform.
     """
-    # FM equation:  sin((i * 2 * pi * carrier_frequency) + sin(i * 2 * pi * modulator_frequency))
+    # 035430.python.synthesis.line337.comment FM equation:  sin((i * 2 * pi * carrier_frequency) + sin(i * 2 * pi * modulator_frequency))
     envelope = envelope or FlatEnvelope(1.0).get_generator()
     sin = _math.sin
     step = 2.0 * _math.pi * frequency / sample_rate

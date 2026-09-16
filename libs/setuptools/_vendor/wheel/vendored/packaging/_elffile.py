@@ -56,9 +56,9 @@ class ELFFile:
         self.encoding = ident[5]  # Data structure encoding (endianness).
 
         try:
-            # e_fmt: Format for program header.
-            # p_fmt: Format for section header.
-            # p_idx: Indexes to find p_type, p_offset, and p_filesz.
+            # 043864.python.elffile.line59.comment e_fmt: Format for program header.
+            # 043865.python.elffile.line60.comment p_fmt: Format for section header.
+            # 043866.python.elffile.line61.comment p_idx: Indexes to find p_type, p_offset, and p_filesz.
             e_fmt, self._p_fmt, self._p_idx = {
                 (1, 1): ("<HHIIIIIHHH", "<IIIIIIII", (0, 1, 4)),  # 32-bit LSB.
                 (1, 2): (">HHIIIIIHHH", ">IIIIIIII", (0, 1, 4)),  # 32-bit MSB.

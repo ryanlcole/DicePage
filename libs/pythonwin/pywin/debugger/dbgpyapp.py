@@ -1,5 +1,5 @@
-# dbgpyapp.py  - Debugger Python application class
-#
+# 036969.python.dbgpyapp.line1.comment dbgpyapp.py  - Debugger Python application class
+# 036970.python.dbgpyapp.line2.comment
 import sys
 
 import win32con
@@ -19,30 +19,30 @@ class DebuggerPythonApp(intpyapp.InteractivePythonApp):
         self.frame.ShowWindow(win32con.SW_HIDE)
         self.frame.UpdateWindow()
 
-        # but we do rehook, hooking the new code objects.
+        # 036972.python.dbgpyapp.line22.comment but we do rehook, hooking the new code objects.
         self.HookCommands()
 
     def InitInstance(self):
-        # Use a registry path of "Python\Pythonwin Debugger
+        # 036973.python.dbgpyapp.line26.comment Use a registry path of "Python\Pythonwin Debugger
         win32ui.SetAppName(win32ui.LoadString(win32ui.IDR_DEBUGGER))
         win32ui.SetRegistryKey(f"Python {sys.winver}")
-        # We _need_ the Scintilla color editor.
-        # (and we _always_ get it now :-)
+        # 036974.python.dbgpyapp.line29.comment We _need_ the Scintilla color editor.
+        # 036975.python.dbgpyapp.line30.comment (and we _always_ get it now :-)
 
         numMRU = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
         win32ui.LoadStdProfileSettings(numMRU)
 
         self.LoadMainFrame()
 
-        # Display the interactive window if the user wants it.
+        # 036976.python.dbgpyapp.line37.comment Display the interactive window if the user wants it.
         from pywin.framework import interact
 
         interact.CreateInteractiveWindowUserPreference()
 
-        # Load the modules we use internally.
+        # 036977.python.dbgpyapp.line42.comment Load the modules we use internally.
         self.LoadSystemModules()
-        # Load additional module the user may want.
+        # 036978.python.dbgpyapp.line44.comment Load additional module the user may want.
         self.LoadUserModules()
 
-        # 		win32ui.CreateDebuggerThread()
+        # 036979.python.dbgpyapp.line47.comment win32ui.CreateDebuggerThread()
         win32ui.EnableControlContainer()

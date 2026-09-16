@@ -7,9 +7,9 @@ _lib = pyglet.lib.load_library('gbm')
 
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 031523.python.gbm.line10.comment c_void_p is a buggy return type, converting to int, so
+    # 031524.python.gbm.line11.comment POINTER(None) == c_void_p is actually written as
+    # 031525.python.gbm.line12.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -35,9 +35,9 @@ class struct_gbm_format_name_desc(Structure):
 
 __GBM__ = 1  # /usr/include/gbm.h:31
 
-# enum
-# GBM_BO_FORMAT_XRGB8888
-# GBM_BO_FORMAT_ARGB8888
+# 031527.python.gbm.line38.comment enum
+# 031528.python.gbm.line39.comment GBM_BO_FORMAT_XRGB8888
+# 031529.python.gbm.line40.comment GBM_BO_FORMAT_ARGB8888
 
 GBM_BO_USE_SCANOUT = (1 << 0)
 GBM_BO_USE_CURSOR = (1 << 1)
@@ -53,7 +53,7 @@ GBM_BO_TRANSFER_WRITE = (1 << 1)
 GBM_BO_TRANSFER_READ_WRITE = (GBM_BO_TRANSFER_READ | GBM_BO_TRANSFER_WRITE)
 
 
-# TODO: pre-calculate all of the fourcc values
+# 031530.python.gbm.line56.comment TODO: pre-calculate all of the fourcc values
 def __gbm_fourcc_code(a, b, c, d):
     a, b, c, d = ord(a), ord(b), ord(c), ord(d)
     return c_uint32(a).value | (c_uint32(b).value << 8) | (c_uint32(c).value << 16) | (c_uint32(d).value << 24)
@@ -144,49 +144,49 @@ GBM_FORMAT_YUV444 = __gbm_fourcc_code('Y', 'U', '2', '4')
 GBM_FORMAT_YVU444 = __gbm_fourcc_code('Y', 'V', '2', '4')
 
 
-# /usr/include/gbm.h:257
+# 031531.python.gbm.line147.comment /usr/include/gbm.h:257
 gbm_device_get_fd = _lib.gbm_device_get_fd
 gbm_device_get_fd.restype = c_int
 gbm_device_get_fd.argtypes = [POINTER(struct_gbm_device)]
 
-# /usr/include/gbm.h:259
+# 031532.python.gbm.line152.comment /usr/include/gbm.h:259
 gbm_device_get_backend_name = _lib.gbm_device_get_backend_name
 gbm_device_get_backend_name.restype = c_char_p
 gbm_device_get_backend_name.argtypes = [POINTER(struct_gbm_device)]
 
-# /usr/include/gbm.h:263
+# 031533.python.gbm.line157.comment /usr/include/gbm.h:263
 gbm_device_is_format_supported = _lib.gbm_device_is_format_supported
 gbm_device_is_format_supported.restype = c_int
 gbm_device_is_format_supported.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32]
 
-# /usr/include/gbm.h:267
+# 031534.python.gbm.line162.comment /usr/include/gbm.h:267
 gbm_device_get_format_modifier_plane_count = _lib.gbm_device_get_format_modifier_plane_count
 gbm_device_get_format_modifier_plane_count.restype = c_int
 gbm_device_get_format_modifier_plane_count.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint64]
 
-# /usr/include/gbm.h:272
+# 031535.python.gbm.line167.comment /usr/include/gbm.h:272
 gbm_device_destroy = _lib.gbm_device_destroy
 gbm_device_destroy.restype = None
 gbm_device_destroy.argtypes = [POINTER(struct_gbm_device)]
 
-# /usr/include/gbm.h:274
+# 031536.python.gbm.line172.comment /usr/include/gbm.h:274
 gbm_create_device = _lib.gbm_create_device
 gbm_create_device.restype = POINTER(struct_gbm_device)
 gbm_create_device.argtypes = [c_int]
 
 
-# /usr/include/gbm.h:277
+# 031537.python.gbm.line178.comment /usr/include/gbm.h:277
 gbm_bo_create = _lib.gbm_bo_create
 gbm_bo_create.restype = POINTER(struct_gbm_bo)
 gbm_bo_create.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32, c_uint32, c_uint32]
 
-# /usr/include/gbm.h:282
+# 031538.python.gbm.line183.comment /usr/include/gbm.h:282
 gbm_bo_create_with_modifiers = _lib.gbm_bo_create_with_modifiers
 gbm_bo_create_with_modifiers.restype = POINTER(struct_gbm_bo)
 gbm_bo_create_with_modifiers.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32, c_uint32, POINTER(c_uint64),
                                          c_uint]
 
-# /usr/include/gbm.h:289
+# 031539.python.gbm.line189.comment /usr/include/gbm.h:289
 gbm_bo_create_with_modifiers2 = _lib.gbm_bo_create_with_modifiers2
 gbm_bo_create_with_modifiers2.restype = POINTER(struct_gbm_bo)
 gbm_bo_create_with_modifiers2.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32, c_uint32, POINTER(c_uint64),
@@ -198,151 +198,151 @@ GBM_BO_IMPORT_FD = 21763  # /usr/include/gbm.h:299
 GBM_BO_IMPORT_FD_MODIFIER = 21764  # /usr/include/gbm.h:300
 GBM_MAX_PLANES = 4  # /usr/include/gbm.h:310
 
-# /usr/include/gbm.h:323
+# 031545.python.gbm.line201.comment /usr/include/gbm.h:323
 gbm_bo_import = _lib.gbm_bo_import
 gbm_bo_import.restype = POINTER(struct_gbm_bo)
 gbm_bo_import.argtypes = [POINTER(struct_gbm_device), c_uint32, POINTER(None), c_uint32]
 
-# /usr/include/gbm.h:354
+# 031546.python.gbm.line206.comment /usr/include/gbm.h:354
 gbm_bo_map = _lib.gbm_bo_map
 gbm_bo_map.restype = POINTER(c_void)
 gbm_bo_map.argtypes = [POINTER(struct_gbm_bo), c_uint32, c_uint32, c_uint32, c_uint32, c_uint32, POINTER(c_uint32),
                        POINTER(POINTER(None))]
 
-# /usr/include/gbm.h:360
+# 031547.python.gbm.line212.comment /usr/include/gbm.h:360
 gbm_bo_unmap = _lib.gbm_bo_unmap
 gbm_bo_unmap.restype = None
 gbm_bo_unmap.argtypes = [POINTER(struct_gbm_bo), POINTER(None)]
 
-# /usr/include/gbm.h:363
+# 031548.python.gbm.line217.comment /usr/include/gbm.h:363
 gbm_bo_get_width = _lib.gbm_bo_get_width
 gbm_bo_get_width.restype = c_uint32
 gbm_bo_get_width.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:366
+# 031549.python.gbm.line222.comment /usr/include/gbm.h:366
 gbm_bo_get_height = _lib.gbm_bo_get_height
 gbm_bo_get_height.restype = c_uint32
 gbm_bo_get_height.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:369
+# 031550.python.gbm.line227.comment /usr/include/gbm.h:369
 gbm_bo_get_stride = _lib.gbm_bo_get_stride
 gbm_bo_get_stride.restype = c_uint32
 gbm_bo_get_stride.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:372
+# 031551.python.gbm.line232.comment /usr/include/gbm.h:372
 gbm_bo_get_stride_for_plane = _lib.gbm_bo_get_stride_for_plane
 gbm_bo_get_stride_for_plane.restype = c_uint32
 gbm_bo_get_stride_for_plane.argtypes = [POINTER(struct_gbm_bo), c_int]
 
-# /usr/include/gbm.h:375
+# 031552.python.gbm.line237.comment /usr/include/gbm.h:375
 gbm_bo_get_format = _lib.gbm_bo_get_format
 gbm_bo_get_format.restype = c_uint32
 gbm_bo_get_format.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:378
+# 031553.python.gbm.line242.comment /usr/include/gbm.h:378
 gbm_bo_get_bpp = _lib.gbm_bo_get_bpp
 gbm_bo_get_bpp.restype = c_uint32
 gbm_bo_get_bpp.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:381
+# 031554.python.gbm.line247.comment /usr/include/gbm.h:381
 gbm_bo_get_offset = _lib.gbm_bo_get_offset
 gbm_bo_get_offset.restype = c_uint32
 gbm_bo_get_offset.argtypes = [POINTER(struct_gbm_bo), c_int]
 
-# /usr/include/gbm.h:383
+# 031555.python.gbm.line252.comment /usr/include/gbm.h:383
 gbm_bo_get_device = _lib.gbm_bo_get_device
 gbm_bo_get_device.restype = POINTER(struct_gbm_device)
 gbm_bo_get_device.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:387
+# 031556.python.gbm.line257.comment /usr/include/gbm.h:387
 gbm_bo_get_handle = _lib.gbm_bo_get_handle
 gbm_bo_get_handle.restype = struct_gbm_bo_handle
 gbm_bo_get_handle.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:390
+# 031557.python.gbm.line262.comment /usr/include/gbm.h:390
 gbm_bo_get_fd = _lib.gbm_bo_get_fd
 gbm_bo_get_fd.restype = c_int
 gbm_bo_get_fd.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:393
+# 031558.python.gbm.line267.comment /usr/include/gbm.h:393
 gbm_bo_get_modifier = _lib.gbm_bo_get_modifier
 gbm_bo_get_modifier.restype = c_uint64
 gbm_bo_get_modifier.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:396
+# 031559.python.gbm.line272.comment /usr/include/gbm.h:396
 gbm_bo_get_plane_count = _lib.gbm_bo_get_plane_count
 gbm_bo_get_plane_count.restype = c_int
 gbm_bo_get_plane_count.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:399
+# 031560.python.gbm.line277.comment /usr/include/gbm.h:399
 gbm_bo_get_handle_for_plane = _lib.gbm_bo_get_handle_for_plane
 gbm_bo_get_handle_for_plane.restype = struct_gbm_bo_handle
 gbm_bo_get_handle_for_plane.argtypes = [POINTER(struct_gbm_bo), c_int]
 
-# /usr/include/gbm.h:402
+# 031561.python.gbm.line282.comment /usr/include/gbm.h:402
 gbm_bo_get_fd_for_plane = _lib.gbm_bo_get_fd_for_plane
 gbm_bo_get_fd_for_plane.restype = c_int
 gbm_bo_get_fd_for_plane.argtypes = [POINTER(struct_gbm_bo), c_int]
 
-# /usr/include/gbm.h:405
+# 031562.python.gbm.line287.comment /usr/include/gbm.h:405
 gbm_bo_write = _lib.gbm_bo_write
 gbm_bo_write.restype = c_int
 gbm_bo_write.argtypes = [POINTER(struct_gbm_bo), POINTER(None), c_size_t]
 
-# /usr/include/gbm.h:408
+# 031563.python.gbm.line292.comment /usr/include/gbm.h:408
 gbm_bo_set_user_data = _lib.gbm_bo_set_user_data
 gbm_bo_set_user_data.restype = None
 gbm_bo_set_user_data.argtypes = [POINTER(struct_gbm_bo), POINTER(None),
                                  CFUNCTYPE(None, POINTER(struct_gbm_bo), POINTER(None))]
 
-# /usr/include/gbm.h:411
+# 031564.python.gbm.line298.comment /usr/include/gbm.h:411
 gbm_bo_get_user_data = _lib.gbm_bo_get_user_data
 gbm_bo_get_user_data.restype = POINTER(c_void)
 gbm_bo_get_user_data.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:415
+# 031565.python.gbm.line303.comment /usr/include/gbm.h:415
 gbm_bo_destroy = _lib.gbm_bo_destroy
 gbm_bo_destroy.restype = None
 gbm_bo_destroy.argtypes = [POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:417
+# 031566.python.gbm.line308.comment /usr/include/gbm.h:417
 gbm_surface_create = _lib.gbm_surface_create
 gbm_surface_create.restype = POINTER(struct_gbm_surface)
 gbm_surface_create.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32, c_uint32, c_uint32]
 
-# /usr/include/gbm.h:422
+# 031567.python.gbm.line313.comment /usr/include/gbm.h:422
 gbm_surface_create_with_modifiers = _lib.gbm_surface_create_with_modifiers
 gbm_surface_create_with_modifiers.restype = POINTER(struct_gbm_surface)
 gbm_surface_create_with_modifiers.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32, c_uint32,
                                               POINTER(c_uint64), c_uint]
 
-# /usr/include/gbm.h:429
+# 031568.python.gbm.line319.comment /usr/include/gbm.h:429
 gbm_surface_create_with_modifiers2 = _lib.gbm_surface_create_with_modifiers2
 gbm_surface_create_with_modifiers2.restype = POINTER(struct_gbm_surface)
 gbm_surface_create_with_modifiers2.argtypes = [POINTER(struct_gbm_device), c_uint32, c_uint32, c_uint32,
                                                POINTER(c_uint64), c_uint, c_uint32]
 
-# /usr/include/gbm.h:437
+# 031569.python.gbm.line325.comment /usr/include/gbm.h:437
 gbm_surface_lock_front_buffer = _lib.gbm_surface_lock_front_buffer
 gbm_surface_lock_front_buffer.restype = POINTER(struct_gbm_bo)
 gbm_surface_lock_front_buffer.argtypes = [POINTER(struct_gbm_surface)]
 
-# /usr/include/gbm.h:441
+# 031570.python.gbm.line330.comment /usr/include/gbm.h:441
 gbm_surface_release_buffer = _lib.gbm_surface_release_buffer
 gbm_surface_release_buffer.restype = None
 gbm_surface_release_buffer.argtypes = [POINTER(struct_gbm_surface), POINTER(struct_gbm_bo)]
 
-# /usr/include/gbm.h:444
+# 031571.python.gbm.line335.comment /usr/include/gbm.h:444
 gbm_surface_has_free_buffers = _lib.gbm_surface_has_free_buffers
 gbm_surface_has_free_buffers.restype = c_int
 gbm_surface_has_free_buffers.argtypes = [POINTER(struct_gbm_surface)]
 
-# /usr/include/gbm.h:447
+# 031572.python.gbm.line340.comment /usr/include/gbm.h:447
 gbm_surface_destroy = _lib.gbm_surface_destroy
 gbm_surface_destroy.restype = None
 gbm_surface_destroy.argtypes = [POINTER(struct_gbm_surface)]
 
-# /usr/include/gbm.h:449
+# 031573.python.gbm.line345.comment /usr/include/gbm.h:449
 gbm_format_get_name = _lib.gbm_format_get_name
 gbm_format_get_name.restype = c_char_p
 gbm_format_get_name.argtypes = [c_uint32, POINTER(struct_gbm_format_name_desc)]

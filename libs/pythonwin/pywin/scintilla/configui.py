@@ -3,15 +3,15 @@ import win32con
 import win32ui
 from pywin.mfc import dialog
 
-# Used to indicate that style should use default color
+# 038670.python.configui.line6.comment Used to indicate that style should use default color
 from win32con import CLR_INVALID
 
 from . import scintillacon
 
-######################################################
-# Property Page for syntax formatting options
+# 038671.python.configui.line11.comment #####################################################
+# 038672.python.configui.line12.comment Property Page for syntax formatting options
 
-# The standard 16 color VGA palette should always be possible
+# 038673.python.configui.line14.comment The standard 16 color VGA palette should always be possible
 paletteVGA = (
     ("Black", win32api.RGB(0, 0, 0)),
     ("Navy", win32api.RGB(0, 0, 128)),
@@ -29,7 +29,7 @@ paletteVGA = (
     ("Fuchsia", win32api.RGB(255, 0, 255)),
     ("Yellow", win32api.RGB(255, 255, 0)),
     ("White", win32api.RGB(255, 255, 255)),
-    # and a few others will generally be possible.
+    # 038674.python.configui.line32.comment and a few others will generally be possible.
     ("DarkGrey", win32api.RGB(64, 64, 64)),
     ("PurpleBlue", win32api.RGB(64, 64, 192)),
     ("DarkGreen", win32api.RGB(0, 96, 0)),
@@ -59,7 +59,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 
             self.scintilla = sc()
             style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.ES_MULTILINE
-            # Convert the rect size
+            # 038675.python.configui.line62.comment Convert the rect size
             rect = self.MapDialogRect((5, 5, 120, 75))
             self.scintilla.CreateWindow(style, rect, self, 111)
             self.HookNotify(self.OnBraceMatch, scintillacon.SCN_UPDATEUI)
@@ -166,8 +166,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
                 | win32con.CF_FORCEFONTEXIST
             )
             style = self.GetSelectedStyle()
-            # If the selected style is based on the default, we need to apply
-            # the default to it.
+            # 038676.python.configui.line169.comment If the selected style is based on the default, we need to apply
+            # 038677.python.configui.line170.comment the default to it.
             def_format = self.scintilla._GetColorizer().GetDefaultFormat()
             format = style.GetCompleteFormat(def_format)
             d = win32ui.CreateFontDialog(format, flags, None, self)
@@ -186,8 +186,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
                 self.UpdateUIForStyle(style)
                 self.scintilla.ApplyFormattingStyles(0)
             else:
-                # User wants to override default -
-                # do nothing!
+                # 038679.python.configui.line189.comment User wants to override default -
+                # 038680.python.configui.line190.comment do nothing!
                 pass
 
     def OnButThisBackground(self, id, code):
@@ -212,8 +212,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
                 self.UpdateUIForStyle(style)
                 self.scintilla.ApplyFormattingStyles(0)
             else:
-                # User wants to override default -
-                # do nothing!
+                # 038682.python.configui.line215.comment User wants to override default -
+                # 038683.python.configui.line216.comment do nothing!
                 pass
 
     def OnListCommand(self, id, code):
@@ -227,7 +227,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
         sel = 0
         for c in paletteVGA:
             if format[4] == c[1]:
-                # print("Style", style.name, "is", c[0])
+                # 038684.python.configui.line230.comment print("Style", style.name, "is", c[0])
                 break
             sel += 1
         else:

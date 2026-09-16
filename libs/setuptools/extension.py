@@ -19,17 +19,17 @@ def _have_cython():
     """
     cython_impl = 'Cython.Distutils.build_ext'
     try:
-        # from (cython_impl) import build_ext
+        # 044881.python.extension.line22.comment from (cython_impl) import build_ext
         __import__(cython_impl, fromlist=['build_ext']).build_ext
     except Exception:
         return False
     return True
 
 
-# for compatibility
+# 044882.python.extension.line29.comment for compatibility
 have_pyrex = _have_cython
 if TYPE_CHECKING:
-    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    # 044883.python.extension.line32.comment Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
     from distutils.core import Extension as _Extension
 else:
     _Extension = get_unpatched(distutils.core.Extension)
@@ -131,10 +131,10 @@ class Extension(_Extension):
       specified on Windows. (since v63)
     """
 
-    # These 4 are set and used in setuptools/command/build_ext.py
-    # The lack of a default value and risk of `AttributeError` is purposeful
-    # to avoid people forgetting to call finalize_options if they modify the extension list.
-    # See example/rationale in https://github.com/pypa/setuptools/issues/4529.
+    # 044884.python.extension.line134.comment These 4 are set and used in setuptools/command/build_ext.py
+    # 044885.python.extension.line135.comment The lack of a default value and risk of `AttributeError` is purposeful
+    # 044886.python.extension.line136.comment to avoid people forgetting to call finalize_options if they modify the extension list.
+    # 044887.python.extension.line137.comment See example/rationale in https://github.com/pypa/setuptools/issues/4529.
     _full_name: str  #: Private API, internal use only.
     _links_to_dynamic: bool  #: Private API, internal use only.
     _needs_stub: bool  #: Private API, internal use only.
@@ -148,8 +148,8 @@ class Extension(_Extension):
         py_limited_api: bool = False,
         **kw,
     ) -> None:
-        # The *args is needed for compatibility as calls may use positional
-        # arguments. py_limited_api may be set only via keyword.
+        # 044892.python.extension.line151.comment The *args is needed for compatibility as calls may use positional
+        # 044893.python.extension.line152.comment arguments. py_limited_api may be set only via keyword.
         self.py_limited_api = py_limited_api
         super().__init__(
             name,
@@ -165,7 +165,7 @@ class Extension(_Extension):
         pre-converted sources but to prefer the .pyx sources.
         """
         if _have_cython():
-            # the build has Cython, so allow it to compile the .pyx files
+            # 044895.python.extension.line168.comment the build has Cython, so allow it to compile the .pyx files
             return
         lang = self.language or ''
         target_ext = '.cpp' if lang.lower() == 'c++' else '.c'

@@ -1,18 +1,18 @@
-# Extension to format a paragraph
+# 038304.python.FormatParagraph.line1.comment Extension to format a paragraph
 
-# Does basic, standard text formatting, and also understands Python
-# comment blocks.  Thus, for editing Python source code, this
-# extension is really only suitable for reformatting these comment
-# blocks or triple-quoted strings.
+# 038305.python.FormatParagraph.line3.comment Does basic, standard text formatting, and also understands Python
+# 038306.python.FormatParagraph.line4.comment comment blocks.  Thus, for editing Python source code, this
+# 038307.python.FormatParagraph.line5.comment extension is really only suitable for reformatting these comment
+# 038308.python.FormatParagraph.line6.comment blocks or triple-quoted strings.
 
-# Known problems with comment reformatting:
-# * If there is a selection marked, and the first line of the
-#   selection is not complete, the block will probably not be detected
-#   as comments, and will have the normal "text formatting" rules
-#   applied.
-# * If a comment block has leading whitespace that mixes tabs and
-#   spaces, they will not be considered part of the same block.
-# * Fancy comments, like this bulleted list, aren't handled :-)
+# 038309.python.FormatParagraph.line8.comment Known problems with comment reformatting:
+# 038310.python.FormatParagraph.line9.comment * If there is a selection marked, and the first line of the
+# 038311.python.FormatParagraph.line10.comment selection is not complete, the block will probably not be detected
+# 038312.python.FormatParagraph.line11.comment as comments, and will have the normal "text formatting" rules
+# 038313.python.FormatParagraph.line12.comment applied.
+# 038314.python.FormatParagraph.line13.comment * If a comment block has leading whitespace that mixes tabs and
+# 038315.python.FormatParagraph.line14.comment spaces, they will not be considered part of the same block.
+# 038316.python.FormatParagraph.line15.comment * Fancy comments, like this bulleted list, aren't handled :-)
 
 import re
 
@@ -52,20 +52,20 @@ class FormatParagraph:
                 text, text.index("insert")
             )
         if comment_header:
-            # Reformat the comment lines - convert to text sans header.
+            # 038317.python.FormatParagraph.line55.comment Reformat the comment lines - convert to text sans header.
             lines = data.split("\n")
             lines = map(lambda st, l=len(comment_header): st[l:], lines)
             data = "\n".join(lines)
-            # Reformat to 70 chars or a 20 char width, whichever is greater.
+            # 038318.python.FormatParagraph.line59.comment Reformat to 70 chars or a 20 char width, whichever is greater.
             format_width = max(70 - len(comment_header), 20)
             newdata = reformat_paragraph(data, format_width)
-            # re-split and re-insert the comment header.
+            # 038319.python.FormatParagraph.line62.comment re-split and re-insert the comment header.
             newdata = newdata.split("\n")
-            # If the block ends in a \n, we don't want the comment
-            # prefix inserted after it. (I'm not sure it makes sense to
-            # reformat a comment block that isn't made of complete
-            # lines, but whatever!)  Can't think of a clean soltution,
-            # so we hack away
+            # 038320.python.FormatParagraph.line64.comment If the block ends in a \n, we don't want the comment
+            # 038321.python.FormatParagraph.line65.comment prefix inserted after it. (I'm not sure it makes sense to
+            # 038322.python.FormatParagraph.line66.comment reformat a comment block that isn't made of complete
+            # 038323.python.FormatParagraph.line67.comment lines, but whatever!)  Can't think of a clean soltution,
+            # 038324.python.FormatParagraph.line68.comment so we hack away
             block_suffix = ""
             if not newdata[-1]:
                 block_suffix = "\n"
@@ -73,7 +73,7 @@ class FormatParagraph:
             builder = lambda item, prefix=comment_header: prefix + item
             newdata = "\n".join([builder(d) for d in newdata]) + block_suffix
         else:
-            # Just a normal text format
+            # 038325.python.FormatParagraph.line76.comment Just a normal text format
             newdata = reformat_paragraph(data)
         text.tag_remove("sel", "1.0", "end")
         if newdata != data:
@@ -102,7 +102,7 @@ def find_paragraph(text, mark):
         lineno += 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     last = "%d.0" % lineno
-    # Search back to beginning of paragraph
+    # 038326.python.FormatParagraph.line105.comment Search back to beginning of paragraph
     lineno = first_lineno - 1
     line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     while (
@@ -132,7 +132,7 @@ def reformat_paragraph(data, limit=70):
     new = lines[:i]
     partial = indent1
     while i < n and not is_all_white(lines[i]):
-        # XXX Should take double space after period (etc.) into account
+        # 038327.python.FormatParagraph.line135.comment XXX Should take double space after period (etc.) into account
         words = re.split(r"(\s+)", lines[i])
         for j in range(0, len(words), 2):
             word = words[j]
@@ -146,7 +146,7 @@ def reformat_paragraph(data, limit=70):
                 partial += " "
         i += 1
     new.append(partial.rstrip())
-    # XXX Should reformat remaining paragraphs as well
+    # 038329.python.FormatParagraph.line149.comment XXX Should reformat remaining paragraphs as well
     new.extend(lines[i:])
     return "\n".join(new)
 

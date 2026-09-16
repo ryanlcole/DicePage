@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025959.python.test_unicode.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025960.python.test_unicode.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025961.python.test_unicode.line5.comment found in the LICENSE file.
 
 """Notes about unicode handling in psutil
 ======================================.
@@ -123,9 +123,9 @@ def try_unicode(suffix):
         safe_rmpath(testfn)
 
 
-# ===================================================================
-# FS APIs
-# ===================================================================
+# 025962.python.test_unicode.line126.comment ===================================================================
+# 025963.python.test_unicode.line127.comment FS APIs
+# 025964.python.test_unicode.line128.comment ===================================================================
 
 
 class BaseUnicodeTest(PsutilTestCase):
@@ -161,7 +161,7 @@ class TestFSAPIs(BaseUnicodeTest):
             warnings.simplefilter("ignore")
             return self.funky_name in os.listdir(".")
 
-    # ---
+    # 025965.python.test_unicode.line164.comment ---
 
     def test_proc_exe(self):
         cmd = [
@@ -225,7 +225,7 @@ class TestFSAPIs(BaseUnicodeTest):
         path = (new - start).pop().path
         assert isinstance(path, str)
         if BSD and not path:
-            # XXX - see https://github.com/giampaolo/psutil/issues/595
+            # 025966.python.test_unicode.line228.comment XXX - see https://github.com/giampaolo/psutil/issues/595
             raise pytest.skip("open_files on BSD is broken")
         if self.expect_exact_path_match():
             assert os.path.normcase(path) == os.path.normcase(self.funky_name)
@@ -277,7 +277,7 @@ class TestFSAPIs(BaseUnicodeTest):
             libpaths = [
                 normpath(x.path) for x in psutil.Process().memory_maps()
             ]
-            # ...just to have a clearer msg in case of failure
+            # 025967.python.test_unicode.line280.comment ...just to have a clearer msg in case of failure
             libpaths = [x for x in libpaths if TESTFN_PREFIX in x]
             assert normpath(funky_path) in libpaths
             for path in libpaths:
@@ -294,9 +294,9 @@ class TestFSAPIsWithInvalidPath(TestFSAPIs):
         return not MACOS
 
 
-# ===================================================================
-# Non fs APIs
-# ===================================================================
+# 025968.python.test_unicode.line297.comment ===================================================================
+# 025969.python.test_unicode.line298.comment Non fs APIs
+# 025970.python.test_unicode.line299.comment ===================================================================
 
 
 class TestNonFSAPIS(BaseUnicodeTest):
@@ -307,8 +307,8 @@ class TestNonFSAPIS(BaseUnicodeTest):
     @pytest.mark.skipif(not HAS_ENVIRON, reason="not supported")
     @pytest.mark.skipif(PYPY and WINDOWS, reason="segfaults on PYPY + WINDOWS")
     def test_proc_environ(self):
-        # Note: differently from others, this test does not deal
-        # with fs paths.
+        # 025971.python.test_unicode.line310.comment Note: differently from others, this test does not deal
+        # 025972.python.test_unicode.line311.comment with fs paths.
         env = os.environ.copy()
         env['FUNNY_ARG'] = self.funky_suffix
         sproc = self.spawn_subproc(env=env)

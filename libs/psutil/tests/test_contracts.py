@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025074.python.test_contracts.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025075.python.test_contracts.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025076.python.test_contracts.line5.comment found in the LICENSE file.
 
 """Contracts tests. These tests mainly check API sanity in terms of
 returned types and APIs availability.
@@ -35,12 +35,12 @@ from psutil.tests import is_namedtuple
 from psutil.tests import kernel_version
 from psutil.tests import pytest
 
-# ===================================================================
-# --- APIs availability
-# ===================================================================
+# 025077.python.test_contracts.line38.comment ===================================================================
+# 025078.python.test_contracts.line39.comment --- APIs availability
+# 025079.python.test_contracts.line40.comment ===================================================================
 
-# Make sure code reflects what doc promises in terms of APIs
-# availability.
+# 025080.python.test_contracts.line42.comment Make sure code reflects what doc promises in terms of APIs
+# 025081.python.test_contracts.line43.comment availability.
 
 
 class TestAvailConstantsAPIs(PsutilTestCase):
@@ -184,9 +184,9 @@ class TestAvailProcessAPIs(PsutilTestCase):
         assert hasit == (not (OPENBSD or NETBSD or AIX or MACOS))
 
 
-# ===================================================================
-# --- API types
-# ===================================================================
+# 025082.python.test_contracts.line187.comment ===================================================================
+# 025083.python.test_contracts.line188.comment --- API types
+# 025084.python.test_contracts.line189.comment ===================================================================
 
 
 class TestSystemAPITypes(PsutilTestCase):
@@ -221,7 +221,7 @@ class TestSystemAPITypes(PsutilTestCase):
     def test_cpu_count(self):
         assert isinstance(psutil.cpu_count(), int)
 
-    # TODO: remove this once 1892 is fixed
+    # 025085.python.test_contracts.line224.comment TODO: remove this once 1892 is fixed
     @pytest.mark.skipif(MACOS and AARCH64, reason="skipped due to #1892")
     @pytest.mark.skipif(not HAS_CPU_FREQ, reason="not supported")
     def test_cpu_freq(self):
@@ -230,13 +230,13 @@ class TestSystemAPITypes(PsutilTestCase):
         self.assert_ntuple_of_nums(psutil.cpu_freq(), type_=(float, int))
 
     def test_disk_io_counters(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025086.python.test_contracts.line233.comment Duplicate of test_system.py. Keep it anyway.
         for k, v in psutil.disk_io_counters(perdisk=True).items():
             assert isinstance(k, str)
             self.assert_ntuple_of_nums(v, type_=int)
 
     def test_disk_partitions(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025087.python.test_contracts.line239.comment Duplicate of test_system.py. Keep it anyway.
         for disk in psutil.disk_partitions():
             assert isinstance(disk.device, str)
             assert isinstance(disk.mountpoint, str)
@@ -252,7 +252,7 @@ class TestSystemAPITypes(PsutilTestCase):
                 assert is_namedtuple(conn)
 
     def test_net_if_addrs(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025088.python.test_contracts.line255.comment Duplicate of test_system.py. Keep it anyway.
         for ifname, addrs in psutil.net_if_addrs().items():
             assert isinstance(ifname, str)
             for addr in addrs:
@@ -262,7 +262,7 @@ class TestSystemAPITypes(PsutilTestCase):
                 assert isinstance(addr.broadcast, (str, type(None)))
 
     def test_net_if_stats(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025089.python.test_contracts.line265.comment Duplicate of test_system.py. Keep it anyway.
         for ifname, info in psutil.net_if_stats().items():
             assert isinstance(ifname, str)
             assert isinstance(info.isup, bool)
@@ -272,13 +272,13 @@ class TestSystemAPITypes(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_NET_IO_COUNTERS, reason="not supported")
     def test_net_io_counters(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025090.python.test_contracts.line275.comment Duplicate of test_system.py. Keep it anyway.
         for ifname in psutil.net_io_counters(pernic=True):
             assert isinstance(ifname, str)
 
     @pytest.mark.skipif(not HAS_SENSORS_FANS, reason="not supported")
     def test_sensors_fans(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025091.python.test_contracts.line281.comment Duplicate of test_system.py. Keep it anyway.
         for name, units in psutil.sensors_fans().items():
             assert isinstance(name, str)
             for unit in units:
@@ -287,7 +287,7 @@ class TestSystemAPITypes(PsutilTestCase):
 
     @pytest.mark.skipif(not HAS_SENSORS_TEMPERATURES, reason="not supported")
     def test_sensors_temperatures(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025092.python.test_contracts.line290.comment Duplicate of test_system.py. Keep it anyway.
         for name, units in psutil.sensors_temperatures().items():
             assert isinstance(name, str)
             for unit in units:
@@ -297,11 +297,11 @@ class TestSystemAPITypes(PsutilTestCase):
                 assert isinstance(unit.critical, (float, int, type(None)))
 
     def test_boot_time(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025093.python.test_contracts.line300.comment Duplicate of test_system.py. Keep it anyway.
         assert isinstance(psutil.boot_time(), float)
 
     def test_users(self):
-        # Duplicate of test_system.py. Keep it anyway.
+        # 025094.python.test_contracts.line304.comment Duplicate of test_system.py. Keep it anyway.
         for user in psutil.users():
             assert isinstance(user.name, str)
             assert isinstance(user.terminal, (str, type(None)))

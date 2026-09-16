@@ -48,7 +48,7 @@ class XInputDevice(DeviceResponder, Device):
         self._device_id = device_info.id
         self._device = None
 
-        # Read device info
+        # 030533.python.x11_xinput.line51.comment Read device info
         self.buttons = []
         self.keys = []
         self.axes = []
@@ -68,7 +68,7 @@ class XInputDevice(DeviceResponder, Device):
             elif cls_class == xi.ButtonClass:
                 cp = ctypes.cast(ptr, ctypes.POINTER(xi.XButtonInfo))
                 num_buttons = cp.contents.num_buttons
-                # Pointer buttons start at index 1, with 0 as 'AnyButton'
+                # 030534.python.x11_xinput.line71.comment Pointer buttons start at index 1, with 0 as 'AnyButton'
                 for i in range(num_buttons + 1):
                     self.buttons.append(Button('button%d' % i))
 
@@ -90,8 +90,8 @@ class XInputDevice(DeviceResponder, Device):
 
         self.controls = self.buttons + self.keys + self.axes
 
-        # Can't detect proximity class event without opening device.  Just
-        # assume there is the possibility of a control if there are any axes.
+        # 030535.python.x11_xinput.line93.comment Can't detect proximity class event without opening device.  Just
+        # 030536.python.x11_xinput.line94.comment assume there is the possibility of a control if there are any axes.
         if self.axes:
             self.proximity_control = Button('proximity')
             self.controls.append(self.proximity_control)
@@ -102,8 +102,8 @@ class XInputDevice(DeviceResponder, Device):
         return self.controls
 
     def open(self, window=None, exclusive=False):
-        # Checks for is_open and raises if already open.
-        # TODO allow opening on multiple windows.
+        # 030537.python.x11_xinput.line105.comment Checks for is_open and raises if already open.
+        # 030538.python.x11_xinput.line106.comment TODO allow opening on multiple windows.
         super().open(window, exclusive)
 
         if window is None:
@@ -131,14 +131,14 @@ class XInputDevice(DeviceResponder, Device):
         if not self._device:
             return
 
-        # TODO: uninstall events
+        # 030539.python.x11_xinput.line134.comment TODO: uninstall events
         xi.XCloseDevice(self.display._display, self._device)
 
     def _install_events(self, window):
         dispatcher = XInputWindowEventDispatcher.get_dispatcher(window)
         dispatcher.open_device(self._device_id, self._device, self)
 
-    # DeviceResponder interface
+    # 030540.python.x11_xinput.line141.comment DeviceResponder interface
 
     def _key_press(self, e):
         self.keys[e.keycode - self.min_keycode].value = True
@@ -190,15 +190,15 @@ class XInputWindowEventDispatcher:
         if not device.num_classes:
             return
 
-        # Bind matching extended window events to bound instance methods
-        # on this object.
-        #
-        # This is inspired by test.c of xinput package by Frederic
-        # Lepied available at x.org.
-        #
-        # In C, this stuff is normally handled by the macro DeviceKeyPress and
-        # friends. Since we don't have access to those macros here, we do it
-        # this way.
+        # 030541.python.x11_xinput.line193.comment Bind matching extended window events to bound instance methods
+        # 030542.python.x11_xinput.line194.comment on this object.
+        # 030543.python.x11_xinput.line195.comment
+        # 030544.python.x11_xinput.line196.comment This is inspired by test.c of xinput package by Frederic
+        # 030545.python.x11_xinput.line197.comment Lepied available at x.org.
+        # 030546.python.x11_xinput.line198.comment
+        # 030547.python.x11_xinput.line199.comment In C, this stuff is normally handled by the macro DeviceKeyPress and
+        # 030548.python.x11_xinput.line200.comment friends. Since we don't have access to those macros here, we do it
+        # 030549.python.x11_xinput.line201.comment this way.
         events = []
 
         def add(class_info, event, handler):

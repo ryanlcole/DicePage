@@ -8,12 +8,12 @@ from PIL import Image
 
 class PILImageDecoder(ImageDecoder):
     def get_file_extensions(self):
-        # Only most common ones shown here
+        # 030369.python.pil.line11.comment Only most common ones shown here
         return ['.bmp', '.cur', '.gif', '.ico', '.jpg', '.jpeg', '.pcx', '.png',
                 '.tga', '.tif', '.tiff', '.xbm', '.xpm']
 
-    # def get_animation_file_extensions(self):
-    #     return ['.gif', '.ani']
+    # 030370.python.pil.line15.comment def get_animation_file_extensions(self):
+    # 030371.python.pil.line16.comment return ['.gif', '.ani']
 
     def decode(self, filename, file):
         if not file:
@@ -29,7 +29,7 @@ class PILImageDecoder(ImageDecoder):
         except Exception as e:
             raise ImageDecodeException('PIL failed to transpose %r: %s' % (filename or file, e))
 
-        # Convert bitmap and palette images to component
+        # 030372.python.pil.line32.comment Convert bitmap and palette images to component
         if image.mode in ('1', 'P'):
             image = image.convert()
 
@@ -42,12 +42,12 @@ class PILImageDecoder(ImageDecoder):
 
 class PILImageEncoder(ImageEncoder):
     def get_file_extensions(self):
-        # Most common only
+        # 030373.python.pil.line45.comment Most common only
         return ['.bmp', '.eps', '.gif', '.jpg', '.jpeg',
                 '.pcx', '.png', '.ppm', '.tiff', '.xbm']
 
     def encode(self, image, filename, file):
-        # File format is guessed from filename extension, otherwise defaults to PNG.
+        # 030374.python.pil.line50.comment File format is guessed from filename extension, otherwise defaults to PNG.
         pil_format = (filename and os.path.splitext(filename)[1][1:]) or 'png'
 
         if pil_format.lower() == 'jpg':
@@ -56,12 +56,12 @@ class PILImageEncoder(ImageEncoder):
         image = image.get_image_data()
         fmt = image.format
         if fmt != 'RGB':
-            # Only save in RGB or RGBA formats.
+            # 030375.python.pil.line59.comment Only save in RGB or RGBA formats.
             fmt = 'RGBA'
         pitch = -(image.width * len(fmt))
 
-        # fromstring is deprecated, replaced by frombytes in Pillow (PIL fork)
-        # (1.1.7) PIL still uses it
+        # 030376.python.pil.line63.comment fromstring is deprecated, replaced by frombytes in Pillow (PIL fork)
+        # 030377.python.pil.line64.comment (1.1.7) PIL still uses it
         try:
             image_from_fn = getattr(Image, "frombytes")
         except AttributeError:

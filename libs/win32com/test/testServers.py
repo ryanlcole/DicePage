@@ -14,7 +14,7 @@ def TestConnections():
 
 class InterpCase(win32com.test.util.TestCase):
     def setUp(self):
-        # Ensure the correct version registered.
+        # 050323.python.testServers.line17.comment Ensure the correct version registered.
         from win32com.servers import interp
 
         win32com.test.util.RegisterPythonServer(interp.__file__, "Python.Interpreter")

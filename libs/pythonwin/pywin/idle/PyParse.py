@@ -1,7 +1,7 @@
 import re
 import sys
 
-# Reason last stmt is continued (or C_NONE if it's not).
+# 038333.python.PyParse.line4.comment Reason last stmt is continued (or C_NONE if it's not).
 C_NONE, C_BACKSLASH, C_STRING, C_BRACKET = list(range(4))
 
 if 0:  # for throwaway debugging output
@@ -10,7 +10,7 @@ if 0:  # for throwaway debugging output
         sys.__stdout__.write(" ".join(map(str, stuff)) + "\n")
 
 
-# Find what looks like the start of a popular stmt.
+# 038335.python.PyParse.line13.comment Find what looks like the start of a popular stmt.
 
 _synchre = re.compile(
     r"""
@@ -37,7 +37,7 @@ _synchre = re.compile(
     re.VERBOSE | re.MULTILINE,
 ).search
 
-# Match blank line or non-indenting comment line.
+# 038336.python.PyParse.line40.comment Match blank line or non-indenting comment line.
 
 _junkre = re.compile(
     r"""
@@ -48,8 +48,8 @@ _junkre = re.compile(
     re.VERBOSE,
 ).match
 
-# Match any flavor of string; the terminating quote is optional
-# so that we're robust in the face of incomplete program text.
+# 038337.python.PyParse.line51.comment Match any flavor of string; the terminating quote is optional
+# 038338.python.PyParse.line52.comment so that we're robust in the face of incomplete program text.
 
 _match_stringre = re.compile(
     r"""
@@ -72,8 +72,8 @@ _match_stringre = re.compile(
     re.VERBOSE | re.DOTALL,
 ).match
 
-# Match a line that starts with something interesting;
-# used to find the first item of a bracket structure.
+# 038339.python.PyParse.line75.comment Match a line that starts with something interesting;
+# 038340.python.PyParse.line76.comment used to find the first item of a bracket structure.
 
 _itemre = re.compile(
     r"""
@@ -83,7 +83,7 @@ _itemre = re.compile(
     re.VERBOSE,
 ).match
 
-# Match start of stmts that should be followed by a dedent.
+# 038341.python.PyParse.line86.comment Match start of stmts that should be followed by a dedent.
 
 _closere = re.compile(
     r"""
@@ -99,10 +99,10 @@ _closere = re.compile(
     re.VERBOSE,
 ).match
 
-# Chew up non-special chars as quickly as possible.  If match is
-# successful, m.end() less 1 is the index of the last boring char
-# matched.  If match is unsuccessful, the string starts with an
-# interesting char.
+# 038342.python.PyParse.line102.comment Chew up non-special chars as quickly as possible.  If match is
+# 038343.python.PyParse.line103.comment successful, m.end() less 1 is the index of the last boring char
+# 038344.python.PyParse.line104.comment matched.  If match is unsuccessful, the string starts with an
+# 038345.python.PyParse.line105.comment interesting char.
 
 _chew_ordinaryre = re.compile(
     r"""
@@ -111,8 +111,8 @@ _chew_ordinaryre = re.compile(
     re.VERBOSE,
 ).match
 
-# Build translation table to map uninteresting chars to "x", open
-# brackets to "(", and close brackets to ")".
+# 038346.python.PyParse.line114.comment Build translation table to map uninteresting chars to "x", open
+# 038347.python.PyParse.line115.comment brackets to "(", and close brackets to ")".
 
 _tran = ["x"] * 256
 for ch in "({[":
@@ -134,45 +134,45 @@ class Parser:
         self.str = str
         self.study_level = 0
 
-    # Return index of a good place to begin parsing, as close to the
-    # end of the string as possible.  This will be the start of some
-    # popular stmt like "if" or "def".  Return None if none found:
-    # the caller should pass more prior context then, if possible, or
-    # if not (the entire program text up until the point of interest
-    # has already been tried) pass 0 to set_lo.
-    #
-    # This will be reliable iff given a reliable is_char_in_string
-    # function, meaning that when it says "no", it's absolutely
-    # guaranteed that the char is not in a string.
-    #
-    # Ack, hack: in the shell window this kills us, because there's
-    # no way to tell the differences between output, >>> etc and
-    # user input.  Indeed, IDLE's first output line makes the rest
-    # look like it's in an unclosed paren!:
-    # Python X.X.X (#0, Apr 13 1999, ...
+    # 038348.python.PyParse.line137.comment Return index of a good place to begin parsing, as close to the
+    # 038349.python.PyParse.line138.comment end of the string as possible.  This will be the start of some
+    # 038350.python.PyParse.line139.comment popular stmt like "if" or "def".  Return None if none found:
+    # 038351.python.PyParse.line140.comment the caller should pass more prior context then, if possible, or
+    # 038352.python.PyParse.line141.comment if not (the entire program text up until the point of interest
+    # 038353.python.PyParse.line142.comment has already been tried) pass 0 to set_lo.
+    # 038354.python.PyParse.line143.comment
+    # 038355.python.PyParse.line144.comment This will be reliable iff given a reliable is_char_in_string
+    # 038356.python.PyParse.line145.comment function, meaning that when it says "no", it's absolutely
+    # 038357.python.PyParse.line146.comment guaranteed that the char is not in a string.
+    # 038358.python.PyParse.line147.comment
+    # 038359.python.PyParse.line148.comment Ack, hack: in the shell window this kills us, because there's
+    # 038360.python.PyParse.line149.comment no way to tell the differences between output, >>> etc and
+    # 038361.python.PyParse.line150.comment user input.  Indeed, IDLE's first output line makes the rest
+    # 038362.python.PyParse.line151.comment look like it's in an unclosed paren!:
+    # 038363.python.PyParse.line152.comment Python X.X.X (#0, Apr 13 1999, ...
 
     def find_good_parse_start(self, use_ps1, is_char_in_string=None):
         str, pos = self.str, None
         if use_ps1:
-            # shell window
+            # 038364.python.PyParse.line157.comment shell window
             ps1 = "\n" + sys.ps1
             i = str.rfind(ps1)
             if i >= 0:
                 pos = i + len(ps1)
-                # make it look like there's a newline instead
-                # of ps1 at the start -- hacking here once avoids
-                # repeated hackery later
+                # 038365.python.PyParse.line162.comment make it look like there's a newline instead
+                # 038366.python.PyParse.line163.comment of ps1 at the start -- hacking here once avoids
+                # 038367.python.PyParse.line164.comment repeated hackery later
                 self.str = str[: pos - 1] + "\n" + str[pos:]
             return pos
 
-        # File window -- real work.
+        # 038368.python.PyParse.line168.comment File window -- real work.
         if not is_char_in_string:
-            # no clue -- make the caller pass everything
+            # 038369.python.PyParse.line170.comment no clue -- make the caller pass everything
             return None
 
-        # Peek back from the end for a good place to start,
-        # but don't try too often; pos will be left None, or
-        # bumped to a legitimate synch point.
+        # 038370.python.PyParse.line173.comment Peek back from the end for a good place to start,
+        # 038371.python.PyParse.line174.comment but don't try too often; pos will be left None, or
+        # 038372.python.PyParse.line175.comment bumped to a legitimate synch point.
         limit = len(str)
         for tries in range(5):
             i = str.rfind(":\n", 0, limit)
@@ -185,21 +185,21 @@ class Parser:
                 break
             limit = i
         if pos is None:
-            # Nothing looks like a block-opener, or stuff does
-            # but is_char_in_string keeps returning true; most likely
-            # we're in or near a giant string, the colorizer hasn't
-            # caught up enough to be helpful, or there simply *aren't*
-            # any interesting stmts.  In any of these cases we're
-            # going to have to parse the whole thing to be sure, so
-            # give it one last try from the start, but stop wasting
-            # time here regardless of the outcome.
+            # 038374.python.PyParse.line188.comment Nothing looks like a block-opener, or stuff does
+            # 038375.python.PyParse.line189.comment but is_char_in_string keeps returning true; most likely
+            # 038376.python.PyParse.line190.comment we're in or near a giant string, the colorizer hasn't
+            # 038377.python.PyParse.line191.comment caught up enough to be helpful, or there simply *aren't*
+            # 038378.python.PyParse.line192.comment any interesting stmts.  In any of these cases we're
+            # 038379.python.PyParse.line193.comment going to have to parse the whole thing to be sure, so
+            # 038380.python.PyParse.line194.comment give it one last try from the start, but stop wasting
+            # 038381.python.PyParse.line195.comment time here regardless of the outcome.
             m = _synchre(str)
             if m and not is_char_in_string(m.start()):
                 pos = m.start()
             return pos
 
-        # Peeking back worked; look forward until _synchre no longer
-        # matches.
+        # 038382.python.PyParse.line201.comment Peeking back worked; look forward until _synchre no longer
+        # 038383.python.PyParse.line202.comment matches.
         i = pos + 1
         while 1:
             m = _synchre(str, i)
@@ -211,27 +211,27 @@ class Parser:
                 break
         return pos
 
-    # Throw away the start of the string.  Intended to be called with
-    # find_good_parse_start's result.
+    # 038384.python.PyParse.line214.comment Throw away the start of the string.  Intended to be called with
+    # 038385.python.PyParse.line215.comment find_good_parse_start's result.
 
     def set_lo(self, lo):
         assert lo == 0 or self.str[lo - 1] == "\n"
         if lo > 0:
             self.str = self.str[lo:]
 
-    # As quickly as humanly possible <wink>, find the line numbers (0-
-    # based) of the non-continuation lines.
-    # Creates self.{goodlines, continuation}.
+    # 038386.python.PyParse.line222.comment As quickly as humanly possible <wink>, find the line numbers (0-
+    # 038387.python.PyParse.line223.comment based) of the non-continuation lines.
+    # 038388.python.PyParse.line224.comment Creates self.{goodlines, continuation}.
 
     def _study1(self):
         if self.study_level >= 1:
             return
         self.study_level = 1
 
-        # Map all uninteresting characters to "x", all open brackets
-        # to "(", all close brackets to ")", then collapse runs of
-        # uninteresting characters.  This can cut the number of chars
-        # by a factor of 10-40, and so greatly speed the following loop.
+        # 038389.python.PyParse.line231.comment Map all uninteresting characters to "x", all open brackets
+        # 038390.python.PyParse.line232.comment to "(", all close brackets to ")", then collapse runs of
+        # 038391.python.PyParse.line233.comment uninteresting characters.  This can cut the number of chars
+        # 038392.python.PyParse.line234.comment by a factor of 10-40, and so greatly speed the following loop.
         str = self.str
         str = str.translate(_tran)
         str = str.replace("xxxxxxxx", "x")
@@ -239,12 +239,12 @@ class Parser:
         str = str.replace("xx", "x")
         str = str.replace("xx", "x")
         str = str.replace("\nx", "\n")
-        # note that replacing x\n with \n would be incorrect, because
-        # x may be preceded by a backslash
+        # 038393.python.PyParse.line242.comment note that replacing x\n with \n would be incorrect, because
+        # 038394.python.PyParse.line243.comment x may be preceded by a backslash
 
-        # March over the squashed version of the program, accumulating
-        # the line numbers of non-continued stmts, and determining
-        # whether & why the last stmt is a continuation.
+        # 038395.python.PyParse.line245.comment March over the squashed version of the program, accumulating
+        # 038396.python.PyParse.line246.comment the line numbers of non-continued stmts, and determining
+        # 038397.python.PyParse.line247.comment whether & why the last stmt is a continuation.
         continuation = C_NONE
         level = lno = 0  # level is nesting level; lno is line number
         self.goodlines = goodlines = [0]
@@ -254,7 +254,7 @@ class Parser:
             ch = str[i]
             i += 1
 
-            # cases are checked in decreasing order of frequency
+            # 038399.python.PyParse.line257.comment cases are checked in decreasing order of frequency
             if ch == "x":
                 continue
 
@@ -262,7 +262,7 @@ class Parser:
                 lno += 1
                 if level == 0:
                     push_good(lno)
-                    # else we're in an unclosed bracket structure
+                    # 038400.python.PyParse.line265.comment else we're in an unclosed bracket structure
                 continue
 
             if ch == "(":
@@ -272,11 +272,11 @@ class Parser:
             if ch == ")":
                 if level:
                     level -= 1
-                    # else the program is invalid, but we can't complain
+                    # 038401.python.PyParse.line275.comment else the program is invalid, but we can't complain
                 continue
 
             if ch == '"' or ch == "'":
-                # consume the string
+                # 038402.python.PyParse.line279.comment consume the string
                 quote = ch
                 if str[i - 1 : i + 2] == quote * 3:
                     quote *= 3
@@ -296,7 +296,7 @@ class Parser:
                     if ch == "\n":
                         lno += 1
                         if w == 0:
-                            # unterminated single-quoted string
+                            # 038403.python.PyParse.line299.comment unterminated single-quoted string
                             if level == 0:
                                 push_good(lno)
                             break
@@ -309,16 +309,16 @@ class Parser:
                         i += 1
                         continue
 
-                    # else comment char or paren inside string
+                    # 038404.python.PyParse.line312.comment else comment char or paren inside string
 
                 else:
-                    # didn't break out of the loop, so we're still
-                    # inside a string
+                    # 038405.python.PyParse.line315.comment didn't break out of the loop, so we're still
+                    # 038406.python.PyParse.line316.comment inside a string
                     continuation = C_STRING
                 continue  # with outer loop
 
             if ch == "#":
-                # consume the comment
+                # 038408.python.PyParse.line321.comment consume the comment
                 i = str.find("\n", i)
                 assert i >= 0
                 continue
@@ -331,15 +331,15 @@ class Parser:
                     continuation = C_BACKSLASH
             i += 1
 
-        # The last stmt may be continued for all 3 reasons.
-        # String continuation takes precedence over bracket
-        # continuation, which beats backslash continuation.
+        # 038409.python.PyParse.line334.comment The last stmt may be continued for all 3 reasons.
+        # 038410.python.PyParse.line335.comment String continuation takes precedence over bracket
+        # 038411.python.PyParse.line336.comment continuation, which beats backslash continuation.
         if continuation != C_STRING and level > 0:
             continuation = C_BRACKET
         self.continuation = continuation
 
-        # Push the final line number as a sentinel value, regardless of
-        # whether it's continued.
+        # 038412.python.PyParse.line341.comment Push the final line number as a sentinel value, regardless of
+        # 038413.python.PyParse.line342.comment whether it's continued.
         assert (continuation == C_NONE) == (goodlines[-1] == lno)
         if goodlines[-1] != lno:
             push_good(lno)
@@ -348,17 +348,17 @@ class Parser:
         self._study1()
         return self.continuation
 
-    # study1 was sufficient to determine the continuation status,
-    # but doing more requires looking at every character.  study2
-    # does this for the last interesting statement in the block.
-    # Creates:
-    #     self.stmt_start, stmt_end
-    #         slice indices of last interesting stmt
-    #     self.lastch
-    #         last non-whitespace character before optional trailing
-    #         comment
-    #     self.lastopenbracketpos
-    #         if continuation is C_BRACKET, index of last open bracket
+    # 038414.python.PyParse.line351.comment study1 was sufficient to determine the continuation status,
+    # 038415.python.PyParse.line352.comment but doing more requires looking at every character.  study2
+    # 038416.python.PyParse.line353.comment does this for the last interesting statement in the block.
+    # 038417.python.PyParse.line354.comment Creates:
+    # 038418.python.PyParse.line355.comment self.stmt_start, stmt_end
+    # 038419.python.PyParse.line356.comment slice indices of last interesting stmt
+    # 038420.python.PyParse.line357.comment self.lastch
+    # 038421.python.PyParse.line358.comment last non-whitespace character before optional trailing
+    # 038422.python.PyParse.line359.comment comment
+    # 038423.python.PyParse.line360.comment self.lastopenbracketpos
+    # 038424.python.PyParse.line361.comment if continuation is C_BRACKET, index of last open bracket
 
     def _study2(self):
         if self.study_level >= 2:
@@ -366,42 +366,42 @@ class Parser:
         self._study1()
         self.study_level = 2
 
-        # Set p and q to slice indices of last interesting stmt.
+        # 038425.python.PyParse.line369.comment Set p and q to slice indices of last interesting stmt.
         str, goodlines = self.str, self.goodlines
         i = len(goodlines) - 1
         p = len(str)  # index of newest line
         while i:
             assert p
-            # p is the index of the stmt at line number goodlines[i].
-            # Move p back to the stmt at line number goodlines[i-1].
+            # 038427.python.PyParse.line375.comment p is the index of the stmt at line number goodlines[i].
+            # 038428.python.PyParse.line376.comment Move p back to the stmt at line number goodlines[i-1].
             q = p
             for nothing in range(goodlines[i - 1], goodlines[i]):
-                # tricky: sets p to 0 if no preceding newline
+                # 038429.python.PyParse.line379.comment tricky: sets p to 0 if no preceding newline
                 p = str.rfind("\n", 0, p - 1) + 1
-            # The stmt str[p:q] isn't a continuation, but may be blank
-            # or a non-indenting comment line.
+            # 038430.python.PyParse.line381.comment The stmt str[p:q] isn't a continuation, but may be blank
+            # 038431.python.PyParse.line382.comment or a non-indenting comment line.
             if _junkre(str, p):
                 i -= 1
             else:
                 break
         if i == 0:
-            # nothing but junk!
+            # 038432.python.PyParse.line388.comment nothing but junk!
             assert p == 0
             q = p
         self.stmt_start, self.stmt_end = p, q
 
-        # Analyze this stmt, to find the last open bracket (if any)
-        # and last interesting character (if any).
+        # 038433.python.PyParse.line393.comment Analyze this stmt, to find the last open bracket (if any)
+        # 038434.python.PyParse.line394.comment and last interesting character (if any).
         lastch = ""
         stack = []  # stack of open bracket indices
         push_stack = stack.append
         while p < q:
-            # suck up all except ()[]{}'"#\\
+            # 038436.python.PyParse.line399.comment suck up all except ()[]{}'"#\\
             m = _chew_ordinaryre(str, p, q)
             if m:
-                # we skipped at least one boring char
+                # 038437.python.PyParse.line402.comment we skipped at least one boring char
                 newp = m.end()
-                # back up over totally boring whitespace
+                # 038438.python.PyParse.line404.comment back up over totally boring whitespace
                 i = newp - 1  # index of last boring char
                 while i >= p and str[i] in " \t\n":
                     i -= 1
@@ -427,19 +427,19 @@ class Parser:
                 continue
 
             if ch == '"' or ch == "'":
-                # consume string
-                # Note that study1 did this with a Python loop, but
-                # we use a regexp here; the reason is speed in both
-                # cases; the string may be huge, but study1 pre-squashed
-                # strings to a couple of characters per line.  study1
-                # also needed to keep track of newlines, and we don't
-                # have to.
+                # 038440.python.PyParse.line430.comment consume string
+                # 038441.python.PyParse.line431.comment Note that study1 did this with a Python loop, but
+                # 038442.python.PyParse.line432.comment we use a regexp here; the reason is speed in both
+                # 038443.python.PyParse.line433.comment cases; the string may be huge, but study1 pre-squashed
+                # 038444.python.PyParse.line434.comment strings to a couple of characters per line.  study1
+                # 038445.python.PyParse.line435.comment also needed to keep track of newlines, and we don't
+                # 038446.python.PyParse.line436.comment have to.
                 lastch = ch
                 p = _match_stringre(str, p, q).end()
                 continue
 
             if ch == "#":
-                # consume comment and trailing newline
+                # 038447.python.PyParse.line442.comment consume comment and trailing newline
                 p = str.find("\n", p, q) + 1
                 assert p > 0
                 continue
@@ -448,18 +448,18 @@ class Parser:
             p += 1  # beyond backslash
             assert p < q
             if str[p] != "\n":
-                # the program is invalid, but can't complain
+                # 038449.python.PyParse.line451.comment the program is invalid, but can't complain
                 lastch = ch + str[p]
             p += 1  # beyond escaped char
 
-        # end while p < q:
+        # 038451.python.PyParse.line455.comment end while p < q:
 
         self.lastch = lastch
         if stack:
             self.lastopenbracketpos = stack[-1]
 
-    # Assuming continuation is C_BRACKET, return the number
-    # of spaces the next line should be indented.
+    # 038452.python.PyParse.line461.comment Assuming continuation is C_BRACKET, return the number
+    # 038453.python.PyParse.line462.comment of spaces the next line should be indented.
 
     def compute_bracket_indent(self):
         self._study2()
@@ -469,7 +469,7 @@ class Parser:
         n = len(str)
         origi = i = str.rfind("\n", 0, j) + 1
         j += 1  # one beyond open bracket
-        # find first list item; set i to start of its line
+        # 038455.python.PyParse.line472.comment find first list item; set i to start of its line
         while j < n:
             m = _itemre(str, j)
             if m:
@@ -477,29 +477,29 @@ class Parser:
                 extra = 0
                 break
             else:
-                # this line is junk; advance to next line
+                # 038457.python.PyParse.line480.comment this line is junk; advance to next line
                 i = j = str.find("\n", j) + 1
         else:
-            # nothing interesting follows the bracket;
-            # reproduce the bracket line's indentation + a level
+            # 038458.python.PyParse.line483.comment nothing interesting follows the bracket;
+            # 038459.python.PyParse.line484.comment reproduce the bracket line's indentation + a level
             j = i = origi
             while str[j] in " \t":
                 j += 1
             extra = self.indentwidth
         return len(str[i:j].expandtabs(self.tabwidth)) + extra
 
-    # Return number of physical lines in last stmt (whether or not
-    # it's an interesting stmt!  this is intended to be called when
-    # continuation is C_BACKSLASH).
+    # 038460.python.PyParse.line491.comment Return number of physical lines in last stmt (whether or not
+    # 038461.python.PyParse.line492.comment it's an interesting stmt!  this is intended to be called when
+    # 038462.python.PyParse.line493.comment continuation is C_BACKSLASH).
 
     def get_num_lines_in_stmt(self):
         self._study1()
         goodlines = self.goodlines
         return goodlines[-1] - goodlines[-2]
 
-    # Assuming continuation is C_BACKSLASH, return the number of spaces
-    # the next line should be indented.  Also assuming the new line is
-    # the first one following the initial line of the stmt.
+    # 038463.python.PyParse.line500.comment Assuming continuation is C_BACKSLASH, return the number of spaces
+    # 038464.python.PyParse.line501.comment the next line should be indented.  Also assuming the new line is
+    # 038465.python.PyParse.line502.comment the first one following the initial line of the stmt.
 
     def compute_backslash_indent(self):
         self._study2()
@@ -510,8 +510,8 @@ class Parser:
             i += 1
         startpos = i
 
-        # See whether the initial line starts an assignment stmt; i.e.,
-        # look for an = operator
+        # 038466.python.PyParse.line513.comment See whether the initial line starts an assignment stmt; i.e.,
+        # 038467.python.PyParse.line514.comment look for an = operator
         endpos = str.find("\n", startpos) + 1
         found = level = 0
         while i < endpos:
@@ -539,22 +539,22 @@ class Parser:
                 i += 1
 
         if found:
-            # found a legit =, but it may be the last interesting
-            # thing on the line
+            # 038468.python.PyParse.line542.comment found a legit =, but it may be the last interesting
+            # 038469.python.PyParse.line543.comment thing on the line
             i += 1  # move beyond the =
             found = re.match(r"\s*\\", str[i:endpos]) is None
 
         if not found:
-            # oh well ... settle for moving beyond the first chunk
-            # of non-whitespace chars
+            # 038471.python.PyParse.line548.comment oh well ... settle for moving beyond the first chunk
+            # 038472.python.PyParse.line549.comment of non-whitespace chars
             i = startpos
             while str[i] not in " \t\n":
                 i += 1
 
         return len(str[self.stmt_start : i].expandtabs(self.tabwidth)) + 1
 
-    # Return the leading whitespace on the initial line of the last
-    # interesting stmt.
+    # 038473.python.PyParse.line556.comment Return the leading whitespace on the initial line of the last
+    # 038474.python.PyParse.line557.comment interesting stmt.
 
     def get_base_indent_string(self):
         self._study2()
@@ -565,19 +565,19 @@ class Parser:
             j += 1
         return str[i:j]
 
-    # Did the last interesting stmt open a block?
+    # 038475.python.PyParse.line568.comment Did the last interesting stmt open a block?
 
     def is_block_opener(self):
         self._study2()
         return self.lastch == ":"
 
-    # Did the last interesting stmt close a block?
+    # 038476.python.PyParse.line574.comment Did the last interesting stmt close a block?
 
     def is_block_closer(self):
         self._study2()
         return _closere(self.str, self.stmt_start) is not None
 
-    # index of last open bracket ({[, or None if none
+    # 038477.python.PyParse.line580.comment index of last open bracket ({[, or None if none
     lastopenbracketpos = None
 
     def get_last_open_bracket_pos(self):

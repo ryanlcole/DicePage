@@ -15,8 +15,8 @@ class InternetShortcut:
         )
 
     def load(self, filename):
-        # Get an IPersist interface
-        # which allows save/restore of object to/from files
+        # 051510.python.IUniformResourceLocator.line18.comment Get an IPersist interface
+        # 051511.python.IUniformResourceLocator.line19.comment which allows save/restore of object to/from files
         self._base.QueryInterface(pythoncom.IID_IPersistFile).Load(filename)
 
     def save(self, filename):
@@ -37,7 +37,7 @@ ish = InternetShortcut()
 ish.SetURL("https://github.com/mhammond/pywin32")
 ish.save(linkname)
 
-## IUniformResourceLocator also give access to IPropertySetStorage
+# 051512.python.IUniformResourceLocator.line40.comment # IUniformResourceLocator also give access to IPropertySetStorage
 pss = ish.QueryInterface(pythoncom.IID_IPropertySetStorage)
 ps = pss.Open(shell.FMTID_InternetSite)
 property_ids = [

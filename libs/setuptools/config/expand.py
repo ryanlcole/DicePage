@@ -91,9 +91,9 @@ def glob_relative(
     expanded_values = []
     root_dir = root_dir or os.getcwd()
     for value in patterns:
-        # Has globby characters?
+        # 044696.python.expand.line94.comment Has globby characters?
         if any(char in value for char in glob_characters):
-            # then expand the glob pattern while keeping paths *relative*:
+            # 044697.python.expand.line96.comment then expand the glob pattern while keeping paths *relative*:
             glob_path = os.path.abspath(os.path.join(root_dir, value))
             expanded_values.extend(
                 sorted(
@@ -103,7 +103,7 @@ def glob_relative(
             )
 
         else:
-            # take the value as-is
+            # 044698.python.expand.line106.comment take the value as-is
             path = os.path.relpath(value, root_dir).replace(os.sep, "/")
             expanded_values.append(path)
 
@@ -183,10 +183,10 @@ def read_attr(
 
     try:
         value = getattr(StaticModule(module_name, spec), attr_name)
-        # XXX: Is marking as static contents coming from modules too optimistic?
+        # 044699.python.expand.line186.comment XXX: Is marking as static contents coming from modules too optimistic?
         return _static.attempt_conversion(value)
     except Exception:
-        # fallback to evaluate module
+        # 044700.python.expand.line189.comment fallback to evaluate module
         module = _load_spec(spec, module_name)
         return getattr(module, attr_name)
 
@@ -290,7 +290,7 @@ def find_packages(
 
     from setuptools.discovery import construct_package_dir
 
-    # check "not namespaces" first due to python/mypy#6232
+    # 044702.python.expand.line293.comment check "not namespaces" first due to python/mypy#6232
     if not namespaces:
         from setuptools.discovery import PackageFinder
     else:
@@ -367,7 +367,7 @@ def entry_points(
     entry-point names, and the second level values are references to objects
     (that correspond to the entry-point value).
     """
-    # Using undocumented behaviour, see python/typeshed#12700
+    # 044703.python.expand.line370.comment Using undocumented behaviour, see python/typeshed#12700
     parser = ConfigParser(default_section=None, delimiters=("=",))  # type: ignore[call-overload]
     parser.optionxform = str  # case sensitive
     parser.read_string(text, text_source)

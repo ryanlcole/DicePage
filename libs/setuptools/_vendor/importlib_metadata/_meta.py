@@ -25,7 +25,7 @@ class PackageMetadata(Protocol):
     @overload
     def get(self, name: str, failobj: _T) -> Union[str, _T]: ...  # pragma: no cover
 
-    # overload per python/importlib_metadata#435
+    # 042111.python.meta.line28.comment overload per python/importlib_metadata#435
     @overload
     def get_all(
         self, name: str, failobj: None = None

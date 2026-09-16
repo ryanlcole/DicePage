@@ -1,10 +1,10 @@
-# General purpose service utilities, both for standard Python scripts,
-# and for for Python programs which run as services...
-#
-# Note that most utility functions here will raise win32api.error's
-# (which is win32service.error, pywintypes.error, etc)
-# when things go wrong - eg, not enough permissions to hit the
-# registry etc.
+# 047585.python.win32serviceutil.line1.comment General purpose service utilities, both for standard Python scripts,
+# 047586.python.win32serviceutil.line2.comment and for for Python programs which run as services...
+# 047587.python.win32serviceutil.line3.comment
+# 047588.python.win32serviceutil.line4.comment Note that most utility functions here will raise win32api.error's
+# 047589.python.win32serviceutil.line5.comment (which is win32service.error, pywintypes.error, etc)
+# 047590.python.win32serviceutil.line6.comment when things go wrong - eg, not enough permissions to hit the
+# 047591.python.win32serviceutil.line7.comment registry etc.
 
 import importlib.machinery
 import os
@@ -20,15 +20,15 @@ import winerror
 error = RuntimeError  # Re-exported alias
 
 
-# Returns the full path to an executable for hosting a Python service - typically
-# 'pythonservice.exe'
-# * If you pass a param and it exists as a file, you'll get the abs path back
-# * Otherwise we'll use the param instead of 'pythonservice.exe', and we will
-#   look for it.
+# 047593.python.win32serviceutil.line23.comment Returns the full path to an executable for hosting a Python service - typically
+# 047594.python.win32serviceutil.line24.comment 'pythonservice.exe'
+# 047595.python.win32serviceutil.line25.comment * If you pass a param and it exists as a file, you'll get the abs path back
+# 047596.python.win32serviceutil.line26.comment * Otherwise we'll use the param instead of 'pythonservice.exe', and we will
+# 047597.python.win32serviceutil.line27.comment look for it.
 def LocatePythonServiceExe(exe=None):
     if not exe and hasattr(sys, "frozen"):
-        # If py2exe etc calls this with no exe, default is current exe,
-        # and all setup is their problem :)
+        # 047598.python.win32serviceutil.line30.comment If py2exe etc calls this with no exe, default is current exe,
+        # 047599.python.win32serviceutil.line31.comment and all setup is their problem :)
         return sys.executable
 
     if exe and os.path.isfile(exe):
@@ -36,23 +36,23 @@ def LocatePythonServiceExe(exe=None):
 
     suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 
-    # We are confused if we aren't now looking for our default. But if that
-    # exists as specified we assume it's good.
+    # 047600.python.win32serviceutil.line39.comment We are confused if we aren't now looking for our default. But if that
+    # 047601.python.win32serviceutil.line40.comment exists as specified we assume it's good.
     exe = f"pythonservice{suffix}.exe"
     if os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
-    # Now we are searching for the .exe
-    # We are going to want it here.
+    # 047602.python.win32serviceutil.line45.comment Now we are searching for the .exe
+    # 047603.python.win32serviceutil.line46.comment We are going to want it here.
     correct = os.path.join(sys.exec_prefix, exe)
-    # Even if that file already exists, we copy the one installed by pywin32
-    # in-case it was upgraded.
-    # pywin32 installed it next to win32service.pyd (but we can't run it from there)
+    # 047604.python.win32serviceutil.line48.comment Even if that file already exists, we copy the one installed by pywin32
+    # 047605.python.win32serviceutil.line49.comment in-case it was upgraded.
+    # 047606.python.win32serviceutil.line50.comment pywin32 installed it next to win32service.pyd (but we can't run it from there)
     maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
     if os.path.exists(maybe):
         print(f"moving host exe '{maybe}' -> '{correct}'")
-        # Handle case where MoveFile() fails. Particularly if destination file
-        # has a resource lock and can't be replaced by src file
+        # 047607.python.win32serviceutil.line54.comment Handle case where MoveFile() fails. Particularly if destination file
+        # 047608.python.win32serviceutil.line55.comment has a resource lock and can't be replaced by src file
         try:
             win32api.MoveFileEx(maybe, correct, win32con.MOVEFILE_REPLACE_EXISTING)
         except win32api.error as exc:
@@ -61,11 +61,11 @@ def LocatePythonServiceExe(exe=None):
     if not os.path.exists(correct):
         raise error(f"Can't find '{correct}'")
 
-    # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
-    # there's a good chance the service will not run. That's usually copied by
-    # `pywin32_postinstall`, but putting it next to the python DLL seems reasonable.
-    # (Unlike the .exe above, we don't unconditionally copy this, and possibly
-    # copy it to a different place. Doesn't seem a good reason for that!?)
+    # 047609.python.win32serviceutil.line64.comment If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
+    # 047610.python.win32serviceutil.line65.comment there's a good chance the service will not run. That's usually copied by
+    # 047611.python.win32serviceutil.line66.comment `pywin32_postinstall`, but putting it next to the python DLL seems reasonable.
+    # 047612.python.win32serviceutil.line67.comment (Unlike the .exe above, we don't unconditionally copy this, and possibly
+    # 047613.python.win32serviceutil.line68.comment copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
     pyw = f"pywintypes{sys.version_info.major}{sys.version_info.minor}{suffix}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
@@ -78,9 +78,9 @@ def LocatePythonServiceExe(exe=None):
 
 
 def _GetServiceShortName(longName):
-    # looks up a services name
-    # from the display name
-    # Thanks to Andy McKay for this code.
+    # 047614.python.win32serviceutil.line81.comment looks up a services name
+    # 047615.python.win32serviceutil.line82.comment from the display name
+    # 047616.python.win32serviceutil.line83.comment Thanks to Andy McKay for this code.
     access = (
         win32con.KEY_READ | win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE
     )
@@ -89,23 +89,23 @@ def _GetServiceShortName(longName):
     )
     num = win32api.RegQueryInfoKey(hkey)[0]
     longName = longName.lower()
-    # loop through number of subkeys
+    # 047617.python.win32serviceutil.line92.comment loop through number of subkeys
     for x in range(0, num):
-        # find service name, open subkey
+        # 047618.python.win32serviceutil.line94.comment find service name, open subkey
         svc = win32api.RegEnumKey(hkey, x)
         skey = win32api.RegOpenKey(hkey, svc, 0, access)
         try:
-            # find display name
+            # 047619.python.win32serviceutil.line98.comment find display name
             thisName = str(win32api.RegQueryValueEx(skey, "DisplayName")[0])
             if thisName.lower() == longName:
                 return svc
         except win32api.error:
-            # in case there is no key called DisplayName
+            # 047620.python.win32serviceutil.line103.comment in case there is no key called DisplayName
             pass
     return None
 
 
-# Open a service given either it's long or short name.
+# 047621.python.win32serviceutil.line108.comment Open a service given either it's long or short name.
 def SmartOpenService(hscm, name, access):
     try:
         return win32service.OpenService(hscm, name, access)
@@ -120,7 +120,7 @@ def SmartOpenService(hscm, name, access):
 
 
 def LocateSpecificServiceExe(serviceName):
-    # Return the .exe name of any service.
+    # 047622.python.win32serviceutil.line123.comment Return the .exe name of any service.
     hkey = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
@@ -134,10 +134,10 @@ def LocateSpecificServiceExe(serviceName):
 
 
 def InstallPerfmonForService(serviceName, iniName, dllName=None):
-    # If no DLL name, look it up in the INI file name
+    # 047623.python.win32serviceutil.line137.comment If no DLL name, look it up in the INI file name
     if not dllName:  # May be empty string!
         dllName = win32api.GetProfileVal("Python", "dll", "", iniName)
-    # Still not found - look for the standard one in the same dir as win32service.pyd
+    # 047625.python.win32serviceutil.line140.comment Still not found - look for the standard one in the same dir as win32service.pyd
     if not dllName:
         try:
             tryName = os.path.join(
@@ -146,12 +146,12 @@ def InstallPerfmonForService(serviceName, iniName, dllName=None):
             if os.path.isfile(tryName):
                 dllName = tryName
         except AttributeError:
-            # Frozen app? - anyway, can't find it!
+            # 047626.python.win32serviceutil.line149.comment Frozen app? - anyway, can't find it!
             pass
     if not dllName:
         raise ValueError("The name of the performance DLL must be available")
     dllName = win32api.GetFullPathName(dllName)
-    # Now setup all the required "Performance" entries.
+    # 047627.python.win32serviceutil.line154.comment Now setup all the required "Performance" entries.
     hkey = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
@@ -175,7 +175,7 @@ def InstallPerfmonForService(serviceName, iniName, dllName=None):
             win32api.RegCloseKey(subKey)
     finally:
         win32api.RegCloseKey(hkey)
-    # Now do the "Lodctr" thang...
+    # 047628.python.win32serviceutil.line178.comment Now do the "Lodctr" thang...
 
     try:
         import perfmon
@@ -217,7 +217,7 @@ def InstallService(
     description=None,
     delayedstart=None,
 ):
-    # Handle the default arguments.
+    # 047629.python.win32serviceutil.line220.comment Handle the default arguments.
     if startType is None:
         startType = win32service.SERVICE_DEMAND_START
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
@@ -260,7 +260,7 @@ def InstallService(
                     delayedstart,
                 )
             except (win32service.error, NotImplementedError):
-                ## delayed start only exists on Vista and later - warn only when trying to set delayed to True
+                # 047634.python.win32serviceutil.line263.comment # delayed start only exists on Vista and later - warn only when trying to set delayed to True
                 warnings.warn(
                     "Delayed Start not available on this system", stacklevel=2
                 )
@@ -268,7 +268,7 @@ def InstallService(
     finally:
         win32service.CloseServiceHandle(hscm)
     InstallPythonClassString(pythonClassString, serviceName)
-    # If I have performance monitor info to install, do that.
+    # 047635.python.win32serviceutil.line271.comment If I have performance monitor info to install, do that.
     if perfMonIni is not None:
         InstallPerfmonForService(serviceName, perfMonIni, perfMonDll)
 
@@ -290,7 +290,7 @@ def ChangeServiceConfig(
     description=None,
     delayedstart=None,
 ):
-    # Before doing anything, remove any perfmon counters.
+    # 047636.python.win32serviceutil.line293.comment Before doing anything, remove any perfmon counters.
     try:
         import perfmon
 
@@ -298,10 +298,10 @@ def ChangeServiceConfig(
     except (ImportError, win32api.error):
         pass
 
-    # The EXE location may have changed
+    # 047637.python.win32serviceutil.line301.comment The EXE location may have changed
     exeName = '"%s"' % LocatePythonServiceExe(exeName)
 
-    # Handle the default arguments.
+    # 047638.python.win32serviceutil.line304.comment Handle the default arguments.
     if startType is None:
         startType = win32service.SERVICE_NO_CHANGE
     if errorControl is None:
@@ -343,9 +343,9 @@ def ChangeServiceConfig(
                         delayedstart,
                     )
                 except (win32service.error, NotImplementedError):
-                    ## Delayed start only exists on Vista and later.  On Nt, will raise NotImplementedError since ChangeServiceConfig2
-                    ## doensn't exist.  On Win2k and XP, will fail with ERROR_INVALID_LEVEL
-                    ## Warn only if trying to set delayed to True
+                    # 047642.python.win32serviceutil.line346.comment # Delayed start only exists on Vista and later.  On Nt, will raise NotImplementedError since ChangeServiceConfig2
+                    # 047643.python.win32serviceutil.line347.comment # doensn't exist.  On Win2k and XP, will fail with ERROR_INVALID_LEVEL
+                    # 047644.python.win32serviceutil.line348.comment # Warn only if trying to set delayed to True
                     if delayedstart:
                         warnings.warn(
                             "Delayed Start not available on this system", stacklevel=2
@@ -355,13 +355,13 @@ def ChangeServiceConfig(
     finally:
         win32service.CloseServiceHandle(hscm)
     InstallPythonClassString(pythonClassString, serviceName)
-    # If I have performance monitor info to install, do that.
+    # 047645.python.win32serviceutil.line358.comment If I have performance monitor info to install, do that.
     if perfMonIni is not None:
         InstallPerfmonForService(serviceName, perfMonIni, perfMonDll)
 
 
 def InstallPythonClassString(pythonClassString, serviceName):
-    # Now setup our Python specific entries.
+    # 047646.python.win32serviceutil.line364.comment Now setup our Python specific entries.
     if pythonClassString:
         key = win32api.RegCreateKey(
             win32con.HKEY_LOCAL_MACHINE,
@@ -373,7 +373,7 @@ def InstallPythonClassString(pythonClassString, serviceName):
             win32api.RegCloseKey(key)
 
 
-# Utility functions for Services, to allow persistant properties.
+# 047647.python.win32serviceutil.line376.comment Utility functions for Services, to allow persistant properties.
 def SetServiceCustomOption(serviceName, option, value):
     try:
         serviceName = serviceName._svc_name_
@@ -393,8 +393,8 @@ def SetServiceCustomOption(serviceName, option, value):
 
 
 def GetServiceCustomOption(serviceName, option, defaultValue=None):
-    # First param may also be a service class/instance.
-    # This allows services to pass "self"
+    # 047648.python.win32serviceutil.line396.comment First param may also be a service class/instance.
+    # 047649.python.win32serviceutil.line397.comment This allows services to pass "self"
     try:
         serviceName = serviceName._svc_name_
     except AttributeError:
@@ -520,7 +520,7 @@ def __StopServiceWithTimeout(hs, waitSecs=30):
 
 
 def StopServiceWithDeps(serviceName, machine=None, waitSecs=30):
-    # Stop a service recursively looking for dependant services
+    # 047651.python.win32serviceutil.line523.comment Stop a service recursively looking for dependant services
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
         deps = __FindSvcDeps(serviceName)
@@ -530,7 +530,7 @@ def StopServiceWithDeps(serviceName, machine=None, waitSecs=30):
                 __StopServiceWithTimeout(hs, waitSecs)
             finally:
                 win32service.CloseServiceHandle(hs)
-        # Now my service!
+        # 047652.python.win32serviceutil.line533.comment Now my service!
         hs = win32service.OpenService(
             hscm, serviceName, win32service.SERVICE_ALL_ACCESS
         )
@@ -564,10 +564,10 @@ def RestartService(serviceName, args=None, waitSeconds=30, machine=None):
     try:
         StopService(serviceName, machine)
     except pywintypes.error as exc:
-        # Allow only "service not running" error
+        # 047653.python.win32serviceutil.line567.comment Allow only "service not running" error
         if exc.winerror != winerror.ERROR_SERVICE_NOT_ACTIVE:
             raise
-    # Give it a few goes, as the service may take time to stop
+    # 047654.python.win32serviceutil.line570.comment Give it a few goes, as the service may take time to stop
     for i in range(waitSeconds):
         try:
             StartService(serviceName, args, machine)
@@ -590,11 +590,11 @@ def _DebugCtrlHandler(evt):
 
 
 def DebugService(cls, argv=[]):
-    # Run a service in "debug" mode.  Re-implements what pythonservice.exe
-    # does when it sees a "-debug" param.
-    # Currently only used by "frozen" (ie, py2exe) programs (but later may
-    # end up being used for all services should we ever remove
-    # pythonservice.exe)
+    # 047655.python.win32serviceutil.line593.comment Run a service in "debug" mode.  Re-implements what pythonservice.exe
+    # 047656.python.win32serviceutil.line594.comment does when it sees a "-debug" param.
+    # 047657.python.win32serviceutil.line595.comment Currently only used by "frozen" (ie, py2exe) programs (but later may
+    # 047658.python.win32serviceutil.line596.comment end up being used for all services should we ever remove
+    # 047659.python.win32serviceutil.line597.comment pythonservice.exe)
     import servicemanager
 
     global g_debugService
@@ -603,7 +603,7 @@ def DebugService(cls, argv=[]):
     servicemanager.Debugging(True)
     servicemanager.PrepareToHostSingle(cls)
     g_debugService = cls(argv)
-    # Setup a ctrl+c handler to simulate a "stop"
+    # 047660.python.win32serviceutil.line606.comment Setup a ctrl+c handler to simulate a "stop"
     win32api.SetConsoleCtrlHandler(_DebugCtrlHandler, True)
     try:
         g_debugService.SvcRun()
@@ -623,13 +623,13 @@ def GetServiceClassString(cls, argv=None):
         try:
             fname = win32api.GetFullPathName(argv[0])
             path = os.path.split(fname)[0]
-            # Eaaaahhhh - sometimes this will be a short filename, which causes
-            # problems with 1.5.1 and the silly filename case rule.
+            # 047661.python.win32serviceutil.line626.comment Eaaaahhhh - sometimes this will be a short filename, which causes
+            # 047662.python.win32serviceutil.line627.comment problems with 1.5.1 and the silly filename case rule.
             filelist = win32api.FindFiles(fname)
-            # win32api.FindFiles will not detect files in a zip or exe. If list is empty,
-            # skip the test and hope the file really exists.
+            # 047663.python.win32serviceutil.line629.comment win32api.FindFiles will not detect files in a zip or exe. If list is empty,
+            # 047664.python.win32serviceutil.line630.comment skip the test and hope the file really exists.
             if len(filelist) != 0:
-                # Get the long name
+                # 047665.python.win32serviceutil.line632.comment Get the long name
                 fname = os.path.join(path, filelist[0][8])
         except win32api.error:
             raise error(
@@ -709,7 +709,7 @@ def HandleCommandLine(
     if serviceClassString is None:
         serviceClassString = GetServiceClassString(cls)
 
-    # Pull apart the command line
+    # 047666.python.win32serviceutil.line712.comment Pull apart the command line
     import getopt
 
     try:
@@ -761,7 +761,7 @@ def HandleCommandLine(
                 delayedstart = True
             elif val.lower() == "auto":
                 delayedstart = False
-            ## else no change
+            # 047668.python.win32serviceutil.line764.comment # else no change
         elif opt == "--wait":
             try:
                 waitSecs = int(val)
@@ -771,7 +771,7 @@ def HandleCommandLine(
 
     arg = args[0]
     knownArg = 0
-    # First we process all arguments which pass additional args on
+    # 047669.python.win32serviceutil.line774.comment First we process all arguments which pass additional args on
     if arg == "start":
         knownArg = 1
         print("Starting service %s" % (serviceName))
@@ -795,8 +795,8 @@ def HandleCommandLine(
     elif arg == "debug":
         knownArg = 1
         if not hasattr(sys, "frozen"):
-            # non-frozen services use pythonservice.exe which handles a
-            # -debug option
+            # 047670.python.win32serviceutil.line798.comment non-frozen services use pythonservice.exe which handles a
+            # 047671.python.win32serviceutil.line799.comment -debug option
             svcArgs = " ".join(args[1:])
             try:
                 exeName = LocateSpecificServiceExe(serviceName)
@@ -808,13 +808,13 @@ def HandleCommandLine(
                 raise
             try:
                 os.system(f"{exeName} -debug {serviceName} {svcArgs}")
-            # ^C is used to kill the debug service.  Sometimes Python also gets
-            # interrupted - ignore it...
+            # 047672.python.win32serviceutil.line811.comment ^C is used to kill the debug service.  Sometimes Python also gets
+            # 047673.python.win32serviceutil.line812.comment interrupted - ignore it...
             except KeyboardInterrupt:
                 pass
         else:
-            # py2exe services don't use pythonservice - so we simulate
-            # debugging here.
+            # 047674.python.win32serviceutil.line816.comment py2exe services don't use pythonservice - so we simulate
+            # 047675.python.win32serviceutil.line817.comment debugging here.
             DebugService(cls, args)
 
     if not knownArg and len(args) != 1:
@@ -839,10 +839,10 @@ def HandleCommandLine(
         except AttributeError:
             description = None
         print(f"Installing service {serviceName}")
-        # Note that we install the service before calling the custom option
-        # handler, so if the custom handler fails, we have an installed service (from NT's POV)
-        # but is unlikely to work, as the Python code controlling it failed.  Therefore
-        # we remove the service if the first bit works, but the second doesn't!
+        # 047678.python.win32serviceutil.line842.comment Note that we install the service before calling the custom option
+        # 047679.python.win32serviceutil.line843.comment handler, so if the custom handler fails, we have an installed service (from NT's POV)
+        # 047680.python.win32serviceutil.line844.comment but is unlikely to work, as the Python code controlling it failed.  Therefore
+        # 047681.python.win32serviceutil.line845.comment we remove the service if the first bit works, but the second doesn't!
         try:
             InstallService(
                 serviceClassString,
@@ -874,11 +874,11 @@ def HandleCommandLine(
         except ValueError as msg:  # Can be raised by custom option handler.
             print("Error installing service: %s" % str(msg))
             err = -1
-            # xxx - maybe I should remove after _any_ failed install - however,
-            # xxx - it may be useful to help debug to leave the service as it failed.
-            # xxx - We really _must_ remove as per the comments above...
-            # As we failed here, remove the service, so the next installation
-            # attempt works.
+            # 047684.python.win32serviceutil.line877.comment xxx - maybe I should remove after _any_ failed install - however,
+            # 047685.python.win32serviceutil.line878.comment xxx - it may be useful to help debug to leave the service as it failed.
+            # 047686.python.win32serviceutil.line879.comment xxx - We really _must_ remove as per the comments above...
+            # 047687.python.win32serviceutil.line880.comment As we failed here, remove the service, so the next installation
+            # 047688.python.win32serviceutil.line881.comment attempt works.
             try:
                 RemoveService(serviceName)
             except win32api.error:
@@ -957,15 +957,15 @@ def HandleCommandLine(
     return err
 
 
-#
-# Useful base class to build services from.
-#
+# 047690.python.win32serviceutil.line960.comment
+# 047691.python.win32serviceutil.line961.comment Useful base class to build services from.
+# 047692.python.win32serviceutil.line962.comment
 class ServiceFramework:
-    # Required Attributes:
-    # _svc_name_ = The service name
-    # _svc_display_name_ = The service display name
+    # 047693.python.win32serviceutil.line964.comment Required Attributes:
+    # 047694.python.win32serviceutil.line965.comment _svc_name_ = The service name
+    # 047695.python.win32serviceutil.line966.comment _svc_display_name_ = The service display name
 
-    # Optional Attributes:
+    # 047696.python.win32serviceutil.line968.comment Optional Attributes:
     _svc_deps_ = None  # sequence of service names on which this depends
     _exe_name_ = None  # Default to PythonService.exe
     _exe_args_ = None  # Default to no arguments
@@ -983,9 +983,9 @@ class ServiceFramework:
         self.checkPoint = 0
 
     def GetAcceptedControls(self):
-        # Setup the service controls we accept based on our attributes. Note
-        # that if you need to handle controls via SvcOther[Ex](), you must
-        # override this.
+        # 047701.python.win32serviceutil.line986.comment Setup the service controls we accept based on our attributes. Note
+        # 047702.python.win32serviceutil.line987.comment that if you need to handle controls via SvcOther[Ex](), you must
+        # 047703.python.win32serviceutil.line988.comment override this.
         accepted = 0
         if hasattr(self, "SvcStop"):
             accepted |= win32service.SERVICE_ACCEPT_STOP
@@ -1014,7 +1014,7 @@ class ServiceFramework:
             self.checkPoint += 1
             checkPoint = self.checkPoint
 
-        # Now report the status to the control manager
+        # 047705.python.win32serviceutil.line1017.comment Now report the status to the control manager
         status = (
             win32service.SERVICE_WIN32_OWN_PROCESS,
             serviceStatus,
@@ -1027,23 +1027,23 @@ class ServiceFramework:
         win32service.SetServiceStatus(self.ssh, status)
 
     def SvcInterrogate(self):
-        # Assume we are running, and everyone is happy.
+        # 047710.python.win32serviceutil.line1030.comment Assume we are running, and everyone is happy.
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
     def SvcOther(self, control):
         try:
             print("Unknown control status - %d" % control)
         except OSError:
-            # services may not have a valid stdout!
+            # 047711.python.win32serviceutil.line1037.comment services may not have a valid stdout!
             pass
 
     def ServiceCtrlHandler(self, control):
         return self.ServiceCtrlHandlerEx(control, 0, None)
 
-    # The 'Ex' functions, which take additional params
+    # 047712.python.win32serviceutil.line1043.comment The 'Ex' functions, which take additional params
     def SvcOtherEx(self, control, event_type, data):
-        # The default here is to call self.SvcOther as that is the old behaviour.
-        # If you want to take advantage of the extra data, override this method
+        # 047713.python.win32serviceutil.line1045.comment The default here is to call self.SvcOther as that is the old behaviour.
+        # 047714.python.win32serviceutil.line1046.comment If you want to take advantage of the extra data, override this method
         return self.SvcOther(control)
 
     def ServiceCtrlHandlerEx(self, control, event_type, data):
@@ -1061,17 +1061,17 @@ class ServiceFramework:
             return self.SvcOtherEx(control, event_type, data)
 
     def SvcRun(self):
-        # This is the entry point the C framework calls when the Service is
-        # started. Your Service class should implement SvcDoRun().
-        # Or you can override this method for more control over the Service
-        # statuses reported to the SCM.
+        # 047715.python.win32serviceutil.line1064.comment This is the entry point the C framework calls when the Service is
+        # 047716.python.win32serviceutil.line1065.comment started. Your Service class should implement SvcDoRun().
+        # 047717.python.win32serviceutil.line1066.comment Or you can override this method for more control over the Service
+        # 047718.python.win32serviceutil.line1067.comment statuses reported to the SCM.
 
-        # If this method raises an exception, the C framework will detect this
-        # and report a SERVICE_STOPPED status with a non-zero error code.
+        # 047719.python.win32serviceutil.line1069.comment If this method raises an exception, the C framework will detect this
+        # 047720.python.win32serviceutil.line1070.comment and report a SERVICE_STOPPED status with a non-zero error code.
 
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
         self.SvcDoRun()
-        # Once SvcDoRun terminates, the service has stopped.
-        # We tell the SCM the service is still stopping - the C framework
-        # will automatically tell the SCM it has stopped when this returns.
+        # 047721.python.win32serviceutil.line1074.comment Once SvcDoRun terminates, the service has stopped.
+        # 047722.python.win32serviceutil.line1075.comment We tell the SCM the service is still stopping - the C framework
+        # 047723.python.win32serviceutil.line1076.comment will automatically tell the SCM it has stopped when this returns.
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)

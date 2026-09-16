@@ -55,8 +55,8 @@ def touch(filename):
     open(filename, 'wb').close()
 
 
-# The set of files always in the manifest, including all files in the
-# .egg-info directory
+# 045482.python.test_manifest.line58.comment The set of files always in the manifest, including all files in the
+# 045483.python.test_manifest.line59.comment .egg-info directory
 default_files = frozenset(
     map(
         make_local_path,
@@ -77,12 +77,12 @@ default_files = frozenset(
 translate_specs: list[tuple[str, list[str], list[str]]] = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
-    # Glob matching
+    # 045484.python.test_manifest.line80.comment Glob matching
     ('*.txt', ['foo.txt', 'bar.txt'], ['foo/foo.txt']),
     ('dir/*.txt', ['dir/foo.txt', 'dir/bar.txt', 'dir/.txt'], ['notdir/foo.txt']),
     ('*/*.py', ['bin/start.py'], []),
     ('docs/page-?.txt', ['docs/page-9.txt'], ['docs/page-10.txt']),
-    # Globstars change what they mean depending upon where they are
+    # 045485.python.test_manifest.line85.comment Globstars change what they mean depending upon where they are
     (
         'foo/**/bar',
         ['foo/bing/bar', 'foo/bing/bang/bar', 'foo/bar'],
@@ -98,7 +98,7 @@ translate_specs: list[tuple[str, list[str], list[str]]] = [
         ['x', 'abc/xyz', '@nything'],
         [],
     ),
-    # Character classes
+    # 045486.python.test_manifest.line101.comment Character classes
     (
         'pre[one]post',
         ['preopost', 'prenpost', 'preepost'],
@@ -196,13 +196,13 @@ class TestManifestTest(TempDirTestCase):
         for fname in ['README.rst', '.hidden.rst', 'testing.rst', 'LICENSE']:
             touch(os.path.join(self.temp_dir, fname))
 
-        # Set up the rest of the test package
+        # 045487.python.test_manifest.line199.comment Set up the rest of the test package
         test_pkg = os.path.join(self.temp_dir, 'app')
         os.mkdir(test_pkg)
         for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
             touch(os.path.join(test_pkg, fname))
 
-        # Some compiled front-end assets to include
+        # 045488.python.test_manifest.line205.comment Some compiled front-end assets to include
         static = os.path.join(test_pkg, 'static')
         os.mkdir(static)
         for fname in ['app.js', 'app.js.map', 'app.css', 'app.css.map']:
@@ -371,19 +371,19 @@ class TestFileListTest(TempDirTestCase):
             touch(file)
 
     def test_process_template_line(self):
-        # testing  all MANIFEST.in template patterns
+        # 045489.python.test_manifest.line374.comment testing  all MANIFEST.in template patterns
         file_list = FileList()
         ml = make_local_path
 
-        # simulated file list
+        # 045490.python.test_manifest.line378.comment simulated file list
         self.make_files([
             'foo.tmp',
             'ok',
             'xo',
             'four.txt',
             'buildout.cfg',
-            # filelist does not filter out VCS directories,
-            # it's sdist that does
+            # 045491.python.test_manifest.line385.comment filelist does not filter out VCS directories,
+            # 045492.python.test_manifest.line386.comment it's sdist that does
             ml('.hg/last-message.txt'),
             ml('global/one.txt'),
             ml('global/two.txt'),
@@ -434,16 +434,16 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == wanted
 
     def test_exclude_pattern(self):
-        # return False if no match
+        # 045493.python.test_manifest.line437.comment return False if no match
         file_list = FileList()
         assert not file_list.exclude_pattern('*.py')
 
-        # return True if files match
+        # 045494.python.test_manifest.line441.comment return True if files match
         file_list = FileList()
         file_list.files = ['a.py', 'b.py']
         assert file_list.exclude_pattern('*.py')
 
-        # test excludes
+        # 045495.python.test_manifest.line446.comment test excludes
         file_list = FileList()
         file_list.files = ['a.py', 'a.txt']
         file_list.exclude_pattern('*.py')
@@ -451,17 +451,17 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['a.txt']
 
     def test_include_pattern(self):
-        # return False if no match
+        # 045496.python.test_manifest.line454.comment return False if no match
         file_list = FileList()
         self.make_files([])
         assert not file_list.include_pattern('*.py')
 
-        # return True if files match
+        # 045497.python.test_manifest.line459.comment return True if files match
         file_list = FileList()
         self.make_files(['a.py', 'b.txt'])
         assert file_list.include_pattern('*.py')
 
-        # test * matches all files
+        # 045498.python.test_manifest.line464.comment test * matches all files
         file_list = FileList()
         self.make_files(['a.py', 'b.txt'])
         file_list.include_pattern('*')
@@ -469,7 +469,7 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['a.py', 'b.txt']
 
     def test_process_template_line_invalid(self):
-        # invalid lines
+        # 045499.python.test_manifest.line472.comment invalid lines
         file_list = FileList()
         for action in (
             'include',
@@ -488,7 +488,7 @@ class TestFileListTest(TempDirTestCase):
     def test_include(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # include
+        # 045500.python.test_manifest.line491.comment include
         file_list = FileList()
         self.make_files(['a.py', 'b.txt', ml('d/c.py')])
 
@@ -505,7 +505,7 @@ class TestFileListTest(TempDirTestCase):
     def test_exclude(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # exclude
+        # 045501.python.test_manifest.line508.comment exclude
         file_list = FileList()
         file_list.files = ['a.py', 'b.txt', ml('d/c.py')]
 
@@ -522,7 +522,7 @@ class TestFileListTest(TempDirTestCase):
     def test_global_include(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # global-include
+        # 045502.python.test_manifest.line525.comment global-include
         file_list = FileList()
         self.make_files(['a.py', 'b.txt', ml('d/c.py')])
 
@@ -539,7 +539,7 @@ class TestFileListTest(TempDirTestCase):
     def test_global_exclude(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # global-exclude
+        # 045503.python.test_manifest.line542.comment global-exclude
         file_list = FileList()
         file_list.files = ['a.py', 'b.txt', ml('d/c.py')]
 
@@ -556,7 +556,7 @@ class TestFileListTest(TempDirTestCase):
     def test_recursive_include(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # recursive-include
+        # 045504.python.test_manifest.line559.comment recursive-include
         file_list = FileList()
         self.make_files(['a.py', ml('d/b.py'), ml('d/c.txt'), ml('d/d/e.py')])
 
@@ -573,7 +573,7 @@ class TestFileListTest(TempDirTestCase):
     def test_recursive_exclude(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # recursive-exclude
+        # 045505.python.test_manifest.line576.comment recursive-exclude
         file_list = FileList()
         file_list.files = ['a.py', ml('d/b.py'), ml('d/c.txt'), ml('d/d/e.py')]
 
@@ -590,7 +590,7 @@ class TestFileListTest(TempDirTestCase):
     def test_graft(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # graft
+        # 045506.python.test_manifest.line593.comment graft
         file_list = FileList()
         self.make_files(['a.py', ml('d/b.py'), ml('d/d/e.py'), ml('f/f.py')])
 
@@ -607,7 +607,7 @@ class TestFileListTest(TempDirTestCase):
     def test_prune(self, caplog):
         caplog.set_level(logging.DEBUG)
         ml = make_local_path
-        # prune
+        # 045507.python.test_manifest.line610.comment prune
         file_list = FileList()
         file_list.files = ['a.py', ml('d/b.py'), ml('d/d/e.py'), ml('f/f.py')]
 

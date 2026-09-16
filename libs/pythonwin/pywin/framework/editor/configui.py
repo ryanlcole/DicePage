@@ -7,7 +7,7 @@ from pywin.mfc import dialog
 
 from . import document
 
-# The standard 16 color VGA palette should always be possible
+# 037426.python.configui.line10.comment The standard 16 color VGA palette should always be possible
 paletteVGA = (
     ("Black", 0, 0, 0),
     ("Navy", 0, 0, 128),
@@ -28,10 +28,10 @@ paletteVGA = (
 )
 
 
-######################################################
-#
-# Property Page for editor options
-#
+# 037427.python.configui.line31.comment #####################################################
+# 037428.python.configui.line32.comment
+# 037429.python.configui.line33.comment Property Page for editor options
+# 037430.python.configui.line34.comment
 class EditorPropertyPage(dialog.PropertyPage):
     def __init__(self):
         dialog.PropertyPage.__init__(self, win32ui.IDD_PP_EDITOR)
@@ -53,13 +53,13 @@ class EditorPropertyPage(dialog.PropertyPage):
         )
         self["Marker Margin Width"] = GetEditorOption("Marker Margin Width", 16)
 
-        # Folding
+        # 037431.python.configui.line56.comment Folding
         self._AddEditorOption(win32ui.IDC_MARGIN_FOLD, "i", "Fold Margin Width", 12)
         self._AddEditorOption(win32ui.IDC_FOLD_ENABLE, "i", "Enable Folding", 1)
         self._AddEditorOption(win32ui.IDC_FOLD_ON_OPEN, "i", "Fold On Open", 0)
         self._AddEditorOption(win32ui.IDC_FOLD_SHOW_LINES, "i", "Fold Lines", 1)
 
-        # Right edge.
+        # 037432.python.configui.line62.comment Right edge.
         self._AddEditorOption(
             win32ui.IDC_RIGHTEDGE_ENABLE, "i", "Right Edge Enabled", 0
         )
@@ -67,16 +67,16 @@ class EditorPropertyPage(dialog.PropertyPage):
             win32ui.IDC_RIGHTEDGE_COLUMN, "i", "Right Edge Column", 75
         )
 
-        # Source control, etc
+        # 037433.python.configui.line70.comment Source control, etc
         self.AddDDX(win32ui.IDC_VSS_INTEGRATE, "bVSS")
         self.AddDDX(win32ui.IDC_KEYBOARD_CONFIG, "Configs", "l")
         self["Configs"] = pywin.scintilla.config.find_config_files()
 
     def _AddEditorOption(self, idd, typ, optionName, defaultVal):
         self.AddDDX(idd, optionName, typ)
-        # some options are "derived" - ie, can be implied from others
-        # (eg, "view markers in background" is implied from "markerMarginWidth==0"
-        # So we don't actually store these values, but they do still get DDX support.
+        # 037434.python.configui.line77.comment some options are "derived" - ie, can be implied from others
+        # 037435.python.configui.line78.comment (eg, "view markers in background" is implied from "markerMarginWidth==0"
+        # 037436.python.configui.line79.comment So we don't actually store these values, but they do still get DDX support.
         if defaultVal is not None:
             self[optionName] = GetEditorOption(optionName, defaultVal)
             self.autooptions.append((optionName, defaultVal))
@@ -85,14 +85,14 @@ class EditorPropertyPage(dialog.PropertyPage):
         for name, val in self.autooptions:
             self[name] = GetEditorOption(name, val)
 
-        # Note that these MUST be in the same order as the BAK constants.
+        # 037437.python.configui.line88.comment Note that these MUST be in the same order as the BAK constants.
         cbo = self.GetDlgItem(win32ui.IDC_COMBO1)
         cbo.AddString("None")
         cbo.AddString(".BAK File")
         cbo.AddString("TEMP dir")
         cbo.AddString("Own dir")
 
-        # Source Safe
+        # 037438.python.configui.line95.comment Source Safe
         bVSS = (
             GetEditorOption("Source Control Module", "") == "pywin.framework.editor.vss"
         )
@@ -139,8 +139,8 @@ class EditorPropertyPage(dialog.PropertyPage):
     def OnButEdgeColor(self, id, code):
         if code == win32con.BN_CLICKED:
             d = win32ui.CreateColorDialog(self.edgeColor, 0, self)
-            # Ensure the current color is a custom color (as it may not be in the swatch)
-            # plus some other nice gray scales.
+            # 037439.python.configui.line142.comment Ensure the current color is a custom color (as it may not be in the swatch)
+            # 037440.python.configui.line143.comment plus some other nice gray scales.
             ccs = [self.edgeColor]
             for c in range(0xEF, 0x4F, -0x10):
                 ccs.append(win32api.RGB(c, c, c))
@@ -161,7 +161,7 @@ class EditorPropertyPage(dialog.PropertyPage):
             self["Marker Margin Width"] = 16
             self.UpdateData(0)  # Ensure control up to date with self[]
 
-        # Right edge
+        # 037443.python.configui.line164.comment Right edge
         edgeEnabled = self.GetDlgItem(win32ui.IDC_RIGHTEDGE_ENABLE).GetCheck()
         self.GetDlgItem(win32ui.IDC_RIGHTEDGE_COLUMN).EnableWindow(edgeEnabled)
         self.GetDlgItem(win32ui.IDC_RIGHTEDGE_SAMPLE).EnableWindow(edgeEnabled)
@@ -173,7 +173,7 @@ class EditorPropertyPage(dialog.PropertyPage):
     def OnOK(self):
         for name, defVal in self.autooptions:
             SetEditorOption(name, self[name])
-        # Margin width gets handled differently.
+        # 037444.python.configui.line176.comment Margin width gets handled differently.
         if self["MarkersInMargin"] == 0:
             SetEditorOption("Marker Margin Width", self["Marker Margin Width"])
         else:
@@ -188,7 +188,7 @@ class EditorPropertyPage(dialog.PropertyPage):
                 == "pywin.framework.editor.vss"
             ):
                 SetEditorOption("Source Control Module", "")
-        # Keyboard config
+        # 037445.python.configui.line191.comment Keyboard config
         configname = self.GetDlgItem(win32ui.IDC_KEYBOARD_CONFIG).GetWindowText()
         if configname:
             if configname == "default":
@@ -200,14 +200,14 @@ class EditorPropertyPage(dialog.PropertyPage):
 
             pywin.scintilla.view.LoadConfiguration()
 
-        # Now tell all views we have changed.
-        ##		for doc in editorTemplate.GetDocumentList():
-        ##			for view in doc.GetAllViews():
-        ##				try:
-        ##					fn = view.OnConfigChange
-        ##				except AttributeError:
-        ##					continue
-        ##				fn()
+        # 037446.python.configui.line203.comment Now tell all views we have changed.
+        # 037447.python.configui.line204.comment #		for doc in editorTemplate.GetDocumentList():
+        # 037448.python.configui.line205.comment #			for view in doc.GetAllViews():
+        # 037449.python.configui.line206.comment #				try:
+        # 037450.python.configui.line207.comment #					fn = view.OnConfigChange
+        # 037451.python.configui.line208.comment #				except AttributeError:
+        # 037452.python.configui.line209.comment #					continue
+        # 037453.python.configui.line210.comment #				fn()
         return 1
 
 
@@ -260,7 +260,7 @@ class EditorWhitespacePropertyPage(dialog.PropertyPage):
         self.HookCommand(self.OnButSimple, win32ui.IDC_TABTIMMY_NONE)
         self.HookCommand(self.OnButSimple, win32ui.IDC_TABTIMMY_IND)
         self.HookCommand(self.OnButSimple, win32ui.IDC_TABTIMMY_BG)
-        # Set ranges for the spinners.
+        # 037454.python.configui.line263.comment Set ranges for the spinners.
         for spinner_id in [win32ui.IDC_SPIN1, win32ui.IDC_SPIN2]:
             spinner = self.GetDlgItem(spinner_id)
             spinner.SetRange(1, 16)

@@ -1,7 +1,7 @@
-# Demo of ToolBars
+# 036929.python.toolbar.line1.comment Demo of ToolBars
 
-# Shows the toolbar control.
-# Demos how to make custom tooltips, etc.
+# 036930.python.toolbar.line3.comment Shows the toolbar control.
+# 036931.python.toolbar.line4.comment Demos how to make custom tooltips, etc.
 
 import commctrl
 import win32con
@@ -11,17 +11,17 @@ from pywin.mfc import afxres, docview, window
 
 class GenericFrame(window.MDIChildWnd):
     def OnCreateClient(self, cp, context):
-        # handlers for toolbar buttons
+        # 036932.python.toolbar.line14.comment handlers for toolbar buttons
         self.HookCommand(self.OnPrevious, 401)
         self.HookCommand(self.OnNext, 402)
-        # It's not necessary for us to hook both of these - the
-        # common controls should fall-back all by themselves.
-        # Indeed, given we hook TTN_NEEDTEXTW, commctrl.TTN_NEEDTEXTA
-        # will not be called.
+        # 036933.python.toolbar.line17.comment It's not necessary for us to hook both of these - the
+        # 036934.python.toolbar.line18.comment common controls should fall-back all by themselves.
+        # 036935.python.toolbar.line19.comment Indeed, given we hook TTN_NEEDTEXTW, commctrl.TTN_NEEDTEXTA
+        # 036936.python.toolbar.line20.comment will not be called.
         self.HookNotify(self.GetTTText, commctrl.TTN_NEEDTEXT)
         self.HookNotify(self.GetTTText, commctrl.TTN_NEEDTEXTW)
 
-        # 		parent = win32ui.GetMainFrame()
+        # 036937.python.toolbar.line24.comment parent = win32ui.GetMainFrame()
         parent = self
         style = (
             win32con.WS_CHILD
@@ -56,10 +56,10 @@ class GenericFrame(window.MDIChildWnd):
         if flags & commctrl.TTF_IDISHWND:
             return  # Not handled
         if idFrom == win32ui.ID_APP_ABOUT:
-            # our 'extra' return value needs to be the following
-            # entries from a NMTTDISPINFO[W] struct:
-            # (szText, hinst, uFlags).  None means 'don't change
-            # the value'
+            # 036939.python.toolbar.line59.comment our 'extra' return value needs to be the following
+            # 036940.python.toolbar.line60.comment entries from a NMTTDISPINFO[W] struct:
+            # 036941.python.toolbar.line61.comment (szText, hinst, uFlags).  None means 'don't change
+            # 036942.python.toolbar.line62.comment the value'
             return 0, ("It works!", None, None)
         return None  # not handled.
 

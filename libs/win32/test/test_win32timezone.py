@@ -1,4 +1,4 @@
-# Test module for win32timezone
+# 048479.python.test_win32timezone.line1.comment Test module for win32timezone
 
 import doctest
 import unittest

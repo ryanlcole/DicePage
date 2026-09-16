@@ -49,11 +49,11 @@ class EditorTemplateBase(ParentEditorTemplate):
         if filename is not None:
             try:
                 path = os.path.split(filename)[0]
-                # print("The editor is translating", "filename", "to")
+                # 037624.python.template.line52.comment print("The editor is translating", "filename", "to")
                 filename = win32api.FindFiles(filename)[0][8]
                 filename = os.path.join(path, filename)
-                # print("filename")
+                # 037625.python.template.line55.comment print("filename")
             except (win32api.error, IndexError) as details:
-                # print("Couldn't get the full filename!", details)
+                # 037626.python.template.line57.comment print("Couldn't get the full filename!", details)
                 pass
         return self._obj_.OpenDocumentFile(filename, bMakeVisible)

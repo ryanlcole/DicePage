@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 024600.python.pswindows.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 024601.python.pswindows.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 024602.python.pswindows.line3.comment found in the LICENSE file.
 
 """Windows platform implementation."""
 
@@ -41,10 +41,10 @@ except ImportError as err:
         str(err).lower().startswith("dll load failed")
         and sys.getwindowsversion()[0] < 6
     ):
-        # We may get here if:
-        # 1) we are on an old Windows version
-        # 2) psutil was installed via pip + wheel
-        # See: https://github.com/giampaolo/psutil/issues/811
+        # 024603.python.pswindows.line44.comment We may get here if:
+        # 024604.python.pswindows.line45.comment 1) we are on an old Windows version
+        # 024605.python.pswindows.line46.comment 2) psutil was installed via pip + wheel
+        # 024606.python.pswindows.line47.comment See: https://github.com/giampaolo/psutil/issues/811
         msg = "this Windows version is too old (< Windows Vista); "
         msg += "psutil 3.4.2 is the latest version which supports Windows "
         msg += "2000, XP and 2003 server"
@@ -53,26 +53,26 @@ except ImportError as err:
         raise
 
 
-# process priority constants, import from __init__.py:
-# http://msdn.microsoft.com/en-us/library/ms686219(v=vs.85).aspx
-# fmt: off
+# 024607.python.pswindows.line56.comment process priority constants, import from __init__.py:
+# 024608.python.pswindows.line57.comment http://msdn.microsoft.com/en-us/library/ms686219(v=vs.85).aspx
+# 024609.python.pswindows.line58.comment fmt: off
 __extra__all__ = [
     "win_service_iter", "win_service_get",
-    # Process priority
+    # 024610.python.pswindows.line61.comment Process priority
     "ABOVE_NORMAL_PRIORITY_CLASS", "BELOW_NORMAL_PRIORITY_CLASS",
     "HIGH_PRIORITY_CLASS", "IDLE_PRIORITY_CLASS", "NORMAL_PRIORITY_CLASS",
     "REALTIME_PRIORITY_CLASS",
-    # IO priority
+    # 024611.python.pswindows.line65.comment IO priority
     "IOPRIO_VERYLOW", "IOPRIO_LOW", "IOPRIO_NORMAL", "IOPRIO_HIGH",
-    # others
+    # 024612.python.pswindows.line67.comment others
     "CONN_DELETE_TCB", "AF_LINK",
 ]
-# fmt: on
+# 024613.python.pswindows.line70.comment fmt: on
 
 
-# =====================================================================
-# --- globals
-# =====================================================================
+# 024614.python.pswindows.line73.comment =====================================================================
+# 024615.python.pswindows.line74.comment --- globals
+# 024616.python.pswindows.line75.comment =====================================================================
 
 CONN_DELETE_TCB = "DELETE_TCB"
 ERROR_PARTIAL_COPY = 299
@@ -145,40 +145,40 @@ pinfo_map = dict(
 )
 
 
-# =====================================================================
-# --- named tuples
-# =====================================================================
+# 024617.python.pswindows.line148.comment =====================================================================
+# 024618.python.pswindows.line149.comment --- named tuples
+# 024619.python.pswindows.line150.comment =====================================================================
 
 
-# fmt: off
-# psutil.cpu_times()
+# 024620.python.pswindows.line153.comment fmt: off
+# 024621.python.pswindows.line154.comment psutil.cpu_times()
 scputimes = namedtuple('scputimes',
                        ['user', 'system', 'idle', 'interrupt', 'dpc'])
-# psutil.virtual_memory()
+# 024622.python.pswindows.line157.comment psutil.virtual_memory()
 svmem = namedtuple('svmem', ['total', 'available', 'percent', 'used', 'free'])
-# psutil.Process.memory_info()
+# 024623.python.pswindows.line159.comment psutil.Process.memory_info()
 pmem = namedtuple(
     'pmem', ['rss', 'vms',
              'num_page_faults', 'peak_wset', 'wset', 'peak_paged_pool',
              'paged_pool', 'peak_nonpaged_pool', 'nonpaged_pool',
              'pagefile', 'peak_pagefile', 'private'])
-# psutil.Process.memory_full_info()
+# 024624.python.pswindows.line165.comment psutil.Process.memory_full_info()
 pfullmem = namedtuple('pfullmem', pmem._fields + ('uss', ))
-# psutil.Process.memory_maps(grouped=True)
+# 024625.python.pswindows.line167.comment psutil.Process.memory_maps(grouped=True)
 pmmap_grouped = namedtuple('pmmap_grouped', ['path', 'rss'])
-# psutil.Process.memory_maps(grouped=False)
+# 024626.python.pswindows.line169.comment psutil.Process.memory_maps(grouped=False)
 pmmap_ext = namedtuple(
     'pmmap_ext', 'addr perms ' + ' '.join(pmmap_grouped._fields))
-# psutil.Process.io_counters()
+# 024627.python.pswindows.line172.comment psutil.Process.io_counters()
 pio = namedtuple('pio', ['read_count', 'write_count',
                          'read_bytes', 'write_bytes',
                          'other_count', 'other_bytes'])
-# fmt: on
+# 024628.python.pswindows.line176.comment fmt: on
 
 
-# =====================================================================
-# --- utils
-# =====================================================================
+# 024629.python.pswindows.line179.comment =====================================================================
+# 024630.python.pswindows.line180.comment --- utils
+# 024631.python.pswindows.line181.comment =====================================================================
 
 
 @functools.lru_cache(maxsize=512)
@@ -208,9 +208,9 @@ def getpagesize():
     return cext.getpagesize()
 
 
-# =====================================================================
-# --- memory
-# =====================================================================
+# 024632.python.pswindows.line211.comment =====================================================================
+# 024633.python.pswindows.line212.comment --- memory
+# 024634.python.pswindows.line213.comment =====================================================================
 
 
 def virtual_memory():
@@ -232,13 +232,13 @@ def swap_memory():
     total_phys = mem[0]
     total_system = mem[2]
 
-    # system memory (commit total/limit) is the sum of physical and swap
-    # thus physical memory values need to be subtracted to get swap values
+    # 024635.python.pswindows.line235.comment system memory (commit total/limit) is the sum of physical and swap
+    # 024636.python.pswindows.line236.comment thus physical memory values need to be subtracted to get swap values
     total = total_system - total_phys
-    # commit total is incremented immediately (decrementing free_system)
-    # while the corresponding free physical value is not decremented until
-    # pages are accessed, so we can't use free system memory for swap.
-    # instead, we calculate page file usage based on performance counter
+    # 024637.python.pswindows.line238.comment commit total is incremented immediately (decrementing free_system)
+    # 024638.python.pswindows.line239.comment while the corresponding free physical value is not decremented until
+    # 024639.python.pswindows.line240.comment pages are accessed, so we can't use free system memory for swap.
+    # 024640.python.pswindows.line241.comment instead, we calculate page file usage based on performance counter
     if total > 0:
         percentswap = cext.swap_percent()
         used = int(0.01 * percentswap * total)
@@ -251,9 +251,9 @@ def swap_memory():
     return _common.sswap(total, used, free, percent, 0, 0)
 
 
-# =====================================================================
-# --- disk
-# =====================================================================
+# 024641.python.pswindows.line254.comment =====================================================================
+# 024642.python.pswindows.line255.comment --- disk
+# 024643.python.pswindows.line256.comment =====================================================================
 
 
 disk_io_counters = cext.disk_io_counters
@@ -262,8 +262,8 @@ disk_io_counters = cext.disk_io_counters
 def disk_usage(path):
     """Return disk usage associated with path."""
     if isinstance(path, bytes):
-        # XXX: do we want to use "strict"? Probably yes, in order
-        # to fail immediately. After all we are accepting input here...
+        # 024644.python.pswindows.line265.comment XXX: do we want to use "strict"? Probably yes, in order
+        # 024645.python.pswindows.line266.comment to fail immediately. After all we are accepting input here...
         path = path.decode(ENCODING, errors="strict")
     total, free = cext.disk_usage(path)
     used = total - free
@@ -277,17 +277,17 @@ def disk_partitions(all):
     return [_common.sdiskpart(*x) for x in rawlist]
 
 
-# =====================================================================
-# --- CPU
-# =====================================================================
+# 024646.python.pswindows.line280.comment =====================================================================
+# 024647.python.pswindows.line281.comment --- CPU
+# 024648.python.pswindows.line282.comment =====================================================================
 
 
 def cpu_times():
     """Return system CPU times as a named tuple."""
     user, system, idle = cext.cpu_times()
-    # Internally, GetSystemTimes() is used, and it doesn't return
-    # interrupt and dpc times. cext.per_cpu_times() does, so we
-    # rely on it to get those only.
+    # 024649.python.pswindows.line288.comment Internally, GetSystemTimes() is used, and it doesn't return
+    # 024650.python.pswindows.line289.comment interrupt and dpc times. cext.per_cpu_times() does, so we
+    # 024651.python.pswindows.line290.comment rely on it to get those only.
     percpu_summed = scputimes(*[sum(n) for n in zip(*cext.per_cpu_times())])
     return scputimes(
         user, system, idle, percpu_summed.interrupt, percpu_summed.dpc
@@ -336,7 +336,7 @@ _lock = threading.Lock()
 
 
 def _getloadavg_impl():
-    # Drop to 2 decimal points which is what Linux does
+    # 024652.python.pswindows.line339.comment Drop to 2 decimal points which is what Linux does
     raw_loads = cext.getloadavg()
     return tuple(round(load, 2) for load in raw_loads)
 
@@ -358,9 +358,9 @@ def getloadavg():
     return _getloadavg_impl()
 
 
-# =====================================================================
-# --- network
-# =====================================================================
+# 024653.python.pswindows.line361.comment =====================================================================
+# 024654.python.pswindows.line362.comment --- network
+# 024655.python.pswindows.line363.comment =====================================================================
 
 
 def net_connections(kind, _pid=-1):
@@ -410,16 +410,16 @@ def net_if_addrs():
     return cext.net_if_addrs()
 
 
-# =====================================================================
-# --- sensors
-# =====================================================================
+# 024656.python.pswindows.line413.comment =====================================================================
+# 024657.python.pswindows.line414.comment --- sensors
+# 024658.python.pswindows.line415.comment =====================================================================
 
 
 def sensors_battery():
     """Return battery information."""
-    # For constants meaning see:
-    # https://msdn.microsoft.com/en-us/library/windows/desktop/
-    #     aa373232(v=vs.85).aspx
+    # 024659.python.pswindows.line420.comment For constants meaning see:
+    # 024660.python.pswindows.line421.comment https://msdn.microsoft.com/en-us/library/windows/desktop/
+    # 024661.python.pswindows.line422.comment aa373232(v=vs.85).aspx
     acline_status, flags, percent, secsleft = cext.sensors_battery()
     power_plugged = acline_status == 1
     no_battery = bool(flags & 128)
@@ -435,9 +435,9 @@ def sensors_battery():
     return _common.sbattery(percent, secsleft, power_plugged)
 
 
-# =====================================================================
-# --- other system functions
-# =====================================================================
+# 024662.python.pswindows.line438.comment =====================================================================
+# 024663.python.pswindows.line439.comment --- other system functions
+# 024664.python.pswindows.line440.comment =====================================================================
 
 
 _last_btime = 0
@@ -447,9 +447,9 @@ def boot_time():
     """The system boot time expressed in seconds since the epoch. This
     also includes the time spent during hybernate / suspend.
     """
-    # This dirty hack is to adjust the precision of the returned
-    # value which may have a 1 second fluctuation, see:
-    # https://github.com/giampaolo/psutil/issues/1007
+    # 024665.python.pswindows.line450.comment This dirty hack is to adjust the precision of the returned
+    # 024666.python.pswindows.line451.comment value which may have a 1 second fluctuation, see:
+    # 024667.python.pswindows.line452.comment https://github.com/giampaolo/psutil/issues/1007
     global _last_btime
     ret = time.time() - cext.uptime()
     if abs(ret - _last_btime) <= 1:
@@ -470,9 +470,9 @@ def users():
     return retlist
 
 
-# =====================================================================
-# --- Windows services
-# =====================================================================
+# 024668.python.pswindows.line473.comment =====================================================================
+# 024669.python.pswindows.line474.comment --- Windows services
+# 024670.python.pswindows.line475.comment =====================================================================
 
 
 def win_service_iter():
@@ -503,8 +503,8 @@ class WindowsService:  # noqa: PLW1641
         return f"<{self.__str__()} at {id(self)}>"
 
     def __eq__(self, other):
-        # Test for equality with another WindosService object based
-        # on name.
+        # 024672.python.pswindows.line506.comment Test for equality with another WindosService object based
+        # 024673.python.pswindows.line507.comment on name.
         if not isinstance(other, WindowsService):
             return NotImplemented
         return self._name == other._name
@@ -517,7 +517,7 @@ class WindowsService:  # noqa: PLW1641
             display_name, binpath, username, start_type = (
                 cext.winservice_query_config(self._name)
             )
-        # XXX - update _self.display_name?
+        # 024674.python.pswindows.line520.comment XXX - update _self.display_name?
         return dict(
             display_name=display_name,
             binpath=binpath,
@@ -555,7 +555,7 @@ class WindowsService:  # noqa: PLW1641
             else:
                 raise
 
-    # config query
+    # 024675.python.pswindows.line558.comment config query
 
     def name(self):
         """The service name. This string is how a service is referenced
@@ -586,7 +586,7 @@ class WindowsService:  # noqa: PLW1641
         """
         return self._query_config()['start_type']
 
-    # status query
+    # 024676.python.pswindows.line589.comment status query
 
     def pid(self):
         """The process PID, if any, else None. This can be passed
@@ -602,7 +602,7 @@ class WindowsService:  # noqa: PLW1641
         """Service long description."""
         return cext.winservice_query_descr(self.name())
 
-    # utils
+    # 024677.python.pswindows.line605.comment utils
 
     def as_dict(self):
         """Utility method retrieving all the information above as a
@@ -615,49 +615,49 @@ class WindowsService:  # noqa: PLW1641
         d['description'] = self.description()
         return d
 
-    # actions
-    # XXX: the necessary C bindings for start() and stop() are
-    # implemented but for now I prefer not to expose them.
-    # I may change my mind in the future. Reasons:
-    # - they require Administrator privileges
-    # - can't implement a timeout for stop() (unless by using a thread,
-    #   which sucks)
-    # - would require adding ServiceAlreadyStarted and
-    #   ServiceAlreadyStopped exceptions, adding two new APIs.
-    # - we might also want to have modify(), which would basically mean
-    #   rewriting win32serviceutil.ChangeServiceConfig, which involves a
-    #   lot of stuff (and API constants which would pollute the API), see:
-    #   http://pyxr.sourceforge.net/PyXR/c/python24/lib/site-packages/
-    #       win32/lib/win32serviceutil.py.html#0175
-    # - psutil is typically about "read only" monitoring stuff;
-    #   win_service_* APIs should only be used to retrieve a service and
-    #   check whether it's running
+    # 024678.python.pswindows.line618.comment actions
+    # 024679.python.pswindows.line619.comment XXX: the necessary C bindings for start() and stop() are
+    # 024680.python.pswindows.line620.comment implemented but for now I prefer not to expose them.
+    # 024681.python.pswindows.line621.comment I may change my mind in the future. Reasons:
+    # 024682.python.pswindows.line622.comment - they require Administrator privileges
+    # 024683.python.pswindows.line623.comment - can't implement a timeout for stop() (unless by using a thread,
+    # 024684.python.pswindows.line624.comment which sucks)
+    # 024685.python.pswindows.line625.comment - would require adding ServiceAlreadyStarted and
+    # 024686.python.pswindows.line626.comment ServiceAlreadyStopped exceptions, adding two new APIs.
+    # 024687.python.pswindows.line627.comment - we might also want to have modify(), which would basically mean
+    # 024688.python.pswindows.line628.comment rewriting win32serviceutil.ChangeServiceConfig, which involves a
+    # 024689.python.pswindows.line629.comment lot of stuff (and API constants which would pollute the API), see:
+    # 024690.python.pswindows.line630.comment http://pyxr.sourceforge.net/PyXR/c/python24/lib/site-packages/
+    # 024691.python.pswindows.line631.comment win32/lib/win32serviceutil.py.html#0175
+    # 024692.python.pswindows.line632.comment - psutil is typically about "read only" monitoring stuff;
+    # 024693.python.pswindows.line633.comment win_service_* APIs should only be used to retrieve a service and
+    # 024694.python.pswindows.line634.comment check whether it's running
 
-    # def start(self, timeout=None):
-    #     with self._wrap_exceptions():
-    #         cext.winservice_start(self.name())
-    #         if timeout:
-    #             giveup_at = time.time() + timeout
-    #             while True:
-    #                 if self.status() == "running":
-    #                     return
-    #                 else:
-    #                     if time.time() > giveup_at:
-    #                         raise TimeoutExpired(timeout)
-    #                     else:
-    #                         time.sleep(.1)
+    # 024695.python.pswindows.line636.comment def start(self, timeout=None):
+    # 024696.python.pswindows.line637.comment with self._wrap_exceptions():
+    # 024697.python.pswindows.line638.comment cext.winservice_start(self.name())
+    # 024698.python.pswindows.line639.comment if timeout:
+    # 024699.python.pswindows.line640.comment giveup_at = time.time() + timeout
+    # 024700.python.pswindows.line641.comment while True:
+    # 024701.python.pswindows.line642.comment if self.status() == "running":
+    # 024702.python.pswindows.line643.comment return
+    # 024703.python.pswindows.line644.comment else:
+    # 024704.python.pswindows.line645.comment if time.time() > giveup_at:
+    # 024705.python.pswindows.line646.comment raise TimeoutExpired(timeout)
+    # 024706.python.pswindows.line647.comment else:
+    # 024707.python.pswindows.line648.comment time.sleep(.1)
 
-    # def stop(self):
-    #     # Note: timeout is not implemented because it's just not
-    #     # possible, see:
-    #     # http://stackoverflow.com/questions/11973228/
-    #     with self._wrap_exceptions():
-    #         return cext.winservice_stop(self.name())
+    # 024708.python.pswindows.line650.comment def stop(self):
+    # 024709.python.pswindows.line651.comment # Note: timeout is not implemented because it's just not
+    # 024710.python.pswindows.line652.comment # possible, see:
+    # 024711.python.pswindows.line653.comment # http://stackoverflow.com/questions/11973228/
+    # 024712.python.pswindows.line654.comment with self._wrap_exceptions():
+    # 024713.python.pswindows.line655.comment return cext.winservice_stop(self.name())
 
 
-# =====================================================================
-# --- processes
-# =====================================================================
+# 024714.python.pswindows.line658.comment =====================================================================
+# 024715.python.pswindows.line659.comment --- processes
+# 024716.python.pswindows.line660.comment =====================================================================
 
 
 pids = cext.pids
@@ -735,7 +735,7 @@ class Process:
         self._name = None
         self._ppid = None
 
-    # --- oneshot() stuff
+    # 024719.python.pswindows.line738.comment --- oneshot() stuff
 
     def oneshot_enter(self):
         self._proc_info.cache_activate(self)
@@ -758,8 +758,8 @@ class Process:
         """Return process name, which on Windows is always the final
         part of the executable.
         """
-        # This is how PIDs 0 and 4 are always represented in taskmgr
-        # and process-hacker.
+        # 024720.python.pswindows.line761.comment This is how PIDs 0 and 4 are always represented in taskmgr
+        # 024721.python.pswindows.line762.comment and process-hacker.
         if self.pid == 0:
             return "System Idle Process"
         if self.pid == 4:
@@ -773,8 +773,8 @@ class Process:
             try:
                 exe = cext.proc_exe(self.pid)
             except OSError as err:
-                # 24 = ERROR_TOO_MANY_OPEN_FILES. Not sure why this happens
-                # (perhaps PyPy's JIT delaying garbage collection of files?).
+                # 024722.python.pswindows.line776.comment 24 = ERROR_TOO_MANY_OPEN_FILES. Not sure why this happens
+                # 024723.python.pswindows.line777.comment (perhaps PyPy's JIT delaying garbage collection of files?).
                 if err.errno == 24:
                     debug(f"{err!r} translated into AccessDenied")
                     raise AccessDenied(self.pid, self._name) from err
@@ -789,8 +789,8 @@ class Process:
     @retry_error_partial_copy
     def cmdline(self):
         if cext.WINVER >= cext.WINDOWS_8_1:
-            # PEB method detects cmdline changes but requires more
-            # privileges: https://github.com/giampaolo/psutil/pull/1398
+            # 024725.python.pswindows.line792.comment PEB method detects cmdline changes but requires more
+            # 024726.python.pswindows.line793.comment privileges: https://github.com/giampaolo/psutil/pull/1398
             try:
                 return cext.proc_cmdline(self.pid, use_peb=True)
             except OSError as err:
@@ -818,8 +818,8 @@ class Process:
             return cext.proc_memory_info(self.pid)
         except OSError as err:
             if is_permission_err(err):
-                # TODO: the C ext can probably be refactored in order
-                # to get this from cext.proc_info()
+                # 024727.python.pswindows.line821.comment TODO: the C ext can probably be refactored in order
+                # 024728.python.pswindows.line822.comment to get this from cext.proc_info()
                 debug("attempting memory_info() fallback (slower)")
                 info = self._proc_info()
                 return (
@@ -838,9 +838,9 @@ class Process:
 
     @wrap_exceptions
     def memory_info(self):
-        # on Windows RSS == WorkingSetSize and VSM == PagefileUsage.
-        # Underlying C function returns fields of PROCESS_MEMORY_COUNTERS
-        # struct.
+        # 024729.python.pswindows.line841.comment on Windows RSS == WorkingSetSize and VSM == PagefileUsage.
+        # 024730.python.pswindows.line842.comment Underlying C function returns fields of PROCESS_MEMORY_COUNTERS
+        # 024731.python.pswindows.line843.comment struct.
         t = self._get_raw_meminfo()
         rss = t[2]  # wset
         vms = t[7]  # pagefile
@@ -857,8 +857,8 @@ class Process:
         try:
             raw = cext.proc_memory_maps(self.pid)
         except OSError as err:
-            # XXX - can't use wrap_exceptions decorator as we're
-            # returning a generator; probably needs refactoring.
+            # 024734.python.pswindows.line860.comment XXX - can't use wrap_exceptions decorator as we're
+            # 024735.python.pswindows.line861.comment returning a generator; probably needs refactoring.
             raise convert_oserror(err, self.pid, self._name) from err
         else:
             for addr, perm, path, rss in raw:
@@ -888,35 +888,35 @@ class Process:
         if timeout is None:
             cext_timeout = cext.INFINITE
         else:
-            # WaitForSingleObject() expects time in milliseconds.
+            # 024736.python.pswindows.line891.comment WaitForSingleObject() expects time in milliseconds.
             cext_timeout = int(timeout * 1000)
 
         timer = getattr(time, 'monotonic', time.time)
         stop_at = timer() + timeout if timeout is not None else None
 
         try:
-            # Exit code is supposed to come from GetExitCodeProcess().
-            # May also be None if OpenProcess() failed with
-            # ERROR_INVALID_PARAMETER, meaning PID is already gone.
+            # 024737.python.pswindows.line898.comment Exit code is supposed to come from GetExitCodeProcess().
+            # 024738.python.pswindows.line899.comment May also be None if OpenProcess() failed with
+            # 024739.python.pswindows.line900.comment ERROR_INVALID_PARAMETER, meaning PID is already gone.
             exit_code = cext.proc_wait(self.pid, cext_timeout)
         except cext.TimeoutExpired as err:
-            # WaitForSingleObject() returned WAIT_TIMEOUT. Just raise.
+            # 024740.python.pswindows.line903.comment WaitForSingleObject() returned WAIT_TIMEOUT. Just raise.
             raise TimeoutExpired(timeout, self.pid, self._name) from err
         except cext.TimeoutAbandoned:
-            # WaitForSingleObject() returned WAIT_ABANDONED, see:
-            # https://github.com/giampaolo/psutil/issues/1224
-            # We'll just rely on the internal polling and return None
-            # when the PID disappears. Subprocess module does the same
-            # (return None):
-            # https://github.com/python/cpython/blob/
-            #     be50a7b627d0aa37e08fa8e2d5568891f19903ce/
-            #     Lib/subprocess.py#L1193-L1194
+            # 024741.python.pswindows.line906.comment WaitForSingleObject() returned WAIT_ABANDONED, see:
+            # 024742.python.pswindows.line907.comment https://github.com/giampaolo/psutil/issues/1224
+            # 024743.python.pswindows.line908.comment We'll just rely on the internal polling and return None
+            # 024744.python.pswindows.line909.comment when the PID disappears. Subprocess module does the same
+            # 024745.python.pswindows.line910.comment (return None):
+            # 024746.python.pswindows.line911.comment https://github.com/python/cpython/blob/
+            # 024747.python.pswindows.line912.comment be50a7b627d0aa37e08fa8e2d5568891f19903ce/
+            # 024748.python.pswindows.line913.comment Lib/subprocess.py#L1193-L1194
             exit_code = None
 
-        # At this point WaitForSingleObject() returned WAIT_OBJECT_0,
-        # meaning the process is gone. Stupidly there are cases where
-        # its PID may still stick around so we do a further internal
-        # polling.
+        # 024749.python.pswindows.line916.comment At this point WaitForSingleObject() returned WAIT_OBJECT_0,
+        # 024750.python.pswindows.line917.comment meaning the process is gone. Stupidly there are cases where
+        # 024751.python.pswindows.line918.comment its PID may still stick around so we do a further internal
+        # 024752.python.pswindows.line919.comment polling.
         delay = 0.0001
         while True:
             if not pid_exists(self.pid):
@@ -935,8 +935,8 @@ class Process:
 
     @wrap_exceptions
     def create_time(self, fast_only=False):
-        # Note: proc_times() not put under oneshot() 'cause create_time()
-        # is already cached by the main Process class.
+        # 024754.python.pswindows.line938.comment Note: proc_times() not put under oneshot() 'cause create_time()
+        # 024755.python.pswindows.line939.comment is already cached by the main Process class.
         try:
             _user, _system, created = cext.proc_times(self.pid)
             return created
@@ -972,7 +972,7 @@ class Process:
             info = self._proc_info()
             user = info[pinfo_map['user_time']]
             system = info[pinfo_map['kernel_time']]
-        # Children user/system times are not retrievable (set to 0).
+        # 024756.python.pswindows.line975.comment Children user/system times are not retrievable (set to 0).
         return _common.pcputimes(user, system, 0.0, 0.0)
 
     @wrap_exceptions
@@ -988,8 +988,8 @@ class Process:
     def cwd(self):
         if self.pid in {0, 4}:
             raise AccessDenied(self.pid, self._name)
-        # return a normalized pathname since the native C function appends
-        # "\\" at the and of the path
+        # 024757.python.pswindows.line991.comment return a normalized pathname since the native C function appends
+        # 024758.python.pswindows.line992.comment "\\" at the and of the path
         path = cext.proc_cwd(self.pid)
         return os.path.normpath(path)
 
@@ -998,10 +998,10 @@ class Process:
         if self.pid in {0, 4}:
             return []
         ret = set()
-        # Filenames come in in native format like:
-        # "\Device\HarddiskVolume1\Windows\systemew\file.txt"
-        # Convert the first part in the corresponding drive letter
-        # (e.g. "C:\") by using Windows's QueryDosDevice()
+        # 024759.python.pswindows.line1001.comment Filenames come in in native format like:
+        # 024760.python.pswindows.line1002.comment "\Device\HarddiskVolume1\Windows\systemew\file.txt"
+        # 024761.python.pswindows.line1003.comment Convert the first part in the corresponding drive letter
+        # 024762.python.pswindows.line1004.comment (e.g. "C:\") by using Windows's QueryDosDevice()
         raw_file_names = cext.proc_open_files(self.pid)
         for file in raw_file_names:
             file = convert_dos_path(file)
@@ -1091,9 +1091,9 @@ class Process:
                 out |= 2**b
             return out
 
-        # SetProcessAffinityMask() states that ERROR_INVALID_PARAMETER
-        # is returned for an invalid CPU but this seems not to be true,
-        # therefore we check CPUs validy beforehand.
+        # 024763.python.pswindows.line1094.comment SetProcessAffinityMask() states that ERROR_INVALID_PARAMETER
+        # 024764.python.pswindows.line1095.comment is returned for an invalid CPU but this seems not to be true,
+        # 024765.python.pswindows.line1096.comment therefore we check CPUs validy beforehand.
         allcpus = list(range(len(per_cpu_times())))
         for cpu in value:
             if cpu not in allcpus:
@@ -1119,5 +1119,5 @@ class Process:
     @wrap_exceptions
     def num_ctx_switches(self):
         ctx_switches = self._proc_info()[pinfo_map['ctx_switches']]
-        # only voluntary ctx switches are supported
+        # 024766.python.pswindows.line1122.comment only voluntary ctx switches are supported
         return _common.pctxsw(ctx_switches, 0)

@@ -7,13 +7,13 @@
 
 from __future__ import annotations
 
-# Non-pure path objects are only allowed on their respective OS's.
-# Thus, these utilities require "pure" path objects that don't access the filesystem.
-# Since pathlib doesn't have a `case_sensitive` parameter, we have to approximate it
-# by converting input paths to `PureWindowsPath` and `PurePosixPath` where:
-#   - `PureWindowsPath` is always case-insensitive.
-#   - `PurePosixPath` is always case-sensitive.
-# Reference: https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.match
+# 045942.python.patterns.line10.comment Non-pure path objects are only allowed on their respective OS's.
+# 045943.python.patterns.line11.comment Thus, these utilities require "pure" path objects that don't access the filesystem.
+# 045944.python.patterns.line12.comment Since pathlib doesn't have a `case_sensitive` parameter, we have to approximate it
+# 045945.python.patterns.line13.comment by converting input paths to `PureWindowsPath` and `PurePosixPath` where:
+# 045946.python.patterns.line14.comment - `PureWindowsPath` is always case-insensitive.
+# 045947.python.patterns.line15.comment - `PurePosixPath` is always case-sensitive.
+# 045948.python.patterns.line16.comment Reference: https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.match
 from pathlib import PurePosixPath, PureWindowsPath
 from typing import TYPE_CHECKING
 

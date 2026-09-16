@@ -17,70 +17,70 @@ __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 import time
 import unittest
 
-# set this to "True" to follow API 2.0 to the letter
+# 021044.python.dbapi20.line20.comment set this to "True" to follow API 2.0 to the letter
 TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 
-# Revision 1.15  2019/11/22 00:50:00  kf7xm
-# Make Turn off IDEMPOTENT_CLOSE a proper skipTest
+# 021045.python.dbapi20.line23.comment Revision 1.15  2019/11/22 00:50:00  kf7xm
+# 021046.python.dbapi20.line24.comment Make Turn off IDEMPOTENT_CLOSE a proper skipTest
 
-# Revision 1.14  2013/05/20 11:02:05  kf7xm
-# Add a literal string to the format insertion test to catch trivial re-format algorithms
+# 021047.python.dbapi20.line26.comment Revision 1.14  2013/05/20 11:02:05  kf7xm
+# 021048.python.dbapi20.line27.comment Add a literal string to the format insertion test to catch trivial re-format algorithms
 
-# Revision 1.13  2013/05/08 14:31:50  kf7xm
-# Quick switch to Turn off IDEMPOTENT_CLOSE test. Also: Silence teardown failure
+# 021049.python.dbapi20.line29.comment Revision 1.13  2013/05/08 14:31:50  kf7xm
+# 021050.python.dbapi20.line30.comment Quick switch to Turn off IDEMPOTENT_CLOSE test. Also: Silence teardown failure
 
 
-# Revision 1.12  2009/02/06 03:35:11  kf7xm
-# Tested okay with Python 3.0, includes last minute patches from Mark H.
-#
-# Revision 1.1.1.1.2.1  2008/09/20 19:54:59  rupole
-# Include latest changes from main branch
-# Updates for py3k
-#
-# Revision 1.11  2005/01/02 02:41:01  zenzen
-# Update author email address
-#
-# Revision 1.10  2003/10/09 03:14:14  zenzen
-# Add test for DB API 2.0 optional extension, where database exceptions
-# are exposed as attributes on the Connection object.
-#
-# Revision 1.9  2003/08/13 01:16:36  zenzen
-# Minor tweak from Stefan Fleiter
-#
-# Revision 1.8  2003/04/10 00:13:25  zenzen
-# Changes, as per suggestions by M.-A. Lemburg
-# - Add a table prefix, to ensure namespace collisions can always be avoided
-#
-# Revision 1.7  2003/02/26 23:33:37  zenzen
-# Break out DDL into helper functions, as per request by David Rushby
-#
-# Revision 1.6  2003/02/21 03:04:33  zenzen
-# Stuff from Henrik Ekelund:
-#     added test_None
-#     added test_nextset & hooks
-#
-# Revision 1.5  2003/02/17 22:08:43  zenzen
-# Implement suggestions and code from Henrik Eklund - test that cursor.arraysize
-# defaults to 1 & generic cursor.callproc test added
-#
-# Revision 1.4  2003/02/15 00:16:33  zenzen
-# Changes, as per suggestions and bug reports by M.-A. Lemburg,
-# Matthew T. Kromer, Federico Di Gregorio and Daniel Dittmar
-# - Class renamed
-# - Now a subclass of TestCase, to avoid requiring the driver stub
-#   to use multiple inheritance
-# - Reversed the polarity of buggy test in test_description
-# - Test exception hierarchy correctly
-# - self.populate is now self._populate(), so if a driver stub
-#   overrides self.ddl1 this change propogates
-# - VARCHAR columns now have a width, which will hopefully make the
-#   DDL even more portible (this will be reversed if it causes more problems)
-# - cursor.rowcount being checked after various execute and fetchXXX methods
-# - Check for fetchall and fetchmany returning empty lists after results
-#   are exhausted (already checking for empty lists if select retrieved
-#   nothing
-# - Fix bugs in test_setoutputsize_basic and test_setinputsizes
-#
+# 021051.python.dbapi20.line33.comment Revision 1.12  2009/02/06 03:35:11  kf7xm
+# 021052.python.dbapi20.line34.comment Tested okay with Python 3.0, includes last minute patches from Mark H.
+# 021053.python.dbapi20.line35.comment
+# 021054.python.dbapi20.line36.comment Revision 1.1.1.1.2.1  2008/09/20 19:54:59  rupole
+# 021055.python.dbapi20.line37.comment Include latest changes from main branch
+# 021056.python.dbapi20.line38.comment Updates for py3k
+# 021057.python.dbapi20.line39.comment
+# 021058.python.dbapi20.line40.comment Revision 1.11  2005/01/02 02:41:01  zenzen
+# 021059.python.dbapi20.line41.comment Update author email address
+# 021060.python.dbapi20.line42.comment
+# 021061.python.dbapi20.line43.comment Revision 1.10  2003/10/09 03:14:14  zenzen
+# 021062.python.dbapi20.line44.comment Add test for DB API 2.0 optional extension, where database exceptions
+# 021063.python.dbapi20.line45.comment are exposed as attributes on the Connection object.
+# 021064.python.dbapi20.line46.comment
+# 021065.python.dbapi20.line47.comment Revision 1.9  2003/08/13 01:16:36  zenzen
+# 021066.python.dbapi20.line48.comment Minor tweak from Stefan Fleiter
+# 021067.python.dbapi20.line49.comment
+# 021068.python.dbapi20.line50.comment Revision 1.8  2003/04/10 00:13:25  zenzen
+# 021069.python.dbapi20.line51.comment Changes, as per suggestions by M.-A. Lemburg
+# 021070.python.dbapi20.line52.comment - Add a table prefix, to ensure namespace collisions can always be avoided
+# 021071.python.dbapi20.line53.comment
+# 021072.python.dbapi20.line54.comment Revision 1.7  2003/02/26 23:33:37  zenzen
+# 021073.python.dbapi20.line55.comment Break out DDL into helper functions, as per request by David Rushby
+# 021074.python.dbapi20.line56.comment
+# 021075.python.dbapi20.line57.comment Revision 1.6  2003/02/21 03:04:33  zenzen
+# 021076.python.dbapi20.line58.comment Stuff from Henrik Ekelund:
+# 021077.python.dbapi20.line59.comment added test_None
+# 021078.python.dbapi20.line60.comment added test_nextset & hooks
+# 021079.python.dbapi20.line61.comment
+# 021080.python.dbapi20.line62.comment Revision 1.5  2003/02/17 22:08:43  zenzen
+# 021081.python.dbapi20.line63.comment Implement suggestions and code from Henrik Eklund - test that cursor.arraysize
+# 021082.python.dbapi20.line64.comment defaults to 1 & generic cursor.callproc test added
+# 021083.python.dbapi20.line65.comment
+# 021084.python.dbapi20.line66.comment Revision 1.4  2003/02/15 00:16:33  zenzen
+# 021085.python.dbapi20.line67.comment Changes, as per suggestions and bug reports by M.-A. Lemburg,
+# 021086.python.dbapi20.line68.comment Matthew T. Kromer, Federico Di Gregorio and Daniel Dittmar
+# 021087.python.dbapi20.line69.comment - Class renamed
+# 021088.python.dbapi20.line70.comment - Now a subclass of TestCase, to avoid requiring the driver stub
+# 021089.python.dbapi20.line71.comment to use multiple inheritance
+# 021090.python.dbapi20.line72.comment - Reversed the polarity of buggy test in test_description
+# 021091.python.dbapi20.line73.comment - Test exception hierarchy correctly
+# 021092.python.dbapi20.line74.comment - self.populate is now self._populate(), so if a driver stub
+# 021093.python.dbapi20.line75.comment overrides self.ddl1 this change propogates
+# 021094.python.dbapi20.line76.comment - VARCHAR columns now have a width, which will hopefully make the
+# 021095.python.dbapi20.line77.comment DDL even more portible (this will be reversed if it causes more problems)
+# 021096.python.dbapi20.line78.comment - cursor.rowcount being checked after various execute and fetchXXX methods
+# 021097.python.dbapi20.line79.comment - Check for fetchall and fetchmany returning empty lists after results
+# 021098.python.dbapi20.line80.comment are exhausted (already checking for empty lists if select retrieved
+# 021099.python.dbapi20.line81.comment nothing
+# 021100.python.dbapi20.line82.comment - Fix bugs in test_setoutputsize_basic and test_setinputsizes
+# 021101.python.dbapi20.line83.comment
 
 
 class DatabaseAPI20Test(unittest.TestCase):
@@ -105,8 +105,8 @@ class DatabaseAPI20Test(unittest.TestCase):
     confuse the unit tester - just 'import dbapi20'.
     """
 
-    # The self.driver module. This should be the module where the 'connect'
-    # method is to be found
+    # 021102.python.dbapi20.line108.comment The self.driver module. This should be the module where the 'connect'
+    # 021103.python.dbapi20.line109.comment method is to be found
     driver = None
     connect_args = ()  # List of arguments to pass to connect
     connect_kw_args = {}  # Keyword arguments for connect
@@ -119,8 +119,8 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     lowerfunc = "lower"  # Name of stored procedure to convert string->lowercase
 
-    # Some drivers may need to override these helpers, for example adding
-    # a 'commit' after the execute.
+    # 021108.python.dbapi20.line122.comment Some drivers may need to override these helpers, for example adding
+    # 021109.python.dbapi20.line123.comment a 'commit' after the execute.
     def executeDDL1(self, cursor):
         cursor.execute(self.ddl1)
 
@@ -147,8 +147,8 @@ class DatabaseAPI20Test(unittest.TestCase):
                         cur.execute(ddl)
                         con.commit()
                     except self.driver.Error:
-                        # Assume table didn't exist. Other tests will check if
-                        # execute is busted.
+                        # 021110.python.dbapi20.line150.comment Assume table didn't exist. Other tests will check if
+                        # 021111.python.dbapi20.line151.comment execute is busted.
                         pass
             finally:
                 con.close()
@@ -168,27 +168,27 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     def test_apilevel(self):
         try:
-            # Must exist
+            # 021112.python.dbapi20.line171.comment Must exist
             apilevel = self.driver.apilevel
-            # Must equal 2.0
+            # 021113.python.dbapi20.line173.comment Must equal 2.0
             self.assertEqual(apilevel, "2.0")
         except AttributeError:
             self.fail("Driver doesn't define apilevel")
 
     def test_threadsafety(self):
         try:
-            # Must exist
+            # 021114.python.dbapi20.line180.comment Must exist
             threadsafety = self.driver.threadsafety
-            # Must be a valid value
+            # 021115.python.dbapi20.line182.comment Must be a valid value
             self.assertTrue(threadsafety in (0, 1, 2, 3))
         except AttributeError:
             self.fail("Driver doesn't define threadsafety")
 
     def test_paramstyle(self):
         try:
-            # Must exist
+            # 021116.python.dbapi20.line189.comment Must exist
             paramstyle = self.driver.paramstyle
-            # Must be a valid value
+            # 021117.python.dbapi20.line191.comment Must be a valid value
             self.assertTrue(
                 paramstyle in ("qmark", "numeric", "named", "format", "pyformat")
             )
@@ -196,7 +196,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.fail("Driver doesn't define paramstyle")
 
     def test_Exceptions(self):
-        # Make sure required exceptions exist, and are in the defined hierarchy.
+        # 021118.python.dbapi20.line199.comment Make sure required exceptions exist, and are in the defined hierarchy.
         self.assertTrue(issubclass(self.driver.Warning, Exception))
         self.assertTrue(issubclass(self.driver.Error, Exception))
 
@@ -209,12 +209,12 @@ class DatabaseAPI20Test(unittest.TestCase):
         self.assertTrue(issubclass(self.driver.NotSupportedError, self.driver.Error))
 
     def test_ExceptionsAsConnectionAttributes(self):
-        # OPTIONAL EXTENSION
-        # Test for the optional DB API 2.0 extension, where the exceptions
-        # are exposed as attributes on the Connection object
-        # I figure this optional extension will be implemented by any
-        # driver author who is using this test suite, so it is enabled
-        # by default.
+        # 021119.python.dbapi20.line212.comment OPTIONAL EXTENSION
+        # 021120.python.dbapi20.line213.comment Test for the optional DB API 2.0 extension, where the exceptions
+        # 021121.python.dbapi20.line214.comment are exposed as attributes on the Connection object
+        # 021122.python.dbapi20.line215.comment I figure this optional extension will be implemented by any
+        # 021123.python.dbapi20.line216.comment driver author who is using this test suite, so it is enabled
+        # 021124.python.dbapi20.line217.comment by default.
         con = self._connect()
         drv = self.driver
         self.assertTrue(con.Warning is drv.Warning)
@@ -230,15 +230,15 @@ class DatabaseAPI20Test(unittest.TestCase):
     def test_commit(self):
         con = self._connect()
         try:
-            # Commit must work, even if it doesn't do anything
+            # 021125.python.dbapi20.line233.comment Commit must work, even if it doesn't do anything
             con.commit()
         finally:
             con.close()
 
     def test_rollback(self):
         con = self._connect()
-        # If rollback is defined, it should either work or throw
-        # the documented exception
+        # 021126.python.dbapi20.line240.comment If rollback is defined, it should either work or throw
+        # 021127.python.dbapi20.line241.comment the documented exception
         if hasattr(con, "rollback"):
             try:
                 con.rollback()
@@ -255,8 +255,8 @@ class DatabaseAPI20Test(unittest.TestCase):
     def test_cursor_isolation(self):
         con = self._connect()
         try:
-            # Make sure cursors created from the same connection have
-            # the documented transaction isolation level
+            # 021128.python.dbapi20.line258.comment Make sure cursors created from the same connection have
+            # 021129.python.dbapi20.line259.comment the documented transaction isolation level
             cur1 = con.cursor()
             cur2 = con.cursor()
             self.executeDDL1(cur1)
@@ -303,7 +303,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 % cur.description[0][1],
             )
 
-            # Make sure self.description gets reset
+            # 021130.python.dbapi20.line306.comment Make sure self.description gets reset
             self.executeDDL2(cur)
             self.assertEqual(
                 cur.description,
@@ -372,16 +372,16 @@ class DatabaseAPI20Test(unittest.TestCase):
         finally:
             con.close()
 
-        # cursor.execute should raise an Error if called after connection
-        # closed
+        # 021132.python.dbapi20.line375.comment cursor.execute should raise an Error if called after connection
+        # 021133.python.dbapi20.line376.comment closed
         self.assertRaises(self.driver.Error, self.executeDDL1, cur)
 
-        # connection.commit should raise an Error if called after connection'
-        # closed.'
+        # 021134.python.dbapi20.line379.comment connection.commit should raise an Error if called after connection'
+        # 021135.python.dbapi20.line380.comment closed.'
         self.assertRaises(self.driver.Error, con.commit)
 
-        # connection.close should raise an Error if called more than once
-        #!!! reasonable persons differ about the usefulness of this test and this feature !!!
+        # 021136.python.dbapi20.line383.comment connection.close should raise an Error if called more than once
+        # 021137.python.dbapi20.line384.comment !!! reasonable persons differ about the usefulness of this test and this feature !!!
         if TEST_FOR_NON_IDEMPOTENT_CLOSE:
             self.assertRaises(self.driver.Error, con.close)
         else:
@@ -522,12 +522,12 @@ class DatabaseAPI20Test(unittest.TestCase):
         try:
             cur = con.cursor()
 
-            # cursor.fetchone should raise an Error if called before
-            # executing a select-type query
+            # 021138.python.dbapi20.line525.comment cursor.fetchone should raise an Error if called before
+            # 021139.python.dbapi20.line526.comment executing a select-type query
             self.assertRaises(self.driver.Error, cur.fetchone)
 
-            # cursor.fetchone should raise an Error if called after
-            # executing a query that cannnot return rows
+            # 021140.python.dbapi20.line529.comment cursor.fetchone should raise an Error if called after
+            # 021141.python.dbapi20.line530.comment executing a query that cannnot return rows
             self.executeDDL1(cur)
             self.assertRaises(self.driver.Error, cur.fetchone)
 
@@ -539,8 +539,8 @@ class DatabaseAPI20Test(unittest.TestCase):
             )
             self.assertTrue(cur.rowcount in (-1, 0))
 
-            # cursor.fetchone should raise an Error if called after
-            # executing a query that cannnot return rows
+            # 021142.python.dbapi20.line542.comment cursor.fetchone should raise an Error if called after
+            # 021143.python.dbapi20.line543.comment executing a query that cannnot return rows
             cur.execute(
                 "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
             )
@@ -587,8 +587,8 @@ class DatabaseAPI20Test(unittest.TestCase):
         try:
             cur = con.cursor()
 
-            # cursor.fetchmany should raise an Error if called without
-            # issuing a query
+            # 021144.python.dbapi20.line590.comment cursor.fetchmany should raise an Error if called without
+            # 021145.python.dbapi20.line591.comment issuing a query
             self.assertRaises(self.driver.Error, cur.fetchmany, 4)
 
             self.executeDDL1(cur)
@@ -621,7 +621,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             )
             self.assertTrue(cur.rowcount in (-1, 6))
 
-            # Same as above, using cursor.arraysize
+            # 021149.python.dbapi20.line624.comment Same as above, using cursor.arraysize
             cur.arraysize = 4
             cur.execute("select name from %sbooze" % self.table_prefix)
             r = cur.fetchmany()  # Should get 4 rows
@@ -643,7 +643,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             rows = [r[0] for r in rows]
             rows.sort()
 
-            # Make sure we get the right data back out
+            # 021154.python.dbapi20.line646.comment Make sure we get the right data back out
             for i in range(0, 6):
                 self.assertEqual(
                     rows[i],
@@ -678,17 +678,17 @@ class DatabaseAPI20Test(unittest.TestCase):
         con = self._connect()
         try:
             cur = con.cursor()
-            # cursor.fetchall should raise an Error if called
-            # without executing a query that may return rows (such
-            # as a select)
+            # 021157.python.dbapi20.line681.comment cursor.fetchall should raise an Error if called
+            # 021158.python.dbapi20.line682.comment without executing a query that may return rows (such
+            # 021159.python.dbapi20.line683.comment as a select)
             self.assertRaises(self.driver.Error, cur.fetchall)
 
             self.executeDDL1(cur)
             for sql in self._populate():
                 cur.execute(sql)
 
-            # cursor.fetchall should raise an Error if called
-            # after executing a a statement that cannot return rows
+            # 021160.python.dbapi20.line690.comment cursor.fetchall should raise an Error if called
+            # 021161.python.dbapi20.line691.comment after executing a a statement that cannot return rows
             self.assertRaises(self.driver.Error, cur.fetchall)
 
             cur.execute("select name from %sbooze" % self.table_prefix)
@@ -767,25 +767,25 @@ class DatabaseAPI20Test(unittest.TestCase):
         number of rows in booze then "name from booze"
         """
         raise NotImplementedError("Helper not implemented")
-        # sql="""
-        #    create procedure deleteme as
-        #    begin
-        #        select count(*) from booze
-        #        select name from booze
-        #    end
-        # """
-        # cur.execute(sql)
+        # 021162.python.dbapi20.line770.comment sql="""
+        # 021163.python.dbapi20.line771.comment create procedure deleteme as
+        # 021164.python.dbapi20.line772.comment begin
+        # 021165.python.dbapi20.line773.comment select count(*) from booze
+        # 021166.python.dbapi20.line774.comment select name from booze
+        # 021167.python.dbapi20.line775.comment end
+        # 021168.python.dbapi20.line776.comment """
+        # 021169.python.dbapi20.line777.comment cur.execute(sql)
 
     def help_nextset_tearDown(self, cur):
         "If cleaning up is needed after nextSetTest"
         raise NotImplementedError("Helper not implemented")
-        # cur.execute("drop procedure deleteme")
+        # 021170.python.dbapi20.line782.comment cur.execute("drop procedure deleteme")
 
     def test_nextset(self):
         raise NotImplementedError("Drivers need to override this test")
 
     def test_arraysize(self):
-        # Not much here - rest of the tests for this are in test_fetchmany
+        # 021171.python.dbapi20.line788.comment Not much here - rest of the tests for this are in test_fetchmany
         con = self._connect()
         try:
             cur = con.cursor()
@@ -805,7 +805,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             con.close()
 
     def test_setoutputsize_basic(self):
-        # Basic test is to make sure setoutputsize doesn't blow up
+        # 021173.python.dbapi20.line808.comment Basic test is to make sure setoutputsize doesn't blow up
         con = self._connect()
         try:
             cur = con.cursor()
@@ -816,7 +816,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             con.close()
 
     def test_setoutputsize(self):
-        # Real test for setoutputsize is driver dependant
+        # 021175.python.dbapi20.line819.comment Real test for setoutputsize is driver dependant
         raise NotImplementedError("Driver needed to override this test")
 
     def test_None(self):
@@ -836,22 +836,22 @@ class DatabaseAPI20Test(unittest.TestCase):
     def test_Date(self):
         d1 = self.driver.Date(2002, 12, 25)
         d2 = self.driver.DateFromTicks(time.mktime((2002, 12, 25, 0, 0, 0, 0, 0, 0)))
-        # Can we assume this? API doesn't specify, but it seems implied
-        # self.assertEqual(str(d1),str(d2))
+        # 021176.python.dbapi20.line839.comment Can we assume this? API doesn't specify, but it seems implied
+        # 021177.python.dbapi20.line840.comment self.assertEqual(str(d1),str(d2))
 
     def test_Time(self):
         t1 = self.driver.Time(13, 45, 30)
         t2 = self.driver.TimeFromTicks(time.mktime((2001, 1, 1, 13, 45, 30, 0, 0, 0)))
-        # Can we assume this? API doesn't specify, but it seems implied
-        # self.assertEqual(str(t1),str(t2))
+        # 021178.python.dbapi20.line845.comment Can we assume this? API doesn't specify, but it seems implied
+        # 021179.python.dbapi20.line846.comment self.assertEqual(str(t1),str(t2))
 
     def test_Timestamp(self):
         t1 = self.driver.Timestamp(2002, 12, 25, 13, 45, 30)
         t2 = self.driver.TimestampFromTicks(
             time.mktime((2002, 12, 25, 13, 45, 30, 0, 0, 0))
         )
-        # Can we assume this? API doesn't specify, but it seems implied
-        # self.assertEqual(str(t1),str(t2))
+        # 021180.python.dbapi20.line853.comment Can we assume this? API doesn't specify, but it seems implied
+        # 021181.python.dbapi20.line854.comment self.assertEqual(str(t1),str(t2))
 
     def test_Binary(self):
         b = self.driver.Binary(b"Something")

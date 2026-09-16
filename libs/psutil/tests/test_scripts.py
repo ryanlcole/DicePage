@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025786.python.test_scripts.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025787.python.test_scripts.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025788.python.test_scripts.line5.comment found in the LICENSE file.
 
 """Test various scripts."""
 
@@ -35,9 +35,9 @@ INTERNAL_SCRIPTS_DIR = os.path.join(SCRIPTS_DIR, "internal")
 SETUP_PY = os.path.join(ROOT_DIR, 'setup.py')
 
 
-# ===================================================================
-# --- Tests scripts in scripts/ directory
-# ===================================================================
+# 025789.python.test_scripts.line38.comment ===================================================================
+# 025790.python.test_scripts.line39.comment --- Tests scripts in scripts/ directory
+# 025791.python.test_scripts.line40.comment ===================================================================
 
 
 @pytest.mark.skipif(
@@ -70,12 +70,12 @@ class TestExampleScripts(PsutilTestCase):
         ast.parse(src)
 
     def test_coverage(self):
-        # make sure all example scripts have a test method defined
+        # 025792.python.test_scripts.line73.comment make sure all example scripts have a test method defined
         meths = dir(self)
         for name in os.listdir(SCRIPTS_DIR):
             if name.endswith('.py'):
                 if 'test_' + os.path.splitext(name)[0] not in meths:
-                    # self.assert_stdout(name)
+                    # 025793.python.test_scripts.line78.comment self.assert_stdout(name)
                     raise pytest.fail(
                         "no test defined for"
                         f" {os.path.join(SCRIPTS_DIR, name)!r} script"
@@ -173,9 +173,9 @@ class TestExampleScripts(PsutilTestCase):
         self.assert_stdout('sensors.py')
 
 
-# ===================================================================
-# --- Tests scripts in scripts/internal/ directory
-# ===================================================================
+# 025794.python.test_scripts.line176.comment ===================================================================
+# 025795.python.test_scripts.line177.comment --- Tests scripts in scripts/internal/ directory
+# 025796.python.test_scripts.line178.comment ===================================================================
 
 
 @pytest.mark.skipif(
@@ -204,9 +204,9 @@ class TestInternalScripts(PsutilTestCase):
                 pass
 
 
-# ===================================================================
-# --- Tests for setup.py script
-# ===================================================================
+# 025797.python.test_scripts.line207.comment ===================================================================
+# 025798.python.test_scripts.line208.comment --- Tests for setup.py script
+# 025799.python.test_scripts.line209.comment ===================================================================
 
 
 @pytest.mark.skipif(
@@ -223,9 +223,9 @@ class TestSetupScript(PsutilTestCase):
         not shutil.which("python2.7"), reason="python2.7 not installed"
     )
     def test_python2(self):
-        # There's a duplicate of this test in scripts/internal
-        # directory, which is only executed by CI. We replicate it here
-        # to run it when developing locally.
+        # 025800.python.test_scripts.line226.comment There's a duplicate of this test in scripts/internal
+        # 025801.python.test_scripts.line227.comment directory, which is only executed by CI. We replicate it here
+        # 025802.python.test_scripts.line228.comment to run it when developing locally.
         p = subprocess.Popen(
             [shutil.which("python2.7"), SETUP_PY],
             stdout=subprocess.PIPE,

@@ -1,7 +1,7 @@
-# Framework Window classes.
+# 038093.python.window.line1.comment Framework Window classes.
 
-# Most Pythonwin windows should use these classes rather than
-# the raw MFC ones if they want Pythonwin specific functionality.
+# 038094.python.window.line3.comment Most Pythonwin windows should use these classes rather than
+# 038095.python.window.line4.comment the raw MFC ones if they want Pythonwin specific functionality.
 import pywin.mfc.window
 import win32con
 

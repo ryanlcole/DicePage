@@ -1,4 +1,4 @@
-# General constants for the debugger
+# 036964.python.dbgcon.line1.comment General constants for the debugger
 
 DBGSTATE_NOT_DEBUGGING = 0
 DBGSTATE_RUNNING = 1

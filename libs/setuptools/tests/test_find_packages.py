@@ -181,7 +181,7 @@ class TestFlatLayoutPackageFinder:
                 "examples/__init__.py",
                 "examples/file.py",
                 "example/other_file.py",
-                # Sub-packages should always be fine
+                # 045471.python.test_find_packages.line184.comment Sub-packages should always be fine
                 "pkg/example/__init__.py",
                 "pkg/examples/__init__.py",
             ],
@@ -195,7 +195,7 @@ class TestFlatLayoutPackageFinder:
                 "tasks/subpackage/__init__.py",
                 "fabfile/__init__.py",
                 "fabfile/subpackage/__init__.py",
-                # Sub-packages should always be fine
+                # 045472.python.test_find_packages.line198.comment Sub-packages should always be fine
                 "pkg/tasks/__init__.py",
                 "pkg/fabfile/__init__.py",
             ],

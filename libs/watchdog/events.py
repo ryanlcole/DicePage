@@ -129,7 +129,7 @@ class FileSystemMovedEvent(FileSystemEvent):
     event_type = EVENT_TYPE_MOVED
 
 
-# File events.
+# 045644.python.events.line132.comment File events.
 
 
 class FileDeletedEvent(FileSystemEvent):
@@ -172,7 +172,7 @@ class FileOpenedEvent(FileSystemEvent):
     event_type = EVENT_TYPE_OPENED
 
 
-# Directory events.
+# 045645.python.events.line175.comment Directory events.
 
 
 class DirDeletedEvent(FileSystemEvent):

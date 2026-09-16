@@ -1,4 +1,4 @@
-# Test IShellItem and related interfaces
+# 052101.python.testShellItem.line1.comment Test IShellItem and related interfaces
 import unittest
 
 from win32com.shell import knownfolders, shell, shellcon
@@ -24,7 +24,7 @@ class TestShellItem(unittest.TestCase):
         name = sf.GetDisplayNameOf(child_pidl, shellcon.SHGDN_FORPARSING)
 
         item = shell.SHCreateItemFromParsingName(name, None, shell.IID_IShellItem)
-        # test the name we get from the item is the same as from the folder.
+        # 052102.python.testShellItem.line27.comment test the name we get from the item is the same as from the folder.
         self.assertEqual(name, item.GetDisplayName(shellcon.SHGDN_FORPARSING))
 
     def test_parsing_relative(self):
@@ -41,14 +41,14 @@ class TestShellItem(unittest.TestCase):
         item = shell.SHCreateItemFromRelativeName(
             desktop_item, name, None, shell.IID_IShellItem
         )
-        # test the name we get from the item is the same as from the folder.
+        # 052103.python.testShellItem.line44.comment test the name we get from the item is the same as from the folder.
         self.assertEqual(name, item.GetDisplayName(name_flags))
 
     def test_create_in_known_folder(self):
         item = shell.SHCreateItemInKnownFolder(
             knownfolders.FOLDERID_Desktop, 0, None, shell.IID_IShellItem
         )
-        # this will do for now :)
+        # 052104.python.testShellItem.line51.comment this will do for now :)
 
     def test_create_item_with_parent(self):
         desktop_pidl = shell.SHGetSpecialFolderLocation(0, shellcon.CSIDL_DESKTOP)

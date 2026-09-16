@@ -1,11 +1,11 @@
-# Some registry helpers.
+# 047024.python.regutil.line1.comment Some registry helpers.
 import os
 import sys
 
 import win32api
 import win32con
 
-# A .py file has a CLSID associated with it (why? - dunno!)
+# 047025.python.regutil.line8.comment A .py file has a CLSID associated with it (why? - dunno!)
 CLSIDPyFile = "{b51df050-06ae-11cf-ad3b-524153480001}"
 
 RegistryIDPyFile = "Python.File"  # The registry "file type" of a .py file
@@ -74,7 +74,7 @@ def RegisterPythonExe(exeFullPath, exeAlias=None, exeAppPath=None):
               of the filename is used.
     exeAppPath -- Not supported.
     """
-    # Note - Don't work on win32s (but we don't care anymore!)
+    # 047028.python.regutil.line77.comment Note - Don't work on win32s (but we don't care anymore!)
     if exeAppPath:
         raise ValueError("Do not support exeAppPath argument currently")
     if exeAlias is None:
@@ -209,7 +209,7 @@ def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=1):
             os.stat(fullHelpFile)
     except OSError:
         raise ValueError("Help file does not exist")
-    # Now register with Python itself.
+    # 047029.python.regutil.line212.comment Now register with Python itself.
     win32api.RegSetValue(
         GetRootKey(),
         BuildDefaultPythonKey() + "\\Help\\%s" % helpDesc,
@@ -241,7 +241,7 @@ def UnregisterHelpFile(helpFile, helpDesc=None):
     finally:
         win32api.RegCloseKey(key)
 
-    # Now de-register with Python itself.
+    # 047030.python.regutil.line244.comment Now de-register with Python itself.
     if helpDesc is None:
         helpDesc = helpFile
     try:
@@ -263,7 +263,7 @@ def RegisterCoreDLL(coredllName=None):
     """
     if coredllName is None:
         coredllName = win32api.GetModuleFileName(sys.dllhandle)
-        # must exist!
+        # 047031.python.regutil.line266.comment must exist!
     else:
         try:
             os.stat(coredllName)
@@ -275,7 +275,7 @@ def RegisterCoreDLL(coredllName=None):
         win32api.RegSetValue(hKey, "Dll", win32con.REG_SZ, coredllName)
     finally:
         win32api.RegCloseKey(hKey)
-    # Lastly, setup the current version to point to me.
+    # 047032.python.regutil.line278.comment Lastly, setup the current version to point to me.
     win32api.RegSetValue(
         GetRootKey(),
         "Software\\Python\\PythonCore\\CurrentVersion",
@@ -291,7 +291,7 @@ def RegisterFileExtensions(defPyIcon, defPycIcon, runCommand):
     defPycIcon -- The default icon to use for .pyc files, in 'fname,offset' format.
     runCommand -- The command line to use for running .py files
     """
-    # Register the file extensions.
+    # 047033.python.regutil.line294.comment Register the file extensions.
     pythonFileId = RegistryIDPyFile
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT, ".py", win32con.REG_SZ, pythonFileId
@@ -322,7 +322,7 @@ def RegisterFileExtensions(defPyIcon, defPycIcon, runCommand):
         runCommand,
     )
 
-    # Register the .PYC.
+    # 047034.python.regutil.line325.comment Register the .PYC.
     pythonFileId = RegistryIDPycFile
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT, ".pyc", win32con.REG_SZ, pythonFileId
@@ -352,10 +352,10 @@ def RegisterFileExtensions(defPyIcon, defPycIcon, runCommand):
 
 
 def RegisterShellCommand(shellCommand, exeCommand, shellUserCommand=None):
-    # Last param for "Open" - for a .py file to be executed by the command line
-    # or shell execute (eg, just entering "foo.py"), the Command must be "Open",
-    # but you may associate a different name for the right-click menu.
-    # In our case, normally we have "Open=Run"
+    # 047035.python.regutil.line355.comment Last param for "Open" - for a .py file to be executed by the command line
+    # 047036.python.regutil.line356.comment or shell execute (eg, just entering "foo.py"), the Command must be "Open",
+    # 047037.python.regutil.line357.comment but you may associate a different name for the right-click menu.
+    # 047038.python.regutil.line358.comment In our case, normally we have "Open=Run"
     base = "%s\\Shell" % RegistryIDPyFile
     if shellUserCommand:
         win32api.RegSetValue(

@@ -7,7 +7,7 @@ import win32com.test.util
 import winerror
 
 
-# An object representing a list of numbers
+# 049901.python.policySemantics.line10.comment An object representing a list of numbers
 class PythonSemanticClass:
     _public_methods_ = ["In"]  # DISPIDs are allocated.
     _dispid_to_func_ = {10: "Add", 11: "Remove"}  # DISPIDs specified by the object.
@@ -19,11 +19,11 @@ class PythonSemanticClass:
         return win32com.server.util.NewEnum(self.list)
 
     def _value_(self):
-        # should return an array.
+        # 049904.python.policySemantics.line22.comment should return an array.
         return self.list
 
     def _Evaluate(self):
-        # return the sum
+        # 049905.python.policySemantics.line26.comment return the sum
         return sum(self.list)
 
     def In(self, value):
@@ -40,8 +40,8 @@ def DispExTest(ob):
     if not __debug__:
         print("WARNING: Tests dressed up as assertions are being skipped!")
     assert ob.GetDispID("Add", 0) == 10, "Policy did not honour the dispid"
-    # Not impl
-    #       assert ob.GetMemberName(10, 0)=="add", "Policy did not give me the correct function for the dispid"
+    # 049906.python.policySemantics.line43.comment Not impl
+    # 049907.python.policySemantics.line44.comment assert ob.GetMemberName(10, 0)=="add", "Policy did not give me the correct function for the dispid"
     assert ob.GetDispID("Remove", 0) == 11, "Policy did not honour the dispid"
     assert ob.GetDispID("In", 0) == 1000, "Allocated dispid unexpected value"
     assert ob.GetDispID("_NewEnum", 0) == pythoncom.DISPID_NEWENUM, (
@@ -68,11 +68,11 @@ def DispExTest(ob):
 
 
 def SemanticTest(ob):
-    # First just check our object "generally" as expected.
+    # 049908.python.policySemantics.line71.comment First just check our object "generally" as expected.
     ob.Add(1)
     ob.Add(2)
     ob.Add(3)
-    # invoke _value_
+    # 049909.python.policySemantics.line75.comment invoke _value_
     assert ob() == (1, 2, 3), f"Bad result - got {ob()!r}"
 
     dispob = ob._oleobj_

@@ -3,8 +3,8 @@ from itertools import filterfalse
 
 def unique_everseen(iterable, key=None):
     "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', str.lower) --> A B C D
+    # 042102.python.itertools.line6.comment unique_everseen('AAAABBBCCDAABBB') --> A B C D
+    # 042103.python.itertools.line7.comment unique_everseen('ABBCcAD', str.lower) --> A B C D
     seen = set()
     seen_add = seen.add
     if key is None:
@@ -19,7 +19,7 @@ def unique_everseen(iterable, key=None):
                 yield element
 
 
-# copied from more_itertools 8.8
+# 042104.python.itertools.line22.comment copied from more_itertools 8.8
 def always_iterable(obj, base_type=(str, bytes)):
     """If *obj* is iterable, return an iterator over its items::
 

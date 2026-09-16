@@ -1,4 +1,4 @@
-# Note: The display mode API used here is Mac OS 10.6 only.
+# 026248.python.cocoa.line1.comment Note: The display mode API used here is Mac OS 10.6 only.
 from __future__ import annotations
 
 from ctypes import c_uint32, c_void_p, byref
@@ -35,14 +35,14 @@ class CocoaScreen(Screen):
 
     def __init__(self, display, displayID):
         bounds = quartz.CGDisplayBounds(displayID)
-        # FIX ME:
-        # Probably need to convert the origin coordinates depending on context:
-        # http://www.cocoabuilder.com/archive/cocoa/233492-ns-cg-rect-conversion-and-screen-coordinates.html
+        # 026249.python.cocoa.line38.comment FIX ME:
+        # 026250.python.cocoa.line39.comment Probably need to convert the origin coordinates depending on context:
+        # 026251.python.cocoa.line40.comment http://www.cocoabuilder.com/archive/cocoa/233492-ns-cg-rect-conversion-and-screen-coordinates.html
         x, y = bounds.origin.x, bounds.origin.y
         width, height = bounds.size.width, bounds.size.height
         super().__init__(display, int(x), int(y), int(width), int(height))
         self._cg_display_id = displayID
-        # Save the default mode so we can restore to it.
+        # 026252.python.cocoa.line45.comment Save the default mode so we can restore to it.
         self._default_mode = self.get_mode()
         self._ns_screen = self.get_nsscreen()
         self._friendly_name = "Unknown"
@@ -53,8 +53,8 @@ class CocoaScreen(Screen):
 
     def get_nsscreen(self):
         """Returns the NSScreen instance that matches our CGDirectDisplayID."""
-        # Get a list of all currently active NSScreens and then search through
-        # them until we find one that matches our CGDisplayID.
+        # 026253.python.cocoa.line56.comment Get a list of all currently active NSScreens and then search through
+        # 026254.python.cocoa.line57.comment them until we find one that matches our CGDisplayID.
         screen_array = NSScreen.screens()
         count = screen_array.count()
         for i in range(count):
@@ -110,7 +110,7 @@ class CocoaScreen(Screen):
         current_mode = self.get_mode()
         if all(getattr(current_mode, attr) == getattr(self._default_mode, attr) for
                attr in match_attrs):
-            # Already in default mode
+            # 026255.python.cocoa.line113.comment Already in default mode
             return
         quartz.CGDisplaySetDisplayMode(self._cg_display_id, self._default_mode.cgmode, None)
         quartz.CGDisplayRelease(self._cg_display_id)
@@ -148,7 +148,7 @@ class CocoaScreenMode(ScreenMode):
         self.cgmode = None
 
     def getBitsPerPixel(self, cgmode):
-        # from /System/Library/Frameworks/IOKit.framework/Headers/graphics/IOGraphicsTypes.h
+        # 026256.python.cocoa.line151.comment from /System/Library/Frameworks/IOKit.framework/Headers/graphics/IOGraphicsTypes.h
         IO8BitIndexedPixels = "PPPPPPPP"
         IO16BitDirectPixels = "-RRRRRGGGGGBBBBB"
         IO32BitDirectPixels = "--------RRRRRRRRGGGGGGGGBBBBBBBB"

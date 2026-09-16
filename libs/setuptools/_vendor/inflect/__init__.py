@@ -189,7 +189,7 @@ def make_pl_si_lists(
         return si_list, si_bysize, pl_bysize
 
 
-# 1. PLURALS
+# 042127.python.init.line192.comment 1. PLURALS
 
 pl_sb_irregular_s = {
     "corpus": "corpuses|corpora",
@@ -239,7 +239,7 @@ pl_sb_irregular = {
 }
 
 pl_sb_irregular.update(pl_sb_irregular_s)
-# pl_sb_irregular_keys = enclose('|'.join(pl_sb_irregular.keys()))
+# 042128.python.init.line242.comment pl_sb_irregular_keys = enclose('|'.join(pl_sb_irregular.keys()))
 
 pl_sb_irregular_caps = {
     "Romany": "Romanies",
@@ -266,9 +266,9 @@ for k in list(si_sb_irregular_compound):
         )
         del si_sb_irregular_compound[k]
 
-# si_sb_irregular_keys = enclose('|'.join(si_sb_irregular.keys()))
+# 042129.python.init.line269.comment si_sb_irregular_keys = enclose('|'.join(si_sb_irregular.keys()))
 
-# Z's that don't double
+# 042130.python.init.line271.comment Z's that don't double
 
 pl_sb_z_zes_list = ("quartz", "topaz")
 pl_sb_z_zes_bysize = bysize(pl_sb_z_zes_list)
@@ -277,10 +277,10 @@ pl_sb_ze_zes_list = ("snooze",)
 pl_sb_ze_zes_bysize = bysize(pl_sb_ze_zes_list)
 
 
-# CLASSICAL "..is" -> "..ides"
+# 042131.python.init.line280.comment CLASSICAL "..is" -> "..ides"
 
 pl_sb_C_is_ides_complete = [
-    # GENERAL WORDS...
+    # 042132.python.init.line283.comment GENERAL WORDS...
     "ephemeris",
     "iris",
     "clitoris",
@@ -289,7 +289,7 @@ pl_sb_C_is_ides_complete = [
 ]
 
 pl_sb_C_is_ides_endings = [
-    # INFLAMATIONS...
+    # 042133.python.init.line292.comment INFLAMATIONS...
     "itis"
 ]
 
@@ -306,7 +306,7 @@ pl_sb_C_is_ides_list = pl_sb_C_is_ides_complete + pl_sb_C_is_ides_endings
 ) = make_pl_si_lists(pl_sb_C_is_ides_list, "ides", 2, dojoinstem=False)
 
 
-# CLASSICAL "..a" -> "..ata"
+# 042134.python.init.line309.comment CLASSICAL "..a" -> "..ata"
 
 pl_sb_C_a_ata_list = (
     "anathema",
@@ -342,7 +342,7 @@ pl_sb_C_a_ata_list = (
     pl_sb_C_a_ata,
 ) = make_pl_si_lists(pl_sb_C_a_ata_list, "ata", 1)
 
-# UNCONDITIONAL "..a" -> "..ae"
+# 042135.python.init.line345.comment UNCONDITIONAL "..a" -> "..ae"
 
 pl_sb_U_a_ae_list = (
     "alumna",
@@ -358,7 +358,7 @@ pl_sb_U_a_ae_list = (
     pl_sb_U_a_ae,
 ) = make_pl_si_lists(pl_sb_U_a_ae_list, "e", None)
 
-# CLASSICAL "..a" -> "..ae"
+# 042136.python.init.line361.comment CLASSICAL "..a" -> "..ae"
 
 pl_sb_C_a_ae_list = (
     "amoeba",
@@ -385,7 +385,7 @@ pl_sb_C_a_ae_list = (
 ) = make_pl_si_lists(pl_sb_C_a_ae_list, "e", None)
 
 
-# CLASSICAL "..en" -> "..ina"
+# 042137.python.init.line388.comment CLASSICAL "..en" -> "..ina"
 
 pl_sb_C_en_ina_list = ("stamen", "foramen", "lumen")
 
@@ -397,7 +397,7 @@ pl_sb_C_en_ina_list = ("stamen", "foramen", "lumen")
 ) = make_pl_si_lists(pl_sb_C_en_ina_list, "ina", 2)
 
 
-# UNCONDITIONAL "..um" -> "..a"
+# 042138.python.init.line400.comment UNCONDITIONAL "..um" -> "..a"
 
 pl_sb_U_um_a_list = (
     "bacterium",
@@ -417,7 +417,7 @@ pl_sb_U_um_a_list = (
     pl_sb_U_um_a,
 ) = make_pl_si_lists(pl_sb_U_um_a_list, "a", 2)
 
-# CLASSICAL "..um" -> "..a"
+# 042139.python.init.line420.comment CLASSICAL "..um" -> "..a"
 
 pl_sb_C_um_a_list = (
     "maximum",
@@ -460,7 +460,7 @@ pl_sb_C_um_a_list = (
 ) = make_pl_si_lists(pl_sb_C_um_a_list, "a", 2)
 
 
-# UNCONDITIONAL "..us" -> "i"
+# 042140.python.init.line463.comment UNCONDITIONAL "..us" -> "i"
 
 pl_sb_U_us_i_list = (
     "alumnus",
@@ -480,7 +480,7 @@ pl_sb_U_us_i_list = (
     pl_sb_U_us_i,
 ) = make_pl_si_lists(pl_sb_U_us_i_list, "i", 2)
 
-# CLASSICAL "..us" -> "..i"
+# 042141.python.init.line483.comment CLASSICAL "..us" -> "..i"
 
 pl_sb_C_us_i_list = (
     "focus",
@@ -507,7 +507,7 @@ pl_sb_C_us_i_list = (
 ) = make_pl_si_lists(pl_sb_C_us_i_list, "i", 2)
 
 
-# CLASSICAL "..us" -> "..us"  (ASSIMILATED 4TH DECLENSION LATIN NOUNS)
+# 042142.python.init.line510.comment CLASSICAL "..us" -> "..us"  (ASSIMILATED 4TH DECLENSION LATIN NOUNS)
 
 pl_sb_C_us_us = (
     "status",
@@ -520,7 +520,7 @@ pl_sb_C_us_us = (
 )
 pl_sb_C_us_us_bysize = bysize(pl_sb_C_us_us)
 
-# UNCONDITIONAL "..on" -> "a"
+# 042143.python.init.line523.comment UNCONDITIONAL "..on" -> "a"
 
 pl_sb_U_on_a_list = (
     "criterion",
@@ -540,7 +540,7 @@ pl_sb_U_on_a_list = (
     pl_sb_U_on_a,
 ) = make_pl_si_lists(pl_sb_U_on_a_list, "a", 2)
 
-# CLASSICAL "..on" -> "..a"
+# 042144.python.init.line543.comment CLASSICAL "..on" -> "..a"
 
 pl_sb_C_on_a_list = ("oxymoron",)
 
@@ -552,7 +552,7 @@ pl_sb_C_on_a_list = ("oxymoron",)
 ) = make_pl_si_lists(pl_sb_C_on_a_list, "a", 2)
 
 
-# CLASSICAL "..o" -> "..i"  (BUT NORMALLY -> "..os")
+# 042145.python.init.line555.comment CLASSICAL "..o" -> "..i"  (BUT NORMALLY -> "..os")
 
 pl_sb_C_o_i = [
     "solo",
@@ -570,7 +570,7 @@ si_sb_C_o_i_bysize = bysize([f"{w[:-1]}i" for w in pl_sb_C_o_i])
 
 pl_sb_C_o_i_stems = joinstem(-1, pl_sb_C_o_i)
 
-# ALWAYS "..o" -> "..os"
+# 042147.python.init.line573.comment ALWAYS "..o" -> "..os"
 
 pl_sb_U_o_os_complete = {"ado", "ISO", "NATO", "NCO", "NGO", "oto"}
 si_sb_U_o_os_complete = {f"{w}s" for w in pl_sb_U_o_os_complete}
@@ -778,7 +778,7 @@ pl_sb_U_o_os_bysize = bysize(pl_sb_U_o_os_endings)
 si_sb_U_o_os_bysize = bysize([f"{w}s" for w in pl_sb_U_o_os_endings])
 
 
-# UNCONDITIONAL "..ch" -> "..chs"
+# 042148.python.init.line781.comment UNCONDITIONAL "..ch" -> "..chs"
 
 pl_sb_U_ch_chs_list = ("czech", "eunuch", "stomach")
 
@@ -790,7 +790,7 @@ pl_sb_U_ch_chs_list = ("czech", "eunuch", "stomach")
 ) = make_pl_si_lists(pl_sb_U_ch_chs_list, "s", None)
 
 
-# UNCONDITIONAL "..[ei]x" -> "..ices"
+# 042149.python.init.line793.comment UNCONDITIONAL "..[ei]x" -> "..ices"
 
 pl_sb_U_ex_ices_list = ("codex", "murex", "silex")
 (
@@ -808,7 +808,7 @@ pl_sb_U_ix_ices_list = ("radix", "helix")
     pl_sb_U_ix_ices,
 ) = make_pl_si_lists(pl_sb_U_ix_ices_list, "ices", 2)
 
-# CLASSICAL "..[ei]x" -> "..ices"
+# 042150.python.init.line811.comment CLASSICAL "..[ei]x" -> "..ices"
 
 pl_sb_C_ex_ices_list = (
     "vortex",
@@ -839,7 +839,7 @@ pl_sb_C_ix_ices_list = ("appendix",)
 ) = make_pl_si_lists(pl_sb_C_ix_ices_list, "ices", 2)
 
 
-# ARABIC: ".." -> "..i"
+# 042151.python.init.line842.comment ARABIC: ".." -> "..i"
 
 pl_sb_C_i_list = ("afrit", "afreet", "efreet")
 
@@ -848,7 +848,7 @@ pl_sb_C_i_list = ("afrit", "afreet", "efreet")
 )
 
 
-# HEBREW: ".." -> "..im"
+# 042152.python.init.line851.comment HEBREW: ".." -> "..im"
 
 pl_sb_C_im_list = ("goy", "seraph", "cherub")
 
@@ -857,7 +857,7 @@ pl_sb_C_im_list = ("goy", "seraph", "cherub")
 )
 
 
-# UNCONDITIONAL "..man" -> "..mans"
+# 042153.python.init.line860.comment UNCONDITIONAL "..man" -> "..mans"
 
 pl_sb_U_man_mans_list = """
     ataman caiman cayman ceriman
@@ -882,7 +882,7 @@ pl_sb_U_man_mans_caps_list = """
     pl_sb_U_man_mans_caps_bysize,
 ) = make_pl_si_lists(pl_sb_U_man_mans_caps_list, "s", None, dojoinstem=False)
 
-# UNCONDITIONAL "..louse" -> "..lice"
+# 042154.python.init.line885.comment UNCONDITIONAL "..louse" -> "..lice"
 pl_sb_U_louse_lice_list = ("booklouse", "grapelouse", "louse", "woodlouse")
 
 (
@@ -892,7 +892,7 @@ pl_sb_U_louse_lice_list = ("booklouse", "grapelouse", "louse", "woodlouse")
 ) = make_pl_si_lists(pl_sb_U_louse_lice_list, "lice", 5, dojoinstem=False)
 
 pl_sb_uninflected_s_complete = [
-    # PAIRS OR GROUPS SUBSUMED TO A SINGULAR...
+    # 042155.python.init.line895.comment PAIRS OR GROUPS SUBSUMED TO A SINGULAR...
     "breeches",
     "britches",
     "pajamas",
@@ -909,18 +909,18 @@ pl_sb_uninflected_s_complete = [
     "shears",
     "proceedings",
     "trousers",
-    # UNASSIMILATED LATIN 4th DECLENSION
+    # 042156.python.init.line912.comment UNASSIMILATED LATIN 4th DECLENSION
     "cantus",
     "coitus",
     "nexus",
-    # RECENT IMPORTS...
+    # 042157.python.init.line916.comment RECENT IMPORTS...
     "contretemps",
     "corps",
     "debris",
     "siemens",
-    # DISEASES
+    # 042158.python.init.line921.comment DISEASES
     "mumps",
-    # MISCELLANEOUS OTHERS...
+    # 042159.python.init.line923.comment MISCELLANEOUS OTHERS...
     "diabetes",
     "jackanapes",
     "series",
@@ -935,9 +935,9 @@ pl_sb_uninflected_s_complete = [
 ]
 
 pl_sb_uninflected_s_endings = [
-    # RECENT IMPORTS...
+    # 042160.python.init.line938.comment RECENT IMPORTS...
     "ois",
-    # DISEASES
+    # 042161.python.init.line940.comment DISEASES
     "measles",
 ]
 
@@ -946,7 +946,7 @@ pl_sb_uninflected_s = pl_sb_uninflected_s_complete + [
 ]
 
 pl_sb_uninflected_herd = (
-    # DON'T INFLECT IN CLASSICAL MODE, OTHERWISE NORMAL INFLECTION
+    # 042162.python.init.line949.comment DON'T INFLECT IN CLASSICAL MODE, OTHERWISE NORMAL INFLECTION
     "wildebeest",
     "swine",
     "eland",
@@ -979,7 +979,7 @@ pl_sb_uninflected_herd = (
 )
 
 pl_sb_uninflected_complete = [
-    # SOME FISH AND HERD ANIMALS
+    # 042163.python.init.line982.comment SOME FISH AND HERD ANIMALS
     "tuna",
     "salmon",
     "mackerel",
@@ -992,7 +992,7 @@ pl_sb_uninflected_complete = [
     "flounder",
     "whiting",
     "moose",
-    # OTHER ODDITIES
+    # 042164.python.init.line995.comment OTHER ODDITIES
     "graffiti",
     "djinn",
     "samuri",
@@ -1001,10 +1001,10 @@ pl_sb_uninflected_complete = [
     "quid",
     "hertz",
 ] + pl_sb_uninflected_s_complete
-# SOME WORDS ENDING IN ...s (OFTEN PAIRS TAKEN AS A WHOLE)
+# 042165.python.init.line1004.comment SOME WORDS ENDING IN ...s (OFTEN PAIRS TAKEN AS A WHOLE)
 
 pl_sb_uninflected_caps = [
-    # ALL NATIONALS ENDING IN -ese
+    # 042166.python.init.line1007.comment ALL NATIONALS ENDING IN -ese
     "Portuguese",
     "Amoyese",
     "Borghese",
@@ -1033,32 +1033,32 @@ pl_sb_uninflected_caps = [
 
 
 pl_sb_uninflected_endings = [
-    # UNCOUNTABLE NOUNS
+    # 042167.python.init.line1036.comment UNCOUNTABLE NOUNS
     "butter",
     "cash",
     "furniture",
     "information",
-    # SOME FISH AND HERD ANIMALS
+    # 042168.python.init.line1041.comment SOME FISH AND HERD ANIMALS
     "fish",
     "deer",
     "sheep",
-    # ALL NATIONALS ENDING IN -ese
+    # 042169.python.init.line1045.comment ALL NATIONALS ENDING IN -ese
     "nese",
     "rese",
     "lese",
     "mese",
-    # DISEASES
+    # 042170.python.init.line1050.comment DISEASES
     "pox",
-    # OTHER ODDITIES
+    # 042171.python.init.line1052.comment OTHER ODDITIES
     "craft",
 ] + pl_sb_uninflected_s_endings
-# SOME WORDS ENDING IN ...s (OFTEN PAIRS TAKEN AS A WHOLE)
+# 042172.python.init.line1055.comment SOME WORDS ENDING IN ...s (OFTEN PAIRS TAKEN AS A WHOLE)
 
 
 pl_sb_uninflected_bysize = bysize(pl_sb_uninflected_endings)
 
 
-# SINGULAR WORDS ENDING IN ...s (ALL INFLECT WITH ...es)
+# 042173.python.init.line1061.comment SINGULAR WORDS ENDING IN ...s (ALL INFLECT WITH ...es)
 
 pl_sb_singular_s_complete = [
     "acropolis",
@@ -1115,7 +1115,7 @@ pl_sb_singular_s = enclose(
 )
 
 
-# PLURALS ENDING IN uses -> use
+# 042174.python.init.line1118.comment PLURALS ENDING IN uses -> use
 
 
 si_sb_ois_oi_case = ("Bolshois", "Hanois")
@@ -1475,17 +1475,17 @@ si_sb_sses_sse = (
 )
 
 si_sb_ves_ve_case = (
-    # *[nwl]ives -> [nwl]live
+    # 042175.python.init.line1478.comment *[nwl]ives -> [nwl]live
     "Clives",
     "Palmolives",
 )
 si_sb_ves_ve = (
-    # *[^d]eaves -> eave
+    # 042176.python.init.line1483.comment *[^d]eaves -> eave
     "interweaves",
     "weaves",
-    # *[nwl]ives -> [nwl]live
+    # 042177.python.init.line1486.comment *[nwl]ives -> [nwl]live
     "olives",
-    # *[eoa]lves -> [eoa]lve
+    # 042178.python.init.line1488.comment *[eoa]lves -> [eoa]lve
     "bivalves",
     "dissolves",
     "resolves",
@@ -1517,7 +1517,7 @@ pl_sb_postfix_adj: Iterable[str] = (
 pl_sb_postfix_adj_stems = f"({'|'.join(pl_sb_postfix_adj)})(.*)"
 
 
-# PLURAL WORDS ENDING IS es GO TO SINGULAR is
+# 042179.python.init.line1520.comment PLURAL WORDS ENDING IS es GO TO SINGULAR is
 
 si_sb_es_is = (
     "amanuenses",
@@ -1528,7 +1528,7 @@ si_sb_es_is = (
     "arterioscleroses",
     "atheroscleroses",
     "axes",
-    # 'bases', # bases -> basis
+    # 042180.python.init.line1531.comment 'bases', # bases -> basis
     "catalyses",
     "catharses",
     "chasses",
@@ -1613,7 +1613,7 @@ singular_pronoun_genders = {
 }
 
 pl_pron_nom = {
-    # NOMINATIVE    REFLEXIVE
+    # 042181.python.init.line1616.comment NOMINATIVE    REFLEXIVE
     "i": "we",
     "myself": "ourselves",
     "you": "you",
@@ -1626,7 +1626,7 @@ pl_pron_nom = {
     "itself": "themselves",
     "they": "they",
     "themself": "themselves",
-    #   POSSESSIVE
+    # 042182.python.init.line1629.comment POSSESSIVE
     "mine": "ours",
     "yours": "yours",
     "hers": "theirs",
@@ -1642,7 +1642,7 @@ si_pron["nom"]["we"] = "I"
 
 
 pl_pron_acc = {
-    # ACCUSATIVE    REFLEXIVE
+    # 042183.python.init.line1645.comment ACCUSATIVE    REFLEXIVE
     "me": "us",
     "myself": "ourselves",
     "you": "you",
@@ -1716,8 +1716,8 @@ def get_si_pron(thecase, word, gender) -> str:
         return cast(str, sing)  # answer independent of gender
 
 
-# These dictionaries group verbs by first, second and third person
-# conjugations.
+# 042189.python.init.line1719.comment These dictionaries group verbs by first, second and third person
+# 042190.python.init.line1720.comment conjugations.
 
 plverb_irregular_pres = {
     "am": "are",
@@ -1792,7 +1792,7 @@ plverb_ambiguous_non_pres = re.compile(
     r"^((?:thought|saw|bent|will|might|cut))((\s.*)?)$", re.IGNORECASE
 )
 
-# "..oes" -> "..oe" (the rest are "..oes" -> "o")
+# 042191.python.init.line1795.comment "..oes" -> "..oe" (the rest are "..oes" -> "o")
 
 pl_v_oes_oe = ("canoes", "floes", "oboes", "roes", "throes", "woes")
 pl_v_oes_oe_endings_size4 = ("hoes", "toes")
@@ -1822,11 +1822,11 @@ pl_adj_poss = {
 pl_adj_poss_keys = re.compile(rf"^({enclose('|'.join(pl_adj_poss))})$", re.IGNORECASE)
 
 
-# 2. INDEFINITE ARTICLES
+# 042192.python.init.line1825.comment 2. INDEFINITE ARTICLES
 
-# THIS PATTERN MATCHES STRINGS OF CAPITALS STARTING WITH A "VOWEL-SOUND"
-# CONSONANT FOLLOWED BY ANOTHER CONSONANT, AND WHICH ARE NOT LIKELY
-# TO BE REAL WORDS (OH, ALL RIGHT THEN, IT'S JUST MAGIC!)
+# 042193.python.init.line1827.comment THIS PATTERN MATCHES STRINGS OF CAPITALS STARTING WITH A "VOWEL-SOUND"
+# 042194.python.init.line1828.comment CONSONANT FOLLOWED BY ANOTHER CONSONANT, AND WHICH ARE NOT LIKELY
+# 042195.python.init.line1829.comment TO BE REAL WORDS (OH, ALL RIGHT THEN, IT'S JUST MAGIC!)
 
 A_abbrev = re.compile(
     r"""
@@ -1837,13 +1837,13 @@ A_abbrev = re.compile(
     re.VERBOSE,
 )
 
-# THIS PATTERN CODES THE BEGINNINGS OF ALL ENGLISH WORDS BEGINING WITH A
-# 'y' FOLLOWED BY A CONSONANT. ANY OTHER Y-CONSONANT PREFIX THEREFORE
-# IMPLIES AN ABBREVIATION.
+# 042196.python.init.line1840.comment THIS PATTERN CODES THE BEGINNINGS OF ALL ENGLISH WORDS BEGINING WITH A
+# 042197.python.init.line1841.comment 'y' FOLLOWED BY A CONSONANT. ANY OTHER Y-CONSONANT PREFIX THEREFORE
+# 042198.python.init.line1842.comment IMPLIES AN ABBREVIATION.
 
 A_y_cons = re.compile(r"^(y(b[lor]|cl[ea]|fere|gg|p[ios]|rou|tt))", re.IGNORECASE)
 
-# EXCEPTIONS TO EXCEPTIONS
+# 042199.python.init.line1846.comment EXCEPTIONS TO EXCEPTIONS
 
 A_explicit_a = re.compile(r"^((?:unabomber|unanimous|US))", re.IGNORECASE)
 
@@ -1856,7 +1856,7 @@ A_ordinal_an = re.compile(r"^([aefhilmnorsx]-?th)", re.IGNORECASE)
 A_ordinal_a = re.compile(r"^([bcdgjkpqtuvwyz]-?th)", re.IGNORECASE)
 
 
-# NUMERICAL INFLECTIONS
+# 042200.python.init.line1859.comment NUMERICAL INFLECTIONS
 
 nth = {
     0: "th",
@@ -1889,7 +1889,7 @@ ordinal = dict(
 ordinal_suff = re.compile(rf"({'|'.join(ordinal)})\Z")
 
 
-# NUMBERS
+# 042201.python.init.line1892.comment NUMBERS
 
 unit = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 teen = [
@@ -1932,7 +1932,7 @@ mill = [
 ]
 
 
-# SUPPORT CLASSICAL PLURALIZATIONS
+# 042202.python.init.line1935.comment SUPPORT CLASSICAL PLURALIZATIONS
 
 def_classical = dict(
     all=False, zero=False, herd=False, names=True, persons=False, ancient=False
@@ -1942,11 +1942,11 @@ all_classical = {k: True for k in def_classical}
 no_classical = {k: False for k in def_classical}
 
 
-# Maps strings to built-in constant types
+# 042203.python.init.line1945.comment Maps strings to built-in constant types
 string_to_constant = {"True": True, "False": False, "None": None}
 
 
-# Pre-compiled regular expression objects
+# 042204.python.init.line1949.comment Pre-compiled regular expression objects
 DOLLAR_DIGITS = re.compile(r"\$(\d+)")
 FUNCTION_CALL = re.compile(r"((\w+)\([^)]*\)*)", re.IGNORECASE)
 PARTITION_WORD = re.compile(r"\A(\s*)(.+?)(\s*)\Z")
@@ -2027,8 +2027,8 @@ Falsish = Any  # ideally, falsish would only validate on bool(value) is False
 
 
 _STATIC_TYPE_CHECKING = TYPE_CHECKING
-# ^-- Workaround for typeguard AST manipulation:
-#     https://github.com/agronholm/typeguard/issues/353#issuecomment-1556306554
+# 042207.python.init.line2030.comment ^-- Workaround for typeguard AST manipulation:
+# 042208.python.init.line2031.comment https://github.com/agronholm/typeguard/issues/353#issuecomment-1556306554
 
 if _STATIC_TYPE_CHECKING:  # pragma: no cover
     Word = Annotated[str, "String with at least 1 character"]
@@ -2247,13 +2247,13 @@ class engine:
         elif isinstance(obj, ast.Tuple):
             return tuple([self._get_value_from_ast(e) for e in obj.elts])
 
-        # None, True and False are NameConstants in Py3.4 and above.
+        # 042215.python.init.line2250.comment None, True and False are NameConstants in Py3.4 and above.
         elif isinstance(obj, ast.NameConstant):
             return obj.value
 
-        # Probably passed a variable name.
-        # Or passed a single word without wrapping it in quotes as an argument
-        # ex: p.inflect("I plural(see)") instead of p.inflect("I plural('see')")
+        # 042216.python.init.line2254.comment Probably passed a variable name.
+        # 042217.python.init.line2255.comment Or passed a single word without wrapping it in quotes as an argument
+        # 042218.python.init.line2256.comment ex: p.inflect("I plural(see)") instead of p.inflect("I plural('see')")
         raise NameError(f"name '{obj.id}' is not defined")
 
     def _string_to_substitute(
@@ -2263,17 +2263,17 @@ class engine:
         Return the string to be substituted for the match.
         """
         matched_text, f_name = mo.groups()
-        # matched_text is the complete match string. e.g. plural_noun(cat)
-        # f_name is the function name. e.g. plural_noun
+        # 042219.python.init.line2266.comment matched_text is the complete match string. e.g. plural_noun(cat)
+        # 042220.python.init.line2267.comment f_name is the function name. e.g. plural_noun
 
-        # Return matched_text if function name is not in methods_dict
+        # 042221.python.init.line2269.comment Return matched_text if function name is not in methods_dict
         if f_name not in methods_dict:
             return matched_text
 
-        # Parse the matched text
+        # 042222.python.init.line2273.comment Parse the matched text
         a_tree = ast.parse(matched_text)
 
-        # get the args and kwargs from ast objects
+        # 042223.python.init.line2276.comment get the args and kwargs from ast objects
         args_list = [
             self._get_value_from_ast(a)
             for a in a_tree.body[0].value.args  # type: ignore[attr-defined]
@@ -2283,10 +2283,10 @@ class engine:
             for kw in a_tree.body[0].value.keywords  # type: ignore[attr-defined]
         }
 
-        # Call the corresponding function
+        # 042226.python.init.line2286.comment Call the corresponding function
         return methods_dict[f_name](*args_list, **kwargs_list)
 
-    # 0. PERFORM GENERAL INFLECTIONS IN A STRING
+    # 042227.python.init.line2289.comment 0. PERFORM GENERAL INFLECTIONS IN A STRING
 
     @typechecked
     def inflect(self, text: Word) -> str:
@@ -2303,7 +2303,7 @@ class engine:
         """
         save_persistent_count = self.persistent_count
 
-        # Dictionary of allowed methods
+        # 042228.python.init.line2306.comment Dictionary of allowed methods
         methods_dict: Dict[str, Callable] = {
             "plural": self.plural,
             "plural_adj": self.plural_adj,
@@ -2319,23 +2319,23 @@ class engine:
             "num": self.num,
         }
 
-        # Regular expression to find Python's function call syntax
+        # 042229.python.init.line2322.comment Regular expression to find Python's function call syntax
         output = FUNCTION_CALL.sub(
             lambda mo: self._string_to_substitute(mo, methods_dict), text
         )
         self.persistent_count = save_persistent_count
         return output
 
-    # ## PLURAL SUBROUTINES
+    # 042230.python.init.line2329.comment ## PLURAL SUBROUTINES
 
     def postprocess(self, orig: str, inflected) -> str:
         inflected = str(inflected)
         if "|" in inflected:
             word_options = inflected.split("|")
-            # When two parts of a noun need to be pluralized
+            # 042231.python.init.line2335.comment When two parts of a noun need to be pluralized
             if len(word_options[0].split(" ")) == len(word_options[1].split(" ")):
                 result = inflected.split("|")[self.classical_dict["all"]].split(" ")
-            # When only the last part of the noun needs to be pluralized
+            # 042232.python.init.line2338.comment When only the last part of the noun needs to be pluralized
             else:
                 result = inflected.split(" ")
                 for index, word in enumerate(result):
@@ -2344,13 +2344,13 @@ class engine:
         else:
             result = inflected.split(" ")
 
-        # Try to fix word wise capitalization
+        # 042233.python.init.line2347.comment Try to fix word wise capitalization
         for index, word in enumerate(orig.split(" ")):
             if word == "I":
-                # Is this the only word for exceptions like this
-                # Where the original is fully capitalized
-                # without 'meaning' capitalization?
-                # Also this fails to handle a capitalizaion in context
+                # 042234.python.init.line2350.comment Is this the only word for exceptions like this
+                # 042235.python.init.line2351.comment Where the original is fully capitalized
+                # 042236.python.init.line2352.comment without 'meaning' capitalization?
+                # 042237.python.init.line2353.comment Also this fails to handle a capitalizaion in context
                 continue
             if word.capitalize() == word:
                 result[index] = result[index].capitalize()
@@ -2670,24 +2670,24 @@ class engine:
             count = ""
         return count
 
-    # @profile
+    # 042239.python.init.line2673.comment @profile
     def _plnoun(  # noqa: C901
         self, word: str, count: Optional[Union[str, int]] = None
     ) -> str:
         count = self.get_count(count)
 
-        # DEFAULT TO PLURAL
+        # 042241.python.init.line2679.comment DEFAULT TO PLURAL
 
         if count == 1:
             return word
 
-        # HANDLE USER-DEFINED NOUNS
+        # 042242.python.init.line2684.comment HANDLE USER-DEFINED NOUNS
 
         value = self.ud_match(word, self.pl_sb_user_defined)
         if value is not None:
             return value
 
-        # HANDLE EMPTY WORD, SINGULAR COUNT AND UNINFLECTED PLURALS
+        # 042243.python.init.line2690.comment HANDLE EMPTY WORD, SINGULAR COUNT AND UNINFLECTED PLURALS
 
         if word == "":
             return word
@@ -2709,7 +2709,7 @@ class engine:
         if self.classical_dict["herd"] and word.last.lower() in pl_sb_uninflected_herd:
             return word
 
-        # HANDLE COMPOUNDS ("Governor General", "mother-in-law", "aide-de-camp", ETC.)
+        # 042244.python.init.line2712.comment HANDLE COMPOUNDS ("Governor General", "mother-in-law", "aide-de-camp", ETC.)
 
         mo = PL_SB_POSTFIX_ADJ_STEMS_RE.search(word)
         if mo and mo.group(2) != "":
@@ -2729,16 +2729,16 @@ class engine:
             if handled_words is not None:
                 return handled_words
 
-        # only pluralize denominators in units
+        # 042245.python.init.line2732.comment only pluralize denominators in units
         mo = DENOMINATOR.search(word.lowered)
         if mo:
             index = len(mo.group("denominator"))
             return f"{self._plnoun(word[:index])}{word[index:]}"
 
-        # handle units given in degrees (only accept if
-        # there is no more than one word following)
-        # degree Celsius => degrees Celsius but degree
-        # fahrenheit hour => degree fahrenheit hours
+        # 042246.python.init.line2738.comment handle units given in degrees (only accept if
+        # 042247.python.init.line2739.comment there is no more than one word following)
+        # 042248.python.init.line2740.comment degree Celsius => degrees Celsius but degree
+        # 042249.python.init.line2741.comment fahrenheit hour => degree fahrenheit hours
         if len(word.split_) >= 2 and word.split_[-2] == "degree":
             return " ".join([self._plnoun(word.first)] + word.split_[1:])
 
@@ -2749,7 +2749,7 @@ class engine:
                 '-',
             )
 
-        # HANDLE PRONOUNS
+        # 042250.python.init.line2752.comment HANDLE PRONOUNS
 
         for k, v in pl_pron_acc_keys_bysize.items():
             if word.lowered[-k:] in v:  # ends with accusative pronoun
@@ -2759,7 +2759,7 @@ class engine:
                             word.lowered[:pk],
                             word.lowered[-k:],
                         ]:
-                            # only whitespace in between
+                            # 042253.python.init.line2762.comment only whitespace in between
                             return word.lowered[:-k] + pl_pron_acc[word.lowered[-k:]]
 
         try:
@@ -2772,7 +2772,7 @@ class engine:
         except KeyError:
             pass
 
-        # HANDLE ISOLATED IRREGULAR PLURALS
+        # 042254.python.init.line2775.comment HANDLE ISOLATED IRREGULAR PLURALS
 
         if word.last in pl_sb_irregular_caps:
             llen = len(word.last)
@@ -2802,7 +2802,7 @@ class engine:
             else:
                 return f"{word[:-4]}ople"
 
-        # HANDLE FAMILIES OF IRREGULAR PLURALS
+        # 042256.python.init.line2805.comment HANDLE FAMILIES OF IRREGULAR PLURALS
 
         if word.lowered[-3:] == "man":
             for k, v in pl_sb_U_man_mans_bysize.items():
@@ -2831,7 +2831,7 @@ class engine:
         if word.lowered == "die":
             return "dice"
 
-        # HANDLE UNASSIMILATED IMPORTS
+        # 042257.python.init.line2834.comment HANDLE UNASSIMILATED IMPORTS
 
         if word.lowered[-4:] == "ceps":
             return word
@@ -2854,7 +2854,7 @@ class engine:
                     if word.lowered[-k:] in v:
                         return word[:numend] + post
 
-        # HANDLE INCOMPLETELY ASSIMILATED IMPORTS
+        # 042259.python.init.line2857.comment HANDLE INCOMPLETELY ASSIMILATED IMPORTS
 
         if self.classical_dict["ancient"]:
             if word.lowered[-4:] == "trix":
@@ -2890,7 +2890,7 @@ class engine:
                     if word.lowered[-k:] in v:
                         return word[:numend] + post
 
-        # HANDLE SINGULAR NOUNS ENDING IN ...s OR OTHER SILIBANTS
+        # 042261.python.init.line2893.comment HANDLE SINGULAR NOUNS ENDING IN ...s OR OTHER SILIBANTS
 
         if lowered_last in pl_sb_singular_s_complete:
             return f"{word}es"
@@ -2918,7 +2918,7 @@ class engine:
         if word.lowered[-2:] in ("ch", "sh", "zz", "ss") or word.lowered[-1] == "x":
             return f"{word}es"
 
-        # HANDLE ...f -> ...ves
+        # 042262.python.init.line2921.comment HANDLE ...f -> ...ves
 
         if word.lowered[-3:] in ("elf", "alf", "olf"):
             return f"{word[:-1]}ves"
@@ -2929,7 +2929,7 @@ class engine:
         if word.lowered[-3:] == "arf":
             return f"{word[:-1]}ves"
 
-        # HANDLE ...y
+        # 042263.python.init.line2932.comment HANDLE ...y
 
         if word.lowered[-1] == "y":
             if word.lowered[-2:-1] in "aeiou" or len(word) == 1:
@@ -2941,7 +2941,7 @@ class engine:
 
             return f"{word[:-1]}ies"
 
-        # HANDLE ...o
+        # 042264.python.init.line2944.comment HANDLE ...o
 
         if lowered_last in pl_sb_U_o_os_complete:
             return f"{word}s"
@@ -2956,7 +2956,7 @@ class engine:
         if word.lowered[-1] == "o":
             return f"{word}es"
 
-        # OTHERWISE JUST ADD ...s
+        # 042265.python.init.line2959.comment OTHERWISE JUST ADD ...s
 
         return f"{word}s"
 
@@ -3030,13 +3030,13 @@ class engine:
         if count == 1:
             return word
 
-        # HANDLE USER-DEFINED VERBS
+        # 042270.python.init.line3033.comment HANDLE USER-DEFINED VERBS
 
         value = self.ud_match(word, self.pl_v_user_defined)
         if value is not None:
             return value
 
-        # HANDLE IRREGULAR PRESENT TENSE (SIMPLE AND COMPOUND)
+        # 042271.python.init.line3039.comment HANDLE IRREGULAR PRESENT TENSE (SIMPLE AND COMPOUND)
 
         try:
             words = Words(word)
@@ -3046,12 +3046,12 @@ class engine:
         if words.first in plverb_irregular_pres:
             return f"{plverb_irregular_pres[words.first]}{words[len(words.first) :]}"
 
-        # HANDLE IRREGULAR FUTURE, PRETERITE AND PERFECT TENSES
+        # 042273.python.init.line3049.comment HANDLE IRREGULAR FUTURE, PRETERITE AND PERFECT TENSES
 
         if words.first in plverb_irregular_non_pres:
             return word
 
-        # HANDLE PRESENT NEGATIONS (SIMPLE AND COMPOUND)
+        # 042274.python.init.line3054.comment HANDLE PRESENT NEGATIONS (SIMPLE AND COMPOUND)
 
         if words.first.endswith("n't") and words.first[:-3] in plverb_irregular_pres:
             return (
@@ -3062,7 +3062,7 @@ class engine:
         if words.first.endswith("n't"):
             return word
 
-        # HANDLE SPECIAL CASES
+        # 042275.python.init.line3065.comment HANDLE SPECIAL CASES
 
         mo = PLVERB_SPECIAL_S_RE.search(word)
         if mo:
@@ -3073,7 +3073,7 @@ class engine:
         if words.lowered == "quizzes":
             return "quiz"
 
-        # HANDLE STANDARD 3RD PERSON (CHOP THE ...(e)s OFF SINGLE WORDS)
+        # 042276.python.init.line3076.comment HANDLE STANDARD 3RD PERSON (CHOP THE ...(e)s OFF SINGLE WORDS)
 
         if (
             words.lowered[-4:] in ("ches", "shes", "zzes", "sses")
@@ -3098,7 +3098,7 @@ class engine:
         if mo:
             return mo.group(1)
 
-        # OTHERWISE, A REGULAR VERB (HANDLE ELSEWHERE)
+        # 042277.python.init.line3101.comment OTHERWISE, A REGULAR VERB (HANDLE ELSEWHERE)
 
         return False
 
@@ -3110,19 +3110,19 @@ class engine:
         if count == 1:
             return word
 
-        # HANDLE AMBIGUOUS PRESENT TENSES  (SIMPLE AND COMPOUND)
+        # 042278.python.init.line3113.comment HANDLE AMBIGUOUS PRESENT TENSES  (SIMPLE AND COMPOUND)
 
         mo = plverb_ambiguous_pres_keys.search(word)
         if mo:
             return f"{plverb_ambiguous_pres[mo.group(1).lower()]}{mo.group(2)}"
 
-        # HANDLE AMBIGUOUS PRETERITE AND PERFECT TENSES
+        # 042279.python.init.line3119.comment HANDLE AMBIGUOUS PRETERITE AND PERFECT TENSES
 
         mo = plverb_ambiguous_non_pres.search(word)
         if mo:
             return word
 
-        # OTHERWISE, 1st OR 2ND PERSON IS UNINFLECTED
+        # 042280.python.init.line3125.comment OTHERWISE, 1st OR 2ND PERSON IS UNINFLECTED
 
         return word
 
@@ -3134,19 +3134,19 @@ class engine:
         if count == 1:
             return word
 
-        # HANDLE USER-DEFINED ADJECTIVES
+        # 042281.python.init.line3137.comment HANDLE USER-DEFINED ADJECTIVES
 
         value = self.ud_match(word, self.pl_adj_user_defined)
         if value is not None:
             return value
 
-        # HANDLE KNOWN CASES
+        # 042282.python.init.line3143.comment HANDLE KNOWN CASES
 
         mo = pl_adj_special_keys.search(word)
         if mo:
             return pl_adj_special[mo.group(1).lower()]
 
-        # HANDLE POSSESSIVES
+        # 042283.python.init.line3149.comment HANDLE POSSESSIVES
 
         mo = pl_adj_poss_keys.search(word)
         if mo:
@@ -3158,11 +3158,11 @@ class engine:
             trailing_s = "" if pl[-1] == "s" else "s"
             return f"{pl}'{trailing_s}"
 
-        # OTHERWISE, NO IDEA
+        # 042284.python.init.line3161.comment OTHERWISE, NO IDEA
 
         return False
 
-    # @profile
+    # 042285.python.init.line3165.comment @profile
     def _sinoun(  # noqa: C901
         self,
         word: str,
@@ -3171,12 +3171,12 @@ class engine:
     ) -> Union[str, bool]:
         count = self.get_count(count)
 
-        # DEFAULT TO PLURAL
+        # 042287.python.init.line3174.comment DEFAULT TO PLURAL
 
         if count == 2:
             return word
 
-        # SET THE GENDER
+        # 042288.python.init.line3179.comment SET THE GENDER
 
         try:
             if gender is None:
@@ -3186,13 +3186,13 @@ class engine:
         except (TypeError, IndexError) as err:
             raise BadGenderError from err
 
-        # HANDLE USER-DEFINED NOUNS
+        # 042289.python.init.line3189.comment HANDLE USER-DEFINED NOUNS
 
         value = self.ud_match(word, self.si_sb_user_defined)
         if value is not None:
             return value
 
-        # HANDLE EMPTY WORD, SINGULAR COUNT AND UNINFLECTED PLURALS
+        # 042290.python.init.line3195.comment HANDLE EMPTY WORD, SINGULAR COUNT AND UNINFLECTED PLURALS
 
         if word == "":
             return word
@@ -3220,7 +3220,7 @@ class engine:
         if words.last.lower() in pl_sb_C_us_us:
             return word if self.classical_dict["ancient"] else False
 
-        # HANDLE COMPOUNDS ("Governor General", "mother-in-law", "aide-de-camp", ETC.)
+        # 042291.python.init.line3223.comment HANDLE COMPOUNDS ("Governor General", "mother-in-law", "aide-de-camp", ETC.)
 
         mo = PL_SB_POSTFIX_ADJ_STEMS_RE.search(word)
         if mo and mo.group(2) != "":
@@ -3240,7 +3240,7 @@ class engine:
                 '-',
             )
 
-        # HANDLE PRONOUNS
+        # 042292.python.init.line3243.comment HANDLE PRONOUNS
 
         for k, v in si_pron_acc_keys_bysize.items():
             if words.lowered[-k:] in v:  # ends with accusative pronoun
@@ -3250,7 +3250,7 @@ class engine:
                             words.lowered[:pk],
                             words.lowered[-k:],
                         ]:
-                            # only whitespace in between
+                            # 042295.python.init.line3253.comment only whitespace in between
                             return words.lowered[:-k] + get_si_pron(
                                 "acc", words.lowered[-k:], gender
                             )
@@ -3265,7 +3265,7 @@ class engine:
         except KeyError:
             pass
 
-        # HANDLE ISOLATED IRREGULAR PLURALS
+        # 042296.python.init.line3268.comment HANDLE ISOLATED IRREGULAR PLURALS
 
         if words.last in si_sb_irregular_caps:
             llen = len(words.last)
@@ -3293,7 +3293,7 @@ class engine:
         if words.lowered[-6:] == "people":
             return word[:-4] + "rson"
 
-        # HANDLE FAMILIES OF IRREGULAR PLURALS
+        # 042298.python.init.line3296.comment HANDLE FAMILIES OF IRREGULAR PLURALS
 
         if words.lowered[-4:] == "mans":
             for k, v in si_sb_U_man_mans_bysize.items():
@@ -3320,7 +3320,7 @@ class engine:
         if words.lowered == "dice":
             return "die"
 
-        # HANDLE UNASSIMILATED IMPORTS
+        # 042299.python.init.line3323.comment HANDLE UNASSIMILATED IMPORTS
 
         if words.lowered[-4:] == "ceps":
             return word
@@ -3341,7 +3341,7 @@ class engine:
                     if words.lowered[-k:] in v:
                         return word[:unass_numend] + post
 
-        # HANDLE INCOMPLETELY ASSIMILATED IMPORTS
+        # 042301.python.init.line3344.comment HANDLE INCOMPLETELY ASSIMILATED IMPORTS
 
         if self.classical_dict["ancient"]:
             if words.lowered[-6:] == "trices":
@@ -3371,7 +3371,7 @@ class engine:
                         if words.lowered[-k:] in v:
                             return word[:class_numend] + post
 
-        # HANDLE PLURLS ENDING IN uses -> use
+        # 042303.python.init.line3374.comment HANDLE PLURLS ENDING IN uses -> use
 
         if (
             words.lowered[-6:] == "houses"
@@ -3380,12 +3380,12 @@ class engine:
         ):
             return word[:-1]
 
-        # HANDLE PLURLS ENDING IN ies -> ie
+        # 042304.python.init.line3383.comment HANDLE PLURLS ENDING IN ies -> ie
 
         if word in si_sb_ies_ie_case or words.last.lower() in si_sb_ies_ie:
             return word[:-1]
 
-        # HANDLE PLURLS ENDING IN oes -> oe
+        # 042305.python.init.line3388.comment HANDLE PLURLS ENDING IN oes -> oe
 
         if (
             words.lowered[-5:] == "shoes"
@@ -3394,7 +3394,7 @@ class engine:
         ):
             return word[:-1]
 
-        # HANDLE SINGULAR NOUNS ENDING IN ...s OR OTHER SILIBANTS
+        # 042306.python.init.line3397.comment HANDLE SINGULAR NOUNS ENDING IN ...s OR OTHER SILIBANTS
 
         if word in si_sb_sses_sse_case or words.last.lower() in si_sb_sses_sse:
             return word[:-1]
@@ -3430,7 +3430,7 @@ class engine:
         if words.lowered[-3:] == "xes":
             return word[:-2]
 
-        # HANDLE ...f -> ...ves
+        # 042307.python.init.line3433.comment HANDLE ...f -> ...ves
 
         if word in si_sb_ves_ve_case or words.last.lower() in si_sb_ves_ve:
             return word[:-1]
@@ -3445,7 +3445,7 @@ class engine:
             if words.lowered[-5:-3] == "ar":
                 return word[:-3] + "f"
 
-        # HANDLE ...y
+        # 042308.python.init.line3448.comment HANDLE ...y
 
         if words.lowered[-2:] == "ys":
             if len(words.lowered) > 2 and words.lowered[-3] in "aeiou":
@@ -3458,7 +3458,7 @@ class engine:
         if words.lowered[-3:] == "ies":
             return word[:-3] + "y"
 
-        # HANDLE ...o
+        # 042309.python.init.line3461.comment HANDLE ...o
 
         if words.lowered[-2:] == "os":
             if words.last.lower() in si_sb_U_o_os_complete:
@@ -3474,21 +3474,21 @@ class engine:
         if words.lowered[-3:] == "oes":
             return word[:-2]
 
-        # UNASSIMILATED IMPORTS FINAL RULE
+        # 042310.python.init.line3477.comment UNASSIMILATED IMPORTS FINAL RULE
 
         if word in si_sb_es_is:
             return word[:-2] + "is"
 
-        # OTHERWISE JUST REMOVE ...s
+        # 042311.python.init.line3482.comment OTHERWISE JUST REMOVE ...s
 
         if words.lowered[-1] == "s":
             return word[:-1]
 
-        # COULD NOT FIND SINGULAR
+        # 042312.python.init.line3487.comment COULD NOT FIND SINGULAR
 
         return False
 
-    # ADJECTIVES
+    # 042313.python.init.line3491.comment ADJECTIVES
 
     @typechecked
     def a(self, text: Word, count: Optional[Union[int, str, Any]] = 1) -> str:
@@ -3517,20 +3517,20 @@ class engine:
     an = a
 
     _indef_article_cases = (
-        # HANDLE ORDINAL FORMS
+        # 042314.python.init.line3520.comment HANDLE ORDINAL FORMS
         (A_ordinal_a, "a"),
         (A_ordinal_an, "an"),
-        # HANDLE SPECIAL CASES
+        # 042315.python.init.line3523.comment HANDLE SPECIAL CASES
         (A_explicit_an, "an"),
         (SPECIAL_AN, "an"),
         (SPECIAL_A, "a"),
-        # HANDLE ABBREVIATIONS
+        # 042316.python.init.line3527.comment HANDLE ABBREVIATIONS
         (A_abbrev, "an"),
         (SPECIAL_ABBREV_AN, "an"),
         (SPECIAL_ABBREV_A, "a"),
-        # HANDLE CONSONANTS
+        # 042317.python.init.line3531.comment HANDLE CONSONANTS
         (CONSONANTS, "a"),
-        # HANDLE SPECIAL VOWEL-FORMS
+        # 042318.python.init.line3533.comment HANDLE SPECIAL VOWEL-FORMS
         (ARTICLE_SPECIAL_EU, "a"),
         (ARTICLE_SPECIAL_ONCE, "a"),
         (ARTICLE_SPECIAL_ONETIME, "a"),
@@ -3538,12 +3538,12 @@ class engine:
         (ARTICLE_SPECIAL_UBA, "a"),
         (ARTICLE_SPECIAL_UKR, "a"),
         (A_explicit_a, "a"),
-        # HANDLE SPECIAL CAPITALS
+        # 042319.python.init.line3541.comment HANDLE SPECIAL CAPITALS
         (SPECIAL_CAPITALS, "a"),
-        # HANDLE VOWELS
+        # 042320.python.init.line3543.comment HANDLE VOWELS
         (VOWELS, "an"),
-        # HANDLE y...
-        # (BEFORE CERTAIN CONSONANTS IMPLIES (UNNATURALIZED) "i.." SOUND)
+        # 042321.python.init.line3545.comment HANDLE y...
+        # 042322.python.init.line3546.comment (BEFORE CERTAIN CONSONANTS IMPLIES (UNNATURALIZED) "i.." SOUND)
         (A_y_cons, "an"),
     )
 
@@ -3553,7 +3553,7 @@ class engine:
         if mycount != 1:
             return f"{count} {word}"
 
-        # HANDLE USER-DEFINED VARIANTS
+        # 042323.python.init.line3556.comment HANDLE USER-DEFINED VARIANTS
 
         value = self.ud_match(word, self.A_a_user_defined)
         if value is not None:
@@ -3565,11 +3565,11 @@ class engine:
             if regexen.search(word)
         )
 
-        # OTHERWISE, GUESS "a"
+        # 042324.python.init.line3568.comment OTHERWISE, GUESS "a"
         fallback = f'a {word}'
         return next(matches, fallback)
 
-    # 2. TRANSLATE ZERO-QUANTIFIED $word TO "no plural($word)"
+    # 042325.python.init.line3572.comment 2. TRANSLATE ZERO-QUANTIFIED $word TO "no plural($word)"
 
     @typechecked
     def no(self, text: Word, count: Optional[Union[int, str]] = None) -> str:
@@ -3607,7 +3607,7 @@ class engine:
             count = 'no'
         return f"{pre}{count} {self.plural(word, count)}{post}"
 
-    # PARTICIPLES
+    # 042326.python.init.line3610.comment PARTICIPLES
 
     @typechecked
     def present_participle(self, word: Word) -> str:
@@ -3626,7 +3626,7 @@ class engine:
                 return f"{ans}ing"
         return f"{ans}ing"
 
-    # NUMERICAL INFLECTIONS
+    # 042327.python.init.line3629.comment NUMERICAL INFLECTIONS
 
     @typechecked
     def ordinal(self, num: Union[Number, Word]) -> str:
@@ -3645,8 +3645,8 @@ class engine:
             else:
                 if "." in str(num):
                     try:
-                        # numbers after decimal,
-                        # so only need last one for ordinal
+                        # 042328.python.init.line3648.comment numbers after decimal,
+                        # 042329.python.init.line3649.comment so only need last one for ordinal
                         n = int(str(num)[-1])
 
                     except ValueError:  # ends with '.', so need to use whole string
@@ -3684,7 +3684,7 @@ class engine:
     def hundfn(self, hundreds: int, tens: int, units: int, mindex: int) -> str:
         if hundreds:
             andword = f" {self._number_args['andword']} " if tens or units else ""
-            # use unit not unitfn as simpler
+            # 042332.python.init.line3687.comment use unit not unitfn as simpler
             return (
                 f"{unit[hundreds]} hundred{andword}"
                 f"{self.tenfn(tens, units)}{self.millfn(mindex)}, "
@@ -3750,8 +3750,8 @@ class engine:
         return f"{self.unitfn(int(mo.group(1)), self.mill_count)}, "
 
     def enword(self, num: str, group: int) -> str:
-        # import pdb
-        # pdb.set_trace()
+        # 042333.python.init.line3753.comment import pdb
+        # 042334.python.init.line3754.comment pdb.set_trace()
 
         if group == 1:
             num = DIGIT_GROUP.sub(self.group1sub, num)
@@ -3769,7 +3769,7 @@ class engine:
         else:
             num = num.lstrip().lstrip("0")
             self.mill_count = 0
-            # surely there's a better way to do the next bit
+            # 042335.python.init.line3772.comment surely there's a better way to do the next bit
             mo = THREE_DIGITS_WORD.search(num)
             while mo:
                 num = THREE_DIGITS_WORD.sub(self.hundsub, num, 1)
@@ -3840,7 +3840,7 @@ class engine:
         self._number_args = {"andword": andword, "zero": zero, "one": one}
         num = str(num)
 
-        # Handle "stylistic" conversions (up to a given threshold)...
+        # 042337.python.init.line3843.comment Handle "stylistic" conversions (up to a given threshold)...
         if threshold is not None and float(num) > threshold:
             spnum = num.split(".", 1)
             while comma:
@@ -3872,7 +3872,7 @@ class engine:
         def _handle_chunk(chunk):
             nonlocal first
 
-            # remove all non numeric \D
+            # 042338.python.init.line3875.comment remove all non numeric \D
             chunk = NON_DIGIT.sub("", chunk)
             if chunk == "":
                 chunk = "0"
@@ -3889,7 +3889,7 @@ class engine:
             if group == 0 and first:
                 chunk = COMMA_WORD.sub(f" {andword} \\1", chunk)
             chunk = WHITESPACES.sub(" ", chunk)
-            # chunk = re.sub(r"(\A\s|\s\Z)", self.blankfn, chunk)
+            # 042339.python.init.line3892.comment chunk = re.sub(r"(\A\s|\s\Z)", self.blankfn, chunk)
             chunk = chunk.strip()
             if first:
                 first = None

@@ -1,10 +1,10 @@
-# basic module browser.
+# 039062.python.browser.line1.comment basic module browser.
 
-# usage:
-# >>> import browser
-# >>> browser.Browse()
-# or
-# >>> browser.Browse(your_module)
+# 039063.python.browser.line3.comment usage:
+# 039064.python.browser.line4.comment >>> import browser
+# 039065.python.browser.line5.comment >>> browser.Browse()
+# 039066.python.browser.line6.comment or
+# 039067.python.browser.line7.comment >>> browser.Browse(your_module)
 import sys
 import types
 
@@ -17,8 +17,8 @@ from . import hierlist
 special_names = ["__doc__", "__name__", "__self__"]
 
 
-#
-# HierList items
+# 039068.python.browser.line20.comment
+# 039069.python.browser.line21.comment HierList items
 class HLIPythonObject(hierlist.HierListItem):
     def __init__(self, myobject=None, name=None):
         hierlist.HierListItem.__init__(self)
@@ -61,10 +61,10 @@ class HLIPythonObject(hierlist.HierListItem):
             ob = self.myobject.__doc__
         except (AttributeError, TypeError):
             pass
-        # I don't quite grok descriptors enough to know how to
-        # best hook them up. Eg:
-        # >>> object.__getattribute__.__class__.__doc__
-        # <attribute '__doc__' of 'wrapper_descriptor' objects>
+        # 039070.python.browser.line64.comment I don't quite grok descriptors enough to know how to
+        # 039071.python.browser.line65.comment best hook them up. Eg:
+        # 039072.python.browser.line66.comment >>> object.__getattribute__.__class__.__doc__
+        # 039073.python.browser.line67.comment <attribute '__doc__' of 'wrapper_descriptor' objects>
         if ob and isinstance(ob, str):
             lst.insert(0, HLIDocString(ob, "Doc"))
 
@@ -91,7 +91,7 @@ class HLIPythonObject(hierlist.HierListItem):
         self.InsertDocString(ret)
         return ret
 
-    # if the has a dict, it is expandable.
+    # 039075.python.browser.line94.comment if the has a dict, it is expandable.
     def IsExpandable(self):
         if self.knownExpandable is None:
             self.knownExpandable = self.CalculateIsExpandable()
@@ -171,7 +171,7 @@ class HLIClass(HLIPythonObject):
 
 
 class HLIMethod(HLIPythonObject):
-    # myobject is just a string for methods.
+    # 039076.python.browser.line174.comment myobject is just a string for methods.
     def GetHLIType(self):
         return "Method"
 
@@ -284,7 +284,7 @@ class HLIDict(HLIPythonObject):
         return ret
 
 
-# strings and Unicode have builtin methods, but we don't really want to see these
+# 039077.python.browser.line287.comment strings and Unicode have builtin methods, but we don't really want to see these
 class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0
@@ -312,9 +312,9 @@ def MakeHLI(ob, name=None):
     try:
         cls = TypeMap[type(ob)]
     except KeyError:
-        # hrmph - this check gets more and more bogus as Python
-        # improves.  It's possible we should just *always* use
-        # HLIInstance?
+        # 039078.python.browser.line315.comment hrmph - this check gets more and more bogus as Python
+        # 039079.python.browser.line316.comment improves.  It's possible we should just *always* use
+        # 039080.python.browser.line317.comment HLIInstance?
         if hasattr(ob, "__class__"):  # 'new style' class
             cls = HLIInstance
         else:
@@ -322,9 +322,9 @@ def MakeHLI(ob, name=None):
     return cls(ob, name)
 
 
-#########################################
-#
-# Dialog related.
+# 039082.python.browser.line325.comment ########################################
+# 039083.python.browser.line326.comment
+# 039084.python.browser.line327.comment Dialog related.
 
 
 class DialogShowObject(dialog.Dialog):
@@ -353,7 +353,7 @@ def ShowObject(object, title):
     dlg.DoModal()
 
 
-# And some mods for a sizable dialog from Sam Rushing!
+# 039085.python.browser.line356.comment And some mods for a sizable dialog from Sam Rushing!
 import commctrl
 import win32api
 import win32con
@@ -413,10 +413,10 @@ def Browse(ob=__main__):
     return dlg
 
 
-#
-#
-# Classes for using the browser in an MDI window, rather than a dialog
-#
+# 039086.python.browser.line416.comment
+# 039087.python.browser.line417.comment
+# 039088.python.browser.line418.comment Classes for using the browser in an MDI window, rather than a dialog
+# 039089.python.browser.line419.comment
 from pywin.mfc import docview
 
 
@@ -427,12 +427,12 @@ class BrowserTemplate(docview.DocTemplate):
         )
 
     def OpenObject(self, root):  # Use this instead of OpenDocumentFile.
-        # Look for existing open document
+        # 039091.python.browser.line430.comment Look for existing open document
         for doc in self.GetDocumentList():
             if doc.root == root:
                 doc.GetFirstView().ActivateFrame()
                 return doc
-        # not found - new one.
+        # 039092.python.browser.line435.comment not found - new one.
         doc = BrowserDocument(self, root)
         frame = self.CreateNewFrame(doc)
         doc.OnNewDocument()

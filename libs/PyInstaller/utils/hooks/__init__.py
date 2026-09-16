@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009779.python.init.line1.comment -----------------------------------------------------------------------------
+# 009780.python.init.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 009781.python.init.line3.comment
+# 009782.python.init.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009783.python.init.line5.comment or later) with exception for distributing the bootloader.
+# 009784.python.init.line6.comment
+# 009785.python.init.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009786.python.init.line8.comment
+# 009787.python.init.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009788.python.init.line10.comment -----------------------------------------------------------------------------
 
 from __future__ import annotations
 
@@ -29,16 +29,16 @@ from PyInstaller.compat import importlib_metadata
 
 logger = logging.getLogger(__name__)
 
-# These extensions represent Python executables and should therefore be ignored when collecting data files.
-# NOTE: .dylib files are not Python executable and should not be in this list.
+# 009789.python.init.line32.comment These extensions represent Python executables and should therefore be ignored when collecting data files.
+# 009790.python.init.line33.comment NOTE: .dylib files are not Python executable and should not be in this list.
 PY_IGNORE_EXTENSIONS = set(compat.ALL_SUFFIXES)
 
-# Some hooks need to save some values. This is the dict that can be used for that.
-#
-# When running tests this variable should be reset before every test.
-#
-# For example the 'wx' module needs variable 'wxpubsub'. This tells PyInstaller which protocol of the wx module
-# should be bundled.
+# 009791.python.init.line36.comment Some hooks need to save some values. This is the dict that can be used for that.
+# 009792.python.init.line37.comment
+# 009793.python.init.line38.comment When running tests this variable should be reset before every test.
+# 009794.python.init.line39.comment
+# 009795.python.init.line40.comment For example the 'wx' module needs variable 'wxpubsub'. This tells PyInstaller which protocol of the wx module
+# 009796.python.init.line41.comment should be bundled.
 hook_variables = {}
 
 
@@ -47,18 +47,18 @@ def __exec_python_cmd(cmd, env=None, capture_stdout=True):
     Executes an externally spawned Python interpreter. If capture_stdout is set to True, returns anything that was
     emitted in the standard output as a single string. Otherwise, returns the exit code.
     """
-    # 'PyInstaller.config' cannot be imported as other top-level modules.
+    # 009797.python.init.line50.comment 'PyInstaller.config' cannot be imported as other top-level modules.
     from PyInstaller.config import CONF
     if env is None:
         env = {}
-    # Update environment. Defaults to 'os.environ'
+    # 009798.python.init.line54.comment Update environment. Defaults to 'os.environ'
     pp_env = copy.deepcopy(os.environ)
     pp_env.update(env)
-    # Prepend PYTHONPATH with pathex.
-    # Some functions use some PyInstaller code in subprocess, so add PyInstaller HOMEPATH to sys.path as well.
+    # 009799.python.init.line57.comment Prepend PYTHONPATH with pathex.
+    # 009800.python.init.line58.comment Some functions use some PyInstaller code in subprocess, so add PyInstaller HOMEPATH to sys.path as well.
     pp = os.pathsep.join(CONF['pathex'] + [HOMEPATH])
 
-    # PYTHONPATH might be already defined in the 'env' argument or in the original 'os.environ'. Prepend it.
+    # 009801.python.init.line61.comment PYTHONPATH might be already defined in the 'env' argument or in the original 'os.environ'. Prepend it.
     if 'PYTHONPATH' in pp_env:
         pp = os.pathsep.join([pp_env.get('PYTHONPATH'), pp])
     pp_env['PYTHONPATH'] = pp
@@ -123,7 +123,7 @@ def eval_statement(statement: str):
     """
     txt = exec_statement(statement).strip()
     if not txt:
-        # Return an empty string, which is "not true" but is iterable.
+        # 009802.python.init.line126.comment Return an empty string, which is "not true" but is iterable.
         return ''
     return eval(txt)
 
@@ -147,10 +147,10 @@ def get_pyextension_imports(module_name: str):
 
     original = set(sys.modules.keys())
 
-    # When importing this module - sys.modules gets updated.
+    # 009803.python.init.line150.comment When importing this module - sys.modules gets updated.
     importlib.import_module(module_name)
 
-    # Find and return which new modules have been loaded.
+    # 009804.python.init.line153.comment Find and return which new modules have been loaded.
     return list(set(sys.modules.keys()) - original - {module_name})
 
 
@@ -197,14 +197,14 @@ def remove_suffix(string: str, suffix: str):
     This function removes the given suffix from a string, if the string does indeed end with the suffix; otherwise,
     it returns the original string.
     """
-    # Special case: if suffix is empty, string[:0] returns ''. So, test for a non-empty suffix.
+    # 009806.python.init.line200.comment Special case: if suffix is empty, string[:0] returns ''. So, test for a non-empty suffix.
     if suffix and string.endswith(suffix):
         return string[:-len(suffix)]
     else:
         return string
 
 
-# TODO: Do we really need a helper for this? This is pretty trivially obvious.
+# 009807.python.init.line207.comment TODO: Do we really need a helper for this? This is pretty trivially obvious.
 def remove_file_extension(filename: str):
     """
     This function returns filename without its extension.
@@ -214,7 +214,7 @@ def remove_file_extension(filename: str):
     for suff in compat.EXTENSION_SUFFIXES:
         if filename.endswith(suff):
             return filename[0:filename.rfind(suff)]
-    # Fallback to ordinary 'splitext'.
+    # 009808.python.init.line217.comment Fallback to ordinary 'splitext'.
     return os.path.splitext(filename)[0]
 
 
@@ -236,8 +236,8 @@ def can_import_module(module_name: str):
         Boolean indicating whether the module can be imported or not.
     """
 
-    # Run the check in isolated sub-process, so we can gracefully handle cases when importing the module ends up
-    # crashing python interpreter.
+    # 009809.python.init.line239.comment Run the check in isolated sub-process, so we can gracefully handle cases when importing the module ends up
+    # 009810.python.init.line240.comment crashing python interpreter.
     @isolated.decorate
     def _can_import_module(module_name):
         try:
@@ -252,7 +252,7 @@ def can_import_module(module_name: str):
         return False
 
 
-# TODO: Replace most calls to exec_statement() with calls to this function.
+# 009811.python.init.line255.comment TODO: Replace most calls to exec_statement() with calls to this function.
 def get_module_attribute(module_name: str, attr_name: str):
     """
     Get the string value of the passed attribute from the passed module if this attribute is defined by this module
@@ -284,7 +284,7 @@ def get_module_attribute(module_name: str, attr_name: str):
         module = importlib.import_module(module_name)
         return getattr(module, attr_name)
 
-    # Return AttributeError on any kind of errors, to preserve old behavior.
+    # 009812.python.init.line287.comment Return AttributeError on any kind of errors, to preserve old behavior.
     try:
         return _get_module_attribute(module_name, attr_name)
     except Exception as e:
@@ -309,45 +309,45 @@ def get_module_file_attribute(package: str):
     str
         Absolute path of this module.
     """
-    # First, try to use 'importlib.util.find_spec' and obtain loader from the spec (and filename from the loader).
-    # It is the fastest way, but does not work on certain modules in pywin32 that replace all module attributes with
-    # those of the .dll. In addition, we need to avoid it for submodules/subpackages, because it ends up importing
-    # their parent package, which would cause an import leak during the analysis.
+    # 009813.python.init.line312.comment First, try to use 'importlib.util.find_spec' and obtain loader from the spec (and filename from the loader).
+    # 009814.python.init.line313.comment It is the fastest way, but does not work on certain modules in pywin32 that replace all module attributes with
+    # 009815.python.init.line314.comment those of the .dll. In addition, we need to avoid it for submodules/subpackages, because it ends up importing
+    # 009816.python.init.line315.comment their parent package, which would cause an import leak during the analysis.
     filename: str | None = None
     if '.' not in package:
         try:
             import importlib.util
             loader = importlib.util.find_spec(package).loader
             filename = loader.get_filename(package)
-            # Apparently in the past, ``None`` could be returned for built-in ``datetime`` module. Just in case this
-            # is still possible, return only if filename is valid.
+            # 009817.python.init.line322.comment Apparently in the past, ``None`` could be returned for built-in ``datetime`` module. Just in case this
+            # 009818.python.init.line323.comment is still possible, return only if filename is valid.
             if filename:
                 return filename
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
 
-    # Second attempt: try to obtain module/package's __file__ attribute in an isolated subprocess.
+    # 009819.python.init.line329.comment Second attempt: try to obtain module/package's __file__ attribute in an isolated subprocess.
     @isolated.decorate
     def _get_module_file_attribute(package):
-        # First, try to use 'importlib.util.find_spec' and obtain loader from the spec (and filename from the loader).
-        # This should return the filename even if the module or package cannot be imported (e.g., a C-extension module
-        # with missing dependencies).
+        # 009820.python.init.line332.comment First, try to use 'importlib.util.find_spec' and obtain loader from the spec (and filename from the loader).
+        # 009821.python.init.line333.comment This should return the filename even if the module or package cannot be imported (e.g., a C-extension module
+        # 009822.python.init.line334.comment with missing dependencies).
         try:
             import importlib.util
             loader = importlib.util.find_spec(package).loader
             filename = loader.get_filename(package)
-            # Safe-guard against ``None`` being returned (see comment in the non-isolated codepath).
+            # 009823.python.init.line339.comment Safe-guard against ``None`` being returned (see comment in the non-isolated codepath).
             if filename:
                 return filename
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
 
-        # Fall back to import attempt
+        # 009824.python.init.line345.comment Fall back to import attempt
         import importlib
         p = importlib.import_module(package)
         return p.__file__
 
-    # The old behavior was to return ImportError (and that is what the test are also expecting...).
+    # 009825.python.init.line350.comment The old behavior was to return ImportError (and that is what the test are also expecting...).
     try:
         filename = _get_module_file_attribute(package)
     except Exception as e:
@@ -370,8 +370,8 @@ def get_pywin32_module_file_attribute(module_name):
     This function imports the module in isolated subprocess and retrieves its `__file__` attribute.
     """
 
-    # NOTE: we cannot use `get_module_file_attribute` as it does not account for the  __file__ rewriting magic
-    # done by the module. Use `get_module_attribute` instead.
+    # 009826.python.init.line373.comment NOTE: we cannot use `get_module_file_attribute` as it does not account for the  __file__ rewriting magic
+    # 009827.python.init.line374.comment done by the module. Use `get_module_attribute` instead.
     return get_module_attribute(module_name, '__file__')
 
 
@@ -406,23 +406,23 @@ def check_requirement(requirement: str):
     """
     parsed_requirement = packaging.requirements.Requirement(requirement)
 
-    # Fetch the actual version of the specified dist
+    # 009828.python.init.line409.comment Fetch the actual version of the specified dist
     try:
         version = importlib_metadata.version(parsed_requirement.name)
     except importlib_metadata.PackageNotFoundError:
         return False  # Not available at all
 
-    # If specifier is not given, the only requirement is that dist is available
+    # 009830.python.init.line415.comment If specifier is not given, the only requirement is that dist is available
     if not parsed_requirement.specifier:
         return True
 
-    # Parse specifier, and compare version. Enable pre-release matching,
-    # because we need "package >= 2.0.0" to match "2.5.0b1".
+    # 009831.python.init.line419.comment Parse specifier, and compare version. Enable pre-release matching,
+    # 009832.python.init.line420.comment because we need "package >= 2.0.0" to match "2.5.0b1".
     return parsed_requirement.specifier.contains(version, prereleases=True)
 
 
-# Keep the `is_module_satisfies` as an alias for backwards compatibility with existing hooks. The old fallback
-# to module version check does not work any more, though.
+# 009833.python.init.line424.comment Keep the `is_module_satisfies` as an alias for backwards compatibility with existing hooks. The old fallback
+# 009834.python.init.line425.comment to module version check does not work any more, though.
 def is_module_satisfies(
     requirements: str,
     version: None = None,
@@ -488,8 +488,8 @@ def is_package(module_name: str):
         except Exception:
             return False
 
-    # For top-level packages/modules, we can perform check in the main process; otherwise, we need to isolate the
-    # call to prevent import leaks in the main process.
+    # 009835.python.init.line491.comment For top-level packages/modules, we can perform check in the main process; otherwise, we need to isolate the
+    # 009836.python.init.line492.comment call to prevent import leaks in the main process.
     if '.' not in module_name:
         return _is_package(module_name)
     else:
@@ -519,8 +519,8 @@ def get_all_package_paths(package: str):
         except Exception:
             return []
 
-    # For top-level packages/modules, we can perform check in the main process; otherwise, we need to isolate the
-    # call to prevent import leaks in the main process.
+    # 009837.python.init.line522.comment For top-level packages/modules, we can perform check in the main process; otherwise, we need to isolate the
+    # 009838.python.init.line523.comment call to prevent import leaks in the main process.
     if '.' not in package:
         pkg_paths = _get_package_paths(package)
     else:
@@ -602,7 +602,7 @@ def collect_submodules(
         Add the **on_error** parameter.
 
     """
-    # Accept only strings as packages.
+    # 009840.python.init.line605.comment Accept only strings as packages.
     if not isinstance(package, str):
         raise TypeError('package must be a str')
     if on_error not in ("ignore", "warn once", "warn", "raise"):
@@ -612,16 +612,16 @@ def collect_submodules(
 
     logger.debug('Collecting submodules for %s', package)
 
-    # Skip a module which is not a package.
+    # 009841.python.init.line615.comment Skip a module which is not a package.
     if not is_package(package):
         logger.debug('collect_submodules - %s is not a package.', package)
-        # If module is importable, return its name in the list, in order to keep behavior consistent with the
-        # one we have for packages (i.e., we include the package in the list of returned names)
+        # 009842.python.init.line618.comment If module is importable, return its name in the list, in order to keep behavior consistent with the
+        # 009843.python.init.line619.comment one we have for packages (i.e., we include the package in the list of returned names)
         if can_import_module(package):
             return [package]
         return []
 
-    # Determine the filesystem path(s) to the specified package.
+    # 009844.python.init.line624.comment Determine the filesystem path(s) to the specified package.
     package_submodules = []
 
     todo = deque()
@@ -629,14 +629,14 @@ def collect_submodules(
 
     with isolated.Python() as isolated_python:
         while todo:
-            # Scan the given (sub)package
+            # 009845.python.init.line632.comment Scan the given (sub)package
             name = todo.pop()
             modules, subpackages, on_error = isolated_python.call(_collect_submodules, name, on_error)
 
-            # Add modules to the list of all submodules
+            # 009846.python.init.line636.comment Add modules to the list of all submodules
             package_submodules += [module for module in modules if filter(module)]
 
-            # Add sub-packages to deque for subsequent recursion
+            # 009847.python.init.line639.comment Add sub-packages to deque for subsequent recursion
             for subpackage_name in subpackages:
                 if filter(subpackage_name):
                     todo.append(subpackage_name)
@@ -647,7 +647,7 @@ def collect_submodules(
     return package_submodules
 
 
-# This function is called in an isolated sub-process via `isolated.Python.call`.
+# 009848.python.init.line650.comment This function is called in an isolated sub-process via `isolated.Python.call`.
 def _collect_submodules(name, on_error):
     import sys
     import pkgutil
@@ -660,11 +660,11 @@ def _collect_submodules(name, on_error):
     modules = []
     subpackages = []
 
-    # Resolve package location(s)
+    # 009849.python.init.line663.comment Resolve package location(s)
     try:
         __import__(name)
     except Exception as ex:
-        # Catch all errors and either raise, warn, or ignore them as determined by the *on_error* parameter.
+        # 009850.python.init.line667.comment Catch all errors and either raise, warn, or ignore them as determined by the *on_error* parameter.
         if on_error in ("warn", "warn once"):
             from PyInstaller.log import logger
             ex = "".join(format_exception_only(type(ex), ex)).strip()
@@ -675,19 +675,19 @@ def _collect_submodules(name, on_error):
         elif on_error == "raise":
             raise ImportError(f"Unable to load subpackage '{name}'.") from ex
 
-    # Do not attempt to recurse into package if it did not make it into sys.modules.
+    # 009851.python.init.line678.comment Do not attempt to recurse into package if it did not make it into sys.modules.
     if name not in sys.modules:
         return modules, subpackages, on_error
 
-    # Or if it does not have __path__ attribute.
+    # 009852.python.init.line682.comment Or if it does not have __path__ attribute.
     paths = getattr(sys.modules[name], '__path__', None) or []
     if not paths:
         return modules, subpackages, on_error
 
-    # Package was successfully imported - include it in the list of modules.
+    # 009853.python.init.line687.comment Package was successfully imported - include it in the list of modules.
     modules.append(name)
 
-    # Iterate package contents
+    # 009854.python.init.line690.comment Iterate package contents
     logger.debug("collect_submodules - scanning (sub)package %s in location(s): %s", name, paths)
     for importer, name, ispkg in pkgutil.iter_modules(paths, name + '.'):
         if not ispkg:
@@ -712,7 +712,7 @@ def is_module_or_submodule(name: str, mod_or_submod: str):
     return name.startswith(mod_or_submod + '.') or name == mod_or_submod
 
 
-# Patterns of dynamic library filenames that might be bundled with some installed Python packages.
+# 009855.python.init.line715.comment Patterns of dynamic library filenames that might be bundled with some installed Python packages.
 PY_DYLIB_PATTERNS = [
     '*.dll',
     '*.dylib',
@@ -730,11 +730,11 @@ def collect_dynamic_libs(package: str, destdir: str | None = None, search_patter
     """
     logger.debug('Collecting dynamic libraries for %s' % package)
 
-    # Accept only strings as packages.
+    # 009856.python.init.line733.comment Accept only strings as packages.
     if not isinstance(package, str):
         raise TypeError('package must be a str')
 
-    # Skip a module which is not a package.
+    # 009857.python.init.line737.comment Skip a module which is not a package.
     if not is_package(package):
         logger.warning(
             "collect_dynamic_libs - skipping library collection for module '%s' as it is not a package.", package
@@ -745,16 +745,16 @@ def collect_dynamic_libs(package: str, destdir: str | None = None, search_patter
     dylibs = []
     for pkg_dir in pkg_dirs:
         pkg_base = package_base_path(pkg_dir, package)
-        # Recursively glob for all file patterns in the package directory
+        # 009858.python.init.line748.comment Recursively glob for all file patterns in the package directory
         for pattern in search_patterns:
             files = Path(pkg_dir).rglob(pattern)
             for source in files:
-                # Produce the tuple ('/abs/path/to/source/mod/submod/file.pyd', 'mod/submod')
+                # 009859.python.init.line752.comment Produce the tuple ('/abs/path/to/source/mod/submod/file.pyd', 'mod/submod')
                 if destdir:
-                    # Put libraries in the specified target directory.
+                    # 009860.python.init.line754.comment Put libraries in the specified target directory.
                     dest = destdir
                 else:
-                    # Preserve original directory hierarchy.
+                    # 009861.python.init.line757.comment Preserve original directory hierarchy.
                     dest = source.parent.relative_to(pkg_base)
                 logger.debug(' %s, %s' % (source, dest))
                 dylibs.append((str(source), str(dest)))
@@ -806,59 +806,59 @@ def collect_data_files(
     """
     logger.debug('Collecting data files for %s' % package)
 
-    # Accept only strings as packages.
+    # 009862.python.init.line809.comment Accept only strings as packages.
     if not isinstance(package, str):
         raise TypeError('package must be a str')
 
-    # Skip a module which is not a package.
+    # 009863.python.init.line813.comment Skip a module which is not a package.
     if not is_package(package):
         logger.warning("collect_data_files - skipping data collection for module '%s' as it is not a package.", package)
         return []
 
-    # Make sure the excludes are a list; this also makes a copy, so we don't modify the original.
+    # 009864.python.init.line818.comment Make sure the excludes are a list; this also makes a copy, so we don't modify the original.
     excludes = list(excludes) if excludes else []
-    # These excludes may contain directories which need to be searched.
+    # 009865.python.init.line820.comment These excludes may contain directories which need to be searched.
     excludes_len = len(excludes)
-    # Including py files means don't exclude them. This pattern will search any directories for containing files, so
-    # do not modify ``excludes_len``.
+    # 009866.python.init.line822.comment Including py files means don't exclude them. This pattern will search any directories for containing files, so
+    # 009867.python.init.line823.comment do not modify ``excludes_len``.
     if not include_py_files:
         excludes += ['**/*' + s for s in compat.ALL_SUFFIXES]
     else:
-        # include_py_files should collect only .py and .pyc files, and not the extensions / shared libs.
+        # 009868.python.init.line827.comment include_py_files should collect only .py and .pyc files, and not the extensions / shared libs.
         excludes += ['**/*' + s for s in compat.ALL_SUFFIXES if s not in {'.py', '.pyc'}]
 
-    # Never, ever, collect .pyc files from __pycache__.
+    # 009869.python.init.line830.comment Never, ever, collect .pyc files from __pycache__.
     excludes.append('**/__pycache__/*.pyc')
 
-    # If not specified, include all files. Follow the same process as the excludes.
+    # 009870.python.init.line833.comment If not specified, include all files. Follow the same process as the excludes.
     includes = list(includes) if includes else ["**/*"]
     includes_len = len(includes)
 
-    # A helper function to glob the in/ex "cludes", adding a wildcard to refer to all files under a subdirectory if a
-    # subdirectory is matched by the first ``clude_len`` patterns. Otherwise, it in/excludes the matched file.
-    # **This modifies** ``cludes``.
+    # 009871.python.init.line837.comment A helper function to glob the in/ex "cludes", adding a wildcard to refer to all files under a subdirectory if a
+    # 009872.python.init.line838.comment subdirectory is matched by the first ``clude_len`` patterns. Otherwise, it in/excludes the matched file.
+    # 009873.python.init.line839.comment **This modifies** ``cludes``.
     def clude_walker(
-        # Package directory to scan
+        # 009874.python.init.line841.comment Package directory to scan
         pkg_dir,
-        # A list of paths relative to ``pkg_dir`` to in/exclude.
+        # 009875.python.init.line843.comment A list of paths relative to ``pkg_dir`` to in/exclude.
         cludes,
-        # The number of ``cludes`` for which matching directories should be searched for all files under them.
+        # 009876.python.init.line845.comment The number of ``cludes`` for which matching directories should be searched for all files under them.
         clude_len,
-        # True if the list is includes, False for excludes.
+        # 009877.python.init.line847.comment True if the list is includes, False for excludes.
         is_include
     ):
         for i, c in enumerate(cludes):
             for g in Path(pkg_dir).glob(c):
                 if g.is_dir():
-                    # Only files are sources. Subdirectories are not.
+                    # 009878.python.init.line853.comment Only files are sources. Subdirectories are not.
                     if i < clude_len:
-                        # In/exclude all files under a matching subdirectory.
+                        # 009879.python.init.line855.comment In/exclude all files under a matching subdirectory.
                         cludes.append(str((g / "**/*").relative_to(pkg_dir)))
                 else:
-                    # In/exclude a matching file.
+                    # 009880.python.init.line858.comment In/exclude a matching file.
                     sources.add(g) if is_include else sources.discard(g)
 
-    # Obtain all paths for the specified package, and process each path independently.
+    # 009881.python.init.line861.comment Obtain all paths for the specified package, and process each path independently.
     datas = []
 
     pkg_dirs = get_all_package_paths(package)
@@ -869,11 +869,11 @@ def collect_data_files(
         if subdir:
             pkg_dir = os.path.join(pkg_dir, subdir)
 
-        # Process the package path with clude walker
+        # 009883.python.init.line872.comment Process the package path with clude walker
         clude_walker(pkg_dir, includes, includes_len, True)
         clude_walker(pkg_dir, excludes, excludes_len, False)
 
-        # Transform the sources into tuples for ``datas``.
+        # 009884.python.init.line876.comment Transform the sources into tuples for ``datas``.
         datas += [(str(s), str(s.parent.relative_to(pkg_base))) for s in sources]
 
     logger.debug("collect_data_files - Found files: %s", datas)
@@ -887,17 +887,17 @@ def collect_system_data_files(path: str, destdir: str | os.PathLike | None = Non
 
     This function is intended to be used by hook scripts, not by main PyInstaller code.
     """
-    # Accept only strings as paths.
+    # 009885.python.init.line890.comment Accept only strings as paths.
     if not isinstance(path, str):
         raise TypeError('path must be a str')
 
-    # Walk through all file in the given package, looking for data files.
+    # 009886.python.init.line894.comment Walk through all file in the given package, looking for data files.
     datas = []
     for dirpath, dirnames, files in os.walk(path):
         for f in files:
             extension = os.path.splitext(f)[1]
             if include_py_files or (extension not in PY_IGNORE_EXTENSIONS):
-                # Produce the tuple: (/abs/path/to/source/mod/submod/file.dat, mod/submod/destdir)
+                # 009887.python.init.line900.comment Produce the tuple: (/abs/path/to/source/mod/submod/file.dat, mod/submod/destdir)
                 source = os.path.join(dirpath, f)
                 dest = str(Path(dirpath).relative_to(path))
                 if destdir is not None:
@@ -968,25 +968,25 @@ def copy_metadata(package_name: str, recursive: bool = False):
 
         dist = importlib_metadata.distribution(package_name)
 
-        # We support only `importlib_metadata.PathDistribution`, since we need to rely on its private `_path` attribute
-        # to obtain the path to metadata file/directory. But we need to account for possible sub-classes and vendored
-        # variants (`setuptools._vendor.importlib_metadata.PathDistribution`), so just check that `_path` is available.
+        # 009888.python.init.line971.comment We support only `importlib_metadata.PathDistribution`, since we need to rely on its private `_path` attribute
+        # 009889.python.init.line972.comment to obtain the path to metadata file/directory. But we need to account for possible sub-classes and vendored
+        # 009890.python.init.line973.comment variants (`setuptools._vendor.importlib_metadata.PathDistribution`), so just check that `_path` is available.
         if not hasattr(dist, '_path'):
             raise RuntimeError(
                 f"Unsupported distribution type {type(dist)} for {package_name} - does not have _path attribute"
             )
         src_path = dist._path
 
-        # We expect the `_path` attribute to be an instance of `pathlib.Path`. This assumption is violated when the
-        # package happens to be installed as a zipped egg. In such case, `_path` is an instance of either `zipp.Path`
-        # (when using `importlib.metadata` from `importlib-metadata`, which in turn uses 3rd party `zipp` package) or
-        # `zipfile.Path` (when using stdlib's `importlib.metadata`). While we could attempt to read the metadata
-        # from the zip, we dropped geberal support for zipped eggs from PyInstaller in 6.0, so raise an error.
+        # 009891.python.init.line980.comment We expect the `_path` attribute to be an instance of `pathlib.Path`. This assumption is violated when the
+        # 009892.python.init.line981.comment package happens to be installed as a zipped egg. In such case, `_path` is an instance of either `zipp.Path`
+        # 009893.python.init.line982.comment (when using `importlib.metadata` from `importlib-metadata`, which in turn uses 3rd party `zipp` package) or
+        # 009894.python.init.line983.comment `zipfile.Path` (when using stdlib's `importlib.metadata`). While we could attempt to read the metadata
+        # 009895.python.init.line984.comment from the zip, we dropped geberal support for zipped eggs from PyInstaller in 6.0, so raise an error.
         if not isinstance(src_path, Path):
-            # NOTE: `src_path.parent` is also an instance of `zipfile.Path` or `zipp.Path`, and calling its `is_file()`
-            # method returns False, because the root of zip file is (rightfully) considered a directory. Therefore, we
-            # convert the path to `pathlib.Path` by taking the parent of `src_path.parent` (which turns out to be a
-            # `pathlib.Path`) and add to it the name of the `src_path.parent` (the name of .egg file).
+            # 009896.python.init.line986.comment NOTE: `src_path.parent` is also an instance of `zipfile.Path` or `zipp.Path`, and calling its `is_file()`
+            # 009897.python.init.line987.comment method returns False, because the root of zip file is (rightfully) considered a directory. Therefore, we
+            # 009898.python.init.line988.comment convert the path to `pathlib.Path` by taking the parent of `src_path.parent` (which turns out to be a
+            # 009899.python.init.line989.comment `pathlib.Path`) and add to it the name of the `src_path.parent` (the name of .egg file).
             try:
                 src_parent = src_path.parent.parent / src_path.parent.name
             except Exception:
@@ -1007,30 +1007,30 @@ def copy_metadata(package_name: str, recursive: bool = False):
                     "To install a package from source, pass the path to the source directory to 'pip install' command."
                 )
             else:
-                # Generic message for unforeseen cases.
+                # 009900.python.init.line1010.comment Generic message for unforeseen cases.
                 raise RuntimeError(
                     f"Cannot collect metadata from path {src_path!r}, which is of unsupported type {type(src_path)}."
                 )
 
         if src_path.is_dir():
-            # The metadata is stored in a directory (.egg-info, .dist-info), so collect the whole directory. If the
-            # package is installed as an egg, the metadata directory is ([...]/package_name-version.egg/EGG-INFO),
-            # and requires special handling (as of PyInstaller v6, we support only non-zipped eggs).
+            # 009901.python.init.line1016.comment The metadata is stored in a directory (.egg-info, .dist-info), so collect the whole directory. If the
+            # 009902.python.init.line1017.comment package is installed as an egg, the metadata directory is ([...]/package_name-version.egg/EGG-INFO),
+            # 009903.python.init.line1018.comment and requires special handling (as of PyInstaller v6, we support only non-zipped eggs).
             if src_path.name == 'EGG-INFO' and src_path.parent.name.endswith('.egg'):
                 dest_path = os.path.join(*src_path.parts[-2:])
             else:
                 dest_path = src_path.name
         elif src_path.is_file():
-            # The metadata is stored in a single file. Collect it into top-level application directory.
-            # The .egg-info file is commonly used by Debian/Ubuntu when packaging python packages.
+            # 009904.python.init.line1024.comment The metadata is stored in a single file. Collect it into top-level application directory.
+            # 009905.python.init.line1025.comment The .egg-info file is commonly used by Debian/Ubuntu when packaging python packages.
             dest_path = '.'
         else:
             raise RuntimeError(
                 f"Distribution metadata path {src_path!r} for {package_name} is neither file nor directory!"
             )
 
-        # Hack for metadata from packages vendored by setuptools >= 71. If source path is rooted in setuptools/_vendor,
-        # prepend the same to the destination path and avoid collecting into top-level directory.
+        # 009906.python.init.line1032.comment Hack for metadata from packages vendored by setuptools >= 71. If source path is rooted in setuptools/_vendor,
+        # 009907.python.init.line1033.comment prepend the same to the destination path and avoid collecting into top-level directory.
         if src_path.parent.name == '_vendor' and src_path.parent.parent.name == 'setuptools':
             dest_path = os.path.join('setuptools', '_vendor', dest_path)
 
@@ -1040,9 +1040,9 @@ def copy_metadata(package_name: str, recursive: bool = False):
             return out
         done.add(package_name)
 
-        # Process requirements; `importlib.metadata` has no API for parsing requirements, so we need to use
-        # `packaging.requirements`. This is necessary to discard requirements with markers that do not match the
-        # environment (e.g., `python_version`, `sys_platform`).
+        # 009908.python.init.line1043.comment Process requirements; `importlib.metadata` has no API for parsing requirements, so we need to use
+        # 009909.python.init.line1044.comment `packaging.requirements`. This is necessary to discard requirements with markers that do not match the
+        # 009910.python.init.line1045.comment environment (e.g., `python_version`, `sys_platform`).
         requirements = [packaging.requirements.Requirement(req) for req in dist.requires or []]
         requirements = [req.name for req in requirements if req.marker is None or req.marker.evaluate()]
 
@@ -1068,27 +1068,27 @@ def get_installer(dist_name: str):
         treated as importable package/module name.
     """
 
-    # First, perform direct look-up via the passed name, treating it as distribution name.
+    # 009911.python.init.line1071.comment First, perform direct look-up via the passed name, treating it as distribution name.
     try:
         dist = importlib_metadata.distribution(dist_name)
         installer_text = dist.read_text('INSTALLER')
         if installer_text is not None:
             return installer_text.strip()
         else:
-            # Distribution exists, but does not have an INSTALLER file; stop the search here.
+            # 009912.python.init.line1078.comment Distribution exists, but does not have an INSTALLER file; stop the search here.
             return None
     except importlib_metadata.PackageNotFoundError:
         pass
 
-    # Fall back to treating the passed name as importable package/module name, and try to resolve its associated
-    # distribution name (e.g., enchant -> pyenchant). This requires distributions to explicitly list their top-level
-    # importable names in `top_level.txt` file in metadata, or `importlib.metadata` that can inferring top-level
-    # importable names (available in stdlib for python >= 3.11, or in importlib-metadata >= 4.8.1).
+    # 009913.python.init.line1083.comment Fall back to treating the passed name as importable package/module name, and try to resolve its associated
+    # 009914.python.init.line1084.comment distribution name (e.g., enchant -> pyenchant). This requires distributions to explicitly list their top-level
+    # 009915.python.init.line1085.comment importable names in `top_level.txt` file in metadata, or `importlib.metadata` that can inferring top-level
+    # 009916.python.init.line1086.comment importable names (available in stdlib for python >= 3.11, or in importlib-metadata >= 4.8.1).
     module_name = dist_name
     pkg_to_dist = importlib_metadata.packages_distributions()
     dist_names = pkg_to_dist.get(module_name)
 
-    # A namespace package might result in multiple dists; take the first one that has INSTALLER file available...
+    # 009917.python.init.line1091.comment A namespace package might result in multiple dists; take the first one that has INSTALLER file available...
     for dist_name in dist_names or []:
         try:
             dist = importlib_metadata.distribution(dist_name)
@@ -1096,8 +1096,8 @@ def get_installer(dist_name: str):
             if installer_text is not None:
                 return installer_text.strip()
         except importlib_metadata.PackageNotFoundError:
-            # This might happen with eggs if the egg directory name does not match the dist name declared in the
-            # metadata.
+            # 009918.python.init.line1099.comment This might happen with eggs if the egg directory name does not match the dist name declared in the
+            # 009919.python.init.line1100.comment metadata.
             pass
 
     return None
@@ -1144,12 +1144,12 @@ def collect_all(
     binaries = collect_dynamic_libs(package_name)
     hiddenimports = collect_submodules(package_name, on_error=on_error, filter=filter_submodules)
 
-    # `copy_metadata` requires a dist name instead of importable/package name.
-    # A namespace package might belong to multiple distributions, so process all of them.
+    # 009920.python.init.line1147.comment `copy_metadata` requires a dist name instead of importable/package name.
+    # 009921.python.init.line1148.comment A namespace package might belong to multiple distributions, so process all of them.
     pkg_to_dist = importlib_metadata.packages_distributions()
     dist_names = set(pkg_to_dist.get(package_name, []))
     for dist_name in dist_names:
-        # Copy metadata
+        # 009922.python.init.line1152.comment Copy metadata
         try:
             datas += copy_metadata(dist_name)
         except Exception:
@@ -1305,11 +1305,11 @@ def collect_delvewheel_libs_directory(package_name, libdir_name=None, datas=None
     if libdir_name is None:
         libdir_name = package_name + '.libs'
 
-    # delvewheel is applicable only to Windows wheels
+    # 009925.python.init.line1308.comment delvewheel is applicable only to Windows wheels
     if not compat.is_win:
         return datas, binaries
 
-    # Get package's parent path
+    # 009926.python.init.line1312.comment Get package's parent path
     pkg_base, pkg_dir = get_package_paths(package_name)
     pkg_base = Path(pkg_base)
     libs_dir = pkg_base / libdir_name
@@ -1317,15 +1317,15 @@ def collect_delvewheel_libs_directory(package_name, libdir_name=None, datas=None
     if not libs_dir.is_dir():
         return datas, binaries
 
-    # Collect all dynamic libs - collect them as binaries in order to facilitate proper binary dependency analysis
-    # (for example, to ensure that system-installed VC runtime DLLs are collected, if needed).
-    # As of PyInstaller 5.4, this should be safe (should not result in duplication), because binary dependency
-    # analysis attempts to preserve the DLL directory structure.
+    # 009927.python.init.line1320.comment Collect all dynamic libs - collect them as binaries in order to facilitate proper binary dependency analysis
+    # 009928.python.init.line1321.comment (for example, to ensure that system-installed VC runtime DLLs are collected, if needed).
+    # 009929.python.init.line1322.comment As of PyInstaller 5.4, this should be safe (should not result in duplication), because binary dependency
+    # 009930.python.init.line1323.comment analysis attempts to preserve the DLL directory structure.
     binaries += [(str(dll_file), str(dll_file.parent.relative_to(pkg_base))) for dll_file in libs_dir.glob('*.dll')]
 
-    # Collect the .load-order file; strictly speaking, this should be necessary only under python < 3.8, but let us
-    # collect it for completeness sake. Differently named variants have been observed: `.load_order`, `.load-order`,
-    # and `.load-order-Name`.
+    # 009931.python.init.line1326.comment Collect the .load-order file; strictly speaking, this should be necessary only under python < 3.8, but let us
+    # 009932.python.init.line1327.comment collect it for completeness sake. Differently named variants have been observed: `.load_order`, `.load-order`,
+    # 009933.python.init.line1328.comment and `.load-order-Name`.
     datas += [(str(load_order_file), str(load_order_file.parent.relative_to(pkg_base)))
               for load_order_file in libs_dir.glob('.load[-_]order*')]
 

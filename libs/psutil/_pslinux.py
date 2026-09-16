@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 023956.python.pslinux.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 023957.python.pslinux.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 023958.python.pslinux.line3.comment found in the LICENSE file.
 
 """Linux platform implementation."""
 
@@ -47,13 +47,13 @@ from ._common import path_exists_strict
 from ._common import supports_ipv6
 from ._common import usage_percent
 
-# fmt: off
+# 023959.python.pslinux.line50.comment fmt: off
 __extra__all__ = [
     'PROCFS_PATH',
-    # io prio constants
+    # 023960.python.pslinux.line53.comment io prio constants
     "IOPRIO_CLASS_NONE", "IOPRIO_CLASS_RT", "IOPRIO_CLASS_BE",
     "IOPRIO_CLASS_IDLE",
-    # connection status constants
+    # 023961.python.pslinux.line56.comment connection status constants
     "CONN_ESTABLISHED", "CONN_SYN_SENT", "CONN_SYN_RECV", "CONN_FIN_WAIT1",
     "CONN_FIN_WAIT2", "CONN_TIME_WAIT", "CONN_CLOSE", "CONN_CLOSE_WAIT",
     "CONN_LAST_ACK", "CONN_LISTEN", "CONN_CLOSING",
@@ -63,12 +63,12 @@ if hasattr(resource, "prlimit"):
     __extra__all__.extend(
         [x for x in dir(cext) if x.startswith('RLIM') and x.isupper()]
     )
-# fmt: on
+# 023962.python.pslinux.line66.comment fmt: on
 
 
-# =====================================================================
-# --- globals
-# =====================================================================
+# 023963.python.pslinux.line69.comment =====================================================================
+# 023964.python.pslinux.line70.comment --- globals
+# 023965.python.pslinux.line71.comment =====================================================================
 
 
 POWER_SUPPLY_PATH = "/sys/class/power_supply"
@@ -77,23 +77,23 @@ HAS_PROC_SMAPS_ROLLUP = os.path.exists(f"/proc/{os.getpid()}/smaps_rollup")
 HAS_PROC_IO_PRIORITY = hasattr(cext, "proc_ioprio_get")
 HAS_CPU_AFFINITY = hasattr(cext, "proc_cpu_affinity_get")
 
-# Number of clock ticks per second
+# 023966.python.pslinux.line80.comment Number of clock ticks per second
 CLOCK_TICKS = os.sysconf("SC_CLK_TCK")
 PAGESIZE = cext_posix.getpagesize()
 LITTLE_ENDIAN = sys.byteorder == 'little'
 UNSET = object()
 
-# "man iostat" states that sectors are equivalent with blocks and have
-# a size of 512 bytes. Despite this value can be queried at runtime
-# via /sys/block/{DISK}/queue/hw_sector_size and results may vary
-# between 1k, 2k, or 4k... 512 appears to be a magic constant used
-# throughout Linux source code:
-# * https://stackoverflow.com/a/38136179/376587
-# * https://lists.gt.net/linux/kernel/2241060
-# * https://github.com/giampaolo/psutil/issues/1305
-# * https://github.com/torvalds/linux/blob/
-#     4f671fe2f9523a1ea206f63fe60a7c7b3a56d5c7/include/linux/bio.h#L99
-# * https://lkml.org/lkml/2015/8/17/234
+# 023967.python.pslinux.line86.comment "man iostat" states that sectors are equivalent with blocks and have
+# 023968.python.pslinux.line87.comment a size of 512 bytes. Despite this value can be queried at runtime
+# 023969.python.pslinux.line88.comment via /sys/block/{DISK}/queue/hw_sector_size and results may vary
+# 023970.python.pslinux.line89.comment between 1k, 2k, or 4k... 512 appears to be a magic constant used
+# 023971.python.pslinux.line90.comment throughout Linux source code:
+# 023972.python.pslinux.line91.comment * https://stackoverflow.com/a/38136179/376587
+# 023973.python.pslinux.line92.comment * https://lists.gt.net/linux/kernel/2241060
+# 023974.python.pslinux.line93.comment * https://github.com/giampaolo/psutil/issues/1305
+# 023975.python.pslinux.line94.comment * https://github.com/torvalds/linux/blob/
+# 023976.python.pslinux.line95.comment 4f671fe2f9523a1ea206f63fe60a7c7b3a56d5c7/include/linux/bio.h#L99
+# 023977.python.pslinux.line96.comment * https://lkml.org/lkml/2015/8/17/234
 DISK_SECTOR_SIZE = 512
 
 AddressFamily = enum.IntEnum(
@@ -102,7 +102,7 @@ AddressFamily = enum.IntEnum(
 AF_LINK = AddressFamily.AF_LINK
 
 
-# ioprio_* constants http://linux.die.net/man/2/ioprio_get
+# 023978.python.pslinux.line105.comment ioprio_* constants http://linux.die.net/man/2/ioprio_get
 class IOPriority(enum.IntEnum):
     IOPRIO_CLASS_NONE = 0
     IOPRIO_CLASS_RT = 1
@@ -112,10 +112,10 @@ class IOPriority(enum.IntEnum):
 
 globals().update(IOPriority.__members__)
 
-# See:
-# https://github.com/torvalds/linux/blame/master/fs/proc/array.c
-# ...and (TASK_* constants):
-# https://github.com/torvalds/linux/blob/master/include/linux/sched.h
+# 023979.python.pslinux.line115.comment See:
+# 023980.python.pslinux.line116.comment https://github.com/torvalds/linux/blame/master/fs/proc/array.c
+# 023981.python.pslinux.line117.comment ...and (TASK_* constants):
+# 023982.python.pslinux.line118.comment https://github.com/torvalds/linux/blob/master/include/linux/sched.h
 PROC_STATUSES = {
     "R": _common.STATUS_RUNNING,
     "S": _common.STATUS_SLEEPING,
@@ -131,7 +131,7 @@ PROC_STATUSES = {
     "P": _common.STATUS_PARKED,
 }
 
-# https://github.com/torvalds/linux/blob/master/include/net/tcp_states.h
+# 023983.python.pslinux.line134.comment https://github.com/torvalds/linux/blob/master/include/net/tcp_states.h
 TCP_STATUSES = {
     "01": _common.CONN_ESTABLISHED,
     "02": _common.CONN_SYN_SENT,
@@ -147,69 +147,69 @@ TCP_STATUSES = {
 }
 
 
-# =====================================================================
-# --- named tuples
-# =====================================================================
+# 023984.python.pslinux.line150.comment =====================================================================
+# 023985.python.pslinux.line151.comment --- named tuples
+# 023986.python.pslinux.line152.comment =====================================================================
 
 
-# fmt: off
-# psutil.virtual_memory()
+# 023987.python.pslinux.line155.comment fmt: off
+# 023988.python.pslinux.line156.comment psutil.virtual_memory()
 svmem = namedtuple(
     'svmem', ['total', 'available', 'percent', 'used', 'free',
               'active', 'inactive', 'buffers', 'cached', 'shared', 'slab'])
-# psutil.disk_io_counters()
+# 023989.python.pslinux.line160.comment psutil.disk_io_counters()
 sdiskio = namedtuple(
     'sdiskio', ['read_count', 'write_count',
                 'read_bytes', 'write_bytes',
                 'read_time', 'write_time',
                 'read_merged_count', 'write_merged_count',
                 'busy_time'])
-# psutil.Process().open_files()
+# 023990.python.pslinux.line167.comment psutil.Process().open_files()
 popenfile = namedtuple(
     'popenfile', ['path', 'fd', 'position', 'mode', 'flags'])
-# psutil.Process().memory_info()
+# 023991.python.pslinux.line170.comment psutil.Process().memory_info()
 pmem = namedtuple('pmem', 'rss vms shared text lib data dirty')
-# psutil.Process().memory_full_info()
+# 023992.python.pslinux.line172.comment psutil.Process().memory_full_info()
 pfullmem = namedtuple('pfullmem', pmem._fields + ('uss', 'pss', 'swap'))
-# psutil.Process().memory_maps(grouped=True)
+# 023993.python.pslinux.line174.comment psutil.Process().memory_maps(grouped=True)
 pmmap_grouped = namedtuple(
     'pmmap_grouped',
     ['path', 'rss', 'size', 'pss', 'shared_clean', 'shared_dirty',
      'private_clean', 'private_dirty', 'referenced', 'anonymous', 'swap'])
-# psutil.Process().memory_maps(grouped=False)
+# 023994.python.pslinux.line179.comment psutil.Process().memory_maps(grouped=False)
 pmmap_ext = namedtuple(
     'pmmap_ext', 'addr perms ' + ' '.join(pmmap_grouped._fields))
-# psutil.Process.io_counters()
+# 023995.python.pslinux.line182.comment psutil.Process.io_counters()
 pio = namedtuple('pio', ['read_count', 'write_count',
                          'read_bytes', 'write_bytes',
                          'read_chars', 'write_chars'])
-# psutil.Process.cpu_times()
+# 023996.python.pslinux.line186.comment psutil.Process.cpu_times()
 pcputimes = namedtuple('pcputimes',
                        ['user', 'system', 'children_user', 'children_system',
                         'iowait'])
-# fmt: on
+# 023997.python.pslinux.line190.comment fmt: on
 
 
-# =====================================================================
-# --- utils
-# =====================================================================
+# 023998.python.pslinux.line193.comment =====================================================================
+# 023999.python.pslinux.line194.comment --- utils
+# 024000.python.pslinux.line195.comment =====================================================================
 
 
 def readlink(path):
     """Wrapper around os.readlink()."""
     assert isinstance(path, str), path
     path = os.readlink(path)
-    # readlink() might return paths containing null bytes ('\x00')
-    # resulting in "TypeError: must be encoded string without NULL
-    # bytes, not str" errors when the string is passed to other
-    # fs-related functions (os.*, open(), ...).
-    # Apparently everything after '\x00' is garbage (we can have
-    # ' (deleted)', 'new' and possibly others), see:
-    # https://github.com/giampaolo/psutil/issues/717
+    # 024001.python.pslinux.line202.comment readlink() might return paths containing null bytes ('\x00')
+    # 024002.python.pslinux.line203.comment resulting in "TypeError: must be encoded string without NULL
+    # 024003.python.pslinux.line204.comment bytes, not str" errors when the string is passed to other
+    # 024004.python.pslinux.line205.comment fs-related functions (os.*, open(), ...).
+    # 024005.python.pslinux.line206.comment Apparently everything after '\x00' is garbage (we can have
+    # 024006.python.pslinux.line207.comment ' (deleted)', 'new' and possibly others), see:
+    # 024007.python.pslinux.line208.comment https://github.com/giampaolo/psutil/issues/717
     path = path.split('\x00')[0]
-    # Certain paths have ' (deleted)' appended. Usually this is
-    # bogus as the file actually exists. Even if it doesn't we
-    # don't care.
+    # 024008.python.pslinux.line210.comment Certain paths have ' (deleted)' appended. Usually this is
+    # 024009.python.pslinux.line211.comment bogus as the file actually exists. Even if it doesn't we
+    # 024010.python.pslinux.line212.comment don't care.
     if path.endswith(' (deleted)') and not path_exists_strict(path):
         path = path[:-10]
     return path
@@ -224,7 +224,7 @@ def file_flags_to_mode(flags):
     if flags & os.O_APPEND:
         mode = mode.replace('w', 'a', 1)
     mode = mode.replace('w+', 'r+')
-    # possible values: r, w, a, r+, a+
+    # 024011.python.pslinux.line227.comment possible values: r, w, a, r+, a+
     return mode
 
 
@@ -234,10 +234,10 @@ def is_storage_device(name):
     "nvme0n1p1"). If name is a virtual device (e.g. "loop1", "ram")
     return True.
     """
-    # Re-adapted from iostat source code, see:
-    # https://github.com/sysstat/sysstat/blob/
-    #     97912938cd476645b267280069e83b1c8dc0e1c7/common.c#L208
-    # Some devices may have a slash in their name (e.g. cciss/c0d0...).
+    # 024012.python.pslinux.line237.comment Re-adapted from iostat source code, see:
+    # 024013.python.pslinux.line238.comment https://github.com/sysstat/sysstat/blob/
+    # 024014.python.pslinux.line239.comment 97912938cd476645b267280069e83b1c8dc0e1c7/common.c#L208
+    # 024015.python.pslinux.line240.comment Some devices may have a slash in their name (e.g. cciss/c0d0...).
     name = name.replace('/', '!')
     including_virtual = True
     if including_virtual:
@@ -261,13 +261,13 @@ def set_scputimes_ntuple(procfs_path):
     fields = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq']
     vlen = len(values)
     if vlen >= 8:
-        # Linux >= 2.6.11
+        # 024016.python.pslinux.line264.comment Linux >= 2.6.11
         fields.append('steal')
     if vlen >= 9:
-        # Linux >= 2.6.24
+        # 024017.python.pslinux.line267.comment Linux >= 2.6.24
         fields.append('guest')
     if vlen >= 10:
-        # Linux >= 3.2.0
+        # 024018.python.pslinux.line270.comment Linux >= 3.2.0
         fields.append('guest_nice')
     scputimes = namedtuple('scputimes', fields)
 
@@ -275,14 +275,14 @@ def set_scputimes_ntuple(procfs_path):
 try:
     set_scputimes_ntuple("/proc")
 except Exception as err:  # noqa: BLE001
-    # Don't want to crash at import time.
+    # 024020.python.pslinux.line278.comment Don't want to crash at import time.
     debug(f"ignoring exception on import: {err!r}")
     scputimes = namedtuple('scputimes', 'user system idle')(0.0, 0.0, 0.0)
 
 
-# =====================================================================
-# --- system memory
-# =====================================================================
+# 024021.python.pslinux.line283.comment =====================================================================
+# 024022.python.pslinux.line284.comment --- system memory
+# 024023.python.pslinux.line285.comment =====================================================================
 
 
 def calculate_avail_vmem(mems):
@@ -306,15 +306,15 @@ def calculate_avail_vmem(mems):
     * https://gitlab.com/procps-ng/procps/issues/42
     * https://github.com/famzah/linux-memavailable-procfs/issues/2
     """
-    # Note about "fallback" value. According to:
-    # https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/
-    #     commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
-    # ...long ago "available" memory was calculated as (free + cached),
-    # We use fallback when one of these is missing from /proc/meminfo:
-    # "Active(file)": introduced in 2.6.28 / Dec 2008
-    # "Inactive(file)": introduced in 2.6.28 / Dec 2008
-    # "SReclaimable": introduced in 2.6.19 / Nov 2006
-    # /proc/zoneinfo: introduced in 2.6.13 / Aug 2005
+    # 024024.python.pslinux.line309.comment Note about "fallback" value. According to:
+    # 024025.python.pslinux.line310.comment https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/
+    # 024026.python.pslinux.line311.comment commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
+    # 024027.python.pslinux.line312.comment ...long ago "available" memory was calculated as (free + cached),
+    # 024028.python.pslinux.line313.comment We use fallback when one of these is missing from /proc/meminfo:
+    # 024029.python.pslinux.line314.comment "Active(file)": introduced in 2.6.28 / Dec 2008
+    # 024030.python.pslinux.line315.comment "Inactive(file)": introduced in 2.6.28 / Dec 2008
+    # 024031.python.pslinux.line316.comment "SReclaimable": introduced in 2.6.19 / Nov 2006
+    # 024032.python.pslinux.line317.comment /proc/zoneinfo: introduced in 2.6.13 / Aug 2005
     free = mems[b'MemFree:']
     fallback = free + mems.get(b"Cached:", 0)
     try:
@@ -363,15 +363,15 @@ def virtual_memory():
             fields = line.split()
             mems[fields[0]] = int(fields[1]) * 1024
 
-    # /proc doc states that the available fields in /proc/meminfo vary
-    # by architecture and compile options, but these 3 values are also
-    # returned by sysinfo(2); as such we assume they are always there.
+    # 024034.python.pslinux.line366.comment /proc doc states that the available fields in /proc/meminfo vary
+    # 024035.python.pslinux.line367.comment by architecture and compile options, but these 3 values are also
+    # 024036.python.pslinux.line368.comment returned by sysinfo(2); as such we assume they are always there.
     total = mems[b'MemTotal:']
     free = mems[b'MemFree:']
     try:
         buffers = mems[b'Buffers:']
     except KeyError:
-        # https://github.com/giampaolo/psutil/issues/1010
+        # 024037.python.pslinux.line374.comment https://github.com/giampaolo/psutil/issues/1010
         buffers = 0
         missing_fields.append('buffers')
     try:
@@ -380,11 +380,11 @@ def virtual_memory():
         cached = 0
         missing_fields.append('cached')
     else:
-        # "free" cmdline utility sums reclaimable to cached.
-        # Older versions of procps used to add slab memory instead.
-        # This got changed in:
-        # https://gitlab.com/procps-ng/procps/commit/
-        #     05d751c4f076a2f0118b914c5e51cfbb4762ad8e
+        # 024038.python.pslinux.line383.comment "free" cmdline utility sums reclaimable to cached.
+        # 024039.python.pslinux.line384.comment Older versions of procps used to add slab memory instead.
+        # 024040.python.pslinux.line385.comment This got changed in:
+        # 024041.python.pslinux.line386.comment https://gitlab.com/procps-ng/procps/commit/
+        # 024042.python.pslinux.line387.comment 05d751c4f076a2f0118b914c5e51cfbb4762ad8e
         cached += mems.get(b"SReclaimable:", 0)  # since kernel 2.6.19
 
     try:
@@ -420,41 +420,41 @@ def virtual_memory():
     except KeyError:
         slab = 0
 
-    # - starting from 4.4.0 we match free's "available" column.
-    #   Before 4.4.0 we calculated it as (free + buffers + cached)
-    #   which matched htop.
-    # - free and htop available memory differs as per:
-    #   http://askubuntu.com/a/369589
-    #   http://unix.stackexchange.com/a/65852/168884
-    # - MemAvailable has been introduced in kernel 3.14
+    # 024046.python.pslinux.line423.comment - starting from 4.4.0 we match free's "available" column.
+    # 024047.python.pslinux.line424.comment Before 4.4.0 we calculated it as (free + buffers + cached)
+    # 024048.python.pslinux.line425.comment which matched htop.
+    # 024049.python.pslinux.line426.comment - free and htop available memory differs as per:
+    # 024050.python.pslinux.line427.comment http://askubuntu.com/a/369589
+    # 024051.python.pslinux.line428.comment http://unix.stackexchange.com/a/65852/168884
+    # 024052.python.pslinux.line429.comment - MemAvailable has been introduced in kernel 3.14
     try:
         avail = mems[b'MemAvailable:']
     except KeyError:
         avail = calculate_avail_vmem(mems)
     else:
         if avail == 0:
-            # Yes, it can happen (probably a kernel bug):
-            # https://github.com/giampaolo/psutil/issues/1915
-            # In this case "free" CLI tool makes an estimate. We do the same,
-            # and it matches "free" CLI tool.
+            # 024053.python.pslinux.line436.comment Yes, it can happen (probably a kernel bug):
+            # 024054.python.pslinux.line437.comment https://github.com/giampaolo/psutil/issues/1915
+            # 024055.python.pslinux.line438.comment In this case "free" CLI tool makes an estimate. We do the same,
+            # 024056.python.pslinux.line439.comment and it matches "free" CLI tool.
             avail = calculate_avail_vmem(mems)
 
     if avail < 0:
         avail = 0
         missing_fields.append('available')
     elif avail > total:
-        # If avail is greater than total or our calculation overflows,
-        # that's symptomatic of running within a LCX container where such
-        # values will be dramatically distorted over those of the host.
-        # https://gitlab.com/procps-ng/procps/blob/
-        #     24fd2605c51fccc375ab0287cec33aa767f06718/proc/sysinfo.c#L764
+        # 024057.python.pslinux.line446.comment If avail is greater than total or our calculation overflows,
+        # 024058.python.pslinux.line447.comment that's symptomatic of running within a LCX container where such
+        # 024059.python.pslinux.line448.comment values will be dramatically distorted over those of the host.
+        # 024060.python.pslinux.line449.comment https://gitlab.com/procps-ng/procps/blob/
+        # 024061.python.pslinux.line450.comment 24fd2605c51fccc375ab0287cec33aa767f06718/proc/sysinfo.c#L764
         avail = free
 
     used = total - avail
 
     percent = usage_percent((total - avail), total, round_=1)
 
-    # Warn about missing metrics which are set to 0.
+    # 024062.python.pslinux.line457.comment Warn about missing metrics which are set to 0.
     if missing_fields:
         msg = "{} memory stats couldn't be determined and {} set to 0".format(
             ", ".join(missing_fields),
@@ -484,10 +484,10 @@ def swap_memory():
         for line in f:
             fields = line.split()
             mems[fields[0]] = int(fields[1]) * 1024
-    # We prefer /proc/meminfo over sysinfo() syscall so that
-    # psutil.PROCFS_PATH can be used in order to allow retrieval
-    # for linux containers, see:
-    # https://github.com/giampaolo/psutil/issues/1015
+    # 024063.python.pslinux.line487.comment We prefer /proc/meminfo over sysinfo() syscall so that
+    # 024064.python.pslinux.line488.comment psutil.PROCFS_PATH can be used in order to allow retrieval
+    # 024065.python.pslinux.line489.comment for linux containers, see:
+    # 024066.python.pslinux.line490.comment https://github.com/giampaolo/psutil/issues/1015
     try:
         total = mems[b'SwapTotal:']
         free = mems[b'SwapFree:']
@@ -498,11 +498,11 @@ def swap_memory():
 
     used = total - free
     percent = usage_percent(used, total, round_=1)
-    # get pgin/pgouts
+    # 024067.python.pslinux.line501.comment get pgin/pgouts
     try:
         f = open_binary(f"{get_procfs_path()}/vmstat")
     except OSError as err:
-        # see https://github.com/giampaolo/psutil/issues/722
+        # 024068.python.pslinux.line505.comment see https://github.com/giampaolo/psutil/issues/722
         msg = (
             "'sin' and 'sout' swap memory stats couldn't "
             f"be determined and were set to 0 ({err})"
@@ -513,8 +513,8 @@ def swap_memory():
         with f:
             sin = sout = None
             for line in f:
-                # values are expressed in 4 kilo bytes, we want
-                # bytes instead
+                # 024069.python.pslinux.line516.comment values are expressed in 4 kilo bytes, we want
+                # 024070.python.pslinux.line517.comment bytes instead
                 if line.startswith(b'pswpin'):
                     sin = int(line.split(b' ')[1]) * 4 * 1024
                 elif line.startswith(b'pswpout'):
@@ -522,9 +522,9 @@ def swap_memory():
                 if sin is not None and sout is not None:
                     break
             else:
-                # we might get here when dealing with exotic Linux
-                # flavors, see:
-                # https://github.com/giampaolo/psutil/issues/313
+                # 024071.python.pslinux.line525.comment we might get here when dealing with exotic Linux
+                # 024072.python.pslinux.line526.comment flavors, see:
+                # 024073.python.pslinux.line527.comment https://github.com/giampaolo/psutil/issues/313
                 msg = "'sin' and 'sout' swap memory stats couldn't "
                 msg += "be determined and were set to 0"
                 warnings.warn(msg, RuntimeWarning, stacklevel=2)
@@ -532,9 +532,9 @@ def swap_memory():
     return _common.sswap(total, used, free, percent, sin, sout)
 
 
-# =====================================================================
-# --- CPU
-# =====================================================================
+# 024074.python.pslinux.line535.comment =====================================================================
+# 024075.python.pslinux.line536.comment --- CPU
+# 024076.python.pslinux.line537.comment =====================================================================
 
 
 def cpu_times():
@@ -561,7 +561,7 @@ def per_cpu_times():
     set_scputimes_ntuple(procfs_path)
     cpus = []
     with open_binary(f"{procfs_path}/stat") as f:
-        # get rid of the first line which refers to system wide CPU stats
+        # 024077.python.pslinux.line564.comment get rid of the first line which refers to system wide CPU stats
         f.readline()
         for line in f:
             if line.startswith(b'cpu'):
@@ -578,16 +578,16 @@ def cpu_count_logical():
     try:
         return os.sysconf("SC_NPROCESSORS_ONLN")
     except ValueError:
-        # as a second fallback we try to parse /proc/cpuinfo
+        # 024078.python.pslinux.line581.comment as a second fallback we try to parse /proc/cpuinfo
         num = 0
         with open_binary(f"{get_procfs_path()}/cpuinfo") as f:
             for line in f:
                 if line.lower().startswith(b'processor'):
                     num += 1
 
-        # unknown format (e.g. amrel/sparc architectures), see:
-        # https://github.com/giampaolo/psutil/issues/200
-        # try to parse /proc/stat as a last resort
+        # 024079.python.pslinux.line588.comment unknown format (e.g. amrel/sparc architectures), see:
+        # 024080.python.pslinux.line589.comment https://github.com/giampaolo/psutil/issues/200
+        # 024081.python.pslinux.line590.comment try to parse /proc/stat as a last resort
         if num == 0:
             search = re.compile(r'cpu\d')
             with open_text(f"{get_procfs_path()}/stat") as f:
@@ -597,20 +597,20 @@ def cpu_count_logical():
                         num += 1
 
         if num == 0:
-            # mimic os.cpu_count()
+            # 024082.python.pslinux.line600.comment mimic os.cpu_count()
             return None
         return num
 
 
 def cpu_count_cores():
     """Return the number of CPU cores in the system."""
-    # Method #1
+    # 024083.python.pslinux.line607.comment Method #1
     ls = set()
-    # These 2 files are the same but */core_cpus_list is newer while
-    # */thread_siblings_list is deprecated and may disappear in the future.
-    # https://www.kernel.org/doc/Documentation/admin-guide/cputopology.rst
-    # https://github.com/giampaolo/psutil/pull/1727#issuecomment-707624964
-    # https://lkml.org/lkml/2019/2/26/41
+    # 024084.python.pslinux.line609.comment These 2 files are the same but */core_cpus_list is newer while
+    # 024085.python.pslinux.line610.comment */thread_siblings_list is deprecated and may disappear in the future.
+    # 024086.python.pslinux.line611.comment https://www.kernel.org/doc/Documentation/admin-guide/cputopology.rst
+    # 024087.python.pslinux.line612.comment https://github.com/giampaolo/psutil/pull/1727#issuecomment-707624964
+    # 024088.python.pslinux.line613.comment https://lkml.org/lkml/2019/2/26/41
     p1 = "/sys/devices/system/cpu/cpu[0-9]*/topology/core_cpus_list"
     p2 = "/sys/devices/system/cpu/cpu[0-9]*/topology/thread_siblings_list"
     for path in glob.glob(p1) or glob.glob(p2):
@@ -620,14 +620,14 @@ def cpu_count_cores():
     if result != 0:
         return result
 
-    # Method #2
+    # 024089.python.pslinux.line623.comment Method #2
     mapping = {}
     current_info = {}
     with open_binary(f"{get_procfs_path()}/cpuinfo") as f:
         for line in f:
             line = line.strip().lower()
             if not line:
-                # new section
+                # 024090.python.pslinux.line630.comment new section
                 try:
                     mapping[current_info[b'physical id']] = current_info[
                         b'cpu cores'
@@ -636,7 +636,7 @@ def cpu_count_cores():
                     pass
                 current_info = {}
             elif line.startswith((b'physical id', b'cpu cores')):
-                # ongoing section
+                # 024091.python.pslinux.line639.comment ongoing section
                 key, value = line.split(b'\t:', 1)
                 current_info[key] = int(value)
 
@@ -697,18 +697,18 @@ if os.path.exists("/sys/devices/system/cpu/cpufreq/policy0") or os.path.exists(
         pjoin = os.path.join
         for i, path in enumerate(paths):
             if len(paths) == len(cpuinfo_freqs):
-                # take cached value from cpuinfo if available, see:
-                # https://github.com/giampaolo/psutil/issues/1851
+                # 024093.python.pslinux.line700.comment take cached value from cpuinfo if available, see:
+                # 024094.python.pslinux.line701.comment https://github.com/giampaolo/psutil/issues/1851
                 curr = cpuinfo_freqs[i] * 1000
             else:
                 curr = bcat(pjoin(path, "scaling_cur_freq"), fallback=None)
             if curr is None:
-                # Likely an old RedHat, see:
-                # https://github.com/giampaolo/psutil/issues/1071
+                # 024095.python.pslinux.line706.comment Likely an old RedHat, see:
+                # 024096.python.pslinux.line707.comment https://github.com/giampaolo/psutil/issues/1071
                 curr = bcat(pjoin(path, "cpuinfo_cur_freq"), fallback=None)
                 if curr is None:
                     online_path = f"/sys/devices/system/cpu/cpu{i}/online"
-                    # if cpu core is offline, set to all zeroes
+                    # 024097.python.pslinux.line711.comment if cpu core is offline, set to all zeroes
                     if cat(online_path, fallback=None) == "0\n":
                         ret.append(_common.scpufreq(0.0, 0.0, 0.0))
                         continue
@@ -729,9 +729,9 @@ else:
         return [_common.scpufreq(x, 0.0, 0.0) for x in _cpu_get_cpuinfo_freq()]
 
 
-# =====================================================================
-# --- network
-# =====================================================================
+# 024098.python.pslinux.line732.comment =====================================================================
+# 024099.python.pslinux.line733.comment --- network
+# 024100.python.pslinux.line734.comment =====================================================================
 
 
 net_if_addrs = cext_posix.net_if_addrs
@@ -754,8 +754,8 @@ class NetConnections:
     """
 
     def __init__(self):
-        # The string represents the basename of the corresponding
-        # /proc/net/{proto_name} file.
+        # 024101.python.pslinux.line757.comment The string represents the basename of the corresponding
+        # 024102.python.pslinux.line758.comment /proc/net/{proto_name} file.
         tcp4 = ("tcp", socket.AF_INET, socket.SOCK_STREAM)
         tcp6 = ("tcp6", socket.AF_INET6, socket.SOCK_STREAM)
         udp4 = ("udp", socket.AF_INET, socket.SOCK_DGRAM)
@@ -782,22 +782,22 @@ class NetConnections:
             try:
                 inode = readlink(f"{self._procfs_path}/{pid}/fd/{fd}")
             except (FileNotFoundError, ProcessLookupError):
-                # ENOENT == file which is gone in the meantime;
-                # os.stat(f"/proc/{self.pid}") will be done later
-                # to force NSP (if it's the case)
+                # 024103.python.pslinux.line785.comment ENOENT == file which is gone in the meantime;
+                # 024104.python.pslinux.line786.comment os.stat(f"/proc/{self.pid}") will be done later
+                # 024105.python.pslinux.line787.comment to force NSP (if it's the case)
                 continue
             except OSError as err:
                 if err.errno == errno.EINVAL:
-                    # not a link
+                    # 024106.python.pslinux.line791.comment not a link
                     continue
                 if err.errno == errno.ENAMETOOLONG:
-                    # file name too long
+                    # 024107.python.pslinux.line794.comment file name too long
                     debug(err)
                     continue
                 raise
             else:
                 if inode.startswith('socket:['):
-                    # the process is using a socket
+                    # 024108.python.pslinux.line800.comment the process is using a socket
                     inode = inode[8:][:-1]
                     inodes[inode].append((pid, int(fd)))
         return inodes
@@ -808,13 +808,13 @@ class NetConnections:
             try:
                 inodes.update(self.get_proc_inodes(pid))
             except (FileNotFoundError, ProcessLookupError, PermissionError):
-                # os.listdir() is gonna raise a lot of access denied
-                # exceptions in case of unprivileged user; that's fine
-                # as we'll just end up returning a connection with PID
-                # and fd set to None anyway.
-                # Both netstat -an and lsof does the same so it's
-                # unlikely we can do any better.
-                # ENOENT just means a PID disappeared on us.
+                # 024109.python.pslinux.line811.comment os.listdir() is gonna raise a lot of access denied
+                # 024110.python.pslinux.line812.comment exceptions in case of unprivileged user; that's fine
+                # 024111.python.pslinux.line813.comment as we'll just end up returning a connection with PID
+                # 024112.python.pslinux.line814.comment and fd set to None anyway.
+                # 024113.python.pslinux.line815.comment Both netstat -an and lsof does the same so it's
+                # 024114.python.pslinux.line816.comment unlikely we can do any better.
+                # 024115.python.pslinux.line817.comment ENOENT just means a PID disappeared on us.
                 continue
         return inodes
 
@@ -837,13 +837,13 @@ class NetConnections:
         """
         ip, port = addr.split(':')
         port = int(port, 16)
-        # this usually refers to a local socket in listen mode with
-        # no end-points connected
+        # 024116.python.pslinux.line840.comment this usually refers to a local socket in listen mode with
+        # 024117.python.pslinux.line841.comment no end-points connected
         if not port:
             return ()
         ip = ip.encode('ascii')
         if family == socket.AF_INET:
-            # see: https://github.com/giampaolo/psutil/issues/201
+            # 024118.python.pslinux.line846.comment see: https://github.com/giampaolo/psutil/issues/201
             if LITTLE_ENDIAN:
                 ip = socket.inet_ntop(family, base64.b16decode(ip)[::-1])
             else:
@@ -851,7 +851,7 @@ class NetConnections:
         else:  # IPv6
             ip = base64.b16decode(ip)
             try:
-                # see: https://github.com/giampaolo/psutil/issues/201
+                # 024120.python.pslinux.line854.comment see: https://github.com/giampaolo/psutil/issues/201
                 if LITTLE_ENDIAN:
                     ip = socket.inet_ntop(
                         socket.AF_INET6,
@@ -863,7 +863,7 @@ class NetConnections:
                         struct.pack('<4I', *struct.unpack('<4I', ip)),
                     )
             except ValueError:
-                # see: https://github.com/giampaolo/psutil/issues/623
+                # 024121.python.pslinux.line866.comment see: https://github.com/giampaolo/psutil/issues/623
                 if not supports_ipv6():
                     raise _Ipv6UnsupportedError from None
                 raise
@@ -873,7 +873,7 @@ class NetConnections:
     def process_inet(file, family, type_, inodes, filter_pid=None):
         """Parse /proc/net/tcp* and /proc/net/udp* files."""
         if file.endswith('6') and not os.path.exists(file):
-            # IPv6 not supported
+            # 024122.python.pslinux.line876.comment IPv6 not supported
             return
         with open_text(file) as f:
             f.readline()  # skip the first line
@@ -889,12 +889,12 @@ class NetConnections:
                     )
                     raise RuntimeError(msg) from None
                 if inode in inodes:
-                    # # We assume inet sockets are unique, so we error
-                    # # out if there are multiple references to the
-                    # # same inode. We won't do this for UNIX sockets.
-                    # if len(inodes[inode]) > 1 and family != socket.AF_UNIX:
-                    #     raise ValueError("ambiguous inode with multiple "
-                    #                      "PIDs references")
+                    # 024124.python.pslinux.line892.comment # We assume inet sockets are unique, so we error
+                    # 024125.python.pslinux.line893.comment # out if there are multiple references to the
+                    # 024126.python.pslinux.line894.comment # same inode. We won't do this for UNIX sockets.
+                    # 024127.python.pslinux.line895.comment if len(inodes[inode]) > 1 and family != socket.AF_UNIX:
+                    # 024128.python.pslinux.line896.comment raise ValueError("ambiguous inode with multiple "
+                    # 024129.python.pslinux.line897.comment "PIDs references")
                     pid, fd = inodes[inode][0]
                 else:
                     pid, fd = None, -1
@@ -923,15 +923,15 @@ class NetConnections:
                     _, _, _, _, type_, _, inode = tokens[0:7]
                 except ValueError:
                     if ' ' not in line:
-                        # see: https://github.com/giampaolo/psutil/issues/766
+                        # 024131.python.pslinux.line926.comment see: https://github.com/giampaolo/psutil/issues/766
                         continue
                     msg = (
                         f"error while parsing {file}; malformed line {line!r}"
                     )
                     raise RuntimeError(msg)  # noqa: B904
                 if inode in inodes:  # noqa: SIM108
-                    # With UNIX sockets we can have a single inode
-                    # referencing many file descriptors.
+                    # 024134.python.pslinux.line933.comment With UNIX sockets we can have a single inode
+                    # 024135.python.pslinux.line934.comment referencing many file descriptors.
                     pairs = inodes[inode]
                 else:
                     pairs = [(None, -1)]
@@ -941,9 +941,9 @@ class NetConnections:
                     else:
                         path = tokens[-1] if len(tokens) == 8 else ''
                         type_ = _common.socktype_to_enum(int(type_))
-                        # XXX: determining the remote endpoint of a
-                        # UNIX socket on Linux is not possible, see:
-                        # https://serverfault.com/questions/252723/
+                        # 024136.python.pslinux.line944.comment XXX: determining the remote endpoint of a
+                        # 024137.python.pslinux.line945.comment UNIX socket on Linux is not possible, see:
+                        # 024138.python.pslinux.line946.comment https://serverfault.com/questions/252723/
                         raddr = ""
                         status = _common.CONN_NONE
                         yield (fd, family, type_, path, raddr, status, pid)
@@ -953,7 +953,7 @@ class NetConnections:
         if pid is not None:
             inodes = self.get_proc_inodes(pid)
             if not inodes:
-                # no connections for this process
+                # 024139.python.pslinux.line956.comment no connections for this process
                 return []
         else:
             inodes = self.get_all_inodes()
@@ -1001,7 +1001,7 @@ def net_io_counters():
         fields = line[colon + 1 :].strip().split()
 
         (
-            # in
+            # 024140.python.pslinux.line1004.comment in
             bytes_recv,
             packets_recv,
             errin,
@@ -1010,7 +1010,7 @@ def net_io_counters():
             _framein,  # unused
             _compressedin,  # unused
             _multicastin,  # unused
-            # out
+            # 024145.python.pslinux.line1013.comment out
             bytes_sent,
             packets_sent,
             errout,
@@ -1049,7 +1049,7 @@ def net_if_stats():
             flags = cext_posix.net_if_flags(name)
             duplex, speed = cext.net_if_duplex_speed(name)
         except OSError as err:
-            # https://github.com/giampaolo/psutil/issues/1279
+            # 024150.python.pslinux.line1052.comment https://github.com/giampaolo/psutil/issues/1279
             if err.errno != errno.ENODEV:
                 raise
             debug(err)
@@ -1062,9 +1062,9 @@ def net_if_stats():
     return ret
 
 
-# =====================================================================
-# --- disks
-# =====================================================================
+# 024151.python.pslinux.line1065.comment =====================================================================
+# 024152.python.pslinux.line1066.comment --- disks
+# 024153.python.pslinux.line1067.comment =====================================================================
 
 
 disk_usage = _psposix.disk_usage
@@ -1076,41 +1076,41 @@ def disk_io_counters(perdisk=False):
     """
 
     def read_procfs():
-        # OK, this is a bit confusing. The format of /proc/diskstats can
-        # have 3 variations.
-        # On Linux 2.4 each line has always 15 fields, e.g.:
-        # "3     0   8 hda 8 8 8 8 8 8 8 8 8 8 8"
-        # On Linux 2.6+ each line *usually* has 14 fields, and the disk
-        # name is in another position, like this:
-        # "3    0   hda 8 8 8 8 8 8 8 8 8 8 8"
-        # ...unless (Linux 2.6) the line refers to a partition instead
-        # of a disk, in which case the line has less fields (7):
-        # "3    1   hda1 8 8 8 8"
-        # 4.18+ has 4 fields added:
-        # "3    0   hda 8 8 8 8 8 8 8 8 8 8 8 0 0 0 0"
-        # 5.5 has 2 more fields.
-        # See:
-        # https://www.kernel.org/doc/Documentation/iostats.txt
-        # https://www.kernel.org/doc/Documentation/ABI/testing/procfs-diskstats
+        # 024154.python.pslinux.line1079.comment OK, this is a bit confusing. The format of /proc/diskstats can
+        # 024155.python.pslinux.line1080.comment have 3 variations.
+        # 024156.python.pslinux.line1081.comment On Linux 2.4 each line has always 15 fields, e.g.:
+        # 024157.python.pslinux.line1082.comment "3     0   8 hda 8 8 8 8 8 8 8 8 8 8 8"
+        # 024158.python.pslinux.line1083.comment On Linux 2.6+ each line *usually* has 14 fields, and the disk
+        # 024159.python.pslinux.line1084.comment name is in another position, like this:
+        # 024160.python.pslinux.line1085.comment "3    0   hda 8 8 8 8 8 8 8 8 8 8 8"
+        # 024161.python.pslinux.line1086.comment ...unless (Linux 2.6) the line refers to a partition instead
+        # 024162.python.pslinux.line1087.comment of a disk, in which case the line has less fields (7):
+        # 024163.python.pslinux.line1088.comment "3    1   hda1 8 8 8 8"
+        # 024164.python.pslinux.line1089.comment 4.18+ has 4 fields added:
+        # 024165.python.pslinux.line1090.comment "3    0   hda 8 8 8 8 8 8 8 8 8 8 8 0 0 0 0"
+        # 024166.python.pslinux.line1091.comment 5.5 has 2 more fields.
+        # 024167.python.pslinux.line1092.comment See:
+        # 024168.python.pslinux.line1093.comment https://www.kernel.org/doc/Documentation/iostats.txt
+        # 024169.python.pslinux.line1094.comment https://www.kernel.org/doc/Documentation/ABI/testing/procfs-diskstats
         with open_text(f"{get_procfs_path()}/diskstats") as f:
             lines = f.readlines()
         for line in lines:
             fields = line.split()
             flen = len(fields)
-            # fmt: off
+            # 024170.python.pslinux.line1100.comment fmt: off
             if flen == 15:
-                # Linux 2.4
+                # 024171.python.pslinux.line1102.comment Linux 2.4
                 name = fields[3]
                 reads = int(fields[2])
                 (reads_merged, rbytes, rtime, writes, writes_merged,
                     wbytes, wtime, _, busy_time, _) = map(int, fields[4:14])
             elif flen == 14 or flen >= 18:
-                # Linux 2.6+, line referring to a disk
+                # 024172.python.pslinux.line1108.comment Linux 2.6+, line referring to a disk
                 name = fields[2]
                 (reads, reads_merged, rbytes, rtime, writes, writes_merged,
                     wbytes, wtime, _, busy_time, _) = map(int, fields[3:14])
             elif flen == 7:
-                # Linux 2.6+, line referring to a partition
+                # 024173.python.pslinux.line1113.comment Linux 2.6+, line referring to a partition
                 name = fields[2]
                 reads, rbytes, writes, wbytes = map(int, fields[3:])
                 rtime = wtime = reads_merged = writes_merged = busy_time = 0
@@ -1119,7 +1119,7 @@ def disk_io_counters(perdisk=False):
                 raise ValueError(msg)
             yield (name, reads, writes, rbytes, wbytes, rtime, wtime,
                    reads_merged, writes_merged, busy_time)
-            # fmt: on
+            # 024174.python.pslinux.line1122.comment fmt: on
 
     def read_sysfs():
         for block in os.listdir('/sys/block'):
@@ -1129,12 +1129,12 @@ def disk_io_counters(perdisk=False):
                 with open_text(os.path.join(root, 'stat')) as f:
                     fields = f.read().strip().split()
                 name = os.path.basename(root)
-                # fmt: off
+                # 024175.python.pslinux.line1132.comment fmt: off
                 (reads, reads_merged, rbytes, rtime, writes, writes_merged,
                     wbytes, wtime, _, busy_time) = map(int, fields[:10])
                 yield (name, reads, writes, rbytes, wbytes, rtime,
                        wtime, reads_merged, writes_merged, busy_time)
-                # fmt: on
+                # 024176.python.pslinux.line1137.comment fmt: on
 
     if os.path.exists(f"{get_procfs_path()}/diskstats"):
         gen = read_procfs()
@@ -1149,28 +1149,28 @@ def disk_io_counters(perdisk=False):
 
     retdict = {}
     for entry in gen:
-        # fmt: off
+        # 024177.python.pslinux.line1152.comment fmt: off
         (name, reads, writes, rbytes, wbytes, rtime, wtime, reads_merged,
             writes_merged, busy_time) = entry
         if not perdisk and not is_storage_device(name):
-            # perdisk=False means we want to calculate totals so we skip
-            # partitions (e.g. 'sda1', 'nvme0n1p1') and only include
-            # base disk devices (e.g. 'sda', 'nvme0n1'). Base disks
-            # include a total of all their partitions + some extra size
-            # of their own:
-            #     $ cat /proc/diskstats
-            #     259       0 sda 10485760 ...
-            #     259       1 sda1 5186039 ...
-            #     259       1 sda2 5082039 ...
-            # See:
-            # https://github.com/giampaolo/psutil/pull/1313
+            # 024178.python.pslinux.line1156.comment perdisk=False means we want to calculate totals so we skip
+            # 024179.python.pslinux.line1157.comment partitions (e.g. 'sda1', 'nvme0n1p1') and only include
+            # 024180.python.pslinux.line1158.comment base disk devices (e.g. 'sda', 'nvme0n1'). Base disks
+            # 024181.python.pslinux.line1159.comment include a total of all their partitions + some extra size
+            # 024182.python.pslinux.line1160.comment of their own:
+            # 024183.python.pslinux.line1161.comment $ cat /proc/diskstats
+            # 024184.python.pslinux.line1162.comment 259       0 sda 10485760 ...
+            # 024185.python.pslinux.line1163.comment 259       1 sda1 5186039 ...
+            # 024186.python.pslinux.line1164.comment 259       1 sda2 5082039 ...
+            # 024187.python.pslinux.line1165.comment See:
+            # 024188.python.pslinux.line1166.comment https://github.com/giampaolo/psutil/pull/1313
             continue
 
         rbytes *= DISK_SECTOR_SIZE
         wbytes *= DISK_SECTOR_SIZE
         retdict[name] = (reads, writes, rbytes, wbytes, rtime, wtime,
                          reads_merged, writes_merged, busy_time)
-        # fmt: on
+        # 024189.python.pslinux.line1173.comment fmt: on
 
     return retdict
 
@@ -1244,8 +1244,8 @@ class RootFsDeviceFinder:
                 path = self.ask_sys_class_block()
             except OSError as err:
                 debug(err)
-        # We use exists() because the "/dev/*" part of the path is hard
-        # coded, so we want to be sure.
+        # 024194.python.pslinux.line1247.comment We use exists() because the "/dev/*" part of the path is hard
+        # 024195.python.pslinux.line1248.comment coded, so we want to be sure.
         if path is not None and os.path.exists(path):
             return path
 
@@ -1261,12 +1261,12 @@ def disk_partitions(all=False):
                 if not line.startswith("nodev"):
                     fstypes.add(line.strip())
                 else:
-                    # ignore all lines starting with "nodev" except "nodev zfs"
+                    # 024196.python.pslinux.line1264.comment ignore all lines starting with "nodev" except "nodev zfs"
                     fstype = line.split("\t")[1]
                     if fstype == "zfs":
                         fstypes.add("zfs")
 
-    # See: https://github.com/giampaolo/psutil/issues/1307
+    # 024197.python.pslinux.line1269.comment See: https://github.com/giampaolo/psutil/issues/1307
     if procfs_path == "/proc" and os.path.isfile('/etc/mtab'):
         mounts_path = os.path.realpath("/etc/mtab")
     else:
@@ -1289,9 +1289,9 @@ def disk_partitions(all=False):
     return retlist
 
 
-# =====================================================================
-# --- sensors
-# =====================================================================
+# 024198.python.pslinux.line1292.comment =====================================================================
+# 024199.python.pslinux.line1293.comment --- sensors
+# 024200.python.pslinux.line1294.comment =====================================================================
 
 
 def sensors_temperatures():
@@ -1309,16 +1309,16 @@ def sensors_temperatures():
     """
     ret = collections.defaultdict(list)
     basenames = glob.glob('/sys/class/hwmon/hwmon*/temp*_*')
-    # CentOS has an intermediate /device directory:
-    # https://github.com/giampaolo/psutil/issues/971
-    # https://github.com/nicolargo/glances/issues/1060
+    # 024201.python.pslinux.line1312.comment CentOS has an intermediate /device directory:
+    # 024202.python.pslinux.line1313.comment https://github.com/giampaolo/psutil/issues/971
+    # 024203.python.pslinux.line1314.comment https://github.com/nicolargo/glances/issues/1060
     basenames.extend(glob.glob('/sys/class/hwmon/hwmon*/device/temp*_*'))
     basenames = sorted({x.split('_')[0] for x in basenames})
 
-    # Only add the coretemp hwmon entries if they're not already in
-    # /sys/class/hwmon/
-    # https://github.com/giampaolo/psutil/issues/1708
-    # https://github.com/giampaolo/psutil/pull/1648
+    # 024204.python.pslinux.line1318.comment Only add the coretemp hwmon entries if they're not already in
+    # 024205.python.pslinux.line1319.comment /sys/class/hwmon/
+    # 024206.python.pslinux.line1320.comment https://github.com/giampaolo/psutil/issues/1708
+    # 024207.python.pslinux.line1321.comment https://github.com/giampaolo/psutil/pull/1648
     basenames2 = glob.glob(
         '/sys/devices/platform/coretemp.*/hwmon/hwmon*/temp*_*'
     )
@@ -1335,14 +1335,14 @@ def sensors_temperatures():
             path = os.path.join(os.path.dirname(base), 'name')
             unit_name = cat(path).strip()
         except (OSError, ValueError):
-            # A lot of things can go wrong here, so let's just skip the
-            # whole entry. Sure thing is Linux's /sys/class/hwmon really
-            # is a stinky broken mess.
-            # https://github.com/giampaolo/psutil/issues/1009
-            # https://github.com/giampaolo/psutil/issues/1101
-            # https://github.com/giampaolo/psutil/issues/1129
-            # https://github.com/giampaolo/psutil/issues/1245
-            # https://github.com/giampaolo/psutil/issues/1323
+            # 024208.python.pslinux.line1338.comment A lot of things can go wrong here, so let's just skip the
+            # 024209.python.pslinux.line1339.comment whole entry. Sure thing is Linux's /sys/class/hwmon really
+            # 024210.python.pslinux.line1340.comment is a stinky broken mess.
+            # 024211.python.pslinux.line1341.comment https://github.com/giampaolo/psutil/issues/1009
+            # 024212.python.pslinux.line1342.comment https://github.com/giampaolo/psutil/issues/1101
+            # 024213.python.pslinux.line1343.comment https://github.com/giampaolo/psutil/issues/1129
+            # 024214.python.pslinux.line1344.comment https://github.com/giampaolo/psutil/issues/1245
+            # 024215.python.pslinux.line1345.comment https://github.com/giampaolo/psutil/issues/1323
             continue
 
         high = bcat(base + '_max', fallback=None)
@@ -1362,7 +1362,7 @@ def sensors_temperatures():
 
         ret[unit_name].append((label, current, high, critical))
 
-    # Indication that no sensors were detected in /sys/class/hwmon/
+    # 024216.python.pslinux.line1365.comment Indication that no sensors were detected in /sys/class/hwmon/
     if not basenames:
         basenames = glob.glob('/sys/class/thermal/thermal_zone*')
         basenames = sorted(set(basenames))
@@ -1425,8 +1425,8 @@ def sensors_fans():
     ret = collections.defaultdict(list)
     basenames = glob.glob('/sys/class/hwmon/hwmon*/fan*_*')
     if not basenames:
-        # CentOS has an intermediate /device directory:
-        # https://github.com/giampaolo/psutil/issues/971
+        # 024217.python.pslinux.line1428.comment CentOS has an intermediate /device directory:
+        # 024218.python.pslinux.line1429.comment https://github.com/giampaolo/psutil/issues/971
         basenames = glob.glob('/sys/class/hwmon/hwmon*/device/fan*_*')
 
     basenames = sorted({x.split("_")[0] for x in basenames})
@@ -1472,19 +1472,19 @@ def sensors_battery():
     ]
     if not bats:
         return None
-    # Get the first available battery. Usually this is "BAT0", except
-    # some rare exceptions:
-    # https://github.com/giampaolo/psutil/issues/1238
+    # 024219.python.pslinux.line1475.comment Get the first available battery. Usually this is "BAT0", except
+    # 024220.python.pslinux.line1476.comment some rare exceptions:
+    # 024221.python.pslinux.line1477.comment https://github.com/giampaolo/psutil/issues/1238
     root = os.path.join(POWER_SUPPLY_PATH, min(bats))
 
-    # Base metrics.
+    # 024222.python.pslinux.line1480.comment Base metrics.
     energy_now = multi_bcat(root + "/energy_now", root + "/charge_now")
     power_now = multi_bcat(root + "/power_now", root + "/current_now")
     energy_full = multi_bcat(root + "/energy_full", root + "/charge_full")
     time_to_empty = multi_bcat(root + "/time_to_empty_now")
 
-    # Percent. If we have energy_full the percentage will be more
-    # accurate compared to reading /capacity file (float vs. int).
+    # 024223.python.pslinux.line1486.comment Percent. If we have energy_full the percentage will be more
+    # 024224.python.pslinux.line1487.comment accurate compared to reading /capacity file (float vs. int).
     if energy_full is not None and energy_now is not None:
         try:
             percent = 100.0 * energy_now / energy_full
@@ -1495,9 +1495,9 @@ def sensors_battery():
         if percent == -1:
             return None
 
-    # Is AC power cable plugged in?
-    # Note: AC0 is not always available and sometimes (e.g. CentOS7)
-    # it's called "AC".
+    # 024225.python.pslinux.line1498.comment Is AC power cable plugged in?
+    # 024226.python.pslinux.line1499.comment Note: AC0 is not always available and sometimes (e.g. CentOS7)
+    # 024227.python.pslinux.line1500.comment it's called "AC".
     power_plugged = None
     online = multi_bcat(
         os.path.join(POWER_SUPPLY_PATH, "AC0/online"),
@@ -1512,10 +1512,10 @@ def sensors_battery():
         elif status in {"charging", "full"}:
             power_plugged = True
 
-    # Seconds left.
-    # Note to self: we may also calculate the charging ETA as per:
-    # https://github.com/thialfihar/dotfiles/blob/
-    #     013937745fd9050c30146290e8f963d65c0179e6/bin/battery.py#L55
+    # 024228.python.pslinux.line1515.comment Seconds left.
+    # 024229.python.pslinux.line1516.comment Note to self: we may also calculate the charging ETA as per:
+    # 024230.python.pslinux.line1517.comment https://github.com/thialfihar/dotfiles/blob/
+    # 024231.python.pslinux.line1518.comment 013937745fd9050c30146290e8f963d65c0179e6/bin/battery.py#L55
     if power_plugged:
         secsleft = _common.POWER_TIME_UNLIMITED
     elif energy_now is not None and power_now is not None:
@@ -1533,9 +1533,9 @@ def sensors_battery():
     return _common.sbattery(percent, secsleft, power_plugged)
 
 
-# =====================================================================
-# --- other system functions
-# =====================================================================
+# 024232.python.pslinux.line1536.comment =====================================================================
+# 024233.python.pslinux.line1537.comment --- other system functions
+# 024234.python.pslinux.line1538.comment =====================================================================
 
 
 def users():
@@ -1560,9 +1560,9 @@ def boot_time():
         raise RuntimeError(msg)
 
 
-# =====================================================================
-# --- processes
-# =====================================================================
+# 024235.python.pslinux.line1563.comment =====================================================================
+# 024236.python.pslinux.line1564.comment --- processes
+# 024237.python.pslinux.line1565.comment =====================================================================
 
 
 def pids():
@@ -1578,25 +1578,25 @@ def pid_exists(pid):
     if not _psposix.pid_exists(pid):
         return False
     else:
-        # Linux's apparently does not distinguish between PIDs and TIDs
-        # (thread IDs).
-        # listdir("/proc") won't show any TID (only PIDs) but
-        # os.stat("/proc/{tid}") will succeed if {tid} exists.
-        # os.kill() can also be passed a TID. This is quite confusing.
-        # In here we want to enforce this distinction and support PIDs
-        # only, see:
-        # https://github.com/giampaolo/psutil/issues/687
+        # 024238.python.pslinux.line1581.comment Linux's apparently does not distinguish between PIDs and TIDs
+        # 024239.python.pslinux.line1582.comment (thread IDs).
+        # 024240.python.pslinux.line1583.comment listdir("/proc") won't show any TID (only PIDs) but
+        # 024241.python.pslinux.line1584.comment os.stat("/proc/{tid}") will succeed if {tid} exists.
+        # 024242.python.pslinux.line1585.comment os.kill() can also be passed a TID. This is quite confusing.
+        # 024243.python.pslinux.line1586.comment In here we want to enforce this distinction and support PIDs
+        # 024244.python.pslinux.line1587.comment only, see:
+        # 024245.python.pslinux.line1588.comment https://github.com/giampaolo/psutil/issues/687
         try:
-            # Note: already checked that this is faster than using a
-            # regular expr. Also (a lot) faster than doing
-            # 'return pid in pids()'
+            # 024246.python.pslinux.line1590.comment Note: already checked that this is faster than using a
+            # 024247.python.pslinux.line1591.comment regular expr. Also (a lot) faster than doing
+            # 024248.python.pslinux.line1592.comment 'return pid in pids()'
             path = f"{get_procfs_path()}/{pid}/status"
             with open_binary(path) as f:
                 for line in f:
                     if line.startswith(b"Tgid:"):
                         tgid = int(line.split()[1])
-                        # If tgid and pid are the same then we're
-                        # dealing with a process PID.
+                        # 024249.python.pslinux.line1598.comment If tgid and pid are the same then we're
+                        # 024250.python.pslinux.line1599.comment dealing with a process PID.
                         return tgid == pid
                 msg = f"'Tgid' line not found in {path}"
                 raise ValueError(msg)
@@ -1643,9 +1643,9 @@ def wrap_exceptions(fun):
             raise NoSuchProcess(pid, name) from err
         except FileNotFoundError as err:
             self._raise_if_zombie()
-            # /proc/PID directory may still exist, but the files within
-            # it may not, indicating the process is gone, see:
-            # https://github.com/giampaolo/psutil/issues/2418
+            # 024251.python.pslinux.line1646.comment /proc/PID directory may still exist, but the files within
+            # 024252.python.pslinux.line1647.comment it may not, indicating the process is gone, see:
+            # 024253.python.pslinux.line1648.comment https://github.com/giampaolo/psutil/issues/2418
             if not os.path.exists(f"{self._procfs_path}/{pid}/stat"):
                 raise NoSuchProcess(pid, name) from err
             raise
@@ -1673,12 +1673,12 @@ class Process:
         self._procfs_path = get_procfs_path()
 
     def _is_zombie(self):
-        # Note: most of the times Linux is able to return info about the
-        # process even if it's a zombie, and /proc/{pid} will exist.
-        # There are some exceptions though, like exe(), cmdline() and
-        # memory_maps(). In these cases /proc/{pid}/{file} exists but
-        # it's empty. Instead of returning a "null" value we'll raise an
-        # exception.
+        # 024254.python.pslinux.line1676.comment Note: most of the times Linux is able to return info about the
+        # 024255.python.pslinux.line1677.comment process even if it's a zombie, and /proc/{pid} will exist.
+        # 024256.python.pslinux.line1678.comment There are some exceptions though, like exe(), cmdline() and
+        # 024257.python.pslinux.line1679.comment memory_maps(). In these cases /proc/{pid}/{file} exists but
+        # 024258.python.pslinux.line1680.comment it's empty. Instead of returning a "null" value we'll raise an
+        # 024259.python.pslinux.line1681.comment exception.
         try:
             data = bcat(f"{self._procfs_path}/{self.pid}/stat")
         except OSError:
@@ -1694,17 +1694,17 @@ class Process:
 
     def _raise_if_not_alive(self):
         """Raise NSP if the process disappeared on us."""
-        # For those C function who do not raise NSP, possibly returning
-        # incorrect or incomplete result.
+        # 024260.python.pslinux.line1697.comment For those C function who do not raise NSP, possibly returning
+        # 024261.python.pslinux.line1698.comment incorrect or incomplete result.
         os.stat(f"{self._procfs_path}/{self.pid}")
 
     def _readlink(self, path, fallback=UNSET):
-        # * https://github.com/giampaolo/psutil/issues/503
-        #   os.readlink('/proc/pid/exe') may raise ESRCH (ProcessLookupError)
-        #   instead of ENOENT (FileNotFoundError) when it races.
-        # * ENOENT may occur also if the path actually exists if PID is
-        #   a low PID (~0-20 range).
-        # * https://github.com/giampaolo/psutil/issues/2514
+        # 024262.python.pslinux.line1702.comment * https://github.com/giampaolo/psutil/issues/503
+        # 024263.python.pslinux.line1703.comment os.readlink('/proc/pid/exe') may raise ESRCH (ProcessLookupError)
+        # 024264.python.pslinux.line1704.comment instead of ENOENT (FileNotFoundError) when it races.
+        # 024265.python.pslinux.line1705.comment * ENOENT may occur also if the path actually exists if PID is
+        # 024266.python.pslinux.line1706.comment a low PID (~0-20 range).
+        # 024267.python.pslinux.line1707.comment * https://github.com/giampaolo/psutil/issues/2514
         try:
             return readlink(path)
         except (FileNotFoundError, ProcessLookupError):
@@ -1726,9 +1726,9 @@ class Process:
         in use.
         """
         data = bcat(f"{self._procfs_path}/{self.pid}/stat")
-        # Process name is between parentheses. It can contain spaces and
-        # other parentheses. This is taken into account by looking for
-        # the first occurrence of "(" and the last occurrence of ")".
+        # 024268.python.pslinux.line1729.comment Process name is between parentheses. It can contain spaces and
+        # 024269.python.pslinux.line1730.comment other parentheses. This is taken into account by looking for
+        # 024270.python.pslinux.line1731.comment the first occurrence of "(" and the last occurrence of ")".
         rpar = data.rfind(b')')
         name = data[data.find(b'(') + 1 : rpar]
         fields = data[rpar + 2 :].split()
@@ -1747,7 +1747,7 @@ class Process:
         try:
             ret['blkio_ticks'] = fields[39]  # aka 'delayacct_blkio_ticks'
         except IndexError:
-            # https://github.com/giampaolo/psutil/issues/2455
+            # 024272.python.pslinux.line1750.comment https://github.com/giampaolo/psutil/issues/2455
             debug("can't get blkio_ticks, set iowait to 0")
             ret['blkio_ticks'] = 0
 
@@ -1781,7 +1781,7 @@ class Process:
 
     @wrap_exceptions
     def name(self):
-        # XXX - gets changed later and probably needs refactoring
+        # 024273.python.pslinux.line1784.comment XXX - gets changed later and probably needs refactoring
         return decode(self._parse_stat_file()['name'])
 
     @wrap_exceptions
@@ -1795,23 +1795,23 @@ class Process:
         with open_text(f"{self._procfs_path}/{self.pid}/cmdline") as f:
             data = f.read()
         if not data:
-            # may happen in case of zombie process
+            # 024274.python.pslinux.line1798.comment may happen in case of zombie process
             self._raise_if_zombie()
             return []
-        # 'man proc' states that args are separated by null bytes '\0'
-        # and last char is supposed to be a null byte. Nevertheless
-        # some processes may change their cmdline after being started
-        # (via setproctitle() or similar), they are usually not
-        # compliant with this rule and use spaces instead. Google
-        # Chrome process is an example. See:
-        # https://github.com/giampaolo/psutil/issues/1179
+        # 024275.python.pslinux.line1801.comment 'man proc' states that args are separated by null bytes '\0'
+        # 024276.python.pslinux.line1802.comment and last char is supposed to be a null byte. Nevertheless
+        # 024277.python.pslinux.line1803.comment some processes may change their cmdline after being started
+        # 024278.python.pslinux.line1804.comment (via setproctitle() or similar), they are usually not
+        # 024279.python.pslinux.line1805.comment compliant with this rule and use spaces instead. Google
+        # 024280.python.pslinux.line1806.comment Chrome process is an example. See:
+        # 024281.python.pslinux.line1807.comment https://github.com/giampaolo/psutil/issues/1179
         sep = '\x00' if data.endswith('\x00') else ' '
         if data.endswith(sep):
             data = data[:-1]
         cmdline = data.split(sep)
-        # Sometimes last char is a null byte '\0' but the args are
-        # separated by spaces, see: https://github.com/giampaolo/psutil/
-        # issues/1179#issuecomment-552984549
+        # 024282.python.pslinux.line1812.comment Sometimes last char is a null byte '\0' but the args are
+        # 024283.python.pslinux.line1813.comment separated by spaces, see: https://github.com/giampaolo/psutil/
+        # 024284.python.pslinux.line1814.comment issues/1179#issuecomment-552984549
         if sep == '\x00' and len(cmdline) == 1 and ' ' in data:
             cmdline = data.split(' ')
         return cmdline
@@ -1831,7 +1831,7 @@ class Process:
         except KeyError:
             return None
 
-    # May not be available on old kernels.
+    # 024285.python.pslinux.line1834.comment May not be available on old kernels.
     if os.path.exists(f"/proc/{os.getpid()}/io"):
 
         @wrap_exceptions
@@ -1840,13 +1840,13 @@ class Process:
             fields = {}
             with open_binary(fname) as f:
                 for line in f:
-                    # https://github.com/giampaolo/psutil/issues/1004
+                    # 024286.python.pslinux.line1843.comment https://github.com/giampaolo/psutil/issues/1004
                     line = line.strip()
                     if line:
                         try:
                             name, value = line.split(b': ')
                         except ValueError:
-                            # https://github.com/giampaolo/psutil/issues/1004
+                            # 024287.python.pslinux.line1849.comment https://github.com/giampaolo/psutil/issues/1004
                             continue
                         else:
                             fields[name] = int(value)
@@ -1890,34 +1890,34 @@ class Process:
 
     @wrap_exceptions
     def create_time(self, monotonic=False):
-        # The 'starttime' field in /proc/[pid]/stat is expressed in
-        # jiffies (clock ticks per second), a relative value which
-        # represents the number of clock ticks that have passed since
-        # the system booted until the process was created. It never
-        # changes and is unaffected by system clock updates.
+        # 024294.python.pslinux.line1893.comment The 'starttime' field in /proc/[pid]/stat is expressed in
+        # 024295.python.pslinux.line1894.comment jiffies (clock ticks per second), a relative value which
+        # 024296.python.pslinux.line1895.comment represents the number of clock ticks that have passed since
+        # 024297.python.pslinux.line1896.comment the system booted until the process was created. It never
+        # 024298.python.pslinux.line1897.comment changes and is unaffected by system clock updates.
         if self._ctime is None:
             self._ctime = (
                 float(self._parse_stat_file()['create_time']) / CLOCK_TICKS
             )
         if monotonic:
             return self._ctime
-        # Add the boot time, returning time expressed in seconds since
-        # the epoch. This is subject to system clock updates.
+        # 024299.python.pslinux.line1904.comment Add the boot time, returning time expressed in seconds since
+        # 024300.python.pslinux.line1905.comment the epoch. This is subject to system clock updates.
         return self._ctime + boot_time()
 
     @wrap_exceptions
     def memory_info(self):
-        #  ============================================================
-        # | FIELD  | DESCRIPTION                         | AKA  | TOP  |
-        #  ============================================================
-        # | rss    | resident set size                   |      | RES  |
-        # | vms    | total program size                  | size | VIRT |
-        # | shared | shared pages (from shared mappings) |      | SHR  |
-        # | text   | text ('code')                       | trs  | CODE |
-        # | lib    | library (unused in Linux 2.6)       | lrs  |      |
-        # | data   | data + stack                        | drs  | DATA |
-        # | dirty  | dirty pages (unused in Linux 2.6)   | dt   |      |
-        #  ============================================================
+        # 024301.python.pslinux.line1910.comment ============================================================
+        # 024302.python.pslinux.line1911.comment | FIELD  | DESCRIPTION                         | AKA  | TOP  |
+        # 024303.python.pslinux.line1912.comment ============================================================
+        # 024304.python.pslinux.line1913.comment | rss    | resident set size                   |      | RES  |
+        # 024305.python.pslinux.line1914.comment | vms    | total program size                  | size | VIRT |
+        # 024306.python.pslinux.line1915.comment | shared | shared pages (from shared mappings) |      | SHR  |
+        # 024307.python.pslinux.line1916.comment | text   | text ('code')                       | trs  | CODE |
+        # 024308.python.pslinux.line1917.comment | lib    | library (unused in Linux 2.6)       | lrs  |      |
+        # 024309.python.pslinux.line1918.comment | data   | data + stack                        | drs  | DATA |
+        # 024310.python.pslinux.line1919.comment | dirty  | dirty pages (unused in Linux 2.6)   | dt   |      |
+        # 024311.python.pslinux.line1920.comment ============================================================
         with open_binary(f"{self._procfs_path}/{self.pid}/statm") as f:
             vms, rss, shared, text, lib, data, dirty = (
                 int(x) * PAGESIZE for x in f.readline().split()[:7]
@@ -1927,21 +1927,21 @@ class Process:
     if HAS_PROC_SMAPS_ROLLUP or HAS_PROC_SMAPS:
 
         def _parse_smaps_rollup(self):
-            # /proc/pid/smaps_rollup was added to Linux in 2017. Faster
-            # than /proc/pid/smaps. It reports higher PSS than */smaps
-            # (from 1k up to 200k higher; tested against all processes).
-            # IMPORTANT: /proc/pid/smaps_rollup is weird, because it
-            # raises ESRCH / ENOENT for many PIDs, even if they're alive
-            # (also as root). In that case we'll use /proc/pid/smaps as
-            # fallback, which is slower but has a +50% success rate
-            # compared to /proc/pid/smaps_rollup.
+            # 024312.python.pslinux.line1930.comment /proc/pid/smaps_rollup was added to Linux in 2017. Faster
+            # 024313.python.pslinux.line1931.comment than /proc/pid/smaps. It reports higher PSS than */smaps
+            # 024314.python.pslinux.line1932.comment (from 1k up to 200k higher; tested against all processes).
+            # 024315.python.pslinux.line1933.comment IMPORTANT: /proc/pid/smaps_rollup is weird, because it
+            # 024316.python.pslinux.line1934.comment raises ESRCH / ENOENT for many PIDs, even if they're alive
+            # 024317.python.pslinux.line1935.comment (also as root). In that case we'll use /proc/pid/smaps as
+            # 024318.python.pslinux.line1936.comment fallback, which is slower but has a +50% success rate
+            # 024319.python.pslinux.line1937.comment compared to /proc/pid/smaps_rollup.
             uss = pss = swap = 0
             with open_binary(
                 f"{self._procfs_path}/{self.pid}/smaps_rollup"
             ) as f:
                 for line in f:
                     if line.startswith(b"Private_"):
-                        # Private_Clean, Private_Dirty, Private_Hugetlb
+                        # 024320.python.pslinux.line1944.comment Private_Clean, Private_Dirty, Private_Hugetlb
                         uss += int(line.split()[1]) * 1024
                     elif line.startswith(b"Pss:"):
                         pss = int(line.split()[1]) * 1024
@@ -1952,27 +1952,27 @@ class Process:
         @wrap_exceptions
         def _parse_smaps(
             self,
-            # Gets Private_Clean, Private_Dirty, Private_Hugetlb.
+            # 024321.python.pslinux.line1955.comment Gets Private_Clean, Private_Dirty, Private_Hugetlb.
             _private_re=re.compile(br"\nPrivate.*:\s+(\d+)"),
             _pss_re=re.compile(br"\nPss\:\s+(\d+)"),
             _swap_re=re.compile(br"\nSwap\:\s+(\d+)"),
         ):
-            # /proc/pid/smaps does not exist on kernels < 2.6.14 or if
-            # CONFIG_MMU kernel configuration option is not enabled.
+            # 024322.python.pslinux.line1960.comment /proc/pid/smaps does not exist on kernels < 2.6.14 or if
+            # 024323.python.pslinux.line1961.comment CONFIG_MMU kernel configuration option is not enabled.
 
-            # Note: using 3 regexes is faster than reading the file
-            # line by line.
-            #
-            # You might be tempted to calculate USS by subtracting
-            # the "shared" value from the "resident" value in
-            # /proc/<pid>/statm. But at least on Linux, statm's "shared"
-            # value actually counts pages backed by files, which has
-            # little to do with whether the pages are actually shared.
-            # /proc/self/smaps on the other hand appears to give us the
-            # correct information.
+            # 024324.python.pslinux.line1963.comment Note: using 3 regexes is faster than reading the file
+            # 024325.python.pslinux.line1964.comment line by line.
+            # 024326.python.pslinux.line1965.comment
+            # 024327.python.pslinux.line1966.comment You might be tempted to calculate USS by subtracting
+            # 024328.python.pslinux.line1967.comment the "shared" value from the "resident" value in
+            # 024329.python.pslinux.line1968.comment /proc/<pid>/statm. But at least on Linux, statm's "shared"
+            # 024330.python.pslinux.line1969.comment value actually counts pages backed by files, which has
+            # 024331.python.pslinux.line1970.comment little to do with whether the pages are actually shared.
+            # 024332.python.pslinux.line1971.comment /proc/self/smaps on the other hand appears to give us the
+            # 024333.python.pslinux.line1972.comment correct information.
             smaps_data = self._read_smaps_file()
-            # Note: smaps file can be empty for certain processes.
-            # The code below will not crash though and will result to 0.
+            # 024334.python.pslinux.line1974.comment Note: smaps file can be empty for certain processes.
+            # 024335.python.pslinux.line1975.comment The code below will not crash though and will result to 0.
             uss = sum(map(int, _private_re.findall(smaps_data))) * 1024
             pss = sum(map(int, _pss_re.findall(smaps_data))) * 1024
             swap = sum(map(int, _swap_re.findall(smaps_data))) * 1024
@@ -2010,7 +2010,7 @@ class Process:
                 for line in lines:
                     fields = line.split(None, 5)
                     if not fields[0].endswith(b':'):
-                        # new block section
+                        # 024337.python.pslinux.line2013.comment new block section
                         yield (current_block.pop(), data)
                         current_block.append(line)
                     else:
@@ -2018,15 +2018,15 @@ class Process:
                             data[fields[0]] = int(fields[1]) * 1024
                         except (ValueError, IndexError):
                             if fields[0].startswith(b'VmFlags:'):
-                                # see issue #369
+                                # 024338.python.pslinux.line2021.comment see issue #369
                                 continue
                             msg = f"don't know how to interpret line {line!r}"
                             raise ValueError(msg) from None
                 yield (current_block.pop(), data)
 
             data = self._read_smaps_file()
-            # Note: smaps file can be empty for certain processes or for
-            # zombies.
+            # 024339.python.pslinux.line2028.comment Note: smaps file can be empty for certain processes or for
+            # 024340.python.pslinux.line2029.comment zombies.
             if not data:
                 self._raise_if_zombie()
                 return []
@@ -2091,7 +2091,7 @@ class Process:
 
     @wrap_exceptions
     def num_threads(self, _num_threads_re=re.compile(br'Threads:\t(\d+)')):
-        # Using a re is faster than iterating over file line by line.
+        # 024341.python.pslinux.line2094.comment Using a re is faster than iterating over file line by line.
         data = self._read_status_file()
         return int(_num_threads_re.findall(data)[0])
 
@@ -2107,11 +2107,11 @@ class Process:
                 with open_binary(fname) as f:
                     st = f.read().strip()
             except (FileNotFoundError, ProcessLookupError):
-                # no such file or directory or no such process;
-                # it means thread disappeared on us
+                # 024342.python.pslinux.line2110.comment no such file or directory or no such process;
+                # 024343.python.pslinux.line2111.comment it means thread disappeared on us
                 hit_enoent = True
                 continue
-            # ignore the first two values ("pid (exe)")
+            # 024344.python.pslinux.line2114.comment ignore the first two values ("pid (exe)")
             st = st[st.find(b')') + 2 :]
             values = st.split(b' ')
             utime = float(values[11]) / CLOCK_TICKS
@@ -2124,18 +2124,18 @@ class Process:
 
     @wrap_exceptions
     def nice_get(self):
-        # with open_text(f"{self._procfs_path}/{self.pid}/stat") as f:
-        #   data = f.read()
-        #   return int(data.split()[18])
+        # 024345.python.pslinux.line2127.comment with open_text(f"{self._procfs_path}/{self.pid}/stat") as f:
+        # 024346.python.pslinux.line2128.comment data = f.read()
+        # 024347.python.pslinux.line2129.comment return int(data.split()[18])
 
-        # Use C implementation
+        # 024348.python.pslinux.line2131.comment Use C implementation
         return cext_posix.getpriority(self.pid)
 
     @wrap_exceptions
     def nice_set(self, value):
         return cext_posix.setpriority(self.pid, value)
 
-    # starting from CentOS 6.
+    # 024349.python.pslinux.line2138.comment starting from CentOS 6.
     if HAS_CPU_AFFINITY:
 
         @wrap_exceptions
@@ -2145,7 +2145,7 @@ class Process:
         def _get_eligible_cpus(
             self, _re=re.compile(br"Cpus_allowed_list:\t(\d+)-(\d+)")
         ):
-            # See: https://github.com/giampaolo/psutil/issues/956
+            # 024350.python.pslinux.line2148.comment See: https://github.com/giampaolo/psutil/issues/956
             data = self._read_status_file()
             match = _re.findall(data)
             if match:
@@ -2176,7 +2176,7 @@ class Process:
                             raise ValueError(msg) from err
                 raise
 
-    # only starting from kernel 2.6.13
+    # 024351.python.pslinux.line2179.comment only starting from kernel 2.6.13
     if HAS_PROC_IO_PRIORITY:
 
         @wrap_exceptions
@@ -2204,18 +2204,18 @@ class Process:
 
         @wrap_exceptions
         def rlimit(self, resource_, limits=None):
-            # If pid is 0 prlimit() applies to the calling process and
-            # we don't want that. We should never get here though as
-            # PID 0 is not supported on Linux.
+            # 024352.python.pslinux.line2207.comment If pid is 0 prlimit() applies to the calling process and
+            # 024353.python.pslinux.line2208.comment we don't want that. We should never get here though as
+            # 024354.python.pslinux.line2209.comment PID 0 is not supported on Linux.
             if self.pid == 0:
                 msg = "can't use prlimit() against PID 0 process"
                 raise ValueError(msg)
             try:
                 if limits is None:
-                    # get
+                    # 024355.python.pslinux.line2215.comment get
                     return resource.prlimit(self.pid, resource_)
                 else:
-                    # set
+                    # 024356.python.pslinux.line2218.comment set
                     if len(limits) != 2:
                         msg = (
                             "second argument must be a (soft, hard) "
@@ -2225,8 +2225,8 @@ class Process:
                     resource.prlimit(self.pid, resource_, limits)
             except OSError as err:
                 if err.errno == errno.ENOSYS:
-                    # I saw this happening on Travis:
-                    # https://travis-ci.org/giampaolo/psutil/jobs/51368273
+                    # 024357.python.pslinux.line2228.comment I saw this happening on Travis:
+                    # 024358.python.pslinux.line2229.comment https://travis-ci.org/giampaolo/psutil/jobs/51368273
                     self._raise_if_zombie()
                 raise
 
@@ -2234,7 +2234,7 @@ class Process:
     def status(self):
         letter = self._parse_stat_file()['status']
         letter = letter.decode()
-        # XXX is '?' legit? (we're not supposed to return it anyway)
+        # 024359.python.pslinux.line2237.comment XXX is '?' legit? (we're not supposed to return it anyway)
         return PROC_STATUSES.get(letter, '?')
 
     @wrap_exceptions
@@ -2247,33 +2247,33 @@ class Process:
             try:
                 path = readlink(file)
             except (FileNotFoundError, ProcessLookupError):
-                # ENOENT == file which is gone in the meantime
+                # 024360.python.pslinux.line2250.comment ENOENT == file which is gone in the meantime
                 hit_enoent = True
                 continue
             except OSError as err:
                 if err.errno == errno.EINVAL:
-                    # not a link
+                    # 024361.python.pslinux.line2255.comment not a link
                     continue
                 if err.errno == errno.ENAMETOOLONG:
-                    # file name too long
+                    # 024362.python.pslinux.line2258.comment file name too long
                     debug(err)
                     continue
                 raise
             else:
-                # If path is not an absolute there's no way to tell
-                # whether it's a regular file or not, so we skip it.
-                # A regular file is always supposed to be have an
-                # absolute path though.
+                # 024363.python.pslinux.line2263.comment If path is not an absolute there's no way to tell
+                # 024364.python.pslinux.line2264.comment whether it's a regular file or not, so we skip it.
+                # 024365.python.pslinux.line2265.comment A regular file is always supposed to be have an
+                # 024366.python.pslinux.line2266.comment absolute path though.
                 if path.startswith('/') and isfile_strict(path):
-                    # Get file position and flags.
+                    # 024367.python.pslinux.line2268.comment Get file position and flags.
                     file = f"{self._procfs_path}/{self.pid}/fdinfo/{fd}"
                     try:
                         with open_binary(file) as f:
                             pos = int(f.readline().split()[1])
                             flags = int(f.readline().split()[1], 8)
                     except (FileNotFoundError, ProcessLookupError):
-                        # fd gone in the meantime; process may
-                        # still be alive
+                        # 024368.python.pslinux.line2275.comment fd gone in the meantime; process may
+                        # 024369.python.pslinux.line2276.comment still be alive
                         hit_enoent = True
                     else:
                         mode = file_flags_to_mode(flags)

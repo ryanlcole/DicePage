@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 042689.python.markers.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 042690.python.markers.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 042691.python.markers.line3.comment for complete details.
 
 from __future__ import annotations
 
@@ -139,10 +139,10 @@ def _format_marker(
 ) -> str:
     assert isinstance(marker, (list, tuple, str))
 
-    # Sometimes we have a structure like [[...]] which is a single item list
-    # where the single item is itself it's own list. In that case we want skip
-    # the rest of this function so that we don't get extraneous () on the
-    # outside.
+    # 042692.python.markers.line142.comment Sometimes we have a structure like [[...]] which is a single item list
+    # 042693.python.markers.line143.comment where the single item is itself it's own list. In that case we want skip
+    # 042694.python.markers.line144.comment the rest of this function so that we don't get extraneous () on the
+    # 042695.python.markers.line145.comment outside.
     if (
         isinstance(marker, list)
         and len(marker) == 1
@@ -190,14 +190,14 @@ def _eval_op(lhs: str, op: Op, rhs: str) -> bool:
 
 
 def _normalize(*values: str, key: str) -> tuple[str, ...]:
-    # PEP 685 – Comparison of extra names for optional distribution dependencies
-    # https://peps.python.org/pep-0685/
-    # > When comparing extra names, tools MUST normalize the names being
-    # > compared using the semantics outlined in PEP 503 for names
+    # 042696.python.markers.line193.comment PEP 685 – Comparison of extra names for optional distribution dependencies
+    # 042697.python.markers.line194.comment https://peps.python.org/pep-0685/
+    # 042698.python.markers.line195.comment > When comparing extra names, tools MUST normalize the names being
+    # 042699.python.markers.line196.comment > compared using the semantics outlined in PEP 503 for names
     if key == "extra":
         return tuple(canonicalize_name(v) for v in values)
 
-    # other environment markers don't have such standards
+    # 042700.python.markers.line200.comment other environment markers don't have such standards
     return values
 
 
@@ -259,27 +259,27 @@ def default_environment() -> Environment:
 
 class Marker:
     def __init__(self, marker: str) -> None:
-        # Note: We create a Marker object without calling this constructor in
-        #       packaging.requirements.Requirement. If any additional logic is
-        #       added here, make sure to mirror/adapt Requirement.
+        # 042701.python.markers.line262.comment Note: We create a Marker object without calling this constructor in
+        # 042702.python.markers.line263.comment packaging.requirements.Requirement. If any additional logic is
+        # 042703.python.markers.line264.comment added here, make sure to mirror/adapt Requirement.
         try:
             self._markers = _normalize_extra_values(_parse_marker(marker))
-            # The attribute `_markers` can be described in terms of a recursive type:
-            # MarkerList = List[Union[Tuple[Node, ...], str, MarkerList]]
-            #
-            # For example, the following expression:
-            # python_version > "3.6" or (python_version == "3.6" and os_name == "unix")
-            #
-            # is parsed into:
-            # [
-            #     (<Variable('python_version')>, <Op('>')>, <Value('3.6')>),
-            #     'and',
-            #     [
-            #         (<Variable('python_version')>, <Op('==')>, <Value('3.6')>),
-            #         'or',
-            #         (<Variable('os_name')>, <Op('==')>, <Value('unix')>)
-            #     ]
-            # ]
+            # 042704.python.markers.line267.comment The attribute `_markers` can be described in terms of a recursive type:
+            # 042705.python.markers.line268.comment MarkerList = List[Union[Tuple[Node, ...], str, MarkerList]]
+            # 042706.python.markers.line269.comment
+            # 042707.python.markers.line270.comment For example, the following expression:
+            # 042708.python.markers.line271.comment python_version > "3.6" or (python_version == "3.6" and os_name == "unix")
+            # 042709.python.markers.line272.comment
+            # 042710.python.markers.line273.comment is parsed into:
+            # 042711.python.markers.line274.comment [
+            # 042712.python.markers.line275.comment (<Variable('python_version')>, <Op('>')>, <Value('3.6')>),
+            # 042713.python.markers.line276.comment 'and',
+            # 042714.python.markers.line277.comment [
+            # 042715.python.markers.line278.comment (<Variable('python_version')>, <Op('==')>, <Value('3.6')>),
+            # 042716.python.markers.line279.comment 'or',
+            # 042717.python.markers.line280.comment (<Variable('os_name')>, <Op('==')>, <Value('unix')>)
+            # 042718.python.markers.line281.comment ]
+            # 042719.python.markers.line282.comment ]
         except ParserSyntaxError as e:
             raise InvalidMarker(str(e)) from e
 
@@ -311,8 +311,8 @@ class Marker:
         current_environment["extra"] = ""
         if environment is not None:
             current_environment.update(environment)
-            # The API used to allow setting extra to None. We need to handle this
-            # case for backwards compatibility.
+            # 042720.python.markers.line314.comment The API used to allow setting extra to None. We need to handle this
+            # 042721.python.markers.line315.comment case for backwards compatibility.
             if current_environment["extra"] is None:
                 current_environment["extra"] = ""
 

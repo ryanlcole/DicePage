@@ -18,7 +18,7 @@ class MemoryFileObject:
         if not getattr(self.file, 'seek', None) or not getattr(self.file, 'tell', None):
             raise Exception("File object does not support seeking.")
 
-        # Seek to end of file to get the filesize.
+        # 033836.python.coreaudio.line21.comment Seek to end of file to get the filesize.
         self.file.seek(0, 2)
         self.file_size = self.file.tell()
         self.file.seek(0)  # Put cursor back at the beginning.
@@ -88,7 +88,7 @@ class CoreAudioSource(StreamingSource):
 
         length = c_long()
         size = c_uint32(sizeof(format_info))
-        # File length.
+        # 033839.python.coreaudio.line91.comment File length.
         err_check(ca.ExtAudioFileGetProperty(
             self._audref,
             kExtAudioFileProperty_FileLengthFrames,
@@ -162,9 +162,9 @@ class CoreAudioSource(StreamingSource):
         ca.ExtAudioFileSeek(self._audref, position)
 
 
-#########################################
-#   Decoder class:
-#########################################
+# 033841.python.coreaudio.line165.comment ########################################
+# 033842.python.coreaudio.line166.comment Decoder class:
+# 033843.python.coreaudio.line167.comment ########################################
 
 class CoreAudioDecoder(MediaDecoder):
 

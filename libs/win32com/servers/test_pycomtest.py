@@ -1,18 +1,18 @@
-# This is part of the Python test suite.
-# The object is registered when you first run the test suite.
-# (and hopefully unregistered once done ;-)
+# 049824.python.test_pycomtest.line1.comment This is part of the Python test suite.
+# 049825.python.test_pycomtest.line2.comment The object is registered when you first run the test suite.
+# 049826.python.test_pycomtest.line3.comment (and hopefully unregistered once done ;-)
 
 import pythoncom
 import winerror
 
-# Ensure the vtables in the tlb are known.
+# 049827.python.test_pycomtest.line8.comment Ensure the vtables in the tlb are known.
 from win32com.client import constants, gencache
 from win32com.server.exception import COMException
 from win32com.server.util import wrap
 
 pythoncom.__future_currency__ = True
-# We use the constants from the module, so must insist on a gencache.
-# Otherwise, use of gencache is not necessary (tho still advised)
+# 049828.python.test_pycomtest.line14.comment We use the constants from the module, so must insist on a gencache.
+# 049829.python.test_pycomtest.line15.comment Otherwise, use of gencache is not necessary (tho still advised)
 gencache.EnsureModule("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 
@@ -44,7 +44,7 @@ class PyCOMTest:
     def GetSetDispatch(self, indisp):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
-    # Result is of type IPyCOMTest
+    # 049830.python.test_pycomtest.line47.comment Result is of type IPyCOMTest
     def GetSetInterface(self, ininterface):
         return wrap(self)
 
@@ -57,14 +57,14 @@ class PyCOMTest:
     def TestByRefString(self, v):
         return v * 2
 
-    # Result is of type IPyCOMTest
+    # 049831.python.test_pycomtest.line60.comment Result is of type IPyCOMTest
     def GetSetInterfaceArray(self, ininterface):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def GetSetUnknown(self, inunk):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
-    # Result is of type ISimpleCounter
+    # 049832.python.test_pycomtest.line67.comment Result is of type ISimpleCounter
     def GetSimpleCounter(self):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
@@ -164,7 +164,7 @@ class PyCOMTest:
 class PyCOMTestMI(PyCOMTest):
     _typelib_guid_ = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
     _typelib_version = 1, 0
-    # Interfaces with a interface name, a real IID, and an IID as a string
+    # 049833.python.test_pycomtest.line167.comment Interfaces with a interface name, a real IID, and an IID as a string
     _com_interfaces_ = [
         "IPyCOMTest",
         pythoncom.IID_IStream,

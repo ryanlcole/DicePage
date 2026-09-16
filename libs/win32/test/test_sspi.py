@@ -1,6 +1,6 @@
-# Some tests of the win32security sspi functions.
-# Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
-# See also the other SSPI demos.
+# 048243.python.test_sspi.line1.comment Some tests of the win32security sspi functions.
+# 048244.python.test_sspi.line2.comment Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
+# 048245.python.test_sspi.line3.comment See also the other SSPI demos.
 import unittest
 
 import sspi
@@ -10,9 +10,9 @@ import win32security
 from pywin32_testutil import TestSkipped, testmain
 
 
-# It is quite likely that the Kerberos tests will fail due to not being
-# installed.  The NTLM tests do *not* get the same behaviour as they should
-# always be there.
+# 048246.python.test_sspi.line13.comment It is quite likely that the Kerberos tests will fail due to not being
+# 048247.python.test_sspi.line14.comment installed.  The NTLM tests do *not* get the same behaviour as they should
+# 048248.python.test_sspi.line15.comment always be there.
 def applyHandlingSkips(func, *args):
     try:
         return func(*args)
@@ -45,7 +45,7 @@ class TestSSPI(unittest.TestCase):
         return sspiclient, sspiserver
 
     def _doTestImpersonate(self, pkg_name):
-        # Just for the sake of code exercising!
+        # 048249.python.test_sspi.line48.comment Just for the sake of code exercising!
         sspiclient, sspiserver = self._doAuth(pkg_name)
         sspiserver.ctxt.ImpersonateSecurityContext()
         sspiserver.ctxt.RevertSecurityContext()
@@ -74,7 +74,7 @@ class TestSSPI(unittest.TestCase):
         sspiclient.ctxt.EncryptMessage(0, encbuf, 1)
         sspiserver.ctxt.DecryptMessage(encbuf, 1)
         self.assertEqual(msg, encbuf[0].Buffer)
-        # and test the higher-level functions
+        # 048250.python.test_sspi.line77.comment and test the higher-level functions
         data_in = b"hello"
         data, sig = sspiclient.encrypt(data_in)
         self.assertEqual(sspiserver.decrypt(data, sig), data_in)
@@ -83,8 +83,8 @@ class TestSSPI(unittest.TestCase):
         self.assertEqual(sspiclient.decrypt(data, sig), data_in)
 
     def _doTestEncryptStream(self, pkg_name):
-        # Test out the SSPI/GSSAPI interop wrapping examples at
-        # https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        # 048251.python.test_sspi.line86.comment Test out the SSPI/GSSAPI interop wrapping examples at
+        # 048252.python.test_sspi.line87.comment https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
@@ -144,7 +144,7 @@ class TestSSPI(unittest.TestCase):
         sigbuf[0].Buffer = msg
         sspiclient.ctxt.MakeSignature(0, sigbuf, 0)
         sspiserver.ctxt.VerifySignature(sigbuf, 0)
-        # and test the higher-level functions
+        # 048253.python.test_sspi.line147.comment and test the higher-level functions
         sspiclient.next_seq_num = 1
         sspiserver.next_seq_num = 1
         data = b"hello"
@@ -155,7 +155,7 @@ class TestSSPI(unittest.TestCase):
             sspicon.SEC_E_MESSAGE_ALTERED, sspiserver.verify, data + data, key
         )
 
-        # and the other way
+        # 048254.python.test_sspi.line158.comment and the other way
         key = sspiserver.sign(data)
         sspiclient.verify(data, key)
         key = sspiserver.sign(data)
@@ -170,7 +170,7 @@ class TestSSPI(unittest.TestCase):
         applyHandlingSkips(self._doTestSign, "Kerberos")
 
     def _testSequenceSign(self):
-        # Only Kerberos supports sequence detection.
+        # 048255.python.test_sspi.line173.comment Only Kerberos supports sequence detection.
         sspiclient, sspiserver = self._doAuth("Kerberos")
         key = sspiclient.sign(b"hello")
         sspiclient.sign(b"hello")
@@ -182,7 +182,7 @@ class TestSSPI(unittest.TestCase):
         applyHandlingSkips(self._testSequenceSign)
 
     def _testSequenceEncrypt(self):
-        # Only Kerberos supports sequence detection.
+        # 048256.python.test_sspi.line185.comment Only Kerberos supports sequence detection.
         sspiclient, sspiserver = self._doAuth("Kerberos")
         blob, key = sspiclient.encrypt(b"hello")
         blob, key = sspiclient.encrypt(b"hello")

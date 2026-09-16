@@ -9,24 +9,24 @@ from flask import Flask, jsonify
 from datetime import datetime
 import threading, time, random
 
-# ---- internal modules ----
+# 052530.python.shaelvien_daemon.line12.comment ---- internal modules ----
 from ai_founders_loader import load_founders
 import sensory_input_handler as senses
 
-# -------------------------------------------------
-# Flask setup
-# -------------------------------------------------
+# 052531.python.shaelvien_daemon.line16.comment -------------------------------------------------
+# 052532.python.shaelvien_daemon.line17.comment Flask setup
+# 052533.python.shaelvien_daemon.line18.comment -------------------------------------------------
 app = Flask(__name__)
 PORT = 7713
 
-# -------------------------------------------------
-# Boot sequence
-# -------------------------------------------------
+# 052534.python.shaelvien_daemon.line22.comment -------------------------------------------------
+# 052535.python.shaelvien_daemon.line23.comment Boot sequence
+# 052536.python.shaelvien_daemon.line24.comment -------------------------------------------------
 print("[daemon] Booting ShaelvienOS • Brain Runtime Alpha …")
 BRAIN = load_founders()
 print(f"[daemon] BrainMap regions = {len(BRAIN['BrainMap'])}")
 
-# simple background resonance drift
+# 052537.python.shaelvien_daemon.line29.comment simple background resonance drift
 running = True
 
 def resonance_loop():
@@ -39,9 +39,9 @@ def resonance_loop():
 threading.Thread(target=resonance_loop, daemon=True).start()
 print(f"[daemon] Resonance loop initialized at ≈ {BRAIN['ResonanceMatrix'][0]['AverageFrequency']} Hz")
 
-# -------------------------------------------------
-# API endpoints
-# -------------------------------------------------
+# 052538.python.shaelvien_daemon.line42.comment -------------------------------------------------
+# 052539.python.shaelvien_daemon.line43.comment API endpoints
+# 052540.python.shaelvien_daemon.line44.comment -------------------------------------------------
 @app.route("/health")
 def health():
     """Basic system heartbeat."""
@@ -64,9 +64,9 @@ def senses_snapshot():
     frame = senses.gather_sensory_snapshot()
     return jsonify(frame)
 
-# -------------------------------------------------
-# Main entry
-# -------------------------------------------------
+# 052541.python.shaelvien_daemon.line67.comment -------------------------------------------------
+# 052542.python.shaelvien_daemon.line68.comment Main entry
+# 052543.python.shaelvien_daemon.line69.comment -------------------------------------------------
 if __name__ == "__main__":
     try:
         print(f"[daemon] Phase 23.8 — Brain Runtime Alpha + Sensory Link Online")

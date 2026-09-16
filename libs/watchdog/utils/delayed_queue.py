@@ -31,7 +31,7 @@ class DelayedQueue(Generic[T]):
     def close(self) -> None:
         """Close queue, indicating no more items will be added."""
         self._closed = True
-        # Interrupt the blocking _not_empty.wait() call in get
+        # 045918.python.delayed_queue.line34.comment Interrupt the blocking _not_empty.wait() call in get
         self._not_empty.acquire()
         self._not_empty.notify()
         self._not_empty.release()
@@ -41,7 +41,7 @@ class DelayedQueue(Generic[T]):
         closed raise the Closed exception.
         """
         while True:
-            # wait for element to be added to queue
+            # 045919.python.delayed_queue.line44.comment wait for element to be added to queue
             self._not_empty.acquire()
             while len(self._queue) == 0 and not self._closed:
                 self._not_empty.wait()
@@ -52,14 +52,14 @@ class DelayedQueue(Generic[T]):
             head, insert_time, delay = self._queue[0]
             self._not_empty.release()
 
-            # wait for delay if required
+            # 045920.python.delayed_queue.line55.comment wait for delay if required
             if delay:
                 time_left = insert_time + self.delay_sec - time.time()
                 while time_left > 0:
                     time.sleep(time_left)
                     time_left = insert_time + self.delay_sec - time.time()
 
-            # return element if it's still in the queue
+            # 045921.python.delayed_queue.line62.comment return element if it's still in the queue
             with self._lock:
                 if len(self._queue) > 0 and self._queue[0][0] is head:
                     self._queue.popleft()

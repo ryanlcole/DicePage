@@ -29,7 +29,7 @@ def environment(**replacements):
     """
     saved = dict((key, os.environ[key]) for key in replacements if key in os.environ)
 
-    # remove values that are null
+    # 045075.python.contexts.line32.comment remove values that are null
     remove = (key for (key, value) in replacements.items() if value is None)
     for key in list(remove):
         os.environ.pop(key, None)
@@ -97,13 +97,13 @@ def multiproc(request):
 @contextlib.contextmanager
 def session_locked_tmp_dir(request, tmp_path_factory, name):
     """Uses a file lock to guarantee only one worker can access a temp dir"""
-    # get the temp directory shared by all workers
+    # 045076.python.contexts.line100.comment get the temp directory shared by all workers
     base = tmp_path_factory.getbasetemp()
     shared_dir = base.parent if multiproc(request) else base
 
     locked_dir = shared_dir / name
     with FileLock(locked_dir.with_suffix(".lock")):
-        # ^-- prevent multiple workers to access the directory at once
+        # 045077.python.contexts.line106.comment ^-- prevent multiple workers to access the directory at once
         locked_dir.mkdir(exist_ok=True, parents=True)
         yield locked_dir
 

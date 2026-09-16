@@ -139,7 +139,7 @@ def user_key(scancode: int) -> int:
     assert scancode > 0
     return scancode << 32
 
-# Modifier mask constants
+# 036280.python.key.line142.comment Modifier mask constants
 MOD_SHIFT       = 1 << 0
 MOD_CTRL        = 1 << 1
 MOD_ALT         = 1 << 2
@@ -151,16 +151,16 @@ MOD_OPTION      = 1 << 7
 MOD_SCROLLLOCK  = 1 << 8
 MOD_FUNCTION    = 1 << 9
 
-#: Accelerator modifier.  On Windows and Linux, this is ``MOD_CTRL``, on
-#: Mac OS X it's ``MOD_COMMAND``.
+# 036281.python.key.line154.comment : Accelerator modifier.  On Windows and Linux, this is ``MOD_CTRL``, on
+# 036282.python.key.line155.comment : Mac OS X it's ``MOD_COMMAND``.
 MOD_ACCEL = MOD_CTRL
 if compat_platform == 'darwin':
     MOD_ACCEL = MOD_COMMAND
 
 
-# Key symbol constants
+# 036283.python.key.line161.comment Key symbol constants
 
-# ASCII commands
+# 036284.python.key.line163.comment ASCII commands
 BACKSPACE     = 0xff08
 TAB           = 0xff09
 LINEFEED      = 0xff0a
@@ -172,7 +172,7 @@ SCROLLLOCK    = 0xff14
 SYSREQ        = 0xff15
 ESCAPE        = 0xff1b
 
-# Cursor control and motion
+# 036286.python.key.line175.comment Cursor control and motion
 HOME          = 0xff50
 LEFT          = 0xff51
 UP            = 0xff52
@@ -183,7 +183,7 @@ PAGEDOWN      = 0xff56
 END           = 0xff57
 BEGIN         = 0xff58
 
-# Misc functions
+# 036287.python.key.line186.comment Misc functions
 DELETE        = 0xffff
 SELECT        = 0xff60
 PRINT         = 0xff61
@@ -200,16 +200,16 @@ MODESWITCH    = 0xff7e
 SCRIPTSWITCH  = 0xff7e
 FUNCTION      = 0xffd2
 
-# Text motion constants
-# These are allowed to clash with key constants since they are
-# abstractions of keyboard shortcuts. See the following for more
-# information:
-#
-# 1. doc/programming_guide/keyboard.rst
-# 2. doc/modules/window_key.rst
-#
-# To add new motions, consult the Adding New Motions section of
-# doc/programming_guide/keyboard.rst
+# 036288.python.key.line203.comment Text motion constants
+# 036289.python.key.line204.comment These are allowed to clash with key constants since they are
+# 036290.python.key.line205.comment abstractions of keyboard shortcuts. See the following for more
+# 036291.python.key.line206.comment information:
+# 036292.python.key.line207.comment
+# 036293.python.key.line208.comment 1. doc/programming_guide/keyboard.rst
+# 036294.python.key.line209.comment 2. doc/modules/window_key.rst
+# 036295.python.key.line210.comment
+# 036296.python.key.line211.comment To add new motions, consult the Adding New Motions section of
+# 036297.python.key.line212.comment doc/programming_guide/keyboard.rst
 MOTION_UP                = UP
 MOTION_RIGHT             = RIGHT
 MOTION_DOWN              = DOWN
@@ -227,7 +227,7 @@ MOTION_DELETE            = DELETE
 MOTION_COPY              = 7
 MOTION_PASTE             = 8
 
-# Number pad
+# 036298.python.key.line230.comment Number pad
 NUMLOCK       = 0xff7f
 NUM_SPACE     = 0xff80
 NUM_TAB       = 0xff89
@@ -268,7 +268,7 @@ NUM_7         = 0xffb7
 NUM_8         = 0xffb8
 NUM_9         = 0xffb9
 
-# Function keys
+# 036299.python.key.line271.comment Function keys
 F1            = 0xffbe
 F2            = 0xffbf
 F3            = 0xffc0
@@ -293,7 +293,7 @@ F21           = 0xffd2
 F22           = 0xffd3
 F23           = 0xffd4
 F24           = 0xffd5
-# Modifiers
+# 036300.python.key.line296.comment Modifiers
 LSHIFT        = 0xffe1
 RSHIFT        = 0xffe2
 LCTRL         = 0xffe3
@@ -310,7 +310,7 @@ RCOMMAND      = 0xffee
 LOPTION       = 0xffef
 ROPTION       = 0xfff0
 
-# Latin-1
+# 036301.python.key.line313.comment Latin-1
 SPACE         = 0x020
 EXCLAMATION   = 0x021
 DOUBLEQUOTE   = 0x022

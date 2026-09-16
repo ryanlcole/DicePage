@@ -1,4 +1,4 @@
-# odbc test suite kindly contributed by Frank Millman.
+# 048206.python.test_odbc.line1.comment odbc test suite kindly contributed by Frank Millman.
 import os
 import sys
 import tempfile
@@ -9,7 +9,7 @@ import pythoncom
 from pywin32_testutil import TestSkipped
 from win32com.client import constants
 
-# We use the DAO ODBC driver
+# 048207.python.test_odbc.line12.comment We use the DAO ODBC driver
 from win32com.client.gencache import EnsureDispatch
 
 
@@ -19,13 +19,13 @@ class TestStuff(unittest.TestCase):
         self.db_filename = None
         self.conn = self.cur = None
         try:
-            # Test any database if a connection string is supplied...
+            # 048208.python.test_odbc.line22.comment Test any database if a connection string is supplied...
             conn_str = os.environ["TEST_ODBC_CONNECTION_STRING"]
         except KeyError:
-            # Create a local MSAccess DB for testing.
+            # 048209.python.test_odbc.line25.comment Create a local MSAccess DB for testing.
             self.db_filename = tempfile.NamedTemporaryFile().name + ".mdb"
 
-            # Create a brand-new database - what is the story with these?
+            # 048210.python.test_odbc.line28.comment Create a brand-new database - what is the story with these?
             for suffix in (".36", ".35", ".30"):
                 try:
                     dbe = EnsureDispatch("DAO.DBEngine" + suffix)
@@ -48,19 +48,19 @@ class TestStuff(unittest.TestCase):
                     self.db_filename,
                 )
             )
-        # print("Connection string:", conn_str)
+        # 048211.python.test_odbc.line51.comment print("Connection string:", conn_str)
         self.conn = odbc.odbc(conn_str)
-        # And we expect a 'users' table for these tests.
+        # 048212.python.test_odbc.line53.comment And we expect a 'users' table for these tests.
         self.cur = self.conn.cursor()
-        ## self.cur.setoutputsize(1000)
+        # 048213.python.test_odbc.line55.comment # self.cur.setoutputsize(1000)
         try:
             self.cur.execute("""drop table %s""" % self.tablename)
         except (odbc.error, odbc.progError):
             pass
 
-        ## This needs to be adjusted for sql server syntax for unicode fields
-        ##  - memo -> TEXT
-        ##  - varchar -> nvarchar
+        # 048214.python.test_odbc.line61.comment # This needs to be adjusted for sql server syntax for unicode fields
+        # 048215.python.test_odbc.line62.comment #  - memo -> TEXT
+        # 048216.python.test_odbc.line63.comment #  - varchar -> nvarchar
         self.assertEqual(
             self.cur.execute(
                 """create table %s (
@@ -206,7 +206,7 @@ class TestStuff(unittest.TestCase):
         self._test_val("longbinaryfield", memoryview(b"\0\1\2" * 70000))
 
     def testRaw(self):
-        ## Test binary data
+        # 048217.python.test_odbc.line209.comment # Test binary data
         self._test_val("rawfield", memoryview(b"\1\2\3\4\0\5\6\7"))
 
     def test_widechar(self):

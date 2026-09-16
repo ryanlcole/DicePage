@@ -1,9 +1,9 @@
-# echo.py: Tracing function calls using Python decorators.
-#
-# Written by Thomas Guest <tag@wordaligned.org>
-# Please see http://wordaligned.org/articles/echo
-#
-# Place into the public domain.
+# 045931.python.echo.line1.comment echo.py: Tracing function calls using Python decorators.
+# 045932.python.echo.line2.comment
+# 045933.python.echo.line3.comment Written by Thomas Guest <tag@wordaligned.org>
+# 045934.python.echo.line4.comment Please see http://wordaligned.org/articles/echo
+# 045935.python.echo.line5.comment
+# 045936.python.echo.line6.comment Place into the public domain.
 
 """Echo calls made to functions in a module.
 
@@ -46,7 +46,7 @@ def echo(fn: Callable, write: Callable[[str], int | None] = sys.stdout.write) ->
     made to it by writing out the function's name and the arguments it was
     called with.
     """
-    # Unpack function's arg count, arg names, arg defaults
+    # 045937.python.echo.line49.comment Unpack function's arg count, arg names, arg defaults
     code = fn.__code__
     argcount = code.co_argcount
     argnames = code.co_varnames[:argcount]
@@ -55,8 +55,8 @@ def echo(fn: Callable, write: Callable[[str], int | None] = sys.stdout.write) ->
 
     @functools.wraps(fn)
     def wrapped(*v: Any, **k: Any) -> Callable:
-        # Collect function arguments by chaining together positional,
-        # defaulted, extra positional and keyword arguments.
+        # 045938.python.echo.line58.comment Collect function arguments by chaining together positional,
+        # 045939.python.echo.line59.comment defaulted, extra positional and keyword arguments.
         positional = list(map(format_arg_value, list(zip(argnames, v))))
         defaulted = [format_arg_value((a, argdefs[a])) for a in argnames[len(v) :] if a not in k]
         nameless = list(map(repr, v[argcount:]))

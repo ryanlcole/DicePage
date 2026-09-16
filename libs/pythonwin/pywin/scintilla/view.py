@@ -1,4 +1,4 @@
-# A general purpose MFC CCtrlView view that uses Scintilla.
+# 038906.python.view.line1.comment A general purpose MFC CCtrlView view that uses Scintilla.
 
 import os
 import re
@@ -27,7 +27,7 @@ wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.dig
 patImport = re.compile(r"import (?P<name>.*)")
 
 _event_commands = [
-    # File menu
+    # 038909.python.view.line30.comment File menu
     "win32ui.ID_FILE_LOCATE",
     "win32ui.ID_FILE_CHECK",
     "afxres.ID_FILE_CLOSE",
@@ -36,7 +36,7 @@ _event_commands = [
     "afxres.ID_FILE_SAVE",
     "afxres.ID_FILE_SAVE_AS",
     "win32ui.ID_FILE_SAVE_ALL",
-    # Edit menu
+    # 038910.python.view.line39.comment Edit menu
     "afxres.ID_EDIT_UNDO",
     "afxres.ID_EDIT_REDO",
     "afxres.ID_EDIT_CUT",
@@ -46,19 +46,19 @@ _event_commands = [
     "afxres.ID_EDIT_FIND",
     "afxres.ID_EDIT_REPEAT",
     "afxres.ID_EDIT_REPLACE",
-    # View menu
+    # 038911.python.view.line49.comment View menu
     "win32ui.ID_VIEW_WHITESPACE",
     "win32ui.ID_VIEW_FIXED_FONT",
     "win32ui.ID_VIEW_BROWSE",
     "win32ui.ID_VIEW_INTERACTIVE",
-    # Window menu
+    # 038912.python.view.line54.comment Window menu
     "afxres.ID_WINDOW_ARRANGE",
     "afxres.ID_WINDOW_CASCADE",
     "afxres.ID_WINDOW_NEW",
     "afxres.ID_WINDOW_SPLIT",
     "afxres.ID_WINDOW_TILE_HORZ",
     "afxres.ID_WINDOW_TILE_VERT",
-    # Others
+    # 038913.python.view.line61.comment Others
     "afxres.ID_APP_EXIT",
     "afxres.ID_APP_ABOUT",
 ]
@@ -122,12 +122,12 @@ def DoBraceMatch(control):
     if braceAtPos != -1 and braceOpposite == -1:
         control.SCIBraceBadHighlight(braceAtPos)
     else:
-        # either clear them both or set them both.
+        # 038914.python.view.line125.comment either clear them both or set them both.
         control.SCIBraceHighlight(braceAtPos, braceOpposite)
 
 
 def _get_class_attributes(ob):
-    # Recurse into base classes looking for attributes
+    # 038915.python.view.line130.comment Recurse into base classes looking for attributes
     items = []
     try:
         items.extend(dir(ob))
@@ -140,8 +140,8 @@ def _get_class_attributes(ob):
     return items
 
 
-# Supposed to look like an MFC CEditView, but
-# also supports IDLE extensions and other source code generic features.
+# 038916.python.view.line143.comment Supposed to look like an MFC CEditView, but
+# 038917.python.view.line144.comment also supports IDLE extensions and other source code generic features.
 class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def __init__(self, doc):
         docview.CtrlView.__init__(
@@ -164,7 +164,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         self.idle = IDLEenvironment.IDLEEditorWindow(self)
         self.idle.IDLEExtension("AutoExpand")
-        # SendScintilla is called so frequently it is worth optimizing.
+        # 038920.python.view.line167.comment SendScintilla is called so frequently it is worth optimizing.
         self.SendScintilla = self._obj_.SendMessage
 
     def _MakeColorizer(self):
@@ -173,11 +173,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         return formatter.BuiltinPythonSourceFormatter(self, ext)
 
-    # 	def SendScintilla(self, msg, w=0, l=0):
-    # 		return self._obj_.SendMessage(msg, w, l)
+    # 038921.python.view.line176.comment def SendScintilla(self, msg, w=0, l=0):
+    # 038922.python.view.line177.comment return self._obj_.SendMessage(msg, w, l)
 
     def SCISetTabWidth(self, width):
-        # I need to remember the tab-width for the AutoIndent extension.  This may go.
+        # 038923.python.view.line180.comment I need to remember the tab-width for the AutoIndent extension.  This may go.
         self._tabWidth = width
         control.CScintillaEditInterface.SCISetTabWidth(self, width)
 
@@ -185,12 +185,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         return self._tabWidth
 
     def HookHandlers(self):
-        # Create events for all the menu names.
+        # 038924.python.view.line188.comment Create events for all the menu names.
         for name, val in event_commands:
-            # 			handler = lambda id, code, tosend=val, parent=parent: parent.OnCommand(tosend, 0) and 0
+            # 038925.python.view.line190.comment handler = lambda id, code, tosend=val, parent=parent: parent.OnCommand(tosend, 0) and 0
             self.bindings.bind(name, None, cid=val)
 
-        # Hook commands that do nothing other than send Scintilla messages.
+        # 038926.python.view.line193.comment Hook commands that do nothing other than send Scintilla messages.
         for command, reflection in command_reflectors:
             handler = (
                 lambda id, code, ss=self.SendScintilla, tosend=reflection: ss(tosend)
@@ -220,21 +220,21 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         self.HookCommand(self.OnFilePrint, afxres.ID_FILE_PRINT)
         self.HookCommand(self.OnFilePrint, afxres.ID_FILE_PRINT_DIRECT)
         self.HookCommand(self.OnFilePrintPreview, win32ui.ID_FILE_PRINT_PREVIEW)
-        # Key bindings.
+        # 038927.python.view.line223.comment Key bindings.
         self.HookMessage(self.OnKeyDown, win32con.WM_KEYDOWN)
         self.HookMessage(self.OnKeyDown, win32con.WM_SYSKEYDOWN)
-        # Hook wheeley mouse events
-        # 		self.HookMessage(self.OnMouseWheel, win32con.WM_MOUSEWHEEL)
+        # 038928.python.view.line226.comment Hook wheeley mouse events
+        # 038929.python.view.line227.comment self.HookMessage(self.OnMouseWheel, win32con.WM_MOUSEWHEEL)
         self.HookFormatter()
 
     def OnInitialUpdate(self):
         doc = self.GetDocument()
 
-        # Enable Unicode
+        # 038930.python.view.line233.comment Enable Unicode
         self.SendScintilla(scintillacon.SCI_SETCODEPAGE, scintillacon.SC_CP_UTF8, 0)
         self.SendScintilla(scintillacon.SCI_SETKEYSUNICODE, 1, 0)
 
-        # Create margins
+        # 038931.python.view.line237.comment Create margins
         self.SendScintilla(
             scintillacon.SCI_SETMARGINTYPEN, 1, scintillacon.SC_MARGIN_SYMBOL
         )
@@ -252,7 +252,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         )  # is there an MFC way to grab this?
         self.HookHandlers()
 
-        # Load the configuration information.
+        # 038933.python.view.line255.comment Load the configuration information.
         self.OnWinIniChange(None)
 
         self.SetSel()
@@ -272,12 +272,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             self.bindings.complete_configure()
 
     def DoConfigChange(self):
-        # Bit of a hack I don't kow what to do about - these should be "editor options"
+        # 038936.python.view.line275.comment Bit of a hack I don't kow what to do about - these should be "editor options"
         from pywin.framework.editor import GetEditorOption
 
         self.bAutoCompleteAttributes = GetEditorOption("Autocomplete Attributes", 1)
         self.bShowCallTips = GetEditorOption("Show Call Tips", 1)
-        # Update the key map and extension data.
+        # 038937.python.view.line280.comment Update the key map and extension data.
         configManager.configure(self, self._GetSubConfigNames())
         if configManager.last_error:
             win32ui.MessageBox(configManager.last_error, "Configuration Error")
@@ -308,11 +308,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def OnNeedShown(self, std, extra):
         notify = self.SCIUnpackNotifyMessage(extra)
-        # OnNeedShown is called before an edit operation when
-        # text is folded (as it is possible the text insertion will happen
-        # in a folded region.)  As this happens _before_ the insert,
-        # we ignore the length (if we are at EOF, pos + length may
-        # actually be beyond the end of buffer)
+        # 038939.python.view.line311.comment OnNeedShown is called before an edit operation when
+        # 038940.python.view.line312.comment text is folded (as it is possible the text insertion will happen
+        # 038941.python.view.line313.comment in a folded region.)  As this happens _before_ the insert,
+        # 038942.python.view.line314.comment we ignore the length (if we are at EOF, pos + length may
+        # 038943.python.view.line315.comment actually be beyond the end of buffer)
         self.EnsureCharsVisible(notify.position)
 
     def EnsureCharsVisible(self, start, end=None):
@@ -324,7 +324,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             self.SCIEnsureVisible(lineStart)
             lineStart += 1
 
-    # Helper to add an event to a menu.
+    # 038944.python.view.line327.comment Helper to add an event to a menu.
     def AppendMenu(self, menu, text="", event=None, flags=None, checked=0):
         if event is None:
             assert flags is not None, "No event or custom flags!"
@@ -332,7 +332,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         else:
             cmdid = self.bindings.get_command_id(event)
             if cmdid is None:
-                # No event of that name - no point displaying it.
+                # 038945.python.view.line335.comment No event of that name - no point displaying it.
                 print(
                     'View.AppendMenu(): Unknown event "{}" specified for menu text "{}" - ignored'.format(
                         event, text
@@ -355,7 +355,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         self.SetSel(-1)
 
     def KeyDotEvent(self, event):
-        ## Don't trigger autocomplete if any text is selected
+        # 038946.python.view.line358.comment # Don't trigger autocomplete if any text is selected
         s, e = self.GetSel()
         if s != e:
             return 1
@@ -363,7 +363,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         if self.bAutoCompleteAttributes:
             self._AutoComplete()
 
-    # View Whitespace/EOL/Indentation UI.
+    # 038947.python.view.line366.comment View Whitespace/EOL/Indentation UI.
 
     def OnCmdViewWS(self, cmd, code):  # Handle the menu command
         viewWS = self.SCIGetViewWS()
@@ -403,7 +403,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnCmdViewFixedFont(self, cmd, code):  # Handle the menu command
         self._GetColorizer().bUseFixed = not self._GetColorizer().bUseFixed
         self.ApplyFormattingStyles(0)
-        # Ensure the selection is visible!
+        # 038957.python.view.line406.comment Ensure the selection is visible!
         self.ScrollCaret()
 
     def OnUpdateViewFixedFont(self, cmdui):  # Update the tick on the UI.
@@ -433,7 +433,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         m = patImport.match(line)
         if m:
-            # Module name on this line - locate that!
+            # 038959.python.view.line436.comment Module name on this line - locate that!
             modName = m.group("name")
             fileName = pywin.framework.scriptutils.LocatePythonFile(modName)
             if fileName is None:
@@ -442,7 +442,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             else:
                 win32ui.GetApp().OpenDocumentFile(fileName)
         else:
-            # Just to a "normal" locate - let the default handler get it.
+            # 038961.python.view.line445.comment Just to a "normal" locate - let the default handler get it.
             return 1
         return 0
 
@@ -463,22 +463,22 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def _AutoComplete(self):
         self.SCIAutoCCancel()  # Cancel old auto-complete lists.
-        # First try and get an object without evaluating calls
+        # 038963.python.view.line466.comment First try and get an object without evaluating calls
         ob = self._GetObjectAtPos(bAllowCalls=0)
-        # If that failed, try and process call or indexing to get the object.
+        # 038964.python.view.line468.comment If that failed, try and process call or indexing to get the object.
         if ob is None:
             ob = self._GetObjectAtPos(bAllowCalls=1)
         items_dict = {}
         if ob is not None:
             try:  # Catch unexpected errors when fetching attribute names from the object
-                # extra attributes of win32ui objects
+                # 038966.python.view.line474.comment extra attributes of win32ui objects
                 if hasattr(ob, "_obj_"):
                     try:
                         items_dict.update(dict.fromkeys(dir(ob._obj_)))
                     except AttributeError:
                         pass  # object has no __dict__
 
-                # normal attributes
+                # 038968.python.view.line481.comment normal attributes
                 try:
                     items_dict.update(dict.fromkeys(dir(ob)))
                 except AttributeError:
@@ -487,18 +487,18 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     items_dict.update(
                         dict.fromkeys(_get_class_attributes(ob.__class__))
                     )
-                # The object may be a COM object with typelib support - let's see if we can get its props.
-                # (contributed by Stefan Migowsky)
+                # 038970.python.view.line490.comment The object may be a COM object with typelib support - let's see if we can get its props.
+                # 038971.python.view.line491.comment (contributed by Stefan Migowsky)
                 try:
-                    # Get the automation attributes
+                    # 038972.python.view.line493.comment Get the automation attributes
                     items_dict.update(ob.__class__._prop_map_get_)
-                    # See if there is an write only property
-                    # could be optimized
+                    # 038973.python.view.line495.comment See if there is an write only property
+                    # 038974.python.view.line496.comment could be optimized
                     items_dict.update(ob.__class__._prop_map_put_)
-                    # append to the already evaluated list
+                    # 038975.python.view.line498.comment append to the already evaluated list
                 except AttributeError:
                     pass
-                # The object might be a pure COM dynamic dispatch with typelib support - let's see if we can get its props.
+                # 038976.python.view.line501.comment The object might be a pure COM dynamic dispatch with typelib support - let's see if we can get its props.
                 if hasattr(ob, "_oleobj_"):
                     try:
                         for iTI in range(0, ob._oleobj_.GetTypeInfoCount()):
@@ -514,42 +514,42 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         items = [
             k
             for k in
-            # ensure all keys are strings.
+            # 038977.python.view.line517.comment ensure all keys are strings.
             map(str, items_dict)
-            # All names that start with "_" go!
+            # 038978.python.view.line519.comment All names that start with "_" go!
             if not k.startswith("_")
         ]
 
         if not items:
-            # Heuristics a-la AutoExpand
-            # The idea is to find other usages of the current binding
-            # and assume, that it refers to the same object (or at least,
-            # to an object of the same type)
-            # Contributed by Vadim Chugunov [vadimch@yahoo.com]
+            # 038979.python.view.line524.comment Heuristics a-la AutoExpand
+            # 038980.python.view.line525.comment The idea is to find other usages of the current binding
+            # 038981.python.view.line526.comment and assume, that it refers to the same object (or at least,
+            # 038982.python.view.line527.comment to an object of the same type)
+            # 038983.python.view.line528.comment Contributed by Vadim Chugunov [vadimch@yahoo.com]
             left, right = self._GetWordSplit()
             if left == "":  # Ignore standalone dots
                 return None
-            # We limit our search to the current class, if that
-            # information is available
+            # 038985.python.view.line532.comment We limit our search to the current class, if that
+            # 038986.python.view.line533.comment information is available
             minline, maxline, curclass = self._GetClassInfoFromBrowser()
             endpos = self.LineIndex(maxline)
             text = self.GetTextRange(self.LineIndex(minline), endpos)
             try:
                 l = re.findall(r"\b" + left + r"\.\w+", text)
             except re.error:
-                # parens etc may make an invalid RE, but this code wouldnt
-                # benefit even if the RE did work :-)
+                # 038987.python.view.line540.comment parens etc may make an invalid RE, but this code wouldnt
+                # 038988.python.view.line541.comment benefit even if the RE did work :-)
                 l = []
             prefix = len(left) + 1
             unique = {}
             for li in l:
                 unique[li[prefix:]] = 1
-            # Assuming traditional usage of self...
+            # 038989.python.view.line547.comment Assuming traditional usage of self...
             if curclass and left == "self":
                 self._UpdateWithClassMethods(unique, curclass)
 
             items = [word for word in unique if word[:2] != "__" or word[-2:] != "__"]
-            # Ignore the word currently to the right of the dot - probably a red-herring.
+            # 038990.python.view.line552.comment Ignore the word currently to the right of the dot - probably a red-herring.
             try:
                 items.remove(right[1:])
             except ValueError:
@@ -563,7 +563,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         import pythoncom
 
         typeInfos = [typeInfo]
-        # suppress IDispatch and IUnknown methods
+        # 038991.python.view.line566.comment suppress IDispatch and IUnknown methods
         inspectedIIDs = {pythoncom.IID_IDispatch: None}
 
         while len(typeInfos) > 0:
@@ -578,28 +578,28 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     if funName not in items_dict:
                         items_dict[funName] = None
 
-                # Inspect the type info of all implemented types
-                # E.g. IShellDispatch5 implements IShellDispatch4 which implements IShellDispatch3 ...
+                # 038992.python.view.line581.comment Inspect the type info of all implemented types
+                # 038993.python.view.line582.comment E.g. IShellDispatch5 implements IShellDispatch4 which implements IShellDispatch3 ...
                 for iImplType in range(0, typeAttr.cImplTypes):
                     iRefType = typeInfo.GetRefTypeOfImplType(iImplType)
                     refTypeInfo = typeInfo.GetRefTypeInfo(iRefType)
                     typeInfos.append(refTypeInfo)
 
-    # TODO: This is kinda slow. Probably need some kind of cache
-    # here that is flushed upon file save
-    # Or maybe we don't need the superclass methods at all ?
+    # 038994.python.view.line588.comment TODO: This is kinda slow. Probably need some kind of cache
+    # 038995.python.view.line589.comment here that is flushed upon file save
+    # 038996.python.view.line590.comment Or maybe we don't need the superclass methods at all ?
     def _UpdateWithClassMethods(self, dict, classinfo):
         if not hasattr(classinfo, "methods"):
-            # No 'methods' - probably not what we think it is.
+            # 038997.python.view.line593.comment No 'methods' - probably not what we think it is.
             return
         dict.update(classinfo.methods)
         for super in classinfo.super:
             if hasattr(super, "methods"):
                 self._UpdateWithClassMethods(dict, super)
 
-    # Find which class definition caret is currently in and return
-    # indexes of the the first and the last lines of that class definition
-    # Data is obtained from module browser (if enabled)
+    # 038998.python.view.line600.comment Find which class definition caret is currently in and return
+    # 038999.python.view.line601.comment indexes of the the first and the last lines of that class definition
+    # 039000.python.view.line602.comment Data is obtained from module browser (if enabled)
     def _GetClassInfoFromBrowser(self, pos=-1):
         minline = 0
         maxline = self.GetLineCount() - 1
@@ -627,7 +627,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             return (minline, maxline, None)  # No class data for this module.
         curline = self.LineFromChar(pos)
         curclass = None
-        # Find out which class we are in
+        # 039005.python.view.line630.comment Find out which class we are in
         for item in clbrdata.values():
             if item.module == curmodule:
                 item_lineno = (
@@ -643,10 +643,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def _GetObjectAtPos(self, pos=-1, bAllowCalls=0):
         left, right = self._GetWordSplit(pos, bAllowCalls)
         if left:  # It is an attribute lookup
-            # How is this for a hack!
+            # 039008.python.view.line646.comment How is this for a hack!
             namespace = sys.modules.copy()
             namespace.update(__main__.__dict__)
-            # Get the debugger's context.
+            # 039009.python.view.line649.comment Get the debugger's context.
             try:
                 from pywin.framework import interact
 
@@ -690,23 +690,23 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         return "".join(before), "".join(after)
 
     def OnPrepareDC(self, dc, pInfo):
-        # print(
-        #     "OnPrepareDC for page",
-        #     pInfo.GetCurPage(),
-        #     "of",
-        #     pInfo.GetFromPage(),
-        #     "to",
-        #     pInfo.GetToPage(),
-        #     ", starts=",
-        #     self.starts,
-        # )
+        # 039011.python.view.line693.comment print(
+        # 039012.python.view.line694.comment "OnPrepareDC for page",
+        # 039013.python.view.line695.comment pInfo.GetCurPage(),
+        # 039014.python.view.line696.comment "of",
+        # 039015.python.view.line697.comment pInfo.GetFromPage(),
+        # 039016.python.view.line698.comment "to",
+        # 039017.python.view.line699.comment pInfo.GetToPage(),
+        # 039018.python.view.line700.comment ", starts=",
+        # 039019.python.view.line701.comment self.starts,
+        # 039020.python.view.line702.comment )
         if dc.IsPrinting():
-            # Check if we are beyond the end.
-            # (only do this when actually printing, else messes up print preview!)
+            # 039021.python.view.line704.comment Check if we are beyond the end.
+            # 039022.python.view.line705.comment (only do this when actually printing, else messes up print preview!)
             if not pInfo.GetPreview() and self.starts is not None:
                 prevPage = pInfo.GetCurPage() - 1
                 if prevPage > 0 and self.starts[prevPage] >= self.GetTextLength():
-                    # All finished.
+                    # 039023.python.view.line709.comment All finished.
                     pInfo.SetContinuePrinting(0)
                     return
             dc.SetMapMode(win32con.MM_TEXT)
@@ -715,11 +715,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         flags = (
             win32ui.PD_USEDEVMODECOPIES | win32ui.PD_ALLPAGES | win32ui.PD_NOSELECTION
         )  # Don't support printing just a selection.
-        # NOTE: Custom print dialogs are stopping the user's values from coming back :-(
-        # 		self.prtDlg = PrintDialog(pInfo, PRINTDLGORD, flags)
-        # 		pInfo.SetPrintDialog(self.prtDlg)
+        # 039025.python.view.line718.comment NOTE: Custom print dialogs are stopping the user's values from coming back :-(
+        # 039026.python.view.line719.comment self.prtDlg = PrintDialog(pInfo, PRINTDLGORD, flags)
+        # 039027.python.view.line720.comment pInfo.SetPrintDialog(self.prtDlg)
         pInfo.SetMinPage(1)
-        # max page remains undefined for now.
+        # 039028.python.view.line722.comment max page remains undefined for now.
         pInfo.SetFromPage(1)
         pInfo.SetToPage(1)
         ret = self.DoPreparePrinting(pInfo)
@@ -730,11 +730,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         return self._obj_.OnBeginPrinting(dc, pInfo)
 
     def CalculatePageRanges(self, dc, pInfo):
-        # Calculate page ranges and max page
+        # 039029.python.view.line733.comment Calculate page ranges and max page
         self.starts = {0: 0}
         metrics = dc.GetTextMetrics()
         left, top, right, bottom = pInfo.GetDraw()
-        # Leave space at the top for the header.
+        # 039030.python.view.line737.comment Leave space at the top for the header.
         rc = (left, top + int((9 * metrics["tmHeight"]) / 2), right, bottom)
         pageStart = 0
         maxPage = 0
@@ -743,10 +743,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
             maxPage += 1
             self.starts[maxPage] = pageStart
-        # And a sentinel for one page past the end
+        # 039031.python.view.line746.comment And a sentinel for one page past the end
         self.starts[maxPage + 1] = textLen
-        # When actually printing, maxPage doesn't have any effect at this late state.
-        # but is needed to make the Print Preview work correctly.
+        # 039032.python.view.line748.comment When actually printing, maxPage doesn't have any effect at this late state.
+        # 039033.python.view.line749.comment but is needed to make the Print Preview work correctly.
         pInfo.SetMaxPage(maxPage)
 
     def OnFilePrintPreview(self, *arg):
@@ -787,11 +787,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def OnPrint(self, dc, pInfo):
         metrics = dc.GetTextMetrics()
-        # print("dev", w, h, l, metrics["tmAscent"], metrics["tmDescent"])
+        # 039034.python.view.line790.comment print("dev", w, h, l, metrics["tmAscent"], metrics["tmDescent"])
         if self.starts is None:
             self.CalculatePageRanges(dc, pInfo)
         pageNum = pInfo.GetCurPage() - 1
-        # Setup the header of the page - docname on left, pagenum on right.
+        # 039035.python.view.line794.comment Setup the header of the page - docname on left, pagenum on right.
         doc = self.GetDocument()
         cxChar = metrics["tmAveCharWidth"]
         cyChar = metrics["tmHeight"]
@@ -813,7 +813,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 def LoadConfiguration():
     global configManager
-    # Bit of a hack I don't kow what to do about?
+    # 039036.python.view.line816.comment Bit of a hack I don't kow what to do about?
     from .config import ConfigManager
 
     configName = rc = win32ui.GetProfileVal("Editor", "Keyboard Config", "default")

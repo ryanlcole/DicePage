@@ -621,7 +621,7 @@ class ImageData(AbstractImage):
             msg = 'Cannot set mipmap image at level 0 (it is this image)'
             raise ImageException(msg)
 
-        # Check dimensions of mipmap
+        # 030262.python.init.line624.comment Check dimensions of mipmap
         width, height = self.width, self.height
         for i in range(level):
             width >>= 1
@@ -629,7 +629,7 @@ class ImageData(AbstractImage):
         if width != image.width or height != image.height:
             raise ImageException(f"Mipmap image has wrong dimensions for level {level}")
 
-        # Extend mipmap_images list to required level
+        # 030263.python.init.line632.comment Extend mipmap_images list to required level
         self.mipmap_images += [None] * (level - len(self.mipmap_images))
         self.mipmap_images[level - 1] = image
 
@@ -677,7 +677,7 @@ class ImageData(AbstractImage):
                 level += 1
                 if image:
                     image.blit_to_texture(texture.target, level, self.anchor_x, self.anchor_y, 0, internalformat)
-                    # TODO: should set base and max mipmap level if some mipmaps are missing.
+                    # 030264.python.init.line680.comment TODO: should set base and max mipmap level if some mipmaps are missing.
         else:
             glGenerateMipmap(texture.target)
             self.blit_to_texture(texture.target, texture.level, self.anchor_x, self.anchor_y, 0, internalformat)
@@ -711,11 +711,11 @@ class ImageData(AbstractImage):
         data_format = self.format
         data_pitch = abs(self._current_pitch)
 
-        # Determine pixel format from format string
+        # 030265.python.init.line714.comment Determine pixel format from format string
         fmt, gl_type = self._get_gl_format_and_type(data_format)
 
         if fmt is None:
-            # Need to convert data to a standard form
+            # 030266.python.init.line718.comment Need to convert data to a standard form
             data_format = {
                 1: 'R',
                 2: 'RG',
@@ -724,8 +724,8 @@ class ImageData(AbstractImage):
             }.get(len(data_format))
             fmt, gl_type = self._get_gl_format_and_type(data_format)
 
-        # Get data in required format (hopefully will be the same format it's already
-        # in, unless that's an obscure format, upside-down or the driver is old).
+        # 030267.python.init.line727.comment Get data in required format (hopefully will be the same format it's already
+        # 030268.python.init.line728.comment in, unless that's an obscure format, upside-down or the driver is old).
         data = self._convert(data_format, data_pitch)
 
         if data_pitch & 0x1:
@@ -761,19 +761,19 @@ class ImageData(AbstractImage):
                             fmt, gl_type,
                             data)
 
-        # Unset GL_UNPACK_ROW_LENGTH:
+        # 030269.python.init.line764.comment Unset GL_UNPACK_ROW_LENGTH:
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
         self._default_region_unpack()
 
-        # Flush image upload before data get GC'd:
+        # 030270.python.init.line768.comment Flush image upload before data get GC'd:
         glFlush()
 
     def _apply_region_unpack(self):
-        # Not needed on full images
+        # 030271.python.init.line772.comment Not needed on full images
         pass
 
     def _default_region_unpack(self):
-        # Not needed on full images
+        # 030272.python.init.line776.comment Not needed on full images
         pass
 
     def _convert(self, fmt: str, pitch: int) -> bytes:
@@ -790,7 +790,7 @@ class ImageData(AbstractImage):
         current_format = self._current_format
         sign_pitch = current_pitch // abs(current_pitch)
         if fmt != self._current_format:
-            # Create replacement string, e.g. r'\4\1\2\3' to convert RGBA to ARGB
+            # 030273.python.init.line793.comment Create replacement string, e.g. r'\4\1\2\3' to convert RGBA to ARGB
             repl = asbytes('')
             for c in fmt:
                 try:
@@ -812,35 +812,35 @@ class ImageData(AbstractImage):
 
             packed_pitch = self.width * len(current_format)
             if abs(self._current_pitch) != packed_pitch:
-                # Pitch is wider than pixel data, need to go row-by-row.
+                # 030274.python.init.line815.comment Pitch is wider than pixel data, need to go row-by-row.
                 new_pitch = abs(self._current_pitch)
                 rows = [data[i:i + new_pitch] for i in range(0, len(data), new_pitch)]
                 rows = [swap_pattern.sub(repl, r[:packed_pitch]) for r in rows]
                 data = b''.join(rows)
             else:
-                # Rows are tightly packed, apply regex over whole image.
+                # 030275.python.init.line821.comment Rows are tightly packed, apply regex over whole image.
                 data = swap_pattern.sub(repl, data)
 
-            # After conversion, rows will always be tightly packed
+            # 030276.python.init.line824.comment After conversion, rows will always be tightly packed
             current_pitch = sign_pitch * (len(fmt) * self.width)
 
         if pitch != current_pitch:
             diff = abs(current_pitch) - abs(pitch)
             if diff > 0:
-                # New pitch is shorter than old pitch, chop bytes off each row
+                # 030277.python.init.line830.comment New pitch is shorter than old pitch, chop bytes off each row
                 new_pitch = abs(pitch)
                 rows = [data[i:i + new_pitch - diff] for i in range(0, len(data), new_pitch)]
                 data = b''.join(rows)
 
             elif diff < 0:
-                # New pitch is longer than old pitch, add '0' bytes to each row
+                # 030278.python.init.line836.comment New pitch is longer than old pitch, add '0' bytes to each row
                 new_pitch = abs(current_pitch)
                 padding = bytes(1) * -diff
                 rows = [data[i:i + new_pitch] + padding for i in range(0, len(data), new_pitch)]
                 data = b''.join(rows)
 
             if current_pitch * pitch < 0:
-                # Pitch differs in sign, swap row order
+                # 030279.python.init.line843.comment Pitch differs in sign, swap row order
                 new_pitch = abs(pitch)
                 rows = [data[i:i + new_pitch] for i in range(0, len(data), new_pitch)]
                 rows.reverse()
@@ -1003,7 +1003,7 @@ class CompressedImageData(AbstractImage):
         If *any* mipmap levels are specified, they are used; otherwise, mipmaps for
         ``mipmapped_texture`` are generated automatically.
         """
-        # Extend mipmap_data list to required level
+        # 030280.python.init.line1006.comment Extend mipmap_data list to required level
         self.mipmap_data += [None] * (level - len(self.mipmap_data))
         self.mipmap_data[level - 1] = data
 
@@ -1050,8 +1050,8 @@ class CompressedImageData(AbstractImage):
             return self._current_mipmap_texture
 
         if not self._have_extension():
-            # TODO: mip-mapped software decoded compressed textures.
-            #       For now, just return a non-mipmapped texture.
+            # 030281.python.init.line1053.comment TODO: mip-mapped software decoded compressed textures.
+            # 030282.python.init.line1054.comment For now, just return a non-mipmapped texture.
             return self.get_texture()
 
         texture = Texture.create(self.width, self.height, GL_TEXTURE_2D, None)
@@ -1089,7 +1089,7 @@ class CompressedImageData(AbstractImage):
         if not self._have_extension():
             raise ImageException(f"{self.extension} is required to decode {self}")
 
-        # TODO: use glCompressedTexImage2D/3D if `internalformat` is specified.
+        # 030283.python.init.line1092.comment TODO: use glCompressedTexImage2D/3D if `internalformat` is specified.
 
         if target == GL_TEXTURE_3D:
             glCompressedTexSubImage3D(target, level,
@@ -1274,14 +1274,14 @@ class Texture(AbstractImage):
         """
         glBindTexture(self.target, self.id)
 
-        # Always extract complete RGBA data.  Could check internalformat
-        # to only extract used channels. XXX
+        # 030286.python.init.line1277.comment Always extract complete RGBA data.  Could check internalformat
+        # 030287.python.init.line1278.comment to only extract used channels. XXX
         fmt = 'RGBA'
         gl_format = GL_RGBA
 
         buf = (GLubyte * (self.width * self.height * self.images * len(fmt)))()
 
-        # TODO: Clean up this temporary hack
+        # 030288.python.init.line1284.comment TODO: Clean up this temporary hack
         if pyglet.gl.current_context.get_info().get_opengl_api() == "gles":
             fbo = c_uint()
             glGenFramebuffers(1, fbo)
@@ -1327,18 +1327,18 @@ class Texture(AbstractImage):
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self.target, self.id)
 
-        # Create and bind a throwaway VAO
+        # 030289.python.init.line1330.comment Create and bind a throwaway VAO
         vao_id = GLuint()
         glGenVertexArrays(1, vao_id)
         glBindVertexArray(vao_id)
 
-        # Activate shader program:
+        # 030290.python.init.line1335.comment Activate shader program:
         program = pyglet.graphics.get_default_blit_shader()
         program.use()
         pos_attrs = program.attributes['position']
         tex_attrs = program.attributes['tex_coords']
 
-        # vertex position data:
+        # 030291.python.init.line1341.comment vertex position data:
         position_attribute = Attribute('position', pos_attrs['location'], pos_attrs['count'], GL_FLOAT, False, False)
         position_buffer = BufferObject(4 * position_attribute.stride)
         data = (position_attribute.c_type * len(position))(*position)
@@ -1346,7 +1346,7 @@ class Texture(AbstractImage):
         position_attribute.enable()
         position_attribute.set_pointer(position_buffer.ptr)
 
-        # texture coordinate data:
+        # 030292.python.init.line1349.comment texture coordinate data:
         texcoord_attribute = Attribute('tex_coords', tex_attrs['location'], tex_attrs['count'], GL_FLOAT, False, False)
         texcoord_buffer = BufferObject(4 * texcoord_attribute.stride)
         data = (texcoord_attribute.c_type * len(self.tex_coords))(*self.tex_coords)
@@ -1354,7 +1354,7 @@ class Texture(AbstractImage):
         texcoord_attribute.enable()
         texcoord_attribute.set_pointer(texcoord_buffer.ptr)
 
-        # index data:
+        # 030293.python.init.line1357.comment index data:
         index_array = (c_ubyte * len(indices))(*indices)
         index_buffer = BufferObject(sizeof(index_array))
         index_buffer.set_data(index_array)
@@ -1363,9 +1363,9 @@ class Texture(AbstractImage):
         glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_BYTE, 0)
         glFlush()
         
-        # Deactivate shader program:
+        # 030294.python.init.line1366.comment Deactivate shader program:
         program.stop()
-        # Discard everything after blitting:
+        # 030295.python.init.line1368.comment Discard everything after blitting:
         position_buffer.delete()
         texcoord_buffer.delete()
         glBindVertexArray(0)
@@ -1989,8 +1989,8 @@ class TextureGrid(TextureRegion, UniformTextureSequence):
         return iter(self.items)
 
 
-# Default Framebuffer classes:
-###############################################################
+# 030296.python.init.line1992.comment Default Framebuffer classes:
+# 030297.python.init.line1993.comment ##############################################################
 
 
 class BufferManager:
@@ -2080,13 +2080,13 @@ def get_buffer_manager() -> BufferManager:
 class BufferImage(AbstractImage):
     """An abstract "default" framebuffer."""
 
-    #: The OpenGL read and write target for this buffer.
+    # 030298.python.init.line2083.comment : The OpenGL read and write target for this buffer.
     gl_buffer = GL_BACK
 
-    #: The OpenGL format constant for image data.
+    # 030299.python.init.line2086.comment : The OpenGL format constant for image data.
     gl_format = 0
 
-    #: The format string used for image data.
+    # 030300.python.init.line2089.comment : The format string used for image data.
     format = ''
 
     owner = None
@@ -2152,7 +2152,7 @@ class ColorBufferImage(BufferImage):
         return texture
 
     def blit_to_texture(self, target: int, level: int, x: int, y: int, z: int, internalformat: int = None):
-        # TODO: use glCopyTexImage2D if `internalformat` is specified.
+        # 030301.python.init.line2155.comment TODO: use glCopyTexImage2D if `internalformat` is specified.
         glReadBuffer(self.gl_buffer)
         glCopyTexSubImage2D(target, level, x-self.anchor_x, y-self.anchor_y, self.x, self.y, self.width, self.height)
 
@@ -2168,7 +2168,7 @@ class DepthBufferImage(BufferImage):
         return image_data.get_texture()
 
     def blit_to_texture(self, target: int, level: int, x: int, y: int, z: int, internalformat: int = None):
-        # TODO: use glCopyTexImage2D if `internalformat` is specified.
+        # 030302.python.init.line2171.comment TODO: use glCopyTexImage2D if `internalformat` is specified.
         glReadBuffer(self.gl_buffer)
         glCopyTexSubImage2D(target, level, x-self.anchor_x, y-self.anchor_y, self.x, self.y, self.width, self.height)
 
@@ -2178,8 +2178,8 @@ class BufferImageMask(BufferImage):
     gl_format = GL_STENCIL_INDEX
     format = 'R'
 
-    # TODO mask methods
+    # 030303.python.init.line2181.comment TODO mask methods
 
 
-# Initialise default codecs
+# 030304.python.init.line2184.comment Initialise default codecs
 _add_default_codecs()

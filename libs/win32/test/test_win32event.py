@@ -26,7 +26,7 @@ class TestWaitableTimer(unittest.TestCase):
 
     def testWaitableTrigger(self):
         h = win32event.CreateWaitableTimer(None, 0, None)
-        # for the sake of this, pass a long that doesn't fit in an int.
+        # 048298.python.test_win32event.line29.comment for the sake of this, pass a long that doesn't fit in an int.
         dt = -2000000000
         win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
         rc = win32event.WaitForSingleObject(h, 10)  # 10 ms.
@@ -42,23 +42,23 @@ class TestWaitableTimer(unittest.TestCase):
 
 class TestWaitFunctions(unittest.TestCase):
     def testMsgWaitForMultipleObjects(self):
-        # this function used to segfault when called with an empty list
+        # 048300.python.test_win32event.line45.comment this function used to segfault when called with an empty list
         res = win32event.MsgWaitForMultipleObjects([], 0, 0, 0)
         self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
     def testMsgWaitForMultipleObjects2(self):
-        # test with non-empty list
+        # 048301.python.test_win32event.line50.comment test with non-empty list
         event = win32event.CreateEvent(None, 0, 0, None)
         res = win32event.MsgWaitForMultipleObjects([event], 0, 0, 0)
         self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
     def testMsgWaitForMultipleObjectsEx(self):
-        # this function used to segfault when called with an empty list
+        # 048302.python.test_win32event.line56.comment this function used to segfault when called with an empty list
         res = win32event.MsgWaitForMultipleObjectsEx([], 0, 0, 0)
         self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
     def testMsgWaitForMultipleObjectsEx2(self):
-        # test with non-empty list
+        # 048303.python.test_win32event.line61.comment test with non-empty list
         event = win32event.CreateEvent(None, 0, 0, None)
         res = win32event.MsgWaitForMultipleObjectsEx([event], 0, 0, 0)
         self.assertEqual(res, win32event.WAIT_TIMEOUT)

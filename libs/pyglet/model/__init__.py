@@ -295,7 +295,7 @@ class Cube(Model):
         self._batch = batch
         self._program = program if program else get_default_shader()
 
-        # Create a Material and Group for the Model
+        # 035431.python.init.line298.comment Create a Material and Group for the Model
         self._material = material if material else SimpleMaterial(name="cube")
         self._group = pyglet.model.MaterialGroup(material=self._material, program=self._program, parent=group)
 
@@ -373,7 +373,7 @@ class Sphere(Model):
         self._batch = batch
         self._program = program if program else get_default_shader()
 
-        # Create a Material and Group for the Model
+        # 035468.python.init.line376.comment Create a Material and Group for the Model
         self._material = material if material else SimpleMaterial(name="sphere")
         self._group = pyglet.model.MaterialGroup(material=self._material, program=self._program, parent=group)
 
@@ -404,7 +404,7 @@ class Sphere(Model):
                 normals.append(cos(stack_angle) * sin(sector_angle))              # y
                 normals.append(sin(stack_angle))                                       # z
 
-        # Generate indices
+        # 035475.python.init.line407.comment Generate indices
         for i in range(stacks):
             for j in range(sectors):
                 first = i * (sectors + 1) + j

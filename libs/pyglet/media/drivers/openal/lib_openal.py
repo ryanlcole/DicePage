@@ -22,9 +22,9 @@ _lib = pyglet.lib.load_library('openal',
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 034386.python.lib_openal.line25.comment Some builds of ctypes apparently do not have c_int64
+    # 034387.python.lib_openal.line26.comment defined; it's a pretty good bet that these builds do not
+    # 034388.python.lib_openal.line27.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
@@ -32,9 +32,9 @@ for t in _int_types:
 
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 034389.python.lib_openal.line35.comment c_void_p is a buggy return type, converting to int, so
+    # 034390.python.lib_openal.line36.comment POINTER(None) == c_void_p is actually written as
+    # 034391.python.lib_openal.line37.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -121,367 +121,367 @@ AL_LINEAR_DISTANCE = 53251  # /usr/include/AL/al.h:378
 AL_LINEAR_DISTANCE_CLAMPED = 53252  # /usr/include/AL/al.h:379
 AL_EXPONENT_DISTANCE = 53253  # /usr/include/AL/al.h:380
 AL_EXPONENT_DISTANCE_CLAMPED = 53254  # /usr/include/AL/al.h:381
-# /usr/include/AL/al.h:386
+# 034475.python.lib_openal.line124.comment /usr/include/AL/al.h:386
 alEnable = _lib.alEnable
 alEnable.restype = None
 alEnable.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:388
+# 034476.python.lib_openal.line129.comment /usr/include/AL/al.h:388
 alDisable = _lib.alDisable
 alDisable.restype = None
 alDisable.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:390
+# 034477.python.lib_openal.line134.comment /usr/include/AL/al.h:390
 alIsEnabled = _lib.alIsEnabled
 alIsEnabled.restype = ALboolean
 alIsEnabled.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:396
+# 034478.python.lib_openal.line139.comment /usr/include/AL/al.h:396
 alGetString = _lib.alGetString
 alGetString.restype = POINTER(ALchar)
 alGetString.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:398
+# 034479.python.lib_openal.line144.comment /usr/include/AL/al.h:398
 alGetBooleanv = _lib.alGetBooleanv
 alGetBooleanv.restype = None
 alGetBooleanv.argtypes = [ALenum, POINTER(ALboolean)]
 
-# /usr/include/AL/al.h:400
+# 034480.python.lib_openal.line149.comment /usr/include/AL/al.h:400
 alGetIntegerv = _lib.alGetIntegerv
 alGetIntegerv.restype = None
 alGetIntegerv.argtypes = [ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:402
+# 034481.python.lib_openal.line154.comment /usr/include/AL/al.h:402
 alGetFloatv = _lib.alGetFloatv
 alGetFloatv.restype = None
 alGetFloatv.argtypes = [ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:404
+# 034482.python.lib_openal.line159.comment /usr/include/AL/al.h:404
 alGetDoublev = _lib.alGetDoublev
 alGetDoublev.restype = None
 alGetDoublev.argtypes = [ALenum, POINTER(ALdouble)]
 
-# /usr/include/AL/al.h:406
+# 034483.python.lib_openal.line164.comment /usr/include/AL/al.h:406
 alGetBoolean = _lib.alGetBoolean
 alGetBoolean.restype = ALboolean
 alGetBoolean.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:408
+# 034484.python.lib_openal.line169.comment /usr/include/AL/al.h:408
 alGetInteger = _lib.alGetInteger
 alGetInteger.restype = ALint
 alGetInteger.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:410
+# 034485.python.lib_openal.line174.comment /usr/include/AL/al.h:410
 alGetFloat = _lib.alGetFloat
 alGetFloat.restype = ALfloat
 alGetFloat.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:412
+# 034486.python.lib_openal.line179.comment /usr/include/AL/al.h:412
 alGetDouble = _lib.alGetDouble
 alGetDouble.restype = ALdouble
 alGetDouble.argtypes = [ALenum]
 
-# /usr/include/AL/al.h:419
+# 034487.python.lib_openal.line184.comment /usr/include/AL/al.h:419
 alGetError = _lib.alGetError
 alGetError.restype = ALenum
 alGetError.argtypes = []
 
-# /usr/include/AL/al.h:427
+# 034488.python.lib_openal.line189.comment /usr/include/AL/al.h:427
 alIsExtensionPresent = _lib.alIsExtensionPresent
 alIsExtensionPresent.restype = ALboolean
 alIsExtensionPresent.argtypes = [POINTER(ALchar)]
 
-# /usr/include/AL/al.h:429
+# 034489.python.lib_openal.line194.comment /usr/include/AL/al.h:429
 alGetProcAddress = _lib.alGetProcAddress
 alGetProcAddress.restype = POINTER(c_void)
 alGetProcAddress.argtypes = [POINTER(ALchar)]
 
-# /usr/include/AL/al.h:431
+# 034490.python.lib_openal.line199.comment /usr/include/AL/al.h:431
 alGetEnumValue = _lib.alGetEnumValue
 alGetEnumValue.restype = ALenum
 alGetEnumValue.argtypes = [POINTER(ALchar)]
 
-# /usr/include/AL/al.h:450
+# 034491.python.lib_openal.line204.comment /usr/include/AL/al.h:450
 alListenerf = _lib.alListenerf
 alListenerf.restype = None
 alListenerf.argtypes = [ALenum, ALfloat]
 
-# /usr/include/AL/al.h:452
+# 034492.python.lib_openal.line209.comment /usr/include/AL/al.h:452
 alListener3f = _lib.alListener3f
 alListener3f.restype = None
 alListener3f.argtypes = [ALenum, ALfloat, ALfloat, ALfloat]
 
-# /usr/include/AL/al.h:454
+# 034493.python.lib_openal.line214.comment /usr/include/AL/al.h:454
 alListenerfv = _lib.alListenerfv
 alListenerfv.restype = None
 alListenerfv.argtypes = [ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:456
+# 034494.python.lib_openal.line219.comment /usr/include/AL/al.h:456
 alListeneri = _lib.alListeneri
 alListeneri.restype = None
 alListeneri.argtypes = [ALenum, ALint]
 
-# /usr/include/AL/al.h:458
-# alListener3i = _lib.alListener3i
-# alListener3i.restype = None
-# alListener3i.argtypes = [ALenum, ALint, ALint, ALint]
+# 034495.python.lib_openal.line224.comment /usr/include/AL/al.h:458
+# 034496.python.lib_openal.line225.comment alListener3i = _lib.alListener3i
+# 034497.python.lib_openal.line226.comment alListener3i.restype = None
+# 034498.python.lib_openal.line227.comment alListener3i.argtypes = [ALenum, ALint, ALint, ALint]
 
-# /usr/include/AL/al.h:460
-# alListeneriv = _lib.alListeneriv
-# alListeneriv.restype = None
-# alListeneriv.argtypes = [ALenum, POINTER(ALint)]
+# 034499.python.lib_openal.line229.comment /usr/include/AL/al.h:460
+# 034500.python.lib_openal.line230.comment alListeneriv = _lib.alListeneriv
+# 034501.python.lib_openal.line231.comment alListeneriv.restype = None
+# 034502.python.lib_openal.line232.comment alListeneriv.argtypes = [ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:465
+# 034503.python.lib_openal.line234.comment /usr/include/AL/al.h:465
 alGetListenerf = _lib.alGetListenerf
 alGetListenerf.restype = None
 alGetListenerf.argtypes = [ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:467
+# 034504.python.lib_openal.line239.comment /usr/include/AL/al.h:467
 alGetListener3f = _lib.alGetListener3f
 alGetListener3f.restype = None
 alGetListener3f.argtypes = [ALenum, POINTER(ALfloat), POINTER(ALfloat), POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:469
+# 034505.python.lib_openal.line244.comment /usr/include/AL/al.h:469
 alGetListenerfv = _lib.alGetListenerfv
 alGetListenerfv.restype = None
 alGetListenerfv.argtypes = [ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:471
+# 034506.python.lib_openal.line249.comment /usr/include/AL/al.h:471
 alGetListeneri = _lib.alGetListeneri
 alGetListeneri.restype = None
 alGetListeneri.argtypes = [ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:473
+# 034507.python.lib_openal.line254.comment /usr/include/AL/al.h:473
 alGetListener3i = _lib.alGetListener3i
 alGetListener3i.restype = None
 alGetListener3i.argtypes = [ALenum, POINTER(ALint), POINTER(ALint), POINTER(ALint)]
 
-# /usr/include/AL/al.h:475
+# 034508.python.lib_openal.line259.comment /usr/include/AL/al.h:475
 alGetListeneriv = _lib.alGetListeneriv
 alGetListeneriv.restype = None
 alGetListeneriv.argtypes = [ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:512
+# 034509.python.lib_openal.line264.comment /usr/include/AL/al.h:512
 alGenSources = _lib.alGenSources
 alGenSources.restype = None
 alGenSources.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:515
+# 034510.python.lib_openal.line269.comment /usr/include/AL/al.h:515
 alDeleteSources = _lib.alDeleteSources
 alDeleteSources.restype = None
 alDeleteSources.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:518
+# 034511.python.lib_openal.line274.comment /usr/include/AL/al.h:518
 alIsSource = _lib.alIsSource
 alIsSource.restype = ALboolean
 alIsSource.argtypes = [ALuint]
 
-# /usr/include/AL/al.h:523
+# 034512.python.lib_openal.line279.comment /usr/include/AL/al.h:523
 alSourcef = _lib.alSourcef
 alSourcef.restype = None
 alSourcef.argtypes = [ALuint, ALenum, ALfloat]
 
-# /usr/include/AL/al.h:525
+# 034513.python.lib_openal.line284.comment /usr/include/AL/al.h:525
 alSource3f = _lib.alSource3f
 alSource3f.restype = None
 alSource3f.argtypes = [ALuint, ALenum, ALfloat, ALfloat, ALfloat]
 
-# /usr/include/AL/al.h:527
+# 034514.python.lib_openal.line289.comment /usr/include/AL/al.h:527
 alSourcefv = _lib.alSourcefv
 alSourcefv.restype = None
 alSourcefv.argtypes = [ALuint, ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:529
+# 034515.python.lib_openal.line294.comment /usr/include/AL/al.h:529
 alSourcei = _lib.alSourcei
 alSourcei.restype = None
 alSourcei.argtypes = [ALuint, ALenum, ALint]
 
-# /usr/include/AL/al.h:531
-# alSource3i = _lib.alSource3i
-# alSource3i.restype = None
-# alSource3i.argtypes = [ALuint, ALenum, ALint, ALint, ALint]
+# 034516.python.lib_openal.line299.comment /usr/include/AL/al.h:531
+# 034517.python.lib_openal.line300.comment alSource3i = _lib.alSource3i
+# 034518.python.lib_openal.line301.comment alSource3i.restype = None
+# 034519.python.lib_openal.line302.comment alSource3i.argtypes = [ALuint, ALenum, ALint, ALint, ALint]
 
-# /usr/include/AL/al.h:533
-# alSourceiv = _lib.alSourceiv
-# alSourceiv.restype = None
-# alSourceiv.argtypes = [ALuint, ALenum, POINTER(ALint)]
+# 034520.python.lib_openal.line304.comment /usr/include/AL/al.h:533
+# 034521.python.lib_openal.line305.comment alSourceiv = _lib.alSourceiv
+# 034522.python.lib_openal.line306.comment alSourceiv.restype = None
+# 034523.python.lib_openal.line307.comment alSourceiv.argtypes = [ALuint, ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:538
+# 034524.python.lib_openal.line309.comment /usr/include/AL/al.h:538
 alGetSourcef = _lib.alGetSourcef
 alGetSourcef.restype = None
 alGetSourcef.argtypes = [ALuint, ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:540
+# 034525.python.lib_openal.line314.comment /usr/include/AL/al.h:540
 alGetSource3f = _lib.alGetSource3f
 alGetSource3f.restype = None
 alGetSource3f.argtypes = [ALuint, ALenum, POINTER(ALfloat), POINTER(ALfloat), POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:542
+# 034526.python.lib_openal.line319.comment /usr/include/AL/al.h:542
 alGetSourcefv = _lib.alGetSourcefv
 alGetSourcefv.restype = None
 alGetSourcefv.argtypes = [ALuint, ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:544
+# 034527.python.lib_openal.line324.comment /usr/include/AL/al.h:544
 alGetSourcei = _lib.alGetSourcei
 alGetSourcei.restype = None
 alGetSourcei.argtypes = [ALuint, ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:546
-# alGetSource3i = _lib.alGetSource3i
-# alGetSource3i.restype = None
-# alGetSource3i.argtypes = [ALuint, ALenum, POINTER(ALint), POINTER(ALint), POINTER(ALint)]
+# 034528.python.lib_openal.line329.comment /usr/include/AL/al.h:546
+# 034529.python.lib_openal.line330.comment alGetSource3i = _lib.alGetSource3i
+# 034530.python.lib_openal.line331.comment alGetSource3i.restype = None
+# 034531.python.lib_openal.line332.comment alGetSource3i.argtypes = [ALuint, ALenum, POINTER(ALint), POINTER(ALint), POINTER(ALint)]
 
-# /usr/include/AL/al.h:548
+# 034532.python.lib_openal.line334.comment /usr/include/AL/al.h:548
 alGetSourceiv = _lib.alGetSourceiv
 alGetSourceiv.restype = None
 alGetSourceiv.argtypes = [ALuint, ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:556
+# 034533.python.lib_openal.line339.comment /usr/include/AL/al.h:556
 alSourcePlayv = _lib.alSourcePlayv
 alSourcePlayv.restype = None
 alSourcePlayv.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:559
+# 034534.python.lib_openal.line344.comment /usr/include/AL/al.h:559
 alSourceStopv = _lib.alSourceStopv
 alSourceStopv.restype = None
 alSourceStopv.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:562
+# 034535.python.lib_openal.line349.comment /usr/include/AL/al.h:562
 alSourceRewindv = _lib.alSourceRewindv
 alSourceRewindv.restype = None
 alSourceRewindv.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:565
+# 034536.python.lib_openal.line354.comment /usr/include/AL/al.h:565
 alSourcePausev = _lib.alSourcePausev
 alSourcePausev.restype = None
 alSourcePausev.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:572
+# 034537.python.lib_openal.line359.comment /usr/include/AL/al.h:572
 alSourcePlay = _lib.alSourcePlay
 alSourcePlay.restype = None
 alSourcePlay.argtypes = [ALuint]
 
-# /usr/include/AL/al.h:575
+# 034538.python.lib_openal.line364.comment /usr/include/AL/al.h:575
 alSourceStop = _lib.alSourceStop
 alSourceStop.restype = None
 alSourceStop.argtypes = [ALuint]
 
-# /usr/include/AL/al.h:578
+# 034539.python.lib_openal.line369.comment /usr/include/AL/al.h:578
 alSourceRewind = _lib.alSourceRewind
 alSourceRewind.restype = None
 alSourceRewind.argtypes = [ALuint]
 
-# /usr/include/AL/al.h:581
+# 034540.python.lib_openal.line374.comment /usr/include/AL/al.h:581
 alSourcePause = _lib.alSourcePause
 alSourcePause.restype = None
 alSourcePause.argtypes = [ALuint]
 
-# /usr/include/AL/al.h:586
+# 034541.python.lib_openal.line379.comment /usr/include/AL/al.h:586
 alSourceQueueBuffers = _lib.alSourceQueueBuffers
 alSourceQueueBuffers.restype = None
 alSourceQueueBuffers.argtypes = [ALuint, ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:588
+# 034542.python.lib_openal.line384.comment /usr/include/AL/al.h:588
 alSourceUnqueueBuffers = _lib.alSourceUnqueueBuffers
 alSourceUnqueueBuffers.restype = None
 alSourceUnqueueBuffers.argtypes = [ALuint, ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:606
+# 034543.python.lib_openal.line389.comment /usr/include/AL/al.h:606
 alGenBuffers = _lib.alGenBuffers
 alGenBuffers.restype = None
 alGenBuffers.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:609
+# 034544.python.lib_openal.line394.comment /usr/include/AL/al.h:609
 alDeleteBuffers = _lib.alDeleteBuffers
 alDeleteBuffers.restype = None
 alDeleteBuffers.argtypes = [ALsizei, POINTER(ALuint)]
 
-# /usr/include/AL/al.h:612
+# 034545.python.lib_openal.line399.comment /usr/include/AL/al.h:612
 alIsBuffer = _lib.alIsBuffer
 alIsBuffer.restype = ALboolean
 alIsBuffer.argtypes = [ALuint]
 
-# /usr/include/AL/al.h:615
+# 034546.python.lib_openal.line404.comment /usr/include/AL/al.h:615
 alBufferData = _lib.alBufferData
 alBufferData.restype = None
 alBufferData.argtypes = [ALuint, ALenum, POINTER(ALvoid), ALsizei, ALsizei]
 
-# /usr/include/AL/al.h:620
+# 034547.python.lib_openal.line409.comment /usr/include/AL/al.h:620
 alBufferf = _lib.alBufferf
 alBufferf.restype = None
 alBufferf.argtypes = [ALuint, ALenum, ALfloat]
 
-# /usr/include/AL/al.h:622
+# 034548.python.lib_openal.line414.comment /usr/include/AL/al.h:622
 alBuffer3f = _lib.alBuffer3f
 alBuffer3f.restype = None
 alBuffer3f.argtypes = [ALuint, ALenum, ALfloat, ALfloat, ALfloat]
 
-# /usr/include/AL/al.h:624
+# 034549.python.lib_openal.line419.comment /usr/include/AL/al.h:624
 alBufferfv = _lib.alBufferfv
 alBufferfv.restype = None
 alBufferfv.argtypes = [ALuint, ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:626
+# 034550.python.lib_openal.line424.comment /usr/include/AL/al.h:626
 alBufferi = _lib.alBufferi
 alBufferi.restype = None
 alBufferi.argtypes = [ALuint, ALenum, ALint]
 
-# /usr/include/AL/al.h:628
+# 034551.python.lib_openal.line429.comment /usr/include/AL/al.h:628
 alBuffer3i = _lib.alBuffer3i
 alBuffer3i.restype = None
 alBuffer3i.argtypes = [ALuint, ALenum, ALint, ALint, ALint]
 
-# /usr/include/AL/al.h:630
+# 034552.python.lib_openal.line434.comment /usr/include/AL/al.h:630
 alBufferiv = _lib.alBufferiv
 alBufferiv.restype = None
 alBufferiv.argtypes = [ALuint, ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:635
+# 034553.python.lib_openal.line439.comment /usr/include/AL/al.h:635
 alGetBufferf = _lib.alGetBufferf
 alGetBufferf.restype = None
 alGetBufferf.argtypes = [ALuint, ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:637
+# 034554.python.lib_openal.line444.comment /usr/include/AL/al.h:637
 alGetBuffer3f = _lib.alGetBuffer3f
 alGetBuffer3f.restype = None
 alGetBuffer3f.argtypes = [ALuint, ALenum, POINTER(ALfloat), POINTER(ALfloat), POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:639
+# 034555.python.lib_openal.line449.comment /usr/include/AL/al.h:639
 alGetBufferfv = _lib.alGetBufferfv
 alGetBufferfv.restype = None
 alGetBufferfv.argtypes = [ALuint, ALenum, POINTER(ALfloat)]
 
-# /usr/include/AL/al.h:641
+# 034556.python.lib_openal.line454.comment /usr/include/AL/al.h:641
 alGetBufferi = _lib.alGetBufferi
 alGetBufferi.restype = None
 alGetBufferi.argtypes = [ALuint, ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:643
+# 034557.python.lib_openal.line459.comment /usr/include/AL/al.h:643
 alGetBuffer3i = _lib.alGetBuffer3i
 alGetBuffer3i.restype = None
 alGetBuffer3i.argtypes = [ALuint, ALenum, POINTER(ALint), POINTER(ALint), POINTER(ALint)]
 
-# /usr/include/AL/al.h:645
+# 034558.python.lib_openal.line464.comment /usr/include/AL/al.h:645
 alGetBufferiv = _lib.alGetBufferiv
 alGetBufferiv.restype = None
 alGetBufferiv.argtypes = [ALuint, ALenum, POINTER(ALint)]
 
-# /usr/include/AL/al.h:651
+# 034559.python.lib_openal.line469.comment /usr/include/AL/al.h:651
 alDopplerFactor = _lib.alDopplerFactor
 alDopplerFactor.restype = None
 alDopplerFactor.argtypes = [ALfloat]
 
-# /usr/include/AL/al.h:653
+# 034560.python.lib_openal.line474.comment /usr/include/AL/al.h:653
 alDopplerVelocity = _lib.alDopplerVelocity
 alDopplerVelocity.restype = None
 alDopplerVelocity.argtypes = [ALfloat]
 
-# /usr/include/AL/al.h:655
+# 034561.python.lib_openal.line479.comment /usr/include/AL/al.h:655
 alSpeedOfSound = _lib.alSpeedOfSound
 alSpeedOfSound.restype = None
 alSpeedOfSound.argtypes = [ALfloat]
 
-# /usr/include/AL/al.h:657
+# 034562.python.lib_openal.line484.comment /usr/include/AL/al.h:657
 alDistanceModel = _lib.alDistanceModel
 alDistanceModel.restype = None
 alDistanceModel.argtypes = [ALenum]

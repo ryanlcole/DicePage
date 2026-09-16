@@ -22,12 +22,12 @@ import distutils.errors
 if TYPE_CHECKING:
     from typing_extensions import LiteralString, NotRequired
 
-# https://github.com/python/mypy/issues/8166
+# 044944.python.msvc.line25.comment https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
     import winreg
     from os import environ
 else:
-    # Mock winreg and environ so the module can be imported on this platform.
+    # 044945.python.msvc.line30.comment Mock winreg and environ so the module can be imported on this platform.
 
     class winreg:
         HKEY_USERS = None
@@ -360,8 +360,8 @@ class SystemInfo:
         Required Microsoft Visual C++ version.
     """
 
-    # Variables and properties in this class use originals CamelCase variables
-    # names from Microsoft source files for more easy comparison.
+    # 044946.python.msvc.line363.comment Variables and properties in this class use originals CamelCase variables
+    # 044947.python.msvc.line364.comment names from Microsoft source files for more easy comparison.
     WinDir = environ.get('WinDir', '')
     ProgramFiles = environ.get('ProgramFiles', '')
     ProgramFilesx86 = environ.get('ProgramFiles(x86)', ProgramFiles)
@@ -372,7 +372,7 @@ class SystemInfo:
 
         self.known_vs_paths = self.find_programdata_vs_vers()
 
-        # Except for VS15+, VC version is aligned with VS version
+        # 044948.python.msvc.line375.comment Except for VS15+, VC version is aligned with VS version
         self.vs_ver = self.vc_ver = vc_ver or self._find_latest_available_vs_ver()
 
     def _find_latest_available_vs_ver(self):
@@ -443,27 +443,27 @@ class SystemInfo:
             hashed_names = os.listdir(instances_dir)
 
         except OSError:
-            # Directory not exists with all Visual Studio versions
+            # 044949.python.msvc.line446.comment Directory not exists with all Visual Studio versions
             return vs_versions
 
         for name in hashed_names:
             try:
-                # Get VS installation path from "state.json" file
+                # 044950.python.msvc.line451.comment Get VS installation path from "state.json" file
                 state_path = os.path.join(instances_dir, name, 'state.json')
                 with open(state_path, 'rt', encoding='utf-8') as state_file:
                     state = json.load(state_file)
                 vs_path = state['installationPath']
 
-                # Raises OSError if this VS installation does not contain VC
+                # 044951.python.msvc.line457.comment Raises OSError if this VS installation does not contain VC
                 os.listdir(os.path.join(vs_path, r'VC\Tools\MSVC'))
 
-                # Store version and path
+                # 044952.python.msvc.line460.comment Store version and path
                 vs_versions[self._as_float_version(state['installationVersion'])] = (
                     vs_path
                 )
 
             except (OSError, KeyError):
-                # Skip if "state.json" file is missing or bad format
+                # 044953.python.msvc.line466.comment Skip if "state.json" file is missing or bad format
                 continue
 
         return vs_versions
@@ -495,12 +495,12 @@ class SystemInfo:
         str
             path
         """
-        # Default path
+        # 044954.python.msvc.line498.comment Default path
         default = os.path.join(
             self.ProgramFilesx86, f'Microsoft Visual Studio {self.vs_ver:0.1f}'
         )
 
-        # Try to get path from registry, if fail use default path
+        # 044955.python.msvc.line503.comment Try to get path from registry, if fail use default path
         return self.ri.lookup(self.ri.vs, f'{self.vs_ver:0.1f}') or default
 
     @property
@@ -534,17 +534,17 @@ class SystemInfo:
             return ''
 
         try:
-            # First search in known VS paths
+            # 044956.python.msvc.line537.comment First search in known VS paths
             vs_dir = self.known_vs_paths[self.vs_ver]
         except KeyError:
-            # Else, search with path from registry
+            # 044957.python.msvc.line540.comment Else, search with path from registry
             vs_dir = self.VSInstallDir
 
         guess_vc = os.path.join(vs_dir, r'VC\Tools\MSVC')
 
-        # Subdir with VC exact version as name
+        # 044958.python.msvc.line545.comment Subdir with VC exact version as name
         try:
-            # Update the VC version with real one instead of VS version
+            # 044959.python.msvc.line547.comment Update the VC version with real one instead of VS version
             vc_ver = os.listdir(guess_vc)[-1]
             self.vc_ver = self._as_float_version(vc_ver)
             return os.path.join(guess_vc, vc_ver)
@@ -565,12 +565,12 @@ class SystemInfo:
             rf'Microsoft Visual Studio {self.vs_ver:0.1f}\VC',
         )
 
-        # Try to get "VC++ for Python" path from registry as default path
+        # 044960.python.msvc.line568.comment Try to get "VC++ for Python" path from registry as default path
         reg_path = os.path.join(self.ri.vc_for_python, f'{self.vs_ver:0.1f}')
         python_vc = self.ri.lookup(reg_path, 'installdir')
         default_vc = os.path.join(python_vc, 'VC') if python_vc else default
 
-        # Try to get path from registry, if fail use default path
+        # 044961.python.msvc.line573.comment Try to get path from registry, if fail use default path
         return self.ri.lookup(self.ri.vc, f'{self.vs_ver:0.1f}') or default_vc
 
     @property
@@ -619,19 +619,19 @@ class SystemInfo:
         """
         sdkdir: str | None = ''
         for ver in self.WindowsSdkVersion:
-            # Try to get it from registry
+            # 044963.python.msvc.line622.comment Try to get it from registry
             loc = os.path.join(self.ri.windows_sdk, f'v{ver}')
             sdkdir = self.ri.lookup(loc, 'installationfolder')
             if sdkdir:
                 break
         if not sdkdir or not os.path.isdir(sdkdir):
-            # Try to get "VC++ for Python" version from registry
+            # 044964.python.msvc.line628.comment Try to get "VC++ for Python" version from registry
             path = os.path.join(self.ri.vc_for_python, f'{self.vc_ver:0.1f}')
             install_base = self.ri.lookup(path, 'installdir')
             if install_base:
                 sdkdir = os.path.join(install_base, 'WinSDK')
         if not sdkdir or not os.path.isdir(sdkdir):
-            # If fail, use default new path
+            # 044965.python.msvc.line634.comment If fail, use default new path
             for ver in self.WindowsSdkVersion:
                 intver = ver[: ver.rfind('.')]
                 path = rf'Microsoft SDKs\Windows Kits\{intver}'
@@ -639,14 +639,14 @@ class SystemInfo:
                 if os.path.isdir(d):
                     sdkdir = d
         if not sdkdir or not os.path.isdir(sdkdir):
-            # If fail, use default old path
+            # 044966.python.msvc.line642.comment If fail, use default old path
             for ver in self.WindowsSdkVersion:
                 path = rf'Microsoft SDKs\Windows\v{ver}'
                 d = os.path.join(self.ProgramFiles, path)
                 if os.path.isdir(d):
                     sdkdir = d
         if not sdkdir:
-            # If fail, use Platform SDK
+            # 044967.python.msvc.line649.comment If fail, use Platform SDK
             sdkdir = os.path.join(self.VCInstallDir, 'PlatformSDK')
         return sdkdir
 
@@ -660,7 +660,7 @@ class SystemInfo:
         str
             path
         """
-        # Find WinSDK NetFx Tools registry dir name
+        # 044968.python.msvc.line663.comment Find WinSDK NetFx Tools registry dir name
         if self.vs_ver <= 11.0:
             netfxver = 35
             arch = ''
@@ -670,7 +670,7 @@ class SystemInfo:
             arch = self.pi.current_dir(x64=True, hidex86=hidex86).replace('\\', '-')
         fx = f'WinSDK-NetFx{netfxver}Tools{arch}'
 
-        # list all possibles registry paths
+        # 044969.python.msvc.line673.comment list all possibles registry paths
         regpaths = []
         if self.vs_ver >= 14.0:
             for ver in self.NetFxSdkVersion:
@@ -679,7 +679,7 @@ class SystemInfo:
         for ver in self.WindowsSdkVersion:
             regpaths += [os.path.join(self.ri.windows_sdk, f'v{ver}A', fx)]
 
-        # Return installation folder from the more recent path
+        # 044970.python.msvc.line682.comment Return installation folder from the more recent path
         for path in regpaths:
             execpath = self.ri.lookup(path, 'installationfolder')
             if execpath:
@@ -710,10 +710,10 @@ class SystemInfo:
         str
             path
         """
-        # Set Kit Roots versions for specified MSVC++ version
+        # 044971.python.msvc.line713.comment Set Kit Roots versions for specified MSVC++ version
         vers = ('10', '81') if self.vs_ver >= 14.0 else ()
 
-        # Find path of the more recent Kit
+        # 044972.python.msvc.line716.comment Find path of the more recent Kit
         for ver in vers:
             sdkdir = self.ri.lookup(self.ri.windows_kits_roots, f'kitsroot{ver}')
             if sdkdir:
@@ -743,7 +743,7 @@ class SystemInfo:
         tuple of str
             versions
         """
-        # Set FxSdk versions for specified VS version
+        # 044973.python.msvc.line746.comment Set FxSdk versions for specified VS version
         return (
             ('4.7.2', '4.7.1', '4.7', '4.6.2', '4.6.1', '4.6', '4.5.2', '4.5.1', '4.5')
             if self.vs_ver >= 14.0
@@ -778,10 +778,10 @@ class SystemInfo:
         str
             path
         """
-        # Default path
+        # 044974.python.msvc.line781.comment Default path
         guess_fw = os.path.join(self.WinDir, r'Microsoft.NET\Framework')
 
-        # Try to get path from registry, if fail use default path
+        # 044975.python.msvc.line784.comment Try to get path from registry, if fail use default path
         return self.ri.lookup(self.ri.vc, 'frameworkdir32') or guess_fw
 
     @property
@@ -794,10 +794,10 @@ class SystemInfo:
         str
             path
         """
-        # Default path
+        # 044976.python.msvc.line797.comment Default path
         guess_fw = os.path.join(self.WinDir, r'Microsoft.NET\Framework64')
 
-        # Try to get path from registry, if fail use default path
+        # 044977.python.msvc.line800.comment Try to get path from registry, if fail use default path
         return self.ri.lookup(self.ri.vc, 'frameworkdir64') or guess_fw
 
     @property
@@ -838,12 +838,12 @@ class SystemInfo:
         tuple of str
             versions
         """
-        # Find actual .NET version in registry
+        # 044978.python.msvc.line841.comment Find actual .NET version in registry
         reg_ver = self.ri.lookup(self.ri.vc, f'frameworkver{bits}')
         dot_net_dir = getattr(self, f'FrameworkDir{bits}')
         ver = reg_ver or self._use_last_dir_name(dot_net_dir, 'v') or ''
 
-        # Set .NET versions for specified MSVC++ version
+        # 044979.python.msvc.line846.comment Set .NET versions for specified MSVC++ version
         if self.vs_ver >= 12.0:
             return ver, 'v4.0'
         elif self.vs_ver >= 10.0:
@@ -909,8 +909,8 @@ class EnvironmentInfo:
         Minimum Microsoft Visual C++ version.
     """
 
-    # Variables and properties in this class use originals CamelCase variables
-    # names from Microsoft source files for more easy comparison.
+    # 044980.python.msvc.line912.comment Variables and properties in this class use originals CamelCase variables
+    # 044981.python.msvc.line913.comment names from Microsoft source files for more easy comparison.
 
     def __init__(self, arch, vc_ver=None, vc_min_ver=0) -> None:
         self.pi = PlatformInfo(arch)
@@ -1324,7 +1324,7 @@ class EnvironmentInfo:
         build = [os.path.join(base_path, path)]
 
         if self.vs_ver >= 15.0:
-            # Add Roslyn C# & Visual Basic Compiler
+            # 044982.python.msvc.line1327.comment Add Roslyn C# & Visual Basic Compiler
             build += [os.path.join(base_path, path, 'Roslyn')]
 
         return build
@@ -1416,25 +1416,25 @@ class EnvironmentInfo:
         vcruntime = f'vcruntime{self.vc_ver}0.dll'
         arch_subdir = self.pi.target_dir(x64=True).strip('\\')
 
-        # Installation prefixes candidates
+        # 044983.python.msvc.line1419.comment Installation prefixes candidates
         prefixes = []
         tools_path = self.si.VCInstallDir
         redist_path = os.path.dirname(tools_path.replace(r'\Tools', r'\Redist'))
         if os.path.isdir(redist_path):
-            # Redist version may not be exactly the same as tools
+            # 044984.python.msvc.line1424.comment Redist version may not be exactly the same as tools
             redist_path = os.path.join(redist_path, os.listdir(redist_path)[-1])
             prefixes += [redist_path, os.path.join(redist_path, 'onecore')]
 
         prefixes += [os.path.join(tools_path, 'redist')]  # VS14 legacy path
 
-        # CRT directory
+        # 044986.python.msvc.line1430.comment CRT directory
         crt_dirs = (
             f'Microsoft.VC{self.vc_ver * 10}.CRT',
-            # Sometime store in directory with VS version instead of VC
+            # 044987.python.msvc.line1433.comment Sometime store in directory with VS version instead of VC
             f'Microsoft.VC{int(self.vs_ver) * 10}.CRT',
         )
 
-        # vcruntime path
+        # 044988.python.msvc.line1437.comment vcruntime path
         candidate_paths = (
             os.path.join(prefix, arch_subdir, crt_dir, vcruntime)
             for (prefix, crt_dir) in itertools.product(prefixes, crt_dirs)
@@ -1524,7 +1524,7 @@ class EnvironmentInfo:
         str
             Pathsep-separated paths
         """
-        # flatten spec_path_lists
+        # 044990.python.msvc.line1527.comment flatten spec_path_lists
         spec_paths = itertools.chain.from_iterable(spec_path_lists)
         env_paths = environ.get(name, '').split(os.pathsep)
         paths = itertools.chain(spec_paths, env_paths)

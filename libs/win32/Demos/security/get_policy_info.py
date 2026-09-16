@@ -2,8 +2,8 @@ import win32security
 
 policy_handle = win32security.GetPolicyHandle("rupole", win32security.POLICY_ALL_ACCESS)
 
-# mod_nbr, mod_time = win32security.LsaQueryInformationPolicy(policy_handle,win32security.PolicyModificationInformation)
-# print(mod_nbr, mod_time)
+# 046140.python.get_policy_info.line5.comment mod_nbr, mod_time = win32security.LsaQueryInformationPolicy(policy_handle,win32security.PolicyModificationInformation)
+# 046141.python.get_policy_info.line6.comment print(mod_nbr, mod_time)
 
 (
     domain_name,

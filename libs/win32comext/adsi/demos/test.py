@@ -25,10 +25,10 @@ def DumpRoot():
         print(f" {attr}={val}")
 
 
-###############################################
-#
-# Code taken from article titled:
-# Reading attributeSchema and classSchema Objects
+# 050693.python.test.line28.comment ##############################################
+# 050694.python.test.line29.comment
+# 050695.python.test.line30.comment Code taken from article titled:
+# 050696.python.test.line31.comment Reading attributeSchema and classSchema Objects
 def _DumpClass(child):
     attrs = "Abstract lDAPDisplayName schemaIDGUID schemaNamingContext attributeSyntax oMSyntax"
     _DumpTheseAttributes(child, attrs.split())
@@ -45,7 +45,7 @@ def _DumpTheseAttributes(child, attrs):
             val = child.Get(attr)
         except pythoncom.com_error as details:
             continue
-            # ###
+            # 050697.python.test.line48.comment ###
             (hr, msg, exc, arg) = details
             if exc and exc[2]:
                 msg = exc[2]
@@ -56,20 +56,20 @@ def _DumpTheseAttributes(child, attrs):
 
 def DumpSchema():
     "Dumps the default DSE schema"
-    # Bind to rootDSE to get the schemaNamingContext property.
+    # 050698.python.test.line59.comment Bind to rootDSE to get the schemaNamingContext property.
     path = "LDAP://%srootDSE" % server
     rootdse = ADsGetObject(path)
     name = rootdse.Get("schemaNamingContext")
 
-    # Bind to the actual schema container.
+    # 050699.python.test.line64.comment Bind to the actual schema container.
     path = "LDAP://" + server + name
     print("Binding to", path)
     ob = ADsGetObject(path)
     nclasses = nattr = nsub = nunk = 0
 
-    # Enumerate the attribute and class objects in the schema container.
+    # 050700.python.test.line70.comment Enumerate the attribute and class objects in the schema container.
     for child in ob:
-        # Find out if this is a class, attribute, or subSchema object.
+        # 050701.python.test.line72.comment Find out if this is a class, attribute, or subSchema object.
         class_name = child.Class
         if class_name == "classSchema":
             _DumpClass(child)
@@ -92,7 +92,7 @@ def DumpSchema():
 def _DumpObject(ob, level=0):
     prefix = "  " * level
     print(f"{prefix}{ob.Class} object: {ob.Name}")
-    # Do the directory object thing
+    # 050702.python.test.line95.comment Do the directory object thing
     try:
         dir_ob = ADsGetObject(ob.ADsPath, IID_IDirectoryObject)
     except pythoncom.com_error:
@@ -100,7 +100,7 @@ def _DumpObject(ob, level=0):
     if dir_ob is not None:
         info = dir_ob.GetObjectInformation()
         print(f"{prefix} RDN='{info.RDN}', ObjectDN='{info.ObjectDN}'")
-        # Create a list of names to fetch
+        # 050703.python.test.line103.comment Create a list of names to fetch
         names = ["distinguishedName"]
         attrs = dir_ob.GetObjectAttributes(names)
         for attr in attrs:
@@ -117,21 +117,21 @@ def DumpAllObjects():
     rootdse = ADsGetObject(path)
     name = rootdse.Get("defaultNamingContext")
 
-    # Bind to the actual schema container.
+    # 050704.python.test.line120.comment Bind to the actual schema container.
     path = "LDAP://" + server + name
     print("Binding to", path)
     ob = ADsGetObject(path)
 
-    # Enumerate the attribute and class objects in the schema container.
+    # 050705.python.test.line125.comment Enumerate the attribute and class objects in the schema container.
     _DumpObject(ob)
 
 
-##########################################################
-#
-# Code taken from article:
-# Example Code for Enumerating Schema Classes, Attributes, and Syntaxes
+# 050706.python.test.line129.comment #########################################################
+# 050707.python.test.line130.comment
+# 050708.python.test.line131.comment Code taken from article:
+# 050709.python.test.line132.comment Example Code for Enumerating Schema Classes, Attributes, and Syntaxes
 
-# Fill a map with VT_ datatypes, to give us better names:
+# 050710.python.test.line134.comment Fill a map with VT_ datatypes, to give us better names:
 vt_map = {}
 for name, val in pythoncom.__dict__.items():
     if name[:3] == "VT_":
@@ -151,7 +151,7 @@ def DumpSchema2():
                 items.append("Abstract")
             if item.Auxiliary:
                 items.append("Auxiliary")
-            # 			if item.Structural: items.append("Structural")
+            # 050711.python.test.line154.comment if item.Structural: items.append("Structural")
             desc = ", ".join(items)
             import win32com.util
 
@@ -206,7 +206,7 @@ def DumpLocalGroups():
     ob.put_Filter(["Group"])
     for sub_ob in ob:
         print(f"Group: {sub_ob.Name} ({sub_ob.ADsPath})")
-        # get the members
+        # 050712.python.test.line209.comment get the members
         members = sub_ob.Members()
         for member in members:
             print(f"  Group member: {member.Name} ({member.ADsPath})")

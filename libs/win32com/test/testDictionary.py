@@ -1,5 +1,5 @@
-# testDictionary.py
-#
+# 050000.python.testDictionary.line1.comment testDictionary.py
+# 050001.python.testDictionary.line2.comment
 import sys
 import unittest
 
@@ -23,7 +23,7 @@ def TestDictAgainst(dict, check):
         )
 
 
-# Ensure we have the correct version registered.
+# 050002.python.testDictionary.line26.comment Ensure we have the correct version registered.
 def Register(quiet):
     import win32com.servers.dictionary
 
@@ -52,8 +52,8 @@ def TestDict(quiet=None):
     TestDictAgainst(dict, checkDict)
 
     now = win32timezone.now()
-    # We want to keep the milliseconds but discard microseconds as they
-    # don't survive the conversion.
+    # 050003.python.testDictionary.line55.comment We want to keep the milliseconds but discard microseconds as they
+    # 050004.python.testDictionary.line56.comment don't survive the conversion.
     now = now.replace(microsecond=round(now.microsecond / 1000) * 1000)
     dict["Now"] = now
     checkDict["Now"] = now

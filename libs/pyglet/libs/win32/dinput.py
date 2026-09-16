@@ -292,11 +292,11 @@ class DIPROPDWORD(ctypes.Structure):
         ('dwData', DWORD),
     )
 
-# All method names in the interfaces are filled in, but unused (so far)
-# methods have no parameters.. they'll crash when we try and use them, at
-# which point we can go in and fill them in.
+# 031940.python.dinput.line295.comment All method names in the interfaces are filled in, but unused (so far)
+# 031941.python.dinput.line296.comment methods have no parameters.. they'll crash when we try and use them, at
+# 031942.python.dinput.line297.comment which point we can go in and fill them in.
 
-# IDirect* interfaces are all Unicode (e.g. IDirectInputDevice8W).
+# 031943.python.dinput.line299.comment IDirect* interfaces are all Unicode (e.g. IDirectInputDevice8W).
 
 class IDirectInputDevice8(com.pIUnknown):
     _methods_ = [

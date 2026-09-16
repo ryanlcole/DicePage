@@ -60,8 +60,8 @@ if TYPE_CHECKING:
 
 
 def _nearest_pow2(v: int) -> int:
-    # From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-    # Credit: Sean Anderson
+    # 030195.python.vertexdomain.line63.comment From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+    # 030196.python.vertexdomain.line64.comment Credit: Sean Anderson
     v -= 1
     v |= v >> 1
     v |= v >> 2
@@ -147,7 +147,7 @@ class VertexList:
         """
         new_start = self.domain.safe_realloc(self.start, self.count, count)
         if new_start != self.start:
-            # Copy contents to new location
+            # 030199.python.vertexdomain.line150.comment Copy contents to new location
             for buffer in self.domain.attrib_name_buffers.values():
                 old_data = buffer.get_region(self.start, self.count)
                 buffer.set_region(new_start, self.count, old_data)
@@ -280,17 +280,17 @@ class IndexedVertexList(VertexList):
         old_domain = self.domain
         super().migrate(domain)
 
-        # Note: this code renumber the indices of the *original* domain
-        # because the vertices are in a new position in the new domain
+        # 030206.python.vertexdomain.line283.comment Note: this code renumber the indices of the *original* domain
+        # 030207.python.vertexdomain.line284.comment because the vertices are in a new position in the new domain
         if old_start != self.start:
             diff = self.start - old_start
             old_indices = old_domain.index_buffer.get_region(self.index_start, self.index_count)
             old_domain.index_buffer.set_region(self.index_start, self.index_count, [i + diff for i in old_indices])
 
-        # copy indices to new domain
+        # 030208.python.vertexdomain.line290.comment copy indices to new domain
         old_array = old_domain.index_buffer.get_region(self.index_start, self.index_count)
-        # must delloc before calling safe_index_alloc or else problems when same
-        # batch is migrated to because index_start changes after dealloc
+        # 030209.python.vertexdomain.line292.comment must delloc before calling safe_index_alloc or else problems when same
+        # 030210.python.vertexdomain.line293.comment batch is migrated to because index_start changes after dealloc
         old_domain.index_allocator.dealloc(self.index_start, self.index_count)
 
         new_start = self.domain.safe_index_alloc(self.index_count)
@@ -308,17 +308,17 @@ class IndexedVertexList(VertexList):
         assert list(domain.attribute_names.keys()) == list(self.domain.attribute_names.keys()), \
             'Domain attributes must match.'
 
-        # Note: this code renumber the indices of the *original* domain
-        # because the vertices are in a new position in the new domain
+        # 030211.python.vertexdomain.line311.comment Note: this code renumber the indices of the *original* domain
+        # 030212.python.vertexdomain.line312.comment because the vertices are in a new position in the new domain
         if old_start != self.start:
             diff = self.start - old_start
             old_indices = old_domain.index_buffer.get_region(self.index_start, self.index_count)
             old_domain.index_buffer.set_region(self.index_start, self.index_count, [i + diff for i in old_indices])
 
-        # copy indices to new domain
+        # 030213.python.vertexdomain.line318.comment copy indices to new domain
         old_array = old_domain.index_buffer.get_region(self.index_start, self.index_count)
-        # must delloc before calling safe_index_alloc or else problems when same
-        # batch is migrated to because index_start changes after dealloc
+        # 030214.python.vertexdomain.line320.comment must delloc before calling safe_index_alloc or else problems when same
+        # 030215.python.vertexdomain.line321.comment batch is migrated to because index_start changes after dealloc
         old_domain.index_allocator.dealloc(self.index_start, self.index_count)
 
         new_start = self.domain.safe_index_alloc(self.index_count)
@@ -335,8 +335,8 @@ class IndexedVertexList(VertexList):
     @indices.setter
     def indices(self, data: Sequence[int]) -> None:
         start = self.start
-        # The vertex data is offset in the buffer, so offset the index values to match. Ex:
-        # vertex_buffer: [_, _, _, _, 1, 2, 3, 4]
+        # 030216.python.vertexdomain.line338.comment The vertex data is offset in the buffer, so offset the index values to match. Ex:
+        # 030217.python.vertexdomain.line339.comment vertex_buffer: [_, _, _, _, 1, 2, 3, 4]
         self.domain.index_buffer.set_region(self.index_start, self.index_count, tuple(i + start for i in data))
 
 
@@ -401,18 +401,18 @@ class VertexDomain:
             self.attribute_names[name] = attribute = shader.Attribute(name, location, count, gl_type, normalize,
                                                                       instanced)
 
-            # Create buffer:
+            # 030223.python.vertexdomain.line404.comment Create buffer:
             self.attrib_name_buffers[name] = buffer = AttributeBufferObject(attribute.stride * self.allocator.capacity,
                                                                             attribute)
-            # TODO: use persistent buffer if we have GL support for it:
-            # attribute.buffer = PersistentBufferObject(attribute.stride * self.allocator.capacity, attribute, self.vao)
+            # 030224.python.vertexdomain.line407.comment TODO: use persistent buffer if we have GL support for it:
+            # 030225.python.vertexdomain.line408.comment attribute.buffer = PersistentBufferObject(attribute.stride * self.allocator.capacity, attribute, self.vao)
 
             self.buffer_attributes.append((buffer, attribute))
 
-            # Create custom property to be used in the VertexList:
+            # 030226.python.vertexdomain.line412.comment Create custom property to be used in the VertexList:
             self._property_dict[attribute.name] = _make_attribute_property(name)
 
-        # Make a custom VertexList class w/ properties for each attribute in the ShaderProgram:
+        # 030227.python.vertexdomain.line415.comment Make a custom VertexList class w/ properties for each attribute in the ShaderProgram:
         self._vertexlist_class = type(self._vertex_class.__name__, (self._vertex_class,), self._property_dict)
 
         self.vao.bind()
@@ -478,7 +478,7 @@ class VertexDomain:
         if primcount == 0:
             pass
         elif primcount == 1:
-            # Common case
+            # 030229.python.vertexdomain.line481.comment Common case
             glDrawArrays(mode, starts[0], sizes[0])
         else:
             starts = (GLint * primcount)(*starts)
@@ -664,7 +664,7 @@ class IndexedVertexDomain(VertexDomain):
         self.index_buffer.bind_to_index_buffer()
         self.vao.unbind()
 
-        # Make a custom VertexList class w/ properties for each attribute in the ShaderProgram:
+        # 030233.python.vertexdomain.line667.comment Make a custom VertexList class w/ properties for each attribute in the ShaderProgram:
         self._vertexlist_class = type(self._vertex_class.__name__, (self._vertex_class,),
                                       self._property_dict)
 
@@ -724,7 +724,7 @@ class IndexedVertexDomain(VertexDomain):
         if primcount == 0:
             pass
         elif primcount == 1:
-            # Common case
+            # 030234.python.vertexdomain.line727.comment Common case
             glDrawElements(mode, sizes[0], self.index_gl_type,
                            self.index_buffer.ptr + starts[0] * self.index_element_size)
         else:

@@ -1,4 +1,4 @@
-# Test dynamic policy, and running object table.
+# 050005.python.testDynamic.line1.comment Test dynamic policy, and running object table.
 
 import pythoncom
 import pywintypes
@@ -15,7 +15,7 @@ class VeryPermissive:
 
         if wFlags & pythoncom.DISPATCH_PROPERTYGET:
             try:
-                # to avoid problems with byref param handling, tuple results are converted to lists.
+                # 050006.python.testDynamic.line18.comment to avoid problems with byref param handling, tuple results are converted to lists.
                 ret = self.__dict__[name]
                 if isinstance(ret, tuple):
                     ret = list(ret)
@@ -46,7 +46,7 @@ def Test():
     import win32com.server.policy
     import win32com.server.util
 
-    #       import win32dbg;win32dbg.brk()
+    # 050009.python.testDynamic.line49.comment import win32dbg;win32dbg.brk()
     ob = win32com.server.util.wrap(
         VeryPermissive(), usePolicy=win32com.server.policy.DynamicPolicy
     )
@@ -69,7 +69,7 @@ def Test():
         )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")
-        # Check our new "_FlagAsMethod" works (kinda!)
+        # 050010.python.testDynamic.line72.comment Check our new "_FlagAsMethod" works (kinda!)
         client._FlagAsMethod("NotReallyAMethod")
         assert callable(client.NotReallyAMethod), "Method I flagged as callable isn't!"
 

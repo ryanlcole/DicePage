@@ -14,7 +14,7 @@ import random
 class DecisionEngine:
     def __init__(self, brain):
         self.brain = brain
-        # Flatten every lobe’s node list for easier access
+        # 000027.python.decision_engine.line17.comment Flatten every lobe’s node list for easier access
         self.fields = []
         for region in brain["BrainMap"].values():
             for node_id, node in region["Nodes"].items():
@@ -26,7 +26,7 @@ class DecisionEngine:
                         "traits": node.get("Traits", [])
                     })
 
-    # ---- Core evaluation ----
+    # 000028.python.decision_engine.line29.comment ---- Core evaluation ----
     def evaluate_options(self, options):
         """
         options:  list of {"action": str, "features": [keywords]}
@@ -39,9 +39,9 @@ class DecisionEngine:
         best = max(scored, key=lambda s: s[1])
         return best, scored
 
-    # ---- Waveform-style similarity ----
+    # 000029.python.decision_engine.line42.comment ---- Waveform-style similarity ----
     def _waveform_similarity(self, features):
-        # Simplified “resonance” — sum of weighted overlaps
+        # 000030.python.decision_engine.line44.comment Simplified “resonance” — sum of weighted overlaps
         total, weight = 0.0, 0.0
         for f in self.fields:
             overlap = len(set(f["traits"]) & set(features))
@@ -51,17 +51,17 @@ class DecisionEngine:
             weight += 1
         return total / max(weight, 1)
 
-    # ---- Moral verification hook ----
+    # 000032.python.decision_engine.line54.comment ---- Moral verification hook ----
     def moral_check(self, candidate):
         """Optional: consult Parietal Lobe watchdog."""
         parietal = self.brain["BrainMap"].get("ParietalLobe", {}).get("Nodes", {})
         if not parietal:
             return True
-        # Placeholder: reject if a moral node flags it
+        # 000033.python.decision_engine.line60.comment Placeholder: reject if a moral node flags it
         red_flag_terms = sum([v.get("Checks", []) for v in parietal.values() if isinstance(v, dict)], [])
         return not any(term.lower() in candidate.lower() for term in red_flag_terms)
 
-# Stand-alone demonstration
+# 000034.python.decision_engine.line64.comment Stand-alone demonstration
 if __name__ == "__main__":
     import json
     from pathlib import Path

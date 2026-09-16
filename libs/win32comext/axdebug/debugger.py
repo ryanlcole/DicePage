@@ -39,15 +39,15 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
                 ".pyd",
                 ".dll",
             ]
-    # keep = keep and module.__name__=='__main__'
+    # 050832.python.debugger.line42.comment keep = keep and module.__name__=='__main__'
     if module and keep:
-        # print("keeping", module.__name__)
+        # 050833.python.debugger.line44.comment print("keeping", module.__name__)
         node = ModuleTreeNode(module)
         built_nodes[module] = node
         realNode = create_node_fn(*(node,) + create_node_args)
         node.realNode = realNode
 
-        # Split into parent nodes.
+        # 050834.python.debugger.line50.comment Split into parent nodes.
         parts = module.__name__.split(".")
         if parts[-1][:8] == "__init__":
             parts = parts[:-1]
@@ -68,8 +68,8 @@ def RefreshAllModules(builtItems, rootNode, create_node, create_node_args):
         BuildModule(module, builtItems, rootNode, create_node, create_node_args)
 
 
-# realNode = pdm.CreateDebugDocumentHelper(None) # DebugDocumentHelper node?
-# app.CreateApplicationNode() # doc provider node.
+# 050835.python.debugger.line71.comment realNode = pdm.CreateDebugDocumentHelper(None) # DebugDocumentHelper node?
+# 050836.python.debugger.line72.comment app.CreateApplicationNode() # doc provider node.
 
 
 class CodeContainerProvider(documents.CodeContainerProvider):
@@ -81,12 +81,12 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         self.axdebugger.RefreshAllModules(self.nodes, self)
 
     def FromFileName(self, fname):
-        # It appears we can't add modules during a debug session!
-        # if self.currentNumModules != len(sys.modules):
-        #     self.axdebugger.RefreshAllModules(self.nodes, self)
-        #     self.currentNumModules = len(sys.modules)
-        # for key in self.ccsAndNodes:
-        #     print("File:", key)
+        # 050837.python.debugger.line84.comment It appears we can't add modules during a debug session!
+        # 050838.python.debugger.line85.comment if self.currentNumModules != len(sys.modules):
+        # 050839.python.debugger.line86.comment self.axdebugger.RefreshAllModules(self.nodes, self)
+        # 050840.python.debugger.line87.comment self.currentNumModules = len(sys.modules)
+        # 050841.python.debugger.line88.comment for key in self.ccsAndNodes:
+        # 050842.python.debugger.line89.comment print("File:", key)
         return documents.CodeContainerProvider.FromFileName(self, fname)
 
     def Close(self):
@@ -151,15 +151,15 @@ class AXDebugger:
         self.pydebugger.AttachApp(self.app, contProvider)
 
     def Break(self):
-        # Get the frame we start debugging from - this is the frame 1 level up
+        # 050843.python.debugger.line154.comment Get the frame we start debugging from - this is the frame 1 level up
         try:
             1 + ""
         except:
             frame = sys.exc_info()[2].tb_frame.f_back
 
-        # Get/create the debugger, and tell it to break.
+        # 050844.python.debugger.line160.comment Get/create the debugger, and tell it to break.
         self.app.StartDebugSession()
-        # self.app.CauseBreak()
+        # 050845.python.debugger.line162.comment self.app.CauseBreak()
 
         self.pydebugger.SetupAXDebugging(None, frame)
         self.pydebugger.set_trace()

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 001875.python.config.line1.comment -----------------------------------------------------------------------------
+# 001876.python.config.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 001877.python.config.line3.comment
+# 001878.python.config.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 001879.python.config.line5.comment or later) with exception for distributing the bootloader.
+# 001880.python.config.line6.comment
+# 001881.python.config.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 001882.python.config.line8.comment
+# 001883.python.config.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 001884.python.config.line10.comment -----------------------------------------------------------------------------
 """
 This module holds run-time PyInstaller configuration.
 
@@ -48,9 +48,9 @@ tests_modgraph  - cached PyiModuleGraph object to speed up tests
 code_cache - dictionary associating `Analysis.pure` list instances with code cache dictionaries. Used by PYZ writer.
 """
 
-# NOTE: Do not import other PyInstaller modules here. Just define constants here.
+# 001885.python.config.line51.comment NOTE: Do not import other PyInstaller modules here. Just define constants here.
 
 CONF = {
-    # Unit tests require this key to exist.
+    # 001886.python.config.line54.comment Unit tests require this key to exist.
     'pathex': [],
 }

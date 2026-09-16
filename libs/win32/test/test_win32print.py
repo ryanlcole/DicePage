@@ -1,4 +1,4 @@
-# Tests (scarce) for win32print module
+# 048472.python.test_win32print.line1.comment Tests (scarce) for win32print module
 
 import unittest
 

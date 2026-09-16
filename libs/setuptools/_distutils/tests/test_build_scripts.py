@@ -78,11 +78,11 @@ class TestBuildScripts(support.TempdirManager):
         )
         cmd.finalize_options()
 
-        # https://bugs.python.org/issue4524
-        #
-        # On linux-g++-32 with command line `./configure --enable-ipv6
-        # --with-suffix=3`, python is compiled okay but the build scripts
-        # failed when writing the name of the executable
+        # 040986.python.test_build_scripts.line81.comment https://bugs.python.org/issue4524
+        # 040987.python.test_build_scripts.line82.comment
+        # 040988.python.test_build_scripts.line83.comment On linux-g++-32 with command line `./configure --enable-ipv6
+        # 040989.python.test_build_scripts.line84.comment --with-suffix=3`, python is compiled okay but the build scripts
+        # 040990.python.test_build_scripts.line85.comment failed when writing the name of the executable
         old = sysconfig.get_config_vars().get('VERSION')
         sysconfig._config_vars['VERSION'] = 4
         try:

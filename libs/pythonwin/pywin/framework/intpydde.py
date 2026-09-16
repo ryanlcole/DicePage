@@ -1,8 +1,8 @@
-# DDE support for Pythonwin
-#
-# Seems to work fine (in the context that IE4 seems to have broken
-# DDE on _all_ NT4 machines I have tried, but only when a "Command Prompt" window
-# is open.  Strange, but true.  If you have problems with this, close all Command Prompts!
+# 037891.python.intpydde.line1.comment DDE support for Pythonwin
+# 037892.python.intpydde.line2.comment
+# 037893.python.intpydde.line3.comment Seems to work fine (in the context that IE4 seems to have broken
+# 037894.python.intpydde.line4.comment DDE on _all_ NT4 machines I have tried, but only when a "Command Prompt" window
+# 037895.python.intpydde.line5.comment is open.  Strange, but true.  If you have problems with this, close all Command Prompts!
 
 
 import sys
@@ -26,11 +26,11 @@ class DDESystemTopic(object.Object):
 
     def Exec(self, data):
         try:
-            # print("Executing", cmd)
+            # 037900.python.intpydde.line29.comment print("Executing", cmd)
             self.app.OnDDECommand(data)
         except:
             t, v, tb = sys.exc_info()
-            # The DDE Execution failed.
+            # 037901.python.intpydde.line33.comment The DDE Execution failed.
             print("Error executing DDE command.")
             traceback.print_exception(t, v, tb)
             return 0

@@ -12,7 +12,7 @@ from typing import List
 class Array(list):
     """Minimal 1-D numeric array wrapper."""
 
-    # ---- creation ----
+    # 052525.python.shaelvien_array.line15.comment ---- creation ----
     @staticmethod
     def zeros(n: int):  return Array([0.0]*n)
     @staticmethod
@@ -20,7 +20,7 @@ class Array(list):
     @staticmethod
     def random(n: int): return Array([random.random() for _ in range(n)])
 
-    # ---- arithmetic ----
+    # 052526.python.shaelvien_array.line23.comment ---- arithmetic ----
     def _binary_op(self, other, op):
         if isinstance(other, (int,float)):
             return Array([op(x,other) for x in self])
@@ -31,7 +31,7 @@ class Array(list):
     def __mul__(self, other): return self._binary_op(other, lambda a,b:a*b)
     def __truediv__(self, other): return self._binary_op(other, lambda a,b:a/b)
 
-    # ---- aggregates ----
+    # 052527.python.shaelvien_array.line34.comment ---- aggregates ----
     def sum(self): return float(sum(self))
     def mean(self): return self.sum()/len(self) if self else 0.0
     def max(self): return float(max(self)) if self else 0.0
@@ -39,7 +39,7 @@ class Array(list):
     def dot(self, other): return float(sum(a*b for a,b in zip(self,other)))
     def magnitude(self): return math.sqrt(self.dot(self))
 
-# ---- matrix helpers ----
+# 052528.python.shaelvien_array.line42.comment ---- matrix helpers ----
 def matrix_multiply(A:List[List[float]],B:List[List[float]]):
     rows_A,cols_A=len(A),len(A[0])
     rows_B,cols_B=len(B),len(B[0])
@@ -50,7 +50,7 @@ def matrix_multiply(A:List[List[float]],B:List[List[float]]):
             result[i][j]=sum(A[i][k]*B[k][j] for k in range(cols_A))
     return result
 
-# ---- signal helpers ----
+# 052529.python.shaelvien_array.line53.comment ---- signal helpers ----
 def fourier_amplitude(samples:List[float])->float:
     n=len(samples)
     if n==0: return 0.0

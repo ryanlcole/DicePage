@@ -1,4 +1,4 @@
-# General test module for win32api - please add some :)
+# 048190.python.test_clipboard.line1.comment General test module for win32api - please add some :)
 import array
 import os
 import sys
@@ -32,7 +32,7 @@ class CrashingTestCase(unittest.TestCase):
         OpenClipboard()
         try:
             EmptyClipboard()
-            # This used to crash - now correctly raises type error.
+            # 048191.python.test_clipboard.line35.comment This used to crash - now correctly raises type error.
             self.assertRaises(TypeError, SetClipboardData, 0, obj)
         finally:
             CloseClipboard()
@@ -85,8 +85,8 @@ class TestStrings(unittest.TestCase):
     def test_unicode_text(self):
         val = "test-val"
         SetClipboardText(val)
-        # GetClipboardData doesn't do auto string conversions -
-        # so CF_TEXT returns bytes.
+        # 048192.python.test_clipboard.line88.comment GetClipboardData doesn't do auto string conversions -
+        # 048193.python.test_clipboard.line89.comment so CF_TEXT returns bytes.
         expected = val.encode("latin1")
         self.assertEqual(GetClipboardData(win32con.CF_TEXT), expected)
         SetClipboardText(val, win32con.CF_UNICODETEXT)
@@ -109,7 +109,7 @@ class TestGlobalMemory(unittest.TestCase):
         val = b"test"
         expected = b"test\0"
         SetClipboardData(win32con.CF_TEXT, val)
-        # Get the raw data - this will include the '\0'
+        # 048194.python.test_clipboard.line112.comment Get the raw data - this will include the '\0'
         raw_data = GetGlobalMemory(GetClipboardDataHandle(win32con.CF_TEXT))
         self.assertEqual(expected, raw_data)
 
@@ -117,9 +117,9 @@ class TestGlobalMemory(unittest.TestCase):
         self.assertRaises(pywintypes.error, GetGlobalMemory, 0)
         self.assertRaises(pywintypes.error, GetGlobalMemory, -1)
         if sys.getwindowsversion()[0] <= 5:
-            # For some reason, the value '1' dies from a 64bit process, but
-            # "works" (ie, gives the correct exception) from a 32bit process.
-            # just silently skip this value on Vista.
+            # 048195.python.test_clipboard.line120.comment For some reason, the value '1' dies from a 64bit process, but
+            # 048196.python.test_clipboard.line121.comment "works" (ie, gives the correct exception) from a 32bit process.
+            # 048197.python.test_clipboard.line122.comment just silently skip this value on Vista.
             self.assertRaises(pywintypes.error, GetGlobalMemory, 1)
 
     def test_custom_mem(self):

@@ -25,7 +25,7 @@ def missing_compiler_executable(cmd_names: Sequence[str] = []):  # pragma: no co
     compiler = ccompiler.new_compiler()
     sysconfig.customize_compiler(compiler)
     if compiler.compiler_type == "msvc":
-        # MSVC has no executables, so check whether initialization succeeds
+        # 040819.python.init.line28.comment MSVC has no executables, so check whether initialization succeeds
         try:
             compiler.initialize()
         except errors.DistutilsPlatformError:

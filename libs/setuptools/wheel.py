@@ -36,9 +36,9 @@ NAMESPACE_PACKAGE_INIT = "__import__('pkg_resources').declare_namespace(__name__
 
 @functools.cache
 def _get_supported_tags():
-    # We calculate the supported tags only once, otherwise calling
-    # this method on thousands of wheels takes seconds instead of
-    # milliseconds.
+    # 045630.python.wheel.line39.comment We calculate the supported tags only once, otherwise calling
+    # 045631.python.wheel.line40.comment this method on thousands of wheels takes seconds instead of
+    # 045632.python.wheel.line41.comment milliseconds.
     return {(t.interpreter, t.abi, t.platform) for t in sys_tags()}
 
 
@@ -54,11 +54,11 @@ def unpack(src_dir, dst_dir) -> None:
             src = os.path.join(dirpath, d)
             dst = os.path.join(dst_dir, subdir, d)
             if not os.path.exists(dst):
-                # Directory does not exist in destination,
-                # rename it and prune it from os.walk list.
+                # 045633.python.wheel.line57.comment Directory does not exist in destination,
+                # 045634.python.wheel.line58.comment rename it and prune it from os.walk list.
                 os.renames(src, dst)
                 del dirnames[n]
-    # Cleanup.
+    # 045635.python.wheel.line61.comment Cleanup.
     for dirpath, dirnames, filenames in os.walk(src_dir, topdown=True):
         assert not filenames
         os.rmdir(dirpath)
@@ -110,7 +110,7 @@ class Wheel:
         )
 
     def get_dist_info(self, zf):
-        # find the correct name of the .dist-info dir in the wheel file
+        # 045636.python.wheel.line113.comment find the correct name of the .dist-info dir in the wheel file
         for member in zf.namelist():
             dirname = posixpath.dirname(member)
             if dirname.endswith('.dist-info') and canonicalize_name(dirname).startswith(
@@ -142,12 +142,12 @@ class Wheel:
                 return email.parser.Parser().parsestr(value)
 
         wheel_metadata = get_metadata('WHEEL')
-        # Check wheel format version is supported.
+        # 045637.python.wheel.line145.comment Check wheel format version is supported.
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
         wheel_v1 = parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
         if not wheel_v1:
             raise ValueError(f'unsupported wheel format version: {wheel_version}')
-        # Extract to target directory.
+        # 045638.python.wheel.line150.comment Extract to target directory.
         _unpack_zipfile_obj(zf, destination_eggdir)
         dist_info = os.path.join(destination_eggdir, dist_info)
         install_requires, extras_require = Wheel._convert_requires(
@@ -179,9 +179,9 @@ class Wheel:
 
         extras = extras_from_deps(deps)
 
-        # Note: Evaluate and strip markers now,
-        # as it's difficult to convert back from the syntax:
-        # foobar; "linux" in sys_platform and extra == 'test'
+        # 045639.python.wheel.line182.comment Note: Evaluate and strip markers now,
+        # 045640.python.wheel.line183.comment as it's difficult to convert back from the syntax:
+        # 045641.python.wheel.line184.comment foobar; "linux" in sys_platform and extra == 'test'
         def raw_req(req):
             req = Requirement(str(req))
             req.marker = None
@@ -224,8 +224,8 @@ class Wheel:
             egg_info_scripts = os.path.join(destination_eggdir, 'EGG-INFO', 'scripts')
             os.mkdir(egg_info_scripts)
             for entry in os.listdir(dist_data_scripts):
-                # Remove bytecode, as it's not properly handled
-                # during easy_install scripts install phase.
+                # 045642.python.wheel.line227.comment Remove bytecode, as it's not properly handled
+                # 045643.python.wheel.line228.comment during easy_install scripts install phase.
                 if entry.endswith('.pyc'):
                     os.unlink(os.path.join(dist_data_scripts, entry))
                 else:

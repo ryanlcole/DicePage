@@ -377,7 +377,7 @@ def test_license_classifier_without_license_expression(tmp_path):
     ):
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
-    # Check license classifier is still included
+    # 045000.python.test_apply_pyprojecttoml.line380.comment Check license classifier is still included
     assert dist.metadata.get_classifiers() == ["License :: OSI Approved :: MIT License"]
 
 
@@ -390,7 +390,7 @@ class TestLicenseFiles:
     ):
         text = PEP639_LICENSE_EXPRESSION
 
-        # Sanity-check
+        # 045001.python.test_apply_pyprojecttoml.line393.comment Sanity-check
         assert 'license = "mit or apache-2.0"' in text
         assert 'license-files' not in text
         assert "[tool.setuptools]" not in text
@@ -421,8 +421,8 @@ class TestLicenseFiles:
         (tmp_path / "_FILE.txt").touch()
         (tmp_path / "_FILE.rst").touch()
 
-        # Would normally match the `license_files` patterns, but we want to exclude it
-        # by being explicit. On the other hand, contents should be added to `license`
+        # 045003.python.test_apply_pyprojecttoml.line424.comment Would normally match the `license_files` patterns, but we want to exclude it
+        # 045004.python.test_apply_pyprojecttoml.line425.comment by being explicit. On the other hand, contents should be added to `license`
         license = tmp_path / "LICENSE.txt"
         license.write_text("LicenseRef-Proprietary\n", encoding="utf-8")
 
@@ -437,7 +437,7 @@ class TestLicenseFiles:
         assert dist.metadata.license == "LicenseRef-Proprietary\n"
 
     def test_both_license_and_license_files_defined_pep639(self, tmp_path):
-        # Set license and license-files
+        # 045005.python.test_apply_pyprojecttoml.line440.comment Set license and license-files
         pyproject = self.base_pyproject_license_pep639(tmp_path)
 
         (tmp_path / "_FILE.txt").touch()
@@ -452,7 +452,7 @@ class TestLicenseFiles:
         assert dist.metadata.license_expression == "LicenseRef-Proprietary"
 
     def test_license_files_defined_twice(self, tmp_path):
-        # Set project.license-files and tools.setuptools.license-files
+        # 045006.python.test_apply_pyprojecttoml.line455.comment Set project.license-files and tools.setuptools.license-files
         setuptools_config = '[tool.setuptools]\nlicense-files = ["_FILE*"]'
         pyproject = self.base_pyproject_license_pep639(tmp_path, setuptools_config)
 
@@ -462,7 +462,7 @@ class TestLicenseFiles:
 
     def test_default_patterns(self, tmp_path):
         setuptools_config = '[tool.setuptools]\nzip-safe = false'
-        # ^ used just to trigger section validation
+        # 045007.python.test_apply_pyprojecttoml.line465.comment ^ used just to trigger section validation
         pyproject = self.base_pyproject(tmp_path, setuptools_config, license_toml="")
 
         license_files = "LICENCE-a.html COPYING-abc.txt AUTHORS-xyz NOTICE,def".split()
@@ -506,7 +506,7 @@ class TestLicenseFiles:
 
 
 class TestPyModules:
-    # https://github.com/pypa/setuptools/issues/4316
+    # 045012.python.test_apply_pyprojecttoml.line509.comment https://github.com/pypa/setuptools/issues/4316
 
     def dist(self, name):
         toml_config = f"""
@@ -660,8 +660,8 @@ class TestPresetField:
         applying ``optional-dependencies`` does not overwrite the mandatory
         dependencies with markers (see #3204).
         """
-        # If setuptools replace its internal mechanism that uses `requires.txt`
-        # this test has to be rewritten to adapt accordingly
+        # 045013.python.test_apply_pyprojecttoml.line663.comment If setuptools replace its internal mechanism that uses `requires.txt`
+        # 045014.python.test_apply_pyprojecttoml.line664.comment this test has to be rewritten to adapt accordingly
         extra = "\n[project.optional-dependencies]\nfoo = ['bar>1']\n"
         pyproject = self.pyproject(tmp_path, ["dependencies"], extra)
         install_req = ['importlib-resources (>=3.0.0) ; python_version < "3.7"']
@@ -681,7 +681,7 @@ class TestPresetField:
     )
     @pytest.mark.filterwarnings("error")
     def test_scripts_dont_require_dynamic_entry_points(self, tmp_path, field, group):
-        # Issue 3862
+        # 045015.python.test_apply_pyprojecttoml.line684.comment Issue 3862
         pyproject = self.pyproject(tmp_path, [field])
         dist = makedist(tmp_path, entry_points={group: ["foobar=foobar:main"]})
         dist = pyprojecttoml.apply_configuration(dist, pyproject)
@@ -697,8 +697,8 @@ class TestMeta:
 
 class TestInteropCommandLineParsing:
     def test_version(self, tmp_path, monkeypatch, capsys):
-        # See pypa/setuptools#4047
-        # This test can be removed once the CLI interface of setup.py is removed
+        # 045016.python.test_apply_pyprojecttoml.line700.comment See pypa/setuptools#4047
+        # 045017.python.test_apply_pyprojecttoml.line701.comment This test can be removed once the CLI interface of setup.py is removed
         monkeypatch.chdir(tmp_path)
         toml_config = """
         [project]
@@ -740,7 +740,7 @@ class TestStaticConfig:
         assert is_static(dist.metadata.platforms)
 
 
-# --- Auxiliary Functions ---
+# 045019.python.test_apply_pyprojecttoml.line743.comment --- Auxiliary Functions ---
 
 
 def core_metadata(dist) -> str:
@@ -748,19 +748,19 @@ def core_metadata(dist) -> str:
         dist.metadata.write_pkg_file(buffer)
         pkg_file_txt = buffer.getvalue()
 
-    # Make sure core metadata is valid
+    # 045020.python.test_apply_pyprojecttoml.line751.comment Make sure core metadata is valid
     Metadata.from_email(pkg_file_txt, validate=True)  # can raise exceptions
 
     skip_prefixes: tuple[str, ...] = ()
     skip_lines = set()
-    # ---- DIFF NORMALISATION ----
-    # PEP 621 is very particular about author/maintainer metadata conversion, so skip
+    # 045022.python.test_apply_pyprojecttoml.line756.comment ---- DIFF NORMALISATION ----
+    # 045023.python.test_apply_pyprojecttoml.line757.comment PEP 621 is very particular about author/maintainer metadata conversion, so skip
     skip_prefixes += ("Author:", "Author-email:", "Maintainer:", "Maintainer-email:")
-    # May be redundant with Home-page
+    # 045024.python.test_apply_pyprojecttoml.line759.comment May be redundant with Home-page
     skip_prefixes += ("Project-URL: Homepage,", "Home-page:")
-    # May be missing in original (relying on default) but backfilled in the TOML
+    # 045025.python.test_apply_pyprojecttoml.line761.comment May be missing in original (relying on default) but backfilled in the TOML
     skip_prefixes += ("Description-Content-Type:",)
-    # Remove empty lines
+    # 045026.python.test_apply_pyprojecttoml.line763.comment Remove empty lines
     skip_lines.add("")
 
     result = []

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 003808.python.hook-PyQt6.QtNetworkAuth.line1.comment -----------------------------------------------------------------------------
+# 003809.python.hook-PyQt6.QtNetworkAuth.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 003810.python.hook-PyQt6.QtNetworkAuth.line3.comment
+# 003811.python.hook-PyQt6.QtNetworkAuth.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 003812.python.hook-PyQt6.QtNetworkAuth.line5.comment or later) with exception for distributing the bootloader.
+# 003813.python.hook-PyQt6.QtNetworkAuth.line6.comment
+# 003814.python.hook-PyQt6.QtNetworkAuth.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 003815.python.hook-PyQt6.QtNetworkAuth.line8.comment
+# 003816.python.hook-PyQt6.QtNetworkAuth.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 003817.python.hook-PyQt6.QtNetworkAuth.line10.comment -----------------------------------------------------------------------------
 
 from PyInstaller.utils.hooks.qt import add_qt6_dependencies
 

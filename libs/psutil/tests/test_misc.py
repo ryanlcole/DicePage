@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 025376.python.test_misc.line3.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 025377.python.test_misc.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 025378.python.test_misc.line5.comment found in the LICENSE file.
 
 """Miscellaneous tests."""
 
@@ -35,9 +35,9 @@ from psutil.tests import pytest
 from psutil.tests import reload_module
 from psutil.tests import system_namespace
 
-# ===================================================================
-# --- Test classes' repr(), str(), ...
-# ===================================================================
+# 025379.python.test_misc.line38.comment ===================================================================
+# 025380.python.test_misc.line39.comment --- Test classes' repr(), str(), ...
+# 025381.python.test_misc.line40.comment ===================================================================
 
 
 class TestSpecialMethods(PsutilTestCase):
@@ -188,9 +188,9 @@ class TestSpecialMethods(PsutilTestCase):
         assert len(s) == 1
 
 
-# ===================================================================
-# --- Misc, generic, corner cases
-# ===================================================================
+# 025382.python.test_misc.line191.comment ===================================================================
+# 025383.python.test_misc.line192.comment --- Misc, generic, corner cases
+# 025384.python.test_misc.line193.comment ===================================================================
 
 
 class TestMisc(PsutilTestCase):
@@ -221,10 +221,10 @@ class TestMisc(PsutilTestCase):
                                 f"{name!r} not in psutil.__all__"
                             )
 
-        # Import 'star' will break if __all__ is inconsistent, see:
-        # https://github.com/giampaolo/psutil/issues/656
-        # Can't do `from psutil import *` as it won't work
-        # so we simply iterate over __all__.
+        # 025385.python.test_misc.line224.comment Import 'star' will break if __all__ is inconsistent, see:
+        # 025386.python.test_misc.line225.comment https://github.com/giampaolo/psutil/issues/656
+        # 025387.python.test_misc.line226.comment Can't do `from psutil import *` as it won't work
+        # 025388.python.test_misc.line227.comment so we simply iterate over __all__.
         for name in psutil.__all__:
             assert name in dir_psutil
 
@@ -235,7 +235,7 @@ class TestMisc(PsutilTestCase):
         )
 
     def test_process_as_dict_no_new_names(self):
-        # See https://github.com/giampaolo/psutil/issues/813
+        # 025389.python.test_misc.line238.comment See https://github.com/giampaolo/psutil/issues/813
         p = psutil.Process()
         p.foo = '1'
         assert 'foo' not in p.as_dict()
@@ -248,7 +248,7 @@ class TestMisc(PsutilTestCase):
             b = pickle.loads(a)
             assert ret == b
 
-        # --- process APIs
+        # 025390.python.test_misc.line251.comment --- process APIs
 
         proc = psutil.Process()
         check(psutil.Process().as_dict())
@@ -263,7 +263,7 @@ class TestMisc(PsutilTestCase):
                 else:
                     check(ret)
 
-        # --- system APIs
+        # 025391.python.test_misc.line266.comment --- system APIs
 
         ns = system_namespace()
         for fun, name in ns.iter(ns.getters):
@@ -277,7 +277,7 @@ class TestMisc(PsutilTestCase):
                 else:
                     check(ret)
 
-        # --- exception classes
+        # 025392.python.test_misc.line280.comment --- exception classes
 
         b = pickle.loads(
             pickle.dumps(
@@ -319,8 +319,8 @@ class TestMisc(PsutilTestCase):
         assert b.name == 'name'
 
     def test_ad_on_process_creation(self):
-        # We are supposed to be able to instantiate Process also in case
-        # of zombie processes or access denied.
+        # 025393.python.test_misc.line322.comment We are supposed to be able to instantiate Process also in case
+        # 025394.python.test_misc.line323.comment of zombie processes or access denied.
         with mock.patch.object(
             psutil.Process, '_get_ident', side_effect=psutil.AccessDenied
         ) as meth:
@@ -348,7 +348,7 @@ class TestMisc(PsutilTestCase):
             assert meth.called
 
     def test_sanity_version_check(self):
-        # see: https://github.com/giampaolo/psutil/issues/564
+        # 025395.python.test_misc.line351.comment see: https://github.com/giampaolo/psutil/issues/564
         with mock.patch(
             "psutil._psplatform.cext.version", return_value="0.0.0"
         ):
@@ -357,9 +357,9 @@ class TestMisc(PsutilTestCase):
             assert "version conflict" in str(cm.value).lower()
 
 
-# ===================================================================
-# --- psutil/_common.py utils
-# ===================================================================
+# 025396.python.test_misc.line360.comment ===================================================================
+# 025397.python.test_misc.line361.comment --- psutil/_common.py utils
+# 025398.python.test_misc.line362.comment ===================================================================
 
 
 class TestMemoizeDecorator(PsutilTestCase):
@@ -369,32 +369,32 @@ class TestMemoizeDecorator(PsutilTestCase):
     tearDown = setUp
 
     def run_against(self, obj, expected_retval=None):
-        # no args
+        # 025399.python.test_misc.line372.comment no args
         for _ in range(2):
             ret = obj()
             assert self.calls == [((), {})]
             if expected_retval is not None:
                 assert ret == expected_retval
-        # with args
+        # 025400.python.test_misc.line378.comment with args
         for _ in range(2):
             ret = obj(1)
             assert self.calls == [((), {}), ((1,), {})]
             if expected_retval is not None:
                 assert ret == expected_retval
-        # with args + kwargs
+        # 025401.python.test_misc.line384.comment with args + kwargs
         for _ in range(2):
             ret = obj(1, bar=2)
             assert self.calls == [((), {}), ((1,), {}), ((1,), {'bar': 2})]
             if expected_retval is not None:
                 assert ret == expected_retval
-        # clear cache
+        # 025402.python.test_misc.line390.comment clear cache
         assert len(self.calls) == 3
         obj.cache_clear()
         ret = obj()
         if expected_retval is not None:
             assert ret == expected_retval
         assert len(self.calls) == 4
-        # docstring
+        # 025403.python.test_misc.line397.comment docstring
         assert obj.__doc__ == "My docstring."
 
     def test_function(self):
@@ -423,7 +423,7 @@ class TestMemoizeDecorator(PsutilTestCase):
         assert Foo().bar() == 22
 
     def test_class_singleton(self):
-        # @memoize can be used against classes to create singletons
+        # 025404.python.test_misc.line426.comment @memoize can be used against classes to create singletons
         @memoize
         class Bar:
             def __init__(self, *args, **kwargs):
@@ -460,8 +460,8 @@ class TestMemoizeDecorator(PsutilTestCase):
         self.run_against(Foo().bar, expected_retval=22)
 
     def test_original(self):
-        # This was the original test before I made it dynamic to test it
-        # against different types. Keeping it anyway.
+        # 025405.python.test_misc.line463.comment This was the original test before I made it dynamic to test it
+        # 025406.python.test_misc.line464.comment against different types. Keeping it anyway.
         @memoize
         def foo(*args, **kwargs):
             """Foo docstring."""
@@ -469,31 +469,31 @@ class TestMemoizeDecorator(PsutilTestCase):
             return (args, kwargs)
 
         calls = []
-        # no args
+        # 025407.python.test_misc.line472.comment no args
         for _ in range(2):
             ret = foo()
             expected = ((), {})
             assert ret == expected
             assert len(calls) == 1
-        # with args
+        # 025408.python.test_misc.line478.comment with args
         for _ in range(2):
             ret = foo(1)
             expected = ((1,), {})
             assert ret == expected
             assert len(calls) == 2
-        # with args + kwargs
+        # 025409.python.test_misc.line484.comment with args + kwargs
         for _ in range(2):
             ret = foo(1, bar=2)
             expected = ((1,), {'bar': 2})
             assert ret == expected
             assert len(calls) == 3
-        # clear cache
+        # 025410.python.test_misc.line490.comment clear cache
         foo.cache_clear()
         ret = foo()
         expected = ((), {})
         assert ret == expected
         assert len(calls) == 4
-        # docstring
+        # 025411.python.test_misc.line496.comment docstring
         assert foo.__doc__ == "Foo docstring."
 
 
@@ -510,14 +510,14 @@ class TestCommonModule(PsutilTestCase):
         f.foo()
         assert len(calls) == 2
 
-        # activate
+        # 025412.python.test_misc.line513.comment activate
         calls = []
         f.foo.cache_activate(f)
         f.foo()
         f.foo()
         assert len(calls) == 1
 
-        # deactivate
+        # 025413.python.test_misc.line520.comment deactivate
         calls = []
         f.foo.cache_deactivate(f)
         f.foo()
@@ -534,15 +534,15 @@ class TestCommonModule(PsutilTestCase):
             k("b"): "2",
         }
         assert parse_environ_block("a=1\0b=\0\0") == {k("a"): "1", k("b"): ""}
-        # ignore everything after \0\0
+        # 025414.python.test_misc.line537.comment ignore everything after \0\0
         assert parse_environ_block("a=1\0b=2\0\0c=3\0") == {
             k("a"): "1",
             k("b"): "2",
         }
-        # ignore everything that is not an assignment
+        # 025415.python.test_misc.line542.comment ignore everything that is not an assignment
         assert parse_environ_block("xxx\0a=1\0") == {k("a"): "1"}
         assert parse_environ_block("a=1\0=b=2\0") == {k("a"): "1"}
-        # do not fail if the block is incomplete
+        # 025416.python.test_misc.line545.comment do not fail if the block is incomplete
         assert parse_environ_block("a=1\0b=2") == {k("a"): "1"}
 
     def test_supports_ipv6(self):
@@ -601,7 +601,7 @@ class TestCommonModule(PsutilTestCase):
         assert "hello" in msg
         assert __file__.replace('.pyc', '.py') in msg
 
-        # supposed to use repr(exc)
+        # 025417.python.test_misc.line604.comment supposed to use repr(exc)
         with mock.patch.object(psutil._common, "PSUTIL_DEBUG", True):
             with contextlib.redirect_stderr(io.StringIO()) as f:
                 debug(ValueError("this is an error"))
@@ -609,7 +609,7 @@ class TestCommonModule(PsutilTestCase):
         assert "ignoring ValueError" in msg
         assert "'this is an error'" in msg
 
-        # supposed to use str(exc), because of extra info about file name
+        # 025418.python.test_misc.line612.comment supposed to use str(exc), because of extra info about file name
         with mock.patch.object(psutil._common, "PSUTIL_DEBUG", True):
             with contextlib.redirect_stderr(io.StringIO()) as f:
                 exc = OSError(2, "no such file")
@@ -633,9 +633,9 @@ class TestCommonModule(PsutilTestCase):
         assert bcat(testfn + '-invalid', fallback="bar") == "bar"
 
 
-# ===================================================================
-# --- Tests for wrap_numbers() function.
-# ===================================================================
+# 025419.python.test_misc.line636.comment ===================================================================
+# 025420.python.test_misc.line637.comment --- Tests for wrap_numbers() function.
+# 025421.python.test_misc.line638.comment ===================================================================
 
 
 nt = collections.namedtuple('foo', 'a b c')
@@ -667,38 +667,38 @@ class TestWrapNumbers(PsutilTestCase):
         assert wrap_numbers(input, 'disk_io') == input
 
     def test_wrap(self):
-        # let's say 100 is the threshold
+        # 025422.python.test_misc.line670.comment let's say 100 is the threshold
         input = {'disk1': nt(100, 100, 100)}
         assert wrap_numbers(input, 'disk_io') == input
-        # first wrap restarts from 10
+        # 025423.python.test_misc.line673.comment first wrap restarts from 10
         input = {'disk1': nt(100, 100, 10)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(100, 100, 110)}
-        # then it remains the same
+        # 025424.python.test_misc.line676.comment then it remains the same
         input = {'disk1': nt(100, 100, 10)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(100, 100, 110)}
-        # then it goes up
+        # 025425.python.test_misc.line679.comment then it goes up
         input = {'disk1': nt(100, 100, 90)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(100, 100, 190)}
-        # then it wraps again
+        # 025426.python.test_misc.line682.comment then it wraps again
         input = {'disk1': nt(100, 100, 20)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(100, 100, 210)}
-        # and remains the same
+        # 025427.python.test_misc.line685.comment and remains the same
         input = {'disk1': nt(100, 100, 20)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(100, 100, 210)}
-        # now wrap another num
+        # 025428.python.test_misc.line688.comment now wrap another num
         input = {'disk1': nt(50, 100, 20)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(150, 100, 210)}
-        # and again
+        # 025429.python.test_misc.line691.comment and again
         input = {'disk1': nt(40, 100, 20)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(190, 100, 210)}
-        # keep it the same
+        # 025430.python.test_misc.line694.comment keep it the same
         input = {'disk1': nt(40, 100, 20)}
         assert wrap_numbers(input, 'disk_io') == {'disk1': nt(190, 100, 210)}
 
     def test_changing_keys(self):
-        # Emulate a case where the second call to disk_io()
-        # (or whatever) provides a new disk, then the new disk
-        # disappears on the third call.
+        # 025431.python.test_misc.line699.comment Emulate a case where the second call to disk_io()
+        # 025432.python.test_misc.line700.comment (or whatever) provides a new disk, then the new disk
+        # 025433.python.test_misc.line701.comment disappears on the third call.
         input = {'disk1': nt(5, 5, 5)}
         assert wrap_numbers(input, 'disk_io') == input
         input = {'disk1': nt(5, 5, 5), 'disk2': nt(7, 7, 7)}
@@ -709,24 +709,24 @@ class TestWrapNumbers(PsutilTestCase):
     def test_changing_keys_w_wrap(self):
         input = {'disk1': nt(50, 50, 50), 'disk2': nt(100, 100, 100)}
         assert wrap_numbers(input, 'disk_io') == input
-        # disk 2 wraps
+        # 025434.python.test_misc.line712.comment disk 2 wraps
         input = {'disk1': nt(50, 50, 50), 'disk2': nt(100, 100, 10)}
         assert wrap_numbers(input, 'disk_io') == {
             'disk1': nt(50, 50, 50),
             'disk2': nt(100, 100, 110),
         }
-        # disk 2 disappears
+        # 025435.python.test_misc.line718.comment disk 2 disappears
         input = {'disk1': nt(50, 50, 50)}
         assert wrap_numbers(input, 'disk_io') == input
 
-        # then it appears again; the old wrap is supposed to be
-        # gone.
+        # 025436.python.test_misc.line722.comment then it appears again; the old wrap is supposed to be
+        # 025437.python.test_misc.line723.comment gone.
         input = {'disk1': nt(50, 50, 50), 'disk2': nt(100, 100, 100)}
         assert wrap_numbers(input, 'disk_io') == input
-        # remains the same
+        # 025438.python.test_misc.line726.comment remains the same
         input = {'disk1': nt(50, 50, 50), 'disk2': nt(100, 100, 100)}
         assert wrap_numbers(input, 'disk_io') == input
-        # and then wraps again
+        # 025439.python.test_misc.line729.comment and then wraps again
         input = {'disk1': nt(50, 50, 50), 'disk2': nt(100, 100, 10)}
         assert wrap_numbers(input, 'disk_io') == {
             'disk1': nt(50, 50, 50),
@@ -742,7 +742,7 @@ class TestWrapNumbers(PsutilTestCase):
         }
         assert wrap_numbers(d, 'disk_io') == d
         assert wrap_numbers(d, 'disk_io') == d
-        # decrease this   ↓
+        # 025440.python.test_misc.line745.comment decrease this   ↓
         d = {
             'nvme0n1': (100, 508, 640, 1571, 5970, 1987, 2049, 451751, 47048),
             'nvme0n1p1': (1171, 2, 5600256, 1024, 516, 0, 0, 0, 8),
@@ -752,7 +752,7 @@ class TestWrapNumbers(PsutilTestCase):
         out = wrap_numbers(d, 'disk_io')
         assert out['nvme0n1'][0] == 400
 
-    # --- cache tests
+    # 025441.python.test_misc.line755.comment --- cache tests
 
     def test_cache_first_call(self):
         input = {'disk1': nt(5, 5, 5)}
@@ -775,11 +775,11 @@ class TestWrapNumbers(PsutilTestCase):
         assert cache[2] == {'disk_io': {}}
 
     def test_cache_wrap(self):
-        # let's say 100 is the threshold
+        # 025442.python.test_misc.line778.comment let's say 100 is the threshold
         input = {'disk1': nt(100, 100, 100)}
         wrap_numbers(input, 'disk_io')
 
-        # first wrap restarts from 10
+        # 025443.python.test_misc.line782.comment first wrap restarts from 10
         input = {'disk1': nt(100, 100, 10)}
         wrap_numbers(input, 'disk_io')
         cache = wrap_numbers.cache_info()
@@ -800,21 +800,21 @@ class TestWrapNumbers(PsutilTestCase):
             }
             assert cache[2] == {'disk_io': {'disk1': {('disk1', 2)}}}
 
-        # then it remains the same
+        # 025444.python.test_misc.line803.comment then it remains the same
         input = {'disk1': nt(100, 100, 10)}
         wrap_numbers(input, 'disk_io')
         cache = wrap_numbers.cache_info()
         assert cache[0] == {'disk_io': input}
         check_cache_info()
 
-        # then it goes up
+        # 025445.python.test_misc.line810.comment then it goes up
         input = {'disk1': nt(100, 100, 90)}
         wrap_numbers(input, 'disk_io')
         cache = wrap_numbers.cache_info()
         assert cache[0] == {'disk_io': input}
         check_cache_info()
 
-        # then it wraps again
+        # 025446.python.test_misc.line817.comment then it wraps again
         input = {'disk1': nt(100, 100, 20)}
         wrap_numbers(input, 'disk_io')
         cache = wrap_numbers.cache_info()

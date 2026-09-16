@@ -178,8 +178,8 @@ else:
     ('distutils_version', 'imported_module'),
     [
         ("local", "distutils"),
-        # Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib
-        # But that's a deprecated use-case we don't mind not fully supporting in newer code
+        # 045365.python.test_distutils_adoption.line181.comment Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib
+        # 045366.python.test_distutils_adoption.line182.comment But that's a deprecated use-case we don't mind not fully supporting in newer code
         pytest.param(
             "stdlib", "setuptools._distutils", marks=skip_without_stdlib_distutils
         ),

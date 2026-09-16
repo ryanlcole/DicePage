@@ -1,4 +1,4 @@
-# document and view classes for MFC.
+# 038502.python.docview.line1.comment document and view classes for MFC.
 import win32ui
 
 from . import object, window
@@ -12,7 +12,7 @@ class View(window.Wnd):
         pass
 
 
-# Simple control based views.
+# 038503.python.docview.line15.comment Simple control based views.
 class CtrlView(View):
     def __init__(self, doc, wndclass, style=0):
         View.__init__(self, win32ui.CreateCtrlView(doc, wndclass, style))
@@ -38,7 +38,7 @@ class TreeView(CtrlView):
         View.__init__(self, win32ui.CreateTreeView(doc))
 
 
-# Other more advanced views.
+# 038504.python.docview.line41.comment Other more advanced views.
 class ScrollView(View):
     def __init__(self, doc):
         View.__init__(self, win32ui.CreateView(doc))
@@ -143,7 +143,7 @@ def t():
     class FormTemplate(DocTemplate):
         def CreateView(self, frame, context):
             makeView = self.MakeView
-            # 			view = FormView(context.doc, win32ui.IDD_PROPDEMO1)
+            # 038507.python.docview.line146.comment view = FormView(context.doc, win32ui.IDD_PROPDEMO1)
             view = ListView(context.doc)
             view.CreateWindow(frame)
 

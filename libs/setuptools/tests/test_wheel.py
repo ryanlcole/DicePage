@@ -160,8 +160,8 @@ def _check_wheel_install(
 
     (dist,) = metadata.Distribution.discover(path=[egg_path])
 
-    # pyright is nitpicky; fine to assume dist.metadata.__getitem__ will fail or return None
-    # (https://github.com/pypa/setuptools/pull/5006#issuecomment-2894774288)
+    # 045610.python.test_wheel.line163.comment pyright is nitpicky; fine to assume dist.metadata.__getitem__ will fail or return None
+    # 045611.python.test_wheel.line164.comment (https://github.com/pypa/setuptools/pull/5006#issuecomment-2894774288)
     assert dist.metadata['Name'] == project_name  # pyright: ignore  # noqa: PGH003
     assert dist.metadata['Version'] == version  # pyright: ignore  # noqa: PGH003
     assert dist.read_text('requires.txt') == requires_txt
@@ -176,9 +176,9 @@ class Record:
         return f'{self._id}(**{self._fields!r})'
 
 
-# Using Any to avoid possible type union issues later in test
-# making a TypedDict is not worth in a test and anonymous/inline TypedDict are experimental
-# https://github.com/python/mypy/issues/9884
+# 045614.python.test_wheel.line179.comment Using Any to avoid possible type union issues later in test
+# 045615.python.test_wheel.line180.comment making a TypedDict is not worth in a test and anonymous/inline TypedDict are experimental
+# 045616.python.test_wheel.line181.comment https://github.com/python/mypy/issues/9884
 WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
     dict(
         id='basic',
@@ -582,7 +582,7 @@ def test_wheel_no_dist_dir():
     wheel_name = f'{project_name}-{version}-py2.py3-none-any.whl'
     with tempdir() as source_dir:
         wheel_path = os.path.join(source_dir, wheel_name)
-        # create an empty zip file
+        # 045617.python.test_wheel.line585.comment create an empty zip file
         zipfile.ZipFile(wheel_path, 'w').close()
         with tempdir() as install_dir:
             with pytest.raises(ValueError):
@@ -686,5 +686,5 @@ def test_wheel_mode():
         script_sh = base / "EGG-INFO" / "scripts" / "script.sh"
         assert script_sh.exists()
         if sys.platform != 'win32':
-            # Editable file mode has no effect on Windows
+            # 045618.python.test_wheel.line689.comment Editable file mode has no effect on Windows
             assert oct(stat.S_IMODE(script_sh.stat().st_mode)) == "0o777"

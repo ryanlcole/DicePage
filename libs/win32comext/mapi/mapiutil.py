@@ -1,4 +1,4 @@
-# General utilities for MAPI and MAPI objects.
+# 051459.python.mapiutil.line1.comment General utilities for MAPI and MAPI objects.
 from __future__ import annotations
 
 import pythoncom
@@ -13,20 +13,20 @@ def GetPropTagName(pt):
     if not prTable:
         for name, value in mapitags.__dict__.items():
             if name[:3] == "PR_":
-                # Store both the full ID (including type) and just the ID.
-                # This is so PR_FOO_A and PR_FOO_W are still differentiated,
-                # but should we get a PT_FOO with PT_ERROR set, we fallback
-                # to the ID.
+                # 051460.python.mapiutil.line16.comment Store both the full ID (including type) and just the ID.
+                # 051461.python.mapiutil.line17.comment This is so PR_FOO_A and PR_FOO_W are still differentiated,
+                # 051462.python.mapiutil.line18.comment but should we get a PT_FOO with PT_ERROR set, we fallback
+                # 051463.python.mapiutil.line19.comment to the ID.
 
-                # String types should have 3 definitions in mapitags.py
-                # PR_BODY	= PROP_TAG( PT_TSTRING,	4096)
-                # PR_BODY_W	= PROP_TAG( PT_UNICODE, 4096)
-                # PR_BODY_A	= PROP_TAG( PT_STRING8, 4096)
-                # The following change ensures a lookup using only the the
-                # property id returns the conditional default.
+                # 051464.python.mapiutil.line21.comment String types should have 3 definitions in mapitags.py
+                # 051465.python.mapiutil.line22.comment PR_BODY	= PROP_TAG( PT_TSTRING,	4096)
+                # 051466.python.mapiutil.line23.comment PR_BODY_W	= PROP_TAG( PT_UNICODE, 4096)
+                # 051467.python.mapiutil.line24.comment PR_BODY_A	= PROP_TAG( PT_STRING8, 4096)
+                # 051468.python.mapiutil.line25.comment The following change ensures a lookup using only the the
+                # 051469.python.mapiutil.line26.comment property id returns the conditional default.
 
-                # PT_TSTRING is a conditional assignment for either PT_UNICODE or
-                # PT_STRING8 and should not be returned during a lookup.
+                # 051470.python.mapiutil.line28.comment PT_TSTRING is a conditional assignment for either PT_UNICODE or
+                # 051471.python.mapiutil.line29.comment PT_STRING8 and should not be returned during a lookup.
 
                 if (
                     mapitags.PROP_TYPE(value) == mapitags.PT_UNICODE
@@ -45,13 +45,13 @@ def GetPropTagName(pt):
         try:
             return prTable[pt]
         except KeyError:
-            # Can't find it exactly - see if the raw ID exists.
+            # 051472.python.mapiutil.line48.comment Can't find it exactly - see if the raw ID exists.
             return prTable[mapitags.PROP_ID(pt)]
     except KeyError:
-        # god-damn bullshit hex() warnings: I don't see a way to get the
-        # old behaviour without a warning!!
+        # 051473.python.mapiutil.line51.comment god-damn bullshit hex() warnings: I don't see a way to get the
+        # 051474.python.mapiutil.line52.comment old behaviour without a warning!!
         ret = hex(int(pt))
-        # -0x8000000L -> 0x80000000
+        # 051475.python.mapiutil.line54.comment -0x8000000L -> 0x80000000
         if ret[0] == "-":
             ret = ret[1:]
         if ret[-1] == "L":
@@ -78,9 +78,9 @@ def GetMapiTypeName(propType, rawType=True):
     if not ptTable:
         for name, value in mapitags.__dict__.items():
             if name[:3] == "PT_":
-                # PT_TSTRING is a conditional assignment
-                # for either PT_UNICODE or PT_STRING8 and
-                # should not be returned during a lookup.
+                # 051476.python.mapiutil.line81.comment PT_TSTRING is a conditional assignment
+                # 051477.python.mapiutil.line82.comment for either PT_UNICODE or PT_STRING8 and
+                # 051478.python.mapiutil.line83.comment should not be returned during a lookup.
                 if name in ["PT_TSTRING", "PT_MV_TSTRING"]:
                     continue
                 ptTable[value] = name
@@ -166,7 +166,7 @@ def SetPropertyValue(obj, prop, val):
                 )
         prop = mapitags.PROP_TAG(type_tag, mapitags.PROP_ID(propIds[0]))
     if val is None:
-        # Delete the property
+        # 051479.python.mapiutil.line169.comment Delete the property
         obj.DeleteProps((prop,))
     else:
         obj.SetProps(((prop, val),))
@@ -184,11 +184,11 @@ def SetProperties(msg, propDict):
     """
 
     newProps = []
-    # First pass over the properties we should get IDs for.
+    # 051480.python.mapiutil.line187.comment First pass over the properties we should get IDs for.
     for key, val in propDict.items():
         if isinstance(key, str):
             newProps.append((mapi.PS_PUBLIC_STRINGS, key))
-    # Query for the new IDs
+    # 051481.python.mapiutil.line191.comment Query for the new IDs
     if newProps:
         newIds = msg.GetIDsFromNames(newProps, mapi.MAPI_CREATE)
     newIdNo = 0

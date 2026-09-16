@@ -56,7 +56,7 @@ g_adb = None
 def OnSetBreakPoint(codeContext, breakPointState, lineNo):
     try:
         fileName = codeContext.codeContainer.GetFileName()
-        # inject the code into linecache.
+        # 050746.python.adb.line59.comment inject the code into linecache.
         import linecache
 
         linecache.cache[fileName] = 0, 0, codeContext.codeContainer.GetText(), fileName
@@ -94,7 +94,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         bdb.Bdb.reset(self)
 
     def __xxxxx__set_break(self, filename, lineno, cond=None):
-        # As per standard one, except no linecache checking!
+        # 050750.python.adb.line97.comment As per standard one, except no linecache checking!
         if filename not in self.breaks:
             self.breaks[filename] = []
         list = self.breaks[filename]
@@ -106,9 +106,9 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
     def stop_here(self, frame):
         traceenter("stop_here", _dumpf(frame), _dumpf(self.stopframe))
-        # As per bdb.stop_here, except for logicalbotframe
-        # if self.stopframe is None:
-        #     return 1
+        # 050751.python.adb.line109.comment As per bdb.stop_here, except for logicalbotframe
+        # 050752.python.adb.line110.comment if self.stopframe is None:
+        # 050753.python.adb.line111.comment return 1
         if frame is self.stopframe:
             return 1
 
@@ -142,24 +142,24 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
     def dispatch_return(self, frame, arg):
         traceenter("dispatch_return", _dumpf(frame), arg)
         if self.logicalbotframe is frame:
-            # We don't want to debug parent frames.
+            # 050754.python.adb.line145.comment We don't want to debug parent frames.
             tracev("dispatch_return resetting sys.trace")
             sys.settrace(None)
             return
-        # self.bSetTrace = 0
+        # 050755.python.adb.line149.comment self.bSetTrace = 0
         self.currentframe = frame.f_back
         return bdb.Bdb.dispatch_return(self, frame, arg)
 
     def dispatch_line(self, frame):
         traceenter("dispatch_line", _dumpf(frame), _dumpf(self.botframe))
-        # trace("logbotframe is", _dumpf(self.logicalbotframe), "botframe is", self.botframe)
+        # 050756.python.adb.line155.comment trace("logbotframe is", _dumpf(self.logicalbotframe), "botframe is", self.botframe)
         if frame is self.logicalbotframe:
             trace("dispatch_line", _dumpf(frame), "for bottom frame returing tracer")
-            # The next code executed in the frame above may be a builtin (eg, apply())
-            # in which sys.trace needs to be set.
+            # 050757.python.adb.line158.comment The next code executed in the frame above may be a builtin (eg, apply())
+            # 050758.python.adb.line159.comment in which sys.trace needs to be set.
             sys.settrace(self.trace_dispatch)
-            # And return the tracer incase we are about to execute Python code,
-            # in which case sys tracer is ignored!
+            # 050759.python.adb.line161.comment And return the tracer incase we are about to execute Python code,
+            # 050760.python.adb.line162.comment in which case sys tracer is ignored!
             return self.trace_dispatch
 
         if self.codeContainerProvider.FromFileName(frame.f_code.co_filename) is None:
@@ -178,19 +178,19 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         if frame is self.botframe:
             trace("dispatch_call is self.botframe - returning tracer")
             return self.trace_dispatch
-        # Not our bottom frame.  If we have a document for it,
-        # then trace it, otherwise run at full speed.
+        # 050762.python.adb.line181.comment Not our bottom frame.  If we have a document for it,
+        # 050763.python.adb.line182.comment then trace it, otherwise run at full speed.
         if self.codeContainerProvider.FromFileName(frame.f_code.co_filename) is None:
             trace(
                 "dispatch_call has no document for", _dumpf(frame), "- skipping trace!"
             )
-            # sys.settrace(None)
+            # 050764.python.adb.line187.comment sys.settrace(None)
             return None
         return self.trace_dispatch
 
-        # rc =  bdb.Bdb.dispatch_call(self, frame, arg)
-        # trace("dispatch_call", _dumpf(frame),"returned",rc)
-        # return rc
+        # 050765.python.adb.line191.comment rc =  bdb.Bdb.dispatch_call(self, frame, arg)
+        # 050766.python.adb.line192.comment trace("dispatch_call", _dumpf(frame),"returned",rc)
+        # 050767.python.adb.line193.comment return rc
 
     def trace_dispatch(self, frame, event, arg):
         traceenter("trace_dispatch", _dumpf(frame), event, arg)
@@ -199,15 +199,15 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             return  # None
         return bdb.Bdb.trace_dispatch(self, frame, event, arg)
 
-    #
-    # The user functions do bugger all!
-    #
-    # def user_call(self, frame, argument_list):
-    #     traceenter("user_call",_dumpf(frame))
+    # 050769.python.adb.line202.comment
+    # 050770.python.adb.line203.comment The user functions do bugger all!
+    # 050771.python.adb.line204.comment
+    # 050772.python.adb.line205.comment def user_call(self, frame, argument_list):
+    # 050773.python.adb.line206.comment traceenter("user_call",_dumpf(frame))
 
     def user_line(self, frame):
         traceenter("user_line", _dumpf(frame))
-        # Traces at line zero
+        # 050774.python.adb.line210.comment Traces at line zero
         if frame.f_lineno != 0:
             breakReason = self.breakReason
             if breakReason is None:
@@ -215,11 +215,11 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             self._HandleBreakPoint(frame, None, breakReason)
 
     def user_return(self, frame, return_value):
-        # traceenter("user_return",_dumpf(frame),return_value)
+        # 050775.python.adb.line218.comment traceenter("user_return",_dumpf(frame),return_value)
         bdb.Bdb.user_return(self, frame, return_value)
 
     def user_exception(self, frame, exc_info):
-        # traceenter("user_exception")
+        # 050776.python.adb.line222.comment traceenter("user_exception")
         bdb.Bdb.user_exception(self, frame, exc_info)
 
     def _HandleBreakPoint(self, frame, tb, reason):
@@ -231,8 +231,8 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             resumeAction = self.debugApplication.HandleBreakPoint(reason)
             tracev("HandleBreakPoint returned with ", resumeAction)
         except pythoncom.com_error as details:
-            # Eeek - the debugger is dead, or something serious is happening.
-            # Assume we should continue
+            # 050777.python.adb.line234.comment Eeek - the debugger is dead, or something serious is happening.
+            # 050778.python.adb.line235.comment Assume we should continue
             resumeAction = axdebug.BREAKRESUMEACTION_CONTINUE
             trace("HandleBreakPoint FAILED with", details)
 
@@ -284,7 +284,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             self.codeContainerProvider = None
 
     def AttachApp(self, debugApplication, codeContainerProvider):
-        # traceenter("AttachApp", debugApplication, codeContainerProvider)
+        # 050779.python.adb.line287.comment traceenter("AttachApp", debugApplication, codeContainerProvider)
         self.codeContainerProvider = codeContainerProvider
         self.debugApplication = debugApplication
         self.stackSniffer = _wrap(
@@ -293,9 +293,9 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         self.stackSnifferCookie = debugApplication.AddStackFrameSniffer(
             self.stackSniffer
         )
-        # trace(f"StackFrameSniffer added ({self.stackSnifferCookie})")
+        # 050780.python.adb.line296.comment trace(f"StackFrameSniffer added ({self.stackSnifferCookie})")
 
-        # Connect to the application events.
+        # 050781.python.adb.line298.comment Connect to the application events.
         self.appEventConnection = win32com.client.connect.SimpleConnection(
             self.debugApplication, self, axdebug.IID_IRemoteDebugApplicationEvents
         )
@@ -307,7 +307,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             return
 
         if len(self.recursiveData) == 0:
-            # print("ResetAXDebugging called for final time.")
+            # 050782.python.adb.line310.comment print("ResetAXDebugging called for final time.")
             self.logicalbotframe = None
             self.debuggingThread = None
             self.currentframe = None
@@ -326,12 +326,12 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         """Get ready for potential debugging.  Must be called on the thread
         that is being debugged.
         """
-        # userFrame is for non AXScript debugging.  This is the first frame of the
-        # users code.
+        # 050783.python.adb.line329.comment userFrame is for non AXScript debugging.  This is the first frame of the
+        # 050784.python.adb.line330.comment users code.
         if userFrame is None:
             userFrame = baseFrame
         else:
-            # We have missed the "dispatch_call" function, so set this up now!
+            # 050785.python.adb.line334.comment We have missed the "dispatch_call" function, so set this up now!
             userFrame.f_locals["__axstack_address__"] = axdebug.GetStackAddress()
 
         traceenter("SetupAXDebugging", self)
@@ -344,7 +344,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
                 if self.debuggingThread != thisThread:
                     trace("SetupAXDebugging called on other thread - ignored!")
                     return
-                # push our context.
+                # 050786.python.adb.line347.comment push our context.
                 self.recursiveData.insert(
                     0,
                     (
@@ -366,18 +366,18 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
         self._BreakFlagsChanged()
 
-    # RemoteDebugApplicationEvents
+    # 050787.python.adb.line369.comment RemoteDebugApplicationEvents
     def OnConnectDebugger(self, appDebugger):
         traceenter("OnConnectDebugger", appDebugger)
         self.appDebugger = appDebugger
-        # Reflect output to appDebugger
+        # 050788.python.adb.line373.comment Reflect output to appDebugger
         writefunc = lambda s: appDebugger.onDebugOutput(s)
         sys.stdout = OutputReflector(sys.stdout, writefunc)
         sys.stderr = OutputReflector(sys.stderr, writefunc)
 
     def OnDisconnectDebugger(self):
         traceenter("OnDisconnectDebugger")
-        # Stop reflecting output
+        # 050789.python.adb.line380.comment Stop reflecting output
         if isinstance(sys.stdout, OutputReflector):
             sys.stdout = sys.stdout.file
         if isinstance(sys.stderr, OutputReflector):
@@ -418,26 +418,26 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             + f"and debugging thread = {win32api.GetCurrentThreadId()}"
         )
         trace("_BreakFlagsChanged has breaks", self.breaks)
-        # If a request comes on our debugging thread, then do it now!
-        # if self.debuggingThread!=win32api.GetCurrentThreadId():
-        #     return
+        # 050790.python.adb.line421.comment If a request comes on our debugging thread, then do it now!
+        # 050791.python.adb.line422.comment if self.debuggingThread!=win32api.GetCurrentThreadId():
+        # 050792.python.adb.line423.comment return
 
         if len(self.breaks) or self.breakFlags:
             if self.logicalbotframe:
                 trace("BreakFlagsChange with bot frame", _dumpf(self.logicalbotframe))
-                # We have frames not to be debugged (eg, Scripting engine frames
-                # (sys.settrace will be set when out logicalbotframe is hit -
-                #  this may not be the right thing to do, as it may not cause the
-                #  immediate break we desire.)
+                # 050793.python.adb.line428.comment We have frames not to be debugged (eg, Scripting engine frames
+                # 050794.python.adb.line429.comment (sys.settrace will be set when out logicalbotframe is hit -
+                # 050795.python.adb.line430.comment this may not be the right thing to do, as it may not cause the
+                # 050796.python.adb.line431.comment immediate break we desire.)
                 self.logicalbotframe.f_trace = self.trace_dispatch
             else:
                 trace("BreakFlagsChanged, but no bottom frame")
                 if self.stopframe is not None:
                     self.stopframe.f_trace = self.trace_dispatch
-            # If we have the thread-state for the thread being debugged, then
-            # we dynamically set its trace function - it is possible that the thread
-            # being debugged is in a blocked call (eg, a message box) and we
-            # want to hit the debugger the instant we return
+            # 050797.python.adb.line437.comment If we have the thread-state for the thread being debugged, then
+            # 050798.python.adb.line438.comment we dynamically set its trace function - it is possible that the thread
+            # 050799.python.adb.line439.comment being debugged is in a blocked call (eg, a message box) and we
+            # 050800.python.adb.line440.comment want to hit the debugger the instant we return
         if (
             self.debuggingThreadStateHandle is not None
             and self.breakFlags

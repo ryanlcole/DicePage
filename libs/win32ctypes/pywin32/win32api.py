@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052294.python.win32api.line1.comment
+# 052295.python.win32api.line2.comment (C) Copyright 2014 Enthought, Inc., Austin, TX
+# 052296.python.win32api.line3.comment All right reserved.
+# 052297.python.win32api.line4.comment
+# 052298.python.win32api.line5.comment This file is open source software distributed according to the terms in
+# 052299.python.win32api.line6.comment LICENSE.txt
+# 052300.python.win32api.line7.comment
 """ A module, encapsulating the Windows Win32 API. """
 from win32ctypes.core import (
     _common, _dll, _resource, _system_information, _backend, _time)
@@ -276,7 +276,7 @@ def GetWindowsDirectory():
 
     """
     with _pywin32error():
-        # Note: pywin32 returns str on py27, unicode (which is str) on py3
+        # 052301.python.win32api.line279.comment Note: pywin32 returns str on py27, unicode (which is str) on py3
         return str(_system_information._GetWindowsDirectory())
 
 
@@ -290,5 +290,5 @@ def GetSystemDirectory():
 
     """
     with _pywin32error():
-        # Note: pywin32 returns str on py27, unicode (which is str) on py3
+        # 052302.python.win32api.line293.comment Note: pywin32 returns str on py27, unicode (which is str) on py3
         return str(_system_information._GetSystemDirectory())

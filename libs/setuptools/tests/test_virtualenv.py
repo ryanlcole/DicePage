@@ -27,12 +27,12 @@ def test_clean_env_install(venv_without_setuptools, setuptools_wheel):
 
 
 def access_pypi():
-    # Detect if tests are being run without connectivity
+    # 045600.python.test_virtualenv.line30.comment Detect if tests are being run without connectivity
     if not os.environ.get('NETWORK_REQUIRED', False):  # pragma: nocover
         try:
             urlopen('https://pypi.org', timeout=1)
         except URLError:
-            # No network, disable most of these tests
+            # 045602.python.test_virtualenv.line35.comment No network, disable most of these tests
             return False
 
     return True
@@ -43,8 +43,8 @@ def access_pypi():
     reason="https://github.com/pypa/setuptools/pull/2865#issuecomment-965834995",
 )
 @pytest.mark.skipif(not access_pypi(), reason="no network")
-# ^-- Even when it is not necessary to install a different version of `pip`
-#     the build process will still try to download `wheel`, see #3147 and #2986.
+# 045603.python.test_virtualenv.line46.comment ^-- Even when it is not necessary to install a different version of `pip`
+# 045604.python.test_virtualenv.line47.comment the build process will still try to download `wheel`, see #3147 and #2986.
 @pytest.mark.parametrize(
     'pip_version',
     [
@@ -89,19 +89,19 @@ def test_pip_upgrade_from_source(
     """
     Check pip can upgrade setuptools from source.
     """
-    # Install pip/wheel, in a venv without setuptools (as it
-    # should not be needed for bootstrapping from source)
+    # 045605.python.test_virtualenv.line92.comment Install pip/wheel, in a venv without setuptools (as it
+    # 045606.python.test_virtualenv.line93.comment should not be needed for bootstrapping from source)
     venv = venv_without_setuptools
     venv.run(["pip", "install", "-U", "wheel"])
     if pip_version is not None:
         venv.run(["python", "-m", "pip", "install", "-U", pip_version, "--retries=1"])
     with pytest.raises(subprocess.CalledProcessError):
-        # Meta-test to make sure setuptools is not installed
+        # 045607.python.test_virtualenv.line99.comment Meta-test to make sure setuptools is not installed
         venv.run(["python", "-c", "import setuptools"])
 
-    # Then install from wheel.
+    # 045608.python.test_virtualenv.line102.comment Then install from wheel.
     venv.run(["pip", "install", str(setuptools_wheel)])
-    # And finally try to upgrade from source.
+    # 045609.python.test_virtualenv.line104.comment And finally try to upgrade from source.
     venv.run(["pip", "install", "--no-cache-dir", "--upgrade", str(setuptools_sdist)])
 
 

@@ -30,15 +30,15 @@ class PlayerWorkerThread(threading.Thread):
     will exit cleanly on interpreter shutdown.
     """
 
-    # Run every 20ms; accurate enough for event dispatching while not hogging too much
-    # time updating the players
+    # 035415.python.player_worker_thread.line33.comment Run every 20ms; accurate enough for event dispatching while not hogging too much
+    # 035416.python.player_worker_thread.line34.comment time updating the players
     _nap_time = 0.020
 
     def __init__(self) -> None:
         super().__init__(daemon=True)
 
         self._rest_event = threading.Event()
-        # A lock that should be held as long as consistency of `self.players` is required.
+        # 035417.python.player_worker_thread.line41.comment A lock that should be held as long as consistency of `self.players` is required.
         self._operation_lock = threading.Lock()
         self._stopped = False
         self.players: Set[AbstractAudioPlayer] = set()
@@ -65,7 +65,7 @@ class PlayerWorkerThread(threading.Thread):
                     for player in self.players:
                         player.work()
                 else:
-                    # sleep until a player is added
+                    # 035418.python.player_worker_thread.line68.comment sleep until a player is added
                     sleep_time = None
 
         assert _debug(f'PlayerWorkerThread.run: exiting')
@@ -84,7 +84,7 @@ class PlayerWorkerThread(threading.Thread):
         try:
             self.join()
         except RuntimeError:
-            # Ignore on unclean shutdown
+            # 035419.python.player_worker_thread.line87.comment Ignore on unclean shutdown
             pass
 
     def notify(self) -> None:

@@ -45,7 +45,7 @@ class TestBuildRpm(
     @pytest.mark.skipif("not shutil.which('rpm')")
     @pytest.mark.skipif("not shutil.which('rpmbuild')")
     def test_quiet(self):
-        # let's create a package
+        # 040855.python.test_bdist_rpm.line48.comment let's create a package
         tmp_dir = self.mkdtemp()
         os.environ['HOME'] = tmp_dir  # to confine dir '.rpmdb' creation
         pkg_dir = os.path.join(tmp_dir, 'foo')
@@ -70,7 +70,7 @@ class TestBuildRpm(
         cmd = bdist_rpm(dist)
         cmd.fix_python = True
 
-        # running in quiet mode
+        # 040857.python.test_bdist_rpm.line73.comment running in quiet mode
         cmd.quiet = True
         cmd.ensure_finalized()
         cmd.run()
@@ -78,17 +78,17 @@ class TestBuildRpm(
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
         assert 'foo-0.1-1.noarch.rpm' in dist_created
 
-        # bug #2945: upload ignores bdist_rpm files
+        # 040858.python.test_bdist_rpm.line81.comment bug #2945: upload ignores bdist_rpm files
         assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm') in dist.dist_files
         assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm') in dist.dist_files
 
     @mac_woes
     @requires_zlib()
-    # https://bugs.python.org/issue1533164
+    # 040859.python.test_bdist_rpm.line87.comment https://bugs.python.org/issue1533164
     @pytest.mark.skipif("not shutil.which('rpm')")
     @pytest.mark.skipif("not shutil.which('rpmbuild')")
     def test_no_optimize_flag(self):
-        # let's create a package that breaks bdist_rpm
+        # 040860.python.test_bdist_rpm.line91.comment let's create a package that breaks bdist_rpm
         tmp_dir = self.mkdtemp()
         os.environ['HOME'] = tmp_dir  # to confine dir '.rpmdb' creation
         pkg_dir = os.path.join(tmp_dir, 'foo')
@@ -120,7 +120,7 @@ class TestBuildRpm(
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
         assert 'foo-0.1-1.noarch.rpm' in dist_created
 
-        # bug #2945: upload ignores bdist_rpm files
+        # 040862.python.test_bdist_rpm.line123.comment bug #2945: upload ignores bdist_rpm files
         assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm') in dist.dist_files
         assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm') in dist.dist_files
 

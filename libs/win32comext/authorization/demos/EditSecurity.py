@@ -64,12 +64,12 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
     def GetSecurity(self, requestedinfo, bdefault):
         """Requests the existing permissions for object"""
         if bdefault:
-            ## This is invoked if the 'Default' button is pressed (only present if SI_RESET is passed
-            ## with the flags in GetObjectInfo). Passing an empty SD with a NULL Dacl
-            ##  should cause inherited ACL from parent dir or default dacl from user's token to be used
+            # 050718.python.EditSecurity.line67.comment # This is invoked if the 'Default' button is pressed (only present if SI_RESET is passed
+            # 050719.python.EditSecurity.line68.comment # with the flags in GetObjectInfo). Passing an empty SD with a NULL Dacl
+            # 050720.python.EditSecurity.line69.comment #  should cause inherited ACL from parent dir or default dacl from user's token to be used
             return win32security.SECURITY_DESCRIPTOR()
         else:
-            ## GetFileSecurity sometimes fails to return flags indicating that an ACE is inherited
+            # 050721.python.EditSecurity.line72.comment # GetFileSecurity sometimes fails to return flags indicating that an ACE is inherited
             return win32security.GetNamedSecurityInfo(
                 self.FileName, win32security.SE_FILE_OBJECT, requestedinfo
             )
@@ -89,7 +89,7 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
             dacl,
             sacl,
         )
-        ## should also handle recursive operations here
+        # 050722.python.EditSecurity.line92.comment # should also handle recursive operations here
 
     def GetAccessRights(self, objecttype, flags):
         """Returns a tuple of (AccessRights, DefaultAccess), where AccessRights is a sequence of tuples representing
@@ -98,10 +98,10 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
         Flags can contain SI_ACCESS_SPECIFIC,SI_ACCESS_GENERAL,SI_ACCESS_CONTAINER,SI_ACCESS_PROPERTY,
               CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,OBJECT_INHERIT_ACE
         """
-        ## input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
+        # 050723.python.EditSecurity.line101.comment # input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
         if (objecttype is not None) and (objecttype != IID_NULL):
-            ## Should not be true for file objects.  Usually only used with DS objects that support security for
-            ## their properties
+            # 050724.python.EditSecurity.line103.comment # Should not be true for file objects.  Usually only used with DS objects that support security for
+            # 050725.python.EditSecurity.line104.comment # their properties
             raise NotImplementedError("Object type is not supported")
 
         if os.path.isdir(self.FileName):
@@ -202,8 +202,8 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
 
     def PropertySheetPageCallback(self, hwnd, msg, pagetype):
         """Invoked each time a property sheet page is created or destroyed."""
-        ## page types from SI_PAGE_TYPE enum: SI_PAGE_PERM SI_PAGE_ADVPERM SI_PAGE_AUDIT SI_PAGE_OWNER
-        ## msg: PSPCB_CREATE, PSPCB_RELEASE, PSPCB_SI_INITDIALOG
+        # 050726.python.EditSecurity.line205.comment # page types from SI_PAGE_TYPE enum: SI_PAGE_PERM SI_PAGE_ADVPERM SI_PAGE_AUDIT SI_PAGE_OWNER
+        # 050727.python.EditSecurity.line206.comment # msg: PSPCB_CREATE, PSPCB_RELEASE, PSPCB_SI_INITDIALOG
         return None
 
     def EditSecurity(self, owner_hwnd=0):
@@ -214,7 +214,7 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
         authorization.EditSecurity(owner_hwnd, isi)
 
 
-## folder permissions
+# 050728.python.EditSecurity.line217.comment # folder permissions
 temp_dir = win32api.GetTempPath()
 dir_name = win32api.GetTempFileName(temp_dir, "isi")[0]
 print(dir_name)
@@ -223,7 +223,7 @@ os.mkdir(dir_name)
 si = SecurityInformation(dir_name)
 si.EditSecurity()
 
-## file permissions
+# 050729.python.EditSecurity.line226.comment # file permissions
 fname = win32api.GetTempFileName(dir_name, "isi")[0]
 si = SecurityInformation(fname)
 si.EditSecurity()

@@ -25,25 +25,25 @@ class TestFileUtil:
         move_file(self.source, self.target, verbose=False)
         assert not caplog.messages
 
-        # back to original state
+        # 041072.python.test_file_util.line28.comment back to original state
         move_file(self.target, self.source, verbose=False)
 
         move_file(self.source, self.target, verbose=True)
         wanted = [f'moving {self.source} -> {self.target}']
         assert caplog.messages == wanted
 
-        # back to original state
+        # 041073.python.test_file_util.line35.comment back to original state
         move_file(self.target, self.source, verbose=False)
 
         caplog.clear()
-        # now the target is a dir
+        # 041074.python.test_file_util.line39.comment now the target is a dir
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=True)
         wanted = [f'moving {self.source} -> {self.target_dir}']
         assert caplog.messages == wanted
 
     def test_move_file_exception_unpacking_rename(self):
-        # see issue 22182
+        # 041075.python.test_file_util.line46.comment see issue 22182
         with (
             mock.patch("os.rename", side_effect=OSError("wrong", 1)),
             pytest.raises(DistutilsFileError),
@@ -52,7 +52,7 @@ class TestFileUtil:
             move_file(self.source, self.target, verbose=False)
 
     def test_move_file_exception_unpacking_unlink(self):
-        # see issue 22182
+        # 041076.python.test_file_util.line55.comment see issue 22182
         with (
             mock.patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")),
             mock.patch("os.unlink", side_effect=OSError("wrong", 1)),
@@ -63,8 +63,8 @@ class TestFileUtil:
 
     def test_copy_file_hard_link(self):
         jaraco.path.build({self.source: 'some content'})
-        # Check first that copy_file() will not fall back on copying the file
-        # instead of creating the hard link.
+        # 041077.python.test_file_util.line66.comment Check first that copy_file() will not fall back on copying the file
+        # 041078.python.test_file_util.line67.comment instead of creating the hard link.
         try:
             os.link(self.source, self.target)
         except OSError as e:
@@ -80,9 +80,9 @@ class TestFileUtil:
         assert self.source.read_text(encoding='utf-8') == 'some content'
 
     def test_copy_file_hard_link_failure(self):
-        # If hard linking fails, copy_file() falls back on copying file
-        # (some special filesystems don't support hard linking even under
-        #  Unix, see issue #8876).
+        # 041079.python.test_file_util.line83.comment If hard linking fails, copy_file() falls back on copying file
+        # 041080.python.test_file_util.line84.comment (some special filesystems don't support hard linking even under
+        # 041081.python.test_file_util.line85.comment Unix, see issue #8876).
         jaraco.path.build({self.source: 'some content'})
         st = os.stat(self.source)
         with mock.patch("os.link", side_effect=OSError(0, "linking unsupported")):

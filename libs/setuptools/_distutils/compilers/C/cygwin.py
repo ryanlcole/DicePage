@@ -66,8 +66,8 @@ class Compiler(unix.Compiler):
 
         self.cc, self.cxx = get_config_vars('CC', 'CXX')
 
-        # Override 'CC' and 'CXX' environment variables for
-        # building using MINGW compiler for MSVC python.
+        # 040156.python.cygwin.line69.comment Override 'CC' and 'CXX' environment variables for
+        # 040157.python.cygwin.line70.comment building using MINGW compiler for MSVC python.
         self.cc = os.environ.get('CC', self.cc or 'gcc')
         self.cxx = os.environ.get('CXX', self.cxx or 'g++')
 
@@ -90,10 +90,10 @@ class Compiler(unix.Compiler):
 
     @property
     def gcc_version(self):
-        # Older numpy depended on this existing to check for ancient
-        # gcc versions. This doesn't make much sense with clang etc so
-        # just hardcode to something recent.
-        # https://github.com/numpy/numpy/pull/20333
+        # 040158.python.cygwin.line93.comment Older numpy depended on this existing to check for ancient
+        # 040159.python.cygwin.line94.comment gcc versions. This doesn't make much sense with clang etc so
+        # 040160.python.cygwin.line95.comment just hardcode to something recent.
+        # 040161.python.cygwin.line96.comment https://github.com/numpy/numpy/pull/20333
         warnings.warn(
             "gcc_version attribute of CygwinCCompiler is deprecated. "
             "Instead of returning actual gcc version a fixed value 11.2.0 is returned.",
@@ -106,7 +106,7 @@ class Compiler(unix.Compiler):
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compiles the source by spawning GCC and windres if needed."""
         if ext in ('.rc', '.res'):
-            # gcc needs '.res' and '.rc' compiled to object files !!!
+            # 040162.python.cygwin.line109.comment gcc needs '.res' and '.rc' compiled to object files !!!
             try:
                 self.spawn(["windres", "-i", src, "-o", obj])
             except DistutilsExecError as msg:
@@ -144,7 +144,7 @@ class Compiler(unix.Compiler):
         target_lang=None,
     ):
         """Link the objects."""
-        # use separate copies, so we can modify the lists
+        # 040164.python.cygwin.line147.comment use separate copies, so we can modify the lists
         extra_preargs = copy.copy(extra_preargs or [])
         libraries = copy.copy(libraries or [])
         objects = copy.copy(objects or [])
@@ -152,50 +152,50 @@ class Compiler(unix.Compiler):
         if runtime_library_dirs:
             self.warn(_runtime_library_dirs_msg)
 
-        # Additional libraries
+        # 040165.python.cygwin.line155.comment Additional libraries
         libraries.extend(self.dll_libraries)
 
-        # handle export symbols by creating a def-file
-        # with executables this only works with gcc/ld as linker
+        # 040166.python.cygwin.line158.comment handle export symbols by creating a def-file
+        # 040167.python.cygwin.line159.comment with executables this only works with gcc/ld as linker
         if (export_symbols is not None) and (
             target_desc != self.EXECUTABLE or self.linker_dll == "gcc"
         ):
-            # (The linker doesn't do anything if output is up-to-date.
-            # So it would probably better to check if we really need this,
-            # but for this we had to insert some unchanged parts of
-            # UnixCCompiler, and this is not what we want.)
+            # 040168.python.cygwin.line163.comment (The linker doesn't do anything if output is up-to-date.
+            # 040169.python.cygwin.line164.comment So it would probably better to check if we really need this,
+            # 040170.python.cygwin.line165.comment but for this we had to insert some unchanged parts of
+            # 040171.python.cygwin.line166.comment UnixCCompiler, and this is not what we want.)
 
-            # we want to put some files in the same directory as the
-            # object files are, build_temp doesn't help much
-            # where are the object files
+            # 040172.python.cygwin.line168.comment we want to put some files in the same directory as the
+            # 040173.python.cygwin.line169.comment object files are, build_temp doesn't help much
+            # 040174.python.cygwin.line170.comment where are the object files
             temp_dir = os.path.dirname(objects[0])
-            # name of dll to give the helper files the same base name
+            # 040175.python.cygwin.line172.comment name of dll to give the helper files the same base name
             (dll_name, dll_extension) = os.path.splitext(
                 os.path.basename(output_filename)
             )
 
-            # generate the filenames for these files
+            # 040176.python.cygwin.line177.comment generate the filenames for these files
             def_file = os.path.join(temp_dir, dll_name + ".def")
 
-            # Generate .def file
+            # 040177.python.cygwin.line180.comment Generate .def file
             contents = [f"LIBRARY {os.path.basename(output_filename)}", "EXPORTS"]
             contents.extend(export_symbols)
             self.execute(write_file, (def_file, contents), f"writing {def_file}")
 
-            # next add options for def-file
+            # 040178.python.cygwin.line185.comment next add options for def-file
 
-            # for gcc/ld the def-file is specified as any object files
+            # 040179.python.cygwin.line187.comment for gcc/ld the def-file is specified as any object files
             objects.append(def_file)
 
-        # end: if ((export_symbols is not None) and
-        #        (target_desc != self.EXECUTABLE or self.linker_dll == "gcc")):
+        # 040180.python.cygwin.line190.comment end: if ((export_symbols is not None) and
+        # 040181.python.cygwin.line191.comment (target_desc != self.EXECUTABLE or self.linker_dll == "gcc")):
 
-        # who wants symbols and a many times larger output file
-        # should explicitly switch the debug mode on
-        # otherwise we let ld strip the output file
-        # (On my machine: 10KiB < stripped_file < ??100KiB
-        #   unstripped_file = stripped_file + XXX KiB
-        #  ( XXX=254 for a typical python extension))
+        # 040182.python.cygwin.line193.comment who wants symbols and a many times larger output file
+        # 040183.python.cygwin.line194.comment should explicitly switch the debug mode on
+        # 040184.python.cygwin.line195.comment otherwise we let ld strip the output file
+        # 040185.python.cygwin.line196.comment (On my machine: 10KiB < stripped_file < ??100KiB
+        # 040186.python.cygwin.line197.comment unstripped_file = stripped_file + XXX KiB
+        # 040187.python.cygwin.line198.comment ( XXX=254 for a typical python extension))
         if not debug:
             extra_preargs.append("-s")
 
@@ -216,16 +216,16 @@ class Compiler(unix.Compiler):
         )
 
     def runtime_library_dir_option(self, dir):
-        # cygwin doesn't support rpath. While in theory we could error
-        # out like MSVC does, code might expect it to work like on Unix, so
-        # just warn and hope for the best.
+        # 040189.python.cygwin.line219.comment cygwin doesn't support rpath. While in theory we could error
+        # 040190.python.cygwin.line220.comment out like MSVC does, code might expect it to work like on Unix, so
+        # 040191.python.cygwin.line221.comment just warn and hope for the best.
         self.warn(_runtime_library_dirs_msg)
         return []
 
-    # -- Miscellaneous methods -----------------------------------------
+    # 040192.python.cygwin.line225.comment -- Miscellaneous methods -----------------------------------------
 
     def _make_out_path(self, output_dir, strip_dir, src_name):
-        # use normcase to make sure '.rc' is really '.rc' and not '.RC'
+        # 040193.python.cygwin.line228.comment use normcase to make sure '.rc' is really '.rc' and not '.RC'
         norm_src_name = os.path.normcase(src_name)
         return super()._make_out_path(output_dir, strip_dir, norm_src_name)
 
@@ -240,7 +240,7 @@ class Compiler(unix.Compiler):
         }
 
 
-# the same as cygwin plus some additional parameters
+# 040194.python.cygwin.line243.comment the same as cygwin plus some additional parameters
 class MinGW32Compiler(Compiler):
     """Handles the Mingw32 port of the GNU C compiler to Windows."""
 
@@ -269,9 +269,9 @@ class MinGW32Compiler(Compiler):
         raise DistutilsPlatformError(_runtime_library_dirs_msg)
 
 
-# Because these compilers aren't configured in Python's pyconfig.h file by
-# default, we should at least warn the user if he is using an unmodified
-# version.
+# 040195.python.cygwin.line272.comment Because these compilers aren't configured in Python's pyconfig.h file by
+# 040196.python.cygwin.line273.comment default, we should at least warn the user if he is using an unmodified
+# 040197.python.cygwin.line274.comment version.
 
 CONFIG_H_OK = "ok"
 CONFIG_H_NOTOK = "not ok"
@@ -296,21 +296,21 @@ def check_config_h():
     installed "pyconfig.h" contains the string "__GNUC__".
     """
 
-    # XXX since this function also checks sys.version, it's not strictly a
-    # "pyconfig.h" check -- should probably be renamed...
+    # 040198.python.cygwin.line299.comment XXX since this function also checks sys.version, it's not strictly a
+    # 040199.python.cygwin.line300.comment "pyconfig.h" check -- should probably be renamed...
 
     from distutils import sysconfig
 
-    # if sys.version contains GCC then python was compiled with GCC, and the
-    # pyconfig.h file should be OK
+    # 040200.python.cygwin.line304.comment if sys.version contains GCC then python was compiled with GCC, and the
+    # 040201.python.cygwin.line305.comment pyconfig.h file should be OK
     if "GCC" in sys.version:
         return CONFIG_H_OK, "sys.version mentions 'GCC'"
 
-    # Clang would also work
+    # 040202.python.cygwin.line309.comment Clang would also work
     if "Clang" in sys.version:
         return CONFIG_H_OK, "sys.version mentions 'Clang'"
 
-    # let's see if __GNUC__ is mentioned in python.h
+    # 040203.python.cygwin.line313.comment let's see if __GNUC__ is mentioned in python.h
     fn = sysconfig.get_config_h_filename()
     try:
         config_h = pathlib.Path(fn).read_text(encoding='utf-8')

@@ -38,8 +38,8 @@ def _prevent_modification(target: type, method: str, copying: str) -> None:
 
     @wraps(fn)
     def _replacement(self: Static, *args, **kwargs):
-        # TODO: After deprecation period raise NotImplementedError instead of warning
-        #       which obviated the existence and checks of the `_mutated_` attribute.
+        # 041536.python.static.line41.comment TODO: After deprecation period raise NotImplementedError instead of warning
+        # 041537.python.static.line42.comment which obviated the existence and checks of the `_mutated_` attribute.
         self._mutated_ = True
         SetuptoolsDeprecationWarning.emit(
             "Direct modification of value will be disallowed",
@@ -88,8 +88,8 @@ class List(list, Static):
     """
 
 
-# Make `List` immutable-ish
-# (certain places of setuptools/distutils issue a warn if we use tuple instead of list)
+# 041540.python.static.line91.comment Make `List` immutable-ish
+# 041541.python.static.line92.comment (certain places of setuptools/distutils issue a warn if we use tuple instead of list)
 for _method in (
     '__delitem__',
     '__iadd__',
@@ -128,7 +128,7 @@ class Dict(dict, Static):
     """
 
 
-# Make `Dict` immutable-ish (we cannot inherit from types.MappingProxyType):
+# 041542.python.static.line131.comment Make `Dict` immutable-ish (we cannot inherit from types.MappingProxyType):
 for _method in (
     '__delitem__',
     '__ior__',

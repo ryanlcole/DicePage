@@ -6,29 +6,29 @@ and it can be found at:
      https://learn.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa140060(v=office.10)
 """
 
-# Copyright (c) 2003-2004 by Chris Nilsson <chris@slort.org>
-#
-# By obtaining, using, and/or copying this software and/or its
-# associated documentation, you agree that you have read, understood,
-# and will comply with the following terms and conditions:
-#
-# Permission to use, copy, modify, and distribute this software and
-# its associated documentation for any purpose and without fee is
-# hereby granted, provided that the above copyright notice appears in
-# all copies, and that both that copyright notice and this permission
-# notice appear in supporting documentation, and that the name of
-# Christopher Nilsson (the author) not be used in advertising or publicity
-# pertaining to distribution of the software without specific, written
-# prior permission.
-#
-# THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
-# TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANT-
-# ABILITY AND FITNESS.  IN NO EVENT SHALL THE AUTHOR
-# BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
-# DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
-# ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
-# OF THIS SOFTWARE.
+# 049333.python.excelRTDServer.line9.comment Copyright (c) 2003-2004 by Chris Nilsson <chris@slort.org>
+# 049334.python.excelRTDServer.line10.comment
+# 049335.python.excelRTDServer.line11.comment By obtaining, using, and/or copying this software and/or its
+# 049336.python.excelRTDServer.line12.comment associated documentation, you agree that you have read, understood,
+# 049337.python.excelRTDServer.line13.comment and will comply with the following terms and conditions:
+# 049338.python.excelRTDServer.line14.comment
+# 049339.python.excelRTDServer.line15.comment Permission to use, copy, modify, and distribute this software and
+# 049340.python.excelRTDServer.line16.comment its associated documentation for any purpose and without fee is
+# 049341.python.excelRTDServer.line17.comment hereby granted, provided that the above copyright notice appears in
+# 049342.python.excelRTDServer.line18.comment all copies, and that both that copyright notice and this permission
+# 049343.python.excelRTDServer.line19.comment notice appear in supporting documentation, and that the name of
+# 049344.python.excelRTDServer.line20.comment Christopher Nilsson (the author) not be used in advertising or publicity
+# 049345.python.excelRTDServer.line21.comment pertaining to distribution of the software without specific, written
+# 049346.python.excelRTDServer.line22.comment prior permission.
+# 049347.python.excelRTDServer.line23.comment
+# 049348.python.excelRTDServer.line24.comment THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+# 049349.python.excelRTDServer.line25.comment TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANT-
+# 049350.python.excelRTDServer.line26.comment ABILITY AND FITNESS.  IN NO EVENT SHALL THE AUTHOR
+# 049351.python.excelRTDServer.line27.comment BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+# 049352.python.excelRTDServer.line28.comment DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# 049353.python.excelRTDServer.line29.comment WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+# 049354.python.excelRTDServer.line30.comment ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+# 049355.python.excelRTDServer.line31.comment OF THIS SOFTWARE.
 
 import datetime  # For the example classes...
 import threading
@@ -39,27 +39,27 @@ from win32com import universal
 from win32com.client import gencache
 from win32com.server.exception import COMException
 
-# Typelib info for version 10 - aka Excel XP.
-# This is the minimum version of excel that we can work with as this is when
-# Microsoft introduced these interfaces.
+# 049357.python.excelRTDServer.line42.comment Typelib info for version 10 - aka Excel XP.
+# 049358.python.excelRTDServer.line43.comment This is the minimum version of excel that we can work with as this is when
+# 049359.python.excelRTDServer.line44.comment Microsoft introduced these interfaces.
 EXCEL_TLB_GUID = "{00020813-0000-0000-C000-000000000046}"
 EXCEL_TLB_LCID = 0
 EXCEL_TLB_MAJOR = 1
 EXCEL_TLB_MINOR = 4
 
-# Import the excel typelib to make sure we've got early-binding going on.
-# The "ByRef" parameters we use later won't work without this.
+# 049360.python.excelRTDServer.line50.comment Import the excel typelib to make sure we've got early-binding going on.
+# 049361.python.excelRTDServer.line51.comment The "ByRef" parameters we use later won't work without this.
 gencache.EnsureModule(EXCEL_TLB_GUID, EXCEL_TLB_LCID, EXCEL_TLB_MAJOR, EXCEL_TLB_MINOR)
 
-# Tell pywin to import these extra interfaces.
-# --
-# QUESTION: Why? The interfaces seem to descend from IDispatch, so
-# I'd have thought, for example, calling callback.UpdateNotify() (on the
-# IRTDUpdateEvent callback excel gives us) would work without molestation.
-# But the callback needs to be cast to a "real" IRTDUpdateEvent type. Hmm...
-# This is where my small knowledge of the pywin framework / COM gets hazy.
-# --
-# Again, we feed in the Excel typelib as the source of these interfaces.
+# 049362.python.excelRTDServer.line54.comment Tell pywin to import these extra interfaces.
+# 049363.python.excelRTDServer.line55.comment --
+# 049364.python.excelRTDServer.line56.comment QUESTION: Why? The interfaces seem to descend from IDispatch, so
+# 049365.python.excelRTDServer.line57.comment I'd have thought, for example, calling callback.UpdateNotify() (on the
+# 049366.python.excelRTDServer.line58.comment IRTDUpdateEvent callback excel gives us) would work without molestation.
+# 049367.python.excelRTDServer.line59.comment But the callback needs to be cast to a "real" IRTDUpdateEvent type. Hmm...
+# 049368.python.excelRTDServer.line60.comment This is where my small knowledge of the pywin framework / COM gets hazy.
+# 049369.python.excelRTDServer.line61.comment --
+# 049370.python.excelRTDServer.line62.comment Again, we feed in the Excel typelib as the source of these interfaces.
 universal.RegisterInterfaces(
     EXCEL_TLB_GUID,
     EXCEL_TLB_LCID,
@@ -123,9 +123,9 @@ class ExcelRTDServer:
         "ServerTerminate",
     ]
     _reg_clsctx_ = pythoncom.CLSCTX_INPROC_SERVER
-    # _reg_clsid_ = "# subclass must provide this class attribute"
-    # _reg_desc_ = "# subclass should provide this description"
-    # _reg_progid_ = "# subclass must provide this class attribute"
+    # 049371.python.excelRTDServer.line126.comment _reg_clsid_ = "# subclass must provide this class attribute"
+    # 049372.python.excelRTDServer.line127.comment _reg_desc_ = "# subclass should provide this description"
+    # 049373.python.excelRTDServer.line128.comment _reg_progid_ = "# subclass must provide this class attribute"
 
     ALIVE = 1
     NOT_ALIVE = 0
@@ -156,10 +156,10 @@ class ExcelRTDServer:
         else:
             result = result.GetValue()
 
-        # fire out internal event...
+        # 049374.python.excelRTDServer.line159.comment fire out internal event...
         self.OnConnectData(TopicID)
 
-        # GetNewValues as per interface is ByRef, so we need to pass it back too.
+        # 049375.python.excelRTDServer.line162.comment GetNewValues as per interface is ByRef, so we need to pass it back too.
         return result, GetNewValues
 
     def DisconnectData(self, TopicID):
@@ -188,22 +188,22 @@ class ExcelRTDServer:
         TopicCount = len(self.topics)
         self.OnRefreshData()
 
-        # Grow the lists, so we don't need a heap of calls to append()
+        # 049376.python.excelRTDServer.line191.comment Grow the lists, so we don't need a heap of calls to append()
         results = [[None] * TopicCount, [None] * TopicCount]
 
-        # Excel expects a 2-dimensional array. The first dim contains the
-        # topic numbers, and the second contains the values for the topics.
-        # In true VBA style (yuck), we need to pack the array in row-major format,
-        # which looks like:
-        #   ( (topic_num1, topic_num2, ..., topic_numN), \
-        #     (topic_val1, topic_val2, ..., topic_valN) )
+        # 049377.python.excelRTDServer.line194.comment Excel expects a 2-dimensional array. The first dim contains the
+        # 049378.python.excelRTDServer.line195.comment topic numbers, and the second contains the values for the topics.
+        # 049379.python.excelRTDServer.line196.comment In true VBA style (yuck), we need to pack the array in row-major format,
+        # 049380.python.excelRTDServer.line197.comment which looks like:
+        # 049381.python.excelRTDServer.line198.comment ( (topic_num1, topic_num2, ..., topic_numN), \
+        # 049382.python.excelRTDServer.line199.comment (topic_val1, topic_val2, ..., topic_valN) )
         for idx, topicdata in enumerate(self.topics.items()):
             topicNum, topic = topicdata
             results[0][idx] = topicNum
             results[1][idx] = topic.GetValue()
 
-        # TopicCount is meant to be passed to us ByRef, so return it as well, as per
-        # the way pywin32 handles ByRef arguments.
+        # 049383.python.excelRTDServer.line205.comment TopicCount is meant to be passed to us ByRef, so return it as well, as per
+        # 049384.python.excelRTDServer.line206.comment the way pywin32 handles ByRef arguments.
         return tuple(results), TopicCount
 
     def ServerStart(self, CallbackObject):
@@ -213,7 +213,7 @@ class ExcelRTDServer:
         if CallbackObject is None:
             raise COMException(desc="Excel did not provide a callback")
 
-        # Need to "cast" the raw PyIDispatch object to the IRTDUpdateEvent interface
+        # 049385.python.excelRTDServer.line216.comment Need to "cast" the raw PyIDispatch object to the IRTDUpdateEvent interface
         IRTDUpdateEventKlass = win32com.client.CLSIDToClass.GetClass(
             "{A43788C1-D91B-11D3-8F39-00C04F3651B8}"
         )
@@ -238,7 +238,7 @@ class ExcelRTDServer:
         """
         raise NotImplemented("Subclass must implement")
 
-    # Overridable class events...
+    # 049387.python.excelRTDServer.line241.comment Overridable class events...
     def OnConnectData(self, TopicID):
         """Called when a new topic has been created, at excel's request."""
         pass
@@ -292,11 +292,11 @@ class RTDTopic:
         return self.__dirty
 
 
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# 049388.python.excelRTDServer.line295.comment -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-######################################
-# Example classes
-######################################
+# 049389.python.excelRTDServer.line297.comment #####################################
+# 049390.python.excelRTDServer.line298.comment Example classes
+# 049391.python.excelRTDServer.line299.comment #####################################
 
 
 class TimeServer(ExcelRTDServer):
@@ -322,24 +322,24 @@ class TimeServer(ExcelRTDServer):
     string, and have your topic parse them appropriately.
     """
 
-    # win32com.server setup attributes...
-    # Never copy the _reg_clsid_ value in your own classes!
+    # 049392.python.excelRTDServer.line325.comment win32com.server setup attributes...
+    # 049393.python.excelRTDServer.line326.comment Never copy the _reg_clsid_ value in your own classes!
     _reg_clsid_ = "{EA7F2CF1-11A2-45E4-B2D5-68E240DB8CB1}"
     _reg_progid_ = "Python.RTD.TimeServer"
     _reg_desc_ = "Python class implementing Excel IRTDServer -- feeds time"
 
-    # other class attributes...
+    # 049394.python.excelRTDServer.line331.comment other class attributes...
     INTERVAL = 0.5  # secs. Threaded timer will wake us up at this interval.
 
     def __init__(self):
         super().__init__()
 
-        # Simply timer thread to ensure we get to update our topics, and
-        # tell excel about any changes. This is a pretty basic and dirty way to
-        # do this. Ideally, there should be some sort of waitable (eg. either win32
-        # event, socket data event...) and be kicked off by that event triggering.
-        # As soon as we set up shop here, we _must_ return control back to excel.
-        # (ie. we can't block and do our own thing...)
+        # 049396.python.excelRTDServer.line337.comment Simply timer thread to ensure we get to update our topics, and
+        # 049397.python.excelRTDServer.line338.comment tell excel about any changes. This is a pretty basic and dirty way to
+        # 049398.python.excelRTDServer.line339.comment do this. Ideally, there should be some sort of waitable (eg. either win32
+        # 049399.python.excelRTDServer.line340.comment event, socket data event...) and be kicked off by that event triggering.
+        # 049400.python.excelRTDServer.line341.comment As soon as we set up shop here, we _must_ return control back to excel.
+        # 049401.python.excelRTDServer.line342.comment (ie. we can't block and do our own thing...)
         self.ticker = threading.Timer(self.INTERVAL, self.Update)
 
     def OnServerStart(self):
@@ -350,10 +350,10 @@ class TimeServer(ExcelRTDServer):
             self.ticker.cancel()  # Cancel our wake-up thread. Excel has killed us.
 
     def Update(self):
-        # Get our wake-up thread ready...
+        # 049403.python.excelRTDServer.line353.comment Get our wake-up thread ready...
         self.ticker = threading.Timer(self.INTERVAL, self.Update)
         try:
-            # Check if any of our topics have new info to pass on
+            # 049404.python.excelRTDServer.line356.comment Check if any of our topics have new info to pass on
             if len(self.topics):
                 refresh = False
                 for topic in self.topics.values():
@@ -388,15 +388,15 @@ class TimeTopic(RTDTopic):
         try:
             self.cmd, self.delay = self.TopicStrings
         except Exception as E:
-            # We could simply return a "# ERROR" type string as the
-            # topic value, but explosions like this should be able to get handled by
-            # the VBA-side "On Error" stuff.
+            # 049406.python.excelRTDServer.line391.comment We could simply return a "# ERROR" type string as the
+            # 049407.python.excelRTDServer.line392.comment topic value, but explosions like this should be able to get handled by
+            # 049408.python.excelRTDServer.line393.comment the VBA-side "On Error" stuff.
             raise ValueError("Invalid topic strings: %s" % str(TopicStrings))
 
-        # self.cmd = str(self.cmd)
+        # 049409.python.excelRTDServer.line396.comment self.cmd = str(self.cmd)
         self.delay = float(self.delay)
 
-        # setup our initial value
+        # 049410.python.excelRTDServer.line399.comment setup our initial value
         self.checkpoint = self.timestamp()
         self.SetValue(str(self.checkpoint))
 
@@ -427,8 +427,8 @@ class TimeTopic(RTDTopic):
 if __name__ == "__main__":
     import win32com.server.register
 
-    # Register/Unregister TimeServer example
-    # eg. at the command line: excelrtd.py --register
-    # Then type in an excel cell something like:
-    # =RTD("Python.RTD.TimeServer","","seconds","5")
+    # 049411.python.excelRTDServer.line430.comment Register/Unregister TimeServer example
+    # 049412.python.excelRTDServer.line431.comment eg. at the command line: excelrtd.py --register
+    # 049413.python.excelRTDServer.line432.comment Then type in an excel cell something like:
+    # 049414.python.excelRTDServer.line433.comment =RTD("Python.RTD.TimeServer","","seconds","5")
     win32com.server.register.UseCommandLine(TimeServer)

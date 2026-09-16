@@ -17,7 +17,7 @@ class HeadlessDisplay(Display):
 
     def __init__(self):
         super().__init__()
-        # TODO: fix this placeholder:
+        # 026257.python.headless.line20.comment TODO: fix this placeholder:
         self._screens = [HeadlessScreen(self, 0, 0, 1920, 1080)]
 
         num_devices = egl.EGLint()
@@ -57,7 +57,7 @@ class HeadlessScreen(Screen):
     def get_matching_configs(self, template):
         canvas = HeadlessCanvas(self.display, None)
         configs = template.match(canvas)
-        # XXX deprecate
+        # 026258.python.headless.line60.comment XXX deprecate
         for config in configs:
             config.screen = self
         return configs
@@ -75,7 +75,7 @@ class HeadlessScreen(Screen):
         pass
 
     def get_display_id(self) -> str | int:
-        # No real unique ID is available, just hash together the properties.
+        # 026259.python.headless.line78.comment No real unique ID is available, just hash together the properties.
         return hash((self.x, self.y, self.width, self.height))
 
     def get_monitor_name(self) -> str | Literal["Unknown"]:

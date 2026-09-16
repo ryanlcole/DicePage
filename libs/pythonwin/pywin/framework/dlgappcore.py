@@ -1,6 +1,6 @@
-# dlgappcore.
-#
-# base classes for dialog based apps.
+# 037291.python.dlgappcore.line1.comment dlgappcore.
+# 037292.python.dlgappcore.line2.comment
+# 037293.python.dlgappcore.line3.comment base classes for dialog based apps.
 
 
 import win32api
@@ -21,7 +21,7 @@ class AppDialog(dialog.Dialog):
     def OnInitDialog(self):
         return dialog.Dialog.OnInitDialog(self)
 
-    # Provide support for a dlg app using an icon
+    # 037294.python.dlgappcore.line24.comment Provide support for a dlg app using an icon
     def OnPaint(self):
         if not self.IsIconic():
             return self._obj_.OnPaint()
@@ -34,8 +34,8 @@ class AppDialog(dialog.Dialog):
         dc.DrawIcon((left, top), hIcon)
         self.EndPaint(paintStruct)
 
-    # Only needed to provide a minimized icon (and this seems
-    # less important under win95/NT4
+    # 037295.python.dlgappcore.line37.comment Only needed to provide a minimized icon (and this seems
+    # 037296.python.dlgappcore.line38.comment less important under win95/NT4
     def OnEraseBkgnd(self, dc):
         if self.IsIconic():
             return 1
@@ -53,7 +53,7 @@ class DialogApp(app.CApp):
     "An application class, for an app with main dialog box"
 
     def InitInstance(self):
-        # 		win32ui.SetProfileFileName('dlgapp.ini')
+        # 037297.python.dlgappcore.line56.comment win32ui.SetProfileFileName('dlgapp.ini')
         win32ui.LoadStdProfileSettings()
         win32ui.EnableControlContainer()
         win32ui.Enable3dControls()

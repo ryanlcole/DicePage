@@ -1,11 +1,11 @@
-#
-# Window creation example
-#
-# 	This example creates a minimal "control" that just fills in its
-# 	window with red.  To make your own control, subclass Control and
-# 	write your own OnPaint() method.  See PyCWnd.HookMessage for what
-# 	the parameters to OnPaint are.
-#
+# 036650.python.createwin.line1.comment
+# 036651.python.createwin.line2.comment Window creation example
+# 036652.python.createwin.line3.comment
+# 036653.python.createwin.line4.comment This example creates a minimal "control" that just fills in its
+# 036654.python.createwin.line5.comment window with red.  To make your own control, subclass Control and
+# 036655.python.createwin.line6.comment write your own OnPaint() method.  See PyCWnd.HookMessage for what
+# 036656.python.createwin.line7.comment the parameters to OnPaint are.
+# 036657.python.createwin.line8.comment
 
 import win32api
 import win32con

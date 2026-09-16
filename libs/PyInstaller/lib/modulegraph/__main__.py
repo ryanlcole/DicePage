@@ -38,7 +38,7 @@ def parse_arguments():
 
 
 def create_graph(scripts, domods, debuglevel, excludes, path_extras):
-    # Set the path based on sys.path and the script directory
+    # 008695.python.main.line41.comment Set the path based on sys.path and the script directory
     path = sys.path[:]
 
     if domods:
@@ -52,7 +52,7 @@ def create_graph(scripts, domods, debuglevel, excludes, path_extras):
         for item in path:
             print("   ", repr(item), file=sys.stderr)
 
-    # Create the module finder and turn its crank
+    # 008696.python.main.line55.comment Create the module finder and turn its crank
     mf = ModuleGraph(path, excludes=excludes, debug=debuglevel)
     for arg in scripts:
         if domods:

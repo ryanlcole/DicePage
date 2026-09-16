@@ -19,18 +19,18 @@ from typing import Any
 
 from .errors import DistutilsArgError, DistutilsGetoptError
 
-# Much like command_re in distutils.core, this is close to but not quite
-# the same as a Python NAME -- except, in the spirit of most GNU
-# utilities, we use '-' in place of '_'.  (The spirit of LISP lives on!)
-# The similarities to NAME are again not a coincidence...
+# 040627.python.fancy_getopt.line22.comment Much like command_re in distutils.core, this is close to but not quite
+# 040628.python.fancy_getopt.line23.comment the same as a Python NAME -- except, in the spirit of most GNU
+# 040629.python.fancy_getopt.line24.comment utilities, we use '-' in place of '_'.  (The spirit of LISP lives on!)
+# 040630.python.fancy_getopt.line25.comment The similarities to NAME are again not a coincidence...
 longopt_pat = r'[a-zA-Z](?:[a-zA-Z0-9-]*)'
 longopt_re = re.compile(rf'^{longopt_pat}$')
 
-# For recognizing "negative alias" options, eg. "quiet=!verbose"
+# 040631.python.fancy_getopt.line29.comment For recognizing "negative alias" options, eg. "quiet=!verbose"
 neg_alias_re = re.compile(f"^({longopt_pat})=!({longopt_pat})$")
 
-# This is used to translate long options to legitimate Python identifiers
-# (for use as attributes of some object).
+# 040632.python.fancy_getopt.line32.comment This is used to translate long options to legitimate Python identifiers
+# 040633.python.fancy_getopt.line33.comment (for use as attributes of some object).
 longopt_xlate = str.maketrans('-', '_')
 
 
@@ -47,43 +47,43 @@ class FancyGetopt:
     """
 
     def __init__(self, option_table=None):
-        # The option table is (currently) a list of tuples.  The
-        # tuples may have 3 or four values:
-        #   (long_option, short_option, help_string [, repeatable])
-        # if an option takes an argument, its long_option should have '='
-        # appended; short_option should just be a single character, no ':'
-        # in any case.  If a long_option doesn't have a corresponding
-        # short_option, short_option should be None.  All option tuples
-        # must have long options.
+        # 040634.python.fancy_getopt.line50.comment The option table is (currently) a list of tuples.  The
+        # 040635.python.fancy_getopt.line51.comment tuples may have 3 or four values:
+        # 040636.python.fancy_getopt.line52.comment (long_option, short_option, help_string [, repeatable])
+        # 040637.python.fancy_getopt.line53.comment if an option takes an argument, its long_option should have '='
+        # 040638.python.fancy_getopt.line54.comment appended; short_option should just be a single character, no ':'
+        # 040639.python.fancy_getopt.line55.comment in any case.  If a long_option doesn't have a corresponding
+        # 040640.python.fancy_getopt.line56.comment short_option, short_option should be None.  All option tuples
+        # 040641.python.fancy_getopt.line57.comment must have long options.
         self.option_table = option_table
 
-        # 'option_index' maps long option names to entries in the option
-        # table (ie. those 3-tuples).
+        # 040642.python.fancy_getopt.line60.comment 'option_index' maps long option names to entries in the option
+        # 040643.python.fancy_getopt.line61.comment table (ie. those 3-tuples).
         self.option_index = {}
         if self.option_table:
             self._build_index()
 
-        # 'alias' records (duh) alias options; {'foo': 'bar'} means
-        # --foo is an alias for --bar
+        # 040644.python.fancy_getopt.line66.comment 'alias' records (duh) alias options; {'foo': 'bar'} means
+        # 040645.python.fancy_getopt.line67.comment --foo is an alias for --bar
         self.alias = {}
 
-        # 'negative_alias' keeps track of options that are the boolean
-        # opposite of some other option
+        # 040646.python.fancy_getopt.line70.comment 'negative_alias' keeps track of options that are the boolean
+        # 040647.python.fancy_getopt.line71.comment opposite of some other option
         self.negative_alias = {}
 
-        # These keep track of the information in the option table.  We
-        # don't actually populate these structures until we're ready to
-        # parse the command-line, since the 'option_table' passed in here
-        # isn't necessarily the final word.
+        # 040648.python.fancy_getopt.line74.comment These keep track of the information in the option table.  We
+        # 040649.python.fancy_getopt.line75.comment don't actually populate these structures until we're ready to
+        # 040650.python.fancy_getopt.line76.comment parse the command-line, since the 'option_table' passed in here
+        # 040651.python.fancy_getopt.line77.comment isn't necessarily the final word.
         self.short_opts = []
         self.long_opts = []
         self.short2long = {}
         self.attr_name = {}
         self.takes_arg = {}
 
-        # And 'option_order' is filled up in 'getopt()'; it records the
-        # original order of options (and their values) on the command-line,
-        # but expands short options, converts aliases, etc.
+        # 040652.python.fancy_getopt.line84.comment And 'option_order' is filled up in 'getopt()'; it records the
+        # 040653.python.fancy_getopt.line85.comment original order of options (and their values) on the command-line,
+        # 040654.python.fancy_getopt.line86.comment but expands short options, converts aliases, etc.
         self.option_order = []
 
     def _build_index(self):
@@ -158,11 +158,11 @@ class FancyGetopt:
             elif len(option) == 4:
                 long, short, help, repeat = option
             else:
-                # the option table is part of the code, so simply
-                # assert that it is correct
+                # 040656.python.fancy_getopt.line161.comment the option table is part of the code, so simply
+                # 040657.python.fancy_getopt.line162.comment assert that it is correct
                 raise ValueError(f"invalid option tuple: {option!r}")
 
-            # Type- and value-check the option names
+            # 040658.python.fancy_getopt.line165.comment Type- and value-check the option names
             if not isinstance(long, str) or len(long) < 2:
                 raise DistutilsGetoptError(
                     f"invalid long option '{long}': must be a string of length >= 2"
@@ -182,8 +182,8 @@ class FancyGetopt:
                 long = long[0:-1]
                 self.takes_arg[long] = True
             else:
-                # Is option is a "negative alias" for some other option (eg.
-                # "quiet" == "!verbose")?
+                # 040660.python.fancy_getopt.line185.comment Is option is a "negative alias" for some other option (eg.
+                # 040661.python.fancy_getopt.line186.comment "quiet" == "!verbose")?
                 alias_to = self.negative_alias.get(long)
                 if alias_to is not None:
                     if self.takes_arg[alias_to]:
@@ -195,8 +195,8 @@ class FancyGetopt:
                     self.long_opts[-1] = long  # XXX redundant?!
                 self.takes_arg[long] = False
 
-            # If this is an alias option, make sure its "takes arg" flag is
-            # the same as the option it's aliased to.
+            # 040663.python.fancy_getopt.line198.comment If this is an alias option, make sure its "takes arg" flag is
+            # 040664.python.fancy_getopt.line199.comment the same as the option it's aliased to.
             alias_to = self.alias.get(long)
             if alias_to is not None:
                 if self.takes_arg[long] != self.takes_arg[alias_to]:
@@ -206,10 +206,10 @@ class FancyGetopt:
                         "the other doesn't"
                     )
 
-            # Now enforce some bondage on the long option name, so we can
-            # later translate it to an attribute name on some object.  Have
-            # to do this a bit late to make sure we've removed any trailing
-            # '='.
+            # 040665.python.fancy_getopt.line209.comment Now enforce some bondage on the long option name, so we can
+            # 040666.python.fancy_getopt.line210.comment later translate it to an attribute name on some object.  Have
+            # 040667.python.fancy_getopt.line211.comment to do this a bit late to make sure we've removed any trailing
+            # 040668.python.fancy_getopt.line212.comment '='.
             if not longopt_re.match(long):
                 raise DistutilsGetoptError(
                     f"invalid long option name '{long}' "
@@ -269,14 +269,14 @@ class FancyGetopt:
                     val = 1
 
             attr = self.attr_name[opt]
-            # The only repeating option at the moment is 'verbose'.
-            # It has a negative option -q quiet, which should set verbose = False.
+            # 040672.python.fancy_getopt.line272.comment The only repeating option at the moment is 'verbose'.
+            # 040673.python.fancy_getopt.line273.comment It has a negative option -q quiet, which should set verbose = False.
             if val and self.repeat.get(attr) is not None:
                 val = getattr(object, attr, 0) + 1
             setattr(object, attr, val)
             self.option_order.append((opt, val))
 
-        # for opts
+        # 040674.python.fancy_getopt.line279.comment for opts
         if created_object:
             return args, object
         else:
@@ -296,10 +296,10 @@ class FancyGetopt:
         """Generate help text (a list of strings, one per suggested line of
         output) from the option table for this FancyGetopt object.
         """
-        # Blithely assume the option table is good: probably wouldn't call
-        # 'generate_help()' unless you've already called 'getopt()'.
+        # 040676.python.fancy_getopt.line299.comment Blithely assume the option table is good: probably wouldn't call
+        # 040677.python.fancy_getopt.line300.comment 'generate_help()' unless you've already called 'getopt()'.
 
-        # First pass: determine maximum length of long option names
+        # 040678.python.fancy_getopt.line302.comment First pass: determine maximum length of long option names
         max_opt = 0
         for option in self.option_table:
             long = option[0]
@@ -314,28 +314,28 @@ class FancyGetopt:
 
         opt_width = max_opt + 2 + 2 + 2  # room for indent + dashes + gutter
 
-        # Typical help block looks like this:
-        #   --foo       controls foonabulation
-        # Help block for longest option looks like this:
-        #   --flimflam  set the flim-flam level
-        # and with wrapped text:
-        #   --flimflam  set the flim-flam level (must be between
-        #               0 and 100, except on Tuesdays)
-        # Options with short names will have the short name shown (but
-        # it doesn't contribute to max_opt):
-        #   --foo (-f)  controls foonabulation
-        # If adding the short option would make the left column too wide,
-        # we push the explanation off to the next line
-        #   --flimflam (-l)
-        #               set the flim-flam level
-        # Important parameters:
-        #   - 2 spaces before option block start lines
-        #   - 2 dashes for each long option name
-        #   - min. 2 spaces between option and explanation (gutter)
-        #   - 5 characters (incl. space) for short option name
+        # 040681.python.fancy_getopt.line317.comment Typical help block looks like this:
+        # 040682.python.fancy_getopt.line318.comment --foo       controls foonabulation
+        # 040683.python.fancy_getopt.line319.comment Help block for longest option looks like this:
+        # 040684.python.fancy_getopt.line320.comment --flimflam  set the flim-flam level
+        # 040685.python.fancy_getopt.line321.comment and with wrapped text:
+        # 040686.python.fancy_getopt.line322.comment --flimflam  set the flim-flam level (must be between
+        # 040687.python.fancy_getopt.line323.comment 0 and 100, except on Tuesdays)
+        # 040688.python.fancy_getopt.line324.comment Options with short names will have the short name shown (but
+        # 040689.python.fancy_getopt.line325.comment it doesn't contribute to max_opt):
+        # 040690.python.fancy_getopt.line326.comment --foo (-f)  controls foonabulation
+        # 040691.python.fancy_getopt.line327.comment If adding the short option would make the left column too wide,
+        # 040692.python.fancy_getopt.line328.comment we push the explanation off to the next line
+        # 040693.python.fancy_getopt.line329.comment --flimflam (-l)
+        # 040694.python.fancy_getopt.line330.comment set the flim-flam level
+        # 040695.python.fancy_getopt.line331.comment Important parameters:
+        # 040696.python.fancy_getopt.line332.comment - 2 spaces before option block start lines
+        # 040697.python.fancy_getopt.line333.comment - 2 dashes for each long option name
+        # 040698.python.fancy_getopt.line334.comment - min. 2 spaces between option and explanation (gutter)
+        # 040699.python.fancy_getopt.line335.comment - 5 characters (incl. space) for short option name
 
-        # Now generate lines of help text.  (If 80 columns were good enough
-        # for Jesus, then 78 columns are good enough for me!)
+        # 040700.python.fancy_getopt.line337.comment Now generate lines of help text.  (If 80 columns were good enough
+        # 040701.python.fancy_getopt.line338.comment for Jesus, then 78 columns are good enough for me!)
         line_width = 78
         text_width = line_width - opt_width
         big_indent = ' ' * opt_width
@@ -350,15 +350,15 @@ class FancyGetopt:
             if long[-1] == '=':
                 long = long[0:-1]
 
-            # Case 1: no short option at all (makes life easy)
+            # 040702.python.fancy_getopt.line353.comment Case 1: no short option at all (makes life easy)
             if short is None:
                 if text:
                     lines.append(f"  --{long:<{max_opt}}  {text[0]}")
                 else:
                     lines.append(f"  --{long:<{max_opt}}")
 
-            # Case 2: we have a short option, so we have to include it
-            # just after the long option
+            # 040703.python.fancy_getopt.line360.comment Case 2: we have a short option, so we have to include it
+            # 040704.python.fancy_getopt.line361.comment just after the long option
             else:
                 opt_names = f"{long} (-{short})"
                 if text:
@@ -414,27 +414,27 @@ def wrap_text(text, width):
                 del chunks[0]
                 cur_len = cur_len + ell
             else:  # this line is full
-                # drop last chunk if all space
+                # 040710.python.fancy_getopt.line417.comment drop last chunk if all space
                 if cur_line and cur_line[-1][0] == ' ':
                     del cur_line[-1]
                 break
 
         if chunks:  # any chunks left to process?
-            # if the current line is still empty, then we had a single
-            # chunk that's too big too fit on a line -- so we break
-            # down and break it up at the line width
+            # 040712.python.fancy_getopt.line423.comment if the current line is still empty, then we had a single
+            # 040713.python.fancy_getopt.line424.comment chunk that's too big too fit on a line -- so we break
+            # 040714.python.fancy_getopt.line425.comment down and break it up at the line width
             if cur_len == 0:
                 cur_line.append(chunks[0][0:width])
                 chunks[0] = chunks[0][width:]
 
-            # all-whitespace chunks at the end of a line can be discarded
-            # (and we know from the re.split above that if a chunk has
-            # *any* whitespace, it is *all* whitespace)
+            # 040715.python.fancy_getopt.line430.comment all-whitespace chunks at the end of a line can be discarded
+            # 040716.python.fancy_getopt.line431.comment (and we know from the re.split above that if a chunk has
+            # 040717.python.fancy_getopt.line432.comment *any* whitespace, it is *all* whitespace)
             if chunks[0][0] == ' ':
                 del chunks[0]
 
-        # and store this line in the list-of-all-lines -- as a single
-        # string, of course!
+        # 040718.python.fancy_getopt.line436.comment and store this line in the list-of-all-lines -- as a single
+        # 040719.python.fancy_getopt.line437.comment string, of course!
         lines.append(''.join(cur_line))
 
     return lines

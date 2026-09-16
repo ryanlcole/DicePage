@@ -3,7 +3,7 @@
 Implements the Distutils 'install_scripts' command, for installing
 Python scripts."""
 
-# contributed by Bastian Kleineidam
+# 039915.python.install_scripts.line6.comment contributed by Bastian Kleineidam
 
 import os
 from distutils._log import log
@@ -45,8 +45,8 @@ class install_scripts(Command):
             self.run_command('build_scripts')
         self.outfiles = self.copy_tree(self.build_dir, self.install_dir)
         if os.name == 'posix':
-            # Set the executable bits (owner, group, and world) on
-            # all the scripts we just installed.
+            # 039916.python.install_scripts.line48.comment Set the executable bits (owner, group, and world) on
+            # 039917.python.install_scripts.line49.comment all the scripts we just installed.
             for file in self.get_outputs():
                 if self.dry_run:
                     log.info("changing mode of %s", file)

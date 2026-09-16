@@ -10,13 +10,13 @@ class TestEnum(win32com.test.util.TestCase):
     def testit(self):
         fname, tmp = win32api.GetTempFileName(win32api.GetTempPath(), "stg")
         m = storagecon.STGM_READWRITE | storagecon.STGM_SHARE_EXCLUSIVE
-        ##  file, mode, format, attrs (always 0), IID (IStorage or IPropertySetStorage, storage options(only used with STGFMT_DOCFILE)
+        # 050343.python.testStorage.line13.comment #  file, mode, format, attrs (always 0), IID (IStorage or IPropertySetStorage, storage options(only used with STGFMT_DOCFILE)
         pss = pythoncom.StgOpenStorageEx(
             fname, m, storagecon.STGFMT_FILE, 0, pythoncom.IID_IPropertySetStorage
         )
-        ###                               {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":'somefilename'})
+        # 050344.python.testStorage.line17.comment ##                               {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":'somefilename'})
 
-        ## FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties
+        # 050345.python.testStorage.line19.comment # FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties
         psuser = pss.Create(
             pythoncom.FMTID_UserDefinedProperties,
             pythoncom.IID_IPropertySetStorage,
@@ -68,8 +68,8 @@ class TestEnum(win32com.test.util.TestCase):
                 else:
                     self.fail(f"Uxexpected property {p}/{p_val}")
             ps = None
-            ## FMTID_UserDefinedProperties can't exist without FMTID_DocSummaryInformation, and isn't returned independently from Enum
-            ## also can't be open at same time
+            # 050348.python.testStorage.line71.comment # FMTID_UserDefinedProperties can't exist without FMTID_DocSummaryInformation, and isn't returned independently from Enum
+            # 050349.python.testStorage.line72.comment # also can't be open at same time
             if psstat[0] == pythoncom.FMTID_DocSummaryInformation:
                 ps = pssread.Open(
                     pythoncom.FMTID_UserDefinedProperties,

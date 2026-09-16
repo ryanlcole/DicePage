@@ -6,11 +6,11 @@ for Microsoft Visual Studio 2015.
 This module requires VS 2015 or later.
 """
 
-# Written by Perry Stoll
-# hacked by Robin Becker and Thomas Heller to do a better job of
-#   finding DevStudio (through the registry)
-# ported to VS 2005 and VS 2008 by Christian Heimes
-# ported to VS 2015 by Steve Dower
+# 040204.python.msvc.line9.comment Written by Perry Stoll
+# 040205.python.msvc.line10.comment hacked by Robin Becker and Thomas Heller to do a better job of
+# 040206.python.msvc.line11.comment finding DevStudio (through the registry)
+# 040207.python.msvc.line12.comment ported to VS 2005 and VS 2008 by Christian Heimes
+# 040208.python.msvc.line13.comment ported to VS 2015 by Steve Dower
 from __future__ import annotations
 
 import contextlib
@@ -90,7 +90,7 @@ def _find_vc2017():
     )
 
     for component in suitable_components:
-        # Workaround for `-requiresAny` (only available on VS 2017 > 15.6)
+        # 040209.python.msvc.line93.comment Workaround for `-requiresAny` (only available on VS 2017 > 15.6)
         with contextlib.suppress(
             subprocess.CalledProcessError, OSError, UnicodeDecodeError
         ):
@@ -128,7 +128,7 @@ PLAT_SPEC_TO_RUNTIME = {
 
 
 def _find_vcvarsall(plat_spec):
-    # bpo-38597: Removed vcruntime return value
+    # 040211.python.msvc.line131.comment bpo-38597: Removed vcruntime return value
     _, best_dir = _find_vc2017()
 
     if not best_dir:
@@ -237,21 +237,21 @@ class Compiler(base.Compiler):
 
     compiler_type = 'msvc'
 
-    # Just set this so CCompiler's constructor doesn't barf.  We currently
-    # don't use the 'set_executables()' bureaucracy provided by CCompiler,
-    # as it really isn't necessary for this sort of single-compiler class.
-    # Would be nice to have a consistent interface with UnixCCompiler,
-    # though, so it's worth thinking about.
+    # 040212.python.msvc.line240.comment Just set this so CCompiler's constructor doesn't barf.  We currently
+    # 040213.python.msvc.line241.comment don't use the 'set_executables()' bureaucracy provided by CCompiler,
+    # 040214.python.msvc.line242.comment as it really isn't necessary for this sort of single-compiler class.
+    # 040215.python.msvc.line243.comment Would be nice to have a consistent interface with UnixCCompiler,
+    # 040216.python.msvc.line244.comment though, so it's worth thinking about.
     executables = {}
 
-    # Private class data (need to distinguish C from C++ source for compiler)
+    # 040217.python.msvc.line247.comment Private class data (need to distinguish C from C++ source for compiler)
     _c_extensions = ['.c']
     _cpp_extensions = ['.cc', '.cpp', '.cxx']
     _rc_extensions = ['.rc']
     _mc_extensions = ['.mc']
 
-    # Needed for the filename generation methods provided by the
-    # base class, CCompiler.
+    # 040218.python.msvc.line253.comment Needed for the filename generation methods provided by the
+    # 040219.python.msvc.line254.comment base class, CCompiler.
     src_extensions = _c_extensions + _cpp_extensions + _rc_extensions + _mc_extensions
     res_extension = '.res'
     obj_extension = '.obj'
@@ -262,7 +262,7 @@ class Compiler(base.Compiler):
 
     def __init__(self, verbose=False, dry_run=False, force=False) -> None:
         super().__init__(verbose, dry_run, force)
-        # target platform (.plat_name is consistent with 'bdist')
+        # 040220.python.msvc.line265.comment target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
         self.initialized = False
 
@@ -279,11 +279,11 @@ class Compiler(base.Compiler):
         return [dir.rstrip(os.sep) for dir in val.split(os.pathsep) if dir]
 
     def initialize(self, plat_name: str | None = None) -> None:
-        # multi-init means we would need to check platform same each time...
+        # 040221.python.msvc.line282.comment multi-init means we would need to check platform same each time...
         assert not self.initialized, "don't init multiple times"
         if plat_name is None:
             plat_name = get_platform()
-        # sanity check for platforms to prevent obscure errors later.
+        # 040222.python.msvc.line286.comment sanity check for platforms to prevent obscure errors later.
         if plat_name not in _vcvars_names:
             raise DistutilsPlatformError(
                 f"--plat-name must be one of {tuple(_vcvars_names)}"
@@ -308,9 +308,9 @@ class Compiler(base.Compiler):
         self.mt = _find_exe("mt.exe", paths)  # message compiler
 
         self.preprocess_options = None
-        # bpo-38597: Always compile with dynamic linking
-        # Future releases of Python 3.x will include all past
-        # versions of vcruntime*.dll for compatibility.
+        # 040226.python.msvc.line311.comment bpo-38597: Always compile with dynamic linking
+        # 040227.python.msvc.line312.comment Future releases of Python 3.x will include all past
+        # 040228.python.msvc.line313.comment versions of vcruntime*.dll for compatibility.
         self.compile_options = ['/nologo', '/O2', '/W3', '/GL', '/DNDEBUG', '/MD']
 
         self.compile_options_debug = [
@@ -357,7 +357,7 @@ class Compiler(base.Compiler):
 
         self.initialized = True
 
-    # -- Worker methods ------------------------------------------------
+    # 040229.python.msvc.line360.comment -- Worker methods ------------------------------------------------
 
     @property
     def out_extensions(self) -> dict[str, str]:
@@ -402,9 +402,9 @@ class Compiler(base.Compiler):
             except KeyError:
                 continue
             if debug:
-                # pass the full pathname to MSVC in debug mode,
-                # this allows the debugger to find the source file
-                # without asking the user to browse for it
+                # 040231.python.msvc.line405.comment pass the full pathname to MSVC in debug mode,
+                # 040232.python.msvc.line406.comment this allows the debugger to find the source file
+                # 040233.python.msvc.line407.comment without asking the user to browse for it
                 src = os.path.abspath(src)
 
             if ext in self._c_extensions:
@@ -413,7 +413,7 @@ class Compiler(base.Compiler):
                 input_opt = f"/Tp{src}"
                 add_cpp_opts = True
             elif ext in self._rc_extensions:
-                # compile .RC to .RES file
+                # 040234.python.msvc.line416.comment compile .RC to .RES file
                 input_opt = src
                 output_opt = "/fo" + obj
                 try:
@@ -422,32 +422,32 @@ class Compiler(base.Compiler):
                     raise CompileError(msg)
                 continue
             elif ext in self._mc_extensions:
-                # Compile .MC to .RC file to .RES file.
-                #   * '-h dir' specifies the directory for the
-                #     generated include file
-                #   * '-r dir' specifies the target directory of the
-                #     generated RC file and the binary message resource
-                #     it includes
-                #
-                # For now (since there are no options to change this),
-                # we use the source-directory for the include file and
-                # the build directory for the RC file and message
-                # resources. This works at least for win32all.
+                # 040235.python.msvc.line425.comment Compile .MC to .RC file to .RES file.
+                # 040236.python.msvc.line426.comment * '-h dir' specifies the directory for the
+                # 040237.python.msvc.line427.comment generated include file
+                # 040238.python.msvc.line428.comment * '-r dir' specifies the target directory of the
+                # 040239.python.msvc.line429.comment generated RC file and the binary message resource
+                # 040240.python.msvc.line430.comment it includes
+                # 040241.python.msvc.line431.comment
+                # 040242.python.msvc.line432.comment For now (since there are no options to change this),
+                # 040243.python.msvc.line433.comment we use the source-directory for the include file and
+                # 040244.python.msvc.line434.comment the build directory for the RC file and message
+                # 040245.python.msvc.line435.comment resources. This works at least for win32all.
                 h_dir = os.path.dirname(src)
                 rc_dir = os.path.dirname(obj)
                 try:
-                    # first compile .MC to .RC and .H file
+                    # 040246.python.msvc.line439.comment first compile .MC to .RC and .H file
                     self.spawn([self.mc, '-h', h_dir, '-r', rc_dir, src])
                     base, _ = os.path.splitext(os.path.basename(src))
                     rc_file = os.path.join(rc_dir, base + '.rc')
-                    # then compile .RC to .RES file
+                    # 040247.python.msvc.line443.comment then compile .RC to .RES file
                     self.spawn([self.rc, "/fo" + obj, rc_file])
 
                 except DistutilsExecError as msg:
                     raise CompileError(msg)
                 continue
             else:
-                # how to handle this file?
+                # 040248.python.msvc.line450.comment how to handle this file?
                 raise CompileError(f"Don't know how to compile {src} to {obj}")
 
             args = [self.cc] + compile_opts + pp_opts
@@ -529,11 +529,11 @@ class Compiler(base.Compiler):
                 ldflags + lib_opts + export_opts + objects + ['/OUT:' + output_filename]
             )
 
-            # The MSVC linker generates .lib and .exp files, which cannot be
-            # suppressed by any linker switches. The .lib files may even be
-            # needed! Make sure they are generated in the temporary build
-            # directory. Since they have different names for debug and release
-            # builds, they can go into the same directory.
+            # 040250.python.msvc.line532.comment The MSVC linker generates .lib and .exp files, which cannot be
+            # 040251.python.msvc.line533.comment suppressed by any linker switches. The .lib files may even be
+            # 040252.python.msvc.line534.comment needed! Make sure they are generated in the temporary build
+            # 040253.python.msvc.line535.comment directory. Since they have different names for debug and release
+            # 040254.python.msvc.line536.comment builds, they can go into the same directory.
             build_temp = os.path.dirname(objects[0])
             if export_symbols is not None:
                 (dll_name, dll_ext) = os.path.splitext(
@@ -582,9 +582,9 @@ class Compiler(base.Compiler):
         with mock.patch.dict('os.environ', env):
             bag.value = super().spawn(cmd)
 
-    # -- Miscellaneous methods -----------------------------------------
-    # These are all used by the 'gen_lib_options() function, in
-    # ccompiler.py.
+    # 040255.python.msvc.line585.comment -- Miscellaneous methods -----------------------------------------
+    # 040256.python.msvc.line586.comment These are all used by the 'gen_lib_options() function, in
+    # 040257.python.msvc.line587.comment ccompiler.py.
 
     def library_dir_option(self, dir):
         return "/LIBPATH:" + dir
@@ -598,8 +598,8 @@ class Compiler(base.Compiler):
         return self.library_filename(lib)
 
     def find_library_file(self, dirs, lib, debug=False):
-        # Prefer a debugging library if found (and requested), but deal
-        # with it if we don't have one.
+        # 040258.python.msvc.line601.comment Prefer a debugging library if found (and requested), but deal
+        # 040259.python.msvc.line602.comment with it if we don't have one.
         if debug:
             try_names = [lib + "_d", lib]
         else:
@@ -610,5 +610,5 @@ class Compiler(base.Compiler):
                 if os.path.isfile(libfile):
                     return libfile
         else:
-            # Oops, didn't find it in *any* of 'dirs'
+            # 040260.python.msvc.line613.comment Oops, didn't find it in *any* of 'dirs'
             return None

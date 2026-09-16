@@ -7,9 +7,9 @@ _lib = pyglet.lib.load_library('xkbcommon')
 
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 031574.python.xkbcommon.line10.comment c_void_p is a buggy return type, converting to int, so
+    # 031575.python.xkbcommon.line11.comment POINTER(None) == c_void_p is actually written as
+    # 031576.python.xkbcommon.line12.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -84,121 +84,121 @@ XKB_LEVEL_INVALID = 4294967295  # /usr/include/xkbcommon/xkbcommon.h:300
 XKB_MOD_INVALID = 4294967295  # /usr/include/xkbcommon/xkbcommon.h:301
 XKB_LED_INVALID = 4294967295  # /usr/include/xkbcommon/xkbcommon.h:302
 XKB_KEYCODE_MAX = 4294967294  # /usr/include/xkbcommon/xkbcommon.h:304
-# /usr/include/xkbcommon/xkbcommon.h:438
+# 031592.python.xkbcommon.line87.comment /usr/include/xkbcommon/xkbcommon.h:438
 xkb_keysym_get_name = _lib.xkb_keysym_get_name
 xkb_keysym_get_name.restype = c_int
 xkb_keysym_get_name.argtypes = [xkb_keysym_t, c_char_p, c_size_t]
 
 enum_xkb_keysym_flags = c_int
-# /usr/include/xkbcommon/xkbcommon.h:472
+# 031593.python.xkbcommon.line93.comment /usr/include/xkbcommon/xkbcommon.h:472
 xkb_keysym_from_name = _lib.xkb_keysym_from_name
 xkb_keysym_from_name.restype = xkb_keysym_t
 xkb_keysym_from_name.argtypes = [c_char_p, enum_xkb_keysym_flags]
 
-# /usr/include/xkbcommon/xkbcommon.h:491
+# 031594.python.xkbcommon.line98.comment /usr/include/xkbcommon/xkbcommon.h:491
 xkb_keysym_to_utf8 = _lib.xkb_keysym_to_utf8
 xkb_keysym_to_utf8.restype = c_int
 xkb_keysym_to_utf8.argtypes = [xkb_keysym_t, c_char_p, c_size_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:506
+# 031595.python.xkbcommon.line103.comment /usr/include/xkbcommon/xkbcommon.h:506
 xkb_keysym_to_utf32 = _lib.xkb_keysym_to_utf32
 xkb_keysym_to_utf32.restype = c_uint32
 xkb_keysym_to_utf32.argtypes = [xkb_keysym_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:529
+# 031596.python.xkbcommon.line108.comment /usr/include/xkbcommon/xkbcommon.h:529
 xkb_utf32_to_keysym = _lib.xkb_utf32_to_keysym
 xkb_utf32_to_keysym.restype = xkb_keysym_t
 xkb_utf32_to_keysym.argtypes = [c_uint32]
 
-# /usr/include/xkbcommon/xkbcommon.h:540
+# 031597.python.xkbcommon.line113.comment /usr/include/xkbcommon/xkbcommon.h:540
 xkb_keysym_to_upper = _lib.xkb_keysym_to_upper
 xkb_keysym_to_upper.restype = xkb_keysym_t
 xkb_keysym_to_upper.argtypes = [xkb_keysym_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:549
+# 031598.python.xkbcommon.line118.comment /usr/include/xkbcommon/xkbcommon.h:549
 xkb_keysym_to_lower = _lib.xkb_keysym_to_lower
 xkb_keysym_to_lower.restype = xkb_keysym_t
 xkb_keysym_to_lower.argtypes = [xkb_keysym_t]
 
 enum_xkb_context_flags = c_int
-# /usr/include/xkbcommon/xkbcommon.h:597
+# 031599.python.xkbcommon.line124.comment /usr/include/xkbcommon/xkbcommon.h:597
 xkb_context_new = _lib.xkb_context_new
 xkb_context_new.restype = POINTER(struct_xkb_context)
 xkb_context_new.argtypes = [enum_xkb_context_flags]
 
-# /usr/include/xkbcommon/xkbcommon.h:607
+# 031600.python.xkbcommon.line129.comment /usr/include/xkbcommon/xkbcommon.h:607
 xkb_context_ref = _lib.xkb_context_ref
 xkb_context_ref.restype = POINTER(struct_xkb_context)
 xkb_context_ref.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:618
+# 031601.python.xkbcommon.line134.comment /usr/include/xkbcommon/xkbcommon.h:618
 xkb_context_unref = _lib.xkb_context_unref
 xkb_context_unref.restype = None
 xkb_context_unref.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:629
+# 031602.python.xkbcommon.line139.comment /usr/include/xkbcommon/xkbcommon.h:629
 xkb_context_set_user_data = _lib.xkb_context_set_user_data
 xkb_context_set_user_data.restype = None
 xkb_context_set_user_data.argtypes = [POINTER(struct_xkb_context), POINTER(None)]
 
-# /usr/include/xkbcommon/xkbcommon.h:642
+# 031603.python.xkbcommon.line144.comment /usr/include/xkbcommon/xkbcommon.h:642
 xkb_context_get_user_data = _lib.xkb_context_get_user_data
 xkb_context_get_user_data.restype = POINTER(c_void)
 xkb_context_get_user_data.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:677
+# 031604.python.xkbcommon.line149.comment /usr/include/xkbcommon/xkbcommon.h:677
 xkb_context_include_path_append = _lib.xkb_context_include_path_append
 xkb_context_include_path_append.restype = c_int
 xkb_context_include_path_append.argtypes = [POINTER(struct_xkb_context), c_char_p]
 
-# /usr/include/xkbcommon/xkbcommon.h:687
+# 031605.python.xkbcommon.line154.comment /usr/include/xkbcommon/xkbcommon.h:687
 xkb_context_include_path_append_default = _lib.xkb_context_include_path_append_default
 xkb_context_include_path_append_default.restype = c_int
 xkb_context_include_path_append_default.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:700
+# 031606.python.xkbcommon.line159.comment /usr/include/xkbcommon/xkbcommon.h:700
 xkb_context_include_path_reset_defaults = _lib.xkb_context_include_path_reset_defaults
 xkb_context_include_path_reset_defaults.restype = c_int
 xkb_context_include_path_reset_defaults.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:708
+# 031607.python.xkbcommon.line164.comment /usr/include/xkbcommon/xkbcommon.h:708
 xkb_context_include_path_clear = _lib.xkb_context_include_path_clear
 xkb_context_include_path_clear.restype = None
 xkb_context_include_path_clear.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:716
+# 031608.python.xkbcommon.line169.comment /usr/include/xkbcommon/xkbcommon.h:716
 xkb_context_num_include_paths = _lib.xkb_context_num_include_paths
 xkb_context_num_include_paths.restype = c_uint
 xkb_context_num_include_paths.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:726
+# 031609.python.xkbcommon.line174.comment /usr/include/xkbcommon/xkbcommon.h:726
 xkb_context_include_path_get = _lib.xkb_context_include_path_get
 xkb_context_include_path_get.restype = c_char_p
 xkb_context_include_path_get.argtypes = [POINTER(struct_xkb_context), c_uint]
 
 enum_xkb_log_level = c_int
-# /usr/include/xkbcommon/xkbcommon.h:761
+# 031610.python.xkbcommon.line180.comment /usr/include/xkbcommon/xkbcommon.h:761
 xkb_context_set_log_level = _lib.xkb_context_set_log_level
 xkb_context_set_log_level.restype = None
 xkb_context_set_log_level.argtypes = [POINTER(struct_xkb_context), enum_xkb_log_level]
 
-# /usr/include/xkbcommon/xkbcommon.h:770
+# 031611.python.xkbcommon.line185.comment /usr/include/xkbcommon/xkbcommon.h:770
 xkb_context_get_log_level = _lib.xkb_context_get_log_level
 xkb_context_get_log_level.restype = enum_xkb_log_level
 xkb_context_get_log_level.argtypes = [POINTER(struct_xkb_context)]
 
-# /usr/include/xkbcommon/xkbcommon.h:792
+# 031612.python.xkbcommon.line190.comment /usr/include/xkbcommon/xkbcommon.h:792
 xkb_context_set_log_verbosity = _lib.xkb_context_set_log_verbosity
 xkb_context_set_log_verbosity.restype = None
 xkb_context_set_log_verbosity.argtypes = [POINTER(struct_xkb_context), c_int]
 
-# /usr/include/xkbcommon/xkbcommon.h:800
+# 031613.python.xkbcommon.line195.comment /usr/include/xkbcommon/xkbcommon.h:800
 xkb_context_get_log_verbosity = _lib.xkb_context_get_log_verbosity
 xkb_context_get_log_verbosity.restype = c_int
 xkb_context_get_log_verbosity.argtypes = [POINTER(struct_xkb_context)]
 
 enum_xkb_keymap_compile_flags = c_int
-# /usr/include/xkbcommon/xkbcommon.h:859
+# 031614.python.xkbcommon.line201.comment /usr/include/xkbcommon/xkbcommon.h:859
 xkb_keymap_new_from_names = _lib.xkb_keymap_new_from_names
 xkb_keymap_new_from_names.restype = POINTER(struct_xkb_keymap)
 xkb_keymap_new_from_names.argtypes = [POINTER(struct_xkb_context), POINTER(struct_xkb_rule_names),
@@ -206,154 +206,154 @@ xkb_keymap_new_from_names.argtypes = [POINTER(struct_xkb_context), POINTER(struc
 
 FILE = struct__IO_FILE  # /usr/include/bits/types/FILE.h:7
 enum_xkb_keymap_format = c_int
-# /usr/include/xkbcommon/xkbcommon.h:888
+# 031616.python.xkbcommon.line209.comment /usr/include/xkbcommon/xkbcommon.h:888
 xkb_keymap_new_from_file = _lib.xkb_keymap_new_from_file
 xkb_keymap_new_from_file.restype = POINTER(struct_xkb_keymap)
 xkb_keymap_new_from_file.argtypes = [POINTER(struct_xkb_context), POINTER(FILE), enum_xkb_keymap_format,
                                      enum_xkb_keymap_compile_flags]
 
-# /usr/include/xkbcommon/xkbcommon.h:902
+# 031617.python.xkbcommon.line215.comment /usr/include/xkbcommon/xkbcommon.h:902
 xkb_keymap_new_from_string = _lib.xkb_keymap_new_from_string
 xkb_keymap_new_from_string.restype = POINTER(struct_xkb_keymap)
 xkb_keymap_new_from_string.argtypes = [POINTER(struct_xkb_context), c_char_p, enum_xkb_keymap_format,
                                        enum_xkb_keymap_compile_flags]
 
-# /usr/include/xkbcommon/xkbcommon.h:917
+# 031618.python.xkbcommon.line221.comment /usr/include/xkbcommon/xkbcommon.h:917
 xkb_keymap_new_from_buffer = _lib.xkb_keymap_new_from_buffer
 xkb_keymap_new_from_buffer.restype = POINTER(struct_xkb_keymap)
 xkb_keymap_new_from_buffer.argtypes = [POINTER(struct_xkb_context), c_char_p, c_size_t, enum_xkb_keymap_format,
                                        enum_xkb_keymap_compile_flags]
 
-# /usr/include/xkbcommon/xkbcommon.h:929
+# 031619.python.xkbcommon.line227.comment /usr/include/xkbcommon/xkbcommon.h:929
 xkb_keymap_ref = _lib.xkb_keymap_ref
 xkb_keymap_ref.restype = POINTER(struct_xkb_keymap)
 xkb_keymap_ref.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:940
+# 031620.python.xkbcommon.line232.comment /usr/include/xkbcommon/xkbcommon.h:940
 xkb_keymap_unref = _lib.xkb_keymap_unref
 xkb_keymap_unref.restype = None
 xkb_keymap_unref.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:966
+# 031621.python.xkbcommon.line237.comment /usr/include/xkbcommon/xkbcommon.h:966
 xkb_keymap_get_as_string = _lib.xkb_keymap_get_as_string
 xkb_keymap_get_as_string.restype = c_char_p
 xkb_keymap_get_as_string.argtypes = [POINTER(struct_xkb_keymap), enum_xkb_keymap_format]
 
-# /usr/include/xkbcommon/xkbcommon.h:987
+# 031622.python.xkbcommon.line242.comment /usr/include/xkbcommon/xkbcommon.h:987
 xkb_keymap_min_keycode = _lib.xkb_keymap_min_keycode
 xkb_keymap_min_keycode.restype = xkb_keycode_t
 xkb_keymap_min_keycode.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:997
+# 031623.python.xkbcommon.line247.comment /usr/include/xkbcommon/xkbcommon.h:997
 xkb_keymap_max_keycode = _lib.xkb_keymap_max_keycode
 xkb_keymap_max_keycode.restype = xkb_keycode_t
 xkb_keymap_max_keycode.argtypes = [POINTER(struct_xkb_keymap)]
 
 xkb_keymap_key_iter_t = CFUNCTYPE(None, POINTER(struct_xkb_keymap), xkb_keycode_t, POINTER(None))
 
-# /usr/include/xkbcommon/xkbcommon.h:1020
+# 031624.python.xkbcommon.line254.comment /usr/include/xkbcommon/xkbcommon.h:1020
 xkb_keymap_key_for_each = _lib.xkb_keymap_key_for_each
 xkb_keymap_key_for_each.restype = None
 xkb_keymap_key_for_each.argtypes = [POINTER(struct_xkb_keymap), xkb_keymap_key_iter_t, POINTER(None)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1036
+# 031625.python.xkbcommon.line259.comment /usr/include/xkbcommon/xkbcommon.h:1036
 xkb_keymap_key_get_name = _lib.xkb_keymap_key_get_name
 xkb_keymap_key_get_name.restype = c_char_p
 xkb_keymap_key_get_name.argtypes = [POINTER(struct_xkb_keymap), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1052
+# 031626.python.xkbcommon.line264.comment /usr/include/xkbcommon/xkbcommon.h:1052
 xkb_keymap_key_by_name = _lib.xkb_keymap_key_by_name
 xkb_keymap_key_by_name.restype = xkb_keycode_t
 xkb_keymap_key_by_name.argtypes = [POINTER(struct_xkb_keymap), c_char_p]
 
-# /usr/include/xkbcommon/xkbcommon.h:1061
+# 031627.python.xkbcommon.line269.comment /usr/include/xkbcommon/xkbcommon.h:1061
 xkb_keymap_num_mods = _lib.xkb_keymap_num_mods
 xkb_keymap_num_mods.restype = xkb_mod_index_t
 xkb_keymap_num_mods.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1071
+# 031628.python.xkbcommon.line274.comment /usr/include/xkbcommon/xkbcommon.h:1071
 xkb_keymap_mod_get_name = _lib.xkb_keymap_mod_get_name
 xkb_keymap_mod_get_name.restype = c_char_p
 xkb_keymap_mod_get_name.argtypes = [POINTER(struct_xkb_keymap), xkb_mod_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1084
+# 031629.python.xkbcommon.line279.comment /usr/include/xkbcommon/xkbcommon.h:1084
 xkb_keymap_mod_get_index = _lib.xkb_keymap_mod_get_index
 xkb_keymap_mod_get_index.restype = xkb_mod_index_t
 xkb_keymap_mod_get_index.argtypes = [POINTER(struct_xkb_keymap), c_char_p]
 
-# /usr/include/xkbcommon/xkbcommon.h:1093
+# 031630.python.xkbcommon.line284.comment /usr/include/xkbcommon/xkbcommon.h:1093
 xkb_keymap_num_layouts = _lib.xkb_keymap_num_layouts
 xkb_keymap_num_layouts.restype = xkb_layout_index_t
 xkb_keymap_num_layouts.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1105
+# 031631.python.xkbcommon.line289.comment /usr/include/xkbcommon/xkbcommon.h:1105
 xkb_keymap_layout_get_name = _lib.xkb_keymap_layout_get_name
 xkb_keymap_layout_get_name.restype = c_char_p
 xkb_keymap_layout_get_name.argtypes = [POINTER(struct_xkb_keymap), xkb_layout_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1120
+# 031632.python.xkbcommon.line294.comment /usr/include/xkbcommon/xkbcommon.h:1120
 xkb_keymap_layout_get_index = _lib.xkb_keymap_layout_get_index
 xkb_keymap_layout_get_index.restype = xkb_layout_index_t
 xkb_keymap_layout_get_index.argtypes = [POINTER(struct_xkb_keymap), c_char_p]
 
-# /usr/include/xkbcommon/xkbcommon.h:1134
+# 031633.python.xkbcommon.line299.comment /usr/include/xkbcommon/xkbcommon.h:1134
 xkb_keymap_num_leds = _lib.xkb_keymap_num_leds
 xkb_keymap_num_leds.restype = xkb_led_index_t
 xkb_keymap_num_leds.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1143
+# 031634.python.xkbcommon.line304.comment /usr/include/xkbcommon/xkbcommon.h:1143
 xkb_keymap_led_get_name = _lib.xkb_keymap_led_get_name
 xkb_keymap_led_get_name.restype = c_char_p
 xkb_keymap_led_get_name.argtypes = [POINTER(struct_xkb_keymap), xkb_led_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1155
+# 031635.python.xkbcommon.line309.comment /usr/include/xkbcommon/xkbcommon.h:1155
 xkb_keymap_led_get_index = _lib.xkb_keymap_led_get_index
 xkb_keymap_led_get_index.restype = xkb_led_index_t
 xkb_keymap_led_get_index.argtypes = [POINTER(struct_xkb_keymap), c_char_p]
 
-# /usr/include/xkbcommon/xkbcommon.h:1168
+# 031636.python.xkbcommon.line314.comment /usr/include/xkbcommon/xkbcommon.h:1168
 xkb_keymap_num_layouts_for_key = _lib.xkb_keymap_num_layouts_for_key
 xkb_keymap_num_layouts_for_key.restype = xkb_layout_index_t
 xkb_keymap_num_layouts_for_key.argtypes = [POINTER(struct_xkb_keymap), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1181
+# 031637.python.xkbcommon.line319.comment /usr/include/xkbcommon/xkbcommon.h:1181
 xkb_keymap_num_levels_for_key = _lib.xkb_keymap_num_levels_for_key
 xkb_keymap_num_levels_for_key.restype = xkb_level_index_t
 xkb_keymap_num_levels_for_key.argtypes = [POINTER(struct_xkb_keymap), xkb_keycode_t, xkb_layout_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1221
+# 031638.python.xkbcommon.line324.comment /usr/include/xkbcommon/xkbcommon.h:1221
 xkb_keymap_key_get_mods_for_level = _lib.xkb_keymap_key_get_mods_for_level
 xkb_keymap_key_get_mods_for_level.restype = c_size_t
 xkb_keymap_key_get_mods_for_level.argtypes = [POINTER(struct_xkb_keymap), xkb_keycode_t, xkb_layout_index_t,
                                               xkb_level_index_t, POINTER(xkb_mod_mask_t), c_size_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1257
+# 031639.python.xkbcommon.line330.comment /usr/include/xkbcommon/xkbcommon.h:1257
 xkb_keymap_key_get_syms_by_level = _lib.xkb_keymap_key_get_syms_by_level
 xkb_keymap_key_get_syms_by_level.restype = c_int
 xkb_keymap_key_get_syms_by_level.argtypes = [POINTER(struct_xkb_keymap), xkb_keycode_t, xkb_layout_index_t,
                                              xkb_level_index_t, POINTER(POINTER(xkb_keysym_t))]
 
-# /usr/include/xkbcommon/xkbcommon.h:1279
+# 031640.python.xkbcommon.line336.comment /usr/include/xkbcommon/xkbcommon.h:1279
 xkb_keymap_key_repeats = _lib.xkb_keymap_key_repeats
 xkb_keymap_key_repeats.restype = c_int
 xkb_keymap_key_repeats.argtypes = [POINTER(struct_xkb_keymap), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1299
+# 031641.python.xkbcommon.line341.comment /usr/include/xkbcommon/xkbcommon.h:1299
 xkb_state_new = _lib.xkb_state_new
 xkb_state_new.restype = POINTER(struct_xkb_state)
 xkb_state_new.argtypes = [POINTER(struct_xkb_keymap)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1309
+# 031642.python.xkbcommon.line346.comment /usr/include/xkbcommon/xkbcommon.h:1309
 xkb_state_ref = _lib.xkb_state_ref
 xkb_state_ref.restype = POINTER(struct_xkb_state)
 xkb_state_ref.argtypes = [POINTER(struct_xkb_state)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1320
+# 031643.python.xkbcommon.line351.comment /usr/include/xkbcommon/xkbcommon.h:1320
 xkb_state_unref = _lib.xkb_state_unref
 xkb_state_unref.restype = None
 xkb_state_unref.argtypes = [POINTER(struct_xkb_state)]
 
-# /usr/include/xkbcommon/xkbcommon.h:1334
+# 031644.python.xkbcommon.line356.comment /usr/include/xkbcommon/xkbcommon.h:1334
 xkb_state_get_keymap = _lib.xkb_state_get_keymap
 xkb_state_get_keymap.restype = POINTER(struct_xkb_keymap)
 xkb_state_get_keymap.argtypes = [POINTER(struct_xkb_state)]
@@ -361,121 +361,121 @@ xkb_state_get_keymap.argtypes = [POINTER(struct_xkb_state)]
 enum_xkb_state_component = c_int
 enum_xkb_key_direction = c_int
 
-# /usr/include/xkbcommon/xkbcommon.h:1409
+# 031645.python.xkbcommon.line364.comment /usr/include/xkbcommon/xkbcommon.h:1409
 xkb_state_update_key = _lib.xkb_state_update_key
 xkb_state_update_key.restype = enum_xkb_state_component
 xkb_state_update_key.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, enum_xkb_key_direction]
 
-# /usr/include/xkbcommon/xkbcommon.h:1440
+# 031646.python.xkbcommon.line369.comment /usr/include/xkbcommon/xkbcommon.h:1440
 xkb_state_update_mask = _lib.xkb_state_update_mask
 xkb_state_update_mask.restype = enum_xkb_state_component
 xkb_state_update_mask.argtypes = [POINTER(struct_xkb_state), xkb_mod_mask_t, xkb_mod_mask_t, xkb_mod_mask_t,
                                   xkb_layout_index_t, xkb_layout_index_t, xkb_layout_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1475
+# 031647.python.xkbcommon.line375.comment /usr/include/xkbcommon/xkbcommon.h:1475
 xkb_state_key_get_syms = _lib.xkb_state_key_get_syms
 xkb_state_key_get_syms.restype = c_int
 xkb_state_key_get_syms.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, POINTER(POINTER(xkb_keysym_t))]
 
-# /usr/include/xkbcommon/xkbcommon.h:1505
+# 031648.python.xkbcommon.line380.comment /usr/include/xkbcommon/xkbcommon.h:1505
 xkb_state_key_get_utf8 = _lib.xkb_state_key_get_utf8
 xkb_state_key_get_utf8.restype = c_int
 xkb_state_key_get_utf8.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, c_char_p, c_size_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1522
+# 031649.python.xkbcommon.line385.comment /usr/include/xkbcommon/xkbcommon.h:1522
 xkb_state_key_get_utf32 = _lib.xkb_state_key_get_utf32
 xkb_state_key_get_utf32.restype = c_uint32
 xkb_state_key_get_utf32.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1542
+# 031650.python.xkbcommon.line390.comment /usr/include/xkbcommon/xkbcommon.h:1542
 xkb_state_key_get_one_sym = _lib.xkb_state_key_get_one_sym
 xkb_state_key_get_one_sym.restype = xkb_keysym_t
 xkb_state_key_get_one_sym.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1559
+# 031651.python.xkbcommon.line395.comment /usr/include/xkbcommon/xkbcommon.h:1559
 xkb_state_key_get_layout = _lib.xkb_state_key_get_layout
 xkb_state_key_get_layout.restype = xkb_layout_index_t
 xkb_state_key_get_layout.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1584
+# 031652.python.xkbcommon.line400.comment /usr/include/xkbcommon/xkbcommon.h:1584
 xkb_state_key_get_level = _lib.xkb_state_key_get_level
 xkb_state_key_get_level.restype = xkb_level_index_t
 xkb_state_key_get_level.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, xkb_layout_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1622
+# 031653.python.xkbcommon.line405.comment /usr/include/xkbcommon/xkbcommon.h:1622
 xkb_state_serialize_mods = _lib.xkb_state_serialize_mods
 xkb_state_serialize_mods.restype = xkb_mod_mask_t
 xkb_state_serialize_mods.argtypes = [POINTER(struct_xkb_state), enum_xkb_state_component]
 
-# /usr/include/xkbcommon/xkbcommon.h:1644
+# 031654.python.xkbcommon.line410.comment /usr/include/xkbcommon/xkbcommon.h:1644
 xkb_state_serialize_layout = _lib.xkb_state_serialize_layout
 xkb_state_serialize_layout.restype = xkb_layout_index_t
 xkb_state_serialize_layout.argtypes = [POINTER(struct_xkb_state), enum_xkb_state_component]
 
-# /usr/include/xkbcommon/xkbcommon.h:1656
+# 031655.python.xkbcommon.line415.comment /usr/include/xkbcommon/xkbcommon.h:1656
 xkb_state_mod_name_is_active = _lib.xkb_state_mod_name_is_active
 xkb_state_mod_name_is_active.restype = c_int
 xkb_state_mod_name_is_active.argtypes = [POINTER(struct_xkb_state), c_char_p, enum_xkb_state_component]
 
 enum_xkb_state_match = c_int
-# /usr/include/xkbcommon/xkbcommon.h:1677
+# 031656.python.xkbcommon.line421.comment /usr/include/xkbcommon/xkbcommon.h:1677
 xkb_state_mod_names_are_active = _lib.xkb_state_mod_names_are_active
 xkb_state_mod_names_are_active.restype = c_int
 xkb_state_mod_names_are_active.argtypes = [POINTER(struct_xkb_state), enum_xkb_state_component, enum_xkb_state_match]
 
-# /usr/include/xkbcommon/xkbcommon.h:1691
+# 031657.python.xkbcommon.line426.comment /usr/include/xkbcommon/xkbcommon.h:1691
 xkb_state_mod_index_is_active = _lib.xkb_state_mod_index_is_active
 xkb_state_mod_index_is_active.restype = c_int
 xkb_state_mod_index_is_active.argtypes = [POINTER(struct_xkb_state), xkb_mod_index_t, enum_xkb_state_component]
 
-# /usr/include/xkbcommon/xkbcommon.h:1712
+# 031658.python.xkbcommon.line431.comment /usr/include/xkbcommon/xkbcommon.h:1712
 xkb_state_mod_indices_are_active = _lib.xkb_state_mod_indices_are_active
 xkb_state_mod_indices_are_active.restype = c_int
 xkb_state_mod_indices_are_active.argtypes = [POINTER(struct_xkb_state), enum_xkb_state_component, enum_xkb_state_match]
 
 enum_xkb_consumed_mode = c_int
-# /usr/include/xkbcommon/xkbcommon.h:1832
+# 031659.python.xkbcommon.line437.comment /usr/include/xkbcommon/xkbcommon.h:1832
 xkb_state_key_get_consumed_mods2 = _lib.xkb_state_key_get_consumed_mods2
 xkb_state_key_get_consumed_mods2.restype = xkb_mod_mask_t
 xkb_state_key_get_consumed_mods2.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, enum_xkb_consumed_mode]
 
-# /usr/include/xkbcommon/xkbcommon.h:1842
+# 031660.python.xkbcommon.line442.comment /usr/include/xkbcommon/xkbcommon.h:1842
 xkb_state_key_get_consumed_mods = _lib.xkb_state_key_get_consumed_mods
 xkb_state_key_get_consumed_mods.restype = xkb_mod_mask_t
 xkb_state_key_get_consumed_mods.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1862
+# 031661.python.xkbcommon.line447.comment /usr/include/xkbcommon/xkbcommon.h:1862
 xkb_state_mod_index_is_consumed2 = _lib.xkb_state_mod_index_is_consumed2
 xkb_state_mod_index_is_consumed2.restype = c_int
 xkb_state_mod_index_is_consumed2.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, xkb_mod_index_t,
                                              enum_xkb_consumed_mode]
 
-# /usr/include/xkbcommon/xkbcommon.h:1874
+# 031662.python.xkbcommon.line453.comment /usr/include/xkbcommon/xkbcommon.h:1874
 xkb_state_mod_index_is_consumed = _lib.xkb_state_mod_index_is_consumed
 xkb_state_mod_index_is_consumed.restype = c_int
 xkb_state_mod_index_is_consumed.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, xkb_mod_index_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1889
+# 031663.python.xkbcommon.line458.comment /usr/include/xkbcommon/xkbcommon.h:1889
 xkb_state_mod_mask_remove_consumed = _lib.xkb_state_mod_mask_remove_consumed
 xkb_state_mod_mask_remove_consumed.restype = xkb_mod_mask_t
 xkb_state_mod_mask_remove_consumed.argtypes = [POINTER(struct_xkb_state), xkb_keycode_t, xkb_mod_mask_t]
 
-# /usr/include/xkbcommon/xkbcommon.h:1905
+# 031664.python.xkbcommon.line463.comment /usr/include/xkbcommon/xkbcommon.h:1905
 xkb_state_layout_name_is_active = _lib.xkb_state_layout_name_is_active
 xkb_state_layout_name_is_active.restype = c_int
 xkb_state_layout_name_is_active.argtypes = [POINTER(struct_xkb_state), c_char_p, enum_xkb_state_component]
 
-# /usr/include/xkbcommon/xkbcommon.h:1918
+# 031665.python.xkbcommon.line468.comment /usr/include/xkbcommon/xkbcommon.h:1918
 xkb_state_layout_index_is_active = _lib.xkb_state_layout_index_is_active
 xkb_state_layout_index_is_active.restype = c_int
 xkb_state_layout_index_is_active.argtypes = [POINTER(struct_xkb_state), xkb_layout_index_t, enum_xkb_state_component]
 
-# /usr/include/xkbcommon/xkbcommon.h:1932
+# 031666.python.xkbcommon.line473.comment /usr/include/xkbcommon/xkbcommon.h:1932
 xkb_state_led_name_is_active = _lib.xkb_state_led_name_is_active
 xkb_state_led_name_is_active.restype = c_int
 xkb_state_led_name_is_active.argtypes = [POINTER(struct_xkb_state), c_char_p]
 
-# /usr/include/xkbcommon/xkbcommon.h:1944
+# 031667.python.xkbcommon.line478.comment /usr/include/xkbcommon/xkbcommon.h:1944
 xkb_state_led_index_is_active = _lib.xkb_state_led_index_is_active
 xkb_state_led_index_is_active.restype = c_int
 xkb_state_led_index_is_active.argtypes = [POINTER(struct_xkb_state), xkb_led_index_t]

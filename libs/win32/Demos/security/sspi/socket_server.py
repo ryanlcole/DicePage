@@ -35,16 +35,16 @@ def GetUserName():
     try:
         return win32api.GetUserName()
     except win32api.error as details:
-        # Seeing 'access denied' errors here for non-local users (presumably
-        # without permission to login locally).  Get the fully-qualified
-        # username, although a side-effect of these permission-denied errors
-        # is a lack of Python codecs - so printing the Unicode value fails.
-        # So just return the repr(), and avoid codecs completely.
+        # 046225.python.socket_server.line38.comment Seeing 'access denied' errors here for non-local users (presumably
+        # 046226.python.socket_server.line39.comment without permission to login locally).  Get the fully-qualified
+        # 046227.python.socket_server.line40.comment username, although a side-effect of these permission-denied errors
+        # 046228.python.socket_server.line41.comment is a lack of Python codecs - so printing the Unicode value fails.
+        # 046229.python.socket_server.line42.comment So just return the repr(), and avoid codecs completely.
         return repr(win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
-# Send a simple "message" over a socket - send the number of bytes first,
-# then the string.  Ditto for receive.
+# 046230.python.socket_server.line46.comment Send a simple "message" over a socket - send the number of bytes first,
+# 046231.python.socket_server.line47.comment then the string.  Ditto for receive.
 def _send_msg(s, m):
     s.send(struct.pack("i", len(m)))
     s.send(m)
@@ -64,7 +64,7 @@ class SSPISocketServer(socketserver.TCPServer):
         self.sa = sspi.ServerAuth(options.package)
 
     def verify_request(self, sock, ca):
-        # Do the sspi auth dance
+        # 046232.python.socket_server.line67.comment Do the sspi auth dance
         self.sa.reset()
         while 1:
             data = _get_msg(sock)
@@ -82,14 +82,14 @@ class SSPISocketServer(socketserver.TCPServer):
         return True
 
     def process_request(self, request, client_address):
-        # An example using the connection once it is established.
+        # 046233.python.socket_server.line85.comment An example using the connection once it is established.
         print("The server is running as user", GetUserName())
         self.sa.ctxt.ImpersonateSecurityContext()
         try:
             print("Having conversation with client as user", GetUserName())
             while 1:
-                # we need to grab 2 bits of data - the encrypted data, and the
-                # 'key'
+                # 046234.python.socket_server.line91.comment we need to grab 2 bits of data - the encrypted data, and the
+                # 046235.python.socket_server.line92.comment 'key'
                 data = _get_msg(request)
                 key = _get_msg(request)
                 if data is None or key is None:
@@ -111,7 +111,7 @@ def serve():
 def sspi_client():
     c = http.client.HTTPConnection("localhost", options.port)
     c.connect()
-    # Do the auth dance.
+    # 046236.python.socket_server.line114.comment Do the auth dance.
     ca = sspi.ClientAuth(options.package, targetspn=options.target_spn)
     data = None
     while 1:
@@ -121,7 +121,7 @@ def sspi_client():
             break
         data = _get_msg(c.sock)
     print("Auth dance complete - sending a few encryted messages")
-    # Assume out data is sensitive - encrypt the message.
+    # 046237.python.socket_server.line124.comment Assume out data is sensitive - encrypt the message.
     for data in "Hello from the client".split():
         blob, key = ca.encrypt(data)
         _send_msg(c.sock, blob)

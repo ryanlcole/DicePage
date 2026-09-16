@@ -11,7 +11,7 @@ __all__ = ['link_GL', 'link_GLX']
 
 gl_lib = pyglet.lib.load_library('GL')
 
-# Look for glXGetProcAddressARB extension, use it as fallback (for ATI fglrx and DRI drivers).
+# 028858.python.lib_glx.line14.comment Look for glXGetProcAddressARB extension, use it as fallback (for ATI fglrx and DRI drivers).
 try:
     glXGetProcAddressARB = getattr(gl_lib, 'glXGetProcAddressARB')  # noqa: B009, N816
     glXGetProcAddressARB.restype = POINTER(CFUNCTYPE(None))
@@ -37,7 +37,7 @@ def link_GL(name: str, restype: Any, argtypes: Any, requires: str | None = None,
         return func
     except AttributeError:
         if _have_getprocaddress:
-            # Fallback if implemented but not in ABI
+            # 028861.python.lib_glx.line40.comment Fallback if implemented but not in ABI
             bname = cast(pointer(create_string_buffer(asbytes(name))), POINTER(c_ubyte))
             addr = glXGetProcAddressARB(bname)
             if addr:

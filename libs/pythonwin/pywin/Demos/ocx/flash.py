@@ -1,10 +1,10 @@
-# By Bradley Schatz
-# simple flash/python application demonstrating bidirectional
-# communicaion between flash and python. Click the sphere to see
-# behavior. Uses Bounce.swf from FlashBounce.zip, available from
-# https://cspages.ucalgary.ca/~saul/vb_examples/tutorial12/
+# 036782.python.flash.line1.comment By Bradley Schatz
+# 036783.python.flash.line2.comment simple flash/python application demonstrating bidirectional
+# 036784.python.flash.line3.comment communicaion between flash and python. Click the sphere to see
+# 036785.python.flash.line4.comment behavior. Uses Bounce.swf from FlashBounce.zip, available from
+# 036786.python.flash.line5.comment https://cspages.ucalgary.ca/~saul/vb_examples/tutorial12/
 
-# Update to the path of the .swf file (note it could be a true URL)
+# 036787.python.flash.line7.comment Update to the path of the .swf file (note it could be a true URL)
 flash_url = "c:\\bounce.swf"
 
 import sys
@@ -50,7 +50,7 @@ class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
         print("PercentDone", percentDone)
 
     def OnReadyStateChange(self, newState):
-        # 0=Loading, 1=Uninitialized, 2=Loaded, 3=Interactive, 4=Complete
+        # 036788.python.flash.line53.comment 0=Loading, 1=Uninitialized, 2=Loaded, 3=Interactive, 4=Complete
         print("State", newState)
 
 

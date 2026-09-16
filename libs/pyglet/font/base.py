@@ -33,39 +33,39 @@ _CATEGORY_SPACING_MARK = {"Mc"}
 
 def grapheme_break(left: str, left_cc: str, right: str, right_cc: str) -> bool:
     """Determines if there should be a break between characters."""
-    # GB1
+    # 026750.python.base.line36.comment GB1
     if left is None:
         return True
 
-    # GB2 not required, see end of get_grapheme_clusters
+    # 026751.python.base.line40.comment GB2 not required, see end of get_grapheme_clusters
 
-    # GB3: CR + LF do not break
+    # 026752.python.base.line42.comment GB3: CR + LF do not break
     if left == _CR and right == _LF:
         return False
 
-    # GB4: Break before Control characters
+    # 026753.python.base.line46.comment GB4: Break before Control characters
     if left_cc in _CATEGORY_CONTROL and left not in _OTHER_GRAPHEME_EXTEND:
         return True
 
-    # GB5: Break after Control characters
+    # 026754.python.base.line50.comment GB5: Break after Control characters
     if right_cc in _CATEGORY_CONTROL and right not in _OTHER_GRAPHEME_EXTEND:
         return True
 
-    # GB6, GB7, GB8 not implemented
+    # 026755.python.base.line54.comment GB6, GB7, GB8 not implemented
 
-    # GB9: Do not break before Extend characters
+    # 026756.python.base.line56.comment GB9: Do not break before Extend characters
     if right_cc in _CATEGORY_EXTEND or right in _EXTEND_CHARS:
         return False
 
-    # GB9a: Do not break before SpacingMark characters
+    # 026757.python.base.line60.comment GB9a: Do not break before SpacingMark characters
     if right_cc == "Mc" and right not in _OTHER_GRAPHEME_EXTEND:
         return False
 
-    # GB9b: Do not break after Prepend characters
+    # 026758.python.base.line64.comment GB9b: Do not break after Prepend characters
     if left in _LOGICAL_ORDER_EXCEPTION:
         return False
 
-    # GB999: Default to break
+    # 026759.python.base.line68.comment GB999: Default to break
     return True
 
 
@@ -103,7 +103,7 @@ def get_grapheme_clusters(text: str) -> list[str]:
     return clusters
 
 
-#: :meta private:
+# 026760.python.base.line106.comment : :meta private:
 @dataclass
 class GlyphPosition:
     """Positioning offsets for a glyph."""
@@ -123,10 +123,10 @@ class Glyph(image.TextureRegion):
     lsb: int = 0
     advance: int = 0
 
-    #: :The vertices of this glyph, with (0,0) originating at the left-side bearing at the baseline.
+    # 026765.python.base.line126.comment : :The vertices of this glyph, with (0,0) originating at the left-side bearing at the baseline.
     vertices: tuple[int, int, int, int] = (0, 0, 0, 0)
 
-    #: :If a glyph is colored by the font renderer, such as an emoji, it may be treated differently by pyglet.
+    # 026766.python.base.line129.comment : :If a glyph is colored by the font renderer, such as an emoji, it may be treated differently by pyglet.
     colored = False
 
     def set_bearings(self, baseline: int, left_side_bearing: int, advance: int) -> None:
@@ -179,8 +179,8 @@ class GlyphTextureBin(image.atlas.TextureBin):
             try:
                 return atlas.add(img, border)
             except image.atlas.AllocatorException:  # noqa: PERF203
-                # Remove atlases that are no longer useful (so that their textures
-                # can later be freed if the images inside them get collected).
+                # 026769.python.base.line182.comment Remove atlases that are no longer useful (so that their textures
+                # 026770.python.base.line183.comment can later be freed if the images inside them get collected).
                 if img.width < 64 and img.height < 64:
                     self.atlases.remove(atlas)
 
@@ -257,12 +257,12 @@ class Font:
             The default magnification filter for glyph textures. By default, ``GL_LINEAR``. Can be changed to
             ``GL_NEAREST`` to prevent aliasing with pixelated fonts.
     """
-    #: :meta private:
+    # 026772.python.base.line260.comment : :meta private:
     glyphs: dict[str | int | tuple[Any, int], Glyph]
-    # Glyphs can be cached in various ways:
-    # str: if no text shaping
-    # int: glyph index, if no fallback behavior.
-    # tuple: with a unique font identifier and glyph index
+    # 026773.python.base.line262.comment Glyphs can be cached in various ways:
+    # 026774.python.base.line263.comment str: if no text shaping
+    # 026775.python.base.line264.comment int: glyph index, if no fallback behavior.
+    # 026776.python.base.line265.comment tuple: with a unique font identifier and glyph index
 
     texture_width: int = 512
     texture_height: int = 512
@@ -274,26 +274,26 @@ class Font:
     texture_min_filter: int = GL_LINEAR
     texture_mag_filter: int = GL_LINEAR
 
-    # These should also be set by subclass when known
+    # 026777.python.base.line277.comment These should also be set by subclass when known
     ascent: int = 0
     descent: int = 0
 
-    #: :meta private:
-    # The default glyph renderer class. Should not be overridden by users, only other renderer variations.
+    # 026778.python.base.line281.comment : :meta private:
+    # 026779.python.base.line282.comment The default glyph renderer class. Should not be overridden by users, only other renderer variations.
     glyph_renderer_class: ClassVar[type[GlyphRenderer]] = GlyphRenderer
 
-    #: :meta private:
-    # The default type of texture bins. Should not be overridden by users.
+    # 026780.python.base.line285.comment : :meta private:
+    # 026781.python.base.line286.comment The default type of texture bins. Should not be overridden by users.
     texture_class: ClassVar[type[GlyphTextureBin]] = GlyphTextureBin
 
-    # A list of fallback fonts to use when an existing glyph is not found.
+    # 026782.python.base.line289.comment A list of fallback fonts to use when an existing glyph is not found.
     fallbacks: list[Font]
 
     _glyph_renderer: GlyphRenderer | None
     _missing_glyph: Glyph | None
     _zero_glyph: Glyph | None
 
-    # The size of the font in pixels.
+    # 026783.python.base.line296.comment The size of the font in pixels.
     pixel_size: float
 
     def __init__(self) -> None:
@@ -302,10 +302,10 @@ class Font:
         self.hb_resource =  None
         self._glyph_renderer = None
 
-        # Represents a missing glyph.
+        # 026784.python.base.line305.comment Represents a missing glyph.
         self._missing_glyph = None
 
-        # Represents a zero width glyph.
+        # 026785.python.base.line308.comment Represents a zero width glyph.
         self._zero_glyph = None
         self.glyphs = {}
         self.fallbacks = []
@@ -381,13 +381,13 @@ class Font:
 
     def _get_optimal_atlas_size(self, image_data: image.AbstractImage) -> tuple[int, int]:
         """Retrieves the optimal atlas size to fit ``image_data`` with ``glyph_fit`` number of glyphs."""
-        # A texture glyph sheet should be able to handle all standard keyboard characters in one sheet.
-        # 26 Alpha upper, 26 lower, 10 numbers, 33 symbols, space = around 96 characters. (Glyph Fit)
+        # 026786.python.base.line384.comment A texture glyph sheet should be able to handle all standard keyboard characters in one sheet.
+        # 026787.python.base.line385.comment 26 Alpha upper, 26 lower, 10 numbers, 33 symbols, space = around 96 characters. (Glyph Fit)
         aw, ah = self.texture_width, self.texture_height
 
         atlas_size: tuple[int, int] | None = None
 
-        # Just a fast check to get the smallest atlas size possible to fit.
+        # 026788.python.base.line390.comment Just a fast check to get the smallest atlas size possible to fit.
         i = 0
         while not atlas_size:
             fit = ((aw - (image_data.width + 2)) // (image_data.width + 2) + 1) * (
@@ -420,8 +420,8 @@ class Font:
         glyphs = []  # glyphs that are committed.
         offsets = []
         for c in get_grapheme_clusters(str(text)):
-            # Get the glyph for 'c'.  Hide tabs (Windows and Linux render
-            # boxes)
+            # 026790.python.base.line423.comment Get the glyph for 'c'.  Hide tabs (Windows and Linux render
+            # 026791.python.base.line424.comment boxes)
             if c == "\t":
                 c = " "  # noqa: PLW2901
             if c not in self.glyphs:
@@ -469,27 +469,27 @@ class Font:
                 glyphs += glyph_buffer
                 break
 
-            # Get the glyph for 'c'
+            # 026795.python.base.line472.comment Get the glyph for 'c'
             if c not in self.glyphs:
                 if not glyph_renderer:
                     glyph_renderer = self.glyph_renderer_class(self)
                 self.glyphs[c] = glyph_renderer.render(c)
             glyph = self.glyphs[c]
 
-            # Add to holding buffer and measure
+            # 026796.python.base.line479.comment Add to holding buffer and measure
             glyph_buffer.append(glyph)
             width -= glyph.advance
 
-            # If over width and have some committed glyphs, finish.
+            # 026797.python.base.line483.comment If over width and have some committed glyphs, finish.
             if width <= 0 < len(glyphs):
                 break
 
-            # If a valid breakpoint, commit holding buffer
+            # 026798.python.base.line487.comment If a valid breakpoint, commit holding buffer
             if c in "\u0020\u200b":
                 glyphs += glyph_buffer
                 glyph_buffer = []
 
-        # If nothing was committed, commit everything (no breakpoints found).
+        # 026799.python.base.line492.comment If nothing was committed, commit everything (no breakpoints found).
         if len(glyphs) == 0:
             glyphs = glyph_buffer
 

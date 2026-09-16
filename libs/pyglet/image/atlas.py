@@ -125,7 +125,7 @@ class Allocator:
 
         This method is useful for debugging and profiling only.
         """
-        # The total unused area in each compacted strip is summed.
+        # 030305.python.atlas.line128.comment The total unused area in each compacted strip is summed.
         if not self.strips:
             return 0.0
         possible_area = self.strips[-1].y2 * self.width
@@ -204,8 +204,8 @@ class TextureBin:
             try:
                 return atlas.add(img, border)
             except AllocatorException:
-                # Remove atlases that are no longer useful (so that their textures
-                # can later be freed if the images inside them get collected).
+                # 030306.python.atlas.line207.comment Remove atlases that are no longer useful (so that their textures
+                # 030307.python.atlas.line208.comment can later be freed if the images inside them get collected).
                 if img.width < 64 and img.height < 64:
                     self.atlases.remove(atlas)
 

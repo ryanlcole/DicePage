@@ -1,6 +1,6 @@
-# win32clipboardDemo.py
-#
-# Demo/test of the win32clipboard module.
+# 046376.python.win32clipboardDemo.line1.comment win32clipboardDemo.py
+# 046377.python.win32clipboardDemo.line2.comment
+# 046378.python.win32clipboardDemo.line3.comment Demo/test of the win32clipboard module.
 import win32con
 from win32clipboard import (
     CloseClipboard,
@@ -19,7 +19,7 @@ if not __debug__:
     print("WARNING: The test code in this module uses assert")
     print("This instance of Python has asserts disabled, so many tests will be skipped")
 
-# Build map of CF_* constants to names.
+# 046379.python.win32clipboardDemo.line22.comment Build map of CF_* constants to names.
 cf_names = {
     val: name
     for name, val in win32con.__dict__.items()
@@ -45,43 +45,43 @@ def TestText():
         text_bytes = text.encode("latin1")
         SetClipboardText(text)
         got = GetClipboardData(win32con.CF_TEXT)
-        # CF_TEXT always gives us 'bytes' back .
+        # 046381.python.win32clipboardDemo.line48.comment CF_TEXT always gives us 'bytes' back .
         assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
     finally:
         CloseClipboard()
 
     OpenClipboard()
     try:
-        # CF_UNICODE text always gives unicode objects back.
+        # 046382.python.win32clipboardDemo.line55.comment CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert got == text, f"Didn't get the correct result back - '{got!r}'."
         assert isinstance(got, str), f"Didn't get the correct result back - '{got!r}'."
 
-        # CF_OEMTEXT is a bytes-based format.
+        # 046383.python.win32clipboardDemo.line60.comment CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
         assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
 
-        # Unicode tests
+        # 046384.python.win32clipboardDemo.line64.comment Unicode tests
         EmptyClipboard()
         text = "Hello from Python unicode"
         text_bytes = text.encode("latin1")
-        # Now set the Unicode value
+        # 046385.python.win32clipboardDemo.line68.comment Now set the Unicode value
         SetClipboardData(win32con.CF_UNICODETEXT, text)
-        # Get it in Unicode.
+        # 046386.python.win32clipboardDemo.line70.comment Get it in Unicode.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert got == text, f"Didn't get the correct result back - '{got!r}'."
         assert isinstance(got, str), f"Didn't get the correct result back - '{got!r}'."
 
-        # Close and open the clipboard to ensure auto-conversions take place.
+        # 046387.python.win32clipboardDemo.line75.comment Close and open the clipboard to ensure auto-conversions take place.
     finally:
         CloseClipboard()
 
     OpenClipboard()
     try:
-        # Make sure I can still get the text as bytes
+        # 046388.python.win32clipboardDemo.line81.comment Make sure I can still get the text as bytes
         got = GetClipboardData(win32con.CF_TEXT)
         assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
-        # Make sure we get back the correct types.
+        # 046389.python.win32clipboardDemo.line84.comment Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert isinstance(got, str), f"Didn't get the correct result back - '{got!r}'."
         got = GetClipboardData(win32con.CF_OEMTEXT)
@@ -94,7 +94,7 @@ def TestText():
 def TestClipboardEnum():
     OpenClipboard()
     try:
-        # Enumerate over the clipboard types
+        # 046390.python.win32clipboardDemo.line97.comment Enumerate over the clipboard types
         enum = 0
         while 1:
             enum = EnumClipboardFormats(enum)
@@ -130,13 +130,13 @@ class Foo:
 def TestCustomFormat():
     OpenClipboard()
     try:
-        # Just for the fun of it pickle Python objects through the clipboard
+        # 046391.python.win32clipboardDemo.line133.comment Just for the fun of it pickle Python objects through the clipboard
         fmt = RegisterClipboardFormat("Python Pickle Format")
         import pickle
 
         pickled_object = Foo(a=1, b=2, Hi=3)
         SetClipboardData(fmt, pickle.dumps(pickled_object))
-        # Now read it back.
+        # 046392.python.win32clipboardDemo.line139.comment Now read it back.
         data = GetClipboardData(fmt)
         loaded_object = pickle.loads(data)
         assert pickle.loads(data) == pickled_object, "Didn't get the correct data!"
@@ -151,5 +151,5 @@ if __name__ == "__main__":
     TestText()
     TestCustomFormat()
     TestClipboardEnum()
-    # And leave it empty at the end!
+    # 046393.python.win32clipboardDemo.line154.comment And leave it empty at the end!
     TestEmptyClipboard()

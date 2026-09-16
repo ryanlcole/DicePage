@@ -1,7 +1,7 @@
 import collections
 
 
-# from jaraco.collections 3.3
+# 042096.python.collections.line4.comment from jaraco.collections 3.3
 class FreezableDefaultDict(collections.defaultdict):
     """
     Often it is desirable to prevent the mutation of

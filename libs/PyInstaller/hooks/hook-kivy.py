@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2015-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 006228.python.hook-kivy.line1.comment -----------------------------------------------------------------------------
+# 006229.python.hook-kivy.line2.comment Copyright (c) 2015-2023, PyInstaller Development Team.
+# 006230.python.hook-kivy.line3.comment
+# 006231.python.hook-kivy.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 006232.python.hook-kivy.line5.comment or later) with exception for distributing the bootloader.
+# 006233.python.hook-kivy.line6.comment
+# 006234.python.hook-kivy.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 006235.python.hook-kivy.line8.comment
+# 006236.python.hook-kivy.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 006237.python.hook-kivy.line10.comment -----------------------------------------------------------------------------
 
 from PyInstaller import log as logging
 from PyInstaller.utils.hooks import check_requirement

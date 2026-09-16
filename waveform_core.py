@@ -1,9 +1,9 @@
-# waveform_core.py — minimal waveform primitives with graceful fallbacks
+# 052608.python.waveform_core.line1.comment waveform_core.py — minimal waveform primitives with graceful fallbacks
 from __future__ import annotations
 import math, random, time, json, os
 from typing import List, Dict, Tuple, Optional
 
-# soft optional deps (all code must run without them)
+# 052609.python.waveform_core.line6.comment soft optional deps (all code must run without them)
 try:
     import numpy as np
 except Exception:
@@ -12,7 +12,7 @@ except Exception:
 def now_ms() -> int:
     return int(time.time()*1000)
 
-# ---------- synthetic generators ----------
+# 052610.python.waveform_core.line15.comment ---------- synthetic generators ----------
 def synth_tone(freq: float = 440.0, dur_s: float = 1.0, sr: int = 16000) -> List[float]:
     n = int(dur_s*sr)
     out = []
@@ -27,7 +27,7 @@ def synth_chirp(f0=220.0, f1=1760.0, dur_s=1.0, sr=16000) -> List[float]:
         out.append(math.sin(2*math.pi*f*t))
     return out
 
-# ---------- features (audio) ----------
+# 052611.python.waveform_core.line30.comment ---------- features (audio) ----------
 def energy(sig: List[float]) -> float:
     if not sig: return 0.0
     s = sum(x*x for x in sig) / len(sig)
@@ -51,7 +51,7 @@ def bandpass_bins(sig: List[float], sr: int = 16000, bins: int = 8) -> List[floa
     s = sum(v) or 1e-6
     return [x/s for x in v]  # unit-sum histogram
 
-# ---------- features (video) ----------
+# 052615.python.waveform_core.line54.comment ---------- features (video) ----------
 def frame_histogram(rgb_frame: List[Tuple[int,int,int]], buckets: int = 8) -> List[float]:
     """Accepts list of (r,g,b). Without cv/numpy, approximate brightness histogram."""
     if not rgb_frame: return [0.0]*buckets
@@ -62,7 +62,7 @@ def frame_histogram(rgb_frame: List[Tuple[int,int,int]], buckets: int = 8) -> Li
     tot = sum(H) or 1
     return [h/tot for h in H]
 
-# ---------- similarity metrics ----------
+# 052616.python.waveform_core.line65.comment ---------- similarity metrics ----------
 def cosine(a: List[float], b: List[float]) -> float:
     if not a or not b or len(a)!=len(b): return 0.0
     num=sum(x*y for x,y in zip(a,b))
@@ -71,7 +71,7 @@ def cosine(a: List[float], b: List[float]) -> float:
     return max(0.0, min(1.0, num/(da*db)))
 
 def jensen_shannon(p: List[float], q: List[float]) -> float:
-    # similarity (1 - divergence)
+    # 052617.python.waveform_core.line74.comment similarity (1 - divergence)
     import math
     def _kl(a,b):
         eps=1e-12
@@ -80,7 +80,7 @@ def jensen_shannon(p: List[float], q: List[float]) -> float:
     js=0.5*_kl(p,m)+0.5*_kl(q,m)
     return 1.0/(1.0+js)
 
-# ---------- compact “wave-text” encoder ----------
+# 052618.python.waveform_core.line83.comment ---------- compact “wave-text” encoder ----------
 ALPH = "abcdefghijklmnopqrstuvwxyz0123456789"
 def wave_to_text(vec: List[float], k: int = 6) -> str:
     """Quantize feature vector into stable short code (for logs only)."""

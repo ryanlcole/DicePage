@@ -266,7 +266,7 @@ def get_base_class_and_magic_number(
         lib_file.read(ctypes.sizeof(ctypes.c_uint32))
     ).value
 
-    # Handle wrong byte order
+    # 043848.python.macosx_libfile.line269.comment Handle wrong byte order
     if magic_number in [FAT_CIGAM, FAT_CIGAM_64, MH_CIGAM, MH_CIGAM_64]:
         if sys.byteorder == "little":
             BaseClass = ctypes.BigEndianStructure
@@ -317,13 +317,13 @@ def extract_macosx_min_system_version(path_to_lib: str):
                     version = read_mach_header(lib_file, el.offset)
                     if version is not None:
                         if el.cputype == CPU_TYPE_ARM64 and len(fat_arch_list) != 1:
-                            # Xcode will not set the deployment target below 11.0.0
-                            # for the arm64 architecture. Ignore the arm64 deployment
-                            # in fat binaries when the target is 11.0.0, that way
-                            # the other architectures can select a lower deployment
-                            # target.
-                            # This is safe because there is no arm64 variant for
-                            # macOS 10.15 or earlier.
+                            # 043849.python.macosx_libfile.line320.comment Xcode will not set the deployment target below 11.0.0
+                            # 043850.python.macosx_libfile.line321.comment for the arm64 architecture. Ignore the arm64 deployment
+                            # 043851.python.macosx_libfile.line322.comment in fat binaries when the target is 11.0.0, that way
+                            # 043852.python.macosx_libfile.line323.comment the other architectures can select a lower deployment
+                            # 043853.python.macosx_libfile.line324.comment target.
+                            # 043854.python.macosx_libfile.line325.comment This is safe because there is no arm64 variant for
+                            # 043855.python.macosx_libfile.line326.comment macOS 10.15 or earlier.
                             if version == (11, 0, 0):
                                 continue
                         versions_list.append(version)
@@ -448,7 +448,7 @@ def calculate_macosx_platform_tag(archive_root: StrPath, platform_tag: str) -> s
     if len(versions_dict) > 0:
         base_version = max(base_version, max(versions_dict.values()))
 
-    # macosx platform tag do not support minor bugfix release
+    # 043856.python.macosx_libfile.line451.comment macosx platform tag do not support minor bugfix release
     fin_base_version = "_".join([str(x) for x in base_version])
     if start_version < base_version:
         problematic_files = [k for k, v in versions_dict.items() if v > start_version]

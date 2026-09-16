@@ -31,8 +31,8 @@ def _deprecation_notice(fn: Fn) -> Fn:
             For simple scenarios, you can also try parsing the file directly
             with the help of ``configparser``.
             """,
-            # due_date not defined yet, because the community still heavily relies on it
-            # Warning introduced in 24 Mar 2022
+            # 044614.python.init.line34.comment due_date not defined yet, because the community still heavily relies on it
+            # 044615.python.init.line35.comment Warning introduced in 24 Mar 2022
         )
         return fn(*args, **kwargs)
 

@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 023627.python.common.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 023628.python.common.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 023629.python.common.line3.comment found in the LICENSE file.
 
 """Common objects shared by __init__.py and _ps*.py modules.
 
@@ -35,43 +35,43 @@ except ImportError:
 PSUTIL_DEBUG = bool(os.getenv('PSUTIL_DEBUG'))
 _DEFAULT = object()
 
-# fmt: off
+# 023630.python.common.line38.comment fmt: off
 __all__ = [
-    # OS constants
+    # 023631.python.common.line40.comment OS constants
     'FREEBSD', 'BSD', 'LINUX', 'NETBSD', 'OPENBSD', 'MACOS', 'OSX', 'POSIX',
     'SUNOS', 'WINDOWS',
-    # connection constants
+    # 023632.python.common.line43.comment connection constants
     'CONN_CLOSE', 'CONN_CLOSE_WAIT', 'CONN_CLOSING', 'CONN_ESTABLISHED',
     'CONN_FIN_WAIT1', 'CONN_FIN_WAIT2', 'CONN_LAST_ACK', 'CONN_LISTEN',
     'CONN_NONE', 'CONN_SYN_RECV', 'CONN_SYN_SENT', 'CONN_TIME_WAIT',
-    # net constants
+    # 023633.python.common.line47.comment net constants
     'NIC_DUPLEX_FULL', 'NIC_DUPLEX_HALF', 'NIC_DUPLEX_UNKNOWN',  # noqa: F822
-    # process status constants
+    # 023635.python.common.line49.comment process status constants
     'STATUS_DEAD', 'STATUS_DISK_SLEEP', 'STATUS_IDLE', 'STATUS_LOCKED',
     'STATUS_RUNNING', 'STATUS_SLEEPING', 'STATUS_STOPPED', 'STATUS_SUSPENDED',
     'STATUS_TRACING_STOP', 'STATUS_WAITING', 'STATUS_WAKE_KILL',
     'STATUS_WAKING', 'STATUS_ZOMBIE', 'STATUS_PARKED',
-    # other constants
+    # 023636.python.common.line54.comment other constants
     'ENCODING', 'ENCODING_ERRS', 'AF_INET6',
-    # named tuples
+    # 023637.python.common.line56.comment named tuples
     'pconn', 'pcputimes', 'pctxsw', 'pgids', 'pio', 'pionice', 'popenfile',
     'pthread', 'puids', 'sconn', 'scpustats', 'sdiskio', 'sdiskpart',
     'sdiskusage', 'snetio', 'snicaddr', 'snicstats', 'sswap', 'suser',
-    # utility functions
+    # 023638.python.common.line60.comment utility functions
     'conn_tmap', 'deprecated_method', 'isfile_strict', 'memoize',
     'parse_environ_block', 'path_exists_strict', 'usage_percent',
     'supports_ipv6', 'sockfam_to_enum', 'socktype_to_enum', "wrap_numbers",
     'open_text', 'open_binary', 'cat', 'bcat',
     'bytes2human', 'conn_to_ntuple', 'debug',
-    # shell utils
+    # 023639.python.common.line66.comment shell utils
     'hilite', 'term_supports_colors', 'print_color',
 ]
-# fmt: on
+# 023640.python.common.line69.comment fmt: on
 
 
-# ===================================================================
-# --- OS constants
-# ===================================================================
+# 023641.python.common.line72.comment ===================================================================
+# 023642.python.common.line73.comment --- OS constants
+# 023643.python.common.line74.comment ===================================================================
 
 
 POSIX = os.name == "posix"
@@ -87,12 +87,12 @@ SUNOS = sys.platform.startswith(("sunos", "solaris"))
 AIX = sys.platform.startswith("aix")
 
 
-# ===================================================================
-# --- API constants
-# ===================================================================
+# 023645.python.common.line90.comment ===================================================================
+# 023646.python.common.line91.comment --- API constants
+# 023647.python.common.line92.comment ===================================================================
 
 
-# Process.status()
+# 023648.python.common.line95.comment Process.status()
 STATUS_RUNNING = "running"
 STATUS_SLEEPING = "sleeping"
 STATUS_DISK_SLEEP = "disk-sleep"
@@ -108,7 +108,7 @@ STATUS_WAITING = "waiting"  # FreeBSD
 STATUS_SUSPENDED = "suspended"  # NetBSD
 STATUS_PARKED = "parked"  # Linux
 
-# Process.net_connections() and psutil.net_connections()
+# 023654.python.common.line111.comment Process.net_connections() and psutil.net_connections()
 CONN_ESTABLISHED = "ESTABLISHED"
 CONN_SYN_SENT = "SYN_SENT"
 CONN_SYN_RECV = "SYN_RECV"
@@ -123,7 +123,7 @@ CONN_CLOSING = "CLOSING"
 CONN_NONE = "NONE"
 
 
-# net_if_stats()
+# 023655.python.common.line126.comment net_if_stats()
 class NicDuplex(enum.IntEnum):
     NIC_DUPLEX_FULL = 2
     NIC_DUPLEX_HALF = 1
@@ -133,7 +133,7 @@ class NicDuplex(enum.IntEnum):
 globals().update(NicDuplex.__members__)
 
 
-# sensors_battery()
+# 023656.python.common.line136.comment sensors_battery()
 class BatteryTime(enum.IntEnum):
     POWER_TIME_UNKNOWN = -1
     POWER_TIME_UNLIMITED = -2
@@ -141,94 +141,94 @@ class BatteryTime(enum.IntEnum):
 
 globals().update(BatteryTime.__members__)
 
-# --- others
+# 023657.python.common.line144.comment --- others
 
 ENCODING = sys.getfilesystemencoding()
 ENCODING_ERRS = sys.getfilesystemencodeerrors()
 
 
-# ===================================================================
-# --- namedtuples
-# ===================================================================
+# 023658.python.common.line150.comment ===================================================================
+# 023659.python.common.line151.comment --- namedtuples
+# 023660.python.common.line152.comment ===================================================================
 
-# --- for system functions
+# 023661.python.common.line154.comment --- for system functions
 
-# fmt: off
-# psutil.swap_memory()
+# 023662.python.common.line156.comment fmt: off
+# 023663.python.common.line157.comment psutil.swap_memory()
 sswap = namedtuple('sswap', ['total', 'used', 'free', 'percent', 'sin',
                              'sout'])
-# psutil.disk_usage()
+# 023664.python.common.line160.comment psutil.disk_usage()
 sdiskusage = namedtuple('sdiskusage', ['total', 'used', 'free', 'percent'])
-# psutil.disk_io_counters()
+# 023665.python.common.line162.comment psutil.disk_io_counters()
 sdiskio = namedtuple('sdiskio', ['read_count', 'write_count',
                                  'read_bytes', 'write_bytes',
                                  'read_time', 'write_time'])
-# psutil.disk_partitions()
+# 023666.python.common.line166.comment psutil.disk_partitions()
 sdiskpart = namedtuple('sdiskpart', ['device', 'mountpoint', 'fstype', 'opts'])
-# psutil.net_io_counters()
+# 023667.python.common.line168.comment psutil.net_io_counters()
 snetio = namedtuple('snetio', ['bytes_sent', 'bytes_recv',
                                'packets_sent', 'packets_recv',
                                'errin', 'errout',
                                'dropin', 'dropout'])
-# psutil.users()
+# 023668.python.common.line173.comment psutil.users()
 suser = namedtuple('suser', ['name', 'terminal', 'host', 'started', 'pid'])
-# psutil.net_connections()
+# 023669.python.common.line175.comment psutil.net_connections()
 sconn = namedtuple('sconn', ['fd', 'family', 'type', 'laddr', 'raddr',
                              'status', 'pid'])
-# psutil.net_if_addrs()
+# 023670.python.common.line178.comment psutil.net_if_addrs()
 snicaddr = namedtuple('snicaddr',
                       ['family', 'address', 'netmask', 'broadcast', 'ptp'])
-# psutil.net_if_stats()
+# 023671.python.common.line181.comment psutil.net_if_stats()
 snicstats = namedtuple('snicstats',
                        ['isup', 'duplex', 'speed', 'mtu', 'flags'])
-# psutil.cpu_stats()
+# 023672.python.common.line184.comment psutil.cpu_stats()
 scpustats = namedtuple(
     'scpustats', ['ctx_switches', 'interrupts', 'soft_interrupts', 'syscalls'])
-# psutil.cpu_freq()
+# 023673.python.common.line187.comment psutil.cpu_freq()
 scpufreq = namedtuple('scpufreq', ['current', 'min', 'max'])
-# psutil.sensors_temperatures()
+# 023674.python.common.line189.comment psutil.sensors_temperatures()
 shwtemp = namedtuple(
     'shwtemp', ['label', 'current', 'high', 'critical'])
-# psutil.sensors_battery()
+# 023675.python.common.line192.comment psutil.sensors_battery()
 sbattery = namedtuple('sbattery', ['percent', 'secsleft', 'power_plugged'])
-# psutil.sensors_fans()
+# 023676.python.common.line194.comment psutil.sensors_fans()
 sfan = namedtuple('sfan', ['label', 'current'])
-# fmt: on
+# 023677.python.common.line196.comment fmt: on
 
-# --- for Process methods
+# 023678.python.common.line198.comment --- for Process methods
 
-# psutil.Process.cpu_times()
+# 023679.python.common.line200.comment psutil.Process.cpu_times()
 pcputimes = namedtuple(
     'pcputimes', ['user', 'system', 'children_user', 'children_system']
 )
-# psutil.Process.open_files()
+# 023680.python.common.line204.comment psutil.Process.open_files()
 popenfile = namedtuple('popenfile', ['path', 'fd'])
-# psutil.Process.threads()
+# 023681.python.common.line206.comment psutil.Process.threads()
 pthread = namedtuple('pthread', ['id', 'user_time', 'system_time'])
-# psutil.Process.uids()
+# 023682.python.common.line208.comment psutil.Process.uids()
 puids = namedtuple('puids', ['real', 'effective', 'saved'])
-# psutil.Process.gids()
+# 023683.python.common.line210.comment psutil.Process.gids()
 pgids = namedtuple('pgids', ['real', 'effective', 'saved'])
-# psutil.Process.io_counters()
+# 023684.python.common.line212.comment psutil.Process.io_counters()
 pio = namedtuple(
     'pio', ['read_count', 'write_count', 'read_bytes', 'write_bytes']
 )
-# psutil.Process.ionice()
+# 023685.python.common.line216.comment psutil.Process.ionice()
 pionice = namedtuple('pionice', ['ioclass', 'value'])
-# psutil.Process.ctx_switches()
+# 023686.python.common.line218.comment psutil.Process.ctx_switches()
 pctxsw = namedtuple('pctxsw', ['voluntary', 'involuntary'])
-# psutil.Process.net_connections()
+# 023687.python.common.line220.comment psutil.Process.net_connections()
 pconn = namedtuple(
     'pconn', ['fd', 'family', 'type', 'laddr', 'raddr', 'status']
 )
 
-# psutil.net_connections() and psutil.Process.net_connections()
+# 023688.python.common.line225.comment psutil.net_connections() and psutil.Process.net_connections()
 addr = namedtuple('addr', ['ip', 'port'])
 
 
-# ===================================================================
-# --- Process.net_connections() 'kind' parameter mapping
-# ===================================================================
+# 023689.python.common.line229.comment ===================================================================
+# 023690.python.common.line230.comment --- Process.net_connections() 'kind' parameter mapping
+# 023691.python.common.line231.comment ===================================================================
 
 
 conn_tmap = {
@@ -252,9 +252,9 @@ if AF_UNIX is not None and not SUNOS:
     conn_tmap.update({"unix": ([AF_UNIX], [SOCK_STREAM, SOCK_DGRAM])})
 
 
-# =====================================================================
-# --- Exceptions
-# =====================================================================
+# 023692.python.common.line255.comment =====================================================================
+# 023693.python.common.line256.comment --- Exceptions
+# 023694.python.common.line257.comment =====================================================================
 
 
 class Error(Exception):
@@ -273,7 +273,7 @@ class Error(Exception):
         return info
 
     def __str__(self):
-        # invoked on `raise Error`
+        # 023695.python.common.line276.comment invoked on `raise Error`
         info = self._infodict(("pid", "ppid", "name"))
         if info:
             details = "({})".format(
@@ -284,7 +284,7 @@ class Error(Exception):
         return " ".join([x for x in (getattr(self, "msg", ""), details) if x])
 
     def __repr__(self):
-        # invoked on `repr(Error)`
+        # 023696.python.common.line287.comment invoked on `repr(Error)`
         info = self._infodict(("pid", "ppid", "name", "seconds", "msg"))
         details = ", ".join([f"{k}={v!r}" for k, v in info.items()])
         return f"psutil.{self.__class__.__name__}({details})"
@@ -359,9 +359,9 @@ class TimeoutExpired(Error):
         return (self.__class__, (self.seconds, self.pid, self.name))
 
 
-# ===================================================================
-# --- utils
-# ===================================================================
+# 023697.python.common.line362.comment ===================================================================
+# 023698.python.common.line363.comment --- utils
+# 023699.python.common.line364.comment ===================================================================
 
 
 def usage_percent(used, total, round_=None):
@@ -451,17 +451,17 @@ def memoize_when_activated(fun):
     @functools.wraps(fun)
     def wrapper(self):
         try:
-            # case 1: we previously entered oneshot() ctx
+            # 023700.python.common.line454.comment case 1: we previously entered oneshot() ctx
             ret = self._cache[fun]
         except AttributeError:
-            # case 2: we never entered oneshot() ctx
+            # 023701.python.common.line457.comment case 2: we never entered oneshot() ctx
             try:
                 return fun(self)
             except Exception as err:
                 raise err from None
         except KeyError:
-            # case 3: we entered oneshot() ctx but there's no cache
-            # for this entry yet
+            # 023702.python.common.line463.comment case 3: we entered oneshot() ctx but there's no cache
+            # 023703.python.common.line464.comment for this entry yet
             try:
                 ret = fun(self)
             except Exception as err:
@@ -469,8 +469,8 @@ def memoize_when_activated(fun):
             try:
                 self._cache[fun] = ret
             except AttributeError:
-                # multi-threading race condition, see:
-                # https://github.com/giampaolo/psutil/issues/1948
+                # 023704.python.common.line472.comment multi-threading race condition, see:
+                # 023705.python.common.line473.comment https://github.com/giampaolo/psutil/issues/1948
                 pass
         return ret
 
@@ -536,24 +536,24 @@ def supports_ipv6():
 
 def parse_environ_block(data):
     """Parse a C environ block of environment variables into a dictionary."""
-    # The block is usually raw data from the target process.  It might contain
-    # trailing garbage and lines that do not look like assignments.
+    # 023706.python.common.line539.comment The block is usually raw data from the target process.  It might contain
+    # 023707.python.common.line540.comment trailing garbage and lines that do not look like assignments.
     ret = {}
     pos = 0
 
-    # localize global variable to speed up access.
+    # 023708.python.common.line544.comment localize global variable to speed up access.
     WINDOWS_ = WINDOWS
     while True:
         next_pos = data.find("\0", pos)
-        # nul byte at the beginning or double nul byte means finish
+        # 023709.python.common.line548.comment nul byte at the beginning or double nul byte means finish
         if next_pos <= pos:
             break
-        # there might not be an equals sign
+        # 023710.python.common.line551.comment there might not be an equals sign
         equal_pos = data.find("=", pos, next_pos)
         if equal_pos > pos:
             key = data[pos:equal_pos]
             value = data[equal_pos + 1 : next_pos]
-            # Windows expects environment variables to be uppercase only
+            # 023711.python.common.line556.comment Windows expects environment variables to be uppercase only
             if WINDOWS_:
                 key = key.upper()
             ret[key] = value
@@ -681,7 +681,7 @@ class _WrapNumbers:
         Return an updated copy of `input_dict`.
         """
         if name not in self.cache:
-            # This was the first call.
+            # 023713.python.common.line684.comment This was the first call.
             self._add_dict(input_dict, name)
             return input_dict
 
@@ -694,8 +694,8 @@ class _WrapNumbers:
             try:
                 old_tuple = old_dict[key]
             except KeyError:
-                # The input dict has a new key (e.g. a new disk or NIC)
-                # which didn't exist in the previous call.
+                # 023714.python.common.line697.comment The input dict has a new key (e.g. a new disk or NIC)
+                # 023715.python.common.line698.comment which didn't exist in the previous call.
                 new_dict[key] = input_tuple
                 continue
 
@@ -705,7 +705,7 @@ class _WrapNumbers:
                 old_value = old_tuple[i]
                 remkey = (key, i)
                 if input_value < old_value:
-                    # it wrapped!
+                    # 023716.python.common.line708.comment it wrapped!
                     self.reminders[name][remkey] += old_value
                     self.reminder_keys[name][key].add(remkey)
                 bits.append(input_value + self.reminders[name][remkey])
@@ -747,16 +747,16 @@ wrap_numbers.cache_clear = _wn.cache_clear
 wrap_numbers.cache_info = _wn.cache_info
 
 
-# The read buffer size for open() builtin. This (also) dictates how
-# much data we read(2) when iterating over file lines as in:
-#   >>> with open(file) as f:
-#   ...    for line in f:
-#   ...        ...
-# Default per-line buffer size for binary files is 1K. For text files
-# is 8K. We use a bigger buffer (32K) in order to have more consistent
-# results when reading /proc pseudo files on Linux, see:
-# https://github.com/giampaolo/psutil/issues/2050
-# https://github.com/giampaolo/psutil/issues/708
+# 023717.python.common.line750.comment The read buffer size for open() builtin. This (also) dictates how
+# 023718.python.common.line751.comment much data we read(2) when iterating over file lines as in:
+# 023719.python.common.line752.comment >>> with open(file) as f:
+# 023720.python.common.line753.comment ...    for line in f:
+# 023721.python.common.line754.comment ...        ...
+# 023722.python.common.line755.comment Default per-line buffer size for binary files is 1K. For text files
+# 023723.python.common.line756.comment is 8K. We use a bigger buffer (32K) in order to have more consistent
+# 023724.python.common.line757.comment results when reading /proc pseudo files on Linux, see:
+# 023725.python.common.line758.comment https://github.com/giampaolo/psutil/issues/2050
+# 023726.python.common.line759.comment https://github.com/giampaolo/psutil/issues/708
 FILE_READ_BUFFER_SIZE = 32 * 1024
 
 
@@ -768,9 +768,9 @@ def open_text(fname):
     """Open a file in text mode by using the proper FS encoding and
     en/decoding error handlers.
     """
-    # See:
-    # https://github.com/giampaolo/psutil/issues/675
-    # https://github.com/giampaolo/psutil/pull/733
+    # 023727.python.common.line771.comment See:
+    # 023728.python.common.line772.comment https://github.com/giampaolo/psutil/issues/675
+    # 023729.python.common.line773.comment https://github.com/giampaolo/psutil/pull/733
     fobj = open(  # noqa: SIM115
         fname,
         buffering=FILE_READ_BUFFER_SIZE,
@@ -778,8 +778,8 @@ def open_text(fname):
         errors=ENCODING_ERRS,
     )
     try:
-        # Dictates per-line read(2) buffer size. Defaults is 8k. See:
-        # https://github.com/giampaolo/psutil/issues/2050#issuecomment-1013387546
+        # 023731.python.common.line781.comment Dictates per-line read(2) buffer size. Defaults is 8k. See:
+        # 023732.python.common.line782.comment https://github.com/giampaolo/psutil/issues/2050#issuecomment-1013387546
         fobj._CHUNK_SIZE = FILE_READ_BUFFER_SIZE
     except AttributeError:
         pass
@@ -840,9 +840,9 @@ def decode(s):
     return s.decode(encoding=ENCODING, errors=ENCODING_ERRS)
 
 
-# =====================================================================
-# --- shell utils
-# =====================================================================
+# 023733.python.common.line843.comment =====================================================================
+# 023734.python.common.line844.comment --- shell utils
+# 023735.python.common.line845.comment =====================================================================
 
 
 @memoize
@@ -939,7 +939,7 @@ def debug(msg):
         )
         if isinstance(msg, Exception):
             if isinstance(msg, OSError):
-                # ...because str(exc) may contain info about the file name
+                # 023740.python.common.line942.comment ...because str(exc) may contain info about the file name
                 msg = f"ignoring {msg}"
             else:
                 msg = f"ignoring {msg!r}"

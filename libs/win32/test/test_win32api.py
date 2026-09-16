@@ -1,4 +1,4 @@
-# General test module for win32api - please add some :)
+# 048257.python.test_win32api.line1.comment General test module for win32api - please add some :)
 
 import datetime
 import os
@@ -22,7 +22,7 @@ class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
         domain = win32api.GetDomainName()
         if domain == "NT AUTHORITY":
-            # Running as a service account, so the comparison will fail
+            # 048258.python.test_win32api.line25.comment Running as a service account, so the comparison will fail
             raise TestSkipped("running as service account")
         name = f"{domain}\\{win32api.GetUserName()}"
         self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
@@ -30,7 +30,7 @@ class CurrentUserTestCase(unittest.TestCase):
 
 class TestTime(unittest.TestCase):
     def testTimezone(self):
-        # GetTimeZoneInformation
+        # 048259.python.test_win32api.line33.comment GetTimeZoneInformation
         rc, tzinfo = win32api.GetTimeZoneInformation()
         if rc == win32con.TIME_ZONE_ID_DAYLIGHT:
             tz_str = tzinfo[4]
@@ -38,7 +38,7 @@ class TestTime(unittest.TestCase):
         else:
             tz_str = tzinfo[1]
             tz_time = tzinfo[2]
-        # for the sake of code exercise but don't output
+        # 048260.python.test_win32api.line41.comment for the sake of code exercise but don't output
         tz_str.encode()
         if not isinstance(tz_time, datetime.datetime) and not isinstance(
             tz_time, tuple
@@ -64,12 +64,12 @@ class Registry(unittest.TestCase):
     key_name = r"PythonTestHarness\Whatever"
 
     def test1(self):
-        # This used to leave a stale exception behind.
+        # 048261.python.test_win32api.line67.comment This used to leave a stale exception behind.
         def reg_operation():
             hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
             raise TestError
 
-        # do the test
+        # 048262.python.test_win32api.line72.comment do the test
         try:
             try:
                 try:
@@ -83,12 +83,12 @@ class Registry(unittest.TestCase):
 
     def testValues(self):
         key_name = r"PythonTestHarness\win32api"
-        ## tuples containing value name, value type, data
+        # 048264.python.test_win32api.line86.comment # tuples containing value name, value type, data
         values = (
             (None, win32con.REG_SZ, "This is default unnamed value"),
             ("REG_SZ", win32con.REG_SZ, "REG_SZ text data"),
             ("REG_EXPAND_SZ", win32con.REG_EXPAND_SZ, "%systemdir%"),
-            ## REG_MULTI_SZ value needs to be a list since strings are returned as a list
+            # 048265.python.test_win32api.line91.comment # REG_MULTI_SZ value needs to be a list since strings are returned as a list
             (
                 "REG_MULTI_SZ",
                 win32con.REG_MULTI_SZ,
@@ -123,10 +123,10 @@ class Registry(unittest.TestCase):
                 win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
 
         evt = win32event.CreateEvent(None, 0, 0, None)
-        ## REG_NOTIFY_CHANGE_LAST_SET - values
-        ## REG_CHANGE_NOTIFY_NAME - keys
-        ## REG_NOTIFY_CHANGE_SECURITY - security descriptor
-        ## REG_NOTIFY_CHANGE_ATTRIBUTES
+        # 048266.python.test_win32api.line126.comment # REG_NOTIFY_CHANGE_LAST_SET - values
+        # 048267.python.test_win32api.line127.comment # REG_CHANGE_NOTIFY_NAME - keys
+        # 048268.python.test_win32api.line128.comment # REG_NOTIFY_CHANGE_SECURITY - security descriptor
+        # 048269.python.test_win32api.line129.comment # REG_NOTIFY_CHANGE_ATTRIBUTES
         win32api.RegNotifyChangeKeyValue(
             win32con.HKEY_CURRENT_USER,
             1,
@@ -135,10 +135,10 @@ class Registry(unittest.TestCase):
             True,
         )
         ret_code = win32event.WaitForSingleObject(evt, 0)
-        # Should be no change.
+        # 048270.python.test_win32api.line138.comment Should be no change.
         self.assertTrue(ret_code == win32con.WAIT_TIMEOUT)
         change()
-        # Our event should now be in a signalled state.
+        # 048271.python.test_win32api.line141.comment Our event should now be in a signalled state.
         ret_code = win32event.WaitForSingleObject(evt, 0)
         self.assertTrue(ret_code == win32con.WAIT_OBJECT_0)
 
@@ -173,7 +173,7 @@ class FileNames(unittest.TestCase):
         except NameError:
             me = sys.argv[0]
         fname = os.path.abspath(me).lower()
-        # passing unicode should cause GetShortPathNameW to be called.
+        # 048272.python.test_win32api.line176.comment passing unicode should cause GetShortPathNameW to be called.
         short_name = win32api.GetShortPathName(str(fname)).lower()
         self.assertTrue(isinstance(short_name, str))
         long_name = win32api.GetLongPathName(short_name).lower()
@@ -193,14 +193,14 @@ class FileNames(unittest.TestCase):
         )
 
     def testLongLongPathNames(self):
-        # We need filename where the FQN is > 256 - simplest way is to create a
-        # 250 character directory in the cwd (except - cwd may be on a drive
-        # not supporting \\\\?\\ (eg, network share) - so use temp.
+        # 048273.python.test_win32api.line196.comment We need filename where the FQN is > 256 - simplest way is to create a
+        # 048274.python.test_win32api.line197.comment 250 character directory in the cwd (except - cwd may be on a drive
+        # 048275.python.test_win32api.line198.comment not supporting \\\\?\\ (eg, network share) - so use temp.
         import win32file
 
         basename = "a" * 250
-        # but we need to ensure we use the 'long' version of the
-        # temp dir for later comparison.
+        # 048276.python.test_win32api.line202.comment but we need to ensure we use the 'long' version of the
+        # 048277.python.test_win32api.line203.comment temp dir for later comparison.
         long_temp_dir = win32api.GetLongPathNameW(tempfile.gettempdir())
         fname = "\\\\?\\" + os.path.join(long_temp_dir, basename)
         try:
@@ -209,8 +209,8 @@ class FileNames(unittest.TestCase):
             if details.winerror != winerror.ERROR_ALREADY_EXISTS:
                 raise
         try:
-            # GetFileAttributes automatically calls GetFileAttributesW when
-            # passed unicode
+            # 048278.python.test_win32api.line212.comment GetFileAttributes automatically calls GetFileAttributesW when
+            # 048279.python.test_win32api.line213.comment passed unicode
             try:
                 attr = win32api.GetFileAttributes(fname)
             except win32api.error as details:
@@ -247,15 +247,15 @@ class Misc(unittest.TestCase):
             self.assertEqual(x, win32api.GetLastError())
 
     def testVkKeyScan(self):
-        # hopefully ' ' doesn't depend on the locale!
+        # 048283.python.test_win32api.line250.comment hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScan(" "), 32)
 
     def testVkKeyScanEx(self):
-        # hopefully ' ' doesn't depend on the locale!
+        # 048284.python.test_win32api.line254.comment hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScanEx(" ", 0), 32)
 
     def testGetSystemPowerStatus(self):
-        # Dummy
+        # 048285.python.test_win32api.line258.comment Dummy
         sps = win32api.GetSystemPowerStatus()
         self.assertIsInstance(sps, dict)
         test_keys = (

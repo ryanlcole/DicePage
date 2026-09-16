@@ -80,11 +80,11 @@ class _EditableMode(Enum):
                 'lenient' modes.
                 """,
                 see_docs="userguide/development_mode.html",
-                # TODO: define due_date
-                # There is a series of shortcomings with the available editable install
-                # methods, and they are very controversial. This is something that still
-                # needs work.
-                # Moreover, `pip` is still hiding this warning, so users are not aware.
+                # 044463.python.editable_wheel.line83.comment TODO: define due_date
+                # 044464.python.editable_wheel.line84.comment There is a series of shortcomings with the available editable install
+                # 044465.python.editable_wheel.line85.comment methods, and they are very controversial. This is something that still
+                # 044466.python.editable_wheel.line86.comment needs work.
+                # 044467.python.editable_wheel.line87.comment Moreover, `pip` is still hiding this warning, so users are not aware.
             )
 
         return _EditableMode[_mode]
@@ -131,7 +131,7 @@ class editable_wheel(Command):
             self.dist_dir.mkdir(exist_ok=True)
             self._ensure_dist_info()
 
-            # Add missing dist_info files
+            # 044468.python.editable_wheel.line134.comment Add missing dist_info files
             self.reinitialize_command("bdist_wheel")
             bdist_wheel = self.get_finalized_command("bdist_wheel")
             bdist_wheel.write_wheelfile(self.dist_info_dir)
@@ -159,7 +159,7 @@ class editable_wheel(Command):
             assert Path(self.dist_info_dir, "METADATA").exists()
 
     def _install_namespaces(self, installation_dir, pth_prefix):
-        # XXX: Only required to support the deprecated namespace practice
+        # 044469.python.editable_wheel.line162.comment XXX: Only required to support the deprecated namespace practice
         dist = self.distribution
         if not dist.namespace_packages:
             return
@@ -185,8 +185,8 @@ class editable_wheel(Command):
         - Data/header/script files are not part of the "editable" specification
           so they are written directly to the unpacked_wheel directory.
         """
-        # Non-editable files (data, headers, scripts) are written directly to the
-        # unpacked_wheel
+        # 044470.python.editable_wheel.line188.comment Non-editable files (data, headers, scripts) are written directly to the
+        # 044471.python.editable_wheel.line189.comment unpacked_wheel
 
         dist = self.distribution
         wheel = str(unpacked_wheel)
@@ -195,7 +195,7 @@ class editable_wheel(Command):
         headers = str(Path(unpacked_wheel, f"{name}.data", "headers"))
         scripts = str(Path(unpacked_wheel, f"{name}.data", "scripts"))
 
-        # egg-info may be generated again to create a manifest (used for package data)
+        # 044472.python.editable_wheel.line198.comment egg-info may be generated again to create a manifest (used for package data)
         egg_info = cast(
             egg_info_cls, dist.reinitialize_command("egg_info", reinit_subcommands=True)
         )
@@ -215,8 +215,8 @@ class editable_wheel(Command):
         install.install_headers = headers
         install.install_data = data
 
-        # For portability, ensure scripts are built with #!python shebang
-        # pypa/setuptools#4863
+        # 044473.python.editable_wheel.line218.comment For portability, ensure scripts are built with #!python shebang
+        # 044474.python.editable_wheel.line219.comment pypa/setuptools#4863
         build_scripts = dist.get_command_obj("build_scripts")
         build_scripts.executable = 'python'
 
@@ -287,9 +287,9 @@ class editable_wheel(Command):
         This method implements a temporary workaround to support the ecosystem
         while the implementations catch up.
         """
-        # TODO: Once plugins/customizations had the chance to catch up, replace
-        #       `self._run_build_subcommands()` with `self.run_command("build")`.
-        #       Also remove _safely_run, TestCustomBuildPy. Suggested date: Aug/2023.
+        # 044476.python.editable_wheel.line290.comment TODO: Once plugins/customizations had the chance to catch up, replace
+        # 044477.python.editable_wheel.line291.comment `self._run_build_subcommands()` with `self.run_command("build")`.
+        # 044478.python.editable_wheel.line292.comment Also remove _safely_run, TestCustomBuildPy. Suggested date: Aug/2023.
         build = self.get_finalized_command("build")
         for name in build.get_sub_commands():
             cmd = self.get_finalized_command(name)
@@ -320,10 +320,10 @@ class editable_wheel(Command):
                 For the time being `setuptools` will silence this error and ignore
                 the faulty command, but this behavior will change in future versions.
                 """,
-                # TODO: define due_date
-                # There is a series of shortcomings with the available editable install
-                # methods, and they are very controversial. This is something that still
-                # needs work.
+                # 044479.python.editable_wheel.line323.comment TODO: define due_date
+                # 044480.python.editable_wheel.line324.comment There is a series of shortcomings with the available editable install
+                # 044481.python.editable_wheel.line325.comment methods, and they are very controversial. This is something that still
+                # 044482.python.editable_wheel.line326.comment needs work.
             )
 
     def _create_wheel_file(self, bdist_wheel):
@@ -379,11 +379,11 @@ class editable_wheel(Command):
         has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
         is_compat_mode = mode is _EditableMode.COMPAT
         if set(self.package_dir) == {""} and has_simple_layout or is_compat_mode:
-            # src-layout(ish) is relatively safe for a simple pth file
+            # 044484.python.editable_wheel.line382.comment src-layout(ish) is relatively safe for a simple pth file
             src_dir = self.package_dir.get("", ".")
             return _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
 
-        # Use a MetaPathFinder to avoid adding accidental top-level packages/modules
+        # 044485.python.editable_wheel.line386.comment Use a MetaPathFinder to avoid adding accidental top-level packages/modules
         return _TopLevelFinder(self.distribution, name)
 
 
@@ -456,7 +456,7 @@ class _LinkTree(_StaticPth):
         super().__call__(wheel, files, mapping)
 
     def _normalize_output(self, file: str) -> str | None:
-        # Files relative to build_lib will be normalized to None
+        # 044486.python.editable_wheel.line459.comment Files relative to build_lib will be normalized to None
         with suppress(ValueError):
             path = Path(file).resolve().relative_to(self.build_lib)
             return str(path).replace(os.sep, '/')
@@ -472,7 +472,7 @@ class _LinkTree(_StaticPth):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
         normalised = ((self._normalize_output(k), v) for k, v in output_mapping.items())
-        # remove files that are not relative to build_lib
+        # 044487.python.editable_wheel.line475.comment remove files that are not relative to build_lib
         mappings = {k: v for k, v in normalised if k is not None}
 
         for output in outputs:
@@ -528,9 +528,9 @@ class _TopLevelFinder:
         }
 
         mapping = {**roots, **legacy_namespaces}
-        # ^-- We need to explicitly add the legacy_namespaces to the mapping to be
-        #     able to import their modules even if another package sharing the same
-        #     namespace is installed in a conventional (non-editable) way.
+        # 044488.python.editable_wheel.line531.comment ^-- We need to explicitly add the legacy_namespaces to the mapping to be
+        # 044489.python.editable_wheel.line532.comment able to import their modules even if another package sharing the same
+        # 044490.python.editable_wheel.line533.comment namespace is installed in a conventional (non-editable) way.
 
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
@@ -581,7 +581,7 @@ def _encode_pth(content: str) -> bytes:
     """
     with io.BytesIO() as buffer:
         wrapper = io.TextIOWrapper(buffer, encoding=py312.PTH_ENCODING)
-        # TODO: Python 3.13 replace the whole function with `bytes(content, "utf-8")`
+        # 044491.python.editable_wheel.line584.comment TODO: Python 3.13 replace the whole function with `bytes(content, "utf-8")`
         wrapper.write(content)
         wrapper.flush()
         buffer.seek(0)
@@ -732,7 +732,7 @@ def _find_virtual_namespaces(pkg_roots: dict[str, str]) -> Iterator[str]:
             partial_name = ".".join(parts[:i])
             path = Path(find_package_path(partial_name, pkg_roots, ""))
             if not path.exists() or partial_name not in pkg_roots:
-                # partial_name not in pkg_roots ==> purposefully/accidentally skipped
+                # 044493.python.editable_wheel.line735.comment partial_name not in pkg_roots ==> purposefully/accidentally skipped
                 yield partial_name
 
 

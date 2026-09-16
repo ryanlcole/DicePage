@@ -44,8 +44,8 @@ class config(Command):
         ),
     ]
 
-    # The three standard command methods: since the "config" command
-    # does nothing by default, these are empty.
+    # 039714.python.config.line47.comment The three standard command methods: since the "config" command
+    # 039715.python.config.line48.comment does nothing by default, these are empty.
 
     def initialize_options(self):
         self.compiler = None
@@ -54,12 +54,12 @@ class config(Command):
         self.libraries = None
         self.library_dirs = None
 
-        # maximal output for now
+        # 039716.python.config.line57.comment maximal output for now
         self.noisy = 1
         self.dump_source = 1
 
-        # list of temporary files generated along-the-way that we have
-        # to clean at some point
+        # 039717.python.config.line61.comment list of temporary files generated along-the-way that we have
+        # 039718.python.config.line62.comment to clean at some point
         self.temp_files = []
 
     def finalize_options(self):
@@ -81,9 +81,9 @@ class config(Command):
     def run(self):
         pass
 
-    # Utility methods for actual "config" commands.  The interfaces are
-    # loosely based on Autoconf macros of similar names.  Sub-classes
-    # may use these freely.
+    # 039719.python.config.line84.comment Utility methods for actual "config" commands.  The interfaces are
+    # 039720.python.config.line85.comment loosely based on Autoconf macros of similar names.  Sub-classes
+    # 039721.python.config.line86.comment may use these freely.
 
     def _check_compiler(self):
         """Check that 'self.compiler' really is a CCompiler object;
@@ -157,15 +157,15 @@ class config(Command):
             except OSError:
                 pass
 
-    # XXX these ignore the dry-run flag: what to do, what to do? even if
-    # you want a dry-run build, you still need some sort of configuration
-    # info.  My inclination is to make it up to the real config command to
-    # consult 'dry_run', and assume a default (minimal) configuration if
-    # true.  The problem with trying to do it here is that you'd have to
-    # return either true or false from all the 'try' methods, neither of
-    # which is correct.
+    # 039722.python.config.line160.comment XXX these ignore the dry-run flag: what to do, what to do? even if
+    # 039723.python.config.line161.comment you want a dry-run build, you still need some sort of configuration
+    # 039724.python.config.line162.comment info.  My inclination is to make it up to the real config command to
+    # 039725.python.config.line163.comment consult 'dry_run', and assume a default (minimal) configuration if
+    # 039726.python.config.line164.comment true.  The problem with trying to do it here is that you'd have to
+    # 039727.python.config.line165.comment return either true or false from all the 'try' methods, neither of
+    # 039728.python.config.line166.comment which is correct.
 
-    # XXX need access to the header search path and maybe default macros.
+    # 039729.python.config.line168.comment XXX need access to the header search path and maybe default macros.
 
     def try_cpp(self, body=None, headers=None, include_dirs=None, lang="c"):
         """Construct a source file from 'body' (a string containing lines
@@ -270,9 +270,9 @@ class config(Command):
         self._clean()
         return ok
 
-    # -- High-level methods --------------------------------------------
-    # (these are the ones that are actually likely to be useful
-    # when implementing a real-world config command!)
+    # 039730.python.config.line273.comment -- High-level methods --------------------------------------------
+    # 039731.python.config.line274.comment (these are the ones that are actually likely to be useful
+    # 039732.python.config.line275.comment when implementing a real-world config command!)
 
     def check_func(
         self,

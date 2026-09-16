@@ -1,4 +1,4 @@
-# The MFCish window classes.
+# 038519.python.window.line1.comment The MFCish window classes.
 import win32con
 import win32ui
 
@@ -15,16 +15,16 @@ class Wnd(object.CmdTarget):
         pass
 
 
-# NOTE NOTE - This facility is currently disabled in Pythonwin!!!!!
-# Note - to process all messages for your window, add the following method
-# to a derived class.  This code provides default message handling (ie, is
-# identical, except presumably in speed, as if the method did not exist at
-# all, so presumably will be modified to test for specific messages to be
-# useful!
-# 	def WindowProc(self, msg, wParam, lParam):
-# 		rc, lResult = self._obj_.OnWndMsg(msg, wParam, lParam)
-# 		if not rc: lResult = self._obj_.DefWindowProc(msg, wParam, lParam)
-# 		return lResult
+# 038520.python.window.line18.comment NOTE NOTE - This facility is currently disabled in Pythonwin!!!!!
+# 038521.python.window.line19.comment Note - to process all messages for your window, add the following method
+# 038522.python.window.line20.comment to a derived class.  This code provides default message handling (ie, is
+# 038523.python.window.line21.comment identical, except presumably in speed, as if the method did not exist at
+# 038524.python.window.line22.comment all, so presumably will be modified to test for specific messages to be
+# 038525.python.window.line23.comment useful!
+# 038526.python.window.line24.comment def WindowProc(self, msg, wParam, lParam):
+# 038527.python.window.line25.comment rc, lResult = self._obj_.OnWndMsg(msg, wParam, lParam)
+# 038528.python.window.line26.comment if not rc: lResult = self._obj_.DefWindowProc(msg, wParam, lParam)
+# 038529.python.window.line27.comment return lResult
 
 
 class FrameWnd(Wnd):

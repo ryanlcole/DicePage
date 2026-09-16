@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 021685.python.init.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 021686.python.init.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 021687.python.init.line3.comment for complete details.
 
 __title__ = "packaging"
 __summary__ = "Core utilities for Python packages"

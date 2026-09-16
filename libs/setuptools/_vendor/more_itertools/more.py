@@ -155,7 +155,7 @@ __all__ = [
     'zip_offset',
 ]
 
-# math.sumprod is available for Python 3.12+
+# 042389.python.more.line158.comment math.sumprod is available for Python 3.12+
 _fsumprod = getattr(math, 'sumprod', lambda x, y: fsum(map(mul, x, y)))
 
 
@@ -236,7 +236,7 @@ def last(iterable, default=_marker):
     try:
         if isinstance(iterable, Sequence):
             return iterable[-1]
-        # Work around https://bugs.python.org/issue38525
+        # 042390.python.more.line239.comment Work around https://bugs.python.org/issue38525
         elif hasattr(iterable, '__reversed__') and (hexversion != 0x030800F0):
             return next(reversed(iterable))
         else:
@@ -394,7 +394,7 @@ class peekable:
         return next(self._it)
 
     def _get_slice(self, index):
-        # Normalize the slice's arguments
+        # 042391.python.more.line397.comment Normalize the slice's arguments
         step = 1 if (index.step is None) else index.step
         if step > 0:
             start = 0 if (index.start is None) else index.start
@@ -405,12 +405,12 @@ class peekable:
         else:
             raise ValueError('slice step cannot be zero')
 
-        # If either the start or stop index is negative, we'll need to cache
-        # the rest of the iterable in order to slice from the right side.
+        # 042392.python.more.line408.comment If either the start or stop index is negative, we'll need to cache
+        # 042393.python.more.line409.comment the rest of the iterable in order to slice from the right side.
         if (start < 0) or (stop < 0):
             self._cache.extend(self._it)
-        # Otherwise we'll need to find the rightmost index and cache to that
-        # point.
+        # 042394.python.more.line412.comment Otherwise we'll need to find the rightmost index and cache to that
+        # 042395.python.more.line413.comment point.
         else:
             n = min(max(start, stop) + 1, maxsize)
             cache_len = len(self._cache)
@@ -473,9 +473,9 @@ def ilen(iterable):
     This consumes the iterable, so handle with care.
 
     """
-    # This approach was selected because benchmarks showed it's likely the
-    # fastest of the known implementations at the time of writing.
-    # See GitHub tracker: #236, #230.
+    # 042396.python.more.line476.comment This approach was selected because benchmarks showed it's likely the
+    # 042397.python.more.line477.comment fastest of the known implementations at the time of writing.
+    # 042398.python.more.line478.comment See GitHub tracker: #236, #230.
     counter = count()
     deque(zip(iterable, counter), maxlen=0)
     return next(counter)
@@ -685,43 +685,43 @@ def distinct_permutations(iterable, r=None):
 
     """
 
-    # Algorithm: https://w.wiki/Qai
+    # 042399.python.more.line688.comment Algorithm: https://w.wiki/Qai
     def _full(A):
         while True:
-            # Yield the permutation we have
+            # 042400.python.more.line691.comment Yield the permutation we have
             yield tuple(A)
 
-            # Find the largest index i such that A[i] < A[i + 1]
+            # 042401.python.more.line694.comment Find the largest index i such that A[i] < A[i + 1]
             for i in range(size - 2, -1, -1):
                 if A[i] < A[i + 1]:
                     break
-            #  If no such index exists, this permutation is the last one
+            # 042402.python.more.line698.comment If no such index exists, this permutation is the last one
             else:
                 return
 
-            # Find the largest index j greater than j such that A[i] < A[j]
+            # 042403.python.more.line702.comment Find the largest index j greater than j such that A[i] < A[j]
             for j in range(size - 1, i, -1):
                 if A[i] < A[j]:
                     break
 
-            # Swap the value of A[i] with that of A[j], then reverse the
-            # sequence from A[i + 1] to form the new permutation
+            # 042404.python.more.line707.comment Swap the value of A[i] with that of A[j], then reverse the
+            # 042405.python.more.line708.comment sequence from A[i + 1] to form the new permutation
             A[i], A[j] = A[j], A[i]
             A[i + 1 :] = A[: i - size : -1]  # A[i + 1:][::-1]
 
-    # Algorithm: modified from the above
+    # 042407.python.more.line712.comment Algorithm: modified from the above
     def _partial(A, r):
-        # Split A into the first r items and the last r items
+        # 042408.python.more.line714.comment Split A into the first r items and the last r items
         head, tail = A[:r], A[r:]
         right_head_indexes = range(r - 1, -1, -1)
         left_tail_indexes = range(len(tail))
 
         while True:
-            # Yield the permutation we have
+            # 042409.python.more.line720.comment Yield the permutation we have
             yield tuple(head)
 
-            # Starting from the right, find the first index of the head with
-            # value smaller than the maximum value of the tail - call it i.
+            # 042410.python.more.line723.comment Starting from the right, find the first index of the head with
+            # 042411.python.more.line724.comment value smaller than the maximum value of the tail - call it i.
             pivot = tail[-1]
             for i in right_head_indexes:
                 if head[i] < pivot:
@@ -730,21 +730,21 @@ def distinct_permutations(iterable, r=None):
             else:
                 return
 
-            # Starting from the left, find the first value of the tail
-            # with a value greater than head[i] and swap.
+            # 042412.python.more.line733.comment Starting from the left, find the first value of the tail
+            # 042413.python.more.line734.comment with a value greater than head[i] and swap.
             for j in left_tail_indexes:
                 if tail[j] > head[i]:
                     head[i], tail[j] = tail[j], head[i]
                     break
-            # If we didn't find one, start from the right and find the first
-            # index of the head with a value greater than head[i] and swap.
+            # 042414.python.more.line739.comment If we didn't find one, start from the right and find the first
+            # 042415.python.more.line740.comment index of the head with a value greater than head[i] and swap.
             else:
                 for j in right_head_indexes:
                     if head[j] > head[i]:
                         head[i], head[j] = head[j], head[i]
                         break
 
-            # Reverse head[i + 1:] and swap it with tail[:r - (i + 1)]
+            # 042416.python.more.line747.comment Reverse head[i + 1:] and swap it with tail[:r - (i + 1)]
             tail += head[: i - r : -1]  # head[i + 1:][::-1]
             i += 1
             head[i:], tail[:] = tail[: r - i], tail[r - i :]
@@ -775,13 +775,13 @@ def intersperse(e, iterable, n=1):
     if n == 0:
         raise ValueError('n must be > 0')
     elif n == 1:
-        # interleave(repeat(e), iterable) -> e, x_0, e, x_1, e, x_2...
-        # islice(..., 1, None) -> x_0, e, x_1, e, x_2...
+        # 042418.python.more.line778.comment interleave(repeat(e), iterable) -> e, x_0, e, x_1, e, x_2...
+        # 042419.python.more.line779.comment islice(..., 1, None) -> x_0, e, x_1, e, x_2...
         return islice(interleave(repeat(e), iterable), 1, None)
     else:
-        # interleave(filler, chunks) -> [e], [x_0, x_1], [e], [x_2, x_3]...
-        # islice(..., 1, None) -> [x_0, x_1], [e], [x_2, x_3]...
-        # flatten(...) -> x_0, x_1, e, x_2, x_3...
+        # 042420.python.more.line782.comment interleave(filler, chunks) -> [e], [x_0, x_1], [e], [x_2, x_3]...
+        # 042421.python.more.line783.comment islice(..., 1, None) -> [x_0, x_1], [e], [x_2, x_3]...
+        # 042422.python.more.line784.comment flatten(...) -> x_0, x_1, e, x_2, x_3...
         filler = repeat([e])
         chunks = chunked(iterable, n)
         return flatten(islice(interleave(filler, chunks), 1, None))
@@ -857,10 +857,10 @@ def windowed(seq, n, fillvalue=None, step=1):
 
     iterable = iter(seq)
 
-    # Generate first window
+    # 042423.python.more.line860.comment Generate first window
     window = deque(islice(iterable, n), maxlen=n)
 
-    # Deal with the first window not being full
+    # 042424.python.more.line863.comment Deal with the first window not being full
     if not window:
         return
     if len(window) < n:
@@ -868,12 +868,12 @@ def windowed(seq, n, fillvalue=None, step=1):
         return
     yield tuple(window)
 
-    # Create the filler for the next windows. The padding ensures
-    # we have just enough elements to fill the last window.
+    # 042425.python.more.line871.comment Create the filler for the next windows. The padding ensures
+    # 042426.python.more.line872.comment we have just enough elements to fill the last window.
     padding = (fillvalue,) * (n - 1 if step >= n else step - 1)
     filler = map(window.append, chain(iterable, padding))
 
-    # Generate the rest of the windows
+    # 042427.python.more.line876.comment Generate the rest of the windows
     for _ in islice(filler, step - 1, None, step):
         yield tuple(window)
 
@@ -890,7 +890,7 @@ def substrings(iterable):
         [(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]
 
     """
-    # The length-1 substrings
+    # 042428.python.more.line893.comment The length-1 substrings
     seq = []
     for item in iter(iterable):
         seq.append(item)
@@ -898,7 +898,7 @@ def substrings(iterable):
     seq = tuple(seq)
     item_count = len(seq)
 
-    # And the rest
+    # 042429.python.more.line901.comment And the rest
     for n in range(2, item_count + 1):
         for i in range(item_count - n + 1):
             yield seq[i : i + n]
@@ -1000,12 +1000,12 @@ class bucket:
         are encountered.
         """
         while True:
-            # If we've cached some items that match the target value, emit
-            # the first one and evict it from the cache.
+            # 042430.python.more.line1003.comment If we've cached some items that match the target value, emit
+            # 042431.python.more.line1004.comment the first one and evict it from the cache.
             if self._cache[value]:
                 yield self._cache[value].popleft()
-            # Otherwise we need to advance the parent iterator to search for
-            # a matching item, caching the rest.
+            # 042432.python.more.line1007.comment Otherwise we need to advance the parent iterator to search for
+            # 042433.python.more.line1008.comment a matching item, caching the rest.
             else:
                 while True:
                     try:
@@ -1144,15 +1144,15 @@ def interleave_evenly(iterables, lengths=None):
 
     dims = len(lengths)
 
-    # sort iterables by length, descending
+    # 042434.python.more.line1147.comment sort iterables by length, descending
     lengths_permute = sorted(
         range(dims), key=lambda i: lengths[i], reverse=True
     )
     lengths_desc = [lengths[i] for i in lengths_permute]
     iters_desc = [iter(iterables[i]) for i in lengths_permute]
 
-    # the longest iterable is the primary one (Bresenham: the longest
-    # distance along an axis)
+    # 042435.python.more.line1154.comment the longest iterable is the primary one (Bresenham: the longest
+    # 042436.python.more.line1155.comment distance along an axis)
     delta_primary, deltas_secondary = lengths_desc[0], lengths_desc[1:]
     iter_primary, iters_secondary = iters_desc[0], iters_desc[1:]
     errors = [delta_primary // dims] * len(deltas_secondary)
@@ -1161,11 +1161,11 @@ def interleave_evenly(iterables, lengths=None):
     while to_yield:
         yield next(iter_primary)
         to_yield -= 1
-        # update errors for each secondary iterable
+        # 042437.python.more.line1164.comment update errors for each secondary iterable
         errors = [e - delta for e, delta in zip(errors, deltas_secondary)]
 
-        # those iterables for which the error is negative are yielded
-        # ("diagonal step" in Bresenham)
+        # 042438.python.more.line1167.comment those iterables for which the error is negative are yielded
+        # 042439.python.more.line1168.comment ("diagonal step" in Bresenham)
         for i, e_ in enumerate(errors):
             if e_ < 0:
                 yield next(iters_secondary[i])
@@ -1200,36 +1200,36 @@ def collapse(iterable, base_type=None, levels=None):
 
     """
     stack = deque()
-    # Add our first node group, treat the iterable as a single node
+    # 042440.python.more.line1203.comment Add our first node group, treat the iterable as a single node
     stack.appendleft((0, repeat(iterable, 1)))
 
     while stack:
         node_group = stack.popleft()
         level, nodes = node_group
 
-        # Check if beyond max level
+        # 042441.python.more.line1210.comment Check if beyond max level
         if levels is not None and level > levels:
             yield from nodes
             continue
 
         for node in nodes:
-            # Check if done iterating
+            # 042442.python.more.line1216.comment Check if done iterating
             if isinstance(node, (str, bytes)) or (
                 (base_type is not None) and isinstance(node, base_type)
             ):
                 yield node
-            # Otherwise try to create child nodes
+            # 042443.python.more.line1221.comment Otherwise try to create child nodes
             else:
                 try:
                     tree = iter(node)
                 except TypeError:
                     yield node
                 else:
-                    # Save our current location
+                    # 042444.python.more.line1228.comment Save our current location
                     stack.appendleft(node_group)
-                    # Append the new child node
+                    # 042445.python.more.line1230.comment Append the new child node
                     stack.appendleft((level + 1, tree))
-                    # Break to process child node
+                    # 042446.python.more.line1232.comment Break to process child node
                     break
 
 
@@ -1523,8 +1523,8 @@ def split_into(iterable, sizes):
     (e.g. a point represented by x,y,z) but, the format is not the same for
     all columns.
     """
-    # convert the iterable argument into an iterator so its contents can
-    # be consumed by islice in case it is a generator
+    # 042447.python.more.line1526.comment convert the iterable argument into an iterator so its contents can
+    # 042448.python.more.line1527.comment be consumed by islice in case it is a generator
     it = iter(iterable)
 
     for size in sizes:
@@ -1573,10 +1573,10 @@ def padded(iterable, fillvalue=None, n=None, next_multiple=False):
                 yield (first,)
                 yield islice(iterable_with_repeat, n - 1)
 
-        # While elements exist produce slices of size n
+        # 042449.python.more.line1576.comment While elements exist produce slices of size n
         return chain.from_iterable(slice_generator())
     else:
-        # Ensure the first batch is at least size n then iterate
+        # 042450.python.more.line1579.comment Ensure the first batch is at least size n then iterate
         return chain(islice(iterable_with_repeat, n), iterable)
 
 
@@ -1784,21 +1784,21 @@ def sort_together(iterables, key_list=(0,), key=None, reverse=False):
 
     """
     if key is None:
-        # if there is no key function, the key argument to sorted is an
-        # itemgetter
+        # 042451.python.more.line1787.comment if there is no key function, the key argument to sorted is an
+        # 042452.python.more.line1788.comment itemgetter
         key_argument = itemgetter(*key_list)
     else:
-        # if there is a key function, call it with the items at the offsets
-        # specified by the key function as arguments
+        # 042453.python.more.line1791.comment if there is a key function, call it with the items at the offsets
+        # 042454.python.more.line1792.comment specified by the key function as arguments
         key_list = list(key_list)
         if len(key_list) == 1:
-            # if key_list contains a single item, pass the item at that offset
-            # as the only argument to the key function
+            # 042455.python.more.line1795.comment if key_list contains a single item, pass the item at that offset
+            # 042456.python.more.line1796.comment as the only argument to the key function
             key_offset = key_list[0]
             key_argument = lambda zipped_items: key(zipped_items[key_offset])
         else:
-            # if key_list contains multiple items, use itemgetter to return a
-            # tuple of items, which we pass as *args to the key function
+            # 042457.python.more.line1800.comment if key_list contains multiple items, use itemgetter to return a
+            # 042458.python.more.line1801.comment tuple of items, which we pass as *args to the key function
             get_key_items = itemgetter(*key_list)
             key_argument = lambda zipped_items: key(
                 *get_key_items(zipped_items)
@@ -1831,9 +1831,9 @@ def unzip(iterable):
     """
     head, iterable = spy(iter(iterable))
     if not head:
-        # empty iterable, e.g. zip([], [], [])
+        # 042459.python.more.line1834.comment empty iterable, e.g. zip([], [], [])
         return ()
-    # spy returns a one-length iterable as head
+    # 042460.python.more.line1836.comment spy returns a one-length iterable as head
     head = head[0]
     iterables = tee(iterable, len(head))
 
@@ -1842,15 +1842,15 @@ def unzip(iterable):
             try:
                 return obj[i]
             except IndexError:
-                # basically if we have an iterable like
-                # iter([(1, 2, 3), (4, 5), (6,)])
-                # the second unzipped iterable would fail at the third tuple
-                # since it would try to access tup[1]
-                # same with the third unzipped iterable and the second tuple
-                # to support these "improperly zipped" iterables,
-                # we create a custom itemgetter
-                # which just stops the unzipped iterables
-                # at first length mismatch
+                # 042461.python.more.line1845.comment basically if we have an iterable like
+                # 042462.python.more.line1846.comment iter([(1, 2, 3), (4, 5), (6,)])
+                # 042463.python.more.line1847.comment the second unzipped iterable would fail at the third tuple
+                # 042464.python.more.line1848.comment since it would try to access tup[1]
+                # 042465.python.more.line1849.comment same with the third unzipped iterable and the second tuple
+                # 042466.python.more.line1850.comment to support these "improperly zipped" iterables,
+                # 042467.python.more.line1851.comment we create a custom itemgetter
+                # 042468.python.more.line1852.comment which just stops the unzipped iterables
+                # 042469.python.more.line1853.comment at first length mismatch
                 raise StopIteration
 
         return getter
@@ -1990,7 +1990,7 @@ def adjacent(predicate, iterable, distance=1):
     to group ranges of items with the same `bool` value.
 
     """
-    # Allow distance=0 mainly for testing that it reproduces results with map()
+    # 042470.python.more.line1993.comment Allow distance=0 mainly for testing that it reproduces results with map()
     if distance < 0:
         raise ValueError('distance must be at least 0')
 
@@ -2492,14 +2492,14 @@ def _islice_helper(it, s):
         start = 0 if (start is None) else start
 
         if start < 0:
-            # Consume all but the last -start items
+            # 042475.python.more.line2495.comment Consume all but the last -start items
             cache = deque(enumerate(it, 1), maxlen=-start)
             len_iter = cache[-1][0] if cache else 0
 
-            # Adjust start to be positive
+            # 042476.python.more.line2499.comment Adjust start to be positive
             i = max(len_iter + start, 0)
 
-            # Adjust stop to be positive
+            # 042477.python.more.line2502.comment Adjust stop to be positive
             if stop is None:
                 j = len_iter
             elif stop >= 0:
@@ -2507,7 +2507,7 @@ def _islice_helper(it, s):
             else:
                 j = max(len_iter + stop, 0)
 
-            # Slice the cache
+            # 042478.python.more.line2510.comment Slice the cache
             n = j - i
             if n <= 0:
                 return
@@ -2515,11 +2515,11 @@ def _islice_helper(it, s):
             for index, item in islice(cache, 0, n, step):
                 yield item
         elif (stop is not None) and (stop < 0):
-            # Advance to the start position
+            # 042479.python.more.line2518.comment Advance to the start position
             next(islice(it, start, start), None)
 
-            # When stop is negative, we have to carry -stop items while
-            # iterating
+            # 042480.python.more.line2521.comment When stop is negative, we have to carry -stop items while
+            # 042481.python.more.line2522.comment iterating
             cache = deque(islice(it, -stop), maxlen=-stop)
 
             for index, item in enumerate(it):
@@ -2528,20 +2528,20 @@ def _islice_helper(it, s):
                     yield cached_item
                 cache.append(item)
         else:
-            # When both start and stop are positive we have the normal case
+            # 042482.python.more.line2531.comment When both start and stop are positive we have the normal case
             yield from islice(it, start, stop, step)
     else:
         start = -1 if (start is None) else start
 
         if (stop is not None) and (stop < 0):
-            # Consume all but the last items
+            # 042483.python.more.line2537.comment Consume all but the last items
             n = -stop - 1
             cache = deque(enumerate(it, 1), maxlen=n)
             len_iter = cache[-1][0] if cache else 0
 
-            # If start and stop are both negative they are comparable and
-            # we can just slice. Otherwise we can adjust start to be negative
-            # and then slice.
+            # 042484.python.more.line2542.comment If start and stop are both negative they are comparable and
+            # 042485.python.more.line2543.comment we can just slice. Otherwise we can adjust start to be negative
+            # 042486.python.more.line2544.comment and then slice.
             if start < 0:
                 i, j = start, stop
             else:
@@ -2550,22 +2550,22 @@ def _islice_helper(it, s):
             for index, item in list(cache)[i:j:step]:
                 yield item
         else:
-            # Advance to the stop position
+            # 042487.python.more.line2553.comment Advance to the stop position
             if stop is not None:
                 m = stop + 1
                 next(islice(it, m, m), None)
 
-            # stop is positive, so if start is negative they are not comparable
-            # and we need the rest of the items.
+            # 042488.python.more.line2558.comment stop is positive, so if start is negative they are not comparable
+            # 042489.python.more.line2559.comment and we need the rest of the items.
             if start < 0:
                 i = start
                 n = None
-            # stop is None and start is positive, so we just need items up to
-            # the start index.
+            # 042490.python.more.line2563.comment stop is None and start is positive, so we just need items up to
+            # 042491.python.more.line2564.comment the start index.
             elif stop is None:
                 i = None
                 n = start + 1
-            # Both stop and start are positive, so they are comparable.
+            # 042492.python.more.line2568.comment Both stop and start are positive, so they are comparable.
             else:
                 i = None
                 n = start - stop
@@ -2983,8 +2983,8 @@ def make_decorator(wrapping_func, result_index=0):
 
     """
 
-    # See https://sites.google.com/site/bbayles/index/decorator_factory for
-    # notes on how this works.
+    # 042493.python.more.line2986.comment See https://sites.google.com/site/bbayles/index/decorator_factory for
+    # 042494.python.more.line2987.comment notes on how this works.
     def decorator(*wrapping_args, **wrapping_kwargs):
         def outer_wrapper(f):
             def inner_wrapper(*args, **kwargs):
@@ -3142,22 +3142,22 @@ def replace(iterable, pred, substitutes, count=None, window_size=1):
     if window_size < 1:
         raise ValueError('window_size must be at least 1')
 
-    # Save the substitutes iterable, since it's used more than once
+    # 042495.python.more.line3145.comment Save the substitutes iterable, since it's used more than once
     substitutes = tuple(substitutes)
 
-    # Add padding such that the number of windows matches the length of the
-    # iterable
+    # 042496.python.more.line3148.comment Add padding such that the number of windows matches the length of the
+    # 042497.python.more.line3149.comment iterable
     it = chain(iterable, [_marker] * (window_size - 1))
     windows = windowed(it, window_size)
 
     n = 0
     for w in windows:
-        # If the current window matches our predicate (and we haven't hit
-        # our maximum number of replacements), splice in the substitutes
-        # and then consume the following windows that overlap with this one.
-        # For example, if the iterable is (0, 1, 2, 3, 4...)
-        # and the window size is 2, we have (0, 1), (1, 2), (2, 3)...
-        # If the predicate matches on (0, 1), we need to zap (0, 1) and (1, 2)
+        # 042498.python.more.line3155.comment If the current window matches our predicate (and we haven't hit
+        # 042499.python.more.line3156.comment our maximum number of replacements), splice in the substitutes
+        # 042500.python.more.line3157.comment and then consume the following windows that overlap with this one.
+        # 042501.python.more.line3158.comment For example, if the iterable is (0, 1, 2, 3, 4...)
+        # 042502.python.more.line3159.comment and the window size is 2, we have (0, 1), (1, 2), (2, 3)...
+        # 042503.python.more.line3160.comment If the predicate matches on (0, 1), we need to zap (0, 1) and (1, 2)
         if pred(*w):
             if (count is None) or (n < count):
                 n += 1
@@ -3165,8 +3165,8 @@ def replace(iterable, pred, substitutes, count=None, window_size=1):
                 consume(windows, window_size - 1)
                 continue
 
-        # If there was no match (or we've reached the replacement limit),
-        # yield the first item from the window.
+        # 042504.python.more.line3168.comment If there was no match (or we've reached the replacement limit),
+        # 042505.python.more.line3169.comment yield the first item from the window.
         if w and (w[0] is not _marker):
             yield w[0]
 
@@ -3355,18 +3355,18 @@ def _ichunk(iterable, n):
                     yield item
 
     def materialize_next(n=1):
-        # if n not specified materialize everything
+        # 042506.python.more.line3358.comment if n not specified materialize everything
         if n is None:
             cache.extend(chunk)
             return len(cache)
 
         to_cache = n - len(cache)
 
-        # materialize up to n
+        # 042507.python.more.line3365.comment materialize up to n
         if to_cache > 0:
             cache.extend(islice(chunk, to_cache))
 
-        # return number materialized up to n
+        # 042508.python.more.line3369.comment return number materialized up to n
         return min(n, len(cache))
 
     return (generator(), materialize_next)
@@ -3395,16 +3395,16 @@ def ichunked(iterable, n):
     """
     iterable = iter(iterable)
     while True:
-        # Create new chunk
+        # 042509.python.more.line3398.comment Create new chunk
         chunk, materialize_next = _ichunk(iterable, n)
 
-        # Check to see whether we're at the end of the source iterable
+        # 042510.python.more.line3401.comment Check to see whether we're at the end of the source iterable
         if not materialize_next():
             return
 
         yield chunk
 
-        # Fill previous chunk's cache
+        # 042511.python.more.line3407.comment Fill previous chunk's cache
         materialize_next(None)
 
 
@@ -3536,24 +3536,24 @@ def map_if(iterable, pred, func, func_else=lambda x: x):
 
 
 def _sample_unweighted(iterable, k):
-    # Implementation of "Algorithm L" from the 1994 paper by Kim-Hung Li:
-    # "Reservoir-Sampling Algorithms of Time Complexity O(n(1+log(N/n)))".
+    # 042512.python.more.line3539.comment Implementation of "Algorithm L" from the 1994 paper by Kim-Hung Li:
+    # 042513.python.more.line3540.comment "Reservoir-Sampling Algorithms of Time Complexity O(n(1+log(N/n)))".
 
-    # Fill up the reservoir (collection of samples) with the first `k` samples
+    # 042514.python.more.line3542.comment Fill up the reservoir (collection of samples) with the first `k` samples
     reservoir = take(k, iterable)
 
-    # Generate random number that's the largest in a sample of k U(0,1) numbers
-    # Largest order statistic: https://en.wikipedia.org/wiki/Order_statistic
+    # 042515.python.more.line3545.comment Generate random number that's the largest in a sample of k U(0,1) numbers
+    # 042516.python.more.line3546.comment Largest order statistic: https://en.wikipedia.org/wiki/Order_statistic
     W = exp(log(random()) / k)
 
-    # The number of elements to skip before changing the reservoir is a random
-    # number with a geometric distribution. Sample it using random() and logs.
+    # 042517.python.more.line3549.comment The number of elements to skip before changing the reservoir is a random
+    # 042518.python.more.line3550.comment number with a geometric distribution. Sample it using random() and logs.
     next_index = k + floor(log(random()) / log(1 - W))
 
     for index, element in enumerate(iterable, k):
         if index == next_index:
             reservoir[randrange(k)] = element
-            # The new W is the largest in a sample of k U(0, `old_W`) numbers
+            # 042519.python.more.line3556.comment The new W is the largest in a sample of k U(0, `old_W`) numbers
             W *= exp(log(random()) / k)
             next_index += floor(log(random()) / log(1 - W)) + 1
 
@@ -3561,26 +3561,26 @@ def _sample_unweighted(iterable, k):
 
 
 def _sample_weighted(iterable, k, weights):
-    # Implementation of "A-ExpJ" from the 2006 paper by Efraimidis et al. :
-    # "Weighted random sampling with a reservoir".
+    # 042520.python.more.line3564.comment Implementation of "A-ExpJ" from the 2006 paper by Efraimidis et al. :
+    # 042521.python.more.line3565.comment "Weighted random sampling with a reservoir".
 
-    # Log-transform for numerical stability for weights that are small/large
+    # 042522.python.more.line3567.comment Log-transform for numerical stability for weights that are small/large
     weight_keys = (log(random()) / weight for weight in weights)
 
-    # Fill up the reservoir (collection of samples) with the first `k`
-    # weight-keys and elements, then heapify the list.
+    # 042523.python.more.line3570.comment Fill up the reservoir (collection of samples) with the first `k`
+    # 042524.python.more.line3571.comment weight-keys and elements, then heapify the list.
     reservoir = take(k, zip(weight_keys, iterable))
     heapify(reservoir)
 
-    # The number of jumps before changing the reservoir is a random variable
-    # with an exponential distribution. Sample it using random() and logs.
+    # 042525.python.more.line3575.comment The number of jumps before changing the reservoir is a random variable
+    # 042526.python.more.line3576.comment with an exponential distribution. Sample it using random() and logs.
     smallest_weight_key, _ = reservoir[0]
     weights_to_skip = log(random()) / smallest_weight_key
 
     for weight, element in zip(weights, iterable):
         if weight >= weights_to_skip:
-            # The notation here is consistent with the paper, but we store
-            # the weight-keys in log-space for better numerical stability.
+            # 042527.python.more.line3582.comment The notation here is consistent with the paper, but we store
+            # 042528.python.more.line3583.comment the weight-keys in log-space for better numerical stability.
             smallest_weight_key, _ = reservoir[0]
             t_w = exp(weight * smallest_weight_key)
             r_2 = uniform(t_w, 1)  # generate U(t_w, 1)
@@ -3591,7 +3591,7 @@ def _sample_weighted(iterable, k, weights):
         else:
             weights_to_skip -= weight
 
-    # Equivalent to [element for weight_key, element in sorted(reservoir)]
+    # 042530.python.more.line3594.comment Equivalent to [element for weight_key, element in sorted(reservoir)]
     return [heappop(reservoir)[1] for _ in range(k)]
 
 
@@ -3719,7 +3719,7 @@ class callback_iter:
         self._aborted = False
         self._future = None
         self._wait_seconds = wait_seconds
-        # Lazily import concurrent.future
+        # 042531.python.more.line3722.comment Lazily import concurrent.future
         self._executor = __import__(
             'concurrent.futures'
         ).futures.ThreadPoolExecutor(max_workers=1)
@@ -4077,7 +4077,7 @@ def combination_index(element, iterable):
 
     n, _ = last(pool, default=(n, None))
 
-    # Python versions below 3.8 don't have math.comb
+    # 042533.python.more.line4080.comment Python versions below 3.8 don't have math.comb
     index = 1
     for i, j in enumerate(reversed(indexes), start=1):
         j = n - j
@@ -4215,22 +4215,22 @@ def chunked_even(iterable, n):
     """
     iterable = iter(iterable)
 
-    # Initialize a buffer to process the chunks while keeping
-    # some back to fill any underfilled chunks
+    # 042534.python.more.line4218.comment Initialize a buffer to process the chunks while keeping
+    # 042535.python.more.line4219.comment some back to fill any underfilled chunks
     min_buffer = (n - 1) * (n - 2)
     buffer = list(islice(iterable, min_buffer))
 
-    # Append items until we have a completed chunk
+    # 042536.python.more.line4223.comment Append items until we have a completed chunk
     for _ in islice(map(buffer.append, iterable), n, None, n):
         yield buffer[:n]
         del buffer[:n]
 
-    # Check if any chunks need addition processing
+    # 042537.python.more.line4228.comment Check if any chunks need addition processing
     if not buffer:
         return
     length = len(buffer)
 
-    # Chunks are either size `full_size <= n` or `partial_size = full_size - 1`
+    # 042538.python.more.line4233.comment Chunks are either size `full_size <= n` or `partial_size = full_size - 1`
     q, r = divmod(length, n)
     num_lists = q + (1 if r > 0 else 0)
     q, r = divmod(length, num_lists)
@@ -4238,13 +4238,13 @@ def chunked_even(iterable, n):
     partial_size = full_size - 1
     num_full = length - partial_size * num_lists
 
-    # Yield chunks of full size
+    # 042539.python.more.line4241.comment Yield chunks of full size
     partial_start_idx = num_full * full_size
     if full_size > 0:
         for i in range(0, partial_start_idx, full_size):
             yield buffer[i : i + full_size]
 
-    # Yield chunks of partial size
+    # 042540.python.more.line4247.comment Yield chunks of partial size
     if partial_size > 0:
         for i in range(partial_start_idx, length, partial_size):
             yield buffer[i : i + partial_size]
@@ -4474,9 +4474,9 @@ def minmax(iterable_or_value, *others, key=None, default=_marker):
             ) from exc
         return default
 
-    # Different branches depending on the presence of key. This saves a lot
-    # of unimportant copies which would slow the "key=None" branch
-    # significantly down.
+    # 042541.python.more.line4477.comment Different branches depending on the presence of key. This saves a lot
+    # 042542.python.more.line4478.comment of unimportant copies which would slow the "key=None" branch
+    # 042543.python.more.line4479.comment significantly down.
     if key is None:
         for x, y in zip_longest(it, it, fillvalue=lo):
             if y < x:
@@ -4574,10 +4574,10 @@ def gray_product(*iterables):
         if len(iterable) < 2:
             raise ValueError("each iterable must have two or more items")
 
-    # This is based on "Algorithm H" from section 7.2.1.1, page 20.
-    # a holds the indexes of the source iterables for the n-tuple to be yielded
-    # f is the array of "focus pointers"
-    # o is the array of "directions"
+    # 042544.python.more.line4577.comment This is based on "Algorithm H" from section 7.2.1.1, page 20.
+    # 042545.python.more.line4578.comment a holds the indexes of the source iterables for the n-tuple to be yielded
+    # 042546.python.more.line4579.comment f is the array of "focus pointers"
+    # 042547.python.more.line4580.comment o is the array of "directions"
     a = [0] * iterable_count
     f = list(range(iterable_count + 1))
     o = [1] * iterable_count

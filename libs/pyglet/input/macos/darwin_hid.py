@@ -17,12 +17,12 @@ from pyglet.libs.darwin.cocoapy import cfset_to_set, cftype_to_value, cfarray_to
 
 __LP64__ = (sys.maxsize > 2 ** 32)
 
-# Uses the HID API introduced in Mac OS X version 10.5
-# http://developer.apple.com/library/mac/#technotes/tn2007/tn2187.html
+# 030553.python.darwin_hid.line20.comment Uses the HID API introduced in Mac OS X version 10.5
+# 030554.python.darwin_hid.line21.comment http://developer.apple.com/library/mac/#technotes/tn2007/tn2187.html
 iokit = pyglet.lib.load_library(framework='IOKit')
 
-# IOKit constants from
-# /System/Library/Frameworks/IOKit.framework/Headers/hid/IOHIDKeys.h
+# 030555.python.darwin_hid.line24.comment IOKit constants from
+# 030556.python.darwin_hid.line25.comment /System/Library/Frameworks/IOKit.framework/Headers/hid/IOHIDKeys.h
 kIOHIDOptionsTypeNone	     = 0x00
 kIOHIDOptionsTypeSeizeDevice = 0x01
 
@@ -34,7 +34,7 @@ kIOHIDElementTypeOutput          = 129
 kIOHIDElementTypeFeature         = 257
 kIOHIDElementTypeCollection      = 513
 
-# /System/Library/Frameworks/IOKit.framework/Headers/hid/IOHIDUsageTables.h
+# 030557.python.darwin_hid.line37.comment /System/Library/Frameworks/IOKit.framework/Headers/hid/IOHIDUsageTables.h
 kHIDPage_GenericDesktop	       = 0x01
 kHIDPage_Consumer              = 0x0C
 kHIDUsage_GD_SystemSleep       = 0x82
@@ -56,7 +56,7 @@ kHIDUsage_Csmr_VolumeDecrement = 0xEA
 IOReturn = c_int  # IOReturn.h
 IOOptionBits = c_uint32  # IOTypes.h
 
-# IOHIDKeys.h
+# 030560.python.darwin_hid.line59.comment IOHIDKeys.h
 IOHIDElementType = c_int
 IOHIDElementCollectionType = c_int
 IOHIDElementCookie = c_uint32 if __LP64__ else c_void_p
@@ -193,22 +193,22 @@ iokit.IOHIDValueGetTimeStamp.argtypes = [c_void_p]
 iokit.IOHIDValueGetTypeID.restype = CFTypeID
 iokit.IOHIDValueGetTypeID.argtypes = []
 
-# Callback function types
+# 030561.python.darwin_hid.line196.comment Callback function types
 HIDManagerCallback = CFUNCTYPE(None, c_void_p, c_int, c_void_p, c_void_p)
 HIDDeviceCallback = CFUNCTYPE(None, c_void_p, c_int, c_void_p)
 HIDDeviceValueCallback = CFUNCTYPE(None, c_void_p, c_int, c_void_p, c_void_p)
 
-######################################################################
-# HID Class Wrappers
+# 030562.python.darwin_hid.line201.comment #####################################################################
+# 030563.python.darwin_hid.line202.comment HID Class Wrappers
 
-# Lookup tables cache python objects for the devices and elements so that
-# we can avoid creating multiple wrapper objects for the same device.
+# 030564.python.darwin_hid.line204.comment Lookup tables cache python objects for the devices and elements so that
+# 030565.python.darwin_hid.line205.comment we can avoid creating multiple wrapper objects for the same device.
 _device_lookup = {}   # IOHIDDeviceRef to python HIDDevice object
 
 
 class HIDValue:
     def __init__(self, value_ref):
-        # Check that this is a valid IOHIDValue.
+        # 030567.python.darwin_hid.line211.comment Check that this is a valid IOHIDValue.
         assert value_ref
         assert cf.CFGetTypeID(value_ref) == iokit.IOHIDValueGetTypeID()
         self.value_ref = value_ref
@@ -217,9 +217,9 @@ class HIDValue:
         if self.length <= 4:
             self.intvalue = iokit.IOHIDValueGetIntegerValue(value_ref)
         else:
-            # Values may be byte data rather than integers.
-            # e.g. the PS3 controller has a 39-byte HIDValue element.
-            # We currently do not try to handle these cases.
+            # 030568.python.darwin_hid.line220.comment Values may be byte data rather than integers.
+            # 030569.python.darwin_hid.line221.comment e.g. the PS3 controller has a 39-byte HIDValue element.
+            # 030570.python.darwin_hid.line222.comment We currently do not try to handle these cases.
             self.intvalue = None
         element_ref = c_void_p(iokit.IOHIDValueGetElement(value_ref))
         self.element = HIDDeviceElement.get_element(element_ref)
@@ -228,7 +228,7 @@ class HIDValue:
 class HIDDevice:
     @classmethod
     def get_device(cls, device_ref):
-        # device_ref is a c_void_p pointing to an IOHIDDeviceRef
+        # 030571.python.darwin_hid.line231.comment device_ref is a c_void_p pointing to an IOHIDDeviceRef
         if device_ref.value in _device_lookup:
             return _device_lookup[device_ref.value]
         else:
@@ -238,7 +238,7 @@ class HIDDevice:
     def __init__(self, device_ref):
         _device_lookup[device_ref.value] = self
         self.device_ref = device_ref
-        # Set attributes from device properties.
+        # 030572.python.darwin_hid.line241.comment Set attributes from device properties.
         self.transport = self.get_property("Transport")
         self.vendorID = self.get_property("VendorID")
         self.vendorIDSource = self.get_property("VendorIDSource")
@@ -250,17 +250,17 @@ class HIDDevice:
         self.locationID = self.get_property("LocationID")
         self.primaryUsage = self.get_property("PrimaryUsage")
         self.primaryUsagePage = self.get_property("PrimaryUsagePage")
-        # Populate self.elements with our device elements.
+        # 030574.python.darwin_hid.line253.comment Populate self.elements with our device elements.
         self.elements = self._get_elements()
-        # Set up callback functions.
+        # 030575.python.darwin_hid.line255.comment Set up callback functions.
         self.value_observers = set()
         self.value_callback = self._register_input_value_callback()
 
     def get_guid(self):
         """Generate an SDL2 style GUID from the product guid."""
-        # TODO: in what situation should 0x05 be used?
-        # 0x03: USB
-        # 0x05: Bluetooth
+        # 030576.python.darwin_hid.line261.comment TODO: in what situation should 0x05 be used?
+        # 030577.python.darwin_hid.line262.comment 0x03: USB
+        # 030578.python.darwin_hid.line263.comment 0x05: Bluetooth
         bustype = 0x03
         vendor = self.vendorID or 0
         product = self.productID or 0
@@ -299,14 +299,14 @@ class HIDDevice:
     def _get_elements(self):
         cfarray = c_void_p(iokit.IOHIDDeviceCopyMatchingElements(self.device_ref, None, 0))
         if not cfarray:
-            # requires "Security & Privacy / Input Monitoring", see #95
+            # 030579.python.darwin_hid.line302.comment requires "Security & Privacy / Input Monitoring", see #95
             return []
         elements = cfarray_to_list(cfarray)
         cf.CFRelease(cfarray)
         return elements
 
-    # Page and usage IDs are from the HID usage tables located at
-    # https://usb.org/sites/default/files/hut1_3_0.pdf
+    # 030580.python.darwin_hid.line308.comment Page and usage IDs are from the HID usage tables located at
+    # 030581.python.darwin_hid.line309.comment https://usb.org/sites/default/files/hut1_3_0.pdf
     def conforms_to(self, page, usage):
         return bool(iokit.IOHIDDeviceConformsTo(self.device_ref, page, usage))
 
@@ -333,7 +333,7 @@ class HIDDevice:
 
     def py_value_callback(self, context, result, sender, value):
         v = HIDValue(c_void_p(value))
-        # Dispatch value changed message to all observers.
+        # 030582.python.darwin_hid.line336.comment Dispatch value changed message to all observers.
         for x in self.value_observers:
             if hasattr(x, 'device_value_changed'):
                 x.device_value_changed(self, v)
@@ -347,7 +347,7 @@ class HIDDevice:
         self.value_observers.add(observer)
 
     def get_value(self, element):
-        # If the device is not open, then returns None
+        # 030583.python.darwin_hid.line350.comment If the device is not open, then returns None
         value_ref = c_void_p()
         iokit.IOHIDDeviceGetValue(self.device_ref, element.element_ref, byref(value_ref))
         if value_ref:
@@ -363,12 +363,12 @@ class HIDDeviceElement:
 
     @classmethod
     def get_element(cls, element_ref):
-        # element_ref is a c_void_p pointing to an IOHIDDeviceElementRef
+        # 030584.python.darwin_hid.line366.comment element_ref is a c_void_p pointing to an IOHIDDeviceElementRef
         return HIDDeviceElement(element_ref)
 
     def __init__(self, element_ref):
         self.element_ref = element_ref
-        # Set element properties as attributes.
+        # 030585.python.darwin_hid.line371.comment Set element properties as attributes.
         self.cookie = iokit.IOHIDElementGetCookie(element_ref)
         self.type = iokit.IOHIDElementGetType(element_ref)
         if self.type == kIOHIDElementTypeCollection:
@@ -408,10 +408,10 @@ class HIDManager(EventDispatcher):
 
     def _get_devices(self):
         try:
-            # Tell manager that we are willing to match *any* device.
-            # (Alternatively, we could restrict by device usage, or usage page.)
+            # 030586.python.darwin_hid.line411.comment Tell manager that we are willing to match *any* device.
+            # 030587.python.darwin_hid.line412.comment (Alternatively, we could restrict by device usage, or usage page.)
             iokit.IOHIDManagerSetDeviceMatching(self.manager_ref, None)
-            # Copy the device set and convert it to python.
+            # 030588.python.darwin_hid.line414.comment Copy the device set and convert it to python.
             cfset = c_void_p(iokit.IOHIDManagerCopyDevices(self.manager_ref))
             devices = cfset_to_set(cfset)
             cf.CFRelease(cfset)
@@ -437,7 +437,7 @@ class HIDManager(EventDispatcher):
             c_void_p(cf.CFRunLoopGetCurrent()),
             kCFRunLoopDefaultMode)
 
-    # Device add/remove callbacks:
+    # 030589.python.darwin_hid.line440.comment Device add/remove callbacks:
 
     def _py_matching_callback(self, context, result, sender, device):
         d = HIDDevice.get_device(c_void_p(device))
@@ -467,14 +467,14 @@ HIDManager.register_event_type('on_connect')
 HIDManager.register_event_type('on_disconnect')
 
 
-######################################################################
-# Add conversion methods for IOHIDDevices and IOHIDDeviceElements
-# to the list of known types used by cftype_to_value.
+# 030590.python.darwin_hid.line470.comment #####################################################################
+# 030591.python.darwin_hid.line471.comment Add conversion methods for IOHIDDevices and IOHIDDeviceElements
+# 030592.python.darwin_hid.line472.comment to the list of known types used by cftype_to_value.
 known_cftypes[iokit.IOHIDDeviceGetTypeID()] = HIDDevice.get_device
 known_cftypes[iokit.IOHIDElementGetTypeID()] = HIDDeviceElement.get_element
-######################################################################
+# 030593.python.darwin_hid.line475.comment #####################################################################
 
-# Pyglet interface to HID
+# 030594.python.darwin_hid.line477.comment Pyglet interface to HID
 
 
 _axis_names = {
@@ -550,7 +550,7 @@ class PygletDevice(Device):
         return self.device.get_guid()
 
     def device_value_changed(self, hid_device, hid_value):
-        # Called by device when input value changes.
+        # 030595.python.darwin_hid.line553.comment Called by device when input value changes.
         control = self._controls[hid_value.element.cookie]
         control.value = hid_value.intvalue
 
@@ -561,7 +561,7 @@ class PygletDevice(Device):
             raw_name = element.name or '0x%x:%x' % (element.usagePage, element.usage)
             if element.type in (kIOHIDElementTypeInput_Misc, kIOHIDElementTypeInput_Axis):
                 
-                # apply axis filter to allow filtering for usage pages
+                # 030596.python.darwin_hid.line564.comment apply axis filter to allow filtering for usage pages
                 if self._axis_filter is not None and element.usagePage not in self._axis_filter:
                     continue
                 
@@ -572,7 +572,7 @@ class PygletDevice(Device):
                     control = AbsoluteAxis(name, element.logicalMin, element.logicalMax, raw_name)
             elif element.type == kIOHIDElementTypeInput_Button:
                 
-                # apply button filter to allow filtering for usage pages
+                # 030597.python.darwin_hid.line575.comment apply button filter to allow filtering for usage pages
                 if self._button_filter is not None and element.usagePage not in self._button_filter:
                     continue
                 
@@ -589,7 +589,7 @@ class PygletDevice(Device):
         self._controls = {control._cookie: control for control in controls}
 
     def _set_initial_control_values(self):
-        # Must be called AFTER the device has been opened.
+        # 030598.python.darwin_hid.line592.comment Must be called AFTER the device has been opened.
         for element in self.device.elements:
             if element.cookie in self._controls:
                 control = self._controls[element.cookie]
@@ -600,7 +600,7 @@ class PygletDevice(Device):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.device})"
 
-######################################################################
+# 030599.python.darwin_hid.line603.comment #####################################################################
 
 
 _hid_manager = HIDManager()

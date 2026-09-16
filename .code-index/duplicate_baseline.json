@@ -1,0 +1,9 @@
+{
+  "allowed_existing_source_duplicate_keys": [
+    "7cd1a1b31d26e6cf62ab8c8cbc7e89d6d234bf350a59deb694840d4a72931821:libs/PyInstaller/archive/__init__.py|libs/PyInstaller/utils/win32/__init__.py",
+    "a009b5ced3c5c25b2608a7bb94002cbff38839f4b57160eef5b34191ebbeda7b:libs/packaging/licenses/_spdx.py|libs/setuptools/_vendor/packaging/licenses/_spdx.py",
+    "a7d66a35888e22d19e7bc29c64578717f61c76157018774aeabfbc9608b1bc64:libs/packaging/_musllinux.py|libs/setuptools/_vendor/packaging/_musllinux.py",
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855:libs/pkg_resources/tests/__init__.py|libs/pyglet/libs/egl/__init__.py|libs/pyglet/libs/wayland/__init__.py|libs/pythonwin/pywin/dialogs/__init__.py|libs/pythonwin/pywin/docking/__init__.py|libs/pythonwin/pywin/framework/__init__.py|libs/pythonwin/pywin/framework/editor/color/__init__.py|libs/pythonwin/pywin/mfc/__init__.py|libs/pythonwin/pywin/tools/__init__.py|libs/setuptools/_distutils/tests/compat/__init__.py|libs/setuptools/_distutils/tests/test_versionpredicate.py|libs/setuptools/_vendor/backports/tarfile/compat/__init__.py|libs/setuptools/_vendor/importlib_metadata/compat/__init__.py|libs/setuptools/_vendor/inflect/compat/__init__.py|libs/setuptools/_vendor/wheel/vendored/__init__.py|libs/setuptools/_vendor/wheel/vendored/packaging/__init__.py|libs/setuptools/_vendor/zipp/compat/__init__.py|libs/setuptools/compat/__init__.py|libs/setuptools/tests/compat/__init__.py|libs/setuptools/tests/config/__init__.py|libs/setuptools/tests/integration/__init__.py|libs/watchdog/__init__.py|libs/win32com/demos/__init__.py|libs/win32com/servers/__init__.py|libs/win32comext/axscript/server/__init__.py|werkzeug/middleware/__init__.py|werkzeug/sansio/__init__.py"
+  ],
+  "version": 1
+}

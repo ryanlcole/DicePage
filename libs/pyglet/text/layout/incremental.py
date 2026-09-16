@@ -28,9 +28,9 @@ if TYPE_CHECKING:
 
 
 class _IncrementalLayoutContext(_LayoutContext):
-    # This Context is modified to instead store vertex lists in the Lines themselves. This is due to the fact that
-    # IncrementalLayout only handles lines that are visible. When lines change, the vertex lists are destroyed, but
-    # boxes are kept alive. This also allows the Layout to determine word wraps and line lengths without a vertex list.
+    # 035832.python.incremental.line31.comment This Context is modified to instead store vertex lists in the Lines themselves. This is due to the fact that
+    # 035833.python.incremental.line32.comment IncrementalLayout only handles lines that are visible. When lines change, the vertex lists are destroyed, but
+    # 035834.python.incremental.line33.comment boxes are kept alive. This also allows the Layout to determine word wraps and line lengths without a vertex list.
 
     line = None
 
@@ -42,16 +42,16 @@ class _IncrementalLayoutContext(_LayoutContext):
 
 
 class IncrementalTextLayoutGroup(ScrollableTextLayoutGroup):  # noqa: D101
-    # Subclass so that the scissor_area isn't shared with the
-    # ScrollableTextLayout. We use a class variable here so
-    # that it can be set before the document glyphs are created.
+    # 035836.python.incremental.line45.comment Subclass so that the scissor_area isn't shared with the
+    # 035837.python.incremental.line46.comment ScrollableTextLayout. We use a class variable here so
+    # 035838.python.incremental.line47.comment that it can be set before the document glyphs are created.
     scissor_area: ClassVar[tuple[int, int, int, int]] = 0, 0, 0, 0
 
 
 class IncrementalTextDecorationGroup(ScrollableTextDecorationGroup):  # noqa: D101
-    # Subclass so that the scissor_area isn't shared with the
-    # ScrollableTextDecorationGroup. We use a class variable here so
-    # that it can be set before the document glyphs are created.
+    # 035840.python.incremental.line52.comment Subclass so that the scissor_area isn't shared with the
+    # 035841.python.incremental.line53.comment ScrollableTextDecorationGroup. We use a class variable here so
+    # 035842.python.incremental.line54.comment that it can be set before the document glyphs are created.
     scissor_area: ClassVar[tuple[int, int, int, int]] = 0, 0, 0, 0
 
 
@@ -117,14 +117,14 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             msg = "Invalid size. IncrementalTextLayout width or height cannot be None."
             raise Exception(msg)
 
-        #: :meta private:
+        # 035843.python.incremental.line120.comment : :meta private:
         self.glyphs = []
 
-        #: :meta private:
+        # 035844.python.incremental.line123.comment : :meta private:
         self.offsets = []
 
-        #: :meta private:
-        # All lines in the document, including those hidden from view.
+        # 035845.python.incremental.line126.comment : :meta private:
+        # 035846.python.incremental.line127.comment All lines in the document, including those hidden from view.
         self.lines = []
 
         self._invalid_glyphs = _InvalidRange()
@@ -172,9 +172,9 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
         self._invalid_glyphs.insert(start, len_text)
 
-        # When inserting text normally with content_valign top, the text only affects the line its on and after it.
-        # With other alignments, such as bottom, by adding text you may be pushing the lines above upwards.
-        # To account for this, we need to invalidate the text above as well.
+        # 035847.python.incremental.line175.comment When inserting text normally with content_valign top, the text only affects the line its on and after it.
+        # 035848.python.incremental.line176.comment With other alignments, such as bottom, by adding text you may be pushing the lines above upwards.
+        # 035849.python.incremental.line177.comment To account for this, we need to invalidate the text above as well.
         if self._multiline and self._content_valign != "top":
             visible_line = self.lines[self._visible_lines.start]
             self._invalid_flow.invalidate(visible_line.start, start + len_text)
@@ -194,7 +194,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self.glyphs[start:end] = []
         self.offsets[start:end] = []
 
-        # Same requirement as on_insert_text
+        # 035850.python.incremental.line197.comment Same requirement as on_insert_text
         if self._multiline and self._content_valign != "top":
             visible_line = self.lines[self._visible_lines.start]
             self._invalid_flow.invalidate(visible_line.start, end)
@@ -236,7 +236,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
                                 self._invalid_lines.is_invalid())
 
         len_groups = len(self.group_cache)
-        # Special care if there is no text:
+        # 035852.python.incremental.line239.comment Special care if there is no text:
         if not self.glyphs:
             for line in self.lines:
                 line.delete(self)
@@ -259,8 +259,8 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self._ascent = self.lines[0].ascent
         self._descent = self.lines[0].descent
 
-        # Update group cache areas if the count has changed. Usually if it starts with no text.
-        # Group cache is only cleared in a regular TextLayout. May need revisiting if that changes.
+        # 035853.python.incremental.line262.comment Update group cache areas if the count has changed. Usually if it starts with no text.
+        # 035854.python.incremental.line263.comment Group cache is only cleared in a regular TextLayout. May need revisiting if that changes.
         if len_groups != len(self.group_cache):
             self._update_scissor_area()
 
@@ -274,7 +274,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             return
 
 
-        # Find grapheme breaks and extend glyph range to encompass.
+        # 035855.python.incremental.line277.comment Find grapheme breaks and extend glyph range to encompass.
         text = self.document.text
         while invalid_start > 0:
             left = text[invalid_start - 1]
@@ -295,7 +295,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
                 break
             invalid_end += 1
 
-        # Update glyphs
+        # 035856.python.incremental.line298.comment Update glyphs
         runs = runlist.ZipRunIterator((
             self._document.get_font_runs(dpi=self._dpi),
             self._document.get_element_runs()))
@@ -309,10 +309,10 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
                 self.glyphs[start:end] = glyphs
                 self.offsets[start:end] = offsets
 
-        # Update owner runs
+        # 035857.python.incremental.line312.comment Update owner runs
         self._get_owner_runs(self._owner_runs, self.glyphs, invalid_start, invalid_end)
 
-        # Updated glyphs need flowing
+        # 035858.python.incremental.line315.comment Updated glyphs need flowing
         self._invalid_flow.invalidate(invalid_start, invalid_end)
 
     def _update_flow_glyphs(self) -> None:
@@ -321,21 +321,21 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         if invalid_end - invalid_start <= 0:
             return
 
-        # Find first invalid line
+        # 035859.python.incremental.line324.comment Find first invalid line
         line_index = 0
         for i, line in enumerate(self.lines):
             if line.start >= invalid_start:
                 break
             line_index = i
 
-        # Flow from previous line; fixes issue with adding a space into
-        # overlong line (glyphs before space would then flow back onto
-        # previous line).
-        # TODO:  Could optimise this by keeping track of where the overlong lines are.
+        # 035860.python.incremental.line331.comment Flow from previous line; fixes issue with adding a space into
+        # 035861.python.incremental.line332.comment overlong line (glyphs before space would then flow back onto
+        # 035862.python.incremental.line333.comment previous line).
+        # 035863.python.incremental.line334.comment TODO:  Could optimise this by keeping track of where the overlong lines are.
         line_index = max(0, line_index - 1)
 
-        # (No need to find last invalid line; the update loop below stops
-        # calling the flow generator when no more changes are necessary.)
+        # 035864.python.incremental.line337.comment (No need to find last invalid line; the update loop below stops
+        # 035865.python.incremental.line338.comment calling the flow generator when no more changes are necessary.)
 
         try:
             line = self.lines[line_index]
@@ -373,13 +373,13 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             try:
                 next_line = self.lines[line_index]
                 if next_start == next_line.start and next_start > invalid_end:
-                    # No more lines need to be modified, early exit.
+                    # 035866.python.incremental.line376.comment No more lines need to be modified, early exit.
                     break
             except IndexError:
                 pass
 
-        # The last line is at line_index - 1, if there are any more lines
-        # after that they are stale and need to be deleted.
+        # 035867.python.incremental.line381.comment The last line is at line_index - 1, if there are any more lines
+        # 035868.python.incremental.line382.comment after that they are stale and need to be deleted.
         if next_start == len(self._document.text) and line_index > 0:
             for line in self.lines[line_index:]:
                 old_line_width = old_line.width + old_line.margin_left
@@ -389,7 +389,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             del self.lines[line_index:]
 
         if content_width_invalid or len(self.lines) == 1:
-            # Rescan all lines to look for the new maximum content width
+            # 035869.python.incremental.line392.comment Rescan all lines to look for the new maximum content width
             content_width = 0
             for line in self.lines:
                 content_width = max(line.width + line.margin_left, content_width)
@@ -402,7 +402,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
         invalid_end = self._flow_lines(self.lines, invalid_start, invalid_end)
 
-        # Invalidate lines that need new vertex lists.
+        # 035870.python.incremental.line405.comment Invalidate lines that need new vertex lists.
         self._invalid_vertex_lines.invalidate(invalid_start, invalid_end)
 
     def _update_visible_lines(self) -> None:
@@ -415,13 +415,13 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             if line.y + line.ascent > self._translate_y - self.height:
                 end = max(end, i) + 1
 
-        # Delete newly invisible lines
+        # 035871.python.incremental.line418.comment Delete newly invisible lines
         for i in range(self._visible_lines.start, min(start, len(self.lines))):
             self.lines[i].delete(self)
         for i in range(end, min(self._visible_lines.end, len(self.lines))):
             self.lines[i].delete(self)
 
-        # Invalidate newly visible lines
+        # 035872.python.incremental.line424.comment Invalidate newly visible lines
         self._invalid_vertex_lines.invalidate(start, self._visible_lines.start)
         self._invalid_vertex_lines.invalidate(self._visible_lines.end, end)
 
@@ -429,7 +429,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self._visible_lines.end = end
 
     def _update_vertex_lists(self, update_view_translation:bool =True) -> None:
-        # Find lines that have been affected by style changes
+        # 035873.python.incremental.line432.comment Find lines that have been affected by style changes
         style_invalid_start, style_invalid_end = self._invalid_style.validate()
         self._invalid_vertex_lines.invalidate(
             self.get_line_from_position(style_invalid_start),
@@ -470,7 +470,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             context.line = line
             y = line.y
 
-            # Early out if not visible
+            # 035874.python.incremental.line473.comment Early out if not visible
             if y + line.descent > self._translate_y:
                 continue
             if y + line.ascent < self._translate_y - self.height:
@@ -478,11 +478,11 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
             self._create_vertex_lists(line.x, y, self._anchor_left, top_anchor, line.start, line.boxes, context)
 
-        # Update translation as new and old lines aren't guaranteed to update the translation after.
+        # 035875.python.incremental.line481.comment Update translation as new and old lines aren't guaranteed to update the translation after.
         if update_view_translation:
             self._update_view_translation()
 
-        # Update groups with scissor areas if any groups were changed.
+        # 035876.python.incremental.line485.comment Update groups with scissor areas if any groups were changed.
         if group_ct != len(self.group_cache):
             self._update_scissor_area()
 
@@ -502,7 +502,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     @y.setter
     def y(self, y: float) -> None:
         super()._set_y(y)
-        # Invalidate vertices, as the vertices will have changed.
+        # 035877.python.incremental.line505.comment Invalidate vertices, as the vertices will have changed.
         self._invalid_vertex_lines.invalidate(0, len(self.document.text))
         self._update_scissor_area()
 
@@ -523,7 +523,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     def position(self, position: tuple[float, float, float]) -> None:
         old_y = self._y
         super()._set_position(position)
-        # Invalidate the lines if the Y changed.
+        # 035878.python.incremental.line526.comment Invalidate the lines if the Y changed.
         if self._y != old_y:
             self._invalid_vertex_lines.invalidate(0, len(self.document.text))
         self._update_view_translation()
@@ -557,7 +557,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
     @width.setter
     def width(self, width: int) -> None:
-        # Invalidate everything when width changes
+        # 035879.python.incremental.line560.comment Invalidate everything when width changes
         if width == self._width:
             return
         self._width = width
@@ -570,7 +570,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
     @height.setter
     def height(self, height: int) -> None:
-        # Recalculate visible lines when height changes
+        # 035880.python.incremental.line573.comment Recalculate visible lines when height changes
         if height == self._height:
             return
         self._height = height
@@ -590,7 +590,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self._update()
 
     def _update_view_translation(self) -> None:
-        # Offset of content within viewport
+        # 035881.python.incremental.line593.comment Offset of content within viewport
         for line in self.lines[self._visible_lines.start:self._visible_lines.end]:
             for box in line.boxes:
                 box.update_view_translation(self._translate_x, self._translate_y)
@@ -598,7 +598,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self.dispatch_event("on_translation_update")
 
     def _update_translation(self) -> None:
-        # Vertex lists are stored in the lines.
+        # 035882.python.incremental.line601.comment Vertex lists are stored in the lines.
         for line in self.lines[self._visible_lines.start:self._visible_lines.end]:
             for box in line.boxes:
                 box.update_translation(self._x, self._y, self._z)
@@ -609,14 +609,14 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
         anchor_left, anchor_top = (self._anchor_left, self._get_top_anchor())
 
-        # A line can also have more than 1 box. For example, if the text "This is a test" does not fill
-        # the whole line, it will be split to 2 boxes: ("This is a ", "test")
-        # This is to allow the second GlyphBox to be pushed onto the next line should it wrap in multiline.
-        # "This is a test " will be created as one GlyphBox.
+        # 035883.python.incremental.line612.comment A line can also have more than 1 box. For example, if the text "This is a test" does not fill
+        # 035884.python.incremental.line613.comment the whole line, it will be split to 2 boxes: ("This is a ", "test")
+        # 035885.python.incremental.line614.comment This is to allow the second GlyphBox to be pushed onto the next line should it wrap in multiline.
+        # 035886.python.incremental.line615.comment "This is a test " will be created as one GlyphBox.
         for line in self.lines[self._visible_lines.start:self._visible_lines.end]:
-            # A line can have no vertex list if it's out of view OR is an empty row.
+            # 035887.python.incremental.line617.comment A line can have no vertex list if it's out of view OR is an empty row.
 
-            # Accumulate the X accounting for multiple GlyphBoxes.
+            # 035888.python.incremental.line619.comment Accumulate the X accounting for multiple GlyphBoxes.
             anchor_x = anchor_left
             for box in line.boxes:
                 box.update_anchor(anchor_x, anchor_top)
@@ -643,7 +643,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             return 0
         if self._anchor_y == "center":
             if self._line_count == 1 and self._height is None:
-                # This "looks" more centered than considering all of the descent.
+                # 035889.python.incremental.line646.comment This "looks" more centered than considering all of the descent.
                 return (self._ascent // 2 - self._descent // 4) - height
 
             return offset - height // 2
@@ -699,8 +699,8 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
     @view_y.setter
     def view_y(self, view_y: int) -> None:
-        # Invalidate invisible/visible lines when y scrolls
-        # view_y must be negative.
+        # 035891.python.incremental.line702.comment Invalidate invisible/visible lines when y scrolls
+        # 035892.python.incremental.line703.comment view_y must be negative.
         translation = min(0, max(self.height - self._content_height, view_y))
         if translation != self._translate_y:
             self._translate_y = translation
@@ -708,7 +708,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             self._update_vertex_lists(update_view_translation=False)
             self._update_view_translation()
 
-    # Visible selection
+    # 035893.python.incremental.line711.comment Visible selection
 
     def set_selection(self, start: int, end: int) -> None:
         """Set the text selection range.
@@ -725,11 +725,11 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             return
 
         if end > self._selection_start and start < self._selection_end:
-            # Overlapping, only invalidate difference
+            # 035894.python.incremental.line728.comment Overlapping, only invalidate difference
             self._invalid_style.invalidate(min(start, self._selection_start), max(start, self._selection_start))
             self._invalid_style.invalidate(min(end, self._selection_end), max(end, self._selection_end))
         else:
-            # Non-overlapping, invalidate both ranges
+            # 035895.python.incremental.line732.comment Non-overlapping, invalidate both ranges
             self._invalid_style.invalidate(self._selection_start, self._selection_end)
             self._invalid_style.invalidate(start, end)
 
@@ -788,7 +788,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self._selection_background_color = background_color
         self._invalid_style.invalidate(self._selection_start, self._selection_end)
 
-    # Coordinate translation
+    # 035896.python.incremental.line791.comment Coordinate translation
 
     def get_position_from_point(self, x: float, y: float) -> int:
         """Get the closest document position to a point."""

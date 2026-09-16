@@ -35,7 +35,7 @@ def show_formats():
 
 
 class ListCompat(dict[str, tuple[str, str]]):
-    # adapter to allow for Setuptools compatibility in format_commands
+    # 039319.python.bdist.line38.comment adapter to allow for Setuptools compatibility in format_commands
     @deprecated("format_commands is now a dict. append is deprecated.")
     def append(self, item: object) -> None:
         warnings.warn(
@@ -81,14 +81,14 @@ class bdist(Command):
         ('help-formats', None, "lists available distribution formats", show_formats),
     ]
 
-    # The following commands do not take a format option from bdist
+    # 039320.python.bdist.line84.comment The following commands do not take a format option from bdist
     no_format_option: ClassVar[tuple[str, ...]] = ('bdist_rpm',)
 
-    # This won't do in reality: will need to distinguish RPM-ish Linux,
-    # Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.
+    # 039321.python.bdist.line87.comment This won't do in reality: will need to distinguish RPM-ish Linux,
+    # 039322.python.bdist.line88.comment Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.
     default_format: ClassVar[dict[str, str]] = {'posix': 'gztar', 'nt': 'zip'}
 
-    # Define commands in preferred order for the --help-formats option
+    # 039323.python.bdist.line91.comment Define commands in preferred order for the --help-formats option
     format_commands = ListCompat({
         'rpm': ('bdist_rpm', "RPM distribution"),
         'gztar': ('bdist_dumb', "gzip'ed tar file"),
@@ -99,7 +99,7 @@ class bdist(Command):
         'zip': ('bdist_dumb', "ZIP file"),
     })
 
-    # for compatibility until consumers only reference format_commands
+    # 039324.python.bdist.line102.comment for compatibility until consumers only reference format_commands
     format_command = format_commands
 
     def initialize_options(self):
@@ -112,16 +112,16 @@ class bdist(Command):
         self.owner = None
 
     def finalize_options(self) -> None:
-        # have to finalize 'plat_name' before 'bdist_base'
+        # 039325.python.bdist.line115.comment have to finalize 'plat_name' before 'bdist_base'
         if self.plat_name is None:
             if self.skip_build:
                 self.plat_name = get_platform()
             else:
                 self.plat_name = self.get_finalized_command('build').plat_name
 
-        # 'bdist_base' -- parent of per-built-distribution-format
-        # temporary directories (eg. we'll probably have
-        # "build/bdist.<plat>/dumb", "build/bdist.<plat>/rpm", etc.)
+        # 039326.python.bdist.line122.comment 'bdist_base' -- parent of per-built-distribution-format
+        # 039327.python.bdist.line123.comment temporary directories (eg. we'll probably have
+        # 039328.python.bdist.line124.comment "build/bdist.<plat>/dumb", "build/bdist.<plat>/rpm", etc.)
         if self.bdist_base is None:
             build_base = self.get_finalized_command('build').build_base
             self.bdist_base = os.path.join(build_base, 'bdist.' + self.plat_name)
@@ -140,7 +140,7 @@ class bdist(Command):
             self.dist_dir = "dist"
 
     def run(self) -> None:
-        # Figure out which sub-commands we need to run.
+        # 039329.python.bdist.line143.comment Figure out which sub-commands we need to run.
         commands = []
         for format in self.formats:
             try:
@@ -148,20 +148,20 @@ class bdist(Command):
             except KeyError:
                 raise DistutilsOptionError(f"invalid format '{format}'")
 
-        # Reinitialize and run each command.
+        # 039330.python.bdist.line151.comment Reinitialize and run each command.
         for i in range(len(self.formats)):
             cmd_name = commands[i]
             sub_cmd = self.reinitialize_command(cmd_name)
             if cmd_name not in self.no_format_option:
                 sub_cmd.format = self.formats[i]
 
-            # passing the owner and group names for tar archiving
+            # 039331.python.bdist.line158.comment passing the owner and group names for tar archiving
             if cmd_name == 'bdist_dumb':
                 sub_cmd.owner = self.owner
                 sub_cmd.group = self.group
 
-            # If we're going to need to run this command again, tell it to
-            # keep its temporary files around so subsequent runs go faster.
+            # 039332.python.bdist.line163.comment If we're going to need to run this command again, tell it to
+            # 039333.python.bdist.line164.comment keep its temporary files around so subsequent runs go faster.
             if cmd_name in commands[i + 1 :]:
                 sub_cmd.keep_temp = True
             self.run_command(cmd_name)

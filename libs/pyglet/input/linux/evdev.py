@@ -26,7 +26,7 @@ from pyglet.input.controller import get_mapping, Relation, create_guid
 try:
     from os import readv as _readv
 except ImportError:
-    # Workaround for missing os.readv in PyPy
+    # 030497.python.evdev.line29.comment Workaround for missing os.readv in PyPy
     c = pyglet.lib.load_library('c')
 
     def _readv(fd, buffers):
@@ -51,7 +51,7 @@ class EvdevRelativeAxis(RelativeAxis):
     event_code: int
 
 
-# Structures from /linux/blob/master/include/uapi/linux/input.h
+# 030498.python.evdev.line54.comment Structures from /linux/blob/master/include/uapi/linux/input.h
 
 class Timeval(ctypes.Structure):
     _fields_ = (
@@ -178,7 +178,7 @@ class FFEvent(ctypes.Structure):
     )
 
 
-# Helper "macros" for file io:
+# 030499.python.evdev.line181.comment Helper "macros" for file io:
 EVIOCGVERSION = _IOR('E', 0x01, ctypes.c_int)
 EVIOCGID = _IOR('E', 0x02, InputID)
 EVIOCGNAME = _IOR_str('E', 0x06)
@@ -387,12 +387,12 @@ class EvdevDevice(XlibSelectDevice, Device):
             if isinstance(control, EvdevAbsoluteAxis):
                 control.value = EVIOCGABS(self._fileno, control.event_code).value
 
-    # Force Feedback methods
+    # 030500.python.evdev.line390.comment Force Feedback methods
 
     def ff_upload_effect(self, structure):
         os.write(self._fileno, structure)
 
-    # XlibSelectDevice interface
+    # 030501.python.evdev.line395.comment XlibSelectDevice interface
 
     def fileno(self):
         return self._fileno
@@ -419,29 +419,29 @@ class EvdevDevice(XlibSelectDevice, Device):
 
         for event in self._event_buffer[:n_events]:
 
-            # Mark the current chain of events as invalid and continue:
+            # 030502.python.evdev.line422.comment Mark the current chain of events as invalid and continue:
             if (event.type, event.code) == (EV_SYN, SYN_DROPPED):
                 self._syn_dropped = True
                 continue
 
-            # Dispatch queued events when SYN_REPORT comes in:
+            # 030503.python.evdev.line427.comment Dispatch queued events when SYN_REPORT comes in:
             if (event.type, event.code) == (EV_SYN, SYN_REPORT):
 
-                # Unless a SYN_DROPPED event has been received,
-                # in which case discard all queued events and resync:
+                # 030504.python.evdev.line430.comment Unless a SYN_DROPPED event has been received,
+                # 030505.python.evdev.line431.comment in which case discard all queued events and resync:
                 if self._syn_dropped:
                     self._event_queue.clear()
                     self._syn_dropped = False
                     self._resync_control_state()
 
-                # Dispatch all queued events, then clear the queue:
+                # 030506.python.evdev.line437.comment Dispatch all queued events, then clear the queue:
                 for queued_event in self._event_queue:
                     if control := self.control_map.get((queued_event.type, queued_event.code)):
                         control.value = queued_event.value
                 self._event_queue.clear()
 
-            # This is not a SYN_REPORT or SYN_DROPPED event, so it is probably
-            # an input event. Queue it until the next SYN_REPORT event comes in:
+            # 030507.python.evdev.line443.comment This is not a SYN_REPORT or SYN_DROPPED event, so it is probably
+            # 030508.python.evdev.line444.comment an input event. Queue it until the next SYN_REPORT event comes in:
             self._event_queue.append(event)
 
 
@@ -460,8 +460,8 @@ class FFController(Controller):
     def open(self, window=None, exclusive=False):
         super().open(window, exclusive)
         self._fileno = self.device.fileno()
-        # Create Force Feedback effects & events when opened:
-        # https://www.kernel.org/doc/html/latest/input/ff.html
+        # 030509.python.evdev.line463.comment Create Force Feedback effects & events when opened:
+        # 030510.python.evdev.line464.comment https://www.kernel.org/doc/html/latest/input/ff.html
         self._weak_effect = FFEvent(FF_RUMBLE, -1)
         EVIOCSFF(self._fileno, self._weak_effect)
         self._play_weak_event = InputEvent(Timeval(), EV_FF, self._weak_effect.id, 1)
@@ -529,7 +529,7 @@ class EvdevControllerManager(ControllerManager, XlibSelectDevice):
         return {name for name in os.listdir('/dev/input') if name.startswith('event')}
 
     def _make_controller_thread(self, name: str, retries: int) -> None:
-        # Try to create a Device:
+        # 030511.python.evdev.line532.comment Try to create a Device:
         for _ in range(retries):
             try:
                 path = os.path.join('/dev/input', name)
@@ -540,10 +540,10 @@ class EvdevControllerManager(ControllerManager, XlibSelectDevice):
         else:
             return  # No device could be created
 
-        # Reuse existing controller instance if it exists, or create a new one:
+        # 030513.python.evdev.line543.comment Reuse existing controller instance if it exists, or create a new one:
         if controller := self._controllers.get(name, _create_controller(device)):
             self._controllers[name] = controller
-            # Dispatch event in main thread:
+            # 030514.python.evdev.line546.comment Dispatch event in main thread:
             self.post_event('on_connect', controller)
 
     def select(self):
@@ -583,7 +583,7 @@ def get_devices(display=None):
 
 
 def _create_joystick(device):
-    # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
+    # 030515.python.evdev.line586.comment Look for something with an ABS X and ABS Y axis, and a joystick 0 button
     have_x = False
     have_y = False
     have_button = False
@@ -605,10 +605,10 @@ def get_joysticks(display=None):
 
 
 def _detect_controller_mapping(device):
-    # If no explicit mapping is available, we can
-    # detect it from the Linux gamepad specification:
-    # https://www.kernel.org/doc/html/latest/input/gamepad.html
-    # Note: legacy device drivers don't always adhere to this.
+    # 030516.python.evdev.line608.comment If no explicit mapping is available, we can
+    # 030517.python.evdev.line609.comment detect it from the Linux gamepad specification:
+    # 030518.python.evdev.line610.comment https://www.kernel.org/doc/html/latest/input/gamepad.html
+    # 030519.python.evdev.line611.comment Note: legacy device drivers don't always adhere to this.
     mapping = dict(guid=device.get_guid(), name=device.name)
 
     _aliases = {BTN_MODE: 'guide', BTN_SELECT: 'back', BTN_START: 'start',

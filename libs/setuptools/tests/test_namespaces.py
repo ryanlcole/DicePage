@@ -19,7 +19,7 @@ class TestNamespaces:
         site_packages = tmpdir / 'site-packages'
         path_packages = tmpdir / 'path-packages'
         targets = site_packages, path_packages
-        # use pip to install to the target directory
+        # 045508.python.test_namespaces.line22.comment use pip to install to the target directory
         install_cmd = [
             sys.executable,
             '-m',
@@ -84,7 +84,7 @@ class TestNamespaces:
         """
         pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
         target = tmpdir / 'packages'
-        # use pip to install to the target directory
+        # 045509.python.test_namespaces.line87.comment use pip to install to the target directory
         install_cmd = [
             sys.executable,
             '-m',
@@ -97,7 +97,7 @@ class TestNamespaces:
         subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
 
-        # ensure that package imports and pkg_resources imports
+        # 045510.python.test_namespaces.line100.comment ensure that package imports and pkg_resources imports
         pkg_resources_imp = [
             sys.executable,
             '-c',
@@ -115,7 +115,7 @@ class TestNamespaces:
         pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmpdir, 'myns.pkgB')
         target = tmpdir / 'packages'
-        # use pip to install to the target directory
+        # 045511.python.test_namespaces.line118.comment use pip to install to the target directory
         install_cmd = [
             sys.executable,
             '-m',
@@ -128,7 +128,7 @@ class TestNamespaces:
         subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
 
-        # ensure that all packages import and pkg_resources imports
+        # 045512.python.test_namespaces.line131.comment ensure that all packages import and pkg_resources imports
         pkg_resources_imp = [
             sys.executable,
             '-c',

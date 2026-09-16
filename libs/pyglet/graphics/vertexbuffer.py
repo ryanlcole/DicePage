@@ -200,7 +200,7 @@ class BufferObject(AbstractBuffer):
                 pass  # Interpreter is shutting down
 
     def resize(self, size: int) -> None:
-        # Map, create a copy, then reinitialize.
+        # 030168.python.vertexbuffer.line203.comment Map, create a copy, then reinitialize.
         temp = (ctypes.c_byte * size)()
 
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
@@ -282,10 +282,10 @@ class BackedBufferObject(BufferObject):
 
         self.data[array_start:array_end] = data
 
-        # replicated from self.invalidate_region
+        # 030173.python.vertexbuffer.line285.comment replicated from self.invalidate_region
         byte_start = self.stride * start
         byte_end = byte_start + self.stride * count
-        # As of Python 3.11, this is faster than min/max:
+        # 030174.python.vertexbuffer.line288.comment As of Python 3.11, this is faster than min/max:
         if byte_start < self._dirty_min:
             self._dirty_min = byte_start
         if byte_end > self._dirty_max:
@@ -293,7 +293,7 @@ class BackedBufferObject(BufferObject):
         self._dirty = True
 
     def resize(self, size: int) -> None:
-        # size is the allocator size * attribute.stride
+        # 030175.python.vertexbuffer.line296.comment size is the allocator size * attribute.stride
         number = size // ctypes.sizeof(self.c_type)
         data = (self.c_type * number)()
         ctypes.memmove(data, self.data, min(size, self.size))
@@ -301,7 +301,7 @@ class BackedBufferObject(BufferObject):
         self.data_ptr = ctypes.addressof(data)
         self.size = size
 
-        # Set the dirty range to be the entire buffer.
+        # 030176.python.vertexbuffer.line304.comment Set the dirty range to be the entire buffer.
         self._dirty_min = 0
         self._dirty_max = self.size
         self._dirty = True
@@ -315,7 +315,7 @@ class BackedBufferObject(BufferObject):
     def invalidate_region(self, start: int, count: int) -> None:
         byte_start = self.stride * start
         byte_end = byte_start + self.stride * count
-        # As of Python 3.11, this is faster than min/max:
+        # 030177.python.vertexbuffer.line318.comment As of Python 3.11, this is faster than min/max:
         if byte_start < self._dirty_min:
             self._dirty_min = byte_start
         if byte_end > self._dirty_max:
@@ -327,7 +327,7 @@ class AttributeBufferObject(BackedBufferObject):
     """A backed buffer used for Shader Program attributes."""
 
     def __init__(self, size: int, attribute: Attribute) -> None:  # noqa: D107
-        # size is the allocator size * attribute.stride (buffer size)
+        # 030179.python.vertexbuffer.line330.comment size is the allocator size * attribute.stride (buffer size)
         super().__init__(size, attribute.c_type, attribute.stride, attribute.count)
 
 
@@ -348,10 +348,10 @@ class PersistentBufferObject(AbstractBuffer):
     """
 
     def __init__(self, size, attribute, vao):
-        # TODO: Persistent buffers cannot be resized. A new buffer is created, and the
-        #       data is copied over. Therefore, unlike other buffers, they currently
-        #       require s reference to an attribute so the attribute pointer can be reset
-        #       on resize calls. This can be reevaluated for a better solution.
+        # 030181.python.vertexbuffer.line351.comment TODO: Persistent buffers cannot be resized. A new buffer is created, and the
+        # 030182.python.vertexbuffer.line352.comment data is copied over. Therefore, unlike other buffers, they currently
+        # 030183.python.vertexbuffer.line353.comment require s reference to an attribute so the attribute pointer can be reset
+        # 030184.python.vertexbuffer.line354.comment on resize calls. This can be reevaluated for a better solution.
 
         self.size = size
         self.attribute = attribute
@@ -371,7 +371,7 @@ class PersistentBufferObject(AbstractBuffer):
         data = (GLubyte * size)()
         glBufferStorage(GL_ARRAY_BUFFER, size, data, self.flags)
 
-        # size is the allocator size * attribute.stride
+        # 030185.python.vertexbuffer.line374.comment size is the allocator size * attribute.stride
         number = size // attribute.element_size
         ptr = ctypes.POINTER(attribute.c_type * number)
         self.data = ctypes.cast(glMapBufferRange(GL_ARRAY_BUFFER, 0, size, self.flags), ptr).contents
@@ -415,23 +415,23 @@ class PersistentBufferObject(AbstractBuffer):
         self.data[array_start:array_end] = data
 
     def resize(self, size):
-        # Create temporary copy of current data
+        # 030188.python.vertexbuffer.line418.comment Create temporary copy of current data
         temp = (GLubyte * size)()
         ctypes.memmove(temp, self.data, min(size, self.size))
         glDeleteBuffers(1, GLuint(self.id))
 
-        # Generate new buffer
+        # 030189.python.vertexbuffer.line423.comment Generate new buffer
         buffer_id = GLuint()
         glGenBuffers(1, buffer_id)
         self.id = buffer_id.value
 
-        # Link attributes to new buffer:
+        # 030190.python.vertexbuffer.line428.comment Link attributes to new buffer:
         self.vao.bind()
         self.bind()
         self.attribute.enable()
         self.attribute.set_pointer(self.ptr)
 
-        # Initialize the new buffer with the old data, and map it:
+        # 030191.python.vertexbuffer.line434.comment Initialize the new buffer with the old data, and map it:
         glBufferStorage(GL_ARRAY_BUFFER, size, temp, self.flags)
 
         ptr_type = self.attribute.c_type * (size // self.attribute.element_size)
@@ -441,13 +441,13 @@ class PersistentBufferObject(AbstractBuffer):
         self.get_region.cache_clear()
 
     def sub_data(self):
-        # Not necessary with persistent mapping
+        # 030192.python.vertexbuffer.line444.comment Not necessary with persistent mapping
         pass
 
     def invalidate(self):
-        # Not necessary with persistent mapping
+        # 030193.python.vertexbuffer.line448.comment Not necessary with persistent mapping
         pass
 
     def invalidate_region(self, start, count):
-        # Not necessary with persistent mapping
+        # 030194.python.vertexbuffer.line452.comment Not necessary with persistent mapping
         pass

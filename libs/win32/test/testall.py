@@ -6,19 +6,19 @@ import unittest
 
 import pywin32_testutil
 
-# A list of demos that depend on user-interface of *any* kind.  Tests listed
-# here are not suitable for unattended testing.
+# 048518.python.testall.line9.comment A list of demos that depend on user-interface of *any* kind.  Tests listed
+# 048519.python.testall.line10.comment here are not suitable for unattended testing.
 ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
               win32gui_dialog win32gui_menu win32gui_taskbar
               win32rcparser_demo winprocess win32console_demo
               win32clipboard_bitmapdemo
               win32gui_devicenotify
               NetValidatePasswordPolicy""".split()
-# Other demos known as 'bad' (or at least highly unlikely to work)
-# desktopmanager: hangs (well, hangs for 60secs or so...)
-# EvtSubscribe_*: must be run together:
-# SystemParametersInfo: a couple of the params cause markh to hang, and there's
-# no great reason to adjust (twice!) all those system settings!
+# 048520.python.testall.line17.comment Other demos known as 'bad' (or at least highly unlikely to work)
+# 048521.python.testall.line18.comment desktopmanager: hangs (well, hangs for 60secs or so...)
+# 048522.python.testall.line19.comment EvtSubscribe_*: must be run together:
+# 048523.python.testall.line20.comment SystemParametersInfo: a couple of the params cause markh to hang, and there's
+# 048524.python.testall.line21.comment no great reason to adjust (twice!) all those system settings!
 bad_demos = """desktopmanager win32comport_demo
                EvtSubscribe_pull EvtSubscribe_push
                SystemParametersInfo
@@ -30,7 +30,7 @@ argvs = {
 
 no_user_interaction = True
 
-# re to pull apart an exception line into the exception type and the args.
+# 048525.python.testall.line33.comment re to pull apart an exception line into the exception type and the args.
 re_exception = re.compile(r"([a-zA-Z0-9_.]*): (.*)$")
 
 
@@ -44,40 +44,40 @@ def find_exception_in_output(data):
         if line.startswith(" "):
             continue
         if have_traceback:
-            # first line not starting with a space since the traceback.
-            # must be the exception!
+            # 048527.python.testall.line47.comment first line not starting with a space since the traceback.
+            # 048528.python.testall.line48.comment must be the exception!
             m = re_exception.match(line)
             if m:
                 exc_type, args = m.groups()
-                # get hacky - get the *real* exception object from the name.
+                # 048529.python.testall.line52.comment get hacky - get the *real* exception object from the name.
                 bits = exc_type.split(".", 1)
                 if len(bits) > 1:
                     mod = __import__(bits[0])
                     exc = getattr(mod, bits[1])
                 else:
-                    # probably builtin
+                    # 048530.python.testall.line58.comment probably builtin
                     exc = eval(bits[0])
             else:
-                # hrm - probably just an exception with no args
+                # 048531.python.testall.line61.comment hrm - probably just an exception with no args
                 try:
                     exc = eval(line.strip())
                     args = "()"
                 except:
                     return None
-            # try and turn the args into real args.
+            # 048532.python.testall.line67.comment try and turn the args into real args.
             try:
                 args = eval(args)
             except:
                 pass
             if not isinstance(args, tuple):
                 args = (args,)
-            # try and instantiate the exception.
+            # 048533.python.testall.line74.comment try and instantiate the exception.
             try:
                 ret = exc(*args)
             except:
                 ret = None
             return ret
-        # apparently not - keep looking...
+        # 048534.python.testall.line80.comment apparently not - keep looking...
         have_traceback = False
 
 
@@ -97,7 +97,7 @@ class TestRunner:
 
         if rc:
             base = os.path.basename(self.argv[1])
-            # See if we can detect and reconstruct an exception in the output.
+            # 048535.python.testall.line100.comment See if we can detect and reconstruct an exception in the output.
             reconstituted = find_exception_in_output(output)
             assert reconstituted is not None, (
                 f"{base} failed with exit code {rc}.  Output is:\n{output}"
@@ -115,7 +115,7 @@ def get_demo_tests():
         base, ext = os.path.splitext(name)
         if base in ui_demos and no_user_interaction:
             continue
-        # Skip any other files than .py and bad tests in any case
+        # 048536.python.testall.line118.comment Skip any other files than .py and bad tests in any case
         if ext != ".py" or base in bad_demos:
             continue
         argv = (sys.executable, os.path.join(demo_dir, base + ".py")) + argvs.get(
@@ -130,7 +130,7 @@ def get_demo_tests():
 
 
 def import_all():
-    # Some hacks for import order - dde depends on win32ui
+    # 048537.python.testall.line133.comment Some hacks for import order - dde depends on win32ui
     try:
         import win32ui
     except ImportError:
@@ -143,7 +143,7 @@ def import_all():
     is_debug = os.path.splitext(os.path.basename(win32api.__file__))[0].endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
-        # handle `modname.cp310-win_amd64.pyd` etc
+        # 048539.python.testall.line146.comment handle `modname.cp310-win_amd64.pyd` etc
         base = base.split(".")[0]
         if (
             (ext == ".pyd")
@@ -159,7 +159,7 @@ def import_all():
 
 
 def suite():
-    # Loop over all .py files here, except me :)
+    # 048540.python.testall.line162.comment Loop over all .py files here, except me :)
     try:
         me = __file__
     except NameError:

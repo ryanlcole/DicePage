@@ -1,9 +1,9 @@
-# dojobapp - do a job, show the result in a dialog, and exit.
-#
-# Very simple - faily minimal dialog based app.
-#
-# This should be run using the command line:
-# pythonwin /app demos\dojobapp.py
+# 036610.python.dojobapp.line1.comment dojobapp - do a job, show the result in a dialog, and exit.
+# 036611.python.dojobapp.line2.comment
+# 036612.python.dojobapp.line3.comment Very simple - faily minimal dialog based app.
+# 036613.python.dojobapp.line4.comment
+# 036614.python.dojobapp.line5.comment This should be run using the command line:
+# 036615.python.dojobapp.line6.comment pythonwin /app demos\dojobapp.py
 
 
 import win32con
@@ -31,7 +31,7 @@ class DoJobAppDialog(dlgappcore.AppDialog):
         p1 = self.GetDlgItem(win32ui.IDC_PROMPT1)
         p2 = self.GetDlgItem(win32ui.IDC_PROMPT2)
 
-        # Do something here!
+        # 036616.python.dojobapp.line34.comment Do something here!
 
         p1.SetWindowText("Hello there")
         p2.SetWindowText("from the demo")
@@ -40,10 +40,10 @@ class DoJobAppDialog(dlgappcore.AppDialog):
         pass
 
 
-# 	def OnOK(self):
-# 		pass
-# 	def OnCancel(self): default behaviour - cancel == close.
-# 		return
+# 036617.python.dojobapp.line43.comment def OnOK(self):
+# 036618.python.dojobapp.line44.comment pass
+# 036619.python.dojobapp.line45.comment def OnCancel(self): default behaviour - cancel == close.
+# 036620.python.dojobapp.line46.comment return
 
 
 class DoJobDialogApp(dlgappcore.DialogApp):

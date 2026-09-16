@@ -74,7 +74,7 @@ _block_elements = ["p", "h1", "h2", "h3", "h4", "h5", "h6",
                    "pre", "dl", "div", "center",
                    "noscript", "noframes", "blockquote", "form",
                    "isindex", "hr", "table", "fieldset", "address",
-                   # Incorrect, but we treat list items as blocks:
+                   # 035705.python.html.line77.comment Incorrect, but we treat list items as blocks:
                    "li", "dd", "dt" ]
 
 _block_containers = ["_top_block",
@@ -82,13 +82,13 @@ _block_containers = ["_top_block",
                      "blockquote", "ins", "del", "dd", "li", "form",
                      "fieldset", "button", "th", "td", "iframe", "noscript",
                      "noframes",
-                     # Incorrect, but we treat list items as blocks:
+                     # 035706.python.html.line85.comment Incorrect, but we treat list items as blocks:
                      "ul", "ol", "dir", "menu", "dl"]
 
 
 class HTMLDecoder(HTMLParser, structured.StructuredTextDecoder):
     """Decoder for HTML documents."""
-    #: Default style attributes for unstyled text in the HTML document.
+    # 035707.python.html.line91.comment : Default style attributes for unstyled text in the HTML document.
     default_style: ClassVar[dict[str, Any]] = {
         "font_name": "Times New Roman",
         "font_size": 12,
@@ -97,7 +97,7 @@ class HTMLDecoder(HTMLParser, structured.StructuredTextDecoder):
         "italic": False,
     }
 
-    #: Map HTML font sizes to actual font sizes, in points.
+    # 035708.python.html.line100.comment : Map HTML font sizes to actual font sizes, in points.
     font_sizes: ClassVar[dict[int, int]] = {
         1: 8,
         2: 10,
@@ -161,7 +161,7 @@ class HTMLDecoder(HTMLParser, structured.StructuredTextDecoder):
         if element in _metadata_elements:
             self.in_metadata = True
         elif element in _block_elements:
-            # Pop off elements until we get to a block container.
+            # 035710.python.html.line164.comment Pop off elements until we get to a block container.
             while self.element_stack[-1] not in _block_containers:
                 self.handle_endtag(self.element_stack[-1])
             if not self.block_begin:

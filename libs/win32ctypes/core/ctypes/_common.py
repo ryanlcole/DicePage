@@ -1,10 +1,10 @@
-#
-# (C) Copyright 2014 Enthought, Inc., Austin, TX
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in
-# LICENSE.txt
-#
+# 052230.python.common.line1.comment
+# 052231.python.common.line2.comment (C) Copyright 2014 Enthought, Inc., Austin, TX
+# 052232.python.common.line3.comment All right reserved.
+# 052233.python.common.line4.comment
+# 052234.python.common.line5.comment This file is open source software distributed according to the terms in
+# 052235.python.common.line6.comment LICENSE.txt
+# 052236.python.common.line7.comment
 import ctypes
 import sys
 from ctypes import (

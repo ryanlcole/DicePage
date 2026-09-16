@@ -8,8 +8,8 @@ import pythoncom
 from . import axdebug, expressions, gateways
 from .util import RaiseNotImpl, _wrap, trace
 
-# def trace(*args):
-#     pass
+# 050923.python.stackframe.line11.comment def trace(*args):
+# 050924.python.stackframe.line12.comment pass
 
 
 class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
@@ -20,18 +20,18 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
     def __init__(self, debugger):
         infos = []
         frame = debugger.currentframe
-        # print("Stack check")
+        # 050925.python.stackframe.line23.comment print("Stack check")
         while frame:
-            # print(" Checking frame", frame.f_code.co_filename, frame.f_lineno-1, frame.f_trace)
-            # Get a DebugCodeContext for the stack frame.  If we fail, then it
-            # is not debuggable, and therefore not worth displaying.
+            # 050926.python.stackframe.line25.comment print(" Checking frame", frame.f_code.co_filename, frame.f_lineno-1, frame.f_trace)
+            # 050927.python.stackframe.line26.comment Get a DebugCodeContext for the stack frame.  If we fail, then it
+            # 050928.python.stackframe.line27.comment is not debuggable, and therefore not worth displaying.
             cc = debugger.codeContainerProvider.FromFileName(frame.f_code.co_filename)
             if cc is not None:
                 try:
                     address = frame.f_locals["__axstack_address__"]
                 except KeyError:
-                    # print("Couldn't find stack address for",frame.f_code.co_filename, frame.f_lineno-1)
-                    # Use this one, even tho it is wrong :-(
+                    # 050929.python.stackframe.line33.comment print("Couldn't find stack address for",frame.f_code.co_filename, frame.f_lineno-1)
+                    # 050930.python.stackframe.line34.comment Use this one, even tho it is wrong :-(
                     address = axdebug.GetStackAddress()
                 frameInfo = (
                     DebugStackFrame(frame, frame.f_lineno - 1, cc),
@@ -41,25 +41,25 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
                     None,
                 )
                 infos.append(frameInfo)
-            #     print("- Kept!")
-            # else:
-            #     print("- rejected")
+            # 050931.python.stackframe.line44.comment print("- Kept!")
+            # 050932.python.stackframe.line45.comment else:
+            # 050933.python.stackframe.line46.comment print("- rejected")
             frame = frame.f_back
 
         gateways.EnumDebugStackFrames.__init__(self, infos, 0)
 
-    # def __del__(self):
-    #     print("EnumDebugStackFrames dieing")
+    # 050934.python.stackframe.line51.comment def __del__(self):
+    # 050935.python.stackframe.line52.comment print("EnumDebugStackFrames dieing")
 
     def Next(self, count):
         return gateways.EnumDebugStackFrames.Next(self, count)
 
-    # def _query_interface_(self, iid):
-    #     from win32com.util import IIDToInterfaceName
-    #     print(f"EnumDebugStackFrames QI with {IIDToInterfaceName(iid)} ({iid})")
-    #     return 0
+    # 050936.python.stackframe.line57.comment def _query_interface_(self, iid):
+    # 050937.python.stackframe.line58.comment from win32com.util import IIDToInterfaceName
+    # 050938.python.stackframe.line59.comment print(f"EnumDebugStackFrames QI with {IIDToInterfaceName(iid)} ({iid})")
+    # 050939.python.stackframe.line60.comment return 0
     def _wrap(self, obj):
-        # This enum returns a tuple, with 2 com objects in it.
+        # 050940.python.stackframe.line62.comment This enum returns a tuple, with 2 com objects in it.
         obFrame, min, lim, fFinal, obFinal = obj
         obFrame = _wrap(obFrame, axdebug.IID_IDebugStackFrame)
         if obFinal:
@@ -74,8 +74,8 @@ class DebugStackFrame(gateways.DebugStackFrame):
         self.codeContainer = codeContainer
         self.expressionContext = None
 
-    # def __del__(self):
-    #     print("DSF dieing")
+    # 050941.python.stackframe.line77.comment def __del__(self):
+    # 050942.python.stackframe.line78.comment print("DSF dieing")
     def _query_interface_(self, iid):
         if iid == axdebug.IID_IDebugExpressionContext:
             if self.expressionContext is None:
@@ -84,12 +84,12 @@ class DebugStackFrame(gateways.DebugStackFrame):
                     axdebug.IID_IDebugExpressionContext,
                 )
             return self.expressionContext
-        # from win32com.util import IIDToInterfaceName
-        # print(f"DebugStackFrame QI with {IIDToInterfaceName(iid)} ({iid})")
+        # 050943.python.stackframe.line87.comment from win32com.util import IIDToInterfaceName
+        # 050944.python.stackframe.line88.comment print(f"DebugStackFrame QI with {IIDToInterfaceName(iid)} ({iid})")
         return 0
 
-    #
-    # The following need implementation
+    # 050945.python.stackframe.line91.comment
+    # 050946.python.stackframe.line92.comment The following need implementation
     def GetThread(self):
         """Returns the thread associated with this stack frame.
 
@@ -101,8 +101,8 @@ class DebugStackFrame(gateways.DebugStackFrame):
         offset = self.codeContainer.GetPositionOfLine(self.lineno)
         return self.codeContainer.GetCodeContextAtPosition(offset)
 
-    #
-    # The following are usefully implemented
+    # 050947.python.stackframe.line104.comment
+    # 050948.python.stackframe.line105.comment The following are usefully implemented
     def GetDescriptionString(self, fLong):
         filename = self.frame.f_code.co_filename
         s = ""
@@ -132,8 +132,8 @@ class DebugStackFrameSniffer:
         self.debugger = debugger
         trace("DebugStackFrameSniffer instantiated")
 
-    # def __del__(self):
-    #     print("DSFS dieing")
+    # 050950.python.stackframe.line135.comment def __del__(self):
+    # 050951.python.stackframe.line136.comment print("DSFS dieing")
     def EnumStackFrames(self):
         trace("DebugStackFrameSniffer.EnumStackFrames called")
         return _wrap(
@@ -141,7 +141,7 @@ class DebugStackFrameSniffer:
         )
 
 
-# A DebugProperty for a stack frame.
+# 050952.python.stackframe.line144.comment A DebugProperty for a stack frame.
 class StackFrameDebugProperty:
     _com_interfaces_ = [axdebug.IID_IDebugProperty]
     _public_methods_ = [
@@ -162,7 +162,7 @@ class StackFrameDebugProperty:
         RaiseNotImpl("StackFrameDebugProperty::GetExtendedInfo")
 
     def SetValueAsString(self, value, radix):
-        #
+        # 050954.python.stackframe.line165.comment
         RaiseNotImpl("DebugProperty::SetValueAsString")
 
     def EnumMembers(self, dwFieldSpec, nRadix, iid):
@@ -174,5 +174,5 @@ class StackFrameDebugProperty:
         )
 
     def GetParent(self):
-        # return IDebugProperty
+        # 050955.python.stackframe.line177.comment return IDebugProperty
         RaiseNotImpl("DebugProperty::GetParent")

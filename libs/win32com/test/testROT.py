@@ -13,7 +13,7 @@ class TestROT(win32com.test.util.TestCase):
         for mk in rot:
             name = mk.GetDisplayName(ctx, None)
             num += 1
-            # Monikers themselves can iterate their contents (sometimes :)
+            # 050320.python.testROT.line16.comment Monikers themselves can iterate their contents (sometimes :)
             try:
                 for sub in mk:
                     num += 1
@@ -21,8 +21,8 @@ class TestROT(win32com.test.util.TestCase):
                 if exc.hresult != winerror.E_NOTIMPL:
                     raise
 
-        # if num < 2:
-        #     print("Only", num, "objects in the ROT - this is unusual")
+        # 050321.python.testROT.line24.comment if num < 2:
+        # 050322.python.testROT.line25.comment print("Only", num, "objects in the ROT - this is unusual")
 
 
 if __name__ == "__main__":

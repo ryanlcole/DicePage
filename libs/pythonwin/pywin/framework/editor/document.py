@@ -1,4 +1,4 @@
-# We no longer support the old, non-colour editor!
+# 037455.python.document.line1.comment We no longer support the old, non-colour editor!
 
 import os
 import shutil
@@ -30,13 +30,13 @@ class EditorDocumentBase(ParentEditorDocument):
         self.fileStat = None
         self.bReportedFileNotFound = 0
 
-        # what sort of bak file should I create.
-        # default to write to %temp%/bak/filename.ext
+        # 037458.python.document.line33.comment what sort of bak file should I create.
+        # 037459.python.document.line34.comment default to write to %temp%/bak/filename.ext
         self.bakFileType = GetEditorOption("Backup Type", BAK_DOT_BAK_BAK_DIR)
 
         self.watcherThread = FileWatchingThread(self)
         self.watcherThread.CreateThread()
-        # Should I try and use VSS integration?
+        # 037460.python.document.line39.comment Should I try and use VSS integration?
         self.scModuleName = GetEditorOption("Source Control Module", "")
         self.scModule = None  # Loaded when first used.
         ParentEditorDocument.__init__(self, template, template.CreateWin32uiDocument())
@@ -45,15 +45,15 @@ class EditorDocumentBase(ParentEditorDocument):
         self.watcherThread.SignalStop()
         return self._obj_.OnCloseDocument()
 
-    # 	def OnOpenDocument(self, name):
-    # 		rc = ParentEditorDocument.OnOpenDocument(self, name)
-    # 		self.GetFirstView()._SetLoadedText(self.text)
-    # 		self._DocumentStateChanged()
-    # 		return rc
+    # 037462.python.document.line48.comment def OnOpenDocument(self, name):
+    # 037463.python.document.line49.comment rc = ParentEditorDocument.OnOpenDocument(self, name)
+    # 037464.python.document.line50.comment self.GetFirstView()._SetLoadedText(self.text)
+    # 037465.python.document.line51.comment self._DocumentStateChanged()
+    # 037466.python.document.line52.comment return rc
 
     def OnSaveDocument(self, fileName):
         win32ui.SetStatusText("Saving file...", 1)
-        # rename to bak if required.
+        # 037467.python.document.line56.comment rename to bak if required.
         dir, basename = os.path.split(fileName)
         if self.bakFileType == BAK_DOT_BAK:
             bakFileName = dir + "\\" + os.path.splitext(basename)[0] + ".bak"
@@ -73,9 +73,9 @@ class EditorDocumentBase(ParentEditorDocument):
         except (OSError, NameError):
             pass
         try:
-            # Do a copy as it might be on different volumes,
-            # and the file may be a hard-link, causing the link
-            # to follow the backup.
+            # 037469.python.document.line76.comment Do a copy as it might be on different volumes,
+            # 037470.python.document.line77.comment and the file may be a hard-link, causing the link
+            # 037471.python.document.line78.comment to follow the backup.
             shutil.copy2(fileName, bakFileName)
         except (OSError, NameError):
             pass
@@ -123,16 +123,16 @@ class EditorDocumentBase(ParentEditorDocument):
     def HookViewNotifications(self, view):
         ParentEditorDocument.HookViewNotifications(self, view)
 
-    # Support for reloading the document from disk - presumably after some
-    # external application has modified it (or possibly source control has
-    # checked it out.
+    # 037474.python.document.line126.comment Support for reloading the document from disk - presumably after some
+    # 037475.python.document.line127.comment external application has modified it (or possibly source control has
+    # 037476.python.document.line128.comment checked it out.
     def ReloadDocument(self):
         """Reloads the document from disk.  Assumes the file has
         been saved and user has been asked if necessary - it just does it!
         """
         win32ui.SetStatusText("Reloading document.  Please wait...", 1)
         self.SetModifiedFlag(0)
-        # Loop over all views, saving their state, then reload the document
+        # 037477.python.document.line135.comment Loop over all views, saving their state, then reload the document
         views = self.GetAllViews()
         states = []
         for view in views:
@@ -148,7 +148,7 @@ class EditorDocumentBase(ParentEditorDocument):
         self._DocumentStateChanged()
         win32ui.SetStatusText("Document reloaded.")
 
-    # Reloading the file
+    # 037479.python.document.line151.comment Reloading the file
     def CheckExternalDocumentUpdated(self):
         if self.bDeclinedReload or not self.GetPathName():
             return
@@ -217,14 +217,14 @@ class EditorDocumentBase(ParentEditorDocument):
         self._ApplyOptionalToViews("_UpdateUIForState")
         self._ApplyOptionalToViews("SetReadOnly", self._IsReadOnly())
         self._ApplyOptionalToViews("SCISetSavePoint")
-        # Allow the debugger to reset us too.
+        # 037483.python.document.line220.comment Allow the debugger to reset us too.
         import pywin.debugger
 
         if pywin.debugger.currentDebugger is not None:
             pywin.debugger.currentDebugger.UpdateDocumentLineStates(self)
 
-    # Read-only document support - make it obvious to the user
-    # that the file is read-only.
+    # 037484.python.document.line226.comment Read-only document support - make it obvious to the user
+    # 037485.python.document.line227.comment that the file is read-only.
     def _IsReadOnly(self):
         return self.fileStat is not None and (self.fileStat[0] & 128) == 0
 
@@ -236,9 +236,9 @@ class EditorDocumentBase(ParentEditorDocument):
         if not filename:
             return  # New file - nothing to do
         try:
-            # This seems necessary so the internal state of the window becomes
-            # "visible".  without it, it is still shown, but certain functions
-            # (such as updating the title) don't immediately work?
+            # 037487.python.document.line239.comment This seems necessary so the internal state of the window becomes
+            # 037488.python.document.line240.comment "visible".  without it, it is still shown, but certain functions
+            # 037489.python.document.line241.comment (such as updating the title) don't immediately work?
             self.GetFirstView().ShowWindow(win32con.SW_SHOW)
             title = win32ui.GetFileTitle(filename)
         except win32ui.error:
@@ -256,7 +256,7 @@ class EditorDocumentBase(ParentEditorDocument):
             win32api.MessageBeep()
             return 0
 
-        # We have source control support - check if the user wants to use it.
+        # 037492.python.document.line259.comment We have source control support - check if the user wants to use it.
         msg = "Would you like to check this file out?"
         defButton = win32con.MB_YESNO
         if self.IsModified():
@@ -273,7 +273,7 @@ class EditorDocumentBase(ParentEditorDocument):
             self.ReloadDocument()
             return 1
 
-        # Now call on the module to do it.
+        # 037493.python.document.line276.comment Now call on the module to do it.
         if self.scModule is None:
             try:
                 self.scModule = __import__(self.scModuleName)
@@ -295,8 +295,8 @@ class EditorDocumentBase(ParentEditorDocument):
         return 1
 
     def SaveModified(self):
-        # Called as the document is closed.  If we are about
-        # to prompt for a save, bring the document to the foreground.
+        # 037494.python.document.line298.comment Called as the document is closed.  If we are about
+        # 037495.python.document.line299.comment to prompt for a save, bring the document to the foreground.
         if self.IsModified():
             frame = self.GetFirstView().GetParentFrame()
             try:
@@ -307,11 +307,11 @@ class EditorDocumentBase(ParentEditorDocument):
         return self._obj_.SaveModified()
 
 
-# NOTE - I DONT use the standard threading module,
-# as this waits for all threads to terminate at shutdown.
-# When using the debugger, it is possible shutdown will
-# occur without Pythonwin getting a complete shutdown,
-# so we deadlock at the end - threading is waiting for
+# 037496.python.document.line310.comment NOTE - I DONT use the standard threading module,
+# 037497.python.document.line311.comment as this waits for all threads to terminate at shutdown.
+# 037498.python.document.line312.comment When using the debugger, it is possible shutdown will
+# 037499.python.document.line313.comment occur without Pythonwin getting a complete shutdown,
+# 037500.python.document.line314.comment so we deadlock at the end - threading is waiting for
 import pywin.mfc.thread
 import win32event
 
@@ -362,7 +362,7 @@ class FileWatchingThread(pywin.mfc.thread.WinThread):
             else:
                 win32api.PostMessage(self.hwnd, MSG_CHECK_EXTERNAL_FILE, 0, 0)
                 try:
-                    # If the directory has been removed underneath us, we get this error.
+                    # 037501.python.document.line365.comment If the directory has been removed underneath us, we get this error.
                     win32api.FindNextChangeNotification(self.watchEvent)
                 except win32api.error as exc:
                     print(
@@ -373,7 +373,7 @@ class FileWatchingThread(pywin.mfc.thread.WinThread):
                     )
                     break
 
-        # close a circular reference
+        # 037502.python.document.line376.comment close a circular reference
         self.doc = None
         if self.watchEvent:
             win32api.FindCloseChangeNotification(self.watchEvent)

@@ -1,4 +1,4 @@
-# copied from setuptools.logging, omitting monkeypatching
+# 043813.python.setuptools_logging.line1.comment copied from setuptools.logging, omitting monkeypatching
 from __future__ import annotations
 
 import logging

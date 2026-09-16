@@ -10,7 +10,7 @@ class TestClean(support.TempdirManager):
         pkg_dir, dist = self.create_dist()
         cmd = clean(dist)
 
-        # let's add some elements clean should remove
+        # 041012.python.test_clean.line13.comment let's add some elements clean should remove
         dirs = [
             (d, os.path.join(pkg_dir, d))
             for d in (
@@ -30,16 +30,16 @@ class TestClean(support.TempdirManager):
             for f in ('one', 'two', 'three'):
                 self.write_file(os.path.join(path, f))
 
-        # let's run the command
+        # 041013.python.test_clean.line33.comment let's run the command
         cmd.all = 1
         cmd.ensure_finalized()
         cmd.run()
 
-        # make sure the files where removed
+        # 041014.python.test_clean.line38.comment make sure the files where removed
         for _name, path in dirs:
             assert not os.path.exists(path), f'{path} was not removed'
 
-        # let's run the command again (should spit warnings but succeed)
+        # 041015.python.test_clean.line42.comment let's run the command again (should spit warnings but succeed)
         cmd.all = 1
         cmd.ensure_finalized()
         cmd.run()

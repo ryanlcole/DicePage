@@ -1,4 +1,4 @@
-# (sort-of) Registry editor
+# 039179.python.regpy.line1.comment (sort-of) Registry editor
 import commctrl
 import win32con
 from pywin.mfc import dialog
@@ -51,7 +51,7 @@ class RegistryPage(RegEditPropertyPage):
     def OnInitDialog(self):
         self.listview = self.GetDlgItem(self.IDC_LISTVIEW)
         RegEditPropertyPage.OnInitDialog(self)
-        # Setup the listview columns
+        # 039182.python.regpy.line54.comment Setup the listview columns
         itemDetails = (commctrl.LVCFMT_LEFT, 100, "App", 0)
         self.listview.InsertColumn(0, itemDetails)
         itemDetails = (commctrl.LVCFMT_LEFT, 1024, "Paths", 0)

@@ -94,11 +94,11 @@ def exit() -> None:
     event_loop.exit()
 
 
-#: The global event loop. Applications can replace this
-#: with their own subclass of :class:`EventLoop` before calling 
-#: :meth:`EventLoop.run`.
+# 026107.python.init.line97.comment : The global event loop. Applications can replace this
+# 026108.python.init.line98.comment : with their own subclass of :class:`EventLoop` before calling
+# 026109.python.init.line99.comment : :meth:`EventLoop.run`.
 event_loop = EventLoop()
 
-#: The platform-dependent event loop. Applications are strongly discouraged
-#: from subclassing or replacing this :class:`PlatformEventLoop` object.
+# 026110.python.init.line102.comment : The platform-dependent event loop. Applications are strongly discouraged
+# 026111.python.init.line103.comment : from subclassing or replacing this :class:`PlatformEventLoop` object.
 platform_event_loop = PlatformEventLoop()

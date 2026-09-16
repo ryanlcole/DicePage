@@ -117,122 +117,122 @@ PFNEGLSWAPBUFFERSPROC = CFUNCTYPE(EGLBoolean, EGLDisplay, EGLSurface) 	# /usr/in
 PFNEGLTERMINATEPROC = CFUNCTYPE(EGLBoolean, EGLDisplay) 	# /usr/include/EGL/egl.h:146
 PFNEGLWAITGLPROC = CFUNCTYPE(EGLBoolean) 	# /usr/include/EGL/egl.h:147
 PFNEGLWAITNATIVEPROC = CFUNCTYPE(EGLBoolean, EGLint) 	# /usr/include/EGL/egl.h:148
-# /usr/include/EGL/egl.h:150
+# 031339.python.egl.line120.comment /usr/include/EGL/egl.h:150
 eglChooseConfig = _lib.eglChooseConfig
 eglChooseConfig.restype = EGLBoolean
 eglChooseConfig.argtypes = [EGLDisplay, POINTER(EGLint), POINTER(EGLConfig), EGLint, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:151
+# 031340.python.egl.line125.comment /usr/include/EGL/egl.h:151
 eglCopyBuffers = _lib.eglCopyBuffers
 eglCopyBuffers.restype = EGLBoolean
 eglCopyBuffers.argtypes = [EGLDisplay, EGLSurface, EGLNativePixmapType]
 
-# /usr/include/EGL/egl.h:152
+# 031341.python.egl.line130.comment /usr/include/EGL/egl.h:152
 eglCreateContext = _lib.eglCreateContext
 eglCreateContext.restype = EGLContext
 eglCreateContext.argtypes = [EGLDisplay, EGLConfig, EGLContext, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:153
+# 031342.python.egl.line135.comment /usr/include/EGL/egl.h:153
 eglCreatePbufferSurface = _lib.eglCreatePbufferSurface
 eglCreatePbufferSurface.restype = EGLSurface
 eglCreatePbufferSurface.argtypes = [EGLDisplay, EGLConfig, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:154
+# 031343.python.egl.line140.comment /usr/include/EGL/egl.h:154
 eglCreatePixmapSurface = _lib.eglCreatePixmapSurface
 eglCreatePixmapSurface.restype = EGLSurface
 eglCreatePixmapSurface.argtypes = [EGLDisplay, EGLConfig, EGLNativePixmapType, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:155
+# 031344.python.egl.line145.comment /usr/include/EGL/egl.h:155
 eglCreateWindowSurface = _lib.eglCreateWindowSurface
 eglCreateWindowSurface.restype = EGLSurface
 eglCreateWindowSurface.argtypes = [EGLDisplay, EGLConfig, EGLNativeWindowType, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:156
+# 031345.python.egl.line150.comment /usr/include/EGL/egl.h:156
 eglDestroyContext = _lib.eglDestroyContext
 eglDestroyContext.restype = EGLBoolean
 eglDestroyContext.argtypes = [EGLDisplay, EGLContext]
 
-# /usr/include/EGL/egl.h:157
+# 031346.python.egl.line155.comment /usr/include/EGL/egl.h:157
 eglDestroySurface = _lib.eglDestroySurface
 eglDestroySurface.restype = EGLBoolean
 eglDestroySurface.argtypes = [EGLDisplay, EGLSurface]
 
-# /usr/include/EGL/egl.h:158
+# 031347.python.egl.line160.comment /usr/include/EGL/egl.h:158
 eglGetConfigAttrib = _lib.eglGetConfigAttrib
 eglGetConfigAttrib.restype = EGLBoolean
 eglGetConfigAttrib.argtypes = [EGLDisplay, EGLConfig, EGLint, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:159
+# 031348.python.egl.line165.comment /usr/include/EGL/egl.h:159
 eglGetConfigs = _lib.eglGetConfigs
 eglGetConfigs.restype = EGLBoolean
 eglGetConfigs.argtypes = [EGLDisplay, POINTER(EGLConfig), EGLint, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:160
+# 031349.python.egl.line170.comment /usr/include/EGL/egl.h:160
 eglGetCurrentDisplay = _lib.eglGetCurrentDisplay
 eglGetCurrentDisplay.restype = EGLDisplay
 eglGetCurrentDisplay.argtypes = []
 
-# /usr/include/EGL/egl.h:161
+# 031350.python.egl.line175.comment /usr/include/EGL/egl.h:161
 eglGetCurrentSurface = _lib.eglGetCurrentSurface
 eglGetCurrentSurface.restype = EGLSurface
 eglGetCurrentSurface.argtypes = [EGLint]
 
-# /usr/include/EGL/egl.h:162
+# 031351.python.egl.line180.comment /usr/include/EGL/egl.h:162
 eglGetDisplay = _lib.eglGetDisplay
 eglGetDisplay.restype = EGLDisplay
 eglGetDisplay.argtypes = [EGLNativeDisplayType]
 
-# /usr/include/EGL/egl.h:163
+# 031352.python.egl.line185.comment /usr/include/EGL/egl.h:163
 eglGetError = _lib.eglGetError
 eglGetError.restype = EGLint
 eglGetError.argtypes = []
 
-# /usr/include/EGL/egl.h:164
+# 031353.python.egl.line190.comment /usr/include/EGL/egl.h:164
 eglGetProcAddress = _lib.eglGetProcAddress
 eglGetProcAddress.restype = __eglMustCastToProperFunctionPointerType
 eglGetProcAddress.argtypes = [c_char_p]
 
-# /usr/include/EGL/egl.h:165
+# 031354.python.egl.line195.comment /usr/include/EGL/egl.h:165
 eglInitialize = _lib.eglInitialize
 eglInitialize.restype = EGLBoolean
 eglInitialize.argtypes = [EGLDisplay, POINTER(EGLint), POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:166
+# 031355.python.egl.line200.comment /usr/include/EGL/egl.h:166
 eglMakeCurrent = _lib.eglMakeCurrent
 eglMakeCurrent.restype = EGLBoolean
 eglMakeCurrent.argtypes = [EGLDisplay, EGLSurface, EGLSurface, EGLContext]
 
-# /usr/include/EGL/egl.h:167
+# 031356.python.egl.line205.comment /usr/include/EGL/egl.h:167
 eglQueryContext = _lib.eglQueryContext
 eglQueryContext.restype = EGLBoolean
 eglQueryContext.argtypes = [EGLDisplay, EGLContext, EGLint, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:168
+# 031357.python.egl.line210.comment /usr/include/EGL/egl.h:168
 eglQueryString = _lib.eglQueryString
 eglQueryString.restype = c_char_p
 eglQueryString.argtypes = [EGLDisplay, EGLint]
 
-# /usr/include/EGL/egl.h:169
+# 031358.python.egl.line215.comment /usr/include/EGL/egl.h:169
 eglQuerySurface = _lib.eglQuerySurface
 eglQuerySurface.restype = EGLBoolean
 eglQuerySurface.argtypes = [EGLDisplay, EGLSurface, EGLint, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:170
+# 031359.python.egl.line220.comment /usr/include/EGL/egl.h:170
 eglSwapBuffers = _lib.eglSwapBuffers
 eglSwapBuffers.restype = EGLBoolean
 eglSwapBuffers.argtypes = [EGLDisplay, EGLSurface]
 
-# /usr/include/EGL/egl.h:171
+# 031360.python.egl.line225.comment /usr/include/EGL/egl.h:171
 eglTerminate = _lib.eglTerminate
 eglTerminate.restype = EGLBoolean
 eglTerminate.argtypes = [EGLDisplay]
 
-# /usr/include/EGL/egl.h:172
+# 031361.python.egl.line230.comment /usr/include/EGL/egl.h:172
 eglWaitGL = _lib.eglWaitGL
 eglWaitGL.restype = EGLBoolean
 eglWaitGL.argtypes = []
 
-# /usr/include/EGL/egl.h:173
+# 031362.python.egl.line235.comment /usr/include/EGL/egl.h:173
 eglWaitNative = _lib.eglWaitNative
 eglWaitNative.restype = EGLBoolean
 eglWaitNative.argtypes = [EGLint]
@@ -256,22 +256,22 @@ PFNEGLBINDTEXIMAGEPROC = CFUNCTYPE(EGLBoolean, EGLDisplay, EGLSurface, EGLint) 	
 PFNEGLRELEASETEXIMAGEPROC = CFUNCTYPE(EGLBoolean, EGLDisplay, EGLSurface, EGLint) 	# /usr/include/EGL/egl.h:194
 PFNEGLSURFACEATTRIBPROC = CFUNCTYPE(EGLBoolean, EGLDisplay, EGLSurface, EGLint, EGLint) 	# /usr/include/EGL/egl.h:195
 PFNEGLSWAPINTERVALPROC = CFUNCTYPE(EGLBoolean, EGLDisplay, EGLint) 	# /usr/include/EGL/egl.h:196
-# /usr/include/EGL/egl.h:198
+# 031382.python.egl.line259.comment /usr/include/EGL/egl.h:198
 eglBindTexImage = _lib.eglBindTexImage
 eglBindTexImage.restype = EGLBoolean
 eglBindTexImage.argtypes = [EGLDisplay, EGLSurface, EGLint]
 
-# /usr/include/EGL/egl.h:199
+# 031383.python.egl.line264.comment /usr/include/EGL/egl.h:199
 eglReleaseTexImage = _lib.eglReleaseTexImage
 eglReleaseTexImage.restype = EGLBoolean
 eglReleaseTexImage.argtypes = [EGLDisplay, EGLSurface, EGLint]
 
-# /usr/include/EGL/egl.h:200
+# 031384.python.egl.line269.comment /usr/include/EGL/egl.h:200
 eglSurfaceAttrib = _lib.eglSurfaceAttrib
 eglSurfaceAttrib.restype = EGLBoolean
 eglSurfaceAttrib.argtypes = [EGLDisplay, EGLSurface, EGLint, EGLint]
 
-# /usr/include/EGL/egl.h:201
+# 031385.python.egl.line274.comment /usr/include/EGL/egl.h:201
 eglSwapInterval = _lib.eglSwapInterval
 eglSwapInterval.restype = EGLBoolean
 eglSwapInterval.argtypes = [EGLDisplay, EGLint]
@@ -312,27 +312,27 @@ PFNEGLQUERYAPIPROC = CFUNCTYPE(EGLenum) 	# /usr/include/EGL/egl.h:239
 PFNEGLCREATEPBUFFERFROMCLIENTBUFFERPROC = CFUNCTYPE(EGLSurface, EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, POINTER(EGLint)) 	# /usr/include/EGL/egl.h:240
 PFNEGLRELEASETHREADPROC = CFUNCTYPE(EGLBoolean) 	# /usr/include/EGL/egl.h:241
 PFNEGLWAITCLIENTPROC = CFUNCTYPE(EGLBoolean) 	# /usr/include/EGL/egl.h:242
-# /usr/include/EGL/egl.h:244
+# 031422.python.egl.line315.comment /usr/include/EGL/egl.h:244
 eglBindAPI = _lib.eglBindAPI
 eglBindAPI.restype = EGLBoolean
 eglBindAPI.argtypes = [EGLenum]
 
-# /usr/include/EGL/egl.h:245
+# 031423.python.egl.line320.comment /usr/include/EGL/egl.h:245
 eglQueryAPI = _lib.eglQueryAPI
 eglQueryAPI.restype = EGLenum
 eglQueryAPI.argtypes = []
 
-# /usr/include/EGL/egl.h:246
+# 031424.python.egl.line325.comment /usr/include/EGL/egl.h:246
 eglCreatePbufferFromClientBuffer = _lib.eglCreatePbufferFromClientBuffer
 eglCreatePbufferFromClientBuffer.restype = EGLSurface
 eglCreatePbufferFromClientBuffer.argtypes = [EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, POINTER(EGLint)]
 
-# /usr/include/EGL/egl.h:247
+# 031425.python.egl.line330.comment /usr/include/EGL/egl.h:247
 eglReleaseThread = _lib.eglReleaseThread
 eglReleaseThread.restype = EGLBoolean
 eglReleaseThread.argtypes = []
 
-# /usr/include/EGL/egl.h:248
+# 031426.python.egl.line335.comment /usr/include/EGL/egl.h:248
 eglWaitClient = _lib.eglWaitClient
 eglWaitClient.restype = EGLBoolean
 eglWaitClient.argtypes = []
@@ -359,7 +359,7 @@ EGL_OPENGL_API = 12450 	# /usr/include/EGL/egl.h:275
 EGL_OPENGL_BIT = 8 	# /usr/include/EGL/egl.h:276
 EGL_SWAP_BEHAVIOR_PRESERVED_BIT = 1024 	# /usr/include/EGL/egl.h:277
 PFNEGLGETCURRENTCONTEXTPROC = CFUNCTYPE(EGLContext) 	# /usr/include/EGL/egl.h:278
-# /usr/include/EGL/egl.h:280
+# 031449.python.egl.line362.comment /usr/include/EGL/egl.h:280
 eglGetCurrentContext = _lib.eglGetCurrentContext
 eglGetCurrentContext.restype = EGLContext
 eglGetCurrentContext.argtypes = []
@@ -423,52 +423,52 @@ PFNEGLGETPLATFORMDISPLAYPROC = CFUNCTYPE(EGLDisplay, EGLenum, POINTER(None), POI
 PFNEGLCREATEPLATFORMWINDOWSURFACEPROC = CFUNCTYPE(EGLSurface, EGLDisplay, EGLConfig, POINTER(None), POINTER(EGLAttrib)) 	# /usr/include/EGL/egl.h:340
 PFNEGLCREATEPLATFORMPIXMAPSURFACEPROC = CFUNCTYPE(EGLSurface, EGLDisplay, EGLConfig, POINTER(None), POINTER(EGLAttrib)) 	# /usr/include/EGL/egl.h:341
 PFNEGLWAITSYNCPROC = CFUNCTYPE(EGLBoolean, EGLDisplay, EGLSync, EGLint) 	# /usr/include/EGL/egl.h:342
-# /usr/include/EGL/egl.h:344
+# 031509.python.egl.line426.comment /usr/include/EGL/egl.h:344
 eglCreateSync = _lib.eglCreateSync
 eglCreateSync.restype = EGLSync
 eglCreateSync.argtypes = [EGLDisplay, EGLenum, POINTER(EGLAttrib)]
 
-# /usr/include/EGL/egl.h:345
+# 031510.python.egl.line431.comment /usr/include/EGL/egl.h:345
 eglDestroySync = _lib.eglDestroySync
 eglDestroySync.restype = EGLBoolean
 eglDestroySync.argtypes = [EGLDisplay, EGLSync]
 
-# /usr/include/EGL/egl.h:346
+# 031511.python.egl.line436.comment /usr/include/EGL/egl.h:346
 eglClientWaitSync = _lib.eglClientWaitSync
 eglClientWaitSync.restype = EGLint
 eglClientWaitSync.argtypes = [EGLDisplay, EGLSync, EGLint, EGLTime]
 
-# /usr/include/EGL/egl.h:347
+# 031512.python.egl.line441.comment /usr/include/EGL/egl.h:347
 eglGetSyncAttrib = _lib.eglGetSyncAttrib
 eglGetSyncAttrib.restype = EGLBoolean
 eglGetSyncAttrib.argtypes = [EGLDisplay, EGLSync, EGLint, POINTER(EGLAttrib)]
 
-# /usr/include/EGL/egl.h:348
+# 031513.python.egl.line446.comment /usr/include/EGL/egl.h:348
 eglCreateImage = _lib.eglCreateImage
 eglCreateImage.restype = EGLImage
 eglCreateImage.argtypes = [EGLDisplay, EGLContext, EGLenum, EGLClientBuffer, POINTER(EGLAttrib)]
 
-# /usr/include/EGL/egl.h:349
+# 031514.python.egl.line451.comment /usr/include/EGL/egl.h:349
 eglDestroyImage = _lib.eglDestroyImage
 eglDestroyImage.restype = EGLBoolean
 eglDestroyImage.argtypes = [EGLDisplay, EGLImage]
 
-# /usr/include/EGL/egl.h:350
+# 031515.python.egl.line456.comment /usr/include/EGL/egl.h:350
 eglGetPlatformDisplay = _lib.eglGetPlatformDisplay
 eglGetPlatformDisplay.restype = EGLDisplay
 eglGetPlatformDisplay.argtypes = [EGLenum, POINTER(None), POINTER(EGLAttrib)]
 
-# /usr/include/EGL/egl.h:351
+# 031516.python.egl.line461.comment /usr/include/EGL/egl.h:351
 eglCreatePlatformWindowSurface = _lib.eglCreatePlatformWindowSurface
 eglCreatePlatformWindowSurface.restype = EGLSurface
 eglCreatePlatformWindowSurface.argtypes = [EGLDisplay, EGLConfig, POINTER(None), POINTER(EGLAttrib)]
 
-# /usr/include/EGL/egl.h:352
+# 031517.python.egl.line466.comment /usr/include/EGL/egl.h:352
 eglCreatePlatformPixmapSurface = _lib.eglCreatePlatformPixmapSurface
 eglCreatePlatformPixmapSurface.restype = EGLSurface
 eglCreatePlatformPixmapSurface.argtypes = [EGLDisplay, EGLConfig, POINTER(None), POINTER(EGLAttrib)]
 
-# /usr/include/EGL/egl.h:353
+# 031518.python.egl.line471.comment /usr/include/EGL/egl.h:353
 eglWaitSync = _lib.eglWaitSync
 eglWaitSync.restype = EGLBoolean
 eglWaitSync.argtypes = [EGLDisplay, EGLSync, EGLint]

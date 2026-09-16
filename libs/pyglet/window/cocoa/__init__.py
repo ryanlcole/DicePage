@@ -35,8 +35,8 @@ class CocoaMouseCursor(MouseCursor):
     gl_drawable = False
 
     def __init__(self, cursorName: str) -> None:
-        # cursorName is a string identifying one of the named default NSCursors
-        # e.g. 'pointingHandCursor', and can be sent as message to NSCursor class.
+        # 036021.python.init.line38.comment cursorName is a string identifying one of the named default NSCursors
+        # 036022.python.init.line39.comment e.g. 'pointingHandCursor', and can be sent as message to NSCursor class.
         self.cursorName = cursorName
 
     def set(self) -> None:
@@ -46,20 +46,20 @@ class CocoaMouseCursor(MouseCursor):
 
 class CocoaWindow(BaseWindow):
     context: CocoaContext
-    # NSWindow instance.
+    # 036023.python.init.line49.comment NSWindow instance.
     _nswindow: darwin.ObjCInstance | None = None
 
-    # Delegate object.
+    # 036024.python.init.line52.comment Delegate object.
     _delegate: darwin.ObjCInstance | None = None
 
-    # Window properties
+    # 036025.python.init.line55.comment Window properties
     _mouse_platform_visible: bool = True
     _mouse_ignore_motion: bool = False
 
-    # Flag set during close() method.
+    # 036026.python.init.line59.comment Flag set during close() method.
     _was_closed: bool = False
 
-    # NSWindow style masks.
+    # 036027.python.init.line62.comment NSWindow style masks.
     _style_masks: dict[str, int] = {
         BaseWindow.WINDOW_STYLE_DEFAULT: cocoapy.NSTitledWindowMask |
                                          cocoapy.NSClosableWindowMask |
@@ -93,8 +93,8 @@ class CocoaWindow(BaseWindow):
     def _create(self) -> None:
         with AutoReleasePool():
             if self._nswindow:
-                # The window is about the be recreated so destroy everything
-                # associated with the old window, then destroy the window itself.
+                # 036030.python.init.line96.comment The window is about the be recreated so destroy everything
+                # 036031.python.init.line97.comment associated with the old window, then destroy the window itself.
                 nsview = self.canvas.nsview
                 self.canvas = None
                 self._nswindow.orderOut_(None)
@@ -106,7 +106,7 @@ class CocoaWindow(BaseWindow):
                 self._delegate.release()
                 self._delegate = None
 
-            # Determine window parameters.
+            # 036032.python.init.line109.comment Determine window parameters.
             if pyglet.options.dpi_scaling == "real":
                 screen_scale = self.screen.get_scale()
                 w, h = self.get_requested_size()
@@ -127,19 +127,19 @@ class CocoaWindow(BaseWindow):
                 if self._style == BaseWindow.WINDOW_STYLE_TOOL:
                     WindowClass = PygletToolWindow
 
-            # First create an instance of our NSWindow subclass.
+            # 036033.python.init.line130.comment First create an instance of our NSWindow subclass.
 
-            # FIX ME:
-            # Need to use this initializer to have any hope of multi-monitor support.
-            # But currently causes problems on Mac OS X Lion.  So for now, we initialize the
-            # window without including screen information.
-            #
-            # self._nswindow = WindowClass.alloc().initWithContentRect_styleMask_backing_defer_screen_(
-            #     content_rect,           # contentRect
-            #     style_mask,             # styleMask
-            #     NSBackingStoreBuffered, # backing
-            #     False,                  # defer
-            #     self.screen.get_nsscreen())  # screen
+            # 036034.python.init.line132.comment FIX ME:
+            # 036035.python.init.line133.comment Need to use this initializer to have any hope of multi-monitor support.
+            # 036036.python.init.line134.comment But currently causes problems on Mac OS X Lion.  So for now, we initialize the
+            # 036037.python.init.line135.comment window without including screen information.
+            # 036038.python.init.line136.comment
+            # 036039.python.init.line137.comment self._nswindow = WindowClass.alloc().initWithContentRect_styleMask_backing_defer_screen_(
+            # 036040.python.init.line138.comment content_rect,           # contentRect
+            # 036041.python.init.line139.comment style_mask,             # styleMask
+            # 036042.python.init.line140.comment NSBackingStoreBuffered, # backing
+            # 036043.python.init.line141.comment False,                  # defer
+            # 036044.python.init.line142.comment self.screen.get_nsscreen())  # screen
 
             self._nswindow = WindowClass.alloc().initWithContentRect_styleMask_backing_defer_(
                 content_rect,  # contentRect
@@ -148,9 +148,9 @@ class CocoaWindow(BaseWindow):
                 False)  # defer
 
             if self._fullscreen:
-                # BUG: I suspect that this doesn't do the right thing when using
-                # multiple monitors (which would be to go fullscreen on the monitor
-                # where the window is located).  However I've no way to test.
+                # 036049.python.init.line151.comment BUG: I suspect that this doesn't do the right thing when using
+                # 036050.python.init.line152.comment multiple monitors (which would be to go fullscreen on the monitor
+                # 036051.python.init.line153.comment where the window is located).  However I've no way to test.
                 blackColor = NSColor.blackColor()
                 self._nswindow.setBackgroundColor_(blackColor)
                 self._nswindow.setOpaque_(True)
@@ -163,7 +163,7 @@ class CocoaWindow(BaseWindow):
                 self._set_nice_window_location()
                 self._mouse_in_window = self._mouse_in_content_rect()
 
-            # Then create a view and set it as our NSWindow's content view.
+            # 036052.python.init.line166.comment Then create a view and set it as our NSWindow's content view.
             self._nsview = PygletView.alloc().initWithFrame_cocoaWindow_(content_rect, self)
             self._nsview.setWantsBestResolutionOpenGLSurface_(True)
 
@@ -180,22 +180,22 @@ class CocoaWindow(BaseWindow):
             self._nswindow.setContentView_(self._nsview)
             self._nswindow.makeFirstResponder_(self._nsview)
 
-            # Create a canvas with the view as its drawable and attach context to it.
+            # 036053.python.init.line183.comment Create a canvas with the view as its drawable and attach context to it.
             self.canvas = CocoaCanvas(self.display, self.screen, self._nsview)
             self.context.attach(self.canvas)
 
-            # Configure the window.
+            # 036054.python.init.line187.comment Configure the window.
             self._nswindow.setAcceptsMouseMovedEvents_(True)
 
-            # Required as it may cause a segfault after closing a Window, mostly due to NSTextView use.
+            # 036055.python.init.line190.comment Required as it may cause a segfault after closing a Window, mostly due to NSTextView use.
             self._nswindow.setReleasedWhenClosed_(False)
             self._nswindow.useOptimizedDrawing_(True)
             self._nswindow.setPreservesContentDuringLiveResize_(False)
 
-            # Set the delegate.
+            # 036056.python.init.line195.comment Set the delegate.
             self._delegate = PygletDelegate.alloc().initWithWindow_(self)
 
-            # Configure CocoaWindow.
+            # 036057.python.init.line198.comment Configure CocoaWindow.
             self.set_caption(self._caption)
             if self._minimum_size is not None:
                 self.set_minimum_size(*self._minimum_size)
@@ -244,51 +244,51 @@ class CocoaWindow(BaseWindow):
             self._nswindow.setIgnoresMouseEvents_(state)
 
     def _set_nice_window_location(self) -> None:
-        # Construct a list of all visible windows that aren't us.
+        # 036058.python.init.line247.comment Construct a list of all visible windows that aren't us.
         visible_windows = [win for win in pyglet.app.windows if
                            win is not self and
                            win._nswindow and  # noqa: SLF001
                            win._nswindow.isVisible()]  # noqa: SLF001
-        # If there aren't any visible windows, then center this window.
+        # 036061.python.init.line252.comment If there aren't any visible windows, then center this window.
         if not visible_windows:
             self._center_window()
-        # Otherwise, cascade from last window in list.
+        # 036062.python.init.line255.comment Otherwise, cascade from last window in list.
         else:
             point = visible_windows[-1]._nswindow.cascadeTopLeftFromPoint_(cocoapy.NSZeroPoint)  # noqa: SLF001
             self._nswindow.cascadeTopLeftFromPoint_(point)
 
     def _center_window(self) -> None:
-        # [NSWindow center] does not move the window to a true center position
-        # and also always moves the window to the main display.
+        # 036064.python.init.line261.comment [NSWindow center] does not move the window to a true center position
+        # 036065.python.init.line262.comment and also always moves the window to the main display.
         x = self.screen.x + int((self.screen.width - self._width) // 2)
         y = self.screen.y + int((self.screen.height - self._height) // 2)
         self._nswindow.setFrameOrigin_(cocoapy.NSPoint(x, y))
 
     def close(self) -> None:
-        # If we've already gone through this once, don't do it again.
+        # 036066.python.init.line268.comment If we've already gone through this once, don't do it again.
         if self._was_closed:
             return
 
         with AutoReleasePool():
-            # Restore cursor visibility
+            # 036067.python.init.line273.comment Restore cursor visibility
             self.set_mouse_platform_visible(True)
             self.set_exclusive_mouse(False)
             self.set_exclusive_keyboard(False)
 
-            # Remove window from display and remove its view.
+            # 036068.python.init.line278.comment Remove window from display and remove its view.
             self._nswindow.orderOut_(None)
 
-            # Restore screen mode. This also releases the display
-            # if it was captured for fullscreen mode.
+            # 036069.python.init.line281.comment Restore screen mode. This also releases the display
+            # 036070.python.init.line282.comment if it was captured for fullscreen mode.
             self.screen.restore_mode()
 
-            # Remove the delegate object
+            # 036071.python.init.line285.comment Remove the delegate object
             if self._delegate:
                 self._nswindow.setDelegate_(None)
                 self._delegate.release()
                 self._delegate = None
 
-            # Remove view from canvas and then remove canvas.
+            # 036072.python.init.line291.comment Remove view from canvas and then remove canvas.
             if self.canvas:
                 self.canvas.nsview = None
                 self.canvas = None
@@ -301,11 +301,11 @@ class CocoaWindow(BaseWindow):
             self._nswindow.close()
             self._nswindow = None
 
-            # Dispatch any events that may be queued up, which includes deallocations.
+            # 036073.python.init.line304.comment Dispatch any events that may be queued up, which includes deallocations.
             self._poll_app_events()
 
-            # Do this last, so that we don't see white flash
-            # when exiting application from fullscreen mode.
+            # 036074.python.init.line307.comment Do this last, so that we don't see white flash
+            # 036075.python.init.line308.comment when exiting application from fullscreen mode.
             super().close()
 
             self._was_closed = True
@@ -334,11 +334,11 @@ class CocoaWindow(BaseWindow):
 
     def dispatch_events(self) -> None:
         self._allow_dispatch_event = True
-        # Process all pyglet events.
+        # 036076.python.init.line337.comment Process all pyglet events.
         self.dispatch_pending_events()
         event = True
 
-        # Dequeue and process all of the pending Cocoa events.
+        # 036077.python.init.line341.comment Dequeue and process all of the pending Cocoa events.
         with AutoReleasePool():
             NSApp = NSApplication.sharedApplication()
             while event and self._nswindow and self._context:
@@ -347,9 +347,9 @@ class CocoaWindow(BaseWindow):
 
                 if event:
                     event_type = event.type()
-                    # Pass on all events.
+                    # 036078.python.init.line350.comment Pass on all events.
                     NSApp.sendEvent_(event)
-                    # And resend key events to special handlers.
+                    # 036079.python.init.line352.comment And resend key events to special handlers.
                     if event_type == cocoapy.NSKeyDown and not event.isARepeat():
                         NSApp.sendAction_to_from_(cocoapy.get_selector('pygletKeyDown:'), None, event)
                     elif event_type == cocoapy.NSKeyUp:
@@ -371,28 +371,28 @@ class CocoaWindow(BaseWindow):
             self._nswindow.setTitle_(cocoapy.get_NSString(caption))
 
     def set_icon(self, *images: pyglet.image.ImageData) -> None:
-        # Only use the biggest image from the list.
+        # 036080.python.init.line374.comment Only use the biggest image from the list.
         max_image = images[0]
         for img in images:
             if img.width > max_image.width and img.height > max_image.height:
                 max_image = img
 
-        # Grab image data from pyglet image.
+        # 036081.python.init.line380.comment Grab image data from pyglet image.
         image = max_image.get_image_data()
         fmt = 'ARGB'
         bytesPerRow = len(fmt) * image.width
         data = image.get_data(fmt, -bytesPerRow)
 
-        # Use image data to create a data provider.
-        # Using CGDataProviderCreateWithData crashes PyObjC 2.2b3, so we create
-        # a CFDataRef object first and use it to create the data provider.
+        # 036082.python.init.line386.comment Use image data to create a data provider.
+        # 036083.python.init.line387.comment Using CGDataProviderCreateWithData crashes PyObjC 2.2b3, so we create
+        # 036084.python.init.line388.comment a CFDataRef object first and use it to create the data provider.
         cfdata = c_void_p(cf.CFDataCreate(None, data, len(data)))
 
         provider = c_void_p(quartz.CGDataProviderCreateWithCFData(cfdata))
 
         colorSpace = c_void_p(quartz.CGColorSpaceCreateDeviceRGB())
 
-        # Then create a CGImage from the provider.
+        # 036085.python.init.line395.comment Then create a CGImage from the provider.
         cgimage = c_void_p(quartz.CGImageCreate(
             image.width, image.height, 8, 32, bytesPerRow,
             colorSpace,
@@ -409,13 +409,13 @@ class CocoaWindow(BaseWindow):
         quartz.CGDataProviderRelease(provider)
         quartz.CGColorSpaceRelease(colorSpace)
 
-        # Turn the CGImage into an NSImage.
+        # 036086.python.init.line412.comment Turn the CGImage into an NSImage.
         size = cocoapy.NSMakeSize(image.width, image.height)
         nsimage = NSImage.alloc().initWithCGImage_size_(cgimage, size)
         if not nsimage:
             return
 
-        # And finally set the app icon.
+        # 036087.python.init.line418.comment And finally set the app icon.
         NSApp = NSApplication.sharedApplication()
         NSApp.setApplicationIconImage_(nsimage)
         nsimage.release()
@@ -462,15 +462,15 @@ class CocoaWindow(BaseWindow):
         self.dispatch_event('_on_internal_resize', width, height)
 
     def _set_frame_size(self, width: int, height: int) -> None:
-        # Move frame origin down so that top-left corner of window doesn't move.
+        # 036090.python.init.line465.comment Move frame origin down so that top-left corner of window doesn't move.
         window_frame = self._nswindow.frame()
         rect = self._nswindow.contentRectForFrameRect_(window_frame)
         rect.origin.y += rect.size.height - height
         rect.size.width = width
         rect.size.height = height
         new_frame = self._nswindow.frameRectForContentRect_(rect)
-        # The window background flashes when the frame size changes unless it's
-        # animated, but we can set the window's animationResizeTime to zero.
+        # 036091.python.init.line472.comment The window background flashes when the frame size changes unless it's
+        # 036092.python.init.line473.comment animated, but we can set the window's animationResizeTime to zero.
         is_visible = self._nswindow.isVisible()
         self._nswindow.setFrame_display_animate_(new_frame, True, is_visible)
 
@@ -523,60 +523,60 @@ class CocoaWindow(BaseWindow):
         self.context.set_vsync(vsync)
 
     def _mouse_in_content_rect(self) -> bool:
-        # Returns true if mouse is inside the window's content rectangle.
-        # Better to use this method to check manually rather than relying
-        # on instance variables that may not be set correctly.
+        # 036093.python.init.line526.comment Returns true if mouse is inside the window's content rectangle.
+        # 036094.python.init.line527.comment Better to use this method to check manually rather than relying
+        # 036095.python.init.line528.comment on instance variables that may not be set correctly.
         point = NSEvent.mouseLocation()
         window_frame = self._nswindow.frame()
         rect = self._nswindow.contentRectForFrameRect_(window_frame)
         return cocoapy.foundation.NSMouseInRect(point, rect, False)
 
     def set_mouse_platform_visible(self, platform_visible: int | None = None) -> None:
-        # When the platform_visible argument is supplied with a boolean, then this
-        # method simply sets whether or not the platform mouse cursor is visible.
+        # 036096.python.init.line535.comment When the platform_visible argument is supplied with a boolean, then this
+        # 036097.python.init.line536.comment method simply sets whether or not the platform mouse cursor is visible.
         if platform_visible is not None:
             if platform_visible:
                 SystemCursor.unhide()
             else:
                 SystemCursor.hide()
-        # But if it has been called without an argument, it turns into
-        # a completely different function.  Now we are trying to figure out
-        # whether or not the mouse *should* be visible, and if so, what it should
-        # look like.
+        # 036098.python.init.line542.comment But if it has been called without an argument, it turns into
+        # 036099.python.init.line543.comment a completely different function.  Now we are trying to figure out
+        # 036100.python.init.line544.comment whether or not the mouse *should* be visible, and if so, what it should
+        # 036101.python.init.line545.comment look like.
         else:
-            # If we are in mouse exclusive mode, then hide the mouse cursor.
+            # 036102.python.init.line547.comment If we are in mouse exclusive mode, then hide the mouse cursor.
             if self._mouse_exclusive:
                 SystemCursor.hide()
-            # If we aren't inside the window, then always show the mouse
-            # and make sure that it is the default cursor.
+            # 036103.python.init.line550.comment If we aren't inside the window, then always show the mouse
+            # 036104.python.init.line551.comment and make sure that it is the default cursor.
             elif not self._mouse_in_content_rect():
                 NSCursor.arrowCursor().set()
                 SystemCursor.unhide()
-            # If we are in the window, then what we do depends on both
-            # the current pyglet-set visibility setting for the mouse and
-            # the type of the mouse cursor.  If the cursor has been hidden
-            # in the window with set_mouse_visible() then don't show it.
+            # 036105.python.init.line555.comment If we are in the window, then what we do depends on both
+            # 036106.python.init.line556.comment the current pyglet-set visibility setting for the mouse and
+            # 036107.python.init.line557.comment the type of the mouse cursor.  If the cursor has been hidden
+            # 036108.python.init.line558.comment in the window with set_mouse_visible() then don't show it.
             elif not self._mouse_visible:
                 SystemCursor.hide()
-            # If the mouse is set as a system-defined cursor, then we
-            # need to set the cursor and show the mouse.
-            # *** FIX ME ***
+            # 036109.python.init.line561.comment If the mouse is set as a system-defined cursor, then we
+            # 036110.python.init.line562.comment need to set the cursor and show the mouse.
+            # 036111.python.init.line563.comment *** FIX ME ***
             elif isinstance(self._mouse_cursor, CocoaMouseCursor):
                 self._mouse_cursor.set()
                 SystemCursor.unhide()
-            # If the mouse cursor is OpenGL drawable, then it we need to hide
-            # the system mouse cursor, so that the cursor can draw itself.
+            # 036112.python.init.line567.comment If the mouse cursor is OpenGL drawable, then it we need to hide
+            # 036113.python.init.line568.comment the system mouse cursor, so that the cursor can draw itself.
             elif self._mouse_cursor.gl_drawable:
                 SystemCursor.hide()
-            # Otherwise, show the default cursor.
+            # 036114.python.init.line571.comment Otherwise, show the default cursor.
             else:
                 NSCursor.arrowCursor().set()
                 SystemCursor.unhide()
 
     def get_system_mouse_cursor(self, name: str) -> DefaultMouseCursor | CocoaMouseCursor:
-        # It would make a lot more sense for most of this code to be
-        # inside the CocoaMouseCursor class, but all of the CURSOR_xxx
-        # constants are defined as properties of BaseWindow.
+        # 036115.python.init.line577.comment It would make a lot more sense for most of this code to be
+        # 036116.python.init.line578.comment inside the CocoaMouseCursor class, but all of the CURSOR_xxx
+        # 036117.python.init.line579.comment constants are defined as properties of BaseWindow.
         if name == self.CURSOR_DEFAULT:
             return DefaultMouseCursor()
         cursors = {
@@ -606,15 +606,15 @@ class CocoaWindow(BaseWindow):
 
     def set_mouse_position(self, x: int, y: int, absolute: bool = False) -> None:
         if absolute:
-            # If absolute, then x, y is given in global display coordinates
-            # which sets (0,0) at top left corner of main display.  It is possible
-            # to warp the mouse position to a point inside of another display.
+            # 036121.python.init.line609.comment If absolute, then x, y is given in global display coordinates
+            # 036122.python.init.line610.comment which sets (0,0) at top left corner of main display.  It is possible
+            # 036123.python.init.line611.comment to warp the mouse position to a point inside of another display.
             quartz.CGWarpMouseCursorPosition(CGPoint(x, y))
         else:
-            # Window-relative coordinates: (x, y) are given in window coords
-            # with (0,0) at bottom-left corner of window and y up.  We find
-            # which display the window is in and then convert x, y into local
-            # display coords where (0,0) is now top-left of display and y down.
+            # 036124.python.init.line614.comment Window-relative coordinates: (x, y) are given in window coords
+            # 036125.python.init.line615.comment with (0,0) at bottom-left corner of window and y up.  We find
+            # 036126.python.init.line616.comment which display the window is in and then convert x, y into local
+            # 036127.python.init.line617.comment display coords where (0,0) is now top-left of display and y down.
             screenInfo = self._nswindow.screen().deviceDescription()
             displayID = screenInfo.objectForKey_(cocoapy.get_NSString('NSScreenNumber'))
             displayID = displayID.intValue()
@@ -628,9 +628,9 @@ class CocoaWindow(BaseWindow):
     def set_exclusive_mouse(self, exclusive: bool = True) -> None:
         super().set_exclusive_mouse(exclusive)
         if exclusive:
-            # Skip the next motion event, which would return a large delta.
+            # 036128.python.init.line631.comment Skip the next motion event, which would return a large delta.
             self._mouse_ignore_motion = True
-            # Move mouse to center of window.
+            # 036129.python.init.line633.comment Move mouse to center of window.
             frame = self._nswindow.frame()
             width, height = frame.size.width, frame.size.height
             self.set_mouse_position(width / 2, height / 2)
@@ -638,23 +638,23 @@ class CocoaWindow(BaseWindow):
         else:
             quartz.CGAssociateMouseAndMouseCursorPosition(True)
 
-        # Update visibility of mouse cursor.
+        # 036130.python.init.line641.comment Update visibility of mouse cursor.
         self.set_mouse_platform_visible()
 
     def set_exclusive_keyboard(self, exclusive: bool = True) -> None:
-        # http://developer.apple.com/mac/library/technotes/tn2002/tn2062.html
-        # http://developer.apple.com/library/mac/#technotes/KioskMode/
+        # 036131.python.init.line645.comment http://developer.apple.com/mac/library/technotes/tn2002/tn2062.html
+        # 036132.python.init.line646.comment http://developer.apple.com/library/mac/#technotes/KioskMode/
 
-        # BUG: System keys like F9 or command-tab are disabled, however
-        # pyglet also does not receive key press events for them.
+        # 036133.python.init.line648.comment BUG: System keys like F9 or command-tab are disabled, however
+        # 036134.python.init.line649.comment pyglet also does not receive key press events for them.
 
-        # This flag is queried by window delegate to determine whether
-        # the quit menu item is active.
+        # 036135.python.init.line651.comment This flag is queried by window delegate to determine whether
+        # 036136.python.init.line652.comment the quit menu item is active.
         super().set_exclusive_keyboard(exclusive)
 
         if exclusive:
-            # "Be nice! Don't disable force-quit!"
-            #          -- Patrick Swayze, Road House (1989)
+            # 036137.python.init.line656.comment "Be nice! Don't disable force-quit!"
+            # 036138.python.init.line657.comment -- Patrick Swayze, Road House (1989)
             options = cocoapy.NSApplicationPresentationHideDock | \
                       cocoapy.NSApplicationPresentationHideMenuBar | \
                       cocoapy.NSApplicationPresentationDisableProcessSwitching | \

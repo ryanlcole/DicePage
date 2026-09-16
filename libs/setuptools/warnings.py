@@ -37,7 +37,7 @@ class SetuptoolsWarning(UserWarning):
         **kwargs,
     ) -> None:
         """Private: reserved for ``setuptools`` internal use only"""
-        # Default values:
+        # 045629.python.warnings.line40.comment Default values:
         summary_ = summary or getattr(cls, "_SUMMARY", None) or ""
         details_ = details or getattr(cls, "_DETAILS", None) or ""
         due_date = due_date or getattr(cls, "_DUE_DATE", None)

@@ -50,8 +50,8 @@ class build(Command):
 
     def initialize_options(self):
         self.build_base = 'build'
-        # these are decided only after 'build_base' has its final value
-        # (unless overridden by the user or client)
+        # 039401.python.build.line53.comment these are decided only after 'build_base' has its final value
+        # 039402.python.build.line54.comment (unless overridden by the user or client)
         self.build_purelib = None
         self.build_platlib = None
         self.build_lib = None
@@ -68,9 +68,9 @@ class build(Command):
         if self.plat_name is None:
             self.plat_name = get_platform()
         else:
-            # plat-name only supported for windows (other platforms are
-            # supported via ./configure flags, if at all).  Avoid misleading
-            # other platforms.
+            # 039404.python.build.line71.comment plat-name only supported for windows (other platforms are
+            # 039405.python.build.line72.comment supported via ./configure flags, if at all).  Avoid misleading
+            # 039406.python.build.line73.comment other platforms.
             if os.name != 'nt':
                 raise DistutilsOptionError(
                     "--plat-name only supported on Windows (try "
@@ -79,35 +79,35 @@ class build(Command):
 
         plat_specifier = f".{self.plat_name}-{sys.implementation.cache_tag}"
 
-        # Python 3.13+ with --disable-gil shouldn't share build directories
+        # 039407.python.build.line82.comment Python 3.13+ with --disable-gil shouldn't share build directories
         if sysconfig.get_config_var('Py_GIL_DISABLED'):
             plat_specifier += 't'
 
-        # Make it so Python 2.x and Python 2.x with --with-pydebug don't
-        # share the same build directories. Doing so confuses the build
-        # process for C modules
+        # 039408.python.build.line86.comment Make it so Python 2.x and Python 2.x with --with-pydebug don't
+        # 039409.python.build.line87.comment share the same build directories. Doing so confuses the build
+        # 039410.python.build.line88.comment process for C modules
         if hasattr(sys, 'gettotalrefcount'):
             plat_specifier += '-pydebug'
 
-        # 'build_purelib' and 'build_platlib' just default to 'lib' and
-        # 'lib.<plat>' under the base build directory.  We only use one of
-        # them for a given distribution, though --
+        # 039411.python.build.line92.comment 'build_purelib' and 'build_platlib' just default to 'lib' and
+        # 039412.python.build.line93.comment 'lib.<plat>' under the base build directory.  We only use one of
+        # 039413.python.build.line94.comment them for a given distribution, though --
         if self.build_purelib is None:
             self.build_purelib = os.path.join(self.build_base, 'lib')
         if self.build_platlib is None:
             self.build_platlib = os.path.join(self.build_base, 'lib' + plat_specifier)
 
-        # 'build_lib' is the actual directory that we will use for this
-        # particular module distribution -- if user didn't supply it, pick
-        # one of 'build_purelib' or 'build_platlib'.
+        # 039414.python.build.line100.comment 'build_lib' is the actual directory that we will use for this
+        # 039415.python.build.line101.comment particular module distribution -- if user didn't supply it, pick
+        # 039416.python.build.line102.comment one of 'build_purelib' or 'build_platlib'.
         if self.build_lib is None:
             if self.distribution.has_ext_modules():
                 self.build_lib = self.build_platlib
             else:
                 self.build_lib = self.build_purelib
 
-        # 'build_temp' -- temporary directory for compiler turds,
-        # "build/temp.<plat>"
+        # 039417.python.build.line109.comment 'build_temp' -- temporary directory for compiler turds,
+        # 039418.python.build.line110.comment "build/temp.<plat>"
         if self.build_temp is None:
             self.build_temp = os.path.join(self.build_base, 'temp' + plat_specifier)
         if self.build_scripts is None:
@@ -126,15 +126,15 @@ class build(Command):
                 raise DistutilsOptionError("parallel should be an integer")
 
     def run(self) -> None:
-        # Run all relevant sub-commands.  This will be some subset of:
-        #  - build_py      - pure Python modules
-        #  - build_clib    - standalone C libraries
-        #  - build_ext     - Python extensions
-        #  - build_scripts - (Python) scripts
+        # 039419.python.build.line129.comment Run all relevant sub-commands.  This will be some subset of:
+        # 039420.python.build.line130.comment - build_py      - pure Python modules
+        # 039421.python.build.line131.comment - build_clib    - standalone C libraries
+        # 039422.python.build.line132.comment - build_ext     - Python extensions
+        # 039423.python.build.line133.comment - build_scripts - (Python) scripts
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
 
-    # -- Predicates for the sub-command list ---------------------------
+    # 039424.python.build.line137.comment -- Predicates for the sub-command list ---------------------------
 
     def has_pure_modules(self):
         return self.distribution.has_pure_modules()

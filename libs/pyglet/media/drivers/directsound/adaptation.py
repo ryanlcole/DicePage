@@ -61,7 +61,7 @@ class DirectSoundDriver(AbstractAudioDriver):
 
         assert _debug("Deleting DirectSoundDriver")
         self.worker.stop()
-        # Destroy listener before destroying driver
+        # 034229.python.adaptation.line64.comment Destroy listener before destroying driver
         self._ds_listener.delete()
         self._ds_listener = None
         self._ds_driver.delete()
@@ -99,46 +99,46 @@ class DirectSoundAudioPlayer(AbstractAudioPlayer):
     def __init__(self, driver, source, player):
         super().__init__(source, player)
 
-        # We keep here a strong reference because the AudioDriver is anyway
-        # a singleton object which will only be deleted when the application
-        # shuts down. The AudioDriver does not keep a ref to the AudioPlayer.
+        # 034230.python.adaptation.line102.comment We keep here a strong reference because the AudioDriver is anyway
+        # 034231.python.adaptation.line103.comment a singleton object which will only be deleted when the application
+        # 034232.python.adaptation.line104.comment shuts down. The AudioDriver does not keep a ref to the AudioPlayer.
         self.driver = driver
 
-        # Desired play state. As the DS Buffer is just a circular buffer, it is
-        # not possible to have it stop at an exact position if the source
-        # should lag behind and cause it to underrun.
+        # 034233.python.adaptation.line107.comment Desired play state. As the DS Buffer is just a circular buffer, it is
+        # 034234.python.adaptation.line108.comment not possible to have it stop at an exact position if the source
+        # 034235.python.adaptation.line109.comment should lag behind and cause it to underrun.
         self._playing = False
 
-        # Need to cache these because pyglet API allows update separately, but
-        # DSound requires both to be set at once.
+        # 034236.python.adaptation.line112.comment Need to cache these because pyglet API allows update separately, but
+        # 034237.python.adaptation.line113.comment DSound requires both to be set at once.
         self._cone_inner_angle = 360
         self._cone_outer_angle = 360
 
-        # Actual cursors for the circular DSBuffer. Will never exceed
-        # `self._buffer_size`.
+        # 034238.python.adaptation.line117.comment Actual cursors for the circular DSBuffer. Will never exceed
+        # 034239.python.adaptation.line118.comment `self._buffer_size`.
         self._play_cursor_ring = 0
         self._write_cursor_ring = 0
 
-        # Theoretical write and play cursors for an infinite buffer.  play
-        # cursor is always <= write cursor (when equal, underrun is
-        # happening).
+        # 034240.python.adaptation.line122.comment Theoretical write and play cursors for an infinite buffer.  play
+        # 034241.python.adaptation.line123.comment cursor is always <= write cursor (when equal, underrun is
+        # 034242.python.adaptation.line124.comment happening).
         self._write_cursor = 0
         self._play_cursor = 0
 
-        # Cursor position of where the source ran out.
-        # We are done once the play cursor crosses it.
+        # 034243.python.adaptation.line128.comment Cursor position of where the source ran out.
+        # 034244.python.adaptation.line129.comment We are done once the play cursor crosses it.
         self._eos_cursor = None
 
-        # Always set to just after the most recently written audio data; so
-        # either undefined data or silence. The eos cursor is set to it once
-        # the source is confirmed to have run out.
+        # 034245.python.adaptation.line132.comment Always set to just after the most recently written audio data; so
+        # 034246.python.adaptation.line133.comment either undefined data or silence. The eos cursor is set to it once
+        # 034247.python.adaptation.line134.comment the source is confirmed to have run out.
         self._possible_eos_cursor = 0
 
-        # Whether the source has hit its end; protect against duplicate
-        # dispatch of on_eos events.
+        # 034248.python.adaptation.line137.comment Whether the source has hit its end; protect against duplicate
+        # 034249.python.adaptation.line138.comment dispatch of on_eos events.
         self._has_underrun = False
 
-        # DSound buffer
+        # 034250.python.adaptation.line141.comment DSound buffer
         self._buffer_size = self._buffered_data_ideal_size
         self._ds_buffer = self.driver._ds_driver.create_buffer(source.audio_format, self._buffer_size)
         self._ds_buffer.current_position = 0
@@ -193,15 +193,15 @@ class DirectSoundAudioPlayer(AbstractAudioPlayer):
             self._maybe_fill()
             return
 
-        # Source exhausted, check whether we hit the end
+        # 034251.python.adaptation.line196.comment Source exhausted, check whether we hit the end
         if not self._has_underrun and self._play_cursor > self._eos_cursor:
             self._has_underrun = True
             assert _debug('DirectSoundAudioPlayer: Dispatching eos')
             MediaEvent('on_eos').sync_dispatch_to_player(self.player)
 
-        # While we are still playing / waiting for the on_eos to be dispatched for
-        # the player to stop, the buffer continues playing. Ensure that silence is
-        # filled.
+        # 034252.python.adaptation.line202.comment While we are still playing / waiting for the on_eos to be dispatched for
+        # 034253.python.adaptation.line203.comment the player to stop, the buffer continues playing. Ensure that silence is
+        # 034254.python.adaptation.line204.comment filled.
         if (used := self._get_used_buffer_space()) < self._buffered_data_comfortable_limit:
             self._write(None, self._buffer_size - used)
 
@@ -228,7 +228,7 @@ class DirectSoundAudioPlayer(AbstractAudioPlayer):
     def _update_play_cursor(self):
         play_cursor_ring = self._ds_buffer.current_position.play_cursor
         if play_cursor_ring < self._play_cursor_ring:
-            # Wrapped around
+            # 034255.python.adaptation.line231.comment Wrapped around
             self._play_cursor += self._buffer_size - self._play_cursor_ring
             self._play_cursor += play_cursor_ring
         else:

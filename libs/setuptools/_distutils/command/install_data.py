@@ -3,7 +3,7 @@
 Implements the Distutils 'install_data' command, for installing
 platform-independent data files."""
 
-# contributed by Bastian Kleineidam
+# 039867.python.install_data.line6.comment contributed by Bastian Kleineidam
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ class install_data(Command):
 
     @functools.singledispatchmethod
     def _copy(self, f: tuple[str | os.PathLike, Iterable[str | os.PathLike]]):
-        # it's a tuple with path to install to and a list of files
+        # 039868.python.install_data.line57.comment it's a tuple with path to install to and a list of files
         dir = convert_path(f[0])
         if not os.path.isabs(dir):
             dir = os.path.join(self.install_dir, dir)
@@ -63,12 +63,12 @@ class install_data(Command):
         self.mkpath(dir)
 
         if f[1] == []:
-            # If there are no files listed, the user must be
-            # trying to create an empty directory, so add the
-            # directory to the list of output files.
+            # 039869.python.install_data.line66.comment If there are no files listed, the user must be
+            # 039870.python.install_data.line67.comment trying to create an empty directory, so add the
+            # 039871.python.install_data.line68.comment directory to the list of output files.
             self.outfiles.append(dir)
         else:
-            # Copy files, adding them to the list of output files.
+            # 039872.python.install_data.line71.comment Copy files, adding them to the list of output files.
             for data in f[1]:
                 data = convert_path(data)
                 (out, _) = self.copy_file(data, dir)
@@ -77,7 +77,7 @@ class install_data(Command):
     @_copy.register(str)
     @_copy.register(os.PathLike)
     def _(self, f: str | os.PathLike):
-        # it's a simple file, so copy it
+        # 039873.python.install_data.line80.comment it's a simple file, so copy it
         f = convert_path(f)
         if self.warn_dir:
             self.warn(

@@ -34,15 +34,15 @@ def generate_random_graph(node_num, edge_num, self_loops=False, multi_edges=Fals
         head = random.choice(nodes)
         tail = random.choice(nodes)
 
-        # loop defense
+        # 021248.python.GraphUtil.line37.comment loop defense
         if head == tail and not self_loops:
             continue
 
-        # multiple edge defense
+        # 021249.python.GraphUtil.line41.comment multiple edge defense
         if g.edge_by_node(head, tail) is not None and not multi_edges:
             continue
 
-        # add the edge
+        # 021250.python.GraphUtil.line45.comment add the edge
         g.add_edge(head, tail)
         if g.number_of_edges() >= edge_num:
             break
@@ -59,10 +59,10 @@ def generate_scale_free_graph(steps, growth_num, self_loops=False, multi_edges=F
     connected to existing nodes with a probability proportional to the degree
     of these existing nodes.
     """
-    # The code doesn't seem to do what the documentation claims.
+    # 021251.python.GraphUtil.line62.comment The code doesn't seem to do what the documentation claims.
     graph = Graph.Graph()
 
-    # initialize the graph
+    # 021252.python.GraphUtil.line65.comment initialize the graph
     store = []
     for i in range(growth_num):
         for j in range(i + 1, growth_num):
@@ -70,17 +70,17 @@ def generate_scale_free_graph(steps, growth_num, self_loops=False, multi_edges=F
             store.append(j)
             graph.add_edge(i, j)
 
-    # generate
+    # 021253.python.GraphUtil.line73.comment generate
     for node in range(growth_num, steps * growth_num):
         graph.add_node(node)
         while graph.out_degree(node) < growth_num:
             nbr = random.choice(store)
 
-            # loop defense
+            # 021254.python.GraphUtil.line79.comment loop defense
             if node == nbr and not self_loops:
                 continue
 
-            # multi edge defense
+            # 021255.python.GraphUtil.line83.comment multi edge defense
             if graph.edge_by_node(node, nbr) and not multi_edges:
                 continue
 

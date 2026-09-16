@@ -190,7 +190,7 @@ EXAMPLES = {
 
 
 if sys.platform != "win32":
-    # ABI3 extensions don't really work on Windows
+    # 045178.python.test_bdist_wheel.line193.comment ABI3 extensions don't really work on Windows
     EXAMPLES["abi3extension-dist"] = {
         "setup.py": cleandoc(
             """
@@ -403,7 +403,7 @@ def test_universal_deprecated(dummy_dist, monkeypatch, tmp_path):
     with pytest.warns(SetuptoolsDeprecationWarning, match=".*universal is deprecated"):
         bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
 
-    # For now we still respect the option
+    # 045179.python.test_bdist_wheel.line406.comment For now we still respect the option
     assert os.path.exists("dist/dummy_dist-1.0-py2.py3-none-any.whl")
 
 
@@ -459,7 +459,7 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
     shutil.copytree(str(dummy_dist), basedir)
     monkeypatch.chdir(basedir)
 
-    # Make the tree read-only
+    # 045180.python.test_bdist_wheel.line462.comment Make the tree read-only
     for root, _dirs, files in os.walk(basedir):
         for fname in files:
             os.chmod(os.path.join(root, fname), stat.S_IREAD)
@@ -578,7 +578,7 @@ def test_data_dir_with_tag_build(monkeypatch, tmp_path):
 
     bdist_wheel_cmd().run()
 
-    # Ensure .whl, .dist-info and .data contain the local segment
+    # 045182.python.test_bdist_wheel.line581.comment Ensure .whl, .dist-info and .data contain the local segment
     wheel_path = "dist/test-1.0+what-py3-none-any.whl"
     assert os.path.exists(wheel_path)
     entries = set(ZipFile(wheel_path).namelist())
@@ -626,13 +626,13 @@ def test_no_ctypes(monkeypatch) -> None:
     with suppress(KeyError):
         monkeypatch.delitem(sys.modules, "wheel.macosx_libfile")
 
-    # Install an importer shim that refuses to load ctypes
+    # 045183.python.test_bdist_wheel.line629.comment Install an importer shim that refuses to load ctypes
     monkeypatch.setattr(builtins, "__import__", _fake_import)
     with pytest.raises(ModuleNotFoundError, match="No module named ctypes"):
         import wheel.macosx_libfile  # noqa: F401
 
-    # Unload and reimport the bdist_wheel command module to make sure it won't try to
-    # import ctypes
+    # 045185.python.test_bdist_wheel.line634.comment Unload and reimport the bdist_wheel command module to make sure it won't try to
+    # 045186.python.test_bdist_wheel.line635.comment import ctypes
     monkeypatch.delitem(sys.modules, "setuptools.command.bdist_wheel")
 
     import setuptools.command.bdist_wheel  # noqa: F401
@@ -645,9 +645,9 @@ def test_dist_info_provided(dummy_dist, monkeypatch, tmp_path):
     distinfo.mkdir()
     (distinfo / "METADATA").write_text("name: helloworld", encoding="utf-8")
 
-    # We don't control the metadata. According to PEP-517, "The hook MAY also
-    # create other files inside this directory, and a build frontend MUST
-    # preserve".
+    # 045188.python.test_bdist_wheel.line648.comment We don't control the metadata. According to PEP-517, "The hook MAY also
+    # 045189.python.test_bdist_wheel.line649.comment create other files inside this directory, and a build frontend MUST
+    # 045190.python.test_bdist_wheel.line650.comment preserve".
     (distinfo / "FOO").write_text("bar", encoding="utf-8")
 
     bdist_wheel_cmd(bdist_dir=str(tmp_path), dist_info_dir=str(distinfo)).run()
@@ -657,15 +657,15 @@ def test_dist_info_provided(dummy_dist, monkeypatch, tmp_path):
     }
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         files_found = set(wf.namelist())
-    # Check that all expected files are there.
+    # 045191.python.test_bdist_wheel.line660.comment Check that all expected files are there.
     assert expected - files_found == set()
-    # Make sure there is no accidental egg-info bleeding into the wheel.
+    # 045192.python.test_bdist_wheel.line662.comment Make sure there is no accidental egg-info bleeding into the wheel.
     assert not [path for path in files_found if 'egg-info' in str(path)]
 
 
 def test_allow_grace_period_parent_directory_license(monkeypatch, tmp_path):
-    # Motivation: https://github.com/pypa/setuptools/issues/4892
-    # TODO: Remove this test after deprecation period is over
+    # 045193.python.test_bdist_wheel.line667.comment Motivation: https://github.com/pypa/setuptools/issues/4892
+    # 045194.python.test_bdist_wheel.line668.comment TODO: Remove this test after deprecation period is over
     files = {
         "LICENSE.txt": "parent license",  # <---- the license files are outside
         "NOTICE.txt": "parent notice",

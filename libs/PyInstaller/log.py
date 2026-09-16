@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009557.python.log.line1.comment -----------------------------------------------------------------------------
+# 009558.python.log.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 009559.python.log.line3.comment
+# 009560.python.log.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009561.python.log.line5.comment or later) with exception for distributing the bootloader.
+# 009562.python.log.line6.comment
+# 009563.python.log.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009564.python.log.line8.comment
+# 009565.python.log.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009566.python.log.line10.comment -----------------------------------------------------------------------------
 """
 Logging module for PyInstaller.
 """

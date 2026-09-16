@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 009609.python.grab_version.line1.comment -----------------------------------------------------------------------------
+# 009610.python.grab_version.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 009611.python.grab_version.line3.comment
+# 009612.python.grab_version.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 009613.python.grab_version.line5.comment or later) with exception for distributing the bootloader.
+# 009614.python.grab_version.line6.comment
+# 009615.python.grab_version.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 009616.python.grab_version.line8.comment
+# 009617.python.grab_version.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 009618.python.grab_version.line10.comment -----------------------------------------------------------------------------
 
 import argparse
 import codecs

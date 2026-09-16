@@ -1,5 +1,5 @@
-# nopycln: file # Re-exporting many constants
-# Converted "manually" from EMSABTAG.H
+# 051448.python.emsabtags.line1.comment nopycln: file # Re-exporting many constants
+# 051449.python.emsabtags.line2.comment Converted "manually" from EMSABTAG.H
 from .mapitags import (
     PROP_TAG,
     PT_APPTIME,
@@ -47,11 +47,11 @@ from .mapitags import (
 AB_SHOW_PHANTOMS = 2
 AB_SHOW_OTHERS = 4
 
-# Flags for ulFlag on ResolveNames
+# 051450.python.emsabtags.line50.comment Flags for ulFlag on ResolveNames
 EMS_AB_ADDRESS_LOOKUP = 1
 
 
-# Constructed, but externally visible.
+# 051451.python.emsabtags.line54.comment Constructed, but externally visible.
 PR_EMS_AB_SERVER = PROP_TAG(PT_TSTRING, 65534)
 PR_EMS_AB_SERVER_A = PROP_TAG(PT_STRING8, 65534)
 PR_EMS_AB_SERVER_W = PROP_TAG(PT_UNICODE, 65534)
@@ -69,7 +69,7 @@ MIN_EMS_AB_CONSTRUCTED_PROP_ID = 65528
 
 PR_EMS_AB_OTHER_RECIPS = PROP_TAG(PT_OBJECT, 61440)
 
-# Prop tags defined in the schema.
+# 051452.python.emsabtags.line72.comment Prop tags defined in the schema.
 PR_EMS_AB_DISPLAY_NAME_PRINTABLE = PROP_TAG(PT_TSTRING, 14847)
 PR_EMS_AB_DISPLAY_NAME_PRINTABLE_A = PROP_TAG(PT_STRING8, 14847)
 PR_EMS_AB_DISPLAY_NAME_PRINTABLE_W = PROP_TAG(PT_UNICODE, 14847)

@@ -87,19 +87,19 @@ class DirectorySnapshotDiff:
             def get_inode(directory: DirectorySnapshot, full_path: bytes | str) -> int | tuple[int, int]:
                 return directory.inode(full_path)
 
-        # check that all unchanged paths have the same inode
+        # 045922.python.dirsnapshot.line90.comment check that all unchanged paths have the same inode
         for path in ref.paths & snapshot.paths:
             if get_inode(ref, path) != get_inode(snapshot, path):
                 created.add(path)
                 deleted.add(path)
 
-        # find moved paths
+        # 045923.python.dirsnapshot.line96.comment find moved paths
         moved: set[tuple[bytes | str, bytes | str]] = set()
         for path in set(deleted):
             inode = ref.inode(path)
             new_path = snapshot.path(inode)
             if new_path:
-                # file is not deleted but moved
+                # 045924.python.dirsnapshot.line102.comment file is not deleted but moved
                 deleted.remove(path)
                 moved.add((path, new_path))
 
@@ -110,8 +110,8 @@ class DirectorySnapshotDiff:
                 created.remove(path)
                 moved.add((old_path, path))
 
-        # find modified paths
-        # first check paths that have not moved
+        # 045925.python.dirsnapshot.line113.comment find modified paths
+        # 045926.python.dirsnapshot.line114.comment first check paths that have not moved
         modified: set[bytes | str] = set()
         for path in ref.paths & snapshot.paths:
             if get_inode(ref, path) == get_inode(snapshot, path) and (
@@ -319,10 +319,10 @@ class DirectorySnapshot:
         try:
             paths = [os.path.join(root, entry.name) for entry in self.listdir(root)]
         except OSError as e:
-            # Directory may have been deleted between finding it in the directory
-            # list of its parent and trying to delete its contents. If this
-            # happens we treat it as empty. Likewise if the directory was replaced
-            # with a file of the same name (less likely, but possible).
+            # 045927.python.dirsnapshot.line322.comment Directory may have been deleted between finding it in the directory
+            # 045928.python.dirsnapshot.line323.comment list of its parent and trying to delete its contents. If this
+            # 045929.python.dirsnapshot.line324.comment happens we treat it as empty. Likewise if the directory was replaced
+            # 045930.python.dirsnapshot.line325.comment with a file of the same name (less likely, but possible).
             if e.errno in (errno.ENOENT, errno.ENOTDIR, errno.EINVAL):
                 return
             else:

@@ -57,7 +57,7 @@ class Device:
         self.display = display
         self.name = name
 
-        #: The manufacturer name, if available
+        # 030429.python.base.line60.comment : The manufacturer name, if available
         self.manufacturer: str | None = None
         self._is_open: bool = False
 
@@ -163,7 +163,7 @@ class Control(EventDispatcher):
         else:
             return f"{self.__class__.__name__}(raw_name={self.raw_name})"
 
-    # Events
+    # 030430.python.base.line166.comment Events
 
     def on_change(self, value) -> float:
         """The value changed."""
@@ -238,7 +238,7 @@ class Button(Control):
             self.dispatch_event('on_release')
 
     if _is_pyglet_doc_run:
-        # Events
+        # 030431.python.base.line241.comment Events
 
         def on_press(self):
             """The button was pressed."""
@@ -282,55 +282,55 @@ class Joystick(EventDispatcher):
 
     The device name can be queried to get the name of the joystick.
     """
-    #: :The underlying device used by this joystick interface.
+    # 030432.python.base.line285.comment : :The underlying device used by this joystick interface.
     device: Device
 
-    #: :Current X (horizontal) value ranging from -1.0 (left) to 1.0 (right).
+    # 030433.python.base.line288.comment : :Current X (horizontal) value ranging from -1.0 (left) to 1.0 (right).
     x: float
-    #: :Current y (vertical) value ranging from -1.0 (top) to 1.0 (bottom).
+    # 030434.python.base.line290.comment : :Current y (vertical) value ranging from -1.0 (top) to 1.0 (bottom).
     y: float
-    #: :Current Z value ranging from -1.0 to 1.0.  On joysticks the Z value is usually the
-    #: :throttle control. On controllers the Z value is usually the secondary thumb vertical axis.
+    # 030435.python.base.line292.comment : :Current Z value ranging from -1.0 to 1.0.  On joysticks the Z value is usually the
+    # 030436.python.base.line293.comment : :throttle control. On controllers the Z value is usually the secondary thumb vertical axis.
     z: float
 
-    #: :Current rotational X value ranging from -1.0 to 1.0.
+    # 030437.python.base.line296.comment : :Current rotational X value ranging from -1.0 to 1.0.
     rx: float
-    #: :Current rotational Y value ranging from -1.0 to 1.0.
+    # 030438.python.base.line298.comment : :Current rotational Y value ranging from -1.0 to 1.0.
     ry: float
-    #: :Current rotational Z value ranging from -1.0 to 1.0.  On joysticks the RZ value
-    #: :is usually the twist of the stick.  On game controllers the RZ value is usually
-    #: :the secondary thumb horizontal axis.
+    # 030439.python.base.line300.comment : :Current rotational Z value ranging from -1.0 to 1.0.  On joysticks the RZ value
+    # 030440.python.base.line301.comment : :is usually the twist of the stick.  On game controllers the RZ value is usually
+    # 030441.python.base.line302.comment : :the secondary thumb horizontal axis.
     rz: float
 
-    #: :Current hat (POV) horizontal position; one of -1 (left), 0 (centered) or 1 (right).
+    # 030442.python.base.line305.comment : :Current hat (POV) horizontal position; one of -1 (left), 0 (centered) or 1 (right).
     hat_x: int
-    #: :Current hat (POV) vertical position; one of -1 (bottom), 0 (centered) or 1 (top).
+    # 030443.python.base.line307.comment : :Current hat (POV) vertical position; one of -1 (bottom), 0 (centered) or 1 (top).
     hat_y: int
 
-    #: :List of boolean values representing current states of the buttons. These
-    #: :are in order, so that button 1 has value at ``buttons[0]``, and so on.
+    # 030444.python.base.line310.comment : :List of boolean values representing current states of the buttons. These
+    # 030445.python.base.line311.comment : :are in order, so that button 1 has value at ``buttons[0]``, and so on.
     buttons: list[bool]
 
-    #: :Underlying control for ``x`` value, or ``None`` if not available.
+    # 030446.python.base.line314.comment : :Underlying control for ``x`` value, or ``None`` if not available.
     x_control: None | AbsoluteAxis
-    #: :Underlying control for ``y`` value, or ``None`` if not available.
+    # 030447.python.base.line316.comment : :Underlying control for ``y`` value, or ``None`` if not available.
     y_control: None | AbsoluteAxis
-    #: :Underlying control for ``z`` value, or ``None`` if not available.
+    # 030448.python.base.line318.comment : :Underlying control for ``z`` value, or ``None`` if not available.
     z_control: None | AbsoluteAxis
 
-    #: :Underlying control for ``rx`` value, or ``None`` if not available.
+    # 030449.python.base.line321.comment : :Underlying control for ``rx`` value, or ``None`` if not available.
     rx_control: None | AbsoluteAxis
-    #: :Underlying control for ``ry`` value, or ``None`` if not available.
+    # 030450.python.base.line323.comment : :Underlying control for ``ry`` value, or ``None`` if not available.
     ry_control: None | AbsoluteAxis
-    #: :Underlying control for ``rz`` value, or ``None`` if not available.
+    # 030451.python.base.line325.comment : :Underlying control for ``rz`` value, or ``None`` if not available.
     rz_control: None | AbsoluteAxis
 
-    #: :Underlying control for ``hat_x`` value, or ``None`` if not available.
+    # 030452.python.base.line328.comment : :Underlying control for ``hat_x`` value, or ``None`` if not available.
     hat_x_control: None | AbsoluteAxis
-    #: :Underlying control for ``hat_y`` value, or ``None`` if not available.
+    # 030453.python.base.line330.comment : :Underlying control for ``hat_y`` value, or ``None`` if not available.
     hat_y_control: None | AbsoluteAxis
 
-    #: Underlying controls for ``buttons`` values.
+    # 030454.python.base.line333.comment : Underlying controls for ``buttons`` values.
     button_controls: list[Button]
 
     def __init__(self, device):
@@ -392,7 +392,7 @@ class Joystick(EventDispatcher):
                 self.dispatch_event('on_joybutton_release', self, i)
 
         def add_hat(control: AbsoluteAxis):
-            # 8-directional hat encoded as a single control (Windows/Mac)
+            # 030455.python.base.line395.comment 8-directional hat encoded as a single control (Windows/Mac)
             self.hat_x_control = control
             self.hat_y_control = control
 
@@ -422,7 +422,7 @@ class Joystick(EventDispatcher):
         """Close the joystick device.  See `Device.close`. """
         self.device.close()
 
-    # Events
+    # 030458.python.base.line425.comment Events
 
     def on_joyaxis_motion(self, joystick: Joystick, axis: str, value: float):
         """The value of a joystick axis changed.
@@ -511,16 +511,16 @@ class Controller(EventDispatcher):
         .. versionadded:: 2.0
         """
 
-        #: The underlying Device:
+        # 030459.python.base.line514.comment : The underlying Device:
         self.device: Device = device
         self._mapping = mapping
 
-        #: The logical device name
+        # 030460.python.base.line518.comment : The logical device name
         self.name: str = mapping.get('name')
-        #: The unique guid for this Device
+        # 030461.python.base.line520.comment : The unique guid for this Device
         self.guid: str = mapping.get('guid')
 
-        # Pollable
+        # 030462.python.base.line523.comment Pollable
         self.a: bool = False
         self.b: bool = False
         self.x: bool = False
@@ -580,13 +580,13 @@ class Controller(EventDispatcher):
             A string, currently one of "PS", "XB", or "GENERIC".
         """
         product_id = None
-        # TODO: add more checks for vendor hardware ids.
+        # 030465.python.base.line583.comment TODO: add more checks for vendor hardware ids.
 
-        # Windows
+        # 030466.python.base.line585.comment Windows
         if self.name == 'XINPUTCONTROLLER':
             return 'XB'
 
-        # Linux
+        # 030467.python.base.line589.comment Linux
         if id_product := getattr(self.device, 'id_product'):
             product_id = int(id_product, base=0)
 
@@ -610,11 +610,11 @@ class Controller(EventDispatcher):
             scale = -scale
             bias = -bias
 
-        # Default Signs, if not explicitly defined in the mapping string:
+        # 030468.python.base.line613.comment Default Signs, if not explicitly defined in the mapping string:
         dpad_defaults = {'dpup': Sign.POSITIVE, 'dpdown': Sign.NEGATIVE,
                          'dpleft': Sign.NEGATIVE, 'dpright': Sign.POSITIVE}
 
-        # If the sign is not DEFAULT, it must be inverted:
+        # 030469.python.base.line617.comment If the sign is not DEFAULT, it must be inverted:
         if relation.sign not in (Sign.DEFAULT, dpad_defaults.get(axis_name)):
             sign = -1.0
 
@@ -680,12 +680,12 @@ class Controller(EventDispatcher):
                 self.dispatch_event('on_button_release', self, button_name)
 
     def _bind_dedicated_hat(self, relation: Relation, control: AbsoluteAxis) -> None:
-        # 8-directional hat encoded as a single control (Windows/Mac)
+        # 030472.python.base.line683.comment 8-directional hat encoded as a single control (Windows/Mac)
         _vecs = (Vec2(0.0, 1.0), Vec2(1.0, 1.0), Vec2(1.0, 0.0), Vec2(1.0, -1.0),       # n, ne, e, se
                  Vec2(0.0, -1.0), Vec2(-1.0, -1.0), Vec2(-1.0, 0.0), Vec2(-1.0, 1.0))   # s, sw, w, nw
         _input_map = {key: val for key, val in zip(range(int(control.min), int(control.max + 1)), _vecs)}
 
-        # For some Directinput devices:
+        # 030475.python.base.line688.comment For some Directinput devices:
         _scale = 0xfff if control.max > 8 else 1
 
         @control.event
@@ -703,7 +703,7 @@ class Controller(EventDispatcher):
         """
 
         for ctrl in self.device.get_controls():
-            # Categorize the various control types
+            # 030476.python.base.line706.comment Categorize the various control types
             if isinstance(ctrl, Button):
                 self._button_controls.append(ctrl)
 
@@ -778,7 +778,7 @@ class Controller(EventDispatcher):
     def rumble_stop_strong(self) -> None:
         """Stop playing rumble effects on the strong motor."""
 
-    # Events
+    # 030477.python.base.line781.comment Events
 
     def on_stick_motion(self, controller: Controller, stick: str, vector: Vec2):
         """The value of a controller analogue stick changed.
@@ -894,7 +894,7 @@ class AppleRemote(EventDispatcher):
         """Close the device.  See `Device.close`. """
         self.device.close()
 
-    # Events
+    # 030478.python.base.line897.comment Events
 
     def on_button_press(self, button: str):
         """A button on the remote was pressed.
@@ -964,11 +964,11 @@ class TabletCanvas(EventDispatcher):
     one cursor can be used at a time, otherwise the results are undefined.
     """
 
-    # OS X: Active window receives tablet events only when cursor is in window
-    # Windows: Active window receives all tablet events
-    #
-    # Note that this means enter/leave pairs are not always consistent (normal
-    # usage).
+    # 030479.python.base.line967.comment OS X: Active window receives tablet events only when cursor is in window
+    # 030480.python.base.line968.comment Windows: Active window receives all tablet events
+    # 030481.python.base.line969.comment
+    # 030482.python.base.line970.comment Note that this means enter/leave pairs are not always consistent (normal
+    # 030483.python.base.line971.comment usage).
 
     def __init__(self, window: BaseWindow):
         """Create a TabletCanvas.
@@ -984,7 +984,7 @@ class TabletCanvas(EventDispatcher):
         raise NotImplementedError('abstract')
 
     if _is_pyglet_doc_run:
-        # Events
+        # 030484.python.base.line987.comment Events
 
         def on_enter(self, cursor: TabletCursor):
             """A cursor entered the proximity of the window.  The cursor may
@@ -1047,7 +1047,7 @@ class TabletCursor:
     this object is used to distinguish them when tablet events are generated.
     """
 
-    # TODO well-defined names for stylus and eraser.
+    # 030485.python.base.line1050.comment TODO well-defined names for stylus and eraser.
 
     def __init__(self, name: str):
         """Create a cursor object.
@@ -1102,7 +1102,7 @@ class ControllerManager(EventDispatcher):
         """Get a list of all connected Controllers"""
         raise NotImplementedError
 
-    # Events
+    # 030486.python.base.line1105.comment Events
 
     def on_connect(self, controller) -> Controller:
         """A Controller has been connected. If this is

@@ -21,7 +21,7 @@ from win32com.server.exception import COMException
 _keywords = {
     _keyword
     for _keyword in kwlist
-    # Avoids including True/False/None
+    # 050801.python.codecontainer.line24.comment Avoids including True/False/None
     if _keyword.islower()
 }
 """set of Python keywords"""
@@ -43,7 +43,7 @@ class SourceCodeContainer:
             self._buildlines()
         self.nextLineNo = 0
         self.fileName = fileName
-        # Any: PyIDispatch type is not statically exposed
+        # 050803.python.codecontainer.line46.comment Any: PyIDispatch type is not statically exposed
         self.codeContexts: dict[int, Any] = {}
         self.site = site
         self.startLineNumber = startLineNumber
@@ -82,9 +82,9 @@ class SourceCodeContainer:
             lastOffset = lineOffset
             lineNo += 1
         else:  # for not broken.
-            # print("Can't find", charPos, "in", self.lineOffsets)
+            # 050807.python.codecontainer.line85.comment print("Can't find", charPos, "in", self.lineOffsets)
             raise COMException(scode=winerror.S_FALSE)
-        # print("GLOP ret=", lineNo, (charPos - lastOffset))
+        # 050808.python.codecontainer.line87.comment print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
 
     def GetNextLine(self):
@@ -152,7 +152,7 @@ class SourceCodeContainer:
             attr = axdebug.SOURCETEXT_ATTR_OPERATOR
         elif type == tokenize.COMMENT:
             attr = axdebug.SOURCETEXT_ATTR_COMMENT
-        # else attr remains zero...
+        # 050814.python.codecontainer.line155.comment else attr remains zero...
         if kwSize == 0:
             pass
         elif kwSize == 1:
@@ -173,14 +173,14 @@ class SourceCodeContainer:
             self.attrs.append((axdebug.SOURCETEXT_ATTR_COMMENT, numAtEnd))
         return self.attrs
 
-    # We also provide and manage DebugDocumentContext objects
+    # 050816.python.codecontainer.line176.comment We also provide and manage DebugDocumentContext objects
     def _MakeDebugCodeContext(self, lineNo, charPos, len):
         return _wrap(
             contexts.DebugCodeContext(lineNo, charPos, len, self, self.site),
             axdebug.IID_IDebugCodeContext,
         )
 
-    # Make a context at the given position.  It should take up the entire context.
+    # 050817.python.codecontainer.line183.comment Make a context at the given position.  It should take up the entire context.
     def _MakeContextAtPosition(self, charPos):
         lineNo, offset = self.GetLineOfPosition(charPos)
         try:
@@ -190,10 +190,10 @@ class SourceCodeContainer:
         codecontext = self._MakeDebugCodeContext(lineNo, charPos, endPos - charPos)
         return codecontext
 
-    # Returns a DebugCodeContext.  debugDocument can be None for smart hosts.
+    # 050818.python.codecontainer.line193.comment Returns a DebugCodeContext.  debugDocument can be None for smart hosts.
     def GetCodeContextAtPosition(self, charPos):
-        # trace("GetContextOfPos", charPos, maxChars)
-        # Convert to line number.
+        # 050819.python.codecontainer.line195.comment trace("GetContextOfPos", charPos, maxChars)
+        # 050820.python.codecontainer.line196.comment Convert to line number.
         lineNo, offset = self.GetLineOfPosition(charPos)
         charPos = self.GetPositionOfLine(lineNo)
         try:
@@ -209,7 +209,7 @@ class SourceModuleContainer(SourceCodeContainer):
         self.module = module
         if hasattr(module, "__file__"):
             fname = self.module.__file__
-            # Check for .pyc or .pyo or even .pys!
+            # 050821.python.codecontainer.line212.comment Check for .pyc or .pyo or even .pys!
             if fname[-1] in ["O", "o", "C", "c", "S", "s"]:
                 fname = fname[:-1]
             try:
@@ -260,7 +260,7 @@ if __name__ == "__main__":
     from Test import ttest
 
     sc = SourceModuleContainer(ttest)
-    # sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
+    # 050822.python.codecontainer.line263.comment sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
     attrs = sc.GetSyntaxColorAttributes()
     attrlen = 0
     for attr in attrs:
@@ -272,8 +272,8 @@ if __name__ == "__main__":
     if attrlen != len(text):
         print(f"Lengths don't match!!! ({attrlen}/{len(text)})")
 
-    # print("Attributes:")
-    # print(attrs)
+    # 050823.python.codecontainer.line275.comment print("Attributes:")
+    # 050824.python.codecontainer.line276.comment print(attrs)
     print("GetLineOfPos=", sc.GetLineOfPosition(0))
     print("GetLineOfPos=", sc.GetLineOfPosition(4))
     print("GetLineOfPos=", sc.GetLineOfPosition(10))

@@ -10,9 +10,9 @@ import win32com.directsound.directsound as ds
 import win32event
 from pywin32_testutil import TestSkipped, find_test_fixture
 
-# next two lines are for for debugging:
-# import win32com
-# import directsound as ds
+# 051357.python.ds_test.line13.comment next two lines are for for debugging:
+# 051358.python.ds_test.line14.comment import win32com
+# 051359.python.ds_test.line15.comment import directsound as ds
 
 WAV_FORMAT_PCM = 1
 WAV_HEADER_SIZE = struct.calcsize("<4sl4s4slhhllhh4sl")
@@ -37,8 +37,8 @@ def wav_header_unpack(data):
 
     assert riff == b"RIFF", "invalid wav header"
 
-    # fmt chuck is not first chunk, directly followed by data chuck
-    # It is nowhere required that they are, it is just very common
+    # 051360.python.ds_test.line40.comment fmt chuck is not first chunk, directly followed by data chuck
+    # 051361.python.ds_test.line41.comment It is nowhere required that they are, it is just very common
     assert fmtsize == 16 and fmt == b"fmt " and data == b"data", (
         "cannot understand wav header"
     )
@@ -81,7 +81,7 @@ class WAVEFORMATTest(unittest.TestCase):
 
     def test_2_Attr(self):
         "WAVEFORMATEX attribute access"
-        # A wav header for a soundfile from a CD should look like this...
+        # 051362.python.ds_test.line84.comment A wav header for a soundfile from a CD should look like this...
         w = pywintypes.WAVEFORMATEX()
         w.wFormatTag = pywintypes.WAVE_FORMAT_PCM
         w.nChannels = 2
@@ -281,14 +281,14 @@ class DSCBUFFERDESCTest(unittest.TestCase):
 
 
 class DirectSoundTest(unittest.TestCase):
-    # basic tests - mostly just exercise the functions
+    # 051363.python.ds_test.line284.comment basic tests - mostly just exercise the functions
     def testEnumerate(self):
         """DirectSoundEnumerate() sanity tests"""
 
         devices = ds.DirectSoundEnumerate()
-        # this might fail on machines without a sound card
+        # 051364.python.ds_test.line289.comment this might fail on machines without a sound card
         self.assertTrue(len(devices))
-        # if we have an entry, it must be a tuple of size 3
+        # 051365.python.ds_test.line291.comment if we have an entry, it must be a tuple of size 3
         self.assertTrue(len(devices[0]) == 3)
 
     def testCreate(self):
@@ -302,7 +302,7 @@ class DirectSoundTest(unittest.TestCase):
 
     def testPlay(self):
         """Mesdames et Messieurs, la cour de Devin Dazzle"""
-        # relative to 'testall.py' in the win32com test suite.
+        # 051366.python.ds_test.line305.comment relative to 'testall.py' in the win32com test suite.
         extra = os.path.join(
             os.path.dirname(sys.argv[0]), "../../win32comext/directsound/test"
         )
@@ -341,14 +341,14 @@ class DirectSoundTest(unittest.TestCase):
 
 
 class DirectSoundCaptureTest(unittest.TestCase):
-    # basic tests - mostly just exercise the functions
+    # 051367.python.ds_test.line344.comment basic tests - mostly just exercise the functions
     def testEnumerate(self):
         """DirectSoundCaptureEnumerate() sanity tests"""
 
         devices = ds.DirectSoundCaptureEnumerate()
-        # this might fail on machines without a sound card
+        # 051368.python.ds_test.line349.comment this might fail on machines without a sound card
         self.assertTrue(len(devices))
-        # if we have an entry, it must be a tuple of size 3
+        # 051369.python.ds_test.line351.comment if we have an entry, it must be a tuple of size 3
         self.assertTrue(len(devices[0]) == 3)
 
     def testCreate(self):

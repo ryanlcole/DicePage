@@ -1,4 +1,4 @@
-# MFC base classes.
+# 038508.python.object.line1.comment MFC base classes.
 
 import win32ui
 
@@ -6,7 +6,7 @@ import win32ui
 class Object:
     def __init__(self, initObj=None):
         self.__dict__["_obj_"] = initObj
-        # 		self._obj_ = initObj
+        # 038509.python.object.line9.comment self._obj_ = initObj
         if initObj is not None:
             initObj.AttachObject(self)
 
@@ -16,24 +16,24 @@ class Object:
     def __getattr__(
         self, attr
     ):  # Make this object look like the underlying win32ui one.
-        # During cleanup __dict__ is not available, causing recursive death.
+        # 038511.python.object.line19.comment During cleanup __dict__ is not available, causing recursive death.
         if not attr.startswith("__"):
             try:
                 o = self.__dict__["_obj_"]
                 if o is not None:
                     return getattr(o, attr)
-                # Only raise this error for non "internal" names -
-                # Python may be calling __len__, __bool__, etc, so
-                # we don't want this exception
+                # 038512.python.object.line25.comment Only raise this error for non "internal" names -
+                # 038513.python.object.line26.comment Python may be calling __len__, __bool__, etc, so
+                # 038514.python.object.line27.comment we don't want this exception
                 if attr[0] != "_" and attr[-1] != "_":
                     raise win32ui.error("The MFC object has died.")
             except KeyError:
-                # No _obj_ at all - don't report MFC object died when there isn't one!
+                # 038515.python.object.line31.comment No _obj_ at all - don't report MFC object died when there isn't one!
                 pass
         raise AttributeError(attr)
 
     def OnAttachedObjectDeath(self):
-        # print("object", self.__class__.__name__, "dieing")
+        # 038516.python.object.line36.comment print("object", self.__class__.__name__, "dieing")
         self._obj_ = None
 
     def close(self):

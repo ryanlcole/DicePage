@@ -1,4 +1,4 @@
-# 'Request' example added jjk  11/20/98
+# 046039.python.ddeserver.line1.comment 'Request' example added jjk  11/20/98
 
 import win32ui  # isort: skip # Must be imported before dde !
 import dde

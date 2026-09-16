@@ -8,15 +8,15 @@ Responsibilities
     never paths or files.
 """
 
-# events definition
+# 035361.python.instrumentation.line11.comment events definition
 mp_events = {
     "version": 1.1,
 
-    # <evname>: {
-    #     "desc": <description used in reports to mention the event>,
-    #     "update_names": <list of names of fields updated>,
-    #     "other_fields": <list of additional fields to show when mention the event in a report>
-    #     },
+    # 035362.python.instrumentation.line15.comment <evname>: {
+    # 035363.python.instrumentation.line16.comment "desc": <description used in reports to mention the event>,
+    # 035364.python.instrumentation.line17.comment "update_names": <list of names of fields updated>,
+    # 035365.python.instrumentation.line18.comment "other_fields": <list of additional fields to show when mention the event in a report>
+    # 035366.python.instrumentation.line19.comment },
 
     "crash": {
         "desc": "media_player crashed.",
@@ -79,7 +79,7 @@ mp_events = {
         "other_fields": [],
         "test_cases": [("p.P.ut.1.8",)]
         },
-    # in log_render_anomalies list only if rescheduling_time < 0
+    # 035367.python.instrumentation.line82.comment in log_render_anomalies list only if rescheduling_time < 0
     "p.P.ut.1.9": {
         "desc": "Re-scheduling,",
         "update_names": ["evname", "rescheduling_time", "next_video_time"],
@@ -87,7 +87,7 @@ mp_events = {
         "test_cases": [("p.P.ut.1.9", 0.02, None), ("p.P.ut.1.9", 0.02, 2.7)]
         },
 
-    # crash_detection relies in this being the last event in the log_entries
+    # 035368.python.instrumentation.line90.comment crash_detection relies in this being the last event in the log_entries
     "p.P.oe": {
         "desc": ">>> play ends",
         "update_names": ["evname"],
@@ -96,7 +96,7 @@ mp_events = {
         },
     }
 
-# events to examine for defects detection
+# 035369.python.instrumentation.line99.comment events to examine for defects detection
 mp_bads = {"crash", "p.P.ut.1.5", "p.P.ut.1.7", "p.P.ut.1.8"}
 
 
@@ -115,7 +115,7 @@ class MediaPlayerStateIterator:
     The mp state is handled as a dict, with keys in cls.fields
     """
     fields = {
-        # real
+        # 035370.python.instrumentation.line118.comment real
         "evname": None,
         "evnum": -1,  # synthetic, ordinal last event processed
         "sample": None,
@@ -127,7 +127,7 @@ class MediaPlayerStateIterator:
         "video_time": None,
         "rescheduling_time": None,
         "next_video_time": None,
-        # synthetics, probably invalid after using seek
+        # 035372.python.instrumentation.line130.comment synthetics, probably invalid after using seek
         "pyglet_time": 0,
         "frame_num": 0,
         }
@@ -186,10 +186,10 @@ class TimelineBuilder:
 
     def get_timeline(self):
         """remember video_time and audio_time can be None"""
-        # real work is done in rhe callback pre
+        # 035373.python.instrumentation.line189.comment real work is done in rhe callback pre
         for st in self.mp_state_iterator:
             pass
-        # The first entry is bogus, because there was no previous call so discard
+        # 035374.python.instrumentation.line192.comment The first entry is bogus, because there was no previous call so discard
         return self.timeline[1:]
 
 
@@ -221,7 +221,7 @@ def timeline_postprocessing(timeline):
     return filtered_timeline, current_time_nones, audio_time_nones
 
 
-# works for buffered log, needs other implementation if unbuffered
+# 035375.python.instrumentation.line224.comment works for buffered log, needs other implementation if unbuffered
 def crash_detected(recorded_events):
     crashed = recorded_events[-1][0] != "p.P.oe"
     return crashed

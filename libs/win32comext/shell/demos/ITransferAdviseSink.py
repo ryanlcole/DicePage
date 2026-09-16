@@ -1,4 +1,4 @@
-# ITransferAdviseSink implementation template
+# 051509.python.ITransferAdviseSink.line1.comment ITransferAdviseSink implementation template
 
 import pythoncom
 from win32com.server.policy import DesignatedWrapPolicy

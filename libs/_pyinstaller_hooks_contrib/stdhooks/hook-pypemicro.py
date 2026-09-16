@@ -1,16 +1,16 @@
-# ------------------------------------------------------------------
-# Copyright (c) 2022 PyInstaller Development Team.
-#
-# This file is distributed under the terms of the GNU General Public
-# License (version 2.0 or later).
-#
-# The full license is available in LICENSE, distributed with
-# this software.
-#
-# SPDX-License-Identifier: GPL-2.0-or-later
-# ------------------------------------------------------------------
+# 016076.python.hook-pypemicro.line1.comment ------------------------------------------------------------------
+# 016077.python.hook-pypemicro.line2.comment Copyright (c) 2022 PyInstaller Development Team.
+# 016078.python.hook-pypemicro.line3.comment
+# 016079.python.hook-pypemicro.line4.comment This file is distributed under the terms of the GNU General Public
+# 016080.python.hook-pypemicro.line5.comment License (version 2.0 or later).
+# 016081.python.hook-pypemicro.line6.comment
+# 016082.python.hook-pypemicro.line7.comment The full license is available in LICENSE, distributed with
+# 016083.python.hook-pypemicro.line8.comment this software.
+# 016084.python.hook-pypemicro.line9.comment
+# 016085.python.hook-pypemicro.line10.comment SPDX-License-Identifier: GPL-2.0-or-later
+# 016086.python.hook-pypemicro.line11.comment ------------------------------------------------------------------
 
-# Hook for the pypemicro module: https://github.com/nxpmicro/pypemicro
+# 016087.python.hook-pypemicro.line13.comment Hook for the pypemicro module: https://github.com/nxpmicro/pypemicro
 
 import os
 from PyInstaller.utils.hooks import get_package_paths, is_module_satisfies

@@ -1,4 +1,4 @@
-# Regedit - a Registry Editor for Python
+# 039142.python.regedit.line1.comment Regedit - a Registry Editor for Python
 
 import commctrl
 import regutil
@@ -22,7 +22,7 @@ def SafeApply(fn, args, err_desc=""):
 
 class SplitterFrame(window.MDIChildWnd):
     def __init__(self):
-        # call base CreateFrame
+        # 039143.python.regedit.line25.comment call base CreateFrame
         self.images = None
         window.MDIChildWnd.__init__(self)
 
@@ -33,28 +33,28 @@ class SplitterFrame(window.MDIChildWnd):
         size = ((frame_rect[2] - frame_rect[0]), (frame_rect[3] - frame_rect[1]) // 2)
         sub_size = (size[0] // 3, size[1])
         splitter.CreateStatic(self, 1, 2)
-        # CTreeControl view
+        # 039144.python.regedit.line36.comment CTreeControl view
         self.keysview = RegistryTreeView(doc)
-        # CListControl view
+        # 039145.python.regedit.line38.comment CListControl view
         self.valuesview = RegistryValueView(doc)
 
         splitter.CreatePane(self.keysview, 0, 0, (sub_size))
         splitter.CreatePane(self.valuesview, 0, 1, (0, 0))  # size ignored.
         splitter.SetRowInfo(0, size[1], 0)
-        # Setup items in the imagelist
+        # 039147.python.regedit.line44.comment Setup items in the imagelist
 
         return 1
 
     def OnItemDoubleClick(self, info, extra):
         (hwndFrom, idFrom, code) = info
         if idFrom == win32ui.AFX_IDW_PANE_FIRST:
-            # Tree control
+            # 039148.python.regedit.line51.comment Tree control
             return None
         elif idFrom == win32ui.AFX_IDW_PANE_FIRST + 1:
             item = self.keysview.SelectedItem()
             self.valuesview.EditValue(item)
             return 0
-            # List control
+            # 039149.python.regedit.line57.comment List control
         else:
             return None  # Pass it on
 
@@ -84,7 +84,7 @@ class RegistryTreeView(docview.TreeView):
         self.frame.HookNotify(self.frame.OnItemDoubleClick, commctrl.NM_DBLCLK)
         self.frame.HookNotify(self.OnItemRightClick, commctrl.NM_RCLICK)
 
-    # 		self.HookMessage(self.OnItemRightClick, win32con.WM_RBUTTONUP)
+    # 039151.python.regedit.line87.comment self.HookMessage(self.OnItemRightClick, win32con.WM_RBUTTONUP)
 
     def GetHLIRoot(self):
         doc = self.GetDocument()
@@ -93,7 +93,7 @@ class RegistryTreeView(docview.TreeView):
         return HLIRegistryKey(regroot, subkey, "Root")
 
     def OnItemRightClick(self, notify_data, extra):
-        # First select the item we right-clicked on.
+        # 039152.python.regedit.line96.comment First select the item we right-clicked on.
         pt = self.ScreenToClient(win32api.GetCursorPos())
         flags, hItem = self.HitTest(pt)
         if hItem == 0 or commctrl.TVHT_ONITEM & flags == 0:
@@ -120,7 +120,7 @@ class RegistryTreeView(docview.TreeView):
         if SafeApply(
             win32api.RegDeleteKey, (item.keyRoot, item.keyName), "deleting registry key"
         ):
-            # Get the items parent.
+            # 039154.python.regedit.line123.comment Get the items parent.
             try:
                 hparent = self.GetParentItem(hitem)
             except win32ui.error:
@@ -145,10 +145,10 @@ class RegistryTreeView(docview.TreeView):
         if SafeApply(
             win32api.RegSetValue, (item.keyRoot, item.keyName, win32con.REG_SZ, val)
         ):
-            # Simply re-select the current item to refresh the right spitter.
+            # 039157.python.regedit.line148.comment Simply re-select the current item to refresh the right spitter.
             self.PerformItemSelected(item)
 
-    # 			self.Select(hitem, commctrl.TVGN_CARET)
+    # 039158.python.regedit.line151.comment self.Select(hitem, commctrl.TVGN_CARET)
 
     def PerformItemSelected(self, item):
         return self.frame.PerformItemSelected(item)
@@ -159,9 +159,9 @@ class RegistryTreeView(docview.TreeView):
     def SearchSelectedItem(self):
         handle = self.hierList.GetChildItem(0)
         while 1:
-            # print("State is", self.hierList.GetItemState(handle, -1))
+            # 039159.python.regedit.line162.comment print("State is", self.hierList.GetItemState(handle, -1))
             if self.hierList.GetItemState(handle, commctrl.TVIS_SELECTED):
-                # print("Item is ", self.hierList.ItemFromHandle(handle))
+                # 039160.python.regedit.line164.comment print("Item is ", self.hierList.ItemFromHandle(handle))
                 return self.hierList.ItemFromHandle(handle)
             handle = self.hierList.GetNextSiblingItem(handle)
 
@@ -202,7 +202,7 @@ class RegistryValueView(docview.ListView):
             win32api.RegCloseKey(hkey)
 
     def EditValue(self, item):
-        # Edit the current value
+        # 039161.python.regedit.line205.comment Edit the current value
         class EditDialog(dialog.Dialog):
             def __init__(self, item):
                 self.item = item
@@ -212,7 +212,7 @@ class RegistryValueView(docview.ListView):
                 self.SetWindowText("Enter new value")
                 self.GetDlgItem(win32con.IDCANCEL).ShowWindow(win32con.SW_SHOW)
                 self.edit = self.GetDlgItem(win32ui.IDC_EDIT1)
-                # Modify the edit windows style
+                # 039162.python.regedit.line215.comment Modify the edit windows style
                 style = win32api.GetWindowLong(
                     self.edit.GetSafeHwnd(), win32con.GWL_STYLE
                 )
@@ -236,7 +236,7 @@ class RegistryValueView(docview.ListView):
             keyVal = ""
         else:
             keyVal = self.GetItemText(index, 0)
-        # Query for a new value.
+        # 039164.python.regedit.line239.comment Query for a new value.
         try:
             newVal = self.GetItemsCurrentValue(item, keyVal)
         except TypeError as details:
@@ -262,7 +262,7 @@ class RegistryValueView(docview.ListView):
             win32api.RegCloseKey(hkey)
 
     def SetItemsCurrentValue(self, item, valueName, value):
-        # ** Assumes already checked is a string.
+        # 039165.python.regedit.line265.comment ** Assumes already checked is a string.
         hkey = win32api.RegOpenKey(
             item.keyRoot, item.keyName, 0, win32con.KEY_SET_VALUE
         )
@@ -278,14 +278,14 @@ class RegTemplate(docview.DocTemplate):
             self, win32ui.IDR_PYTHONTYPE, None, SplitterFrame, None
         )
 
-    # 	def InitialUpdateFrame(self, frame, doc, makeVisible=1):
-    # 		self._obj_.InitialUpdateFrame(frame, doc, makeVisible) # call default handler.
-    # 		frame.InitialUpdateFrame(doc, makeVisible)
+    # 039166.python.regedit.line281.comment def InitialUpdateFrame(self, frame, doc, makeVisible=1):
+    # 039167.python.regedit.line282.comment self._obj_.InitialUpdateFrame(frame, doc, makeVisible) # call default handler.
+    # 039168.python.regedit.line283.comment frame.InitialUpdateFrame(doc, makeVisible)
 
     def OpenRegistryKey(
         self, root=None, subkey=None
     ):  # Use this instead of OpenDocumentFile.
-        # Look for existing open document
+        # 039170.python.regedit.line288.comment Look for existing open document
         if root is None:
             root = regutil.GetRootKey()
         if subkey is None:
@@ -294,7 +294,7 @@ class RegTemplate(docview.DocTemplate):
             if doc.root == root and doc.subkey == subkey:
                 doc.GetFirstView().ActivateFrame()
                 return doc
-        # not found - new one.
+        # 039171.python.regedit.line297.comment not found - new one.
         doc = RegDocument(self, root, subkey)
         frame = self.CreateNewFrame(doc)
         doc.OnNewDocument()
@@ -342,15 +342,15 @@ class HLIRegistryKey(hierlist.HierListItem):
         return self.userName
 
     def IsExpandable(self):
-        # All keys are expandable, even if they currently have zero children.
+        # 039172.python.regedit.line345.comment All keys are expandable, even if they currently have zero children.
         return 1
 
-    ##		hkey = win32api.RegOpenKey(self.keyRoot, self.keyName)
-    ##		try:
-    ##			keys, vals, dt = win32api.RegQueryInfoKey(hkey)
-    ##			return (keys>0)
-    ##		finally:
-    ##			win32api.RegCloseKey(hkey)
+    # 039173.python.regedit.line348.comment #		hkey = win32api.RegOpenKey(self.keyRoot, self.keyName)
+    # 039174.python.regedit.line349.comment #		try:
+    # 039175.python.regedit.line350.comment #			keys, vals, dt = win32api.RegQueryInfoKey(hkey)
+    # 039176.python.regedit.line351.comment #			return (keys>0)
+    # 039177.python.regedit.line352.comment #		finally:
+    # 039178.python.regedit.line353.comment #			win32api.RegCloseKey(hkey)
 
     def GetSubList(self):
         hkey = win32api.RegOpenKey(self.keyRoot, self.keyName)

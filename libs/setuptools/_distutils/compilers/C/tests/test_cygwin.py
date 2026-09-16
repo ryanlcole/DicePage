@@ -42,8 +42,8 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert compiler.runtime_library_dir_option('/foo') == []
 
     def test_check_config_h(self):
-        # check_config_h looks for "GCC" in sys.version first
-        # returns CONFIG_H_OK if found
+        # 040268.python.test_cygwin.line45.comment check_config_h looks for "GCC" in sys.version first
+        # 040269.python.test_cygwin.line46.comment returns CONFIG_H_OK if found
         sys.version = (
             '2.6.1 (r261:67515, Dec  6 2008, 16:42:21) \n[GCC '
             '4.0.1 (Apple Computer, Inc. build 5370)]'
@@ -51,17 +51,17 @@ class TestCygwinCCompiler(support.TempdirManager):
 
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_OK
 
-        # then it tries to see if it can find "__GNUC__" in pyconfig.h
+        # 040270.python.test_cygwin.line54.comment then it tries to see if it can find "__GNUC__" in pyconfig.h
         sys.version = 'something without the *CC word'
 
-        # if the file doesn't exist it returns  CONFIG_H_UNCERTAIN
+        # 040271.python.test_cygwin.line57.comment if the file doesn't exist it returns  CONFIG_H_UNCERTAIN
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_UNCERTAIN
 
-        # if it exists but does not contain __GNUC__, it returns CONFIG_H_NOTOK
+        # 040272.python.test_cygwin.line60.comment if it exists but does not contain __GNUC__, it returns CONFIG_H_NOTOK
         self.write_file(self.python_h, 'xxx')
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_NOTOK
 
-        # and CONFIG_H_OK if __GNUC__ is found
+        # 040273.python.test_cygwin.line64.comment and CONFIG_H_OK if __GNUC__ is found
         self.write_file(self.python_h, 'xxx __GNUC__ xxx')
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_OK
 

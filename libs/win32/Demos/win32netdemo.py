@@ -72,7 +72,7 @@ def GroupEnum():
     resume = 0
     while 1:
         data, total, resume = win32net.NetGroupEnum(server, 1, resume)
-        # print(f"Call to NetGroupEnum obtained {len(data)} entries of {total} total")
+        # 046632.python.win32netdemo.line75.comment print(f"Call to NetGroupEnum obtained {len(data)} entries of {total} total")
         for group in data:
             verbose("Found group {name}:{comment} ".format(**group))
             memberresume = 0
@@ -105,7 +105,7 @@ def LocalGroupEnum():
                     server, group["name"], 2, resume
                 )
                 for member in memberdata:
-                    # Just for the sake of it, we convert the SID to a username
+                    # 046633.python.win32netdemo.line108.comment Just for the sake of it, we convert the SID to a username
                     username, domain, type = win32security.LookupAccountSid(
                         server, member["sid"]
                     )
@@ -128,7 +128,7 @@ def ServerEnum():
         )
         for s in data:
             verbose("Found server %s" % s["name"])
-            # Now loop over the shares.
+            # 046634.python.win32netdemo.line131.comment Now loop over the shares.
             shareresume = 0
             while 1:
                 sharedata, total, shareresume = win32net.NetShareEnum(
@@ -154,7 +154,7 @@ def LocalGroup(uname=None):
     if uname.find("\\") < 0:
         uname = win32api.GetDomainName() + "\\" + uname
     group = "python_test_group"
-    # delete the group if it already exists
+    # 046635.python.win32netdemo.line157.comment delete the group if it already exists
     try:
         win32net.NetLocalGroupDel(server, group)
         print("WARNING: existing local group '%s' has been deleted.")
@@ -169,7 +169,7 @@ def LocalGroup(uname=None):
         print("members are", mem)
         if mem[0]["domainandname"] != uname:
             print(f"ERROR: LocalGroup just added {uname}, but members are {mem!r}")
-        # Convert the list of dicts to a list of strings.
+        # 046636.python.win32netdemo.line172.comment Convert the list of dicts to a list of strings.
         win32net.NetLocalGroupDelMembers(
             server, group, [m["domainandname"] for m in mem]
         )
@@ -208,8 +208,8 @@ def SetInfo(userName=None):
 def SetComputerInfo():
     "Doesn't actually change anything, just make sure we could ;-)"
     info = win32net.NetWkstaGetInfo(None, 502)
-    # *sob* - but we can't!  Why not!!!
-    # win32net.NetWkstaSetInfo(None, 502, info)
+    # 046637.python.win32netdemo.line211.comment *sob* - but we can't!  Why not!!!
+    # 046638.python.win32netdemo.line212.comment win32net.NetWkstaSetInfo(None, 502, info)
 
 
 def usage(tests):

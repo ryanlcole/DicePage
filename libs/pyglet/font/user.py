@@ -255,8 +255,8 @@ class UserDefinedMappingFont(UserDefinedFontBase):
         offsets = []
         glyphs = []  # glyphs that are committed.
         for c in base.get_grapheme_clusters(text):
-            # Get the glyph for 'c'.  Hide tabs (Windows and Linux render
-            # boxes)
+            # 027239.python.user.line258.comment Get the glyph for 'c'.  Hide tabs (Windows and Linux render
+            # 027240.python.user.line259.comment boxes)
             if c == "\t":
                 c = " "
             if c not in self.glyphs:

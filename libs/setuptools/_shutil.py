@@ -10,9 +10,9 @@ from distutils import log
 
 try:
     from os import chmod  # pyright: ignore[reportAssignmentType]
-    # Losing type-safety w/ pyright, but that's ok
+    # 041527.python.shutil.line13.comment Losing type-safety w/ pyright, but that's ok
 except ImportError:  # pragma: no cover
-    # Jython compatibility
+    # 041529.python.shutil.line15.comment Jython compatibility
     def chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy reuses the imported definition anyway
         pass
 
@@ -28,12 +28,12 @@ def attempt_chmod_verbose(path, mode):
         log.debug("chmod failed: %s", e)
 
 
-# Must match shutil._OnExcCallback
+# 041532.python.shutil.line31.comment Must match shutil._OnExcCallback
 def _auto_chmod(
     func: Callable[..., _T], arg: str, exc: BaseException
 ) -> _T:  # pragma: no cover
     """shutils onexc callback to automatically call chmod for certain functions."""
-    # Only retry for scenarios known to have an issue
+    # 041534.python.shutil.line36.comment Only retry for scenarios known to have an issue
     if func in [os.unlink, os.remove] and os.name == 'nt':
         attempt_chmod_verbose(arg, stat.S_IWRITE)
         return func(arg)

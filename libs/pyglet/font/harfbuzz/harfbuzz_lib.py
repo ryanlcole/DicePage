@@ -21,7 +21,7 @@ from ctypes import (
 
 import pyglet
 
-# Harfbuzz DLL depends on libglib and libintl (for Windows)
+# 027085.python.harfbuzz_lib.line24.comment Harfbuzz DLL depends on libglib and libintl (for Windows)
 hb_lib = None
 with contextlib.suppress(ImportError):
     hb_lib = pyglet.lib.load_library("harfbuzz", win32='libharfbuzz-0.dll', darwin='libharfbuzz.0.dylib')
@@ -80,7 +80,7 @@ class hb_glyph_info_t(Structure):
 hb_position_t = c_int32
 
 
-# The glyph position structure contains advances and offsets.
+# 027090.python.harfbuzz_lib.line83.comment The glyph position structure contains advances and offsets.
 class hb_glyph_position_t(Structure):
     _fields_ = [
         ("x_advance", hb_position_t),  # includes kerning

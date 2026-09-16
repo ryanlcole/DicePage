@@ -103,7 +103,7 @@ class ImageElement(pyglet.text.document.InlineElement):
             _vertex_list.translation[:] = translation * _vertex_list.count
 
     def update_color(self, color: list[int]) -> None:
-        # No color blending in shader. Optional.
+        # 035715.python.structured.line106.comment No color blending in shader. Optional.
         ...
 
     def update_view_translation(self, translate_x: float, translate_y: float) -> None:
@@ -132,7 +132,7 @@ class ImageElement(pyglet.text.document.InlineElement):
 
 
 def _int_to_roman(number: int) -> str:
-    # From http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/81611
+    # 035716.python.structured.line135.comment From http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/81611
     if not 0 < number < 4000:
         msg = "Argument must be between 1 and 3999"
         raise ValueError(msg)
@@ -299,14 +299,14 @@ class StructuredTextDecoder(pyglet.text.DocumentDecoder):  # noqa: D101
         self.next_style.update(styles)
 
     def pop_style(self, key: str) -> None:
-        # Don't do anything if key is not in stack
+        # 035724.python.structured.line302.comment Don't do anything if key is not in stack
         for match, _ in self.stack:
             if key == match:
                 break
         else:
             return
 
-        # Remove all innermost elements until key is closed.
+        # 035725.python.structured.line309.comment Remove all innermost elements until key is closed.
         while True:
             match, old_styles = self.stack.pop()
             self.next_style.update(old_styles)

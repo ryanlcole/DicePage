@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 000916.python.datastruct.line1.comment -----------------------------------------------------------------------------
+# 000917.python.datastruct.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 000918.python.datastruct.line3.comment
+# 000919.python.datastruct.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 000920.python.datastruct.line5.comment or later) with exception for distributing the bootloader.
+# 000921.python.datastruct.line6.comment
+# 000922.python.datastruct.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 000923.python.datastruct.line8.comment
+# 000924.python.datastruct.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 000925.python.datastruct.line10.comment -----------------------------------------------------------------------------
 
 import os
 import pathlib
@@ -39,8 +39,8 @@ def unique_name(entry):
     return name
 
 
-# This class is deprecated and has been replaced by plain lists with explicit normalization (de-duplication) via
-# `normalize_toc` and `normalize_pyz_toc` helper functions.
+# 000926.python.datastruct.line42.comment This class is deprecated and has been replaced by plain lists with explicit normalization (de-duplication) via
+# 000927.python.datastruct.line43.comment `normalize_toc` and `normalize_pyz_toc` helper functions.
 class TOC(list):
     """
     TOC (Table of Contents) class is a list of tuples of the form (name, path, typecode).
@@ -62,7 +62,7 @@ class TOC(list):
     def __init__(self, initlist=None):
         super().__init__()
 
-        # Deprecation warning
+        # 000928.python.datastruct.line65.comment Deprecation warning
         warnings.warn(
             "TOC class is deprecated. Use a plain list of 3-element tuples instead.",
             DeprecationWarning,
@@ -111,12 +111,12 @@ class TOC(list):
         return self
 
     def extend(self, other):
-        # TODO: look if this can be done more efficient with out the loop, e.g. by not using a list as base at all.
+        # 000929.python.datastruct.line114.comment TODO: look if this can be done more efficient with out the loop, e.g. by not using a list as base at all.
         for entry in other:
             self.append(entry)
 
     def __sub__(self, other):
-        # Construct new TOC with entries not contained in the other TOC
+        # 000930.python.datastruct.line119.comment Construct new TOC with entries not contained in the other TOC
         other = TOC(other)
         return TOC([entry for entry in self if unique_name(entry) not in other.filenames])
 
@@ -127,7 +127,7 @@ class TOC(list):
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             if key == slice(None, None, None):
-                # special case: set the entire list
+                # 000931.python.datastruct.line130.comment special case: set the entire list
                 self.filenames = set()
                 self.clear()
                 self.extend(value)
@@ -152,7 +152,7 @@ class Target:
     def __init__(self):
         from PyInstaller.config import CONF
 
-        # Get a (per class) unique number to avoid conflicts between toc objects
+        # 000932.python.datastruct.line155.comment Get a (per class) unique number to avoid conflicts between toc objects
         self.invcnum = self.__class__.invcnum
         self.__class__.invcnum += 1
         self.tocfilename = os.path.join(CONF['workpath'], '%s-%02d.toc' % (self.__class__.__name__, self.invcnum))
@@ -177,9 +177,9 @@ class Target:
             except Exception:
                 logger.info("Building because %s is bad", self.tocbasename)
             else:
-                # create a dict for easier access
+                # 000933.python.datastruct.line180.comment create a dict for easier access
                 data = dict(zip((g[0] for g in self._GUTS), data))
-        # assemble if previous data was not found or is outdated
+        # 000934.python.datastruct.line182.comment assemble if previous data was not found or is outdated
         if not data or self._check_guts(data, last_build):
             self.assemble()
             self._save_guts()
@@ -195,7 +195,7 @@ class Target:
             return True
         for attr, func in self._GUTS:
             if func is None:
-                # no check for this value
+                # 000935.python.datastruct.line198.comment no check for this value
                 continue
             if func(attr, data[attr], getattr(self, attr), last_build):
                 return True
@@ -247,15 +247,15 @@ class Tree(Target, list):
         ('excludes', _check_guts_eq),
         ('typecode', _check_guts_eq),
         ('data', None),  # tested below
-        # no calculated/analysed values
+        # 000938.python.datastruct.line250.comment no calculated/analysed values
     )
 
     def _check_guts(self, data, last_build):
         if Target._check_guts(self, data, last_build):
             return True
-        # Walk the collected directories as check if they have been changed - which means files have been added or
-        # removed. There is no need to check for the files, since `Tree` is only about the directory contents (which is
-        # the list of files).
+        # 000939.python.datastruct.line256.comment Walk the collected directories as check if they have been changed - which means files have been added or
+        # 000940.python.datastruct.line257.comment removed. There is no need to check for the files, since `Tree` is only about the directory contents (which is
+        # 000941.python.datastruct.line258.comment the list of files).
         stack = [data['root']]
         while stack:
             d = stack.pop()
@@ -270,7 +270,7 @@ class Tree(Target, list):
         return False
 
     def _save_guts(self):
-        # Use the attribute `data` to save the list
+        # 000943.python.datastruct.line273.comment Use the attribute `data` to save the list
         self.data = self
         super()._save_guts()
         del self.data
@@ -307,19 +307,19 @@ class Tree(Target, list):
 
 
 def normalize_toc(toc):
-    # Default priority: 0
+    # 000944.python.datastruct.line310.comment Default priority: 0
     _TOC_TYPE_PRIORITIES = {
-        # DEPENDENCY entries need to replace original entries, so they need the highest priority.
+        # 000945.python.datastruct.line312.comment DEPENDENCY entries need to replace original entries, so they need the highest priority.
         'DEPENDENCY': 3,
-        # SYMLINK entries have higher priority than other regular entries
+        # 000946.python.datastruct.line314.comment SYMLINK entries have higher priority than other regular entries
         'SYMLINK': 2,
-        # BINARY/EXTENSION entries undergo additional processing, so give them precedence over DATA and other entries.
+        # 000947.python.datastruct.line316.comment BINARY/EXTENSION entries undergo additional processing, so give them precedence over DATA and other entries.
         'BINARY': 1,
         'EXTENSION': 1,
     }
 
     def _type_case_normalization_fcn(typecode):
-        # Case-normalize all entries except OPTION.
+        # 000948.python.datastruct.line322.comment Case-normalize all entries except OPTION.
         return typecode not in {
             "OPTION",
         }
@@ -328,9 +328,9 @@ def normalize_toc(toc):
 
 
 def normalize_pyz_toc(toc):
-    # Default priority: 0
+    # 000949.python.datastruct.line331.comment Default priority: 0
     _TOC_TYPE_PRIORITIES = {
-        # Ensure that entries with higher optimization level take precedence.
+        # 000950.python.datastruct.line333.comment Ensure that entries with higher optimization level take precedence.
         'PYMODULE-2': 2,
         'PYMODULE-1': 1,
         'PYMODULE': 0,
@@ -343,17 +343,17 @@ def _normalize_toc(toc, toc_type_priorities, type_case_normalization_fcn=lambda 
     options_toc = []
     tmp_toc = dict()
     for dest_name, src_name, typecode in toc:
-        # Exempt OPTION entries from de-duplication processing. Some options might allow being specified multiple times.
+        # 000951.python.datastruct.line346.comment Exempt OPTION entries from de-duplication processing. Some options might allow being specified multiple times.
         if typecode == 'OPTION':
             options_toc.append(((dest_name, src_name, typecode)))
             continue
 
-        # Always sanitize the dest_name with `os.path.normpath` to remove any local loops with parent directory path
-        # components. `pathlib` does not seem to offer equivalent functionality.
+        # 000952.python.datastruct.line351.comment Always sanitize the dest_name with `os.path.normpath` to remove any local loops with parent directory path
+        # 000953.python.datastruct.line352.comment components. `pathlib` does not seem to offer equivalent functionality.
         dest_name = os.path.normpath(dest_name)
 
-        # Normalize the destination name for uniqueness. Use `pathlib.PurePath` to ensure that keys are both
-        # case-normalized (on OSes where applicable) and directory-separator normalized (just in case).
+        # 000954.python.datastruct.line355.comment Normalize the destination name for uniqueness. Use `pathlib.PurePath` to ensure that keys are both
+        # 000955.python.datastruct.line356.comment case-normalized (on OSes where applicable) and directory-separator normalized (just in case).
         if type_case_normalization_fcn(typecode):
             entry_key = pathlib.PurePath(dest_name)
         else:
@@ -361,16 +361,16 @@ def _normalize_toc(toc, toc_type_priorities, type_case_normalization_fcn=lambda 
 
         existing_entry = tmp_toc.get(entry_key)
         if existing_entry is None:
-            # Entry does not exist - insert
+            # 000956.python.datastruct.line364.comment Entry does not exist - insert
             tmp_toc[entry_key] = (dest_name, src_name, typecode)
         else:
-            # Entry already exists - replace if its typecode has higher priority
+            # 000957.python.datastruct.line367.comment Entry already exists - replace if its typecode has higher priority
             _, _, existing_typecode = existing_entry
             if toc_type_priorities.get(typecode, 0) > toc_type_priorities.get(existing_typecode, 0):
                 tmp_toc[entry_key] = (dest_name, src_name, typecode)
 
-    # Return the items as list. The order matches the original order due to python dict maintaining the insertion order.
-    # The exception are OPTION entries, which are now placed at the beginning of the TOC.
+    # 000958.python.datastruct.line372.comment Return the items as list. The order matches the original order due to python dict maintaining the insertion order.
+    # 000959.python.datastruct.line373.comment The exception are OPTION entries, which are now placed at the beginning of the TOC.
     return options_toc + list(tmp_toc.values())
 
 
@@ -379,30 +379,30 @@ def toc_process_symbolic_links(toc):
     Process TOC entries and replace entries whose files are symbolic links with SYMLINK entries (provided original file
     is also being collected).
     """
-    # Dictionary of all destination names, for a fast look-up.
+    # 000960.python.datastruct.line382.comment Dictionary of all destination names, for a fast look-up.
     all_dest_files = set([dest_name for dest_name, src_name, typecode in toc])
 
-    # Process the TOC to create SYMLINK entries
+    # 000961.python.datastruct.line385.comment Process the TOC to create SYMLINK entries
     new_toc = []
     for entry in toc:
         dest_name, src_name, typecode = entry
 
-        # Skip entries that are already symbolic links
+        # 000962.python.datastruct.line390.comment Skip entries that are already symbolic links
         if typecode == 'SYMLINK':
             new_toc.append(entry)
             continue
 
-        # Skip entries without valid source name (e.g., OPTION)
+        # 000963.python.datastruct.line395.comment Skip entries without valid source name (e.g., OPTION)
         if not src_name:
             new_toc.append(entry)
             continue
 
-        # Source path is not a symbolic link (i.e., it is a regular file or directory)
+        # 000964.python.datastruct.line400.comment Source path is not a symbolic link (i.e., it is a regular file or directory)
         if not os.path.islink(src_name):
             new_toc.append(entry)
             continue
 
-        # Try preserving the symbolic link, under strict relative-relationship-preservation check
+        # 000965.python.datastruct.line405.comment Try preserving the symbolic link, under strict relative-relationship-preservation check
         symlink_entry = _try_preserving_symbolic_link(dest_name, src_name, all_dest_files)
 
         if symlink_entry:
@@ -416,23 +416,23 @@ def toc_process_symbolic_links(toc):
 def _try_preserving_symbolic_link(dest_name, src_name, all_dest_files):
     seen_src_files = set()
 
-    # Set initial values for the loop
+    # 000966.python.datastruct.line419.comment Set initial values for the loop
     ref_src_file = src_name
     ref_dest_file = dest_name
 
     while True:
-        # Guard against cyclic links...
+        # 000967.python.datastruct.line424.comment Guard against cyclic links...
         if ref_src_file in seen_src_files:
             break
         seen_src_files.add(ref_src_file)
 
-        # Stop when referenced source file is not a symbolic link anymore.
+        # 000968.python.datastruct.line429.comment Stop when referenced source file is not a symbolic link anymore.
         if not os.path.islink(ref_src_file):
             break
 
-        # Read the symbolic link's target, but do not fully resolve it using os.path.realpath(), because there might be
-        # other symbolic links involved as well (for example, /lib64 -> /usr/lib64 whereas we are processing
-        # /lib64/liba.so -> /lib64/liba.so.1)
+        # 000969.python.datastruct.line433.comment Read the symbolic link's target, but do not fully resolve it using os.path.realpath(), because there might be
+        # 000970.python.datastruct.line434.comment other symbolic links involved as well (for example, /lib64 -> /usr/lib64 whereas we are processing
+        # 000971.python.datastruct.line435.comment /lib64/liba.so -> /lib64/liba.so.1)
         symlink_target = os.readlink(ref_src_file)
         if os.path.isabs(symlink_target):
             break  # We support only relative symbolic links.
@@ -443,17 +443,17 @@ def _try_preserving_symbolic_link(dest_name, src_name, all_dest_files):
         ref_src_file = os.path.join(os.path.dirname(ref_src_file), symlink_target)
         ref_src_file = os.path.normpath(ref_src_file)  # remove any '..'
 
-        # Check if referenced destination file is valid (i.e., we are collecting a file under referenced name).
+        # 000975.python.datastruct.line446.comment Check if referenced destination file is valid (i.e., we are collecting a file under referenced name).
         if ref_dest_file in all_dest_files:
-            # Sanity check: original source name and current referenced source name must, after complete resolution,
-            # point to the same file.
+            # 000976.python.datastruct.line448.comment Sanity check: original source name and current referenced source name must, after complete resolution,
+            # 000977.python.datastruct.line449.comment point to the same file.
             if os.path.realpath(src_name) == os.path.realpath(ref_src_file):
-                # Compute relative link for the destination file (might be modified, if we went over non-collected
-                # intermediate links).
+                # 000978.python.datastruct.line451.comment Compute relative link for the destination file (might be modified, if we went over non-collected
+                # 000979.python.datastruct.line452.comment intermediate links).
                 rel_link = os.path.relpath(ref_dest_file, os.path.dirname(dest_name))
                 return dest_name, rel_link, 'SYMLINK'
 
-        # If referenced destination is not valid, do another iteration in case we are dealing with chained links and we
-        # are not collecting an intermediate link...
+        # 000980.python.datastruct.line456.comment If referenced destination is not valid, do another iteration in case we are dealing with chained links and we
+        # 000981.python.datastruct.line457.comment are not collecting an intermediate link...
 
     return None

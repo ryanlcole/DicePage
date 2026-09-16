@@ -45,9 +45,9 @@ def user_site_dir(request):
     site.USER_BASE = self.mkdtemp()
     build_ext.USER_BASE = site.USER_BASE
 
-    # bpo-30132: On Windows, a .pdb file may be created in the current
-    # working directory. Create a temporary working directory to cleanup
-    # everything at the end of the test.
+    # 040886.python.test_build_ext.line48.comment bpo-30132: On Windows, a .pdb file may be created in the current
+    # 040887.python.test_build_ext.line49.comment working directory. Create a temporary working directory to cleanup
+    # 040888.python.test_build_ext.line50.comment everything at the end of the test.
     with self.tmp_path:
         yield
 
@@ -84,7 +84,7 @@ def extension_redirect(mod, path):
     dest = os.path.join(trash_dir, os.path.basename(filename))
     shutil.copy(spec.origin, dest)
     yield trash_dir
-    # TODO: can the file be scheduled for deletion?
+    # 040889.python.test_build_ext.line87.comment TODO: can the file be scheduled for deletion?
 
 
 @pytest.mark.usefixtures('user_site_dir')
@@ -130,7 +130,7 @@ class TestBuildExt(TempdirManager):
 
         old_stdout = sys.stdout
         if not support.verbose:
-            # silence compiler output
+            # 040890.python.test_build_ext.line133.comment silence compiler output
             sys.stdout = StringIO()
         try:
             cmd.ensure_finalized()
@@ -175,12 +175,12 @@ class TestBuildExt(TempdirManager):
             ]
             if not copy_so:
                 pprint.pprint(rpaths)
-                # Linked against a library in /usr/lib{,64}
+                # 040892.python.test_build_ext.line178.comment Linked against a library in /usr/lib{,64}
                 assert "/usr/lib" not in rpaths and "/usr/lib64" not in rpaths
             else:
-                # Linked against a library in /tmp
+                # 040893.python.test_build_ext.line181.comment Linked against a library in /tmp
                 assert "/tmp" in rpaths
-                # The import is the real test here
+                # 040894.python.test_build_ext.line183.comment The import is the real test here
 
     def test_solaris_enable_shared(self):
         dist = Distribution({'name': 'xx'})
@@ -201,7 +201,7 @@ class TestBuildExt(TempdirManager):
             else:
                 _config_vars['Py_ENABLE_SHARED'] = old_var
 
-        # make sure we get some library dirs under solaris
+        # 040896.python.test_build_ext.line204.comment make sure we get some library dirs under solaris
         assert len(cmd.library_dirs) > 0
 
     def test_user_site(self):
@@ -210,31 +210,31 @@ class TestBuildExt(TempdirManager):
         dist = Distribution({'name': 'xx'})
         cmd = self.build_ext(dist)
 
-        # making sure the user option is there
+        # 040897.python.test_build_ext.line213.comment making sure the user option is there
         options = [name for name, short, label in cmd.user_options]
         assert 'user' in options
 
-        # setting a value
+        # 040898.python.test_build_ext.line217.comment setting a value
         cmd.user = True
 
-        # setting user based lib and include
+        # 040899.python.test_build_ext.line220.comment setting user based lib and include
         lib = os.path.join(site.USER_BASE, 'lib')
         incl = os.path.join(site.USER_BASE, 'include')
         os.mkdir(lib)
         os.mkdir(incl)
 
-        # let's run finalize
+        # 040900.python.test_build_ext.line226.comment let's run finalize
         cmd.ensure_finalized()
 
-        # see if include_dirs and library_dirs
-        # were set
+        # 040901.python.test_build_ext.line229.comment see if include_dirs and library_dirs
+        # 040902.python.test_build_ext.line230.comment were set
         assert lib in cmd.library_dirs
         assert lib in cmd.rpath
         assert incl in cmd.include_dirs
 
     def test_optional_extension(self):
-        # this extension will fail, but let's ignore this failure
-        # with the optional argument.
+        # 040903.python.test_build_ext.line236.comment this extension will fail, but let's ignore this failure
+        # 040904.python.test_build_ext.line237.comment with the optional argument.
         modules = [Extension('foo', ['xxx'], optional=False)]
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
         cmd = self.build_ext(dist)
@@ -249,8 +249,8 @@ class TestBuildExt(TempdirManager):
         cmd.run()  # should pass
 
     def test_finalize_options(self):
-        # Make sure Python's include directories (for Python.h, pyconfig.h,
-        # etc.) are in the include search path.
+        # 040907.python.test_build_ext.line252.comment Make sure Python's include directories (for Python.h, pyconfig.h,
+        # 040908.python.test_build_ext.line253.comment etc.) are in the include search path.
         modules = [Extension('foo', ['xxx'], optional=False)]
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
         cmd = self.build_ext(dist)
@@ -264,52 +264,52 @@ class TestBuildExt(TempdirManager):
         for p in plat_py_include.split(os.path.pathsep):
             assert p in cmd.include_dirs
 
-        # make sure cmd.libraries is turned into a list
-        # if it's a string
+        # 040909.python.test_build_ext.line267.comment make sure cmd.libraries is turned into a list
+        # 040910.python.test_build_ext.line268.comment if it's a string
         cmd = self.build_ext(dist)
         cmd.libraries = 'my_lib, other_lib lastlib'
         cmd.finalize_options()
         assert cmd.libraries == ['my_lib', 'other_lib', 'lastlib']
 
-        # make sure cmd.library_dirs is turned into a list
-        # if it's a string
+        # 040911.python.test_build_ext.line274.comment make sure cmd.library_dirs is turned into a list
+        # 040912.python.test_build_ext.line275.comment if it's a string
         cmd = self.build_ext(dist)
         cmd.library_dirs = f'my_lib_dir{os.pathsep}other_lib_dir'
         cmd.finalize_options()
         assert 'my_lib_dir' in cmd.library_dirs
         assert 'other_lib_dir' in cmd.library_dirs
 
-        # make sure rpath is turned into a list
-        # if it's a string
+        # 040913.python.test_build_ext.line282.comment make sure rpath is turned into a list
+        # 040914.python.test_build_ext.line283.comment if it's a string
         cmd = self.build_ext(dist)
         cmd.rpath = f'one{os.pathsep}two'
         cmd.finalize_options()
         assert cmd.rpath == ['one', 'two']
 
-        # make sure cmd.link_objects is turned into a list
-        # if it's a string
+        # 040915.python.test_build_ext.line289.comment make sure cmd.link_objects is turned into a list
+        # 040916.python.test_build_ext.line290.comment if it's a string
         cmd = build_ext(dist)
         cmd.link_objects = 'one two,three'
         cmd.finalize_options()
         assert cmd.link_objects == ['one', 'two', 'three']
 
-        # XXX more tests to perform for win32
+        # 040917.python.test_build_ext.line296.comment XXX more tests to perform for win32
 
-        # make sure define is turned into 2-tuples
-        # strings if they are ','-separated strings
+        # 040918.python.test_build_ext.line298.comment make sure define is turned into 2-tuples
+        # 040919.python.test_build_ext.line299.comment strings if they are ','-separated strings
         cmd = self.build_ext(dist)
         cmd.define = 'one,two'
         cmd.finalize_options()
         assert cmd.define == [('one', '1'), ('two', '1')]
 
-        # make sure undef is turned into a list of
-        # strings if they are ','-separated strings
+        # 040920.python.test_build_ext.line305.comment make sure undef is turned into a list of
+        # 040921.python.test_build_ext.line306.comment strings if they are ','-separated strings
         cmd = self.build_ext(dist)
         cmd.undef = 'one,two'
         cmd.finalize_options()
         assert cmd.undef == ['one', 'two']
 
-        # make sure swig_opts is turned into a list
+        # 040922.python.test_build_ext.line312.comment make sure swig_opts is turned into a list
         cmd = self.build_ext(dist)
         cmd.swig_opts = None
         cmd.finalize_options()
@@ -325,42 +325,42 @@ class TestBuildExt(TempdirManager):
         cmd = self.build_ext(dist)
         cmd.finalize_options()
 
-        # 'extensions' option must be a list of Extension instances
+        # 040923.python.test_build_ext.line328.comment 'extensions' option must be a list of Extension instances
         with pytest.raises(DistutilsSetupError):
             cmd.check_extensions_list('foo')
 
-        # each element of 'ext_modules' option must be an
-        # Extension instance or 2-tuple
+        # 040924.python.test_build_ext.line332.comment each element of 'ext_modules' option must be an
+        # 040925.python.test_build_ext.line333.comment Extension instance or 2-tuple
         exts = [('bar', 'foo', 'bar'), 'foo']
         with pytest.raises(DistutilsSetupError):
             cmd.check_extensions_list(exts)
 
-        # first element of each tuple in 'ext_modules'
-        # must be the extension name (a string) and match
-        # a python dotted-separated name
+        # 040926.python.test_build_ext.line338.comment first element of each tuple in 'ext_modules'
+        # 040927.python.test_build_ext.line339.comment must be the extension name (a string) and match
+        # 040928.python.test_build_ext.line340.comment a python dotted-separated name
         exts = [('foo-bar', '')]
         with pytest.raises(DistutilsSetupError):
             cmd.check_extensions_list(exts)
 
-        # second element of each tuple in 'ext_modules'
-        # must be a dictionary (build info)
+        # 040929.python.test_build_ext.line345.comment second element of each tuple in 'ext_modules'
+        # 040930.python.test_build_ext.line346.comment must be a dictionary (build info)
         exts = [('foo.bar', '')]
         with pytest.raises(DistutilsSetupError):
             cmd.check_extensions_list(exts)
 
-        # ok this one should pass
+        # 040931.python.test_build_ext.line351.comment ok this one should pass
         exts = [('foo.bar', {'sources': [''], 'libraries': 'foo', 'some': 'bar'})]
         cmd.check_extensions_list(exts)
         ext = exts[0]
         assert isinstance(ext, Extension)
 
-        # check_extensions_list adds in ext the values passed
-        # when they are in ('include_dirs', 'library_dirs', 'libraries'
-        # 'extra_objects', 'extra_compile_args', 'extra_link_args')
+        # 040932.python.test_build_ext.line357.comment check_extensions_list adds in ext the values passed
+        # 040933.python.test_build_ext.line358.comment when they are in ('include_dirs', 'library_dirs', 'libraries'
+        # 040934.python.test_build_ext.line359.comment 'extra_objects', 'extra_compile_args', 'extra_link_args')
         assert ext.libraries == 'foo'
         assert not hasattr(ext, 'some')
 
-        # 'macros' element of build info dict must be 1- or 2-tuple
+        # 040935.python.test_build_ext.line363.comment 'macros' element of build info dict must be 1- or 2-tuple
         exts = [
             (
                 'foo.bar',
@@ -401,8 +401,8 @@ class TestBuildExt(TempdirManager):
         assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
 
     def test_export_symbols__init__(self):
-        # https://github.com/python/cpython/issues/80074
-        # https://github.com/pypa/setuptools/issues/4826
+        # 040936.python.test_build_ext.line404.comment https://github.com/python/cpython/issues/80074
+        # 040937.python.test_build_ext.line405.comment https://github.com/pypa/setuptools/issues/4826
         modules = [
             Extension('foo.__init__', ['aaa']),
             Extension('föö.__init__', ['uuu']),
@@ -414,9 +414,9 @@ class TestBuildExt(TempdirManager):
         assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
 
     def test_compiler_option(self):
-        # cmd.compiler is an option and
-        # should not be overridden by a compiler instance
-        # when the command is run
+        # 040938.python.test_build_ext.line417.comment cmd.compiler is an option and
+        # 040939.python.test_build_ext.line418.comment should not be overridden by a compiler instance
+        # 040940.python.test_build_ext.line419.comment when the command is run
         dist = Distribution()
         cmd = self.build_ext(dist)
         cmd.compiler = 'unix'
@@ -439,8 +439,8 @@ class TestBuildExt(TempdirManager):
         cmd.build_lib = os.path.join(self.tmp_dir, 'build')
         cmd.build_temp = os.path.join(self.tmp_dir, 'tempt')
 
-        # issue #5977 : distutils build_ext.get_outputs
-        # returns wrong result with --inplace
+        # 040941.python.test_build_ext.line442.comment issue #5977 : distutils build_ext.get_outputs
+        # 040942.python.test_build_ext.line443.comment returns wrong result with --inplace
         other_tmp_dir = os.path.realpath(self.mkdtemp())
         old_wd = os.getcwd()
         os.chdir(other_tmp_dir)
@@ -465,15 +465,15 @@ class TestBuildExt(TempdirManager):
         so_dir = os.path.dirname(so_file)
         assert so_dir == cmd.build_lib
 
-        # inplace = False, cmd.package = 'bar'
+        # 040943.python.test_build_ext.line468.comment inplace = False, cmd.package = 'bar'
         build_py = cmd.get_finalized_command('build_py')
         build_py.package_dir = {'': 'bar'}
         path = cmd.get_ext_fullpath('foo')
-        # checking that the last directory is the build_dir
+        # 040944.python.test_build_ext.line472.comment checking that the last directory is the build_dir
         path = os.path.split(path)[0]
         assert path == cmd.build_lib
 
-        # inplace = True, cmd.package = 'bar'
+        # 040945.python.test_build_ext.line476.comment inplace = True, cmd.package = 'bar'
         cmd.inplace = True
         other_tmp_dir = os.path.realpath(self.mkdtemp())
         old_wd = os.getcwd()
@@ -482,17 +482,17 @@ class TestBuildExt(TempdirManager):
             path = cmd.get_ext_fullpath('foo')
         finally:
             os.chdir(old_wd)
-        # checking that the last directory is bar
+        # 040946.python.test_build_ext.line485.comment checking that the last directory is bar
         path = os.path.split(path)[0]
         lastdir = os.path.split(path)[-1]
         assert lastdir == 'bar'
 
     def test_ext_fullpath(self):
         ext = sysconfig.get_config_var('EXT_SUFFIX')
-        # building lxml.etree inplace
-        # etree_c = os.path.join(self.tmp_dir, 'lxml.etree.c')
-        # etree_ext = Extension('lxml.etree', [etree_c])
-        # dist = Distribution({'name': 'lxml', 'ext_modules': [etree_ext]})
+        # 040947.python.test_build_ext.line492.comment building lxml.etree inplace
+        # 040948.python.test_build_ext.line493.comment etree_c = os.path.join(self.tmp_dir, 'lxml.etree.c')
+        # 040949.python.test_build_ext.line494.comment etree_ext = Extension('lxml.etree', [etree_c])
+        # 040950.python.test_build_ext.line495.comment dist = Distribution({'name': 'lxml', 'ext_modules': [etree_ext]})
         dist = Distribution()
         cmd = self.build_ext(dist)
         cmd.inplace = True
@@ -503,14 +503,14 @@ class TestBuildExt(TempdirManager):
         path = cmd.get_ext_fullpath('lxml.etree')
         assert wanted == path
 
-        # building lxml.etree not inplace
+        # 040951.python.test_build_ext.line506.comment building lxml.etree not inplace
         cmd.inplace = False
         cmd.build_lib = os.path.join(curdir, 'tmpdir')
         wanted = os.path.join(curdir, 'tmpdir', 'lxml', 'etree' + ext)
         path = cmd.get_ext_fullpath('lxml.etree')
         assert wanted == path
 
-        # building twisted.runner.portmap not inplace
+        # 040952.python.test_build_ext.line513.comment building twisted.runner.portmap not inplace
         build_py = cmd.get_finalized_command('build_py')
         build_py.package_dir = {}
         cmd.distribution.packages = ['twisted', 'twisted.runner.portmap']
@@ -518,7 +518,7 @@ class TestBuildExt(TempdirManager):
         wanted = os.path.join(curdir, 'tmpdir', 'twisted', 'runner', 'portmap' + ext)
         assert wanted == path
 
-        # building twisted.runner.portmap inplace
+        # 040953.python.test_build_ext.line521.comment building twisted.runner.portmap inplace
         cmd.inplace = True
         path = cmd.get_ext_fullpath('twisted.runner.portmap')
         wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + ext)
@@ -527,28 +527,28 @@ class TestBuildExt(TempdirManager):
     @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_default(self):
-        # Issue 9516: Test that, in the absence of the environment variable,
-        # an extension module is compiled with the same deployment target as
-        #  the interpreter.
+        # 040954.python.test_build_ext.line530.comment Issue 9516: Test that, in the absence of the environment variable,
+        # 040955.python.test_build_ext.line531.comment an extension module is compiled with the same deployment target as
+        # 040956.python.test_build_ext.line532.comment the interpreter.
         self._try_compile_deployment_target('==', None)
 
     @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_too_low(self):
-        # Issue 9516: Test that an extension module is not allowed to be
-        # compiled with a deployment target less than that of the interpreter.
+        # 040957.python.test_build_ext.line538.comment Issue 9516: Test that an extension module is not allowed to be
+        # 040958.python.test_build_ext.line539.comment compiled with a deployment target less than that of the interpreter.
         with pytest.raises(DistutilsPlatformError):
             self._try_compile_deployment_target('>', '10.1')
 
     @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_higher_ok(self):  # pragma: no cover
-        # Issue 9516: Test that an extension module can be compiled with a
-        # deployment target higher than that of the interpreter: the ext
-        # module may depend on some newer OS feature.
+        # 040960.python.test_build_ext.line546.comment Issue 9516: Test that an extension module can be compiled with a
+        # 040961.python.test_build_ext.line547.comment deployment target higher than that of the interpreter: the ext
+        # 040962.python.test_build_ext.line548.comment module may depend on some newer OS feature.
         deptarget = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
         if deptarget:
-            # increment the minor version number (i.e. 10.6 -> 10.7)
+            # 040963.python.test_build_ext.line551.comment increment the minor version number (i.e. 10.6 -> 10.7)
             deptarget = [int(x) for x in deptarget.split('.')]
             deptarget[-1] += 1
             deptarget = '.'.join(str(i) for i in deptarget)
@@ -578,21 +578,21 @@ class TestBuildExt(TempdirManager):
             self.tmp_path,
         )
 
-        # get the deployment target that the interpreter was built with
+        # 040965.python.test_build_ext.line581.comment get the deployment target that the interpreter was built with
         target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
         target = tuple(map(int, target.split('.')[0:2]))
-        # format the target value as defined in the Apple
-        # Availability Macros.  We can't use the macro names since
-        # at least one value we test with will not exist yet.
+        # 040966.python.test_build_ext.line584.comment format the target value as defined in the Apple
+        # 040967.python.test_build_ext.line585.comment Availability Macros.  We can't use the macro names since
+        # 040968.python.test_build_ext.line586.comment at least one value we test with will not exist yet.
         if target[:2] < (10, 10):
-            # for 10.1 through 10.9.x -> "10n0"
+            # 040969.python.test_build_ext.line588.comment for 10.1 through 10.9.x -> "10n0"
             tmpl = '{:02}{:01}0'
         else:
-            # for 10.10 and beyond -> "10nn00"
+            # 040970.python.test_build_ext.line591.comment for 10.10 and beyond -> "10nn00"
             if len(target) >= 2:
                 tmpl = '{:02}{:02}00'
             else:
-                # 11 and later can have no minor version (11 instead of 11.0)
+                # 040971.python.test_build_ext.line595.comment 11 and later can have no minor version (11 instead of 11.0)
                 tmpl = '{:02}0000'
         target = tmpl.format(*target)
         deptarget_ext = Extension(
@@ -609,7 +609,7 @@ class TestBuildExt(TempdirManager):
         try:
             old_stdout = sys.stdout
             if not support.verbose:
-                # silence compiler output
+                # 040972.python.test_build_ext.line612.comment silence compiler output
                 sys.stdout = StringIO()
             try:
                 cmd.ensure_finalized()

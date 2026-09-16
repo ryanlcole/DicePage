@@ -1,10 +1,10 @@
-# This module exists to create the "best" dispatch object for a given
-# object.  If "makepy" support for a given object is detected, it is
-# used, otherwise a dynamic dispatch object.
+# 048587.python.init.line1.comment This module exists to create the "best" dispatch object for a given
+# 048588.python.init.line2.comment object.  If "makepy" support for a given object is detected, it is
+# 048589.python.init.line3.comment used, otherwise a dynamic dispatch object.
 
-# Note that if the unknown dispatch object then returns a known
-# dispatch object, the known class will be used.  This contrasts
-# with dynamic.Dispatch behaviour, where dynamic objects are always used.
+# 048590.python.init.line5.comment Note that if the unknown dispatch object then returns a known
+# 048591.python.init.line6.comment dispatch object, the known class will be used.  This contrasts
+# 048592.python.init.line7.comment with dynamic.Dispatch behaviour, where dynamic objects are always used.
 from __future__ import annotations
 
 import sys
@@ -42,13 +42,13 @@ def __WrapDispatch(
     if resultCLSID is not None:
         from . import gencache
 
-        # Attempt to load generated module support
-        # This may load the module, and make it available
+        # 048594.python.init.line45.comment Attempt to load generated module support
+        # 048595.python.init.line46.comment This may load the module, and make it available
         klass = gencache.GetClassForCLSID(resultCLSID)
         if klass is not None:
             return klass(dispatch)
 
-    # Return a "dynamic" object - best we can do!
+    # 048596.python.init.line51.comment Return a "dynamic" object - best we can do!
     if WrapperClass is None:
         WrapperClass = CDispatch
     return dynamic.Dispatch(dispatch, userName, WrapperClass, typeinfo, clsctx=clsctx)
@@ -126,9 +126,9 @@ def DispatchEx(
     clsctx=None,
 ):
     """Creates a Dispatch based COM object on a specific machine."""
-    # If InProc is registered, DCOM will use it regardless of the machine name
-    # (and regardless of the DCOM config for the object.)  So unless the user
-    # specifies otherwise, we exclude inproc apps when a remote machine is used.
+    # 048597.python.init.line129.comment If InProc is registered, DCOM will use it regardless of the machine name
+    # 048598.python.init.line130.comment (and regardless of the DCOM config for the object.)  So unless the user
+    # 048599.python.init.line131.comment specifies otherwise, we exclude inproc apps when a remote machine is used.
     if clsctx is None:
         clsctx = pythoncom.CLSCTX_SERVER
         if machine is not None:
@@ -162,7 +162,7 @@ class CDispatch(dynamic.CDispatch):
 
 def CastTo(ob, target, typelib=None):
     """'Cast' a COM object to another interface"""
-    # todo - should support target being an IID
+    # 048600.python.init.line165.comment todo - should support target being an IID
     mod = None
     if (
         typelib is not None
@@ -177,26 +177,26 @@ def CastTo(ob, target, typelib=None):
             )
 
     elif hasattr(target, "index"):  # string like
-        # for now, we assume makepy for this to work.
+        # 048603.python.init.line180.comment for now, we assume makepy for this to work.
         if "CLSID" not in ob.__class__.__dict__:
-            # Eeek - no makepy support - try and build it.
+            # 048604.python.init.line182.comment Eeek - no makepy support - try and build it.
             ob = gencache.EnsureDispatch(ob)
         if "CLSID" not in ob.__class__.__dict__:
             raise ValueError("Must be a makepy-able object for this to work")
         clsid = ob.CLSID
-        # Lots of hoops to support "demand-build" - ie, generating
-        # code for an interface first time it is used.  We assume the
-        # interface name exists in the same library as the object.
-        # This is generally the case - only referenced typelibs may be
-        # a problem, and we can handle that later.  Maybe <wink>
-        # So get the generated module for the library itself, then
-        # find the interface CLSID there.
+        # 048605.python.init.line187.comment Lots of hoops to support "demand-build" - ie, generating
+        # 048606.python.init.line188.comment code for an interface first time it is used.  We assume the
+        # 048607.python.init.line189.comment interface name exists in the same library as the object.
+        # 048608.python.init.line190.comment This is generally the case - only referenced typelibs may be
+        # 048609.python.init.line191.comment a problem, and we can handle that later.  Maybe <wink>
+        # 048610.python.init.line192.comment So get the generated module for the library itself, then
+        # 048611.python.init.line193.comment find the interface CLSID there.
         mod = gencache.GetModuleForCLSID(clsid)
-        # Get the 'root' module.
+        # 048612.python.init.line195.comment Get the 'root' module.
         mod = gencache.GetModuleForTypelib(
             mod.CLSID, mod.LCID, mod.MajorVersion, mod.MinorVersion
         )
-        # Find the CLSID of the target
+        # 048613.python.init.line199.comment Find the CLSID of the target
         target_clsid = mod.NamesToIIDMap.get(target)
         if target_clsid is None:
             raise ValueError(
@@ -206,7 +206,7 @@ def CastTo(ob, target, typelib=None):
         mod = gencache.GetModuleForCLSID(target_clsid)
     if mod is not None:
         target_class = getattr(mod, target)
-        # resolve coclass to interface
+        # 048614.python.init.line209.comment resolve coclass to interface
         target_class = getattr(target_class, "default_interface", target_class)
         return target_class(ob)  # auto QI magic happens
     raise ValueError
@@ -225,34 +225,34 @@ class Constants:
         raise AttributeError(a)
 
 
-# And create an instance.
+# 048617.python.init.line228.comment And create an instance.
 constants = Constants()
 
 
-# A helpers for DispatchWithEvents - this becomes __setattr__ for the
-# temporary class.
+# 048618.python.init.line232.comment A helpers for DispatchWithEvents - this becomes __setattr__ for the
+# 048619.python.init.line233.comment temporary class.
 def _event_setattr_(self, attr, val):
     try:
-        # Does the COM object have an attribute of this name?
+        # 048620.python.init.line236.comment Does the COM object have an attribute of this name?
         self.__class__.__bases__[0].__setattr__(self, attr, val)
     except AttributeError:
-        # Otherwise just stash it away in the instance.
+        # 048621.python.init.line239.comment Otherwise just stash it away in the instance.
         self.__dict__[attr] = val
 
 
-# An instance of this "proxy" is created to break the COM circular references
-# that exist (ie, when we connect to the COM events, COM keeps a reference
-# to the object.  Thus, the Event connection must be manually broken before
-# our object can die.  This solves the problem by manually breaking the connection
-# to the real object as the proxy dies.
+# 048622.python.init.line243.comment An instance of this "proxy" is created to break the COM circular references
+# 048623.python.init.line244.comment that exist (ie, when we connect to the COM events, COM keeps a reference
+# 048624.python.init.line245.comment to the object.  Thus, the Event connection must be manually broken before
+# 048625.python.init.line246.comment our object can die.  This solves the problem by manually breaking the connection
+# 048626.python.init.line247.comment to the real object as the proxy dies.
 class EventsProxy:
     def __init__(self, ob):
         self.__dict__["_obj_"] = ob
 
     def __del__(self):
         try:
-            # If there is a COM error on disconnection we should
-            # just ignore it - object probably already shut down...
+            # 048627.python.init.line254.comment If there is a COM error on disconnection we should
+            # 048628.python.init.line255.comment just ignore it - object probably already shut down...
             self._obj_.close()
         except pythoncom.com_error:
             pass
@@ -265,13 +265,13 @@ class EventsProxy:
 
 
 def __get_disp_and_event_classes(dispatch):
-    # Create/Get the object.
+    # 048629.python.init.line268.comment Create/Get the object.
     disp = Dispatch(dispatch)
 
     if disp.__class__.__dict__.get("CLSID"):
         disp_class = disp.__class__
     else:
-        # Eeek - no makepy support - try and build it.
+        # 048630.python.init.line274.comment Eeek - no makepy support - try and build it.
         error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
         try:
             ti = disp._oleobj_.GetTypeInfo()
@@ -279,7 +279,7 @@ def __get_disp_and_event_classes(dispatch):
             tlb, index = ti.GetContainingTypeLib()
             tla = tlb.GetLibAttr()
             gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
-            # Get the class from the module.
+            # 048631.python.init.line282.comment Get the class from the module.
             disp_class = gencache.GetClassForProgID(str(disp_clsid))
         except pythoncom.com_error as error:
             raise TypeError(error_msg) from error
@@ -287,10 +287,10 @@ def __get_disp_and_event_classes(dispatch):
         if disp_class is None:
             raise TypeError(error_msg)
 
-    # Get the clsid
+    # 048632.python.init.line290.comment Get the clsid
     clsid = disp_class.CLSID
-    # Create a new class that derives from 2 classes:
-    # the event sink class and the user class.
+    # 048633.python.init.line292.comment Create a new class that derives from 2 classes:
+    # 048634.python.init.line293.comment the event sink class and the user class.
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
@@ -341,7 +341,7 @@ def DispatchWithEvents(clsid, user_event_class) -> EventsProxy:
         (disp_class, events_class, user_event_class),
         {"__setattr__": _event_setattr_},
     )
-    # This only calls the first base class __init__.
+    # 048635.python.init.line344.comment This only calls the first base class __init__.
     instance = result_class(disp._oleobj_)
     events_class.__init__(instance, instance)
     if hasattr(user_event_class, "__init__"):
@@ -379,7 +379,7 @@ def WithEvents(disp, user_event_class):
         (events_class, user_event_class),
         {},
     )
-    # This only calls the first base class __init__.
+    # 048636.python.init.line382.comment This only calls the first base class __init__.
     instance = result_class(disp)
     if hasattr(user_event_class, "__init__"):
         user_event_class.__init__(instance)
@@ -428,21 +428,21 @@ def getevents(clsid):
     >>>
     """
 
-    # find clsid given progid or clsid
+    # 048637.python.init.line431.comment find clsid given progid or clsid
     clsid = str(pywintypes.IID(clsid))
-    # return default outgoing interface for that class
+    # 048638.python.init.line433.comment return default outgoing interface for that class
     klass = gencache.GetClassForCLSID(clsid)
     try:
         return klass.default_source
     except AttributeError:
-        # See if we have a coclass for the interfaces.
+        # 048639.python.init.line438.comment See if we have a coclass for the interfaces.
         try:
             return gencache.GetClassForCLSID(klass.coclass_clsid).default_source
         except AttributeError:
             return None
 
 
-# A Record object, as used by the COM struct support
+# 048640.python.init.line445.comment A Record object, as used by the COM struct support
 def Record(name, object):
     """Creates a new record object, given the name of the record,
     and an object from the same type library.
@@ -454,16 +454,16 @@ def Record(name, object):
       point.y = 0
       app.MoveTo(point)
     """
-    # XXX - to do - probably should allow "object" to already be a module object.
+    # 048641.python.init.line457.comment XXX - to do - probably should allow "object" to already be a module object.
     from . import gencache
 
     object = gencache.EnsureDispatch(object)
     module = sys.modules[object.__class__.__module__]
-    # to allow us to work correctly with "demand generated" code,
-    # we must use the typelib CLSID to obtain the module
-    # (otherwise we get the sub-module for the object, which
-    # does not hold the records)
-    # thus, package may be module, or may be module's parent if demand generated.
+    # 048642.python.init.line462.comment to allow us to work correctly with "demand generated" code,
+    # 048643.python.init.line463.comment we must use the typelib CLSID to obtain the module
+    # 048644.python.init.line464.comment (otherwise we get the sub-module for the object, which
+    # 048645.python.init.line465.comment does not hold the records)
+    # 048646.python.init.line466.comment thus, package may be module, or may be module's parent if demand generated.
     package = gencache.GetModuleForTypelib(
         module.CLSID, module.LCID, module.MajorVersion, module.MinorVersion
     )
@@ -476,7 +476,7 @@ def Record(name, object):
     )
 
 
-# Registration function for com_record subclasses.
+# 048647.python.init.line479.comment Registration function for com_record subclasses.
 def register_record_class(cls):
     """
     Register a subclass of com_record to enable creation of the represented record objects.
@@ -507,8 +507,8 @@ def register_record_class(cls):
         _ = pythoncom.GetRecordFromGuids(TLBID, MJVER, MNVER, LCID, GUID)
     except Exception as e:
         raise TypeError(f"Class {cls.__name__} cannot be instantiated.") from e
-    # Since the class can be instantiated we know that it represents a valid COM Record
-    # in a properly registered TypeLibrary and that it has a 'GUID' class attribute.
+    # 048648.python.init.line510.comment Since the class can be instantiated we know that it represents a valid COM Record
+    # 048649.python.init.line511.comment in a properly registered TypeLibrary and that it has a 'GUID' class attribute.
     if cls.GUID in pythoncom.RecordClasses:
         raise ValueError(
             f"Record class with same GUID {cls.GUID} "
@@ -517,9 +517,9 @@ def register_record_class(cls):
     pythoncom.RecordClasses[cls.GUID] = cls
 
 
-############################################
-# The base of all makepy generated classes
-############################################
+# 048650.python.init.line520.comment ###########################################
+# 048651.python.init.line521.comment The base of all makepy generated classes
+# 048652.python.init.line522.comment ###########################################
 class DispatchBaseClass:
     def __init__(self, oobj=None):
         if oobj is None:
@@ -531,9 +531,9 @@ class DispatchBaseClass:
             except pythoncom.com_error as details:
                 import winerror
 
-                # Some stupid objects fail here, even tho it is _already_ IDispatch!!??
-                # Eg, Lotus notes.
-                # So just let it use the existing object if E_NOINTERFACE
+                # 048653.python.init.line534.comment Some stupid objects fail here, even tho it is _already_ IDispatch!!??
+                # 048654.python.init.line535.comment Eg, Lotus notes.
+                # 048655.python.init.line536.comment So just let it use the existing object if E_NOINTERFACE
                 if details.hresult != winerror.E_NOINTERFACE:
                     raise
 
@@ -553,9 +553,9 @@ class DispatchBaseClass:
             pass
         return list(set(attributes))
 
-    # Provide a prettier name than the CLSID
+    # 048657.python.init.line556.comment Provide a prettier name than the CLSID
     def __repr__(self):
-        # Need to get the docstring for the module for this class.
+        # 048658.python.init.line558.comment Need to get the docstring for the module for this class.
         try:
             mod_doc = sys.modules[self.__class__.__module__].__doc__
             if mod_doc:
@@ -566,7 +566,7 @@ class DispatchBaseClass:
             mod_name = "win32com.gen_py.unknown"
         return f"<{mod_name}.{self.__class__.__name__} instance at 0x{id(self)}>"
 
-    # Delegate comparison to the oleobjs, as they know how to do identity.
+    # 048659.python.init.line569.comment Delegate comparison to the oleobjs, as they know how to do identity.
     def __eq__(self, other):
         other = getattr(other, "_oleobj_", other)
         return self._oleobj_ == other
@@ -605,7 +605,7 @@ class DispatchBaseClass:
         return _get_good_object_(obj, obUserName, resultCLSID)
 
 
-# XXX - These should be consolidated with dynamic.py versions.
+# 048660.python.init.line608.comment XXX - These should be consolidated with dynamic.py versions.
 def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
     if isinstance(obj, _PyIDispatchType):
         return Dispatch(obj, obUserName, resultCLSID)
@@ -651,12 +651,12 @@ class CoClassBaseClass:
             pass
         self.__dict__[attr] = value
 
-    # Special methods don't use __getattr__ etc, so explicitly delegate here.
-    # Some wrapped objects might not have them, but that's OK - the attribute
-    # error can just bubble up.
-    # This was initially implemented to address #1699 which did cause a problem
-    # with bool() in #1753 because the code initially implemented __nonzero__
-    # instead of __bool__, which was pointed out in the conclusion of #1870.
+    # 048661.python.init.line654.comment Special methods don't use __getattr__ etc, so explicitly delegate here.
+    # 048662.python.init.line655.comment Some wrapped objects might not have them, but that's OK - the attribute
+    # 048663.python.init.line656.comment error can just bubble up.
+    # 048664.python.init.line657.comment This was initially implemented to address #1699 which did cause a problem
+    # 048665.python.init.line658.comment with bool() in #1753 because the code initially implemented __nonzero__
+    # 048666.python.init.line659.comment instead of __bool__, which was pointed out in the conclusion of #1870.
     def __call__(self, *args, **kwargs):
         return self.__dict__["_dispobj_"](*args, **kwargs)
 
@@ -676,18 +676,18 @@ class CoClassBaseClass:
         return bool(self.__dict__["_dispobj_"])
 
 
-# A very simple VARIANT class.  Only to be used with poorly-implemented COM
-# objects.  If an object accepts an arg which is a simple "VARIANT", but still
-# is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
-# which it would get from a Python integer), you can use this to force a
-# particular VT.
+# 048667.python.init.line679.comment A very simple VARIANT class.  Only to be used with poorly-implemented COM
+# 048668.python.init.line680.comment objects.  If an object accepts an arg which is a simple "VARIANT", but still
+# 048669.python.init.line681.comment is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
+# 048670.python.init.line682.comment which it would get from a Python integer), you can use this to force a
+# 048671.python.init.line683.comment particular VT.
 class VARIANT:
     def __init__(self, vt, value):
         self.varianttype = vt
         self._value = value
 
-    # 'value' is a property so when set by pythoncom it gets any magic wrapping
-    # which normally happens for result objects
+    # 048672.python.init.line689.comment 'value' is a property so when set by pythoncom it gets any magic wrapping
+    # 048673.python.init.line690.comment which normally happens for result objects
     def _get_value(self):
         return self._value
 

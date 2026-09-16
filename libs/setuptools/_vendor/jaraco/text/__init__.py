@@ -28,8 +28,8 @@ def multi_substitution(*substitutions):
     'baz'
     """
     substitutions = itertools.starmap(substitution, substitutions)
-    # compose function applies last function first, so reverse the
-    #  substitutions to get the expected order.
+    # 042382.python.init.line31.comment compose function applies last function first, so reverse the
+    # 042383.python.init.line32.comment substitutions to get the expected order.
     substitutions = reversed(tuple(substitutions))
     return compose(*substitutions)
 
@@ -119,7 +119,7 @@ class FoldedCase(str):
         "Does self appear in other?"
         return self in FoldedCase(other)
 
-    # cache casefold since it's likely to be called frequently.
+    # 042384.python.init.line122.comment cache casefold since it's likely to be called frequently.
     @method_cache
     def casefold(self):
         return super().casefold()
@@ -132,7 +132,7 @@ class FoldedCase(str):
         return pattern.split(self, maxsplit)
 
 
-# Python 3.8 compatibility
+# 042385.python.init.line135.comment Python 3.8 compatibility
 _unicode_trap = ExceptionTrap(UnicodeDecodeError)
 
 
@@ -384,7 +384,7 @@ class WordSet(tuple):
         return cls.parse(subject.__class__.__name__)
 
 
-# for backward compatibility
+# 042386.python.init.line387.comment for backward compatibility
 words = WordSet.parse
 
 

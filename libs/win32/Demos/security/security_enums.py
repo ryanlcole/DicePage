@@ -107,7 +107,7 @@ POLICY_INFORMATION_CLASS = Enum(
 
 POLICY_LSA_SERVER_ROLE = Enum("PolicyServerRoleBackup", "PolicyServerRolePrimary")
 
-## access modes for opening a policy handle - this is not a real enum
+# 046162.python.security_enums.line110.comment # access modes for opening a policy handle - this is not a real enum
 POLICY_ACCESS_MODES = Enum(
     "POLICY_VIEW_LOCAL_INFORMATION",
     "POLICY_VIEW_AUDIT_INFORMATION",
@@ -128,7 +128,7 @@ POLICY_ACCESS_MODES = Enum(
     "POLICY_EXECUTE",
 )
 
-## EventAuditingOptions flags - not a real enum
+# 046163.python.security_enums.line131.comment # EventAuditingOptions flags - not a real enum
 POLICY_AUDIT_EVENT_OPTIONS_FLAGS = Enum(
     "POLICY_AUDIT_EVENT_UNCHANGED",
     "POLICY_AUDIT_EVENT_SUCCESS",
@@ -136,7 +136,7 @@ POLICY_AUDIT_EVENT_OPTIONS_FLAGS = Enum(
     "POLICY_AUDIT_EVENT_NONE",
 )
 
-# AceType in ACE_HEADER - not a real enum
+# 046164.python.security_enums.line139.comment AceType in ACE_HEADER - not a real enum
 ACE_TYPE = Enum(
     "ACCESS_MIN_MS_ACE_TYPE",
     "ACCESS_ALLOWED_ACE_TYPE",
@@ -166,7 +166,7 @@ ACE_TYPE = Enum(
     "ACCESS_MAX_MS_V5_ACE_TYPE",
 )
 
-# bit flags for AceFlags - not a real enum
+# 046165.python.security_enums.line169.comment bit flags for AceFlags - not a real enum
 ACE_FLAGS = Enum(
     "CONTAINER_INHERIT_ACE",
     "FAILED_ACCESS_ACE_FLAG",
@@ -181,7 +181,7 @@ ACE_FLAGS = Enum(
     "SUB_OBJECTS_ONLY_INHERIT",
 )
 
-# used in SetEntriesInAcl - very similar to ACE_TYPE
+# 046166.python.security_enums.line184.comment used in SetEntriesInAcl - very similar to ACE_TYPE
 ACCESS_MODE = Enum(
     "NOT_USED_ACCESS",
     "GRANT_ACCESS",
@@ -192,7 +192,7 @@ ACCESS_MODE = Enum(
     "SET_AUDIT_FAILURE",
 )
 
-# Bit flags in PSECURITY_DESCRIPTOR->Control - not a real enum
+# 046167.python.security_enums.line195.comment Bit flags in PSECURITY_DESCRIPTOR->Control - not a real enum
 SECURITY_DESCRIPTOR_CONTROL_FLAGS = Enum(
     "SE_DACL_AUTO_INHERITED",  ## win2k and up
     "SE_SACL_AUTO_INHERITED",  ## win2k and up
@@ -207,7 +207,7 @@ SECURITY_DESCRIPTOR_CONTROL_FLAGS = Enum(
     "SE_SACL_DEFAULTED",
 )
 
-# types of SID
+# 046172.python.security_enums.line210.comment types of SID
 SID_NAME_USE = Enum(
     "SidTypeUser",
     "SidTypeGroup",
@@ -221,7 +221,7 @@ SID_NAME_USE = Enum(
     "SidTypeLabel",
 )
 
-## bit flags, not a real enum
+# 046173.python.security_enums.line224.comment # bit flags, not a real enum
 TOKEN_ACCESS_PRIVILEGES = Enum(
     "TOKEN_ADJUST_DEFAULT",
     "TOKEN_ADJUST_GROUPS",
@@ -291,7 +291,7 @@ TRUSTEE_TYPE = Enum(
     "TRUSTEE_IS_COMPUTER",
 )
 
-## SE_OBJECT_TYPE - securable objects
+# 046174.python.security_enums.line294.comment # SE_OBJECT_TYPE - securable objects
 SE_OBJECT_TYPE = Enum(
     "SE_UNKNOWN_OBJECT_TYPE",
     "SE_FILE_OBJECT",
@@ -314,7 +314,7 @@ PRIVILEGE_FLAGS = Enum(
     "SE_PRIVILEGE_USED_FOR_ACCESS",
 )
 
-# Group flags used with TokenGroups
+# 046175.python.security_enums.line317.comment Group flags used with TokenGroups
 TOKEN_GROUP_ATTRIBUTES = Enum(
     "SE_GROUP_MANDATORY",
     "SE_GROUP_ENABLED_BY_DEFAULT",
@@ -327,7 +327,7 @@ TOKEN_GROUP_ATTRIBUTES = Enum(
     "SE_GROUP_RESOURCE",
 )
 
-# Privilege flags returned by TokenPrivileges
+# 046176.python.security_enums.line330.comment Privilege flags returned by TokenPrivileges
 TOKEN_PRIVILEGE_ATTRIBUTES = Enum(
     "SE_PRIVILEGE_ENABLED_BY_DEFAULT",
     "SE_PRIVILEGE_ENABLED",

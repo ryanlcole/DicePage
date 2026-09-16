@@ -15,7 +15,7 @@ else:
     pth = setuptestframework.find_ado_path()
 if pth not in sys.path:
     sys.path.insert(1, pth)
-# function to clean up the temporary folder -- calling program must run this function before exit.
+# 021195.python.test_adodbapi_dbapi20.line18.comment function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi
@@ -43,7 +43,7 @@ conn_kws["name"] = "adotest"
 
 conn_kws["user"] = "adotestuser"  # None implies Windows security
 conn_kws["password"] = "Sq1234567"
-# macro definition for keyword "security" using macro "auto_security"
+# 021199.python.test_adodbapi_dbapi20.line46.comment macro definition for keyword "security" using macro "auto_security"
 conn_kws["macro_auto_security"] = "security"
 
 if host is None:
@@ -97,13 +97,13 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         return self.id().split(".")[-1]
 
     def setUp(self):
-        # Call superclass setUp In case this does something in the
-        # future
+        # 021203.python.test_adodbapi_dbapi20.line100.comment Call superclass setUp In case this does something in the
+        # 021204.python.test_adodbapi_dbapi20.line101.comment future
         dbapi20.DatabaseAPI20Test.setUp(self)
         if self.getTestMethodName() == "test_callproc":
             con = self._connect()
             engine = con.dbms_name
-            # print(f"Using database Engine={engine}")
+            # 021205.python.test_adodbapi_dbapi20.line106.comment print(f"Using database Engine={engine}")
             if engine != "MS Jet":
                 sql = """
                     create procedure templower

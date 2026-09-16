@@ -124,23 +124,23 @@ class Accessor:
         self.max = data.get('max')
         self.min = data.get('min')
 
-        # This is a 'sparse' accessor:
+        # 035496.python.gltf.line127.comment This is a 'sparse' accessor:
         self.sparse = data.get('sparse')
         if self.sparse:
             raise NotImplementedError("Not yet implemented")
 
-        # The Python format type:
+        # 035497.python.gltf.line132.comment The Python format type:
         self.fmt = _array_types[self.component_type]
 
-        # The byte size of the `GL type` multiplied by the length of the GLSL `data type`.
-        # For example: a GL_FLOAT is 4 bytes and a VEC3 has 3 values, so 4 * 3 = 12 bytes
+        # 035498.python.gltf.line135.comment The byte size of the `GL type` multiplied by the length of the GLSL `data type`.
+        # 035499.python.gltf.line136.comment For example: a GL_FLOAT is 4 bytes and a VEC3 has 3 values, so 4 * 3 = 12 bytes
         self._byte_length = _gl_type_sizes[self.component_type] * _accessor_type_counts[self.type]
 
     def read(self) -> bytes:
         return self.buffer_view.read(self.byte_offset, self._byte_length, self.count)
-        # readbytes = self.buffer_view.read(self.byte_offset, self._byte_length, self.count)
-        # assert self._byte_length * self.count == len(readbytes), "insufficient bytes read"
-        # return readbytes
+        # 035500.python.gltf.line141.comment readbytes = self.buffer_view.read(self.byte_offset, self._byte_length, self.count)
+        # 035501.python.gltf.line142.comment assert self._byte_length * self.count == len(readbytes), "insufficient bytes read"
+        # 035502.python.gltf.line143.comment return readbytes
 
     def as_array(self):
         return array(self.fmt, self.read())
@@ -176,10 +176,10 @@ class Primitive(BasePrimitive):
 class Material(PBRMaterial):
     def __init__(self, data):
         self.name = data.get('name')
-        # self.extensions = data.get('extensions')
-        # self.extras = data.get('extras')
+        # 035504.python.gltf.line179.comment self.extensions = data.get('extensions')
+        # 035505.python.gltf.line180.comment self.extras = data.get('extras')
 
-        # TODO: parse this:
+        # 035506.python.gltf.line182.comment TODO: parse this:
         self.pbr_metallic_roughness = data.get('pbrMetallicRoughness')
 
         self.normal_texture = data.get('normalTexture')
@@ -192,17 +192,17 @@ class Material(PBRMaterial):
         self.alpha_cutoff = data.get('alphaCutoff', 0.5)
         self.double_sided = data.get('doubleSided', False)
 
-        # TODO: finish this
-        # super().__init__(name, )
+        # 035508.python.gltf.line195.comment TODO: finish this
+        # 035509.python.gltf.line196.comment super().__init__(name, )
 
 
 class Texture:
     def __init__(self, data, owner):
         self.name = data.get('name')
-        # self.extensions = data.get('extensions')
-        # self.extras = data.get('extras')
+        # 035510.python.gltf.line202.comment self.extensions = data.get('extensions')
+        # 035511.python.gltf.line203.comment self.extras = data.get('extras')
 
-        # TODO: verify how this works. Default sampler?
+        # 035512.python.gltf.line205.comment TODO: verify how this works. Default sampler?
         self._sampler_index = data.get('sampler')
         if self._sampler_index:
             self.sampler = owner.samplers[self._sampler_index]
@@ -211,7 +211,7 @@ class Texture:
         self.source = data.get('source')            # technically NOT required
         self.image = owner.images[self.source]
 
-        # Aliases
+        # 035514.python.gltf.line214.comment Aliases
         self.min_filter = self.sampler.min_filter
         self.mag_filter = self.sampler.mag_filter
         self.wrap_s = self.sampler.wrap_s
@@ -220,14 +220,14 @@ class Texture:
 
 class Sampler:
     def __init__(self, data):
-        # TODO: make objects for min/mag filter objects
+        # 035515.python.gltf.line223.comment TODO: make objects for min/mag filter objects
         self.name = data.get('name')
         self.min_filter = data.get('minFilter')
         self.mag_filter = data.get('magFilter')
         self.wrap_s = data.get('wrapS', GL_REPEAT)
         self.wrap_t = data.get('wrapT', GL_REPEAT)
-        # self.extensions = data.get('extensions')
-        # self.extras = data.get('extras')
+        # 035516.python.gltf.line229.comment self.extensions = data.get('extensions')
+        # 035517.python.gltf.line230.comment self.extras = data.get('extras')
 
 
 class Image:
@@ -241,10 +241,10 @@ class Image:
         self.extras = data.get('extras')
 
     def read(self):
-        # TODO: load from either URI or bufferview
-        # if self.uri:
-        #     return
-        # else:
+        # 035518.python.gltf.line244.comment TODO: load from either URI or bufferview
+        # 035519.python.gltf.line245.comment if self.uri:
+        # 035520.python.gltf.line246.comment return
+        # 035521.python.gltf.line247.comment else:
         raise NotImplementedError
 
 
@@ -252,10 +252,10 @@ class Camera(BaseCamera):
     def __init__(self, camera_type, data):
         aspect_ratio = data.get('aspectRatio')  # Not required
         yfov = data.get('yfov')
-        # Orthographic
+        # 035523.python.gltf.line255.comment Orthographic
         xmag = data.get('xmag')
         ymag = data.get('ymag')
-        # Shared
+        # 035524.python.gltf.line258.comment Shared
         zfar = data.get('zfar')                 # Not required for Perspective
         znear = data.get('znear')
         super().__init__(camera_type, aspect_ratio, yfov, xmag, ymag, zfar, znear)
@@ -284,8 +284,8 @@ class Node:
         self.rotation = data.get('rotation')        # Quaternion
         self.scale = data.get('scale')              # Vec3
 
-        # TODO: handle global and local transforms:
-        # https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_004_ScenesNodes.md
+        # 035530.python.gltf.line287.comment TODO: handle global and local transforms:
+        # 035531.python.gltf.line288.comment https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_004_ScenesNodes.md
 
     @property
     def children(self):
@@ -311,7 +311,7 @@ class GLTF:
         self.accessors = [Accessor(data=data, owner=self) for data in gltf_data['accessors']]
 
         if binary_buffer:
-            # TODO: test this, and think of a better way to do it
+            # 035532.python.gltf.line314.comment TODO: test this, and think of a better way to do it
             self.buffers[0]._file = binary_buffer
 
         self.images = [Image(data=data, owner=self) for data in gltf_data.get('images', [])]
@@ -347,7 +347,7 @@ def load_gltf(filename, file=None) -> GLTF:
         raise ModelDecodeException
 
     if filename.endswith('glb'):
-        # Check header
+        # 035533.python.gltf.line350.comment Check header
         magic = file.read(4)
         if magic != b"glTF":
             raise ModelDecodeException(f"Invalid header for .glb file: {magic}")
@@ -356,10 +356,10 @@ def load_gltf(filename, file=None) -> GLTF:
         if version != 2:
             raise ModelDecodeException(f"Unsupported glTF version: {version}")
 
-        # Total file size including headers
+        # 035534.python.gltf.line359.comment Total file size including headers
         _ = struct.unpack("<I", file.read(4))[0]  # noqa
 
-        # Chunk 0 - json
+        # 035536.python.gltf.line362.comment Chunk 0 - json
         chunk_0_length = struct.unpack("<I", file.read(4))[0]
         chunk_0_type = file.read(4)
         if chunk_0_type != b"JSON":
@@ -367,7 +367,7 @@ def load_gltf(filename, file=None) -> GLTF:
 
         json_meta = file.read(chunk_0_length).decode()
 
-        # chunk 1 - binary buffer
+        # 035537.python.gltf.line370.comment chunk 1 - binary buffer
         chunk_1_length = struct.unpack("<I", file.read(4))[0]
         chunk_1_type = file.read(4)
         if chunk_1_type != b"BIN\x00":
@@ -395,9 +395,9 @@ def load_gltf(filename, file=None) -> GLTF:
     return GLTF(gltf_data=gltf_data, binary_buffer=binary_buffer)
 
 
-###################################################
-#   Decoder definitions start here:
-###################################################
+# 035538.python.gltf.line398.comment ##################################################
+# 035539.python.gltf.line399.comment Decoder definitions start here:
+# 035540.python.gltf.line400.comment ##################################################
 
 class GLTFModelDecoder(ModelDecoder):
     def get_file_extensions(self):

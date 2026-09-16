@@ -1,4 +1,4 @@
-# Classes which describe interfaces.
+# 050880.python.gateways.line1.comment Classes which describe interfaces.
 
 import pythoncom
 import win32com.server.connect
@@ -99,27 +99,27 @@ class DebugApplicationNode(DebugDocumentProvider):
         DebugDocumentProvider.__init__(self)
 
     def EnumChildren(self):
-        # Result is type PyIEnumDebugApplicationNodes
+        # 050881.python.gateways.line102.comment Result is type PyIEnumDebugApplicationNodes
         RaiseNotImpl("EnumChildren")
 
     def GetParent(self):
-        # result is type PyIDebugApplicationNode
+        # 050882.python.gateways.line106.comment result is type PyIDebugApplicationNode
         RaiseNotImpl("GetParent")
 
     def SetDocumentProvider(self, pddp):  # PyIDebugDocumentProvider pddp
-        # void result.
+        # 050884.python.gateways.line110.comment void result.
         RaiseNotImpl("SetDocumentProvider")
 
     def Close(self):
-        # void result.
+        # 050885.python.gateways.line114.comment void result.
         RaiseNotImpl("Close")
 
     def Attach(self, parent):  # PyIDebugApplicationNode
-        # void result.
+        # 050887.python.gateways.line118.comment void result.
         RaiseNotImpl("Attach")
 
     def Detach(self):
-        # void result.
+        # 050888.python.gateways.line122.comment void result.
         RaiseNotImpl("Detach")
 
 
@@ -133,19 +133,19 @@ class DebugApplicationNodeEvents:
         pass
 
     def onAddChild(self, child):  # PyIDebugApplicationNode
-        # void result.
+        # 050890.python.gateways.line136.comment void result.
         RaiseNotImpl("onAddChild")
 
     def onRemoveChild(self, child):  # PyIDebugApplicationNode
-        # void result.
+        # 050892.python.gateways.line140.comment void result.
         RaiseNotImpl("onRemoveChild")
 
     def onDetach(self):
-        # void result.
+        # 050893.python.gateways.line144.comment void result.
         RaiseNotImpl("onDetach")
 
     def onAttach(self, parent):  # PyIDebugApplicationNode
-        # void result.
+        # 050895.python.gateways.line148.comment void result.
         RaiseNotImpl("onAttach")
 
 
@@ -173,21 +173,21 @@ class DebugDocumentText(DebugDocument):
     def __init__(self):
         pass
 
-    # IDebugDocumentText
+    # 050896.python.gateways.line176.comment IDebugDocumentText
     def GetDocumentAttributes(self):
-        # Result is int (TEXT_DOC_ATTR)
+        # 050897.python.gateways.line178.comment Result is int (TEXT_DOC_ATTR)
         RaiseNotImpl("GetDocumentAttributes")
 
     def GetSize(self):
-        # Result is (numLines, numChars)
+        # 050898.python.gateways.line182.comment Result is (numLines, numChars)
         RaiseNotImpl("GetSize")
 
     def GetPositionOfLine(self, cLineNumber):
-        # Result is int char position
+        # 050899.python.gateways.line186.comment Result is int char position
         RaiseNotImpl("GetPositionOfLine")
 
     def GetLineOfPosition(self, charPos):
-        # Result is int, int (lineNo, offset)
+        # 050900.python.gateways.line190.comment Result is int, int (lineNo, offset)
         RaiseNotImpl("GetLineOfPosition")
 
     def GetText(self, charPos, maxChars, wantAttr):
@@ -261,27 +261,27 @@ class DebugDocumentTextEvents:
         pass
 
     def onDestroy(self):
-        # Result is void.
+        # 050901.python.gateways.line264.comment Result is void.
         RaiseNotImpl("onDestroy")
 
     def onInsertText(self, cCharacterPosition, cNumToInsert):
-        # Result is void.
+        # 050902.python.gateways.line268.comment Result is void.
         RaiseNotImpl("onInsertText")
 
     def onRemoveText(self, cCharacterPosition, cNumToRemove):
-        # Result is void.
+        # 050903.python.gateways.line272.comment Result is void.
         RaiseNotImpl("onRemoveText")
 
     def onReplaceText(self, cCharacterPosition, cNumToReplace):
-        # Result is void.
+        # 050904.python.gateways.line276.comment Result is void.
         RaiseNotImpl("onReplaceText")
 
     def onUpdateTextAttributes(self, cCharacterPosition, cNumToUpdate):
-        # Result is void.
+        # 050905.python.gateways.line280.comment Result is void.
         RaiseNotImpl("onUpdateTextAttributes")
 
     def onUpdateDocumentAttributes(self, textdocattr):  # TEXT_DOC_ATTR
-        # Result is void.
+        # 050907.python.gateways.line284.comment Result is void.
         RaiseNotImpl("onUpdateDocumentAttributes")
 
 
@@ -387,29 +387,29 @@ class DebugDocumentHost:
         RaiseNotImpl("GetDeferredText")
 
     def GetScriptTextAttributes(self, codeText, delimterText, flags):
-        # Result must be an attribute sequence of same "length" as the code.
+        # 050908.python.gateways.line390.comment Result must be an attribute sequence of same "length" as the code.
         RaiseNotImpl("GetScriptTextAttributes")
 
     def OnCreateDocumentContext(self):
-        # Result must be a PyIUnknown
+        # 050909.python.gateways.line394.comment Result must be a PyIUnknown
         RaiseNotImpl("OnCreateDocumentContext")
 
     def GetPathName(self):
-        # Result must be (string, int) where the int is a BOOL
-        # - TRUE if the path refers to the original file for the document.
-        # - FALSE if the path refers to a newly created temporary file.
-        # - raise COMException(scode=E_FAIL) if no source file can be created/determined.
+        # 050910.python.gateways.line398.comment Result must be (string, int) where the int is a BOOL
+        # 050911.python.gateways.line399.comment - TRUE if the path refers to the original file for the document.
+        # 050912.python.gateways.line400.comment - FALSE if the path refers to a newly created temporary file.
+        # 050913.python.gateways.line401.comment - raise COMException(scode=E_FAIL) if no source file can be created/determined.
         RaiseNotImpl("GetPathName")
 
     def GetFileName(self):
-        # Result is a string with just the name of the document, no path information.
+        # 050914.python.gateways.line405.comment Result is a string with just the name of the document, no path information.
         RaiseNotImpl("GetFileName")
 
     def NotifyChanged(self):
         RaiseNotImpl("NotifyChanged")
 
 
-# Additional gateway related functions.
+# 050915.python.gateways.line412.comment Additional gateway related functions.
 
 
 class DebugDocumentTextConnectServer:
@@ -422,7 +422,7 @@ class DebugDocumentTextConnectServer:
         pythoncom.IID_IConnectionPointContainer,
     ]
 
-    # IConnectionPoint interfaces
+    # 050916.python.gateways.line425.comment IConnectionPoint interfaces
     def __init__(self):
         self.cookieNo = -1
         self.connections = {}
@@ -437,26 +437,26 @@ class DebugDocumentTextConnectServer:
         return _wrap(self)
 
     def Advise(self, pUnk):
-        # Creates a connection to the client.  Simply allocate a new cookie,
-        # find the clients interface, and store it in a dictionary.
+        # 050917.python.gateways.line440.comment Creates a connection to the client.  Simply allocate a new cookie,
+        # 050918.python.gateways.line441.comment find the clients interface, and store it in a dictionary.
         interface = pUnk.QueryInterface(axdebug.IID_IDebugDocumentTextEvents, 1)
         self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 
     def Unadvise(self, cookie):
-        # Destroy a connection - simply delete interface from the map.
+        # 050919.python.gateways.line448.comment Destroy a connection - simply delete interface from the map.
         try:
             del self.connections[cookie]
         except KeyError:
             return COMException(scode=winerror.E_UNEXPECTED)
 
-    # IConnectionPointContainer interfaces
+    # 050920.python.gateways.line454.comment IConnectionPointContainer interfaces
     def EnumConnectionPoints(self):
         RaiseNotImpl("EnumConnectionPoints")
 
     def FindConnectionPoint(self, iid):
-        # Find a connection we support.  Only support the single event interface.
+        # 050921.python.gateways.line459.comment Find a connection we support.  Only support the single event interface.
         if iid == axdebug.IID_IDebugDocumentTextEvents:
             return _wrap(self)
         raise COMException(scode=winerror.E_NOINTERFACE)  # ??

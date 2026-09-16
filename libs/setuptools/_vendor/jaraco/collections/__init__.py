@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 
     _RangeMapKT = TypeVar('_RangeMapKT', bound=_SupportsComparison)
 else:
-    # _SupportsComparison doesn't exist at runtime,
-    # but _RangeMapKT is used in RangeMap's superclass' type parameters
+    # 042342.python.init.line23.comment _SupportsComparison doesn't exist at runtime,
+    # 042343.python.init.line24.comment but _RangeMapKT is used in RangeMap's superclass' type parameters
     _RangeMapKT = TypeVar('_RangeMapKT')
 
 _T = TypeVar('_T')
@@ -31,12 +31,12 @@ _Matchable = Union[Callable, Container, Iterable, re.Pattern]
 
 
 def _dispatch(obj: _Matchable) -> Callable:
-    # can't rely on singledispatch for Union[Container, Iterable]
-    # due to ambiguity
-    # (https://peps.python.org/pep-0443/#abstract-base-classes).
+    # 042344.python.init.line34.comment can't rely on singledispatch for Union[Container, Iterable]
+    # 042345.python.init.line35.comment due to ambiguity
+    # 042346.python.init.line36.comment (https://peps.python.org/pep-0443/#abstract-base-classes).
     if isinstance(obj, re.Pattern):
         return obj.fullmatch
-    # mypy issue: https://github.com/python/mypy/issues/11071
+    # 042347.python.init.line39.comment mypy issue: https://github.com/python/mypy/issues/11071
     if not isinstance(obj, Callable):  # type: ignore[arg-type]
         if not isinstance(obj, Container):
             obj = set(obj)  # type: ignore[arg-type]
@@ -121,7 +121,7 @@ class Mask(Projection):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self._match = compose(operator.not_, self._match)
+        # 042351.python.init.line124.comment self._match = compose(operator.not_, self._match)
         self._match = lambda key, orig=self._match: not orig(key)
 
 
@@ -279,7 +279,7 @@ class RangeMap(Dict[_RangeMapKT, _VT]):
         sorted_keys = sorted(self.keys(), **self.sort_params)
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
-    # some special values for the RangeMap
+    # 042353.python.init.line282.comment some special values for the RangeMap
     undefined_value = type('RangeValueUndefined', (), {})()
 
     class Item(int):
@@ -309,7 +309,7 @@ def sorted_items(d, key=__identity, reverse=False):
     (('foo', 20), ('baz', 10), ('bar', 42))
     """
 
-    # wrap the key func so it operates on the first element of each item
+    # 042354.python.init.line312.comment wrap the key func so it operates on the first element of each item
     def pairkey_key(item):
         return key(item[0])
 
@@ -328,9 +328,9 @@ class KeyTransformingDict(dict):
 
     def __init__(self, *args, **kargs):
         super().__init__()
-        # build a dictionary using the default constructs
+        # 042356.python.init.line331.comment build a dictionary using the default constructs
         d = dict(*args, **kargs)
-        # build this dictionary using transformed keys.
+        # 042357.python.init.line333.comment build this dictionary using transformed keys.
         for item in d.items():
             self.__setitem__(*item)
 
@@ -521,8 +521,8 @@ class ItemsAsAttributes:
         try:
             return getattr(super(), key)
         except AttributeError as e:
-            # attempt to get the value from the mapping (return self[key])
-            #  but be careful not to lose the original exception context.
+            # 042358.python.init.line524.comment attempt to get the value from the mapping (return self[key])
+            # 042359.python.init.line525.comment but be careful not to lose the original exception context.
             noval = object()
 
             def _safe_getitem(cont, key, missing_result):
@@ -534,8 +534,8 @@ class ItemsAsAttributes:
             result = _safe_getitem(self, key, noval)
             if result is not noval:
                 return result
-            # raise the original exception, but use the original class
-            #  name, not 'super'.
+            # 042360.python.init.line537.comment raise the original exception, but use the original class
+            # 042361.python.init.line538.comment name, not 'super'.
             (message,) = e.args
             message = message.replace('super', self.__class__.__name__, 1)
             e.args = (message,)
@@ -645,7 +645,7 @@ class DictStack(list, collections.abc.MutableMapping):
         last = list.__getitem__(self, -1)
         return last.__delitem__(key)
 
-    # workaround for mypy confusion
+    # 042362.python.init.line648.comment workaround for mypy confusion
     def pop(self, *args, **kwargs):
         return list.pop(self, *args, **kwargs)
 
@@ -742,9 +742,9 @@ class BijectiveMap(dict):
         return super().pop(key, *args, **kwargs)
 
     def update(self, *args, **kwargs):
-        # build a dictionary using the default constructs
+        # 042363.python.init.line745.comment build a dictionary using the default constructs
         d = dict(*args, **kwargs)
-        # build this dictionary using transformed keys.
+        # 042364.python.init.line747.comment build this dictionary using transformed keys.
         for item in d.items():
             self.__setitem__(*item)
 
@@ -809,15 +809,15 @@ class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
         self.__data = dict(*args, **kwargs)
         return self
 
-    # Container
+    # 042365.python.init.line812.comment Container
     def __contains__(self, key):
         return key in self.__data
 
-    # Hashable
+    # 042366.python.init.line816.comment Hashable
     def __hash__(self):
         return hash(tuple(sorted(self.__data.items())))
 
-    # Mapping
+    # 042367.python.init.line820.comment Mapping
     def __iter__(self):
         return iter(self.__data)
 
@@ -827,11 +827,11 @@ class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
     def __getitem__(self, key):
         return self.__data[key]
 
-    # override get for efficiency provided by dict
+    # 042368.python.init.line830.comment override get for efficiency provided by dict
     def get(self, *args, **kwargs):
         return self.__data.get(*args, **kwargs)
 
-    # override eq to recognize underlying implementation
+    # 042369.python.init.line834.comment override eq to recognize underlying implementation
     def __eq__(self, other):
         if isinstance(other, FrozenDict):
             other = other.__data
@@ -1081,7 +1081,7 @@ class WeightedLookup(RangeMap):
     def __init__(self, *args, **kwargs):
         raw = dict(*args, **kwargs)
 
-        # allocate keys by weight
+        # 042370.python.init.line1084.comment allocate keys by weight
         indexes = map(Accumulator(), raw.values())
         super().__init__(zip(indexes, raw.keys()), key_match_comparator=operator.lt)
 

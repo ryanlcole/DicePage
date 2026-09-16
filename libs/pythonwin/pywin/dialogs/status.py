@@ -1,4 +1,4 @@
-# No cancel button.
+# 037123.python.status.line1.comment No cancel button.
 
 import threading
 import time
@@ -33,10 +33,10 @@ def MakeProgressDlgTemplate(caption, staticText=""):
 
     dlg.append([130, staticText, 1000, (7, 7, w - 7, h - 32), cs | win32con.SS_LEFT])
 
-    #    dlg.append([128,
-    # 		"Cancel",
-    # 		win32con.IDCANCEL,
-    # 		(w - 60, h - 18, 50, 14), s | win32con.BS_PUSHBUTTON])
+    # 037125.python.status.line36.comment dlg.append([128,
+    # 037126.python.status.line37.comment "Cancel",
+    # 037127.python.status.line38.comment win32con.IDCANCEL,
+    # 037128.python.status.line39.comment (w - 60, h - 18, 50, 14), s | win32con.BS_PUSHBUTTON])
 
     return dlg
 
@@ -87,8 +87,8 @@ class CStatusProgressDialog(dialog.Dialog):
                 self.pbar.SetRange(0, max)
 
 
-# a progress dialog created in a new thread - especially suitable for
-# console apps with no message loop.
+# 037129.python.status.line90.comment a progress dialog created in a new thread - especially suitable for
+# 037130.python.status.line91.comment console apps with no message loop.
 MYWM_SETTITLE = win32con.WM_USER + 10
 MYWM_SETMSG = win32con.WM_USER + 11
 MYWM_TICK = win32con.WM_USER + 12
@@ -116,8 +116,8 @@ class CThreadedStatusProcessDialog(CStatusProgressDialog):
         try:
             self.PostMessage(msg)
         except win32ui.error:
-            # the user closed the window - but this does not cancel the
-            # process - so just ignore it.
+            # 037131.python.status.line119.comment the user closed the window - but this does not cancel the
+            # 037132.python.status.line120.comment process - so just ignore it.
             pass
 
     def OnTitle(self, msg):
@@ -195,11 +195,11 @@ def StatusProgressDialog(title, msg="", maxticks=100, parent=None):
 def ThreadedStatusProgressDialog(title, msg="", maxticks=100):
     t = ProgressThread(title, msg, maxticks)
     t.CreateThread()
-    # Need to run a basic "PumpWaitingMessages" loop just incase we are
-    # running inside Pythonwin.
-    # Basic timeout incase things go terribly wrong.  Ideally we should use
-    # win32event.MsgWaitForMultipleObjects(), but we use a threading module
-    # event - so use a dumb strategy
+    # 037133.python.status.line198.comment Need to run a basic "PumpWaitingMessages" loop just incase we are
+    # 037134.python.status.line199.comment running inside Pythonwin.
+    # 037135.python.status.line200.comment Basic timeout incase things go terribly wrong.  Ideally we should use
+    # 037136.python.status.line201.comment win32event.MsgWaitForMultipleObjects(), but we use a threading module
+    # 037137.python.status.line202.comment event - so use a dumb strategy
     end_time = time.time() + 10
     while time.time() < end_time:
         if t.createdEvent.is_set():
@@ -239,4 +239,4 @@ def thread_demo():
 
 if __name__ == "__main__":
     thread_demo()
-    # demo()
+    # 037138.python.status.line242.comment demo()

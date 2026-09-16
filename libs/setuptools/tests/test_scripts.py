@@ -8,5 +8,5 @@ class TestWindowsScriptWriter:
         assert hdr.endswith('\n')
         hdr = hdr.lstrip('#!')
         hdr = hdr.rstrip('\n')
-        # header should not start with an escaped quote
+        # 045513.python.test_scripts.line11.comment header should not start with an escaped quote
         assert not hdr.startswith('\\"')

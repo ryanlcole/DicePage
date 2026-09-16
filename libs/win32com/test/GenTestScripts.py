@@ -1,6 +1,6 @@
-#
-# Generate scripts needed for serious testing!
-#
+# 049842.python.GenTestScripts.line1.comment
+# 049843.python.GenTestScripts.line2.comment Generate scripts needed for serious testing!
+# 049844.python.GenTestScripts.line3.comment
 import os
 import sys
 import traceback
@@ -26,13 +26,13 @@ def GetGenPath():
 
 
 def GenerateFromRegistered(fname, *loadArgs):
-    #       tlb = apply(pythoncom.LoadRegTypeLib, loadArgs)
+    # 049845.python.GenTestScripts.line29.comment tlb = apply(pythoncom.LoadRegTypeLib, loadArgs)
     genPath = GetGenPath()
     try:
         os.stat(genPath)
     except OSError:
         os.mkdir(genPath)
-    # Ensure an __init__ exists.
+    # 049846.python.GenTestScripts.line35.comment Ensure an __init__ exists.
     open(os.path.join(genPath, "__init__.py"), "w").close()
     print(fname, ": generating -", end=" ")
     f = open(os.path.join(genPath, fname + ".py"), "w")
@@ -43,7 +43,7 @@ def GenerateFromRegistered(fname, *loadArgs):
     print("compiling -", end=" ")
     fullModName = f"win32com.test.{genDir}.{fname}"
     exec("import " + fullModName)
-    # Inject the generated module as a top level module.
+    # 049847.python.GenTestScripts.line46.comment Inject the generated module as a top level module.
     sys.modules[fname] = sys.modules[fullModName]
     print("done")
 

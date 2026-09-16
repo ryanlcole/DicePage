@@ -27,7 +27,7 @@ class Win32Config(Config):  # noqa: D101
             msg = 'Canvas must be instance of Win32Canvas'
             raise RuntimeError(msg)
 
-        # Use ARB API if available
+        # 029888.python.win32.line30.comment Use ARB API if available
         if gl_info.have_context() and wgl_info.have_extension('WGL_ARB_pixel_format'):
             return self._get_arb_pixel_format_matching_configs(canvas)
 
@@ -50,7 +50,7 @@ class Win32Config(Config):  # noqa: D101
         else:
             pfd.dwFlags |= PFD_STEREO_DONTCARE
 
-        #  Not supported in pyglet API: swap_copy: PFD_SWAP_COPY and swap_exchange: PFD_SWAP_EXCHANGE
+        # 029889.python.win32.line53.comment Not supported in pyglet API: swap_copy: PFD_SWAP_COPY and swap_exchange: PFD_SWAP_EXCHANGE
 
         if not self.depth_size:
             pfd.dwFlags |= PFD_DEPTH_DONTCARE
@@ -80,11 +80,11 @@ class Win32Config(Config):  # noqa: D101
 
         This method assumes a (dummy) GL context is already created.
         """
-        # Check for required extensions
+        # 029890.python.win32.line83.comment Check for required extensions
         if (self.sample_buffers or self.samples) and not gl_info.have_extension('GL_ARB_multisample'):
             return []
 
-        # Construct array of attributes
+        # 029891.python.win32.line87.comment Construct array of attributes
         attrs = []
         for name, value in self.get_gl_attributes():
             attr = Win32DisplayConfigARB.attribute_ids.get(name, None)
@@ -171,13 +171,13 @@ class Win32DisplayConfigARB(DisplayConfig):  # noqa: D101
             setattr(self, name, value)
 
     def compatible(self, canvas: Win32Canvas) -> bool:
-        # TODO more careful checking
+        # 029897.python.win32.line174.comment TODO more careful checking
         return isinstance(canvas, Win32Canvas)
 
     def create_context(self, share: Win32ARBContext | None) -> Win32ARBContext | Win32Context:
         if wgl_info.have_extension('WGL_ARB_create_context'):
-            # Graphics adapters that ONLY support up to OpenGL 3.1/3.2
-            # should be using the Win32ARBContext class.
+            # 029898.python.win32.line179.comment Graphics adapters that ONLY support up to OpenGL 3.1/3.2
+            # 029899.python.win32.line180.comment should be using the Win32ARBContext class.
             return Win32ARBContext(self, share)
 
         return Win32Context(self, share)

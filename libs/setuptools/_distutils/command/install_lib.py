@@ -13,27 +13,27 @@ from typing import Any, ClassVar
 from ..core import Command
 from ..errors import DistutilsOptionError
 
-# Extension for Python source files.
+# 039878.python.install_lib.line16.comment Extension for Python source files.
 PYTHON_SOURCE_EXTENSION = ".py"
 
 
 class install_lib(Command):
     description = "install all Python modules (extensions and pure Python)"
 
-    # The byte-compilation options are a tad confusing.  Here are the
-    # possible scenarios:
-    #   1) no compilation at all (--no-compile --no-optimize)
-    #   2) compile .pyc only (--compile --no-optimize; default)
-    #   3) compile .pyc and "opt-1" .pyc (--compile --optimize)
-    #   4) compile "opt-1" .pyc only (--no-compile --optimize)
-    #   5) compile .pyc and "opt-2" .pyc (--compile --optimize-more)
-    #   6) compile "opt-2" .pyc only (--no-compile --optimize-more)
-    #
-    # The UI for this is two options, 'compile' and 'optimize'.
-    # 'compile' is strictly boolean, and only decides whether to
-    # generate .pyc files.  'optimize' is three-way (0, 1, or 2), and
-    # decides both whether to generate .pyc files and what level of
-    # optimization to use.
+    # 039879.python.install_lib.line23.comment The byte-compilation options are a tad confusing.  Here are the
+    # 039880.python.install_lib.line24.comment possible scenarios:
+    # 039881.python.install_lib.line25.comment 1) no compilation at all (--no-compile --no-optimize)
+    # 039882.python.install_lib.line26.comment 2) compile .pyc only (--compile --no-optimize; default)
+    # 039883.python.install_lib.line27.comment 3) compile .pyc and "opt-1" .pyc (--compile --optimize)
+    # 039884.python.install_lib.line28.comment 4) compile "opt-1" .pyc only (--no-compile --optimize)
+    # 039885.python.install_lib.line29.comment 5) compile .pyc and "opt-2" .pyc (--compile --optimize-more)
+    # 039886.python.install_lib.line30.comment 6) compile "opt-2" .pyc only (--no-compile --optimize-more)
+    # 039887.python.install_lib.line31.comment
+    # 039888.python.install_lib.line32.comment The UI for this is two options, 'compile' and 'optimize'.
+    # 039889.python.install_lib.line33.comment 'compile' is strictly boolean, and only decides whether to
+    # 039890.python.install_lib.line34.comment generate .pyc files.  'optimize' is three-way (0, 1, or 2), and
+    # 039891.python.install_lib.line35.comment decides both whether to generate .pyc files and what level of
+    # 039892.python.install_lib.line36.comment optimization to use.
 
     user_options = [
         ('install-dir=', 'd', "directory to install to"),
@@ -54,7 +54,7 @@ class install_lib(Command):
     negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
 
     def initialize_options(self):
-        # let the 'install' command dictate our installation directory
+        # 039893.python.install_lib.line57.comment let the 'install' command dictate our installation directory
         self.install_dir = None
         self.build_dir = None
         self.force = False
@@ -63,9 +63,9 @@ class install_lib(Command):
         self.skip_build = None
 
     def finalize_options(self) -> None:
-        # Get all the information we need to install pure Python modules
-        # from the umbrella 'install' command -- build (source) directory,
-        # install (target) directory, and whether to compile .py files.
+        # 039894.python.install_lib.line66.comment Get all the information we need to install pure Python modules
+        # 039895.python.install_lib.line67.comment from the umbrella 'install' command -- build (source) directory,
+        # 039896.python.install_lib.line68.comment install (target) directory, and whether to compile .py files.
         self.set_undefined_options(
             'install',
             ('build_lib', 'build_dir'),
@@ -90,20 +90,20 @@ class install_lib(Command):
                 raise DistutilsOptionError("optimize must be 0, 1, or 2")
 
     def run(self) -> None:
-        # Make sure we have built everything we need first
+        # 039897.python.install_lib.line93.comment Make sure we have built everything we need first
         self.build()
 
-        # Install everything: simply dump the entire contents of the build
-        # directory to the installation directory (that's the beauty of
-        # having a build directory!)
+        # 039898.python.install_lib.line96.comment Install everything: simply dump the entire contents of the build
+        # 039899.python.install_lib.line97.comment directory to the installation directory (that's the beauty of
+        # 039900.python.install_lib.line98.comment having a build directory!)
         outfiles = self.install()
 
-        # (Optionally) compile .py to .pyc
+        # 039901.python.install_lib.line101.comment (Optionally) compile .py to .pyc
         if outfiles is not None and self.distribution.has_pure_modules():
             self.byte_compile(outfiles)
 
-    # -- Top-level worker functions ------------------------------------
-    # (called from 'run()')
+    # 039902.python.install_lib.line105.comment -- Top-level worker functions ------------------------------------
+    # 039903.python.install_lib.line106.comment (called from 'run()')
 
     def build(self) -> None:
         if not self.skip_build:
@@ -112,7 +112,7 @@ class install_lib(Command):
             if self.distribution.has_ext_modules():
                 self.run_command('build_ext')
 
-    # Any: https://typing.readthedocs.io/en/latest/guides/writing_stubs.html#the-any-trick
+    # 039904.python.install_lib.line115.comment Any: https://typing.readthedocs.io/en/latest/guides/writing_stubs.html#the-any-trick
     def install(self) -> list[str] | Any:
         if os.path.isdir(self.build_dir):
             outfiles = self.copy_tree(self.build_dir, self.install_dir)
@@ -130,10 +130,10 @@ class install_lib(Command):
 
         from ..util import byte_compile
 
-        # Get the "--root" directory supplied to the "install" command,
-        # and use it as a prefix to strip off the purported filename
-        # encoded in bytecode files.  This is far from complete, but it
-        # should at least generate usable bytecode in RPM distributions.
+        # 039905.python.install_lib.line133.comment Get the "--root" directory supplied to the "install" command,
+        # 039906.python.install_lib.line134.comment and use it as a prefix to strip off the purported filename
+        # 039907.python.install_lib.line135.comment encoded in bytecode files.  This is far from complete, but it
+        # 039908.python.install_lib.line136.comment should at least generate usable bytecode in RPM distributions.
         install_root = self.get_finalized_command('install').root
 
         if self.compile:
@@ -154,7 +154,7 @@ class install_lib(Command):
                 dry_run=self.dry_run,
             )
 
-    # -- Utility methods -----------------------------------------------
+    # 039909.python.install_lib.line157.comment -- Utility methods -----------------------------------------------
 
     def _mutate_outputs(self, has_any, build_cmd, cmd_option, output_dir):
         if not has_any:
@@ -172,9 +172,9 @@ class install_lib(Command):
     def _bytecode_filenames(self, py_filenames):
         bytecode_files = []
         for py_file in py_filenames:
-            # Since build_py handles package data installation, the
-            # list of outputs can contain more than just .py files.
-            # Make sure we only report bytecode for the .py files.
+            # 039910.python.install_lib.line175.comment Since build_py handles package data installation, the
+            # 039911.python.install_lib.line176.comment list of outputs can contain more than just .py files.
+            # 039912.python.install_lib.line177.comment Make sure we only report bytecode for the .py files.
             ext = os.path.splitext(os.path.normcase(py_file))[1]
             if ext != PYTHON_SOURCE_EXTENSION:
                 continue
@@ -191,8 +191,8 @@ class install_lib(Command):
 
         return bytecode_files
 
-    # -- External interface --------------------------------------------
-    # (called by outsiders)
+    # 039913.python.install_lib.line194.comment -- External interface --------------------------------------------
+    # 039914.python.install_lib.line195.comment (called by outsiders)
 
     def get_outputs(self):
         """Return the list of files that would be installed if this command

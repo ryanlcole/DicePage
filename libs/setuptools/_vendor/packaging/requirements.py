@@ -1,6 +1,6 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
+# 042897.python.requirements.line1.comment This file is dual licensed under the terms of the Apache License, Version
+# 042898.python.requirements.line2.comment 2.0, and the BSD License. See the LICENSE file in the root of this repository
+# 042899.python.requirements.line3.comment for complete details.
 from __future__ import annotations
 
 from typing import Any, Iterator
@@ -26,10 +26,10 @@ class Requirement:
     string.
     """
 
-    # TODO: Can we test whether something is contained within a requirement?
-    #       If so how do we do that? Do we need to test against the _name_ of
-    #       the thing as well as the version? What about the markers?
-    # TODO: Can we normalize the name and extra name?
+    # 042900.python.requirements.line29.comment TODO: Can we test whether something is contained within a requirement?
+    # 042901.python.requirements.line30.comment If so how do we do that? Do we need to test against the _name_ of
+    # 042902.python.requirements.line31.comment the thing as well as the version? What about the markers?
+    # 042903.python.requirements.line32.comment TODO: Can we normalize the name and extra name?
 
     def __init__(self, requirement_string: str) -> None:
         try:

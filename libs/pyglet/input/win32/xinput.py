@@ -166,7 +166,7 @@ class XINPUT_CAPABILITIES_EX(Structure):
 
 
 if library_name == "xinput1_4":
-    # Only available for 1.4+
+    # 030641.python.xinput.line169.comment Only available for 1.4+
     XInputGetBatteryInformation = lib.XInputGetBatteryInformation
     XInputGetBatteryInformation.argtypes = [DWORD, BYTE, POINTER(XINPUT_BATTERY_INFORMATION)]
     XInputGetBatteryInformation.restype = DWORD
@@ -175,7 +175,7 @@ if library_name == "xinput1_4":
     XInputGetState.restype = DWORD
     XInputGetState.argtypes = [DWORD, POINTER(XINPUT_STATE)]
 
-    # Hidden function
+    # 030642.python.xinput.line178.comment Hidden function
     XInputGetCapabilities = lib[108]
     XInputGetCapabilities.restype = DWORD
     XInputGetCapabilities.argtypes = [DWORD, DWORD, DWORD, POINTER(XINPUT_CAPABILITIES_EX)]
@@ -197,7 +197,7 @@ XInputSetState.argtypes = [DWORD, POINTER(XINPUT_VIBRATION)]
 XInputSetState.restype = DWORD
 
 
-# wbemcli #################################################
+# 030643.python.xinput.line200.comment wbemcli #################################################
 
 BSTR = LPCWSTR
 IWbemContext = c_void_p
@@ -219,7 +219,7 @@ class IWbemClassObject(com.pIUnknown):
          com.STDMETHOD()),
         ('Get',
          com.STDMETHOD(BSTR, LONG, POINTER(VARIANT), c_void_p, c_void_p))
-        # ... long, unneeded
+        # 030644.python.xinput.line222.comment ... long, unneeded
     ]
 
 
@@ -274,7 +274,7 @@ class IWbemServices(com.pIUnknown):
          com.STDMETHOD(BSTR, LONG, IWbemContext, POINTER(IEnumWbemClassObject))),
         ('CreateInstanceEnumAsync',
          com.STDMETHOD()),
-        # ... much more.
+        # 030645.python.xinput.line277.comment ... much more.
     ]
 
 
@@ -303,12 +303,12 @@ def get_xinput_guids():
     class_name = BSTR("Win32_PNPEntity")
     device_id = BSTR("DeviceID")
 
-    # Connect to WMI
+    # 030646.python.xinput.line306.comment Connect to WMI
     hr = locator.ConnectServer(name_space, None, None, 0, 0, None, None, byref(services))
     if hr != 0:
         return guids_found
 
-    # Switch security level to IMPERSONATE.
+    # 030647.python.xinput.line311.comment Switch security level to IMPERSONATE.
     hr = ole32.CoSetProxyBlanket(services, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, None, RPC_C_AUTHN_LEVEL_CALL,
                                  RPC_C_IMP_LEVEL_IMPERSONATE, None, EOAC_NONE)
 
@@ -350,7 +350,7 @@ def get_xinput_guids():
     return guids_found
 
 
-# #########################################################
+# 030648.python.xinput.line353.comment #########################################################
 
 controller_api_to_pyglet = {
     XINPUT_GAMEPAD_DPAD_UP: "dpup",
@@ -445,7 +445,7 @@ class XInputDeviceManager(EventDispatcher):
         with self._dev_lock:
             return [dev for dev in self.all_devices if dev.connected]
 
-    # Threaded method:
+    # 030649.python.xinput.line448.comment Threaded method:
     def _get_state(self):
         xuser_max_count = set(range(XUSER_MAX_COUNT))     # {0, 1, 2, 3}
         polling_rate = self._polling_rate
@@ -456,41 +456,41 @@ class XInputDeviceManager(EventDispatcher):
             self._dev_lock.acquire()
             elapsed += polling_rate
 
-            # Every few seconds check for new connections:
+            # 030651.python.xinput.line459.comment Every few seconds check for new connections:
             if elapsed >= detect_rate:
-                # Only check if not currently connected:
+                # 030652.python.xinput.line461.comment Only check if not currently connected:
                 for i in xuser_max_count - self._connected_devices:
                     device = self.all_devices[i]
                     if XInputGetState(i, byref(device.xinput_state)) == ERROR_DEVICE_NOT_CONNECTED:
                         continue
 
-                    # Found a new connection:
+                    # 030653.python.xinput.line467.comment Found a new connection:
                     device.connected = True
                     self._connected_devices.add(i)
-                    # Dispatch event in main thread:
+                    # 030654.python.xinput.line470.comment Dispatch event in main thread:
                     pyglet.app.platform_event_loop.post_event(self, 'on_connect', device)
 
                 elapsed = 0.0
 
-            # At the set polling rate, update all connected and
-            # opened devices. Skip unopened devices to save CPU:
+            # 030655.python.xinput.line475.comment At the set polling rate, update all connected and
+            # 030656.python.xinput.line476.comment opened devices. Skip unopened devices to save CPU:
             for i in self._connected_devices.copy():
                 device = self.all_devices[i]
                 result = XInputGetState(i, byref(device.xinput_state))
 
                 if result == ERROR_DEVICE_NOT_CONNECTED:
-                    # Newly disconnected device:
+                    # 030657.python.xinput.line482.comment Newly disconnected device:
                     if device.connected:
                         device.connected = False
                         device.close()
                         self._connected_devices.remove(i)
-                        # Dispatch event in main thread:
+                        # 030658.python.xinput.line487.comment Dispatch event in main thread:
                         pyglet.app.platform_event_loop.post_event(self, 'on_disconnect', device)
                         continue
 
                 elif result == ERROR_SUCCESS and device.is_open:
 
-                    # Stop Rumble effects if a duration is set:
+                    # 030659.python.xinput.line493.comment Stop Rumble effects if a duration is set:
                     if device.weak_duration is not None:
                         device.weak_duration -= polling_rate
                         if device.weak_duration <= 0:
@@ -504,11 +504,11 @@ class XInputDeviceManager(EventDispatcher):
                             device.vibration.wLeftMotorSpeed = 0
                             device.set_rumble_state()
 
-                    # Don't update the Control values if XInput has no new input:
+                    # 030660.python.xinput.line507.comment Don't update the Control values if XInput has no new input:
                     if device.xinput_state.dwPacketNumber == device.packet_number:
                         continue
 
-                    # Post in main thread to avoid potential GL state issues
+                    # 030661.python.xinput.line511.comment Post in main thread to avoid potential GL state issues
                     pyglet.app.platform_event_loop.post_event(self, '_on_state_change', device)
 
             self._dev_lock.release()
@@ -516,8 +516,8 @@ class XInputDeviceManager(EventDispatcher):
 
     @staticmethod
     def _on_state_change(device):
-        # Handler to ensure Controller events are dispatched in the main thread.
-        # The _get_state method dispatches this by posting to the platform event loop.
+        # 030662.python.xinput.line519.comment Handler to ensure Controller events are dispatched in the main thread.
+        # 030663.python.xinput.line520.comment The _get_state method dispatches this by posting to the platform event loop.
         for button, name in controller_api_to_pyglet.items():
             device.controls[name].value = device.xinput_state.Gamepad.wButtons & button
 

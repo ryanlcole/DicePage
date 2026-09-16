@@ -113,15 +113,15 @@ def find_executable(executable: str, path: str | None = None) -> str | None:
 
     if path is None:
         path = os.environ.get('PATH', None)
-        # bpo-35755: Don't fall through if PATH is the empty string
+        # 040772.python.spawn.line116.comment bpo-35755: Don't fall through if PATH is the empty string
         if path is None:
             try:
                 path = os.confstr("CS_PATH")
             except (AttributeError, ValueError):
-                # os.confstr() or CS_PATH is not available
+                # 040773.python.spawn.line121.comment os.confstr() or CS_PATH is not available
                 path = os.defpath
 
-    # PATH='' doesn't match, whereas PATH=':' looks in the current directory
+    # 040774.python.spawn.line124.comment PATH='' doesn't match, whereas PATH=':' looks in the current directory
     if not path:
         return None
 
@@ -129,6 +129,6 @@ def find_executable(executable: str, path: str | None = None) -> str | None:
     for p in paths:
         f = os.path.join(p, executable)
         if os.path.isfile(f):
-            # the file exists, we have a shot at spawn working
+            # 040775.python.spawn.line132.comment the file exists, we have a shot at spawn working
             return f
     return None

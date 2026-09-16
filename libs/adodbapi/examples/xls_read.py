@@ -27,7 +27,7 @@ conn = adodbapi.connect(constr)
 try:  # second command line argument will be worksheet name -- default to first worksheet
     sheet = sys.argv[2]
 except IndexError:
-    # use ADO feature to get the name of the first worksheet
+    # 020813.python.xls_read.line30.comment use ADO feature to get the name of the first worksheet
     sheet = conn.get_table_names()[0]
 
 print("Shreadsheet=%s  Worksheet=%s" % (filename, sheet))

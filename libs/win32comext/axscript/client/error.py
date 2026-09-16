@@ -28,7 +28,7 @@ debugging = 0
 
 def FormatForAX(text: str):
     """Format a string suitable for an AX Host"""
-    # Replace all " with ', so it works OK in HTML (ie, ASP)
+    # 050997.python.error.line31.comment Replace all " with ', so it works OK in HTML (ie, ASP)
     return ExpandTabs(AddCR(text))
 
 
@@ -63,7 +63,7 @@ class IActiveScriptError:
 
     def GetSourcePosition(self):
         ctx = self.exception.sourceContext
-        # Zero based in the debugger (but our columns are too!)
+        # 050998.python.error.line66.comment Zero based in the debugger (but our columns are too!)
         return (
             ctx,
             self.exception.lineno + self.exception.startLineNo - 1,
@@ -90,7 +90,7 @@ class AXScriptException(COMException):
         exc_value: BaseException | None = None,
         exc_traceback: None = None,
     ):
-        # set properties base class shares via base ctor...
+        # 050999.python.error.line93.comment set properties base class shares via base ctor...
         super().__init__(
             description="Unknown Exception",
             scode=winerror.DISP_E_EXCEPTION,
@@ -104,7 +104,7 @@ class AXScriptException(COMException):
                 stacklevel=2,
             )
 
-        # And my other values...
+        # 051000.python.error.line107.comment And my other values...
         if codeBlock is None:
             self.sourceContext = 0
             self.startLineNo = 0
@@ -127,11 +127,11 @@ class AXScriptException(COMException):
                 self._BuildFromOther(site, value)
         except:  # Error extracting traceback info!!!
             traceback.print_exc()
-            # re-raise.
+            # 051002.python.error.line130.comment re-raise.
             raise
 
     def _BuildFromSyntaxError(self, exc: SyntaxError):
-        # Some of these may be None, which upsets us!
+        # 051003.python.error.line134.comment Some of these may be None, which upsets us!
         msg = exc.msg or "Unknown Error"
         offset = exc.offset or 0
         line = exc.text or ""
@@ -151,9 +151,9 @@ class AXScriptException(COMException):
             list = traceback.format_exception(exc_type, value, tb)
             self.description = ExpandTabs("".join(list))
             return
-        # Run down the traceback list, looking for the first "<Script..>"
-        # Hide traceback above this.  In addition, keep going down
-        # looking for a "_*_" attribute, and below hide these also.
+        # 051005.python.error.line154.comment Run down the traceback list, looking for the first "<Script..>"
+        # 051006.python.error.line155.comment Hide traceback above this.  In addition, keep going down
+        # 051007.python.error.line156.comment looking for a "_*_" attribute, and below hide these also.
         hide_names = [
             "r_import",
             "r_reload",
@@ -168,14 +168,14 @@ class AXScriptException(COMException):
         format_items = []
         if tb_top:  # found one.
             tb_look: TracebackType | None = tb_top
-            # Look down for our bottom
+            # 051010.python.error.line171.comment Look down for our bottom
             while tb_look:
                 filename, lineno, name, line = self.ExtractTracebackInfo(tb_look, site)
                 if name in hide_names:
                     break
-                # We can report a line-number, but not a filename.  Therefore,
-                # we return the last line-number we find in one of our script
-                # blocks.
+                # 051011.python.error.line176.comment We can report a line-number, but not a filename.  Therefore,
+                # 051012.python.error.line177.comment we return the last line-number we find in one of our script
+                # 051013.python.error.line178.comment blocks.
                 if filename.startswith("<Script"):
                     self.lineno = lineno
                     self.linetext = line
@@ -211,7 +211,7 @@ class AXScriptException(COMException):
         if not line:
             codeBlock = site.scriptCodeBlocks.get(filename)
             if codeBlock:
-                # Note: 'line' will now be unicode.
+                # 051014.python.error.line214.comment Note: 'line' will now be unicode.
                 line = codeBlock.GetLineNo(lineno)
         if line:
             line = line.strip()
@@ -232,7 +232,7 @@ def ProcessAXScriptException(
     likely call back on the IActiveScriptError interface to get the source text
     and other information not normally in COM exceptions.
     """
-    # traceback.print_exc()
+    # 051015.python.error.line235.comment traceback.print_exc()
     instance = IActiveScriptError()
     instance._SetExceptionInfo(exceptionInstance)
     gateway = win32com.server.util.wrap(instance, axscript.IID_IActiveScriptError)
@@ -250,11 +250,11 @@ def ProcessAXScriptException(
         result = winerror.S_FALSE
 
     if result == winerror.S_OK:
-        # If the above  returns NOERROR, it is assumed the error has been
-        # correctly registered and the value SCRIPT_E_REPORTED is returned.
+        # 051016.python.error.line253.comment If the above  returns NOERROR, it is assumed the error has been
+        # 051017.python.error.line254.comment correctly registered and the value SCRIPT_E_REPORTED is returned.
         ret = COMException(scode=axscript.SCRIPT_E_REPORTED)
         return ret
     else:
-        # The error is taken to be unreported and is propagated up the call stack
-        # via the IDispatch::Invoke's EXCEPINFO parameter (hr returned is DISP_E_EXCEPTION.
+        # 051018.python.error.line258.comment The error is taken to be unreported and is propagated up the call stack
+        # 051019.python.error.line259.comment via the IDispatch::Invoke's EXCEPINFO parameter (hr returned is DISP_E_EXCEPTION.
         return exceptionInstance

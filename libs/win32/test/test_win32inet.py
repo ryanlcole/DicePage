@@ -28,7 +28,7 @@ class CookieTests(unittest.TestCase):
         data = "TestData=Test"
         InternetSetCookie("https://www.python.org", None, data)
         got = InternetGetCookie("https://www.python.org", None)
-        # handle that there might already be cookies for the domain.
+        # 048447.python.test_win32inet.line31.comment handle that there might already be cookies for the domain.
         bits = (x.strip() for x in got.split(";"))
         self.assertTrue(data in bits)
 
@@ -46,7 +46,7 @@ class UrlTests(unittest.TestCase):
         self.assertEqual(ret, "foo%20bar")
 
     def testLongCanonicalize(self):
-        # a 4k URL causes the underlying API to request a bigger buffer"
+        # 048448.python.test_win32inet.line49.comment a 4k URL causes the underlying API to request a bigger buffer"
         big = "x" * 2048
         ret = InternetCanonicalizeUrl(big + " " + big)
         self.assertEqual(ret, big + "%20" + big)
@@ -70,15 +70,15 @@ class TestNetwork(unittest.TestCase):
                 break
             chunks.append(chunk)
         data = b"".join(chunks)
-        # This must appear somewhere on the main page!
+        # 048449.python.test_win32inet.line73.comment This must appear somewhere on the main page!
         self.assertGreater(data.find(b"Python"), 0, repr(data))
 
     def testFtpCommand(self):
-        # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib
-        # test code uses.
-        # (As of 2020 it doesn't! Unsurprisingly, it's difficult to find a good
-        # test server. This test sometimes works, but often doesn't - so handle
-        # failure here as a "skip")
+        # 048450.python.test_win32inet.line77.comment ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib
+        # 048451.python.test_win32inet.line78.comment test code uses.
+        # 048452.python.test_win32inet.line79.comment (As of 2020 it doesn't! Unsurprisingly, it's difficult to find a good
+        # 048453.python.test_win32inet.line80.comment test server. This test sometimes works, but often doesn't - so handle
+        # 048454.python.test_win32inet.line81.comment failure here as a "skip")
         try:
             hcon = InternetConnect(
                 self.hi,

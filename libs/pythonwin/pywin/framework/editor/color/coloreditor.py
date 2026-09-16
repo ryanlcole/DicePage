@@ -1,5 +1,5 @@
-# Color Editor originally by Neil Hodgson, but restructured by mh to integrate
-# even tighter into Pythonwin.
+# 037358.python.coloreditor.line1.comment Color Editor originally by Neil Hodgson, but restructured by mh to integrate
+# 037359.python.coloreditor.line2.comment even tighter into Pythonwin.
 
 import pywin.scintilla.keycodes
 import pywin.scintilla.view
@@ -14,10 +14,10 @@ from pywin.framework.editor.template import EditorTemplateBase
 from pywin.scintilla import bindings, scintillacon
 from pywin.scintilla.view import CScintillaView as SyntEditViewParent
 
-# WARNING: Duplicated in document.py and editor.py
+# 037360.python.coloreditor.line17.comment WARNING: Duplicated in document.py and editor.py
 MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER + 1999
 
-# Define a few common markers
+# 037361.python.coloreditor.line20.comment Define a few common markers
 MARKER_BOOKMARK = 0
 MARKER_BREAKPOINT = 1
 MARKER_CURRENT = 2
@@ -61,8 +61,8 @@ class SyntEditView(SyntEditViewParent):
             self.HookCommandUpdate(self.OnUpdateViewFold, id)
         self.HookCommand(self.OnCmdViewFoldTopLevel, win32ui.ID_VIEW_FOLD_TOPLEVEL)
 
-        # Define the markers
-        # 		self.SCIMarkerDeleteAll()
+        # 037362.python.coloreditor.line64.comment Define the markers
+        # 037363.python.coloreditor.line65.comment self.SCIMarkerDeleteAll()
         self.SCIMarkerDefineAll(
             MARKER_BOOKMARK,
             scintillacon.SC_MARK_ROUNDRECT,
@@ -73,7 +73,7 @@ class SyntEditView(SyntEditViewParent):
         self.SCIMarkerDefine(MARKER_CURRENT, scintillacon.SC_MARK_ARROW)
         self.SCIMarkerSetBack(MARKER_CURRENT, win32api.RGB(0xFF, 0xFF, 0x00))
 
-        # Define the folding markers
+        # 037364.python.coloreditor.line76.comment Define the folding markers
         if 1:  # traditional markers
             self.SCIMarkerDefineAll(
                 scintillacon.SC_MARKNUM_FOLDEROPEN,
@@ -162,9 +162,9 @@ class SyntEditView(SyntEditViewParent):
             )
 
         self.SCIMarkerDefine(MARKER_BREAKPOINT, scintillacon.SC_MARK_CIRCLE)
-        # Marker background depends on debugger state
+        # 037367.python.coloreditor.line165.comment Marker background depends on debugger state
         self.SCIMarkerSetFore(MARKER_BREAKPOINT, win32api.RGB(0x0, 0, 0))
-        # Get the current debugger state.
+        # 037368.python.coloreditor.line167.comment Get the current debugger state.
         try:
             import pywin.debugger
 
@@ -226,50 +226,50 @@ class SyntEditView(SyntEditViewParent):
         if tt_use:
             self.SCISetProperty("tab.timmy.whinge.level", "1")
 
-        # Auto-indent has very complicated behaviour.  In a nutshell, the only
-        # way to get sensible behaviour from it is to ensure tabwidth != indentsize.
-        # Further, usetabs will only ever go from 1->0, never 0->1.
-        # This is _not_ the behaviour Pythonwin wants:
-        # * Tab width is arbitary, so should have no impact on smarts.
-        # * bUseTabs setting should reflect how new files are created, and
-        #   if Smart Tabs disabled, existing files are edited
-        # * If "Smart Tabs" is enabled, bUseTabs should have no bearing
-        #   for existing files (unless of course no context can be determined)
-        #
-        # So for smart tabs we configure the widget with completely dummy
-        # values (ensuring tabwidth != indentwidth), ask it to guess, then
-        # look at the values it has guessed, and re-configure
+        # 037371.python.coloreditor.line229.comment Auto-indent has very complicated behaviour.  In a nutshell, the only
+        # 037372.python.coloreditor.line230.comment way to get sensible behaviour from it is to ensure tabwidth != indentsize.
+        # 037373.python.coloreditor.line231.comment Further, usetabs will only ever go from 1->0, never 0->1.
+        # 037374.python.coloreditor.line232.comment This is _not_ the behaviour Pythonwin wants:
+        # 037375.python.coloreditor.line233.comment * Tab width is arbitary, so should have no impact on smarts.
+        # 037376.python.coloreditor.line234.comment * bUseTabs setting should reflect how new files are created, and
+        # 037377.python.coloreditor.line235.comment if Smart Tabs disabled, existing files are edited
+        # 037378.python.coloreditor.line236.comment * If "Smart Tabs" is enabled, bUseTabs should have no bearing
+        # 037379.python.coloreditor.line237.comment for existing files (unless of course no context can be determined)
+        # 037380.python.coloreditor.line238.comment
+        # 037381.python.coloreditor.line239.comment So for smart tabs we configure the widget with completely dummy
+        # 037382.python.coloreditor.line240.comment values (ensuring tabwidth != indentwidth), ask it to guess, then
+        # 037383.python.coloreditor.line241.comment look at the values it has guessed, and re-configure
         if bSmartTabs:
             ext.config(usetabs=1, tabwidth=5, indentwidth=4)
             ext.set_indentation_params(1)
             if ext.indentwidth == 5:
-                # Either 5 literal spaces, or a single tab character. Assume a tab
+                # 037384.python.coloreditor.line246.comment Either 5 literal spaces, or a single tab character. Assume a tab
                 usetabs = 1
                 indentwidth = tabSize
             else:
-                # Either Indented with spaces, and indent size has been guessed or
-                # an empty file (or no context found - tough!)
+                # 037385.python.coloreditor.line250.comment Either Indented with spaces, and indent size has been guessed or
+                # 037386.python.coloreditor.line251.comment an empty file (or no context found - tough!)
                 if self.GetTextLength() == 0:  # emtpy
                     usetabs = bUseTabs
                     indentwidth = indentSize
                 else:  # guessed.
                     indentwidth = ext.indentwidth
                     usetabs = 0
-            # Tab size can never be guessed - set at user preference.
+            # 037389.python.coloreditor.line258.comment Tab size can never be guessed - set at user preference.
             ext.config(usetabs=usetabs, indentwidth=indentwidth, tabwidth=tabSize)
         else:
-            # Don't want smart-tabs - just set the options!
+            # 037390.python.coloreditor.line261.comment Don't want smart-tabs - just set the options!
             ext.config(usetabs=bUseTabs, tabwidth=tabSize, indentwidth=indentSize)
         self.SCISetIndent(indentSize)
         self.SCISetTabWidth(tabSize)
 
     def OnDebuggerStateChange(self, state):
         if state == dbgcon.DBGSTATE_NOT_DEBUGGING:
-            # Indicate breakpoints aren't really usable.
-            # Not quite white - useful when no marker margin, so set as background color.
+            # 037391.python.coloreditor.line268.comment Indicate breakpoints aren't really usable.
+            # 037392.python.coloreditor.line269.comment Not quite white - useful when no marker margin, so set as background color.
             self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xEF, 0xEF, 0xEF))
         else:
-            # A light-red, so still readable when no marker margin.
+            # 037393.python.coloreditor.line272.comment A light-red, so still readable when no marker margin.
             self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xFF, 0x80, 0x80))
 
     def HookDocumentHandlers(self):
@@ -287,26 +287,26 @@ class SyntEditView(SyntEditViewParent):
         scrollOff = info[1] - self.GetFirstVisibleLine()
         if scrollOff:
             self.LineScroll(scrollOff)
-        # Make sure we don't reset the cursor beyond the buffer.
+        # 037394.python.coloreditor.line290.comment Make sure we don't reset the cursor beyond the buffer.
         max = self.GetTextLength()
         newPos = min(info[0][0], max), min(info[0][1], max)
         self.SetSel(newPos)
 
-    #######################################
-    # The Windows Message or Notify handlers.
-    #######################################
+    # 037395.python.coloreditor.line295.comment ######################################
+    # 037396.python.coloreditor.line296.comment The Windows Message or Notify handlers.
+    # 037397.python.coloreditor.line297.comment ######################################
     def OnMarginClick(self, std, extra):
         notify = self.SCIUnpackNotifyMessage(extra)
         if notify.margin == 2:  # Our fold margin
             line_click = self.LineFromChar(notify.position)
-            # 			max_line = self.GetLineCount()
+            # 037399.python.coloreditor.line302.comment max_line = self.GetLineCount()
             if self.SCIGetFoldLevel(line_click) & scintillacon.SC_FOLDLEVELHEADERFLAG:
-                # If a fold point.
+                # 037400.python.coloreditor.line304.comment If a fold point.
                 self.SCIToggleFold(line_click)
         return 1
 
     def OnSetFocus(self, msg):
-        # Even though we use file change notifications, we should be very sure about it here.
+        # 037401.python.coloreditor.line309.comment Even though we use file change notifications, we should be very sure about it here.
         self.OnCheckExternalDocumentUpdated(msg)
         return 1
 
@@ -389,9 +389,9 @@ class SyntEditView(SyntEditViewParent):
     def OnCmdViewFoldTopLevel(self, cid, code):  # Handle the menu command
         self.FoldTopLevelEvent(None)
 
-    #######################################
-    # The Events
-    #######################################
+    # 037405.python.coloreditor.line392.comment ######################################
+    # 037406.python.coloreditor.line393.comment The Events
+    # 037407.python.coloreditor.line394.comment ######################################
     def ToggleBookmarkEvent(self, event, pos=-1):
         """Toggle a bookmark at the specified or current position"""
         if pos == -1:
@@ -417,20 +417,20 @@ class SyntEditView(SyntEditViewParent):
 
     def TabKeyEvent(self, event):
         """Insert an indent.  If no selection, a single indent, otherwise a block indent"""
-        # Handle auto-complete first.
+        # 037409.python.coloreditor.line420.comment Handle auto-complete first.
         if self.SCIAutoCActive():
             self.SCIAutoCComplete()
             return 0
-        # Call the IDLE event.
+        # 037410.python.coloreditor.line424.comment Call the IDLE event.
         return self.bindings.fire("<<smart-indent>>", event)
 
     def EnterKeyEvent(self, event):
         """Handle the enter key with special handling for auto-complete"""
-        # Handle auto-complete first.
+        # 037411.python.coloreditor.line429.comment Handle auto-complete first.
         if self.SCIAutoCActive():
             self.SCIAutoCComplete()
             self.SCIAutoCCancel()
-        # Call the IDLE event.
+        # 037412.python.coloreditor.line433.comment Call the IDLE event.
         return self.bindings.fire("<<newline-and-indent>>", event)
 
     def ShowInteractiveWindowEvent(self, event):
@@ -446,13 +446,13 @@ class SyntEditView(SyntEditViewParent):
         try:
             self.Colorize()
             maxLine = self.GetLineCount()
-            # Find the first line, and check out its state.
+            # 037413.python.coloreditor.line449.comment Find the first line, and check out its state.
             for lineSeek in range(maxLine):
                 if self.SCIGetFoldLevel(lineSeek) & scintillacon.SC_FOLDLEVELHEADERFLAG:
                     expanding = not self.SCIGetFoldExpanded(lineSeek)
                     break
             else:
-                # no folds here!
+                # 037414.python.coloreditor.line455.comment no folds here!
                 return
             for lineSeek in range(lineSeek, maxLine):
                 level = self.SCIGetFoldLevel(lineSeek)
@@ -462,7 +462,7 @@ class SyntEditView(SyntEditViewParent):
                     - scintillacon.SC_FOLDLEVELBASE
                 )
                 is_header = level & scintillacon.SC_FOLDLEVELHEADERFLAG
-                # print(lineSeek, level_no, is_header)
+                # 037415.python.coloreditor.line465.comment print(lineSeek, level_no, is_header)
                 if level_no == 0 and is_header:
                     if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or (
                         not expanding and self.SCIGetFoldExpanded(lineSeek)
@@ -475,11 +475,11 @@ class SyntEditView(SyntEditViewParent):
         if not self.bFolding:
             return 1
         win32ui.DoWaitCursor(1)
-        ## I think this is needed since Scintilla may not have
-        ## already formatted parts of file outside visible window.
+        # 037416.python.coloreditor.line478.comment # I think this is needed since Scintilla may not have
+        # 037417.python.coloreditor.line479.comment # already formatted parts of file outside visible window.
         self.Colorize()
         levels = [scintillacon.SC_FOLDLEVELBASE]
-        ## Scintilla's level number is based on amount of whitespace indentation
+        # 037418.python.coloreditor.line482.comment # Scintilla's level number is based on amount of whitespace indentation
         for lineno in range(self.GetLineCount()):
             level = self.SCIGetFoldLevel(lineno)
             if not level & scintillacon.SC_FOLDLEVELHEADERFLAG:
@@ -490,7 +490,7 @@ class SyntEditView(SyntEditViewParent):
             try:
                 level_ind = levels.index(curr_level)
             except ValueError:
-                ## probably syntax error in source file, bail
+                # 037419.python.coloreditor.line493.comment # probably syntax error in source file, bail
                 break
             levels = levels[: level_ind + 1]
             if level_ind == 1 and not self.SCIGetFoldExpanded(lineno):
@@ -501,11 +501,11 @@ class SyntEditView(SyntEditViewParent):
         if not self.bFolding:
             return 1
         win32ui.DoWaitCursor(1)
-        ## I think this is needed since Scintilla may not have
-        ## already formatted parts of file outside visible window.
+        # 037420.python.coloreditor.line504.comment # I think this is needed since Scintilla may not have
+        # 037421.python.coloreditor.line505.comment # already formatted parts of file outside visible window.
         self.Colorize()
         levels = [scintillacon.SC_FOLDLEVELBASE]
-        ## Scintilla's level number is based on amount of whitespace indentation
+        # 037422.python.coloreditor.line508.comment # Scintilla's level number is based on amount of whitespace indentation
         for lineno in range(self.GetLineCount()):
             level = self.SCIGetFoldLevel(lineno)
             if not level & scintillacon.SC_FOLDLEVELHEADERFLAG:
@@ -516,7 +516,7 @@ class SyntEditView(SyntEditViewParent):
             try:
                 level_ind = levels.index(curr_level)
             except ValueError:
-                ## probably syntax error in source file, bail
+                # 037423.python.coloreditor.line519.comment # probably syntax error in source file, bail
                 break
             levels = levels[: level_ind + 1]
             if level_ind == 1 and self.SCIGetFoldExpanded(lineno):
@@ -636,7 +636,7 @@ class SyntEditTemplate(EditorTemplateBase):
         ]
 
 
-# For debugging purposes, when this module may be reloaded many times.
+# 037424.python.coloreditor.line639.comment For debugging purposes, when this module may be reloaded many times.
 try:
     win32ui.GetApp().RemoveDocTemplate(editorTemplate)  # type: ignore[has-type, used-before-def]
 except NameError:

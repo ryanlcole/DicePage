@@ -50,11 +50,11 @@ def _binning(values, limits=(0, 0), bin_num=10):
     else:
         min_val, max_val = limits
 
-    # get bin size
+    # 021245.python.GraphStat.line53.comment get bin size
     bin_size = (max_val - min_val) / float(bin_num)
     bins = [0] * (bin_num)
 
-    # will ignore these outliers for now
+    # 021246.python.GraphStat.line57.comment will ignore these outliers for now
     for value in values:
         try:
             if (value - min_val) >= 0:
@@ -63,7 +63,7 @@ def _binning(values, limits=(0, 0), bin_num=10):
         except IndexError:
             pass
 
-    # make it ready for an x,y plot
+    # 021247.python.GraphStat.line66.comment make it ready for an x,y plot
     result = []
     center = (bin_size / 2) + min_val
     for i, y in enumerate(bins):

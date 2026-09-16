@@ -36,7 +36,7 @@ def safe_version(version: str) -> str:
     Convert an arbitrary string to a standard version string
     """
     try:
-        # normalize the version
+        # 044319.python.bdist_wheel.line39.comment normalize the version
         return str(_packaging_version.Version(version))
     except _packaging_version.InvalidVersion:
         version = version.replace(" ", ".")
@@ -65,12 +65,12 @@ def get_platform(archive_root: str | None) -> str:
         result = calculate_macosx_platform_tag(archive_root, result)
     elif _is_32bit_interpreter():
         if result == "linux-x86_64":
-            # pip pull request #3497
+            # 044321.python.bdist_wheel.line68.comment pip pull request #3497
             result = "linux-i686"
         elif result == "linux-aarch64":
-            # packaging pull request #234
-            # TODO armv8l, packaging pull request #690 => this did not land
-            # in pip/packaging yet
+            # 044322.python.bdist_wheel.line71.comment packaging pull request #234
+            # 044323.python.bdist_wheel.line72.comment TODO armv8l, packaging pull request #690 => this did not land
+            # 044324.python.bdist_wheel.line73.comment in pip/packaging yet
             result = "linux-armv7l"
 
     return result.replace("-", "_")
@@ -105,16 +105,16 @@ def get_abi_tag() -> str | None:
 
         abi = f"{impl}{tags.interpreter_version()}{d}{u}"
     elif soabi and impl == "cp" and soabi.startswith("cpython"):
-        # non-Windows
+        # 044325.python.bdist_wheel.line108.comment non-Windows
         abi = "cp" + soabi.split("-")[1]
     elif soabi and impl == "cp" and soabi.startswith("cp"):
-        # Windows
+        # 044326.python.bdist_wheel.line111.comment Windows
         abi = soabi.split("-")[0]
         if hasattr(sys, "gettotalrefcount"):
-            # using debug build; append "d" flag
+            # 044327.python.bdist_wheel.line114.comment using debug build; append "d" flag
             abi += "d"
     elif soabi and impl == "pp":
-        # we want something like pypy36-pp73
+        # 044328.python.bdist_wheel.line117.comment we want something like pypy36-pp73
         abi = "-".join(soabi.split("-")[:2])
         abi = abi.replace(".", "_").replace("-", "_")
     elif soabi and impl == "graalpy":
@@ -249,10 +249,10 @@ class bdist_wheel(Command):
 
         self._validate_py_limited_api()
 
-        # Support legacy [wheel] section for setting universal
+        # 044330.python.bdist_wheel.line252.comment Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
         if "universal" in wheel:  # pragma: no cover
-            # please don't define this in your global configs
+            # 044332.python.bdist_wheel.line255.comment please don't define this in your global configs
             log.warn("The [wheel] section is deprecated. Use [bdist_wheel] instead.")
             val = wheel["universal"][1].strip()
             if val.lower() in ("1", "true", "yes"):
@@ -301,31 +301,31 @@ class bdist_wheel(Command):
         return "-".join(components)
 
     def get_tag(self) -> tuple[str, str, str]:
-        # bdist sets self.plat_name if unset, we should only use it for purepy
-        # wheels if the user supplied it.
+        # 044334.python.bdist_wheel.line304.comment bdist sets self.plat_name if unset, we should only use it for purepy
+        # 044335.python.bdist_wheel.line305.comment wheels if the user supplied it.
         if self.plat_name_supplied and self.plat_name:
             plat_name = self.plat_name
         elif self.root_is_pure:
             plat_name = "any"
         else:
-            # macosx contains system version in platform name so need special handle
+            # 044336.python.bdist_wheel.line311.comment macosx contains system version in platform name so need special handle
             if self.plat_name and not self.plat_name.startswith("macosx"):
                 plat_name = self.plat_name
             else:
-                # on macosx always limit the platform name to comply with any
-                # c-extension modules in bdist_dir, since the user can specify
-                # a higher MACOSX_DEPLOYMENT_TARGET via tools like CMake
+                # 044337.python.bdist_wheel.line315.comment on macosx always limit the platform name to comply with any
+                # 044338.python.bdist_wheel.line316.comment c-extension modules in bdist_dir, since the user can specify
+                # 044339.python.bdist_wheel.line317.comment a higher MACOSX_DEPLOYMENT_TARGET via tools like CMake
 
-                # on other platforms, and on macosx if there are no c-extension
-                # modules, use the default platform name.
+                # 044340.python.bdist_wheel.line319.comment on other platforms, and on macosx if there are no c-extension
+                # 044341.python.bdist_wheel.line320.comment modules, use the default platform name.
                 plat_name = get_platform(self.bdist_dir)
 
             if _is_32bit_interpreter():
                 if plat_name in ("linux-x86_64", "linux_x86_64"):
                     plat_name = "linux_i686"
                 if plat_name in ("linux-aarch64", "linux_aarch64"):
-                    # TODO armv8l, packaging pull request #690 => this did not land
-                    # in pip/packaging yet
+                    # 044342.python.bdist_wheel.line327.comment TODO armv8l, packaging pull request #690 => this did not land
+                    # 044343.python.bdist_wheel.line328.comment in pip/packaging yet
                     plat_name = "linux_armv7l"
 
         plat_name = (
@@ -342,14 +342,14 @@ class bdist_wheel(Command):
             impl_name = tags.interpreter_name()
             impl_ver = tags.interpreter_version()
             impl = impl_name + impl_ver
-            # We don't work on CPython 3.1, 3.0.
+            # 044344.python.bdist_wheel.line345.comment We don't work on CPython 3.1, 3.0.
             if self.py_limited_api and (impl_name + impl_ver).startswith("cp3"):
                 impl = self.py_limited_api
                 abi_tag = "abi3"
             else:
                 abi_tag = str(get_abi_tag()).lower()
             tag = (impl, abi_tag, plat_name)
-            # issue gh-374: allow overriding plat_name
+            # 044345.python.bdist_wheel.line352.comment issue gh-374: allow overriding plat_name
             supported_tags = [
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
@@ -375,22 +375,22 @@ class bdist_wheel(Command):
         install.skip_build = self.skip_build
         install.warn_dir = False
 
-        # A wheel without setuptools scripts is more cross-platform.
-        # Use the (undocumented) `no_ep` option to setuptools'
-        # install_scripts command to avoid creating entry point scripts.
+        # 044346.python.bdist_wheel.line378.comment A wheel without setuptools scripts is more cross-platform.
+        # 044347.python.bdist_wheel.line379.comment Use the (undocumented) `no_ep` option to setuptools'
+        # 044348.python.bdist_wheel.line380.comment install_scripts command to avoid creating entry point scripts.
         install_scripts = self.reinitialize_command("install_scripts")
         install_scripts.no_ep = True
 
-        # Use a custom scheme for the archive, because we have to decide
-        # at installation time which scheme to use.
+        # 044349.python.bdist_wheel.line384.comment Use a custom scheme for the archive, because we have to decide
+        # 044350.python.bdist_wheel.line385.comment at installation time which scheme to use.
         for key in ("headers", "scripts", "data", "purelib", "platlib"):
             setattr(install, "install_" + key, os.path.join(self.data_dir, key))
 
         basedir_observed = ""
 
         if os.name == "nt":
-            # win32 barfs if any of these are ''; could be '.'?
-            # (distutils.command.install:change_roots bug)
+            # 044351.python.bdist_wheel.line392.comment win32 barfs if any of these are ''; could be '.'?
+            # 044352.python.bdist_wheel.line393.comment (distutils.command.install:change_roots bug)
             basedir_observed = os.path.normpath(os.path.join(self.data_dir, ".."))
             self.install_libbase = self.install_lib = basedir_observed
 
@@ -420,19 +420,19 @@ class bdist_wheel(Command):
         )
         distinfo_dir = os.path.join(self.bdist_dir, distinfo_dirname)
         if self.dist_info_dir:
-            # Use the given dist-info directly.
+            # 044353.python.bdist_wheel.line423.comment Use the given dist-info directly.
             log.debug(f"reusing {self.dist_info_dir}")
             shutil.copytree(self.dist_info_dir, distinfo_dir)
-            # Egg info is still generated, so remove it now to avoid it getting
-            # copied into the wheel.
+            # 044354.python.bdist_wheel.line426.comment Egg info is still generated, so remove it now to avoid it getting
+            # 044355.python.bdist_wheel.line427.comment copied into the wheel.
             _shutil.rmtree(self.egginfo_dir)
         else:
-            # Convert the generated egg-info into dist-info.
+            # 044356.python.bdist_wheel.line430.comment Convert the generated egg-info into dist-info.
             self.egg2dist(self.egginfo_dir, distinfo_dir)
 
         self.write_wheelfile(distinfo_dir)
 
-        # Make the archive
+        # 044357.python.bdist_wheel.line435.comment Make the archive
         if not os.path.exists(self.dist_dir):
             os.makedirs(self.dist_dir)
 
@@ -440,7 +440,7 @@ class bdist_wheel(Command):
         with WheelFile(wheel_path, "w", self._zip_compression()) as wf:
             wf.write_files(archive_root)
 
-        # Add to 'Distribution.dist_files' so that the "upload" command works
+        # 044358.python.bdist_wheel.line443.comment Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, "dist_files", []).append((
             "bdist_wheel",
             f"{sys.version_info.major}.{sys.version_info.minor}",
@@ -464,7 +464,7 @@ class bdist_wheel(Command):
         if self.build_number is not None:
             msg["Build"] = self.build_number
 
-        # Doesn't work for bdist_wininst
+        # 044360.python.bdist_wheel.line467.comment Doesn't work for bdist_wininst
         impl_tag, abi_tag, plat_tag = self.get_tag()
         for impl in impl_tag.split("."):
             for abi in abi_tag.split("."):
@@ -477,7 +477,7 @@ class bdist_wheel(Command):
             BytesGenerator(f, maxheaderlen=0).flatten(msg)
 
     def _ensure_relative(self, path: str) -> str:
-        # copied from dir_util, deleted
+        # 044361.python.bdist_wheel.line480.comment copied from dir_util, deleted
         drive, path = os.path.splitdrive(path)
         if path[0:1] == os.sep:
             path = drive + path[1:]
@@ -486,16 +486,16 @@ class bdist_wheel(Command):
     @property
     def license_paths(self) -> Iterable[str]:
         if setuptools_major_version >= 57:
-            # Setuptools has resolved any patterns to actual file names
+            # 044362.python.bdist_wheel.line489.comment Setuptools has resolved any patterns to actual file names
             return self.distribution.metadata.license_files or ()
 
         files = set[str]()
         metadata = self.distribution.get_option_dict("metadata")
         if setuptools_major_version >= 42:
-            # Setuptools recognizes the license_files option but does not do globbing
+            # 044363.python.bdist_wheel.line495.comment Setuptools recognizes the license_files option but does not do globbing
             patterns = cast(Sequence[str], self.distribution.metadata.license_files)
         else:
-            # Prior to those, wheel is entirely responsible for handling license files
+            # 044364.python.bdist_wheel.line498.comment Prior to those, wheel is entirely responsible for handling license files
             if "license_files" in metadata:
                 patterns = metadata["license_files"][1].split()
             else:
@@ -541,10 +541,10 @@ class bdist_wheel(Command):
         adios(distinfo_path)
 
         if not os.path.exists(egginfo_path):
-            # There is no egg-info. This is probably because the egg-info
-            # file/directory is not named matching the distribution name used
-            # to name the archive file. Check for this case and report
-            # accordingly.
+            # 044365.python.bdist_wheel.line544.comment There is no egg-info. This is probably because the egg-info
+            # 044366.python.bdist_wheel.line545.comment file/directory is not named matching the distribution name used
+            # 044367.python.bdist_wheel.line546.comment to name the archive file. Check for this case and report
+            # 044368.python.bdist_wheel.line547.comment accordingly.
             import glob
 
             pat = os.path.join(os.path.dirname(egginfo_path), "*.egg-info")
@@ -556,10 +556,10 @@ class bdist_wheel(Command):
 
             raise ValueError(err)
 
-        # .egg-info is a directory
+        # 044369.python.bdist_wheel.line559.comment .egg-info is a directory
         pkginfo_path = os.path.join(egginfo_path, "PKG-INFO")
 
-        # ignore common egg metadata that is useless to wheel
+        # 044370.python.bdist_wheel.line562.comment ignore common egg metadata that is useless to wheel
         shutil.copytree(
             egginfo_path,
             distinfo_path,
@@ -571,7 +571,7 @@ class bdist_wheel(Command):
             },
         )
 
-        # delete dependency_links if it is only whitespace
+        # 044371.python.bdist_wheel.line574.comment delete dependency_links if it is only whitespace
         dependency_links_path = os.path.join(distinfo_path, "dependency_links.txt")
         with open(dependency_links_path, encoding="utf-8") as dependency_links_file:
             dependency_links = dependency_links_file.read().strip()

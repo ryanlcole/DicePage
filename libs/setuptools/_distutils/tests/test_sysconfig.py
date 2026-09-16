@@ -46,7 +46,7 @@ class TestSysconfig:
     @pytest.mark.skipif('sysconfig.python_build')
     @pytest.mark.xfail('platform.system() == "Windows"')
     def test_srcdir_simple(self):
-        # See #15364.
+        # 041234.python.test_sysconfig.line49.comment See #15364.
         srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
 
         assert srcdir.absolute()
@@ -58,11 +58,11 @@ class TestSysconfig:
     @pytest.mark.skipif('sysconfig.IS_PYPY')
     @pytest.mark.skipif('not sysconfig.python_build')
     def test_srcdir_python_build(self):
-        # See #15364.
+        # 041235.python.test_sysconfig.line61.comment See #15364.
         srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
 
-        # The python executable has not been installed so srcdir
-        # should be a full source checkout.
+        # 041236.python.test_sysconfig.line64.comment The python executable has not been installed so srcdir
+        # 041237.python.test_sysconfig.line65.comment should be a full source checkout.
         Python_h = srcdir.joinpath('Include', 'Python.h')
         assert Python_h.is_file()
         assert sysconfig._is_python_source_dir(srcdir)
@@ -72,14 +72,14 @@ class TestSysconfig:
         """
         srcdir should be independent of the current working directory
         """
-        # See #15364.
+        # 041238.python.test_sysconfig.line75.comment See #15364.
         srcdir = sysconfig.get_config_var('srcdir')
         with path.Path('..'):
             srcdir2 = sysconfig.get_config_var('srcdir')
         assert srcdir == srcdir2
 
     def customize_compiler(self):
-        # make sure AR gets caught
+        # 041239.python.test_sysconfig.line82.comment make sure AR gets caught
         class compiler:
             compiler_type = 'unix'
             executables = UnixCCompiler.executables
@@ -113,7 +113,7 @@ class TestSysconfig:
     @pytest.mark.skipif("not isinstance(new_compiler(), UnixCCompiler)")
     @pytest.mark.usefixtures('disable_macos_customization')
     def test_customize_compiler(self):
-        # Make sure that sysconfig._config_vars is initialized
+        # 041240.python.test_sysconfig.line116.comment Make sure that sysconfig._config_vars is initialized
         sysconfig.get_config_vars()
 
         os.environ['AR'] = 'env_ar'
@@ -205,19 +205,19 @@ class TestSysconfig:
             'LDFLAGS'
         )
 
-    # On macOS, binary installers support extension module building on
-    # various levels of the operating system with differing Xcode
-    # configurations, requiring customization of some of the
-    # compiler configuration directives to suit the environment on
-    # the installed machine. Some of these customizations may require
-    # running external programs and are thus deferred until needed by
-    # the first extension module build. Only
-    # the Distutils version of sysconfig is used for extension module
-    # builds, which happens earlier in the Distutils tests. This may
-    # cause the following tests to fail since no tests have caused
-    # the global version of sysconfig to call the customization yet.
-    # The solution for now is to simply skip this test in this case.
-    # The longer-term solution is to only have one version of sysconfig.
+    # 041241.python.test_sysconfig.line208.comment On macOS, binary installers support extension module building on
+    # 041242.python.test_sysconfig.line209.comment various levels of the operating system with differing Xcode
+    # 041243.python.test_sysconfig.line210.comment configurations, requiring customization of some of the
+    # 041244.python.test_sysconfig.line211.comment compiler configuration directives to suit the environment on
+    # 041245.python.test_sysconfig.line212.comment the installed machine. Some of these customizations may require
+    # 041246.python.test_sysconfig.line213.comment running external programs and are thus deferred until needed by
+    # 041247.python.test_sysconfig.line214.comment the first extension module build. Only
+    # 041248.python.test_sysconfig.line215.comment the Distutils version of sysconfig is used for extension module
+    # 041249.python.test_sysconfig.line216.comment builds, which happens earlier in the Distutils tests. This may
+    # 041250.python.test_sysconfig.line217.comment cause the following tests to fail since no tests have caused
+    # 041251.python.test_sysconfig.line218.comment the global version of sysconfig to call the customization yet.
+    # 041252.python.test_sysconfig.line219.comment The solution for now is to simply skip this test in this case.
+    # 041253.python.test_sysconfig.line220.comment The longer-term solution is to only have one version of sysconfig.
     @pytest.mark.skipif("sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER')")
     def test_sysconfig_compiler_vars(self):
         import sysconfig as global_sysconfig
@@ -235,9 +235,9 @@ class TestSysconfig:
             sysconfig.get_config_var('SO')
 
     def test_customize_compiler_before_get_config_vars(self, tmp_path):
-        # Issue #21923: test that a Distribution compiler
-        # instance can be called without an explicit call to
-        # get_config_vars().
+        # 041254.python.test_sysconfig.line238.comment Issue #21923: test that a Distribution compiler
+        # 041255.python.test_sysconfig.line239.comment instance can be called without an explicit call to
+        # 041256.python.test_sysconfig.line240.comment get_config_vars().
         jaraco.path.build(
             {
                 'file': trim("""

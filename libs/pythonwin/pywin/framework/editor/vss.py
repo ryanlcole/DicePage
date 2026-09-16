@@ -1,19 +1,19 @@
-# vss.py -- Source Control using Microsoft VSS.
+# 037627.python.vss.line1.comment vss.py -- Source Control using Microsoft VSS.
 
-# Provides routines for checking files out of VSS.
-#
-# Uses an INI file very similar to how VB integrates with VSS - even
-# as far as using the same name.
+# 037628.python.vss.line3.comment Provides routines for checking files out of VSS.
+# 037629.python.vss.line4.comment
+# 037630.python.vss.line5.comment Uses an INI file very similar to how VB integrates with VSS - even
+# 037631.python.vss.line6.comment as far as using the same name.
 
-# The file must be named "Mssccprj.scc", and be in the format of
-# an INI file.  This file may be in a parent directory, in which
-# case the project name will be built from what is specified in the
-# ini file, plus the path from the INI file to the file itself.
-#
-# The INI file should have a [Python] section, and a
-# Project=Project Name
-#  and optionally
-# Database=??
+# 037632.python.vss.line8.comment The file must be named "Mssccprj.scc", and be in the format of
+# 037633.python.vss.line9.comment an INI file.  This file may be in a parent directory, in which
+# 037634.python.vss.line10.comment case the project name will be built from what is specified in the
+# 037635.python.vss.line11.comment ini file, plus the path from the INI file to the file itself.
+# 037636.python.vss.line12.comment
+# 037637.python.vss.line13.comment The INI file should have a [Python] section, and a
+# 037638.python.vss.line14.comment Project=Project Name
+# 037639.python.vss.line15.comment and optionally
+# 037640.python.vss.line16.comment Database=??
 
 
 import os
@@ -46,7 +46,7 @@ def FindVssProjectInfo(fullfname):
         project = win32api.GetProfileVal("Python", "Project", "", iniName)
         if project:
             break
-        # No valid INI file in this directory - look up a level.
+        # 037642.python.vss.line49.comment No valid INI file in this directory - look up a level.
         path, addpath = os.path.split(path)
         if not addpath:  # Root?
             break
@@ -64,9 +64,9 @@ def CheckoutFile(fileName):
     import pythoncom
 
     ok = 0
-    # Assumes the fileName has a complete path,
-    # and that the INI file can be found in that path
-    # (or a parent path if a ni style package)
+    # 037644.python.vss.line67.comment Assumes the fileName has a complete path,
+    # 037645.python.vss.line68.comment and that the INI file can be found in that path
+    # 037646.python.vss.line69.comment (or a parent path if a ni style package)
     try:
         import win32com.client
         import win32com.client.gencache
@@ -86,8 +86,8 @@ def CheckoutFile(fileName):
         project, vssFname, database = rc
         if g_sourceSafe is None:
             g_sourceSafe = win32com.client.Dispatch("SourceSafe")
-            # SS seems a bit weird.  It defaults the arguments as empty strings, but
-            # then complains when they are used - so we pass "Missing"
+            # 037647.python.vss.line89.comment SS seems a bit weird.  It defaults the arguments as empty strings, but
+            # 037648.python.vss.line90.comment then complains when they are used - so we pass "Missing"
             if not database:
                 database = pythoncom.Missing
             g_sourceSafe.Open(database, pythoncom.Missing, pythoncom.Missing)

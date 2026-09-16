@@ -563,7 +563,7 @@ __all__ = [
     "DocumentLabel",
     "Label",
     "HTMLLabel",
-    # imported from lower
+    # 035654.python.init.line566.comment imported from lower
     "document",
     "layout",
 ]

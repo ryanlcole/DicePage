@@ -1,5 +1,5 @@
-# Code that allows Pythonwin to pretend it is IDLE
-# (at least as far as most IDLE extensions are concerned)
+# 038530.python.IDLEenvironment.line1.comment Code that allows Pythonwin to pretend it is IDLE
+# 038531.python.IDLEenvironment.line2.comment (at least as far as most IDLE extensions are concerned)
 
 import string
 import sys
@@ -23,7 +23,7 @@ class EmptyRange(Exception):  # Internally raised.
 
 def GetIDLEModule(module):
     try:
-        # First get it from Pythonwin it is exists.
+        # 038534.python.IDLEenvironment.line26.comment First get it from Pythonwin it is exists.
         modname = "pywin.idle." + module
         __import__(modname)
     except ImportError as details:
@@ -39,18 +39,18 @@ def GetIDLEModule(module):
     return mod
 
 
-# A class that is injected into the IDLE auto-indent extension.
-# It allows for decent performance when opening a new file,
-# as auto-indent uses the tokenizer module to determine indents.
-# The default AutoIndent readline method works OK, but it goes through
-# this layer of Tk index indirection for every single line.  For large files
-# without indents (and even small files with indents :-) it was pretty slow!
+# 038536.python.IDLEenvironment.line42.comment A class that is injected into the IDLE auto-indent extension.
+# 038537.python.IDLEenvironment.line43.comment It allows for decent performance when opening a new file,
+# 038538.python.IDLEenvironment.line44.comment as auto-indent uses the tokenizer module to determine indents.
+# 038539.python.IDLEenvironment.line45.comment The default AutoIndent readline method works OK, but it goes through
+# 038540.python.IDLEenvironment.line46.comment this layer of Tk index indirection for every single line.  For large files
+# 038541.python.IDLEenvironment.line47.comment without indents (and even small files with indents :-) it was pretty slow!
 def fast_readline(self):
     if self.finished:
         val = ""
     else:
         if "_scint_lines" not in self.__dict__:
-            # XXX - note - assumes this is only called once the file is loaded!
+            # 038542.python.IDLEenvironment.line53.comment XXX - note - assumes this is only called once the file is loaded!
             self._scint_lines = self.text.edit.GetTextRange().split("\n")
         sl = self._scint_lines
         i = self.i = self.i + 1
@@ -67,8 +67,8 @@ except AttributeError:  # GetIDLEModule may return None
     pass
 
 
-# A class that attempts to emulate an IDLE editor window.
-# Construct with a Pythonwin view.
+# 038544.python.IDLEenvironment.line70.comment A class that attempts to emulate an IDLE editor window.
+# 038545.python.IDLEenvironment.line71.comment Construct with a Pythonwin view.
 class IDLEEditorWindow:
     def __init__(self, edit):
         self.edit = edit
@@ -96,7 +96,7 @@ class IDLEEditorWindow:
             return None
         klass = getattr(mod, extension)
         ext = self.extensions[extension] = klass(self)
-        # Find and bind all the events defined in the extension.
+        # 038546.python.IDLEenvironment.line99.comment Find and bind all the events defined in the extension.
         events = [item for item in dir(klass) if item[-6:] == "_event"]
         for event in events:
             name = "<<{}>>".format(event[:-6].replace("_", "-"))
@@ -104,7 +104,7 @@ class IDLEEditorWindow:
         return ext
 
     def GetMenuItems(self, menu_name):
-        # Get all menu items for the menu name (eg, "edit")
+        # 038547.python.IDLEenvironment.line107.comment Get all menu items for the menu name (eg, "edit")
         bindings = self.edit.bindings
         ret = []
         for ext in self.extensions.values():
@@ -117,9 +117,9 @@ class IDLEEditorWindow:
                         ret.append((text, event))
         return ret
 
-    ######################################################################
-    # The IDLE "Virtual UI" methods that are exposed to the IDLE extensions.
-    #
+    # 038548.python.IDLEenvironment.line120.comment #####################################################################
+    # 038549.python.IDLEenvironment.line121.comment The IDLE "Virtual UI" methods that are exposed to the IDLE extensions.
+    # 038550.python.IDLEenvironment.line122.comment
     def askinteger(
         self, caption, prompt, parent=None, initialvalue=0, minvalue=None, maxvalue=None
     ):
@@ -144,25 +144,25 @@ class IDLEEditorWindow:
     def askyesno(self, caption, prompt, parent=None):
         return win32ui.MessageBox(prompt, caption, win32con.MB_YESNO) == win32con.IDYES
 
-    ######################################################################
-    # The IDLE "Virtual Text Widget" methods that are exposed to the IDLE extensions.
-    #
+    # 038552.python.IDLEenvironment.line147.comment #####################################################################
+    # 038553.python.IDLEenvironment.line148.comment The IDLE "Virtual Text Widget" methods that are exposed to the IDLE extensions.
+    # 038554.python.IDLEenvironment.line149.comment
 
-    # Is character at text_index in a Python string?  Return 0 for
-    # "guaranteed no", true for anything else.
+    # 038555.python.IDLEenvironment.line151.comment Is character at text_index in a Python string?  Return 0 for
+    # 038556.python.IDLEenvironment.line152.comment "guaranteed no", true for anything else.
     def is_char_in_string(self, text_index):
-        # A helper for the code analyser - we need internal knowledge of
-        # the colorizer to get this information
-        # This assumes the colorizer has got to this point!
+        # 038557.python.IDLEenvironment.line154.comment A helper for the code analyser - we need internal knowledge of
+        # 038558.python.IDLEenvironment.line155.comment the colorizer to get this information
+        # 038559.python.IDLEenvironment.line156.comment This assumes the colorizer has got to this point!
         text_index = self.text._getoffset(text_index)
         c = self.text.edit._GetColorizer()
         if c and c.GetStringStyle(text_index) is None:
             return 0
         return 1
 
-    # If a selection is defined in the text widget, return
-    # (start, end) as Tkinter text indices, otherwise return
-    # (None, None)
+    # 038560.python.IDLEenvironment.line163.comment If a selection is defined in the text widget, return
+    # 038561.python.IDLEenvironment.line164.comment (start, end) as Tkinter text indices, otherwise return
+    # 038562.python.IDLEenvironment.line165.comment (None, None)
     def get_selection_indices(self):
         try:
             first = self.text.index("sel.first")
@@ -178,7 +178,7 @@ class IDLEEditorWindow:
         return self.edit.GetTabWidth()
 
 
-# A class providing the generic "Call Tips" interface
+# 038563.python.IDLEenvironment.line181.comment A class providing the generic "Call Tips" interface
 class CallTips:
     def __init__(self, edit):
         self.edit = edit
@@ -190,12 +190,12 @@ class CallTips:
         self.edit.SCICallTipCancel()
 
 
-########################################
-#
-# Helpers for the TkText emulation.
+# 038564.python.IDLEenvironment.line193.comment #######################################
+# 038565.python.IDLEenvironment.line194.comment
+# 038566.python.IDLEenvironment.line195.comment Helpers for the TkText emulation.
 def TkOffsetToIndex(offset, edit):
     lineoff = 0
-    # May be 1 > actual end if we pretended there was a trailing '\n'
+    # 038567.python.IDLEenvironment.line198.comment May be 1 > actual end if we pretended there was a trailing '\n'
     offset = min(offset, edit.GetTextLength())
     line = edit.LineFromChar(offset)
     lineIndex = edit.LineIndex(line)
@@ -203,16 +203,16 @@ def TkOffsetToIndex(offset, edit):
 
 
 def _NextTok(str, pos):
-    # Returns (token, endPos)
+    # 038568.python.IDLEenvironment.line206.comment Returns (token, endPos)
     end = len(str)
     if pos >= end:
         return None, 0
     while pos < end and str[pos] in string.whitespace:
         pos += 1
-    # Special case for +-
+    # 038569.python.IDLEenvironment.line212.comment Special case for +-
     if str[pos] in "+-":
         return str[pos], pos + 1
-    # Digits also a special case.
+    # 038570.python.IDLEenvironment.line215.comment Digits also a special case.
     endPos = pos
     while endPos < end and str[endPos] in string.digits + ".":
         endPos += 1
@@ -234,7 +234,7 @@ def TkIndexToOffset(bm, edit, marks):
         try:
             line, col = base.split(".", 2)
             if col == "first" or col == "last":
-                # Tag name
+                # 038571.python.IDLEenvironment.line237.comment Tag name
                 if line != "sel":
                     raise ValueError("Tags aren't here!")
                 sel = edit.GetSel()
@@ -245,7 +245,7 @@ def TkIndexToOffset(bm, edit, marks):
                 else:
                     pos = sel[1]
             else:
-                # Lines are 1 based for tkinter
+                # 038572.python.IDLEenvironment.line248.comment Lines are 1 based for tkinter
                 line = int(line) - 1
                 if line > edit.GetLineCount():
                     pos = edit.GetTextLength() + 1
@@ -260,7 +260,7 @@ def TkIndexToOffset(bm, edit, marks):
         pos = edit.GetSel()[0]
     elif base == "end":
         pos = edit.GetTextLength()
-        # Pretend there is a trailing '\n' if necessary
+        # 038573.python.IDLEenvironment.line263.comment Pretend there is a trailing '\n' if necessary
         if pos and edit.SCIGetCharAt(pos - 1) != "\n":
             pos += 1
     else:
@@ -305,26 +305,26 @@ def TkIndexToOffset(bm, edit, marks):
     return max(pos, 0)  # Tkinter is tollerant of -ve indexes - we aren't
 
 
-# A class that resembles an IDLE (ie, a Tk) text widget.
-# Construct with an edit object (eg, an editor view)
+# 038575.python.IDLEenvironment.line308.comment A class that resembles an IDLE (ie, a Tk) text widget.
+# 038576.python.IDLEenvironment.line309.comment Construct with an edit object (eg, an editor view)
 class TkText:
     def __init__(self, edit):
         self.calltips = None
         self.edit = edit
         self.marks = {}
 
-    ##	def __getattr__(self, attr):
-    ##		if attr=="tk": return self # So text.tk.call works.
-    ##		if attr=="master": return None # ditto!
-    ##		raise AttributeError, attr
-    ##	def __getitem__(self, item):
-    ##		if item=="tabs":
-    ##			size = self.edit.GetTabWidth()
-    ##			if size==8: return "" # Tk default
-    ##			return size # correct semantics?
-    ##		elif item=="font": # Used for measurements we don't need to do!
-    ##			return "Don't know the font"
-    ##		raise IndexError, "Invalid index '%s'" % item
+    # 038577.python.IDLEenvironment.line316.comment #	def __getattr__(self, attr):
+    # 038578.python.IDLEenvironment.line317.comment #		if attr=="tk": return self # So text.tk.call works.
+    # 038579.python.IDLEenvironment.line318.comment #		if attr=="master": return None # ditto!
+    # 038580.python.IDLEenvironment.line319.comment #		raise AttributeError, attr
+    # 038581.python.IDLEenvironment.line320.comment #	def __getitem__(self, item):
+    # 038582.python.IDLEenvironment.line321.comment #		if item=="tabs":
+    # 038583.python.IDLEenvironment.line322.comment #			size = self.edit.GetTabWidth()
+    # 038584.python.IDLEenvironment.line323.comment #			if size==8: return "" # Tk default
+    # 038585.python.IDLEenvironment.line324.comment #			return size # correct semantics?
+    # 038586.python.IDLEenvironment.line325.comment #		elif item=="font": # Used for measurements we don't need to do!
+    # 038587.python.IDLEenvironment.line326.comment #			return "Don't know the font"
+    # 038588.python.IDLEenvironment.line327.comment #		raise IndexError, "Invalid index '%s'" % item
     def make_calltip_window(self):
         if self.calltips is None:
             self.calltips = CallTips(self.edit)
@@ -337,7 +337,7 @@ class TkText:
         return TkOffsetToIndex(off, self.edit)
 
     def _fix_indexes(self, start, end):
-        # first some magic to handle skipping over utf8 extended chars.
+        # 038589.python.IDLEenvironment.line340.comment first some magic to handle skipping over utf8 extended chars.
         while start > 0 and ord(self.edit.SCIGetCharAt(start)) & 0xC0 == 0x80:
             start -= 1
         while (
@@ -345,7 +345,7 @@ class TkText:
             and ord(self.edit.SCIGetCharAt(end)) & 0xC0 == 0x80
         ):
             end += 1
-        # now handling fixing \r\n->\n disparities...
+        # 038590.python.IDLEenvironment.line348.comment now handling fixing \r\n->\n disparities...
         if (
             start > 0
             and self.edit.SCIGetCharAt(start) == "\n"
@@ -360,19 +360,19 @@ class TkText:
             end += 1
         return start, end
 
-    ##	def get_tab_width(self):
-    ##		return self.edit.GetTabWidth()
-    ##	def call(self, *rest):
-    ##		# Crap to support Tk measurement hacks for tab widths
-    ##		if rest[0] != "font" or rest[1] != "measure":
-    ##			raise ValueError, "Unsupport call type"
-    ##		return len(rest[5])
-    ##	def configure(self, **kw):
-    ##		for name, val in kw.items():
-    ##			if name=="tabs":
-    ##				self.edit.SCISetTabWidth(int(val))
-    ##			else:
-    ##				raise ValueError, "Unsupported configuration item %s" % kw
+    # 038591.python.IDLEenvironment.line363.comment #	def get_tab_width(self):
+    # 038592.python.IDLEenvironment.line364.comment #		return self.edit.GetTabWidth()
+    # 038593.python.IDLEenvironment.line365.comment #	def call(self, *rest):
+    # 038594.python.IDLEenvironment.line366.comment #		# Crap to support Tk measurement hacks for tab widths
+    # 038595.python.IDLEenvironment.line367.comment #		if rest[0] != "font" or rest[1] != "measure":
+    # 038596.python.IDLEenvironment.line368.comment #			raise ValueError, "Unsupport call type"
+    # 038597.python.IDLEenvironment.line369.comment #		return len(rest[5])
+    # 038598.python.IDLEenvironment.line370.comment #	def configure(self, **kw):
+    # 038599.python.IDLEenvironment.line371.comment #		for name, val in kw.items():
+    # 038600.python.IDLEenvironment.line372.comment #			if name=="tabs":
+    # 038601.python.IDLEenvironment.line373.comment #				self.edit.SCISetTabWidth(int(val))
+    # 038602.python.IDLEenvironment.line374.comment #			else:
+    # 038603.python.IDLEenvironment.line375.comment #				raise ValueError, "Unsupported configuration item %s" % kw
     def bind(self, binding, handler):
         self.edit.bindings.bind(binding, handler)
 
@@ -385,7 +385,7 @@ class TkText:
                 end = self._getoffset(end)
         except EmptyRange:
             return ""
-        # Simple semantic checks to conform to the Tk text interface
+        # 038604.python.IDLEenvironment.line388.comment Simple semantic checks to conform to the Tk text interface
         if end <= start:
             return ""
         max = self.edit.GetTextLength()
@@ -395,7 +395,7 @@ class TkText:
             checkEnd = 1
         start, end = self._fix_indexes(start, end)
         ret = self.edit.GetTextRange(start, end)
-        # pretend a trailing '\n' exists if necessary.
+        # 038605.python.IDLEenvironment.line398.comment pretend a trailing '\n' exists if necessary.
         if checkEnd and (not ret or ret[-1] != "\n"):
             ret += "\n"
         return ret.replace("\r", "")
@@ -412,7 +412,7 @@ class TkText:
         except EmptyRange:
             raise TextError("Empty range")
         self.edit.SetSel((pos, pos))
-        # IDLE only deals with "\n" - we will be nicer
+        # 038606.python.IDLEenvironment.line415.comment IDLE only deals with "\n" - we will be nicer
 
         bits = text.split("\n")
         self.edit.SCIAddText(bits[0])
@@ -427,20 +427,20 @@ class TkText:
                 end = self._getoffset(end)
         except EmptyRange:
             raise TextError("Empty range")
-        # If end is specified and == start, then we must delete nothing.
+        # 038607.python.IDLEenvironment.line430.comment If end is specified and == start, then we must delete nothing.
         if start == end:
             return
-        # If end is not specified, delete one char
+        # 038608.python.IDLEenvironment.line433.comment If end is not specified, delete one char
         if end is None:
             end = start + 1
         else:
-            # Tk says not to delete in this case, but our control would.
+            # 038609.python.IDLEenvironment.line437.comment Tk says not to delete in this case, but our control would.
             if end < start:
                 return
         if start == self.edit.GetTextLength():
             return  # Nothing to delete.
         old = self.edit.GetSel()[0]  # Lose a selection
-        # Hack for partial '\r\n' and UTF-8 char removal
+        # 038612.python.IDLEenvironment.line443.comment Hack for partial '\r\n' and UTF-8 char removal
         start, end = self._fix_indexes(start, end)
         self.edit.SetSel((start, end))
         self.edit.Clear()
@@ -454,8 +454,8 @@ class TkText:
         win32api.MessageBeep()
 
     def see(self, pos):
-        # Most commands we use in Scintilla actually force the selection
-        # to be seen, making this unnecessary.
+        # 038613.python.IDLEenvironment.line457.comment Most commands we use in Scintilla actually force the selection
+        # 038614.python.IDLEenvironment.line458.comment to be seen, making this unnecessary.
         pass
 
     def mark_set(self, name, pos):
@@ -481,7 +481,7 @@ class TkText:
     def tag_remove(self, name, start, end):
         if name != "sel" or start != "1.0" or end != "end":
             raise ValueError("Can't remove this tag")
-        # Turn the sel into a cursor
+        # 038615.python.IDLEenvironment.line484.comment Turn the sel into a cursor
         self.edit.SetSel(self.edit.GetSel()[0])
 
     def compare(self, i1, op, i2):
@@ -502,11 +502,11 @@ class TkText:
         self.edit.SCIEndUndoAction()
 
 
-######################################################################
-#
-# Test related code.
-#
-######################################################################
+# 038616.python.IDLEenvironment.line505.comment #####################################################################
+# 038617.python.IDLEenvironment.line506.comment
+# 038618.python.IDLEenvironment.line507.comment Test related code.
+# 038619.python.IDLEenvironment.line508.comment
+# 038620.python.IDLEenvironment.line509.comment #####################################################################
 def TestCheck(index, edit, expected=None):
     rc = TkIndexToOffset(index, edit, {})
     if rc != expected:
@@ -553,7 +553,7 @@ def test():
     TestCheck("sel.first- 2c", e, 2)
     TestCheck("sel.last- 2c", e, 3)
     """
-    # Check EOL semantics
+    # 038621.python.IDLEenvironment.line556.comment Check EOL semantics
     e.SetSel((4, 4))
     TestGet("insert lineend", "insert lineend +1c", t, "\n")
     e.SetSel((20, 20))
@@ -577,7 +577,7 @@ def IDLETest(extension):
     mod.TclError = TextError
     klass = getattr(mod, extension)
 
-    # Create a new Scintilla Window.
+    # 038622.python.IDLEenvironment.line580.comment Create a new Scintilla Window.
     import pywin.framework.editor
 
     d = pywin.framework.editor.editorTemplate.OpenDocumentFile(None)

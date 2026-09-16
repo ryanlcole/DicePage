@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 002575.python.imphook.line1.comment -----------------------------------------------------------------------------
+# 002576.python.imphook.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 002577.python.imphook.line3.comment
+# 002578.python.imphook.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 002579.python.imphook.line5.comment or later) with exception for distributing the bootloader.
+# 002580.python.imphook.line6.comment
+# 002581.python.imphook.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 002582.python.imphook.line8.comment
+# 002583.python.imphook.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 002584.python.imphook.line10.comment -----------------------------------------------------------------------------
 """
 Code related to processing of import hooks.
 """
@@ -76,17 +76,17 @@ class ModuleHookCache(dict):
         """
         super().__init__()
 
-        # To avoid circular references and hence increased memory consumption, a weak rather than strong reference is
-        # stored to the passed graph. Since this graph is guaranteed to live longer than this cache,
-        # this is guaranteed to be safe.
+        # 002585.python.imphook.line79.comment To avoid circular references and hence increased memory consumption, a weak rather than strong reference is
+        # 002586.python.imphook.line80.comment stored to the passed graph. Since this graph is guaranteed to live longer than this cache,
+        # 002587.python.imphook.line81.comment this is guaranteed to be safe.
         self.module_graph = weakref.proxy(module_graph)
 
-        # String unique to this cache prefixing the names of all in-memory modules lazily loaded from cached hook
-        # scripts, privatized for safety.
+        # 002588.python.imphook.line84.comment String unique to this cache prefixing the names of all in-memory modules lazily loaded from cached hook
+        # 002589.python.imphook.line85.comment scripts, privatized for safety.
         self._hook_module_name_prefix = '__PyInstaller_hooks_{}_'.format(ModuleHookCache._cache_id_next)
         ModuleHookCache._cache_id_next += 1
 
-        # Cache all hook scripts in the passed directories.
+        # 002590.python.imphook.line89.comment Cache all hook scripts in the passed directories.
         self._cache_hook_dirs(hook_dirs)
 
     def _cache_hook_dirs(self, hook_dirs):
@@ -100,19 +100,19 @@ class ModuleHookCache(dict):
         """
 
         for hook_dir, default_priority in hook_dirs:
-            # Canonicalize this directory's path and validate its existence.
+            # 002591.python.imphook.line103.comment Canonicalize this directory's path and validate its existence.
             hook_dir = os.path.abspath(hook_dir)
             if not os.path.isdir(hook_dir):
                 raise FileNotFoundError('Hook directory "{}" not found.'.format(hook_dir))
 
-            # For each hook script in this directory...
+            # 002592.python.imphook.line108.comment For each hook script in this directory...
             hook_filenames = glob.glob(os.path.join(hook_dir, 'hook-*.py'))
             for hook_filename in hook_filenames:
-                # Fully-qualified name of this hook's corresponding module, constructed by removing the "hook-" prefix
-                # and ".py" suffix.
+                # 002593.python.imphook.line111.comment Fully-qualified name of this hook's corresponding module, constructed by removing the "hook-" prefix
+                # 002594.python.imphook.line112.comment and ".py" suffix.
                 module_name = os.path.basename(hook_filename)[5:-3]
 
-                # Lazily loadable hook object.
+                # 002595.python.imphook.line115.comment Lazily loadable hook object.
                 module_hook = ModuleHook(
                     module_graph=self.module_graph,
                     module_name=module_name,
@@ -121,18 +121,18 @@ class ModuleHookCache(dict):
                     default_priority=default_priority,
                 )
 
-                # Add this hook to this module's list of hooks.
+                # 002596.python.imphook.line124.comment Add this hook to this module's list of hooks.
                 module_hooks = self.setdefault(module_name, [])
                 module_hooks.append(module_hook)
 
-        # Post-processing: we allow only one instance of hook per module. Currently, the priority order is defined
-        # implicitly, via order of hook directories, so the first hook in the list has the highest priority.
+        # 002597.python.imphook.line128.comment Post-processing: we allow only one instance of hook per module. Currently, the priority order is defined
+        # 002598.python.imphook.line129.comment implicitly, via order of hook directories, so the first hook in the list has the highest priority.
         for module_name in self.keys():
             hooks = self[module_name]
             if len(hooks) == 1:
                 self[module_name] = hooks[0]
             else:
-                # Order by priority value, in descending order.
+                # 002599.python.imphook.line135.comment Order by priority value, in descending order.
                 sorted_hooks = sorted(hooks, key=lambda hook: hook.priority, reverse=True)
                 self[module_name] = sorted_hooks[0]
 
@@ -147,9 +147,9 @@ class ModuleHookCache(dict):
         """
 
         for module_name in module_names:
-            # Unload this module's hook script modules from memory. Since these are top-level pure-Python modules cached
-            # only in the "sys.modules" dictionary, popping these modules from this dictionary suffices to garbage
-            # collect them.
+            # 002600.python.imphook.line150.comment Unload this module's hook script modules from memory. Since these are top-level pure-Python modules cached
+            # 002601.python.imphook.line151.comment only in the "sys.modules" dictionary, popping these modules from this dictionary suffices to garbage
+            # 002602.python.imphook.line152.comment collect them.
             module_hook = self.pop(module_name, None)  # Remove our reference, if available.
             if module_hook is not None:
                 sys.modules.pop(module_hook.hook_module_name, None)
@@ -157,10 +157,10 @@ class ModuleHookCache(dict):
 
 def _module_collection_mode_sanitizer(value):
     if isinstance(value, dict):
-        # Hook set a dictionary; use it as-is
+        # 002604.python.imphook.line160.comment Hook set a dictionary; use it as-is
         return value
     elif isinstance(value, str):
-        # Hook set a mode string; convert to a dictionary and assign the string to `None` (= the hooked module).
+        # 002605.python.imphook.line163.comment Hook set a mode string; convert to a dictionary and assign the string to `None` (= the hooked module).
         return {None: value}
 
     raise ValueError(f"Invalid module collection mode setting value: {value!r}")
@@ -168,49 +168,49 @@ def _module_collection_mode_sanitizer(value):
 
 def _bindepend_symlink_suppression_sanitizer(value):
     if isinstance(value, (list, set)):
-        # Hook set a list or a set; use it as-is
+        # 002606.python.imphook.line171.comment Hook set a list or a set; use it as-is
         return set(value)
     elif isinstance(value, str):
-        # Hook set a string; create a set with single element.
+        # 002607.python.imphook.line174.comment Hook set a string; create a set with single element.
         return set([value])
 
     raise ValueError(f"Invalid value for bindepend_symlink_suppression: {value!r}")
 
 
-# Dictionary mapping the names of magic attributes required by the "ModuleHook" class to 2-tuples "(default_type,
-# sanitizer_func)", where:
-#
-# * "default_type" is the type to which that attribute will be initialized when that hook is lazily loaded.
-# * "sanitizer_func" is the callable sanitizing the original value of that attribute defined by that hook into a
-#   safer value consumable by "ModuleHook" callers if any or "None" if the original value requires no sanitization.
-#
-# To avoid subtleties in the ModuleHook.__getattr__() method, this dictionary is declared as a module rather than a
-# class attribute. If declared as a class attribute and then undefined (...for whatever reason), attempting to access
-# this attribute from that method would produce infinite recursion.
+# 002608.python.imphook.line180.comment Dictionary mapping the names of magic attributes required by the "ModuleHook" class to 2-tuples "(default_type,
+# 002609.python.imphook.line181.comment sanitizer_func)", where:
+# 002610.python.imphook.line182.comment
+# 002611.python.imphook.line183.comment * "default_type" is the type to which that attribute will be initialized when that hook is lazily loaded.
+# 002612.python.imphook.line184.comment * "sanitizer_func" is the callable sanitizing the original value of that attribute defined by that hook into a
+# 002613.python.imphook.line185.comment safer value consumable by "ModuleHook" callers if any or "None" if the original value requires no sanitization.
+# 002614.python.imphook.line186.comment
+# 002615.python.imphook.line187.comment To avoid subtleties in the ModuleHook.__getattr__() method, this dictionary is declared as a module rather than a
+# 002616.python.imphook.line188.comment class attribute. If declared as a class attribute and then undefined (...for whatever reason), attempting to access
+# 002617.python.imphook.line189.comment this attribute from that method would produce infinite recursion.
 _MAGIC_MODULE_HOOK_ATTRS = {
-    # Collections in which order is insignificant. This includes:
-    #
-    # * "datas", sanitized from hook-style 2-tuple lists defined by hooks into TOC-style 2-tuple sets consumable by
-    #   "ModuleHook" callers.
-    # * "binaries", sanitized in the same way.
+    # 002618.python.imphook.line191.comment Collections in which order is insignificant. This includes:
+    # 002619.python.imphook.line192.comment
+    # 002620.python.imphook.line193.comment * "datas", sanitized from hook-style 2-tuple lists defined by hooks into TOC-style 2-tuple sets consumable by
+    # 002621.python.imphook.line194.comment "ModuleHook" callers.
+    # 002622.python.imphook.line195.comment * "binaries", sanitized in the same way.
     'datas': (set, format_binaries_and_datas),
     'binaries': (set, format_binaries_and_datas),
     'excludedimports': (set, None),
 
-    # Collections in which order is significant. This includes:
-    #
-    # * "hiddenimports", as order of importation is significant. On module importation, hook scripts are loaded and hook
-    #   functions declared by these scripts are called. As these scripts and functions can have side effects dependent
-    #   on module importation order, module importation itself can have side effects dependent on this order!
+    # 002623.python.imphook.line200.comment Collections in which order is significant. This includes:
+    # 002624.python.imphook.line201.comment
+    # 002625.python.imphook.line202.comment * "hiddenimports", as order of importation is significant. On module importation, hook scripts are loaded and hook
+    # 002626.python.imphook.line203.comment functions declared by these scripts are called. As these scripts and functions can have side effects dependent
+    # 002627.python.imphook.line204.comment on module importation order, module importation itself can have side effects dependent on this order!
     'hiddenimports': (list, None),
 
-    # Flags
+    # 002628.python.imphook.line207.comment Flags
     'warn_on_missing_hiddenimports': (lambda: True, bool),
 
-    # Package/module collection mode dictionary.
+    # 002629.python.imphook.line210.comment Package/module collection mode dictionary.
     'module_collection_mode': (dict, _module_collection_mode_sanitizer),
 
-    # Path patterns for suppression of symbolic links created by binary dependency analysis.
+    # 002630.python.imphook.line213.comment Path patterns for suppression of symbolic links created by binary dependency analysis.
     'bindepend_symlink_suppression': (set, _bindepend_symlink_suppression_sanitizer),
 }
 
@@ -273,7 +273,7 @@ class ModuleHook:
         priority override.
     """
 
-    #-- Magic --
+    # 002631.python.imphook.line276.comment -- Magic --
 
     def __init__(self, module_graph, module_name, hook_filename, hook_module_name_prefix, default_priority):
         """
@@ -298,20 +298,20 @@ class ModuleHook:
             Default, location-based priority for this hook. Used to select active hook when multiple hooks are defined
             for the same module.
         """
-        # Note that the passed module graph is already a weak reference, avoiding circular reference issues. See
-        # ModuleHookCache.__init__(). TODO: Add a failure message
+        # 002632.python.imphook.line301.comment Note that the passed module graph is already a weak reference, avoiding circular reference issues. See
+        # 002633.python.imphook.line302.comment ModuleHookCache.__init__(). TODO: Add a failure message
         assert isinstance(module_graph, weakref.ProxyTypes)
         self.module_graph = module_graph
         self.module_name = module_name
         self.hook_filename = hook_filename
 
-        # Default priority; used as fall-back for dynamic `hook_priority` attribute.
+        # 002634.python.imphook.line308.comment Default priority; used as fall-back for dynamic `hook_priority` attribute.
         self._default_priority = default_priority
 
-        # Name of the in-memory module fabricated to refer to this hook script.
+        # 002635.python.imphook.line311.comment Name of the in-memory module fabricated to refer to this hook script.
         self.hook_module_name = hook_module_name_prefix + self.module_name.replace('.', '_')
 
-        # Attributes subsequently defined by the _load_hook_module() method.
+        # 002636.python.imphook.line314.comment Attributes subsequently defined by the _load_hook_module() method.
         self._loaded = False
         self._has_hook_function = False
         self._hook_module = None
@@ -335,15 +335,15 @@ class ModuleHook:
         """
 
         if attr_name == 'priority':
-            # If attribute is part of hook metadata, read metadata from hook script and return the attribute value.
+            # 002637.python.imphook.line338.comment If attribute is part of hook metadata, read metadata from hook script and return the attribute value.
             self._load_hook_metadata()
             return getattr(self, attr_name)
         if attr_name in _MAGIC_MODULE_HOOK_ATTRS and not self._loaded:
-            # If attribute is hook's magic attribute, load and run the hook script, and return the attribute value.
+            # 002638.python.imphook.line342.comment If attribute is hook's magic attribute, load and run the hook script, and return the attribute value.
             self._load_hook_module()
             return getattr(self, attr_name)
         else:
-            # This is an undefined attribute. Raise an exception.
+            # 002639.python.imphook.line346.comment This is an undefined attribute. Raise an exception.
             raise AttributeError(attr_name)
 
     def __setattr__(self, attr_name, attr_value):
@@ -359,16 +359,16 @@ class ModuleHook:
         Class docstring for supported magic attributes.
         """
 
-        # If this is a magic attribute, initialize this attribute by lazy loading this hook script before overwriting
-        # this attribute.
+        # 002640.python.imphook.line362.comment If this is a magic attribute, initialize this attribute by lazy loading this hook script before overwriting
+        # 002641.python.imphook.line363.comment this attribute.
         if attr_name in _MAGIC_MODULE_HOOK_ATTRS:
             self._load_hook_module()
 
-        # Set this attribute to the passed value. To avoid recursion, the superclass method rather than setattr() is
-        # called.
+        # 002642.python.imphook.line367.comment Set this attribute to the passed value. To avoid recursion, the superclass method rather than setattr() is
+        # 002643.python.imphook.line368.comment called.
         return super().__setattr__(attr_name, attr_value)
 
-    #-- Loading --
+    # 002644.python.imphook.line371.comment -- Loading --
 
     def _load_hook_metadata(self):
         """
@@ -376,12 +376,12 @@ class ModuleHook:
         """
         self.priority = self._default_priority
 
-        # Priority override pattern: `# $PyInstaller-Hook-Priority: <value>`
+        # 002645.python.imphook.line379.comment Priority override pattern: `# $PyInstaller-Hook-Priority: <value>`
         priority_pattern = re.compile(r"^\s*#\s*\$PyInstaller-Hook-Priority:\s*(?P<value>[\S]+)")
 
         with open(self.hook_filename, "r", encoding="utf-8") as f:
             for line in f:
-                # Attempt to match and parse hook priority directive
+                # 002646.python.imphook.line384.comment Attempt to match and parse hook priority directive
                 m = priority_pattern.match(line)
                 if m is not None:
                     try:
@@ -390,7 +390,7 @@ class ModuleHook:
                         logger.warning(
                             "Failed to parse hook priority value string: %r!", m.group('value'), exc_info=True
                         )
-                    # Currently, this is our only line of interest, so we can stop the search here.
+                    # 002647.python.imphook.line393.comment Currently, this is our only line of interest, so we can stop the search here.
                     return
 
     def _load_hook_module(self, keep_module_ref=False):
@@ -410,12 +410,12 @@ class ModuleHook:
         Class docstring for supported attributes.
         """
 
-        # If this hook script module has already been loaded, noop.
+        # 002648.python.imphook.line413.comment If this hook script module has already been loaded, noop.
         if self._loaded and (self._hook_module is not None or not keep_module_ref):
             return
 
-        # Load and execute the hook script. Even if mechanisms from the import machinery are used, this does not import
-        # the hook as the module.
+        # 002649.python.imphook.line417.comment Load and execute the hook script. Even if mechanisms from the import machinery are used, this does not import
+        # 002650.python.imphook.line418.comment the hook as the module.
         hook_path, hook_basename = os.path.split(self.hook_filename)
         logger.info('Processing standard module hook %r from %r', hook_basename, hook_path)
         try:
@@ -424,30 +424,30 @@ class ModuleHook:
             logger.debug("Hook failed with:", exc_info=True)
             raise ImportErrorWhenRunningHook(self.hook_module_name, self.hook_filename)
 
-        # Mark as loaded
+        # 002651.python.imphook.line427.comment Mark as loaded
         self._loaded = True
 
-        # Check if module has hook() function.
+        # 002652.python.imphook.line430.comment Check if module has hook() function.
         self._has_hook_function = hasattr(self._hook_module, 'hook')
 
-        # Copy hook script attributes into magic attributes exposed as instance variables of the current "ModuleHook"
-        # instance.
+        # 002653.python.imphook.line433.comment Copy hook script attributes into magic attributes exposed as instance variables of the current "ModuleHook"
+        # 002654.python.imphook.line434.comment instance.
         for attr_name, (default_type, sanitizer_func) in _MAGIC_MODULE_HOOK_ATTRS.items():
-            # Unsanitized value of this attribute.
+            # 002655.python.imphook.line436.comment Unsanitized value of this attribute.
             attr_value = getattr(self._hook_module, attr_name, None)
 
-            # If this attribute is undefined, expose a sane default instead.
+            # 002656.python.imphook.line439.comment If this attribute is undefined, expose a sane default instead.
             if attr_value is None:
                 attr_value = default_type()
-            # Else if this attribute requires sanitization, do so.
+            # 002657.python.imphook.line442.comment Else if this attribute requires sanitization, do so.
             elif sanitizer_func is not None:
                 attr_value = sanitizer_func(attr_value)
-            # Else, expose the unsanitized value of this attribute.
+            # 002658.python.imphook.line445.comment Else, expose the unsanitized value of this attribute.
 
-            # Expose this attribute as an instance variable of the same name.
+            # 002659.python.imphook.line447.comment Expose this attribute as an instance variable of the same name.
             setattr(self, attr_name, attr_value)
 
-        # If module_collection_mode has an entry with None key, reassign it to the hooked module's name.
+        # 002660.python.imphook.line450.comment If module_collection_mode has an entry with None key, reassign it to the hooked module's name.
         setattr(
             self, 'module_collection_mode', {
                 key if key is not None else self.module_name: value
@@ -455,12 +455,12 @@ class ModuleHook:
             }
         )
 
-        # Release the module if we do not need the reference. This is the case when hook is loaded during the analysis
-        # rather as part of the post-graph operations.
+        # 002661.python.imphook.line458.comment Release the module if we do not need the reference. This is the case when hook is loaded during the analysis
+        # 002662.python.imphook.line459.comment rather as part of the post-graph operations.
         if not keep_module_ref:
             self._hook_module = None
 
-    #-- Hooks --
+    # 002663.python.imphook.line463.comment -- Hooks --
 
     def post_graph(self, analysis):
         """
@@ -474,18 +474,18 @@ class ModuleHook:
         This method is intended to be called _after_ the module graph for this application is constructed.
         """
 
-        # Lazily load this hook script into an in-memory module.
-        # The script might have been loaded before during modulegraph analysis; in that case, it needs to be reloaded
-        # only if it provides a hook() function.
+        # 002664.python.imphook.line477.comment Lazily load this hook script into an in-memory module.
+        # 002665.python.imphook.line478.comment The script might have been loaded before during modulegraph analysis; in that case, it needs to be reloaded
+        # 002666.python.imphook.line479.comment only if it provides a hook() function.
         if not self._loaded or self._has_hook_function:
-            # Keep module reference when loading the hook, so we can call its hook function!
+            # 002667.python.imphook.line481.comment Keep module reference when loading the hook, so we can call its hook function!
             self._load_hook_module(keep_module_ref=True)
 
-            # Call this hook script's hook() function, which modifies attributes accessed by subsequent methods and
-            # hence must be called first.
+            # 002668.python.imphook.line484.comment Call this hook script's hook() function, which modifies attributes accessed by subsequent methods and
+            # 002669.python.imphook.line485.comment hence must be called first.
             self._process_hook_func(analysis)
 
-        # Order is insignificant here.
+        # 002670.python.imphook.line488.comment Order is insignificant here.
         self._process_hidden_imports()
 
     def _process_hook_func(self, analysis):
@@ -498,11 +498,11 @@ class ModuleHook:
             Analysis that calls the hook
         """
 
-        # If this hook script defines no hook() function, noop.
+        # 002671.python.imphook.line501.comment If this hook script defines no hook() function, noop.
         if not hasattr(self._hook_module, 'hook'):
             return
 
-        # Call this hook() function.
+        # 002672.python.imphook.line505.comment Call this hook() function.
         hook_api = PostGraphAPI(module_name=self.module_name, module_graph=self.module_graph, analysis=analysis)
         try:
             self._hook_module.hook(hook_api)
@@ -510,21 +510,21 @@ class ModuleHook:
             logger.debug("Hook failed with:", exc_info=True)
             raise ImportErrorWhenRunningHook(self.hook_module_name, self.hook_filename)
 
-        # Update all magic attributes modified by the prior call.
+        # 002673.python.imphook.line513.comment Update all magic attributes modified by the prior call.
         self.datas.update(set(hook_api._added_datas))
         self.binaries.update(set(hook_api._added_binaries))
         self.hiddenimports.extend(hook_api._added_imports)
         self.module_collection_mode.update(hook_api._module_collection_mode)
         self.bindepend_symlink_suppression.update(hook_api._bindepend_symlink_suppression)
 
-        # FIXME: `hook_api._deleted_imports` should be appended to `self.excludedimports` and used to suppress module
-        # import during the modulegraph construction rather than handled here. However, for that to work, the `hook()`
-        # function needs to be ran during modulegraph construction instead of in post-processing (and this in turn
-        # requires additional code refactoring in order to be able to pass `analysis` to `PostGraphAPI` object at
-        # that point). So once the modulegraph rewrite is complete, remove the code block below.
+        # 002674.python.imphook.line520.comment FIXME: `hook_api._deleted_imports` should be appended to `self.excludedimports` and used to suppress module
+        # 002675.python.imphook.line521.comment import during the modulegraph construction rather than handled here. However, for that to work, the `hook()`
+        # 002676.python.imphook.line522.comment function needs to be ran during modulegraph construction instead of in post-processing (and this in turn
+        # 002677.python.imphook.line523.comment requires additional code refactoring in order to be able to pass `analysis` to `PostGraphAPI` object at
+        # 002678.python.imphook.line524.comment that point). So once the modulegraph rewrite is complete, remove the code block below.
         for deleted_module_name in hook_api._deleted_imports:
-            # Remove the graph link between the hooked module and item. This removes the 'item' node from the graph if
-            # no other links go to it (no other modules import it)
+            # 002679.python.imphook.line526.comment Remove the graph link between the hooked module and item. This removes the 'item' node from the graph if
+            # 002680.python.imphook.line527.comment no other links go to it (no other modules import it)
             self.module_graph.removeReference(hook_api.node, deleted_module_name)
 
     def _process_hidden_imports(self):
@@ -536,16 +536,16 @@ class ModuleHook:
         by hook scripts.
         """
 
-        # For each hidden import required by the module being hooked...
+        # 002681.python.imphook.line539.comment For each hidden import required by the module being hooked...
         for import_module_name in self.hiddenimports:
             try:
-                # Graph node for this module. Do not implicitly create namespace packages for non-existent packages.
+                # 002682.python.imphook.line542.comment Graph node for this module. Do not implicitly create namespace packages for non-existent packages.
                 caller = self.module_graph.find_node(self.module_name, create_nspkg=False)
 
-                # Manually import this hidden import from this module.
+                # 002683.python.imphook.line545.comment Manually import this hidden import from this module.
                 self.module_graph.import_hook(import_module_name, caller)
-            # If this hidden import is unimportable, print a non-fatal warning. Hidden imports often become
-            # desynchronized from upstream packages and hence are only "soft" recommendations.
+            # 002684.python.imphook.line547.comment If this hidden import is unimportable, print a non-fatal warning. Hidden imports often become
+            # 002685.python.imphook.line548.comment desynchronized from upstream packages and hence are only "soft" recommendations.
             except ImportError:
                 if self.warn_on_missing_hiddenimports:
                     logger.warning('Hidden import "%s" not found!', import_module_name)

@@ -1,28 +1,28 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 011222.python.winmanifest.line1.comment -----------------------------------------------------------------------------
+# 011223.python.winmanifest.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 011224.python.winmanifest.line3.comment
+# 011225.python.winmanifest.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 011226.python.winmanifest.line5.comment or later) with exception for distributing the bootloader.
+# 011227.python.winmanifest.line6.comment
+# 011228.python.winmanifest.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 011229.python.winmanifest.line8.comment
+# 011230.python.winmanifest.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 011231.python.winmanifest.line10.comment -----------------------------------------------------------------------------
 import xml.dom
 import xml.dom.minidom
 
-#- Relevant constants from Windows headers
-# Manifest resource code
+# 011232.python.winmanifest.line14.comment - Relevant constants from Windows headers
+# 011233.python.winmanifest.line15.comment Manifest resource code
 RT_MANIFEST = 24
 
-# Resource IDs (names) for manifest.
-# See: https://www.gamedev.net/blogs/entry/2154553-manifest-embedding-and-activation
+# 011234.python.winmanifest.line18.comment Resource IDs (names) for manifest.
+# 011235.python.winmanifest.line19.comment See: https://www.gamedev.net/blogs/entry/2154553-manifest-embedding-and-activation
 CREATEPROCESS_MANIFEST_RESOURCE_ID = 1
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID = 2
 
 LANG_NEUTRAL = 0
 
-#- Default application manifest template, based on the one found in python executable.
+# 011236.python.winmanifest.line25.comment - Default application manifest template, based on the one found in python executable.
 
 _DEFAULT_MANIFEST_XML = \
 b"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -56,7 +56,7 @@ b"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 </assembly>
 """  # noqa: E122,E501
 
-#- DOM navigation helpers
+# 011238.python.winmanifest.line59.comment - DOM navigation helpers
 
 
 def _find_elements_by_tag(root, tag):
@@ -79,7 +79,7 @@ def _find_element_by_tag(root, tag):
     return elements[0]
 
 
-#- Application manifest modification helpers
+# 011239.python.winmanifest.line82.comment - Application manifest modification helpers
 
 
 def _set_execution_level(manifest_dom, root_element, uac_admin=False, uac_uiaccess=False):
@@ -88,26 +88,26 @@ def _set_execution_level(manifest_dom, root_element, uac_admin=False, uac_uiacce
     attributes based on supplied arguments. Create the XML elements if necessary, as they are optional.
     """
 
-    # <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    # 011240.python.winmanifest.line91.comment <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     trust_info_element = _find_element_by_tag(root_element, "trustInfo")
     if not trust_info_element:
         trust_info_element = manifest_dom.createElement("trustInfo")
         trust_info_element.setAttribute("xmlns", "urn:schemas-microsoft-com:asm.v3")
         root_element.appendChild(trust_info_element)
 
-    # <security>
+    # 011241.python.winmanifest.line98.comment <security>
     security_element = _find_element_by_tag(trust_info_element, "security")
     if not security_element:
         security_element = manifest_dom.createElement("security")
         trust_info_element.appendChild(security_element)
 
-    # <requestedPrivileges>
+    # 011242.python.winmanifest.line104.comment <requestedPrivileges>
     requested_privileges_element = _find_element_by_tag(security_element, "requestedPrivileges")
     if not requested_privileges_element:
         requested_privileges_element = manifest_dom.createElement("requestedPrivileges")
         security_element.appendChild(requested_privileges_element)
 
-    # <requestedExecutionLevel>
+    # 011243.python.winmanifest.line110.comment <requestedExecutionLevel>
     requested_execution_level_element = _find_element_by_tag(requested_privileges_element, "requestedExecutionLevel")
     if not requested_execution_level_element:
         requested_execution_level_element = manifest_dom.createElement("requestedExecutionLevel")
@@ -124,25 +124,25 @@ def _ensure_common_controls_dependency(manifest_dom, root_element):
     element with corresponding sub-elements and attributes.
     """
 
-    # <dependency>
+    # 011244.python.winmanifest.line127.comment <dependency>
     dependency_elements = _find_elements_by_tag(root_element, "dependency")
     for dependency_element in dependency_elements:
-        # <dependentAssembly>
+        # 011245.python.winmanifest.line130.comment <dependentAssembly>
         dependent_assembly_element = _find_element_by_tag(dependency_element, "dependentAssembly")
-        # <assemblyIdentity>
+        # 011246.python.winmanifest.line132.comment <assemblyIdentity>
         assembly_identity_element = _find_element_by_tag(dependent_assembly_element, "assemblyIdentity")
-        # Check the name attribute
+        # 011247.python.winmanifest.line134.comment Check the name attribute
         if assembly_identity_element.attributes["name"].value == "Microsoft.Windows.Common-Controls":
             common_controls_element = assembly_identity_element
             break
     else:
-        # Create <dependency>
+        # 011248.python.winmanifest.line139.comment Create <dependency>
         dependency_element = manifest_dom.createElement("dependency")
         root_element.appendChild(dependency_element)
-        # Create <dependentAssembly>
+        # 011249.python.winmanifest.line142.comment Create <dependentAssembly>
         dependent_assembly_element = manifest_dom.createElement("dependentAssembly")
         dependency_element.appendChild(dependent_assembly_element)
-        # Create <assemblyIdentity>
+        # 011250.python.winmanifest.line145.comment Create <assemblyIdentity>
         common_controls_element = manifest_dom.createElement("assemblyIdentity")
         dependent_assembly_element.appendChild(common_controls_element)
 
@@ -170,23 +170,23 @@ def create_application_manifest(manifest_xml=None, uac_admin=False, uac_uiaccess
     with xml.dom.minidom.parseString(manifest_xml) as manifest_dom:
         root_element = manifest_dom.documentElement
 
-        # Validate root element - must be <assembly>
+        # 011251.python.winmanifest.line173.comment Validate root element - must be <assembly>
         assert root_element.tagName == "assembly"
         assert root_element.namespaceURI == "urn:schemas-microsoft-com:asm.v1"
         assert root_element.attributes["manifestVersion"].value == "1.0"
 
-        # Modify the manifest
+        # 011252.python.winmanifest.line178.comment Modify the manifest
         _set_execution_level(manifest_dom, root_element, uac_admin, uac_uiaccess)
         _ensure_common_controls_dependency(manifest_dom, root_element)
 
-        # Create output XML
+        # 011253.python.winmanifest.line182.comment Create output XML
         output = manifest_dom.toprettyxml(indent="  ", encoding="UTF-8")
 
-    # Strip extra newlines
+    # 011254.python.winmanifest.line185.comment Strip extra newlines
     output = [line for line in output.splitlines() if line.strip()]
 
-    # Replace: `<?xml version="1.0" encoding="UTF-8"?>` with `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`.
-    # Support for `standalone` was added to `toprettyxml` in python 3.9, so do a manual work around.
+    # 011255.python.winmanifest.line188.comment Replace: `<?xml version="1.0" encoding="UTF-8"?>` with `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`.
+    # 011256.python.winmanifest.line189.comment Support for `standalone` was added to `toprettyxml` in python 3.9, so do a manual work around.
     output[0] = b"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>"""
 
     output = b"\n".join(output)
@@ -200,11 +200,11 @@ def write_manifest_to_executable(filename, manifest_xml):
     """
     from PyInstaller.utils.win32 import winresource
 
-    # CREATEPROCESS_MANIFEST_RESOURCE_ID is used for manifest resource in executables.
-    # ISOLATIONAWARE_MANIFEST_RESOURCE_ID is used for manifest resources in DLLs.
+    # 011257.python.winmanifest.line203.comment CREATEPROCESS_MANIFEST_RESOURCE_ID is used for manifest resource in executables.
+    # 011258.python.winmanifest.line204.comment ISOLATIONAWARE_MANIFEST_RESOURCE_ID is used for manifest resources in DLLs.
     names = [CREATEPROCESS_MANIFEST_RESOURCE_ID]
 
-    # Ensure LANG_NEUTRAL is updated, and also update any other present languages.
+    # 011259.python.winmanifest.line207.comment Ensure LANG_NEUTRAL is updated, and also update any other present languages.
     languages = [LANG_NEUTRAL, "*"]
 
     winresource.add_or_update_resource(filename, manifest_xml, RT_MANIFEST, names, languages)
@@ -218,23 +218,23 @@ def read_manifest_from_executable(filename):
 
     resources = winresource.get_resources(filename, [RT_MANIFEST])
 
-    # `resources` is a three-level dictionary:
-    #  - level 1: resource type (RT_MANIFEST)
-    #  - level 2: resource name (CREATEPROCESS_MANIFEST_RESOURCE_ID)
-    #  - level 3: resource language (LANG_NEUTRAL)
+    # 011260.python.winmanifest.line221.comment `resources` is a three-level dictionary:
+    # 011261.python.winmanifest.line222.comment - level 1: resource type (RT_MANIFEST)
+    # 011262.python.winmanifest.line223.comment - level 2: resource name (CREATEPROCESS_MANIFEST_RESOURCE_ID)
+    # 011263.python.winmanifest.line224.comment - level 3: resource language (LANG_NEUTRAL)
 
-    # Level 1
+    # 011264.python.winmanifest.line226.comment Level 1
     if RT_MANIFEST not in resources:
         raise ValueError(f"No RT_MANIFEST resources found in {filename!r}.")
     resources = resources[RT_MANIFEST]
 
-    # Level 2
+    # 011265.python.winmanifest.line231.comment Level 2
     if CREATEPROCESS_MANIFEST_RESOURCE_ID not in resources:
         raise ValueError(f"No RT_MANIFEST resource named CREATEPROCESS_MANIFEST_RESOURCE_ID found in {filename!r}.")
     resources = resources[CREATEPROCESS_MANIFEST_RESOURCE_ID]
 
-    # Level 3
-    # We prefer LANG_NEUTRAL, but allow fall back to the first available entry.
+    # 011266.python.winmanifest.line236.comment Level 3
+    # 011267.python.winmanifest.line237.comment We prefer LANG_NEUTRAL, but allow fall back to the first available entry.
     if LANG_NEUTRAL in resources:
         resources = resources[LANG_NEUTRAL]
     else:

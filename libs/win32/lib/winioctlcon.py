@@ -1,4 +1,4 @@
-## flags, enums, guids used with DeviceIoControl from WinIoCtl.h
+# 047851.python.winioctlcon.line1.comment # flags, enums, guids used with DeviceIoControl from WinIoCtl.h
 
 import pywintypes
 from ntsecuritycon import FILE_READ_DATA, FILE_WRITE_DATA
@@ -522,7 +522,7 @@ OBSOLETE_IOCTL_STORAGE_RESET_BUS = CTL_CODE(
 OBSOLETE_IOCTL_STORAGE_RESET_DEVICE = CTL_CODE(
     IOCTL_STORAGE_BASE, 0x0401, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS
 )
-## the original define no longer exists in winioctl.h
+# 047852.python.winioctlcon.line525.comment # the original define no longer exists in winioctl.h
 OBSOLETE_DISK_GET_WRITE_CACHE_STATE = CTL_CODE(
     IOCTL_DISK_BASE, 0x0037, METHOD_BUFFERED, FILE_READ_ACCESS
 )
@@ -618,10 +618,10 @@ IOCTL_SERENUM_GET_PORT_NAME = CTL_CODE(
     FILE_DEVICE_SERENUM, 131, METHOD_BUFFERED, FILE_ANY_ACCESS
 )
 
-## ??? can't find where FILE_DEVICE_AVIO is defined ???
-## IOCTL_AVIO_ALLOCATE_STREAM = CTL_CODE(FILE_DEVICE_AVIO, 1, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
-## IOCTL_AVIO_FREE_STREAM = CTL_CODE(FILE_DEVICE_AVIO, 2, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
-## IOCTL_AVIO_MODIFY_STREAM = CTL_CODE(FILE_DEVICE_AVIO, 3, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+# 047853.python.winioctlcon.line621.comment # ??? can't find where FILE_DEVICE_AVIO is defined ???
+# 047854.python.winioctlcon.line622.comment # IOCTL_AVIO_ALLOCATE_STREAM = CTL_CODE(FILE_DEVICE_AVIO, 1, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+# 047855.python.winioctlcon.line623.comment # IOCTL_AVIO_FREE_STREAM = CTL_CODE(FILE_DEVICE_AVIO, 2, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+# 047856.python.winioctlcon.line624.comment # IOCTL_AVIO_MODIFY_STREAM = CTL_CODE(FILE_DEVICE_AVIO, 3, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 
 SERIAL_LSRMST_ESCAPE = 0x00
 SERIAL_LSRMST_LSR_DATA = 0x01
@@ -931,8 +931,8 @@ IOCTL_VOLUME_GET_GPT_ATTRIBUTES = CTL_CODE(
     IOCTL_VOLUME_BASE, 14, METHOD_BUFFERED, FILE_ANY_ACCESS
 )
 
-## enums
-## STORAGE_MEDIA_TYPE
+# 047857.python.winioctlcon.line934.comment # enums
+# 047858.python.winioctlcon.line935.comment # STORAGE_MEDIA_TYPE
 DDS_4mm = 32
 MiniQic = 33
 Travan = 34
@@ -995,7 +995,7 @@ ADR_1 = 90
 ADR_2 = 91
 STK_9940 = 92
 
-## STORAGE_BUS_TYPE
+# 047859.python.winioctlcon.line998.comment # STORAGE_BUS_TYPE
 BusTypeUnknown = 0
 BusTypeScsi = 1
 BusTypeAtapi = 2
@@ -1010,7 +1010,7 @@ BusTypeSas = 10
 BusTypeSata = 11
 BusTypeMaxReserved = 127
 
-## MEDIA_TYPE
+# 047860.python.winioctlcon.line1013.comment # MEDIA_TYPE
 Unknown = 0
 F5_1Pt2_512 = 1
 F3_1Pt44_512 = 2
@@ -1038,31 +1038,31 @@ F3_200Mb_512 = 23
 F3_240M_512 = 24
 F3_32M_512 = 25
 
-## PARTITION_STYLE
+# 047861.python.winioctlcon.line1041.comment # PARTITION_STYLE
 PARTITION_STYLE_MBR = 0
 PARTITION_STYLE_GPT = 1
 PARTITION_STYLE_RAW = 2
 
-## DETECTION_TYPE
+# 047862.python.winioctlcon.line1046.comment # DETECTION_TYPE
 DetectNone = 0
 DetectInt13 = 1
 DetectExInt13 = 2
 
-## DISK_CACHE_RETENTION_PRIORITY
+# 047863.python.winioctlcon.line1051.comment # DISK_CACHE_RETENTION_PRIORITY
 EqualPriority = 0
 KeepPrefetchedData = 1
 KeepReadData = 2
 
-## DISK_WRITE_CACHE_STATE - ?????? this enum has disappeared from winioctl.h in windows 2003 SP1 sdk ??????
+# 047864.python.winioctlcon.line1056.comment # DISK_WRITE_CACHE_STATE - ?????? this enum has disappeared from winioctl.h in windows 2003 SP1 sdk ??????
 DiskWriteCacheNormal = 0
 DiskWriteCacheForceDisable = 1
 DiskWriteCacheDisableNotSupported = 2
 
-## BIN_TYPES
+# 047865.python.winioctlcon.line1061.comment # BIN_TYPES
 RequestSize = 0
 RequestLocation = 1
 
-## CHANGER_DEVICE_PROBLEM_TYPE
+# 047866.python.winioctlcon.line1065.comment # CHANGER_DEVICE_PROBLEM_TYPE
 DeviceProblemNone = 0
 DeviceProblemHardware = 1
 DeviceProblemCHMError = 2

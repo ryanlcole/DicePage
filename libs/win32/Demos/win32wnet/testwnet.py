@@ -23,7 +23,7 @@ def _doDumpHandle(handle, level=0):
                         indent + "Have generic resource with name:", item.lpRemoteName
                     )
                 else:
-                    # Try generic!
+                    # 046646.python.testwnet.line26.comment Try generic!
                     print(indent + "Enumerating " + item.lpRemoteName, end=" ")
                     k = win32wnet.WNetOpenEnum(
                         RESOURCE_GLOBALNET, RESOURCETYPE_ANY, 0, item
@@ -80,7 +80,7 @@ def TestConnection():
         except win32wnet.error as details:
             print("Couldn't connect: " + details.strerror)
             continue
-        # Have a connection.
+        # 046648.python.testwnet.line83.comment Have a connection.
         try:
             fname = os.path.join(localName + "\\", os.listdir(localName + "\\")[0])
             try:
@@ -94,8 +94,8 @@ def TestConnection():
             print("User name for this connection is", win32wnet.WNetGetUser(localName))
         finally:
             win32wnet.WNetCancelConnection2(localName, 0, 0)
-        # and do it again, but this time by using the more modern
-        # NETRESOURCE way.
+        # 046649.python.testwnet.line97.comment and do it again, but this time by using the more modern
+        # 046650.python.testwnet.line98.comment NETRESOURCE way.
         nr = win32wnet.NETRESOURCE()
         nr.dwType = share.dwType
         nr.lpLocalName = localName
@@ -103,11 +103,11 @@ def TestConnection():
         win32wnet.WNetAddConnection2(nr)
         win32wnet.WNetCancelConnection2(localName, 0, 0)
 
-        # and one more time using WNetAddConnection3
+        # 046651.python.testwnet.line106.comment and one more time using WNetAddConnection3
         win32wnet.WNetAddConnection3(0, nr)
         win32wnet.WNetCancelConnection2(localName, 0, 0)
 
-        # Only do the first share that succeeds.
+        # 046652.python.testwnet.line110.comment Only do the first share that succeeds.
         break
 
 

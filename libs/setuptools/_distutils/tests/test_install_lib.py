@@ -24,7 +24,7 @@ class TestInstallLib(
         assert cmd.compile == 1
         assert cmd.optimize == 0
 
-        # optimize must be 0, 1, or 2
+        # 041142.python.test_install_lib.line27.comment optimize must be 0, 1, or 2
         cmd.optimize = 'foo'
         with pytest.raises(DistutilsOptionError):
             cmd.finalize_options()
@@ -59,7 +59,7 @@ class TestInstallLib(
         os.mkdir('spam')
         cmd = install_lib(dist)
 
-        # setting up a dist environment
+        # 041143.python.test_install_lib.line62.comment setting up a dist environment
         cmd.compile = cmd.optimize = 1
         cmd.install_dir = self.mkdtemp()
         f = os.path.join(project_dir, 'spam', '__init__.py')
@@ -68,8 +68,8 @@ class TestInstallLib(
         cmd.distribution.packages = ['spam']
         cmd.distribution.script_name = 'setup.py'
 
-        # get_outputs should return 4 elements: spam/__init__.py and .pyc,
-        # foo.import-tag-abiflags.so / foo.pyd
+        # 041144.python.test_install_lib.line71.comment get_outputs should return 4 elements: spam/__init__.py and .pyc,
+        # 041145.python.test_install_lib.line72.comment foo.import-tag-abiflags.so / foo.pyd
         outputs = cmd.get_outputs()
         assert len(outputs) == 4, outputs
 
@@ -79,7 +79,7 @@ class TestInstallLib(
         os.mkdir('spam')
         cmd = install_lib(dist)
 
-        # setting up a dist environment
+        # 041146.python.test_install_lib.line82.comment setting up a dist environment
         cmd.compile = cmd.optimize = 1
         cmd.install_dir = self.mkdtemp()
         f = os.path.join(project_dir, 'spam', '__init__.py')
@@ -88,13 +88,13 @@ class TestInstallLib(
         cmd.distribution.packages = ['spam']
         cmd.distribution.script_name = 'setup.py'
 
-        # get_inputs should return 2 elements: spam/__init__.py and
-        # foo.import-tag-abiflags.so / foo.pyd
+        # 041147.python.test_install_lib.line91.comment get_inputs should return 2 elements: spam/__init__.py and
+        # 041148.python.test_install_lib.line92.comment foo.import-tag-abiflags.so / foo.pyd
         inputs = cmd.get_inputs()
         assert len(inputs) == 2, inputs
 
     def test_dont_write_bytecode(self, caplog):
-        # makes sure byte_compile is not used
+        # 041149.python.test_install_lib.line97.comment makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
         cmd.compile = True

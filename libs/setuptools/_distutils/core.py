@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from .cmd import Command
 from .debug import DEBUG
 
-# Mainly import these so setup scripts can "from distutils.core import" them.
+# 040379.python.core.line19.comment Mainly import these so setup scripts can "from distutils.core import" them.
 from .dist import Distribution
 from .errors import (
     CCompilerError,
@@ -28,10 +28,10 @@ from .extension import Extension
 
 __all__ = ['Distribution', 'Command', 'Extension', 'setup']
 
-# This is a barebones help message generated displayed when the user
-# runs the setup script with no arguments at all.  More useful help
-# is generated with various --help options: global help, list commands,
-# and per-command help.
+# 040380.python.core.line31.comment This is a barebones help message generated displayed when the user
+# 040381.python.core.line32.comment runs the setup script with no arguments at all.  More useful help
+# 040382.python.core.line33.comment is generated with various --help options: global help, list commands,
+# 040383.python.core.line34.comment and per-command help.
 USAGE = """\
 usage: %(script)s [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
    or: %(script)s --help [cmd1 cmd2 ...]
@@ -45,11 +45,11 @@ def gen_usage(script_name):
     return USAGE % locals()
 
 
-# Some mild magic to control the behaviour of 'setup()' from 'run_setup()'.
+# 040384.python.core.line48.comment Some mild magic to control the behaviour of 'setup()' from 'run_setup()'.
 _setup_stop_after = None
 _setup_distribution = None
 
-# Legal keyword arguments for the setup() function
+# 040385.python.core.line52.comment Legal keyword arguments for the setup() function
 setup_keywords = (
     'distclass',
     'script_name',
@@ -74,7 +74,7 @@ setup_keywords = (
     'obsoletes',
 )
 
-# Legal keyword arguments for the Extension constructor
+# 040386.python.core.line77.comment Legal keyword arguments for the Extension constructor
 extension_keywords = (
     'name',
     'sources',
@@ -129,8 +129,8 @@ def setup(**attrs):  # noqa: C901
 
     global _setup_stop_after, _setup_distribution
 
-    # Determine the distribution class -- either caller-supplied or
-    # our Distribution (see below).
+    # 040388.python.core.line132.comment Determine the distribution class -- either caller-supplied or
+    # 040389.python.core.line133.comment our Distribution (see below).
     klass = attrs.get('distclass')
     if klass:
         attrs.pop('distclass')
@@ -142,8 +142,8 @@ def setup(**attrs):  # noqa: C901
     if 'script_args' not in attrs:
         attrs['script_args'] = sys.argv[1:]
 
-    # Create the Distribution instance, using the remaining arguments
-    # (ie. everything except distclass) to initialize it
+    # 040390.python.core.line145.comment Create the Distribution instance, using the remaining arguments
+    # 040391.python.core.line146.comment (ie. everything except distclass) to initialize it
     try:
         _setup_distribution = dist = klass(attrs)
     except DistutilsSetupError as msg:
@@ -155,8 +155,8 @@ def setup(**attrs):  # noqa: C901
     if _setup_stop_after == "init":
         return dist
 
-    # Find and parse the config file(s): they will override options from
-    # the setup script, but be overridden by the command line.
+    # 040392.python.core.line158.comment Find and parse the config file(s): they will override options from
+    # 040393.python.core.line159.comment the setup script, but be overridden by the command line.
     dist.parse_config_files()
 
     if DEBUG:
@@ -166,9 +166,9 @@ def setup(**attrs):  # noqa: C901
     if _setup_stop_after == "config":
         return dist
 
-    # Parse the command line and override config files; any
-    # command-line errors are the end user's fault, so turn them into
-    # SystemExit to suppress tracebacks.
+    # 040394.python.core.line169.comment Parse the command line and override config files; any
+    # 040395.python.core.line170.comment command-line errors are the end user's fault, so turn them into
+    # 040396.python.core.line171.comment SystemExit to suppress tracebacks.
     try:
         ok = dist.parse_command_line()
     except DistutilsArgError as msg:
@@ -181,14 +181,14 @@ def setup(**attrs):  # noqa: C901
     if _setup_stop_after == "commandline":
         return dist
 
-    # And finally, run all the commands found on the command line.
+    # 040397.python.core.line184.comment And finally, run all the commands found on the command line.
     if ok:
         return run_commands(dist)
 
     return dist
 
 
-# setup ()
+# 040398.python.core.line191.comment setup ()
 
 
 def run_commands(dist):
@@ -262,7 +262,7 @@ def run_setup(script_name, script_args: Iterable[str] | None = None, stop_after=
             sys.argv[0] = script_name
             if script_args is not None:
                 sys.argv[1:] = script_args
-            # tokenize.open supports automatic encoding detection
+            # 040399.python.core.line265.comment tokenize.open supports automatic encoding detection
             with tokenize.open(script_name) as f:
                 code = f.read().replace(r'\r\n', r'\n')
                 exec(code, g)
@@ -270,8 +270,8 @@ def run_setup(script_name, script_args: Iterable[str] | None = None, stop_after=
             sys.argv = save_argv
             _setup_stop_after = None
     except SystemExit:
-        # Hmm, should we do something if exiting with a non-zero code
-        # (ie. error)?
+        # 040400.python.core.line273.comment Hmm, should we do something if exiting with a non-zero code
+        # 040401.python.core.line274.comment (ie. error)?
         pass
 
     if _setup_distribution is None:
@@ -280,10 +280,10 @@ def run_setup(script_name, script_args: Iterable[str] | None = None, stop_after=
             f"perhaps '{script_name}' is not a Distutils setup script?"
         )
 
-    # I wonder if the setup script's namespace -- g and l -- would be of
-    # any interest to callers?
-    # print "_setup_distribution:", _setup_distribution
+    # 040402.python.core.line283.comment I wonder if the setup script's namespace -- g and l -- would be of
+    # 040403.python.core.line284.comment any interest to callers?
+    # 040404.python.core.line285.comment print "_setup_distribution:", _setup_distribution
     return _setup_distribution
 
 
-# run_setup ()
+# 040405.python.core.line289.comment run_setup ()

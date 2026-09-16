@@ -1,4 +1,4 @@
-## demonstrates using BackupRead and BackupWrite to copy all of a file's data streams
+# 045962.python.BackupRead_BackupWrite.line1.comment # demonstrates using BackupRead and BackupWrite to copy all of a file's data streams
 
 import ntsecuritycon
 import pythoncom
@@ -25,7 +25,7 @@ f = open(tempfile, "w")
 f.write("some random junk" + "x" * 100)
 f.close()
 
-## add a couple of alternate data streams
+# 045963.python.BackupRead_BackupWrite.line28.comment # add a couple of alternate data streams
 f = open(tempfile + ":streamdata", "w")
 f.write("data written to alternate stream" + "y" * 100)
 f.close()
@@ -34,7 +34,7 @@ f = open(tempfile + ":anotherstream", "w")
 f.write("z" * 100)
 f.close()
 
-## add Summary Information, which is stored as a separate stream
+# 045964.python.BackupRead_BackupWrite.line37.comment # add Summary Information, which is stored as a separate stream
 m = storagecon.STGM_READWRITE | storagecon.STGM_SHARE_EXCLUSIVE | storagecon.STGM_DIRECT
 pss = pythoncom.StgOpenStorageEx(
     tempfile, m, storagecon.STGFMT_FILE, 0, pythoncom.IID_IPropertySetStorage, None
@@ -51,8 +51,8 @@ ps.WriteMultiple(
 ps = None
 pss = None
 
-## add a custom security descriptor to make sure we don't
-##   get a default that would always be the same for both files in temp dir
+# 045965.python.BackupRead_BackupWrite.line54.comment # add a custom security descriptor to make sure we don't
+# 045966.python.BackupRead_BackupWrite.line55.comment #   get a default that would always be the same for both files in temp dir
 new_sd = pywintypes.SECURITY_DESCRIPTOR()
 sid = win32security.LookupAccountName("", "EveryOne")[0]
 acl = pywintypes.ACL()
@@ -116,4 +116,4 @@ assert (
     memoryview(win32security.GetFileSecurity(tempfile, all_sd_info))[:]
     == memoryview(win32security.GetFileSecurity(outfile, all_sd_info))[:]
 ), "Security descriptors are different !"
-## also should check Summary Info programatically
+# 045967.python.BackupRead_BackupWrite.line119.comment # also should check Summary Info programatically

@@ -91,7 +91,7 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
 
     if "license-files" in tool_table:
         if "license-files" in config.get("project", {}):
-            # https://github.com/pypa/setuptools/pull/4837#discussion_r2004983349
+            # 044621.python.apply_pyprojecttoml.line94.comment https://github.com/pypa/setuptools/pull/4837#discussion_r2004983349
             raise InvalidConfigError(
                 "'project.license-files' is defined already. "
                 "Remove 'tool.setuptools.license-files'."
@@ -188,7 +188,7 @@ def _long_description(
         text = val.get("text") or expand.read_files(file, root_dir)
         ctype = val["content-type"]
 
-    # XXX: Is it completely safe to assume static?
+    # 044623.python.apply_pyprojecttoml.line191.comment XXX: Is it completely safe to assume static?
     _set_config(dist, "long_description", _static.Str(text))
 
     if ctype:
@@ -217,7 +217,7 @@ def _license(dist: Distribution, val: str | dict, root_dir: StrPath | None):
             due_date=(2026, 2, 18),  # Introduced on 2025-02-18
         )
         if "file" in val:
-            # XXX: Is it completely safe to assume static?
+            # 044625.python.apply_pyprojecttoml.line220.comment XXX: Is it completely safe to assume static?
             value = expand.read_files([val["file"]], root_dir)
             _set_config(dist, "license", _static.Str(value))
             dist._referenced_files.add(val["file"])
@@ -288,7 +288,7 @@ def _unify_entry_points(project_table: dict):
     for key, value in list(project.items()):  # eager to allow modifications
         norm_key = json_compatible_key(key)
         if norm_key in renaming:
-            # Don't skip even if value is empty (reason: reset missing `dynamic`)
+            # 044628.python.apply_pyprojecttoml.line291.comment Don't skip even if value is empty (reason: reset missing `dynamic`)
             entry_points[renaming[norm_key]] = project.pop(key)
 
     if entry_points:
@@ -297,8 +297,8 @@ def _unify_entry_points(project_table: dict):
             for name, group in entry_points.items()
             if group  # now we can skip empty groups
         }
-        # Sometimes this will set `project["entry-points"] = {}`, and that is
-        # intentional (for resetting configurations that are missing `dynamic`).
+        # 044630.python.apply_pyprojecttoml.line300.comment Sometimes this will set `project["entry-points"] = {}`, and that is
+        # 044631.python.apply_pyprojecttoml.line301.comment intentional (for resetting configurations that are missing `dynamic`).
 
 
 def _copy_command_options(pyproject: dict, dist: Distribution, filename: StrPath):
@@ -315,8 +315,8 @@ def _copy_command_options(pyproject: dict, dist: Distribution, filename: StrPath
             key = json_compatible_key(key)
             cmd_opts[cmd][key] = (str(filename), value)
             if key not in valid:
-                # To avoid removing options that are specified dynamically we
-                # just log a warn...
+                # 044632.python.apply_pyprojecttoml.line318.comment To avoid removing options that are specified dynamically we
+                # 044633.python.apply_pyprojecttoml.line319.comment just log a warn...
                 _logger.warning(f"Command option {cmd}.{key} is not defined")
 
 
@@ -340,11 +340,11 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
 
 def _load_ep(ep: metadata.EntryPoint) -> tuple[str, type] | None:
     if ep.value.startswith("wheel.bdist_wheel"):
-        # Ignore deprecated entrypoint from wheel and avoid warning pypa/wheel#631
-        # TODO: remove check when `bdist_wheel` has been fully removed from pypa/wheel
+        # 044634.python.apply_pyprojecttoml.line343.comment Ignore deprecated entrypoint from wheel and avoid warning pypa/wheel#631
+        # 044635.python.apply_pyprojecttoml.line344.comment TODO: remove check when `bdist_wheel` has been fully removed from pypa/wheel
         return None
 
-    # Ignore all the errors
+    # 044636.python.apply_pyprojecttoml.line347.comment Ignore all the errors
     try:
         return (ep.name, ep.load())
     except Exception as ex:
@@ -439,7 +439,7 @@ TOOL_TABLE_REMOVALS = {
         """,
 }
 TOOL_TABLE_CORRESPONDENCE = {
-    # Fields with corresponding core metadata need to be marked as static:
+    # 044637.python.apply_pyprojecttoml.line442.comment Fields with corresponding core metadata need to be marked as static:
     "obsoletes": partial(_set_static_list_metadata, "obsoletes"),
     "provides": partial(_set_static_list_metadata, "provides"),
     "platforms": partial(_set_static_list_metadata, "platforms"),
@@ -465,8 +465,8 @@ _PREVIOUSLY_DEFINED = {
     "readme": _attrgetter("metadata.long_description"),
     "requires-python": _some_attrgetter("python_requires", "metadata.python_requires"),
     "license": _some_attrgetter("metadata.license_expression", "metadata.license"),
-    # XXX: `license-file` is currently not considered in the context of `dynamic`.
-    #      See TestPresetField.test_license_files_exempt_from_dynamic
+    # 044638.python.apply_pyprojecttoml.line468.comment XXX: `license-file` is currently not considered in the context of `dynamic`.
+    # 044639.python.apply_pyprojecttoml.line469.comment See TestPresetField.test_license_files_exempt_from_dynamic
     "authors": _some_attrgetter("metadata.author", "metadata.author_email"),
     "maintainers": _some_attrgetter("metadata.maintainer", "metadata.maintainer_email"),
     "keywords": _attrgetter("metadata.keywords"),
@@ -481,12 +481,12 @@ _PREVIOUSLY_DEFINED = {
 
 
 _RESET_PREVIOUSLY_DEFINED: dict = {
-    # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
-    # Use "immutable" data structures to avoid in-place modification.
-    # dict: pyproject name => value to which reset
+    # 044640.python.apply_pyprojecttoml.line484.comment Fix improper setting: given in `setup.py`, but not listed in `dynamic`
+    # 044641.python.apply_pyprojecttoml.line485.comment Use "immutable" data structures to avoid in-place modification.
+    # 044642.python.apply_pyprojecttoml.line486.comment dict: pyproject name => value to which reset
     "license": "",
-    # XXX: `license-file` is currently not considered in the context of `dynamic`.
-    #      See TestPresetField.test_license_files_exempt_from_dynamic
+    # 044643.python.apply_pyprojecttoml.line488.comment XXX: `license-file` is currently not considered in the context of `dynamic`.
+    # 044644.python.apply_pyprojecttoml.line489.comment See TestPresetField.test_license_files_exempt_from_dynamic
     "authors": _static.EMPTY_LIST,
     "maintainers": _static.EMPTY_LIST,
     "keywords": _static.EMPTY_LIST,
@@ -517,9 +517,9 @@ class _MissingDynamic(SetuptoolsWarning):
     remove the `[project]` table from your file and rely entirely on other means of
     configuration.
     """
-    # TODO: Consider removing this check in the future?
-    #       There is a trade-off here between improving "debug-ability" and the cost
-    #       of running/testing/maintaining these unnecessary checks...
+    # 044645.python.apply_pyprojecttoml.line520.comment TODO: Consider removing this check in the future?
+    # 044646.python.apply_pyprojecttoml.line521.comment There is a trade-off here between improving "debug-ability" and the cost
+    # 044647.python.apply_pyprojecttoml.line522.comment of running/testing/maintaining these unnecessary checks...
 
     @classmethod
     def details(cls, field: str, value: Any) -> str:

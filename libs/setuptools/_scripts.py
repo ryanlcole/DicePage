@@ -168,8 +168,8 @@ class ScriptWriter:
         console_scripts and gui_scripts entry points.
         """
 
-        # If distribution is not an importlib.metadata.Distribution, assume
-        # it's a pkg_resources.Distribution and transform it.
+        # 041515.python.scripts.line171.comment If distribution is not an importlib.metadata.Distribution, assume
+        # 041516.python.scripts.line172.comment it's a pkg_resources.Distribution and transform it.
         if not hasattr(dist, 'entry_points'):
             SetuptoolsWarning.emit("Unsupported distribution encountered.")
             dist = metadata.Distribution.at(dist.egg_info)
@@ -207,7 +207,7 @@ class ScriptWriter:
 
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
-        # Simply write the stub with no extension.
+        # 041517.python.scripts.line210.comment Simply write the stub with no extension.
         yield (name, header + script_text)
 
     @classmethod
@@ -234,7 +234,7 @@ class WindowsScriptWriter(ScriptWriter):
             executable=WindowsExecutableLauncherWriter,
             natural=cls,
         )
-        # for compatibility, use the executable launcher by default
+        # 041518.python.scripts.line237.comment for compatibility, use the executable launcher by default
         launcher = os.environ.get('SETUPTOOLS_LAUNCHER', 'executable')
         return writer_lookup[launcher]
 
@@ -304,11 +304,11 @@ class WindowsExecutableLauncherWriter(WindowsScriptWriter):
             'b',  # write in binary mode
         )
         if not is_64bit():
-            # install a manifest for the launcher to prevent Windows
-            # from detecting it as an installer (which it will for
-            #  launchers like easy_install.exe). Consider only
-            #  adding a manifest for launchers detected as installers.
-            #  See Distribute #143 for details.
+            # 041520.python.scripts.line307.comment install a manifest for the launcher to prevent Windows
+            # 041521.python.scripts.line308.comment from detecting it as an installer (which it will for
+            # 041522.python.scripts.line309.comment launchers like easy_install.exe). Consider only
+            # 041523.python.scripts.line310.comment adding a manifest for launchers detected as installers.
+            # 041524.python.scripts.line311.comment See Distribute #143 for details.
             m_name = name + '.exe.manifest'
             yield (m_name, load_launcher_manifest(name), 't')
 
@@ -345,7 +345,7 @@ def _first_line_re():
     if isinstance(first_line_re.pattern, str):
         return first_line_re
 
-    # first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
+    # 041525.python.scripts.line348.comment first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
     return re.compile(first_line_re.pattern.decode())
 
 

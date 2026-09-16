@@ -49,11 +49,11 @@ class EventDebouncer(BaseThread):
     def run(self) -> None:
         with self._cond:
             while True:
-                # Wait for first event (or shutdown).
+                # 045940.python.event_debouncer.line52.comment Wait for first event (or shutdown).
                 self._cond.wait()
 
                 if self.debounce_interval_seconds:
-                    # Wait for additional events (or shutdown) until the debounce interval passes.
+                    # 045941.python.event_debouncer.line56.comment Wait for additional events (or shutdown) until the debounce interval passes.
                     while self.should_keep_running():
                         if not self._cond.wait(timeout=self.debounce_interval_seconds):
                             break

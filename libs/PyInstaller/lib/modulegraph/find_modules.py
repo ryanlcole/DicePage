@@ -22,8 +22,8 @@ def get_implies():
         ]
 
     result = {
-        # imports done from C code in built-in and/or extension modules
-        # (untrackable by modulegraph).
+        # 008698.python.find_modules.line25.comment imports done from C code in built-in and/or extension modules
+        # 008699.python.find_modules.line26.comment (untrackable by modulegraph).
         "_curses": ["curses"],
         "posix": ["resource"],
         "gc": ["time"],
@@ -34,27 +34,27 @@ def get_implies():
         "_sre": ["copy", "re"],
         "zipimport": ["zlib"],
 
-        # _frozen_importlib is part of the interpreter itself
+        # 008700.python.find_modules.line37.comment _frozen_importlib is part of the interpreter itself
         "_frozen_importlib": None,
 
-        # os.path is an alias for a platform specific module,
-        # ensure that the graph shows this.
+        # 008701.python.find_modules.line40.comment os.path is an alias for a platform specific module,
+        # 008702.python.find_modules.line41.comment ensure that the graph shows this.
         "os.path": Alias(os.path.__name__),
 
-        # Python >= 3.2:
+        # 008703.python.find_modules.line44.comment Python >= 3.2:
         "_datetime": ["time", "_strptime"],
         "_json": ["json.decoder"],
         "_pickle": ["codecs", "copyreg", "_compat_pickle"],
         "_posixsubprocess": ["gc"],
         "_ssl": ["socket"],
 
-        # Python >= 3.3:
+        # 008704.python.find_modules.line51.comment Python >= 3.3:
         "_elementtree": ["pyexpat"] + _xml_etree_modules(),
 
-        # This is not C extension, but it uses __import__
+        # 008705.python.find_modules.line54.comment This is not C extension, but it uses __import__
         "anydbm": ["dbhash", "gdbm", "dbm", "dumbdbm", "whichdb"],
 
-        # Known package aliases
+        # 008706.python.find_modules.line57.comment Known package aliases
         "wxPython.wx": Alias('wx'),
     }
 

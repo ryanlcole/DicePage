@@ -8,7 +8,7 @@ __all__ = ['link_EGL']
 
 egl_lib = pyglet.lib.load_library('EGL')
 
-# Look for eglGetProcAddress
+# 031519.python.lib.line11.comment Look for eglGetProcAddress
 eglGetProcAddress = getattr(egl_lib, 'eglGetProcAddress')
 eglGetProcAddress.restype = POINTER(CFUNCTYPE(None))
 eglGetProcAddress.argtypes = [POINTER(c_ubyte)]

@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 010951.python.misc.line1.comment -----------------------------------------------------------------------------
+# 010952.python.misc.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 010953.python.misc.line3.comment
+# 010954.python.misc.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 010955.python.misc.line5.comment or later) with exception for distributing the bootloader.
+# 010956.python.misc.line6.comment
+# 010957.python.misc.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 010958.python.misc.line8.comment
+# 010959.python.misc.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 010960.python.misc.line10.comment -----------------------------------------------------------------------------
 """
 This module contains miscellaneous functions that do not fit anywhere else.
 """
@@ -69,26 +69,26 @@ def get_path_to_toplevel_modules(filename):
     curr_dir = os.path.dirname(os.path.abspath(filename))
     pattern = '__init__.py'
 
-    # Try max. 10 levels up.
+    # 010961.python.misc.line72.comment Try max. 10 levels up.
     try:
         for i in range(10):
             files = set(os.listdir(curr_dir))
-            # 'curr_dir' is still not top-level; go to parent dir.
+            # 010962.python.misc.line76.comment 'curr_dir' is still not top-level; go to parent dir.
             if pattern in files:
                 curr_dir = os.path.dirname(curr_dir)
-            # Top-level dir found; return it.
+            # 010963.python.misc.line79.comment Top-level dir found; return it.
             else:
                 return curr_dir
     except IOError:
         pass
-    # No top-level directory found, or error was encountered.
+    # 010964.python.misc.line84.comment No top-level directory found, or error was encountered.
     return None
 
 
 def mtime(fnm):
     try:
-        # TODO: explain why this does not use os.path.getmtime() ?
-        #       - It is probably not used because it returns float and not int.
+        # 010965.python.misc.line90.comment TODO: explain why this does not use os.path.getmtime() ?
+        # 010966.python.misc.line91.comment - It is probably not used because it returns float and not int.
         return os.stat(fnm)[8]
     except Exception:
         return 0
@@ -116,7 +116,7 @@ def load_py_data_struct(filename):
     """
     with open(filename, 'r', encoding='utf-8') as f:
         if is_win:
-            # import versioninfo so that VSVersionInfo can parse correctly.
+            # 010967.python.misc.line119.comment import versioninfo so that VSVersionInfo can parse correctly.
             from PyInstaller.utils.win32 import versioninfo  # noqa: F401
 
         return eval(f.read())
@@ -135,9 +135,9 @@ def module_parent_packages(full_modname):
     """
     prefix = ''
     parents = []
-    # Ignore the last component in module name and get really just parent, grandparent, great grandparent, etc.
+    # 010969.python.misc.line138.comment Ignore the last component in module name and get really just parent, grandparent, great grandparent, etc.
     for pkg in full_modname.split('.')[0:-1]:
-        # Ensure that first item does not start with dot '.'
+        # 010970.python.misc.line140.comment Ensure that first item does not start with dot '.'
         prefix += '.' + pkg if prefix else pkg
         parents.append(prefix)
     return parents
@@ -150,8 +150,8 @@ def is_file_qt_plugin(filename):
     :return: True if given file is a Qt plugin file, False if not.
     """
 
-    # Check the file contents; scan for QTMETADATA string. The scan is based on the brute-force Windows codepath of
-    # findPatternUnloaded() from qtbase/src/corelib/plugin/qlibrary.cpp in Qt5.
+    # 010971.python.misc.line153.comment Check the file contents; scan for QTMETADATA string. The scan is based on the brute-force Windows codepath of
+    # 010972.python.misc.line154.comment findPatternUnloaded() from qtbase/src/corelib/plugin/qlibrary.cpp in Qt5.
     with open(filename, 'rb') as fp:
         fp.seek(0, os.SEEK_END)
         end_pos = fp.tell()
@@ -163,17 +163,17 @@ def is_file_qt_plugin(filename):
         while end_pos >= len(QTMETADATA_MAGIC):
             start_pos = max(end_pos - SEARCH_CHUNK_SIZE, 0)
             chunk_size = end_pos - start_pos
-            # Is the remaining chunk large enough to hold the pattern?
+            # 010973.python.misc.line166.comment Is the remaining chunk large enough to hold the pattern?
             if chunk_size < len(QTMETADATA_MAGIC):
                 break
-            # Read and scan the chunk
+            # 010974.python.misc.line169.comment Read and scan the chunk
             fp.seek(start_pos, os.SEEK_SET)
             buf = fp.read(chunk_size)
             pos = buf.rfind(QTMETADATA_MAGIC)
             if pos != -1:
                 magic_offset = start_pos + pos
                 break
-            # Adjust search location for next chunk; ensure proper overlap.
+            # 010975.python.misc.line176.comment Adjust search location for next chunk; ensure proper overlap.
             end_pos = start_pos + len(QTMETADATA_MAGIC) - 1
         if magic_offset == -1:
             return False

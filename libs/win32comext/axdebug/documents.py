@@ -7,8 +7,8 @@ from win32com.server.util import unwrap
 from . import axdebug, gateways
 from .util import _wrap, trace
 
-# def trace(*args):
-#     pass
+# 050846.python.documents.line10.comment def trace(*args):
+# 050847.python.documents.line11.comment pass
 
 
 def GetGoodFileName(fname):
@@ -43,8 +43,8 @@ class DebugDocumentText(gateways.DebugDocumentText):
         + gateways.DebugDocument._public_methods_
     )
 
-    # A class which implements a DebugDocumentText, using the functionality
-    # provided by a codeContainer
+    # 050848.python.documents.line46.comment A class which implements a DebugDocumentText, using the functionality
+    # 050849.python.documents.line47.comment provided by a codeContainer
     def __init__(self, codeContainer):
         gateways.DebugDocumentText.__init__(self)
         gateways.DebugDocumentInfo.__init__(self)
@@ -53,23 +53,23 @@ class DebugDocumentText(gateways.DebugDocumentText):
 
     def _Close(self):
         self.docContexts = None
-        # self.codeContainer._Close()
+        # 050850.python.documents.line56.comment self.codeContainer._Close()
         self.codeContainer = None
 
-    # IDebugDocumentInfo
+    # 050851.python.documents.line59.comment IDebugDocumentInfo
     def GetName(self, dnt):
         return self.codeContainer.GetName(dnt)
 
     def GetDocumentClassId(self):
         return "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
-    # IDebugDocument has no methods!
-    #
+    # 050852.python.documents.line66.comment IDebugDocument has no methods!
+    # 050853.python.documents.line67.comment
 
-    # IDebugDocumentText methods.
-    # def GetDocumentAttributes
+    # 050854.python.documents.line69.comment IDebugDocumentText methods.
+    # 050855.python.documents.line70.comment def GetDocumentAttributes
     def GetSize(self):
-        # trace("GetSize")
+        # 050856.python.documents.line72.comment trace("GetSize")
         return self.codeContainer.GetNumLines(), self.codeContainer.GetNumChars()
 
     def GetPositionOfLine(self, cLineNumber):
@@ -79,9 +79,9 @@ class DebugDocumentText(gateways.DebugDocumentText):
         return self.codeContainer.GetLineOfPosition(charPos)
 
     def GetText(self, charPos, maxChars, wantAttr):
-        # Get all the attributes, else the tokenizer will get upset.
-        # XXX - not yet!
-        # trace("GetText", charPos, maxChars, wantAttr)
+        # 050857.python.documents.line82.comment Get all the attributes, else the tokenizer will get upset.
+        # 050858.python.documents.line83.comment XXX - not yet!
+        # 050859.python.documents.line84.comment trace("GetText", charPos, maxChars, wantAttr)
         cont = self.codeContainer
         attr = cont.GetSyntaxColorAttributes()
         return cont.GetText(), attr
@@ -91,9 +91,9 @@ class DebugDocumentText(gateways.DebugDocumentText):
         context = unwrap(context)
         return context.offset, context.length
 
-    # Return a DebugDocumentContext.
+    # 050860.python.documents.line94.comment Return a DebugDocumentContext.
     def GetContextOfPosition(self, charPos, maxChars):
-        # Make one
+        # 050861.python.documents.line96.comment Make one
         doc = _wrap(self, axdebug.IID_IDebugDocument)
         rc = self.codeContainer.GetCodeContextAtPosition(charPos)
         return rc.QueryInterface(axdebug.IID_IDebugDocumentContext)
@@ -118,15 +118,15 @@ class CodeContainerProvider:
 
     def FromFileName(self, fname):
         cc, node = self.ccsAndNodes.get(GetGoodFileName(fname), (None, None))
-        # if cc is None:
-        #     print(f"FromFileName for {fname} returning None")
+        # 050862.python.documents.line121.comment if cc is None:
+        # 050863.python.documents.line122.comment print(f"FromFileName for {fname} returning None")
         return cc
 
     def Close(self):
         for cc, node in self.ccsAndNodes.values():
             try:
-                # Must close the node before closing the provider
-                # as node may make calls on provider (eg Reset breakpoints etc)
+                # 050864.python.documents.line128.comment Must close the node before closing the provider
+                # 050865.python.documents.line129.comment as node may make calls on provider (eg Reset breakpoints etc)
                 if node is not None:
                     node.Close()
                 cc._Close()

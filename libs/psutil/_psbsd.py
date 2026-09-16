@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 023819.python.psbsd.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 023820.python.psbsd.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 023821.python.psbsd.line3.comment found in the LICENSE file.
 
 """FreeBSD, OpenBSD and NetBSD platforms implementation."""
 
@@ -32,9 +32,9 @@ from ._common import usage_percent
 __extra__all__ = []
 
 
-# =====================================================================
-# --- globals
-# =====================================================================
+# 023823.python.psbsd.line35.comment =====================================================================
+# 023824.python.psbsd.line36.comment --- globals
+# 023825.python.psbsd.line37.comment =====================================================================
 
 
 if FREEBSD:
@@ -52,20 +52,20 @@ elif OPENBSD:
         cext.SIDL: _common.STATUS_IDLE,
         cext.SSLEEP: _common.STATUS_SLEEPING,
         cext.SSTOP: _common.STATUS_STOPPED,
-        # According to /usr/include/sys/proc.h SZOMB is unused.
-        # test_zombie_process() shows that SDEAD is the right
-        # equivalent. Also it appears there's no equivalent of
-        # psutil.STATUS_DEAD. SDEAD really means STATUS_ZOMBIE.
-        # cext.SZOMB: _common.STATUS_ZOMBIE,
+        # 023826.python.psbsd.line55.comment According to /usr/include/sys/proc.h SZOMB is unused.
+        # 023827.python.psbsd.line56.comment test_zombie_process() shows that SDEAD is the right
+        # 023828.python.psbsd.line57.comment equivalent. Also it appears there's no equivalent of
+        # 023829.python.psbsd.line58.comment psutil.STATUS_DEAD. SDEAD really means STATUS_ZOMBIE.
+        # 023830.python.psbsd.line59.comment cext.SZOMB: _common.STATUS_ZOMBIE,
         cext.SDEAD: _common.STATUS_ZOMBIE,
         cext.SZOMB: _common.STATUS_ZOMBIE,
-        # From http://www.eecs.harvard.edu/~margo/cs161/videos/proc.h.txt
-        # OpenBSD has SRUN and SONPROC: SRUN indicates that a process
-        # is runnable but *not* yet running, i.e. is on a run queue.
-        # SONPROC indicates that the process is actually executing on
-        # a CPU, i.e. it is no longer on a run queue.
-        # As such we'll map SRUN to STATUS_WAKING and SONPROC to
-        # STATUS_RUNNING
+        # 023831.python.psbsd.line62.comment From http://www.eecs.harvard.edu/~margo/cs161/videos/proc.h.txt
+        # 023832.python.psbsd.line63.comment OpenBSD has SRUN and SONPROC: SRUN indicates that a process
+        # 023833.python.psbsd.line64.comment is runnable but *not* yet running, i.e. is on a run queue.
+        # 023834.python.psbsd.line65.comment SONPROC indicates that the process is actually executing on
+        # 023835.python.psbsd.line66.comment a CPU, i.e. it is no longer on a run queue.
+        # 023836.python.psbsd.line67.comment As such we'll map SRUN to STATUS_WAKING and SONPROC to
+        # 023837.python.psbsd.line68.comment STATUS_RUNNING
         cext.SRUN: _common.STATUS_WAKING,
         cext.SONPROC: _common.STATUS_RUNNING,
     }
@@ -128,33 +128,33 @@ kinfo_proc_map = dict(
 )
 
 
-# =====================================================================
-# --- named tuples
-# =====================================================================
+# 023838.python.psbsd.line131.comment =====================================================================
+# 023839.python.psbsd.line132.comment --- named tuples
+# 023840.python.psbsd.line133.comment =====================================================================
 
 
-# fmt: off
-# psutil.virtual_memory()
+# 023841.python.psbsd.line136.comment fmt: off
+# 023842.python.psbsd.line137.comment psutil.virtual_memory()
 svmem = namedtuple(
     'svmem', ['total', 'available', 'percent', 'used', 'free',
               'active', 'inactive', 'buffers', 'cached', 'shared', 'wired'])
-# psutil.cpu_times()
+# 023843.python.psbsd.line141.comment psutil.cpu_times()
 scputimes = namedtuple(
     'scputimes', ['user', 'nice', 'system', 'idle', 'irq'])
-# psutil.Process.memory_info()
+# 023844.python.psbsd.line144.comment psutil.Process.memory_info()
 pmem = namedtuple('pmem', ['rss', 'vms', 'text', 'data', 'stack'])
-# psutil.Process.memory_full_info()
+# 023845.python.psbsd.line146.comment psutil.Process.memory_full_info()
 pfullmem = pmem
-# psutil.Process.cpu_times()
+# 023846.python.psbsd.line148.comment psutil.Process.cpu_times()
 pcputimes = namedtuple('pcputimes',
                        ['user', 'system', 'children_user', 'children_system'])
-# psutil.Process.memory_maps(grouped=True)
+# 023847.python.psbsd.line151.comment psutil.Process.memory_maps(grouped=True)
 pmmap_grouped = namedtuple(
     'pmmap_grouped', 'path rss, private, ref_count, shadow_count')
-# psutil.Process.memory_maps(grouped=False)
+# 023848.python.psbsd.line154.comment psutil.Process.memory_maps(grouped=False)
 pmmap_ext = namedtuple(
     'pmmap_ext', 'addr, perms path rss, private, ref_count, shadow_count')
-# psutil.disk_io_counters()
+# 023849.python.psbsd.line157.comment psutil.disk_io_counters()
 if FREEBSD:
     sdiskio = namedtuple('sdiskio', ['read_count', 'write_count',
                                      'read_bytes', 'write_bytes',
@@ -163,42 +163,42 @@ if FREEBSD:
 else:
     sdiskio = namedtuple('sdiskio', ['read_count', 'write_count',
                                      'read_bytes', 'write_bytes'])
-# fmt: on
+# 023850.python.psbsd.line166.comment fmt: on
 
 
-# =====================================================================
-# --- memory
-# =====================================================================
+# 023851.python.psbsd.line169.comment =====================================================================
+# 023852.python.psbsd.line170.comment --- memory
+# 023853.python.psbsd.line171.comment =====================================================================
 
 
 def virtual_memory():
     mem = cext.virtual_mem()
     if NETBSD:
         total, free, active, inactive, wired, cached = mem
-        # On NetBSD buffers and shared mem is determined via /proc.
-        # The C ext set them to 0.
+        # 023854.python.psbsd.line178.comment On NetBSD buffers and shared mem is determined via /proc.
+        # 023855.python.psbsd.line179.comment The C ext set them to 0.
         with open('/proc/meminfo', 'rb') as f:
             for line in f:
                 if line.startswith(b'Buffers:'):
                     buffers = int(line.split()[1]) * 1024
                 elif line.startswith(b'MemShared:'):
                     shared = int(line.split()[1]) * 1024
-        # Before avail was calculated as (inactive + cached + free),
-        # same as zabbix, but it turned out it could exceed total (see
-        # #2233), so zabbix seems to be wrong. Htop calculates it
-        # differently, and the used value seem more realistic, so let's
-        # match htop.
-        # https://github.com/htop-dev/htop/blob/e7f447b/netbsd/NetBSDProcessList.c#L162
-        # https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/netbsd/memory.c#L135
+        # 023856.python.psbsd.line186.comment Before avail was calculated as (inactive + cached + free),
+        # 023857.python.psbsd.line187.comment same as zabbix, but it turned out it could exceed total (see
+        # 023858.python.psbsd.line188.comment #2233), so zabbix seems to be wrong. Htop calculates it
+        # 023859.python.psbsd.line189.comment differently, and the used value seem more realistic, so let's
+        # 023860.python.psbsd.line190.comment match htop.
+        # 023861.python.psbsd.line191.comment https://github.com/htop-dev/htop/blob/e7f447b/netbsd/NetBSDProcessList.c#L162
+        # 023862.python.psbsd.line192.comment https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/netbsd/memory.c#L135
         used = active + wired
         avail = total - used
     else:
         total, free, active, inactive, wired, cached, buffers, shared = mem
-        # matches freebsd-memory CLI:
-        # * https://people.freebsd.org/~rse/dist/freebsd-memory
-        # * https://www.cyberciti.biz/files/scripts/freebsd-memory.pl.txt
-        # matches zabbix:
-        # * https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/freebsd/memory.c#L143
+        # 023863.python.psbsd.line197.comment matches freebsd-memory CLI:
+        # 023864.python.psbsd.line198.comment * https://people.freebsd.org/~rse/dist/freebsd-memory
+        # 023865.python.psbsd.line199.comment * https://www.cyberciti.biz/files/scripts/freebsd-memory.pl.txt
+        # 023866.python.psbsd.line200.comment matches zabbix:
+        # 023867.python.psbsd.line201.comment * https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/freebsd/memory.c#L143
         avail = inactive + cached + free
         used = active + wired + cached
 
@@ -225,9 +225,9 @@ def swap_memory():
     return _common.sswap(total, used, free, percent, sin, sout)
 
 
-# =====================================================================
-# --- CPU
-# =====================================================================
+# 023868.python.psbsd.line228.comment =====================================================================
+# 023869.python.psbsd.line229.comment --- CPU
+# 023870.python.psbsd.line230.comment =====================================================================
 
 
 def cpu_times():
@@ -254,22 +254,22 @@ def cpu_count_logical():
 if OPENBSD or NETBSD:
 
     def cpu_count_cores():
-        # OpenBSD and NetBSD do not implement this.
+        # 023871.python.psbsd.line257.comment OpenBSD and NetBSD do not implement this.
         return 1 if cpu_count_logical() == 1 else None
 
 else:
 
     def cpu_count_cores():
         """Return the number of CPU cores in the system."""
-        # From the C module we'll get an XML string similar to this:
-        # http://manpages.ubuntu.com/manpages/precise/man4/smp.4freebsd.html
-        # We may get None in case "sysctl kern.sched.topology_spec"
-        # is not supported on this BSD version, in which case we'll mimic
-        # os.cpu_count() and return None.
+        # 023872.python.psbsd.line264.comment From the C module we'll get an XML string similar to this:
+        # 023873.python.psbsd.line265.comment http://manpages.ubuntu.com/manpages/precise/man4/smp.4freebsd.html
+        # 023874.python.psbsd.line266.comment We may get None in case "sysctl kern.sched.topology_spec"
+        # 023875.python.psbsd.line267.comment is not supported on this BSD version, in which case we'll mimic
+        # 023876.python.psbsd.line268.comment os.cpu_count() and return None.
         ret = None
         s = cext.cpu_topology()
         if s is not None:
-            # get rid of padding chars appended at the end of the string
+            # 023877.python.psbsd.line272.comment get rid of padding chars appended at the end of the string
             index = s.rfind("</groups>")
             if index != -1:
                 s = s[: index + 9]
@@ -277,10 +277,10 @@ else:
                 try:
                     ret = len(root.findall('group/children/group/cpu')) or None
                 finally:
-                    # needed otherwise it will memleak
+                    # 023878.python.psbsd.line280.comment needed otherwise it will memleak
                     root.clear()
         if not ret:
-            # If logical CPUs == 1 it's obvious we' have only 1 core.
+            # 023879.python.psbsd.line283.comment If logical CPUs == 1 it's obvious we' have only 1 core.
             if cpu_count_logical() == 1:
                 return 1
         return ret
@@ -289,19 +289,19 @@ else:
 def cpu_stats():
     """Return various CPU stats as a named tuple."""
     if FREEBSD:
-        # Note: the C ext is returning some metrics we are not exposing:
-        # traps.
+        # 023880.python.psbsd.line292.comment Note: the C ext is returning some metrics we are not exposing:
+        # 023881.python.psbsd.line293.comment traps.
         ctxsw, intrs, soft_intrs, syscalls, _traps = cext.cpu_stats()
     elif NETBSD:
-        # XXX
-        # Note about intrs: the C extension returns 0. intrs
-        # can be determined via /proc/stat; it has the same value as
-        # soft_intrs thought so the kernel is faking it (?).
-        #
-        # Note about syscalls: the C extension always sets it to 0 (?).
-        #
-        # Note: the C ext is returning some metrics we are not exposing:
-        # traps, faults and forks.
+        # 023882.python.psbsd.line296.comment XXX
+        # 023883.python.psbsd.line297.comment Note about intrs: the C extension returns 0. intrs
+        # 023884.python.psbsd.line298.comment can be determined via /proc/stat; it has the same value as
+        # 023885.python.psbsd.line299.comment soft_intrs thought so the kernel is faking it (?).
+        # 023886.python.psbsd.line300.comment
+        # 023887.python.psbsd.line301.comment Note about syscalls: the C extension always sets it to 0 (?).
+        # 023888.python.psbsd.line302.comment
+        # 023889.python.psbsd.line303.comment Note: the C ext is returning some metrics we are not exposing:
+        # 023890.python.psbsd.line304.comment traps, faults and forks.
         ctxsw, intrs, soft_intrs, syscalls, _traps, _faults, _forks = (
             cext.cpu_stats()
         )
@@ -310,8 +310,8 @@ def cpu_stats():
                 if line.startswith(b'intr'):
                     intrs = int(line.split()[1])
     elif OPENBSD:
-        # Note: the C ext is returning some metrics we are not exposing:
-        # traps, faults and forks.
+        # 023891.python.psbsd.line313.comment Note: the C ext is returning some metrics we are not exposing:
+        # 023892.python.psbsd.line314.comment traps, faults and forks.
         ctxsw, intrs, soft_intrs, syscalls, _traps, _faults, _forks = (
             cext.cpu_stats()
         )
@@ -351,9 +351,9 @@ elif OPENBSD:
         return [_common.scpufreq(curr, 0.0, 0.0)]
 
 
-# =====================================================================
-# --- disks
-# =====================================================================
+# 023893.python.psbsd.line354.comment =====================================================================
+# 023894.python.psbsd.line355.comment --- disks
+# 023895.python.psbsd.line356.comment =====================================================================
 
 
 def disk_partitions(all=False):
@@ -374,9 +374,9 @@ disk_usage = _psposix.disk_usage
 disk_io_counters = cext.disk_io_counters
 
 
-# =====================================================================
-# --- network
-# =====================================================================
+# 023896.python.psbsd.line377.comment =====================================================================
+# 023897.python.psbsd.line378.comment --- network
+# 023898.python.psbsd.line379.comment =====================================================================
 
 
 net_io_counters = cext.net_io_counters
@@ -393,7 +393,7 @@ def net_if_stats():
             flags = cext_posix.net_if_flags(name)
             duplex, speed = cext_posix.net_if_duplex_speed(name)
         except OSError as err:
-            # https://github.com/giampaolo/psutil/issues/1279
+            # 023899.python.psbsd.line396.comment https://github.com/giampaolo/psutil/issues/1279
             if err.errno != errno.ENODEV:
                 raise
         else:
@@ -427,9 +427,9 @@ def net_connections(kind):
     return list(ret)
 
 
-# =====================================================================
-#  --- sensors
-# =====================================================================
+# 023901.python.psbsd.line430.comment =====================================================================
+# 023902.python.psbsd.line431.comment --- sensors
+# 023903.python.psbsd.line432.comment =====================================================================
 
 
 if FREEBSD:
@@ -439,7 +439,7 @@ if FREEBSD:
         try:
             percent, minsleft, power_plugged = cext.sensors_battery()
         except NotImplementedError:
-            # See: https://github.com/giampaolo/psutil/issues/1074
+            # 023904.python.psbsd.line442.comment See: https://github.com/giampaolo/psutil/issues/1074
             return None
         power_plugged = power_plugged == 1
         if power_plugged:
@@ -469,9 +469,9 @@ if FREEBSD:
         return ret
 
 
-# =====================================================================
-#  --- other system functions
-# =====================================================================
+# 023905.python.psbsd.line472.comment =====================================================================
+# 023906.python.psbsd.line473.comment --- other system functions
+# 023907.python.psbsd.line474.comment =====================================================================
 
 
 def boot_time():
@@ -484,7 +484,7 @@ if NETBSD:
     try:
         INIT_BOOT_TIME = boot_time()
     except Exception as err:  # noqa: BLE001
-        # Don't want to crash at import time.
+        # 023909.python.psbsd.line487.comment Don't want to crash at import time.
         debug(f"ignoring exception on import: {err!r}")
         INIT_BOOT_TIME = 0
 
@@ -516,9 +516,9 @@ def users():
     return retlist
 
 
-# =====================================================================
-# --- processes
-# =====================================================================
+# 023911.python.psbsd.line519.comment =====================================================================
+# 023912.python.psbsd.line520.comment --- processes
+# 023913.python.psbsd.line521.comment =====================================================================
 
 
 @memoize
@@ -537,8 +537,8 @@ def pids():
     """Returns a list of PIDs currently running on the system."""
     ret = cext.pids()
     if OPENBSD and (0 not in ret) and _pid_0_exists():
-        # On OpenBSD the kernel does not return PID 0 (neither does
-        # ps) but it's actually querable (Process(0) will succeed).
+        # 023914.python.psbsd.line540.comment On OpenBSD the kernel does not return PID 0 (neither does
+        # 023915.python.psbsd.line541.comment ps) but it's actually querable (Process(0) will succeed).
         ret.insert(0, 0)
     return ret
 
@@ -548,8 +548,8 @@ if NETBSD:
     def pid_exists(pid):
         exists = _psposix.pid_exists(pid)
         if not exists:
-            # We do this because _psposix.pid_exists() lies in case of
-            # zombie processes.
+            # 023916.python.psbsd.line551.comment We do this because _psposix.pid_exists() lies in case of
+            # 023917.python.psbsd.line552.comment zombie processes.
             return pid in pids()
         else:
             return True
@@ -561,9 +561,9 @@ elif OPENBSD:
         if not exists:
             return False
         else:
-            # OpenBSD seems to be the only BSD platform where
-            # _psposix.pid_exists() returns True for thread IDs (tids),
-            # so we can't use it.
+            # 023918.python.psbsd.line564.comment OpenBSD seems to be the only BSD platform where
+            # 023919.python.psbsd.line565.comment _psposix.pid_exists() returns True for thread IDs (tids),
+            # 023920.python.psbsd.line566.comment so we can't use it.
             return pid in pids()
 
 else:  # FreeBSD
@@ -609,9 +609,9 @@ def wrap_exceptions_procfs(inst):
     try:
         yield
     except (ProcessLookupError, FileNotFoundError) as err:
-        # ENOENT (no such file or directory) gets raised on open().
-        # ESRCH (no such process) can get raised on read() if
-        # process is gone in meantime.
+        # 023922.python.psbsd.line612.comment ENOENT (no such file or directory) gets raised on open().
+        # 023923.python.psbsd.line613.comment ESRCH (no such process) can get raised on read() if
+        # 023924.python.psbsd.line614.comment process is gone in meantime.
         if is_zombie(inst.pid):
             raise ZombieProcess(pid, name, ppid) from err
         else:
@@ -632,8 +632,8 @@ class Process:
 
     def _assert_alive(self):
         """Raise NSP if the process disappeared on us."""
-        # For those C function who do not raise NSP, possibly returning
-        # incorrect or incomplete result.
+        # 023925.python.psbsd.line635.comment For those C function who do not raise NSP, possibly returning
+        # 023926.python.psbsd.line636.comment incorrect or incomplete result.
         cext.proc_name(self.pid)
 
     @wrap_exceptions
@@ -663,16 +663,16 @@ class Process:
             return cext.proc_exe(self.pid)
         elif NETBSD:
             if self.pid == 0:
-                # /proc/0 dir exists but /proc/0/exe doesn't
+                # 023928.python.psbsd.line666.comment /proc/0 dir exists but /proc/0/exe doesn't
                 return ""
             with wrap_exceptions_procfs(self):
                 return os.readlink(f"/proc/{self.pid}/exe")
         else:
-            # OpenBSD: exe cannot be determined; references:
-            # https://chromium.googlesource.com/chromium/src/base/+/
-            #     master/base_paths_posix.cc
-            # We try our best guess by using which against the first
-            # cmdline arg (may return None).
+            # 023929.python.psbsd.line671.comment OpenBSD: exe cannot be determined; references:
+            # 023930.python.psbsd.line672.comment https://chromium.googlesource.com/chromium/src/base/+/
+            # 023931.python.psbsd.line673.comment master/base_paths_posix.cc
+            # 023932.python.psbsd.line674.comment We try our best guess by using which against the first
+            # 023933.python.psbsd.line675.comment cmdline arg (may return None).
             import shutil
 
             cmdline = self.cmdline()
@@ -686,10 +686,10 @@ class Process:
         if OPENBSD and self.pid == 0:
             return []  # ...else it crashes
         elif NETBSD:
-            # XXX - most of the times the underlying sysctl() call on
-            # NetBSD and OpenBSD returns a truncated string. Also
-            # /proc/pid/cmdline behaves the same so it looks like this
-            # is a kernel bug.
+            # 023935.python.psbsd.line689.comment XXX - most of the times the underlying sysctl() call on
+            # 023936.python.psbsd.line690.comment NetBSD and OpenBSD returns a truncated string. Also
+            # 023937.python.psbsd.line691.comment /proc/pid/cmdline behaves the same so it looks like this
+            # 023938.python.psbsd.line692.comment is a kernel bug.
             try:
                 return cext.proc_cmdline(self.pid)
             except OSError as err:
@@ -699,8 +699,8 @@ class Process:
                         raise ZombieProcess(pid, name, ppid) from err
                     if not pid_exists(self.pid):
                         raise NoSuchProcess(pid, name, ppid) from err
-                    # XXX: this happens with unicode tests. It means the C
-                    # routine is unable to decode invalid unicode chars.
+                    # 023939.python.psbsd.line702.comment XXX: this happens with unicode tests. It means the C
+                    # 023940.python.psbsd.line703.comment routine is unable to decode invalid unicode chars.
                     debug(f"ignoring {err!r} and returning an empty list")
                     return []
                 else:
@@ -777,14 +777,14 @@ class Process:
     def create_time(self, monotonic=False):
         ctime = self.oneshot()[kinfo_proc_map['create_time']]
         if NETBSD and not monotonic:
-            # NetBSD: ctime subject to system clock updates.
+            # 023941.python.psbsd.line780.comment NetBSD: ctime subject to system clock updates.
             ctime = adjust_proc_create_time(ctime)
         return ctime
 
     @wrap_exceptions
     def num_threads(self):
         if HAS_PROC_NUM_THREADS:
-            # FreeBSD / NetBSD
+            # 023942.python.psbsd.line787.comment FreeBSD / NetBSD
             return cext.proc_num_threads(self.pid)
         else:
             return len(self.threads())
@@ -799,7 +799,7 @@ class Process:
 
     @wrap_exceptions
     def threads(self):
-        # Note: on OpenSBD this (/dev/mem) requires root access.
+        # 023943.python.psbsd.line802.comment Note: on OpenSBD this (/dev/mem) requires root access.
         rawlist = cext.proc_threads(self.pid)
         retlist = []
         for thread_id, utime, stime in rawlist:
@@ -849,7 +849,7 @@ class Process:
     @wrap_exceptions
     def status(self):
         code = self.oneshot()[kinfo_proc_map['status']]
-        # XXX is '?' legit? (we're not supposed to return it anyway)
+        # 023944.python.psbsd.line852.comment XXX is '?' legit? (we're not supposed to return it anyway)
         return PROC_STATUSES.get(code, '?')
 
     @wrap_exceptions
@@ -865,8 +865,8 @@ class Process:
     @wrap_exceptions
     def cwd(self):
         """Return process current working directory."""
-        # sometimes we get an empty string, in which case we turn
-        # it into None
+        # 023945.python.psbsd.line868.comment sometimes we get an empty string, in which case we turn
+        # 023946.python.psbsd.line869.comment it into None
         if OPENBSD and self.pid == 0:
             return ""  # ...else it would raise EINVAL
         return cext.proc_cwd(self.pid)
@@ -892,7 +892,7 @@ class Process:
             self._assert_alive()
         return ret
 
-    # --- FreeBSD only APIs
+    # 023948.python.psbsd.line895.comment --- FreeBSD only APIs
 
     if FREEBSD:
 
@@ -902,9 +902,9 @@ class Process:
 
         @wrap_exceptions
         def cpu_affinity_set(self, cpus):
-            # Pre-emptively check if CPUs are valid because the C
-            # function has a weird behavior in case of invalid CPUs,
-            # see: https://github.com/giampaolo/psutil/issues/586
+            # 023949.python.psbsd.line905.comment Pre-emptively check if CPUs are valid because the C
+            # 023950.python.psbsd.line906.comment function has a weird behavior in case of invalid CPUs,
+            # 023951.python.psbsd.line907.comment see: https://github.com/giampaolo/psutil/issues/586
             allcpus = set(range(len(per_cpu_times())))
             for cpu in cpus:
                 if cpu not in allcpus:
@@ -913,10 +913,10 @@ class Process:
             try:
                 cext.proc_cpu_affinity_set(self.pid, cpus)
             except OSError as err:
-                # 'man cpuset_setaffinity' about EDEADLK:
-                # <<the call would leave a thread without a valid CPU to run
-                # on because the set does not overlap with the thread's
-                # anonymous mask>>
+                # 023952.python.psbsd.line916.comment 'man cpuset_setaffinity' about EDEADLK:
+                # 023953.python.psbsd.line917.comment <<the call would leave a thread without a valid CPU to run
+                # 023954.python.psbsd.line918.comment on because the set does not overlap with the thread's
+                # 023955.python.psbsd.line919.comment anonymous mask>>
                 if err.errno in {errno.EINVAL, errno.EDEADLK}:
                     for cpu in cpus:
                         if cpu not in allcpus:

@@ -20,7 +20,7 @@ debugging = 0
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
-# ignore hasattr(obj, "__call__") as this means all COM objects!
+# 051274.python.scriptdispatch.line23.comment ignore hasattr(obj, "__call__") as this means all COM objects!
 _CallableTypes = (types.FunctionType, types.MethodType)
 
 
@@ -32,11 +32,11 @@ class ScriptDispatch:
         self.scriptNamespace = scriptNamespace
 
     def _dynamic_(self, name, lcid, wFlags, args):
-        # Ensure any newly added items are available.
+        # 051275.python.scriptdispatch.line35.comment Ensure any newly added items are available.
         self.engine.RegisterNewNamedItems()
         self.engine.ProcessNewNamedItemsConnections()
         if wFlags & pythoncom.INVOKE_FUNC:
-            # attempt to call a function
+            # 051276.python.scriptdispatch.line39.comment attempt to call a function
             try:
                 func = getattr(self.scriptNamespace, name)
                 if not isinstance(func, _CallableTypes):
@@ -47,14 +47,14 @@ class ScriptDispatch:
                         realArgs.append(Dispatch(arg))
                     else:
                         realArgs.append(arg)
-                # xxx - todo - work out what code block to pass???
+                # 051278.python.scriptdispatch.line50.comment xxx - todo - work out what code block to pass???
                 return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
 
             except AttributeError:
                 if not wFlags & pythoncom.DISPATCH_PROPERTYGET:
                     raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         if wFlags & pythoncom.DISPATCH_PROPERTYGET:
-            # attempt to get a property
+            # 051279.python.scriptdispatch.line57.comment attempt to get a property
             try:
                 ret = getattr(self.scriptNamespace, name)
                 if isinstance(ret, _CallableTypes):
@@ -88,7 +88,7 @@ class StrictDynamicPolicy(win32com.server.policy.DynamicPolicy):
             func = getattr(self._obj_.scriptNamespace, str(name))
         except AttributeError:
             raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-        # if not isinstance(func, _CallableTypes):
+        # 051281.python.scriptdispatch.line91.comment if not isinstance(func, _CallableTypes):
         return win32com.server.policy.DynamicPolicy._getdispid_(self, name, fdex)
 
 

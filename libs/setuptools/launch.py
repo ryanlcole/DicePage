@@ -3,8 +3,8 @@ Launch the Python script on the command line after
 setuptools is bootstrapped via import.
 """
 
-# Note that setuptools gets imported implicitly by the
-# invocation of this script using python -m setuptools.launch
+# 044927.python.launch.line6.comment Note that setuptools gets imported implicitly by the
+# 044928.python.launch.line7.comment invocation of this script using python -m setuptools.launch
 
 import sys
 import tokenize

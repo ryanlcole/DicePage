@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2005-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 002720.python.utils.line1.comment -----------------------------------------------------------------------------
+# 002721.python.utils.line2.comment Copyright (c) 2005-2023, PyInstaller Development Team.
+# 002722.python.utils.line3.comment
+# 002723.python.utils.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 002724.python.utils.line5.comment or later) with exception for distributing the bootloader.
+# 002725.python.utils.line6.comment
+# 002726.python.utils.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 002727.python.utils.line8.comment
+# 002728.python.utils.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 002729.python.utils.line10.comment -----------------------------------------------------------------------------
 """
 Utility functions related to analyzing/bundling dependencies.
 """
@@ -30,18 +30,18 @@ logger = logging.getLogger(__name__)
 def scan_code_for_ctypes(co):
     binaries = __recursively_scan_code_objects_for_ctypes(co)
 
-    # If any of the libraries has been requested with anything else than the basename, drop that entry and warn the
-    # user - PyInstaller would need to patch the compiled pyc file to make it work correctly!
+    # 002730.python.utils.line33.comment If any of the libraries has been requested with anything else than the basename, drop that entry and warn the
+    # 002731.python.utils.line34.comment user - PyInstaller would need to patch the compiled pyc file to make it work correctly!
     binaries = set(binaries)
     for binary in list(binaries):
-        # 'binary' might be in some cases None. Some Python modules (e.g., PyObjC.objc._bridgesupport) might contain
-        # code like this:
-        #     dll = ctypes.CDLL(None)
+        # 002732.python.utils.line37.comment 'binary' might be in some cases None. Some Python modules (e.g., PyObjC.objc._bridgesupport) might contain
+        # 002733.python.utils.line38.comment code like this:
+        # 002734.python.utils.line39.comment dll = ctypes.CDLL(None)
         if not binary:
-            # None values have to be removed too.
+            # 002735.python.utils.line41.comment None values have to be removed too.
             binaries.remove(binary)
         elif binary != os.path.basename(binary):
-            # TODO make these warnings show up somewhere.
+            # 002736.python.utils.line44.comment TODO make these warnings show up somewhere.
             try:
                 filename = co.co_filename
             except Exception:
@@ -82,12 +82,12 @@ def __recursively_scan_code_objects_for_ctypes(code: CodeType):
             if not len(args) == 1 or not isinstance(args[0], str):
                 continue
             if name in ctypes_dll_names:
-                # ctypes.*DLL() or ctypes.*dll.LoadLibrary()
+                # 002737.python.utils.line85.comment ctypes.*DLL() or ctypes.*dll.LoadLibrary()
                 binaries.append(*args)
             elif name in find_library_names:
-                # ctypes.util.find_library() needs to be handled separately, because we need to resolve the library base
-                # name given as the argument (without prefix and suffix, e.g. 'gs') into corresponding full name (e.g.,
-                # 'libgs.so.9').
+                # 002738.python.utils.line88.comment ctypes.util.find_library() needs to be handled separately, because we need to resolve the library base
+                # 002739.python.utils.line89.comment name given as the argument (without prefix and suffix, e.g. 'gs') into corresponding full name (e.g.,
+                # 002740.python.utils.line90.comment 'libgs.so.9').
                 libname = args[0]
                 if libname:
                     try:  # this try was inserted due to the ctypes bug https://github.com/python/cpython/issues/93094
@@ -99,12 +99,12 @@ def __recursively_scan_code_objects_for_ctypes(code: CodeType):
                             'Supressing and assuming no lib with the name "%s" was found.', args[0]
                         )
                     if libname:
-                        # On Windows, `find_library` may return a full pathname. See issue #1934.
+                        # 002742.python.utils.line102.comment On Windows, `find_library` may return a full pathname. See issue #1934.
                         libname = os.path.basename(libname)
                         binaries.append(libname)
 
-    # The above handles any flavour of function/class call. We still need to capture the (albeit rarely used) case of
-    # loading libraries with ctypes.cdll's getattr.
+    # 002743.python.utils.line106.comment The above handles any flavour of function/class call. We still need to capture the (albeit rarely used) case of
+    # 002744.python.utils.line107.comment loading libraries with ctypes.cdll's getattr.
     for i in search_recursively(_scan_code_for_ctypes_getattr, code).values():
         binaries.extend(i)
 
@@ -147,17 +147,17 @@ def _scan_code_for_ctypes_getattr(code: CodeType):
         if attrs and attrs[-1] == "LoadLibrary":
             continue
 
-        # Capture `from ctypes import ole; ole.dll_name`.
+        # 002745.python.utils.line150.comment Capture `from ctypes import ole; ole.dll_name`.
         if len(attrs) == 1:
             if name in key_names:
                 yield attrs[0] + ".dll"
-        # Capture `import ctypes; ctypes.ole.dll_name`.
+        # 002746.python.utils.line154.comment Capture `import ctypes; ctypes.ole.dll_name`.
         if len(attrs) == 2:
             if name == "ctypes" and attrs[0] in key_names:
                 yield attrs[1] + ".dll"
 
 
-# TODO: reuse this code with modulegraph implementation.
+# 002747.python.utils.line160.comment TODO: reuse this code with modulegraph implementation.
 def _resolveCtypesImports(cbinaries):
     """
     Completes ctypes BINARY entries for modules with their full path.
@@ -199,24 +199,24 @@ def _resolveCtypesImports(cbinaries):
 
     ret = []
 
-    # Try to locate the shared library on the disk. This is done by calling ctypes.util.find_library with
-    # ImportTracker's local paths temporarily prepended to the library search paths (and restored after the call).
+    # 002748.python.utils.line202.comment Try to locate the shared library on the disk. This is done by calling ctypes.util.find_library with
+    # 002749.python.utils.line203.comment ImportTracker's local paths temporarily prepended to the library search paths (and restored after the call).
     old = _setPaths()
     for cbin in cbinaries:
         try:
-            # There is an issue with find_library() where it can run into errors trying to locate the library. See
-            # #5734.
+            # 002750.python.utils.line207.comment There is an issue with find_library() where it can run into errors trying to locate the library. See
+            # 002751.python.utils.line208.comment #5734.
             cpath = find_library(os.path.splitext(cbin)[0])
         except FileNotFoundError:
-            # In these cases, find_library() should return None.
+            # 002752.python.utils.line211.comment In these cases, find_library() should return None.
             cpath = None
         if compat.is_unix or compat.is_cygwin:
-            # CAVEAT: find_library() is not the correct function. ctype's documentation says that it is meant to resolve
-            # only the filename (as a *compiler* does) not the full path. Anyway, it works well enough on Windows and
-            # macOS. On Linux, we need to implement more code to find out the full path.
+            # 002753.python.utils.line214.comment CAVEAT: find_library() is not the correct function. ctype's documentation says that it is meant to resolve
+            # 002754.python.utils.line215.comment only the filename (as a *compiler* does) not the full path. Anyway, it works well enough on Windows and
+            # 002755.python.utils.line216.comment macOS. On Linux, we need to implement more code to find out the full path.
             if cpath is None:
                 cpath = cbin
-            # "man ld.so" says that we should first search LD_LIBRARY_PATH and then the ldcache.
+            # 002756.python.utils.line219.comment "man ld.so" says that we should first search LD_LIBRARY_PATH and then the ldcache.
             for d in compat.getenv(envvar, '').split(os.pathsep):
                 if os.path.isfile(os.path.join(d, cpath)):
                     cpath = os.path.join(d, cpath)
@@ -230,13 +230,13 @@ def _resolveCtypesImports(cbinaries):
                 else:
                     cpath = None
         if cpath is None:
-            # Skip warning message if cbin (basename of library) is ignored. This prevents messages like:
-            # 'W: library kernel32.dll required via ctypes not found'
+            # 002757.python.utils.line233.comment Skip warning message if cbin (basename of library) is ignored. This prevents messages like:
+            # 002758.python.utils.line234.comment 'W: library kernel32.dll required via ctypes not found'
             if not include_library(cbin):
                 continue
-            # On non-Windows, automatically ignore all ctypes-based referenes to DLL files. This complements the above
-            # check, which might not match potential case variations (e.g., `KERNEL32.dll`, instead of `kernel32.dll`)
-            # due to case-sensitivity of the matching that is in effect on non-Windows platforms.
+            # 002759.python.utils.line237.comment On non-Windows, automatically ignore all ctypes-based referenes to DLL files. This complements the above
+            # 002760.python.utils.line238.comment check, which might not match potential case variations (e.g., `KERNEL32.dll`, instead of `kernel32.dll`)
+            # 002761.python.utils.line239.comment due to case-sensitivity of the matching that is in effect on non-Windows platforms.
             if (not compat.is_win and not compat.is_cygwin) and cbin.lower().endswith('.dll'):
                 continue
             logger.warning("Library %s required via ctypes not found", cbin)
@@ -262,44 +262,44 @@ def load_ldconfig_cache():
         return
 
     if compat.is_cygwin:
-        # Not available under Cygwin; but we might be re-using general POSIX codepaths, and end up here. So exit early.
+        # 002763.python.utils.line265.comment Not available under Cygwin; but we might be re-using general POSIX codepaths, and end up here. So exit early.
         LDCONFIG_CACHE = {}
         return
 
     if compat.is_musl:
-        # Musl deliberately doesn't use ldconfig. The ldconfig executable either doesn't exist or it's a functionless
-        # executable which, on calling with any arguments, simply tells you that those arguments are invalid.
+        # 002764.python.utils.line270.comment Musl deliberately doesn't use ldconfig. The ldconfig executable either doesn't exist or it's a functionless
+        # 002765.python.utils.line271.comment executable which, on calling with any arguments, simply tells you that those arguments are invalid.
         LDCONFIG_CACHE = {}
         return
 
     ldconfig = shutil.which('ldconfig')
     if ldconfig is None:
-        # If `ldconfig` is not found in $PATH, search for it in some fixed directories. Simply use a second call instead
-        # of fiddling around with checks for empty env-vars and string-concat.
+        # 002766.python.utils.line277.comment If `ldconfig` is not found in $PATH, search for it in some fixed directories. Simply use a second call instead
+        # 002767.python.utils.line278.comment of fiddling around with checks for empty env-vars and string-concat.
         ldconfig = shutil.which('ldconfig', path='/usr/sbin:/sbin:/usr/bin:/bin')
 
-        # If we still could not find the 'ldconfig' command...
+        # 002768.python.utils.line281.comment If we still could not find the 'ldconfig' command...
         if ldconfig is None:
             LDCONFIG_CACHE = {}
             return
 
     if compat.is_freebsd or compat.is_openbsd:
-        # This has a quite different format than other Unixes:
-        # [vagrant@freebsd-10 ~]$ ldconfig -r
-        # /var/run/ld-elf.so.hints:
-        #     search directories: /lib:/usr/lib:/usr/lib/compat:...
-        #     0:-lgeom.5 => /lib/libgeom.so.5
-        #   184:-lpython2.7.1 => /usr/local/lib/libpython2.7.so.1
+        # 002769.python.utils.line287.comment This has a quite different format than other Unixes:
+        # 002770.python.utils.line288.comment [vagrant@freebsd-10 ~]$ ldconfig -r
+        # 002771.python.utils.line289.comment /var/run/ld-elf.so.hints:
+        # 002772.python.utils.line290.comment search directories: /lib:/usr/lib:/usr/lib/compat:...
+        # 002773.python.utils.line291.comment 0:-lgeom.5 => /lib/libgeom.so.5
+        # 002774.python.utils.line292.comment 184:-lpython2.7.1 => /usr/local/lib/libpython2.7.so.1
         ldconfig_arg = '-r'
         splitlines_count = 2
         pattern = re.compile(r'^\s+\d+:-l(\S+)(\s.*)? => (\S+)')
     else:
-        # Skip first line of the library list because it is just an informative line and might contain localized
-        # characters. Example of first line with locale set to cs_CZ.UTF-8:
-        #$ /sbin/ldconfig -p
-        #V keši „/etc/ld.so.cache“ nalezeno knihoven: 2799
-        #      libzvbi.so.0 (libc6,x86-64) => /lib64/libzvbi.so.0
-        #      libzvbi-chains.so.0 (libc6,x86-64) => /lib64/libzvbi-chains.so.0
+        # 002775.python.utils.line297.comment Skip first line of the library list because it is just an informative line and might contain localized
+        # 002776.python.utils.line298.comment characters. Example of first line with locale set to cs_CZ.UTF-8:
+        # 002777.python.utils.line299.comment $ /sbin/ldconfig -p
+        # 002778.python.utils.line300.comment V keši „/etc/ld.so.cache“ nalezeno knihoven: 2799
+        # 002779.python.utils.line301.comment libzvbi.so.0 (libc6,x86-64) => /lib64/libzvbi.so.0
+        # 002780.python.utils.line302.comment libzvbi-chains.so.0 (libc6,x86-64) => /lib64/libzvbi-chains.so.0
         ldconfig_arg = '-p'
         splitlines_count = 1
         pattern = re.compile(r'^\s+(\S+)(\s.*)? => (\S+)')
@@ -315,14 +315,14 @@ def load_ldconfig_cache():
 
     LDCONFIG_CACHE = {}
     for line in text:
-        # :fixme: this assumes library names do not contain whitespace
+        # 002781.python.utils.line318.comment :fixme: this assumes library names do not contain whitespace
         m = pattern.match(line)
 
-        # Sanitize away any abnormal lines of output.
+        # 002782.python.utils.line321.comment Sanitize away any abnormal lines of output.
         if m is None:
-            # Warn about it then skip the rest of this iteration.
+            # 002783.python.utils.line323.comment Warn about it then skip the rest of this iteration.
             if re.search("Cache generated by:", line):
-                # See #5540. This particular line is harmless.
+                # 002784.python.utils.line325.comment See #5540. This particular line is harmless.
                 pass
             else:
                 logger.warning("Unrecognised line of output %r from ldconfig", line)
@@ -330,15 +330,15 @@ def load_ldconfig_cache():
 
         path = m.groups()[-1]
         if compat.is_freebsd or compat.is_openbsd:
-            # Insert `.so` at the end of the lib's basename. soname and filename may have (different) trailing versions.
-            # We assume the `.so` in the filename to mark the end of the lib's basename.
+            # 002785.python.utils.line333.comment Insert `.so` at the end of the lib's basename. soname and filename may have (different) trailing versions.
+            # 002786.python.utils.line334.comment We assume the `.so` in the filename to mark the end of the lib's basename.
             bname = os.path.basename(path).split('.so', 1)[0]
             name = 'lib' + m.group(1)
             assert name.startswith(bname)
             name = bname + '.so' + name[len(bname):]
         else:
             name = m.group(1)
-        # ldconfig may know about several versions of the same lib, e.g., different arch, different libc, etc.
-        # Use the first entry.
+        # 002787.python.utils.line341.comment ldconfig may know about several versions of the same lib, e.g., different arch, different libc, etc.
+        # 002788.python.utils.line342.comment Use the first entry.
         if name not in LDCONFIG_CACHE:
             LDCONFIG_CACHE[name] = path

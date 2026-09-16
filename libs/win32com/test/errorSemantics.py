@@ -1,15 +1,15 @@
-# errorSemantics.py
+# 049858.python.errorSemantics.line1.comment errorSemantics.py
 
-# Test the Python error handling semantics.  Specifically:
-#
-# * When a Python COM object is called via IDispatch, the nominated
-#   scode is placed in the exception tuple, and the HRESULT is
-#   DISP_E_EXCEPTION
-# * When the same interface is called via IWhatever, the
-#   nominated  scode is returned directly (with the scode also
-#   reflected in the exception tuple)
-# * In all cases, the description etc end up in the exception tuple
-# * "Normal" Python exceptions resolve to an E_FAIL "internal error"
+# 049859.python.errorSemantics.line3.comment Test the Python error handling semantics.  Specifically:
+# 049860.python.errorSemantics.line4.comment
+# 049861.python.errorSemantics.line5.comment * When a Python COM object is called via IDispatch, the nominated
+# 049862.python.errorSemantics.line6.comment scode is placed in the exception tuple, and the HRESULT is
+# 049863.python.errorSemantics.line7.comment DISP_E_EXCEPTION
+# 049864.python.errorSemantics.line8.comment * When the same interface is called via IWhatever, the
+# 049865.python.errorSemantics.line9.comment nominated  scode is returned directly (with the scode also
+# 049866.python.errorSemantics.line10.comment reflected in the exception tuple)
+# 049867.python.errorSemantics.line11.comment * In all cases, the description etc end up in the exception tuple
+# 049868.python.errorSemantics.line12.comment * "Normal" Python exceptions resolve to an E_FAIL "internal error"
 
 import pythoncom
 import winerror
@@ -19,7 +19,7 @@ from win32com.server.util import wrap
 from win32com.test.util import CaptureWriter
 
 
-# Our COM server.
+# 049869.python.errorSemantics.line22.comment Our COM server.
 class TestServer:
     _public_methods_ = ["Clone", "Commit", "LockRegion", "Read"]
     _com_interfaces_ = [pythoncom.IID_IStream]
@@ -28,13 +28,13 @@ class TestServer:
         raise COMException("Not today", scode=winerror.E_UNEXPECTED)
 
     def Commit(self, flags):
-        # Testing unicode: 1F600   '😀'; GRINNING FACE
-        # Use the 'name' just for fun!
+        # 049870.python.errorSemantics.line31.comment Testing unicode: 1F600   '😀'; GRINNING FACE
+        # 049871.python.errorSemantics.line32.comment Use the 'name' just for fun!
         if flags == 0:
-            # A non com-specific exception.
+            # 049872.python.errorSemantics.line34.comment A non com-specific exception.
             raise Exception("\N{GRINNING FACE}")
-        # An explicit com_error, which is a bit of an edge-case, but might happen if
-        # a COM server itself calls another COM object and it fails.
+        # 049873.python.errorSemantics.line36.comment An explicit com_error, which is a bit of an edge-case, but might happen if
+        # 049874.python.errorSemantics.line37.comment a COM server itself calls another COM object and it fails.
         excepinfo = (
             winerror.E_UNEXPECTED,
             "source",
@@ -47,7 +47,7 @@ class TestServer:
 
 
 def test():
-    # Call via a native interface.
+    # 049875.python.errorSemantics.line50.comment Call via a native interface.
     com_server = wrap(TestServer(), pythoncom.IID_IStream)
     try:
         com_server.Clone()
@@ -83,12 +83,12 @@ def test():
             "The description in the exception tuple did not yield the correct string",
             str(com_exc),
         )
-    # Check we saw a traceback in stderr
+    # 049876.python.errorSemantics.line86.comment Check we saw a traceback in stderr
     assert cap.get_captured().find("Traceback") >= 0, (
         f"Could not find a traceback in stderr: {cap.get_captured()!r}"
     )
 
-    # Now do it all again, but using IDispatch
+    # 049877.python.errorSemantics.line91.comment Now do it all again, but using IDispatch
     com_server = Dispatch(wrap(TestServer()))
     try:
         com_server.Clone()
@@ -130,12 +130,12 @@ def test():
             "The description in the exception tuple did not yield the correct string",
             str(com_exc),
         )
-    # Check we saw a traceback in stderr
+    # 049878.python.errorSemantics.line133.comment Check we saw a traceback in stderr
     assert cap.get_captured().find("Traceback") >= 0, (
         f"Could not find a traceback in stderr: {cap.get_captured()!r}"
     )
 
-    # And an explicit com_error
+    # 049879.python.errorSemantics.line138.comment And an explicit com_error
     cap.clear()
     try:
         cap.capture()
@@ -204,14 +204,14 @@ if logging is not None:
         log = logging.getLogger("win32com_test")
         log.addHandler(handler)
         win32com.logger = log
-        # Now throw some exceptions!
-        # Native interfaces
+        # 049880.python.errorSemantics.line207.comment Now throw some exceptions!
+        # 049881.python.errorSemantics.line208.comment Native interfaces
         com_server = wrap(TestServer(), pythoncom.IID_IStream)
         try:
             com_server.Commit(0)
             raise AssertionError("should have failed")
         except pythoncom.error as exc:
-            # `excepinfo` is a tuple with elt 2 being the traceback we captured.
+            # 049882.python.errorSemantics.line214.comment `excepinfo` is a tuple with elt 2 being the traceback we captured.
             message = exc.excepinfo[2]
             assert message.endswith("Exception: \U0001f600\n")
         assert handler.num_emits == 1, handler.num_emits
@@ -220,13 +220,13 @@ if logging is not None:
         )
         handler.reset()
 
-        # IDispatch
+        # 049883.python.errorSemantics.line223.comment IDispatch
         com_server = Dispatch(wrap(TestServer()))
         try:
             com_server.Commit(0)
             raise AssertionError("should have failed")
         except pythoncom.error as exc:
-            # `excepinfo` is a tuple with elt 2 being the traceback we captured.
+            # 049884.python.errorSemantics.line229.comment `excepinfo` is a tuple with elt 2 being the traceback we captured.
             message = exc.excepinfo[2]
             assert message.endswith("Exception: \U0001f600\n")
         assert handler.num_emits == 1, handler.num_emits

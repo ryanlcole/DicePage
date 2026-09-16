@@ -1,4 +1,4 @@
-# Thread and application objects
+# 038517.python.thread.line1.comment Thread and application objects
 
 import win32ui
 

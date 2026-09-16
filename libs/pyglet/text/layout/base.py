@@ -296,7 +296,7 @@ class _Line:
         return f"_Line({self.boxes})"
 
     def add_box(self, box: _AbstractBox) -> None:
-        # Boxes are added when lines are flowed.
+        # 035729.python.base.line299.comment Boxes are added when lines are flowed.
         self.boxes.append(box)
         self.length += box.length
         self.ascent = max(self.ascent, box.ascent)
@@ -304,12 +304,12 @@ class _Line:
         self.width += box.advance
 
     def delete(self, layout: TextLayout) -> None:
-        # ONLY used by IncrementalTextLayout.
-        # Does not actually delete any data of the Line, just vertex lists and boxes. In the case
-        # of an InlineElement, it's up to that implementation.
+        # 035730.python.base.line307.comment ONLY used by IncrementalTextLayout.
+        # 035731.python.base.line308.comment Does not actually delete any data of the Line, just vertex lists and boxes. In the case
+        # 035732.python.base.line309.comment of an InlineElement, it's up to that implementation.
 
-        # When lines go out of visibility of the scissor area, they are culled to have no vertex list. This should
-        # perform better on extremely long documents. When they go back into visibility, place() is called again.
+        # 035733.python.base.line311.comment When lines go out of visibility of the scissor area, they are culled to have no vertex list. This should
+        # 035734.python.base.line312.comment perform better on extremely long documents. When they go back into visibility, place() is called again.
         for box in self.boxes:
             box.delete(layout)
 
@@ -446,9 +446,9 @@ class _GlyphBox(_AbstractBox):
 
     def place(self, layout: TextLayout, i: int, x: float, y: float, z: float, line_x: float, line_y: float,
               rotation: float, visible: bool, anchor_x: float, anchor_y: float, context: _LayoutContext) -> None:
-        # Creates the initial attributes and vertex lists of the glyphs.
-        # line_x/line_y are calculated when lines shift. To prevent having to destroy and recalculate the layout
-        # every time it moves, they are merged into the vertices. This way the translation can be moved directly.
+        # 035737.python.base.line449.comment Creates the initial attributes and vertex lists of the glyphs.
+        # 035738.python.base.line450.comment line_x/line_y are calculated when lines shift. To prevent having to destroy and recalculate the layout
+        # 035739.python.base.line451.comment every time it moves, they are merged into the vertices. This way the translation can be moved directly.
         assert self.glyphs
         assert not self.vertex_lists
         try:
@@ -479,7 +479,7 @@ class _GlyphBox(_AbstractBox):
                 v1 += glyph_pos.y_advance
                 v3 += glyph_pos.y_advance
 
-        # Text color
+        # 035741.python.base.line482.comment Text color
         colors = []
         for start, end, color in context.colors_iter.ranges(i, i + n_glyphs):
             if color is None:
@@ -490,7 +490,7 @@ class _GlyphBox(_AbstractBox):
             colors.extend(color * ((end - start) * 4))
 
         indices = []
-        # Create indices for each glyph quad:
+        # 035743.python.base.line493.comment Create indices for each glyph quad:
         for glyph_idx in range(n_glyphs):
             indices.extend([element + (glyph_idx * 4) for element in [0, 1, 2, 0, 2, 3]])
 
@@ -506,12 +506,12 @@ class _GlyphBox(_AbstractBox):
                                                          anchor=("f", ((anchor_x, anchor_y) * 4) * n_glyphs))
         self._add_vertex_list(vertex_list, context)
 
-        # Decoration (background color and underline)
-        # -------------------------------------------
-        # Should iterate over baseline too, but in practice any sensible
-        # change in baseline will correspond with a change in font size,
-        # and thus glyph run as well.  So we cheat and just use whatever
-        # baseline was seen last.
+        # 035744.python.base.line509.comment Decoration (background color and underline)
+        # 035745.python.base.line510.comment -------------------------------------------
+        # 035746.python.base.line511.comment Should iterate over baseline too, but in practice any sensible
+        # 035747.python.base.line512.comment change in baseline will correspond with a change in font size,
+        # 035748.python.base.line513.comment and thus glyph run as well.  So we cheat and just use whatever
+        # 035749.python.base.line514.comment baseline was seen last.
         background_vertices = []
         background_colors = []
         underline_vertices = []
@@ -581,18 +581,18 @@ class _GlyphBox(_AbstractBox):
 
         Update just the specific range of glyphs with the colors.
         """
-        # Receives flattened list of colors based on the count.
+        # 035750.python.base.line584.comment Receives flattened list of colors based on the count.
         for _vertex_list in self.vertex_lists:
             vertices_per_char = _vertex_list.count // self.length
-            # Check length, because underlines and BG's can exist.
+            # 035751.python.base.line587.comment Check length, because underlines and BG's can exist.
             if vertices_per_char == 4:
                 color_end_index = (end - start) * 4
 
-                # Calculate the vertex start and end indices for (RGBA)
+                # 035752.python.base.line591.comment Calculate the vertex start and end indices for (RGBA)
                 vertex_start_index = start * vertices_per_char * 4
                 vertex_end_index = end * vertices_per_char * 4
 
-                # Update the vertex colors
+                # 035753.python.base.line595.comment Update the vertex colors
                 _vertex_list.colors[vertex_start_index:vertex_end_index] = colors[:color_end_index] * vertices_per_char
 
     def update_view_translation(self, translate_x: float, translate_y: float) -> None:
@@ -654,7 +654,7 @@ class _InlineElementBox(_AbstractBox):
         super().__init__(element.ascent, element.descent, element.advance, 1)
         self.element = element
 
-        # Determines if the box is visible.
+        # 035755.python.base.line657.comment Determines if the box is visible.
         self.placed = False
 
     def place(self, layout: TextLayout, i: int, x: float, y: float, z: float, line_x: float, line_y: float,  # noqa: ARG002
@@ -712,7 +712,7 @@ class _InvalidRange:
     start: int
     end: int
 
-    # Used by the IncrementalTextLayout
+    # 035758.python.base.line715.comment Used by the IncrementalTextLayout
 
     def __init__(self) -> None:
         self.start = sys.maxsize
@@ -817,7 +817,7 @@ class TextDecorationGroup(Group):
         self.program.stop()
 
 
-# Just have one object for empty positions in layout. It won't be modified.
+# 035761.python.base.line820.comment Just have one object for empty positions in layout. It won't be modified.
 _empty_pos = GlyphPosition(0, 0, 0, 0)
 
 class TextLayout:
@@ -933,14 +933,14 @@ class TextLayout:
 
         self._user_group = group
 
-        # Accumulation of all child vertex lists, this is ONLY used for the draw function.
+        # 035762.python.base.line936.comment Accumulation of all child vertex lists, this is ONLY used for the draw function.
         self._vertex_lists = []
 
-        # Boxes are all existing _AbstractBoxes, these are used to gather line information.
-        # Note that this is only relevant to layouts that do not store directly on lines.
+        # 035763.python.base.line939.comment Boxes are all existing _AbstractBoxes, these are used to gather line information.
+        # 035764.python.base.line940.comment Note that this is only relevant to layouts that do not store directly on lines.
         self._boxes = []
 
-        #: :meta private:
+        # 035765.python.base.line943.comment : :meta private:
         self.group_cache = {}
 
         self._initialize_groups()
@@ -1481,7 +1481,7 @@ class TextLayout:
             self._create_vertex_lists(line.x, line.y, self._anchor_left, anchor_top, line.start, line.boxes, context)
 
     def _update_color(self, start: int, end: int) -> None:
-        # This function usually is only called by Labels/HTML when updating just colors.
+        # 035767.python.base.line1484.comment This function usually is only called by Labels/HTML when updating just colors.
         colors_iter = self._document.get_style_runs("color")
 
         colors = []
@@ -1490,7 +1490,7 @@ class TextLayout:
 
         char_index = 0
 
-        # Search all boxes for the characters that are going to be updated.
+        # 035768.python.base.line1493.comment Search all boxes for the characters that are going to be updated.
         for box in self._boxes:
             box_length = box.length  # Number of glyphs in the box
 
@@ -1543,7 +1543,7 @@ class TextLayout:
             return height - offset
         if self._anchor_y == "center":
             if self._line_count == 1 and self._height is None:
-                # This "looks" more centered than considering all of the descent.
+                # 035770.python.base.line1546.comment This "looks" more centered than considering all of the descent.
                 return self._ascent // 2 - self._descent // 4
 
             return height // 2 - offset
@@ -1576,7 +1576,7 @@ class TextLayout:
             return 0
         if self._anchor_y == "center":
             if self._line_count == 1 and self._height is None:
-                # This "looks" more centered than considering all of the descent.
+                # 035771.python.base.line1579.comment This "looks" more centered than considering all of the descent.
                 return (self._ascent // 2 - self._descent // 4) - height
 
             return offset - height // 2
@@ -1612,7 +1612,7 @@ class TextLayout:
         The event handler is bound by the text layout; there is no need for
         applications to interact with this method.
         """
-        # To save performance when lerping colors, only update color values instead of recreating layout.
+        # 035774.python.base.line1615.comment To save performance when lerping colors, only update color values instead of recreating layout.
         if len(attributes) == 1 and "color" in attributes:
             self._update_color(start, end)
         else:
@@ -1641,7 +1641,7 @@ class TextLayout:
         owner = glyphs[start].owner
         run_start = start
 
-        # TODO avoid glyph slice on non-incremental
+        # 035775.python.base.line1644.comment TODO avoid glyph slice on non-incremental
         for i, glyph in enumerate(glyphs[start:end]):
             if owner != glyph.owner:
                 owner_runs.set_run(run_start, i + start, owner)
@@ -1653,8 +1653,8 @@ class TextLayout:
                           offsets: list[GlyphPosition],
                           owner_runs: runlist.RunList, start: int,
                           end: int) -> Iterator[_Line]:
-        # Word-wrap styled text into lines of fixed width.
-        # Fits glyphs in range start to end into Lines which are then yielded.
+        # 035776.python.base.line1656.comment Word-wrap styled text into lines of fixed width.
+        # 035777.python.base.line1657.comment Fits glyphs in range start to end into Lines which are then yielded.
         owner_iterator = owner_runs.get_run_iterator().ranges(start, end)
 
         font_iterator = self._document.get_font_runs(dpi=self._dpi)
@@ -1689,42 +1689,42 @@ class TextLayout:
         if self._wrap_lines:
             width = self._width - line.margin_left - line.margin_right
 
-        # Current right-most x position in line being laid out.
+        # 035778.python.base.line1692.comment Current right-most x position in line being laid out.
         x = 0
 
-        # Boxes accumulated but not yet committed to a line.
+        # 035779.python.base.line1695.comment Boxes accumulated but not yet committed to a line.
         run_accum = []
         run_accum_width = 0
 
-        # Amount of whitespace accumulated at end of line
+        # 035780.python.base.line1699.comment Amount of whitespace accumulated at end of line
         eol_ws = 0
 
-        # Iterate over glyph owners (texture states); these form GlyphBoxes,
-        # but broken into lines.
+        # 035781.python.base.line1702.comment Iterate over glyph owners (texture states); these form GlyphBoxes,
+        # 035782.python.base.line1703.comment but broken into lines.
         font = None
         for start, end, owner in owner_iterator:
             font = font_iterator[start]
 
-            # Glyphs accumulated in this owner but not yet committed to a
-            # line.
+            # 035783.python.base.line1708.comment Glyphs accumulated in this owner but not yet committed to a
+            # 035784.python.base.line1709.comment line.
             owner_accum = []
             owner_accum_width = 0
 
-            # Glyphs accumulated in this owner AND also committed to the
-            # current line (some whitespace has followed all of the committed
-            # glyphs).
+            # 035785.python.base.line1713.comment Glyphs accumulated in this owner AND also committed to the
+            # 035786.python.base.line1714.comment current line (some whitespace has followed all of the committed
+            # 035787.python.base.line1715.comment glyphs).
             owner_accum_commit = []
             owner_accum_commit_width = 0
 
-            # Ignore kerning of first glyph on each line
+            # 035788.python.base.line1719.comment Ignore kerning of first glyph on each line
             nokern = True
 
-            # Current glyph index
+            # 035789.python.base.line1722.comment Current glyph index
             index = start
 
-            # Iterate over glyphs in this owner run.  `text` is the
-            # corresponding character data for the glyph, and is used to find
-            # whitespace and newlines.
+            # 035790.python.base.line1725.comment Iterate over glyphs in this owner run.  `text` is the
+            # 035791.python.base.line1726.comment corresponding character data for the glyph, and is used to find
+            # 035792.python.base.line1727.comment whitespace and newlines.
             for (text, glyph, offset) in zip(self.document.text[start:end], glyphs[start:end], offsets[start:end]):
                 if nokern:
                     kern = 0
@@ -1733,20 +1733,20 @@ class TextLayout:
                     kern = self._parse_distance(kerning_iterator[index])
 
                 if wrap != "char" and text in "\u0020\u200b\t":
-                    # Whitespace: commit pending runs to this line.
+                    # 035793.python.base.line1736.comment Whitespace: commit pending runs to this line.
                     for run in run_accum:
                         line.add_box(run)
                     run_accum = []
                     run_accum_width = 0
 
                     if text == "\t":
-                        # Fix up kern for this glyph to align to the next tab stop
+                        # 035794.python.base.line1743.comment Fix up kern for this glyph to align to the next tab stop
                         for tab_stop in tab_stops_iterator[index]:
                             tab_stop = self._parse_distance(tab_stop)
                             if tab_stop > x + line.margin_left:
                                 break
                         else:
-                            # No more tab stops, tab to 100 pixels
+                            # 035795.python.base.line1749.comment No more tab stops, tab to 100 pixels
                             tab = 50.
                             tab_stop = (((x + line.margin_left) // tab) + 1) * tab
                         kern = int(tab_stop - x - line.margin_left - glyph.advance)
@@ -1762,21 +1762,21 @@ class TextLayout:
                     x += glyph.advance + kern + offset.x_advance
                     index += 1
 
-                    # The index at which the next line will begin (the
-                    # current index, because this is the current best
-                    # breakpoint).
+                    # 035796.python.base.line1765.comment The index at which the next line will begin (the
+                    # 035797.python.base.line1766.comment current index, because this is the current best
+                    # 035798.python.base.line1767.comment breakpoint).
                     next_start = index
                 else:
                     new_paragraph = text in "\n\u2029"
                     new_line = (text == "\u2028") or new_paragraph
                     if (wrap and self._wrap_lines and x + kern + glyph.advance + offset.x_advance >= width) or new_line:
-                        # Either the pending runs have overflowed the allowed
-                        # line width or a newline was encountered.  Either
-                        # way, the current line must be flushed.
+                        # 035799.python.base.line1773.comment Either the pending runs have overflowed the allowed
+                        # 035800.python.base.line1774.comment line width or a newline was encountered.  Either
+                        # 035801.python.base.line1775.comment way, the current line must be flushed.
 
                         if new_line or wrap == "char":
-                            # Forced newline or char-level wrapping.  Commit
-                            # everything pending without exception.
+                            # 035802.python.base.line1778.comment Forced newline or char-level wrapping.  Commit
+                            # 035803.python.base.line1779.comment everything pending without exception.
                             for run in run_accum:
                                 line.add_box(run)
                             run_accum = []
@@ -1791,26 +1791,26 @@ class TextLayout:
                             if new_line:
                                 next_start += 1
 
-                        # Create the _GlyphBox for the committed glyphs in the
-                        # current owner.
+                        # 035804.python.base.line1794.comment Create the _GlyphBox for the committed glyphs in the
+                        # 035805.python.base.line1795.comment current owner.
                         if owner_accum_commit:
                             line.add_box(_GlyphBox(owner, font, owner_accum_commit, owner_accum_commit_width))
                             owner_accum_commit = []
                             owner_accum_commit_width = 0
 
                         if new_line and not line.boxes:
-                            # Empty line: give it the current font's default
-                            # line-height.
+                            # 035806.python.base.line1802.comment Empty line: give it the current font's default
+                            # 035807.python.base.line1803.comment line-height.
                             line.ascent = font.ascent
                             line.descent = font.descent
 
-                        # Flush the line, unless nothing got committed, in
-                        # which case it's a really long string of glyphs
-                        # without any breakpoints (in which case it will be
-                        # flushed at the earliest breakpoint, not before
-                        # something is committed).
+                        # 035808.python.base.line1807.comment Flush the line, unless nothing got committed, in
+                        # 035809.python.base.line1808.comment which case it's a really long string of glyphs
+                        # 035810.python.base.line1809.comment without any breakpoints (in which case it will be
+                        # 035811.python.base.line1810.comment flushed at the earliest breakpoint, not before
+                        # 035812.python.base.line1811.comment something is committed).
                         if line.boxes or new_line:
-                            # Trim line width of whitespace on right-side.
+                            # 035813.python.base.line1813.comment Trim line width of whitespace on right-side.
                             line.width -= eol_ws
                             if new_paragraph:
                                 line.paragraph_end = True
@@ -1821,14 +1821,14 @@ class TextLayout:
                                 line.margin_left = self._parse_distance(margin_left_iterator[next_start])
                                 line.margin_right = self._parse_distance(margin_right_iterator[next_start])
                             except IndexError:
-                                # XXX This used to throw StopIteration in some cases, causing the
-                                # final part of this method not to be executed. Refactoring
-                                # required to fix this
+                                # 035814.python.base.line1824.comment XXX This used to throw StopIteration in some cases, causing the
+                                # 035815.python.base.line1825.comment final part of this method not to be executed. Refactoring
+                                # 035816.python.base.line1826.comment required to fix this
                                 return
                             if new_paragraph:
                                 line.paragraph_begin = True
 
-                            # Remove kern from first glyph of line
+                            # 035817.python.base.line1831.comment Remove kern from first glyph of line
                             if run_accum and hasattr(run_accum, "glyphs") and run_accum.glyphs:
                                 k, g = run_accum[0].glyphs[0]
                                 run_accum[0].glyphs[0] = (0, g, _empty_pos)
@@ -1845,40 +1845,40 @@ class TextLayout:
                                 width = self._width - line.margin_left - line.margin_right
 
                     if isinstance(glyph, _AbstractBox):
-                        # Glyph is already in a box. XXX Ignore kern?
+                        # 035818.python.base.line1848.comment Glyph is already in a box. XXX Ignore kern?
                         run_accum.append(glyph)
                         run_accum_width += glyph.advance + offset.x_advance
                         x += glyph.advance + offset.x_advance
                     elif new_paragraph:
-                        # New paragraph started, update wrap style
+                        # 035819.python.base.line1853.comment New paragraph started, update wrap style
                         wrap = wrap_iterator[next_start]
                         line.margin_left += self._parse_distance(indent_iterator[next_start])
                         if self._wrap_lines:
                             width = self._width - line.margin_left - line.margin_right
                     elif not new_line:
-                        # If the glyph was any non-whitespace, non-newline
-                        # character, add it to the pending run.
+                        # 035820.python.base.line1859.comment If the glyph was any non-whitespace, non-newline
+                        # 035821.python.base.line1860.comment character, add it to the pending run.
                         owner_accum.append((kern, glyph, offset))
                         owner_accum_width += glyph.advance + kern + offset.x_advance
                         x += glyph.advance + kern + offset.x_advance
                     index += 1
                     eol_ws = 0
 
-            # The owner run is finished; create GlyphBoxes for the committed
-            # and pending glyphs.
+            # 035822.python.base.line1867.comment The owner run is finished; create GlyphBoxes for the committed
+            # 035823.python.base.line1868.comment and pending glyphs.
             if owner_accum_commit:
                 line.add_box(_GlyphBox(owner, font, owner_accum_commit, owner_accum_commit_width))
             if owner_accum:
                 run_accum.append(_GlyphBox(owner, font, owner_accum, owner_accum_width))
                 run_accum_width += owner_accum_width
 
-        # All glyphs have been processed: commit everything pending and flush
-        # the final line.
+        # 035824.python.base.line1875.comment All glyphs have been processed: commit everything pending and flush
+        # 035825.python.base.line1876.comment the final line.
         for run in run_accum:
             line.add_box(run)
 
         if not line.boxes:
-            # Empty line gets font's line-height
+            # 035826.python.base.line1881.comment Empty line gets font's line-height
             if font is None:
                 font = self._document.get_font(0, dpi=self._dpi)
             line.ascent = font.ascent
@@ -1917,7 +1917,7 @@ class TextLayout:
                 width += sum([o.x_advance for o in os])
                 owner_glyphs.extend(zip([kern] * (kern_end - kern_start), gs, os))
             if owner is None:
-                # Assume glyphs are already boxes.
+                # 035827.python.base.line1920.comment Assume glyphs are already boxes.
                 for _, glyph, _ in owner_glyphs:
                     line.add_box(glyph)
             else:
@@ -1976,9 +1976,9 @@ class TextLayout:
             self._content_width = max(self._content_width, line.width + line.margin_left)
 
             if line.y == y and line_index >= end:
-                # Early exit: all invalidated lines have been reflowed and the
-                # next line has no change (therefore subsequent lines do not
-                # need to be changed).
+                # 035828.python.base.line1979.comment Early exit: all invalidated lines have been reflowed and the
+                # 035829.python.base.line1980.comment next line has no change (therefore subsequent lines do not
+                # 035830.python.base.line1981.comment need to be changed).
                 break
             line.y = y
 
@@ -1996,7 +1996,7 @@ class TextLayout:
     def _create_vertex_lists(self, line_x: float, line_y: float, anchor_x: float, anchor_y: float, i: int,
                              boxes: list[_AbstractBox], context: _LayoutContext) -> None:
         acc_anchor_x = anchor_x
-        # GlyphBoxes (boxes) are collection of Glyphs/Inline Elements. A line can have multiple GlyphBoxes.
+        # 035831.python.base.line1999.comment GlyphBoxes (boxes) are collection of Glyphs/Inline Elements. A line can have multiple GlyphBoxes.
         for box in boxes:
             box.place(self, i, self._x, self._y, self._z, line_x, line_y, self._rotation, self._visible, acc_anchor_x,
                       anchor_y, context)

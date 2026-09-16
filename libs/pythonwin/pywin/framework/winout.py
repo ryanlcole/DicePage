@@ -1,24 +1,24 @@
-# winout.py
-#
-# generic "output window"
-#
-# This Window will detect itself closing, and recreate next time output is
-# written to it.
+# 038096.python.winout.line1.comment winout.py
+# 038097.python.winout.line2.comment
+# 038098.python.winout.line3.comment generic "output window"
+# 038099.python.winout.line4.comment
+# 038100.python.winout.line5.comment This Window will detect itself closing, and recreate next time output is
+# 038101.python.winout.line6.comment written to it.
 
-# This has the option of writing output at idle time (by hooking the
-# idle message, and queueing output) or writing as each
-# write is executed.
-# Updating the window directly gives a jerky appearance as many writes
-# take place between commands, and the windows scrolls, and updates etc
-# Updating at idle-time may defer all output of a long process, giving the
-# appearence nothing is happening.
-# There is a compromise "line" mode, which will output whenever
-# a complete line is available.
+# 038102.python.winout.line8.comment This has the option of writing output at idle time (by hooking the
+# 038103.python.winout.line9.comment idle message, and queueing output) or writing as each
+# 038104.python.winout.line10.comment write is executed.
+# 038105.python.winout.line11.comment Updating the window directly gives a jerky appearance as many writes
+# 038106.python.winout.line12.comment take place between commands, and the windows scrolls, and updates etc
+# 038107.python.winout.line13.comment Updating at idle-time may defer all output of a long process, giving the
+# 038108.python.winout.line14.comment appearence nothing is happening.
+# 038109.python.winout.line15.comment There is a compromise "line" mode, which will output whenever
+# 038110.python.winout.line16.comment a complete line is available.
 
-# behaviour depends on self.writeQueueing
+# 038111.python.winout.line18.comment behaviour depends on self.writeQueueing
 
-# This module is thread safe - output can originate from any thread.  If any thread
-# other than the main thread attempts to print, it is always queued until next idle time
+# 038112.python.winout.line20.comment This module is thread safe - output can originate from any thread.  If any thread
+# 038113.python.winout.line21.comment other than the main thread attempts to print, it is always queued until next idle time
 
 import queue
 import re
@@ -32,16 +32,16 @@ from pywin.mfc import docview
 from pywin.scintilla import scintillacon
 
 debug = lambda msg: None
-# debug=win32ui.OutputDebugString
-# import win32trace;win32trace.InitWrite() # for debugging - delete me!
-# debug = win32trace.write
-# WindowOutputDocumentParent=docview.RichEditDoc
-# WindowOutputDocumentParent=docview.Document
+# 038114.python.winout.line35.comment debug=win32ui.OutputDebugString
+# 038115.python.winout.line36.comment import win32trace;win32trace.InitWrite() # for debugging - delete me!
+# 038116.python.winout.line37.comment debug = win32trace.write
+# 038117.python.winout.line38.comment WindowOutputDocumentParent=docview.RichEditDoc
+# 038118.python.winout.line39.comment WindowOutputDocumentParent=docview.Document
 WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
 
 
 class flags:
-    # queueing of output.
+    # 038119.python.winout.line44.comment queueing of output.
     WQ_NONE = 0
     WQ_LINE = 1
     WQ_IDLE = 2
@@ -83,9 +83,9 @@ class WindowOutputFrame(window.MDIChildWnd):
         return cc
 
     def OnSizeMove(self, msg):
-        # so recreate maintains position.
-        # Need to map coordinates from the
-        # frame windows first child.
+        # 038121.python.winout.line86.comment so recreate maintains position.
+        # 038122.python.winout.line87.comment Need to map coordinates from the
+        # 038123.python.winout.line88.comment frame windows first child.
         mdiClient = self.GetParent()
         self.template.defSize = mdiClient.ScreenToClient(self.GetWindowRect())
 
@@ -100,7 +100,7 @@ class WindowOutputViewImpl:
         self.template = self.GetDocument().GetDocTemplate()
 
     def HookHandlers(self):
-        # Hook for the right-click menu.
+        # 038124.python.winout.line103.comment Hook for the right-click menu.
         self.HookMessage(self.OnRClick, win32con.WM_RBUTTONDOWN)
 
     def OnDestroy(self, msg):
@@ -117,9 +117,9 @@ class WindowOutputViewImpl:
         ret.append((flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all"))
         return ret
 
-    #
-    # Windows command handlers, virtuals, etc.
-    #
+    # 038126.python.winout.line120.comment
+    # 038127.python.winout.line121.comment Windows command handlers, virtuals, etc.
+    # 038128.python.winout.line122.comment
     def OnRClick(self, params):
         paramsList = self.GetRightMenuItems()
         menu = win32ui.CreatePopupMenu()
@@ -130,17 +130,17 @@ class WindowOutputViewImpl:
         menu.TrackPopupMenu(params[5])  # track at mouse position.
         return 0
 
-    # as this is often used as an output window, exeptions will often
-    # be printed.  Therefore, we support this functionality at this level.
-    # Returns TRUE if the current line is an error message line, and will
-    # jump to it.  FALSE if no error (and no action taken)
+    # 038130.python.winout.line133.comment as this is often used as an output window, exeptions will often
+    # 038131.python.winout.line134.comment be printed.  Therefore, we support this functionality at this level.
+    # 038132.python.winout.line135.comment Returns TRUE if the current line is an error message line, and will
+    # 038133.python.winout.line136.comment jump to it.  FALSE if no error (and no action taken)
     def HandleSpecialLine(self):
         from . import scriptutils
 
         line = self.GetLine()
         if line[:11] == "com_error: ":
-            # An OLE Exception - pull apart the exception
-            # and try and locate a help file.
+            # 038134.python.winout.line142.comment An OLE Exception - pull apart the exception
+            # 038135.python.winout.line143.comment and try and locate a help file.
             try:
                 import win32api
                 import win32con
@@ -160,27 +160,27 @@ class WindowOutputViewImpl:
                 win32ui.SetStatusText(
                     "Line is a COM error, but no WinHelp details can be parsed"
                 )
-        # Look for a Python traceback.
+        # 038136.python.winout.line163.comment Look for a Python traceback.
         matchResult = self.patErrorMessage.match(line)
         if matchResult is None:
-            # No match - try the previous line
+            # 038137.python.winout.line166.comment No match - try the previous line
             lineNo = self.LineFromChar()
             if lineNo > 0:
                 line = self.GetLine(lineNo - 1)
                 matchResult = self.patErrorMessage.match(line)
         if matchResult is not None:
-            # we have an error line.
+            # 038138.python.winout.line172.comment we have an error line.
             fileName = matchResult.group(1)
             if fileName[0] == "<":
                 win32ui.SetStatusText("Can not load this file")
                 return 1  # still was an error message.
             else:
                 lineNoString = matchResult.group(2)
-                # Attempt to locate the file (in case it is a relative spec)
+                # 038140.python.winout.line179.comment Attempt to locate the file (in case it is a relative spec)
                 fileNameSpec = fileName
                 fileName = scriptutils.LocatePythonFile(fileName)
                 if fileName is None:
-                    # Don't force update, so it replaces the idle prompt.
+                    # 038141.python.winout.line183.comment Don't force update, so it replaces the idle prompt.
                     win32ui.SetStatusText(
                         "Can't locate the file '%s'" % (fileNameSpec), 0
                     )
@@ -221,10 +221,10 @@ class WindowOutputViewRTF(docview.RichEditView, WindowOutputViewImpl):
 
     def HookHandlers(self):
         WindowOutputViewImpl.HookHandlers(self)
-        # Hook for finding and locating error messages
+        # 038144.python.winout.line224.comment Hook for finding and locating error messages
         self.HookMessage(self.OnLDoubleClick, win32con.WM_LBUTTONDBLCLK)
 
-    # 		docview.RichEditView.HookHandlers(self)
+    # 038145.python.winout.line227.comment docview.RichEditView.HookHandlers(self)
 
     def OnLDoubleClick(self, params):
         if self.HandleSpecialLine():
@@ -284,13 +284,13 @@ class WindowOutputViewScintilla(
             self.OnScintillaDoubleClick, scintillacon.SCN_DOUBLECLICK
         )
 
-    ##		self.HookMessage(self.OnLDoubleClick,win32con.WM_LBUTTONDBLCLK)
+    # 038149.python.winout.line287.comment #		self.HookMessage(self.OnLDoubleClick,win32con.WM_LBUTTONDBLCLK)
 
     def OnScintillaDoubleClick(self, std, extra):
         self.HandleSpecialLine()
 
-    ##	def OnLDoubleClick(self,params):
-    ##			return 0	# never don't pass on
+    # 038150.python.winout.line292.comment #	def OnLDoubleClick(self,params):
+    # 038151.python.winout.line293.comment #			return 0	# never don't pass on
 
     def RestoreKillBuffer(self):
         assert len(self.template.killBuffer) in (0, 1), "Unexpected killbuffer contents"
@@ -322,10 +322,10 @@ class WindowOutputViewScintilla(
 WindowOutputView = WindowOutputViewScintilla
 
 
-# The WindowOutput class is actually an MFC template.  This is a conventient way of
-# making sure that my state can exist beyond the life of the windows themselves.
-# This is primarily to support the functionality of a WindowOutput window automatically
-# being recreated if necessary when written to.
+# 038153.python.winout.line325.comment The WindowOutput class is actually an MFC template.  This is a conventient way of
+# 038154.python.winout.line326.comment making sure that my state can exist beyond the life of the windows themselves.
+# 038155.python.winout.line327.comment This is primarily to support the functionality of a WindowOutput window automatically
+# 038156.python.winout.line328.comment being recreated if necessary when written to.
 class WindowOutput(docview.DocTemplate):
     """Looks like a general Output Window - text can be written by the 'write' method.
     Will auto-create itself on first write, and also on next write after being closed"""
@@ -421,7 +421,7 @@ class WindowOutput(docview.DocTemplate):
 
     def OnFrameDestroy(self, frame):
         if self.iniSizeSection:
-            # use GetWindowPlacement(), as it works even when min'd or max'd
+            # 038159.python.winout.line424.comment use GetWindowPlacement(), as it works even when min'd or max'd
             newSize = frame.GetWindowPlacement()[4]
             if self.loadedSize != newSize:
                 app.SaveWindowSize(self.iniSizeSection, newSize)
@@ -444,7 +444,7 @@ class WindowOutput(docview.DocTemplate):
             debug("Error = not trying again")
             return 0
         try:
-            # This will fail if app shutting down
+            # 038160.python.winout.line447.comment This will fail if app shutting down
             win32ui.GetMainFrame().GetSafeHwnd()
             self.Create()
             return 1
@@ -453,19 +453,19 @@ class WindowOutput(docview.DocTemplate):
             debug("Winout can not recreate the Window!\n")
             return 0
 
-    # this handles the idle message, and does the printing.
+    # 038161.python.winout.line456.comment this handles the idle message, and does the printing.
     def QueueIdleHandler(self, handler, count):
         try:
             bEmpty = self.QueueFlush(20)
-            # If the queue is empty, then we are back to idle and restart interrupt logic.
+            # 038162.python.winout.line460.comment If the queue is empty, then we are back to idle and restart interrupt logic.
             if bEmpty:
                 self.interruptCount = 0
         except KeyboardInterrupt:
-            # First interrupt since idle we just pass on.
-            # later ones we dump the queue and give up.
+            # 038163.python.winout.line464.comment First interrupt since idle we just pass on.
+            # 038164.python.winout.line465.comment later ones we dump the queue and give up.
             self.interruptCount += 1
             if self.interruptCount > 1:
-                # Drop the queue quickly as the user is already annoyed :-)
+                # 038165.python.winout.line468.comment Drop the queue quickly as the user is already annoyed :-)
                 self.outputQueue = queue.Queue(-1)
                 print("Interrupted.")
                 bEmpty = 1
@@ -473,7 +473,7 @@ class WindowOutput(docview.DocTemplate):
                 raise  # re-raise the error so the users exception filters up.
         return not bEmpty  # More to do if not empty.
 
-    # Returns true if the Window needs to be recreated.
+    # 038168.python.winout.line476.comment Returns true if the Window needs to be recreated.
     def NeedRecreateWindow(self):
         try:
             if self.currentView is not None and self.currentView.IsWindow():
@@ -485,7 +485,7 @@ class WindowOutput(docview.DocTemplate):
             pass
         return 1
 
-    # Returns true if the Window is OK (either cos it was, or because it was recreated
+    # 038170.python.winout.line488.comment Returns true if the Window is OK (either cos it was, or because it was recreated
     def CheckRecreateWindow(self):
         if self.bCreating:
             return 1
@@ -497,8 +497,8 @@ class WindowOutput(docview.DocTemplate):
         return 0
 
     def QueueFlush(self, max=None):
-        # Returns true if the queue is empty after the flush
-        # 		debug("Queueflush - %d, %d\n" % (max, self.outputQueue.qsize()))
+        # 038171.python.winout.line500.comment Returns true if the queue is empty after the flush
+        # 038172.python.winout.line501.comment debug("Queueflush - %d, %d\n" % (max, self.outputQueue.qsize()))
         if self.bCreating:
             return 1
         items = []
@@ -521,31 +521,31 @@ class WindowOutput(docview.DocTemplate):
         return rc
 
     def HandleOutput(self, message):
-        # 		debug("QueueOutput on thread %d, flags %d with '%s'...\n" % (win32api.GetCurrentThreadId(), self.writeQueueing, message ))
+        # 038175.python.winout.line524.comment debug("QueueOutput on thread %d, flags %d with '%s'...\n" % (win32api.GetCurrentThreadId(), self.writeQueueing, message ))
         self.outputQueue.put(message)
         if win32api.GetCurrentThreadId() != self.mainThreadId:
             pass
-        # 			debug("not my thread - ignoring queue options!\n")
+        # 038176.python.winout.line528.comment debug("not my thread - ignoring queue options!\n")
         elif self.writeQueueing == flags.WQ_LINE:
             pos = message.rfind("\n")
             if pos >= 0:
-                # 				debug("Line queueing - forcing flush\n")
+                # 038177.python.winout.line532.comment debug("Line queueing - forcing flush\n")
                 self.QueueFlush()
                 return
         elif self.writeQueueing == flags.WQ_NONE:
-            # 			debug("WQ_NONE - flushing!\n")
+            # 038178.python.winout.line536.comment debug("WQ_NONE - flushing!\n")
             self.QueueFlush()
             return
-        # Let our idle handler get it - wake it up
+        # 038179.python.winout.line539.comment Let our idle handler get it - wake it up
         try:
             win32ui.GetMainFrame().PostMessage(
                 win32con.WM_USER
             )  # Kick main thread off.
         except win32ui.error:
-            # This can happen as the app is shutting down, so we send it to the C++ debugger
+            # 038181.python.winout.line545.comment This can happen as the app is shutting down, so we send it to the C++ debugger
             win32api.OutputDebugString(message)
 
-    # delegate certain fns to my view.
+    # 038182.python.winout.line548.comment delegate certain fns to my view.
     def writelines(self, lines):
         for line in lines:
             self.write(line)

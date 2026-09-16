@@ -1,6 +1,6 @@
-# link.py
-# From a demo by Mark Hammond, corrupted by Mike Fletcher
-# (and re-corrupted by Mark Hammond :-)
+# 051531.python.create_link.line1.comment link.py
+# 051532.python.create_link.line2.comment From a demo by Mark Hammond, corrupted by Mike Fletcher
+# 051533.python.create_link.line3.comment (and re-corrupted by Mark Hammond :-)
 import os
 
 import pythoncom
@@ -17,8 +17,8 @@ class PyShortcut:
         )
 
     def load(self, filename):
-        # Get an IPersist interface
-        # which allows save/restore of object to/from files
+        # 051534.python.create_link.line20.comment Get an IPersist interface
+        # 051535.python.create_link.line21.comment which allows save/restore of object to/from files
         self._base.QueryInterface(pythoncom.IID_IPersistFile).Load(filename)
 
     def save(self, filename):
@@ -40,9 +40,9 @@ if __name__ == "__main__":
     file = sys.argv[1]
     shortcut = PyShortcut()
     if os.path.exists(file):
-        # load and dump info from file...
+        # 051536.python.create_link.line43.comment load and dump info from file...
         shortcut.load(file)
-        # now print data...
+        # 051537.python.create_link.line45.comment now print data...
         print(
             "Shortcut in file %s to file:\n\t%s\nArguments:\n\t%s\nDescription:\n\t%s\nWorking Directory:\n\t%s\nItemIDs:\n\t<skipped>"
             % (
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 shortcut.GetArguments(),
                 shortcut.GetDescription(),
                 shortcut.GetWorkingDirectory(),
-                # shortcut.GetIDList(),
+                # 051538.python.create_link.line54.comment shortcut.GetIDList(),
             )
         )
     else:
@@ -60,7 +60,7 @@ if __name__ == "__main__":
                 "Link file does not exist\nYou must supply the path, args, description and working_dir as args"
             )
             sys.exit(1)
-        # create the shortcut using rest of args...
+        # 051539.python.create_link.line63.comment create the shortcut using rest of args...
         data = map(
             None,
             sys.argv[2:],
@@ -68,6 +68,6 @@ if __name__ == "__main__":
         )
         for value, function in data:
             if value and function:
-                # call function on each non-null value
+                # 051540.python.create_link.line71.comment call function on each non-null value
                 getattr(shortcut, function)(value)
         shortcut.save(file)

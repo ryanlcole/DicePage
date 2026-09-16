@@ -13,8 +13,8 @@ win32com.client.gencache.EnsureModule("{783CD4E0-9D54-11CF-B8EE-00608CC9A71F}", 
 
 def GetSS():
     ss = win32com.client.Dispatch("SourceSafe")
-    # SS seems a bit weird.  It defaults the arguments as empty strings, but
-    # then complains when they are used - so we pass "Missing"
+    # 047961.python.vssutil.line16.comment SS seems a bit weird.  It defaults the arguments as empty strings, but
+    # 047962.python.vssutil.line17.comment then complains when they are used - so we pass "Missing"
     ss.Open(pythoncom.Missing, pythoncom.Missing, pythoncom.Missing)
     return ss
 
@@ -26,9 +26,9 @@ def test(projectName):
     for item in project.GetVersions(constants.VSSFLAG_RECURSYES):
         print(item.VSSItem.Name, item.VersionNumber, item.Action)
 
-    # item=i.Versions[0].VSSItem
-    # for h in i.Versions:
-    #     print("h.Comment", h.Action, h.VSSItem.Name)
+    # 047963.python.vssutil.line29.comment item=i.Versions[0].VSSItem
+    # 047964.python.vssutil.line30.comment for h in i.Versions:
+    # 047965.python.vssutil.line31.comment print("h.Comment", h.Action, h.VSSItem.Name)
 
 
 def SubstituteInString(inString, evalEnv):
@@ -107,7 +107,7 @@ def SubstituteVSSInFile(projectName, inName, outName):
         raise RuntimeError("The input and output filenames can not be the same")
     sourceSafe = GetSS()
     project = sourceSafe.VSSItem(projectName)
-    # Find the last label
+    # 047966.python.vssutil.line110.comment Find the last label
     label = None
     for version in project.Versions:
         if version.Label:
@@ -115,7 +115,7 @@ def SubstituteVSSInFile(projectName, inName, outName):
     else:
         print("Couldn't find a label in the sourcesafe project!")
         return
-    # Setup some local helpers for the conversion strings.
+    # 047967.python.vssutil.line118.comment Setup some local helpers for the conversion strings.
     vss_label = version.Label
     vss_date = time.asctime(time.localtime(int(version.Date)))
     now = time.asctime(time.localtime(time.time()))
@@ -135,7 +135,7 @@ def CountCheckouts(item):
 
 def GetLastBuildNo(project):
     i = GetSS().VSSItem(project)
-    # Find the last label
+    # 047968.python.vssutil.line138.comment Find the last label
     lab = None
     for version in i.Versions:
         lab = str(version.Label)
@@ -190,11 +190,11 @@ def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=0):
 
 
 if __name__ == "__main__":
-    # 	UpdateWiseExeName("PyWiseTest.wse", "PyWiseTest-10.exe")
+    # 047969.python.vssutil.line193.comment UpdateWiseExeName("PyWiseTest.wse", "PyWiseTest-10.exe")
 
-    # 	MakeVersion()
-    # 	test(tp)
-    # 	MakeNewBuildNo(tp)
+    # 047970.python.vssutil.line195.comment MakeVersion()
+    # 047971.python.vssutil.line196.comment test(tp)
+    # 047972.python.vssutil.line197.comment MakeNewBuildNo(tp)
     tp = "\\Python\\Python Win32 Extensions"
     SubstituteVSSInFile(
         tp, "d:\\src\\pythonex\\win32\\win32.txt", "d:\\temp\\win32.txt"

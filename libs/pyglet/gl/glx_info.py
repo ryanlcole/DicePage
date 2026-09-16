@@ -45,7 +45,7 @@ class GLXInfoException(Exception):  # noqa: D101, N818
 
 class GLXInfo:  # noqa: D101
     def __init__(self, display: Display | None = None) -> None:  # noqa: D107
-        # Set default display if not set
+        # 027937.python.glx_info.line48.comment Set default display if not set
         if display and not _glx_info.display:
             _glx_info.set_display(display)
 
@@ -78,9 +78,9 @@ class GLXInfo:  # noqa: D101
         return asstr(glXQueryServerString(self.display, 0, GLX_VENDOR))
 
     def get_server_version(self) -> str:
-        # glXQueryServerString was introduced in GLX 1.1, so we need to use the
-        # 1.0 function here which queries the server implementation for its
-        # version.
+        # 027938.python.glx_info.line81.comment glXQueryServerString was introduced in GLX 1.1, so we need to use the
+        # 027939.python.glx_info.line82.comment 1.0 function here which queries the server implementation for its
+        # 027940.python.glx_info.line83.comment version.
         self.check_display()
         major = c_int()
         minor = c_int()
@@ -116,7 +116,7 @@ class GLXInfo:  # noqa: D101
         return extension in self.get_extensions()
 
 
-# Single instance suitable for apps that use only a single display.
+# 027941.python.glx_info.line119.comment Single instance suitable for apps that use only a single display.
 _glx_info = GLXInfo()
 
 set_display = _glx_info.set_display

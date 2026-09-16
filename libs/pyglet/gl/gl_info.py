@@ -76,8 +76,8 @@ class GLInfo:
             self.vendor = asstr(cast(glGetString(GL_VENDOR), c_char_p).value)
             self.renderer = asstr(cast(glGetString(GL_RENDERER), c_char_p).value)
             self.version = asstr(cast(glGetString(GL_VERSION), c_char_p).value)
-            # NOTE: The version string requirements for gles is a lot stricter
-            #       so using this to rely on detecting the API is not too unreasonable
+            # 027627.python.gl_info.line79.comment NOTE: The version string requirements for gles is a lot stricter
+            # 027628.python.gl_info.line80.comment so using this to rely on detecting the API is not too unreasonable
             self.opengl_api = "gles" if "opengl es" in self.version.lower() else "gl"
 
             try:
@@ -173,8 +173,8 @@ class GLInfo:
         return self.opengl_api
 
 
-# Single instance useful for apps with only a single context
-# (or all contexts have the same GL driver, a common case).
+# 027630.python.gl_info.line176.comment Single instance useful for apps with only a single context
+# 027631.python.gl_info.line177.comment (or all contexts have the same GL driver, a common case).
 _gl_info = GLInfo()
 
 get_extensions = _gl_info.get_extensions

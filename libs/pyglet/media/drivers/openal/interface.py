@@ -32,7 +32,7 @@ class OpenALObject:
         error_code = al.alGetError()
         if error_code != 0:
             error_string = al.alGetString(error_code)
-            # TODO: Fix return type in generated code?
+            # 034291.python.interface.line35.comment TODO: Fix return type in generated code?
             error_string = ctypes.cast(error_string, ctypes.c_char_p)
             raise OpenALException(message=message,
                                   error_code=error_code,
@@ -86,7 +86,7 @@ class OpenALDevice(OpenALObject):
         error_code = alc.alcGetError(self._al_device)
         if error_code != 0:
             error_string = alc.alcGetString(self._al_device, error_code)
-            # TODO: Fix return type in generated code?
+            # 034292.python.interface.line89.comment TODO: Fix return type in generated code?
             error_string = ctypes.cast(error_string, ctypes.c_char_p)
             raise OpenALException(message=message,
                                   error_code=error_code,
@@ -404,7 +404,7 @@ class OpenALBuffer(OpenALObject):
             return False
         valid = bool(al.alIsBuffer(self.al_name))
         if not valid:
-            # Clear possible error due to invalid buffer
+            # 034294.python.interface.line407.comment Clear possible error due to invalid buffer
             al.alGetError()
         return valid
 
@@ -460,10 +460,10 @@ class OpenALBufferPool(OpenALObject):
             b = self._buffers.pop()
             if b.is_valid:
                 ret_buffers.append(b)
-            # Otherwise the buffer doesn't exist on the OpenAL side
-            # anymore, forget about it
+            # 034295.python.interface.line463.comment Otherwise the buffer doesn't exist on the OpenAL side
+            # 034296.python.interface.line464.comment anymore, forget about it
 
-        # If we didn't get enough, create more buffers
+        # 034297.python.interface.line466.comment If we didn't get enough, create more buffers
         if (missing := number - len(ret_buffers)) > 0:
             names = (al.ALuint * missing)()
             al.alGenBuffers(missing, names)

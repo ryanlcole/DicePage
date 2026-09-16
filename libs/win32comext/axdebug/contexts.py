@@ -2,14 +2,14 @@
 
 from . import adb, axdebug, gateways
 
-# Utility function for wrapping object created by this module.
+# 050825.python.contexts.line5.comment Utility function for wrapping object created by this module.
 from .util import _wrap
 
 
 class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext):
-    # NOTE: We also implement the IDebugDocumentContext interface for Simple Hosts.
-    # Thus, debugDocument may be NULL when we have smart hosts - but in that case, we
-    # won't be called upon to provide it.
+    # 050826.python.contexts.line10.comment NOTE: We also implement the IDebugDocumentContext interface for Simple Hosts.
+    # 050827.python.contexts.line11.comment Thus, debugDocument may be NULL when we have smart hosts - but in that case, we
+    # 050828.python.contexts.line12.comment won't be called upon to provide it.
     _public_methods_ = (
         gateways.DebugCodeContext._public_methods_
         + gateways.DebugDocumentContext._public_methods_
@@ -33,19 +33,19 @@ class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext)
 
     def GetDocumentContext(self):
         if self.debugSite is not None:
-            # We have a smart host - let him give it to us.
+            # 050829.python.contexts.line36.comment We have a smart host - let him give it to us.
             return self.debugSite.GetDocumentContextFromPosition(
                 self.codeContainer.sourceContext, self.offset, self.length
             )
         else:
-            # Simple host - Fine - I'll do it myself!
+            # 050830.python.contexts.line41.comment Simple host - Fine - I'll do it myself!
             return _wrap(self, axdebug.IID_IDebugDocumentContext)
 
     def SetBreakPoint(self, bps):
         self.breakPointState = bps
         adb.OnSetBreakPoint(self, bps, self.lineno)
 
-    # The DebugDocumentContext methods for simple hosts.
+    # 050831.python.contexts.line48.comment The DebugDocumentContext methods for simple hosts.
     def GetDocument(self):
         return self.codeContainer.debugDocument
 

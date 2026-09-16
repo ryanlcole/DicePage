@@ -2,7 +2,7 @@ import types
 import functools
 
 
-# from jaraco.functools 3.3
+# 042098.python.functools.line5.comment from jaraco.functools 3.3
 def method_cache(method, cache_wrapper=None):
     """
     Wrap lru_cache to support storing the cache data in the object instances.
@@ -73,19 +73,19 @@ def method_cache(method, cache_wrapper=None):
     cache_wrapper = cache_wrapper or functools.lru_cache()
 
     def wrapper(self, *args, **kwargs):
-        # it's the first call, replace the method with a cached, bound method
+        # 042099.python.functools.line76.comment it's the first call, replace the method with a cached, bound method
         bound_method = types.MethodType(method, self)
         cached_method = cache_wrapper(bound_method)
         setattr(self, method.__name__, cached_method)
         return cached_method(*args, **kwargs)
 
-    # Support cache clear even before cache has been created.
+    # 042100.python.functools.line82.comment Support cache clear even before cache has been created.
     wrapper.cache_clear = lambda: None
 
     return wrapper
 
 
-# From jaraco.functools 3.3
+# 042101.python.functools.line88.comment From jaraco.functools 3.3
 def pass_none(func):
     """
     Wrap func so it's not called if its first param is None

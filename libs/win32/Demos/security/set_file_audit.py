@@ -16,7 +16,7 @@ from win32security import (
     SE_FILE_OBJECT,
 )
 
-## SE_SECURITY_NAME needed to access SACL, SE_RESTORE_NAME needed to change owner to someone other than yourself
+# 046177.python.set_file_audit.line19.comment # SE_SECURITY_NAME needed to access SACL, SE_RESTORE_NAME needed to change owner to someone other than yourself
 new_privs = (
     (
         win32security.LookupPrivilegeValue("", ntsecuritycon.SE_SECURITY_NAME),
@@ -33,13 +33,13 @@ th = win32security.OpenProcessToken(
 )
 modified_privs = win32security.AdjustTokenPrivileges(th, 0, new_privs)
 
-## look up a few sids that should be available on most systems
+# 046178.python.set_file_audit.line36.comment # look up a few sids that should be available on most systems
 my_sid = win32security.GetTokenInformation(th, ntsecuritycon.TokenUser)[0]
 pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
 admin_sid = win32security.LookupAccountName("", "Administrators")[0]
 everyone_sid = win32security.LookupAccountName("", "EveryOne")[0]
 
-## create a dir and set security so Everyone has read permissions, and all files and subdirs inherit its ACLs
+# 046179.python.set_file_audit.line42.comment # create a dir and set security so Everyone has read permissions, and all files and subdirs inherit its ACLs
 temp_dir = win32api.GetTempPath()
 dir_name = win32api.GetTempFileName(temp_dir, "sfa")[0]
 os.remove(dir_name)
@@ -51,14 +51,14 @@ dir_dacl.AddAccessAllowedAceEx(
     win32con.GENERIC_READ,
     everyone_sid,
 )
-## make sure current user has permissions on dir
+# 046180.python.set_file_audit.line54.comment # make sure current user has permissions on dir
 dir_dacl.AddAccessAllowedAceEx(
     ACL_REVISION_DS,
     CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE,
     win32con.GENERIC_ALL,
     my_sid,
 )
-## keep dir from inheriting any permissions so it only has ACEs explicitly set here
+# 046181.python.set_file_audit.line61.comment # keep dir from inheriting any permissions so it only has ACEs explicitly set here
 win32security.SetNamedSecurityInfo(
     dir_name,
     SE_FILE_OBJECT,
@@ -72,7 +72,7 @@ win32security.SetNamedSecurityInfo(
     None,
 )
 
-## Create a file in the dir and add some specific permissions to it
+# 046182.python.set_file_audit.line75.comment # Create a file in the dir and add some specific permissions to it
 fname = win32api.GetTempFileName(dir_name, "sfa")[0]
 print(fname)
 file_sd = win32security.GetNamedSecurityInfo(

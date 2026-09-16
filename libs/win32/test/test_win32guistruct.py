@@ -82,10 +82,10 @@ class TestMenuItemInfo(TestBase):
         self.assertEqual(hbmpUnchecked, 0)
         self.assertEqual(dwItemData, 0)
         self.assertEqual(hbmpItem, 0)
-        # it's not clear if UnpackMENUITEMINFO() should ignore cch, instead
-        # assuming it is a buffer size rather than 'current length' - but it
-        # never has (and this gives us every \0 in the string), and actually
-        # helps us test the unicode/str semantics.
+        # 048442.python.test_win32guistruct.line85.comment it's not clear if UnpackMENUITEMINFO() should ignore cch, instead
+        # 048443.python.test_win32guistruct.line86.comment assuming it is a buffer size rather than 'current length' - but it
+        # 048444.python.test_win32guistruct.line87.comment never has (and this gives us every \0 in the string), and actually
+        # 048445.python.test_win32guistruct.line88.comment helps us test the unicode/str semantics.
         self.assertEqual(text, "\0" * len(text))
 
 
@@ -223,7 +223,7 @@ class TestListViewItem(TestBase):
             indent,
         ) = win32gui_struct.UnpackLVITEM(ti)
 
-        # patch expected values.
+        # 048446.python.test_win32guistruct.line226.comment patch expected values.
         vals["item"] = 0
         vals["subItem"] = 0
         self.assertDictEquals(

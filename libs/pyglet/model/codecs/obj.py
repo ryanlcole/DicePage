@@ -14,7 +14,7 @@ from ...graphics import Batch, Group
 
 
 def _new_mesh(name, material):
-    # The three primitive types used in .obj files:
+    # 035541.python.obj.line17.comment The three primitive types used in .obj files:
     attributes = [Attribute('POSITION', 'f', 'VEC3', 0, []),
                   Attribute('NORMAL', 'f', 'VEC3', 0, []),
                   Attribute('TEXCOORD_0', 'f', 'VEC3', 0, [])]
@@ -46,7 +46,7 @@ def load_material_library(filename):
 
         if values[0] == 'newmtl':
             if name is not None:
-                # save previous material
+                # 035542.python.obj.line49.comment save previous material
                 for item in (diffuse, ambient, specular, emission):
                     item.append(opacity)
                 matlib[name] = SimpleMaterial(name, diffuse, ambient, specular, emission, shininess, texture_name)
@@ -150,7 +150,7 @@ def parse_obj_file(filename, file=None) -> list[Mesh]:
                 mesh = _new_mesh(name='unknown', material=material)
                 meshes.append(mesh)
 
-            # For fan triangulation, remember first and latest vertices
+            # 035545.python.obj.line153.comment For fan triangulation, remember first and latest vertices
             n1 = None
             nlast = None
             t1 = None
@@ -211,7 +211,7 @@ class OBJScene(Scene):
                     matgroup = MaterialGroup(material, program, parent=group)
 
                 data = {a.name: (a.fmt, a.array) for a in mesh.primitives[0].attributes}
-                # Add additional material data:
+                # 035546.python.obj.line214.comment Add additional material data:
                 data['COLOR_0'] = 'f', material.diffuse * count
 
                 vertex_lists.append(program.vertex_list(count, GL_TRIANGLES, batch, matgroup, **data))
@@ -220,9 +220,9 @@ class OBJScene(Scene):
         return [Model(vertex_lists=vertex_lists, groups=groups, batch=batch)]
 
 
-###################################################
-#   Decoder definitions start here:
-###################################################
+# 035547.python.obj.line223.comment ##################################################
+# 035548.python.obj.line224.comment Decoder definitions start here:
+# 035549.python.obj.line225.comment ##################################################
 
 class OBJModelDecoder(ModelDecoder):
     def get_file_extensions(self):

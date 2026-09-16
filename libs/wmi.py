@@ -179,9 +179,9 @@ wbemErrTimedout = obj._constants.wbemErrTimedout
 wbemFlagReturnImmediately = obj._constants.wbemFlagReturnImmediately
 wbemFlagForwardOnly = obj._constants.wbemFlagForwardOnly
 
-#
-# Exceptions
-#
+# 052427.python.wmi.line182.comment
+# 052428.python.wmi.line183.comment Exceptions
+# 052429.python.wmi.line184.comment
 class x_wmi(Exception):
     """Ancestor of all wmi-related exceptions. Keeps track of
     an info message and the underlying COM error if any, exposed
@@ -368,9 +368,9 @@ class _wmi_method(object):
         :param method_name: The name of the method to be called
         """
 
-        #
-        # FIXME: make use of this function, copied from a defunct branch
-        #
+        # 052430.python.wmi.line371.comment
+        # 052431.python.wmi.line372.comment FIXME: make use of this function, copied from a defunct branch
+        # 052432.python.wmi.line373.comment
         def parameter_names(method_parameters):
             parameter_names = []
             for param in method_parameters.Properties_:
@@ -428,9 +428,9 @@ class _wmi_method(object):
 
                 parameters = self.in_parameters
 
-                #
-                # Check positional parameters first
-                #
+                # 052433.python.wmi.line431.comment
+                # 052434.python.wmi.line432.comment Check positional parameters first
+                # 052435.python.wmi.line433.comment
                 for n_arg in range(len(args)):
                     arg = args[n_arg]
                     parameter = parameters.Properties_[n_arg]
@@ -439,10 +439,10 @@ class _wmi_method(object):
                         except TypeError: raise TypeError("parameter %d must be iterable" % n_arg)
                     parameter.Value = arg
 
-                #
-                # If any keyword param supersedes a positional one,
-                # it'll simply overwrite it.
-                #
+                # 052436.python.wmi.line442.comment
+                # 052437.python.wmi.line443.comment If any keyword param supersedes a positional one,
+                # 052438.python.wmi.line444.comment it'll simply overwrite it.
+                # 052439.python.wmi.line445.comment
                 for k, v in kwargs.items():
                     is_array = parameter_names.get(k)
                     if is_array is None:
@@ -461,9 +461,9 @@ class _wmi_method(object):
             for name, is_array in self.out_parameter_names:
                 value = result.Properties_(name).Value
                 if is_array:
-                    #
-                    # Thanks to Jonas Bjering for bug report and patch
-                    #
+                    # 052440.python.wmi.line464.comment
+                    # 052441.python.wmi.line465.comment Thanks to Jonas Bjering for bug report and patch
+                    # 052442.python.wmi.line466.comment
                     results.append(list(value or []))
                 else:
                     results.append(value)
@@ -494,9 +494,9 @@ class _wmi_property(object):
     def __getattr__(self, attr):
         return getattr(self.property, attr)
 
-#
-# class _wmi_object
-#
+# 052443.python.wmi.line497.comment
+# 052444.python.wmi.line498.comment class _wmi_object
+# 052445.python.wmi.line499.comment
 class _wmi_object(object):
     """The heart of the WMI module: wraps the objects returned by COM
     ISWbemObject interface and provide readier access to their properties
@@ -588,11 +588,11 @@ class _wmi_object(object):
                 property = self._cached_properties(attribute)
                 factory = self.property_map.get(attribute, self.property_map.get(property.type, lambda x: x))
                 value = factory(property.value)
-                #
-                # If this is an association, certain of its properties
-                # are actually the paths to the aspects of the association,
-                # so translate them automatically into WMI objects.
-                #
+                # 052446.python.wmi.line591.comment
+                # 052447.python.wmi.line592.comment If this is an association, certain of its properties
+                # 052448.python.wmi.line593.comment are actually the paths to the aspects of the association,
+                # 052449.python.wmi.line594.comment so translate them automatically into WMI objects.
+                # 052450.python.wmi.line595.comment
                 if property.type.startswith("ref:"):
                     return WMI(moniker=value)
                 else:
@@ -641,9 +641,9 @@ class _wmi_object(object):
 
         :returns: list of key property names
         """
-        # NB You can get the keys of an instance more directly, via
-        # Path\_.Keys but this doesn't apply to classes. The technique
-        # here appears to work for both.
+        # 052451.python.wmi.line644.comment NB You can get the keys of an instance more directly, via
+        # 052452.python.wmi.line645.comment Path\_.Keys but this doesn't apply to classes. The technique
+        # 052453.python.wmi.line646.comment here appears to work for both.
         if self._keys is None:
             _set(self, "_keys", [])
             for property in self.ole_object.Properties_:
@@ -680,10 +680,10 @@ class _wmi_object(object):
                         self._cached_properties(attribute).set(value)
                     else:
                         raise AttributeError(attribute)
-                #
-                # Only try to write the attributes
-                #    back if the object exists.
-                #
+                # 052454.python.wmi.line683.comment
+                # 052455.python.wmi.line684.comment Only try to write the attributes
+                # 052456.python.wmi.line685.comment back if the object exists.
+                # 052457.python.wmi.line686.comment
                 if self.ole_object.Path_.Path:
                     self.ole_object.Put_()
             except pywintypes.com_error:
@@ -776,18 +776,18 @@ class _wmi_object(object):
             for i in sp.references(wmi_class="Win32_SerialPortSetting"):
                 print(i)
         """
-        #
-        # FIXME: Allow an actual class to be passed in, using
-        # its .Path_.RelPath property to determine the string
-        #
+        # 052458.python.wmi.line779.comment
+        # 052459.python.wmi.line780.comment FIXME: Allow an actual class to be passed in, using
+        # 052460.python.wmi.line781.comment its .Path_.RelPath property to determine the string
+        # 052461.python.wmi.line782.comment
         try:
             return [_wmi_object(i) for i in self.ole_object.References_(strResultClass=wmi_class)]
         except pywintypes.com_error:
             handle_com_error()
 
-#
-# class _wmi_event
-#
+# 052462.python.wmi.line788.comment
+# 052463.python.wmi.line789.comment class _wmi_event
+# 052464.python.wmi.line790.comment
 class _wmi_event(_wmi_object):
     """Slight extension of the _wmi_object class to allow
     objects which are the result of events firing to return
@@ -808,9 +808,9 @@ class _wmi_event(_wmi_object):
             if hasattr(event_info, "PreviousInstance"):
                 _set(self, "previous", event_info.PreviousInstance)
 
-#
-# class _wmi_class
-#
+# 052465.python.wmi.line811.comment
+# 052466.python.wmi.line812.comment class _wmi_class
+# 052467.python.wmi.line813.comment
 class _wmi_class(_wmi_object):
     """Currying class to assist in issuing queries against
      a WMI namespace. The idea is that when someone issues
@@ -866,9 +866,9 @@ class _wmi_class(_wmi_object):
          by calling the namespace's query with the class preset.
          Won't work if the class has been instantiated directly.
         """
-        #
-        # FIXME: Not clear if this can ever happen
-        #
+        # 052468.python.wmi.line869.comment
+        # 052469.python.wmi.line870.comment FIXME: Not clear if this can ever happen
+        # 052470.python.wmi.line871.comment
         if self._namespace is None:
             raise x_wmi_no_namespace("You cannot query directly from a WMI class")
 
@@ -950,9 +950,9 @@ class _wmi_class(_wmi_object):
         except pywintypes.com_error:
             handle_com_error()
 
-#
-# class _wmi_result
-#
+# 052471.python.wmi.line953.comment
+# 052472.python.wmi.line954.comment class _wmi_result
+# 052473.python.wmi.line955.comment
 class _wmi_result(object):
     """Simple, data only result for targeted WMI queries which request
     data only result classes via fetch_as_classes.
@@ -966,9 +966,9 @@ class _wmi_result(object):
                 attr = p.Name
                 self.__dict__[attr] = obj.Properties_(attr).Value
 
-#
-# class WMI
-#
+# 052474.python.wmi.line969.comment
+# 052475.python.wmi.line970.comment class WMI
+# 052476.python.wmi.line971.comment
 class _wmi_namespace(object):
     """A WMI root of a computer system. The classes attribute holds a list
     of the classes on offer. This means you can explore a bit with
@@ -981,21 +981,21 @@ class _wmi_namespace(object):
     """
     def __init__(self, namespace, find_classes):
         _set(self, "_namespace", namespace)
-        #
-        # wmi attribute preserved for backwards compatibility
-        #
+        # 052477.python.wmi.line984.comment
+        # 052478.python.wmi.line985.comment wmi attribute preserved for backwards compatibility
+        # 052479.python.wmi.line986.comment
         _set(self, "wmi", namespace)
 
         self._classes = None
         self._classes_map = {}
-        #
-        # Pick up the list of classes under this namespace
-        #    so that they can be queried, and used as though
-        #    properties of the namespace by means of the __getattr__
-        #    hook below.
-        # If the namespace does not support SubclassesOf, carry on
-        #    regardless
-        #
+        # 052480.python.wmi.line991.comment
+        # 052481.python.wmi.line992.comment Pick up the list of classes under this namespace
+        # 052482.python.wmi.line993.comment so that they can be queried, and used as though
+        # 052483.python.wmi.line994.comment properties of the namespace by means of the __getattr__
+        # 052484.python.wmi.line995.comment hook below.
+        # 052485.python.wmi.line996.comment If the namespace does not support SubclassesOf, carry on
+        # 052486.python.wmi.line997.comment regardless
+        # 052487.python.wmi.line998.comment
         if find_classes:
             _ = self.classes
 
@@ -1200,11 +1200,11 @@ class _wmi_namespace(object):
         unattribute to the underlying OLE object. This means that new or
         unmapped functionality is still available to the module user.
         """
-        #
-        # Don't try to match against known classes as was previously
-        # done since the list may not have been requested
-        # (find_classes=False).
-        #
+        # 052488.python.wmi.line1203.comment
+        # 052489.python.wmi.line1204.comment Don't try to match against known classes as was previously
+        # 052490.python.wmi.line1205.comment done since the list may not have been requested
+        # 052491.python.wmi.line1206.comment (find_classes=False).
+        # 052492.python.wmi.line1207.comment
         try:
             return self._cached_classes(attribute)
         except pywintypes.com_error:
@@ -1224,9 +1224,9 @@ class _wmi_namespace(object):
         """Return list of classes for IPython completion engine"""
         return [x for x in self.classes if not x.startswith('__')]
 
-#
-# class _wmi_watcher
-#
+# 052493.python.wmi.line1227.comment
+# 052494.python.wmi.line1228.comment class _wmi_watcher
+# 052495.python.wmi.line1229.comment
 class _wmi_watcher(object):
     """Helper class for WMI.watch_for below(qv)"""
 
@@ -1370,9 +1370,9 @@ def construct_moniker(
     security = []
     if impersonation_level: security.append("impersonationLevel=%s" % impersonation_level)
     if authentication_level: security.append("authenticationLevel=%s" % authentication_level)
-    #
-    # Use of the authority descriptor is invalid on the local machine
-    #
+    # 052496.python.wmi.line1373.comment
+    # 052497.python.wmi.line1374.comment Use of the authority descriptor is invalid on the local machine
+    # 052498.python.wmi.line1375.comment
     if authority and computer: security.append("authority=%s" % authority)
     if privileges: security.append("(%s)" % ", ".join(privileges))
 
@@ -1429,10 +1429,10 @@ def connect_server(
         )
         c = wmi.WMI(wmi=remote_connection)
     """
-    #
-    # Thanks to Matt Mercer for example code to set
-    # impersonation & authentication on ConnectServer
-    #
+    # 052499.python.wmi.line1432.comment
+    # 052500.python.wmi.line1433.comment Thanks to Matt Mercer for example code to set
+    # 052501.python.wmi.line1434.comment impersonation & authentication on ConnectServer
+    # 052502.python.wmi.line1435.comment
     if impersonation_level:
         try:
             impersonation = getattr(obj._constants, "wbemImpersonationLevel%s" % impersonation_level.title())
@@ -1493,9 +1493,9 @@ def Registry(
     except pywintypes.com_error:
         handle_com_error()
 
-#
-# Typical use test
-#
+# 052503.python.wmi.line1496.comment
+# 052504.python.wmi.line1497.comment Typical use test
+# 052505.python.wmi.line1498.comment
 if __name__ == '__main__':
     system = WMI()
     for my_computer in system.Win32_ComputerSystem():

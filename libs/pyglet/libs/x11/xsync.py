@@ -15,26 +15,26 @@ _lib = pyglet.lib.load_library('Xext')
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 033580.python.xsync.line18.comment Some builds of ctypes apparently do not have c_int64
+    # 033581.python.xsync.line19.comment defined; it's a pretty good bet that these builds do not
+    # 033582.python.xsync.line20.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
         c_ptrdiff_t = t
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 033583.python.xsync.line27.comment c_void_p is a buggy return type, converting to int, so
+    # 033584.python.xsync.line28.comment POINTER(None) == c_void_p is actually written as
+    # 033585.python.xsync.line29.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
-# XXX DODGY relative import of xlib.py, which contains XID etc definitions.
-# can't use wrapped import which gave
-#   import pyglet.window.xlib.xlib
-# because Python has the lamest import semantics and can't handle that kind of
-# recursive import, even though it's the same as
+# 033586.python.xsync.line33.comment XXX DODGY relative import of xlib.py, which contains XID etc definitions.
+# 033587.python.xsync.line34.comment can't use wrapped import which gave
+# 033588.python.xsync.line35.comment import pyglet.window.xlib.xlib
+# 033589.python.xsync.line36.comment because Python has the lamest import semantics and can't handle that kind of
+# 033590.python.xsync.line37.comment recursive import, even though it's the same as
 from . import xlib
 
 SYNC_MAJOR_VERSION = 3 	# /usr/include/X11/extensions/sync.h:4901
@@ -95,83 +95,83 @@ struct__XSyncValue._fields_ = [
 ]
 
 XSyncValue = struct__XSyncValue 	# /usr/include/X11/extensions/sync.h:4972
-# /usr/include/X11/extensions/sync.h:4980
+# 033626.python.xsync.line98.comment /usr/include/X11/extensions/sync.h:4980
 XSyncIntToValue = _lib.XSyncIntToValue
 XSyncIntToValue.restype = None
 XSyncIntToValue.argtypes = [POINTER(XSyncValue), c_int]
 
-# /usr/include/X11/extensions/sync.h:4985
+# 033627.python.xsync.line103.comment /usr/include/X11/extensions/sync.h:4985
 XSyncIntsToValue = _lib.XSyncIntsToValue
 XSyncIntsToValue.restype = None
 XSyncIntsToValue.argtypes = [POINTER(XSyncValue), c_uint, c_int]
 
 Bool = xlib.Bool
-# /usr/include/X11/extensions/sync.h:4991
+# 033628.python.xsync.line109.comment /usr/include/X11/extensions/sync.h:4991
 XSyncValueGreaterThan = _lib.XSyncValueGreaterThan
 XSyncValueGreaterThan.restype = Bool
 XSyncValueGreaterThan.argtypes = [XSyncValue, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:4996
+# 033629.python.xsync.line114.comment /usr/include/X11/extensions/sync.h:4996
 XSyncValueLessThan = _lib.XSyncValueLessThan
 XSyncValueLessThan.restype = Bool
 XSyncValueLessThan.argtypes = [XSyncValue, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5001
+# 033630.python.xsync.line119.comment /usr/include/X11/extensions/sync.h:5001
 XSyncValueGreaterOrEqual = _lib.XSyncValueGreaterOrEqual
 XSyncValueGreaterOrEqual.restype = Bool
 XSyncValueGreaterOrEqual.argtypes = [XSyncValue, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5006
+# 033631.python.xsync.line124.comment /usr/include/X11/extensions/sync.h:5006
 XSyncValueLessOrEqual = _lib.XSyncValueLessOrEqual
 XSyncValueLessOrEqual.restype = Bool
 XSyncValueLessOrEqual.argtypes = [XSyncValue, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5011
+# 033632.python.xsync.line129.comment /usr/include/X11/extensions/sync.h:5011
 XSyncValueEqual = _lib.XSyncValueEqual
 XSyncValueEqual.restype = Bool
 XSyncValueEqual.argtypes = [XSyncValue, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5016
+# 033633.python.xsync.line134.comment /usr/include/X11/extensions/sync.h:5016
 XSyncValueIsNegative = _lib.XSyncValueIsNegative
 XSyncValueIsNegative.restype = Bool
 XSyncValueIsNegative.argtypes = [XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5020
+# 033634.python.xsync.line139.comment /usr/include/X11/extensions/sync.h:5020
 XSyncValueIsZero = _lib.XSyncValueIsZero
 XSyncValueIsZero.restype = Bool
 XSyncValueIsZero.argtypes = [XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5024
+# 033635.python.xsync.line144.comment /usr/include/X11/extensions/sync.h:5024
 XSyncValueIsPositive = _lib.XSyncValueIsPositive
 XSyncValueIsPositive.restype = Bool
 XSyncValueIsPositive.argtypes = [XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5028
+# 033636.python.xsync.line149.comment /usr/include/X11/extensions/sync.h:5028
 XSyncValueLow32 = _lib.XSyncValueLow32
 XSyncValueLow32.restype = c_uint
 XSyncValueLow32.argtypes = [XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5032
+# 033637.python.xsync.line154.comment /usr/include/X11/extensions/sync.h:5032
 XSyncValueHigh32 = _lib.XSyncValueHigh32
 XSyncValueHigh32.restype = c_int
 XSyncValueHigh32.argtypes = [XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5036
+# 033638.python.xsync.line159.comment /usr/include/X11/extensions/sync.h:5036
 XSyncValueAdd = _lib.XSyncValueAdd
 XSyncValueAdd.restype = None
 XSyncValueAdd.argtypes = [POINTER(XSyncValue), XSyncValue, XSyncValue, POINTER(c_int)]
 
-# /usr/include/X11/extensions/sync.h:5043
+# 033639.python.xsync.line164.comment /usr/include/X11/extensions/sync.h:5043
 XSyncValueSubtract = _lib.XSyncValueSubtract
 XSyncValueSubtract.restype = None
 XSyncValueSubtract.argtypes = [POINTER(XSyncValue), XSyncValue, XSyncValue, POINTER(c_int)]
 
-# /usr/include/X11/extensions/sync.h:5050
+# 033640.python.xsync.line169.comment /usr/include/X11/extensions/sync.h:5050
 XSyncMaxValue = _lib.XSyncMaxValue
 XSyncMaxValue.restype = None
 XSyncMaxValue.argtypes = [POINTER(XSyncValue)]
 
-# /usr/include/X11/extensions/sync.h:5054
+# 033641.python.xsync.line174.comment /usr/include/X11/extensions/sync.h:5054
 XSyncMinValue = _lib.XSyncMinValue
 XSyncMinValue.restype = None
 XSyncMinValue.argtypes = [POINTER(XSyncValue)]
@@ -326,92 +326,92 @@ struct_anon_102._fields_ = [
 ]
 
 XSyncCounterError = struct_anon_102 	# /usr/include/X11/extensions/sync.h:5205
-# /usr/include/X11/extensions/sync.h:5213
+# 033650.python.xsync.line329.comment /usr/include/X11/extensions/sync.h:5213
 XSyncQueryExtension = _lib.XSyncQueryExtension
 XSyncQueryExtension.restype = c_int
 XSyncQueryExtension.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/extensions/sync.h:5219
+# 033651.python.xsync.line334.comment /usr/include/X11/extensions/sync.h:5219
 XSyncInitialize = _lib.XSyncInitialize
 XSyncInitialize.restype = c_int
 XSyncInitialize.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/extensions/sync.h:5225
+# 033652.python.xsync.line339.comment /usr/include/X11/extensions/sync.h:5225
 XSyncListSystemCounters = _lib.XSyncListSystemCounters
 XSyncListSystemCounters.restype = POINTER(XSyncSystemCounter)
 XSyncListSystemCounters.argtypes = [POINTER(Display), POINTER(c_int)]
 
-# /usr/include/X11/extensions/sync.h:5230
+# 033653.python.xsync.line344.comment /usr/include/X11/extensions/sync.h:5230
 XSyncFreeSystemCounterList = _lib.XSyncFreeSystemCounterList
 XSyncFreeSystemCounterList.restype = None
 XSyncFreeSystemCounterList.argtypes = [POINTER(XSyncSystemCounter)]
 
-# /usr/include/X11/extensions/sync.h:5234
+# 033654.python.xsync.line349.comment /usr/include/X11/extensions/sync.h:5234
 XSyncCreateCounter = _lib.XSyncCreateCounter
 XSyncCreateCounter.restype = XSyncCounter
 XSyncCreateCounter.argtypes = [POINTER(Display), XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5239
+# 033655.python.xsync.line354.comment /usr/include/X11/extensions/sync.h:5239
 XSyncSetCounter = _lib.XSyncSetCounter
 XSyncSetCounter.restype = c_int
 XSyncSetCounter.argtypes = [POINTER(Display), XSyncCounter, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5245
+# 033656.python.xsync.line359.comment /usr/include/X11/extensions/sync.h:5245
 XSyncChangeCounter = _lib.XSyncChangeCounter
 XSyncChangeCounter.restype = c_int
 XSyncChangeCounter.argtypes = [POINTER(Display), XSyncCounter, XSyncValue]
 
-# /usr/include/X11/extensions/sync.h:5251
+# 033657.python.xsync.line364.comment /usr/include/X11/extensions/sync.h:5251
 XSyncDestroyCounter = _lib.XSyncDestroyCounter
 XSyncDestroyCounter.restype = c_int
 XSyncDestroyCounter.argtypes = [POINTER(Display), XSyncCounter]
 
-# /usr/include/X11/extensions/sync.h:5256
+# 033658.python.xsync.line369.comment /usr/include/X11/extensions/sync.h:5256
 XSyncQueryCounter = _lib.XSyncQueryCounter
 XSyncQueryCounter.restype = c_int
 XSyncQueryCounter.argtypes = [POINTER(Display), XSyncCounter, POINTER(XSyncValue)]
 
-# /usr/include/X11/extensions/sync.h:5262
+# 033659.python.xsync.line374.comment /usr/include/X11/extensions/sync.h:5262
 XSyncAwait = _lib.XSyncAwait
 XSyncAwait.restype = c_int
 XSyncAwait.argtypes = [POINTER(Display), POINTER(XSyncWaitCondition), c_int]
 
-# /usr/include/X11/extensions/sync.h:5268
+# 033660.python.xsync.line379.comment /usr/include/X11/extensions/sync.h:5268
 XSyncCreateAlarm = _lib.XSyncCreateAlarm
 XSyncCreateAlarm.restype = XSyncAlarm
 XSyncCreateAlarm.argtypes = [POINTER(Display), c_ulong, POINTER(XSyncAlarmAttributes)]
 
-# /usr/include/X11/extensions/sync.h:5274
+# 033661.python.xsync.line384.comment /usr/include/X11/extensions/sync.h:5274
 XSyncDestroyAlarm = _lib.XSyncDestroyAlarm
 XSyncDestroyAlarm.restype = c_int
 XSyncDestroyAlarm.argtypes = [POINTER(Display), XSyncAlarm]
 
-# /usr/include/X11/extensions/sync.h:5279
+# 033662.python.xsync.line389.comment /usr/include/X11/extensions/sync.h:5279
 XSyncQueryAlarm = _lib.XSyncQueryAlarm
 XSyncQueryAlarm.restype = c_int
 XSyncQueryAlarm.argtypes = [POINTER(Display), XSyncAlarm, POINTER(XSyncAlarmAttributes)]
 
-# /usr/include/X11/extensions/sync.h:5285
+# 033663.python.xsync.line394.comment /usr/include/X11/extensions/sync.h:5285
 XSyncChangeAlarm = _lib.XSyncChangeAlarm
 XSyncChangeAlarm.restype = c_int
 XSyncChangeAlarm.argtypes = [POINTER(Display), XSyncAlarm, c_ulong, POINTER(XSyncAlarmAttributes)]
 
-# /usr/include/X11/extensions/sync.h:5292
+# 033664.python.xsync.line399.comment /usr/include/X11/extensions/sync.h:5292
 XSyncSetPriority = _lib.XSyncSetPriority
 XSyncSetPriority.restype = c_int
 XSyncSetPriority.argtypes = [POINTER(Display), XID, c_int]
 
-# /usr/include/X11/extensions/sync.h:5298
+# 033665.python.xsync.line404.comment /usr/include/X11/extensions/sync.h:5298
 XSyncGetPriority = _lib.XSyncGetPriority
 XSyncGetPriority.restype = c_int
 XSyncGetPriority.argtypes = [POINTER(Display), XID, POINTER(c_int)]
 
-# Shape kind
+# 033666.python.xsync.line409.comment Shape kind
 ShapeBounding = 0
 ShapeClip = 1
 ShapeInput = 2
 
-# Shape operation
+# 033667.python.xsync.line414.comment Shape operation
 ShapeSet = 0
 ShapeUnion = 1
 ShapeIntersect = 2

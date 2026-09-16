@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 006288.python.hook-matplotlib.backends.line1.comment -----------------------------------------------------------------------------
+# 006289.python.hook-matplotlib.backends.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 006290.python.hook-matplotlib.backends.line3.comment
+# 006291.python.hook-matplotlib.backends.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 006292.python.hook-matplotlib.backends.line5.comment or later) with exception for distributing the bootloader.
+# 006293.python.hook-matplotlib.backends.line6.comment
+# 006294.python.hook-matplotlib.backends.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 006295.python.hook-matplotlib.backends.line8.comment
+# 006296.python.hook-matplotlib.backends.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 006297.python.hook-matplotlib.backends.line10.comment -----------------------------------------------------------------------------
 
 from PyInstaller.compat import is_darwin
 from PyInstaller.utils.hooks import logger, get_hook_config
@@ -22,8 +22,8 @@ def _get_configured_default_backend():
     object, returns None
     """
     import matplotlib
-    # matplotlib.rcParams overrides the __getitem__ implementation and attempts to determine and load the default
-    # backend using pyplot.switch_backend(). Therefore, use dict.__getitem__().
+    # 006298.python.hook-matplotlib.backends.line25.comment matplotlib.rcParams overrides the __getitem__ implementation and attempts to determine and load the default
+    # 006299.python.hook-matplotlib.backends.line26.comment backend using pyplot.switch_backend(). Therefore, use dict.__getitem__().
     val = dict.__getitem__(matplotlib.rcParams, 'backend')
     if isinstance(val, str):
         return val
@@ -49,7 +49,7 @@ def _check_mpl_backend_importable(module_name):
     __import__(module_name)
 
 
-# Bytecode scanning
+# 006300.python.hook-matplotlib.backends.line52.comment Bytecode scanning
 def _recursive_scan_code_objects_for_mpl_use(co):
     """
     Recursively scan the bytecode for occurrences of matplotlib.use() or mpl.use() calls with const arguments, and
@@ -66,9 +66,9 @@ def _recursive_scan_code_objects_for_mpl_use(co):
     backends = []
     for calls in recursive_function_calls(co).values():
         for name, args in calls:
-            # matplotlib.use(backend) or matplotlib.use(backend, force)
-            # We support only literal arguments. Similarly, kwargs are
-            # not supported.
+            # 006302.python.hook-matplotlib.backends.line69.comment matplotlib.use(backend) or matplotlib.use(backend, force)
+            # 006303.python.hook-matplotlib.backends.line70.comment We support only literal arguments. Similarly, kwargs are
+            # 006304.python.hook-matplotlib.backends.line71.comment not supported.
             if len(args) not in {1, 2} or not isinstance(args[0], str):
                 continue
             if name in mpl_use_names:
@@ -93,7 +93,7 @@ def _autodetect_used_backends(hook_api):
     Returns a list of automatically-discovered matplotlib backends in use, or the name of the default matplotlib
     backend. Implements the 'auto' backend selection method.
     """
-    # Scan the code for matplotlib.use()
+    # 006305.python.hook-matplotlib.backends.line96.comment Scan the code for matplotlib.use()
     modulegraph = hook_api.analysis.graph
     mpl_code_objs = modulegraph.get_code_using("matplotlib")
     used_backends = []
@@ -105,7 +105,7 @@ def _autodetect_used_backends(hook_api):
             )
             used_backends += co_backends
 
-    # Deduplicate and sort the list of used backends before displaying it.
+    # 006306.python.hook-matplotlib.backends.line108.comment Deduplicate and sort the list of used backends before displaying it.
     used_backends = sorted(set(used_backends))
 
     if used_backends:
@@ -117,26 +117,26 @@ def _autodetect_used_backends(hook_api):
         )
         return used_backends
 
-    # Determine the default matplotlib backend.
-    #
-    # Ideally, this would be done by calling ``matplotlib.get_backend()``. However, that function tries to switch to the
-    # default backend (calling ``matplotlib.pyplot.switch_backend()``), which seems to occasionally fail on our linux CI
-    # with an error and, on other occasions, returns the headless Agg backend instead of the GUI one (even with display
-    # server running). Furthermore, using ``matplotlib.get_backend()`` returns headless 'Agg' when display server is
-    # unavailable, which is not ideal for automated builds.
-    #
-    # Therefore, we try to emulate ``matplotlib.get_backend()`` ourselves. First, we try to obtain the configured
-    # default backend from settings (rcparams and/or MPLBACKEND environment variable). If that is unavailable, we try to
-    # find the first importable GUI-based backend, using the same list as matplotlib.pyplot.switch_backend() uses for
-    # automatic backend selection. The difference is that we only test whether the backend module is importable, without
-    # trying to switch to it.
+    # 006307.python.hook-matplotlib.backends.line120.comment Determine the default matplotlib backend.
+    # 006308.python.hook-matplotlib.backends.line121.comment
+    # 006309.python.hook-matplotlib.backends.line122.comment Ideally, this would be done by calling ``matplotlib.get_backend()``. However, that function tries to switch to the
+    # 006310.python.hook-matplotlib.backends.line123.comment default backend (calling ``matplotlib.pyplot.switch_backend()``), which seems to occasionally fail on our linux CI
+    # 006311.python.hook-matplotlib.backends.line124.comment with an error and, on other occasions, returns the headless Agg backend instead of the GUI one (even with display
+    # 006312.python.hook-matplotlib.backends.line125.comment server running). Furthermore, using ``matplotlib.get_backend()`` returns headless 'Agg' when display server is
+    # 006313.python.hook-matplotlib.backends.line126.comment unavailable, which is not ideal for automated builds.
+    # 006314.python.hook-matplotlib.backends.line127.comment
+    # 006315.python.hook-matplotlib.backends.line128.comment Therefore, we try to emulate ``matplotlib.get_backend()`` ourselves. First, we try to obtain the configured
+    # 006316.python.hook-matplotlib.backends.line129.comment default backend from settings (rcparams and/or MPLBACKEND environment variable). If that is unavailable, we try to
+    # 006317.python.hook-matplotlib.backends.line130.comment find the first importable GUI-based backend, using the same list as matplotlib.pyplot.switch_backend() uses for
+    # 006318.python.hook-matplotlib.backends.line131.comment automatic backend selection. The difference is that we only test whether the backend module is importable, without
+    # 006319.python.hook-matplotlib.backends.line132.comment trying to switch to it.
     default_backend = _get_configured_default_backend()  # isolated sub-process
     if default_backend:
         logger.info("Found configured default matplotlib backend: %s", default_backend)
         return [default_backend]
 
-    # `QtAgg` supersedes `Qt5Agg`; however, we keep `Qt5Agg` in the candidate list to support older versions of
-    # matplotlib that do not have `QtAgg`.
+    # 006321.python.hook-matplotlib.backends.line138.comment `QtAgg` supersedes `Qt5Agg`; however, we keep `Qt5Agg` in the candidate list to support older versions of
+    # 006322.python.hook-matplotlib.backends.line139.comment matplotlib that do not have `QtAgg`.
     candidates = ["QtAgg", "Qt5Agg", "Gtk4Agg", "Gtk3Agg", "TkAgg", "WxAgg"]
     if is_darwin:
         candidates = ["MacOSX"] + candidates
@@ -150,7 +150,7 @@ def _autodetect_used_backends(hook_api):
             continue
         return [candidate]
 
-    # Fall back to headless Agg backend
+    # 006324.python.hook-matplotlib.backends.line153.comment Fall back to headless Agg backend
     logger.info("None of the backend candidates could be imported; falling back to headless Agg!")
     return ['Agg']
 
@@ -159,23 +159,23 @@ def _collect_all_importable_backends(hook_api):
     """
     Returns a list of all importable matplotlib backends. Implements the 'all' backend selection method.
     """
-    # List of the human-readable names of all available backends.
+    # 006325.python.hook-matplotlib.backends.line162.comment List of the human-readable names of all available backends.
     backend_names = _list_available_mpl_backends()  # NOTE: retrieved in an isolated sub-process.
     logger.info("All available matplotlib backends: %r", backend_names)
 
-    # Try to import the module(s).
+    # 006327.python.hook-matplotlib.backends.line166.comment Try to import the module(s).
     importable_backends = []
 
-    # List of backends to exclude; Qt4 is not supported by PyInstaller anymore.
+    # 006328.python.hook-matplotlib.backends.line169.comment List of backends to exclude; Qt4 is not supported by PyInstaller anymore.
     exclude_backends = {'Qt4Agg', 'Qt4Cairo'}
 
-    # Ignore "CocoaAgg" on OSes other than macOS; attempting to import it on other OSes halts the current
-    # (sub)process without printing output or raising exceptions, preventing reliable detection. Apply the
-    # same logic for the (newer) "MacOSX" backend.
+    # 006329.python.hook-matplotlib.backends.line172.comment Ignore "CocoaAgg" on OSes other than macOS; attempting to import it on other OSes halts the current
+    # 006330.python.hook-matplotlib.backends.line173.comment (sub)process without printing output or raising exceptions, preventing reliable detection. Apply the
+    # 006331.python.hook-matplotlib.backends.line174.comment same logic for the (newer) "MacOSX" backend.
     if not is_darwin:
         exclude_backends |= {'CocoaAgg', 'MacOSX'}
 
-    # For safety, attempt to import each backend in an isolated sub-process.
+    # 006332.python.hook-matplotlib.backends.line178.comment For safety, attempt to import each backend in an isolated sub-process.
     for backend_name in backend_names:
         if backend_name in exclude_backends:
             logger.info('  Matplotlib backend %r: excluded', backend_name)
@@ -185,7 +185,7 @@ def _collect_all_importable_backends(hook_api):
             module_name = _backend_module_name(backend_name)
             _check_mpl_backend_importable(module_name)  # NOTE: uses an isolated sub-process.
         except Exception:
-            # Backend is not importable, for whatever reason.
+            # 006334.python.hook-matplotlib.backends.line188.comment Backend is not importable, for whatever reason.
             logger.info('  Matplotlib backend %r: ignored due to import error', backend_name)
             continue
 
@@ -196,12 +196,12 @@ def _collect_all_importable_backends(hook_api):
 
 
 def hook(hook_api):
-    # Backend collection setting
+    # 006335.python.hook-matplotlib.backends.line199.comment Backend collection setting
     backends_method = get_hook_config(hook_api, 'matplotlib', 'backends')
     if backends_method is None:
         backends_method = 'auto'  # default method
 
-    # Select backend(s)
+    # 006337.python.hook-matplotlib.backends.line204.comment Select backend(s)
     if backends_method == 'auto':
         logger.info("Matplotlib backend selection method: automatic discovery of used backends")
         backend_names = _autodetect_used_backends(hook_api)
@@ -216,11 +216,11 @@ def hook(hook_api):
             assert isinstance(backends_method, list), "User-provided backend name(s) must be either a string or a list!"
             backend_names = backends_method
 
-    # Deduplicate and sort the list of selected backends before displaying it.
+    # 006338.python.hook-matplotlib.backends.line219.comment Deduplicate and sort the list of selected backends before displaying it.
     backend_names = sorted(set(backend_names))
 
     logger.info("Selected matplotlib backends: %r", backend_names)
 
-    # Set module names as hiddenimports
+    # 006339.python.hook-matplotlib.backends.line224.comment Set module names as hiddenimports
     module_names = [_backend_module_name(backend) for backend in backend_names]  # backend name -> module name
     hook_api.add_imports(*module_names)

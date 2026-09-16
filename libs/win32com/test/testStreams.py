@@ -99,7 +99,7 @@ class StreamTest(win32com.test.util.TestCase):
     def testit(self):
         mydata = b"abcdefghijklmnopqrstuvwxyz"
 
-        # First test the objects just as Python objects...
+        # 050350.python.testStreams.line102.comment First test the objects just as Python objects...
         s = Stream(mydata)
         p = Persists()
 
@@ -107,8 +107,8 @@ class StreamTest(win32com.test.util.TestCase):
         p.Save(s, 0)
         self.assertEqual(s.data, mydata)
 
-        # Wrap the Python objects as COM objects, and make the calls as if
-        # they were non-Python COM objects.
+        # 050351.python.testStreams.line110.comment Wrap the Python objects as COM objects, and make the calls as if
+        # 050352.python.testStreams.line111.comment they were non-Python COM objects.
         s2 = win32com.server.util.wrap(s, pythoncom.IID_IStream)
         p2 = win32com.server.util.wrap(p, pythoncom.IID_IPersistStreamInit)
 
@@ -118,7 +118,7 @@ class StreamTest(win32com.test.util.TestCase):
         self._readWrite(mydata, s2, s2)
 
         self._readWrite(b"string with\0a NULL", s2, s2)
-        # reset the stream
+        # 050353.python.testStreams.line121.comment reset the stream
         s.Write(mydata)
         p2.Load(s2)
         p2.Save(s2, 0)
@@ -127,18 +127,18 @@ class StreamTest(win32com.test.util.TestCase):
     def testseek(self):
         s = Stream(b"yo")
         s = win32com.server.util.wrap(s, pythoncom.IID_IStream)
-        # we used to die passing a value > 32bits
+        # 050354.python.testStreams.line130.comment we used to die passing a value > 32bits
         s.Seek(0x100000000, pythoncom.STREAM_SEEK_SET)
 
     def testerrors(self):
-        # setup a test logger to capture tracebacks etc.
+        # 050355.python.testStreams.line134.comment setup a test logger to capture tracebacks etc.
         records, old_log = win32com.test.util.setup_test_logger()
-        ## check for buffer overflow in Read method
+        # 050356.python.testStreams.line136.comment # check for buffer overflow in Read method
         badstream = BadStream("Check for buffer overflow")
         badstream2 = win32com.server.util.wrap(badstream, pythoncom.IID_IStream)
         self.assertRaises(pythoncom.com_error, badstream2.Read, 10)
         win32com.test.util.restore_test_logger(old_log)
-        # there's 1 error here
+        # 050357.python.testStreams.line141.comment there's 1 error here
         self.assertEqual(len(records), 1)
         self.assertTrue(records[0].msg.startswith("pythoncom error"))
 

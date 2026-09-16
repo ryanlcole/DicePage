@@ -145,13 +145,13 @@ def method_cache(method, cache_wrapper=functools.lru_cache()):
     """
 
     def wrapper(self, *args, **kwargs):
-        # it's the first call, replace the method with a cached, bound method
+        # 042377.python.init.line148.comment it's the first call, replace the method with a cached, bound method
         bound_method = types.MethodType(method, self)
         cached_method = cache_wrapper(bound_method)
         setattr(self, method.__name__, cached_method)
         return cached_method(*args, **kwargs)
 
-    # Support cache clear even before cache has been created.
+    # 042378.python.init.line154.comment Support cache clear even before cache has been created.
     wrapper.cache_clear = lambda: None
 
     return _special_method_cache(method, cache_wrapper) or wrapper

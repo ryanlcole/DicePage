@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 010868.python.tcl_tk.line1.comment -----------------------------------------------------------------------------
+# 010869.python.tcl_tk.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 010870.python.tcl_tk.line3.comment
+# 010871.python.tcl_tk.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 010872.python.tcl_tk.line5.comment or later) with exception for distributing the bootloader.
+# 010873.python.tcl_tk.line6.comment
+# 010874.python.tcl_tk.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 010875.python.tcl_tk.line8.comment
+# 010876.python.tcl_tk.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 010877.python.tcl_tk.line10.comment -----------------------------------------------------------------------------
 
 import os
 import fnmatch
@@ -37,18 +37,18 @@ def _get_tcl_tk_info():
         import tkinter
         import _tkinter
     except ImportError:
-        # tkinter unavailable
+        # 010878.python.tcl_tk.line40.comment tkinter unavailable
         return None
     try:
         tcl = tkinter.Tcl()
     except tkinter.TclError:  # e.g. "Can't find a usable init.tcl in the following directories: ..."
         return None
 
-    # Query the location of Tcl library/data directory.
+    # 010880.python.tcl_tk.line47.comment Query the location of Tcl library/data directory.
     tcl_data_dir = tcl.eval("info library")
 
-    # Check if Tcl/Tk is built with multi-threaded support (built with --enable-threads), as indicated by the presence
-    # of optional `threaded` member in `tcl_platform` array.
+    # 010881.python.tcl_tk.line50.comment Check if Tcl/Tk is built with multi-threaded support (built with --enable-threads), as indicated by the presence
+    # 010882.python.tcl_tk.line51.comment of optional `threaded` member in `tcl_platform` array.
     try:
         tcl.getvar("tcl_platform(threaded)")  # Ignore the actual value.
         tcl_threaded = True
@@ -57,7 +57,7 @@ def _get_tcl_tk_info():
 
     return {
         "available": True,
-        # If `_tkinter` is a built-in (as opposed to an extension), it does not have a `__file__` attribute.
+        # 010884.python.tcl_tk.line60.comment If `_tkinter` is a built-in (as opposed to an extension), it does not have a `__file__` attribute.
         "tkinter_extension_file": getattr(_tkinter, '__file__', None),
         "tcl_version": _tkinter.TCL_VERSION,
         "tk_version": _tkinter.TK_VERSION,
@@ -67,14 +67,14 @@ def _get_tcl_tk_info():
 
 
 class TclTkInfo:
-    # Root directory names of Tcl and Tk library/data directories in the frozen application. These directories are
-    # originally fully versioned (e.g., tcl8.6 and tk8.6); we want to remap them to unversioned variants, so that our
-    # run-time hook (pyi_rthook__tkinter.py) does not have to determine version numbers when setting `TCL_LIBRARY`
-    # and `TK_LIBRARY` environment variables.
-    #
-    # We also cannot use plain "tk" and "tcl", because on macOS, the Tcl and Tk shared libraries might come from
-    # framework bundles, and would therefore end up being collected as "Tcl" and "Tk" in the top-level application
-    # directory, causing clash due to filesystem being case-insensitive by default.
+    # 010885.python.tcl_tk.line70.comment Root directory names of Tcl and Tk library/data directories in the frozen application. These directories are
+    # 010886.python.tcl_tk.line71.comment originally fully versioned (e.g., tcl8.6 and tk8.6); we want to remap them to unversioned variants, so that our
+    # 010887.python.tcl_tk.line72.comment run-time hook (pyi_rthook__tkinter.py) does not have to determine version numbers when setting `TCL_LIBRARY`
+    # 010888.python.tcl_tk.line73.comment and `TK_LIBRARY` environment variables.
+    # 010889.python.tcl_tk.line74.comment
+    # 010890.python.tcl_tk.line75.comment We also cannot use plain "tk" and "tcl", because on macOS, the Tcl and Tk shared libraries might come from
+    # 010891.python.tcl_tk.line76.comment framework bundles, and would therefore end up being collected as "Tcl" and "Tk" in the top-level application
+    # 010892.python.tcl_tk.line77.comment directory, causing clash due to filesystem being case-insensitive by default.
     TCL_ROOTNAME = '_tcl_data'
     TK_ROOTNAME = '_tk_data'
 
@@ -84,22 +84,22 @@ class TclTkInfo:
     def __repr__(self):
         return "TclTkInfo"
 
-    # Delay initialization of Tcl/Tk information until until the corresponding attributes are first requested.
+    # 010893.python.tcl_tk.line87.comment Delay initialization of Tcl/Tk information until until the corresponding attributes are first requested.
     def __getattr__(self, name):
         if 'available' in self.__dict__:
-            # Initialization was already done, but requested attribute is not available.
+            # 010894.python.tcl_tk.line90.comment Initialization was already done, but requested attribute is not available.
             raise AttributeError(name)
 
-        # Load Qt library info...
+        # 010895.python.tcl_tk.line93.comment Load Qt library info...
         self._load_tcl_tk_info()
-        # ... and return the requested attribute
+        # 010896.python.tcl_tk.line95.comment ... and return the requested attribute
         return getattr(self, name)
 
     def _load_tcl_tk_info(self):
         logger.info("%s: initializing cached Tcl/Tk info...", self)
 
-        # Initialize variables so that they might be accessed even if tkinter/Tcl/Tk is unavailable or if initialization
-        # fails for some reason.
+        # 010897.python.tcl_tk.line101.comment Initialize variables so that they might be accessed even if tkinter/Tcl/Tk is unavailable or if initialization
+        # 010898.python.tcl_tk.line102.comment fails for some reason.
         self.available = False
         self.tkinter_extension_file = None
         self.tcl_version = None
@@ -122,25 +122,25 @@ class TclTkInfo:
             logger.warning("%s: failed to obtain Tcl/Tk info: %s", self, e)
             return
 
-        # If tkinter could not be imported, `_get_tcl_tk_info` returns None. In such cases, emit a debug message instead
-        # of a warning, because this initialization might be triggered by a helper function that is trying to determine
-        # availability of `tkinter` by inspecting the `available` attribute.
+        # 010899.python.tcl_tk.line125.comment If tkinter could not be imported, `_get_tcl_tk_info` returns None. In such cases, emit a debug message instead
+        # 010900.python.tcl_tk.line126.comment of a warning, because this initialization might be triggered by a helper function that is trying to determine
+        # 010901.python.tcl_tk.line127.comment availability of `tkinter` by inspecting the `available` attribute.
         if tcl_tk_info is None:
             logger.debug("%s: failed to obtain Tcl/Tk info: tkinter/_tkinter could not be imported.", self)
             return
 
-        # Copy properties
+        # 010902.python.tcl_tk.line132.comment Copy properties
         for key, value in tcl_tk_info.items():
             setattr(self, key, value)
 
-        # Parse Tcl/Tk version into (major, minor) tuple.
+        # 010903.python.tcl_tk.line136.comment Parse Tcl/Tk version into (major, minor) tuple.
         self.tcl_version = tuple((int(x) for x in self.tcl_version.split(".")[:2]))
         self.tk_version = tuple((int(x) for x in self.tk_version.split(".")[:2]))
 
-        # Determine full path to Tcl and Tk shared libraries against which the `_tkinter` extension module is linked.
-        # This can only be done when `_tkinter` is in fact an extension, and not a built-in. In the latter case, the
-        # Tcl/Tk libraries are statically linked into python shared library, so there are no shared libraries for us
-        # to discover.
+        # 010904.python.tcl_tk.line140.comment Determine full path to Tcl and Tk shared libraries against which the `_tkinter` extension module is linked.
+        # 010905.python.tcl_tk.line141.comment This can only be done when `_tkinter` is in fact an extension, and not a built-in. In the latter case, the
+        # 010906.python.tcl_tk.line142.comment Tcl/Tk libraries are statically linked into python shared library, so there are no shared libraries for us
+        # 010907.python.tcl_tk.line143.comment to discover.
         if self.tkinter_extension_file:
             try:
                 (
@@ -150,40 +150,40 @@ class TclTkInfo:
             except Exception:
                 logger.warning("%s: failed to determine Tcl and Tk shared library location!", self, exc_info=True)
 
-            # macOS: check if _tkinter is linked against system-provided Tcl.framework and Tk.framework. This is the
-            # case with python3 from XCode tools (and was the case with very old homebrew python builds). In such cases,
-            # we should not be collecting Tcl/Tk files.
+            # 010908.python.tcl_tk.line153.comment macOS: check if _tkinter is linked against system-provided Tcl.framework and Tk.framework. This is the
+            # 010909.python.tcl_tk.line154.comment case with python3 from XCode tools (and was the case with very old homebrew python builds). In such cases,
+            # 010910.python.tcl_tk.line155.comment we should not be collecting Tcl/Tk files.
             if compat.is_darwin:
                 self.is_macos_system_framework = self._check_macos_system_framework(self.tcl_shared_library)
 
-                # Emit a warning in the unlikely event that we are dealing with Teapot-distributed version of ActiveTcl.
+                # 010911.python.tcl_tk.line159.comment Emit a warning in the unlikely event that we are dealing with Teapot-distributed version of ActiveTcl.
                 if not self.is_macos_system_framework:
                     self._warn_if_using_activetcl_or_teapot(self.tcl_data_dir)
 
-        # Infer location of Tk library/data directory. Ideally, we could infer this by running
-        #
-        # import tkinter
-        # root = tkinter.Tk()
-        # tk_data_dir = root.tk.exprstring('$tk_library')
-        #
-        # in the isolated subprocess as part of `_get_tcl_tk_info`. However, that is impractical, as it shows the empty
-        # window, and on some platforms (e.g., linux) requires display server. Therefore, try to guess the location,
-        # based on the following heuristic:
-        #  - if Tk is built as macOS framework bundle, look for Scripts sub-directory in Resources directory next to
-        #    the shared library.
-        #  - otherwise, look for: $tcl_root/../tkX.Y, where X and Y are Tk major and minor version.
+        # 010912.python.tcl_tk.line163.comment Infer location of Tk library/data directory. Ideally, we could infer this by running
+        # 010913.python.tcl_tk.line164.comment
+        # 010914.python.tcl_tk.line165.comment import tkinter
+        # 010915.python.tcl_tk.line166.comment root = tkinter.Tk()
+        # 010916.python.tcl_tk.line167.comment tk_data_dir = root.tk.exprstring('$tk_library')
+        # 010917.python.tcl_tk.line168.comment
+        # 010918.python.tcl_tk.line169.comment in the isolated subprocess as part of `_get_tcl_tk_info`. However, that is impractical, as it shows the empty
+        # 010919.python.tcl_tk.line170.comment window, and on some platforms (e.g., linux) requires display server. Therefore, try to guess the location,
+        # 010920.python.tcl_tk.line171.comment based on the following heuristic:
+        # 010921.python.tcl_tk.line172.comment - if Tk is built as macOS framework bundle, look for Scripts sub-directory in Resources directory next to
+        # 010922.python.tcl_tk.line173.comment the shared library.
+        # 010923.python.tcl_tk.line174.comment - otherwise, look for: $tcl_root/../tkX.Y, where X and Y are Tk major and minor version.
         if compat.is_darwin and self.tk_shared_library and (
-            # is_framework_bundle_lib handles only fully-versioned framework library paths...
+            # 010924.python.tcl_tk.line176.comment is_framework_bundle_lib handles only fully-versioned framework library paths...
             (osxutils.is_framework_bundle_lib(self.tk_shared_library)) or
-            # ... so manually handle top-level-symlinked variant for now.
+            # 010925.python.tcl_tk.line178.comment ... so manually handle top-level-symlinked variant for now.
             (self.tk_shared_library).endswith("Tk.framework/Tk")
         ):
-            # Fully resolve the library path, in case it is a top-level symlink; for example, resolve
-            # /Library/Frameworks/Python.framework/Versions/3.13/Frameworks/Tk.framework/Tk
-            # into
-            # /Library/Frameworks/Python.framework/Versions/3.13/Frameworks/Tk.framework/Versions/8.6/Tk
+            # 010926.python.tcl_tk.line181.comment Fully resolve the library path, in case it is a top-level symlink; for example, resolve
+            # 010927.python.tcl_tk.line182.comment /Library/Frameworks/Python.framework/Versions/3.13/Frameworks/Tk.framework/Tk
+            # 010928.python.tcl_tk.line183.comment into
+            # 010929.python.tcl_tk.line184.comment /Library/Frameworks/Python.framework/Versions/3.13/Frameworks/Tk.framework/Versions/8.6/Tk
             tk_lib_realpath = os.path.realpath(self.tk_shared_library)
-            # Resources/Scripts directory next to the shared library
+            # 010930.python.tcl_tk.line186.comment Resources/Scripts directory next to the shared library
             self.tk_data_dir = os.path.join(os.path.dirname(tk_lib_realpath), "Resources", "Scripts")
         else:
             self.tk_data_dir = os.path.join(
@@ -191,19 +191,19 @@ class TclTkInfo:
                 f"tk{self.tk_version[0]}.{self.tk_version[1]}",
             )
 
-        # Infer location of Tcl module directory. The modules directory is separate from the library/data one, and
-        # is located at $tcl_root/../tclX, where X is the major Tcl version.
+        # 010931.python.tcl_tk.line194.comment Infer location of Tcl module directory. The modules directory is separate from the library/data one, and
+        # 010932.python.tcl_tk.line195.comment is located at $tcl_root/../tclX, where X is the major Tcl version.
         self.tcl_module_dir = os.path.join(
             os.path.dirname(self.tcl_data_dir),
             f"tcl{self.tcl_version[0]}",
         )
 
-        # Find all data files
+        # 010933.python.tcl_tk.line201.comment Find all data files
         if self.is_macos_system_framework:
             logger.info("%s: using macOS system Tcl/Tk framework - not collecting data files.", self)
         else:
-            # Collect Tcl and Tk scripts from their corresponding library/data directories. See comment at the
-            # definition of TK_ROOTNAME and TK_ROOTNAME variables.
+            # 010934.python.tcl_tk.line205.comment Collect Tcl and Tk scripts from their corresponding library/data directories. See comment at the
+            # 010935.python.tcl_tk.line206.comment definition of TK_ROOTNAME and TK_ROOTNAME variables.
             if os.path.isdir(self.tcl_data_dir):
                 self.data_files += self._collect_files_from_directory(
                     self.tcl_data_dir,
@@ -222,7 +222,7 @@ class TclTkInfo:
             else:
                 logger.warning("%s: Tk library/data directory %r does not exist!", self, self.tk_data_dir)
 
-            # Collect Tcl modules from modules directory
+            # 010936.python.tcl_tk.line225.comment Collect Tcl modules from modules directory
             if os.path.isdir(self.tcl_module_dir):
                 self.data_files += self._collect_files_from_directory(
                     self.tcl_module_dir,
@@ -245,7 +245,7 @@ class TclTkInfo:
             target_dir, prefix = todo.pop()
 
             for entry in os.listdir(target_dir):
-                # Basic name-based exclusion
+                # 010937.python.tcl_tk.line248.comment Basic name-based exclusion
                 if any((fnmatch.fnmatch(entry, exclude) for exclude in excludes)):
                     continue
 
@@ -255,7 +255,7 @@ class TclTkInfo:
                 if os.path.isdir(src_path):
                     todo.append((src_path, dest_path))
                 else:
-                    # Return 3-element tuples with fully-resolved dest path, since other parts of code depend on that.
+                    # 010938.python.tcl_tk.line258.comment Return 3-element tuples with fully-resolved dest path, since other parts of code depend on that.
                     output.append((dest_path, src_path, 'DATA'))
 
         return output
@@ -272,8 +272,8 @@ class TclTkInfo:
             if lib_path is None:
                 continue  # Skip unresolved entries
 
-            # For comparison, take basename of lib_path. On macOS, lib_name returned by get_imports is in fact
-            # referenced name, which is not necessarily just a basename.
+            # 010941.python.tcl_tk.line275.comment For comparison, take basename of lib_path. On macOS, lib_name returned by get_imports is in fact
+            # 010942.python.tcl_tk.line276.comment referenced name, which is not necessarily just a basename.
             lib_name = os.path.basename(lib_path)
             lib_name_lower = lib_name.lower()  # lower-case for comparisons
 
@@ -286,13 +286,13 @@ class TclTkInfo:
 
     @staticmethod
     def _check_macos_system_framework(tcl_shared_lib):
-        # Starting with macOS 11, system libraries are hidden (unless both Python and PyInstaller's bootloader are built
-        # against macOS 11.x SDK). Therefore, Tcl shared library might end up unresolved (None); but that implicitly
-        # indicates that the system framework is used.
+        # 010944.python.tcl_tk.line289.comment Starting with macOS 11, system libraries are hidden (unless both Python and PyInstaller's bootloader are built
+        # 010945.python.tcl_tk.line290.comment against macOS 11.x SDK). Therefore, Tcl shared library might end up unresolved (None); but that implicitly
+        # 010946.python.tcl_tk.line291.comment indicates that the system framework is used.
         if tcl_shared_lib is None:
             return True
 
-        # Check if the path corresponds to the system framework, i.e., [/System]/Library/Frameworks/Tcl.framework/Tcl
+        # 010947.python.tcl_tk.line295.comment Check if the path corresponds to the system framework, i.e., [/System]/Library/Frameworks/Tcl.framework/Tcl
         return 'Library/Frameworks/Tcl.framework' in tcl_shared_lib
 
     @staticmethod
@@ -311,7 +311,7 @@ class TclTkInfo:
         if tcl_root is None:
             return
 
-        # Read the "init.tcl" script and look for mentions of "activetcl" and "teapot"
+        # 010948.python.tcl_tk.line314.comment Read the "init.tcl" script and look for mentions of "activetcl" and "teapot"
         init_tcl = os.path.join(tcl_root, 'init.tcl')
         if not os.path.isfile(init_tcl):
             return
@@ -319,8 +319,8 @@ class TclTkInfo:
         mentions_activetcl = False
         mentions_teapot = False
 
-        # Tcl/Tk reads files using the system encoding (https://www.tcl.tk/doc/howto/i18n.html#system_encoding);
-        # on macOS, this is UTF-8.
+        # 010949.python.tcl_tk.line322.comment Tcl/Tk reads files using the system encoding (https://www.tcl.tk/doc/howto/i18n.html#system_encoding);
+        # 010950.python.tcl_tk.line323.comment on macOS, this is UTF-8.
         with open(init_tcl, 'r', encoding='utf8') as fp:
             for line in fp.readlines():
                 line = line.strip().lower()

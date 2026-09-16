@@ -1,6 +1,6 @@
-# Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 024767.python.init.line1.comment Copyright (c) 2009, Giampaolo Rodola'. All rights reserved.
+# 024768.python.init.line2.comment Use of this source code is governed by a BSD-style license that can be
+# 024769.python.init.line3.comment found in the LICENSE file.
 
 """Test utilities."""
 
@@ -60,9 +60,9 @@ if POSIX:
     from psutil._psposix import wait_pid
 
 
-# fmt: off
+# 024770.python.init.line63.comment fmt: off
 __all__ = [
-    # constants
+    # 024771.python.init.line65.comment constants
     'DEVNULL', 'GLOBAL_TIMEOUT', 'TOLERANCE_SYS_MEM', 'NO_RETRIES',
     'PYPY', 'PYTHON_EXE', 'PYTHON_EXE_ENV', 'ROOT_DIR', 'SCRIPTS_DIR',
     'TESTFN_PREFIX', 'UNICODE_SUFFIX', 'INVALID_UNICODE_SUFFIX',
@@ -72,49 +72,49 @@ __all__ = [
     "HAS_SENSORS_BATTERY", "HAS_BATTERY", "HAS_SENSORS_FANS",
     "HAS_SENSORS_TEMPERATURES", "HAS_NET_CONNECTIONS_UNIX", "MACOS_11PLUS",
     "MACOS_12PLUS", "COVERAGE", 'AARCH64', "PYTEST_PARALLEL",
-    # subprocesses
+    # 024772.python.init.line75.comment subprocesses
     'pyrun', 'terminate', 'reap_children', 'spawn_subproc', 'spawn_zombie',
     'spawn_children_pair',
-    # threads
+    # 024773.python.init.line78.comment threads
     'ThreadTask',
-    # test utils
+    # 024774.python.init.line80.comment test utils
     'unittest', 'skip_on_access_denied', 'skip_on_not_implemented',
     'retry_on_failure', 'TestMemoryLeak', 'PsutilTestCase',
     'process_namespace', 'system_namespace', 'print_sysinfo',
     'is_win_secure_system_proc', 'fake_pytest',
-    # fs utils
+    # 024775.python.init.line85.comment fs utils
     'chdir', 'safe_rmpath', 'create_py_exe', 'create_c_exe', 'get_testfn',
-    # os
+    # 024776.python.init.line87.comment os
     'get_winver', 'kernel_version',
-    # sync primitives
+    # 024777.python.init.line89.comment sync primitives
     'call_until', 'wait_for_pid', 'wait_for_file',
-    # network
+    # 024778.python.init.line91.comment network
     'check_net_address', 'filter_proc_net_connections',
     'get_free_port', 'bind_socket', 'bind_unix_socket', 'tcp_socketpair',
     'unix_socketpair', 'create_sockets',
-    # compat
+    # 024779.python.init.line95.comment compat
     'reload_module', 'import_module_by_path',
-    # others
+    # 024780.python.init.line97.comment others
     'warn', 'copyload_shared_lib', 'is_namedtuple',
 ]
-# fmt: on
+# 024781.python.init.line100.comment fmt: on
 
 
-# ===================================================================
-# --- constants
-# ===================================================================
+# 024782.python.init.line103.comment ===================================================================
+# 024783.python.init.line104.comment --- constants
+# 024784.python.init.line105.comment ===================================================================
 
-# --- platforms
+# 024785.python.init.line107.comment --- platforms
 
 PYPY = '__pypy__' in sys.builtin_module_names
-# whether we're running this test suite on a Continuous Integration service
+# 024786.python.init.line110.comment whether we're running this test suite on a Continuous Integration service
 GITHUB_ACTIONS = 'GITHUB_ACTIONS' in os.environ or 'CIBUILDWHEEL' in os.environ
 CI_TESTING = GITHUB_ACTIONS
 COVERAGE = 'COVERAGE_RUN' in os.environ
 PYTEST_PARALLEL = "PYTEST_XDIST_WORKER" in os.environ  # `make test-parallel`
-# are we a 64 bit process?
+# 024788.python.init.line115.comment are we a 64 bit process?
 IS_64BIT = sys.maxsize > 2**32
-# apparently they're the same
+# 024789.python.init.line117.comment apparently they're the same
 AARCH64 = platform.machine().lower() in {"aarch64", "arm64"}
 RISCV64 = platform.machine() == "riscv64"
 
@@ -124,8 +124,8 @@ def macos_version():
     version_str = platform.mac_ver()[0]
     version = tuple(map(int, version_str.split(".")[:2]))
     if version == (10, 16):
-        # When built against an older macOS SDK, Python will report
-        # macOS 10.16 instead of the real version.
+        # 024790.python.init.line127.comment When built against an older macOS SDK, Python will report
+        # 024791.python.init.line128.comment macOS 10.16 instead of the real version.
         version_str = subprocess.check_output(
             [
                 sys.executable,
@@ -148,36 +148,36 @@ else:
     MACOS_12PLUS = False
 
 
-# --- configurable defaults
+# 024792.python.init.line151.comment --- configurable defaults
 
-# how many times retry_on_failure() decorator will retry
+# 024793.python.init.line153.comment how many times retry_on_failure() decorator will retry
 NO_RETRIES = 10
-# bytes tolerance for system-wide related tests
+# 024794.python.init.line155.comment bytes tolerance for system-wide related tests
 TOLERANCE_SYS_MEM = 5 * 1024 * 1024  # 5MB
 TOLERANCE_DISK_USAGE = 10 * 1024 * 1024  # 10MB
-# the timeout used in functions which have to wait
+# 024797.python.init.line158.comment the timeout used in functions which have to wait
 GLOBAL_TIMEOUT = 5
-# be more tolerant if we're on CI in order to avoid false positives
+# 024798.python.init.line160.comment be more tolerant if we're on CI in order to avoid false positives
 if CI_TESTING:
     NO_RETRIES *= 3
     GLOBAL_TIMEOUT *= 3
     TOLERANCE_SYS_MEM *= 4
     TOLERANCE_DISK_USAGE *= 3
 
-# --- file names
+# 024799.python.init.line167.comment --- file names
 
-# Disambiguate TESTFN for parallel testing.
+# 024800.python.init.line169.comment Disambiguate TESTFN for parallel testing.
 if os.name == 'java':
-    # Jython disallows @ in module names
+    # 024801.python.init.line171.comment Jython disallows @ in module names
     TESTFN_PREFIX = f"$psutil-{os.getpid()}-"
 else:
     TESTFN_PREFIX = f"@psutil-{os.getpid()}-"
 UNICODE_SUFFIX = "-ƒőő"
-# An invalid unicode string.
+# 024802.python.init.line176.comment An invalid unicode string.
 INVALID_UNICODE_SUFFIX = b"f\xc0\x80".decode('utf8', 'surrogateescape')
 ASCII_FS = sys.getfilesystemencoding().lower() in {"ascii", "us-ascii"}
 
-# --- paths
+# 024803.python.init.line180.comment --- paths
 
 ROOT_DIR = os.path.realpath(
     os.path.join(os.path.dirname(__file__), '..', '..')
@@ -187,7 +187,7 @@ SCRIPTS_DIR = os.environ.get(
 )
 HERE = os.path.realpath(os.path.dirname(__file__))
 
-# --- support
+# 024804.python.init.line190.comment --- support
 
 HAS_CPU_AFFINITY = hasattr(psutil.Process, "cpu_affinity")
 HAS_ENVIRON = hasattr(psutil.Process, "environ")
@@ -217,7 +217,7 @@ except Exception:  # noqa: BLE001
     HAS_CPU_FREQ = False
 
 
-# --- misc
+# 024807.python.init.line220.comment --- misc
 
 
 def _get_py_exe():
@@ -233,15 +233,15 @@ def _get_py_exe():
 
     env = os.environ.copy()
 
-    # On Windows, starting with python 3.7, virtual environments use a
-    # venv launcher startup process. This does not play well when
-    # counting spawned processes, or when relying on the PID of the
-    # spawned process to do some checks, e.g. connections check per PID.
-    # Let's use the base python in this case.
+    # 024808.python.init.line236.comment On Windows, starting with python 3.7, virtual environments use a
+    # 024809.python.init.line237.comment venv launcher startup process. This does not play well when
+    # 024810.python.init.line238.comment counting spawned processes, or when relying on the PID of the
+    # 024811.python.init.line239.comment spawned process to do some checks, e.g. connections check per PID.
+    # 024812.python.init.line240.comment Let's use the base python in this case.
     base = getattr(sys, "_base_executable", None)
     if WINDOWS and sys.version_info >= (3, 7) and base is not None:
-        # We need to set __PYVENV_LAUNCHER__ to sys.executable for the
-        # base python executable to know about the environment.
+        # 024813.python.init.line243.comment We need to set __PYVENV_LAUNCHER__ to sys.executable for the
+        # 024814.python.init.line244.comment base python executable to know about the environment.
         env["__PYVENV_LAUNCHER__"] = sys.executable
         return base, env
     elif GITHUB_ACTIONS:
@@ -277,9 +277,9 @@ _subprocesses_started = set()
 _pids_started = set()
 
 
-# ===================================================================
-# --- fake pytest
-# ===================================================================
+# 024816.python.init.line280.comment ===================================================================
+# 024817.python.init.line281.comment --- fake pytest
+# 024818.python.init.line282.comment ===================================================================
 
 
 class fake_pytest:
@@ -370,20 +370,20 @@ class fake_pytest:
                 return cls_or_meth
 
 
-# to make pytest.fail() exception catchable
+# 024820.python.init.line373.comment to make pytest.fail() exception catchable
 fake_pytest.fail.Exception = AssertionError
 
 
 if pytest is None:
     pytest = fake_pytest
-    # monkey patch future `import pytest` statements
+    # 024821.python.init.line379.comment monkey patch future `import pytest` statements
     sys.modules["pytest"] = fake_pytest
     fake_pytest._warn_on_exit()
 
 
-# ===================================================================
-# --- threads
-# ===================================================================
+# 024822.python.init.line384.comment ===================================================================
+# 024823.python.init.line385.comment --- threads
+# 024824.python.init.line386.comment ===================================================================
 
 
 class ThreadTask(threading.Thread):
@@ -429,9 +429,9 @@ class ThreadTask(threading.Thread):
         self.join()
 
 
-# ===================================================================
-# --- subprocesses
-# ===================================================================
+# 024825.python.init.line432.comment ===================================================================
+# 024826.python.init.line433.comment --- subprocesses
+# 024827.python.init.line434.comment ===================================================================
 
 
 def _reap_children_on_err(fun):
@@ -461,9 +461,9 @@ def spawn_subproc(cmd=None, **kwds):
     kwds.setdefault("cwd", os.getcwd())
     kwds.setdefault("env", PYTHON_EXE_ENV)
     if WINDOWS:
-        # Prevents the subprocess to open error dialogs. This will also
-        # cause stderr to be suppressed, which is suboptimal in order
-        # to debug broken tests.
+        # 024828.python.init.line464.comment Prevents the subprocess to open error dialogs. This will also
+        # 024829.python.init.line465.comment cause stderr to be suppressed, which is suboptimal in order
+        # 024830.python.init.line466.comment to debug broken tests.
         CREATE_NO_WINDOW = 0x8000000
         kwds.setdefault("creationflags", CREATE_NO_WINDOW)
     if cmd is None:
@@ -509,9 +509,9 @@ def spawn_children_pair():
             p = subprocess.Popen([r'{PYTHON_EXE}', '-c', s])
             p.wait()
             """)
-        # On Windows if we create a subprocess with CREATE_NO_WINDOW flag
-        # set (which is the default) a "conhost.exe" extra process will be
-        # spawned as a child. We don't want that.
+        # 024832.python.init.line512.comment On Windows if we create a subprocess with CREATE_NO_WINDOW flag
+        # 024833.python.init.line513.comment set (which is the default) a "conhost.exe" extra process will be
+        # 024834.python.init.line514.comment spawned as a child. We don't want that.
         if WINDOWS:
             subp, tfile = pyrun(s, creationflags=0)
         else:
@@ -593,7 +593,7 @@ def sh(cmd, **kwds):
     """Run cmd in a subprocess and return its output.
     raises RuntimeError on error.
     """
-    # Prevents subprocess to open error dialogs in case of error.
+    # 024835.python.init.line596.comment Prevents subprocess to open error dialogs in case of error.
     flags = 0x8000000 if WINDOWS else 0
     kwds.setdefault("stdout", subprocess.PIPE)
     kwds.setdefault("stderr", subprocess.PIPE)
@@ -627,18 +627,18 @@ def terminate(proc_or_pid, sig=signal.SIGTERM, wait_timeout=GLOBAL_TIMEOUT):
     def wait(proc, timeout):
         proc.wait(timeout)
         if WINDOWS and isinstance(proc, subprocess.Popen):
-            # Otherwise PID may still hang around.
+            # 024836.python.init.line630.comment Otherwise PID may still hang around.
             try:
                 return psutil.Process(proc.pid).wait(timeout)
             except psutil.NoSuchProcess:
                 pass
 
     def sendsig(proc, sig):
-        # XXX: otherwise the build hangs for some reason.
+        # 024837.python.init.line637.comment XXX: otherwise the build hangs for some reason.
         if MACOS and GITHUB_ACTIONS:
             sig = signal.SIGKILL
-        # If the process received SIGSTOP, SIGCONT is necessary first,
-        # otherwise SIGTERM won't work.
+        # 024838.python.init.line640.comment If the process received SIGSTOP, SIGCONT is necessary first,
+        # 024839.python.init.line641.comment otherwise SIGTERM won't work.
         if POSIX and sig != signal.SIGKILL:
             proc.send_signal(signal.SIGCONT)
         proc.send_signal(sig)
@@ -665,7 +665,7 @@ def terminate(proc_or_pid, sig=signal.SIGTERM, wait_timeout=GLOBAL_TIMEOUT):
         try:
             proc = psutil.Process(pid)
         except psutil.NoSuchProcess:
-            # Needed to kill zombies.
+            # 024841.python.init.line668.comment Needed to kill zombies.
             if POSIX:
                 return wait_pid(pid, timeout)
         else:
@@ -676,7 +676,7 @@ def terminate(proc_or_pid, sig=signal.SIGTERM, wait_timeout=GLOBAL_TIMEOUT):
             proc.stdout.close()
         if proc.stderr:
             proc.stderr.close()
-        # Flushing a BufferedWriter may raise an error.
+        # 024842.python.init.line679.comment Flushing a BufferedWriter may raise an error.
         if proc.stdin:
             proc.stdin.close()
 
@@ -704,22 +704,22 @@ def reap_children(recursive=False):
     If recursive is True it also tries to terminate and wait()
     all grandchildren started by this process.
     """
-    # Get the children here before terminating them, as in case of
-    # recursive=True we don't want to lose the intermediate reference
-    # pointing to the grandchildren.
+    # 024843.python.init.line707.comment Get the children here before terminating them, as in case of
+    # 024844.python.init.line708.comment recursive=True we don't want to lose the intermediate reference
+    # 024845.python.init.line709.comment pointing to the grandchildren.
     children = psutil.Process().children(recursive=recursive)
 
-    # Terminate subprocess.Popen.
+    # 024846.python.init.line712.comment Terminate subprocess.Popen.
     while _subprocesses_started:
         subp = _subprocesses_started.pop()
         terminate(subp)
 
-    # Collect started pids.
+    # 024847.python.init.line717.comment Collect started pids.
     while _pids_started:
         pid = _pids_started.pop()
         terminate(pid)
 
-    # Terminate children.
+    # 024848.python.init.line722.comment Terminate children.
     if children:
         for p in children:
             terminate(p, wait_timeout=None)
@@ -729,9 +729,9 @@ def reap_children(recursive=False):
             terminate(p, sig=signal.SIGKILL)
 
 
-# ===================================================================
-# --- OS
-# ===================================================================
+# 024849.python.init.line732.comment ===================================================================
+# 024850.python.init.line733.comment --- OS
+# 024851.python.init.line734.comment ===================================================================
 
 
 def kernel_version():
@@ -766,9 +766,9 @@ def get_winver():
     return (wv[0], wv[1], sp)
 
 
-# ===================================================================
-# --- sync primitives
-# ===================================================================
+# 024852.python.init.line769.comment ===================================================================
+# 024853.python.init.line770.comment --- sync primitives
+# 024854.python.init.line771.comment ===================================================================
 
 
 class retry:
@@ -822,8 +822,8 @@ class retry:
 
             raise exc
 
-        # This way the user of the decorated function can change config
-        # parameters.
+        # 024855.python.init.line825.comment This way the user of the decorated function can change config
+        # 024856.python.init.line826.comment parameters.
         wrapper.decorator = self
         return wrapper
 
@@ -873,19 +873,19 @@ def call_until(fun):
     return ret
 
 
-# ===================================================================
-# --- fs
-# ===================================================================
+# 024857.python.init.line876.comment ===================================================================
+# 024858.python.init.line877.comment --- fs
+# 024859.python.init.line878.comment ===================================================================
 
 
 def safe_rmpath(path):
     """Convenience function for removing temporary test files or dirs."""
 
     def retry_fun(fun):
-        # On Windows it could happen that the file or directory has
-        # open handles or references preventing the delete operation
-        # to succeed immediately, so we retry for a while. See:
-        # https://bugs.python.org/issue33240
+        # 024860.python.init.line885.comment On Windows it could happen that the file or directory has
+        # 024861.python.init.line886.comment open handles or references preventing the delete operation
+        # 024862.python.init.line887.comment to succeed immediately, so we retry for a while. See:
+        # 024863.python.init.line888.comment https://bugs.python.org/issue33240
         stop_at = time.time() + GLOBAL_TIMEOUT
         while time.time() < stop_at:
             try:
@@ -982,9 +982,9 @@ def get_testfn(suffix="", dir=None):
             return path
 
 
-# ===================================================================
-# --- testing
-# ===================================================================
+# 024866.python.init.line985.comment ===================================================================
+# 024867.python.init.line986.comment --- testing
+# 024868.python.init.line987.comment ===================================================================
 
 
 class PsutilTestCase(unittest.TestCase):
@@ -993,9 +993,9 @@ class PsutilTestCase(unittest.TestCase):
     if we use pytest.
     """
 
-    # Print a full path representation of the single unit test being
-    # run, similar to pytest output. Used only when running tests with
-    # the unittest runner.
+    # 024869.python.init.line996.comment Print a full path representation of the single unit test being
+    # 024870.python.init.line997.comment run, similar to pytest output. Used only when running tests with
+    # 024871.python.init.line998.comment the unittest runner.
     def __str__(self):
         fqmod = self.__class__.__module__
         if not fqmod.startswith('psutil.'):
@@ -1087,28 +1087,28 @@ class PsutilTestCase(unittest.TestCase):
         proc.wait(timeout=0)  # assert not raise TimeoutExpired
 
     def assert_proc_zombie(self, proc):
-        # A zombie process should always be instantiable.
+        # 024876.python.init.line1090.comment A zombie process should always be instantiable.
         clone = psutil.Process(proc.pid)
-        # Cloned zombie on Open/NetBSD/illumos/Solaris has null creation
-        # time, see:
-        # https://github.com/giampaolo/psutil/issues/2287
-        # https://github.com/giampaolo/psutil/issues/2593
+        # 024877.python.init.line1092.comment Cloned zombie on Open/NetBSD/illumos/Solaris has null creation
+        # 024878.python.init.line1093.comment time, see:
+        # 024879.python.init.line1094.comment https://github.com/giampaolo/psutil/issues/2287
+        # 024880.python.init.line1095.comment https://github.com/giampaolo/psutil/issues/2593
         assert proc == clone
         if not (OPENBSD or NETBSD or SUNOS):
             assert hash(proc) == hash(clone)
-        # Its status always be querable.
+        # 024881.python.init.line1099.comment Its status always be querable.
         assert proc.status() == psutil.STATUS_ZOMBIE
-        # It should be considered 'running'.
+        # 024882.python.init.line1101.comment It should be considered 'running'.
         assert proc.is_running()
         assert psutil.pid_exists(proc.pid)
-        # as_dict() shouldn't crash.
+        # 024883.python.init.line1104.comment as_dict() shouldn't crash.
         proc.as_dict()
-        # It should show up in pids() and process_iter().
+        # 024884.python.init.line1106.comment It should show up in pids() and process_iter().
         assert proc.pid in psutil.pids()
         assert proc.pid in [x.pid for x in psutil.process_iter()]
         psutil._pmap = {}
         assert proc.pid in [x.pid for x in psutil.process_iter()]
-        # Call all methods.
+        # 024885.python.init.line1111.comment Call all methods.
         ns = process_namespace(proc)
         for fun, name in ns.iter(ns.all, clear_cache=True):
             with self.subTest(proc=str(proc), name=name):
@@ -1117,7 +1117,7 @@ class PsutilTestCase(unittest.TestCase):
                 except (psutil.ZombieProcess, psutil.AccessDenied) as exc:
                     self._check_proc_exc(proc, exc)
         if LINUX:
-            # https://github.com/giampaolo/psutil/pull/2288
+            # 024886.python.init.line1120.comment https://github.com/giampaolo/psutil/pull/2288
             with pytest.raises(psutil.ZombieProcess) as cm:
                 proc.cmdline()
             self._check_proc_exc(proc, cm.value)
@@ -1127,7 +1127,7 @@ class PsutilTestCase(unittest.TestCase):
             with pytest.raises(psutil.ZombieProcess) as cm:
                 proc.memory_maps()
             self._check_proc_exc(proc, cm.value)
-        # Zombie cannot be signaled or terminated.
+        # 024887.python.init.line1130.comment Zombie cannot be signaled or terminated.
         proc.suspend()
         proc.resume()
         proc.terminate()
@@ -1139,19 +1139,19 @@ class PsutilTestCase(unittest.TestCase):
         psutil._pmap = {}
         assert proc.pid in [x.pid for x in psutil.process_iter()]
 
-        # Its parent should 'see' it (edit: not true on BSD and MACOS).
-        # descendants = [x.pid for x in psutil.Process().children(
-        #                recursive=True)]
-        # assert proc.pid in descendants
+        # 024888.python.init.line1142.comment Its parent should 'see' it (edit: not true on BSD and MACOS).
+        # 024889.python.init.line1143.comment descendants = [x.pid for x in psutil.Process().children(
+        # 024890.python.init.line1144.comment recursive=True)]
+        # 024891.python.init.line1145.comment assert proc.pid in descendants
 
-        # __eq__ can't be relied upon because creation time may not be
-        # querable.
-        # assert proc ==  psutil.Process(proc.pid)
+        # 024892.python.init.line1147.comment __eq__ can't be relied upon because creation time may not be
+        # 024893.python.init.line1148.comment querable.
+        # 024894.python.init.line1149.comment assert proc ==  psutil.Process(proc.pid)
 
-        # XXX should we also assume ppid() to be usable? Note: this
-        # would be an important use case as the only way to get
-        # rid of a zombie is to kill its parent.
-        # assert proc == ppid(), os.getpid()
+        # 024895.python.init.line1151.comment XXX should we also assume ppid() to be usable? Note: this
+        # 024896.python.init.line1152.comment would be an important use case as the only way to get
+        # 024897.python.init.line1153.comment rid of a zombie is to kill its parent.
+        # 024898.python.init.line1154.comment assert proc == ppid(), os.getpid()
 
 
 @pytest.mark.skipif(PYPY, reason="unreliable on PYPY")
@@ -1186,7 +1186,7 @@ class TestMemoryLeak(PsutilTestCase):
                 self.execute(some_function)
     """
 
-    # Configurable class attrs.
+    # 024899.python.init.line1189.comment Configurable class attrs.
     times = 200
     warmup_times = 10
     tolerance = 0  # memory
@@ -1204,8 +1204,8 @@ class TestMemoryLeak(PsutilTestCase):
         psutil._set_debug(cls._psutil_debug_orig)
 
     def _get_mem(self):
-        # USS is the closest thing we have to "real" memory usage and it
-        # should be less likely to produce false positives.
+        # 024902.python.init.line1207.comment USS is the closest thing we have to "real" memory usage and it
+        # 024903.python.init.line1208.comment should be less likely to produce false positives.
         mem = self._thisproc.memory_full_info()
         return getattr(mem, "uss", mem.rss)
 
@@ -1282,7 +1282,7 @@ class TestMemoryLeak(PsutilTestCase):
                 prev_mem = mem
         raise pytest.fail(". ".join(messages))
 
-    # ---
+    # 024906.python.init.line1285.comment ---
 
     def call(self, fun):
         return fun()
@@ -1343,7 +1343,7 @@ def print_sysinfo():
 
     info = collections.OrderedDict()
 
-    # OS
+    # 024908.python.init.line1346.comment OS
     if psutil.LINUX and shutil.which("lsb_release"):
         info['OS'] = sh('lsb_release -d -s')
     elif psutil.OSX:
@@ -1360,7 +1360,7 @@ def print_sysinfo():
     if psutil.POSIX:
         info['kernel'] = platform.uname()[2]
 
-    # python
+    # 024909.python.init.line1363.comment python
     info['python'] = ', '.join([
         platform.python_implementation(),
         platform.python_version(),
@@ -1370,7 +1370,7 @@ def print_sysinfo():
     if wheel is not None:
         info['pip'] += f" (wheel={wheel.__version__})"
 
-    # UNIX
+    # 024910.python.init.line1373.comment UNIX
     if psutil.POSIX:
         if shutil.which("gcc"):
             out = sh(['gcc', '--version'])
@@ -1381,7 +1381,7 @@ def print_sysinfo():
         if s:
             info['glibc'] = s
 
-    # system
+    # 024911.python.init.line1384.comment system
     info['fs-encoding'] = sys.getfilesystemencoding()
     lang = locale.getlocale()
     info['lang'] = f"{lang[0]}, {lang[1]}"
@@ -1396,7 +1396,7 @@ def print_sysinfo():
     info['hostname'] = platform.node()
     info['PID'] = os.getpid()
 
-    # metrics
+    # 024912.python.init.line1399.comment metrics
     info['cpus'] = psutil.cpu_count()
     info['loadavg'] = "{:.1f}%, {:.1f}%, {:.1f}%".format(
         *tuple(x / psutil.cpu_count() * 100 for x in psutil.getloadavg())
@@ -1414,20 +1414,20 @@ def print_sysinfo():
         bytes2human(swap.total),
     )
 
-    # constants
+    # 024913.python.init.line1417.comment constants
     constants = sorted(
         [k for k, v in globals().items() if k.isupper() and v is True]
     )
     info['constants'] = "\n                  ".join(constants)
 
-    # processes
+    # 024914.python.init.line1423.comment processes
     info['pids'] = len(psutil.pids())
     pinfo = psutil.Process().as_dict()
     pinfo.pop('memory_maps', None)
     pinfo["environ"] = {k: os.environ[k] for k in sorted(os.environ)}
     info['proc'] = pprint.pformat(pinfo)
 
-    # print
+    # 024915.python.init.line1430.comment print
     print("=" * 70, file=sys.stderr)  # noqa: T201
     for k, v in info.items():
         print("{:<17} {}".format(k + ":", v), file=sys.stderr)  # noqa: T201
@@ -1436,7 +1436,7 @@ def print_sysinfo():
 
 
 def is_win_secure_system_proc(pid):
-    # see: https://github.com/giampaolo/psutil/issues/2338
+    # 024919.python.init.line1439.comment see: https://github.com/giampaolo/psutil/issues/2338
     @memoize
     def get_procs():
         ret = {}
@@ -1727,12 +1727,12 @@ def skip_on_not_implemented(only_if=None):
     return decorator
 
 
-# ===================================================================
-# --- network
-# ===================================================================
+# 024923.python.init.line1730.comment ===================================================================
+# 024924.python.init.line1731.comment --- network
+# 024925.python.init.line1732.comment ===================================================================
 
 
-# XXX: no longer used
+# 024926.python.init.line1735.comment XXX: no longer used
 def get_free_port(host='127.0.0.1'):
     """Return an unused TCP port. Subject to race conditions."""
     with socket.socket() as sock:
@@ -1786,7 +1786,7 @@ def tcp_socketpair(family, addr=("", 0)):
             caddr = c.getsockname()
             while True:
                 a, addr = ll.accept()
-                # check that we've got the correct client
+                # 024927.python.init.line1789.comment check that we've got the correct client
                 if addr == caddr:
                     return (a, c)
                 a.close()
@@ -1808,7 +1808,7 @@ def unix_socketpair(name):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.setblocking(0)
         client.connect(name)
-        # new = server.accept()
+        # 024928.python.init.line1811.comment new = server.accept()
     except Exception:
         if server is not None:
             server.close()
@@ -1888,10 +1888,10 @@ def check_connection_ntuple(conn):
         assert conn.family in {AF_INET, AF_INET6, AF_UNIX}, conn.family
         assert isinstance(conn.family, enum.IntEnum), conn
         if conn.family == AF_INET:
-            # actually try to bind the local socket; ignore IPv6
-            # sockets as their address might be represented as
-            # an IPv4-mapped-address (e.g. "::127.0.0.1")
-            # and that's rejected by bind()
+            # 024929.python.init.line1891.comment actually try to bind the local socket; ignore IPv6
+            # 024930.python.init.line1892.comment sockets as their address might be represented as
+            # 024931.python.init.line1893.comment an IPv4-mapped-address (e.g. "::127.0.0.1")
+            # 024932.python.init.line1894.comment and that's rejected by bind()
             with socket.socket(conn.family, conn.type) as s:
                 try:
                     s.bind((conn.laddr[0], 0))
@@ -1902,7 +1902,7 @@ def check_connection_ntuple(conn):
             assert conn.status == psutil.CONN_NONE, conn.status
 
     def check_type(conn):
-        # SOCK_SEQPACKET may happen in case of AF_UNIX socks
+        # 024933.python.init.line1905.comment SOCK_SEQPACKET may happen in case of AF_UNIX socks
         SOCK_SEQPACKET = getattr(socket, "SOCK_SEQPACKET", object())
         assert conn.type in {
             socket.SOCK_STREAM,
@@ -1914,7 +1914,7 @@ def check_connection_ntuple(conn):
             assert conn.status == psutil.CONN_NONE, conn.status
 
     def check_addrs(conn):
-        # check IP address and port sanity
+        # 024934.python.init.line1917.comment check IP address and port sanity
         for addr in (conn.laddr, conn.raddr):
             if conn.family in {AF_INET, AF_INET6}:
                 assert isinstance(addr, tuple), type(addr)
@@ -1958,9 +1958,9 @@ def filter_proc_net_connections(cons):
     return new
 
 
-# ===================================================================
-# --- import utils
-# ===================================================================
+# 024935.python.init.line1961.comment ===================================================================
+# 024936.python.init.line1962.comment --- import utils
+# 024937.python.init.line1963.comment ===================================================================
 
 
 def reload_module(module):
@@ -1975,9 +1975,9 @@ def import_module_by_path(path):
     return mod
 
 
-# ===================================================================
-# --- others
-# ===================================================================
+# 024938.python.init.line1978.comment ===================================================================
+# 024939.python.init.line1979.comment --- others
+# 024940.python.init.line1980.comment ===================================================================
 
 
 def warn(msg):
@@ -2055,11 +2055,11 @@ else:
             cfile = ctypes.WinDLL(dst)
             yield dst
         finally:
-            # Work around OverflowError:
-            # - https://ci.appveyor.com/project/giampaolo/psutil/build/1207/
-            #       job/o53330pbnri9bcw7
-            # - http://bugs.python.org/issue30286
-            # - http://stackoverflow.com/questions/23522055
+            # 024941.python.init.line2058.comment Work around OverflowError:
+            # 024942.python.init.line2059.comment - https://ci.appveyor.com/project/giampaolo/psutil/build/1207/
+            # 024943.python.init.line2060.comment job/o53330pbnri9bcw7
+            # 024944.python.init.line2061.comment - http://bugs.python.org/issue30286
+            # 024945.python.init.line2062.comment - http://stackoverflow.com/questions/23522055
             if cfile is not None:
                 FreeLibrary = ctypes.windll.kernel32.FreeLibrary
                 FreeLibrary.argtypes = [wintypes.HMODULE]
@@ -2069,20 +2069,20 @@ else:
             safe_rmpath(dst)
 
 
-# ===================================================================
-# --- Exit funs (first is executed last)
-# ===================================================================
+# 024946.python.init.line2072.comment ===================================================================
+# 024947.python.init.line2073.comment --- Exit funs (first is executed last)
+# 024948.python.init.line2074.comment ===================================================================
 
 
-# this is executed first
+# 024949.python.init.line2077.comment this is executed first
 @atexit.register
 def cleanup_test_procs():
     reap_children(recursive=True)
 
 
-# atexit module does not execute exit functions in case of SIGTERM, which
-# gets sent to test subprocesses, which is a problem if they import this
-# module. With this it will. See:
-# https://gmpy.dev/blog/2016/how-to-always-execute-exit-functions-in-python
+# 024950.python.init.line2083.comment atexit module does not execute exit functions in case of SIGTERM, which
+# 024951.python.init.line2084.comment gets sent to test subprocesses, which is a problem if they import this
+# 024952.python.init.line2085.comment module. With this it will. See:
+# 024953.python.init.line2086.comment https://gmpy.dev/blog/2016/how-to-always-execute-exit-functions-in-python
 if POSIX:
     signal.signal(signal.SIGTERM, lambda sig, _: sys.exit(sig))

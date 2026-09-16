@@ -1,9 +1,9 @@
 # -*- coding: latin-1 -*-
 
-# PyWin32 Internet Explorer Toolbar
-#
-# written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# 049442.python.ietoolbar.line3.comment PyWin32 Internet Explorer Toolbar
+# 049443.python.ietoolbar.line4.comment
+# 049444.python.ietoolbar.line5.comment written by Leonard Ritter (paniq@gmx.net)
+# 049445.python.ietoolbar.line6.comment and Robert Förtsch (info@robert-foertsch.com)
 
 
 """
@@ -18,7 +18,7 @@ to catch WM_COMMAND messages.
 import array
 import struct
 
-# imports section
+# 049446.python.ietoolbar.line21.comment imports section
 import sys
 import winreg
 
@@ -33,10 +33,10 @@ from win32com.client import Dispatch, gencache
 from win32com.shell import shell
 from win32com.shell.shellcon import DBIMF_VARIABLEHEIGHT
 
-# ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
+# 049447.python.ietoolbar.line36.comment ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
 gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
 
-#
+# 049448.python.ietoolbar.line39.comment
 IDeskBand_methods = ["GetBandInfo"]
 IDockingWindow_methods = ["ShowDW", "CloseDW", "ResizeBorderDW"]
 IOleWindow_methods = ["GetWindow", "ContextSensitiveHelp"]
@@ -185,13 +185,13 @@ class IEToolbar:
     _com_interfaces_ = _ietoolbar_com_interfaces_
     _public_methods_ = _ietoolbar_methods_
     _reg_clsctx_ = pythoncom.CLSCTX_INPROC_SERVER
-    # if you copy and modify this example, be sure to change the clsid below
+    # 049452.python.ietoolbar.line188.comment if you copy and modify this example, be sure to change the clsid below
     _reg_clsid_ = "{F21202A2-959A-4149-B1C3-68B9013F3335}"
     _reg_progid_ = "PyWin32.IEToolbar"
     _reg_desc_ = "PyWin32 IE Toolbar"
 
     def __init__(self):
-        # put stubs for non-implemented methods
+        # 049453.python.ietoolbar.line194.comment put stubs for non-implemented methods
         for method in self._public_methods_:
             if not hasattr(self, method):
                 print("providing default stub for %s" % method)
@@ -201,11 +201,11 @@ class IEToolbar:
         return self.toolbar.GetSafeHwnd()
 
     def Load(self, stream):
-        # called when the toolbar is loaded
+        # 049454.python.ietoolbar.line204.comment called when the toolbar is loaded
         pass
 
     def Save(self, pStream, fClearDirty):
-        # called when the toolbar shall save its information
+        # 049455.python.ietoolbar.line208.comment called when the toolbar shall save its information
         pass
 
     def CloseDW(self, dwReserved):
@@ -234,23 +234,23 @@ class IEToolbar:
 
     def SetSite(self, unknown):
         if unknown:
-            # retrieve the parent window interface for this site
+            # 049456.python.ietoolbar.line237.comment retrieve the parent window interface for this site
             olewindow = unknown.QueryInterface(pythoncom.IID_IOleWindow)
-            # ask the window for its handle
+            # 049457.python.ietoolbar.line239.comment ask the window for its handle
             hwndparent = olewindow.GetWindow()
 
-            # first get a command target
+            # 049458.python.ietoolbar.line242.comment first get a command target
             cmdtarget = unknown.QueryInterface(axcontrol.IID_IOleCommandTarget)
-            # then travel over to a service provider
+            # 049459.python.ietoolbar.line244.comment then travel over to a service provider
             serviceprovider = cmdtarget.QueryInterface(pythoncom.IID_IServiceProvider)
-            # finally ask for the internet explorer application, returned as a dispatch object
+            # 049460.python.ietoolbar.line246.comment finally ask for the internet explorer application, returned as a dispatch object
             self.webbrowser = Dispatch(
                 serviceprovider.QueryService(
                     "{0002DF05-0000-0000-C000-000000000046}", pythoncom.IID_IDispatch
                 )
             )
 
-            # now create and set up the toolbar
+            # 049461.python.ietoolbar.line253.comment now create and set up the toolbar
             self.toolbar = IEToolbarCtrl(hwndparent)
 
             buttons = [
@@ -260,10 +260,10 @@ class IEToolbar:
             ]
 
             self._command_map = {}
-            # wrap our parent window so we can hook message handlers
+            # 049462.python.ietoolbar.line263.comment wrap our parent window so we can hook message handlers
             window = win32ui.CreateWindowFromHandle(hwndparent)
 
-            # add the buttons
+            # 049463.python.ietoolbar.line266.comment add the buttons
             for i in range(len(buttons)):
                 button = TBBUTTON()
                 name, func = buttons[i]
@@ -277,7 +277,7 @@ class IEToolbar:
                 self.toolbar.AddButtons(button)
                 window.HookMessage(self.toolbar_command_handler, win32con.WM_COMMAND)
         else:
-            # lose all references
+            # 049464.python.ietoolbar.line280.comment lose all references
             self.webbrowser = None
 
     def GetClassID(self):
@@ -302,16 +302,16 @@ class IEToolbar:
         )
 
 
-# used for HKLM install
+# 049465.python.ietoolbar.line305.comment used for HKLM install
 def DllInstall(bInstall, cmdLine):
     comclass = IEToolbar
 
 
-# register plugin
+# 049466.python.ietoolbar.line310.comment register plugin
 def DllRegisterServer():
     comclass = IEToolbar
 
-    # register toolbar with IE
+    # 049467.python.ietoolbar.line314.comment register toolbar with IE
     try:
         print("Trying to register Toolbar.\n")
         hkey = winreg.CreateKey(
@@ -329,14 +329,14 @@ def DllRegisterServer():
         print(
             "Set registry value.\nhkey: %d\tCLSID: %s\n" % (hkey, comclass._reg_clsid_)
         )
-    # TODO: implement reg settings for standard toolbar button
+    # 049468.python.ietoolbar.line332.comment TODO: implement reg settings for standard toolbar button
 
 
-# unregister plugin
+# 049469.python.ietoolbar.line335.comment unregister plugin
 def DllUnregisterServer():
     comclass = IEToolbar
 
-    # unregister toolbar from internet explorer
+    # 049470.python.ietoolbar.line339.comment unregister toolbar from internet explorer
     try:
         print("Trying to unregister Toolbar.\n")
         hkey = winreg.CreateKey(
@@ -352,17 +352,17 @@ def DllUnregisterServer():
         print("Deleting reg key succeeded.\n")
 
 
-# entry point
+# 049471.python.ietoolbar.line355.comment entry point
 if __name__ == "__main__":
     import win32com.server.register
 
     win32com.server.register.UseCommandLine(IEToolbar)
 
-    # parse actual command line option
+    # 049472.python.ietoolbar.line361.comment parse actual command line option
     if "--unregister" in sys.argv:
         DllUnregisterServer()
     else:
         DllRegisterServer()
 else:
-    # import trace utility for remote debugging
+    # 049473.python.ietoolbar.line367.comment import trace utility for remote debugging
     import win32traceutil

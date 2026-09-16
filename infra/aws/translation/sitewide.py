@@ -14,12 +14,12 @@ from index import (
 )
 
 
-# Static interface strings rendered by the public site and launcher but not yet
-# represented in the older anonymous UI catalog. Keeping these explicit preserves
-# the endpoint's original security boundary: anonymous callers may translate only
-# text that ships with ReLiC/RIST.
+# 000071.python.sitewide.line17.comment Static interface strings rendered by the public site and launcher but not yet
+# 000072.python.sitewide.line18.comment represented in the older anonymous UI catalog. Keeping these explicit preserves
+# 000073.python.sitewide.line19.comment the endpoint's original security boundary: anonymous callers may translate only
+# 000074.python.sitewide.line20.comment text that ships with ReLiC/RIST.
 PUBLIC_UI_EXTRA = {
-    # Public-site navigation / story strip
+    # 000075.python.sitewide.line22.comment Public-site navigation / story strip
     'Store',
     'Remember',
     'exist',
@@ -27,7 +27,7 @@ PUBLIC_UI_EXTRA = {
     'imagine',
     'Create',
 
-    # Public Play entry / Discord handoff shell
+    # 000076.python.sitewide.line30.comment Public Play entry / Discord handoff shell
     'Shaelvien startup',
     'Shaelvien entry options',
     'BUILD THE WORLD. THEN STEP INSIDE IT.',
@@ -49,7 +49,7 @@ PUBLIC_UI_EXTRA = {
     'Your authenticated session could not be verified.',
     'Authentication could not be completed.',
 
-    # Launcher hero / device setup
+    # 000077.python.sitewide.line52.comment Launcher hero / device setup
     'A LIVING WORLD AWAITS',
     'BUILD THE WORLD.',
     'THEN STEP INSIDE IT.',
@@ -60,7 +60,7 @@ PUBLIC_UI_EXTRA = {
     'Enable device movement for layered world depth',
     'ENTER SHAELVIEN',
 
-    # Launcher primary cards
+    # 000078.python.sitewide.line63.comment Launcher primary cards
     'ACCESSIBILITY SHELL',
     'Screen reader, keyboard, switch, speech and coordinate access to the same world.',
     'ROLEPLAY',
@@ -101,7 +101,7 @@ PUBLIC_UI_EXTRA = {
     'DICE & TOOLS',
     'Open dice, cards and play tools.',
 
-    # Launcher quick access / settings
+    # 000079.python.sitewide.line104.comment Launcher quick access / settings
     'CHARACTERS',
     'STORE',
     'FEEDBACK',
@@ -126,8 +126,8 @@ PUBLIC_UI_EXTRA = {
     '● ONLINE · PUBLIC ALPHA',
 }
 
-# These are product/world identities, not ordinary interface vocabulary. They are
-# never translated, even when embedded inside otherwise translatable UI copy.
+# 000080.python.sitewide.line129.comment These are product/world identities, not ordinary interface vocabulary. They are
+# 000081.python.sitewide.line130.comment never translated, even when embedded inside otherwise translatable UI copy.
 BRAND_TERMS = (
     'ReLiCGameMaster.com',
     'ReLiCGameMaster',
@@ -169,7 +169,7 @@ def _safe_cached_translate(text, source, target, ttl_days=365):
 
     for token, original in replacements:
         if token not in translated:
-            # Failing closed is safer than allowing translation to mutate canon.
+            # 000082.python.sitewide.line172.comment Failing closed is safer than allowing translation to mutate canon.
             return {
                 **item,
                 'text': text,

@@ -106,9 +106,9 @@ def fixup_build_ext(cmd):
     if os.name == 'nt':
         cmd.debug = sys.executable.endswith('_d.exe')
     elif sysconfig.get_config_var('Py_ENABLE_SHARED'):
-        # To further add to the shared builds fun on Unix, we can't just add
-        # library_dirs to the Extension() instance because that doesn't get
-        # plumbed through to the final compiler command.
+        # 040820.python.support.line109.comment To further add to the shared builds fun on Unix, we can't just add
+        # 040821.python.support.line110.comment library_dirs to the Extension() instance because that doesn't get
+        # 040822.python.support.line111.comment plumbed through to the final compiler command.
         runshared = sysconfig.get_config_var('RUNSHARED')
         if runshared is None:
             cmd.library_dirs = ['.']

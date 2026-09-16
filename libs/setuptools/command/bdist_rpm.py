@@ -26,7 +26,7 @@ class bdist_rpm(orig.bdist_rpm):
             due_date=(2023, 10, 30),  # Deprecation introduced in 22 Oct 2021.
         )
 
-        # ensure distro name is up-to-date
+        # 044318.python.bdist_rpm.line29.comment ensure distro name is up-to-date
         self.run_command('egg_info')
 
         orig.bdist_rpm.run(self)

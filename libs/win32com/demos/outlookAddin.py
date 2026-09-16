@@ -1,29 +1,29 @@
-# A demo plugin for Microsoft Outlook (NOT Outlook Express)
-#
-# This addin simply adds a new button to the main Outlook toolbar,
-# and displays a message box when clicked.  Thus, it demonstrates
-# how to plug in to Outlook itself, and hook outlook events.
-#
-# Additionally, each time a new message arrives in the Inbox, a message
-# is printed with the subject of the message.
-#
-# To register the addin, simply execute:
-#   outlookAddin.py
-# This will install the COM server, and write the necessary
-# AddIn key to Outlook
-#
-# To unregister completely:
-#   outlookAddin.py --unregister
-#
-# To debug, execute:
-#   outlookAddin.py --debug
-#
-# Then open Pythonwin, and select "Tools->Trace Collector Debugging Tool"
-# Restart Outlook, and you should see some output generated.
-#
-# NOTE: If the AddIn fails with an error, Outlook will re-register
-# the addin to not automatically load next time Outlook starts.  To
-# correct this, simply re-register the addin (see above)
+# 049474.python.outlookAddin.line1.comment A demo plugin for Microsoft Outlook (NOT Outlook Express)
+# 049475.python.outlookAddin.line2.comment
+# 049476.python.outlookAddin.line3.comment This addin simply adds a new button to the main Outlook toolbar,
+# 049477.python.outlookAddin.line4.comment and displays a message box when clicked.  Thus, it demonstrates
+# 049478.python.outlookAddin.line5.comment how to plug in to Outlook itself, and hook outlook events.
+# 049479.python.outlookAddin.line6.comment
+# 049480.python.outlookAddin.line7.comment Additionally, each time a new message arrives in the Inbox, a message
+# 049481.python.outlookAddin.line8.comment is printed with the subject of the message.
+# 049482.python.outlookAddin.line9.comment
+# 049483.python.outlookAddin.line10.comment To register the addin, simply execute:
+# 049484.python.outlookAddin.line11.comment outlookAddin.py
+# 049485.python.outlookAddin.line12.comment This will install the COM server, and write the necessary
+# 049486.python.outlookAddin.line13.comment AddIn key to Outlook
+# 049487.python.outlookAddin.line14.comment
+# 049488.python.outlookAddin.line15.comment To unregister completely:
+# 049489.python.outlookAddin.line16.comment outlookAddin.py --unregister
+# 049490.python.outlookAddin.line17.comment
+# 049491.python.outlookAddin.line18.comment To debug, execute:
+# 049492.python.outlookAddin.line19.comment outlookAddin.py --debug
+# 049493.python.outlookAddin.line20.comment
+# 049494.python.outlookAddin.line21.comment Then open Pythonwin, and select "Tools->Trace Collector Debugging Tool"
+# 049495.python.outlookAddin.line22.comment Restart Outlook, and you should see some output generated.
+# 049496.python.outlookAddin.line23.comment
+# 049497.python.outlookAddin.line24.comment NOTE: If the AddIn fails with an error, Outlook will re-register
+# 049498.python.outlookAddin.line25.comment the addin to not automatically load next time Outlook starts.  To
+# 049499.python.outlookAddin.line26.comment correct this, simply re-register the addin (see above)
 
 import sys
 
@@ -31,7 +31,7 @@ import pythoncom
 from win32com import universal
 from win32com.client import DispatchWithEvents, constants, gencache
 
-# Support for COM objects we use.
+# 049500.python.outlookAddin.line34.comment Support for COM objects we use.
 gencache.EnsureModule(
     "{00062FFF-0000-0000-C000-000000000046}", 0, 9, 0, bForDemand=True
 )  # Outlook 9
@@ -39,7 +39,7 @@ gencache.EnsureModule(
     "{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}", 0, 2, 1, bForDemand=True
 )  # Office 9
 
-# The TLB defining the interfaces we implement
+# 049503.python.outlookAddin.line42.comment The TLB defining the interfaces we implement
 universal.RegisterInterfaces(
     "{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}", 0, 1, 0, ["_IDTExtensibility2"]
 )
@@ -71,19 +71,19 @@ class OutlookAddin:
 
     def OnConnection(self, application, connectMode, addin, custom):
         print("OnConnection", application, connectMode, addin, custom)
-        # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
+        # 049505.python.outlookAddin.line74.comment ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
         activeExplorer = application.ActiveExplorer()
         if activeExplorer is not None:
             bars = activeExplorer.CommandBars
             toolbar = bars.Item("Standard")
             item = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
-            # Hook events for the item
+            # 049506.python.outlookAddin.line80.comment Hook events for the item
             item = self.toolbarButton = DispatchWithEvents(item, ButtonEvent)
             item.Caption = "Python"
             item.TooltipText = "Click for Python"
             item.Enabled = True
 
-        # And now, for the sake of demonstration, setup a hook for all new messages
+        # 049507.python.outlookAddin.line86.comment And now, for the sake of demonstration, setup a hook for all new messages
         inbox = application.Session.GetDefaultFolder(constants.olFolderInbox)
         self.inboxItems = DispatchWithEvents(inbox.Items, FolderEvent)
 

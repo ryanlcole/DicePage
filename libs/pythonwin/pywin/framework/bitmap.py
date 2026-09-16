@@ -17,12 +17,12 @@ class BitmapDocument(docview.Document):
         self.bitmap = None
 
     def OnNewDocument(self):
-        # I can not create new bitmaps.
+        # 037238.python.bitmap.line20.comment I can not create new bitmaps.
         win32ui.MessageBox("Bitmaps can not be created.")
 
     def OnOpenDocument(self, filename):
         self.bitmap = win32ui.CreateBitmap()
-        # init data members
+        # 037239.python.bitmap.line25.comment init data members
         f = open(filename, "rb")
         try:
             try:
@@ -45,7 +45,7 @@ class BitmapView(docview.ScrollView):
     def __init__(self, doc):
         docview.ScrollView.__init__(self, doc)
         self.width = self.height = 0
-        # set up message handlers
+        # 037240.python.bitmap.line48.comment set up message handlers
         self.HookMessage(self.OnSize, win32con.WM_SIZE)
 
     def OnInitialUpdate(self):
@@ -60,18 +60,18 @@ class BitmapView(docview.ScrollView):
         self.height = win32api.HIWORD(lParam)
 
     def OnDraw(self, dc):
-        # set sizes used for "non stretch" mode.
+        # 037241.python.bitmap.line63.comment set sizes used for "non stretch" mode.
         doc = self.GetDocument()
         if doc.bitmap is None:
             return
         bitmapSize = doc.bitmap.GetSize()
         if bStretch:
-            # stretch BMP.
+            # 037242.python.bitmap.line69.comment stretch BMP.
             viewRect = (0, 0, self.width, self.height)
             bitmapRect = (0, 0, bitmapSize[0], bitmapSize[1])
             doc.bitmap.Paint(dc, viewRect, bitmapRect)
         else:
-            # non stretch.
+            # 037243.python.bitmap.line74.comment non stretch.
             doc.bitmap.Paint(dc)
 
 
@@ -80,8 +80,8 @@ class BitmapFrame(window.MDIChildWnd):
         borderX = win32api.GetSystemMetrics(win32con.SM_CXFRAME)
         borderY = win32api.GetSystemMetrics(win32con.SM_CYFRAME)
         titleY = win32api.GetSystemMetrics(win32con.SM_CYCAPTION)  # includes border
-        # try and maintain default window pos, else adjust if can't fit
-        # get the main client window dimensions.
+        # 037245.python.bitmap.line83.comment try and maintain default window pos, else adjust if can't fit
+        # 037246.python.bitmap.line84.comment get the main client window dimensions.
         mdiClient = win32ui.GetMainFrame().GetWindow(win32con.GW_CHILD)
         clientWindowRect = mdiClient.ScreenToClient(mdiClient.GetWindowRect())
         clientWindowSize = (
@@ -89,20 +89,20 @@ class BitmapFrame(window.MDIChildWnd):
             clientWindowRect[3] - clientWindowRect[1],
         )
         left, top, right, bottom = mdiClient.ScreenToClient(self.GetWindowRect())
-        # 		width, height=context.doc.size[0], context.doc.size[1]
-        # 		width = width+borderX*2
-        # 		height= height+titleY+borderY*2-1
-        # 		if (left+width)>clientWindowSize[0]:
-        # 			left = clientWindowSize[0] - width
-        # 		if left<0:
-        # 			left = 0
-        # 			width = clientWindowSize[0]
-        # 		if (top+height)>clientWindowSize[1]:
-        # 			top = clientWindowSize[1] - height
-        # 		if top<0:
-        # 			top = 0
-        # 			height = clientWindowSize[1]
-        # 		self.frame.MoveWindow((left, top, left+width, top+height),0)
+        # 037247.python.bitmap.line92.comment width, height=context.doc.size[0], context.doc.size[1]
+        # 037248.python.bitmap.line93.comment width = width+borderX*2
+        # 037249.python.bitmap.line94.comment height= height+titleY+borderY*2-1
+        # 037250.python.bitmap.line95.comment if (left+width)>clientWindowSize[0]:
+        # 037251.python.bitmap.line96.comment left = clientWindowSize[0] - width
+        # 037252.python.bitmap.line97.comment if left<0:
+        # 037253.python.bitmap.line98.comment left = 0
+        # 037254.python.bitmap.line99.comment width = clientWindowSize[0]
+        # 037255.python.bitmap.line100.comment if (top+height)>clientWindowSize[1]:
+        # 037256.python.bitmap.line101.comment top = clientWindowSize[1] - height
+        # 037257.python.bitmap.line102.comment if top<0:
+        # 037258.python.bitmap.line103.comment top = 0
+        # 037259.python.bitmap.line104.comment height = clientWindowSize[1]
+        # 037260.python.bitmap.line105.comment self.frame.MoveWindow((left, top, left+width, top+height),0)
         window.MDIChildWnd.OnCreateClient(self, createparams, context)
         return 1
 
@@ -123,9 +123,9 @@ class BitmapTemplate(docview.DocTemplate):
         return win32ui.CDocTemplate_Confidence_maybeAttemptForeign
 
 
-# 		return win32ui.CDocTemplate_Confidence_noAttempt
+# 037262.python.bitmap.line126.comment return win32ui.CDocTemplate_Confidence_noAttempt
 
-# For debugging purposes, when this module may be reloaded many times.
+# 037263.python.bitmap.line128.comment For debugging purposes, when this module may be reloaded many times.
 try:
     win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
@@ -137,22 +137,22 @@ bitmapTemplate.SetDocStrings(
 )
 win32ui.GetApp().AddDocTemplate(bitmapTemplate)
 
-# This works, but just didn't make it through the code reorg.
-# class PPMBitmap(Bitmap):
-# 	def LoadBitmapFile(self, file ):
-# 		magic=file.readline()
-# 		if magic <> "P6\n":
-# 			raise TypeError, "The file is not a PPM format file"
-# 		rowcollist=file.readline().split()
-# 		cols=int(rowcollist[0])
-# 		rows=int(rowcollist[1])
-# 		file.readline()	# what's this one?
-# 		self.bitmap.LoadPPMFile(file,(cols,rows))
+# 037265.python.bitmap.line140.comment This works, but just didn't make it through the code reorg.
+# 037266.python.bitmap.line141.comment class PPMBitmap(Bitmap):
+# 037267.python.bitmap.line142.comment def LoadBitmapFile(self, file ):
+# 037268.python.bitmap.line143.comment magic=file.readline()
+# 037269.python.bitmap.line144.comment if magic <> "P6\n":
+# 037270.python.bitmap.line145.comment raise TypeError, "The file is not a PPM format file"
+# 037271.python.bitmap.line146.comment rowcollist=file.readline().split()
+# 037272.python.bitmap.line147.comment cols=int(rowcollist[0])
+# 037273.python.bitmap.line148.comment rows=int(rowcollist[1])
+# 037274.python.bitmap.line149.comment file.readline()	# what's this one?
+# 037275.python.bitmap.line150.comment self.bitmap.LoadPPMFile(file,(cols,rows))
 
 
 def t():
     bitmapTemplate.OpenDocumentFile("d:\\winnt\\arcade.bmp")
-    # OpenBMPFile( 'd:\\winnt\\arcade.bmp')
+    # 037276.python.bitmap.line155.comment OpenBMPFile( 'd:\\winnt\\arcade.bmp')
 
 
 def demo():

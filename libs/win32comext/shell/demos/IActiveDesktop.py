@@ -18,7 +18,7 @@ if not (opts["ActiveDesktop"] and opts["EnableComponents"]):
     iad.SetDesktopItemOptions(opts)
     iad.ApplyChanges(0xFFFF)
     iad = None
-    ## apparently takes a short while for it to become active
+    # 051499.python.IActiveDesktop.line21.comment # apparently takes a short while for it to become active
     time.sleep(2)
     iad = pythoncom.CoCreateInstance(
         shell.CLSID_ActiveDesktop,

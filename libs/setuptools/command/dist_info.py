@@ -98,6 +98,6 @@ class dist_info(Command):
         log.info(f"creating '{os.path.abspath(self.dist_info_dir)}'")
         bdist_wheel = self.get_finalized_command('bdist_wheel')
 
-        # TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there
+        # 044460.python.dist_info.line101.comment TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there
         with self._maybe_bkp_dir(egg_info_dir, self.keep_egg_info):
             bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)

@@ -1,4 +1,4 @@
-# The property page to define generic IDE options for Pythonwin
+# 037105.python.ideoptions.line1.comment The property page to define generic IDE options for Pythonwin
 
 import win32con
 import win32ui
@@ -57,18 +57,18 @@ class OptionsPropPage(dialog.PropertyPage):
         self["bDocking"] = interact.LoadPreference("Docking", 0)
         self["MRUSize"] = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
 
-        # Hook the button clicks.
+        # 037106.python.ideoptions.line60.comment Hook the button clicks.
         self.HookCommand(self.HandleCharFormatChange, win32ui.IDC_BUTTON1)
         self.HookCommand(self.HandleCharFormatChange, win32ui.IDC_BUTTON2)
         self.HookCommand(self.HandleCharFormatChange, win32ui.IDC_BUTTON3)
 
-        # Ensure the spin control remains in range.
+        # 037107.python.ideoptions.line65.comment Ensure the spin control remains in range.
         spinner = self.GetDlgItem(win32ui.IDC_SPIN1)
         spinner.SetRange(1, 16)
 
         return dialog.PropertyPage.OnInitDialog(self)
 
-    # Called to save away the new format tuple for the specified item.
+    # 037108.python.ideoptions.line71.comment Called to save away the new format tuple for the specified item.
     def HandleCharFormatChange(self, id, code):
         if code == win32con.BN_CLICKED:
             editId = buttonControlMap.get(id)
@@ -84,8 +84,8 @@ class OptionsPropPage(dialog.PropertyPage):
             return 0  # We handled this fully!
 
     def OnOK(self):
-        # Handle the edit controls - get all the fonts, put them back into interact, then
-        # get interact to save its stuff!
+        # 037110.python.ideoptions.line87.comment Handle the edit controls - get all the fonts, put them back into interact, then
+        # 037111.python.ideoptions.line88.comment get interact to save its stuff!
         controlAttrs = [
             (win32ui.IDC_EDIT1, interact.STYLE_INTERACTIVE_PROMPT),
             (win32ui.IDC_EDIT2, interact.STYLE_INTERACTIVE_OUTPUT),
@@ -96,11 +96,11 @@ class OptionsPropPage(dialog.PropertyPage):
             fmt = control.GetDefaultCharFormat()
             win32ui.WriteProfileVal(interact.sectionProfile, key, str(fmt))
 
-        # Save the other interactive window options.
+        # 037112.python.ideoptions.line99.comment Save the other interactive window options.
         interact.SavePreference("Show at startup", self["bShowAtStartup"])
         interact.SavePreference("Docking", self["bDocking"])
 
-        # And the other options.
+        # 037113.python.ideoptions.line103.comment And the other options.
         win32ui.WriteProfileVal("Settings", "Recent File List Size", self["MRUSize"])
 
         return 1

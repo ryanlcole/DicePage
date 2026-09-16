@@ -61,9 +61,9 @@ class WaveSource(StreamingSource):
         self._wave.setpos(position)
 
 
-#########################################
-#   Decoder class:
-#########################################
+# 034086.python.wave.line64.comment ########################################
+# 034087.python.wave.line65.comment Decoder class:
+# 034088.python.wave.line66.comment ########################################
 
 class WaveDecoder(MediaDecoder):
 
@@ -105,7 +105,7 @@ class WaveEncoder(MediaEncoder):
         wave_writer.setnchannels(source.audio_format.channels)
         wave_writer.setsampwidth(source.audio_format.bytes_per_sample)
         wave_writer.setframerate(source.audio_format.sample_rate)
-        # Save the data in 1-second chunks:
+        # 034089.python.wave.line108.comment Save the data in 1-second chunks:
         chunksize = source.audio_format.bytes_per_second
         audiodata = source.get_audio_data(chunksize)
         while audiodata:

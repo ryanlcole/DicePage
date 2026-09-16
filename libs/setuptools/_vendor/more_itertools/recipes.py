@@ -83,7 +83,7 @@ __all__ = [
 _marker = object()
 
 
-# zip with strict is available for Python 3.10+
+# 042548.python.recipes.line86.comment zip with strict is available for Python 3.10+
 try:
     zip(strict=True)
 except TypeError:
@@ -91,7 +91,7 @@ except TypeError:
 else:
     _zip_strict = partial(zip, strict=True)
 
-# math.sumprod is available for Python 3.12+
+# 042549.python.recipes.line94.comment math.sumprod is available for Python 3.12+
 _sumprod = getattr(math, 'sumprod', lambda x, y: dotproduct(x, y))
 
 
@@ -137,10 +137,10 @@ def tail(n, iterable):
     ['E', 'F', 'G']
 
     """
-    # If the given iterable has a length, then we can use islice to get its
-    # final elements. Note that if the iterable is not actually Iterable,
-    # either islice or deque will throw a TypeError. This is why we don't
-    # check if it is Iterable.
+    # 042550.python.recipes.line140.comment If the given iterable has a length, then we can use islice to get its
+    # 042551.python.recipes.line141.comment final elements. Note that if the iterable is not actually Iterable,
+    # 042552.python.recipes.line142.comment either islice or deque will throw a TypeError. This is why we don't
+    # 042553.python.recipes.line143.comment check if it is Iterable.
     if isinstance(iterable, Sized):
         yield from islice(iterable, max(0, len(iterable) - n), None)
     else:
@@ -178,12 +178,12 @@ def consume(iterator, n=None):
         StopIteration
 
     """
-    # Use functions that consume iterators at C speed.
+    # 042554.python.recipes.line181.comment Use functions that consume iterators at C speed.
     if n is None:
-        # feed the entire iterator into a zero-length deque
+        # 042555.python.recipes.line183.comment feed the entire iterator into a zero-length deque
         deque(iterator, maxlen=0)
     else:
-        # advance to the empty slice starting at position n
+        # 042556.python.recipes.line186.comment advance to the empty slice starting at position n
         next(islice(iterator, n, n), None)
 
 
@@ -353,17 +353,17 @@ def _zip_equal_generator(iterables):
 
 
 def _zip_equal(*iterables):
-    # Check whether the iterables are all the same size.
+    # 042557.python.recipes.line356.comment Check whether the iterables are all the same size.
     try:
         first_size = len(iterables[0])
         for i, it in enumerate(iterables[1:], 1):
             size = len(it)
             if size != first_size:
                 raise UnequalIterablesError(details=(first_size, i, size))
-        # All sizes are equal, we can use the built-in zip.
+        # 042558.python.recipes.line363.comment All sizes are equal, we can use the built-in zip.
         return zip(*iterables)
-    # If any one of the iterables didn't have a length, start reading
-    # them until one runs out.
+    # 042559.python.recipes.line365.comment If any one of the iterables didn't have a length, start reading
+    # 042560.python.recipes.line366.comment them until one runs out.
     except TypeError:
         return _zip_equal_generator(iterables)
 
@@ -419,7 +419,7 @@ def roundrobin(*iterables):
     iterables is small).
 
     """
-    # Algorithm credited to George Sakkis
+    # 042561.python.recipes.line422.comment Algorithm credited to George Sakkis
     iterators = map(iter, iterables)
     for num_active in range(len(iterables), 0, -1):
         iterators = cycle(islice(iterators, num_active))
@@ -745,8 +745,8 @@ def convolve(signal, kernel):
     is immediately consumed and stored.
 
     """
-    # This implementation intentionally doesn't match the one in the itertools
-    # documentation.
+    # 042562.python.recipes.line748.comment This implementation intentionally doesn't match the one in the itertools
+    # 042563.python.recipes.line749.comment documentation.
     kernel = tuple(kernel)[::-1]
     n = len(kernel)
     window = deque([0], maxlen=n) * n
@@ -780,9 +780,9 @@ def before_and_after(predicate, it):
                 transition.append(elem)
                 return
 
-    # Note: this is different from itertools recipes to allow nesting
-    # before_and_after remainders into before_and_after again. See tests
-    # for an example.
+    # 042564.python.recipes.line783.comment Note: this is different from itertools recipes to allow nesting
+    # 042565.python.recipes.line784.comment before_and_after remainders into before_and_after again. See tests
+    # 042566.python.recipes.line785.comment for an example.
     remainder_iterator = chain(transition, it)
 
     return true_iterator(), remainder_iterator
@@ -871,13 +871,13 @@ def iter_index(iterable, value, start=0, stop=None):
     """
     seq_index = getattr(iterable, 'index', None)
     if seq_index is None:
-        # Slow path for general iterables
+        # 042567.python.recipes.line874.comment Slow path for general iterables
         it = islice(iterable, start, stop)
         for i, element in enumerate(it, start):
             if element is value or element == value:
                 yield i
     else:
-        # Fast path for sequences
+        # 042568.python.recipes.line880.comment Fast path for sequences
         stop = len(iterable) if stop is None else stop
         i = start - 1
         try:
@@ -1038,8 +1038,8 @@ def totient(n):
     >>> totient(12)
     4
     """
-    # The itertools docs use unique_justseen instead of set; see
-    # https://github.com/more-itertools/more-itertools/issues/823
+    # 042570.python.recipes.line1041.comment The itertools docs use unique_justseen instead of set; see
+    # 042571.python.recipes.line1042.comment https://github.com/more-itertools/more-itertools/issues/823
     for p in set(factor(n)):
         n = n // p * (p - 1)
 

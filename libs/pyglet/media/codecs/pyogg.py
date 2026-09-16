@@ -29,13 +29,13 @@ if not (
         not pyogg.PYOGG_OPUS_AVAIL and not pyogg.PYOGG_OPUS_FILE_AVAIL) and not pyogg.PYOGG_FLAC_AVAIL:
     raise ImportError("PyOgg determined no supported libraries were found")
 
-# Some monkey patching PyOgg for FLAC.
+# 034059.python.pyogg.line32.comment Some monkey patching PyOgg for FLAC.
 if pyogg.PYOGG_FLAC_AVAIL:
-    # Original in PyOgg: FLAC__StreamDecoderEofCallback = CFUNCTYPE(FLAC__bool, POINTER(FLAC__StreamDecoder), c_void_p)
-    # FLAC__bool is not valid for this return type (at least for ctypes). Needs to be an int or an error occurs.
+    # 034060.python.pyogg.line34.comment Original in PyOgg: FLAC__StreamDecoderEofCallback = CFUNCTYPE(FLAC__bool, POINTER(FLAC__StreamDecoder), c_void_p)
+    # 034061.python.pyogg.line35.comment FLAC__bool is not valid for this return type (at least for ctypes). Needs to be an int or an error occurs.
     FLAC__StreamDecoderEofCallback = CFUNCTYPE(c_int, POINTER(pyogg.flac.FLAC__StreamDecoder), c_void_p)
 
-    # Override explicits with c_void_p, so we can support non-seeking FLAC's (CFUNCTYPE does not accept None).
+    # 034062.python.pyogg.line38.comment Override explicits with c_void_p, so we can support non-seeking FLAC's (CFUNCTYPE does not accept None).
     pyogg.flac.libflac.FLAC__stream_decoder_init_stream.restype = pyogg.flac.FLAC__StreamDecoderInitStatus
     pyogg.flac.libflac.FLAC__stream_decoder_init_stream.argtypes = [POINTER(pyogg.flac.FLAC__StreamDecoder),
                                                                     pyogg.flac.FLAC__StreamDecoderReadCallback,
@@ -56,7 +56,7 @@ if pyogg.PYOGG_FLAC_AVAIL:
         self.frequency = metadata.contents.data.stream_info.sample_rate
 
 
-    # Monkey patch metadata callback to include bits per sample as FLAC may rarely deviate from 16 bit.
+    # 034068.python.pyogg.line59.comment Monkey patch metadata callback to include bits per sample as FLAC may rarely deviate from 16 bit.
     pyogg.FlacFileStream.metadata_callback = metadata_callback
 
 
@@ -374,7 +374,7 @@ class PyOggFLACSource(PyOggSource):
         self.sample_size = self._stream.bits_per_sample
         self._duration = self._stream.total_samples / self._stream.frequency
 
-        # Unknown amount of samples. May occur in some sources.
+        # 034082.python.pyogg.line377.comment Unknown amount of samples. May occur in some sources.
         if self._stream.total_samples == 0:
             if _debug:
                 warnings.warn(f"Unknown amount of samples found in {self.filename}. Seeking may be limited.")
@@ -384,7 +384,7 @@ class PyOggFLACSource(PyOggSource):
 
     def seek(self, timestamp):
         if self._stream.seekable:
-            # Convert sample to seconds.
+            # 034083.python.pyogg.line387.comment Convert sample to seconds.
             if self._duration_per_frame:
                 timestamp = max(0.0, min(timestamp, self._duration))
                 position = int(timestamp / self._duration_per_frame)

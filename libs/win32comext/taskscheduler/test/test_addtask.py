@@ -33,16 +33,16 @@ t.SetMaxRunTime(20000)  # milliseconds
 t.SetFlags(
     taskscheduler.TASK_FLAG_INTERACTIVE | taskscheduler.TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
 )
-##               |taskscheduler.TASK_FLAG_DELETE_WHEN_DONE)  #task self destructs when no more future run times
+# 052109.python.test_addtask.line36.comment #               |taskscheduler.TASK_FLAG_DELETE_WHEN_DONE)  #task self destructs when no more future run times
 t.SetAccountInformation(win32api.GetUserName(), None)
-## None is only valid for local system acct or if task flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
+# 052110.python.test_addtask.line38.comment # None is only valid for local system acct or if task flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON
 t.SetWorkItemData("some binary garbage")
 
 run_time = time.localtime(time.time() + 60)
 tr_ind, tr = t.CreateTrigger()
 tt = tr.GetTrigger()
 
-## flags default to TASK_TRIGGER_FLAG_DISABLED (4)
+# 052111.python.test_addtask.line45.comment # flags default to TASK_TRIGGER_FLAG_DISABLED (4)
 tt.Flags = taskscheduler.TASK_TRIGGER_FLAG_KILL_AT_DURATION_END
 tt.BeginYear = int(time.strftime("%Y", run_time))
 tt.BeginMonth = int(time.strftime("%m", run_time))
@@ -53,11 +53,11 @@ tt.MinutesInterval = 1
 tt.MinutesDuration = 5
 
 tt.TriggerType = taskscheduler.TASK_TIME_TRIGGER_MONTHLYDATE
-# months can contain multiples in a bitmask, use 1<<(month_nbr-1)
+# 052112.python.test_addtask.line56.comment months can contain multiples in a bitmask, use 1<<(month_nbr-1)
 tt.MonthlyDate_Months = 1 << (
     int(time.strftime("%m", run_time)) - 1
 )  ## corresponds to TASK_JANUARY..TASK_DECEMBER constants
-# days too
+# 052114.python.test_addtask.line60.comment days too
 tt.MonthlyDate_Days = 1 << (int(time.strftime("%d", run_time)) - 1)
 tr.SetTrigger(tt)
 print(t.GetTriggerString(tr_ind))

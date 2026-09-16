@@ -78,9 +78,9 @@ def suppress_type_checks(
                 type_checks_suppressed -= 1
 
     if func is None:
-        # Context manager mode
+        # 043431.python.suppression.line81.comment Context manager mode
         return contextmanager(cm)()
     else:
-        # Decorator mode
+        # 043432.python.suppression.line84.comment Decorator mode
         update_wrapper(wrapper, func)
         return wrapper

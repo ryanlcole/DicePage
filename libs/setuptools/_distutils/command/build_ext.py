@@ -30,31 +30,31 @@ from ..extension import Extension
 from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
 from ..util import get_platform, is_freethreaded, is_mingw
 
-# An extension name is just a dot-separated list of Python NAMEs (ie.
-# the same as a fully-qualified module name).
+# 039451.python.build_ext.line33.comment An extension name is just a dot-separated list of Python NAMEs (ie.
+# 039452.python.build_ext.line34.comment the same as a fully-qualified module name).
 extension_name_re = re.compile(r'^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*$')
 
 
 class build_ext(Command):
     description = "build C/C++ extensions (compile/link to build directory)"
 
-    # XXX thoughts on how to deal with complex command-line options like
-    # these, i.e. how to make it so fancy_getopt can suck them off the
-    # command line and make it look like setup.py defined the appropriate
-    # lists of tuples of what-have-you.
-    #   - each command needs a callback to process its command-line options
-    #   - Command.__init__() needs access to its share of the whole
-    #     command line (must ultimately come from
-    #     Distribution.parse_command_line())
-    #   - it then calls the current command class' option-parsing
-    #     callback to deal with weird options like -D, which have to
-    #     parse the option text and churn out some custom data
-    #     structure
-    #   - that data structure (in this case, a list of 2-tuples)
-    #     will then be present in the command object by the time
-    #     we get to finalize_options() (i.e. the constructor
-    #     takes care of both command-line and client options
-    #     in between initialize_options() and finalize_options())
+    # 039453.python.build_ext.line41.comment XXX thoughts on how to deal with complex command-line options like
+    # 039454.python.build_ext.line42.comment these, i.e. how to make it so fancy_getopt can suck them off the
+    # 039455.python.build_ext.line43.comment command line and make it look like setup.py defined the appropriate
+    # 039456.python.build_ext.line44.comment lists of tuples of what-have-you.
+    # 039457.python.build_ext.line45.comment - each command needs a callback to process its command-line options
+    # 039458.python.build_ext.line46.comment - Command.__init__() needs access to its share of the whole
+    # 039459.python.build_ext.line47.comment command line (must ultimately come from
+    # 039460.python.build_ext.line48.comment Distribution.parse_command_line())
+    # 039461.python.build_ext.line49.comment - it then calls the current command class' option-parsing
+    # 039462.python.build_ext.line50.comment callback to deal with weird options like -D, which have to
+    # 039463.python.build_ext.line51.comment parse the option text and churn out some custom data
+    # 039464.python.build_ext.line52.comment structure
+    # 039465.python.build_ext.line53.comment - that data structure (in this case, a list of 2-tuples)
+    # 039466.python.build_ext.line54.comment will then be present in the command object by the time
+    # 039467.python.build_ext.line55.comment we get to finalize_options() (i.e. the constructor
+    # 039468.python.build_ext.line56.comment takes care of both command-line and client options
+    # 039469.python.build_ext.line57.comment in between initialize_options() and finalize_options())
 
     sep_by = f" (separated by '{os.pathsep}')"
     user_options = [
@@ -149,13 +149,13 @@ class build_ext(Command):
             return
 
         if sys.platform == 'zos':
-            # On z/OS, a user is not required to install Python to
-            # a predetermined path, but can use Python portably
+            # 039470.python.build_ext.line152.comment On z/OS, a user is not required to install Python to
+            # 039471.python.build_ext.line153.comment a predetermined path, but can use Python portably
             installed_dir = sysconfig.get_config_var('base')
             lib_dir = sysconfig.get_config_var('platlibdir')
             yield os.path.join(installed_dir, lib_dir)
         else:
-            # building third party extensions
+            # 039472.python.build_ext.line158.comment building third party extensions
             yield sysconfig.get_config_var('LIBDIR')
 
     def finalize_options(self) -> None:  # noqa: C901
@@ -177,8 +177,8 @@ class build_ext(Command):
 
         self.extensions = self.distribution.ext_modules
 
-        # Make sure Python's include directories (for Python.h, pyconfig.h,
-        # etc.) are in the include search path.
+        # 039474.python.build_ext.line180.comment Make sure Python's include directories (for Python.h, pyconfig.h,
+        # 039475.python.build_ext.line181.comment etc.) are in the include search path.
         py_include = sysconfig.get_python_inc()
         plat_py_include = sysconfig.get_python_inc(plat_specific=True)
         if self.include_dirs is None:
@@ -186,13 +186,13 @@ class build_ext(Command):
         if isinstance(self.include_dirs, str):
             self.include_dirs = self.include_dirs.split(os.pathsep)
 
-        # If in a virtualenv, add its include directory
-        # Issue 16116
+        # 039476.python.build_ext.line189.comment If in a virtualenv, add its include directory
+        # 039477.python.build_ext.line190.comment Issue 16116
         if sys.exec_prefix != sys.base_exec_prefix:
             self.include_dirs.append(os.path.join(sys.exec_prefix, 'include'))
 
-        # Put the Python "system" include dir at the end, so that
-        # any local include dirs take precedence.
+        # 039478.python.build_ext.line194.comment Put the Python "system" include dir at the end, so that
+        # 039479.python.build_ext.line195.comment any local include dirs take precedence.
         self.include_dirs.extend(py_include.split(os.path.pathsep))
         if plat_py_include != py_include:
             self.include_dirs.extend(plat_py_include.split(os.path.pathsep))
@@ -200,8 +200,8 @@ class build_ext(Command):
         self.ensure_string_list('libraries')
         self.ensure_string_list('link_objects')
 
-        # Life is easier if we're not forever checking for None, so
-        # simplify these options to empty lists if unset
+        # 039480.python.build_ext.line203.comment Life is easier if we're not forever checking for None, so
+        # 039481.python.build_ext.line204.comment simplify these options to empty lists if unset
         if self.libraries is None:
             self.libraries = []
         if self.library_dirs is None:
@@ -214,13 +214,13 @@ class build_ext(Command):
         elif isinstance(self.rpath, str):
             self.rpath = self.rpath.split(os.pathsep)
 
-        # for extensions under windows use different directories
-        # for Release and Debug builds.
-        # also Python's library directory must be appended to library_dirs
+        # 039482.python.build_ext.line217.comment for extensions under windows use different directories
+        # 039483.python.build_ext.line218.comment for Release and Debug builds.
+        # 039484.python.build_ext.line219.comment also Python's library directory must be appended to library_dirs
         if os.name == 'nt' and not is_mingw():
-            # the 'libs' directory is for binary installs - we assume that
-            # must be the *native* platform.  But we don't really support
-            # cross-compiling via a binary install anyway, so we let it go.
+            # 039485.python.build_ext.line221.comment the 'libs' directory is for binary installs - we assume that
+            # 039486.python.build_ext.line222.comment must be the *native* platform.  But we don't really support
+            # 039487.python.build_ext.line223.comment cross-compiling via a binary install anyway, so we let it go.
             self.library_dirs.append(os.path.join(sys.exec_prefix, 'libs'))
             if sys.base_exec_prefix != sys.prefix:  # Issue 16116
                 self.library_dirs.append(os.path.join(sys.base_exec_prefix, 'libs'))
@@ -229,50 +229,50 @@ class build_ext(Command):
             else:
                 self.build_temp = os.path.join(self.build_temp, "Release")
 
-            # Append the source distribution include and library directories,
-            # this allows distutils on windows to work in the source tree
+            # 039489.python.build_ext.line232.comment Append the source distribution include and library directories,
+            # 039490.python.build_ext.line233.comment this allows distutils on windows to work in the source tree
             self.include_dirs.append(os.path.dirname(get_config_h_filename()))
             self.library_dirs.append(sys.base_exec_prefix)
 
-            # Use the .lib files for the correct architecture
+            # 039491.python.build_ext.line237.comment Use the .lib files for the correct architecture
             if self.plat_name == 'win32':
                 suffix = 'win32'
             else:
-                # win-amd64
+                # 039492.python.build_ext.line241.comment win-amd64
                 suffix = self.plat_name[4:]
             new_lib = os.path.join(sys.exec_prefix, 'PCbuild')
             if suffix:
                 new_lib = os.path.join(new_lib, suffix)
             self.library_dirs.append(new_lib)
 
-        # For extensions under Cygwin, Python's library directory must be
-        # appended to library_dirs
+        # 039493.python.build_ext.line248.comment For extensions under Cygwin, Python's library directory must be
+        # 039494.python.build_ext.line249.comment appended to library_dirs
         if sys.platform[:6] == 'cygwin':
             if not sysconfig.python_build:
-                # building third party extensions
+                # 039495.python.build_ext.line252.comment building third party extensions
                 self.library_dirs.append(
                     os.path.join(
                         sys.prefix, "lib", "python" + get_python_version(), "config"
                     )
                 )
             else:
-                # building python standard extensions
+                # 039496.python.build_ext.line259.comment building python standard extensions
                 self.library_dirs.append('.')
 
         self.library_dirs.extend(self._python_lib_dir(sysconfig))
 
-        # The argument parsing will result in self.define being a string, but
-        # it has to be a list of 2-tuples.  All the preprocessor symbols
-        # specified by the 'define' option will be set to '1'.  Multiple
-        # symbols can be separated with commas.
+        # 039497.python.build_ext.line264.comment The argument parsing will result in self.define being a string, but
+        # 039498.python.build_ext.line265.comment it has to be a list of 2-tuples.  All the preprocessor symbols
+        # 039499.python.build_ext.line266.comment specified by the 'define' option will be set to '1'.  Multiple
+        # 039500.python.build_ext.line267.comment symbols can be separated with commas.
 
         if self.define:
             defines = self.define.split(',')
             self.define = [(symbol, '1') for symbol in defines]
 
-        # The option for macros to undefine is also a string from the
-        # option parsing, but has to be a list.  Multiple symbols can also
-        # be separated with commas here.
+        # 039501.python.build_ext.line273.comment The option for macros to undefine is also a string from the
+        # 039502.python.build_ext.line274.comment option parsing, but has to be a list.  Multiple symbols can also
+        # 039503.python.build_ext.line275.comment be separated with commas here.
         if self.undef:
             self.undef = self.undef.split(',')
 
@@ -281,7 +281,7 @@ class build_ext(Command):
         else:
             self.swig_opts = self.swig_opts.split(' ')
 
-        # Finally add the user include and library directories if requested
+        # 039504.python.build_ext.line284.comment Finally add the user include and library directories if requested
         if self.user:
             user_include = os.path.join(USER_BASE, "include")
             user_lib = os.path.join(USER_BASE, "lib")
@@ -298,31 +298,31 @@ class build_ext(Command):
                 raise DistutilsOptionError("parallel should be an integer")
 
     def run(self) -> None:  # noqa: C901
-        # 'self.extensions', as supplied by setup.py, is a list of
-        # Extension instances.  See the documentation for Extension (in
-        # distutils.extension) for details.
-        #
-        # For backwards compatibility with Distutils 0.8.2 and earlier, we
-        # also allow the 'extensions' list to be a list of tuples:
-        #    (ext_name, build_info)
-        # where build_info is a dictionary containing everything that
-        # Extension instances do except the name, with a few things being
-        # differently named.  We convert these 2-tuples to Extension
-        # instances as needed.
+        # 039506.python.build_ext.line301.comment 'self.extensions', as supplied by setup.py, is a list of
+        # 039507.python.build_ext.line302.comment Extension instances.  See the documentation for Extension (in
+        # 039508.python.build_ext.line303.comment distutils.extension) for details.
+        # 039509.python.build_ext.line304.comment
+        # 039510.python.build_ext.line305.comment For backwards compatibility with Distutils 0.8.2 and earlier, we
+        # 039511.python.build_ext.line306.comment also allow the 'extensions' list to be a list of tuples:
+        # 039512.python.build_ext.line307.comment (ext_name, build_info)
+        # 039513.python.build_ext.line308.comment where build_info is a dictionary containing everything that
+        # 039514.python.build_ext.line309.comment Extension instances do except the name, with a few things being
+        # 039515.python.build_ext.line310.comment differently named.  We convert these 2-tuples to Extension
+        # 039516.python.build_ext.line311.comment instances as needed.
 
         if not self.extensions:
             return
 
-        # If we were asked to build any C/C++ libraries, make sure that the
-        # directory where we put them is in the library search path for
-        # linking extensions.
+        # 039517.python.build_ext.line316.comment If we were asked to build any C/C++ libraries, make sure that the
+        # 039518.python.build_ext.line317.comment directory where we put them is in the library search path for
+        # 039519.python.build_ext.line318.comment linking extensions.
         if self.distribution.has_c_libraries():
             build_clib = self.get_finalized_command('build_clib')
             self.libraries.extend(build_clib.get_library_names() or [])
             self.library_dirs.append(build_clib.build_clib)
 
-        # Setup the CCompiler object that we'll use to do all the
-        # compiling and linking
+        # 039520.python.build_ext.line324.comment Setup the CCompiler object that we'll use to do all the
+        # 039521.python.build_ext.line325.comment compiling and linking
         self.compiler = new_compiler(
             compiler=self.compiler,
             verbose=self.verbose,
@@ -330,26 +330,26 @@ class build_ext(Command):
             force=self.force,
         )
         customize_compiler(self.compiler)
-        # If we are cross-compiling, init the compiler now (if we are not
-        # cross-compiling, init would not hurt, but people may rely on
-        # late initialization of compiler even if they shouldn't...)
+        # 039522.python.build_ext.line333.comment If we are cross-compiling, init the compiler now (if we are not
+        # 039523.python.build_ext.line334.comment cross-compiling, init would not hurt, but people may rely on
+        # 039524.python.build_ext.line335.comment late initialization of compiler even if they shouldn't...)
         if os.name == 'nt' and self.plat_name != get_platform():
             self.compiler.initialize(self.plat_name)
 
-        # The official Windows free threaded Python installer doesn't set
-        # Py_GIL_DISABLED because its pyconfig.h is shared with the
-        # default build, so define it here (pypa/setuptools#4662).
+        # 039525.python.build_ext.line339.comment The official Windows free threaded Python installer doesn't set
+        # 039526.python.build_ext.line340.comment Py_GIL_DISABLED because its pyconfig.h is shared with the
+        # 039527.python.build_ext.line341.comment default build, so define it here (pypa/setuptools#4662).
         if os.name == 'nt' and is_freethreaded():
             self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
-        # And make sure that any compile/link-related options (which might
-        # come from the command-line or from the setup script) are set in
-        # that CCompiler object -- that way, they automatically apply to
-        # all compiling and linking done here.
+        # 039528.python.build_ext.line345.comment And make sure that any compile/link-related options (which might
+        # 039529.python.build_ext.line346.comment come from the command-line or from the setup script) are set in
+        # 039530.python.build_ext.line347.comment that CCompiler object -- that way, they automatically apply to
+        # 039531.python.build_ext.line348.comment all compiling and linking done here.
         if self.include_dirs is not None:
             self.compiler.set_include_dirs(self.include_dirs)
         if self.define is not None:
-            # 'define' option is a list of (name,value) tuples
+            # 039532.python.build_ext.line352.comment 'define' option is a list of (name,value) tuples
             for name, value in self.define:
                 self.compiler.define_macro(name, value)
         if self.undef is not None:
@@ -364,7 +364,7 @@ class build_ext(Command):
         if self.link_objects is not None:
             self.compiler.set_link_objects(self.link_objects)
 
-        # Now actually compile and link everything.
+        # 039533.python.build_ext.line367.comment Now actually compile and link everything.
         self.build_extensions()
 
     def check_extensions_list(self, extensions) -> None:  # noqa: C901
@@ -385,7 +385,7 @@ class build_ext(Command):
         for i, ext in enumerate(extensions):
             if isinstance(ext, Extension):
                 continue  # OK! (assume type-checking done
-                # by Extension constructor)
+                # 039536.python.build_ext.line388.comment by Extension constructor)
 
             if not isinstance(ext, tuple) or len(ext) != 2:
                 raise DistutilsSetupError(
@@ -414,12 +414,12 @@ class build_ext(Command):
                     "must be a dictionary (build info)"
                 )
 
-            # OK, the (ext_name, build_info) dict is type-safe: convert it
-            # to an Extension instance.
+            # 039537.python.build_ext.line417.comment OK, the (ext_name, build_info) dict is type-safe: convert it
+            # 039538.python.build_ext.line418.comment to an Extension instance.
             ext = Extension(ext_name, build_info['sources'])
 
-            # Easy stuff: one-to-one mapping from dict elements to
-            # instance attributes.
+            # 039539.python.build_ext.line421.comment Easy stuff: one-to-one mapping from dict elements to
+            # 039540.python.build_ext.line422.comment instance attributes.
             for key in (
                 'include_dirs',
                 'library_dirs',
@@ -432,13 +432,13 @@ class build_ext(Command):
                 if val is not None:
                     setattr(ext, key, val)
 
-            # Medium-easy stuff: same syntax/semantics, different names.
+            # 039541.python.build_ext.line435.comment Medium-easy stuff: same syntax/semantics, different names.
             ext.runtime_library_dirs = build_info.get('rpath')
             if 'def_file' in build_info:
                 log.warning("'def_file' element of build info dict no longer supported")
 
-            # Non-trivial stuff: 'macros' split into 'define_macros'
-            # and 'undef_macros'.
+            # 039542.python.build_ext.line440.comment Non-trivial stuff: 'macros' split into 'define_macros'
+            # 039543.python.build_ext.line441.comment and 'undef_macros'.
             macros = build_info.get('macros')
             if macros:
                 ext.define_macros = []
@@ -459,24 +459,24 @@ class build_ext(Command):
         self.check_extensions_list(self.extensions)
         filenames = []
 
-        # Wouldn't it be neat if we knew the names of header files too...
+        # 039544.python.build_ext.line462.comment Wouldn't it be neat if we knew the names of header files too...
         for ext in self.extensions:
             filenames.extend(ext.sources)
         return filenames
 
     def get_outputs(self):
-        # Sanity check the 'extensions' list -- can't assume this is being
-        # done in the same run as a 'build_extensions()' call (in fact, we
-        # can probably assume that it *isn't*!).
+        # 039545.python.build_ext.line468.comment Sanity check the 'extensions' list -- can't assume this is being
+        # 039546.python.build_ext.line469.comment done in the same run as a 'build_extensions()' call (in fact, we
+        # 039547.python.build_ext.line470.comment can probably assume that it *isn't*!).
         self.check_extensions_list(self.extensions)
 
-        # And build the list of output (built) filenames.  Note that this
-        # ignores the 'inplace' flag, and assumes everything goes in the
-        # "build" tree.
+        # 039548.python.build_ext.line473.comment And build the list of output (built) filenames.  Note that this
+        # 039549.python.build_ext.line474.comment ignores the 'inplace' flag, and assumes everything goes in the
+        # 039550.python.build_ext.line475.comment "build" tree.
         return [self.get_ext_fullpath(ext.name) for ext in self.extensions]
 
     def build_extensions(self) -> None:
-        # First, sanity-check the 'extensions' list
+        # 039551.python.build_ext.line479.comment First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
         if self.parallel:
             self._build_extensions_parallel()
@@ -526,7 +526,7 @@ class build_ext(Command):
                 "'sources' must be present and must be "
                 "a list of source filenames"
             )
-        # sort to make the resulting .so file build reproducible
+        # 039553.python.build_ext.line529.comment sort to make the resulting .so file build reproducible
         sources = sorted(sources)
 
         ext_path = self.get_ext_fullpath(ext.name)
@@ -537,25 +537,25 @@ class build_ext(Command):
         else:
             log.info("building '%s' extension", ext.name)
 
-        # First, scan the sources for SWIG definition files (.i), run
-        # SWIG on 'em to create .c files, and modify the sources list
-        # accordingly.
+        # 039554.python.build_ext.line540.comment First, scan the sources for SWIG definition files (.i), run
+        # 039555.python.build_ext.line541.comment SWIG on 'em to create .c files, and modify the sources list
+        # 039556.python.build_ext.line542.comment accordingly.
         sources = self.swig_sources(sources, ext)
 
-        # Next, compile the source code to object files.
+        # 039557.python.build_ext.line545.comment Next, compile the source code to object files.
 
-        # XXX not honouring 'define_macros' or 'undef_macros' -- the
-        # CCompiler API needs to change to accommodate this, and I
-        # want to do one thing at a time!
+        # 039558.python.build_ext.line547.comment XXX not honouring 'define_macros' or 'undef_macros' -- the
+        # 039559.python.build_ext.line548.comment CCompiler API needs to change to accommodate this, and I
+        # 039560.python.build_ext.line549.comment want to do one thing at a time!
 
-        # Two possible sources for extra compiler arguments:
-        #   - 'extra_compile_args' in Extension object
-        #   - CFLAGS environment variable (not particularly
-        #     elegant, but people seem to expect it and I
-        #     guess it's useful)
-        # The environment variable should take precedence, and
-        # any sensible compiler will give precedence to later
-        # command line args.  Hence we combine them in order:
+        # 039561.python.build_ext.line551.comment Two possible sources for extra compiler arguments:
+        # 039562.python.build_ext.line552.comment - 'extra_compile_args' in Extension object
+        # 039563.python.build_ext.line553.comment - CFLAGS environment variable (not particularly
+        # 039564.python.build_ext.line554.comment elegant, but people seem to expect it and I
+        # 039565.python.build_ext.line555.comment guess it's useful)
+        # 039566.python.build_ext.line556.comment The environment variable should take precedence, and
+        # 039567.python.build_ext.line557.comment any sensible compiler will give precedence to later
+        # 039568.python.build_ext.line558.comment command line args.  Hence we combine them in order:
         extra_args = ext.extra_compile_args or []
 
         macros = ext.define_macros[:]
@@ -572,18 +572,18 @@ class build_ext(Command):
             depends=ext.depends,
         )
 
-        # XXX outdated variable, kept here in case third-part code
-        # needs it.
+        # 039569.python.build_ext.line575.comment XXX outdated variable, kept here in case third-part code
+        # 039570.python.build_ext.line576.comment needs it.
         self._built_objects = objects[:]
 
-        # Now link the object files together into a "shared object" --
-        # of course, first we have to figure out all the other things
-        # that go into the mix.
+        # 039571.python.build_ext.line579.comment Now link the object files together into a "shared object" --
+        # 039572.python.build_ext.line580.comment of course, first we have to figure out all the other things
+        # 039573.python.build_ext.line581.comment that go into the mix.
         if ext.extra_objects:
             objects.extend(ext.extra_objects)
         extra_args = ext.extra_link_args or []
 
-        # Detect target language, if not provided
+        # 039574.python.build_ext.line586.comment Detect target language, if not provided
         language = ext.language or self.compiler.detect_language(sources)
 
         self.compiler.link_shared_object(
@@ -609,10 +609,10 @@ class build_ext(Command):
         swig_sources = []
         swig_targets = {}
 
-        # XXX this drops generated C/C++ files into the source tree, which
-        # is fine for developers who want to distribute the generated
-        # source -- but there should be an option to put SWIG output in
-        # the temp dir.
+        # 039575.python.build_ext.line612.comment XXX this drops generated C/C++ files into the source tree, which
+        # 039576.python.build_ext.line613.comment is fine for developers who want to distribute the generated
+        # 039577.python.build_ext.line614.comment source -- but there should be an option to put SWIG output in
+        # 039578.python.build_ext.line615.comment the temp dir.
 
         if self.swig_cpp:
             log.warning("--swig-cpp is deprecated - use --swig-opts=-c++")
@@ -644,7 +644,7 @@ class build_ext(Command):
         if self.swig_cpp:
             swig_cmd.append("-c++")
 
-        # Do not override commandline arguments
+        # 039580.python.build_ext.line647.comment Do not override commandline arguments
         if not self.swig_opts:
             swig_cmd.extend(extension.swig_opts)
 
@@ -663,9 +663,9 @@ class build_ext(Command):
         if os.name == "posix":
             return "swig"
         elif os.name == "nt":
-            # Look for SWIG in its standard installation directory on
-            # Windows (or so I presume!).  If we find it there, great;
-            # if not, act like Unix and assume it's in the PATH.
+            # 039581.python.build_ext.line666.comment Look for SWIG in its standard installation directory on
+            # 039582.python.build_ext.line667.comment Windows (or so I presume!).  If we find it there, great;
+            # 039583.python.build_ext.line668.comment if not, act like Unix and assume it's in the PATH.
             for vers in ("1.3", "1.2", "1.1"):
                 fn = os.path.join(f"c:\\swig{vers}", "swig.exe")
                 if os.path.isfile(fn):
@@ -677,8 +677,8 @@ class build_ext(Command):
                 f"I don't know how to find (much less run) SWIG on platform '{os.name}'"
             )
 
-    # -- Name generators -----------------------------------------------
-    # (extension names, filenames, whatever)
+    # 039584.python.build_ext.line680.comment -- Name generators -----------------------------------------------
+    # 039585.python.build_ext.line681.comment (extension names, filenames, whatever)
     def get_ext_fullpath(self, ext_name: str) -> str:
         """Returns the path of the filename for a given extension.
 
@@ -690,20 +690,20 @@ class build_ext(Command):
         filename = self.get_ext_filename(modpath[-1])
 
         if not self.inplace:
-            # no further work needed
-            # returning :
-            #   build_dir/package/path/filename
+            # 039586.python.build_ext.line693.comment no further work needed
+            # 039587.python.build_ext.line694.comment returning :
+            # 039588.python.build_ext.line695.comment build_dir/package/path/filename
             filename = os.path.join(*modpath[:-1] + [filename])
             return os.path.join(self.build_lib, filename)
 
-        # the inplace option requires to find the package directory
-        # using the build_py command for that
+        # 039589.python.build_ext.line699.comment the inplace option requires to find the package directory
+        # 039590.python.build_ext.line700.comment using the build_py command for that
         package = '.'.join(modpath[0:-1])
         build_py = self.get_finalized_command('build_py')
         package_dir = os.path.abspath(build_py.get_package_dir(package))
 
-        # returning
-        #   package_dir/filename
+        # 039591.python.build_ext.line705.comment returning
+        # 039592.python.build_ext.line706.comment package_dir/filename
         return os.path.join(package_dir, filename)
 
     def get_ext_fullname(self, ext_name: str) -> str:
@@ -734,8 +734,8 @@ class build_ext(Command):
         """
         name = self._get_module_name_for_symbol(ext)
         try:
-            # Unicode module name support as defined in PEP-489
-            # https://peps.python.org/pep-0489/#export-hook-name
+            # 039593.python.build_ext.line737.comment Unicode module name support as defined in PEP-489
+            # 039594.python.build_ext.line738.comment https://peps.python.org/pep-0489/#export-hook-name
             name.encode('ascii')
         except UnicodeEncodeError:
             suffix = 'U_' + name.encode('punycode').replace(b'-', b'_').decode('ascii')
@@ -748,9 +748,9 @@ class build_ext(Command):
         return ext.export_symbols
 
     def _get_module_name_for_symbol(self, ext):
-        # Package name should be used for `__init__` modules
-        # https://github.com/python/cpython/issues/80074
-        # https://github.com/pypa/setuptools/issues/4826
+        # 039595.python.build_ext.line751.comment Package name should be used for `__init__` modules
+        # 039596.python.build_ext.line752.comment https://github.com/python/cpython/issues/80074
+        # 039597.python.build_ext.line753.comment https://github.com/pypa/setuptools/issues/4826
         parts = ext.name.split(".")
         if parts[-1] == "__init__" and len(parts) >= 2:
             return parts[-2]
@@ -761,11 +761,11 @@ class build_ext(Command):
         shared extension.  On most platforms, this is just 'ext.libraries';
         on Windows, we add the Python library (eg. python20.dll).
         """
-        # The python library is always needed on Windows.  For MSVC, this
-        # is redundant, since the library is mentioned in a pragma in
-        # pyconfig.h that MSVC groks.  The other Windows compilers all seem
-        # to need it mentioned explicitly, though, so that's what we do.
-        # Append '_d' to the python import library on debug builds.
+        # 039599.python.build_ext.line764.comment The python library is always needed on Windows.  For MSVC, this
+        # 039600.python.build_ext.line765.comment is redundant, since the library is mentioned in a pragma in
+        # 039601.python.build_ext.line766.comment pyconfig.h that MSVC groks.  The other Windows compilers all seem
+        # 039602.python.build_ext.line767.comment to need it mentioned explicitly, though, so that's what we do.
+        # 039603.python.build_ext.line768.comment Append '_d' to the python import library on debug builds.
         if sys.platform == "win32" and not is_mingw():
             from .._msvccompiler import MSVCCompiler
 
@@ -777,29 +777,29 @@ class build_ext(Command):
                     sys.hexversion >> 24,
                     (sys.hexversion >> 16) & 0xFF,
                 )
-                # don't extend ext.libraries, it may be shared with other
-                # extensions, it is a reference to the original list
+                # 039604.python.build_ext.line780.comment don't extend ext.libraries, it may be shared with other
+                # 039605.python.build_ext.line781.comment extensions, it is a reference to the original list
                 return ext.libraries + [pythonlib]
         else:
-            # On Android only the main executable and LD_PRELOADs are considered
-            # to be RTLD_GLOBAL, all the dependencies of the main executable
-            # remain RTLD_LOCAL and so the shared libraries must be linked with
-            # libpython when python is built with a shared python library (issue
-            # bpo-21536).
-            # On Cygwin (and if required, other POSIX-like platforms based on
-            # Windows like MinGW) it is simply necessary that all symbols in
-            # shared libraries are resolved at link time.
+            # 039606.python.build_ext.line784.comment On Android only the main executable and LD_PRELOADs are considered
+            # 039607.python.build_ext.line785.comment to be RTLD_GLOBAL, all the dependencies of the main executable
+            # 039608.python.build_ext.line786.comment remain RTLD_LOCAL and so the shared libraries must be linked with
+            # 039609.python.build_ext.line787.comment libpython when python is built with a shared python library (issue
+            # 039610.python.build_ext.line788.comment bpo-21536).
+            # 039611.python.build_ext.line789.comment On Cygwin (and if required, other POSIX-like platforms based on
+            # 039612.python.build_ext.line790.comment Windows like MinGW) it is simply necessary that all symbols in
+            # 039613.python.build_ext.line791.comment shared libraries are resolved at link time.
             from ..sysconfig import get_config_var
 
             link_libpython = False
             if get_config_var('Py_ENABLE_SHARED'):
-                # A native build on an Android device or on Cygwin
+                # 039614.python.build_ext.line796.comment A native build on an Android device or on Cygwin
                 if hasattr(sys, 'getandroidapilevel'):
                     link_libpython = True
                 elif sys.platform == 'cygwin' or is_mingw():
                     link_libpython = True
                 elif '_PYTHON_HOST_PLATFORM' in os.environ:
-                    # We are cross-compiling for one of the relevant platforms
+                    # 039615.python.build_ext.line802.comment We are cross-compiling for one of the relevant platforms
                     if get_config_var('ANDROID_API_LEVEL') != 0:
                         link_libpython = True
                     elif get_config_var('MACHDEP') == 'cygwin':

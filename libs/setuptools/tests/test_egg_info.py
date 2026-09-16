@@ -202,14 +202,14 @@ class TestEggInfo:
             'setup.cfg': setup_config,
         })
 
-        # This command should fail with a ValueError, but because it's
-        # currently configured to use a subprocess, the actual traceback
-        # object is lost and we need to parse it from stderr
+        # 045410.python.test_egg_info.line205.comment This command should fail with a ValueError, but because it's
+        # 045411.python.test_egg_info.line206.comment currently configured to use a subprocess, the actual traceback
+        # 045412.python.test_egg_info.line207.comment object is lost and we need to parse it from stderr
         with pytest.raises(AssertionError) as exc:
             self._run_egg_info_command(tmpdir_cwd, env)
 
-        # The only argument to the assertion error should be a traceback
-        # containing a ValueError
+        # 045413.python.test_egg_info.line211.comment The only argument to the assertion error should be a traceback
+        # 045414.python.test_egg_info.line212.comment containing a ValueError
         assert 'ValueError' in exc.value.args[0]
 
     def test_rebuilt(self, tmpdir_cwd, env):
@@ -219,7 +219,7 @@ class TestEggInfo:
         self._run_egg_info_command(tmpdir_cwd, env)
         timestamp_a = os.path.getmtime('foo.egg-info')
 
-        # arbitrary sleep just to handle *really* fast systems
+        # 045415.python.test_egg_info.line222.comment arbitrary sleep just to handle *really* fast systems
         time.sleep(0.001)
 
         self._run_egg_info_command(tmpdir_cwd, env)
@@ -260,7 +260,7 @@ class TestEggInfo:
         })
 
     mismatch_marker = f"python_version<'{sys.version_info[0]}'"
-    # Alternate equivalent syntax.
+    # 045416.python.test_egg_info.line263.comment Alternate equivalent syntax.
     mismatch_marker_alternate = f'python_version < "{sys.version_info[0]}"'
     invalid_marker = "<=>++"
 
@@ -311,16 +311,16 @@ class TestEggInfo:
             )
 
     @RequiresTestHelper.parametrize(
-        # Format of a test:
-        #
-        # id
-        # install_cmd_kwargs [optional]
-        #
-        # requires block (when used in setup.py)
-        #
-        # requires block (when used in setup.cfg)
-        #
-        # expected contents of requires.txt
+        # 045417.python.test_egg_info.line314.comment Format of a test:
+        # 045418.python.test_egg_info.line315.comment
+        # 045419.python.test_egg_info.line316.comment id
+        # 045420.python.test_egg_info.line317.comment install_cmd_kwargs [optional]
+        # 045421.python.test_egg_info.line318.comment
+        # 045422.python.test_egg_info.line319.comment requires block (when used in setup.py)
+        # 045423.python.test_egg_info.line320.comment
+        # 045424.python.test_egg_info.line321.comment requires block (when used in setup.cfg)
+        # 045425.python.test_egg_info.line322.comment
+        # 045426.python.test_egg_info.line323.comment expected contents of requires.txt
         """
         install_requires_deterministic
 
@@ -417,7 +417,7 @@ class TestEggInfo:
         [extra:{mismatch_marker_alternate}]
         barbazquux[test]
         """,
-        # FIXME: ConfigParser does not allow : in key names!
+        # 045427.python.test_egg_info.line420.comment FIXME: ConfigParser does not allow : in key names!
         """
         extras_require_with_marker
 
@@ -454,7 +454,7 @@ class TestEggInfo:
 
         [empty]
         """,
-        # Format arguments.
+        # 045428.python.test_egg_info.line457.comment Format arguments.
         invalid_marker=invalid_marker,
         mismatch_marker=mismatch_marker,
         mismatch_marker_alternate=mismatch_marker_alternate,
@@ -623,7 +623,7 @@ class TestEggInfo:
             assert 'LICENSE' in sources_text
         else:
             assert 'LICENSE' not in sources_text
-            # for invalid license test
+            # 045433.python.test_egg_info.line626.comment for invalid license test
             assert 'INVALID_LICENSE' not in sources_text
 
     @pytest.mark.parametrize(
@@ -755,7 +755,7 @@ class TestEggInfo:
                     'MANIFEST.in': "exclude LICENSE-XYZ",
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-XYZ': "XYZ license",
-                    # manifest is overwritten by license_files
+                    # 045442.python.test_egg_info.line758.comment manifest is overwritten by license_files
                 },
                 ['LICENSE-ABC', 'LICENSE-XYZ'],
                 [],
@@ -780,7 +780,7 @@ class TestEggInfo:
                     'LICENSE',
                 ],
                 ['INVALID-LICENSE'],
-                # ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
+                # 045443.python.test_egg_info.line783.comment ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
                 id="default_glob_patterns",
             ),
             pytest.param(
@@ -884,7 +884,7 @@ class TestEggInfo:
                     ),
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-XYZ': "XYZ license",
-                    # license_file is still singular
+                    # 045445.python.test_egg_info.line887.comment license_file is still singular
                 },
                 [],
                 ['LICENSE-ABC', 'LICENSE-XYZ'],
@@ -922,7 +922,7 @@ class TestEggInfo:
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-PQR': "PQR license",
                     'LICENSE-XYZ': "XYZ license",
-                    # duplicate license
+                    # 045447.python.test_egg_info.line925.comment duplicate license
                 },
                 ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'],
                 [],
@@ -940,7 +940,7 @@ class TestEggInfo:
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-PQR': "PQR license",
                     'LICENSE-XYZ': "XYZ license",
-                    # combined subset
+                    # 045448.python.test_egg_info.line943.comment combined subset
                 },
                 ['LICENSE-ABC', 'LICENSE-XYZ'],
                 ['LICENSE-PQR'],
@@ -957,7 +957,7 @@ class TestEggInfo:
                               """
                     ),
                     'LICENSE-PQR': "Test license",
-                    # with invalid licenses
+                    # 045449.python.test_egg_info.line960.comment with invalid licenses
                 },
                 ['LICENSE-PQR'],
                 ['LICENSE-ABC', 'LICENSE-XYZ'],
@@ -977,7 +977,7 @@ class TestEggInfo:
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-PQR': "PQR license",
                     'LICENSE-XYZ': "XYZ license",
-                    # manifest is overwritten
+                    # 045450.python.test_egg_info.line980.comment manifest is overwritten
                 },
                 ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'],
                 [],
@@ -1069,8 +1069,8 @@ class TestEggInfo:
             line for line in pkg_info_lines if line.startswith('License-File:')
         ]
 
-        # Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
-        # Also assert that order from license_files is keeped
+        # 045451.python.test_egg_info.line1072.comment Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
+        # 045452.python.test_egg_info.line1073.comment Also assert that order from license_files is keeped
         assert len(license_file_lines) == 4
         assert "License-File: NOTICE" == license_file_lines[0]
         assert "License-File: LICENSE-ABC" in license_file_lines[1:]
@@ -1088,16 +1088,16 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
-        # Update metadata version if changed
+        # 045453.python.test_egg_info.line1091.comment Update metadata version if changed
         assert self._extract_mv_version(pkg_info_lines) == (2, 4)
 
     def test_long_description_content_type(self, tmpdir_cwd, env):
-        # Test that specifying a `long_description_content_type` keyword arg to
-        # the `setup` function results in writing a `Description-Content-Type`
-        # line to the `PKG-INFO` file in the `<distribution>.egg-info`
-        # directory.
-        # `Description-Content-Type` is described at
-        # https://github.com/pypa/python-packaging-user-guide/pull/258
+        # 045454.python.test_egg_info.line1095.comment Test that specifying a `long_description_content_type` keyword arg to
+        # 045455.python.test_egg_info.line1096.comment the `setup` function results in writing a `Description-Content-Type`
+        # 045456.python.test_egg_info.line1097.comment line to the `PKG-INFO` file in the `<distribution>.egg-info`
+        # 045457.python.test_egg_info.line1098.comment directory.
+        # 045458.python.test_egg_info.line1099.comment `Description-Content-Type` is described at
+        # 045459.python.test_egg_info.line1100.comment https://github.com/pypa/python-packaging-user-guide/pull/258
 
         self._setup_script_with_requires(
             """long_description_content_type='text/markdown',"""
@@ -1119,10 +1119,10 @@ class TestEggInfo:
         assert 'Metadata-Version: 2.4' in pkg_info_lines
 
     def test_long_description(self, tmpdir_cwd, env):
-        # Test that specifying `long_description` and `long_description_content_type`
-        # keyword args to the `setup` function results in writing
-        # the description in the message payload of the `PKG-INFO` file
-        # in the `<distribution>.egg-info` directory.
+        # 045460.python.test_egg_info.line1122.comment Test that specifying `long_description` and `long_description_content_type`
+        # 045461.python.test_egg_info.line1123.comment keyword args to the `setup` function results in writing
+        # 045462.python.test_egg_info.line1124.comment the description in the message payload of the `PKG-INFO` file
+        # 045463.python.test_egg_info.line1125.comment in the `<distribution>.egg-info` directory.
         self._setup_script_with_requires(
             "long_description='This is a long description\\nover multiple lines',"
             "long_description_content_type='text/markdown',"
@@ -1142,12 +1142,12 @@ class TestEggInfo:
         assert 'over multiple lines' in long_desc_lines
 
     def test_project_urls(self, tmpdir_cwd, env):
-        # Test that specifying a `project_urls` dict to the `setup`
-        # function results in writing multiple `Project-URL` lines to
-        # the `PKG-INFO` file in the `<distribution>.egg-info`
-        # directory.
-        # `Project-URL` is described at https://packaging.python.org
-        #     /specifications/core-metadata/#project-url-multiple-use
+        # 045465.python.test_egg_info.line1145.comment Test that specifying a `project_urls` dict to the `setup`
+        # 045466.python.test_egg_info.line1146.comment function results in writing multiple `Project-URL` lines to
+        # 045467.python.test_egg_info.line1147.comment the `PKG-INFO` file in the `<distribution>.egg-info`
+        # 045468.python.test_egg_info.line1148.comment directory.
+        # 045469.python.test_egg_info.line1149.comment `Project-URL` is described at https://packaging.python.org
+        # 045470.python.test_egg_info.line1150.comment /specifications/core-metadata/#project-url-multiple-use
 
         self._setup_script_with_requires(
             """project_urls={

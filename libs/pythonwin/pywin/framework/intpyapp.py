@@ -1,5 +1,5 @@
-# intpyapp.py  - Interactive Python application class
-#
+# 037806.python.intpyapp.line1.comment intpyapp.py  - Interactive Python application class
+# 037807.python.intpyapp.line2.comment
 import os
 import sys
 import traceback
@@ -16,7 +16,7 @@ from . import app, dbgcommands
 lastLocateFileName = ".py"  # used in the "File/Locate" dialog...
 
 
-# todo - _SetupSharedMenu should be moved to a framework class.
+# 037809.python.intpyapp.line19.comment todo - _SetupSharedMenu should be moved to a framework class.
 def _SetupSharedMenu_(self):
     sharedMenu = self.GetSharedMenu()
     from pywin.framework import toolmenu
@@ -51,18 +51,18 @@ class MainFrame(app.MainFrame):
         tb.EnableDocking(afxres.CBRS_ALIGN_ANY)
         tb.SetWindowText("Standard")
         self.DockControlBar(tb)
-        # Any other packages which use toolbars
+        # 037811.python.intpyapp.line54.comment Any other packages which use toolbars
         from pywin.debugger.debugger import PrepareControlBars
 
         PrepareControlBars(self)
-        # Note "interact" also uses dockable windows, but they already happen
+        # 037812.python.intpyapp.line58.comment Note "interact" also uses dockable windows, but they already happen
 
-        # And a "Tools" menu on the main frame.
+        # 037813.python.intpyapp.line60.comment And a "Tools" menu on the main frame.
         menu = self.GetMenu()
         from . import toolmenu
 
         toolmenu.SetToolsMenu(menu, 2)
-        # And fix the "Help" menu on the main frame
+        # 037814.python.intpyapp.line65.comment And fix the "Help" menu on the main frame
         from pywin.framework import help
 
         help.SetHelpMenuOtherHelp(menu)
@@ -103,16 +103,16 @@ class MainFrame(app.MainFrame):
         bar.DestroyWindow()
 
     def OnCommand(self, wparam, lparam):
-        # By default, the current MDI child frame will process WM_COMMAND
-        # messages before any docked control bars - even if the control bar
-        # has focus.  This is a problem for the interactive window when docked.
-        # Therefore, we detect the situation of a view having the main frame
-        # as its parent, and assume it must be a docked view (which it will in an MDI app)
+        # 037816.python.intpyapp.line106.comment By default, the current MDI child frame will process WM_COMMAND
+        # 037817.python.intpyapp.line107.comment messages before any docked control bars - even if the control bar
+        # 037818.python.intpyapp.line108.comment has focus.  This is a problem for the interactive window when docked.
+        # 037819.python.intpyapp.line109.comment Therefore, we detect the situation of a view having the main frame
+        # 037820.python.intpyapp.line110.comment as its parent, and assume it must be a docked view (which it will in an MDI app)
         try:
             v = (
                 self.GetActiveView()
             )  # Raise an exception if none - good - then we want default handling
-            # Main frame _does_ have a current view (ie, a docking view) - see if it wants it.
+            # 037822.python.intpyapp.line115.comment Main frame _does_ have a current view (ie, a docking view) - see if it wants it.
             if v.OnCommand(wparam, lparam):
                 return 1
         except (win32ui.error, AttributeError):
@@ -121,9 +121,9 @@ class MainFrame(app.MainFrame):
 
 
 class InteractivePythonApp(app.CApp):
-    # This works if necessary - just we don't need to override the Run method.
-    # 	def Run(self):
-    # 		return self._obj_.Run()
+    # 037823.python.intpyapp.line124.comment This works if necessary - just we don't need to override the Run method.
+    # 037824.python.intpyapp.line125.comment def Run(self):
+    # 037825.python.intpyapp.line126.comment return self._obj_.Run()
 
     def HookCommands(self):
         app.CApp.HookCommands(self)
@@ -148,12 +148,12 @@ class InteractivePythonApp(app.CApp):
         return MainFrame()
 
     def MakeExistingDDEConnection(self):
-        # Use DDE to connect to an existing instance
-        # Return None if no existing instance
+        # 037826.python.intpyapp.line151.comment Use DDE to connect to an existing instance
+        # 037827.python.intpyapp.line152.comment Return None if no existing instance
         try:
             from . import intpydde
         except ImportError:
-            # No dde support!
+            # 037828.python.intpyapp.line156.comment No dde support!
             return None
         conv = intpydde.CreateConversation(self.ddeServer)
         try:
@@ -163,9 +163,9 @@ class InteractivePythonApp(app.CApp):
             return None
 
     def InitDDE(self):
-        # Do all the magic DDE handling.
-        # Returns TRUE if we have pumped the arguments to our
-        # remote DDE app, and we should terminate.
+        # 037829.python.intpyapp.line166.comment Do all the magic DDE handling.
+        # 037830.python.intpyapp.line167.comment Returns TRUE if we have pumped the arguments to our
+        # 037831.python.intpyapp.line168.comment remote DDE app, and we should terminate.
         try:
             from . import intpydde
         except ImportError:
@@ -175,22 +175,22 @@ class InteractivePythonApp(app.CApp):
             self.ddeServer = intpydde.DDEServer(self)
             self.ddeServer.Create("Pythonwin", intpydde.CBF_FAIL_SELFCONNECTIONS)
             try:
-                # If there is an existing instance, pump the arguments to it.
+                # 037832.python.intpyapp.line178.comment If there is an existing instance, pump the arguments to it.
                 connection = self.MakeExistingDDEConnection()
                 if connection is not None:
                     connection.Exec("self.Activate()")
                     if self.ProcessArgs(sys.argv, connection) is None:
                         return 1
             except:
-                # It is too early to 'print' an exception - we
-                # don't have stdout setup yet!
+                # 037833.python.intpyapp.line185.comment It is too early to 'print' an exception - we
+                # 037834.python.intpyapp.line186.comment don't have stdout setup yet!
                 win32ui.DisplayTraceback(
                     sys.exc_info(), " - error in DDE conversation with Pythonwin"
                 )
                 return 1
 
     def InitInstance(self):
-        # Allow "/nodde" and "/new" to optimize this!
+        # 037835.python.intpyapp.line193.comment Allow "/nodde" and "/new" to optimize this!
         if (
             "/nodde" not in sys.argv
             and "/new" not in sys.argv
@@ -207,40 +207,40 @@ class InteractivePythonApp(app.CApp):
         )  # MFC automatically puts the main frame caption on!
         app.CApp.InitInstance(self)
 
-        # Create the taskbar icon
+        # 037838.python.intpyapp.line210.comment Create the taskbar icon
         win32ui.CreateDebuggerThread()
 
-        # Allow Pythonwin to host OCX controls.
+        # 037839.python.intpyapp.line213.comment Allow Pythonwin to host OCX controls.
         win32ui.EnableControlContainer()
 
-        # Display the interactive window if the user wants it.
+        # 037840.python.intpyapp.line216.comment Display the interactive window if the user wants it.
         from . import interact
 
         interact.CreateInteractiveWindowUserPreference()
 
-        # Load the modules we use internally.
+        # 037841.python.intpyapp.line221.comment Load the modules we use internally.
         self.LoadSystemModules()
 
-        # Load additional module the user may want.
+        # 037842.python.intpyapp.line224.comment Load additional module the user may want.
         self.LoadUserModules()
 
-        # Load the ToolBar state near the end of the init process, as
-        # there may be Toolbar IDs created by the user or other modules.
-        # By now all these modules should be loaded, so all the toolbar IDs loaded.
+        # 037843.python.intpyapp.line227.comment Load the ToolBar state near the end of the init process, as
+        # 037844.python.intpyapp.line228.comment there may be Toolbar IDs created by the user or other modules.
+        # 037845.python.intpyapp.line229.comment By now all these modules should be loaded, so all the toolbar IDs loaded.
         try:
             self.frame.LoadBarState("ToolbarDefault")
         except win32ui.error:
-            # MFC sucks.  It does essentially "GetDlgItem(x)->Something", so if the
-            # toolbar with ID x does not exist, MFC crashes!  Pythonwin has a trap for this
-            # but I need to investigate more how to prevent it (AFAIK, ensuring all the
-            # toolbars are created by now _should_ stop it!)
+            # 037846.python.intpyapp.line233.comment MFC sucks.  It does essentially "GetDlgItem(x)->Something", so if the
+            # 037847.python.intpyapp.line234.comment toolbar with ID x does not exist, MFC crashes!  Pythonwin has a trap for this
+            # 037848.python.intpyapp.line235.comment but I need to investigate more how to prevent it (AFAIK, ensuring all the
+            # 037849.python.intpyapp.line236.comment toolbars are created by now _should_ stop it!)
             pass
 
-        # Finally process the command line arguments.
+        # 037850.python.intpyapp.line239.comment Finally process the command line arguments.
         try:
             self.ProcessArgs(sys.argv)
         except:
-            # too early for printing anything.
+            # 037851.python.intpyapp.line243.comment too early for printing anything.
             win32ui.DisplayTraceback(
                 sys.exc_info(), " - error processing command line args"
             )
@@ -259,16 +259,16 @@ class InteractivePythonApp(app.CApp):
         return app.CApp.ExitInstance(self)
 
     def Activate(self):
-        # Bring to the foreground.  Mainly used when another app starts up, it asks
-        # this one to activate itself, then it terminates.
+        # 037852.python.intpyapp.line262.comment Bring to the foreground.  Mainly used when another app starts up, it asks
+        # 037853.python.intpyapp.line263.comment this one to activate itself, then it terminates.
         frame = win32ui.GetMainFrame()
         frame.SetForegroundWindow()
         if frame.GetWindowPlacement()[1] == win32con.SW_SHOWMINIMIZED:
             frame.ShowWindow(win32con.SW_RESTORE)
 
     def ProcessArgs(self, args, dde=None):
-        # If we are going to talk to a remote app via DDE, then
-        # activate it!
+        # 037854.python.intpyapp.line270.comment If we are going to talk to a remote app via DDE, then
+        # 037855.python.intpyapp.line271.comment activate it!
         if (
             len(args) < 1 or not args[0]
         ):  # argv[0]=='' when started without args, just like Python.exe!
@@ -279,8 +279,8 @@ class InteractivePythonApp(app.CApp):
             argType = args[i]
             i += 1
             if argType.startswith("-"):
-                # Support dash options. Slash options are misinterpreted by python init
-                # as path and not finding usually 'C:\\' ends up in sys.path[0]
+                # 037857.python.intpyapp.line282.comment Support dash options. Slash options are misinterpreted by python init
+                # 037858.python.intpyapp.line283.comment as path and not finding usually 'C:\\' ends up in sys.path[0]
                 argType = "/" + argType[1:]
             if not argType.startswith("/"):
                 argType = win32ui.GetProfileVal(
@@ -289,7 +289,7 @@ class InteractivePythonApp(app.CApp):
                 i -= 1  #  arg is /edit's parameter
             par = i < len(args) and args[i] or "MISSING"
             if argType in ("/nodde", "/new", "-nodde", "-new"):
-                # Already handled
+                # 037860.python.intpyapp.line292.comment Already handled
                 pass
             elif argType.startswith("/goto:"):
                 gotoline = int(argType[len("/goto:") :])
@@ -306,14 +306,14 @@ class InteractivePythonApp(app.CApp):
                     if ed:
                         ed.SetSel(ed.LineIndex(gotoline - 1))
             elif argType == "/edit":
-                # Load up the default application.
+                # 037861.python.intpyapp.line309.comment Load up the default application.
                 i += 1
                 fname = win32api.GetFullPathName(par)
                 if not os.path.isfile(fname):
-                    # if we don't catch this, OpenDocumentFile() (actually
-                    # PyCDocument.SetPathName() in
-                    # pywin.scintilla.document.CScintillaDocument.OnOpenDocument)
-                    # segfaults Pythonwin on recent PY3 builds (b228)
+                    # 037862.python.intpyapp.line313.comment if we don't catch this, OpenDocumentFile() (actually
+                    # 037863.python.intpyapp.line314.comment PyCDocument.SetPathName() in
+                    # 037864.python.intpyapp.line315.comment pywin.scintilla.document.CScintillaDocument.OnOpenDocument)
+                    # 037865.python.intpyapp.line316.comment segfaults Pythonwin on recent PY3 builds (b228)
                     win32ui.MessageBox(
                         "No such file: {}\n\nCommand Line: {}".format(
                             fname, win32api.GetCommandLine()
@@ -369,7 +369,7 @@ class InteractivePythonApp(app.CApp):
         self.DoLoadModules("pywin.framework.editor,pywin.framework.stdin")
 
     def LoadUserModules(self, moduleNames=None):
-        # Load the users modules.
+        # 037867.python.intpyapp.line372.comment Load the users modules.
         if moduleNames is None:
             default = "pywin.framework.sgrepmdi"
             moduleNames = win32ui.GetProfileVal("Python", "Startup Modules", default)
@@ -388,9 +388,9 @@ class InteractivePythonApp(app.CApp):
                 print(msg)
                 win32ui.MessageBox(msg)
 
-    #
-    # DDE Callback
-    #
+    # 037870.python.intpyapp.line391.comment
+    # 037871.python.intpyapp.line392.comment DDE Callback
+    # 037872.python.intpyapp.line393.comment
     def OnDDECommand(self, command):
         try:
             exec(command + "\n")
@@ -399,9 +399,9 @@ class InteractivePythonApp(app.CApp):
             traceback.print_exc()
             raise
 
-    #
-    # General handlers
-    #
+    # 037873.python.intpyapp.line402.comment
+    # 037874.python.intpyapp.line403.comment General handlers
+    # 037875.python.intpyapp.line404.comment
     def OnViewBrowse(self, id, code):
         "Called when ViewBrowse message is received"
         from pywin.tools import browser
@@ -454,8 +454,8 @@ class InteractivePythonApp(app.CApp):
         if name is None:  # Cancelled.
             return
         lastLocateFileName = name
-        # if ".py" supplied, rip it off!
-        # should also check for .pys and .pyw
+        # 037878.python.intpyapp.line457.comment if ".py" supplied, rip it off!
+        # 037879.python.intpyapp.line458.comment should also check for .pys and .pyw
         if lastLocateFileName[-3:].lower() == ".py":
             lastLocateFileName = lastLocateFileName[:-3]
         lastLocateFileName = lastLocateFileName.replace(".", "\\")
@@ -465,11 +465,11 @@ class InteractivePythonApp(app.CApp):
         else:
             win32ui.GetApp().OpenDocumentFile(newName)
 
-    # Display all the "options" property pages we can find
+    # 037880.python.intpyapp.line468.comment Display all the "options" property pages we can find
     def OnViewOptions(self, id, code):
         win32ui.InitRichEdit()
         sheet = dialog.PropertySheet("Pythonwin Options")
-        # Add property pages we know about that need manual work.
+        # 037881.python.intpyapp.line472.comment Add property pages we know about that need manual work.
         from pywin.dialogs import ideoptions
 
         sheet.AddPage(ideoptions.OptionsPropPage())
@@ -478,39 +478,39 @@ class InteractivePythonApp(app.CApp):
 
         sheet.AddPage(toolmenu.ToolMenuPropPage())
 
-        # Get other dynamic pages from templates.
+        # 037882.python.intpyapp.line481.comment Get other dynamic pages from templates.
         pages = []
         for template in self.GetDocTemplateList():
             try:
-                # Don't actually call the function with the exception handler.
+                # 037883.python.intpyapp.line485.comment Don't actually call the function with the exception handler.
                 getter = template.GetPythonPropertyPages
             except AttributeError:
-                # Template does not provide property pages!
+                # 037884.python.intpyapp.line488.comment Template does not provide property pages!
                 continue
             pages.extend(getter())
 
-        # Debugger template goes at the end
+        # 037885.python.intpyapp.line492.comment Debugger template goes at the end
         try:
             from pywin.debugger import configui
         except ImportError:
             configui = None
         if configui is not None:
             pages.append(configui.DebuggerOptionsPropPage())
-        # Now simply add the pages, and display the dialog.
+        # 037886.python.intpyapp.line499.comment Now simply add the pages, and display the dialog.
         for page in pages:
             sheet.AddPage(page)
 
         if sheet.DoModal() == win32con.IDOK:
             win32ui.SetStatusText("Applying configuration changes...", 1)
             win32ui.DoWaitCursor(1)
-            # Tell every Window in our app that win.ini has changed!
+            # 037887.python.intpyapp.line506.comment Tell every Window in our app that win.ini has changed!
             win32ui.GetMainFrame().SendMessageToDescendants(
                 win32con.WM_WININICHANGE, 0, 0
             )
             win32ui.DoWaitCursor(0)
 
     def OnInteractiveWindow(self, id, code):
-        # toggle the existing state.
+        # 037888.python.intpyapp.line513.comment toggle the existing state.
         from . import interact
 
         interact.ToggleInteractiveWindow()
@@ -525,7 +525,7 @@ class InteractivePythonApp(app.CApp):
         cmdui.SetCheck(state)
 
     def OnFileSaveAll(self, id, code):
-        # Only attempt to save editor documents.
+        # 037890.python.intpyapp.line528.comment Only attempt to save editor documents.
         from pywin.framework.editor import editorTemplate
 
         num = 0

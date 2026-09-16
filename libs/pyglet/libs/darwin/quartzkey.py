@@ -25,9 +25,9 @@ To learn more, please see:
 """
 from pyglet.window import key
 
-# These values and most of their names are taken from SDL 1.X's
-# SQL_Quartzkeys.h. Changed names are listed in the top-level
-# docstring and marked with comments below.
+# 031233.python.quartzkey.line28.comment These values and most of their names are taken from SDL 1.X's
+# 031234.python.quartzkey.line29.comment SQL_Quartzkeys.h. Changed names are listed in the top-level
+# 031235.python.quartzkey.line30.comment docstring and marked with comments below.
 QZ_ESCAPE = 0x35
 QZ_F1 = 0x7A
 QZ_F2 = 0x78
@@ -139,8 +139,8 @@ QZ_RIGHT = 0x7C
 QZ_KP0 = 0x52
 QZ_KP_PERIOD = 0x41
 
-# This map contains only keys that can be directly translated independent of
-# keyboard layout and locale
+# 031240.python.quartzkey.line142.comment This map contains only keys that can be directly translated independent of
+# 031241.python.quartzkey.line143.comment keyboard layout and locale
 keymap = {
     QZ_ESCAPE: key.ESCAPE,
     QZ_F1: key.F1,

@@ -1,8 +1,8 @@
-# Copyright (c) 2009, Giampaolo Rodola'
-# Copyright (c) 2017, Arnon Yaari
-# All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# 023742.python.psaix.line1.comment Copyright (c) 2009, Giampaolo Rodola'
+# 023743.python.psaix.line2.comment Copyright (c) 2017, Arnon Yaari
+# 023744.python.psaix.line3.comment All rights reserved.
+# 023745.python.psaix.line4.comment Use of this source code is governed by a BSD-style license that can be
+# 023746.python.psaix.line5.comment found in the LICENSE file.
 
 """AIX platform implementation."""
 
@@ -32,9 +32,9 @@ from ._common import usage_percent
 __extra__all__ = ["PROCFS_PATH"]
 
 
-# =====================================================================
-# --- globals
-# =====================================================================
+# 023747.python.psaix.line35.comment =====================================================================
+# 023748.python.psaix.line36.comment --- globals
+# 023749.python.psaix.line37.comment =====================================================================
 
 
 HAS_THREADS = hasattr(cext, "proc_threads")
@@ -79,24 +79,24 @@ proc_info_map = dict(
 )
 
 
-# =====================================================================
-# --- named tuples
-# =====================================================================
+# 023751.python.psaix.line82.comment =====================================================================
+# 023752.python.psaix.line83.comment --- named tuples
+# 023753.python.psaix.line84.comment =====================================================================
 
 
-# psutil.Process.memory_info()
+# 023754.python.psaix.line87.comment psutil.Process.memory_info()
 pmem = namedtuple('pmem', ['rss', 'vms'])
-# psutil.Process.memory_full_info()
+# 023755.python.psaix.line89.comment psutil.Process.memory_full_info()
 pfullmem = pmem
-# psutil.Process.cpu_times()
+# 023756.python.psaix.line91.comment psutil.Process.cpu_times()
 scputimes = namedtuple('scputimes', ['user', 'system', 'idle', 'iowait'])
-# psutil.virtual_memory()
+# 023757.python.psaix.line93.comment psutil.virtual_memory()
 svmem = namedtuple('svmem', ['total', 'available', 'percent', 'used', 'free'])
 
 
-# =====================================================================
-# --- memory
-# =====================================================================
+# 023758.python.psaix.line97.comment =====================================================================
+# 023759.python.psaix.line98.comment --- memory
+# 023760.python.psaix.line99.comment =====================================================================
 
 
 def virtual_memory():
@@ -113,9 +113,9 @@ def swap_memory():
     return _common.sswap(total, used, free, percent, sin, sout)
 
 
-# =====================================================================
-# --- CPU
-# =====================================================================
+# 023761.python.psaix.line116.comment =====================================================================
+# 023762.python.psaix.line117.comment --- CPU
+# 023763.python.psaix.line118.comment =====================================================================
 
 
 def cpu_times():
@@ -135,7 +135,7 @@ def cpu_count_logical():
     try:
         return os.sysconf("SC_NPROCESSORS_ONLN")
     except ValueError:
-        # mimic os.cpu_count() behavior
+        # 023764.python.psaix.line138.comment mimic os.cpu_count() behavior
         return None
 
 
@@ -159,9 +159,9 @@ def cpu_stats():
     )
 
 
-# =====================================================================
-# --- disks
-# =====================================================================
+# 023765.python.psaix.line162.comment =====================================================================
+# 023766.python.psaix.line163.comment --- disks
+# 023767.python.psaix.line164.comment =====================================================================
 
 
 disk_io_counters = cext.disk_io_counters
@@ -170,8 +170,8 @@ disk_usage = _psposix.disk_usage
 
 def disk_partitions(all=False):
     """Return system disk partitions."""
-    # TODO - the filtering logic should be better checked so that
-    # it tries to reflect 'df' as much as possible
+    # 023768.python.psaix.line173.comment TODO - the filtering logic should be better checked so that
+    # 023769.python.psaix.line174.comment it tries to reflect 'df' as much as possible
     retlist = []
     partitions = cext.disk_partitions()
     for partition in partitions:
@@ -179,9 +179,9 @@ def disk_partitions(all=False):
         if device == 'none':
             device = ''
         if not all:
-            # Differently from, say, Linux, we don't have a list of
-            # common fs types so the best we can do, AFAIK, is to
-            # filter by filesystem having a total size > 0.
+            # 023770.python.psaix.line182.comment Differently from, say, Linux, we don't have a list of
+            # 023771.python.psaix.line183.comment common fs types so the best we can do, AFAIK, is to
+            # 023772.python.psaix.line184.comment filter by filesystem having a total size > 0.
             if not disk_usage(mountpoint).total:
                 continue
         ntuple = _common.sdiskpart(device, mountpoint, fstype, opts)
@@ -189,9 +189,9 @@ def disk_partitions(all=False):
     return retlist
 
 
-# =====================================================================
-# --- network
-# =====================================================================
+# 023773.python.psaix.line192.comment =====================================================================
+# 023774.python.psaix.line193.comment --- network
+# 023775.python.psaix.line194.comment =====================================================================
 
 
 net_if_addrs = cext_posix.net_if_addrs
@@ -236,9 +236,9 @@ def net_if_stats():
         mtu = cext_posix.net_if_mtu(name)
         flags = cext_posix.net_if_flags(name)
 
-        # try to get speed and duplex
-        # TODO: rewrite this in C (entstat forks, so use truss -f to follow.
-        # looks like it is using an undocumented ioctl?)
+        # 023776.python.psaix.line239.comment try to get speed and duplex
+        # 023777.python.psaix.line240.comment TODO: rewrite this in C (entstat forks, so use truss -f to follow.
+        # 023778.python.psaix.line241.comment looks like it is using an undocumented ioctl?)
         duplex = ""
         speed = 0
         p = subprocess.Popen(
@@ -265,9 +265,9 @@ def net_if_stats():
     return ret
 
 
-# =====================================================================
-# --- other system functions
-# =====================================================================
+# 023779.python.psaix.line268.comment =====================================================================
+# 023780.python.psaix.line269.comment --- other system functions
+# 023781.python.psaix.line270.comment =====================================================================
 
 
 def boot_time():
@@ -282,9 +282,9 @@ def users():
     localhost = (':0.0', ':0')
     for item in rawlist:
         user, tty, hostname, tstamp, user_process, pid = item
-        # note: the underlying C function includes entries about
-        # system boot, run level and others.  We might want
-        # to use them in the future.
+        # 023782.python.psaix.line285.comment note: the underlying C function includes entries about
+        # 023783.python.psaix.line286.comment system boot, run level and others.  We might want
+        # 023784.python.psaix.line287.comment to use them in the future.
         if not user_process:
             continue
         if hostname in localhost:
@@ -294,9 +294,9 @@ def users():
     return retlist
 
 
-# =====================================================================
-# --- processes
-# =====================================================================
+# 023785.python.psaix.line297.comment =====================================================================
+# 023786.python.psaix.line298.comment --- processes
+# 023787.python.psaix.line299.comment =====================================================================
 
 
 def pids():
@@ -320,9 +320,9 @@ def wrap_exceptions(fun):
         try:
             return fun(self, *args, **kwargs)
         except (FileNotFoundError, ProcessLookupError) as err:
-            # ENOENT (no such file or directory) gets raised on open().
-            # ESRCH (no such process) can get raised on read() if
-            # process is gone in meantime.
+            # 023788.python.psaix.line323.comment ENOENT (no such file or directory) gets raised on open().
+            # 023789.python.psaix.line324.comment ESRCH (no such process) can get raised on read() if
+            # 023790.python.psaix.line325.comment process is gone in meantime.
             if not pid_exists(pid):
                 raise NoSuchProcess(pid, name) from err
             raise ZombieProcess(pid, name, ppid) from err
@@ -365,21 +365,21 @@ class Process:
     def name(self):
         if self.pid == 0:
             return "swapper"
-        # note: max 16 characters
+        # 023791.python.psaix.line368.comment note: max 16 characters
         return cext.proc_name(self.pid, self._procfs_path).rstrip("\x00")
 
     @wrap_exceptions
     def exe(self):
-        # there is no way to get executable path in AIX other than to guess,
-        # and guessing is more complex than what's in the wrapping class
+        # 023792.python.psaix.line373.comment there is no way to get executable path in AIX other than to guess,
+        # 023793.python.psaix.line374.comment and guessing is more complex than what's in the wrapping class
         cmdline = self.cmdline()
         if not cmdline:
             return ''
         exe = cmdline[0]
         if os.path.sep in exe:
-            # relative or absolute path
+            # 023794.python.psaix.line380.comment relative or absolute path
             if not os.path.isabs(exe):
-                # if cwd has changed, we're out of luck - this may be wrong!
+                # 023795.python.psaix.line382.comment if cwd has changed, we're out of luck - this may be wrong!
                 exe = os.path.abspath(os.path.join(self.cwd(), exe))
             if (
                 os.path.isabs(exe)
@@ -387,9 +387,9 @@ class Process:
                 and os.access(exe, os.X_OK)
             ):
                 return exe
-            # not found, move to search in PATH using basename only
+            # 023796.python.psaix.line390.comment not found, move to search in PATH using basename only
             exe = os.path.basename(exe)
-        # search for exe name PATH
+        # 023797.python.psaix.line392.comment search for exe name PATH
         for path in os.environ["PATH"].split(":"):
             possible_exe = os.path.abspath(os.path.join(path, exe))
             if os.path.isfile(possible_exe) and os.access(
@@ -423,26 +423,26 @@ class Process:
             for thread_id, utime, stime in rawlist:
                 ntuple = _common.pthread(thread_id, utime, stime)
                 retlist.append(ntuple)
-            # The underlying C implementation retrieves all OS threads
-            # and filters them by PID.  At this point we can't tell whether
-            # an empty list means there were no connections for process or
-            # process is no longer active so we force NSP in case the PID
-            # is no longer there.
+            # 023798.python.psaix.line426.comment The underlying C implementation retrieves all OS threads
+            # 023799.python.psaix.line427.comment and filters them by PID.  At this point we can't tell whether
+            # 023800.python.psaix.line428.comment an empty list means there were no connections for process or
+            # 023801.python.psaix.line429.comment process is no longer active so we force NSP in case the PID
+            # 023802.python.psaix.line430.comment is no longer there.
             if not retlist:
-                # will raise NSP if process is gone
+                # 023803.python.psaix.line432.comment will raise NSP if process is gone
                 os.stat(f"{self._procfs_path}/{self.pid}")
             return retlist
 
     @wrap_exceptions
     def net_connections(self, kind='inet'):
         ret = net_connections(kind, _pid=self.pid)
-        # The underlying C implementation retrieves all OS connections
-        # and filters them by PID.  At this point we can't tell whether
-        # an empty list means there were no connections for process or
-        # process is no longer active so we force NSP in case the PID
-        # is no longer there.
+        # 023804.python.psaix.line439.comment The underlying C implementation retrieves all OS connections
+        # 023805.python.psaix.line440.comment and filters them by PID.  At this point we can't tell whether
+        # 023806.python.psaix.line441.comment an empty list means there were no connections for process or
+        # 023807.python.psaix.line442.comment process is no longer active so we force NSP in case the PID
+        # 023808.python.psaix.line443.comment is no longer there.
         if not ret:
-            # will raise NSP if process is gone
+            # 023809.python.psaix.line445.comment will raise NSP if process is gone
             os.stat(f"{self._procfs_path}/{self.pid}")
         return ret
 
@@ -477,9 +477,9 @@ class Process:
     @wrap_exceptions
     def terminal(self):
         ttydev = self._proc_basic_info()[proc_info_map['ttynr']]
-        # convert from 64-bit dev_t to 32-bit dev_t and then map the device
+        # 023810.python.psaix.line480.comment convert from 64-bit dev_t to 32-bit dev_t and then map the device
         ttydev = ((ttydev & 0x0000FFFF00000000) >> 16) | (ttydev & 0xFFFF)
-        # try to match rdev of /dev/pts/* files ttydev
+        # 023811.python.psaix.line482.comment try to match rdev of /dev/pts/* files ttydev
         for dev in glob.glob("/dev/**/*"):
             if os.stat(dev).st_rdev == ttydev:
                 return dev
@@ -507,12 +507,12 @@ class Process:
     @wrap_exceptions
     def status(self):
         code = self._proc_basic_info()[proc_info_map['status']]
-        # XXX is '?' legit? (we're not supposed to return it anyway)
+        # 023813.python.psaix.line510.comment XXX is '?' legit? (we're not supposed to return it anyway)
         return PROC_STATUSES.get(code, '?')
 
     def open_files(self):
-        # TODO rewrite without using procfiles (stat /proc/pid/fd/* and then
-        # find matching name of the inode)
+        # 023814.python.psaix.line514.comment TODO rewrite without using procfiles (stat /proc/pid/fd/* and then
+        # 023815.python.psaix.line515.comment find matching name of the inode)
         p = subprocess.Popen(
             ["/usr/bin/procfiles", "-n", str(self.pid)],
             stdout=subprocess.PIPE,
@@ -556,8 +556,8 @@ class Process:
             try:
                 rc, wc, rb, wb = cext.proc_io_counters(self.pid)
             except OSError as err:
-                # if process is terminated, proc_io_counters returns OSError
-                # instead of NSP
+                # 023817.python.psaix.line559.comment if process is terminated, proc_io_counters returns OSError
+                # 023818.python.psaix.line560.comment instead of NSP
                 if not pid_exists(self.pid):
                     raise NoSuchProcess(self.pid, self._name) from err
                 raise

@@ -2,7 +2,7 @@ import win32com
 import win32com.client
 
 if isinstance(__path__, str):
-    # For freeze to work!
+    # 050558.python.init.line5.comment For freeze to work!
     import sys
 
     try:
@@ -12,17 +12,17 @@ if isinstance(__path__, str):
     except ImportError:
         pass
 else:
-    # See if we have a special directory for the binaries (for developers)
+    # 050559.python.init.line15.comment See if we have a special directory for the binaries (for developers)
     win32com.__PackageSupportBuildPath__(__path__)
 
 
-# Some helpers
-# We want to _look_ like the ADSI module, but provide some additional
-# helpers.
+# 050560.python.init.line19.comment Some helpers
+# 050561.python.init.line20.comment We want to _look_ like the ADSI module, but provide some additional
+# 050562.python.init.line21.comment helpers.
 
-# Of specific note - most of the interfaces supported by ADSI
-# derive from IDispatch - thus, you get the custom methods from the
-# interface, as well as via IDispatch.
+# 050563.python.init.line23.comment Of specific note - most of the interfaces supported by ADSI
+# 050564.python.init.line24.comment derive from IDispatch - thus, you get the custom methods from the
+# 050565.python.init.line25.comment interface, as well as via IDispatch.
 import pythoncom
 
 from .adsi import *  # nopycln: import # Re-export everything from win32comext/adsi/adsi.pyd
@@ -35,11 +35,11 @@ IADsContainerType = pythoncom.TypeIIDs[adsi.IID_IADsContainer]
 
 def _get_good_ret(
     ob,
-    # Named arguments used internally
+    # 050567.python.init.line38.comment Named arguments used internally
     resultCLSID=None,
 ):
     assert resultCLSID is None, "Now have type info for ADSI objects - fix me!"
-    # See if the object supports IDispatch
+    # 050568.python.init.line42.comment See if the object supports IDispatch
     if hasattr(ob, "Invoke"):
         import win32com.client.dynamic
 
@@ -50,7 +50,7 @@ def _get_good_ret(
 
 class ADSIEnumerator:
     def __init__(self, ob):
-        # Query the object for the container interface.
+        # 050569.python.init.line53.comment Query the object for the container interface.
         self._cont_ = ob.QueryInterface(adsi.IID_IADsContainer)
         self._oleobj_ = adsi.ADsBuildEnumerator(self._cont_)  # a PyIADsEnumVARIANT
         self.index = -1
@@ -65,13 +65,13 @@ class ADSIEnumerator:
         if not isinstance(index, int):
             raise TypeError("Only integer indexes are supported for enumerators")
         if index != self.index + 1:
-            # Index requested out of sequence.
+            # 050571.python.init.line68.comment Index requested out of sequence.
             raise ValueError("You must index this object sequentially")
         self.index = index
         result = adsi.ADsEnumerateNext(self._oleobj_, 1)
         if len(result):
             return _get_good_ret(result[0])
-        # Failed - reset for next time around.
+        # 050572.python.init.line74.comment Failed - reset for next time around.
         self.index = -1
         self._oleobj_ = adsi.ADsBuildEnumerator(self._cont_)  # a PyIADsEnumVARIANT
         raise IndexError("list index out of range")
@@ -88,7 +88,7 @@ class ADSIDispatch(win32com.client.CDispatch):
         try:
             return ADSIEnumerator(self)
         except pythoncom.com_error:
-            # doesn't support it - let our base try!
+            # 050574.python.init.line91.comment doesn't support it - let our base try!
             return win32com.client.CDispatch._NewEnum(self)
 
     def __getattr__(self, attr):
@@ -102,7 +102,7 @@ class ADSIDispatch(win32com.client.CDispatch):
         return _get_good_ret(ret)
 
 
-# We override the adsi.pyd methods to do the right thing.
+# 050575.python.init.line105.comment We override the adsi.pyd methods to do the right thing.
 def ADsGetObject(path, iid=pythoncom.IID_IDispatch):
     ret = adsi.ADsGetObject(path, iid)
     return _get_good_ret(ret)

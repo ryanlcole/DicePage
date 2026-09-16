@@ -1,4 +1,4 @@
-# /usr/include/X11/cursorfont.h
+# 032111.python.cursorfont.line1.comment /usr/include/X11/cursorfont.h
 
 XC_num_glyphs = 154
 XC_X_cursor = 0

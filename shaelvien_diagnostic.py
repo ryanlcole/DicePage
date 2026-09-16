@@ -1,7 +1,7 @@
-# ============================================================
-# SHAELVIEN DIAGNOSTIC SHELL — Phase 8
-# Real-time log and resource monitor
-# ============================================================
+# 052544.python.shaelvien_diagnostic.line1.comment ============================================================
+# 052545.python.shaelvien_diagnostic.line2.comment SHAELVIEN DIAGNOSTIC SHELL — Phase 8
+# 052546.python.shaelvien_diagnostic.line3.comment Real-time log and resource monitor
+# 052547.python.shaelvien_diagnostic.line4.comment ============================================================
 
 import os, time, json, psutil, threading
 import tkinter as tk
@@ -23,7 +23,7 @@ class DiagnosticShell(tk.Tk):
         self.geometry("850x500")
         self.configure(bg="#1a1a1a")
 
-        # --- Frames ---
+        # 052548.python.shaelvien_diagnostic.line26.comment --- Frames ---
         self.top = tk.Frame(self, bg="#1a1a1a")
         self.top.pack(fill="x", pady=4)
         self.bottom = tk.Frame(self, bg="#1a1a1a")
@@ -44,13 +44,13 @@ class DiagnosticShell(tk.Tk):
 
     def refresh(self):
         try:
-            # CPU + MEM
+            # 052549.python.shaelvien_diagnostic.line47.comment CPU + MEM
             cpu = psutil.cpu_percent(interval=None)
             mem = psutil.virtual_memory().percent
             self.cpu_var.set(f"CPU {cpu:.1f}%")
             self.mem_var.set(f"MEM {mem:.1f}%")
 
-            # Daemon diagnostics
+            # 052550.python.shaelvien_diagnostic.line53.comment Daemon diagnostics
             if os.path.exists(DAEMON_DIAG):
                 with open(DAEMON_DIAG, "r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -59,7 +59,7 @@ class DiagnosticShell(tk.Tk):
             else:
                 self.status_var.set("No daemon report detected")
 
-            # Log tail
+            # 052551.python.shaelvien_diagnostic.line62.comment Log tail
             if os.path.exists(LOG_PATH):
                 with open(LOG_PATH, "r", encoding="utf-8") as f:
                     lines = f.readlines()[-30:]

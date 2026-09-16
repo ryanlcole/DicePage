@@ -109,12 +109,12 @@ def get_script_home() -> str:
     frozen = getattr(sys, 'frozen', None)
     meipass = getattr(sys, '_MEIPASS', None)
     if meipass:
-        # PyInstaller
+        # 035550.python.resource.line112.comment PyInstaller
         return meipass
     elif frozen in ('windows_exe', 'console_exe'):
         return os.path.dirname(sys.executable)
     elif frozen == 'macosx_app':
-        # py2app
+        # 035551.python.resource.line117.comment py2app
         return os.environ['RESOURCEPATH']
     else:
         main = sys.modules['__main__']
@@ -122,10 +122,10 @@ def get_script_home() -> str:
             return os.path.dirname(os.path.abspath(main.__file__))
         else:
             if 'python' in os.path.basename(sys.executable):
-                # interactive
+                # 035552.python.resource.line125.comment interactive
                 return os.getcwd()
             else:
-                # cx_Freeze
+                # 035553.python.resource.line128.comment cx_Freeze
                 return os.path.dirname(sys.executable)
 
 
@@ -328,10 +328,10 @@ class Loader:
         self._script_home = script_home or get_script_home()
         self._index: dict | None = None
 
-        # Map bin size to list of atlases
+        # 035555.python.resource.line331.comment Map bin size to list of atlases
         self._texture_atlas_bins = {}
 
-        # map name to image etc.
+        # 035556.python.resource.line334.comment map name to image etc.
         self._cached_textures = weakref.WeakValueDictionary()
         self._cached_images = weakref.WeakValueDictionary()
         self._cached_animations = weakref.WeakValueDictionary()
@@ -353,7 +353,7 @@ class Loader:
         self._index = {}
         for _path_name in self.path:
 
-            # A Python module:
+            # 035557.python.resource.line356.comment A Python module:
             if _path_name.startswith('@'):
                 module_name = _path_name[1:]
                 try:
@@ -368,17 +368,17 @@ class Loader:
                     _path_name = ''  # interactive
 
             elif not os.path.isabs(_path_name):
-                # Add script base unless absolute
+                # 035559.python.resource.line371.comment Add script base unless absolute
                 assert r'\\' not in _path_name, "Backslashes are not permitted in relative paths"
                 _path_name = os.path.join(self._script_home, _path_name)
 
-            # A filesystem directory:
+            # 035560.python.resource.line375.comment A filesystem directory:
             if os.path.isdir(_path_name):
                 _path_name = _path_name.rstrip(os.path.sep)
-                # os.walk will pass silently if the path is not found:
+                # 035561.python.resource.line378.comment os.walk will pass silently if the path is not found:
                 for dirpath, dirnames, filenames in os.walk(_path_name):
                     dirpath = dirpath[len(_path_name) + 1:]
-                    # Force forward slashes for index
+                    # 035562.python.resource.line381.comment Force forward slashes for index
                     if dirpath:
                         parts = [part for part in dirpath.split(os.sep) if part is not None]
                         dirpath = '/'.join(parts)
@@ -391,10 +391,10 @@ class Loader:
                         self._index_file(index_name, file_location)
 
             else:
-                # The path is not a valid directory. See if it's a
-                # ZIP file, or a nested ZIP file with internal paths.
-                # Ex:  path/to/file.zip
-                #      path/to/file.zip/internal/path
+                # 035563.python.resource.line394.comment The path is not a valid directory. See if it's a
+                # 035564.python.resource.line395.comment ZIP file, or a nested ZIP file with internal paths.
+                # 035565.python.resource.line396.comment Ex:  path/to/file.zip
+                # 035566.python.resource.line397.comment path/to/file.zip/internal/path
                 zip_directory = ''
                 old_path = None
                 while _path_name and not (os.path.isfile(_path_name)):
@@ -410,7 +410,7 @@ class Loader:
 
                 if zipfile.is_zipfile(_path_name):
                     zipfileobj = zipfile.ZipFile(_path_name, 'r')
-                    # Returns zipfile.ZipInfo objects:
+                    # 035567.python.resource.line413.comment Returns zipfile.ZipInfo objects:
                     for fileinfo in zipfileobj.infolist():
                         if fileinfo.is_dir():
                             continue
@@ -481,7 +481,7 @@ class Loader:
         if not use_atlas:
             return img.get_texture()
 
-        # Add the image to a TextureAtlasBin, if possible
+        # 035568.python.resource.line484.comment Add the image to a TextureAtlasBin, if possible
         if texture_bin := self._get_texture_atlas_bin(img.width, img.height, border):
             return texture_bin.add(img, border)
 
@@ -492,14 +492,14 @@ class Loader:
         size.  Returns None if the image should not be placed in an atlas (too
         big), otherwise the bin (a list of TextureAtlas).
         """
-        # Large images are not placed in an atlas
+        # 035569.python.resource.line495.comment Large images are not placed in an atlas
         max_texture_size = pyglet.image.get_max_texture_size()
         max_size = min(2048, max_texture_size) - border
         if width > max_size or height > max_size:
             return None
 
-        # Group images with small height separately to larger height
-        # (as the allocator can't stack within a single row).
+        # 035570.python.resource.line501.comment Group images with small height separately to larger height
+        # 035571.python.resource.line502.comment (as the allocator can't stack within a single row).
         bin_size = 1
         if height > max_size / 4:
             bin_size = 2
@@ -644,7 +644,7 @@ class Loader:
         try:
             file_location = self._index[name]
             if isinstance(location, FileLocation):
-                # Don't open the file if it's streamed from disk
+                # 035572.python.resource.line647.comment Don't open the file if it's streamed from disk
                 file_path = os.path.join(file_location.path, name)
                 return media.load(file_path, streaming=streaming)
             else:
@@ -704,7 +704,7 @@ class Loader:
                 as ``.vert``, ``.frag``, etc..
         """
         self._ensure_index()
-        # https://www.khronos.org/opengles/sdk/tools/Reference-Compiler/
+        # 035573.python.resource.line707.comment https://www.khronos.org/opengles/sdk/tools/Reference-Compiler/
         shader_extensions = {'comp': "compute",
                              'frag': "fragment",
                              'geom': "geometry",
@@ -727,14 +727,14 @@ class Loader:
         return pyglet.graphics.shader.Shader(source_string, shader_type)
 
 
-#: Default resource search path.
-#:
-#: Locations in the search path are searched in order and are always
-#: case-sensitive.  After changing the path you must call `reindex`.
-#:
-#: See the module documentation for details on the path format.
-#:
-#: :type: list of str
+# 035574.python.resource.line730.comment : Default resource search path.
+# 035575.python.resource.line731.comment :
+# 035576.python.resource.line732.comment : Locations in the search path are searched in order and are always
+# 035577.python.resource.line733.comment : case-sensitive.  After changing the path you must call `reindex`.
+# 035578.python.resource.line734.comment :
+# 035579.python.resource.line735.comment : See the module documentation for details on the path format.
+# 035580.python.resource.line736.comment :
+# 035581.python.resource.line737.comment : :type: list of str
 path = []
 
 

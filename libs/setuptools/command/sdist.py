@@ -62,7 +62,7 @@ class sdist(orig.sdist):
         self.filelist.append(os.path.join(ei_cmd.egg_info, 'SOURCES.txt'))
         self.check_readme()
 
-        # Run sub commands
+        # 044591.python.sdist.line65.comment Run sub commands
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
 
@@ -124,7 +124,7 @@ class sdist(orig.sdist):
     def _add_defaults_build_sub_commands(self):
         build = self.get_finalized_command("build")
         missing_cmds = set(build.get_sub_commands()) - _ORIGINAL_SUBCOMMANDS
-        # ^-- the original built-in sub-commands are already handled by default.
+        # 044592.python.sdist.line127.comment ^-- the original built-in sub-commands are already handled by default.
         cmds = (self.get_finalized_command(c) for c in missing_cmds)
         files = (c.get_source_files() for c in cmds if hasattr(c, "get_source_files"))
         self.filelist.extend(chain.from_iterable(files))
@@ -160,7 +160,7 @@ class sdist(orig.sdist):
 
     def prune_file_list(self) -> None:
         super().prune_file_list()
-        # Prevent accidental inclusion of test-related cache dirs at the project root
+        # 044593.python.sdist.line163.comment Prevent accidental inclusion of test-related cache dirs at the project root
         sep = re.escape(os.sep)
         self.filelist.exclude_pattern(r"^(\.tox|\.nox|\.venv)" + sep, is_regex=True)
 
@@ -176,18 +176,18 @@ class sdist(orig.sdist):
     def make_release_tree(self, base_dir, files) -> None:
         orig.sdist.make_release_tree(self, base_dir, files)
 
-        # Save any egg_info command line options used to create this sdist
+        # 044594.python.sdist.line179.comment Save any egg_info command line options used to create this sdist
         dest = os.path.join(base_dir, 'setup.cfg')
         if hasattr(os, 'link') and os.path.exists(dest):
-            # unlink and re-copy, since it might be hard-linked, and
-            # we don't want to change the source version
+            # 044595.python.sdist.line182.comment unlink and re-copy, since it might be hard-linked, and
+            # 044596.python.sdist.line183.comment we don't want to change the source version
             os.unlink(dest)
             self.copy_file('setup.cfg', dest)
 
         self.get_finalized_command('egg_info').save_version_info(dest)
 
     def _manifest_is_not_generated(self):
-        # check for special comment used in 2.7.1 and higher
+        # 044597.python.sdist.line190.comment check for special comment used in 2.7.1 and higher
         if not os.path.isfile(self.manifest):
             return False
 
@@ -203,13 +203,13 @@ class sdist(orig.sdist):
         log.info("reading manifest file '%s'", self.manifest)
         manifest = open(self.manifest, 'rb')
         for bytes_line in manifest:
-            # The manifest must contain UTF-8. See #303.
+            # 044598.python.sdist.line206.comment The manifest must contain UTF-8. See #303.
             try:
                 line = bytes_line.decode('UTF-8')
             except UnicodeDecodeError:
                 log.warn(f"{line!r} not UTF-8 decodable -- skipping")
                 continue
-            # ignore comments and blank lines
+            # 044599.python.sdist.line212.comment ignore comments and blank lines
             line = line.strip()
             if line.startswith('#') or not line:
                 continue

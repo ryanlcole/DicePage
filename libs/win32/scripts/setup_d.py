@@ -1,7 +1,7 @@
-# Install and register pythonXX_d.dll, pywintypesXX_d.dll and pythoncomXX_d.dll
-#
-# Assumes the _d files can be found in the same directory as this script
-# or in the cwd.
+# 048145.python.setup_d.line1.comment Install and register pythonXX_d.dll, pywintypesXX_d.dll and pythoncomXX_d.dll
+# 048146.python.setup_d.line2.comment
+# 048147.python.setup_d.line3.comment Assumes the _d files can be found in the same directory as this script
+# 048148.python.setup_d.line4.comment or in the cwd.
 
 import os
 import shutil
@@ -85,7 +85,7 @@ def _doregister(mod_name, dll_name):
                 )
             )
             usage_and_die(4)
-    # Create the debug key.
+    # 048149.python.setup_d.line88.comment Create the debug key.
     sub_key = winreg.CreateKey(key, "Debug")
     winreg.SetValue(sub_key, None, winreg.REG_SZ, dll_name)
     print(f"Registered '{dll_name}' in the registry")
@@ -99,12 +99,12 @@ def _domodule(mod_name, release_mod_filename):
         _doregister(mod_name, os.path.abspath(os.path.join(path, new_fname)))
 
 
-# First the main Python DLL.
+# 048150.python.setup_d.line102.comment First the main Python DLL.
 path, fname = path, fname = os.path.split(win32api.GetModuleFileName(sys.dllhandle))
 base, ext = os.path.splitext(fname)
 _docopy(base + "_d" + ext, path)
 
-# Then pythoncom and pywintypes.
+# 048151.python.setup_d.line107.comment Then pythoncom and pywintypes.
 _domodule("pythoncom", pythoncom.__file__)
 _domodule("pywintypes", pywintypes.__file__)
 

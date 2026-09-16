@@ -44,9 +44,9 @@ _lib = pyglet.lib.load_library('X11')
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, 'c_int64'):
-    # Some builds of ctypes apparently do not have c_int64
-    # defined; it's a pretty good bet that these builds do not
-    # have 64-bit pointers.
+    # 032479.python.xlib.line47.comment Some builds of ctypes apparently do not have c_int64
+    # 032480.python.xlib.line48.comment defined; it's a pretty good bet that these builds do not
+    # 032481.python.xlib.line49.comment have 64-bit pointers.
     _int_types += (ctypes.c_int64,)
 for t in _int_types:
     if sizeof(t) == sizeof(c_size_t):
@@ -54,9 +54,9 @@ for t in _int_types:
 
 
 class c_void(Structure):
-    # c_void_p is a buggy return type, converting to int, so
-    # POINTER(None) == c_void_p is actually written as
-    # POINTER(c_void), so it can be treated as a real pointer.
+    # 032482.python.xlib.line57.comment c_void_p is a buggy return type, converting to int, so
+    # 032483.python.xlib.line58.comment POINTER(None) == c_void_p is actually written as
+    # 032484.python.xlib.line59.comment POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
 
 
@@ -421,7 +421,7 @@ TrueColor = 4  # /usr/include/X11/X.h:708
 DirectColor = 5  # /usr/include/X11/X.h:709
 LSBFirst = 0  # /usr/include/X11/X.h:714
 MSBFirst = 1  # /usr/include/X11/X.h:715
-# /usr/include/X11/Xlib.h:73
+# 032846.python.xlib.line424.comment /usr/include/X11/Xlib.h:73
 _Xmblen = _lib._Xmblen
 _Xmblen.restype = c_int
 _Xmblen.argtypes = [c_char_p, c_int]
@@ -3063,69 +3063,69 @@ class XrmValue(Structure):
 
 
 XIMValuesList = struct_anon_94 	# /usr/include/X11/Xlib.h:1395
-# /usr/include/X11/Xlib.h:1405
+# 033015.python.xlib.line3066.comment /usr/include/X11/Xlib.h:1405
 XLoadQueryFont = _lib.XLoadQueryFont
 XLoadQueryFont.restype = POINTER(XFontStruct)
 XLoadQueryFont.argtypes = [POINTER(Display), c_char_p]
 
-# /usr/include/X11/Xlib.h:1410
+# 033016.python.xlib.line3071.comment /usr/include/X11/Xlib.h:1410
 XQueryFont = _lib.XQueryFont
 XQueryFont.restype = POINTER(XFontStruct)
 XQueryFont.argtypes = [POINTER(Display), XID]
 
-# /usr/include/X11/Xlib.h:1416
+# 033017.python.xlib.line3076.comment /usr/include/X11/Xlib.h:1416
 XGetMotionEvents = _lib.XGetMotionEvents
 XGetMotionEvents.restype = POINTER(XTimeCoord)
 XGetMotionEvents.argtypes = [POINTER(Display), Window, Time, Time, POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1424
+# 033018.python.xlib.line3081.comment /usr/include/X11/Xlib.h:1424
 XDeleteModifiermapEntry = _lib.XDeleteModifiermapEntry
 XDeleteModifiermapEntry.restype = POINTER(XModifierKeymap)
 XDeleteModifiermapEntry.argtypes = [POINTER(XModifierKeymap), KeyCode, c_int]
 
-# /usr/include/X11/Xlib.h:1434
+# 033019.python.xlib.line3086.comment /usr/include/X11/Xlib.h:1434
 XGetModifierMapping = _lib.XGetModifierMapping
 XGetModifierMapping.restype = POINTER(XModifierKeymap)
 XGetModifierMapping.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1438
+# 033020.python.xlib.line3091.comment /usr/include/X11/Xlib.h:1438
 XInsertModifiermapEntry = _lib.XInsertModifiermapEntry
 XInsertModifiermapEntry.restype = POINTER(XModifierKeymap)
 XInsertModifiermapEntry.argtypes = [POINTER(XModifierKeymap), KeyCode, c_int]
 
-# /usr/include/X11/Xlib.h:1448
+# 033021.python.xlib.line3096.comment /usr/include/X11/Xlib.h:1448
 XNewModifiermap = _lib.XNewModifiermap
 XNewModifiermap.restype = POINTER(XModifierKeymap)
 XNewModifiermap.argtypes = [c_int]
 
-# /usr/include/X11/Xlib.h:1452
+# 033022.python.xlib.line3101.comment /usr/include/X11/Xlib.h:1452
 XCreateImage = _lib.XCreateImage
 XCreateImage.restype = POINTER(XImage)
 XCreateImage.argtypes = [POINTER(Display), POINTER(Visual), c_uint, c_int, c_int, c_char_p, c_uint, c_uint, c_int,
                          c_int]
 
-# /usr/include/X11/Xlib.h:1464
+# 033023.python.xlib.line3107.comment /usr/include/X11/Xlib.h:1464
 XInitImage = _lib.XInitImage
 XInitImage.restype = c_int
 XInitImage.argtypes = [POINTER(XImage)]
 
-# /usr/include/X11/Xlib.h:1467
+# 033024.python.xlib.line3112.comment /usr/include/X11/Xlib.h:1467
 XGetImage = _lib.XGetImage
 XGetImage.restype = POINTER(XImage)
 XGetImage.argtypes = [POINTER(Display), Drawable, c_int, c_int, c_uint, c_uint, c_ulong, c_int]
 
-# /usr/include/X11/Xlib.h:1477
+# 033025.python.xlib.line3117.comment /usr/include/X11/Xlib.h:1477
 XGetSubImage = _lib.XGetSubImage
 XGetSubImage.restype = POINTER(XImage)
 XGetSubImage.argtypes = [POINTER(Display), Drawable, c_int, c_int, c_uint, c_uint, c_ulong, c_int, POINTER(XImage),
                          c_int, c_int]
 
-# /usr/include/X11/Xlib.h:1494
+# 033026.python.xlib.line3123.comment /usr/include/X11/Xlib.h:1494
 XOpenDisplay = _lib.XOpenDisplay
 XOpenDisplay.restype = POINTER(Display)
 XOpenDisplay.argtypes = [c_char_p]
 
-# /usr/include/X11/Xlib.h:1498
+# 033027.python.xlib.line3128.comment /usr/include/X11/Xlib.h:1498
 XrmInitialize = _lib.XrmInitialize
 XrmInitialize.restype = None
 XrmInitialize.argtypes = []
@@ -3141,1661 +3141,1661 @@ XrmDestroyDatabase.argtypes = [c_void_p]
 XrmGetResource = _lib.XrmGetResource
 XrmGetResource.restype = c_bool
 XrmGetResource.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_char_p), POINTER(XrmValue)]
-# /usr/include/X11/Xlib.h:1502
+# 033028.python.xlib.line3144.comment /usr/include/X11/Xlib.h:1502
 XFetchBytes = _lib.XFetchBytes
 XFetchBytes.restype = c_char_p
 XFetchBytes.argtypes = [POINTER(Display), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1506
+# 033029.python.xlib.line3149.comment /usr/include/X11/Xlib.h:1506
 XFetchBuffer = _lib.XFetchBuffer
 XFetchBuffer.restype = c_char_p
 XFetchBuffer.argtypes = [POINTER(Display), POINTER(c_int), c_int]
 
-# /usr/include/X11/Xlib.h:1511
+# 033030.python.xlib.line3154.comment /usr/include/X11/Xlib.h:1511
 XGetAtomName = _lib.XGetAtomName
 XGetAtomName.restype = c_char_p
 XGetAtomName.argtypes = [POINTER(Display), Atom]
 
-# /usr/include/X11/Xlib.h:1515
+# 033031.python.xlib.line3159.comment /usr/include/X11/Xlib.h:1515
 XGetAtomNames = _lib.XGetAtomNames
 XGetAtomNames.restype = c_int
 XGetAtomNames.argtypes = [POINTER(Display), POINTER(Atom), c_int, POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:1521
+# 033032.python.xlib.line3164.comment /usr/include/X11/Xlib.h:1521
 XGetDefault = _lib.XGetDefault
 XGetDefault.restype = c_char_p
 XGetDefault.argtypes = [POINTER(Display), c_char_p, c_char_p]
 
-# /usr/include/X11/Xlib.h:1526
+# 033033.python.xlib.line3169.comment /usr/include/X11/Xlib.h:1526
 XDisplayName = _lib.XDisplayName
 XDisplayName.restype = c_char_p
 XDisplayName.argtypes = [c_char_p]
 
-# /usr/include/X11/Xlib.h:1529
+# 033034.python.xlib.line3174.comment /usr/include/X11/Xlib.h:1529
 XKeysymToString = _lib.XKeysymToString
 XKeysymToString.restype = c_char_p
 XKeysymToString.argtypes = [KeySym]
 
-# /usr/include/X11/Xlib.h:1533
+# 033035.python.xlib.line3179.comment /usr/include/X11/Xlib.h:1533
 XSynchronize = _lib.XSynchronize
 XSynchronize.restype = POINTER(CFUNCTYPE(c_int, POINTER(Display)))
 XSynchronize.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1539
+# 033036.python.xlib.line3184.comment /usr/include/X11/Xlib.h:1539
 XSetAfterFunction = _lib.XSetAfterFunction
 XSetAfterFunction.restype = POINTER(CFUNCTYPE(c_int, POINTER(Display)))
 XSetAfterFunction.argtypes = [POINTER(Display), CFUNCTYPE(c_int, POINTER(Display))]
 
-# /usr/include/X11/Xlib.h:1547
+# 033037.python.xlib.line3189.comment /usr/include/X11/Xlib.h:1547
 XInternAtom = _lib.XInternAtom
 XInternAtom.restype = Atom
 XInternAtom.argtypes = [POINTER(Display), c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:1552
+# 033038.python.xlib.line3194.comment /usr/include/X11/Xlib.h:1552
 XInternAtoms = _lib.XInternAtoms
 XInternAtoms.restype = c_int
 XInternAtoms.argtypes = [POINTER(Display), POINTER(c_char_p), c_int, c_int, POINTER(Atom)]
 
-# /usr/include/X11/Xlib.h:1559
+# 033039.python.xlib.line3199.comment /usr/include/X11/Xlib.h:1559
 XCopyColormapAndFree = _lib.XCopyColormapAndFree
 XCopyColormapAndFree.restype = Colormap
 XCopyColormapAndFree.argtypes = [POINTER(Display), Colormap]
 
-# /usr/include/X11/Xlib.h:1563
+# 033040.python.xlib.line3204.comment /usr/include/X11/Xlib.h:1563
 XCreateColormap = _lib.XCreateColormap
 XCreateColormap.restype = Colormap
 XCreateColormap.argtypes = [POINTER(Display), Window, POINTER(Visual), c_int]
 
-# /usr/include/X11/Xlib.h:1569
+# 033041.python.xlib.line3209.comment /usr/include/X11/Xlib.h:1569
 XCreatePixmapCursor = _lib.XCreatePixmapCursor
 XCreatePixmapCursor.restype = Cursor
 XCreatePixmapCursor.argtypes = [POINTER(Display), Pixmap, Pixmap, POINTER(XColor), POINTER(XColor), c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:1578
+# 033042.python.xlib.line3214.comment /usr/include/X11/Xlib.h:1578
 XCreateGlyphCursor = _lib.XCreateGlyphCursor
 XCreateGlyphCursor.restype = Cursor
 XCreateGlyphCursor.argtypes = [POINTER(Display), Font, Font, c_uint, c_uint, POINTER(XColor), POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:1587
+# 033043.python.xlib.line3219.comment /usr/include/X11/Xlib.h:1587
 XCreateFontCursor = _lib.XCreateFontCursor
 XCreateFontCursor.restype = Cursor
 XCreateFontCursor.argtypes = [POINTER(Display), c_uint]
 
-# /usr/include/X11/Xlib.h:1591
+# 033044.python.xlib.line3224.comment /usr/include/X11/Xlib.h:1591
 XLoadFont = _lib.XLoadFont
 XLoadFont.restype = Font
 XLoadFont.argtypes = [POINTER(Display), c_char_p]
 
-# /usr/include/X11/Xlib.h:1595
+# 033045.python.xlib.line3229.comment /usr/include/X11/Xlib.h:1595
 XCreateGC = _lib.XCreateGC
 XCreateGC.restype = GC
 XCreateGC.argtypes = [POINTER(Display), Drawable, c_ulong, POINTER(XGCValues)]
 
-# /usr/include/X11/Xlib.h:1601
+# 033046.python.xlib.line3234.comment /usr/include/X11/Xlib.h:1601
 XGContextFromGC = _lib.XGContextFromGC
 XGContextFromGC.restype = GContext
 XGContextFromGC.argtypes = [GC]
 
-# /usr/include/X11/Xlib.h:1604
+# 033047.python.xlib.line3239.comment /usr/include/X11/Xlib.h:1604
 XFlushGC = _lib.XFlushGC
 XFlushGC.restype = None
 XFlushGC.argtypes = [POINTER(Display), GC]
 
-# /usr/include/X11/Xlib.h:1608
+# 033048.python.xlib.line3244.comment /usr/include/X11/Xlib.h:1608
 XCreatePixmap = _lib.XCreatePixmap
 XCreatePixmap.restype = Pixmap
 XCreatePixmap.argtypes = [POINTER(Display), Drawable, c_uint, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:1615
+# 033049.python.xlib.line3249.comment /usr/include/X11/Xlib.h:1615
 XCreateBitmapFromData = _lib.XCreateBitmapFromData
 XCreateBitmapFromData.restype = Pixmap
 XCreateBitmapFromData.argtypes = [POINTER(Display), Drawable, c_char_p, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:1622
+# 033050.python.xlib.line3254.comment /usr/include/X11/Xlib.h:1622
 XCreatePixmapFromBitmapData = _lib.XCreatePixmapFromBitmapData
 XCreatePixmapFromBitmapData.restype = Pixmap
 XCreatePixmapFromBitmapData.argtypes = [POINTER(Display), Drawable, c_char_p, c_uint, c_uint, c_ulong, c_ulong, c_uint]
 
-# /usr/include/X11/Xlib.h:1632
+# 033051.python.xlib.line3259.comment /usr/include/X11/Xlib.h:1632
 XCreateSimpleWindow = _lib.XCreateSimpleWindow
 XCreateSimpleWindow.restype = Window
 XCreateSimpleWindow.argtypes = [POINTER(Display), Window, c_int, c_int, c_uint, c_uint, c_uint, c_ulong, c_ulong]
 
-# /usr/include/X11/Xlib.h:1643
+# 033052.python.xlib.line3264.comment /usr/include/X11/Xlib.h:1643
 XGetSelectionOwner = _lib.XGetSelectionOwner
 XGetSelectionOwner.restype = Window
 XGetSelectionOwner.argtypes = [POINTER(Display), Atom]
 
-# /usr/include/X11/Xlib.h:1647
+# 033053.python.xlib.line3269.comment /usr/include/X11/Xlib.h:1647
 XCreateWindow = _lib.XCreateWindow
 XCreateWindow.restype = Window
 XCreateWindow.argtypes = [POINTER(Display), Window, c_int, c_int, c_uint, c_uint, c_uint, c_int, c_uint,
                           POINTER(Visual), c_ulong, POINTER(XSetWindowAttributes)]
 
-# /usr/include/X11/Xlib.h:1661
+# 033054.python.xlib.line3275.comment /usr/include/X11/Xlib.h:1661
 XListInstalledColormaps = _lib.XListInstalledColormaps
 XListInstalledColormaps.restype = POINTER(Colormap)
 XListInstalledColormaps.argtypes = [POINTER(Display), Window, POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1666
+# 033055.python.xlib.line3280.comment /usr/include/X11/Xlib.h:1666
 XListFonts = _lib.XListFonts
 XListFonts.restype = POINTER(c_char_p)
 XListFonts.argtypes = [POINTER(Display), c_char_p, c_int, POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1672
+# 033056.python.xlib.line3285.comment /usr/include/X11/Xlib.h:1672
 XListFontsWithInfo = _lib.XListFontsWithInfo
 XListFontsWithInfo.restype = POINTER(c_char_p)
 XListFontsWithInfo.argtypes = [POINTER(Display), c_char_p, c_int, POINTER(c_int), POINTER(POINTER(XFontStruct))]
 
-# /usr/include/X11/Xlib.h:1679
+# 033057.python.xlib.line3290.comment /usr/include/X11/Xlib.h:1679
 XGetFontPath = _lib.XGetFontPath
 XGetFontPath.restype = POINTER(c_char_p)
 XGetFontPath.argtypes = [POINTER(Display), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1683
+# 033058.python.xlib.line3295.comment /usr/include/X11/Xlib.h:1683
 XListExtensions = _lib.XListExtensions
 XListExtensions.restype = POINTER(c_char_p)
 XListExtensions.argtypes = [POINTER(Display), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1687
+# 033059.python.xlib.line3300.comment /usr/include/X11/Xlib.h:1687
 XListProperties = _lib.XListProperties
 XListProperties.restype = POINTER(Atom)
 XListProperties.argtypes = [POINTER(Display), Window, POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1692
+# 033060.python.xlib.line3305.comment /usr/include/X11/Xlib.h:1692
 XListHosts = _lib.XListHosts
 XListHosts.restype = POINTER(XHostAddress)
 XListHosts.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1697
+# 033061.python.xlib.line3310.comment /usr/include/X11/Xlib.h:1697
 XKeycodeToKeysym = _lib.XKeycodeToKeysym
 XKeycodeToKeysym.restype = KeySym
 XKeycodeToKeysym.argtypes = [POINTER(Display), KeyCode, c_int]
 
-# /usr/include/X11/Xlib.h:1706
+# 033062.python.xlib.line3315.comment /usr/include/X11/Xlib.h:1706
 XLookupKeysym = _lib.XLookupKeysym
 XLookupKeysym.restype = KeySym
 XLookupKeysym.argtypes = [POINTER(XKeyEvent), c_int]
 
-# /usr/include/X11/Xlib.h:1710
+# 033063.python.xlib.line3320.comment /usr/include/X11/Xlib.h:1710
 XGetKeyboardMapping = _lib.XGetKeyboardMapping
 XGetKeyboardMapping.restype = POINTER(KeySym)
 XGetKeyboardMapping.argtypes = [POINTER(Display), KeyCode, c_int, POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1720
+# 033064.python.xlib.line3325.comment /usr/include/X11/Xlib.h:1720
 XStringToKeysym = _lib.XStringToKeysym
 XStringToKeysym.restype = KeySym
 XStringToKeysym.argtypes = [c_char_p]
 
-# /usr/include/X11/Xlib.h:1723
+# 033065.python.xlib.line3330.comment /usr/include/X11/Xlib.h:1723
 XMaxRequestSize = _lib.XMaxRequestSize
 XMaxRequestSize.restype = c_long
 XMaxRequestSize.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1726
+# 033066.python.xlib.line3335.comment /usr/include/X11/Xlib.h:1726
 XExtendedMaxRequestSize = _lib.XExtendedMaxRequestSize
 XExtendedMaxRequestSize.restype = c_long
 XExtendedMaxRequestSize.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1729
+# 033067.python.xlib.line3340.comment /usr/include/X11/Xlib.h:1729
 XResourceManagerString = _lib.XResourceManagerString
 XResourceManagerString.restype = c_char_p
 XResourceManagerString.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1732
+# 033068.python.xlib.line3345.comment /usr/include/X11/Xlib.h:1732
 XScreenResourceString = _lib.XScreenResourceString
 XScreenResourceString.restype = c_char_p
 XScreenResourceString.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1735
+# 033069.python.xlib.line3350.comment /usr/include/X11/Xlib.h:1735
 XDisplayMotionBufferSize = _lib.XDisplayMotionBufferSize
 XDisplayMotionBufferSize.restype = c_ulong
 XDisplayMotionBufferSize.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1738
+# 033070.python.xlib.line3355.comment /usr/include/X11/Xlib.h:1738
 XVisualIDFromVisual = _lib.XVisualIDFromVisual
 XVisualIDFromVisual.restype = VisualID
 XVisualIDFromVisual.argtypes = [POINTER(Visual)]
 
-# /usr/include/X11/Xlib.h:1744
+# 033071.python.xlib.line3360.comment /usr/include/X11/Xlib.h:1744
 XInitThreads = _lib.XInitThreads
 XInitThreads.restype = c_int
 XInitThreads.argtypes = []
 
-# /usr/include/X11/Xlib.h:1748
+# 033072.python.xlib.line3365.comment /usr/include/X11/Xlib.h:1748
 XLockDisplay = _lib.XLockDisplay
 XLockDisplay.restype = None
 XLockDisplay.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1752
+# 033073.python.xlib.line3370.comment /usr/include/X11/Xlib.h:1752
 XUnlockDisplay = _lib.XUnlockDisplay
 XUnlockDisplay.restype = None
 XUnlockDisplay.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1758
+# 033074.python.xlib.line3375.comment /usr/include/X11/Xlib.h:1758
 XInitExtension = _lib.XInitExtension
 XInitExtension.restype = POINTER(XExtCodes)
 XInitExtension.argtypes = [POINTER(Display), c_char_p]
 
-# /usr/include/X11/Xlib.h:1763
+# 033075.python.xlib.line3380.comment /usr/include/X11/Xlib.h:1763
 XAddExtension = _lib.XAddExtension
 XAddExtension.restype = POINTER(XExtCodes)
 XAddExtension.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1766
+# 033076.python.xlib.line3385.comment /usr/include/X11/Xlib.h:1766
 XFindOnExtensionList = _lib.XFindOnExtensionList
 XFindOnExtensionList.restype = POINTER(XExtData)
 XFindOnExtensionList.argtypes = [POINTER(POINTER(XExtData)), c_int]
 
-# /usr/include/X11/Xlib.h:1770
+# 033077.python.xlib.line3390.comment /usr/include/X11/Xlib.h:1770
 XEHeadOfExtensionList = _lib.XEHeadOfExtensionList
 XEHeadOfExtensionList.restype = POINTER(POINTER(XExtData))
 XEHeadOfExtensionList.argtypes = [POINTER(XEDataObject)]
 
-# /usr/include/X11/Xlib.h:1775
+# 033078.python.xlib.line3395.comment /usr/include/X11/Xlib.h:1775
 XRootWindow = _lib.XRootWindow
 XRootWindow.restype = Window
 XRootWindow.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1779
+# 033079.python.xlib.line3400.comment /usr/include/X11/Xlib.h:1779
 XDefaultRootWindow = _lib.XDefaultRootWindow
 XDefaultRootWindow.restype = Window
 XDefaultRootWindow.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1782
+# 033080.python.xlib.line3405.comment /usr/include/X11/Xlib.h:1782
 XRootWindowOfScreen = _lib.XRootWindowOfScreen
 XRootWindowOfScreen.restype = Window
 XRootWindowOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1785
+# 033081.python.xlib.line3410.comment /usr/include/X11/Xlib.h:1785
 XDefaultVisual = _lib.XDefaultVisual
 XDefaultVisual.restype = POINTER(Visual)
 XDefaultVisual.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1789
+# 033082.python.xlib.line3415.comment /usr/include/X11/Xlib.h:1789
 XDefaultVisualOfScreen = _lib.XDefaultVisualOfScreen
 XDefaultVisualOfScreen.restype = POINTER(Visual)
 XDefaultVisualOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1792
+# 033083.python.xlib.line3420.comment /usr/include/X11/Xlib.h:1792
 XDefaultGC = _lib.XDefaultGC
 XDefaultGC.restype = GC
 XDefaultGC.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1796
+# 033084.python.xlib.line3425.comment /usr/include/X11/Xlib.h:1796
 XDefaultGCOfScreen = _lib.XDefaultGCOfScreen
 XDefaultGCOfScreen.restype = GC
 XDefaultGCOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1799
+# 033085.python.xlib.line3430.comment /usr/include/X11/Xlib.h:1799
 XBlackPixel = _lib.XBlackPixel
 XBlackPixel.restype = c_ulong
 XBlackPixel.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1803
+# 033086.python.xlib.line3435.comment /usr/include/X11/Xlib.h:1803
 XWhitePixel = _lib.XWhitePixel
 XWhitePixel.restype = c_ulong
 XWhitePixel.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1807
+# 033087.python.xlib.line3440.comment /usr/include/X11/Xlib.h:1807
 XAllPlanes = _lib.XAllPlanes
 XAllPlanes.restype = c_ulong
 XAllPlanes.argtypes = []
 
-# /usr/include/X11/Xlib.h:1810
+# 033088.python.xlib.line3445.comment /usr/include/X11/Xlib.h:1810
 XBlackPixelOfScreen = _lib.XBlackPixelOfScreen
 XBlackPixelOfScreen.restype = c_ulong
 XBlackPixelOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1813
+# 033089.python.xlib.line3450.comment /usr/include/X11/Xlib.h:1813
 XWhitePixelOfScreen = _lib.XWhitePixelOfScreen
 XWhitePixelOfScreen.restype = c_ulong
 XWhitePixelOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1816
+# 033090.python.xlib.line3455.comment /usr/include/X11/Xlib.h:1816
 XNextRequest = _lib.XNextRequest
 XNextRequest.restype = c_ulong
 XNextRequest.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1819
+# 033091.python.xlib.line3460.comment /usr/include/X11/Xlib.h:1819
 XLastKnownRequestProcessed = _lib.XLastKnownRequestProcessed
 XLastKnownRequestProcessed.restype = c_ulong
 XLastKnownRequestProcessed.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1822
+# 033092.python.xlib.line3465.comment /usr/include/X11/Xlib.h:1822
 XServerVendor = _lib.XServerVendor
 XServerVendor.restype = c_char_p
 XServerVendor.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1825
+# 033093.python.xlib.line3470.comment /usr/include/X11/Xlib.h:1825
 XDisplayString = _lib.XDisplayString
 XDisplayString.restype = c_char_p
 XDisplayString.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1828
+# 033094.python.xlib.line3475.comment /usr/include/X11/Xlib.h:1828
 XDefaultColormap = _lib.XDefaultColormap
 XDefaultColormap.restype = Colormap
 XDefaultColormap.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1832
+# 033095.python.xlib.line3480.comment /usr/include/X11/Xlib.h:1832
 XDefaultColormapOfScreen = _lib.XDefaultColormapOfScreen
 XDefaultColormapOfScreen.restype = Colormap
 XDefaultColormapOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1835
+# 033096.python.xlib.line3485.comment /usr/include/X11/Xlib.h:1835
 XDisplayOfScreen = _lib.XDisplayOfScreen
 XDisplayOfScreen.restype = POINTER(Display)
 XDisplayOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1838
+# 033097.python.xlib.line3490.comment /usr/include/X11/Xlib.h:1838
 XScreenOfDisplay = _lib.XScreenOfDisplay
 XScreenOfDisplay.restype = POINTER(Screen)
 XScreenOfDisplay.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:1842
+# 033098.python.xlib.line3495.comment /usr/include/X11/Xlib.h:1842
 XDefaultScreenOfDisplay = _lib.XDefaultScreenOfDisplay
 XDefaultScreenOfDisplay.restype = POINTER(Screen)
 XDefaultScreenOfDisplay.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1845
+# 033099.python.xlib.line3500.comment /usr/include/X11/Xlib.h:1845
 XEventMaskOfScreen = _lib.XEventMaskOfScreen
 XEventMaskOfScreen.restype = c_long
 XEventMaskOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:1849
+# 033100.python.xlib.line3505.comment /usr/include/X11/Xlib.h:1849
 XScreenNumberOfScreen = _lib.XScreenNumberOfScreen
 XScreenNumberOfScreen.restype = c_int
 XScreenNumberOfScreen.argtypes = [POINTER(Screen)]
 
 XErrorHandler = CFUNCTYPE(c_int, POINTER(Display), POINTER(XErrorEvent))  # /usr/include/X11/Xlib.h:1853
-# /usr/include/X11/Xlib.h:1858
+# 033102.python.xlib.line3511.comment /usr/include/X11/Xlib.h:1858
 XSetErrorHandler = _lib.XSetErrorHandler
 XSetErrorHandler.restype = XErrorHandler
 XSetErrorHandler.argtypes = [XErrorHandler]
 
 XIOErrorHandler = CFUNCTYPE(c_int, POINTER(Display))  # /usr/include/X11/Xlib.h:1863
-# /usr/include/X11/Xlib.h:1867
+# 033104.python.xlib.line3517.comment /usr/include/X11/Xlib.h:1867
 XSetIOErrorHandler = _lib.XSetIOErrorHandler
 XSetIOErrorHandler.restype = XIOErrorHandler
 XSetIOErrorHandler.argtypes = [XIOErrorHandler]
 
-# /usr/include/X11/Xlib.h:1872
+# 033105.python.xlib.line3522.comment /usr/include/X11/Xlib.h:1872
 XListPixmapFormats = _lib.XListPixmapFormats
 XListPixmapFormats.restype = POINTER(XPixmapFormatValues)
 XListPixmapFormats.argtypes = [POINTER(Display), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1876
+# 033106.python.xlib.line3527.comment /usr/include/X11/Xlib.h:1876
 XListDepths = _lib.XListDepths
 XListDepths.restype = POINTER(c_int)
 XListDepths.argtypes = [POINTER(Display), c_int, POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1884
+# 033107.python.xlib.line3532.comment /usr/include/X11/Xlib.h:1884
 XReconfigureWMWindow = _lib.XReconfigureWMWindow
 XReconfigureWMWindow.restype = c_int
 XReconfigureWMWindow.argtypes = [POINTER(Display), Window, c_int, c_uint, POINTER(XWindowChanges)]
 
-# /usr/include/X11/Xlib.h:1892
+# 033108.python.xlib.line3537.comment /usr/include/X11/Xlib.h:1892
 XGetWMProtocols = _lib.XGetWMProtocols
 XGetWMProtocols.restype = c_int
 XGetWMProtocols.argtypes = [POINTER(Display), Window, POINTER(POINTER(Atom)), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1898
+# 033109.python.xlib.line3542.comment /usr/include/X11/Xlib.h:1898
 XSetWMProtocols = _lib.XSetWMProtocols
 XSetWMProtocols.restype = c_int
 XSetWMProtocols.argtypes = [POINTER(Display), Window, POINTER(Atom), c_int]
 
-# /usr/include/X11/Xlib.h:1904
+# 033110.python.xlib.line3547.comment /usr/include/X11/Xlib.h:1904
 XIconifyWindow = _lib.XIconifyWindow
 XIconifyWindow.restype = c_int
 XIconifyWindow.argtypes = [POINTER(Display), Window, c_int]
 
-# /usr/include/X11/Xlib.h:1909
+# 033111.python.xlib.line3552.comment /usr/include/X11/Xlib.h:1909
 XWithdrawWindow = _lib.XWithdrawWindow
 XWithdrawWindow.restype = c_int
 XWithdrawWindow.argtypes = [POINTER(Display), Window, c_int]
 
-# /usr/include/X11/Xlib.h:1914
+# 033112.python.xlib.line3557.comment /usr/include/X11/Xlib.h:1914
 XGetCommand = _lib.XGetCommand
 XGetCommand.restype = c_int
 XGetCommand.argtypes = [POINTER(Display), Window, POINTER(POINTER(c_char_p)), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1920
+# 033113.python.xlib.line3562.comment /usr/include/X11/Xlib.h:1920
 XGetWMColormapWindows = _lib.XGetWMColormapWindows
 XGetWMColormapWindows.restype = c_int
 XGetWMColormapWindows.argtypes = [POINTER(Display), Window, POINTER(POINTER(Window)), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:1926
+# 033114.python.xlib.line3567.comment /usr/include/X11/Xlib.h:1926
 XSetWMColormapWindows = _lib.XSetWMColormapWindows
 XSetWMColormapWindows.restype = c_int
 XSetWMColormapWindows.argtypes = [POINTER(Display), Window, POINTER(Window), c_int]
 
-# /usr/include/X11/Xlib.h:1932
+# 033115.python.xlib.line3572.comment /usr/include/X11/Xlib.h:1932
 XFreeStringList = _lib.XFreeStringList
 XFreeStringList.restype = None
 XFreeStringList.argtypes = [POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:1935
+# 033116.python.xlib.line3577.comment /usr/include/X11/Xlib.h:1935
 XSetTransientForHint = _lib.XSetTransientForHint
 XSetTransientForHint.restype = c_int
 XSetTransientForHint.argtypes = [POINTER(Display), Window, Window]
 
-# /usr/include/X11/Xlib.h:1943
+# 033117.python.xlib.line3582.comment /usr/include/X11/Xlib.h:1943
 XActivateScreenSaver = _lib.XActivateScreenSaver
 XActivateScreenSaver.restype = c_int
 XActivateScreenSaver.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:1947
+# 033118.python.xlib.line3587.comment /usr/include/X11/Xlib.h:1947
 XAddHost = _lib.XAddHost
 XAddHost.restype = c_int
 XAddHost.argtypes = [POINTER(Display), POINTER(XHostAddress)]
 
-# /usr/include/X11/Xlib.h:1952
+# 033119.python.xlib.line3592.comment /usr/include/X11/Xlib.h:1952
 XAddHosts = _lib.XAddHosts
 XAddHosts.restype = c_int
 XAddHosts.argtypes = [POINTER(Display), POINTER(XHostAddress), c_int]
 
-# /usr/include/X11/Xlib.h:1958
+# 033120.python.xlib.line3597.comment /usr/include/X11/Xlib.h:1958
 XAddToExtensionList = _lib.XAddToExtensionList
 XAddToExtensionList.restype = c_int
 XAddToExtensionList.argtypes = [POINTER(POINTER(struct__XExtData)), POINTER(XExtData)]
 
-# /usr/include/X11/Xlib.h:1963
+# 033121.python.xlib.line3602.comment /usr/include/X11/Xlib.h:1963
 XAddToSaveSet = _lib.XAddToSaveSet
 XAddToSaveSet.restype = c_int
 XAddToSaveSet.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:1968
+# 033122.python.xlib.line3607.comment /usr/include/X11/Xlib.h:1968
 XAllocColor = _lib.XAllocColor
 XAllocColor.restype = c_int
 XAllocColor.argtypes = [POINTER(Display), Colormap, POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:1974
+# 033123.python.xlib.line3612.comment /usr/include/X11/Xlib.h:1974
 XAllocColorCells = _lib.XAllocColorCells
 XAllocColorCells.restype = c_int
 XAllocColorCells.argtypes = [POINTER(Display), Colormap, c_int, POINTER(c_ulong), c_uint, POINTER(c_ulong), c_uint]
 
-# /usr/include/X11/Xlib.h:1984
+# 033124.python.xlib.line3617.comment /usr/include/X11/Xlib.h:1984
 XAllocColorPlanes = _lib.XAllocColorPlanes
 XAllocColorPlanes.restype = c_int
 XAllocColorPlanes.argtypes = [POINTER(Display), Colormap, c_int, POINTER(c_ulong), c_int, c_int, c_int, c_int,
                               POINTER(c_ulong), POINTER(c_ulong), POINTER(c_ulong)]
 
-# /usr/include/X11/Xlib.h:1998
+# 033125.python.xlib.line3623.comment /usr/include/X11/Xlib.h:1998
 XAllocNamedColor = _lib.XAllocNamedColor
 XAllocNamedColor.restype = c_int
 XAllocNamedColor.argtypes = [POINTER(Display), Colormap, c_char_p, POINTER(XColor), POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:2006
+# 033126.python.xlib.line3628.comment /usr/include/X11/Xlib.h:2006
 XAllowEvents = _lib.XAllowEvents
 XAllowEvents.restype = c_int
 XAllowEvents.argtypes = [POINTER(Display), c_int, Time]
 
-# /usr/include/X11/Xlib.h:2012
+# 033127.python.xlib.line3633.comment /usr/include/X11/Xlib.h:2012
 XAutoRepeatOff = _lib.XAutoRepeatOff
 XAutoRepeatOff.restype = c_int
 XAutoRepeatOff.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2016
+# 033128.python.xlib.line3638.comment /usr/include/X11/Xlib.h:2016
 XAutoRepeatOn = _lib.XAutoRepeatOn
 XAutoRepeatOn.restype = c_int
 XAutoRepeatOn.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2020
+# 033129.python.xlib.line3643.comment /usr/include/X11/Xlib.h:2020
 XBell = _lib.XBell
 XBell.restype = c_int
 XBell.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2025
+# 033130.python.xlib.line3648.comment /usr/include/X11/Xlib.h:2025
 XBitmapBitOrder = _lib.XBitmapBitOrder
 XBitmapBitOrder.restype = c_int
 XBitmapBitOrder.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2029
+# 033131.python.xlib.line3653.comment /usr/include/X11/Xlib.h:2029
 XBitmapPad = _lib.XBitmapPad
 XBitmapPad.restype = c_int
 XBitmapPad.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2033
+# 033132.python.xlib.line3658.comment /usr/include/X11/Xlib.h:2033
 XBitmapUnit = _lib.XBitmapUnit
 XBitmapUnit.restype = c_int
 XBitmapUnit.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2037
+# 033133.python.xlib.line3663.comment /usr/include/X11/Xlib.h:2037
 XCellsOfScreen = _lib.XCellsOfScreen
 XCellsOfScreen.restype = c_int
 XCellsOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2041
+# 033134.python.xlib.line3668.comment /usr/include/X11/Xlib.h:2041
 XChangeActivePointerGrab = _lib.XChangeActivePointerGrab
 XChangeActivePointerGrab.restype = c_int
 XChangeActivePointerGrab.argtypes = [POINTER(Display), c_uint, Cursor, Time]
 
-# /usr/include/X11/Xlib.h:2048
+# 033135.python.xlib.line3673.comment /usr/include/X11/Xlib.h:2048
 XChangeGC = _lib.XChangeGC
 XChangeGC.restype = c_int
 XChangeGC.argtypes = [POINTER(Display), GC, c_ulong, POINTER(XGCValues)]
 
-# /usr/include/X11/Xlib.h:2055
+# 033136.python.xlib.line3678.comment /usr/include/X11/Xlib.h:2055
 XChangeKeyboardControl = _lib.XChangeKeyboardControl
 XChangeKeyboardControl.restype = c_int
 XChangeKeyboardControl.argtypes = [POINTER(Display), c_ulong, POINTER(XKeyboardControl)]
 
-# /usr/include/X11/Xlib.h:2061
+# 033137.python.xlib.line3683.comment /usr/include/X11/Xlib.h:2061
 XChangeKeyboardMapping = _lib.XChangeKeyboardMapping
 XChangeKeyboardMapping.restype = c_int
 XChangeKeyboardMapping.argtypes = [POINTER(Display), c_int, c_int, POINTER(KeySym), c_int]
 
-# /usr/include/X11/Xlib.h:2069
+# 033138.python.xlib.line3688.comment /usr/include/X11/Xlib.h:2069
 XChangePointerControl = _lib.XChangePointerControl
 XChangePointerControl.restype = c_int
 XChangePointerControl.argtypes = [POINTER(Display), c_int, c_int, c_int, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2078
+# 033139.python.xlib.line3693.comment /usr/include/X11/Xlib.h:2078
 XChangeProperty = _lib.XChangeProperty
 XChangeProperty.restype = c_int
 XChangeProperty.argtypes = [POINTER(Display), Window, Atom, Atom, c_int, c_int, POINTER(c_ubyte), c_int]
 
-# /usr/include/X11/Xlib.h:2089
+# 033140.python.xlib.line3698.comment /usr/include/X11/Xlib.h:2089
 XChangeSaveSet = _lib.XChangeSaveSet
 XChangeSaveSet.restype = c_int
 XChangeSaveSet.argtypes = [POINTER(Display), Window, c_int]
 
-# /usr/include/X11/Xlib.h:2095
+# 033141.python.xlib.line3703.comment /usr/include/X11/Xlib.h:2095
 XChangeWindowAttributes = _lib.XChangeWindowAttributes
 XChangeWindowAttributes.restype = c_int
 XChangeWindowAttributes.argtypes = [POINTER(Display), Window, c_ulong, POINTER(XSetWindowAttributes)]
 
-# /usr/include/X11/Xlib.h:2102
+# 033142.python.xlib.line3708.comment /usr/include/X11/Xlib.h:2102
 XCheckIfEvent = _lib.XCheckIfEvent
 XCheckIfEvent.restype = c_int
 XCheckIfEvent.argtypes = [POINTER(Display), POINTER(XEvent),
                           CFUNCTYPE(c_int, POINTER(Display), POINTER(XEvent), XPointer), XPointer]
 
-# /usr/include/X11/Xlib.h:2113
+# 033143.python.xlib.line3714.comment /usr/include/X11/Xlib.h:2113
 XCheckMaskEvent = _lib.XCheckMaskEvent
 XCheckMaskEvent.restype = c_int
 XCheckMaskEvent.argtypes = [POINTER(Display), c_long, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2119
+# 033144.python.xlib.line3719.comment /usr/include/X11/Xlib.h:2119
 XCheckTypedEvent = _lib.XCheckTypedEvent
 XCheckTypedEvent.restype = c_int
 XCheckTypedEvent.argtypes = [POINTER(Display), c_int, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2125
+# 033145.python.xlib.line3724.comment /usr/include/X11/Xlib.h:2125
 XCheckTypedWindowEvent = _lib.XCheckTypedWindowEvent
 XCheckTypedWindowEvent.restype = c_int
 XCheckTypedWindowEvent.argtypes = [POINTER(Display), Window, c_int, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2132
+# 033146.python.xlib.line3729.comment /usr/include/X11/Xlib.h:2132
 XCheckWindowEvent = _lib.XCheckWindowEvent
 XCheckWindowEvent.restype = c_int
 XCheckWindowEvent.argtypes = [POINTER(Display), Window, c_long, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2139
+# 033147.python.xlib.line3734.comment /usr/include/X11/Xlib.h:2139
 XCirculateSubwindows = _lib.XCirculateSubwindows
 XCirculateSubwindows.restype = c_int
 XCirculateSubwindows.argtypes = [POINTER(Display), Window, c_int]
 
-# /usr/include/X11/Xlib.h:2145
+# 033148.python.xlib.line3739.comment /usr/include/X11/Xlib.h:2145
 XCirculateSubwindowsDown = _lib.XCirculateSubwindowsDown
 XCirculateSubwindowsDown.restype = c_int
 XCirculateSubwindowsDown.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2150
+# 033149.python.xlib.line3744.comment /usr/include/X11/Xlib.h:2150
 XCirculateSubwindowsUp = _lib.XCirculateSubwindowsUp
 XCirculateSubwindowsUp.restype = c_int
 XCirculateSubwindowsUp.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2155
+# 033150.python.xlib.line3749.comment /usr/include/X11/Xlib.h:2155
 XClearArea = _lib.XClearArea
 XClearArea.restype = c_int
 XClearArea.argtypes = [POINTER(Display), Window, c_int, c_int, c_uint, c_uint, c_int]
 
-# /usr/include/X11/Xlib.h:2165
+# 033151.python.xlib.line3754.comment /usr/include/X11/Xlib.h:2165
 XClearWindow = _lib.XClearWindow
 XClearWindow.restype = c_int
 XClearWindow.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2170
+# 033152.python.xlib.line3759.comment /usr/include/X11/Xlib.h:2170
 XCloseDisplay = _lib.XCloseDisplay
 XCloseDisplay.restype = c_int
 XCloseDisplay.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2174
+# 033153.python.xlib.line3764.comment /usr/include/X11/Xlib.h:2174
 XConfigureWindow = _lib.XConfigureWindow
 XConfigureWindow.restype = c_int
 XConfigureWindow.argtypes = [POINTER(Display), Window, c_uint, POINTER(XWindowChanges)]
 
-# /usr/include/X11/Xlib.h:2181
+# 033154.python.xlib.line3769.comment /usr/include/X11/Xlib.h:2181
 XConnectionNumber = _lib.XConnectionNumber
 XConnectionNumber.restype = c_int
 XConnectionNumber.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2185
+# 033155.python.xlib.line3774.comment /usr/include/X11/Xlib.h:2185
 XConvertSelection = _lib.XConvertSelection
 XConvertSelection.restype = c_int
 XConvertSelection.argtypes = [POINTER(Display), Atom, Atom, Atom, Window, Time]
 
-# /usr/include/X11/Xlib.h:2194
+# 033156.python.xlib.line3779.comment /usr/include/X11/Xlib.h:2194
 XCopyArea = _lib.XCopyArea
 XCopyArea.restype = c_int
 XCopyArea.argtypes = [POINTER(Display), Drawable, Drawable, GC, c_int, c_int, c_uint, c_uint, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2207
+# 033157.python.xlib.line3784.comment /usr/include/X11/Xlib.h:2207
 XCopyGC = _lib.XCopyGC
 XCopyGC.restype = c_int
 XCopyGC.argtypes = [POINTER(Display), GC, c_ulong, GC]
 
-# /usr/include/X11/Xlib.h:2214
+# 033158.python.xlib.line3789.comment /usr/include/X11/Xlib.h:2214
 XCopyPlane = _lib.XCopyPlane
 XCopyPlane.restype = c_int
 XCopyPlane.argtypes = [POINTER(Display), Drawable, Drawable, GC, c_int, c_int, c_uint, c_uint, c_int, c_int, c_ulong]
 
-# /usr/include/X11/Xlib.h:2228
+# 033159.python.xlib.line3794.comment /usr/include/X11/Xlib.h:2228
 XDefaultDepth = _lib.XDefaultDepth
 XDefaultDepth.restype = c_int
 XDefaultDepth.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2233
+# 033160.python.xlib.line3799.comment /usr/include/X11/Xlib.h:2233
 XDefaultDepthOfScreen = _lib.XDefaultDepthOfScreen
 XDefaultDepthOfScreen.restype = c_int
 XDefaultDepthOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2237
+# 033161.python.xlib.line3804.comment /usr/include/X11/Xlib.h:2237
 XDefaultScreen = _lib.XDefaultScreen
 XDefaultScreen.restype = c_int
 XDefaultScreen.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2241
+# 033162.python.xlib.line3809.comment /usr/include/X11/Xlib.h:2241
 XDefineCursor = _lib.XDefineCursor
 XDefineCursor.restype = c_int
 XDefineCursor.argtypes = [POINTER(Display), Window, Cursor]
 
-# /usr/include/X11/Xlib.h:2247
+# 033163.python.xlib.line3814.comment /usr/include/X11/Xlib.h:2247
 XDeleteProperty = _lib.XDeleteProperty
 XDeleteProperty.restype = c_int
 XDeleteProperty.argtypes = [POINTER(Display), Window, Atom]
 
-# /usr/include/X11/Xlib.h:2253
+# 033164.python.xlib.line3819.comment /usr/include/X11/Xlib.h:2253
 XDestroyWindow = _lib.XDestroyWindow
 XDestroyWindow.restype = c_int
 XDestroyWindow.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2258
+# 033165.python.xlib.line3824.comment /usr/include/X11/Xlib.h:2258
 XDestroySubwindows = _lib.XDestroySubwindows
 XDestroySubwindows.restype = c_int
 XDestroySubwindows.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2263
+# 033166.python.xlib.line3829.comment /usr/include/X11/Xlib.h:2263
 XDoesBackingStore = _lib.XDoesBackingStore
 XDoesBackingStore.restype = c_int
 XDoesBackingStore.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2267
+# 033167.python.xlib.line3834.comment /usr/include/X11/Xlib.h:2267
 XDoesSaveUnders = _lib.XDoesSaveUnders
 XDoesSaveUnders.restype = c_int
 XDoesSaveUnders.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2271
+# 033168.python.xlib.line3839.comment /usr/include/X11/Xlib.h:2271
 XDisableAccessControl = _lib.XDisableAccessControl
 XDisableAccessControl.restype = c_int
 XDisableAccessControl.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2276
+# 033169.python.xlib.line3844.comment /usr/include/X11/Xlib.h:2276
 XDisplayCells = _lib.XDisplayCells
 XDisplayCells.restype = c_int
 XDisplayCells.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2281
+# 033170.python.xlib.line3849.comment /usr/include/X11/Xlib.h:2281
 XDisplayHeight = _lib.XDisplayHeight
 XDisplayHeight.restype = c_int
 XDisplayHeight.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2286
+# 033171.python.xlib.line3854.comment /usr/include/X11/Xlib.h:2286
 XDisplayHeightMM = _lib.XDisplayHeightMM
 XDisplayHeightMM.restype = c_int
 XDisplayHeightMM.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2291
+# 033172.python.xlib.line3859.comment /usr/include/X11/Xlib.h:2291
 XDisplayKeycodes = _lib.XDisplayKeycodes
 XDisplayKeycodes.restype = c_int
 XDisplayKeycodes.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:2297
+# 033173.python.xlib.line3864.comment /usr/include/X11/Xlib.h:2297
 XDisplayPlanes = _lib.XDisplayPlanes
 XDisplayPlanes.restype = c_int
 XDisplayPlanes.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2302
+# 033174.python.xlib.line3869.comment /usr/include/X11/Xlib.h:2302
 XDisplayWidth = _lib.XDisplayWidth
 XDisplayWidth.restype = c_int
 XDisplayWidth.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2307
+# 033175.python.xlib.line3874.comment /usr/include/X11/Xlib.h:2307
 XDisplayWidthMM = _lib.XDisplayWidthMM
 XDisplayWidthMM.restype = c_int
 XDisplayWidthMM.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2312
+# 033176.python.xlib.line3879.comment /usr/include/X11/Xlib.h:2312
 XDrawArc = _lib.XDrawArc
 XDrawArc.restype = c_int
 XDrawArc.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_uint, c_uint, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2324
+# 033177.python.xlib.line3884.comment /usr/include/X11/Xlib.h:2324
 XDrawArcs = _lib.XDrawArcs
 XDrawArcs.restype = c_int
 XDrawArcs.argtypes = [POINTER(Display), Drawable, GC, POINTER(XArc), c_int]
 
-# /usr/include/X11/Xlib.h:2332
+# 033178.python.xlib.line3889.comment /usr/include/X11/Xlib.h:2332
 XDrawImageString = _lib.XDrawImageString
 XDrawImageString.restype = c_int
 XDrawImageString.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:2342
+# 033179.python.xlib.line3894.comment /usr/include/X11/Xlib.h:2342
 XDrawImageString16 = _lib.XDrawImageString16
 XDrawImageString16.restype = c_int
 XDrawImageString16.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XChar2b), c_int]
 
-# /usr/include/X11/Xlib.h:2352
+# 033180.python.xlib.line3899.comment /usr/include/X11/Xlib.h:2352
 XDrawLine = _lib.XDrawLine
 XDrawLine.restype = c_int
 XDrawLine.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2362
+# 033181.python.xlib.line3904.comment /usr/include/X11/Xlib.h:2362
 XDrawLines = _lib.XDrawLines
 XDrawLines.restype = c_int
 XDrawLines.argtypes = [POINTER(Display), Drawable, GC, POINTER(XPoint), c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2371
+# 033182.python.xlib.line3909.comment /usr/include/X11/Xlib.h:2371
 XDrawPoint = _lib.XDrawPoint
 XDrawPoint.restype = c_int
 XDrawPoint.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2379
+# 033183.python.xlib.line3914.comment /usr/include/X11/Xlib.h:2379
 XDrawPoints = _lib.XDrawPoints
 XDrawPoints.restype = c_int
 XDrawPoints.argtypes = [POINTER(Display), Drawable, GC, POINTER(XPoint), c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2388
+# 033184.python.xlib.line3919.comment /usr/include/X11/Xlib.h:2388
 XDrawRectangle = _lib.XDrawRectangle
 XDrawRectangle.restype = c_int
 XDrawRectangle.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:2398
+# 033185.python.xlib.line3924.comment /usr/include/X11/Xlib.h:2398
 XDrawRectangles = _lib.XDrawRectangles
 XDrawRectangles.restype = c_int
 XDrawRectangles.argtypes = [POINTER(Display), Drawable, GC, POINTER(XRectangle), c_int]
 
-# /usr/include/X11/Xlib.h:2406
+# 033186.python.xlib.line3929.comment /usr/include/X11/Xlib.h:2406
 XDrawSegments = _lib.XDrawSegments
 XDrawSegments.restype = c_int
 XDrawSegments.argtypes = [POINTER(Display), Drawable, GC, POINTER(XSegment), c_int]
 
-# /usr/include/X11/Xlib.h:2414
+# 033187.python.xlib.line3934.comment /usr/include/X11/Xlib.h:2414
 XDrawString = _lib.XDrawString
 XDrawString.restype = c_int
 XDrawString.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:2424
+# 033188.python.xlib.line3939.comment /usr/include/X11/Xlib.h:2424
 XDrawString16 = _lib.XDrawString16
 XDrawString16.restype = c_int
 XDrawString16.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XChar2b), c_int]
 
-# /usr/include/X11/Xlib.h:2434
+# 033189.python.xlib.line3944.comment /usr/include/X11/Xlib.h:2434
 XDrawText = _lib.XDrawText
 XDrawText.restype = c_int
 XDrawText.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XTextItem), c_int]
 
-# /usr/include/X11/Xlib.h:2444
+# 033190.python.xlib.line3949.comment /usr/include/X11/Xlib.h:2444
 XDrawText16 = _lib.XDrawText16
 XDrawText16.restype = c_int
 XDrawText16.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XTextItem16), c_int]
 
-# /usr/include/X11/Xlib.h:2454
+# 033191.python.xlib.line3954.comment /usr/include/X11/Xlib.h:2454
 XEnableAccessControl = _lib.XEnableAccessControl
 XEnableAccessControl.restype = c_int
 XEnableAccessControl.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2458
+# 033192.python.xlib.line3959.comment /usr/include/X11/Xlib.h:2458
 XEventsQueued = _lib.XEventsQueued
 XEventsQueued.restype = c_int
 XEventsQueued.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2463
+# 033193.python.xlib.line3964.comment /usr/include/X11/Xlib.h:2463
 XFetchName = _lib.XFetchName
 XFetchName.restype = c_int
 XFetchName.argtypes = [POINTER(Display), Window, POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:2469
+# 033194.python.xlib.line3969.comment /usr/include/X11/Xlib.h:2469
 XFillArc = _lib.XFillArc
 XFillArc.restype = c_int
 XFillArc.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_uint, c_uint, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2481
+# 033195.python.xlib.line3974.comment /usr/include/X11/Xlib.h:2481
 XFillArcs = _lib.XFillArcs
 XFillArcs.restype = c_int
 XFillArcs.argtypes = [POINTER(Display), Drawable, GC, POINTER(XArc), c_int]
 
-# /usr/include/X11/Xlib.h:2489
+# 033196.python.xlib.line3979.comment /usr/include/X11/Xlib.h:2489
 XFillPolygon = _lib.XFillPolygon
 XFillPolygon.restype = c_int
 XFillPolygon.argtypes = [POINTER(Display), Drawable, GC, POINTER(XPoint), c_int, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2499
+# 033197.python.xlib.line3984.comment /usr/include/X11/Xlib.h:2499
 XFillRectangle = _lib.XFillRectangle
 XFillRectangle.restype = c_int
 XFillRectangle.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:2509
+# 033198.python.xlib.line3989.comment /usr/include/X11/Xlib.h:2509
 XFillRectangles = _lib.XFillRectangles
 XFillRectangles.restype = c_int
 XFillRectangles.argtypes = [POINTER(Display), Drawable, GC, POINTER(XRectangle), c_int]
 
-# /usr/include/X11/Xlib.h:2517
+# 033199.python.xlib.line3994.comment /usr/include/X11/Xlib.h:2517
 XFlush = _lib.XFlush
 XFlush.restype = c_int
 XFlush.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2521
+# 033200.python.xlib.line3999.comment /usr/include/X11/Xlib.h:2521
 XForceScreenSaver = _lib.XForceScreenSaver
 XForceScreenSaver.restype = c_int
 XForceScreenSaver.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:2526
+# 033201.python.xlib.line4004.comment /usr/include/X11/Xlib.h:2526
 XFree = _lib.XFree
 XFree.restype = c_int
 XFree.argtypes = [POINTER(None)]
 
-# /usr/include/X11/Xlib.h:2530
+# 033202.python.xlib.line4009.comment /usr/include/X11/Xlib.h:2530
 XFreeColormap = _lib.XFreeColormap
 XFreeColormap.restype = c_int
 XFreeColormap.argtypes = [POINTER(Display), Colormap]
 
-# /usr/include/X11/Xlib.h:2535
+# 033203.python.xlib.line4014.comment /usr/include/X11/Xlib.h:2535
 XFreeColors = _lib.XFreeColors
 XFreeColors.restype = c_int
 XFreeColors.argtypes = [POINTER(Display), Colormap, POINTER(c_ulong), c_int, c_ulong]
 
-# /usr/include/X11/Xlib.h:2543
+# 033204.python.xlib.line4019.comment /usr/include/X11/Xlib.h:2543
 XFreeCursor = _lib.XFreeCursor
 XFreeCursor.restype = c_int
 XFreeCursor.argtypes = [POINTER(Display), Cursor]
 
-# /usr/include/X11/Xlib.h:2548
+# 033205.python.xlib.line4024.comment /usr/include/X11/Xlib.h:2548
 XFreeExtensionList = _lib.XFreeExtensionList
 XFreeExtensionList.restype = c_int
 XFreeExtensionList.argtypes = [POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:2552
+# 033206.python.xlib.line4029.comment /usr/include/X11/Xlib.h:2552
 XFreeFont = _lib.XFreeFont
 XFreeFont.restype = c_int
 XFreeFont.argtypes = [POINTER(Display), POINTER(XFontStruct)]
 
-# /usr/include/X11/Xlib.h:2557
+# 033207.python.xlib.line4034.comment /usr/include/X11/Xlib.h:2557
 XFreeFontInfo = _lib.XFreeFontInfo
 XFreeFontInfo.restype = c_int
 XFreeFontInfo.argtypes = [POINTER(c_char_p), POINTER(XFontStruct), c_int]
 
-# /usr/include/X11/Xlib.h:2563
+# 033208.python.xlib.line4039.comment /usr/include/X11/Xlib.h:2563
 XFreeFontNames = _lib.XFreeFontNames
 XFreeFontNames.restype = c_int
 XFreeFontNames.argtypes = [POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:2567
+# 033209.python.xlib.line4044.comment /usr/include/X11/Xlib.h:2567
 XFreeFontPath = _lib.XFreeFontPath
 XFreeFontPath.restype = c_int
 XFreeFontPath.argtypes = [POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:2571
+# 033210.python.xlib.line4049.comment /usr/include/X11/Xlib.h:2571
 XFreeGC = _lib.XFreeGC
 XFreeGC.restype = c_int
 XFreeGC.argtypes = [POINTER(Display), GC]
 
-# /usr/include/X11/Xlib.h:2576
+# 033211.python.xlib.line4054.comment /usr/include/X11/Xlib.h:2576
 XFreeModifiermap = _lib.XFreeModifiermap
 XFreeModifiermap.restype = c_int
 XFreeModifiermap.argtypes = [POINTER(XModifierKeymap)]
 
-# /usr/include/X11/Xlib.h:2580
+# 033212.python.xlib.line4059.comment /usr/include/X11/Xlib.h:2580
 XFreePixmap = _lib.XFreePixmap
 XFreePixmap.restype = c_int
 XFreePixmap.argtypes = [POINTER(Display), Pixmap]
 
-# /usr/include/X11/Xlib.h:2585
+# 033213.python.xlib.line4064.comment /usr/include/X11/Xlib.h:2585
 XGeometry = _lib.XGeometry
 XGeometry.restype = c_int
 XGeometry.argtypes = [POINTER(Display), c_int, c_char_p, c_char_p, c_uint, c_uint, c_uint, c_int, c_int, POINTER(c_int),
                       POINTER(c_int), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:2601
+# 033214.python.xlib.line4070.comment /usr/include/X11/Xlib.h:2601
 XGetErrorDatabaseText = _lib.XGetErrorDatabaseText
 XGetErrorDatabaseText.restype = c_int
 XGetErrorDatabaseText.argtypes = [POINTER(Display), c_char_p, c_char_p, c_char_p, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:2610
+# 033215.python.xlib.line4075.comment /usr/include/X11/Xlib.h:2610
 XGetErrorText = _lib.XGetErrorText
 XGetErrorText.restype = c_int
 XGetErrorText.argtypes = [POINTER(Display), c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:2617
+# 033216.python.xlib.line4080.comment /usr/include/X11/Xlib.h:2617
 XGetFontProperty = _lib.XGetFontProperty
 XGetFontProperty.restype = c_int
 XGetFontProperty.argtypes = [POINTER(XFontStruct), Atom, POINTER(c_ulong)]
 
-# /usr/include/X11/Xlib.h:2623
+# 033217.python.xlib.line4085.comment /usr/include/X11/Xlib.h:2623
 XGetGCValues = _lib.XGetGCValues
 XGetGCValues.restype = c_int
 XGetGCValues.argtypes = [POINTER(Display), GC, c_ulong, POINTER(XGCValues)]
 
-# /usr/include/X11/Xlib.h:2630
+# 033218.python.xlib.line4090.comment /usr/include/X11/Xlib.h:2630
 XGetGeometry = _lib.XGetGeometry
 XGetGeometry.restype = c_int
 XGetGeometry.argtypes = [POINTER(Display), Drawable, POINTER(Window), POINTER(c_int), POINTER(c_int), POINTER(c_uint),
                          POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:2642
+# 033219.python.xlib.line4096.comment /usr/include/X11/Xlib.h:2642
 XGetIconName = _lib.XGetIconName
 XGetIconName.restype = c_int
 XGetIconName.argtypes = [POINTER(Display), Window, POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:2648
+# 033220.python.xlib.line4101.comment /usr/include/X11/Xlib.h:2648
 XGetInputFocus = _lib.XGetInputFocus
 XGetInputFocus.restype = c_int
 XGetInputFocus.argtypes = [POINTER(Display), POINTER(Window), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:2654
+# 033221.python.xlib.line4106.comment /usr/include/X11/Xlib.h:2654
 XGetKeyboardControl = _lib.XGetKeyboardControl
 XGetKeyboardControl.restype = c_int
 XGetKeyboardControl.argtypes = [POINTER(Display), POINTER(XKeyboardState)]
 
-# /usr/include/X11/Xlib.h:2659
+# 033222.python.xlib.line4111.comment /usr/include/X11/Xlib.h:2659
 XGetPointerControl = _lib.XGetPointerControl
 XGetPointerControl.restype = c_int
 XGetPointerControl.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:2666
+# 033223.python.xlib.line4116.comment /usr/include/X11/Xlib.h:2666
 XGetPointerMapping = _lib.XGetPointerMapping
 XGetPointerMapping.restype = c_int
 XGetPointerMapping.argtypes = [POINTER(Display), POINTER(c_ubyte), c_int]
 
-# /usr/include/X11/Xlib.h:2672
+# 033224.python.xlib.line4121.comment /usr/include/X11/Xlib.h:2672
 XGetScreenSaver = _lib.XGetScreenSaver
 XGetScreenSaver.restype = c_int
 XGetScreenSaver.argtypes = [POINTER(Display), POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:2680
+# 033225.python.xlib.line4126.comment /usr/include/X11/Xlib.h:2680
 XGetTransientForHint = _lib.XGetTransientForHint
 XGetTransientForHint.restype = c_int
 XGetTransientForHint.argtypes = [POINTER(Display), Window, POINTER(Window)]
 
-# /usr/include/X11/Xlib.h:2686
+# 033226.python.xlib.line4131.comment /usr/include/X11/Xlib.h:2686
 XGetWindowProperty = _lib.XGetWindowProperty
 XGetWindowProperty.restype = c_int
 XGetWindowProperty.argtypes = [POINTER(Display), Window, Atom, c_long, c_long, c_int, Atom, POINTER(Atom),
                                POINTER(c_int), POINTER(c_ulong), POINTER(c_ulong), POINTER(POINTER(c_ubyte))]
 
-# /usr/include/X11/Xlib.h:2701
+# 033227.python.xlib.line4137.comment /usr/include/X11/Xlib.h:2701
 XGetWindowAttributes = _lib.XGetWindowAttributes
 XGetWindowAttributes.restype = c_int
 XGetWindowAttributes.argtypes = [POINTER(Display), Window, POINTER(XWindowAttributes)]
 
-# /usr/include/X11/Xlib.h:2707
+# 033228.python.xlib.line4142.comment /usr/include/X11/Xlib.h:2707
 XGrabButton = _lib.XGrabButton
 XGrabButton.restype = c_int
 XGrabButton.argtypes = [POINTER(Display), c_uint, c_uint, Window, c_int, c_uint, c_int, c_int, Window, Cursor]
 
-# /usr/include/X11/Xlib.h:2720
+# 033229.python.xlib.line4147.comment /usr/include/X11/Xlib.h:2720
 XGrabKey = _lib.XGrabKey
 XGrabKey.restype = c_int
 XGrabKey.argtypes = [POINTER(Display), c_int, c_uint, Window, c_int, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2730
+# 033230.python.xlib.line4152.comment /usr/include/X11/Xlib.h:2730
 XGrabKeyboard = _lib.XGrabKeyboard
 XGrabKeyboard.restype = c_int
 XGrabKeyboard.argtypes = [POINTER(Display), Window, c_int, c_int, c_int, Time]
 
-# /usr/include/X11/Xlib.h:2739
+# 033231.python.xlib.line4157.comment /usr/include/X11/Xlib.h:2739
 XGrabPointer = _lib.XGrabPointer
 XGrabPointer.restype = c_int
 XGrabPointer.argtypes = [POINTER(Display), Window, c_int, c_uint, c_int, c_int, Window, Cursor, Time]
 
-# /usr/include/X11/Xlib.h:2751
+# 033232.python.xlib.line4162.comment /usr/include/X11/Xlib.h:2751
 XGrabServer = _lib.XGrabServer
 XGrabServer.restype = c_int
 XGrabServer.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2755
+# 033233.python.xlib.line4167.comment /usr/include/X11/Xlib.h:2755
 XHeightMMOfScreen = _lib.XHeightMMOfScreen
 XHeightMMOfScreen.restype = c_int
 XHeightMMOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2759
+# 033234.python.xlib.line4172.comment /usr/include/X11/Xlib.h:2759
 XHeightOfScreen = _lib.XHeightOfScreen
 XHeightOfScreen.restype = c_int
 XHeightOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2763
+# 033235.python.xlib.line4177.comment /usr/include/X11/Xlib.h:2763
 XIfEvent = _lib.XIfEvent
 XIfEvent.restype = c_int
 XIfEvent.argtypes = [POINTER(Display), POINTER(XEvent), CFUNCTYPE(c_int, POINTER(Display), POINTER(XEvent), XPointer),
                      XPointer]
 
-# /usr/include/X11/Xlib.h:2774
+# 033236.python.xlib.line4183.comment /usr/include/X11/Xlib.h:2774
 XImageByteOrder = _lib.XImageByteOrder
 XImageByteOrder.restype = c_int
 XImageByteOrder.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2778
+# 033237.python.xlib.line4188.comment /usr/include/X11/Xlib.h:2778
 XInstallColormap = _lib.XInstallColormap
 XInstallColormap.restype = c_int
 XInstallColormap.argtypes = [POINTER(Display), Colormap]
 
-# /usr/include/X11/Xlib.h:2783
+# 033238.python.xlib.line4193.comment /usr/include/X11/Xlib.h:2783
 XKeysymToKeycode = _lib.XKeysymToKeycode
 XKeysymToKeycode.restype = KeyCode
 XKeysymToKeycode.argtypes = [POINTER(Display), KeySym]
 
-# /usr/include/X11/Xlib.h:2788
+# 033239.python.xlib.line4198.comment /usr/include/X11/Xlib.h:2788
 XKillClient = _lib.XKillClient
 XKillClient.restype = c_int
 XKillClient.argtypes = [POINTER(Display), XID]
 
-# /usr/include/X11/Xlib.h:2793
+# 033240.python.xlib.line4203.comment /usr/include/X11/Xlib.h:2793
 XLookupColor = _lib.XLookupColor
 XLookupColor.restype = c_int
 XLookupColor.argtypes = [POINTER(Display), Colormap, c_char_p, POINTER(XColor), POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:2801
+# 033241.python.xlib.line4208.comment /usr/include/X11/Xlib.h:2801
 XLowerWindow = _lib.XLowerWindow
 XLowerWindow.restype = c_int
 XLowerWindow.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2806
+# 033242.python.xlib.line4213.comment /usr/include/X11/Xlib.h:2806
 XMapRaised = _lib.XMapRaised
 XMapRaised.restype = c_int
 XMapRaised.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2811
+# 033243.python.xlib.line4218.comment /usr/include/X11/Xlib.h:2811
 XMapSubwindows = _lib.XMapSubwindows
 XMapSubwindows.restype = c_int
 XMapSubwindows.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2816
+# 033244.python.xlib.line4223.comment /usr/include/X11/Xlib.h:2816
 XMapWindow = _lib.XMapWindow
 XMapWindow.restype = c_int
 XMapWindow.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:2821
+# 033245.python.xlib.line4228.comment /usr/include/X11/Xlib.h:2821
 XMaskEvent = _lib.XMaskEvent
 XMaskEvent.restype = c_int
 XMaskEvent.argtypes = [POINTER(Display), c_long, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2827
+# 033246.python.xlib.line4233.comment /usr/include/X11/Xlib.h:2827
 XMaxCmapsOfScreen = _lib.XMaxCmapsOfScreen
 XMaxCmapsOfScreen.restype = c_int
 XMaxCmapsOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2831
+# 033247.python.xlib.line4238.comment /usr/include/X11/Xlib.h:2831
 XMinCmapsOfScreen = _lib.XMinCmapsOfScreen
 XMinCmapsOfScreen.restype = c_int
 XMinCmapsOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2835
+# 033248.python.xlib.line4243.comment /usr/include/X11/Xlib.h:2835
 XMoveResizeWindow = _lib.XMoveResizeWindow
 XMoveResizeWindow.restype = c_int
 XMoveResizeWindow.argtypes = [POINTER(Display), Window, c_int, c_int, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:2844
+# 033249.python.xlib.line4248.comment /usr/include/X11/Xlib.h:2844
 XMoveWindow = _lib.XMoveWindow
 XMoveWindow.restype = c_int
 XMoveWindow.argtypes = [POINTER(Display), Window, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:2851
+# 033250.python.xlib.line4253.comment /usr/include/X11/Xlib.h:2851
 XNextEvent = _lib.XNextEvent
 XNextEvent.restype = c_int
 XNextEvent.argtypes = [POINTER(Display), POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2856
+# 033251.python.xlib.line4258.comment /usr/include/X11/Xlib.h:2856
 XNoOp = _lib.XNoOp
 XNoOp.restype = c_int
 XNoOp.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2860
+# 033252.python.xlib.line4263.comment /usr/include/X11/Xlib.h:2860
 XParseColor = _lib.XParseColor
 XParseColor.restype = c_int
 XParseColor.argtypes = [POINTER(Display), Colormap, c_char_p, POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:2867
+# 033253.python.xlib.line4268.comment /usr/include/X11/Xlib.h:2867
 XParseGeometry = _lib.XParseGeometry
 XParseGeometry.restype = c_int
 XParseGeometry.argtypes = [c_char_p, POINTER(c_int), POINTER(c_int), POINTER(c_uint), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:2875
+# 033254.python.xlib.line4273.comment /usr/include/X11/Xlib.h:2875
 XPeekEvent = _lib.XPeekEvent
 XPeekEvent.restype = c_int
 XPeekEvent.argtypes = [POINTER(Display), POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2880
+# 033255.python.xlib.line4278.comment /usr/include/X11/Xlib.h:2880
 XPeekIfEvent = _lib.XPeekIfEvent
 XPeekIfEvent.restype = c_int
 XPeekIfEvent.argtypes = [POINTER(Display), POINTER(XEvent),
                          CFUNCTYPE(c_int, POINTER(Display), POINTER(XEvent), XPointer), XPointer]
 
-# /usr/include/X11/Xlib.h:2891
+# 033256.python.xlib.line4284.comment /usr/include/X11/Xlib.h:2891
 XPending = _lib.XPending
 XPending.restype = c_int
 XPending.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2895
+# 033257.python.xlib.line4289.comment /usr/include/X11/Xlib.h:2895
 XPlanesOfScreen = _lib.XPlanesOfScreen
 XPlanesOfScreen.restype = c_int
 XPlanesOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:2899
+# 033258.python.xlib.line4294.comment /usr/include/X11/Xlib.h:2899
 XProtocolRevision = _lib.XProtocolRevision
 XProtocolRevision.restype = c_int
 XProtocolRevision.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2903
+# 033259.python.xlib.line4299.comment /usr/include/X11/Xlib.h:2903
 XProtocolVersion = _lib.XProtocolVersion
 XProtocolVersion.restype = c_int
 XProtocolVersion.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2908
+# 033260.python.xlib.line4304.comment /usr/include/X11/Xlib.h:2908
 XPutBackEvent = _lib.XPutBackEvent
 XPutBackEvent.restype = c_int
 XPutBackEvent.argtypes = [POINTER(Display), POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:2913
+# 033261.python.xlib.line4309.comment /usr/include/X11/Xlib.h:2913
 XPutImage = _lib.XPutImage
 XPutImage.restype = c_int
 XPutImage.argtypes = [POINTER(Display), Drawable, GC, POINTER(XImage), c_int, c_int, c_int, c_int, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:2926
+# 033262.python.xlib.line4314.comment /usr/include/X11/Xlib.h:2926
 XQLength = _lib.XQLength
 XQLength.restype = c_int
 XQLength.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:2930
+# 033263.python.xlib.line4319.comment /usr/include/X11/Xlib.h:2930
 XQueryBestCursor = _lib.XQueryBestCursor
 XQueryBestCursor.restype = c_int
 XQueryBestCursor.argtypes = [POINTER(Display), Drawable, c_uint, c_uint, POINTER(c_uint), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:2939
+# 033264.python.xlib.line4324.comment /usr/include/X11/Xlib.h:2939
 XQueryBestSize = _lib.XQueryBestSize
 XQueryBestSize.restype = c_int
 XQueryBestSize.argtypes = [POINTER(Display), c_int, Drawable, c_uint, c_uint, POINTER(c_uint), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:2949
+# 033265.python.xlib.line4329.comment /usr/include/X11/Xlib.h:2949
 XQueryBestStipple = _lib.XQueryBestStipple
 XQueryBestStipple.restype = c_int
 XQueryBestStipple.argtypes = [POINTER(Display), Drawable, c_uint, c_uint, POINTER(c_uint), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:2958
+# 033266.python.xlib.line4334.comment /usr/include/X11/Xlib.h:2958
 XQueryBestTile = _lib.XQueryBestTile
 XQueryBestTile.restype = c_int
 XQueryBestTile.argtypes = [POINTER(Display), Drawable, c_uint, c_uint, POINTER(c_uint), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:2967
+# 033267.python.xlib.line4339.comment /usr/include/X11/Xlib.h:2967
 XQueryColor = _lib.XQueryColor
 XQueryColor.restype = c_int
 XQueryColor.argtypes = [POINTER(Display), Colormap, POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:2973
+# 033268.python.xlib.line4344.comment /usr/include/X11/Xlib.h:2973
 XQueryColors = _lib.XQueryColors
 XQueryColors.restype = c_int
 XQueryColors.argtypes = [POINTER(Display), Colormap, POINTER(XColor), c_int]
 
-# /usr/include/X11/Xlib.h:2980
+# 033269.python.xlib.line4349.comment /usr/include/X11/Xlib.h:2980
 XQueryExtension = _lib.XQueryExtension
 XQueryExtension.restype = c_int
 XQueryExtension.argtypes = [POINTER(Display), c_char_p, POINTER(c_int), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:2988
+# 033270.python.xlib.line4354.comment /usr/include/X11/Xlib.h:2988
 XQueryKeymap = _lib.XQueryKeymap
 XQueryKeymap.restype = c_int
 XQueryKeymap.argtypes = [POINTER(Display), c_char * 32]
 
-# /usr/include/X11/Xlib.h:2993
+# 033271.python.xlib.line4359.comment /usr/include/X11/Xlib.h:2993
 XQueryPointer = _lib.XQueryPointer
 XQueryPointer.restype = c_int
 XQueryPointer.argtypes = [POINTER(Display), Window, POINTER(Window), POINTER(Window), POINTER(c_int), POINTER(c_int),
                           POINTER(c_int), POINTER(c_int), POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:3005
+# 033272.python.xlib.line4365.comment /usr/include/X11/Xlib.h:3005
 XQueryTextExtents = _lib.XQueryTextExtents
 XQueryTextExtents.restype = c_int
 XQueryTextExtents.argtypes = [POINTER(Display), XID, c_char_p, c_int, POINTER(c_int), POINTER(c_int), POINTER(c_int),
                               POINTER(XCharStruct)]
 
-# /usr/include/X11/Xlib.h:3016
+# 033273.python.xlib.line4371.comment /usr/include/X11/Xlib.h:3016
 XQueryTextExtents16 = _lib.XQueryTextExtents16
 XQueryTextExtents16.restype = c_int
 XQueryTextExtents16.argtypes = [POINTER(Display), XID, POINTER(XChar2b), c_int, POINTER(c_int), POINTER(c_int),
                                 POINTER(c_int), POINTER(XCharStruct)]
 
-# /usr/include/X11/Xlib.h:3027
+# 033274.python.xlib.line4377.comment /usr/include/X11/Xlib.h:3027
 XQueryTree = _lib.XQueryTree
 XQueryTree.restype = c_int
 XQueryTree.argtypes = [POINTER(Display), Window, POINTER(Window), POINTER(Window), POINTER(POINTER(Window)),
                        POINTER(c_uint)]
 
-# /usr/include/X11/Xlib.h:3036
+# 033275.python.xlib.line4383.comment /usr/include/X11/Xlib.h:3036
 XRaiseWindow = _lib.XRaiseWindow
 XRaiseWindow.restype = c_int
 XRaiseWindow.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:3041
+# 033276.python.xlib.line4388.comment /usr/include/X11/Xlib.h:3041
 XReadBitmapFile = _lib.XReadBitmapFile
 XReadBitmapFile.restype = c_int
 XReadBitmapFile.argtypes = [POINTER(Display), Drawable, c_char_p, POINTER(c_uint), POINTER(c_uint), POINTER(Pixmap),
                             POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:3052
+# 033277.python.xlib.line4394.comment /usr/include/X11/Xlib.h:3052
 XReadBitmapFileData = _lib.XReadBitmapFileData
 XReadBitmapFileData.restype = c_int
 XReadBitmapFileData.argtypes = [c_char_p, POINTER(c_uint), POINTER(c_uint), POINTER(POINTER(c_ubyte)), POINTER(c_int),
                                 POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:3061
+# 033278.python.xlib.line4400.comment /usr/include/X11/Xlib.h:3061
 XRebindKeysym = _lib.XRebindKeysym
 XRebindKeysym.restype = c_int
 XRebindKeysym.argtypes = [POINTER(Display), KeySym, POINTER(KeySym), c_int, POINTER(c_ubyte), c_int]
 
-# /usr/include/X11/Xlib.h:3070
+# 033279.python.xlib.line4405.comment /usr/include/X11/Xlib.h:3070
 XRecolorCursor = _lib.XRecolorCursor
 XRecolorCursor.restype = c_int
 XRecolorCursor.argtypes = [POINTER(Display), Cursor, POINTER(XColor), POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:3077
+# 033280.python.xlib.line4410.comment /usr/include/X11/Xlib.h:3077
 XRefreshKeyboardMapping = _lib.XRefreshKeyboardMapping
 XRefreshKeyboardMapping.restype = c_int
 XRefreshKeyboardMapping.argtypes = [POINTER(XMappingEvent)]
 
-# /usr/include/X11/Xlib.h:3081
+# 033281.python.xlib.line4415.comment /usr/include/X11/Xlib.h:3081
 XRemoveFromSaveSet = _lib.XRemoveFromSaveSet
 XRemoveFromSaveSet.restype = c_int
 XRemoveFromSaveSet.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:3086
+# 033282.python.xlib.line4420.comment /usr/include/X11/Xlib.h:3086
 XRemoveHost = _lib.XRemoveHost
 XRemoveHost.restype = c_int
 XRemoveHost.argtypes = [POINTER(Display), POINTER(XHostAddress)]
 
-# /usr/include/X11/Xlib.h:3091
+# 033283.python.xlib.line4425.comment /usr/include/X11/Xlib.h:3091
 XRemoveHosts = _lib.XRemoveHosts
 XRemoveHosts.restype = c_int
 XRemoveHosts.argtypes = [POINTER(Display), POINTER(XHostAddress), c_int]
 
-# /usr/include/X11/Xlib.h:3097
+# 033284.python.xlib.line4430.comment /usr/include/X11/Xlib.h:3097
 XReparentWindow = _lib.XReparentWindow
 XReparentWindow.restype = c_int
 XReparentWindow.argtypes = [POINTER(Display), Window, Window, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3105
+# 033285.python.xlib.line4435.comment /usr/include/X11/Xlib.h:3105
 XResetScreenSaver = _lib.XResetScreenSaver
 XResetScreenSaver.restype = c_int
 XResetScreenSaver.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:3109
+# 033286.python.xlib.line4440.comment /usr/include/X11/Xlib.h:3109
 XResizeWindow = _lib.XResizeWindow
 XResizeWindow.restype = c_int
 XResizeWindow.argtypes = [POINTER(Display), Window, c_uint, c_uint]
 
-# /usr/include/X11/Xlib.h:3116
+# 033287.python.xlib.line4445.comment /usr/include/X11/Xlib.h:3116
 XRestackWindows = _lib.XRestackWindows
 XRestackWindows.restype = c_int
 XRestackWindows.argtypes = [POINTER(Display), POINTER(Window), c_int]
 
-# /usr/include/X11/Xlib.h:3122
+# 033288.python.xlib.line4450.comment /usr/include/X11/Xlib.h:3122
 XRotateBuffers = _lib.XRotateBuffers
 XRotateBuffers.restype = c_int
 XRotateBuffers.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:3127
+# 033289.python.xlib.line4455.comment /usr/include/X11/Xlib.h:3127
 XRotateWindowProperties = _lib.XRotateWindowProperties
 XRotateWindowProperties.restype = c_int
 XRotateWindowProperties.argtypes = [POINTER(Display), Window, POINTER(Atom), c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3135
+# 033290.python.xlib.line4460.comment /usr/include/X11/Xlib.h:3135
 XScreenCount = _lib.XScreenCount
 XScreenCount.restype = c_int
 XScreenCount.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:3139
+# 033291.python.xlib.line4465.comment /usr/include/X11/Xlib.h:3139
 XSelectInput = _lib.XSelectInput
 XSelectInput.restype = c_int
 XSelectInput.argtypes = [POINTER(Display), Window, c_long]
 
-# /usr/include/X11/Xlib.h:3145
+# 033292.python.xlib.line4470.comment /usr/include/X11/Xlib.h:3145
 XSendEvent = _lib.XSendEvent
 XSendEvent.restype = c_int
 XSendEvent.argtypes = [POINTER(Display), Window, c_int, c_long, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:3153
+# 033293.python.xlib.line4475.comment /usr/include/X11/Xlib.h:3153
 XSetAccessControl = _lib.XSetAccessControl
 XSetAccessControl.restype = c_int
 XSetAccessControl.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:3158
+# 033294.python.xlib.line4480.comment /usr/include/X11/Xlib.h:3158
 XSetArcMode = _lib.XSetArcMode
 XSetArcMode.restype = c_int
 XSetArcMode.argtypes = [POINTER(Display), GC, c_int]
 
-# /usr/include/X11/Xlib.h:3164
+# 033295.python.xlib.line4485.comment /usr/include/X11/Xlib.h:3164
 XSetBackground = _lib.XSetBackground
 XSetBackground.restype = c_int
 XSetBackground.argtypes = [POINTER(Display), GC, c_ulong]
 
-# /usr/include/X11/Xlib.h:3170
+# 033296.python.xlib.line4490.comment /usr/include/X11/Xlib.h:3170
 XSetClipMask = _lib.XSetClipMask
 XSetClipMask.restype = c_int
 XSetClipMask.argtypes = [POINTER(Display), GC, Pixmap]
 
-# /usr/include/X11/Xlib.h:3176
+# 033297.python.xlib.line4495.comment /usr/include/X11/Xlib.h:3176
 XSetClipOrigin = _lib.XSetClipOrigin
 XSetClipOrigin.restype = c_int
 XSetClipOrigin.argtypes = [POINTER(Display), GC, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3183
+# 033298.python.xlib.line4500.comment /usr/include/X11/Xlib.h:3183
 XSetClipRectangles = _lib.XSetClipRectangles
 XSetClipRectangles.restype = c_int
 XSetClipRectangles.argtypes = [POINTER(Display), GC, c_int, c_int, POINTER(XRectangle), c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3193
+# 033299.python.xlib.line4505.comment /usr/include/X11/Xlib.h:3193
 XSetCloseDownMode = _lib.XSetCloseDownMode
 XSetCloseDownMode.restype = c_int
 XSetCloseDownMode.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:3198
+# 033300.python.xlib.line4510.comment /usr/include/X11/Xlib.h:3198
 XSetCommand = _lib.XSetCommand
 XSetCommand.restype = c_int
 XSetCommand.argtypes = [POINTER(Display), Window, POINTER(c_char_p), c_int]
 
-# /usr/include/X11/Xlib.h:3205
+# 033301.python.xlib.line4515.comment /usr/include/X11/Xlib.h:3205
 XSetDashes = _lib.XSetDashes
 XSetDashes.restype = c_int
 XSetDashes.argtypes = [POINTER(Display), GC, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3213
+# 033302.python.xlib.line4520.comment /usr/include/X11/Xlib.h:3213
 XSetFillRule = _lib.XSetFillRule
 XSetFillRule.restype = c_int
 XSetFillRule.argtypes = [POINTER(Display), GC, c_int]
 
-# /usr/include/X11/Xlib.h:3219
+# 033303.python.xlib.line4525.comment /usr/include/X11/Xlib.h:3219
 XSetFillStyle = _lib.XSetFillStyle
 XSetFillStyle.restype = c_int
 XSetFillStyle.argtypes = [POINTER(Display), GC, c_int]
 
-# /usr/include/X11/Xlib.h:3225
+# 033304.python.xlib.line4530.comment /usr/include/X11/Xlib.h:3225
 XSetFont = _lib.XSetFont
 XSetFont.restype = c_int
 XSetFont.argtypes = [POINTER(Display), GC, Font]
 
-# /usr/include/X11/Xlib.h:3231
+# 033305.python.xlib.line4535.comment /usr/include/X11/Xlib.h:3231
 XSetFontPath = _lib.XSetFontPath
 XSetFontPath.restype = c_int
 XSetFontPath.argtypes = [POINTER(Display), POINTER(c_char_p), c_int]
 
-# /usr/include/X11/Xlib.h:3237
+# 033306.python.xlib.line4540.comment /usr/include/X11/Xlib.h:3237
 XSetForeground = _lib.XSetForeground
 XSetForeground.restype = c_int
 XSetForeground.argtypes = [POINTER(Display), GC, c_ulong]
 
-# /usr/include/X11/Xlib.h:3243
+# 033307.python.xlib.line4545.comment /usr/include/X11/Xlib.h:3243
 XSetFunction = _lib.XSetFunction
 XSetFunction.restype = c_int
 XSetFunction.argtypes = [POINTER(Display), GC, c_int]
 
-# /usr/include/X11/Xlib.h:3249
+# 033308.python.xlib.line4550.comment /usr/include/X11/Xlib.h:3249
 XSetGraphicsExposures = _lib.XSetGraphicsExposures
 XSetGraphicsExposures.restype = c_int
 XSetGraphicsExposures.argtypes = [POINTER(Display), GC, c_int]
 
-# /usr/include/X11/Xlib.h:3255
+# 033309.python.xlib.line4555.comment /usr/include/X11/Xlib.h:3255
 XSetIconName = _lib.XSetIconName
 XSetIconName.restype = c_int
 XSetIconName.argtypes = [POINTER(Display), Window, c_char_p]
 
-# /usr/include/X11/Xlib.h:3261
+# 033310.python.xlib.line4560.comment /usr/include/X11/Xlib.h:3261
 XSetInputFocus = _lib.XSetInputFocus
 XSetInputFocus.restype = c_int
 XSetInputFocus.argtypes = [POINTER(Display), Window, c_int, Time]
 
-# /usr/include/X11/Xlib.h:3268
+# 033311.python.xlib.line4565.comment /usr/include/X11/Xlib.h:3268
 XSetLineAttributes = _lib.XSetLineAttributes
 XSetLineAttributes.restype = c_int
 XSetLineAttributes.argtypes = [POINTER(Display), GC, c_uint, c_int, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3277
+# 033312.python.xlib.line4570.comment /usr/include/X11/Xlib.h:3277
 XSetModifierMapping = _lib.XSetModifierMapping
 XSetModifierMapping.restype = c_int
 XSetModifierMapping.argtypes = [POINTER(Display), POINTER(XModifierKeymap)]
 
-# /usr/include/X11/Xlib.h:3282
+# 033313.python.xlib.line4575.comment /usr/include/X11/Xlib.h:3282
 XSetPlaneMask = _lib.XSetPlaneMask
 XSetPlaneMask.restype = c_int
 XSetPlaneMask.argtypes = [POINTER(Display), GC, c_ulong]
 
-# /usr/include/X11/Xlib.h:3288
+# 033314.python.xlib.line4580.comment /usr/include/X11/Xlib.h:3288
 XSetPointerMapping = _lib.XSetPointerMapping
 XSetPointerMapping.restype = c_int
 XSetPointerMapping.argtypes = [POINTER(Display), POINTER(c_ubyte), c_int]
 
-# /usr/include/X11/Xlib.h:3294
+# 033315.python.xlib.line4585.comment /usr/include/X11/Xlib.h:3294
 XSetScreenSaver = _lib.XSetScreenSaver
 XSetScreenSaver.restype = c_int
 XSetScreenSaver.argtypes = [POINTER(Display), c_int, c_int, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3302
+# 033316.python.xlib.line4590.comment /usr/include/X11/Xlib.h:3302
 XSetSelectionOwner = _lib.XSetSelectionOwner
 XSetSelectionOwner.restype = c_int
 XSetSelectionOwner.argtypes = [POINTER(Display), Atom, Window, Time]
 
-# /usr/include/X11/Xlib.h:3309
+# 033317.python.xlib.line4595.comment /usr/include/X11/Xlib.h:3309
 XSetState = _lib.XSetState
 XSetState.restype = c_int
 XSetState.argtypes = [POINTER(Display), GC, c_ulong, c_ulong, c_int, c_ulong]
 
-# /usr/include/X11/Xlib.h:3318
+# 033318.python.xlib.line4600.comment /usr/include/X11/Xlib.h:3318
 XSetStipple = _lib.XSetStipple
 XSetStipple.restype = c_int
 XSetStipple.argtypes = [POINTER(Display), GC, Pixmap]
 
-# /usr/include/X11/Xlib.h:3324
+# 033319.python.xlib.line4605.comment /usr/include/X11/Xlib.h:3324
 XSetSubwindowMode = _lib.XSetSubwindowMode
 XSetSubwindowMode.restype = c_int
 XSetSubwindowMode.argtypes = [POINTER(Display), GC, c_int]
 
-# /usr/include/X11/Xlib.h:3330
+# 033320.python.xlib.line4610.comment /usr/include/X11/Xlib.h:3330
 XSetTSOrigin = _lib.XSetTSOrigin
 XSetTSOrigin.restype = c_int
 XSetTSOrigin.argtypes = [POINTER(Display), GC, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3337
+# 033321.python.xlib.line4615.comment /usr/include/X11/Xlib.h:3337
 XSetTile = _lib.XSetTile
 XSetTile.restype = c_int
 XSetTile.argtypes = [POINTER(Display), GC, Pixmap]
 
-# /usr/include/X11/Xlib.h:3343
+# 033322.python.xlib.line4620.comment /usr/include/X11/Xlib.h:3343
 XSetWindowBackground = _lib.XSetWindowBackground
 XSetWindowBackground.restype = c_int
 XSetWindowBackground.argtypes = [POINTER(Display), Window, c_ulong]
 
-# /usr/include/X11/Xlib.h:3349
+# 033323.python.xlib.line4625.comment /usr/include/X11/Xlib.h:3349
 XSetWindowBackgroundPixmap = _lib.XSetWindowBackgroundPixmap
 XSetWindowBackgroundPixmap.restype = c_int
 XSetWindowBackgroundPixmap.argtypes = [POINTER(Display), Window, Pixmap]
 
-# /usr/include/X11/Xlib.h:3355
+# 033324.python.xlib.line4630.comment /usr/include/X11/Xlib.h:3355
 XSetWindowBorder = _lib.XSetWindowBorder
 XSetWindowBorder.restype = c_int
 XSetWindowBorder.argtypes = [POINTER(Display), Window, c_ulong]
 
-# /usr/include/X11/Xlib.h:3361
+# 033325.python.xlib.line4635.comment /usr/include/X11/Xlib.h:3361
 XSetWindowBorderPixmap = _lib.XSetWindowBorderPixmap
 XSetWindowBorderPixmap.restype = c_int
 XSetWindowBorderPixmap.argtypes = [POINTER(Display), Window, Pixmap]
 
-# /usr/include/X11/Xlib.h:3367
+# 033326.python.xlib.line4640.comment /usr/include/X11/Xlib.h:3367
 XSetWindowBorderWidth = _lib.XSetWindowBorderWidth
 XSetWindowBorderWidth.restype = c_int
 XSetWindowBorderWidth.argtypes = [POINTER(Display), Window, c_uint]
 
-# /usr/include/X11/Xlib.h:3373
+# 033327.python.xlib.line4645.comment /usr/include/X11/Xlib.h:3373
 XSetWindowColormap = _lib.XSetWindowColormap
 XSetWindowColormap.restype = c_int
 XSetWindowColormap.argtypes = [POINTER(Display), Window, Colormap]
 
-# /usr/include/X11/Xlib.h:3379
+# 033328.python.xlib.line4650.comment /usr/include/X11/Xlib.h:3379
 XStoreBuffer = _lib.XStoreBuffer
 XStoreBuffer.restype = c_int
 XStoreBuffer.argtypes = [POINTER(Display), c_char_p, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3386
+# 033329.python.xlib.line4655.comment /usr/include/X11/Xlib.h:3386
 XStoreBytes = _lib.XStoreBytes
 XStoreBytes.restype = c_int
 XStoreBytes.argtypes = [POINTER(Display), c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3392
+# 033330.python.xlib.line4660.comment /usr/include/X11/Xlib.h:3392
 XStoreColor = _lib.XStoreColor
 XStoreColor.restype = c_int
 XStoreColor.argtypes = [POINTER(Display), Colormap, POINTER(XColor)]
 
-# /usr/include/X11/Xlib.h:3398
+# 033331.python.xlib.line4665.comment /usr/include/X11/Xlib.h:3398
 XStoreColors = _lib.XStoreColors
 XStoreColors.restype = c_int
 XStoreColors.argtypes = [POINTER(Display), Colormap, POINTER(XColor), c_int]
 
-# /usr/include/X11/Xlib.h:3405
+# 033332.python.xlib.line4670.comment /usr/include/X11/Xlib.h:3405
 XStoreName = _lib.XStoreName
 XStoreName.restype = c_int
 XStoreName.argtypes = [POINTER(Display), Window, c_char_p]
 
-# /usr/include/X11/Xlib.h:3411
+# 033333.python.xlib.line4675.comment /usr/include/X11/Xlib.h:3411
 XStoreNamedColor = _lib.XStoreNamedColor
 XStoreNamedColor.restype = c_int
 XStoreNamedColor.argtypes = [POINTER(Display), Colormap, c_char_p, c_ulong, c_int]
 
-# /usr/include/X11/Xlib.h:3419
+# 033334.python.xlib.line4680.comment /usr/include/X11/Xlib.h:3419
 XSync = _lib.XSync
 XSync.restype = c_int
 XSync.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:3424
+# 033335.python.xlib.line4685.comment /usr/include/X11/Xlib.h:3424
 XTextExtents = _lib.XTextExtents
 XTextExtents.restype = c_int
 XTextExtents.argtypes = [POINTER(XFontStruct), c_char_p, c_int, POINTER(c_int), POINTER(c_int), POINTER(c_int),
                          POINTER(XCharStruct)]
 
-# /usr/include/X11/Xlib.h:3434
+# 033336.python.xlib.line4691.comment /usr/include/X11/Xlib.h:3434
 XTextExtents16 = _lib.XTextExtents16
 XTextExtents16.restype = c_int
 XTextExtents16.argtypes = [POINTER(XFontStruct), POINTER(XChar2b), c_int, POINTER(c_int), POINTER(c_int),
                            POINTER(c_int), POINTER(XCharStruct)]
 
-# /usr/include/X11/Xlib.h:3444
+# 033337.python.xlib.line4697.comment /usr/include/X11/Xlib.h:3444
 XTextWidth = _lib.XTextWidth
 XTextWidth.restype = c_int
 XTextWidth.argtypes = [POINTER(XFontStruct), c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3450
+# 033338.python.xlib.line4702.comment /usr/include/X11/Xlib.h:3450
 XTextWidth16 = _lib.XTextWidth16
 XTextWidth16.restype = c_int
 XTextWidth16.argtypes = [POINTER(XFontStruct), POINTER(XChar2b), c_int]
 
-# /usr/include/X11/Xlib.h:3456
+# 033339.python.xlib.line4707.comment /usr/include/X11/Xlib.h:3456
 XTranslateCoordinates = _lib.XTranslateCoordinates
 XTranslateCoordinates.restype = c_int
 XTranslateCoordinates.argtypes = [POINTER(Display), Window, Window, c_int, c_int, POINTER(c_int), POINTER(c_int),
                                   POINTER(Window)]
 
-# /usr/include/X11/Xlib.h:3467
+# 033340.python.xlib.line4713.comment /usr/include/X11/Xlib.h:3467
 XUndefineCursor = _lib.XUndefineCursor
 XUndefineCursor.restype = c_int
 XUndefineCursor.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:3472
+# 033341.python.xlib.line4718.comment /usr/include/X11/Xlib.h:3472
 XUngrabButton = _lib.XUngrabButton
 XUngrabButton.restype = c_int
 XUngrabButton.argtypes = [POINTER(Display), c_uint, c_uint, Window]
 
-# /usr/include/X11/Xlib.h:3479
+# 033342.python.xlib.line4723.comment /usr/include/X11/Xlib.h:3479
 XUngrabKey = _lib.XUngrabKey
 XUngrabKey.restype = c_int
 XUngrabKey.argtypes = [POINTER(Display), c_int, c_uint, Window]
 
-# /usr/include/X11/Xlib.h:3486
+# 033343.python.xlib.line4728.comment /usr/include/X11/Xlib.h:3486
 XUngrabKeyboard = _lib.XUngrabKeyboard
 XUngrabKeyboard.restype = c_int
 XUngrabKeyboard.argtypes = [POINTER(Display), Time]
 
-# /usr/include/X11/Xlib.h:3491
+# 033344.python.xlib.line4733.comment /usr/include/X11/Xlib.h:3491
 XUngrabPointer = _lib.XUngrabPointer
 XUngrabPointer.restype = c_int
 XUngrabPointer.argtypes = [POINTER(Display), Time]
 
-# /usr/include/X11/Xlib.h:3496
+# 033345.python.xlib.line4738.comment /usr/include/X11/Xlib.h:3496
 XUngrabServer = _lib.XUngrabServer
 XUngrabServer.restype = c_int
 XUngrabServer.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:3500
+# 033346.python.xlib.line4743.comment /usr/include/X11/Xlib.h:3500
 XUninstallColormap = _lib.XUninstallColormap
 XUninstallColormap.restype = c_int
 XUninstallColormap.argtypes = [POINTER(Display), Colormap]
 
-# /usr/include/X11/Xlib.h:3505
+# 033347.python.xlib.line4748.comment /usr/include/X11/Xlib.h:3505
 XUnloadFont = _lib.XUnloadFont
 XUnloadFont.restype = c_int
 XUnloadFont.argtypes = [POINTER(Display), Font]
 
-# /usr/include/X11/Xlib.h:3510
+# 033348.python.xlib.line4753.comment /usr/include/X11/Xlib.h:3510
 XUnmapSubwindows = _lib.XUnmapSubwindows
 XUnmapSubwindows.restype = c_int
 XUnmapSubwindows.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:3515
+# 033349.python.xlib.line4758.comment /usr/include/X11/Xlib.h:3515
 XUnmapWindow = _lib.XUnmapWindow
 XUnmapWindow.restype = c_int
 XUnmapWindow.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xlib.h:3520
+# 033350.python.xlib.line4763.comment /usr/include/X11/Xlib.h:3520
 XVendorRelease = _lib.XVendorRelease
 XVendorRelease.restype = c_int
 XVendorRelease.argtypes = [POINTER(Display)]
 
-# /usr/include/X11/Xlib.h:3524
+# 033351.python.xlib.line4768.comment /usr/include/X11/Xlib.h:3524
 XWarpPointer = _lib.XWarpPointer
 XWarpPointer.restype = c_int
 XWarpPointer.argtypes = [POINTER(Display), Window, Window, c_int, c_int, c_uint, c_uint, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3536
+# 033352.python.xlib.line4773.comment /usr/include/X11/Xlib.h:3536
 XWidthMMOfScreen = _lib.XWidthMMOfScreen
 XWidthMMOfScreen.restype = c_int
 XWidthMMOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:3540
+# 033353.python.xlib.line4778.comment /usr/include/X11/Xlib.h:3540
 XWidthOfScreen = _lib.XWidthOfScreen
 XWidthOfScreen.restype = c_int
 XWidthOfScreen.argtypes = [POINTER(Screen)]
 
-# /usr/include/X11/Xlib.h:3544
+# 033354.python.xlib.line4783.comment /usr/include/X11/Xlib.h:3544
 XWindowEvent = _lib.XWindowEvent
 XWindowEvent.restype = c_int
 XWindowEvent.argtypes = [POINTER(Display), Window, c_long, POINTER(XEvent)]
 
-# /usr/include/X11/Xlib.h:3551
+# 033355.python.xlib.line4788.comment /usr/include/X11/Xlib.h:3551
 XWriteBitmapFile = _lib.XWriteBitmapFile
 XWriteBitmapFile.restype = c_int
 XWriteBitmapFile.argtypes = [POINTER(Display), c_char_p, Pixmap, c_uint, c_uint, c_int, c_int]
 
-# /usr/include/X11/Xlib.h:3561
+# 033356.python.xlib.line4793.comment /usr/include/X11/Xlib.h:3561
 XSupportsLocale = _lib.XSupportsLocale
 XSupportsLocale.restype = c_int
 XSupportsLocale.argtypes = []
 
-# /usr/include/X11/Xlib.h:3563
+# 033357.python.xlib.line4798.comment /usr/include/X11/Xlib.h:3563
 XSetLocaleModifiers = _lib.XSetLocaleModifiers
 XSetLocaleModifiers.restype = c_char_p
 XSetLocaleModifiers.argtypes = [c_char_p]
@@ -4810,195 +4810,195 @@ struct__XrmHashBucketRec._fields_ = [
     ('_opaque_struct', c_int),
 ]
 
-# /usr/include/X11/Xlib.h:3567
+# 033358.python.xlib.line4813.comment /usr/include/X11/Xlib.h:3567
 XOpenOM = _lib.XOpenOM
 XOpenOM.restype = XOM
 XOpenOM.argtypes = [POINTER(Display), POINTER(struct__XrmHashBucketRec), c_char_p, c_char_p]
 
-# /usr/include/X11/Xlib.h:3574
+# 033359.python.xlib.line4818.comment /usr/include/X11/Xlib.h:3574
 XCloseOM = _lib.XCloseOM
 XCloseOM.restype = c_int
 XCloseOM.argtypes = [XOM]
 
-# /usr/include/X11/Xlib.h:3578
+# 033360.python.xlib.line4823.comment /usr/include/X11/Xlib.h:3578
 XSetOMValues = _lib.XSetOMValues
 XSetOMValues.restype = c_char_p
 XSetOMValues.argtypes = [XOM]
 
-# /usr/include/X11/Xlib.h:3583
+# 033361.python.xlib.line4828.comment /usr/include/X11/Xlib.h:3583
 XGetOMValues = _lib.XGetOMValues
 XGetOMValues.restype = c_char_p
 XGetOMValues.argtypes = [XOM]
 
-# /usr/include/X11/Xlib.h:3588
+# 033362.python.xlib.line4833.comment /usr/include/X11/Xlib.h:3588
 XDisplayOfOM = _lib.XDisplayOfOM
 XDisplayOfOM.restype = POINTER(Display)
 XDisplayOfOM.argtypes = [XOM]
 
-# /usr/include/X11/Xlib.h:3592
+# 033363.python.xlib.line4838.comment /usr/include/X11/Xlib.h:3592
 XLocaleOfOM = _lib.XLocaleOfOM
 XLocaleOfOM.restype = c_char_p
 XLocaleOfOM.argtypes = [XOM]
 
-# /usr/include/X11/Xlib.h:3596
+# 033364.python.xlib.line4843.comment /usr/include/X11/Xlib.h:3596
 XCreateOC = _lib.XCreateOC
 XCreateOC.restype = XOC
 XCreateOC.argtypes = [XOM]
 
-# /usr/include/X11/Xlib.h:3601
+# 033365.python.xlib.line4848.comment /usr/include/X11/Xlib.h:3601
 XDestroyOC = _lib.XDestroyOC
 XDestroyOC.restype = None
 XDestroyOC.argtypes = [XOC]
 
-# /usr/include/X11/Xlib.h:3605
+# 033366.python.xlib.line4853.comment /usr/include/X11/Xlib.h:3605
 XOMOfOC = _lib.XOMOfOC
 XOMOfOC.restype = XOM
 XOMOfOC.argtypes = [XOC]
 
-# /usr/include/X11/Xlib.h:3609
+# 033367.python.xlib.line4858.comment /usr/include/X11/Xlib.h:3609
 XSetOCValues = _lib.XSetOCValues
 XSetOCValues.restype = c_char_p
 XSetOCValues.argtypes = [XOC]
 
-# /usr/include/X11/Xlib.h:3614
+# 033368.python.xlib.line4863.comment /usr/include/X11/Xlib.h:3614
 XGetOCValues = _lib.XGetOCValues
 XGetOCValues.restype = c_char_p
 XGetOCValues.argtypes = [XOC]
 
-# /usr/include/X11/Xlib.h:3619
+# 033369.python.xlib.line4868.comment /usr/include/X11/Xlib.h:3619
 XCreateFontSet = _lib.XCreateFontSet
 XCreateFontSet.restype = XFontSet
 XCreateFontSet.argtypes = [POINTER(Display), c_char_p, POINTER(POINTER(c_char_p)), POINTER(c_int), POINTER(c_char_p)]
 
-# /usr/include/X11/Xlib.h:3627
+# 033370.python.xlib.line4873.comment /usr/include/X11/Xlib.h:3627
 XFreeFontSet = _lib.XFreeFontSet
 XFreeFontSet.restype = None
 XFreeFontSet.argtypes = [POINTER(Display), XFontSet]
 
-# /usr/include/X11/Xlib.h:3632
+# 033371.python.xlib.line4878.comment /usr/include/X11/Xlib.h:3632
 XFontsOfFontSet = _lib.XFontsOfFontSet
 XFontsOfFontSet.restype = c_int
 XFontsOfFontSet.argtypes = [XFontSet, POINTER(POINTER(POINTER(XFontStruct))), POINTER(POINTER(c_char_p))]
 
-# /usr/include/X11/Xlib.h:3638
+# 033372.python.xlib.line4883.comment /usr/include/X11/Xlib.h:3638
 XBaseFontNameListOfFontSet = _lib.XBaseFontNameListOfFontSet
 XBaseFontNameListOfFontSet.restype = c_char_p
 XBaseFontNameListOfFontSet.argtypes = [XFontSet]
 
-# /usr/include/X11/Xlib.h:3642
+# 033373.python.xlib.line4888.comment /usr/include/X11/Xlib.h:3642
 XLocaleOfFontSet = _lib.XLocaleOfFontSet
 XLocaleOfFontSet.restype = c_char_p
 XLocaleOfFontSet.argtypes = [XFontSet]
 
-# /usr/include/X11/Xlib.h:3646
+# 033374.python.xlib.line4893.comment /usr/include/X11/Xlib.h:3646
 XContextDependentDrawing = _lib.XContextDependentDrawing
 XContextDependentDrawing.restype = c_int
 XContextDependentDrawing.argtypes = [XFontSet]
 
-# /usr/include/X11/Xlib.h:3650
+# 033375.python.xlib.line4898.comment /usr/include/X11/Xlib.h:3650
 XDirectionalDependentDrawing = _lib.XDirectionalDependentDrawing
 XDirectionalDependentDrawing.restype = c_int
 XDirectionalDependentDrawing.argtypes = [XFontSet]
 
-# /usr/include/X11/Xlib.h:3654
+# 033376.python.xlib.line4903.comment /usr/include/X11/Xlib.h:3654
 XContextualDrawing = _lib.XContextualDrawing
 XContextualDrawing.restype = c_int
 XContextualDrawing.argtypes = [XFontSet]
 
-# /usr/include/X11/Xlib.h:3658
+# 033377.python.xlib.line4908.comment /usr/include/X11/Xlib.h:3658
 XExtentsOfFontSet = _lib.XExtentsOfFontSet
 XExtentsOfFontSet.restype = POINTER(XFontSetExtents)
 XExtentsOfFontSet.argtypes = [XFontSet]
 
-# /usr/include/X11/Xlib.h:3662
+# 033378.python.xlib.line4913.comment /usr/include/X11/Xlib.h:3662
 XmbTextEscapement = _lib.XmbTextEscapement
 XmbTextEscapement.restype = c_int
 XmbTextEscapement.argtypes = [XFontSet, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3668
+# 033379.python.xlib.line4918.comment /usr/include/X11/Xlib.h:3668
 XwcTextEscapement = _lib.XwcTextEscapement
 XwcTextEscapement.restype = c_int
 XwcTextEscapement.argtypes = [XFontSet, c_wchar_p, c_int]
 
-# /usr/include/X11/Xlib.h:3674
+# 033380.python.xlib.line4923.comment /usr/include/X11/Xlib.h:3674
 Xutf8TextEscapement = _lib.Xutf8TextEscapement
 Xutf8TextEscapement.restype = c_int
 Xutf8TextEscapement.argtypes = [XFontSet, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3680
+# 033381.python.xlib.line4928.comment /usr/include/X11/Xlib.h:3680
 XmbTextExtents = _lib.XmbTextExtents
 XmbTextExtents.restype = c_int
 XmbTextExtents.argtypes = [XFontSet, c_char_p, c_int, POINTER(XRectangle), POINTER(XRectangle)]
 
-# /usr/include/X11/Xlib.h:3688
+# 033382.python.xlib.line4933.comment /usr/include/X11/Xlib.h:3688
 XwcTextExtents = _lib.XwcTextExtents
 XwcTextExtents.restype = c_int
 XwcTextExtents.argtypes = [XFontSet, c_wchar_p, c_int, POINTER(XRectangle), POINTER(XRectangle)]
 
-# /usr/include/X11/Xlib.h:3696
+# 033383.python.xlib.line4938.comment /usr/include/X11/Xlib.h:3696
 Xutf8TextExtents = _lib.Xutf8TextExtents
 Xutf8TextExtents.restype = c_int
 Xutf8TextExtents.argtypes = [XFontSet, c_char_p, c_int, POINTER(XRectangle), POINTER(XRectangle)]
 
-# /usr/include/X11/Xlib.h:3704
+# 033384.python.xlib.line4943.comment /usr/include/X11/Xlib.h:3704
 XmbTextPerCharExtents = _lib.XmbTextPerCharExtents
 XmbTextPerCharExtents.restype = c_int
 XmbTextPerCharExtents.argtypes = [XFontSet, c_char_p, c_int, POINTER(XRectangle), POINTER(XRectangle), c_int,
                                   POINTER(c_int), POINTER(XRectangle), POINTER(XRectangle)]
 
-# /usr/include/X11/Xlib.h:3716
+# 033385.python.xlib.line4949.comment /usr/include/X11/Xlib.h:3716
 XwcTextPerCharExtents = _lib.XwcTextPerCharExtents
 XwcTextPerCharExtents.restype = c_int
 XwcTextPerCharExtents.argtypes = [XFontSet, c_wchar_p, c_int, POINTER(XRectangle), POINTER(XRectangle), c_int,
                                   POINTER(c_int), POINTER(XRectangle), POINTER(XRectangle)]
 
-# /usr/include/X11/Xlib.h:3728
+# 033386.python.xlib.line4955.comment /usr/include/X11/Xlib.h:3728
 Xutf8TextPerCharExtents = _lib.Xutf8TextPerCharExtents
 Xutf8TextPerCharExtents.restype = c_int
 Xutf8TextPerCharExtents.argtypes = [XFontSet, c_char_p, c_int, POINTER(XRectangle), POINTER(XRectangle), c_int,
                                     POINTER(c_int), POINTER(XRectangle), POINTER(XRectangle)]
 
-# /usr/include/X11/Xlib.h:3740
+# 033387.python.xlib.line4961.comment /usr/include/X11/Xlib.h:3740
 XmbDrawText = _lib.XmbDrawText
 XmbDrawText.restype = None
 XmbDrawText.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XmbTextItem), c_int]
 
-# /usr/include/X11/Xlib.h:3750
+# 033388.python.xlib.line4966.comment /usr/include/X11/Xlib.h:3750
 XwcDrawText = _lib.XwcDrawText
 XwcDrawText.restype = None
 XwcDrawText.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XwcTextItem), c_int]
 
-# /usr/include/X11/Xlib.h:3760
+# 033389.python.xlib.line4971.comment /usr/include/X11/Xlib.h:3760
 Xutf8DrawText = _lib.Xutf8DrawText
 Xutf8DrawText.restype = None
 Xutf8DrawText.argtypes = [POINTER(Display), Drawable, GC, c_int, c_int, POINTER(XmbTextItem), c_int]
 
-# /usr/include/X11/Xlib.h:3770
+# 033390.python.xlib.line4976.comment /usr/include/X11/Xlib.h:3770
 XmbDrawString = _lib.XmbDrawString
 XmbDrawString.restype = None
 XmbDrawString.argtypes = [POINTER(Display), Drawable, XFontSet, GC, c_int, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3781
+# 033391.python.xlib.line4981.comment /usr/include/X11/Xlib.h:3781
 XwcDrawString = _lib.XwcDrawString
 XwcDrawString.restype = None
 XwcDrawString.argtypes = [POINTER(Display), Drawable, XFontSet, GC, c_int, c_int, c_wchar_p, c_int]
 
-# /usr/include/X11/Xlib.h:3792
+# 033392.python.xlib.line4986.comment /usr/include/X11/Xlib.h:3792
 Xutf8DrawString = _lib.Xutf8DrawString
 Xutf8DrawString.restype = None
 Xutf8DrawString.argtypes = [POINTER(Display), Drawable, XFontSet, GC, c_int, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3803
+# 033393.python.xlib.line4991.comment /usr/include/X11/Xlib.h:3803
 XmbDrawImageString = _lib.XmbDrawImageString
 XmbDrawImageString.restype = None
 XmbDrawImageString.argtypes = [POINTER(Display), Drawable, XFontSet, GC, c_int, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3814
+# 033394.python.xlib.line4996.comment /usr/include/X11/Xlib.h:3814
 XwcDrawImageString = _lib.XwcDrawImageString
 XwcDrawImageString.restype = None
 XwcDrawImageString.argtypes = [POINTER(Display), Drawable, XFontSet, GC, c_int, c_int, c_wchar_p, c_int]
 
-# /usr/include/X11/Xlib.h:3825
+# 033395.python.xlib.line5001.comment /usr/include/X11/Xlib.h:3825
 Xutf8DrawImageString = _lib.Xutf8DrawImageString
 Xutf8DrawImageString.restype = None
 Xutf8DrawImageString.argtypes = [POINTER(Display), Drawable, XFontSet, GC, c_int, c_int, c_char_p, c_int]
@@ -5013,107 +5013,107 @@ struct__XrmHashBucketRec._fields_ = [
     ('_opaque_struct', c_int),
 ]
 
-# /usr/include/X11/Xlib.h:3836
+# 033396.python.xlib.line5016.comment /usr/include/X11/Xlib.h:3836
 XOpenIM = _lib.XOpenIM
 XOpenIM.restype = XIM
 XOpenIM.argtypes = [POINTER(Display), POINTER(struct__XrmHashBucketRec), c_char_p, c_char_p]
 
-# /usr/include/X11/Xlib.h:3843
+# 033397.python.xlib.line5021.comment /usr/include/X11/Xlib.h:3843
 XCloseIM = _lib.XCloseIM
 XCloseIM.restype = c_int
 XCloseIM.argtypes = [XIM]
 
-# /usr/include/X11/Xlib.h:3847
+# 033398.python.xlib.line5026.comment /usr/include/X11/Xlib.h:3847
 XGetIMValues = _lib.XGetIMValues
 XGetIMValues.restype = c_char_p
 XGetIMValues.argtypes = [XIM]
 
-# /usr/include/X11/Xlib.h:3851
+# 033399.python.xlib.line5031.comment /usr/include/X11/Xlib.h:3851
 XSetIMValues = _lib.XSetIMValues
 XSetIMValues.restype = c_char_p
 XSetIMValues.argtypes = [XIM]
 
-# /usr/include/X11/Xlib.h:3855
+# 033400.python.xlib.line5036.comment /usr/include/X11/Xlib.h:3855
 XDisplayOfIM = _lib.XDisplayOfIM
 XDisplayOfIM.restype = POINTER(Display)
 XDisplayOfIM.argtypes = [XIM]
 
-# /usr/include/X11/Xlib.h:3859
+# 033401.python.xlib.line5041.comment /usr/include/X11/Xlib.h:3859
 XLocaleOfIM = _lib.XLocaleOfIM
 XLocaleOfIM.restype = c_char_p
 XLocaleOfIM.argtypes = [XIM]
 
-# /usr/include/X11/Xlib.h:3863
+# 033402.python.xlib.line5046.comment /usr/include/X11/Xlib.h:3863
 XCreateIC = _lib.XCreateIC
 XCreateIC.restype = XIC
 XCreateIC.argtypes = [XIM]
 
-# /usr/include/X11/Xlib.h:3867
+# 033403.python.xlib.line5051.comment /usr/include/X11/Xlib.h:3867
 XDestroyIC = _lib.XDestroyIC
 XDestroyIC.restype = None
 XDestroyIC.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3871
+# 033404.python.xlib.line5056.comment /usr/include/X11/Xlib.h:3871
 XSetICFocus = _lib.XSetICFocus
 XSetICFocus.restype = None
 XSetICFocus.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3875
+# 033405.python.xlib.line5061.comment /usr/include/X11/Xlib.h:3875
 XUnsetICFocus = _lib.XUnsetICFocus
 XUnsetICFocus.restype = None
 XUnsetICFocus.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3879
+# 033406.python.xlib.line5066.comment /usr/include/X11/Xlib.h:3879
 XwcResetIC = _lib.XwcResetIC
 XwcResetIC.restype = c_wchar_p
 XwcResetIC.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3883
+# 033407.python.xlib.line5071.comment /usr/include/X11/Xlib.h:3883
 XmbResetIC = _lib.XmbResetIC
 XmbResetIC.restype = c_char_p
 XmbResetIC.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3887
+# 033408.python.xlib.line5076.comment /usr/include/X11/Xlib.h:3887
 Xutf8ResetIC = _lib.Xutf8ResetIC
 Xutf8ResetIC.restype = c_char_p
 Xutf8ResetIC.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3891
+# 033409.python.xlib.line5081.comment /usr/include/X11/Xlib.h:3891
 XSetICValues = _lib.XSetICValues
 XSetICValues.restype = c_char_p
 XSetICValues.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3895
+# 033410.python.xlib.line5086.comment /usr/include/X11/Xlib.h:3895
 XGetICValues = _lib.XGetICValues
 XGetICValues.restype = c_char_p
 XGetICValues.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3899
+# 033411.python.xlib.line5091.comment /usr/include/X11/Xlib.h:3899
 XIMOfIC = _lib.XIMOfIC
 XIMOfIC.restype = XIM
 XIMOfIC.argtypes = [XIC]
 
-# /usr/include/X11/Xlib.h:3903
+# 033412.python.xlib.line5096.comment /usr/include/X11/Xlib.h:3903
 XFilterEvent = _lib.XFilterEvent
 XFilterEvent.restype = c_int
 XFilterEvent.argtypes = [POINTER(XEvent), Window]
 
-# /usr/include/X11/Xlib.h:3908
+# 033413.python.xlib.line5101.comment /usr/include/X11/Xlib.h:3908
 XmbLookupString = _lib.XmbLookupString
 XmbLookupString.restype = c_int
 XmbLookupString.argtypes = [XIC, POINTER(XKeyPressedEvent), c_char_p, c_int, POINTER(KeySym), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:3917
+# 033414.python.xlib.line5106.comment /usr/include/X11/Xlib.h:3917
 XwcLookupString = _lib.XwcLookupString
 XwcLookupString.restype = c_int
 XwcLookupString.argtypes = [XIC, POINTER(XKeyPressedEvent), c_wchar_p, c_int, POINTER(KeySym), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:3926
+# 033415.python.xlib.line5111.comment /usr/include/X11/Xlib.h:3926
 Xutf8LookupString = _lib.Xutf8LookupString
 Xutf8LookupString.restype = c_int
 Xutf8LookupString.argtypes = [XIC, POINTER(XKeyPressedEvent), c_char_p, c_int, POINTER(KeySym), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:3935
+# 033416.python.xlib.line5116.comment /usr/include/X11/Xlib.h:3935
 XVaCreateNestedList = _lib.XVaCreateNestedList
 XVaCreateNestedList.restype = XVaNestedList
 XVaCreateNestedList.argtypes = [c_int]
@@ -5128,7 +5128,7 @@ struct__XrmHashBucketRec._fields_ = [
     ('_opaque_struct', c_int),
 ]
 
-# /usr/include/X11/Xlib.h:3941
+# 033417.python.xlib.line5131.comment /usr/include/X11/Xlib.h:3941
 XRegisterIMInstantiateCallback = _lib.XRegisterIMInstantiateCallback
 XRegisterIMInstantiateCallback.restype = c_int
 XRegisterIMInstantiateCallback.argtypes = [POINTER(Display), POINTER(struct__XrmHashBucketRec), c_char_p, c_char_p,
@@ -5144,7 +5144,7 @@ struct__XrmHashBucketRec._fields_ = [
     ('_opaque_struct', c_int),
 ]
 
-# /usr/include/X11/Xlib.h:3950
+# 033418.python.xlib.line5147.comment /usr/include/X11/Xlib.h:3950
 XUnregisterIMInstantiateCallback = _lib.XUnregisterIMInstantiateCallback
 XUnregisterIMInstantiateCallback.restype = c_int
 XUnregisterIMInstantiateCallback.argtypes = [POINTER(Display), POINTER(struct__XrmHashBucketRec), c_char_p, c_char_p,
@@ -5152,47 +5152,47 @@ XUnregisterIMInstantiateCallback.argtypes = [POINTER(Display), POINTER(struct__X
 
 XConnectionWatchProc = CFUNCTYPE(None, POINTER(Display), XPointer, c_int, c_int,
                                  POINTER(XPointer))  # /usr/include/X11/Xlib.h:3959
-# /usr/include/X11/Xlib.h:3968
+# 033420.python.xlib.line5155.comment /usr/include/X11/Xlib.h:3968
 XInternalConnectionNumbers = _lib.XInternalConnectionNumbers
 XInternalConnectionNumbers.restype = c_int
 XInternalConnectionNumbers.argtypes = [POINTER(Display), POINTER(POINTER(c_int)), POINTER(c_int)]
 
-# /usr/include/X11/Xlib.h:3974
+# 033421.python.xlib.line5160.comment /usr/include/X11/Xlib.h:3974
 XProcessInternalConnection = _lib.XProcessInternalConnection
 XProcessInternalConnection.restype = None
 XProcessInternalConnection.argtypes = [POINTER(Display), c_int]
 
-# /usr/include/X11/Xlib.h:3979
+# 033422.python.xlib.line5165.comment /usr/include/X11/Xlib.h:3979
 XAddConnectionWatch = _lib.XAddConnectionWatch
 XAddConnectionWatch.restype = c_int
 XAddConnectionWatch.argtypes = [POINTER(Display), XConnectionWatchProc, XPointer]
 
-# /usr/include/X11/Xlib.h:3985
+# 033423.python.xlib.line5170.comment /usr/include/X11/Xlib.h:3985
 XRemoveConnectionWatch = _lib.XRemoveConnectionWatch
 XRemoveConnectionWatch.restype = None
 XRemoveConnectionWatch.argtypes = [POINTER(Display), XConnectionWatchProc, XPointer]
 
-# /usr/include/X11/Xlib.h:3991
+# 033424.python.xlib.line5175.comment /usr/include/X11/Xlib.h:3991
 XSetAuthorization = _lib.XSetAuthorization
 XSetAuthorization.restype = None
 XSetAuthorization.argtypes = [c_char_p, c_int, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:3998
+# 033425.python.xlib.line5180.comment /usr/include/X11/Xlib.h:3998
 _Xmbtowc = _lib._Xmbtowc
 _Xmbtowc.restype = c_int
 _Xmbtowc.argtypes = [c_wchar_p, c_char_p, c_int]
 
-# /usr/include/X11/Xlib.h:4009
+# 033426.python.xlib.line5185.comment /usr/include/X11/Xlib.h:4009
 _Xwctomb = _lib._Xwctomb
 _Xwctomb.restype = c_int
 _Xwctomb.argtypes = [c_char_p, c_wchar]
 
-# /usr/include/X11/Xlib.h:4014
+# 033427.python.xlib.line5190.comment /usr/include/X11/Xlib.h:4014
 XGetEventData = _lib.XGetEventData
 XGetEventData.restype = c_int
 XGetEventData.argtypes = [POINTER(Display), POINTER(XGenericEventCookie)]
 
-# /usr/include/X11/Xlib.h:4019
+# 033428.python.xlib.line5195.comment /usr/include/X11/Xlib.h:4019
 XFreeEventData = _lib.XFreeEventData
 XFreeEventData.restype = None
 XFreeEventData.argtypes = [POINTER(Display), POINTER(XGenericEventCookie)]
@@ -5516,368 +5516,368 @@ XCSUCCESS = 0  # /usr/include/X11/Xutil.h:5090
 XCNOMEM = 1  # /usr/include/X11/Xutil.h:5091
 XCNOENT = 2  # /usr/include/X11/Xutil.h:5092
 XContext = c_int  # /usr/include/X11/Xutil.h:5094
-# /usr/include/X11/Xutil.h:5103
+# 033498.python.xlib.line5519.comment /usr/include/X11/Xutil.h:5103
 XAllocClassHint = _lib.XAllocClassHint
 XAllocClassHint.restype = POINTER(XClassHint)
 XAllocClassHint.argtypes = []
 
-# /usr/include/X11/Xutil.h:5107
+# 033499.python.xlib.line5524.comment /usr/include/X11/Xutil.h:5107
 XAllocIconSize = _lib.XAllocIconSize
 XAllocIconSize.restype = POINTER(XIconSize)
 XAllocIconSize.argtypes = []
 
-# /usr/include/X11/Xutil.h:5111
+# 033500.python.xlib.line5529.comment /usr/include/X11/Xutil.h:5111
 XAllocSizeHints = _lib.XAllocSizeHints
 XAllocSizeHints.restype = POINTER(XSizeHints)
 XAllocSizeHints.argtypes = []
 
-# /usr/include/X11/Xutil.h:5115
+# 033501.python.xlib.line5534.comment /usr/include/X11/Xutil.h:5115
 XAllocStandardColormap = _lib.XAllocStandardColormap
 XAllocStandardColormap.restype = POINTER(XStandardColormap)
 XAllocStandardColormap.argtypes = []
 
-# /usr/include/X11/Xutil.h:5119
+# 033502.python.xlib.line5539.comment /usr/include/X11/Xutil.h:5119
 XAllocWMHints = _lib.XAllocWMHints
 XAllocWMHints.restype = POINTER(XWMHints)
 XAllocWMHints.argtypes = []
 
-# /usr/include/X11/Xutil.h:5123
+# 033503.python.xlib.line5544.comment /usr/include/X11/Xutil.h:5123
 XClipBox = _lib.XClipBox
 XClipBox.restype = c_int
 XClipBox.argtypes = [Region, POINTER(XRectangle)]
 
-# /usr/include/X11/Xutil.h:5128
+# 033504.python.xlib.line5549.comment /usr/include/X11/Xutil.h:5128
 XCreateRegion = _lib.XCreateRegion
 XCreateRegion.restype = Region
 XCreateRegion.argtypes = []
 
-# /usr/include/X11/Xutil.h:5132
+# 033505.python.xlib.line5554.comment /usr/include/X11/Xutil.h:5132
 XDefaultString = _lib.XDefaultString
 XDefaultString.restype = c_char_p
 XDefaultString.argtypes = []
 
-# /usr/include/X11/Xutil.h:5134
+# 033506.python.xlib.line5559.comment /usr/include/X11/Xutil.h:5134
 XDeleteContext = _lib.XDeleteContext
 XDeleteContext.restype = c_int
 XDeleteContext.argtypes = [POINTER(Display), XID, XContext]
 
-# /usr/include/X11/Xutil.h:5140
+# 033507.python.xlib.line5564.comment /usr/include/X11/Xutil.h:5140
 XDestroyRegion = _lib.XDestroyRegion
 XDestroyRegion.restype = c_int
 XDestroyRegion.argtypes = [Region]
 
-# /usr/include/X11/Xutil.h:5144
+# 033508.python.xlib.line5569.comment /usr/include/X11/Xutil.h:5144
 XEmptyRegion = _lib.XEmptyRegion
 XEmptyRegion.restype = c_int
 XEmptyRegion.argtypes = [Region]
 
-# /usr/include/X11/Xutil.h:5148
+# 033509.python.xlib.line5574.comment /usr/include/X11/Xutil.h:5148
 XEqualRegion = _lib.XEqualRegion
 XEqualRegion.restype = c_int
 XEqualRegion.argtypes = [Region, Region]
 
-# /usr/include/X11/Xutil.h:5153
+# 033510.python.xlib.line5579.comment /usr/include/X11/Xutil.h:5153
 XFindContext = _lib.XFindContext
 XFindContext.restype = c_int
 XFindContext.argtypes = [POINTER(Display), XID, XContext, POINTER(XPointer)]
 
-# /usr/include/X11/Xutil.h:5160
+# 033511.python.xlib.line5584.comment /usr/include/X11/Xutil.h:5160
 XGetClassHint = _lib.XGetClassHint
 XGetClassHint.restype = c_int
 XGetClassHint.argtypes = [POINTER(Display), Window, POINTER(XClassHint)]
 
-# /usr/include/X11/Xutil.h:5166
+# 033512.python.xlib.line5589.comment /usr/include/X11/Xutil.h:5166
 XGetIconSizes = _lib.XGetIconSizes
 XGetIconSizes.restype = c_int
 XGetIconSizes.argtypes = [POINTER(Display), Window, POINTER(POINTER(XIconSize)), POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5173
+# 033513.python.xlib.line5594.comment /usr/include/X11/Xutil.h:5173
 XGetNormalHints = _lib.XGetNormalHints
 XGetNormalHints.restype = c_int
 XGetNormalHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints)]
 
-# /usr/include/X11/Xutil.h:5179
+# 033514.python.xlib.line5599.comment /usr/include/X11/Xutil.h:5179
 XGetRGBColormaps = _lib.XGetRGBColormaps
 XGetRGBColormaps.restype = c_int
 XGetRGBColormaps.argtypes = [POINTER(Display), Window, POINTER(POINTER(XStandardColormap)), POINTER(c_int), Atom]
 
-# /usr/include/X11/Xutil.h:5187
+# 033515.python.xlib.line5604.comment /usr/include/X11/Xutil.h:5187
 XGetSizeHints = _lib.XGetSizeHints
 XGetSizeHints.restype = c_int
 XGetSizeHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints), Atom]
 
-# /usr/include/X11/Xutil.h:5194
+# 033516.python.xlib.line5609.comment /usr/include/X11/Xutil.h:5194
 XGetStandardColormap = _lib.XGetStandardColormap
 XGetStandardColormap.restype = c_int
 XGetStandardColormap.argtypes = [POINTER(Display), Window, POINTER(XStandardColormap), Atom]
 
-# /usr/include/X11/Xutil.h:5201
+# 033517.python.xlib.line5614.comment /usr/include/X11/Xutil.h:5201
 XGetTextProperty = _lib.XGetTextProperty
 XGetTextProperty.restype = c_int
 XGetTextProperty.argtypes = [POINTER(Display), Window, POINTER(XTextProperty), Atom]
 
-# /usr/include/X11/Xutil.h:5208
+# 033518.python.xlib.line5619.comment /usr/include/X11/Xutil.h:5208
 XGetVisualInfo = _lib.XGetVisualInfo
 XGetVisualInfo.restype = POINTER(XVisualInfo)
 XGetVisualInfo.argtypes = [POINTER(Display), c_long, POINTER(XVisualInfo), POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5215
+# 033519.python.xlib.line5624.comment /usr/include/X11/Xutil.h:5215
 XGetWMClientMachine = _lib.XGetWMClientMachine
 XGetWMClientMachine.restype = c_int
 XGetWMClientMachine.argtypes = [POINTER(Display), Window, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5221
+# 033520.python.xlib.line5629.comment /usr/include/X11/Xutil.h:5221
 XGetWMHints = _lib.XGetWMHints
 XGetWMHints.restype = POINTER(XWMHints)
 XGetWMHints.argtypes = [POINTER(Display), Window]
 
-# /usr/include/X11/Xutil.h:5226
+# 033521.python.xlib.line5634.comment /usr/include/X11/Xutil.h:5226
 XGetWMIconName = _lib.XGetWMIconName
 XGetWMIconName.restype = c_int
 XGetWMIconName.argtypes = [POINTER(Display), Window, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5232
+# 033522.python.xlib.line5639.comment /usr/include/X11/Xutil.h:5232
 XGetWMName = _lib.XGetWMName
 XGetWMName.restype = c_int
 XGetWMName.argtypes = [POINTER(Display), Window, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5238
+# 033523.python.xlib.line5644.comment /usr/include/X11/Xutil.h:5238
 XGetWMNormalHints = _lib.XGetWMNormalHints
 XGetWMNormalHints.restype = c_int
 XGetWMNormalHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints), POINTER(c_long)]
 
-# /usr/include/X11/Xutil.h:5245
+# 033524.python.xlib.line5649.comment /usr/include/X11/Xutil.h:5245
 XGetWMSizeHints = _lib.XGetWMSizeHints
 XGetWMSizeHints.restype = c_int
 XGetWMSizeHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints), POINTER(c_long), Atom]
 
-# /usr/include/X11/Xutil.h:5253
+# 033525.python.xlib.line5654.comment /usr/include/X11/Xutil.h:5253
 XGetZoomHints = _lib.XGetZoomHints
 XGetZoomHints.restype = c_int
 XGetZoomHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints)]
 
-# /usr/include/X11/Xutil.h:5259
+# 033526.python.xlib.line5659.comment /usr/include/X11/Xutil.h:5259
 XIntersectRegion = _lib.XIntersectRegion
 XIntersectRegion.restype = c_int
 XIntersectRegion.argtypes = [Region, Region, Region]
 
-# /usr/include/X11/Xutil.h:5265
+# 033527.python.xlib.line5664.comment /usr/include/X11/Xutil.h:5265
 XConvertCase = _lib.XConvertCase
 XConvertCase.restype = None
 XConvertCase.argtypes = [KeySym, POINTER(KeySym), POINTER(KeySym)]
 
-# /usr/include/X11/Xutil.h:5271
+# 033528.python.xlib.line5669.comment /usr/include/X11/Xutil.h:5271
 XLookupString = _lib.XLookupString
 XLookupString.restype = c_int
 XLookupString.argtypes = [POINTER(XKeyEvent), c_char_p, c_int, POINTER(KeySym), POINTER(XComposeStatus)]
 
-# /usr/include/X11/Xutil.h:5279
+# 033529.python.xlib.line5674.comment /usr/include/X11/Xutil.h:5279
 XMatchVisualInfo = _lib.XMatchVisualInfo
 XMatchVisualInfo.restype = c_int
 XMatchVisualInfo.argtypes = [POINTER(Display), c_int, c_int, c_int, POINTER(XVisualInfo)]
 
-# /usr/include/X11/Xutil.h:5287
+# 033530.python.xlib.line5679.comment /usr/include/X11/Xutil.h:5287
 XOffsetRegion = _lib.XOffsetRegion
 XOffsetRegion.restype = c_int
 XOffsetRegion.argtypes = [Region, c_int, c_int]
 
-# /usr/include/X11/Xutil.h:5293
+# 033531.python.xlib.line5684.comment /usr/include/X11/Xutil.h:5293
 XPointInRegion = _lib.XPointInRegion
 XPointInRegion.restype = c_int
 XPointInRegion.argtypes = [Region, c_int, c_int]
 
-# /usr/include/X11/Xutil.h:5299
+# 033532.python.xlib.line5689.comment /usr/include/X11/Xutil.h:5299
 XPolygonRegion = _lib.XPolygonRegion
 XPolygonRegion.restype = Region
 XPolygonRegion.argtypes = [POINTER(XPoint), c_int, c_int]
 
-# /usr/include/X11/Xutil.h:5305
+# 033533.python.xlib.line5694.comment /usr/include/X11/Xutil.h:5305
 XRectInRegion = _lib.XRectInRegion
 XRectInRegion.restype = c_int
 XRectInRegion.argtypes = [Region, c_int, c_int, c_uint, c_uint]
 
-# /usr/include/X11/Xutil.h:5313
+# 033534.python.xlib.line5699.comment /usr/include/X11/Xutil.h:5313
 XSaveContext = _lib.XSaveContext
 XSaveContext.restype = c_int
 XSaveContext.argtypes = [POINTER(Display), XID, XContext, c_char_p]
 
-# /usr/include/X11/Xutil.h:5320
+# 033535.python.xlib.line5704.comment /usr/include/X11/Xutil.h:5320
 XSetClassHint = _lib.XSetClassHint
 XSetClassHint.restype = c_int
 XSetClassHint.argtypes = [POINTER(Display), Window, POINTER(XClassHint)]
 
-# /usr/include/X11/Xutil.h:5326
+# 033536.python.xlib.line5709.comment /usr/include/X11/Xutil.h:5326
 XSetIconSizes = _lib.XSetIconSizes
 XSetIconSizes.restype = c_int
 XSetIconSizes.argtypes = [POINTER(Display), Window, POINTER(XIconSize), c_int]
 
-# /usr/include/X11/Xutil.h:5333
+# 033537.python.xlib.line5714.comment /usr/include/X11/Xutil.h:5333
 XSetNormalHints = _lib.XSetNormalHints
 XSetNormalHints.restype = c_int
 XSetNormalHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints)]
 
-# /usr/include/X11/Xutil.h:5339
+# 033538.python.xlib.line5719.comment /usr/include/X11/Xutil.h:5339
 XSetRGBColormaps = _lib.XSetRGBColormaps
 XSetRGBColormaps.restype = None
 XSetRGBColormaps.argtypes = [POINTER(Display), Window, POINTER(XStandardColormap), c_int, Atom]
 
-# /usr/include/X11/Xutil.h:5347
+# 033539.python.xlib.line5724.comment /usr/include/X11/Xutil.h:5347
 XSetSizeHints = _lib.XSetSizeHints
 XSetSizeHints.restype = c_int
 XSetSizeHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints), Atom]
 
-# /usr/include/X11/Xutil.h:5354
+# 033540.python.xlib.line5729.comment /usr/include/X11/Xutil.h:5354
 XSetStandardProperties = _lib.XSetStandardProperties
 XSetStandardProperties.restype = c_int
 XSetStandardProperties.argtypes = [POINTER(Display), Window, c_char_p, c_char_p, Pixmap, POINTER(c_char_p), c_int,
                                    POINTER(XSizeHints)]
 
-# /usr/include/X11/Xutil.h:5365
+# 033541.python.xlib.line5735.comment /usr/include/X11/Xutil.h:5365
 XSetTextProperty = _lib.XSetTextProperty
 XSetTextProperty.restype = None
 XSetTextProperty.argtypes = [POINTER(Display), Window, POINTER(XTextProperty), Atom]
 
-# /usr/include/X11/Xutil.h:5372
+# 033542.python.xlib.line5740.comment /usr/include/X11/Xutil.h:5372
 XSetWMClientMachine = _lib.XSetWMClientMachine
 XSetWMClientMachine.restype = None
 XSetWMClientMachine.argtypes = [POINTER(Display), Window, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5378
+# 033543.python.xlib.line5745.comment /usr/include/X11/Xutil.h:5378
 XSetWMHints = _lib.XSetWMHints
 XSetWMHints.restype = c_int
 XSetWMHints.argtypes = [POINTER(Display), Window, POINTER(XWMHints)]
 
-# /usr/include/X11/Xutil.h:5384
+# 033544.python.xlib.line5750.comment /usr/include/X11/Xutil.h:5384
 XSetWMIconName = _lib.XSetWMIconName
 XSetWMIconName.restype = None
 XSetWMIconName.argtypes = [POINTER(Display), Window, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5390
+# 033545.python.xlib.line5755.comment /usr/include/X11/Xutil.h:5390
 XSetWMName = _lib.XSetWMName
 XSetWMName.restype = None
 XSetWMName.argtypes = [POINTER(Display), Window, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5396
+# 033546.python.xlib.line5760.comment /usr/include/X11/Xutil.h:5396
 XSetWMNormalHints = _lib.XSetWMNormalHints
 XSetWMNormalHints.restype = None
 XSetWMNormalHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints)]
 
-# /usr/include/X11/Xutil.h:5402
+# 033547.python.xlib.line5765.comment /usr/include/X11/Xutil.h:5402
 XSetWMProperties = _lib.XSetWMProperties
 XSetWMProperties.restype = None
 XSetWMProperties.argtypes = [POINTER(Display), Window, POINTER(XTextProperty), POINTER(XTextProperty),
                              POINTER(c_char_p), c_int, POINTER(XSizeHints), POINTER(XWMHints), POINTER(XClassHint)]
 
-# /usr/include/X11/Xutil.h:5414
+# 033548.python.xlib.line5771.comment /usr/include/X11/Xutil.h:5414
 XmbSetWMProperties = _lib.XmbSetWMProperties
 XmbSetWMProperties.restype = None
 XmbSetWMProperties.argtypes = [POINTER(Display), Window, c_char_p, c_char_p, POINTER(c_char_p), c_int,
                                POINTER(XSizeHints), POINTER(XWMHints), POINTER(XClassHint)]
 
-# /usr/include/X11/Xutil.h:5426
+# 033549.python.xlib.line5777.comment /usr/include/X11/Xutil.h:5426
 Xutf8SetWMProperties = _lib.Xutf8SetWMProperties
 Xutf8SetWMProperties.restype = None
 Xutf8SetWMProperties.argtypes = [POINTER(Display), Window, c_char_p, c_char_p, POINTER(c_char_p), c_int,
                                  POINTER(XSizeHints), POINTER(XWMHints), POINTER(XClassHint)]
 
-# /usr/include/X11/Xutil.h:5438
+# 033550.python.xlib.line5783.comment /usr/include/X11/Xutil.h:5438
 XSetWMSizeHints = _lib.XSetWMSizeHints
 XSetWMSizeHints.restype = None
 XSetWMSizeHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints), Atom]
 
-# /usr/include/X11/Xutil.h:5445
+# 033551.python.xlib.line5788.comment /usr/include/X11/Xutil.h:5445
 XSetRegion = _lib.XSetRegion
 XSetRegion.restype = c_int
 XSetRegion.argtypes = [POINTER(Display), GC, Region]
 
-# /usr/include/X11/Xutil.h:5451
+# 033552.python.xlib.line5793.comment /usr/include/X11/Xutil.h:5451
 XSetStandardColormap = _lib.XSetStandardColormap
 XSetStandardColormap.restype = None
 XSetStandardColormap.argtypes = [POINTER(Display), Window, POINTER(XStandardColormap), Atom]
 
-# /usr/include/X11/Xutil.h:5458
+# 033553.python.xlib.line5798.comment /usr/include/X11/Xutil.h:5458
 XSetZoomHints = _lib.XSetZoomHints
 XSetZoomHints.restype = c_int
 XSetZoomHints.argtypes = [POINTER(Display), Window, POINTER(XSizeHints)]
 
-# /usr/include/X11/Xutil.h:5464
+# 033554.python.xlib.line5803.comment /usr/include/X11/Xutil.h:5464
 XShrinkRegion = _lib.XShrinkRegion
 XShrinkRegion.restype = c_int
 XShrinkRegion.argtypes = [Region, c_int, c_int]
 
-# /usr/include/X11/Xutil.h:5470
+# 033555.python.xlib.line5808.comment /usr/include/X11/Xutil.h:5470
 XStringListToTextProperty = _lib.XStringListToTextProperty
 XStringListToTextProperty.restype = c_int
 XStringListToTextProperty.argtypes = [POINTER(c_char_p), c_int, POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5476
+# 033556.python.xlib.line5813.comment /usr/include/X11/Xutil.h:5476
 XSubtractRegion = _lib.XSubtractRegion
 XSubtractRegion.restype = c_int
 XSubtractRegion.argtypes = [Region, Region, Region]
 
-# /usr/include/X11/Xutil.h:5482
+# 033557.python.xlib.line5818.comment /usr/include/X11/Xutil.h:5482
 XmbTextListToTextProperty = _lib.XmbTextListToTextProperty
 XmbTextListToTextProperty.restype = c_int
 XmbTextListToTextProperty.argtypes = [POINTER(Display), POINTER(c_char_p), c_int, XICCEncodingStyle,
                                       POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5490
+# 033558.python.xlib.line5824.comment /usr/include/X11/Xutil.h:5490
 XwcTextListToTextProperty = _lib.XwcTextListToTextProperty
 XwcTextListToTextProperty.restype = c_int
 XwcTextListToTextProperty.argtypes = [POINTER(Display), POINTER(c_wchar_p), c_int, XICCEncodingStyle,
                                       POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5498
+# 033559.python.xlib.line5830.comment /usr/include/X11/Xutil.h:5498
 Xutf8TextListToTextProperty = _lib.Xutf8TextListToTextProperty
 Xutf8TextListToTextProperty.restype = c_int
 Xutf8TextListToTextProperty.argtypes = [POINTER(Display), POINTER(c_char_p), c_int, XICCEncodingStyle,
                                         POINTER(XTextProperty)]
 
-# /usr/include/X11/Xutil.h:5506
+# 033560.python.xlib.line5836.comment /usr/include/X11/Xutil.h:5506
 XwcFreeStringList = _lib.XwcFreeStringList
 XwcFreeStringList.restype = None
 XwcFreeStringList.argtypes = [POINTER(c_wchar_p)]
 
-# /usr/include/X11/Xutil.h:5510
+# 033561.python.xlib.line5841.comment /usr/include/X11/Xutil.h:5510
 XTextPropertyToStringList = _lib.XTextPropertyToStringList
 XTextPropertyToStringList.restype = c_int
 XTextPropertyToStringList.argtypes = [POINTER(XTextProperty), POINTER(POINTER(c_char_p)), POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5516
+# 033562.python.xlib.line5846.comment /usr/include/X11/Xutil.h:5516
 XmbTextPropertyToTextList = _lib.XmbTextPropertyToTextList
 XmbTextPropertyToTextList.restype = c_int
 XmbTextPropertyToTextList.argtypes = [POINTER(Display), POINTER(XTextProperty), POINTER(POINTER(c_char_p)),
                                       POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5523
+# 033563.python.xlib.line5852.comment /usr/include/X11/Xutil.h:5523
 XwcTextPropertyToTextList = _lib.XwcTextPropertyToTextList
 XwcTextPropertyToTextList.restype = c_int
 XwcTextPropertyToTextList.argtypes = [POINTER(Display), POINTER(XTextProperty), POINTER(POINTER(c_wchar_p)),
                                       POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5530
+# 033564.python.xlib.line5858.comment /usr/include/X11/Xutil.h:5530
 Xutf8TextPropertyToTextList = _lib.Xutf8TextPropertyToTextList
 Xutf8TextPropertyToTextList.restype = c_int
 Xutf8TextPropertyToTextList.argtypes = [POINTER(Display), POINTER(XTextProperty), POINTER(POINTER(c_char_p)),
                                         POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5537
+# 033565.python.xlib.line5864.comment /usr/include/X11/Xutil.h:5537
 XUnionRectWithRegion = _lib.XUnionRectWithRegion
 XUnionRectWithRegion.restype = c_int
 XUnionRectWithRegion.argtypes = [POINTER(XRectangle), Region, Region]
 
-# /usr/include/X11/Xutil.h:5543
+# 033566.python.xlib.line5869.comment /usr/include/X11/Xutil.h:5543
 XUnionRegion = _lib.XUnionRegion
 XUnionRegion.restype = c_int
 XUnionRegion.argtypes = [Region, Region, Region]
 
-# /usr/include/X11/Xutil.h:5549
+# 033567.python.xlib.line5874.comment /usr/include/X11/Xutil.h:5549
 XWMGeometry = _lib.XWMGeometry
 XWMGeometry.restype = c_int
 XWMGeometry.argtypes = [POINTER(Display), c_int, c_char_p, c_char_p, c_uint, POINTER(XSizeHints), POINTER(c_int),
                         POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
 
-# /usr/include/X11/Xutil.h:5563
+# 033568.python.xlib.line5880.comment /usr/include/X11/Xutil.h:5563
 XXorRegion = _lib.XXorRegion
 XXorRegion.restype = c_int
 XXorRegion.argtypes = [Region, Region, Region]

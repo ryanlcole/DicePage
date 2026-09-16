@@ -15,9 +15,9 @@ _StrOrIter: TypeAlias = Union[str, Iterable[str]]
 
 
 parse_req: Callable[[str], Requirement] = lru_cache()(Requirement)
-# Setuptools parses the same requirement many times
-# (e.g. first for validation than for normalisation),
-# so it might be worth to cache.
+# 041509.python.reqs.line18.comment Setuptools parses the same requirement many times
+# 041510.python.reqs.line19.comment (e.g. first for validation than for normalisation),
+# 041511.python.reqs.line20.comment so it might be worth to cache.
 
 
 def parse_strings(strs: _StrOrIter) -> Iterator[str]:
@@ -29,8 +29,8 @@ def parse_strings(strs: _StrOrIter) -> Iterator[str]:
     return text.join_continuation(map(text.drop_comment, text.yield_lines(strs)))
 
 
-# These overloads are only needed because of a mypy false-positive, pyright gets it right
-# https://github.com/python/mypy/issues/3737
+# 041512.python.reqs.line32.comment These overloads are only needed because of a mypy false-positive, pyright gets it right
+# 041513.python.reqs.line33.comment https://github.com/python/mypy/issues/3737
 @overload
 def parse(strs: _StrOrIter) -> Iterator[Requirement]: ...
 @overload

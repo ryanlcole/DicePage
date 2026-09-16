@@ -21,7 +21,7 @@ from packaging.requirements import Requirement
 from .. import _reqs
 from .._reqs import _StrOrIter
 
-# dict can work as an ordered set
+# 044288.python.requirestxt.line24.comment dict can work as an ordered set
 _T = TypeVar("_T")
 _Ordered = dict[_T, None]
 
@@ -46,7 +46,7 @@ def _convert_extras_requirements(
     """
     output = defaultdict[str, _Ordered[Requirement]](dict)
     for section, v in extras_require.items():
-        # Do not strip empty sections.
+        # 044289.python.requirestxt.line49.comment Do not strip empty sections.
         output[section]
         for r in _reqs.parse(v):
             output[section + _suffix_for(r)].setdefault(r)
@@ -66,8 +66,8 @@ def _move_install_requirements_markers(
     markers ``extras_require``.
     """
 
-    # divide the install_requires into two sets, simple ones still
-    # handled by install_requires and more complex ones handled by extras_require.
+    # 044290.python.requirestxt.line69.comment divide the install_requires into two sets, simple ones still
+    # 044291.python.requirestxt.line70.comment handled by install_requires and more complex ones handled by extras_require.
 
     inst_reqs = list(_reqs.parse(install_requires))
     simple_reqs = filter(_no_marker, inst_reqs)
@@ -78,7 +78,7 @@ def _move_install_requirements_markers(
         extras_require[':' + str(r.marker)].setdefault(r)
 
     expanded_extras = dict(
-        # list(dict.fromkeys(...))  ensures a list of unique strings
+        # 044292.python.requirestxt.line81.comment list(dict.fromkeys(...))  ensures a list of unique strings
         (k, list(dict.fromkeys(str(r) for r in map(_clean_req, v))))
         for k, v in extras_require.items()
     )

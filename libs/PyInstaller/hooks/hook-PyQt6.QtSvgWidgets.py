@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2023, PyInstaller Development Team.
-#
-# Distributed under the terms of the GNU General Public License (version 2
-# or later) with exception for distributing the bootloader.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#
-# SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
-#-----------------------------------------------------------------------------
+# 003999.python.hook-PyQt6.QtSvgWidgets.line1.comment -----------------------------------------------------------------------------
+# 004000.python.hook-PyQt6.QtSvgWidgets.line2.comment Copyright (c) 2013-2023, PyInstaller Development Team.
+# 004001.python.hook-PyQt6.QtSvgWidgets.line3.comment
+# 004002.python.hook-PyQt6.QtSvgWidgets.line4.comment Distributed under the terms of the GNU General Public License (version 2
+# 004003.python.hook-PyQt6.QtSvgWidgets.line5.comment or later) with exception for distributing the bootloader.
+# 004004.python.hook-PyQt6.QtSvgWidgets.line6.comment
+# 004005.python.hook-PyQt6.QtSvgWidgets.line7.comment The full license is in the file COPYING.txt, distributed with this software.
+# 004006.python.hook-PyQt6.QtSvgWidgets.line8.comment
+# 004007.python.hook-PyQt6.QtSvgWidgets.line9.comment SPDX-License-Identifier: (GPL-2.0-or-later WITH Bootloader-exception)
+# 004008.python.hook-PyQt6.QtSvgWidgets.line10.comment -----------------------------------------------------------------------------
 
 from PyInstaller.utils.hooks.qt import add_qt6_dependencies
 

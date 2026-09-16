@@ -20,8 +20,8 @@ class TestSpawn(support.TempdirManager):
     def test_spawn(self):
         tmpdir = self.mkdtemp()
 
-        # creating something executable
-        # through the shell that returns 1
+        # 041216.python.test_spawn.line23.comment creating something executable
+        # 041217.python.test_spawn.line24.comment through the shell that returns 1
         if sys.platform != 'win32':
             exe = os.path.join(tmpdir, 'foo.sh')
             self.write_file(exe, f'#!{unix_shell}\nexit 1')
@@ -33,7 +33,7 @@ class TestSpawn(support.TempdirManager):
         with pytest.raises(DistutilsExecError):
             spawn([exe])
 
-        # now something that works
+        # 041218.python.test_spawn.line36.comment now something that works
         if sys.platform != 'win32':
             exe = os.path.join(tmpdir, 'foo.sh')
             self.write_file(exe, f'#!{unix_shell}\nexit 0')
@@ -51,26 +51,26 @@ class TestSpawn(support.TempdirManager):
         filename = str(program_path)
         tmp_dir = path.Path(tmp_path)
 
-        # test path parameter
+        # 041220.python.test_spawn.line54.comment test path parameter
         rv = find_executable(program, path=tmp_dir)
         assert rv == filename
 
         if sys.platform == 'win32':
-            # test without ".exe" extension
+            # 041221.python.test_spawn.line59.comment test without ".exe" extension
             rv = find_executable(program_noeext, path=tmp_dir)
             assert rv == filename
 
-        # test find in the current directory
+        # 041222.python.test_spawn.line63.comment test find in the current directory
         with tmp_dir:
             rv = find_executable(program)
             assert rv == program
 
-        # test non-existent program
+        # 041223.python.test_spawn.line68.comment test non-existent program
         dont_exist_program = "dontexist_" + program
         rv = find_executable(dont_exist_program, path=tmp_dir)
         assert rv is None
 
-        # PATH='': no match, except in the current directory
+        # 041224.python.test_spawn.line73.comment PATH='': no match, except in the current directory
         with os_helper.EnvironmentVarGuard() as env:
             env['PATH'] = ''
             with (
@@ -82,12 +82,12 @@ class TestSpawn(support.TempdirManager):
                 rv = find_executable(program)
                 assert rv is None
 
-                # look in current directory
+                # 041225.python.test_spawn.line85.comment look in current directory
                 with tmp_dir:
                     rv = find_executable(program)
                     assert rv == program
 
-        # PATH=':': explicitly looks in the current directory
+        # 041226.python.test_spawn.line90.comment PATH=':': explicitly looks in the current directory
         with os_helper.EnvironmentVarGuard() as env:
             env['PATH'] = os.pathsep
             with (
@@ -97,16 +97,16 @@ class TestSpawn(support.TempdirManager):
                 rv = find_executable(program)
                 assert rv is None
 
-                # look in current directory
+                # 041227.python.test_spawn.line100.comment look in current directory
                 with tmp_dir:
                     rv = find_executable(program)
                     assert rv == program
 
-        # missing PATH: test os.confstr("CS_PATH") and os.defpath
+        # 041228.python.test_spawn.line105.comment missing PATH: test os.confstr("CS_PATH") and os.defpath
         with os_helper.EnvironmentVarGuard() as env:
             env.pop('PATH', None)
 
-            # without confstr
+            # 041229.python.test_spawn.line109.comment without confstr
             with (
                 mock.patch(
                     'distutils.spawn.os.confstr', side_effect=ValueError, create=True
@@ -116,7 +116,7 @@ class TestSpawn(support.TempdirManager):
                 rv = find_executable(program)
                 assert rv == filename
 
-            # with confstr
+            # 041230.python.test_spawn.line119.comment with confstr
             with (
                 mock.patch(
                     'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
@@ -128,8 +128,8 @@ class TestSpawn(support.TempdirManager):
 
     @staticmethod
     def _make_executable(tmp_path, ext):
-        # Give the temporary program a suffix regardless of platform.
-        # It's needed on Windows and not harmful on others.
+        # 041231.python.test_spawn.line131.comment Give the temporary program a suffix regardless of platform.
+        # 041232.python.test_spawn.line132.comment It's needed on Windows and not harmful on others.
         program = tmp_path.joinpath('program').with_suffix(ext)
         program.write_text("", encoding='utf-8')
         program.chmod(stat.S_IXUSR)

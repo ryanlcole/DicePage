@@ -26,11 +26,11 @@ you can specify additional strings to be ignored.  This is useful
 e.g. to ignore casts to u_long: simply specify "-i '(u_long)'".
 """
 
-# XXX To do:
-# - turn trailing C comments into Python comments
-# - turn C Boolean operators "&& || !" into Python "and or not"
-# - what to do about #if(def)?
-# - what to do about macros with multiple parameters?
+# 047975.python.h2py.line29.comment XXX To do:
+# 047976.python.h2py.line30.comment - turn trailing C comments into Python comments
+# 047977.python.h2py.line31.comment - turn C Boolean operators "&& || !" into Python "and or not"
+# 047978.python.h2py.line32.comment - what to do about #if(def)?
+# 047979.python.h2py.line33.comment - what to do about macros with multiple parameters?
 from __future__ import annotations
 
 import ctypes
@@ -49,7 +49,7 @@ p_include = re.compile(r"^[\t ]*#[\t ]*include[\t ]+<([^>\n]+)>")
 
 p_comment = re.compile(r"/\*([^*]+|\*+[^/])*(\*+/)?")
 p_cpp_comment = re.compile("//.*")
-# Maybe we want these to cause integer truncation instead?
+# 047980.python.h2py.line52.comment Maybe we want these to cause integer truncation instead?
 p_int_cast = re.compile(r"\((DWORD|HRESULT|SCODE|LONG|HWND|HANDLE|int|HBITMAP)\)")
 
 ignores = [p_comment, p_cpp_comment, p_int_cast]
@@ -106,12 +106,12 @@ def main():
 
 
 def pytify(body):
-    # replace ignored patterns by spaces
+    # 047982.python.h2py.line109.comment replace ignored patterns by spaces
     for p in ignores:
         body = p.sub(" ", body)
-    # replace char literals by ord(...)
+    # 047983.python.h2py.line112.comment replace char literals by ord(...)
     body = p_char.sub("ord('\\1')", body)
-    # Compute negative hexadecimal constants
+    # 047984.python.h2py.line114.comment Compute negative hexadecimal constants
     start = 0
     while 1:
         m = p_signed_hex.search(body, start)
@@ -122,7 +122,7 @@ def pytify(body):
         if val < 0:
             body = body[:s] + "(" + str(val) + ")" + body[e:]
         start = s + 1
-    # remove literal constant indicator (u U l L)
+    # 047985.python.h2py.line125.comment remove literal constant indicator (u U l L)
     body = p_literal_constant.sub("\\1", body)
     return body
 
@@ -136,7 +136,7 @@ def process(fp, outfp, env={}):
         lineno = lineno + 1
         match = p_define.match(line)
         if match:
-            # gobble up continuation lines
+            # 047986.python.h2py.line139.comment gobble up continuation lines
             while line[-2:] == "\\\n":
                 nextline = fp.readline()
                 if not nextline:

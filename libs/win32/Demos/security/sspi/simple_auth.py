@@ -1,7 +1,7 @@
-# A demo of basic SSPI authentication.
-# There is a 'client' context and a 'server' context - typically these will
-# be on different machines (here they are in the same process, but the same
-# concepts apply)
+# 046212.python.simple_auth.line1.comment A demo of basic SSPI authentication.
+# 046213.python.simple_auth.line2.comment There is a 'client' context and a 'server' context - typically these will
+# 046214.python.simple_auth.line3.comment be on different machines (here they are in the same process, but the same
+# 046215.python.simple_auth.line4.comment concepts apply)
 import sspi
 import sspicon
 import win32api
@@ -28,12 +28,12 @@ sspiserver=SSPIServer(pkg_name, None,
 
 pkg_name = "NTLM"
 
-# Setup the 2 contexts.
+# 046216.python.simple_auth.line31.comment Setup the 2 contexts.
 sspiclient = sspi.ClientAuth(pkg_name)
 sspiserver = sspi.ServerAuth(pkg_name)
 
-# Perform the authentication dance, each loop exchanging more information
-# on the way to completing authentication.
+# 046217.python.simple_auth.line35.comment Perform the authentication dance, each loop exchanging more information
+# 046218.python.simple_auth.line36.comment on the way to completing authentication.
 sec_buffer = None
 while 1:
     err, sec_buffer = sspiclient.authorize(sec_buffer)
@@ -41,15 +41,15 @@ while 1:
     if err == 0:
         break
 
-# The server can now impersonate the client.  In this demo the 2 users will
-# always be the same.
+# 046219.python.simple_auth.line44.comment The server can now impersonate the client.  In this demo the 2 users will
+# 046220.python.simple_auth.line45.comment always be the same.
 sspiserver.ctxt.ImpersonateSecurityContext()
 print("Impersonated user: ", win32api.GetUserNameEx(win32api.NameSamCompatible))
 sspiserver.ctxt.RevertSecurityContext()
 print("Reverted to self: ", win32api.GetUserName())
 
 pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-# Now sign some data
+# 046221.python.simple_auth.line52.comment Now sign some data
 msg = "some data to be encrypted ......"
 
 sigsize = pkg_size_info["MaxSignature"]
@@ -60,7 +60,7 @@ sigbuf[0].Buffer = msg
 sspiclient.ctxt.MakeSignature(0, sigbuf, 1)
 sspiserver.ctxt.VerifySignature(sigbuf, 1)
 
-# And finally encrypt some.
+# 046222.python.simple_auth.line63.comment And finally encrypt some.
 trailersize = pkg_size_info["SecurityTrailer"]
 encbuf = win32security.PySecBufferDescType()
 encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))

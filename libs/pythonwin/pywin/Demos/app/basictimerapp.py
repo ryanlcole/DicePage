@@ -1,6 +1,6 @@
-# basictimerapp - a really simple timer application.
-# This should be run using the command line:
-# pythonwin /app demos\basictimerapp.py
+# 036583.python.basictimerapp.line1.comment basictimerapp - a really simple timer application.
+# 036584.python.basictimerapp.line2.comment This should be run using the command line:
+# 036585.python.basictimerapp.line3.comment pythonwin /app demos\basictimerapp.py
 import sys
 import time
 
@@ -24,7 +24,7 @@ class TimerAppDialog(dlgappcore.AppDialog):
                 self.argOff = 1
 
     def PreDoModal(self):
-        # 		sys.stderr = sys.stdout
+        # 036586.python.basictimerapp.line27.comment sys.stderr = sys.stdout
         pass
 
     def ProcessArgs(self, args):
@@ -41,7 +41,7 @@ class TimerAppDialog(dlgappcore.AppDialog):
             self.timerAppName, "Timer", "EachMinuteIntervaler()"
         )
         self.doWork = win32ui.GetProfileVal(self.timerAppName, "Work", "DoDemoWork()")
-        # replace "\n" with real \n.
+        # 036587.python.basictimerapp.line44.comment replace "\n" with real \n.
         self.doWork = self.doWork.replace("\\n", "\n")
         dlgappcore.AppDialog.OnInitDialog(self)
 
@@ -67,15 +67,15 @@ class TimerAppDialog(dlgappcore.AppDialog):
         self.timerManager.stop()
 
     def OnOK(self):
-        # stop the timer, then restart after setting special boolean
+        # 036588.python.basictimerapp.line70.comment stop the timer, then restart after setting special boolean
         self.timerManager.stop()
         self.timerManager.bConnectNow = 1
         self.timerManager.go()
         return
 
 
-# 	def OnCancel(self): default behaviour - cancel == close.
-# 		return
+# 036589.python.basictimerapp.line77.comment def OnCancel(self): default behaviour - cancel == close.
+# 036590.python.basictimerapp.line78.comment return
 
 
 class TimerManager:
@@ -118,7 +118,7 @@ class TimerManager:
         if id:
             timer.kill_timer(id)
         if self.intervaler.IsTime() or self.bConnectNow:
-            # do the work.
+            # 036591.python.basictimerapp.line121.comment do the work.
             try:
                 self.dlg.SetWindowText(self.dlg.title + " - Working...")
                 self.dlg.butOK.EnableWindow(0)
@@ -176,7 +176,7 @@ class TimerIntervaler:
         if now >= self.nextTime:
             ret = 1
             self.nextTime = self.SetNextTime(self.nextTime, now)
-            # do the work.
+            # 036593.python.basictimerapp.line179.comment do the work.
         return ret
 
 
