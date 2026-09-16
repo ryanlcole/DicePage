@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "units": [
+    {
+      "unit_id": "rune.retrieve",
+      "kind": "RUNE",
+      "name": "retrieve",
+      "description": "Atomic intent: obtain an existing value or object from an addressed source."
+    },
+    {
+      "unit_id": "glyph.counted_loop",
+      "kind": "GLYPH",
+      "name": "counted_loop",
+      "description": "Compound repetition behavior with initialization, continuation condition, body, and iteration step."
+    },
+    {
+      "unit_id": "shaep.raster_image",
+      "kind": "SHAEP",
+      "name": "raster_image",
+      "description": "Persistent image identity whose concrete payload may be represented by different raster formats without changing the represented asset identity."
+    }
+  ],
+  "forms": [
+    {
+      "form_id": "form.sql.select",
+      "language": "sql",
+      "surface": "SELECT",
+      "unit_id": "rune.retrieve",
+      "relation": "implements_intent",
+      "conditions": "Retrieves projected data from a query source; not interchangeable with every operation named get."
+    },
+    {
+      "form_id": "form.generic.get",
+      "language": "generic",
+      "surface": "get",
+      "unit_id": "rune.retrieve",
+      "relation": "implements_intent",
+      "conditions": "Represents retrieval only when the host language/API uses get for reading rather than mutation or allocation."
+    },
+    {
+      "form_id": "form.cstyle.for",
+      "language": "cstyle",
+      "surface": "for(init; condition; step)",
+      "unit_id": "glyph.counted_loop",
+      "relation": "implements_behavior",
+      "conditions": "Equivalent to the counted-loop glyph when initialization occurs once, condition is tested before each iteration, and step occurs after each completed body iteration."
+    },
+    {
+      "form_id": "form.cstyle.while_expanded",
+      "language": "cstyle",
+      "surface": "init; while(condition) { body; step; }",
+      "unit_id": "glyph.counted_loop",
+      "relation": "implements_behavior",
+      "conditions": "Behaviorally equivalent to the matching for-loop only when continue/break/exception and step placement preserve the same control-flow semantics."
+    },
+    {
+      "form_id": "form.image.png",
+      "language": "media",
+      "surface": ".png",
+      "unit_id": "shaep.raster_image",
+      "relation": "payload_representation",
+      "conditions": "A PNG payload may represent the same SHAEP image identity as another supported encoding; byte identity is not implied."
+    },
+    {
+      "form_id": "form.image.jpg",
+      "language": "media",
+      "surface": ".jpg",
+      "unit_id": "shaep.raster_image",
+      "relation": "payload_representation",
+      "conditions": "A JPEG payload may represent the same SHAEP image identity as another supported encoding; visual fidelity and alpha capability may differ."
+    }
+  ],
+  "relations": [
+    {
+      "left": "form.sql.select",
+      "right": "form.generic.get",
+      "relation": "contextual_semantic_equivalence",
+      "symmetric": true,
+      "conditions": "Both forms must mean retrieval in the active context.",
+      "truth_status": "HYPOTHESIS"
+    },
+    {
+      "left": "form.cstyle.for",
+      "right": "form.cstyle.while_expanded",
+      "relation": "behavioral_equivalence",
+      "symmetric": true,
+      "conditions": "Initialization, test order, step order, continue behavior, break behavior, and side effects must match.",
+      "truth_status": "FACT"
+    },
+    {
+      "left": "form.image.png",
+      "right": "form.image.jpg",
+      "relation": "representation_equivalence",
+      "symmetric": true,
+      "conditions": "Both payloads resolve to the same SHAEP identity; equality of bytes or lossless visual data is not required.",
+      "truth_status": "FACT"
+    }
+  ]
+}
