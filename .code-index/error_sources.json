@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "repeat_threshold": 2,
+  "regression_threshold": 1,
+  "sources": [
+    {"glob": "KNOWN_ERRORS.md", "format": "text", "enabled": true},
+    {"glob": "logs/**/*.log", "format": "text", "enabled": true},
+    {"glob": "logs/**/*.jsonl", "format": "jsonl", "enabled": true},
+    {"glob": "verification/**/*.log", "format": "text", "enabled": true},
+    {"glob": ".code-index/runtime_errors.jsonl", "format": "jsonl", "enabled": true}
+  ]
+}
