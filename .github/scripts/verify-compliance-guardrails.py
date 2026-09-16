@@ -42,6 +42,7 @@ required_files = [
     "apps/rist-world/wwwroot/shaelvien-language-perception-bridge.js",
     "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
     "apps/rist-world/wwwroot/worldbuilder-camera-window.js",
+    "apps/rist-world/wwwroot/worldbuilder-drag-preview.js",
 ]
 for item in required_files:
     require_file(item)
@@ -183,4 +184,32 @@ require_text(
     ],
 )
 
-print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, adaptive-perception separation, narrow Worldbuilder camera migration, and no-arbitrary-execution invariants remain present.")
+# The second migrated Worldbuilder path is transient quick-slot drag preview only.
+# It may supersede stale visual pointer frames, but actual pointer-up placement remains reliable and unscheduled.
+require_text(
+    "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
+    [
+        'const PLACEMENT_PREVIEW_STREAM = "worldbuilder.placement-preview";',
+        'placementPreviewPointer: "runtime.perception.worldbuilder.placement-preview.pointer"',
+        'representation: Object.freeze({ kind: "worldbuilder-placement-preview" })',
+        "transient: true",
+        "enqueuePlacementPreview",
+        "supersedable: true",
+        "presenter.applyQuickSlot",
+    ],
+)
+require_text(
+    "apps/rist-world/wwwroot/worldbuilder-drag-preview.js",
+    [
+        "Placement commit is deliberately NOT adaptive.",
+        "semantic.enqueuePlacementPreview",
+        "activePreviewSession",
+        "inactive-session",
+        "adaptive placement preview fallback",
+        "window.ristPlacement?.set(options||{})",
+        "document.dispatchEvent(new PointerEvent('pointerup'",
+        "It remains synchronous in this migration; its final move is authoritative elsewhere.",
+    ],
+)
+
+print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, adaptive-perception separation, narrow Worldbuilder camera and transient placement-preview migrations, and no-arbitrary-execution invariants remain present.")
