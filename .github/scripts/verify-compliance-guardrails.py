@@ -25,6 +25,7 @@ def require_text(path: str, phrases: list[str]) -> None:
 
 required_files = [
     "docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md",
+    "docs/SHAELVIEN_ADAPTIVE_PERCEPTION.md",
     "apps/rist-world/AUTHORITY_SYSTEM.md",
     "apps/rist-world/wwwroot/ai-policy.json",
     "apps/rist-world/wwwroot/terms.html",
@@ -37,6 +38,7 @@ required_files = [
     "apps/rist-world/wwwroot/shaelvien-perception-runtime.js",
     "apps/rist-world/wwwroot/shaelvien-input-runtime.js",
     "apps/rist-world/wwwroot/shaelvien-client-perception.js",
+    "apps/rist-world/wwwroot/shaelvien-adaptive-perception.js",
     "apps/rist-world/wwwroot/shaelvien-language-perception-bridge.js",
     "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
 ]
@@ -96,7 +98,7 @@ require_text("apps/rist-world/wwwroot/privacy.html", ["not intended for children
 require_text("apps/rist-world/wwwroot/safety.html", ["TAKE IT DOWN", "within 48 hours"])
 
 # Site boot must keep the semantic membrane active. The order matters: core runtime first,
-# then wire/perception/input/client negotiation; language bridge only after the language runtime.
+# then wire/perception/input/client negotiation/adaptive scheduling; language bridge only after the language runtime.
 index = require_file("apps/rist-world/wwwroot/index.html").read_text(encoding="utf-8")
 boot_sequence = [
     "shaelvien-semantic-runtime.js",
@@ -104,6 +106,7 @@ boot_sequence = [
     "shaelvien-perception-runtime.js",
     "shaelvien-input-runtime.js",
     "shaelvien-client-perception.js",
+    "shaelvien-adaptive-perception.js",
 ]
 positions = [index.find(item) for item in boot_sequence]
 if any(position < 0 for position in positions) or positions != sorted(positions):
@@ -135,4 +138,25 @@ require_text(
     ],
 )
 
-print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, and no-arbitrary-execution invariants remain present.")
+# Adaptive scheduling is allowed to lose obsolete perception, never truth or intent.
+require_text(
+    "apps/rist-world/wwwroot/shaelvien-adaptive-perception.js",
+    [
+        "Only already-authorized `perception` envelopes may enter this scheduler.",
+        "Intent/input/action envelopes are rejected and can never be coalesced here.",
+        "Existing `runtime.receive()` behavior remains unchanged during migration.",
+        'if (envelope.kind !== "perception")',
+        'if (envelope.operation?.type !== "runtime-perception")',
+    ],
+)
+require_text(
+    "docs/SHAELVIEN_ADAPTIVE_PERCEPTION.md",
+    [
+        "obsolete perception -> MAY SUPERSEDE",
+        "user intent/action  -> NEVER ENTER PERCEPTION QUEUE",
+        "authoritative truth -> NEVER DERIVED FROM QUEUE LOSS",
+        "The adaptive scheduler does not intercept `runtime.receive()` automatically.",
+    ],
+)
+
+print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, adaptive-perception separation, and no-arbitrary-execution invariants remain present.")
