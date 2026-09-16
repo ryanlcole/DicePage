@@ -32,7 +32,7 @@ jobs:
           python-version: '3.12'
 
       - name: Syntax-check governance tools
-        run: python -m py_compile tools/code_index.py tools/code_database.py tools/semantic_units.py
+        run: python -m py_compile tools/code_index.py tools/code_database.py tools/semantic_units.py tools/compact_code_registry.py
 
       - name: Verify language contract discovery stays synchronized
         run: |
@@ -126,16 +126,46 @@ jobs:
           echo "--- repeated/regressed errors ---"
           python tools/code_database.py find-error "" || true
 
+      - name: Compact persistent code identity ownership
+        run: |
+          python tools/compact_code_registry.py compact
+          python tools/compact_code_registry.py verify
+
       - name: Commit governed registries, diagrams, logs, and safe cleanup
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
-          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard .code-index)" ]; then
-            echo "Code index and semantic graph are already current."
-            exit 0
-          fi
           git config user.name "shaelvien-code-index"
           git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -m "Refresh code index, CHID graph, semantic units, and error ledger"
+
+          # Tracked source/contract changes made by governance (including safe
+          # cleanup and parser-safe materialization) are authoritative changes.
+          git add -u
+
+          # Rebuildable query/search artifacts remain ignored. Only durable
+          # identity ownership, compact health evidence, relationship views,
+          # and explicit governance ledgers are admitted to Git history.
+          durable=(
+            .code-index/id_registry.json
+            .code-index/chid_registry.json
+            .code-index/duplicate_baseline.json
+            .code-index/summary.json
+            .code-index/code_database_summary.json
+            .code-index/relationships.mmd
+            .code-index/relationships.dot
+            .code-index/cleanup_log.jsonl
+            .code-index/runtime_errors.jsonl
+          )
+          for path in "${durable[@]}"; do
+            if [ -e "$path" ]; then
+              git add -- "$path"
+            fi
+          done
+
+          if git diff --cached --quiet; then
+            echo "Code identity, semantic graph, and governance evidence are already current."
+            exit 0
+          fi
+
+          git commit -m "Refresh governed code identity and semantic graph"
           git push origin HEAD:live-alpha-rist-blazor-world
