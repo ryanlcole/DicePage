@@ -27,6 +27,28 @@ PUBLIC_UI_EXTRA = {
     'imagine',
     'Create',
 
+    # Public Play entry / Discord handoff shell
+    'Shaelvien startup',
+    'Shaelvien entry options',
+    'BUILD THE WORLD. THEN STEP INSIDE IT.',
+    'SIGN IN',
+    'SIGN UP',
+    'RIST MMO / Sandbox · Public Alpha',
+    'Account service configuration is unavailable.',
+    'Account service configuration is incomplete.',
+    'Your account could not be checked.',
+    'Your account could not be prepared.',
+    'Account storage is unavailable.',
+    'Entering Shaelvien…',
+    'Opening secure Discord sign up…',
+    'Opening secure Discord sign in…',
+    'Unable to start authentication.',
+    'Completing secure Discord sign in…',
+    'The sign-in handoff expired. Please try again.',
+    'The account service returned an invalid session.',
+    'Your authenticated session could not be verified.',
+    'Authentication could not be completed.',
+
     # Launcher hero / device setup
     'A LIVING WORLD AWAITS',
     'BUILD THE WORLD.',
