@@ -31,8 +31,13 @@ dist/
 .venv.*/
 venv/
 
-# Local/generated database artifacts. The persistent registries, relationship
-# diagrams, summaries, and error ledgers remain tracked; SQLite is rebuilt.
+# Code-index runtime/query artifacts are deterministic rebuild products. Durable
+# identity registries, compact summaries, relationship views, semantic contracts,
+# and governance ledgers remain tracked separately.
+.code-index/code_index.jsonl
+.code-index/code_index.tsv
+.code-index/duplicates.json
+.code-index/stale_candidates.json
 .code-index/code_graph.sqlite3
 .code-index/code_graph.sqlite3-*
 .code-index/tmp/
