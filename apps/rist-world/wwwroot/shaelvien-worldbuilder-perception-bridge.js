@@ -2,9 +2,10 @@
 //
 // This is a migration boundary, not a new source of world truth.
 // - Server/trusted runtime remains authoritative.
-// - Worldbuilder camera, grid visibility and camera-navigation lock are perception state only.
+// - Camera and transient placement previews are perception state only.
+// - Grid visibility and camera-navigation lock remain registered perception operations but are not adaptively queued.
 // - Runtime-local operation ids below are NOT canonical Rune/Glyph ids or frozen wire opcodes.
-// - Existing ristViewerAuthority remains the implementation while callers migrate to semantic envelopes.
+// - Existing viewer/placement implementations remain authoritative while callers migrate to semantic envelopes.
 // - No arbitrary selectors, source execution, hidden world data, or generic property mutation.
 (() => {
   "use strict";
@@ -13,18 +14,23 @@
   if (!runtime?.registerPerceptionOperation || !runtime?.createEnvelope || !runtime?.operation) return;
   if (runtime.WorldbuilderPerception) return;
 
-  const BRIDGE_VERSION = "worldbuilder-perception-bridge/2";
+  const BRIDGE_VERSION = "worldbuilder-perception-bridge/3";
   const CAMERA_STREAM = "worldbuilder.camera";
+  const PLACEMENT_PREVIEW_STREAM = "worldbuilder.placement-preview";
+  const MAX_PREVIEW_SESSION_ID = 96;
   const OPERATIONS = Object.freeze({
     camera: "runtime.perception.worldbuilder.camera",
     grid: "runtime.perception.worldbuilder.grid",
-    cameraNavigationLock: "runtime.perception.worldbuilder.camera-navigation-lock"
+    cameraNavigationLock: "runtime.perception.worldbuilder.camera-navigation-lock",
+    placementPreviewPointer: "runtime.perception.worldbuilder.placement-preview.pointer"
   });
 
   let cameraSequence = 0;
+  let placementPreviewSequence = 0;
   const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
   const finite = value => typeof value === "number" && Number.isFinite(value);
   const exactBoolean = value => typeof value === "boolean";
+  const cleanString = value => typeof value === "string" && value.trim() ? value.trim() : null;
 
   function authority() {
     const value = window.ristViewerAuthority;
@@ -50,6 +56,14 @@
   function requireOperands(envelope) {
     if (!isRecord(envelope?.operands)) throw new TypeError("Worldbuilder perception operands must be an object.");
     return envelope.operands;
+  }
+
+  function requirePreviewSession(value) {
+    const sessionId = cleanString(value);
+    if (!sessionId || sessionId.length > MAX_PREVIEW_SESSION_ID) {
+      throw new TypeError("Worldbuilder placement preview requires a bounded session id.");
+    }
+    return sessionId;
   }
 
   runtime.registerPerceptionOperation(OPERATIONS.camera, envelope => {
@@ -97,6 +111,20 @@
     return authority().setLocked(operands.enabled, { source: "semantic-perception" });
   });
 
+  runtime.registerPerceptionOperation(OPERATIONS.placementPreviewPointer, envelope => {
+    const operands = requireOperands(envelope);
+    const sessionId = requirePreviewSession(operands.sessionId);
+    if (!finite(operands.x) || !finite(operands.y)) {
+      throw new TypeError("Worldbuilder placement preview pointer coordinates must be finite numbers.");
+    }
+    const presenter = window.ristPlacementPreviewPresentation;
+    if (!presenter || typeof presenter.applyQuickSlot !== "function") {
+      throw new Error("Worldbuilder placement preview presenter is unavailable.");
+    }
+    // Presenter is visual-only. It must reject an inactive session rather than reviving a cleared drag.
+    return presenter.applyQuickSlot(Object.freeze({ sessionId, x: operands.x, y: operands.y }));
+  });
+
   function cameraEnvelope(operands, { source = "worldbuilder-adaptive-camera" } = {}) {
     if (!isRecord(operands)) throw new TypeError("Worldbuilder camera operands must be an object.");
     return runtime.createEnvelope({
@@ -117,6 +145,28 @@
     });
   }
 
+  function placementPreviewEnvelope(sessionId, x, y, { source = "worldbuilder-adaptive-placement-preview" } = {}) {
+    const safeSessionId = requirePreviewSession(sessionId);
+    if (!finite(x) || !finite(y)) throw new TypeError("Worldbuilder placement preview pointer coordinates must be finite numbers.");
+    return runtime.createEnvelope({
+      kind: "perception",
+      operation: runtime.operation("runtime-perception", OPERATIONS.placementPreviewPointer),
+      target: Object.freeze({
+        authoritative: false,
+        identity: null,
+        representation: Object.freeze({ kind: "worldbuilder-placement-preview" })
+      }),
+      operands: Object.freeze({ sessionId: safeSessionId, x, y }),
+      meta: Object.freeze({
+        source,
+        bridgeVersion: BRIDGE_VERSION,
+        perceptionOnly: true,
+        transient: true,
+        adaptive: true
+      })
+    });
+  }
+
   function enqueueCamera(operands, { source = "worldbuilder-adaptive-camera", supersedable = true } = {}) {
     if (!runtime.AdaptivePerception?.enqueue) {
       throw new Error("Adaptive perception runtime is unavailable.");
@@ -130,6 +180,22 @@
       streamId: CAMERA_STREAM,
       sequence,
       supersedable: supersedable === true
+    });
+  }
+
+  function enqueuePlacementPreview(sessionId, x, y, { source = "worldbuilder-adaptive-placement-preview" } = {}) {
+    if (!runtime.AdaptivePerception?.enqueue) {
+      throw new Error("Adaptive perception runtime is unavailable.");
+    }
+    if (placementPreviewSequence >= Number.MAX_SAFE_INTEGER) {
+      throw new RangeError("Worldbuilder placement preview presentation sequence exhausted.");
+    }
+    const sequence = ++placementPreviewSequence;
+    const envelope = placementPreviewEnvelope(sessionId, x, y, { source });
+    return runtime.AdaptivePerception.enqueue(envelope, {
+      streamId: PLACEMENT_PREVIEW_STREAM,
+      sequence,
+      supersedable: true
     });
   }
 
@@ -170,9 +236,12 @@
     canonical: false,
     perceptionOnly: true,
     cameraStream: CAMERA_STREAM,
+    placementPreviewStream: PLACEMENT_PREVIEW_STREAM,
     operations: OPERATIONS,
     cameraEnvelope,
+    placementPreviewEnvelope,
     enqueueCamera,
+    enqueuePlacementPreview,
     snapshot: () => currentSnapshot()
   });
 })();
