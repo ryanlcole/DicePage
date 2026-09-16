@@ -2,24 +2,14 @@
  'use strict';
 
  const STYLE_ID='rist-worldbuilder-mode-keyboard-relocation-style';
- const RUNTIME_ID='rist-worldbuilder-keyboard-runtime-authority';
  let observer=null;
  let frame=0;
 
- function ensureRuntime(){
-  if(window.RistWorldBuilderKeyboardRuntime||document.getElementById(RUNTIME_ID))return;
-  const script=document.createElement('script');
-  script.id=RUNTIME_ID;
-  script.src='./worldbuilder-keyboard-runtime-authority.js?v=20260916-touch-art-resume-1';
-  script.async=false;
-  document.head.appendChild(script);
- }
  function ensureStyle(){
   if(document.getElementById(STYLE_ID))return;
   const style=document.createElement('style');
   style.id=STYLE_ID;
   style.textContent=`
-   /* These controls remain action bridges but no longer occupy world-view space. */
    .worldbuilder-studio .studio-edit-mode,
    .worldbuilder-studio .description-mode-toggle{
     position:absolute!important;
@@ -35,9 +25,7 @@
     opacity:0!important;
     pointer-events:none!important;
    }
-   .worldbuilder-studio .wb-world-mode-status{
-    cursor:default!important;
-   }
+   .worldbuilder-studio .wb-world-mode-status{cursor:default!important}
    .worldbuilder-studio .wb-world-mode-status>strong,
    .worldbuilder-studio .wb-world-mode-status>small,
    .worldbuilder-studio .wb-world-mode-action>strong,
@@ -48,12 +36,11 @@
     text-shadow:0 1px 3px #000!important;
    }
    .worldbuilder-studio .wb-world-mode-action.active>strong,
-   .worldbuilder-studio .wb-world-mode-action.active>small{
-    color:#fff8e8!important;
-   }
+   .worldbuilder-studio .wb-world-mode-action.active>small{color:#fff8e8!important}
   `;
   document.head.appendChild(style);
  }
+
  function studio(){return document.querySelector('.worldbuilder-studio')}
  function keyboard(){return studio()?.querySelector('.wb-device-keyboard')||null}
  function currentMode(){
@@ -64,10 +51,8 @@
  function editBridge(){return studio()?.querySelector('.studio-edit-mode')||null}
  function descriptionBridge(){return studio()?.querySelector('.description-mode-toggle')||null}
  function canEdit(){return !editBridge()}
- function announce(message){
-  const live=studio()?.querySelector('.wb-device-live-region');
-  if(live)live.textContent=message;
- }
+ function announce(message){const live=studio()?.querySelector('.wb-device-live-region');if(live)live.textContent=message}
+
  function makeKey(label,sub,{action=null,active=false,status=false,disabled=false}={}){
   const button=document.createElement('button');
   button.type='button';
@@ -83,18 +68,20 @@
   const strong=document.createElement('strong');strong.textContent=label;
   const small=document.createElement('small');small.textContent=sub;
   button.append(strong,small);
-  if(status){button.addEventListener('click',event=>event.preventDefault());}
-  else if(action){button.addEventListener('click',event=>{event.preventDefault();action()});}
+  if(status)button.addEventListener('click',event=>event.preventDefault());
+  else if(action)button.addEventListener('click',event=>{event.preventDefault();action()});
   return button;
  }
+
  function enterBuildMode(){
   const bridge=editBridge();
   const button=bridge?.querySelector('button');
-  if(!button){announce(canEdit()?'Build mode already active':'Build mode requires sign in');return;}
+  if(!button){announce(canEdit()?'Build mode already active':'Build mode requires sign in');return}
   button.click();
   announce('Entering build mode');
   setTimeout(schedule,0);
  }
+
  function renderViewerModeKeys(){
   if(currentMode()!=='viewer')return;
   const host=keys();if(!host)return;
@@ -105,16 +92,13 @@
   if(host.dataset.worldModeKeyboardToken===token&&host.querySelector('.wb-world-mode-status'))return;
   host.querySelectorAll('.wb-world-mode-status,.wb-world-mode-action').forEach(node=>node.remove());
   const status=makeKey('World View',editable?'Build mode':'Viewing world',{status:true,active:editable});
-  const build=makeKey('Build Mode',editable?'Active':canEnter?'Enter':'Sign in required',{
-   action:enterBuildMode,
-   active:editable,
-   disabled:!editable&&!canEnter
-  });
+  const build=makeKey('Build Mode',editable?'Active':canEnter?'Enter':'Sign in required',{action:enterBuildMode,active:editable,disabled:!editable&&!canEnter});
   host.prepend(build);
   host.prepend(status);
   host.dataset.worldModeKeyboardToken=token;
-  window.RistWorldBuilderShaelvienKeyboardSkin?.refresh?.();
+  window.RistWorldBuilderKeyboardAuthority?.refresh?.();
  }
+
  function normalizeAccessDescription(){
   if(currentMode()!=='access')return;
   const host=keys();if(!host)return;
@@ -124,18 +108,15 @@
   description.setAttribute('aria-label',descriptionOnly()?'Description only. Text map active':'Description only. Visual map active');
  }
  function descriptionOnly(){return descriptionBridge()?.getAttribute('aria-pressed')==='true'}
+
  function sync(){
-  ensureRuntime();
   ensureStyle();
   renderViewerModeKeys();
   normalizeAccessDescription();
  }
- function schedule(){
-  if(frame)return;
-  frame=requestAnimationFrame(()=>{frame=0;sync()});
- }
+ function schedule(){if(frame)return;frame=requestAnimationFrame(()=>{frame=0;sync()})}
  function start(){
-  ensureRuntime();ensureStyle();sync();
+  ensureStyle();sync();
   observer=new MutationObserver(schedule);
   observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-selected','aria-pressed']});
   document.addEventListener('click',event=>{if(event.target?.closest?.('.wb-device-mode,.wb-device-key,.studio-edit-mode button,.description-mode-toggle'))setTimeout(schedule,0)},true);
