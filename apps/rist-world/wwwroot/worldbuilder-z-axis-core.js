@@ -30,6 +30,8 @@ export function attach(element,dotnet){
  const studio=element.closest('.worldbuilder-studio');
  let quickPointer=null,quickDragIndex=-1,quickGhost=null,commandObserver=null,syncing=false,disposed=false;
  const styleId='rist-worldbuilder-placement-interactions';
+ window.RistWorldBuilderStudioDotNet=dotnet;
+ try{window.dispatchEvent(new CustomEvent('rist:worldbuilder-dotnet-ready',{detail:{dotnet}}))}catch{}
  let style=document.getElementById(styleId);
  if(!style){
   style=document.createElement('style');style.id=styleId;style.textContent=`
@@ -80,5 +82,5 @@ export function attach(element,dotnet){
  document.addEventListener('dragstart',onNativeDragStart,true);document.addEventListener('drop',onNativeDrop,true);document.addEventListener('dragend',onNativeDragEnd,true);
  document.addEventListener('pointerdown',onQuickDown,{capture:true,passive:false});document.addEventListener('pointermove',onQuickMove,{capture:true,passive:false});document.addEventListener('pointerup',onQuickUp,{capture:true,passive:false});document.addEventListener('pointercancel',onQuickCancel,true);
 
- return{dispose(){disposed=true;commandObserver?.disconnect();document.removeEventListener('dragstart',onNativeDragStart,true);document.removeEventListener('drop',onNativeDrop,true);document.removeEventListener('dragend',onNativeDragEnd,true);document.removeEventListener('pointerdown',onQuickDown,true);document.removeEventListener('pointermove',onQuickMove,true);document.removeEventListener('pointerup',onQuickUp,true);document.removeEventListener('pointercancel',onQuickCancel,true);quickPointer=null;quickDragIndex=-1;removeGhost();if(quickDropCleanup)quickDropCleanup();document.getElementById(styleId)?.remove()}};
+ return{dispose(){disposed=true;commandObserver?.disconnect();document.removeEventListener('dragstart',onNativeDragStart,true);document.removeEventListener('drop',onNativeDrop,true);document.removeEventListener('dragend',onNativeDragEnd,true);document.removeEventListener('pointerdown',onQuickDown,true);document.removeEventListener('pointermove',onQuickMove,true);document.removeEventListener('pointerup',onQuickUp,true);document.removeEventListener('pointercancel',onQuickCancel,true);quickPointer=null;quickDragIndex=-1;removeGhost();if(quickDropCleanup)quickDropCleanup();if(window.RistWorldBuilderStudioDotNet===dotnet)window.RistWorldBuilderStudioDotNet=null;document.getElementById(styleId)?.remove()}};
 }
