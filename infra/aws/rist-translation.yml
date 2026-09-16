@@ -48,7 +48,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: translation/
-      Handler: index.handler
+      Handler: sitewide.handler
       Environment:
         Variables:
           IDENTITY_TABLE: !Ref IdentityTableName
