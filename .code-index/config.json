@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "id_width": 6,
+  "index_directory": ".code-index",
+  "materialize_comment_ids": true,
+  "prune_explicit_stale": true,
+  "fail_on_new_exact_source_duplicates": true,
+  "tracked_code_extensions": [
+    ".py", ".cs", ".razor", ".cshtml", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx",
+    ".html", ".htm", ".css", ".scss", ".ps1", ".psm1", ".sh", ".bash", ".bat", ".cmd",
+    ".c", ".h", ".cpp", ".hpp", ".java", ".kt", ".swift", ".go", ".rs", ".sql", ".yml", ".yaml",
+    ".json", ".xml", ".toml"
+  ],
+  "never_index_prefixes": [
+    ".git/", ".code-index/", "node_modules/", ".venv/", "venv/"
+  ],
+  "vendor_top_level": [
+    "flask", "jinja2", "werkzeug", "itsdangerous", "markupsafe", "blinker", "click", "colorama"
+  ],
+  "stale_suffixes": [
+    ".old", ".bak", ".orig", ".rej"
+  ],
+  "stale_directory_names": [
+    "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"
+  ],
+  "generated_directory_names": [
+    "bin", "obj", "dist", "build", "coverage"
+  ],
+  "compiled_extensions": [
+    ".pyc", ".pyo", ".obj", ".dll", ".pyd", ".exe", ".lib", ".exp", ".class"
+  ],
+  "preserve_stale_paths": [],
+  "materialize_languages": [
+    "python", "csharp", "razor", "javascript", "typescript", "html", "css", "powershell", "shell", "batch", "c", "cpp", "java", "kotlin", "swift", "go", "rust", "sql", "yaml"
+  ]
+}
