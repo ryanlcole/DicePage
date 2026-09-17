@@ -7,9 +7,21 @@ public partial class WorldBuilderStudio
     bool _autoSave = true;
     const double CanonicalKilometersPerCell = 1.0;
 
+    static readonly WorldBuilderTierShortcut[] TierShortcuts =
+    [
+        new("ocean-floor", "Ocean Floor", 0),
+        new("surface", "Surface", 1),
+        new("higher-ground", "Higher Ground", 2),
+        new("clouds", "Clouds", 3)
+    ];
+
     [JSInvokable]
     public Task<WorldBuilderDepthState> GetWorldBuilderDepthState() =>
         Task.FromResult(new WorldBuilderDepthState(Session.SceneZ, Session.TierIndex, Session.LayerOffset, _zLocked));
+
+    [JSInvokable]
+    public Task<IReadOnlyList<WorldBuilderTierShortcut>> GetWorldBuilderTierShortcuts() =>
+        Task.FromResult<IReadOnlyList<WorldBuilderTierShortcut>>(TierShortcuts);
 
     [JSInvokable]
     public Task<bool> ToggleViewerLockFromJs()
@@ -26,26 +38,41 @@ public partial class WorldBuilderStudio
     }
 
     [JSInvokable]
-    public Task<WorldBuilderDepthState> SetViewerSceneZFromJs(int sceneZ)
+    public async Task<WorldBuilderDepthState> SetViewerSceneZFromJs(int sceneZ)
     {
-        sceneZ = Math.Clamp(sceneZ, -500, 500);
-        var guard = 0;
-        while (Session.SceneZ < sceneZ && guard++ < 1100) Session.MoveLayer(1);
-        guard = 0;
-        while (Session.SceneZ > sceneZ && guard++ < 1100) Session.MoveLayer(-1);
-        return GetWorldBuilderDepthState();
+        if (_zLocked) return await GetWorldBuilderDepthState();
+
+        Session.SetSceneZ(Math.Clamp(sceneZ, -500, 500));
+        await InvokeAsync(StateHasChanged);
+        return await GetWorldBuilderDepthState();
     }
 
     [JSInvokable]
-    public Task<WorldBuilderDepthState> AddTierAtSceneZFromJs(int sceneZ)
+    public async Task<WorldBuilderDepthState> MoveViewerSceneZFromJs(int delta)
     {
-        var (targetTier, _) = WorldSession.SplitSceneZ(sceneZ);
-        var guard = 0;
-        while (Session.TierIndex < targetTier && guard++ < 100) Session.MoveTier(1);
-        guard = 0;
-        while (Session.TierIndex > targetTier && guard++ < 100) Session.MoveTier(-1);
-        return GetWorldBuilderDepthState();
+        if (_zLocked || delta == 0) return await GetWorldBuilderDepthState();
+
+        Session.MoveSceneZ(Math.Clamp(delta, -100, 100));
+        await InvokeAsync(StateHasChanged);
+        return await GetWorldBuilderDepthState();
     }
+
+    [JSInvokable]
+    public async Task<WorldBuilderDepthState> SetViewerTierFromJs(int tierIndex)
+    {
+        if (_zLocked) return await GetWorldBuilderDepthState();
+
+        var shortcut = TierShortcuts.FirstOrDefault(x => x.TierIndex == tierIndex);
+        if (shortcut is null) return await GetWorldBuilderDepthState();
+
+        Session.SetSceneZ(WorldSession.SceneZOf(shortcut.TierIndex, 0));
+        await InvokeAsync(StateHasChanged);
+        return await GetWorldBuilderDepthState();
+    }
+
+    // Compatibility entry points remain aliases of the single SceneZ authority.
+    [JSInvokable]
+    public Task<WorldBuilderDepthState> AddTierAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
 
     [JSInvokable]
     public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
@@ -135,4 +162,5 @@ public partial class WorldBuilderStudio
 }
 
 public sealed record WorldBuilderDepthState(int SceneZ, int TierIndex, int LayerOffset, bool ViewerLocked);
+public sealed record WorldBuilderTierShortcut(string Key, string Label, int TierIndex);
 public sealed record PhysicalCardLanguageProfile(string Mode, string LanguageTag, string InGameLanguage, string TextDirection);
