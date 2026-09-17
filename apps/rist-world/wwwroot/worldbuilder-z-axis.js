@@ -2,6 +2,7 @@ import * as core from './worldbuilder-z-axis-core.js?v=20260915-completion-1';
 import './worldbuilder-controls.js?v=20260912-pangea-sprites-1';
 import './worldbuilder-controls-state.js';
 import './worldbuilder-drag-preview.js';
+import './worldbuilder-focus-hierarchy.js?v=20260917-focus-1';
 
 export const viewerPoint=core.viewerPoint;
 export const viewerGridPoint=core.viewerGridPoint;
@@ -12,6 +13,7 @@ export function attach(element,dotnet){
  const studio=element.closest('.worldbuilder-studio');
  let active=null,disposed=false,viewerLocked=true,syncingUi=false,uiObserver=null,autoSaveTimer=null;
  let depthState={sceneZ:0,tierIndex:0,layerOffset:0,viewerLocked:true};
+ let focusState=null;
  let tierShortcuts=[];
  let customMapScale=Number(localStorage.getItem('rist.world.customMapScalePerSquare'))||1;
 
@@ -26,7 +28,7 @@ export function attach(element,dotnet){
  const tiles=()=>studio?[...studio.querySelectorAll('.world-stage .tile-cell')]:[];
  const rail=()=>studio?.querySelector('.studio-command-rail');
  const byText=text=>[...(rail()?.querySelectorAll('button')||[])].find(b=>(b.querySelector('strong')?.textContent||'').trim()===text);
- const blocked=t=>!!t?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit,.locked-tile-menu,.recursive-region-actions,.wb-modal,.asset-preview-stage,.wb-context-keyboard,.wb-keyboard-launcher,.wb-tier-shortcut-hud');
+ const blocked=t=>!!t?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit,.locked-tile-menu,.recursive-region-actions,.wb-modal,.asset-preview-stage,.wb-context-keyboard,.wb-keyboard-launcher,.wb-tier-shortcut-hud,.wb-focus-hierarchy');
  const tileAt=(x,y)=>{const list=tiles();for(let i=list.length-1;i>=0;i--){const r=list[i].getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return list[i]}return null};
  const point=(x,y)=>{const s=stage();if(!s)return null;const r=s.getBoundingClientRect();if(r.width<1||r.height<1)return null;const px=(x-r.left)/r.width,py=(y-r.top)/r.height;return px<0||px>1||py<0||py>1?null:[px,py]};
  const cellsFor=tile=>{const s=stage(),sr=s?.getBoundingClientRect(),tr=tile?.getBoundingClientRect();if(!sr||!tr||sr.width<1)return 1;return Math.max(1,Math.min(30,Math.round(tr.width/(sr.width/30))))};
@@ -44,6 +46,20 @@ export function attach(element,dotnet){
  const openLoad=()=>modal('Load',(host,close)=>host.append(button('Load',()=>perform(host,close,()=>dotnet.invokeMethodAsync('LoadWorldFromJs'))),button('Import',()=>{window.ristWorld?.importCurrentWorld?.();close()}),button('Cancel',close)));
  const openPublish=()=>modal('Publish',(host,close)=>host.append(button('Publish',()=>perform(host,close,()=>dotnet.invokeMethodAsync('SetPublishModeFromJs',true))),button('Unpublish',()=>perform(host,close,()=>dotnet.invokeMethodAsync('SetPublishModeFromJs',false)))));
  const wire=(b,fn)=>{if(!b||b.dataset.wbRewired==='1')return;b.dataset.wbRewired='1';b.addEventListener('click',e=>{stop(e);fn()},{capture:true})};
+ const publishFocus=()=>{
+  if(!studio||!focusState)return;
+  const path=focusState.lockedPath??focusState.LockedPath??[];
+  studio.dataset.wbFocusLevel=String(focusState.nextLevel??focusState.NextLevel??'Parallax');
+  studio.dataset.wbFocusPath=path.map(x=>x.label??x.Label??'').filter(Boolean).join(' / ');
+  studio.dataset.wbFocusBattle=(focusState.battleInstanceVisible??focusState.BattleInstanceVisible)?'true':'false';
+  window.dispatchEvent(new CustomEvent('rist:worldbuilder-focus',{detail:focusState}));
+ };
+ const updateFocus=async()=>{
+  try{focusState=await dotnet.invokeMethodAsync('GetWorldBuilderFocusStateFromJs')}catch{}
+  publishFocus();
+  return focusState;
+ };
+ const applyFocus=state=>{if(state)focusState=state;publishFocus();scheduleUi();return focusState};
  const publishDepth=()=>{
   if(!studio)return;
   studio.dataset.wbSceneZ=String(depthState.sceneZ??0);
@@ -60,16 +76,23 @@ export function attach(element,dotnet){
   studio?.classList.toggle('viewer-locked',viewerLocked);
   studio?.classList.toggle('viewer-unlocked',!viewerLocked);
   publishDepth();
+  await updateFocus();
   return depthState;
  };
- const applyDepth=state=>{if(state)depthState=state;viewerLocked=!!(depthState.viewerLocked??depthState.ViewerLocked??viewerLocked);studio?.classList.toggle('viewer-locked',viewerLocked);studio?.classList.toggle('viewer-unlocked',!viewerLocked);publishDepth();scheduleUi();return depthState};
+ const applyDepth=state=>{if(state)depthState=state;viewerLocked=!!(depthState.viewerLocked??depthState.ViewerLocked??viewerLocked);studio?.classList.toggle('viewer-locked',viewerLocked);studio?.classList.toggle('viewer-unlocked',!viewerLocked);publishDepth();void updateFocus();scheduleUi();return depthState};
  const depthApi={
   state:()=>({...depthState}),
   shortcuts:()=>tierShortcuts.map(x=>({...x})),
+  focusState:()=>focusState?{...focusState}:null,
   refresh:updateDepth,
+  refreshFocus:updateFocus,
   async moveSceneZ(delta){if(viewerLocked)return{...depthState};try{return applyDepth(await dotnet.invokeMethodAsync('MoveViewerSceneZFromJs',Number(delta)||0))}catch{return{...depthState}}},
   async setSceneZ(sceneZ){if(viewerLocked)return{...depthState};try{return applyDepth(await dotnet.invokeMethodAsync('SetViewerSceneZFromJs',Number(sceneZ)||0))}catch{return{...depthState}}},
-  async setTier(tierIndex){if(viewerLocked)return{...depthState};try{return applyDepth(await dotnet.invokeMethodAsync('SetViewerTierFromJs',Number(tierIndex)||0))}catch{return{...depthState}}}
+  async setTier(tierIndex){if(viewerLocked)return{...depthState};try{return applyDepth(await dotnet.invokeMethodAsync('SetViewerTierFromJs',Number(tierIndex)||0))}catch{return{...depthState}}},
+  async selectFocus(key){try{return applyFocus(await dotnet.invokeMethodAsync('SelectWorldBuilderFocusOptionFromJs',String(key??'')))}catch{return focusState}},
+  async lockFocus(){try{return applyFocus(await dotnet.invokeMethodAsync('LockWorldBuilderFocusFromJs'))}catch{return focusState}},
+  async unlockFocus(){try{return applyFocus(await dotnet.invokeMethodAsync('UnlockWorldBuilderFocusFromJs'))}catch{return focusState}},
+  async resetFocus(){try{return applyFocus(await dotnet.invokeMethodAsync('ResetWorldBuilderFocusFromJs'))}catch{return focusState}}
  };
  window.ristWorldBuilderDepth=depthApi;
 
