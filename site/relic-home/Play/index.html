@@ -12,9 +12,11 @@
 html,body{margin:0;width:100%;height:100%;background:#05070d}
 body{min-height:100dvh;overflow:hidden}
 .screen{position:fixed;inset:0;overflow:hidden;background:#05070d;display:grid;place-items:end center;padding:max(26px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(34px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))}
-.artwork{position:absolute;z-index:0;inset:-4%;background:#05070d url('/Game/assets/branding/shaelvien-dragon-creation-startup-screen.png?v=20260907') center 47%/cover no-repeat;transform:translate3d(var(--rist-entry-parallax-x,0px),var(--rist-entry-parallax-y,0px),0) scale(1.055);transform-origin:center center;will-change:transform;transition:transform 90ms linear;pointer-events:none}
-.screen:after{content:"";position:absolute;z-index:1;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.03) 0%,rgba(0,0,0,.08) 48%,rgba(0,0,0,.82) 100%);pointer-events:none}
-.entry{position:relative;z-index:2;width:100%;max-width:720px;display:grid;gap:10px;justify-items:center;text-align:center;justify-self:center;align-self:end;padding-bottom:clamp(6px,2vh,20px)}
+.artwork,.artwork-lock{position:absolute;inset:-4%;background:#05070d url('/Game/assets/branding/shaelvien-dragon-creation-startup-screen.png?v=20260907') center 47%/cover no-repeat;transform-origin:center center;pointer-events:none}
+.artwork{z-index:0;transform:translate3d(var(--rist-entry-parallax-x,0px),var(--rist-entry-parallax-y,0px),0) scale(1.055);will-change:transform;transition:transform 90ms linear}
+.artwork-lock{z-index:1;transform:scale(1.055);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 10%,#000 32%,transparent 37%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 10%,#000 32%,transparent 37%,transparent 100%)}
+.screen:after{content:"";position:absolute;z-index:2;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.03) 0%,rgba(0,0,0,.08) 48%,rgba(0,0,0,.82) 100%);pointer-events:none}
+.entry{position:relative;z-index:3;width:100%;max-width:720px;display:grid;gap:10px;justify-items:center;text-align:center;justify-self:center;align-self:end;padding-bottom:clamp(6px,2vh,20px)}
 .tagline{margin:0 0 2px;color:#eef3f5;font:700 clamp(12px,2.8vw,17px)/1.35 Georgia,"Times New Roman",serif;letter-spacing:.18em;text-shadow:0 2px 10px #000}
 .menu{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .menu button,.return-link{min-width:0;min-height:50px;border:1px solid #718492;border-radius:7px;background:rgba(8,16,25,.88);color:#f4f0e5;font-weight:900;font-size:clamp(10px,2.4vw,14px);line-height:1.1;letter-spacing:.02em;box-shadow:0 10px 24px #0008;touch-action:manipulation}
@@ -30,13 +32,14 @@ body{min-height:100dvh;overflow:hidden}
 .alpha{margin:0;color:#b7c2c9;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.artwork{transition:none;transform:scale(1.055)!important}}
-@media (orientation:landscape) and (max-height:560px){.artwork{background-position:center 45%}.screen{padding-bottom:max(10px,env(safe-area-inset-bottom))}.entry{gap:6px;padding-bottom:0}.tagline{font-size:11px}.menu button,.return-link{min-height:42px}.provider{font-size:10px}.parallax-toggle{min-height:24px;padding:3px 9px}.alpha{display:none}}
-@media (max-width:420px){.artwork{inset:-2.6%;transform:translate3d(var(--rist-entry-parallax-x,0px),var(--rist-entry-parallax-y,0px),0) scale(1)}.entry{width:100%;gap:8px}.menu{gap:5px}.menu button,.return-link{min-height:52px;font-size:10px;padding:5px 3px}.provider{max-width:96%;font-size:10px}.alpha{font-size:9px;line-height:1.35;letter-spacing:.08em}}
+@media (orientation:landscape) and (max-height:560px){.artwork,.artwork-lock{background-position:center 45%}.screen{padding-bottom:max(10px,env(safe-area-inset-bottom))}.entry{gap:6px;padding-bottom:0}.tagline{font-size:11px}.menu button,.return-link{min-height:42px}.provider{font-size:10px}.parallax-toggle{min-height:24px;padding:3px 9px}.alpha{display:none}}
+@media (max-width:420px){.artwork,.artwork-lock{inset:-2.6%}.artwork{transform:translate3d(var(--rist-entry-parallax-x,0px),var(--rist-entry-parallax-y,0px),0) scale(1)}.artwork-lock{transform:scale(1);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 9%,#000 31%,transparent 35%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 9%,#000 31%,transparent 35%,transparent 100%)}.entry{width:100%;gap:8px}.menu{gap:5px}.menu button,.return-link{min-height:52px;font-size:10px;padding:5px 3px}.provider{max-width:96%;font-size:10px}.alpha{font-size:9px;line-height:1.35;letter-spacing:.08em}}
 </style>
 </head>
 <body>
 <main class="screen" data-rist-play-entry aria-label="Shaelvien startup">
   <div id="artwork" class="artwork" aria-hidden="true"></div>
+  <div class="artwork-lock" aria-hidden="true"></div>
   <section class="entry">
     <p class="tagline">BUILD THE WORLD. THEN STEP INSIDE IT.</p>
     <div id="menu" class="menu" aria-label="Shaelvien account options">
@@ -45,7 +48,7 @@ body{min-height:100dvh;overflow:hidden}
       <a class="return-link" href="/" aria-label="Return to ReLiCGameMaster.com">RETURN</a>
     </div>
     <p class="provider">Secure account access provided by <strong>Discord</strong>. Sign in if you already have a ReLiC account; create an account if this is your first visit.</p>
-    <button id="parallax" class="parallax-toggle" type="button" aria-pressed="true" aria-label="Turn parallax off">PARALLAX <span id="parallax-state" class="parallax-state">ON</span></button>
+    <button id="parallax" class="parallax-toggle" type="button" aria-pressed="false" aria-label="Turn parallax on">PARALLAX <span id="parallax-state" class="parallax-state">OFF</span></button>
     <p id="status" class="status" role="status" aria-live="polite" hidden></p>
     <p class="alpha">RIST MMO / Sandbox · Friends &amp; Family Alpha · Wider public testing in preparation</p>
   </section>
@@ -64,7 +67,7 @@ const readLocal=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}
 const writeLocal=(key,value)=>{try{localStorage.setItem(key,String(value))}catch{}};
 const readSession=(key,fallback)=>{try{return sessionStorage.getItem(key)??fallback}catch{return fallback}};
 const writeSession=(key,value)=>{try{sessionStorage.setItem(key,String(value))}catch{}};
-let parallaxEnabled=readLocal(PARALLAX_PREF,'on')!=='off';
+let parallaxEnabled=readLocal(PARALLAX_PREF,'off')==='on';
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const say=m=>{const text=String(m||'');status.textContent=text;status.hidden=!text;menu.hidden=!!text;};
 const restoreMenu=()=>{status.textContent='';status.hidden=true;menu.hidden=false;};
