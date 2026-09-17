@@ -2,255 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
-  <title>Shaelvien Prototype · Geonaph</title>
+  <title>Shaelvien Prototype · Geonaph Spatial Stack</title>
   <style>
-    :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    *{box-sizing:border-box}
-    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#05080b;color:#f2e8cf}
-    body{overscroll-behavior:none}
-    button,select{font:inherit}
-    .prototype-shell{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:radial-gradient(circle at 50% 30%,#101820 0,#05080b 68%)}
-    .toolbar{position:relative;z-index:20;display:flex;align-items:center;gap:8px;min-height:48px;padding:calc(6px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));border-bottom:1px solid #3b3426;background:rgba(5,9,12,.94);backdrop-filter:blur(10px)}
-    .toolbar button,.toolbar select{min-height:36px;border:1px solid #665735;border-radius:8px;background:#101820;color:#f2e8cf;font-weight:800}
-    .toolbar button{padding:0 12px;cursor:pointer}
-    .toolbar select{min-width:0;max-width:48vw;padding:0 30px 0 10px}
-    .title{min-width:0;display:grid;gap:1px;flex:1}
-    .title strong{font-size:11px;letter-spacing:.12em;color:#e8cb7c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .title span{font-size:9px;color:#92a3ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .stage{position:relative;min-height:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
-    .stage.dragging{cursor:grabbing}
-    .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
-    .world img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none}
-    .hud{position:absolute;z-index:10;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:44px 44px 54px;gap:6px}
-    .hud button{height:44px;border:1px solid #6c5c37;border-radius:10px;background:rgba(8,14,18,.9);color:#f3e3b6;font-size:20px;font-weight:900;box-shadow:0 4px 18px #0008;touch-action:manipulation}
-    .hud .fit{font-size:10px;letter-spacing:.05em}
-    .status{position:absolute;z-index:9;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));max-width:min(68vw,430px);padding:7px 10px;border:1px solid #3f4f57;border-radius:9px;background:rgba(5,10,13,.82);color:#aebcc4;font-size:10px;line-height:1.35;pointer-events:none;backdrop-filter:blur(6px)}
-    .status strong{color:#e5ca7d}
-    .loading{position:absolute;z-index:8;inset:0;display:grid;place-items:center;pointer-events:none;color:#d8c483;font-weight:900;letter-spacing:.08em;background:radial-gradient(circle,#0b1218aa,#05080b22 60%)}
-    .loading[hidden]{display:none}
-    @media(max-width:620px){
-      .toolbar{gap:6px}.toolbar button{padding:0 9px}.title strong{font-size:10px}.title span{font-size:8px}.toolbar select{max-width:42vw;font-size:11px}.status{max-width:62vw;font-size:9px}
-    }
+    :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--gold:#e7c976;--panel:rgba(5,11,15,.92);--line:#665735;--blue:#8fb8ca}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#05080b;color:#f2e8cf}body{overscroll-behavior:none}button,select{font:inherit}
+    .shell{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:radial-gradient(circle at 50% 28%,#101820 0,#05080b 70%)}
+    .toolbar{position:relative;z-index:80;display:flex;align-items:center;gap:8px;min-height:48px;padding:calc(6px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));border-bottom:1px solid #3b3426;background:rgba(5,9,12,.96);backdrop-filter:blur(10px)}
+    .toolbar button,.toolbar select,.focus-controls button,.focus-controls select{min-height:36px;border:1px solid var(--line);border-radius:8px;background:#101820;color:#f2e8cf;font-weight:800;touch-action:manipulation}.toolbar button{padding:0 12px}.toolbar select{max-width:40vw;padding:0 30px 0 10px}.title{min-width:0;display:grid;gap:1px;flex:1}.title strong{font-size:11px;letter-spacing:.12em;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{font-size:9px;color:#92a3ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .stage{position:relative;min-height:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}.stage.dragging{cursor:grabbing}.world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}.plane{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none;will-change:transform,opacity;transition:opacity .18s ease}.plane.base{z-index:1}.plane.highlands{z-index:2}.plane.mountains{z-index:3}
+    .focus-hud{position:absolute;z-index:60;top:8px;left:50%;transform:translateX(-50%);width:min(760px,calc(100% - 16px));display:grid;gap:4px;pointer-events:none}.focus-controls{display:flex;justify-content:center;gap:4px;min-width:0;pointer-events:auto}.focus-controls button{padding:0 10px}.focus-controls select{min-width:132px;max-width:min(42vw,260px);padding:0 28px 0 9px}.focus-level{height:36px;display:grid;place-items:center;padding:0 9px;border:1px solid #4b5f69;border-radius:8px;background:var(--panel);color:#9bb0bb;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}.focus-controls button:disabled,.focus-controls select:disabled{opacity:.38}.focus-lock.active{border-color:#d0aa56;background:#201b10;color:#ffe9a7}.trail{display:flex;justify-content:center;gap:3px;max-width:100%;overflow-x:auto;scrollbar-width:none;pointer-events:auto}.trail::-webkit-scrollbar{display:none}.crumb,.focus-status{height:22px;min-width:max-content;padding:0 8px;border:1px solid rgba(87,108,118,.72);border-radius:999px;background:rgba(4,11,16,.89);color:#b8c5ca;font-size:7px;font-weight:800}.focus-status{display:grid;place-items:center;color:#8ca3ae}.focus-status.battle{border-color:#d0aa56;color:#ffe6a0}
+    .stratum-note{position:absolute;z-index:11;top:66px;left:50%;transform:translateX(-50%);max-width:min(540px,calc(100% - 24px));padding:5px 9px;border:1px solid #3e4e56;border-radius:999px;background:rgba(5,11,15,.76);color:#9fb2bb;font-size:8px;font-weight:800;letter-spacing:.04em;text-align:center;pointer-events:none}.stratum-note strong{color:var(--gold)}
+    .hud{position:absolute;z-index:40;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:44px 44px 54px;gap:6px}.hud button{height:44px;border:1px solid #6c5c37;border-radius:10px;background:rgba(8,14,18,.9);color:#f3e3b6;font-size:20px;font-weight:900;box-shadow:0 4px 18px #0008;touch-action:manipulation}.hud .fit{font-size:10px;letter-spacing:.05em}.status{position:absolute;z-index:39;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));max-width:min(64vw,450px);padding:7px 10px;border:1px solid #3f4f57;border-radius:9px;background:rgba(5,10,13,.84);color:#aebcc4;font-size:9px;line-height:1.35;pointer-events:none;backdrop-filter:blur(6px)}.status strong{color:var(--gold)}
+    .loading{position:absolute;z-index:20;inset:0;display:grid;place-items:center;pointer-events:none;color:#d8c483;font-weight:900;letter-spacing:.08em;background:radial-gradient(circle,#0b1218aa,#05080b22 60%)}.loading[hidden]{display:none}
+    .battle-instance{position:absolute;z-index:36;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,78vw);aspect-ratio:16/9;display:grid;place-items:center;align-content:center;gap:7px;border:1px solid #b08b3c;border-radius:14px;background:linear-gradient(145deg,rgba(25,18,8,.88),rgba(6,12,16,.92));box-shadow:0 20px 60px #000b;pointer-events:none;backdrop-filter:blur(7px)}.battle-instance[hidden]{display:none}.battle-instance strong{font-size:16px;letter-spacing:.14em;color:#ffe3a0}.battle-instance span{max-width:82%;font-size:9px;line-height:1.45;text-align:center;color:#b9c5ca}
+    .keyboard-toggle{position:absolute;z-index:72;left:max(10px,env(safe-area-inset-left));bottom:max(58px,calc(10px + env(safe-area-inset-bottom)));width:44px;height:38px;border:1px solid #735f32;border-radius:10px;background:rgba(7,14,19,.94);color:#f0d68e;font-size:18px;font-weight:900;touch-action:manipulation;transition:bottom .16s ease}.stage.keyboard-open .keyboard-toggle{bottom:calc(min(36vh,290px) + 8px)}
+    .keyboard{position:absolute;z-index:70;left:0;right:0;bottom:0;height:min(36vh,290px);display:grid;grid-template-rows:34px 42px minmax(0,1fr);background:linear-gradient(180deg,rgba(9,18,24,.98),rgba(4,9,12,.99));border-top:1px solid #7a6333;box-shadow:0 -14px 38px #000b;backdrop-filter:blur(12px)}.keyboard[hidden]{display:none}.keyboard-head{display:flex;align-items:center;justify-content:space-between;padding:0 8px;border-bottom:1px solid #263740}.keyboard-head strong{font-size:8px;letter-spacing:.13em;color:#e6cb83}.keyboard-head button{width:32px;height:26px;border:1px solid #53636b;border-radius:6px;background:#101a20;color:#e9ddbe}.keyboard-tabs{display:flex;gap:4px;align-items:center;overflow-x:auto;padding:4px 7px;scrollbar-width:none;border-bottom:1px solid #25333a}.keyboard-tabs::-webkit-scrollbar{display:none}.keyboard-tabs button{flex:0 0 auto;height:30px;padding:0 10px;border:1px solid #42535b;border-radius:7px;background:#0d171d;color:#9fb1ba;font-size:8px;font-weight:900;touch-action:manipulation}.keyboard-tabs button.active{border-color:#d0aa56;background:#211b0f;color:#f7df9f}.keyboard-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));grid-auto-rows:minmax(48px,1fr);gap:6px;overflow:auto;padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left))}.keyboard-keys button{min-height:48px;border:1px solid #425861;border-radius:8px;background:#0c1820;color:#dae2e5;display:grid;place-items:center;align-content:center;gap:3px;font-weight:900;touch-action:manipulation}.keyboard-keys button strong{color:#efd895;font-size:12px}.keyboard-keys button small{color:#829daa;font-size:7px;letter-spacing:.07em;text-transform:uppercase}.keyboard-keys button[disabled]{opacity:.45}.keyboard-keys .readout{pointer-events:none}.keyboard-keys .readout strong{font-size:10px}
+    .sr-live{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    button:focus-visible,select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
+    @media(max-width:620px){.toolbar{gap:5px}.toolbar button{padding:0 8px}.title span{display:none}.toolbar select{max-width:38vw;font-size:10px}.focus-level{display:none}.focus-controls select{min-width:112px;max-width:45vw}.focus-controls button{padding:0 8px}.stratum-note{top:58px}.status{max-width:58vw}.keyboard{height:min(39vh,300px)}.stage.keyboard-open .keyboard-toggle{bottom:calc(min(39vh,300px) + 8px)}}
   </style>
 </head>
 <body>
-  <main class="prototype-shell" aria-label="Shaelvien Geonaph map prototype">
-    <header class="toolbar">
-      <button id="back" type="button" aria-label="Back to Shaelvien">← BACK</button>
-      <div class="title">
-        <strong>GEONAPH · FULL MAP PROTOTYPE</strong>
-        <span>AWS whole-map authority · touch, drag, pinch or wheel to inspect</span>
+<main class="shell" aria-label="Shaelvien Geonaph spatial-stack prototype">
+  <header class="toolbar" data-ui>
+    <button id="back" type="button" aria-label="Back to Shaelvien">← BACK</button>
+    <div class="title"><strong>GEONAPH · SPATIAL STACK PROTOTYPE</strong><span>One XYZ truth · named Z shortcuts · recursive focus · viewer-mounted keyboard</span></div>
+    <select id="stratumShortcut" aria-label="Jump viewer to named Z stratum">
+      <option value="universe">Universe</option><option value="sky">Sky</option><option value="weather">Weather</option><option value="surface" selected>Surface</option><option value="subterranean">Subterranean</option><option value="depths">Depths</option><option value="core">Core</option>
+    </select>
+  </header>
+  <section id="stage" class="stage" aria-label="Interactive Geonaph viewer">
+    <div id="world" class="world" aria-live="off">
+      <img id="surfacePlane" class="plane base" alt="Full Geonaph canonical surface map" draggable="false" />
+      <img id="highlandsPlane" class="plane highlands" alt="Geonaph highlands and rivers map layer" draggable="false" />
+      <img id="mountainPlane" class="plane mountains" alt="Geonaph mountain volcanic and archipelago map layer" draggable="false" />
+    </div>
+    <section class="focus-hud" aria-label="Viewer focus hierarchy" data-ui>
+      <div class="focus-controls">
+        <button id="focusBack" type="button" aria-label="Move out one focus level">‹</button>
+        <span id="focusLevel" class="focus-level">Parallax</span>
+        <select id="focusSelect" aria-label="Choose focus"></select>
+        <button id="focusLock" class="focus-lock" type="button">LOCK</button>
+        <button id="focusReset" type="button" aria-label="Reset focus to Surface">⌂</button>
       </div>
-      <select id="mapView" aria-label="Map view">
-        <option value="surface">Surface</option>
-        <option value="highlands">Highlands + Rivers</option>
-        <option value="mountains">Mountains + Volcanic + Archipelago</option>
-      </select>
-    </header>
-
-    <section id="stage" class="stage" aria-label="Interactive Geonaph map viewport">
-      <div id="world" class="world" aria-live="polite">
-        <img id="map" alt="Full Geonaph world map" draggable="false" />
-      </div>
-      <div id="loading" class="loading">LOADING GEONAPH…</div>
-      <div class="status"><strong id="viewLabel">Surface</strong><br><span id="zoomLabel">Fit view</span></div>
-      <div class="hud" aria-label="Map zoom controls">
-        <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
-        <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
-        <button id="fit" class="fit" type="button" aria-label="Fit map to screen">FIT</button>
-      </div>
+      <div id="focusTrail" class="trail" aria-label="Locked focus path"></div>
     </section>
-  </main>
-
-  <script>
-    (() => {
-      'use strict';
-
-      const ASSET_ROOT = 'https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
-      const VIEWS = {
-        surface: {
-          label: 'Surface',
-          file: 'geonaph_full_static_canonical_surface_v001.png',
-          alt: 'Full Geonaph canonical surface map'
-        },
-        highlands: {
-          label: 'Highlands + Rivers',
-          file: 'geonaph_full_static_highlands_rivers_v001.png',
-          alt: 'Full Geonaph highlands and rivers map'
-        },
-        mountains: {
-          label: 'Mountains + Volcanic + Archipelago',
-          file: 'geonaph_full_static_mountain_volcanic_archipelago_v001.png',
-          alt: 'Full Geonaph mountain volcanic and archipelago map'
-        }
-      };
-
-      const stage = document.getElementById('stage');
-      const world = document.getElementById('world');
-      const map = document.getElementById('map');
-      const loading = document.getElementById('loading');
-      const mapView = document.getElementById('mapView');
-      const viewLabel = document.getElementById('viewLabel');
-      const zoomLabel = document.getElementById('zoomLabel');
-      const pointers = new Map();
-
-      let naturalWidth = 1;
-      let naturalHeight = 1;
-      let scale = 1;
-      let minScale = 0.1;
-      let maxScale = 12;
-      let x = 0;
-      let y = 0;
-      let panStart = null;
-      let pinchStart = null;
-
-      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-      function applyTransform() {
-        world.style.width = naturalWidth + 'px';
-        world.style.height = naturalHeight + 'px';
-        world.style.transform = `translate3d(${x}px,${y}px,0) scale(${scale})`;
-        zoomLabel.textContent = `${Math.round(scale * 100)}%`;
-      }
-
-      function fitMap() {
-        if (!naturalWidth || !naturalHeight) return;
-        const rect = stage.getBoundingClientRect();
-        minScale = Math.min(rect.width / naturalWidth, rect.height / naturalHeight);
-        scale = minScale;
-        maxScale = Math.max(minScale * 24, 8);
-        x = (rect.width - naturalWidth * scale) / 2;
-        y = (rect.height - naturalHeight * scale) / 2;
-        applyTransform();
-        zoomLabel.textContent = 'Fit view';
-      }
-
-      function zoomAt(clientX, clientY, factor) {
-        const rect = stage.getBoundingClientRect();
-        const sx = clientX - rect.left;
-        const sy = clientY - rect.top;
-        const oldScale = scale;
-        const next = clamp(oldScale * factor, minScale * 0.75, maxScale);
-        if (Math.abs(next - oldScale) < 0.0001) return;
-        const worldX = (sx - x) / oldScale;
-        const worldY = (sy - y) / oldScale;
-        scale = next;
-        x = sx - worldX * scale;
-        y = sy - worldY * scale;
-        applyTransform();
-      }
-
-      function setView(key) {
-        const selected = VIEWS[key] || VIEWS.surface;
-        loading.hidden = false;
-        loading.textContent = 'LOADING GEONAPH…';
-        viewLabel.textContent = selected.label;
-        map.alt = selected.alt;
-        map.src = ASSET_ROOT + selected.file;
-      }
-
-      map.addEventListener('load', () => {
-        naturalWidth = map.naturalWidth || 1;
-        naturalHeight = map.naturalHeight || 1;
-        loading.hidden = true;
-        fitMap();
-      });
-
-      map.addEventListener('error', () => {
-        loading.hidden = false;
-        loading.textContent = 'MAP ASSET UNAVAILABLE';
-      });
-
-      mapView.addEventListener('change', () => setView(mapView.value));
-      document.getElementById('fit').addEventListener('click', fitMap);
-      document.getElementById('zoomIn').addEventListener('click', () => {
-        const r = stage.getBoundingClientRect();
-        zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.3);
-      });
-      document.getElementById('zoomOut').addEventListener('click', () => {
-        const r = stage.getBoundingClientRect();
-        zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.3);
-      });
-      document.getElementById('back').addEventListener('click', () => {
-        if (history.length > 1) history.back();
-        else location.href = '/Game/index.html';
-      });
-
-      stage.addEventListener('wheel', (event) => {
-        event.preventDefault();
-        zoomAt(event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 1 / 1.12);
-      }, { passive: false });
-
-      stage.addEventListener('pointerdown', (event) => {
-        if (event.target.closest('button,select')) return;
-        if (event.button !== undefined && event.button !== 0 && event.pointerType === 'mouse') return;
-        stage.setPointerCapture?.(event.pointerId);
-        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-        stage.classList.add('dragging');
-
-        if (pointers.size === 1) {
-          panStart = { pointerX: event.clientX, pointerY: event.clientY, x, y };
-          pinchStart = null;
-        } else if (pointers.size === 2) {
-          const [a, b] = [...pointers.values()];
-          const rect = stage.getBoundingClientRect();
-          const centerX = (a.x + b.x) / 2 - rect.left;
-          const centerY = (a.y + b.y) / 2 - rect.top;
-          const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
-          pinchStart = {
-            distance,
-            scale,
-            worldX: (centerX - x) / scale,
-            worldY: (centerY - y) / scale
-          };
-          panStart = null;
-        }
-      });
-
-      stage.addEventListener('pointermove', (event) => {
-        if (!pointers.has(event.pointerId)) return;
-        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
-        if (pointers.size === 1 && panStart) {
-          x = panStart.x + (event.clientX - panStart.pointerX);
-          y = panStart.y + (event.clientY - panStart.pointerY);
-          applyTransform();
-          return;
-        }
-
-        if (pointers.size === 2 && pinchStart) {
-          const [a, b] = [...pointers.values()];
-          const rect = stage.getBoundingClientRect();
-          const centerX = (a.x + b.x) / 2 - rect.left;
-          const centerY = (a.y + b.y) / 2 - rect.top;
-          const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
-          scale = clamp(pinchStart.scale * (distance / pinchStart.distance), minScale * 0.75, maxScale);
-          x = centerX - pinchStart.worldX * scale;
-          y = centerY - pinchStart.worldY * scale;
-          applyTransform();
-        }
-      });
-
-      function releasePointer(event) {
-        pointers.delete(event.pointerId);
-        if (pointers.size === 0) {
-          panStart = null;
-          pinchStart = null;
-          stage.classList.remove('dragging');
-        } else if (pointers.size === 1) {
-          const [remaining] = [...pointers.values()];
-          panStart = { pointerX: remaining.x, pointerY: remaining.y, x, y };
-          pinchStart = null;
-        }
-      }
-
-      stage.addEventListener('pointerup', releasePointer);
-      stage.addEventListener('pointercancel', releasePointer);
-      window.addEventListener('resize', fitMap, { passive: true });
-      setView('surface');
-    })();
-  </script>
+    <div id="stratumNote" class="stratum-note"><strong>Surface</strong> · Z 0 · T0 L0 · all available visual layers parallax from the same world truth</div>
+    <div id="loading" class="loading">LOADING GEONAPH…</div>
+    <section id="battleInstance" class="battle-instance" aria-label="Battle Instance" hidden><strong>BATTLE INSTANCE</strong><span id="battleText">Entity focus becomes a tactical viewer representation while the world coordinate identity remains unchanged.</span></section>
+    <div class="status"><strong id="viewLabel">Surface · Z 0</strong><br><span id="zoomLabel">Fit view</span><br><span id="pathLabel">Focus: Parallax</span></div>
+    <div class="hud" aria-label="Map zoom controls" data-ui><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="fit" class="fit" type="button" aria-label="Fit map to screen">FIT</button></div>
+    <button id="keyboardToggle" class="keyboard-toggle" type="button" aria-label="Open World Builder keyboard" aria-expanded="false" aria-controls="viewerKeyboard" data-ui>⌨</button>
+    <section id="viewerKeyboard" class="keyboard" aria-label="World Builder contextual keyboard" hidden data-ui>
+      <div class="keyboard-head"><strong>VIEWER-MOUNTED KEYBOARD · PERCEPTION / TOOLS ONLY</strong><button id="keyboardClose" type="button" aria-label="Close keyboard">×</button></div>
+      <div id="keyboardTabs" class="keyboard-tabs" role="tablist" aria-label="Keyboard modes"></div>
+      <div id="keyboardKeys" class="keyboard-keys"></div>
+    </section>
+    <div id="live" class="sr-live" role="status" aria-live="polite"></div>
+  </section>
+</main>
+<script>
+(() => {
+'use strict';
+const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
+const LAYERS_PER_TIER=10;
+const STRATA=[['universe','Universe',30],['sky','Sky',20],['weather','Weather',10],['surface','Surface',0],['subterranean','Subterranean',-10],['depths','Depths',-20],['core','Core',-30]].map(([key,label,z])=>Object.freeze({key,label,z}));
+const SURFACE_CATEGORIES=[['mountain','Mountain'],['volcano','Volcano'],['hills','Hills'],['planes','Planes']].map(([key,label])=>Object.freeze({key,label,level:'Category'}));
+const MAP_TRUTH=Object.freeze({id:'geonaph',origin:Object.freeze({x:0,y:0,z:0}),coordinateAuthority:'XYZ',layersPerTier:LAYERS_PER_TIER,assets:Object.freeze([
+ Object.freeze({key:'surface',sceneZ:0,file:'geonaph_full_static_canonical_surface_v001.png'}),Object.freeze({key:'highlands',sceneZ:4,file:'geonaph_full_static_highlands_rivers_v001.png'}),Object.freeze({key:'mountains',sceneZ:7,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})])});
+const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),focusSelect=$('focusSelect'),focusLevel=$('focusLevel'),focusLock=$('focusLock'),focusBack=$('focusBack'),focusTrail=$('focusTrail'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const pointers=new Map();let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,viewerZ=0,activeStratum='surface',focusPath=[],focusSelected='surface',keyboardMode='Viewer',toolMode='Inspect';
+function splitZ(z){const tierIndex=Math.floor(z/LAYERS_PER_TIER);return{tierIndex,layerOffset:z-tierIndex*LAYERS_PER_TIER}}
+function stratumByKey(key){return STRATA.find(s=>s.key===key)||STRATA.find(s=>s.key==='surface')}
+function focusOptions(){switch(focusPath.length){case 0:return STRATA.map(s=>({key:s.key,label:s.label,level:'Parallax'}));case 1:{const s=focusPath[0];return s.key==='surface'?SURFACE_CATEGORIES.map(v=>({...v})):[{key:s.key+':all',label:'All '+s.label,level:'Category'}]}case 2:return[{key:'region',label:'Region',level:'Region'}];case 3:return[{key:'local',label:'Local',level:'Local'}];case 4:return[{key:'town',label:'Town',level:'Landmark'},{key:'cave',label:'Cave',level:'Landmark'}];case 5:return[{key:'npc',label:'NPC',level:'Entity'},{key:'object',label:'Object',level:'Entity'}];default:return[]}}
+function nextLevel(){return ['Parallax','Category','Region','Local','Landmark','Entity','Battle Instance'][Math.min(focusPath.length,6)]}
+function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function selectedOption(){const opts=focusOptions();return opts.find(o=>o.key===focusSelected)||opts[0]||null}
+function normalizeFocusSelection(){const opts=focusOptions();if(!opts.some(o=>o.key===focusSelected))focusSelected=opts[0]?.key||''}
+function currentCategory(){const locked=focusPath.find(p=>p.level==='Category');if(locked)return locked.key;if(focusPath.length===1)return selectedOption()?.key||'';return''}
+function visualMix(){const key=currentCategory();let a=1,b=.08,c=.06;if(key==='planes'){a=1;b=.02;c=.015}else if(key==='hills'){a=.42;b=.94;c=.05}else if(key==='mountain'||key==='volcano'){a=.34;b=.2;c=.94}if(activeStratum!=='surface'){a=.7;b=.05;c=.035}surface.style.opacity=a;highlands.style.opacity=b;mountains.style.opacity=c}
+function applyParallax(){const dx=x-fitX,dy=y-fitY;[[surface,0],[highlands,4],[mountains,7]].forEach(([node,z])=>{const rel=clamp((z-viewerZ)/10,-5,5),strength=rel*.018;node.style.transform=`translate3d(${(-dx*strength).toFixed(2)}px,${(-dy*strength).toFixed(2)}px,0)`})}
+function applyTransform(){world.style.width=naturalWidth+'px';world.style.height=naturalHeight+'px';world.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`;zoomLabel.textContent=Math.abs(x-fitX)<.5&&Math.abs(y-fitY)<.5&&Math.abs(scale-minScale)<.0001?'Fit view':Math.round(scale*100)+'%';applyParallax()}
+function fitMap(){if(!naturalWidth||!naturalHeight)return;const r=stage.getBoundingClientRect();minScale=Math.min(r.width/naturalWidth,r.height/naturalHeight);scale=minScale;maxScale=Math.max(minScale*24,8);x=fitX=(r.width-naturalWidth*scale)/2;y=fitY=(r.height-naturalHeight*scale)/2;applyTransform()}
+function zoomAt(cx,cy,factor){const r=stage.getBoundingClientRect(),sx=cx-r.left,sy=cy-r.top,old=scale,next=clamp(old*factor,minScale*.75,maxScale);if(Math.abs(next-old)<.0001)return;const wx=(sx-x)/old,wy=(sy-y)/old;scale=next;x=sx-wx*scale;y=sy-wy*scale;applyTransform()}
+function setViewerZ(value,reason){viewerZ=Math.trunc(value);renderState();announce(`${reason}. Viewer Z ${viewerZ}. World truth unchanged.`)}
+function jumpStratum(key){const s=stratumByKey(key);activeStratum=s.key;viewerZ=s.z;focusPath=[];focusSelected=s.key;shortcut.value=s.key;renderState();announce(`${s.label} viewer shortcut. Z ${s.z}. Focus reset; map truth unchanged.`)}
+function selectFocus(key){const match=focusOptions().find(o=>o.key===key);if(!match)return;focusSelected=match.key;if(focusPath.length===0)activeStratum=match.key;renderState();announce(`${match.label} selected. Lock to reveal ${focusPath.length===0?'Category':nextLevel()}.`)}
+function lockFocus(){const match=selectedOption();if(!match)return;focusPath.push({level:match.level,key:match.key,label:match.label});if(match.level==='Parallax'){const s=stratumByKey(match.key);activeStratum=s.key;viewerZ=s.z;shortcut.value=s.key}focusSelected=focusOptions()[0]?.key||'';renderState();announce(match.level==='Entity'?`${match.label} locked. Battle Instance revealed.`:`${match.label} locked. ${nextLevel()} revealed.`)}
+function unlockFocus(){if(!focusPath.length)return;const removed=focusPath.pop();const opts=focusOptions();focusSelected=opts.some(o=>o.key===removed.key)?removed.key:(opts[0]?.key||'');renderState();announce(`Returned from ${removed.label} to ${nextLevel()}.`)}
+function rewindFocus(index){while(focusPath.length>index+1)focusPath.pop();focusSelected=focusOptions()[0]?.key||'';renderState();announce(`Focus returned to ${focusPath[index]?.label||'Surface'}.`)}
+function resetFocus(){jumpStratum('surface')}
+function renderFocus(){normalizeFocusSelection();const opts=focusOptions(),entityLocked=focusPath.some(p=>p.level==='Entity'),level=entityLocked?'Battle Instance':nextLevel();focusLevel.textContent=level;focusSelect.replaceChildren();if(opts.length){opts.forEach(o=>{const el=document.createElement('option');el.value=o.key;el.textContent=o.label;focusSelect.append(el)});focusSelect.value=focusSelected}else{const el=document.createElement('option');el.textContent=entityLocked?'Battle Instance':'No content';el.value='';focusSelect.append(el)}focusSelect.disabled=!opts.length||entityLocked;focusLock.disabled=!opts.length||entityLocked;focusLock.classList.toggle('active',!!opts.length&&!entityLocked);focusLock.textContent=entityLocked?'LOCKED':'LOCK';focusBack.disabled=!focusPath.length;focusTrail.replaceChildren();focusPath.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='crumb';b.textContent=p.label;b.setAttribute('aria-label','Return focus to '+p.label);b.addEventListener('click',()=>rewindFocus(i));focusTrail.append(b)});const z=splitZ(viewerZ),status=document.createElement('span');status.className='focus-status'+(entityLocked?' battle':'');status.textContent=entityLocked?'Battle Instance':`${level}: ${selectedOption()?.label||'—'} · T${z.tierIndex} L${z.layerOffset} Z${viewerZ}`;status.setAttribute('role','status');focusTrail.append(status);battle.hidden=!entityLocked;if(entityLocked){const e=focusPath.find(p=>p.level==='Entity');battleText.textContent=`${e?.label||'Entity'} focus · tactical viewer representation. Canonical XYZ identity remains unchanged.`}}
+function renderState(){const s=stratumByKey(activeStratum),z=splitZ(viewerZ);viewLabel.textContent=`${s.label} · Z ${viewerZ}`;pathLabel.textContent='Focus: '+(focusPath.length?focusPath.map(p=>p.label).join(' › '):'Parallax');stratumNote.innerHTML=`<strong>${s.label}</strong> · Z ${viewerZ} · T${z.tierIndex} L${z.layerOffset} · ${s.key==='surface'?'available Geonaph visual layers parallax from one truth':'no dedicated visual asset assigned; Surface remains the reference plane'}`;renderFocus();visualMix();applyParallax();renderKeyboardKeys()}
+const KEYBOARD_MODES=['Viewer','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
+function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.addEventListener('click',fn);return b}
+function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
+function renderKeyboardTabs(){keyboardTabs.replaceChildren();KEYBOARD_MODES.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
+function renderKeyboardKeys(){if(!keyboardKeys)return;keyboardKeys.replaceChildren();const z=splitZ(viewerZ);if(keyboardMode==='Viewer'){keyboardKeys.append(toolKey('Z −','layer',()=>setViewerZ(viewerZ-1,'Viewer moved down one layer')),toolKey('Z +','layer',()=>setViewerZ(viewerZ+1,'Viewer moved up one layer')),toolKey('T −','tier',()=>setViewerZ(viewerZ-LAYERS_PER_TIER,'Viewer moved down one tier')),toolKey('T +','tier',()=>setViewerZ(viewerZ+LAYERS_PER_TIER,'Viewer moved up one tier')),toolKey('−','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.3)}),toolKey('+','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.3)}),toolKey('FIT','camera',fitMap));const read=toolKey(`T${z.tierIndex} L${z.layerOffset}`,'Z '+viewerZ,()=>{},true);read.classList.add('readout');keyboardKeys.append(read);return}if(keyboardMode==='Selected'){keyboardKeys.append(toolKey('LOCK','focus',lockFocus,!focusOptions().length||focusPath.some(p=>p.level==='Entity')),toolKey('BACK','focus',unlockFocus,!focusPath.length),toolKey('HOME','Surface',resetFocus),toolKey('INSPECT','viewer',()=>setTool('Inspect')),toolKey('META','viewer',()=>setTool('Metadata')));return}const sets={Pixels:['Select','Paint','Erase','Fill'],Tiles:['Library','Place','Rotate','Scale'],Sprites:['Library','Place','Play','Speed'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};(sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))))}
+function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label','Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
+function closeKeyboard(){keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label','Open World Builder keyboard');announce('Keyboard hidden. Viewer unobstructed.')}
+MAP_TRUTH.assets.forEach(asset=>{const node=asset.key==='surface'?surface:asset.key==='highlands'?highlands:mountains;node.src=ASSET_ROOT+asset.file});surface.addEventListener('load',()=>{naturalWidth=surface.naturalWidth||1;naturalHeight=surface.naturalHeight||1;loading.hidden=true;fitMap()});surface.addEventListener('error',()=>{loading.hidden=false;loading.textContent='SURFACE MAP ASSET UNAVAILABLE'});[highlands,mountains].forEach(node=>node.addEventListener('error',()=>{node.style.display='none'}));
+shortcut.addEventListener('change',()=>jumpStratum(shortcut.value));focusSelect.addEventListener('change',()=>selectFocus(focusSelect.value));focusLock.addEventListener('click',lockFocus);focusBack.addEventListener('click',unlockFocus);$('focusReset').addEventListener('click',resetFocus);$('fit').addEventListener('click',fitMap);$('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.3)});$('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.3)});$('back').addEventListener('click',()=>{if(history.length>1)history.back();else location.href='/Game/index.html'});keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());$('keyboardClose').addEventListener('click',closeKeyboard);
+stage.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY<0?1.12:1/1.12)},{passive:false});stage.addEventListener('pointerdown',e=>{if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;if(e.pointerType==='mouse'&&e.button!==0)return;stage.setPointerCapture?.(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});stage.classList.add('dragging');if(pointers.size===1){panStart={pointerX:e.clientX,pointerY:e.clientY,x,y};pinchStart=null}else if(pointers.size===2){const[a,b]=[...pointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;pinchStart={distance:d,scale,worldX:(cx-x)/scale,worldY:(cy-y)/scale};panStart=null}});stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1&&panStart){x=panStart.x+(e.clientX-panStart.pointerX);y=panStart.y+(e.clientY-panStart.pointerY);applyTransform();return}if(pointers.size===2&&pinchStart){const[a,b]=[...pointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;scale=clamp(pinchStart.scale*(d/pinchStart.distance),minScale*.75,maxScale);x=cx-pinchStart.worldX*scale;y=cy-pinchStart.worldY*scale;applyTransform()}});function release(e){pointers.delete(e.pointerId);if(!pointers.size){panStart=pinchStart=null;stage.classList.remove('dragging')}else if(pointers.size===1){const[r]=[...pointers.values()];panStart={pointerX:r.x,pointerY:r.y,x,y};pinchStart=null}}stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);window.addEventListener('resize',fitMap,{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!keyboard.hidden)closeKeyboard()});
+window.ShaelvienPrototype=Object.freeze({mapTruth:MAP_TRUTH,getViewerState:()=>({activeStratum,viewerZ,...splitZ(viewerZ),focusPath:focusPath.map(v=>({...v})),focusSelected,keyboardOpen:!keyboard.hidden,keyboardMode,toolMode})});
+shortcut.value='surface';renderKeyboardTabs();renderState();
+})();
+</script>
 </body>
 </html>
