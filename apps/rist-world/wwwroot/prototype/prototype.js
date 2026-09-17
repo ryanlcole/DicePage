@@ -21,11 +21,24 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewerTitle=$('viewerTitle'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,viewerZ=0,activeStratum='surface',parallaxOverride=true,focusPath=[],focusSelected='all',keyboardMode='Viewer',toolMode='Inspect',lastMix={zoomZ:0,surface:1,highlands:1,mountains:.82},tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0;
+const VIEWER_TITLE_KEY='rist.prototype.viewerTitle.v1';
+function cleanViewerTitle(value){return String(value||'').replace(/\s+/g,' ').trim().slice(0,80)}
+function saveViewerTitle(){
+  const value=cleanViewerTitle(viewerTitle?.textContent)||'GEONAPH · SPATIAL STACK';
+  if(viewerTitle)viewerTitle.textContent=value;
+  try{localStorage.setItem(VIEWER_TITLE_KEY,value)}catch{}
+  announce(`Viewer title saved as ${value}.`);
+}
+function restoreViewerTitle(){
+  if(!viewerTitle)return;
+  try{const saved=cleanViewerTitle(localStorage.getItem(VIEWER_TITLE_KEY));if(saved)viewerTitle.textContent=saved}catch{}
+}
+
 
 function splitZ(z){const tierIndex=Math.floor(z/LAYERS_PER_TIER);return{tierIndex,layerOffset:z-tierIndex*LAYERS_PER_TIER}}
 function stratumByKey(key){return STRATA.find(s=>s.key===key)||STRATA.find(s=>s.key==='surface')}
@@ -322,6 +335,8 @@ $('fit').addEventListener('click',fitMap);
 $('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
 $('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
 $('back').addEventListener('click',()=>{location.href='/Game/index.html'});
+viewerTitle?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();viewerTitle.blur()}else if(event.key==='Escape'){event.preventDefault();restoreViewerTitle();viewerTitle.blur()}});
+viewerTitle?.addEventListener('blur',saveViewerTitle);
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
 $('keyboardClose').addEventListener('click',closeKeyboard);
 
@@ -366,6 +381,7 @@ window.ShaelvienPrototype=Object.freeze({
   getViewerState:()=>({activeStratum,viewerZ,...splitZ(viewerZ),parallaxOverride,lockedTier:lockedTier(),editableTier:lockedTier(),visibleTierWindow:lockedTier()===null?null:[lockedTier()-1,lockedTier(),lockedTier()+1],parallax:lastMix,focusPath:focusPath.map(v=>({...v})),focusSelected,keyboardOpen:!keyboard.hidden,keyboardMode,toolMode})
 });
 focusSelected='all';
+restoreViewerTitle();
 renderKeyboardTabs();
 renderState();
 })();
