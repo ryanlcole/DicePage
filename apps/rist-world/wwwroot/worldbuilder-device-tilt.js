@@ -2,6 +2,7 @@
  'use strict';
 
  const STRUCTURAL_TOP_LAYER=9;
+ const MOTION_GRANTED_KEY='rist.parallax.motion-granted.v1';
  const state={enabled:false,permissionAsked:false,permission:'unknown',baselineBeta:null,baselineGamma:null,targetX:0,targetY:0,x:0,y:0,raf:0,visuals:[]};
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
@@ -12,6 +13,8 @@
  const tiltStrength=()=>clamp(Number(window.ristParallax?.tiltStrength?.()??.65),0,1);
  const tierFor=v=>Number(v?.tierIndex??v?.TierIndex??0)||0;
  const layerFor=v=>Number(v?.layerOffset??v?.LayerOffset??0)||0;
+ const readSession=key=>{try{return sessionStorage.getItem(key)||''}catch{return''}};
+ const writeSession=(key,value)=>{try{sessionStorage.setItem(key,value)}catch{}};
  const tierTopLayer=()=>{
   const value=Number(window.ristProjection?.getState?.()?.tierTopLayer);
   return Number.isFinite(value)?value:STRUCTURAL_TOP_LAYER;
@@ -84,7 +87,7 @@
   const beta=clamp(adjusted.beta-state.baselineBeta,-24,24),gamma=clamp(adjusted.gamma-state.baselineGamma,-24,24);
   state.targetX=clamp(gamma*.62,-15,15);state.targetY=clamp(beta*.46,-12,12);schedule()
  }
- function enable(){if(state.enabled)return;state.enabled=true;state.permission='granted';state.baselineBeta=null;state.baselineGamma=null;window.addEventListener('deviceorientation',onOrientation,true);schedule()}
+ function enable(){if(state.enabled)return;state.enabled=true;state.permission='granted';state.baselineBeta=null;state.baselineGamma=null;writeSession(MOTION_GRANTED_KEY,'granted');window.addEventListener('deviceorientation',onOrientation,true);schedule()}
  async function requestPermission(){
   if(state.enabled)return state.permission;if(state.permissionAsked)return state.permission;state.permissionAsked=true;
   try{const Orientation=window.DeviceOrientationEvent;if(!Orientation){state.permission='unsupported';return state.permission}if(typeof Orientation.requestPermission==='function'){const result=await Orientation.requestPermission();if(result==='granted')enable();else state.permission='denied'}else enable()}catch{state.permission='denied'}finally{state.permissionAsked=false}
@@ -104,6 +107,8 @@
  window.addEventListener('rist:projection-state',schedule);
  document.addEventListener('pointermove',onPointerMove,{passive:true});
  document.addEventListener('pointerout',onPointerOut,{passive:true});
- if('DeviceOrientationEvent' in window&&typeof window.DeviceOrientationEvent?.requestPermission!=='function')enable();
+ if('DeviceOrientationEvent' in window){
+  if(typeof window.DeviceOrientationEvent?.requestPermission!=='function'||readSession(MOTION_GRANTED_KEY)==='granted')enable();
+ }
  const observer=new MutationObserver(schedule);observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
