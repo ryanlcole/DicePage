@@ -49,6 +49,24 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  DirectoryIndexRewrite:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub rist-directory-index-${AWS::StackName}
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Resolve directory-style routes to their deployed index.html instead of the SPA error fallback
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri || '/';
+          if (uri.endsWith('/')) {
+            request.uri = uri + 'index.html';
+          }
+          return request;
+        }
+
   SecurityHeaders:
     Type: AWS::CloudFront::ResponseHeadersPolicy
     Properties:
@@ -161,6 +179,9 @@ Resources:
           CachedMethods: [GET, HEAD, OPTIONS]
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           ResponseHeadersPolicyId: !Ref SecurityHeaders
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt DirectoryIndexRewrite.FunctionARN
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
