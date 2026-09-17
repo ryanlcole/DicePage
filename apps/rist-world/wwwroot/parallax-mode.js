@@ -16,8 +16,8 @@ const read=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}catch
 const write=(key,value)=>{try{localStorage.setItem(key,String(value))}catch{}};
 const parsedTilt=Number(read(TILT_KEY,String(DEFAULT_TILT)));
 const state={
- enabled:read(PREF_KEY,'on')!=='off',
- active:read(ACTIVE_KEY,'on')!=='off',
+ enabled:read(PREF_KEY,'off')==='on',
+ active:read(ACTIVE_KEY,'off')==='on',
  tiltStrength:Number.isFinite(parsedTilt)?clamp(parsedTilt,0,1):DEFAULT_TILT,
  playback:read(PLAY_KEY,'playing'),
  fps:Number(read(FPS_KEY,'12'))||12
