@@ -96,4 +96,61 @@
    getTierDepths:()=>({viewerTilt:getTilt()})
   };
  }
+
+ // The landing image is always listening for tilt. iOS permission is only the
+ // one-time browser gate; after events are available, this stays continuously
+ // reactive while the landing screen is visible and Parallax is On.
+ const landingRoot=()=>document.querySelector('.rist-game-start');
+ const landingEnabled=()=>{
+  const root=landingRoot();
+  if(!root||root.hidden)return false;
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return false;
+  return typeof window.ristParallax?.isEnabled==='function'
+   ? !!window.ristParallax.isEnabled()
+   : read(localStorage,PARALLAX_KEY,'off')==='on';
+ };
+ const screenAxes=(beta,gamma)=>{
+  const raw=Number(window.screen?.orientation?.angle??window.orientation??0);
+  const angle=((raw%360)+360)%360;
+  if(angle===90)return{x:beta,y:-gamma};
+  if(angle===270)return{x:-beta,y:gamma};
+  if(angle===180)return{x:-gamma,y:-beta};
+  return{x:gamma,y:beta};
+ };
+ let baseline=null;
+ let currentX=0,currentY=0,targetX=0,targetY=0,frame=0;
+ const renderLandingTilt=()=>{
+  frame=0;
+  const root=landingRoot();
+  if(!root)return;
+  currentX+=(targetX-currentX)*.28;
+  currentY+=(targetY-currentY)*.28;
+  root.style.setProperty('--rist-landing-tilt-x',`${currentX.toFixed(2)}px`);
+  root.style.setProperty('--rist-landing-tilt-y',`${currentY.toFixed(2)}px`);
+  if(Math.abs(targetX-currentX)>.04||Math.abs(targetY-currentY)>.04)frame=requestAnimationFrame(renderLandingTilt);
+ };
+ const scheduleLandingTilt=()=>{if(!frame)frame=requestAnimationFrame(renderLandingTilt)};
+ const resetLandingTilt=()=>{
+  baseline=null;
+  targetX=0;
+  targetY=0;
+  scheduleLandingTilt();
+ };
+ addEventListener('deviceorientation',event=>{
+  if(!landingEnabled()){
+   if(targetX||targetY||currentX||currentY)resetLandingTilt();
+   return;
+  }
+  const beta=Number(event.beta),gamma=Number(event.gamma);
+  if(!Number.isFinite(beta)||!Number.isFinite(gamma))return;
+  const axes=screenAxes(beta,gamma);
+  if(!baseline){baseline={x:axes.x,y:axes.y};return;}
+  const strength=clamp(Number(window.ristParallax?.tiltStrength?.()??DEFAULT_TILT),0,1);
+  targetX=clamp((axes.x-baseline.x)/22,-1,1)*30*strength;
+  targetY=clamp((axes.y-baseline.y)/22,-1,1)*22*strength;
+  scheduleLandingTilt();
+ },{passive:true});
+ addEventListener('orientationchange',resetLandingTilt,{passive:true});
+ addEventListener('rist:landing-parallax-changed',resetLandingTilt);
+ addEventListener('rist-parallax-settings',resetLandingTilt);
 })();
