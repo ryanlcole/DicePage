@@ -73,6 +73,7 @@ public sealed partial class WorldSession
     /// </summary>
     public void AddPlacedTileAtGridDepth(TileItem tile)
     {
+        if(!CanEditTiles)return;
         StoreCurrentSpatialPage();
         StorePlacedAtSceneZ(tile,SceneZOf(tile));
         LoadCurrentSpatialPage();
@@ -81,6 +82,7 @@ public sealed partial class WorldSession
 
     public void AddPlacedTileAtLayerDelta(TileItem tile,int layerDelta)
     {
+        if(!CanEditTiles)return;
         StoreCurrentSpatialPage();
         StorePlacedAtSceneZ(tile,checked(SceneZ+layerDelta));
         LoadCurrentSpatialPage();
