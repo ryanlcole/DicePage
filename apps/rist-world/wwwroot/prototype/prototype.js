@@ -21,7 +21,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),focusLevel=$('focusLevel'),focusBack=$('focusBack'),focusTrail=$('focusTrail'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
@@ -209,11 +209,11 @@ function resetFocus(){jumpStratum('all')}
 function renderFocus(){
   normalizeFocusSelection();
   const opts=focusOptions(),entityLocked=focusPath.some(p=>p.level==='Entity'),level=entityLocked?'Battle Instance':nextLevel();
-  focusLevel.textContent=level;
   shortcut.replaceChildren();
-  if(opts.length){
-    opts.forEach(o=>{const el=document.createElement('option');el.value=o.key;el.textContent=o.label;shortcut.append(el)});
-    shortcut.value=focusSelected||opts[0].key;
+  const choices=focusPath.length>0?[{key:'all',label:'All parallax',level:'Parallax'},...opts]:opts;
+  if(choices.length){
+    choices.forEach(o=>{const el=document.createElement('option');el.value=o.key;el.textContent=o.label;shortcut.append(el)});
+    shortcut.value=choices.some(o=>o.key===focusSelected)?focusSelected:choices[0].key;
     shortcut.disabled=false;
   }else{
     const el=document.createElement('option');el.textContent=entityLocked?'Battle Instance':'No content';el.value='';shortcut.append(el);
@@ -221,11 +221,7 @@ function renderFocus(){
   }
   shortcut.setAttribute('aria-label',focusPath.length===0
     ?'Choose All Parallax or a named Z stratum'
-    :`Choose ${level.toLowerCase()} focus inside ${focusPath.at(-1)?.label||'the selected scope'}`);
-  focusBack.disabled=!focusPath.length;
-  focusTrail.replaceChildren();
-  focusPath.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='crumb';b.textContent=p.label;b.setAttribute('aria-label','Return focus to '+p.label);b.addEventListener('click',()=>rewindFocus(i));focusTrail.append(b)});
-  stage.classList.toggle('focus-deep',focusPath.length>0);
+    :`Choose ${level.toLowerCase()} focus, or return to All Parallax`);
   battle.hidden=!entityLocked;
   if(entityLocked){const e=focusPath.find(p=>p.level==='Entity');battleText.textContent=`${e?.label||'Entity'} focus · tactical viewer representation. Canonical XYZ identity remains unchanged.`}
 }
@@ -321,9 +317,7 @@ addEventListener('deviceorientation',event=>{
 addEventListener('orientationchange',resetTilt,{passive:true});
 screen.orientation?.addEventListener?.('change',resetTilt);
 
-shortcut.addEventListener('change',()=>{if(focusPath.length===0)jumpStratum(shortcut.value);else selectFocus(shortcut.value)});
-focusBack.addEventListener('click',unlockFocus);
-$('focusReset').addEventListener('click',resetFocus);
+shortcut.addEventListener('change',()=>{if(shortcut.value==='all')jumpStratum('all');else if(focusPath.length===0)jumpStratum(shortcut.value);else selectFocus(shortcut.value)});
 $('fit').addEventListener('click',fitMap);
 $('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
 $('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
