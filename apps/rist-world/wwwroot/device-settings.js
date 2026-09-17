@@ -97,14 +97,13 @@
   };
  }
 
- // The landing image is always listening for tilt. iOS permission is only the
- // one-time browser gate; after events are available, this stays continuously
- // reactive while the landing screen is visible and Parallax is On.
+ // Permission is only the browser gate. Once motion events are available this
+ // listener remains active continuously; the saved Parallax preference alone
+ // decides whether the landing artwork renders the motion.
  const landingRoot=()=>document.querySelector('.rist-game-start');
  const landingEnabled=()=>{
   const root=landingRoot();
   if(!root||root.hidden)return false;
-  if(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return false;
   return typeof window.ristParallax?.isEnabled==='function'
    ? !!window.ristParallax.isEnabled()
    : read(localStorage,PARALLAX_KEY,'off')==='on';
