@@ -1,0 +1,34 @@
+/* Mobile World Builder keyboard polish.
+   Presentation only: keeps existing keyboard actions and authority intact. */
+
+/* The artwork already carries the key face. Keep live state text readable without
+   drawing a second little badge/square on top of the uploaded key art. */
+.worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned
+.wb-device-key.wb-shaelvien-key-exact>small{
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#f4e5c5!important;
+  text-shadow:0 1px 3px #000,0 0 3px #000!important;
+}
+
+/* Keep the persistent D-pad fully inside the keyboard and clear of the ticker/footer.
+   Preserve its size; move the whole control bay upward instead of shrinking targets. */
+@media(max-width:430px){
+  .worldbuilder-studio:not(.wb-device-collapsed)
+  .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+    top:26%!important;
+    bottom:8%!important;
+  }
+}
+
+/* Slightly lift it on compact tablet/narrow portrait layouts too. */
+@media(min-width:431px) and (max-width:768px){
+  .worldbuilder-studio:not(.wb-device-collapsed)
+  .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+    top:29%!important;
+    bottom:5%!important;
+  }
+}
