@@ -89,10 +89,19 @@ function render(){
  const current=document.createElement('span');current.className=`wb-focus-status${battle?' wb-focus-battle':''}`;current.textContent=battle?'Battle Instance':`${level}: ${selectedLabel(state)||'—'} · T${tierIndex(state)} L${layerOffset(state)} Z${sceneZ(state)}`;current.setAttribute('role','status');current.setAttribute('aria-live','polite');trail.append(current);
 }
 function scheduleRender(){if(frame)return;frame=requestAnimationFrame(()=>{frame=0;render()})}
-function mount(){if(!studio()||!canvas())return;if(!host?.isConnected)build();scheduleRender();void refresh()}
+function mount(){
+ if(!studio()||!canvas())return;
+ const built=!host?.isConnected||host.parentElement!==canvas();
+ if(built)build();
+ scheduleRender();
+ if(built||!lastState)void refresh();
+}
 
 window.addEventListener('rist:worldbuilder-depth',()=>{scheduleRender();if(!lastState)void refresh()});
 window.addEventListener('rist:worldbuilder-focus',scheduleRender);
 window.addEventListener('resize',scheduleRender,{passive:true});
-observer=new MutationObserver(()=>mount());observer.observe(document.documentElement,{childList:true,subtree:true});
+observer=new MutationObserver(records=>{
+ if(records.length&&records.every(record=>record.target===host||record.target?.closest?.('.wb-focus-hierarchy')))return;
+ mount();
+});observer.observe(document.documentElement,{childList:true,subtree:true});
 ensureStyle();mount();
