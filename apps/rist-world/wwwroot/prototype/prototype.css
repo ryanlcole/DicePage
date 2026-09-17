@@ -39,8 +39,6 @@
     .focus-controls button:hover,.focus-controls button:active{background:rgba(255,255,255,.06)}
     .focus-controls select{min-width:120px;max-width:min(42vw,260px);flex:1;padding:0 28px 0 10px;background:rgba(13,23,29,.58);font-weight:780}
     .focus-level{height:30px;display:grid;place-items:center;padding:0 8px;border-right:1px solid rgba(93,116,125,.38);color:#91a6b0;font-size:7px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
-    .focus-lock{border:1px solid rgba(208,170,86,.38)!important;color:#f5df9f!important;min-width:60px!important}
-    .focus-lock.active{border-color:#d0aa56!important;background:rgba(66,48,15,.38)!important;color:#ffe9a7!important}
     .focus-controls button:disabled,.focus-controls select:disabled{opacity:.36;cursor:default}
     .trail{display:flex;justify-content:center;gap:3px;max-width:100%;min-height:0;overflow-x:auto;scrollbar-width:none;pointer-events:auto}
     .trail:empty{display:none}
