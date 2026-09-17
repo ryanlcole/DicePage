@@ -25,7 +25,7 @@ const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('h
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,viewerZ=0,activeStratum='surface',parallaxOverride=false,focusPath=[],focusSelected='surface',keyboardMode='Viewer',toolMode='Inspect',lastMix={zoomZ:0,highlands:1,mountains:1};
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,viewerZ=0,activeStratum='surface',parallaxOverride=false,focusPath=[],focusSelected='surface',keyboardMode='Viewer',toolMode='Inspect',lastMix={zoomZ:0,highlands:1,mountains:.82},tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0;
 
 function splitZ(z){const tierIndex=Math.floor(z/LAYERS_PER_TIER);return{tierIndex,layerOffset:z-tierIndex*LAYERS_PER_TIER}}
 function stratumByKey(key){return STRATA.find(s=>s.key===key)||STRATA.find(s=>s.key==='surface')}
@@ -45,18 +45,17 @@ function announce(text){live.textContent='';requestAnimationFrame(()=>{live.text
 function selectedOption(){const opts=focusOptions();return opts.find(o=>o.key===focusSelected)||opts[0]||null}
 function normalizeFocusSelection(){const opts=focusOptions();if(!opts.some(o=>o.key===focusSelected))focusSelected=opts[0]?.key||''}
 
-// World view begins with the complete transparent stack visible. Zoom is treated as
-// movement through perceptual depth: the viewer passes higher planes first, then
-// lower detail planes. Once a plane is passed it fades away instead of appearing.
+// Zoom reveals the registered surface stack as overlapping depth planes.
+// Peak artwork starts translucent so the second plane is already readable beneath it.
+// The peak -> highlands handoff is shorter; highlands -> surface intentionally spans
+// a wider zoom interval so the viewer has time to read the middle representation.
 function parallaxMix(){
   const zoomRatio=Math.max(.01,scale/Math.max(minScale,.00001));
   const zoomZ=Math.max(0,Math.log2(zoomRatio)*LAYERS_PER_TIER);
-  const fadePastSceneZ=sceneZ=>{
-    const passDepth=LAYERS_PER_TIER-sceneZ;
-    return 1-smoothstep(passDepth-1.25,passDepth+1.25,zoomZ);
-  };
-  let highlandAlpha=fadePastSceneZ(4);
-  let mountainAlpha=fadePastSceneZ(7);
+  const peakToHighlands=smoothstep(1.00,1.60,zoomRatio);
+  const highlandsToSurface=smoothstep(1.45,2.75,zoomRatio);
+  let mountainAlpha=.82*(1-peakToHighlands);
+  let highlandAlpha=1-highlandsToSurface;
   if(!layerReady.highlands)highlandAlpha=0;
   if(!layerReady.mountains)mountainAlpha=0;
   return{zoomRatio,zoomZ,highlands:clamp(highlandAlpha,0,1),mountains:clamp(mountainAlpha,0,1)};
@@ -70,9 +69,11 @@ function applyParallax(mix=parallaxMix()){
     {node:mountains,sceneZ:7,alpha:mix.mountains}
   ];
   for(const layer of layers){
-    const strength=reducedMotion?0:(layer.sceneZ/LAYERS_PER_TIER)*.06;
-    const localX=(-dx*strength)/Math.max(scale,.00001);
-    const localY=(-dy*strength)/Math.max(scale,.00001);
+    const depth=layer.sceneZ/LAYERS_PER_TIER;
+    const panStrength=depth*.055;
+    const tiltStrength=.42+(depth*.78);
+    const localX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
+    const localY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     layer.node.style.opacity=layer.alpha.toFixed(3);
     layer.node.style.transform=`translate3d(${localX.toFixed(2)}px,${localY.toFixed(2)}px,0)`;
   }
@@ -185,8 +186,8 @@ function renderKeyboardKeys(){
       toolKey('Z +','layer',()=>setViewerZ(viewerZ+1,'Viewer moved up one layer')),
       toolKey('T −','tier',()=>setViewerZ(viewerZ-LAYERS_PER_TIER,'Viewer moved down one tier')),
       toolKey('T +','tier',()=>setViewerZ(viewerZ+LAYERS_PER_TIER,'Viewer moved up one tier')),
-      toolKey('−','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.3)}),
-      toolKey('+','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.3)}),
+      toolKey('−','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)}),
+      toolKey('+','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)}),
       toolKey('FIT','camera',fitMap),
       toolKey('ALL','parallax',()=>jumpStratum('all'))
     );
@@ -220,14 +221,48 @@ MAP_TRUTH.assets.forEach(asset=>{
   node.src=ASSET_ROOT+asset.file;
 });
 
+function screenAdjusted(beta,gamma){
+  const raw=Number(screen.orientation?.angle??window.orientation??0);
+  const angle=((raw%360)+360)%360;
+  if(angle===90)return{x:beta,y:-gamma};
+  if(angle===270)return{x:-beta,y:gamma};
+  if(angle===180)return{x:-gamma,y:-beta};
+  return{x:gamma,y:beta};
+}
+function renderTilt(){
+  tiltFrame=0;
+  tiltX+=(tiltTargetX-tiltX)*.22;
+  tiltY+=(tiltTargetY-tiltY)*.22;
+  applyParallax();
+  if(Math.abs(tiltTargetX-tiltX)>.03||Math.abs(tiltTargetY-tiltY)>.03)tiltFrame=requestAnimationFrame(renderTilt);
+}
+function scheduleTilt(){if(!tiltFrame)tiltFrame=requestAnimationFrame(renderTilt)}
+function resetTilt(){
+  tiltBaseline=null;
+  tiltTargetX=0;
+  tiltTargetY=0;
+  scheduleTilt();
+}
+addEventListener('deviceorientation',event=>{
+  const beta=Number(event.beta),gamma=Number(event.gamma);
+  if(!Number.isFinite(beta)||!Number.isFinite(gamma))return;
+  const axes=screenAdjusted(beta,gamma);
+  if(!tiltBaseline){tiltBaseline={x:axes.x,y:axes.y};return;}
+  tiltTargetX=clamp((axes.x-tiltBaseline.x)/20,-1,1)*22;
+  tiltTargetY=clamp((axes.y-tiltBaseline.y)/20,-1,1)*16;
+  scheduleTilt();
+},{passive:true});
+addEventListener('orientationchange',resetTilt,{passive:true});
+screen.orientation?.addEventListener?.('change',resetTilt);
+
 shortcut.addEventListener('change',()=>jumpStratum(shortcut.value));
 focusSelect.addEventListener('change',()=>selectFocus(focusSelect.value));
 focusLock.addEventListener('click',lockFocus);
 focusBack.addEventListener('click',unlockFocus);
 $('focusReset').addEventListener('click',resetFocus);
 $('fit').addEventListener('click',fitMap);
-$('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.3)});
-$('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.3)});
+$('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
+$('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
 $('back').addEventListener('click',()=>{if(history.length>1)history.back();else location.href='/Game/index.html'});
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
 $('keyboardClose').addEventListener('click',closeKeyboard);
