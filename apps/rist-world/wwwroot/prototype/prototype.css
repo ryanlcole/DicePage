@@ -32,18 +32,7 @@
     .plane.base{z-index:1;opacity:1}
     .plane.highlands{z-index:2}
     .plane.mountains{z-index:3}
-    .focus-hud{position:absolute;z-index:60;top:7px;left:50%;transform:translateX(-50%);width:min(700px,calc(100% - 14px));display:grid;gap:4px;pointer-events:none}
-    .focus-controls{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0;padding:3px;border:1px solid rgba(102,87,53,.62);border-radius:13px;background:rgba(5,11,15,.78);box-shadow:var(--shadow);backdrop-filter:blur(10px);pointer-events:auto}
-    .focus-controls button{height:38px;min-width:40px;padding:0 9px;border:0;border-radius:9px;background:transparent;color:#d9d1bf;font-weight:850;touch-action:manipulation}
-    .focus-controls button:hover,.focus-controls button:active{background:rgba(255,255,255,.06)}
-    .focus-level{height:30px;display:grid;place-items:center;padding:0 8px;border-right:1px solid rgba(93,116,125,.38);color:#91a6b0;font-size:7px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
-    .focus-controls button:disabled{opacity:.36;cursor:default}
-    .trail{display:flex;justify-content:center;gap:3px;max-width:100%;min-height:0;overflow-x:auto;scrollbar-width:none;pointer-events:auto}
-    .trail:empty{display:none}
-    .trail::-webkit-scrollbar{display:none}
-    .crumb{height:21px;min-width:max-content;padding:0 8px;border:1px solid rgba(87,108,118,.62);border-radius:999px;background:rgba(4,11,16,.76);color:#b8c5ca;font-size:7px;font-weight:800;backdrop-filter:blur(7px);touch-action:manipulation}
-    .stratum-note{position:absolute;z-index:22;top:56px;left:50%;transform:translateX(-50%);max-width:calc(100% - 22px);padding:4px 9px;border:1px solid rgba(82,106,116,.46);border-radius:999px;background:rgba(4,10,14,.56);box-shadow:0 4px 16px rgba(0,0,0,.22);backdrop-filter:blur(8px);color:#aebdc4;font-size:7px;font-weight:800;letter-spacing:.045em;white-space:nowrap;text-align:center;pointer-events:none;transition:top .14s ease,opacity .14s ease}
-    .stage.focus-deep .stratum-note{top:80px}
+    .stratum-note{position:absolute;z-index:22;top:8px;left:50%;transform:translateX(-50%);max-width:calc(100% - 22px);padding:4px 9px;border:1px solid rgba(82,106,116,.46);border-radius:999px;background:rgba(4,10,14,.56);box-shadow:0 4px 16px rgba(0,0,0,.22);backdrop-filter:blur(8px);color:#aebdc4;font-size:7px;font-weight:800;letter-spacing:.045em;white-space:nowrap;text-align:center;pointer-events:none;transition:top .14s ease,opacity .14s ease}
     .stratum-note strong{color:var(--gold)}
     .status{position:absolute;z-index:39;left:max(8px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom));max-width:min(52vw,300px);padding:6px 8px;border:1px solid rgba(72,96,107,.5);border-radius:10px;background:rgba(5,10,13,.7);color:#aebcc4;font-size:8px;line-height:1.3;pointer-events:none;backdrop-filter:blur(8px);box-shadow:0 5px 18px rgba(0,0,0,.3)}
     .status strong{color:var(--gold);font-size:9px}
@@ -73,6 +62,6 @@
     .sr-live{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     button:focus-visible,select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
     @media(max-width:620px){
-      .toolbar{gap:4px}.toolbar button{padding:0 8px}.title span{display:none}.title strong{font-size:9px}.toolbar select{max-width:31vw;font-size:10px}.focus-level{display:none}.focus-controls{width:auto}.focus-controls button{padding:0 7px}.stratum-note{top:55px}.stage.focus-deep .stratum-note{top:79px}.status{max-width:48vw}.keyboard{height:min(39vh,300px)}.stage.keyboard-open .keyboard-toggle{bottom:calc(min(39vh,300px) + 7px)}
+      .toolbar{gap:4px}.toolbar button{padding:0 8px}.title span{display:none}.title strong{font-size:9px}.toolbar select{max-width:31vw;font-size:10px}.stratum-note{top:8px}.status{max-width:48vw}.keyboard{height:min(39vh,300px)}.stage.keyboard-open .keyboard-toggle{bottom:calc(min(39vh,300px) + 7px)}
     }
     @media(prefers-reduced-motion:reduce){.plane,.stratum-note,.keyboard-toggle{transition:none}}
