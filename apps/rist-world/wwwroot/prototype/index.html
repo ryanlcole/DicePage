@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#05080b" />
+  <title>Shaelvien Prototype · Geonaph</title>
+  <style>
+    :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#05080b;color:#f2e8cf}
+    body{overscroll-behavior:none}
+    button,select{font:inherit}
+    .prototype-shell{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:radial-gradient(circle at 50% 30%,#101820 0,#05080b 68%)}
+    .toolbar{position:relative;z-index:20;display:flex;align-items:center;gap:8px;min-height:48px;padding:calc(6px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));border-bottom:1px solid #3b3426;background:rgba(5,9,12,.94);backdrop-filter:blur(10px)}
+    .toolbar button,.toolbar select{min-height:36px;border:1px solid #665735;border-radius:8px;background:#101820;color:#f2e8cf;font-weight:800}
+    .toolbar button{padding:0 12px;cursor:pointer}
+    .toolbar select{min-width:0;max-width:48vw;padding:0 30px 0 10px}
+    .title{min-width:0;display:grid;gap:1px;flex:1}
+    .title strong{font-size:11px;letter-spacing:.12em;color:#e8cb7c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title span{font-size:9px;color:#92a3ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .stage{position:relative;min-height:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+    .stage.dragging{cursor:grabbing}
+    .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
+    .world img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none}
+    .hud{position:absolute;z-index:10;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:44px 44px 54px;gap:6px}
+    .hud button{height:44px;border:1px solid #6c5c37;border-radius:10px;background:rgba(8,14,18,.9);color:#f3e3b6;font-size:20px;font-weight:900;box-shadow:0 4px 18px #0008;touch-action:manipulation}
+    .hud .fit{font-size:10px;letter-spacing:.05em}
+    .status{position:absolute;z-index:9;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));max-width:min(68vw,430px);padding:7px 10px;border:1px solid #3f4f57;border-radius:9px;background:rgba(5,10,13,.82);color:#aebcc4;font-size:10px;line-height:1.35;pointer-events:none;backdrop-filter:blur(6px)}
+    .status strong{color:#e5ca7d}
+    .loading{position:absolute;z-index:8;inset:0;display:grid;place-items:center;pointer-events:none;color:#d8c483;font-weight:900;letter-spacing:.08em;background:radial-gradient(circle,#0b1218aa,#05080b22 60%)}
+    .loading[hidden]{display:none}
+    @media(max-width:620px){
+      .toolbar{gap:6px}.toolbar button{padding:0 9px}.title strong{font-size:10px}.title span{font-size:8px}.toolbar select{max-width:42vw;font-size:11px}.status{max-width:62vw;font-size:9px}
+    }
+  </style>
+</head>
+<body>
+  <main class="prototype-shell" aria-label="Shaelvien Geonaph map prototype">
+    <header class="toolbar">
+      <button id="back" type="button" aria-label="Back to Shaelvien">← BACK</button>
+      <div class="title">
+        <strong>GEONAPH · FULL MAP PROTOTYPE</strong>
+        <span>AWS whole-map authority · touch, drag, pinch or wheel to inspect</span>
+      </div>
+      <select id="mapView" aria-label="Map view">
+        <option value="surface">Surface</option>
+        <option value="highlands">Highlands + Rivers</option>
+        <option value="mountains">Mountains + Volcanic + Archipelago</option>
+      </select>
+    </header>
+
+    <section id="stage" class="stage" aria-label="Interactive Geonaph map viewport">
+      <div id="world" class="world" aria-live="polite">
+        <img id="map" alt="Full Geonaph world map" draggable="false" />
+      </div>
+      <div id="loading" class="loading">LOADING GEONAPH…</div>
+      <div class="status"><strong id="viewLabel">Surface</strong><br><span id="zoomLabel">Fit view</span></div>
+      <div class="hud" aria-label="Map zoom controls">
+        <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+        <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+        <button id="fit" class="fit" type="button" aria-label="Fit map to screen">FIT</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const ASSET_ROOT = 'https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
+      const VIEWS = {
+        surface: {
+          label: 'Surface',
+          file: 'geonaph_full_static_canonical_surface_v001.png',
+          alt: 'Full Geonaph canonical surface map'
+        },
+        highlands: {
+          label: 'Highlands + Rivers',
+          file: 'geonaph_full_static_highlands_rivers_v001.png',
+          alt: 'Full Geonaph highlands and rivers map'
+        },
+        mountains: {
+          label: 'Mountains + Volcanic + Archipelago',
+          file: 'geonaph_full_static_mountain_volcanic_archipelago_v001.png',
+          alt: 'Full Geonaph mountain volcanic and archipelago map'
+        }
+      };
+
+      const stage = document.getElementById('stage');
+      const world = document.getElementById('world');
+      const map = document.getElementById('map');
+      const loading = document.getElementById('loading');
+      const mapView = document.getElementById('mapView');
+      const viewLabel = document.getElementById('viewLabel');
+      const zoomLabel = document.getElementById('zoomLabel');
+      const pointers = new Map();
+
+      let naturalWidth = 1;
+      let naturalHeight = 1;
+      let scale = 1;
+      let minScale = 0.1;
+      let maxScale = 12;
+      let x = 0;
+      let y = 0;
+      let panStart = null;
+      let pinchStart = null;
+
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+      function applyTransform() {
+        world.style.width = naturalWidth + 'px';
+        world.style.height = naturalHeight + 'px';
+        world.style.transform = `translate3d(${x}px,${y}px,0) scale(${scale})`;
+        zoomLabel.textContent = `${Math.round(scale * 100)}%`;
+      }
+
+      function fitMap() {
+        if (!naturalWidth || !naturalHeight) return;
+        const rect = stage.getBoundingClientRect();
+        minScale = Math.min(rect.width / naturalWidth, rect.height / naturalHeight);
+        scale = minScale;
+        maxScale = Math.max(minScale * 24, 8);
+        x = (rect.width - naturalWidth * scale) / 2;
+        y = (rect.height - naturalHeight * scale) / 2;
+        applyTransform();
+        zoomLabel.textContent = 'Fit view';
+      }
+
+      function zoomAt(clientX, clientY, factor) {
+        const rect = stage.getBoundingClientRect();
+        const sx = clientX - rect.left;
+        const sy = clientY - rect.top;
+        const oldScale = scale;
+        const next = clamp(oldScale * factor, minScale * 0.75, maxScale);
+        if (Math.abs(next - oldScale) < 0.0001) return;
+        const worldX = (sx - x) / oldScale;
+        const worldY = (sy - y) / oldScale;
+        scale = next;
+        x = sx - worldX * scale;
+        y = sy - worldY * scale;
+        applyTransform();
+      }
+
+      function setView(key) {
+        const selected = VIEWS[key] || VIEWS.surface;
+        loading.hidden = false;
+        loading.textContent = 'LOADING GEONAPH…';
+        viewLabel.textContent = selected.label;
+        map.alt = selected.alt;
+        map.src = ASSET_ROOT + selected.file;
+      }
+
+      map.addEventListener('load', () => {
+        naturalWidth = map.naturalWidth || 1;
+        naturalHeight = map.naturalHeight || 1;
+        loading.hidden = true;
+        fitMap();
+      });
+
+      map.addEventListener('error', () => {
+        loading.hidden = false;
+        loading.textContent = 'MAP ASSET UNAVAILABLE';
+      });
+
+      mapView.addEventListener('change', () => setView(mapView.value));
+      document.getElementById('fit').addEventListener('click', fitMap);
+      document.getElementById('zoomIn').addEventListener('click', () => {
+        const r = stage.getBoundingClientRect();
+        zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.3);
+      });
+      document.getElementById('zoomOut').addEventListener('click', () => {
+        const r = stage.getBoundingClientRect();
+        zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.3);
+      });
+      document.getElementById('back').addEventListener('click', () => {
+        if (history.length > 1) history.back();
+        else location.href = '/Game/index.html';
+      });
+
+      stage.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomAt(event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 1 / 1.12);
+      }, { passive: false });
+
+      stage.addEventListener('pointerdown', (event) => {
+        if (event.button !== undefined && event.button !== 0 && event.pointerType === 'mouse') return;
+        stage.setPointerCapture?.(event.pointerId);
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        stage.classList.add('dragging');
+
+        if (pointers.size === 1) {
+          panStart = { pointerX: event.clientX, pointerY: event.clientY, x, y };
+          pinchStart = null;
+        } else if (pointers.size === 2) {
+          const [a, b] = [...pointers.values()];
+          const rect = stage.getBoundingClientRect();
+          const centerX = (a.x + b.x) / 2 - rect.left;
+          const centerY = (a.y + b.y) / 2 - rect.top;
+          const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+          pinchStart = {
+            distance,
+            scale,
+            worldX: (centerX - x) / scale,
+            worldY: (centerY - y) / scale
+          };
+          panStart = null;
+        }
+      });
+
+      stage.addEventListener('pointermove', (event) => {
+        if (!pointers.has(event.pointerId)) return;
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+        if (pointers.size === 1 && panStart) {
+          x = panStart.x + (event.clientX - panStart.pointerX);
+          y = panStart.y + (event.clientY - panStart.pointerY);
+          applyTransform();
+          return;
+        }
+
+        if (pointers.size === 2 && pinchStart) {
+          const [a, b] = [...pointers.values()];
+          const rect = stage.getBoundingClientRect();
+          const centerX = (a.x + b.x) / 2 - rect.left;
+          const centerY = (a.y + b.y) / 2 - rect.top;
+          const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+          scale = clamp(pinchStart.scale * (distance / pinchStart.distance), minScale * 0.75, maxScale);
+          x = centerX - pinchStart.worldX * scale;
+          y = centerY - pinchStart.worldY * scale;
+          applyTransform();
+        }
+      });
+
+      function releasePointer(event) {
+        pointers.delete(event.pointerId);
+        if (pointers.size === 0) {
+          panStart = null;
+          pinchStart = null;
+          stage.classList.remove('dragging');
+        } else if (pointers.size === 1) {
+          const [remaining] = [...pointers.values()];
+          panStart = { pointerX: remaining.x, pointerY: remaining.y, x, y };
+          pinchStart = null;
+        }
+      }
+
+      stage.addEventListener('pointerup', releasePointer);
+      stage.addEventListener('pointercancel', releasePointer);
+      window.addEventListener('resize', fitMap, { passive: true });
+      setView('surface');
+    })();
+  </script>
+</body>
+</html>
