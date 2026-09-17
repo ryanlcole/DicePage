@@ -13,14 +13,14 @@
     <button id="back" type="button" aria-label="Back to Shaelvien">← BACK</button>
     <div class="title"><strong>GEONAPH · SPATIAL STACK</strong><span>One XYZ truth · Z shortcuts · recursive focus · zoom-driven parallax</span></div>
     <select id="stratumShortcut" aria-label="Jump viewer to named Z stratum or show all parallax">
+      <option value="all" selected>All parallax</option>
       <option value="universe">Universe</option>
       <option value="sky">Sky</option>
       <option value="weather">Weather</option>
-      <option value="surface" selected>Surface</option>
+      <option value="surface">Surface</option>
       <option value="subterranean">Subterranean</option>
       <option value="depths">Depths</option>
       <option value="core">Core</option>
-      <option value="all">All parallax</option>
     </select>
   </header>
   <section id="stage" class="stage" aria-label="Interactive Geonaph viewer">
@@ -33,16 +33,15 @@
       <div class="focus-controls">
         <button id="focusBack" type="button" aria-label="Move out one focus level">‹</button>
         <span id="focusLevel" class="focus-level">Parallax</span>
-        <select id="focusSelect" aria-label="Choose focus"></select>
-        <button id="focusLock" class="focus-lock" type="button">LOCK</button>
-        <button id="focusReset" type="button" aria-label="Reset focus to Surface">⌂</button>
+        <select id="focusSelect" aria-label="Choose focus; named selections lock automatically"></select>
+        <button id="focusReset" type="button" aria-label="Reset focus to All Parallax">⌂</button>
       </div>
       <div id="focusTrail" class="trail" aria-label="Locked focus path"></div>
     </section>
-    <div id="stratumNote" class="stratum-note"><strong>Surface</strong> · H 100% · M 100%</div>
+    <div id="stratumNote" class="stratum-note"><strong>All parallax</strong> · S 100% · H 100% · M 82%</div>
     <div id="loading" class="loading">LOADING GEONAPH…</div>
     <section id="battleInstance" class="battle-instance" aria-label="Battle Instance" hidden><strong>BATTLE INSTANCE</strong><span id="battleText">Entity focus becomes a tactical viewer representation while the world coordinate identity remains unchanged.</span></section>
-    <div class="status"><strong id="viewLabel">Surface · Z 0</strong><br><span id="zoomLabel">Fit view</span><br><span id="pathLabel">Focus: Parallax</span></div>
+    <div class="status"><strong id="viewLabel">All parallax · Z 0</strong><br><span id="zoomLabel">Fit view</span><br><span id="pathLabel">Focus: Parallax</span></div>
     <div class="hud" aria-label="Map zoom controls" data-ui><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="fit" class="fit" type="button" aria-label="Fit map to screen">FIT</button></div>
     <button id="keyboardToggle" class="keyboard-toggle" type="button" aria-label="Open World Builder keyboard" aria-expanded="false" aria-controls="viewerKeyboard" data-ui>⌨</button>
     <section id="viewerKeyboard" class="keyboard" aria-label="World Builder contextual keyboard" hidden data-ui>
