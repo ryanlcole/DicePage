@@ -78,7 +78,7 @@ public sealed partial class WorldSession
 
     public void ArmEditingTileLock()
     {
-        if (!HasEditingTile || _tileLockArmed) return;
+        if (!CanEditTiles || !HasEditingTile || _tileLockArmed) return;
         _tileLockArmed = true;
         Notify();
     }
@@ -111,6 +111,14 @@ public sealed partial class WorldSession
     bool TryEditingTile(out int index, out TileItem tile)
     {
         index = _editingTileIndex;
+        if (!CanEditTiles)
+        {
+            tile = default!;
+            _editingTileIndex = -1;
+            _tileLockArmed = false;
+            return false;
+        }
+
         if (index >= 0 && index < PlacedTiles.Count && !PlacedTiles[index].Locked)
         {
             tile = PlacedTiles[index];
