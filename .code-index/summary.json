@@ -1,6 +1,6 @@
 {
-  "code_records": 449642,
-  "comment_records": 56867,
+  "code_records": 449897,
+  "comment_records": 56874,
   "exact_duplicate_groups": 8,
   "exact_source_duplicate_groups": 4,
   "files_by_classification": {
@@ -8,12 +8,12 @@
     "config": 5,
     "docs": 118,
     "generated": 96,
-    "source": 3070,
+    "source": 3073,
     "vendor": 154
   },
-  "indexed_records": 506509,
-  "next_id": 506693,
+  "indexed_records": 506771,
+  "next_id": 506955,
   "stale_or_generated_candidates": 96,
-  "tracked_files": 3918,
+  "tracked_files": 3921,
   "version": 1
 }
