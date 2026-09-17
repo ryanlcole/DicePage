@@ -9,7 +9,7 @@ public sealed partial class WorldSession
  public string TableModeLabel=>TableMode switch{"forge"=>"Forge","test"=>"Test","encounter"=>"Encounter","play"=>"Let's Roll!",_=>"Worldbuilder"};
  public bool PlayActive=>TableMode=="play";
  public bool MapLocked { get; private set; } = true;
- public bool CanEditTiles=>Role=="GM"&&TableMode=="worldbuilder";
+ public bool CanEditTiles=>HasTrustedWorldBuilderAuthority&&TableMode=="worldbuilder";
  public bool LockedTileMenuOpen { get; private set; }
  public bool RecursiveRegionSelectionMode { get; private set; }
  public bool RegionPlayerPickerOpen { get; private set; }
