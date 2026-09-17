@@ -1,10 +1,9 @@
 /* Mobile World Builder keyboard polish.
    Presentation only: keeps existing keyboard actions and authority intact. */
 
-/* The artwork already carries the key face. Keep live state text readable without
-   drawing a second little badge/square on top of the uploaded key art. */
+/* Remove the tiny badge/square styling from secondary key text. */
 .worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned
-.wb-device-key.wb-shaelvien-key-exact>small{
+.wb-device-key>small{
   padding:0!important;
   border:0!important;
   border-radius:0!important;
@@ -14,13 +13,65 @@
   text-shadow:0 1px 3px #000,0 0 3px #000!important;
 }
 
+/* One clear readable key name is rendered by the label bridge. */
+.worldbuilder-studio .wb-device-keyboard .wb-device-key>.wb-key-readable-label{
+  position:absolute!important;
+  z-index:8!important;
+  left:6%!important;
+  right:6%!important;
+  top:5%!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:2px 3px!important;
+  border:0!important;
+  border-radius:4px!important;
+  background:rgba(2,7,12,.78)!important;
+  color:#fff3d5!important;
+  font:800 8px/1.05 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif!important;
+  letter-spacing:.01em!important;
+  text-align:center!important;
+  text-shadow:0 1px 3px #000!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  pointer-events:none!important;
+}
+
+/* When the bridge owns the visible name, retire the truncated legacy text underneath. */
+.worldbuilder-studio .wb-device-keyboard .wb-device-key.wb-readable-key>strong{
+  opacity:0!important;
+}
+
+/* Mode tabs should be text tabs, not square artwork sitting behind one letter. */
+.worldbuilder-studio .wb-device-keyboard .wb-device-mode.wb-readable-mode{
+  border:1px solid rgba(194,145,67,.48)!important;
+  border-radius:6px!important;
+  background-color:rgba(8,17,25,.96)!important;
+  color:#ead4a5!important;
+  box-shadow:inset 0 0 0 1px rgba(52,126,186,.10)!important;
+  text-shadow:0 1px 3px #000!important;
+}
+.worldbuilder-studio .wb-device-keyboard .wb-device-mode.wb-readable-mode[aria-selected="true"]{
+  border-color:#4bc6ff!important;
+  background-color:#102a3c!important;
+  color:#fff4d7!important;
+  box-shadow:inset 0 0 12px rgba(43,148,255,.22),0 0 8px rgba(43,148,255,.28)!important;
+}
+
 /* Keep the persistent D-pad fully inside the keyboard and clear of the ticker/footer.
-   Preserve its size; move the whole control bay upward instead of shrinking targets. */
+   Preserve roughly the same target size while moving the whole control bay upward. */
 @media(max-width:430px){
   .worldbuilder-studio:not(.wb-device-collapsed)
   .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
-    top:26%!important;
-    bottom:8%!important;
+    top:22%!important;
+    bottom:14%!important;
+    grid-template-rows:2% repeat(3,30%)!important;
+    gap:2.5%!important;
+  }
+  .worldbuilder-studio .wb-device-keyboard .wb-device-key>.wb-key-readable-label{
+    font-size:7px!important;
   }
 }
 
@@ -28,7 +79,9 @@
 @media(min-width:431px) and (max-width:768px){
   .worldbuilder-studio:not(.wb-device-collapsed)
   .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
-    top:29%!important;
-    bottom:5%!important;
+    top:25%!important;
+    bottom:10%!important;
+    grid-template-rows:2% repeat(3,30%)!important;
+    gap:2.5%!important;
   }
 }
