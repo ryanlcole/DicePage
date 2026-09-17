@@ -164,7 +164,7 @@ function fitMap(){
   scale=minScale;
   maxScale=Math.max(minScale*24,8);
   x=fitX=(r.width-naturalWidth*scale)/2;
-  y=fitY=(r.height-naturalHeight*scale)/2;
+  y=fitY=0;
   applyTransform();
 }
 function zoomAt(cx,cy,factor){
