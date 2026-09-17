@@ -1,17 +1,17 @@
 {
   "database": ".code-index/code_graph.sqlite3",
   "dot": ".code-index/relationships.dot",
-  "edges": 281259,
+  "edges": 281331,
   "error_events": 8,
   "error_signatures": 8,
   "mermaid": ".code-index/relationships.mmd",
   "new_error_events": 8,
-  "references": 401217,
+  "references": 401341,
   "regression_observations": 0,
   "regressions": 0,
   "repeat_observations": 0,
   "repeated_errors": 0,
-  "resolved_references": 281259,
+  "resolved_references": 281331,
   "schema_version": 1,
-  "symbols": 167946
+  "symbols": 168011
 }
