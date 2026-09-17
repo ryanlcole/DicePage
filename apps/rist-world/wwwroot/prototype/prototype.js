@@ -21,7 +21,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),focusSelect=$('focusSelect'),focusLevel=$('focusLevel'),focusBack=$('focusBack'),focusTrail=$('focusTrail'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),shortcut=$('stratumShortcut'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),focusLevel=$('focusLevel'),focusBack=$('focusBack'),focusTrail=$('focusTrail'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
@@ -210,14 +210,18 @@ function renderFocus(){
   normalizeFocusSelection();
   const opts=focusOptions(),entityLocked=focusPath.some(p=>p.level==='Entity'),level=entityLocked?'Battle Instance':nextLevel();
   focusLevel.textContent=level;
-  focusSelect.replaceChildren();
+  shortcut.replaceChildren();
   if(opts.length){
-    opts.forEach(o=>{const el=document.createElement('option');el.value=o.key;el.textContent=o.label;focusSelect.append(el)});
-    focusSelect.value=focusSelected;
+    opts.forEach(o=>{const el=document.createElement('option');el.value=o.key;el.textContent=o.label;shortcut.append(el)});
+    shortcut.value=focusSelected||opts[0].key;
+    shortcut.disabled=false;
   }else{
-    const el=document.createElement('option');el.textContent=entityLocked?'Battle Instance':'No content';el.value='';focusSelect.append(el);
+    const el=document.createElement('option');el.textContent=entityLocked?'Battle Instance':'No content';el.value='';shortcut.append(el);
+    shortcut.disabled=true;
   }
-  focusSelect.disabled=!opts.length||entityLocked;
+  shortcut.setAttribute('aria-label',focusPath.length===0
+    ?'Choose All Parallax or a named Z stratum'
+    :`Choose ${level.toLowerCase()} focus inside ${focusPath.at(-1)?.label||'the selected scope'}`);
   focusBack.disabled=!focusPath.length;
   focusTrail.replaceChildren();
   focusPath.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='crumb';b.textContent=p.label;b.setAttribute('aria-label','Return focus to '+p.label);b.addEventListener('click',()=>rewindFocus(i));focusTrail.append(b)});
@@ -317,8 +321,7 @@ addEventListener('deviceorientation',event=>{
 addEventListener('orientationchange',resetTilt,{passive:true});
 screen.orientation?.addEventListener?.('change',resetTilt);
 
-shortcut.addEventListener('change',()=>jumpStratum(shortcut.value));
-focusSelect.addEventListener('change',()=>selectFocus(focusSelect.value));
+shortcut.addEventListener('change',()=>{if(focusPath.length===0)jumpStratum(shortcut.value);else selectFocus(shortcut.value)});
 focusBack.addEventListener('click',unlockFocus);
 $('focusReset').addEventListener('click',resetFocus);
 $('fit').addEventListener('click',fitMap);
@@ -368,7 +371,7 @@ window.ShaelvienPrototype=Object.freeze({
   mapTruth:MAP_TRUTH,
   getViewerState:()=>({activeStratum,viewerZ,...splitZ(viewerZ),parallaxOverride,lockedTier:lockedTier(),editableTier:lockedTier(),visibleTierWindow:lockedTier()===null?null:[lockedTier()-1,lockedTier(),lockedTier()+1],parallax:lastMix,focusPath:focusPath.map(v=>({...v})),focusSelected,keyboardOpen:!keyboard.hidden,keyboardMode,toolMode})
 });
-shortcut.value='all';
+focusSelected='all';
 renderKeyboardTabs();
 renderState();
 })();
