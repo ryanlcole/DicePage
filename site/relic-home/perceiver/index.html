@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#04080b">
+<title>Perceiver · Shaelvien</title>
+<style>
+:root{color-scheme:dark;--gold:#e1c47d;--ice:#9fd7e5;--panel:rgba(7,15,20,.88);--line:rgba(225,196,125,.28);--muted:#9fb0b8;--master:1;--look-x:0;--look-y:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020508;color:#f1e6ce}button,input,select{font:inherit}button{touch-action:manipulation}
+.app{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:radial-gradient(circle at 50% 35%,#10202b 0,#050b10 44%,#020508 100%)}
+.topbar{z-index:50;display:flex;align-items:center;gap:9px;min-height:52px;padding:calc(7px + env(safe-area-inset-top)) max(9px,env(safe-area-inset-right)) 7px max(9px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:rgba(3,8,11,.92);backdrop-filter:blur(12px)}
+.topbar button,.topbar .file-button{min-height:36px;border:1px solid rgba(225,196,125,.38);border-radius:9px;background:#0e1920;color:#f1e3bd;font-weight:850;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap}.topbar button:focus-visible,.topbar .file-button:focus-visible,.transport button:focus-visible,.panel button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #9fd7e5;outline-offset:2px}
+.title{min-width:0;flex:1;display:grid;gap:1px}.title strong{color:var(--gold);font:900 12px/1.1 system-ui;letter-spacing:.18em}.title small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8fa4ad;font:700 9px/1.2 system-ui;letter-spacing:.04em}
+.file-button input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.stage{position:relative;min-height:0;overflow:hidden;touch-action:none;perspective:900px;background:#03070a;isolation:isolate}
+.video,.plate{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#020508}.video{display:none;z-index:1}.video.active{display:block}.plate{z-index:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,rgba(72,115,137,.23),transparent 27%),linear-gradient(#02070a 0 48%,#071117 48% 58%,#020508 58%)}
+.plate-copy{text-align:center;padding:22px;max-width:640px;color:#8ea2ac}.plate-copy strong{display:block;color:#d9c486;font:900 clamp(1.4rem,4vw,3.5rem)/.95 Georgia,serif;letter-spacing:.08em}.plate-copy span{display:block;margin-top:11px;font-size:clamp(.72rem,1.6vw,.92rem);line-height:1.45}
+.cinema{position:absolute;inset:-7%;z-index:5;pointer-events:none;overflow:hidden;transform-style:preserve-3d}.tier{position:absolute;inset:0;will-change:transform,opacity;transition:opacity .2s ease}.tier[data-depth="-18"]{transform:translate3d(calc(var(--look-x)*-18px*var(--master)),calc(var(--look-y)*-18px*var(--master)),0) scale(1.08)}.tier[data-depth="-9"]{transform:translate3d(calc(var(--look-x)*-9px*var(--master)),calc(var(--look-y)*-9px*var(--master)),0) scale(1.06)}.tier[data-depth="12"]{transform:translate3d(calc(var(--look-x)*12px*var(--master)),calc(var(--look-y)*12px*var(--master)),0) scale(1.06)}.tier[data-depth="26"]{transform:translate3d(calc(var(--look-x)*26px*var(--master)),calc(var(--look-y)*26px*var(--master)),0) scale(1.08)}.tier[data-depth="42"]{transform:translate3d(calc(var(--look-x)*42px*var(--master)),calc(var(--look-y)*42px*var(--master)),0) scale(1.11)}
+.enhanced-off .tier{opacity:0!important}.enhanced-off .cinema{display:none}.calibration-off .depth-tag{display:none}
+.far-glow{background:radial-gradient(circle at 22% 34%,rgba(98,172,204,.16),transparent 13%),radial-gradient(circle at 77% 26%,rgba(221,185,99,.13),transparent 10%),radial-gradient(circle at 52% 70%,rgba(100,141,180,.09),transparent 20%)}
+.star{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(219,240,255,.72);box-shadow:0 0 9px rgba(180,226,255,.72)}.star:nth-child(1){left:13%;top:19%}.star:nth-child(2){left:31%;top:12%;transform:scale(.6)}.star:nth-child(3){left:66%;top:15%;transform:scale(.75)}.star:nth-child(4){left:83%;top:33%;transform:scale(.55)}.star:nth-child(5){left:55%;top:27%;transform:scale(.5)}
+.horizon:before,.horizon:after{content:"";position:absolute;left:-8%;right:-8%;border-radius:50% 50% 0 0}.horizon:before{height:30%;bottom:-9%;background:linear-gradient(180deg,rgba(26,54,63,.18),rgba(4,10,14,.42));border-top:1px solid rgba(151,211,227,.12)}.horizon:after{height:18%;bottom:-3%;background:repeating-linear-gradient(90deg,transparent 0 80px,rgba(180,222,231,.06) 80px 81px),repeating-linear-gradient(0deg,transparent 0 45px,rgba(180,222,231,.05) 45px 46px);transform:perspective(360px) rotateX(66deg);transform-origin:center bottom}
+.near-frame:before,.near-frame:after{content:"";position:absolute;top:4%;bottom:3%;width:15%;border:1px solid rgba(190,220,228,.13);filter:blur(.2px)}.near-frame:before{left:-4%;border-radius:0 55% 55% 0}.near-frame:after{right:-4%;border-radius:55% 0 0 55%}
+.foreground:before{content:"";position:absolute;left:-5%;right:-5%;bottom:-13%;height:24%;background:radial-gradient(ellipse at center,rgba(3,7,9,.82),rgba(1,3,4,.97) 68%);filter:blur(2px)}
+.particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(230,211,160,.38);box-shadow:0 0 12px rgba(229,195,115,.32);animation:drift var(--duration,8s) linear infinite;opacity:.55}.particle:nth-child(1){left:9%;top:82%;--duration:7s}.particle:nth-child(2){left:24%;top:68%;--duration:9s;transform:scale(.65)}.particle:nth-child(3){left:44%;top:78%;--duration:11s;transform:scale(.5)}.particle:nth-child(4){left:63%;top:70%;--duration:8s}.particle:nth-child(5){left:78%;top:83%;--duration:10s;transform:scale(.7)}.particle:nth-child(6){left:90%;top:63%;--duration:12s;transform:scale(.45)}@keyframes drift{0%{translate:0 12vh;opacity:0}20%{opacity:.52}100%{translate:3vw -86vh;opacity:0}}
+.depth-tag{position:absolute;padding:4px 7px;border:1px solid rgba(225,196,125,.22);border-radius:999px;background:rgba(3,9,12,.7);color:rgba(235,219,179,.75);font:800 9px/1 system-ui;letter-spacing:.08em}.far-glow .depth-tag{left:5%;top:7%}.horizon .depth-tag{right:5%;top:13%}.near-frame .depth-tag{left:8%;bottom:16%}.foreground .depth-tag{right:7%;bottom:14%}
+.center-reticle{position:absolute;z-index:9;left:50%;top:50%;width:76px;height:76px;translate:-50% -50%;border:1px solid rgba(159,215,229,.18);border-radius:50%;opacity:.52}.center-reticle:before,.center-reticle:after{content:"";position:absolute;background:rgba(159,215,229,.16)}.center-reticle:before{left:50%;top:-18px;bottom:-18px;width:1px}.center-reticle:after{top:50%;left:-18px;right:-18px;height:1px}
+.stage-hud{position:absolute;z-index:20;left:max(10px,env(safe-area-inset-left));top:10px;display:flex;align-items:center;gap:8px;padding:6px 9px;border:1px solid rgba(159,215,229,.22);border-radius:9px;background:rgba(3,9,12,.72);backdrop-filter:blur(8px);font:800 10px/1 system-ui;color:#adc5cd}.timecode{color:#f0dca6;font-variant-numeric:tabular-nums;letter-spacing:.08em}.mode-pill{padding:4px 7px;border-radius:999px;background:#10232c;color:#9fd7e5}
+.bottom{z-index:50;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px max(9px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));border-top:1px solid var(--line);background:rgba(3,8,11,.94);backdrop-filter:blur(12px)}
+.transport{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}.transport::-webkit-scrollbar{display:none}.transport button,.panel button{min-height:40px;border:1px solid rgba(225,196,125,.32);border-radius:9px;background:#101920;color:#f0dfb7;font-weight:850;padding:0 12px;white-space:nowrap}.transport .primary{background:#d8bc77;color:#091015;border-color:#d8bc77}.transport .active{border-color:#9fd7e5;color:#dff8ff;background:#102631}.readout{min-width:122px;display:grid;align-content:center;justify-items:end;gap:3px;color:#8197a0;font-size:9px}.readout strong{font-size:11px;color:#d9c486}.readout span{white-space:nowrap}
+.drawer{position:absolute;z-index:45;right:max(10px,env(safe-area-inset-right));top:64px;width:min(360px,calc(100vw - 20px));max-height:calc(100dvh - 145px);overflow:auto;padding:14px;border:1px solid rgba(225,196,125,.3);border-radius:14px;background:rgba(5,13,18,.94);box-shadow:0 20px 60px #000b;backdrop-filter:blur(14px)}.drawer[hidden]{display:none}.drawer h2{margin:0 0 12px;color:#e3c77d;font:900 11px/1 system-ui;letter-spacing:.14em}.panel{display:grid;gap:8px;padding:11px 0;border-top:1px solid rgba(225,196,125,.14)}.panel:first-of-type{border-top:0}.panel label{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;color:#b9c7ca;font-size:11px}.panel output{color:#f0dca6;font-variant-numeric:tabular-nums}.panel input[type="range"]{grid-column:1/-1;width:100%}.panel select{min-height:36px;border:1px solid rgba(225,196,125,.28);border-radius:8px;background:#0d171d;color:#eee0be;padding:0 8px}.notice{margin:0;color:#91a4ab;font-size:10px;line-height:1.45}.notice strong{color:#d7c386}.external{display:grid;grid-template-columns:1fr;gap:7px}.external button{width:100%}
+@media(max-width:720px){.topbar{gap:6px}.topbar button,.topbar .file-button{padding:0 8px;font-size:10px}.title small{display:none}.bottom{grid-template-columns:1fr}.readout{display:none}.transport button{padding:0 10px;font-size:10px}.drawer{top:58px;max-height:calc(100dvh - 126px)}}
+@media(prefers-reduced-motion:reduce){.particle{animation:none}.tier{transform:none!important}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+<header class="topbar">
+<button id="back" type="button" aria-label="Back">← BACK</button>
+<div class="title"><strong>PERCEIVER</strong><small>CINEMATIC TRUTH + LAYERED PERCEPTION</small></div>
+<label class="file-button" tabindex="0">LOCAL VIDEO<input id="file" type="file" accept="video/*" aria-label="Choose a local video file"></label>
+<button id="disney" type="button">OPEN DISNEY+</button>
+<button id="settings" type="button" aria-expanded="false" aria-controls="drawer">TUNE</button>
+</header>
+<section id="stage" class="stage calibration-on" aria-label="Perceiver cinematic test stage">
+<div id="plate" class="plate"><div class="plate-copy"><strong>EXTERNAL PLAYER</strong><span>Keep the streaming service in its own player. Start the movie there, then press SYNC here at the matching moment. Perceiver does not read, capture, decrypt or embed protected playback.</span></div></div>
+<video id="video" class="video" playsinline preload="metadata"></video>
+<div id="cinema" class="cinema" aria-hidden="true">
+<div class="tier far-glow" data-depth="-18"><span class="depth-tag">T1 · FAR</span><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i></div>
+<div class="tier horizon" data-depth="-9"><span class="depth-tag">T2 · DISTANT</span></div>
+<div class="tier near-frame" data-depth="26"><span class="depth-tag">T4 · NEAR</span></div>
+<div class="tier foreground" data-depth="42"><span class="depth-tag">T5 · FOREGROUND</span><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i></div>
+<div class="center-reticle"></div>
+</div>
+<div class="stage-hud"><span id="modePill" class="mode-pill">EXTERNAL SYNC</span><span id="timecode" class="timecode">00:00:00.000</span></div>
+</section>
+<aside id="drawer" class="drawer" hidden>
+<h2>PERCEPTION TUNING</h2>
+<section class="panel">
+<label for="depth">Master parallax <output id="depthOut">50%</output></label><input id="depth" type="range" min="0" max="100" value="50">
+<label for="response">Response <output id="responseOut">Balanced</output></label><input id="response" type="range" min="1" max="10" value="6">
+<label for="fps">Reference rate<select id="fps"><option value="23.976">23.976 fps</option><option value="24" selected>24 fps</option><option value="25">25 fps</option><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
+</section>
+<section class="panel">
+<button id="enhanced" class="active" type="button" aria-pressed="true">ENHANCED · ON</button>
+<button id="labels" class="active" type="button" aria-pressed="true">CALIBRATION LABELS · ON</button>
+<button id="tilt" type="button">ENABLE DEVICE TILT</button>
+<button id="fullscreen" type="button">FULL SCREEN</button>
+</section>
+<section class="panel external">
+<p class="notice"><strong>Protected streaming:</strong> use the service's normal player and this page's independent clock. Browser DRM may intentionally prevent protected video from being captured into another page.</p>
+<p class="notice"><strong>Local test:</strong> LOCAL VIDEO creates a temporary browser object URL only on this device. The selected file is not uploaded by Perceiver.</p>
+</section>
+</aside>
+<footer class="bottom">
+<div class="transport" aria-label="Perceiver transport controls">
+<button id="rew10" type="button">−10s</button><button id="rew1" type="button">−1s</button><button id="sync" class="primary" type="button">SYNC / PLAY</button><button id="pause" type="button">PAUSE</button><button id="reset" type="button">RESET</button><button id="fwd1" type="button">+1s</button><button id="fwd10" type="button">+10s</button>
+</div>
+<div class="readout"><strong id="frame">FRAME 000000</strong><span id="sourceState">External source</span></div>
+</footer>
+</main>
+<script>
+(()=>{
+'use strict';
+const app=document.getElementById('app');const stage=document.getElementById('stage');const video=document.getElementById('video');const plate=document.getElementById('plate');const file=document.getElementById('file');const drawer=document.getElementById('drawer');const settings=document.getElementById('settings');const timecode=document.getElementById('timecode');const frame=document.getElementById('frame');const modePill=document.getElementById('modePill');const sourceState=document.getElementById('sourceState');const depth=document.getElementById('depth');const depthOut=document.getElementById('depthOut');const response=document.getElementById('response');const responseOut=document.getElementById('responseOut');const fps=document.getElementById('fps');const enhanced=document.getElementById('enhanced');const labels=document.getElementById('labels');const tilt=document.getElementById('tilt');
+let sourceMode='external';let objectUrl='';let running=false;let elapsed=0;let anchor=0;let targetX=0,targetY=0,lookX=0,lookY=0;let orientationActive=false;let lastFrame=performance.now();
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function format(ms){ms=Math.max(0,ms);const h=Math.floor(ms/3600000);ms%=3600000;const m=Math.floor(ms/60000);ms%=60000;const s=Math.floor(ms/1000);const x=Math.floor(ms%1000);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}
+function currentMs(){if(sourceMode==='local')return (video.currentTime||0)*1000;if(running)return elapsed+(performance.now()-anchor);return elapsed}
+function seek(deltaMs){if(sourceMode==='local'){video.currentTime=Math.max(0,(video.currentTime||0)+deltaMs/1000)}else{elapsed=Math.max(0,currentMs()+deltaMs);anchor=performance.now()}updateReadout()}
+function updateReadout(){const ms=currentMs();timecode.textContent=format(ms);const rate=parseFloat(fps.value)||24;frame.textContent=`FRAME ${String(Math.floor(ms/1000*rate)).padStart(6,'0')}`}
+function setRunning(next){running=next;if(sourceMode==='local'){if(next)video.play().catch(()=>{running=false});else video.pause()}else{if(next){anchor=performance.now()}else{elapsed=currentMs()}}document.getElementById('sync').classList.toggle('active',next)}
+function reset(){setRunning(false);if(sourceMode==='local')video.currentTime=0;elapsed=0;anchor=performance.now();updateReadout()}
+function applyDepth(){const v=Number(depth.value);document.documentElement.style.setProperty('--master',(v/50).toFixed(3));depthOut.value=`${v}%`;depthOut.textContent=`${v}%`;try{localStorage.setItem('perceiver.depth',String(v))}catch{}}
+function responseName(v){return v<=3?'Soft':v<=7?'Balanced':'Fast'}
+function applyResponse(){responseOut.value=responseName(Number(response.value));responseOut.textContent=responseOut.value;try{localStorage.setItem('perceiver.response',response.value)}catch{}}
+function setToggle(button,on,onText,offText){button.classList.toggle('active',on);button.setAttribute('aria-pressed',String(on));button.textContent=on?onText:offText}
+function setEnhanced(on){app.classList.toggle('enhanced-off',!on);setToggle(enhanced,on,'ENHANCED · ON','ORIGINAL · NO TIERS');try{localStorage.setItem('perceiver.enhanced',on?'1':'0')}catch{}}
+function setLabels(on){stage.classList.toggle('calibration-off',!on);setToggle(labels,on,'CALIBRATION LABELS · ON','CALIBRATION LABELS · OFF');try{localStorage.setItem('perceiver.labels',on?'1':'0')}catch{}}
+function pointerMove(e){if(orientationActive)return;const r=stage.getBoundingClientRect();targetX=clamp(((e.clientX-r.left)/r.width-.5)*2,-1,1);targetY=clamp(((e.clientY-r.top)/r.height-.5)*2,-1,1)}
+function orientationMove(e){if(e.gamma==null&&e.beta==null)return;orientationActive=true;targetX=clamp((e.gamma||0)/22,-1,1);targetY=clamp(((e.beta||0)-38)/26,-1,1)}
+async function enableTilt(){try{if(typeof DeviceOrientationEvent==='undefined'){tilt.textContent='DEVICE TILT · UNAVAILABLE';return}if(typeof DeviceOrientationEvent.requestPermission==='function'){const state=await DeviceOrientationEvent.requestPermission();if(state!=='granted'){tilt.textContent='DEVICE TILT · DENIED';return}}window.addEventListener('deviceorientation',orientationMove,{passive:true});tilt.textContent='DEVICE TILT · ON';tilt.classList.add('active')}catch{tilt.textContent='DEVICE TILT · UNAVAILABLE'}}
+function animate(now){const dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;const speed=2.5+Number(response.value)*1.5;const mix=1-Math.exp(-speed*dt);lookX+=(targetX-lookX)*mix;lookY+=(targetY-lookY)*mix;document.documentElement.style.setProperty('--look-x',lookX.toFixed(4));document.documentElement.style.setProperty('--look-y',lookY.toFixed(4));updateReadout();requestAnimationFrame(animate)}
+file.addEventListener('change',()=>{const f=file.files?.[0];if(!f)return;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(f);video.src=objectUrl;video.classList.add('active');plate.hidden=true;sourceMode='local';modePill.textContent='LOCAL VIDEO';sourceState.textContent=f.name;running=false;elapsed=0;video.controls=false;video.load();updateReadout()});
+video.addEventListener('play',()=>running=true);video.addEventListener('pause',()=>running=false);video.addEventListener('ended',()=>running=false);
+stage.addEventListener('pointermove',pointerMove,{passive:true});stage.addEventListener('pointerleave',()=>{if(!orientationActive){targetX=0;targetY=0}});
+document.getElementById('sync').addEventListener('click',()=>setRunning(true));document.getElementById('pause').addEventListener('click',()=>setRunning(false));document.getElementById('reset').addEventListener('click',reset);document.getElementById('rew10').addEventListener('click',()=>seek(-10000));document.getElementById('rew1').addEventListener('click',()=>seek(-1000));document.getElementById('fwd1').addEventListener('click',()=>seek(1000));document.getElementById('fwd10').addEventListener('click',()=>seek(10000));
+settings.addEventListener('click',()=>{const open=drawer.hidden;drawer.hidden=!open;settings.setAttribute('aria-expanded',String(open))});depth.addEventListener('input',applyDepth);response.addEventListener('input',applyResponse);fps.addEventListener('change',updateReadout);enhanced.addEventListener('click',()=>setEnhanced(app.classList.contains('enhanced-off')));labels.addEventListener('click',()=>setLabels(stage.classList.contains('calibration-off')));tilt.addEventListener('click',enableTilt);
+document.getElementById('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch{}});
+document.getElementById('disney').addEventListener('click',()=>window.open('https://www.disneyplus.com/','_blank','noopener,noreferrer'));document.getElementById('back').addEventListener('click',()=>{if(history.length>1)history.back();else location.href='/'});
+try{const d=localStorage.getItem('perceiver.depth');if(d!==null)depth.value=d;const r=localStorage.getItem('perceiver.response');if(r!==null)response.value=r;setEnhanced(localStorage.getItem('perceiver.enhanced')!=='0');setLabels(localStorage.getItem('perceiver.labels')!=='0')}catch{setEnhanced(true);setLabels(true)}applyDepth();applyResponse();updateReadout();requestAnimationFrame(animate);
+window.addEventListener('beforeunload',()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
+})();
+</script>
+</body>
+</html>
