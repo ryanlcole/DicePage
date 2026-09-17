@@ -327,7 +327,7 @@ $('focusReset').addEventListener('click',resetFocus);
 $('fit').addEventListener('click',fitMap);
 $('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
 $('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
-$('back').addEventListener('click',()=>{if(history.length>1)history.back();else location.href='/Game/index.html'});
+$('back').addEventListener('click',()=>{location.href='/Game/index.html'});
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
 $('keyboardClose').addEventListener('click',closeKeyboard);
 
