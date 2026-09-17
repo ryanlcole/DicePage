@@ -34,12 +34,10 @@
     .plane.mountains{z-index:3}
     .focus-hud{position:absolute;z-index:60;top:7px;left:50%;transform:translateX(-50%);width:min(700px,calc(100% - 14px));display:grid;gap:4px;pointer-events:none}
     .focus-controls{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0;padding:3px;border:1px solid rgba(102,87,53,.62);border-radius:13px;background:rgba(5,11,15,.78);box-shadow:var(--shadow);backdrop-filter:blur(10px);pointer-events:auto}
-    .focus-controls button,.focus-controls select{height:38px;border:0;border-radius:9px;background:transparent;font-weight:850;touch-action:manipulation}
-    .focus-controls button{min-width:40px;padding:0 9px;color:#d9d1bf}
+    .focus-controls button{height:38px;min-width:40px;padding:0 9px;border:0;border-radius:9px;background:transparent;color:#d9d1bf;font-weight:850;touch-action:manipulation}
     .focus-controls button:hover,.focus-controls button:active{background:rgba(255,255,255,.06)}
-    .focus-controls select{min-width:120px;max-width:min(42vw,260px);flex:1;padding:0 28px 0 10px;background:rgba(13,23,29,.58);font-weight:780}
     .focus-level{height:30px;display:grid;place-items:center;padding:0 8px;border-right:1px solid rgba(93,116,125,.38);color:#91a6b0;font-size:7px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
-    .focus-controls button:disabled,.focus-controls select:disabled{opacity:.36;cursor:default}
+    .focus-controls button:disabled{opacity:.36;cursor:default}
     .trail{display:flex;justify-content:center;gap:3px;max-width:100%;min-height:0;overflow-x:auto;scrollbar-width:none;pointer-events:auto}
     .trail:empty{display:none}
     .trail::-webkit-scrollbar{display:none}
@@ -75,6 +73,6 @@
     .sr-live{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     button:focus-visible,select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
     @media(max-width:620px){
-      .toolbar{gap:4px}.toolbar button{padding:0 8px}.title span{display:none}.title strong{font-size:9px}.toolbar select{max-width:31vw;font-size:10px}.focus-level{display:none}.focus-controls{width:100%}.focus-controls select{min-width:0;max-width:none}.focus-controls button{padding:0 7px}.stratum-note{top:55px}.stage.focus-deep .stratum-note{top:79px}.status{max-width:48vw}.keyboard{height:min(39vh,300px)}.stage.keyboard-open .keyboard-toggle{bottom:calc(min(39vh,300px) + 7px)}
+      .toolbar{gap:4px}.toolbar button{padding:0 8px}.title span{display:none}.title strong{font-size:9px}.toolbar select{max-width:31vw;font-size:10px}.focus-level{display:none}.focus-controls{width:auto}.focus-controls button{padding:0 7px}.stratum-note{top:55px}.stage.focus-deep .stratum-note{top:79px}.status{max-width:48vw}.keyboard{height:min(39vh,300px)}.stage.keyboard-open .keyboard-toggle{bottom:calc(min(39vh,300px) + 7px)}
     }
     @media(prefers-reduced-motion:reduce){.plane,.stratum-note,.keyboard-toggle{transition:none}}
