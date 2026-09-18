@@ -82,6 +82,7 @@
   }
 
   <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
+  <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
 
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
@@ -242,6 +243,7 @@ else
  bool _worldSelectionBusy;
  string _tickerEditor="";
  bool _worldGateOpen;
+ bool _regionGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -307,6 +309,7 @@ else
   _tickerOpen=false;
   _cardIndexOpen=false;
   _worldGateOpen=false;
+  _regionGateOpen=false;
   _=PersistWorkspaceAsync(mode);
  }
 
@@ -474,7 +477,27 @@ else
   await RefreshLandingWorldsAsync();
  }
  void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
- void OpenRegionDefiner()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD TILE → REGION → LOCAL");
+ async Task OpenRegionDefiner()
+ {
+  if(!WorldReady)return;
+  _settingsOpen=false;
+  _tickerOpen=false;
+  _cardIndexOpen=false;
+  _worldGateOpen=false;
+  _regionGateOpen=true;
+  try{await Session.LoadRegionsAsync();}catch{}
+ }
+ void CloseRegionGate()=>_regionGateOpen=false;
+ void OpenNewRegion()
+ {
+  Session.SetActiveRegion("");
+  OpenWorkspace("viewer","REGIONDEFINER","WORLD → TIER → SELECT → REGION");
+ }
+ void OpenSavedRegion(WorldRegion region)
+ {
+  Session.SetActiveRegion(region.RegionId);
+  OpenWorkspace("viewer","REGIONDEFINER",$"{region.Name.ToUpperInvariant()} → REGION → LOCAL");
+ }
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
  void OpenInstance()=>OpenWorkspace("roleplay","INSTANCE","LOCAL → INSTANCE → ENCOUNTER");
  void OpenWeather()=>OpenWorkspace("world","WEATHER","SKY → WEATHER → WORLD");
@@ -495,6 +518,6 @@ else
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
