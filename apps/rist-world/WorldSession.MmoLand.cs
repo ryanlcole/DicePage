@@ -5,7 +5,7 @@ public sealed partial class WorldSession
     public const int MmoParcelGridColumns = 30;
     public const int MmoParcelGridRows = 30;
     public const int MmoParcelPixels = 2048;
-    public const int MmoParcelMaxHeight = 10;
+    public const int MmoParcelMaxHeight = 100;
     public const int EndemarOriginColumn = 15;
     public const int EndemarOriginRow = 15;
     public const int EndemarOriginCell = EndemarOriginRow * MmoParcelGridColumns + EndemarOriginColumn;
@@ -183,7 +183,7 @@ public sealed partial class WorldSession
         if (!string.IsNullOrWhiteSpace(claimed.RegionId))
             SetActiveRegion(claimed.RegionId);
 
-        _mmoLandStatus = $"{claimed.DisplayName} claimed · {claimed.PixelWidth}×{claimed.PixelHeight} px · height {claimed.MaxHeight}.";
+        _mmoLandStatus = $"{claimed.DisplayName} claimed · {claimed.PixelWidth}×{claimed.PixelHeight} px · maximum height {claimed.MaxHeight} layers.";
         Notify();
         return claimed;
     }
