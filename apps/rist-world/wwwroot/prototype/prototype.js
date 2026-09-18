@@ -223,7 +223,7 @@ async function readSavedWorldBuilder(){
 }
 function serializableUserLayer(item){
   return{
-    id:item.id,assetId:item.assetId||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
@@ -238,6 +238,10 @@ async function saveWorldBuilder(){
   if(!persistentSave)return false;
   persistentSave.disabled=true;persistentSave.classList.add('saving');persistentSave.classList.remove('saved');
   try{
+    if(pendingPersonalUploads.size){
+      announce(`Saving ${pendingPersonalUploads.size} personal upload${pendingPersonalUploads.size===1?'':'s'} before committing the world…`);
+      await Promise.allSettled([...pendingPersonalUploads]);
+    }
     const state={
       format:'RIST_WORLDBUILDER_PROTOTYPE',version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
       viewerTier,viewerLayer,userLayers:userLayers.map(serializableUserLayer)
@@ -277,7 +281,7 @@ async function attachRestoredLayer(raw){
   }
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),assetId:raw.assetId||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
@@ -758,13 +762,19 @@ async function placeUploadedImage(file){
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
   const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
   const item={
-    id:crypto.randomUUID?.()||String(Date.now()),originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
+    id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,
+    originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
+  const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);world.appendChild(node);void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
-  announce(`Image placed above ${tierLabel(tierByIndex(tier))} as layer ${layer}. Image editing keyboard opened.`);
+  item.personalUploadPromise=trackPersonalUpload(
+    saveFileToPersonalLibrary(file,{category:'Images',folder:'My Images',assetKind:'image',name:item.name})
+      .then(asset=>{item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;announce(`${item.name} added to My Images.`);return asset})
+      .catch(error=>{announce(`${item.name} is placed, but My Images could not save it: ${String(error?.message||error)}`);return null})
+  );
+  announce(`Image placed above ${tierLabel(tierByIndex(tier))} as layer ${layer}. It is also being saved to My Images.`);
 }
 function tierMix(){
   if(viewerTier!=='all'){const index=tierByKey(viewerTier).index;return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0}}
@@ -1243,6 +1253,15 @@ async function placeUploadedSprite(file){
     const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
     const frameCount=clamp(Math.trunc(Number(spriteFrameCount.value)||columns*rows),1,columns*rows),fps=clamp(Number(spriteFps.value)||6,1,30);
     const item=await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true});
+    item.personalUploadPromise=trackPersonalUpload(
+      saveFileToPersonalLibrary(file,{
+        category:'Sprites',folder:'My Sprites',assetKind:'sprite',name:String(file.name||'Uploaded sprite').replace(/\.[^.]+$/,''),
+        columns,rows,frameCount,fps,whiteTransparent:true
+      }).then(asset=>{
+        item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;
+        announce(`${item.name} added to My Sprites.`);return asset;
+      }).catch(error=>{announce(`${item.name} is placed, but My Sprites could not save it: ${String(error?.message||error)}`);return null})
+    );
     closeSpriteUpload(false);
     keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
   }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
@@ -1268,7 +1287,7 @@ function spriteLibraryKey(asset){
 function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibraryPage=0;renderKeyboardKeys();announce(`${folder} sprite folder opened.`)}
 function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
-function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
+function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){
   if(!keyboardKeys)return;
   keyboardKeys.replaceChildren();
