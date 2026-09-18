@@ -10,11 +10,20 @@
    </header>
 
    <section class="region-gate-create">
-    <div>
-     <strong>NEW REGION</strong>
-     <small>@(CanDefineRegion ? "Choose a world tier, select the region, then save the cropped regional map." : "Region creation requires world-building or claim-request permission.")</small>
-    </div>
-    <button type="button" class="region-gate-primary" disabled="@(_busy||!CanDefineRegion)" @onclick="NewAsync">NEW</button>
+    @if(Session.HasTrustedWorldBuilderAuthority)
+    {
+     <div><strong>NEW REGION</strong><small>Choose a world tier, select the region, then save the cropped regional map.</small></div>
+     <button type="button" class="region-gate-primary" disabled="@_busy" @onclick="NewAsync">NEW</button>
+    }
+    else if(Session.CanRequestWorldClaim)
+    {
+     <div><strong>CLAIM REGION</strong><small>Claim is enabled by this world's GM. Choose a tier and map area; the GM must approve it before build access is granted.</small></div>
+     <button type="button" class="region-gate-primary claim" disabled="@_busy" @onclick="NewAsync">CLAIM</button>
+    }
+    else
+    {
+     <div><strong>REGIONS</strong><small>You can open regions you have permission to view.</small></div>
+    }
    </section>
 
    <div class="region-gate-divider"><span>SAVED REGIONS</span></div>
@@ -42,6 +51,23 @@
     }
    </section>
 
+   @if(Session.HasTrustedWorldBuilderAuthority && _pendingClaims.Count>0)
+   {
+    <div class="region-gate-divider"><span>CLAIM NOTIFICATIONS</span></div>
+    <section class="region-gate-regions" aria-label="Pending region claims">
+     @foreach(var claim in _pendingClaims.OrderBy(x=>x.CreatedAtUtc))
+     {
+      <article class="region-gate-pending">
+       <span><strong>@claim.RequesterDisplayName</strong><small>Tier @(claim.TierIndex+1) · @claim.SelectedCells.Count cells · @claim.GridShape</small></span>
+       <div>
+        <button type="button" disabled="@_busy" @onclick="()=>DecideClaimAsync(claim,true)">APPROVE</button>
+        <button type="button" class="deny" disabled="@_busy" @onclick="()=>DecideClaimAsync(claim,false)">DENY</button>
+       </div>
+      </article>
+     }
+    </section>
+   }
+
    @if(!string.IsNullOrWhiteSpace(_status))
    {
     <p class="region-gate-status" role="status">@_status</p>
@@ -54,9 +80,10 @@
  .region-gate-backdrop{position:fixed;inset:0;z-index:2147482550;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
  .region-gate{box-sizing:border-box;width:min(92vw,620px);max-height:90dvh;display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;overflow:auto;border:1px solid #8a6d32;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d;font-family:system-ui,-apple-system,sans-serif}
  .region-gate>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #4f452d;background:#0a141bf5}.region-gate>header span{display:grid;gap:4px}.region-gate>header small{color:#769db7;font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.region-gate>header strong{color:#ecd48f;font-size:15px;letter-spacing:.08em}.region-gate>header button{width:38px;height:38px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
- .region-gate-create{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:16px}.region-gate-create>div{display:grid;gap:5px}.region-gate-create strong{color:#f0ddb0;font-size:13px}.region-gate-create small{color:#93a4ab;font-size:9px;line-height:1.4}.region-gate-primary{min-width:92px;min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.region-gate button:disabled{opacity:.4}
+ .region-gate-create{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:16px}.region-gate-create>div{display:grid;gap:5px}.region-gate-create strong{color:#f0ddb0;font-size:13px}.region-gate-create small{color:#93a4ab;font-size:9px;line-height:1.4}.region-gate-primary{min-width:92px;min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.region-gate-primary.claim{border-color:#4f7a8c;background:#0d2029;color:#bde6f5}.region-gate button:disabled{opacity:.4}
  .region-gate-divider{display:flex;align-items:center;gap:10px;padding:2px 16px;color:#8fa7b3;font-size:8px;font-weight:900;letter-spacing:.12em}.region-gate-divider::before,.region-gate-divider::after{content:"";height:1px;flex:1;background:#3c453f}
  .region-gate-regions{display:grid;gap:7px;padding:10px 16px 16px;overflow:auto}.region-gate-region{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #465963;border-radius:8px;background:#0d171e;color:#e8dec5;text-align:left}.region-gate-region span{min-width:0;display:grid;gap:4px}.region-gate-region strong{overflow:hidden;text-overflow:ellipsis;color:#f0ddb0;font-size:12px}.region-gate-region small{color:#8299a4;font-size:8px;text-transform:uppercase}.region-gate-region b{color:#71b8e5;font-size:9px;letter-spacing:.08em}
+ .region-gate-pending{min-height:58px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 11px;border:1px solid #6d5931;border-radius:8px;background:#101711}.region-gate-pending>span{display:grid;gap:4px}.region-gate-pending strong{color:#f0ddb0;font-size:11px}.region-gate-pending small{color:#8299a4;font-size:8px}.region-gate-pending>div{display:flex;gap:6px}.region-gate-pending button{min-height:34px;border:1px solid #657a48;border-radius:7px;background:#152217;color:#dff0bd;font-size:8px;font-weight:900}.region-gate-pending button.deny{border-color:#70463f;background:#241413;color:#edb1a8}
  .region-gate-note,.region-gate-status{margin:2px 0;color:#9ba8ad;font-size:11px;line-height:1.4}.region-gate-status{padding:0 16px 16px;color:#e5ba70}
  @@media(max-width:600px){.region-gate-backdrop{padding:8px}.region-gate{width:100%;max-height:94dvh}.region-gate>header{padding:11px 12px}.region-gate-create{padding:13px}.region-gate-regions{padding:8px 12px 13px}}
 </style>
@@ -72,6 +99,7 @@
  bool _busy;
  bool _loadRequested;
  string _status="";
+ List<AwsAuthorityClient.WorldClaimRequest> _pendingClaims=[];
 
  bool CanDefineRegion=>Session.HasTrustedWorldBuilderAuthority||Session.CanRequestWorldClaim;
 
@@ -90,7 +118,14 @@
  {
   if(!_loadRequested)return;
   _loadRequested=false;
-  try{await Session.LoadRegionsAsync();}
+  try
+  {
+   await Session.RefreshTrustedWorldAuthorityAsync();
+   await Session.LoadRegionsAsync();
+   _pendingClaims=Session.HasTrustedWorldBuilderAuthority
+    ? (await Session.LoadPendingWorldClaimRequestsAsync()).ToList()
+    : [];
+  }
   catch(Exception ex){_status="Region list could not be loaded: "+ex.Message;}
   finally{_loading=false;}
   await InvokeAsync(StateHasChanged);
@@ -104,6 +139,26 @@
   {
    Session.SetActiveRegion("");
    await OnNew.InvokeAsync();
+  }
+  finally{_busy=false;}
+ }
+
+ async Task DecideClaimAsync(AwsAuthorityClient.WorldClaimRequest claim,bool approve)
+ {
+  if(_busy)return;
+  _busy=true;
+  try
+  {
+   var result=await Session.DecideWorldClaimRequestAsync(
+    claim,
+    approve?WorldClaimPermission.Limited:WorldClaimPermission.Blocked,
+    approve?claim.SelectedCells:[],
+    approve?claim.SourceLayerOffsets:[],
+    approve?$"region-{claim.RequestId}":"",
+    approve?"Approved from RegionDefiner.":"Denied from RegionDefiner.");
+   _status=result.Message;
+   await Session.LoadRegionsAsync();
+   _pendingClaims=(await Session.LoadPendingWorldClaimRequestsAsync()).ToList();
   }
   finally{_busy=false;}
  }
