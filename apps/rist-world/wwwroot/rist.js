@@ -224,10 +224,15 @@ window.ristLaunch={
   window.ristLaunch.clearLegacyStartState();
   let experience=[true,true,true];
   try{experience=window.ristMediaSettings?.initializeAtStart?.(!!persistPreferences)||experience}catch{}
-  if(experience[0]){
-   try{await window.ristMotionPermission?.request?.()}catch{}
-  }
-  dispatchEvent(new CustomEvent('rist:press-start',{detail:{parallax:!!experience[0],audio:!!experience[1],video:!!experience[2]}}));
+  let capabilities={audio:'unsupported',motion:'unsupported',microphone:'unsupported'};
+  try{
+   capabilities=await window.ristDeviceCapabilities?.requestAtStart?.({
+    motion:!!experience[0],
+    microphone:true,
+    audio:!!experience[1]
+   })||capabilities;
+  }catch{}
+  dispatchEvent(new CustomEvent('rist:press-start',{detail:{parallax:!!experience[0],audio:!!experience[1],video:!!experience[2],capabilities}}));
   return experience;
  },
  hardRefresh:async()=>{
