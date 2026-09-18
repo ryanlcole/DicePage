@@ -1,5 +1,5 @@
 window.ristAuth={
- idleMs:30*60*1000,
+ idleMs:24*60*60*1000,
  idleTimer:0,
  installIdleExpiry:()=>{
   if(window.ristAuth.idleInstalled)return;
@@ -28,6 +28,7 @@ window.ristAuth={
   if(legacy)sessionStorage.setItem('rist.session',legacy);
   const query=new URLSearchParams(location.search);
   const handoff=query.get('rist_handoff');
+  const hardMarker=query.get('rist_hard');
   let handoffComplete=!handoff;
   if(handoff&&apiBase){
    try{
@@ -41,8 +42,23 @@ window.ristAuth={
     }
    }catch{}
   }
-  if(legacy||(handoff&&handoffComplete)){
+  if(handoff&&handoffComplete){
    query.delete('rist_handoff');
+   query.set('rist_hard',String(Date.now()));
+   const clean=query.toString();
+   location.replace(location.pathname+(clean?'?'+clean:''));
+   return await new Promise(()=>{});
+  }
+  if(legacy){
+   query.delete('rist_handoff');
+   query.set('rist_hard',String(Date.now()));
+   location.hash='';
+   const clean=query.toString();
+   location.replace(location.pathname+(clean?'?'+clean:''));
+   return await new Promise(()=>{});
+  }
+  if(hardMarker){
+   query.delete('rist_hard');
    const clean=query.toString();
    history.replaceState(null,'',location.pathname+(clean?'?'+clean:''));
   }
@@ -184,6 +200,13 @@ window.ristLaunch={
  clearLegacyStartState:()=>{
   document.body?.classList?.remove('rist-game-start-open');
   document.querySelectorAll('.rist-game-start').forEach(el=>{el.hidden=true;});
+  return true;
+ },
+ hardRefresh:()=>{
+  const query=new URLSearchParams(location.search);
+  query.delete('rist_handoff');
+  query.set('rist_hard',String(Date.now()));
+  location.replace(location.pathname+'?'+query.toString());
   return true;
  }
 };
