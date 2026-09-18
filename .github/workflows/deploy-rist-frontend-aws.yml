@@ -189,6 +189,10 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --only-show-errors
 
+          # Perceiver is archived source, not a published surface. The site sync is
+          # intentionally non-destructive, so remove the old production prefix explicitly.
+          aws s3 rm "s3://${BUCKET}/perceiver/" --recursive --only-show-errors || true
+
           aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
             --exclude 'index.html' \
             --exclude 'relic-story-tileset-primary.jpeg' \
@@ -219,7 +223,7 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
@@ -227,6 +231,16 @@ jobs:
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
           grep -q 'site-language' /tmp/relic-home.html
           grep -q 'href="/store/"' /tmp/relic-home.html
+          if grep -qi '/perceiver/' /tmp/relic-home.html; then
+            echo "Unpublished Perceiver link is still present on the public home page."
+            exit 1
+          fi
+          if curl --silent --show-error --location --output /tmp/perceiver-unpublished.html "${URL}perceiver/index.html"; then
+            if grep -q 'CINEMATIC PARALLAX TUNING' /tmp/perceiver-unpublished.html; then
+              echo "Unpublished Perceiver prototype is still publicly reachable."
+              exit 1
+            fi
+          fi
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store.html "${URL}store/index.html"
           grep -q 'ReLiC Creator Store' /tmp/relic-store.html
