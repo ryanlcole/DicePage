@@ -57,7 +57,14 @@ public sealed partial class WorldSession
 
         var tileCount = PlacedTiles.Count;
         ClearGeneratedGeonaphPackagePlacements();
+        PlacedTiles.RemoveAll(tile => tile.Id.StartsWith("naeja-map-", StringComparison.OrdinalIgnoreCase));
         if (PlacedTiles.Count != tileCount) changed = true;
+
+        RegisterGeonaphMapTiles();
+        var hadGeonaphBase = PlacedTiles.Any(tile => tile.Id.StartsWith("geonaph-map-", StringComparison.Ordinal));
+        BuildGeonaphMapTilemap();
+        if (!hadGeonaphBase && PlacedTiles.Any(tile => tile.Id.StartsWith("geonaph-map-", StringComparison.Ordinal)))
+            changed = true;
 
         // Prevent the legacy bootstrap from treating a restored sparse world as an
         // uninitialized world and changing authored content later in the session.
