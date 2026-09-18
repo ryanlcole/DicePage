@@ -883,6 +883,13 @@ def handler(event, context):
             return response(400, {"error": "MMO parcel claims belong to Shaelvien"})
         parcels = [public_parcel(item) for item in query_world_prefix(world_id, "PARCEL#")]
         parcels = [item for item in parcels if item is not None]
+        for parcel in parcels:
+            if parcel["ownerUserId"] == user_id:
+                parcel["effectivePermission"] = "Owner"
+            else:
+                parcel["effectivePermission"] = parcel_permission(
+                    world_id, parcel["parcelId"], user_id
+                )
         parcels.sort(key=lambda item: (item["row"], item["column"]))
         return response(200, parcels)
 
