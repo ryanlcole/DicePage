@@ -21,8 +21,13 @@ def test_new_region_uses_database_world_source_and_swipe_tier_preview():
     prototype = (ROOT / "wwwroot" / "prototype" / "prototype.js").read_text(encoding="utf-8")
 
     assert 'source="database"' in host
+    assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in host
+    assert "sourcePixelWidth=" in host
+    assert "sourcePixelHeight=" in host
     assert "fallbackTierImages=Session.IsGeonaphWorld" in host
     assert "&regionFlow={regionFlow}&regionId={regionId}" in host
+    assert "firstSizedTile=tiles.find" in prototype
+    assert "stage.dataset.worldSource=String(source.source||'database')" in prototype
 
     assert "REGION_FLOW" in prototype
     assert "REQUESTED_REGION_ID" in prototype
