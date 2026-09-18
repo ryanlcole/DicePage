@@ -1739,15 +1739,9 @@ function returnToRegionSelection(){
   announce('Region selection reopened.');
 }
 async function persistRegionClaimWorkspace(){
-  if(!REGION_DEFINER)return;
-  const editableLayers=userLayers.filter(item=>!item.sourceLocked);
-  const state={
-    format:'RIST_REGIONDEFINER_OVERLAYS',version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
-    viewerTier,viewerLayer,sourceLayerVisibility:serializeRegionWorldLayerVisibility(),regionGridShape,
-    claimedRegionId:String(regionClaimedRegion?.id||pendingClaimedRegionId||''),
-    userLayers:editableLayers.map(serializableUserLayer)
-  };
-  try{await writeSavedWorldBuilder(state,REGION_OVERLAY_SAVE_KEY)}catch{}
+  // Region claims persist as authority metadata. The map itself is never copied:
+  // RegionDefiner edits the one canonical database map through saveRegionMapToDatabase().
+  return;
 }
 function createRegionDefinition(){
   if(!REGION_DEFINER||READ_ONLY||regionCreatePending||!['select','crop'].includes(regionClaimPhase))return;
@@ -1859,6 +1853,14 @@ async function handleRegionHostMessage(event){
     regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
     await persistRegionClaimWorkspace();
     announce(`${savedName} saved. Everything outside the claimed tiles is cropped away and the claim is now the full regional map.`);return;
+  }
+  if(data.type==='map-region-saved'||data.type==='map-region-save-error'){
+    const requestId=String(data.requestId||''),waiter=regionMapSaveWaiters.get(requestId);
+    if(!waiter)return;
+    clearTimeout(waiter.timeout);regionMapSaveWaiters.delete(requestId);
+    if(data.type==='map-region-saved'&&data.result?.success!==false)waiter.resolve(data.result||true);
+    else waiter.reject(new Error(String(data.message||'Canonical world map save failed.')));
+    return;
   }
   if(data.type==='claim-requested'){
     regionCreatePending=false;
