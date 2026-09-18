@@ -1197,7 +1197,7 @@ function renderRegionSelectKeyboard(){
   );
 }
 function handleRegionHostMessage(event){
-  if(!REGION_DEFINER||event.origin!==location.origin)return;
+  if(!REGION_DEFINER||event.origin!==location.origin||event.source!==window.parent)return;
   const data=event.data;if(!data||data.source!=='shaelvien-regiondefiner-host')return;
   if(data.type==='bridge-ready'){postRegionMessage('ready');return}
   if(data.type==='catalog'){
