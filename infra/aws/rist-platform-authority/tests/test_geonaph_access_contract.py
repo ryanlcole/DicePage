@@ -67,9 +67,11 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn("binding_hash = hashlib.sha256(", self.source)
         self.assertIn('ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)"', self.source)
 
-    def test_mmo_parcel_is_2048_square_height_ten_and_expands_from_endemar(self):
-        self.assertIn("MMO_PARCEL_PIXELS = 2048", self.source)
-        self.assertIn("MMO_PARCEL_MAX_HEIGHT = 10", self.source)
+    def test_mmo_parcel_is_2048_square_height_one_hundred_and_expands_from_endemar(self):
+        self.assertIn("SHAELVIEN_PROPERTY_SPACE_PIXELS = 2048", self.source)
+        self.assertIn("MMO_PARCEL_PIXELS = SHAELVIEN_PROPERTY_SPACE_PIXELS", self.source)
+        self.assertIn("SHAELVIEN_PROPERTY_SPACE_LAYERS = 100", self.source)
+        self.assertIn("MMO_PARCEL_MAX_HEIGHT = SHAELVIEN_PROPERTY_SPACE_LAYERS", self.source)
         self.assertIn("ENDEMAR_ORIGIN_COLUMN = 15", self.source)
         self.assertIn("ENDEMAR_ORIGIN_ROW = 15", self.source)
         self.assertIn("def mmo_parcel_claimable(cell_index, parcels):", self.source)
