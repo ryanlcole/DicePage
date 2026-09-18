@@ -136,6 +136,10 @@ def region_key(world_id, region_id):
     return {"pk": world_partition(world_id), "sk": "REGION#" + region_id}
 
 
+def world_source_key(world_id):
+    return {"pk": world_partition(world_id), "sk": "WORLDSOURCE"}
+
+
 def world_token_key(user_id):
     return {"pk": "USER#" + user_id, "sk": GENESIS_WORLD_TOKEN_SK}
 
@@ -1134,6 +1138,86 @@ def handler(event, context):
                 }
                 for item in items
             ],
+        )
+
+    if method == "GET" and path == "/world/source":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        if not can_view(world_id, user_id):
+            return response(403, {"error": "World access required"})
+        item = world.get_item(
+            Key=world_source_key(world_id), ConsistentRead=True
+        ).get("Item")
+        if not item:
+            return response(
+                200,
+                {
+                    "worldId": world_id,
+                    "state": None,
+                    "updatedAtUtc": "",
+                },
+            )
+        return response(
+            200,
+            {
+                "worldId": world_id,
+                "state": item.get("state"),
+                "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
+            },
+        )
+
+    if method == "POST" and path == "/world/source":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        if not can_manage(world_id, user_id):
+            return response(403, {"error": "World Builder authority required"})
+        state = req.get("state")
+        if not isinstance(state, dict):
+            return response(400, {"error": "World source state must be an object"})
+        state_world_id = str(state.get("worldId") or "").strip()
+        if state_world_id and state_world_id != world_id:
+            return response(400, {"error": "World source identity mismatch"})
+        # DynamoDB items are capped at 400 KB. Keep the shared WorldBuilder source
+        # comfortably below that ceiling; image bytes belong in asset storage and
+        # the database stores only authored map metadata and asset references.
+        encoded_size = len(
+            json.dumps(state, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        )
+        if encoded_size > 320000:
+            return response(
+                413,
+                {
+                    "error": (
+                        "World source metadata is too large for the database. "
+                        "Publish uploaded image bytes to asset storage and save again."
+                    )
+                },
+            )
+        updated_at = datetime.now(timezone.utc).isoformat()
+        safe_state = dynamo_safe(state)
+        world.put_item(
+            Item={
+                **world_source_key(world_id),
+                "entityType": "worldSource",
+                "worldId": world_id,
+                "state": safe_state,
+                "updatedAtUtc": updated_at,
+                "updatedByUserId": user_id,
+            }
+        )
+        audit_write(
+            world_id,
+            user_id,
+            "world.source.save",
+            "WORLDSOURCE",
+            {"bytes": encoded_size},
+        )
+        return response(
+            200,
+            {
+                "worldId": world_id,
+                "state": safe_state,
+                "updatedAtUtc": updated_at,
+            },
         )
 
     if method == "GET" and path == "/world/regions":
