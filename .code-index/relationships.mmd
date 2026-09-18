@@ -149,8 +149,6 @@ flowchart LR
   chid_003637["chid.003637\ndata_dir\nvariable"]
   chid_003640["chid.003640\n_load_pillow\nfunction"]
   chid_003641["chid.003641\nImage\nimport"]
-  chid_003642["chid.003642\n_median\nfunction"]
-  chid_003643["chid.003643\nvalues\nparameter"]
   chid_009715["chid.009715\nsorted\nvariable"]
   chid_012251["chid.012251\nforbidden\nvariable"]
   chid_074530["chid.074530\nBytesIO\nimport"]
@@ -172,6 +170,7 @@ flowchart LR
   chid_167609["chid.167609\nclean\nvariable"]
   chid_167610["chid.167610\ncandidate\nvariable"]
   chid_167611["chid.167611\nroot\nvariable"]
+  chid_168358["chid.168358\nprobe\nvariable"]
   chid_000013 -->|call| chid_000012
   chid_000013 -->|read| chid_000012
   chid_000014 -->|read| chid_000013
@@ -332,8 +331,12 @@ flowchart LR
   chid_003533 -->|call| chid_074530
   chid_003533 -->|read| chid_003516
   chid_003533 -->|read| chid_003539
+  chid_003533 -->|write| chid_168358
   chid_003533 -->|call| chid_153590
   chid_003533 -->|read| chid_153590
+  chid_003533 -->|read| chid_168358
+  chid_003533 -->|read| chid_168358
+  chid_003533 -->|read| chid_168358
   chid_003533 -->|read| chid_003539
   chid_003533 -->|read| chid_003539
   chid_003533 -->|read| chid_003537
@@ -668,7 +671,3 @@ flowchart LR
   chid_003640 -->|call| chid_107386
   chid_003640 -->|read| chid_003632
   chid_003640 -->|read| chid_003633
-  chid_003640 -->|read| chid_003641
-  chid_003642 -->|call| chid_009715
-  chid_003642 -->|read| chid_009715
-  chid_003642 -->|read| chid_003643

@@ -150,8 +150,6 @@ digraph CodeGraph {
   "chid.003637" [label="chid.003637\ndata_dir\nvariable"];
   "chid.003640" [label="chid.003640\n_load_pillow\nfunction"];
   "chid.003641" [label="chid.003641\nImage\nimport"];
-  "chid.003642" [label="chid.003642\n_median\nfunction"];
-  "chid.003643" [label="chid.003643\nvalues\nparameter"];
   "chid.009715" [label="chid.009715\nsorted\nvariable"];
   "chid.012251" [label="chid.012251\nforbidden\nvariable"];
   "chid.074530" [label="chid.074530\nBytesIO\nimport"];
@@ -173,6 +171,7 @@ digraph CodeGraph {
   "chid.167609" [label="chid.167609\nclean\nvariable"];
   "chid.167610" [label="chid.167610\ncandidate\nvariable"];
   "chid.167611" [label="chid.167611\nroot\nvariable"];
+  "chid.168358" [label="chid.168358\nprobe\nvariable"];
   "chid.000013" -> "chid.000012" [label="call"];
   "chid.000013" -> "chid.000012" [label="read"];
   "chid.000014" -> "chid.000013" [label="read"];
@@ -333,8 +332,12 @@ digraph CodeGraph {
   "chid.003533" -> "chid.074530" [label="call"];
   "chid.003533" -> "chid.003516" [label="read"];
   "chid.003533" -> "chid.003539" [label="read"];
+  "chid.003533" -> "chid.168358" [label="write"];
   "chid.003533" -> "chid.153590" [label="call"];
   "chid.003533" -> "chid.153590" [label="read"];
+  "chid.003533" -> "chid.168358" [label="read"];
+  "chid.003533" -> "chid.168358" [label="read"];
+  "chid.003533" -> "chid.168358" [label="read"];
   "chid.003533" -> "chid.003539" [label="read"];
   "chid.003533" -> "chid.003539" [label="read"];
   "chid.003533" -> "chid.003537" [label="read"];
@@ -669,8 +672,4 @@ digraph CodeGraph {
   "chid.003640" -> "chid.107386" [label="call"];
   "chid.003640" -> "chid.003632" [label="read"];
   "chid.003640" -> "chid.003633" [label="read"];
-  "chid.003640" -> "chid.003641" [label="read"];
-  "chid.003642" -> "chid.009715" [label="call"];
-  "chid.003642" -> "chid.009715" [label="read"];
-  "chid.003642" -> "chid.003643" [label="read"];
 }
