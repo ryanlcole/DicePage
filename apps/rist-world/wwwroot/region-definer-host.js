@@ -30,7 +30,8 @@ export function attach(frame,dotnet){
         const sourceLayerOffsets=Array.isArray(data.sourceLayerOffsets)
           ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10)
           : Array.from({length:10},(_,index)=>index);
-        const region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets);
+        const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
+        const region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
         post(frame,{type:"region-created",region});
       }
     }catch(error){
