@@ -46,6 +46,11 @@
     .user-image-placement.selected{outline:2px solid #f0cc69;outline-offset:2px}
     .stage{position:fixed;z-index:1;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;background:#05090c}
     .stage.dragging{cursor:grabbing}
+    .persistent-save{position:absolute;z-index:140;right:max(10px,env(safe-area-inset-right));bottom:calc(60px + env(safe-area-inset-bottom));width:46px;height:46px;padding:9px;border:1px solid rgba(204,169,88,.85);border-radius:12px;background:rgba(7,14,19,.86);box-shadow:0 6px 20px rgba(0,0,0,.34);touch-action:manipulation;backdrop-filter:blur(5px)}
+    .persistent-save img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:sepia(.35) saturate(1.15) brightness(1.18)}
+    .persistent-save.saving{opacity:.72}
+    .persistent-save.saved{box-shadow:0 0 0 2px rgba(240,204,105,.72),0 6px 20px rgba(0,0,0,.34)}
+    .stage.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + env(safe-area-inset-bottom))}
     .region-enhance-canvas{position:absolute;z-index:9;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .12s linear;will-change:opacity}
     .region-enhance-canvas.active{opacity:1}
     .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
