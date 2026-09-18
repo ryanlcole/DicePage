@@ -231,6 +231,12 @@ Resources:
         ClaimDecision:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/claims/decision, Method: POST }
+        WorldSourceGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/source, Method: GET }
+        WorldSourceSave:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/source, Method: POST }
         RegionsGet:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/regions, Method: GET }
