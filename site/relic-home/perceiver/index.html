@@ -41,10 +41,10 @@
 <div class="cinema" aria-hidden="true">
 <div class="tier far-glow" data-tier="far" data-speed="0.20"><span class="depth-tag">T1 · FAR · 0.20×</span><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i></div>
 <div class="tier horizon" data-tier="background" data-speed="0.55"><span class="depth-tag">T2 · BACKGROUND · 0.55×</span></div>
-<div class="focus-ring"></div><span class="focus-tag">T3 · FOCUS · 1.00×</span>
 <div class="tier near-frame" data-tier="near" data-speed="1.35"><span class="depth-tag">T4 · NEAR · 1.35×</span></div>
 <div class="tier foreground" data-tier="foreground" data-speed="1.80"><span class="depth-tag">T5 · FOREGROUND · 1.80×</span><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i></div>
 </div>
+<div id="focusMarker" class="focus-marker"><div class="focus-ring"></div><span id="focusTag" class="focus-tag">AUTO · FOCUS · 1.00×</span></div>
 <div class="stage-hud"><span id="modePill" class="mode-pill">EXTERNAL SYNC</span><span id="timecode" class="timecode">00:00:00.000</span></div>
 </section>
 <aside id="drawer" class="drawer" hidden>
@@ -64,6 +64,19 @@
 <section class="panel">
 <label>Depth source <select id="depthSource"><option value="auto" selected>AUTO · native if detected</option><option value="native">NATIVE / STEREO</option><option value="inferred">INFERRED</option></select></label>
 <p class="notice" id="depthSourceStatus"><strong>Depth:</strong> waiting for a video source.</p>
+</section>
+<section class="panel">
+<button id="focusMode" class="active" type="button">FOCUS · AUTO</button>
+<button id="clearFocus" type="button" disabled>CLEAR MANUAL FOCUS</button>
+<label>Focus plane <select id="focusPlane"><option value="focus" selected>FOCUS · 1.00×</option><option value="background">BACKGROUND</option><option value="near">NEAR</option><option value="foreground">FOREGROUND</option><option value="far">FAR</option></select></label>
+<p class="notice" id="focusStatus"><strong>Focus:</strong> automatic center reference. Switch to manual, then tap the visible video to anchor focus.</p>
+</section>
+<section class="panel">
+<button id="tiltToggle" type="button">TILT · OFF</button>
+<button id="tiltCalibrate" type="button" disabled>CALIBRATE TILT CENTER</button>
+<label>Tilt strength <output id="tiltStrengthOut">35%</output><input id="tiltStrength" type="range" min="0" max="100" value="35"></label>
+<label>Tilt smoothing <output id="tiltSmoothOut">12%</output><input id="tiltSmooth" type="range" min="3" max="35" value="12"></label>
+<p class="notice" id="tiltStatus"><strong>Tilt:</strong> off. Enabling it requests device-orientation permission on supported phones.</p>
 </section>
 <section class="panel">
 <button id="roomMic" type="button">ROOM MIC · OFF</button>
@@ -87,6 +100,7 @@
 <footer class="bottom"><div class="transport"><button id="rew10">−10s</button><button id="rew1">−1s</button><button id="sync" class="primary">SYNC / PLAY</button><button id="pause">PAUSE</button><button id="reset">RESET</button><button id="fwd1">+1s</button><button id="fwd10">+10s</button></div><div class="readout"><strong id="frame">FRAME 000000</strong><span id="sourceState">External source · focus 1.00×</span></div></footer>
 </main>
 <script src="perceiver-audio.js?v=20260918-audio1"></script>
+<script src="perceiver-spatial.js?v=20260918-focus-tilt1"></script>
 <script>
 (()=>{'use strict';
 const app=document.getElementById('app'),stage=document.getElementById('stage'),video=document.getElementById('video'),plate=document.getElementById('plate'),file=document.getElementById('file'),testVideo=document.getElementById('testVideo'),drawer=document.getElementById('drawer'),settings=document.getElementById('settings'),closeTune=document.getElementById('closeTune'),timecode=document.getElementById('timecode'),frame=document.getElementById('frame'),modePill=document.getElementById('modePill'),sourceState=document.getElementById('sourceState'),depth=document.getElementById('depth'),depthOut=document.getElementById('depthOut'),motion=document.getElementById('motion'),motionOut=document.getElementById('motionOut'),fps=document.getElementById('fps'),enhanced=document.getElementById('enhanced'),motionToggle=document.getElementById('motionToggle'),labels=document.getElementById('labels'),depthSource=document.getElementById('depthSource'),depthSourceStatus=document.getElementById('depthSourceStatus'),roomMic=document.getElementById('roomMic'),roomMix=document.getElementById('roomMix'),roomMixOut=document.getElementById('roomMixOut'),audioDistance=document.getElementById('audioDistance'),audioDistanceOut=document.getElementById('audioDistanceOut'),audioCeiling=document.getElementById('audioCeiling'),audioCeilingOut=document.getElementById('audioCeilingOut'),roomDb=document.getElementById('roomDb'),roomLow=document.getElementById('roomLow'),roomMid=document.getElementById('roomMid'),roomHigh=document.getElementById('roomHigh'),outputDb=document.getElementById('outputDb'),tiers=[...document.querySelectorAll('.tier[data-speed]')];
