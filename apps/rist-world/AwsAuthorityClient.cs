@@ -29,6 +29,28 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<AuthorityProfile?> GetProfileAsync()
         => await SendAsync<AuthorityProfile>(HttpMethod.Get, "/authority/me");
 
+    public async Task<WorldToken?> CompleteProfileAsync(string accountId, string playerAlias)
+        => await SendAsync<WorldToken>(HttpMethod.Post, "/authority/profile-complete", new { accountId, playerAlias });
+
+    public async Task<List<WorldToken>?> GetWorldTokensAsync()
+        => await SendAsync<List<WorldToken>>(HttpMethod.Get, "/authority/world-tokens");
+
+    public async Task<List<MmoParcel>?> GetMmoParcelsAsync(string worldId)
+        => await SendAsync<List<MmoParcel>>(HttpMethod.Get,
+            "/world/parcels?worldId=" + Uri.EscapeDataString(worldId));
+
+    public async Task<MmoParcel?> ClaimMmoParcelAsync(string worldId, int cellIndex, string displayName)
+        => await SendAsync<MmoParcel>(HttpMethod.Post, "/world/parcels/claim", new { worldId, cellIndex, displayName });
+
+    public async Task<ParcelDelegationUpdate?> DelegateMmoParcelAsync(string worldId, string parcelId, string userId, string permission)
+        => await SendAsync<ParcelDelegationUpdate>(HttpMethod.Post, "/world/parcels/delegate",
+            new { worldId, parcelId, userId, permission });
+
+    public async Task<List<ParcelDelegation>?> GetMmoParcelDelegationsAsync(string worldId, string parcelId)
+        => await SendAsync<List<ParcelDelegation>>(HttpMethod.Get,
+            "/world/parcels/delegations?worldId=" + Uri.EscapeDataString(worldId) +
+            "&parcelId=" + Uri.EscapeDataString(parcelId));
+
     public async Task<Membership?> GetMembershipAsync(string worldId)
         => await SendAsync<Membership>(HttpMethod.Get, "/world/membership?worldId=" + Uri.EscapeDataString(worldId));
 
@@ -90,6 +112,45 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         List<string>? Entitlements = null,
         int? WorldSlots = null,
         int? SurfaceWorldPixels = null);
+
+    public sealed record WorldToken(
+        string TokenId,
+        string TokenClass,
+        string Status,
+        string HolderUserId,
+        string PurchasedWorldId = "",
+        string ParcelId = "",
+        string BindingHash = "",
+        string CreatedAtUtc = "",
+        string SpentAtUtc = "");
+
+    public sealed record MmoParcel(
+        string ParcelId,
+        string WorldId,
+        string RegionId,
+        string DisplayName,
+        string OwnerUserId,
+        int CellIndex,
+        int Column,
+        int Row,
+        int PixelWidth,
+        int PixelHeight,
+        int MaxHeight,
+        string BindingHash = "",
+        string ClaimedAtUtc = "");
+
+    public sealed record ParcelDelegation(
+        string ParcelId,
+        string UserId,
+        string Permission,
+        string UpdatedAtUtc = "");
+
+    public sealed record ParcelDelegationUpdate(
+        bool Ok,
+        string ParcelId,
+        string UserId,
+        string Permission);
+
     public sealed record Membership(string? WorldId, string Role, string ClaimPermission = "Blocked");
     public sealed record ClaimPermissionUpdate(bool Ok, string ClaimPermission);
 
