@@ -1008,6 +1008,35 @@ function renderKeyboardKeys(){
     );
     return;
   }
+  if(keyboardMode==='Sprites'){
+    if(!spriteCatalog.length&&!spriteLibraryLoading&&!spriteLibraryError)void ensureSpriteLibrary();
+    keyboardKeys.append(toolKey('UPLOAD','sprite set',openSpriteUpload));
+    if(selectedImage?.kind==='sprite'){
+      keyboardKeys.append(
+        toolKey('FPS −',`${Math.max(1,Number(selectedImage.spriteFps)||6)} fps`,()=>{selectedImage.spriteFps=clamp((Number(selectedImage.spriteFps)||6)-1,1,30);if(selectedImage.playing)startSpriteMotion(selectedImage);renderKeyboardKeys()}),
+        toolKey('FPS +',`${Math.max(1,Number(selectedImage.spriteFps)||6)} fps`,()=>{selectedImage.spriteFps=clamp((Number(selectedImage.spriteFps)||6)+1,1,30);if(selectedImage.playing)startSpriteMotion(selectedImage);renderKeyboardKeys()}),
+        toolKey(selectedImage.playing?'PAUSE':'PLAY','motion',()=>{if(selectedImage.playing)stopSpriteMotion(selectedImage);else if(selectedImage.committed)startSpriteMotion(selectedImage);else announce('Save the sprite first to begin world motion.');renderKeyboardKeys()})
+      );
+    }
+    if(spriteLibraryLoading){keyboardKeys.append(toolKey('LOADING','Sprite library',()=>{},true));return}
+    if(spriteLibraryError){
+      keyboardKeys.append(toolKey('RETRY','Sprite library',()=>{spriteLibraryError='';void ensureSpriteLibrary(true)}),toolKey('ERROR',spriteLibraryError,()=>{},true));return;
+    }
+    if(!spriteLibraryFolder){
+      const folders=spriteLibraryFolders();
+      folders.forEach(folder=>keyboardKeys.append(toolKey(folder,'Folder',()=>openSpriteLibraryFolder(folder))));
+      if(!folders.length)keyboardKeys.append(toolKey('EMPTY','No registered sprites',()=>{},true));
+      return;
+    }
+    const count=spriteLibraryPageCount();
+    keyboardKeys.append(toolKey('‹','Folders',closeSpriteLibraryFolder),toolKey(spriteLibraryFolder,`Page ${spriteLibraryPage+1} / ${count}`,()=>{},true));
+    spriteLibraryPageAssets().forEach(asset=>keyboardKeys.append(spriteLibraryKey(asset)));
+    keyboardKeys.append(
+      toolKey('‹','Previous',()=>{spriteLibraryPage=(spriteLibraryPage-1+count)%count;renderKeyboardKeys()}),
+      toolKey('›','Next',()=>{spriteLibraryPage=(spriteLibraryPage+1)%count;renderKeyboardKeys()})
+    );
+    return;
+  }
   if(keyboardMode==='Image'){
     if(!selectedImage){keyboardKeys.append(toolKey('▧','add image',openImageUpload));return}
     keyboardKeys.append(
@@ -1020,8 +1049,8 @@ function renderKeyboardKeys(){
       toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
       toolKey('TIER −','tier',()=>moveSelectedTier(-1),selectedImage.tier<=0),
       toolKey('TIER +','tier',()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
-      toolKey('LAYER −','layer',()=>moveSelectedLayer(-1),selectedImage.layer<=0),
-      toolKey('LAYER +','layer',()=>moveSelectedLayer(1),selectedImage.layer>=9),
+      toolKey('LAYER −','layer',()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
+      toolKey('LAYER +','layer',()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
       toolKey('DELETE','image',removeSelectedImage)
     );return;
   }
@@ -1035,7 +1064,7 @@ function renderKeyboardKeys(){
       toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
     );return;
   }
-  const sets={Pixels:['Select','Paint','Erase','Fill'],Sprites:['Library','Place','Play','Speed'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
+  const sets={Pixels:['Select','Paint','Erase','Fill'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
 function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label','Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
