@@ -26,7 +26,8 @@ else if (_canEnter)
     {
      <section class="rist-auth-privacy" aria-label="Cookies and storage choice">
       <strong>COOKIES &amp; STORAGE</strong>
-      <p>Essential storage is required for sign-in, security and core game state. Optional storage remembers nonessential preferences. Shaelvien does not currently use advertising or analytics tracking.</p>\n      <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+      <p>Essential storage is required for sign-in, security and core game state. Optional storage remembers nonessential preferences. Shaelvien does not currently use advertising or analytics tracking.</p>
+      <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
       <div>
        <button type="button" @onclick="SetEssentialPrivacyAsync">ESSENTIAL ONLY</button>
        <button type="button" @onclick="SetOptionalPrivacyAsync">ALLOW OPTIONAL</button>
@@ -157,12 +158,10 @@ else
  {
   if(_termsRequired||string.IsNullOrWhiteSpace(_privacyChoice))return;
   try{await JS.InvokeVoidAsync("ristLaunch.clearLegacyStartState");}catch{}
-  var experience=new[]{true,true,true};
-  try{experience=await JS.InvokeAsync<bool[]>("ristMediaSettings.initializeAtStart",string.Equals(_privacyChoice,"optional",StringComparison.Ordinal));}catch{}
-  if(experience.Length>0&&experience[0])
-  {
-   try{await JS.InvokeAsync<string>("ristMotionPermission.request");}catch{}
-  }
+  var persistOptional=string.Equals(_privacyChoice,"optional",StringComparison.Ordinal);
+  try{await JS.InvokeAsync<bool[]>("ristMediaSettings.initializeAtStart",persistOptional);}catch{}
+  try{await JS.InvokeAsync<bool>("ristParallax.activateForSession",persistOptional);}catch{}
+  try{await JS.InvokeAsync<string>("ristMotionPermission.request");}catch{}
   _launchStarted=true;
   await InvokeAsync(StateHasChanged);
  }
