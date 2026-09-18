@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -82,6 +83,13 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<WorldClaimRequest?> DecideClaimRequestAsync(WorldClaimDecision decision)
         => await SendAsync<WorldClaimRequest>(HttpMethod.Post, "/world/claims/decision", decision);
 
+    public async Task<WorldSource?> GetWorldSourceAsync(string worldId)
+        => await SendAsync<WorldSource>(HttpMethod.Get,
+            "/world/source?worldId=" + Uri.EscapeDataString(worldId));
+
+    public async Task<WorldSource?> SaveWorldSourceAsync(string worldId, JsonElement state)
+        => await SendAsync<WorldSource>(HttpMethod.Post, "/world/source", new { worldId, state });
+
     public async Task<List<WorldRegion>?> GetRegionsAsync(string worldId)
         => await SendAsync<List<WorldRegion>>(HttpMethod.Get,
             "/world/regions?worldId=" + Uri.EscapeDataString(worldId));
@@ -154,6 +162,7 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
 
     public sealed record Membership(string? WorldId, string Role, string ClaimPermission = "Blocked");
     public sealed record ClaimPermissionUpdate(bool Ok, string ClaimPermission);
+    public sealed record WorldSource(string WorldId, JsonElement? State, string UpdatedAtUtc = "");
 
     public sealed record WorldClaimRequestCreate(
         string WorldId,
