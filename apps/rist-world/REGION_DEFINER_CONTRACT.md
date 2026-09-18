@@ -23,6 +23,20 @@ RegionDefiner uses a fixed **15° perspective tilt** with a shallow focal point.
 
 After a claim is saved, the selected-cell mask is used as the visible regional extent and its bounds are fitted to the viewer as the regional full-map representation. The parent-world coordinates and selection mask remain available for provenance. RegionDefiner never treats an entire named world as a region merely because it has a special world identity.
 
+## Claim authority
+
+Selecting a map portion is not equivalent to owning or editing it.
+
+- an owner/GM may claim and build directly within their authority;
+- an invited non-owner may select a portion and submit a **Claim Request** when their world claim policy permits it;
+- **Blocked** removes the claim action;
+- **Restricted** permits requests only inside already-authorized personal/character scopes;
+- **Limited** permits requests but the GM chooses the final approved spatial/resource scope;
+- **Co-Operative** grants shared ownership of the approved resource while locally protected child resources may retain secrets;
+- **Release Ownership** transfers the granting owner's ownership only after exact written approval in a direct authenticated session.
+
+A pending request does not unlock regional building. The GM decision is the authority boundary.
+
 ## Source/overlay authority
 
 - World source: read-only in RegionDefiner, including WorldBuilder images, sprites, labels and terrain placements.
