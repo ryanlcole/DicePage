@@ -143,10 +143,10 @@ public sealed partial class WorldSession
 
     public async Task<bool> AddRegionOverlayTileAsync(string regionId, AtlasTile asset, double x, double y, int footprint)
     {
-        if (!HasTrustedWorldBuilderAuthority) return false;
         var index = _regions.FindIndex(r => string.Equals(r.RegionId, regionId, StringComparison.Ordinal));
         if (index < 0) return false;
         var region = _regions[index];
+        if (!CanEditRegion(region)) return false;
         footprint = Math.Clamp(footprint, 1, Math.Max(1, Math.Min(region.Width, region.Height)));
         x = Math.Clamp(x, 0, 1);
         y = Math.Clamp(y, 0, 1);
@@ -190,10 +190,10 @@ public sealed partial class WorldSession
 
     public async Task RemoveRegionOverlayTileAsync(string regionId, string overlayId)
     {
-        if (!HasTrustedWorldBuilderAuthority) return;
         var index = _regions.FindIndex(r => string.Equals(r.RegionId, regionId, StringComparison.Ordinal));
         if (index < 0) return;
         var region = _regions[index];
+        if (!CanEditRegion(region)) return;
         var overlays = region.OverlayTiles.Where(x => !string.Equals(x.Id, overlayId, StringComparison.Ordinal)).ToList();
         if (overlays.Count == region.OverlayTiles.Count) return;
         _regions[index] = region with { OverlayTiles = overlays, UpdatedAtUtc = DateTimeOffset.UtcNow };
@@ -202,24 +202,32 @@ public sealed partial class WorldSession
 
     public async Task SaveRegionsAsync()
     {
-        if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to save regions.");
         if (!HasActiveWorld) return;
+        var editableRegions = HasTrustedWorldBuilderAuthority
+            ? _regions.ToList()
+            : _regions.Where(CanEditRegion).ToList();
+        if (editableRegions.Count == 0)
+            throw new UnauthorizedAccessException("Region edit authority is required to save regions.");
+
         var catalog = new WorldRegionCatalog(WorldId, _regions.ToList(), DateTimeOffset.UtcNow);
         var json = JsonSerializer.Serialize(catalog, MapWriteOptions);
         await js.InvokeVoidAsync("localStorage.setItem", RegionLocalSaveKey, json);
         if (IsLoggedIn)
         {
             var authority = await GetClaimAuthorityClientAsync();
-            if (authority is not null)
-            {
-                foreach (var region in _regions)
-                    await authority.SaveRegionAsync(WorldId, region);
-            }
+            if (authority is null)
+                throw new InvalidOperationException("Region database authority is unavailable.");
 
-            // Private storage is retained as recovery; shared RegionDefiner truth is
-            // sourced from the server-authoritative world database.
-            await EnsureWorldRelationshipAsync();
-            await auth.UploadTextAsync(RegionDirectoryKey, json, "application/json");
+            foreach (var region in editableRegions)
+                await authority.SaveRegionAsync(WorldId, region);
+
+            // Only a world GM/owner writes the complete recovery catalog. A
+            // claimant can mutate only the database-backed region they own.
+            if (HasTrustedWorldBuilderAuthority)
+            {
+                await EnsureWorldRelationshipAsync();
+                await auth.UploadTextAsync(RegionDirectoryKey, json, "application/json");
+            }
         }
         Notify();
     }
