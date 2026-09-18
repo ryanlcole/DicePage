@@ -7,7 +7,7 @@ RegionDefiner is derived from WorldBuilder, but it does not become another autho
 1. A World ID is selected first.
 2. Choosing **RegionDefiner** opens a Region chooser styled like the World chooser. It lists saved regions and a **New** action.
 3. Opening a saved region loads its stored Tier, source-world provenance, crop mask and regional map.
-4. Choosing **New** opens a full-world preview sourced from the selected world's database-backed authored map state. Endemar follows the same database source rule as every other world; canonical tier images may be used only as visual fallbacks when authored source imagery is temporarily absent.
+4. Choosing **New** opens a full-world preview sourced from the selected world's shared database-backed **WorldBuilder source snapshot**. RegionDefiner does not carry its own hard-coded world-map images: the Tier images, placed images, sprites and labels are called from the map state published by WorldBuilder. Endemar follows the same database source rule as every other world.
 5. The New Region preview is swipeable across the three World Tiers. The user selects exactly one Tier. RegionDefiner never uses WorldBuilder's **All Parallax** mode for a new region.
 6. After the Tier is selected, RegionDefiner enters selection-only mode: the only contextual keyboard is **Select**. Zoom/camera controls remain available so the user can navigate before choosing cells.
 7. The viewer supports **Square** and **Hex** selection grids. Square is the default. The chosen geometry also becomes the placement snap grid for later regional assets.
@@ -51,3 +51,8 @@ A pending request does not unlock regional building. The GM decision is the auth
 ## Extents
 
 The source viewer remains 30×30 addressable cells for claiming. RegionDefiner applies the same claim/crop/build process to every selected world, including Endemar. Any underlying world-extent or ownership rules remain world-level authority and do not change the RegionDefiner workflow.
+
+
+## Shared WorldBuilder source
+
+WorldBuilder publishes its saved map representation to the world database as one shared source snapshot. The browser IndexedDB copy is a cache/recovery surface, not RegionDefiner authority. A shared source snapshot carries the World ID, Tier image references, viewer Tier/Layer metadata, grid metadata, and the authored WorldBuilder layer references needed to reconstruct the map. RegionDefiner consumes that snapshot read-only and applies its 15° presentation and claim/crop workflow without rewriting the parent source.
