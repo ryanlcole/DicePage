@@ -996,7 +996,7 @@ function placeLabel(text){
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,
+    id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
     fontSize:48,bold:false,italic:false,color:LABEL_COLORS[0],textAlign:'center',letterSpacing:0,plate:false,
     offsetX:0,offsetY:0,parallaxX:0,parallaxY:0,node:null
@@ -1143,7 +1143,7 @@ async function placeUploadedImage(file){
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
   const placementPoint=REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint;
   const item={
-    id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
+    id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:placementPoint.x,y:placementPoint.y,tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
@@ -2090,7 +2090,7 @@ function placePersonalImage(asset){
   if(!asset?.url)return;
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
+    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     originalSrc:asset.url,transparentSrc:asset.url,transparent:false,x:point.x,y:point.y,tier:address.tier,layer:address.layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
@@ -2195,7 +2195,7 @@ function placeLibraryTile(asset){
   if(!asset?.image)return;
   const point=viewerCenterPosition(),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
-    assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,
+    assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
     x:point.x,y:point.y,tier:placementAddress(currentTierIndex(),1).tier,layer:placementAddress(currentTierIndex(),1).layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
@@ -2261,7 +2261,7 @@ async function placeSpriteDefinition(definition){
   announce(`Preparing frame 1 of ${definition.name||'sprite'} for placement.`);
   const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
   const item={
-    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
+    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:Math.max(1,Number(definition.fps)||6),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
     spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,
