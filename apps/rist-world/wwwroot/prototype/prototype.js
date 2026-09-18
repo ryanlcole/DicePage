@@ -1066,12 +1066,12 @@ function updateReadouts(){
   stage.dataset.worldSeed=WORLD_SEED;
   stage.dataset.viewerTier=viewerTier;
   stage.dataset.viewerLayer=String(viewerLayer);
-  stage.dataset.layerCount=String(BASE_LAYER_COUNT+userLayers.length);
+  stage.dataset.layerCount=String(BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length);
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
   const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
   const continentLabel=CONTINENT_NAME?` Continent ${CONTINENT_NAME}.`:'';
   const regionalLayers=REGION_DEFINER?` Visible World layers ${[...regionWorldLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1).join(', ')||'none'}.`:'';
-  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.${regionalLayers} Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
+  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length} total image layers.${regionalLayers} Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
 }
 function applyTransform(){
   invalidateRegionCamera();
@@ -1508,7 +1508,7 @@ function renderRegionSelectKeyboard(){
     keyboardKeys.append(
       readoutKey('SURFACE','default World view'),
       readoutKey(regionGridShape.toUpperCase(),'selection + placement grid'),
-      toolKey('CLAIM REGION','choose Tier and tiles',startRegionClaim),
+      toolKey(regionWorldSourceMeta?'CLAIM REGION':'LOADING…',regionWorldSourceMeta?'choose Tier and world-map tiles':'waiting for selected world',startRegionClaim,!regionWorldSourceMeta),
       toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','grid type',cycleRegionGridShape),
       readoutKey(`${regionCatalog.length} SAVED`,'defined regions')
     );return;
@@ -2049,7 +2049,7 @@ function renderKeyboardKeys(){
       regionClaimedRegion
         ? readoutKey(regionGridShape.toUpperCase(),'saved placement grid')
         : toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement grid',cycleRegionGridShape),
-      toolKey(regionClaimedRegion?'REGION':'CLAIM','open Select tools',()=>{keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce(regionClaimedRegion?'Claimed Region controls opened.':'Claim Region controls opened.')})
+      toolKey(regionClaimedRegion?'REGION':(regionWorldSourceMeta?'CLAIM':'LOADING…'),regionClaimedRegion?'open claimed region':(regionWorldSourceMeta?'open Select tools':'waiting for selected world'),()=>{if(!regionClaimedRegion&&!regionWorldSourceMeta)return;keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce(regionClaimedRegion?'Claimed Region controls opened.':'Claim Region controls opened.')},!regionClaimedRegion&&!regionWorldSourceMeta)
     );
     return;
   }
@@ -2388,7 +2388,7 @@ window.ShaelvienPrototype=Object.freeze({
   getViewerState:()=>({
     workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,sourceWorldLocked:WORLD_SOURCE_LOCKED,
     viewerTier,viewerLayer,
-    layerCount:BASE_LAYER_COUNT+userLayers.length,
+    layerCount:BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length,
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
