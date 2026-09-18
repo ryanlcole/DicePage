@@ -44,6 +44,8 @@ def test_regiondefiner_is_permissioned_view_of_same_canonical_database_map():
     assert "Array.isArray(snapshot.tierImages)" in prototype
     assert "Array.isArray(snapshot.userLayers)" in prototype
     assert "belongsToActiveRegion" in prototype
+    assert "canonicalSource:true" in prototype
+    assert "if(!item?.canonicalSource)continue;" in prototype
     assert "saveRegionMapToDatabase(serializedLayers)" in prototype
     assert "RIST_REGIONDEFINER_OVERLAYS" not in prototype
     assert "stage.dataset.worldSource='database'" in prototype
