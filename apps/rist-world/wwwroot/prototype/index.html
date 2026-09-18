@@ -11,12 +11,12 @@
 <main class="shell" aria-label="Shaelvien World Builder">
   <section id="stage" class="stage" aria-label="Interactive world viewer with all parallax layers visible">
     <div id="world" class="world" aria-live="off">
-      <img id="surfacePlane" class="plane base" alt="Full Geonaph canonical surface map" draggable="false" />
-      <img id="highlandsPlane" class="plane highlands" alt="Transparent Geonaph highlands and rivers parallax layer" draggable="false" />
-      <img id="mountainPlane" class="plane mountains" alt="Transparent Geonaph mountain volcanic and archipelago parallax layer" draggable="false" />
+      <img id="surfacePlane" class="plane base" alt="Canonical surface map" draggable="false" />
+      <img id="highlandsPlane" class="plane highlands" alt="Transparent highlands and rivers parallax layer" draggable="false" />
+      <img id="mountainPlane" class="plane mountains" alt="Transparent mountain volcanic and archipelago parallax layer" draggable="false" />
       <svg id="celestialPathLayer" class="celestial-path-layer" aria-hidden="true"></svg>
     </div>
-    <div id="loading" class="loading">LOADING GEONAPH…</div>
+    <div id="loading" class="loading">LOADING WORLD…</div>
     <section id="battleInstance" class="battle-instance" aria-label="Battle Instance" hidden><strong>BATTLE INSTANCE</strong><span id="battleText">Entity focus becomes a tactical viewer representation while the world coordinate identity remains unchanged.</span></section>
     <div class="hud" aria-label="Map zoom controls" data-ui><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="fit" class="fit" type="button" aria-label="Fit map to screen">⛶</button></div>
     <div class="control-cluster" aria-label="World Builder primary controls" data-ui>
@@ -28,7 +28,7 @@
     <section id="viewerSettingsPanel" class="viewer-settings-panel" role="dialog" aria-modal="true" aria-label="World Builder settings" hidden data-ui>
       <div class="viewer-settings-card">
         <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
-        <button id="settingsFit" type="button"><span aria-hidden="true">⛶</span><strong>Fit View</strong></button>
+        <button id="settingsFit" type="button" aria-label="Fit map to screen"><span aria-hidden="true">⛶</span><strong aria-hidden="true">View</strong></button>
         <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Tilt</strong></button>
         <button id="settingsStartMenu" type="button"><span aria-hidden="true">⌂</span><strong>Start Menu</strong></button>
       </div>
