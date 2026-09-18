@@ -13,27 +13,23 @@ html,body{margin:0;width:100%;height:100%;background:#05070d}
 body{min-height:100dvh;overflow:hidden}
 .screen{position:fixed;inset:0;overflow:hidden;background:#05070d;display:grid;place-items:end center;padding:max(26px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(34px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))}
 .artwork,.artwork-lock{position:absolute;inset:-4%;background:#05070d url('/Game/assets/branding/shaelvien-dragon-creation-startup-screen.png?v=20260907') center 47%/cover no-repeat;transform-origin:center center;pointer-events:none}
-.artwork{z-index:0;transform:translate3d(var(--rist-entry-parallax-x,0px),var(--rist-entry-parallax-y,0px),0) scale(1.055);will-change:transform;transition:transform 90ms linear}
+.artwork{z-index:0;transform:scale(1.055)}
 .artwork-lock{z-index:1;transform:scale(1.055);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 10%,#000 32%,transparent 37%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 10%,#000 32%,transparent 37%,transparent 100%)}
 .screen:after{content:"";position:absolute;z-index:2;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.03) 0%,rgba(0,0,0,.08) 48%,rgba(0,0,0,.82) 100%);pointer-events:none}
 .entry{position:relative;z-index:3;width:100%;max-width:720px;display:grid;gap:10px;justify-items:center;text-align:center;justify-self:center;align-self:end;padding-bottom:clamp(6px,2vh,20px)}
 .tagline{margin:0 0 2px;color:#eef3f5;font:700 clamp(12px,2.8vw,17px)/1.35 Georgia,"Times New Roman",serif;letter-spacing:.18em;text-shadow:0 2px 10px #000}
 .menu{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .menu button,.return-link{min-width:0;min-height:50px;border:1px solid #718492;border-radius:7px;background:rgba(8,16,25,.88);color:#f4f0e5;font-weight:900;font-size:clamp(10px,2.4vw,14px);line-height:1.1;letter-spacing:.02em;box-shadow:0 10px 24px #0008;touch-action:manipulation}
-.menu button:focus-visible,.return-link:focus-visible,.parallax-toggle:focus-visible{outline:3px solid #ffe9ad;outline-offset:3px}
-.menu button:active,.return-link:active,.parallax-toggle:active{transform:scale(.98)}
+.menu button:focus-visible,.return-link:focus-visible{outline:3px solid #ffe9ad;outline-offset:3px}
+.menu button:active,.return-link:active{transform:scale(.98)}
 .menu button:nth-child(2){border-color:#c79a47;background:linear-gradient(#51381a,#291a0d);color:#ffe9ad}
 .return-link{display:flex;align-items:center;justify-content:center;padding:6px 5px;text-decoration:none;background:rgba(5,10,16,.78)}
 .provider{margin:0;color:#c5cbd0;font-size:clamp(10px,2.2vw,12px);font-weight:800;line-height:1.35;text-shadow:0 2px 8px #000}
-.parallax-toggle{min-height:28px;padding:4px 11px;border:1px solid #617782;border-radius:999px;background:rgba(5,10,16,.72);color:#b9c8cf;font:900 9px/1 system-ui,-apple-system,sans-serif;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 5px 14px #0007;touch-action:manipulation}
-.parallax-toggle[aria-pressed="true"]{border-color:#b98f45;background:rgba(48,34,16,.82);color:#ffe9ad}
-.parallax-toggle .parallax-state{margin-left:.34em}
 .status{margin:0;color:#ffe9ad;font-weight:900;font-size:16px;text-shadow:0 2px 12px #000}
 .alpha{margin:0;color:#b7c2c9;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){.artwork{transition:none;transform:scale(1.055)!important}}
-@media (orientation:landscape) and (max-height:560px){.artwork,.artwork-lock{background-position:center 45%}.screen{padding-bottom:max(10px,env(safe-area-inset-bottom))}.entry{gap:6px;padding-bottom:0}.tagline{font-size:11px}.menu button,.return-link{min-height:42px}.provider{font-size:10px}.parallax-toggle{min-height:24px;padding:3px 9px}.alpha{display:none}}
-@media (max-width:420px){.artwork,.artwork-lock{inset:-2.6%}.artwork{transform:translate3d(var(--rist-entry-parallax-x,0px),var(--rist-entry-parallax-y,0px),0) scale(1)}.artwork-lock{transform:scale(1);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 9%,#000 31%,transparent 35%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 9%,#000 31%,transparent 35%,transparent 100%)}.entry{width:100%;gap:8px}.menu{gap:5px}.menu button,.return-link{min-height:52px;font-size:10px;padding:5px 3px}.provider{max-width:96%;font-size:10px}.alpha{font-size:9px;line-height:1.35;letter-spacing:.08em}}
+@media (orientation:landscape) and (max-height:560px){.artwork,.artwork-lock{background-position:center 45%}.screen{padding-bottom:max(10px,env(safe-area-inset-bottom))}.entry{gap:6px;padding-bottom:0}.tagline{font-size:11px}.menu button,.return-link{min-height:42px}.provider{font-size:10px}.alpha{display:none}}
+@media (max-width:420px){.artwork,.artwork-lock{inset:-2.6%}.artwork{transform:scale(1)}.artwork-lock{transform:scale(1);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 9%,#000 31%,transparent 35%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,transparent 5%,#000 9%,#000 31%,transparent 35%,transparent 100%)}.entry{width:100%;gap:8px}.menu{gap:5px}.menu button,.return-link{min-height:52px;font-size:10px;padding:5px 3px}.provider{max-width:96%;font-size:10px}.alpha{font-size:9px;line-height:1.35;letter-spacing:.08em}}
 </style>
 </head>
 <body>
@@ -48,7 +44,6 @@ body{min-height:100dvh;overflow:hidden}
       <a class="return-link" href="/" aria-label="Return to ReLiCGameMaster.com">RETURN</a>
     </div>
     <p class="provider">Secure account access provided by <strong>Discord</strong>. Sign in if you already have a ReLiC account; create an account if this is your first visit.</p>
-    <button id="parallax" class="parallax-toggle" type="button" aria-pressed="false" aria-label="Turn parallax on">PARALLAX <span id="parallax-state" class="parallax-state">OFF</span></button>
     <p id="status" class="status" role="status" aria-live="polite" hidden></p>
     <p class="alpha">RIST MMO / Sandbox · Friends &amp; Family Alpha · Wider public testing in preparation</p>
   </section>
@@ -58,39 +53,12 @@ body{min-height:100dvh;overflow:hidden}
 <script>
 (()=>{'use strict';
 const status=document.getElementById('status'),menu=document.getElementById('menu'),signin=document.getElementById('signin'),signup=document.getElementById('signup');
-const artwork=document.getElementById('artwork'),parallaxButton=document.getElementById('parallax'),parallaxState=document.getElementById('parallax-state');
 const cookieName='rist_session',profileKey='account/profile.json';
-const PARALLAX_PREF='rist.parallax.enabled.v1',PARALLAX_ACTIVE='rist.parallax.worldbuilder.active.v1',MOTION_GRANTED='rist.parallax.motion-granted.v1';
-let api='',busy=false,motionListening=false,motionPermission='unknown',baselineBeta=null,baselineGamma=null,targetX=0,targetY=0,currentX=0,currentY=0,motionFrame=0;
-const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
-const readLocal=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}catch{return fallback}};
-const writeLocal=(key,value)=>{try{localStorage.setItem(key,String(value))}catch{}};
-const readSession=(key,fallback)=>{try{return sessionStorage.getItem(key)??fallback}catch{return fallback}};
-const writeSession=(key,value)=>{try{sessionStorage.setItem(key,String(value))}catch{}};
-let parallaxEnabled=readLocal(PARALLAX_PREF,'off')==='on';
-const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+let api='',busy=false;
 const say=m=>{const text=String(m||'');status.textContent=text;status.hidden=!text;menu.hidden=!!text;};
 const restoreMenu=()=>{status.textContent='';status.hidden=true;menu.hidden=false;};
 const setCookie=t=>document.cookie=`${cookieName}=${encodeURIComponent(t)}; Path=/; Max-Age=28800; Secure; SameSite=Lax`;
 const clearLegacyAuthState=()=>{try{localStorage.removeItem('rist.auth.intent');localStorage.removeItem('rist.signup.alias');localStorage.removeItem('rist.signup.plan');localStorage.removeItem('rist.signup.termsAccepted');sessionStorage.removeItem('rist.preview');}catch{}};
-function syncParallaxButton(){parallaxButton.setAttribute('aria-pressed',parallaxEnabled?'true':'false');parallaxButton.setAttribute('aria-label',parallaxEnabled?'Turn parallax off':'Turn parallax on');parallaxState.textContent=parallaxEnabled?'ON':'OFF';}
-function persistParallax(){writeLocal(PARALLAX_PREF,parallaxEnabled?'on':'off');writeLocal(PARALLAX_ACTIVE,parallaxEnabled?'on':'off');syncParallaxButton();if(!parallaxEnabled)resetParallax();}
-function resetParallax(){targetX=0;targetY=0;scheduleParallax();}
-function scheduleParallax(){if(!motionFrame)motionFrame=requestAnimationFrame(renderParallax);}
-function renderParallax(){motionFrame=0;if(reducedMotion||!parallaxEnabled){currentX=0;currentY=0}else{currentX+=(targetX-currentX)*.16;currentY+=(targetY-currentY)*.16}artwork.style.setProperty('--rist-entry-parallax-x',`${currentX.toFixed(2)}px`);artwork.style.setProperty('--rist-entry-parallax-y',`${currentY.toFixed(2)}px`);if(Math.abs(targetX-currentX)>.03||Math.abs(targetY-currentY)>.03)motionFrame=requestAnimationFrame(renderParallax);}
-function screenAdjusted(beta,gamma){const angle=(screen.orientation?.angle??window.orientation??0);if(angle===90)return{beta:-gamma,gamma:beta};if(angle===-90||angle===270)return{beta:gamma,gamma:-beta};if(Math.abs(angle)===180)return{beta:-beta,gamma:-gamma};return{beta,gamma};}
-function onOrientation(event){if(!parallaxEnabled||reducedMotion||event.beta==null||event.gamma==null)return;const adjusted=screenAdjusted(Number(event.beta),Number(event.gamma));if(baselineBeta==null||baselineGamma==null){baselineBeta=adjusted.beta;baselineGamma=adjusted.gamma}const beta=clamp(adjusted.beta-baselineBeta,-24,24),gamma=clamp(adjusted.gamma-baselineGamma,-24,24);targetX=clamp(gamma*.42,-10,10);targetY=clamp(beta*.30,-7,7);scheduleParallax();}
-function beginMotionListening(){if(motionListening||reducedMotion)return;motionListening=true;motionPermission='granted';baselineBeta=null;baselineGamma=null;writeSession(MOTION_GRANTED,'granted');window.addEventListener('deviceorientation',onOrientation,true);}
-async function requestMotionPermission(){if(!parallaxEnabled||reducedMotion)return motionPermission;if(motionListening)return 'granted';try{const Orientation=window.DeviceOrientationEvent;if(!Orientation){motionPermission='unsupported';return motionPermission}if(typeof Orientation.requestPermission==='function'){const result=await Orientation.requestPermission();motionPermission=result;if(result==='granted')beginMotionListening();}else beginMotionListening();}catch{motionPermission='denied'}return motionPermission;}
-function onPointerMove(event){if(!parallaxEnabled||reducedMotion||event.pointerType==='touch')return;targetX=clamp((event.clientX/Math.max(1,innerWidth)-.5)*18,-9,9);targetY=clamp((event.clientY/Math.max(1,innerHeight)-.5)*12,-6,6);scheduleParallax();}
-window.addEventListener('pointermove',onPointerMove,{passive:true});
-window.addEventListener('pointerout',event=>{if(!event.relatedTarget)resetParallax()},{passive:true});
-window.addEventListener('orientationchange',()=>{baselineBeta=null;baselineGamma=null;resetParallax()},{passive:true});
-screen.orientation?.addEventListener?.('change',()=>{baselineBeta=null;baselineGamma=null;resetParallax()});
-if(parallaxEnabled&&readSession(MOTION_GRANTED,'')==='granted')beginMotionListening();
-else if(parallaxEnabled&&'DeviceOrientationEvent' in window&&typeof window.DeviceOrientationEvent?.requestPermission!=='function')beginMotionListening();
-syncParallaxButton();scheduleParallax();
-parallaxButton.addEventListener('click',async()=>{parallaxEnabled=!parallaxEnabled;persistParallax();if(parallaxEnabled)await requestMotionPermission();});
 async function getApi(){if(api)return api;const r=await fetch('./auth-config.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('Account service configuration is unavailable.');const c=await r.json();api=(c.apiBaseUrl||'').replace(/\/$/,'');if(!api)throw new Error('Account service configuration is incomplete.');return api;}
 async function authFetch(base,token,path,opts={}){const h=new Headers(opts.headers||{});h.set('Authorization','Bearer '+token);return fetch(base+path,{...opts,headers:h,cache:'no-store'});}
 async function readProfile(base,token){const r=await authFetch(base,token,'/storage/download?key='+encodeURIComponent(profileKey));if(r.status===404)return null;if(!r.ok)throw new Error('Your account could not be checked.');const p=await r.json();if(!p?.url)return null;const f=await fetch(p.url,{cache:'no-store'});if(f.status===404)return null;if(!f.ok)throw new Error('Your account could not be checked.');return f.json();}
@@ -98,7 +66,7 @@ async function writeProfile(base,token,data){const prep=await authFetch(base,tok
 async function ensureAccount(base,token,me){const existing=await readProfile(base,token);if(existing)return;const now=new Date().toISOString();const alias=(me?.displayName||me?.DisplayName||'Player').trim().slice(0,32)||'Player';await writeProfile(base,token,{AccountId:crypto.randomUUID(),PlayerAlias:alias,Plan:'player',CreatedAtUtc:now,TermsAcceptedAtUtc:'0001-01-01T00:00:00+00:00',TermsVersion:'',ContentAccess:null});}
 function enter(token){clearLegacyAuthState();sessionStorage.setItem('rist.session',token);sessionStorage.setItem('rist.lastActivity',String(Date.now()));setCookie(token);say('Entering Shaelvien…');location.replace('/Game/index.html');}
 async function completeToken(base,token){const meResponse=await authFetch(base,token,'/me');if(!meResponse.ok)throw new Error('Your authenticated session could not be verified.');const me=await meResponse.json();await ensureAccount(base,token,me);enter(token);}
-async function begin(mode){if(busy)return;busy=true;try{clearLegacyAuthState();sessionStorage.setItem('rist.entryMode',mode);say(mode==='signup'?'Opening Discord to create or connect your ReLiC account…':'Opening Discord to sign in to your ReLiC account…');if(parallaxEnabled&&!motionListening)await requestMotionPermission();location.href=(await getApi())+'/auth/login';}catch(e){busy=false;say(e?.message||'Unable to start authentication.');setTimeout(restoreMenu,2600);}}
+async function begin(mode){if(busy)return;busy=true;try{clearLegacyAuthState();sessionStorage.setItem('rist.entryMode',mode);say(mode==='signup'?'Opening Discord to create or connect your ReLiC account…':'Opening Discord to sign in to your ReLiC account…');location.href=(await getApi())+'/auth/login';}catch(e){busy=false;say(e?.message||'Unable to start authentication.');setTimeout(restoreMenu,2600);}}
 async function handoff(code){say('Completing secure Discord sign in…');const base=await getApi();const r=await fetch(base+'/auth/session?handoff='+encodeURIComponent(code),{cache:'no-store'});if(!r.ok)throw new Error('The sign-in handoff expired. Please try again.');const p=await r.json();if(!p.sessionToken)throw new Error('The account service returned an invalid session.');await completeToken(base,p.sessionToken);}
 signin.onclick=()=>begin('signin');signup.onclick=()=>begin('signup');
 (async()=>{clearLegacyAuthState();try{const q=new URLSearchParams(location.search),h=q.get('rist_handoff');if(h){say('Completing secure Discord sign in…');history.replaceState(null,'',location.pathname);await handoff(h);return;}const saved=sessionStorage.getItem('rist.session');if(saved){say('Entering Shaelvien…');await completeToken(await getApi(),saved);return;}}catch(e){sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');busy=false;say(e?.message||'Authentication could not be completed.');setTimeout(restoreMenu,3000);}})();
