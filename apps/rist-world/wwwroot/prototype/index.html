@@ -4,31 +4,35 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
-  <title>Shaelvien Prototype · Geonaph Spatial Stack</title>
+  <title>Shaelvien World Builder</title>
   <link rel="stylesheet" href="./prototype.css" />
 </head>
 <body>
-<main class="shell" aria-label="Shaelvien Geonaph spatial-stack prototype">
-  <header class="toolbar" data-ui>
-    <button id="back" type="button" aria-label="Home">⌂</button>
-    <div class="title"><strong id="viewerTitle" contenteditable="true" role="textbox" aria-label="Editable viewer title" aria-multiline="false" spellcheck="false">GEONAPH · SPATIAL STACK</strong><span>One XYZ truth · Z shortcuts · recursive focus · zoom-driven parallax</span></div>
-    <button id="stratumShortcut" class="tier-shortcut" type="button" aria-label="All Parallax. Open tier selector" aria-haspopup="menu" aria-expanded="false"><span id="stratumGlyph" aria-hidden="true">≋</span></button>
-    <div id="stratumMenu" class="tier-menu" role="menu" aria-label="Tier and focus selector" hidden></div>
-  </header>
-  <section id="stage" class="stage" aria-label="Interactive Geonaph viewer">
+<main class="shell" aria-label="Shaelvien World Builder">
+  <section id="stage" class="stage" aria-label="Interactive world viewer with all parallax layers visible">
     <div id="world" class="world" aria-live="off">
       <img id="surfacePlane" class="plane base" alt="Full Geonaph canonical surface map" draggable="false" />
       <img id="highlandsPlane" class="plane highlands" alt="Transparent Geonaph highlands and rivers parallax layer" draggable="false" />
       <img id="mountainPlane" class="plane mountains" alt="Transparent Geonaph mountain volcanic and archipelago parallax layer" draggable="false" />
       <svg id="celestialPathLayer" class="celestial-path-layer" aria-hidden="true"></svg>
     </div>
-    <div id="stratumNote" class="stratum-note"><strong>All parallax</strong> · S 100% · H 100% · M 82%</div>
     <div id="loading" class="loading">LOADING GEONAPH…</div>
     <section id="battleInstance" class="battle-instance" aria-label="Battle Instance" hidden><strong>BATTLE INSTANCE</strong><span id="battleText">Entity focus becomes a tactical viewer representation while the world coordinate identity remains unchanged.</span></section>
-    <div class="status"><strong id="viewLabel">All parallax · Z 0</strong><br><span id="zoomLabel">Fit view</span><br><span id="pathLabel">Focus: Parallax</span></div>
-    <div class="hud" aria-label="Map zoom controls" data-ui><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="fit" class="fit" type="button" aria-label="Fit map to screen">FIT</button></div>
-    <button id="keyboardToggle" class="keyboard-toggle square-action" type="button" aria-label="Open World Builder keyboard" aria-expanded="false" aria-controls="viewerKeyboard" data-ui>⌨</button>
-    <button id="imageUploadToggle" class="image-upload-toggle square-action" type="button" aria-label="Add image" aria-haspopup="dialog" data-ui>▧</button>
+    <div class="hud" aria-label="Map zoom controls" data-ui><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="fit" class="fit" type="button" aria-label="Fit map to screen">⛶</button></div>
+    <div class="control-cluster" aria-label="World Builder primary controls" data-ui>
+      <button id="back" class="square-action" type="button" aria-label="Home">⌂</button>
+      <button id="imageUploadToggle" class="square-action" type="button" aria-label="Add image" aria-haspopup="dialog">▧</button>
+      <button id="keyboardToggle" class="square-action" type="button" aria-label="Open World Builder keyboard" aria-expanded="false" aria-controls="viewerKeyboard">⌨</button>
+      <button id="settingsToggle" class="square-action" type="button" aria-label="World Builder settings" aria-haspopup="dialog">⚙</button>
+    </div>
+    <section id="viewerSettingsPanel" class="viewer-settings-panel" role="dialog" aria-modal="true" aria-label="World Builder settings" hidden data-ui>
+      <div class="viewer-settings-card">
+        <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
+        <button id="settingsFit" type="button"><span aria-hidden="true">⛶</span><strong>Fit View</strong></button>
+        <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Tilt</strong></button>
+        <button id="settingsStartMenu" type="button"><span aria-hidden="true">⌂</span><strong>Start Menu</strong></button>
+      </div>
+    </section>
     <section id="imageUploadPanel" class="image-upload-panel" role="dialog" aria-modal="true" aria-label="Add image" hidden data-ui>
       <div class="image-upload-card">
         <header><strong>ADD IMAGE</strong><button id="imageUploadClose" type="button" aria-label="Close image upload">×</button></header>
