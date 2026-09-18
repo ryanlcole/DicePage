@@ -27,12 +27,16 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
+const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
+const WORLDBUILDER_SAVE_STORE='worlds';
+const WORLDBUILDER_SAVE_KEY=WORLD_ID||WORLD_SEED||'prototype';
+let restoreSaveStarted=false;
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
 const WORLD_TERRAIN_FOLDERS=Object.freeze(['Vent Fields','Canyons','Lakes','Rivers','Cliffs','Volcano','Ice','Snow','Mountains','Hills','Desert','Swamp','Jungle','Forest','Plains','Beach','Coast','Ocean']);
@@ -177,6 +181,91 @@ function settleCollisionAnchor(hit,clientX,clientY){
   stage.dataset.zoomCollision=hit.kind==='user'?'user-image':hit.key;
 }
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function openSaveDb(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB'in window)){reject(new Error('IndexedDB unavailable'));return}
+    const request=indexedDB.open(WORLDBUILDER_SAVE_DB,1);
+    request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(WORLDBUILDER_SAVE_STORE))db.createObjectStore(WORLDBUILDER_SAVE_STORE)};
+    request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('Save database unavailable'));
+  });
+}
+async function writeSavedWorldBuilder(state){
+  const db=await openSaveDb();
+  try{
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(WORLDBUILDER_SAVE_STORE,'readwrite');
+      tx.objectStore(WORLDBUILDER_SAVE_STORE).put(state,WORLDBUILDER_SAVE_KEY);
+      tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||new Error('Save failed'));tx.onabort=()=>reject(tx.error||new Error('Save aborted'));
+    });
+  }finally{db.close()}
+}
+async function readSavedWorldBuilder(){
+  const db=await openSaveDb();
+  try{
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(WORLDBUILDER_SAVE_STORE,'readonly'),request=tx.objectStore(WORLDBUILDER_SAVE_STORE).get(WORLDBUILDER_SAVE_KEY);
+      request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error||new Error('Load failed'));
+    });
+  }finally{db.close()}
+}
+function serializableUserLayer(item){
+  return{
+    id:item.id,assetId:item.assetId||null,name:item.name||'',libraryTile:!!item.libraryTile,
+    originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
+    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),size:clamp(Number(item.size)||1,.05,20),
+    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1)
+  };
+}
+async function saveWorldBuilder(){
+  if(!persistentSave)return false;
+  persistentSave.disabled=true;persistentSave.classList.add('saving');persistentSave.classList.remove('saved');
+  try{
+    const state={
+      format:'RIST_WORLDBUILDER_PROTOTYPE',version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
+      viewerTier,viewerLayer,userLayers:userLayers.map(serializableUserLayer)
+    };
+    await writeSavedWorldBuilder(state);
+    persistentSave.classList.add('saved');
+    setTimeout(()=>persistentSave?.classList.remove('saved'),900);
+    announce(`World Builder saved. ${state.userLayers.length} placed image layer${state.userLayers.length===1?'':'s'} preserved.`);
+    return true;
+  }catch(error){
+    announce(`Save failed: ${String(error?.message||error||'unknown error')}`);
+    return false;
+  }finally{
+    persistentSave.disabled=false;persistentSave.classList.remove('saving');
+  }
+}
+function attachRestoredLayer(raw){
+  if(!raw?.originalSrc)return null;
+  const item={
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),assetId:raw.assetId||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,
+    originalSrc:String(raw.originalSrc),transparentSrc:String(raw.transparentSrc||raw.originalSrc),transparent:!!raw.transparent,
+    x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
+    opacity:clamp(Number(raw.opacity)||1,.01,1),renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+  };
+  const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}`;node.alt=item.name||'Placed image';node.draggable=false;item.node=node;
+  node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+  node.addEventListener('load',()=>{refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(item.originalSrc);if(item.transparentSrc!==item.originalSrc)void primeCollisionMask(item.transparentSrc);refreshUserImage(item);
+  return item;
+}
+async function restoreSavedWorldBuilder(){
+  if(restoreSaveStarted)return;restoreSaveStarted=true;
+  try{
+    const state=await readSavedWorldBuilder();
+    if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
+    userLayers.splice(0,userLayers.length);
+    world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
+    for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])attachRestoredLayer(raw);
+    viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
+    viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+    selectedImage=null;updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
+    announce(`Saved World Builder restored. ${userLayers.length} placed image layer${userLayers.length===1?'':'s'} loaded.`);
+  }catch{}
+}
 function ensureRegionEnhanceCanvas(){
   if(regionEnhanceCanvas?.isConnected)return regionEnhanceCanvas;
   const canvas=document.createElement('canvas');
@@ -728,6 +817,7 @@ BASE_WORLD_ASSETS.forEach(asset=>{
       fitMap();
       if(upscaleEnabled&&!upscaleStarted){upscaleStarted=true;void applyUpscalePreference()}
       scheduleRegionEnhancement(60);
+      void restoreSavedWorldBuilder();
     }else{
       if(asset.key==='surface')loading.hidden=true;
       renderState();
@@ -747,6 +837,7 @@ if(!BASE_WORLD_ASSETS.length){
   loading.hidden=true;
   world.dataset.emptyWorld='true';
   fitMap();
+  void restoreSavedWorldBuilder();
   announce('Empty world loaded. Add images to begin building.');
 }
 
@@ -799,6 +890,7 @@ function openStartMenu(){
   goHome();
 }
 
+persistentSave?.addEventListener('click',()=>void saveWorldBuilder());
 bindTap($('fit'),fitMap);
 bindTap($('zoomIn'),()=>zoomCenter(1.22));
 bindTap($('zoomOut'),()=>zoomCenter(1/1.22));
@@ -869,6 +961,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.
 window.ShaelvienPrototype=Object.freeze({
   world:Object.freeze({id:WORLD_ID,name:WORLD_NAME,seed:WORLD_SEED}),
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
+  save:saveWorldBuilder,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
