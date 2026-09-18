@@ -83,10 +83,10 @@ def test_ios_worldbuilder_foreground_uses_persisted_active_marker_and_guarded_re
     assert "document.body?.classList.toggle('wb-immersive-worldbuilder',active)" in source
 
 
-def test_shell_restores_worldbuilder_after_guarded_reload():
+def test_shell_returns_to_hub_after_authenticated_world_choice():
     source = SHELL.read_text(encoding='utf-8')
-    assert 'localStorage.getItem' in source
-    assert 'RestorableWorkspaces.Contains(storedWorkspace)' in source
-    assert 'ApplyWorkspace(storedWorkspace)' in source
-    assert '_workspaceOpen=true' in source
+    assert '_workspaceOpen=false' in source
+    assert '_worldGateOpen=false' in source
     assert 'await PersistWorkspaceAsync("hub")' in source
+    assert 'RestorableWorkspaces.Contains(storedWorkspace)' not in source
+    assert 'ApplyWorkspace(storedWorkspace)' not in source
