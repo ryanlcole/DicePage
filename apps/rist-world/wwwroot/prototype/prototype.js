@@ -1826,7 +1826,7 @@ async function handleRegionHostMessage(event){
   const data=event.data;if(!data||data.source!=='shaelvien-regiondefiner-host')return;
   if(data.type==='bridge-ready'){postRegionMessage('ready');return}
   if(data.type==='world-source'){
-    renderRegionWorldSource(data.worldSource||{});
+    await renderRegionWorldSource(data.worldSource||{});
     return;
   }
   if(data.type==='catalog'){
@@ -1864,6 +1864,9 @@ async function handleRegionHostMessage(event){
 if(REGION_DEFINER){
   window.addEventListener('message',handleRegionHostMessage);
   queueMicrotask(()=>{ensureRegionSelectionOverlay();postRegionMessage('ready')});
+}else if(LIVE_WORLDBUILDER&&window.parent!==window){
+  window.addEventListener('message',handleWorldBuilderHostMessage);
+  queueMicrotask(()=>postWorldBuilderHostMessage('ready'));
 }
 function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
