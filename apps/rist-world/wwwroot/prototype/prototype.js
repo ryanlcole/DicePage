@@ -255,10 +255,13 @@ function worldBuilderTierImages(){
 function worldBuilderSourceState(layers=userLayers){
   return{
     format:'RIST_WORLDBUILDER_PROTOTYPE',
-    version:2,
+    version:3,
     worldId:WORLD_ID,
     worldSeed:WORLD_SEED,
     savedAt:new Date().toISOString(),
+    coordinateSpace:'world-normalized-v1',
+    sourcePixelWidth:Math.max(1,Math.trunc(Number(naturalWidth)||SURFACE_WORLD_PIXELS)),
+    sourcePixelHeight:Math.max(1,Math.trunc(Number(naturalHeight)||SURFACE_WORLD_PIXELS)),
     viewerTier,
     viewerLayer,
     gridColumns:REGION_GRID_COLUMNS,
@@ -1361,9 +1364,13 @@ async function renderRegionWorldSource(payload){
     naturalHeight=sourcePixelHeight;
   }
   stage.dataset.worldSource='database';
-  const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
-  world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
-  tierImages.slice(0,TIERS.length).forEach((src,tier)=>{
+  const sharedBaseMap=BASE_WORLD_ASSETS.length>0;
+  const renderedTierImages=sharedBaseMap?[]:tierImages;
+  if(!sharedBaseMap&&!renderedTierImages.length&&!tiles.length&&!sourceLayers.length){
+    const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
+    world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
+  }
+  renderedTierImages.slice(0,TIERS.length).forEach((src,tier)=>{
     if(!src)return;
     const image=document.createElement('img');
     image.className='region-world-source-tier-image';
@@ -1411,18 +1418,19 @@ async function renderRegionWorldSource(payload){
   }
   updateLayerOrder();
   const authoredCount=tiles.length+sourceLayers.length;
-  world.dataset.emptyWorld=(authoredCount||tierImages.length)?'false':'true';
+  const hasCanonicalMap=sharedBaseMap||renderedTierImages.length||authoredCount;
+  world.dataset.emptyWorld=hasCanonicalMap?'false':'true';
   loading.hidden=true;
   updateRegionWorldSourceVisibility();
   fitMap();
   updateReadouts();renderKeyboardKeys();
   if(regionClaimPhase==='tier-preview'){
     showRegionTierPreview();
-    announce((authoredCount||tierImages.length)
+    announce(hasCanonicalMap
       ?'Canonical world map loaded. Swipe through the world tiers, then choose the tier to define a region.'
       :'The canonical world map has not been saved yet. Save it in World Builder first.');
   }else{
-    announce((authoredCount||tierImages.length)
+    announce(hasCanonicalMap
       ?`${regionWorldSourceMeta.worldName} canonical map loaded. Viewer perspective and permissions are active.`
       :`${regionWorldSourceMeta.worldName} has no saved canonical map yet.`);
   }
