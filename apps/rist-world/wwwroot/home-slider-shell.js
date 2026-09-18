@@ -1,7 +1,6 @@
 (()=>{
  'use strict';
  const HOME_ID='rist-app-home-slider';
- const PERCEIVER_ID='rist-launcher-perceiver';
  let observer=null;
  function isGameMaster(){
   const root=document.querySelector('.rist.release-world');
@@ -17,43 +16,6 @@
   button.setAttribute('aria-label',label);
   return button;
  }
- function applyBlazorScope(reference,...targets){
-  if(!reference)return;
-  const scope=[...reference.attributes].filter(attribute=>attribute.name.startsWith('b-'));
-  for(const target of targets){
-   if(!target)continue;
-   for(const attribute of scope)target.setAttribute(attribute.name,attribute.value);
-  }
- }
- function ensurePerceiver(){
-  const launcher=document.querySelector('.launcher-primary');
-  if(!launcher)return false;
-  const scopeSource=launcher.querySelector('.launcher-card:not(#'+PERCEIVER_ID+')')||launcher.querySelector('.launcher-card');
-  const existing=document.getElementById(PERCEIVER_ID);
-  if(existing){
-   applyBlazorScope(scopeSource,existing,...existing.children);
-   return true;
-  }
-  const button=document.createElement('button');
-  button.id=PERCEIVER_ID;
-  button.type='button';
-  button.className='launcher-card world';
-  button.setAttribute('aria-label','Open Perceiver cinematic motion parallax');
-  const icon=document.createElement('span');
-  icon.className='card-icon';
-  icon.setAttribute('aria-hidden','true');
-  icon.textContent='◉';
-  const title=document.createElement('strong');
-  title.textContent='PERCEIVER';
-  const detail=document.createElement('small');
-  detail.textContent='Cinematic depth using tier motion speed relative to the focal plane.';
-  applyBlazorScope(scopeSource,button,icon,title,detail);
-  button.append(icon,title,detail);
-  button.addEventListener('click',()=>window.location.assign('/perceiver/index.html'));
-  const prototype=[...launcher.querySelectorAll('button')].find(node=>node.textContent?.includes('PROTOTYPE'));
-  if(prototype)prototype.insertAdjacentElement('afterend',button);else launcher.prepend(button);
-  return true;
- }
  function suppressLegacyFooter(root){
   const legacy=root.querySelector('.release-footer-region');
   if(legacy){
@@ -64,7 +26,6 @@
   }
  }
  function buildHome(){
-  ensurePerceiver();
   const root=document.querySelector('.rist.release-world');
   if(!root)return false;
   suppressLegacyFooter(root);
@@ -98,11 +59,10 @@
   return true;
  }
  function start(){
-  ensurePerceiver();
   buildHome();
   const app=document.getElementById('app')||document.body;
   if(!observer){
-   observer=new MutationObserver(()=>{ensurePerceiver();buildHome();});
+   observer=new MutationObserver(()=>buildHome());
    observer.observe(app,{childList:true,subtree:true});
   }
   document.addEventListener('rist:game-start',buildHome);
