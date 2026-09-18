@@ -334,7 +334,7 @@ shortcut.addEventListener('change',()=>{if(shortcut.value==='all')jumpStratum('a
 $('fit').addEventListener('click',fitMap);
 $('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
 $('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
-$('back').addEventListener('click',()=>{location.href='/Game/index.html'});
+$('back').addEventListener('click',()=>{if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html'});
 viewerTitle?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();viewerTitle.blur()}else if(event.key==='Escape'){event.preventDefault();restoreViewerTitle();viewerTitle.blur()}});
 viewerTitle?.addEventListener('blur',saveViewerTitle);
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
