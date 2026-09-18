@@ -21,24 +21,33 @@ def main() -> None:
     router = (COMPONENTS / "TaskWorkspaceRouter.razor").read_text(encoding="utf-8")
     host = (COMPONENTS / "WorldBuilderGeonaphHost.razor").read_text(encoding="utf-8")
     ticker = (COMPONENTS / "SiteTicker.razor").read_text(encoding="utf-8")
+    index = (ROOT / "wwwroot" / "index.html").read_text(encoding="utf-8")
+    game_start = (ROOT / "wwwroot" / "game-start-screen.js").read_text(encoding="utf-8")
+    device = (ROOT / "wwwroot" / "device-settings.js").read_text(encoding="utf-8")
     rist = (ROOT / "wwwroot" / "rist.js").read_text(encoding="utf-8")
     compat = (ROOT / "wwwroot" / "auth-session-compat.js").read_text(encoding="utf-8")
     discord = (ROOT / "DiscordAuthClient.cs").read_text(encoding="utf-8")
     auth_template = (ROOT.parents[1] / "infra" / "aws" / "rist-discord-storage.yml").read_text(encoding="utf-8")
 
-    # Provider session -> mandatory world choice -> landing.
-    require(authenticated, "@if(!_launchWorldChosen)", "authenticated shell must gate landing on world choice")
+    # Provider session -> Press Start -> mandatory world choice -> landing.
+    require(authenticated, "@if(!_launchStarted)", "authenticated shell must show Press Start")
+    require(authenticated, "PRESS START", "authenticated shell must expose the start user gesture")
+    require(authenticated, "ristPrivacy.set", "Press Start must present storage/privacy choice")
+    require(authenticated, "ristLaunch.pressStart", "Press Start must use the canonical launch authority")
+    require(authenticated, "HARD REFRESH", "Press Start must expose hard refresh recovery")
+    require(authenticated, "else if(!_launchWorldChosen)", "world choice must follow Press Start")
     require(
         authenticated,
         '<WorldGate Open="true" RequireSelection="true" OnClose="CompleteWorldChoiceAsync" />',
-        "authenticated shell must own the mandatory initial world gate",
+        "authenticated shell must own the mandatory world gate",
     )
     require(authenticated, '<PublicAlphaShell @ref="_alphaShell" />', "landing shell must render only after world choice")
     require(authenticated, "_launchWorldChosen=true;", "successful world selection must unlock landing")
-    forbid(authenticated, "_launchStarted", "verified provider sessions must not add a second launch gate")
-    forbid(authenticated, "PRESS START", "verified provider sessions must go directly to world choice")
-    forbid(authenticated, "ristPrivacy.set", "privacy preference must not block authenticated launch")
-    forbid(authenticated, "ristMotionPermission.request", "motion permission must not block authenticated launch")
+    require(rist, "pressStart:async", "base runtime must own Press Start activation")
+    require(rist, "ristMotionPermission", "Press Start must request motion from the same user gesture")
+    require(device, "initializeAtStart", "device settings must initialize saved/default experience preferences")
+    require(device, "AUDIO_KEY", "audio preference must have one canonical key")
+    require(device, "VIDEO_KEY", "video preference must have one canonical key")
 
     # WorldGate paints before directory/network/storage work.
     require(gate, "protected override void OnParametersSet()", "world chooser must initialize synchronously")
@@ -55,7 +64,10 @@ def main() -> None:
     forbid(shell, "RestorableWorkspaces.Contains(storedWorkspace)", "old workspace restoration must not bypass world-first launch")
     forbid(shell, "ApplyWorkspace(storedWorkspace)", "old workspace restoration must not bypass landing")
 
-    # Device/media preferences remain available after landing; they are not auth gates.
+    # Experience activation belongs to Press Start; landing stays clean.
+    require(index, '<script src="device-settings.js"></script>', "device settings authority must load before Blazor")
+    forbid(game_start, "parallax-toggle", "pre-auth login must not expose a Parallax toggle")
+    forbid(shell, 'class="launcher-device-setup"', "landing must not ask for Parallax/motion setup again")
     require(shell, "ToggleAudioAsync", "audio preference must remain editable from Start menu")
     require(shell, "ToggleVideoAsync", "video preference must remain editable from Start menu")
     require(shell, "HardRefreshAsync", "Start menu must expose hard refresh recovery")
@@ -84,7 +96,7 @@ def main() -> None:
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
-    print("Authenticated launch contract verified: provider session -> world choice -> landing -> selected-world workspace.")
+    print("Authenticated launch contract verified: provider session -> Press Start -> world choice -> landing -> selected-world workspace.")
 
 
 if __name__ == "__main__":
