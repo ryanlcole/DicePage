@@ -51,6 +51,13 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<WorldClaimRequest?> DecideClaimRequestAsync(WorldClaimDecision decision)
         => await SendAsync<WorldClaimRequest>(HttpMethod.Post, "/world/claims/decision", decision);
 
+    public async Task<List<WorldRegion>?> GetRegionsAsync(string worldId)
+        => await SendAsync<List<WorldRegion>>(HttpMethod.Get,
+            "/world/regions?worldId=" + Uri.EscapeDataString(worldId));
+
+    public async Task<WorldRegion?> SaveRegionAsync(string worldId, WorldRegion region)
+        => await SendAsync<WorldRegion>(HttpMethod.Post, "/world/regions", new { worldId, region });
+
     private async Task<T?> SendAsync<T>(HttpMethod method, string path, object? body = null)
     {
         if (!IsConfigured) return default;
@@ -85,7 +92,8 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         List<int> SelectedCells,
         List<int> SourceLayerOffsets,
         string GridShape,
-        string RequestedResourceId = "");
+        string RequestedResourceId = "",
+        string RequestedName = "");
 
     public sealed record WorldClaimRequest(
         string RequestId,
@@ -102,7 +110,8 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset UpdatedAtUtc,
         string ApprovedResourceId = "",
-        string Note = "");
+        string Note = "",
+        string RequestedName = "");
 
     public sealed record WorldClaimDecision(
         string WorldId,
