@@ -93,7 +93,7 @@
     .keyboard-tabs button.active{border-color:#d0aa56;background:#211b0f;color:#f7df9f}
     .keyboard-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));grid-auto-rows:minmax(48px,1fr);gap:6px;overflow:auto;padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left))}
     .keyboard-keys button{min-height:48px;border:1px solid #425861;border-radius:8px;background:#0c1820;color:#dae2e5;display:grid;place-items:center;align-content:center;gap:3px;font-weight:900;touch-action:manipulation}
-    .keyboard-keys button strong{color:#efd895;font-size:12px}.keyboard-keys button small{color:#829daa;font-size:7px;letter-spacing:.07em;text-transform:uppercase}.keyboard-keys button[disabled]{opacity:.45}.keyboard-keys .readout{pointer-events:none}.keyboard-keys .readout strong{font-size:10px}
+    .keyboard-keys button strong{color:#efd895;font-size:12px}.keyboard-keys button small{color:#829daa;font-size:7px;letter-spacing:.07em;text-transform:uppercase}.keyboard-keys button[disabled]{opacity:.45}.keyboard-keys .readout{pointer-events:none;opacity:1!important;background:#0a151b;border-color:#6f6038}.keyboard-keys .readout strong{font-size:11px}.keyboard-keys .readout small{color:#b5c5cc}
     .keyboard-keys .placed-content-select{min-height:48px;grid-column:span 2;min-width:0;padding:0 34px 0 10px;border:1px solid #8c6b2d;border-radius:8px;background:#0c1820;color:#f3deb0;font:800 9px/1.2 system-ui;touch-action:manipulation}
     .keyboard-keys .placed-content-select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
     .keyboard-keys .placed-content-select:disabled{opacity:.45}
