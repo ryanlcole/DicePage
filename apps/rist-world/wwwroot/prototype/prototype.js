@@ -2,18 +2,16 @@
 'use strict';
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
 const BASE_WORLD_ASSETS=Object.freeze([
-  Object.freeze({key:'surface',file:'geonaph_full_static_canonical_surface_v001.png'}),
-  Object.freeze({key:'highlands',file:'geonaph_full_static_highlands_rivers_v001.png'}),
-  Object.freeze({key:'mountains',file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})
+  Object.freeze({key:'surface',file:'geonaph_full_static_canonical_surface_v001.png'})
 ]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),parallaxAdd=$('parallaxAdd'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
-const planeByKey={surface,highlands,mountains};
-const layerReady={surface:false,highlands:false,mountains:false};
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),parallaxAdd=$('parallaxAdd'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const planeByKey={surface};
+const layerReady={surface:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,currentParallaxGroup=0,parallaxGapCount=0;
 const userLayers=[];
@@ -99,8 +97,8 @@ async function placeUploadedImage(file){
 }
 function applyParallax(){
   const dx=x-fitX,dy=y-fitY;
-  surface.style.opacity=layerReady.surface?'1':'0';highlands.style.opacity=layerReady.highlands?'1':'0';mountains.style.opacity=layerReady.mountains?'1':'0';
-  surface.style.transform='none';highlands.style.transform='none';mountains.style.transform='none';
+  surface.style.opacity=layerReady.surface?'1':'0';
+  surface.style.transform='none';
   for(const item of userLayers){
     const depth=Math.max(0,item.parallaxGroup||0);
     const panStrength=depth*.055,tiltStrength=depth*.78;
