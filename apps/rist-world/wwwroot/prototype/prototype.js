@@ -1,36 +1,52 @@
 (() => {
 'use strict';
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
+const TIERS=Object.freeze([
+  Object.freeze({key:'sea',label:'Sea Level',index:0,glyph:'≈'}),
+  Object.freeze({key:'hills',label:'Hills / Low Clouds',index:1,glyph:'⌁'}),
+  Object.freeze({key:'mountains',label:'Mountains / Weather',index:2,glyph:'▲'})
+]);
 const BASE_WORLD_ASSETS=Object.freeze([
-  Object.freeze({key:'surface',file:'geonaph_full_static_canonical_surface_v001.png'})
+  Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png'}),
+  Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png'}),
+  Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})
 ]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),parallaxAdd=$('parallaxAdd'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
-const planeByKey={surface};
-const layerReady={surface:false};
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const planeByKey={surface,highlands,mountains};
+const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,currentParallaxGroup=0,parallaxGapCount=0;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0;
 const userLayers=[];
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function tierByIndex(index){return TIERS.find(t=>t.index===index)||TIERS[0]}
+function tierByKey(key){return TIERS.find(t=>t.key===key)||TIERS[0]}
+function currentTierIndex(){return viewerTier==='all'?0:tierByKey(viewerTier).index}
 function updateLayerOrder(){
-  userLayers.forEach((item,index)=>{item.layerIndex=index+BASE_LAYER_COUNT;item.node.style.zIndex=String(10+index);item.node.dataset.layer=String(item.layerIndex);item.node.dataset.parallaxGroup=String(item.parallaxGroup)});
+  userLayers.forEach((item,index)=>{item.stackOrder=index;item.node.style.zIndex=String(10+(item.tier*20)+item.layer+index/100);item.node.dataset.tier=String(item.tier);item.node.dataset.layer=String(item.layer)});
 }
-function groupHasUserLayer(group){return userLayers.some(item=>item.parallaxGroup===group)}
-function addParallaxGap(){
-  if(currentParallaxGroup>0&&!groupHasUserLayer(currentParallaxGroup)){announce('Parallax gap is already ready. Add an image before creating another gap.');return}
-  currentParallaxGroup+=1;parallaxGapCount+=1;parallaxAdd.setAttribute('aria-label',`Add parallax gap. ${parallaxGapCount} gap${parallaxGapCount===1?'':'s'} currently in the stack.`);
-  keyboardMode='Layers';renderKeyboardTabs();renderKeyboardKeys();applyParallax();announce(`Parallax gap ${parallaxGapCount} added. New images will be placed at depth group ${currentParallaxGroup}.`);
+function closeTierMenu(){tierMenu.hidden=true;tierToggle.setAttribute('aria-expanded','false')}
+function renderTierMenu(){
+  tierMenu.replaceChildren();
+  const options=[{key:'all',label:'All Parallax',glyph:'≋'},...TIERS];
+  for(const option of options){
+    const button=document.createElement('button');button.type='button';button.role='menuitemradio';button.textContent=option.glyph;button.setAttribute('aria-label',option.label);
+    const selected=viewerTier===option.key;button.setAttribute('aria-checked',String(selected));button.setAttribute('aria-current',String(selected));
+    button.addEventListener('click',()=>{setViewerTier(option.key);closeTierMenu();tierToggle.focus()});tierMenu.appendChild(button);
+  }
 }
-function moveSelectedLayer(delta){
-  if(!selectedImage)return;const index=userLayers.indexOf(selectedImage);if(index<0)return;const next=clamp(index+delta,0,userLayers.length-1);if(next===index)return;userLayers.splice(index,1);userLayers.splice(next,0,selectedImage);updateLayerOrder();announce(`Image moved to layer ${selectedImage.layerIndex}.`);renderKeyboardKeys();
+function updateTierButton(){
+  const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${option.label}. Open tier selector`);
 }
-function moveSelectedDepth(delta){
-  if(!selectedImage)return;selectedImage.parallaxGroup=Math.max(0,selectedImage.parallaxGroup+delta);currentParallaxGroup=Math.max(currentParallaxGroup,selectedImage.parallaxGroup);parallaxGapCount=Math.max(parallaxGapCount,currentParallaxGroup);updateLayerOrder();applyParallax();announce(`Image moved to parallax depth ${selectedImage.parallaxGroup}.`);renderKeyboardKeys();
+function setViewerTier(key){
+  viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierByKey(viewerTier).label} selected.`);
 }
+function moveSelectedTier(delta){if(!selectedImage)return;selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);updateLayerOrder();applyParallax();renderKeyboardKeys();announce(`Image moved to ${tierByIndex(selectedImage.tier).label}.`)}
+function moveSelectedLayer(delta){if(!selectedImage)return;selectedImage.layer=clamp(selectedImage.layer+delta,0,9);updateLayerOrder();renderKeyboardKeys();announce(`Image moved to layer ${selectedImage.layer}.`)}
 function viewerCenterPosition(){
   const r=stage.getBoundingClientRect();
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
