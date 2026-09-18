@@ -18,6 +18,11 @@ public sealed partial class WorldSession
     public const int DefaultWorldCubesDown = DefaultWorldHeightCells / DefaultCubeHeightCells;
     public const long DefaultWorldTileCapacity = (long)DefaultWorldWidthCells * DefaultWorldHeightCells;
 
+    // Starting authoring raster for every user's surface world. This is a presentation
+    // boundary only; recursive world identity/coordinates remain independent of pixels.
+    public const int DefaultSurfaceWorldWidthPixels = 2048;
+    public const int DefaultSurfaceWorldHeightPixels = 2048;
+
     // Compatibility aliases for older callers. These names are representation-era
     // artifacts only; new geometry code must use the Cell-named authority above.
     public const int DefaultCubeWidthKm = DefaultCubeWidthCells;
