@@ -20,6 +20,9 @@ def test_region_gate_exposes_new_or_claim_from_trusted_database_authority():
 def test_region_definer_uses_selected_world_source_and_scoped_region_authority():
     workspace = text("Components/RegionDefinerWorkspace.razor")
     assert 'source="database"' in workspace
+    assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in workspace
+    assert "sourcePixelWidth=" in workspace
+    assert "sourcePixelHeight=" in workspace
     assert "tiles=Session.PlacedTiles" in workspace
     assert "Session.CanEditRegion(activeRegion)" in workspace
     assert "requestedName:name" in workspace
