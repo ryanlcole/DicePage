@@ -261,12 +261,24 @@ addEventListener('orientationchange',resetTilt,{passive:true});
 screen.orientation?.addEventListener?.('change',resetTilt);
 function openViewerSettings(){viewerSettingsPanel.hidden=false;viewerSettingsClose.focus()}
 function closeViewerSettings(){viewerSettingsPanel.hidden=true;settingsToggle.focus()}
-function openStartMenu(){if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html'}
+function goHome(){
+  try{(window.top||window).localStorage.setItem('rist.shell.workspace.v1','hub')}catch{try{localStorage.setItem('rist.shell.workspace.v1','hub')}catch{}}
+  if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html';
+}
+function openStartMenu(){
+  try{
+    if(window.parent&&window.parent!==window){
+      const ticker=window.parent.document.querySelector('.site-ticker-root');
+      if(ticker){ticker.click();return}
+    }
+  }catch{}
+  goHome();
+}
 
 bindTap($('fit'),fitMap);
 bindTap($('zoomIn'),()=>zoomCenter(1.22));
 bindTap($('zoomOut'),()=>zoomCenter(1/1.22));
-$('back').addEventListener('click',openStartMenu);
+$('back').addEventListener('click',goHome);
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
 settingsToggle.addEventListener('click',openViewerSettings);
 viewerSettingsClose.addEventListener('click',closeViewerSettings);
