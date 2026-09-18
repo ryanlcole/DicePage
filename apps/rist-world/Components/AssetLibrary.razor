@@ -271,9 +271,9 @@
     var display=string.IsNullOrWhiteSpace(meta?.Name)?fallback:meta!.Name;
     var category=WorldSession.NormalizeAssetCategory(meta?.Category);
     var folder=item.Key.StartsWith("assets/",StringComparison.OrdinalIgnoreCase)&&meta is null?"Legacy Uploads":WorldSession.NormalizeAssetFolder(meta?.Folder);
-    var assetKind=string.IsNullOrWhiteSpace(meta?.AssetKind)
-      ? (string.Equals(category,"Sprites",StringComparison.OrdinalIgnoreCase)?"sprite":"image")
-      : meta!.AssetKind;
+    var assetKind=string.Equals(category,"Sprites",StringComparison.OrdinalIgnoreCase)
+      ? "sprite"
+      : string.IsNullOrWhiteSpace(meta?.AssetKind) ? "image" : meta!.AssetKind;
     loaded.Add(new AtlasTile(
       "private:"+item.Key,display,url,"PRIVATE",category,folder,"You",
       meta?.SourceWidth??0,meta?.SourceHeight??0,meta?.CropX??0,meta?.CropY??0,meta?.CropWidth??0,meta?.CropHeight??0,
