@@ -1300,6 +1300,12 @@ function clearRegionWorldSource(){
   regionWorldSourceTiles.splice(0,regionWorldSourceTiles.length);
   for(const item of regionWorldTierImages)item.node?.remove();
   regionWorldTierImages.splice(0,regionWorldTierImages.length);
+  for(let index=userLayers.length-1;index>=0;index--){
+    const item=userLayers[index];
+    if(!item?.sourceLocked)continue;
+    item.node?.remove();
+    userLayers.splice(index,1);
+  }
   regionWorldSourceOcean?.remove();regionWorldSourceOcean=null;
   regionWorldSourceMeta=null;
 }
@@ -1323,38 +1329,31 @@ function regionSourceCropStyle(image,tile){
     image.style.width='100%';image.style.height='100%';image.style.left='0';image.style.top='0';image.style.objectFit='cover';
   }
 }
-function renderRegionWorldSource(payload){
+async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
   clearRegionWorldSource();
-  const source=payload&&typeof payload==='object'?payload:{};
-  const tiles=Array.isArray(source.tiles)?source.tiles:[];
-  const fallbackTierImages=Array.isArray(source.fallbackTierImages)?source.fallbackTierImages.map(String):[];
-  const tierImages=Array.isArray(source.tierImages)
-    ? source.tierImages.map(String)
-    : fallbackTierImages.length
-      ? fallbackTierImages
-      : String(source.fallbackSurfaceImage||'').trim()
-        ? [String(source.fallbackSurfaceImage)]
-        : [];
+  const envelope=payload&&typeof payload==='object'?payload:{};
+  const snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
+  const tiles=Array.isArray(snapshot.tiles)?snapshot.tiles:Array.isArray(envelope.tiles)?envelope.tiles:[];
+  const sourceLayers=Array.isArray(snapshot.userLayers)?snapshot.userLayers:[];
+  const tierImages=Array.isArray(snapshot.tierImages)?snapshot.tierImages.map(String).filter(Boolean):[];
   regionWorldSourceMeta={
-    worldId:String(source.worldId||WORLD_ID||''),
-    worldName:String(source.worldName||WORLD_NAME||DISPLAY_WORLD_NAME||'World'),
-    gridColumns:Math.max(1,Math.trunc(regionSourceNumber(source.gridColumns,REGION_GRID_COLUMNS))),
-    gridRows:Math.max(1,Math.trunc(regionSourceNumber(source.gridRows,REGION_GRID_ROWS))),
-    gridStyle:normalizeRegionGridShape(source.gridStyle||'square'),
-    planeIndex:Math.trunc(regionSourceNumber(source.planeIndex,0))
+    worldId:String(envelope.worldId||snapshot.worldId||WORLD_ID||''),
+    worldName:String(envelope.worldName||snapshot.worldName||WORLD_NAME||DISPLAY_WORLD_NAME||'World'),
+    gridColumns:Math.max(1,Math.trunc(regionSourceNumber(snapshot.gridColumns??envelope.gridColumns,REGION_GRID_COLUMNS))),
+    gridRows:Math.max(1,Math.trunc(regionSourceNumber(snapshot.gridRows??envelope.gridRows,REGION_GRID_ROWS))),
+    gridStyle:normalizeRegionGridShape(snapshot.gridStyle||envelope.gridStyle||'square'),
+    planeIndex:Math.trunc(regionSourceNumber(snapshot.planeIndex??envelope.planeIndex,0)),
+    updatedAtUtc:String(envelope.updatedAtUtc||'')
   };
-  // RegionDefiner must render against the same world geometry that WorldBuilder
-  // authored. Prefer dimensions carried by database-backed placed tiles, then
-  // the database source metadata, and finally the loaded shared tier image.
   const firstSizedTile=tiles.find(raw=>regionSourceNumber(raw?.sourceWidth,0)>1&&regionSourceNumber(raw?.sourceHeight,0)>1);
-  const sourcePixelWidth=Math.max(1,Math.trunc(regionSourceNumber(firstSizedTile?.sourceWidth,source.sourcePixelWidth||0)));
-  const sourcePixelHeight=Math.max(1,Math.trunc(regionSourceNumber(firstSizedTile?.sourceHeight,source.sourcePixelHeight||0)));
+  const sourcePixelWidth=Math.max(1,Math.trunc(regionSourceNumber(firstSizedTile?.sourceWidth,snapshot.sourcePixelWidth||envelope.sourcePixelWidth||0)));
+  const sourcePixelHeight=Math.max(1,Math.trunc(regionSourceNumber(firstSizedTile?.sourceHeight,snapshot.sourcePixelHeight||envelope.sourcePixelHeight||0)));
   if(sourcePixelWidth>1&&sourcePixelHeight>1){
     naturalWidth=sourcePixelWidth;
     naturalHeight=sourcePixelHeight;
   }
-  stage.dataset.worldSource=String(source.source||'database');
+  stage.dataset.worldSource='database';
   const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
   world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
   tierImages.slice(0,TIERS.length).forEach((src,tier)=>{
@@ -1365,7 +1364,7 @@ function renderRegionWorldSource(payload){
     image.alt='';
     image.draggable=false;
     image.addEventListener('load',()=>{
-      if(naturalWidth>1&&naturalHeight>1)return;
+      if(sourcePixelWidth>1&&sourcePixelHeight>1)return;
       if(image.naturalWidth>1&&image.naturalHeight>1){
         naturalWidth=image.naturalWidth;
         naturalHeight=image.naturalHeight;
@@ -1397,18 +1396,23 @@ function renderRegionWorldSource(payload){
     regionSourceCropStyle(image,raw);frame.appendChild(image);node.appendChild(frame);world.appendChild(node);
     regionWorldSourceTiles.push({node,image,tier,layer,index,id:String(raw.id||''),name:String(raw.name||''),assetKind:String(raw.assetKind||'tile')});
   });
-  world.dataset.emptyWorld=(tiles.length||tierImages.length)?'false':'true';
+  for(const raw of sourceLayers)await attachRestoredLayer(raw,{sourceLocked:true});
+  updateLayerOrder();
+  const authoredCount=tiles.length+sourceLayers.length;
+  world.dataset.emptyWorld=(authoredCount||tierImages.length)?'false':'true';
   loading.hidden=true;
   updateRegionWorldSourceVisibility();
   fitMap();
   updateReadouts();renderKeyboardKeys();
   if(regionClaimPhase==='tier-preview'){
     showRegionTierPreview();
-    announce('Swipe through the world tiers, then choose the tier to define a new region.');
+    announce((authoredCount||tierImages.length)
+      ?'World Builder database map loaded. Swipe through the world tiers, then choose the tier to define a new region.'
+      :'The World Builder database has no saved map source yet. Save the world in World Builder first.');
   }else{
-    announce((tiles.length||tierImages.length)
-      ? `${regionWorldSourceMeta.worldName} world map loaded. Select a saved region or define a new one.`
-      : `${regionWorldSourceMeta.worldName} world map loaded with no authored tiles. Define from the ocean surface or return to World Builder to author the world first.`);
+    announce((authoredCount||tierImages.length)
+      ?`${regionWorldSourceMeta.worldName} World Builder database map loaded. Select a saved region or define a new one.`
+      :`${regionWorldSourceMeta.worldName} has no saved World Builder database source yet.`);
   }
 }
 function updateRegionWorldSourceVisibility(){
