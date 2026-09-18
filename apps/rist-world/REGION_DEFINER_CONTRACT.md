@@ -53,6 +53,10 @@ A pending request does not unlock regional building. The GM decision is the auth
 The source viewer remains 30×30 addressable cells for claiming. RegionDefiner applies the same claim/crop/build process to every selected world, including Endemar. Any underlying world-extent or ownership rules remain world-level authority and do not change the RegionDefiner workflow.
 
 
-## Shared WorldBuilder source
+## One canonical map
 
-WorldBuilder publishes its saved map representation to the world database as one shared source snapshot. The browser IndexedDB copy is a cache/recovery surface, not RegionDefiner authority. A shared source snapshot carries the World ID, Tier image references, viewer Tier/Layer metadata, grid metadata, and the authored WorldBuilder layer references needed to reconstruct the map. RegionDefiner consumes that snapshot read-only and applies its 15° presentation and claim/crop workflow without rewriting the parent source.
+WorldBuilder, RegionDefiner, region views, and later local/tactical viewers all address the same canonical world map in the database. They are not separate maps and RegionDefiner does not own a copied source or overlay map.
+
+WorldBuilder changes the map with world-level authority. RegionDefiner reads the same map, changes camera/perspective (including the 15° presentation), crops what the viewer can see, and limits mutation authority to the selected region/tier/layers. Region boundaries, claims, ownership, and delegated permissions are metadata over that same map.
+
+Browser storage may cache viewer state or recovery data, but it is never map authority. Region records may retain legacy SourceTiles/OverlayTiles fields for backward-compatible deserialization, but new region creation and editing do not populate a second map there.
