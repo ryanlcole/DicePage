@@ -45,11 +45,11 @@ else
    <section class="shaelvien-land-backdrop" role="presentation" @onclick="CloseClaim">
     <div class="shaelvien-land-card" role="dialog" aria-modal="true" aria-label="Claim a Shaelvien world" @onclick:stopPropagation="true">
      <header>
-      <span><small>SHAELVIEN WORLD TOKEN</small><strong>CLAIM A WORLD</strong></span>
+      <span><small>SHAELVIEN TOKEN</small><strong>CLAIM PROPERTY SPACE</strong></span>
       <button type="button" @onclick="CloseClaim" aria-label="Close claim map">×</button>
      </header>
 
-     <p class="claim-rule">Endemar is the origin. Choose one unclaimed square touching Endemar or the existing claimed frontier. The purchase is permanent: one token binds one account code half to the world's code half.</p>
+     <p class="claim-rule">Endemar is the origin. Choose one unclaimed Shaelvien property space touching Endemar or the existing claimed frontier. One Shaelvien Token permanently binds the account code half to that property space's world code half.</p>
 
      <div class="claim-map-scroll">
       <div class="claim-map" style="@($"--claim-cols:{VisibleColumnCount}")" role="grid" aria-label="Shaelvien claim squares around Endemar">
@@ -83,7 +83,7 @@ else
        <span>@WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · maximum height @WorldSession.MmoParcelMaxHeight layers</span>
        <label for="shaelvien-world-name">WORLD NAME</label>
        <input id="shaelvien-world-name" maxlength="80" autocomplete="off" @bind="_worldName" @bind:event="oninput" placeholder="Name this world" />
-       <button type="button" class="claim-confirm" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="ClaimAsync">@(_busy?"BINDING TOKEN…":"SPEND TOKEN & CLAIM")</button>
+       <button type="button" class="claim-confirm" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="ClaimAsync">@(_busy?"BINDING TOKEN…":"SPEND SHAELVIEN TOKEN & CLAIM")</button>
       </section>
      }
 
@@ -160,13 +160,13 @@ else
   Session.MmoParcels.FirstOrDefault(parcel=>Session.CanManageMmoParcel(parcel));
 
  string LandSummary => !Session.IsLoggedIn
-  ? "Create or sign in to a completed RIST profile to receive a Shaelvien world token."
+  ? "Create or sign in to a completed RIST profile to receive a Shaelvien Token for one property space."
   : _loading
    ? "Loading Shaelvien land authority…"
    : Session.OwnedMmoParcel is { } owned
    ? $"{owned.DisplayName} · {owned.PixelWidth}×{owned.PixelHeight}px · height {owned.MaxHeight}"
    : Session.HasUnspentMmoWorldToken
-    ? "One unspent token can permanently claim an available world square."
+    ? "One unspent Shaelvien Token can permanently claim one available property space."
     : Session.MmoLandStatus;
 
  int ViewMinColumn
