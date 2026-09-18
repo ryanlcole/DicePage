@@ -568,7 +568,10 @@ function openSpriteUpload(){
   spriteUploadPanel.hidden=false;stage.classList.add('image-upload-open');spriteDropzone.focus();
   announce('Sprite upload opened. Frame one will be used for placement. Save will start animation.');
 }
-function closeSpriteUpload(){spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');keyboardMode='Sprites';renderKeyboardTabs();renderKeyboardKeys()}
+function closeSpriteUpload(returnToSprites=true){
+  spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');
+  if(returnToSprites){keyboardMode='Sprites';renderKeyboardTabs();renderKeyboardKeys()}
+}
 function syncSpriteFrameCount(){const cols=clamp(Math.trunc(Number(spriteColumns.value)||1),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||1),1,16);spriteFrameCount.value=String(cols*rows)}
 function whitenToAlpha(data){
   const px=data.data,width=data.width,height=data.height,count=width*height;
@@ -592,6 +595,23 @@ function whitenToAlpha(data){
     for(let q=0;q<tail;q++)px[(queue[q]*4)+3]=0;
   }
   return data;
+}
+async function extractSpriteFrame(sheetSrc,options={},frameIndex=0){
+  const img=await loadDataImage(sheetSrc);
+  const columns=clamp(Math.trunc(Number(options.columns)||1),1,32),rows=clamp(Math.trunc(Number(options.rows)||1),1,32);
+  const frameCount=clamp(Math.trunc(Number(options.frameCount)||columns*rows),1,columns*rows);
+  const frame=clamp(Math.trunc(Number(frameIndex)||0),0,frameCount-1);
+  const sourceWidth=Math.max(1,Math.trunc(Number(options.sourceWidth)||img.naturalWidth||1));
+  const sourceHeight=Math.max(1,Math.trunc(Number(options.sourceHeight)||img.naturalHeight||1));
+  const cropX=Math.max(0,Math.trunc(Number(options.cropX)||0)),cropY=Math.max(0,Math.trunc(Number(options.cropY)||0));
+  const cropWidth=Math.max(1,Math.trunc(Number(options.cropWidth)||Math.floor(sourceWidth/columns)));
+  const cropHeight=Math.max(1,Math.trunc(Number(options.cropHeight)||Math.floor(sourceHeight/rows)));
+  const column=frame%columns,row=Math.floor(frame/columns),sx=cropX+(column*cropWidth),sy=cropY+(row*cropHeight);
+  const canvas=document.createElement('canvas');canvas.width=cropWidth;canvas.height=cropHeight;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw new Error('Sprite canvas unavailable');
+  ctx.clearRect(0,0,cropWidth,cropHeight);ctx.drawImage(img,sx,sy,cropWidth,cropHeight,0,0,cropWidth,cropHeight);
+  if(options.whiteTransparent!==false){const image=ctx.getImageData(0,0,cropWidth,cropHeight);ctx.putImageData(whitenToAlpha(image),0,0)}
+  return canvas.toDataURL('image/png');
 }
 async function extractSpriteFrames(sheetSrc,options={}){
   const img=await loadDataImage(sheetSrc);
@@ -931,25 +951,40 @@ function spriteLibraryPageCount(){return Math.max(1,Math.ceil(currentSpriteLibra
 function spriteLibraryPageAssets(){spriteLibraryPage=clamp(spriteLibraryPage,0,spriteLibraryPageCount()-1);const start=spriteLibraryPage*SPRITE_LIBRARY_PAGE_SIZE;return currentSpriteLibraryAssets().slice(start,start+SPRITE_LIBRARY_PAGE_SIZE)}
 async function placeSpriteDefinition(definition){
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
-  const frames=await extractSpriteFrames(definition.sheetSrc,{
+  const extractOptions={
     columns:definition.columns,rows:definition.rows,frameCount:definition.frameCount,
     sourceWidth:definition.sourceWidth||0,sourceHeight:definition.sourceHeight||0,cropX:definition.cropX||0,cropY:definition.cropY||0,
     cropWidth:definition.cropWidth||0,cropHeight:definition.cropHeight||0,whiteTransparent:definition.whiteTransparent!==false
-  });
-  if(!frames.length)throw new Error('No sprite frames were extracted.');
+  };
+  announce(`Preparing frame 1 of ${definition.name||'sprite'} for placement.`);
+  const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
   const item={
     id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,
-    spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:frames.length,spriteFps:Math.max(1,Number(definition.fps)||6),
+    spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:Math.max(1,Number(definition.fps)||6),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
     spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,
-    frameSources:frames,currentFrame:0,playing:false,originalSrc:frames[0],transparentSrc:frames[0],transparent:true,
+    frameSources:[firstFrame],currentFrame:0,playing:false,spriteReady:false,originalSrc:firstFrame,transparentSrc:firstFrame,transparent:true,
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement sprite-placement';node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);frames.forEach(frame=>void primeCollisionMask(frame));updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(firstFrame);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
-  announce(`${item.name} placed using frame 1. Adjust its layer or parallax tier, then Save to commit and begin motion.`);
+  announce(`${item.name} placed using frame 1. Adjust it now; remaining frames are preparing in the background.`);
+
+  item.spriteReadyPromise=extractSpriteFrames(definition.sheetSrc,extractOptions).then(frames=>{
+    if(!item.node?.isConnected||!frames.length)return item;
+    item.frameSources=frames;item.spriteFrameCount=frames.length;item.spriteReady=true;item.currentFrame=0;
+    item.originalSrc=frames[0];item.transparentSrc=frames[0];refreshUserImage(item);
+    frames.forEach(frame=>void primeCollisionMask(frame));
+    if(item.committed&&frames.length>1)startSpriteMotion(item);
+    announce(`${item.name} sprite set ready with ${frames.length} frames.`);
+    return item;
+  }).catch(error=>{
+    item.spriteReady=false;item.spriteLoadError=String(error?.message||error||'frame preparation failed');
+    announce(`${item.name} was placed with frame 1, but animation preparation failed: ${item.spriteLoadError}`);
+    return item;
+  });
   return item;
 }
 async function placeUploadedSprite(file){
@@ -957,8 +992,9 @@ async function placeUploadedSprite(file){
   try{
     const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
     const frameCount=clamp(Math.trunc(Number(spriteFrameCount.value)||columns*rows),1,columns*rows),fps=clamp(Number(spriteFps.value)||6,1,30);
-    closeSpriteUpload();
-    await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true});
+    const item=await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true});
+    closeSpriteUpload(false);
+    keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
   }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
 }
 async function placeLibrarySprite(asset){
