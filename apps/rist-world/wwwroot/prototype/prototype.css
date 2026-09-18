@@ -49,7 +49,7 @@
     .sprite-library-preview img{position:absolute;display:block;max-width:none!important;max-height:none!important;pointer-events:none;-webkit-user-drag:none}
     .sprite-library-key small{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:5px 4px;background:linear-gradient(transparent,#000d 38%);color:#fff0bb!important;font-size:7px!important;line-height:1.15!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
     .user-image-placement.sprite-placement{filter:drop-shadow(0 3px 8px rgba(0,0,0,.35))}
-    .user-image-placement{position:absolute;z-index:18;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
+    .user-image-placement{position:absolute;z-index:101;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
     .user-image-placement.selected{outline:2px solid #f0cc69;outline-offset:2px}
     .stage{position:fixed;z-index:1;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;background:#05090c}
     .stage.dragging{cursor:grabbing}
@@ -62,9 +62,9 @@
     .region-enhance-canvas.active{opacity:1}
     .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
     .plane{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none;transform-origin:50% 50%;will-change:transform,opacity;transition:opacity .16s linear}
-    .plane.base{z-index:1;opacity:1}
-    .plane.highlands{z-index:2}
-    .plane.mountains{z-index:3}
+    .plane.base{z-index:100;opacity:1}
+    .plane.highlands{z-index:200}
+    .plane.mountains{z-index:300}
     .bottom-slider{position:absolute;z-index:72;left:0;right:0;bottom:0;overflow-x:auto;overflow-y:hidden;padding:0 max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));background:transparent;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
     .bottom-slider::-webkit-scrollbar{display:none}
     .bottom-slider-track{display:flex;align-items:center;gap:6px;width:max-content;min-width:100%;background:transparent}
