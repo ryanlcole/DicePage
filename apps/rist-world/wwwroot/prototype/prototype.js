@@ -495,8 +495,23 @@ function updateTierButton(){
 function setViewerTier(key){
   viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected.`);
 }
-function moveSelectedTier(delta){if(!selectedImage)return;selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);updateLayerOrder();applyParallax();renderKeyboardKeys();announce(`Image moved to ${tierByIndex(selectedImage.tier).label}.`)}
-function moveSelectedLayer(delta){if(!selectedImage)return;selectedImage.layer=clamp(selectedImage.layer+delta,0,9);updateLayerOrder();renderKeyboardKeys();announce(`Image moved to layer ${selectedImage.layer}.`)}
+function moveSelectedTier(delta){
+  if(!selectedImage)return;
+  selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
+  updateLayerOrder();applyParallax();renderKeyboardKeys();
+  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to ${tierByIndex(selectedImage.tier).label} parallax tier.`);
+}
+function moveSelectedLayer(delta){
+  if(!selectedImage)return;
+  const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
+  selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
+  updateLayerOrder();applyParallax();renderKeyboardKeys();
+  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to tier ${selectedImage.tier}, layer ${selectedImage.layer}.`);
+}
+function placementAddress(tier,layerDelta=1){
+  const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((clamp(tier,0,TIERS.length-1)*10)+viewerLayer+layerDelta,0,maxSceneZ);
+  return{tier:Math.floor(sceneZ/10),layer:sceneZ%10};
+}
 function viewerCenterPosition(){
   const r=stage.getBoundingClientRect();
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
@@ -506,7 +521,8 @@ function viewerCenterPosition(){
 function openImageUpload(){
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
-  imageTier.value=String(currentTierIndex());imageLayer.value=String(clamp(viewerLayer+1,0,9));
+  const address=placementAddress(currentTierIndex(),1);
+  imageTier.value=String(address.tier);imageLayer.value=String(address.layer);
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
   announce(`Image upload opened. Viewer frozen. Position defaults to ${tierLabel(tierByIndex(currentTierIndex()))}, layer ${viewerLayer}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
@@ -634,7 +650,7 @@ function applyParallax(){
   }
   for(const item of userLayers){
     const visible=viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
-    const depth=viewerTier==='all'?(item.tier+(item.layer/10)):(item.layer/10);
+    const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
@@ -761,7 +777,7 @@ function placeLibraryTile(asset){
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
     assetId:asset.id,name:asset.name,libraryTile:true,
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
-    x:point.x,y:point.y,tier:currentTierIndex(),layer:clamp(viewerLayer+1,0,9),
+    x:point.x,y:point.y,tier:placementAddress(currentTierIndex(),1).tier,layer:placementAddress(currentTierIndex(),1).layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement library-tile-placement';node.alt=asset.name;node.draggable=false;item.node=node;
