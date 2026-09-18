@@ -21,14 +21,13 @@ def test_region_definer_uses_selected_world_source_and_scoped_region_authority()
     workspace = text("Components/RegionDefinerWorkspace.razor")
     assert 'source="database"' in workspace
     assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in workspace
-    assert "sourcePixelWidth=" in workspace
-    assert "sourcePixelHeight=" in workspace
     assert "await Session.LoadWorldBuilderSourceAsync()" in workspace
     assert "state=databaseSource?.State" in workspace
     assert "Session.CanEditRegion(activeRegion)" in workspace
     assert "requestedName:name" in workspace
     assert "regionFlow" in workspace
     assert "regionId" in workspace
+    assert "SaveRegionMapLayersFromPrototypeAsync" in workspace
 
 
 def test_new_and_claim_region_share_tier_swipe_and_select_only_flow():
