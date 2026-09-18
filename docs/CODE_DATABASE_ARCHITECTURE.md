@@ -138,3 +138,22 @@ Code and generated reasoning must distinguish at least:
 The truth domain is independent of confidence. Something may be `FICTION` with confidence 1.0 because we are completely certain it is canon fiction.
 
 This distinction is foundational for the Humans language and for AI-assisted code generation.
+
+## Project knowledge evidence
+
+Every normal database build also imports `knowledge/project/public.json` using
+`tools/project_knowledge.py`. The additive `project_sources`, `project_records`,
+`project_record_sources`, `project_imports`, `project_import_records`,
+`project_relationships`, and FTS5 `project_search` tables preserve source-linked
+project knowledge without inventing CHIDs or changing runtime/canon authority.
+
+Record identity and content revision are separate. Reimporting the same corpus
+does not duplicate rows; changed evidence retains its earlier revision. Sources
+have hashes, locators, visibility, and status. Records carry FACT/HYPOTHESIS/
+FICTION/UNKNOWN separately from OUTSIDER_AI/RED extraction provenance.
+
+The checked-in corpus contains only previously public repository source. Private
+attachments and owner planning belong in the separately authorized private corpus.
+`docs/PROJECT_KNOWLEDGE.md` explains querying, private merging, AWS import, and
+ChatGPT source access. Storage does not promote historical claims into current
+canon and does not resolve contradictory contracts automatically.

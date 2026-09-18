@@ -23,6 +23,9 @@ import sqlite3
 import sys
 from typing import Iterable
 
+from project_knowledge import install as install_project_knowledge, load_corpus as load_project_corpus
+from project_knowledge import preserve_history as preserve_project_history, restore_history as restore_project_history
+
 ROOT = Path(__file__).resolve().parents[1]
 INDEX_DIR = ROOT / ".code-index"
 INDEX_JSONL = INDEX_DIR / "code_index.jsonl"
@@ -551,7 +554,13 @@ def ingest_errors(db: sqlite3.Connection) -> dict:
 def build_database(rows: list[dict], symbols: list[Symbol], refs: list[Ref], registry: dict) -> dict:
     # 052597.python.code_database.line552.comment Preserve prior error/resolution history across graph regeneration.
     old_errors: list[tuple] = []; old_events: list[tuple] = []; old_resolutions: list[tuple] = []
+    project_history = {}
     if DATABASE_PATH.exists():
+        project_old = sqlite3.connect(DATABASE_PATH)
+        try:
+            project_history = preserve_project_history(project_old)
+        finally:
+            project_old.close()
         try:
             old = sqlite3.connect(DATABASE_PATH)
             old_errors = old.execute("SELECT * FROM error_signatures").fetchall()
@@ -586,6 +595,8 @@ def build_database(rows: list[dict], symbols: list[Symbol], refs: list[Ref], reg
     if old_resolutions:
         placeholders = ",".join("?" * len(old_resolutions[0])); db.executemany(f"INSERT INTO error_resolutions VALUES ({placeholders})", old_resolutions)
     error_stats = ingest_errors(db)
+    restore_project_history(db, project_history)
+    project_stats = install_project_knowledge(db, load_project_corpus())
     db.commit()
     counts = {
         "symbols": db.execute("SELECT COUNT(*) FROM symbols").fetchone()[0],
@@ -597,6 +608,7 @@ def build_database(rows: list[dict], symbols: list[Symbol], refs: list[Ref], reg
         "repeated_errors": db.execute("SELECT COUNT(*) FROM error_signatures WHERE repeat_flag=1").fetchone()[0],
         "regressions": db.execute("SELECT COUNT(*) FROM error_signatures WHERE regression_flag=1").fetchone()[0],
         **error_stats,
+        **project_stats,
     }
     db.close(); return counts
 

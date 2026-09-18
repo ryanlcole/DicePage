@@ -2,12 +2,19 @@ name: Project Knowledge Database
 
 on:
   workflow_dispatch:
+    inputs:
+      import_to_aws:
+        description: Import the public-source corpus using already approved AWS data access
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - live-alpha-rist-blazor-world
     paths:
       - 'knowledge/project/**'
       - 'tools/project_knowledge*.py'
+      - 'tools/tests/test_project_knowledge.py'
       - '.github/workflows/project-knowledge.yml'
 
 permissions:
@@ -26,18 +33,36 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install boto3 cryptography
+      - name: Verify evidence and import safety
+        run: |
+          python tools/project_knowledge.py validate
+          python -m unittest discover -s tools/tests -p 'test_project_knowledge.py'
+      - name: Build searchable project database and ChatGPT source
+        run: |
+          python tools/project_knowledge.py install --db .code-index/project_knowledge.sqlite3
+          python tools/project_knowledge.py export --output .code-index/Shaelvien_Project_Source.md
+      - name: Preserve public-source database and reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: shaelvien-public-project-knowledge
+          path: |
+            .code-index/project_knowledge.sqlite3
+            .code-index/Shaelvien_Project_Source.md
+      - run: python -m pip install boto3
       - name: Configure existing AWS deployment authority
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
           aws-region: us-east-1
-      - name: Verify database and prepare encrypted source transfer
+      - name: Report live database import readiness
         run: python tools/project_knowledge_preflight.py
-      - name: Preserve public import preparation result
+      - name: Preserve import readiness and proposed access scope
         uses: actions/upload-artifact@v4
         with:
           name: project-knowledge-preflight
           path: |
-            project-knowledge-public-key.pem
             project-knowledge-preflight.json
+            project-knowledge-required-access.json
+      - name: Import and read back every AWS record
+        if: github.event_name == 'workflow_dispatch' && inputs.import_to_aws == true
+        run: python tools/project_knowledge.py import-aws

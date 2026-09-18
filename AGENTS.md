@@ -102,3 +102,13 @@ Executable repository behavior remains runtime truth until the semantic compiler
 Version semantic-breaking changes. Never silently reuse a stable semantic ID/opcode for a different meaning.
 
 Never push project work to `main`; the active project branch is `live-alpha-rist-blazor-world` unless the user explicitly changes that policy.
+
+## Project knowledge discovery
+
+For source-linked project context, read `docs/PROJECT_KNOWLEDGE.md` and query
+`knowledge/project/public.json` or the code database's `project_*` tables. Preserve
+source status, dates, scope, visibility, truth domain, and provenance. The corpus
+is evidence, not permission, live-deployment verification, or automatic canon
+promotion. Explicit source conflicts remain unresolved until the appropriate
+authority reconciles them. Private project exports must not be committed to this
+public repository.

@@ -41,3 +41,11 @@ venv/
 .code-index/code_graph.sqlite3
 .code-index/code_graph.sqlite3-*
 .code-index/tmp/
+
+# Project knowledge exports are generated evidence; private source imports stay private.
+.code-index/project_knowledge.sqlite3
+.code-index/project_knowledge.sqlite3-*
+.code-index/Shaelvien_Project_Source.md
+knowledge/project/private*
+project-knowledge-preflight.json
+project-knowledge-required-access.json
