@@ -18,7 +18,7 @@ Parameters:
     Default: https://ryanlcole.github.io/DicePage/app/
   SessionHours:
     Type: Number
-    Default: 12
+    Default: 24
     MinValue: 1
     MaxValue: 168
 
