@@ -26,10 +26,19 @@ class GeonaphAccessContractTests(unittest.TestCase):
         )
         self.assertIn('if role in ("GM", "owner") and target != owner_user_id:', self.source)
         self.assertIn(
-            'return response(403, {"error": "Geonaph GM authority cannot be delegated"})',
+            'return response(403, {"error": "Endemar GM authority cannot be delegated"})',
             self.source,
         )
 
+
+    def test_authority_profile_exposes_commercial_defaults_without_overwriting_entitlements(self):
+        self.assertIn("DEFAULT_WORLD_SLOTS = 1", self.source)
+        self.assertIn("DEFAULT_SURFACE_WORLD_PIXELS = 2048", self.source)
+        self.assertIn("def commercial_profile(existing, platform_owner):", self.source)
+        self.assertIn("users.update_item(", self.source)
+        self.assertIn('"worldSlots": world_slots', self.source)
+        self.assertIn('"surfaceWorldPixels": surface_pixels', self.source)
+        self.assertIn('"worlds.unlimited", "surface.unlimited"', self.source)
 
 if __name__ == "__main__":
     unittest.main()
