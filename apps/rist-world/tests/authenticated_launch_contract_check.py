@@ -21,6 +21,10 @@ def main() -> None:
     router = (COMPONENTS / "TaskWorkspaceRouter.razor").read_text(encoding="utf-8")
     host = (COMPONENTS / "WorldBuilderGeonaphHost.razor").read_text(encoding="utf-8")
     ticker = (COMPONENTS / "SiteTicker.razor").read_text(encoding="utf-8")
+    rist = (ROOT / "wwwroot" / "rist.js").read_text(encoding="utf-8")
+    compat = (ROOT / "wwwroot" / "auth-session-compat.js").read_text(encoding="utf-8")
+    discord = (ROOT / "DiscordAuthClient.cs").read_text(encoding="utf-8")
+    auth_template = (ROOT.parents[1] / "infra" / "aws" / "rist-discord-storage.yml").read_text(encoding="utf-8")
 
     # Initial authenticated launch has one authority: AuthenticatedWorld.
     require(authenticated, "@if(!_launchStarted)", "authenticated shell must paint Press Start before world choice")
@@ -38,6 +42,8 @@ def main() -> None:
     )
     require(authenticated, "<PublicAlphaShell @ref=\"_alphaShell\" />", "landing shell must render only after world choice")
     require(authenticated, "_launchWorldChosen=true;", "successful world selection must unlock landing immediately")
+    forbid(authenticated, "_launchStarted", "verified provider sessions must not add a second launch gate")
+    forbid(authenticated, "PRESS START", "verified provider sessions must go directly to world choice")
 
     # WorldGate must paint before any directory/network/storage wait.
     require(gate, "protected override void OnParametersSet()", "world chooser must initialize synchronously")
@@ -63,6 +69,18 @@ def main() -> None:
     # Ticker is world-scoped and absent before world choice.
     require(ticker, "@if(Session.HasActiveWorld)", "ticker must stay hidden until a world is active")
     require(ticker, 'rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}', "ticker settings must be world-scoped")
+
+    # Authentication session lifetime belongs to the login provider/server.
+    require(rist, "installSessionExpiry", "browser must honor provider-issued session expiry")
+    require(rist, "rist.session.expiresAt", "browser must store provider session expiry metadata")
+    require(rist, "rist.session.provider", "browser must store authentication provider identity")
+    forbid(rist, "lastActivity", "core auth must not implement a competing activity timer")
+    forbid(compat, "lastActivity", "compatibility auth must not implement a competing activity timer")
+    require(compat, "installSessionExpiry", "compatibility auth must delegate to provider expiry authority")
+    require(auth_template, '"provider": "discord"', "Discord sessions must identify their provider")
+    require(auth_template, '"sessionExpiresAt": session_item["expiresAt"]', "Discord handoff must expose authoritative expiry")
+    require(discord, "string AuthProvider = \"discord\"", "account client must model provider identity")
+    require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
     print("Authenticated launch contract verified: auth -> Press Start -> privacy/motion/parallax -> world choice -> landing -> selected-world workspace.")
 
