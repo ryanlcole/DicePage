@@ -1,0 +1,38 @@
+@inject WorldSession Session
+
+<div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="Geonaph World Builder">
+ <iframe
+  class="geonaph-worldbuilder-frame"
+  src="/Game/prototype/index.html?live-worldbuilder=1"
+  title="Geonaph World Builder"
+  loading="eager"
+  allow="fullscreen"
+ ></iframe>
+</div>
+
+<style>
+ .geonaph-worldbuilder-host{
+  position:fixed;
+  inset:0;
+  z-index:2147481000;
+  width:100dvw;
+  height:100dvh;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  background:#05090c;
+ }
+ .geonaph-worldbuilder-frame{
+  display:block;
+  width:100%;
+  height:100%;
+  border:0;
+  margin:0;
+  padding:0;
+  background:#05090c;
+ }
+</style>
+
+@code {
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+}
