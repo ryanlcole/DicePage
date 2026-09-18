@@ -65,6 +65,39 @@ jobs:
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
           echo "Using auth stack $AUTH_STACK"
 
+      - name: Resolve platform owner authority
+        env:
+          CONFIGURED_OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          OWNER_USER_ID="${CONFIGURED_OWNER_USER_ID:-}"
+          if [ -z "$OWNER_USER_ID" ]; then
+            OWNER_USER_ID=$(python - <<'PY'
+          import json
+          import uuid
+          from pathlib import Path
+
+          cfg = json.loads(Path("apps/rist-world/wwwroot/auth-config.json").read_text(encoding="utf-8"))
+          discord_id = str(cfg.get("ownerDiscordUserId") or "").strip()
+          if not discord_id.isdigit():
+              raise SystemExit("auth-config.json must contain a numeric ownerDiscordUserId")
+          print(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
+          PY
+            )
+          fi
+          python - "$OWNER_USER_ID" <<'PY'
+          import sys
+          import uuid
+
+          value = sys.argv[1].strip()
+          parsed = uuid.UUID(value)
+          if str(parsed) != value.lower():
+              raise SystemExit("RIST platform owner identity is not a canonical UUID")
+          PY
+          echo "OWNER_USER_ID=$OWNER_USER_ID" >> "$GITHUB_ENV"
+          echo "Resolved authenticated platform-owner authority."
+
       - name: Recover failed platform stack shell
         shell: bash
         run: |
@@ -83,18 +116,15 @@ jobs:
           fi
 
       - name: Deploy authority platform through CloudFormation execution role
-        env:
-          OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
         shell: bash
         run: |
           set -euo pipefail
+          test -n "${OWNER_USER_ID:-}"
           PARAMS=(
             "IdentityTableName=$IDENTITY_TABLE"
             "FrontendOrigin=$PRODUCTION_ORIGIN"
+            "OwnerUserId=$OWNER_USER_ID"
           )
-          if [ -n "${OWNER_USER_ID:-}" ]; then
-            PARAMS+=("OwnerUserId=$OWNER_USER_ID")
-          fi
           sam deploy \
             --template-file .aws-sam/platform/template.yaml \
             --stack-name "$STACK_NAME" \
@@ -105,6 +135,16 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset \
             --parameter-overrides "${PARAMS[@]}"
+
+      - name: Verify deployed platform owner authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOYED_OWNER=$(aws cloudformation describe-stacks             --stack-name "$STACK_NAME"             --query "Stacks[0].Parameters[?ParameterKey=='OwnerUserId'].ParameterValue | [0]"             --output text)
+          test -n "$DEPLOYED_OWNER"
+          test "$DEPLOYED_OWNER" != "None"
+          test "$DEPLOYED_OWNER" = "$OWNER_USER_ID"
+          echo "Platform-owner authority parameter verified."
 
       - name: Export client authority config
         run: |
