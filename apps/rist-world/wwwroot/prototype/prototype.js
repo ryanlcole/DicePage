@@ -126,15 +126,26 @@ async function placeUploadedImage(file){
 function tierMix(){
   if(viewerTier!=='all'){const index=tierByKey(viewerTier).index;return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0}}
   const ratio=Math.max(.01,scale/Math.max(minScale,.00001));
-  const toHills=smoothstep(1.12,1.85,ratio),toMountains=smoothstep(2.15,3.75,ratio);
-  return{surface:1-toHills,highlands:toHills*(1-toMountains),mountains:toMountains};
+  const peakToHighlands=smoothstep(1.00,1.60,ratio);
+  const highlandsToSurface=smoothstep(1.45,2.75,ratio);
+  return{
+    surface:layerReady.surface?1:0,
+    highlands:layerReady.highlands?clamp(1-highlandsToSurface,0,1):0,
+    mountains:layerReady.mountains?clamp(.82*(1-peakToHighlands),0,1):0
+  };
 }
 function applyParallax(){
   const dx=x-fitX,dy=y-fitY,mix=tierMix();
-  const builtins=[{node:surface,key:'surface',depth:0,alpha:mix.surface},{node:highlands,key:'highlands',depth:1,alpha:mix.highlands},{node:mountains,key:'mountains',depth:2,alpha:mix.mountains}];
+  const builtins=[
+    {node:surface,key:'surface',sceneZ:0,alpha:mix.surface},
+    {node:highlands,key:'highlands',sceneZ:4,alpha:mix.highlands},
+    {node:mountains,key:'mountains',sceneZ:7,alpha:mix.mountains}
+  ];
   for(const entry of builtins){
-    entry.node.style.opacity=layerReady[entry.key]?String(entry.alpha):'0';
-    const panStrength=entry.depth*.018,tiltStrength=entry.depth*.45;
+    entry.node.style.opacity=layerReady[entry.key]?String(clamp(Number(entry.alpha)||0,0,1)):'0';
+    const depth=entry.sceneZ/10;
+    const panStrength=depth*.055;
+    const tiltStrength=.42+(depth*.78);
     const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
