@@ -190,38 +190,6 @@ public sealed partial class WorldSession
         await SaveRegionsAsync();
     }
 
-    public async Task<WorldRegion> SaveRegionLayerStateAsync(string regionId, JsonElement layerState)
-    {
-        var index = _regions.FindIndex(r => string.Equals(r.RegionId, regionId, StringComparison.Ordinal));
-        if (index < 0) throw new InvalidOperationException("The selected region is not available.");
-        var region = _regions[index];
-        if (!CanEditRegion(region)) throw new UnauthorizedAccessException("Region edit authority is required.");
-        if (layerState.ValueKind != JsonValueKind.Object) throw new InvalidOperationException("Region layer state must be an object.");
-
-        if (layerState.TryGetProperty("worldId", out var stateWorldId))
-        {
-            var value = stateWorldId.GetString()?.Trim() ?? "";
-            if (value.Length > 0 && !string.Equals(value, WorldId, StringComparison.Ordinal))
-                throw new InvalidOperationException("Region layer state belongs to a different world.");
-        }
-        if (layerState.TryGetProperty("regionId", out var stateRegionId))
-        {
-            var value = stateRegionId.GetString()?.Trim() ?? "";
-            if (value.Length > 0 && !string.Equals(value, region.RegionId, StringComparison.Ordinal))
-                throw new InvalidOperationException("Region layer state belongs to a different region.");
-        }
-
-        region = region with
-        {
-            LayerState = layerState.Clone(),
-            UpdatedAtUtc = DateTimeOffset.UtcNow
-        };
-        _regions[index] = region;
-        _activeRegionId = region.RegionId;
-        await SaveRegionsAsync();
-        return region;
-    }
-
     public async Task SaveRegionsAsync()
     {
         if (!HasActiveWorld) return;
@@ -320,8 +288,7 @@ public sealed record WorldRegion(
     string ParcelId = "",
     int ParcelPixelWidth = 0,
     int ParcelPixelHeight = 0,
-    int MaxHeight = 0,
-    JsonElement? LayerState = null)
+    int MaxHeight = 0)
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
