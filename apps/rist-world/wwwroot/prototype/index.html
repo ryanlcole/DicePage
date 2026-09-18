@@ -11,7 +11,9 @@
 <main class="shell" aria-label="Shaelvien World Builder">
   <section id="stage" class="stage" aria-label="Interactive layered world viewer">
     <div id="world" class="world" aria-live="off">
-      <img id="surfacePlane" class="plane base" alt="Canonical surface map" draggable="false" />
+      <img id="surfacePlane" class="plane base" alt="Sea level world representation" draggable="false" />
+      <img id="highlandsPlane" class="plane highlands" alt="Hills and low clouds world representation" draggable="false" />
+      <img id="mountainPlane" class="plane mountains" alt="Mountains and weather world representation" draggable="false" />
     </div>
     <div id="loading" class="loading">LOADING WORLD…</div>
     <section id="battleInstance" class="battle-instance" aria-label="Battle Instance" hidden><strong>BATTLE INSTANCE</strong><span id="battleText">Entity focus becomes a tactical viewer representation while the world coordinate identity remains unchanged.</span></section>
@@ -19,7 +21,7 @@
       <div class="bottom-slider-track">
         <button id="back" class="square-action" type="button" aria-label="Home">⌂</button>
         <button id="imageUploadToggle" class="square-action" type="button" aria-label="Add image" aria-haspopup="dialog">▧</button>
-        <button id="parallaxAdd" class="square-action" type="button" aria-label="Add parallax gap">≋</button>
+        <button id="tierToggle" class="square-action" type="button" aria-label="All Parallax. Open tier selector" aria-haspopup="menu" aria-expanded="false"><span id="tierGlyph" aria-hidden="true">≋</span></button>
         <button id="keyboardToggle" class="square-action" type="button" aria-label="Open World Builder keyboard" aria-expanded="false" aria-controls="viewerKeyboard">⌨</button>
         <button id="settingsToggle" class="square-action" type="button" aria-label="World Builder settings" aria-haspopup="dialog">⚙</button>
         <button id="zoomOut" class="square-action" type="button" aria-label="Zoom out">−</button>
@@ -27,6 +29,7 @@
         <button id="fit" class="square-action" type="button" aria-label="Fit map to screen">⛶</button>
       </div>
     </nav>
+    <div id="tierMenu" class="tier-menu" role="menu" aria-label="World tier selector" hidden data-ui></div>
     <section id="viewerSettingsPanel" class="viewer-settings-panel" role="dialog" aria-modal="true" aria-label="World Builder settings" hidden data-ui>
       <div class="viewer-settings-card">
         <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
@@ -41,6 +44,8 @@
         <div class="image-position-grid">
           <label><span>X</span><input id="imageX" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label>
           <label><span>Y</span><input id="imageY" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label>
+          <label><span>Tier</span><input id="imageTier" type="number" min="0" max="2" step="1" inputmode="numeric" /></label>
+          <label><span>Layer</span><input id="imageLayer" type="number" min="0" max="9" step="1" inputmode="numeric" /></label>
         </div>
         <label class="image-transparency"><input id="imageTransparency" type="checkbox" checked /> <span>Automatic transparency</span></label>
         <div id="imageDropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Drop an image here or browse for an image">
