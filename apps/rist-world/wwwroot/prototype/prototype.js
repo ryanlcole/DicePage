@@ -33,6 +33,10 @@ const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
+const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
+const TILE_LIBRARY_PAGE_SIZE=12;
+const WORLD_TERRAIN_FOLDERS=Object.freeze(['Vent Fields','Canyons','Lakes','Rivers','Cliffs','Volcano','Ice','Snow','Mountains','Hills','Desert','Swamp','Jungle','Forest','Plains','Beach','Coast','Ocean']);
+let tileCatalog=[],tileLibraryFolder=null,tileLibraryPage=0,tileLibraryLoading=false,tileLibraryError='';
 const collisionMasks=new Map();
 const COLLISION_MASK_MAX=512;
 
@@ -374,6 +378,78 @@ function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
 function keyboardModes(){return BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
+function tileLibraryAsset(raw){
+  return{
+    id:String(raw?.id||raw?.Id||''),
+    name:String(raw?.name||raw?.Name||'Asset'),
+    image:String(raw?.image||raw?.Image||''),
+    layer:String(raw?.layer||raw?.Layer||''),
+    directory:String(raw?.directory||raw?.Directory||''),
+    folder:String(raw?.folder||raw?.Folder||''),
+    kind:String(raw?.assetKind||raw?.AssetKind||'tile').toLowerCase()
+  };
+}
+async function ensureTileLibrary(force=false){
+  if(tileLibraryLoading)return;
+  if(tileCatalog.length&&!force)return;
+  tileLibraryLoading=true;tileLibraryError='';
+  if(keyboardMode==='Tiles')renderKeyboardKeys();
+  try{
+    const response=await fetch(TILE_LIBRARY_URL,{cache:'force-cache'});
+    if(!response.ok)throw new Error(`Tile library unavailable (${response.status})`);
+    const raw=await response.json();
+    tileCatalog=(Array.isArray(raw)?raw:[]).map(tileLibraryAsset).filter(asset=>
+      asset.id&&asset.image&&asset.kind!=='sprite'&&asset.layer.toUpperCase()==='WORLD'&&asset.directory.toLowerCase()==='terrain'
+    );
+    if(!tileCatalog.length)throw new Error('No World terrain tiles are registered.');
+    const folders=tileLibraryFolders();
+    if(tileLibraryFolder&&!folders.includes(tileLibraryFolder))tileLibraryFolder=null;
+    tileLibraryPage=0;
+  }catch(error){
+    tileCatalog=[];tileLibraryError=String(error?.message||error||'Tile library unavailable.');
+  }finally{
+    tileLibraryLoading=false;
+    if(keyboardMode==='Tiles')renderKeyboardKeys();
+  }
+}
+function tileLibraryFolders(){
+  const present=new Set(tileCatalog.map(asset=>asset.folder).filter(Boolean));
+  const canonical=WORLD_TERRAIN_FOLDERS.filter(folder=>present.has(folder));
+  const extras=[...present].filter(folder=>!WORLD_TERRAIN_FOLDERS.includes(folder)).sort((a,b)=>a.localeCompare(b));
+  return [...canonical,...extras];
+}
+function currentTileLibraryAssets(){
+  if(!tileLibraryFolder)return[];
+  return tileCatalog.filter(asset=>asset.folder===tileLibraryFolder);
+}
+function tileLibraryPageCount(){return Math.max(1,Math.ceil(currentTileLibraryAssets().length/TILE_LIBRARY_PAGE_SIZE))}
+function tileLibraryPageAssets(){
+  tileLibraryPage=clamp(tileLibraryPage,0,tileLibraryPageCount()-1);
+  const start=tileLibraryPage*TILE_LIBRARY_PAGE_SIZE;
+  return currentTileLibraryAssets().slice(start,start+TILE_LIBRARY_PAGE_SIZE);
+}
+function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30),0,29)+.5)/30}
+function placeLibraryTile(asset){
+  if(!asset?.image)return;
+  const point=viewerCenterPosition(),item={
+    id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
+    assetId:asset.id,name:asset.name,libraryTile:true,
+    originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
+    x:snapWorldCell(point.x),y:snapWorldCell(point.y),tier:currentTierIndex(),layer:viewerLayer,
+    size:(1/30)/.12,rotation:0,opacity:1,renderOpacity:1,node:null
+  };
+  const node=document.createElement('img');node.className='user-image-placement library-tile-placement';node.alt=asset.name;node.draggable=false;item.node=node;
+  node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);applyParallax();
+  announce(`${asset.name} placed at the viewer center in ${tierLabel(tierByIndex(item.tier))}, layer ${item.layer}.`);
+}
+function libraryTileKey(asset){
+  const button=document.createElement('button');button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Tap to place this tile at the viewer center.`);
+  const image=document.createElement('img');image.src=asset.image;image.alt='';image.loading='lazy';image.decoding='async';image.draggable=false;
+  const label=document.createElement('small');label.textContent=asset.name;button.append(image,label);button.addEventListener('click',()=>placeLibraryTile(asset));return button;
+}
+function openTileLibraryFolder(folder){tileLibraryFolder=folder;tileLibraryPage=0;renderKeyboardKeys();announce(`${folder} tile folder opened.`)}
+function closeTileLibraryFolder(){tileLibraryFolder=null;tileLibraryPage=0;renderKeyboardKeys();announce('World tile folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
 function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){
@@ -398,6 +474,31 @@ function renderKeyboardKeys(){
       toolKey('NAME','tier',renameViewerTier,viewerTier==='all')
     );return;
   }
+  if(keyboardMode==='Tiles'){
+    if(!tileCatalog.length&&!tileLibraryLoading&&!tileLibraryError)void ensureTileLibrary();
+    if(tileLibraryLoading){keyboardKeys.append(toolKey('LOADING','World tile library',()=>{},true));return}
+    if(tileLibraryError){
+      keyboardKeys.append(toolKey('RETRY','Tile library',()=>{tileLibraryError='';void ensureTileLibrary(true)}),toolKey('ERROR',tileLibraryError,()=>{},true));return;
+    }
+    if(!tileLibraryFolder){
+      const folders=tileLibraryFolders();
+      keyboardKeys.append(toolKey('WORLD','Tile Library',()=>{},true));
+      folders.forEach(folder=>keyboardKeys.append(toolKey(folder,'Folder',()=>openTileLibraryFolder(folder))));
+      if(!folders.length)keyboardKeys.append(toolKey('EMPTY','No registered folders',()=>{},true));
+      return;
+    }
+    const count=tileLibraryPageCount();
+    keyboardKeys.append(
+      toolKey('‹','Folders',closeTileLibraryFolder),
+      toolKey(tileLibraryFolder,`Page ${tileLibraryPage+1} / ${count}`,()=>{},true)
+    );
+    tileLibraryPageAssets().forEach(asset=>keyboardKeys.append(libraryTileKey(asset)));
+    keyboardKeys.append(
+      toolKey('‹','Previous',()=>{tileLibraryPage=(tileLibraryPage-1+count)%count;renderKeyboardKeys()}),
+      toolKey('›','Next',()=>{tileLibraryPage=(tileLibraryPage+1)%count;renderKeyboardKeys()})
+    );
+    return;
+  }
   if(keyboardMode==='Image'){
     if(!selectedImage){keyboardKeys.append(toolKey('▧','add image',openImageUpload));return}
     keyboardKeys.append(
@@ -418,7 +519,7 @@ function renderKeyboardKeys(){
   if(keyboardMode==='Selected'){
     keyboardKeys.append(toolKey('IMAGE','edit selected',()=>{keyboardMode='Image';renderKeyboardTabs();renderKeyboardKeys()},!selectedImage),toolKey('INSPECT','viewer',()=>setTool('Inspect')),toolKey('META','viewer',()=>setTool('Metadata')));return;
   }
-  const sets={Pixels:['Select','Paint','Erase','Fill'],Tiles:['Library','Place','Rotate','Scale'],Sprites:['Library','Place','Play','Speed'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
+  const sets={Pixels:['Select','Paint','Erase','Fill'],Sprites:['Library','Place','Play','Speed'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
 function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label','Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
@@ -578,7 +679,8 @@ window.ShaelvienPrototype=Object.freeze({
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+userLayers.length,
     userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent})),
-    keyboardOpen:!keyboard.hidden,keyboardMode,toolMode
+    keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
+    tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null}
   })
 });
 updateTierButton();
