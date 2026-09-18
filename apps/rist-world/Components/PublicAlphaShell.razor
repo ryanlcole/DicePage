@@ -45,7 +45,7 @@
    <button type="button" class="launcher-card world" @onclick="OpenPerceiver" aria-label="Open Perceiver cinematic motion parallax"><span class="card-icon" aria-hidden="true">◉</span><strong>PERCEIVER</strong><small>Cinematic depth using tier motion speed relative to the focal plane.</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
-   <button type="button" class="launcher-card campaign" disabled="@(!CanBuildWorld)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":"Build access required for this world.")</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":Session.IsGeonaphWorld?"View the Endemar GameMaster layout as a read-only reference.":"Build access required for this world.")</small></button>
    @if(WorldReady)
    {
     <button type="button" class="launcher-card world" @onclick="OpenTickerAsync"><span class="card-icon">⋯</span><strong>TICKER</strong><small>Customize this world's automatic top ticker.</small></button>
@@ -92,7 +92,7 @@
 }
 else
 {
- <div class="alpha-world-stage @(_workspaceMode=="world"?"worldbuilder-stage":"")">
+ <div class="alpha-world-stage @(_workspaceMode=="world"?"worldbuilder-stage":"") @(WorkspaceReferenceOnly?"reference-only":"")">
   @if (_workspaceMode != "world")
   {
    <div class="alpha-world-ribbon" aria-label="Shaelvien workspace">
@@ -101,6 +101,7 @@ else
     <span class="alpha-ribbon-path">@_workspaceHint</span>
    </div>
   }
+  @if(WorkspaceReferenceOnly){<div class="workspace-reference-banner" role="status">VIEW ONLY · ENDEMAR REFERENCE</div>}
   <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="OpenStartMenu" />
  </div>
 }
@@ -222,6 +223,8 @@ else
  @@media(prefers-reduced-motion:reduce){.launcher-depth-stars,.launcher-depth-aura,.launcher-koi-track{animation:none!important}}
  @@media(max-width:620px){.launcher-depth-scene{top:34px;height:390px}.launcher-depth-orbits{top:49%;width:112vw}.launcher-depth-world{bottom:-77%;width:145vw}.launcher-depth-stars{opacity:.26}.launcher-depth-aura{filter:blur(5px)}}
  .launcher-card:disabled,.launcher-secondary button:disabled,.launcher-enter:disabled{opacity:.34!important;filter:grayscale(.8);cursor:not-allowed}.launcher-card:disabled:hover,.launcher-secondary button:disabled:hover{transform:none!important}
+ .alpha-world-stage.reference-only .task-workspace-router{pointer-events:none!important;user-select:none!important;-webkit-user-select:none!important}
+ .workspace-reference-banner{position:absolute;z-index:2147482300;left:50%;top:42px;transform:translateX(-50%);max-width:calc(100% - 32px);padding:6px 10px;border:1px solid #9b7a34;border-radius:999px;background:#071017ee;color:#f0d590;font:900 8px/1 system-ui;letter-spacing:.11em;white-space:nowrap;pointer-events:none}
  .launcher-hub .rist-card-index-launcher{display:none!important}
  .accessibility-shell-card{border-color:#88b9d0!important;background:linear-gradient(145deg,#102735,#0a171f)!important}.accessibility-shell-card strong{color:#dff5ff!important}.accessibility-shell-card small{color:#bad5df!important}
 </style>
@@ -253,6 +256,7 @@ else
  bool WorldReady=>Session.HasActiveWorld;
  bool CanBuildWorld=>WorldReady&&Session.HasTrustedWorldBuilderAuthority;
  bool CanOpenWorldBuilder=>CanBuildWorld||(WorldReady&&Session.IsGeonaphWorld);
+ bool WorkspaceReferenceOnly=>_workspaceOpen&&!CanBuildWorld&&Session.IsGeonaphWorld&&_workspaceMode=="campaign";
  string LandingWorldValue=>WorldReady?Session.WorldId:"";
  string TickerStorageKey=>WorldReady?$"rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}":"";
  string DefaultTickerText=>WorldReady?$"{Session.WorldDisplayName.Trim().ToUpperInvariant()}\nBUILD\nUPLOAD\nWEATHER\nMETADATA":"";
@@ -479,7 +483,7 @@ else
  void OpenLore()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAstrology()=>OpenWorkspace("world","ASTROLOGY","CELESTIAL → INFLUENCE → WORLD");
  void OpenAstronomy()=>OpenWorkspace("world","ASTRONOMY","STARS → SKY → CELESTIAL STRUCTURE");
- void OpenGameMaster(){if(!CanBuildWorld)return;OpenWorkspace("campaign","GAMEMASTER","BUILD → MANAGE → RUN → REPLAY");}
+ void OpenGameMaster(){if(!CanOpenWorldBuilder)return;OpenWorkspace("campaign","GAMEMASTER",CanBuildWorld?"BUILD → MANAGE → RUN → REPLAY":"ENDEMAR → VIEW ONLY → REFERENCE");}
  void OpenViewer()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD → REGION → LOCAL");
  void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGNS","WORLD → CAMPAIGN → SESSION → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
