@@ -1,40 +1,211 @@
 @inject WorldSession Session
 
-<div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="World Builder">
- <iframe
-  class="geonaph-worldbuilder-frame"
-  src="@BuilderSrc"
-  title="World Builder"
-  loading="eager"
-  allow="fullscreen"
- ></iframe>
-</div>
+@if(_enterParcel)
+{
+ <RegionDefinerWorkspace OnStartMenu="OnStartMenu" />
+}
+else
+{
+ <div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="World Builder">
+  <iframe
+   class="geonaph-worldbuilder-frame"
+   src="@BuilderSrc"
+   title="World Builder"
+   loading="eager"
+   allow="fullscreen"
+  ></iframe>
+
+  @if(Session.IsGeonaphWorld && !Session.HasTrustedWorldBuilderAuthority)
+  {
+   <section class="shaelvien-land-dock" aria-label="Shaelvien MMO world ownership">
+    <div>
+     <small>SHAELVIEN · ORIGIN: ENDEMAR</small>
+     <strong>@Session.MmoWorldTokenLabel</strong>
+     <span>@LandSummary</span>
+    </div>
+    <div class="shaelvien-land-actions">
+     @if(Session.HasUnspentMmoWorldToken && Session.OwnedMmoParcel is null)
+     {
+      <button type="button" class="claim" @onclick="OpenClaim">CLAIM WORLD</button>
+     }
+     @foreach(var parcel in EditableParcels)
+     {
+      <button type="button" @onclick="()=>EnterParcelAsync(parcel)">ENTER @parcel.DisplayName</button>
+     }
+     @if(Session.OwnedMmoParcel is not null)
+     {
+      <button type="button" @onclick="OpenPermissions">PERMISSIONS</button>
+     }
+    </div>
+   </section>
+  }
+
+  @if(_claimOpen)
+  {
+   <section class="shaelvien-land-backdrop" role="presentation" @onclick="CloseClaim">
+    <div class="shaelvien-land-card" role="dialog" aria-modal="true" aria-label="Claim a Shaelvien world" @onclick:stopPropagation="true">
+     <header>
+      <span><small>SHAELVIEN WORLD TOKEN</small><strong>CLAIM A WORLD</strong></span>
+      <button type="button" @onclick="CloseClaim" aria-label="Close claim map">×</button>
+     </header>
+
+     <p class="claim-rule">Endemar is the origin. Choose one unclaimed square touching Endemar or the existing claimed frontier. The purchase is permanent: one token binds one account code half to the world's code half.</p>
+
+     <div class="claim-map-scroll">
+      <div class="claim-map" style="@($"--claim-cols:{VisibleColumnCount}")" role="grid" aria-label="Shaelvien claim squares around Endemar">
+       @foreach(var cell in VisibleClaimCells)
+       {
+        var claimable=Session.IsMmoParcelClaimable(cell);
+        <button type="button"
+                role="gridcell"
+                class="@CellClass(cell)"
+                disabled="@(!claimable)"
+                aria-label="@CellLabel(cell)"
+                title="@CellLabel(cell)"
+                @onclick="()=>SelectCell(cell)">
+         @CellText(cell)
+        </button>
+       }
+      </div>
+     </div>
+
+     <div class="claim-legend" aria-label="Claim map legend">
+      <span><i class="legend-endemar"></i>Endemar</span>
+      <span><i class="legend-open"></i>Available</span>
+      <span><i class="legend-taken"></i>Claimed</span>
+      <span><i class="legend-owned"></i>Yours</span>
+     </div>
+
+     @if(_selectedCell>=0)
+     {
+      <section class="claim-selection">
+       <strong>SQUARE @CellCoordinate(_selectedCell)</strong>
+       <span>@WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · maximum height @WorldSession.MmoParcelMaxHeight</span>
+       <label for="shaelvien-world-name">WORLD NAME</label>
+       <input id="shaelvien-world-name" maxlength="80" autocomplete="off" @bind="_worldName" @bind:event="oninput" placeholder="Name this world" />
+       <button type="button" class="claim-confirm" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="ClaimAsync">@(_busy?"BINDING TOKEN…":"SPEND TOKEN & CLAIM")</button>
+      </section>
+     }
+
+     @if(!string.IsNullOrWhiteSpace(_status)){<p class="claim-status" role="status">@_status</p>}
+    </div>
+   </section>
+  }
+
+  @if(_permissionsOpen && Session.OwnedMmoParcel is { } owned)
+  {
+   <section class="shaelvien-land-backdrop" role="presentation" @onclick="ClosePermissions">
+    <div class="shaelvien-land-card permission-card" role="dialog" aria-modal="true" aria-label="Shaelvien world permissions" @onclick:stopPropagation="true">
+     <header>
+      <span><small>OWNERSHIP REMAINS LOCKED</small><strong>@owned.DisplayName PERMISSIONS</strong></span>
+      <button type="button" @onclick="ClosePermissions" aria-label="Close permissions">×</button>
+     </header>
+     <p class="claim-rule">This parcel cannot be claimed by another account. You can hand off access without transferring the token binding or ownership.</p>
+     <dl class="parcel-facts">
+      <div><dt>Parcel</dt><dd>@CellCoordinate(owned.CellIndex)</dd></div>
+      <div><dt>Surface</dt><dd>@owned.PixelWidth×@owned.PixelHeight px</dd></div>
+      <div><dt>Height</dt><dd>@owned.MaxHeight</dd></div>
+      <div><dt>Binding</dt><dd>@BindingFingerprint(owned.BindingHash)</dd></div>
+     </dl>
+     <label for="parcel-user-id">USER ID</label>
+     <input id="parcel-user-id" autocomplete="off" @bind="_delegateUserId" placeholder="Authenticated RIST user ID" />
+     <label for="parcel-permission">PERMISSION</label>
+     <select id="parcel-permission" @bind="_delegatePermission">
+      <option value="View">View</option>
+      <option value="Edit">Edit</option>
+      <option value="Manage">Manage</option>
+      <option value="None">Remove permission</option>
+     </select>
+     <button type="button" class="claim-confirm" disabled="@(_busy||string.IsNullOrWhiteSpace(_delegateUserId))" @onclick="SavePermissionAsync">@(_busy?"SAVING…":"SAVE PERMISSION")</button>
+     @if(!string.IsNullOrWhiteSpace(_status)){<p class="claim-status" role="status">@_status</p>}
+    </div>
+   </section>
+  }
+ </div>
+}
 
 <style>
- .geonaph-worldbuilder-host{
-  position:fixed;
-  inset:0;
-  z-index:2147481000;
-  width:100dvw;
-  height:100dvh;
-  min-width:0;
-  min-height:0;
-  overflow:hidden;
-  background:#05090c;
- }
- .geonaph-worldbuilder-frame{
-  display:block;
-  width:100%;
-  height:100%;
-  border:0;
-  margin:0;
-  padding:0;
-  background:#05090c;
- }
+ .geonaph-worldbuilder-host{position:fixed;inset:0;z-index:2147481000;width:100dvw;height:100dvh;min-width:0;min-height:0;overflow:hidden;background:#05090c}
+ .geonaph-worldbuilder-frame{display:block;width:100%;height:100%;border:0;margin:0;padding:0;background:#05090c}
+ .shaelvien-land-dock{box-sizing:border-box;position:absolute;z-index:20;left:50%;bottom:16px;transform:translateX(-50%);width:min(94vw,820px);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #977738;border-radius:12px;background:#071016e8;color:#e9dec3;box-shadow:0 10px 35px #000c;backdrop-filter:blur(6px);font-family:system-ui,-apple-system,sans-serif}
+ .shaelvien-land-dock>div:first-child{min-width:0;display:grid;gap:3px}.shaelvien-land-dock small{color:#78a9c5;font-size:8px;font-weight:900;letter-spacing:.12em}.shaelvien-land-dock strong{color:#f0d28a;font-size:11px}.shaelvien-land-dock span{color:#aebbc1;font-size:9px;line-height:1.3}.shaelvien-land-actions{display:flex;gap:6px;overflow-x:auto}.shaelvien-land-actions button{min-height:38px;white-space:nowrap;border:1px solid #526671;border-radius:7px;background:#0e1920;color:#d9e0df;font-size:9px;font-weight:900;letter-spacing:.05em;padding:0 11px}.shaelvien-land-actions button.claim{border-color:#b18a38;background:#251e0e;color:#f4db91}
+ .shaelvien-land-backdrop{position:absolute;z-index:40;inset:0;display:grid;place-items:center;padding:14px;background:#020609df;backdrop-filter:blur(5px);font-family:system-ui,-apple-system,sans-serif}
+ .shaelvien-land-card{box-sizing:border-box;width:min(96vw,850px);max-height:94dvh;overflow:auto;display:grid;gap:12px;padding:16px;border:1px solid #9b7b3e;border-radius:14px;background:#071117;color:#e9dfc8;box-shadow:0 20px 70px #000e}
+ .shaelvien-land-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px}.shaelvien-land-card>header span{display:grid;gap:3px}.shaelvien-land-card>header small{color:#78a9c5;font-size:8px;font-weight:900;letter-spacing:.13em}.shaelvien-land-card>header strong{color:#f0d28a;font-size:16px;letter-spacing:.06em}.shaelvien-land-card>header button{width:40px;height:40px;border:1px solid #526671;border-radius:8px;background:#0d1820;color:#eee4cf;font-size:24px}.claim-rule{margin:0;color:#b7c0c2;font-size:11px;line-height:1.45}
+ .claim-map-scroll{overflow:auto;padding:10px;border:1px solid #394b54;border-radius:10px;background:#03080c}.claim-map{display:grid;grid-template-columns:repeat(var(--claim-cols),minmax(46px,1fr));gap:3px;min-width:max-content;margin:auto}.claim-map button{width:46px;height:46px;padding:2px;border:1px solid #34444b;border-radius:4px;background:#0a1218;color:#7d8d94;font-size:7px;font-weight:900;touch-action:manipulation}.claim-map button.endemar{border-color:#c4a44f;background:#3a2b0c;color:#ffe491;box-shadow:0 0 0 1px #d6b65c inset}.claim-map button.open{border-color:#57a2c9;background:#0b2937;color:#cceeff}.claim-map button.open.selected{border-color:#f0c65c;background:#4a3510;color:#fff0bd;box-shadow:0 0 0 2px #f0c65c inset}.claim-map button.claimed{border-color:#5b5d5e;background:#191c1e;color:#8b9295}.claim-map button.owned{border-color:#8f7c3e;background:#332b15;color:#f1dc98}.claim-map button.locked{opacity:.28}.claim-map button:disabled{cursor:not-allowed}
+ .claim-legend{display:flex;gap:12px;flex-wrap:wrap;color:#9facb0;font-size:9px}.claim-legend span{display:flex;align-items:center;gap:5px}.claim-legend i{width:10px;height:10px;border:1px solid #455760;border-radius:2px;background:#111;display:inline-block}.claim-legend .legend-endemar{border-color:#c4a44f;background:#3a2b0c}.claim-legend .legend-open{border-color:#57a2c9;background:#0b2937}.claim-legend .legend-taken{border-color:#5b5d5e;background:#191c1e}.claim-legend .legend-owned{border-color:#8f7c3e;background:#332b15}
+ .claim-selection,.permission-card{display:grid;gap:8px}.claim-selection{padding:12px;border:1px solid #5c5536;border-radius:9px;background:#0b151b}.claim-selection strong{color:#eed486}.claim-selection span{color:#aeb9bd;font-size:10px}.shaelvien-land-card label{color:#8eb1c4;font-size:8px;font-weight:900;letter-spacing:.1em}.shaelvien-land-card input,.shaelvien-land-card select{box-sizing:border-box;width:100%;height:44px;padding:0 10px;border:1px solid #526671;border-radius:7px;background:#09141a;color:#f2e7cd;font-size:13px}.claim-confirm{min-height:44px;border:1px solid #a5843b;border-radius:8px;background:#271f0f;color:#f2d98e;font-weight:900;letter-spacing:.05em}.claim-confirm:disabled{opacity:.4}.claim-status{margin:0;color:#e5bc72;font-size:10px;line-height:1.4}
+ .parcel-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0}.parcel-facts div{padding:8px;border:1px solid #364951;border-radius:7px;background:#0a151b}.parcel-facts dt{color:#819ca9;font-size:8px;font-weight:900;text-transform:uppercase}.parcel-facts dd{margin:3px 0 0;color:#e6d8b4;font-size:11px;overflow-wrap:anywhere}
+ @@media(max-width:620px){.shaelvien-land-dock{bottom:8px;width:calc(100% - 12px);align-items:stretch;flex-direction:column;padding:8px}.shaelvien-land-actions button{min-height:40px}.shaelvien-land-backdrop{padding:6px}.shaelvien-land-card{width:100%;max-height:97dvh;padding:12px}.claim-map{grid-template-columns:repeat(var(--claim-cols),42px)}.claim-map button{width:42px;height:42px}.parcel-facts{grid-template-columns:1fr 1fr}}
 </style>
 
 @code {
  [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ bool _loading;
+ bool _claimOpen;
+ bool _permissionsOpen;
+ bool _busy;
+ bool _enterParcel;
+ int _selectedCell=-1;
+ string _worldName="";
+ string _delegateUserId="";
+ string _delegatePermission="Edit";
+ string _status="";
+
+ IReadOnlyList<AwsAuthorityClient.MmoParcel> EditableParcels =>
+  Session.MmoParcels.Where(parcel=>Session.CanEditMmoParcel(parcel)).OrderBy(parcel=>parcel.DisplayName,StringComparer.OrdinalIgnoreCase).ToList();
+
+ string LandSummary => _loading
+  ? "Loading Shaelvien land authority…"
+  : Session.OwnedMmoParcel is { } owned
+   ? $"{owned.DisplayName} · {owned.PixelWidth}×{owned.PixelHeight}px · height {owned.MaxHeight}"
+   : Session.HasUnspentMmoWorldToken
+    ? "One unspent token can permanently claim an available world square."
+    : Session.MmoLandStatus;
+
+ int ViewMinColumn
+ {
+  get
+  {
+   var values=Session.MmoParcels.Select(x=>x.Column).Append(WorldSession.EndemarOriginColumn);
+   return Math.Max(0,values.Min()-2);
+  }
+ }
+ int ViewMaxColumn
+ {
+  get
+  {
+   var values=Session.MmoParcels.Select(x=>x.Column).Append(WorldSession.EndemarOriginColumn);
+   return Math.Min(WorldSession.MmoParcelGridColumns-1,values.Max()+2);
+  }
+ }
+ int ViewMinRow
+ {
+  get
+  {
+   var values=Session.MmoParcels.Select(x=>x.Row).Append(WorldSession.EndemarOriginRow);
+   return Math.Max(0,values.Min()-2);
+  }
+ }
+ int ViewMaxRow
+ {
+  get
+  {
+   var values=Session.MmoParcels.Select(x=>x.Row).Append(WorldSession.EndemarOriginRow);
+   return Math.Min(WorldSession.MmoParcelGridRows-1,values.Max()+2);
+  }
+ }
+ int VisibleColumnCount=>ViewMaxColumn-ViewMinColumn+1;
+ IEnumerable<int> VisibleClaimCells
+ {
+  get
+  {
+   for(var row=ViewMinRow;row<=ViewMaxRow;row++)
+   for(var column=ViewMinColumn;column<=ViewMaxColumn;column++)
+    yield return row*WorldSession.MmoParcelGridColumns+column;
+  }
+ }
 
  string BuilderSrc
  {
@@ -48,5 +219,113 @@
    var access=Session.HasTrustedWorldBuilderAuthority?"edit":"view";
    return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}";
   }
+ }
+
+ protected override async Task OnInitializedAsync()
+ {
+  _loading=true;
+  try
+  {
+   if(Session.IsGeonaphWorld)
+   {
+    await Session.RefreshMmoLandAsync();
+    await Session.LoadRegionsAsync();
+   }
+  }
+  finally{_loading=false;}
+ }
+
+ void OpenClaim(){_status="";_selectedCell=-1;_worldName="";_claimOpen=true;}
+ void CloseClaim(){if(_busy)return;_claimOpen=false;_selectedCell=-1;_status="";}
+ void OpenPermissions(){_status="";_delegateUserId="";_delegatePermission="Edit";_permissionsOpen=true;}
+ void ClosePermissions(){if(_busy)return;_permissionsOpen=false;_status="";}
+ void SelectCell(int cell){if(Session.IsMmoParcelClaimable(cell)){_selectedCell=cell;_status="";}}
+
+ async Task ClaimAsync()
+ {
+  if(_busy||_selectedCell<0||string.IsNullOrWhiteSpace(_worldName))return;
+  _busy=true;_status="Binding token to the selected Shaelvien square…";
+  try
+  {
+   var parcel=await Session.ClaimMmoParcelAsync(_selectedCell,_worldName);
+   _status=$"{parcel.DisplayName} is now exclusively claimed.";
+   _claimOpen=false;
+   await EnterParcelAsync(parcel);
+  }
+  catch(Exception ex){_status="Claim failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task EnterParcelAsync(AwsAuthorityClient.MmoParcel parcel)
+ {
+  if(parcel is null||!Session.CanEditMmoParcel(parcel))return;
+  await Session.LoadRegionsAsync();
+  Session.SetActiveRegion(parcel.RegionId);
+  if(Session.ActiveRegion is null)
+  {
+   _status="The parcel region is not available yet. Refresh the Shaelvien land authority and try again.";
+   return;
+  }
+  _claimOpen=false;
+  _permissionsOpen=false;
+  _enterParcel=true;
+ }
+
+ async Task SavePermissionAsync()
+ {
+  if(_busy||Session.OwnedMmoParcel is null||string.IsNullOrWhiteSpace(_delegateUserId))return;
+  _busy=true;_status="Saving parcel permission…";
+  try
+  {
+   var ok=await Session.DelegateMmoParcelAsync(Session.OwnedMmoParcel.ParcelId,_delegateUserId,_delegatePermission);
+   _status=ok
+    ? (_delegatePermission=="None"?"Permission removed.":"Permission handed off. Ownership remains unchanged.")
+    : "Permission could not be changed.";
+   if(ok)_delegateUserId="";
+  }
+  catch(Exception ex){_status="Permission update failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ string CellClass(int cell)
+ {
+  if(cell==WorldSession.EndemarOriginCell)return "endemar";
+  var parcel=Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==cell);
+  if(parcel is not null)
+   return Session.IsMmoParcelOwnedByCurrentUser(cell)?"owned":"claimed";
+  if(Session.IsMmoParcelClaimable(cell))
+   return cell==_selectedCell?"open selected":"open";
+  return "locked";
+ }
+
+ string CellText(int cell)
+ {
+  if(cell==WorldSession.EndemarOriginCell)return "END";
+  if(Session.IsMmoParcelOwnedByCurrentUser(cell))return "YOURS";
+  if(Session.IsMmoParcelClaimed(cell))return "TAKEN";
+  return CellCoordinate(cell);
+ }
+
+ string CellLabel(int cell)
+ {
+  if(cell==WorldSession.EndemarOriginCell)return "Endemar, Shaelvien origin; not claimable";
+  if(Session.IsMmoParcelOwnedByCurrentUser(cell))return $"Your claimed Shaelvien world at {CellCoordinate(cell)}";
+  if(Session.IsMmoParcelClaimed(cell))return $"Claimed Shaelvien square {CellCoordinate(cell)}; unavailable";
+  if(Session.IsMmoParcelClaimable(cell))return $"Available Shaelvien square {CellCoordinate(cell)}; 2048 by 2048 pixels, maximum height 10";
+  return $"Shaelvien square {CellCoordinate(cell)}; not yet connected to the claim frontier";
+ }
+
+ static string CellCoordinate(int cell)
+ {
+  var column=cell%WorldSession.MmoParcelGridColumns;
+  var row=cell/WorldSession.MmoParcelGridColumns;
+  return $"{column},{row}";
+ }
+
+ static string BindingFingerprint(string? binding)
+ {
+  var value=(binding??"").Trim();
+  if(value.Length==0)return "pending";
+  return value.Length<=16?value:value[..16]+"…";
  }
 }
