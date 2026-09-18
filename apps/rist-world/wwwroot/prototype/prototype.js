@@ -73,6 +73,9 @@ const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase='idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId='';
+let regionWorldSourceMeta=null;
+const regionWorldSourceTiles=[];
+let regionWorldSourceOcean=null;
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
@@ -378,10 +381,6 @@ async function restoreSavedWorldBuilder(){
     userLayers.splice(0,userLayers.length);
     world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
     if(REGION_DEFINER){
-      const sourceState=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
-      if(sourceState?.format==='RIST_WORLDBUILDER_PROTOTYPE'&&String(sourceState.worldId||'')===String(WORLD_ID||'')){
-        for(const raw of Array.isArray(sourceState.userLayers)?sourceState.userLayers:[])await attachRestoredLayer(raw,{sourceLocked:true});
-      }
       const regionState=await readSavedWorldBuilder(REGION_OVERLAY_SAVE_KEY);
       if(regionState?.format==='RIST_REGIONDEFINER_OVERLAYS'&&String(regionState.worldId||'')===String(WORLD_ID||'')){
         for(const raw of Array.isArray(regionState.userLayers)?regionState.userLayers:[])await attachRestoredLayer(raw,{regionOverlay:true});
@@ -1033,6 +1032,7 @@ function tierMix(){
 }
 function applyParallax(){
   const dx=x-fitX,dy=y-fitY,mix=tierMix();
+  if(REGION_DEFINER)updateRegionWorldSourceVisibility();
   const builtins=[
     {node:surface,key:'surface',tier:0,layer:0,sceneZ:0,alpha:mix.surface},
     {node:highlands,key:'highlands',tier:1,layer:0,sceneZ:4,alpha:mix.highlands},
@@ -1171,6 +1171,83 @@ function snapRegionPoint(x,y){
   let cell=regionCellFromPoint(x,y);
   cell=nearestAllowedRegionCell(cell,regionActiveCellSet());
   return regionCellCenter(cell);
+}
+function clearRegionWorldSource(){
+  for(const item of regionWorldSourceTiles)item.node?.remove();
+  regionWorldSourceTiles.splice(0,regionWorldSourceTiles.length);
+  regionWorldSourceOcean?.remove();regionWorldSourceOcean=null;
+  regionWorldSourceMeta=null;
+}
+function regionSourceNumber(value,fallback=0){
+  const n=Number(value);return Number.isFinite(n)?n:fallback;
+}
+function regionSourceCropStyle(image,tile){
+  const sourceWidth=Math.max(0,Math.trunc(regionSourceNumber(tile.sourceWidth,0)));
+  const sourceHeight=Math.max(0,Math.trunc(regionSourceNumber(tile.sourceHeight,0)));
+  const cropX=Math.max(0,Math.trunc(regionSourceNumber(tile.cropX,0)));
+  const cropY=Math.max(0,Math.trunc(regionSourceNumber(tile.cropY,0)));
+  const cropWidth=Math.max(0,Math.trunc(regionSourceNumber(tile.cropWidth,0)));
+  const cropHeight=Math.max(0,Math.trunc(regionSourceNumber(tile.cropHeight,0)));
+  if(sourceWidth>0&&sourceHeight>0&&cropWidth>0&&cropHeight>0){
+    image.style.width=`${(sourceWidth*100/cropWidth).toFixed(5)}%`;
+    image.style.height=`${(sourceHeight*100/cropHeight).toFixed(5)}%`;
+    image.style.left=`${(-cropX*100/cropWidth).toFixed(5)}%`;
+    image.style.top=`${(-cropY*100/cropHeight).toFixed(5)}%`;
+    image.style.maxWidth='none';image.style.maxHeight='none';image.style.objectFit='fill';
+  }else{
+    image.style.width='100%';image.style.height='100%';image.style.left='0';image.style.top='0';image.style.objectFit='cover';
+  }
+}
+function renderRegionWorldSource(payload){
+  if(!REGION_DEFINER)return;
+  clearRegionWorldSource();
+  const source=payload&&typeof payload==='object'?payload:{};
+  const tiles=Array.isArray(source.tiles)?source.tiles:[];
+  regionWorldSourceMeta={
+    worldId:String(source.worldId||WORLD_ID||''),
+    worldName:String(source.worldName||WORLD_NAME||DISPLAY_WORLD_NAME||'World'),
+    gridColumns:Math.max(1,Math.trunc(regionSourceNumber(source.gridColumns,REGION_GRID_COLUMNS))),
+    gridRows:Math.max(1,Math.trunc(regionSourceNumber(source.gridRows,REGION_GRID_ROWS))),
+    gridStyle:normalizeRegionGridShape(source.gridStyle||'square'),
+    planeIndex:Math.trunc(regionSourceNumber(source.planeIndex,0))
+  };
+  const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
+  world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
+  tiles.forEach((raw,index)=>{
+    const tier=clamp(Math.trunc(regionSourceNumber(raw.tierIndex,0)),0,TIERS.length-1);
+    const layer=clamp(Math.trunc(regionSourceNumber(raw.layerOffset,0)),0,9);
+    const placementZoom=Math.max(regionSourceNumber(raw.placementZoom,1),1/REGION_GRID_COLUMNS);
+    const width=1/REGION_GRID_COLUMNS/placementZoom,height=1/REGION_GRID_ROWS/placementZoom;
+    const node=document.createElement('div');node.className='region-world-source-tile';
+    node.style.left=`${(clamp(regionSourceNumber(raw.x,0),0,1)*100).toFixed(5)}%`;
+    node.style.top=`${(clamp(regionSourceNumber(raw.y,0),0,1)*100).toFixed(5)}%`;
+    node.style.width=`${(width*100).toFixed(5)}%`;node.style.height=`${(height*100).toFixed(5)}%`;
+    node.style.zIndex=String(tierStackBase(tier)+layer+(index/10000));
+    node.style.transform=`rotate(${Math.trunc(regionSourceNumber(raw.rotationQuarterTurns,0))*90}deg)`;
+    node.dataset.tier=String(tier);node.dataset.layer=String(layer);node.dataset.sourceLocked='true';
+    node.setAttribute('aria-label',String(raw.name||'Locked world source'));
+    const frame=document.createElement('span');frame.className='region-world-source-crop';
+    const image=document.createElement('img');image.src=String(raw.image||'');image.alt='';image.draggable=false;
+    regionSourceCropStyle(image,raw);frame.appendChild(image);node.appendChild(frame);world.appendChild(node);
+    regionWorldSourceTiles.push({node,image,tier,layer,index,id:String(raw.id||''),name:String(raw.name||''),assetKind:String(raw.assetKind||'tile')});
+  });
+  world.dataset.emptyWorld=tiles.length?'false':'true';
+  loading.hidden=true;
+  updateRegionWorldSourceVisibility();
+  fitMap();
+  updateReadouts();renderKeyboardKeys();
+  announce(tiles.length
+    ? `${regionWorldSourceMeta.worldName} world map loaded. Claim a portion, then build the region.`
+    : `${regionWorldSourceMeta.worldName} world map loaded with no authored tiles. Claim from the ocean surface or return to World Builder to author the world first.`);
+}
+function updateRegionWorldSourceVisibility(){
+  if(!REGION_DEFINER)return;
+  const tier=currentRegionTierIndex();
+  if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=tier===0?'1':'.32';
+  for(const item of regionWorldSourceTiles){
+    const visible=item.tier===tier&&regionSourceLayerVisible(item.tier,item.layer);
+    item.node.style.display=visible?'block':'none';
+  }
 }
 function setRegionGridShape(shape){
   if(!REGION_DEFINER)return;
@@ -1365,7 +1442,7 @@ function startRegionClaim(){
   clearClaimedRegionCrop(false);
   regionClaimPhase='tier';regionCropPreview=false;regionSelectionEnabled=false;regionNameDraft='';regionSelectedCells.clear();
   viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();fitMap();updateRegionSelectionOverlay();renderKeyboardKeys();
-  announce('Claim Region started. Surface is the default. Choose a Tier, then select tiles.');
+  announce('Claim Region started. Choose a Tier, then select the world-map tiles to claim.');
 }
 function chooseRegionClaimTier(key){
   if(!REGION_DEFINER)return;
@@ -1379,7 +1456,7 @@ function cancelRegionClaim(){
   stage.classList.remove('region-build-mode');
   regionClaimPhase='idle';regionSelectionEnabled=false;regionCropPreview=false;regionNameDraft='';regionSelectedCells.clear();
   clearClaimedRegionCrop(false);viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();fitMap();updateRegionSelectionOverlay();renderKeyboardKeys();
-  announce('Region claim cancelled. Surface view restored.');
+  announce('Region claim cancelled. Full world map restored.');
 }
 function previewRegionCrop(){
   if(!REGION_DEFINER||regionClaimPhase!=='select'||!regionSelectedCells.size)return;
@@ -1484,6 +1561,10 @@ async function handleRegionHostMessage(event){
   if(!REGION_DEFINER||event.origin!==location.origin||event.source!==window.parent)return;
   const data=event.data;if(!data||data.source!=='shaelvien-regiondefiner-host')return;
   if(data.type==='bridge-ready'){postRegionMessage('ready');return}
+  if(data.type==='world-source'){
+    renderRegionWorldSource(data.worldSource||{});
+    return;
+  }
   if(data.type==='catalog'){
     regionCatalog=Array.isArray(data.regions)?data.regions:[];
     if(pendingClaimedRegionId&&!regionClaimedRegion){
@@ -1964,7 +2045,7 @@ function renderKeyboardKeys(){
       toolKey('⌁','reset tilt',resetTilt)
     );
     if(REGION_DEFINER)keyboardKeys.append(
-      readoutKey(regionClaimedRegion?'REGION':'SURFACE',regionClaimedRegion?'claimed full map':'default regional source view'),
+      readoutKey(regionClaimedRegion?'REGION':'WORLD MAP',regionClaimedRegion?'claimed full map':'claim source'),
       regionClaimedRegion
         ? readoutKey(regionGridShape.toUpperCase(),'saved placement grid')
         : toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement grid',cycleRegionGridShape),
@@ -2159,11 +2240,16 @@ if(!BASE_WORLD_ASSETS.length){
   naturalHeight=SURFACE_WORLD_PIXELS;
   stage.dataset.surfacePixelWidth=String(SURFACE_WORLD_PIXELS);
   stage.dataset.surfacePixelHeight=String(SURFACE_WORLD_PIXELS);
-  loading.hidden=true;
   world.dataset.emptyWorld='true';
   fitMap();
   void restoreSavedWorldBuilder();
-  announce('Empty world loaded. Add images to begin building.');
+  if(REGION_DEFINER){
+    loading.hidden=false;loading.textContent='LOADING SELECTED WORLD MAP…';
+    announce('Region Definer is loading the selected world map. Claim a portion, then build.');
+  }else{
+    loading.hidden=true;
+    announce('Empty world loaded. Add images to begin building.');
+  }
 }
 
 function screenAdjusted(beta,gamma){
