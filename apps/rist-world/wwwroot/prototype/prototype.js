@@ -8,7 +8,8 @@ const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
 const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
 const DISPLAY_WORLD_NAME=IS_GEONAPH_SEED?'Endemar':(WORLD_NAME||'Shaelvien');
 const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
-const SURFACE_WORLD_PIXELS=2048;
+const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
+const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const MIN_VIEW_SCALE=1e-6;
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
 const TIERS=Object.freeze([
@@ -792,7 +793,7 @@ function updateReadouts(){
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
   const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
   const continentLabel=CONTINENT_NAME?` Continent ${CONTINENT_NAME}.`:'';
-  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers. Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels.`);
+  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers. Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
 }
 function applyTransform(){
   invalidateRegionCamera();
@@ -1319,7 +1320,7 @@ window.addEventListener('resize',()=>{fitMap();scheduleRegionEnhancement(80)},{p
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!spriteUploadPanel.hidden){closeSpriteUpload();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({
-  world:Object.freeze({id:WORLD_ID,name:DISPLAY_WORLD_NAME,continent:CONTINENT_NAME,seed:WORLD_SEED,surfacePixels:SURFACE_WORLD_PIXELS}),
+  world:Object.freeze({id:WORLD_ID,name:DISPLAY_WORLD_NAME,continent:CONTINENT_NAME,seed:WORLD_SEED,surfacePixels:SURFACE_WORLD_PIXELS,surfacePolicy:SURFACE_POLICY}),
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
   save:saveWorldBuilder,
   tiers:TIERS,
