@@ -15,6 +15,7 @@ public sealed partial class WorldSession
 
     public async Task LoadRegionsAsync()
     {
+        var requestedActiveRegionId = _activeRegionId;
         _regions.Clear();
         _activeRegionId = "";
         if (!HasActiveWorld) { Notify(); return; }
@@ -55,7 +56,10 @@ public sealed partial class WorldSession
                 .GroupBy(x => x.RegionId, StringComparer.Ordinal)
                 .Select(g => g.OrderByDescending(x => x.UpdatedAtUtc).First())
                 .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase));
-            _activeRegionId = _regions.FirstOrDefault()?.RegionId ?? "";
+            _activeRegionId = !string.IsNullOrWhiteSpace(requestedActiveRegionId)
+                && _regions.Any(x => string.Equals(x.RegionId, requestedActiveRegionId, StringComparison.Ordinal))
+                ? requestedActiveRegionId
+                : "";
         }
 
         Notify();
