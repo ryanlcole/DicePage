@@ -1403,7 +1403,12 @@ async function renderRegionWorldSource(payload){
     regionSourceCropStyle(image,raw);frame.appendChild(image);node.appendChild(frame);world.appendChild(node);
     regionWorldSourceTiles.push({node,image,tier,layer,index,id:String(raw.id||''),name:String(raw.name||''),assetKind:String(raw.assetKind||'tile')});
   });
-  for(const raw of sourceLayers)await attachRestoredLayer(raw,{sourceLocked:true});
+  const activeRegionId=String(envelope.activeRegionId||REQUESTED_REGION_ID||pendingClaimedRegionId||'').trim();
+  for(const raw of sourceLayers){
+    const belongsToActiveRegion=!!activeRegionId&&String(raw?.regionId||'')===activeRegionId;
+    const editable=ACCESS_MODE==='edit'&&belongsToActiveRegion;
+    await attachRestoredLayer(raw,{sourceLocked:!editable,regionOverlay:belongsToActiveRegion});
+  }
   updateLayerOrder();
   const authoredCount=tiles.length+sourceLayers.length;
   world.dataset.emptyWorld=(authoredCount||tierImages.length)?'false':'true';
@@ -1414,12 +1419,12 @@ async function renderRegionWorldSource(payload){
   if(regionClaimPhase==='tier-preview'){
     showRegionTierPreview();
     announce((authoredCount||tierImages.length)
-      ?'World Builder database map loaded. Swipe through the world tiers, then choose the tier to define a new region.'
-      :'The World Builder database has no saved map source yet. Save the world in World Builder first.');
+      ?'Canonical world map loaded. Swipe through the world tiers, then choose the tier to define a region.'
+      :'The canonical world map has not been saved yet. Save it in World Builder first.');
   }else{
     announce((authoredCount||tierImages.length)
-      ?`${regionWorldSourceMeta.worldName} World Builder database map loaded. Select a saved region or define a new one.`
-      :`${regionWorldSourceMeta.worldName} has no saved World Builder database source yet.`);
+      ?`${regionWorldSourceMeta.worldName} canonical map loaded. Viewer perspective and permissions are active.`
+      :`${regionWorldSourceMeta.worldName} has no saved canonical map yet.`);
   }
 }
 function updateRegionWorldSourceVisibility(){
