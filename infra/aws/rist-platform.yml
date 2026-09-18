@@ -208,6 +208,24 @@ Resources:
         MembershipGrant:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/membership/grant, Method: POST }
+        MembershipClaimPermission:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/membership/claim-permission, Method: POST }
+        ClaimRequest:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/claims/request, Method: POST }
+        ClaimsGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/claims, Method: GET }
+        ClaimDecision:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/claims/decision, Method: POST }
+        RegionsGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/regions, Method: GET }
+        RegionSave:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/regions, Method: POST }
         RealtimeTicket:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /realtime/ticket, Method: POST }
