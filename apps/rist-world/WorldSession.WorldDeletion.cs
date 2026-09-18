@@ -21,7 +21,7 @@ public sealed partial class WorldSession
             throw new InvalidOperationException("Choose a valid world to delete.");
         if (!CanDeleteWorld(world))
             throw new InvalidOperationException(string.Equals(world.WorldId, GeonaphWorldId, StringComparison.Ordinal)
-                ? "Geonaph is canonical and cannot be deleted from the world chooser."
+                ? "Endemar is canonical and cannot be deleted from the world chooser."
                 : "Only a world owner may delete that world.");
         if (!string.Equals(confirmation, WorldDeletionConfirmationPhrase, StringComparison.Ordinal))
             throw new InvalidOperationException("The deletion approval phrase must match exactly.");
