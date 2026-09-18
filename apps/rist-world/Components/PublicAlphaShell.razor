@@ -40,17 +40,17 @@
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
+   <button type="button" class="launcher-card world" disabled="@(!CanBuildWorld)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":"Build access required for this world.")</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenPerceiver" aria-label="Open Perceiver cinematic motion parallax"><span class="card-icon" aria-hidden="true">◉</span><strong>PERCEIVER</strong><small>Cinematic depth using tier motion speed relative to the focal plane.</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!CanBuildWorld)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":"Build access required for this world.")</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!CanBuildWorld)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":"Build access required for this world.")</small></button>
    @if(WorldReady)
    {
     <button type="button" class="launcher-card world" @onclick="OpenTickerAsync"><span class="card-icon">⋯</span><strong>TICKER</strong><small>Customize this world's automatic top ticker.</small></button>
    }
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
    <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
    <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
    <button type="button" class="launcher-card roleplay coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
