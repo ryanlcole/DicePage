@@ -86,14 +86,15 @@
    maxRow=region.MaxRow,
    selectedCells=region.SelectedCells,
    sourceLayerOffsets=region.SourceLayerOffsets,
+   gridShape=region.GridShape,
    updatedAtUtc=region.UpdatedAtUtc
   }).ToList();
  }
 
  [JSInvokable]
- public async Task<object> CreateRegionFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets)
+ public async Task<object> CreateRegionFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape)
  {
-  var region=await Session.CreateRegionAsync(name,cells??Array.Empty<int>(),tierIndex,sourceLayerOffsets??Array.Empty<int>());
+  var region=await Session.CreateRegionAsync(name,cells??Array.Empty<int>(),tierIndex,sourceLayerOffsets??Array.Empty<int>(),gridShape);
   return new
   {
    id=region.RegionId,
@@ -105,6 +106,7 @@
    maxRow=region.MaxRow,
    selectedCells=region.SelectedCells,
    sourceLayerOffsets=region.SourceLayerOffsets,
+   gridShape=region.GridShape,
    updatedAtUtc=region.UpdatedAtUtc
   };
  }
