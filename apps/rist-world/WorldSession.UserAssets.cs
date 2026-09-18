@@ -236,6 +236,7 @@ public sealed partial class WorldSession
             "Rolling Stock" or "Rolling Stock & Locomotives" => "Rolling Stock",
             "Bits" => "Bits",
             "Sprites" => "Sprites",
+            "Images" or "Image" => "Images",
             _ => "Tiles"
         };
     }
@@ -274,4 +275,16 @@ public sealed record UserAssetCatalogEntry(
     string StorageState = "hot",
     string ArchiveMediaType = "",
     string ArchiveObjectKey = "",
-    string ConversionStatus = "");
+    string ConversionStatus = "",
+    string AssetKind = "image",
+    int SpriteColumns = 1,
+    int SpriteRows = 1,
+    int FrameCount = 1,
+    double FramesPerSecond = 0,
+    int SourceWidth = 0,
+    int SourceHeight = 0,
+    int CropX = 0,
+    int CropY = 0,
+    int CropWidth = 0,
+    int CropHeight = 0,
+    bool WhiteTransparent = false);
