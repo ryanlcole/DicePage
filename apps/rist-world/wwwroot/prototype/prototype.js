@@ -243,6 +243,7 @@ async function saveWorldBuilder(){
       item.committed=true;refreshUserImage(item);
       if(item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length>1)startSpriteMotion(item);
     }
+    updateLayerOrder();applyParallax();
     deselectUserImage(false);
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
@@ -510,16 +511,18 @@ function renameViewerTier(){
 function currentTierIndex(){return viewerTier==='all'?0:tierByKey(viewerTier).index}
 function tierStackBase(tier){return 100+(clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*100)}
 function updateLayerOrder(){
-  // Tier is the parallax/depth boundary. Every layer in a lower tier must remain
-  // beneath the base image of the next tier. Example: Sea L1..L10 < Hills base.
+  // Tier is the committed parallax/depth boundary. Unsaved placements float above
+  // the stack only while the user is positioning them; Save drops them into truth.
   surface.style.zIndex=String(tierStackBase(0));
   highlands.style.zIndex=String(tierStackBase(1));
   mountains.style.zIndex=String(tierStackBase(2));
   userLayers.forEach((item,index)=>{
     item.stackOrder=index;
-    item.node.style.zIndex=String(tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100));
+    const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
+    item.node.style.zIndex=String(item.committed?committedZ:1000+(index/100));
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
+    item.node.dataset.placementPreview=item.committed?'false':'true';
   });
 }
 function closeTierMenu(){tierMenu.hidden=true;tierToggle.setAttribute('aria-expanded','false')}
@@ -787,7 +790,9 @@ function applyParallax(){
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
   for(const item of userLayers){
-    const visible=viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
+    // A new/unsaved placement must stay visible even when its target tier is hidden,
+    // otherwise it looks as if upload failed. Save returns it to normal tier visibility.
+    const visible=!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
@@ -1000,7 +1005,7 @@ async function placeSpriteDefinition(definition){
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);world.appendChild(node);void primeCollisionMask(firstFrame);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
-  announce(`${item.name} placed using frame 1. Adjust it now; remaining frames are preparing in the background.`);
+  announce(`${item.name} placed using frame 1. It stays above the map while positioning; Save commits it to Tier ${selectedPositionSummary(item).tier}, Layer ${selectedPositionSummary(item).layer} and begins motion.`);
 
   item.spriteReadyPromise=extractSpriteFrames(definition.sheetSrc,extractOptions).then(frames=>{
     if(!item.node?.isConnected||!frames.length)return item;
