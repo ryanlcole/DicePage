@@ -25,6 +25,8 @@ kms_key = os.environ["USER_DATA_KEY_ARN"]
 owner_user_id = os.environ.get("OWNER_USER_ID", "").strip()
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
 GEONAPH_WORLD_ID = "shaelvien-geonaph-alpha-001"
+DEFAULT_WORLD_SLOTS = 1
+DEFAULT_SURFACE_WORLD_PIXELS = 2048
 
 
 def response(status, body=None):
@@ -177,6 +179,32 @@ def _mutate_world_entity(req, world_id, entity_id, user_id, now):
     return response(200, item)
 
 
+def commercial_profile(existing, platform_owner):
+    existing = existing or {}
+    raw_entitlements = existing.get("entitlements") or []
+    entitlements = sorted({str(value).strip() for value in raw_entitlements if str(value).strip()})
+    try:
+        world_slots = max(DEFAULT_WORLD_SLOTS, int(existing.get("worldSlots", DEFAULT_WORLD_SLOTS)))
+    except (TypeError, ValueError):
+        world_slots = DEFAULT_WORLD_SLOTS
+    try:
+        surface_pixels = max(
+            DEFAULT_SURFACE_WORLD_PIXELS,
+            int(existing.get("surfaceWorldPixels", DEFAULT_SURFACE_WORLD_PIXELS)),
+        )
+    except (TypeError, ValueError):
+        surface_pixels = DEFAULT_SURFACE_WORLD_PIXELS
+
+    if platform_owner:
+        entitlements = sorted(set(entitlements) | {"worlds.unlimited", "surface.unlimited"})
+
+    return {
+        "entitlements": entitlements,
+        "worldSlots": world_slots,
+        "surfaceWorldPixels": surface_pixels,
+    }
+
+
 def handler(event, context):
     method = event["requestContext"]["http"]["method"]
     path = event["rawPath"]
@@ -191,20 +219,25 @@ def handler(event, context):
     now = int(time.time())
 
     if method == "GET" and path == "/authority/me":
-        users.put_item(
-            Item={
-                "pk": "USER#" + user_id,
-                "sk": "PROFILE",
-                "displayName": session["displayName"],
-                "lastSeenAt": now,
-            }
+        profile_key = {"pk": "USER#" + user_id, "sk": "PROFILE"}
+        existing_profile = users.get_item(Key=profile_key, ConsistentRead=True).get("Item") or {}
+        users.update_item(
+            Key=profile_key,
+            UpdateExpression="SET displayName = :displayName, lastSeenAt = :lastSeenAt",
+            ExpressionAttributeValues={
+                ":displayName": session["displayName"],
+                ":lastSeenAt": now,
+            },
         )
+        platform_owner = bool(owner_user_id and user_id == owner_user_id)
+        commercial = commercial_profile(existing_profile, platform_owner)
         return response(
             200,
             {
                 "userId": user_id,
                 "displayName": session["displayName"],
-                "platformOwner": bool(owner_user_id and user_id == owner_user_id),
+                "platformOwner": platform_owner,
+                **commercial,
             },
         )
 
@@ -232,9 +265,9 @@ def handler(event, context):
             return response(400, {"error": "Invalid role"})
         if is_geonaph(world_id):
             if not (owner_user_id and user_id == owner_user_id):
-                return response(403, {"error": "Geonaph authority is reserved to the platform owner"})
+                return response(403, {"error": "Endemar authority is reserved to the platform owner"})
             if role in ("GM", "owner") and target != owner_user_id:
-                return response(403, {"error": "Geonaph GM authority cannot be delegated"})
+                return response(403, {"error": "Endemar GM authority cannot be delegated"})
         else:
             existing = membership(world_id, user_id)
             if not ((owner_user_id and user_id == owner_user_id) or (existing and existing.get("role") == "owner")):
