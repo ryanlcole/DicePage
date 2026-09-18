@@ -64,12 +64,13 @@ public sealed partial class WorldSession
         }
     }
 
-    public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0, IEnumerable<int>? sourceLayerOffsets = null)
+    public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0, IEnumerable<int>? sourceLayerOffsets = null, string gridShape = "square")
     {
         if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
         if (!HasActiveWorld) throw new InvalidOperationException("Choose a world before defining a region.");
         name = NormalizeRegionName(name);
         tierIndex = Math.Clamp(tierIndex, 0, 2);
+        gridShape = string.Equals(gridShape, "hex", StringComparison.OrdinalIgnoreCase) ? "hex" : "square";
         var sourceLayers = sourceLayerOffsets is null
             ? Enumerable.Range(0, LayersPerTier).ToList()
             : sourceLayerOffsets.Where(x => x >= 0 && x < LayersPerTier).Distinct().Order().ToList();
@@ -107,7 +108,8 @@ public sealed partial class WorldSession
             CreatedAtUtc: now,
             UpdatedAtUtc: now,
             TierIndex: tierIndex,
-            SourceLayerOffsets: sourceLayers);
+            SourceLayerOffsets: sourceLayers,
+            GridShape: gridShape);
 
         _regions.Add(region);
         _activeRegionId = region.RegionId;
@@ -232,7 +234,8 @@ public sealed record WorldRegion(
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
     int TierIndex = 0,
-    List<int>? SourceLayerOffsets = null)
+    List<int>? SourceLayerOffsets = null,
+    string GridShape = "square")
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
