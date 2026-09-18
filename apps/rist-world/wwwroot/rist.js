@@ -59,6 +59,7 @@ window.ristAuth={
   }
   if(handoff&&handoffComplete){
    query.delete('rist_handoff');
+   try{if('caches' in window){const names=await caches.keys();await Promise.all(names.map(name=>caches.delete(name)));}}catch{}
    query.set('rist_hard',String(Date.now()));
    const clean=query.toString();
    location.replace(location.pathname+(clean?'?'+clean:''));
@@ -219,7 +220,8 @@ window.ristLaunch={
   document.querySelectorAll('.rist-game-start').forEach(el=>{el.hidden=true;});
   return true;
  },
- hardRefresh:()=>{
+ hardRefresh:async()=>{
+  try{if('caches' in window){const names=await caches.keys();await Promise.all(names.map(name=>caches.delete(name)));}}catch{}
   const query=new URLSearchParams(location.search);
   query.delete('rist_handoff');
   query.set('rist_hard',String(Date.now()));
