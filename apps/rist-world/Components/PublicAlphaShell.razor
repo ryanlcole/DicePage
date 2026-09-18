@@ -84,7 +84,7 @@
   @if(_tickerOpen)
   {
    <section class="ticker-editor-backdrop" role="presentation" @onclick="CloseTicker">
-    <form class="ticker-editor" role="dialog" aria-modal="true" aria-label="Ticker buttons" @onclick:stopPropagation="true" @onsubmit="SaveTickerAsync">
+    <form class="ticker-editor" role="dialog" aria-modal="true" aria-label="Ticker buttons" @onclick:stopPropagation="true" @onsubmit="SaveTickerAsync" @onsubmit:preventDefault="true">
      <header><strong>TICKER</strong><button type="button" @onclick="CloseTicker" aria-label="Close ticker editor">×</button></header>
      <p>One button label per line. The ticker scrolls automatically until touched; touching it opens this Start menu.</p>
      <textarea @bind="_tickerEditor" aria-label="Ticker button labels" rows="10"></textarea>
@@ -305,8 +305,8 @@ else
  void ResetTicker()=>_tickerEditor="WORLD\nBUILD\nUPLOAD\nWEATHER\nSKY\nMETADATA";
  async Task SaveTickerAsync()
  {
-  var values=_tickerEditor.Split(['\r','\n'],StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Trim()).Where(x=>x.Length>0).Take(12).ToList();
-  if(values.Count==0)values=["WORLD","BUILD","UPLOAD","WEATHER","SKY","METADATA"];
+  var values=_tickerEditor.Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Trim()).Where(x=>x.Length>0).Take(12).ToList();
+  if(values.Count==0)values=new List<string>{"WORLD","BUILD","UPLOAD","WEATHER","SKY","METADATA"};
   _tickerEditor=string.Join("\n",values);
   try{await JS.InvokeVoidAsync("localStorage.setItem","rist.worldbuilder.ticker.buttons.v1",System.Text.Json.JsonSerializer.Serialize(values));}catch{}
   _tickerOpen=false;
