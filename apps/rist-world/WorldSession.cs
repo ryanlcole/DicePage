@@ -18,8 +18,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     public HandCard? EditingHandCard { get; private set; }
     public string? DraggedDieKey { get; private set; }
 
-    public string WorldMapUrl { get; } = "assets/world/naeja.png";
-    public bool HasBaseMapTilemap => PlacedTiles.Any(x => x.Id.StartsWith("naeja-map-", StringComparison.Ordinal));
+    public string WorldMapUrl { get; } = "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
+    public bool HasBaseMapTilemap => PlacedTiles.Any(x => x.Id.StartsWith("geonaph-map-", StringComparison.Ordinal));
     public string MapName { get; private set; } = "Shaelvien";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
@@ -153,8 +153,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     public async Task InitializeAsync()
     {
         await LoadAtlasAsync();
-        RegisterNaejaMapTiles();
-        if(!await TryLoadSavedMapAsync())BuildNaejaMapTilemap();
+        RegisterGeonaphMapTiles();
+        if(!await TryLoadSavedMapAsync())BuildGeonaphMapTilemap();
         await LoadCardsAsync();
         var profile=await auth.InitializeAsync();
         IsLoggedIn=profile is not null;
@@ -164,10 +164,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
         Notify();
     }
 
-    void RegisterNaejaMapTiles()
+    void RegisterGeonaphMapTiles()
     {
-        const int sourceWidth=1536;
-        const int sourceHeight=1024;
+        const int sourceWidth=3000;
+        const int sourceHeight=3000;
         for(var row=0;row<GridRows;row++)
         {
             var cropY=row*sourceHeight/GridRows;
@@ -176,19 +176,19 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
             {
                 var cropX=column*sourceWidth/GridColumns;
                 var cropRight=(column+1)*sourceWidth/GridColumns;
-                var id=$"naeja-map-{row:00}-{column:00}";
+                var id=$"geonaph-map-{row:00}-{column:00}";
                 if(AtlasTiles.Any(x=>x.Id==id))continue;
-                AtlasTiles.Add(new(id,$"Naeja {row+1},{column+1}",WorldMapUrl,
-                    "WORLD","Imported Maps","Naeja Map","Shaelvien",
+                AtlasTiles.Add(new(id,$"Geonaph {row+1},{column+1}",WorldMapUrl,
+                    "WORLD","World Themes","Geonaph","Shaelvien",
                     sourceWidth,sourceHeight,cropX,cropY,cropRight-cropX,cropBottom-cropY));
             }
         }
     }
 
-    void BuildNaejaMapTilemap()
+    void BuildGeonaphMapTilemap()
     {
-        if(PlacedTiles.Count>0)return;
-        foreach(var tile in AtlasTiles.Where(x=>x.Id.StartsWith("naeja-map-",StringComparison.Ordinal)))
+        if(PlacedTiles.Any(x=>x.Id.StartsWith("geonaph-map-",StringComparison.Ordinal)))return;
+        foreach(var tile in AtlasTiles.Where(x=>x.Id.StartsWith("geonaph-map-",StringComparison.Ordinal)))
         {
             var parts=tile.Id.Split('-');
             var row=int.Parse(parts[^2],System.Globalization.CultureInfo.InvariantCulture);
