@@ -870,6 +870,95 @@ function libraryTileKey(asset){
 }
 function openTileLibraryFolder(folder){tileLibraryFolder=folder;tileLibraryPage=0;renderKeyboardKeys();announce(`${folder} tile folder opened.`)}
 function closeTileLibraryFolder(){tileLibraryFolder=null;tileLibraryPage=0;renderKeyboardKeys();announce('World tile folders.')}
+function resolveSpriteUrl(value){
+  const raw=String(value||'');if(!raw)return'';
+  if(/^(?:https?:|data:|blob:|\/)/i.test(raw))return raw;
+  try{return new URL(raw.startsWith('assets/')?`../${raw}`:raw,location.href).href}catch{return raw}
+}
+function spriteLibraryAsset(raw){
+  const image=resolveSpriteUrl(raw?.image||raw?.Image||'');
+  const sourceWidth=Math.max(0,Math.trunc(Number(raw?.sourceWidth||raw?.SourceWidth)||0));
+  const sourceHeight=Math.max(0,Math.trunc(Number(raw?.sourceHeight||raw?.SourceHeight)||0));
+  const cropX=Math.max(0,Math.trunc(Number(raw?.cropX||raw?.CropX)||0)),cropY=Math.max(0,Math.trunc(Number(raw?.cropY||raw?.CropY)||0));
+  const cropWidth=Math.max(0,Math.trunc(Number(raw?.cropWidth||raw?.CropWidth)||0)),cropHeight=Math.max(0,Math.trunc(Number(raw?.cropHeight||raw?.CropHeight)||0));
+  const frameCount=Math.max(1,Math.trunc(Number(raw?.frameCount||raw?.FrameCount)||1)),fps=Math.max(1,Number(raw?.framesPerSecond||raw?.FramesPerSecond)||6);
+  const columns=cropWidth&&sourceWidth?Math.max(1,Math.floor((sourceWidth-cropX)/cropWidth)):1;
+  const rows=cropHeight&&sourceHeight?Math.max(1,Math.floor((sourceHeight-cropY)/cropHeight)):1;
+  return{
+    id:String(raw?.id||raw?.Id||''),name:String(raw?.name||raw?.Name||'Sprite'),image,
+    folder:String(raw?.folder||raw?.Folder||'Sprites'),kind:String(raw?.assetKind||raw?.AssetKind||'sprite').toLowerCase(),
+    defaultTierIndex:clamp(Math.trunc(Number(raw?.defaultTierIndex||raw?.DefaultTierIndex)||0),0,TIERS.length-1),
+    defaultLayerOffset:clamp(Math.trunc(Number(raw?.defaultLayerOffset||raw?.DefaultLayerOffset)||0,0,9),
+    frameCount,fps,sourceWidth,sourceHeight,cropX,cropY,cropWidth,cropHeight,columns,rows
+  };
+}
+async function ensureSpriteLibrary(force=false){
+  if(spriteLibraryLoading)return;if(spriteCatalog.length&&!force)return;
+  spriteLibraryLoading=true;spriteLibraryError='';if(keyboardMode==='Sprites')renderKeyboardKeys();
+  try{
+    const response=await fetch(SPRITE_LIBRARY_URL,{cache:'force-cache'});if(!response.ok)throw new Error(`Sprite library unavailable (${response.status})`);
+    const raw=await response.json();spriteCatalog=(Array.isArray(raw)?raw:[]).map(spriteLibraryAsset).filter(asset=>asset.id&&asset.image&&asset.kind==='sprite');
+    if(!spriteCatalog.length)throw new Error('No registered sprites found.');
+    if(spriteLibraryFolder&&!spriteCatalog.some(asset=>asset.folder===spriteLibraryFolder))spriteLibraryFolder=null;spriteLibraryPage=0;
+  }catch(error){spriteCatalog=[];spriteLibraryError=String(error?.message||error||'Sprite library unavailable.')}
+  finally{spriteLibraryLoading=false;if(keyboardMode==='Sprites')renderKeyboardKeys()}
+}
+function spriteLibraryFolders(){return[...new Set(spriteCatalog.map(asset=>asset.folder).filter(Boolean))].sort((a,b)=>a.localeCompare(b))}
+function currentSpriteLibraryAssets(){return spriteLibraryFolder?spriteCatalog.filter(asset=>asset.folder===spriteLibraryFolder):[]}
+function spriteLibraryPageCount(){return Math.max(1,Math.ceil(currentSpriteLibraryAssets().length/SPRITE_LIBRARY_PAGE_SIZE))}
+function spriteLibraryPageAssets(){spriteLibraryPage=clamp(spriteLibraryPage,0,spriteLibraryPageCount()-1);const start=spriteLibraryPage*SPRITE_LIBRARY_PAGE_SIZE;return currentSpriteLibraryAssets().slice(start,start+SPRITE_LIBRARY_PAGE_SIZE)}
+async function placeSpriteDefinition(definition){
+  const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
+  const frames=await extractSpriteFrames(definition.sheetSrc,{
+    columns:definition.columns,rows:definition.rows,frameCount:definition.frameCount,
+    sourceWidth:definition.sourceWidth||0,sourceHeight:definition.sourceHeight||0,cropX:definition.cropX||0,cropY:definition.cropY||0,
+    cropWidth:definition.cropWidth||0,cropHeight:definition.cropHeight||0,whiteTransparent:definition.whiteTransparent!==false
+  });
+  if(!frames.length)throw new Error('No sprite frames were extracted.');
+  const item={
+    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,
+    spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:frames.length,spriteFps:Math.max(1,Number(definition.fps)||6),
+    spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
+    spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,
+    frameSources:frames,currentFrame:0,playing:false,originalSrc:frames[0],transparentSrc:frames[0],transparent:true,
+    x:point.x,y:point.y,tier:address.tier,layer:address.layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+  };
+  const node=document.createElement('img');node.className='user-image-placement sprite-placement';node.alt=item.name;node.draggable=false;item.node=node;
+  node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+  userLayers.push(item);world.appendChild(node);frames.forEach(frame=>void primeCollisionMask(frame));updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  announce(`${item.name} placed using frame 1. Adjust its layer or parallax tier, then Save to commit and begin motion.`);
+  return item;
+}
+async function placeUploadedSprite(file){
+  if(!file?.type?.startsWith('image/')){announce('Choose a sprite sheet image.');return}
+  try{
+    const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
+    const frameCount=clamp(Math.trunc(Number(spriteFrameCount.value)||columns*rows),1,columns*rows),fps=clamp(Number(spriteFps.value)||6,1,30);
+    closeSpriteUpload();
+    await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true});
+  }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
+}
+async function placeLibrarySprite(asset){
+  try{
+    await placeSpriteDefinition({
+      id:`sprite:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,assetId:asset.id,name:asset.name,sheetSrc:asset.image,
+      columns:asset.columns,rows:asset.rows,frameCount:asset.frameCount,fps:asset.fps,sourceWidth:asset.sourceWidth,sourceHeight:asset.sourceHeight,
+      cropX:asset.cropX,cropY:asset.cropY,cropWidth:asset.cropWidth,cropHeight:asset.cropHeight,whiteTransparent:false
+    });
+  }catch(error){announce(`Could not place ${asset.name}: ${String(error?.message||error||'sprite sheet unavailable')}`)}
+}
+function spriteLibraryKey(asset){
+  const button=document.createElement('button');button.type='button';button.className='sprite-library-key';button.setAttribute('aria-label',`${asset.name}. Tap to place frame one at the viewer center.`);
+  const preview=document.createElement('span');preview.className='sprite-library-preview';const image=document.createElement('img');image.src=asset.image;image.alt='';image.loading='lazy';image.decoding='async';image.draggable=false;
+  if(asset.cropWidth&&asset.cropHeight&&asset.sourceWidth&&asset.sourceHeight){
+    image.style.width=`${asset.sourceWidth*100/asset.cropWidth}%`;image.style.height=`${asset.sourceHeight*100/asset.cropHeight}%`;
+    image.style.left=`${-(asset.cropX/asset.cropWidth)*100}%`;image.style.top=`${-(asset.cropY/asset.cropHeight)*100}%`;
+  }else{image.style.width='100%';image.style.height='100%';image.style.objectFit='cover';image.style.left='0';image.style.top='0'}
+  const label=document.createElement('small');label.textContent=asset.name;preview.append(image);button.append(preview,label);button.addEventListener('click',()=>void placeLibrarySprite(asset));return button;
+}
+function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibraryPage=0;renderKeyboardKeys();announce(`${folder} sprite folder opened.`)}
+function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
 function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){
