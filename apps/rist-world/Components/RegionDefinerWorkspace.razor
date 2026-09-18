@@ -54,10 +54,10 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // RegionDefiner is a read-only view of the same base-map representation used
-   // by WorldBuilder. Database-backed authored placements delivered through the
-   // bridge below remain authoritative; this seed only selects the shared visual
-   // base-map loader so RegionDefiner never maintains a second map implementation.
+   // RegionDefiner is another perspective on the same canonical world map used
+   // by WorldBuilder. The bridge supplies that one database-backed map; this seed
+   // only selects the viewer presentation. Region boundaries and permissions alter
+   // what can be seen/edited, never which map exists.
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var activeRegion=Session.ActiveRegion;
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
@@ -81,7 +81,7 @@
   if(!firstRender||_bridgeAttached)return;
   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
   await Session.LoadRegionsAsync();
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-flow-4");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-single-map-1");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -107,6 +107,19 @@
    parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
    parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,
    maxHeight=Session.ActiveRegion?.MaxHeight??0
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers)
+ {
+  var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers);
+  return new
+  {
+   success=saved is not null,
+   worldId=saved?.WorldId??Session.WorldId,
+   regionId,
+   updatedAtUtc=saved?.UpdatedAtUtc??""
   };
  }
 
