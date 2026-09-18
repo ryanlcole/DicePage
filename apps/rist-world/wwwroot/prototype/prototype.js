@@ -49,6 +49,10 @@ let tileCatalog=[],tileLibraryFolder=null,tileLibraryPage=0,tileLibraryLoading=f
 const SPRITE_LIBRARY_URL='../assets/sprites/catalog.json?v=20260918-prototype-sprites-1';
 const SPRITE_LIBRARY_PAGE_SIZE=12;
 let spriteCatalog=[],spriteLibraryFolder=null,spriteLibraryPage=0,spriteLibraryLoading=false,spriteLibraryError='';
+const PERSONAL_ASSET_INDEX_KEY='uploads/index.json';
+const PERSONAL_ASSET_PAGE_SIZE=12;
+let personalAssets=[],personalAssetLoading=false,personalAssetError='',personalFolderType=null,personalAssetPage=0,personalAuthConfigPromise=null;
+const pendingPersonalUploads=new Set();
 const spriteTimers=new Map();
 const REGION_ENHANCE_ENTER=4.25;
 const REGION_ENHANCE_EXIT=3.6;
@@ -873,6 +877,217 @@ function selectedPositionSummary(item){
   if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,x:'0.000',y:'0.000'};
   const tier=tierDisplay(item.tier);
   return{tier:tier.number,tierLabel:tier.label,layer:layerDisplay(item.layer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
+}
+function personalSessionToken(){
+  try{
+    const parentToken=window.parent&&window.parent!==window?window.parent.ristAuth?.sessionInfo?.().token:'';
+    return String(parentToken||sessionStorage.getItem('rist.session')||'');
+  }catch{return String(sessionStorage.getItem('rist.session')||'')}
+}
+async function personalAuthConfig(){
+  if(personalAuthConfigPromise)return personalAuthConfigPromise;
+  personalAuthConfigPromise=(async()=>{
+    const response=await fetch('../auth-config.json',{cache:'no-store'});
+    if(!response.ok)throw new Error('Account storage configuration unavailable');
+    const config=await response.json(),base=String(config?.apiBaseUrl||config?.ApiBaseUrl||'').replace(/\/$/,'');
+    if(!/^https?:\/\//i.test(base))throw new Error('Account storage is not configured');
+    return{base};
+  })();
+  try{return await personalAuthConfigPromise}catch(error){personalAuthConfigPromise=null;throw error}
+}
+async function personalApi(path,options={}){
+  const token=personalSessionToken();
+  if(!token)throw new Error('Log in to use your personal Uploads folders');
+  const {base}=await personalAuthConfig();
+  const headers=new Headers(options.headers||{});headers.set('Authorization',`Bearer ${token}`);
+  const response=await fetch(base+path,{...options,headers,cache:'no-store'});
+  if(response.status===401)throw new Error('Your login expired. Log in again');
+  if(!response.ok){
+    let message='Personal storage request failed';
+    try{const payload=await response.json();message=String(payload?.error||payload?.Error||message)}catch{}
+    throw new Error(message);
+  }
+  return response;
+}
+function personalSafeFileName(name){
+  const base=String(name||'asset.png').split(/[\\/]/).pop()||'asset.png';
+  const cleaned=base.replace(/[^a-z0-9._-]+/gi,'-').replace(/^-+|-+$/g,'');
+  return cleaned||'asset.png';
+}
+function personalPathSegment(value){
+  const segment=String(value||'custom').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return segment||'custom';
+}
+function personalEntryValue(entry,name,fallback=null){
+  if(!entry||typeof entry!=='object')return fallback;
+  const camel=name.charAt(0).toLowerCase()+name.slice(1);
+  return entry[name]??entry[camel]??fallback;
+}
+async function personalDownloadUrl(key){
+  const response=await personalApi('/storage/download?key='+encodeURIComponent(key));
+  const payload=await response.json();
+  return String(payload?.url||payload?.Url||'');
+}
+async function readPersonalCatalog(){
+  try{
+    const url=await personalDownloadUrl(PERSONAL_ASSET_INDEX_KEY);
+    if(!url)return{Items:[],UpdatedAtUtc:new Date().toISOString()};
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)return{Items:[],UpdatedAtUtc:new Date().toISOString()};
+    const payload=await response.json();
+    const items=Array.isArray(payload?.Items)?payload.Items:Array.isArray(payload?.items)?payload.items:[];
+    return{...payload,Items:items};
+  }catch(error){
+    if(/not found|404/i.test(String(error?.message||error)))return{Items:[],UpdatedAtUtc:new Date().toISOString()};
+    throw error;
+  }
+}
+async function uploadPersonalBlob(key,blob,contentType){
+  const prepare=await personalApi('/storage/upload',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({key,contentType})
+  });
+  const post=await prepare.json(),url=String(post?.url||post?.Url||''),fields=post?.fields||post?.Fields||{};
+  if(!url)throw new Error('Personal upload could not be prepared');
+  const form=new FormData();
+  Object.entries(fields).forEach(([field,value])=>form.append(field,String(value)));
+  form.append('file',blob,personalSafeFileName(key));
+  const result=await fetch(url,{method:'POST',body:form});
+  if(!result.ok)throw new Error('Personal upload failed');
+}
+async function writePersonalCatalog(catalog){
+  const payload={...catalog,Items:Array.isArray(catalog?.Items)?catalog.Items:[],UpdatedAtUtc:new Date().toISOString()};
+  await uploadPersonalBlob(PERSONAL_ASSET_INDEX_KEY,new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),'application/json');
+  return payload;
+}
+function normalizePersonalAsset(entry,url=''){
+  const key=String(personalEntryValue(entry,'Key','')),category=String(personalEntryValue(entry,'Category','Tiles'));
+  const kind=String(personalEntryValue(entry,'AssetKind',category==='Sprites'?'sprite':'image')).toLowerCase();
+  return{
+    key,name:String(personalEntryValue(entry,'Name',key.split('/').pop()||'Upload')),
+    category,folder:String(personalEntryValue(entry,'Folder','Custom')),assetKind:kind,url,
+    uploadedAt:String(personalEntryValue(entry,'UploadedAtUtc','')),
+    columns:Math.max(1,Number(personalEntryValue(entry,'SpriteColumns',1))||1),
+    rows:Math.max(1,Number(personalEntryValue(entry,'SpriteRows',1))||1),
+    frameCount:Math.max(1,Number(personalEntryValue(entry,'FrameCount',1))||1),
+    fps:Math.max(0,Number(personalEntryValue(entry,'FramesPerSecond',0))||0),
+    sourceWidth:Math.max(0,Number(personalEntryValue(entry,'SourceWidth',0))||0),
+    sourceHeight:Math.max(0,Number(personalEntryValue(entry,'SourceHeight',0))||0),
+    cropX:Math.max(0,Number(personalEntryValue(entry,'CropX',0))||0),
+    cropY:Math.max(0,Number(personalEntryValue(entry,'CropY',0))||0),
+    cropWidth:Math.max(0,Number(personalEntryValue(entry,'CropWidth',0))||0),
+    cropHeight:Math.max(0,Number(personalEntryValue(entry,'CropHeight',0))||0),
+    whiteTransparent:!!personalEntryValue(entry,'WhiteTransparent',false)
+  };
+}
+async function ensurePersonalAssets(force=false){
+  if(personalAssetLoading)return personalAssets;
+  if(personalAssets.length&&!force)return personalAssets;
+  personalAssetLoading=true;personalAssetError='';renderKeyboardKeys();
+  try{
+    const catalog=await readPersonalCatalog();
+    const entries=[...(catalog.Items||[])].sort((a,b)=>String(personalEntryValue(b,'UploadedAtUtc','')).localeCompare(String(personalEntryValue(a,'UploadedAtUtc','')))).slice(0,300);
+    const hydrated=await Promise.all(entries.map(async entry=>{
+      const key=String(personalEntryValue(entry,'Key',''));if(!key)return null;
+      try{return normalizePersonalAsset(entry,await personalDownloadUrl(key))}catch{return normalizePersonalAsset(entry,'')}
+    }));
+    personalAssets=hydrated.filter(asset=>asset?.key&&asset.url);
+    return personalAssets;
+  }catch(error){
+    personalAssetError=String(error?.message||error||'Personal uploads unavailable');
+    return personalAssets;
+  }finally{personalAssetLoading=false;renderKeyboardKeys()}
+}
+function trackPersonalUpload(promise){
+  pendingPersonalUploads.add(promise);
+  promise.finally(()=>pendingPersonalUploads.delete(promise));
+  return promise;
+}
+async function saveFileToPersonalLibrary(file,metadata={}){
+  const category=String(metadata.category||'Images'),folder=String(metadata.folder||`My ${category}`);
+  const safe=personalSafeFileName(file?.name||'asset.png');
+  const key=`uploads/${personalPathSegment(category)}/${personalPathSegment(folder)}/${crypto.randomUUID?.()||Date.now()}-${safe}`;
+  await uploadPersonalBlob(key,file,file.type||'application/octet-stream');
+  const catalog=await readPersonalCatalog(),items=[...(catalog.Items||[])];
+  const entry={
+    Key:key,Name:String(metadata.name||String(file?.name||'Upload').replace(/\.[^.]+$/,'')),Category:category,Folder:folder,
+    UploadedAtUtc:new Date().toISOString(),AssetKind:String(metadata.assetKind||'image'),
+    SpriteColumns:Math.max(1,Math.trunc(Number(metadata.columns)||1)),SpriteRows:Math.max(1,Math.trunc(Number(metadata.rows)||1)),
+    FrameCount:Math.max(1,Math.trunc(Number(metadata.frameCount)||1)),FramesPerSecond:Math.max(0,Number(metadata.fps)||0),
+    SourceWidth:Math.max(0,Math.trunc(Number(metadata.sourceWidth)||0)),SourceHeight:Math.max(0,Math.trunc(Number(metadata.sourceHeight)||0)),
+    CropX:Math.max(0,Math.trunc(Number(metadata.cropX)||0)),CropY:Math.max(0,Math.trunc(Number(metadata.cropY)||0)),
+    CropWidth:Math.max(0,Math.trunc(Number(metadata.cropWidth)||0)),CropHeight:Math.max(0,Math.trunc(Number(metadata.cropHeight)||0)),
+    WhiteTransparent:!!metadata.whiteTransparent
+  };
+  items.push(entry);await writePersonalCatalog({...catalog,Items:items});
+  const asset=normalizePersonalAsset(entry,await personalDownloadUrl(key));
+  personalAssets=[asset,...personalAssets.filter(existing=>existing.key!==key)];
+  renderKeyboardKeys();
+  return asset;
+}
+function personalAssetsFor(type){
+  if(type==='Sprites')return personalAssets.filter(asset=>asset.assetKind==='sprite'||asset.category==='Sprites');
+  if(type==='Images')return personalAssets.filter(asset=>asset.category==='Images'&&asset.assetKind!=='sprite');
+  if(type==='Tiles')return personalAssets.filter(asset=>asset.category==='Tiles');
+  if(type==='Uploads')return personalAssets.filter(asset=>asset.category!=='Images'&&asset.category!=='Sprites');
+  return personalAssets;
+}
+function openPersonalFolder(type){personalFolderType=type;personalAssetPage=0;void ensurePersonalAssets();renderKeyboardKeys()}
+function closePersonalFolder(){personalFolderType=null;personalAssetPage=0;renderKeyboardKeys()}
+function personalPageAssets(type){
+  const assets=personalAssetsFor(type),pages=Math.max(1,Math.ceil(assets.length/PERSONAL_ASSET_PAGE_SIZE));
+  personalAssetPage=clamp(personalAssetPage,0,pages-1);
+  return{assets:assets.slice(personalAssetPage*PERSONAL_ASSET_PAGE_SIZE,(personalAssetPage+1)*PERSONAL_ASSET_PAGE_SIZE),pages,total:assets.length};
+}
+function placePersonalImage(asset){
+  if(!asset?.url)return;
+  const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
+  const item={
+    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,
+    originalSrc:asset.url,transparentSrc:asset.url,transparent:false,x:point.x,y:point.y,tier:address.tier,layer:address.layer,
+    size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+  };
+  const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
+  node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(asset.url);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  personalFolderType=null;keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  announce(`${item.name} placed from My Images. Save commits this instance to Endemar.`);
+}
+async function placePersonalSprite(asset){
+  if(!asset?.url)return;
+  const item=await placeSpriteDefinition({
+    id:`private-sprite:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,name:asset.name,sheetSrc:asset.url,
+    columns:asset.columns,rows:asset.rows,frameCount:asset.frameCount,fps:asset.fps||6,sourceWidth:asset.sourceWidth,sourceHeight:asset.sourceHeight,
+    cropX:asset.cropX,cropY:asset.cropY,cropWidth:asset.cropWidth,cropHeight:asset.cropHeight,whiteTransparent:asset.whiteTransparent
+  });
+  item.personalAssetKey=asset.key;personalFolderType=null;return item;
+}
+function placePersonalTile(asset){
+  if(!asset?.url)return;
+  placeLibraryTile({id:`private:${asset.key}`,name:asset.name,image:asset.url});
+  if(selectedImage)selectedImage.personalAssetKey=asset.key;
+  personalFolderType=null;
+}
+function personalAssetKey(asset,type){
+  const button=document.createElement('button');button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Personal ${type.toLowerCase()} upload.`);
+  const image=document.createElement('img');image.src=asset.url;image.alt='';image.loading='lazy';image.decoding='async';image.draggable=false;image.style.width='100%';image.style.height='100%';image.style.objectFit='cover';
+  const label=document.createElement('small');label.textContent=asset.name;button.append(image,label);
+  button.addEventListener('click',()=>{if(type==='Sprites')void placePersonalSprite(asset);else if(type==='Images')placePersonalImage(asset);else placePersonalTile(asset)});
+  return button;
+}
+function renderPersonalFolder(type,title){
+  if(personalAssetLoading){keyboardKeys.append(toolKey('‹','Back',closePersonalFolder),toolKey('LOADING',title,()=>{},true));return}
+  if(personalAssetError&&!personalAssets.length){
+    keyboardKeys.append(toolKey('‹','Back',closePersonalFolder),toolKey('RETRY',title,()=>{personalAssetError='';void ensurePersonalAssets(true)}),toolKey('ERROR',personalAssetError,()=>{},true));return;
+  }
+  const page=personalPageAssets(type);
+  keyboardKeys.append(toolKey('‹','Back',closePersonalFolder),toolKey(title,`${page.total} upload${page.total===1?'':'s'} · Page ${personalAssetPage+1}/${page.pages}`,()=>{},true));
+  page.assets.forEach(asset=>keyboardKeys.append(personalAssetKey(asset,type)));
+  if(!page.assets.length)keyboardKeys.append(toolKey('EMPTY','No personal uploads yet',()=>{},true));
+  if(page.pages>1)keyboardKeys.append(
+    toolKey('‹','Previous',()=>{personalAssetPage=(personalAssetPage-1+page.pages)%page.pages;renderKeyboardKeys()}),
+    toolKey('›','Next',()=>{personalAssetPage=(personalAssetPage+1)%page.pages;renderKeyboardKeys()})
+  );
 }
 function tileLibraryAsset(raw){
   return{
