@@ -1,0 +1,124 @@
+@inject WorldSession Session
+
+@if(Open)
+{
+ <section class="region-gate-backdrop" role="presentation" @onclick="CloseAsync">
+  <div class="region-gate" role="dialog" aria-modal="true" aria-label="Choose a region" @onclick:stopPropagation="true">
+   <header>
+    <span><small>@Session.WorldDisplayName</small><strong>CHOOSE A REGION</strong></span>
+    <button type="button" @onclick="CloseAsync" aria-label="Close region chooser">×</button>
+   </header>
+
+   <section class="region-gate-create">
+    <div>
+     <strong>NEW REGION</strong>
+     <small>@(CanDefineRegion ? "Choose a world tier, select the region, then save the cropped regional map." : "Region creation requires world-building or claim-request permission.")</small>
+    </div>
+    <button type="button" class="region-gate-primary" disabled="@(_busy||!CanDefineRegion)" @onclick="NewAsync">NEW</button>
+   </section>
+
+   <div class="region-gate-divider"><span>SAVED REGIONS</span></div>
+   <section class="region-gate-regions" aria-live="polite">
+    @if(_loading)
+    {
+     <p class="region-gate-note">Loading regions…</p>
+    }
+    else if(Session.Regions.Count==0)
+    {
+     <p class="region-gate-note">No regions have been defined for this world yet.</p>
+    }
+    else
+    {
+     @foreach(var region in Session.Regions)
+     {
+      <button type="button" class="region-gate-region" disabled="@_busy" @onclick="()=>SelectAsync(region)">
+       <span>
+        <strong>@region.Name</strong>
+        <small>Tier @(region.TierIndex+1) · @region.GridShape · @region.SelectedCells.Count cells</small>
+       </span>
+       <b>OPEN</b>
+      </button>
+     }
+    }
+   </section>
+
+   @if(!string.IsNullOrWhiteSpace(_status))
+   {
+    <p class="region-gate-status" role="status">@_status</p>
+   }
+  </div>
+ </section>
+}
+
+<style>
+ .region-gate-backdrop{position:fixed;inset:0;z-index:2147482550;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+ .region-gate{box-sizing:border-box;width:min(92vw,620px);max-height:90dvh;display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;overflow:auto;border:1px solid #8a6d32;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d;font-family:system-ui,-apple-system,sans-serif}
+ .region-gate>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #4f452d;background:#0a141bf5}.region-gate>header span{display:grid;gap:4px}.region-gate>header small{color:#769db7;font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.region-gate>header strong{color:#ecd48f;font-size:15px;letter-spacing:.08em}.region-gate>header button{width:38px;height:38px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
+ .region-gate-create{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:16px}.region-gate-create>div{display:grid;gap:5px}.region-gate-create strong{color:#f0ddb0;font-size:13px}.region-gate-create small{color:#93a4ab;font-size:9px;line-height:1.4}.region-gate-primary{min-width:92px;min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.region-gate button:disabled{opacity:.4}
+ .region-gate-divider{display:flex;align-items:center;gap:10px;padding:2px 16px;color:#8fa7b3;font-size:8px;font-weight:900;letter-spacing:.12em}.region-gate-divider::before,.region-gate-divider::after{content:"";height:1px;flex:1;background:#3c453f}
+ .region-gate-regions{display:grid;gap:7px;padding:10px 16px 16px;overflow:auto}.region-gate-region{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #465963;border-radius:8px;background:#0d171e;color:#e8dec5;text-align:left}.region-gate-region span{min-width:0;display:grid;gap:4px}.region-gate-region strong{overflow:hidden;text-overflow:ellipsis;color:#f0ddb0;font-size:12px}.region-gate-region small{color:#8299a4;font-size:8px;text-transform:uppercase}.region-gate-region b{color:#71b8e5;font-size:9px;letter-spacing:.08em}
+ .region-gate-note,.region-gate-status{margin:2px 0;color:#9ba8ad;font-size:11px;line-height:1.4}.region-gate-status{padding:0 16px 16px;color:#e5ba70}
+ @@media(max-width:600px){.region-gate-backdrop{padding:8px}.region-gate{width:100%;max-height:94dvh}.region-gate>header{padding:11px 12px}.region-gate-create{padding:13px}.region-gate-regions{padding:8px 12px 13px}}
+</style>
+
+@code {
+ [Parameter] public bool Open { get; set; }
+ [Parameter] public EventCallback OnClose { get; set; }
+ [Parameter] public EventCallback OnNew { get; set; }
+ [Parameter] public EventCallback<WorldRegion> OnSelect { get; set; }
+
+ bool _wasOpen;
+ bool _loading;
+ bool _busy;
+ bool _loadRequested;
+ string _status="";
+
+ bool CanDefineRegion=>Session.HasTrustedWorldBuilderAuthority||Session.CanRequestWorldClaim;
+
+ protected override void OnParametersSet()
+ {
+  if(Open&&!_wasOpen)
+  {
+   _status="";
+   _loading=true;
+   _loadRequested=true;
+  }
+  _wasOpen=Open;
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!_loadRequested)return;
+  _loadRequested=false;
+  try{await Session.LoadRegionsAsync();}
+  catch(Exception ex){_status="Region list could not be loaded: "+ex.Message;}
+  finally{_loading=false;}
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task NewAsync()
+ {
+  if(_busy||!CanDefineRegion)return;
+  _busy=true;
+  try
+  {
+   Session.SetActiveRegion("");
+   await OnNew.InvokeAsync();
+  }
+  finally{_busy=false;}
+ }
+
+ async Task SelectAsync(WorldRegion region)
+ {
+  if(_busy)return;
+  _busy=true;
+  try
+  {
+   Session.SetActiveRegion(region.RegionId);
+   await OnSelect.InvokeAsync(region);
+  }
+  finally{_busy=false;}
+ }
+
+ async Task CloseAsync(){if(_busy)return;await OnClose.InvokeAsync();}
+}
