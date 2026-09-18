@@ -6,6 +6,10 @@ const WORLD_ID=QUERY.get('worldId')||'';
 const WORLD_NAME=QUERY.get('worldName')||'';
 const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
 const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
+const DISPLAY_WORLD_NAME=IS_GEONAPH_SEED?'Endemar':(WORLD_NAME||'Shaelvien');
+const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
+const SURFACE_WORLD_PIXELS=2048;
+const MIN_VIEW_SCALE=1e-6;
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
 const TIERS=Object.freeze([
   Object.freeze({key:'sea',label:'Sea Level',index:0,glyph:'≈'}),
@@ -483,7 +487,7 @@ async function applyUpscalePreference(){
     const node=planeByKey[asset.key];node.dataset.derivedUpscale=result.derived?'1':'0';node.dataset.renderFactor=String(result.factor);if(node.src!==result.url)node.src=result.url;
   }
   stage.dataset.upscale=results.some(x=>x.derived)?'2x-derived':'browser-interpolation';
-  announce(results.some(x=>x.derived)?'High resolution Geonaph representation active. Original world images remain canonical.':'Upscale enabled. Browser high-quality interpolation is active; canonical images are unchanged.');
+  announce(results.some(x=>x.derived)?'High resolution Endemar representation active. Original world images remain canonical.':'Upscale enabled. Browser high-quality interpolation is active; canonical images are unchanged.');
 }
 async function toggleUpscale(){
   upscaleEnabled=!upscaleEnabled;try{localStorage.setItem(UPSCALE_KEY,upscaleEnabled?'on':'off')}catch{}
@@ -786,8 +790,9 @@ function updateReadouts(){
   stage.dataset.viewerLayer=String(viewerLayer);
   stage.dataset.layerCount=String(BASE_LAYER_COUNT+userLayers.length);
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
-  const worldLabel=WORLD_NAME?WORLD_NAME+' world. ':'';
-  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer. ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.`);
+  const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
+  const continentLabel=CONTINENT_NAME?` Continent ${CONTINENT_NAME}.`:'';
+  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers. Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels.`);
 }
 function applyTransform(){
   invalidateRegionCamera();
@@ -806,12 +811,12 @@ function fitMap(){
   scale=minScale;
   maxScale=Math.max(minScale*24,8);
   x=fitX=(r.width-naturalWidth*scale)/2;
-  y=fitY=0;
+  y=fitY=(r.height-naturalHeight*scale)/2;
   applyTransform();
 }
 function zoomAt(cx,cy,factor){
   suspendRegionEnhancement();
-  const r=stage.getBoundingClientRect(),sx=cx-r.left,sy=cy-r.top,old=scale,next=clamp(old*factor,minScale*.75,maxScale);
+  const r=stage.getBoundingClientRect(),sx=cx-r.left,sy=cy-r.top,old=scale,next=clamp(old*factor,MIN_VIEW_SCALE,maxScale);
   if(Math.abs(next-old)<.0001)return;
   const collision=prepareZoomCollision(cx,cy,old,next);
   const wx=(sx-x)/old,wy=(sy-y)/old;
@@ -1152,8 +1157,10 @@ BASE_WORLD_ASSETS.forEach(asset=>{
     layerReady[asset.key]=true;
     if(asset.key!=='surface')void primeCollisionMask(collisionSource(node));
     if(asset.key==='surface'&&node.dataset.derivedUpscale!=='1'){
-      naturalWidth=node.naturalWidth||1;
-      naturalHeight=node.naturalHeight||1;
+      naturalWidth=SURFACE_WORLD_PIXELS;
+      naturalHeight=SURFACE_WORLD_PIXELS;
+      stage.dataset.surfacePixelWidth=String(SURFACE_WORLD_PIXELS);
+      stage.dataset.surfacePixelHeight=String(SURFACE_WORLD_PIXELS);
       loading.hidden=true;
       fitMap();
       if(upscaleEnabled&&!upscaleStarted){upscaleStarted=true;void applyUpscalePreference()}
@@ -1173,8 +1180,10 @@ BASE_WORLD_ASSETS.forEach(asset=>{
 });
 
 if(!BASE_WORLD_ASSETS.length){
-  naturalWidth=1280;
-  naturalHeight=1280;
+  naturalWidth=SURFACE_WORLD_PIXELS;
+  naturalHeight=SURFACE_WORLD_PIXELS;
+  stage.dataset.surfacePixelWidth=String(SURFACE_WORLD_PIXELS);
+  stage.dataset.surfacePixelHeight=String(SURFACE_WORLD_PIXELS);
   loading.hidden=true;
   world.dataset.emptyWorld='true';
   fitMap();
@@ -1289,7 +1298,7 @@ stage.addEventListener('pointermove',e=>{
   if(pointers.size===1&&panStart){x=panStart.x+(e.clientX-panStart.pointerX);y=panStart.y+(e.clientY-panStart.pointerY);applyTransform();scheduleRegionEnhancement();return}
   if(pointers.size===2&&pinchStart){
     const[a,b]=[...pointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
-    const oldScale=scale,nextScale=clamp(pinchStart.scale*(d/pinchStart.distance),minScale*.75,maxScale);
+    const oldScale=scale,nextScale=clamp(pinchStart.scale*(d/pinchStart.distance),MIN_VIEW_SCALE,maxScale);
     pinchStart.collision=prepareZoomCollision(r.left+cx,r.top+cy,oldScale,nextScale,pinchStart.collision);
     scale=nextScale;
     x=cx-pinchStart.worldX*scale;
@@ -1310,7 +1319,7 @@ window.addEventListener('resize',()=>{fitMap();scheduleRegionEnhancement(80)},{p
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!spriteUploadPanel.hidden){closeSpriteUpload();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({
-  world:Object.freeze({id:WORLD_ID,name:WORLD_NAME,seed:WORLD_SEED}),
+  world:Object.freeze({id:WORLD_ID,name:DISPLAY_WORLD_NAME,continent:CONTINENT_NAME,seed:WORLD_SEED,surfacePixels:SURFACE_WORLD_PIXELS}),
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
   save:saveWorldBuilder,
   tiers:TIERS,
