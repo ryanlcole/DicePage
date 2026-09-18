@@ -1,4 +1,5 @@
 @inject NavigationManager Navigation
+@inject WorldSession Session
 
 <div class="task-workspace-router">
  @if (Mode == "worldrunetest" || (Mode == "world" && RuneTestRequested))
@@ -9,7 +10,14 @@
  else if (Mode == "world")
  {
   <WorldAnimatedAssetCatalog />
-  <WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" />
+  @if(Session.IsGeonaphWorld)
+  {
+   <WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" />
+  }
+  else
+  {
+   <WorldBuilderStudio OnStartMenu="OnStartMenu" />
+  }
  }
  else if (Mode == "accessibility")
  {
