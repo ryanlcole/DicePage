@@ -7,7 +7,7 @@
   <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
    <header>
     <span><small>SHAELVIEN · RIST</small><strong>@(Session.HasActiveWorld&&_ready?"WORLD LOADED":"CHOOSE A WORLD")</strong></span>
-    @if(!RequireSelection || Session.HasActiveWorld){<button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>}
+    @if(!RequireSelection){<button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>}
    </header>
 
    @if(_ready && Session.HasActiveWorld)
@@ -232,5 +232,5 @@
 
  async Task ContinueAsync(){if(Session.HasActiveWorld)await OnContinue.InvokeAsync();}
  async Task ReturnAsync(){if(Session.HasActiveWorld)await OnClose.InvokeAsync();}
- async Task CloseAsync(){if(_busy||_deleteWorld is not null)return;if(RequireSelection&&!Session.HasActiveWorld)return;await OnClose.InvokeAsync();}
+ async Task CloseAsync(){if(_busy||_deleteWorld is not null||RequireSelection)return;await OnClose.InvokeAsync();}
 }
