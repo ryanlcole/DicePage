@@ -150,6 +150,12 @@
    settings:()=>({enabled:getEnabled(),active:getActive(),tiltStrength:getTilt()}),
    setEnabled(value){const next=!!value;writePreference(PARALLAX_KEY,next);emit();return next},
    setActive(value){const next=!!value;writePreference(PARALLAX_ACTIVE_KEY,next);emit();return next},
+   activateForSession(persist=false){
+    writePreference(PARALLAX_KEY,true,!!persist);
+    writePreference(PARALLAX_ACTIVE_KEY,true,!!persist);
+    emit();
+    return true;
+   },
    setTiltStrength:setTilt,
    resetTilt:()=>setTilt(DEFAULT_TILT),
    depthForTier:getTilt,
