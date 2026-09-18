@@ -530,7 +530,40 @@ function refreshUserImage(item){
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
-  selectedImage?.node?.classList.remove('selected');selectedImage=item;item?.node?.classList.add('selected');renderKeyboardKeys();
+  selectedImage?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');renderKeyboardKeys();scheduleRegionEnhancement(20);
+}
+function deselectUserImage(announceChange=false){
+  if(!selectedImage)return false;
+  selectedImage.node?.classList.remove('selected');selectedImage=null;renderKeyboardKeys();scheduleRegionEnhancement(20);
+  if(announceChange)announce('Selection cleared.');
+  return true;
+}
+function placedContentLabel(item,index){
+  const name=String(item?.name||item?.assetId||'Placed image').trim()||'Placed image';
+  return `${index+1}. ${name} · T${Number(item?.tier)||0} L${Number(item?.layer)||0}`;
+}
+function selectablePlacedContent(){
+  return userLayers.filter(item=>item?.node);
+}
+function cyclePlacedSelection(delta=1){
+  const items=selectablePlacedContent();
+  if(!items.length){deselectUserImage(false);announce('No placed content to select.');return}
+  const current=selectedImage?items.indexOf(selectedImage):-1;
+  const next=current<0?(delta<0?items.length-1:0):(current+delta+items.length)%items.length;
+  selectUserImage(items[next]);announce(`Selected ${placedContentLabel(items[next],next)}.`);
+}
+function placedContentSelect(){
+  const select=document.createElement('select');select.className='placed-content-select';select.setAttribute('aria-label','Select existing placed content');
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=userLayers.length?'Select existing content…':'No placed content';placeholder.disabled=!!userLayers.length;placeholder.selected=!selectedImage;select.appendChild(placeholder);
+  selectablePlacedContent().forEach((item,index)=>{
+    const option=document.createElement('option');option.value=item.id;option.textContent=placedContentLabel(item,index);option.selected=item===selectedImage;select.appendChild(option);
+  });
+  select.disabled=!userLayers.length;
+  select.addEventListener('change',()=>{
+    const item=userLayers.find(entry=>String(entry.id)===select.value);
+    if(item){selectUserImage(item);announce(`${placedContentLabel(item,userLayers.indexOf(item))} selected.`)}
+  });
+  return select;
 }
 function removeSelectedImage(){if(!selectedImage)return;const index=userLayers.indexOf(selectedImage);selectedImage.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Image removed from the layer stack.')}
 function beginImageDrag(event,item){
@@ -654,7 +687,7 @@ function bindTap(button,fn){
 }
 
 function renderState(){applyTransform();renderKeyboardKeys()}
-const BASE_KEYBOARD_MODES=['Viewer','Tiers','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
+const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){return BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function tileLibraryAsset(raw){
@@ -796,8 +829,15 @@ function renderKeyboardKeys(){
       toolKey('DELETE','image',removeSelectedImage)
     );return;
   }
-  if(keyboardMode==='Selected'){
-    keyboardKeys.append(toolKey('IMAGE','edit selected',()=>{keyboardMode='Image';renderKeyboardTabs();renderKeyboardKeys()},!selectedImage),toolKey('INSPECT','viewer',()=>setTool('Inspect')),toolKey('META','viewer',()=>setTool('Metadata')));return;
+  if(keyboardMode==='Select'){
+    const items=selectablePlacedContent();
+    keyboardKeys.append(
+      toolKey('‹','previous image',()=>cyclePlacedSelection(-1),!items.length),
+      toolKey('›','next image',()=>cyclePlacedSelection(1),!items.length),
+      placedContentSelect(),
+      toolKey('EDIT','selected image',()=>{if(!selectedImage)return;keyboardMode='Image';renderKeyboardTabs();renderKeyboardKeys();announce('Image editing controls opened.')},!selectedImage),
+      toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
+    );return;
   }
   const sets={Pixels:['Select','Paint','Erase','Fill'],Sprites:['Library','Place','Play','Speed'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
@@ -918,6 +958,7 @@ $('keyboardClose').addEventListener('click',closeKeyboard);
 stage.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY<0?1.12:1/1.12)},{passive:false});
 stage.addEventListener('pointerdown',e=>{
   if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
+  if(!(e.target instanceof Element&&e.target.closest('.user-image-placement')))deselectUserImage(false);
   suspendRegionEnhancement();
   if(e.pointerType==='mouse'&&e.button!==0)return;
   if(e.pointerType!=='mouse')e.preventDefault();
