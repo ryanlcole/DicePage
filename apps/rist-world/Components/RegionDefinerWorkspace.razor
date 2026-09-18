@@ -5,10 +5,10 @@
 @inject IJSRuntime JS
 @inject HttpClient Http
 
-<section class="region-definer" aria-label="Region Definer">
+<section class="region-definer @(!CanEditRegion?"read-only":"")" aria-label="Region Definer" aria-readonly="@(!CanEditRegion)">
  <header class="region-definer-header">
   <button type="button" class="region-home" @onclick="OpenStartMenu" aria-label="Start menu">⌂</button>
-  <span class="region-source-label"><small>SOURCE WORLD · LOCKED</small><strong>@(Session.HasActiveWorld?Session.WorldDisplayName:"NO WORLD SELECTED")</strong></span>
+  <span class="region-source-label"><small>@(CanEditRegion?"SOURCE WORLD · LOCKED":"SOURCE WORLD · REFERENCE · READ ONLY")</small><strong>@(Session.HasActiveWorld?Session.WorldDisplayName:"NO WORLD SELECTED")</strong></span>
   <span class="region-angle-label">5° REGIONAL VIEW</span>
  </header>
 
@@ -33,7 +33,7 @@
   {
    @foreach(var asset in VisibleAssets)
    {
-    <button type="button" class="region-asset @(_armedAsset?.Id==asset.Id?"armed":"")" draggable="true" @ondragstart="()=>BeginAssetDrag(asset)" @ondragend="EndAssetDrag" @onclick="()=>ArmAsset(asset)" title="Tap, then tap the regional map; or drag onto the map"><img src="@asset.Image" alt="" draggable="false"/><span>@asset.Name</span></button>
+    <button type="button" class="region-asset @(_armedAsset?.Id==asset.Id?"armed":"")" draggable="@CanEditRegion" disabled="@(!CanEditRegion)" @ondragstart="()=>BeginAssetDrag(asset)" @ondragend="EndAssetDrag" @onclick="()=>ArmAsset(asset)" title="@(CanEditRegion?"Tap, then tap the regional map; or drag onto the map":"Read-only reference asset")"><img src="@asset.Image" alt="" draggable="false"/><span>@asset.Name</span></button>
    }
    @if(!VisibleAssets.Any()){<span class="region-empty-rail">No matching regional assets</span>}
   }
@@ -54,7 +54,7 @@
       @for(var index=0;index<WorldSession.GridColumns*WorldSession.GridRows;index++)
       {
        var cell=index;
-       <button type="button" class="@(_selectedCells.Contains(cell)?"selected":"")" @onclick="()=>ToggleWorldCell(cell)" @onclick:stopPropagation="true" aria-pressed="@_selectedCells.Contains(cell)" aria-label="World tile @(cell%WorldSession.GridColumns),@(cell/WorldSession.GridColumns)"></button>
+       <button type="button" class="@(_selectedCells.Contains(cell)?"selected":"")" disabled="@(!CanEditRegion)" @onclick="()=>ToggleWorldCell(cell)" @onclick:stopPropagation="true" aria-pressed="@_selectedCells.Contains(cell)" aria-label="World tile @(cell%WorldSession.GridColumns),@(cell/WorldSession.GridColumns)"></button>
       }
      </div>
      <div class="region-selection-note">SELECT WORLD TILES · @_selectedCells.Count SELECTED</div>
@@ -80,10 +80,10 @@
      <div class="region-overlay-layer" aria-label="Editable regional tiles">
       @foreach(var tile in region.OverlayTiles)
       {
-       <button type="button" class="region-overlay-tile" style="@OverlayStyle(tile,region)" @ondblclick="()=>RemoveOverlayAsync(tile)" @onclick:stopPropagation="true" title="@tile.Name · double click to remove"><span class="region-image-crop"><img src="@tile.Image" style="@CropStyle(tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight)" alt="@tile.Name" draggable="false"/></span></button>
+       <button type="button" class="region-overlay-tile" style="@OverlayStyle(tile,region)" disabled="@(!CanEditRegion)" @ondblclick="()=>RemoveOverlayAsync(tile)" @onclick:stopPropagation="true" title="@(CanEditRegion?$"{tile.Name} · double click to remove":$"{tile.Name} · read-only reference")"><span class="region-image-crop"><img src="@tile.Image" style="@CropStyle(tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight)" alt="@tile.Name" draggable="false"/></span></button>
       }
      </div>
-     <div class="region-nameplate"><small>@Session.WorldDisplayName · NON-EDITABLE WORLD SOURCE</small><strong>@region.Name</strong><span>@region.Width×@region.Height world-tile crop · regional overlays editable</span></div>
+     <div class="region-nameplate"><small>@Session.WorldDisplayName · NON-EDITABLE WORLD SOURCE</small><strong>@region.Name</strong><span>@(CanEditRegion?$"{region.Width}×{region.Height} world-tile crop · regional overlays editable":$"{region.Width}×{region.Height} world-tile crop · reference view only")</span></div>
     }
    </div>
   }
@@ -92,15 +92,15 @@
  <section class="region-command-rail" aria-label="Region commands">
   @if(Session.ActiveRegion is null)
   {
-   <button type="button" class="primary" disabled="@(_selectedCells.Count==0||!Session.HasActiveWorld)" @onclick="OpenNameDialog"><strong>Create Region</strong><small>Crop Selected Tiles</small></button>
-   <button type="button" disabled="@(_selectedCells.Count==0)" @onclick="ClearSelection"><strong>Clear</strong><small>Selection</small></button>
+   <button type="button" class="primary" disabled="@(!CanEditRegion||_selectedCells.Count==0||!Session.HasActiveWorld)" @onclick="OpenNameDialog"><strong>Create Region</strong><small>Crop Selected Tiles</small></button>
+   <button type="button" disabled="@(!CanEditRegion||_selectedCells.Count==0)" @onclick="ClearSelection"><strong>Clear</strong><small>Selection</small></button>
   }
   else
   {
-   <button type="button" class="primary" @onclick="BeginNewRegion"><strong>New Region</strong><small>Select World Tiles</small></button>
-   <button type="button" @onclick="CycleFootprint"><strong>@_tileFootprint<sup>2</sup></strong><small>Regional Tile Size</small></button>
+   <button type="button" class="primary" disabled="@(!CanEditRegion)" @onclick="BeginNewRegion"><strong>New Region</strong><small>Select World Tiles</small></button>
+   <button type="button" disabled="@(!CanEditRegion)" @onclick="CycleFootprint"><strong>@_tileFootprint<sup>2</sup></strong><small>Regional Tile Size</small></button>
    <button type="button" @onclick="ShowRegions"><strong>Regions</strong><small>@Session.Regions.Count Saved</small></button>
-   <button type="button" @onclick="SaveRegionsAsync"><strong>Save</strong><small>Region Definitions</small></button>
+   <button type="button" disabled="@(!CanEditRegion)" @onclick="SaveRegionsAsync"><strong>Save</strong><small>Region Definitions</small></button>
   }
   <span class="region-command-status">@StatusText</span>
  </section>
@@ -143,7 +143,8 @@
  IJSObjectReference? _module;
  [Parameter] public EventCallback OnStartMenu{get;set;}
 
- string StatusText=>_armedAsset is not null&&Session.ActiveRegion is not null?$"{_armedAsset.Name} armed · tap the regional map to place":_status;
+ bool CanEditRegion=>Session.HasTrustedWorldBuilderAuthority;
+ string StatusText=>!CanEditRegion?"VIEW ONLY · ENDEMAR REFERENCE":_armedAsset is not null&&Session.ActiveRegion is not null?$"{_armedAsset.Name} armed · tap the regional map to place":_status;
  string SelectionGridStyle=>$"grid-template-columns:repeat({WorldSession.GridColumns},minmax(0,1fr));grid-template-rows:repeat({WorldSession.GridRows},minmax(0,1fr))";
  string SelectionBoundsText
  {
@@ -181,12 +182,13 @@
  void SelectFilter(string mode){_filter=FilterModes.Contains(mode,StringComparer.Ordinal)?mode:"Regions";_filtersOpen=false;_armedAsset=null;}
  void ShowRegions()=>SelectFilter("Regions");
  void SelectRegion(WorldRegion region){Session.SetActiveRegion(region.RegionId);_filter="Regions";_selectedCells.Clear();_status=$"{region.Name} loaded. World source is locked; regional overlays are editable.";}
- void ToggleWorldCell(int cell){if(Session.ActiveRegion is not null)return;if(!_selectedCells.Add(cell))_selectedCells.Remove(cell);_status=$"{_selectedCells.Count} world tile{(_selectedCells.Count==1?"":"s")} selected.";}
- void ClearSelection(){_selectedCells.Clear();_status="Selection cleared.";}
- void OpenNameDialog(){if(_selectedCells.Count==0)return;_pendingRegionName="";_nameDialogOpen=true;}
+ void ToggleWorldCell(int cell){if(!CanEditRegion)return;if(Session.ActiveRegion is not null)return;if(!_selectedCells.Add(cell))_selectedCells.Remove(cell);_status=$"{_selectedCells.Count} world tile{(_selectedCells.Count==1?"":"s")} selected.";}
+ void ClearSelection(){if(!CanEditRegion)return;_selectedCells.Clear();_status="Selection cleared.";}
+ void OpenNameDialog(){if(!CanEditRegion)return;if(_selectedCells.Count==0)return;_pendingRegionName="";_nameDialogOpen=true;}
  void CloseNameDialog()=>_nameDialogOpen=false;
  async Task CreateRegionAsync()
  {
+  if(!CanEditRegion)return;
   if(string.IsNullOrWhiteSpace(_pendingRegionName)||_selectedCells.Count==0)return;
   try
   {
@@ -195,24 +197,27 @@
   }
   catch(Exception ex){_status=ex.Message;}
  }
- void BeginNewRegion(){_selectedCells.Clear();_armedAsset=null;_filter="Regions";Session.SetActiveRegion("");_status="Select world tiles, then create a region.";}
- void CycleFootprint()=>_tileFootprint=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,_=>1};
- void BeginAssetDrag(AtlasTile asset){_draggingAsset=asset;_armedAsset=asset;}
+ void BeginNewRegion(){if(!CanEditRegion)return;_selectedCells.Clear();_armedAsset=null;_filter="Regions";Session.SetActiveRegion("");_status="Select world tiles, then create a region.";}
+ void CycleFootprint(){if(!CanEditRegion)return;_tileFootprint=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,_=>1};}
+ void BeginAssetDrag(AtlasTile asset){if(!CanEditRegion)return;_draggingAsset=asset;_armedAsset=asset;}
  void EndAssetDrag()=>_draggingAsset=null;
- void ArmAsset(AtlasTile asset){_armedAsset=asset;_status=$"{asset.Name} armed. Tap the regional map to place it.";}
+ void ArmAsset(AtlasTile asset){if(!CanEditRegion)return;_armedAsset=asset;_status=$"{asset.Name} armed. Tap the regional map to place it.";}
  async Task DropAssetAsync(DragEventArgs e)
  {
+  if(!CanEditRegion)return;
   var asset=_draggingAsset??_armedAsset;_draggingAsset=null;
   if(asset is null)return;
   await PlaceAssetAtAsync(asset,e.ClientX,e.ClientY);
  }
  async Task PlaceArmedAssetAsync(MouseEventArgs e)
  {
+  if(!CanEditRegion)return;
   if(_armedAsset is null||Session.ActiveRegion is null)return;
   await PlaceAssetAtAsync(_armedAsset,e.ClientX,e.ClientY);
  }
  async Task PlaceAssetAtAsync(AtlasTile asset,double clientX,double clientY)
  {
+  if(!CanEditRegion)return;
   var region=Session.ActiveRegion;if(region is null||_module is null)return;
   try
   {
@@ -223,8 +228,8 @@
   }
   catch{_status="The regional placement point could not be resolved.";}
  }
- async Task RemoveOverlayAsync(RegionOverlayTile tile){var region=Session.ActiveRegion;if(region is null)return;await Session.RemoveRegionOverlayTileAsync(region.RegionId,tile.Id);_status=$"{tile.Name} removed from {region.Name}.";}
- async Task SaveRegionsAsync(){try{await Session.SaveRegionsAsync();_status="Regions saved.";}catch(Exception ex){_status="Region save failed: "+ex.Message;}}
+ async Task RemoveOverlayAsync(RegionOverlayTile tile){if(!CanEditRegion)return;var region=Session.ActiveRegion;if(region is null)return;await Session.RemoveRegionOverlayTileAsync(region.RegionId,tile.Id);_status=$"{tile.Name} removed from {region.Name}.";}
+ async Task SaveRegionsAsync(){if(!CanEditRegion)return;try{await Session.SaveRegionsAsync();_status="Regions saved.";}catch(Exception ex){_status="Region save failed: "+ex.Message;}}
 
  bool AssetMatchesFilter(AtlasTile asset)
  {
