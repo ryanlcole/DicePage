@@ -193,7 +193,12 @@ def handler(event, context):
 
     if method == "GET" and path == "/world/membership":
         world_id = safe_id(q.get("worldId"), "worldId")
-        return response(200, membership(world_id, user_id) or {"worldId": world_id, "role": "none"})
+        item = membership(world_id, user_id)
+        if item:
+            return response(200, item)
+        if owner_user_id and user_id == owner_user_id:
+            return response(200, {"worldId": world_id, "role": "owner", "effectiveAuthority": "platformOwner"})
+        return response(200, {"worldId": world_id, "role": "none"})
 
     if method == "POST" and path == "/world/membership/grant":
         req = body(event)
