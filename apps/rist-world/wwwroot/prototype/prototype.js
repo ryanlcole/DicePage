@@ -254,14 +254,15 @@ function scopedParallaxMix(zoomRatio,rawZoomZ){
 function parallaxMix(){
   const zoomRatio=Math.max(.01,scale/Math.max(minScale,.00001));
   const rawZoomZ=Math.max(0,Math.log2(zoomRatio)*LAYERS_PER_TIER);
-  return parallaxOverride?allParallaxMix(zoomRatio,rawZoomZ):scopedParallaxMix(zoomRatio,rawZoomZ);
+  parallaxOverride=true;
+  return allParallaxMix(zoomRatio,rawZoomZ);
 }
 function applyParallax(mix=parallaxMix()){
   const dx=x-fitX,dy=y-fitY;
   const layers=[
     {node:surface,sceneZ:0,alpha:mix.surface},
-    {node:highlands,sceneZ:4,alpha:mix.highlands},
-    {node:mountains,sceneZ:7,alpha:mix.mountains}
+    {node:highlands,sceneZ:10,alpha:mix.highlands},
+    {node:mountains,sceneZ:20,alpha:mix.mountains}
   ];
   for(const layer of layers){
     const depth=layer.sceneZ/LAYERS_PER_TIER;
@@ -275,17 +276,10 @@ function applyParallax(mix=parallaxMix()){
   lastMix=mix;
 }
 function updateReadouts(){
-  const s=stratumByKey(activeStratum),mix=lastMix,tier=lockedTier(),depth=splitZ(viewerZ);
-  const label=parallaxOverride?'All Parallax':bandDisplayName(s.key);
-  viewLabel.textContent=parallaxOverride?`${label} · Z ${viewerZ}`:`${label} · ${bandRangeText(s)} · Layer ${depth.layerOffset}`;
-  pathLabel.textContent='Focus: '+(focusPath.length?focusPath.map(p=>p.label).join(' › '):'Parallax');
-  const zoomRatio=Math.max(.01,scale/Math.max(minScale,.00001));
-  const fit=Math.abs(x-fitX)<.5&&Math.abs(y-fitY)<.5&&Math.abs(scale-minScale)<.0001;
-  zoomLabel.textContent=`${fit?'Fit · ':''}${zoomRatio.toFixed(2)}× · PZ ${mix.zoomZ.toFixed(1)}`;
-  stratumNote.innerHTML=parallaxOverride?`<strong>All Parallax</strong> · Sea Level → Sky`:`<strong>${label}</strong> · ${bandRangeText(s)} · L${depth.layerOffset}`;
-  stratumNote.setAttribute('aria-label',parallaxOverride
-    ?'All Parallax. Sea Level through Sky. Every registered altitude representation remains eligible; zoom controls the handoff.'
-    :`${label}. Physical altitude ${bandRangeText(s)}. Internal tier ${tier}, layer ${depth.layerOffset}. Editing is locked to this altitude band.`);
+  const band=currentBand(),depth=splitZ(viewerZ);
+  stage.dataset.viewerZ=String(viewerZ);
+  stage.dataset.altitudeBand=band.key;
+  stage.setAttribute('aria-label',`Interactive world viewer. All parallax layers visible. Editing position ${bandDisplayName(band.key)}, ${bandRangeText(band)}, layer ${depth.layerOffset}.`);
 }
 function applyTransform(){
   world.style.width=naturalWidth+'px';
@@ -316,9 +310,10 @@ function zoomAt(cx,cy,factor){
 }
 
 function setViewerZ(value,reason){
-  viewerZ=clampToLockedTier(value);
+  viewerZ=Math.trunc(value);
+  parallaxOverride=true;
   renderState();
-  announce(`${reason}. Viewer Z ${viewerZ}. ${lockedTier()===null?'All Parallax remains unrestricted.':`Editing remains locked to tier ${lockedTier()}.`}`);
+  announce(`${reason}. Viewer Z ${viewerZ}. All Parallax remains visible.`);
 }
 function jumpStratum(key){
   if(key==='all'){
@@ -357,23 +352,21 @@ function rewindFocus(index){
   focusSelected=focusOptions()[0]?.key||'';renderState();announce(`Focus returned to ${focusPath[index]?.label||'All Parallax'}.`);
 }
 function resetFocus(){jumpStratum('all')}
+function resetFocus(){focusPath=[];focusSelected='all';parallaxOverride=true;renderState()}
 function renderFocus(){
-  normalizeFocusSelection();
   const entityLocked=focusPath.some(p=>p.level==='Entity');
-  renderTierMenu();
   battle.hidden=!entityLocked;
   if(entityLocked){const e=focusPath.find(p=>p.level==='Entity');battleText.textContent=`${e?.label||'Entity'} focus · tactical viewer representation. Canonical XYZ identity remains unchanged.`}
 }
 function renderState(){
-  const tier=lockedTier();
-  stage.dataset.parallaxScope=parallaxOverride?'all':'tier';
-  stage.dataset.editTier=tier===null?'':String(tier);
+  parallaxOverride=true;
+  stage.dataset.parallaxScope='all';
+  stage.dataset.editTier='';
   stage.dataset.viewerZ=String(viewerZ);
   renderFocus();applyTransform();renderKeyboardKeys()
 }
-
-const BASE_KEYBOARD_MODES=['Viewer','Weather','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
-function keyboardModes(){return currentTierKey()==='sky'?['Sky','Viewer','Image','Labels','CAD','Metadata','Selected']:BASE_KEYBOARD_MODES}
+const BASE_KEYBOARD_MODES=['Viewer','Weather','Sky','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
+function keyboardModes(){return BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.addEventListener('click',fn);return b}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
 function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
@@ -382,17 +375,14 @@ function renderKeyboardKeys(){
   keyboardKeys.replaceChildren();
   const z=splitZ(viewerZ);
   if(keyboardMode==='Viewer'){
-    const tier=lockedTier(),tierLow=tier===null?null:tier*LAYERS_PER_TIER,tierHigh=tier===null?null:tierLow+LAYERS_PER_TIER-1,band=currentTierKey()==='all'?null:bandByKey(currentTierKey());
     keyboardKeys.append(
-      toolKey('Z −','layer',()=>setViewerZ(viewerZ-1,'Viewer moved down one layer'),tier!==null&&viewerZ<=tierLow),
-      toolKey('Z +','layer',()=>setViewerZ(viewerZ+1,'Viewer moved up one layer'),tier!==null&&viewerZ>=tierHigh),
+      toolKey('Z −','layer',()=>setViewerZ(viewerZ-1,'Editing plane moved down one layer')),
+      toolKey('Z +','layer',()=>setViewerZ(viewerZ+1,'Editing plane moved up one layer')),
       toolKey('−','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)}),
       toolKey('+','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)}),
-      toolKey('FIT','camera',fitMap),
-      toolKey('NAME','altitude',renameCurrentBand,currentTierKey()==='all'),
-      toolKey('ALL','parallax',()=>jumpStratum('all'))
+      toolKey('⛶','fit',fitMap)
     );
-    const read=toolKey(band?bandDisplayName(band.key):'ALL',band?bandRangeText(band):'Sea → Sky',()=>{},true);read.classList.add('readout');keyboardKeys.append(read);return;
+    const band=currentBand(),read=toolKey(`L${splitZ(viewerZ).layerOffset}`,bandDisplayName(band.key),()=>{},true);read.classList.add('readout');keyboardKeys.append(read);return;
   }
   if(keyboardMode==='Sky'){
     for(const type of CELESTIAL_TYPES)keyboardKeys.append(toolKey(type.glyph,type.name,()=>placeCelestial(type.key)));
