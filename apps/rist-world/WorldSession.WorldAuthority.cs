@@ -7,12 +7,14 @@ public sealed partial class WorldSession
     private string _trustedAuthorityWorldId = "";
     private string _trustedAuthoritySessionToken = "";
     private string _trustedWorldRole = "";
+    private WorldClaimPermission _trustedClaimPermission = WorldClaimPermission.Blocked;
     private bool _trustedPlatformOwner;
     private bool _trustedWorldAuthorityLoading;
     private bool _trustedWorldAuthorityResolved;
     private DateTimeOffset _trustedWorldAuthorityRetryAfter = DateTimeOffset.MinValue;
 
     public string TrustedWorldRole => _trustedWorldRole;
+    public WorldClaimPermission TrustedClaimPermission => _trustedClaimPermission;
     public bool TrustedPlatformOwner => _trustedPlatformOwner;
 
     // Browser role/workspace state is representation only. Worldbuilder capability is
@@ -34,9 +36,39 @@ public sealed partial class WorldSession
         }
     }
 
+    public bool CanRequestWorldClaim
+    {
+        get
+        {
+            EnsureTrustedWorldAuthorityRequested();
+            var sessionToken = auth.SessionToken ?? "";
+            return IsLoggedIn
+                && HasActiveWorld
+                && _trustedWorldAuthorityResolved
+                && string.Equals(_trustedAuthorityWorldId, WorldId, StringComparison.Ordinal)
+                && string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
+                && !_trustedPlatformOwner
+                && !IsTrustedWorldBuilderRole(_trustedWorldRole)
+                && WorldClaimAuthorityPolicy.CanSubmitRequest(_trustedClaimPermission);
+        }
+    }
+
     private static bool IsTrustedWorldBuilderRole(string? role) =>
         string.Equals(role, "GM", StringComparison.OrdinalIgnoreCase)
         || string.Equals(role, "owner", StringComparison.OrdinalIgnoreCase);
+
+    private static WorldClaimPermission ParseClaimPermission(string? value)
+    {
+        var normalized = (value ?? "").Trim().Replace("-", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
+        return normalized.ToLowerInvariant() switch
+        {
+            "restricted" => WorldClaimPermission.Restricted,
+            "limited" => WorldClaimPermission.Limited,
+            "cooperative" => WorldClaimPermission.Cooperative,
+            "releaseownership" => WorldClaimPermission.ReleaseOwnership,
+            _ => WorldClaimPermission.Blocked
+        };
+    }
 
     public async Task RefreshTrustedWorldAuthorityAsync()
     {
@@ -78,6 +110,7 @@ public sealed partial class WorldSession
         _trustedAuthorityWorldId = worldId;
         _trustedAuthoritySessionToken = sessionToken;
         _trustedWorldRole = "";
+        _trustedClaimPermission = WorldClaimPermission.Blocked;
         _trustedPlatformOwner = false;
         _trustedWorldAuthorityResolved = false;
         Notify();
@@ -124,7 +157,10 @@ public sealed partial class WorldSession
             _trustedPlatformOwner = profile?.PlatformOwner == true;
             if (membership is not null
                 && string.Equals(membership.WorldId, worldId, StringComparison.Ordinal))
+            {
                 _trustedWorldRole = membership.Role?.Trim() ?? "";
+                _trustedClaimPermission = ParseClaimPermission(membership.ClaimPermission);
+            }
 
             _trustedWorldAuthorityResolved = true;
             _trustedWorldAuthorityRetryAfter = DateTimeOffset.UtcNow.AddSeconds(30);
@@ -133,6 +169,7 @@ public sealed partial class WorldSession
         {
             // Authority/network uncertainty never becomes permission. Retry later.
             _trustedWorldRole = "";
+            _trustedClaimPermission = WorldClaimPermission.Blocked;
             _trustedPlatformOwner = false;
             _trustedWorldAuthorityResolved = true;
             _trustedWorldAuthorityRetryAfter = DateTimeOffset.UtcNow.AddSeconds(30);
@@ -149,6 +186,7 @@ public sealed partial class WorldSession
         _trustedAuthorityWorldId = "";
         _trustedAuthoritySessionToken = "";
         _trustedWorldRole = "";
+        _trustedClaimPermission = WorldClaimPermission.Blocked;
         _trustedPlatformOwner = false;
         _trustedWorldAuthorityLoading = false;
         _trustedWorldAuthorityResolved = false;
