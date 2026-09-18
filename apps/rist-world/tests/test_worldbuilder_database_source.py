@@ -71,3 +71,23 @@ def test_region_records_define_permissions_not_a_second_map():
     assert "A region is authority/view metadata over the canonical world map." in regions
     assert "SourceTiles: []" in regions
     assert "var sourceTiles = PlacedTiles" not in regions
+
+
+def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source():
+    workspace = text("Components/RegionDefinerWorkspace.razor")
+    prototype = text("wwwroot/prototype/prototype.js")
+    bridge = text("wwwroot/region-definer-host.js")
+    index = text("wwwroot/prototype/index.html")
+
+    assert "REGION DEFINER · CANONICAL MAP · 15° VIEW" in prototype
+    assert "WORLD SOURCE LOCKED" not in prototype
+    assert "Save authorized map changes" in prototype
+    assert "sourceWorldLocked" not in prototype
+    assert "mapAuthorityScoped" in prototype
+
+    # The map bridge attaches before slower claim/region metadata refreshes.
+    assert workspace.index('InvokeVoidAsync("attach"') < workspace.index("RefreshMmoLandAsync()")
+    assert 'InvokeVoidAsync("refresh"' in workspace
+    assert "async function sendState" in bridge
+    assert 'type:"map-load-error"' in bridge
+    assert "./prototype.js?v=20260918-canonical-view-1" in index
