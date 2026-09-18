@@ -1041,12 +1041,12 @@ async function saveFileToPersonalLibrary(file,metadata={}){
   return asset;
 }
 function personalExtensionForType(type){
-  return String(type||'').toLowerCase() switch{
-    'image/jpeg'=>'.jpg',
-    'image/webp'=>'.webp',
-    'image/gif'=>'.gif',
-    _=>'.png'
-  };
+  switch(String(type||'').toLowerCase()){
+    case 'image/jpeg':return '.jpg';
+    case 'image/webp':return '.webp';
+    case 'image/gif':return '.gif';
+    default:return '.png';
+  }
 }
 async function promoteRestoredLayerToPersonal(item){
   if(!item||item.personalAssetKey||item.assetId)return null;
