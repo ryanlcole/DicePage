@@ -17,10 +17,23 @@
   button.setAttribute('aria-label',label);
   return button;
  }
+ function applyBlazorScope(reference,...targets){
+  if(!reference)return;
+  const scope=[...reference.attributes].filter(attribute=>attribute.name.startsWith('b-'));
+  for(const target of targets){
+   if(!target)continue;
+   for(const attribute of scope)target.setAttribute(attribute.name,attribute.value);
+  }
+ }
  function ensurePerceiver(){
   const launcher=document.querySelector('.launcher-primary');
   if(!launcher)return false;
-  if(document.getElementById(PERCEIVER_ID))return true;
+  const scopeSource=launcher.querySelector('.launcher-card:not(#'+PERCEIVER_ID+')')||launcher.querySelector('.launcher-card');
+  const existing=document.getElementById(PERCEIVER_ID);
+  if(existing){
+   applyBlazorScope(scopeSource,existing,...existing.children);
+   return true;
+  }
   const button=document.createElement('button');
   button.id=PERCEIVER_ID;
   button.type='button';
@@ -34,6 +47,7 @@
   title.textContent='PERCEIVER';
   const detail=document.createElement('small');
   detail.textContent='Cinematic depth using tier motion speed relative to the focal plane.';
+  applyBlazorScope(scopeSource,button,icon,title,detail);
   button.append(icon,title,detail);
   button.addEventListener('click',()=>window.location.assign('/perceiver/index.html'));
   const prototype=[...launcher.querySelectorAll('button')].find(node=>node.textContent?.includes('PROTOTYPE'));
