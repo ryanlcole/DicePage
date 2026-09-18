@@ -248,7 +248,7 @@ else
  public async Task<object?> GetWorldBuilderSourceForPrototypeAsync()
  {
   var source=await Session.LoadWorldBuilderSourceAsync();
-  if(source is null)return null;
+  if(source is null||source.State is null)return null;
   return new
   {
    worldId=source.WorldId,
