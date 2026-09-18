@@ -71,7 +71,8 @@ let restoreSaveStarted=false;
 const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
-let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=true,regionNameDraft='',regionCreatePending=false;
+let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
+let regionGridShape='square',regionClaimPhase='idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId='';
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
@@ -1122,6 +1123,47 @@ function postRegionMessage(type,payload={}){
   try{window.parent.postMessage({source:'shaelvien-regiondefiner',type,...payload},location.origin);return true}catch{return false}
 }
 function currentRegionTierIndex(){return tierByKey(viewerTier==='all'?'sea':viewerTier).index}
+function normalizeRegionGridShape(value){return String(value||'').toLowerCase()==='hex'?'hex':'square'}
+function regionCellRow(cell){return Math.floor(cell/REGION_GRID_COLUMNS)}
+function regionCellColumn(cell){return cell%REGION_GRID_COLUMNS}
+function regionCellCenter(cell,shape=regionGridShape){
+  const row=regionCellRow(cell),column=regionCellColumn(cell);
+  const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
+  return{x:clamp((column+0.5+offset)/REGION_GRID_COLUMNS,0,1),y:clamp((row+0.5)/REGION_GRID_ROWS,0,1)};
+}
+function regionCellFromPoint(x,y,shape=regionGridShape){
+  const row=clamp(Math.floor(clamp(y,0,.999999)*REGION_GRID_ROWS),0,REGION_GRID_ROWS-1);
+  const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
+  const column=clamp(Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset),0,REGION_GRID_COLUMNS-1);
+  return row*REGION_GRID_COLUMNS+column;
+}
+function regionActiveCellSet(){
+  const cells=regionClaimedRegion?.selectedCells;
+  return Array.isArray(cells)&&cells.length?new Set(cells.map(Number).filter(Number.isInteger)):null;
+}
+function nearestAllowedRegionCell(cell,allowed){
+  if(!allowed||allowed.has(cell))return cell;
+  const target=regionCellCenter(cell),cells=[...allowed];
+  let best=cell,bestDistance=Infinity;
+  for(const candidate of cells){
+    const center=regionCellCenter(candidate),dx=center.x-target.x,dy=center.y-target.y,d=(dx*dx)+(dy*dy);
+    if(d<bestDistance){bestDistance=d;best=candidate}
+  }
+  return best;
+}
+function snapRegionPoint(x,y){
+  if(!REGION_DEFINER)return{x:clamp(x,0,1),y:clamp(y,0,1)};
+  let cell=regionCellFromPoint(x,y);
+  cell=nearestAllowedRegionCell(cell,regionActiveCellSet());
+  return regionCellCenter(cell);
+}
+function setRegionGridShape(shape){
+  if(!REGION_DEFINER)return;
+  regionGridShape=normalizeRegionGridShape(shape);
+  updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce(`${regionGridShape==='hex'?'Hex':'Square'} grid selected for region selection and placement.`);
+}
+function cycleRegionGridShape(){setRegionGridShape(regionGridShape==='square'?'hex':'square')}
 function regionWorldLayerSet(tier=currentRegionTierIndex()){
   tier=clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1);
   return regionWorldLayerVisibility[tier];
