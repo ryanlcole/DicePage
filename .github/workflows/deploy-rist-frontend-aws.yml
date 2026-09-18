@@ -225,9 +225,12 @@ jobs:
             --only-show-errors
 
       - name: Invalidate and verify AWS frontend surfaces
+        id: verify_frontend
         shell: bash
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -Eeo pipefail
+          trap 'status=$?; diagnostic="line $LINENO: $BASH_COMMAND"; diagnostic=$(printf "%s" "$diagnostic" | tr "\n\r" "  " | sed "s/%/%25/g" | cut -c1-180); echo "diagnostic=$diagnostic" >> "$GITHUB_OUTPUT"; exit "$status"' ERR
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
           INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
@@ -316,3 +319,7 @@ jobs:
           else
             echo "Persistent story media needs restoration, but application deployment is healthy."
           fi
+
+      - name: Verification failure · ${{ steps.verify_frontend.outputs.diagnostic }}
+        if: steps.verify_frontend.outcome == 'failure'
+        run: exit 1
