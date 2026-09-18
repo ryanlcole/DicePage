@@ -23,6 +23,7 @@ def main() -> None:
     ticker = (COMPONENTS / "SiteTicker.razor").read_text(encoding="utf-8")
     index = (ROOT / "wwwroot" / "index.html").read_text(encoding="utf-8")
     game_start = (ROOT / "wwwroot" / "game-start-screen.js").read_text(encoding="utf-8")
+    public_entry = (ROOT.parents[1] / "site" / "relic-home" / "Play" / "index.html").read_text(encoding="utf-8")
     device = (ROOT / "wwwroot" / "device-settings.js").read_text(encoding="utf-8")
     rist = (ROOT / "wwwroot" / "rist.js").read_text(encoding="utf-8")
     compat = (ROOT / "wwwroot" / "auth-session-compat.js").read_text(encoding="utf-8")
@@ -34,7 +35,7 @@ def main() -> None:
     require(authenticated, "PRESS START", "authenticated shell must expose the start user gesture")
     require(authenticated, "ristPrivacy.set", "Press Start must present storage/privacy choice")
     require(authenticated, "ristLaunch.pressStart", "Press Start must use the canonical launch authority")
-    require(authenticated, "HARD REFRESH", "Press Start must expose hard refresh recovery")
+    forbid(authenticated, "HARD REFRESH", "authenticated Press Start must stay focused on launch and permissions")
     require(authenticated, "else if(!_launchWorldChosen)", "world choice must follow Press Start")
     require(
         authenticated,
@@ -71,10 +72,16 @@ def main() -> None:
     # Experience activation belongs to Press Start; landing stays clean.
     require(index, '<script src="device-settings.js"></script>', "device settings authority must load before Blazor")
     forbid(game_start, "parallax-toggle", "pre-auth login must not expose a Parallax toggle")
+    forbid(public_entry, "parallax-toggle", "public sign-in entry must not expose a Parallax toggle")
+    forbid(public_entry, "PARALLAX_PREF", "public sign-in entry must not run Parallax before authentication")
+    forbid(public_entry, "requestMotionPermission", "public sign-in entry must not request motion before authentication")
     forbid(shell, 'class="launcher-device-setup"', "landing must not ask for Parallax/motion setup again")
     require(shell, "ToggleAudioAsync", "audio preference must remain editable from Start menu")
     require(shell, "ToggleVideoAsync", "video preference must remain editable from Start menu")
-    require(shell, "HardRefreshAsync", "Start menu must expose hard refresh recovery")
+    require(shell, "HardRefreshAsync", "authenticated Start menu must expose hard refresh recovery")
+    require(rist, "navigator.serviceWorker.getRegistrations", "hard refresh must unregister app service workers")
+    require(rist, "caches.keys()", "hard refresh must clear app Cache Storage")
+    require(rist, "cache:'reload'", "hard refresh must revalidate stable app resources")
     require(shell, "OpenPerceiver", "Perceiver must be a native launcher action")
     require(shell, "<strong>PERCEIVER</strong>", "Perceiver must render inside the native launcher card grid")
 
