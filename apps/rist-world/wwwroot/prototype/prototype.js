@@ -1842,6 +1842,21 @@ async function handleRegionHostMessage(event){
     await renderRegionWorldSource(data.worldSource||{});
     return;
   }
+  if(data.type==='map-load-error'){
+    if(BASE_WORLD_ASSETS.length){
+      loading.hidden=true;
+      announce('The canonical base map is visible. Database-authored layers are temporarily unavailable.');
+    }else{
+      loading.hidden=false;
+      loading.textContent='MAP DATABASE UNAVAILABLE';
+      announce(String(data.message||'Canonical map database is unavailable.'));
+    }
+    return;
+  }
+  if(data.type==='catalog-error'){
+    announce('The map is available, but Region permissions could not be refreshed yet.');
+    return;
+  }
   if(data.type==='catalog'){
     regionCatalog=Array.isArray(data.regions)?data.regions:[];
     if(pendingClaimedRegionId&&!regionClaimedRegion){
