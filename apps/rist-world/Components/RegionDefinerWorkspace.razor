@@ -143,6 +143,7 @@
    parcelPixelWidth=region.ParcelPixelWidth,
    parcelPixelHeight=region.ParcelPixelHeight,
    maxHeight=region.MaxHeight,
+   layerState=region.LayerState,
    updatedAtUtc=region.UpdatedAtUtc
   }).ToList();
  }
@@ -182,6 +183,33 @@
    selectedCells=region.SelectedCells,
    sourceLayerOffsets=region.SourceLayerOffsets,
    gridShape=region.GridShape,
+   updatedAtUtc=region.UpdatedAtUtc
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveRegionLayerStateFromPrototypeAsync(System.Text.Json.JsonElement state)
+ {
+  var active=Session.ActiveRegion??throw new InvalidOperationException("Choose a region before saving its layers.");
+  var region=await Session.SaveRegionLayerStateAsync(active.RegionId,state);
+  return new
+  {
+   id=region.RegionId,
+   name=region.Name,
+   tierIndex=region.TierIndex,
+   minColumn=region.MinColumn,
+   minRow=region.MinRow,
+   maxColumn=region.MaxColumn,
+   maxRow=region.MaxRow,
+   selectedCells=region.SelectedCells,
+   sourceLayerOffsets=region.SourceLayerOffsets,
+   gridShape=region.GridShape,
+   ownerUserId=region.OwnerUserId,
+   parcelId=region.ParcelId,
+   parcelPixelWidth=region.ParcelPixelWidth,
+   parcelPixelHeight=region.ParcelPixelHeight,
+   maxHeight=region.MaxHeight,
+   layerState=region.LayerState,
    updatedAtUtc=region.UpdatedAtUtc
   };
  }
