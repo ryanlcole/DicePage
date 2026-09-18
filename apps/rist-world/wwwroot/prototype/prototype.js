@@ -1311,14 +1311,25 @@ function renderKeyboardKeys(){
     );return;
   }
   if(keyboardMode==='Tiles'){
+    if(personalFolderType==='Tiles'){renderPersonalFolder('Tiles','MY TILES');return}
+    if(personalFolderType==='Uploads'){renderPersonalFolder('Uploads','MY ASSETS');return}
     if(!tileCatalog.length&&!tileLibraryLoading&&!tileLibraryError)void ensureTileLibrary();
-    if(tileLibraryLoading){keyboardKeys.append(toolKey('LOADING','World tile library',()=>{},true));return}
+    if(tileLibraryLoading){keyboardKeys.append(toolKey('MY TILES','Personal folder',()=>openPersonalFolder('Tiles')),toolKey('MY ASSETS','Other uploads',()=>openPersonalFolder('Uploads')),toolKey('LOADING','World tile library',()=>{},true));return}
     if(tileLibraryError){
-      keyboardKeys.append(toolKey('RETRY','Tile library',()=>{tileLibraryError='';void ensureTileLibrary(true)}),toolKey('ERROR',tileLibraryError,()=>{},true));return;
+      keyboardKeys.append(
+        toolKey('MY TILES','Personal folder',()=>openPersonalFolder('Tiles')),
+        toolKey('MY ASSETS','Other uploads',()=>openPersonalFolder('Uploads')),
+        toolKey('RETRY','Tile library',()=>{tileLibraryError='';void ensureTileLibrary(true)}),
+        toolKey('ERROR',tileLibraryError,()=>{},true)
+      );return;
     }
     if(!tileLibraryFolder){
       const folders=tileLibraryFolders();
-      keyboardKeys.append(toolKey('WORLD','Tile Library',()=>{},true));
+      keyboardKeys.append(
+        toolKey('MY TILES','Personal folder',()=>openPersonalFolder('Tiles')),
+        toolKey('MY ASSETS','Other uploads',()=>openPersonalFolder('Uploads')),
+        toolKey('WORLD','Tile Library',()=>{},true)
+      );
       folders.forEach(folder=>keyboardKeys.append(toolKey(folder,'Folder',()=>openTileLibraryFolder(folder))));
       if(!folders.length)keyboardKeys.append(toolKey('EMPTY','No registered folders',()=>{},true));
       return;
@@ -1336,8 +1347,12 @@ function renderKeyboardKeys(){
     return;
   }
   if(keyboardMode==='Sprites'){
+    if(personalFolderType==='Sprites'){renderPersonalFolder('Sprites','MY SPRITES');return}
     if(!spriteCatalog.length&&!spriteLibraryLoading&&!spriteLibraryError)void ensureSpriteLibrary();
-    keyboardKeys.append(toolKey('UPLOAD','sprite set',openSpriteUpload));
+    keyboardKeys.append(
+      toolKey('UPLOAD','sprite set',openSpriteUpload),
+      toolKey('MY SPRITES','Personal folder',()=>openPersonalFolder('Sprites'))
+    );
     if(selectedImage?.kind==='sprite'){
       keyboardKeys.append(
         toolKey('FPS −',`${Math.max(1,Number(selectedImage.spriteFps)||6)} fps`,()=>{selectedImage.spriteFps=clamp((Number(selectedImage.spriteFps)||6)-1,1,30);if(selectedImage.playing)startSpriteMotion(selectedImage);renderKeyboardKeys()}),
@@ -1365,7 +1380,13 @@ function renderKeyboardKeys(){
     return;
   }
   if(keyboardMode==='Image'){
-    if(!selectedImage){keyboardKeys.append(toolKey('▧','add image',openImageUpload));return}
+    if(personalFolderType==='Images'){renderPersonalFolder('Images','MY IMAGES');return}
+    if(!selectedImage){
+      keyboardKeys.append(
+        toolKey('UPLOAD','image',openImageUpload),
+        toolKey('MY IMAGES','Personal folder',()=>openPersonalFolder('Images'))
+      );return;
+    }
     const pos=selectedPositionSummary(selectedImage);
     keyboardKeys.append(
       readoutKey(`TIER ${pos.tier}`,pos.tierLabel),
@@ -1383,6 +1404,7 @@ function renderKeyboardKeys(){
       toolKey('TIER +',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
       toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
       toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
+      toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
       toolKey('DELETE','image',removeSelectedImage)
     );return;
   }
