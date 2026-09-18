@@ -12,7 +12,8 @@ const DISPLAY_WORLD_NAME=IS_GEONAPH_SEED?'Endemar':(WORLD_NAME||'Shaelvien');
 const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
 const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
 const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
-const READ_ONLY=ACCESS_MODE!=='edit';
+const CLAIM_ONLY=ACCESS_MODE==='claim';
+const READ_ONLY=ACCESS_MODE==='view';
 const WORLD_SOURCE_LOCKED=REGION_DEFINER;
 const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
@@ -44,6 +45,11 @@ if(READ_ONLY){
   persistentSave.disabled=true;persistentSave.title='Read-only world reference';
   imageUploadToggle.disabled=true;imageUploadToggle.title='Read-only world reference';
   const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent='VIEW ONLY · WORLD REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
+}else if(CLAIM_ONLY){
+  stage.dataset.access='claim';
+  persistentSave.disabled=true;persistentSave.title='Claim requests do not directly edit the world';
+  imageUploadToggle.disabled=true;imageUploadToggle.title='Wait for GM approval before building';
+  const banner=document.createElement('div');banner.className='claim-request-reference';banner.textContent='CLAIM REQUEST MODE · GM APPROVAL REQUIRED';banner.setAttribute('role','status');stage.appendChild(banner);
 }else stage.dataset.access='edit';
 if(REGION_DEFINER){
   document.title='Shaelvien Region Definer';
@@ -1128,7 +1134,7 @@ function bindTap(button,fn){
 
 function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
-function keyboardModes(){return READ_ONLY?['Viewer','Tiers']:BASE_KEYBOARD_MODES}
+function keyboardModes(){return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
   const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
@@ -1482,21 +1488,22 @@ async function persistRegionClaimWorkspace(){
 function createRegionDefinition(){
   if(!REGION_DEFINER||READ_ONLY||regionCreatePending||regionClaimPhase!=='crop')return;
   const name=String(regionNameDraft||'').trim();
-  if(!name){announce('Name the region before saving the claim.');return}
+  if(!CLAIM_ONLY&&!name){announce('Name the region before saving the claim.');return}
   if(!regionSelectedCells.size){announce('Select at least one world tile for the region.');return}
   regionCreatePending=true;renderKeyboardKeys();
-  const sent=postRegionMessage('create-region',{
+  const payload={
     name,
     cells:[...regionSelectedCells].sort((a,b)=>a-b),
     tierIndex:currentRegionTierIndex(),
     sourceLayerOffsets:[...regionWorldLayerSet()].sort((a,b)=>a-b),
     gridShape:regionGridShape
-  });
+  };
+  const sent=postRegionMessage(CLAIM_ONLY?'request-claim':'create-region',payload);
   if(!sent){regionCreatePending=false;renderKeyboardKeys();announce('Region persistence bridge is unavailable.');return}
-  announce(`Saving ${name}. After save, only the claimed map remains visible.`);
+  announce(CLAIM_ONLY?'Sending the selected map portion to the GM for permission review.':`Saving ${name}. After save, only the claimed map remains visible.`);
 }
 function buildClaimedRegion(){
-  if(!REGION_DEFINER||!regionClaimedRegion)return;
+  if(!REGION_DEFINER||!regionClaimedRegion||CLAIM_ONLY)return;
   regionClaimPhase='build';regionSelectionEnabled=false;regionCropPreview=false;keyboardMode='Tiles';
   stage.classList.add('region-build-mode');
   renderKeyboardTabs();renderKeyboardKeys();updateRegionSelectionOverlay();
@@ -1538,13 +1545,22 @@ function renderRegionSelectKeyboard(){
   }
   if(regionClaimPhase==='crop'){
     keyboardKeys.append(
-      regionNameInput(),
+      ...(CLAIM_ONLY?[]:[regionNameInput()]),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       readoutKey(`${regionSelectedCells.size} TILES`,'crop footprint'),
       readoutKey(regionGridShape.toUpperCase(),'region grid'),
       toolKey('BACK','edit selected tiles',returnToRegionSelection),
       toolKey('LAYERS','choose World source',()=>{keyboardMode='Tiers';renderKeyboardTabs();renderKeyboardKeys();announce('World source layer controls opened.')}),
-      toolKey(regionCreatePending?'SAVING…':'SAVE CLAIM','crop to full region map',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+      toolKey(regionCreatePending?(CLAIM_ONLY?'SENDING…':'SAVING…'):(CLAIM_ONLY?'REQUEST CLAIM':'SAVE CLAIM'),CLAIM_ONLY?'send to GM for permission review':'crop to full region map',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+    );return;
+  }
+  if(regionClaimPhase==='requested'){
+    keyboardKeys.append(
+      readoutKey('REQUEST SENT','GM approval required'),
+      readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
+      readoutKey(`${regionSelectedCells.size} TILES`,'requested footprint'),
+      readoutKey(regionGridShape.toUpperCase(),'requested grid'),
+      toolKey('NEW REQUEST','select another portion',startRegionClaim)
     );return;
   }
   const region=regionClaimedRegion;
@@ -1583,6 +1599,17 @@ async function handleRegionHostMessage(event){
     regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
     await persistRegionClaimWorkspace();
     announce(`${savedName} saved. Everything outside the claimed tiles is cropped away and the claim is now the full regional map.`);return;
+  }
+  if(data.type==='claim-requested'){
+    regionCreatePending=false;
+    const result=data.result||{};
+    if(result.success){
+      regionClaimPhase='requested';regionCropPreview=false;regionSelectionEnabled=false;updateRegionSelectionOverlay();renderKeyboardKeys();
+      announce(String(result.message||'Claim request sent to the GM. No build authority has been granted yet.'));
+    }else{
+      renderKeyboardKeys();announce(String(result.message||'The claim request was not accepted. Nothing was granted.'));
+    }
+    return;
   }
   if(data.type==='error'){regionCreatePending=false;renderKeyboardKeys();announce(String(data.message||'Region operation failed.'))}
 }
