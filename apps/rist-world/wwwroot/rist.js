@@ -87,7 +87,6 @@ window.ristAuth={
   sessionStorage.removeItem('rist.session');
   sessionStorage.removeItem('rist.session.provider');
   sessionStorage.removeItem('rist.session.expiresAt');
-  sessionStorage.removeItem('rist.lastActivity');
  },
  navigate:url=>location.assign(url)
 };
