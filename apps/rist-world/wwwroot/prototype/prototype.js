@@ -527,7 +527,56 @@ function openImageUpload(){
   announce(`Image upload opened. Viewer frozen. Position defaults to ${tierLabel(tierByIndex(currentTierIndex()))}, layer ${viewerLayer}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
-function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
+function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
+function openSpriteUpload(){
+  spriteColumns.value='3';spriteRows.value='2';spriteFps.value='6';spriteFrameCount.value='6';
+  spriteUploadPanel.hidden=false;stage.classList.add('image-upload-open');spriteDropzone.focus();
+  announce('Sprite upload opened. Frame one will be used for placement. Save will start animation.');
+}
+function closeSpriteUpload(){spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');keyboardMode='Sprites';renderKeyboardTabs();renderKeyboardKeys()}
+function syncSpriteFrameCount(){const cols=clamp(Math.trunc(Number(spriteColumns.value)||1),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||1),1,16);spriteFrameCount.value=String(cols*rows)}
+function whitenToAlpha(data){
+  const px=data.data;
+  for(let i=0;i<px.length;i+=4){
+    const min=Math.min(px[i],px[i+1],px[i+2]);
+    if(min>=248){px[i+3]=0;continue}
+    if(min>=228){px[i+3]=Math.round(px[i+3]*((248-min)/20))}
+  }
+  return data;
+}
+async function extractSpriteFrames(sheetSrc,options={}){
+  const img=await loadDataImage(sheetSrc);
+  const columns=clamp(Math.trunc(Number(options.columns)||1),1,32),rows=clamp(Math.trunc(Number(options.rows)||1),1,32);
+  const frameCount=clamp(Math.trunc(Number(options.frameCount)||columns*rows),1,columns*rows);
+  const sourceWidth=Math.max(1,Math.trunc(Number(options.sourceWidth)||img.naturalWidth||1));
+  const sourceHeight=Math.max(1,Math.trunc(Number(options.sourceHeight)||img.naturalHeight||1));
+  const cropX=Math.max(0,Math.trunc(Number(options.cropX)||0)),cropY=Math.max(0,Math.trunc(Number(options.cropY)||0));
+  const cropWidth=Math.max(1,Math.trunc(Number(options.cropWidth)||Math.floor(sourceWidth/columns)));
+  const cropHeight=Math.max(1,Math.trunc(Number(options.cropHeight)||Math.floor(sourceHeight/rows)));
+  const frames=[];
+  for(let frame=0;frame<frameCount;frame++){
+    const column=frame%columns,row=Math.floor(frame/columns),sx=cropX+(column*cropWidth),sy=cropY+(row*cropHeight);
+    const canvas=document.createElement('canvas');canvas.width=cropWidth;canvas.height=cropHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,cropWidth,cropHeight);ctx.drawImage(img,sx,sy,cropWidth,cropHeight,0,0,cropWidth,cropHeight);
+    if(options.whiteTransparent!==false){const image=ctx.getImageData(0,0,cropWidth,cropHeight);ctx.putImageData(whitenToAlpha(image),0,0)}
+    frames.push(canvas.toDataURL('image/png'));
+  }
+  return frames;
+}
+function stopSpriteMotion(item){
+  const timer=spriteTimers.get(item?.id);if(timer)clearTimeout(timer);if(item?.id)spriteTimers.delete(item.id);if(item)item.playing=false;
+}
+function startSpriteMotion(item){
+  if(!item||item.kind!=='sprite'||!Array.isArray(item.frameSources)||item.frameSources.length<2)return;
+  stopSpriteMotion(item);item.playing=true;
+  const step=()=>{
+    if(!item.playing||!item.committed||!item.node?.isConnected){stopSpriteMotion(item);return}
+    item.currentFrame=((Number(item.currentFrame)||0)+1)%item.frameSources.length;
+    refreshUserImage(item);
+    spriteTimers.set(item.id,setTimeout(step,1000/Math.max(1,Number(item.spriteFps)||6)));
+  };
+  spriteTimers.set(item.id,setTimeout(step,1000/Math.max(1,Number(item.spriteFps)||6)));
+}
 async function transparencyCandidate(src){
   const img=await loadDataImage(src),max=2048,ratio=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*ratio)),h=Math.max(1,Math.round(img.naturalHeight*ratio));
   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
