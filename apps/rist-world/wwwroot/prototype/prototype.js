@@ -244,6 +244,101 @@ function settleCollisionAnchor(hit,clientX,clientY){
   stage.dataset.zoomCollision=hit.kind==='user'?'user-image':hit.key;
 }
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function postWorldBuilderHostMessage(type,payload={}){
+  if(REGION_DEFINER||window.parent===window)return false;
+  try{window.parent.postMessage({source:'shaelvien-worldbuilder',type,...payload},location.origin);return true}catch{return false}
+}
+function worldBuilderTierImages(){
+  return BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
+}
+function worldBuilderSourceState(layers=userLayers){
+  return{
+    format:'RIST_WORLDBUILDER_PROTOTYPE',
+    version:2,
+    worldId:WORLD_ID,
+    worldSeed:WORLD_SEED,
+    savedAt:new Date().toISOString(),
+    viewerTier,
+    viewerLayer,
+    gridColumns:REGION_GRID_COLUMNS,
+    gridRows:REGION_GRID_ROWS,
+    gridStyle:'square',
+    tierImages:worldBuilderTierImages(),
+    userLayers:layers.map(serializableUserLayer)
+  };
+}
+function saveWorldSourceToDatabase(state){
+  if(REGION_DEFINER||!LIVE_WORLDBUILDER||window.parent===window)return Promise.resolve(false);
+  if(!worldSourceHostReady)return Promise.reject(new Error('World source database bridge is not ready.'));
+  const requestId=crypto.randomUUID?.()||('world-source-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+  return new Promise((resolve,reject)=>{
+    const timeout=setTimeout(()=>{
+      worldSourceSaveWaiters.delete(requestId);
+      reject(new Error('World source database save timed out.'));
+    },12000);
+    worldSourceSaveWaiters.set(requestId,{resolve,reject,timeout});
+    if(!postWorldBuilderHostMessage('save-source',{requestId,state})){
+      clearTimeout(timeout);worldSourceSaveWaiters.delete(requestId);
+      reject(new Error('World source database bridge is unavailable.'));
+    }
+  });
+}
+async function bootstrapWorldSourceDatabase(){
+  if(REGION_DEFINER||READ_ONLY||!worldSourceDatabaseMissing||!localWorldBuilderRestoreComplete||!worldSourceHostReady)return;
+  worldSourceDatabaseMissing=false;
+  try{
+    const state=worldBuilderSourceState(userLayers);
+    await saveWorldSourceToDatabase(state);
+    await writeSavedWorldBuilder(state,WORLD_SOURCE_SAVE_KEY);
+    announce('World Builder source published to the shared database.');
+  }catch(error){
+    worldSourceDatabaseMissing=true;
+    announce('World source database bootstrap failed: '+String(error?.message||error||'unknown error'));
+  }
+}
+async function applyDatabaseWorldBuilderState(envelope){
+  if(REGION_DEFINER)return;
+  const state=envelope&&typeof envelope==='object'&&envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
+  if(!state||typeof state!=='object'||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
+  userLayers.splice(0,userLayers.length);
+  world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
+  for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
+  viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier||'sea').key;
+  viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+  selectedImage=null;
+  updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
+  localWorldBuilderRestoreComplete=true;
+  worldSourceDatabaseMissing=false;
+  try{await writeSavedWorldBuilder(state,WORLD_SOURCE_SAVE_KEY)}catch{}
+  announce('World Builder loaded from the shared database.');
+}
+async function handleWorldBuilderHostMessage(event){
+  if(REGION_DEFINER||event.origin!==location.origin||event.source!==window.parent)return;
+  const data=event.data;if(!data||data.source!=='shaelvien-worldbuilder-host')return;
+  if(data.type==='bridge-ready'){
+    worldSourceHostReady=true;
+    postWorldBuilderHostMessage('ready');
+    return;
+  }
+  if(data.type==='world-source'){
+    worldSourceHostReady=true;
+    await applyDatabaseWorldBuilderState(data.worldSource||{});
+    return;
+  }
+  if(data.type==='world-source-missing'){
+    worldSourceHostReady=true;
+    worldSourceDatabaseMissing=true;
+    void bootstrapWorldSourceDatabase();
+    return;
+  }
+  if(data.type==='source-saved'||data.type==='source-save-error'){
+    const requestId=String(data.requestId||''),waiter=worldSourceSaveWaiters.get(requestId);
+    if(!waiter)return;
+    clearTimeout(waiter.timeout);worldSourceSaveWaiters.delete(requestId);
+    if(data.type==='source-saved'&&data.result?.success!==false)waiter.resolve(data.result||true);
+    else waiter.reject(new Error(String(data.message||'World source database save failed.')));
+  }
+}
 function openSaveDb(){
   return new Promise((resolve,reject)=>{
     if(!('indexedDB'in window)){reject(new Error('IndexedDB unavailable'));return}
