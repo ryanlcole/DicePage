@@ -66,6 +66,7 @@ if(REGION_DEFINER){
   const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
 }
 const planeByKey={surface,highlands,mountains};
+const CANONICAL_PLANE_KEYS=Object.freeze(['surface','highlands','mountains']);
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
@@ -1321,6 +1322,36 @@ function clearRegionWorldSource(){
 function regionSourceNumber(value,fallback=0){
   const n=Number(value);return Number.isFinite(n)?n:fallback;
 }
+function applyDatabaseTierImages(tierImages){
+  if(!REGION_DEFINER||!Array.isArray(tierImages)||!tierImages.length)return;
+  tierImages.slice(0,CANONICAL_PLANE_KEYS.length).forEach((src,tier)=>{
+    src=String(src||'').trim();if(!src)return;
+    const key=CANONICAL_PLANE_KEYS[tier],node=planeByKey[key];if(!node)return;
+    let resolved=src;try{resolved=new URL(src,location.href).href}catch{}
+    const current=String(node.currentSrc||node.src||'');
+    node.dataset.databaseSource='true';
+    if(current===resolved)return;
+    if(!BASE_WORLD_ASSETS.length){
+      node.addEventListener('load',()=>{
+        layerReady[key]=true;
+        if(key==='surface'){
+          naturalWidth=node.naturalWidth||SURFACE_WORLD_PIXELS;
+          naturalHeight=node.naturalHeight||SURFACE_WORLD_PIXELS;
+          stage.dataset.surfacePixelWidth=String(naturalWidth);
+          stage.dataset.surfacePixelHeight=String(naturalHeight);
+          loading.hidden=true;fitMap();
+        }
+        renderState();
+      },{once:true});
+      node.addEventListener('error',()=>{
+        layerReady[key]=false;
+        if(key==='surface'){loading.hidden=false;loading.textContent='MAP IMAGE UNAVAILABLE'}
+        renderState();
+      },{once:true});
+    }
+    node.src=resolved;
+  });
+}
 function regionSourceCropStyle(image,tile){
   const sourceWidth=Math.max(0,Math.trunc(regionSourceNumber(tile.sourceWidth,0)));
   const sourceHeight=Math.max(0,Math.trunc(regionSourceNumber(tile.sourceHeight,0)));
@@ -1363,8 +1394,9 @@ async function renderRegionWorldSource(payload){
     naturalHeight=sourcePixelHeight;
   }
   stage.dataset.worldSource='database';
-  const sharedBaseMap=BASE_WORLD_ASSETS.length>0;
-  const renderedTierImages=sharedBaseMap?[]:tierImages;
+  applyDatabaseTierImages(tierImages);
+  const sharedBaseMap=BASE_WORLD_ASSETS.length>0||tierImages.length>0;
+  const renderedTierImages=[];
   if(!sharedBaseMap&&!renderedTierImages.length&&!tiles.length&&!sourceLayers.length){
     const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
     world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
