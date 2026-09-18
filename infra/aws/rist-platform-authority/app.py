@@ -262,6 +262,56 @@ def can_edit_parcel(world_id, parcel_id, user_id):
     return parcel_permission(world_id, parcel_id, user_id) in ("Edit", "Manage")
 
 
+def editable_region_state(world_id, region_id, user_id):
+    item = world.get_item(
+        Key=region_key(world_id, region_id),
+        ConsistentRead=True,
+    ).get("Item")
+    if not item:
+        return None
+    state = dict(item.get("state") or {})
+    owner = str(item.get("ownerUserId") or state.get("ownerUserId") or "")
+    parcel_id = str(item.get("parcelId") or state.get("parcelId") or "")
+    if can_manage(world_id, user_id) or owner == user_id:
+        return state
+    if parcel_id and can_edit_parcel(world_id, parcel_id, user_id):
+        return state
+    return None
+
+
+def validate_region_map_layer(region_state, layer):
+    if not isinstance(layer, dict):
+        raise ValueError("Region map layer must be an object")
+    try:
+        x = float(layer.get("x", 0))
+        y = float(layer.get("y", 0))
+        tier = int(layer.get("tier", 0))
+        layer_offset = int(layer.get("layer", 0))
+    except (TypeError, ValueError):
+        raise ValueError("Region map layer position is invalid")
+    if x < 0 or x > 1 or y < 0 or y > 1:
+        raise ValueError("Region map layer is outside the world map")
+    selected = {
+        int(value)
+        for value in (region_state.get("selectedCells") or [])
+        if isinstance(value, (int, float, Decimal))
+    }
+    column = min(MMO_PARCEL_GRID_COLUMNS - 1, max(0, int(x * MMO_PARCEL_GRID_COLUMNS)))
+    row = min(MMO_PARCEL_GRID_ROWS - 1, max(0, int(y * MMO_PARCEL_GRID_ROWS)))
+    if selected and row * MMO_PARCEL_GRID_COLUMNS + column not in selected:
+        raise PermissionError("Region map layer is outside the authorized region")
+    region_tier = int(region_state.get("tierIndex") or 0)
+    if tier != region_tier:
+        raise PermissionError("Region map layer is outside the authorized tier")
+    allowed_layers = {
+        int(value)
+        for value in (region_state.get("sourceLayerOffsets") or range(10))
+        if isinstance(value, (int, float, Decimal))
+    }
+    if layer_offset not in allowed_layers:
+        raise PermissionError("Region map layer is outside the authorized layer range")
+
+
 def mmo_parcel_claimable(cell_index, parcels):
     cell_index = int(cell_index)
     if cell_index < 0 or cell_index >= MMO_PARCEL_GRID_COLUMNS * MMO_PARCEL_GRID_ROWS:
@@ -1215,6 +1265,79 @@ def handler(event, context):
             200,
             {
                 "worldId": world_id,
+                "state": safe_state,
+                "updatedAtUtc": updated_at,
+            },
+        )
+
+    if method == "POST" and path == "/world/source/region":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        region_id = safe_id(req.get("regionId"), "regionId")
+        region_state = editable_region_state(world_id, region_id, user_id)
+        if region_state is None:
+            return response(403, {"error": "Region edit authority required"})
+        incoming = req.get("userLayers") or []
+        if not isinstance(incoming, list):
+            return response(400, {"error": "userLayers must be an array"})
+
+        canonical = world.get_item(
+            Key=world_source_key(world_id), ConsistentRead=True
+        ).get("Item")
+        if not canonical or not isinstance(canonical.get("state"), dict):
+            return response(409, {"error": "Save the world map in World Builder before editing a region"})
+
+        normalized = []
+        try:
+            for raw in incoming:
+                layer = dict(raw)
+                validate_region_map_layer(region_state, layer)
+                layer["regionId"] = region_id
+                normalized.append(layer)
+        except PermissionError as exc:
+            return response(403, {"error": str(exc)})
+        except (TypeError, ValueError) as exc:
+            return response(400, {"error": str(exc)})
+
+        state = dict(canonical.get("state") or {})
+        existing_layers = state.get("userLayers") or []
+        if not isinstance(existing_layers, list):
+            existing_layers = []
+        state["userLayers"] = [
+            item
+            for item in existing_layers
+            if not isinstance(item, dict) or str(item.get("regionId") or "") != region_id
+        ] + normalized
+        state["savedAt"] = datetime.now(timezone.utc).isoformat()
+        encoded_size = len(
+            json.dumps(state, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        )
+        if encoded_size > 320000:
+            return response(413, {"error": "World map metadata is too large for the database"})
+        updated_at = datetime.now(timezone.utc).isoformat()
+        safe_state = dynamo_safe(state)
+        world.put_item(
+            Item={
+                **world_source_key(world_id),
+                "entityType": "worldMap",
+                "worldId": world_id,
+                "state": safe_state,
+                "updatedAtUtc": updated_at,
+                "updatedByUserId": user_id,
+            }
+        )
+        audit_write(
+            world_id,
+            user_id,
+            "world.map.region.save",
+            region_id,
+            {"layers": len(normalized), "bytes": encoded_size},
+        )
+        return response(
+            200,
+            {
+                "worldId": world_id,
+                "regionId": region_id,
                 "state": safe_state,
                 "updatedAtUtc": updated_at,
             },
