@@ -10,7 +10,15 @@
 }
 else if (_canEnter)
 {
- @if(!_launchWorldChosen)
+ @if(!_launchStarted)
+ {
+  <section class="rist-auth-start" aria-label="Shaelvien start screen">
+   <img class="rist-auth-start-art" src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="" aria-hidden="true" />
+   <div class="rist-auth-start-shade" aria-hidden="true"></div>
+   <button type="button" class="rist-auth-press-start" @onclick="BeginAuthenticatedLaunchAsync">PRESS START</button>
+  </section>
+ }
+ else if(!_launchWorldChosen)
  {
   <main class="rist-world-choice-root" aria-label="Choose a world">
    <div class="rist-world-choice-underlay" aria-hidden="true">
@@ -39,15 +47,38 @@ else
  <main class="rist-auth-shell" aria-busy="true" aria-live="polite"><section class="rist-auth-card"><p class="rist-auth-kicker">SHAELVIEN</p><h1>RIST MMO / Sandbox</h1><p>Returning to Discord entry…</p></section></main>
 }
 <style>
- .rist-authenticated-root{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:#05090c}.rist-authenticated-body{position:relative;flex:1 1 auto;min-width:0;min-height:0;overflow:hidden}.rist-authenticated-body .launcher-hub{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important}.rist-authenticated-body .alpha-world-stage{height:100%!important;min-height:0!important}.rist-world-choice-root{position:fixed;inset:0;min-height:100dvh;background:radial-gradient(circle at 50% 18%,#102633 0,#071118 42%,#020609 100%);color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}.rist-world-choice-underlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;opacity:.42}.rist-world-choice-underlay h1{margin:8px 0 0;color:#d7be80;font:600 clamp(28px,7vw,56px)/1 Georgia,serif}
+ .rist-authenticated-root{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:#05090c}
+ .rist-auth-start{position:fixed;inset:0;z-index:2147483500;display:flex;align-items:flex-end;justify-content:center;box-sizing:border-box;overflow:hidden;padding:0 24px max(8vh,38px);isolation:isolate;background:#03050a;color:#f7e8b7}
+ .rist-auth-start-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3;transform:scale(1.04)}
+ .rist-auth-start-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,transparent 0 50%,rgba(1,3,8,.08) 68%,rgba(1,3,8,.62) 100%);pointer-events:none}
+ .rist-auth-press-start{appearance:none;width:min(420px,88vw);min-height:48px;margin:0 0 2vh;padding:0;border:0;background:transparent;color:#fff0b6;font:900 20px/1.1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.08em;text-align:center;text-shadow:0 3px 8px #000,0 0 12px #000;animation:rist-auth-start-pulse 1.45s steps(2,end) infinite;touch-action:manipulation}
+ .rist-auth-press-start:focus-visible{outline:2px dashed rgba(255,241,183,.9);outline-offset:4px}
+ @@keyframes rist-auth-start-pulse{50%{opacity:.42}}
+ @@media(prefers-reduced-motion:reduce){.rist-auth-press-start{animation:none}.rist-auth-start-art{transform:none}}.rist-authenticated-body{position:relative;flex:1 1 auto;min-width:0;min-height:0;overflow:hidden}.rist-authenticated-body .launcher-hub{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important}.rist-authenticated-body .alpha-world-stage{height:100%!important;min-height:0!important}.rist-world-choice-root{position:fixed;inset:0;min-height:100dvh;background:radial-gradient(circle at 50% 18%,#102633 0,#071118 42%,#020609 100%);color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}.rist-world-choice-underlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;opacity:.42}.rist-world-choice-underlay h1{margin:8px 0 0;color:#d7be80;font:600 clamp(28px,7vw,56px)/1 Georgia,serif}
  .rist-auth-shell{box-sizing:border-box;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#05090c;color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}.rist-auth-card{box-sizing:border-box;width:min(92vw,520px);padding:28px;border:1px solid #725d30;border-radius:14px;background:rgba(10,17,22,.94);box-shadow:0 18px 50px rgba(0,0,0,.45);text-align:center}.rist-auth-kicker{margin:0;color:#d7be80;font-weight:900;letter-spacing:.18em}.rist-auth-card h1{margin:8px 0 22px;color:#d7be80;font-size:clamp(22px,5vw,34px)}.rist-auth-card p:last-child{margin:0;color:#cbd5da}.rist-terms-gate{position:fixed;inset:0;z-index:2147483600;display:grid;place-items:center;padding:20px;background:rgba(3,7,12,.78);backdrop-filter:blur(5px)}.rist-terms-card{box-sizing:border-box;width:min(92vw,520px);padding:24px;border:1px solid #8d7440;border-radius:14px;background:#081016;color:#eee6d2;box-shadow:0 18px 55px #000b;font-family:system-ui,-apple-system,sans-serif}.rist-terms-card h1{margin:0 0 8px;color:#e5c878}.rist-terms-card p{color:#b8b09e;line-height:1.45}.rist-terms-card label{display:flex;align-items:flex-start;gap:10px;margin:18px 0;color:#d7c58f;font-weight:800}.rist-terms-card input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}.rist-terms-card button{width:100%;min-height:48px;margin-top:8px;border:1px solid #a68a4b;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}.rist-terms-card button:disabled{opacity:.65}.rist-terms-error{color:#ffb3a6!important;font-weight:700}
 </style>
 @code {
  const string ParallaxEnabledKey = "rist.parallax.enabled.v1";
  const string ParallaxActiveKey = "rist.parallax.worldbuilder.active.v1";
  PublicAlphaShell? _alphaShell;
- bool _ready; bool _canEnter; bool _authStarted; bool _launchWorldChosen; bool _termsRequired; bool _termsChecked; bool _savingTerms; string _termsError = "";
+ bool _ready; bool _canEnter; bool _authStarted; bool _launchStarted; bool _launchWorldChosen; bool _termsRequired; bool _termsChecked; bool _savingTerms; string _termsError = "";
  void OpenStartMenu()=>_alphaShell?.OpenStartMenu();
+ async Task BeginAuthenticatedLaunchAsync()
+ {
+  if(_termsRequired)return;
+  try{await JS.InvokeVoidAsync("ristLaunch.clearLegacyStartState");}catch{}
+  try
+  {
+   await JS.InvokeVoidAsync("localStorage.setItem",ParallaxEnabledKey,"on");
+   await JS.InvokeVoidAsync("localStorage.setItem",ParallaxActiveKey,"on");
+   await JS.InvokeAsync<bool>("ristParallax.setEnabled",true);
+   await JS.InvokeAsync<bool>("ristParallax.setActive",true);
+  }
+  catch{}
+  try{await JS.InvokeAsync<string>("ristMotionPermission.request");}catch{}
+  _launchStarted=true;
+  await InvokeAsync(StateHasChanged);
+ }
  async Task CompleteWorldChoiceAsync()
  {
   if(!Session.HasActiveWorld)return;
@@ -70,17 +101,6 @@ else
    Navigation.NavigateTo("/Play/index.html",forceLoad:true);
    return;
   }
-  try{await ApplyAuthenticatedParallaxPreferenceAsync();}catch{}
- }
- async Task ApplyAuthenticatedParallaxPreferenceAsync(){
-  var savedEnabled=await JS.InvokeAsync<string?>("localStorage.getItem",ParallaxEnabledKey);
-  var savedActive=await JS.InvokeAsync<string?>("localStorage.getItem",ParallaxActiveKey);
-  var explicitlyDisabled=string.Equals(savedEnabled,"off",StringComparison.OrdinalIgnoreCase);
-  var explicitlyInactive=string.Equals(savedActive,"off",StringComparison.OrdinalIgnoreCase);
-  if(explicitlyDisabled){try{await JS.InvokeAsync<bool>("ristParallax.setEnabled",false);}catch(JSException){}return;}
-  if(!string.Equals(savedEnabled,"on",StringComparison.OrdinalIgnoreCase))await JS.InvokeVoidAsync("localStorage.setItem",ParallaxEnabledKey,"on");
-  if(!explicitlyInactive&&!string.Equals(savedActive,"on",StringComparison.OrdinalIgnoreCase))await JS.InvokeVoidAsync("localStorage.setItem",ParallaxActiveKey,"on");
-  try{await JS.InvokeAsync<bool>("ristParallax.setEnabled",true);await JS.InvokeAsync<bool>("ristParallax.setActive",!explicitlyInactive);}catch(JSException){}
  }
  async Task AcceptTermsAsync(){_termsError="";if(!_termsChecked){_termsError="You must agree before continuing.";return;}if(Auth.Account is null){_termsError="Your account is not ready yet. Please reload and try again.";return;}_savingTerms=true;try{var updated=Auth.Account with{TermsAcceptedAtUtc=DateTimeOffset.UtcNow,TermsVersion="2026-08-30"};await Auth.UploadTextAsync("account/profile.json",JsonSerializer.Serialize(updated),"application/json");_termsRequired=false;}catch{_termsError="Your agreement could not be saved. Please try again.";}finally{_savingTerms=false;await InvokeAsync(StateHasChanged);}}
 }
