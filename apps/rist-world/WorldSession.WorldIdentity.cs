@@ -20,11 +20,11 @@ public sealed partial class WorldSession
     public bool IsGeonaphWorld => string.Equals(WorldId, GeonaphWorldId, StringComparison.Ordinal);
     public bool IsWorldExtentUnbounded => HasActiveWorld && IsGeonaphWorld;
     public int? WorldTileLimit => IsWorldExtentUnbounded ? null : DefaultWorldWidthKm;
-    public int SurfaceWorldWidthPixels => DefaultSurfaceWorldWidthPixels;
-    public int SurfaceWorldHeightPixels => DefaultSurfaceWorldHeightPixels;
-    public string WorldExtentLabel => IsWorldExtentUnbounded
-        ? $"{DefaultSurfaceWorldWidthPixels}×{DefaultSurfaceWorldHeightPixels} PX STARTING SURFACE · EXPANDABLE WORLD"
-        : $"{DefaultSurfaceWorldWidthPixels}×{DefaultSurfaceWorldHeightPixels} PX STARTING SURFACE";
+    public int SurfaceWorldWidthPixels => SurfaceWorldPixelLimit ?? DefaultSurfaceWorldWidthPixels;
+    public int SurfaceWorldHeightPixels => SurfaceWorldPixelLimit ?? DefaultSurfaceWorldHeightPixels;
+    public string WorldExtentLabel => IsGeonaphWorld
+        ? $"{DefaultSurfaceWorldWidthPixels}×{DefaultSurfaceWorldHeightPixels} PX STARTING SURFACE · SHAELVIEN DEVELOPER CONTROLLED"
+        : $"{SurfaceWorldWidthPixels}×{SurfaceWorldHeightPixels} PX SURFACE ALLOWANCE";
 
     // Account storage owns a collection of worlds. Every world-owned cloud artifact
     // resolves beneath this stable root so one account may safely own many worlds.
