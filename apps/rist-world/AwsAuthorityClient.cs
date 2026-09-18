@@ -57,7 +57,13 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     }
 
     public sealed record AuthorityConfig(string ApiBaseUrl, string RealtimeUrl);
-    public sealed record AuthorityProfile(string UserId, string DisplayName, bool PlatformOwner);
+    public sealed record AuthorityProfile(
+        string UserId,
+        string DisplayName,
+        bool PlatformOwner,
+        List<string>? Entitlements = null,
+        int? WorldSlots = null,
+        int? SurfaceWorldPixels = null);
     public sealed record Membership(string? WorldId, string Role);
     public sealed record WorldEntity(string WorldId, string EntityId, long Version, Dictionary<string, object>? State, bool Missing = false, string OwnerUserId = "");
     public sealed record RealtimeTicket(string Ticket, long ExpiresAt);
