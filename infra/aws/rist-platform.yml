@@ -190,12 +190,23 @@ Resources:
         - S3CrudPolicy: { BucketName: !Ref UserDataBucket }
         - Statement:
             - Effect: Allow
+              Action: [dynamodb:TransactWriteItems]
+              Resource:
+                - !GetAtt UsersTable.Arn
+                - !GetAtt WorldStateTable.Arn
+            - Effect: Allow
               Action: [kms:Encrypt, kms:Decrypt, kms:GenerateDataKey]
               Resource: !GetAtt UserDataKey.Arn
       Events:
         Me:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /authority/me, Method: GET }
+        ProfileComplete:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/profile-complete, Method: POST }
+        WorldTokens:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/world-tokens, Method: GET }
         EntityGet:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/entity, Method: GET }
@@ -226,6 +237,18 @@ Resources:
         RegionSave:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/regions, Method: POST }
+        ParcelsGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels, Method: GET }
+        ParcelClaim:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/claim, Method: POST }
+        ParcelDelegate:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/delegate, Method: POST }
+        ParcelDelegationsGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/delegations, Method: GET }
         RealtimeTicket:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /realtime/ticket, Method: POST }
