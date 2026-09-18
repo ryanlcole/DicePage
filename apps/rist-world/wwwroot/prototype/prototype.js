@@ -4,6 +4,8 @@ const QUERY=new URLSearchParams(location.search);
 const LIVE_WORLDBUILDER=QUERY.get('live-worldbuilder')==='1';
 const WORKSPACE_MODE=String(QUERY.get('mode')||'worldbuilder').toLowerCase();
 const REGION_DEFINER=WORKSPACE_MODE==='regiondefiner';
+const REGION_FLOW=String(QUERY.get('regionFlow')||'').toLowerCase();
+const REQUESTED_REGION_ID=String(QUERY.get('regionId')||'');
 const WORLD_ID=QUERY.get('worldId')||'';
 const WORLD_NAME=QUERY.get('worldName')||'';
 const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
@@ -66,7 +68,7 @@ if(REGION_DEFINER){
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
 const WORLDBUILDER_SAVE_STORE='worlds';
@@ -78,10 +80,12 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let regionGridShape='square',regionClaimPhase='idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId='';
+let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 const regionWorldSourceTiles=[];
+const regionWorldTierImages=[];
 let regionWorldSourceOcean=null;
+let regionTierPreview=null,regionTierPreviewPointer=null;
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
@@ -1134,7 +1138,13 @@ function bindTap(button,fn){
 
 function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
-function keyboardModes(){return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES}
+function keyboardModes(){
+  if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
+  if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
+  if(READ_ONLY)return['Viewer','Tiers'];
+  if(CLAIM_ONLY)return['Select'];
+  return BASE_KEYBOARD_MODES;
+}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
   const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
@@ -1181,6 +1191,8 @@ function snapRegionPoint(x,y){
 function clearRegionWorldSource(){
   for(const item of regionWorldSourceTiles)item.node?.remove();
   regionWorldSourceTiles.splice(0,regionWorldSourceTiles.length);
+  for(const item of regionWorldTierImages)item.node?.remove();
+  regionWorldTierImages.splice(0,regionWorldTierImages.length);
   regionWorldSourceOcean?.remove();regionWorldSourceOcean=null;
   regionWorldSourceMeta=null;
 }
@@ -1209,6 +1221,7 @@ function renderRegionWorldSource(payload){
   clearRegionWorldSource();
   const source=payload&&typeof payload==='object'?payload:{};
   const tiles=Array.isArray(source.tiles)?source.tiles:[];
+  const tierImages=Array.isArray(source.tierImages)?source.tierImages.map(String):[];
   regionWorldSourceMeta={
     worldId:String(source.worldId||WORLD_ID||''),
     worldName:String(source.worldName||WORLD_NAME||DISPLAY_WORLD_NAME||'World'),
@@ -1219,6 +1232,19 @@ function renderRegionWorldSource(payload){
   };
   const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
   world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
+  tierImages.slice(0,TIERS.length).forEach((src,tier)=>{
+    if(!src)return;
+    const image=document.createElement('img');
+    image.className='region-world-source-tier-image';
+    image.src=src;
+    image.alt='';
+    image.draggable=false;
+    image.dataset.tier=String(tier);
+    image.dataset.sourceLocked='true';
+    image.style.zIndex=String(tierStackBase(tier)-20);
+    world.appendChild(image);
+    regionWorldTierImages.push({node:image,tier,src});
+  });
   tiles.forEach((raw,index)=>{
     const tier=clamp(Math.trunc(regionSourceNumber(raw.tierIndex,0)),0,TIERS.length-1);
     const layer=clamp(Math.trunc(regionSourceNumber(raw.layerOffset,0)),0,9);
@@ -1237,19 +1263,25 @@ function renderRegionWorldSource(payload){
     regionSourceCropStyle(image,raw);frame.appendChild(image);node.appendChild(frame);world.appendChild(node);
     regionWorldSourceTiles.push({node,image,tier,layer,index,id:String(raw.id||''),name:String(raw.name||''),assetKind:String(raw.assetKind||'tile')});
   });
-  world.dataset.emptyWorld=tiles.length?'false':'true';
+  world.dataset.emptyWorld=(tiles.length||tierImages.length)?'false':'true';
   loading.hidden=true;
   updateRegionWorldSourceVisibility();
   fitMap();
   updateReadouts();renderKeyboardKeys();
-  announce(tiles.length
-    ? `${regionWorldSourceMeta.worldName} world map loaded. Claim a portion, then build the region.`
-    : `${regionWorldSourceMeta.worldName} world map loaded with no authored tiles. Claim from the ocean surface or return to World Builder to author the world first.`);
+  if(regionClaimPhase==='tier-preview'){
+    showRegionTierPreview();
+    announce('Swipe through the world tiers, then choose the tier to define a new region.');
+  }else{
+    announce((tiles.length||tierImages.length)
+      ? `${regionWorldSourceMeta.worldName} world map loaded. Select a saved region or define a new one.`
+      : `${regionWorldSourceMeta.worldName} world map loaded with no authored tiles. Define from the ocean surface or return to World Builder to author the world first.`);
+  }
 }
 function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
   const tier=currentRegionTierIndex();
-  if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=tier===0?'1':'.32';
+  if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=regionWorldTierImages.length?(tier===0?'.18':'.08'):(tier===0?'1':'.32');
+  for(const item of regionWorldTierImages)item.node.style.opacity=item.tier===tier?'1':'0';
   for(const item of regionWorldSourceTiles){
     const visible=item.tier===tier&&regionSourceLayerVisible(item.tier,item.layer);
     item.node.style.display=visible?'block':'none';
