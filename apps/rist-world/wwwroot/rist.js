@@ -1,31 +1,43 @@
 window.ristAuth={
- idleMs:24*60*60*1000,
- idleTimer:0,
- installIdleExpiry:()=>{
-  if(window.ristAuth.idleInstalled)return;
-  window.ristAuth.idleInstalled=true;
+ providerKey:'rist.session.provider',
+ expiresKey:'rist.session.expiresAt',
+ expiryTimer:0,
+ normalizeExpiry:value=>{
+  const n=Number(value);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return n<1e12?n*1000:n;
+ },
+ sessionInfo:()=>{
+  const token=sessionStorage.getItem('rist.session')||'';
+  const provider=sessionStorage.getItem('rist.session.provider')||'';
+  const expiresAt=window.ristAuth.normalizeExpiry(sessionStorage.getItem('rist.session.expiresAt'));
+  return{token,provider,expiresAt};
+ },
+ installSessionExpiry:()=>{
+  clearTimeout(window.ristAuth.expiryTimer);
+  const info=window.ristAuth.sessionInfo();
+  if(!info.token||!info.expiresAt)return;
   const expire=()=>{
-   if(!sessionStorage.getItem('rist.session'))return;
-   const last=Number(sessionStorage.getItem('rist.lastActivity'))||Date.now();
-   const remaining=window.ristAuth.idleMs-(Date.now()-last);
-   clearTimeout(window.ristAuth.idleTimer);
-   if(remaining<=0){window.ristAuth.clearSession();location.reload();return;}
-   window.ristAuth.idleTimer=setTimeout(expire,remaining);
+   const current=window.ristAuth.sessionInfo();
+   if(!current.token)return;
+   const remaining=current.expiresAt-Date.now();
+   clearTimeout(window.ristAuth.expiryTimer);
+   if(remaining<=0){
+    window.ristAuth.clearSession();
+    location.replace('/Play/index.html?reason=session');
+    return;
+   }
+   window.ristAuth.expiryTimer=setTimeout(expire,Math.min(remaining,2147483647));
   };
-  const activity=()=>{
-   if(!sessionStorage.getItem('rist.session'))return;
-   sessionStorage.setItem('rist.lastActivity',String(Date.now()));
-   clearTimeout(window.ristAuth.idleTimer);
-   window.ristAuth.idleTimer=setTimeout(expire,window.ristAuth.idleMs);
-  };
-  ['pointerdown','keydown','touchstart'].forEach(name=>addEventListener(name,activity,{passive:true}));
-  addEventListener('visibilitychange',()=>{if(!document.hidden)expire();},{passive:true});
-  activity();
+  expire();
  },
  captureSession:async(apiBase)=>{
   const hash=new URLSearchParams(location.hash.replace(/^#/,''));
   const legacy=hash.get('rist_session');
-  if(legacy)sessionStorage.setItem('rist.session',legacy);
+  if(legacy){
+   sessionStorage.setItem('rist.session',legacy);
+   if(!sessionStorage.getItem('rist.session.provider'))sessionStorage.setItem('rist.session.provider','discord');
+  }
   const query=new URLSearchParams(location.search);
   const handoff=query.get('rist_handoff');
   const hardMarker=query.get('rist_hard');
@@ -37,6 +49,9 @@ window.ristAuth={
      const payload=await response.json();
      if(payload.sessionToken){
       sessionStorage.setItem('rist.session',payload.sessionToken);
+      sessionStorage.setItem('rist.session.provider',String(payload.provider||'discord'));
+      if(payload.sessionExpiresAt)sessionStorage.setItem('rist.session.expiresAt',String(payload.sessionExpiresAt));
+      else sessionStorage.removeItem('rist.session.expiresAt');
       handoffComplete=true;
      }
     }
@@ -63,12 +78,14 @@ window.ristAuth={
    history.replaceState(null,'',location.pathname+(clean?'?'+clean:''));
   }
   const token=sessionStorage.getItem('rist.session');
-  if(token)window.ristAuth.installIdleExpiry();
+  if(token)window.ristAuth.installSessionExpiry();
   return token;
  },
  clearSession:()=>{
-  clearTimeout(window.ristAuth.idleTimer);
+  clearTimeout(window.ristAuth.expiryTimer);
   sessionStorage.removeItem('rist.session');
+  sessionStorage.removeItem('rist.session.provider');
+  sessionStorage.removeItem('rist.session.expiresAt');
   sessionStorage.removeItem('rist.lastActivity');
  },
  navigate:url=>location.assign(url)
