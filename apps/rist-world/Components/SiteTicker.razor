@@ -65,8 +65,14 @@
     if(saved is {Count:>0})
     {
      _tickerButtons.Clear();
-     _tickerButtons.AddRange(saved.Where(x=>!string.IsNullOrWhiteSpace(x)).Select(x=>x.Trim()).Take(12));
+     _tickerButtons.AddRange(saved
+      .Where(x=>!string.IsNullOrWhiteSpace(x))
+      .Select(x=>x.Trim())
+      .Select(x=>Session.IsGeonaphWorld&&x.Equals("GEONAPH",StringComparison.OrdinalIgnoreCase)?"ENDEMAR":x)
+      .Take(12));
      if(_tickerButtons.Count==0)_tickerButtons.AddRange(DefaultTicker());
+     if(Session.IsGeonaphWorld&&_tickerButtons.Any(x=>x.Equals("ENDEMAR",StringComparison.OrdinalIgnoreCase)))
+      await JS.InvokeVoidAsync("localStorage.setItem",TickerStorageKey,JsonSerializer.Serialize(_tickerButtons));
     }
    }
   }
