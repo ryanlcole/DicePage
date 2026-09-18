@@ -31,6 +31,12 @@ class GeonaphAccessContractTests(unittest.TestCase):
         )
 
 
+    def test_world_slot_is_enforced_before_presigned_private_world_upload(self):
+        self.assertIn("def can_claim_world_slot(user_id, world_id):", self.source)
+        self.assertIn('if "worlds.unlimited" in commercial["entitlements"]:', self.source)
+        self.assertIn('Delimiter="/"', self.source)
+        self.assertIn('"Additional world-slot entitlement required"', self.source)
+
     def test_authority_profile_exposes_commercial_defaults_without_overwriting_entitlements(self):
         self.assertIn("DEFAULT_WORLD_SLOTS = 1", self.source)
         self.assertIn("DEFAULT_SURFACE_WORLD_PIXELS = 2048", self.source)
