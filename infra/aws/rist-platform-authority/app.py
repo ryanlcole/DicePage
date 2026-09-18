@@ -10,6 +10,8 @@ from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.types import TypeSerializer
+from botocore.exceptions import ClientError
 
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
 
@@ -31,6 +33,19 @@ DEFAULT_WORLD_SLOTS = 1
 DEFAULT_SURFACE_WORLD_PIXELS = 2048
 CLAIM_REQUEST_PERMISSIONS = {"Restricted", "Limited", "Cooperative"}
 CLAIM_DECISION_PERMISSIONS = CLAIM_REQUEST_PERMISSIONS | {"Blocked", "ReleaseOwnership"}
+
+# Shaelvien MMO land is an exclusive 30x30 claim lattice centered on Endemar.
+# A completed RIST profile receives one genesis world token. Spending that token
+# atomically binds one account-held code half to one world-held code half.
+MMO_PARCEL_GRID_COLUMNS = 30
+MMO_PARCEL_GRID_ROWS = 30
+MMO_PARCEL_PIXELS = 2048
+MMO_PARCEL_MAX_HEIGHT = 10
+ENDEMAR_ORIGIN_COLUMN = 15
+ENDEMAR_ORIGIN_ROW = 15
+GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
+PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}
+_serializer = TypeSerializer()
 
 
 def utc_stamp():
@@ -110,6 +125,154 @@ def claim_key(world_id, request_id):
 
 def region_key(world_id, region_id):
     return {"pk": world_partition(world_id), "sk": "REGION#" + region_id}
+
+
+def world_token_key(user_id):
+    return {"pk": "USER#" + user_id, "sk": GENESIS_WORLD_TOKEN_SK}
+
+
+def parcel_id_from_cell(cell_index):
+    column = int(cell_index) % MMO_PARCEL_GRID_COLUMNS
+    row = int(cell_index) // MMO_PARCEL_GRID_COLUMNS
+    return f"parcel-{column}-{row}"
+
+
+def parcel_key(world_id, parcel_id):
+    return {"pk": world_partition(world_id), "sk": "PARCEL#" + parcel_id}
+
+
+def parcel_acl_key(world_id, parcel_id, user_id):
+    return {
+        "pk": world_partition(world_id),
+        "sk": f"PARCELACL#{parcel_id}#USER#{user_id}",
+    }
+
+
+def _ddb_map(value):
+    return {key: _serializer.serialize(item) for key, item in value.items()}
+
+
+def public_world_token(item):
+    if not item:
+        return None
+    return {
+        "tokenId": str(item.get("tokenId") or ""),
+        "tokenClass": str(item.get("tokenClass") or "shaelvien.mmo.world"),
+        "status": str(item.get("status") or "unspent"),
+        "holderUserId": str(item.get("holderUserId") or ""),
+        "purchasedWorldId": str(item.get("purchasedWorldId") or ""),
+        "parcelId": str(item.get("parcelId") or ""),
+        "bindingHash": str(item.get("bindingHash") or ""),
+        "createdAtUtc": str(item.get("createdAtUtc") or ""),
+        "spentAtUtc": str(item.get("spentAtUtc") or ""),
+    }
+
+
+def public_parcel(item):
+    if not item:
+        return None
+    return {
+        "parcelId": str(item.get("parcelId") or ""),
+        "worldId": str(item.get("worldId") or ""),
+        "regionId": str(item.get("regionId") or ""),
+        "displayName": str(item.get("displayName") or ""),
+        "ownerUserId": str(item.get("ownerUserId") or ""),
+        "cellIndex": int(item.get("cellIndex") or 0),
+        "column": int(item.get("column") or 0),
+        "row": int(item.get("row") or 0),
+        "pixelWidth": int(item.get("pixelWidth") or MMO_PARCEL_PIXELS),
+        "pixelHeight": int(item.get("pixelHeight") or MMO_PARCEL_PIXELS),
+        "maxHeight": int(item.get("maxHeight") or MMO_PARCEL_MAX_HEIGHT),
+        "bindingHash": str(item.get("bindingHash") or ""),
+        "claimedAtUtc": str(item.get("claimedAtUtc") or ""),
+    }
+
+
+def ensure_genesis_world_token(user_id, account_id, player_alias):
+    key = world_token_key(user_id)
+    current = users.get_item(Key=key, ConsistentRead=True).get("Item")
+    if current:
+        return current
+
+    stamp = utc_stamp()
+    account_half = secrets.token_hex(32)
+    item = {
+        **key,
+        "tokenId": "swt_" + uuid.uuid4().hex,
+        "tokenClass": "shaelvien.mmo.world",
+        "status": "unspent",
+        "holderUserId": user_id,
+        # The account half is intentionally never returned by the API. The Users
+        # table owns this half; a claimed world parcel owns the matching other half.
+        "accountHalfCode": account_half,
+        "accountHalfHash": hashlib.sha256(account_half.encode()).hexdigest(),
+        "profileAccountId": str(account_id or "")[:160],
+        "profileAlias": str(player_alias or "")[:80],
+        "createdAtUtc": stamp,
+        "spentAtUtc": "",
+        "purchasedWorldId": "",
+        "parcelId": "",
+        "bindingHash": "",
+    }
+    try:
+        users.put_item(
+            Item=item,
+            ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+        )
+        return item
+    except ClientError as exc:
+        if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+            raise
+        return users.get_item(Key=key, ConsistentRead=True).get("Item") or item
+
+
+def parcel_permission(world_id, parcel_id, user_id):
+    item = world.get_item(
+        Key=parcel_acl_key(world_id, parcel_id, user_id),
+        ConsistentRead=True,
+    ).get("Item") or {}
+    value = str(item.get("permission") or "None")
+    return value if value in PARCEL_DELEGATION_PERMISSIONS else "None"
+
+
+def can_edit_parcel(world_id, parcel_id, user_id):
+    item = world.get_item(
+        Key=parcel_key(world_id, parcel_id),
+        ConsistentRead=True,
+    ).get("Item")
+    if not item:
+        return False
+    if str(item.get("ownerUserId") or "") == user_id:
+        return True
+    if can_manage(world_id, user_id):
+        return True
+    return parcel_permission(world_id, parcel_id, user_id) in ("Edit", "Manage")
+
+
+def mmo_parcel_claimable(cell_index, parcels):
+    cell_index = int(cell_index)
+    if cell_index < 0 or cell_index >= MMO_PARCEL_GRID_COLUMNS * MMO_PARCEL_GRID_ROWS:
+        return False
+    column = cell_index % MMO_PARCEL_GRID_COLUMNS
+    row = cell_index // MMO_PARCEL_GRID_COLUMNS
+    if column == ENDEMAR_ORIGIN_COLUMN and row == ENDEMAR_ORIGIN_ROW:
+        return False
+
+    occupied = {
+        (int(item.get("column") or 0), int(item.get("row") or 0))
+        for item in parcels
+        if item.get("parcelId")
+    }
+    if (column, row) in occupied:
+        return False
+
+    frontier = occupied | {(ENDEMAR_ORIGIN_COLUMN, ENDEMAR_ORIGIN_ROW)}
+    return any(
+        (column + dx, row + dy) in frontier
+        for dx in (-1, 0, 1)
+        for dy in (-1, 0, 1)
+        if dx or dy
+    )
 
 
 def query_world_prefix(world_id, prefix):
@@ -326,6 +489,36 @@ def handler(event, context):
     user_id = session["userId"]
     q = event.get("queryStringParameters") or {}
     now = int(time.time())
+
+    if method == "POST" and path == "/authority/profile-complete":
+        req = body(event)
+        account_id = str(req.get("accountId") or "").strip()
+        player_alias = str(req.get("playerAlias") or "").strip()
+        if not account_id or not player_alias:
+            return response(400, {"error": "Completed profile identity is required"})
+        profile_key = {"pk": "USER#" + user_id, "sk": "PROFILE"}
+        users.update_item(
+            Key=profile_key,
+            UpdateExpression=(
+                "SET displayName = :displayName, playerAlias = :alias, "
+                "profileAccountId = :accountId, profileCompletedAt = if_not_exists(profileCompletedAt, :completedAt)"
+            ),
+            ExpressionAttributeValues={
+                ":displayName": session["displayName"],
+                ":alias": player_alias[:80],
+                ":accountId": account_id[:160],
+                ":completedAt": now,
+            },
+        )
+        token = ensure_genesis_world_token(user_id, account_id, player_alias)
+        return response(200, public_world_token(token))
+
+    if method == "GET" and path == "/authority/world-tokens":
+        token = users.get_item(
+            Key=world_token_key(user_id),
+            ConsistentRead=True,
+        ).get("Item")
+        return response(200, [] if token is None else [public_world_token(token)])
 
     if method == "GET" and path == "/authority/me":
         profile_key = {"pk": "USER#" + user_id, "sk": "PROFILE"}
@@ -684,6 +877,247 @@ def handler(event, context):
         )
         return response(200, item)
 
+    if method == "GET" and path == "/world/parcels":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        if not is_geonaph(world_id):
+            return response(400, {"error": "MMO parcel claims belong to Shaelvien"})
+        parcels = [public_parcel(item) for item in query_world_prefix(world_id, "PARCEL#")]
+        parcels = [item for item in parcels if item is not None]
+        parcels.sort(key=lambda item: (item["row"], item["column"]))
+        return response(200, parcels)
+
+    if method == "POST" and path == "/world/parcels/claim":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        if not is_geonaph(world_id):
+            return response(400, {"error": "MMO world tokens may only purchase Shaelvien parcels"})
+
+        try:
+            cell_index = int(req.get("cellIndex"))
+        except (TypeError, ValueError):
+            return response(400, {"error": "A valid parcel cell is required"})
+        if cell_index < 0 or cell_index >= MMO_PARCEL_GRID_COLUMNS * MMO_PARCEL_GRID_ROWS:
+            return response(400, {"error": "Parcel cell is outside the Shaelvien claim lattice"})
+
+        parcels = query_world_prefix(world_id, "PARCEL#")
+        if not mmo_parcel_claimable(cell_index, parcels):
+            return response(409, {"error": "That parcel is occupied or is not yet connected to Endemar"})
+
+        token_key = world_token_key(user_id)
+        token = users.get_item(Key=token_key, ConsistentRead=True).get("Item")
+        if not token or str(token.get("status") or "") != "unspent":
+            return response(409, {"error": "An unspent Shaelvien world token is required"})
+
+        column = cell_index % MMO_PARCEL_GRID_COLUMNS
+        row = cell_index // MMO_PARCEL_GRID_COLUMNS
+        parcel_id = parcel_id_from_cell(cell_index)
+        region_id = "region-" + parcel_id
+        display_name = str(req.get("displayName") or "").strip()[:80] or f"Shaelvien {column},{row}"
+        stamp = utc_stamp()
+        world_half = secrets.token_hex(32)
+        account_half = str(token.get("accountHalfCode") or "")
+        if not account_half:
+            return response(409, {"error": "World token account half is unavailable"})
+        binding_hash = hashlib.sha256(
+            f"{account_half}:{world_half}:{world_id}:{parcel_id}".encode()
+        ).hexdigest()
+
+        parcel_item = {
+            **parcel_key(world_id, parcel_id),
+            "parcelId": parcel_id,
+            "regionId": region_id,
+            "worldId": world_id,
+            "displayName": display_name,
+            "ownerUserId": user_id,
+            "cellIndex": cell_index,
+            "column": column,
+            "row": row,
+            "pixelWidth": MMO_PARCEL_PIXELS,
+            "pixelHeight": MMO_PARCEL_PIXELS,
+            "maxHeight": MMO_PARCEL_MAX_HEIGHT,
+            # The world half never leaves the server. Its binding digest is safe
+            # to expose and proves which account token was irreversibly paired.
+            "worldHalfCode": world_half,
+            "worldHalfHash": hashlib.sha256(world_half.encode()).hexdigest(),
+            "bindingHash": binding_hash,
+            "claimedAtUtc": stamp,
+        }
+        region_state = {
+            "regionId": region_id,
+            "worldId": world_id,
+            "name": display_name,
+            "minColumn": column,
+            "minRow": row,
+            "maxColumn": column,
+            "maxRow": row,
+            "selectedCells": [cell_index],
+            "sourceTiles": [],
+            "overlayTiles": [],
+            "createdAtUtc": stamp,
+            "updatedAtUtc": stamp,
+            "tierIndex": 0,
+            "sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT)),
+            "gridShape": "square",
+            "ownerUserId": user_id,
+            "parcelId": parcel_id,
+            "parcelPixelWidth": MMO_PARCEL_PIXELS,
+            "parcelPixelHeight": MMO_PARCEL_PIXELS,
+            "maxHeight": MMO_PARCEL_MAX_HEIGHT,
+        }
+        region_item = {
+            **region_key(world_id, region_id),
+            "worldId": world_id,
+            "regionId": region_id,
+            "parcelId": parcel_id,
+            "ownerUserId": user_id,
+            "state": dynamo_safe(region_state),
+            "updatedAt": now,
+        }
+
+        try:
+            ddb.meta.client.transact_write_items(
+                TransactItems=[
+                    {
+                        "Update": {
+                            "TableName": users.name,
+                            "Key": _ddb_map(token_key),
+                            "UpdateExpression": (
+                                "SET #status = :spent, purchasedWorldId = :worldId, "
+                                "parcelId = :parcelId, bindingHash = :binding, spentAtUtc = :spentAt"
+                            ),
+                            "ConditionExpression": "#status = :unspent AND holderUserId = :userId",
+                            "ExpressionAttributeNames": {"#status": "status"},
+                            "ExpressionAttributeValues": _ddb_map(
+                                {
+                                    ":spent": "spent",
+                                    ":worldId": world_id,
+                                    ":parcelId": parcel_id,
+                                    ":binding": binding_hash,
+                                    ":spentAt": stamp,
+                                    ":unspent": "unspent",
+                                    ":userId": user_id,
+                                }
+                            ),
+                        }
+                    },
+                    {
+                        "Put": {
+                            "TableName": world.name,
+                            "Item": _ddb_map(dynamo_safe(parcel_item)),
+                            "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                        }
+                    },
+                    {
+                        "Put": {
+                            "TableName": world.name,
+                            "Item": _ddb_map(dynamo_safe(region_item)),
+                            "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                        }
+                    },
+                ]
+            )
+        except ClientError as exc:
+            code = (exc.response.get("Error") or {}).get("Code")
+            if code in ("TransactionCanceledException", "ConditionalCheckFailedException"):
+                occupied = world.get_item(
+                    Key=parcel_key(world_id, parcel_id),
+                    ConsistentRead=True,
+                ).get("Item")
+                return response(
+                    409,
+                    {
+                        "error": (
+                            "That Shaelvien parcel has already been claimed"
+                            if occupied
+                            else "The world token was already spent or changed"
+                        )
+                    },
+                )
+            raise
+
+        audit_write(
+            world_id,
+            user_id,
+            "parcel.claim",
+            parcel_id,
+            {
+                "cellIndex": cell_index,
+                "regionId": region_id,
+                "pixelWidth": MMO_PARCEL_PIXELS,
+                "pixelHeight": MMO_PARCEL_PIXELS,
+                "maxHeight": MMO_PARCEL_MAX_HEIGHT,
+                "bindingHash": binding_hash,
+            },
+        )
+        return response(200, public_parcel(parcel_item))
+
+    if method == "POST" and path == "/world/parcels/delegate":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        parcel_id = safe_id(req.get("parcelId"), "parcelId")
+        target = safe_id(req.get("userId"), "userId")
+        permission = str(req.get("permission") or "None").strip().title()
+        if permission not in PARCEL_DELEGATION_PERMISSIONS:
+            return response(400, {"error": "Invalid parcel permission"})
+        parcel = world.get_item(
+            Key=parcel_key(world_id, parcel_id),
+            ConsistentRead=True,
+        ).get("Item")
+        if not parcel:
+            return response(404, {"error": "Shaelvien parcel not found"})
+        if str(parcel.get("ownerUserId") or "") != user_id and not can_manage(world_id, user_id):
+            return response(403, {"error": "Only the parcel owner may hand off parcel permissions"})
+
+        acl_key = parcel_acl_key(world_id, parcel_id, target)
+        if permission == "None":
+            world.delete_item(Key=acl_key)
+        else:
+            world.put_item(
+                Item={
+                    **acl_key,
+                    "worldId": world_id,
+                    "parcelId": parcel_id,
+                    "userId": target,
+                    "permission": permission,
+                    "grantedByUserId": user_id,
+                    "updatedAtUtc": utc_stamp(),
+                }
+            )
+        audit_write(
+            world_id,
+            user_id,
+            "parcel.delegate",
+            parcel_id,
+            {"target": target, "permission": permission},
+        )
+        return response(200, {"ok": True, "parcelId": parcel_id, "userId": target, "permission": permission})
+
+    if method == "GET" and path == "/world/parcels/delegations":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        parcel_id = safe_id(q.get("parcelId"), "parcelId")
+        parcel = world.get_item(
+            Key=parcel_key(world_id, parcel_id),
+            ConsistentRead=True,
+        ).get("Item")
+        if not parcel:
+            return response(404, {"error": "Shaelvien parcel not found"})
+        if str(parcel.get("ownerUserId") or "") != user_id and not can_manage(world_id, user_id):
+            return response(403, {"error": "Parcel owner authority required"})
+        items = query_world_prefix(world_id, "PARCELACL#" + parcel_id + "#USER#")
+        items.sort(key=lambda item: str(item.get("userId") or ""))
+        return response(
+            200,
+            [
+                {
+                    "parcelId": str(item.get("parcelId") or ""),
+                    "userId": str(item.get("userId") or ""),
+                    "permission": str(item.get("permission") or "None"),
+                    "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
+                }
+                for item in items
+            ],
+        )
+
     if method == "GET" and path == "/world/regions":
         world_id = safe_id(q.get("worldId"), "worldId")
         if not can_view(world_id, user_id):
@@ -712,7 +1146,10 @@ def handler(event, context):
             (current or {}).get("ownerUserId") or region.get("ownerUserId") or ""
         )
         if current:
-            if not (manager or owner == user_id):
+            state = current.get("state") or {}
+            parcel_id = str(current.get("parcelId") or state.get("parcelId") or "")
+            delegated = bool(parcel_id and can_edit_parcel(world_id, parcel_id, user_id))
+            if not (manager or owner == user_id or delegated):
                 return response(403, {"error": "Region edit authority required"})
         elif not manager:
             return response(
