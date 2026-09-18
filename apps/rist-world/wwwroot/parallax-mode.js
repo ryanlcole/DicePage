@@ -72,6 +72,11 @@ window.ristParallax={
  settings:()=>({enabled:state.enabled,active:state.active,tiltStrength:state.tiltStrength}),
  setEnabled(v){state.enabled=!!v;write(PREF_KEY,state.enabled?'on':'off');sync();emit();return state.enabled},
  setActive(v){state.active=!!v;write(ACTIVE_KEY,state.active?'on':'off');sync();emit();return state.active},
+ activateForSession(persist=false){
+  state.enabled=true;state.active=true;
+  if(persist){write(PREF_KEY,'on');write(ACTIVE_KEY,'on');}
+  sync();emit();return true;
+ },
  resetTilt(){return setTiltStrength(DEFAULT_TILT)},
  // Compatibility only. Older viewer code called these APIs per tier. They now
  // resolve to the one presentation preference and never encode map depth.
