@@ -41,6 +41,16 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<RealtimeTicket?> CreateRealtimeTicketAsync(string worldId)
         => await SendAsync<RealtimeTicket>(HttpMethod.Post, "/realtime/ticket", new { worldId });
 
+    public async Task<WorldClaimRequest?> SubmitClaimRequestAsync(WorldClaimRequestCreate request)
+        => await SendAsync<WorldClaimRequest>(HttpMethod.Post, "/world/claims/request", request);
+
+    public async Task<List<WorldClaimRequest>?> GetClaimRequestsAsync(string worldId, string status = "pending")
+        => await SendAsync<List<WorldClaimRequest>>(HttpMethod.Get,
+            "/world/claims?worldId=" + Uri.EscapeDataString(worldId) + "&status=" + Uri.EscapeDataString(status));
+
+    public async Task<WorldClaimRequest?> DecideClaimRequestAsync(WorldClaimDecision decision)
+        => await SendAsync<WorldClaimRequest>(HttpMethod.Post, "/world/claims/decision", decision);
+
     private async Task<T?> SendAsync<T>(HttpMethod method, string path, object? body = null)
     {
         if (!IsConfigured) return default;
@@ -64,7 +74,46 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         List<string>? Entitlements = null,
         int? WorldSlots = null,
         int? SurfaceWorldPixels = null);
-    public sealed record Membership(string? WorldId, string Role);
+    public sealed record Membership(string? WorldId, string Role, string ClaimPermission = "Blocked");
+
+    public sealed record WorldClaimRequestCreate(
+        string WorldId,
+        string RequesterUserId,
+        string RequesterDisplayName,
+        string Workspace,
+        int TierIndex,
+        List<int> SelectedCells,
+        List<int> SourceLayerOffsets,
+        string GridShape,
+        string RequestedResourceId = "");
+
+    public sealed record WorldClaimRequest(
+        string RequestId,
+        string WorldId,
+        string RequesterUserId,
+        string RequesterDisplayName,
+        string Workspace,
+        int TierIndex,
+        List<int> SelectedCells,
+        List<int> SourceLayerOffsets,
+        string GridShape,
+        string Status,
+        string Permission,
+        DateTimeOffset CreatedAtUtc,
+        DateTimeOffset UpdatedAtUtc,
+        string ApprovedResourceId = "",
+        string Note = "");
+
+    public sealed record WorldClaimDecision(
+        string WorldId,
+        string RequestId,
+        string Permission,
+        List<int>? ApprovedCells = null,
+        List<int>? ApprovedLayerOffsets = null,
+        string ApprovedResourceId = "",
+        string Note = "",
+        string WrittenApproval = "");
+
     public sealed record WorldEntity(string WorldId, string EntityId, long Version, Dictionary<string, object>? State, bool Missing = false, string OwnerUserId = "");
     public sealed record RealtimeTicket(string Ticket, long ExpiresAt);
 }
