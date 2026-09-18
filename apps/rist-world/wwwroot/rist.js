@@ -236,11 +236,37 @@ window.ristLaunch={
   return experience;
  },
  hardRefresh:async()=>{
-  try{if('caches' in window){const names=await caches.keys();await Promise.all(names.map(name=>caches.delete(name)));}}catch{}
-  const query=new URLSearchParams(location.search);
-  query.delete('rist_handoff');
-  query.set('rist_hard',String(Date.now()));
-  location.replace(location.pathname+'?'+query.toString());
+  const stamp=String(Date.now());
+  // Preserve account/session/world preferences. Remove only app-controlled
+  // executable caches so this behaves like a true in-app build refresh.
+  try{
+   if('serviceWorker' in navigator){
+    const registrations=await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(registration=>registration.unregister()));
+   }
+  }catch{}
+  try{
+   if('caches' in window){
+    const names=await caches.keys();
+    await Promise.all(names.map(name=>caches.delete(name)));
+   }
+  }catch{}
+  // Explicit reload-mode fetches refresh the app shell and the stable,
+  // non-fingerprinted bootstrap resources before navigation.
+  try{
+   const base=new URL('./',document.baseURI);
+   const resources=['index.html','rist.js','device-settings.js','RistWorld.styles.css','css/rist.css','css/home-slider-shell.css'];
+   await Promise.all(resources.map(path=>{
+    const url=new URL(path,base);
+    url.searchParams.set('rist_hard',stamp);
+    return fetch(url,{cache:'reload',credentials:'same-origin'}).catch(()=>null);
+   }));
+  }catch{}
+  const url=new URL(location.href);
+  url.hash='';
+  url.searchParams.delete('rist_handoff');
+  url.searchParams.set('rist_hard',stamp);
+  location.replace(url.toString());
   return true;
  }
 };
