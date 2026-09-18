@@ -18,6 +18,11 @@ public sealed partial class WorldSession
 
         await RefreshCommercialEntitlementsAsync();
 
+        // A completed RIST profile receives one server-issued Shaelvien MMO world
+        // token. The authority endpoint is idempotent, so opening the world directory
+        // safely repairs older completed profiles that predate token issuance.
+        await RefreshMmoLandAsync(loadParcels: false);
+
         // Only the configured developer account, or an account already bound by a
         // persisted Geonaph descriptor, may establish/refresh Geonaph ownership.
         await EnsureGeonaphOwnerBootstrapAsync(accountId);
