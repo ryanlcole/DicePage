@@ -12,6 +12,8 @@ const BASE_WORLD_ASSETS=Object.freeze([
   Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})
 ]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
+const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1';
+const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
@@ -25,6 +27,14 @@ const userLayers=[];
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
 function tierByIndex(index){return TIERS.find(t=>t.index===index)||TIERS[0]}
 function tierByKey(key){return TIERS.find(t=>t.key===key)||TIERS[0]}
+function tierLabel(tier){return String(tierNames[tier.key]||'').trim()||tier.label}
+function renameViewerTier(){
+  if(viewerTier==='all'){announce('Select a tier before naming it.');return}
+  const tier=tierByKey(viewerTier),next=prompt('Name this tier',String(tierNames[tier.key]||''));
+  if(next===null)return;const value=String(next).trim().slice(0,60);if(value)tierNames[tier.key]=value;else delete tierNames[tier.key];
+  try{localStorage.setItem(TIER_NAMES_KEY,JSON.stringify(tierNames))}catch{}
+  updateTierButton();renderTierMenu();announce(value?`Tier named ${value}.`:'Custom tier name cleared.');
+}
 function currentTierIndex(){return viewerTier==='all'?0:tierByKey(viewerTier).index}
 function updateLayerOrder(){
   userLayers.forEach((item,index)=>{item.stackOrder=index;item.node.style.zIndex=String(10+(item.tier*20)+item.layer+index/100);item.node.dataset.tier=String(item.tier);item.node.dataset.layer=String(item.layer)});
@@ -34,16 +44,16 @@ function renderTierMenu(){
   tierMenu.replaceChildren();
   const options=[{key:'all',label:'All Parallax',glyph:'≋'},...TIERS];
   for(const option of options){
-    const button=document.createElement('button');button.type='button';button.role='menuitemradio';button.textContent=option.glyph;button.setAttribute('aria-label',option.label);
+    const button=document.createElement('button');button.type='button';button.role='menuitemradio';button.textContent=option.glyph;button.setAttribute('aria-label',option.key==='all'?option.label:tierLabel(option));
     const selected=viewerTier===option.key;button.setAttribute('aria-checked',String(selected));button.setAttribute('aria-current',String(selected));
     button.addEventListener('click',()=>{setViewerTier(option.key);closeTierMenu();tierToggle.focus()});tierMenu.appendChild(button);
   }
 }
 function updateTierButton(){
-  const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${option.label}. Open tier selector`);
+  const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${viewerTier==='all'?option.label:tierLabel(option)}. Open tier selector`);
 }
 function setViewerTier(key){
-  viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierByKey(viewerTier).label} selected.`);
+  viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected.`);
 }
 function moveSelectedTier(delta){if(!selectedImage)return;selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);updateLayerOrder();applyParallax();renderKeyboardKeys();announce(`Image moved to ${tierByIndex(selectedImage.tier).label}.`)}
 function moveSelectedLayer(delta){if(!selectedImage)return;selectedImage.layer=clamp(selectedImage.layer+delta,0,9);updateLayerOrder();renderKeyboardKeys();announce(`Image moved to layer ${selectedImage.layer}.`)}
@@ -56,8 +66,9 @@ function viewerCenterPosition(){
 function openImageUpload(){
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
+  imageTier.value=String(currentTierIndex());imageLayer.value=String(viewerLayer);
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
-  announce(`Image upload opened. Viewer frozen. The image will become layer ${BASE_LAYER_COUNT+userLayers.length} in parallax depth ${currentParallaxGroup}.`);
+  announce(`Image upload opened. Viewer frozen. Position defaults to ${tierLabel(tierByIndex(currentTierIndex()))}, layer ${viewerLayer}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
@@ -81,7 +92,7 @@ function refreshUserImage(item){
   const desired=item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc;
   if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired}
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
-  item.node.style.opacity=String(item.opacity);
+  item.node.style.opacity=String(item.renderOpacity??item.opacity);
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
@@ -102,31 +113,46 @@ function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)retur
 async function placeUploadedImage(file){
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
+  const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
-    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),parallaxGroup:currentParallaxGroup,layerIndex:BASE_LAYER_COUNT+userLayers.length,size:1,rotation:0,opacity:1,node:null
+    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,renderOpacity:1,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);world.appendChild(node);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
-  announce(`Image placed as layer ${item.layerIndex} at parallax depth ${item.parallaxGroup}. Image editing keyboard opened.`);
+  announce(`Image placed in ${tierLabel(tierByIndex(tier))}, layer ${layer}. Image editing keyboard opened.`);
+}
+function tierMix(){
+  if(viewerTier!=='all'){const index=tierByKey(viewerTier).index;return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0}}
+  const ratio=Math.max(.01,scale/Math.max(minScale,.00001));
+  const toHills=smoothstep(1.12,1.85,ratio),toMountains=smoothstep(2.15,3.75,ratio);
+  return{surface:1-toHills,highlands:toHills*(1-toMountains),mountains:toMountains};
 }
 function applyParallax(){
-  const dx=x-fitX,dy=y-fitY;
-  surface.style.opacity=layerReady.surface?'1':'0';
-  surface.style.transform='none';
+  const dx=x-fitX,dy=y-fitY,mix=tierMix();
+  const builtins=[{node:surface,key:'surface',depth:0,alpha:mix.surface},{node:highlands,key:'highlands',depth:1,alpha:mix.highlands},{node:mountains,key:'mountains',depth:2,alpha:mix.mountains}];
+  for(const entry of builtins){
+    entry.node.style.opacity=layerReady[entry.key]?String(entry.alpha):'0';
+    const panStrength=entry.depth*.018,tiltStrength=entry.depth*.45;
+    const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
+  }
   for(const item of userLayers){
-    const depth=Math.max(0,item.parallaxGroup||0);
-    const panStrength=depth*.055,tiltStrength=depth*.78;
+    const visible=viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
+    const depth=viewerTier==='all'?(item.tier+(item.layer/10)):(item.layer/10);
+    const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
-    refreshUserImage(item);
+    item.renderOpacity=visible?item.opacity:0;refreshUserImage(item);
   }
 }
 function updateReadouts(){
+  stage.dataset.viewerTier=viewerTier;
+  stage.dataset.viewerLayer=String(viewerLayer);
   stage.dataset.layerCount=String(BASE_LAYER_COUNT+userLayers.length);
-  stage.dataset.parallaxGaps=String(parallaxGapCount);
-  stage.setAttribute('aria-label',`Interactive layered world viewer. ${BASE_LAYER_COUNT+userLayers.length} image layers and ${parallaxGapCount} optional parallax gap${parallaxGapCount===1?'':'s'}.`);
+  const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
+  stage.setAttribute('aria-label',`Interactive tiered world viewer. ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.`);
 }
 function applyTransform(){
   world.style.width=naturalWidth+'px';
