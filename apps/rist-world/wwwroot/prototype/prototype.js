@@ -41,9 +41,9 @@ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 if(READ_ONLY){
   stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
-  persistentSave.disabled=true;persistentSave.title='Read-only Endemar reference';
-  imageUploadToggle.disabled=true;imageUploadToggle.title='Read-only Endemar reference';
-  const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent='VIEW ONLY · ENDEMAR REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
+  persistentSave.disabled=true;persistentSave.title='Read-only world reference';
+  imageUploadToggle.disabled=true;imageUploadToggle.title='Read-only world reference';
+  const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent='VIEW ONLY · WORLD REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
 }else stage.dataset.access='edit';
 if(REGION_DEFINER){
   document.title='Shaelvien Region Definer';
@@ -281,7 +281,7 @@ function serializableUserLayer(item){
   };
 }
 async function saveWorldBuilder(){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return false;}
+  if(READ_ONLY){announce('World reference mode is view only.');return false;}
   if(!persistentSave)return false;
   persistentSave.disabled=true;persistentSave.classList.add('saving');persistentSave.classList.remove('saved');
   try{
@@ -611,7 +611,7 @@ function tierByKey(key){return TIERS.find(t=>t.key===key)||TIERS[0]}
 function tierLabel(tier){return String(tierNames[tier.key]||'').trim()||tier.label}
 function renameViewerTier(){
   if(REGION_DEFINER){announce('World tier names are locked in Region Definer.');return;}
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(viewerTier==='all'){announce('Select a tier before naming it.');return}
   const tier=tierByKey(viewerTier),next=prompt('Name this tier',String(tierNames[tier.key]||''));
   if(next===null)return;const value=String(next).trim().slice(0,60);if(value)tierNames[tier.key]=value;else delete tierNames[tier.key];
@@ -702,7 +702,7 @@ function viewerCenterPosition(){
   return REGION_DEFINER?snapRegionPoint(point.x,point.y):point;
 }
 function openImageUpload(){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
   const address=placementAddress(currentTierIndex(),1);
@@ -713,7 +713,7 @@ function openImageUpload(){
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 function openSpriteUpload(){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   spriteColumns.value='3';spriteRows.value='2';spriteFps.value='6';spriteFrameCount.value='6';
   spriteUploadPanel.hidden=false;stage.classList.add('image-upload-open');spriteDropzone.focus();
   announce('Sprite upload opened. Frame one will be used for placement. Save will start animation.');
@@ -854,7 +854,7 @@ function labelSelection(){
   return select;
 }
 function placeLabel(text){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return null}
+  if(READ_ONLY){announce('World reference mode is view only.');return null}
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
@@ -998,7 +998,7 @@ function moveImageDrag(event){
 }
 function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null;scheduleRegionEnhancement(40)}
 async function placeUploadedImage(file){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
   const tier=REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
@@ -1787,7 +1787,7 @@ function personalPageAssets(type){
   return{assets:assets.slice(personalAssetPage*PERSONAL_ASSET_PAGE_SIZE,(personalAssetPage+1)*PERSONAL_ASSET_PAGE_SIZE),pages,total:assets.length};
 }
 function placePersonalImage(asset){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
@@ -1802,7 +1802,7 @@ function placePersonalImage(asset){
   announce(`${item.name} placed from My Images. Save commits this instance to Endemar.`);
 }
 async function placePersonalSprite(asset){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
   const item=await placeSpriteDefinition({
     id:`private-sprite:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,name:asset.name,sheetSrc:asset.url,
@@ -1812,7 +1812,7 @@ async function placePersonalSprite(asset){
   item.personalAssetKey=asset.key;personalFolderType=null;return item;
 }
 function placePersonalTile(asset){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
   placeLibraryTile({id:`private:${asset.key}`,name:asset.name,image:asset.url});
   if(selectedImage)selectedImage.personalAssetKey=asset.key;
@@ -1892,7 +1892,7 @@ function tileLibraryPageAssets(){
 }
 function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30),0,29)+.5)/30}
 function placeLibraryTile(asset){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.image)return;
   const point=viewerCenterPosition(),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
@@ -1952,7 +1952,7 @@ function currentSpriteLibraryAssets(){return spriteLibraryFolder?spriteCatalog.f
 function spriteLibraryPageCount(){return Math.max(1,Math.ceil(currentSpriteLibraryAssets().length/SPRITE_LIBRARY_PAGE_SIZE))}
 function spriteLibraryPageAssets(){spriteLibraryPage=clamp(spriteLibraryPage,0,spriteLibraryPageCount()-1);const start=spriteLibraryPage*SPRITE_LIBRARY_PAGE_SIZE;return currentSpriteLibraryAssets().slice(start,start+SPRITE_LIBRARY_PAGE_SIZE)}
 async function placeSpriteDefinition(definition){
-  if(READ_ONLY)throw new Error('Endemar reference mode is view only.');
+  if(READ_ONLY)throw new Error('World reference mode is view only.');
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const extractOptions={
     columns:definition.columns,rows:definition.rows,frameCount:definition.frameCount,
@@ -1991,7 +1991,7 @@ async function placeSpriteDefinition(definition){
   return item;
 }
 async function placeUploadedSprite(file){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose a sprite sheet image.');return}
   try{
     const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
@@ -2011,7 +2011,7 @@ async function placeUploadedSprite(file){
   }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
 }
 async function placeLibrarySprite(asset){
-  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
+  if(READ_ONLY){announce('World reference mode is view only.');return;}
   try{
     await placeSpriteDefinition({
       id:`sprite:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,assetId:asset.id,name:asset.name,sheetSrc:asset.image,
