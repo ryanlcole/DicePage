@@ -21,6 +21,35 @@ Each resource has an owner and may contain exact per-user entries plus an option
 
 Exact per-user policy is evaluated before the local everyone policy. This allows patterns such as deny-all with named exceptions.
 
+## World / region claim permissions
+
+WorldBuilder and RegionDefiner claims use a request-and-grant authority flow rather than inferring edit rights from merely seeing a map.
+
+Canonical flow:
+
+1. A GM invites a user with a world-scoped link or membership.
+2. The authenticated user opens WorldBuilder or RegionDefiner.
+3. The user selects a spatial portion of the map.
+4. The user submits **Claim**. Selection alone never changes world truth.
+5. The owning GM receives a claim request/notification.
+6. The GM decides the permission and, where applicable, the exact spatial/resource scope.
+
+The GM-facing claim decisions are:
+
+- **Blocked** — the user cannot submit a claim for that world/resource.
+- **Restricted** — claim requests are allowed only for sections the user already has character/resource access to, such as a home or other explicit personal scope.
+- **Limited** — claim requests are allowed, but the GM defines the exact cells, Tier, Layers, capabilities, and/or child resources granted.
+- **Co-Operative** — the approved resource has multiple owners. Co-owners may manage that shared resource, but protected child resources may stop inheritance or carry explicit local denies so secrets remain secret.
+- **Release Ownership** — a transfer operation, not a standing permission. The releasing owner must use a direct authenticated session and type the exact approval statement for the recipient. The releasing owner is then removed from that resource's ownership and the recipient receives that ownership.
+
+`Release Ownership` must never be satisfied by a delegated session, a checkbox alone, or a generic yes/no confirmation. The core authority helper defines the exact approval text as:
+
+`RELEASE OWNERSHIP OF {resourceId} TO {newOwnerUserId}`
+
+Claims preserve the selected World ID, spatial cells, Tier, Layer scope, grid geometry, requester identity, and the GM decision. A GM may narrow a requested area; approval never silently broadens it.
+
+Notifications and cross-account claim persistence are server-authority concerns. Browser state may preview a request, but it must not manufacture an approved grant.
+
 ## Recursive containment
 
 Permissions may travel through containment relationships:
