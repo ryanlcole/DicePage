@@ -92,7 +92,7 @@
  [JSInvokable]
  public async Task<object> CreateRegionFromPrototypeAsync(string name,int[] cells,int tierIndex)
  {
-  var region=await Session.CreateRegionAsync(name,cells??[],tierIndex);
+  var region=await Session.CreateRegionAsync(name,cells??Array.Empty<int>(),tierIndex);
   return new
   {
    id=region.RegionId,
