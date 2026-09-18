@@ -4,8 +4,14 @@ public sealed partial class WorldSession
 {
     public const int MmoParcelGridColumns = 30;
     public const int MmoParcelGridRows = 30;
-    public const int MmoParcelPixels = 2048;
-    public const int MmoParcelMaxHeight = 100;
+
+    // Canonical Shaelvien property space purchased by one Shaelvien Token.
+    // "Parcel" remains the persistence/geometry term; Property Space is the
+    // player-facing ownership concept.
+    public const int ShaelvienPropertySpacePixels = 2048;
+    public const int ShaelvienPropertySpaceLayers = 100;
+    public const int MmoParcelPixels = ShaelvienPropertySpacePixels;
+    public const int MmoParcelMaxHeight = ShaelvienPropertySpaceLayers;
     public const int EndemarOriginColumn = 15;
     public const int EndemarOriginRow = 15;
     public const int EndemarOriginCell = EndemarOriginRow * MmoParcelGridColumns + EndemarOriginColumn;
@@ -25,10 +31,10 @@ public sealed partial class WorldSession
     public bool HasUnspentMmoWorldToken => UnspentMmoWorldToken is not null;
 
     public string MmoWorldTokenLabel => HasUnspentMmoWorldToken
-        ? "1 SHAELVIEN WORLD TOKEN · READY"
+        ? "1 SHAELVIEN TOKEN · READY"
         : _mmoWorldTokens.Count == 0
-            ? "SHAELVIEN WORLD TOKEN · PROFILE REQUIRED"
-            : "SHAELVIEN WORLD TOKEN · SPENT";
+            ? "SHAELVIEN TOKEN · PROFILE REQUIRED"
+            : "SHAELVIEN TOKEN · SPENT";
 
     public AwsAuthorityClient.MmoParcel? OwnedMmoParcel
     {
@@ -147,10 +153,10 @@ public sealed partial class WorldSession
             }
 
             _mmoLandStatus = HasUnspentMmoWorldToken
-                ? "World token ready. Choose an available square touching Endemar or the claimed frontier."
+                ? "Shaelvien Token ready. Choose an available property space touching Endemar or the claimed frontier."
                 : OwnedMmoParcel is not null
-                    ? "Your world token is bound to your Shaelvien parcel."
-                    : "No unspent Shaelvien world token is available.";
+                    ? "Your Shaelvien Token is bound to your Shaelvien property space."
+                    : "No unspent Shaelvien Token is available.";
         }
         catch
         {
@@ -165,7 +171,7 @@ public sealed partial class WorldSession
     public async Task<AwsAuthorityClient.MmoParcel> ClaimMmoParcelAsync(int cellIndex, string displayName)
     {
         if (!IsLoggedIn) throw new InvalidOperationException("Log in before claiming a Shaelvien world.");
-        if (!IsGeonaphWorld) throw new InvalidOperationException("MMO world tokens may only claim land in Shaelvien.");
+        if (!IsGeonaphWorld) throw new InvalidOperationException("Shaelvien Tokens may only claim property space in Shaelvien.");
         if (!IsMmoParcelClaimable(cellIndex))
             throw new InvalidOperationException("Choose an unclaimed square touching Endemar or the existing Shaelvien frontier.");
 
@@ -183,7 +189,7 @@ public sealed partial class WorldSession
         if (!string.IsNullOrWhiteSpace(claimed.RegionId))
             SetActiveRegion(claimed.RegionId);
 
-        _mmoLandStatus = $"{claimed.DisplayName} claimed · {claimed.PixelWidth}×{claimed.PixelHeight} px · maximum height {claimed.MaxHeight} layers.";
+        _mmoLandStatus = $"{claimed.DisplayName} property space claimed · {claimed.PixelWidth}×{claimed.PixelHeight} px · {claimed.MaxHeight} layers.";
         Notify();
         return claimed;
     }
