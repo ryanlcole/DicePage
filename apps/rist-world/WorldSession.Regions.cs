@@ -64,12 +64,16 @@ public sealed partial class WorldSession
         }
     }
 
-    public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0)
+    public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0, IEnumerable<int>? sourceLayerOffsets = null)
     {
         if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
         if (!HasActiveWorld) throw new InvalidOperationException("Choose a world before defining a region.");
         name = NormalizeRegionName(name);
         tierIndex = Math.Clamp(tierIndex, 0, 2);
+        var sourceLayers = sourceLayerOffsets is null
+            ? Enumerable.Range(0, LayersPerTier).ToList()
+            : sourceLayerOffsets.Where(x => x >= 0 && x < LayersPerTier).Distinct().Order().ToList();
+        var sourceLayerSet = sourceLayers.ToHashSet();
         var cells = selectedCells
             .Where(x => x >= 0 && x < GridColumns * GridRows)
             .Distinct()
@@ -85,7 +89,7 @@ public sealed partial class WorldSession
         var maxRow = rows.Max();
         var selected = cells.ToHashSet();
         var sourceTiles = PlacedTiles
-            .Where(tile => tile.TierIndex == tierIndex && TileTouchesSelectedWorldCells(tile, selected))
+            .Where(tile => tile.TierIndex == tierIndex && sourceLayerSet.Contains(tile.LayerOffset) && TileTouchesSelectedWorldCells(tile, selected))
             .Select(tile => tile with { Locked = true })
             .ToList();
         var now = DateTimeOffset.UtcNow;
@@ -102,7 +106,8 @@ public sealed partial class WorldSession
             OverlayTiles: [],
             CreatedAtUtc: now,
             UpdatedAtUtc: now,
-            TierIndex: tierIndex);
+            TierIndex: tierIndex,
+            SourceLayerOffsets: sourceLayers);
 
         _regions.Add(region);
         _activeRegionId = region.RegionId;
@@ -226,7 +231,8 @@ public sealed record WorldRegion(
     List<RegionOverlayTile> OverlayTiles,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    int TierIndex = 0)
+    int TierIndex = 0,
+    List<int>? SourceLayerOffsets = null)
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
