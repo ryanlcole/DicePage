@@ -245,8 +245,9 @@ Check(!WorldClaimAuthorityPolicy.CanSubmitRequest(WorldClaimPermission.ReleaseOw
 authority.EnsureResource("world:claim-test", owner);
 authority.EnsureResource("world:claim-test:secret", owner, stopsInheritance: true);
 authority.Attach(owner, "world:claim-test", "world:claim-test:secret");
+var claimOwnerSession = authority.StartSession(owner, owner, sessionId: "session:claim-owner");
 var coopOwnerSession = authority.StartSession("co-owner", "co-owner", sessionId: "session:co-owner");
-authority.GrantCooperativeOwnership(directH.SessionId, "world:claim-test", "co-owner");
+authority.GrantCooperativeOwnership(claimOwnerSession.SessionId, "world:claim-test", "co-owner");
 Check(authority.CanManagePermissions("co-owner", "world:claim-test"),
     "Co-operative owner must be able to manage the shared world resource.");
 Check(!authority.Resolve("world:claim-test:secret", "co-owner", AuthorityResourceAction.View, ["world:claim-test"]).Allowed,
@@ -258,9 +259,9 @@ var transferResource = authority.EnsureResource("world:transfer-test", owner);
 var releaseTargetSession = authority.StartSession("release-target", "release-target", sessionId: "session:release-target");
 var requiredReleaseText = WorldClaimAuthorityPolicy.ReleaseOwnershipApprovalText("world:transfer-test", "release-target");
 CheckThrows<UnauthorizedAccessException>(
-    () => authority.ReleaseOwnership(directH.SessionId, "world:transfer-test", "release-target", "yes"),
+    () => authority.ReleaseOwnership(claimOwnerSession.SessionId, "world:transfer-test", "release-target", "yes"),
     "Release Ownership must reject an imprecise written approval.");
-authority.ReleaseOwnership(directH.SessionId, "world:transfer-test", "release-target", requiredReleaseText);
+authority.ReleaseOwnership(claimOwnerSession.SessionId, "world:transfer-test", "release-target", requiredReleaseText);
 Check(!authority.CanManagePermissions(owner, "world:transfer-test"),
     "The releasing GM must be removed from the transferred resource.");
 Check(authority.CanManagePermissions("release-target", "world:transfer-test")
