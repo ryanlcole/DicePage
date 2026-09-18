@@ -1192,8 +1192,8 @@ imageDropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.k
 for(const type of ['dragenter','dragover'])imageDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();imageDropzone.classList.add('dragover')});
 for(const type of ['dragleave','drop'])imageDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();imageDropzone.classList.remove('dragover')});
 imageDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedImage(file)});
-spriteUploadClose.addEventListener('click',closeSpriteUpload);
-spriteBrowse.addEventListener('click',()=>spriteFile.click());
+bindTap(spriteUploadClose,closeSpriteUpload);
+spriteBrowse.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();spriteFile.click()}});
 spriteFile.addEventListener('change',()=>{const file=spriteFile.files?.[0];if(file)void placeUploadedSprite(file);spriteFile.value=''});
 spriteColumns.addEventListener('input',syncSpriteFrameCount);spriteRows.addEventListener('input',syncSpriteFrameCount);
 spriteDropzone.addEventListener('click',event=>{if(event.target===spriteDropzone)spriteFile.click()});
