@@ -43,6 +43,7 @@
 @code {
  ElementReference _frame;
  IJSObjectReference? _module;
+ DotNetObjectReference<RegionDefinerWorkspace>? _self;
  bool _bridgeAttached;
 
  [Parameter] public EventCallback OnStartMenu { get; set; }
@@ -66,7 +67,8 @@
   if(!firstRender||_bridgeAttached)return;
   await Session.LoadRegionsAsync();
   _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-copy-1");
-  await _module.InvokeVoidAsync("attach",_frame,DotNetObjectReference.Create(this));
+  _self=DotNetObjectReference.Create(this);
+  await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
  }
 
@@ -112,5 +114,6 @@
    try{await _module.InvokeVoidAsync("detach",_frame);}catch{}
    await _module.DisposeAsync();
   }
+  _self?.Dispose();
  }
 }
