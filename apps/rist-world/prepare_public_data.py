@@ -1,11 +1,13 @@
 from pathlib import Path
 from collections import deque
 import hashlib
+import io
 import json
 import os
 import shutil
 import subprocess
 import sys
+import urllib.request
 
 root = Path(__file__).resolve().parents[2]
 tactical = root / 'apps' / 'tactical'
@@ -210,6 +212,92 @@ def normalize_imported_images():
 
 normalized_assets = normalize_imported_images()
 
+
+def build_geonaph_upscale_representations():
+    """Build derived 2x Geonaph viewer representations without changing world truth."""
+    if os.environ.get('GITHUB_ACTIONS', '').lower() != 'true':
+        return []
+
+    Image = _load_pillow()
+    from PIL import ImageFilter
+
+    asset_base = os.environ.get(
+        'ASSET_BASE_URL',
+        'https://d2d6rnm6fnsp89.cloudfront.net/'
+    ).rstrip('/') + '/'
+    source_prefix = 'library/terrains/standard/world/whole_maps/geonaph/'
+    files = (
+        'geonaph_full_static_canonical_surface_v001.png',
+        'geonaph_full_static_highlands_rivers_v001.png',
+        'geonaph_full_static_mountain_volcanic_archipelago_v001.png',
+    )
+    output_root = web / 'prototype' / 'upscale'
+    if output_root.exists():
+        shutil.rmtree(output_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    manifest = []
+    for filename in files:
+        source_url = asset_base + source_prefix + filename
+        output_name = filename.removesuffix('.png') + '_2x.png'
+        output_path = output_root / output_name
+        try:
+            request = urllib.request.Request(
+                source_url,
+                headers={'User-Agent': 'Shaelvien-Geonaph-Upscale/1.0'}
+            )
+            with urllib.request.urlopen(request, timeout=45) as response:
+                payload = response.read()
+
+            with Image.open(io.BytesIO(payload)) as opened:
+                source = opened.convert('RGBA')
+                source_width, source_height = source.size
+                factor = min(2.0, 4096 / max(source_width, source_height))
+                if factor <= 1.0:
+                    derived = source.copy()
+                else:
+                    target = (
+                        max(1, round(source_width * factor)),
+                        max(1, round(source_height * factor)),
+                    )
+                    derived = source.resize(target, Image.Resampling.LANCZOS)
+                    derived = derived.filter(
+                        ImageFilter.UnsharpMask(radius=1.0, percent=105, threshold=2)
+                    )
+
+                derived.save(output_path, 'PNG', optimize=True)
+                digest = hashlib.sha256(output_path.read_bytes()).hexdigest()
+                manifest.append({
+                    'source': source_url,
+                    'derived': f'prototype/upscale/{output_name}',
+                    'sourceWidth': source_width,
+                    'sourceHeight': source_height,
+                    'derivedWidth': derived.width,
+                    'derivedHeight': derived.height,
+                    'scale': round(derived.width / source_width, 4),
+                    'method': 'Lanczos + restrained unsharp mask',
+                    'canonical': False,
+                    'sha256': digest,
+                })
+                print(
+                    f'geonaph-upscale source={filename} '
+                    f'{source_width}x{source_height} -> {derived.width}x{derived.height}'
+                )
+        except Exception as exc:
+            print(
+                f'geonaph-upscale-skip source={filename} '
+                f'error={type(exc).__name__}: {exc}'
+            )
+
+    (output_root / 'manifest.json').write_text(
+        json.dumps(manifest, separators=(',', ':')),
+        encoding='utf-8'
+    )
+    return manifest
+
+
+geonaph_upscales = build_geonaph_upscale_representations()
+
 # 000012.python.prepare_public_data.line213.comment The Drive/AWS catalog is the canonical Shaelvien asset registry for both
 # 000013.python.prepare_public_data.line214.comment visitors and authenticated users. Do not rebuild a second public catalog
 # 000014.python.prepare_public_data.line215.comment from the old tactical prototype registries.
@@ -308,6 +396,7 @@ print(
     f'normalized_imports={len(normalized_assets)} '
     f'unique_normalized={unique_normalized} '
     f'duplicate_imports={duplicate_imports} '
+    f'geonaph_upscales={len(geonaph_upscales)} '
     'legacy_asset_catalog=disabled '
     'homepage_paypal=official-art '
     'footer_mark=transparent'
