@@ -6,62 +6,49 @@
  <section class="world-gate-backdrop" role="presentation" @onclick="CloseAsync">
   <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
    <header>
-    <span><small>SHAELVIEN · RIST</small><strong>@(Session.HasActiveWorld&&_ready?"WORLD LOADED":"CHOOSE A WORLD")</strong></span>
+    <span><small>SHAELVIEN · RIST</small><strong>CHOOSE A WORLD</strong></span>
     @if(!RequireSelection){<button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>}
    </header>
 
-   @if(_ready && Session.HasActiveWorld)
-   {
-    <section class="world-gate-ready">
-     <span class="world-gate-glyph">◈</span>
-     <h2>@Session.WorldDisplayName</h2>
-     <p>The world is loaded. World-specific sections are now available from the landing page.</p>
-     <button type="button" class="world-gate-primary" @onclick="ContinueAsync">CONTINUE TO WORLDBUILDER</button>
-     <button type="button" class="world-gate-secondary" @onclick="ReturnAsync">RETURN TO LANDING PAGE</button>
-    </section>
-   }
-   else
-   {
-    <section class="world-gate-create">
-     <label for="world-name">WORLD NAME</label>
-     <input id="world-name" maxlength="80" placeholder="Enter a World Name" @bind="_worldName" @bind:event="oninput" autocomplete="off" />
-     <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="CreateAsync">CREATE NEW WORLD</button>
-    </section>
+   <section class="world-gate-create">
+    <label for="world-name">WORLD NAME</label>
+    <input id="world-name" maxlength="80" placeholder="Enter a World Name" @bind="_worldName" @bind:event="oninput" autocomplete="off" />
+    <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="CreateAsync">CREATE NEW WORLD</button>
+   </section>
 
-    <div class="world-gate-divider"><span>CURRENT WORLDS</span></div>
-    <section class="world-gate-worlds" aria-live="polite">
-     @if(_loading)
+   <div class="world-gate-divider"><span>CURRENT WORLDS</span></div>
+   <section class="world-gate-worlds" aria-live="polite">
+    @if(_loading)
+    {
+     <p class="world-gate-note">Loading your worlds…</p>
+    }
+    else if(_worlds.Count==0)
+    {
+     <p class="world-gate-note">No saved worlds yet. Create a new world or import a RIST world file.</p>
+    }
+    else
+    {
+     @foreach(var world in _worlds)
      {
-      <p class="world-gate-note">Loading your worlds…</p>
+      <article class="world-gate-world">
+       <button type="button" class="world-gate-world-load" disabled="@_busy" @onclick="()=>LoadAsync(world)">
+        <span><strong>@world.DisplayName</strong><small>@world.Relationship · @world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
+       </button>
+       @if(Session.CanDeleteWorld(world))
+       {
+        <button type="button" class="world-gate-world-delete" disabled="@_busy" @onclick="()=>BeginDelete(world)" aria-label="Delete @world.DisplayName">DELETE</button>
+       }
+      </article>
      }
-     else if(_worlds.Count==0)
-     {
-      <p class="world-gate-note">No saved worlds yet. Create a new world or import a RIST world file.</p>
-     }
-     else
-     {
-      @foreach(var world in _worlds)
-      {
-       <article class="world-gate-world">
-        <button type="button" class="world-gate-world-load" disabled="@_busy" @onclick="()=>LoadAsync(world)">
-         <span><strong>@world.DisplayName</strong><small>@world.Relationship · @world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
-        </button>
-        @if(Session.CanDeleteWorld(world))
-        {
-         <button type="button" class="world-gate-world-delete" disabled="@_busy" @onclick="()=>BeginDelete(world)" aria-label="Delete @world.DisplayName">DELETE</button>
-        }
-       </article>
-      }
-     }
-    </section>
+    }
+   </section>
 
-    <div class="world-gate-divider"><span>OR IMPORT</span></div>
-    <label class="world-gate-import @(_busy?"disabled":"")">
-     <strong>IMPORT RIST WORLD</strong>
-     <small>Choose a .ristmap file. World Name above overrides the imported name when provided.</small>
-     <InputFile OnChange="ImportAsync" accept=".ristmap,application/json" disabled="@_busy" />
-    </label>
-   }
+   <div class="world-gate-divider"><span>OR IMPORT</span></div>
+   <label class="world-gate-import @(_busy?"disabled":"")">
+    <strong>IMPORT RIST WORLD</strong>
+    <small>Choose a .ristmap file. World Name above overrides the imported name when provided.</small>
+    <InputFile OnChange="ImportAsync" accept=".ristmap,application/json" disabled="@_busy" />
+   </label>
 
    @if(!string.IsNullOrWhiteSpace(_status))
    {
@@ -110,26 +97,34 @@
  readonly List<AccountWorldReference> _worlds=[];
  AccountWorldReference? _deleteWorld;
  bool _wasOpen;
+ bool _loadRequested;
  bool _loading;
  bool _busy;
- bool _ready;
  string _worldName="";
  string _status="";
  string _deleteApproval="";
  bool DeleteApprovalMatches=>string.Equals(_deleteApproval,WorldSession.WorldDeletionConfirmationPhrase,StringComparison.Ordinal);
 
- protected override async Task OnParametersSetAsync()
+ protected override void OnParametersSet()
  {
   if(Open&&!_wasOpen)
   {
-   _ready=false;
    _status="";
    _worldName="";
    _deleteWorld=null;
    _deleteApproval="";
-   await RefreshWorldsAsync();
+   _loading=true;
+   _loadRequested=true;
   }
   _wasOpen=Open;
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!_loadRequested)return;
+  _loadRequested=false;
+  await RefreshWorldsAsync();
+  await InvokeAsync(StateHasChanged);
  }
 
  async Task RefreshWorldsAsync()
@@ -152,8 +147,7 @@
   try
   {
    await Session.CreateWorldAsync(_worldName);
-   _ready=true;_status=$"{Session.WorldDisplayName} created and loaded.";
-   await RefreshWorldsAsync();
+   _status=$"{Session.WorldDisplayName} created and loaded.";
    await OnClose.InvokeAsync();
   }
   catch(Exception ex){_status="World creation failed: "+ex.Message;}
@@ -167,8 +161,7 @@
   try
   {
    await Session.LoadWorldAsync(world);
-   _ready=true;_status=$"{Session.WorldDisplayName} loaded.";
-   await RefreshWorldsAsync();
+   _status=$"{Session.WorldDisplayName} loaded.";
    await OnClose.InvokeAsync();
   }
   catch(Exception ex){_status="World load failed: "+ex.Message;}
@@ -201,7 +194,6 @@
    await Session.DeleteWorldAsync(world,_deleteApproval);
    _deleteWorld=null;
    _deleteApproval="";
-   _ready=Session.HasActiveWorld;
    await RefreshWorldsAsync();
    _status=$"{world.DisplayName} and its world data were permanently deleted.";
   }
@@ -222,15 +214,12 @@
    var json=await reader.ReadToEndAsync();
    var preferred=string.IsNullOrWhiteSpace(_worldName)?Path.GetFileNameWithoutExtension(file.Name):_worldName;
    await Session.ImportWorldAsync(json,preferred);
-   _ready=true;_status=$"{Session.WorldDisplayName} imported and loaded.";
-   await RefreshWorldsAsync();
+   _status=$"{Session.WorldDisplayName} imported and loaded.";
    await OnClose.InvokeAsync();
   }
   catch(Exception ex){_status="World import failed: "+ex.Message;}
   finally{_busy=false;}
  }
 
- async Task ContinueAsync(){if(Session.HasActiveWorld)await OnContinue.InvokeAsync();}
- async Task ReturnAsync(){if(Session.HasActiveWorld)await OnClose.InvokeAsync();}
  async Task CloseAsync(){if(_busy||_deleteWorld is not null||RequireSelection)return;await OnClose.InvokeAsync();}
 }
