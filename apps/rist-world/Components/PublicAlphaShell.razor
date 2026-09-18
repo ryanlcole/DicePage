@@ -26,8 +26,7 @@
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the world map, tiers and layers.":"Choose, create or import a world first.")</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenPrototype"><span class="card-icon">◇</span><strong>PROTOTYPE</strong><small>Open the full Geonaph map prototype.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build Geonaph through its spatial stack, tiers and layers.":"Choose, create or import a world first.")</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
@@ -298,7 +297,6 @@ else
  void OpenDiceTools()=>OpenWorkspace("tools","DICE & TOOLS","DICE → CARDS → TOOLS");
  void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;}
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
- void OpenPrototype()=>Navigation.NavigateTo("/Game/prototype/index.html",forceLoad:true);
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
