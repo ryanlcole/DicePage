@@ -84,3 +84,10 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0" in workspace
     assert "maxHeight=Session.ActiveRegion?.MaxHeight??0" in workspace
     assert "await RefreshMmoLandAsync(loadParcels: false);" in relationships
+
+
+def test_shaelvien_is_the_mmo_world_and_endemar_is_the_starting_point():
+    identity = text("apps/rist-world/WorldSession.WorldIdentity.cs")
+    assert 'public const string ShaelvienDisplayName = "Shaelvien";' in identity
+    assert 'public const string EndemarStartingPointDisplayName = "Endemar";' in identity
+    assert "public const string GeonaphDisplayName = ShaelvienDisplayName;" in identity
