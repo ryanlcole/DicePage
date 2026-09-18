@@ -214,7 +214,7 @@ function serializableUserLayer(item){
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),size:clamp(Number(item.size)||1,.05,20),
-    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1)
+    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
 }
 async function saveWorldBuilder(){
@@ -226,9 +226,11 @@ async function saveWorldBuilder(){
       viewerTier,viewerLayer,userLayers:userLayers.map(serializableUserLayer)
     };
     await writeSavedWorldBuilder(state);
+    for(const item of userLayers){item.committed=true;refreshUserImage(item)}
+    deselectUserImage(false);
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
-    announce(`World Builder saved. ${state.userLayers.length} placed image layer${state.userLayers.length===1?'':'s'} preserved.`);
+    announce(`World Builder saved. ${state.userLayers.length} placed image layer${state.userLayers.length===1?'':'s'} committed. Use the Select keyboard to edit saved content.`);
     return true;
   }catch(error){
     announce(`Save failed: ${String(error?.message||error||'unknown error')}`);
@@ -244,7 +246,7 @@ function attachRestoredLayer(raw){
     originalSrc:String(raw.originalSrc),transparentSrc:String(raw.transparentSrc||raw.originalSrc),transparent:!!raw.transparent,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
-    opacity:clamp(Number(raw.opacity)||1,.01,1),renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    opacity:clamp(Number(raw.opacity)||1,.01,1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}`;node.alt=item.name||'Placed image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -527,14 +529,21 @@ function refreshUserImage(item){
   if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired}
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
+  item.node.style.pointerEvents=item.committed&&selectedImage!==item?'none':'auto';
+  item.node.dataset.committed=item.committed?'true':'false';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
-  selectedImage?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');renderKeyboardKeys();scheduleRegionEnhancement(20);
+  const previous=selectedImage;
+  previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');
+  if(previous&&previous!==selectedImage)refreshUserImage(previous);
+  if(selectedImage)refreshUserImage(selectedImage);
+  renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
 function deselectUserImage(announceChange=false){
   if(!selectedImage)return false;
-  selectedImage.node?.classList.remove('selected');selectedImage=null;renderKeyboardKeys();scheduleRegionEnhancement(20);
+  const previous=selectedImage;
+  previous.node?.classList.remove('selected');selectedImage=null;refreshUserImage(previous);renderKeyboardKeys();scheduleRegionEnhancement(20);
   if(announceChange)announce('Selection cleared.');
   return true;
 }
@@ -567,6 +576,7 @@ function placedContentSelect(){
 }
 function removeSelectedImage(){if(!selectedImage)return;const index=userLayers.indexOf(selectedImage);selectedImage.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Image removed from the layer stack.')}
 function beginImageDrag(event,item){
+  if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   suspendRegionEnhancement();
   imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y};
@@ -584,7 +594,7 @@ async function placeUploadedImage(file){
   const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
-    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -748,7 +758,7 @@ function placeLibraryTile(asset){
     assetId:asset.id,name:asset.name,libraryTile:true,
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
     x:point.x,y:point.y,tier:currentTierIndex(),layer:clamp(viewerLayer+1,0,9),
-    size:1,rotation:0,opacity:1,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement library-tile-placement';node.alt=asset.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -1008,7 +1018,7 @@ window.ShaelvienPrototype=Object.freeze({
   getViewerState:()=>({
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+userLayers.length,
-    userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,zoomPassed:!!item.zoomPassed})),
+    userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
     detailMode:stage.dataset.detailMode||'world',detailScale:Number(stage.dataset.detailScale||regionZoomRatio().toFixed(2))
