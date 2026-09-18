@@ -9,14 +9,7 @@
  else if (Mode == "world")
  {
   <WorldAnimatedAssetCatalog />
-  @if (LegacyWorldBuilderRequested)
-  {
-   <WorldBuilderStudio OnStartMenu="OnStartMenu" />
-  }
-  else
-  {
-   <WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" />
-  }
+  <WorldBuilderStudio OnStartMenu="OnStartMenu" />
  }
  else if (Mode == "accessibility")
  {
@@ -66,14 +59,6 @@
    var uri=new Uri(Navigation.Uri);
    return uri.AbsolutePath.EndsWith("/worldbuilderrunetest",StringComparison.OrdinalIgnoreCase)
     || uri.Query.Contains("worldbuilderrunetest=1",StringComparison.OrdinalIgnoreCase);
-  }
- }
- bool LegacyWorldBuilderRequested
- {
-  get
-  {
-   var uri=new Uri(Navigation.Uri);
-   return uri.Query.Contains("legacyworldbuilder=1",StringComparison.OrdinalIgnoreCase);
   }
  }
 }
