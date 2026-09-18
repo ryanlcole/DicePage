@@ -60,10 +60,10 @@ if(REGION_DEFINER){
   stage.dataset.sourceWorldLocked='true';
   keyboard?.setAttribute('aria-label','Region Definer contextual keyboard');
   keyboardToggle?.setAttribute('aria-label','Open Region Definer keyboard');
-  persistentSave.title='Save regional overlays';
-  persistentSave.setAttribute('aria-label','Save regional overlays');
+  persistentSave.title='Save authorized changes to the canonical map';
+  persistentSave.setAttribute('aria-label','Save authorized region changes to the canonical map');
   imageUploadToggle?.setAttribute('aria-label','Add regional image');
-  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · WORLD SOURCE LOCKED · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
+  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
 }
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
@@ -512,14 +512,13 @@ async function attachRestoredLayer(raw,options={}){
 async function restoreSavedWorldBuilder(){
   if(restoreSaveStarted)return;restoreSaveStarted=true;
   try{
-    userLayers.splice(0,userLayers.length);
-    world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
     if(REGION_DEFINER){
-      // RegionDefiner has no independent map persistence. It waits for the same
-      // database-backed canonical map that WorldBuilder uses; only viewer state,
-      // crop/tilt and permissions differ.
+      // Region Definer never restores or clears a separate map. The host bridge owns
+      // canonical-map hydration; base-image load timing must not erase database layers.
       viewerTier='sea';viewerLayer=0;
     }else{
+      userLayers.splice(0,userLayers.length);
+      world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
       const state=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
       if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
       for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
