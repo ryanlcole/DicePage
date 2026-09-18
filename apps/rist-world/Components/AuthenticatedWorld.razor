@@ -157,8 +157,10 @@ else
  async Task CompleteWorldChoiceAsync()
  {
   if(!Session.HasActiveWorld)return;
-  _launchWorldChosen=true;
+  // Resolve trusted world authority before exposing the launcher so authorized
+  // GMs/owners do not see creation controls briefly rendered as inaccessible.
   await Session.RefreshTrustedWorldAuthorityAsync();
+  _launchWorldChosen=true;
   await InvokeAsync(StateHasChanged);
  }
 
