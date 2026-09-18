@@ -173,6 +173,8 @@ else
   var profile=await Auth.InitializeAsync();
   Session.AdoptAuthentication(profile);
   _canEnter=profile is not null;
+  if(_canEnter && Auth.Account is not null)
+   await Session.RefreshMmoLandAsync(loadParcels:false);
   _termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;
   if(_canEnter)
   {
