@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#04080b">
+<title>Perceiver · Shaelvien</title>
+<style>
+:root{color-scheme:dark;--gold:#e1c47d;--ice:#9fd7e5;--line:rgba(225,196,125,.28);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020508;color:#f1e6ce}button,input,select{font:inherit}button{touch-action:manipulation}
+.app{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:radial-gradient(circle at 50% 35%,#10202b 0,#050b10 44%,#020508 100%)}
+.topbar{z-index:50;display:flex;align-items:center;gap:8px;min-height:52px;padding:calc(7px + env(safe-area-inset-top)) max(9px,env(safe-area-inset-right)) 7px max(9px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:rgba(3,8,11,.94);backdrop-filter:blur(12px)}
+.topbar button,.file-button,.transport button,.panel button{min-height:38px;border:1px solid rgba(225,196,125,.36);border-radius:9px;background:#0e1920;color:#f1e3bd;font-weight:850;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap}.topbar button:focus-visible,.file-button:focus-visible,.transport button:focus-visible,.panel button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+.title{min-width:0;flex:1;display:grid;gap:2px}.title strong{color:var(--gold);font:900 12px/1.1 system-ui;letter-spacing:.18em}.title small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8fa4ad;font:700 9px/1.2 system-ui}.file-button{position:relative}.file-button input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.stage{position:relative;min-height:0;overflow:hidden;background:#03070a;isolation:isolate}.stage.manual-focus{cursor:crosshair}.video,.plate{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#020508}.video{display:none;z-index:1}.video.active{display:block}.plate{z-index:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,rgba(72,115,137,.23),transparent 27%),linear-gradient(#02070a 0 48%,#071117 48% 58%,#020508 58%)}
+.plate-copy{text-align:center;padding:22px;max-width:680px;color:#8ea2ac}.plate-copy strong{display:block;color:#d9c486;font:900 clamp(1.4rem,4vw,3.5rem)/.95 Georgia,serif;letter-spacing:.08em}.plate-copy span{display:block;margin-top:11px;font-size:clamp(.72rem,1.6vw,.92rem);line-height:1.45}
+.cinema{position:absolute;inset:-10%;z-index:5;pointer-events:none;overflow:hidden;transform-style:preserve-3d}.tier{position:absolute;inset:0;will-change:transform,opacity}.enhanced-off .cinema{display:none}.calibration-off .depth-tag,.calibration-off .focus-tag{display:none}
+.far-glow{background:radial-gradient(circle at 22% 34%,rgba(98,172,204,.16),transparent 13%),radial-gradient(circle at 77% 26%,rgba(221,185,99,.13),transparent 10%),radial-gradient(circle at 52% 70%,rgba(100,141,180,.09),transparent 20%)}.star{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(219,240,255,.72);box-shadow:0 0 9px rgba(180,226,255,.72)}.star:nth-child(2){left:13%;top:19%}.star:nth-child(3){left:31%;top:12%;scale:.6}.star:nth-child(4){left:66%;top:15%;scale:.75}.star:nth-child(5){left:83%;top:33%;scale:.55}.star:nth-child(6){left:55%;top:27%;scale:.5}
+.horizon:before,.horizon:after{content:"";position:absolute;left:-8%;right:-8%;border-radius:50% 50% 0 0}.horizon:before{height:30%;bottom:-9%;background:linear-gradient(180deg,rgba(26,54,63,.18),rgba(4,10,14,.42));border-top:1px solid rgba(151,211,227,.12)}.horizon:after{height:18%;bottom:-3%;background:repeating-linear-gradient(90deg,transparent 0 80px,rgba(180,222,231,.06) 80px 81px),repeating-linear-gradient(0deg,transparent 0 45px,rgba(180,222,231,.05) 45px 46px);transform:perspective(360px) rotateX(66deg);transform-origin:center bottom}
+.near-frame:before,.near-frame:after{content:"";position:absolute;top:4%;bottom:3%;width:15%;border:1px solid rgba(190,220,228,.13)}.near-frame:before{left:-4%;border-radius:0 55% 55% 0}.near-frame:after{right:-4%;border-radius:55% 0 0 55%}.foreground:before{content:"";position:absolute;left:-5%;right:-5%;bottom:-13%;height:24%;background:radial-gradient(ellipse at center,rgba(3,7,9,.82),rgba(1,3,4,.97) 68%);filter:blur(2px)}
+.particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(230,211,160,.38);box-shadow:0 0 12px rgba(229,195,115,.32);animation:drift var(--duration,8s) linear infinite;opacity:.55}.particle:nth-child(2){left:9%;top:82%;--duration:7s}.particle:nth-child(3){left:24%;top:68%;--duration:9s;scale:.65}.particle:nth-child(4){left:44%;top:78%;--duration:11s;scale:.5}.particle:nth-child(5){left:63%;top:70%;--duration:8s}.particle:nth-child(6){left:78%;top:83%;--duration:10s;scale:.7}.particle:nth-child(7){left:90%;top:63%;--duration:12s;scale:.45}@keyframes drift{0%{translate:0 12vh;opacity:0}20%{opacity:.52}100%{translate:3vw -86vh;opacity:0}}
+.depth-tag,.focus-tag{position:absolute;padding:4px 7px;border:1px solid rgba(225,196,125,.22);border-radius:999px;background:rgba(3,9,12,.72);color:rgba(235,219,179,.78);font:800 9px/1 system-ui;letter-spacing:.08em}.far-glow .depth-tag{left:5%;top:7%}.horizon .depth-tag{right:5%;top:13%}.near-frame .depth-tag{left:8%;bottom:16%}.foreground .depth-tag{right:7%;bottom:14%}.focus-marker{position:absolute;z-index:18;left:50%;top:50%;width:0;height:0;pointer-events:none}.focus-marker .focus-tag{position:absolute;left:0;top:0;translate:-50% -50%;white-space:nowrap;border-color:rgba(159,215,229,.42);color:#bce6f0}.focus-marker .focus-ring{position:absolute;left:0;top:0;width:86px;height:86px;translate:-50% -50%;border:1px solid rgba(159,215,229,.28);border-radius:50%;box-shadow:0 0 22px rgba(86,184,207,.08)}.focus-marker.manual .focus-ring{border-color:rgba(225,196,125,.58);box-shadow:0 0 24px rgba(225,196,125,.13)}.focus-marker.manual .focus-tag{border-color:rgba(225,196,125,.58);color:#f0dca6}.focus-ring:before,.focus-ring:after{content:"";position:absolute;background:rgba(159,215,229,.13)}.focus-ring:before{left:50%;top:-18px;bottom:-18px;width:1px}.focus-ring:after{top:50%;left:-18px;right:-18px;height:1px}
+.stage-hud{position:absolute;z-index:20;left:max(10px,env(safe-area-inset-left));top:10px;display:flex;align-items:center;gap:8px;padding:6px 9px;border:1px solid rgba(159,215,229,.22);border-radius:9px;background:rgba(3,9,12,.72);backdrop-filter:blur(8px);font:800 10px/1 system-ui;color:#adc5cd}.timecode{color:#f0dca6;font-variant-numeric:tabular-nums;letter-spacing:.08em}.mode-pill{padding:4px 7px;border-radius:999px;background:#10232c;color:#9fd7e5}
+.drawer{position:absolute;z-index:45;right:max(10px,env(safe-area-inset-right));top:64px;width:min(390px,calc(100vw - 20px));max-height:calc(100dvh - 145px);overflow:auto;padding:14px;border:1px solid rgba(225,196,125,.3);border-radius:14px;background:rgba(5,13,18,.95);box-shadow:0 20px 60px #000b;backdrop-filter:blur(14px)}.drawer[hidden]{display:none}.drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}.drawer-head h2{margin:0;color:#e3c77d;font:900 11px/1 system-ui;letter-spacing:.14em}.drawer-close{width:38px;min-width:38px;height:38px;padding:0!important;border-radius:9px!important;font-size:22px!important;line-height:1!important;color:#f1e3bd!important}.panel{display:grid;gap:9px;padding:11px 0;border-top:1px solid rgba(225,196,125,.14)}.panel:first-of-type{border-top:0}.panel label{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;color:#b9c7ca;font-size:11px}.panel output{color:#f0dca6;font-variant-numeric:tabular-nums}.panel input[type=range]{grid-column:1/-1;width:100%}.panel select{min-height:36px;border:1px solid rgba(225,196,125,.28);border-radius:8px;background:#0d171d;color:#eee0be;padding:0 8px}.panel button.active{border-color:var(--ice);color:#dcf8ff;background:#102631}.audio-grid{display:grid;grid-template-columns:1fr auto;gap:7px 10px;align-items:center;padding:4px 0}.audio-grid strong{font-size:10px;color:#a9bbc2}.audio-grid span{font:800 10px/1 system-ui;color:#ead79f}.audio-grid .safe{color:#aee6c7}.audio-grid .warn{color:#f0c48b}.speed-grid{display:grid;grid-template-columns:1fr auto;gap:7px 10px;align-items:center}.speed-grid strong{font-size:10px;color:#a9bbc2}.speed-grid span{font:800 10px/1 system-ui;color:#ead79f}.notice{margin:0;color:#91a4ab;font-size:10px;line-height:1.45}.notice strong{color:#d7c386}
+.bottom{z-index:50;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px max(9px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));border-top:1px solid var(--line);background:rgba(3,8,11,.94);backdrop-filter:blur(12px)}.transport{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}.transport::-webkit-scrollbar{display:none}.transport .primary{background:#d8bc77;color:#091015;border-color:#d8bc77}.transport .active{border-color:var(--ice);color:#dff8ff;background:#102631}.readout{min-width:156px;display:grid;align-content:center;justify-items:end;gap:3px;color:#8197a0;font-size:9px}.readout strong{font-size:11px;color:#d9c486}.readout span{white-space:nowrap}
+@media(max-width:720px){.topbar{gap:5px}.topbar button,.file-button{padding:0 7px;font-size:9px}.title small{display:none}.bottom{grid-template-columns:1fr}.readout{display:none}.transport button{padding:0 10px;font-size:10px}.drawer{top:58px;max-height:calc(100dvh - 126px)}}@media(prefers-reduced-motion:reduce){.particle{animation:none}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+<header class="topbar">
+<button id="back" type="button">← BACK</button>
+<div class="title"><strong>PERCEIVER</strong><small>MOVIE MOTION → TIER SPEED → DEPTH</small></div>
+<label class="file-button" tabindex="0">LOCAL VIDEO<input id="file" type="file" accept="video/*" aria-label="Choose a local video file"></label>
+<button id="testVideo" type="button">TEST VIDEO</button>
+<button id="settings" type="button" aria-expanded="false">TUNE</button>
+</header>
+<section id="stage" class="stage calibration-on" aria-label="Perceiver cinematic motion-parallax test stage">
+<div id="plate" class="plate"><div class="plate-copy"><strong>CINEMATIC MOTION PARALLAX</strong><span>The movie is the focal plane. Background tiers move more slowly than focus; near and foreground tiers move faster. No head tracking, tilt, pointer movement or viewer-motion detection is used.</span></div></div>
+<video id="video" class="video" playsinline preload="auto" crossorigin="anonymous"></video>
+<div class="cinema" aria-hidden="true">
+<div class="tier far-glow" data-tier="far" data-speed="0.20"><span class="depth-tag">T1 · FAR · 0.20×</span><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i></div>
+<div class="tier horizon" data-tier="background" data-speed="0.55"><span class="depth-tag">T2 · BACKGROUND · 0.55×</span></div>
+<div class="tier near-frame" data-tier="near" data-speed="1.35"><span class="depth-tag">T4 · NEAR · 1.35×</span></div>
+<div class="tier foreground" data-tier="foreground" data-speed="1.80"><span class="depth-tag">T5 · FOREGROUND · 1.80×</span><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i><i class="particle"></i></div>
+</div>
+<div id="focusMarker" class="focus-marker"><div class="focus-ring"></div><span id="focusTag" class="focus-tag">AUTO · FOCUS · 1.00×</span></div>
+<div class="stage-hud"><span id="modePill" class="mode-pill">EXTERNAL SYNC</span><span id="timecode" class="timecode">00:00:00.000</span></div>
+</section>
+<aside id="drawer" class="drawer" hidden>
+<div class="drawer-head"><h2>CINEMATIC PARALLAX TUNING</h2><button id="closeTune" class="drawer-close" type="button" aria-label="Close tuning">×</button></div>
+<section class="panel">
+<label>Depth separation <output id="depthOut">55%</output><input id="depth" type="range" min="0" max="100" value="55"></label>
+<label>Movie motion amount <output id="motionOut">60%</output><input id="motion" type="range" min="0" max="100" value="60"></label>
+<label>Reference rate <select id="fps"><option value="23.976">23.976 fps</option><option value="24" selected>24 fps</option><option value="25">25 fps</option><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
+</section>
+<section class="panel"><div class="speed-grid"><strong>Far tier</strong><span id="farOut">0.20×</span><strong>Background</strong><span id="backgroundOut">0.55×</span><strong>Focus plane</strong><span>1.00×</span><strong>Near tier</strong><span id="nearOut">1.35×</span><strong>Foreground</strong><span id="foregroundOut">1.80×</span></div></section>
+<section class="panel">
+<label>Far speed <output id="farSliderOut">0.20×</output><input id="farSpeed" type="range" min="0" max="100" value="20"></label>
+<label>Background speed <output id="backgroundSliderOut">0.55×</output><input id="backgroundSpeed" type="range" min="0" max="100" value="55"></label>
+<label>Near speed <output id="nearSliderOut">1.35×</output><input id="nearSpeed" type="range" min="100" max="180" value="135"></label>
+<label>Foreground speed <output id="foregroundSliderOut">1.80×</output><input id="foregroundSpeed" type="range" min="100" max="240" value="180"></label>
+</section>
+<section class="panel">
+<label>Depth source <select id="depthSource"><option value="auto" selected>AUTO · native if detected</option><option value="native">NATIVE / STEREO</option><option value="inferred">INFERRED</option></select></label>
+<p class="notice" id="depthSourceStatus"><strong>Depth:</strong> waiting for a video source.</p>
+</section>
+<section class="panel">
+<button id="focusMode" class="active" type="button">FOCUS · AUTO</button>
+<button id="clearFocus" type="button" disabled>CLEAR MANUAL FOCUS</button>
+<label>Focus plane <select id="focusPlane"><option value="focus" selected>FOCUS · 1.00×</option><option value="background">BACKGROUND</option><option value="near">NEAR</option><option value="foreground">FOREGROUND</option><option value="far">FAR</option></select></label>
+<p class="notice" id="focusStatus"><strong>Focus:</strong> automatic center reference. Switch to manual, then tap the visible video to anchor focus.</p>
+</section>
+<section class="panel">
+<button id="tiltToggle" type="button">TILT · OFF</button>
+<button id="tiltCalibrate" type="button" disabled>CALIBRATE TILT CENTER</button>
+<label>Tilt strength <output id="tiltStrengthOut">35%</output><input id="tiltStrength" type="range" min="0" max="100" value="35"></label>
+<label>Tilt smoothing <output id="tiltSmoothOut">12%</output><input id="tiltSmooth" type="range" min="3" max="35" value="12"></label>
+<p class="notice" id="tiltStatus"><strong>Tilt:</strong> off. Enabling it requests device-orientation permission on supported phones.</p>
+</section>
+<section class="panel">
+<button id="roomMic" type="button">ROOM MIC · OFF</button>
+<label>Noise inclusion <output id="roomMixOut">35%</output><input id="roomMix" type="range" min="0" max="100" value="35"></label>
+<label>Audio distance <output id="audioDistanceOut">45%</output><input id="audioDistance" type="range" min="0" max="100" value="45"></label>
+<label>Safe digital output <output id="audioCeilingOut">50%</output><input id="audioCeiling" type="range" min="15" max="65" value="50"></label>
+<div class="audio-grid" aria-live="polite">
+<strong>Room level</strong><span id="roomDb">-- dBFS</span>
+<strong>Low / bass</strong><span id="roomLow">-- dBFS</span>
+<strong>Mid</strong><span id="roomMid">-- dBFS</span>
+<strong>High / treble</strong><span id="roomHigh">-- dBFS</span>
+<strong>Output</strong><span id="outputDb" class="safe">-- dBFS</span>
+</div>
+<p class="notice"><strong>Noise inclusion:</strong> the microphone is analysis-only and is never connected to speaker output. Browser acoustic echo cancellation is requested, while noise suppression and automatic gain control are left off so Perceiver can measure the room instead of trying to erase it.</p>
+<p class="notice"><strong>Distance audio:</strong> bass receives the least distance attenuation, mids more, and treble the most. Room-matched boosts are deliberately bounded before a separate dynamics limiter and digital headroom governor.</p>
+<p class="notice"><strong>Hearing safety:</strong> Perceiver can limit digital signal level, but a browser cannot know actual sound pressure at your ear without calibrated hardware. Device volume remains the final safety control.</p>
+</section>
+<section class="panel"><button id="enhanced" class="active" type="button">ENHANCED · ON</button><button id="motionToggle" class="active" type="button">MOVIE MOTION · ON</button><button id="labels" class="active" type="button">TIER LABELS · ON</button><button id="fullscreen" type="button">FULL SCREEN</button></section>
+<section class="panel"><p class="notice"><strong>Model:</strong> auto focus uses the source reference plane until deeper analysis is available. Manual focus can anchor any point and tier. Movie motion and optional device tilt are blended while the selected focal tier remains the zero-motion reference.</p><p class="notice"><strong>Protected streaming:</strong> use the service's normal player and this independent clock. Browser DRM remains untouched.</p><p class="notice"><strong>Local test:</strong> LOCAL VIDEO creates a temporary object URL on this device only; Perceiver does not upload the file.</p><p class="notice"><strong>Built-in test:</strong> TEST VIDEO loads the W3C-hosted Sintel trailer, credited to the Blender Foundation/community. It is used only as an external playback source for this test.</p></section>
+</aside>
+<footer class="bottom"><div class="transport"><button id="rew10">−10s</button><button id="rew1">−1s</button><button id="sync" class="primary">SYNC / PLAY</button><button id="pause">PAUSE</button><button id="reset">RESET</button><button id="fwd1">+1s</button><button id="fwd10">+10s</button></div><div class="readout"><strong id="frame">FRAME 000000</strong><span id="sourceState">External source · focus 1.00×</span></div></footer>
+</main>
+<script src="perceiver-audio.js?v=20260918-audio1"></script>
+<script src="perceiver-spatial.js?v=20260918-focus-tilt1"></script>
+<script>
+(()=>{'use strict';
+const app=document.getElementById('app'),stage=document.getElementById('stage'),video=document.getElementById('video'),plate=document.getElementById('plate'),file=document.getElementById('file'),testVideo=document.getElementById('testVideo'),drawer=document.getElementById('drawer'),settings=document.getElementById('settings'),closeTune=document.getElementById('closeTune'),timecode=document.getElementById('timecode'),frame=document.getElementById('frame'),modePill=document.getElementById('modePill'),sourceState=document.getElementById('sourceState'),depth=document.getElementById('depth'),depthOut=document.getElementById('depthOut'),motion=document.getElementById('motion'),motionOut=document.getElementById('motionOut'),fps=document.getElementById('fps'),enhanced=document.getElementById('enhanced'),motionToggle=document.getElementById('motionToggle'),labels=document.getElementById('labels'),depthSource=document.getElementById('depthSource'),depthSourceStatus=document.getElementById('depthSourceStatus'),roomMic=document.getElementById('roomMic'),roomMix=document.getElementById('roomMix'),roomMixOut=document.getElementById('roomMixOut'),audioDistance=document.getElementById('audioDistance'),audioDistanceOut=document.getElementById('audioDistanceOut'),audioCeiling=document.getElementById('audioCeiling'),audioCeilingOut=document.getElementById('audioCeilingOut'),roomDb=document.getElementById('roomDb'),roomLow=document.getElementById('roomLow'),roomMid=document.getElementById('roomMid'),roomHigh=document.getElementById('roomHigh'),outputDb=document.getElementById('outputDb'),tiers=[...document.querySelectorAll('.tier[data-speed]')];
+const speedInputs={far:document.getElementById('farSpeed'),background:document.getElementById('backgroundSpeed'),near:document.getElementById('nearSpeed'),foreground:document.getElementById('foregroundSpeed')};
+const spatial=window.PerceiverSpatialController?new window.PerceiverSpatialController({
+ stage,video,
+ marker:document.getElementById('focusMarker'),
+ tag:document.getElementById('focusTag'),
+ modeButton:document.getElementById('focusMode'),
+ clearButton:document.getElementById('clearFocus'),
+ planeSelect:document.getElementById('focusPlane'),
+ status:document.getElementById('focusStatus'),
+ tiltButton:document.getElementById('tiltToggle'),
+ calibrateButton:document.getElementById('tiltCalibrate'),
+ strength:document.getElementById('tiltStrength'),
+ smooth:document.getElementById('tiltSmooth'),
+ strengthOut:document.getElementById('tiltStrengthOut'),
+ smoothOut:document.getElementById('tiltSmoothOut'),
+ tiltStatus:document.getElementById('tiltStatus'),
+ speedInputs
+}):null;
+const TEST_VIDEO='https://media.w3.org/2010/05/sintel/trailer.mp4';
+let sourceMode='external',sourceLabel='',objectUrl='',running=false,elapsed=0,anchor=performance.now(),depthMaster=.55,motionMaster=.60,motionEnabled=true;const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const fmtDb=v=>Number.isFinite(v)?v.toFixed(1)+' dBFS':'-- dBFS';
+const audioEngine=window.PerceiverAudioEngine?new window.PerceiverAudioEngine(video,state=>{
+ roomMic.classList.toggle('active',state.mic==='on');
+ roomMic.textContent=state.mic==='on'?'ROOM MIC · ON':state.mic==='denied'?'ROOM MIC · DENIED':state.mic==='unsupported'?'ROOM MIC · N/A':'ROOM MIC · OFF';
+ roomDb.textContent=fmtDb(state.roomDb);roomLow.textContent=fmtDb(state.bands?.low);roomMid.textContent=fmtDb(state.bands?.mid);roomHigh.textContent=fmtDb(state.bands?.high);outputDb.textContent=fmtDb(state.outputDb);
+ outputDb.classList.toggle('warn',Number.isFinite(state.outputDb)&&state.outputDb>-8);
+ outputDb.classList.toggle('safe',!Number.isFinite(state.outputDb)||state.outputDb<=-8);
+}):null;
+function format(ms){ms=Math.max(0,ms);const h=Math.floor(ms/3600000);ms%=3600000;const m=Math.floor(ms/60000);ms%=60000;const s=Math.floor(ms/1000);const x=Math.floor(ms%1000);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}
+function currentMs(){if(sourceMode!=='external')return(video.currentTime||0)*1000;return running?elapsed+(performance.now()-anchor):elapsed}
+function updateReadout(){const ms=currentMs(),rate=parseFloat(fps.value)||24;timecode.textContent=format(ms);frame.textContent=`FRAME ${String(Math.floor(ms/1000*rate)).padStart(6,'0')}`}
+function setRunning(next){const before=currentMs();if(sourceMode!=='external'){running=next;if(next)video.play().catch(()=>{running=false});else video.pause()}else{elapsed=before;running=next;anchor=performance.now()}document.getElementById('sync').classList.toggle('active',running)}
+function seek(delta){if(sourceMode!=='external')video.currentTime=Math.max(0,(video.currentTime||0)+delta/1000);else{elapsed=Math.max(0,currentMs()+delta);anchor=performance.now()}updateReadout()}
+function reset(){setRunning(false);if(sourceMode!=='external')video.currentTime=0;else elapsed=0;anchor=performance.now();updateReadout()}
+function classifyDepth(){
+ const forced=depthSource.value;
+ let mode=forced;
+ if(forced==='auto'){
+  const ratio=video.videoHeight?video.videoWidth/video.videoHeight:0;
+  const hint=(sourceLabel||video.currentSrc||'').toLowerCase();
+  mode=/(stereo|\bsbs\b|side[-_ ]?by[-_ ]?side|3d|vr)/.test(hint)||ratio>2.8||(ratio>.75&&ratio<1.0)?'native':'inferred';
+ }
+ const label=mode==='native'?'NATIVE / STEREO SOURCE':'INFERRED DEPTH SOURCE';
+ depthSourceStatus.innerHTML='<strong>Depth:</strong> '+(sourceMode==='external'?'waiting for a video source.':label+(depthSource.value==='auto'?' · auto-detected':' · selected'));
+ return mode;
+}
+function applyAudioSettings(){
+ roomMixOut.textContent=roomMix.value+'%';audioDistanceOut.textContent=audioDistance.value+'%';audioCeilingOut.textContent=audioCeiling.value+'%';
+ audioEngine?.setRoomInclusion(Number(roomMix.value)/100);
+ audioEngine?.setDistance(Number(audioDistance.value)/100);
+ audioEngine?.setOutputCeiling(Number(audioCeiling.value)/100);
+ try{localStorage.setItem('perceiver.audio.roomMix',roomMix.value);localStorage.setItem('perceiver.audio.distance',audioDistance.value);localStorage.setItem('perceiver.audio.ceiling',audioCeiling.value);localStorage.setItem('perceiver.depthSource',depthSource.value)}catch{}
+ classifyDepth();
+}
+function activateSource(src,label,mode='remote'){
+ if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=''}
+ sourceLabel=label||src;sourceMode=mode;video.pause();running=false;video.src=src;video.classList.add('active');plate.hidden=true;modePill.textContent=mode==='local'?'LOCAL VIDEO':'TEST VIDEO';sourceState.textContent=sourceLabel+' · focus 1.00×';video.load();updateReadout();classifyDepth();
+}
+function speedFor(name){return Number(speedInputs[name].value)/100}
+function applySettings(){depthMaster=Number(depth.value)/100;motionMaster=Number(motion.value)/100;depthOut.textContent=`${depth.value}%`;motionOut.textContent=`${motion.value}%`;for(const tier of tiers){const name=tier.dataset.tier;const speed=speedFor(name);tier.dataset.speed=speed.toFixed(2);tier.querySelector('.depth-tag').textContent=`${name==='far'?'T1 · FAR':name==='background'?'T2 · BACKGROUND':name==='near'?'T4 · NEAR':'T5 · FOREGROUND'} · ${speed.toFixed(2)}×`;document.getElementById(name+'Out').textContent=speed.toFixed(2)+'×';document.getElementById(name+'SliderOut').textContent=speed.toFixed(2)+'×'}spatial?.renderFocus?.();try{localStorage.setItem('perceiver.depth',depth.value);localStorage.setItem('perceiver.motion',motion.value);for(const [name,input] of Object.entries(speedInputs))localStorage.setItem('perceiver.speed.'+name,input.value)}catch{}}
+function setEnhanced(on){app.classList.toggle('enhanced-off',!on);enhanced.classList.toggle('active',on);enhanced.textContent=on?'ENHANCED · ON':'ORIGINAL · NO TIERS';enhanced.setAttribute('aria-pressed',String(on));try{localStorage.setItem('perceiver.enhanced',on?'1':'0')}catch{}}
+function setLabels(on){stage.classList.toggle('calibration-off',!on);labels.classList.toggle('active',on);labels.textContent=on?'TIER LABELS · ON':'TIER LABELS · OFF';labels.setAttribute('aria-pressed',String(on));try{localStorage.setItem('perceiver.labels',on?'1':'0')}catch{}}
+function setMotion(on){motionEnabled=on;motionToggle.classList.toggle('active',on);motionToggle.textContent=on?'MOVIE MOTION · ON':'MOVIE MOTION · PAUSED';motionToggle.setAttribute('aria-pressed',String(on));try{localStorage.setItem('perceiver.motionEnabled',on?'1':'0')}catch{}}
+function animate(){const seconds=currentMs()/1000;const amount=motionEnabled?motionMaster:0;const movieX=(Math.sin(seconds*.72)+.35*Math.sin(seconds*.19))*52*amount;const movieY=(Math.sin(seconds*.41)+.28*Math.sin(seconds*.13))*22*amount;const tilt=spatial?.offsets?.()||{x:0,y:0};const cameraX=movieX+tilt.x,cameraY=movieY+tilt.y,reference=spatial?.focusSpeed?.()??1;for(const tier of tiers){const speed=Number(tier.dataset.speed)||1;const relative=speed-reference;const x=cameraX*relative*depthMaster;const y=cameraY*relative*depthMaster;const scale=1+Math.abs(relative)*.035*depthMaster;if(spatial?.focus){tier.style.transformOrigin=(spatial.focus.x*100).toFixed(1)+'% '+(spatial.focus.y*100).toFixed(1)+'%'}tier.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) scale(${scale.toFixed(4)})`}updateReadout();requestAnimationFrame(animate)}
+file.addEventListener('change',()=>{const f=file.files?.[0];if(!f)return;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(f);sourceLabel=f.name;sourceMode='local';video.pause();running=false;video.src=objectUrl;video.classList.add('active');plate.hidden=true;modePill.textContent='LOCAL VIDEO';sourceState.textContent=f.name+' · focus 1.00×';video.load();updateReadout();classifyDepth()});
+testVideo.addEventListener('click',()=>activateSource(TEST_VIDEO,'Sintel trailer · W3C / Blender Foundation','test'));
+video.addEventListener('loadedmetadata',classifyDepth);video.addEventListener('play',()=>running=true);video.addEventListener('pause',()=>running=false);video.addEventListener('ended',()=>running=false);
+document.getElementById('sync').onclick=async()=>{try{await audioEngine?.resume?.()}catch{}setRunning(true)};document.getElementById('pause').onclick=()=>setRunning(false);document.getElementById('reset').onclick=reset;document.getElementById('rew10').onclick=()=>seek(-10000);document.getElementById('rew1').onclick=()=>seek(-1000);document.getElementById('fwd1').onclick=()=>seek(1000);document.getElementById('fwd10').onclick=()=>seek(10000);settings.onclick=()=>{drawer.hidden=!drawer.hidden;settings.setAttribute('aria-expanded',String(!drawer.hidden))};closeTune.onclick=()=>{drawer.hidden=true;settings.setAttribute('aria-expanded','false');settings.focus()};depth.oninput=applySettings;motion.oninput=applySettings;for(const input of Object.values(speedInputs))input.oninput=applySettings;fps.onchange=updateReadout;depthSource.onchange=applyAudioSettings;roomMix.oninput=applyAudioSettings;audioDistance.oninput=applyAudioSettings;audioCeiling.oninput=applyAudioSettings;roomMic.onclick=async()=>{if(!audioEngine)return;if(audioEngine.micStream)audioEngine.disableMicrophone();else await audioEngine.enableMicrophone()};enhanced.onclick=()=>setEnhanced(app.classList.contains('enhanced-off'));motionToggle.onclick=()=>setMotion(!motionEnabled);labels.onclick=()=>setLabels(stage.classList.contains('calibration-off'));document.getElementById('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch{}};document.getElementById('back').onclick=()=>{if(history.length>1)history.back();else location.href='/'};
+try{const d=localStorage.getItem('perceiver.depth');if(d!==null)depth.value=d;const m=localStorage.getItem('perceiver.motion');if(m!==null)motion.value=m;for(const [name,input] of Object.entries(speedInputs)){const saved=localStorage.getItem('perceiver.speed.'+name);if(saved!==null)input.value=saved}const rm=localStorage.getItem('perceiver.audio.roomMix');if(rm!==null)roomMix.value=rm;const ad=localStorage.getItem('perceiver.audio.distance');if(ad!==null)audioDistance.value=ad;const ac=localStorage.getItem('perceiver.audio.ceiling');if(ac!==null)audioCeiling.value=ac;const ds=localStorage.getItem('perceiver.depthSource');if(ds!==null)depthSource.value=ds;setEnhanced(localStorage.getItem('perceiver.enhanced')!=='0');setLabels(localStorage.getItem('perceiver.labels')!=='0');setMotion(localStorage.getItem('perceiver.motionEnabled')!=='0')}catch{setEnhanced(true);setLabels(true);setMotion(true)}applySettings();applyAudioSettings();updateReadout();requestAnimationFrame(animate);window.addEventListener('keydown',event=>{if(event.key==='Escape'&&!drawer.hidden){drawer.hidden=true;settings.setAttribute('aria-expanded','false');settings.focus()}});window.addEventListener('beforeunload',()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);audioEngine?.destroy?.();spatial?.destroy?.()});
+})();
+</script>
+</body>
+</html>
