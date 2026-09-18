@@ -118,7 +118,7 @@ else
     </button>
     <button type="button" class="launcher-fullscreen" @onclick="HardRefreshAsync">
      <strong>HARD REFRESH</strong>
-     <small>Reload the site with a fresh cache-busting request.</small>
+     <small>Clear app caches and service workers, then reload the newest build without deleting your account or world data.</small>
     </button>
    </section>
    <section class="launcher-settings-group" aria-label="Graphics settings">
@@ -126,6 +126,10 @@ else
     <button type="button" class="launcher-fullscreen" @onclick="ToggleFullscreenAsync">
      <strong>@(_fullscreen?"EXIT FULL SCREEN":"FULL SCREEN")</strong>
      <small>@(_fullscreen?"Return to browser window":"Use the maximum available display area")</small>
+    </button>
+    <button type="button" class="launcher-fullscreen" @onclick="ToggleParallaxAsync">
+     <strong>PARALLAX @(_parallaxEnabled?"ON":"OFF")</strong>
+     <small>@(_parallaxEnabled?"Layered motion depth is enabled.":"Layered motion depth is disabled.")</small>
     </button>
     @if(!_fullscreenSupported){<p class="launcher-settings-note">This browser does not expose programmable full screen. Platform/browser display controls may still provide it.</p>}
    </section>
@@ -313,6 +317,21 @@ else
   try{_parallaxEnabled=await JS.InvokeAsync<bool>("ristParallax.isEnabled");}catch{}
   try{_audioEnabled=await JS.InvokeAsync<bool>("ristMediaSettings.isAudioEnabled");}catch{}
   try{_videoEnabled=await JS.InvokeAsync<bool>("ristMediaSettings.isVideoEnabled");}catch{}
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ToggleParallaxAsync()
+ {
+  try
+  {
+   _parallaxEnabled=await JS.InvokeAsync<bool>("ristParallax.setEnabled",!_parallaxEnabled);
+   await JS.InvokeAsync<bool>("ristParallax.setActive",_parallaxEnabled);
+   if(_parallaxEnabled)
+   {
+    try{_motionStatus=await JS.InvokeAsync<string>("ristMotionPermission.request");_motionSupported=_motionStatus!="unsupported";}catch{}
+   }
+  }
+  catch{}
   await InvokeAsync(StateHasChanged);
  }
 
