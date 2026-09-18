@@ -5,6 +5,12 @@
 @if (!_workspaceOpen)
 {
  <main class="launcher-hub @(_parallaxEnabled?"koi-parallax-on":"")" aria-label="Shaelvien launcher">
+  <div class="launcher-depth-scene" aria-hidden="true">
+   <span class="launcher-depth-layer launcher-depth-stars"></span>
+   <span class="launcher-depth-layer launcher-depth-aura"></span>
+   <span class="launcher-depth-layer launcher-depth-orbits"></span>
+   <span class="launcher-depth-layer launcher-depth-world"></span>
+  </div>
   <div class="launcher-koi-parallax" aria-hidden="true">
    <span class="launcher-koi-track launcher-koi-far"><i class="launcher-koi-body"></i></span>
    <span class="launcher-koi-track launcher-koi-near"><i class="launcher-koi-body"></i></span>
@@ -193,6 +199,28 @@ else
  @@keyframes launcher-koi-near-drift{from{transform:translate3d(8px,4px,0) scale(1.04) rotate(3deg)}to{transform:translate3d(-52px,-22px,0) scale(1.14) rotate(-5deg)}}
  @@media(prefers-reduced-motion:reduce){.launcher-koi-track{animation:none!important}}
  @@media(max-width:620px){.launcher-world-selectbar{width:calc(100% - 18px);margin-top:6px}.launcher-koi-parallax{height:330px}.launcher-koi-track{width:150px;height:60px;opacity:.19}.launcher-koi-far{top:70px}.launcher-koi-near{top:112px}}
+ .launcher-hub{--rist-parallax-far-x:0px;--rist-parallax-far-y:0px;--rist-parallax-mid-x:0px;--rist-parallax-mid-y:0px;--rist-parallax-near-x:0px;--rist-parallax-near-y:0px}
+ .launcher-depth-scene{position:absolute;z-index:0;left:0;right:0;top:38px;height:min(58dvh,560px);overflow:hidden;pointer-events:none;perspective:900px;-webkit-mask-image:linear-gradient(180deg,#000 0 72%,transparent 100%);mask-image:linear-gradient(180deg,#000 0 72%,transparent 100%)}
+ .launcher-depth-layer{position:absolute;display:block;pointer-events:none;will-change:transform,opacity}
+ .launcher-depth-stars{inset:-8%;opacity:.34;background-image:radial-gradient(circle,#d9efff 0 1px,transparent 1.5px),radial-gradient(circle,#ffe3a2 0 1px,transparent 1.6px),radial-gradient(circle,#8bcfff 0 .8px,transparent 1.35px);background-size:83px 79px,137px 121px,59px 67px;background-position:11px 7px,43px 19px,23px 41px;transform:translate3d(var(--rist-parallax-far-x),var(--rist-parallax-far-y),0) scale(1.05)}
+ .launcher-depth-aura{inset:2% -8% 8%;opacity:.78;background:radial-gradient(ellipse at 18% 38%,rgba(17,105,169,.22) 0 18%,transparent 49%),radial-gradient(ellipse at 82% 39%,rgba(206,144,47,.19) 0 18%,transparent 49%),radial-gradient(ellipse at 50% 45%,rgba(111,157,186,.07),transparent 58%);filter:blur(7px);transform:translate3d(var(--rist-parallax-far-x),var(--rist-parallax-far-y),0) scale(1.06)}
+ .launcher-depth-orbits{left:50%;top:45%;width:min(92vw,760px);aspect-ratio:1.72;border:1px solid rgba(224,198,132,.12);border-radius:50%;box-shadow:0 0 0 32px rgba(93,144,174,.028),0 0 0 74px rgba(219,171,74,.022),0 0 54px rgba(85,153,194,.10);transform:translate3d(calc(-50% + var(--rist-parallax-mid-x)),calc(-50% + var(--rist-parallax-mid-y)),0) rotate(-3deg)}
+ .launcher-depth-orbits:before,.launcher-depth-orbits:after{content:"";position:absolute;inset:12%;border:1px solid rgba(117,174,207,.10);border-radius:50%;transform:rotate(11deg)} .launcher-depth-orbits:after{inset:27%;border-color:rgba(220,177,86,.12);transform:rotate(-18deg)}
+ .launcher-depth-world{left:50%;bottom:-72%;width:min(126vw,980px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 34% 19%,rgba(47,121,157,.18),transparent 32%),radial-gradient(circle at 67% 18%,rgba(181,126,42,.15),transparent 34%),linear-gradient(180deg,rgba(20,44,59,.23),rgba(6,15,22,.04) 34%,transparent 56%);border:1px solid rgba(199,174,112,.10);box-shadow:0 -20px 55px rgba(45,112,151,.08),inset 0 36px 80px rgba(213,157,59,.035);transform:translate3d(calc(-50% + var(--rist-parallax-mid-x)),var(--rist-parallax-mid-y),0) scale(1.03)}
+ .launcher-koi-far{transform:translate3d(calc(6px + var(--rist-parallax-mid-x)),calc(3px + var(--rist-parallax-mid-y)),0) scale(.9) rotate(-3deg)}
+ .launcher-koi-near{transform:translate3d(calc(-8px + var(--rist-parallax-near-x)),calc(-2px + var(--rist-parallax-near-y)),0) scale(1.08) rotate(-2deg)}
+ .launcher-hero:before{will-change:transform;transform:translate3d(var(--rist-parallax-near-x),var(--rist-parallax-near-y),0) rotate(-10deg)}
+ .launcher-hero:after{will-change:transform;transform:translate3d(calc(-1 * var(--rist-parallax-near-x)),var(--rist-parallax-near-y),0) scaleX(-1) rotate(-10deg)}
+ .koi-parallax-on .launcher-depth-stars{animation:launcher-depth-stars-shimmer 7s ease-in-out infinite alternate}
+ .koi-parallax-on .launcher-depth-aura{animation:launcher-depth-aura-breathe 8.5s ease-in-out infinite alternate}
+ .koi-parallax-on .launcher-koi-far{animation:launcher-depth-koi-far-drift 17s ease-in-out infinite alternate}
+ .koi-parallax-on .launcher-koi-near{animation:launcher-depth-koi-near-drift 11s ease-in-out infinite alternate}
+ @@keyframes launcher-depth-stars-shimmer{from{opacity:.24;background-position:11px 7px,43px 19px,23px 41px}to{opacity:.40;background-position:15px 10px,39px 22px,26px 37px}}
+ @@keyframes launcher-depth-aura-breathe{from{opacity:.62}to{opacity:.86}}
+ @@keyframes launcher-depth-koi-far-drift{from{transform:translate3d(calc(-10px + var(--rist-parallax-mid-x)),var(--rist-parallax-mid-y),0) scale(.88) rotate(-7deg)}to{transform:translate3d(calc(42px + var(--rist-parallax-mid-x)),calc(18px + var(--rist-parallax-mid-y)),0) scale(.94) rotate(4deg)}}
+ @@keyframes launcher-depth-koi-near-drift{from{transform:translate3d(calc(8px + var(--rist-parallax-near-x)),calc(4px + var(--rist-parallax-near-y)),0) scale(1.04) rotate(3deg)}to{transform:translate3d(calc(-52px + var(--rist-parallax-near-x)),calc(-22px + var(--rist-parallax-near-y)),0) scale(1.14) rotate(-5deg)}}
+ @@media(prefers-reduced-motion:reduce){.launcher-depth-stars,.launcher-depth-aura,.launcher-koi-track{animation:none!important}}
+ @@media(max-width:620px){.launcher-depth-scene{top:34px;height:390px}.launcher-depth-orbits{top:49%;width:112vw}.launcher-depth-world{bottom:-77%;width:145vw}.launcher-depth-stars{opacity:.26}.launcher-depth-aura{filter:blur(5px)}}
  .launcher-card:disabled,.launcher-secondary button:disabled,.launcher-enter:disabled{opacity:.34!important;filter:grayscale(.8);cursor:not-allowed}.launcher-card:disabled:hover,.launcher-secondary button:disabled:hover{transform:none!important}
  .launcher-hub .rist-card-index-launcher{display:none!important}
  .accessibility-shell-card{border-color:#88b9d0!important;background:linear-gradient(145deg,#102735,#0a171f)!important}.accessibility-shell-card strong{color:#dff5ff!important}.accessibility-shell-card small{color:#bad5df!important}
