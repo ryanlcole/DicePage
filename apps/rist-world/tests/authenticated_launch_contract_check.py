@@ -28,6 +28,8 @@ def main() -> None:
     rist = (ROOT / "wwwroot" / "rist.js").read_text(encoding="utf-8")
     compat = (ROOT / "wwwroot" / "auth-session-compat.js").read_text(encoding="utf-8")
     discord = (ROOT / "DiscordAuthClient.cs").read_text(encoding="utf-8")
+    world_authority = (ROOT / "WorldSession.WorldAuthority.cs").read_text(encoding="utf-8")
+    platform_authority = (ROOT.parents[1] / "infra" / "aws" / "rist-platform-authority" / "app.py").read_text(encoding="utf-8")
     auth_template = (ROOT.parents[1] / "infra" / "aws" / "rist-discord-storage.yml").read_text(encoding="utf-8")
 
     # Provider session -> Press Start -> mandatory world choice -> landing.
@@ -108,6 +110,11 @@ def main() -> None:
     require(compat, "installSessionExpiry", "compat auth must delegate to provider expiry")
     require(auth_template, '"provider": "discord"', "Discord sessions must identify their provider")
     require(auth_template, '"sessionExpiresAt": session_item["expiresAt"]', "Discord handoff must expose authoritative expiry")
+    require(world_authority, "GetProfileAsync()", "world authority must read trusted platform-owner status")
+    require(world_authority, "profile?.PlatformOwner == true", "platform owner must receive trusted worldbuilder authority")
+    require(world_authority, "_trustedPlatformOwner || IsTrustedWorldBuilderRole", "worldbuilder authority must accept platform owner or GM/owner membership")
+    require(platform_authority, '"effectiveAuthority": "platformOwner"', "authority API must expose platform owner as effective world owner")
+    require(authenticated, "await Session.RefreshTrustedWorldAuthorityAsync();\n  _launchWorldChosen=true;", "initial launcher must wait for trusted authority resolution")
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
