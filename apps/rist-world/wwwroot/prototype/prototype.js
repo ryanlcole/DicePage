@@ -766,7 +766,7 @@ function refreshUserLabel(item){
   item.node.style.left=`${item.x*naturalWidth}px`;
   item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity??1);
-  item.node.style.pointerEvents=item.committed&&selectedImage!==item?'none':'auto';
+  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.anchor='world';
   item.node.dataset.presentationOffsetX=String(Number(item.offsetX)||0);
@@ -791,7 +791,7 @@ function labelInput(value,placeholder,onInput,onEnter){
   return input;
 }
 function labelSelection(){
-  const labels=userLayers.filter(item=>item?.kind==='label'&&item.node);
+  const labels=userLayers.filter(item=>item?.kind==='label'&&item.node&&!item.sourceLocked);
   const select=document.createElement('select');select.className='placed-content-select';select.setAttribute('aria-label','Select placed label');
   const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=labels.length?'Select label…':'No labels placed';placeholder.selected=selectedImage?.kind!=='label';select.appendChild(placeholder);
   labels.forEach((item,index)=>{
@@ -880,6 +880,7 @@ function refreshUserImage(item){
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
+  if(item?.sourceLocked){announce('World source assets are locked in Region Definer.');return}
   const previous=selectedImage;
   previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
@@ -899,7 +900,7 @@ function placedContentLabel(item,index){
   return `${index+1}. ${name} · T${pos.tier} L${pos.layer} · X${pos.x} Y${pos.y}`;
 }
 function selectablePlacedContent(){
-  return userLayers.filter(item=>item?.node);
+  return userLayers.filter(item=>item?.node&&(!REGION_DEFINER||!item.sourceLocked));
 }
 function cyclePlacedSelection(delta=1){
   const items=selectablePlacedContent();
@@ -922,9 +923,11 @@ function placedContentSelect(){
   return select;
 }
 function removeSelectedImage(){
-  if(READ_ONLY)return;if(!selectedImage)return;const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
+  if(READ_ONLY)return;if(!selectedImage)return;
+  if(selectedImage.sourceLocked){announce('World source assets are locked in Region Definer.');return}
+  const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
-  if(READ_ONLY)return;
+  if(READ_ONLY||item?.sourceLocked)return;
   if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   suspendRegionEnhancement();
