@@ -76,7 +76,7 @@ public sealed partial class WorldSession
                 request = await client.SubmitClaimRequestAsync(new AwsAuthorityClient.WorldClaimRequestCreate(
                     WorldId,
                     requesterUserId,
-                    auth.Account?.PlayerAlias ?? auth.Profile?.Username ?? requesterUserId,
+                    auth.Account?.PlayerAlias ?? auth.Profile?.DisplayName ?? requesterUserId,
                     workspace,
                     tierIndex,
                     cells,
