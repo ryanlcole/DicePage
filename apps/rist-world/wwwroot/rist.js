@@ -220,6 +220,16 @@ window.ristLaunch={
   document.querySelectorAll('.rist-game-start').forEach(el=>{el.hidden=true;});
   return true;
  },
+ pressStart:async(persistPreferences=false)=>{
+  window.ristLaunch.clearLegacyStartState();
+  let experience=[true,true,true];
+  try{experience=window.ristMediaSettings?.initializeAtStart?.(!!persistPreferences)||experience}catch{}
+  if(experience[0]){
+   try{await window.ristMotionPermission?.request?.()}catch{}
+  }
+  dispatchEvent(new CustomEvent('rist:press-start',{detail:{parallax:!!experience[0],audio:!!experience[1],video:!!experience[2]}}));
+  return experience;
+ },
  hardRefresh:async()=>{
   try{if('caches' in window){const names=await caches.keys();await Promise.all(names.map(name=>caches.delete(name)));}}catch{}
   const query=new URLSearchParams(location.search);
