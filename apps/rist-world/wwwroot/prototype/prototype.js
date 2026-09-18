@@ -297,6 +297,11 @@ async function attachRestoredLayer(raw){
   node.addEventListener('load',()=>{refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
   userLayers.push(item);world.appendChild(node);refreshUserImage(item);
   if(item.committed&&isSprite&&frameSources.length>1)startSpriteMotion(item);
+  if(!item.personalAssetKey&&!item.assetId){
+    item.personalUploadPromise=trackPersonalUpload(
+      promoteRestoredLayerToPersonal(item).catch(()=>null)
+    );
+  }
   return item;
 }
 async function restoreSavedWorldBuilder(){
@@ -1033,6 +1038,32 @@ async function saveFileToPersonalLibrary(file,metadata={}){
   const asset=normalizePersonalAsset(entry,await personalDownloadUrl(key));
   personalAssets=[asset,...personalAssets.filter(existing=>existing.key!==key)];
   renderKeyboardKeys();
+  return asset;
+}
+function personalExtensionForType(type){
+  return String(type||'').toLowerCase() switch{
+    'image/jpeg'=>'.jpg',
+    'image/webp'=>'.webp',
+    'image/gif'=>'.gif',
+    _=>'.png'
+  };
+}
+async function promoteRestoredLayerToPersonal(item){
+  if(!item||item.personalAssetKey||item.assetId)return null;
+  const source=String(item.kind==='sprite'?(item.spriteSheetSrc||''):(item.originalSrc||''));
+  if(!source.startsWith('data:image/'))return null;
+  const blob=await (await fetch(source)).blob();
+  const base=personalSafeFileName(item.name|| (item.kind==='sprite'?'Saved sprite':'Saved image')).replace(/\.[^.]+$/,'');
+  const file=new File([blob],base+personalExtensionForType(blob.type),{type:blob.type||'image/png'});
+  const category=item.kind==='sprite'?'Sprites':'Images',folder=item.kind==='sprite'?'My Sprites':'My Images';
+  const asset=await saveFileToPersonalLibrary(file,{
+    category,folder,assetKind:item.kind==='sprite'?'sprite':'image',name:item.name||base,
+    columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,fps:item.spriteFps||0,
+    sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,
+    cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,whiteTransparent:item.spriteWhiteTransparent!==false
+  });
+  item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;
+  announce(`${item.name||'Saved upload'} migrated into ${folder}.`);
   return asset;
 }
 function personalAssetsFor(type){
