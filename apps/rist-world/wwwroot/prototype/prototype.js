@@ -420,19 +420,17 @@ async function saveWorldBuilder(){
       await Promise.allSettled([...pendingPersonalUploads]);
     }
     const editableLayers=REGION_DEFINER?userLayers.filter(item=>!item.sourceLocked):userLayers;
-    const state=REGION_DEFINER
-      ?{
-        format:'RIST_REGIONDEFINER_OVERLAYS',
-        version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
-        viewerTier,viewerLayer,
-        sourceLayerVisibility:serializeRegionWorldLayerVisibility(),
-        regionGridShape,
-        claimedRegionId:String(regionClaimedRegion?.id||pendingClaimedRegionId||''),
-        userLayers:editableLayers.map(serializableUserLayer)
-      }
-      :worldBuilderSourceState(editableLayers);
-    if(!REGION_DEFINER&&LIVE_WORLDBUILDER&&window.parent!==window)await saveWorldSourceToDatabase(state);
-    await writeSavedWorldBuilder(state,REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY);
+    const serializedLayers=editableLayers.map(item=>{
+      if(REGION_DEFINER&&!item.regionId)item.regionId=activeRegionMapId();
+      return serializableUserLayer(item);
+    });
+    const state=REGION_DEFINER?null:worldBuilderSourceState(editableLayers);
+    if(REGION_DEFINER){
+      await saveRegionMapToDatabase(serializedLayers);
+    }else{
+      if(LIVE_WORLDBUILDER&&window.parent!==window)await saveWorldSourceToDatabase(state);
+      await writeSavedWorldBuilder(state,WORLD_SOURCE_SAVE_KEY);
+    }
     for(const item of editableLayers){
       item.committed=true;refreshUserImage(item);
       if(item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length>1)startSpriteMotion(item);
@@ -442,8 +440,8 @@ async function saveWorldBuilder(){
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
     announce(REGION_DEFINER
-      ? `Regional overlays saved. ${state.userLayers.length} regional item${state.userLayers.length===1?'':'s'} committed; world source unchanged.`
-      : `World Builder saved. ${state.userLayers.length} placed item${state.userLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
+      ? `Saved ${serializedLayers.length} regional item${serializedLayers.length===1?'':'s'} directly onto the canonical world map. Perspective and permissions changed; the map did not.`
+      : `World Builder saved. ${serializedLayers.length} placed item${serializedLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
     return true;
   }catch(error){
     announce(`Save failed: ${String(error?.message||error||'unknown error')}`);
