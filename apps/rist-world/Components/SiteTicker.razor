@@ -3,18 +3,22 @@
 @inject IJSRuntime JS
 @using System.Text.Json
 
-<button type="button" class="site-ticker-root" aria-label="Open Start Menu" @onclick="OpenStartMenu">
- <span class="site-ticker-track" aria-hidden="true">
-  @for(var repeat=0;repeat<2;repeat++)
-  {
-   @foreach(var item in _tickerButtons)
+@if(Session.HasActiveWorld)
+{
+ <button type="button" class="site-ticker-root" aria-label="Open Start Menu" @onclick="OpenStartMenu">
+  <span class="site-ticker-track" aria-hidden="true">
+   @for(var repeat=0;repeat<2;repeat++)
    {
-    <span class="site-ticker-chip">@item</span>
+    @foreach(var item in _tickerButtons)
+    {
+     <span class="site-ticker-chip">@item</span>
+    }
    }
-  }
- </span>
- <span class="site-ticker-accessible">Open Start Menu. Ticker: @string.Join(", ",_tickerButtons)</span>
-</button>
+  </span>
+  <span class="site-ticker-accessible">Open Start Menu. Ticker: @string.Join(", ",_tickerButtons)</span>
+ </button>
+ 
+}
 
 <style>
  .site-ticker-root{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:100%;height:20px;min-height:20px;padding:0;overflow:hidden;border:0;border-bottom:1px solid rgba(113,91,45,.5);background:transparent;color:#e4c97d;position:relative;z-index:2147482000;text-align:left;cursor:pointer;touch-action:manipulation}
@@ -28,11 +32,18 @@
 </style>
 
 @code {
- const string TickerStorageKey="rist.worldbuilder.ticker.buttons.v1";
- readonly List<string> _tickerButtons=["WORLD","BUILD","UPLOAD","WEATHER","SKY","METADATA"];
+ readonly List<string> _tickerButtons=[];
+ string _loadedWorldId="";
 
  [Parameter] public string Context { get; set; } = "SHAELVIEN";
  [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ string TickerStorageKey => $"rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}";
+ IEnumerable<string> DefaultTicker()
+ {
+  var world=string.IsNullOrWhiteSpace(Session.WorldDisplayName)?"WORLD":Session.WorldDisplayName.Trim().ToUpperInvariant();
+  return [world,"BUILD","UPLOAD","WEATHER","METADATA"];
+ }
 
  Task OpenStartMenu()=>OnStartMenu.InvokeAsync();
 
@@ -40,7 +51,11 @@
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
-  if(!firstRender)return;
+  if(!Session.HasActiveWorld){_loadedWorldId="";return;}
+  if(string.Equals(_loadedWorldId,Session.WorldId,StringComparison.Ordinal))return;
+  _loadedWorldId=Session.WorldId;
+  _tickerButtons.Clear();
+  _tickerButtons.AddRange(DefaultTicker());
   try
   {
    var raw=await JS.InvokeAsync<string?>("localStorage.getItem",TickerStorageKey);
@@ -51,14 +66,14 @@
     {
      _tickerButtons.Clear();
      _tickerButtons.AddRange(saved.Where(x=>!string.IsNullOrWhiteSpace(x)).Select(x=>x.Trim()).Take(12));
-     if(_tickerButtons.Count==0)_tickerButtons.AddRange(["WORLD","BUILD","UPLOAD","WEATHER","SKY","METADATA"]);
-     await InvokeAsync(StateHasChanged);
+     if(_tickerButtons.Count==0)_tickerButtons.AddRange(DefaultTicker());
     }
    }
   }
   catch{}
+  await InvokeAsync(StateHasChanged);
  }
 
- void Refresh()=>InvokeAsync(StateHasChanged);
+ void Refresh()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=Refresh;
 }
