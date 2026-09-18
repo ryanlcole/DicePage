@@ -40,8 +40,8 @@
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
-   <button type="button" class="launcher-card world" disabled="@(!CanBuildWorld)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":"Build access required for this world.")</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":Session.IsGeonaphWorld?"View Endemar Worldbuilder layout reference.":"Build access required for this world.")</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>@(CanBuildWorld?"Define regions from published world tiles.":"View the RegionDefiner layout as a read-only reference.")</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenPerceiver" aria-label="Open Perceiver cinematic motion parallax"><span class="card-icon" aria-hidden="true">◉</span><strong>PERCEIVER</strong><small>Cinematic depth using tier motion speed relative to the focal plane.</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
@@ -252,6 +252,7 @@ else
 
  bool WorldReady=>Session.HasActiveWorld;
  bool CanBuildWorld=>WorldReady&&Session.HasTrustedWorldBuilderAuthority;
+ bool CanOpenWorldBuilder=>CanBuildWorld||(WorldReady&&Session.IsGeonaphWorld);
  string LandingWorldValue=>WorldReady?Session.WorldId:"";
  string TickerStorageKey=>WorldReady?$"rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}":"";
  string DefaultTickerText=>WorldReady?$"{Session.WorldDisplayName.Trim().ToUpperInvariant()}\nBUILD\nUPLOAD\nWEATHER\nMETADATA":"";
@@ -459,7 +460,7 @@ else
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenPerceiver()=>Navigation.NavigateTo("/perceiver/index.html",forceLoad:true);
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
- void OpenWorldbuilding(){if(!CanBuildWorld)return;OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
+ void OpenWorldbuilding(){if(!CanOpenWorldBuilder)return;OpenWorkspace("world","WORLDBUILDER",CanBuildWorld?"WORLD → TIER → LAYER → CUBE":"ENDEMAR → VIEW ONLY → REFERENCE");}
  async Task CloseWorldGate(){
   if(!Session.HasActiveWorld)return;
   _worldGateOpen=false;
