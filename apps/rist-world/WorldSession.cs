@@ -178,8 +178,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
                 var cropRight=(column+1)*sourceWidth/GridColumns;
                 var id=$"geonaph-map-{row:00}-{column:00}";
                 if(AtlasTiles.Any(x=>x.Id==id))continue;
-                AtlasTiles.Add(new(id,$"Geonaph {row+1},{column+1}",WorldMapUrl,
-                    "WORLD","World Themes","Geonaph","Shaelvien",
+                AtlasTiles.Add(new(id,$"Jeyrusal {row+1},{column+1}",WorldMapUrl,
+                    "WORLD","World Themes","Jeyrusal","Endemar",
                     sourceWidth,sourceHeight,cropX,cropY,cropRight-cropX,cropBottom-cropY));
             }
         }
