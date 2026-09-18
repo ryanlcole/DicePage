@@ -228,21 +228,21 @@ function openSaveDb(){
     request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('Save database unavailable'));
   });
 }
-async function writeSavedWorldBuilder(state){
+async function writeSavedWorldBuilder(state,key=WORLDBUILDER_SAVE_KEY){
   const db=await openSaveDb();
   try{
     await new Promise((resolve,reject)=>{
       const tx=db.transaction(WORLDBUILDER_SAVE_STORE,'readwrite');
-      tx.objectStore(WORLDBUILDER_SAVE_STORE).put(state,WORLDBUILDER_SAVE_KEY);
+      tx.objectStore(WORLDBUILDER_SAVE_STORE).put(state,key);
       tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||new Error('Save failed'));tx.onabort=()=>reject(tx.error||new Error('Save aborted'));
     });
   }finally{db.close()}
 }
-async function readSavedWorldBuilder(){
+async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
   const db=await openSaveDb();
   try{
     return await new Promise((resolve,reject)=>{
-      const tx=db.transaction(WORLDBUILDER_SAVE_STORE,'readonly'),request=tx.objectStore(WORLDBUILDER_SAVE_STORE).get(WORLDBUILDER_SAVE_KEY);
+      const tx=db.transaction(WORLDBUILDER_SAVE_STORE,'readonly'),request=tx.objectStore(WORLDBUILDER_SAVE_STORE).get(key);
       request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error||new Error('Load failed'));
     });
   }finally{db.close()}
@@ -276,15 +276,17 @@ async function saveWorldBuilder(){
   persistentSave.disabled=true;persistentSave.classList.add('saving');persistentSave.classList.remove('saved');
   try{
     if(pendingPersonalUploads.size){
-      announce(`Saving ${pendingPersonalUploads.size} personal upload${pendingPersonalUploads.size===1?'':'s'} before committing the world…`);
+      announce(`Saving ${pendingPersonalUploads.size} personal upload${pendingPersonalUploads.size===1?'':'s'} before committing the ${REGION_DEFINER?'region':'world'}…`);
       await Promise.allSettled([...pendingPersonalUploads]);
     }
+    const editableLayers=REGION_DEFINER?userLayers.filter(item=>!item.sourceLocked):userLayers;
     const state={
-      format:'RIST_WORLDBUILDER_PROTOTYPE',version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
-      viewerTier,viewerLayer,userLayers:userLayers.map(serializableUserLayer)
+      format:REGION_DEFINER?'RIST_REGIONDEFINER_OVERLAYS':'RIST_WORLDBUILDER_PROTOTYPE',
+      version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
+      viewerTier,viewerLayer,userLayers:editableLayers.map(serializableUserLayer)
     };
-    await writeSavedWorldBuilder(state);
-    for(const item of userLayers){
+    await writeSavedWorldBuilder(state,REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY);
+    for(const item of editableLayers){
       item.committed=true;refreshUserImage(item);
       if(item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length>1)startSpriteMotion(item);
     }
@@ -292,7 +294,9 @@ async function saveWorldBuilder(){
     deselectUserImage(false);
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
-    announce(`World Builder saved. ${state.userLayers.length} placed item${state.userLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
+    announce(REGION_DEFINER
+      ? `Regional overlays saved. ${state.userLayers.length} regional item${state.userLayers.length===1?'':'s'} committed; world source unchanged.`
+      : `World Builder saved. ${state.userLayers.length} placed item${state.userLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
     return true;
   }catch(error){
     announce(`Save failed: ${String(error?.message||error||'unknown error')}`);
@@ -301,11 +305,12 @@ async function saveWorldBuilder(){
     persistentSave.disabled=false;persistentSave.classList.remove('saving');
   }
 }
-async function attachRestoredLayer(raw){
+async function attachRestoredLayer(raw,options={}){
+  const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay;
   const kind=String(raw?.kind||'image').toLowerCase();
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
@@ -333,7 +338,7 @@ async function attachRestoredLayer(raw){
   }
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
@@ -349,7 +354,7 @@ async function attachRestoredLayer(raw){
   node.addEventListener('load',()=>{refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
   userLayers.push(item);world.appendChild(node);refreshUserImage(item);
   if(item.committed&&isSprite&&frameSources.length>1)startSpriteMotion(item);
-  if(!item.personalAssetKey&&!item.assetId){
+  if(!item.sourceLocked&&!item.personalAssetKey&&!item.assetId){
     item.personalUploadPromise=trackPersonalUpload(
       promoteRestoredLayerToPersonal(item).catch(()=>null)
     );
@@ -359,16 +364,35 @@ async function attachRestoredLayer(raw){
 async function restoreSavedWorldBuilder(){
   if(restoreSaveStarted)return;restoreSaveStarted=true;
   try{
-    const state=await readSavedWorldBuilder();
-    if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
     userLayers.splice(0,userLayers.length);
     world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
-    for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
-    viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
-    viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+    if(REGION_DEFINER){
+      const sourceState=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
+      if(sourceState?.format==='RIST_WORLDBUILDER_PROTOTYPE'&&String(sourceState.worldId||'')===String(WORLD_ID||'')){
+        for(const raw of Array.isArray(sourceState.userLayers)?sourceState.userLayers:[])await attachRestoredLayer(raw,{sourceLocked:true});
+      }
+      const regionState=await readSavedWorldBuilder(REGION_OVERLAY_SAVE_KEY);
+      if(regionState?.format==='RIST_REGIONDEFINER_OVERLAYS'&&String(regionState.worldId||'')===String(WORLD_ID||'')){
+        for(const raw of Array.isArray(regionState.userLayers)?regionState.userLayers:[])await attachRestoredLayer(raw,{regionOverlay:true});
+        viewerTier=regionState.viewerTier==='all'?'sea':tierByKey(regionState.viewerTier||'sea').key;
+        viewerLayer=clamp(Math.trunc(Number(regionState.viewerLayer)||0),0,9);
+      }else{
+        viewerTier='sea';viewerLayer=0;
+      }
+    }else{
+      const state=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
+      if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
+      for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
+      viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
+      viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+    }
     selectedImage=null;updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
-    announce(`Saved World Builder restored. ${userLayers.length} placed item${userLayers.length===1?'':'s'} loaded.`);
-  }catch{}
+    announce(REGION_DEFINER
+      ? `Region Definer loaded. World source is locked; ${userLayers.filter(item=>!item.sourceLocked).length} regional overlay${userLayers.filter(item=>!item.sourceLocked).length===1?'':'s'} restored.`
+      : `Saved World Builder restored. ${userLayers.length} placed item${userLayers.length===1?'':'s'} loaded.`);
+  }catch(error){
+    if(REGION_DEFINER)announce(`Region Definer restore warning: ${String(error?.message||error)}`);
+  }
 }
 function ensureRegionEnhanceCanvas(){
   if(regionEnhanceCanvas?.isConnected)return regionEnhanceCanvas;
