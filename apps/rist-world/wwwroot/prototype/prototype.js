@@ -454,11 +454,11 @@ async function saveWorldBuilder(){
   }
 }
 async function attachRestoredLayer(raw,options={}){
-  const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay;
+  const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay,canonicalSource=!!options.canonicalSource;
   const kind=String(raw?.kind||'image').toLowerCase();
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
@@ -486,7 +486,7 @@ async function attachRestoredLayer(raw,options={}){
   }
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
@@ -1311,7 +1311,7 @@ function clearRegionWorldSource(){
   regionWorldTierImages.splice(0,regionWorldTierImages.length);
   for(let index=userLayers.length-1;index>=0;index--){
     const item=userLayers[index];
-    if(!item?.sourceLocked)continue;
+    if(!item?.canonicalSource)continue;
     item.node?.remove();
     userLayers.splice(index,1);
   }
@@ -1413,7 +1413,7 @@ async function renderRegionWorldSource(payload){
   for(const raw of sourceLayers){
     const belongsToActiveRegion=!!activeRegionId&&String(raw?.regionId||'')===activeRegionId;
     const editable=ACCESS_MODE==='edit'&&belongsToActiveRegion;
-    await attachRestoredLayer(raw,{sourceLocked:!editable,regionOverlay:belongsToActiveRegion});
+    await attachRestoredLayer(raw,{sourceLocked:!editable,regionOverlay:belongsToActiveRegion,canonicalSource:true});
   }
   updateLayerOrder();
   const authoredCount=tiles.length+sourceLayers.length;
