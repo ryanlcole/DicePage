@@ -59,8 +59,8 @@
    var seed="empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
-   var access=Session.HasTrustedWorldBuilderAuthority?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var activeRegion=Session.ActiveRegion;
+   var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
    return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}";
@@ -88,14 +88,8 @@
    gridRows=WorldSession.GridRows,
    gridStyle=Session.GridStyle,
    planeIndex=Session.PlaneIndex,
-   tierImages=Session.IsGeonaphWorld
-    ? new[]
-    {
-     Session.WorldMapUrl,
-     "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_highlands_rivers_v001.png",
-     "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
-    }
-    : Array.Empty<string>(),
+   source="database",
+   fallbackSurfaceImage=Session.IsGeonaphWorld?Session.WorldMapUrl:"",
    tiles=Session.PlacedTiles
     .Where(tile=>tile.PlaneIndex==Session.PlaneIndex)
     .Select(tile=>new
@@ -144,14 +138,15 @@
  }
 
  [JSInvokable]
- public async Task<object> SubmitRegionClaimRequestFromPrototypeAsync(int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape)
+ public async Task<object> SubmitRegionClaimRequestFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape)
  {
   var result=await Session.SubmitWorldClaimRequestAsync(
    "regiondefiner",
    tierIndex,
    cells??Array.Empty<int>(),
    sourceLayerOffsets??Array.Empty<int>(),
-   gridShape);
+   gridShape,
+   requestedName:name);
   return new
   {
    success=result.Success,
