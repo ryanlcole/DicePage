@@ -104,18 +104,8 @@ public sealed partial class WorldSession
         var maxColumn = columns.Max();
         var minRow = rows.Min();
         var maxRow = rows.Max();
-        var selected = cells.ToHashSet();
-        var regionWidth = Math.Max(1, maxColumn - minColumn + 1);
-        var regionHeight = Math.Max(1, maxRow - minRow + 1);
-        var sourceTiles = PlacedTiles
-            .Where(tile => tile.TierIndex == tierIndex && sourceLayerSet.Contains(tile.LayerOffset) && TileTouchesSelectedWorldCells(tile, selected))
-            .Select(tile =>
-            {
-                var localX = Math.Clamp(((tile.X * GridColumns) - minColumn) / regionWidth, 0, 1);
-                var localY = Math.Clamp(((tile.Y * GridRows) - minRow) / regionHeight, 0, 1);
-                return tile with { X = localX, Y = localY, Locked = true };
-            })
-            .ToList();
+        // A region is authority/view metadata over the canonical world map.
+        // It never stores a cropped or transformed copy of the map.
         var now = DateTimeOffset.UtcNow;
         var region = new WorldRegion(
             RegionId: NewRegionId(name),
@@ -126,7 +116,7 @@ public sealed partial class WorldSession
             MaxColumn: maxColumn,
             MaxRow: maxRow,
             SelectedCells: cells,
-            SourceTiles: sourceTiles,
+            SourceTiles: [],
             OverlayTiles: [],
             CreatedAtUtc: now,
             UpdatedAtUtc: now,
