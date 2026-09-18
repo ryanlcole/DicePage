@@ -103,6 +103,7 @@ let worldSourceHostReady=false;
 let worldSourceDatabaseMissing=false;
 let localWorldBuilderRestoreComplete=false;
 const worldSourceSaveWaiters=new Map();
+const regionMapSaveWaiters=new Map();
 const spriteTimers=new Map();
 const REGION_ENHANCE_ENTER=4.25;
 const REGION_ENHANCE_EXIT=3.6;
@@ -338,6 +339,26 @@ async function handleWorldBuilderHostMessage(event){
     if(data.type==='source-saved'&&data.result?.success!==false)waiter.resolve(data.result||true);
     else waiter.reject(new Error(String(data.message||'World source database save failed.')));
   }
+}
+function activeRegionMapId(){
+  return String(regionClaimedRegion?.id||pendingClaimedRegionId||REQUESTED_REGION_ID||'').trim();
+}
+function saveRegionMapToDatabase(userLayers){
+  if(!REGION_DEFINER||window.parent===window)return Promise.resolve(false);
+  const regionId=activeRegionMapId();
+  if(!regionId)return Promise.reject(new Error('Choose or create a region before saving map changes.'));
+  const requestId=crypto.randomUUID?.()||('region-map-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+  return new Promise((resolve,reject)=>{
+    const timeout=setTimeout(()=>{
+      regionMapSaveWaiters.delete(requestId);
+      reject(new Error('Canonical world map save timed out.'));
+    },12000);
+    regionMapSaveWaiters.set(requestId,{resolve,reject,timeout});
+    if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers})){
+      clearTimeout(timeout);regionMapSaveWaiters.delete(requestId);
+      reject(new Error('Region map database bridge is unavailable.'));
+    }
+  });
 }
 function openSaveDb(){
   return new Promise((resolve,reject)=>{
