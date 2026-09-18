@@ -42,6 +42,13 @@
     .image-dropzone strong{color:#f0d78e;font-size:12px;letter-spacing:.08em}
     .image-dropzone span{font-size:9px}
     .image-dropzone button{min-width:120px;height:40px;border:1px solid #856b34;border-radius:8px;background:#111c22;color:#f1ddb0;font-weight:900}
+    .sprite-upload-note{margin:0;color:#aebdc4;font:800 9px/1.4 system-ui;text-align:center}
+    .sprite-sheet-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .sprite-library-key{position:relative;min-height:72px;padding:0!important;overflow:hidden!important;display:block!important;background:#071018!important;border-color:#7b6331!important}
+    .sprite-library-preview{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+    .sprite-library-preview img{position:absolute;display:block;max-width:none!important;max-height:none!important;pointer-events:none;-webkit-user-drag:none}
+    .sprite-library-key small{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:5px 4px;background:linear-gradient(transparent,#000d 38%);color:#fff0bb!important;font-size:7px!important;line-height:1.15!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+    .user-image-placement.sprite-placement{filter:drop-shadow(0 3px 8px rgba(0,0,0,.35))}
     .user-image-placement{position:absolute;z-index:18;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
     .user-image-placement.selected{outline:2px solid #f0cc69;outline-offset:2px}
     .stage{position:fixed;z-index:1;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;background:#05090c}
