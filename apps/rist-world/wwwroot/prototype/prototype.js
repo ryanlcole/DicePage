@@ -399,15 +399,18 @@ async function saveWorldBuilder(){
       await Promise.allSettled([...pendingPersonalUploads]);
     }
     const editableLayers=REGION_DEFINER?userLayers.filter(item=>!item.sourceLocked):userLayers;
-    const state={
-      format:REGION_DEFINER?'RIST_REGIONDEFINER_OVERLAYS':'RIST_WORLDBUILDER_PROTOTYPE',
-      version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
-      viewerTier,viewerLayer,
-      sourceLayerVisibility:REGION_DEFINER?serializeRegionWorldLayerVisibility():null,
-      regionGridShape:REGION_DEFINER?regionGridShape:null,
-      claimedRegionId:REGION_DEFINER?String(regionClaimedRegion?.id||pendingClaimedRegionId||''):null,
-      userLayers:editableLayers.map(serializableUserLayer)
-    };
+    const state=REGION_DEFINER
+      ?{
+        format:'RIST_REGIONDEFINER_OVERLAYS',
+        version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
+        viewerTier,viewerLayer,
+        sourceLayerVisibility:serializeRegionWorldLayerVisibility(),
+        regionGridShape,
+        claimedRegionId:String(regionClaimedRegion?.id||pendingClaimedRegionId||''),
+        userLayers:editableLayers.map(serializableUserLayer)
+      }
+      :worldBuilderSourceState(editableLayers);
+    if(!REGION_DEFINER&&LIVE_WORLDBUILDER&&window.parent!==window)await saveWorldSourceToDatabase(state);
     await writeSavedWorldBuilder(state,REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY);
     for(const item of editableLayers){
       item.committed=true;refreshUserImage(item);
