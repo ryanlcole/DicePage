@@ -1232,17 +1232,25 @@ function createRegionDefinition(){
   if(!name){announce('Enter a region name.');return}
   if(!regionSelectedCells.size){announce('Select at least one region cell.');return}
   regionCreatePending=true;renderKeyboardKeys();
-  const sent=postRegionMessage('create-region',{name,cells:[...regionSelectedCells].sort((a,b)=>a-b),tierIndex:currentRegionTierIndex()});
+  const sent=postRegionMessage('create-region',{
+    name,
+    cells:[...regionSelectedCells].sort((a,b)=>a-b),
+    tierIndex:currentRegionTierIndex(),
+    sourceLayerOffsets:[...regionWorldLayerSet()].sort((a,b)=>a-b)
+  });
   if(!sent){regionCreatePending=false;renderKeyboardKeys();announce('Region persistence bridge is unavailable.');return}
   announce(`Saving region ${name} on Tier ${currentRegionTierIndex()+1}.`);
 }
 function renderRegionSelectKeyboard(){
+  const visibleWorldLayers=[...regionWorldLayerSet()].sort((a,b)=>a-b);
   keyboardKeys.append(
     regionNameInput(),
     readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
     readoutKey(`${regionSelectedCells.size} CELLS`,'selected region footprint'),
+    readoutKey(`${visibleWorldLayers.length}/10 WORLD`,'source layers included'),
     readoutKey(`${regionCatalog.filter(r=>Math.trunc(Number(r?.tierIndex)||0)===currentRegionTierIndex()).length} SAVED`,'regions on this tier'),
     toolKey(regionSelectionEnabled?'SELECT ✓':'SELECT','tap map cells',()=>{regionSelectionEnabled=!regionSelectionEnabled;updateRegionSelectionOverlay();renderKeyboardKeys()}),
+    toolKey('LAYERS','choose World source',()=>{keyboardMode='Tiers';renderKeyboardTabs();renderKeyboardKeys();announce('World source layer controls opened.')}),
     toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
     toolKey(regionCreatePending?'SAVING…':'CREATE','region definition',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
   );
