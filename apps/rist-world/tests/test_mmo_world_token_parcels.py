@@ -90,6 +90,14 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "await RefreshMmoLandAsync(loadParcels: false);" in relationships
 
 
+def test_world_gate_mobile_layout_keeps_token_and_private_world_sections_separate():
+    gate = text("apps/rist-world/Components/WorldGate.razor")
+    assert "display:flex;flex-direction:column;overflow:auto" in gate
+    assert "grid-template-rows:auto minmax(0,1fr)" not in gate
+    assert "SHAELVIEN MMO · PROPERTY SPACE" in gate
+    assert "world-gate-create{display:grid;gap:10px;margin:10px 16px 6px" in gate
+
+
 def test_shaelvien_is_the_mmo_world_and_endemar_is_the_starting_point():
     identity = text("apps/rist-world/WorldSession.WorldIdentity.cs")
     assert 'public const string ShaelvienDisplayName = "Shaelvien";' in identity
