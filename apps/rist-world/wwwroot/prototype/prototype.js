@@ -54,6 +54,7 @@ if(REGION_DEFINER){
   keyboardToggle?.setAttribute('aria-label','Open Region Definer keyboard');
   persistentSave.title='Save regional overlays';
   persistentSave.setAttribute('aria-label','Save regional overlays');
+  imageUploadToggle?.setAttribute('aria-label','Add regional image');
   const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · WORLD SOURCE LOCKED · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
 }
 const planeByKey={surface,highlands,mountains};
@@ -638,7 +639,7 @@ function setViewerTier(key){
   const previous=viewerTier;
   viewerTier=REGION_DEFINER?(key==='all'?'sea':tierByKey(key).key):(key==='all'?'all':tierByKey(key).key);
   viewerLayer=0;
-  if(REGION_DEFINER&&previous!==viewerTier)clearRegionSelection(false);
+  if(REGION_DEFINER&&previous!==viewerTier){clearRegionSelection(false);deselectUserImage(false)}
   updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();
   announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected${REGION_DEFINER?' for regional definition.':''}`);
 }
@@ -691,7 +692,7 @@ function openImageUpload(){
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
   const address=placementAddress(currentTierIndex(),1);
-  imageTier.value=String(address.tier);imageLayer.value=String(address.layer);
+  imageTier.value=String(address.tier);imageTier.disabled=REGION_DEFINER;imageLayer.value=String(address.layer);
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
   announce(`Image upload opened. Viewer frozen. Position defaults to ${tierLabel(tierByIndex(currentTierIndex()))}, layer ${viewerLayer}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
@@ -984,7 +985,7 @@ async function placeUploadedImage(file){
   if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
-  const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
+  const tier=REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
