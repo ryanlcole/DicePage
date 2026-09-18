@@ -193,7 +193,7 @@ public sealed partial class WorldSession
             !string.Equals(owned.OwnerUserId, currentUserId, StringComparison.Ordinal))
             return false;
 
-        if (permission is not ("View" or "Edit" or "Manage" or "None"))
+        if (!(permission is "View" or "Edit" or "Manage" or "None"))
             permission = "None";
 
         var authority = new AwsAuthorityClient(http, auth);
