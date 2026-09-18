@@ -28,7 +28,8 @@ public sealed partial class WorldSession
         IEnumerable<int> selectedCells,
         IEnumerable<int> sourceLayerOffsets,
         string gridShape,
-        string requestedResourceId = "")
+        string requestedResourceId = "",
+        string requestedName = "")
     {
         if (!IsLoggedIn || !HasActiveWorld)
             return new(false, "Log in and choose a world before requesting a claim.");
@@ -82,7 +83,8 @@ public sealed partial class WorldSession
                     cells,
                     layers,
                     gridShape,
-                    requestedResourceId));
+                    requestedResourceId,
+                    (requestedName ?? "").Trim()));
             }
             catch (HttpRequestException)
             {
@@ -109,6 +111,22 @@ public sealed partial class WorldSession
         try
         {
             return await client.GetClaimRequestsAsync(WorldId, "pending") ?? [];
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyList<AwsAuthorityClient.WorldClaimRequest>> LoadMyWorldClaimRequestsAsync(string status = "all")
+    {
+        if (!IsLoggedIn || !HasActiveWorld) return [];
+
+        var client = await GetClaimAuthorityClientAsync();
+        if (client is null) return [];
+        try
+        {
+            return await client.GetClaimRequestsAsync(WorldId, string.IsNullOrWhiteSpace(status) ? "all" : status) ?? [];
         }
         catch
         {
