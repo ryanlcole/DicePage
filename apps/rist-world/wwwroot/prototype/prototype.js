@@ -140,6 +140,21 @@ function zoomAt(cx,cy,factor){
   y=sy-wy*scale;
   applyTransform();
 }
+function zoomCenter(factor){
+  const r=stage.getBoundingClientRect();
+  zoomAt(r.left+r.width/2,r.top+r.height/2,factor);
+}
+function bindTap(button,fn){
+  let lastTouch=0;
+  button.addEventListener('pointerup',event=>{
+    if(event.pointerType!=='touch'&&event.pointerType!=='pen')return;
+    event.preventDefault();event.stopPropagation();lastTouch=performance.now();fn();
+  });
+  button.addEventListener('click',event=>{
+    if(performance.now()-lastTouch<500)return;
+    event.stopPropagation();fn();
+  });
+}
 
 function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Layers','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
@@ -152,8 +167,8 @@ function renderKeyboardKeys(){
   keyboardKeys.replaceChildren();
   if(keyboardMode==='Viewer'){
     keyboardKeys.append(
-      toolKey('−','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)}),
-      toolKey('+','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)}),
+      toolKey('−','zoom',()=>zoomCenter(1/1.22)),
+      toolKey('+','zoom',()=>zoomCenter(1.22)),
       toolKey('⛶','camera',fitMap),
       toolKey('⌁','reset tilt',resetTilt)
     );return;
@@ -248,9 +263,9 @@ function openViewerSettings(){viewerSettingsPanel.hidden=false;viewerSettingsClo
 function closeViewerSettings(){viewerSettingsPanel.hidden=true;settingsToggle.focus()}
 function openStartMenu(){if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html'}
 
-$('fit').addEventListener('click',fitMap);
-$('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
-$('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
+bindTap($('fit'),fitMap);
+bindTap($('zoomIn'),()=>zoomCenter(1.22));
+bindTap($('zoomOut'),()=>zoomCenter(1/1.22));
 $('back').addEventListener('click',openStartMenu);
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
 settingsToggle.addEventListener('click',openViewerSettings);
@@ -274,7 +289,8 @@ stage.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.clos
 stage.addEventListener('pointerdown',e=>{
   if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  stage.setPointerCapture?.(e.pointerId);
+  if(e.pointerType!=='mouse')e.preventDefault();
+  if(e.pointerType==='mouse')stage.setPointerCapture?.(e.pointerId);
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   stage.classList.add('dragging');
   if(pointers.size===1){panStart={pointerX:e.clientX,pointerY:e.clientY,x,y};pinchStart=null}
@@ -286,6 +302,7 @@ stage.addEventListener('pointerdown',e=>{
 });
 stage.addEventListener('pointermove',e=>{
   if(!pointers.has(e.pointerId))return;
+  if(e.pointerType!=='mouse')e.preventDefault();
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pointers.size===1&&panStart){x=panStart.x+(e.clientX-panStart.pointerX);y=panStart.y+(e.clientY-panStart.pointerY);applyTransform();return}
   if(pointers.size===2&&pinchStart){
