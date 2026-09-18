@@ -4,6 +4,25 @@ function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}
 }
 
+async function sendState(frame,dotnet){
+  try{
+    const worldSource=await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
+    post(frame,{type:"world-source",worldSource:worldSource||null});
+  }catch(error){
+    post(frame,{type:"map-load-error",message:String(error?.message||error||"Canonical map database is unavailable")});
+  }
+  try{
+    const regions=await dotnet.invokeMethodAsync("GetRegionCatalogForPrototype");
+    post(frame,{type:"catalog",regions:Array.isArray(regions)?regions:[]});
+  }catch(error){
+    post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
+  }
+}
+
+export async function refresh(frame,dotnet){
+  await sendState(frame,dotnet);
+}
+
 export function detach(frame){
   const existing=bridges.get(frame);
   if(!existing)return;
@@ -19,12 +38,7 @@ export function attach(frame,dotnet){
     if(!data||data.source!=="shaelvien-regiondefiner")return;
     try{
       if(data.type==="ready"){
-        const [regions,worldSource]=await Promise.all([
-          dotnet.invokeMethodAsync("GetRegionCatalogForPrototype"),
-          dotnet.invokeMethodAsync("GetWorldSourceForPrototype")
-        ]);
-        post(frame,{type:"world-source",worldSource:worldSource||null});
-        post(frame,{type:"catalog",regions:Array.isArray(regions)?regions:[]});
+        await sendState(frame,dotnet);
         return;
       }
       if(data.type==="request-claim"){
