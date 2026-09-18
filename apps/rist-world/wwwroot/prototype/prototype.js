@@ -13,9 +13,9 @@ const TIERS=Object.freeze([
   Object.freeze({key:'mountains',label:'Mountains / Weather',index:2,glyph:'▲'})
 ]);
 const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
-  Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png'}),
-  Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png'}),
-  Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})
+  Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
+  Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
+  Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
 ]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
@@ -44,6 +44,13 @@ function canvasBlob(canvas){return new Promise(resolve=>canvas.toBlob(resolve,'i
 async function buildUpscaledRepresentation(asset){
   if(upscaleCache.has(asset.key))return upscaleCache.get(asset.key);
   const canonical=ASSET_ROOT+asset.file;
+  if(asset.upscaleFile){
+    try{
+      const local=new URL(asset.upscaleFile,location.href).href;
+      const probe=await fetch(local,{method:'HEAD',cache:'force-cache'});
+      if(probe.ok){const result={url:local,factor:2,derived:true,buildTime:true};upscaleCache.set(asset.key,result);return result}
+    }catch{}
+  }
   try{
     const response=await fetch(canonical,{mode:'cors',cache:'force-cache'});
     if(!response.ok)throw new Error('asset fetch failed');
