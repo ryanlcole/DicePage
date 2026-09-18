@@ -71,19 +71,31 @@
    var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260918-single-map-5";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260918-canonical-view-1";
   }
  }
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_bridgeAttached)return;
-  if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
-  await Session.LoadRegionsAsync();
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-single-map-5");
+
+  // Attach the canonical-map bridge before loading region/claim metadata.
+  // Viewer rendering must never wait on permission metadata or MMO claim refresh.
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-canonical-view-1");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
+
+  try
+  {
+   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+   await _module.InvokeVoidAsync("refresh",_frame,_self);
+  }
+  catch
+  {
+   // The map stays visible; a later interaction can retry metadata loading.
+  }
  }
 
  [JSInvokable]
