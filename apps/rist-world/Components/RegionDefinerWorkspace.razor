@@ -54,9 +54,11 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // RegionDefiner always consumes the selected world's authored map through the
-   // bridge below. Endemar is intentionally not given a special static seed.
-   var seed="empty";
+   // RegionDefiner is a read-only view of the same base-map representation used
+   // by WorldBuilder. Database-backed authored placements delivered through the
+   // bridge below remain authoritative; this seed only selects the shared visual
+   // base-map loader so RegionDefiner never maintains a second map implementation.
+   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var activeRegion=Session.ActiveRegion;
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
     ? activeRegion.ParcelPixelWidth
@@ -79,7 +81,7 @@
   if(!firstRender||_bridgeAttached)return;
   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
   await Session.LoadRegionsAsync();
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-flow-3");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-flow-4");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -97,6 +99,8 @@
    gridStyle=Session.GridStyle,
    planeIndex=Session.PlaneIndex,
    source="database",
+   sourcePixelWidth=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels,
+   sourcePixelHeight=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels,
    activeRegionId=Session.ActiveRegion?.RegionId??"",
    parcelId=Session.ActiveRegion?.ParcelId??"",
    parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
