@@ -134,7 +134,7 @@ function selectCelestial(item){
 function celestialType(key){return CELESTIAL_TYPES.find(v=>v.key===key)||CELESTIAL_TYPES[0]}
 function placeCelestial(key){
   const type=celestialType(key),p=viewerCenterPosition(),id=crypto.randomUUID?.()||String(Date.now());
-  const item={id,type:key,name:type.name,x:p.x,y:p.y,size:1,node:null,pathPoints:[],pathNode:null,worldId:`world:${id}`,meta:{parent:'Geonaph',radius:'',mass:'',gravity:'',semiMajor:'',eccentricity:'',inclination:'',period:'',rotation:'',tilt:'',albedo:'',atmosphere:'',epoch:'',worldName:`${type.name} World`}};
+  const item={id,type:key,name:type.name,x:p.x,y:p.y,size:1,node:null,pathPoints:[],pathNode:null,worldId:`world:${id}`,meta:{parent:'',radius:'',mass:'',gravity:'',semiMajor:'',eccentricity:'',inclination:'',period:'',rotation:'',tilt:'',albedo:'',atmosphere:'',epoch:'',worldName:`${type.name} World`}};
   const node=document.createElement('button');node.type='button';node.className='celestial-placement';node.textContent=type.glyph;node.setAttribute('aria-label',`${type.name}. Celestial object. Drag to position.`);item.node=node;
   node.addEventListener('click',event=>{event.stopPropagation();selectCelestial(item)});
   node.addEventListener('pointerdown',event=>{event.preventDefault();event.stopPropagation();selectCelestial(item);node.setPointerCapture?.(event.pointerId);celestialDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y}});
@@ -367,7 +367,7 @@ function renderState(){
 }
 const BASE_KEYBOARD_MODES=['Viewer','Weather','Sky','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
 function keyboardModes(){return BASE_KEYBOARD_MODES}
-function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.addEventListener('click',fn);return b}
+function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
 function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){
@@ -380,7 +380,7 @@ function renderKeyboardKeys(){
       toolKey('Z +','layer',()=>setViewerZ(viewerZ+1,'Editing plane moved up one layer')),
       toolKey('−','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)}),
       toolKey('+','zoom',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)}),
-      toolKey('⛶','fit',fitMap)
+      toolKey('⛶','camera',fitMap)
     );
     const band=currentBand(),read=toolKey(`L${splitZ(viewerZ).layerOffset}`,bandDisplayName(band.key),()=>{},true);read.classList.add('readout');keyboardKeys.append(read);return;
   }
@@ -428,7 +428,7 @@ MAP_TRUTH.assets.forEach(asset=>{
   });
   node.addEventListener('error',()=>{
     layerReady[asset.key]=false;
-    if(asset.key==='surface'){loading.hidden=false;loading.textContent='SURFACE MAP ASSET UNAVAILABLE'}
+    if(asset.key==='surface'){loading.hidden=false;loading.textContent='WORLD MAP ASSET UNAVAILABLE'}
     renderState();
   });
   node.src=ASSET_ROOT+asset.file;
