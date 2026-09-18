@@ -34,6 +34,7 @@
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
+   <button type="button" class="launcher-card world" @onclick="OpenPerceiver" aria-label="Open Perceiver cinematic motion parallax"><span class="card-icon" aria-hidden="true">◉</span><strong>PERCEIVER</strong><small>Cinematic depth using tier motion speed relative to the focal plane.</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!CanBuildWorld)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":"Build access required for this world.")</small></button>
@@ -409,6 +410,7 @@ else
  void CloseCardIndex()=>_cardIndexOpen=false;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
+ void OpenPerceiver()=>Navigation.NavigateTo("/perceiver/index.html",forceLoad:true);
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
  void OpenWorldbuilding(){if(!CanBuildWorld)return;OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
  async Task CloseWorldGate(){
