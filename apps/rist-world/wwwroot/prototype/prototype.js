@@ -567,6 +567,7 @@ function tierByIndex(index){return TIERS.find(t=>t.index===index)||TIERS[0]}
 function tierByKey(key){return TIERS.find(t=>t.key===key)||TIERS[0]}
 function tierLabel(tier){return String(tierNames[tier.key]||'').trim()||tier.label}
 function renameViewerTier(){
+  if(REGION_DEFINER){announce('World tier names are locked in Region Definer.');return;}
   if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(viewerTier==='all'){announce('Select a tier before naming it.');return}
   const tier=tierByKey(viewerTier),next=prompt('Name this tier',String(tierNames[tier.key]||''));
@@ -594,7 +595,7 @@ function updateLayerOrder(){
 function closeTierMenu(){tierMenu.hidden=true;tierToggle.setAttribute('aria-expanded','false')}
 function renderTierMenu(){
   tierMenu.replaceChildren();
-  const options=[{key:'all',label:'All Parallax',glyph:'≋'},...TIERS];
+  const options=REGION_DEFINER?[...TIERS]:[{key:'all',label:'All Parallax',glyph:'≋'},...TIERS];
   for(const option of options){
     const button=document.createElement('button');button.type='button';button.role='menuitemradio';button.textContent=option.glyph;button.setAttribute('aria-label',option.key==='all'?option.label:tierLabel(option));
     const selected=viewerTier===option.key;button.setAttribute('aria-checked',String(selected));button.setAttribute('aria-current',String(selected));
@@ -605,7 +606,12 @@ function updateTierButton(){
   const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${viewerTier==='all'?option.label:tierLabel(option)}. Open tier selector`);
 }
 function setViewerTier(key){
-  viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected.`);
+  const previous=viewerTier;
+  viewerTier=REGION_DEFINER?(key==='all'?'sea':tierByKey(key).key):(key==='all'?'all':tierByKey(key).key);
+  viewerLayer=0;
+  if(REGION_DEFINER&&previous!==viewerTier)clearRegionSelection(false);
+  updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();
+  announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected${REGION_DEFINER?' for regional definition.':''}`);
 }
 function adjustSelectedSize(direction){
   if(READ_ONLY)return;
@@ -1512,14 +1518,14 @@ function renderKeyboardKeys(){
     );return;
   }
   if(keyboardMode==='Tiers'){
+    if(!REGION_DEFINER)keyboardKeys.append(toolKey('≋','All Parallax',()=>setViewerTier('all')));
     keyboardKeys.append(
-      toolKey('≋','All Parallax',()=>setViewerTier('all')),
       toolKey('≈',tierLabel(TIERS[0]),()=>setViewerTier('sea')),
       toolKey('⌁',tierLabel(TIERS[1]),()=>setViewerTier('hills')),
       toolKey('▲',tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
-      toolKey('L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer}.`)}),
-      toolKey('L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer}.`)}),
-      toolKey('NAME','tier',renameViewerTier,viewerTier==='all'||READ_ONLY)
+      toolKey('L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+      toolKey('L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+      toolKey('NAME','tier',renameViewerTier,REGION_DEFINER||viewerTier==='all'||READ_ONLY)
     );return;
   }
   if(keyboardMode==='Tiles'){
