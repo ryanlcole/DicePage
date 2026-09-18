@@ -1724,7 +1724,8 @@ function renderKeyboardKeys(){
     if(!spriteCatalog.length&&!spriteLibraryLoading&&!spriteLibraryError)void ensureSpriteLibrary();
     keyboardKeys.append(
       toolKey('UPLOAD','sprite set',openSpriteUpload),
-      toolKey('MY SPRITES','Personal folder',()=>openPersonalFolder('Sprites'))
+      toolKey('MY SPRITES','Personal folder',()=>openPersonalFolder('Sprites')),
+      toolKey(ASSET_SCALE,'Sprite library filter',()=>{},true)
     );
     if(selectedImage?.kind==='sprite'){
       keyboardKeys.append(
@@ -1735,6 +1736,9 @@ function renderKeyboardKeys(){
     }
     if(spriteLibraryLoading){keyboardKeys.append(toolKey('LOADING','Sprite library',()=>{},true));return}
     if(spriteLibraryError){
+      if(REGION_DEFINER&&/^No registered region sprites/i.test(spriteLibraryError)){
+        keyboardKeys.append(toolKey('EMPTY','No regional sprites registered yet',()=>{},true));return;
+      }
       keyboardKeys.append(toolKey('RETRY','Sprite library',()=>{spriteLibraryError='';void ensureSpriteLibrary(true)}),toolKey('ERROR',spriteLibraryError,()=>{},true));return;
     }
     if(!spriteLibraryFolder){
