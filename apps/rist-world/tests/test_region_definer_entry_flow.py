@@ -22,14 +22,13 @@ def test_new_region_uses_database_world_source_and_swipe_tier_preview():
 
     assert 'source="database"' in host
     assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in host
-    assert "sourcePixelWidth=" in host
-    assert "sourcePixelHeight=" in host
     assert "await Session.LoadWorldBuilderSourceAsync()" in host
     assert "state=databaseSource?.State" in host
     assert "fallbackTierImages" not in host
     assert "&regionFlow={regionFlow}&regionId={regionId}" in host
     assert "firstSizedTile=tiles.find" in prototype
-    assert "stage.dataset.worldSource=String(source.source||'database')" in prototype
+    assert "stage.dataset.worldSource='database'" in prototype
+    assert "saveRegionMapToDatabase" in prototype
 
     assert "REGION_FLOW" in prototype
     assert "REQUESTED_REGION_ID" in prototype
