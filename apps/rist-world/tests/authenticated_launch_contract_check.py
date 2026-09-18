@@ -44,8 +44,12 @@ def main() -> None:
     require(authenticated, '<PublicAlphaShell @ref="_alphaShell" />', "landing shell must render only after world choice")
     require(authenticated, "_launchWorldChosen=true;", "successful world selection must unlock landing")
     require(rist, "pressStart:async", "base runtime must own Press Start activation")
-    require(rist, "ristMotionPermission", "Press Start must request motion from the same user gesture")
+    require(rist, "ristDeviceCapabilities", "Press Start must use the device capability authority")
     require(device, "initializeAtStart", "device settings must initialize saved/default experience preferences")
+    require(device, "requestAtStart", "device capability setup must originate from Press Start")
+    require(device, "getUserMedia", "Press Start capability setup must request microphone access")
+    require(device, "unlockAudio", "Press Start must unlock browser audio from the user gesture")
+    require(device, "ristMotionPermission", "Press Start capability setup must request motion for Parallax")
     require(device, "AUDIO_KEY", "audio preference must have one canonical key")
     require(device, "VIDEO_KEY", "video preference must have one canonical key")
 
@@ -71,6 +75,8 @@ def main() -> None:
     require(shell, "ToggleAudioAsync", "audio preference must remain editable from Start menu")
     require(shell, "ToggleVideoAsync", "video preference must remain editable from Start menu")
     require(shell, "HardRefreshAsync", "Start menu must expose hard refresh recovery")
+    require(shell, "OpenPerceiver", "Perceiver must be a native launcher action")
+    require(shell, "<strong>PERCEIVER</strong>", "Perceiver must render inside the native launcher card grid")
 
     # One universal World Builder. Geonaph differs only by seed data.
     require(router, '<WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" />', "all worlds must use the universal builder host")
