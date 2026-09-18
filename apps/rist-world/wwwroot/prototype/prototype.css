@@ -84,6 +84,8 @@
     .stage.region-crop-preview .region-definition-grid{opacity:1}
     .stage.region-crop-preview .region-definition-cell:not(.selected){background:rgba(0,5,8,.72)!important;border-color:rgba(35,54,63,.34)!important}
     .stage.region-cropped .region-definition-grid{opacity:0;pointer-events:none}
+    .stage.region-cropped.region-build-mode .region-definition-grid{opacity:.28;pointer-events:none}
+    .stage.region-cropped.region-build-mode .region-definition-cell{border-color:rgba(188,216,228,.22)!important;background:transparent!important}
     .plane{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none;transform-origin:50% 50%;will-change:transform,opacity;transition:opacity .16s linear}
     .plane.base{z-index:100;opacity:1}
     .plane.highlands{z-index:200}
