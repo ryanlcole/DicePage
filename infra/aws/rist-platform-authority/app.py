@@ -1072,8 +1072,10 @@ def handler(event, context):
         ).get("Item")
         if not parcel:
             return response(404, {"error": "Shaelvien parcel not found"})
-        if str(parcel.get("ownerUserId") or "") != user_id and not can_manage(world_id, user_id):
-            return response(403, {"error": "Only the parcel owner may hand off parcel permissions"})
+        parcel_owner = str(parcel.get("ownerUserId") or "")
+        parcel_manage = parcel_permission(world_id, parcel_id, user_id) == "Manage"
+        if parcel_owner != user_id and not can_manage(world_id, user_id) and not parcel_manage:
+            return response(403, {"error": "Parcel owner or Manage permission is required"})
 
         acl_key = parcel_acl_key(world_id, parcel_id, target)
         if permission == "None":
@@ -1164,6 +1166,40 @@ def handler(event, context):
             )
         if not owner:
             owner = user_id
+
+        # A token-purchased MMO parcel is permanent world truth. Region editors may
+        # change its contents, but may not enlarge its square, raise its height,
+        # rewrite its token binding, or transfer ownership through a region save.
+        current_state = dict((current or {}).get("state") or {})
+        current_parcel_id = str(
+            (current or {}).get("parcelId")
+            or current_state.get("parcelId")
+            or region.get("parcelId")
+            or ""
+        )
+        if current_parcel_id:
+            parcel = world.get_item(
+                Key=parcel_key(world_id, current_parcel_id),
+                ConsistentRead=True,
+            ).get("Item")
+            if not parcel:
+                return response(409, {"error": "Parcel authority record is missing"})
+            owner = str(parcel.get("ownerUserId") or owner)
+            column = int(parcel.get("column") or 0)
+            row = int(parcel.get("row") or 0)
+            cell_index = int(parcel.get("cellIndex") or (row * MMO_PARCEL_GRID_COLUMNS + column))
+            region["parcelId"] = current_parcel_id
+            region["minColumn"] = column
+            region["minRow"] = row
+            region["maxColumn"] = column
+            region["maxRow"] = row
+            region["selectedCells"] = [cell_index]
+            region["tierIndex"] = 0
+            region["sourceLayerOffsets"] = list(range(MMO_PARCEL_MAX_HEIGHT))
+            region["gridShape"] = "square"
+            region["parcelPixelWidth"] = MMO_PARCEL_PIXELS
+            region["parcelPixelHeight"] = MMO_PARCEL_PIXELS
+            region["maxHeight"] = MMO_PARCEL_MAX_HEIGHT
 
         region["worldId"] = world_id
         region["regionId"] = region_id
