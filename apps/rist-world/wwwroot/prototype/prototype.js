@@ -512,22 +512,10 @@ async function restoreSavedWorldBuilder(){
     userLayers.splice(0,userLayers.length);
     world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
     if(REGION_DEFINER){
-      const regionState=await readSavedWorldBuilder(REGION_OVERLAY_SAVE_KEY);
-      if(regionState?.format==='RIST_REGIONDEFINER_OVERLAYS'&&String(regionState.worldId||'')===String(WORLD_ID||'')){
-        for(const raw of Array.isArray(regionState.userLayers)?regionState.userLayers:[])await attachRestoredLayer(raw,{regionOverlay:true});
-        viewerTier=regionState.viewerTier==='all'?'sea':tierByKey(regionState.viewerTier||'sea').key;
-        viewerLayer=clamp(Math.trunc(Number(regionState.viewerLayer)||0),0,9);
-        restoreRegionWorldLayerVisibility(regionState.sourceLayerVisibility);
-        regionGridShape=normalizeRegionGridShape(regionState.regionGridShape||'square');
-        pendingClaimedRegionId=String(regionState.claimedRegionId||'');
-        if(pendingClaimedRegionId){
-          regionClaimPhase='saved';
-          const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
-          if(claimed)applyClaimedRegionCrop(claimed);
-        }
-      }else{
-        viewerTier='sea';viewerLayer=0;
-      }
+      // RegionDefiner has no independent map persistence. It waits for the same
+      // database-backed canonical map that WorldBuilder uses; only viewer state,
+      // crop/tilt and permissions differ.
+      viewerTier='sea';viewerLayer=0;
     }else{
       const state=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
       if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
@@ -537,7 +525,7 @@ async function restoreSavedWorldBuilder(){
     }
     selectedImage=null;updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
     announce(REGION_DEFINER
-      ? `Region Definer loaded. World source is locked; ${userLayers.filter(item=>!item.sourceLocked).length} regional overlay${userLayers.filter(item=>!item.sourceLocked).length===1?'':'s'} restored.`
+      ? 'Region Definer ready. Loading the canonical world map with regional permissions.'
       : `Saved World Builder restored. ${userLayers.length} placed item${userLayers.length===1?'':'s'} loaded.`);
   }catch(error){
     if(REGION_DEFINER)announce(`Region Definer restore warning: ${String(error?.message||error)}`);
