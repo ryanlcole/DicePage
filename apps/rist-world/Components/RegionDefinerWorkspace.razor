@@ -88,8 +88,9 @@
  }
 
  [JSInvokable]
- public object GetWorldSourceForPrototype()
+ public async Task<object> GetWorldSourceForPrototype()
  {
+  var databaseSource=await Session.LoadWorldBuilderSourceAsync();
   return new
   {
    worldId=Session.WorldId,
@@ -99,47 +100,13 @@
    gridStyle=Session.GridStyle,
    planeIndex=Session.PlaneIndex,
    source="database",
-   sourcePixelWidth=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels,
-   sourcePixelHeight=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels,
+   updatedAtUtc=databaseSource?.UpdatedAtUtc??"",
+   state=databaseSource?.State,
    activeRegionId=Session.ActiveRegion?.RegionId??"",
    parcelId=Session.ActiveRegion?.ParcelId??"",
    parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
    parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,
-   maxHeight=Session.ActiveRegion?.MaxHeight??0,
-   fallbackSurfaceImage=Session.IsGeonaphWorld?Session.WorldMapUrl:"",
-   fallbackTierImages=Session.IsGeonaphWorld
-    ? new[]
-    {
-     Session.WorldMapUrl,
-     "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_highlands_rivers_v001.png",
-     "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
-    }
-    : Array.Empty<string>(),
-   tiles=Session.PlacedTiles
-    .Where(tile=>tile.PlaneIndex==Session.PlaneIndex)
-    .Select(tile=>new
-    {
-     id=tile.Id,
-     name=tile.Name,
-     image=tile.Image,
-     x=tile.X,
-     y=tile.Y,
-     sourceWidth=tile.SourceWidth,
-     sourceHeight=tile.SourceHeight,
-     cropX=tile.CropX,
-     cropY=tile.CropY,
-     cropWidth=tile.CropWidth,
-     cropHeight=tile.CropHeight,
-     placementZoom=tile.PlacementZoom,
-     tierIndex=tile.TierIndex,
-     layerOffset=tile.LayerOffset,
-     rotationQuarterTurns=tile.RotationQuarterTurns,
-     placementTreatment=tile.PlacementTreatment,
-     assetKind=tile.AssetKind,
-     frameCount=tile.FrameCount,
-     framesPerSecond=tile.FramesPerSecond,
-     shaepId=tile.ShaepId
-    }).ToList()
+   maxHeight=Session.ActiveRegion?.MaxHeight??0
   };
  }
 
