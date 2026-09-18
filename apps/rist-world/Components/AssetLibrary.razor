@@ -45,7 +45,7 @@
      <strong>@tile.Name</strong>
     </button>
     <div class="asset-rating-row">
-     <span>@(IsPrivate(tile)?$"{CategoryFor(tile)} · {FolderFor(tile)}":RatingLabel(rating))</span>
+     <span>@(IsPrivate(tile)?$"{CategoryFor(tile)} · {FolderFor(tile)} · {RatingLabel(tile,rating)}":RatingLabel(tile,rating))</span>
      @if(Session.IsLoggedIn && rating is not null)
      {
       <button type="button" @onclick="()=>OpenReport(tile,rating)">Report rating</button>
@@ -117,7 +117,7 @@
 
 @code {
  const long MaxAssetBytes=20*1024*1024;
- static readonly string[] UploadCategories=["Tiles","Tokens & Chits","Miniatures","Scenery & Terrain","Pawns & Meeples","Rolling Stock","Bits"];
+ static readonly string[] UploadCategories=["Images","Sprites","Tiles","Tokens & Chits","Miniatures","Scenery & Terrain","Pawns & Meeples","Rolling Stock","Bits"];
  readonly List<AtlasTile> _privateTiles=[];
  readonly Dictionary<string,AssetRatingClient.AssetRating> _ratings=new(StringComparer.Ordinal);
  readonly HashSet<string> _providerDescriptors=new(StringComparer.Ordinal);
@@ -174,7 +174,7 @@
   var rating=RatingFor(tile);
   return rating is null||rating.EffectiveDescriptors.Length==0||Auth.CampaignContentAllowed(rating.EffectiveDescriptors);
  }
- string RatingLabel(AssetRatingClient.AssetRating? rating)=>rating is null?"Legacy · General":rating.EffectiveDescriptors.Length==0?"General":$"Rated · {rating.EffectiveDescriptors.Length}";
+ string RatingLabel(AtlasTile tile,AssetRatingClient.AssetRating? rating)=>rating is null?(IsPrivate(tile)?"Private · Unrated":"Legacy · General"):rating.EffectiveDescriptors.Length==0?"General":$"Rated · {rating.EffectiveDescriptors.Length}";
  string RatingReasons(IEnumerable<string> ids)
  {
   var labels=ids.Select(id=>ContentAllowancePolicy.Descriptors.FirstOrDefault(x=>x.Id==id)?.Label).Where(x=>!string.IsNullOrWhiteSpace(x)).ToArray();
@@ -260,8 +260,7 @@
    foreach(var item in files)
    {
     var rating=await Ratings.GetAsync(item.Key);
-    if(rating is null){unrated++;continue;}
-    _ratings[item.Key]=rating;
+    if(rating is null)unrated++;else _ratings[item.Key]=rating;
     var url=await Auth.DownloadUrlAsync(item.Key);
     if(string.IsNullOrWhiteSpace(url))continue;
     metadata.TryGetValue(item.Key,out var meta);
@@ -272,10 +271,16 @@
     var display=string.IsNullOrWhiteSpace(meta?.Name)?fallback:meta!.Name;
     var category=WorldSession.NormalizeAssetCategory(meta?.Category);
     var folder=item.Key.StartsWith("assets/",StringComparison.OrdinalIgnoreCase)&&meta is null?"Legacy Uploads":WorldSession.NormalizeAssetFolder(meta?.Folder);
-    loaded.Add(new AtlasTile("private:"+item.Key,display,url,"PRIVATE",category,folder,"You"));
+    var assetKind=string.IsNullOrWhiteSpace(meta?.AssetKind)
+      ? (string.Equals(category,"Sprites",StringComparison.OrdinalIgnoreCase)?"sprite":"image")
+      : meta!.AssetKind;
+    loaded.Add(new AtlasTile(
+      "private:"+item.Key,display,url,"PRIVATE",category,folder,"You",
+      meta?.SourceWidth??0,meta?.SourceHeight??0,meta?.CropX??0,meta?.CropY??0,meta?.CropWidth??0,meta?.CropHeight??0,
+      assetKind,false,0,0,0,Math.Max(1,meta?.FrameCount??1),Math.Max(0,meta?.FramesPerSecond??0)));
    }
    _privateTiles.Clear();_privateTiles.AddRange(loaded);Session.ReplaceUserAssetTiles(loaded);_privateLoaded=true;
-   if(unrated>0)_status=$"{unrated} older upload{(unrated==1?" is":"s are")} hidden until a provider content rating is assigned.";
+   if(unrated>0)_status=$"{unrated} private upload{(unrated==1?" is":"s are")} unrated. It remains visible only in your personal Uploads until rated for sharing.";
   }
   catch(Exception ex){_status="Your private uploads could not be loaded: "+ex.Message;}
   finally{_loadingPrivate=false;await InvokeAsync(StateHasChanged);}
