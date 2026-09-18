@@ -178,3 +178,32 @@ window.ristWorld.scrollRail=(selector,direction)=>{
  const amount=Math.max(96,(vertical?target.clientHeight:target.clientWidth)*.78)*dir;
  target.scrollBy(vertical?{top:amount,behavior:'smooth'}:{left:amount,behavior:'smooth'});
 };
+
+
+window.ristLaunch={
+ clearLegacyStartState:()=>{
+  document.body?.classList?.remove('rist-game-start-open');
+  document.querySelectorAll('.rist-game-start').forEach(el=>{el.hidden=true;});
+  return true;
+ }
+};
+
+window.ristPrivacy={
+ key:'rist.privacy.storage-consent.v1',
+ version:'2026-09-18',
+ get:()=>{
+  try{
+   const raw=localStorage.getItem('rist.privacy.storage-consent.v1');
+   if(!raw)return null;
+   const parsed=JSON.parse(raw);
+   return parsed&&['essential','optional'].includes(parsed.choice)?parsed.choice:null;
+  }catch{return null}
+ },
+ set:(choice)=>{
+  const normalized=choice==='optional'?'optional':'essential';
+  try{localStorage.setItem('rist.privacy.storage-consent.v1',JSON.stringify({choice:normalized,version:'2026-09-18',updatedAt:new Date().toISOString()}));}catch{}
+  dispatchEvent(new CustomEvent('rist:privacy-choice',{detail:{choice:normalized}}));
+  return normalized;
+ },
+ allowsOptional:()=>window.ristPrivacy.get()==='optional'
+};
