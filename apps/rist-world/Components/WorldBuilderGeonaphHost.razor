@@ -80,7 +80,7 @@ else
      {
       <section class="claim-selection">
        <strong>SQUARE @CellCoordinate(_selectedCell)</strong>
-       <span>@WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · maximum height @WorldSession.MmoParcelMaxHeight</span>
+       <span>@WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · maximum height @WorldSession.MmoParcelMaxHeight layers</span>
        <label for="shaelvien-world-name">WORLD NAME</label>
        <input id="shaelvien-world-name" maxlength="80" autocomplete="off" @bind="_worldName" @bind:event="oninput" placeholder="Name this world" />
        <button type="button" class="claim-confirm" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="ClaimAsync">@(_busy?"BINDING TOKEN…":"SPEND TOKEN & CLAIM")</button>
@@ -104,7 +104,7 @@ else
      <dl class="parcel-facts">
       <div><dt>Parcel</dt><dd>@CellCoordinate(owned.CellIndex)</dd></div>
       <div><dt>Surface</dt><dd>@owned.PixelWidth×@owned.PixelHeight px</dd></div>
-      <div><dt>Height</dt><dd>@owned.MaxHeight</dd></div>
+      <div><dt>Height</dt><dd>@owned.MaxHeight layers</dd></div>
       <div><dt>Binding</dt><dd>@BindingFingerprint(owned.BindingHash)</dd></div>
      </dl>
      <label for="parcel-user-id">USER ID</label>
@@ -317,7 +317,7 @@ else
   if(cell==WorldSession.EndemarOriginCell)return "Endemar, Shaelvien origin; not claimable";
   if(Session.IsMmoParcelOwnedByCurrentUser(cell))return $"Your claimed Shaelvien world at {CellCoordinate(cell)}";
   if(Session.IsMmoParcelClaimed(cell))return $"Claimed Shaelvien square {CellCoordinate(cell)}; unavailable";
-  if(Session.IsMmoParcelClaimable(cell))return $"Available Shaelvien square {CellCoordinate(cell)}; 2048 by 2048 pixels, maximum height 10";
+  if(Session.IsMmoParcelClaimable(cell))return $"Available Shaelvien square {CellCoordinate(cell)}; 2048 by 2048 pixels, maximum height 100 layers";
   return $"Shaelvien square {CellCoordinate(cell)}; not yet connected to the claim frontier";
  }
 
