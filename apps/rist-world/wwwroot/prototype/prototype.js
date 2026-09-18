@@ -45,6 +45,17 @@ if(READ_ONLY){
   imageUploadToggle.disabled=true;imageUploadToggle.title='Read-only Endemar reference';
   const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent='VIEW ONLY · ENDEMAR REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
 }else stage.dataset.access='edit';
+if(REGION_DEFINER){
+  document.title='Shaelvien Region Definer';
+  stage.classList.add('region-definer-mode');
+  stage.dataset.workspace='regiondefiner';
+  stage.dataset.sourceWorldLocked='true';
+  keyboard?.setAttribute('aria-label','Region Definer contextual keyboard');
+  keyboardToggle?.setAttribute('aria-label','Open Region Definer keyboard');
+  persistentSave.title='Save regional overlays';
+  persistentSave.setAttribute('aria-label','Save regional overlays');
+  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · WORLD SOURCE LOCKED · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
+}
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
