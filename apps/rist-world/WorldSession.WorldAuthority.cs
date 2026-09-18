@@ -7,14 +7,17 @@ public sealed partial class WorldSession
     private string _trustedAuthorityWorldId = "";
     private string _trustedAuthoritySessionToken = "";
     private string _trustedWorldRole = "";
+    private bool _trustedPlatformOwner;
     private bool _trustedWorldAuthorityLoading;
     private bool _trustedWorldAuthorityResolved;
     private DateTimeOffset _trustedWorldAuthorityRetryAfter = DateTimeOffset.MinValue;
 
     public string TrustedWorldRole => _trustedWorldRole;
+    public bool TrustedPlatformOwner => _trustedPlatformOwner;
 
     // Browser role/workspace state is representation only. Worldbuilder capability is
-    // granted only after the authenticated AWS authority endpoint confirms membership.
+    // granted only after the authenticated AWS authority endpoint confirms either
+    // platform-owner authority or a GM/owner membership for the selected world.
     // Unknown, stale, mismatched, or unavailable authority fails closed.
     public bool HasTrustedWorldBuilderAuthority
     {
@@ -27,7 +30,7 @@ public sealed partial class WorldSession
                 && _trustedWorldAuthorityResolved
                 && string.Equals(_trustedAuthorityWorldId, WorldId, StringComparison.Ordinal)
                 && string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
-                && IsTrustedWorldBuilderRole(_trustedWorldRole);
+                && (_trustedPlatformOwner || IsTrustedWorldBuilderRole(_trustedWorldRole));
         }
     }
 
@@ -46,7 +49,7 @@ public sealed partial class WorldSession
         var sessionToken = auth.SessionToken ?? "";
         if (!IsLoggedIn || !HasActiveWorld || string.IsNullOrWhiteSpace(sessionToken))
         {
-            if (_trustedWorldAuthorityResolved || _trustedWorldAuthorityLoading || _trustedWorldRole.Length > 0)
+            if (_trustedWorldAuthorityResolved || _trustedWorldAuthorityLoading || _trustedPlatformOwner || _trustedWorldRole.Length > 0)
                 ResetTrustedWorldAuthority();
             return;
         }
@@ -75,6 +78,7 @@ public sealed partial class WorldSession
         _trustedAuthorityWorldId = worldId;
         _trustedAuthoritySessionToken = sessionToken;
         _trustedWorldRole = "";
+        _trustedPlatformOwner = false;
         _trustedWorldAuthorityResolved = false;
         Notify();
 
@@ -82,13 +86,42 @@ public sealed partial class WorldSession
         {
             var authority = new AwsAuthorityClient(http, auth);
             await authority.InitializeAsync();
-            var membership = await authority.GetMembershipAsync(worldId);
+
+            AwsAuthorityClient.AuthorityProfile? profile = null;
+            AwsAuthorityClient.Membership? membership = null;
+            var receivedAuthority = false;
+
+            try
+            {
+                profile = await authority.GetProfileAsync();
+                receivedAuthority = profile is not null;
+            }
+            catch
+            {
+                // A membership response can still authorize a GM if the profile lookup
+                // is temporarily unavailable.
+            }
+
+            try
+            {
+                membership = await authority.GetMembershipAsync(worldId);
+                receivedAuthority = receivedAuthority || membership is not null;
+            }
+            catch
+            {
+                // Platform-owner authority can still authorize the owner if membership
+                // lookup is temporarily unavailable.
+            }
+
+            if (!receivedAuthority)
+                throw new InvalidOperationException("Trusted authority could not be resolved.");
 
             // Ignore any response that arrived after the authenticated identity/world changed.
             if (!string.Equals(WorldId, worldId, StringComparison.Ordinal)
                 || !string.Equals(auth.SessionToken ?? "", sessionToken, StringComparison.Ordinal))
                 return;
 
+            _trustedPlatformOwner = profile?.PlatformOwner == true;
             if (membership is not null
                 && string.Equals(membership.WorldId, worldId, StringComparison.Ordinal))
                 _trustedWorldRole = membership.Role?.Trim() ?? "";
@@ -100,6 +133,7 @@ public sealed partial class WorldSession
         {
             // Authority/network uncertainty never becomes permission. Retry later.
             _trustedWorldRole = "";
+            _trustedPlatformOwner = false;
             _trustedWorldAuthorityResolved = true;
             _trustedWorldAuthorityRetryAfter = DateTimeOffset.UtcNow.AddSeconds(30);
         }
@@ -115,6 +149,7 @@ public sealed partial class WorldSession
         _trustedAuthorityWorldId = "";
         _trustedAuthoritySessionToken = "";
         _trustedWorldRole = "";
+        _trustedPlatformOwner = false;
         _trustedWorldAuthorityLoading = false;
         _trustedWorldAuthorityResolved = false;
         _trustedWorldAuthorityRetryAfter = DateTimeOffset.MinValue;
