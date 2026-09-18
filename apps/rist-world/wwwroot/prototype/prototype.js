@@ -9,6 +9,8 @@ const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
 const DISPLAY_WORLD_NAME=IS_GEONAPH_SEED?'Endemar':(WORLD_NAME||'Shaelvien');
 const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
 const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
+const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
+const READ_ONLY=ACCESS_MODE!=='edit';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const MIN_VIEW_SCALE=1e-6;
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
@@ -33,6 +35,12 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+if(READ_ONLY){
+  stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
+  persistentSave.disabled=true;persistentSave.title='Read-only Endemar reference';
+  imageUploadToggle.disabled=true;imageUploadToggle.title='Read-only Endemar reference';
+  const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent='VIEW ONLY · ENDEMAR REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
+}else stage.dataset.access='edit';
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
@@ -236,6 +244,7 @@ function serializableUserLayer(item){
   };
 }
 async function saveWorldBuilder(){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return false;}
   if(!persistentSave)return false;
   persistentSave.disabled=true;persistentSave.classList.add('saving');persistentSave.classList.remove('saved');
   try{
@@ -516,6 +525,7 @@ function tierByIndex(index){return TIERS.find(t=>t.index===index)||TIERS[0]}
 function tierByKey(key){return TIERS.find(t=>t.key===key)||TIERS[0]}
 function tierLabel(tier){return String(tierNames[tier.key]||'').trim()||tier.label}
 function renameViewerTier(){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(viewerTier==='all'){announce('Select a tier before naming it.');return}
   const tier=tierByKey(viewerTier),next=prompt('Name this tier',String(tierNames[tier.key]||''));
   if(next===null)return;const value=String(next).trim().slice(0,60);if(value)tierNames[tier.key]=value;else delete tierNames[tier.key];
@@ -556,6 +566,7 @@ function setViewerTier(key){
   viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected.`);
 }
 function adjustSelectedSize(direction){
+  if(READ_ONLY)return;
   if(!selectedImage)return;
   const current=Math.max(.2,Number(selectedImage.size)||1);
   const step=current<2?.1:current<6?.25:.5;
@@ -564,6 +575,7 @@ function adjustSelectedSize(direction){
   announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} size ${selectedImage.size.toFixed(selectedImage.size<2?1:2)}.`);
 }
 function moveSelectedTier(delta){
+  if(READ_ONLY)return;
   if(!selectedImage)return;
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
   updateLayerOrder();applyParallax();renderKeyboardKeys();
@@ -571,6 +583,7 @@ function moveSelectedTier(delta){
   announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function moveSelectedLayer(delta){
+  if(READ_ONLY)return;
   if(!selectedImage)return;
   const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
   selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
@@ -589,6 +602,7 @@ function viewerCenterPosition(){
   return{x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
 }
 function openImageUpload(){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
   const address=placementAddress(currentTierIndex(),1);
@@ -599,6 +613,7 @@ function openImageUpload(){
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 function openSpriteUpload(){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   spriteColumns.value='3';spriteRows.value='2';spriteFps.value='6';spriteFrameCount.value='6';
   spriteUploadPanel.hidden=false;stage.classList.add('image-upload-open');spriteDropzone.focus();
   announce('Sprite upload opened. Frame one will be used for placement. Save will start animation.');
@@ -748,14 +763,17 @@ function placedContentSelect(){
   });
   return select;
 }
-function removeSelectedImage(){if(!selectedImage)return;const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
+function removeSelectedImage(){
+  if(READ_ONLY)return;if(!selectedImage)return;const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
+  if(READ_ONLY)return;
   if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   suspendRegionEnhancement();
   imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y};
 }
 function moveImageDrag(event){
+  if(READ_ONLY)return;
   if(!imageDrag||imageDrag.id!==event.pointerId)return;event.preventDefault();event.stopPropagation();
   imageDrag.item.x=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   imageDrag.item.y=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
@@ -764,6 +782,7 @@ function moveImageDrag(event){
 }
 function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null;scheduleRegionEnhancement(40)}
 async function placeUploadedImage(file){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
   const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
@@ -882,7 +901,7 @@ function bindTap(button,fn){
 
 function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
-function keyboardModes(){return BASE_KEYBOARD_MODES}
+function keyboardModes(){return READ_ONLY?['Viewer','Tiers']:BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
   const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
@@ -1084,6 +1103,7 @@ function personalPageAssets(type){
   return{assets:assets.slice(personalAssetPage*PERSONAL_ASSET_PAGE_SIZE,(personalAssetPage+1)*PERSONAL_ASSET_PAGE_SIZE),pages,total:assets.length};
 }
 function placePersonalImage(asset){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!asset?.url)return;
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
@@ -1098,6 +1118,7 @@ function placePersonalImage(asset){
   announce(`${item.name} placed from My Images. Save commits this instance to Endemar.`);
 }
 async function placePersonalSprite(asset){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!asset?.url)return;
   const item=await placeSpriteDefinition({
     id:`private-sprite:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,name:asset.name,sheetSrc:asset.url,
@@ -1107,6 +1128,7 @@ async function placePersonalSprite(asset){
   item.personalAssetKey=asset.key;personalFolderType=null;return item;
 }
 function placePersonalTile(asset){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!asset?.url)return;
   placeLibraryTile({id:`private:${asset.key}`,name:asset.name,image:asset.url});
   if(selectedImage)selectedImage.personalAssetKey=asset.key;
@@ -1185,6 +1207,7 @@ function tileLibraryPageAssets(){
 }
 function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30),0,29)+.5)/30}
 function placeLibraryTile(asset){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!asset?.image)return;
   const point=viewerCenterPosition(),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
@@ -1244,6 +1267,7 @@ function currentSpriteLibraryAssets(){return spriteLibraryFolder?spriteCatalog.f
 function spriteLibraryPageCount(){return Math.max(1,Math.ceil(currentSpriteLibraryAssets().length/SPRITE_LIBRARY_PAGE_SIZE))}
 function spriteLibraryPageAssets(){spriteLibraryPage=clamp(spriteLibraryPage,0,spriteLibraryPageCount()-1);const start=spriteLibraryPage*SPRITE_LIBRARY_PAGE_SIZE;return currentSpriteLibraryAssets().slice(start,start+SPRITE_LIBRARY_PAGE_SIZE)}
 async function placeSpriteDefinition(definition){
+  if(READ_ONLY)throw new Error('Endemar reference mode is view only.');
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const extractOptions={
     columns:definition.columns,rows:definition.rows,frameCount:definition.frameCount,
@@ -1282,6 +1306,7 @@ async function placeSpriteDefinition(definition){
   return item;
 }
 async function placeUploadedSprite(file){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose a sprite sheet image.');return}
   try{
     const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
@@ -1301,6 +1326,7 @@ async function placeUploadedSprite(file){
   }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
 }
 async function placeLibrarySprite(asset){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
   try{
     await placeSpriteDefinition({
       id:`sprite:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,assetId:asset.id,name:asset.name,sheetSrc:asset.image,
@@ -1341,7 +1367,7 @@ function renderKeyboardKeys(){
       toolKey('▲',tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
       toolKey('L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer}.`)}),
       toolKey('L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer}.`)}),
-      toolKey('NAME','tier',renameViewerTier,viewerTier==='all')
+      toolKey('NAME','tier',renameViewerTier,viewerTier==='all'||READ_ONLY)
     );return;
   }
   if(keyboardMode==='Tiles'){
