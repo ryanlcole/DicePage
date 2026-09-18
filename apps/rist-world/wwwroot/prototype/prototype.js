@@ -625,13 +625,14 @@ function placeLibraryTile(asset){
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
     assetId:asset.id,name:asset.name,libraryTile:true,
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
-    x:snapWorldCell(point.x),y:snapWorldCell(point.y),tier:currentTierIndex(),layer:viewerLayer,
-    size:(1/30)/.12,rotation:0,opacity:1,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    x:point.x,y:point.y,tier:currentTierIndex(),layer:clamp(viewerLayer+1,0,9),
+    size:1,rotation:0,opacity:1,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement library-tile-placement';node.alt=asset.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);applyParallax();
-  announce(`${asset.name} placed at the viewer center in ${tierLabel(tierByIndex(item.tier))}, layer ${item.layer}.`);
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  announce(`${asset.name} placed at the viewer center above ${tierLabel(tierByIndex(item.tier))} as layer ${item.layer}. Image editing keyboard opened.`);
 }
 function libraryTileKey(asset){
   const button=document.createElement('button');button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Tap to place this tile at the viewer center.`);
