@@ -1,51 +1,38 @@
 (() => {
 'use strict';
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
-const LAYERS_PER_TIER=10;
-const STRATA=[
- ['sea','Sea Level',0,0,1000],
- ['hills','Hills / Low Clouds',10,1001,2000],
- ['mountains','Mountains / Weather',20,2001,10000],
- ['sky','Sky',30,10001,null]
-].map(([key,label,z,minFt,maxFt])=>Object.freeze({key,label,z,minFt,maxFt}));
-const ROOT_OPTIONS=Object.freeze([Object.freeze({key:'all',label:'All parallax',z:null}),...STRATA]);
-const SURFACE_CATEGORIES=[['mountain','Mountain'],['volcano','Volcano'],['hills','Hills'],['planes','Planes']].map(([key,label])=>Object.freeze({key,label,level:'Category'}));
-const MAP_TRUTH=Object.freeze({
-  id:'geonaph',
-  origin:Object.freeze({x:0,y:0,z:0}),
-  coordinateAuthority:'XYZ',
-  layersPerTier:LAYERS_PER_TIER,
-  assets:Object.freeze([
-    Object.freeze({key:'surface',sceneZ:0,file:'geonaph_full_static_canonical_surface_v001.png',role:'base'}),
-    Object.freeze({key:'highlands',sceneZ:10,file:'geonaph_full_static_highlands_rivers_v001.png',role:'parallax'}),
-    Object.freeze({key:'mountains',sceneZ:20,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',role:'parallax'})
-  ])
-});
-
+const BASE_WORLD_ASSETS=Object.freeze([
+  Object.freeze({key:'surface',file:'geonaph_full_static_canonical_surface_v001.png'}),
+  Object.freeze({key:'highlands',file:'geonaph_full_static_highlands_rivers_v001.png'}),
+  Object.freeze({key:'mountains',file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})
+]);
+const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),celestialPathLayer=$('celestialPathLayer'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),celestialAdvancedPanel=$('celestialAdvancedPanel'),celestialAdvancedForm=$('celestialAdvancedForm'),celestialAdvancedClose=$('celestialAdvancedClose'),celestialName=$('celestialName'),celestialParent=$('celestialParent'),celestialRadius=$('celestialRadius'),celestialMass=$('celestialMass'),celestialGravity=$('celestialGravity'),celestialSemiMajor=$('celestialSemiMajor'),celestialEccentricity=$('celestialEccentricity'),celestialInclination=$('celestialInclination'),celestialPeriod=$('celestialPeriod'),celestialRotation=$('celestialRotation'),celestialTilt=$('celestialTilt'),celestialAlbedo=$('celestialAlbedo'),celestialAtmosphere=$('celestialAtmosphere'),celestialEpoch=$('celestialEpoch'),celestialWorldName=$('celestialWorldName'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),parallaxAdd=$('parallaxAdd'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,viewerZ=0,activeStratum='sea',parallaxOverride=true,focusPath=[],focusSelected='all',keyboardMode='Viewer',toolMode='Inspect',lastMix={zoomZ:0,surface:1,highlands:1,mountains:.82},tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,selectedCelestial=null,celestialDrag=null,pathDraw=null,selectedWeather=null,weatherDrag=null;
-const ALTITUDE_NAMES_KEY='rist.worldbuilder.altitudeNames.v1';
-const altitudeNames=(()=>{try{return JSON.parse(localStorage.getItem(ALTITUDE_NAMES_KEY)||'{}')||{}}catch{return{}}})();
-function bandByKey(key){return STRATA.find(s=>s.key===key)||STRATA[0]}
-function meters(feet){return Math.round(feet*.3048)}
-function bandRangeText(band){
-  if(!band)return'';
-  if(band.maxFt==null)return `${band.minFt.toLocaleString()}+ ft · ${meters(band.minFt).toLocaleString()}+ m`;
-  return `${band.minFt.toLocaleString()}–${band.maxFt.toLocaleString()} ft · ${meters(band.minFt).toLocaleString()}–${meters(band.maxFt).toLocaleString()} m`;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,currentParallaxGroup=0,parallaxGapCount=0;
+const userLayers=[];
+function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function updateLayerOrder(){
+  userLayers.forEach((item,index)=>{item.layerIndex=index+BASE_LAYER_COUNT;item.node.style.zIndex=String(10+index);item.node.dataset.layer=String(item.layerIndex);item.node.dataset.parallaxGroup=String(item.parallaxGroup)});
 }
-function currentBand(){
-  const sorted=[...STRATA].sort((a,b)=>a.z-b.z);
-  return sorted.filter(band=>viewerZ>=band.z).at(-1)||sorted[0];
+function groupHasUserLayer(group){return userLayers.some(item=>item.parallaxGroup===group)}
+function addParallaxGap(){
+  if(currentParallaxGroup>0&&!groupHasUserLayer(currentParallaxGroup)){announce('Parallax gap is already ready. Add an image before creating another gap.');return}
+  currentParallaxGroup+=1;parallaxGapCount+=1;parallaxAdd.setAttribute('aria-label',`Add parallax gap. ${parallaxGapCount} gap${parallaxGapCount===1?'':'s'} currently in the stack.`);
+  keyboardMode='Layers';renderKeyboardTabs();renderKeyboardKeys();applyParallax();announce(`Parallax gap ${parallaxGapCount} added. New images will be placed at depth group ${currentParallaxGroup}.`);
 }
-function currentTierKey(){return currentBand().key}
-function bandDisplayName(key){const band=bandByKey(key),custom=String(altitudeNames[key]||'').trim();return custom||band.label}
+function moveSelectedLayer(delta){
+  if(!selectedImage)return;const index=userLayers.indexOf(selectedImage);if(index<0)return;const next=clamp(index+delta,0,userLayers.length-1);if(next===index)return;userLayers.splice(index,1);userLayers.splice(next,0,selectedImage);updateLayerOrder();announce(`Image moved to layer ${selectedImage.layerIndex}.`);renderKeyboardKeys();
+}
+function moveSelectedDepth(delta){
+  if(!selectedImage)return;selectedImage.parallaxGroup=Math.max(0,selectedImage.parallaxGroup+delta);currentParallaxGroup=Math.max(currentParallaxGroup,selectedImage.parallaxGroup);parallaxGapCount=Math.max(parallaxGapCount,currentParallaxGroup);updateLayerOrder();applyParallax();announce(`Image moved to parallax depth ${selectedImage.parallaxGroup}.`);renderKeyboardKeys();
+}
 function viewerCenterPosition(){
   const r=stage.getBoundingClientRect();
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
@@ -53,12 +40,11 @@ function viewerCenterPosition(){
   return{x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
 }
 function openImageUpload(){
-  const point=viewerCenterPosition(),depth=splitZ(viewerZ);
-  imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);imageTier.value=String(depth.tierIndex);imageLayer.value=String(depth.layerOffset);
+  const point=viewerCenterPosition();
+  imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
-  announce('Image upload opened. Viewer frozen. Choose X, Y, tier and layer, then drop or browse for an image.');
-}
-function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
+  announce(`Image upload opened. Viewer frozen. The image will become layer ${BASE_LAYER_COUNT+userLayers.length} in parallax depth ${currentParallaxGroup}.`);
+}function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 async function transparencyCandidate(src){
@@ -101,15 +87,15 @@ function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)retur
 async function placeUploadedImage(file){
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
-  const tier=Math.trunc(Number(imageTier.value)||0),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9),item={
+  const item={
     id:crypto.randomUUID?.()||String(Date.now()),originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
-    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,node:null
+    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),parallaxGroup:currentParallaxGroup,layerIndex:BASE_LAYER_COUNT+userLayers.length,size:1,rotation:0,opacity:1,node:null
   };
-  const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;node.dataset.tier=String(tier);node.dataset.layer=String(layer);item.node=node;
+  const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  world.appendChild(node);refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();announce(`Image placed at X ${item.x.toFixed(3)}, Y ${item.y.toFixed(3)}, tier ${tier}, layer ${layer}. Image editing keyboard opened.`);
+  userLayers.push(item);world.appendChild(node);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
+  announce(`Image placed as layer ${item.layerIndex} at parallax depth ${item.parallaxGroup}. Image editing keyboard opened.`);
 }
-
 const CELESTIAL_TYPES=Object.freeze([
  {key:'sun',name:'Sun',glyph:'☀'},{key:'moon',name:'Moon',glyph:'◐'},{key:'planet',name:'Planet',glyph:'●'},
  {key:'star',name:'Star',glyph:'✦'},{key:'asteroid',name:'Asteroid',glyph:'◆'},{key:'comet',name:'Comet',glyph:'☄'},
