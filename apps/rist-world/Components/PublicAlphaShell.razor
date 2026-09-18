@@ -40,8 +40,8 @@
   <section class="launcher-primary" aria-label="Shaelvien categories">
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
-   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the selected world.":"Select a world above first.")</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!CanBuildWorld)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":"Build access required for this world.")</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!CanBuildWorld)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":"Build access required for this world.")</small></button>
    @if(WorldReady)
    {
     <button type="button" class="launcher-card world" @onclick="OpenTickerAsync"><span class="card-icon">⋯</span><strong>TICKER</strong><small>Customize this world's automatic top ticker.</small></button>
@@ -78,7 +78,7 @@
    </section>
   }
 
-  <WorldGate Open="@_worldGateOpen" OnClose="CloseWorldGate" OnContinue="ContinueWorldbuildingFromGate" />
+  <WorldGate Open="@_worldGateOpen" RequireSelection="@_initialWorldChoiceRequired" OnClose="CloseWorldGate" OnContinue="CloseWorldGate" />
 
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
@@ -198,7 +198,8 @@ else
  bool _worldDirectoryLoaded;
  bool _worldSelectionBusy;
  string _tickerEditor="";
- bool _worldGateOpen;
+ bool _worldGateOpen=true;
+ bool _initialWorldChoiceRequired=true;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -210,6 +211,7 @@ else
  string _workspaceHint = "WORLD → TIER → LAYER → CUBE";
 
  bool WorldReady=>Session.HasActiveWorld;
+ bool CanBuildWorld=>WorldReady&&Session.HasTrustedWorldBuilderAuthority;
  string LandingWorldValue=>WorldReady?Session.WorldId:"";
  string TickerStorageKey=>WorldReady?$"rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}":"";
  string DefaultTickerText=>WorldReady?$"{Session.WorldDisplayName.Trim().ToUpperInvariant()}\nBUILD\nUPLOAD\nWEATHER\nMETADATA":"";
@@ -229,22 +231,14 @@ else
  {
   if(!firstRender||_workspaceRestored)return;
   _workspaceRestored=true;
+  _workspaceOpen=false;
+  _worldGateOpen=true;
+  _initialWorldChoiceRequired=true;
+  await PersistWorkspaceAsync("hub");
   await RefreshMotionStateAsync();
   await RefreshParallaxStateAsync();
   await RefreshLandingWorldsAsync();
-
-  string? storedWorkspace=null;
-  try{storedWorkspace=await JS.InvokeAsync<string?>("localStorage.getItem",WorkspaceStorageKey);}catch{}
-  if(!string.IsNullOrWhiteSpace(storedWorkspace)&&RestorableWorkspaces.Contains(storedWorkspace))
-  {
-   ApplyWorkspace(storedWorkspace);
-   _workspaceOpen=true;
-   await InvokeAsync(StateHasChanged);
-  }
-  else
-  {
-   await PersistWorkspaceAsync("hub");
-  }
+  await InvokeAsync(StateHasChanged);
  }
 
  void ApplyWorkspace(string mode)
@@ -371,6 +365,7 @@ else
   try
   {
    await Session.LoadWorldAsync(world);
+   await Session.RefreshTrustedWorldAuthorityAsync();
    await RefreshLandingWorldsAsync();
   }
   finally
@@ -417,9 +412,16 @@ else
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
- void OpenWorldbuilding(){if(!WorldReady)return;OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
- async Task ContinueWorldbuildingFromGate(){await RefreshLandingWorldsAsync();OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
- async Task CloseWorldGate(){_worldGateOpen=false;await RefreshLandingWorldsAsync();}
+ void OpenWorldbuilding(){if(!CanBuildWorld)return;OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
+ async Task CloseWorldGate(){
+  if(!Session.HasActiveWorld)return;
+  _initialWorldChoiceRequired=false;
+  _worldGateOpen=false;
+  _workspaceOpen=false;
+  await PersistWorkspaceAsync("hub");
+  await Session.RefreshTrustedWorldAuthorityAsync();
+  await RefreshLandingWorldsAsync();
+ }
  void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
  void OpenRegionDefiner()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD TILE → REGION → LOCAL");
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
@@ -430,7 +432,7 @@ else
  void OpenLore()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAstrology()=>OpenWorkspace("world","ASTROLOGY","CELESTIAL → INFLUENCE → WORLD");
  void OpenAstronomy()=>OpenWorkspace("world","ASTRONOMY","STARS → SKY → CELESTIAL STRUCTURE");
- void OpenGameMaster()=>OpenWorkspace("campaign","GAMEMASTER","BUILD → MANAGE → RUN → REPLAY");
+ void OpenGameMaster(){if(!CanBuildWorld)return;OpenWorkspace("campaign","GAMEMASTER","BUILD → MANAGE → RUN → REPLAY");}
  void OpenViewer()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD → REGION → LOCAL");
  void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGNS","WORLD → CAMPAIGN → SESSION → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
