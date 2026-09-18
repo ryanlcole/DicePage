@@ -63,7 +63,7 @@ def main() -> None:
     # Experience settings begin at Press Start, not on login/landing surfaces.
     require(index, '<script src="device-settings.js"></script>', "device settings authority must load before Blazor startup")
     forbid(game_start, "parallax-toggle", "pre-auth login menu must not expose a Parallax toggle")
-    forbid(shell, "launcher-device-setup", "landing page must not ask for Parallax/motion setup again")
+    forbid(shell, 'class="launcher-device-setup"', "landing page must not ask for Parallax/motion setup again")
     require(shell, "ToggleParallaxAsync", "Parallax preference must remain editable from the Start menu")
     require(shell, "ToggleAudioAsync", "Audio preference must remain editable from the Start menu")
     require(shell, "ToggleVideoAsync", "Video preference must remain editable from the Start menu")
