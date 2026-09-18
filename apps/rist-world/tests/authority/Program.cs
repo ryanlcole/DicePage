@@ -226,6 +226,47 @@ Check(authority.ConsumeApproval(approval.RequestId, "production-migration", "sys
 Check(!authority.ConsumeApproval(approval.RequestId, "production-migration", "system:production"),
     "Consumed approval must not be reusable.");
 
+// Claim permission vocabulary: Blocked denies claim requests; Restricted/Limited/Co-operative
+// allow requests; Release Ownership is a transfer operation rather than a standing claim mode.
+Check(!WorldClaimAuthorityPolicy.CanSubmitRequest(WorldClaimPermission.Blocked),
+    "Blocked must remove access to submit a claim.");
+Check(WorldClaimAuthorityPolicy.CanSubmitRequest(WorldClaimPermission.Restricted),
+    "Restricted must allow a scoped claim request.");
+Check(WorldClaimAuthorityPolicy.CanSubmitRequest(WorldClaimPermission.Limited),
+    "Limited must allow a GM-scoped claim request.");
+Check(WorldClaimAuthorityPolicy.CanSubmitRequest(WorldClaimPermission.Cooperative),
+    "Co-operative must allow a claim request.");
+Check(!WorldClaimAuthorityPolicy.CanSubmitRequest(WorldClaimPermission.ReleaseOwnership)
+      && WorldClaimAuthorityPolicy.IsOwnershipTransfer(WorldClaimPermission.ReleaseOwnership),
+    "Release Ownership must be a transfer operation, not a standing claim permission.");
+
+// Co-operative ownership grants permission-management authority on the shared resource,
+// while independently protected secret children remain private.
+authority.EnsureResource("world:claim-test", owner);
+authority.EnsureResource("world:claim-test:secret", owner, stopsInheritance: true);
+authority.Attach(owner, "world:claim-test", "world:claim-test:secret");
+var coopOwnerSession = authority.StartSession("co-owner", "co-owner", sessionId: "session:co-owner");
+authority.GrantCooperativeOwnership(directH.SessionId, "world:claim-test", "co-owner");
+Check(authority.CanManagePermissions("co-owner", "world:claim-test"),
+    "Co-operative owner must be able to manage the shared world resource.");
+Check(!authority.Resolve("world:claim-test:secret", "co-owner", AuthorityResourceAction.View, ["world:claim-test"]).Allowed,
+    "Co-operative ownership must not expose a child secret that stops inheritance.");
+
+// Release Ownership requires a direct owner session plus exact written approval. The releasing
+// owner is removed and the recipient becomes the owner.
+var transferResource = authority.EnsureResource("world:transfer-test", owner);
+var releaseTargetSession = authority.StartSession("release-target", "release-target", sessionId: "session:release-target");
+var requiredReleaseText = WorldClaimAuthorityPolicy.ReleaseOwnershipApprovalText("world:transfer-test", "release-target");
+CheckThrows<UnauthorizedAccessException>(
+    () => authority.ReleaseOwnership(directH.SessionId, "world:transfer-test", "release-target", "yes"),
+    "Release Ownership must reject an imprecise written approval.");
+authority.ReleaseOwnership(directH.SessionId, "world:transfer-test", "release-target", requiredReleaseText);
+Check(!authority.CanManagePermissions(owner, "world:transfer-test"),
+    "The releasing GM must be removed from the transferred resource.");
+Check(authority.CanManagePermissions("release-target", "world:transfer-test")
+      && transferResource.OwnerUserId == "release-target",
+    "The recipient must become the owner after written release.");
+
 Check(authority.AuditTrail.Count > 0, "Authority decisions and mutations must produce audit events.");
 
 Console.WriteLine("Recursive Authority contract tests: PASS");
