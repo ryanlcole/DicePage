@@ -534,14 +534,16 @@ function moveSelectedTier(delta){
   if(!selectedImage)return;
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
   updateLayerOrder();applyParallax();renderKeyboardKeys();
-  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to ${tierByIndex(selectedImage.tier).label} parallax tier.`);
+  const pos=selectedPositionSummary(selectedImage);
+  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function moveSelectedLayer(delta){
   if(!selectedImage)return;
   const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
   selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
   updateLayerOrder();applyParallax();renderKeyboardKeys();
-  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to tier ${selectedImage.tier}, layer ${selectedImage.layer}.`);
+  const pos=selectedPositionSummary(selectedImage);
+  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function placementAddress(tier,layerDelta=1){
   const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((clamp(tier,0,TIERS.length-1)*10)+viewerLayer+layerDelta,0,maxSceneZ);
@@ -687,8 +689,8 @@ function deselectUserImage(announceChange=false){
   return true;
 }
 function placedContentLabel(item,index){
-  const name=String(item?.name||item?.assetId||'Placed image').trim()||'Placed image';
-  return `${index+1}. ${name} · T${Number(item?.tier)||0} L${Number(item?.layer)||0}`;
+  const name=String(item?.name||item?.assetId||'Placed image').trim()||'Placed image',pos=selectedPositionSummary(item);
+  return `${index+1}. ${name} · T${pos.tier} L${pos.layer} · X${pos.x} Y${pos.y}`;
 }
 function selectablePlacedContent(){
   return userLayers.filter(item=>item?.node);
@@ -725,6 +727,7 @@ function moveImageDrag(event){
   imageDrag.item.x=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   imageDrag.item.y=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
   refreshUserImage(imageDrag.item);
+  if(keyboardMode==='Image'&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
 function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null;scheduleRegionEnhancement(40)}
 async function placeUploadedImage(file){
@@ -839,6 +842,16 @@ function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){return BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
+function readoutKey(label,sub){
+  const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
+}
+function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
+function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
+function selectedPositionSummary(item){
+  if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,x:'0.000',y:'0.000'};
+  const tier=tierDisplay(item.tier);
+  return{tier:tier.number,tierLabel:tier.label,layer:layerDisplay(item.layer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
+}
 function tileLibraryAsset(raw){
   return{
     id:String(raw?.id||raw?.Id||''),
@@ -1097,7 +1110,12 @@ function renderKeyboardKeys(){
   }
   if(keyboardMode==='Image'){
     if(!selectedImage){keyboardKeys.append(toolKey('▧','add image',openImageUpload));return}
+    const pos=selectedPositionSummary(selectedImage);
     keyboardKeys.append(
+      readoutKey(`TIER ${pos.tier}`,pos.tierLabel),
+      readoutKey(`LAYER ${pos.layer}`,'current layer'),
+      readoutKey(`X ${pos.x}`,'world position'),
+      readoutKey(`Y ${pos.y}`,'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
       toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
       toolKey('↺','rotate',()=>{selectedImage.rotation-=15;refreshUserImage(selectedImage)}),
@@ -1105,10 +1123,10 @@ function renderKeyboardKeys(){
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
-      toolKey('TIER −','tier',()=>moveSelectedTier(-1),selectedImage.tier<=0),
-      toolKey('TIER +','tier',()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
-      toolKey('LAYER −','layer',()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
-      toolKey('LAYER +','layer',()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
+      toolKey('TIER −',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(-1),selectedImage.tier<=0),
+      toolKey('TIER +',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
+      toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
+      toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
       toolKey('DELETE','image',removeSelectedImage)
     );return;
   }
