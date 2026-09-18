@@ -32,8 +32,9 @@ public sealed partial class WorldSession
             .Select(group => group.OrderByDescending(x => x.UpdatedAtUtc).First())
             .ToList();
 
-        // Geonaph remains discoverable to accounts that already possess a legacy
-        // migration artifact, but only the bound owner receives owner authority.
+        // Geonaph is the shared MMO world. Every authenticated account may discover,
+        // load, view, and explore it. Ownership/build authority remains separate and is
+        // never inferred from public visibility.
         if (worlds.All(x => !string.Equals(x.WorldId, GeonaphWorldId, StringComparison.Ordinal)))
         {
             var legacyDescriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(
@@ -46,19 +47,16 @@ public sealed partial class WorldSession
                               (legacyDescriptor is not null &&
                                string.Equals(legacyDescriptor.OwnerAccountId, accountId, StringComparison.Ordinal));
 
-            if (ownsGeonaph || legacyDescriptor is not null || legacySave is not null)
-            {
-                var name = ownsGeonaph ? GeonaphDisplayName : legacyDescriptor?.DisplayName;
-                if (string.IsNullOrWhiteSpace(name)) name = legacySave?.WorldName;
-                if (string.IsNullOrWhiteSpace(name)) name = GeonaphDisplayName;
-                worlds.Add(new AccountWorldReference(
-                    GeonaphWorldId,
-                    name!,
-                    ownsGeonaph ? "owner" : "participant",
-                    $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json",
-                    $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap",
-                    legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow));
-            }
+            var name = ownsGeonaph ? GeonaphDisplayName : legacyDescriptor?.DisplayName;
+            if (string.IsNullOrWhiteSpace(name)) name = legacySave?.WorldName;
+            if (string.IsNullOrWhiteSpace(name)) name = GeonaphDisplayName;
+            worlds.Add(new AccountWorldReference(
+                GeonaphWorldId,
+                name!,
+                ownsGeonaph ? "owner" : "viewer",
+                $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json",
+                $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap",
+                legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow));
         }
 
         return new AccountWorldDirectory(
