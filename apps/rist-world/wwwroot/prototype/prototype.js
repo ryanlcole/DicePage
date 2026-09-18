@@ -522,6 +522,14 @@ function updateTierButton(){
 function setViewerTier(key){
   viewerTier=key==='all'?'all':tierByKey(key).key;viewerLayer=0;updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected.`);
 }
+function adjustSelectedSize(direction){
+  if(!selectedImage)return;
+  const current=Math.max(.2,Number(selectedImage.size)||1);
+  const step=current<2?.1:current<6?.25:.5;
+  selectedImage.size=clamp(current+(Math.sign(direction||1)*step),.2,20);
+  refreshUserImage(selectedImage);scheduleRegionEnhancement(20);renderKeyboardKeys();
+  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} size ${selectedImage.size.toFixed(selectedImage.size<2?1:2)}.`);
+}
 function moveSelectedTier(delta){
   if(!selectedImage)return;
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
@@ -1054,8 +1062,8 @@ function renderKeyboardKeys(){
   if(keyboardMode==='Image'){
     if(!selectedImage){keyboardKeys.append(toolKey('▧','add image',openImageUpload));return}
     keyboardKeys.append(
-      toolKey('SIZE −','image',()=>{selectedImage.size=clamp(selectedImage.size-.1,.2,5);refreshUserImage(selectedImage)}),
-      toolKey('SIZE +','image',()=>{selectedImage.size=clamp(selectedImage.size+.1,.2,5);refreshUserImage(selectedImage)}),
+      toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
+      toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
       toolKey('↺','rotate',()=>{selectedImage.rotation-=15;refreshUserImage(selectedImage)}),
       toolKey('↻','rotate',()=>{selectedImage.rotation+=15;refreshUserImage(selectedImage)}),
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
