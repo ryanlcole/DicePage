@@ -54,7 +54,9 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   // RegionDefiner always consumes the selected world's authored map through the
+   // bridge below. Endemar is intentionally not given a special static seed.
+   var seed="empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=Session.HasTrustedWorldBuilderAuthority?"edit":"view";
@@ -70,6 +72,45 @@
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
+ }
+
+ [JSInvokable]
+ public object GetWorldSourceForPrototype()
+ {
+  return new
+  {
+   worldId=Session.WorldId,
+   worldName=Session.WorldDisplayName,
+   gridColumns=WorldSession.GridColumns,
+   gridRows=WorldSession.GridRows,
+   gridStyle=Session.GridStyle,
+   planeIndex=Session.PlaneIndex,
+   tiles=Session.PlacedTiles
+    .Where(tile=>tile.PlaneIndex==Session.PlaneIndex)
+    .Select(tile=>new
+    {
+     id=tile.Id,
+     name=tile.Name,
+     image=tile.Image,
+     x=tile.X,
+     y=tile.Y,
+     sourceWidth=tile.SourceWidth,
+     sourceHeight=tile.SourceHeight,
+     cropX=tile.CropX,
+     cropY=tile.CropY,
+     cropWidth=tile.CropWidth,
+     cropHeight=tile.CropHeight,
+     placementZoom=tile.PlacementZoom,
+     tierIndex=tile.TierIndex,
+     layerOffset=tile.LayerOffset,
+     rotationQuarterTurns=tile.RotationQuarterTurns,
+     placementTreatment=tile.PlacementTreatment,
+     assetKind=tile.AssetKind,
+     frameCount=tile.FrameCount,
+     framesPerSecond=tile.FramesPerSecond,
+     shaepId=tile.ShaepId
+    }).ToList()
+  };
  }
 
  [JSInvokable]
