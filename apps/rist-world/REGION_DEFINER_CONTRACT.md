@@ -5,8 +5,8 @@ RegionDefiner is derived from WorldBuilder, but it does not become another autho
 ## Canonical flow
 
 1. A World ID is selected first.
-2. RegionDefiner opens on the **surface** representation by default.
-3. RegionDefiner displays that world as a **non-editable source** using the same viewer and contextual-keyboard architecture as WorldBuilder.
+2. RegionDefiner opens on the selected **World Map** as its non-editable source.
+3. The source is the selected world's authored map state. **Endemar follows this exact same source/claim workflow as every other world; RegionDefiner does not substitute a special Endemar background.**
 4. The **Select** keyboard begins with **Claim Region**.
 5. Claim Region requires the user to choose exactly one Tier. RegionDefiner does not use WorldBuilder's **All Parallax** working mode while claiming.
 6. The viewer supports **Square** and **Hex** selection/placement grids. Square is the default. The chosen geometry also becomes the placement snap grid for regional assets.
@@ -21,7 +21,7 @@ RegionDefiner is derived from WorldBuilder, but it does not become another autho
 
 RegionDefiner uses a fixed **15° perspective tilt** with a shallow focal point. This may change the apparent viewer silhouette and visual spacing. It is presentation only. World coordinates, World ID, source tiles, scale, Tier, Layer and Z are not changed by the 15° portrayal.
 
-After a claim is saved, the selected-cell mask is used as the visible regional extent and its bounds are fitted to the viewer as the regional full-map representation. The parent-world coordinates and selection mask remain available for provenance.
+After a claim is saved, the selected-cell mask is used as the visible regional extent and its bounds are fitted to the viewer as the regional full-map representation. The parent-world coordinates and selection mask remain available for provenance. RegionDefiner never treats an entire named world as a region merely because it has a special world identity.
 
 ## Source/overlay authority
 
@@ -35,4 +35,4 @@ After a claim is saved, the selected-cell mask is used as the visible regional e
 
 ## Extents
 
-The source viewer remains 30×30 addressable cells. Ordinary worlds retain their normal world limits. **Endemar** remains the Shaelvien-controlled world exception. World extent is a world capability, not a viewer-scale setting.
+The source viewer remains 30×30 addressable cells for claiming. RegionDefiner applies the same claim/crop/build process to every selected world, including Endemar. Any underlying world-extent or ownership rules remain world-level authority and do not change the RegionDefiner workflow.
