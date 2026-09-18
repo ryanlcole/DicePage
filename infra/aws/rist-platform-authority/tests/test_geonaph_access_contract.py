@@ -59,5 +59,35 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn('"surfaceWorldPixels": surface_pixels', self.source)
         self.assertIn('"worlds.unlimited", "surface.unlimited"', self.source)
 
+    def test_completed_profile_mints_one_server_owned_world_token_pair(self):
+        self.assertIn('path == "/authority/profile-complete"', self.source)
+        self.assertIn('GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"', self.source)
+        self.assertIn('"accountHalfCode": account_half', self.source)
+        self.assertIn('"worldHalfCode": world_half', self.source)
+        self.assertIn("binding_hash = hashlib.sha256(", self.source)
+        self.assertIn('ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)"', self.source)
+
+    def test_mmo_parcel_is_2048_square_height_ten_and_expands_from_endemar(self):
+        self.assertIn("MMO_PARCEL_PIXELS = 2048", self.source)
+        self.assertIn("MMO_PARCEL_MAX_HEIGHT = 10", self.source)
+        self.assertIn("ENDEMAR_ORIGIN_COLUMN = 15", self.source)
+        self.assertIn("ENDEMAR_ORIGIN_ROW = 15", self.source)
+        self.assertIn("def mmo_parcel_claimable(cell_index, parcels):", self.source)
+        self.assertIn(
+            "frontier = occupied | {(ENDEMAR_ORIGIN_COLUMN, ENDEMAR_ORIGIN_ROW)}",
+            self.source,
+        )
+        self.assertIn('path == "/world/parcels/claim"', self.source)
+        self.assertIn("transact_write_items(", self.source)
+
+    def test_mmo_parcel_ownership_is_immutable_but_permissions_can_be_handed_off(self):
+        self.assertIn('path == "/world/parcels/delegate"', self.source)
+        self.assertIn('PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}', self.source)
+        self.assertIn('parcel_permission(world_id, parcel_id, user_id) == "Manage"', self.source)
+        self.assertIn('region["parcelPixelWidth"] = MMO_PARCEL_PIXELS', self.source)
+        self.assertIn('region["parcelPixelHeight"] = MMO_PARCEL_PIXELS', self.source)
+        self.assertIn('region["maxHeight"] = MMO_PARCEL_MAX_HEIGHT', self.source)
+        self.assertIn('region["ownerUserId"] = owner', self.source)
+
 if __name__ == "__main__":
     unittest.main()
