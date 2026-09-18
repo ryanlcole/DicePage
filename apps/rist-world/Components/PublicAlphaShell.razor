@@ -26,7 +26,8 @@
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build Geonaph through its spatial stack, tiers and layers.":"Choose, create or import a world first.")</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the selected world.":"Choose, create or import a world first.")</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenTickerAsync"><span class="card-icon">⋯</span><strong>TICKER</strong><small>Customize the buttons shown in the automatic top ticker.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
@@ -80,6 +81,18 @@
    </section>
   }
 
+  @if(_tickerOpen)
+  {
+   <section class="ticker-editor-backdrop" role="presentation" @onclick="CloseTicker">
+    <form class="ticker-editor" role="dialog" aria-modal="true" aria-label="Ticker buttons" @onclick:stopPropagation="true" @onsubmit="SaveTickerAsync">
+     <header><strong>TICKER</strong><button type="button" @onclick="CloseTicker" aria-label="Close ticker editor">×</button></header>
+     <p>One button label per line. The ticker scrolls automatically until touched; touching it opens this Start menu.</p>
+     <textarea @bind="_tickerEditor" aria-label="Ticker button labels" rows="10"></textarea>
+     <footer><button type="button" @onclick="ResetTicker">DEFAULTS</button><button type="submit">SAVE</button></footer>
+    </form>
+   </section>
+  }
+
   @if(_cardIndexOpen)
   {
    <section class="card-index-overlay" role="dialog" aria-modal="true" aria-label="Card Index">
@@ -113,7 +126,10 @@ else
 }
 
 <style>
- .launcher-settings-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
+ .launcher-settings-backdrop,.ticker-editor-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
+ .ticker-editor{box-sizing:border-box;width:min(92vw,560px);display:grid;gap:12px;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
+ .ticker-editor>header{display:flex;align-items:center;justify-content:space-between}.ticker-editor>header strong{color:#e5c878;letter-spacing:.12em}.ticker-editor>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
+ .ticker-editor p{margin:0;color:#a8b3b8;font-size:11px;line-height:1.45}.ticker-editor textarea{box-sizing:border-box;width:100%;min-height:220px;resize:vertical;padding:10px;border:1px solid #4d626d;border-radius:8px;background:#050c10;color:#eee6d3;font:700 13px/1.55 system-ui}.ticker-editor>footer{display:flex;justify-content:flex-end;gap:8px}.ticker-editor>footer button{min-width:100px;min-height:42px;border:1px solid #6e5c31;border-radius:8px;background:#111c22;color:#f1ddb0;font-weight:900}
  .launcher-settings{box-sizing:border-box;width:min(92vw,520px);max-height:88dvh;overflow:auto;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
  .launcher-settings>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3e4e55;padding-bottom:12px}.launcher-settings>header strong{color:#e5c878;letter-spacing:.12em}.launcher-settings>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
  .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility,.launcher-device-setup{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen+.launcher-fullscreen{margin-top:8px}.launcher-fullscreen small,.launcher-device-setup small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}.launcher-device-setup{width:min(88vw,360px);margin:0 auto 10px;padding:7px 12px;background:#0e1820;border-color:#8e7440}.launcher-device-setup strong{font-size:11px;letter-spacing:.06em}
@@ -130,7 +146,9 @@ else
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
+ bool _tickerOpen;
  bool _cardIndexOpen;
+ string _tickerEditor="WORLD\nBUILD\nUPLOAD\nWEATHER\nSKY\nMETADATA";
  bool _worldGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
@@ -268,9 +286,35 @@ else
   await InvokeAsync(StateHasChanged);
  }
 
- void OpenSettings(){_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
+ async Task OpenTickerAsync()
+ {
+  _settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=false;
+  try
+  {
+   var raw=await JS.InvokeAsync<string?>("localStorage.getItem","rist.worldbuilder.ticker.buttons.v1");
+   if(!string.IsNullOrWhiteSpace(raw))
+   {
+    var saved=System.Text.Json.JsonSerializer.Deserialize<List<string>>(raw);
+    if(saved is {Count:>0})_tickerEditor=string.Join("\n",saved);
+   }
+  }
+  catch{}
+  _tickerOpen=true;await InvokeAsync(StateHasChanged);
+ }
+ void CloseTicker()=>_tickerOpen=false;
+ void ResetTicker()=>_tickerEditor="WORLD\nBUILD\nUPLOAD\nWEATHER\nSKY\nMETADATA";
+ async Task SaveTickerAsync()
+ {
+  var values=_tickerEditor.Split(['\r','\n'],StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Trim()).Where(x=>x.Length>0).Take(12).ToList();
+  if(values.Count==0)values=["WORLD","BUILD","UPLOAD","WEATHER","SKY","METADATA"];
+  _tickerEditor=string.Join("\n",values);
+  try{await JS.InvokeVoidAsync("localStorage.setItem","rist.worldbuilder.ticker.buttons.v1",System.Text.Json.JsonSerializer.Serialize(values));}catch{}
+  _tickerOpen=false;
+  Navigation.NavigateTo(Navigation.Uri,forceLoad:true);
+ }
+ void OpenSettings(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
  void CloseSettings()=>_settingsOpen=false;
- void OpenCardIndex(){_settingsOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
+ void OpenCardIndex(){_settingsOpen=false;_tickerOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
  void CloseCardIndex()=>_cardIndexOpen=false;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
@@ -300,5 +344,5 @@ else
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
