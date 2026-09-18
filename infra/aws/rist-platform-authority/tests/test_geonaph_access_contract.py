@@ -14,10 +14,8 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn('GEONAPH_WORLD_ID = "shaelvien-geonaph-alpha-001"', self.source)
         self.assertIn("def can_view(world_id, user_id):", self.source)
         self.assertIn("if is_geonaph(world_id):\n        return True", self.source)
-        self.assertIn(
-            'return response(200, {"worldId": world_id, "role": "viewer", "effectiveAuthority": "publicViewer"})',
-            self.source,
-        )
+        self.assertIn('"effectiveAuthority": "publicViewer"', self.source)
+        self.assertIn('"claimPermission": claim_permission(world_id, user_id)', self.source)
 
     def test_geonaph_management_stays_platform_owner_only(self):
         self.assertIn(
@@ -30,6 +28,21 @@ class GeonaphAccessContractTests(unittest.TestCase):
             self.source,
         )
 
+
+    def test_region_claims_use_database_authority_and_notify_gm(self):
+        self.assertIn('path == "/world/claims/request"', self.source)
+        self.assertIn('path == "/world/claims/decision"', self.source)
+        self.assertIn('path == "/world/regions"', self.source)
+        self.assertIn('query_world_prefix(world_id, "REGION#")', self.source)
+        self.assertIn('notify_user(', self.source)
+        self.assertIn('"world.claim.request"', self.source)
+        self.assertIn('"world.claim.decision"', self.source)
+
+    def test_gm_can_enable_claim_permission_without_granting_world_management(self):
+        self.assertIn('path == "/world/membership/claim-permission"', self.source)
+        self.assertIn('if not can_manage(world_id, user_id):', self.source)
+        self.assertIn('current["claimPermission"] = value', self.source)
+        self.assertIn('current["role"] = "viewer"', self.source)
 
     def test_world_slot_is_enforced_before_presigned_private_world_upload(self):
         self.assertIn("def can_claim_world_slot(user_id, world_id):", self.source)
