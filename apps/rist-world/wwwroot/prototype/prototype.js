@@ -661,14 +661,21 @@ function moveSelectedTier(delta){
 function moveSelectedLayer(delta){
   if(READ_ONLY)return;
   if(!selectedImage)return;
-  const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
-  selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
+  if(REGION_DEFINER){
+    selectedImage.tier=currentRegionTierIndex();
+    selectedImage.layer=clamp(selectedImage.layer+delta,0,9);
+  }else{
+    const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
+    selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
+  }
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
   announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function placementAddress(tier,layerDelta=1){
-  const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((clamp(tier,0,TIERS.length-1)*10)+viewerLayer+layerDelta,0,maxSceneZ);
+  tier=clamp(tier,0,TIERS.length-1);
+  if(REGION_DEFINER)return{tier,layer:clamp(viewerLayer+layerDelta,0,9)};
+  const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((tier*10)+viewerLayer+layerDelta,0,maxSceneZ);
   return{tier:Math.floor(sceneZ/10),layer:sceneZ%10};
 }
 function viewerCenterPosition(){
@@ -1650,6 +1657,7 @@ function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(key
 function renderKeyboardKeys(){
   if(!keyboardKeys)return;
   keyboardKeys.replaceChildren();
+  if(REGION_DEFINER)updateRegionSelectionOverlay();
   if(keyboardMode==='Viewer'){
     keyboardKeys.append(
       toolKey('−','zoom',()=>zoomCenter(1/1.22)),
@@ -1768,6 +1776,7 @@ function renderKeyboardKeys(){
     );return;
   }
   if(keyboardMode==='Select'){
+    if(REGION_DEFINER){renderRegionSelectKeyboard();return}
     const items=selectablePlacedContent();
     keyboardKeys.append(
       toolKey('‹','previous image',()=>cyclePlacedSelection(-1),!items.length),
@@ -1781,8 +1790,8 @@ function renderKeyboardKeys(){
   const sets={Pixels:['Select','Paint','Erase','Fill'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
-function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label','Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
-function closeKeyboard(){keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label','Open World Builder keyboard');announce('Keyboard hidden. Viewer unobstructed.')}
+function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Close Region Definer keyboard':'Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();if(REGION_DEFINER)updateRegionSelectionOverlay();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
+function closeKeyboard(){keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Open Region Definer keyboard':'Open World Builder keyboard');if(REGION_DEFINER)updateRegionSelectionOverlay();announce('Keyboard hidden. Viewer unobstructed.')}
 
 BASE_WORLD_ASSETS.forEach(asset=>{
   const node=planeByKey[asset.key];
