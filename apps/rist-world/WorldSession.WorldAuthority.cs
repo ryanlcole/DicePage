@@ -27,9 +27,13 @@ public sealed partial class WorldSession
                 && _trustedWorldAuthorityResolved
                 && string.Equals(_trustedAuthorityWorldId, WorldId, StringComparison.Ordinal)
                 && string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
-                && string.Equals(_trustedWorldRole, "GM", StringComparison.OrdinalIgnoreCase);
+                && IsTrustedWorldBuilderRole(_trustedWorldRole);
         }
     }
+
+    private static bool IsTrustedWorldBuilderRole(string? role) =>
+        string.Equals(role, "GM", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(role, "owner", StringComparison.OrdinalIgnoreCase);
 
     public async Task RefreshTrustedWorldAuthorityAsync()
     {
