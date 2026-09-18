@@ -13,7 +13,8 @@
    <section class="world-gate-create">
     <label for="world-name">WORLD NAME</label>
     <input id="world-name" maxlength="80" placeholder="Enter a World Name" @bind="_worldName" @bind:event="oninput" autocomplete="off" />
-    <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="CreateAsync">CREATE NEW WORLD</button>
+    <small class="world-gate-commerce">@Session.WorldSlotCommercialLabel · @WorldSession.IncludedSurfaceWorldPixels×@WorldSession.IncludedSurfaceWorldPixels px surface starts included. Larger surfaces and additional worlds use account entitlements.</small>
+    <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName)||!CanCreateWorld)" @onclick="CreateAsync">@(CanCreateWorld?"CREATE NEW WORLD":"ADDITIONAL WORLD SLOT REQUIRED")</button>
    </section>
 
    <div class="world-gate-divider"><span>CURRENT WORLDS</span></div>
@@ -44,10 +45,10 @@
    </section>
 
    <div class="world-gate-divider"><span>OR IMPORT</span></div>
-   <label class="world-gate-import @(_busy?"disabled":"")">
+   <label class="world-gate-import @((_busy||!CanCreateWorld)?"disabled":"")">
     <strong>IMPORT RIST WORLD</strong>
-    <small>Choose a .ristmap file. World Name above overrides the imported name when provided.</small>
-    <InputFile OnChange="ImportAsync" accept=".ristmap,application/json" disabled="@_busy" />
+    <small>@(CanCreateWorld?"Choose a .ristmap file. Importing creates another owned world slot.":"An additional world-slot entitlement is required before importing another world.")</small>
+    <InputFile OnChange="ImportAsync" accept=".ristmap,application/json" disabled="@(_busy||!CanCreateWorld)" />
    </label>
 
    @if(!string.IsNullOrWhiteSpace(_status))
@@ -80,7 +81,7 @@
  .world-gate-backdrop{position:fixed;inset:0;z-index:2147482550;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
  .world-gate{box-sizing:border-box;width:min(92vw,620px);max-height:90dvh;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:auto;border:1px solid #8a6d32;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d;font-family:system-ui,-apple-system,sans-serif}
  .world-gate>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #4f452d;background:#0a141bf5}.world-gate>header span{display:grid;gap:4px}.world-gate>header small{color:#769db7;font-size:8px;font-weight:900;letter-spacing:.13em}.world-gate>header strong{color:#ecd48f;font-size:15px;letter-spacing:.08em}.world-gate>header button{width:38px;height:38px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
- .world-gate-create,.world-gate-ready{display:grid;gap:9px;padding:16px}.world-gate-create label{color:#86acc3;font-size:9px;font-weight:900;letter-spacing:.12em}.world-gate-create input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid #596d76;border-radius:8px;background:#0d171e;color:#fff2c7;font-size:16px;outline:none}.world-gate-create input:focus{border-color:#d0aa56;box-shadow:0 0 0 1px #d0aa56}
+ .world-gate-create,.world-gate-ready{display:grid;gap:9px;padding:16px}.world-gate-create label{color:#86acc3;font-size:9px;font-weight:900;letter-spacing:.12em}.world-gate-create input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid #596d76;border-radius:8px;background:#0d171e;color:#fff2c7;font-size:16px;outline:none}.world-gate-create input:focus{border-color:#d0aa56;box-shadow:0 0 0 1px #d0aa56}.world-gate-commerce{display:block;color:#9eacb3;font-size:9px;line-height:1.45}
  .world-gate-primary,.world-gate-secondary{min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.world-gate-secondary{border-color:#50636c;background:#0e1920;color:#cdd9de}.world-gate button:disabled,.world-gate-import.disabled,.world-delete-card button:disabled{opacity:.4}
  .world-gate-divider{display:flex;align-items:center;gap:10px;padding:2px 16px;color:#8fa7b3;font-size:8px;font-weight:900;letter-spacing:.12em}.world-gate-divider::before,.world-gate-divider::after{content:"";height:1px;flex:1;background:#3c453f}.world-gate-worlds{display:grid;gap:7px;padding:10px 16px 16px}.world-gate-world{min-height:54px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch;border:1px solid #465963;border-radius:8px;background:#0d171e;overflow:hidden}.world-gate-world-load{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 11px;border:0;background:transparent;color:#e8dec5;text-align:left}.world-gate-world-load span{min-width:0;display:grid;gap:4px}.world-gate-world-load strong{overflow:hidden;text-overflow:ellipsis;color:#f0ddb0;font-size:12px}.world-gate-world-load small{color:#8299a4;font-size:8px}.world-gate-world-load b{color:#71b8e5;font-size:9px;letter-spacing:.08em}.world-gate-world-delete{min-width:70px;border:0;border-left:1px solid #62423f;background:#211313;color:#df8c82;font-size:8px;font-weight:900;letter-spacing:.08em}
  .world-gate-note{margin:2px 0;color:#9ba8ad;font-size:11px;line-height:1.4}.world-gate-import{position:relative;display:grid;gap:4px;margin:10px 16px 16px;padding:12px;border:1px dashed #7a6536;border-radius:9px;background:#0d171e;color:#e5cc88;text-align:center;overflow:hidden}.world-gate-import small{color:#93a4ab;font-size:9px;line-height:1.35}.world-gate-import input{position:absolute;inset:0;width:100%;height:100%;opacity:0}.world-gate-status{margin:0;padding:0 16px 16px;color:#e5ba70;font-size:10px;line-height:1.4}.world-gate-ready{text-align:center;place-items:center;padding:30px 20px}.world-gate-ready .world-gate-primary,.world-gate-ready .world-gate-secondary{width:min(100%,380px)}.world-gate-ready h2{margin:0;color:#f2d990;font-size:24px}.world-gate-ready p{max-width:430px;margin:0 0 10px;color:#aebbc0;font-size:12px;line-height:1.5}.world-gate-glyph{font-size:42px;color:#d0aa56}
@@ -104,6 +105,7 @@
  string _status="";
  string _deleteApproval="";
  bool DeleteApprovalMatches=>string.Equals(_deleteApproval,WorldSession.WorldDeletionConfirmationPhrase,StringComparison.Ordinal);
+ bool CanCreateWorld=>Session.CanCreateAdditionalOwnedWorld(_worlds);
 
  protected override void OnParametersSet()
  {
@@ -143,6 +145,7 @@
  async Task CreateAsync()
  {
   if(_busy||string.IsNullOrWhiteSpace(_worldName))return;
+  if(!CanCreateWorld){_status="An additional world-slot entitlement is required to create another world.";return;}
   _busy=true;_status="Creating world…";
   try
   {
@@ -204,6 +207,7 @@
  async Task ImportAsync(InputFileChangeEventArgs e)
  {
   if(_busy)return;
+  if(!CanCreateWorld){_status="An additional world-slot entitlement is required to import another world.";return;}
   var file=e.File;
   if(file.Size>MaxImportBytes){_status="World import is limited to 10 MB.";return;}
   _busy=true;_status=$"Importing {file.Name}…";
