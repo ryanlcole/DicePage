@@ -26,28 +26,13 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),celestialPathLayer=$('celestialPathLayer'),loading=$('loading'),tierButton=$('stratumShortcut'),tierGlyph=$('stratumGlyph'),tierMenu=$('stratumMenu'),viewerTitle=$('viewerTitle'),viewLabel=$('viewLabel'),zoomLabel=$('zoomLabel'),pathLabel=$('pathLabel'),stratumNote=$('stratumNote'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),celestialAdvancedPanel=$('celestialAdvancedPanel'),celestialAdvancedForm=$('celestialAdvancedForm'),celestialAdvancedClose=$('celestialAdvancedClose'),celestialName=$('celestialName'),celestialParent=$('celestialParent'),celestialRadius=$('celestialRadius'),celestialMass=$('celestialMass'),celestialGravity=$('celestialGravity'),celestialSemiMajor=$('celestialSemiMajor'),celestialEccentricity=$('celestialEccentricity'),celestialInclination=$('celestialInclination'),celestialPeriod=$('celestialPeriod'),celestialRotation=$('celestialRotation'),celestialTilt=$('celestialTilt'),celestialAlbedo=$('celestialAlbedo'),celestialAtmosphere=$('celestialAtmosphere'),celestialEpoch=$('celestialEpoch'),celestialWorldName=$('celestialWorldName'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),celestialPathLayer=$('celestialPathLayer'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),celestialAdvancedPanel=$('celestialAdvancedPanel'),celestialAdvancedForm=$('celestialAdvancedForm'),celestialAdvancedClose=$('celestialAdvancedClose'),celestialName=$('celestialName'),celestialParent=$('celestialParent'),celestialRadius=$('celestialRadius'),celestialMass=$('celestialMass'),celestialGravity=$('celestialGravity'),celestialSemiMajor=$('celestialSemiMajor'),celestialEccentricity=$('celestialEccentricity'),celestialInclination=$('celestialInclination'),celestialPeriod=$('celestialPeriod'),celestialRotation=$('celestialRotation'),celestialTilt=$('celestialTilt'),celestialAlbedo=$('celestialAlbedo'),celestialAtmosphere=$('celestialAtmosphere'),celestialEpoch=$('celestialEpoch'),celestialWorldName=$('celestialWorldName'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,viewerZ=0,activeStratum='sea',parallaxOverride=true,focusPath=[],focusSelected='all',keyboardMode='Viewer',toolMode='Inspect',lastMix={zoomZ:0,surface:1,highlands:1,mountains:.82},tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,selectedCelestial=null,celestialDrag=null,pathDraw=null,selectedWeather=null,weatherDrag=null;
-const VIEWER_TITLE_KEY='rist.prototype.viewerTitle.v1';
 const ALTITUDE_NAMES_KEY='rist.worldbuilder.altitudeNames.v1';
 const altitudeNames=(()=>{try{return JSON.parse(localStorage.getItem(ALTITUDE_NAMES_KEY)||'{}')||{}}catch{return{}}})();
-function cleanViewerTitle(value){return String(value||'').replace(/\s+/g,' ').trim().slice(0,80)}
-function saveViewerTitle(){
-  const value=cleanViewerTitle(viewerTitle?.textContent)||'GEONAPH · SPATIAL STACK';
-  if(viewerTitle)viewerTitle.textContent=value;
-  try{localStorage.setItem(VIEWER_TITLE_KEY,value)}catch{}
-  announce(`Viewer title saved as ${value}.`);
-}
-function restoreViewerTitle(){
-  if(!viewerTitle)return;
-  try{const saved=cleanViewerTitle(localStorage.getItem(VIEWER_TITLE_KEY));if(saved)viewerTitle.textContent=saved}catch{}
-}
-const TIER_GLYPHS=Object.freeze({all:'≋',sea:'≈',hills:'⌁',mountains:'▲',sky:'✦'});
-function tierGlyphFor(key){return TIER_GLYPHS[key]||'◈'}
-function currentTierKey(){return parallaxOverride?'all':activeStratum}
 function bandByKey(key){return STRATA.find(s=>s.key===key)||STRATA[0]}
 function meters(feet){return Math.round(feet*.3048)}
 function bandRangeText(band){
@@ -55,30 +40,12 @@ function bandRangeText(band){
   if(band.maxFt==null)return `${band.minFt.toLocaleString()}+ ft · ${meters(band.minFt).toLocaleString()}+ m`;
   return `${band.minFt.toLocaleString()}–${band.maxFt.toLocaleString()} ft · ${meters(band.minFt).toLocaleString()}–${meters(band.maxFt).toLocaleString()} m`;
 }
+function currentBand(){
+  const sorted=[...STRATA].sort((a,b)=>a.z-b.z);
+  return sorted.filter(band=>viewerZ>=band.z).at(-1)||sorted[0];
+}
+function currentTierKey(){return currentBand().key}
 function bandDisplayName(key){const band=bandByKey(key),custom=String(altitudeNames[key]||'').trim();return custom||band.label}
-function bandAccessibleLabel(key){const band=bandByKey(key),custom=String(altitudeNames[key]||'').trim();return `${custom?custom+'. ':''}${band.label}. ${bandRangeText(band)}`}
-function renameCurrentBand(){
-  const key=currentTierKey();if(key==='all'){announce('Select an altitude band before naming it.');return}
-  const next=prompt('Name this altitude band',String(altitudeNames[key]||''));if(next===null)return;
-  const value=String(next).trim().slice(0,60);if(value)altitudeNames[key]=value;else delete altitudeNames[key];
-  try{localStorage.setItem(ALTITUDE_NAMES_KEY,JSON.stringify(altitudeNames))}catch{}
-  renderTierMenu();updateReadouts();announce(value?`Altitude band named ${value}.`:'Custom altitude name cleared.');
-}
-function closeTierMenu(){tierMenu.hidden=true;tierButton.setAttribute('aria-expanded','false')}
-function openTierMenu(){renderTierMenu();tierMenu.hidden=false;tierButton.setAttribute('aria-expanded','true');tierMenu.querySelector('button[aria-current="true"]')?.focus()}
-function renderTierMenu(){
-  const current=currentTierKey();
-  tierMenu.replaceChildren();
-  for(const option of ROOT_OPTIONS){
-    const button=document.createElement('button');
-    button.type='button';button.role='menuitemradio';button.dataset.key=option.key;button.textContent=tierGlyphFor(option.key);
-    const label=option.key==='all'?'All Parallax. Show every registered altitude representation.':bandAccessibleLabel(option.key);
-    button.setAttribute('aria-label',label);button.setAttribute('aria-checked',option.key===current?'true':'false');button.setAttribute('aria-current',option.key===current?'true':'false');
-    button.addEventListener('click',()=>{jumpStratum(option.key);closeTierMenu();tierButton.focus()});tierMenu.appendChild(button);
-  }
-  tierGlyph.textContent=tierGlyphFor(current);
-  tierButton.setAttribute('aria-label',current==='all'?'All Parallax. Open altitude selector':`${bandAccessibleLabel(current)}. Open altitude selector`);
-}
 function viewerCenterPosition(){
   const r=stage.getBoundingClientRect();
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
