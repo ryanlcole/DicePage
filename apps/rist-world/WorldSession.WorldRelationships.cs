@@ -16,6 +16,8 @@ public sealed partial class WorldSession
         if (accountId.Length == 0)
             throw new InvalidOperationException("The authenticated RIST account has no Account ID.");
 
+        await RefreshCommercialEntitlementsAsync();
+
         // Only the configured developer account, or an account already bound by a
         // persisted Geonaph descriptor, may establish/refresh Geonaph ownership.
         await EnsureGeonaphOwnerBootstrapAsync(accountId);
@@ -69,6 +71,8 @@ public sealed partial class WorldSession
     public async Task<AccountWorldReference> CreateWorldAsync(string worldName)
     {
         var displayName = NormalizeWorldName(worldName);
+        var directory = await LoadWorldDirectoryAsync();
+        RequireWorldCreationEntitlement(directory.Worlds);
         if (HasActiveWorld) await AutoSavePrivateAsync();
 
         var worldId = NewWorldId(displayName);
@@ -131,6 +135,8 @@ public sealed partial class WorldSession
                 ? NormalizeWorldName(imported.WorldName)
                 : "Imported World";
 
+        var directory = await LoadWorldDirectoryAsync();
+        RequireWorldCreationEntitlement(directory.Worlds);
         if (HasActiveWorld) await AutoSavePrivateAsync();
         var worldId = NewWorldId(displayName);
         SetActiveWorldIdentity(worldId, displayName);
@@ -173,6 +179,13 @@ public sealed partial class WorldSession
         var extentMode = IsWorldExtentUnbounded ? "unbounded" : "bounded";
         var maxTilesX = IsWorldExtentUnbounded ? null : WorldTileLimit;
         var maxTilesY = IsWorldExtentUnbounded ? null : WorldTileLimit;
+        var entitledSurfacePixels = IsGeonaphWorld && HasPlatformCommercialOverride ? null : SurfaceWorldPixelLimit;
+        var maxSurfacePixelsX = descriptor?.MaxSurfacePixelsX is int existingX && existingX > 0
+            ? entitledSurfacePixels is int entitledX ? Math.Max(existingX, entitledX) : existingX
+            : entitledSurfacePixels;
+        var maxSurfacePixelsY = descriptor?.MaxSurfacePixelsY is int existingY && existingY > 0
+            ? entitledSurfacePixels is int entitledY ? Math.Max(existingY, entitledY) : existingY
+            : entitledSurfacePixels;
         var authoritySpatialAddress = IsGeonaphWorld ? GeonaphOriginAuthoritySpatialAddress : descriptor?.AuthoritySpatialAddress ?? "";
         var authorityRole = IsGeonaphWorld ? GeonaphOriginAuthorityRole : descriptor?.AuthorityRole ?? "";
         descriptor = descriptor is null
@@ -188,7 +201,10 @@ public sealed partial class WorldSession
                 maxTilesX,
                 maxTilesY,
                 authoritySpatialAddress,
-                authorityRole)
+                authorityRole,
+                maxSurfacePixelsX,
+                maxSurfacePixelsY,
+                IsGeonaphWorld ? "developer-controlled" : "included-or-entitled")
             : descriptor with
             {
                 OwnerAccountId = accountId,
@@ -197,6 +213,9 @@ public sealed partial class WorldSession
                 ExtentMode = extentMode,
                 MaxTilesX = maxTilesX,
                 MaxTilesY = maxTilesY,
+                MaxSurfacePixelsX = maxSurfacePixelsX,
+                MaxSurfacePixelsY = maxSurfacePixelsY,
+                WorldSlotClass = IsGeonaphWorld ? "developer-controlled" : "included-or-entitled",
                 AuthoritySpatialAddress = authoritySpatialAddress,
                 AuthorityRole = authorityRole
             };
@@ -286,7 +305,10 @@ public sealed partial class WorldSession
                 null,
                 null,
                 GeonaphOriginAuthoritySpatialAddress,
-                GeonaphOriginAuthorityRole)
+                GeonaphOriginAuthorityRole,
+                null,
+                null,
+                "developer-controlled")
             : descriptor with
             {
                 OwnerAccountId = accountId,
@@ -297,6 +319,9 @@ public sealed partial class WorldSession
                 ExtentMode = "unbounded",
                 MaxTilesX = null,
                 MaxTilesY = null,
+                MaxSurfacePixelsX = null,
+                MaxSurfacePixelsY = null,
+                WorldSlotClass = "developer-controlled",
                 AuthoritySpatialAddress = GeonaphOriginAuthoritySpatialAddress,
                 AuthorityRole = GeonaphOriginAuthorityRole
             };
@@ -365,4 +390,7 @@ public sealed record WorldRelationshipDescriptor(
     int? MaxTilesX = null,
     int? MaxTilesY = null,
     string AuthoritySpatialAddress = "",
-    string AuthorityRole = "");
+    string AuthorityRole = "",
+    int? MaxSurfacePixelsX = null,
+    int? MaxSurfacePixelsY = null,
+    string WorldSlotClass = "included-or-entitled");
