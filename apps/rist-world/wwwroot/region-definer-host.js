@@ -27,6 +27,17 @@ export function attach(frame,dotnet){
         post(frame,{type:"catalog",regions:Array.isArray(regions)?regions:[]});
         return;
       }
+      if(data.type==="request-claim"){
+        const cells=Array.isArray(data.cells)?data.cells.map(Number).filter(Number.isInteger):[];
+        const tierIndex=Math.max(0,Math.min(2,Math.trunc(Number(data.tierIndex)||0)));
+        const sourceLayerOffsets=Array.isArray(data.sourceLayerOffsets)
+          ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10)
+          : Array.from({length:10},(_,index)=>index);
+        const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
+        const result=await dotnet.invokeMethodAsync("SubmitRegionClaimRequestFromPrototypeAsync",cells,tierIndex,sourceLayerOffsets,gridShape);
+        post(frame,{type:"claim-requested",result});
+        return;
+      }
       if(data.type==="create-region"){
         const name=String(data.name||"").trim();
         const cells=Array.isArray(data.cells)?data.cells.map(Number).filter(Number.isInteger):[];
