@@ -3,7 +3,7 @@
 <div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="World Builder">
  <iframe
   class="geonaph-worldbuilder-frame"
-  src="/Game/prototype/index.html?live-worldbuilder=1"
+  src="@BuilderSrc"
   title="World Builder"
   loading="eager"
   allow="fullscreen"
@@ -35,4 +35,15 @@
 
 @code {
  [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ string BuilderSrc
+ {
+  get
+  {
+   var worldId=Uri.EscapeDataString(Session.WorldId??"");
+   var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
+   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}";
+  }
+ }
 }
