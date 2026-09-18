@@ -52,6 +52,12 @@ def utc_stamp():
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _json_default(value):
+    if isinstance(value, Decimal):
+        return int(value) if value == value.to_integral_value() else float(value)
+    return str(value)
+
+
 def response(status, body=None):
     return {
         "statusCode": status,
@@ -62,7 +68,7 @@ def response(status, body=None):
             "cache-control": "no-store",
             "content-type": "application/json",
         },
-        "body": "" if body is None else json.dumps(body, separators=(",", ":"), default=str),
+        "body": "" if body is None else json.dumps(body, separators=(",", ":"), default=_json_default),
     }
 
 
