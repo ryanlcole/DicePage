@@ -1,0 +1,43 @@
+name: Project Knowledge Database
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'knowledge/project/**'
+      - 'tools/project_knowledge*.py'
+      - '.github/workflows/project-knowledge.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: shaelvien-project-knowledge
+  cancel-in-progress: false
+
+jobs:
+  knowledge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install boto3 cryptography
+      - name: Configure existing AWS deployment authority
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+          aws-region: us-east-1
+      - name: Verify database and prepare encrypted source transfer
+        run: python tools/project_knowledge_preflight.py
+      - name: Preserve public import preparation result
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-knowledge-preflight
+          path: |
+            project-knowledge-public-key.pem
+            project-knowledge-preflight.json
