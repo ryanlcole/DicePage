@@ -1221,7 +1221,14 @@ function renderRegionWorldSource(payload){
   clearRegionWorldSource();
   const source=payload&&typeof payload==='object'?payload:{};
   const tiles=Array.isArray(source.tiles)?source.tiles:[];
-  const tierImages=Array.isArray(source.tierImages)?source.tierImages.map(String):[];
+  const fallbackTierImages=Array.isArray(source.fallbackTierImages)?source.fallbackTierImages.map(String):[];
+  const tierImages=Array.isArray(source.tierImages)
+    ? source.tierImages.map(String)
+    : fallbackTierImages.length
+      ? fallbackTierImages
+      : String(source.fallbackSurfaceImage||'').trim()
+        ? [String(source.fallbackSurfaceImage)]
+        : [];
   regionWorldSourceMeta={
     worldId:String(source.worldId||WORLD_ID||''),
     worldName:String(source.worldName||WORLD_NAME||DISPLAY_WORLD_NAME||'World'),
