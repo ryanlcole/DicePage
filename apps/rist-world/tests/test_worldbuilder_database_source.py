@@ -42,6 +42,8 @@ def test_regiondefiner_is_permissioned_view_of_same_canonical_database_map():
 
     assert "const snapshot=envelope.state" in prototype
     assert "Array.isArray(snapshot.tierImages)" in prototype
+    assert "applyDatabaseTierImages(tierImages)" in prototype
+    assert "CANONICAL_PLANE_KEYS" in prototype
     assert "Array.isArray(snapshot.userLayers)" in prototype
     assert "belongsToActiveRegion" in prototype
     assert "canonicalSource:true" in prototype
