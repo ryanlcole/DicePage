@@ -506,7 +506,15 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     private async Task ClearSessionAsync() => await ClearSessionOnlyAsync();
 
     public sealed record AuthConfig(string ApiBaseUrl, string? OwnerDiscordUserId = null);
-    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix, bool Age21Verified = false, bool AgeVerificationAvailable = false, bool GuardianConsentPending = false);
+    public sealed record AuthProfile(
+        string UserId,
+        string DisplayName,
+        string StoragePrefix,
+        string AuthProvider = "discord",
+        long SessionExpiresAt = 0,
+        bool Age21Verified = false,
+        bool AgeVerificationAvailable = false,
+        bool GuardianConsentPending = false);
     public sealed record AccountProfile(
         string AccountId,
         string PlayerAlias,
