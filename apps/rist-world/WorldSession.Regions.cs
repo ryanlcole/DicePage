@@ -22,8 +22,20 @@ public sealed partial class WorldSession
         WorldRegionCatalog? catalog = null;
         if (IsLoggedIn)
         {
-            try { catalog = await auth.DownloadJsonAsync<WorldRegionCatalog>(RegionDirectoryKey); }
+            try
+            {
+                var authority = await GetClaimAuthorityClientAsync();
+                var databaseRegions = authority is null ? null : await authority.GetRegionsAsync(WorldId);
+                if (databaseRegions is not null)
+                    catalog = new WorldRegionCatalog(WorldId, databaseRegions, DateTimeOffset.UtcNow);
+            }
             catch { }
+
+            if (catalog is null)
+            {
+                try { catalog = await auth.DownloadJsonAsync<WorldRegionCatalog>(RegionDirectoryKey); }
+                catch { }
+            }
         }
 
         if (catalog is null)
@@ -116,7 +128,8 @@ public sealed partial class WorldSession
             UpdatedAtUtc: now,
             TierIndex: tierIndex,
             SourceLayerOffsets: sourceLayers,
-            GridShape: gridShape);
+            GridShape: gridShape,
+            OwnerUserId: auth.Profile?.UserId?.Trim() ?? "");
 
         _regions.Add(region);
         _activeRegionId = region.RegionId;
@@ -192,10 +205,27 @@ public sealed partial class WorldSession
         await js.InvokeVoidAsync("localStorage.setItem", RegionLocalSaveKey, json);
         if (IsLoggedIn)
         {
+            var authority = await GetClaimAuthorityClientAsync();
+            if (authority is not null)
+            {
+                foreach (var region in _regions)
+                    await authority.SaveRegionAsync(WorldId, region);
+            }
+
+            // Private storage is retained as recovery; shared RegionDefiner truth is
+            // sourced from the server-authoritative world database.
             await EnsureWorldRelationshipAsync();
             await auth.UploadTextAsync(RegionDirectoryKey, json, "application/json");
         }
         Notify();
+    }
+
+    public bool CanEditRegion(WorldRegion? region)
+    {
+        if (region is null) return false;
+        if (HasTrustedWorldBuilderAuthority) return true;
+        var userId = auth.Profile?.UserId?.Trim() ?? "";
+        return userId.Length > 0 && string.Equals(region.OwnerUserId, userId, StringComparison.Ordinal);
     }
 
     static string NormalizeRegionName(string? name)
@@ -242,7 +272,8 @@ public sealed record WorldRegion(
     DateTimeOffset UpdatedAtUtc,
     int TierIndex = 0,
     List<int>? SourceLayerOffsets = null,
-    string GridShape = "square")
+    string GridShape = "square",
+    string OwnerUserId = "")
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
