@@ -49,7 +49,7 @@ public sealed partial class WorldSession
 
     public bool CanEditMmoParcel(AwsAuthorityClient.MmoParcel? parcel)
     {
-        if (parcel is null) return false;
+        if (parcel is null || !IsLoggedIn) return false;
         if (HasTrustedWorldBuilderAuthority) return true;
 
         var userId = auth.Profile?.UserId?.Trim() ?? "";
@@ -63,7 +63,7 @@ public sealed partial class WorldSession
 
     public bool CanManageMmoParcel(AwsAuthorityClient.MmoParcel? parcel)
     {
-        if (parcel is null) return false;
+        if (parcel is null || !IsLoggedIn) return false;
         if (HasTrustedWorldBuilderAuthority) return true;
         var userId = auth.Profile?.UserId?.Trim() ?? "";
         if (userId.Length > 0 && string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal))
