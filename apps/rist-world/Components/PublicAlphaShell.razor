@@ -52,35 +52,6 @@
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
   </section>
 
-  @if(_settingsOpen)
-  {
-   <section class="launcher-settings-backdrop" role="presentation" @onclick="CloseSettings">
-    <div class="launcher-settings" role="dialog" aria-modal="true" aria-label="Start menu settings" @onclick:stopPropagation="true">
-     <header><strong>SETTINGS</strong><button type="button" @onclick="CloseSettings" aria-label="Close settings">×</button></header>
-     <section class="launcher-settings-group" aria-label="Device settings">
-      <h2>DEVICE</h2>
-      <button type="button" class="launcher-fullscreen" @onclick="RequestMotionAsync" disabled="@(!_motionSupported || _motionStatus=="granted")">
-       <strong>MOTION &amp; TILT</strong>
-       <small>@MotionStatusText</small>
-      </button>
-     </section>
-     <section class="launcher-settings-group" aria-label="Graphics settings">
-      <h2>GRAPHICS</h2>
-      <button type="button" class="launcher-fullscreen" @onclick="ToggleFullscreenAsync">
-       <strong>@(_fullscreen?"EXIT FULL SCREEN":"FULL SCREEN")</strong>
-       <small>@(_fullscreen?"Return to browser window":"Use the maximum available display area")</small>
-      </button>
-      @if(!_fullscreenSupported){<p class="launcher-settings-note">This browser does not expose programmable full screen. Platform/browser display controls may still provide it.</p>}
-      <button type="button" class="launcher-fullscreen" @onclick="ToggleParallaxAsync" disabled="@(!_parallaxSupported)">
-       <strong>PARALLAX @(_parallaxEnabled?"ON":"OFF")</strong>
-       <small>@ParallaxStatusText</small>
-      </button>
-     </section>
-     <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY STATEMENT</button>
-    </div>
-   </section>
-  }
-
   @if(_tickerOpen)
   {
    <section class="ticker-editor-backdrop" role="presentation" @onclick="CloseTicker">
@@ -121,8 +92,39 @@ else
     <span class="alpha-ribbon-path">@_workspaceHint</span>
    </div>
   }
-  <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="ReturnToHub" />
+  <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="OpenStartMenu" />
  </div>
+}
+
+
+@if(_settingsOpen)
+{
+ <section class="launcher-settings-backdrop" role="presentation" @onclick="CloseSettings">
+  <div class="launcher-settings" role="dialog" aria-modal="true" aria-label="Start menu" @onclick:stopPropagation="true">
+   <header><strong>START MENU</strong><button type="button" @onclick="CloseSettings" aria-label="Resume">×</button></header>
+   <button type="button" class="launcher-start-home" @onclick="GoHome"><strong>⌂ HOME</strong><small>Return to the Shaelvien landing page.</small></button>
+   <section class="launcher-settings-group" aria-label="Device settings">
+    <h2>DEVICE</h2>
+    <button type="button" class="launcher-fullscreen" @onclick="RequestMotionAsync" disabled="@(!_motionSupported || _motionStatus=="granted")">
+     <strong>MOTION &amp; TILT</strong>
+     <small>@MotionStatusText</small>
+    </button>
+   </section>
+   <section class="launcher-settings-group" aria-label="Graphics settings">
+    <h2>GRAPHICS</h2>
+    <button type="button" class="launcher-fullscreen" @onclick="ToggleFullscreenAsync">
+     <strong>@(_fullscreen?"EXIT FULL SCREEN":"FULL SCREEN")</strong>
+     <small>@(_fullscreen?"Return to browser window":"Use the maximum available display area")</small>
+    </button>
+    @if(!_fullscreenSupported){<p class="launcher-settings-note">This browser does not expose programmable full screen. Platform/browser display controls may still provide it.</p>}
+    <button type="button" class="launcher-fullscreen" @onclick="ToggleParallaxAsync" disabled="@(!_parallaxSupported)">
+     <strong>PARALLAX @(_parallaxEnabled?"ON":"OFF")</strong>
+     <small>@ParallaxStatusText</small>
+    </button>
+   </section>
+   <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY STATEMENT</button>
+  </div>
+ </section>
 }
 
 <style>
@@ -132,6 +134,7 @@ else
  .ticker-editor p{margin:0;color:#a8b3b8;font-size:11px;line-height:1.45}.ticker-editor textarea{box-sizing:border-box;width:100%;min-height:220px;resize:vertical;padding:10px;border:1px solid #4d626d;border-radius:8px;background:#050c10;color:#eee6d3;font:700 13px/1.55 system-ui}.ticker-editor>footer{display:flex;justify-content:flex-end;gap:8px}.ticker-editor>footer button{min-width:100px;min-height:42px;border:1px solid #6e5c31;border-radius:8px;background:#111c22;color:#f1ddb0;font-weight:900}
  .launcher-settings{box-sizing:border-box;width:min(92vw,520px);max-height:88dvh;overflow:auto;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
  .launcher-settings>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3e4e55;padding-bottom:12px}.launcher-settings>header strong{color:#e5c878;letter-spacing:.12em}.launcher-settings>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
+ .launcher-start-home{box-sizing:border-box;width:100%;min-height:54px;margin-top:12px;border:1px solid #8e7440;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:3px;font-weight:900}.launcher-start-home small{color:#9daeb7;font-size:9px;font-weight:700}
  .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility,.launcher-device-setup{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen+.launcher-fullscreen{margin-top:8px}.launcher-fullscreen small,.launcher-device-setup small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}.launcher-device-setup{width:min(88vw,360px);margin:0 auto 10px;padding:7px 12px;background:#0e1820;border-color:#8e7440}.launcher-device-setup strong{font-size:11px;letter-spacing:.06em}
  .card-index-overlay{position:fixed;inset:0;z-index:2147482400;display:grid;grid-template-rows:34px minmax(0,1fr);background:#03080c}.card-index-overlay>header{display:flex;align-items:center;gap:12px;padding:0 10px;border-bottom:1px solid #715b2d;background:#081017;color:#e8dec5}.card-index-overlay>header button{height:26px;border:1px solid #53636b;border-radius:6px;background:#0d171e;color:#e4c97d;font-weight:900}.card-index-overlay>header strong{font-size:10px;letter-spacing:.12em;color:#e5c878}
  .launcher-world-loaded{width:max-content;max-width:88vw;margin:0 auto 10px;padding:5px 10px;border:1px solid #6c5b35;border-radius:999px;background:#0b161c;color:#d8c17f;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -218,6 +221,7 @@ else
   _workspaceHint=hint;
   _workspaceOpen=true;
   _settingsOpen=false;
+  _tickerOpen=false;
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _=PersistWorkspaceAsync(mode);
@@ -312,7 +316,8 @@ else
   _tickerOpen=false;
   Navigation.NavigateTo(Navigation.Uri,forceLoad:true);
  }
- void OpenSettings(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
+ public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
+ void OpenSettings()=>OpenStartMenu();
  void CloseSettings()=>_settingsOpen=false;
  void OpenCardIndex(){_settingsOpen=false;_tickerOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
  void CloseCardIndex()=>_cardIndexOpen=false;
@@ -344,5 +349,6 @@ else
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
+ void GoHome(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
  void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
