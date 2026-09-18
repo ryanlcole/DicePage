@@ -508,8 +508,19 @@ function renameViewerTier(){
   updateTierButton();renderTierMenu();announce(value?`Tier named ${value}.`:'Custom tier name cleared.');
 }
 function currentTierIndex(){return viewerTier==='all'?0:tierByKey(viewerTier).index}
+function tierStackBase(tier){return 100+(clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*100)}
 function updateLayerOrder(){
-  userLayers.forEach((item,index)=>{item.stackOrder=index;item.node.style.zIndex=String(10+(item.tier*20)+item.layer+index/100);item.node.dataset.tier=String(item.tier);item.node.dataset.layer=String(item.layer)});
+  // Tier is the parallax/depth boundary. Every layer in a lower tier must remain
+  // beneath the base image of the next tier. Example: Sea L1..L10 < Hills base.
+  surface.style.zIndex=String(tierStackBase(0));
+  highlands.style.zIndex=String(tierStackBase(1));
+  mountains.style.zIndex=String(tierStackBase(2));
+  userLayers.forEach((item,index)=>{
+    item.stackOrder=index;
+    item.node.style.zIndex=String(tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100));
+    item.node.dataset.tier=String(item.tier);
+    item.node.dataset.layer=String(item.layer);
+  });
 }
 function closeTierMenu(){tierMenu.hidden=true;tierToggle.setAttribute('aria-expanded','false')}
 function renderTierMenu(){
