@@ -72,6 +72,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=true,regionNameDraft='',regionCreatePending=false;
+const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
 const WORLD_TERRAIN_FOLDERS=Object.freeze(['Vent Fields','Canyons','Lakes','Rivers','Cliffs','Volcano','Ice','Snow','Mountains','Hills','Desert','Swamp','Jungle','Forest','Plains','Beach','Coast','Ocean']);
@@ -181,7 +182,7 @@ function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
 }
 function userCollision(item,clientX,clientY){
   if(!item?.node||item.zoomPassed||item.kind==='label')return null;
-  const visible=viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
+  const visible=(viewerTier==='all'||item.tier===tierByKey(viewerTier).index)&&(!REGION_DEFINER||!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer));
   if(!visible||!(Number(item.opacity)>0))return null;
   const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
   const baseW=naturalWidth*.12,aspect=(item.node.naturalWidth>0&&item.node.naturalHeight>0)?item.node.naturalHeight/item.node.naturalWidth:1,baseH=baseW*aspect;
@@ -288,7 +289,9 @@ async function saveWorldBuilder(){
     const state={
       format:REGION_DEFINER?'RIST_REGIONDEFINER_OVERLAYS':'RIST_WORLDBUILDER_PROTOTYPE',
       version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
-      viewerTier,viewerLayer,userLayers:editableLayers.map(serializableUserLayer)
+      viewerTier,viewerLayer,
+      sourceLayerVisibility:REGION_DEFINER?serializeRegionWorldLayerVisibility():null,
+      userLayers:editableLayers.map(serializableUserLayer)
     };
     await writeSavedWorldBuilder(state,REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY);
     for(const item of editableLayers){
@@ -381,6 +384,7 @@ async function restoreSavedWorldBuilder(){
         for(const raw of Array.isArray(regionState.userLayers)?regionState.userLayers:[])await attachRestoredLayer(raw,{regionOverlay:true});
         viewerTier=regionState.viewerTier==='all'?'sea':tierByKey(regionState.viewerTier||'sea').key;
         viewerLayer=clamp(Math.trunc(Number(regionState.viewerLayer)||0),0,9);
+        restoreRegionWorldLayerVisibility(regionState.sourceLayerVisibility);
       }else{
         viewerTier='sea';viewerLayer=0;
       }
@@ -1015,12 +1019,13 @@ function tierMix(){
 function applyParallax(){
   const dx=x-fitX,dy=y-fitY,mix=tierMix();
   const builtins=[
-    {node:surface,key:'surface',sceneZ:0,alpha:mix.surface},
-    {node:highlands,key:'highlands',sceneZ:4,alpha:mix.highlands},
-    {node:mountains,key:'mountains',sceneZ:7,alpha:mix.mountains}
+    {node:surface,key:'surface',tier:0,layer:0,sceneZ:0,alpha:mix.surface},
+    {node:highlands,key:'highlands',tier:1,layer:0,sceneZ:4,alpha:mix.highlands},
+    {node:mountains,key:'mountains',tier:2,layer:0,sceneZ:7,alpha:mix.mountains}
   ];
   for(const entry of builtins){
-    entry.node.style.opacity=layerReady[entry.key]?String(clamp(Number(entry.alpha)||0,0,1)):'0';
+    const sourceVisible=!REGION_DEFINER||(entry.tier===currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
+    entry.node.style.opacity=layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
@@ -1031,7 +1036,9 @@ function applyParallax(){
   for(const item of userLayers){
     // A new/unsaved placement must stay visible even when its target tier is hidden,
     // otherwise it looks as if upload failed. Save returns it to normal tier visibility.
-    const visible=REGION_DEFINER?item.tier===currentRegionTierIndex():(!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
+    const visible=REGION_DEFINER
+      ? item.tier===currentRegionTierIndex()&&(!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer))
+      : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
@@ -1048,7 +1055,8 @@ function updateReadouts(){
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
   const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
   const continentLabel=CONTINENT_NAME?` Continent ${CONTINENT_NAME}.`:'';
-  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers. Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
+  const regionalLayers=REGION_DEFINER?` Visible World layers ${[...regionWorldLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1).join(', ')||'none'}.`:'';
+  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.${regionalLayers} Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
 }
 function applyTransform(){
   invalidateRegionCamera();
@@ -1114,6 +1122,49 @@ function postRegionMessage(type,payload={}){
   try{window.parent.postMessage({source:'shaelvien-regiondefiner',type,...payload},location.origin);return true}catch{return false}
 }
 function currentRegionTierIndex(){return tierByKey(viewerTier==='all'?'sea':viewerTier).index}
+function regionWorldLayerSet(tier=currentRegionTierIndex()){
+  tier=clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1);
+  return regionWorldLayerVisibility[tier];
+}
+function regionSourceLayerVisible(tier,layer){
+  if(!REGION_DEFINER)return true;
+  const set=regionWorldLayerSet(tier);
+  return set.has(clamp(Math.trunc(Number(layer)||0),0,9));
+}
+function serializeRegionWorldLayerVisibility(){
+  return regionWorldLayerVisibility.map(set=>[...set].sort((a,b)=>a-b));
+}
+function restoreRegionWorldLayerVisibility(raw){
+  if(!Array.isArray(raw))return;
+  for(let tier=0;tier<Math.min(raw.length,regionWorldLayerVisibility.length);tier++){
+    if(!Array.isArray(raw[tier]))continue;
+    const next=new Set(raw[tier].map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10));
+    regionWorldLayerVisibility[tier]=next;
+  }
+}
+function setRegionWorldLayersVisible(enabled){
+  if(!REGION_DEFINER)return;
+  const set=regionWorldLayerSet();set.clear();
+  if(enabled)for(let layer=0;layer<10;layer++)set.add(layer);
+  applyParallax();renderKeyboardKeys();
+  announce(enabled
+    ? `All World layers are visible on Tier ${currentRegionTierIndex()+1}.`
+    : `All World layers are hidden on Tier ${currentRegionTierIndex()+1}. Regional overlays remain visible.`);
+}
+function toggleRegionWorldLayer(layer){
+  if(!REGION_DEFINER)return;
+  layer=clamp(Math.trunc(Number(layer)||0),0,9);
+  const set=regionWorldLayerSet(),visible=!set.has(layer);
+  if(visible)set.add(layer);else set.delete(layer);
+  applyParallax();renderKeyboardKeys();
+  announce(`World layer ${layer+1} ${visible?'shown':'hidden'} on Tier ${currentRegionTierIndex()+1}.`);
+}
+function regionWorldLayerKey(layer){
+  const visible=regionSourceLayerVisible(currentRegionTierIndex(),layer);
+  const button=toolKey(`W${layer+1}${visible?' ✓':''}`,visible?'World layer visible':'World layer hidden',()=>toggleRegionWorldLayer(layer));
+  button.setAttribute('aria-pressed',String(visible));
+  return button;
+}
 function clearRegionSelection(announceChange=true){
   if(!REGION_DEFINER)return;
   regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
@@ -1675,13 +1726,21 @@ function renderKeyboardKeys(){
   if(keyboardMode==='Tiers'){
     if(!REGION_DEFINER)keyboardKeys.append(toolKey('≋','All Parallax',()=>setViewerTier('all')));
     keyboardKeys.append(
-      toolKey('≈',tierLabel(TIERS[0]),()=>setViewerTier('sea')),
-      toolKey('⌁',tierLabel(TIERS[1]),()=>setViewerTier('hills')),
-      toolKey('▲',tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
-      toolKey('L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
-      toolKey('L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+      toolKey(`≈${REGION_DEFINER&&viewerTier==='sea'?' ✓':''}`,tierLabel(TIERS[0]),()=>setViewerTier('sea')),
+      toolKey(`⌁${REGION_DEFINER&&viewerTier==='hills'?' ✓':''}`,tierLabel(TIERS[1]),()=>setViewerTier('hills')),
+      toolKey(`▲${REGION_DEFINER&&viewerTier==='mountains'?' ✓':''}`,tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
+      toolKey(REGION_DEFINER?'WORK L −':'L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+      toolKey(REGION_DEFINER?'WORK L +':'L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
       toolKey('NAME','tier',renameViewerTier,REGION_DEFINER||viewerTier==='all'||READ_ONLY)
-    );return;
+    );
+    if(REGION_DEFINER){
+      keyboardKeys.append(
+        toolKey('WORLD ALL','show source layers',()=>setRegionWorldLayersVisible(true)),
+        toolKey('WORLD NONE','hide source layers',()=>setRegionWorldLayersVisible(false))
+      );
+      for(let layer=0;layer<10;layer++)keyboardKeys.append(regionWorldLayerKey(layer));
+    }
+    return;
   }
   if(keyboardMode==='Tiles'){
     if(personalFolderType==='Tiles'){renderPersonalFolder('Tiles','MY TILES');return}
@@ -1983,7 +2042,12 @@ window.ShaelvienPrototype=Object.freeze({
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
-    regionDefinition:REGION_DEFINER?{tierIndex:currentRegionTierIndex(),selectedCells:[...regionSelectedCells],savedCount:regionCatalog.length}:null,
+    regionDefinition:REGION_DEFINER?{
+      tierIndex:currentRegionTierIndex(),
+      selectedCells:[...regionSelectedCells],
+      savedCount:regionCatalog.length,
+      visibleWorldLayers:[...regionWorldLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1)
+    }:null,
     detailMode:stage.dataset.detailMode||'world',detailScale:Number(stage.dataset.detailScale||regionZoomRatio().toFixed(2))
   })
 });
