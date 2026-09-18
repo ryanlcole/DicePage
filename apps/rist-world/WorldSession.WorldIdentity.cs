@@ -3,10 +3,13 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     // The original alpha ID/path names remain stable for migration and save compatibility.
-    // The user-facing world is Endemar; its primary continent is Jeyrusal.
+    // The canonical MMO world is Shaelvien. Endemar is its protected starting point/origin;
+    // Jeyrusal remains the primary continent name carried by existing content.
     public const string LegacyAlphaWorldId = "shaelvien-geonaph-alpha-001";
     public const string GeonaphWorldId = LegacyAlphaWorldId;
-    public const string GeonaphDisplayName = "Endemar";
+    public const string ShaelvienDisplayName = "Shaelvien";
+    public const string EndemarStartingPointDisplayName = "Endemar";
+    public const string GeonaphDisplayName = ShaelvienDisplayName;
     public const string EndemarContinentDisplayName = "Jeyrusal";
     public const string CurrentWorldId = LegacyAlphaWorldId;
 
