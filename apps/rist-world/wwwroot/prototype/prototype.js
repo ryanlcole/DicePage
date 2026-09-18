@@ -1494,7 +1494,7 @@ function ensureRegionTierPreview(){
   panel.setAttribute('aria-label','Choose a world tier for the new region');
   panel.innerHTML=`
     <div class="region-tier-preview-copy">
-      <small>NEW REGION · WORLD SOURCE</small>
+      <small>${CLAIM_ONLY?'CLAIM REGION':'NEW REGION'} · WORLD SOURCE</small>
       <strong data-tier-title>TIER 1 · SEA LEVEL</strong>
       <span data-tier-help>Swipe left or right across the map to preview tiers.</span>
     </div>
@@ -1566,7 +1566,7 @@ function startRegionClaim(){
   viewerTier='sea';viewerLayer=0;
   showRegionTierPreview();
   renderKeyboardTabs();renderKeyboardKeys();
-  announce('New Region. Swipe through the world tiers and select one.');
+  announce(`${CLAIM_ONLY?'Claim Region':'New Region'}. Swipe through the world tiers and select one.`);
 }
 function chooseRegionClaimTier(key){
   if(!REGION_DEFINER)return;
@@ -1609,7 +1609,7 @@ async function persistRegionClaimWorkspace(){
 function createRegionDefinition(){
   if(!REGION_DEFINER||READ_ONLY||regionCreatePending||!['select','crop'].includes(regionClaimPhase))return;
   const name=String(regionNameDraft||'').trim();
-  if(!CLAIM_ONLY&&!name){announce('Name the region before saving.');return}
+  if(!name){announce('Name the region before saving or requesting it.');return}
   if(!regionSelectedCells.size){announce('Select at least one world tile for the region.');return}
   regionCreatePending=true;renderKeyboardKeys();
   const payload={
@@ -1634,7 +1634,7 @@ function renderRegionSelectKeyboard(){
   const visibleWorldLayers=[...regionWorldLayerSet()].sort((a,b)=>a-b);
   if(regionClaimPhase==='tier-preview'){
     keyboardKeys.append(
-      readoutKey('NEW REGION','choose a world tier first'),
+      readoutKey(CLAIM_ONLY?'CLAIM REGION':'NEW REGION','choose a world tier first'),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       toolKey('CHOOSE TIER','return to swipe preview',showRegionTierPreview)
     );return;
@@ -1648,7 +1648,10 @@ function renderRegionSelectKeyboard(){
   }
   if(regionClaimPhase==='select'){
     keyboardKeys.append(
-      ...(CLAIM_ONLY?[]:[regionNameInput()]),
+      toolKey('−','zoom',()=>zoomCenter(1/1.22)),
+      toolKey('+','zoom',()=>zoomCenter(1.22)),
+      toolKey('⛶','fit map',fitMap),
+      regionNameInput(),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       readoutKey(regionGridShape.toUpperCase(),'selection grid'),
       readoutKey(`${regionSelectedCells.size} TILES`,'selected footprint'),
@@ -1661,7 +1664,7 @@ function renderRegionSelectKeyboard(){
   }
   if(regionClaimPhase==='crop'){
     keyboardKeys.append(
-      ...(CLAIM_ONLY?[]:[regionNameInput()]),
+      regionNameInput(),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       readoutKey(`${regionSelectedCells.size} TILES`,'crop footprint'),
       readoutKey(regionGridShape.toUpperCase(),'region grid'),
