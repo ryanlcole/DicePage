@@ -60,7 +60,7 @@ if(REGION_DEFINER){
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
 const WORLDBUILDER_SAVE_STORE='worlds';
@@ -1941,22 +1941,37 @@ function renderKeyboardKeys(){
     );return;
   }
   if(keyboardMode==='Tiers'){
-    if(!REGION_DEFINER)keyboardKeys.append(toolKey('≋','All Parallax',()=>setViewerTier('all')));
-    keyboardKeys.append(
-      toolKey(`≈${REGION_DEFINER&&viewerTier==='sea'?' ✓':''}`,tierLabel(TIERS[0]),()=>setViewerTier('sea')),
-      toolKey(`⌁${REGION_DEFINER&&viewerTier==='hills'?' ✓':''}`,tierLabel(TIERS[1]),()=>setViewerTier('hills')),
-      toolKey(`▲${REGION_DEFINER&&viewerTier==='mountains'?' ✓':''}`,tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
-      toolKey(REGION_DEFINER?'WORK L −':'L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
-      toolKey(REGION_DEFINER?'WORK L +':'L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
-      toolKey('NAME','tier',renameViewerTier,REGION_DEFINER||viewerTier==='all'||READ_ONLY)
-    );
-    if(REGION_DEFINER){
+    if(!REGION_DEFINER){
       keyboardKeys.append(
-        toolKey('WORLD ALL','show source layers',()=>setRegionWorldLayersVisible(true)),
-        toolKey('WORLD NONE','hide source layers',()=>setRegionWorldLayersVisible(false))
-      );
-      for(let layer=0;layer<10;layer++)keyboardKeys.append(regionWorldLayerKey(layer));
+        toolKey('≋','All Parallax',()=>setViewerTier('all')),
+        toolKey('≈',tierLabel(TIERS[0]),()=>setViewerTier('sea')),
+        toolKey('⌁',tierLabel(TIERS[1]),()=>setViewerTier('hills')),
+        toolKey('▲',tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
+        toolKey('L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+        toolKey('L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+        toolKey('NAME','tier',renameViewerTier,viewerTier==='all'||READ_ONLY)
+      );return;
     }
+    const tierLocked=regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='saved'||regionClaimPhase==='build';
+    if(tierLocked){
+      keyboardKeys.append(
+        readoutKey(`TIER ${currentRegionTierIndex()+1}`,`${tierLabel(tierByIndex(currentRegionTierIndex()))} · claim locked`),
+        toolKey('WORK L −',`Layer ${viewerLayer+1}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)}),
+        toolKey('WORK L +',`Layer ${viewerLayer+1}`,()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer+1}.`)})
+      );
+    }else{
+      keyboardKeys.append(
+        toolKey(`≈${viewerTier==='sea'?' ✓':''}`,tierLabel(TIERS[0]),()=>setViewerTier('sea')),
+        toolKey(`⌁${viewerTier==='hills'?' ✓':''}`,tierLabel(TIERS[1]),()=>setViewerTier('hills')),
+        toolKey(`▲${viewerTier==='mountains'?' ✓':''}`,tierLabel(TIERS[2]),()=>setViewerTier('mountains'))
+      );
+    }
+    keyboardKeys.append(
+      toolKey('WORLD ALL','show source layers',()=>setRegionWorldLayersVisible(true)),
+      toolKey('WORLD NONE','hide source layers',()=>setRegionWorldLayersVisible(false))
+    );
+    for(let layer=0;layer<10;layer++)keyboardKeys.append(regionWorldLayerKey(layer));
+    if(regionClaimPhase==='select'||regionClaimPhase==='crop')keyboardKeys.append(toolKey('‹','back to claim',()=>{keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce('Claim Region controls reopened.')}));    
     return;
   }
   if(keyboardMode==='Tiles'){
