@@ -4,7 +4,7 @@
 
 @if (!_workspaceOpen)
 {
- <main class="launcher-hub @(_parallaxEnabled?"koi-parallax-on":"")" aria-label="Shaelvien launcher">
+ <main class="launcher-hub koi-parallax-on" aria-label="Shaelvien launcher">
   <div class="launcher-koi-parallax" aria-hidden="true">
    <span class="launcher-koi-track launcher-koi-far"><i class="launcher-koi-body"></i></span>
    <span class="launcher-koi-track launcher-koi-near"><i class="launcher-koi-body"></i></span>
@@ -127,10 +127,6 @@ else
      <small>@(_fullscreen?"Return to browser window":"Use the maximum available display area")</small>
     </button>
     @if(!_fullscreenSupported){<p class="launcher-settings-note">This browser does not expose programmable full screen. Platform/browser display controls may still provide it.</p>}
-    <button type="button" class="launcher-fullscreen" @onclick="ToggleParallaxAsync" disabled="@(!_parallaxSupported)">
-     <strong>PARALLAX @(_parallaxEnabled?"ON":"OFF")</strong>
-     <small>@ParallaxStatusText</small>
-    </button>
    </section>
    <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY STATEMENT</button>
   </div>
@@ -202,8 +198,6 @@ else
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
- bool _parallaxEnabled=true;
- bool _parallaxSupported=true;
  string _motionStatus="unknown";
  string _workspaceMode = "world";
  string _workspaceLabel = "WORLDBUILDER";
@@ -222,10 +216,6 @@ else
   "unsupported" => "Not available on this device",
   _ => "Enable device movement for layered world depth"
  };
- string ParallaxStatusText => _parallaxSupported
-  ? (_parallaxEnabled?"Device parallax is enabled":"Device parallax is disabled")
-  : "Parallax controls are not available in this browser";
-
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_workspaceRestored)return;
@@ -234,7 +224,6 @@ else
   _worldGateOpen=false;
   await PersistWorkspaceAsync("hub");
   await RefreshMotionStateAsync();
-  await RefreshParallaxStateAsync();
   await RefreshLandingWorldsAsync();
   await InvokeAsync(StateHasChanged);
  }
@@ -300,34 +289,6 @@ else
   {
    _motionStatus="unsupported";
    _motionSupported=false;
-  }
-  await InvokeAsync(StateHasChanged);
- }
-
- async Task RefreshParallaxStateAsync()
- {
-  try
-  {
-   _parallaxEnabled=await JS.InvokeAsync<bool>("ristParallax.isEnabled");
-   _parallaxSupported=true;
-  }
-  catch
-  {
-   _parallaxSupported=false;
-  }
-  await InvokeAsync(StateHasChanged);
- }
-
- async Task ToggleParallaxAsync()
- {
-  if(!_parallaxSupported)return;
-  try
-  {
-   _parallaxEnabled=await JS.InvokeAsync<bool>("ristParallax.setEnabled",!_parallaxEnabled);
-  }
-  catch
-  {
-   _parallaxSupported=false;
   }
   await InvokeAsync(StateHasChanged);
  }
@@ -402,7 +363,7 @@ else
   _tickerOpen=false;
   Navigation.NavigateTo(Navigation.Uri,forceLoad:true);
  }
- public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
+ public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();}
  void OpenSettings()=>OpenStartMenu();
  void CloseSettings()=>_settingsOpen=false;
  void OpenCardIndex(){_settingsOpen=false;_tickerOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
