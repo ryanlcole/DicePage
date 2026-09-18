@@ -69,7 +69,7 @@ public sealed partial class WorldSession
         if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
         if (!HasActiveWorld) throw new InvalidOperationException("Choose a world before defining a region.");
         name = NormalizeRegionName(name);
-        tierIndex = Math.Clamp(tierIndex, 0, Math.Max(0, TiersPerPlane - 1));
+        tierIndex = Math.Clamp(tierIndex, 0, 2);
         var cells = selectedCells
             .Where(x => x >= 0 && x < GridColumns * GridRows)
             .Distinct()
