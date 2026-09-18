@@ -42,7 +42,7 @@ const REGION_ENHANCE_EXIT=3.6;
 const REGION_ENHANCE_DELAY=140;
 const REGION_ENHANCE_MAX_DPR=2;
 const regionSourceCache=new Map();
-let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnhanceActive=false,regionEnhanceRendering=false;
+let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnhanceActive=false,regionEnhanceRendering=false,regionCameraRevision=0;
 const collisionMasks=new Map();
 const COLLISION_MASK_MAX=512;
 
@@ -154,6 +154,13 @@ function suspendRegionEnhancement(){
   regionEnhanceCanvas?.classList.remove('active');
   stage.dataset.detailMode='world';
 }
+function invalidateRegionCamera(){
+  regionCameraRevision++;
+  suspendRegionEnhancement();
+}
+function regionRenderStillValid(token,revision){
+  return token===regionEnhanceToken&&revision===regionCameraRevision&&regionDetailWanted();
+}
 async function regionBitmap(src){
   src=String(src||'');
   if(!src)return null;
@@ -187,31 +194,39 @@ async function renderRegionEnhancement(){
   regionEnhanceTimer=0;
   if(!regionDetailWanted()){regionEnhanceActive=false;suspendRegionEnhancement();return}
   if(regionEnhanceRendering){scheduleRegionEnhancement();return}
-  const token=++regionEnhanceToken,canvas=ensureRegionEnhanceCanvas(),r=stage.getBoundingClientRect();
+  const token=++regionEnhanceToken,revision=regionCameraRevision,canvas=ensureRegionEnhanceCanvas(),r=stage.getBoundingClientRect();
   if(r.width<2||r.height<2)return;
   regionEnhanceRendering=true;
   try{
+    const entries=[
+      {node:surface,key:'surface'},
+      {node:highlands,key:'highlands'},
+      {node:mountains,key:'mountains'}
+    ];
+    for(const entry of entries){
+      if(!entry.node||!layerReady[entry.key])continue;
+      entry.bitmap=await regionBitmap(collisionSource(entry.node));
+      if(!regionRenderStillValid(token,revision))return;
+    }
+    if(!regionRenderStillValid(token,revision))return;
     const dpr=Math.min(Math.max(Number(devicePixelRatio)||1,1),REGION_ENHANCE_MAX_DPR);
     const width=Math.max(1,Math.round(r.width*dpr)),height=Math.max(1,Math.round(r.height*dpr));
     if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;
     canvas.style.width=`${r.width}px`;canvas.style.height=`${r.height}px`;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true,alpha:false});
+    const ctx=canvas.getContext('2d',{willReadFrequently:true,alpha:true});
     if(!ctx)return;
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,r.width,r.height);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    const entries=[[surface,'surface'],[highlands,'highlands'],[mountains,'mountains']];
-    for(const [node,key] of entries){
-      if(token!==regionEnhanceToken)return;
-      if(!node||!layerReady[key])continue;
-      const opacity=Number(getComputedStyle(node).opacity);if(!(opacity>0.001))continue;
-      const src=collisionSource(node),bitmap=await regionBitmap(src);if(!bitmap||token!==regionEnhanceToken)continue;
-      const nr=node.getBoundingClientRect();
+    for(const entry of entries){
+      if(!entry.bitmap||!regionRenderStillValid(token,revision))return;
+      const opacity=Number(getComputedStyle(entry.node).opacity);if(!(opacity>0.001))continue;
+      const px=Number(entry.node.dataset.parallaxX)||0,py=Number(entry.node.dataset.parallaxY)||0;
       ctx.globalAlpha=clamp(opacity,0,1);
-      ctx.drawImage(bitmap,nr.left-r.left,nr.top-r.top,nr.width,nr.height);
+      ctx.drawImage(entry.bitmap,x+(px*scale),y+(py*scale),naturalWidth*scale,naturalHeight*scale);
     }
     ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
-    if(token!==regionEnhanceToken)return;
+    if(!regionRenderStillValid(token,revision))return;
     sharpenRegionPixels(ctx,width,height,.34);
-    if(token!==regionEnhanceToken)return;
+    if(!regionRenderStillValid(token,revision))return;
     const wasActive=regionEnhanceActive;regionEnhanceActive=true;
     stage.dataset.detailMode='region-enhanced';
     stage.dataset.detailScale=regionZoomRatio().toFixed(2);
@@ -407,6 +422,7 @@ function applyParallax(){
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
     const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
   for(const item of userLayers){
@@ -429,11 +445,13 @@ function updateReadouts(){
   stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer. ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.`);
 }
 function applyTransform(){
+  invalidateRegionCamera();
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
   world.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`;
   applyParallax();
   updateReadouts();
+  scheduleRegionEnhancement();
 }
 function fitMap(){
   if(!naturalWidth||!naturalHeight)return;
