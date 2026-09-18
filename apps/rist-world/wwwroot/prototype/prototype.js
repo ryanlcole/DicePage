@@ -1237,6 +1237,17 @@ function renderRegionWorldSource(payload){
     gridStyle:normalizeRegionGridShape(source.gridStyle||'square'),
     planeIndex:Math.trunc(regionSourceNumber(source.planeIndex,0))
   };
+  // RegionDefiner must render against the same world geometry that WorldBuilder
+  // authored. Prefer dimensions carried by database-backed placed tiles, then
+  // the database source metadata, and finally the loaded shared tier image.
+  const firstSizedTile=tiles.find(raw=>regionSourceNumber(raw?.sourceWidth,0)>1&&regionSourceNumber(raw?.sourceHeight,0)>1);
+  const sourcePixelWidth=Math.max(1,Math.trunc(regionSourceNumber(firstSizedTile?.sourceWidth,source.sourcePixelWidth||0)));
+  const sourcePixelHeight=Math.max(1,Math.trunc(regionSourceNumber(firstSizedTile?.sourceHeight,source.sourcePixelHeight||0)));
+  if(sourcePixelWidth>1&&sourcePixelHeight>1){
+    naturalWidth=sourcePixelWidth;
+    naturalHeight=sourcePixelHeight;
+  }
+  stage.dataset.worldSource=String(source.source||'database');
   const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
   world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
   tierImages.slice(0,TIERS.length).forEach((src,tier)=>{
@@ -1246,6 +1257,15 @@ function renderRegionWorldSource(payload){
     image.src=src;
     image.alt='';
     image.draggable=false;
+    image.addEventListener('load',()=>{
+      if(naturalWidth>1&&naturalHeight>1)return;
+      if(image.naturalWidth>1&&image.naturalHeight>1){
+        naturalWidth=image.naturalWidth;
+        naturalHeight=image.naturalHeight;
+        fitMap();
+        applyTransform();
+      }
+    },{once:true});
     image.dataset.tier=String(tier);
     image.dataset.sourceLocked='true';
     image.style.zIndex=String(tierStackBase(tier)-20);
