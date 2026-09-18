@@ -7,7 +7,7 @@
   <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
    <header>
     <span><small>SHAELVIEN · RIST</small><strong>@(Session.HasActiveWorld&&_ready?"WORLD LOADED":"CHOOSE A WORLD")</strong></span>
-    <button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>
+    @if(!RequireSelection || Session.HasActiveWorld){<button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>}
    </header>
 
    @if(_ready && Session.HasActiveWorld)
@@ -106,6 +106,7 @@
  [Parameter] public bool Open{get;set;}
  [Parameter] public EventCallback OnClose{get;set;}
  [Parameter] public EventCallback OnContinue{get;set;}
+ [Parameter] public bool RequireSelection{get;set;}
  readonly List<AccountWorldReference> _worlds=[];
  AccountWorldReference? _deleteWorld;
  bool _wasOpen;
@@ -153,6 +154,7 @@
    await Session.CreateWorldAsync(_worldName);
    _ready=true;_status=$"{Session.WorldDisplayName} created and loaded.";
    await RefreshWorldsAsync();
+   await OnClose.InvokeAsync();
   }
   catch(Exception ex){_status="World creation failed: "+ex.Message;}
   finally{_busy=false;}
@@ -167,6 +169,7 @@
    await Session.LoadWorldAsync(world);
    _ready=true;_status=$"{Session.WorldDisplayName} loaded.";
    await RefreshWorldsAsync();
+   await OnClose.InvokeAsync();
   }
   catch(Exception ex){_status="World load failed: "+ex.Message;}
   finally{_busy=false;}
@@ -221,6 +224,7 @@
    await Session.ImportWorldAsync(json,preferred);
    _ready=true;_status=$"{Session.WorldDisplayName} imported and loaded.";
    await RefreshWorldsAsync();
+   await OnClose.InvokeAsync();
   }
   catch(Exception ex){_status="World import failed: "+ex.Message;}
   finally{_busy=false;}
@@ -228,5 +232,5 @@
 
  async Task ContinueAsync(){if(Session.HasActiveWorld)await OnContinue.InvokeAsync();}
  async Task ReturnAsync(){if(Session.HasActiveWorld)await OnClose.InvokeAsync();}
- async Task CloseAsync(){if(!_busy&&_deleteWorld is null)await OnClose.InvokeAsync();}
+ async Task CloseAsync(){if(_busy||_deleteWorld is not null)return;if(RequireSelection&&!Session.HasActiveWorld)return;await OnClose.InvokeAsync();}
 }
