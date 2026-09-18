@@ -1213,11 +1213,11 @@ function clearRegionSelection(announceChange=true){
   if(announceChange)announce('Region selection cleared.');
 }
 function toggleRegionCell(cell){
-  if(!REGION_DEFINER||READ_ONLY||keyboardMode!=='Select'||!regionSelectionEnabled)return;
+  if(!REGION_DEFINER||READ_ONLY||keyboardMode!=='Select'||!regionSelectionEnabled||regionClaimPhase!=='select')return;
   cell=Math.trunc(Number(cell));if(cell<0||cell>=REGION_GRID_COLUMNS*REGION_GRID_ROWS)return;
   if(!regionSelectedCells.delete(cell))regionSelectedCells.add(cell);
   updateRegionSelectionOverlay();renderKeyboardKeys();
-  announce(`${regionSelectedCells.size} region cell${regionSelectedCells.size===1?'':'s'} selected on Tier ${currentRegionTierIndex()+1}.`);
+  announce(`${regionSelectedCells.size} region tile${regionSelectedCells.size===1?'':'s'} selected on Tier ${currentRegionTierIndex()+1}.`);
 }
 function regionCellsForTier(){
   const tier=currentRegionTierIndex(),map=new Map();
@@ -1234,13 +1234,13 @@ function regionCellsForTier(){
 function ensureRegionSelectionOverlay(){
   if(!REGION_DEFINER)return null;
   if(regionSelectionOverlay?.isConnected)return regionSelectionOverlay;
-  const overlay=document.createElement('div');overlay.className='region-definition-grid';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
+  const overlay=document.createElement('div');overlay.className='region-definition-grid square';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
   for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
     const button=document.createElement('button');button.type='button';button.className='region-definition-cell';button.dataset.cell=String(cell);
     const column=cell%REGION_GRID_COLUMNS,row=Math.floor(cell/REGION_GRID_COLUMNS);
-    button.setAttribute('aria-label',`Region cell X ${column+1}, Y ${row+1}`);
+    button.setAttribute('aria-label',`Region tile X ${column+1}, Y ${row+1}`);
     button.setAttribute('role','gridcell');
-    button.addEventListener('pointerdown',event=>{if(keyboardMode==='Select'){event.preventDefault();event.stopPropagation()}});
+    button.addEventListener('pointerdown',event=>{if(keyboardMode==='Select'&&regionSelectionEnabled){event.preventDefault();event.stopPropagation()}});
     button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleRegionCell(cell)});
     overlay.appendChild(button);
   }
@@ -1249,18 +1249,32 @@ function ensureRegionSelectionOverlay(){
 function updateRegionSelectionOverlay(){
   if(!REGION_DEFINER)return;
   const overlay=ensureRegionSelectionOverlay();if(!overlay)return;
-  const active=keyboardMode==='Select'&&!keyboard.hidden&&!READ_ONLY&&regionSelectionEnabled;
-  overlay.classList.toggle('active',active);overlay.dataset.tier=String(currentRegionTierIndex());
-  overlay.setAttribute('aria-hidden',String(!active));
-  const existing=regionCellsForTier();
+  const selecting=regionClaimPhase==='select';
+  const active=keyboardMode==='Select'&&!keyboard.hidden&&!READ_ONLY&&regionSelectionEnabled&&selecting;
+  overlay.classList.toggle('active',active);
+  overlay.classList.toggle('square',regionGridShape==='square');
+  overlay.classList.toggle('hex',regionGridShape==='hex');
+  overlay.dataset.tier=String(currentRegionTierIndex());
+  overlay.dataset.gridShape=regionGridShape;
+  overlay.setAttribute('aria-hidden',String(!active&&!regionCropPreview));
+  const existing=regionCellsForTier(),cellWidth=100/REGION_GRID_COLUMNS,cellHeight=100/REGION_GRID_ROWS;
   for(const button of overlay.children){
-    const cell=Math.trunc(Number(button.dataset.cell));
+    const cell=Math.trunc(Number(button.dataset.cell)),row=regionCellRow(cell),column=regionCellColumn(cell);
     const selected=regionSelectedCells.has(cell),names=existing.get(cell)||[];
     button.classList.toggle('selected',selected);
     button.classList.toggle('existing',names.length>0);
     button.setAttribute('aria-selected',String(selected));
     button.title=names.length?`Existing: ${names.join(', ')}`:'';
+    if(regionGridShape==='hex'){
+      button.style.left=`${(column+(row%2?0.5:0))*cellWidth}%`;
+      button.style.top=`${row*cellHeight}%`;
+      button.style.width=`${cellWidth*1.02}%`;
+      button.style.height=`${cellHeight*1.08}%`;
+    }else{
+      button.style.left='';button.style.top='';button.style.width='';button.style.height='';
+    }
   }
+  stage.classList.toggle('region-crop-preview',!!regionCropPreview);
 }
 function regionNameInput(){
   const input=document.createElement('input');input.type='text';input.className='region-name-input';input.maxLength=80;input.value=regionNameDraft;input.placeholder='Region name';input.setAttribute('aria-label','Region name');
@@ -1268,33 +1282,169 @@ function regionNameInput(){
   input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();createRegionDefinition()}});
   return input;
 }
+function clearClaimedRegionCrop(refit=true){
+  if(!REGION_DEFINER)return;
+  regionClaimedRegion=null;pendingClaimedRegionId='';
+  world.style.maskImage='none';world.style.webkitMaskImage='none';
+  world.style.maskSize='';world.style.webkitMaskSize='';world.style.maskRepeat='';world.style.webkitMaskRepeat='';
+  stage.classList.remove('region-cropped');
+  if(refit&&naturalWidth&&naturalHeight)fitMap();
+}
+function regionMaskSvg(region){
+  const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
+  const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape);
+  const figures=[];
+  for(const cell of cells){
+    const row=regionCellRow(cell),column=regionCellColumn(cell);
+    if(shape==='hex'){
+      const x=column+(row%2?0.5:0),y=row;
+      figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
+    }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30.5 30" preserveAspectRatio="none">${figures.join('')}</svg>`;
+}
+function regionClaimBounds(region){
+  const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
+  if(!cells.length)return null;
+  const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape);
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  for(const cell of cells){
+    const row=regionCellRow(cell),column=regionCellColumn(cell),offset=shape==='hex'&&(row%2)?0.5:0;
+    minX=Math.min(minX,column+offset);maxX=Math.max(maxX,column+offset+1);
+    minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
+  }
+  return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
+}
+function fitClaimedRegion(region){
+  const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
+  suspendRegionEnhancement();
+  const r=stage.getBoundingClientRect(),cropX=(bounds.minX/REGION_GRID_COLUMNS)*naturalWidth,cropY=(bounds.minY/REGION_GRID_ROWS)*naturalHeight;
+  const cropW=(bounds.width/REGION_GRID_COLUMNS)*naturalWidth,cropH=(bounds.height/REGION_GRID_ROWS)*naturalHeight;
+  const tiltHeight=cropH*Math.cos(15*Math.PI/180);
+  scale=Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
+  scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
+  const centerX=cropX+(cropW/2),centerY=cropY+(cropH/2);
+  x=fitX=(r.width/2)-(centerX*scale);
+  y=fitY=(r.height/2)-(centerY*scale);
+  applyTransform();
+}
+function applyClaimedRegionCrop(region){
+  if(!REGION_DEFINER||!region)return;
+  regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
+  regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
+  const svg=regionMaskSvg(region),url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  world.style.maskImage=url;world.style.webkitMaskImage=url;
+  world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
+  world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
+  stage.classList.add('region-cropped');
+  regionCropPreview=false;regionSelectionEnabled=false;updateRegionSelectionOverlay();
+  requestAnimationFrame(()=>fitClaimedRegion(region));
+}
+function startRegionClaim(){
+  if(!REGION_DEFINER||READ_ONLY)return;
+  clearClaimedRegionCrop(false);
+  regionClaimPhase='tier';regionGridShape='square';regionCropPreview=false;regionSelectionEnabled=false;regionNameDraft='';regionSelectedCells.clear();
+  viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();applyParallax();updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce('Claim Region started. Surface is the default. Choose a Tier, then select tiles.');
+}
+function chooseRegionClaimTier(key){
+  if(!REGION_DEFINER)return;
+  setViewerTier(key);
+  regionClaimPhase='select';regionSelectionEnabled=true;regionCropPreview=false;regionSelectedCells.clear();
+  updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce(`Tier ${currentRegionTierIndex()+1}, ${tierLabel(tierByKey(viewerTier))}, selected. Choose ${regionGridShape} tiles for the region.`);
+}
+function cancelRegionClaim(){
+  if(!REGION_DEFINER)return;
+  regionClaimPhase='idle';regionSelectionEnabled=false;regionCropPreview=false;regionNameDraft='';regionSelectedCells.clear();
+  clearClaimedRegionCrop(false);viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();fitMap();updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce('Region claim cancelled. Surface view restored.');
+}
+function previewRegionCrop(){
+  if(!REGION_DEFINER||regionClaimPhase!=='select'||!regionSelectedCells.size)return;
+  regionClaimPhase='crop';regionCropPreview=true;regionSelectionEnabled=false;updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce(`Crop preview ready for ${regionSelectedCells.size} selected ${regionGridShape} tile${regionSelectedCells.size===1?'':'s'}. Name the region, then Save Claim.`);
+}
+function returnToRegionSelection(){
+  if(!REGION_DEFINER)return;
+  regionClaimPhase='select';regionCropPreview=false;regionSelectionEnabled=true;updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce('Region tile selection reopened.');
+}
 function createRegionDefinition(){
-  if(!REGION_DEFINER||READ_ONLY||regionCreatePending)return;
+  if(!REGION_DEFINER||READ_ONLY||regionCreatePending||regionClaimPhase!=='crop')return;
   const name=String(regionNameDraft||'').trim();
-  if(!name){announce('Enter a region name.');return}
-  if(!regionSelectedCells.size){announce('Select at least one region cell.');return}
+  if(!name){announce('Name the region before saving the claim.');return}
+  if(!regionSelectedCells.size){announce('Select at least one world tile for the region.');return}
   regionCreatePending=true;renderKeyboardKeys();
   const sent=postRegionMessage('create-region',{
     name,
     cells:[...regionSelectedCells].sort((a,b)=>a-b),
     tierIndex:currentRegionTierIndex(),
-    sourceLayerOffsets:[...regionWorldLayerSet()].sort((a,b)=>a-b)
+    sourceLayerOffsets:[...regionWorldLayerSet()].sort((a,b)=>a-b),
+    gridShape:regionGridShape
   });
   if(!sent){regionCreatePending=false;renderKeyboardKeys();announce('Region persistence bridge is unavailable.');return}
-  announce(`Saving region ${name} on Tier ${currentRegionTierIndex()+1}.`);
+  announce(`Saving ${name}. After save, only the claimed map remains visible.`);
+}
+function buildClaimedRegion(){
+  if(!REGION_DEFINER||!regionClaimedRegion)return;
+  regionClaimPhase='build';regionSelectionEnabled=false;regionCropPreview=false;keyboardMode='Tiles';
+  renderKeyboardTabs();renderKeyboardKeys();updateRegionSelectionOverlay();
+  announce(`Building ${regionClaimedRegion.name||'region'}. ${regionGridShape==='hex'?'Hex':'Square'} placement snapping is active.`);
 }
 function renderRegionSelectKeyboard(){
   const visibleWorldLayers=[...regionWorldLayerSet()].sort((a,b)=>a-b);
+  if(regionClaimPhase==='idle'){
+    keyboardKeys.append(
+      readoutKey('SURFACE','default World view'),
+      readoutKey(regionGridShape.toUpperCase(),'selection + placement grid'),
+      toolKey('CLAIM REGION','choose Tier and tiles',startRegionClaim),
+      toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','grid type',cycleRegionGridShape),
+      readoutKey(`${regionCatalog.length} SAVED`,'defined regions')
+    );return;
+  }
+  if(regionClaimPhase==='tier'){
+    keyboardKeys.append(
+      readoutKey('CLAIM REGION','choose one Tier'),
+      toolKey('TIER 1',tierLabel(TIERS[0]),()=>chooseRegionClaimTier('sea')),
+      toolKey('TIER 2',tierLabel(TIERS[1]),()=>chooseRegionClaimTier('hills')),
+      toolKey('TIER 3',tierLabel(TIERS[2]),()=>chooseRegionClaimTier('mountains')),
+      toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement',cycleRegionGridShape),
+      toolKey('CANCEL','return to surface',cancelRegionClaim)
+    );return;
+  }
+  if(regionClaimPhase==='select'){
+    keyboardKeys.append(
+      readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
+      readoutKey(regionGridShape.toUpperCase(),'selection + placement grid'),
+      readoutKey(`${regionSelectedCells.size} TILES`,'claimed footprint'),
+      readoutKey(`${visibleWorldLayers.length}/10 WORLD`,'source layers included'),
+      toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','change grid',cycleRegionGridShape),
+      toolKey('LAYERS','choose World source',()=>{keyboardMode='Tiers';renderKeyboardTabs();renderKeyboardKeys();announce('World source layer controls opened.')}),
+      toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
+      toolKey('CROP','preview claimed map',previewRegionCrop,!regionSelectedCells.size),
+      toolKey('CANCEL','return to surface',cancelRegionClaim)
+    );return;
+  }
+  if(regionClaimPhase==='crop'){
+    keyboardKeys.append(
+      regionNameInput(),
+      readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
+      readoutKey(`${regionSelectedCells.size} TILES`,'crop footprint'),
+      readoutKey(regionGridShape.toUpperCase(),'region grid'),
+      toolKey('BACK','edit selected tiles',returnToRegionSelection),
+      toolKey('LAYERS','choose World source',()=>{keyboardMode='Tiers';renderKeyboardTabs();renderKeyboardKeys();announce('World source layer controls opened.')}),
+      toolKey(regionCreatePending?'SAVING…':'SAVE CLAIM','crop to full region map',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+    );return;
+  }
+  const region=regionClaimedRegion;
   keyboardKeys.append(
-    regionNameInput(),
-    readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
-    readoutKey(`${regionSelectedCells.size} CELLS`,'selected region footprint'),
-    readoutKey(`${visibleWorldLayers.length}/10 WORLD`,'source layers included'),
-    readoutKey(`${regionCatalog.filter(r=>Math.trunc(Number(r?.tierIndex)||0)===currentRegionTierIndex()).length} SAVED`,'regions on this tier'),
-    toolKey(regionSelectionEnabled?'SELECT ✓':'SELECT','tap map cells',()=>{regionSelectionEnabled=!regionSelectionEnabled;updateRegionSelectionOverlay();renderKeyboardKeys()}),
-    toolKey('LAYERS','choose World source',()=>{keyboardMode='Tiers';renderKeyboardTabs();renderKeyboardKeys();announce('World source layer controls opened.')}),
-    toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
-    toolKey(regionCreatePending?'SAVING…':'CREATE','region definition',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+    readoutKey(String(region?.name||'REGION').toUpperCase(),regionClaimPhase==='build'?'building regional map':'claimed region'),
+    readoutKey(`TIER ${Math.trunc(Number(region?.tierIndex)||currentRegionTierIndex())+1}`,tierLabel(tierByIndex(Math.trunc(Number(region?.tierIndex)||currentRegionTierIndex())))),
+    readoutKey(normalizeRegionGridShape(region?.gridShape||regionGridShape).toUpperCase(),'selection + placement grid'),
+    readoutKey(`${Array.isArray(region?.selectedCells)?region.selectedCells.length:0} TILES`,'full regional map'),
+    toolKey(regionClaimPhase==='build'?'BUILDING ✓':'BUILD REGION','open regional assets',buildClaimedRegion),
+    toolKey('NEW CLAIM','define another region',startRegionClaim)
   );
 }
 function handleRegionHostMessage(event){
@@ -1303,14 +1453,21 @@ function handleRegionHostMessage(event){
   if(data.type==='bridge-ready'){postRegionMessage('ready');return}
   if(data.type==='catalog'){
     regionCatalog=Array.isArray(data.regions)?data.regions:[];
+    if(pendingClaimedRegionId&&!regionClaimedRegion){
+      const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
+      if(claimed){regionClaimPhase='saved';applyClaimedRegionCrop(claimed)}
+    }
     updateRegionSelectionOverlay();renderKeyboardKeys();return;
   }
   if(data.type==='region-created'){
     regionCreatePending=false;
     if(data.region)regionCatalog=[...regionCatalog.filter(r=>String(r?.id)!==String(data.region.id)),data.region];
-    const savedName=String(data.region?.name||regionNameDraft||'Region');
-    regionNameDraft='';regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
-    announce(`${savedName} saved on Tier ${Math.trunc(Number(data.region?.tierIndex)||currentRegionTierIndex())+1}. World source unchanged.`);return;
+    const claimed=data.region;
+    const savedName=String(claimed?.name||regionNameDraft||'Region');
+    regionNameDraft='';regionClaimPhase='saved';
+    if(claimed)applyClaimedRegionCrop(claimed);
+    regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
+    announce(`${savedName} saved. Everything outside the claimed tiles is cropped away and the claim is now the full regional map.`);return;
   }
   if(data.type==='error'){regionCreatePending=false;renderKeyboardKeys();announce(String(data.message||'Region operation failed.'))}
 }
