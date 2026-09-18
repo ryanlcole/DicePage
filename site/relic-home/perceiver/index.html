@@ -37,7 +37,7 @@
 </header>
 <section id="stage" class="stage calibration-on" aria-label="Perceiver cinematic motion-parallax test stage">
 <div id="plate" class="plate"><div class="plate-copy"><strong>CINEMATIC MOTION PARALLAX</strong><span>The movie is the focal plane. Background tiers move more slowly than focus; near and foreground tiers move faster. No head tracking, tilt, pointer movement or viewer-motion detection is used.</span></div></div>
-<video id="video" class="video" playsinline preload="metadata" crossorigin="anonymous"></video>
+<video id="video" class="video" playsinline preload="auto" crossorigin="anonymous"></video>
 <div class="cinema" aria-hidden="true">
 <div class="tier far-glow" data-tier="far" data-speed="0.20"><span class="depth-tag">T1 · FAR · 0.20×</span><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i><i class="star"></i></div>
 <div class="tier horizon" data-tier="background" data-speed="0.55"><span class="depth-tag">T2 · BACKGROUND · 0.55×</span></div>
@@ -82,7 +82,7 @@
 <p class="notice"><strong>Hearing safety:</strong> Perceiver can limit digital signal level, but a browser cannot know actual sound pressure at your ear without calibrated hardware. Device volume remains the final safety control.</p>
 </section>
 <section class="panel"><button id="enhanced" class="active" type="button">ENHANCED · ON</button><button id="motionToggle" class="active" type="button">MOVIE MOTION · ON</button><button id="labels" class="active" type="button">TIER LABELS · ON</button><button id="fullscreen" type="button">FULL SCREEN</button></section>
-<section class="panel"><p class="notice"><strong>Model:</strong> focus stays at 1.00×. Tiers are offset by the difference between their motion speed and the focal plane, producing depth from the movie's own motion model rather than viewer movement.</p><p class="notice"><strong>Protected streaming:</strong> use the service's normal player and this independent clock. Browser DRM remains untouched.</p><p class="notice"><strong>Local test:</strong> LOCAL VIDEO creates a temporary object URL on this device only; Perceiver does not upload the file.</p></section>
+<section class="panel"><p class="notice"><strong>Model:</strong> focus stays at 1.00×. Tiers are offset by the difference between their motion speed and the focal plane, producing depth from the movie's own motion model rather than viewer movement.</p><p class="notice"><strong>Protected streaming:</strong> use the service's normal player and this independent clock. Browser DRM remains untouched.</p><p class="notice"><strong>Local test:</strong> LOCAL VIDEO creates a temporary object URL on this device only; Perceiver does not upload the file.</p><p class="notice"><strong>Built-in test:</strong> TEST VIDEO loads the W3C-hosted Sintel trailer, credited to the Blender Foundation/community. It is used only as an external playback source for this test.</p></section>
 </aside>
 <footer class="bottom"><div class="transport"><button id="rew10">−10s</button><button id="rew1">−1s</button><button id="sync" class="primary">SYNC / PLAY</button><button id="pause">PAUSE</button><button id="reset">RESET</button><button id="fwd1">+1s</button><button id="fwd10">+10s</button></div><div class="readout"><strong id="frame">FRAME 000000</strong><span id="sourceState">External source · focus 1.00×</span></div></footer>
 </main>
@@ -102,18 +102,18 @@ const audioEngine=window.PerceiverAudioEngine?new window.PerceiverAudioEngine(vi
  outputDb.classList.toggle('safe',!Number.isFinite(state.outputDb)||state.outputDb<=-8);
 }):null;
 function format(ms){ms=Math.max(0,ms);const h=Math.floor(ms/3600000);ms%=3600000;const m=Math.floor(ms/60000);ms%=60000;const s=Math.floor(ms/1000);const x=Math.floor(ms%1000);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}
-function currentMs(){if(sourceMode==='local')return(video.currentTime||0)*1000;return running?elapsed+(performance.now()-anchor):elapsed}
+function currentMs(){if(sourceMode!=='external')return(video.currentTime||0)*1000;return running?elapsed+(performance.now()-anchor):elapsed}
 function updateReadout(){const ms=currentMs(),rate=parseFloat(fps.value)||24;timecode.textContent=format(ms);frame.textContent=`FRAME ${String(Math.floor(ms/1000*rate)).padStart(6,'0')}`}
-function setRunning(next){const before=currentMs();if(sourceMode==='local'){running=next;if(next)video.play().catch(()=>{running=false});else video.pause()}else{elapsed=before;running=next;anchor=performance.now()}document.getElementById('sync').classList.toggle('active',running)}
-function seek(delta){if(sourceMode==='local')video.currentTime=Math.max(0,(video.currentTime||0)+delta/1000);else{elapsed=Math.max(0,currentMs()+delta);anchor=performance.now()}updateReadout()}
-function reset(){setRunning(false);if(sourceMode==='local')video.currentTime=0;else elapsed=0;anchor=performance.now();updateReadout()}
+function setRunning(next){const before=currentMs();if(sourceMode!=='external'){running=next;if(next)video.play().catch(()=>{running=false});else video.pause()}else{elapsed=before;running=next;anchor=performance.now()}document.getElementById('sync').classList.toggle('active',running)}
+function seek(delta){if(sourceMode!=='external')video.currentTime=Math.max(0,(video.currentTime||0)+delta/1000);else{elapsed=Math.max(0,currentMs()+delta);anchor=performance.now()}updateReadout()}
+function reset(){setRunning(false);if(sourceMode!=='external')video.currentTime=0;else elapsed=0;anchor=performance.now();updateReadout()}
 function classifyDepth(){
  const forced=depthSource.value;
  let mode=forced;
  if(forced==='auto'){
   const ratio=video.videoHeight?video.videoWidth/video.videoHeight:0;
   const hint=(sourceLabel||video.currentSrc||'').toLowerCase();
-  mode=/(stereo|\bsbs\b|side[-_ ]?by[-_ ]?side|3d|vr)/.test(hint)||ratio>2.8||ratio&&ratio<1.05?'native':'inferred';
+  mode=/(stereo|\bsbs\b|side[-_ ]?by[-_ ]?side|3d|vr)/.test(hint)||ratio>2.8||(ratio>.75&&ratio<1.0)?'native':'inferred';
  }
  const label=mode==='native'?'NATIVE / STEREO SOURCE':'INFERRED DEPTH SOURCE';
  depthSourceStatus.innerHTML='<strong>Depth:</strong> '+(sourceMode==='external'?'waiting for a video source.':label+(depthSource.value==='auto'?' · auto-detected':' · selected'));
