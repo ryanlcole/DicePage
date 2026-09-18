@@ -40,7 +40,7 @@
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
-   <button type="button" class="launcher-card world" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":Session.IsGeonaphWorld?"View Endemar Worldbuilder layout reference.":"Build access required for this world.")</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":Session.IsGeonaphWorld?"Explore Shaelvien from Endemar, claim a world square, or enter one you can build.":"Build access required for this world.")</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>@(CanBuildWorld?"Define regions from published world tiles.":"View the RegionDefiner layout as a read-only reference.")</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenPerceiver" aria-label="Open Perceiver cinematic motion parallax"><span class="card-icon" aria-hidden="true">◉</span><strong>PERCEIVER</strong><small>Cinematic depth using tier motion speed relative to the focal plane.</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
@@ -485,7 +485,12 @@ else
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _regionGateOpen=true;
-  try{await Session.LoadRegionsAsync();}catch{}
+  try
+  {
+   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+  }
+  catch{}
  }
  void CloseRegionGate()=>_regionGateOpen=false;
  void OpenNewRegion()
