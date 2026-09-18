@@ -522,6 +522,11 @@ async function restoreSavedWorldBuilder(){
       : `Saved World Builder restored. ${userLayers.length} placed item${userLayers.length===1?'':'s'} loaded.`);
   }catch(error){
     if(REGION_DEFINER)announce(`Region Definer restore warning: ${String(error?.message||error)}`);
+  }finally{
+    if(!REGION_DEFINER){
+      localWorldBuilderRestoreComplete=true;
+      void bootstrapWorldSourceDatabase();
+    }
   }
 }
 function ensureRegionEnhanceCanvas(){
