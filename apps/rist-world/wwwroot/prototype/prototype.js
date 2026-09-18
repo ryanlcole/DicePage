@@ -1977,11 +1977,13 @@ window.ShaelvienPrototype=Object.freeze({
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
+    workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,sourceWorldLocked:WORLD_SOURCE_LOCKED,
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+userLayers.length,
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
+    regionDefinition:REGION_DEFINER?{tierIndex:currentRegionTierIndex(),selectedCells:[...regionSelectedCells],savedCount:regionCatalog.length}:null,
     detailMode:stage.dataset.detailMode||'world',detailScale:Number(stage.dataset.detailScale||regionZoomRatio().toFixed(2))
   })
 });
