@@ -1,4 +1,7 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inject WorldSession Session
+@inject IJSRuntime JS
 
 @if(_enterParcel)
 {
@@ -8,6 +11,7 @@ else
 {
  <div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="World Builder">
   <iframe
+   @ref="_frame"
    class="geonaph-worldbuilder-frame"
    src="@BuilderSrc"
    title="World Builder"
@@ -142,6 +146,11 @@ else
 @code {
  [Parameter] public EventCallback OnStartMenu { get; set; }
 
+ ElementReference _frame;
+ IJSObjectReference? _sourceModule;
+ DotNetObjectReference<WorldBuilderGeonaphHost>? _sourceSelf;
+ bool _sourceBridgeAttached;
+
  bool _loading;
  bool _claimOpen;
  bool _permissionsOpen;
@@ -224,6 +233,41 @@ else
    var access=Session.HasTrustedWorldBuilderAuthority?"edit":"view";
    return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}";
   }
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_enterParcel||_sourceBridgeAttached)return;
+  _sourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260918-db-source-1");
+  _sourceSelf=DotNetObjectReference.Create(this);
+  await _sourceModule.InvokeVoidAsync("attach",_frame,_sourceSelf);
+  _sourceBridgeAttached=true;
+ }
+
+ [JSInvokable]
+ public async Task<object?> GetWorldBuilderSourceForPrototypeAsync()
+ {
+  var source=await Session.LoadWorldBuilderSourceAsync();
+  if(source is null)return null;
+  return new
+  {
+   worldId=source.WorldId,
+   state=source.State,
+   updatedAtUtc=source.UpdatedAtUtc,
+   source="database"
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveWorldBuilderSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
+ {
+  var source=await Session.SaveWorldBuilderSourceAsync(state);
+  return new
+  {
+   success=source is not null,
+   worldId=source?.WorldId??Session.WorldId,
+   updatedAtUtc=source?.UpdatedAtUtc??""
+  };
  }
 
  protected override async Task OnInitializedAsync()
@@ -333,5 +377,15 @@ else
   var value=(binding??"").Trim();
   if(value.Length==0)return "pending";
   return value.Length<=16?value:value[..16]+"…";
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  if(_sourceModule is not null)
+  {
+   try{await _sourceModule.InvokeVoidAsync("detach",_frame);}catch{}
+   await _sourceModule.DisposeAsync();
+  }
+  _sourceSelf?.Dispose();
  }
 }
