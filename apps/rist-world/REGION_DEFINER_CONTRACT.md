@@ -5,17 +5,18 @@ RegionDefiner is derived from WorldBuilder, but it does not become another autho
 ## Canonical flow
 
 1. A World ID is selected first.
-2. RegionDefiner opens on the selected **World Map** as its non-editable source.
-3. The source is the selected world's authored map state. **Endemar follows this exact same source/claim workflow as every other world; RegionDefiner does not substitute a special Endemar background.**
-4. The **Select** keyboard begins with **Claim Region**.
-5. Claim Region requires the user to choose exactly one Tier. RegionDefiner does not use WorldBuilder's **All Parallax** working mode while claiming.
-6. The viewer supports **Square** and **Hex** selection/placement grids. Square is the default. The chosen geometry also becomes the placement snap grid for regional assets.
-7. The user selects the region tiles on the 30×30 source grid. **Crop** previews the claim.
-8. The user names the claim and chooses **Save Claim**. Saving stores the region definition, crops away everything outside the selected mask, and presents the claim as the full regional map.
-9. **Build Region** opens the regional asset workflow against that cropped map.
-10. Within the active Tier, each of the ten locked World source layers may be independently shown/hidden and included/excluded from the region definition. Layer visibility never unlocks or mutates WorldBuilder source assets.
-11. Asset-library filters resolve to **REGION** assets while RegionDefiner is active. Regional overlays remain separate from source-world assets and stay visible when source layers are hidden.
-12. Region data is saved beneath `worlds/{WorldId}/regions/` and never rewrites the source WorldBuilder terrain.
+2. Choosing **RegionDefiner** opens a Region chooser styled like the World chooser. It lists saved regions and a **New** action.
+3. Opening a saved region loads its stored Tier, source-world provenance, crop mask and regional map.
+4. Choosing **New** opens a full-world preview sourced from the selected world's database-backed authored map state. Endemar follows the same database source rule as every other world; canonical tier images may be used only as visual fallbacks when authored source imagery is temporarily absent.
+5. The New Region preview is swipeable across the three World Tiers. The user selects exactly one Tier. RegionDefiner never uses WorldBuilder's **All Parallax** mode for a new region.
+6. After the Tier is selected, RegionDefiner enters selection-only mode: the only contextual keyboard is **Select**. Zoom/camera controls remain available so the user can navigate before choosing cells.
+7. The viewer supports **Square** and **Hex** selection grids. Square is the default. The chosen geometry also becomes the placement snap grid for later regional assets.
+8. The user selects the region footprint on the 30×30 source grid, names it, and chooses **Save Region** or the persistent Save control.
+9. Saving stores the region definition, crops away everything outside the selected mask, fits the cropped extent as the full regional map, and then restores the remaining contextual keyboards and builder UI.
+10. **Build Region** opens the regional asset workflow against that cropped map.
+11. Within the active Tier, each of the ten locked World source layers may be independently shown/hidden after the region is saved. Layer visibility never unlocks or mutates WorldBuilder source assets.
+12. Asset-library filters resolve to **REGION** assets while RegionDefiner is active. Regional overlays remain separate from source-world assets and stay visible when source layers are hidden.
+13. Region data is saved beneath `worlds/{WorldId}/regions/` and never rewrites the source WorldBuilder terrain.
 
 ## Representation
 
