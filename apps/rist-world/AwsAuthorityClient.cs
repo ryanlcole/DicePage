@@ -32,6 +32,15 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<Membership?> GetMembershipAsync(string worldId)
         => await SendAsync<Membership>(HttpMethod.Get, "/world/membership?worldId=" + Uri.EscapeDataString(worldId));
 
+    public async Task<bool> SetClaimPermissionAsync(string worldId, string userId, string claimPermission)
+    {
+        var result = await SendAsync<ClaimPermissionUpdate>(
+            HttpMethod.Post,
+            "/world/membership/claim-permission",
+            new { worldId, userId, claimPermission });
+        return result?.Ok == true;
+    }
+
     public async Task<WorldEntity?> GetEntityAsync(string worldId, string entityId)
         => await SendAsync<WorldEntity>(HttpMethod.Get, "/world/entity?worldId=" + Uri.EscapeDataString(worldId) + "&entityId=" + Uri.EscapeDataString(entityId));
 
@@ -82,6 +91,7 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         int? WorldSlots = null,
         int? SurfaceWorldPixels = null);
     public sealed record Membership(string? WorldId, string Role, string ClaimPermission = "Blocked");
+    public sealed record ClaimPermissionUpdate(bool Ok, string ClaimPermission);
 
     public sealed record WorldClaimRequestCreate(
         string WorldId,
