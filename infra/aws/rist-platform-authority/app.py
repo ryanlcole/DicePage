@@ -205,6 +205,48 @@ def commercial_profile(existing, platform_owner):
     }
 
 
+def user_world_id_from_key(raw):
+    parts = str(raw or "").replace("\\", "/").strip("/").split("/")
+    if len(parts) < 3 or parts[0] != "worlds":
+        return ""
+    try:
+        return safe_id(parts[1], "worldId")
+    except ValueError:
+        return ""
+
+
+def can_claim_world_slot(user_id, world_id):
+    if not world_id or is_geonaph(world_id):
+        return True
+
+    platform_owner = bool(owner_user_id and user_id == owner_user_id)
+    if platform_owner:
+        return True
+
+    profile = users.get_item(
+        Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
+        ConsistentRead=True,
+    ).get("Item") or {}
+    commercial = commercial_profile(profile, False)
+    if "worlds.unlimited" in commercial["entitlements"]:
+        return True
+
+    exact_prefix = f"users/{user_id}/worlds/{world_id}/"
+    existing = s3.list_objects_v2(Bucket=bucket, Prefix=exact_prefix, MaxKeys=1)
+    if existing.get("KeyCount", 0):
+        return True
+
+    root = f"users/{user_id}/worlds/"
+    listed = s3.list_objects_v2(Bucket=bucket, Prefix=root, Delimiter="/")
+    owned_worlds = {
+        prefix["Prefix"][len(root):].strip("/")
+        for prefix in listed.get("CommonPrefixes", [])
+        if prefix.get("Prefix")
+    }
+    owned_worlds.discard(GEONAPH_WORLD_ID)
+    return len(owned_worlds) < int(commercial["worldSlots"])
+
+
 def handler(event, context):
     method = event["requestContext"]["http"]["method"]
     path = event["rawPath"]
@@ -317,6 +359,9 @@ def handler(event, context):
         raw = str(req.get("key") or "").replace("\\", "/").strip("/")
         if not raw or ".." in raw.split("/") or len(raw) > 512:
             return response(400, {"error": "Invalid key"})
+        requested_world_id = user_world_id_from_key(raw)
+        if requested_world_id and not can_claim_world_slot(user_id, requested_world_id):
+            return response(403, {"error": "Additional world-slot entitlement required"})
         key = "users/" + user_id + "/" + raw
         content_type = req.get("contentType") or "application/octet-stream"
         post = s3.generate_presigned_post(
