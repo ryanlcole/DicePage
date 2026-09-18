@@ -875,8 +875,9 @@ function refreshUserImage(item){
   if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired;void primeCollisionMask(desired)}
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
-  item.node.style.pointerEvents=item.committed&&selectedImage!==item?'none':'auto';
+  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
   item.node.dataset.committed=item.committed?'true':'false';
+  item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
