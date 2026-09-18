@@ -32,7 +32,7 @@ else
      {
       <button type="button" @onclick="()=>EnterParcelAsync(parcel)">ENTER @parcel.DisplayName</button>
      }
-     @if(Session.OwnedMmoParcel is not null)
+     @if(ManageableParcel is not null)
      {
       <button type="button" @onclick="OpenPermissions">PERMISSIONS</button>
      }
@@ -92,7 +92,7 @@ else
    </section>
   }
 
-  @if(_permissionsOpen && Session.OwnedMmoParcel is { } owned)
+  @if(_permissionsOpen && ManageableParcel is { } owned)
   {
    <section class="shaelvien-land-backdrop" role="presentation" @onclick="ClosePermissions">
     <div class="shaelvien-land-card permission-card" role="dialog" aria-modal="true" aria-label="Shaelvien world permissions" @onclick:stopPropagation="true">
@@ -155,6 +155,9 @@ else
 
  IReadOnlyList<AwsAuthorityClient.MmoParcel> EditableParcels =>
   Session.MmoParcels.Where(parcel=>Session.CanEditMmoParcel(parcel)).OrderBy(parcel=>parcel.DisplayName,StringComparer.OrdinalIgnoreCase).ToList();
+
+ AwsAuthorityClient.MmoParcel? ManageableParcel =>
+  Session.MmoParcels.FirstOrDefault(parcel=>Session.CanManageMmoParcel(parcel));
 
  string LandSummary => _loading
   ? "Loading Shaelvien land authority…"
@@ -273,11 +276,12 @@ else
 
  async Task SavePermissionAsync()
  {
-  if(_busy||Session.OwnedMmoParcel is null||string.IsNullOrWhiteSpace(_delegateUserId))return;
+  var parcel=ManageableParcel;
+  if(_busy||parcel is null||string.IsNullOrWhiteSpace(_delegateUserId))return;
   _busy=true;_status="Saving parcel permission…";
   try
   {
-   var ok=await Session.DelegateMmoParcelAsync(Session.OwnedMmoParcel.ParcelId,_delegateUserId,_delegatePermission);
+   var ok=await Session.DelegateMmoParcelAsync(parcel.ParcelId,_delegateUserId,_delegatePermission);
    _status=ok
     ? (_delegatePermission=="None"?"Permission removed.":"Permission handed off. Ownership remains unchanged.")
     : "Permission could not be changed.";
