@@ -81,7 +81,7 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
 
     assert "REGION DEFINER · CANONICAL MAP · 15° VIEW" in prototype
     assert "WORLD SOURCE LOCKED" not in prototype
-    assert "Save authorized map changes" in prototype
+    assert "Save authorized changes to the canonical map" in prototype
     assert "sourceWorldLocked" not in prototype
     assert "mapAuthorityScoped" in prototype
 
