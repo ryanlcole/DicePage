@@ -24,7 +24,7 @@ def test_authority_backend_parses_and_mints_one_profile_token():
 def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     backend = text("infra/aws/rist-platform-authority/app.py")
     assert "MMO_PARCEL_PIXELS = 2048" in backend
-    assert "MMO_PARCEL_MAX_HEIGHT = 10" in backend
+    assert "MMO_PARCEL_MAX_HEIGHT = 100" in backend
     assert "ENDEMAR_ORIGIN_COLUMN = 15" in backend
     assert "ENDEMAR_ORIGIN_ROW = 15" in backend
     assert "def mmo_parcel_claimable" in backend
@@ -74,7 +74,7 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "SHAELVIEN · ORIGIN: ENDEMAR" in host
     assert "CLAIM WORLD" in host
     assert "SPEND TOKEN & CLAIM" in host
-    assert "2048 by 2048 pixels, maximum height 10" in host
+    assert "2048 by 2048 pixels, maximum height 100 layers" in host
     assert "RegionDefinerWorkspace" in host
     assert "Session.SetActiveRegion(parcel.RegionId)" in host
     assert "PERMISSIONS" in host
