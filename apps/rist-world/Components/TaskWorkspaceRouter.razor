@@ -1,10 +1,15 @@
 @inject NavigationManager Navigation
+@inject WorldSession Session
 
 <div class="task-workspace-router">
  @if (Mode == "worldrunetest" || (Mode == "world" && RuneTestRequested))
  {
   <WorldAnimatedAssetCatalog />
   <WorldBuilderRuneTest OnStartMenu="OnStartMenu" />
+ }
+ else if (Mode == "world" && Session.CanRequestWorldClaim && !Session.HasTrustedWorldBuilderAuthority)
+ {
+  <RegionDefinerWorkspace OnStartMenu="OnStartMenu" />
  }
  else if (Mode == "world")
  {
