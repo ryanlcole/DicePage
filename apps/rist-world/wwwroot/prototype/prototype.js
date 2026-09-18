@@ -1083,6 +1083,7 @@ function applyTransform(){
 }
 function fitMap(){
   if(!naturalWidth||!naturalHeight)return;
+  if(REGION_DEFINER&&regionClaimedRegion){fitClaimedRegion(regionClaimedRegion);return}
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect();
   minScale=Math.min(r.width/naturalWidth,r.height/naturalHeight);
@@ -1311,7 +1312,7 @@ function regionMaskSvg(region){
       figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
     }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30.5 30" preserveAspectRatio="none">${figures.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" preserveAspectRatio="none">${figures.join('')}</svg>`;
 }
 function regionClaimBounds(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
@@ -1323,6 +1324,8 @@ function regionClaimBounds(region){
     minX=Math.min(minX,column+offset);maxX=Math.max(maxX,column+offset+1);
     minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
   }
+  minX=clamp(minX,0,REGION_GRID_COLUMNS);maxX=clamp(maxX,0,REGION_GRID_COLUMNS);
+  minY=clamp(minY,0,REGION_GRID_ROWS);maxY=clamp(maxY,0,REGION_GRID_ROWS);
   return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
 }
 function fitClaimedRegion(region){
@@ -1341,6 +1344,7 @@ function fitClaimedRegion(region){
 function applyClaimedRegionCrop(region){
   if(!REGION_DEFINER||!region)return;
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
+  stage.classList.remove('region-build-mode');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   const svg=regionMaskSvg(region),url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
   world.style.maskImage=url;world.style.webkitMaskImage=url;
@@ -1352,6 +1356,7 @@ function applyClaimedRegionCrop(region){
 }
 function startRegionClaim(){
   if(!REGION_DEFINER||READ_ONLY)return;
+  stage.classList.remove('region-build-mode');
   clearClaimedRegionCrop(false);
   regionClaimPhase='tier';regionGridShape='square';regionCropPreview=false;regionSelectionEnabled=false;regionNameDraft='';regionSelectedCells.clear();
   viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();applyParallax();updateRegionSelectionOverlay();renderKeyboardKeys();
@@ -1366,6 +1371,7 @@ function chooseRegionClaimTier(key){
 }
 function cancelRegionClaim(){
   if(!REGION_DEFINER)return;
+  stage.classList.remove('region-build-mode');
   regionClaimPhase='idle';regionSelectionEnabled=false;regionCropPreview=false;regionNameDraft='';regionSelectedCells.clear();
   clearClaimedRegionCrop(false);viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();fitMap();updateRegionSelectionOverlay();renderKeyboardKeys();
   announce('Region claim cancelled. Surface view restored.');
@@ -1399,6 +1405,7 @@ function createRegionDefinition(){
 function buildClaimedRegion(){
   if(!REGION_DEFINER||!regionClaimedRegion)return;
   regionClaimPhase='build';regionSelectionEnabled=false;regionCropPreview=false;keyboardMode='Tiles';
+  stage.classList.add('region-build-mode');
   renderKeyboardTabs();renderKeyboardKeys();updateRegionSelectionOverlay();
   announce(`Building ${regionClaimedRegion.name||'region'}. ${regionGridShape==='hex'?'Hex':'Square'} placement snapping is active.`);
 }
@@ -1938,7 +1945,13 @@ function renderKeyboardKeys(){
       toolKey('+','zoom',()=>zoomCenter(1.22)),
       toolKey('⛶','camera',fitMap),
       toolKey('⌁','reset tilt',resetTilt)
-    );return;
+    );
+    if(REGION_DEFINER)keyboardKeys.append(
+      readoutKey('SURFACE','default regional source view'),
+      toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement grid',cycleRegionGridShape),
+      toolKey(regionClaimedRegion?'REGION':'CLAIM','open Select tools',()=>{keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce(regionClaimedRegion?'Claimed Region controls opened.':'Claim Region controls opened.')})
+    );
+    return;
   }
   if(keyboardMode==='Tiers'){
     if(!REGION_DEFINER){
