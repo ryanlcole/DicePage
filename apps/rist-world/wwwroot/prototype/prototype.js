@@ -16,7 +16,7 @@ const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
 const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
 const CLAIM_ONLY=ACCESS_MODE==='claim';
 const READ_ONLY=ACCESS_MODE==='view';
-const WORLD_SOURCE_LOCKED=REGION_DEFINER;
+const MAP_AUTHORITY_SCOPED=REGION_DEFINER;
 const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const MIN_VIEW_SCALE=1e-6;
@@ -57,7 +57,7 @@ if(REGION_DEFINER){
   document.title='Shaelvien Region Definer';
   stage.classList.add('region-definer-mode');
   stage.dataset.workspace='regiondefiner';
-  stage.dataset.sourceWorldLocked='true';
+  stage.dataset.mapAuthority='region-scoped';
   keyboard?.setAttribute('aria-label','Region Definer contextual keyboard');
   keyboardToggle?.setAttribute('aria-label','Open Region Definer keyboard');
   persistentSave.title='Save authorized changes to the canonical map';
@@ -1059,7 +1059,7 @@ function refreshUserImage(item){
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
-  if(item?.sourceLocked){announce('World source assets are locked in Region Definer.');return}
+  if(item?.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const previous=selectedImage;
   previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
@@ -1103,7 +1103,7 @@ function placedContentSelect(){
 }
 function removeSelectedImage(){
   if(READ_ONLY)return;if(!selectedImage)return;
-  if(selectedImage.sourceLocked){announce('World source assets are locked in Region Definer.');return}
+  if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
   if(READ_ONLY||item?.sourceLocked)return;
@@ -2688,7 +2688,7 @@ window.ShaelvienPrototype=Object.freeze({
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
-    workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,sourceWorldLocked:WORLD_SOURCE_LOCKED,
+    workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length,
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
