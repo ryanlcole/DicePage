@@ -1576,7 +1576,7 @@ function clearClaimedRegionCrop(refit=true){
   regionClaimedRegion=null;pendingClaimedRegionId='';
   world.style.maskImage='none';world.style.webkitMaskImage='none';
   world.style.maskSize='';world.style.webkitMaskSize='';world.style.maskRepeat='';world.style.webkitMaskRepeat='';
-  stage.classList.remove('region-cropped');
+  stage.classList.remove('region-cropped');delete stage.dataset.cropMode;
   if(refit&&naturalWidth&&naturalHeight)fitMap();
 }
 function regionMaskSvg(region){
@@ -1630,7 +1630,7 @@ function applyClaimedRegionCrop(region){
   world.style.maskImage=url;world.style.webkitMaskImage=url;
   world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
   world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
-  stage.classList.add('region-cropped');
+  stage.classList.add('region-cropped');stage.dataset.cropMode='visibility-mask';
   regionCropPreview=false;regionSelectionEnabled=false;updateRegionSelectionOverlay();
   requestAnimationFrame(()=>fitClaimedRegion(region));
 }
@@ -1766,7 +1766,7 @@ function createRegionDefinition(){
   };
   const sent=postRegionMessage(CLAIM_ONLY?'request-claim':'create-region',payload);
   if(!sent){regionCreatePending=false;renderKeyboardKeys();announce('Region persistence bridge is unavailable.');return}
-  announce(CLAIM_ONLY?'Sending the selected map portion to the GM for permission review.':`Saving ${name}. The selected world-map area will become the complete regional map.`);
+  announce(CLAIM_ONLY?'Sending the selected world footprint to the GM for permission review.':`Saving ${name}. This defines the regional view and authority only; the canonical world map remains intact.`);
 }
 function buildClaimedRegion(){
   if(!REGION_DEFINER||!regionClaimedRegion||CLAIM_ONLY)return;
@@ -1804,7 +1804,7 @@ function renderRegionSelectKeyboard(){
       toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','change selection grid',cycleRegionGridShape),
       toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
       toolKey('CHOOSE TIER','restart tier preview',showRegionTierPreview),
-      toolKey(regionCreatePending?(CLAIM_ONLY?'SENDING…':'SAVING…'):(CLAIM_ONLY?'REQUEST':'SAVE REGION'),CLAIM_ONLY?'send selected region to GM':'crop and save selected map',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+      toolKey(regionCreatePending?(CLAIM_ONLY?'SENDING…':'SAVING…'):(CLAIM_ONLY?'REQUEST':'SAVE REGION'),CLAIM_ONLY?'send selected region to GM':'define view and authority',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
     );return;
   }
   if(regionClaimPhase==='crop'){
@@ -1860,7 +1860,7 @@ async function handleRegionHostMessage(event){
     if(claimed)applyClaimedRegionCrop(claimed);
     regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
     await persistRegionClaimWorkspace();
-    announce(`${savedName} saved. Everything outside the claimed tiles is cropped away and the claim is now the full regional map.`);return;
+    announce(`${savedName} saved. The viewer now hides everything outside the region; the underlying canonical world map is unchanged.`);return;
   }
   if(data.type==='map-region-saved'||data.type==='map-region-save-error'){
     const requestId=String(data.requestId||''),waiter=regionMapSaveWaiters.get(requestId);
