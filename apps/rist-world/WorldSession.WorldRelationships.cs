@@ -165,7 +165,7 @@ public sealed partial class WorldSession
                                     string.Equals(descriptor.WorldId, GeonaphWorldId, StringComparison.Ordinal) &&
                                     string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal);
         if (IsGeonaphWorld && !auth.IsOwnerDiscordAccount && !persistedGeonaphOwner)
-            throw new InvalidOperationException("Geonaph owner authority is reserved for the configured developer account.");
+            throw new InvalidOperationException("Endemar owner authority is reserved for the configured developer account.");
 
         if (descriptor is not null)
         {
@@ -286,10 +286,10 @@ public sealed partial class WorldSession
         if (descriptor is not null)
         {
             if (!string.Equals(descriptor.WorldId, GeonaphWorldId, StringComparison.Ordinal))
-                throw new InvalidOperationException("Geonaph descriptor identity does not match the canonical World ID.");
+                throw new InvalidOperationException("Endemar descriptor identity does not match the canonical World ID.");
             if (!string.IsNullOrWhiteSpace(descriptor.OwnerAccountId) &&
                 !string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal))
-                throw new InvalidOperationException("Geonaph is already bound to a different RIST account.");
+                throw new InvalidOperationException("Endemar is already bound to a different RIST account.");
         }
 
         descriptor = descriptor is null
