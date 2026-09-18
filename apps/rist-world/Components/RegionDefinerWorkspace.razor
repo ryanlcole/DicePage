@@ -59,7 +59,7 @@
    var seed="empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
-   var access=Session.HasTrustedWorldBuilderAuthority?"edit":"view";
+   var access=Session.HasTrustedWorldBuilderAuthority?"edit":Session.CanRequestWorldClaim?"claim":"view";
    return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}";
   }
  }
@@ -68,7 +68,7 @@
  {
   if(!firstRender||_bridgeAttached)return;
   await Session.LoadRegionsAsync();
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-world-source-1");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-claim-permissions-1");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -130,6 +130,24 @@
    gridShape=region.GridShape,
    updatedAtUtc=region.UpdatedAtUtc
   }).ToList();
+ }
+
+ [JSInvokable]
+ public async Task<object> SubmitRegionClaimRequestFromPrototypeAsync(int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape)
+ {
+  var result=await Session.SubmitWorldClaimRequestAsync(
+   "regiondefiner",
+   tierIndex,
+   cells??Array.Empty<int>(),
+   sourceLayerOffsets??Array.Empty<int>(),
+   gridShape);
+  return new
+  {
+   success=result.Success,
+   message=result.Message,
+   requestId=result.Request?.RequestId??"",
+   status=result.Request?.Status??""
+  };
  }
 
  [JSInvokable]
