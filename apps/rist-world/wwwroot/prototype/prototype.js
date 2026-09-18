@@ -33,6 +33,97 @@ const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
+const collisionMasks=new Map();
+const COLLISION_MASK_MAX=512;
+
+function collisionSource(node){return String(node?.currentSrc||node?.src||'')}
+async function primeCollisionMask(src){
+  src=String(src||'');
+  if(!src)return null;
+  const existing=collisionMasks.get(src);
+  if(existing)return existing.promise;
+  const record={ready:false,failed:false,width:0,height:0,alpha:null,promise:null};
+  record.promise=(async()=>{
+    try{
+      const response=await fetch(src,{mode:'cors',cache:'force-cache'});
+      if(!response.ok)throw new Error('collision source unavailable');
+      const blob=await response.blob();
+      const bitmap=await createImageBitmap(blob);
+      const ratio=Math.min(1,COLLISION_MASK_MAX/Math.max(bitmap.width,bitmap.height));
+      const width=Math.max(1,Math.round(bitmap.width*ratio)),height=Math.max(1,Math.round(bitmap.height*ratio));
+      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      ctx.clearRect(0,0,width,height);ctx.drawImage(bitmap,0,0,width,height);bitmap.close?.();
+      const rgba=ctx.getImageData(0,0,width,height).data,alpha=new Uint8Array(width*height);
+      for(let i=0,p=3;i<alpha.length;i++,p+=4)alpha[i]=rgba[p];
+      record.width=width;record.height=height;record.alpha=alpha;record.ready=true;
+    }catch{record.failed=true}
+    return record;
+  })();
+  collisionMasks.set(src,record);
+  return record.promise;
+}
+function sourceCollides(src,nx,ny){
+  if(nx<0||nx>1||ny<0||ny>1)return false;
+  const record=collisionMasks.get(src);
+  if(!record){void primeCollisionMask(src);return false}
+  if(!record.ready||record.failed||!record.alpha)return false;
+  const ix=clamp(Math.floor(nx*record.width),0,record.width-1),iy=clamp(Math.floor(ny*record.height),0,record.height-1);
+  return record.alpha[(iy*record.width)+ix]>0;
+}
+function builtinCollision(node,key,clientX,clientY){
+  if(!node||!layerReady[key])return null;
+  const opacity=Number(getComputedStyle(node).opacity);
+  if(!(opacity>0))return null;
+  const rect=node.getBoundingClientRect();
+  if(rect.width<1||rect.height<1||clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom)return null;
+  const nx=(clientX-rect.left)/rect.width,ny=(clientY-rect.top)/rect.height,src=collisionSource(node);
+  if(!sourceCollides(src,nx,ny))return null;
+  return{kind:'builtin',node,key,nx,ny,src};
+}
+function userCollision(item,clientX,clientY){
+  if(!item?.node||!(Number(item.renderOpacity)>0))return null;
+  const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
+  const baseW=naturalWidth*.12,aspect=(item.node.naturalWidth>0&&item.node.naturalHeight>0)?item.node.naturalHeight/item.node.naturalWidth:1,baseH=baseW*aspect;
+  const centerX=(item.x*naturalWidth)+(Number(item.parallaxX)||0),centerY=(item.y*naturalHeight)+(Number(item.parallaxY)||0);
+  const rad=-(Number(item.rotation)||0)*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad),size=Math.max(Number(item.size)||1,.00001);
+  const dx=(worldX-centerX)/size,dy=(worldY-centerY)/size;
+  const localX=(dx*c)-(dy*s)+(baseW/2),localY=(dx*s)+(dy*c)+(baseH/2);
+  const nx=localX/Math.max(baseW,.00001),ny=localY/Math.max(baseH,.00001);
+  const src=item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc;
+  if(!sourceCollides(src,nx,ny))return null;
+  return{kind:'user',item,nx,ny,src};
+}
+function collisionAt(clientX,clientY){
+  const ordered=[...userLayers].sort((a,b)=>((b.tier*100)+b.layer+(b.stackOrder||0)/100)-((a.tier*100)+a.layer+(a.stackOrder||0)/100));
+  for(const item of ordered){const hit=userCollision(item,clientX,clientY);if(hit)return hit}
+  for(const [node,key] of [[mountains,'mountains'],[highlands,'highlands']]){const hit=builtinCollision(node,key,clientX,clientY);if(hit)return hit}
+  return null;
+}
+function collisionScreenPoint(hit){
+  if(!hit)return null;
+  if(hit.kind==='builtin'){
+    const rect=hit.node.getBoundingClientRect();
+    return{x:rect.left+(hit.nx*rect.width),y:rect.top+(hit.ny*rect.height)};
+  }
+  const item=hit.item,node=item?.node;
+  if(!node)return null;
+  const baseW=naturalWidth*.12,aspect=(node.naturalWidth>0&&node.naturalHeight>0)?node.naturalHeight/node.naturalWidth:1,baseH=baseW*aspect,size=Math.max(Number(item.size)||1,.00001);
+  let lx=(hit.nx-.5)*baseW*size,ly=(hit.ny-.5)*baseH*size;
+  const rad=(Number(item.rotation)||0)*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad),rx=(lx*c)-(ly*s),ry=(lx*s)+(ly*c);
+  const wx=(item.x*naturalWidth)+(Number(item.parallaxX)||0)+rx,wy=(item.y*naturalHeight)+(Number(item.parallaxY)||0)+ry,r=stage.getBoundingClientRect();
+  return{x:r.left+x+(wx*scale),y:r.top+y+(wy*scale)};
+}
+function settleCollisionAnchor(hit,clientX,clientY){
+  if(!hit)return;
+  for(let i=0;i<2;i++){
+    const point=collisionScreenPoint(hit);if(!point)break;
+    const dx=clientX-point.x,dy=clientY-point.y;
+    if(Math.abs(dx)<.05&&Math.abs(dy)<.05)break;
+    x+=dx;y+=dy;applyTransform();
+  }
+  stage.dataset.zoomCollision=hit.kind==='user'?'user-image':hit.key;
+}
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
 function updateUpscaleControl(){
   settingsUpscale?.setAttribute('aria-pressed',String(upscaleEnabled));
@@ -187,7 +278,7 @@ async function placeUploadedImage(file){
   };
   const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
   announce(`Image placed in ${tierLabel(tierByIndex(tier))}, layer ${layer}. Image editing keyboard opened.`);
 }
 function tierMix(){
@@ -253,6 +344,7 @@ function fitMap(){
   applyTransform();
 }
 function zoomAt(cx,cy,factor){
+  const collision=collisionAt(cx,cy);
   const r=stage.getBoundingClientRect(),sx=cx-r.left,sy=cy-r.top,old=scale,next=clamp(old*factor,minScale*.75,maxScale);
   if(Math.abs(next-old)<.0001)return;
   const wx=(sx-x)/old,wy=(sy-y)/old;
@@ -260,6 +352,7 @@ function zoomAt(cx,cy,factor){
   x=sx-wx*scale;
   y=sy-wy*scale;
   applyTransform();
+  if(collision)settleCollisionAnchor(collision,cx,cy);else stage.dataset.zoomCollision='world';
 }
 function zoomCenter(factor){
   const r=stage.getBoundingClientRect();
@@ -335,6 +428,7 @@ BASE_WORLD_ASSETS.forEach(asset=>{
   const node=planeByKey[asset.key];
   node.addEventListener('load',()=>{
     layerReady[asset.key]=true;
+    if(asset.key!=='surface')void primeCollisionMask(collisionSource(node));
     if(asset.key==='surface'&&node.dataset.derivedUpscale!=='1'){
       naturalWidth=node.naturalWidth||1;
       naturalHeight=node.naturalHeight||1;
@@ -447,7 +541,7 @@ stage.addEventListener('pointerdown',e=>{
   if(pointers.size===1){panStart={pointerX:e.clientX,pointerY:e.clientY,x,y};pinchStart=null}
   else if(pointers.size===2){
     const[a,b]=[...pointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
-    pinchStart={distance:d,scale,worldX:(cx-x)/scale,worldY:(cy-y)/scale};
+    pinchStart={distance:d,scale,worldX:(cx-x)/scale,worldY:(cy-y)/scale,collision:collisionAt(r.left+cx,r.top+cy)};
     panStart=null;
   }
 });
@@ -462,6 +556,7 @@ stage.addEventListener('pointermove',e=>{
     x=cx-pinchStart.worldX*scale;
     y=cy-pinchStart.worldY*scale;
     applyTransform();
+    if(pinchStart.collision)settleCollisionAnchor(pinchStart.collision,r.left+cx,r.top+cy);else stage.dataset.zoomCollision='world';
   }
 });
 function release(e){
