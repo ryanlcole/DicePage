@@ -1265,7 +1265,7 @@ function placePersonalImage(asset){
   if(!asset?.url)return;
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,
+    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
     originalSrc:asset.url,transparentSrc:asset.url,transparent:false,x:point.x,y:point.y,tier:address.tier,layer:address.layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
