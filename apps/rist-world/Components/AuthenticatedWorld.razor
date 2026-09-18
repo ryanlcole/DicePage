@@ -2,6 +2,7 @@
 @inject DiscordAuthClient Auth
 @inject WorldSession Session
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 @if (!_ready)
 {
@@ -15,7 +16,29 @@
 }
 else if (_canEnter)
 {
- @if(!_launchWorldChosen)
+ @if(!_launchStarted)
+ {
+  <section class="rist-auth-start" aria-label="Shaelvien start screen">
+   <img class="rist-auth-start-art" src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="" aria-hidden="true" />
+   <div class="rist-auth-start-shade" aria-hidden="true"></div>
+   <div class="rist-auth-start-controls">
+    @if(string.IsNullOrWhiteSpace(_privacyChoice))
+    {
+     <section class="rist-auth-privacy" aria-label="Cookies and storage choice">
+      <strong>COOKIES &amp; STORAGE</strong>
+      <p>Essential storage is required for sign-in, security and core game state. Optional storage remembers nonessential preferences. Shaelvien does not currently use advertising or analytics tracking.</p>
+      <div>
+       <button type="button" @onclick="SetEssentialPrivacyAsync">ESSENTIAL ONLY</button>
+       <button type="button" @onclick="SetOptionalPrivacyAsync">ALLOW OPTIONAL</button>
+      </div>
+     </section>
+    }
+    <button type="button" class="rist-auth-press-start" disabled="@string.IsNullOrWhiteSpace(_privacyChoice)" @onclick="BeginAuthenticatedLaunchAsync">PRESS START</button>
+    <button type="button" class="rist-auth-hard-refresh" @onclick="HardRefreshAsync">HARD REFRESH</button>
+   </div>
+  </section>
+ }
+ else if(!_launchWorldChosen)
  {
   <main class="rist-world-choice-root" aria-label="Choose a world">
    <div class="rist-world-choice-underlay" aria-hidden="true">
@@ -64,6 +87,21 @@ else
 
 <style>
  .rist-authenticated-root{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:#05090c}
+ .rist-auth-start{position:fixed;inset:0;z-index:2147483500;display:flex;align-items:flex-end;justify-content:center;box-sizing:border-box;overflow:hidden;padding:0 24px max(8vh,38px);isolation:isolate;background:#03050a;color:#f7e8b7}
+ .rist-auth-start-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3;transform:scale(1.04)}
+ .rist-auth-start-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,transparent 0 48%,rgba(1,3,8,.10) 68%,rgba(1,3,8,.68) 100%);pointer-events:none}
+ .rist-auth-start-controls{width:min(520px,92vw);display:grid;gap:10px;place-items:center;margin:0 0 2vh}
+ .rist-auth-privacy{box-sizing:border-box;width:100%;display:grid;gap:9px;padding:12px 14px;border:1px solid rgba(183,150,75,.65);border-radius:12px;background:rgba(4,10,14,.80);backdrop-filter:blur(5px);color:#e9dfc4;text-align:center}
+ .rist-auth-privacy strong{color:#f0d68e;font:900 10px/1 system-ui;letter-spacing:.12em}
+ .rist-auth-privacy p{margin:0;color:#bcc7ca;font:600 10px/1.45 system-ui}
+ .rist-auth-privacy div{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .rist-auth-privacy button,.rist-auth-hard-refresh{min-height:38px;border:1px solid #7b6739;border-radius:8px;background:rgba(11,22,29,.88);color:#efd99d;font:900 9px/1 system-ui;letter-spacing:.06em;touch-action:manipulation}
+ .rist-auth-press-start{appearance:none;width:100%;min-height:48px;padding:0;border:0;background:transparent;color:#fff0b6;font:900 20px/1.1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.08em;text-align:center;text-shadow:0 3px 8px #000,0 0 12px #000;animation:rist-auth-start-pulse 1.45s steps(2,end) infinite;touch-action:manipulation}
+ .rist-auth-press-start:disabled{opacity:.36;animation:none}
+ .rist-auth-hard-refresh{width:min(220px,70vw);min-height:32px;background:rgba(5,12,17,.56);color:#b8c3c7;border-color:#4d5d64}
+ .rist-auth-press-start:focus-visible,.rist-auth-hard-refresh:focus-visible,.rist-auth-privacy button:focus-visible{outline:2px dashed rgba(255,241,183,.9);outline-offset:4px}
+ @@keyframes rist-auth-start-pulse{50%{opacity:.42}}
+ @@media(prefers-reduced-motion:reduce){.rist-auth-press-start{animation:none}.rist-auth-start-art{transform:none}}
  .rist-authenticated-body{position:relative;flex:1 1 auto;min-width:0;min-height:0;overflow:hidden}
  .rist-authenticated-body .launcher-hub{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important}
  .rist-authenticated-body .alpha-world-stage{height:100%!important;min-height:0!important}
@@ -91,13 +129,39 @@ else
  bool _ready;
  bool _canEnter;
  bool _authStarted;
+ bool _launchStarted;
  bool _launchWorldChosen;
+ string _privacyChoice="";
  bool _termsRequired;
  bool _termsChecked;
  bool _savingTerms;
  string _termsError="";
 
  void OpenStartMenu()=>_alphaShell?.OpenStartMenu();
+
+ Task SetEssentialPrivacyAsync()=>SetPrivacyAsync("essential");
+ Task SetOptionalPrivacyAsync()=>SetPrivacyAsync("optional");
+
+ async Task SetPrivacyAsync(string choice)
+ {
+  try{_privacyChoice=await JS.InvokeAsync<string>("ristPrivacy.set",choice);}catch{_privacyChoice=choice=="optional"?"optional":"essential";}
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task HardRefreshAsync()
+ {
+  try{await JS.InvokeVoidAsync("ristLaunch.hardRefresh");}catch{Navigation.NavigateTo(Navigation.Uri,forceLoad:true);}
+ }
+
+ async Task BeginAuthenticatedLaunchAsync()
+ {
+  if(_termsRequired||string.IsNullOrWhiteSpace(_privacyChoice))return;
+  try{await JS.InvokeVoidAsync("ristLaunch.clearLegacyStartState");}catch{}
+  try{await JS.InvokeAsync<bool>("ristParallax.activateForSession",string.Equals(_privacyChoice,"optional",StringComparison.Ordinal));}catch{}
+  try{await JS.InvokeAsync<string>("ristMotionPermission.request");}catch{}
+  _launchStarted=true;
+  await InvokeAsync(StateHasChanged);
+ }
 
  async Task CompleteWorldChoiceAsync()
  {
@@ -116,6 +180,11 @@ else
   Session.AdoptAuthentication(profile);
   _canEnter=profile is not null;
   _termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;
+  if(_canEnter)
+  {
+   try{await JS.InvokeVoidAsync("ristLaunch.clearLegacyStartState");}catch{}
+   try{_privacyChoice=await JS.InvokeAsync<string?>("ristPrivacy.get")??"";}catch{}
+  }
   _ready=true;
   await InvokeAsync(StateHasChanged);
 
