@@ -23,11 +23,18 @@ def main() -> None:
     ticker = (COMPONENTS / "SiteTicker.razor").read_text(encoding="utf-8")
 
     # Initial authenticated launch has one authority: AuthenticatedWorld.
-    require(authenticated, "@if(!_launchWorldChosen)", "authenticated shell must gate landing on world choice")
+    require(authenticated, "@if(!_launchStarted)", "authenticated shell must paint Press Start before world choice")
+    require(authenticated, "PRESS START", "authenticated shell must expose the explicit launch gesture")
+    require(authenticated, "ristLaunch.clearLegacyStartState", "authenticated shell must clear the legacy start overlay")
+    require(authenticated, "ristParallax.activateForSession", "Press Start must activate parallax for the session")
+    require(authenticated, "ristMotionPermission.request", "Press Start must own motion-permission activation")
+    require(authenticated, "ristPrivacy.set", "authenticated start must own the privacy/storage choice")
+    require(authenticated, "ristLaunch.hardRefresh", "authenticated start must expose a hard-refresh recovery path")
+    require(authenticated, "else if(!_launchWorldChosen)", "world choice must follow Press Start")
     require(
         authenticated,
         '<WorldGate Open="true" RequireSelection="true" OnClose="CompleteWorldChoiceAsync" />',
-        "authenticated shell must own the mandatory initial world gate",
+        "authenticated shell must own the mandatory world gate after Press Start",
     )
     require(authenticated, "<PublicAlphaShell @ref=\"_alphaShell\" />", "landing shell must render only after world choice")
     require(authenticated, "_launchWorldChosen=true;", "successful world selection must unlock landing immediately")
@@ -57,7 +64,7 @@ def main() -> None:
     require(ticker, "@if(Session.HasActiveWorld)", "ticker must stay hidden until a world is active")
     require(ticker, 'rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}', "ticker settings must be world-scoped")
 
-    print("Authenticated launch contract verified: auth -> world choice -> landing -> selected-world workspace.")
+    print("Authenticated launch contract verified: auth -> Press Start -> privacy/motion/parallax -> world choice -> landing -> selected-world workspace.")
 
 
 if __name__ == "__main__":
