@@ -35,12 +35,15 @@ CLAIM_REQUEST_PERMISSIONS = {"Restricted", "Limited", "Cooperative"}
 CLAIM_DECISION_PERMISSIONS = CLAIM_REQUEST_PERMISSIONS | {"Blocked", "ReleaseOwnership"}
 
 # Shaelvien MMO land is an exclusive 30x30 claim lattice centered on Endemar.
-# A completed RIST profile receives one genesis world token. Spending that token
-# atomically binds one account-held code half to one world-held code half.
+# A completed RIST profile receives one genesis Shaelvien Token. Spending it
+# atomically binds one account-held code half to one Shaelvien property-space code half.
 MMO_PARCEL_GRID_COLUMNS = 30
 MMO_PARCEL_GRID_ROWS = 30
-MMO_PARCEL_PIXELS = 2048
-MMO_PARCEL_MAX_HEIGHT = 100
+SHAELVIEN_TOKEN_CLASS = "shaelvien.property-space"
+SHAELVIEN_PROPERTY_SPACE_PIXELS = 2048
+SHAELVIEN_PROPERTY_SPACE_LAYERS = 100
+MMO_PARCEL_PIXELS = SHAELVIEN_PROPERTY_SPACE_PIXELS
+MMO_PARCEL_MAX_HEIGHT = SHAELVIEN_PROPERTY_SPACE_LAYERS
 ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
@@ -163,7 +166,7 @@ def public_world_token(item):
         return None
     return {
         "tokenId": str(item.get("tokenId") or ""),
-        "tokenClass": str(item.get("tokenClass") or "shaelvien.mmo.world"),
+        "tokenClass": SHAELVIEN_TOKEN_CLASS,
         "status": str(item.get("status") or "unspent"),
         "holderUserId": str(item.get("holderUserId") or ""),
         "purchasedWorldId": str(item.get("purchasedWorldId") or ""),
@@ -205,7 +208,7 @@ def ensure_genesis_world_token(user_id, account_id, player_alias):
     item = {
         **key,
         "tokenId": "swt_" + uuid.uuid4().hex,
-        "tokenClass": "shaelvien.mmo.world",
+        "tokenClass": SHAELVIEN_TOKEN_CLASS,
         "status": "unspent",
         "holderUserId": user_id,
         # The account half is intentionally never returned by the API. The Users
@@ -903,7 +906,7 @@ def handler(event, context):
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
         if not is_geonaph(world_id):
-            return response(400, {"error": "MMO world tokens may only purchase Shaelvien parcels"})
+            return response(400, {"error": "Shaelvien Tokens may only purchase Shaelvien property space"})
 
         try:
             cell_index = int(req.get("cellIndex"))
@@ -919,7 +922,7 @@ def handler(event, context):
         token_key = world_token_key(user_id)
         token = users.get_item(Key=token_key, ConsistentRead=True).get("Item")
         if not token or str(token.get("status") or "") != "unspent":
-            return response(409, {"error": "An unspent Shaelvien world token is required"})
+            return response(409, {"error": "An unspent Shaelvien Token is required"})
 
         column = cell_index % MMO_PARCEL_GRID_COLUMNS
         row = cell_index // MMO_PARCEL_GRID_COLUMNS
@@ -930,7 +933,7 @@ def handler(event, context):
         world_half = secrets.token_hex(32)
         account_half = str(token.get("accountHalfCode") or "")
         if not account_half:
-            return response(409, {"error": "World token account half is unavailable"})
+            return response(409, {"error": "Shaelvien Token account half is unavailable"})
         binding_hash = hashlib.sha256(
             f"{account_half}:{world_half}:{world_id}:{parcel_id}".encode()
         ).hexdigest()
@@ -1042,7 +1045,7 @@ def handler(event, context):
                         "error": (
                             "That Shaelvien parcel has already been claimed"
                             if occupied
-                            else "The world token was already spent or changed"
+                            else "The Shaelvien Token was already spent or changed"
                         )
                     },
                 )
