@@ -219,7 +219,7 @@
  // Permission is only the browser gate. Once motion events are available this
  // listener remains active continuously; the saved Parallax preference alone
  // decides whether the landing artwork renders the motion.
- const landingRoot=()=>document.querySelector('.rist-game-start');
+ const landingRoot=()=>document.querySelector('.rist-game-start:not([hidden])')||document.querySelector('.launcher-hub')||document.querySelector('.rist-game-start');
  const landingEnabled=()=>{
   const root=landingRoot();
   if(!root||root.hidden)return false;
@@ -245,6 +245,12 @@
   currentY+=(targetY-currentY)*.28;
   root.style.setProperty('--rist-landing-tilt-x',`${currentX.toFixed(2)}px`);
   root.style.setProperty('--rist-landing-tilt-y',`${currentY.toFixed(2)}px`);
+  root.style.setProperty('--rist-parallax-far-x',`${(currentX*.22).toFixed(2)}px`);
+  root.style.setProperty('--rist-parallax-far-y',`${(currentY*.18).toFixed(2)}px`);
+  root.style.setProperty('--rist-parallax-mid-x',`${(currentX*.55).toFixed(2)}px`);
+  root.style.setProperty('--rist-parallax-mid-y',`${(currentY*.46).toFixed(2)}px`);
+  root.style.setProperty('--rist-parallax-near-x',`${currentX.toFixed(2)}px`);
+  root.style.setProperty('--rist-parallax-near-y',`${(currentY*.86).toFixed(2)}px`);
   if(Math.abs(targetX-currentX)>.04||Math.abs(targetY-currentY)>.04)frame=requestAnimationFrame(renderLandingTilt);
  };
  const scheduleLandingTilt=()=>{if(!frame)frame=requestAnimationFrame(renderLandingTilt)};
@@ -268,6 +274,17 @@
   targetY=clamp((axes.y-baseline.y)/22,-1,1)*22*strength;
   scheduleLandingTilt();
  },{passive:true});
+ const finePointer=()=>{try{return matchMedia('(hover:hover) and (pointer:fine)').matches}catch{return false}};
+ addEventListener('pointermove',event=>{
+  if(!finePointer()||!landingEnabled())return;
+  const strength=clamp(Number(window.ristParallax?.tiltStrength?.()??DEFAULT_TILT),0,1);
+  const nx=clamp((Number(event.clientX)/Math.max(1,innerWidth))-.5,-.5,.5)*2;
+  const ny=clamp((Number(event.clientY)/Math.max(1,innerHeight))-.5,-.5,.5)*2;
+  targetX=nx*22*strength;
+  targetY=ny*16*strength;
+  scheduleLandingTilt();
+ },{passive:true});
+ addEventListener('pointerleave',()=>{if(finePointer())resetLandingTilt()},{passive:true});
  addEventListener('orientationchange',resetLandingTilt,{passive:true});
  addEventListener('rist:landing-parallax-changed',resetLandingTilt);
  addEventListener('rist-parallax-settings',resetLandingTilt);
