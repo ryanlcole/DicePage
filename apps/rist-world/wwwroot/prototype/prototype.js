@@ -41,6 +41,8 @@ const REGION_ENHANCE_ENTER=4.25;
 const REGION_ENHANCE_EXIT=3.6;
 const REGION_ENHANCE_DELAY=140;
 const REGION_ENHANCE_MAX_DPR=2;
+const IMAGE_PASS_COVERAGE=1;
+const IMAGE_RETURN_COVERAGE=.9;
 const regionSourceCache=new Map();
 let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnhanceActive=false,regionEnhanceRendering=false,regionCameraRevision=0;
 const collisionMasks=new Map();
@@ -91,8 +93,48 @@ function builtinCollision(node,key,clientX,clientY){
   if(!sourceCollides(src,nx,ny))return null;
   return{kind:'builtin',node,key,nx,ny,src};
 }
+function userImageBaseSize(item){
+  const node=item?.node;
+  const baseW=naturalWidth*.12;
+  const aspect=(node?.naturalWidth>0&&node?.naturalHeight>0)?node.naturalHeight/node.naturalWidth:1;
+  return{width:baseW*Math.max(Number(item?.size)||1,.00001),height:(baseW*aspect)*Math.max(Number(item?.size)||1,.00001)};
+}
+function userImageCoverageAtScale(item,targetScale=scale){
+  const r=stage.getBoundingClientRect(),size=userImageBaseSize(item),s=Math.max(Number(targetScale)||scale,.00001);
+  if(r.width<1||r.height<1)return 0;
+  return Math.min((size.width*s)/r.width,(size.height*s)/r.height);
+}
+function passUserImage(item){
+  if(!item||item.zoomPassed)return false;
+  item.zoomPassed=true;
+  item.zoomPassScale=scale;
+  item.node?.setAttribute('data-zoom-passed','true');
+  stage.dataset.zoomPassedImage=item.id||'user-image';
+  return true;
+}
+function restorePassedImages(targetScale){
+  let restored=false;
+  for(const item of userLayers){
+    if(!item?.zoomPassed)continue;
+    if(userImageCoverageAtScale(item,targetScale)>IMAGE_RETURN_COVERAGE)continue;
+    item.zoomPassed=false;item.zoomPassScale=null;item.node?.removeAttribute('data-zoom-passed');restored=true;
+  }
+  if(restored)stage.dataset.zoomPassedImage='';
+  return restored;
+}
+function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
+  const restored=nextScale<oldScale?restorePassedImages(nextScale):false;
+  let hit=restored?collisionAt(clientX,clientY):(existing??collisionAt(clientX,clientY));
+  if(nextScale>oldScale&&hit?.kind==='user'&&userImageCoverageAtScale(hit.item,oldScale)>=IMAGE_PASS_COVERAGE){
+    passUserImage(hit.item);
+    hit=collisionAt(clientX,clientY);
+  }
+  return hit;
+}
 function userCollision(item,clientX,clientY){
-  if(!item?.node||!(Number(item.renderOpacity)>0))return null;
+  if(!item?.node||item.zoomPassed)return null;
+  const visible=viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
+  if(!visible||!(Number(item.opacity)>0))return null;
   const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
   const baseW=naturalWidth*.12,aspect=(item.node.naturalWidth>0&&item.node.naturalHeight>0)?item.node.naturalHeight/item.node.naturalWidth:1,baseH=baseW*aspect;
   const centerX=(item.x*naturalWidth)+(Number(item.parallaxX)||0),centerY=(item.y*naturalHeight)+(Number(item.parallaxY)||0);
@@ -420,7 +462,7 @@ async function placeUploadedImage(file){
   const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
-    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,renderOpacity:1,node:null
+    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -460,7 +502,7 @@ function applyParallax(){
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
-    item.renderOpacity=visible?item.opacity:0;refreshUserImage(item);
+    item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);
   }
 }
 function updateReadouts(){
@@ -494,10 +536,10 @@ function fitMap(){
   applyTransform();
 }
 function zoomAt(cx,cy,factor){
-  const collision=collisionAt(cx,cy);
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect(),sx=cx-r.left,sy=cy-r.top,old=scale,next=clamp(old*factor,minScale*.75,maxScale);
   if(Math.abs(next-old)<.0001)return;
+  const collision=prepareZoomCollision(cx,cy,old,next);
   const wx=(sx-x)/old,wy=(sy-y)/old;
   scale=next;
   x=sx-wx*scale;
@@ -584,7 +626,7 @@ function placeLibraryTile(asset){
     assetId:asset.id,name:asset.name,libraryTile:true,
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
     x:snapWorldCell(point.x),y:snapWorldCell(point.y),tier:currentTierIndex(),layer:viewerLayer,
-    size:(1/30)/.12,rotation:0,opacity:1,renderOpacity:1,node:null
+    size:(1/30)/.12,rotation:0,opacity:1,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement library-tile-placement';node.alt=asset.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -803,7 +845,9 @@ stage.addEventListener('pointermove',e=>{
   if(pointers.size===1&&panStart){x=panStart.x+(e.clientX-panStart.pointerX);y=panStart.y+(e.clientY-panStart.pointerY);applyTransform();scheduleRegionEnhancement();return}
   if(pointers.size===2&&pinchStart){
     const[a,b]=[...pointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
-    scale=clamp(pinchStart.scale*(d/pinchStart.distance),minScale*.75,maxScale);
+    const oldScale=scale,nextScale=clamp(pinchStart.scale*(d/pinchStart.distance),minScale*.75,maxScale);
+    pinchStart.collision=prepareZoomCollision(r.left+cx,r.top+cy,oldScale,nextScale,pinchStart.collision);
+    scale=nextScale;
     x=cx-pinchStart.worldX*scale;
     y=cy-pinchStart.worldY*scale;
     applyTransform();
@@ -829,7 +873,7 @@ window.ShaelvienPrototype=Object.freeze({
   getViewerState:()=>({
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+userLayers.length,
-    userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent})),
+    userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
     detailMode:stage.dataset.detailMode||'world',detailScale:Number(stage.dataset.detailScale||regionZoomRatio().toFixed(2))
