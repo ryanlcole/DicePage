@@ -3,10 +3,10 @@
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,Number(v)||0));
 
 class PerceiverSpatialController{
-  constructor({stage,video,marker,tag,modeButton,clearButton,planeSelect,status,tiltButton,calibrateButton,strength,smooth,strengthOut,smoothOut,speedInputs}){
+  constructor({stage,video,marker,tag,modeButton,clearButton,planeSelect,status,tiltButton,calibrateButton,strength,smooth,strengthOut,smoothOut,tiltStatus,speedInputs}){
     this.stage=stage;this.video=video;this.marker=marker;this.tag=tag;
     this.modeButton=modeButton;this.clearButton=clearButton;this.planeSelect=planeSelect;this.status=status;
-    this.tiltButton=tiltButton;this.calibrateButton=calibrateButton;this.strength=strength;this.smooth=smooth;this.strengthOut=strengthOut;this.smoothOut=smoothOut;
+    this.tiltButton=tiltButton;this.calibrateButton=calibrateButton;this.strength=strength;this.smooth=smooth;this.strengthOut=strengthOut;this.smoothOut=smoothOut;this.tiltStatus=tiltStatus;
     this.speedInputs=speedInputs;
     this.focus={mode:'auto',x:.5,y:.5,plane:'focus'};
     this.tilt={enabled:false,permission:'unknown',baseBeta:null,baseGamma:null,lastBeta:null,lastGamma:null,targetX:0,targetY:0,x:0,y:0,listening:false};
@@ -156,7 +156,7 @@ class PerceiverSpatialController{
     this.statusTilt('<strong>Tilt:</strong> center calibrated.');
   }
 
-  statusTilt(html){this.tiltStatus.innerHTML=html}
+  statusTilt(html){if(this.tiltStatus)this.tiltStatus.innerHTML=html}
 
   renderTilt(){
     this.strengthOut.textContent=this.strength.value+'%';
@@ -164,13 +164,13 @@ class PerceiverSpatialController{
     this.tiltButton.classList.toggle('active',this.tilt.enabled);
     this.tiltButton.textContent=this.tilt.enabled?'TILT · ON':'TILT · OFF';
     this.calibrateButton.disabled=!this.tilt.enabled;
+    if(!this.tiltStatus)return;
     if(this.tilt.permission==='unsupported')this.tiltStatus.innerHTML='<strong>Tilt:</strong> unavailable on this device.';
     else if(this.tilt.permission==='denied')this.tiltStatus.innerHTML='<strong>Tilt:</strong> permission denied.';
     else if(this.tilt.enabled)this.tiltStatus.innerHTML='<strong>Tilt:</strong> enabled. Hold the device naturally, then calibrate center if needed.';
     else this.tiltStatus.innerHTML='<strong>Tilt:</strong> off. Enabling it requests device-orientation permission on supported phones.';
   }
 
-  attachTiltStatus(element){this.tiltStatus=element;this.renderTilt()}
 
   offsets(){
     const smoothing=clamp(Number(this.smooth.value)/100,.03,.35);
