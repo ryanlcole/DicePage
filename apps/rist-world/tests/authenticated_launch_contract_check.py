@@ -79,6 +79,8 @@ def main() -> None:
     require(shell, "ToggleAudioAsync", "audio preference must remain editable from Start menu")
     require(shell, "ToggleVideoAsync", "video preference must remain editable from Start menu")
     require(shell, "HardRefreshAsync", "authenticated Start menu must expose hard refresh recovery")
+    require(shell, "ToggleParallaxAsync", "Parallax control must remain available after authentication in Settings")
+    require(shell, "PARALLAX @(_parallaxEnabled?", "authenticated Settings must render the Parallax state")
     require(rist, "navigator.serviceWorker.getRegistrations", "hard refresh must unregister app service workers")
     require(rist, "caches.keys()", "hard refresh must clear app Cache Storage")
     require(rist, "cache:'reload'", "hard refresh must revalidate stable app resources")
