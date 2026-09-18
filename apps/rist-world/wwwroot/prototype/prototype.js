@@ -390,7 +390,7 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
@@ -399,7 +399,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
@@ -457,7 +457,7 @@ async function attachRestoredLayer(raw,options={}){
   const kind=String(raw?.kind||'image').toLowerCase();
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
@@ -485,7 +485,7 @@ async function attachRestoredLayer(raw,options={}){
   }
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
