@@ -236,8 +236,17 @@ public sealed partial class WorldSession
     {
         if (region is null) return false;
         if (HasTrustedWorldBuilderAuthority) return true;
+
         var userId = auth.Profile?.UserId?.Trim() ?? "";
-        return userId.Length > 0 && string.Equals(region.OwnerUserId, userId, StringComparison.Ordinal);
+        if (userId.Length > 0 && string.Equals(region.OwnerUserId, userId, StringComparison.Ordinal))
+            return true;
+
+        if (string.IsNullOrWhiteSpace(region.ParcelId))
+            return false;
+
+        var parcel = _mmoParcels.FirstOrDefault(item =>
+            string.Equals(item.ParcelId, region.ParcelId, StringComparison.Ordinal));
+        return CanEditMmoParcel(parcel);
     }
 
     static string NormalizeRegionName(string? name)
@@ -285,7 +294,11 @@ public sealed record WorldRegion(
     int TierIndex = 0,
     List<int>? SourceLayerOffsets = null,
     string GridShape = "square",
-    string OwnerUserId = "")
+    string OwnerUserId = "",
+    string ParcelId = "",
+    int ParcelPixelWidth = 0,
+    int ParcelPixelHeight = 0,
+    int MaxHeight = 0)
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
