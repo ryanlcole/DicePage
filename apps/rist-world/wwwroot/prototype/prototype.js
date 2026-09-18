@@ -390,7 +390,11 @@ async function restoreSavedWorldBuilder(){
         restoreRegionWorldLayerVisibility(regionState.sourceLayerVisibility);
         regionGridShape=normalizeRegionGridShape(regionState.regionGridShape||'square');
         pendingClaimedRegionId=String(regionState.claimedRegionId||'');
-        if(pendingClaimedRegionId)regionClaimPhase='saved';
+        if(pendingClaimedRegionId){
+          regionClaimPhase='saved';
+          const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
+          if(claimed)applyClaimedRegionCrop(claimed);
+        }
       }else{
         viewerTier='sea';viewerLayer=0;
       }
@@ -1359,7 +1363,7 @@ function startRegionClaim(){
   stage.classList.remove('region-build-mode');
   clearClaimedRegionCrop(false);
   regionClaimPhase='tier';regionGridShape='square';regionCropPreview=false;regionSelectionEnabled=false;regionNameDraft='';regionSelectedCells.clear();
-  viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();applyParallax();updateRegionSelectionOverlay();renderKeyboardKeys();
+  viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();fitMap();updateRegionSelectionOverlay();renderKeyboardKeys();
   announce('Claim Region started. Surface is the default. Choose a Tier, then select tiles.');
 }
 function chooseRegionClaimTier(key){
@@ -1385,6 +1389,17 @@ function returnToRegionSelection(){
   if(!REGION_DEFINER)return;
   regionClaimPhase='select';regionCropPreview=false;regionSelectionEnabled=true;updateRegionSelectionOverlay();renderKeyboardKeys();
   announce('Region tile selection reopened.');
+}
+async function persistRegionClaimWorkspace(){
+  if(!REGION_DEFINER)return;
+  const editableLayers=userLayers.filter(item=>!item.sourceLocked);
+  const state={
+    format:'RIST_REGIONDEFINER_OVERLAYS',version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
+    viewerTier,viewerLayer,sourceLayerVisibility:serializeRegionWorldLayerVisibility(),regionGridShape,
+    claimedRegionId:String(regionClaimedRegion?.id||pendingClaimedRegionId||''),
+    userLayers:editableLayers.map(serializableUserLayer)
+  };
+  try{await writeSavedWorldBuilder(state,REGION_OVERLAY_SAVE_KEY)}catch{}
 }
 function createRegionDefinition(){
   if(!REGION_DEFINER||READ_ONLY||regionCreatePending||regionClaimPhase!=='crop')return;
@@ -1464,7 +1479,7 @@ function renderRegionSelectKeyboard(){
     toolKey('NEW CLAIM','define another region',startRegionClaim)
   );
 }
-function handleRegionHostMessage(event){
+async function handleRegionHostMessage(event){
   if(!REGION_DEFINER||event.origin!==location.origin||event.source!==window.parent)return;
   const data=event.data;if(!data||data.source!=='shaelvien-regiondefiner-host')return;
   if(data.type==='bridge-ready'){postRegionMessage('ready');return}
@@ -1484,6 +1499,7 @@ function handleRegionHostMessage(event){
     regionNameDraft='';regionClaimPhase='saved';
     if(claimed)applyClaimedRegionCrop(claimed);
     regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
+    await persistRegionClaimWorkspace();
     announce(`${savedName} saved. Everything outside the claimed tiles is cropped away and the claim is now the full regional map.`);return;
   }
   if(data.type==='error'){regionCreatePending=false;renderKeyboardKeys();announce(String(data.message||'Region operation failed.'))}
