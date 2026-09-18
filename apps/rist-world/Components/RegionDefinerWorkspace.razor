@@ -64,7 +64,7 @@
     : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var maxHeight=activeRegion?.MaxHeight>0
     ? activeRegion.MaxHeight
-    : WorldSession.LayersPerTier;
+    : Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
    var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
     ?"mmo-parcel"
     : Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
