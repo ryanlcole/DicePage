@@ -1178,6 +1178,15 @@ imageDropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.k
 for(const type of ['dragenter','dragover'])imageDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();imageDropzone.classList.add('dragover')});
 for(const type of ['dragleave','drop'])imageDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();imageDropzone.classList.remove('dragover')});
 imageDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedImage(file)});
+spriteUploadClose.addEventListener('click',closeSpriteUpload);
+spriteBrowse.addEventListener('click',()=>spriteFile.click());
+spriteFile.addEventListener('change',()=>{const file=spriteFile.files?.[0];if(file)void placeUploadedSprite(file);spriteFile.value=''});
+spriteColumns.addEventListener('input',syncSpriteFrameCount);spriteRows.addEventListener('input',syncSpriteFrameCount);
+spriteDropzone.addEventListener('click',event=>{if(event.target===spriteDropzone)spriteFile.click()});
+spriteDropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();spriteFile.click()}});
+for(const type of ['dragenter','dragover'])spriteDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();spriteDropzone.classList.add('dragover')});
+for(const type of ['dragleave','drop'])spriteDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();spriteDropzone.classList.remove('dragover')});
+spriteDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedSprite(file)});
 $('keyboardClose').addEventListener('click',closeKeyboard);
 
 stage.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY<0?1.12:1/1.12)},{passive:false});
@@ -1222,7 +1231,7 @@ function release(e){
 stage.addEventListener('pointerup',release);
 stage.addEventListener('pointercancel',release);
 window.addEventListener('resize',()=>{fitMap();scheduleRegionEnhancement(80)},{passive:true});
-document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!spriteUploadPanel.hidden){closeSpriteUpload();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({
   world:Object.freeze({id:WORLD_ID,name:WORLD_NAME,seed:WORLD_SEED}),
