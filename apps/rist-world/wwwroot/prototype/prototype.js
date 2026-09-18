@@ -409,6 +409,7 @@ function ensureRegionEnhanceCanvas(){
 }
 function regionZoomRatio(){return scale/Math.max(minScale,.00001)}
 function regionDetailWanted(){
+  if(REGION_DEFINER)return false;
   const ratio=regionZoomRatio();
   return layerReady.surface&&(regionEnhanceActive?ratio>=REGION_ENHANCE_EXIT:ratio>=REGION_ENHANCE_ENTER);
 }
@@ -652,6 +653,7 @@ function adjustSelectedSize(direction){
 }
 function moveSelectedTier(delta){
   if(READ_ONLY)return;
+  if(REGION_DEFINER){announce('Choose the working tier from the Tiers keyboard. Regional assets stay on that tier.');return}
   if(!selectedImage)return;
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
   updateLayerOrder();applyParallax();renderKeyboardKeys();
@@ -894,8 +896,8 @@ function renderLabelsKeyboard(){
     toolKey('←','offset',()=>nudgeLabelOffset(-8,0)),toolKey('→','offset',()=>nudgeLabelOffset(8,0)),
     toolKey('↑','offset',()=>nudgeLabelOffset(0,-8)),toolKey('↓','offset',()=>nudgeLabelOffset(0,8)),
     toolKey('OFFSET 0','reset',()=>{selected.offsetX=0;selected.offsetY=0;refreshUserLabel(selected)}),
-    toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),selected.tier<=0),
-    toolKey('TIER +',`T${pos.tier}`,()=>moveSelectedTier(1),selected.tier>=TIERS.length-1),
+    toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),REGION_DEFINER||selected.tier<=0),
+    toolKey('TIER +',`T${pos.tier}`,()=>moveSelectedTier(1),REGION_DEFINER||selected.tier>=TIERS.length-1),
     toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selected.tier<=0&&selected.layer<=0),
     toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selected.tier>=TIERS.length-1&&selected.layer>=9),
     toolKey('NEW','label',()=>{deselectUserImage(false);renderKeyboardKeys()}),
@@ -1028,7 +1030,7 @@ function applyParallax(){
   for(const item of userLayers){
     // A new/unsaved placement must stay visible even when its target tier is hidden,
     // otherwise it looks as if upload failed. Save returns it to normal tier visibility.
-    const visible=!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
+    const visible=REGION_DEFINER?item.tier===currentRegionTierIndex():(!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
@@ -1051,7 +1053,10 @@ function applyTransform(){
   invalidateRegionCamera();
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
-  world.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`;
+  world.style.transformOrigin=REGION_DEFINER?'50% 58%':'0 0';
+  world.style.transform=REGION_DEFINER
+    ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
+    : `translate3d(${x}px,${y}px,0) scale(${scale})`;
   applyParallax();
   updateReadouts();
   scheduleRegionEnhancement();
@@ -1767,8 +1772,8 @@ function renderKeyboardKeys(){
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
-      toolKey('TIER −',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(-1),selectedImage.tier<=0),
-      toolKey('TIER +',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
+      toolKey('TIER −',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(-1),REGION_DEFINER||selectedImage.tier<=0),
+      toolKey('TIER +',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(1),REGION_DEFINER||selectedImage.tier>=TIERS.length-1),
       toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
       toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
       toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
