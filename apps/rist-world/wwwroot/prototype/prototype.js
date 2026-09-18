@@ -67,6 +67,10 @@ const WORLD_SOURCE_SAVE_KEY=WORLD_ID||WORLD_SEED||'prototype';
 const REGION_OVERLAY_SAVE_KEY='regiondefiner:'+(WORLD_ID||WORLD_SEED||'prototype');
 const WORLDBUILDER_SAVE_KEY=REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY;
 let restoreSaveStarted=false;
+const REGION_GRID_COLUMNS=30;
+const REGION_GRID_ROWS=30;
+const regionSelectedCells=new Set();
+let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=true,regionNameDraft='',regionCreatePending=false;
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
 const WORLD_TERRAIN_FOLDERS=Object.freeze(['Vent Fields','Canyons','Lakes','Rivers','Cliffs','Volcano','Ice','Snow','Mountains','Hills','Desert','Swamp','Jungle','Forest','Plains','Beach','Coast','Ocean']);
@@ -1091,6 +1095,114 @@ function keyboardModes(){return READ_ONLY?['Viewer','Tiers']:BASE_KEYBOARD_MODES
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
   const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
+}
+function postRegionMessage(type,payload={}){
+  if(!REGION_DEFINER||window.parent===window)return false;
+  try{window.parent.postMessage({source:'shaelvien-regiondefiner',type,...payload},location.origin);return true}catch{return false}
+}
+function currentRegionTierIndex(){return tierByKey(viewerTier==='all'?'sea':viewerTier).index}
+function clearRegionSelection(announceChange=true){
+  if(!REGION_DEFINER)return;
+  regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
+  if(announceChange)announce('Region selection cleared.');
+}
+function toggleRegionCell(cell){
+  if(!REGION_DEFINER||READ_ONLY||keyboardMode!=='Select'||!regionSelectionEnabled)return;
+  cell=Math.trunc(Number(cell));if(cell<0||cell>=REGION_GRID_COLUMNS*REGION_GRID_ROWS)return;
+  if(!regionSelectedCells.delete(cell))regionSelectedCells.add(cell);
+  updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce(`${regionSelectedCells.size} region cell${regionSelectedCells.size===1?'':'s'} selected on Tier ${currentRegionTierIndex()+1}.`);
+}
+function regionCellsForTier(){
+  const tier=currentRegionTierIndex(),map=new Map();
+  for(const region of regionCatalog){
+    if(Math.trunc(Number(region?.tierIndex)||0)!==tier)continue;
+    for(const cell of Array.isArray(region?.selectedCells)?region.selectedCells:[]){
+      const key=Math.trunc(Number(cell));if(key<0||key>=REGION_GRID_COLUMNS*REGION_GRID_ROWS)continue;
+      if(!map.has(key))map.set(key,[]);
+      map.get(key).push(String(region?.name||'Region'));
+    }
+  }
+  return map;
+}
+function ensureRegionSelectionOverlay(){
+  if(!REGION_DEFINER)return null;
+  if(regionSelectionOverlay?.isConnected)return regionSelectionOverlay;
+  const overlay=document.createElement('div');overlay.className='region-definition-grid';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
+  for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
+    const button=document.createElement('button');button.type='button';button.className='region-definition-cell';button.dataset.cell=String(cell);
+    const column=cell%REGION_GRID_COLUMNS,row=Math.floor(cell/REGION_GRID_COLUMNS);
+    button.setAttribute('aria-label',`Region cell X ${column+1}, Y ${row+1}`);
+    button.setAttribute('role','gridcell');
+    button.addEventListener('pointerdown',event=>{if(keyboardMode==='Select'){event.preventDefault();event.stopPropagation()}});
+    button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleRegionCell(cell)});
+    overlay.appendChild(button);
+  }
+  world.appendChild(overlay);regionSelectionOverlay=overlay;updateRegionSelectionOverlay();return overlay;
+}
+function updateRegionSelectionOverlay(){
+  if(!REGION_DEFINER)return;
+  const overlay=ensureRegionSelectionOverlay();if(!overlay)return;
+  const active=keyboardMode==='Select'&&!keyboard.hidden&&!READ_ONLY&&regionSelectionEnabled;
+  overlay.classList.toggle('active',active);overlay.dataset.tier=String(currentRegionTierIndex());
+  overlay.setAttribute('aria-hidden',String(!active));
+  const existing=regionCellsForTier();
+  for(const button of overlay.children){
+    const cell=Math.trunc(Number(button.dataset.cell));
+    const selected=regionSelectedCells.has(cell),names=existing.get(cell)||[];
+    button.classList.toggle('selected',selected);
+    button.classList.toggle('existing',names.length>0);
+    button.setAttribute('aria-selected',String(selected));
+    button.title=names.length?`Existing: ${names.join(', ')}`:'';
+  }
+}
+function regionNameInput(){
+  const input=document.createElement('input');input.type='text';input.className='region-name-input';input.maxLength=80;input.value=regionNameDraft;input.placeholder='Region name';input.setAttribute('aria-label','Region name');
+  input.addEventListener('input',()=>{regionNameDraft=input.value.slice(0,80)});
+  input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();createRegionDefinition()}});
+  return input;
+}
+function createRegionDefinition(){
+  if(!REGION_DEFINER||READ_ONLY||regionCreatePending)return;
+  const name=String(regionNameDraft||'').trim();
+  if(!name){announce('Enter a region name.');return}
+  if(!regionSelectedCells.size){announce('Select at least one region cell.');return}
+  regionCreatePending=true;renderKeyboardKeys();
+  const sent=postRegionMessage('create-region',{name,cells:[...regionSelectedCells].sort((a,b)=>a-b),tierIndex:currentRegionTierIndex()});
+  if(!sent){regionCreatePending=false;renderKeyboardKeys();announce('Region persistence bridge is unavailable.');return}
+  announce(`Saving region ${name} on Tier ${currentRegionTierIndex()+1}.`);
+}
+function renderRegionSelectKeyboard(){
+  keyboardKeys.append(
+    regionNameInput(),
+    readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
+    readoutKey(`${regionSelectedCells.size} CELLS`,'selected region footprint'),
+    readoutKey(`${regionCatalog.filter(r=>Math.trunc(Number(r?.tierIndex)||0)===currentRegionTierIndex()).length} SAVED`,'regions on this tier'),
+    toolKey(regionSelectionEnabled?'SELECT ✓':'SELECT','tap map cells',()=>{regionSelectionEnabled=!regionSelectionEnabled;updateRegionSelectionOverlay();renderKeyboardKeys()}),
+    toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
+    toolKey(regionCreatePending?'SAVING…':'CREATE','region definition',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+  );
+}
+function handleRegionHostMessage(event){
+  if(!REGION_DEFINER||event.origin!==location.origin)return;
+  const data=event.data;if(!data||data.source!=='shaelvien-regiondefiner-host')return;
+  if(data.type==='bridge-ready'){postRegionMessage('ready');return}
+  if(data.type==='catalog'){
+    regionCatalog=Array.isArray(data.regions)?data.regions:[];
+    updateRegionSelectionOverlay();renderKeyboardKeys();return;
+  }
+  if(data.type==='region-created'){
+    regionCreatePending=false;
+    if(data.region)regionCatalog=[...regionCatalog.filter(r=>String(r?.id)!==String(data.region.id)),data.region];
+    const savedName=String(data.region?.name||regionNameDraft||'Region');
+    regionNameDraft='';regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
+    announce(`${savedName} saved on Tier ${Math.trunc(Number(data.region?.tierIndex)||currentRegionTierIndex())+1}. World source unchanged.`);return;
+  }
+  if(data.type==='error'){regionCreatePending=false;renderKeyboardKeys();announce(String(data.message||'Region operation failed.'))}
+}
+if(REGION_DEFINER){
+  window.addEventListener('message',handleRegionHostMessage);
+  queueMicrotask(()=>{ensureRegionSelectionOverlay();postRegionMessage('ready')});
 }
 function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
