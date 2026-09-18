@@ -292,6 +292,8 @@ async function saveWorldBuilder(){
       version:1,worldId:WORLD_ID,worldSeed:WORLD_SEED,savedAt:new Date().toISOString(),
       viewerTier,viewerLayer,
       sourceLayerVisibility:REGION_DEFINER?serializeRegionWorldLayerVisibility():null,
+      regionGridShape:REGION_DEFINER?regionGridShape:null,
+      claimedRegionId:REGION_DEFINER?String(regionClaimedRegion?.id||pendingClaimedRegionId||''):null,
       userLayers:editableLayers.map(serializableUserLayer)
     };
     await writeSavedWorldBuilder(state,REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY);
@@ -386,6 +388,9 @@ async function restoreSavedWorldBuilder(){
         viewerTier=regionState.viewerTier==='all'?'sea':tierByKey(regionState.viewerTier||'sea').key;
         viewerLayer=clamp(Math.trunc(Number(regionState.viewerLayer)||0),0,9);
         restoreRegionWorldLayerVisibility(regionState.sourceLayerVisibility);
+        regionGridShape=normalizeRegionGridShape(regionState.regionGridShape||'square');
+        pendingClaimedRegionId=String(regionState.claimedRegionId||'');
+        if(pendingClaimedRegionId)regionClaimPhase='saved';
       }else{
         viewerTier='sea';viewerLayer=0;
       }
@@ -690,7 +695,8 @@ function viewerCenterPosition(){
   const r=stage.getBoundingClientRect();
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
   const wy=((r.height/2)-y)/Math.max(scale,.00001);
-  return{x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
+  const point={x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
+  return REGION_DEFINER?snapRegionPoint(point.x,point.y):point;
 }
 function openImageUpload(){
   if(READ_ONLY){announce('Endemar reference mode is view only.');return;}
@@ -980,8 +986,10 @@ function beginImageDrag(event,item){
 function moveImageDrag(event){
   if(READ_ONLY)return;
   if(!imageDrag||imageDrag.id!==event.pointerId)return;event.preventDefault();event.stopPropagation();
-  imageDrag.item.x=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
-  imageDrag.item.y=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
+  const rawX=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
+  const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
+  const snapped=REGION_DEFINER?snapRegionPoint(rawX,rawY):{x:rawX,y:rawY};
+  imageDrag.item.x=snapped.x;imageDrag.item.y=snapped.y;
   refreshUserImage(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
@@ -991,10 +999,12 @@ async function placeUploadedImage(file){
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
   const tier=REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
+  const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
+  const placementPoint=REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint;
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
-    x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    x:placementPoint.x,y:placementPoint.y,tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
