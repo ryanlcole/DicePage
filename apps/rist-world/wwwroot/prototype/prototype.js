@@ -467,16 +467,20 @@ addEventListener('deviceorientation',event=>{
 },{passive:true});
 addEventListener('orientationchange',resetTilt,{passive:true});
 screen.orientation?.addEventListener?.('change',resetTilt);
+function openViewerSettings(){viewerSettingsPanel.hidden=false;viewerSettingsClose.focus()}
+function closeViewerSettings(){viewerSettingsPanel.hidden=true;settingsToggle.focus()}
+function openStartMenu(){if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html'}
 
-tierButton.addEventListener('click',()=>tierMenu.hidden?openTierMenu():closeTierMenu());
-document.addEventListener('pointerdown',event=>{if(tierMenu.hidden)return;if(event.target===tierButton||tierButton.contains(event.target)||tierMenu.contains(event.target))return;closeTierMenu()},{capture:true});
 $('fit').addEventListener('click',fitMap);
 $('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.22)});
 $('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1/1.22)});
-$('back').addEventListener('click',()=>{if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html'});
-viewerTitle?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();viewerTitle.blur()}else if(event.key==='Escape'){event.preventDefault();restoreViewerTitle();viewerTitle.blur()}});
-viewerTitle?.addEventListener('blur',saveViewerTitle);
+$('back').addEventListener('click',openStartMenu);
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
+settingsToggle.addEventListener('click',openViewerSettings);
+viewerSettingsClose.addEventListener('click',closeViewerSettings);
+settingsFit.addEventListener('click',()=>{fitMap();closeViewerSettings()});
+settingsResetTilt.addEventListener('click',()=>{resetTilt();closeViewerSettings();announce('Viewer tilt reset.')});
+settingsStartMenu.addEventListener('click',openStartMenu);
 imageUploadToggle.addEventListener('click',openImageUpload);
 imageUploadClose.addEventListener('click',closeImageUpload);
 imageBrowse.addEventListener('click',()=>imageFile.click());
@@ -527,15 +531,13 @@ function release(e){
 stage.addEventListener('pointerup',release);
 stage.addEventListener('pointercancel',release);
 window.addEventListener('resize',fitMap,{passive:true});
-document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!celestialAdvancedPanel.hidden){closeCelestialAdvanced();return}if(pathDraw){pathDraw=null;stage.classList.remove('path-draw');announce('Path drawing canceled.');return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!tierMenu.hidden){closeTierMenu();tierButton.focus();return}if(!keyboard.hidden)closeKeyboard()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!celestialAdvancedPanel.hidden){closeCelestialAdvanced();return}if(pathDraw){pathDraw=null;stage.classList.remove('path-draw');announce('Path drawing canceled.');return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({
   mapTruth:MAP_TRUTH,
-  getViewerState:()=>({activeStratum,viewerZ,...splitZ(viewerZ),parallaxOverride,lockedTier:lockedTier(),editableTier:lockedTier(),visibleTierWindow:lockedTier()===null?null:[lockedTier()-1,lockedTier(),lockedTier()+1],parallax:lastMix,focusPath:focusPath.map(v=>({...v})),focusSelected,keyboardOpen:!keyboard.hidden,keyboardMode,toolMode})
+  getViewerState:()=>({viewerZ,...splitZ(viewerZ),parallaxOverride:true,lockedTier:null,editableTier:null,visibleTierWindow:null,parallax:lastMix,focusPath:focusPath.map(v=>({...v})),focusSelected,keyboardOpen:!keyboard.hidden,keyboardMode,toolMode})
 });
 focusSelected='all';
-restoreViewerTitle();
-renderTierMenu();
 renderKeyboardTabs();
 renderState();
 })();
