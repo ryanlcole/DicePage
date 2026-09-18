@@ -75,8 +75,16 @@
 
  // Base-runtime preference bridge. parallax-mode.js replaces this with the
  // full Worldbuilder controller when that workspace loads, using the same keys.
+ const sessionPrefKey=key=>key+'.session';
  const preferenceExists=key=>{try{return localStorage.getItem(key)!==null}catch{return false}};
- const boolPref=(key,fallback=true)=>read(localStorage,key,fallback?'on':'off')==='on';
+ const prefValue=(key,fallback='on')=>{const session=read(sessionStorage,sessionPrefKey(key),'');return session||read(localStorage,key,fallback)};
+ const boolPref=(key,fallback=true)=>prefValue(key,fallback?'on':'off')==='on';
+ const persistAllowed=()=>{try{return window.ristPrivacy?.allowsOptional?.()===true}catch{return false}};
+ const writePreference=(key,value,persist=persistAllowed())=>{
+  const text=value?'on':'off';
+  if(persist){write(localStorage,key,text);try{sessionStorage.removeItem(sessionPrefKey(key))}catch{}}
+  else write(sessionStorage,sessionPrefKey(key),text);
+ };
  const mediaState=()=>({audio:boolPref(AUDIO_KEY,true),video:boolPref(VIDEO_KEY,true)});
  const applyMediaState=()=>{
   const state=mediaState();
@@ -107,16 +115,17 @@
  window.ristMediaSettings={
   isAudioEnabled:()=>mediaState().audio,
   isVideoEnabled:()=>mediaState().video,
-  setAudioEnabled(value){write(localStorage,AUDIO_KEY,value?'on':'off');return applyMediaState().audio},
-  setVideoEnabled(value){write(localStorage,VIDEO_KEY,value?'on':'off');return applyMediaState().video},
+  setAudioEnabled(value){writePreference(AUDIO_KEY,!!value);return applyMediaState().audio},
+  setVideoEnabled(value){writePreference(VIDEO_KEY,!!value);return applyMediaState().video},
   settings:mediaState,
-  initializeAtStart(){
-   if(!preferenceExists(PARALLAX_KEY))write(localStorage,PARALLAX_KEY,'on');
-   if(!preferenceExists(PARALLAX_ACTIVE_KEY))write(localStorage,PARALLAX_ACTIVE_KEY,'on');
-   if(!preferenceExists(AUDIO_KEY))write(localStorage,AUDIO_KEY,'on');
-   if(!preferenceExists(VIDEO_KEY))write(localStorage,VIDEO_KEY,'on');
-   const parallax=read(localStorage,PARALLAX_KEY,'on')==='on';
-   const active=read(localStorage,PARALLAX_ACTIVE_KEY,'on')==='on';
+  initializeAtStart(persistPreferences=false){
+   const persist=!!persistPreferences;
+   for(const key of [PARALLAX_KEY,PARALLAX_ACTIVE_KEY,AUDIO_KEY,VIDEO_KEY]){
+    if(preferenceExists(key)){try{sessionStorage.removeItem(sessionPrefKey(key))}catch{}}
+    else writePreference(key,true,persist);
+   }
+   const parallax=boolPref(PARALLAX_KEY,true);
+   const active=boolPref(PARALLAX_ACTIVE_KEY,true);
    try{window.ristParallax?.setEnabled?.(parallax);window.ristParallax?.setActive?.(active)}catch{}
    const media=applyMediaState();
    return [parallax,media.audio,media.video];
@@ -126,8 +135,8 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observeMedia,{once:true});else observeMedia();
 
  if(!window.ristParallax){
-  const getEnabled=()=>read(localStorage,PARALLAX_KEY,'off')==='on';
-  const getActive=()=>read(localStorage,PARALLAX_ACTIVE_KEY,'off')==='on';
+  const getEnabled=()=>boolPref(PARALLAX_KEY,false);
+  const getActive=()=>boolPref(PARALLAX_ACTIVE_KEY,false);
   const getTilt=()=>{
    const value=Number(read(localStorage,TILT_KEY,String(DEFAULT_TILT)));
    return Number.isFinite(value)?clamp(value,0,1):DEFAULT_TILT;
@@ -139,8 +148,8 @@
    isWorldBuilderActive:getActive,
    tiltStrength:getTilt,
    settings:()=>({enabled:getEnabled(),active:getActive(),tiltStrength:getTilt()}),
-   setEnabled(value){const next=!!value;write(localStorage,PARALLAX_KEY,next?'on':'off');emit();return next},
-   setActive(value){const next=!!value;write(localStorage,PARALLAX_ACTIVE_KEY,next?'on':'off');emit();return next},
+   setEnabled(value){const next=!!value;writePreference(PARALLAX_KEY,next);emit();return next},
+   setActive(value){const next=!!value;writePreference(PARALLAX_ACTIVE_KEY,next);emit();return next},
    setTiltStrength:setTilt,
    resetTilt:()=>setTilt(DEFAULT_TILT),
    depthForTier:getTilt,
@@ -158,7 +167,7 @@
   if(!root||root.hidden)return false;
   return typeof window.ristParallax?.isEnabled==='function'
    ? !!window.ristParallax.isEnabled()
-   : read(localStorage,PARALLAX_KEY,'off')==='on';
+   : boolPref(PARALLAX_KEY,false);
  };
  const screenAxes=(beta,gamma)=>{
   const raw=Number(window.screen?.orientation?.angle??window.orientation??0);
