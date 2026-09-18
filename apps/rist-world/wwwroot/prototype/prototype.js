@@ -19,18 +19,69 @@ const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
 ]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
+const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
+let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_GEONAPH_SEED:saved==='on'}catch{return IS_GEONAPH_SEED}})();
+const upscaleCache=new Map();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0;
 const userLayers=[];
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function updateUpscaleControl(){
+  settingsUpscale?.setAttribute('aria-pressed',String(upscaleEnabled));
+  settingsUpscale?.setAttribute('aria-label',upscaleEnabled?'Disable two times high resolution rendering':'Enable two times high resolution rendering');
+  if(settingsUpscaleLabel)settingsUpscaleLabel.textContent=upscaleEnabled?'Upscale 2× On':'Upscale 2×';
+  stage.classList.toggle('upscale-on',upscaleEnabled);
+}
+function canvasBlob(canvas){return new Promise(resolve=>canvas.toBlob(resolve,'image/png'))}
+async function buildUpscaledRepresentation(asset){
+  if(upscaleCache.has(asset.key))return upscaleCache.get(asset.key);
+  const canonical=ASSET_ROOT+asset.file;
+  try{
+    const response=await fetch(canonical,{mode:'cors',cache:'force-cache'});
+    if(!response.ok)throw new Error('asset fetch failed');
+    const blob=await response.blob();
+    const bitmap=await createImageBitmap(blob);
+    const factor=Math.min(2,4096/Math.max(bitmap.width,bitmap.height));
+    if(factor<=1.05){bitmap.close?.();const result={url:canonical,factor:1,derived:false};upscaleCache.set(asset.key,result);return result}
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(bitmap.width*factor));canvas.height=Math.max(1,Math.round(bitmap.height*factor));
+    const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+    const out=await canvasBlob(canvas);if(!out)throw new Error('upscale encoding failed');
+    const result={url:URL.createObjectURL(out),factor,derived:true};upscaleCache.set(asset.key,result);return result;
+  }catch{
+    const result={url:canonical,factor:1,derived:false,fallback:true};upscaleCache.set(asset.key,result);return result;
+  }
+}
+async function applyUpscalePreference(){
+  updateUpscaleControl();
+  maxScale=upscaleEnabled?24:12;
+  if(!BASE_WORLD_ASSETS.length)return;
+  if(!upscaleEnabled){
+    for(const asset of BASE_WORLD_ASSETS){const node=planeByKey[asset.key];node.dataset.derivedUpscale='0';node.dataset.renderFactor='1';if(node.src!==ASSET_ROOT+asset.file)node.src=ASSET_ROOT+asset.file}
+    stage.dataset.upscale='original';return;
+  }
+  stage.dataset.upscale='loading';
+  const results=[];
+  for(const asset of BASE_WORLD_ASSETS){
+    const result=await buildUpscaledRepresentation(asset);results.push(result);
+    if(!upscaleEnabled)break;
+    const node=planeByKey[asset.key];node.dataset.derivedUpscale=result.derived?'1':'0';node.dataset.renderFactor=String(result.factor);if(node.src!==result.url)node.src=result.url;
+  }
+  stage.dataset.upscale=results.some(x=>x.derived)?'2x-derived':'browser-interpolation';
+  announce(results.some(x=>x.derived)?'High resolution Geonaph representation active. Original world images remain canonical.':'Upscale enabled. Browser high-quality interpolation is active; canonical images are unchanged.');
+}
+async function toggleUpscale(){
+  upscaleEnabled=!upscaleEnabled;try{localStorage.setItem(UPSCALE_KEY,upscaleEnabled?'on':'off')}catch{}
+  await applyUpscalePreference();
+}
 function tierByIndex(index){return TIERS.find(t=>t.index===index)||TIERS[0]}
 function tierByKey(key){return TIERS.find(t=>t.key===key)||TIERS[0]}
 function tierLabel(tier){return String(tierNames[tier.key]||'').trim()||tier.label}
@@ -274,12 +325,15 @@ BASE_WORLD_ASSETS.forEach(asset=>{
   const node=planeByKey[asset.key];
   node.addEventListener('load',()=>{
     layerReady[asset.key]=true;
-    if(asset.key==='surface'){
+    if(asset.key==='surface'&&node.dataset.derivedUpscale!=='1'){
       naturalWidth=node.naturalWidth||1;
       naturalHeight=node.naturalHeight||1;
       loading.hidden=true;
       fitMap();
-    }else renderState();
+    }else{
+      if(asset.key==='surface')loading.hidden=true;
+      renderState();
+    }
   });
   node.addEventListener('error',()=>{
     layerReady[asset.key]=false;
@@ -356,6 +410,7 @@ settingsToggle.addEventListener('click',openViewerSettings);
 viewerSettingsClose.addEventListener('click',closeViewerSettings);
 settingsFit.addEventListener('click',()=>{fitMap();closeViewerSettings()});
 settingsResetTilt.addEventListener('click',()=>{resetTilt();closeViewerSettings();announce('Viewer tilt reset.')});
+settingsUpscale.addEventListener('click',()=>void toggleUpscale());
 settingsStartMenu.addEventListener('click',openStartMenu);
 imageUploadToggle.addEventListener('click',openImageUpload);
 tierToggle.addEventListener('click',()=>{const opening=tierMenu.hidden;renderTierMenu();tierMenu.hidden=!opening;tierToggle.setAttribute('aria-expanded',String(opening));if(opening)tierMenu.querySelector('button[aria-current="true"]')?.focus()});
@@ -410,6 +465,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.
 
 window.ShaelvienPrototype=Object.freeze({
   world:Object.freeze({id:WORLD_ID,name:WORLD_NAME,seed:WORLD_SEED}),
+  getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
@@ -423,4 +479,6 @@ updateTierButton();
 renderTierMenu();
 renderKeyboardTabs();
 renderState();
+updateUpscaleControl();
+if(upscaleEnabled)void applyUpscalePreference();
 })();
