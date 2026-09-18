@@ -1,18 +1,24 @@
 (() => {
 'use strict';
+const QUERY=new URLSearchParams(location.search);
+const LIVE_WORLDBUILDER=QUERY.get('live-worldbuilder')==='1';
+const WORLD_ID=QUERY.get('worldId')||'';
+const WORLD_NAME=QUERY.get('worldName')||'';
+const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
+const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
 const TIERS=Object.freeze([
   Object.freeze({key:'sea',label:'Sea Level',index:0,glyph:'≈'}),
   Object.freeze({key:'hills',label:'Hills / Low Clouds',index:1,glyph:'⌁'}),
   Object.freeze({key:'mountains',label:'Mountains / Weather',index:2,glyph:'▲'})
 ]);
-const BASE_WORLD_ASSETS=Object.freeze([
+const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
   Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png'}),
   Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png'}),
   Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png'})
-]);
+]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
-const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1';
+const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -159,11 +165,14 @@ function applyParallax(){
   }
 }
 function updateReadouts(){
+  stage.dataset.worldId=WORLD_ID;
+  stage.dataset.worldSeed=WORLD_SEED;
   stage.dataset.viewerTier=viewerTier;
   stage.dataset.viewerLayer=String(viewerLayer);
   stage.dataset.layerCount=String(BASE_LAYER_COUNT+userLayers.length);
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
-  stage.setAttribute('aria-label',`Interactive tiered world viewer. ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.`);
+  const worldLabel=WORLD_NAME?WORLD_NAME+' world. ':'';
+  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer. ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+userLayers.length} total image layers.`);
 }
 function applyTransform(){
   world.style.width=naturalWidth+'px';
@@ -280,6 +289,15 @@ BASE_WORLD_ASSETS.forEach(asset=>{
   node.src=ASSET_ROOT+asset.file;
 });
 
+if(!BASE_WORLD_ASSETS.length){
+  naturalWidth=1280;
+  naturalHeight=1280;
+  loading.hidden=true;
+  world.dataset.emptyWorld='true';
+  fitMap();
+  announce('Empty world loaded. Add images to begin building.');
+}
+
 function screenAdjusted(beta,gamma){
   const raw=Number(screen.orientation?.angle??window.orientation??0);
   const angle=((raw%360)+360)%360;
@@ -391,6 +409,7 @@ window.addEventListener('resize',fitMap,{passive:true});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({
+  world:Object.freeze({id:WORLD_ID,name:WORLD_NAME,seed:WORLD_SEED}),
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
