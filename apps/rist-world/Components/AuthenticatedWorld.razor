@@ -55,7 +55,23 @@ else
   _launchWorldChosen=true;
   await InvokeAsync(StateHasChanged);
  }
- protected override async Task OnAfterRenderAsync(bool firstRender){if(!firstRender||_authStarted)return;_authStarted=true;var profile=await Auth.InitializeAsync();Session.AdoptAuthentication(profile);_canEnter=profile is not null;if(_canEnter)await ApplyAuthenticatedParallaxPreferenceAsync();_termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;_ready=true;await InvokeAsync(StateHasChanged);if(!_canEnter)Navigation.NavigateTo("/Play/index.html",forceLoad:true);}
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_authStarted)return;
+  _authStarted=true;
+  var profile=await Auth.InitializeAsync();
+  Session.AdoptAuthentication(profile);
+  _canEnter=profile is not null;
+  _termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;
+  _ready=true;
+  await InvokeAsync(StateHasChanged);
+  if(!_canEnter)
+  {
+   Navigation.NavigateTo("/Play/index.html",forceLoad:true);
+   return;
+  }
+  try{await ApplyAuthenticatedParallaxPreferenceAsync();}catch{}
+ }
  async Task ApplyAuthenticatedParallaxPreferenceAsync(){
   var savedEnabled=await JS.InvokeAsync<string?>("localStorage.getItem",ParallaxEnabledKey);
   var savedActive=await JS.InvokeAsync<string?>("localStorage.getItem",ParallaxActiveKey);
