@@ -67,6 +67,7 @@ window.ristAuth={
   }
   if(legacy){
    query.delete('rist_handoff');
+   try{if('caches' in window){const names=await caches.keys();await Promise.all(names.map(name=>caches.delete(name)));}}catch{}
    query.set('rist_hard',String(Date.now()));
    location.hash='';
    const clean=query.toString();
