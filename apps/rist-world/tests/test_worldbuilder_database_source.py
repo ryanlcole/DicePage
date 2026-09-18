@@ -31,7 +31,7 @@ def test_worldbuilder_publishes_shared_source_to_database_bridge():
     assert 'type:"save-source"' in bridge or 'data.type==="save-source"' in bridge
 
 
-def test_regiondefiner_consumes_database_worldbuilder_snapshot_not_static_fallbacks():
+def test_regiondefiner_is_permissioned_view_of_same_canonical_database_map():
     workspace = text("Components/RegionDefinerWorkspace.razor")
     prototype = text("wwwroot/prototype/prototype.js")
 
@@ -43,7 +43,9 @@ def test_regiondefiner_consumes_database_worldbuilder_snapshot_not_static_fallba
     assert "const snapshot=envelope.state" in prototype
     assert "Array.isArray(snapshot.tierImages)" in prototype
     assert "Array.isArray(snapshot.userLayers)" in prototype
-    assert "attachRestoredLayer(raw,{sourceLocked:true})" in prototype
+    assert "belongsToActiveRegion" in prototype
+    assert "saveRegionMapToDatabase(serializedLayers)" in prototype
+    assert "RIST_REGIONDEFINER_OVERLAYS" not in prototype
     assert "stage.dataset.worldSource='database'" in prototype
 
 
@@ -59,3 +61,13 @@ def test_platform_authority_exposes_world_source_database_routes():
     assert 'Path: /world/source, Method: POST' in template
     assert 'GetWorldSourceAsync' in client
     assert 'SaveWorldSourceAsync' in client
+    assert 'SaveWorldRegionMapAsync' in client
+    assert 'path == "/world/source/region"' in app
+    assert 'Path: /world/source/region, Method: POST' in template
+
+
+def test_region_records_define_permissions_not_a_second_map():
+    regions = text("WorldSession.Regions.cs")
+    assert "A region is authority/view metadata over the canonical world map." in regions
+    assert "SourceTiles: []" in regions
+    assert "var sourceTiles = PlacedTiles" not in regions
