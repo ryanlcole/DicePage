@@ -61,6 +61,17 @@ public sealed partial class WorldSession
             || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase);
     }
 
+    public bool CanManageMmoParcel(AwsAuthorityClient.MmoParcel? parcel)
+    {
+        if (parcel is null) return false;
+        if (HasTrustedWorldBuilderAuthority) return true;
+        var userId = auth.Profile?.UserId?.Trim() ?? "";
+        if (userId.Length > 0 && string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal))
+            return true;
+        return string.Equals(parcel.EffectivePermission, "Manage", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase);
+    }
+
     public bool IsMmoParcelClaimed(int cellIndex) =>
         _mmoParcels.Any(parcel => parcel.CellIndex == cellIndex);
 
@@ -188,9 +199,7 @@ public sealed partial class WorldSession
             string.Equals(parcel.ParcelId, parcelId, StringComparison.Ordinal));
         if (owned is null) return false;
 
-        var currentUserId = auth.Profile?.UserId?.Trim() ?? "";
-        if (!HasTrustedWorldBuilderAuthority &&
-            !string.Equals(owned.OwnerUserId, currentUserId, StringComparison.Ordinal))
+        if (!CanManageMmoParcel(owned))
             return false;
 
         if (!(permission is "View" or "Edit" or "Manage" or "None"))
