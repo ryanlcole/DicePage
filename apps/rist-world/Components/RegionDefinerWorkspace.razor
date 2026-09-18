@@ -54,11 +54,9 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // RegionDefiner is another perspective on the same canonical world map used
-   // by WorldBuilder. The bridge supplies that one database-backed map; this seed
-   // only selects the viewer presentation. Region boundaries and permissions alter
-   // what can be seen/edited, never which map exists.
-   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   // Region Definer is only another projection of the canonical database map.
+   // Never seed a second map here; World Builder's shared WORLDSOURCE is the map.
+   var seed="empty";
    var activeRegion=Session.ActiveRegion;
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
     ? activeRegion.ParcelPixelWidth
@@ -81,7 +79,7 @@
   if(!firstRender||_bridgeAttached)return;
   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
   await Session.LoadRegionsAsync();
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-single-map-1");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-single-map-2");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -143,7 +141,6 @@
    parcelPixelWidth=region.ParcelPixelWidth,
    parcelPixelHeight=region.ParcelPixelHeight,
    maxHeight=region.MaxHeight,
-   layerState=region.LayerState,
    updatedAtUtc=region.UpdatedAtUtc
   }).ToList();
  }
@@ -183,33 +180,6 @@
    selectedCells=region.SelectedCells,
    sourceLayerOffsets=region.SourceLayerOffsets,
    gridShape=region.GridShape,
-   updatedAtUtc=region.UpdatedAtUtc
-  };
- }
-
- [JSInvokable]
- public async Task<object> SaveRegionLayerStateFromPrototypeAsync(System.Text.Json.JsonElement state)
- {
-  var active=Session.ActiveRegion??throw new InvalidOperationException("Choose a region before saving its layers.");
-  var region=await Session.SaveRegionLayerStateAsync(active.RegionId,state);
-  return new
-  {
-   id=region.RegionId,
-   name=region.Name,
-   tierIndex=region.TierIndex,
-   minColumn=region.MinColumn,
-   minRow=region.MinRow,
-   maxColumn=region.MaxColumn,
-   maxRow=region.MaxRow,
-   selectedCells=region.SelectedCells,
-   sourceLayerOffsets=region.SourceLayerOffsets,
-   gridShape=region.GridShape,
-   ownerUserId=region.OwnerUserId,
-   parcelId=region.ParcelId,
-   parcelPixelWidth=region.ParcelPixelWidth,
-   parcelPixelHeight=region.ParcelPixelHeight,
-   maxHeight=region.MaxHeight,
-   layerState=region.LayerState,
    updatedAtUtc=region.UpdatedAtUtc
   };
  }
