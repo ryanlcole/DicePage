@@ -388,6 +388,7 @@ Resources:
                     session_item = {
                         "pk": "session#" + digest, "userId": user_id,
                         "username": profile.get("global_name") or profile.get("username") or "Discord user",
+                        "provider": "discord",
                         "expiresAt": now + SESSION_SECONDS
                     }
                     if guardian_request_token:
@@ -395,7 +396,10 @@ Resources:
                     ddb.put_item(Item=session_item)
                     handoff = secrets.token_urlsafe(32)
                     ddb.put_item(Item={
-                        "pk": "handoff#" + handoff, "sessionToken": token,
+                        "pk": "handoff#" + handoff,
+                        "sessionToken": token,
+                        "provider": session_item["provider"],
+                        "sessionExpiresAt": session_item["expiresAt"],
                         "expiresAt": now + 120
                     })
                     target = FRONTEND + "?rist_handoff=" + urllib.parse.quote(handoff)
@@ -416,7 +420,11 @@ Resources:
                     ddb.delete_item(Key=key)
                 if not saved or int(saved.get("expiresAt", 0)) <= now:
                     return response(400, {"error": "Invalid or expired login handoff"})
-                return response(200, {"sessionToken": saved["sessionToken"]})
+                return response(200, {
+                    "sessionToken": saved["sessionToken"],
+                    "provider": saved.get("provider", "discord"),
+                    "sessionExpiresAt": int(saved.get("sessionExpiresAt", 0))
+                })
 
             session = auth(event)
             if not session:
@@ -427,6 +435,8 @@ Resources:
                     "userId": session["userId"],
                     "displayName": session["username"],
                     "storagePrefix": "users/" + session["userId"] + "/",
+                    "authProvider": session.get("provider", "discord"),
+                    "sessionExpiresAt": int(session.get("expiresAt", 0)),
                     "age21Verified": False,
                     "ageVerificationAvailable": False,
                     "guardianConsentPending": bool(session.get("guardianRequestToken"))
