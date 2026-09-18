@@ -49,9 +49,22 @@ export function attach(frame,dotnet){
         const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
         const region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
         post(frame,{type:"region-created",region});
+        return;
+      }
+      if(data.type==="save-map-region"){
+        const requestId=String(data.requestId||"");
+        const regionId=String(data.regionId||"").trim();
+        const layers=Array.isArray(data.userLayers)?data.userLayers:[];
+        const result=await dotnet.invokeMethodAsync("SaveRegionMapLayersFromPrototypeAsync",regionId,layers);
+        post(frame,{type:"map-region-saved",requestId,result});
+        return;
       }
     }catch(error){
-      post(frame,{type:"error",message:String(error?.message||error||"Region operation failed")});
+      if(data?.type==="save-map-region"){
+        post(frame,{type:"map-region-save-error",requestId:String(data?.requestId||""),message:String(error?.message||error||"Map save failed")});
+      }else{
+        post(frame,{type:"error",message:String(error?.message||error||"Region operation failed")});
+      }
     }
   };
   bridges.set(frame,handler);
