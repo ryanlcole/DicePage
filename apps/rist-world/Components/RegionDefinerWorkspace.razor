@@ -90,6 +90,14 @@
    planeIndex=Session.PlaneIndex,
    source="database",
    fallbackSurfaceImage=Session.IsGeonaphWorld?Session.WorldMapUrl:"",
+   fallbackTierImages=Session.IsGeonaphWorld
+    ? new[]
+    {
+     Session.WorldMapUrl,
+     "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_highlands_rivers_v001.png",
+     "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
+    }
+    : Array.Empty<string>(),
    tiles=Session.PlacedTiles
     .Where(tile=>tile.PlaneIndex==Session.PlaneIndex)
     .Select(tile=>new
