@@ -3,6 +3,8 @@
 
  const PARALLAX_KEY='rist.parallax.enabled.v1';
  const PARALLAX_ACTIVE_KEY='rist.parallax.worldbuilder.active.v1';
+ const AUDIO_KEY='rist.audio.enabled.v1';
+ const VIDEO_KEY='rist.video.enabled.v1';
  const TILT_KEY='rist.parallax.tilt-strength.v2';
  const MOTION_SESSION_KEY='rist.motion.permission.v1';
  const DEFAULT_TILT=.65;
@@ -73,6 +75,56 @@
 
  // Base-runtime preference bridge. parallax-mode.js replaces this with the
  // full Worldbuilder controller when that workspace loads, using the same keys.
+ const preferenceExists=key=>{try{return localStorage.getItem(key)!==null}catch{return false}};
+ const boolPref=(key,fallback=true)=>read(localStorage,key,fallback?'on':'off')==='on';
+ const mediaState=()=>({audio:boolPref(AUDIO_KEY,true),video:boolPref(VIDEO_KEY,true)});
+ const applyMediaState=()=>{
+  const state=mediaState();
+  document.documentElement.dataset.ristAudio=state.audio?'on':'off';
+  document.documentElement.dataset.ristVideo=state.video?'on':'off';
+  document.querySelectorAll('audio,video').forEach(node=>{
+   if(!state.audio){
+    if(!node.muted)node.dataset.ristMutedByPreference='1';
+    node.muted=true;
+   }else if(node.dataset.ristMutedByPreference==='1'){
+    node.muted=false;
+    delete node.dataset.ristMutedByPreference;
+   }
+   if(node.tagName==='VIDEO'){
+    if(!state.video){
+     if(!node.hidden)node.dataset.ristHiddenByPreference='1';
+     node.hidden=true;
+     try{node.pause()}catch{}
+    }else if(node.dataset.ristHiddenByPreference==='1'){
+     node.hidden=false;
+     delete node.dataset.ristHiddenByPreference;
+    }
+   }
+  });
+  dispatchEvent(new CustomEvent('rist-media-settings',{detail:state}));
+  return state;
+ };
+ window.ristMediaSettings={
+  isAudioEnabled:()=>mediaState().audio,
+  isVideoEnabled:()=>mediaState().video,
+  setAudioEnabled(value){write(localStorage,AUDIO_KEY,value?'on':'off');return applyMediaState().audio},
+  setVideoEnabled(value){write(localStorage,VIDEO_KEY,value?'on':'off');return applyMediaState().video},
+  settings:mediaState,
+  initializeAtStart(){
+   if(!preferenceExists(PARALLAX_KEY))write(localStorage,PARALLAX_KEY,'on');
+   if(!preferenceExists(PARALLAX_ACTIVE_KEY))write(localStorage,PARALLAX_ACTIVE_KEY,'on');
+   if(!preferenceExists(AUDIO_KEY))write(localStorage,AUDIO_KEY,'on');
+   if(!preferenceExists(VIDEO_KEY))write(localStorage,VIDEO_KEY,'on');
+   const parallax=read(localStorage,PARALLAX_KEY,'on')==='on';
+   const active=read(localStorage,PARALLAX_ACTIVE_KEY,'on')==='on';
+   try{window.ristParallax?.setEnabled?.(parallax);window.ristParallax?.setActive?.(active)}catch{}
+   const media=applyMediaState();
+   return [parallax,media.audio,media.video];
+  }
+ };
+ const observeMedia=()=>{applyMediaState();new MutationObserver(m=>{if(m.some(x=>[...x.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('audio,video')||n.querySelector?.('audio,video')))))applyMediaState()}).observe(document.body,{childList:true,subtree:true})};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observeMedia,{once:true});else observeMedia();
+
  if(!window.ristParallax){
   const getEnabled=()=>read(localStorage,PARALLAX_KEY,'off')==='on';
   const getActive=()=>read(localStorage,PARALLAX_ACTIVE_KEY,'off')==='on';
