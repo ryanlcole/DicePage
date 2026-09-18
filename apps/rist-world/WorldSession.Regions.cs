@@ -66,6 +66,7 @@ public sealed partial class WorldSession
 
     public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells)
     {
+        if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
         if (!HasActiveWorld) throw new InvalidOperationException("Choose a world before defining a region.");
         name = NormalizeRegionName(name);
         var cells = selectedCells
@@ -109,6 +110,7 @@ public sealed partial class WorldSession
 
     public async Task<bool> AddRegionOverlayTileAsync(string regionId, AtlasTile asset, double x, double y, int footprint)
     {
+        if (!HasTrustedWorldBuilderAuthority) return false;
         var index = _regions.FindIndex(r => string.Equals(r.RegionId, regionId, StringComparison.Ordinal));
         if (index < 0) return false;
         var region = _regions[index];
@@ -155,6 +157,7 @@ public sealed partial class WorldSession
 
     public async Task RemoveRegionOverlayTileAsync(string regionId, string overlayId)
     {
+        if (!HasTrustedWorldBuilderAuthority) return;
         var index = _regions.FindIndex(r => string.Equals(r.RegionId, regionId, StringComparison.Ordinal));
         if (index < 0) return;
         var region = _regions[index];
@@ -166,6 +169,7 @@ public sealed partial class WorldSession
 
     public async Task SaveRegionsAsync()
     {
+        if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to save regions.");
         if (!HasActiveWorld) return;
         var catalog = new WorldRegionCatalog(WorldId, _regions.ToList(), DateTimeOffset.UtcNow);
         var json = JsonSerializer.Serialize(catalog, MapWriteOptions);
