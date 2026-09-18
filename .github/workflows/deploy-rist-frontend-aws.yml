@@ -46,6 +46,9 @@ jobs:
           python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
           PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
 
+      - name: Verify authenticated launch contract
+        run: python apps/rist-world/tests/authenticated_launch_contract_check.py
+
       - name: Build RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 
