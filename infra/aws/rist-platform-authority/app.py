@@ -24,6 +24,7 @@ bucket = os.environ["USER_DATA_BUCKET"]
 kms_key = os.environ["USER_DATA_KEY_ARN"]
 owner_user_id = os.environ.get("OWNER_USER_ID", "").strip()
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
+GEONAPH_WORLD_ID = "shaelvien-geonaph-alpha-001"
 
 
 def response(status, body=None):
@@ -60,7 +61,23 @@ def membership(world_id, user_id):
     return memberships.get_item(Key={"pk": "WORLD#" + world_id, "sk": "USER#" + user_id}).get("Item")
 
 
+def is_geonaph(world_id):
+    return world_id == GEONAPH_WORLD_ID
+
+
+def can_view(world_id, user_id):
+    if is_geonaph(world_id):
+        return True
+    if owner_user_id and user_id == owner_user_id:
+        return True
+    return membership(world_id, user_id) is not None
+
+
 def can_manage(world_id, user_id):
+    # Geonaph is the public MMO world, but its world-management authority is
+    # permanently reserved to the configured platform owner.
+    if is_geonaph(world_id):
+        return bool(owner_user_id and user_id == owner_user_id)
     if owner_user_id and user_id == owner_user_id:
         return True
     item = membership(world_id, user_id)
@@ -193,6 +210,12 @@ def handler(event, context):
 
     if method == "GET" and path == "/world/membership":
         world_id = safe_id(q.get("worldId"), "worldId")
+        if is_geonaph(world_id):
+            if owner_user_id and user_id == owner_user_id:
+                return response(200, {"worldId": world_id, "role": "owner", "effectiveAuthority": "platformOwner"})
+            # Geonaph is readable/explorable by every authenticated RIST user.
+            # Stale or accidental GM membership rows must never elevate Geonaph.
+            return response(200, {"worldId": world_id, "role": "viewer", "effectiveAuthority": "publicViewer"})
         item = membership(world_id, user_id)
         if item:
             return response(200, item)
@@ -207,9 +230,15 @@ def handler(event, context):
         role = req.get("role")
         if role not in ("viewer", "player", "GM", "owner"):
             return response(400, {"error": "Invalid role"})
-        existing = membership(world_id, user_id)
-        if not ((owner_user_id and user_id == owner_user_id) or (existing and existing.get("role") == "owner")):
-            return response(403, {"error": "Owner authority required"})
+        if is_geonaph(world_id):
+            if not (owner_user_id and user_id == owner_user_id):
+                return response(403, {"error": "Geonaph authority is reserved to the platform owner"})
+            if role in ("GM", "owner") and target != owner_user_id:
+                return response(403, {"error": "Geonaph GM authority cannot be delegated"})
+        else:
+            existing = membership(world_id, user_id)
+            if not ((owner_user_id and user_id == owner_user_id) or (existing and existing.get("role") == "owner")):
+                return response(403, {"error": "Owner authority required"})
         memberships.put_item(
             Item={
                 "pk": "WORLD#" + world_id,
@@ -226,7 +255,7 @@ def handler(event, context):
     if method == "GET" and path == "/world/entity":
         world_id = safe_id(q.get("worldId"), "worldId")
         entity_id = safe_id(q.get("entityId"), "entityId")
-        if not membership(world_id, user_id) and not (owner_user_id and user_id == owner_user_id):
+        if not can_view(world_id, user_id):
             return response(403, {"error": "World access required"})
         item = world.get_item(
             Key={"pk": "WORLD#" + world_id, "sk": "ENTITY#" + entity_id},
@@ -243,7 +272,7 @@ def handler(event, context):
     if method == "POST" and path == "/realtime/ticket":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
-        if not membership(world_id, user_id) and not (owner_user_id and user_id == owner_user_id):
+        if not can_view(world_id, user_id):
             return response(403, {"error": "World access required"})
         ticket = secrets.token_urlsafe(32)
         expires = now + 120
