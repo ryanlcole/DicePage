@@ -23,7 +23,9 @@ def test_endemar_worldbuilder_reference_is_viewable_but_mutations_require_truste
     assert "bool CanBuildWorld=>WorldReady&&Session.HasTrustedWorldBuilderAuthority;" in shell
     assert "bool CanOpenWorldBuilder=>CanBuildWorld||(WorldReady&&Session.IsGeonaphWorld);" in shell
     assert "void OpenWorldbuilding(){if(!CanOpenWorldBuilder)return;" in shell
-    assert "void OpenGameMaster(){if(!CanBuildWorld)return;" in shell
+    assert "void OpenGameMaster(){if(!CanOpenWorldBuilder)return;" in shell
+    assert "bool WorkspaceReferenceOnly=>_workspaceOpen&&!CanBuildWorld&&Session.IsGeonaphWorld&&_workspaceMode==\"campaign\";" in shell
+    assert "VIEW ONLY · ENDEMAR REFERENCE" in shell
 
     assert 'var access=Session.HasTrustedWorldBuilderAuthority?"edit":"view";' in host
     assert "&access={access}" in host
