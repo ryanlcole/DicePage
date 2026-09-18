@@ -2,11 +2,12 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // The original alpha World ID is now the permanent identity of Geonaph.
-    // It remains available for migration/discovery so existing saves keep identity.
+    // The original alpha ID/path names remain stable for migration and save compatibility.
+    // The user-facing world is Endemar; its primary continent is Jeyrusal.
     public const string LegacyAlphaWorldId = "shaelvien-geonaph-alpha-001";
     public const string GeonaphWorldId = LegacyAlphaWorldId;
-    public const string GeonaphDisplayName = "Geonaph";
+    public const string GeonaphDisplayName = "Endemar";
+    public const string EndemarContinentDisplayName = "Jeyrusal";
     public const string CurrentWorldId = LegacyAlphaWorldId;
 
     string _worldId = "";
@@ -19,9 +20,11 @@ public sealed partial class WorldSession
     public bool IsGeonaphWorld => string.Equals(WorldId, GeonaphWorldId, StringComparison.Ordinal);
     public bool IsWorldExtentUnbounded => HasActiveWorld && IsGeonaphWorld;
     public int? WorldTileLimit => IsWorldExtentUnbounded ? null : DefaultWorldWidthKm;
+    public int SurfaceWorldWidthPixels => DefaultSurfaceWorldWidthPixels;
+    public int SurfaceWorldHeightPixels => DefaultSurfaceWorldHeightPixels;
     public string WorldExtentLabel => IsWorldExtentUnbounded
-        ? "UNBOUNDED WORLD · 1 km CELLS"
-        : $"{DefaultWorldWidthKm}×{DefaultWorldHeightKm} TILE WORLD · 1 km CELLS";
+        ? $"{DefaultSurfaceWorldWidthPixels}×{DefaultSurfaceWorldHeightPixels} PX STARTING SURFACE · EXPANDABLE WORLD"
+        : $"{DefaultSurfaceWorldWidthPixels}×{DefaultSurfaceWorldHeightPixels} PX STARTING SURFACE";
 
     // Account storage owns a collection of worlds. Every world-owned cloud artifact
     // resolves beneath this stable root so one account may safely own many worlds.
