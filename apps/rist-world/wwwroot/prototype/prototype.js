@@ -197,7 +197,7 @@ function bindTap(button,fn){
 }
 
 function renderState(){applyTransform();renderKeyboardKeys()}
-const BASE_KEYBOARD_MODES=['Viewer','Layers','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
+const BASE_KEYBOARD_MODES=['Viewer','Tiers','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata','Selected'];
 function keyboardModes(){return BASE_KEYBOARD_MODES}
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
@@ -213,12 +213,15 @@ function renderKeyboardKeys(){
       toolKey('⌁','reset tilt',resetTilt)
     );return;
   }
-  if(keyboardMode==='Layers'){
+  if(keyboardMode==='Tiers'){
     keyboardKeys.append(
-      toolKey('▧','add image',openImageUpload),
-      toolKey('≋','add parallax gap',addParallaxGap),
-      toolKey(String(BASE_LAYER_COUNT+userLayers.length),'layers',()=>{},true),
-      toolKey(String(parallaxGapCount),'parallax gaps',()=>{},true)
+      toolKey('≋','All Parallax',()=>setViewerTier('all')),
+      toolKey('≈',tierLabel(TIERS[0]),()=>setViewerTier('sea')),
+      toolKey('⌁',tierLabel(TIERS[1]),()=>setViewerTier('hills')),
+      toolKey('▲',tierLabel(TIERS[2]),()=>setViewerTier('mountains')),
+      toolKey('L −','layer',()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState();announce(`Viewer layer ${viewerLayer}.`)}),
+      toolKey('L +','layer',()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState();announce(`Viewer layer ${viewerLayer}.`)}),
+      toolKey('NAME','tier',renameViewerTier,viewerTier==='all')
     );return;
   }
   if(keyboardMode==='Image'){
@@ -231,10 +234,10 @@ function renderKeyboardKeys(){
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
-      toolKey('BACK','layer order',()=>moveSelectedLayer(-1)),
-      toolKey('FRONT','layer order',()=>moveSelectedLayer(1)),
-      toolKey('DEPTH −','parallax',()=>moveSelectedDepth(-1),selectedImage.parallaxGroup<=0),
-      toolKey('DEPTH +','parallax',()=>moveSelectedDepth(1)),
+      toolKey('TIER −','tier',()=>moveSelectedTier(-1),selectedImage.tier<=0),
+      toolKey('TIER +','tier',()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
+      toolKey('LAYER −','layer',()=>moveSelectedLayer(-1),selectedImage.layer<=0),
+      toolKey('LAYER +','layer',()=>moveSelectedLayer(1),selectedImage.layer>=9),
       toolKey('DELETE','image',removeSelectedImage)
     );return;
   }
@@ -326,7 +329,8 @@ settingsFit.addEventListener('click',()=>{fitMap();closeViewerSettings()});
 settingsResetTilt.addEventListener('click',()=>{resetTilt();closeViewerSettings();announce('Viewer tilt reset.')});
 settingsStartMenu.addEventListener('click',openStartMenu);
 imageUploadToggle.addEventListener('click',openImageUpload);
-parallaxAdd.addEventListener('click',addParallaxGap);
+tierToggle.addEventListener('click',()=>{const opening=tierMenu.hidden;renderTierMenu();tierMenu.hidden=!opening;tierToggle.setAttribute('aria-expanded',String(opening));if(opening)tierMenu.querySelector('button[aria-current="true"]')?.focus()});
+document.addEventListener('pointerdown',event=>{if(tierMenu.hidden)return;if(event.target===tierToggle||tierToggle.contains(event.target)||tierMenu.contains(event.target))return;closeTierMenu()},{capture:true});
 imageUploadClose.addEventListener('click',closeImageUpload);
 imageBrowse.addEventListener('click',()=>imageFile.click());
 imageFile.addEventListener('change',()=>{const file=imageFile.files?.[0];if(file)void placeUploadedImage(file);imageFile.value=''});
@@ -373,16 +377,20 @@ function release(e){
 stage.addEventListener('pointerup',release);
 stage.addEventListener('pointercancel',release);
 window.addEventListener('resize',fitMap,{passive:true});
-document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({
+  tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
+    viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+userLayers.length,
-    userLayers:userLayers.map(item=>({id:item.id,layerIndex:item.layerIndex,parallaxGroup:item.parallaxGroup,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent})),
-    parallaxGapCount,currentParallaxGroup,keyboardOpen:!keyboard.hidden,keyboardMode,toolMode
+    userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent})),
+    keyboardOpen:!keyboard.hidden,keyboardMode,toolMode
   })
 });
+updateTierButton();
+renderTierMenu();
 renderKeyboardTabs();
 renderState();
 })();
