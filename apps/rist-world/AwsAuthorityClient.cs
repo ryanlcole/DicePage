@@ -137,7 +137,8 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         int PixelHeight,
         int MaxHeight,
         string BindingHash = "",
-        string ClaimedAtUtc = "");
+        string ClaimedAtUtc = "",
+        string EffectivePermission = "None");
 
     public sealed record ParcelDelegation(
         string ParcelId,
