@@ -614,7 +614,7 @@ function moveSelectedLayer(delta){
   selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
-  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
+  announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function placementAddress(tier,layerDelta=1){
   const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((clamp(tier,0,TIERS.length-1)*10)+viewerLayer+layerDelta,0,maxSceneZ);
@@ -829,10 +829,13 @@ function renderLabelsKeyboard(){
     toolKey('COLOR',String(selected.color||LABEL_COLORS[0]),cycleLabelColor),
     toolKey(String(selected.textAlign||'center').toUpperCase(),'alignment',cycleLabelAlignment),
     toolKey(selected.plate?'PLATE ✓':'PLATE','background',()=>{selected.plate=!selected.plate;refreshUserLabel(selected);renderKeyboardKeys()}),
+    toolKey('OP −',`${Math.round((selected.opacity||1)*100)}%`,()=>{selected.opacity=clamp((Number(selected.opacity)||1)-.1,.1,1);refreshUserLabel(selected);renderKeyboardKeys()},selected.opacity<=.1),
+    toolKey('OP +',`${Math.round((selected.opacity||1)*100)}%`,()=>{selected.opacity=clamp((Number(selected.opacity)||1)+.1,.1,1);refreshUserLabel(selected);renderKeyboardKeys()},selected.opacity>=1),
     toolKey('↺','rotate',()=>{selected.rotation=(Number(selected.rotation)||0)-15;refreshUserLabel(selected)}),
     toolKey('↻','rotate',()=>{selected.rotation=(Number(selected.rotation)||0)+15;refreshUserLabel(selected)}),
     toolKey('←','offset',()=>nudgeLabelOffset(-8,0)),toolKey('→','offset',()=>nudgeLabelOffset(8,0)),
     toolKey('↑','offset',()=>nudgeLabelOffset(0,-8)),toolKey('↓','offset',()=>nudgeLabelOffset(0,8)),
+    toolKey('OFFSET 0','reset',()=>{selected.offsetX=0;selected.offsetY=0;refreshUserLabel(selected)}),
     toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),selected.tier<=0),
     toolKey('TIER +',`T${pos.tier}`,()=>moveSelectedTier(1),selected.tier>=TIERS.length-1),
     toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selected.tier<=0&&selected.layer<=0),
