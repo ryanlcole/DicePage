@@ -5,9 +5,11 @@ import secrets
 import time
 import urllib.parse
 import uuid
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
+from boto3.dynamodb.conditions import Key
 
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
 
@@ -27,6 +29,12 @@ origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
 GEONAPH_WORLD_ID = "shaelvien-geonaph-alpha-001"
 DEFAULT_WORLD_SLOTS = 1
 DEFAULT_SURFACE_WORLD_PIXELS = 2048
+CLAIM_REQUEST_PERMISSIONS = {"Restricted", "Limited", "Cooperative"}
+CLAIM_DECISION_PERMISSIONS = CLAIM_REQUEST_PERMISSIONS | {"Blocked", "ReleaseOwnership"}
+
+
+def utc_stamp():
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def response(status, body=None):
@@ -84,6 +92,65 @@ def can_manage(world_id, user_id):
         return True
     item = membership(world_id, user_id)
     return bool(item and item.get("role") in ("owner", "GM"))
+
+
+def claim_permission(world_id, user_id):
+    item = membership(world_id, user_id) or {}
+    value = str(item.get("claimPermission") or "Blocked").strip()
+    return value if value in CLAIM_DECISION_PERMISSIONS else "Blocked"
+
+
+def world_partition(world_id):
+    return "WORLD#" + world_id
+
+
+def claim_key(world_id, request_id):
+    return {"pk": world_partition(world_id), "sk": "CLAIM#" + request_id}
+
+
+def region_key(world_id, region_id):
+    return {"pk": world_partition(world_id), "sk": "REGION#" + region_id}
+
+
+def query_world_prefix(world_id, prefix):
+    result = world.query(
+        KeyConditionExpression=Key("pk").eq(world_partition(world_id))
+        & Key("sk").begins_with(prefix)
+    )
+    return result.get("Items", [])
+
+
+def manager_user_ids(world_id):
+    ids = set()
+    if owner_user_id:
+        ids.add(owner_user_id)
+    try:
+        result = memberships.query(
+            KeyConditionExpression=Key("pk").eq(world_partition(world_id))
+        )
+        for item in result.get("Items", []):
+            if item.get("role") in ("owner", "GM") and item.get("userId"):
+                ids.add(str(item["userId"]))
+    except Exception:
+        pass
+    return ids
+
+
+def notify_user(user_id, notification_type, world_id, payload):
+    if not user_id:
+        return
+    now_ms = int(time.time() * 1000)
+    users.put_item(
+        Item={
+            "pk": "USER#" + user_id,
+            "sk": f"NOTIFICATION#{now_ms:013d}#{uuid.uuid4()}",
+            "type": notification_type,
+            "worldId": world_id,
+            "payload": dynamo_safe(payload or {}),
+            "unread": True,
+            "createdAt": now_ms,
+        }
+    )
 
 
 def audit_write(world_id, user_id, action, entity_id="", details=None):
@@ -287,24 +354,52 @@ def handler(event, context):
         world_id = safe_id(q.get("worldId"), "worldId")
         if is_geonaph(world_id):
             if owner_user_id and user_id == owner_user_id:
-                return response(200, {"worldId": world_id, "role": "owner", "effectiveAuthority": "platformOwner"})
-            # Geonaph is readable/explorable by every authenticated RIST user.
-            # Stale or accidental GM membership rows must never elevate Geonaph.
-            return response(200, {"worldId": world_id, "role": "viewer", "effectiveAuthority": "publicViewer"})
+                return response(
+                    200,
+                    {
+                        "worldId": world_id,
+                        "role": "owner",
+                        "effectiveAuthority": "platformOwner",
+                        "claimPermission": "Blocked",
+                    },
+                )
+            # Geonaph remains public-view, but a database membership row may
+            # independently enable scoped claim requests without elevating the role.
+            return response(
+                200,
+                {
+                    "worldId": world_id,
+                    "role": "viewer",
+                    "effectiveAuthority": "publicViewer",
+                    "claimPermission": claim_permission(world_id, user_id),
+                },
+            )
         item = membership(world_id, user_id)
         if item:
+            item.setdefault("claimPermission", "Blocked")
             return response(200, item)
         if owner_user_id and user_id == owner_user_id:
-            return response(200, {"worldId": world_id, "role": "owner", "effectiveAuthority": "platformOwner"})
-        return response(200, {"worldId": world_id, "role": "none"})
+            return response(
+                200,
+                {
+                    "worldId": world_id,
+                    "role": "owner",
+                    "effectiveAuthority": "platformOwner",
+                    "claimPermission": "Blocked",
+                },
+            )
+        return response(200, {"worldId": world_id, "role": "none", "claimPermission": "Blocked"})
 
     if method == "POST" and path == "/world/membership/grant":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
         target = safe_id(req.get("userId"), "userId")
         role = req.get("role")
+        claim_permission_value = str(req.get("claimPermission") or "Blocked").strip()
         if role not in ("viewer", "player", "GM", "owner"):
             return response(400, {"error": "Invalid role"})
+        if claim_permission_value not in CLAIM_DECISION_PERMISSIONS - {"ReleaseOwnership"}:
+            return response(400, {"error": "Invalid claimPermission"})
         if is_geonaph(world_id):
             if not (owner_user_id and user_id == owner_user_id):
                 return response(403, {"error": "Endemar authority is reserved to the platform owner"})
@@ -321,11 +416,333 @@ def handler(event, context):
                 "worldId": world_id,
                 "userId": target,
                 "role": role,
+                "claimPermission": claim_permission_value,
                 "updatedAt": now,
             }
         )
-        audit_write(world_id, user_id, "membership.grant", details={"target": target, "role": role})
-        return response(200, {"ok": True})
+        audit_write(
+            world_id,
+            user_id,
+            "membership.grant",
+            details={"target": target, "role": role, "claimPermission": claim_permission_value},
+        )
+        return response(200, {"ok": True, "claimPermission": claim_permission_value})
+
+    if method == "POST" and path == "/world/membership/claim-permission":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        target = safe_id(req.get("userId"), "userId")
+        value = str(req.get("claimPermission") or "Blocked").strip()
+        if value not in CLAIM_DECISION_PERMISSIONS - {"ReleaseOwnership"}:
+            return response(400, {"error": "Invalid claimPermission"})
+        if not can_manage(world_id, user_id):
+            return response(403, {"error": "GM/owner authority required"})
+        current = membership(world_id, target) or {
+            "pk": world_partition(world_id),
+            "sk": "USER#" + target,
+            "worldId": world_id,
+            "userId": target,
+            "role": "viewer",
+        }
+        if is_geonaph(world_id) and target != owner_user_id:
+            current["role"] = "viewer"
+        current["claimPermission"] = value
+        current["updatedAt"] = now
+        memberships.put_item(Item=current)
+        audit_write(
+            world_id,
+            user_id,
+            "membership.claim-permission",
+            details={"target": target, "claimPermission": value},
+        )
+        return response(200, {"ok": True, "claimPermission": value})
+
+    if method == "POST" and path == "/world/claims/request":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        if can_manage(world_id, user_id):
+            return response(400, {"error": "World managers do not need claim requests"})
+        permission = claim_permission(world_id, user_id)
+        if permission not in CLAIM_REQUEST_PERMISSIONS:
+            return response(403, {"error": "Claim requests are not enabled for this membership"})
+
+        try:
+            cells = sorted(
+                {
+                    int(value)
+                    for value in (req.get("selectedCells") or [])
+                    if 0 <= int(value) < 900
+                }
+            )
+            layers = sorted(
+                {
+                    int(value)
+                    for value in (req.get("sourceLayerOffsets") or [])
+                    if 0 <= int(value) < 10
+                }
+            )
+        except (TypeError, ValueError):
+            return response(400, {"error": "Invalid claim cells or layers"})
+        if not cells or not layers:
+            return response(400, {"error": "A claim requires selected cells and source layers"})
+
+        request_id = uuid.uuid4().hex
+        stamp = utc_stamp()
+        requested_name = str(req.get("requestedName") or "").strip()[:80]
+        item = {
+            **claim_key(world_id, request_id),
+            "requestId": request_id,
+            "worldId": world_id,
+            "requesterUserId": user_id,
+            "requesterDisplayName": str(
+                req.get("requesterDisplayName") or session["displayName"]
+            )[:120],
+            "workspace": str(req.get("workspace") or "regiondefiner")[:40],
+            "tierIndex": max(0, min(2, int(req.get("tierIndex") or 0))),
+            "selectedCells": cells,
+            "sourceLayerOffsets": layers,
+            "gridShape": "hex"
+            if str(req.get("gridShape") or "").lower() == "hex"
+            else "square",
+            "status": "pending",
+            "permission": permission,
+            "requestedResourceId": str(req.get("requestedResourceId") or "")[:160],
+            "requestedName": requested_name,
+            "createdAtUtc": stamp,
+            "updatedAtUtc": stamp,
+            "approvedResourceId": "",
+            "note": "",
+        }
+        world.put_item(Item=dynamo_safe(item))
+        for manager_id in manager_user_ids(world_id):
+            notify_user(
+                manager_id,
+                "world.claim.request",
+                world_id,
+                {
+                    "requestId": request_id,
+                    "requesterUserId": user_id,
+                    "requesterDisplayName": item["requesterDisplayName"],
+                    "requestedName": requested_name,
+                    "tierIndex": item["tierIndex"],
+                    "selectedCellCount": len(cells),
+                },
+            )
+        audit_write(
+            world_id,
+            user_id,
+            "claim.request",
+            request_id,
+            {"cells": len(cells), "tierIndex": item["tierIndex"]},
+        )
+        return response(200, item)
+
+    if method == "GET" and path == "/world/claims":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        status = str(q.get("status") or "pending").lower()
+        items = query_world_prefix(world_id, "CLAIM#")
+        if not can_manage(world_id, user_id):
+            items = [
+                item
+                for item in items
+                if str(item.get("requesterUserId") or "") == user_id
+            ]
+        if status not in ("", "all"):
+            items = [
+                item
+                for item in items
+                if str(item.get("status") or "").lower() == status
+            ]
+        items.sort(key=lambda item: str(item.get("createdAtUtc") or ""))
+        return response(200, items)
+
+    if method == "POST" and path == "/world/claims/decision":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        if not can_manage(world_id, user_id):
+            return response(403, {"error": "GM/owner authority required"})
+        request_id = safe_id(req.get("requestId"), "requestId")
+        key = claim_key(world_id, request_id)
+        item = world.get_item(Key=key, ConsistentRead=True).get("Item")
+        if not item:
+            return response(404, {"error": "Claim request not found"})
+
+        permission = str(req.get("permission") or "Blocked").strip()
+        if permission not in CLAIM_DECISION_PERMISSIONS:
+            return response(400, {"error": "Invalid claim decision"})
+        approved = permission != "Blocked"
+
+        try:
+            cells = (
+                sorted(
+                    {
+                        int(value)
+                        for value in (
+                            req.get("approvedCells")
+                            or item.get("selectedCells")
+                            or []
+                        )
+                        if 0 <= int(value) < 900
+                    }
+                )
+                if approved
+                else []
+            )
+            layers = (
+                sorted(
+                    {
+                        int(value)
+                        for value in (
+                            req.get("approvedLayerOffsets")
+                            or item.get("sourceLayerOffsets")
+                            or []
+                        )
+                        if 0 <= int(value) < 10
+                    }
+                )
+                if approved
+                else []
+            )
+        except (TypeError, ValueError):
+            return response(400, {"error": "Invalid approved claim scope"})
+
+        if approved and permission in CLAIM_REQUEST_PERMISSIONS and (
+            not cells or not layers
+        ):
+            return response(
+                400, {"error": "Approved claims require explicit cells and layers"}
+            )
+
+        resource_id = str(
+            req.get("approvedResourceId")
+            or ("region-" + request_id if approved else "")
+        )[:160]
+        stamp = utc_stamp()
+        item["status"] = "approved" if approved else "denied"
+        item["permission"] = permission
+        item["approvedResourceId"] = resource_id
+        item["note"] = str(req.get("note") or "")[:500]
+        item["updatedAtUtc"] = stamp
+        world.put_item(Item=dynamo_safe(item))
+
+        if approved:
+            requested_name = (
+                str(item.get("requestedName") or "Claimed Region").strip()[:80]
+                or "Claimed Region"
+            )
+            columns = [cell % 30 for cell in cells]
+            rows = [cell // 30 for cell in cells]
+            region_state = {
+                "regionId": resource_id,
+                "worldId": world_id,
+                "name": requested_name,
+                "minColumn": min(columns),
+                "minRow": min(rows),
+                "maxColumn": max(columns),
+                "maxRow": max(rows),
+                "selectedCells": cells,
+                "sourceTiles": [],
+                "overlayTiles": [],
+                "createdAtUtc": stamp,
+                "updatedAtUtc": stamp,
+                "tierIndex": max(0, min(2, int(item.get("tierIndex") or 0))),
+                "sourceLayerOffsets": layers,
+                "gridShape": "hex"
+                if str(item.get("gridShape") or "").lower() == "hex"
+                else "square",
+                "ownerUserId": str(item.get("requesterUserId") or ""),
+            }
+            world.put_item(
+                Item={
+                    **region_key(world_id, resource_id),
+                    "worldId": world_id,
+                    "regionId": resource_id,
+                    "ownerUserId": region_state["ownerUserId"],
+                    "state": dynamo_safe(region_state),
+                    "updatedAt": now,
+                }
+            )
+
+        requester_id = str(item.get("requesterUserId") or "")
+        notify_user(
+            requester_id,
+            "world.claim.decision",
+            world_id,
+            {
+                "requestId": request_id,
+                "status": item["status"],
+                "approvedResourceId": resource_id,
+                "requestedName": item.get("requestedName", ""),
+            },
+        )
+        audit_write(
+            world_id,
+            user_id,
+            "claim.decision",
+            request_id,
+            {"status": item["status"], "permission": permission},
+        )
+        return response(200, item)
+
+    if method == "GET" and path == "/world/regions":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        if not can_view(world_id, user_id):
+            return response(403, {"error": "World access required"})
+        regions = []
+        for item in query_world_prefix(world_id, "REGION#"):
+            state = dict(item.get("state") or {})
+            state["ownerUserId"] = str(
+                item.get("ownerUserId") or state.get("ownerUserId") or ""
+            )
+            regions.append(state)
+        regions.sort(key=lambda region: str(region.get("name") or "").lower())
+        return response(200, regions)
+
+    if method == "POST" and path == "/world/regions":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        region = req.get("region") or {}
+        if not isinstance(region, dict):
+            return response(400, {"error": "Region payload must be an object"})
+        region_id = safe_id(region.get("regionId"), "regionId")
+        key = region_key(world_id, region_id)
+        current = world.get_item(Key=key, ConsistentRead=True).get("Item")
+        manager = can_manage(world_id, user_id)
+        owner = str(
+            (current or {}).get("ownerUserId") or region.get("ownerUserId") or ""
+        )
+        if current:
+            if not (manager or owner == user_id):
+                return response(403, {"error": "Region edit authority required"})
+        elif not manager:
+            return response(
+                403, {"error": "Only a GM/owner may create a region directly"}
+            )
+        if not owner:
+            owner = user_id
+
+        region["worldId"] = world_id
+        region["regionId"] = region_id
+        region["ownerUserId"] = owner
+        region["updatedAtUtc"] = utc_stamp()
+        world.put_item(
+            Item={
+                **key,
+                "worldId": world_id,
+                "regionId": region_id,
+                "ownerUserId": owner,
+                "state": dynamo_safe(region),
+                "updatedAt": now,
+            }
+        )
+        audit_write(
+            world_id,
+            user_id,
+            "region.save",
+            region_id,
+            {"ownerUserId": owner},
+        )
+        return response(200, region)
 
     if method == "GET" and path == "/world/entity":
         world_id = safe_id(q.get("worldId"), "worldId")
