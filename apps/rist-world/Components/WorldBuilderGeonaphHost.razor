@@ -43,7 +43,9 @@
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}";
+   var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
+   var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}";
   }
  }
 }
