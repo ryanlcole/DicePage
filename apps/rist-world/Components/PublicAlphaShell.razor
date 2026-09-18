@@ -177,10 +177,10 @@ else
  .launcher-world-selectbar{box-sizing:border-box;width:min(94vw,680px);margin:8px auto 2px;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;padding:5px 8px;border:1px solid #67562f;border-radius:10px;background:rgba(7,16,22,.72);box-shadow:0 5px 18px #0005}
  .launcher-world-selectbar label{color:#d8bf79;font:900 8px/1 system-ui;letter-spacing:.14em}
  .launcher-world-selectbar select{box-sizing:border-box;width:100%;min-width:0;height:34px;padding:0 30px 0 9px;border:1px solid #53666f;border-radius:7px;background:#0d171e;color:#f0ddb0;font:800 11px/1 system-ui}
- @keyframes launcher-koi-far-drift{from{transform:translate3d(-10px,0,0) scale(.88) rotate(-7deg)}to{transform:translate3d(42px,18px,0) scale(.94) rotate(4deg)}}
- @keyframes launcher-koi-near-drift{from{transform:translate3d(8px,4px,0) scale(1.04) rotate(3deg)}to{transform:translate3d(-52px,-22px,0) scale(1.14) rotate(-5deg)}}
- @media(prefers-reduced-motion:reduce){.launcher-koi-track{animation:none!important}}
- @media(max-width:620px){.launcher-world-selectbar{width:calc(100% - 18px);margin-top:6px}.launcher-koi-parallax{height:330px}.launcher-koi-track{width:150px;height:60px;opacity:.19}.launcher-koi-far{top:70px}.launcher-koi-near{top:112px}}
+ @@keyframes launcher-koi-far-drift{from{transform:translate3d(-10px,0,0) scale(.88) rotate(-7deg)}to{transform:translate3d(42px,18px,0) scale(.94) rotate(4deg)}}
+ @@keyframes launcher-koi-near-drift{from{transform:translate3d(8px,4px,0) scale(1.04) rotate(3deg)}to{transform:translate3d(-52px,-22px,0) scale(1.14) rotate(-5deg)}}
+ @@media(prefers-reduced-motion:reduce){.launcher-koi-track{animation:none!important}}
+ @@media(max-width:620px){.launcher-world-selectbar{width:calc(100% - 18px);margin-top:6px}.launcher-koi-parallax{height:330px}.launcher-koi-track{width:150px;height:60px;opacity:.19}.launcher-koi-far{top:70px}.launcher-koi-near{top:112px}}
  .launcher-card:disabled,.launcher-secondary button:disabled,.launcher-enter:disabled{opacity:.34!important;filter:grayscale(.8);cursor:not-allowed}.launcher-card:disabled:hover,.launcher-secondary button:disabled:hover{transform:none!important}
  .launcher-hub .rist-card-index-launcher{display:none!important}
  .accessibility-shell-card{border-color:#88b9d0!important;background:linear-gradient(145deg,#102735,#0a171f)!important}.accessibility-shell-card strong{color:#dff5ff!important}.accessibility-shell-card small{color:#bad5df!important}
