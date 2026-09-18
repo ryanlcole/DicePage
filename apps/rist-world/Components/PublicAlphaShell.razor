@@ -78,7 +78,7 @@
    </section>
   }
 
-  <WorldGate Open="@_worldGateOpen" RequireSelection="@_initialWorldChoiceRequired" OnClose="CloseWorldGate" OnContinue="CloseWorldGate" />
+  <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
 
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
@@ -198,8 +198,7 @@ else
  bool _worldDirectoryLoaded;
  bool _worldSelectionBusy;
  string _tickerEditor="";
- bool _worldGateOpen=true;
- bool _initialWorldChoiceRequired=true;
+ bool _worldGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -232,8 +231,7 @@ else
   if(!firstRender||_workspaceRestored)return;
   _workspaceRestored=true;
   _workspaceOpen=false;
-  _worldGateOpen=true;
-  _initialWorldChoiceRequired=true;
+  _worldGateOpen=false;
   await PersistWorkspaceAsync("hub");
   await RefreshMotionStateAsync();
   await RefreshParallaxStateAsync();
@@ -415,7 +413,6 @@ else
  void OpenWorldbuilding(){if(!CanBuildWorld)return;OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
  async Task CloseWorldGate(){
   if(!Session.HasActiveWorld)return;
-  _initialWorldChoiceRequired=false;
   _worldGateOpen=false;
   _workspaceOpen=false;
   await PersistWorkspaceAsync("hub");
