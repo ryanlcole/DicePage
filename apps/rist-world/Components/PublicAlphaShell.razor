@@ -51,15 +51,15 @@
    }
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
-   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
-   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenTabletop"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
-   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenWeather"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenGeology"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
-   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenHistory"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
+   <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
+   <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
+   <button type="button" class="launcher-card roleplay coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
+   <button type="button" class="launcher-card world coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
+   <button type="button" class="launcher-card world coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
+   <button type="button" class="launcher-card world coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
+   <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
    <button type="button" class="launcher-card rules" disabled="@(!WorldReady)" @onclick="OpenLore"><span class="card-icon">✦</span><strong>LORE</strong><small>Organize this world's setting knowledge and canon.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
+   <button type="button" class="launcher-card world coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
    <button type="button" class="launcher-card rules" @onclick="OpenRulebooks"><span class="card-icon">▤</span><strong>RULEBOOKS</strong><small>Open systems, rules and reference books.</small></button>
    <button type="button" class="launcher-card assets" @onclick="OpenAssets"><span class="card-icon">✥</span><strong>ASSET DESIGNER</strong><small>Create tiles, tokens, sprites and other assets.</small></button>
    <button type="button" class="launcher-card assets card-index-primary" @onclick="OpenCardIndex"><span class="card-icon">▧</span><strong>CARD INDEX</strong><small>Your cards, library, store and custom card creator.</small></button>
@@ -67,7 +67,7 @@
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
-   <button type="button" @onclick="OpenCharacters"><span>♙</span>CHARACTERS</button>
+   <button type="button" class="coming-soon" disabled aria-disabled="true" title="Coming Soon"><span>♙</span>CHARACTERS</button>
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
@@ -169,7 +169,7 @@ else
 }
 
 <style>
- .launcher-settings-backdrop,.ticker-editor-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
+ .launcher-card.coming-soon,.launcher-secondary button.coming-soon{position:relative!important;overflow:hidden!important;opacity:.42!important;filter:grayscale(.75) saturate(.35)!important;cursor:not-allowed!important;box-shadow:none!important}\n .launcher-card.coming-soon::after,.launcher-secondary button.coming-soon::after{content:"COMING SOON";position:absolute;z-index:8;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);width:max-content;max-width:88%;padding:5px 9px;border:1px solid #d8bd79;border-radius:5px;background:rgba(6,10,13,.92);color:#f0d590;font:900 10px/1 system-ui;letter-spacing:.12em;text-align:center;box-shadow:0 4px 14px #000a;pointer-events:none}\n .launcher-settings-backdrop,.ticker-editor-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
  .ticker-editor{box-sizing:border-box;width:min(92vw,560px);display:grid;gap:12px;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
  .ticker-editor>header{display:flex;align-items:center;justify-content:space-between}.ticker-editor>header strong{color:#e5c878;letter-spacing:.12em}.ticker-editor>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
  .ticker-editor p{margin:0;color:#a8b3b8;font-size:11px;line-height:1.45}.ticker-editor textarea{box-sizing:border-box;width:100%;min-height:220px;resize:vertical;padding:10px;border:1px solid #4d626d;border-radius:8px;background:#050c10;color:#eee6d3;font:700 13px/1.55 system-ui}.ticker-editor>footer{display:flex;justify-content:flex-end;gap:8px}.ticker-editor>footer button{min-width:100px;min-height:42px;border:1px solid #6e5c31;border-radius:8px;background:#111c22;color:#f1ddb0;font-weight:900}
