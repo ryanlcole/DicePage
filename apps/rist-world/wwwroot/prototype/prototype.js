@@ -806,7 +806,7 @@ function placeLabel(text){
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,
+    id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
     fontSize:48,bold:false,italic:false,color:LABEL_COLORS[0],textAlign:'center',letterSpacing:0,plate:false,
     offsetX:0,offsetY:0,parallaxX:0,parallaxY:0,node:null
@@ -945,7 +945,7 @@ async function placeUploadedImage(file){
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
   const tier=clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
   const item={
-    id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,
+    id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1),tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
@@ -1321,7 +1321,8 @@ function tileLibraryAsset(raw){
     layer:String(raw?.layer||raw?.Layer||''),
     directory:String(raw?.directory||raw?.Directory||''),
     folder:String(raw?.folder||raw?.Folder||''),
-    kind:String(raw?.assetKind||raw?.AssetKind||'tile').toLowerCase()
+    kind:String(raw?.assetKind||raw?.AssetKind||'tile').toLowerCase(),
+    scale:String(raw?.layer||raw?.Layer||'').toUpperCase()
   };
 }
 async function ensureTileLibrary(force=false){
@@ -1334,9 +1335,9 @@ async function ensureTileLibrary(force=false){
     if(!response.ok)throw new Error(`Tile library unavailable (${response.status})`);
     const raw=await response.json();
     tileCatalog=(Array.isArray(raw)?raw:[]).map(tileLibraryAsset).filter(asset=>
-      asset.id&&asset.image&&asset.kind!=='sprite'&&asset.layer.toUpperCase()==='WORLD'&&asset.directory.toLowerCase()==='terrain'
+      asset.id&&asset.image&&asset.kind!=='sprite'&&asset.scale===ASSET_SCALE&&(REGION_DEFINER||asset.directory.toLowerCase()==='terrain')
     );
-    if(!tileCatalog.length)throw new Error('No World terrain tiles are registered.');
+    if(!tileCatalog.length)throw new Error(`No ${ASSET_SCALE.toLowerCase()} tiles are registered.`);
     const folders=tileLibraryFolders();
     if(tileLibraryFolder&&!folders.includes(tileLibraryFolder))tileLibraryFolder=null;
     tileLibraryPage=0;
@@ -1369,7 +1370,7 @@ function placeLibraryTile(asset){
   if(!asset?.image)return;
   const point=viewerCenterPosition(),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
-    assetId:asset.id,name:asset.name,libraryTile:true,
+    assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
     x:point.x,y:point.y,tier:placementAddress(currentTierIndex(),1).tier,layer:placementAddress(currentTierIndex(),1).layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
@@ -1403,7 +1404,7 @@ function spriteLibraryAsset(raw){
   const rows=cropHeight&&sourceHeight?Math.max(1,Math.floor((sourceHeight-cropY)/cropHeight)):1;
   return{
     id:String(raw?.id||raw?.Id||''),name:String(raw?.name||raw?.Name||'Sprite'),image,
-    folder:String(raw?.folder||raw?.Folder||'Sprites'),kind:String(raw?.assetKind||raw?.AssetKind||'sprite').toLowerCase(),
+    folder:String(raw?.folder||raw?.Folder||'Sprites'),kind:String(raw?.assetKind||raw?.AssetKind||'sprite').toLowerCase(),scale:String(raw?.layer||raw?.Layer||'').toUpperCase(),
     defaultTierIndex:clamp(Math.trunc(Number(raw?.defaultTierIndex||raw?.DefaultTierIndex)||0),0,TIERS.length-1),
     defaultLayerOffset:clamp(Math.trunc(Number(raw?.defaultLayerOffset||raw?.DefaultLayerOffset)||0),0,9),
     frameCount,fps,sourceWidth,sourceHeight,cropX,cropY,cropWidth,cropHeight,columns,rows
@@ -1414,8 +1415,8 @@ async function ensureSpriteLibrary(force=false){
   spriteLibraryLoading=true;spriteLibraryError='';if(keyboardMode==='Sprites')renderKeyboardKeys();
   try{
     const response=await fetch(SPRITE_LIBRARY_URL,{cache:'force-cache'});if(!response.ok)throw new Error(`Sprite library unavailable (${response.status})`);
-    const raw=await response.json();spriteCatalog=(Array.isArray(raw)?raw:[]).map(spriteLibraryAsset).filter(asset=>asset.id&&asset.image&&asset.kind==='sprite');
-    if(!spriteCatalog.length)throw new Error('No registered sprites found.');
+    const raw=await response.json();spriteCatalog=(Array.isArray(raw)?raw:[]).map(spriteLibraryAsset).filter(asset=>asset.id&&asset.image&&asset.kind==='sprite'&&asset.scale===ASSET_SCALE);
+    if(!spriteCatalog.length)throw new Error(`No registered ${ASSET_SCALE.toLowerCase()} sprites found.`);
     if(spriteLibraryFolder&&!spriteCatalog.some(asset=>asset.folder===spriteLibraryFolder))spriteLibraryFolder=null;spriteLibraryPage=0;
   }catch(error){spriteCatalog=[];spriteLibraryError=String(error?.message||error||'Sprite library unavailable.')}
   finally{spriteLibraryLoading=false;if(keyboardMode==='Sprites')renderKeyboardKeys()}
@@ -1435,7 +1436,7 @@ async function placeSpriteDefinition(definition){
   announce(`Preparing frame 1 of ${definition.name||'sprite'} for placement.`);
   const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
   const item={
-    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,
+    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,
     spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:Math.max(1,Number(definition.fps)||6),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
     spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,
@@ -1546,7 +1547,7 @@ function renderKeyboardKeys(){
       keyboardKeys.append(
         toolKey('MY TILES','Personal folder',()=>openPersonalFolder('Tiles')),
         toolKey('MY ASSETS','Other uploads',()=>openPersonalFolder('Uploads')),
-        toolKey('WORLD','Tile Library',()=>{},true)
+        toolKey(ASSET_SCALE,REGION_DEFINER?'Regional Asset Library':'Tile Library',()=>{},true)
       );
       folders.forEach(folder=>keyboardKeys.append(toolKey(folder,'Folder',()=>openTileLibraryFolder(folder))));
       if(!folders.length)keyboardKeys.append(toolKey('EMPTY','No registered folders',()=>{},true));
