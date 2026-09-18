@@ -31,7 +31,7 @@ const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('h
 const planeByKey={surface,highlands,mountains};
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode='Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier='all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
 function updateUpscaleControl(){
@@ -80,6 +80,9 @@ async function applyUpscalePreference(){
 }
 async function toggleUpscale(){
   upscaleEnabled=!upscaleEnabled;try{localStorage.setItem(UPSCALE_KEY,upscaleEnabled?'on':'off')}catch{}
+  updateUpscaleControl();
+  if(upscaleEnabled&&!layerReady.surface){stage.dataset.upscale='waiting-for-canonical';announce('Upscale will activate after the canonical surface finishes loading.');return}
+  upscaleStarted=upscaleEnabled;
   await applyUpscalePreference();
 }
 function tierByIndex(index){return TIERS.find(t=>t.index===index)||TIERS[0]}
@@ -330,6 +333,7 @@ BASE_WORLD_ASSETS.forEach(asset=>{
       naturalHeight=node.naturalHeight||1;
       loading.hidden=true;
       fitMap();
+      if(upscaleEnabled&&!upscaleStarted){upscaleStarted=true;void applyUpscalePreference()}
     }else{
       if(asset.key==='surface')loading.hidden=true;
       renderState();
@@ -480,5 +484,5 @@ renderTierMenu();
 renderKeyboardTabs();
 renderState();
 updateUpscaleControl();
-if(upscaleEnabled)void applyUpscalePreference();
+if(upscaleEnabled)stage.dataset.upscale='waiting-for-canonical';
 })();
