@@ -34,7 +34,8 @@ export function attach(frame,dotnet){
           ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10)
           : Array.from({length:10},(_,index)=>index);
         const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
-        const result=await dotnet.invokeMethodAsync("SubmitRegionClaimRequestFromPrototypeAsync",cells,tierIndex,sourceLayerOffsets,gridShape);
+        const name=String(data.name||"").trim();
+        const result=await dotnet.invokeMethodAsync("SubmitRegionClaimRequestFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
         post(frame,{type:"claim-requested",result});
         return;
       }
