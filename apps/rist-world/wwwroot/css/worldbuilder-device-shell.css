@@ -342,3 +342,44 @@
   .wb-viewer-widget,
   .wb-world-label-draft{transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
+
+
+/* Undeveloped keyboard families remain visible for roadmap clarity, but cannot be mistaken for working tools. */
+.wb-device-mode.coming-soon,
+.wb-device-key.coming-soon{
+  position:relative;
+  overflow:hidden;
+  opacity:.42!important;
+  filter:grayscale(.8) saturate(.3);
+  cursor:not-allowed!important;
+}
+.wb-device-mode.coming-soon::after,
+.wb-device-key.coming-soon::after{
+  content:"COMING SOON";
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) rotate(-7deg);
+  width:max-content;
+  max-width:92%;
+  padding:3px 5px;
+  border:1px solid rgba(238,211,145,.88);
+  border-radius:4px;
+  background:rgba(12,12,14,.92);
+  color:#efd791;
+  font:800 7px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  letter-spacing:.08em;
+  text-align:center;
+  pointer-events:none;
+}
+.wb-device-mode.coming-soon::after{
+  font-size:6px;
+  padding:2px 4px;
+}
+.wb-access-contrast .wb-device-mode.coming-soon::after,
+.wb-access-contrast .wb-device-key.coming-soon::after{
+  border-color:#fff;
+  background:#000;
+  color:#fff;
+}
