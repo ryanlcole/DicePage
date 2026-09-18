@@ -40,6 +40,40 @@ public enum AccountSensitiveAction
     ExportPrivateUserData
 }
 
+/// <summary>
+/// Claim permissions are the GM-facing decisions for user-selected map portions.
+/// ReleaseOwnership is a transfer operation, not a standing access mode.
+/// </summary>
+public enum WorldClaimPermission
+{
+    Blocked = 0,
+    Restricted = 1,
+    Limited = 2,
+    Cooperative = 3,
+    ReleaseOwnership = 4
+}
+
+public static class WorldClaimAuthorityPolicy
+{
+    public static bool CanSubmitRequest(WorldClaimPermission permission) =>
+        permission is WorldClaimPermission.Restricted
+            or WorldClaimPermission.Limited
+            or WorldClaimPermission.Cooperative;
+
+    public static bool RequiresExplicitSpatialScope(WorldClaimPermission permission) =>
+        permission is WorldClaimPermission.Restricted or WorldClaimPermission.Limited;
+
+    public static bool IsOwnershipTransfer(WorldClaimPermission permission) =>
+        permission == WorldClaimPermission.ReleaseOwnership;
+
+    public static string ReleaseOwnershipApprovalText(string resourceId, string newOwnerUserId)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId)) throw new ArgumentException("Resource ID is required.", nameof(resourceId));
+        if (string.IsNullOrWhiteSpace(newOwnerUserId)) throw new ArgumentException("New owner user ID is required.", nameof(newOwnerUserId));
+        return $"RELEASE OWNERSHIP OF {resourceId} TO {newOwnerUserId}";
+    }
+}
+
 public sealed record AuthorityDecision(
     bool Allowed,
     PermissionGrant EffectivePermission,
@@ -90,13 +124,16 @@ public sealed class AuthorityResourcePolicy
     {
         ResourceId = resourceId;
         OwnerUserId = ownerUserId;
+        Owners.Add(ownerUserId);
         Entries[ownerUserId] = PermissionGrant.Edit;
     }
 
     public string ResourceId { get; }
-    public string OwnerUserId { get; }
+    public string OwnerUserId { get; internal set; }
+    public IReadOnlySet<string> OwnerUserIds => Owners;
     public bool StopsInheritance { get; internal set; }
     public IReadOnlyDictionary<string, PermissionGrant> Permissions => Entries;
+    internal HashSet<string> Owners { get; } = new(StringComparer.Ordinal);
     internal Dictionary<string, PermissionGrant> Entries { get; } = new(StringComparer.Ordinal);
 }
 
@@ -235,14 +272,64 @@ public sealed class RecursiveAuthorityService
     public bool CanManagePermissions(string actorUserId, string resourceId, string? delegationId = null)
     {
         if (!resources.TryGetValue(resourceId, out var policy)) return false;
-        if (StringComparer.Ordinal.Equals(policy.OwnerUserId, actorUserId)) return true;
+        if (policy.Owners.Contains(actorUserId)) return true;
         if (delegationId is null || !delegations.TryGetValue(delegationId, out var grant)) return false;
 
         return grant.IsActive(DateTimeOffset.UtcNow)
             && StringComparer.Ordinal.Equals(grant.DelegateUserId, actorUserId)
-            && StringComparer.Ordinal.Equals(grant.OwnerUserId, policy.OwnerUserId)
+            && policy.Owners.Contains(grant.OwnerUserId)
             && grant.Capabilities.HasFlag(DelegatedCapability.ManagePermissions)
             && ScopeMatches(grant.ResourceScope, resourceId, null);
+    }
+
+    public void GrantCooperativeOwnership(string ownerSessionId, string resourceId, string newOwnerUserId)
+    {
+        RequireId(newOwnerUserId, nameof(newOwnerUserId));
+        if (!sessions.TryGetValue(ownerSessionId, out var ownerSession) || !IsDirectSession(ownerSession))
+            throw new UnauthorizedAccessException("Co-operative ownership requires a direct authenticated owner session.");
+        if (!resources.TryGetValue(resourceId, out var policy))
+            throw new InvalidOperationException($"Unknown authority resource '{resourceId}'.");
+        if (!policy.Owners.Contains(ownerSession.ActorUserId))
+            throw new UnauthorizedAccessException("Only an existing owner may add a co-owner.");
+        if (StringComparer.Ordinal.Equals(ownerSession.ActorUserId, newOwnerUserId) || policy.Owners.Contains(newOwnerUserId))
+            return;
+
+        policy.Owners.Add(newOwnerUserId);
+        policy.Entries[newOwnerUserId] = PermissionGrant.Edit;
+        Record("cooperative-owner-add", ownerSession.ActorUserId, newOwnerUserId, resourceId, null, true,
+            $"owners={string.Join(',', policy.Owners.Order())}");
+    }
+
+    public void ReleaseOwnership(string ownerSessionId, string resourceId, string newOwnerUserId, string writtenApproval)
+    {
+        RequireId(newOwnerUserId, nameof(newOwnerUserId));
+        if (!sessions.TryGetValue(ownerSessionId, out var ownerSession) || !IsDirectSession(ownerSession))
+            throw new UnauthorizedAccessException("Ownership release requires a direct authenticated owner session.");
+        if (!resources.TryGetValue(resourceId, out var policy))
+            throw new InvalidOperationException($"Unknown authority resource '{resourceId}'.");
+        if (!policy.Owners.Contains(ownerSession.ActorUserId))
+            throw new UnauthorizedAccessException("Only an existing owner may release ownership.");
+        if (StringComparer.Ordinal.Equals(ownerSession.ActorUserId, newOwnerUserId))
+            throw new InvalidOperationException("Ownership cannot be released to the same user.");
+
+        var required = WorldClaimAuthorityPolicy.ReleaseOwnershipApprovalText(resourceId, newOwnerUserId);
+        if (!StringComparer.Ordinal.Equals((writtenApproval ?? "").Trim(), required))
+        {
+            Record("ownership-release", ownerSession.ActorUserId, newOwnerUserId, resourceId, null, false,
+                "Written approval did not match the required transfer statement.");
+            throw new UnauthorizedAccessException("Written ownership-release approval did not match.");
+        }
+
+        var releasingOwner = ownerSession.ActorUserId;
+        policy.Owners.Remove(releasingOwner);
+        policy.Entries.Remove(releasingOwner);
+        policy.Owners.Add(newOwnerUserId);
+        policy.Entries[newOwnerUserId] = PermissionGrant.Edit;
+        if (StringComparer.Ordinal.Equals(policy.OwnerUserId, releasingOwner))
+            policy.OwnerUserId = newOwnerUserId;
+
+        Record("ownership-release", releasingOwner, newOwnerUserId, resourceId, null, true,
+            $"released={releasingOwner}; owners={string.Join(',', policy.Owners.Order())}");
     }
 
     public void SetPermission(
