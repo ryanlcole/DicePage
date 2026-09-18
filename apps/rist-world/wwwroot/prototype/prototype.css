@@ -87,6 +87,9 @@
     .keyboard-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));grid-auto-rows:minmax(48px,1fr);gap:6px;overflow:auto;padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left))}
     .keyboard-keys button{min-height:48px;border:1px solid #425861;border-radius:8px;background:#0c1820;color:#dae2e5;display:grid;place-items:center;align-content:center;gap:3px;font-weight:900;touch-action:manipulation}
     .keyboard-keys button strong{color:#efd895;font-size:12px}.keyboard-keys button small{color:#829daa;font-size:7px;letter-spacing:.07em;text-transform:uppercase}.keyboard-keys button[disabled]{opacity:.45}.keyboard-keys .readout{pointer-events:none}.keyboard-keys .readout strong{font-size:10px}
+    .keyboard-keys .placed-content-select{min-height:48px;grid-column:span 2;min-width:0;padding:0 34px 0 10px;border:1px solid #8c6b2d;border-radius:8px;background:#0c1820;color:#f3deb0;font:800 9px/1.2 system-ui;touch-action:manipulation}
+    .keyboard-keys .placed-content-select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
+    .keyboard-keys .placed-content-select:disabled{opacity:.45}
     .keyboard-keys .library-tile-key{position:relative;min-height:72px;padding:0;overflow:hidden;display:block;background:#071018;border-color:#7b6331}
     .keyboard-keys .library-tile-key img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none}
     .keyboard-keys .library-tile-key small{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:5px 4px;background:linear-gradient(transparent,#000d 38%);color:#fff0bb;font-size:7px;line-height:1.15;letter-spacing:0;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
