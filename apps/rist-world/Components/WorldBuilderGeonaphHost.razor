@@ -20,11 +20,11 @@ else
    <section class="shaelvien-land-dock" aria-label="Shaelvien MMO world ownership">
     <div>
      <small>SHAELVIEN · ORIGIN: ENDEMAR</small>
-     <strong>@Session.MmoWorldTokenLabel</strong>
+     <strong>@(Session.IsLoggedIn?Session.MmoWorldTokenLabel:"RIST ACCOUNT REQUIRED")</strong>
      <span>@LandSummary</span>
     </div>
     <div class="shaelvien-land-actions">
-     @if(Session.HasUnspentMmoWorldToken && Session.OwnedMmoParcel is null)
+     @if(Session.IsLoggedIn && Session.HasUnspentMmoWorldToken && Session.OwnedMmoParcel is null)
      {
       <button type="button" class="claim" @onclick="OpenClaim">CLAIM WORLD</button>
      }
@@ -159,9 +159,11 @@ else
  AwsAuthorityClient.MmoParcel? ManageableParcel =>
   Session.MmoParcels.FirstOrDefault(parcel=>Session.CanManageMmoParcel(parcel));
 
- string LandSummary => _loading
-  ? "Loading Shaelvien land authority…"
-  : Session.OwnedMmoParcel is { } owned
+ string LandSummary => !Session.IsLoggedIn
+  ? "Create or sign in to a completed RIST profile to receive a Shaelvien world token."
+  : _loading
+   ? "Loading Shaelvien land authority…"
+   : Session.OwnedMmoParcel is { } owned
    ? $"{owned.DisplayName} · {owned.PixelWidth}×{owned.PixelHeight}px · height {owned.MaxHeight}"
    : Session.HasUnspentMmoWorldToken
     ? "One unspent token can permanently claim an available world square."
