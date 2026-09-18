@@ -51,6 +51,7 @@ const SPRITE_LIBRARY_PAGE_SIZE=12;
 let spriteCatalog=[],spriteLibraryFolder=null,spriteLibraryPage=0,spriteLibraryLoading=false,spriteLibraryError='';
 const PERSONAL_ASSET_INDEX_KEY='uploads/index.json';
 const PERSONAL_ASSET_PAGE_SIZE=12;
+const PERSONAL_ASSET_MAX_BYTES=20*1024*1024;
 let personalAssets=[],personalAssetLoading=false,personalAssetError='',personalFolderType=null,personalAssetPage=0,personalAuthConfigPromise=null;
 const pendingPersonalUploads=new Set();
 const spriteTimers=new Map();
@@ -1015,10 +1016,12 @@ async function ensurePersonalAssets(force=false){
 }
 function trackPersonalUpload(promise){
   pendingPersonalUploads.add(promise);
-  promise.finally(()=>pendingPersonalUploads.delete(promise));
+  promise.then(()=>pendingPersonalUploads.delete(promise),()=>pendingPersonalUploads.delete(promise));
   return promise;
 }
 async function saveFileToPersonalLibrary(file,metadata={}){
+  if(!file||Number(file.size||0)<=0)throw new Error('The upload is empty');
+  if(Number(file.size||0)>PERSONAL_ASSET_MAX_BYTES)throw new Error('Personal uploads are limited to 20 MB each');
   const category=String(metadata.category||'Images'),folder=String(metadata.folder||`My ${category}`);
   const safe=personalSafeFileName(file?.name||'asset.png');
   const key=`uploads/${personalPathSegment(category)}/${personalPathSegment(folder)}/${crypto.randomUUID?.()||Date.now()}-${safe}`;
