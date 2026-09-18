@@ -51,9 +51,9 @@ else
  async Task CompleteWorldChoiceAsync()
  {
   if(!Session.HasActiveWorld)return;
-  await Session.RefreshTrustedWorldAuthorityAsync();
   _launchWorldChosen=true;
   await InvokeAsync(StateHasChanged);
+  await Session.RefreshTrustedWorldAuthorityAsync();
  }
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
