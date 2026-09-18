@@ -208,6 +208,14 @@ async function renderRegionEnhancement(){
       entry.bitmap=await regionBitmap(collisionSource(entry.node));
       if(!regionRenderStillValid(token,revision))return;
     }
+    const overlays=[...userLayers]
+      .filter(item=>item?.node&&Number(item.renderOpacity)>0.001)
+      .sort((a,b)=>((a.tier*100)+a.layer+(a.stackOrder||0)/100)-((b.tier*100)+b.layer+(b.stackOrder||0)/100));
+    for(const item of overlays){
+      const src=item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc;
+      item.regionBitmap=await regionBitmap(src);
+      if(!regionRenderStillValid(token,revision))return;
+    }
     if(!regionRenderStillValid(token,revision))return;
     const dpr=Math.min(Math.max(Number(devicePixelRatio)||1,1),REGION_ENHANCE_MAX_DPR);
     const width=Math.max(1,Math.round(r.width*dpr)),height=Math.max(1,Math.round(r.height*dpr));
@@ -226,6 +234,26 @@ async function renderRegionEnhancement(){
     ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
     if(!regionRenderStillValid(token,revision))return;
     sharpenRegionPixels(ctx,width,height,.34);
+    if(!regionRenderStillValid(token,revision))return;
+
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+    for(const item of overlays){
+      const bitmap=item.regionBitmap;if(!bitmap||!regionRenderStillValid(token,revision))continue;
+      const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
+      const centerX=x+((item.x*naturalWidth+px)*scale),centerY=y+((item.y*naturalHeight+py)*scale);
+      const baseW=naturalWidth*.12,baseH=baseW*(bitmap.height/Math.max(bitmap.width,1));
+      const w=baseW*Math.max(Number(item.size)||1,.00001)*scale,h=baseH*Math.max(Number(item.size)||1,.00001)*scale;
+      ctx.save();
+      ctx.globalAlpha=clamp(Number(item.renderOpacity??item.opacity)||0,0,1);
+      ctx.translate(centerX,centerY);
+      ctx.rotate((Number(item.rotation)||0)*Math.PI/180);
+      ctx.drawImage(bitmap,-w/2,-h/2,w,h);
+      if(item===selectedImage){
+        ctx.globalAlpha=1;ctx.lineWidth=Math.max(1,2/dpr);ctx.strokeStyle='rgba(240,204,105,.95)';ctx.strokeRect(-w/2,-h/2,w,h);
+      }
+      ctx.restore();
+    }
+    ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
     if(!regionRenderStillValid(token,revision))return;
     const wasActive=regionEnhanceActive;regionEnhanceActive=true;
     stage.dataset.detailMode='region-enhanced';
@@ -341,7 +369,7 @@ function viewerCenterPosition(){
 function openImageUpload(){
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
-  imageTier.value=String(currentTierIndex());imageLayer.value=String(viewerLayer);
+  imageTier.value=String(currentTierIndex());imageLayer.value=String(clamp(viewerLayer+1,0,9));
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
   announce(`Image upload opened. Viewer frozen. Position defaults to ${tierLabel(tierByIndex(currentTierIndex()))}, layer ${viewerLayer}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
@@ -376,6 +404,7 @@ function refreshUserImage(item){
 function removeSelectedImage(){if(!selectedImage)return;const index=userLayers.indexOf(selectedImage);selectedImage.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Image removed from the layer stack.')}
 function beginImageDrag(event,item){
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
+  suspendRegionEnhancement();
   imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y};
 }
 function moveImageDrag(event){
@@ -384,7 +413,7 @@ function moveImageDrag(event){
   imageDrag.item.y=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
   refreshUserImage(imageDrag.item);
 }
-function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null}
+function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null;scheduleRegionEnhancement(40)}
 async function placeUploadedImage(file){
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
@@ -395,8 +424,8 @@ async function placeUploadedImage(file){
   };
   const node=document.createElement('img');node.className='user-image-placement';node.alt='Placed user image';node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
-  announce(`Image placed in ${tierLabel(tierByIndex(tier))}, layer ${layer}. Image editing keyboard opened.`);
+  userLayers.push(item);world.appendChild(node);void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  announce(`Image placed above ${tierLabel(tierByIndex(tier))} as layer ${layer}. Image editing keyboard opened.`);
 }
 function tierMix(){
   if(viewerTier!=='all'){const index=tierByKey(viewerTier).index;return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0}}
