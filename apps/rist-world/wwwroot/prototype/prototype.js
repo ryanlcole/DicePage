@@ -563,11 +563,25 @@ function openSpriteUpload(){
 function closeSpriteUpload(){spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');keyboardMode='Sprites';renderKeyboardTabs();renderKeyboardKeys()}
 function syncSpriteFrameCount(){const cols=clamp(Math.trunc(Number(spriteColumns.value)||1),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||1),1,16);spriteFrameCount.value=String(cols*rows)}
 function whitenToAlpha(data){
-  const px=data.data;
-  for(let i=0;i<px.length;i+=4){
-    const min=Math.min(px[i],px[i+1],px[i+2]);
-    if(min>=248){px[i+3]=0;continue}
-    if(min>=228){px[i+3]=Math.round(px[i+3]*((248-min)/20))}
+  const px=data.data,width=data.width,height=data.height,count=width*height;
+  const mask=new Uint8Array(count),seen=new Uint8Array(count),queue=new Int32Array(count);
+  for(let p=0,i=0;p<count;p++,i+=4){
+    const r=px[i],g=px[i+1],b=px[i+2],lo=Math.min(r,g,b),hi=Math.max(r,g,b);
+    if(lo>=226&&hi-lo<=24)mask[p]=1;
+  }
+  const minimumRegion=Math.max(512,Math.floor(count*.02));
+  for(let start=0;start<count;start++){
+    if(!mask[start]||seen[start])continue;
+    let head=0,tail=0;queue[tail++]=start;seen[start]=1;
+    while(head<tail){
+      const p=queue[head++],x=p%width,y=(p/width)|0;
+      if(x>0){const n=p-1;if(mask[n]&&!seen[n]){seen[n]=1;queue[tail++]=n}}
+      if(x+1<width){const n=p+1;if(mask[n]&&!seen[n]){seen[n]=1;queue[tail++]=n}}
+      if(y>0){const n=p-width;if(mask[n]&&!seen[n]){seen[n]=1;queue[tail++]=n}}
+      if(y+1<height){const n=p+width;if(mask[n]&&!seen[n]){seen[n]=1;queue[tail++]=n}}
+    }
+    if(tail<minimumRegion)continue;
+    for(let q=0;q<tail;q++)px[(queue[q]*4)+3]=0;
   }
   return data;
 }
