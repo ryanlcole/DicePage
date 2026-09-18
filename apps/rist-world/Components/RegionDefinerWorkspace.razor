@@ -57,19 +57,27 @@
    // RegionDefiner always consumes the selected world's authored map through the
    // bridge below. Endemar is intentionally not given a special static seed.
    var seed="empty";
-   var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var activeRegion=Session.ActiveRegion;
+   var surfacePixels=activeRegion?.ParcelPixelWidth>0
+    ? activeRegion.ParcelPixelWidth
+    : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
+   var maxHeight=activeRegion?.MaxHeight>0
+    ? activeRegion.MaxHeight
+    : WorldSession.LayersPerTier;
+   var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
+    ?"mmo-parcel"
+    : Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}";
   }
  }
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_bridgeAttached)return;
+  if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
   await Session.LoadRegionsAsync();
   _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-flow-3");
   _self=DotNetObjectReference.Create(this);
@@ -89,6 +97,11 @@
    gridStyle=Session.GridStyle,
    planeIndex=Session.PlaneIndex,
    source="database",
+   activeRegionId=Session.ActiveRegion?.RegionId??"",
+   parcelId=Session.ActiveRegion?.ParcelId??"",
+   parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
+   parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,
+   maxHeight=Session.ActiveRegion?.MaxHeight??0,
    fallbackSurfaceImage=Session.IsGeonaphWorld?Session.WorldMapUrl:"",
    fallbackTierImages=Session.IsGeonaphWorld
     ? new[]
@@ -141,6 +154,11 @@
    selectedCells=region.SelectedCells,
    sourceLayerOffsets=region.SourceLayerOffsets,
    gridShape=region.GridShape,
+   ownerUserId=region.OwnerUserId,
+   parcelId=region.ParcelId,
+   parcelPixelWidth=region.ParcelPixelWidth,
+   parcelPixelHeight=region.ParcelPixelHeight,
+   maxHeight=region.MaxHeight,
    updatedAtUtc=region.UpdatedAtUtc
   }).ToList();
  }
