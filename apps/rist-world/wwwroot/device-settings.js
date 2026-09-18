@@ -44,6 +44,58 @@
   }
  };
 
+ const MIC_SESSION_KEY='rist.microphone.permission.v1';
+ const AUDIO_SESSION_KEY='rist.audio.unlock.v1';
+ const audioCtor=()=>window.AudioContext||window.webkitAudioContext||null;
+ let startAudioContext=null;
+ async function unlockAudio(){
+  if(read(sessionStorage,AUDIO_SESSION_KEY,'')==='unlocked')return 'unlocked';
+  const Ctor=audioCtor();
+  if(!Ctor)return 'unsupported';
+  try{
+   startAudioContext=startAudioContext||new Ctor();
+   const resume=startAudioContext.resume?.();
+   if(resume&&typeof resume.then==='function')await resume;
+   const status=startAudioContext.state==='running'?'unlocked':'blocked';
+   if(status==='unlocked')write(sessionStorage,AUDIO_SESSION_KEY,status);
+   return status;
+  }catch{return 'blocked'}
+ }
+ async function requestMicrophone(){
+  const cached=read(sessionStorage,MIC_SESSION_KEY,'');
+  if(cached==='granted'||cached==='denied'||cached==='unsupported')return cached;
+  const gum=navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices);
+  if(!gum){write(sessionStorage,MIC_SESSION_KEY,'unsupported');return 'unsupported'}
+  try{
+   const stream=await gum({audio:true,video:false});
+   stream?.getTracks?.().forEach(track=>track.stop());
+   write(sessionStorage,MIC_SESSION_KEY,'granted');
+   return 'granted';
+  }catch(error){
+   const name=String(error?.name||'');
+   const status=name==='NotAllowedError'||name==='SecurityError'?'denied':'unavailable';
+   if(status==='denied')write(sessionStorage,MIC_SESSION_KEY,status);
+   return status;
+  }
+ }
+ window.ristDeviceCapabilities={
+  audioState:()=>read(sessionStorage,AUDIO_SESSION_KEY,'prompt'),
+  microphoneState:()=>read(sessionStorage,MIC_SESSION_KEY,navigator.mediaDevices?.getUserMedia?'prompt':'unsupported'),
+  async requestAtStart({motion=true,microphone=true,audio=true}={}){
+   // Audio must be opened from the user's Start gesture. Browser permission
+   // prompts for motion and microphone follow from the same explicit action.
+   const audioPromise=audio?unlockAudio():Promise.resolve('disabled');
+   let motionStatus='disabled';
+   if(motion)try{motionStatus=await window.ristMotionPermission?.request?.()||'unsupported'}catch{motionStatus='denied'}
+   let microphoneStatus='disabled';
+   if(microphone)microphoneStatus=await requestMicrophone();
+   const audioStatus=await audioPromise;
+   const detail={audio:audioStatus,motion:motionStatus,microphone:microphoneStatus};
+   dispatchEvent(new CustomEvent('rist-device-capabilities',{detail}));
+   return detail;
+  }
+ };
+
  const fullscreenElement=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
  const fullscreenRequest=()=>{
   const el=document.documentElement;
