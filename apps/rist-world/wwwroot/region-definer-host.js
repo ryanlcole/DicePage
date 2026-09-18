@@ -19,7 +19,11 @@ export function attach(frame,dotnet){
     if(!data||data.source!=="shaelvien-regiondefiner")return;
     try{
       if(data.type==="ready"){
-        const regions=await dotnet.invokeMethodAsync("GetRegionCatalogForPrototype");
+        const [regions,worldSource]=await Promise.all([
+          dotnet.invokeMethodAsync("GetRegionCatalogForPrototype"),
+          dotnet.invokeMethodAsync("GetWorldSourceForPrototype")
+        ]);
+        post(frame,{type:"world-source",worldSource:worldSource||null});
         post(frame,{type:"catalog",regions:Array.isArray(regions)?regions:[]});
         return;
       }
