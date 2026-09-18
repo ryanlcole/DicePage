@@ -1174,6 +1174,7 @@ function snapRegionPoint(x,y){
 }
 function setRegionGridShape(shape){
   if(!REGION_DEFINER)return;
+  if(regionClaimedRegion&&(regionClaimPhase==='saved'||regionClaimPhase==='build')){announce('This region grid is fixed by its saved claim. Start a new claim to choose a different grid.');return}
   regionGridShape=normalizeRegionGridShape(shape);
   updateRegionSelectionOverlay();renderKeyboardKeys();
   announce(`${regionGridShape==='hex'?'Hex':'Square'} grid selected for region selection and placement.`);
@@ -1362,7 +1363,7 @@ function startRegionClaim(){
   if(!REGION_DEFINER||READ_ONLY)return;
   stage.classList.remove('region-build-mode');
   clearClaimedRegionCrop(false);
-  regionClaimPhase='tier';regionGridShape='square';regionCropPreview=false;regionSelectionEnabled=false;regionNameDraft='';regionSelectedCells.clear();
+  regionClaimPhase='tier';regionCropPreview=false;regionSelectionEnabled=false;regionNameDraft='';regionSelectedCells.clear();
   viewerTier='sea';viewerLayer=0;updateTierButton();renderTierMenu();fitMap();updateRegionSelectionOverlay();renderKeyboardKeys();
   announce('Claim Region started. Surface is the default. Choose a Tier, then select tiles.');
 }
@@ -1963,8 +1964,10 @@ function renderKeyboardKeys(){
       toolKey('⌁','reset tilt',resetTilt)
     );
     if(REGION_DEFINER)keyboardKeys.append(
-      readoutKey('SURFACE','default regional source view'),
-      toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement grid',cycleRegionGridShape),
+      readoutKey(regionClaimedRegion?'REGION':'SURFACE',regionClaimedRegion?'claimed full map':'default regional source view'),
+      regionClaimedRegion
+        ? readoutKey(regionGridShape.toUpperCase(),'saved placement grid')
+        : toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement grid',cycleRegionGridShape),
       toolKey(regionClaimedRegion?'REGION':'CLAIM','open Select tools',()=>{keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce(regionClaimedRegion?'Claimed Region controls opened.':'Claim Region controls opened.')})
     );
     return;
