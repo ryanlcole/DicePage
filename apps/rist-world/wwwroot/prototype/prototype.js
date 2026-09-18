@@ -158,7 +158,7 @@ function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
   return hit;
 }
 function userCollision(item,clientX,clientY){
-  if(!item?.node||item.zoomPassed)return null;
+  if(!item?.node||item.zoomPassed||item.kind==='label')return null;
   const visible=viewerTier==='all'||item.tier===tierByKey(viewerTier).index;
   if(!visible||!(Number(item.opacity)>0))return null;
   const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
@@ -231,6 +231,16 @@ async function readSavedWorldBuilder(){
   }finally{db.close()}
 }
 function serializableUserLayer(item){
+  if(item?.kind==='label'){
+    return{
+      id:item.id,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
+      fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
+      textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
+      plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),committed:true
+    };
+  }
   return{
     id:item.id,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
@@ -265,7 +275,7 @@ async function saveWorldBuilder(){
     deselectUserImage(false);
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
-    announce(`World Builder saved. ${state.userLayers.length} placed image layer${state.userLayers.length===1?'':'s'} committed. Use the Select keyboard to edit saved content.`);
+    announce(`World Builder saved. ${state.userLayers.length} placed item${state.userLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
     return true;
   }catch(error){
     announce(`Save failed: ${String(error?.message||error||'unknown error')}`);
@@ -275,8 +285,23 @@ async function saveWorldBuilder(){
   }
 }
 async function attachRestoredLayer(raw){
+  const kind=String(raw?.kind||'image').toLowerCase();
+  if(kind==='label'){
+    const item={
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),
+      x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+      layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
+      fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
+      textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
+      plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),
+      committed:raw.committed!==false,renderOpacity:1,parallaxX:0,parallaxY:0,node:null
+    };
+    const node=document.createElement('div');node.className='user-image-placement user-label-placement';node.setAttribute('role','text');node.setAttribute('aria-label',`World label: ${item.text}`);item.node=node;
+    node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+    userLayers.push(item);world.appendChild(node);refreshUserLabel(item);return item;
+  }
   if(!raw?.originalSrc&&!raw?.spriteSheetSrc)return null;
-  const kind=String(raw.kind||'image').toLowerCase(),isSprite=kind==='sprite';
+  const isSprite=kind==='sprite';
   let frameSources=[];
   if(isSprite){
     const sheet=String(raw.spriteSheetSrc||raw.originalSrc||'');
@@ -325,7 +350,7 @@ async function restoreSavedWorldBuilder(){
     viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
     viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
     selectedImage=null;updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
-    announce(`Saved World Builder restored. ${userLayers.length} placed image layer${userLayers.length===1?'':'s'} loaded.`);
+    announce(`Saved World Builder restored. ${userLayers.length} placed item${userLayers.length===1?'':'s'} loaded.`);
   }catch{}
 }
 function ensureRegionEnhanceCanvas(){
@@ -402,7 +427,7 @@ async function renderRegionEnhancement(){
       if(!regionRenderStillValid(token,revision))return;
     }
     const overlays=[...userLayers]
-      .filter(item=>item?.node&&Number(item.renderOpacity)>0.001)
+      .filter(item=>item?.node&&item.kind!=='label'&&Number(item.renderOpacity)>0.001)
       .sort((a,b)=>((a.tier*100)+a.layer+(a.stackOrder||0)/100)-((b.tier*100)+b.layer+(b.stackOrder||0)/100));
     for(const item of overlays){
       const src=item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc;
@@ -580,7 +605,7 @@ function moveSelectedTier(delta){
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
-  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
+  announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function moveSelectedLayer(delta){
   if(READ_ONLY)return;
@@ -711,8 +736,114 @@ async function transparencyCandidate(src){
   for(let i=0;i<px.length;i+=4){const d=Math.hypot(px[i]-r,px[i+1]-g,px[i+2]-b);if(d<threshold)px[i+3]=0;else if(d<threshold*1.5)px[i+3]=Math.round(255*(d-threshold)/(threshold*.5))}
   ctx.putImageData(data,0,0);return canvas.toDataURL('image/png');
 }
+const LABEL_COLORS=Object.freeze(['#fff2c7','#ffffff','#f0cc69','#a9d8ff','#b7f0c2','#ffb7b7','#d6c2ff','#121820']);
+function refreshUserLabel(item){
+  if(!item?.node)return;
+  item.node.textContent=String(item.text||'Label');
+  item.node.style.left=`${item.x*naturalWidth}px`;
+  item.node.style.top=`${item.y*naturalHeight}px`;
+  item.node.style.opacity=String(item.renderOpacity??item.opacity??1);
+  item.node.style.pointerEvents=item.committed&&selectedImage!==item?'none':'auto';
+  item.node.dataset.committed=item.committed?'true':'false';
+  item.node.dataset.anchor='world';
+  item.node.dataset.presentationOffsetX=String(Number(item.offsetX)||0);
+  item.node.dataset.presentationOffsetY=String(Number(item.offsetY)||0);
+  item.node.style.fontSize=`${clamp(Number(item.fontSize)||48,12,180)}px`;
+  item.node.style.fontWeight=item.bold?'900':'700';
+  item.node.style.fontStyle=item.italic?'italic':'normal';
+  item.node.style.color=String(item.color||LABEL_COLORS[0]);
+  item.node.style.textAlign=['left','center','right'].includes(item.textAlign)?item.textAlign:'center';
+  item.node.style.letterSpacing=`${clamp(Number(item.letterSpacing)||0,-2,12)}px`;
+  item.node.classList.toggle('plate',!!item.plate);
+  const px=(Number(item.parallaxX)||0)+(Number(item.offsetX)||0),py=(Number(item.parallaxY)||0)+(Number(item.offsetY)||0);
+  item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg)`;
+}
+function labelInput(value,placeholder,onInput,onEnter){
+  const input=document.createElement('input');input.type='text';input.className='label-text-input';input.maxLength=120;input.value=String(value||'');input.placeholder=placeholder||'Label text';
+  input.setAttribute('aria-label',placeholder||'Label text');
+  input.addEventListener('input',()=>onInput?.(input.value));
+  input.addEventListener('keydown',event=>{
+    if(event.key==='Enter'){event.preventDefault();event.stopPropagation();onEnter?.(input.value,input)}
+  });
+  return input;
+}
+function labelSelection(){
+  const labels=userLayers.filter(item=>item?.kind==='label'&&item.node);
+  const select=document.createElement('select');select.className='placed-content-select';select.setAttribute('aria-label','Select placed label');
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=labels.length?'Select label…':'No labels placed';placeholder.selected=selectedImage?.kind!=='label';select.appendChild(placeholder);
+  labels.forEach((item,index)=>{
+    const option=document.createElement('option');option.value=String(item.id);option.textContent=`${index+1}. ${String(item.text||'Label').slice(0,40)}`;option.selected=item===selectedImage;select.appendChild(option);
+  });
+  select.disabled=!labels.length;
+  select.addEventListener('change',()=>{const item=labels.find(entry=>String(entry.id)===select.value);if(item){selectUserImage(item);renderKeyboardKeys();announce(`Label selected: ${item.text}.`)}});
+  return select;
+}
+function placeLabel(text){
+  if(READ_ONLY){announce('Endemar reference mode is view only.');return null}
+  text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
+  const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
+  const item={
+    id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,
+    x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
+    fontSize:48,bold:false,italic:false,color:LABEL_COLORS[0],textAlign:'center',letterSpacing:0,plate:false,
+    offsetX:0,offsetY:0,parallaxX:0,parallaxY:0,node:null
+  };
+  const node=document.createElement('div');node.className='user-image-placement user-label-placement';node.setAttribute('role','text');node.setAttribute('aria-label',`World label: ${text}`);item.node=node;
+  node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+  userLayers.push(item);world.appendChild(node);updateLayerOrder();refreshUserLabel(item);selectUserImage(item);keyboardMode='Labels';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
+  announce(`${text} placed at Tier ${tierDisplay(item.tier).number}, Layer ${layerDisplay(item.layer)}. Drag to move the world anchor; Save commits it.`);
+  return item;
+}
+function adjustSelectedLabelFont(delta){
+  if(READ_ONLY||selectedImage?.kind!=='label')return;
+  selectedImage.fontSize=clamp((Number(selectedImage.fontSize)||48)+(Math.sign(delta||1)*4),12,180);refreshUserLabel(selectedImage);renderKeyboardKeys();
+}
+function cycleLabelColor(){
+  if(READ_ONLY||selectedImage?.kind!=='label')return;
+  const current=LABEL_COLORS.indexOf(String(selectedImage.color||LABEL_COLORS[0]));selectedImage.color=LABEL_COLORS[(current+1+LABEL_COLORS.length)%LABEL_COLORS.length];refreshUserLabel(selectedImage);renderKeyboardKeys();
+}
+function cycleLabelAlignment(){
+  if(READ_ONLY||selectedImage?.kind!=='label')return;
+  const align=['left','center','right'],current=align.indexOf(selectedImage.textAlign);selectedImage.textAlign=align[(current+1+align.length)%align.length];refreshUserLabel(selectedImage);renderKeyboardKeys();
+}
+function nudgeLabelOffset(dx,dy){
+  if(READ_ONLY||selectedImage?.kind!=='label')return;
+  selectedImage.offsetX=clamp((Number(selectedImage.offsetX)||0)+dx,-400,400);selectedImage.offsetY=clamp((Number(selectedImage.offsetY)||0)+dy,-400,400);refreshUserLabel(selectedImage);
+}
+function renderLabelsKeyboard(){
+  const selected=selectedImage?.kind==='label'?selectedImage:null;
+  if(!selected){
+    const composer=labelInput('','Type label, then Return',()=>{},value=>{const placed=placeLabel(value);if(placed)renderKeyboardKeys()});
+    keyboardKeys.append(composer,labelSelection(),toolKey('PLACE','viewer center',()=>{const input=keyboardKeys.querySelector('.label-text-input');placeLabel(input?.value||'')}));
+    return;
+  }
+  const pos=selectedPositionSummary(selected);
+  const editor=labelInput(selected.text,'Edit label text',value=>{selected.text=String(value||'').slice(0,120);selected.name=selected.text||'Label';refreshUserLabel(selected)},()=>{selected.node?.focus?.();announce('Label text updated.')});
+  keyboardKeys.append(
+    editor,labelSelection(),
+    readoutKey(`TIER ${pos.tier}`,pos.tierLabel),readoutKey(`LAYER ${pos.layer}`,'label layer'),
+    toolKey('A−',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(-1),selected.fontSize<=12),
+    toolKey('A+',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(1),selected.fontSize>=180),
+    toolKey(selected.bold?'B ✓':'B','bold',()=>{selected.bold=!selected.bold;refreshUserLabel(selected);renderKeyboardKeys()}),
+    toolKey(selected.italic?'I ✓':'I','italic',()=>{selected.italic=!selected.italic;refreshUserLabel(selected);renderKeyboardKeys()}),
+    toolKey('COLOR',String(selected.color||LABEL_COLORS[0]),cycleLabelColor),
+    toolKey(String(selected.textAlign||'center').toUpperCase(),'alignment',cycleLabelAlignment),
+    toolKey(selected.plate?'PLATE ✓':'PLATE','background',()=>{selected.plate=!selected.plate;refreshUserLabel(selected);renderKeyboardKeys()}),
+    toolKey('↺','rotate',()=>{selected.rotation=(Number(selected.rotation)||0)-15;refreshUserLabel(selected)}),
+    toolKey('↻','rotate',()=>{selected.rotation=(Number(selected.rotation)||0)+15;refreshUserLabel(selected)}),
+    toolKey('←','offset',()=>nudgeLabelOffset(-8,0)),toolKey('→','offset',()=>nudgeLabelOffset(8,0)),
+    toolKey('↑','offset',()=>nudgeLabelOffset(0,-8)),toolKey('↓','offset',()=>nudgeLabelOffset(0,8)),
+    toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),selected.tier<=0),
+    toolKey('TIER +',`T${pos.tier}`,()=>moveSelectedTier(1),selected.tier>=TIERS.length-1),
+    toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selected.tier<=0&&selected.layer<=0),
+    toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selected.tier>=TIERS.length-1&&selected.layer>=9),
+    toolKey('NEW','label',()=>{deselectUserImage(false);renderKeyboardKeys()}),
+    toolKey('DELETE','label',removeSelectedImage)
+  );
+}
 function refreshUserImage(item){
   if(!item?.node)return;
+  if(item.kind==='label'){refreshUserLabel(item);return}
   const spriteFrame=item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length?item.frameSources[clamp(Math.trunc(Number(item.currentFrame)||0),0,item.frameSources.length-1)]:null;
   const desired=spriteFrame||(item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc);
   if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired;void primeCollisionMask(desired)}
@@ -737,7 +868,8 @@ function deselectUserImage(announceChange=false){
   return true;
 }
 function placedContentLabel(item,index){
-  const name=String(item?.name||item?.assetId||'Placed image').trim()||'Placed image',pos=selectedPositionSummary(item);
+  const fallback=item?.kind==='label'?String(item?.text||'Label'):'Placed image';
+  const name=String(item?.name||item?.assetId||fallback).trim()||fallback,pos=selectedPositionSummary(item);
   return `${index+1}. ${name} · T${pos.tier} L${pos.layer} · X${pos.x} Y${pos.y}`;
 }
 function selectablePlacedContent(){
@@ -778,7 +910,7 @@ function moveImageDrag(event){
   imageDrag.item.x=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   imageDrag.item.y=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
   refreshUserImage(imageDrag.item);
-  if(keyboardMode==='Image'&&selectedImage===imageDrag.item)renderKeyboardKeys();
+  if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
 function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null;scheduleRegionEnhancement(40)}
 async function placeUploadedImage(file){
@@ -1474,11 +1606,12 @@ function renderKeyboardKeys(){
       toolKey('‹','previous image',()=>cyclePlacedSelection(-1),!items.length),
       toolKey('›','next image',()=>cyclePlacedSelection(1),!items.length),
       placedContentSelect(),
-      toolKey('EDIT','selected image',()=>{if(!selectedImage)return;keyboardMode='Image';renderKeyboardTabs();renderKeyboardKeys();announce('Image editing controls opened.')},!selectedImage),
+      toolKey('EDIT','selected content',()=>{if(!selectedImage)return;keyboardMode=selectedImage.kind==='label'?'Labels':'Image';renderKeyboardTabs();renderKeyboardKeys();announce(`${selectedImage.kind==='label'?'Label':'Image'} editing controls opened.`)},!selectedImage),
       toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
     );return;
   }
-  const sets={Pixels:['Select','Paint','Erase','Fill'],Labels:['New Label','Style','Anchor','Offset'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
+  if(keyboardMode==='Labels'){renderLabelsKeyboard();return}
+  const sets={Pixels:['Select','Paint','Erase','Fill'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
 function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label','Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
@@ -1660,7 +1793,7 @@ window.ShaelvienPrototype=Object.freeze({
   getViewerState:()=>({
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+userLayers.length,
-    userLayers:userLayers.map(item=>({id:item.id,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
+    userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
     detailMode:stage.dataset.detailMode||'world',detailScale:Number(stage.dataset.detailScale||regionZoomRatio().toFixed(2))
