@@ -24,18 +24,25 @@ class CommerceAuthorityContractTests(unittest.TestCase):
         self.assertIn('code = f"rci_{invite_id}_{secrets.token_hex(18)}"', self.source)
         self.assertIn('"codeHash": hashlib.sha256(code.encode()).hexdigest()', self.source)
         self.assertIn('path == "/authority/commerce/invites/redeem"', self.source)
-        self.assertIn('"attribute_not_exists(revokedAtUtc) OR revokedAtUtc = :empty"', self.source)
+        self.assertIn("attribute_not_exists(revokedAtUtc) OR revokedAtUtc = :empty", self.source)
         self.assertIn('"expiresAtEpoch = :zero OR expiresAtEpoch > :now"', self.source)
         self.assertNotIn('"code": code,\n            "planId": plan_id,', self.source)
 
     def test_multiple_shaelvien_tokens_are_supported_without_exposing_halves(self):
         self.assertIn('WORLD_TOKEN_SK_PREFIX = "WORLD_TOKEN#"', self.source)
         self.assertIn("def query_world_tokens(user_id):", self.source)
-        self.assertIn("def spendable_world_token(user_id, requested_token_id=""):", self.source)
-        self.assertIn("def mint_world_token(user_id, source, reference="", created_by=""):", self.source)
+        self.assertIn('def spendable_world_token(user_id, requested_token_id=""):', self.source)
+        self.assertIn('def mint_world_token(user_id, source, reference="", created_by=""):', self.source)
         self.assertIn('path == "/authority/commerce/tokens/mint"', self.source)
         self.assertIn('requested_token_id = str(req.get("tokenId") or "").strip()', self.source)
         self.assertNotIn('"accountHalfCode": str(item.get("accountHalfCode")', self.source)
+
+    def test_subscription_prices_are_explicit_and_projection_safe(self):
+        self.assertIn('"monthlyUsdCents": 500', self.source)
+        self.assertIn('"monthlyUsdCents": 1000', self.source)
+        self.assertIn('"monthlyUsdCents": 1500', self.source)
+        self.assertIn('"monthlyUsdCents": 2000', self.source)
+        self.assertIn('"monthlyUsdCents": 0', self.source)
 
     def test_subscription_entitlements_do_not_replace_recursive_world_authority(self):
         self.assertIn('"access.worldbuilder"', self.source)
