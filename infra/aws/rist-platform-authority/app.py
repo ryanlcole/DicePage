@@ -48,6 +48,42 @@ ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
 PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}
+
+# Commerce is deliberately authority-first. Paid providers may fulfill these
+# records later, but a browser can never manufacture a subscription, access
+# grant, Kickstarter reward, or Shaelvien Token by changing client state.
+WORLD_TOKEN_SK_PREFIX = "WORLD_TOKEN#"
+COMMERCE_GRANT_SK_PREFIX = "ENTITLEMENT#"
+COMMERCE_INVITES_PK = "COMMERCE#INVITES"
+COMMERCE_INVITE_SK_PREFIX = "INVITE#"
+COMMERCE_INVITE_MAX_DAYS = 3650
+COMMERCE_INVITE_MAX_TOKENS = 5
+COMMERCE_PLANS = {
+    "dedicated-roleplayer": {
+        "entitlements": ["access.roleplayer.online"],
+    },
+    "standard-roleplayer": {
+        "entitlements": ["access.roleplayer.online"],
+    },
+    "gamemaster": {
+        "entitlements": ["access.roleplayer.online", "access.gamemaster"],
+    },
+    "storyteller": {
+        "entitlements": [
+            "access.roleplayer.online",
+            "access.gamemaster",
+            "access.storyteller",
+        ],
+    },
+    "worldbuilder": {
+        "entitlements": [
+            "access.roleplayer.online",
+            "access.gamemaster",
+            "access.storyteller",
+            "access.worldbuilder",
+        ],
+    },
+}
 _serializer = TypeSerializer()
 
 
@@ -141,7 +177,66 @@ def world_source_key(world_id):
 
 
 def world_token_key(user_id):
+    """Legacy genesis token key retained for compatibility."""
     return {"pk": "USER#" + user_id, "sk": GENESIS_WORLD_TOKEN_SK}
+
+
+def purchased_world_token_key(user_id, token_id):
+    return {
+        "pk": "USER#" + user_id,
+        "sk": WORLD_TOKEN_SK_PREFIX + safe_id(token_id, "tokenId"),
+    }
+
+
+def query_user_prefix(user_id, prefix):
+    result = users.query(
+        KeyConditionExpression=Key("pk").eq("USER#" + user_id)
+        & Key("sk").begins_with(prefix)
+    )
+    return result.get("Items", [])
+
+
+def query_world_tokens(user_id):
+    items = query_user_prefix(user_id, WORLD_TOKEN_SK_PREFIX)
+    items.sort(key=lambda item: str(item.get("createdAtUtc") or ""))
+    return items
+
+
+def world_token_by_id(user_id, token_id):
+    token_id = str(token_id or "").strip()
+    if not token_id:
+        return None
+    for item in query_world_tokens(user_id):
+        if str(item.get("tokenId") or "") == token_id:
+            return item
+    return None
+
+
+def spendable_world_token(user_id, requested_token_id=""):
+    requested_token_id = str(requested_token_id or "").strip()
+    if requested_token_id:
+        token = world_token_by_id(user_id, requested_token_id)
+        return token if token and str(token.get("status") or "") == "unspent" else token
+    return next(
+        (
+            item
+            for item in query_world_tokens(user_id)
+            if str(item.get("status") or "") == "unspent"
+        ),
+        None,
+    )
+
+
+def world_token_for_parcel(user_id, parcel_id):
+    return next(
+        (
+            item
+            for item in query_world_tokens(user_id)
+            if str(item.get("status") or "") == "spent"
+            and str(item.get("parcelId") or "") == str(parcel_id or "")
+        ),
+        None,
+    )
 
 
 def parcel_id_from_cell(cell_index):
@@ -170,7 +265,7 @@ def public_world_token(item):
         return None
     return {
         "tokenId": str(item.get("tokenId") or ""),
-        "tokenClass": SHAELVIEN_TOKEN_CLASS,
+        "tokenClass": str(item.get("tokenClass") or SHAELVIEN_TOKEN_CLASS),
         "status": str(item.get("status") or "unspent"),
         "holderUserId": str(item.get("holderUserId") or ""),
         "purchasedWorldId": str(item.get("purchasedWorldId") or ""),
@@ -178,6 +273,8 @@ def public_world_token(item):
         "bindingHash": str(item.get("bindingHash") or ""),
         "createdAtUtc": str(item.get("createdAtUtc") or ""),
         "spentAtUtc": str(item.get("spentAtUtc") or ""),
+        "source": str(item.get("source") or ""),
+        "sourceReference": str(item.get("sourceReference") or ""),
     }
 
 
@@ -270,6 +367,210 @@ def ensure_genesis_world_token(user_id, account_id, player_alias):
         if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
             raise
         return users.get_item(Key=key, ConsistentRead=True).get("Item") or item
+
+
+def _new_world_token_item(user_id, source, reference="", created_by=""):
+    profile = users.get_item(
+        Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
+        ConsistentRead=True,
+    ).get("Item") or {}
+    token_id = "swt_" + uuid.uuid4().hex
+    account_half = secrets.token_hex(32)
+    return {
+        **purchased_world_token_key(user_id, token_id),
+        "tokenId": token_id,
+        "tokenClass": SHAELVIEN_TOKEN_CLASS,
+        "status": "unspent",
+        "holderUserId": user_id,
+        "accountHalfCode": account_half,
+        "accountHalfHash": hashlib.sha256(account_half.encode()).hexdigest(),
+        "profileAccountId": str(profile.get("profileAccountId") or "")[:160],
+        "profileAlias": str(profile.get("playerAlias") or profile.get("displayName") or "")[:80],
+        "createdAtUtc": utc_stamp(),
+        "spentAtUtc": "",
+        "purchasedWorldId": "",
+        "parcelId": "",
+        "bindingHash": "",
+        "source": str(source or "commerce")[:40],
+        "sourceReference": str(reference or "")[:160],
+        "createdByUserId": str(created_by or "")[:160],
+    }
+
+
+def mint_world_token(user_id, source, reference="", created_by=""):
+    item = _new_world_token_item(user_id, source, reference, created_by)
+    users.put_item(
+        Item=item,
+        ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+    )
+    return item
+
+
+def commerce_plan(plan_id):
+    plan_id = str(plan_id or "").strip().lower()
+    plan = COMMERCE_PLANS.get(plan_id)
+    if not plan:
+        raise ValueError("Unknown commerce plan")
+    return plan_id, plan
+
+
+def entitlement_grant_key(user_id, grant_id):
+    return {
+        "pk": "USER#" + user_id,
+        "sk": COMMERCE_GRANT_SK_PREFIX + safe_id(grant_id, "grantId"),
+    }
+
+
+def _grant_expiry(now, expires_in_days):
+    try:
+        days = int(expires_in_days or 0)
+    except (TypeError, ValueError):
+        raise ValueError("Invalid access expiry")
+    if days < 0 or days > COMMERCE_INVITE_MAX_DAYS:
+        raise ValueError("Invalid access expiry")
+    return 0 if days == 0 else now + days * 86400
+
+
+def _new_entitlement_grant(
+    user_id,
+    plan_id,
+    source,
+    created_by,
+    expires_at_epoch=0,
+    label="",
+    invite_id="",
+):
+    plan_id, plan = commerce_plan(plan_id)
+    grant_id = "grant_" + uuid.uuid4().hex
+    return {
+        **entitlement_grant_key(user_id, grant_id),
+        "grantId": grant_id,
+        "holderUserId": user_id,
+        "planId": plan_id,
+        "entitlements": list(plan["entitlements"]),
+        "source": str(source or "complimentary")[:40],
+        "label": str(label or "")[:120],
+        "inviteId": str(invite_id or "")[:160],
+        "createdByUserId": str(created_by or "")[:160],
+        "createdAtUtc": utc_stamp(),
+        "createdAtEpoch": int(time.time()),
+        "expiresAtEpoch": int(expires_at_epoch or 0),
+        "revokedAtUtc": "",
+    }
+
+
+def public_entitlement_grant(item):
+    if not item:
+        return None
+    return {
+        "grantId": str(item.get("grantId") or ""),
+        "planId": str(item.get("planId") or ""),
+        "entitlements": [str(value) for value in (item.get("entitlements") or [])],
+        "source": str(item.get("source") or ""),
+        "label": str(item.get("label") or ""),
+        "inviteId": str(item.get("inviteId") or ""),
+        "createdAtUtc": str(item.get("createdAtUtc") or ""),
+        "expiresAtEpoch": int(item.get("expiresAtEpoch") or 0),
+        "revokedAtUtc": str(item.get("revokedAtUtc") or ""),
+    }
+
+
+def active_entitlement_grants(user_id, now=None):
+    now = int(time.time()) if now is None else int(now)
+    result = []
+    for item in query_user_prefix(user_id, COMMERCE_GRANT_SK_PREFIX):
+        if str(item.get("revokedAtUtc") or ""):
+            continue
+        try:
+            expires = int(item.get("expiresAtEpoch") or 0)
+        except (TypeError, ValueError):
+            continue
+        if expires and expires <= now:
+            continue
+        result.append(item)
+    return result
+
+
+def merge_commercial_entitlements(user_id, profile, now=None):
+    merged = dict(profile or {})
+    values = {
+        str(value).strip()
+        for value in (merged.get("entitlements") or [])
+        if str(value).strip()
+    }
+    for grant in active_entitlement_grants(user_id, now):
+        values.update(
+            str(value).strip()
+            for value in (grant.get("entitlements") or [])
+            if str(value).strip()
+        )
+    merged["entitlements"] = sorted(values)
+    return merged
+
+
+def commerce_summary(user_id, profile=None):
+    profile = profile or users.get_item(
+        Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
+        ConsistentRead=True,
+    ).get("Item") or {}
+    grants = active_entitlement_grants(user_id)
+    merged = merge_commercial_entitlements(user_id, profile)
+    tokens = query_world_tokens(user_id)
+    return {
+        "entitlements": commercial_profile(
+            merged,
+            bool(owner_user_id and user_id == owner_user_id),
+        )["entitlements"],
+        "grants": [public_entitlement_grant(item) for item in grants],
+        "tokens": [public_world_token(item) for item in tokens],
+        "unspentTokenCount": sum(
+            1 for item in tokens if str(item.get("status") or "") == "unspent"
+        ),
+    }
+
+
+def commerce_invite_key(invite_id):
+    return {
+        "pk": COMMERCE_INVITES_PK,
+        "sk": COMMERCE_INVITE_SK_PREFIX + safe_id(invite_id, "inviteId"),
+    }
+
+
+def parse_commerce_invite_code(code):
+    code = str(code or "").strip()
+    parts = code.split("_")
+    if len(parts) != 3 or parts[0] != "rci":
+        raise ValueError("Invalid access link")
+    invite_id = safe_id(parts[1], "inviteId")
+    if len(parts[2]) < 24:
+        raise ValueError("Invalid access link")
+    return invite_id, code
+
+
+def public_commerce_invite(item):
+    if not item:
+        return None
+    status = "available"
+    now = int(time.time())
+    if str(item.get("revokedAtUtc") or ""):
+        status = "revoked"
+    elif str(item.get("redeemedAtUtc") or ""):
+        status = "redeemed"
+    elif int(item.get("expiresAtEpoch") or 0) and int(item.get("expiresAtEpoch") or 0) <= now:
+        status = "expired"
+    return {
+        "inviteId": str(item.get("inviteId") or ""),
+        "planId": str(item.get("planId") or ""),
+        "label": str(item.get("label") or ""),
+        "tokenQuantity": int(item.get("tokenQuantity") or 0),
+        "status": status,
+        "createdAtUtc": str(item.get("createdAtUtc") or ""),
+        "expiresAtEpoch": int(item.get("expiresAtEpoch") or 0),
+        "redeemedAtUtc": str(item.get("redeemedAtUtc") or ""),
+        "redeemedUserId": str(item.get("redeemedUserId") or ""),
+        "redeemedGrantId": str(item.get("redeemedGrantId") or ""),
+        "revokedAtUtc": str(item.get("revokedAtUtc") or ""),
+    }
 
 
 def parcel_permission(world_id, parcel_id, user_id):
@@ -553,7 +854,7 @@ def can_claim_world_slot(user_id, world_id):
         Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
         ConsistentRead=True,
     ).get("Item") or {}
-    commercial = commercial_profile(profile, False)
+    commercial = commercial_profile(merge_commercial_entitlements(user_id, profile), False)
     if "worlds.unlimited" in commercial["entitlements"]:
         return True
 
@@ -610,11 +911,10 @@ def handler(event, context):
         return response(200, public_world_token(token))
 
     if method == "GET" and path == "/authority/world-tokens":
-        token = users.get_item(
-            Key=world_token_key(user_id),
-            ConsistentRead=True,
-        ).get("Item")
-        return response(200, [] if token is None else [public_world_token(token)])
+        return response(
+            200,
+            [public_world_token(item) for item in query_world_tokens(user_id)],
+        )
 
     if method == "GET" and path == "/authority/me":
         profile_key = {"pk": "USER#" + user_id, "sk": "PROFILE"}
@@ -628,7 +928,10 @@ def handler(event, context):
             },
         )
         platform_owner = bool(owner_user_id and user_id == owner_user_id)
-        commercial = commercial_profile(existing_profile, platform_owner)
+        commercial = commercial_profile(
+            merge_commercial_entitlements(user_id, existing_profile),
+            platform_owner,
+        )
         return response(
             200,
             {
@@ -638,6 +941,367 @@ def handler(event, context):
                 **commercial,
             },
         )
+
+
+    if method == "GET" and path == "/authority/commerce":
+        profile = users.get_item(
+            Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
+            ConsistentRead=True,
+        ).get("Item") or {}
+        return response(200, commerce_summary(user_id, profile))
+
+    if method == "GET" and path == "/authority/commerce/invites":
+        if not (owner_user_id and user_id == owner_user_id):
+            return response(403, {"error": "Platform owner authority required"})
+        result = users.query(
+            KeyConditionExpression=Key("pk").eq(COMMERCE_INVITES_PK)
+            & Key("sk").begins_with(COMMERCE_INVITE_SK_PREFIX),
+            ScanIndexForward=False,
+            Limit=50,
+        )
+        return response(
+            200,
+            [public_commerce_invite(item) for item in result.get("Items", [])],
+        )
+
+    if method == "POST" and path == "/authority/commerce/invites":
+        if not (owner_user_id and user_id == owner_user_id):
+            return response(403, {"error": "Platform owner authority required"})
+        req = body(event)
+        try:
+            plan_id, _ = commerce_plan(req.get("planId"))
+            expires_at = _grant_expiry(now, req.get("expiresInDays", 365))
+            token_quantity = int(req.get("tokenQuantity") or 0)
+        except (TypeError, ValueError) as exc:
+            return response(400, {"error": str(exc)})
+        if token_quantity < 0 or token_quantity > COMMERCE_INVITE_MAX_TOKENS:
+            return response(400, {"error": "Invalid token quantity"})
+
+        invite_id = uuid.uuid4().hex[:16]
+        code = f"rci_{invite_id}_{secrets.token_hex(18)}"
+        item = {
+            **commerce_invite_key(invite_id),
+            "inviteId": invite_id,
+            "codeHash": hashlib.sha256(code.encode()).hexdigest(),
+            "planId": plan_id,
+            "label": str(req.get("label") or "")[:120],
+            "tokenQuantity": token_quantity,
+            "createdByUserId": user_id,
+            "createdAtUtc": utc_stamp(),
+            "createdAtEpoch": now,
+            "expiresAtEpoch": expires_at,
+            "revokedAtUtc": "",
+            "redeemedAtUtc": "",
+            "redeemedUserId": "",
+            "redeemedGrantId": "",
+        }
+        users.put_item(
+            Item=item,
+            ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+        )
+        audit_write(
+            "commerce",
+            user_id,
+            "commerce.invite.create",
+            invite_id,
+            {
+                "planId": plan_id,
+                "tokenQuantity": token_quantity,
+                "expiresAtEpoch": expires_at,
+            },
+        )
+        result = public_commerce_invite(item)
+        result["code"] = code
+        result["redeemUrl"] = (
+            origin + "/Game/index.html?access=" + urllib.parse.quote(code, safe="")
+        )
+        return response(200, result)
+
+    if method == "POST" and path == "/authority/commerce/invites/redeem":
+        req = body(event)
+        try:
+            invite_id, code = parse_commerce_invite_code(req.get("code"))
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+        key = commerce_invite_key(invite_id)
+        invite = users.get_item(Key=key, ConsistentRead=True).get("Item")
+        if not invite or not secrets.compare_digest(
+            str(invite.get("codeHash") or ""),
+            hashlib.sha256(code.encode()).hexdigest(),
+        ):
+            return response(404, {"error": "Access link is not recognized"})
+        if str(invite.get("revokedAtUtc") or ""):
+            return response(409, {"error": "This access link has been revoked"})
+        if str(invite.get("redeemedAtUtc") or ""):
+            if str(invite.get("redeemedUserId") or "") == user_id:
+                return response(
+                    200,
+                    {
+                        "ok": True,
+                        "alreadyRedeemed": True,
+                        "grantId": str(invite.get("redeemedGrantId") or ""),
+                        "planId": str(invite.get("planId") or ""),
+                    },
+                )
+            return response(409, {"error": "This access link has already been used"})
+        invite_expiry = int(invite.get("expiresAtEpoch") or 0)
+        if invite_expiry and invite_expiry <= now:
+            return response(409, {"error": "This access link has expired"})
+
+        plan_id = str(invite.get("planId") or "")
+        try:
+            commerce_plan(plan_id)
+        except ValueError:
+            return response(409, {"error": "This access link references an unavailable plan"})
+        grant = _new_entitlement_grant(
+            user_id,
+            plan_id,
+            "complimentary",
+            str(invite.get("createdByUserId") or owner_user_id),
+            invite_expiry,
+            str(invite.get("label") or ""),
+            invite_id,
+        )
+        token_quantity = min(
+            COMMERCE_INVITE_MAX_TOKENS,
+            max(0, int(invite.get("tokenQuantity") or 0)),
+        )
+        token_items = [
+            _new_world_token_item(
+                user_id,
+                "complimentary",
+                "invite:" + invite_id,
+                str(invite.get("createdByUserId") or owner_user_id),
+            )
+            for _ in range(token_quantity)
+        ]
+        transactions = [
+            {
+                "Update": {
+                    "TableName": users.name,
+                    "Key": _ddb_map(key),
+                    "UpdateExpression": (
+                        "SET redeemedAtUtc = :stamp, redeemedUserId = :userId, "
+                        "redeemedGrantId = :grantId"
+                    ),
+                    "ConditionExpression": (
+                        "attribute_not_exists(redeemedUserId) OR redeemedUserId = :empty"
+                    ),
+                    "ExpressionAttributeValues": _ddb_map(
+                        {
+                            ":stamp": utc_stamp(),
+                            ":userId": user_id,
+                            ":grantId": grant["grantId"],
+                            ":empty": "",
+                        }
+                    ),
+                }
+            },
+            {
+                "Put": {
+                    "TableName": users.name,
+                    "Item": _ddb_map(dynamo_safe(grant)),
+                    "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                }
+            },
+        ]
+        transactions.extend(
+            {
+                "Put": {
+                    "TableName": users.name,
+                    "Item": _ddb_map(dynamo_safe(token)),
+                    "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                }
+            }
+            for token in token_items
+        )
+        try:
+            ddb.meta.client.transact_write_items(TransactItems=transactions)
+        except ClientError as exc:
+            if (exc.response.get("Error") or {}).get("Code") in (
+                "TransactionCanceledException",
+                "ConditionalCheckFailedException",
+            ):
+                return response(409, {"error": "This access link changed before redemption completed"})
+            raise
+
+        notify_user(
+            user_id,
+            "commerce.access.granted",
+            "commerce",
+            {
+                "planId": plan_id,
+                "grantId": grant["grantId"],
+                "tokenQuantity": token_quantity,
+            },
+        )
+        audit_write(
+            "commerce",
+            user_id,
+            "commerce.invite.redeem",
+            invite_id,
+            {
+                "grantId": grant["grantId"],
+                "planId": plan_id,
+                "tokenQuantity": token_quantity,
+            },
+        )
+        return response(
+            200,
+            {
+                "ok": True,
+                "alreadyRedeemed": False,
+                "grantId": grant["grantId"],
+                "planId": plan_id,
+                "tokenQuantity": token_quantity,
+            },
+        )
+
+    if method == "POST" and path == "/authority/commerce/invites/revoke":
+        if not (owner_user_id and user_id == owner_user_id):
+            return response(403, {"error": "Platform owner authority required"})
+        req = body(event)
+        try:
+            invite_id = safe_id(req.get("inviteId"), "inviteId")
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+        key = commerce_invite_key(invite_id)
+        invite = users.get_item(Key=key, ConsistentRead=True).get("Item")
+        if not invite:
+            return response(404, {"error": "Access invite not found"})
+        stamp = utc_stamp()
+        users.update_item(
+            Key=key,
+            UpdateExpression="SET revokedAtUtc = :stamp, revokedByUserId = :userId",
+            ExpressionAttributeValues={":stamp": stamp, ":userId": user_id},
+        )
+        redeemed_user = str(invite.get("redeemedUserId") or "")
+        redeemed_grant = str(invite.get("redeemedGrantId") or "")
+        if redeemed_user and redeemed_grant:
+            users.update_item(
+                Key=entitlement_grant_key(redeemed_user, redeemed_grant),
+                UpdateExpression="SET revokedAtUtc = :stamp, revokedByUserId = :userId",
+                ExpressionAttributeValues={":stamp": stamp, ":userId": user_id},
+            )
+            notify_user(
+                redeemed_user,
+                "commerce.access.revoked",
+                "commerce",
+                {"inviteId": invite_id, "grantId": redeemed_grant},
+            )
+        audit_write(
+            "commerce",
+            user_id,
+            "commerce.invite.revoke",
+            invite_id,
+            {"redeemedUserId": redeemed_user, "grantId": redeemed_grant},
+        )
+        refreshed = users.get_item(Key=key, ConsistentRead=True).get("Item") or invite
+        return response(200, public_commerce_invite(refreshed))
+
+    if method == "POST" and path == "/authority/commerce/grants":
+        if not (owner_user_id and user_id == owner_user_id):
+            return response(403, {"error": "Platform owner authority required"})
+        req = body(event)
+        try:
+            target = safe_id(req.get("targetUserId"), "targetUserId")
+            plan_id, _ = commerce_plan(req.get("planId"))
+            expires_at = _grant_expiry(now, req.get("expiresInDays", 365))
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+        grant = _new_entitlement_grant(
+            target,
+            plan_id,
+            str(req.get("source") or "complimentary"),
+            user_id,
+            expires_at,
+            str(req.get("label") or ""),
+        )
+        users.put_item(
+            Item=grant,
+            ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+        )
+        notify_user(
+            target,
+            "commerce.access.granted",
+            "commerce",
+            {"planId": plan_id, "grantId": grant["grantId"]},
+        )
+        audit_write(
+            "commerce",
+            user_id,
+            "commerce.grant.create",
+            grant["grantId"],
+            {"targetUserId": target, "planId": plan_id},
+        )
+        return response(200, public_entitlement_grant(grant))
+
+    if method == "POST" and path == "/authority/commerce/grants/revoke":
+        if not (owner_user_id and user_id == owner_user_id):
+            return response(403, {"error": "Platform owner authority required"})
+        req = body(event)
+        try:
+            target = safe_id(req.get("targetUserId"), "targetUserId")
+            grant_id = safe_id(req.get("grantId"), "grantId")
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+        key = entitlement_grant_key(target, grant_id)
+        current = users.get_item(Key=key, ConsistentRead=True).get("Item")
+        if not current:
+            return response(404, {"error": "Access grant not found"})
+        stamp = utc_stamp()
+        users.update_item(
+            Key=key,
+            UpdateExpression="SET revokedAtUtc = :stamp, revokedByUserId = :userId",
+            ExpressionAttributeValues={":stamp": stamp, ":userId": user_id},
+        )
+        notify_user(
+            target,
+            "commerce.access.revoked",
+            "commerce",
+            {"grantId": grant_id},
+        )
+        audit_write(
+            "commerce",
+            user_id,
+            "commerce.grant.revoke",
+            grant_id,
+            {"targetUserId": target},
+        )
+        refreshed = users.get_item(Key=key, ConsistentRead=True).get("Item") or current
+        return response(200, public_entitlement_grant(refreshed))
+
+    if method == "POST" and path == "/authority/commerce/tokens/mint":
+        if not (owner_user_id and user_id == owner_user_id):
+            return response(403, {"error": "Platform owner authority required"})
+        req = body(event)
+        try:
+            target = safe_id(req.get("targetUserId"), "targetUserId")
+            quantity = int(req.get("quantity") or 1)
+        except (TypeError, ValueError) as exc:
+            return response(400, {"error": str(exc)})
+        if quantity < 1 or quantity > 20:
+            return response(400, {"error": "Token quantity must be between 1 and 20"})
+        source = str(req.get("source") or "commerce")[:40]
+        reference = str(req.get("reference") or "")[:160]
+        minted = [
+            mint_world_token(target, source, reference, user_id)
+            for _ in range(quantity)
+        ]
+        notify_user(
+            target,
+            "commerce.tokens.granted",
+            "commerce",
+            {"quantity": quantity, "source": source},
+        )
+        audit_write(
+            "commerce",
+            user_id,
+            "commerce.tokens.mint",
+            target,
+            {"quantity": quantity, "source": source, "reference": reference},
+        )
+        return response(200, [public_world_token(item) for item in minted])
 
     if method == "GET" and path == "/world/membership":
         world_id = safe_id(q.get("worldId"), "worldId")
@@ -1007,8 +1671,13 @@ def handler(event, context):
         parcel_id = parcel_id_from_cell(cell_index)
         region_id = "region-" + parcel_id
 
-        token_key = world_token_key(user_id)
-        token = users.get_item(Key=token_key, ConsistentRead=True).get("Item")
+        requested_token_id = str(req.get("tokenId") or "").strip()
+        token = spendable_world_token(user_id, requested_token_id)
+        token_key = (
+            {"pk": str(token.get("pk")), "sk": str(token.get("sk"))}
+            if token
+            else None
+        )
         existing_parcel = world.get_item(
             Key=parcel_key(world_id, parcel_id),
             ConsistentRead=True,
@@ -1020,9 +1689,7 @@ def handler(event, context):
         if existing_parcel:
             if (
                 str(existing_parcel.get("ownerUserId") or "") == user_id
-                and token
-                and str(token.get("status") or "") == "spent"
-                and str(token.get("parcelId") or "") == parcel_id
+                and world_token_for_parcel(user_id, parcel_id)
             ):
                 return response(200, public_parcel(existing_parcel))
             return response(409, {"error": "That Shaelvien property space has already been claimed"})
@@ -1172,16 +1839,11 @@ def handler(event, context):
                     Key=parcel_key(world_id, parcel_id),
                     ConsistentRead=True,
                 ).get("Item")
-                latest_token = users.get_item(
-                    Key=token_key,
-                    ConsistentRead=True,
-                ).get("Item")
+                latest_token = world_token_for_parcel(user_id, parcel_id)
                 if (
                     occupied
                     and str(occupied.get("ownerUserId") or "") == user_id
                     and latest_token
-                    and str(latest_token.get("status") or "") == "spent"
-                    and str(latest_token.get("parcelId") or "") == parcel_id
                 ):
                     return response(200, public_parcel(occupied))
                 return response(
