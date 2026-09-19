@@ -65,7 +65,7 @@ else if (_canEnter)
   <section class="rist-terms-gate" role="dialog" aria-modal="true" aria-label="Terms agreement">
    <form class="rist-terms-card" @onsubmit="AcceptTermsAsync">
     <h1>Before You Play</h1>
-    <p>Scroll through the Terms of Service and Privacy Policy below. Agreement unlocks when you reach the end.</p>
+    <p>Please read the Terms of Service and Privacy Policy below. When you reach the end, you can confirm that you have read and agree to them.</p>
     @if (!string.IsNullOrWhiteSpace(_policyLoadError))
     {
      <div class="rist-policy-load-error" role="alert">
@@ -80,15 +80,15 @@ else if (_canEnter)
     }
     else
     {
-     <div class="rist-policy-scroll" @ref="_policyScroll" @onscroll="OnPolicyScrollAsync" tabindex="0" aria-label="Terms of Service and Privacy Policy. Scroll to the end to continue.">
+     <div class="rist-policy-scroll" @ref="_policyScroll" @onscroll="OnPolicyScrollAsync" tabindex="0" aria-label="Terms of Service and Privacy Policy. Read the policies and continue to the end.">
       @((MarkupString)_policyHtml)
       <div class="rist-policy-end" aria-hidden="true">END OF POLICIES</div>
      </div>
-     <p class="rist-policy-status" aria-live="polite">@(_policiesRead ? "✓ End reached. You may now agree." : "Scroll to the end to enable agreement.")</p>
+     <p class="rist-policy-status" aria-live="polite">@(_policiesRead ? "✓ Policies complete. You may now agree." : "Please continue reading to the end.")</p>
     }
     <label class="rist-terms-agree" aria-disabled="@(!_policiesRead)">
      <input type="checkbox" @bind="_termsChecked" disabled="@(!_policiesRead)" required />
-     <span>I have reviewed and agree to the Terms of Service and Privacy Policy.</span>
+     <span>I have read and agree to the Terms of Service and Privacy Policy.</span>
     </label>
     @if (!string.IsNullOrWhiteSpace(_termsError))
     {
@@ -291,7 +291,7 @@ else
  async Task AcceptTermsAsync()
  {
   _termsError="";
-  if(!_policiesRead){_termsError="Scroll to the end of both policies before agreeing.";return;}
+  if(!_policiesRead){_termsError="Please read both policies through to the end before agreeing.";return;}
   if(!_termsChecked){_termsError="You must agree before continuing.";return;}
   if(Auth.Account is null){_termsError="Your account is not ready yet. Please log in again.";return;}
 
