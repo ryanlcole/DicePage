@@ -223,7 +223,7 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
@@ -231,6 +231,7 @@ jobs:
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
           grep -q 'site-language' /tmp/relic-home.html
           grep -q 'href="/store/"' /tmp/relic-home.html
+          grep -q 'href="/kickstarter/index.html"' /tmp/relic-home.html
           if grep -qi '/perceiver/' /tmp/relic-home.html; then
             echo "Unpublished Perceiver link is still present on the public home page."
             exit 1
@@ -255,6 +256,19 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store-catalog.json "${URL}store/catalog.json"
           grep -q '"invitationsIssued": false' /tmp/relic-store-catalog.json
           grep -q '"products": \[\]' /tmp/relic-store-catalog.json
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-membership.html "${URL}store/membership.html"
+          grep -q 'Standard Roleplayer' /tmp/relic-membership.html
+          grep -q 'CHECKOUT NOT ACTIVE' /tmp/relic-membership.html
+          grep -q 'complimentary-access' /tmp/relic-membership.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-kickstarter.html "${URL}kickstarter/index.html"
+          grep -q 'Assumption-driven subscription projection' /tmp/relic-kickstarter.html
+          grep -q 'MRR = 5R + 10G + 15S + 20W' /tmp/relic-kickstarter.html
+          grep -q 'does not take equity' /tmp/relic-kickstarter.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-kickstarter-js "${URL}kickstarter/kickstarter.js"
+          grep -q 'total\*12' /tmp/relic-kickstarter-js
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
@@ -312,6 +326,8 @@ jobs:
 
           echo "ReLiCGameMaster home verified at $URL"
           echo "ReLiC Creator Store verified at ${URL}store/index.html"
+          echo "Membership facts verified at ${URL}store/membership.html"
+          echo "Kickstarter facts/projection page verified at ${URL}kickstarter/index.html"
           echo "RIST WORLD + framework MIME verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
           if [ "$STORY_MISSING" -eq 0 ]; then
