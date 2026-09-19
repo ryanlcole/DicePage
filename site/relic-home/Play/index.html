@@ -66,7 +66,7 @@ body{min-height:100dvh;overflow:hidden}
 (()=>{'use strict';
 const status=document.getElementById('status'),menu=document.getElementById('menu'),signin=document.getElementById('signin'),signup=document.getElementById('signup');
 const agePanel=document.getElementById('agePanel'),ageTitle=document.getElementById('ageTitle'),ageInput=document.getElementById('signupAge'),ageCancel=document.getElementById('ageCancel');
-const cookieName='rist_session',profileKey='account/profile.json',ageKey='rist.signup.age';
+const cookieName='rist_session',profileKey='account/profile.json',ageKey='rist.signup.age',accessKey='rist.commerce.accessCode';
 let api='',busy=false,pendingAgeCompletion=null;
 const say=m=>{const text=String(m||'');status.textContent=text;status.hidden=!text;menu.hidden=!!text;agePanel.hidden=true;};
 const restoreMenu=()=>{status.textContent='';status.hidden=true;menu.hidden=false;agePanel.hidden=true;pendingAgeCompletion=null;};
@@ -94,14 +94,14 @@ async function completeAccount(base,token,me){
  await writeProfile(base,token,{AccountId:crypto.randomUUID(),PlayerAlias:alias,Plan:'player',CreatedAtUtc:now,TermsAcceptedAtUtc:'0001-01-01T00:00:00+00:00',TermsVersion:'',ContentAccess:null,AgeAtSignup:age});
  return true;
 }
-function enter(token){clearLegacyAuthState();localStorage.removeItem(ageKey);sessionStorage.removeItem('rist.entryMode');sessionStorage.setItem('rist.session',token);sessionStorage.setItem('rist.lastActivity',String(Date.now()));setCookie(token);say('Entering Shaelvien…');location.replace('/Game/index.html');}
+function enter(token){clearLegacyAuthState();localStorage.removeItem(ageKey);sessionStorage.removeItem('rist.entryMode');sessionStorage.setItem('rist.session',token);sessionStorage.setItem('rist.lastActivity',String(Date.now()));setCookie(token);say('Entering Shaelvien…');const access=sessionStorage.getItem(accessKey)||'';location.replace('/Game/index.html'+(access?'?access='+encodeURIComponent(access):''));}
 async function completeToken(base,token){const meResponse=await authFetch(base,token,'/me');if(!meResponse.ok)throw new Error('Your authenticated session could not be verified.');const me=await meResponse.json();if(await completeAccount(base,token,me))enter(token);}
 async function begin(mode){if(busy)return;busy=true;try{clearLegacyAuthState();sessionStorage.setItem('rist.entryMode',mode);if(mode==='signin')localStorage.removeItem(ageKey);say(mode==='signup'?'Opening Discord to create your ReLiC account…':'Opening Discord to sign in to your ReLiC account…');location.href=(await getApi())+'/auth/login';}catch(e){busy=false;say(e?.message||'Unable to start authentication.');setTimeout(restoreMenu,2600);}}
 async function handoff(code){say('Completing secure Discord sign in…');const base=await getApi();const r=await fetch(base+'/auth/session?handoff='+encodeURIComponent(code),{cache:'no-store'});if(!r.ok)throw new Error('The sign-in handoff expired. Please try again.');const p=await r.json();if(!p.sessionToken)throw new Error('The account service returned an invalid session.');await completeToken(base,p.sessionToken);}
 signin.onclick=()=>begin('signin');signup.onclick=startSignup;
 ageCancel.onclick=()=>{localStorage.removeItem(ageKey);sessionStorage.removeItem('rist.entryMode');restoreMenu();};
 agePanel.onsubmit=async e=>{e.preventDefault();const age=validAge(ageInput.value);if(!age){ageInput.setCustomValidity('Enter an age from 1 to 120.');ageInput.reportValidity();return;}ageInput.setCustomValidity('');localStorage.setItem(ageKey,String(age));if(pendingAgeCompletion){const p=pendingAgeCompletion;pendingAgeCompletion=null;const next={...p.profile,AgeAtSignup:age};if(age<18){next.TermsAcceptedAtUtc='0001-01-01T00:00:00+00:00';next.TermsVersion='';}say('Saving required account information…');await writeProfile(p.base,p.token,next);enter(p.token);return;}await begin('signup');};
-(async()=>{clearLegacyAuthState();try{const q=new URLSearchParams(location.search),h=q.get('rist_handoff');if(h){say('Completing secure Discord sign in…');history.replaceState(null,'',location.pathname);await handoff(h);return;}const saved=sessionStorage.getItem('rist.session');if(saved){say('Entering Shaelvien…');await completeToken(await getApi(),saved);return;}}catch(e){sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');busy=false;say(e?.message||'Authentication could not be completed.');setTimeout(restoreMenu,3000);}})();
+(async()=>{clearLegacyAuthState();try{const q=new URLSearchParams(location.search),incomingAccess=(q.get('access')||'').trim();if(incomingAccess)sessionStorage.setItem(accessKey,incomingAccess);const h=q.get('rist_handoff');if(h){say('Completing secure Discord sign in…');history.replaceState(null,'',location.pathname);await handoff(h);return;}const saved=sessionStorage.getItem('rist.session');if(saved){say('Entering Shaelvien…');await completeToken(await getApi(),saved);return;}}catch(e){sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');busy=false;say(e?.message||'Authentication could not be completed.');setTimeout(restoreMenu,3000);}})();
 })();
 </script>
 </body>
