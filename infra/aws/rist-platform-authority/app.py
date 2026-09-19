@@ -239,6 +239,37 @@ def world_token_for_parcel(user_id, parcel_id):
     )
 
 
+def normalize_unspent_world_token(user_id, token):
+    if not token or str(token.get("status") or "") != "unspent":
+        return token
+    key = {"pk": str(token.get("pk") or ""), "sk": str(token.get("sk") or "")}
+    if not key["pk"] or not key["sk"]:
+        return token
+
+    account_half = str(token.get("accountHalfCode") or "") or secrets.token_hex(32)
+    try:
+        users.update_item(
+            Key=key,
+            UpdateExpression=(
+                "SET holderUserId = :userId, tokenClass = :tokenClass, "
+                "accountHalfCode = :code, accountHalfHash = :hash"
+            ),
+            ConditionExpression="#status = :unspent",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={
+                ":userId": user_id,
+                ":tokenClass": SHAELVIEN_TOKEN_CLASS,
+                ":code": account_half,
+                ":hash": hashlib.sha256(account_half.encode()).hexdigest(),
+                ":unspent": "unspent",
+            },
+        )
+    except ClientError as exc:
+        if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+            raise
+    return users.get_item(Key=key, ConsistentRead=True).get("Item") or token
+
+
 def parcel_id_from_cell(cell_index):
     column = int(cell_index) % MMO_PARCEL_GRID_COLUMNS
     row = int(cell_index) // MMO_PARCEL_GRID_COLUMNS
@@ -1677,6 +1708,7 @@ def handler(event, context):
 
         requested_token_id = str(req.get("tokenId") or "").strip()
         token = spendable_world_token(user_id, requested_token_id)
+        token = normalize_unspent_world_token(user_id, token)
         token_key = (
             {"pk": str(token.get("pk")), "sk": str(token.get("sk"))}
             if token
@@ -1684,6 +1716,10 @@ def handler(event, context):
         )
         existing_parcel = world.get_item(
             Key=parcel_key(world_id, parcel_id),
+            ConsistentRead=True,
+        ).get("Item")
+        existing_region = world.get_item(
+            Key=region_key(world_id, region_id),
             ConsistentRead=True,
         ).get("Item")
 
@@ -1719,6 +1755,24 @@ def handler(event, context):
                         },
                     )
             return response(409, {"error": "Your Shaelvien Token has already been spent"})
+
+        if existing_region:
+            existing_region_state = dict(existing_region.get("state") or {})
+            existing_region_owner = str(
+                existing_region.get("ownerUserId")
+                or existing_region_state.get("ownerUserId")
+                or ""
+            )
+            if existing_region_owner and existing_region_owner != user_id:
+                return response(
+                    409,
+                    {
+                        "error": (
+                            "That property space has a conflicting legacy region record. "
+                            "Choose another available square."
+                        )
+                    },
+                )
 
         parcels = query_world_prefix(world_id, "PARCEL#")
         if not mmo_parcel_claimable(cell_index, parcels):
@@ -1831,7 +1885,20 @@ def handler(event, context):
                         "Put": {
                             "TableName": world.name,
                             "Item": _ddb_map(dynamo_safe(region_item)),
-                            "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                            "ConditionExpression": (
+                                "attribute_not_exists(pk) AND attribute_not_exists(sk)"
+                                if not existing_region
+                                else "ownerUserId = :regionOwner OR attribute_not_exists(ownerUserId)"
+                            ),
+                            **(
+                                {}
+                                if not existing_region
+                                else {
+                                    "ExpressionAttributeValues": _ddb_map(
+                                        {":regionOwner": user_id}
+                                    )
+                                }
+                            ),
                         }
                     },
                 ]
@@ -1850,13 +1917,43 @@ def handler(event, context):
                     and latest_token
                 ):
                     return response(200, public_parcel(occupied))
+                latest_region = world.get_item(
+                    Key=region_key(world_id, region_id),
+                    ConsistentRead=True,
+                ).get("Item")
+                if latest_region and not occupied:
+                    state = dict(latest_region.get("state") or {})
+                    owner = str(
+                        latest_region.get("ownerUserId")
+                        or state.get("ownerUserId")
+                        or ""
+                    )
+                    if owner == user_id:
+                        return response(
+                            409,
+                            {
+                                "error": (
+                                    "A legacy region record for this square was found and "
+                                    "is being reconciled. Retry the claim once."
+                                )
+                            },
+                        )
+                    return response(
+                        409,
+                        {
+                            "error": (
+                                "That property space has a conflicting region record. "
+                                "Refresh the map and choose another available square."
+                            )
+                        },
+                    )
                 return response(
                     409,
                     {
                         "error": (
                             "That Shaelvien property space was claimed before this request completed. Refresh the map and choose another available space."
                             if occupied
-                            else "The Shaelvien Token changed before the claim completed. Refresh your account and try again."
+                            else "The selected Shaelvien Token could not be committed. Its binding was refreshed; retry the claim."
                         )
                     },
                 )
