@@ -46,6 +46,7 @@ def test_workspace_home_returns_to_authenticated_landing_without_game_reload():
     world_bridge = (ROOT / "wwwroot" / "worldbuilder-source-host.js").read_text(encoding="utf-8")
     region_bridge = (ROOT / "wwwroot" / "region-definer-host.js").read_text(encoding="utf-8")
     prototype = (ROOT / "wwwroot" / "prototype" / "prototype.js").read_text(encoding="utf-8")
+    prototype_index = (ROOT / "wwwroot" / "prototype" / "index.html").read_text(encoding="utf-8")
 
     assert '⌂ HOME' in shell
     assert 'aria-label="Home — return to the Shaelvien landing page"' in shell
@@ -57,8 +58,13 @@ def test_workspace_home_returns_to_authenticated_landing_without_game_reload():
     assert 'data.type==="home"' in region_bridge
     assert "postRegionMessage('home')" in prototype
     assert "postWorldBuilderHostMessage('home')" in prototype
+    assert 'id="home"' in prototype_index
+    assert 'aria-label="Home — return to the Shaelvien landing page"' in prototype_index
+    assert "$('home').addEventListener('click',goHome);" in prototype
     home_block = prototype[prototype.index("function goHome()"):prototype.index("function openStartMenu()")]
-    assert "window.top.location.href='/Game/index.html'" not in home_block
+    assert "/Game/index.html" not in home_block
+    assert "location.href" not in home_block
+    assert "location.replace" not in home_block
 
 
 def test_save_region_crops_then_unlocks_remaining_ui():
