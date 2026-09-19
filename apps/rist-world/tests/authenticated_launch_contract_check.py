@@ -32,6 +32,7 @@ def main() -> None:
     world_authority = (ROOT / "WorldSession.WorldAuthority.cs").read_text(encoding="utf-8")
     platform_authority = (ROOT.parents[1] / "infra" / "aws" / "rist-platform-authority" / "app.py").read_text(encoding="utf-8")
     auth_template = (ROOT.parents[1] / "infra" / "aws" / "rist-discord-storage.yml").read_text(encoding="utf-8")
+    auth_workflow = (ROOT.parents[1] / ".github" / "workflows" / "deploy-rist-discord-auth.yml").read_text(encoding="utf-8")
 
     # Provider session -> Press Start -> mandatory world choice -> landing.
     require(authenticated, "@if(!_launchStarted)", "authenticated shell must show Press Start")
@@ -114,6 +115,9 @@ def main() -> None:
     require(compat, "installSessionExpiry", "compat auth must delegate to provider expiry")
     require(auth_template, '"provider": "discord"', "Discord sessions must identify their provider")
     require(auth_template, '"sessionExpiresAt": session_item["expiresAt"]', "Discord handoff must expose authoritative expiry")
+    require(auth_template, "Default: https://relicgamemaster.com/Play/index.html", "auth template must default to the canonical Play entry")
+    require(auth_workflow, "PRODUCTION_ENTRY_URL: https://relicgamemaster.com/Play/index.html", "production Discord auth must return through the canonical Play entry")
+    forbid(auth_workflow, "PRODUCTION_GAME_URL: https://relicgamemaster.com/Game/index.html", "Discord auth must not bypass the Play entry")
     require(world_authority, "GetProfileAsync()", "world authority must read trusted platform-owner status")
     require(world_authority, "profile?.PlatformOwner == true", "platform owner must receive trusted worldbuilder authority")
     require(world_authority, "_trustedPlatformOwner || IsTrustedWorldBuilderRole", "worldbuilder authority must accept platform owner or GM/owner membership")
