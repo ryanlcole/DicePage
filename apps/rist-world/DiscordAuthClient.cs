@@ -137,10 +137,11 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
 
             var alias = (await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.alias"))?.Trim() ?? "";
             var plan = (await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.plan"))?.Trim() ?? "player";
-            var terms = await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.termsAccepted");
-            if (alias.Length is < 1 or > 32 || !string.Equals(terms, "true", StringComparison.OrdinalIgnoreCase))
+            var ageRaw = await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.age");
+            var age = int.TryParse(ageRaw, out var parsedAge) ? parsedAge : 0;
+            if (alias.Length is < 1 or > 32 || age is < 1 or > 120)
             {
-                LastError = "Sign-up information is incomplete. Please start Sign Up again.";
+                LastError = "Sign-up information is incomplete. Age is required before account creation.";
                 await ClearAuthIntentAsync();
                 await ClearSessionAsync();
                 Profile = null;
@@ -153,9 +154,10 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
                 PlayerAlias: alias,
                 Plan: plan,
                 CreatedAtUtc: DateTimeOffset.UtcNow,
-                TermsAcceptedAtUtc: DateTimeOffset.UtcNow,
-                TermsVersion: "2026-08-30",
-                ContentAccess: ContentAccessSettings.Default);
+                TermsAcceptedAtUtc: DateTimeOffset.MinValue,
+                TermsVersion: "",
+                ContentAccess: ContentAccessSettings.Default,
+                AgeAtSignup: age);
 
             try
             {
@@ -304,6 +306,52 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         await ClearAuthIntentAsync();
         await ClearSessionOnlyAsync();
         await js.InvokeVoidAsync("ristAuth.navigate", start.Url);
+    }
+
+    public async Task<bool> RequestTermsGuardianApprovalAsync(string guardianEmail, string termsVersion)
+    {
+        LastError = "";
+        if (Account is null || Profile is null || Account.AgeAtSignup is null or >= 18)
+        {
+            LastError = "Parent or guardian approval is only required for accounts under 18.";
+            return false;
+        }
+
+        guardianEmail = guardianEmail.Trim();
+        if (guardianEmail.Length is < 5 or > 254 || !guardianEmail.Contains('@'))
+        {
+            LastError = "Enter the parent or guardian email address that should receive the approval request.";
+            return false;
+        }
+
+        try
+        {
+            var result = await SendAsync<GuardianMailStart>(HttpMethod.Post, "/guardian/terms/request", new GuardianTermsRequestCreate(
+                Account.AccountId,
+                Account.PlayerAlias,
+                guardianEmail,
+                termsVersion));
+            if (result?.Sent == true) return true;
+        }
+        catch { }
+
+        LastError = "The parent or guardian approval email could not be sent. Please try again.";
+        return false;
+    }
+
+    public async Task<bool> TermsGuardianApprovedAsync(string termsVersion)
+    {
+        if (Account is null) return false;
+        try
+        {
+            var status = await SendAsync<GuardianStatus>(HttpMethod.Get, "/guardian/status?accountId=" + Uri.EscapeDataString(Account.AccountId));
+            return status?.TermsApproved == true && string.Equals(status.TermsVersion, termsVersion, StringComparison.Ordinal);
+        }
+        catch
+        {
+            LastError = "Guardian approval status could not be checked. Please try again.";
+            return false;
+        }
     }
 
     public async Task ApproveGuardianConsentAsync(bool adultAttested)
@@ -490,6 +538,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     {
         await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.alias");
         await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.plan");
+        await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.age");
         await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.termsAccepted");
         await ClearAuthIntentAsync();
     }
@@ -525,7 +574,8 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         bool NsfwAccessEnabled = false,
         DateTimeOffset? Age21AttestedAtUtc = null,
         string? NsfwAttestationVersion = null,
-        ContentAccessSettings? ContentAccess = null);
+        ContentAccessSettings? ContentAccess = null,
+        int? AgeAtSignup = null);
     public sealed record ContentAccessSettings(
         string AccessBand,
         string[] AllowedDescriptors,
@@ -538,10 +588,12 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         public static ContentAccessSettings Default => new(ContentAllowancePolicy.General, [], null, ContentAllowancePolicy.Version, null, null, []);
     }
     public sealed record GuardianRequestCreate(string ChildAccountId, string ChildAlias, string[] RequestedDescriptors, string ConsentVersion);
+    public sealed record GuardianTermsRequestCreate(string ChildAccountId, string ChildAlias, string GuardianEmail, string TermsVersion);
     public sealed record GuardianStart(string? Url);
+    public sealed record GuardianMailStart(bool Sent);
     public sealed record GuardianDecision(bool AdultAttested);
-    public sealed record GuardianConsentRequest(string ChildUserId, string ChildAccountId, string ChildAlias, string[] RequestedDescriptors, DateTimeOffset RequestedAtUtc, string ConsentVersion);
-    public sealed record GuardianStatus(bool Approved, string? ChildAccountId, string[] ApprovedDescriptors, DateTimeOffset? ConsentedAtUtc, string? ConsentVersion);
+    public sealed record GuardianConsentRequest(string ChildUserId, string ChildAccountId, string ChildAlias, string[] RequestedDescriptors, DateTimeOffset RequestedAtUtc, string ConsentVersion, string RequestKind = "content", string? TermsVersion = null);
+    public sealed record GuardianStatus(bool Approved, string? ChildAccountId, string[] ApprovedDescriptors, DateTimeOffset? ConsentedAtUtc, string? ConsentVersion, bool TermsApproved = false, DateTimeOffset? TermsConsentedAtUtc = null, string? TermsVersion = null);
     public sealed record UploadRequest(string Key, string ContentType);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
