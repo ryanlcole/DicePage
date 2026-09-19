@@ -10,6 +10,7 @@ Before changing runtime behavior, authority, AI/EI behavior, user data handling,
 2. `apps/rist-world/AUTHORITY_SYSTEM.md` — foundational Recursive Authority & Supervision contract.
 3. `apps/rist-world/wwwroot/ai-policy.json` — deployed AI-access policy.
 4. The deployed legal/safety surfaces under `apps/rist-world/wwwroot/`, including `terms.html`, `privacy.html`, `safety.html`, `dmca.html`, and `accessibility.html`.
+5. For subscriptions, complimentary access, Shaelvien Tokens, Kickstarter, or investor-facing arithmetic, read `docs/COMMERCE_MODEL.md` and preserve its fact-versus-projection boundary.
 
 If a requirement is unknown, ambiguous, conflicting, stale, jurisdiction-dependent, or not yet implemented safely, fail closed or preserve the prior lawful behavior and escalate for qualified human/legal review. Semantic efficiency never outranks lawful human requirements, consent, privacy, safety, accessibility, ownership, or established Shaelvien/RIST policy.
 
