@@ -81,6 +81,14 @@ def main() -> None:
     require(shell, 'await PersistWorkspaceAsync("hub");', "landing must persist hub as launch workspace")
     forbid(shell, "RestorableWorkspaces.Contains(storedWorkspace)", "old workspace restoration must not bypass world-first launch")
     forbid(shell, "ApplyWorkspace(storedWorkspace)", "old workspace restoration must not bypass landing")
+    require(shell, "@inject DiscordAuthClient Auth", "landing must own authenticated account actions")
+    require(shell, "<strong>SWITCH USER</strong>" if "<strong>SWITCH USER</strong>" in shell else "SWITCH USER", "landing must expose Switch User")
+    require(shell, "<strong>SIGN OUT</strong>" if "<strong>SIGN OUT</strong>" in shell else "SIGN OUT", "landing must expose Sign Out")
+    require(shell, "async Task SwitchUserAsync()", "Switch User must have an explicit handler")
+    require(shell, "async Task SignOutAsync()", "Sign Out must have an explicit handler")
+    require(shell, 'Navigation.NavigateTo("/Play/index.html",forceLoad:true);', "Switch User must return to account selection")
+    require(shell, 'Navigation.NavigateTo("/",forceLoad:true);', "Sign Out must return to the public home")
+    require(shell, "await Auth.LogoutAsync();", "landing account actions must clear the provider session")
 
     # Experience activation belongs to Press Start; landing stays clean.
     require(index, '<script src="device-settings.js"></script>', "device settings authority must load before Blazor")
