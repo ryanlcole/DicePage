@@ -184,8 +184,12 @@ public sealed partial class WorldSession
         AwsAuthorityClient.MmoParcel claimed;
         try
         {
-            claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName)
-                ?? throw new InvalidOperationException("The Shaelvien parcel claim was not accepted.");
+            var tokenId = UnspentMmoWorldToken?.TokenId ?? "";
+            if (string.IsNullOrWhiteSpace(tokenId))
+                throw new InvalidOperationException("No unspent Shaelvien Token is available for this claim.");
+
+            claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName, tokenId)
+                ?? throw new InvalidOperationException("The Shaelvien property-space claim was not accepted.");
         }
         catch (HttpRequestException ex)
         {
