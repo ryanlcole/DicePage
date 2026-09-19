@@ -515,9 +515,9 @@ async function restoreSavedWorldBuilder(){
   if(restoreSaveStarted)return;restoreSaveStarted=true;
   try{
     if(REGION_DEFINER){
-      // Region Definer never restores or clears a separate map. The host bridge owns
-      // canonical-map hydration; base-image load timing must not erase database layers.
-      viewerTier='sea';viewerLayer=0;
+      // Region Definer never enters the World Builder's local restore pipeline.
+      // Its current tier/selection belongs to the viewer and must not be reset when
+      // a base image finishes loading; the host bridge hydrates canonical map truth.
     }else{
       userLayers.splice(0,userLayers.length);
       world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
@@ -2608,7 +2608,7 @@ BASE_WORLD_ASSETS.forEach(asset=>{
       fitMap();
       if(upscaleEnabled&&!upscaleStarted){upscaleStarted=true;void applyUpscalePreference()}
       scheduleRegionEnhancement(60);
-      void restoreSavedWorldBuilder();
+      if(!REGION_DEFINER)void restoreSavedWorldBuilder();
     }else{
       if(asset.key==='surface')loading.hidden=true;
       renderState();
@@ -2629,7 +2629,7 @@ if(!BASE_WORLD_ASSETS.length){
   stage.dataset.surfacePixelHeight=String(SURFACE_WORLD_PIXELS);
   world.dataset.emptyWorld='true';
   fitMap();
-  void restoreSavedWorldBuilder();
+  if(!REGION_DEFINER)void restoreSavedWorldBuilder();
   if(REGION_DEFINER){
     loading.hidden=false;loading.textContent='LOADING SELECTED WORLD MAP…';
     announce('Region Definer is loading the selected world map. Claim a portion, then build.');
