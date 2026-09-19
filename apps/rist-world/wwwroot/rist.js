@@ -1,3 +1,11 @@
+window.ristLegalConsent={
+ atEnd:el=>{
+  if(!el)return false;
+  const remaining=el.scrollHeight-el.clientHeight-el.scrollTop;
+  return remaining<=12;
+ }
+};
+
 window.ristAuth={
  providerKey:'rist.session.provider',
  expiresKey:'rist.session.expiresAt',
