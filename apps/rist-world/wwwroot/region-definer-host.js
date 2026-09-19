@@ -73,6 +73,17 @@ export function attach(frame,dotnet){
         post(frame,{type:"map-region-saved",requestId,result});
         return;
       }
+      if(data.type==="promote-world-source"){
+        const state=data.state&&typeof data.state==="object"?data.state:{};
+        const result=await dotnet.invokeMethodAsync("PromoteWorldSourceFromPrototypeAsync",state);
+        if(result?.success){
+          const worldSource=await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
+          post(frame,{type:"world-source",worldSource:worldSource||null});
+        }else{
+          post(frame,{type:"map-load-error",message:"Canonical World Builder source could not be promoted to the database."});
+        }
+        return;
+      }
     }catch(error){
       if(data?.type==="save-map-region"){
         post(frame,{type:"map-region-save-error",requestId:String(data?.requestId||""),message:String(error?.message||error||"Map save failed")});

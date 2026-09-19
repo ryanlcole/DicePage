@@ -62,6 +62,10 @@ def test_regiondefiner_is_permissioned_view_of_same_canonical_database_map():
     assert "if(!REGION_DEFINER)void restoreSavedWorldBuilder()" in prototype
     assert "viewerTier='sea';viewerLayer=0;" not in prototype[prototype.index("async function restoreSavedWorldBuilder"):prototype.index("function ensureRegionEnhanceCanvas")]
     assert "saveRegionMapToDatabase(serializedLayers)" in prototype
+    assert "readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY)" in prototype
+    assert "worldbuilder-recovery-cache" in prototype
+    assert "promote-world-source" in prototype
+    assert "PromoteWorldSourceFromPrototypeAsync" in workspace
     assert "RIST_REGIONDEFINER_OVERLAYS" not in prototype
     assert "stage.dataset.worldSource='database'" in prototype
 
@@ -107,6 +111,6 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
     assert 'InvokeVoidAsync("refresh"' in workspace
     assert "async function sendState" in bridge
     assert 'type:"map-load-error"' in bridge
-    assert "./prototype.js?v=20260918-region-layers-5" in index
-    assert "renderer=20260918-region-layers-5" in workspace
-    assert "./region-definer-host.js?v=20260918-region-layers-5" in workspace
+    assert "./prototype.js?v=20260918-region-layers-6" in index
+    assert "renderer=20260918-region-layers-6" in workspace
+    assert "./region-definer-host.js?v=20260918-region-layers-6" in workspace

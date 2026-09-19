@@ -71,7 +71,7 @@
    var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260918-region-layers-5";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260918-region-layers-6";
   }
  }
 
@@ -81,7 +81,7 @@
 
   // Attach the canonical-map bridge before loading region/claim metadata.
   // Viewer rendering must never wait on permission metadata or MMO claim refresh.
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-layers-5");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260918-region-layers-6");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -117,7 +117,8 @@
    parcelId=Session.ActiveRegion?.ParcelId??"",
    parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
    parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,
-   maxHeight=Session.ActiveRegion?.MaxHeight??0
+   maxHeight=Session.ActiveRegion?.MaxHeight??0,
+   canPromoteWorldSource=Session.HasTrustedWorldBuilderAuthority
   };
  }
 
@@ -130,6 +131,21 @@
    success=saved is not null,
    worldId=saved?.WorldId??Session.WorldId,
    regionId,
+   updatedAtUtc=saved?.UpdatedAtUtc??""
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> PromoteWorldSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
+ {
+  if(!Session.HasTrustedWorldBuilderAuthority)
+   return new { success=false, worldId=Session.WorldId, updatedAtUtc="" };
+
+  var saved=await Session.SaveWorldBuilderSourceAsync(state);
+  return new
+  {
+   success=saved is not null,
+   worldId=saved?.WorldId??Session.WorldId,
    updatedAtUtc=saved?.UpdatedAtUtc??""
   };
  }

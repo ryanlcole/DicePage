@@ -1423,13 +1423,32 @@ function regionSourceCropStyle(image,tile){
 }
 async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
+  const envelope=payload&&typeof payload==='object'?payload:{};
+  let snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
+  let tiles=Array.isArray(snapshot.tiles)?snapshot.tiles:Array.isArray(envelope.tiles)?envelope.tiles:[];
+  let sourceLayers=Array.isArray(snapshot.userLayers)?snapshot.userLayers:[];
+  let tierImages=Array.isArray(snapshot.tierImages)?snapshot.tierImages.map(String).filter(Boolean):[];
+  const databaseHasRenderableMap=BASE_WORLD_ASSETS.length>0||tiles.length>0||sourceLayers.length>0||tierImages.length>0;
+
+  if(!databaseHasRenderableMap&&envelope.canPromoteWorldSource===true&&!envelope.recoveredWorldBuilderCache){
+    const localState=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY).catch(()=>null);
+    const localMatches=localState&&typeof localState==='object'
+      &&String(localState.worldId||'')===String(WORLD_ID||'')
+      &&String(localState.format||'')==='RIST_WORLDBUILDER_PROTOTYPE';
+    const localRenderable=localMatches&&(
+      (Array.isArray(localState.tierImages)&&localState.tierImages.length>0)
+      ||(Array.isArray(localState.userLayers)&&localState.userLayers.length>0)
+      ||(Array.isArray(localState.tiles)&&localState.tiles.length>0)
+    );
+    if(localRenderable){
+      stage.dataset.worldSource='worldbuilder-recovery-cache';
+      postRegionMessage('promote-world-source',{state:localState});
+      return renderRegionWorldSource({...envelope,state:localState,recoveredWorldBuilderCache:true});
+    }
+  }
+
   const hydrationRevision=++canonicalHydrationRevision;
   clearRegionWorldSource();
-  const envelope=payload&&typeof payload==='object'?payload:{};
-  const snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
-  const tiles=Array.isArray(snapshot.tiles)?snapshot.tiles:Array.isArray(envelope.tiles)?envelope.tiles:[];
-  const sourceLayers=Array.isArray(snapshot.userLayers)?snapshot.userLayers:[];
-  const tierImages=Array.isArray(snapshot.tierImages)?snapshot.tierImages.map(String).filter(Boolean):[];
   regionWorldSourceMeta={
     worldId:String(envelope.worldId||snapshot.worldId||WORLD_ID||''),
     worldName:String(envelope.worldName||snapshot.worldName||WORLD_NAME||DISPLAY_WORLD_NAME||'World'),
@@ -1446,7 +1465,7 @@ async function renderRegionWorldSource(payload){
     naturalWidth=sourcePixelWidth;
     naturalHeight=sourcePixelHeight;
   }
-  stage.dataset.worldSource='database';
+  if(!envelope.recoveredWorldBuilderCache)stage.dataset.worldSource='database';
   applyDatabaseTierImages(tierImages);
   const sharedBaseMap=BASE_WORLD_ASSETS.length>0||tierImages.length>0;
   const renderedTierImages=[];
