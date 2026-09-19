@@ -17,7 +17,7 @@ def test_worldbuilder_publishes_shared_source_to_database_bridge():
     assert 'SaveWorldBuilderSourceFromPrototypeAsync' in host
     assert 'Session.LoadWorldBuilderSourceAsync()' in host
     assert 'Session.SaveWorldBuilderSourceAsync(state)' in host
-    assert 'worldbuilder-source-host.js?v=20260918-db-source-1' in host
+    assert 'worldbuilder-source-host.js?v=20260919-region-tier-home-1' in host
 
     assert "worldBuilderSourceState" in prototype
     assert "tierImages:worldBuilderTierImages()" in prototype
@@ -114,9 +114,9 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
     assert 'InvokeVoidAsync("refresh"' in workspace
     assert "async function sendState" in bridge
     assert 'type:"map-load-error"' in bridge
-    assert "./prototype.js?v=20260918-region-linear-build-1" in index
-    assert "renderer=20260918-region-linear-build-1" in workspace
-    assert "./region-definer-host.js?v=20260918-region-linear-build-1" in workspace
+    assert "./prototype.js?v=20260919-region-tier-home-1" in index
+    assert "renderer=20260919-region-tier-home-1" in workspace
+    assert "./region-definer-host.js?v=20260919-region-tier-home-1" in workspace
 
 
 def test_regiondefiner_claim_flow_is_linear_and_crop_is_real():
