@@ -7,7 +7,7 @@ public sealed partial class WorldSession
     public string PendingPlayerAlias { get; set; } = "";
     public string PendingProfileNote { get; set; } = "";
     public string PendingPlan { get; set; } = "player";
-    public bool PendingTermsAccepted { get; set; }
+    public int PendingAge { get; set; }
 
     public void OpenAccountViewer()
     {
@@ -27,7 +27,7 @@ public sealed partial class WorldSession
         PendingDisplayName = PendingDisplayName.Trim();
         PendingPlayerAlias = PendingPlayerAlias.Trim();
         PendingProfileNote = PendingProfileNote.Trim();
-        if (PendingDisplayName.Length == 0 || PendingPlayerAlias.Length == 0 || !PendingTermsAccepted) return;
+        if (PendingDisplayName.Length == 0 || PendingPlayerAlias.Length == 0 || PendingAge is < 1 or > 120) return;
         PendingPlan = PendingPlan is "gm-player" ? "gm-player" : "player";
 
         await js.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "signup");
@@ -35,7 +35,7 @@ public sealed partial class WorldSession
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.alias", PendingPlayerAlias);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.profileNote", PendingProfileNote);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.plan", PendingPlan);
-        await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.termsAccepted", "true");
+        await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.age", PendingAge.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         AccountViewerOpen = false;
         Notify();
