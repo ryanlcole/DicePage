@@ -1063,7 +1063,7 @@ def handler(event, context):
         result = public_commerce_invite(item)
         result["code"] = code
         result["redeemUrl"] = (
-            origin + "/Game/index.html?access=" + urllib.parse.quote(code, safe="")
+            origin + "/Play/index.html?access=" + urllib.parse.quote(code, safe="")
         )
         return response(200, result)
 
