@@ -102,13 +102,13 @@ else
   @if (_workspaceMode != "world")
   {
    <div class="alpha-world-ribbon" aria-label="Shaelvien workspace">
-    <button type="button" @onclick="ReturnToHub" aria-label="Back to Shaelvien hub">← BACK</button>
+    <button type="button" @onclick="ReturnToHub" aria-label="Home — return to the Shaelvien landing page">⌂ HOME</button>
     <span>@_workspaceLabel</span>
     <span class="alpha-ribbon-path">@_workspaceHint</span>
    </div>
   }
   @if(WorkspaceReferenceOnly){<div class="workspace-reference-banner" role="status">VIEW ONLY · ENDEMAR REFERENCE</div>}
-  <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="OpenStartMenu" />
+  <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="OpenStartMenu" OnHome="ReturnToHub" />
  </div>
 }
 
