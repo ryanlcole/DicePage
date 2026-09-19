@@ -112,7 +112,7 @@ def main() -> None:
     forbid(shell, "<strong>PERCEIVER</strong>", "authenticated launcher must not render a Perceiver card")
 
     # One universal World Builder. Geonaph differs only by seed data.
-    require(router, '<WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" />', "all worlds must use the universal builder host")
+    require(router, '<WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" OnHome="OnHome" />', "all worlds must use the universal builder host and return Home without reloading Press Start")
     forbid(router, '<WorldBuilderStudio OnStartMenu="OnStartMenu" />', "normal worlds must not route to a second builder")
     require(host, 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";', "Geonaph may differ only by seed data")
     require(host, "worldId={worldId}", "builder must receive selected world identity")
