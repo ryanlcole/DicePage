@@ -73,6 +73,10 @@
    <button type="button" @onclick="OpenKickstarter"><span>★</span>KICKSTARTER</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
+   @if(Session.HasPlatformCommercialOverride)
+   {
+    <button type="button" @onclick="OpenCommerceAdmin"><span>⌁</span>ACCESS ADMIN</button>
+   }
    @if(Session.IsLoggedIn)
    {
     <button type="button" @onclick="SwitchUserAsync"><span>⇄</span>SWITCH USER</button>
@@ -90,6 +94,7 @@
 
   <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
   <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
+  <CommerceAdminPanel Open="@_commerceAdminOpen" OnClose="CloseCommerceAdmin" />
 
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
@@ -243,6 +248,7 @@ else
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
+ bool _commerceAdminOpen;
  bool _tickerOpen;
  bool _cardIndexOpen;
  readonly List<AccountWorldReference> _landingWorlds=[];
@@ -465,18 +471,20 @@ else
   _tickerOpen=false;
   Navigation.NavigateTo(Navigation.Uri,forceLoad:true);
  }
- public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshExperienceStateAsync();}
+ public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_commerceAdminOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshExperienceStateAsync();}
  void OpenSettings()=>OpenStartMenu();
+ void OpenCommerceAdmin(){if(!Session.HasPlatformCommercialOverride)return;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=true;}
+ void CloseCommerceAdmin()=>_commerceAdminOpen=false;
  async Task SwitchUserAsync()
  {
-  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;
+  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;
   await Auth.LogoutAsync();
   Session.AdoptAuthentication(null);
   Navigation.NavigateTo("/Play/index.html",forceLoad:true);
  }
  async Task SignOutAsync()
  {
-  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;
+  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;
   await Auth.LogoutAsync();
   Session.AdoptAuthentication(null);
   Navigation.NavigateTo("/",forceLoad:true);
@@ -545,6 +553,6 @@ else
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
