@@ -89,6 +89,10 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn('region["parcelPixelWidth"] = MMO_PARCEL_PIXELS', self.source)
         self.assertIn('region["parcelPixelHeight"] = MMO_PARCEL_PIXELS', self.source)
         self.assertIn('region["maxHeight"] = MMO_PARCEL_MAX_HEIGHT', self.source)
+        self.assertIn('region["parentNodeId"] = "world:" + world_id', self.source)
+        self.assertIn('region["coordinateSpace"] = "world-normalized-v1"', self.source)
+        self.assertIn('region["canonicalMinX"] = column / MMO_PARCEL_GRID_COLUMNS', self.source)
+        self.assertIn('region["canonicalZMax"] = MMO_PARCEL_MAX_HEIGHT', self.source)
         self.assertIn('region["ownerUserId"] = owner', self.source)
 
 if __name__ == "__main__":

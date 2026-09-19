@@ -7,6 +7,16 @@ public sealed partial class WorldSession
         "WORLD","REGION","LOCAL","SITE","ROOM","ENCOUNTER","OBJECT","CONTAINER","CONTENTS"
     ];
 
+    // Canonical recursive-map truth. These are semantic containment scopes, not
+    // separate map files. Shaelvien may partition WORLD into streamed zones only
+    // for performance; coordinates and identity remain anchored in one world truth.
+    public static readonly string[] CanonicalMapScopes =
+    [
+        "WORLD","REGION","LANDMARK","INTERIOR","OBJECT","PLAYER","BATTLE_INSTANCE"
+    ];
+    public const string ShaelvienWorldPartitionKind = "ZONE";
+    public const bool ShaelvienPartitionsArePerformanceOnly = true;
+
     // Compatibility alias for older components/snapshots. WEATHER is a visual
     // layer, never a navigable recursion tier.
     public static IReadOnlyList<string> RecursionLayers => RecursionTiers;

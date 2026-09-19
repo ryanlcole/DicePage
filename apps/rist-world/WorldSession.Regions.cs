@@ -123,7 +123,15 @@ public sealed partial class WorldSession
             TierIndex: tierIndex,
             SourceLayerOffsets: sourceLayers,
             GridShape: gridShape,
-            OwnerUserId: auth.Profile?.UserId?.Trim() ?? "");
+            OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
+            ParentNodeId: $"world:{WorldId}",
+            CoordinateSpace: "world-normalized-v1",
+            CanonicalMinX: minColumn / (double)GridColumns,
+            CanonicalMinY: minRow / (double)GridRows,
+            CanonicalMaxX: (maxColumn + 1) / (double)GridColumns,
+            CanonicalMaxY: (maxRow + 1) / (double)GridRows,
+            CanonicalZMin: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Min() : 0),
+            CanonicalZMax: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Max() + 1 : LayersPerTier));
 
         _regions.Add(region);
         _activeRegionId = region.RegionId;
@@ -288,7 +296,15 @@ public sealed record WorldRegion(
     string ParcelId = "",
     int ParcelPixelWidth = 0,
     int ParcelPixelHeight = 0,
-    int MaxHeight = 0)
+    int MaxHeight = 0,
+    string ParentNodeId = "",
+    string CoordinateSpace = "world-normalized-v1",
+    double CanonicalMinX = 0,
+    double CanonicalMinY = 0,
+    double CanonicalMaxX = 0,
+    double CanonicalMaxY = 0,
+    int CanonicalZMin = 0,
+    int CanonicalZMax = 0)
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);

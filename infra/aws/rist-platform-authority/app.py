@@ -1033,6 +1033,14 @@ def handler(event, context):
             "parcelPixelWidth": MMO_PARCEL_PIXELS,
             "parcelPixelHeight": MMO_PARCEL_PIXELS,
             "maxHeight": MMO_PARCEL_MAX_HEIGHT,
+            "parentNodeId": "world:" + world_id,
+            "coordinateSpace": "world-normalized-v1",
+            "canonicalMinX": column / MMO_PARCEL_GRID_COLUMNS,
+            "canonicalMinY": row / MMO_PARCEL_GRID_ROWS,
+            "canonicalMaxX": (column + 1) / MMO_PARCEL_GRID_COLUMNS,
+            "canonicalMaxY": (row + 1) / MMO_PARCEL_GRID_ROWS,
+            "canonicalZMin": 0,
+            "canonicalZMax": MMO_PARCEL_MAX_HEIGHT,
         }
         region_item = {
             **region_key(world_id, region_id),
@@ -1416,6 +1424,14 @@ def handler(event, context):
             region["parcelPixelWidth"] = MMO_PARCEL_PIXELS
             region["parcelPixelHeight"] = MMO_PARCEL_PIXELS
             region["maxHeight"] = MMO_PARCEL_MAX_HEIGHT
+            region["parentNodeId"] = "world:" + world_id
+            region["coordinateSpace"] = "world-normalized-v1"
+            region["canonicalMinX"] = column / MMO_PARCEL_GRID_COLUMNS
+            region["canonicalMinY"] = row / MMO_PARCEL_GRID_ROWS
+            region["canonicalMaxX"] = (column + 1) / MMO_PARCEL_GRID_COLUMNS
+            region["canonicalMaxY"] = (row + 1) / MMO_PARCEL_GRID_ROWS
+            region["canonicalZMin"] = 0
+            region["canonicalZMax"] = MMO_PARCEL_MAX_HEIGHT
 
         region["worldId"] = world_id
         region["regionId"] = region_id

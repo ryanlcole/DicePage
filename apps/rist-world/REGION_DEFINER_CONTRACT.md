@@ -38,25 +38,39 @@ Selecting a map portion is not equivalent to owning or editing it.
 
 A pending request does not unlock regional building. The GM decision is the authority boundary.
 
-## Source/overlay authority
+## Canonical-map authority
 
-- World source: read-only in RegionDefiner, including WorldBuilder images, sprites, labels and terrain placements.
-- Region selection: references world cells from the selected world.
-- Region crop: retains source World ID, selected-cell mask, source Tier, selected World layer offsets, and Square/Hex grid geometry.
-- Claimed source tiles are normalized into regional-map coordinates while the parent-world bounds retain their provenance.
-- Regional tiles: independent overlay records owned by the region.
-- Region overlays may be added or removed without changing WorldBuilder terrain.
-- A region may later support its own finer-scale representation, but that must not mutate the parent world coordinates.
+There is one recursive map truth in the database. WorldBuilder, RegionDefiner, landmark/interior viewers, object viewers, player views and battle instances are permission-filtered windows over that same truth.
+
+- WorldBuilder works on the authorized world/zone portion.
+- RegionDefiner works on an authorized region portion.
+- Landmark and interior tools recurse into smaller coordinate scopes.
+- Objects, players and battle instances remain anchored to canonical parent coordinates.
+- A tool may crop, tilt, simplify, hide, or increase detail for presentation; it does not create another authoritative map.
+- Regional edits write back into the same canonical world truth with region provenance and permission checks.
+- Browser storage is recovery/cache only and is never authoritative map truth.
 
 ## Extents
 
 The source viewer remains 30×30 addressable cells for claiming. RegionDefiner applies the same claim/crop/build process to every selected world, including Endemar. Any underlying world-extent or ownership rules remain world-level authority and do not change the RegionDefiner workflow.
 
 
-## One canonical map
+## One recursive map
 
-WorldBuilder, RegionDefiner, region views, and later local/tactical viewers all address the same canonical world map in the database. They are not separate maps and RegionDefiner does not own a copied source or overlay map.
+The database stores one recursive spatial truth:
 
-WorldBuilder changes the map with world-level authority. RegionDefiner reads the same map, changes camera/perspective (including the 15° presentation), crops what the viewer can see, and limits mutation authority to the selected region/tier/layers. Region boundaries, claims, ownership, and delegated permissions are metadata over that same map.
+**World → Regions → Landmarks → Interior depth → Objects → Players → Battle instances.**
 
-Browser storage may cache viewer state or recovery data, but it is never map authority. Region records may retain legacy SourceTiles/OverlayTiles fields for backward-compatible deserialization, but new region creation and editing do not populate a second map there.
+Every child keeps its parent identity and canonical coordinates. A deeper viewer changes scale and representation, not truth.
+
+Shaelvien is the special performance case: its enormous world may be streamed as **zones**. A zone is a storage/render partition only, not a separate reality. Cross-zone identity and coordinates remain part of the same Shaelvien map.
+
+Region records persist their canonical parent address and normalized X/Y bounds plus Z range so later regional changes can be projected back into higher-level world representations without losing position.
+
+## Permission-filtered knowledge
+
+There are no separate "player maps" that overwrite truth. The server projects the canonical map through permissions.
+
+A GM may reveal a node or a chosen recursion depth to a user, party, or session. Knowledge does not automatically leak between parties. A visitor can attend one session with only that session's revealed map and return later without gaining discoveries made by another party. Party/user/session reveal grants are separate from ownership and edit authority.
+
+The GM may later reveal a changed region upward at different detail levels: for example only a landmark at WORLD view, a road network at REGION view, or full interiors only when the viewer has permission to recurse that far.
