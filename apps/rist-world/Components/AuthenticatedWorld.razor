@@ -63,13 +63,24 @@ else if (_canEnter)
   <section class="rist-terms-gate" role="dialog" aria-modal="true" aria-label="Terms agreement">
    <form class="rist-terms-card" @onsubmit="AcceptTermsAsync">
     <h1>Before You Play</h1>
-    <p>Agree to the Terms and Privacy Policy to continue.</p>
-    <label><input type="checkbox" @bind="_termsChecked" /> <span>I agree to the Terms and Privacy Policy.</span></label>
+    <p>Please review the policies that govern your Shaelvien account before agreeing.</p>
+    <nav class="rist-terms-documents" aria-label="Required legal policies">
+     <a href="/Game/terms.html" target="_blank" rel="noopener">
+      <strong>READ TERMS OF SERVICE</strong>
+      <span>Account use, alpha service, your content, prohibited use, security and other terms.</span>
+     </a>
+     <a href="/Game/privacy.html" target="_blank" rel="noopener">
+      <strong>READ PRIVACY POLICY</strong>
+      <span>What information is used, Discord authentication, storage, retention, security and your choices.</span>
+     </a>
+    </nav>
+    <p class="rist-terms-hint">Each policy opens in a new tab so you can return here without losing your sign-in.</p>
+    <label class="rist-terms-agree"><input type="checkbox" @bind="_termsChecked" required /> <span>I have reviewed and agree to the Terms of Service and Privacy Policy.</span></label>
     @if (!string.IsNullOrWhiteSpace(_termsError))
     {
      <p class="rist-terms-error">@_termsError</p>
     }
-    <button type="submit" disabled="@_savingTerms">@(_savingTerms ? "Saving…" : "Agree & Continue")</button>
+    <button type="submit" disabled="@(!_termsChecked || _savingTerms)">@(_savingTerms ? "Saving…" : "Agree & Continue")</button>
    </form>
   </section>
  }
@@ -116,11 +127,18 @@ else
  .rist-terms-card{box-sizing:border-box;width:min(92vw,520px);padding:24px;border:1px solid #8d7440;border-radius:14px;background:#081016;color:#eee6d2;box-shadow:0 18px 55px #000b;font-family:system-ui,-apple-system,sans-serif}
  .rist-terms-card h1{margin:0 0 8px;color:#e5c878}
  .rist-terms-card p{color:#b8b09e;line-height:1.45}
- .rist-terms-card label{display:flex;align-items:flex-start;gap:10px;margin:18px 0;color:#d7c58f;font-weight:800}
+ .rist-terms-documents{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 10px}
+ .rist-terms-documents a{display:grid;gap:7px;min-height:106px;padding:14px;border:1px solid #8d7440;border-radius:10px;background:#111d24;color:#ffe2a0;text-decoration:none;touch-action:manipulation}
+ .rist-terms-documents a:focus-visible{outline:3px solid #ffe9ad;outline-offset:2px}
+ .rist-terms-documents strong{font:900 13px/1.2 system-ui;letter-spacing:.04em}
+ .rist-terms-documents span{color:#c5c1b5;font:600 11px/1.4 system-ui}
+ .rist-terms-hint{margin:0 0 4px!important;color:#98a6aa!important;font-size:11px;line-height:1.4!important}
+ .rist-terms-card .rist-terms-agree{display:flex;align-items:flex-start;gap:10px;margin:16px 0;color:#d7c58f;font-weight:800}
  .rist-terms-card input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}
  .rist-terms-card button{width:100%;min-height:48px;margin-top:8px;border:1px solid #a68a4b;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}
- .rist-terms-card button:disabled{opacity:.65}
+ .rist-terms-card button:disabled{opacity:.48}
  .rist-terms-error{color:#ffb3a6!important;font-weight:700}
+ @@media(max-width:520px){.rist-terms-card{padding:20px}.rist-terms-documents{grid-template-columns:1fr}.rist-terms-documents a{min-height:0;padding:12px}}
 </style>
 
 @code {
