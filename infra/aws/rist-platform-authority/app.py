@@ -205,6 +205,39 @@ def ensure_genesis_world_token(user_id, account_id, player_alias):
     key = world_token_key(user_id)
     current = users.get_item(Key=key, ConsistentRead=True).get("Item")
     if current:
+        # Legacy unspent tokens created before split-code binding did not have
+        # accountHalfCode/accountHalfHash. Upgrade those records in place so the
+        # user's original free token remains valid rather than failing with 409.
+        if (
+            str(current.get("status") or "") == "unspent"
+            and not str(current.get("accountHalfCode") or "")
+        ):
+            account_half = secrets.token_hex(32)
+            try:
+                users.update_item(
+                    Key=key,
+                    UpdateExpression=(
+                        "SET accountHalfCode = :code, accountHalfHash = :hash, "
+                        "profileAccountId = :accountId, profileAlias = :alias"
+                    ),
+                    ConditionExpression=(
+                        "#status = :unspent AND holderUserId = :userId "
+                        "AND attribute_not_exists(accountHalfCode)"
+                    ),
+                    ExpressionAttributeNames={"#status": "status"},
+                    ExpressionAttributeValues={
+                        ":code": account_half,
+                        ":hash": hashlib.sha256(account_half.encode()).hexdigest(),
+                        ":accountId": str(account_id or "")[:160],
+                        ":alias": str(player_alias or "")[:80],
+                        ":unspent": "unspent",
+                        ":userId": user_id,
+                    },
+                )
+            except ClientError as exc:
+                if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+                    raise
+            current = users.get_item(Key=key, ConsistentRead=True).get("Item") or current
         return current
 
     stamp = utc_stamp()
