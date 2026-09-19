@@ -60,15 +60,23 @@ COMMERCE_INVITE_MAX_DAYS = 3650
 COMMERCE_INVITE_MAX_TOKENS = 5
 COMMERCE_PLANS = {
     "dedicated-roleplayer": {
+        "displayName": "Dedicated Roleplayer",
+        "monthlyUsdCents": 0,
         "entitlements": ["access.roleplayer.online"],
     },
     "standard-roleplayer": {
+        "displayName": "Standard Roleplayer",
+        "monthlyUsdCents": 500,
         "entitlements": ["access.roleplayer.online"],
     },
     "gamemaster": {
+        "displayName": "GameMaster",
+        "monthlyUsdCents": 1000,
         "entitlements": ["access.roleplayer.online", "access.gamemaster"],
     },
     "storyteller": {
+        "displayName": "Storyteller",
+        "monthlyUsdCents": 1500,
         "entitlements": [
             "access.roleplayer.online",
             "access.gamemaster",
@@ -76,6 +84,8 @@ COMMERCE_PLANS = {
         ],
     },
     "worldbuilder": {
+        "displayName": "Worldbuilder",
+        "monthlyUsdCents": 2000,
         "entitlements": [
             "access.roleplayer.online",
             "access.gamemaster",
@@ -552,6 +562,15 @@ def commerce_summary(user_id, profile=None):
             merged,
             bool(owner_user_id and user_id == owner_user_id),
         )["entitlements"],
+        "plans": [
+            {
+                "planId": plan_id,
+                "displayName": str(plan.get("displayName") or plan_id),
+                "monthlyUsdCents": int(plan.get("monthlyUsdCents") or 0),
+                "entitlements": list(plan.get("entitlements") or []),
+            }
+            for plan_id, plan in COMMERCE_PLANS.items()
+        ],
         "grants": [public_entitlement_grant(item) for item in grants],
         "tokens": [public_world_token(item) for item in tokens],
         "unspentTokenCount": sum(
