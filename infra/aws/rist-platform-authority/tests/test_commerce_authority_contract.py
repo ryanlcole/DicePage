@@ -25,7 +25,7 @@ class CommerceAuthorityContractTests(unittest.TestCase):
         self.assertIn('"codeHash": hashlib.sha256(code.encode()).hexdigest()', self.source)
         self.assertIn('path == "/authority/commerce/invites/redeem"', self.source)
         self.assertIn("attribute_not_exists(revokedAtUtc) OR revokedAtUtc = :empty", self.source)
-        self.assertIn('"expiresAtEpoch = :zero OR expiresAtEpoch > :now"', self.source)
+        self.assertIn("expiresAtEpoch = :zero OR expiresAtEpoch > :now", self.source)
         self.assertNotIn('"code": code,\n            "planId": plan_id,', self.source)
 
     def test_multiple_shaelvien_tokens_are_supported_without_exposing_halves(self):
