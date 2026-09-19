@@ -2863,13 +2863,12 @@ screen.orientation?.addEventListener?.('change',resetTilt);
 function openViewerSettings(){viewerSettingsPanel.hidden=false;viewerSettingsClose.focus()}
 function closeViewerSettings(){viewerSettingsPanel.hidden=true;settingsToggle.focus()}
 function goHome(){
-  // Home means the authenticated Shaelvien landing page, not a full Game reload.
-  // A reload can re-enter the Press Start gate, so embedded workspaces ask their
-  // Blazor host to switch back to the existing landing-page state in place.
+  // HOME is an in-session transition back to the authenticated Shaelvien landing
+  // page. Never reload /Game here: a reload re-enters the Press Start launch gate.
   const sent=REGION_DEFINER?postRegionMessage('home'):postWorldBuilderHostMessage('home');
   if(sent)return;
   try{localStorage.setItem('rist.shell.workspace.v1','hub')}catch{}
-  location.href='/Game/index.html';
+  announce('Home is waiting for the Shaelvien launcher connection. Please try again.');
 }
 function openStartMenu(){
   try{
@@ -2888,7 +2887,7 @@ persistentSave?.addEventListener('click',()=>{
 bindTap($('fit'),fitMap);
 bindTap($('zoomIn'),()=>zoomCenter(1.22));
 bindTap($('zoomOut'),()=>zoomCenter(1/1.22));
-$('back').addEventListener('click',goHome);
+$('home').addEventListener('click',goHome);
 keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():closeKeyboard());
 settingsToggle.addEventListener('click',openViewerSettings);
 viewerSettingsClose.addEventListener('click',closeViewerSettings);
