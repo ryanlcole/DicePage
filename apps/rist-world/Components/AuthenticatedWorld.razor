@@ -24,6 +24,10 @@ else if (_canEnter)
    <img class="rist-auth-start-art" src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="" aria-hidden="true" />
    <div class="rist-auth-start-shade" aria-hidden="true"></div>
    <div class="rist-auth-start-controls">
+    @if(!string.IsNullOrWhiteSpace(_commerceNotice))
+    {
+     <p class="rist-auth-commerce-notice" role="status" aria-live="polite">@_commerceNotice</p>
+    }
     @if(string.IsNullOrWhiteSpace(_privacyChoice))
     {
      <section class="rist-auth-privacy" aria-label="Cookies and storage choice">
@@ -116,6 +120,7 @@ else
  .rist-auth-start-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3;transform:scale(1.04)}
  .rist-auth-start-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,transparent 0 48%,rgba(1,3,8,.10) 68%,rgba(1,3,8,.68) 100%);pointer-events:none}
  .rist-auth-start-controls{width:min(520px,92vw);display:grid;gap:10px;place-items:center;margin:0 0 2vh}
+ .rist-auth-commerce-notice{box-sizing:border-box;width:100%;margin:0;padding:9px 12px;border:1px solid rgba(183,150,75,.72);border-radius:9px;background:rgba(4,10,14,.88);color:#ffe9ad;font:800 11px/1.4 system-ui;text-align:center}
  .rist-auth-privacy{box-sizing:border-box;width:100%;display:grid;gap:9px;padding:12px 14px;border:1px solid rgba(183,150,75,.65);border-radius:12px;background:rgba(4,10,14,.80);backdrop-filter:blur(5px);color:#e9dfc4;text-align:center}
  .rist-auth-privacy strong{color:#f0d68e;font:900 10px/1 system-ui;letter-spacing:.12em}
  .rist-auth-privacy p{margin:0;color:#bcc7ca;font:600 10px/1.45 system-ui}.rist-auth-privacy a{width:max-content;justify-self:center;color:#f0d68e;font:800 9px/1 system-ui}
@@ -180,6 +185,7 @@ else
  string _policyHtml="";
  string _policyLoadError="";
  string _termsError="";
+ string _commerceNotice="";
  ElementReference _policyScroll;
 
  void OpenStartMenu()=>_alphaShell?.OpenStartMenu();
@@ -220,7 +226,11 @@ else
   Session.AdoptAuthentication(profile);
   _canEnter=profile is not null;
   if(_canEnter && Auth.Account is not null)
+  {
+   await Session.RefreshCommercialEntitlementsAsync();
+   await RedeemPendingCommerceAccessAsync();
    await Session.RefreshMmoLandAsync(loadParcels:false);
+  }
   _termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;
   if(_termsRequired)
    await LoadPoliciesAsync();
@@ -234,6 +244,56 @@ else
 
   if(!_canEnter)
    Navigation.NavigateTo("/Play/index.html",forceLoad:true);
+ }
+
+
+ async Task RedeemPendingCommerceAccessAsync()
+ {
+  var code=QueryValue(Navigation.Uri,"access");
+  if(string.IsNullOrWhiteSpace(code))
+  {
+   try{code=(await JS.InvokeAsync<string?>("sessionStorage.getItem","rist.commerce.accessCode"))?.Trim()??"";}catch{}
+  }
+  if(string.IsNullOrWhiteSpace(code))return;
+
+  try
+  {
+   var authority=new AwsAuthorityClient(Http,Auth);
+   await authority.InitializeAsync();
+   var result=await authority.RedeemCommerceInviteAsync(code);
+   if(result?.Ok==true)
+   {
+    _commerceNotice=result.AlreadyRedeemed
+     ?"Complimentary access is already active on this account."
+     :"Complimentary access has been applied to this account.";
+    await Session.RefreshCommercialEntitlementsAsync();
+    try{await JS.InvokeVoidAsync("sessionStorage.removeItem","rist.commerce.accessCode");}catch{}
+   }
+   else
+   {
+    _commerceNotice="The complimentary access link could not be applied.";
+   }
+  }
+  catch(HttpRequestException ex)
+  {
+   _commerceNotice=ex.Message;
+  }
+  catch
+  {
+   _commerceNotice="The complimentary access link could not be verified. Existing account access is unchanged.";
+  }
+ }
+
+ static string QueryValue(string uri,string key)
+ {
+  if(!Uri.TryCreate(uri,UriKind.Absolute,out var parsed))return "";
+  foreach(var pair in parsed.Query.TrimStart('?').Split('&',StringSplitOptions.RemoveEmptyEntries))
+  {
+   var parts=pair.Split('=',2);
+   if(parts.Length==0||!string.Equals(Uri.UnescapeDataString(parts[0]),key,StringComparison.OrdinalIgnoreCase))continue;
+   return parts.Length>1?Uri.UnescapeDataString(parts[1].Replace("+"," ")).Trim():"";
+  }
+  return "";
  }
 
  async Task LoadPoliciesAsync()
