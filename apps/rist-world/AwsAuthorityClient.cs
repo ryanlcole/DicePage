@@ -36,12 +36,67 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<List<WorldToken>?> GetWorldTokensAsync()
         => await SendAsync<List<WorldToken>>(HttpMethod.Get, "/authority/world-tokens");
 
+    public async Task<CommerceSummary?> GetCommerceSummaryAsync()
+        => await SendAsync<CommerceSummary>(HttpMethod.Get, "/authority/commerce");
+
+    public async Task<List<CommerceInvite>?> GetCommerceInvitesAsync()
+        => await SendAsync<List<CommerceInvite>>(HttpMethod.Get, "/authority/commerce/invites");
+
+    public async Task<CommerceInvite?> CreateCommerceInviteAsync(
+        string planId,
+        int expiresInDays,
+        int tokenQuantity = 0,
+        string label = "")
+        => await SendAsync<CommerceInvite>(
+            HttpMethod.Post,
+            "/authority/commerce/invites",
+            new { planId, expiresInDays, tokenQuantity, label });
+
+    public async Task<CommerceRedeemResult?> RedeemCommerceInviteAsync(string code)
+        => await SendAsync<CommerceRedeemResult>(
+            HttpMethod.Post,
+            "/authority/commerce/invites/redeem",
+            new { code });
+
+    public async Task<CommerceInvite?> RevokeCommerceInviteAsync(string inviteId)
+        => await SendAsync<CommerceInvite>(
+            HttpMethod.Post,
+            "/authority/commerce/invites/revoke",
+            new { inviteId });
+
+    public async Task<CommerceGrant?> GrantCommerceAccessAsync(
+        string targetUserId,
+        string planId,
+        int expiresInDays,
+        string source = "complimentary",
+        string label = "")
+        => await SendAsync<CommerceGrant>(
+            HttpMethod.Post,
+            "/authority/commerce/grants",
+            new { targetUserId, planId, expiresInDays, source, label });
+
+    public async Task<CommerceGrant?> RevokeCommerceGrantAsync(string targetUserId, string grantId)
+        => await SendAsync<CommerceGrant>(
+            HttpMethod.Post,
+            "/authority/commerce/grants/revoke",
+            new { targetUserId, grantId });
+
+    public async Task<List<WorldToken>?> MintCommerceTokensAsync(
+        string targetUserId,
+        int quantity,
+        string source = "complimentary",
+        string reference = "")
+        => await SendAsync<List<WorldToken>>(
+            HttpMethod.Post,
+            "/authority/commerce/tokens/mint",
+            new { targetUserId, quantity, source, reference });
+
     public async Task<List<MmoParcel>?> GetMmoParcelsAsync(string worldId)
         => await SendAsync<List<MmoParcel>>(HttpMethod.Get,
             "/world/parcels?worldId=" + Uri.EscapeDataString(worldId));
 
-    public async Task<MmoParcel?> ClaimMmoParcelAsync(string worldId, int cellIndex, string displayName)
-        => await SendAsync<MmoParcel>(HttpMethod.Post, "/world/parcels/claim", new { worldId, cellIndex, displayName });
+    public async Task<MmoParcel?> ClaimMmoParcelAsync(string worldId, int cellIndex, string displayName, string tokenId = "")
+        => await SendAsync<MmoParcel>(HttpMethod.Post, "/world/parcels/claim", new { worldId, cellIndex, displayName, tokenId });
 
     public async Task<ParcelDelegationUpdate?> DelegateMmoParcelAsync(string worldId, string parcelId, string userId, string permission)
         => await SendAsync<ParcelDelegationUpdate>(HttpMethod.Post, "/world/parcels/delegate",
@@ -144,7 +199,48 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         string ParcelId = "",
         string BindingHash = "",
         string CreatedAtUtc = "",
-        string SpentAtUtc = "");
+        string SpentAtUtc = "",
+        string Source = "",
+        string SourceReference = "");
+
+    public sealed record CommerceSummary(
+        List<string>? Entitlements = null,
+        List<CommerceGrant>? Grants = null,
+        List<WorldToken>? Tokens = null,
+        int UnspentTokenCount = 0);
+
+    public sealed record CommerceGrant(
+        string GrantId,
+        string PlanId,
+        List<string>? Entitlements = null,
+        string Source = "",
+        string Label = "",
+        string InviteId = "",
+        string CreatedAtUtc = "",
+        long ExpiresAtEpoch = 0,
+        string RevokedAtUtc = "");
+
+    public sealed record CommerceInvite(
+        string InviteId,
+        string PlanId,
+        string Label = "",
+        int TokenQuantity = 0,
+        string Status = "",
+        string CreatedAtUtc = "",
+        long ExpiresAtEpoch = 0,
+        string RedeemedAtUtc = "",
+        string RedeemedUserId = "",
+        string RedeemedGrantId = "",
+        string RevokedAtUtc = "",
+        string Code = "",
+        string RedeemUrl = "");
+
+    public sealed record CommerceRedeemResult(
+        bool Ok,
+        bool AlreadyRedeemed,
+        string GrantId,
+        string PlanId,
+        int TokenQuantity = 0);
 
     public sealed record MmoParcel(
         string ParcelId,
