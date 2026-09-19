@@ -87,6 +87,7 @@ const regionWorldSourceTiles=[];
 const regionWorldTierImages=[];
 let regionWorldSourceOcean=null;
 let regionTierPreview=null,regionTierPreviewPointer=null;
+let canonicalHydrationRevision=0;
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
@@ -1313,11 +1314,39 @@ function clearRegionWorldSource(){
   for(let index=userLayers.length-1;index>=0;index--){
     const item=userLayers[index];
     if(!item?.canonicalSource)continue;
+    stopSpriteMotion(item);
     item.node?.remove();
     userLayers.splice(index,1);
   }
   regionWorldSourceOcean?.remove();regionWorldSourceOcean=null;
   regionWorldSourceMeta=null;
+}
+function discardCanonicalHydrationItem(item){
+  if(!item)return;
+  stopSpriteMotion(item);
+  item.node?.remove();
+  const index=userLayers.indexOf(item);
+  if(index>=0)userLayers.splice(index,1);
+}
+async function hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,revision){
+  const tasks=sourceLayers.map(async raw=>{
+    const belongsToActiveRegion=!!activeRegionId&&String(raw?.regionId||'')===activeRegionId;
+    const editable=ACCESS_MODE==='edit'&&belongsToActiveRegion;
+    const item=await attachRestoredLayer(raw,{sourceLocked:!editable,regionOverlay:belongsToActiveRegion,canonicalSource:true});
+    if(!item)return null;
+    if(revision!==canonicalHydrationRevision){
+      discardCanonicalHydrationItem(item);
+      return null;
+    }
+    // Do not wait for every canonical asset before making already-hydrated layers
+    // visible. Region Definer is a viewer over the live World Builder map.
+    updateLayerOrder();
+    applyParallax();
+    return item;
+  });
+  const results=await Promise.allSettled(tasks);
+  if(revision!==canonicalHydrationRevision)return 0;
+  return results.reduce((count,result)=>count+(result.status==='fulfilled'&&result.value?1:0),0);
 }
 function regionSourceNumber(value,fallback=0){
   const n=Number(value);return Number.isFinite(n)?n:fallback;
@@ -1371,6 +1400,7 @@ function regionSourceCropStyle(image,tile){
 }
 async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
+  const hydrationRevision=++canonicalHydrationRevision;
   clearRegionWorldSource();
   const envelope=payload&&typeof payload==='object'?payload:{};
   const snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
@@ -1442,11 +1472,11 @@ async function renderRegionWorldSource(payload){
     regionWorldSourceTiles.push({node,image,tier,layer,index,id:String(raw.id||''),name:String(raw.name||''),assetKind:String(raw.assetKind||'tile')});
   });
   const activeRegionId=String(envelope.activeRegionId||REQUESTED_REGION_ID||pendingClaimedRegionId||'').trim();
-  for(const raw of sourceLayers){
-    const belongsToActiveRegion=!!activeRegionId&&String(raw?.regionId||'')===activeRegionId;
-    const editable=ACCESS_MODE==='edit'&&belongsToActiveRegion;
-    await attachRestoredLayer(raw,{sourceLocked:!editable,regionOverlay:belongsToActiveRegion,canonicalSource:true});
-  }
+  stage.dataset.canonicalLayerCount=String(sourceLayers.length);
+  stage.dataset.canonicalTierImageCount=String(tierImages.length);
+  // Start every canonical layer together. A slow sprite sheet or remote asset must
+  // never block the remaining World Builder layers from appearing in Region Definer.
+  const canonicalHydration=hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,hydrationRevision);
   updateLayerOrder();
   const authoredCount=tiles.length+sourceLayers.length;
   const hasCanonicalMap=sharedBaseMap||renderedTierImages.length||authoredCount;
@@ -1465,6 +1495,17 @@ async function renderRegionWorldSource(payload){
       ?`${regionWorldSourceMeta.worldName} canonical map loaded. Viewer perspective and permissions are active.`
       :`${regionWorldSourceMeta.worldName} has no saved canonical map yet.`);
   }
+  void canonicalHydration.then(count=>{
+    if(hydrationRevision!==canonicalHydrationRevision)return;
+    stage.dataset.hydratedCanonicalLayerCount=String(count);
+    updateLayerOrder();
+    applyParallax();
+    updateReadouts();
+    renderKeyboardKeys();
+  }).catch(error=>{
+    if(hydrationRevision!==canonicalHydrationRevision)return;
+    stage.dataset.canonicalHydrationError=String(error?.message||error||'unknown error').slice(0,160);
+  });
 }
 function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
