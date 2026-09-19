@@ -1,6 +1,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject WorldSession Session
+@inject DiscordAuthClient Auth
 
 @if (!_workspaceOpen)
 {
@@ -70,6 +71,11 @@
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
+   @if(Session.IsLoggedIn)
+   {
+    <button type="button" @onclick="SwitchUserAsync"><span>⇄</span>SWITCH USER</button>
+    <button type="button" @onclick="SignOutAsync"><span>⇥</span>SIGN OUT</button>
+   }
   </section>
 
   @if(_cardIndexOpen)
@@ -459,6 +465,20 @@ else
  }
  public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshExperienceStateAsync();}
  void OpenSettings()=>OpenStartMenu();
+ async Task SwitchUserAsync()
+ {
+  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;
+  await Auth.LogoutAsync();
+  Session.AdoptAuthentication(null);
+  Navigation.NavigateTo("/Play/index.html",forceLoad:true);
+ }
+ async Task SignOutAsync()
+ {
+  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;
+  await Auth.LogoutAsync();
+  Session.AdoptAuthentication(null);
+  Navigation.NavigateTo("/",forceLoad:true);
+ }
  void CloseSettings()=>_settingsOpen=false;
  void OpenCardIndex(){_settingsOpen=false;_tickerOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
  void CloseCardIndex()=>_cardIndexOpen=false;
