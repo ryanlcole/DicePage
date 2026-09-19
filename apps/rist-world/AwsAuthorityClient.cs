@@ -110,12 +110,23 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         if (body is not null) request.Content = JsonContent.Create(body);
         using var response = await http.SendAsync(request);
         if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden) return default;
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = $"Authority request failed ({(int)response.StatusCode} {response.ReasonPhrase}).";
+            try
+            {
+                var payload = await response.Content.ReadFromJsonAsync<AuthorityError>();
+                if (!string.IsNullOrWhiteSpace(payload?.Error)) message = payload.Error.Trim();
+            }
+            catch { }
+            throw new HttpRequestException(message, null, response.StatusCode);
+        }
         if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default;
         return await response.Content.ReadFromJsonAsync<T>();
     }
 
     public sealed record AuthorityConfig(string ApiBaseUrl, string RealtimeUrl);
+    public sealed record AuthorityError(string Error);
     public sealed record AuthorityProfile(
         string UserId,
         string DisplayName,
