@@ -38,6 +38,29 @@ def test_new_region_uses_database_world_source_and_swipe_tier_preview():
     assert "if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];" in prototype
 
 
+def test_workspace_home_returns_to_authenticated_landing_without_game_reload():
+    shell = (ROOT / "Components" / "PublicAlphaShell.razor").read_text(encoding="utf-8")
+    router = (ROOT / "Components" / "TaskWorkspaceRouter.razor").read_text(encoding="utf-8")
+    world_host = (ROOT / "Components" / "WorldBuilderGeonaphHost.razor").read_text(encoding="utf-8")
+    region_host = (ROOT / "Components" / "RegionDefinerWorkspace.razor").read_text(encoding="utf-8")
+    world_bridge = (ROOT / "wwwroot" / "worldbuilder-source-host.js").read_text(encoding="utf-8")
+    region_bridge = (ROOT / "wwwroot" / "region-definer-host.js").read_text(encoding="utf-8")
+    prototype = (ROOT / "wwwroot" / "prototype" / "prototype.js").read_text(encoding="utf-8")
+
+    assert '⌂ HOME' in shell
+    assert 'aria-label="Home — return to the Shaelvien landing page"' in shell
+    assert 'OnHome="ReturnToHub"' in shell
+    assert 'OnHome="OnHome"' in router
+    assert 'RequestHomeFromPrototypeAsync' in world_host
+    assert 'RequestHomeFromPrototypeAsync' in region_host
+    assert 'data.type==="home"' in world_bridge
+    assert 'data.type==="home"' in region_bridge
+    assert "postRegionMessage('home')" in prototype
+    assert "postWorldBuilderHostMessage('home')" in prototype
+    home_block = prototype[prototype.index("function goHome()"):prototype.index("function openStartMenu()")]
+    assert "window.top.location.href='/Game/index.html'" not in home_block
+
+
 def test_save_region_crops_then_unlocks_remaining_ui():
     prototype = (ROOT / "wwwroot" / "prototype" / "prototype.js").read_text(encoding="utf-8")
     regions = (ROOT / "WorldSession.Regions.cs").read_text(encoding="utf-8")
