@@ -1002,25 +1002,63 @@ def handler(event, context):
         if cell_index < 0 or cell_index >= MMO_PARCEL_GRID_COLUMNS * MMO_PARCEL_GRID_ROWS:
             return response(400, {"error": "Parcel cell is outside the Shaelvien claim lattice"})
 
-        parcels = query_world_prefix(world_id, "PARCEL#")
-        if not mmo_parcel_claimable(cell_index, parcels):
-            return response(409, {"error": "That parcel is occupied or is not yet connected to Endemar"})
-
-        token_key = world_token_key(user_id)
-        token = users.get_item(Key=token_key, ConsistentRead=True).get("Item")
-        if not token or str(token.get("status") or "") != "unspent":
-            return response(409, {"error": "An unspent Shaelvien Token is required"})
-
         column = cell_index % MMO_PARCEL_GRID_COLUMNS
         row = cell_index // MMO_PARCEL_GRID_COLUMNS
         parcel_id = parcel_id_from_cell(cell_index)
         region_id = "region-" + parcel_id
+
+        token_key = world_token_key(user_id)
+        token = users.get_item(Key=token_key, ConsistentRead=True).get("Item")
+        existing_parcel = world.get_item(
+            Key=parcel_key(world_id, parcel_id),
+            ConsistentRead=True,
+        ).get("Item")
+
+        # Claim is idempotent for the account that already owns this exact
+        # property space. A retry after a slow/lost 200 must enter the property
+        # instead of presenting a false 409 conflict.
+        if existing_parcel:
+            if (
+                str(existing_parcel.get("ownerUserId") or "") == user_id
+                and token
+                and str(token.get("status") or "") == "spent"
+                and str(token.get("parcelId") or "") == parcel_id
+            ):
+                return response(200, public_parcel(existing_parcel))
+            return response(409, {"error": "That Shaelvien property space has already been claimed"})
+
+        if not token:
+            return response(409, {"error": "A Shaelvien Token is required"})
+        if str(token.get("status") or "") != "unspent":
+            bound_parcel_id = str(token.get("parcelId") or "")
+            if bound_parcel_id:
+                bound = world.get_item(
+                    Key=parcel_key(world_id, bound_parcel_id),
+                    ConsistentRead=True,
+                ).get("Item")
+                if bound and str(bound.get("ownerUserId") or "") == user_id:
+                    return response(
+                        409,
+                        {
+                            "error": (
+                                f"Your Shaelvien Token is already bound to "
+                                f"{str(bound.get('displayName') or bound_parcel_id)}. "
+                                "Enter that property space instead."
+                            )
+                        },
+                    )
+            return response(409, {"error": "Your Shaelvien Token has already been spent"})
+
+        parcels = query_world_prefix(world_id, "PARCEL#")
+        if not mmo_parcel_claimable(cell_index, parcels):
+            return response(409, {"error": "That property space is occupied or is not yet connected to Endemar"})
+
         display_name = str(req.get("displayName") or "").strip()[:80] or f"Shaelvien {column},{row}"
         stamp = utc_stamp()
         world_half = secrets.token_hex(32)
         account_half = str(token.get("accountHalfCode") or "")
         if not account_half:
-            return response(409, {"error": "Shaelvien Token account half is unavailable"})
+            return response(409, {"error": "Shaelvien Token account binding is unavailable; refresh your account and try again"})
         binding_hash = hashlib.sha256(
             f"{account_half}:{world_half}:{world_id}:{parcel_id}".encode()
         ).hexdigest()
@@ -1134,13 +1172,25 @@ def handler(event, context):
                     Key=parcel_key(world_id, parcel_id),
                     ConsistentRead=True,
                 ).get("Item")
+                latest_token = users.get_item(
+                    Key=token_key,
+                    ConsistentRead=True,
+                ).get("Item")
+                if (
+                    occupied
+                    and str(occupied.get("ownerUserId") or "") == user_id
+                    and latest_token
+                    and str(latest_token.get("status") or "") == "spent"
+                    and str(latest_token.get("parcelId") or "") == parcel_id
+                ):
+                    return response(200, public_parcel(occupied))
                 return response(
                     409,
                     {
                         "error": (
-                            "That Shaelvien parcel has already been claimed"
+                            "That Shaelvien property space was claimed before this request completed. Refresh the map and choose another available space."
                             if occupied
-                            else "The Shaelvien Token was already spent or changed"
+                            else "The Shaelvien Token changed before the claim completed. Refresh your account and try again."
                         )
                     },
                 )
