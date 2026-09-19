@@ -43,6 +43,9 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert '"pixelHeight": MMO_PARCEL_PIXELS' in backend
     assert '"maxHeight": MMO_PARCEL_MAX_HEIGHT' in backend
     assert '"sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT))' in backend
+    assert "Claim is idempotent for the account that already owns this exact" in backend
+    assert "return response(200, public_parcel(existing_parcel))" in backend
+    assert "latest_token = users.get_item(" in backend
 
 
 def test_claimed_parcel_cannot_be_taken_or_grown_by_region_save():
@@ -97,6 +100,22 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0" in workspace
     assert "maxHeight=Session.ActiveRegion?.MaxHeight??0" in workspace
     assert "await RefreshMmoLandAsync(loadParcels: false);" in relationships
+
+
+def test_worldbuilder_and_regiondefiner_fill_parent_workspace_not_raw_device_viewport():
+    shell_css = text("apps/rist-world/Components/PublicAlphaShell.razor.css")
+    host = text("apps/rist-world/Components/WorldBuilderGeonaphHost.razor")
+    region = text("apps/rist-world/Components/RegionDefinerWorkspace.razor")
+    router = text("apps/rist-world/Components/TaskWorkspaceRouter.razor")
+
+    assert ".alpha-world-stage{box-sizing:border-box;position:relative;width:100%;height:100%;" in shell_css
+    assert "position:absolute;inset:0" in host
+    assert "width:100%;height:100%" in host
+    assert "width:100dvw;height:100dvh" not in host
+    assert "position:absolute;" in region
+    assert "width:100%;" in region and "height:100%;" in region
+    assert "width:100dvw;" not in region and "height:100dvh;" not in region
+    assert ".task-workspace-router{box-sizing:border-box;position:relative;width:100%;height:100%;" in router
 
 
 def test_world_gate_mobile_layout_keeps_token_and_private_world_sections_separate():
