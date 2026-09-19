@@ -1148,7 +1148,13 @@ async function placeUploadedImage(file){
   announce(`Image placed above ${tierLabel(tierByIndex(tier))} as layer ${layer}. It is also being saved to My Images.`);
 }
 function tierMix(){
-  if(viewerTier!=='all'){const index=tierByKey(viewerTier).index;return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0}}
+  if(viewerTier!=='all'){
+    const index=tierByKey(viewerTier).index;
+    // Region Definer works on one tier at a time, but a tier is still a view into
+    // the same stacked world. Keep lower canonical tiers visible as context.
+    if(REGION_DEFINER)return{surface:1,highlands:index>=1?1:0,mountains:index>=2?1:0};
+    return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0};
+  }
   const ratio=Math.max(.01,scale/Math.max(minScale,.00001));
   const peakToHighlands=smoothstep(1.00,1.60,ratio);
   const highlandsToSurface=smoothstep(1.45,2.75,ratio);
@@ -1167,7 +1173,7 @@ function applyParallax(){
     {node:mountains,key:'mountains',tier:2,layer:0,sceneZ:7,alpha:mix.mountains}
   ];
   for(const entry of builtins){
-    const sourceVisible=!REGION_DEFINER||(entry.tier===currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
+    const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
     entry.node.style.opacity=layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
@@ -1178,9 +1184,11 @@ function applyParallax(){
   }
   for(const item of userLayers){
     // A new/unsaved placement must stay visible even when its target tier is hidden,
-    // otherwise it looks as if upload failed. Save returns it to normal tier visibility.
+    // otherwise it looks as if upload failed. Canonical lower tiers remain visible
+    // as read-only context while Region Definer edits the selected tier.
+    const regionTier=currentRegionTierIndex();
     const visible=REGION_DEFINER
-      ? item.tier===currentRegionTierIndex()&&(!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer))
+      ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&(!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer))
       : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
@@ -1511,9 +1519,9 @@ function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
   const tier=currentRegionTierIndex();
   if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=regionWorldTierImages.length?(tier===0?'.18':'.08'):(tier===0?'1':'.32');
-  for(const item of regionWorldTierImages)item.node.style.opacity=item.tier===tier?'1':'0';
+  for(const item of regionWorldTierImages)item.node.style.opacity=item.tier<=tier?'1':'0';
   for(const item of regionWorldSourceTiles){
-    const visible=item.tier===tier&&regionSourceLayerVisible(item.tier,item.layer);
+    const visible=item.tier<=tier&&regionSourceLayerVisible(item.tier,item.layer);
     item.node.style.display=visible?'block':'none';
   }
 }
