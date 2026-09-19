@@ -5,7 +5,7 @@
 
 @if(_enterParcel)
 {
- <RegionDefinerWorkspace OnStartMenu="OnStartMenu" />
+ <RegionDefinerWorkspace OnStartMenu="OnStartMenu" OnHome="OnHome" />
 }
 else
 {
@@ -145,6 +145,7 @@ else
 
 @code {
  [Parameter] public EventCallback OnStartMenu { get; set; }
+ [Parameter] public EventCallback OnHome { get; set; }
 
  ElementReference _frame;
  IJSObjectReference? _sourceModule;
@@ -242,6 +243,12 @@ else
   _sourceSelf=DotNetObjectReference.Create(this);
   await _sourceModule.InvokeVoidAsync("attach",_frame,_sourceSelf);
   _sourceBridgeAttached=true;
+ }
+
+ [JSInvokable]
+ public async Task RequestHomeFromPrototypeAsync()
+ {
+  if(OnHome.HasDelegate)await OnHome.InvokeAsync();
  }
 
  [JSInvokable]
