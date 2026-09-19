@@ -1361,14 +1361,27 @@ function regionSourceNumber(value,fallback=0){
 }
 function applyDatabaseTierImages(tierImages){
   if(!REGION_DEFINER||!Array.isArray(tierImages)||!tierImages.length)return;
+  // Geonaph/Endemar already has the exact canonical World Builder plane set loaded
+  // by BASE_WORLD_ASSETS. Database tier-image metadata can be stale from an older
+  // save and must never replace those working canonical planes with a broken URL.
+  if(BASE_WORLD_ASSETS.length){
+    stage.dataset.canonicalPlaneSource='worldbuilder-shared';
+    stage.dataset.databaseTierImageCount=String(tierImages.length);
+    return;
+  }
+  stage.dataset.canonicalPlaneSource='database';
   tierImages.slice(0,CANONICAL_PLANE_KEYS.length).forEach((src,tier)=>{
     src=String(src||'').trim();if(!src)return;
     const key=CANONICAL_PLANE_KEYS[tier],node=planeByKey[key];if(!node)return;
     let resolved=src;try{resolved=new URL(src,location.href).href}catch{}
     const current=String(node.currentSrc||node.src||'');
     node.dataset.databaseSource='true';
-    if(current===resolved)return;
-    if(!BASE_WORLD_ASSETS.length){
+    if(current===resolved&&layerReady[key])return;
+
+    // Probe first so a bad/stale database reference cannot blank an already visible
+    // world plane. Only promote a database image after it proves it can load.
+    const probe=new Image();
+    probe.onload=()=>{
       node.addEventListener('load',()=>{
         layerReady[key]=true;
         if(key==='surface'){
@@ -1380,13 +1393,15 @@ function applyDatabaseTierImages(tierImages){
         }
         renderState();
       },{once:true});
-      node.addEventListener('error',()=>{
-        layerReady[key]=false;
-        if(key==='surface'){loading.hidden=false;loading.textContent='MAP IMAGE UNAVAILABLE'}
-        renderState();
-      },{once:true});
-    }
-    node.src=resolved;
+      node.src=resolved;
+    };
+    probe.onerror=()=>{
+      node.dataset.databaseSourceError='true';
+      if(key==='surface'&&!layerReady.surface){
+        loading.hidden=false;loading.textContent='MAP IMAGE UNAVAILABLE';
+      }
+    };
+    probe.src=resolved;
   });
 }
 function regionSourceCropStyle(image,tile){
