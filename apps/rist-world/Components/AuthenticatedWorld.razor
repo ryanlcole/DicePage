@@ -1,8 +1,10 @@
 @using System.Text.Json
+@using System.Text.RegularExpressions
 @inject DiscordAuthClient Auth
 @inject WorldSession Session
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject HttpClient Http
 
 @if (!_ready)
 {
@@ -63,24 +65,36 @@ else if (_canEnter)
   <section class="rist-terms-gate" role="dialog" aria-modal="true" aria-label="Terms agreement">
    <form class="rist-terms-card" @onsubmit="AcceptTermsAsync">
     <h1>Before You Play</h1>
-    <p>Please review the policies that govern your Shaelvien account before agreeing.</p>
-    <nav class="rist-terms-documents" aria-label="Required legal policies">
-     <a href="/Game/terms.html" target="_blank" rel="noopener">
-      <strong>READ TERMS OF SERVICE</strong>
-      <span>Account use, alpha service, your content, prohibited use, security and other terms.</span>
-     </a>
-     <a href="/Game/privacy.html" target="_blank" rel="noopener">
-      <strong>READ PRIVACY POLICY</strong>
-      <span>What information is used, Discord authentication, storage, retention, security and your choices.</span>
-     </a>
-    </nav>
-    <p class="rist-terms-hint">Each policy opens in a new tab so you can return here without losing your sign-in.</p>
-    <label class="rist-terms-agree"><input type="checkbox" @bind="_termsChecked" required /> <span>I have reviewed and agree to the Terms of Service and Privacy Policy.</span></label>
+    <p>Scroll through the Terms of Service and Privacy Policy below. Agreement unlocks when you reach the end.</p>
+    @if (!string.IsNullOrWhiteSpace(_policyLoadError))
+    {
+     <div class="rist-policy-load-error" role="alert">
+      <strong>Policies could not be loaded.</strong>
+      <span>@_policyLoadError</span>
+      <button type="button" @onclick="LoadPoliciesAsync">RETRY</button>
+     </div>
+    }
+    else if (!_policyLoaded)
+    {
+     <div class="rist-policy-loading" role="status" aria-live="polite">Loading policies…</div>
+    }
+    else
+    {
+     <div class="rist-policy-scroll" @ref="_policyScroll" @onscroll="OnPolicyScrollAsync" tabindex="0" aria-label="Terms of Service and Privacy Policy. Scroll to the end to continue.">
+      @((MarkupString)_policyHtml)
+      <div class="rist-policy-end" aria-hidden="true">END OF POLICIES</div>
+     </div>
+     <p class="rist-policy-status" aria-live="polite">@(_policiesRead ? "✓ End reached. You may now agree." : "Scroll to the end to enable agreement.")</p>
+    }
+    <label class="rist-terms-agree" aria-disabled="@(!_policiesRead)">
+     <input type="checkbox" @bind="_termsChecked" disabled="@(!_policiesRead)" required />
+     <span>I have reviewed and agree to the Terms of Service and Privacy Policy.</span>
+    </label>
     @if (!string.IsNullOrWhiteSpace(_termsError))
     {
      <p class="rist-terms-error">@_termsError</p>
     }
-    <button type="submit" disabled="@(!_termsChecked || _savingTerms)">@(_savingTerms ? "Saving…" : "Agree & Continue")</button>
+    <button type="submit" disabled="@(!_policiesRead || !_termsChecked || _savingTerms)">@(_savingTerms ? "Saving…" : "Agree & Continue")</button>
    </form>
   </section>
  }
@@ -124,21 +138,30 @@ else
  .rist-auth-card h1{margin:8px 0 22px;color:#d7be80;font-size:clamp(22px,5vw,34px)}
  .rist-auth-card p:last-child{margin:0;color:#cbd5da}
  .rist-terms-gate{position:fixed;inset:0;z-index:2147483600;display:grid;place-items:center;padding:20px;background:rgba(3,7,12,.78);backdrop-filter:blur(5px)}
- .rist-terms-card{box-sizing:border-box;width:min(92vw,520px);padding:24px;border:1px solid #8d7440;border-radius:14px;background:#081016;color:#eee6d2;box-shadow:0 18px 55px #000b;font-family:system-ui,-apple-system,sans-serif}
+ .rist-terms-card{box-sizing:border-box;width:min(94vw,680px);max-height:92dvh;display:flex;flex-direction:column;padding:22px;border:1px solid #8d7440;border-radius:14px;background:#081016;color:#eee6d2;box-shadow:0 18px 55px #000b;font-family:system-ui,-apple-system,sans-serif}
  .rist-terms-card h1{margin:0 0 8px;color:#e5c878}
- .rist-terms-card p{color:#b8b09e;line-height:1.45}
- .rist-terms-documents{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 10px}
- .rist-terms-documents a{display:grid;gap:7px;min-height:106px;padding:14px;border:1px solid #8d7440;border-radius:10px;background:#111d24;color:#ffe2a0;text-decoration:none;touch-action:manipulation}
- .rist-terms-documents a:focus-visible{outline:3px solid #ffe9ad;outline-offset:2px}
- .rist-terms-documents strong{font:900 13px/1.2 system-ui;letter-spacing:.04em}
- .rist-terms-documents span{color:#c5c1b5;font:600 11px/1.4 system-ui}
- .rist-terms-hint{margin:0 0 4px!important;color:#98a6aa!important;font-size:11px;line-height:1.4!important}
- .rist-terms-card .rist-terms-agree{display:flex;align-items:flex-start;gap:10px;margin:16px 0;color:#d7c58f;font-weight:800}
+ .rist-terms-card>p{margin:0 0 12px;color:#b8b09e;line-height:1.45}
+ .rist-policy-loading,.rist-policy-load-error{display:grid;gap:8px;place-items:center;min-height:220px;margin:4px 0 10px;padding:18px;border:1px solid #6f603d;border-radius:10px;background:#0d171d;color:#c8c3b6;text-align:center}
+ .rist-policy-load-error strong{color:#ffcf9b}.rist-policy-load-error span{font-size:12px;line-height:1.4}
+ .rist-policy-load-error button{max-width:180px}
+ .rist-policy-scroll{flex:1 1 auto;min-height:220px;max-height:50dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin:2px 0 8px;padding:18px 18px 26px;border:1px solid #6f603d;border-radius:10px;background:#f3efe4;color:#15191c;scrollbar-gutter:stable}
+ .rist-policy-scroll:focus-visible{outline:3px solid #ffe9ad;outline-offset:2px}
+ .rist-policy-scroll h1{margin:4px 0 8px;color:#17120b;font:800 24px/1.15 Georgia,serif}
+ .rist-policy-scroll h2{margin:18px 0 5px;color:#2c2418;font:800 16px/1.2 Georgia,serif}
+ .rist-policy-scroll p{margin:0 0 10px;color:#2c3032;font:500 13px/1.55 system-ui}
+ .rist-policy-scroll .small{font-size:11px;color:#62686b}
+ .rist-policy-scroll .notice{padding:10px;border-left:4px solid #8d7440;background:#fff9e8}
+ .rist-policy-scroll a{color:#57400f}
+ .rist-policy-separator{height:1px;margin:28px 0;border:0;background:#9c8d6c}
+ .rist-policy-end{margin-top:24px;padding:14px 8px 2px;border-top:2px solid #8d7440;color:#6a5422;font:900 11px/1 system-ui;letter-spacing:.12em;text-align:center}
+ .rist-policy-status{margin:0!important;color:#d4c49c!important;font-size:11px!important;line-height:1.35!important;text-align:center}
+ .rist-terms-card .rist-terms-agree{display:flex;align-items:flex-start;gap:10px;margin:14px 0 8px;color:#d7c58f;font-weight:800}
+ .rist-terms-card .rist-terms-agree[aria-disabled="true"]{opacity:.52}
  .rist-terms-card input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}
  .rist-terms-card button{width:100%;min-height:48px;margin-top:8px;border:1px solid #a68a4b;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}
- .rist-terms-card button:disabled{opacity:.48}
- .rist-terms-error{color:#ffb3a6!important;font-weight:700}
- @@media(max-width:520px){.rist-terms-card{padding:20px}.rist-terms-documents{grid-template-columns:1fr}.rist-terms-documents a{min-height:0;padding:12px}}
+ .rist-terms-card button:disabled{opacity:.42}
+ .rist-terms-error{margin:2px 0!important;color:#ffb3a6!important;font-weight:700}
+ @@media(max-width:520px){.rist-terms-gate{padding:12px}.rist-terms-card{width:96vw;max-height:94dvh;padding:16px}.rist-policy-scroll{min-height:260px;max-height:54dvh;padding:14px}.rist-policy-scroll h1{font-size:21px}.rist-policy-scroll h2{font-size:15px}}
 </style>
 
 @code {
@@ -152,7 +175,12 @@ else
  bool _termsRequired;
  bool _termsChecked;
  bool _savingTerms;
+ bool _policyLoaded;
+ bool _policiesRead;
+ string _policyHtml="";
+ string _policyLoadError="";
  string _termsError="";
+ ElementReference _policyScroll;
 
  void OpenStartMenu()=>_alphaShell?.OpenStartMenu();
 
@@ -194,6 +222,8 @@ else
   if(_canEnter && Auth.Account is not null)
    await Session.RefreshMmoLandAsync(loadParcels:false);
   _termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;
+  if(_termsRequired)
+   await LoadPoliciesAsync();
   if(_canEnter)
   {
    try{await JS.InvokeVoidAsync("ristLaunch.clearLegacyStartState");}catch{}
@@ -206,9 +236,62 @@ else
    Navigation.NavigateTo("/Play/index.html",forceLoad:true);
  }
 
+ async Task LoadPoliciesAsync()
+ {
+  _policyLoadError="";
+  _policyLoaded=false;
+  _policiesRead=false;
+  _termsChecked=false;
+  try
+  {
+   var terms=await Http.GetStringAsync("terms.html");
+   var privacy=await Http.GetStringAsync("privacy.html");
+   _policyHtml=ExtractPolicyBody(terms)+"<hr class=\"rist-policy-separator\" />"+ExtractPolicyBody(privacy);
+   _policyLoaded=true;
+  }
+  catch
+  {
+   _policyHtml="";
+   _policyLoadError="Please check your connection and retry. Agreement remains locked until both policies are available.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ static string ExtractPolicyBody(string html)
+ {
+  if(string.IsNullOrWhiteSpace(html)) return "";
+  var bodyStart=html.IndexOf("<body",StringComparison.OrdinalIgnoreCase);
+  if(bodyStart>=0)
+  {
+   bodyStart=html.IndexOf('>',bodyStart);
+   if(bodyStart>=0) html=html[(bodyStart+1)..];
+  }
+  var bodyEnd=html.LastIndexOf("</body>",StringComparison.OrdinalIgnoreCase);
+  if(bodyEnd>=0) html=html[..bodyEnd];
+  var firstHeading=html.IndexOf("<h1",StringComparison.OrdinalIgnoreCase);
+  if(firstHeading>=0) html=html[firstHeading..];
+  html=Regex.Replace(html,@"<div\s+class=\"legal-nav\"[^>]*>.*?</div>","",RegexOptions.IgnoreCase|RegexOptions.Singleline);
+  return html.Trim();
+ }
+
+ async Task OnPolicyScrollAsync()
+ {
+  if(_policiesRead||!_policyLoaded)return;
+  try
+  {
+   if(await JS.InvokeAsync<bool>("ristLegalConsent.atEnd",_policyScroll))
+   {
+    _policiesRead=true;
+    await InvokeAsync(StateHasChanged);
+   }
+  }
+  catch{}
+ }
+
  async Task AcceptTermsAsync()
  {
   _termsError="";
+  if(!_policiesRead){_termsError="Scroll to the end of both policies before agreeing.";return;}
   if(!_termsChecked){_termsError="You must agree before continuing.";return;}
   if(Auth.Account is null){_termsError="Your account is not ready yet. Please log in again.";return;}
 
