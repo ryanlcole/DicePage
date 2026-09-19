@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Membership | ReLiCGameMaster</title>
+<meta name="description" content="Current ReLiCGameMaster membership prices, Shaelvien Token status, and complimentary access.">
+<meta name="theme-color" content="#071117">
+<link rel="stylesheet" href="/store/store.css?v=20260904-invite-preview-1">
+<style>
+.membership{width:min(1100px,calc(100% - 32px));margin:0 auto;padding:60px 0 80px}.membership h1,.membership h2{font-family:Georgia,"Times New Roman",serif}.membership h1{font-size:clamp(2.8rem,7vw,5.5rem);line-height:.95;margin:0}.membership .lead{max-width:760px;color:#aebdc0;font-size:1.08rem}.plan-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:32px 0}.plan{padding:20px;border:1px solid rgba(224,197,141,.24);border-radius:14px;background:#0b1a21}.plan strong{display:block;color:#e0c58d}.plan b{display:block;margin:12px 0;font-size:1.5rem}.plan small{color:#aebdc0}.commerce-note,.token-box,.access-box{margin-top:22px;padding:22px;border:1px solid rgba(136,186,201,.25);border-radius:14px;background:#0d1d24}.commerce-note strong,.token-box strong,.access-box strong{color:#e0c58d}.access-form{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}.access-form input{min-height:48px}.access-form button{min-height:48px;padding:10px 18px;border:0;border-radius:9px;background:#e0c58d;color:#17120b;font-weight:900}.pending{display:inline-block;margin-top:12px;padding:7px 10px;border:1px solid rgba(224,197,141,.28);border-radius:999px;color:#cbbd9e;font-size:.76rem;font-weight:800}.back{display:inline-block;margin-bottom:24px;color:#88bac9}
+@media(max-width:900px){.plan-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.plan-grid{grid-template-columns:1fr}.access-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="membership">
+<a class="back" href="/store/index.html">← Creator Store</a>
+<p class="eyebrow">Membership</p>
+<h1>Access without invented promises.</h1>
+<p class="lead">These are the monthly prices currently configured in the RIST server commerce catalog. Checkout is not active yet, so this page does not collect payment information.</p>
+<div class="plan-grid">
+  <article class="plan"><strong>Dedicated Roleplayer</strong><b>$0/mo</b><small>Online roleplayer access. Eligibility rules are not published here.</small></article>
+  <article class="plan"><strong>Standard Roleplayer</strong><b>$5/mo</b><small>Online roleplayer access.</small></article>
+  <article class="plan"><strong>GameMaster</strong><b>$10/mo</b><small>Roleplayer + GameMaster access.</small></article>
+  <article class="plan"><strong>Storyteller</strong><b>$15/mo</b><small>Roleplayer + GameMaster + Storyteller access.</small></article>
+  <article class="plan"><strong>Worldbuilder</strong><b>$20/mo</b><small>Roleplayer + GameMaster + Storyteller + Worldbuilder access.</small></article>
+</div>
+<section class="commerce-note">
+  <strong>Paid checkout status</strong>
+  <p>A recurring-payment provider has not yet been connected. No subscription is charged from this page. Server-side subscription fulfillment, expiration, revocation, and complimentary access authority are being prepared before payment activation.</p>
+  <span class="pending">CHECKOUT NOT ACTIVE</span>
+</section>
+<section class="token-box">
+  <strong>Shaelvien Tokens</strong>
+  <p>One genesis Shaelvien Token is created when a RIST profile is completed. Additional tokens can now be issued through server-authorized commerce fulfillment. A paid token price has not been set, so token purchasing remains unavailable.</p>
+</section>
+<section class="access-box">
+  <strong>Complimentary access</strong>
+  <p>If ReLiC sent you a complimentary access code, enter it here. You will be taken through normal account sign-in before the server applies the grant.</p>
+  <form class="access-form" id="complimentary-access">
+    <input id="access-code" autocomplete="off" spellcheck="false" placeholder="Complimentary access code" aria-label="Complimentary access code">
+    <button type="submit">Apply access</button>
+  </form>
+  <p id="access-status" role="status" aria-live="polite"></p>
+</section>
+<p><a href="/kickstarter/index.html">Kickstarter preparation & investor arithmetic →</a></p>
+</main>
+<script>
+(()=>{'use strict';const form=document.getElementById('complimentary-access'),input=document.getElementById('access-code'),status=document.getElementById('access-status');form.addEventListener('submit',e=>{e.preventDefault();const code=input.value.trim();if(!code){status.textContent='Enter the code supplied by ReLiC.';input.focus();return;}if(!/^rci_[A-Za-z0-9._:-]+_[A-Fa-f0-9]{24,}$/.test(code)){status.textContent='That code format is not recognized.';return;}location.assign('/Play/index.html?access='+encodeURIComponent(code));});})();
+</script>
+</body>
+</html>
