@@ -1085,7 +1085,9 @@ def handler(event, context):
                         "redeemedGrantId = :grantId"
                     ),
                     "ConditionExpression": (
-                        "attribute_not_exists(redeemedUserId) OR redeemedUserId = :empty"
+                        "(attribute_not_exists(redeemedUserId) OR redeemedUserId = :empty) "
+                        "AND (attribute_not_exists(revokedAtUtc) OR revokedAtUtc = :empty) "
+                        "AND (expiresAtEpoch = :zero OR expiresAtEpoch > :now)"
                     ),
                     "ExpressionAttributeValues": _ddb_map(
                         {
@@ -1093,6 +1095,8 @@ def handler(event, context):
                             ":userId": user_id,
                             ":grantId": grant["grantId"],
                             ":empty": "",
+                            ":zero": 0,
+                            ":now": now,
                         }
                     ),
                 }
