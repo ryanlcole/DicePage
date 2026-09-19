@@ -207,6 +207,30 @@ Resources:
         WorldTokens:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /authority/world-tokens, Method: GET }
+        CommerceSummary:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce, Method: GET }
+        CommerceInvitesGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/invites, Method: GET }
+        CommerceInviteCreate:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/invites, Method: POST }
+        CommerceInviteRedeem:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/invites/redeem, Method: POST }
+        CommerceInviteRevoke:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/invites/revoke, Method: POST }
+        CommerceGrant:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/grants, Method: POST }
+        CommerceGrantRevoke:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/grants/revoke, Method: POST }
+        CommerceTokenMint:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/commerce/tokens/mint, Method: POST }
         EntityGet:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/entity, Method: GET }
