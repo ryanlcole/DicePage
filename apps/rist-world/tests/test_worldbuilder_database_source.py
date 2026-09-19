@@ -114,6 +114,21 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
     assert 'InvokeVoidAsync("refresh"' in workspace
     assert "async function sendState" in bridge
     assert 'type:"map-load-error"' in bridge
-    assert "./prototype.js?v=20260918-region-wb-replica-1" in index
-    assert "renderer=20260918-region-wb-replica-1" in workspace
-    assert "./region-definer-host.js?v=20260918-region-wb-replica-1" in workspace
+    assert "./prototype.js?v=20260918-region-linear-build-1" in index
+    assert "renderer=20260918-region-linear-build-1" in workspace
+    assert "./region-definer-host.js?v=20260918-region-linear-build-1" in workspace
+
+
+def test_regiondefiner_claim_flow_is_linear_and_crop_is_real():
+    prototype = text("wwwroot/prototype/prototype.js")
+    css = text("wwwroot/prototype/prototype.css")
+
+    assert "const DISPLAY_WORLD_NAME=WORLD_NAME||'Shaelvien';" in prototype
+    assert "IS_GEONAPH_SEED?'Endemar'" not in prototype
+    assert "toolKey('CROP','preview selected region as the full regional map',previewRegionCrop,!regionSelectedCells.size)" in prototype
+    assert "if(regionClaimPhase!=='crop'){announce('Preview the crop before saving the region.');return}" in prototype
+    assert "applyRegionMask(preview,'selection-preview',false)" in prototype
+    assert "applyRegionMask(region,'visibility-mask',true)" in prototype
+    assert 'viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}"' in prototype
+    assert "regionClaimedRegion&&regionClaimBounds(regionClaimedRegion)" in prototype
+    assert ".stage.region-selection-only .persistent-save{display:none!important}" in css

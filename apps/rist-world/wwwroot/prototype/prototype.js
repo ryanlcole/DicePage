@@ -10,7 +10,7 @@ const WORLD_ID=QUERY.get('worldId')||'';
 const WORLD_NAME=QUERY.get('worldName')||'';
 const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
 const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
-const DISPLAY_WORLD_NAME=IS_GEONAPH_SEED?'Endemar':(WORLD_NAME||'Shaelvien');
+const DISPLAY_WORLD_NAME=WORLD_NAME||'Shaelvien';
 const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
 const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
 const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
@@ -1222,7 +1222,7 @@ function applyTransform(){
 }
 function fitMap(){
   if(!naturalWidth||!naturalHeight)return;
-  if(REGION_DEFINER&&regionClaimedRegion){fitClaimedRegion(regionClaimedRegion);return}
+  if(REGION_DEFINER&&regionClaimedRegion&&regionClaimBounds(regionClaimedRegion)){fitClaimedRegion(regionClaimedRegion);return}
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect();
   minScale=Math.min(r.width/naturalWidth,r.height/naturalHeight);
@@ -1722,13 +1722,17 @@ function regionNameInput(){
   input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();createRegionDefinition()}});
   return input;
 }
-function clearClaimedRegionCrop(refit=true){
+function clearRegionMask(refit=true){
   if(!REGION_DEFINER)return;
-  regionClaimedRegion=null;pendingClaimedRegionId='';
   world.style.maskImage='none';world.style.webkitMaskImage='none';
   world.style.maskSize='';world.style.webkitMaskSize='';world.style.maskRepeat='';world.style.webkitMaskRepeat='';
   stage.classList.remove('region-cropped');delete stage.dataset.cropMode;
   if(refit&&naturalWidth&&naturalHeight)fitMap();
+}
+function clearClaimedRegionCrop(refit=true){
+  if(!REGION_DEFINER)return;
+  regionClaimedRegion=null;pendingClaimedRegionId='';
+  clearRegionMask(refit);
 }
 function regionMaskSvg(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
@@ -1741,7 +1745,7 @@ function regionMaskSvg(region){
       figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
     }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" preserveAspectRatio="none">${figures.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}" preserveAspectRatio="none">${figures.join('')}</svg>`;
 }
 function regionClaimBounds(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
@@ -1770,6 +1774,22 @@ function fitClaimedRegion(region){
   y=fitY=(r.height/2)-(centerY*scale);
   applyTransform();
 }
+function applyRegionMask(region,cropMode='visibility-mask',saved=false){
+  if(!REGION_DEFINER||!region)return false;
+  const bounds=regionClaimBounds(region);
+  if(!bounds){
+    clearRegionMask(false);
+    stage.dataset.cropMode='invalid-empty-region';
+    return false;
+  }
+  const svg=regionMaskSvg(region),url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  world.style.maskImage=url;world.style.webkitMaskImage=url;
+  world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
+  world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
+  stage.classList.toggle('region-cropped',!!saved);stage.dataset.cropMode=cropMode;
+  requestAnimationFrame(()=>fitClaimedRegion(region));
+  return true;
+}
 function applyClaimedRegionCrop(region){
   if(!REGION_DEFINER||!region)return;
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
@@ -1777,13 +1797,8 @@ function applyClaimedRegionCrop(region){
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
-  const svg=regionMaskSvg(region),url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
-  world.style.maskImage=url;world.style.webkitMaskImage=url;
-  world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
-  world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
-  stage.classList.add('region-cropped');stage.dataset.cropMode='visibility-mask';
   regionCropPreview=false;regionSelectionEnabled=false;updateRegionSelectionOverlay();
-  requestAnimationFrame(()=>fitClaimedRegion(region));
+  if(!applyRegionMask(region,'visibility-mask',true))requestAnimationFrame(()=>fitMap());
 }
 function ensureRegionTierPreview(){
   if(!REGION_DEFINER)return null;
@@ -1889,12 +1904,23 @@ function cancelRegionClaim(){
 }
 function previewRegionCrop(){
   if(!REGION_DEFINER||regionClaimPhase!=='select'||!regionSelectedCells.size)return;
-  regionClaimPhase='crop';regionCropPreview=true;regionSelectionEnabled=false;updateRegionSelectionOverlay();renderKeyboardKeys();
-  announce(`Crop preview ready for ${regionSelectedCells.size} selected ${regionGridShape} tile${regionSelectedCells.size===1?'':'s'}.`);
+  const preview={
+    selectedCells:[...regionSelectedCells].sort((a,b)=>a-b),
+    gridShape:regionGridShape,
+    tierIndex:currentRegionTierIndex()
+  };
+  regionClaimPhase='crop';regionCropPreview=true;regionSelectionEnabled=false;
+  stage.classList.add('region-selection-only');
+  updateRegionSelectionOverlay();
+  applyRegionMask(preview,'selection-preview',false);
+  renderKeyboardKeys();
+  announce(`Crop preview ready for ${regionSelectedCells.size} selected ${regionGridShape} tile${regionSelectedCells.size===1?'':'s'}. Name this regional map, then save it.`);
 }
 function returnToRegionSelection(){
   if(!REGION_DEFINER)return;
-  regionClaimPhase='select';regionCropPreview=false;regionSelectionEnabled=true;stage.classList.add('region-selection-only');updateRegionSelectionOverlay();renderKeyboardKeys();
+  clearRegionMask(false);
+  regionClaimPhase='select';regionCropPreview=false;regionSelectionEnabled=true;stage.classList.add('region-selection-only');
+  updateRegionSelectionOverlay();fitMap();renderKeyboardKeys();
   announce('Region selection reopened.');
 }
 async function persistRegionClaimWorkspace(){
@@ -1903,7 +1929,8 @@ async function persistRegionClaimWorkspace(){
   return;
 }
 function createRegionDefinition(){
-  if(!REGION_DEFINER||READ_ONLY||regionCreatePending||!['select','crop'].includes(regionClaimPhase))return;
+  if(!REGION_DEFINER||READ_ONLY||regionCreatePending)return;
+  if(regionClaimPhase!=='crop'){announce('Preview the crop before saving the region.');return}
   const name=String(regionNameDraft||'').trim();
   if(!name){announce('Name the region before saving or requesting it.');return}
   if(!regionSelectedCells.size){announce('Select at least one world tile for the region.');return}
@@ -1947,7 +1974,6 @@ function renderRegionSelectKeyboard(){
       toolKey('−','zoom',()=>zoomCenter(1/1.22)),
       toolKey('+','zoom',()=>zoomCenter(1.22)),
       toolKey('⛶','fit map',fitMap),
-      regionNameInput(),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       readoutKey(regionGridShape.toUpperCase(),'selection grid'),
       readoutKey(`${regionSelectedCells.size} TILES`,'selected footprint'),
@@ -1955,7 +1981,7 @@ function renderRegionSelectKeyboard(){
       toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','change selection grid',cycleRegionGridShape),
       toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
       toolKey('CHOOSE TIER','restart tier preview',showRegionTierPreview),
-      toolKey(regionCreatePending?(CLAIM_ONLY?'SENDING…':'SAVING…'):(CLAIM_ONLY?'REQUEST':'SAVE REGION'),CLAIM_ONLY?'send selected region to GM':'define view and authority',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+      toolKey('CROP','preview selected region as the full regional map',previewRegionCrop,!regionSelectedCells.size)
     );return;
   }
   if(regionClaimPhase==='crop'){

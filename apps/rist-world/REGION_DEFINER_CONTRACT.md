@@ -11,12 +11,14 @@ RegionDefiner is derived from WorldBuilder, but it does not become another autho
 5. The New Region preview is swipeable across the three World Tiers. The user selects exactly one Tier. RegionDefiner never uses WorldBuilder's **All Parallax** mode for a new region.
 6. After the Tier is selected, RegionDefiner enters selection-only mode: the only contextual keyboard is **Select**. Zoom/camera controls remain available so the user can navigate before choosing cells.
 7. The viewer supports **Square** and **Hex** selection grids. Square is the default. The chosen geometry also becomes the placement snap grid for later regional assets.
-8. The user selects the region footprint on the 30×30 source grid, names it, and chooses **Save Region** or the persistent Save control.
-9. Saving stores the region definition, crops away everything outside the selected mask, fits the cropped extent as the full regional map, and then restores the remaining contextual keyboards and builder UI.
-10. **Build Region** opens the regional asset workflow against that cropped map.
-11. Within the active Tier, each of the ten locked World source layers may be independently shown/hidden after the region is saved. Layer visibility never unlocks or mutates WorldBuilder source assets.
-12. Asset-library filters resolve to **REGION** assets while RegionDefiner is active. Regional overlays remain separate from source-world assets and stay visible when source layers are hidden.
-13. Region data is saved beneath `worlds/{WorldId}/regions/` and never rewrites the source WorldBuilder terrain.
+8. The user selects the region footprint on the 30×30 source grid, then chooses **Crop**. RegionDefiner does not permit the definition to be saved directly from raw selection mode.
+9. Crop preview immediately hides everything outside the selected footprint and fits that footprint as the full regional-map presentation. This is still a view over canonical world coordinates, not a copied map.
+10. In crop preview the user names the region and chooses **Save Region**, or submits a **Claim Request** when GM approval is required.
+11. Saving stores the region definition, reapplies the persisted crop, and exposes **Build Region**. A malformed legacy region with no selected cells must never produce an all-black mask.
+12. **Build Region** opens the regional asset workflow against that cropped map.
+13. Within the active Tier, each of the ten locked World source layers may be independently shown/hidden after the region is saved. Layer visibility never unlocks or mutates WorldBuilder source assets.
+14. Asset-library filters resolve to **REGION** assets while RegionDefiner is active. Region-authored items keep region provenance but are written through the canonical world source; there is no second regional map truth.
+15. Region metadata is stored under the selected World identity. Authorized regional map edits are written to the canonical database map with region permission checks and must not create an independent terrain copy.
 
 ## Representation
 
