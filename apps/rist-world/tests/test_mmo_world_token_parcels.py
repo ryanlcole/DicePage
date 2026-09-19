@@ -20,6 +20,9 @@ def test_authority_backend_parses_and_mints_one_profile_token():
     assert 'SHAELVIEN_TOKEN_CLASS = "shaelvien.property-space"' in backend
     assert '"accountHalfCode": account_half' in backend
     assert '"accountHalfHash": hashlib.sha256(account_half.encode()).hexdigest()' in backend
+    assert "Legacy unspent tokens created before split-code binding" in backend
+    assert "attribute_not_exists(accountHalfCode)" in backend
+    assert "users.update_item(" in backend
 
 
 def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
@@ -81,6 +84,12 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "Shaelvien property space" in host
     assert "RegionDefinerWorkspace" in host
     assert "Session.SetActiveRegion(parcel.RegionId)" in host
+    client = text("apps/rist-world/AwsAuthorityClient.cs")
+    session = text("apps/rist-world/WorldSession.MmoLand.cs")
+    assert "AuthorityError" in client
+    assert "payload.Error.Trim()" in client
+    assert "catch (HttpRequestException ex)" in session
+    assert "await RefreshMmoLandAsync();" in session
     assert "PERMISSIONS" in host
     assert "Mode == \"world\" && Session.CanRequestWorldClaim" not in router
 
