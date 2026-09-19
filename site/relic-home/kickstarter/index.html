@@ -27,7 +27,25 @@
   <p class="lede">This page contains project facts and arithmetic scenarios only. It does not claim a campaign total, subscriber forecast, valuation, profit, or investment return.</p>
   <div class="status-card">
     <strong>Campaign status</strong>
-    <span>Kickstarter account setup is in progress. A public campaign URL, funding goal, launch date, and reward tiers have not yet been published.</span>
+    <span data-campaign-status>Kickstarter account setup is in progress. A public campaign URL, funding goal, launch date, and reward tiers have not yet been published.</span>
+  </div>
+</section>
+
+<section class="campaign-record" aria-labelledby="campaign-record-title">
+  <p class="eyebrow">Repository-backed campaign record</p>
+  <h2 id="campaign-record-title">Published facts only</h2>
+  <p class="note">This block is loaded from <code>/kickstarter/campaign.json</code>. Unknown values remain explicitly unpublished instead of being estimated.</p>
+  <div class="campaign-record-grid" aria-live="polite">
+    <div><span>Status</span><strong data-campaign-record-status>Loading…</strong></div>
+    <div><span>Funding goal</span><strong data-campaign-goal>Loading…</strong></div>
+    <div><span>Launch date</span><strong data-campaign-launch>Loading…</strong></div>
+    <div><span>Reward tiers</span><strong data-campaign-rewards>Loading…</strong></div>
+    <div><span>Published backers</span><strong data-campaign-backers>Loading…</strong></div>
+    <div><span>Published pledged total</span><strong data-campaign-pledged>Loading…</strong></div>
+  </div>
+  <div class="campaign-record-actions">
+    <a data-campaign-public-link class="cta" href="#" hidden>Open public Kickstarter campaign</a>
+    <span data-campaign-verified>Verification record loading…</span>
   </div>
 </section>
 
@@ -101,6 +119,6 @@
   <span>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST</span>
   <span>Projection page updated 2026-09-19</span>
 </footer>
-<script src="/kickstarter/kickstarter.js?v=20260919-1"></script>
+<script src="/kickstarter/kickstarter.js?v=20260919-2"></script>
 </body>
 </html>
