@@ -10,7 +10,7 @@
  else if (Mode == "world")
  {
   <WorldAnimatedAssetCatalog />
-  <WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" />
+  <WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" OnHome="OnHome" />
  }
  else if (Mode == "accessibility")
  {
@@ -22,7 +22,7 @@
  }
  else if (Mode == "viewer")
  {
-  <RegionDefinerWorkspace OnStartMenu="OnStartMenu" />
+  <RegionDefinerWorkspace OnStartMenu="OnStartMenu" OnHome="OnHome" />
  }
  else if (Mode == "manage")
  {
@@ -53,6 +53,7 @@
 @code {
  [Parameter] public string Mode { get; set; } = "world";
  [Parameter] public EventCallback OnStartMenu { get; set; }
+ [Parameter] public EventCallback OnHome { get; set; }
  bool RuneTestRequested
  {
   get
