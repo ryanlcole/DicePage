@@ -205,9 +205,16 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
 
     public sealed record CommerceSummary(
         List<string>? Entitlements = null,
+        List<CommercePlan>? Plans = null,
         List<CommerceGrant>? Grants = null,
         List<WorldToken>? Tokens = null,
         int UnspentTokenCount = 0);
+
+    public sealed record CommercePlan(
+        string PlanId,
+        string DisplayName,
+        int MonthlyUsdCents,
+        List<string>? Entitlements = null);
 
     public sealed record CommerceGrant(
         string GrantId,
