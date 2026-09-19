@@ -86,6 +86,7 @@ let regionWorldSourceMeta=null;
 const regionWorldSourceTiles=[];
 const regionWorldTierImages=[];
 let regionWorldSourceOcean=null;
+let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
@@ -1359,46 +1360,62 @@ function regionSourceNumber(value,fallback=0){
   const n=Number(value);return Number.isFinite(n)?n:fallback;
 }
 function applyDatabaseTierImages(tierImages){
-  // Shared canonical plane loader. Region Definer must use the exact same planes
-  // and image references as World Builder; only crop/perspective/permissions differ.
-  if(!Array.isArray(tierImages)||!tierImages.length)return;
-  // Geonaph/Endemar already has the exact canonical World Builder plane set loaded
-  // by BASE_WORLD_ASSETS. Database tier-image metadata can be stale from an older
-  // save and must never replace those working canonical planes with a broken URL.
-  if(BASE_WORLD_ASSETS.length){
-    stage.dataset.canonicalPlaneSource='worldbuilder-shared';
-    stage.dataset.databaseTierImageCount=String(tierImages.length);
+  // WORLDSOURCE is authoritative for the canonical tier image references.
+  // Never blank a working plane while validating a database URL: probe first,
+  // then promote the proven source onto the same World Builder plane.
+  if(!Array.isArray(tierImages)||!tierImages.length){
+    stage.dataset.canonicalPlaneSource=BASE_WORLD_ASSETS.length?'worldbuilder-shared':'none';
     return;
   }
-  stage.dataset.canonicalPlaneSource='database';
+  stage.dataset.databaseTierImageCount=String(tierImages.length);
   tierImages.slice(0,CANONICAL_PLANE_KEYS.length).forEach((src,tier)=>{
     src=String(src||'').trim();if(!src)return;
     const key=CANONICAL_PLANE_KEYS[tier],node=planeByKey[key];if(!node)return;
     let resolved=src;try{resolved=new URL(src,location.href).href}catch{}
+    node.dataset.databaseSource='pending';
     const current=String(node.currentSrc||node.src||'');
-    node.dataset.databaseSource='true';
-    if(current===resolved&&layerReady[key])return;
+    if(current===resolved&&layerReady[key]){
+      node.dataset.databaseSource='true';
+      regionCanonicalTierImages[tier]=resolved;
+      stage.dataset.canonicalPlaneSource='database';
+      refreshRegionTierPreview();
+      return;
+    }
 
-    // Probe first so a bad/stale database reference cannot blank an already visible
-    // world plane. Only promote a database image after it proves it can load.
     const probe=new Image();
     probe.onload=()=>{
-      node.addEventListener('load',()=>{
+      regionCanonicalTierImages[tier]=resolved;
+      node.dataset.databaseSource='true';
+      stage.dataset.canonicalPlaneSource='database';
+      if(String(node.currentSrc||node.src||'')!==resolved){
+        node.addEventListener('load',()=>{
+          layerReady[key]=true;
+          if(key==='surface'){
+            naturalWidth=node.naturalWidth||SURFACE_WORLD_PIXELS;
+            naturalHeight=node.naturalHeight||SURFACE_WORLD_PIXELS;
+            stage.dataset.surfacePixelWidth=String(naturalWidth);
+            stage.dataset.surfacePixelHeight=String(naturalHeight);
+            loading.hidden=true;fitMap();
+          }
+          renderState();
+          refreshRegionTierPreview();
+        },{once:true});
+        node.src=resolved;
+      }else{
         layerReady[key]=true;
-        if(key==='surface'){
-          naturalWidth=node.naturalWidth||SURFACE_WORLD_PIXELS;
-          naturalHeight=node.naturalHeight||SURFACE_WORLD_PIXELS;
-          stage.dataset.surfacePixelWidth=String(naturalWidth);
-          stage.dataset.surfacePixelHeight=String(naturalHeight);
-          loading.hidden=true;fitMap();
-        }
         renderState();
-      },{once:true});
-      node.src=resolved;
+        refreshRegionTierPreview();
+      }
     };
     probe.onerror=()=>{
-      node.dataset.databaseSourceError='true';
-      if(key==='surface'&&!layerReady.surface){
+      node.dataset.databaseSource='error';
+      stage.dataset.canonicalPlaneFallback='worldbuilder-shared';
+      // Keep the already configured/loaded shared World Builder plane. The preview
+      // uses the same fallback rather than turning into an empty black tier.
+      if(!regionCanonicalTierImages[tier]&&BASE_WORLD_ASSETS[tier])
+        regionCanonicalTierImages[tier]=ASSET_ROOT+BASE_WORLD_ASSETS[tier].file;
+      refreshRegionTierPreview();
+      if(key==='surface'&&!layerReady.surface&&!(BASE_WORLD_ASSETS.length)){
         loading.hidden=false;loading.textContent='MAP IMAGE UNAVAILABLE';
       }
     };
@@ -1506,6 +1523,11 @@ async function renderRegionWorldSource(payload){
   stage.dataset.renderer='worldbuilder-replica';
   sourceLayers=canonical.sourceLayers;
   tierImages=canonical.tierImages;
+  if(tierImages.length){
+    tierImages.slice(0,CANONICAL_PLANE_KEYS.length).forEach((src,index)=>{
+      const value=String(src||'').trim();if(value&&!regionCanonicalTierImages[index])regionCanonicalTierImages[index]=value;
+    });
+  }
   const sharedBaseMap=BASE_WORLD_ASSETS.length>0||tierImages.length>0;
   const renderedTierImages=[];
   if(!sharedBaseMap&&!renderedTierImages.length&&!tiles.length&&!sourceLayers.length){
@@ -1815,6 +1837,14 @@ function ensureRegionTierPreview(){
       <strong data-tier-title>TIER 1 · SEA LEVEL</strong>
       <span data-tier-help>Swipe left or right across the map to preview tiers.</span>
     </div>
+    <div class="region-tier-preview-map" data-tier-map aria-hidden="true">
+      <div class="region-tier-preview-map-stack">
+        <img data-tier-image="0" alt="" draggable="false" />
+        <img data-tier-image="1" alt="" draggable="false" />
+        <img data-tier-image="2" alt="" draggable="false" />
+      </div>
+      <span class="region-tier-preview-status" data-tier-map-status>LOADING WORLD TIER…</span>
+    </div>
     <div class="region-tier-preview-actions">
       <button type="button" data-tier-prev aria-label="Previous tier">‹</button>
       <div class="region-tier-preview-dots" data-tier-dots aria-hidden="true"></div>
@@ -1825,6 +1855,18 @@ function ensureRegionTierPreview(){
   panel.querySelector('[data-tier-prev]')?.addEventListener('click',()=>stepRegionTierPreview(-1));
   panel.querySelector('[data-tier-next]')?.addEventListener('click',()=>stepRegionTierPreview(1));
   panel.querySelector('[data-tier-select]')?.addEventListener('click',confirmRegionTierPreview);
+  panel.querySelectorAll('[data-tier-image]').forEach(image=>{
+    image.addEventListener('load',()=>{image.dataset.loaded='true';refreshRegionTierPreviewImages()});
+    image.addEventListener('error',()=>{
+      const tier=clamp(Math.trunc(Number(image.dataset.tierImage)||0),0,CANONICAL_PLANE_KEYS.length-1);
+      const key=CANONICAL_PLANE_KEYS[tier],liveNode=planeByKey[key];
+      const fallback=String(liveNode?.currentSrc||liveNode?.src||(BASE_WORLD_ASSETS[tier]?ASSET_ROOT+BASE_WORLD_ASSETS[tier].file:'')).trim();
+      if(fallback&&image.dataset.fallbackTried!=='true'&&String(image.src||'')!==fallback){
+        image.dataset.fallbackTried='true';image.src=fallback;return;
+      }
+      image.dataset.loadError='true';refreshRegionTierPreviewImages();
+    });
+  });
   panel.addEventListener('pointerdown',event=>{
     if(event.target instanceof Element&&event.target.closest('button'))return;
     regionTierPreviewPointer={id:event.pointerId,x:event.clientX,y:event.clientY};
@@ -1841,6 +1883,43 @@ function ensureRegionTierPreview(){
   refreshRegionTierPreview();
   return panel;
 }
+function regionTierPreviewSources(){
+  return CANONICAL_PLANE_KEYS.map((key,index)=>{
+    const node=planeByKey[key];
+    const live=String(node?.currentSrc||node?.src||'').trim();
+    return String(regionCanonicalTierImages[index]||live||(BASE_WORLD_ASSETS[index]?ASSET_ROOT+BASE_WORLD_ASSETS[index].file:'')).trim();
+  });
+}
+function refreshRegionTierPreviewImages(){
+  const panel=regionTierPreview;if(!panel?.isConnected)return;
+  const current=currentRegionTierIndex(),sources=regionTierPreviewSources();
+  let anyVisibleLoaded=false,visibleExpected=0,visibleErrors=0;
+  panel.querySelectorAll('[data-tier-image]').forEach(image=>{
+    const tier=clamp(Math.trunc(Number(image.dataset.tierImage)||0),0,TIERS.length-1);
+    const visible=tier<=current,src=String(sources[tier]||'');
+    image.hidden=!visible;
+    image.style.opacity=visible?'1':'0';
+    if(visible){
+      visibleExpected++;
+      if(src&&String(image.currentSrc||image.src||'')!==src){
+        image.dataset.loaded='false';image.dataset.loadError='false';image.dataset.fallbackTried='false';image.src=src;
+      }
+      if(image.complete&&image.naturalWidth>1){image.dataset.loaded='true';anyVisibleLoaded=true}
+      if(image.dataset.loadError==='true')visibleErrors++;
+    }
+  });
+  const status=panel.querySelector('[data-tier-map-status]');
+  if(status){
+    if(anyVisibleLoaded){status.hidden=true;status.textContent=''}
+    else{
+      status.hidden=false;
+      status.textContent=visibleExpected>0&&visibleErrors>=visibleExpected
+        ? 'WORLD TIER IMAGE UNAVAILABLE'
+        : 'LOADING WORLD TIER…';
+    }
+  }
+  panel.dataset.previewTier=String(current);
+}
 function refreshRegionTierPreview(){
   const panel=ensureRegionTierPreview();if(!panel)return;
   const tier=tierByKey(viewerTier==='all'?'sea':viewerTier);
@@ -1848,6 +1927,7 @@ function refreshRegionTierPreview(){
   if(title)title.textContent=`TIER ${tier.index+1} · ${tierLabel(tier).toUpperCase()}`;
   const dots=panel.querySelector('[data-tier-dots]');
   if(dots)dots.innerHTML=TIERS.map(item=>`<i class="${item.index===tier.index?'active':''}"></i>`).join('');
+  refreshRegionTierPreviewImages();
 }
 function stepRegionTierPreview(delta){
   if(!REGION_DEFINER)return;
@@ -2714,15 +2794,18 @@ BASE_WORLD_ASSETS.forEach(asset=>{
       if(upscaleEnabled&&!upscaleStarted){upscaleStarted=true;void applyUpscalePreference()}
       scheduleRegionEnhancement(60);
       if(!REGION_DEFINER)void restoreSavedWorldBuilder();
+      else refreshRegionTierPreview();
     }else{
       if(asset.key==='surface')loading.hidden=true;
       renderState();
+      if(REGION_DEFINER)refreshRegionTierPreview();
     }
   });
   node.addEventListener('error',()=>{
     layerReady[asset.key]=false;
     if(asset.key==='surface'){loading.hidden=false;loading.textContent='WORLD MAP ASSET UNAVAILABLE'}
     renderState();
+    if(REGION_DEFINER)refreshRegionTierPreview();
   });
   node.src=ASSET_ROOT+asset.file;
 });
