@@ -270,7 +270,7 @@ else
   if(bodyEnd>=0) html=html[..bodyEnd];
   var firstHeading=html.IndexOf("<h1",StringComparison.OrdinalIgnoreCase);
   if(firstHeading>=0) html=html[firstHeading..];
-  html=Regex.Replace(html,@"<div\s+class=\"legal-nav\"[^>]*>.*?</div>","",RegexOptions.IgnoreCase|RegexOptions.Singleline);
+  html=Regex.Replace(html,"<div\\s+class=\\\"legal-nav\\\"[^>]*>.*?</div>","",RegexOptions.IgnoreCase|RegexOptions.Singleline);
   return html.Trim();
  }
 
