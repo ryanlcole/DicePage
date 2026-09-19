@@ -18,6 +18,10 @@ export function attach(frame,dotnet){
     const data=event.data;
     if(!data||data.source!=="shaelvien-worldbuilder")return;
     try{
+      if(data.type==="home"){
+        await dotnet.invokeMethodAsync("RequestHomeFromPrototypeAsync");
+        return;
+      }
       if(data.type==="ready"){
         const worldSource=await dotnet.invokeMethodAsync("GetWorldBuilderSourceForPrototypeAsync");
         post(frame,worldSource
