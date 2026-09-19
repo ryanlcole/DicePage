@@ -181,8 +181,17 @@ public sealed partial class WorldSession
 
         var authority = new AwsAuthorityClient(http, auth);
         await authority.InitializeAsync();
-        var claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName)
-            ?? throw new InvalidOperationException("The Shaelvien parcel claim was not accepted.");
+        AwsAuthorityClient.MmoParcel claimed;
+        try
+        {
+            claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName)
+                ?? throw new InvalidOperationException("The Shaelvien parcel claim was not accepted.");
+        }
+        catch (HttpRequestException ex)
+        {
+            await RefreshMmoLandAsync();
+            throw new InvalidOperationException(ex.Message, ex);
+        }
 
         await RefreshMmoLandAsync();
         await LoadRegionsAsync();
