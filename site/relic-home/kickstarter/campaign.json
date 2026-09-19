@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "platform": "Kickstarter",
+  "project": "Shaelvien + RIST",
+  "campaignStatus": "account-setup",
+  "verifiedAt": "2026-09-19",
+  "publicCampaignUrl": null,
+  "projectId": null,
+  "fundingGoalUsd": null,
+  "launchDate": null,
+  "endDate": null,
+  "rewardTiers": [],
+  "publishedBackerCount": null,
+  "publishedPledgedUsd": null,
+  "notes": [
+    "Kickstarter account setup has begun.",
+    "No public campaign URL has been recorded in the project repository.",
+    "No funding goal, launch date, reward tier, backer count, or pledged total is recorded as published campaign fact."
+  ]
+}
