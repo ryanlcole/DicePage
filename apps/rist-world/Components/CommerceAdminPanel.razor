@@ -1,0 +1,228 @@
+@inject HttpClient Http
+@inject DiscordAuthClient Auth
+@inject IJSRuntime JS
+
+@if(Open)
+{
+ <section class="commerce-admin-backdrop" role="presentation" @onclick="CloseAsync">
+  <section class="commerce-admin-panel" role="dialog" aria-modal="true" aria-label="Complimentary access administration" @onclick:stopPropagation="true">
+   <header>
+    <div><small>ReLiC COMMERCE</small><strong>COMPLIMENTARY ACCESS</strong></div>
+    <button type="button" @onclick="CloseAsync" aria-label="Close complimentary access">×</button>
+   </header>
+
+   @if(!_authorized)
+   {
+    <p class="commerce-admin-error" role="alert">Platform-owner authority is required.</p>
+   }
+   else
+   {
+    <form class="commerce-admin-form" @onsubmit="CreateInviteAsync" @onsubmit:preventDefault="true">
+     <label>Access plan
+      <select @bind="_planId">
+       <option value="standard-roleplayer">Standard Roleplayer · $5/mo access equivalent</option>
+       <option value="gamemaster">GameMaster · $10/mo access equivalent</option>
+       <option value="storyteller">Storyteller · $15/mo access equivalent</option>
+       <option value="worldbuilder">Worldbuilder · $20/mo access equivalent</option>
+       <option value="dedicated-roleplayer">Dedicated Roleplayer · $0 plan</option>
+      </select>
+     </label>
+     <label>Label
+      <input @bind="_label" maxlength="120" placeholder="Example: playtester, reviewer, family" />
+     </label>
+     <div class="commerce-admin-row">
+      <label>Expires in days
+       <input type="number" min="0" max="3650" step="1" @bind="_expiresInDays" />
+      </label>
+      <label>Extra Shaelvien Tokens
+       <input type="number" min="0" max="5" step="1" @bind="_tokenQuantity" />
+      </label>
+     </div>
+     <p>0 days means no expiration. Access is created only by the server authority service. The link is single-use and can be revoked.</p>
+     <button class="commerce-admin-create" type="submit" disabled="@_busy">@(_busy?"CREATING…":"CREATE ACCESS LINK")</button>
+    </form>
+
+    @if(_created is not null)
+    {
+     <section class="commerce-admin-created" aria-live="polite">
+      <strong>Access link created</strong>
+      <input readonly value="@_created.RedeemUrl" aria-label="Complimentary access link" />
+      <div>
+       <button type="button" @onclick="CopyCreatedAsync">COPY LINK</button>
+       <a href="@_created.RedeemUrl" target="_blank" rel="noopener">TEST LINK</a>
+      </div>
+      <small>The plain secret is shown only in this response. The database stores its hash, not the reusable code.</small>
+     </section>
+    }
+
+    @if(!string.IsNullOrWhiteSpace(_message))
+    {
+     <p class="@(_error?"commerce-admin-error":"commerce-admin-message")" role="status">@_message</p>
+    }
+
+    <section class="commerce-admin-list" aria-label="Recent complimentary access links">
+     <div class="commerce-admin-list-title">
+      <strong>RECENT LINKS</strong>
+      <button type="button" @onclick="LoadInvitesAsync" disabled="@_busy">REFRESH</button>
+     </div>
+     @if(_loading)
+     {
+      <p>Loading…</p>
+     }
+     else if(_invites.Count==0)
+     {
+      <p>No complimentary access links have been created.</p>
+     }
+     else
+     {
+      @foreach(var invite in _invites)
+      {
+       <article>
+        <div>
+         <strong>@PlanName(invite.PlanId)</strong>
+         <span>@(string.IsNullOrWhiteSpace(invite.Label)?"Unlabeled":invite.Label)</span>
+         <small>@InviteStatus(invite)</small>
+        </div>
+        <div class="commerce-admin-invite-actions">
+         <span>@invite.TokenQuantity token@(invite.TokenQuantity==1?"":"s")</span>
+         @if(string.Equals(invite.Status,"available",StringComparison.OrdinalIgnoreCase))
+         {
+          <button type="button" @onclick="()=>RevokeAsync(invite)" disabled="@_busy">REVOKE</button>
+         }
+        </div>
+       </article>
+      }
+     }
+    </section>
+   }
+  </section>
+ </section>
+}
+
+<style>
+.commerce-admin-backdrop{position:fixed;inset:0;z-index:2147483200;display:grid;place-items:center;padding:16px;background:rgba(1,5,8,.82);backdrop-filter:blur(6px)}
+.commerce-admin-panel{box-sizing:border-box;width:min(94vw,720px);max-height:92dvh;overflow:auto;padding:18px;border:1px solid #8a713d;border-radius:14px;background:#071117;color:#ebe3d2;box-shadow:0 22px 70px #000c;font-family:system-ui,-apple-system,sans-serif}
+.commerce-admin-panel>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid #4b4330}.commerce-admin-panel>header div{display:grid;gap:3px}.commerce-admin-panel>header small{color:#87b8c6;font-weight:900;letter-spacing:.12em}.commerce-admin-panel>header strong{color:#ecd28f;letter-spacing:.08em}.commerce-admin-panel>header button{width:42px;height:42px;border:1px solid #54636a;border-radius:8px;background:#101c22;color:#fff;font-size:24px}
+.commerce-admin-form{display:grid;gap:12px;margin-top:16px}.commerce-admin-form label{display:grid;gap:5px;color:#b9c4c7;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.commerce-admin-form input,.commerce-admin-form select,.commerce-admin-created input{width:100%;min-height:46px;padding:9px 11px;border:1px solid #5c675f;border-radius:8px;background:#09181f;color:#fff;font:700 14px system-ui}.commerce-admin-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.commerce-admin-form p,.commerce-admin-list p{margin:0;color:#9caaad;font-size:11px;line-height:1.45}.commerce-admin-create{min-height:48px;border:1px solid #b28f45;border-radius:8px;background:linear-gradient(#e0c58d,#b68e44);color:#17120a;font-weight:900}
+.commerce-admin-created{display:grid;gap:10px;margin-top:16px;padding:14px;border:1px solid #47717d;border-radius:10px;background:#0b2029}.commerce-admin-created>strong{color:#dff6ff}.commerce-admin-created>div{display:flex;gap:8px}.commerce-admin-created button,.commerce-admin-created a,.commerce-admin-list-title button,.commerce-admin-invite-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:7px 11px;border:1px solid #7b6c45;border-radius:7px;background:#101d23;color:#ead8a6;font-weight:900;text-decoration:none}.commerce-admin-created small{color:#9fb3b9}
+.commerce-admin-message,.commerce-admin-error{margin:14px 0 0;padding:10px;border-radius:8px;font-size:12px}.commerce-admin-message{border:1px solid #4a7560;background:#0d261d;color:#c9f3db}.commerce-admin-error{border:1px solid #8d4d47;background:#2a1515;color:#ffc9c2}
+.commerce-admin-list{margin-top:20px}.commerce-admin-list-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.commerce-admin-list-title>strong{color:#ecd28f;font-size:11px;letter-spacing:.1em}.commerce-admin-list article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #24343a}.commerce-admin-list article>div:first-child{display:grid;gap:2px}.commerce-admin-list article strong{color:#e6dcc4}.commerce-admin-list article span,.commerce-admin-list article small{color:#9cacb0;font-size:11px}.commerce-admin-invite-actions{display:flex;align-items:center;gap:8px}
+@media(max-width:560px){.commerce-admin-row{grid-template-columns:1fr}.commerce-admin-list article{align-items:flex-start;flex-direction:column}.commerce-admin-invite-actions{width:100%;justify-content:space-between}}
+</style>
+
+@code {
+ [Parameter] public bool Open{get;set;}
+ [Parameter] public EventCallback OnClose{get;set;}
+
+ bool _authorized;
+ bool _loaded;
+ bool _loading;
+ bool _busy;
+ bool _error;
+ string _planId="worldbuilder";
+ string _label="";
+ int _expiresInDays=365;
+ int _tokenQuantity;
+ string _message="";
+ AwsAuthorityClient.CommerceInvite? _created;
+ readonly List<AwsAuthorityClient.CommerceInvite> _invites=[];
+
+ protected override async Task OnParametersSetAsync()
+ {
+  if(!Open){_loaded=false;return;}
+  _authorized=Auth.IsOwnerDiscordAccount;
+  if(!_authorized||_loaded)return;
+  _loaded=true;
+  await LoadInvitesAsync();
+ }
+
+ async Task<AwsAuthorityClient> AuthorityAsync()
+ {
+  var authority=new AwsAuthorityClient(Http,Auth);
+  await authority.InitializeAsync();
+  return authority;
+ }
+
+ async Task LoadInvitesAsync()
+ {
+  if(!_authorized)return;
+  _loading=true;_message="";_error=false;
+  try
+  {
+   var authority=await AuthorityAsync();
+   var result=await authority.GetCommerceInvitesAsync()??[];
+   _invites.Clear();
+   _invites.AddRange(result);
+  }
+  catch(HttpRequestException ex){_error=true;_message=ex.Message;}
+  catch{_error=true;_message="Complimentary access links could not be loaded.";}
+  finally{_loading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task CreateInviteAsync()
+ {
+  if(!_authorized||_busy)return;
+  _busy=true;_message="";_error=false;_created=null;
+  try
+  {
+   var authority=await AuthorityAsync();
+   _created=await authority.CreateCommerceInviteAsync(
+    _planId,
+    Math.Clamp(_expiresInDays,0,3650),
+    Math.Clamp(_tokenQuantity,0,5),
+    _label.Trim());
+   if(_created is null)throw new InvalidOperationException("The authority service did not return an access link.");
+   _label="";
+   _message="Complimentary access link created.";
+   await LoadInvitesAsync();
+  }
+  catch(Exception ex){_error=true;_message=ex.Message;}
+  finally{_busy=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task RevokeAsync(AwsAuthorityClient.CommerceInvite invite)
+ {
+  if(!_authorized||_busy)return;
+  _busy=true;_message="";_error=false;
+  try
+  {
+   var authority=await AuthorityAsync();
+   await authority.RevokeCommerceInviteAsync(invite.InviteId);
+   _message="Access link revoked. If it had already been redeemed, its associated complimentary grant was revoked too.";
+   await LoadInvitesAsync();
+  }
+  catch(Exception ex){_error=true;_message=ex.Message;}
+  finally{_busy=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task CopyCreatedAsync()
+ {
+  if(string.IsNullOrWhiteSpace(_created?.RedeemUrl))return;
+  try{await JS.InvokeVoidAsync("navigator.clipboard.writeText",_created.RedeemUrl);_message="Access link copied.";}
+  catch{_message="Copy was blocked by the browser. Select the link above and copy it manually.";}
+ }
+
+ Task CloseAsync()=>OnClose.InvokeAsync();
+
+ static string PlanName(string planId)=>planId switch
+ {
+  "dedicated-roleplayer"=>"Dedicated Roleplayer",
+  "standard-roleplayer"=>"Standard Roleplayer",
+  "gamemaster"=>"GameMaster",
+  "storyteller"=>"Storyteller",
+  "worldbuilder"=>"Worldbuilder",
+  _=>planId
+ };
+
+ static string InviteStatus(AwsAuthorityClient.CommerceInvite invite)
+ {
+  var status=(invite.Status??"").Trim().ToLowerInvariant();
+  if(status=="available"&&invite.ExpiresAtEpoch==0)return "Available · no expiration";
+  if(status=="available"&&invite.ExpiresAtEpoch>0)
+   return $"Available · expires {DateTimeOffset.FromUnixTimeSeconds(invite.ExpiresAtEpoch):yyyy-MM-dd}";
+  if(status=="redeemed")return $"Redeemed {invite.RedeemedAtUtc}";
+  if(status=="revoked")return "Revoked";
+  if(status=="expired")return "Expired";
+  return string.IsNullOrWhiteSpace(status)?"Unknown":status;
+ }
+}
