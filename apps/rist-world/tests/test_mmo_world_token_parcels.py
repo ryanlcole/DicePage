@@ -45,7 +45,11 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert '"sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT))' in backend
     assert "Claim is idempotent for the account that already owns this exact" in backend
     assert "return response(200, public_parcel(existing_parcel))" in backend
-    assert "latest_token = users.get_item(" in backend
+    assert "latest_token = world_token_for_parcel(user_id, parcel_id)" in backend
+    assert "def normalize_unspent_world_token(user_id, token):" in backend
+    assert "token = normalize_unspent_world_token(user_id, token)" in backend
+    assert "existing_region = world.get_item(" in backend
+    assert '"ownerUserId = :regionOwner OR attribute_not_exists(ownerUserId)"' in backend
 
 
 def test_claimed_parcel_cannot_be_taken_or_grown_by_region_save():
@@ -93,6 +97,8 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "payload.Error.Trim()" in client
     assert "catch (HttpRequestException ex)" in session
     assert "await RefreshMmoLandAsync();" in session
+    assert "var tokenId = UnspentMmoWorldToken?.TokenId ?? \"\";" in session
+    assert "ClaimMmoParcelAsync(WorldId, cellIndex, displayName, tokenId)" in session
     assert "PERMISSIONS" in host
     assert "Mode == \"world\" && Session.CanRequestWorldClaim" not in router
 
