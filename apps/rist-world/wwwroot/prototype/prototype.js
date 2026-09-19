@@ -2863,8 +2863,13 @@ screen.orientation?.addEventListener?.('change',resetTilt);
 function openViewerSettings(){viewerSettingsPanel.hidden=false;viewerSettingsClose.focus()}
 function closeViewerSettings(){viewerSettingsPanel.hidden=true;settingsToggle.focus()}
 function goHome(){
-  try{(window.top||window).localStorage.setItem('rist.shell.workspace.v1','hub')}catch{try{localStorage.setItem('rist.shell.workspace.v1','hub')}catch{}}
-  if(window.top&&window.top!==window)window.top.location.href='/Game/index.html';else location.href='/Game/index.html';
+  // Home means the authenticated Shaelvien landing page, not a full Game reload.
+  // A reload can re-enter the Press Start gate, so embedded workspaces ask their
+  // Blazor host to switch back to the existing landing-page state in place.
+  const sent=REGION_DEFINER?postRegionMessage('home'):postWorldBuilderHostMessage('home');
+  if(sent)return;
+  try{localStorage.setItem('rist.shell.workspace.v1','hub')}catch{}
+  location.href='/Game/index.html';
 }
 function openStartMenu(){
   try{
