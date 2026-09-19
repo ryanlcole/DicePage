@@ -306,9 +306,8 @@ async function applyDatabaseWorldBuilderState(envelope){
   if(REGION_DEFINER)return;
   const state=envelope&&typeof envelope==='object'&&envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
   if(!state||typeof state!=='object'||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
-  userLayers.splice(0,userLayers.length);
-  world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
-  for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
+  const canonical=await applyCanonicalWorldBuilderSnapshot(state,{region:false});
+  if(!canonical.loaded)return;
   viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier||'sea').key;
   viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
   selectedImage=null;
@@ -1360,7 +1359,9 @@ function regionSourceNumber(value,fallback=0){
   const n=Number(value);return Number.isFinite(n)?n:fallback;
 }
 function applyDatabaseTierImages(tierImages){
-  if(!REGION_DEFINER||!Array.isArray(tierImages)||!tierImages.length)return;
+  // Shared canonical plane loader. Region Definer must use the exact same planes
+  // and image references as World Builder; only crop/perspective/permissions differ.
+  if(!Array.isArray(tierImages)||!tierImages.length)return;
   // Geonaph/Endemar already has the exact canonical World Builder plane set loaded
   // by BASE_WORLD_ASSETS. Database tier-image metadata can be stale from an older
   // save and must never replace those working canonical planes with a broken URL.
@@ -1404,6 +1405,36 @@ function applyDatabaseTierImages(tierImages){
     probe.src=resolved;
   });
 }
+async function applyCanonicalWorldBuilderSnapshot(state,options={}){
+  const regionMode=options.region===true;
+  if(!state||typeof state!=='object')return{loaded:false,sourceLayers:[],tierImages:[],hydration:Promise.resolve(0)};
+  const stateWorldId=String(state.worldId||'');
+  if(stateWorldId&&stateWorldId!==String(WORLD_ID||''))return{loaded:false,sourceLayers:[],tierImages:[],hydration:Promise.resolve(0)};
+
+  const sourceLayers=Array.isArray(state.userLayers)?state.userLayers:[];
+  const tierImages=Array.isArray(state.tierImages)?state.tierImages.map(String).filter(Boolean):[];
+  const sourcePixelWidth=Math.max(1,Math.trunc(regionSourceNumber(state.sourcePixelWidth,SURFACE_WORLD_PIXELS)));
+  const sourcePixelHeight=Math.max(1,Math.trunc(regionSourceNumber(state.sourcePixelHeight,SURFACE_WORLD_PIXELS)));
+  if(sourcePixelWidth>1&&sourcePixelHeight>1){
+    naturalWidth=sourcePixelWidth;
+    naturalHeight=sourcePixelHeight;
+  }
+
+  applyDatabaseTierImages(tierImages);
+
+  if(regionMode){
+    const revision=Math.trunc(Number(options.revision)||canonicalHydrationRevision);
+    const activeRegionId=String(options.activeRegionId||'').trim();
+    const hydration=hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,revision);
+    return{loaded:true,sourceLayers,tierImages,hydration};
+  }
+
+  userLayers.splice(0,userLayers.length);
+  world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
+  for(const raw of sourceLayers)await attachRestoredLayer(raw);
+  return{loaded:true,sourceLayers,tierImages,hydration:Promise.resolve(sourceLayers.length)};
+}
+
 function regionSourceCropStyle(image,tile){
   const sourceWidth=Math.max(0,Math.trunc(regionSourceNumber(tile.sourceWidth,0)));
   const sourceHeight=Math.max(0,Math.trunc(regionSourceNumber(tile.sourceHeight,0)));
@@ -1466,7 +1497,15 @@ async function renderRegionWorldSource(payload){
     naturalHeight=sourcePixelHeight;
   }
   if(!envelope.recoveredWorldBuilderCache)stage.dataset.worldSource='database';
-  applyDatabaseTierImages(tierImages);
+  const activeRegionId=String(envelope.activeRegionId||REQUESTED_REGION_ID||pendingClaimedRegionId||'').trim();
+  const canonical=await applyCanonicalWorldBuilderSnapshot(snapshot,{
+    region:true,
+    activeRegionId,
+    revision:hydrationRevision
+  });
+  stage.dataset.renderer='worldbuilder-replica';
+  sourceLayers=canonical.sourceLayers;
+  tierImages=canonical.tierImages;
   const sharedBaseMap=BASE_WORLD_ASSETS.length>0||tierImages.length>0;
   const renderedTierImages=[];
   if(!sharedBaseMap&&!renderedTierImages.length&&!tiles.length&&!sourceLayers.length){
@@ -1513,12 +1552,10 @@ async function renderRegionWorldSource(payload){
     regionSourceCropStyle(image,raw);frame.appendChild(image);node.appendChild(frame);world.appendChild(node);
     regionWorldSourceTiles.push({node,image,tier,layer,index,id:String(raw.id||''),name:String(raw.name||''),assetKind:String(raw.assetKind||'tile')});
   });
-  const activeRegionId=String(envelope.activeRegionId||REQUESTED_REGION_ID||pendingClaimedRegionId||'').trim();
   stage.dataset.canonicalLayerCount=String(sourceLayers.length);
   stage.dataset.canonicalTierImageCount=String(tierImages.length);
-  // Start every canonical layer together. A slow sprite sheet or remote asset must
-  // never block the remaining World Builder layers from appearing in Region Definer.
-  const canonicalHydration=hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,hydrationRevision);
+  // Same WorldBuilder snapshot hydration; RegionDefiner adds only permission/crop view policy.
+  const canonicalHydration=canonical.hydration;
   updateLayerOrder();
   const authoredCount=tiles.length+sourceLayers.length;
   const hasCanonicalMap=sharedBaseMap||renderedTierImages.length||authoredCount;
