@@ -53,11 +53,12 @@ else if(Session.AccountViewerOpen && !Session.IsLoggedIn)
      <label><span>Display name</span><input maxlength="48" autocomplete="name" @bind="Session.PendingDisplayName" placeholder="Your profile name" /></label>
      <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name shown at the table" /></label>
      <label><span>Profile note <small>(optional)</small></span><textarea maxlength="240" @bind="Session.PendingProfileNote" placeholder="A short introduction, play style, or GM note"></textarea></label>
+     <label><span>Age</span><input type="number" min="1" max="120" inputmode="numeric" @bind="Session.PendingAge" required /></label>
+     <small class="signup-discord-note">Age is required for account access. Users under 18 use parent or guardian approval for the Terms of Service and Privacy Policy.</small>
      <fieldset class="map-plan-picker"><legend>Intended plan</legend>
       <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="SelectPlayerPlan"><strong>Player</strong><span>$5 / month</span></button>
       <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="SelectGmPlayerPlan"><strong>GM + Player</strong><span>$15 / month</span></button>
      </fieldset>
-     <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
      <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Continue to Discord login</button>
      <small class="signup-discord-note">Your profile is kept in this RIST flow first; Discord authorization follows after Continue.</small>
     </div>
@@ -170,7 +171,7 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
  bool _saving;
  bool _draftLoaded;
  bool _alertsLoaded;
- bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
+ bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingAge is >=1 and <=120;
  bool CanSaveContent=>_selectedBand==ContentAllowancePolicy.General||_ageAttested;
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
