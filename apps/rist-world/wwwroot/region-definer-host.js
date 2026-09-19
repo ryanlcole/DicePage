@@ -37,6 +37,10 @@ export function attach(frame,dotnet){
     const data=event.data;
     if(!data||data.source!=="shaelvien-regiondefiner")return;
     try{
+      if(data.type==="home"){
+        await dotnet.invokeMethodAsync("RequestHomeFromPrototypeAsync");
+        return;
+      }
       if(data.type==="ready"){
         await sendState(frame,dotnet);
         return;
