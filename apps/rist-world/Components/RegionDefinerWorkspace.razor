@@ -49,6 +49,7 @@
  bool _bridgeAttached;
 
  [Parameter] public EventCallback OnStartMenu { get; set; }
+ [Parameter] public EventCallback OnHome { get; set; }
 
  string BuilderSrc
  {
@@ -98,6 +99,12 @@
   {
    // The map stays visible; a later interaction can retry metadata loading.
   }
+ }
+
+ [JSInvokable]
+ public async Task RequestHomeFromPrototypeAsync()
+ {
+  if(OnHome.HasDelegate)await OnHome.InvokeAsync();
  }
 
  [JSInvokable]
