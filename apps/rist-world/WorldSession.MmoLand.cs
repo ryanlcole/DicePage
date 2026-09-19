@@ -190,7 +190,30 @@ public sealed partial class WorldSession
         catch (HttpRequestException ex)
         {
             await RefreshMmoLandAsync();
-            throw new InvalidOperationException(ex.Message, ex);
+
+            if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                var occupied = _mmoParcels.FirstOrDefault(parcel => parcel.CellIndex == cellIndex);
+                if (occupied is not null)
+                {
+                    if (CanEditMmoParcel(occupied))
+                        throw new InvalidOperationException($"{occupied.DisplayName} is already bound to your account. Enter that property space instead.", ex);
+                    throw new InvalidOperationException("That property space was just claimed. The map has been refreshed; choose another available square.", ex);
+                }
+
+                if (!HasUnspentMmoWorldToken)
+                {
+                    if (OwnedMmoParcel is { } owned)
+                        throw new InvalidOperationException($"Your Shaelvien Token is already bound to {owned.DisplayName}. Enter that property space instead.", ex);
+                    throw new InvalidOperationException("Your Shaelvien Token is no longer available. Account state has been refreshed.", ex);
+                }
+            }
+
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(ex.Message)
+                    ? "The property-space claim could not be completed. The map has been refreshed."
+                    : ex.Message,
+                ex);
         }
 
         await RefreshMmoLandAsync();
