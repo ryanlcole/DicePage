@@ -48,6 +48,7 @@
    <button type="button" @onclick="FitAsync" aria-label="Fit the current Perceiver scene">FIT</button>
    <button type="button" data-perceiver-upload-button>UPLOAD VIDEO</button>
    <button type="button" data-perceiver-endemar-button>ENDEMAR</button>
+   <button type="button" data-perceiver-fullscreen-button>FULL SCREEN</button>
    <button type="button" data-perceiver-motion-button>TILT / MOTION</button>
    <input type="file" accept="video/*" data-perceiver-video-input hidden aria-label="Choose a video for spectral conversion" />
   </div>
@@ -177,7 +178,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-spectral-video-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-center-fullscreen-1");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
