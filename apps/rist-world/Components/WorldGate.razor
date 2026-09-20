@@ -67,7 +67,7 @@
      <p>This permanently deletes this world's private cloud data, all stored versions beneath the world, and this browser's local save.</p>
      <label for="world-delete-approval">Type exactly:</label>
      <code>@WorldSession.WorldDeletionConfirmationPhrase</code>
-     <input id="world-delete-approval" autocomplete="off" spellcheck="false" @bind="_deleteApproval" @bind:event="oninput" />
+     <input id="world-delete-approval" autocomplete="off" autocapitalize="off" spellcheck="false" @bind="_deleteApproval" @bind:event="oninput" />
      <div class="world-delete-actions">
       <button type="button" class="world-gate-secondary" disabled="@_busy" @onclick="CancelDelete">CANCEL</button>
       <button type="button" class="world-delete-confirm" disabled="@(_busy||!DeleteApprovalMatches)" @onclick="ConfirmDeleteAsync">@(_busy?"DELETING…":"DELETE WORLD")</button>
@@ -125,7 +125,7 @@
  string _worldName="";
  string _status="";
  string _deleteApproval="";
- bool DeleteApprovalMatches=>string.Equals(_deleteApproval,WorldSession.WorldDeletionConfirmationPhrase,StringComparison.Ordinal);
+ bool DeleteApprovalMatches=>WorldSession.WorldDeletionConfirmationMatches(_deleteApproval);
  bool CanCreateWorld=>Session.CanCreateAdditionalOwnedWorld(_worlds);
 
  protected override void OnParametersSet()
