@@ -372,6 +372,69 @@ def public_parcel(item):
     }
 
 
+def ensure_parcel_region(world_id, parcel, now_value=None):
+    """Reconcile the editable region that represents an already-owned parcel.
+
+    Token + parcel are the atomic ownership identity. The region is a derived
+    representation and must never be allowed to veto that ownership transaction.
+    """
+    parcel_id = str(parcel.get("parcelId") or "")
+    region_id = str(parcel.get("regionId") or ("region-" + parcel_id))
+    owner = str(parcel.get("ownerUserId") or "")
+    column = int(parcel.get("column") or 0)
+    row = int(parcel.get("row") or 0)
+    display_name = str(parcel.get("displayName") or f"Shaelvien {column},{row}")
+    now_value = int(time.time()) if now_value is None else int(now_value)
+    key = region_key(world_id, region_id)
+    existing = world.get_item(Key=key, ConsistentRead=True).get("Item") or {}
+    state = dict(existing.get("state") or {})
+
+    canonical = {
+        "regionId": region_id,
+        "worldId": world_id,
+        "name": str(state.get("name") or display_name),
+        "minColumn": column,
+        "minRow": row,
+        "maxColumn": column,
+        "maxRow": row,
+        "selectedCells": [int(parcel.get("cellIndex") or 0)],
+        "createdAtUtc": str(state.get("createdAtUtc") or parcel.get("claimedAtUtc") or utc_stamp()),
+        "updatedAtUtc": utc_stamp(),
+        "tierIndex": int(state.get("tierIndex") or 0),
+        "sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT)),
+        "gridShape": str(state.get("gridShape") or "square"),
+        "ownerUserId": owner,
+        "parcelId": parcel_id,
+        "parcelPixelWidth": int(parcel.get("pixelWidth") or MMO_PARCEL_PIXELS),
+        "parcelPixelHeight": int(parcel.get("pixelHeight") or MMO_PARCEL_PIXELS),
+        "maxHeight": int(parcel.get("maxHeight") or MMO_PARCEL_MAX_HEIGHT),
+        "parentNodeId": "world:" + world_id,
+        "coordinateSpace": "world-normalized-v1",
+        "canonicalMinX": column / MMO_PARCEL_GRID_COLUMNS,
+        "canonicalMinY": row / MMO_PARCEL_GRID_ROWS,
+        "canonicalMaxX": (column + 1) / MMO_PARCEL_GRID_COLUMNS,
+        "canonicalMaxY": (row + 1) / MMO_PARCEL_GRID_ROWS,
+        "canonicalZMin": 0,
+        "canonicalZMax": MMO_PARCEL_MAX_HEIGHT,
+    }
+    # Preserve authored region content while enforcing parcel identity/geometry.
+    canonical["sourceTiles"] = list(state.get("sourceTiles") or [])
+    canonical["overlayTiles"] = list(state.get("overlayTiles") or [])
+    merged_state = {**state, **canonical}
+    item = {
+        **existing,
+        **key,
+        "worldId": world_id,
+        "regionId": region_id,
+        "parcelId": parcel_id,
+        "ownerUserId": owner,
+        "state": dynamo_safe(merged_state),
+        "updatedAt": now_value,
+    }
+    world.put_item(Item=dynamo_safe(item))
+    return item
+
+
 def ensure_genesis_world_token(user_id, account_id, player_alias):
     key = world_token_key(user_id)
     current = users.get_item(Key=key, ConsistentRead=True).get("Item")
@@ -1786,6 +1849,7 @@ def handler(event, context):
                 str(existing_parcel.get("ownerUserId") or "") == user_id
                 and world_token_for_parcel(user_id, parcel_id)
             ):
+                ensure_parcel_region(world_id, existing_parcel, now)
                 return response(200, public_parcel(existing_parcel))
             return response(409, {"error": "That Shaelvien property space has already been claimed"})
 
@@ -1946,26 +2010,6 @@ def handler(event, context):
                             "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
                         }
                     },
-                    {
-                        "Put": {
-                            "TableName": world.name,
-                            "Item": _ddb_map(dynamo_safe(region_item)),
-                            "ConditionExpression": (
-                                "attribute_not_exists(pk) AND attribute_not_exists(sk)"
-                                if not existing_region
-                                else "ownerUserId = :regionOwner OR attribute_not_exists(ownerUserId)"
-                            ),
-                            **(
-                                {}
-                                if not existing_region
-                                else {
-                                    "ExpressionAttributeValues": _ddb_map(
-                                        {":regionOwner": user_id}
-                                    )
-                                }
-                            ),
-                        }
-                    },
                 ]
         claim_committed = False
         for claim_attempt in range(2):
@@ -2009,39 +2053,11 @@ def handler(event, context):
                 if (
                     claim_attempt == 0
                     and not occupied
-                    and not latest_region
                     and latest_selected_token
                     and str(latest_selected_token.get("status") or "") == "unspent"
                 ):
                     time.sleep(0.075)
                     continue
-
-                if latest_region and not occupied:
-                    state = dict(latest_region.get("state") or {})
-                    owner = str(
-                        latest_region.get("ownerUserId")
-                        or state.get("ownerUserId")
-                        or ""
-                    )
-                    if owner == user_id:
-                        return response(
-                            409,
-                            {
-                                "error": (
-                                    "A legacy region record for this square is blocking the "
-                                    "property claim. No token was spent."
-                                )
-                            },
-                        )
-                    return response(
-                        409,
-                        {
-                            "error": (
-                                "That property space has a conflicting region record. "
-                                "No token was spent; refresh the map and choose another available square."
-                            )
-                        },
-                    )
 
                 if not latest_selected_token:
                     return response(
@@ -2086,9 +2102,9 @@ def handler(event, context):
                     409,
                     {
                         "error": (
-                            "The claim transaction was canceled before anything was spent. "
+                            "The ownership transaction was canceled before anything was spent. "
                             "The selected token is still unspent and the property is still available. "
-                            "Please retry once."
+                            f"Diagnostic: {safe_reason}."
                         ),
                         "claimConflict": safe_reason,
                     },
@@ -2103,6 +2119,11 @@ def handler(event, context):
                     )
                 },
             )
+
+        # Ownership is complete at this point. Region state is a representation of
+        # the owned property space, so reconcile it after the atomic token+parcel
+        # binding rather than allowing representation state to veto ownership.
+        ensure_parcel_region(world_id, parcel_item, now)
 
         audit_write(
             world_id,
