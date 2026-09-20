@@ -312,7 +312,7 @@ function initializeSpectralCanvases(state) {
     const canvas = layer._spectralCanvas;
     canvas.width = size.width;
     canvas.height = size.height;
-    canvas.style.aspectRatio = \`\${size.width} / \${size.height}\`;
+    canvas.style.aspectRatio = `${size.width} / ${size.height}`;
     const context = layer._spectralContext;
     context.clearRect(0, 0, size.width, size.height);
     return context.createImageData(size.width, size.height);
@@ -399,7 +399,7 @@ async function loadSpectralVideo(state, file) {
   initializeSpectralCanvases(state);
   setVideoStatus(
     state,
-    \`\${file.name || 'PHONE VIDEO'} · \${state.spectralWidth}×\${state.spectralHeight} · LOCAL\`
+    `${file.name || 'PHONE VIDEO'} · ${state.spectralWidth}×${state.spectralHeight} · LOCAL`
   );
 
   await new Promise(resolve => {
@@ -415,10 +415,10 @@ async function loadSpectralVideo(state, file) {
   try {
     await state.video.play();
     state.playing = true;
-    setVideoStatus(state, \`\${file.name || 'PHONE VIDEO'} · CONVERTING LIVE · LOCAL\`);
+    setVideoStatus(state, `${file.name || 'PHONE VIDEO'} · CONVERTING LIVE · LOCAL`);
   } catch {
     state.playing = false;
-    setVideoStatus(state, \`\${file.name || 'PHONE VIDEO'} · READY · TAP PLAY\`);
+    setVideoStatus(state, `${file.name || 'PHONE VIDEO'} · READY · TAP PLAY`);
   }
   updateReadout(state);
 }
