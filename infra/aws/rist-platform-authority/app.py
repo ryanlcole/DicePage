@@ -1975,31 +1975,27 @@ def handler(event, context):
             "updatedAt": now,
         }
 
+        # The previous token Update produced DynamoDB cancellation reason
+        # ValidationError while the parcel Put reported None. Replace the expression
+        # update with a full conditional Put of the same keyed token record. This
+        # preserves atomicity without relying on a fragile UpdateExpression.
+        spent_token = {
+            **token,
+            "status": "spent",
+            "purchasedWorldId": world_id,
+            "parcelId": parcel_id,
+            "bindingHash": binding_hash,
+            "spentAtUtc": stamp,
+        }
         claim_transaction = [
                     {
-                        "Update": {
+                        "Put": {
                             "TableName": users.name,
-                            "Key": _ddb_map(token_key),
-                            "UpdateExpression": (
-                                "SET #status = :spent, purchasedWorldId = :worldId, "
-                                "parcelId = :parcelId, bindingHash = :binding, spentAtUtc = :spentAt"
-                            ),
-                            # The exact DynamoDB key is already inside the authenticated
-                            # USER#<user_id> partition, so the key itself identifies the
-                            # token being spent. Legacy tokenId / holderUserId attributes
-                            # may be incomplete even when that keyed token is valid. Only
-                            # the unspent state must gate the atomic transition.
+                            "Item": _ddb_map(dynamo_safe(spent_token)),
                             "ConditionExpression": "#status = :unspent",
                             "ExpressionAttributeNames": {"#status": "status"},
                             "ExpressionAttributeValues": _ddb_map(
-                                {
-                                    ":spent": "spent",
-                                    ":worldId": world_id,
-                                    ":parcelId": parcel_id,
-                                    ":binding": binding_hash,
-                                    ":spentAt": stamp,
-                                    ":unspent": "unspent",
-                                }
+                                {":unspent": "unspent"}
                             ),
                         }
                     },
