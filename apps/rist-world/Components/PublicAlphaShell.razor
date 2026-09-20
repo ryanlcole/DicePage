@@ -66,6 +66,7 @@
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
+   <button type="button" @onclick="OpenManage"><span>▣</span>SANDBOX WORLDS</button>
    <button type="button" class="coming-soon" disabled aria-disabled="true" title="Coming Soon"><span>♙</span>CHARACTERS</button>
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenMembership"><span>◉</span>MEMBERSHIP</button>
@@ -490,12 +491,23 @@ else
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
  void OpenWorldbuilding(){if(!CanOpenWorldBuilder)return;OpenWorkspace("world","WORLDBUILDER",CanBuildWorld?"WORLD → TIER → LAYER → CUBE":"ENDEMAR → VIEW ONLY → REFERENCE");}
  async Task CloseWorldGate(){
-  if(!Session.HasActiveWorld)return;
   _worldGateOpen=false;
-  _workspaceOpen=false;
-  await PersistWorkspaceAsync("hub");
+  if(!Session.HasActiveWorld)
+  {
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
   await Session.RefreshTrustedWorldAuthorityAsync();
   await RefreshLandingWorldsAsync();
+  if(!Session.IsGeonaphWorld)
+  {
+   OpenWorkspace("world","WORLDBUILDER","SANDBOX → TIER → LAYER → CUBE");
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+  _workspaceOpen=false;
+  await PersistWorkspaceAsync("hub");
+  await InvokeAsync(StateHasChanged);
  }
  void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
  async Task OpenRegionDefiner()
