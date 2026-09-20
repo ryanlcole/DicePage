@@ -68,7 +68,7 @@ else if (_canEnter)
       <b>ENTER</b>
      </button>
 
-     <button type="button" class="rist-environment-option rist" disabled="@_launchBusy" @onclick="OpenRistSandboxChooser">
+     <button type="button" class="rist-environment-option rist-sandbox" disabled="@_launchBusy" @onclick="OpenRistSandboxChooser">
       <span><strong>RIST</strong><small>SANDBOX · choose, create, or import a private world</small></span>
       <b>ENTER</b>
      </button>
@@ -166,7 +166,7 @@ else
  .rist-environment-choice h1{margin:0;color:#e4ca83;font:700 clamp(24px,5vw,38px)/1.1 Georgia,serif}
  .rist-environment-copy{margin:0 0 6px;color:#b7c3c8;font:600 11px/1.5 system-ui}
  .rist-environment-option{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #53646d;border-radius:10px;background:#0d1820;color:#e9dfc4;text-align:left;touch-action:manipulation}
- .rist-environment-option.shaelvien{border-color:#9b7a34;background:linear-gradient(135deg,#211b0e,#0c1820)}
+ .rist-environment-option.shaelvien,.rist-environment-option.rist-sandbox{border-color:#9b7a34;background:linear-gradient(135deg,#211b0e,#0c1820)}
  .rist-environment-option span{display:grid;gap:5px;min-width:0}.rist-environment-option strong{color:#f2d990;font:900 14px/1.1 system-ui;letter-spacing:.05em}.rist-environment-option small{color:#9eafb7;font:700 9px/1.35 system-ui}.rist-environment-option b{color:#75bde9;font:900 9px/1 system-ui;letter-spacing:.08em}
  .rist-environment-option:disabled{opacity:.45}.rist-environment-status,.rist-environment-empty{margin:4px 0;color:#aebbc0;font:700 11px/1.45 system-ui}.rist-environment-error{margin:4px 0;color:#ffb3a6;font:700 11px/1.45 system-ui}.rist-environment-retry{min-height:44px;border:1px solid #8d7440;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}
  @@media(max-width:520px){.rist-environment-choice{width:100%;max-height:92dvh;padding:16px}.rist-environment-option{min-height:66px}}
