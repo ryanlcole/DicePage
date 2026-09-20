@@ -1,0 +1,201 @@
+@using System.Globalization
+@using System.Text.Json
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject WorldSession Session
+
+<div class="perceiver-workspace" @ref="_root" data-perceiver-source="@_sourceKind" aria-label="Perceiver tiered movie player">
+ <header class="perceiver-toolbar">
+  <div class="perceiver-toolbar-left">
+   <button type="button" class="perceiver-toolbar-button" @onclick="GoHomeAsync">⌂ HOME</button>
+   <button type="button" class="perceiver-toolbar-button" @onclick="OpenStartMenuAsync">☰ MENU</button>
+  </div>
+
+  <div class="perceiver-toolbar-center">
+   <strong>PERCEIVER</strong>
+   <small>ENDEMAR · THREE-TIER PARALLAX PROOF</small>
+  </div>
+
+  <div class="perceiver-toolbar-right" aria-live="polite">
+   <span class="perceiver-readout-line"><b data-perceiver-label>Tier 1</b></span>
+   <span class="perceiver-readout-line">
+    <span data-perceiver-play-state>Starting</span>
+    <span aria-hidden="true">·</span>
+    <span data-perceiver-motion-state>Pointer</span>
+   </span>
+   <span class="perceiver-source">@_sourceBadge</span>
+  </div>
+ </header>
+
+ <section class="perceiver-stage-shell">
+  <div class="perceiver-stage">
+   <div class="perceiver-canvas" tabindex="0" aria-label="Reactive three-tier Endemar movie proof. Move the pointer or enable device tilt to change parallax."></div>
+  </div>
+ </section>
+
+ <footer class="perceiver-footer">
+  <div class="perceiver-controls" aria-label="Playback controls">
+   <button type="button" @onclick="PreviousAsync" aria-label="Previous tier combination">◀ PREV</button>
+   <button type="button" @onclick="PlayAsync">PLAY</button>
+   <button type="button" @onclick="PauseAsync">PAUSE</button>
+   <button type="button" @onclick="RestartAsync">RESTART</button>
+   <button type="button" @onclick="NextAsync" aria-label="Next tier combination">NEXT ▶</button>
+   <button type="button" data-perceiver-motion-button>TILT / MOTION</button>
+  </div>
+
+  <div class="perceiver-speed">
+   <label for="perceiver-speed-select">Speed</label>
+   <select id="perceiver-speed-select" @onchange="SetSpeedAsync" aria-label="Perceiver playback speed">
+    <option value="0.5">0.5x</option>
+    <option value="1" selected>1x</option>
+    <option value="1.5">1.5x</option>
+    <option value="2">2x</option>
+   </select>
+  </div>
+
+  <p class="perceiver-proof-note">1 → 2 → 3 → 1+2 → 1+3 → 2+3 → 1+2+3 → repeat</p>
+ </footer>
+</div>
+
+<style>
+ .perceiver-workspace{box-sizing:border-box;width:100%;height:100%;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:radial-gradient(circle at 18% 14%,rgba(51,122,160,.18),transparent 24rem),radial-gradient(circle at 82% 20%,rgba(201,152,58,.12),transparent 22rem),linear-gradient(180deg,#050b10,#08131a 48%,#04080c);color:#eadfc8;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
+ .perceiver-toolbar{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:9px 12px;border-bottom:1px solid rgba(170,138,69,.34);background:rgba(4,10,14,.86);backdrop-filter:blur(8px)}
+ .perceiver-toolbar-left,.perceiver-toolbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.perceiver-toolbar-right{justify-content:flex-end}
+ .perceiver-toolbar-center{display:grid;justify-items:center;text-align:center;gap:3px}.perceiver-toolbar-center strong{color:#f0d389;font:900 14px/1 system-ui;letter-spacing:.15em}.perceiver-toolbar-center small{color:#8fb6c7;font:800 9px/1 system-ui;letter-spacing:.10em}
+ .perceiver-toolbar-button,.perceiver-controls button,.perceiver-speed select{min-height:40px;border:1px solid #5b6e77;border-radius:8px;background:#0f1a20;color:#ecd9a5;padding:0 12px;font:800 11px/1 system-ui;touch-action:manipulation}
+ .perceiver-toolbar-button:hover,.perceiver-controls button:hover{border-color:#c6a253}.perceiver-controls button:focus-visible,.perceiver-toolbar-button:focus-visible,.perceiver-speed select:focus-visible,.perceiver-canvas:focus-visible{outline:2px solid #e4c369;outline-offset:2px}
+ .perceiver-readout-line{display:flex;gap:6px;align-items:center;color:#9fb4bd;font:700 9px/1 system-ui;text-transform:uppercase;letter-spacing:.08em}.perceiver-readout-line b{color:#f0d389}.perceiver-source{color:#7897a4;font:800 8px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
+ .perceiver-stage-shell{min-width:0;min-height:0;padding:10px}.perceiver-stage{position:relative;width:100%;height:100%;min-height:320px;border:1px solid rgba(174,142,73,.38);border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 38%,rgba(38,95,128,.14),transparent 36%),linear-gradient(180deg,#04090d,#071118 52%,#03070b);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 14px 42px rgba(0,0,0,.34)}
+ .perceiver-canvas{position:absolute;inset:0;overflow:hidden;touch-action:none}
+ .perceiver-footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:9px 12px;border-top:1px solid rgba(170,138,69,.28);background:rgba(4,10,14,.86)}
+ .perceiver-controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.perceiver-speed{display:flex;gap:8px;align-items:center;justify-content:center}.perceiver-speed label{color:#8fb6c7;font:800 10px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
+ .perceiver-proof-note{justify-self:end;margin:0;color:#a9b8bf;font:700 10px/1.3 system-ui;text-align:right}
+ @media(max-width:900px){.perceiver-toolbar{grid-template-columns:1fr;justify-items:center;text-align:center}.perceiver-toolbar-left,.perceiver-toolbar-right{justify-content:center}.perceiver-footer{grid-template-columns:1fr;justify-items:center;text-align:center}.perceiver-controls{justify-content:center}.perceiver-proof-note{justify-self:center;text-align:center}}
+ @media(max-width:560px){.perceiver-stage-shell{padding:6px}.perceiver-stage{min-height:260px}.perceiver-controls button{min-height:42px;padding:0 9px;font-size:10px}.perceiver-toolbar{padding:7px}.perceiver-footer{padding:7px}}
+ @media(prefers-reduced-motion:reduce){.perceiver-proof-note::after{content:" · reduced motion";}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+ [Parameter] public EventCallback OnHome { get; set; }
+
+ static readonly string[] CanonicalFallbackTierImages =
+ [
+  "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png",
+  "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_highlands_rivers_v001.png",
+  "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
+ ];
+
+ ElementReference _root;
+ IJSObjectReference? _module;
+ string[] _tierImages = CanonicalFallbackTierImages;
+ string _sourceBadge = "CANONICAL FALLBACK";
+ string _sourceKind = "fallback";
+
+ protected override async Task OnInitializedAsync()
+ {
+  try
+  {
+   var source = await Session.LoadWorldBuilderSourceAsync();
+   if(source?.State is JsonElement state
+      && state.ValueKind == JsonValueKind.Object
+      && state.TryGetProperty("tierImages", out var tierImagesElement)
+      && tierImagesElement.ValueKind == JsonValueKind.Array)
+   {
+    var found = tierImagesElement.EnumerateArray()
+     .Where(item => item.ValueKind == JsonValueKind.String)
+     .Select(item => item.GetString()?.Trim() ?? "")
+     .Where(value => !string.IsNullOrWhiteSpace(value))
+     .Take(3)
+     .ToArray();
+
+    if(found.Length == 3)
+    {
+     _tierImages = found;
+     _sourceBadge = "DATABASE SOURCE";
+     _sourceKind = "database";
+    }
+    else
+    {
+     _sourceBadge = "DATABASE INCOMPLETE · CANONICAL FALLBACK";
+     _sourceKind = "database-fallback";
+    }
+   }
+   else
+   {
+    _sourceBadge = "DATABASE EMPTY · CANONICAL FALLBACK";
+    _sourceKind = "database-fallback";
+   }
+  }
+  catch
+  {
+   _sourceBadge = "DATABASE UNAVAILABLE · CANONICAL FALLBACK";
+   _sourceKind = "database-fallback";
+  }
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender)return;
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-tier-movie-1");
+  await _module.InvokeVoidAsync("attach", _root, new
+  {
+   tierImages = _tierImages,
+   stepDurationMs = 2000,
+   sceneTitle = "Endemar Three-Tier Parallax Proof"
+  });
+ }
+
+ async Task GoHomeAsync()
+ {
+  if(OnHome.HasDelegate)await OnHome.InvokeAsync();
+ }
+
+ async Task OpenStartMenuAsync()
+ {
+  if(OnStartMenu.HasDelegate)await OnStartMenu.InvokeAsync();
+ }
+
+ async Task PlayAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("play", _root);
+ }
+
+ async Task PauseAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("pause", _root);
+ }
+
+ async Task RestartAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("restart", _root);
+ }
+
+ async Task PreviousAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("previous", _root);
+ }
+
+ async Task NextAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("next", _root);
+ }
+
+ async Task SetSpeedAsync(ChangeEventArgs e)
+ {
+  if(_module is null)return;
+  var raw = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
+  if(double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var speed))
+   await _module.InvokeVoidAsync("setSpeed", _root, speed);
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  if(_module is not null)
+  {
+   try{await _module.InvokeVoidAsync("detach", _root);}catch{}
+   await _module.DisposeAsync();
+  }
+ }
+}
