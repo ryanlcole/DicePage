@@ -99,6 +99,9 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "await RefreshMmoLandAsync();" in session
     assert "var tokenId = UnspentMmoWorldToken?.TokenId ?? \"\";" in session
     assert "ClaimMmoParcelAsync(WorldId, cellIndex, displayName, tokenId)" in session
+    assert "attempt < 2" in session
+    assert 'ex.Message.Contains("binding was refreshed", StringComparison.OrdinalIgnoreCase)' in session
+    assert "HasUnspentMmoWorldToken" in session
     assert "PERMISSIONS" in host
     assert "Mode == \"world\" && Session.CanRequestWorldClaim" not in router
 
