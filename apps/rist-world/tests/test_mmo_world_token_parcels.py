@@ -56,6 +56,9 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert "ensure_parcel_region(world_id, parcel_item, now)" in claim_block
     assert "ensure_parcel_region(world_id, existing_parcel, now)" in claim_block
     assert "region_item" not in claim_block.split("claim_transaction = [", 1)[1].split("claim_committed = False", 1)[0]
+    assert '"claimConflictMessage": first_message' in claim_block
+    assert '"messages": reason_messages[:3]' in claim_block
+    assert '"tokenShape": token_shape' in claim_block
     transaction_block = claim_block.split("claim_transaction = [", 1)[1].split("claim_committed = False", 1)[0]
     assert '"Update": {' not in transaction_block
     assert "spent_token = {" in claim_block
