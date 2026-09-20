@@ -1295,7 +1295,7 @@ function applyTransform(){
   invalidateRegionCamera();
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
-  world.style.transformOrigin=REGION_DEFINER?'50% 58%':'0 0';
+  world.style.transformOrigin='0 0';
   world.style.transform=REGION_DEFINER
     ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
     : `translate3d(${x}px,${y}px,0) scale(${scale})`;
@@ -1847,9 +1847,28 @@ function clearRegionMask(refit=true){
   stage.classList.remove('region-cropped');delete stage.dataset.cropMode;delete stage.dataset.regionContext;
   if(refit&&naturalWidth&&naturalHeight)fitMap();
 }
+let regionClaimOutline=null;
+function syncClaimedRegionOutline(region){
+  if(!REGION_DEFINER)return;
+  if(!region){
+    regionClaimOutline?.remove();regionClaimOutline=null;return;
+  }
+  const bounds=regionClaimBounds(region);if(!bounds)return;
+  if(!regionClaimOutline){
+    regionClaimOutline=document.createElement('div');
+    regionClaimOutline.className='region-claim-outline';
+    regionClaimOutline.setAttribute('aria-hidden','true');
+    world.appendChild(regionClaimOutline);
+  }
+  regionClaimOutline.style.left=`${(bounds.minX/REGION_GRID_COLUMNS)*100}%`;
+  regionClaimOutline.style.top=`${(bounds.minY/REGION_GRID_ROWS)*100}%`;
+  regionClaimOutline.style.width=`${(bounds.width/REGION_GRID_COLUMNS)*100}%`;
+  regionClaimOutline.style.height=`${(bounds.height/REGION_GRID_ROWS)*100}%`;
+  regionClaimOutline.dataset.label=String(region?.name||'YOUR CLAIM').toUpperCase();
+}
 function clearClaimedRegionCrop(refit=true){
   if(!REGION_DEFINER)return;
-  regionClaimedRegion=null;pendingClaimedRegionId='';
+  regionClaimedRegion=null;pendingClaimedRegionId='';syncClaimedRegionOutline(null);
   clearRegionMask(refit);
 }
 function regionMaskSvg(region){
@@ -1937,12 +1956,17 @@ function applyRegionMask(region,cropMode='visibility-mask',saved=false){
 function applyClaimedRegionCrop(region){
   if(!REGION_DEFINER||!region)return;
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
-  stage.classList.remove('region-build-mode','region-tier-previewing','region-selection-only');
+  stage.classList.remove('region-tier-previewing','region-selection-only');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
-  regionCropPreview=false;regionSelectionEnabled=false;updateRegionSelectionOverlay();
+  regionCropPreview=false;regionSelectionEnabled=false;syncClaimedRegionOutline(region);updateRegionSelectionOverlay();
+  const editableExisting=REGION_FLOW==='existing'&&ACCESS_MODE==='edit';
+  regionClaimPhase=editableExisting?'build':'saved';
+  stage.classList.toggle('region-build-mode',editableExisting);
+  if(editableExisting)keyboardMode='Tiles';
   if(!applyRegionMask(region,'visibility-mask',true))requestAnimationFrame(()=>fitMap());
+  if(editableExisting)queueMicrotask(()=>{renderKeyboardTabs();renderKeyboardKeys();if(keyboard.hidden)openKeyboard()});
 }
 function ensureRegionTierPreview(){
   if(!REGION_DEFINER)return null;
@@ -2252,7 +2276,7 @@ async function handleRegionHostMessage(event){
     regionCatalog=Array.isArray(data.regions)?data.regions:[];
     if(pendingClaimedRegionId&&!regionClaimedRegion){
       const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
-      if(claimed){regionClaimPhase='saved';applyClaimedRegionCrop(claimed)}
+      if(claimed)applyClaimedRegionCrop(claimed)
     }
     updateRegionSelectionOverlay();renderKeyboardKeys();return;
   }
@@ -2498,7 +2522,7 @@ function personalPageAssets(type){
 function placePersonalImage(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
-  const placementRole=currentAssetPlacementRole(),point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
+  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?snapRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1);
   const item={
     id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -2607,7 +2631,7 @@ function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30)
 function placeLibraryTile(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.image)return;
-  const placementRole=currentAssetPlacementRole(),point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1),item={
+  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?snapRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
     assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -2621,7 +2645,7 @@ function placeLibraryTile(asset){
   userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${asset.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`)}
-  else announce(`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
+  else announce(REGION_DEFINER?`${asset.name} placed inside ${regionClaimedRegion?.name||'the claimed region'} and snapped to its grid.`:`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
 }
 function libraryTileKey(asset){
   const button=document.createElement('button'),role=currentAssetPlacementRole();button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Tap to place this tile as ${role==='world-map'?'the full Sea Level World Map':'an adjustable layer'}.`);
