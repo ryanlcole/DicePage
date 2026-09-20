@@ -60,7 +60,16 @@ public sealed partial class WorldSession
     {
         if (!HasActiveWorld)
             throw new InvalidOperationException("Choose a world before saving the shared world source.");
-        var privateOwnerAtEntry = await HasOwnedPrivateWorldDescriptorAsync(WorldId, WorldOwnerAccountId);
+
+        // Capture the authenticated world identity before any asynchronous ownership
+        // read. A world/account switch during descriptor verification must fail closed
+        // before validating or writing the supplied map state.
+        var worldId = WorldId;
+        var accountId = WorldOwnerAccountId;
+        var token = auth.SessionToken;
+        var privateOwnerAtEntry = await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId);
+        if (WorldId != worldId || WorldOwnerAccountId != accountId || auth.SessionToken != token)
+            throw new UnauthorizedAccessException("The active world or account changed while saving.");
         if (!HasTrustedWorldBuilderAuthority && !privateOwnerAtEntry)
             throw new UnauthorizedAccessException("World Builder authority is required to save the canonical world map.");
         if (state.ValueKind != JsonValueKind.Object)
@@ -69,14 +78,11 @@ public sealed partial class WorldSession
         if (state.TryGetProperty("worldId", out var stateWorldId))
         {
             var value = stateWorldId.GetString()?.Trim() ?? "";
-            if (value.Length > 0 && !string.Equals(value, WorldId, StringComparison.Ordinal))
+            if (value.Length > 0 && !string.Equals(value, worldId, StringComparison.Ordinal))
                 throw new InvalidOperationException("World map identity does not match the active world.");
         }
 
-        var worldId = WorldId;
-        var accountId = WorldOwnerAccountId;
-        var token = auth.SessionToken;
-        var privateOwner = await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId);
+        var privateOwner = privateOwnerAtEntry && await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId);
         if (WorldId != worldId || WorldOwnerAccountId != accountId || auth.SessionToken != token)
             throw new UnauthorizedAccessException("The active world or account changed while saving.");
         if (privateOwner)
