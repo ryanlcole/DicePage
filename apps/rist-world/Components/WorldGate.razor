@@ -6,17 +6,9 @@
  <section class="world-gate-backdrop" role="presentation" @onclick="CloseAsync">
   <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
    <header>
-    <span><small>SHAELVIEN · RIST</small><strong>CHOOSE A WORLD</strong></span>
-    @if(!RequireSelection){<button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>}
+    <span><small>RIST SANDBOX</small><strong>CHOOSE A SANDBOX WORLD</strong></span>
+    @if(!RequireSelection){<button type="button" @onclick="CloseAsync" aria-label="Close sandbox world chooser">×</button>}
    </header>
-
-   @if(Session.IsLoggedIn)
-   {
-    <section class="world-gate-token" aria-label="Shaelvien Token property space">
-     <span><small>SHAELVIEN MMO · PROPERTY SPACE</small><strong>@Session.MmoWorldTokenLabel</strong></span>
-     <p>Use this Shaelvien Token in the Worldbuilder to claim one 2048×2048 property space with 100 layers, expanding outward from Endemar.</p>
-    </section>
-   }
 
    <section class="world-gate-create">
     <small class="world-gate-create-kind">PRIVATE / SANDBOX WORLD</small>
@@ -26,7 +18,7 @@
     <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName)||!CanCreateWorld)" @onclick="CreateAsync">@(CanCreateWorld?"CREATE NEW WORLD":"ADDITIONAL WORLD SLOT REQUIRED")</button>
    </section>
 
-   <div class="world-gate-divider"><span>CURRENT WORLDS</span></div>
+   <div class="world-gate-divider"><span>SANDBOX WORLDS</span></div>
    <section class="world-gate-worlds" aria-live="polite">
     @if(_loading)
     {
@@ -34,7 +26,7 @@
     }
     else if(_worlds.Count==0)
     {
-     <p class="world-gate-note">No saved worlds yet. Create a new world or import a RIST world file.</p>
+     <p class="world-gate-note">No sandbox worlds yet. Create a new sandbox world or import a RIST world file.</p>
     }
     else
     {
@@ -165,7 +157,7 @@
   {
    var directory=await Session.LoadWorldDirectoryAsync();
    _worlds.Clear();
-   _worlds.AddRange(directory.Worlds);
+   _worlds.AddRange(directory.Worlds.Where(WorldSession.IsSandboxWorldReference));
   }
   catch(Exception ex){_status="World list could not be loaded: "+ex.Message;}
   finally{_loading=false;}
