@@ -89,7 +89,9 @@ def test_perceiver_transparency_is_a_derived_representation_not_a_canonical_asse
     assert "build_geonaph_perceiver_representations" in prepare
     assert "assets' / 'perceiver" in prepare
     assert "source-alpha-preserved" in prepare
-    assert "delta-alpha" in prepare
+    assert "adaptive-delta-alpha" in prepare
+    assert "edge-alpha-restored" in prepare
+    assert "histogram_percentile" in prepare
     assert "ImageChops.difference" in prepare
     assert "ImageChops.multiply" in prepare
     assert "transparentRatio" in prepare
