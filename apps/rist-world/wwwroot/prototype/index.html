@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20260920-desktop-input-1" />
+  <link rel="stylesheet" href="./prototype.css?v=20260920-full-world-placement-1" />
 </head>
 <body>
 <main class="shell" aria-label="Shaelvien World Builder">
@@ -46,7 +46,8 @@
     <section id="imageUploadPanel" class="image-upload-panel" role="dialog" aria-modal="true" aria-label="Add image" hidden data-ui>
       <div class="image-upload-card">
         <header><strong>ADD IMAGE</strong><button id="imageUploadClose" type="button" aria-label="Close image upload">×</button></header>
-        <div class="image-position-grid">
+        <label class="image-placement-role"><span>PLACEMENT</span><select id="imagePlacementRole" aria-describedby="imagePlacementHint"><option value="world-map">World Map / Sea Level · 100% × 100%</option><option value="layer">Adjustable Layer</option></select><small id="imagePlacementHint">Choose whether this image becomes the full world map or an adjustable layer above it.</small></label>
+        <div id="imagePositionGrid" class="image-position-grid">
           <label><span>X</span><input id="imageX" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label>
           <label><span>Y</span><input id="imageY" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label>
           <label><span>Tier</span><input id="imageTier" type="number" min="0" max="2" step="1" inputmode="numeric" /></label>
@@ -88,6 +89,6 @@
   </section>
 </main>
 <script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
-<script src="./prototype.js?v=20260920-sunken-tundra-context-1"></script>
+<script src="./prototype.js?v=20260920-full-world-placement-1"></script>
 </body>
 </html>
