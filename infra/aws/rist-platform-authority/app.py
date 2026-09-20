@@ -10,7 +10,6 @@ from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from boto3.dynamodb.types import TypeSerializer
 from botocore.exceptions import ClientError
 
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
@@ -94,8 +93,6 @@ COMMERCE_PLANS = {
         ],
     },
 }
-_serializer = TypeSerializer()
-
 
 def utc_stamp():
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -328,10 +325,6 @@ def parcel_acl_key(world_id, parcel_id, user_id):
         "pk": world_partition(world_id),
         "sk": f"PARCELACL#{parcel_id}#USER#{user_id}",
     }
-
-
-def _ddb_map(value):
-    return {key: _serializer.serialize(item) for key, item in value.items()}
 
 
 def public_world_token(item):
@@ -1229,7 +1222,7 @@ def handler(event, context):
             {
                 "Update": {
                     "TableName": users.name,
-                    "Key": _ddb_map(key),
+                    "Key": key,
                     "UpdateExpression": (
                         "SET redeemedAtUtc = :stamp, redeemedUserId = :userId, "
                         "redeemedGrantId = :grantId"
@@ -1239,22 +1232,20 @@ def handler(event, context):
                         "AND (attribute_not_exists(revokedAtUtc) OR revokedAtUtc = :empty) "
                         "AND (expiresAtEpoch = :zero OR expiresAtEpoch > :now)"
                     ),
-                    "ExpressionAttributeValues": _ddb_map(
-                        {
-                            ":stamp": utc_stamp(),
-                            ":userId": user_id,
-                            ":grantId": grant["grantId"],
-                            ":empty": "",
-                            ":zero": 0,
-                            ":now": now,
-                        }
-                    ),
+                    "ExpressionAttributeValues": {
+                        ":stamp": utc_stamp(),
+                        ":userId": user_id,
+                        ":grantId": grant["grantId"],
+                        ":empty": "",
+                        ":zero": 0,
+                        ":now": now,
+                    },
                 }
             },
             {
                 "Put": {
                     "TableName": users.name,
-                    "Item": _ddb_map(dynamo_safe(grant)),
+                    "Item": dynamo_safe(grant),
                     "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
                 }
             },
@@ -1263,7 +1254,7 @@ def handler(event, context):
             {
                 "Put": {
                     "TableName": users.name,
-                    "Item": _ddb_map(dynamo_safe(token)),
+                    "Item": dynamo_safe(token),
                     "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
                 }
             }
@@ -1993,29 +1984,31 @@ def handler(event, context):
             "bindingHash": binding_hash,
             "spentAtUtc": stamp,
         }
-        spent_token_ddb = _ddb_map(dynamo_safe(spent_token))
-        parcel_item_ddb = _ddb_map(dynamo_safe(parcel_item))
-        if "S" not in spent_token_ddb.get("pk", {}) or "S" not in spent_token_ddb.get("sk", {}):
-            return response(500, {"error": "Shaelvien Token storage key could not be normalized to string authority."})
-        if "S" not in parcel_item_ddb.get("pk", {}) or "S" not in parcel_item_ddb.get("sk", {}):
-            return response(500, {"error": "Shaelvien property storage key could not be normalized to string authority."})
+        # boto3.resource("dynamodb") registers its document-type serializer on
+        # meta.client. Passing AttributeValue envelopes here (for example
+        # {"pk": {"S": "USER#..."}}) is therefore serialized a second time as a
+        # DynamoDB Map and produces "key pk expected: S actual: M".
+        spent_token_native = dynamo_safe(spent_token)
+        parcel_item_native = dynamo_safe(parcel_item)
+        if not isinstance(spent_token_native.get("pk"), str) or not isinstance(spent_token_native.get("sk"), str):
+            return response(500, {"error": "Shaelvien Token storage key is not canonical string authority."})
+        if not isinstance(parcel_item_native.get("pk"), str) or not isinstance(parcel_item_native.get("sk"), str):
+            return response(500, {"error": "Shaelvien property storage key is not canonical string authority."})
 
         claim_transaction = [
                     {
                         "Put": {
                             "TableName": users.name,
-                            "Item": spent_token_ddb,
+                            "Item": spent_token_native,
                             "ConditionExpression": "#status = :unspent",
                             "ExpressionAttributeNames": {"#status": "status"},
-                            "ExpressionAttributeValues": _ddb_map(
-                                {":unspent": "unspent"}
-                            ),
+                            "ExpressionAttributeValues": {":unspent": "unspent"},
                         }
                     },
                     {
                         "Put": {
                             "TableName": world.name,
-                            "Item": parcel_item_ddb,
+                            "Item": parcel_item_native,
                             "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
                         }
                     },
