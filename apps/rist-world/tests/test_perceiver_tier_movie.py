@@ -72,7 +72,7 @@ def test_perceiver_has_playback_and_accessibility_controls():
     workspace = read("Components/PerceiverWorkspace.razor")
     player = read("wwwroot/perceiver-player.js")
 
-    for label in ["PLAY", "PAUSE", "RESTART", "NEXT ▶", "◀ PREV", "TILT / MOTION", "FIT"]:
+    for label in ["PLAY", "PAUSE", "RESTART", "NEXT ▶", "◀ PREV", "TILT / MOTION", "FIT", "FULL SCREEN"]:
         assert label in workspace
 
     assert "prefers-reduced-motion: reduce" in player
@@ -162,3 +162,24 @@ def test_perceiver_phone_video_spectral_converter_is_local_and_reactive():
     assert "state.layers.forEach" in player
     assert "DEPTH_FACTORS[index]" in player
     assert "deviceorientation" in player
+
+
+def test_perceiver_centers_spectral_video_and_supports_fullscreen_with_ios_fallback():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    assert "data-perceiver-fullscreen-button" in workspace
+    assert "perceiver-pseudo-fullscreen" in workspace
+    assert "100dvh" in workspace
+
+    assert "objectFit: 'contain'" in player
+    assert "objectPosition: '50% 50%'" in player
+    assert "width: '100%'" in player
+    assert "height: '100%'" in player
+
+    assert "requestFullscreen" in player
+    assert "webkitRequestFullscreen" in player
+    assert "perceiver-pseudo-fullscreen" in player
+    assert "EXIT FULL SCREEN" in player
+    assert "fullscreenchange" in player
+    assert "webkitfullscreenchange" in player
