@@ -328,6 +328,7 @@ def build_geonaph_perceiver_representations():
     output_root.mkdir(parents=True, exist_ok=True)
 
     prepared = []
+    derived_sizes = []
     source_urls = []
     for filename in files:
         source_url = asset_base + source_prefix + filename
@@ -343,15 +344,14 @@ def build_geonaph_perceiver_representations():
             source = opened.convert('RGBA')
             source_width, source_height = source.size
             factor = min(2.0, 4096 / max(source_width, source_height))
-            if factor > 1.0:
-                source = source.resize(
-                    (
-                        max(1, round(source_width * factor)),
-                        max(1, round(source_height * factor)),
-                    ),
-                    Image.Resampling.LANCZOS,
-                )
+            target_size = (
+                max(1, round(source_width * factor)),
+                max(1, round(source_height * factor)),
+            )
+            # Compute alpha at canonical source resolution. The expensive connected-
+            # background and structural-delta work does not need four times the pixels.
             prepared.append(source.copy())
+            derived_sizes.append(target_size)
 
     def alpha_transparent_ratio(image):
         alpha_histogram = image.getchannel('A').histogram()
@@ -431,6 +431,14 @@ def build_geonaph_perceiver_representations():
                     layer = current.copy()
                     layer.putalpha(mask)
                     method = f'adaptive-delta-alpha-{low}-{high}'
+
+        target_size = derived_sizes[index]
+        if layer.size != target_size:
+            rgb = layer.convert('RGB').resize(target_size, Image.Resampling.LANCZOS)
+            alpha = layer.getchannel('A').resize(target_size, Image.Resampling.LANCZOS)
+            resized = rgb.convert('RGBA')
+            resized.putalpha(alpha)
+            layer = resized
 
         output_name = output_names[index]
         output_path = output_root / output_name
