@@ -40,6 +40,10 @@
  {
   <FeedbackWorkspace />
  }
+ else if (Mode == "roleplay" && Session.IsGeonaphWorld)
+ {
+  <ShaelvienMmoFront />
+ }
  else
  {
   <WorkspaceSurface Mode="@Mode" OnHome="OnHome" OnStartMenu="OnStartMenu" />
