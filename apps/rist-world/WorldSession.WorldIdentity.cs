@@ -53,6 +53,7 @@ public sealed partial class WorldSession
         if (displayName.Length == 0) throw new InvalidOperationException("A World Name is required.");
         _worldId = worldId;
         _worldDisplayName = displayName;
+        _activeWorldRelationship = "";
         MapName = displayName;
         _persistedTruth.Clear();
         Notify();
