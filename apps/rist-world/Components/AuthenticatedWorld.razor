@@ -90,8 +90,8 @@ else if (_canEnter)
      </div>
      <p class="rist-policy-status" aria-live="polite">@(_policiesRead ? "✓ Policies complete. You may now agree." : "Please continue reading to the end.")</p>
     }
-    <label class="rist-terms-agree" aria-disabled="@(!_policiesRead)">
-     <input type="checkbox" @bind="_termsChecked" disabled="@(!_policiesRead)" required />
+    <label class="rist-terms-agree">
+     <input type="checkbox" checked="@_termsChecked" @onchange="OnTermsChangedAsync" required />
      <span>I have read and agree to the Terms of Service and Privacy Policy.</span>
     </label>
     @if (!string.IsNullOrWhiteSpace(_termsError))
@@ -334,18 +334,48 @@ else
   return html.Trim();
  }
 
- async Task OnPolicyScrollAsync()
+ async Task RefreshPolicyReadAsync()
  {
   if(_policiesRead||!_policyLoaded)return;
   try
   {
    if(await JS.InvokeAsync<bool>("ristLegalConsent.atEnd",_policyScroll))
-   {
     _policiesRead=true;
-    await InvokeAsync(StateHasChanged);
-   }
   }
   catch{}
+ }
+
+ async Task OnPolicyScrollAsync()
+ {
+  if(_policiesRead||!_policyLoaded)return;
+  await RefreshPolicyReadAsync();
+  if(_policiesRead)
+   await InvokeAsync(StateHasChanged);
+ }
+
+ async Task OnTermsChangedAsync(ChangeEventArgs e)
+ {
+  var requested=e.Value is bool b&&b;
+  if(!requested)
+  {
+   _termsChecked=false;
+   _termsError="";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  await RefreshPolicyReadAsync();
+  if(!_policiesRead)
+  {
+   _termsChecked=false;
+   _termsError="Please continue to END OF POLICIES, then check this box.";
+  }
+  else
+  {
+   _termsChecked=true;
+   _termsError="";
+  }
+  await InvokeAsync(StateHasChanged);
  }
 
  async Task AcceptTermsAsync()
