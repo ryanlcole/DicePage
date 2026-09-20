@@ -353,6 +353,21 @@ def build_geonaph_perceiver_representations():
                 )
             prepared.append(source.copy())
 
+    def alpha_transparent_ratio(image):
+        alpha_histogram = image.getchannel('A').histogram()
+        total = max(1, image.width * image.height)
+        return (total - alpha_histogram[255]) / total
+
+    def histogram_percentile(histogram, percentile):
+        total = max(1, sum(histogram))
+        target = total * percentile
+        running = 0
+        for value, count in enumerate(histogram):
+            running += count
+            if running >= target:
+                return value
+        return len(histogram) - 1
+
     manifest = []
     previous = None
     for index, current in enumerate(prepared):
@@ -370,39 +385,52 @@ def build_geonaph_perceiver_representations():
                 layer = current.copy()
                 method = 'source-alpha-preserved'
             else:
-                # Canonical tier maps are full-frame representations. Perceiver needs
-                # only the visual delta from the tier directly beneath this one.
-                under = previous
-                if under is None:
-                    under = prepared[index - 1]
-                if under.size != current.size:
-                    under = under.resize(current.size, Image.Resampling.LANCZOS)
+                # First try removing only background connected to the outer edge.
+                # This is ideal for authored overlay art that lost its alpha channel.
+                edge_layer, edge_changed = _remove_edge_background(current)
+                edge_ratio = alpha_transparent_ratio(edge_layer)
 
-                delta = ImageChops.difference(
-                    current.convert('RGB'),
-                    under.convert('RGB')
-                )
-                dr, dg, db = delta.split()
-                mask = ImageChops.lighter(ImageChops.lighter(dr, dg), db)
+                if edge_changed and 0.12 <= edge_ratio <= 0.94:
+                    layer = edge_layer
+                    method = 'edge-alpha-restored'
+                else:
+                    # Full-frame cumulative tier renders can differ slightly across
+                    # almost every pixel. Build an adaptive structural delta instead
+                    # of treating every color shift as foreground.
+                    under = previous
+                    if under is None:
+                        under = prepared[index - 1]
+                    if under.size != current.size:
+                        under = under.resize(current.size, Image.Resampling.LANCZOS)
 
-                # Suppress tiny resampling/compression changes, feather real changes,
-                # and expand by one pixel so moving layers do not show cut seams.
-                low = 10
-                high = 42
-                mask = mask.point(
-                    lambda value: (
-                        0 if value <= low
-                        else 255 if value >= high
-                        else round((value - low) * 255 / (high - low))
+                    delta = ImageChops.difference(
+                        current.convert('RGB'),
+                        under.convert('RGB')
                     )
-                )
-                mask = mask.filter(ImageFilter.MaxFilter(3))
-                mask = mask.filter(ImageFilter.GaussianBlur(radius=0.6))
-                mask = ImageChops.multiply(mask, current.getchannel('A'))
+                    dr, dg, db = delta.split()
+                    mask = ImageChops.lighter(ImageChops.lighter(dr, dg), db)
+                    mask = mask.filter(ImageFilter.GaussianBlur(radius=1.15))
 
-                layer = current.copy()
-                layer.putalpha(mask)
-                method = 'delta-alpha'
+                    mask_histogram = mask.histogram()
+                    low = histogram_percentile(mask_histogram, 0.62)
+                    high = histogram_percentile(mask_histogram, 0.91)
+                    low = max(8, min(low, 210))
+                    high = max(low + 12, min(high, 250))
+
+                    mask = mask.point(
+                        lambda value: (
+                            0 if value <= low
+                            else 255 if value >= high
+                            else round((value - low) * 255 / (high - low))
+                        )
+                    )
+                    mask = mask.filter(ImageFilter.MaxFilter(3))
+                    mask = mask.filter(ImageFilter.GaussianBlur(radius=0.75))
+                    mask = ImageChops.multiply(mask, current.getchannel('A'))
+
+                    layer = current.copy()
+                    layer.putalpha(mask)
+                    method = f'adaptive-delta-alpha-{low}-{high}'
 
         output_name = output_names[index]
         output_path = output_root / output_name
