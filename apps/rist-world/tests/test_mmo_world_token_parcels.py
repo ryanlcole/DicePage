@@ -48,6 +48,9 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert "latest_token = world_token_for_parcel(user_id, parcel_id)" in backend
     assert "def normalize_unspent_world_token(user_id, token):" in backend
     assert "token = normalize_unspent_world_token(user_id, token)" in backend
+    assert '"ConditionExpression": "#status = :unspent AND tokenId = :tokenId"' in backend
+    assert '":tokenId": str(token.get("tokenId") or "")' in backend
+    assert '"#status = :unspent AND holderUserId = :userId"' not in backend
     assert "existing_region = world.get_item(" in backend
     assert '"ownerUserId = :regionOwner OR attribute_not_exists(ownerUserId)"' in backend
 
