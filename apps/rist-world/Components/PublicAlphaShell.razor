@@ -16,10 +16,10 @@
    <span class="launcher-koi-track launcher-koi-far"><i class="launcher-koi-body"></i></span>
    <span class="launcher-koi-track launcher-koi-near"><i class="launcher-koi-body"></i></span>
   </div>
-  <section class="launcher-world-selectbar" aria-label="Shaelvien MMO world navigation">
-   <label for="landing-world-select">MMO WORLD</label>
-   <select id="landing-world-select" value="@LandingWorldValue" @onchange="SelectLandingWorldAsync" disabled="@_worldSelectionBusy" aria-label="Navigate between Shaelvien MMO worlds">
-    <option value="">SELECT MMO WORLD</option>
+  <section class="launcher-world-selectbar" aria-label="@LandingWorldSelectorAriaLabel">
+   <label for="landing-world-select">@LandingWorldSelectorLabel</label>
+   <select id="landing-world-select" value="@LandingWorldValue" @onchange="SelectLandingWorldAsync" disabled="@_worldSelectionBusy" aria-label="@LandingWorldSelectorAriaLabel">
+    <option value="">@LandingWorldSelectorPlaceholder</option>
     @foreach(var world in _landingWorlds)
     {
      <option value="@world.WorldId">@world.DisplayName</option>
@@ -252,6 +252,7 @@ else
  bool _tickerOpen;
  bool _cardIndexOpen;
  readonly List<AccountWorldReference> _landingWorlds=[];
+ string _landingEnvironment=WorldSession.MmoWorldEnvironment;
  bool _worldDirectoryLoaded;
  bool _worldSelectionBusy;
  string _tickerEditor="";
@@ -273,6 +274,10 @@ else
  bool CanOpenWorldBuilder=>CanBuildWorld||(WorldReady&&Session.IsGeonaphWorld);
  bool WorkspaceReferenceOnly=>_workspaceOpen&&!CanBuildWorld&&Session.IsGeonaphWorld&&_workspaceMode=="campaign";
  string LandingWorldValue=>WorldReady&&_landingWorlds.Any(world=>string.Equals(world.WorldId,Session.WorldId,StringComparison.Ordinal))?Session.WorldId:"";
+ bool LandingInSandbox=>string.Equals(_landingEnvironment,WorldSession.SandboxWorldEnvironment,StringComparison.OrdinalIgnoreCase);
+ string LandingWorldSelectorLabel=>LandingInSandbox?"SANDBOX WORLD":"MMO WORLD";
+ string LandingWorldSelectorPlaceholder=>LandingInSandbox?"SELECT SANDBOX WORLD":"SELECT MMO WORLD";
+ string LandingWorldSelectorAriaLabel=>LandingInSandbox?"Navigate between your sandbox worlds":"Navigate between Shaelvien MMO worlds";
  string TickerStorageKey=>WorldReady?$"rist.worldbuilder.ticker.buttons.v1.{Session.WorldId}":"";
  string DefaultTickerText=>WorldReady?$"{Session.WorldDisplayName.Trim().ToUpperInvariant()}\nBUILD\nUPLOAD\nWEATHER\nMETADATA":"";
  string MotionStatusText => _motionStatus switch
@@ -407,8 +412,16 @@ else
   try
   {
    var directory=await Session.LoadWorldDirectoryAsync();
+   var active=directory.Worlds.FirstOrDefault(world=>string.Equals(world.WorldId,Session.WorldId,StringComparison.Ordinal));
+   _landingEnvironment=active is not null&&WorldSession.IsSandboxWorldReference(active)
+    ?WorldSession.SandboxWorldEnvironment
+    :WorldSession.MmoWorldEnvironment;
+
    _landingWorlds.Clear();
-   _landingWorlds.AddRange(directory.Worlds.Where(WorldSession.IsMmoWorldReference));
+   _landingWorlds.AddRange(
+    LandingInSandbox
+     ?directory.Worlds.Where(WorldSession.IsSandboxWorldReference)
+     :directory.Worlds.Where(WorldSession.IsMmoWorldReference));
    _worldDirectoryLoaded=true;
   }
   catch{}
