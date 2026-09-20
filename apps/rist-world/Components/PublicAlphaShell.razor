@@ -16,20 +16,6 @@
    <span class="launcher-koi-track launcher-koi-far"><i class="launcher-koi-body"></i></span>
    <span class="launcher-koi-track launcher-koi-near"><i class="launcher-koi-body"></i></span>
   </div>
-  <section class="launcher-world-selectbar" aria-label="Choose Shaelvien or one of your sandbox worlds">
-   <label for="landing-world-select">WORLD</label>
-   <select id="landing-world-select" value="@LandingWorldValue" @onchange="SelectLandingWorldAsync" disabled="@_worldSelectionBusy" aria-label="Choose Shaelvien or one of your sandbox worlds">
-    <option value="">SELECT WORLD</option>
-    @if(_shaelvienWorld is not null)
-    {
-     <option value="shaelvien">SHAELVIEN</option>
-    }
-    @foreach(var world in _sandboxWorlds)
-    {
-     <option value="@($"sandbox:{world.WorldId}")">@world.DisplayName</option>
-    }
-   </select>
-  </section>
   @if(Session.IsGeonaphWorld)
   {
    <section class="launcher-world-selectbar launcher-mmo-selectbar" aria-label="Navigate between MMO worlds inside Shaelvien">
@@ -39,6 +25,19 @@
      @foreach(var parcel in AccessibleMmoWorlds)
      {
       <option value="@parcel.ParcelId">@parcel.DisplayName</option>
+     }
+    </select>
+   </section>
+  }
+  else
+  {
+   <section class="launcher-world-selectbar" aria-label="Navigate between your sandbox worlds">
+    <label for="landing-sandbox-world-select">SANDBOX WORLD</label>
+    <select id="landing-sandbox-world-select" value="@LandingSandboxWorldValue" @onchange="SelectLandingSandboxWorldAsync" disabled="@_worldSelectionBusy" aria-label="Navigate between your sandbox worlds">
+     <option value="">SELECT SANDBOX WORLD</option>
+     @foreach(var world in _sandboxWorlds)
+     {
+      <option value="@world.WorldId">@world.DisplayName</option>
      }
     </select>
    </section>
@@ -270,7 +269,6 @@ else
  bool _tickerOpen;
  bool _cardIndexOpen;
  readonly List<AccountWorldReference> _sandboxWorlds=[];
- AccountWorldReference? _shaelvienWorld;
  bool _worldDirectoryLoaded;
  bool _worldSelectionBusy;
  string _tickerEditor="";
@@ -291,11 +289,9 @@ else
  bool CanBuildWorld=>WorldReady&&Session.HasTrustedWorldBuilderAuthority;
  bool CanOpenWorldBuilder=>CanBuildWorld||(WorldReady&&Session.IsGeonaphWorld);
  bool WorkspaceReferenceOnly=>_workspaceOpen&&!CanBuildWorld&&Session.IsGeonaphWorld&&_workspaceMode=="campaign";
- string LandingWorldValue=>Session.IsGeonaphWorld
-  ?"shaelvien"
-  :WorldReady&&_sandboxWorlds.Any(world=>string.Equals(world.WorldId,Session.WorldId,StringComparison.Ordinal))
-   ?$"sandbox:{Session.WorldId}"
-   :"";
+ string LandingSandboxWorldValue=>!Session.IsGeonaphWorld&&WorldReady&&_sandboxWorlds.Any(world=>string.Equals(world.WorldId,Session.WorldId,StringComparison.Ordinal))
+  ?Session.WorldId
+  :"";
  IReadOnlyList<AwsAuthorityClient.MmoParcel> AccessibleMmoWorlds=>Session.MmoParcels
   .Where(Session.CanAccessMmoParcel)
   .OrderBy(parcel=>parcel.DisplayName,StringComparer.OrdinalIgnoreCase)
@@ -444,7 +440,6 @@ else
    _sandboxWorlds.AddRange(directory.Worlds
     .Where(WorldSession.IsSandboxWorldReference)
     .OrderBy(world=>world.DisplayName,StringComparer.OrdinalIgnoreCase));
-   _shaelvienWorld=directory.Worlds.FirstOrDefault(WorldSession.IsMmoWorldReference);
 
    if(Session.IsGeonaphWorld)
    {
@@ -458,33 +453,11 @@ else
   await InvokeAsync(StateHasChanged);
  }
 
- async Task SelectLandingWorldAsync(ChangeEventArgs e)
+ async Task SelectLandingSandboxWorldAsync(ChangeEventArgs e)
  {
-  var value=e.Value?.ToString()??"";
-  if(string.IsNullOrWhiteSpace(value))return;
-
-  if(string.Equals(value,"shaelvien",StringComparison.Ordinal))
-  {
-   if(_shaelvienWorld is null)return;
-   _worldSelectionBusy=true;
-   try
-   {
-    if(!Session.IsGeonaphWorld)
-     await Session.LoadWorldAsync(_shaelvienWorld);
-    Session.SetActiveRegion("");
-    await Session.RefreshTrustedWorldAuthorityAsync();
-    await Session.RefreshMmoLandAsync();
-    await Session.LoadRegionsAsync();
-   }
-   finally{_worldSelectionBusy=false;}
-   await InvokeAsync(StateHasChanged);
-   return;
-  }
-
-  const string sandboxPrefix="sandbox:";
-  if(!value.StartsWith(sandboxPrefix,StringComparison.Ordinal))return;
-  var worldId=value[sandboxPrefix.Length..];
-  if(string.Equals(worldId,Session.WorldId,StringComparison.Ordinal))return;
+  if(Session.IsGeonaphWorld)return;
+  var worldId=e.Value?.ToString()??"";
+  if(string.IsNullOrWhiteSpace(worldId)||string.Equals(worldId,Session.WorldId,StringComparison.Ordinal))return;
   var world=_sandboxWorlds.FirstOrDefault(x=>string.Equals(x.WorldId,worldId,StringComparison.Ordinal));
   if(world is null)return;
 
@@ -494,6 +467,7 @@ else
    Session.SetActiveRegion("");
    await Session.LoadWorldAsync(world);
    await Session.RefreshTrustedWorldAuthorityAsync();
+   await RefreshLandingWorldsAsync();
   }
   finally{_worldSelectionBusy=false;}
   await InvokeAsync(StateHasChanged);
