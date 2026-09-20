@@ -41,7 +41,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 if(READ_ONLY){
   stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
   persistentSave.disabled=true;persistentSave.title='Read-only world reference';
@@ -101,7 +101,7 @@ const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Ar
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
 const WORLD_TERRAIN_FOLDERS=Object.freeze(['Vent Fields','Canyons','Lakes','Rivers','Cliffs','Volcano','Ice','Snow','Mountains','Hills','Desert','Swamp','Jungle','Forest','Plains','Beach','Coast','Ocean']);
-let tileCatalog=[],tileLibraryFolder=null,tileLibraryPage=0,tileLibraryLoading=false,tileLibraryError='';
+let tileCatalog=[],tileLibraryFolder=null,tileLibraryPage=0,tileLibraryLoading=false,tileLibraryError='',assetPlacementRole='auto';
 const SPRITE_LIBRARY_URL='../assets/sprites/catalog.json?v=20260918-prototype-sprites-1';
 const SPRITE_LIBRARY_PAGE_SIZE=12;
 let spriteCatalog=[],spriteLibraryFolder=null,spriteLibraryPage=0,spriteLibraryLoading=false,spriteLibraryError='';
@@ -209,7 +209,7 @@ function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
   return restored?collisionAt(clientX,clientY):(existing??collisionAt(clientX,clientY));
 }
 function userCollision(item,clientX,clientY){
-  if(!item?.node||item.zoomPassed||item.kind==='label')return null;
+  if(!item?.node||item.zoomPassed||item.kind==='label'||isWorldMapItem(item))return null;
   const visible=(viewerTier==='all'||item.tier===tierByKey(viewerTier).index)&&(!REGION_DEFINER||!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer));
   if(!visible||!(Number(item.opacity)>0))return null;
   const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
@@ -264,7 +264,7 @@ function worldBuilderTierImages(){
 function worldBuilderSourceState(layers=userLayers){
   return{
     format:'RIST_WORLDBUILDER_PROTOTYPE',
-    version:3,
+    version:4,
     worldId:WORLD_ID,
     worldSeed:WORLD_SEED,
     savedAt:new Date().toISOString(),
@@ -411,6 +411,7 @@ function serializableUserLayer(item){
   }
   return{
     id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
@@ -495,6 +496,7 @@ async function attachRestoredLayer(raw,options={}){
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
     id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
@@ -505,7 +507,7 @@ async function attachRestoredLayer(raw,options={}){
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
     opacity:clamp(Number(raw.opacity)||1,.01,1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
+  const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   node.addEventListener('load',()=>{refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
   userLayers.push(item);world.appendChild(node);refreshUserImage(item);
@@ -651,6 +653,11 @@ async function renderRegionEnhancement(){
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     for(const item of overlays){
       const bitmap=item.regionBitmap;if(!bitmap||!regionRenderStillValid(token,revision))continue;
+      if(isWorldMapItem(item)){
+        ctx.save();ctx.globalAlpha=clamp(Number(item.renderOpacity??item.opacity)||0,0,1);ctx.drawImage(bitmap,x,y,naturalWidth*scale,naturalHeight*scale);
+        if(item===selectedImage){ctx.globalAlpha=1;ctx.lineWidth=Math.max(1,2/dpr);ctx.strokeStyle='rgba(240,204,105,.95)';ctx.strokeRect(x,y,naturalWidth*scale,naturalHeight*scale)}
+        ctx.restore();continue;
+      }
       const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
       const centerX=x+((item.x*naturalWidth+px)*scale),centerY=y+((item.y*naturalHeight+py)*scale);
       const baseW=naturalWidth*.12,baseH=baseW*(bitmap.height/Math.max(bitmap.width,1));
@@ -763,9 +770,10 @@ function updateLayerOrder(){
   userLayers.forEach((item,index)=>{
     item.stackOrder=index;
     const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
-    item.node.style.zIndex=String(item.committed?committedZ:1000+(index/100));
+    item.node.style.zIndex=String(isWorldMapItem(item)?tierStackBase(0)+1:(item.committed?committedZ:1000+(index/100)));
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
+    item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
     item.node.dataset.placementPreview=item.committed?'false':'true';
   });
 }
@@ -793,6 +801,7 @@ function setViewerTier(key){
 function adjustSelectedSize(direction){
   if(READ_ONLY)return;
   if(!selectedImage)return;
+  if(isWorldMapItem(selectedImage)){announce('World Map always fills 100% by 100% of the world.');return}
   const current=Math.max(.2,Number(selectedImage.size)||1);
   const step=current<2?.1:current<6?.25:.5;
   selectedImage.size=clamp(current+(Math.sign(direction||1)*step),.2,20);
@@ -803,6 +812,7 @@ function moveSelectedTier(delta){
   if(READ_ONLY)return;
   if(REGION_DEFINER){announce('Choose the working tier from the Tiers keyboard. Regional assets stay on that tier.');return}
   if(!selectedImage)return;
+  if(isWorldMapItem(selectedImage)){announce('World Map is locked to Sea Level.');return}
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
@@ -811,6 +821,7 @@ function moveSelectedTier(delta){
 function moveSelectedLayer(delta){
   if(READ_ONLY)return;
   if(!selectedImage)return;
+  if(isWorldMapItem(selectedImage)){announce('World Map is the Sea Level base layer.');return}
   if(REGION_DEFINER){
     selectedImage.tier=currentRegionTierIndex();
     selectedImage.layer=clamp(selectedImage.layer+delta,0,9);
@@ -821,6 +832,37 @@ function moveSelectedLayer(delta){
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
   announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
+}
+function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fullWorld===true}
+function storedPlacementRole(raw){return raw?.placementRole==='world-map'||raw?.fullWorld===true?'world-map':'layer'}
+function customWorldMap(){return userLayers.find(isWorldMapItem)||null}
+function hasSeaLevelRepresentation(){return !!customWorldMap()||layerReady.surface||!!String(surface?.currentSrc||surface?.src||'').trim()||BASE_WORLD_ASSETS.length>0}
+function defaultNewPlacementRole(){return !REGION_DEFINER&&!hasSeaLevelRepresentation()?'world-map':'layer'}
+function requestedPlacementRole(value){return !REGION_DEFINER&&String(value||'').toLowerCase()==='world-map'?'world-map':'layer'}
+function currentAssetPlacementRole(){return assetPlacementRole==='auto'?defaultNewPlacementRole():requestedPlacementRole(assetPlacementRole)}
+function removeCustomWorldMap(except=null){
+  for(let index=userLayers.length-1;index>=0;index--){
+    const item=userLayers[index];if(item===except||!isWorldMapItem(item))continue;
+    stopSpriteMotion(item);item.node?.remove();if(selectedImage===item)selectedImage=null;userLayers.splice(index,1);
+  }
+}
+function syncImagePlacementRole(){
+  if(!imagePlacementRole)return;
+  if(REGION_DEFINER){imagePlacementRole.value='layer';imagePlacementRole.disabled=true}
+  const role=requestedPlacementRole(imagePlacementRole.value),locked=role==='world-map';
+  imageX.disabled=locked;imageY.disabled=locked;imageLayer.disabled=locked;imageTier.disabled=locked||REGION_DEFINER;
+  imagePositionGrid?.classList.toggle('placement-locked',locked);
+  if(imagePlacementHint)imagePlacementHint.textContent=locked
+    ?'World Map fills Sea Level at 100% × 100%. Replaces the current custom world map.'
+    :'Adjustable layer keeps the Sea Level world map underneath and opens size, position, rotation, opacity, tier, and layer controls.';
+}
+function appendPlacementRoleControls(){
+  if(REGION_DEFINER)return;
+  const role=currentAssetPlacementRole();
+  keyboardKeys.append(
+    toolKey(role==='world-map'?'WORLD MAP ✓':'WORLD MAP','Sea Level · 100% × 100%',()=>{assetPlacementRole='world-map';renderKeyboardKeys();announce('New images and tiles will become the full Sea Level world map.')}),
+    toolKey(role==='layer'?'LAYER ✓':'LAYER','adjustable above Sea Level',()=>{assetPlacementRole='layer';renderKeyboardKeys();announce('New images and tiles will be adjustable layers above the world map.')})
+  );
 }
 function placementAddress(tier,layerDelta=1){
   tier=clamp(tier,0,TIERS.length-1);
@@ -840,9 +882,13 @@ function openImageUpload(){
   const point=viewerCenterPosition();
   imageX.value=point.x.toFixed(3);imageY.value=point.y.toFixed(3);
   const address=placementAddress(currentTierIndex(),1);
-  imageTier.value=String(address.tier);imageTier.disabled=REGION_DEFINER;imageLayer.value=String(address.layer);
+  imageTier.value=String(address.tier);imageLayer.value=String(address.layer);
+  if(imagePlacementRole)imagePlacementRole.value=currentAssetPlacementRole();
+  syncImagePlacementRole();
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
-  announce(`Image upload opened. Viewer frozen. Position defaults to ${tierLabel(tierByIndex(currentTierIndex()))}, layer ${viewerLayer}.`);
+  announce(currentAssetPlacementRole()==='world-map'
+    ?'Image upload opened. World Map will fill Sea Level at 100% by 100%.'
+    :`Image upload opened. Adjustable layer defaults to ${tierLabel(tierByIndex(currentTierIndex()))}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
@@ -1060,11 +1106,20 @@ function refreshUserImage(item){
   const spriteFrame=item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length?item.frameSources[clamp(Math.trunc(Number(item.currentFrame)||0),0,item.frameSources.length-1)]:null;
   const desired=spriteFrame||(item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc);
   if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired;void primeCollisionMask(desired)}
-  item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
-  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
+  item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
+  item.node.classList.toggle('full-world-placement',isWorldMapItem(item));
+  if(isWorldMapItem(item)){
+    item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
+    item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
+    item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
+  }
+  item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
+  item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
+  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
+  item.node.style.transformOrigin='50% 50%';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
 }function selectUserImage(item){
@@ -1085,6 +1140,7 @@ function deselectUserImage(announceChange=false){
 function placedContentLabel(item,index){
   const fallback=item?.kind==='label'?String(item?.text||'Label'):'Placed image';
   const name=String(item?.name||item?.assetId||fallback).trim()||fallback,pos=selectedPositionSummary(item);
+  if(isWorldMapItem(item))return `${index+1}. ${name} · WORLD MAP · SEA LEVEL · 100% × 100%`;
   return `${index+1}. ${name} · T${pos.tier} L${pos.layer} · X${pos.x} Y${pos.y}`;
 }
 function selectablePlacedContent(){
@@ -1115,7 +1171,7 @@ function removeSelectedImage(){
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
-  if(READ_ONLY||item?.sourceLocked)return;
+  if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
   if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
@@ -1142,23 +1198,31 @@ async function placeUploadedImage(file){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
-  const tier=REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(imageLayer.value)||0),0,9);
+  const placementRole=requestedPlacementRole(imagePlacementRole?.value||currentAssetPlacementRole());
+  const address=placementAddress(currentTierIndex(),1);
+  const tier=placementRole==='world-map'?0:(REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||address.tier),0,TIERS.length-1));
+  const layer=placementRole==='world-map'?0:clamp(Math.trunc(Number(imageLayer.value)||address.layer),0,9);
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
-  const placementPoint=REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint;
+  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    placementRole,fullWorld:placementRole==='world-map',
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:placementPoint.x,y:placementPoint.y,tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
+  if(isWorldMapItem(item))removeCustomWorldMap(item);
+  const node=document.createElement('img');node.className=`user-image-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   item.personalUploadPromise=trackPersonalUpload(
     saveFileToPersonalLibrary(file,{category:'Images',folder:'My Images',assetKind:'image',name:item.name})
       .then(asset=>{item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;announce(`${item.name} added to My Images.`);return asset})
       .catch(error=>{announce(`${item.name} is placed, but My Images could not save it: ${String(error?.message||error)}`);return null})
   );
-  announce(`Image placed above ${tierLabel(tierByIndex(tier))} as layer ${layer}. It is also being saved to My Images.`);
+  if(isWorldMapItem(item)){
+    assetPlacementRole='layer';
+    announce(`${item.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`);
+  }else announce(`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
 }
 function tierMix(){
   if(viewerTier!=='all'){
@@ -1178,10 +1242,10 @@ function tierMix(){
   };
 }
 function applyParallax(){
-  const dx=x-fitX,dy=y-fitY,mix=tierMix();
+  const dx=x-fitX,dy=y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
   const builtins=[
-    {node:surface,key:'surface',tier:0,layer:0,sceneZ:0,alpha:mix.surface},
+    {node:surface,key:'surface',tier:0,layer:0,sceneZ:0,alpha:worldMap?0:mix.surface},
     {node:highlands,key:'highlands',tier:1,layer:0,sceneZ:4,alpha:mix.highlands},
     {node:mountains,key:'mountains',tier:2,layer:0,sceneZ:7,alpha:mix.mountains}
   ];
@@ -1204,6 +1268,9 @@ function applyParallax(){
     const visible=REGION_DEFINER
       ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
       : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
+    if(isWorldMapItem(item)){
+      item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
+    }
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
@@ -1370,6 +1437,7 @@ async function hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,revision
     // visible. Region Definer is a viewer over the live World Builder map.
     updateLayerOrder();
     applyParallax();
+    refreshRegionTierPreview();
     return item;
   });
   const results=await Promise.allSettled(tasks);
@@ -1935,7 +2003,10 @@ function ensureRegionTierPreview(){
   return panel;
 }
 function regionTierPreviewSources(){
+  const worldMap=customWorldMap();
+  const worldMapSrc=worldMap?String(worldMap.transparent&&worldMap.transparentSrc?worldMap.transparentSrc:worldMap.originalSrc||'').trim():'';
   return CANONICAL_PLANE_KEYS.map((key,index)=>{
+    if(index===0&&worldMapSrc)return worldMapSrc;
     const node=planeByKey[key];
     const live=String(node?.currentSrc||node?.src||'').trim();
     return String(regionCanonicalTierImages[index]||live||(BASE_WORLD_ASSETS[index]?ASSET_ROOT+BASE_WORLD_ASSETS[index].file:'')).trim();
@@ -2424,17 +2495,20 @@ function personalPageAssets(type){
 function placePersonalImage(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
-  const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
+  const placementRole=currentAssetPlacementRole(),point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
   const item={
     id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
-    originalSrc:asset.url,transparentSrc:asset.url,transparent:false,x:point.x,y:point.y,tier:address.tier,layer:address.layer,
+    placementRole,fullWorld:placementRole==='world-map',
+    originalSrc:asset.url,transparentSrc:asset.url,transparent:false,x:placementRole==='world-map'?.5:point.x,y:placementRole==='world-map'?.5:point.y,tier:placementRole==='world-map'?0:address.tier,layer:placementRole==='world-map'?0:address.layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
+  if(isWorldMapItem(item))removeCustomWorldMap(item);
+  const node=document.createElement('img');node.className=`user-image-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);void primeCollisionMask(asset.url);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(asset.url);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   personalFolderType=null;keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
-  announce(`${item.name} placed from My Images. Save commits this instance to Endemar.`);
+  if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${item.name} is now the Sea Level World Map at 100% by 100%.`)}
+  else announce(`${item.name} placed from My Images as an adjustable layer. Save commits this instance.`);
 }
 async function placePersonalSprite(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -2461,6 +2535,7 @@ function personalAssetKey(asset,type){
   return button;
 }
 function renderPersonalFolder(type,title){
+  if(type==='Images'||type==='Tiles')appendPlacementRoleControls();
   if(personalAssetLoading){keyboardKeys.append(toolKey('‹','Back',closePersonalFolder),toolKey('LOADING',title,()=>{},true));return}
   if(personalAssetError&&!personalAssets.length){
     keyboardKeys.append(toolKey('‹','Back',closePersonalFolder),toolKey('RETRY',title,()=>{personalAssetError='';void ensurePersonalAssets(true)}),toolKey('ERROR',personalAssetError,()=>{},true));return;
@@ -2529,21 +2604,24 @@ function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30)
 function placeLibraryTile(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.image)return;
-  const point=viewerCenterPosition(),item={
+  const placementRole=currentAssetPlacementRole(),point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
     assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    placementRole,fullWorld:placementRole==='world-map',
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
-    x:point.x,y:point.y,tier:placementAddress(currentTierIndex(),1).tier,layer:placementAddress(currentTierIndex(),1).layer,
+    x:placementRole==='world-map'?.5:point.x,y:placementRole==='world-map'?.5:point.y,tier:placementRole==='world-map'?0:address.tier,layer:placementRole==='world-map'?0:address.layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className='user-image-placement library-tile-placement';node.alt=asset.name;node.draggable=false;item.node=node;
+  if(isWorldMapItem(item))removeCustomWorldMap(item);
+  const node=document.createElement('img');node.className=`user-image-placement library-tile-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=asset.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);world.appendChild(node);void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
-  announce(`${asset.name} placed at the viewer center above ${tierLabel(tierByIndex(item.tier))} as layer ${item.layer}. Image editing keyboard opened.`);
+  if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${asset.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`)}
+  else announce(`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
 }
 function libraryTileKey(asset){
-  const button=document.createElement('button');button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Tap to place this tile at the viewer center.`);
+  const button=document.createElement('button'),role=currentAssetPlacementRole();button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Tap to place this tile as ${role==='world-map'?'the full Sea Level World Map':'an adjustable layer'}.`);
   const image=document.createElement('img');image.src=asset.image;image.alt='';image.loading='lazy';image.decoding='async';image.draggable=false;
   const label=document.createElement('small');label.textContent=asset.name;button.append(image,label);button.addEventListener('click',()=>placeLibraryTile(asset));return button;
 }
@@ -2727,6 +2805,7 @@ function renderKeyboardKeysContent(){
   if(keyboardMode==='Tiles'){
     if(personalFolderType==='Tiles'){renderPersonalFolder('Tiles','MY TILES');return}
     if(personalFolderType==='Uploads'){renderPersonalFolder('Uploads','MY ASSETS');return}
+    appendPlacementRoleControls();
     if(!tileCatalog.length&&!tileLibraryLoading&&!tileLibraryError)void ensureTileLibrary();
     if(tileLibraryLoading){keyboardKeys.append(toolKey('MY TILES','Personal folder',()=>openPersonalFolder('Tiles')),toolKey('MY ASSETS','Other uploads',()=>openPersonalFolder('Uploads')),toolKey('LOADING','World tile library',()=>{},true));return}
     if(tileLibraryError){
@@ -2800,9 +2879,21 @@ function renderKeyboardKeysContent(){
   if(keyboardMode==='Image'){
     if(personalFolderType==='Images'){renderPersonalFolder('Images','MY IMAGES');return}
     if(!selectedImage){
+      appendPlacementRoleControls();
       keyboardKeys.append(
         toolKey('UPLOAD','image',openImageUpload),
         toolKey('MY IMAGES','Personal folder',()=>openPersonalFolder('Images'))
+      );return;
+    }
+    if(isWorldMapItem(selectedImage)){
+      keyboardKeys.append(
+        readoutKey('WORLD MAP','Sea Level · 100% × 100%'),
+        readoutKey('BASE','full world footprint'),
+        toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
+        toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
+        toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
+        toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
+        toolKey('DELETE','world map',removeSelectedImage)
       );return;
     }
     const pos=selectedPositionSummary(selectedImage);
@@ -2964,6 +3055,7 @@ imageUploadToggle.addEventListener('click',openImageUpload);
 tierToggle.addEventListener('click',()=>{const opening=tierMenu.hidden;renderTierMenu();tierMenu.hidden=!opening;tierToggle.setAttribute('aria-expanded',String(opening));if(opening)tierMenu.querySelector('button[aria-current="true"]')?.focus()});
 document.addEventListener('pointerdown',event=>{if(tierMenu.hidden)return;if(event.target===tierToggle||tierToggle.contains(event.target)||tierMenu.contains(event.target))return;closeTierMenu()},{capture:true});
 imageUploadClose.addEventListener('click',closeImageUpload);
+imagePlacementRole?.addEventListener('change',()=>{assetPlacementRole=requestedPlacementRole(imagePlacementRole.value);syncImagePlacementRole();announce(assetPlacementRole==='world-map'?'World Map selected. This image will fill Sea Level at 100% by 100%.':'Adjustable Layer selected. This image will sit above the Sea Level world map.')});
 imageBrowse.addEventListener('click',()=>imageFile.click());
 imageFile.addEventListener('change',()=>{const file=imageFile.files?.[0];if(file)void placeUploadedImage(file);imageFile.value=''});
 imageDropzone.addEventListener('click',event=>{if(event.target===imageDropzone)imageFile.click()});
