@@ -256,27 +256,60 @@ def normalize_unspent_world_token(user_id, token):
     if not key["pk"] or not key["sk"]:
         return token
 
-    account_half = str(token.get("accountHalfCode") or "") or secrets.token_hex(32)
-    try:
-        users.update_item(
-            Key=key,
-            UpdateExpression=(
-                "SET holderUserId = :userId, tokenClass = :tokenClass, "
-                "accountHalfCode = :code, accountHalfHash = :hash"
-            ),
-            ConditionExpression="#status = :unspent",
-            ExpressionAttributeNames={"#status": "status"},
-            ExpressionAttributeValues={
-                ":userId": user_id,
-                ":tokenClass": SHAELVIEN_TOKEN_CLASS,
-                ":code": account_half,
-                ":hash": hashlib.sha256(account_half.encode()).hexdigest(),
-                ":unspent": "unspent",
-            },
-        )
-    except ClientError as exc:
-        if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
-            raise
+    account_half = str(token.get("accountHalfCode") or "")
+    expected_hash = hashlib.sha256(account_half.encode()).hexdigest() if account_half else ""
+    holder_ok = str(token.get("holderUserId") or "") == user_id
+    class_ok = str(token.get("tokenClass") or "") == SHAELVIEN_TOKEN_CLASS
+    hash_ok = bool(account_half) and str(token.get("accountHalfHash") or "") == expected_hash
+
+    # A valid token must be read-only on the claim path until the atomic spend.
+    # Rewriting it immediately before TransactWriteItems creates needless
+    # contention on the exact item the transaction is about to update.
+    if holder_ok and class_ok and hash_ok:
+        return token
+
+    if not account_half:
+        candidate_half = secrets.token_hex(32)
+        try:
+            users.update_item(
+                Key=key,
+                UpdateExpression=(
+                    "SET holderUserId = :userId, tokenClass = :tokenClass, "
+                    "accountHalfCode = :code, accountHalfHash = :hash"
+                ),
+                ConditionExpression="#status = :unspent AND attribute_not_exists(accountHalfCode)",
+                ExpressionAttributeNames={"#status": "status"},
+                ExpressionAttributeValues={
+                    ":userId": user_id,
+                    ":tokenClass": SHAELVIEN_TOKEN_CLASS,
+                    ":code": candidate_half,
+                    ":hash": hashlib.sha256(candidate_half.encode()).hexdigest(),
+                    ":unspent": "unspent",
+                },
+            )
+        except ClientError as exc:
+            if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+                raise
+    else:
+        try:
+            users.update_item(
+                Key=key,
+                UpdateExpression=(
+                    "SET holderUserId = :userId, tokenClass = :tokenClass, "
+                    "accountHalfHash = :hash"
+                ),
+                ConditionExpression="#status = :unspent",
+                ExpressionAttributeNames={"#status": "status"},
+                ExpressionAttributeValues={
+                    ":userId": user_id,
+                    ":tokenClass": SHAELVIEN_TOKEN_CLASS,
+                    ":hash": expected_hash,
+                    ":unspent": "unspent",
+                },
+            )
+        except ClientError as exc:
+            if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+                raise
     return users.get_item(Key=key, ConsistentRead=True).get("Item") or token
 
 
