@@ -8,6 +8,7 @@ on:
     paths:
       - 'infra/aws/rist-platform.yml'
       - 'infra/aws/rist-platform-authority/**'
+      - 'infra/aws/rist-platform-zone-seed/**'
       - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-platform.yml'
 
@@ -32,7 +33,9 @@ jobs:
       - uses: aws-actions/setup-sam@v2
 
       - name: Compile authority source
-        run: python -m compileall -q infra/aws/rist-platform-authority
+        run: |
+          python -m compileall -q infra/aws/rist-platform-authority
+          python -m compileall -q infra/aws/rist-platform-zone-seed
 
       - name: Verify semantic world mutation policy
         run: python -m unittest discover -s infra/aws/rist-platform-authority/tests -p 'test_*.py'
