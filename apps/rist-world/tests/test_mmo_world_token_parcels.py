@@ -51,14 +51,17 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert '"ConditionExpression": "#status = :unspent"' in backend
     assert '"#status = :unspent AND tokenId = :tokenId"' not in backend
     assert '"#status = :unspent AND holderUserId = :userId"' not in backend
-    assert "existing_region = world.get_item(" in backend
-    assert '"ownerUserId = :regionOwner OR attribute_not_exists(ownerUserId)"' in backend
+    assert "def ensure_parcel_region(world_id, parcel, now_value=None):" in backend
+    claim_block = backend[backend.index('path == "/world/parcels/claim"'):backend.index('path == "/world/parcels/delegate"')]
+    assert "ensure_parcel_region(world_id, parcel_item, now)" in claim_block
+    assert "ensure_parcel_region(world_id, existing_parcel, now)" in claim_block
+    assert "region_item" not in claim_block.split("claim_transaction = [", 1)[1].split("claim_committed = False", 1)[0]
 
 
 def test_claimed_parcel_cannot_be_taken_or_grown_by_region_save():
     backend = text("infra/aws/rist-platform-authority/app.py")
     assert '"ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)"' in backend
-    assert '"That Shaelvien parcel has already been claimed"' in backend
+    assert '"That Shaelvien property space has already been claimed"' in backend
     assert 'region["minColumn"] = column' in backend
     assert 'region["maxColumn"] = column' in backend
     assert 'region["minRow"] = row' in backend
@@ -66,6 +69,8 @@ def test_claimed_parcel_cannot_be_taken_or_grown_by_region_save():
     assert 'region["parcelPixelWidth"] = MMO_PARCEL_PIXELS' in backend
     assert 'region["parcelPixelHeight"] = MMO_PARCEL_PIXELS' in backend
     assert 'region["maxHeight"] = MMO_PARCEL_MAX_HEIGHT' in backend
+    assert "Token + parcel are the atomic ownership identity." in backend
+    assert "Region state is a representation of" in backend
 
 
 def test_parcel_permissions_delegate_without_transferring_ownership():
