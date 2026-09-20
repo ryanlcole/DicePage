@@ -4,8 +4,25 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    public const string MmoWorldEnvironment = "mmo";
+    public const string SandboxWorldEnvironment = "sandbox";
+
     public string WorldDirectoryKey => $"{WorldsStoragePrefix}/index.json";
     public string WorldDescriptorKey => $"{WorldStoragePrefix}/world.json";
+
+    public static bool IsMmoWorldReference(AccountWorldReference? world) =>
+        world is not null &&
+        (string.Equals(world.Environment, MmoWorldEnvironment, StringComparison.OrdinalIgnoreCase) ||
+         string.Equals(world.WorldId, GeonaphWorldId, StringComparison.Ordinal));
+
+    public static bool IsSandboxWorldReference(AccountWorldReference? world) =>
+        world is not null && !IsMmoWorldReference(world);
+
+    static AccountWorldReference NormalizeWorldReference(AccountWorldReference world)
+    {
+        var environment = IsMmoWorldReference(world) ? MmoWorldEnvironment : SandboxWorldEnvironment;
+        return world with { Environment = environment };
+    }
 
     public async Task<AccountWorldDirectory> LoadWorldDirectoryAsync()
     {
@@ -37,6 +54,7 @@ public sealed partial class WorldSession
             .Where(world => !string.IsNullOrWhiteSpace(world.WorldId))
             .GroupBy(world => world.WorldId, StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(x => x.UpdatedAtUtc).First())
+            .Select(NormalizeWorldReference)
             .ToList();
 
         // Geonaph is the shared MMO world. Every authenticated account may discover,
@@ -63,7 +81,8 @@ public sealed partial class WorldSession
                 ownsGeonaph ? "owner" : "viewer",
                 $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json",
                 $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap",
-                legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow));
+                legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow,
+                MmoWorldEnvironment));
         }
 
         return new AccountWorldDirectory(
@@ -77,25 +96,27 @@ public sealed partial class WorldSession
     {
         var displayName = NormalizeWorldName(worldName);
         var directory = await LoadWorldDirectoryAsync();
-        RequireWorldCreationEntitlement(directory.Worlds);
+        RequireWorldCreationEntitlement(directory.Worlds.Where(IsSandboxWorldReference));
         if (HasActiveWorld) await AutoSavePrivateAsync();
 
         var worldId = NewWorldId(displayName);
         SetActiveWorldIdentity(worldId, displayName);
         ResetToCanonicalOrigin();
+        RestoreOperatingMode("sandbox");
         await SavePrivateCheckpointAsync(showSuccess: false);
         await EnsureWorldRelationshipAsync();
 
         await RefreshTrustedWorldAuthorityAsync();
 
         return new AccountWorldReference(
-            WorldId, WorldDisplayName, "owner", WorldDescriptorKey, WorldCheckpointKey, DateTimeOffset.UtcNow);
+            WorldId, WorldDisplayName, "owner", WorldDescriptorKey, WorldCheckpointKey, DateTimeOffset.UtcNow, SandboxWorldEnvironment);
     }
 
     public async Task LoadWorldAsync(AccountWorldReference world)
     {
         if (world is null || string.IsNullOrWhiteSpace(world.WorldId))
             throw new InvalidOperationException("Choose a valid world.");
+        world = NormalizeWorldReference(world);
         var displayName = NormalizeWorldName(world.DisplayName);
         var accountId = WorldOwnerAccountId?.Trim() ?? "";
 
@@ -120,6 +141,7 @@ public sealed partial class WorldSession
         }
 
         await LoadPrivateCheckpointAsync();
+        RestoreOperatingMode(IsMmoWorldReference(world) ? "mmo" : "sandbox");
         if (IsGeonaphWorld)
             EnsureGianaphWorld();
     }
@@ -143,21 +165,23 @@ public sealed partial class WorldSession
                 : "Imported World";
 
         var directory = await LoadWorldDirectoryAsync();
-        RequireWorldCreationEntitlement(directory.Worlds);
+        RequireWorldCreationEntitlement(directory.Worlds.Where(IsSandboxWorldReference));
         if (HasActiveWorld) await AutoSavePrivateAsync();
         var worldId = NewWorldId(displayName);
         SetActiveWorldIdentity(worldId, displayName);
         ResetToCanonicalOrigin();
         imported.WorldId = worldId;
         imported.WorldName = displayName;
+        imported.OperatingMode = "sandbox";
         LoadMapJson(JsonSerializer.Serialize(imported, MapWriteOptions));
+        RestoreOperatingMode("sandbox");
         await SavePrivateCheckpointAsync(showSuccess: false);
         await EnsureWorldRelationshipAsync();
 
         await RefreshTrustedWorldAuthorityAsync();
 
         return new AccountWorldReference(
-            WorldId, WorldDisplayName, "owner", WorldDescriptorKey, WorldCheckpointKey, DateTimeOffset.UtcNow);
+            WorldId, WorldDisplayName, "owner", WorldDescriptorKey, WorldCheckpointKey, DateTimeOffset.UtcNow, SandboxWorldEnvironment);
     }
 
     public async Task EnsureWorldRelationshipAsync()
@@ -202,7 +226,7 @@ public sealed partial class WorldSession
                 WorldId,
                 accountId,
                 WorldDisplayName,
-                "Shaelvien",
+                IsGeonaphWorld ? "Shaelvien" : "RIST Sandbox",
                 "active",
                 now,
                 now,
@@ -218,6 +242,7 @@ public sealed partial class WorldSession
             {
                 OwnerAccountId = accountId,
                 DisplayName = WorldDisplayName,
+                Domain = IsGeonaphWorld ? "Shaelvien" : "RIST Sandbox",
                 UpdatedAtUtc = now,
                 ExtentMode = extentMode,
                 MaxTilesX = maxTilesX,
@@ -243,7 +268,7 @@ public sealed partial class WorldSession
         var worlds = (directory?.Worlds ?? [])
             .Where(world => !string.IsNullOrWhiteSpace(world.WorldId))
             .GroupBy(world => world.WorldId, StringComparer.Ordinal)
-            .Select(group => group.First())
+            .Select(group => NormalizeWorldReference(group.First()))
             .Where(world => !string.Equals(world.WorldId, WorldId, StringComparison.Ordinal))
             .ToList();
 
@@ -253,7 +278,8 @@ public sealed partial class WorldSession
             "owner",
             WorldDescriptorKey,
             WorldCheckpointKey,
-            now));
+            now,
+            IsGeonaphWorld ? MmoWorldEnvironment : SandboxWorldEnvironment));
 
         var nextDirectory = new AccountWorldDirectory(
             accountId,
@@ -385,7 +411,8 @@ public sealed record AccountWorldReference(
     string Relationship,
     string DescriptorKey,
     string CheckpointKey,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    string Environment = "");
 
 public sealed record WorldRelationshipDescriptor(
     string WorldId,
