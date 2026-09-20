@@ -181,7 +181,11 @@ export function attach(root, config = {}) {
   const urls = Array.isArray(config.tierImages)
     ? config.tierImages.map(value => String(value || '').trim()).slice(0, 3)
     : [];
+  const fallbackUrls = Array.isArray(config.fallbackTierImages)
+    ? config.fallbackTierImages.map(value => String(value || '').trim()).slice(0, 3)
+    : [];
   while (urls.length < 3) urls.push('');
+  while (fallbackUrls.length < 3) fallbackUrls.push('');
 
   const state = {
     root,
@@ -224,12 +228,22 @@ export function attach(root, config = {}) {
 
   state.layers = urls.map((src, index) => {
     const image = makeLayer(src, index);
+    image.dataset.primarySrc = src;
+    image.dataset.fallbackSrc = fallbackUrls[index] || '';
     image.addEventListener('error', () => {
+      const fallback = image.dataset.fallbackSrc || '';
+      const usingFallback = image.dataset.fallbackActive === 'true';
+      if (!usingFallback && fallback && fallback !== image.src) {
+        image.dataset.fallbackActive = 'true';
+        image.dataset.loadState = 'fallback';
+        image.src = fallback;
+        return;
+      }
       image.dataset.loadState = 'error';
       root.dataset.perceiverLoadError = String(index + 1);
     });
     image.addEventListener('load', () => {
-      image.dataset.loadState = 'ready';
+      image.dataset.loadState = image.dataset.fallbackActive === 'true' ? 'fallback-ready' : 'ready';
     });
     stack.appendChild(image);
     return image;
