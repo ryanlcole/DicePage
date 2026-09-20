@@ -39,6 +39,10 @@ def test_new_and_claim_region_share_tier_swipe_and_select_only_flow():
     assert prototype.count("regionNameInput(),") >= 2
     assert "toolKey('−','zoom'" in prototype
     assert "toolKey('+','zoom'" in prototype
+    assert "const renderedTierImages=regionTierPreviewSources().slice(0,TIERS.length);" in prototype
+    assert "updateRegionWorldSourceVisibility();" in prototype
+    assert "fitMap();" in prototype
+    assert "applyParallax();" in prototype
 
 
 def test_shared_region_catalog_is_database_first_and_claim_owner_is_scoped():
