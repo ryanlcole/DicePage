@@ -109,13 +109,13 @@
     .region-definition-grid.hex{display:block;overflow:hidden}
     .region-definition-grid.active{pointer-events:auto;opacity:1}
     .region-definition-cell{min-width:0;min-height:0;padding:0!important;border:1px solid rgba(177,202,214,.12)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;pointer-events:none;touch-action:manipulation}
-    .region-definition-grid.hex .region-definition-cell{position:absolute;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+    .region-definition-grid.hex .region-definition-cell{position:absolute;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);border-color:transparent!important;background-color:rgba(7,18,24,.04)!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='25,1 75,1 99,50 75,99 25,99 1,50' fill='none' stroke='%23c1e1ee' stroke-opacity='.72' stroke-width='2'/%3E%3C/svg%3E")!important;background-size:100% 100%!important;background-repeat:no-repeat!important}
     .region-definition-grid.active .region-definition-cell{pointer-events:auto}
     .region-definition-cell.existing{border-color:rgba(214,177,84,.62)!important;box-shadow:inset 0 0 0 1px rgba(214,177,84,.18)!important}
-    .region-definition-cell.selected{background:rgba(88,176,216,.34)!important;border-color:rgba(169,225,248,.92)!important;box-shadow:inset 0 0 0 1px rgba(229,246,255,.72)!important}
-    .region-definition-cell.existing.selected{background:rgba(216,173,66,.42)!important;border-color:#f0d178!important}
+    .region-definition-cell.selected{background-color:rgba(88,176,216,.34)!important;border-color:rgba(169,225,248,.92)!important;box-shadow:inset 0 0 0 1px rgba(229,246,255,.72)!important}
+    .region-definition-cell.existing.selected{background-color:rgba(216,173,66,.42)!important;border-color:#f0d178!important}
     .stage.region-crop-preview .region-definition-grid{opacity:1}
-    .stage.region-crop-preview .region-definition-cell:not(.selected){background:rgba(0,5,8,.72)!important;border-color:rgba(35,54,63,.34)!important}
+    .stage.region-crop-preview .region-definition-cell:not(.selected){background-color:rgba(0,5,8,.72)!important;border-color:rgba(35,54,63,.34)!important}
     .stage.region-cropped .region-definition-grid{opacity:0;pointer-events:none}
     .stage.region-cropped.region-build-mode .region-definition-grid{opacity:.28;pointer-events:none}
     .stage.region-cropped.region-build-mode .region-definition-cell{border-color:rgba(188,216,228,.22)!important;background:transparent!important}
