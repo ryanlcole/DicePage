@@ -21,6 +21,7 @@ const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const MIN_VIEW_SCALE=1e-6;
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
+const DEFAULT_SEA_LEVEL_REFERENCE='https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg';
 const TIERS=Object.freeze([
   Object.freeze({key:'sea',label:'Sea Level',index:0,glyph:'≈'}),
   Object.freeze({key:'hills',label:'Hills / Low Clouds',index:1,glyph:'⌁'}),
@@ -1464,6 +1465,7 @@ function applyDatabaseTierImages(tierImages){
     const current=String(node.currentSrc||node.src||'');
     if(current===resolved&&layerReady[key]){
       node.dataset.databaseSource='true';
+      node.dataset.referenceOnly='false';
       regionCanonicalTierImages[tier]=resolved;
       stage.dataset.canonicalPlaneSource='database';
       refreshRegionTierPreview();
@@ -1474,6 +1476,7 @@ function applyDatabaseTierImages(tierImages){
     probe.onload=()=>{
       regionCanonicalTierImages[tier]=resolved;
       node.dataset.databaseSource='true';
+      node.dataset.referenceOnly='false';
       stage.dataset.canonicalPlaneSource='database';
       if(String(node.currentSrc||node.src||'')!==resolved){
         node.addEventListener('load',()=>{
@@ -2971,15 +2974,40 @@ if(!BASE_WORLD_ASSETS.length){
   naturalHeight=SURFACE_WORLD_PIXELS;
   stage.dataset.surfacePixelWidth=String(SURFACE_WORLD_PIXELS);
   stage.dataset.surfacePixelHeight=String(SURFACE_WORLD_PIXELS);
+  stage.dataset.seaLevelReference='ocean';
   world.dataset.emptyWorld='true';
+  // Empty worlds begin with a non-authoritative ocean reference instead of a
+  // black canvas. It occupies Sea Level at 100% × 100%, remains replaceable,
+  // and is intentionally not serialized as authored world content.
+  world.style.background='radial-gradient(circle at 50% 42%,rgba(28,96,124,.72),rgba(2,22,34,.98) 74%)';
+  if(surface){
+    surface.dataset.referenceOnly='true';
+    surface.alt='Sea level ocean reference';
+    surface.style.objectFit='cover';
+    surface.addEventListener('load',()=>{
+      if(surface.dataset.referenceOnly!=='true')return;
+      layerReady.surface=true;
+      stage.dataset.seaLevelReference='ocean-image';
+      loading.hidden=true;
+      renderState();
+      if(REGION_DEFINER)refreshRegionTierPreview();
+    },{once:true});
+    surface.addEventListener('error',()=>{
+      if(surface.dataset.referenceOnly!=='true')return;
+      layerReady.surface=false;
+      stage.dataset.seaLevelReference='ocean-gradient';
+      renderState();
+    },{once:true});
+    surface.src=DEFAULT_SEA_LEVEL_REFERENCE;
+  }
   fitMap();
   if(!REGION_DEFINER)void restoreSavedWorldBuilder();
   if(REGION_DEFINER){
     loading.hidden=false;loading.textContent='LOADING SELECTED WORLD MAP…';
-    announce('Region Definer is loading the selected world map. Claim a portion, then build.');
+    announce('Sea Level ocean reference ready while the selected world map loads.');
   }else{
     loading.hidden=true;
-    announce('Empty world loaded. Add images to begin building.');
+    announce('Sea Level ocean reference ready. Add images or tiles above it, or replace it as the World Map.');
   }
 }
 
