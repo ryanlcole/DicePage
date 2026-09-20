@@ -90,9 +90,9 @@ def main() -> None:
     require(gate, "await RefreshWorldsAsync();", "world chooser must load its directory after first paint")
     forbid(gate, "protected override async Task OnParametersSetAsync()", "world chooser must not block first paint")
 
-    # Landing stays inside the selected environment. Shaelvien shows only MMO
-    # worlds; sandbox landings show only sandbox worlds. Creation/import stays
-    # isolated in the sandbox manager.
+    # Landing keeps environment choice and nested MMO navigation separate.
+    # Top level is Shaelvien or a sandbox; MMO property worlds only appear after
+    # entering Shaelvien. Creation/import stays isolated in sandbox management.
     require(shell, "_workspaceOpen=false;", "landing must start at hub")
     require(shell, "_worldGateOpen=false;", "landing must not open a second initial world gate")
     require(shell, 'await PersistWorkspaceAsync("hub");', "landing must persist hub as launch workspace")
@@ -106,11 +106,17 @@ def main() -> None:
     require(shell, 'Navigation.NavigateTo("/Play/index.html",forceLoad:true);', "Switch User must return to account selection")
     require(shell, 'Navigation.NavigateTo("/",forceLoad:true);', "Sign Out must return to the public home")
     require(shell, "await Auth.LogoutAsync();", "landing account actions must clear the provider session")
-    require(shell, "LandingWorldSelectorLabel", "landing selector must be scoped to the active environment")
-    require(shell, "SELECT MMO WORLD", "Shaelvien landing must offer MMO world navigation")
-    require(shell, "SELECT SANDBOX WORLD", "sandbox landing must offer sandbox-only navigation")
-    require(shell, "directory.Worlds.Where(WorldSession.IsMmoWorldReference)", "Shaelvien selector must exclude sandbox worlds")
-    require(shell, "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)", "sandbox selector must exclude MMO worlds")
+    require(shell, 'label for="landing-world-select">WORLD</label>', "landing top level must choose Shaelvien or a sandbox")
+    require(shell, '<option value="shaelvien">SHAELVIEN</option>', "landing top level must expose Shaelvien as one environment")
+    require(shell, '$"sandbox:{world.WorldId}"', "landing top level must expose sandbox worlds without mixing MMO worlds")
+    require(shell, "launcher-mmo-selectbar", "Shaelvien must expose a second nested MMO-world selector")
+    require(shell, "SHAELVIEN · ENDEMAR", "nested MMO selector must include the Shaelvien/Endemar root")
+    require(shell, "AccessibleMmoWorlds", "nested MMO selector must use accessible Shaelvien property worlds")
+    require(shell, "Session.MmoParcels", "MMO worlds must come from Shaelvien parcel authority, not the sandbox world directory")
+    require(shell, "Session.CanAccessMmoParcel", "MMO navigation must respect parcel access authority")
+    require(shell, "_sandboxWorlds.AddRange(directory.Worlds", "sandbox worlds must come from the account world directory")
+    require(shell, ".Where(WorldSession.IsSandboxWorldReference)", "sandbox navigation must exclude MMO worlds")
+    require(shell, "_shaelvienWorld=directory.Worlds.FirstOrDefault(WorldSession.IsMmoWorldReference)", "landing must represent Shaelvien once at the top level")
     forbid(shell, "CREATE / IMPORT…", "landing selectors must navigate only; create/import belongs in sandbox management")
     require(shell, "SANDBOX WORLDS", "landing must expose sandbox management separately")
     require(gate, "CHOOSE A SANDBOX WORLD", "world gate must be the sandbox chooser")
@@ -170,7 +176,7 @@ def main() -> None:
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
-    print("Authenticated launch contract verified: provider session -> Press Start -> Shaelvien-or-sandbox environment choice -> environment-scoped world navigation.")
+    print("Authenticated launch contract verified: provider session -> Press Start -> Shaelvien-or-sandbox choice -> nested MMO navigation inside Shaelvien.")
 
 
 if __name__ == "__main__":
