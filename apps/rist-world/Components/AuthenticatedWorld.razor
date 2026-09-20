@@ -46,12 +46,12 @@ else if (_canEnter)
  }
  else if(!_launchWorldChosen)
  {
-  <main class="rist-world-choice-root" aria-label="Choose a world">
-   <div class="rist-world-choice-underlay" aria-hidden="true">
+  <main class="rist-world-choice-root" aria-busy="true" aria-live="polite">
+   <div class="rist-world-choice-underlay">
     <p class="rist-auth-kicker">SHAELVIEN</p>
-    <h1>Choose a World</h1>
+    <h1>Entering Shaelvien…</h1>
+    <p>Loading your MMO world navigation.</p>
    </div>
-   <WorldGate Open="true" RequireSelection="true" OnClose="CompleteWorldChoiceAsync" />
   </main>
  }
  else
@@ -215,15 +215,37 @@ else
   try{await JS.InvokeAsync<bool[]>("ristLaunch.pressStart",string.Equals(_privacyChoice,"optional",StringComparison.Ordinal));}catch{}
   _launchStarted=true;
   await InvokeAsync(StateHasChanged);
+  await EnterMmoLandingAsync();
  }
 
- async Task CompleteWorldChoiceAsync()
+ async Task EnterMmoLandingAsync()
  {
-  if(!Session.HasActiveWorld)return;
-  // Resolve trusted world authority before exposing the launcher so authorized
-  // GMs/owners do not see creation controls briefly rendered as inaccessible.
-  await Session.RefreshTrustedWorldAuthorityAsync();
-  _launchWorldChosen=true;
+  try
+  {
+   var directory=await Session.LoadWorldDirectoryAsync();
+   var mmoWorlds=directory.Worlds.Where(WorldSession.IsMmoWorldReference).ToList();
+   var world=mmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,directory.ActiveWorldId,StringComparison.Ordinal))
+      ??mmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,Session.WorldId,StringComparison.Ordinal))
+      ??mmoWorlds.FirstOrDefault();
+
+   if(world is null)
+   {
+    _commerceNotice="No Shaelvien MMO world is currently available.";
+    return;
+   }
+
+   if(!Session.HasActiveWorld||!string.Equals(Session.WorldId,world.WorldId,StringComparison.Ordinal))
+    await Session.LoadWorldAsync(world);
+
+   // Resolve trusted world authority before exposing the launcher so authorized
+   // GMs/owners do not see creation controls briefly rendered as inaccessible.
+   await Session.RefreshTrustedWorldAuthorityAsync();
+   _launchWorldChosen=true;
+  }
+  catch(Exception ex)
+  {
+   _commerceNotice="Shaelvien MMO navigation could not be loaded: "+ex.Message;
+  }
   await InvokeAsync(StateHasChanged);
  }
 
