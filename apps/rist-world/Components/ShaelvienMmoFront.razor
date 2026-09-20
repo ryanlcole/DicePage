@@ -1,0 +1,185 @@
+@implements IDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<section class="shaelvien-mmo-front" aria-label="Enter Shaelvien">
+ <aside class="mmo-front-left" aria-label="Shaelvien social tools">
+  <div class="mmo-front-brand">
+   <small>SHAELVIEN MMO</small>
+   <strong>ENTER</strong>
+  </div>
+  <nav aria-label="Shaelvien network">
+   <button type="button" @onclick="()=>SelectTool(\"hire\")" class="@ToolClass(\"hire\")"><span>♜</span><b>Hire GameMaster</b></button>
+   <button type="button" @onclick="()=>SelectTool(\"recruit\")" class="@ToolClass(\"recruit\")"><span>♙</span><b>Recruit Players</b></button>
+   <button type="button" @onclick="()=>SelectTool(\"campaigns\")" class="@ToolClass(\"campaigns\")"><span>▤</span><b>Campaigns</b></button>
+   <button type="button" @onclick="()=>SelectTool(\"modules\")" class="@ToolClass(\"modules\")"><span>◇</span><b>Modules</b></button>
+  </nav>
+  @if(!string.IsNullOrWhiteSpace(_selectedTool))
+  {
+   <div class="mmo-front-tool-note" role="status">
+    <strong>@ToolTitle</strong>
+    <span>This front is reserved here; its full workflow comes next.</span>
+   </div>
+  }
+ </aside>
+
+ <main class="mmo-front-main">
+  <header class="mmo-party-bar">
+   <div>
+    <small>JOIN PARTY</small>
+    <strong>@SelectedZoneName</strong>
+   </div>
+   <div class="mmo-party-actions">
+    <span>@(SelectedZoneIsEndemar?"STARTING ZONE":"ZONE LOBBY")</span>
+    <button type="button" @onclick="JoinSelectedZone">@(IsJoinedToSelectedZone?"JOINED":"JOIN PARTY")</button>
+   </div>
+  </header>
+
+  <section class="mmo-map-shell" aria-label="Shaelvien world zone viewer">
+   <div class="mmo-map-frame">
+    <img class="mmo-world-map" src="@CanonicalMapUrl" alt="Shaelvien world map" draggable="false" />
+    <div class="mmo-zone-layer" aria-label="Selectable Shaelvien zones">
+     <button type="button"
+             class="mmo-zone-hotspot endemar @(_selectedParcelId==EndemarZoneId?\"selected\":\"\")"
+             style="@ZoneStyle(WorldSession.EndemarOriginColumn,WorldSession.EndemarOriginRow)"
+             title="Endemar"
+             aria-label="Select Endemar"
+             @onclick="SelectEndemar"><span>END</span></button>
+     @foreach(var parcel in Session.MmoParcels)
+     {
+      <button type="button"
+              class="mmo-zone-hotspot @(string.Equals(_selectedParcelId,parcel.ParcelId,StringComparison.Ordinal)?\"selected\":\"\")"
+              style="@ZoneStyle(parcel.Column,parcel.Row)"
+              title="@parcel.DisplayName"
+              aria-label="Select @parcel.DisplayName"
+              @onclick="()=>SelectZone(parcel.ParcelId)"><span>@ZoneShortLabel(parcel)</span></button>
+     }
+    </div>
+   </div>
+
+   <article class="mmo-zone-card" aria-live="polite">
+    <div class="mmo-zone-copy">
+     <small>SELECTED ZONE</small>
+     <h2>@SelectedZoneName</h2>
+     <p>@SelectedZoneDescription</p>
+    </div>
+    <div class="mmo-zone-actions">
+     @if(SelectedParcel is not null && !string.IsNullOrWhiteSpace(SelectedParcel.OwnerUserId))
+     {
+      <a href="@DiscordMessageUrl" target="_blank" rel="noopener">MESSAGE GM</a>
+     }
+     else
+     {
+      <button type="button" disabled>MESSAGE GM</button>
+     }
+     <button type="button" class="zone-enter" @onclick="JoinSelectedZone">@(IsJoinedToSelectedZone?"PARTY JOINED":"JOIN PARTY")</button>
+    </div>
+   </article>
+  </section>
+
+  <footer class="mmo-zone-chat" aria-label="Zone chat">
+   <div class="mmo-chat-history" aria-live="polite">
+    @if(_chatLines.Count==0)
+    {
+     <span class="mmo-chat-empty">@SelectedZoneName chat · visual preview</span>
+    }
+    else
+    {
+     @foreach(var line in _chatLines.TakeLast(3))
+     {
+      <span><b>@line.Author</b> @line.Text</span>
+     }
+    }
+   </div>
+   <div class="mmo-chat-compose">
+    <input aria-label="Message zone chat" maxlength="280" placeholder="Message @SelectedZoneName…" @bind="_chatDraft" @bind:event="oninput" @onkeydown="ChatKeyDown" />
+    <button type="button" disabled="@string.IsNullOrWhiteSpace(_chatDraft)" @onclick="PostPreviewChat">SEND</button>
+   </div>
+  </footer>
+ </main>
+</section>
+
+<style>
+ .shaelvien-mmo-front{box-sizing:border-box;display:grid;grid-template-columns:176px minmax(0,1fr);width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03080b;color:#e7dfca;font-family:Inter,system-ui,-apple-system,sans-serif}
+ .mmo-front-left{box-sizing:border-box;display:flex;flex-direction:column;gap:12px;min-height:0;padding:14px 10px;border-right:1px solid #826a31;background:linear-gradient(180deg,#0b151b,#071015 70%,#090d10);overflow:auto}
+ .mmo-front-brand{display:grid;gap:3px;padding:4px 6px 10px;border-bottom:1px solid #344750}.mmo-front-brand small{color:#7ba6bb;font-size:8px;font-weight:900;letter-spacing:.16em}.mmo-front-brand strong{color:#efd488;font:700 22px/1 Georgia,serif;letter-spacing:.08em}
+ .mmo-front-left nav{display:grid;gap:8px}.mmo-front-left nav button{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;gap:7px;min-height:48px;padding:7px 8px;border:1px solid #445963;border-radius:8px;background:#0b171e;color:#d6e0e4;text-align:left;touch-action:manipulation}.mmo-front-left nav button span{display:grid;place-items:center;width:30px;height:30px;border:1px solid #765f30;border-radius:7px;color:#efd488;background:#17170f;font-size:16px}.mmo-front-left nav button b{font-size:10px;line-height:1.2;letter-spacing:.03em}.mmo-front-left nav button.active{border-color:#c49a43;background:#211b0e;color:#ffe5a2}
+ .mmo-front-tool-note{display:grid;gap:5px;margin-top:auto;padding:9px;border:1px solid #364a54;border-radius:8px;background:#071117}.mmo-front-tool-note strong{color:#e5cc88;font-size:10px}.mmo-front-tool-note span{color:#8fa2ab;font-size:8px;line-height:1.4}
+ .mmo-front-main{box-sizing:border-box;display:grid;grid-template-rows:auto minmax(0,1fr) 92px;min-width:0;min-height:0;overflow:hidden}
+ .mmo-party-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:8px 12px;border-bottom:1px solid #725d30;background:linear-gradient(90deg,#0b151c,#17140d);overflow:hidden}.mmo-party-bar>div:first-child{display:grid;gap:2px;min-width:0}.mmo-party-bar small{color:#83a9ba;font-size:8px;font-weight:900;letter-spacing:.16em}.mmo-party-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f0d78f;font:700 16px Georgia,serif}.mmo-party-actions{display:flex;align-items:center;gap:7px}.mmo-party-actions span{padding:5px 7px;border:1px solid #3c515c;border-radius:999px;color:#95a8b1;font-size:7px;font-weight:900;letter-spacing:.08em;white-space:nowrap}.mmo-party-actions button,.mmo-zone-actions button,.mmo-zone-actions a,.mmo-chat-compose button{min-height:34px;padding:0 10px;border:1px solid #a78438;border-radius:7px;background:#261e0d;color:#f6db8d;font-size:9px;font-weight:900;letter-spacing:.05em;text-decoration:none;display:grid;place-items:center;white-space:nowrap}
+ .mmo-map-shell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;overflow:hidden;background:radial-gradient(circle at 50% 48%,#0b1820 0,#03080b 64%)}
+ .mmo-map-frame{position:relative;width:min(82%,760px);max-height:88%;aspect-ratio:1/1}.mmo-world-map{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 34px #000c);user-select:none;-webkit-user-drag:none}
+ .mmo-zone-layer{position:absolute;inset:0}.mmo-zone-hotspot{position:absolute;transform:translate(-50%,-50%);width:clamp(20px,3vw,34px);height:clamp(20px,3vw,34px);display:grid;place-items:center;padding:0;border:1px solid #6fc1e8;border-radius:7px;background:#062536d9;color:#e8f8ff;box-shadow:0 3px 12px #000a;font-size:7px;font-weight:900;touch-action:manipulation}.mmo-zone-hotspot.endemar{border-color:#e4bd58;background:#4d330bd9;color:#ffe7a0}.mmo-zone-hotspot.selected{outline:2px solid #ffe08a;outline-offset:2px;z-index:3;transform:translate(-50%,-50%) scale(1.12)}.mmo-zone-hotspot span{overflow:hidden;max-width:95%;text-overflow:ellipsis;white-space:nowrap}
+ .mmo-zone-card{position:absolute;z-index:5;right:12px;bottom:12px;width:min(340px,48%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:11px 12px;border:1px solid #7d6732;border-radius:10px;background:#071117eb;box-shadow:0 12px 30px #000b;backdrop-filter:blur(7px)}.mmo-zone-copy{min-width:0}.mmo-zone-copy small{color:#83a9ba;font-size:7px;font-weight:900;letter-spacing:.14em}.mmo-zone-copy h2{margin:3px 0 5px;color:#f0d78f;font:700 17px Georgia,serif}.mmo-zone-copy p{margin:0;color:#aab9bf;font-size:9px;line-height:1.4}.mmo-zone-actions{display:grid;align-content:center;gap:6px}.mmo-zone-actions button:disabled{opacity:.42}.mmo-zone-actions .zone-enter{border-color:#6b8b9b;background:#0b1c25;color:#cce9f6}
+ .mmo-zone-chat{box-sizing:border-box;display:grid;grid-template-rows:minmax(0,1fr) 42px;min-width:0;min-height:0;border-top:1px solid #725d30;background:#071015}.mmo-chat-history{display:flex;align-items:center;gap:10px;min-width:0;padding:5px 10px;overflow-x:auto;color:#a6b5bc;font-size:8px}.mmo-chat-history span{white-space:nowrap}.mmo-chat-history b{color:#e8ce87}.mmo-chat-empty{color:#748a94!important;font-weight:800;letter-spacing:.05em}.mmo-chat-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:5px 8px;border-top:1px solid #243740}.mmo-chat-compose input{box-sizing:border-box;width:100%;min-width:0;border:1px solid #4d626c;border-radius:7px;background:#0b161d;color:#f2ead7;padding:0 10px;font-size:11px;outline:none}.mmo-chat-compose input:focus{border-color:#c39c4b}.mmo-chat-compose button:disabled{opacity:.35}
+ @media(max-width:700px){.shaelvien-mmo-front{grid-template-columns:96px minmax(0,1fr)}.mmo-front-left{padding:8px 6px}.mmo-front-brand strong{font-size:16px}.mmo-front-left nav button{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:44px;padding:5px}.mmo-front-left nav button span{width:26px;height:26px;font-size:13px}.mmo-front-left nav button b{font-size:7px}.mmo-front-tool-note{display:none}.mmo-party-bar{min-height:50px;padding:6px 8px}.mmo-party-bar strong{font-size:13px}.mmo-party-actions span{display:none}.mmo-party-actions button{min-height:32px;padding:0 7px;font-size:7px}.mmo-front-main{grid-template-rows:auto minmax(0,1fr) 82px}.mmo-map-frame{width:96%;max-height:82%}.mmo-zone-card{left:7px;right:7px;bottom:7px;width:auto;grid-template-columns:minmax(0,1fr) auto;padding:8px}.mmo-zone-copy h2{font-size:14px}.mmo-zone-copy p{font-size:8px;max-height:34px;overflow:hidden}.mmo-zone-actions a,.mmo-zone-actions button{min-height:30px;padding:0 7px;font-size:7px}.mmo-chat-history{padding:3px 7px}.mmo-chat-compose{padding:4px 6px}.mmo-chat-compose input{font-size:10px}}
+</style>
+
+@code {
+ const string EndemarZoneId="__endemar__";
+ const string CanonicalMapUrl="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
+
+ string _selectedParcelId=EndemarZoneId;
+ string _selectedTool="";
+ string _joinedZoneId="";
+ string _chatDraft="";
+ readonly List<PreviewChatLine> _chatLines=[];
+
+ AwsAuthorityClient.MmoParcel? SelectedParcel=>Session.MmoParcels.FirstOrDefault(x=>string.Equals(x.ParcelId,_selectedParcelId,StringComparison.Ordinal));
+ WorldRegion? SelectedRegion=>SelectedParcel is null?null:Session.Regions.FirstOrDefault(x=>string.Equals(x.RegionId,SelectedParcel.RegionId,StringComparison.Ordinal)||string.Equals(x.ParcelId,SelectedParcel.ParcelId,StringComparison.Ordinal));
+ bool SelectedZoneIsEndemar=>string.Equals(_selectedParcelId,EndemarZoneId,StringComparison.Ordinal);
+ string SelectedZoneName=>SelectedZoneIsEndemar?WorldSession.EndemarStartingPointDisplayName:SelectedParcel?.DisplayName??"Shaelvien";
+ string SelectedZoneDescription=>SelectedZoneIsEndemar
+  ?"Shaelvien starting zone. Select a claimed zone on the map to view its public description and party entry."
+  :!string.IsNullOrWhiteSpace(SelectedRegion?.Description)
+   ?SelectedRegion!.Description
+   :"No public description has been added for this zone yet.";
+ string DiscordMessageUrl=>SelectedParcel is null||string.IsNullOrWhiteSpace(SelectedParcel.OwnerUserId)?"#":$"https://discord.com/users/{Uri.EscapeDataString(SelectedParcel.OwnerUserId)}";
+ bool IsJoinedToSelectedZone=>string.Equals(_joinedZoneId,_selectedParcelId,StringComparison.Ordinal);
+ string ToolTitle=>_selectedTool switch{"hire"=>"Hire GameMaster","recruit"=>"Recruit Players","campaigns"=>"Campaigns","modules"=>"Modules",_=>""};
+
+ protected override async Task OnInitializedAsync()
+ {
+  Session.Changed+=SessionChanged;
+  try
+  {
+   await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+  }
+  catch{}
+ }
+
+ void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
+ void SelectTool(string tool)=>_selectedTool=string.Equals(_selectedTool,tool,StringComparison.Ordinal)?"":tool;
+ string ToolClass(string tool)=>string.Equals(_selectedTool,tool,StringComparison.Ordinal)?"active":"";
+ void SelectEndemar(){_selectedParcelId=EndemarZoneId;_chatLines.Clear();_chatDraft="";}
+ void SelectZone(string parcelId){_selectedParcelId=parcelId;_chatLines.Clear();_chatDraft="";}
+ void JoinSelectedZone()=>_joinedZoneId=_selectedParcelId;
+ string ZoneShortLabel(AwsAuthorityClient.MmoParcel parcel)
+ {
+  var value=(parcel.DisplayName??"").Trim();
+  if(value.Length==0)return $"{parcel.Column},{parcel.Row}";
+  var pieces=value.Split(' ',StringSplitOptions.RemoveEmptyEntries);
+  return new string(pieces.Take(2).Select(x=>char.ToUpperInvariant(x[0])).ToArray());
+ }
+ string ZoneStyle(int column,int row)
+ {
+  var left=((column+.5)/WorldSession.MmoParcelGridColumns)*100d;
+  var top=((row+.5)/WorldSession.MmoParcelGridRows)*100d;
+  return $"left:{left:0.###}%;top:{top:0.###}%";
+ }
+ async Task ChatKeyDown(KeyboardEventArgs e)
+ {
+  if(string.Equals(e.Key,"Enter",StringComparison.Ordinal)&&!string.IsNullOrWhiteSpace(_chatDraft))PostPreviewChat();
+  await Task.CompletedTask;
+ }
+ void PostPreviewChat()
+ {
+  var text=(_chatDraft??"").Trim();
+  if(text.Length==0)return;
+  _chatLines.Add(new PreviewChatLine("You",text.Length>280?text[..280]:text));
+  _chatDraft="";
+ }
+ public void Dispose()=>Session.Changed-=SessionChanged;
+ sealed record PreviewChatLine(string Author,string Text);
+}
