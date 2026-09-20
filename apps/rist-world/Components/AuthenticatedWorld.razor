@@ -46,12 +46,42 @@ else if (_canEnter)
  }
  else if(!_launchWorldChosen)
  {
-  <main class="rist-world-choice-root" aria-busy="true" aria-live="polite">
-   <div class="rist-world-choice-underlay">
-    <p class="rist-auth-kicker">SHAELVIEN</p>
-    <h1>Entering Shaelvien…</h1>
-    <p>Loading your MMO world navigation.</p>
-   </div>
+  <main class="rist-world-choice-root" aria-label="Choose Shaelvien or a sandbox">
+   <section class="rist-environment-choice">
+    <p class="rist-auth-kicker">RIST</p>
+    <h1>Choose Your Environment</h1>
+    <p class="rist-environment-copy">Enter Shaelvien for the shared MMO, or continue inside one of your private sandbox worlds.</p>
+
+    @if(_launchWorldsLoading)
+    {
+     <p class="rist-environment-status" role="status">Loading your worlds…</p>
+    }
+    else if(!string.IsNullOrWhiteSpace(_launchWorldsError))
+    {
+     <p class="rist-environment-error" role="alert">@_launchWorldsError</p>
+     <button type="button" class="rist-environment-retry" @onclick="LoadLaunchWorldsAsync">RETRY</button>
+    }
+    else
+    {
+     <button type="button" class="rist-environment-option shaelvien" disabled="@(_launchBusy||_launchMmoWorlds.Count==0)" @onclick="EnterShaelvienAsync">
+      <span><strong>SHAELVIEN</strong><small>MMO · enter Shaelvien, then choose an MMO world inside it</small></span>
+      <b>ENTER</b>
+     </button>
+
+     @foreach(var world in _launchSandboxWorlds)
+     {
+      <button type="button" class="rist-environment-option sandbox" disabled="@_launchBusy" @onclick="()=>EnterSandboxAsync(world)">
+       <span><strong>@world.DisplayName</strong><small>SANDBOX · private world</small></span>
+       <b>ENTER</b>
+      </button>
+     }
+
+     @if(_launchSandboxWorlds.Count==0)
+     {
+      <p class="rist-environment-empty">You do not have any sandbox worlds yet. Sandbox creation remains separate from Shaelvien.</p>
+     }
+    }
+   </section>
   </main>
  }
  else
@@ -138,6 +168,15 @@ else
  .rist-world-choice-root{position:fixed;inset:0;min-height:100dvh;background:radial-gradient(circle at 50% 18%,#102633 0,#071118 42%,#020609 100%);color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}
  .rist-world-choice-underlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;opacity:.42}
  .rist-world-choice-underlay h1{margin:8px 0 0;color:#d7be80;font:600 clamp(28px,7vw,56px)/1 Georgia,serif}
+ .rist-environment-choice{box-sizing:border-box;width:min(92vw,620px);max-height:88dvh;overflow:auto;display:grid;gap:10px;padding:24px;border:1px solid #7b6739;border-radius:14px;background:#071017f2;box-shadow:0 24px 70px #000c}
+ .rist-world-choice-root{display:grid;place-items:center;padding:18px}
+ .rist-environment-choice h1{margin:0;color:#e4ca83;font:700 clamp(24px,5vw,38px)/1.1 Georgia,serif}
+ .rist-environment-copy{margin:0 0 6px;color:#b7c3c8;font:600 11px/1.5 system-ui}
+ .rist-environment-option{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #53646d;border-radius:10px;background:#0d1820;color:#e9dfc4;text-align:left;touch-action:manipulation}
+ .rist-environment-option.shaelvien{border-color:#9b7a34;background:linear-gradient(135deg,#211b0e,#0c1820)}
+ .rist-environment-option span{display:grid;gap:5px;min-width:0}.rist-environment-option strong{color:#f2d990;font:900 14px/1.1 system-ui;letter-spacing:.05em}.rist-environment-option small{color:#9eafb7;font:700 9px/1.35 system-ui}.rist-environment-option b{color:#75bde9;font:900 9px/1 system-ui;letter-spacing:.08em}
+ .rist-environment-option:disabled{opacity:.45}.rist-environment-status,.rist-environment-empty{margin:4px 0;color:#aebbc0;font:700 11px/1.45 system-ui}.rist-environment-error{margin:4px 0;color:#ffb3a6;font:700 11px/1.45 system-ui}.rist-environment-retry{min-height:44px;border:1px solid #8d7440;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}
+ @@media(max-width:520px){.rist-environment-choice{width:100%;max-height:92dvh;padding:16px}.rist-environment-option{min-height:66px}}
  .rist-auth-shell{box-sizing:border-box;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#05090c;color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}
  .rist-auth-card{box-sizing:border-box;width:min(92vw,520px);padding:28px;border:1px solid #725d30;border-radius:14px;background:rgba(10,17,22,.94);box-shadow:0 18px 50px rgba(0,0,0,.45);text-align:center}
  .rist-auth-kicker{margin:0;color:#d7be80;font-weight:900;letter-spacing:.18em}
@@ -179,6 +218,12 @@ else
  bool _authStarted;
  bool _launchStarted;
  bool _launchWorldChosen;
+ bool _launchWorldsLoading;
+ bool _launchBusy;
+ string _launchWorldsError="";
+ readonly List<AccountWorldReference> _launchMmoWorlds=[];
+ readonly List<AccountWorldReference> _launchSandboxWorlds=[];
+ string _launchActiveWorldId="";
  string _privacyChoice="";
  bool _termsRequired;
  bool _termsChecked;
@@ -215,36 +260,66 @@ else
   try{await JS.InvokeAsync<bool[]>("ristLaunch.pressStart",string.Equals(_privacyChoice,"optional",StringComparison.Ordinal));}catch{}
   _launchStarted=true;
   await InvokeAsync(StateHasChanged);
-  await EnterMmoLandingAsync();
+  await LoadLaunchWorldsAsync();
  }
 
- async Task EnterMmoLandingAsync()
+ async Task LoadLaunchWorldsAsync()
  {
+  if(_launchWorldsLoading)return;
+  _launchWorldsLoading=true;
+  _launchWorldsError="";
+  await InvokeAsync(StateHasChanged);
   try
   {
    var directory=await Session.LoadWorldDirectoryAsync();
-   var mmoWorlds=directory.Worlds.Where(WorldSession.IsMmoWorldReference).ToList();
-   var world=mmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,directory.ActiveWorldId,StringComparison.Ordinal))
-      ??mmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,Session.WorldId,StringComparison.Ordinal))
-      ??mmoWorlds.FirstOrDefault();
+   _launchActiveWorldId=directory.ActiveWorldId;
+   _launchMmoWorlds.Clear();
+   _launchMmoWorlds.AddRange(directory.Worlds.Where(WorldSession.IsMmoWorldReference));
+   _launchSandboxWorlds.Clear();
+   _launchSandboxWorlds.AddRange(directory.Worlds.Where(WorldSession.IsSandboxWorldReference));
+  }
+  catch(Exception ex)
+  {
+   _launchWorldsError="Your environments could not be loaded: "+ex.Message;
+  }
+  finally
+  {
+   _launchWorldsLoading=false;
+  }
+  await InvokeAsync(StateHasChanged);
+ }
 
-   if(world is null)
-   {
-    _commerceNotice="No Shaelvien MMO world is currently available.";
-    return;
-   }
+ async Task EnterShaelvienAsync()
+ {
+  if(_launchBusy)return;
+  var world=_launchMmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,_launchActiveWorldId,StringComparison.Ordinal))
+     ??_launchMmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,Session.WorldId,StringComparison.Ordinal))
+     ??_launchMmoWorlds.FirstOrDefault();
+  if(world is null){_launchWorldsError="No Shaelvien MMO world is currently available.";return;}
+  await EnterLaunchWorldAsync(world);
+ }
 
+ Task EnterSandboxAsync(AccountWorldReference world)=>EnterLaunchWorldAsync(world);
+
+ async Task EnterLaunchWorldAsync(AccountWorldReference world)
+ {
+  if(_launchBusy)return;
+  _launchBusy=true;
+  _launchWorldsError="";
+  try
+  {
    if(!Session.HasActiveWorld||!string.Equals(Session.WorldId,world.WorldId,StringComparison.Ordinal))
     await Session.LoadWorldAsync(world);
-
-   // Resolve trusted world authority before exposing the launcher so authorized
-   // GMs/owners do not see creation controls briefly rendered as inaccessible.
    await Session.RefreshTrustedWorldAuthorityAsync();
    _launchWorldChosen=true;
   }
   catch(Exception ex)
   {
-   _commerceNotice="Shaelvien MMO navigation could not be loaded: "+ex.Message;
+   _launchWorldsError="That environment could not be opened: "+ex.Message;
+  }
+  finally
+  {
+   _launchBusy=false;
   }
   await InvokeAsync(StateHasChanged);
  }
