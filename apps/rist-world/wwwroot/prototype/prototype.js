@@ -1529,7 +1529,11 @@ async function renderRegionWorldSource(payload){
     });
   }
   const sharedBaseMap=BASE_WORLD_ASSETS.length>0||tierImages.length>0;
-  const renderedTierImages=[];
+  // Region Definer tier preview already proves these canonical image URLs can
+  // render in this browser. Keep the exact same sources mounted in the actual
+  // definition viewer as a fallback representation of the shared world planes.
+  // This is rendering only: WORLDSOURCE remains the single source of truth.
+  const renderedTierImages=regionTierPreviewSources().slice(0,TIERS.length);
   if(!sharedBaseMap&&!renderedTierImages.length&&!tiles.length&&!sourceLayers.length){
     const ocean=document.createElement('div');ocean.className='region-world-source-ocean';ocean.setAttribute('aria-hidden','true');
     world.insertBefore(ocean,world.firstChild);regionWorldSourceOcean=ocean;
@@ -1972,6 +1976,12 @@ function chooseRegionClaimTier(key){
   regionClaimPhase='select';regionSelectionEnabled=true;regionCropPreview=false;regionSelectedCells.clear();
   keyboardMode='Select';
   stage.classList.add('region-selection-only');stage.classList.remove('region-build-mode');
+  // Refit after the modal preview disappears and explicitly re-apply the
+  // canonical tier visibility. Mobile browsers can otherwise retain the preview
+  // frame while the underlying transformed world remains outside the viewport.
+  updateRegionWorldSourceVisibility();
+  fitMap();
+  applyParallax();
   updateRegionSelectionOverlay();renderKeyboardTabs();renderKeyboardKeys();
   if(keyboard.hidden)openKeyboard();
   announce(`Tier ${currentRegionTierIndex()+1}, ${tierLabel(tierByKey(viewerTier))}, selected. Zoom the map and use Select to mark the regional footprint.`);
