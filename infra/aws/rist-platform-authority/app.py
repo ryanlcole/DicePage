@@ -1878,12 +1878,12 @@ def handler(event, context):
                                 "SET #status = :spent, purchasedWorldId = :worldId, "
                                 "parcelId = :parcelId, bindingHash = :binding, spentAtUtc = :spentAt"
                             ),
-                            # The token key is already inside the authenticated
-                            # USER#<user_id> partition. Legacy holderUserId metadata can
-                            # be stale even when the token is genuinely owned by this
-                            # account, so do not let that redundant field veto the
-                            # atomic spend. Pin the exact token identity instead.
-                            "ConditionExpression": "#status = :unspent AND tokenId = :tokenId",
+                            # The exact DynamoDB key is already inside the authenticated
+                            # USER#<user_id> partition, so the key itself identifies the
+                            # token being spent. Legacy tokenId / holderUserId attributes
+                            # may be incomplete even when that keyed token is valid. Only
+                            # the unspent state must gate the atomic transition.
+                            "ConditionExpression": "#status = :unspent",
                             "ExpressionAttributeNames": {"#status": "status"},
                             "ExpressionAttributeValues": _ddb_map(
                                 {
@@ -1893,7 +1893,6 @@ def handler(event, context):
                                     ":binding": binding_hash,
                                     ":spentAt": stamp,
                                     ":unspent": "unspent",
-                                    ":tokenId": str(token.get("tokenId") or ""),
                                 }
                             ),
                         }
