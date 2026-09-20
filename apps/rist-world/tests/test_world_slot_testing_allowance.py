@@ -41,11 +41,17 @@ def test_mmo_and_sandbox_world_navigation_are_separate():
     assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in gate
     assert "SHAELVIEN MMO · PROPERTY SPACE" not in gate
 
-    assert "LandingWorldSelectorLabel" in shell
-    assert "SELECT MMO WORLD" in shell
-    assert "SELECT SANDBOX WORLD" in shell
-    assert "directory.Worlds.Where(WorldSession.IsMmoWorldReference)" in shell
-    assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in shell
+    assert 'label for="landing-world-select">WORLD</label>' in shell
+    assert '<option value="shaelvien">SHAELVIEN</option>' in shell
+    assert '$"sandbox:{world.WorldId}"' in shell
+    assert "launcher-mmo-selectbar" in shell
+    assert "SHAELVIEN · ENDEMAR" in shell
+    assert "AccessibleMmoWorlds" in shell
+    assert "Session.MmoParcels" in shell
+    assert "Session.CanAccessMmoParcel" in shell
+    assert "_sandboxWorlds.AddRange(directory.Worlds" in shell
+    assert ".Where(WorldSession.IsSandboxWorldReference)" in shell
+    assert "_shaelvienWorld=directory.Worlds.FirstOrDefault(WorldSession.IsMmoWorldReference)" in shell
     assert "CREATE / IMPORT…" not in shell
     assert "SANDBOX WORLDS" in shell
 
