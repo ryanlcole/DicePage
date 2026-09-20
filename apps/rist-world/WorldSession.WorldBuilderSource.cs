@@ -58,10 +58,11 @@ public sealed partial class WorldSession
 
     public async Task<AwsAuthorityClient.WorldSource?> SaveWorldBuilderSourceAsync(JsonElement state)
     {
-        if (!HasWorldBuilderEditAuthority)
-            throw new UnauthorizedAccessException("World Builder authority is required to save the canonical world map.");
         if (!HasActiveWorld)
             throw new InvalidOperationException("Choose a world before saving the shared world source.");
+        var privateOwnerAtEntry = await HasOwnedPrivateWorldDescriptorAsync(WorldId, WorldOwnerAccountId);
+        if (!HasTrustedWorldBuilderAuthority && !privateOwnerAtEntry)
+            throw new UnauthorizedAccessException("World Builder authority is required to save the canonical world map.");
         if (state.ValueKind != JsonValueKind.Object)
             throw new InvalidOperationException("World map state must be an object.");
 
