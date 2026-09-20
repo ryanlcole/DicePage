@@ -292,6 +292,38 @@ Resources:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /userdata/download, Method: GET }
 
+  SunkenTundraSeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      CodeUri: rist-platform-zone-seed/
+      Timeout: 30
+      Environment:
+        Variables:
+          WORLD_TABLE: !Ref WorldStateTable
+          OWNER_USER_ID: !Ref OwnerUserId
+          ASSET_BASE_URL: !Sub '${FrontendOrigin}/Game/assets/zones/sunken-tundra'
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref WorldStateTable }
+
+  SunkenTundraSeedInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SunkenTundraSeedFunction
+      Action: lambda:InvokeFunction
+      Principal: cloudformation.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  SunkenTundraSeed:
+    Type: Custom::SunkenTundraSeed
+    DependsOn: SunkenTundraSeedInvokePermission
+    Properties:
+      ServiceToken: !GetAtt SunkenTundraSeedFunction.Arn
+      Revision: sunken-tundra-v1
+      WorldId: shaelvien-geonaph-alpha-001
+      SurfaceTier: 0
+      SurfaceLayer: 6
+
   RealtimeConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
