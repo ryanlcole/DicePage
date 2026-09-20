@@ -181,44 +181,63 @@ public sealed partial class WorldSession
 
         var authority = new AwsAuthorityClient(http, auth);
         await authority.InitializeAsync();
-        AwsAuthorityClient.MmoParcel claimed;
-        try
+        AwsAuthorityClient.MmoParcel? claimed = null;
+
+        for (var attempt = 0; attempt < 2 && claimed is null; attempt++)
         {
             var tokenId = UnspentMmoWorldToken?.TokenId ?? "";
             if (string.IsNullOrWhiteSpace(tokenId))
                 throw new InvalidOperationException("No unspent Shaelvien Token is available for this claim.");
 
-            claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName, tokenId)
-                ?? throw new InvalidOperationException("The Shaelvien property-space claim was not accepted.");
-        }
-        catch (HttpRequestException ex)
-        {
-            await RefreshMmoLandAsync();
-
-            if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            try
             {
-                var occupied = _mmoParcels.FirstOrDefault(parcel => parcel.CellIndex == cellIndex);
-                if (occupied is not null)
-                {
-                    if (CanEditMmoParcel(occupied))
-                        throw new InvalidOperationException($"{occupied.DisplayName} is already bound to your account. Enter that property space instead.", ex);
-                    throw new InvalidOperationException("That property space was just claimed. The map has been refreshed; choose another available square.", ex);
-                }
-
-                if (!HasUnspentMmoWorldToken)
-                {
-                    if (OwnedMmoParcel is { } owned)
-                        throw new InvalidOperationException($"Your Shaelvien Token is already bound to {owned.DisplayName}. Enter that property space instead.", ex);
-                    throw new InvalidOperationException("Your Shaelvien Token is no longer available. Account state has been refreshed.", ex);
-                }
+                claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName, tokenId)
+                    ?? throw new InvalidOperationException("The Shaelvien property-space claim was not accepted.");
             }
+            catch (HttpRequestException ex)
+            {
+                await RefreshMmoLandAsync();
 
-            throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(ex.Message)
-                    ? "The property-space claim could not be completed. The map has been refreshed."
-                    : ex.Message,
-                ex);
+                // The authority may repair a legacy/newly-minted token binding while
+                // processing the first claim. That repair is server-authoritative,
+                // so transparently retry once with the freshly-read token instead
+                // of making the player press CLAIM a second time.
+                if (
+                    attempt == 0
+                    && ex.StatusCode == System.Net.HttpStatusCode.Conflict
+                    && ex.Message.Contains("binding was refreshed", StringComparison.OrdinalIgnoreCase)
+                    && HasUnspentMmoWorldToken
+                )
+                    continue;
+
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    var occupied = _mmoParcels.FirstOrDefault(parcel => parcel.CellIndex == cellIndex);
+                    if (occupied is not null)
+                    {
+                        if (CanEditMmoParcel(occupied))
+                            throw new InvalidOperationException($"{occupied.DisplayName} is already bound to your account. Enter that property space instead.", ex);
+                        throw new InvalidOperationException("That property space was just claimed. The map has been refreshed; choose another available square.", ex);
+                    }
+
+                    if (!HasUnspentMmoWorldToken)
+                    {
+                        if (OwnedMmoParcel is { } owned)
+                            throw new InvalidOperationException($"Your Shaelvien Token is already bound to {owned.DisplayName}. Enter that property space instead.", ex);
+                        throw new InvalidOperationException("Your Shaelvien Token is no longer available. Account state has been refreshed.", ex);
+                    }
+                }
+
+                throw new InvalidOperationException(
+                    string.IsNullOrWhiteSpace(ex.Message)
+                        ? "The property-space claim could not be completed. The map has been refreshed."
+                        : ex.Message,
+                    ex);
+            }
         }
+
+        if (claimed is null)
+            throw new InvalidOperationException("The Shaelvien property-space claim could not be completed.");
 
         await RefreshMmoLandAsync();
         await LoadRegionsAsync();
