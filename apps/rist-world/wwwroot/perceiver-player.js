@@ -230,6 +230,64 @@ function setVideoStatus(state, value) {
   setText(state.videoStatusNode, value);
 }
 
+function fullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+
+function updateFullscreenButton(state) {
+  const nativeActive = fullscreenElement() === state.root;
+  const pseudoActive = state.root.classList.contains('perceiver-pseudo-fullscreen');
+  setText(state.fullscreenButton, nativeActive || pseudoActive ? 'EXIT FULL SCREEN' : 'FULL SCREEN');
+}
+
+function exitPseudoFullscreen(state) {
+  if (!state.root.classList.contains('perceiver-pseudo-fullscreen')) return;
+  state.root.classList.remove('perceiver-pseudo-fullscreen');
+  document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+  document.body.style.overflow = state.previousBodyOverflow || '';
+  window.scrollTo(0, state.fullscreenScrollY || 0);
+  updateFullscreenButton(state);
+  fitCameraState(state);
+}
+
+async function toggleFullscreen(state) {
+  const nativeActive = fullscreenElement() === state.root;
+  const pseudoActive = state.root.classList.contains('perceiver-pseudo-fullscreen');
+
+  if (nativeActive) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) {
+      try { await exit.call(document); } catch {}
+    }
+    updateFullscreenButton(state);
+    return;
+  }
+
+  if (pseudoActive) {
+    exitPseudoFullscreen(state);
+    return;
+  }
+
+  const request = state.root.requestFullscreen || state.root.webkitRequestFullscreen;
+  if (request) {
+    try {
+      await request.call(state.root);
+      updateFullscreenButton(state);
+      requestAnimationFrame(() => fitCameraState(state));
+      return;
+    } catch {}
+  }
+
+  state.fullscreenScrollY = window.scrollY || 0;
+  state.previousDocumentOverflow = document.documentElement.style.overflow;
+  state.previousBodyOverflow = document.body.style.overflow;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  state.root.classList.add('perceiver-pseudo-fullscreen');
+  updateFullscreenButton(state);
+  requestAnimationFrame(() => fitCameraState(state));
+}
+
 function stopSpectralObjectUrl(state) {
   if (state.videoObjectUrl) {
     URL.revokeObjectURL(state.videoObjectUrl);
@@ -269,11 +327,14 @@ function makeSpectralLayer(index) {
   const canvas = document.createElement('canvas');
   canvas.className = 'perceiver-spectral-canvas';
   Object.assign(canvas.style, {
+    position: 'absolute',
+    inset: '0',
     display: 'block',
-    maxWidth: '106%',
-    maxHeight: '106%',
-    width: 'auto',
-    height: 'auto',
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+    objectPosition: '50% 50%',
+    margin: 'auto',
     pointerEvents: 'none'
   });
   wrapper.appendChild(canvas);
@@ -525,6 +586,7 @@ export function attach(root, config = {}) {
     motionNode: root.querySelector('[data-perceiver-motion-state]'),
     zoomNode: root.querySelector('[data-perceiver-zoom]'),
     motionButton: root.querySelector('[data-perceiver-motion-button]'),
+    fullscreenButton: root.querySelector('[data-perceiver-fullscreen-button]'),
     uploadButton: root.querySelector('[data-perceiver-upload-button]'),
     endemarButton: root.querySelector('[data-perceiver-endemar-button]'),
     videoInput: root.querySelector('[data-perceiver-video-input]'),
@@ -550,6 +612,8 @@ export function attach(root, config = {}) {
     onKeyDown: null,
     onDeviceOrientation: null,
     onMotionClick: null,
+    onFullscreenClick: null,
+    onFullscreenChange: null,
     onUploadClick: null,
     onVideoChange: null,
     onEndemarClick: null,
@@ -557,7 +621,10 @@ export function attach(root, config = {}) {
     onVideoPause: null,
     onVideoSeeked: null,
     onVideoEnded: null,
-    onOrientationChange: null
+    onOrientationChange: null,
+    fullscreenScrollY: 0,
+    previousDocumentOverflow: '',
+    previousBodyOverflow: ''
   };
 
   state.endemarLayers = urls.map((src, index) => {
@@ -779,6 +846,11 @@ export function attach(root, config = {}) {
   };
 
   state.onMotionClick = () => { void enableMotion(state); };
+  state.onFullscreenClick = () => { void toggleFullscreen(state); };
+  state.onFullscreenChange = () => {
+    updateFullscreenButton(state);
+    requestAnimationFrame(() => fitCameraState(state));
+  };
   state.onUploadClick = () => state.videoInput?.click();
   state.onVideoChange = event => {
     const file = event.target?.files?.[0];
@@ -821,6 +893,9 @@ export function attach(root, config = {}) {
   canvas.addEventListener('wheel', state.onWheel, { passive: false });
   canvas.addEventListener('keydown', state.onKeyDown);
   state.motionButton?.addEventListener('click', state.onMotionClick);
+  state.fullscreenButton?.addEventListener('click', state.onFullscreenClick);
+  document.addEventListener('fullscreenchange', state.onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', state.onFullscreenChange);
   state.uploadButton?.addEventListener('click', state.onUploadClick);
   state.endemarButton?.addEventListener('click', state.onEndemarClick);
   state.videoInput?.addEventListener('change', state.onVideoChange);
@@ -842,6 +917,7 @@ export function attach(root, config = {}) {
   }
 
   STATES.set(root, state);
+  updateFullscreenButton(state);
   fitCameraState(state);
   renderStep(state);
   state.raf = requestAnimationFrame(frame => animate(state, frame));
@@ -933,6 +1009,10 @@ export function detach(root) {
   state.canvas.removeEventListener('wheel', state.onWheel);
   state.canvas.removeEventListener('keydown', state.onKeyDown);
   state.motionButton?.removeEventListener('click', state.onMotionClick);
+  state.fullscreenButton?.removeEventListener('click', state.onFullscreenClick);
+  document.removeEventListener('fullscreenchange', state.onFullscreenChange);
+  document.removeEventListener('webkitfullscreenchange', state.onFullscreenChange);
+  exitPseudoFullscreen(state);
   state.uploadButton?.removeEventListener('click', state.onUploadClick);
   state.endemarButton?.removeEventListener('click', state.onEndemarClick);
   state.videoInput?.removeEventListener('change', state.onVideoChange);
