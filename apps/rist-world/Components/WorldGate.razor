@@ -172,7 +172,7 @@
   {
    await Session.CreateWorldAsync(_worldName);
    _status=$"{Session.WorldDisplayName} created and loaded.";
-   await OnClose.InvokeAsync();
+   await CompleteSelectionAsync();
   }
   catch(Exception ex){_status="World creation failed: "+ex.Message;}
   finally{_busy=false;}
@@ -186,7 +186,7 @@
   {
    await Session.LoadWorldAsync(world);
    _status=$"{Session.WorldDisplayName} loaded.";
-   await OnClose.InvokeAsync();
+   await CompleteSelectionAsync();
   }
   catch(Exception ex){_status="World load failed: "+ex.Message;}
   finally{_busy=false;}
@@ -240,10 +240,16 @@
    var preferred=string.IsNullOrWhiteSpace(_worldName)?Path.GetFileNameWithoutExtension(file.Name):_worldName;
    await Session.ImportWorldAsync(json,preferred);
    _status=$"{Session.WorldDisplayName} imported and loaded.";
-   await OnClose.InvokeAsync();
+   await CompleteSelectionAsync();
   }
   catch(Exception ex){_status="World import failed: "+ex.Message;}
   finally{_busy=false;}
+ }
+
+ async Task CompleteSelectionAsync()
+ {
+  if(OnContinue.HasDelegate)await OnContinue.InvokeAsync();
+  else await OnClose.InvokeAsync();
  }
 
  async Task CloseAsync(){if(_busy||_deleteWorld is not null||RequireSelection)return;await OnClose.InvokeAsync();}
