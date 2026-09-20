@@ -62,7 +62,15 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     transaction_block = claim_block.split("claim_transaction = [", 1)[1].split("claim_committed = False", 1)[0]
     assert '"Update": {' not in transaction_block
     assert "spent_token = {" in claim_block
-    assert '"Item": _ddb_map(dynamo_safe(spent_token))' in transaction_block
+    assert '"pk": "USER#" + user_id' in claim_block
+    assert 'token_sk.startswith(WORLD_TOKEN_SK_PREFIX)' in claim_block
+    assert '"pk": token_key["pk"]' in claim_block
+    assert '"sk": token_key["sk"]' in claim_block
+    assert 'spent_token_ddb = _ddb_map(dynamo_safe(spent_token))' in claim_block
+    assert 'parcel_item_ddb = _ddb_map(dynamo_safe(parcel_item))' in claim_block
+    assert '"Item": spent_token_ddb' in transaction_block
+    assert '"Item": parcel_item_ddb' in transaction_block
+    assert '"S" not in spent_token_ddb.get("pk", {})' in claim_block
     assert transaction_block.count('"Put": {') == 2
 
 
