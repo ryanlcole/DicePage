@@ -190,8 +190,15 @@ else
  string _termsError="";
  string _commerceNotice="";
  ElementReference _policyScroll;
+ static readonly DateTimeOffset ExistingAdultConsentGrandfatherCutoffUtc =
+  new(2026,9,20,0,25,0,TimeSpan.Zero);
 
  void OpenStartMenu()=>_alphaShell?.OpenStartMenu();
+
+ static bool IsGrandfatheredAdultConsentAttempt(DiscordAuthClient.AccountProfile account)
+  => account.TermsAcceptedAtUtc==DateTimeOffset.MinValue
+   && account.AgeAtSignup is >=18
+   && account.CreatedAtUtc < ExistingAdultConsentGrandfatherCutoffUtc;
 
  Task SetEssentialPrivacyAsync()=>SetPrivacyAsync("essential");
  Task SetOptionalPrivacyAsync()=>SetPrivacyAsync("optional");
@@ -234,7 +241,10 @@ else
    await RedeemPendingCommerceAccessAsync();
    await Session.RefreshMmoLandAsync(loadParcels:false);
   }
-  _termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;
+  _termsRequired=_canEnter
+   && Auth.Account is not null
+   && Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue
+   && !IsGrandfatheredAdultConsentAttempt(Auth.Account);
   if(_termsRequired)
    await LoadPoliciesAsync();
   if(_canEnter)
