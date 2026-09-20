@@ -90,6 +90,7 @@ const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
+let regionClaimMaskUrl='';
 const regionWorldSourceTiles=[];
 const regionWorldTierImages=[];
 let regionWorldSourceOcean=null;
@@ -1199,8 +1200,9 @@ function applyParallax(){
     // otherwise it looks as if upload failed. Canonical lower tiers remain visible
     // as read-only context while Region Definer edits the selected tier.
     const regionTier=currentRegionTierIndex();
+    const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
     const visible=REGION_DEFINER
-      ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&(!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer))
+      ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
       : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
@@ -1229,6 +1231,7 @@ function applyTransform(){
   world.style.transform=REGION_DEFINER
     ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
     : `translate3d(${x}px,${y}px,0) scale(${scale})`;
+  if(REGION_DEFINER)syncClaimedRegionContextMask();
   applyParallax();
   updateReadouts();
   scheduleRegionEnhancement();
@@ -1767,9 +1770,10 @@ function regionNameInput(){
 }
 function clearRegionMask(refit=true){
   if(!REGION_DEFINER)return;
+  regionClaimMaskUrl='';
   world.style.maskImage='none';world.style.webkitMaskImage='none';
   world.style.maskSize='';world.style.webkitMaskSize='';world.style.maskRepeat='';world.style.webkitMaskRepeat='';
-  stage.classList.remove('region-cropped');delete stage.dataset.cropMode;
+  stage.classList.remove('region-cropped');delete stage.dataset.cropMode;delete stage.dataset.regionContext;
   if(refit&&naturalWidth&&naturalHeight)fitMap();
 }
 function clearClaimedRegionCrop(refit=true){
@@ -1817,6 +1821,31 @@ function fitClaimedRegion(region){
   y=fitY=(r.height/2)-(centerY*scale);
   applyTransform();
 }
+function claimedRegionFitScale(region){
+  const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return 0;
+  const r=stage.getBoundingClientRect();
+  if(r.width<=0||r.height<=0)return 0;
+  const cropW=(bounds.width/REGION_GRID_COLUMNS)*naturalWidth,cropH=(bounds.height/REGION_GRID_ROWS)*naturalHeight;
+  const tiltHeight=cropH*Math.cos(15*Math.PI/180);
+  return Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
+}
+function syncClaimedRegionContextMask(){
+  if(!REGION_DEFINER||!regionClaimedRegion||!regionClaimMaskUrl)return;
+  const focusScale=claimedRegionFitScale(regionClaimedRegion);
+  if(!(focusScale>0))return;
+  // Region Definer is a permission-scoped view of the same canonical world.
+  // Close work keeps the claim isolated; zooming out restores the surrounding
+  // world so the claimed zone remains visibly connected to Endemar.
+  const threshold=Math.max(minScale*2.5,focusScale*.48);
+  const focused=scale>threshold;
+  if(focused){
+    world.style.maskImage=regionClaimMaskUrl;world.style.webkitMaskImage=regionClaimMaskUrl;
+    stage.dataset.regionContext='region';stage.dataset.cropMode='visibility-mask';
+  }else{
+    world.style.maskImage='none';world.style.webkitMaskImage='none';
+    stage.dataset.regionContext='world';stage.dataset.cropMode='world-context';
+  }
+}
 function applyRegionMask(region,cropMode='visibility-mask',saved=false){
   if(!REGION_DEFINER||!region)return false;
   const bounds=regionClaimBounds(region);
@@ -1826,10 +1855,11 @@ function applyRegionMask(region,cropMode='visibility-mask',saved=false){
     return false;
   }
   const svg=regionMaskSvg(region),url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  regionClaimMaskUrl=url;
   world.style.maskImage=url;world.style.webkitMaskImage=url;
   world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
   world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
-  stage.classList.toggle('region-cropped',!!saved);stage.dataset.cropMode=cropMode;
+  stage.classList.toggle('region-cropped',!!saved);stage.dataset.cropMode=cropMode;stage.dataset.regionContext='region';
   requestAnimationFrame(()=>fitClaimedRegion(region));
   return true;
 }
