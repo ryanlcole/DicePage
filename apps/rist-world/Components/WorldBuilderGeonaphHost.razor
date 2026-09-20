@@ -288,6 +288,16 @@ else
    {
     await Session.RefreshMmoLandAsync();
     await Session.LoadRegionsAsync();
+
+    // The landing page chooses the MMO world inside Shaelvien. Preserve that
+    // nested selection when opening Worldbuilder instead of falling back to the
+    // Shaelvien/Endemar root every time.
+    if(Session.ActiveRegion is { ParcelId.Length:>0 } activeRegion)
+    {
+     var selected=Session.MmoParcels.FirstOrDefault(parcel=>
+      string.Equals(parcel.ParcelId,activeRegion.ParcelId,StringComparison.Ordinal));
+     _enterParcel=selected is not null&&Session.CanAccessMmoParcel(selected);
+    }
    }
   }
   finally{_loading=false;}
@@ -318,7 +328,7 @@ else
 
  async Task EnterParcelAsync(AwsAuthorityClient.MmoParcel parcel)
  {
-  if(parcel is null||!Session.CanEditMmoParcel(parcel))return;
+  if(parcel is null||!Session.CanAccessMmoParcel(parcel))return;
   await Session.LoadRegionsAsync();
   Session.SetActiveRegion(parcel.RegionId);
   if(Session.ActiveRegion is null)
