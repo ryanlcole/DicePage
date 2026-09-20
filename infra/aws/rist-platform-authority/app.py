@@ -1911,9 +1911,7 @@ def handler(event, context):
             "updatedAt": now,
         }
 
-        try:
-            ddb.meta.client.transact_write_items(
-                TransactItems=[
+        claim_transaction = [
                     {
                         "Update": {
                             "TableName": users.name,
@@ -1969,10 +1967,19 @@ def handler(event, context):
                         }
                     },
                 ]
-            )
-        except ClientError as exc:
-            code = (exc.response.get("Error") or {}).get("Code")
-            if code in ("TransactionCanceledException", "ConditionalCheckFailedException"):
+        claim_committed = False
+        for claim_attempt in range(2):
+            try:
+                ddb.meta.client.transact_write_items(
+                    TransactItems=claim_transaction
+                )
+                claim_committed = True
+                break
+            except ClientError as exc:
+                code = (exc.response.get("Error") or {}).get("Code")
+                if code not in ("TransactionCanceledException", "ConditionalCheckFailedException"):
+                    raise
+
                 occupied = world.get_item(
                     Key=parcel_key(world_id, parcel_id),
                     ConsistentRead=True,
@@ -1984,10 +1991,31 @@ def handler(event, context):
                     and latest_token
                 ):
                     return response(200, public_parcel(occupied))
+
                 latest_region = world.get_item(
                     Key=region_key(world_id, region_id),
                     ConsistentRead=True,
                 ).get("Item")
+                latest_selected_token = users.get_item(
+                    Key=token_key,
+                    ConsistentRead=True,
+                ).get("Item")
+
+                # A transaction can be canceled by short-lived contention even
+                # though every authoritative condition is still valid. Retry once
+                # only when nothing was committed and the exact selected token
+                # remains unspent. This is safe because the transaction itself is
+                # still the only operation allowed to spend the token.
+                if (
+                    claim_attempt == 0
+                    and not occupied
+                    and not latest_region
+                    and latest_selected_token
+                    and str(latest_selected_token.get("status") or "") == "unspent"
+                ):
+                    time.sleep(0.075)
+                    continue
+
                 if latest_region and not occupied:
                     state = dict(latest_region.get("state") or {})
                     owner = str(
@@ -2000,8 +2028,8 @@ def handler(event, context):
                             409,
                             {
                                 "error": (
-                                    "A legacy region record for this square was found and "
-                                    "is being reconciled. Retry the claim once."
+                                    "A legacy region record for this square is blocking the "
+                                    "property claim. No token was spent."
                                 )
                             },
                         )
@@ -2010,21 +2038,71 @@ def handler(event, context):
                         {
                             "error": (
                                 "That property space has a conflicting region record. "
-                                "Refresh the map and choose another available square."
+                                "No token was spent; refresh the map and choose another available square."
                             )
                         },
                     )
+
+                if not latest_selected_token:
+                    return response(
+                        409,
+                        {
+                            "error": (
+                                "The selected Shaelvien Token record is no longer available. "
+                                "No property was claimed."
+                            )
+                        },
+                    )
+                if str(latest_selected_token.get("status") or "") != "unspent":
+                    bound_parcel_id = str(latest_selected_token.get("parcelId") or "")
+                    return response(
+                        409,
+                        {
+                            "error": (
+                                f"The selected Shaelvien Token is already bound to {bound_parcel_id}."
+                                if bound_parcel_id
+                                else "The selected Shaelvien Token is no longer unspent."
+                            )
+                        },
+                    )
+
+                cancellation_reasons = exc.response.get("CancellationReasons") or []
+                reason_codes = [
+                    str(reason.get("Code") or "None")
+                    for reason in cancellation_reasons
+                ]
+                safe_reason = ",".join(reason_codes[:3]) if reason_codes else "unknown"
+                print(
+                    "Shaelvien claim transaction canceled",
+                    {
+                        "userId": user_id,
+                        "tokenSk": str(token_key.get("sk") or ""),
+                        "parcelId": parcel_id,
+                        "attempt": claim_attempt + 1,
+                        "reasons": safe_reason,
+                    },
+                )
                 return response(
                     409,
                     {
                         "error": (
-                            "That Shaelvien property space was claimed before this request completed. Refresh the map and choose another available space."
-                            if occupied
-                            else "The selected Shaelvien Token could not be committed. Its binding was refreshed; retry the claim."
-                        )
+                            "The claim transaction was canceled before anything was spent. "
+                            "The selected token is still unspent and the property is still available. "
+                            "Please retry once."
+                        ),
+                        "claimConflict": safe_reason,
                     },
                 )
-            raise
+
+        if not claim_committed:
+            return response(
+                409,
+                {
+                    "error": (
+                        "The property claim did not complete. No Shaelvien Token was spent."
+                    )
+                },
+            )
 
         audit_write(
             world_id,
