@@ -9,10 +9,10 @@
    <strong>ENTER</strong>
   </div>
   <nav aria-label="Shaelvien network">
-   <button type="button" @onclick="()=>SelectTool(\"hire\")" class="@ToolClass(\"hire\")"><span>♜</span><b>Hire GameMaster</b></button>
-   <button type="button" @onclick="()=>SelectTool(\"recruit\")" class="@ToolClass(\"recruit\")"><span>♙</span><b>Recruit Players</b></button>
-   <button type="button" @onclick="()=>SelectTool(\"campaigns\")" class="@ToolClass(\"campaigns\")"><span>▤</span><b>Campaigns</b></button>
-   <button type="button" @onclick="()=>SelectTool(\"modules\")" class="@ToolClass(\"modules\")"><span>◇</span><b>Modules</b></button>
+   <button type="button" @onclick='()=>SelectTool("hire")' class='@ToolClass("hire")'><span>♜</span><b>Hire GameMaster</b></button>
+   <button type="button" @onclick='()=>SelectTool("recruit")' class='@ToolClass("recruit")'><span>♙</span><b>Recruit Players</b></button>
+   <button type="button" @onclick='()=>SelectTool("campaigns")' class='@ToolClass("campaigns")'><span>▤</span><b>Campaigns</b></button>
+   <button type="button" @onclick='()=>SelectTool("modules")' class='@ToolClass("modules")'><span>◇</span><b>Modules</b></button>
   </nav>
   @if(!string.IsNullOrWhiteSpace(_selectedTool))
   {
@@ -40,7 +40,7 @@
     <img class="mmo-world-map" src="@CanonicalMapUrl" alt="Shaelvien world map" draggable="false" />
     <div class="mmo-zone-layer" aria-label="Selectable Shaelvien zones">
      <button type="button"
-             class="mmo-zone-hotspot endemar @(_selectedParcelId==EndemarZoneId?\"selected\":\"\")"
+             class='mmo-zone-hotspot endemar @(_selectedParcelId==EndemarZoneId?"selected":"")'
              style="@ZoneStyle(WorldSession.EndemarOriginColumn,WorldSession.EndemarOriginRow)"
              title="Endemar"
              aria-label="Select Endemar"
@@ -48,7 +48,7 @@
      @foreach(var parcel in Session.MmoParcels)
      {
       <button type="button"
-              class="mmo-zone-hotspot @(string.Equals(_selectedParcelId,parcel.ParcelId,StringComparison.Ordinal)?\"selected\":\"\")"
+              class='mmo-zone-hotspot @(string.Equals(_selectedParcelId,parcel.ParcelId,StringComparison.Ordinal)?"selected":"")'
               style="@ZoneStyle(parcel.Column,parcel.Row)"
               title="@parcel.DisplayName"
               aria-label="Select @parcel.DisplayName"
@@ -112,7 +112,7 @@
  .mmo-zone-layer{position:absolute;inset:0}.mmo-zone-hotspot{position:absolute;transform:translate(-50%,-50%);width:clamp(20px,3vw,34px);height:clamp(20px,3vw,34px);display:grid;place-items:center;padding:0;border:1px solid #6fc1e8;border-radius:7px;background:#062536d9;color:#e8f8ff;box-shadow:0 3px 12px #000a;font-size:7px;font-weight:900;touch-action:manipulation}.mmo-zone-hotspot.endemar{border-color:#e4bd58;background:#4d330bd9;color:#ffe7a0}.mmo-zone-hotspot.selected{outline:2px solid #ffe08a;outline-offset:2px;z-index:3;transform:translate(-50%,-50%) scale(1.12)}.mmo-zone-hotspot span{overflow:hidden;max-width:95%;text-overflow:ellipsis;white-space:nowrap}
  .mmo-zone-card{position:absolute;z-index:5;right:12px;bottom:12px;width:min(340px,48%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:11px 12px;border:1px solid #7d6732;border-radius:10px;background:#071117eb;box-shadow:0 12px 30px #000b;backdrop-filter:blur(7px)}.mmo-zone-copy{min-width:0}.mmo-zone-copy small{color:#83a9ba;font-size:7px;font-weight:900;letter-spacing:.14em}.mmo-zone-copy h2{margin:3px 0 5px;color:#f0d78f;font:700 17px Georgia,serif}.mmo-zone-copy p{margin:0;color:#aab9bf;font-size:9px;line-height:1.4}.mmo-zone-actions{display:grid;align-content:center;gap:6px}.mmo-zone-actions button:disabled{opacity:.42}.mmo-zone-actions .zone-enter{border-color:#6b8b9b;background:#0b1c25;color:#cce9f6}
  .mmo-zone-chat{box-sizing:border-box;display:grid;grid-template-rows:minmax(0,1fr) 42px;min-width:0;min-height:0;border-top:1px solid #725d30;background:#071015}.mmo-chat-history{display:flex;align-items:center;gap:10px;min-width:0;padding:5px 10px;overflow-x:auto;color:#a6b5bc;font-size:8px}.mmo-chat-history span{white-space:nowrap}.mmo-chat-history b{color:#e8ce87}.mmo-chat-empty{color:#748a94!important;font-weight:800;letter-spacing:.05em}.mmo-chat-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:5px 8px;border-top:1px solid #243740}.mmo-chat-compose input{box-sizing:border-box;width:100%;min-width:0;border:1px solid #4d626c;border-radius:7px;background:#0b161d;color:#f2ead7;padding:0 10px;font-size:11px;outline:none}.mmo-chat-compose input:focus{border-color:#c39c4b}.mmo-chat-compose button:disabled{opacity:.35}
- @media(max-width:700px){.shaelvien-mmo-front{grid-template-columns:96px minmax(0,1fr)}.mmo-front-left{padding:8px 6px}.mmo-front-brand strong{font-size:16px}.mmo-front-left nav button{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:44px;padding:5px}.mmo-front-left nav button span{width:26px;height:26px;font-size:13px}.mmo-front-left nav button b{font-size:7px}.mmo-front-tool-note{display:none}.mmo-party-bar{min-height:50px;padding:6px 8px}.mmo-party-bar strong{font-size:13px}.mmo-party-actions span{display:none}.mmo-party-actions button{min-height:32px;padding:0 7px;font-size:7px}.mmo-front-main{grid-template-rows:auto minmax(0,1fr) 82px}.mmo-map-frame{width:96%;max-height:82%}.mmo-zone-card{left:7px;right:7px;bottom:7px;width:auto;grid-template-columns:minmax(0,1fr) auto;padding:8px}.mmo-zone-copy h2{font-size:14px}.mmo-zone-copy p{font-size:8px;max-height:34px;overflow:hidden}.mmo-zone-actions a,.mmo-zone-actions button{min-height:30px;padding:0 7px;font-size:7px}.mmo-chat-history{padding:3px 7px}.mmo-chat-compose{padding:4px 6px}.mmo-chat-compose input{font-size:10px}}
+ @@media(max-width:700px){.shaelvien-mmo-front{grid-template-columns:96px minmax(0,1fr)}.mmo-front-left{padding:8px 6px}.mmo-front-brand strong{font-size:16px}.mmo-front-left nav button{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:44px;padding:5px}.mmo-front-left nav button span{width:26px;height:26px;font-size:13px}.mmo-front-left nav button b{font-size:7px}.mmo-front-tool-note{display:none}.mmo-party-bar{min-height:50px;padding:6px 8px}.mmo-party-bar strong{font-size:13px}.mmo-party-actions span{display:none}.mmo-party-actions button{min-height:32px;padding:0 7px;font-size:7px}.mmo-front-main{grid-template-rows:auto minmax(0,1fr) 82px}.mmo-map-frame{width:96%;max-height:82%}.mmo-zone-card{left:7px;right:7px;bottom:7px;width:auto;grid-template-columns:minmax(0,1fr) auto;padding:8px}.mmo-zone-copy h2{font-size:14px}.mmo-zone-copy p{font-size:8px;max-height:34px;overflow:hidden}.mmo-zone-actions a,.mmo-zone-actions button{min-height:30px;padding:0 7px;font-size:7px}.mmo-chat-history{padding:3px 7px}.mmo-chat-compose{padding:4px 6px}.mmo-chat-compose input{font-size:10px}}
 </style>
 
 @code {
