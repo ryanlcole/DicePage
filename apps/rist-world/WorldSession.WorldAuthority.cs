@@ -6,6 +6,8 @@ public sealed partial class WorldSession
 {
     private string _trustedAuthorityWorldId = "";
     private string _trustedAuthoritySessionToken = "";
+    private string _trustedAuthorityAccountId = "";
+    private bool _trustedPrivateWorldOwner;
     private string _trustedWorldRole = "";
     private WorldClaimPermission _trustedClaimPermission = WorldClaimPermission.Blocked;
     private bool _trustedPlatformOwner;
@@ -32,7 +34,8 @@ public sealed partial class WorldSession
                 && _trustedWorldAuthorityResolved
                 && string.Equals(_trustedAuthorityWorldId, WorldId, StringComparison.Ordinal)
                 && string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
-                && (_trustedPlatformOwner || IsTrustedWorldBuilderRole(_trustedWorldRole));
+                && string.Equals(_trustedAuthorityAccountId, WorldOwnerAccountId, StringComparison.Ordinal)
+                && (_trustedPrivateWorldOwner || _trustedPlatformOwner || IsTrustedWorldBuilderRole(_trustedWorldRole));
         }
     }
 
@@ -47,6 +50,8 @@ public sealed partial class WorldSession
                 && _trustedWorldAuthorityResolved
                 && string.Equals(_trustedAuthorityWorldId, WorldId, StringComparison.Ordinal)
                 && string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
+                && string.Equals(_trustedAuthorityAccountId, WorldOwnerAccountId, StringComparison.Ordinal)
+                && !_trustedPrivateWorldOwner
                 && !_trustedPlatformOwner
                 && !IsTrustedWorldBuilderRole(_trustedWorldRole)
                 && WorldClaimAuthorityPolicy.CanSubmitRequest(_trustedClaimPermission);
@@ -87,7 +92,8 @@ public sealed partial class WorldSession
         }
 
         var identityChanged = !string.Equals(_trustedAuthorityWorldId, WorldId, StringComparison.Ordinal)
-            || !string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal);
+            || !string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
+            || !string.Equals(_trustedAuthorityAccountId, WorldOwnerAccountId, StringComparison.Ordinal);
         if (identityChanged)
             ResetTrustedWorldAuthority();
 
@@ -103,31 +109,31 @@ public sealed partial class WorldSession
     {
         var sessionToken = auth.SessionToken ?? "";
         var worldId = WorldId;
+        var accountId = WorldOwnerAccountId;
         if (!IsLoggedIn || string.IsNullOrWhiteSpace(worldId) || string.IsNullOrWhiteSpace(sessionToken))
             return;
 
         _trustedWorldAuthorityLoading = true;
         _trustedAuthorityWorldId = worldId;
         _trustedAuthoritySessionToken = sessionToken;
-        _trustedWorldRole = "";
-        _trustedClaimPermission = WorldClaimPermission.Blocked;
-        _trustedPlatformOwner = false;
-        _trustedWorldAuthorityResolved = false;
-        Notify();
+        _trustedAuthorityAccountId = accountId;
+        // Keep the last resolved representation while refreshing the same identity.
+        // Publishing a temporary view-only state here reloads the canonical iframe.
 
         try
         {
+            var privateOwner = await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId);
             var authority = new AwsAuthorityClient(http, auth);
             await authority.InitializeAsync();
 
             AwsAuthorityClient.AuthorityProfile? profile = null;
             AwsAuthorityClient.Membership? membership = null;
-            var receivedAuthority = false;
+            var receivedAuthority = privateOwner;
 
             try
             {
                 profile = await authority.GetProfileAsync();
-                receivedAuthority = profile is not null;
+                receivedAuthority = receivedAuthority || profile is not null;
             }
             catch
             {
@@ -151,9 +157,13 @@ public sealed partial class WorldSession
 
             // Ignore any response that arrived after the authenticated identity/world changed.
             if (!string.Equals(WorldId, worldId, StringComparison.Ordinal)
-                || !string.Equals(auth.SessionToken ?? "", sessionToken, StringComparison.Ordinal))
+                || !string.Equals(auth.SessionToken ?? "", sessionToken, StringComparison.Ordinal)
+                || !string.Equals(WorldOwnerAccountId, accountId, StringComparison.Ordinal))
                 return;
 
+            _trustedPrivateWorldOwner = privateOwner;
+            _trustedWorldRole = "";
+            _trustedClaimPermission = WorldClaimPermission.Blocked;
             _trustedPlatformOwner = profile?.PlatformOwner == true;
             if (membership is not null
                 && string.Equals(membership.WorldId, worldId, StringComparison.Ordinal))
@@ -167,7 +177,11 @@ public sealed partial class WorldSession
         }
         catch
         {
+            if (!string.Equals(WorldId, worldId, StringComparison.Ordinal)
+                || !string.Equals(auth.SessionToken ?? "", sessionToken, StringComparison.Ordinal)
+                || !string.Equals(WorldOwnerAccountId, accountId, StringComparison.Ordinal)) return;
             // Authority/network uncertainty never becomes permission. Retry later.
+            _trustedPrivateWorldOwner = false;
             _trustedWorldRole = "";
             _trustedClaimPermission = WorldClaimPermission.Blocked;
             _trustedPlatformOwner = false;
@@ -176,8 +190,13 @@ public sealed partial class WorldSession
         }
         finally
         {
-            _trustedWorldAuthorityLoading = false;
-            Notify();
+            if (string.Equals(_trustedAuthorityWorldId, worldId, StringComparison.Ordinal)
+                && string.Equals(_trustedAuthoritySessionToken, sessionToken, StringComparison.Ordinal)
+                && string.Equals(_trustedAuthorityAccountId, accountId, StringComparison.Ordinal))
+            {
+                _trustedWorldAuthorityLoading = false;
+                Notify();
+            }
         }
     }
 
@@ -185,6 +204,8 @@ public sealed partial class WorldSession
     {
         _trustedAuthorityWorldId = "";
         _trustedAuthoritySessionToken = "";
+        _trustedAuthorityAccountId = "";
+        _trustedPrivateWorldOwner = false;
         _trustedWorldRole = "";
         _trustedClaimPermission = WorldClaimPermission.Blocked;
         _trustedPlatformOwner = false;

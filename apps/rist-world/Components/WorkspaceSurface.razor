@@ -81,7 +81,7 @@
    <div><p class="ws-eyebrow">ROLEPLAY</p><h2>@(string.IsNullOrWhiteSpace(Session.CharacterName) ? "Your Character" : Session.CharacterName)</h2></div>
    <div class="ws-party-status"><span>WORLD ACTIVE</span><span>TIER @Session.TierIndex</span><span>LAYER @Session.LayerOffset</span></div>
   </header>
-  <section class="ws-table-host" aria-label="Roleplay world map"><WorldBuilderGeonaphHost EmbeddedRoleplay="true" /></section>
+  <section class="ws-table-host" aria-label="Roleplay world map"><WorldBuilderGeonaphHost EmbeddedRoleplay="true" OnHome="OnHome" OnStartMenu="OnStartMenu" /></section>
   <footer class="ws-role-footer" aria-label="Roleplay focus"><span class="coming-soon-inline">CHARACTER</span><span class="coming-soon-inline">DICE</span><strong>ENCOUNTER</strong><span class="coming-soon-inline">REPLAY</span><span class="coming-soon-inline">CHAT</span></footer>
  }
 </div>
@@ -101,6 +101,8 @@
 
 @code {
  [Parameter] public string Mode { get; set; } = "world";
+ [Parameter] public EventCallback OnHome { get; set; }
+ [Parameter] public EventCallback OnStartMenu { get; set; }
  static readonly string[] WorldScales=["WORLD","REGION","LOCAL","SITE","ROOM","TACTICAL"];
  string SaveState="Autosave";
  void SetSquareGrid(){Session.GridStyle="square";Session.Notify();}

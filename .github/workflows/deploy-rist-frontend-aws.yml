@@ -55,6 +55,9 @@ jobs:
           node --check apps/rist-world/wwwroot/prototype/prototype.js
           NODE_PATH="$RUNNER_TEMP/rist-viewer-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs
 
+      - name: Verify private canonical source isolation
+        run: dotnet run --project apps/rist-world/tests/private-source/PrivateSourceTests.csproj -c Release
+
       - name: Build RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 

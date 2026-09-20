@@ -4,11 +4,37 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    private async Task<bool> HasOwnedPrivateWorldDescriptorAsync(string worldId, string accountId)
+    {
+        if (!IsLoggedIn || string.Equals(worldId, GeonaphWorldId, StringComparison.Ordinal)
+            || string.IsNullOrWhiteSpace(worldId) || string.IsNullOrWhiteSpace(accountId)) return false;
+        try
+        {
+            // The storage API derives users/{authenticated-user}/ on the server.
+            // Reading this descriptor cannot read or authorize another user's world.
+            var descriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>($"worlds/{worldId}/world.json");
+            return PrivateWorldSourcePolicy.MatchesOwner(worldId, accountId, descriptor?.WorldId, descriptor?.OwnerAccountId);
+        }
+        catch { return false; }
+    }
+
     public async Task<AwsAuthorityClient.WorldSource?> LoadWorldBuilderSourceAsync()
     {
         if (!IsLoggedIn || !HasActiveWorld) return null;
+        var worldId = WorldId;
+        var accountId = WorldOwnerAccountId;
+        var token = auth.SessionToken;
+        if (await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId))
+        {
+            if (WorldId != worldId || WorldOwnerAccountId != accountId || auth.SessionToken != token) return null;
+            var source = await auth.DownloadJsonAsync<AwsAuthorityClient.WorldSource>($"worlds/{worldId}/worldbuilder-source.json");
+            if (source is not null && !string.Equals(source.WorldId, worldId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Private map identity does not match the selected world.");
+            return source;
+        }
+        if (WorldId != worldId || WorldOwnerAccountId != accountId || auth.SessionToken != token) return null;
         var authority = await GetClaimAuthorityClientAsync();
-        return authority is null ? null : await authority.GetWorldSourceAsync(WorldId);
+        return authority is null ? null : await authority.GetWorldSourceAsync(worldId);
     }
 
     public async Task<AwsAuthorityClient.WorldSource?> SaveRegionMapLayersAsync(string regionId, JsonElement userLayers)
@@ -45,6 +71,22 @@ public sealed partial class WorldSession
             if (value.Length > 0 && !string.Equals(value, WorldId, StringComparison.Ordinal))
                 throw new InvalidOperationException("World map identity does not match the active world.");
         }
+
+        var worldId = WorldId;
+        var accountId = WorldOwnerAccountId;
+        var token = auth.SessionToken;
+        var privateOwner = await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId);
+        if (WorldId != worldId || WorldOwnerAccountId != accountId || auth.SessionToken != token)
+            throw new UnauthorizedAccessException("The active world or account changed while saving.");
+        if (privateOwner)
+        {
+            var source = new AwsAuthorityClient.WorldSource(worldId, state.Clone(), DateTimeOffset.UtcNow.ToString("O"));
+            await auth.UploadTextAsync($"worlds/{worldId}/worldbuilder-source.json",
+                JsonSerializer.Serialize(source, MapWriteOptions), "application/json");
+            return source;
+        }
+        if (_trustedPrivateWorldOwner)
+            throw new UnauthorizedAccessException("Private world ownership could not be verified.");
 
         var authority = await GetClaimAuthorityClientAsync();
         if (authority is null)

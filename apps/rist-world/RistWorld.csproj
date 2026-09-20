@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="tests/authority/**/*.cs" />
+    <Compile Remove="tests/**/*.cs" />
   </ItemGroup>
   <Target Name="PrepareUnifiedRistCss" BeforeTargets="PrepareForBuild">
     <Exec Command="python &quot;$(MSBuildProjectDirectory)/prepare_css.py&quot;" />

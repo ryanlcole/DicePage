@@ -53,7 +53,10 @@ def test_roleplay_uses_canonical_prototype_viewer_and_alpha_assets_revalidate():
     host = (ROOT / "Components/WorldBuilderGeonaphHost.razor").read_text()
     prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
     workflow = (ROOT.parents[1] / ".github/workflows/deploy-rist-frontend-aws.yml").read_text()
-    assert '<WorldBuilderGeonaphHost EmbeddedRoleplay="true" />' in workspace
+    assert '<WorldBuilderGeonaphHost EmbeddedRoleplay="true" OnHome="OnHome" OnStartMenu="OnStartMenu" />' in workspace
+    router = (ROOT / "Components/TaskWorkspaceRouter.razor").read_text()
+    assert '<WorkspaceSurface Mode="@Mode" OnHome="OnHome" OnStartMenu="OnStartMenu" />' in router
+    assert '[Parameter] public EventCallback OnHome' in workspace
     assert ".ws-table-host{box-sizing:border-box;position:relative;" in workspace
     assert "[Parameter] public bool EmbeddedRoleplay" in host
     assert "!EmbeddedRoleplay && Session.IsGeonaphWorld" in host

@@ -86,6 +86,8 @@ public sealed partial class WorldSession
         await SavePrivateCheckpointAsync(showSuccess: false);
         await EnsureWorldRelationshipAsync();
 
+        await RefreshTrustedWorldAuthorityAsync();
+
         return new AccountWorldReference(
             WorldId, WorldDisplayName, "owner", WorldDescriptorKey, WorldCheckpointKey, DateTimeOffset.UtcNow);
     }
@@ -151,6 +153,8 @@ public sealed partial class WorldSession
         LoadMapJson(JsonSerializer.Serialize(imported, MapWriteOptions));
         await SavePrivateCheckpointAsync(showSuccess: false);
         await EnsureWorldRelationshipAsync();
+
+        await RefreshTrustedWorldAuthorityAsync();
 
         return new AccountWorldReference(
             WorldId, WorldDisplayName, "owner", WorldDescriptorKey, WorldCheckpointKey, DateTimeOffset.UtcNow);

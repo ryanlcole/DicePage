@@ -283,6 +283,7 @@ else
   _loading=true;
   try
   {
+   await Session.RefreshTrustedWorldAuthorityAsync();
    if(Session.IsGeonaphWorld)
    {
     await Session.RefreshMmoLandAsync();
