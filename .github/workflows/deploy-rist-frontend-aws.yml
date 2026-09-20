@@ -193,8 +193,14 @@ jobs:
           # intentionally non-destructive, so remove the old production prefix explicitly.
           aws s3 rm "s3://${BUCKET}/perceiver/" --recursive --only-show-errors || true
 
+          # Kickstarter preparation data is internal planning material, not a public
+          # website surface. Keep the repository source for later database migration,
+          # but remove any previously published static prefix.
+          aws s3 rm "s3://${BUCKET}/kickstarter/" --recursive --only-show-errors || true
+
           aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
             --exclude 'index.html' \
+            --exclude 'kickstarter/*' \
             --exclude 'relic-story-tileset-primary.jpeg' \
             --exclude 'relic-story-1.jpg' \
             --exclude 'relic-story-2.jpg' \
@@ -231,7 +237,10 @@ jobs:
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
           grep -q 'site-language' /tmp/relic-home.html
           grep -q 'href="/store/"' /tmp/relic-home.html
-          grep -q 'href="/kickstarter/index.html"' /tmp/relic-home.html
+          if grep -q 'href="/kickstarter/' /tmp/relic-home.html; then
+            echo "Unpublished Kickstarter preparation link is still present on the public home page."
+            exit 1
+          fi
           if grep -qi '/perceiver/' /tmp/relic-home.html; then
             echo "Unpublished Perceiver link is still present on the public home page."
             exit 1
@@ -262,17 +271,12 @@ jobs:
           grep -q 'CHECKOUT NOT ACTIVE' /tmp/relic-membership.html
           grep -q 'complimentary-access' /tmp/relic-membership.html
 
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-kickstarter.html "${URL}kickstarter/index.html"
-          grep -q 'Assumption-driven subscription projection' /tmp/relic-kickstarter.html
-          grep -q 'MRR = 5R + 10G + 15S + 20W' /tmp/relic-kickstarter.html
-          grep -q 'does not take equity' /tmp/relic-kickstarter.html
-
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-kickstarter-js "${URL}kickstarter/kickstarter.js"
-          grep -q 'total\*12' /tmp/relic-kickstarter-js
-
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-kickstarter-campaign.json "${URL}kickstarter/campaign.json"
-          grep -q '"campaignStatus": "account-setup"' /tmp/relic-kickstarter-campaign.json
-          grep -q '"publicCampaignUrl": null' /tmp/relic-kickstarter-campaign.json
+          if curl --silent --show-error --location --output /tmp/kickstarter-unpublished.html "${URL}kickstarter/index.html"; then
+            if grep -q 'Assumption-driven subscription projection' /tmp/kickstarter-unpublished.html; then
+              echo "Unpublished Kickstarter preparation page is still publicly reachable."
+              exit 1
+            fi
+          fi
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
@@ -331,7 +335,7 @@ jobs:
           echo "ReLiCGameMaster home verified at $URL"
           echo "ReLiC Creator Store verified at ${URL}store/index.html"
           echo "Membership facts verified at ${URL}store/membership.html"
-          echo "Kickstarter facts/projection page verified at ${URL}kickstarter/index.html"
+          echo "Kickstarter preparation surface is unpublished."
           echo "RIST WORLD + framework MIME verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
           if [ "$STORY_MISSING" -eq 0 ]; then
