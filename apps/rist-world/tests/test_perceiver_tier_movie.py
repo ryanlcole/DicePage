@@ -131,3 +131,34 @@ def test_perceiver_camera_matches_worldbuilder_interaction_model():
     # Camera movement and tilt/parallax remain separate transforms.
     assert "state.camera.style.transform" in player
     assert "image.style.transform" in player
+
+
+def test_perceiver_phone_video_spectral_converter_is_local_and_reactive():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    assert 'accept="video/*"' in workspace
+    assert "data-perceiver-upload-button" in workspace
+    assert "data-perceiver-video-input" in workspace
+    assert "data-perceiver-endemar-button" in workspace
+    assert "FAST · SHORT WAVELENGTH · VIOLET / BLUE" in workspace
+    assert "SLOW · LONG WAVELENGTH · ORANGE / RED" in workspace
+
+    assert "URL.createObjectURL(file)" in player
+    assert "URL.revokeObjectURL" in player
+    assert "SPECTRAL_MAX_PIXELS = 640 * 360" in player
+    assert "spectralTierForPixel" in player
+    assert "rgbHue" in player
+    assert "getImageData" in player
+    assert "putImageData" in player
+    assert "state.mode = 'spectral'" in player
+    assert "state.currentStep = 6" in player
+    assert "state.layers = state.spectralLayers" in player
+    assert "renderSpectralFrame" in player
+    assert "CONVERTING LIVE" in player
+    assert "LOCAL" in player
+
+    # Existing parallax transform is reused for the three live video canvases.
+    assert "state.layers.forEach" in player
+    assert "DEPTH_FACTORS[index]" in player
+    assert "deviceorientation" in player
