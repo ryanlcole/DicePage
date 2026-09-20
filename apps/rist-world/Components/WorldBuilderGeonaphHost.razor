@@ -19,7 +19,7 @@ else
    allow="fullscreen"
   ></iframe>
 
-  @if(Session.IsGeonaphWorld && !Session.HasTrustedWorldBuilderAuthority)
+  @if(!EmbeddedRoleplay && Session.IsGeonaphWorld && !Session.HasTrustedWorldBuilderAuthority)
   {
    <section class="shaelvien-land-dock" aria-label="Shaelvien MMO world ownership">
     <div>
@@ -146,6 +146,7 @@ else
 @code {
  [Parameter] public EventCallback OnStartMenu { get; set; }
  [Parameter] public EventCallback OnHome { get; set; }
+ [Parameter] public bool EmbeddedRoleplay { get; set; }
 
  ElementReference _frame;
  IJSObjectReference? _sourceModule;
@@ -232,14 +233,14 @@ else
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=Session.HasTrustedWorldBuilderAuthority?"edit":"view";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&renderer=20260919-home-return-2";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&renderer=20260920-canonical-roleplay-1";
   }
  }
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_enterParcel||_sourceBridgeAttached)return;
-  _sourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260919-home-return-2");
+  _sourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260920-canonical-roleplay-1");
   _sourceSelf=DotNetObjectReference.Create(this);
   await _sourceModule.InvokeVoidAsync("attach",_frame,_sourceSelf);
   _sourceBridgeAttached=true;
