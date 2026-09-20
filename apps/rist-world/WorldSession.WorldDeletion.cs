@@ -1,12 +1,22 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text;
 
 namespace RistWorld;
 
 public sealed partial class WorldSession
 {
     public const string WorldDeletionConfirmationPhrase = "I Approve The Loss Of All Data For This World.";
+
+    public static string NormalizeWorldDeletionConfirmation(string? value)
+    {
+        var normalized = (value ?? "").Normalize(NormalizationForm.FormKC).Replace('\u00A0', ' ');
+        return string.Join(" ", normalized.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    public static bool WorldDeletionConfirmationMatches(string? value) =>
+        string.Equals(NormalizeWorldDeletionConfirmation(value), WorldDeletionConfirmationPhrase, StringComparison.Ordinal);
 
     public bool CanDeleteWorld(AccountWorldReference? world) =>
         world is not null &&
@@ -23,8 +33,9 @@ public sealed partial class WorldSession
             throw new InvalidOperationException(string.Equals(world.WorldId, GeonaphWorldId, StringComparison.Ordinal)
                 ? "Endemar is canonical and cannot be deleted from the world chooser."
                 : "Only a world owner may delete that world.");
-        if (!string.Equals(confirmation, WorldDeletionConfirmationPhrase, StringComparison.Ordinal))
+        if (!WorldDeletionConfirmationMatches(confirmation))
             throw new InvalidOperationException("The deletion approval phrase must match exactly.");
+        confirmation = WorldDeletionConfirmationPhrase;
 
         var sessionToken = auth.SessionToken;
         if (string.IsNullOrWhiteSpace(sessionToken))
@@ -59,6 +70,7 @@ public sealed partial class WorldSession
             ResetToCanonicalOrigin();
             _worldId = "";
             _worldDisplayName = "";
+            _activeWorldRelationship = "";
             MapName = "Shaelvien";
             _persistedTruth.Clear();
             PrivateStorageStatus = "World deleted.";
