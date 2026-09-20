@@ -87,11 +87,26 @@
   "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
  ];
 
+ static readonly string[] CanonicalTierFileNames =
+ [
+  "geonaph_full_static_canonical_surface_v001.png",
+  "geonaph_full_static_highlands_rivers_v001.png",
+  "geonaph_full_static_mountain_volcanic_archipelago_v001.png"
+ ];
+
+ static readonly string[] CanonicalTransparentTierImages =
+ [
+  "assets/perceiver/endemar_tier_1_perceiver_v001.png?v=20260920-alpha-1",
+  "assets/perceiver/endemar_tier_2_perceiver_v001.png?v=20260920-alpha-1",
+  "assets/perceiver/endemar_tier_3_perceiver_v001.png?v=20260920-alpha-1"
+ ];
+
  ElementReference _root;
  IJSObjectReference? _module;
- string[] _tierImages = CanonicalFallbackTierImages;
- string _sourceBadge = "CANONICAL FALLBACK";
- string _sourceKind = "fallback";
+ string[] _sourceTierImages = CanonicalFallbackTierImages;
+ string[] _tierImages = CanonicalTransparentTierImages;
+ string _sourceBadge = "CANONICAL TRANSPARENT REPRESENTATION";
+ string _sourceKind = "fallback-alpha";
 
  protected override async Task OnInitializedAsync()
  {
@@ -112,26 +127,42 @@
 
     if(found.Length == 3)
     {
-     _tierImages = found;
-     _sourceBadge = "DATABASE SOURCE";
-     _sourceKind = "database";
+     _sourceTierImages = found;
+     if(IsCanonicalEndemarTierSet(found))
+     {
+      _tierImages = CanonicalTransparentTierImages;
+      _sourceBadge = "DATABASE SOURCE · TRANSPARENT REPRESENTATION";
+      _sourceKind = "database-alpha";
+     }
+     else
+     {
+      _tierImages = found;
+      _sourceBadge = "DATABASE SOURCE";
+      _sourceKind = "database";
+     }
     }
     else
     {
-     _sourceBadge = "DATABASE INCOMPLETE · CANONICAL FALLBACK";
-     _sourceKind = "database-fallback";
+     _sourceTierImages = CanonicalFallbackTierImages;
+     _tierImages = CanonicalTransparentTierImages;
+     _sourceBadge = "DATABASE INCOMPLETE · TRANSPARENT FALLBACK";
+     _sourceKind = "database-fallback-alpha";
     }
    }
    else
    {
-    _sourceBadge = "DATABASE EMPTY · CANONICAL FALLBACK";
-    _sourceKind = "database-fallback";
+    _sourceTierImages = CanonicalFallbackTierImages;
+    _tierImages = CanonicalTransparentTierImages;
+    _sourceBadge = "DATABASE EMPTY · TRANSPARENT FALLBACK";
+    _sourceKind = "database-fallback-alpha";
    }
   }
   catch
   {
-   _sourceBadge = "DATABASE UNAVAILABLE · CANONICAL FALLBACK";
-   _sourceKind = "database-fallback";
+   _sourceTierImages = CanonicalFallbackTierImages;
+   _tierImages = CanonicalTransparentTierImages;
+   _sourceBadge = "DATABASE UNAVAILABLE · TRANSPARENT FALLBACK";
+   _sourceKind = "database-fallback-alpha";
   }
  }
 
@@ -142,9 +173,21 @@
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
+   fallbackTierImages = _sourceTierImages,
    stepDurationMs = 2000,
    sceneTitle = "Endemar Three-Tier Parallax Proof"
   });
+ }
+
+ static bool IsCanonicalEndemarTierSet(IReadOnlyList<string> values)
+ {
+  if(values.Count != CanonicalTierFileNames.Length)return false;
+  for(var i=0;i<CanonicalTierFileNames.Length;i++)
+  {
+   if(!values[i].Contains(CanonicalTierFileNames[i], StringComparison.OrdinalIgnoreCase))
+    return false;
+  }
+  return true;
  }
 
  async Task GoHomeAsync()
