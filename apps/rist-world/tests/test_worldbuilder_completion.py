@@ -63,3 +63,20 @@ def test_roleplay_uses_canonical_prototype_viewer_and_alpha_assets_revalidate():
     assert "20260920-desktop-input-1" in host
     assert "20260920-desktop-input-1" in prototype
     assert "--cache-control 'public,max-age=0,must-revalidate'" in workflow
+
+
+def test_image_and_tile_can_be_full_world_or_adjustable_layers():
+    prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
+    script = (ROOT / "wwwroot/prototype/prototype.js").read_text()
+    style = (ROOT / "wwwroot/prototype/prototype.css").read_text()
+    assert 'id="imagePlacementRole"' in prototype
+    assert 'value="world-map"' in prototype
+    assert 'World Map / Sea Level · 100% × 100%' in prototype
+    assert "function isWorldMapItem(item)" in script
+    assert "placementRole:isWorldMapItem(item)?'world-map':'layer'" in script
+    assert "placementRole,fullWorld:placementRole==='world-map'" in script
+    assert "appendPlacementRoleControls()" in script
+    assert "full-world-placement" in script
+    assert "World Map always fills 100% by 100% of the world." in script
+    assert ".user-image-placement.full-world-placement" in style
+    assert "width:100%!important;height:100%!important" in style
