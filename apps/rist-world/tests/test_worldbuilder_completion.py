@@ -46,3 +46,17 @@ def test_action_failure_keeps_dialog_open():
     assert "await action();close()" in perform
     assert "setAttribute('role','alert')" in perform
     assert "catch{}close()" not in script
+
+
+def test_roleplay_uses_canonical_prototype_viewer_and_alpha_assets_revalidate():
+    workspace = (ROOT / "Components/WorkspaceSurface.razor").read_text()
+    host = (ROOT / "Components/WorldBuilderGeonaphHost.razor").read_text()
+    prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
+    workflow = (ROOT.parents[1] / ".github/workflows/deploy-rist-frontend-aws.yml").read_text()
+    assert '<WorldBuilderGeonaphHost EmbeddedRoleplay="true" />' in workspace
+    assert ".ws-table-host{box-sizing:border-box;position:relative;" in workspace
+    assert "[Parameter] public bool EmbeddedRoleplay" in host
+    assert "!EmbeddedRoleplay && Session.IsGeonaphWorld" in host
+    assert "20260920-canonical-roleplay-1" in host
+    assert "20260920-canonical-roleplay-1" in prototype
+    assert "--cache-control 'public,max-age=0,must-revalidate'" in workflow
