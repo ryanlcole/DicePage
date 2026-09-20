@@ -69,6 +69,7 @@ const planeByKey={surface,highlands,mountains};
 const CANONICAL_PLANE_KEYS=Object.freeze(['surface','highlands','mountains']);
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
+let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
@@ -849,6 +850,7 @@ function openSpriteUpload(){
 function closeSpriteUpload(returnToSprites=true){
   spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');
   if(returnToSprites){keyboardMode='Sprites';renderKeyboardTabs();renderKeyboardKeys()}
+  keyboardToggle.focus();
 }
 function syncSpriteFrameCount(){const cols=clamp(Math.trunc(Number(spriteColumns.value)||1),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||1),1,16);spriteFrameCount.value=String(cols*rows)}
 function whitenToAlpha(data){
@@ -1091,7 +1093,7 @@ function cyclePlacedSelection(delta=1){
   selectUserImage(items[next]);announce(`Selected ${placedContentLabel(items[next],next)}.`);
 }
 function placedContentSelect(){
-  const select=document.createElement('select');select.className='placed-content-select';select.setAttribute('aria-label','Select existing placed content');
+  const select=document.createElement('select');select.className='placed-content-select';select.setAttribute('data-focus-key','placed-content');select.setAttribute('aria-label','Select existing placed content');
   const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=userLayers.length?'Select existing content…':'No placed content';placeholder.disabled=!!userLayers.length;placeholder.selected=!selectedImage;select.appendChild(placeholder);
   selectablePlacedContent().forEach((item,index)=>{
     const option=document.createElement('option');option.value=item.id;option.textContent=placedContentLabel(item,index);option.selected=item===selectedImage;select.appendChild(option);
@@ -1109,6 +1111,7 @@ function removeSelectedImage(){
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
   if(READ_ONLY||item?.sourceLocked)return;
+  if(event.pointerType==='mouse'&&event.button!==0)return;
   if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   suspendRegionEnhancement();
@@ -1124,7 +1127,12 @@ function moveImageDrag(event){
   refreshUserImage(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
-function endImageDrag(event){if(!imageDrag||imageDrag.id!==event.pointerId)return;imageDrag.item.node.releasePointerCapture?.(event.pointerId);imageDrag=null;scheduleRegionEnhancement(40)}
+function endImageDrag(event){
+  if(!imageDrag||imageDrag.id!==event.pointerId)return;
+  const drag=imageDrag;imageDrag=null;
+  if(drag.item.node.hasPointerCapture?.(event.pointerId))drag.item.node.releasePointerCapture(event.pointerId);
+  scheduleRegionEnhancement(40);
+}
 async function placeUploadedImage(file){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!file?.type?.startsWith('image/')){announce('Choose an image file.');return}
@@ -1226,6 +1234,8 @@ function fitMap(){
   if(REGION_DEFINER&&regionClaimedRegion&&regionClaimBounds(regionClaimedRegion)){fitClaimedRegion(regionClaimedRegion);return}
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect();
+  if(r.width<=0||r.height<=0)return;
+  viewerSize={width:r.width,height:r.height};
   minScale=Math.min(r.width/naturalWidth,r.height/naturalHeight);
   scale=minScale;
   maxScale=Math.max(minScale*24,8);
@@ -1251,13 +1261,13 @@ function zoomCenter(factor){
   zoomAt(r.left+r.width/2,r.top+r.height/2,factor);
 }
 function bindTap(button,fn){
-  let lastTouch=0;
+  let lastTouch=-Infinity;
   button.addEventListener('pointerup',event=>{
     if(event.pointerType!=='touch'&&event.pointerType!=='pen')return;
     event.preventDefault();event.stopPropagation();lastTouch=performance.now();fn();
   });
   button.addEventListener('click',event=>{
-    if(performance.now()-lastTouch<500)return;
+    if(event.detail!==0&&performance.now()-lastTouch<500)return;
     event.stopPropagation();fn();
   });
 }
@@ -1271,7 +1281,7 @@ function keyboardModes(){
   if(CLAIM_ONLY)return['Select'];
   return BASE_KEYBOARD_MODES;
 }
-function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
+function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('data-focus-key',label);b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
   const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
 }
@@ -2614,8 +2624,10 @@ function spriteLibraryKey(asset){
 function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibraryPage=0;renderKeyboardKeys();announce(`${folder} sprite folder opened.`)}
 function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
-function renderKeyboardTabs(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
-function renderKeyboardKeys(){
+function renderKeyboardTabs(){RistViewerInput.preserveFocus(keyboardTabs,renderKeyboardTabsContent,keyboardToggle)}
+function renderKeyboardTabsContent(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
+function renderKeyboardKeys(){RistViewerInput.preserveFocus(keyboardKeys,renderKeyboardKeysContent,keyboardToggle)}
+function renderKeyboardKeysContent(){
   if(!keyboardKeys)return;
   keyboardKeys.replaceChildren();
   if(REGION_DEFINER)updateRegionSelectionOverlay();
@@ -2787,7 +2799,7 @@ function renderKeyboardKeys(){
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
 function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Close Region Definer keyboard':'Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();if(REGION_DEFINER)updateRegionSelectionOverlay();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
-function closeKeyboard(){keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Open Region Definer keyboard':'Open World Builder keyboard');if(REGION_DEFINER)updateRegionSelectionOverlay();announce('Keyboard hidden. Viewer unobstructed.')}
+function closeKeyboard(){const restoreFocus=keyboard.contains(document.activeElement);keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Open Region Definer keyboard':'Open World Builder keyboard');if(REGION_DEFINER)updateRegionSelectionOverlay();if(restoreFocus)keyboardToggle.focus();announce('Keyboard hidden. Viewer unobstructed.')}
 
 BASE_WORLD_ASSETS.forEach(asset=>{
   const node=planeByKey[asset.key];
@@ -2912,7 +2924,7 @@ imageUploadClose.addEventListener('click',closeImageUpload);
 imageBrowse.addEventListener('click',()=>imageFile.click());
 imageFile.addEventListener('change',()=>{const file=imageFile.files?.[0];if(file)void placeUploadedImage(file);imageFile.value=''});
 imageDropzone.addEventListener('click',event=>{if(event.target===imageDropzone)imageFile.click()});
-imageDropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();imageFile.click()}});
+imageDropzone.addEventListener('keydown',event=>{if(event.target===imageDropzone&&(event.key==='Enter'||event.key===' ')){event.preventDefault();imageFile.click()}});
 for(const type of ['dragenter','dragover'])imageDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();imageDropzone.classList.add('dragover')});
 for(const type of ['dragleave','drop'])imageDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();imageDropzone.classList.remove('dragover')});
 imageDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedImage(file)});
@@ -2921,18 +2933,26 @@ spriteBrowse.addEventListener('keydown',event=>{if(event.key==='Enter'||event.ke
 spriteFile.addEventListener('change',()=>{const file=spriteFile.files?.[0];if(file)void placeUploadedSprite(file);spriteFile.value=''});
 spriteColumns.addEventListener('input',syncSpriteFrameCount);spriteRows.addEventListener('input',syncSpriteFrameCount);
 spriteDropzone.addEventListener('click',event=>{if(event.target===spriteDropzone)spriteFile.click()});
-spriteDropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();spriteFile.click()}});
+spriteDropzone.addEventListener('keydown',event=>{if(event.target===spriteDropzone&&(event.key==='Enter'||event.key===' ')){event.preventDefault();spriteFile.click()}});
 for(const type of ['dragenter','dragover'])spriteDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();spriteDropzone.classList.add('dragover')});
 for(const type of ['dragleave','drop'])spriteDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();spriteDropzone.classList.remove('dragover')});
 spriteDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedSprite(file)});
 $('keyboardClose').addEventListener('click',closeKeyboard);
 
-stage.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY<0?1.12:1/1.12)},{passive:false});
+stage.addEventListener('wheel',e=>{
+  if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
+  if(!e.deltaY)return;
+  e.preventDefault();
+  const unit=e.deltaMode===1?16:e.deltaMode===2?stage.clientHeight:1;
+  zoomAt(e.clientX,e.clientY,Math.exp(-clamp(e.deltaY*unit,-240,240)*.0015));
+},{passive:false});
 stage.addEventListener('pointerdown',e=>{
   if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
+  if(e.target instanceof Element&&e.target.closest('button,input,select,textarea,a[href],[contenteditable]:not([contenteditable="false"])'))return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
   if(!(e.target instanceof Element&&e.target.closest('.user-image-placement')))deselectUserImage(false);
   suspendRegionEnhancement();
-  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.pointerType==='mouse')stage.focus({preventScroll:true});
   if(e.pointerType!=='mouse')e.preventDefault();
   if(e.pointerType==='mouse')stage.setPointerCapture?.(e.pointerId);
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -2962,13 +2982,39 @@ stage.addEventListener('pointermove',e=>{
   }
 });
 function release(e){
+  if(!pointers.has(e.pointerId))return;
   pointers.delete(e.pointerId);
   if(!pointers.size){panStart=pinchStart=null;stage.classList.remove('dragging');scheduleRegionEnhancement(45)}
   else if(pointers.size===1){const[r]=[...pointers.values()];panStart={pointerX:r.x,pointerY:r.y,x,y};pinchStart=null}
+  if(stage.hasPointerCapture?.(e.pointerId))stage.releasePointerCapture(e.pointerId);
 }
 stage.addEventListener('pointerup',release);
 stage.addEventListener('pointercancel',release);
-window.addEventListener('resize',()=>{fitMap();scheduleRegionEnhancement(80)},{passive:true});
+stage.addEventListener('lostpointercapture',event=>{release(event);endImageDrag(event)});
+window.addEventListener('blur',()=>{
+  for(const pointerId of [...pointers.keys()])release({pointerId});
+  if(imageDrag)endImageDrag({pointerId:imageDrag.id});
+});
+// Observe the actual host, including its first nonzero layout, without resetting
+// the user's zoom or world point under the viewport center on every resize.
+function resizeViewer(){
+  const rect=stage.getBoundingClientRect(),next={width:rect.width,height:rect.height};
+  if(next.width<=0||next.height<=0)return;
+  const camera=RistViewerInput.resizeCamera({x,y,fitX,fitY,scale},viewerSize,next);
+  viewerSize=next;
+  if(!camera){fitMap();return}
+  ({x,y,fitX,fitY}=camera);
+  applyTransform();scheduleRegionEnhancement(80);
+}
+const viewerResizeObserver=new ResizeObserver(resizeViewer);
+viewerResizeObserver.observe(stage);
+RistViewerInput.install({stage,document,
+  pan:(dx,dy)=>{x+=dx;y+=dy;applyTransform()},zoom:zoomCenter,fit:fitMap,
+  tiers:()=>tierToggle.click(),settings:openViewerSettings,
+  upload:()=>{if(!imageUploadToggle.disabled)openImageUpload()},
+  keyboard:()=>{openKeyboard();$('keyboardClose').focus()},
+  modal:()=>[viewerSettingsPanel,spriteUploadPanel,imageUploadPanel].find(panel=>!panel.hidden)
+});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!spriteUploadPanel.hidden){closeSpriteUpload();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
 window.ShaelvienPrototype=Object.freeze({

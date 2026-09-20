@@ -49,6 +49,12 @@ jobs:
       - name: Verify authenticated launch contract
         run: python apps/rist-world/tests/authenticated_launch_contract_check.py
 
+      - name: Verify canonical viewer input
+        run: |
+          npm install --prefix "$RUNNER_TEMP/rist-viewer-tests" --no-audit --no-fund jsdom@26.1.0
+          node --check apps/rist-world/wwwroot/prototype/prototype.js
+          NODE_PATH="$RUNNER_TEMP/rist-viewer-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs
+
       - name: Build RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 

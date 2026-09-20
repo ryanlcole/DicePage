@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20260920-canonical-roleplay-1" />
+  <link rel="stylesheet" href="./prototype.css?v=20260920-desktop-input-1" />
 </head>
 <body>
 <main class="shell" aria-label="Shaelvien World Builder">
-  <section id="stage" class="stage" aria-label="Interactive layered world viewer">
+  <section id="stage" class="stage" tabindex="0" aria-describedby="viewerShortcuts" aria-label="Interactive layered world viewer">
     <button id="persistentSave" class="persistent-save" type="button" aria-label="Save World Builder" title="Save World Builder" data-ui>
       <img src="../assets/ui/icons/save.svg" alt="" aria-hidden="true" draggable="false" />
     </button>
@@ -36,6 +36,7 @@
     <section id="viewerSettingsPanel" class="viewer-settings-panel" role="dialog" aria-modal="true" aria-label="World Builder settings" hidden data-ui>
       <div class="viewer-settings-card">
         <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
+        <p id="viewerShortcuts">Focus the map with Tab or click its background. Arrow keys pan (Shift for larger steps), + / = and − zoom, F fits the map, T opens tiers, S settings, K the tool keyboard, and U image upload when editing is allowed. Escape closes panels. Tab moves to controls; Enter or Space activates buttons.</p>
         <button id="settingsFit" type="button" aria-label="Fit map to screen"><span aria-hidden="true">⛶</span><strong aria-hidden="true">View</strong></button>
         <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Tilt</strong></button>
         <button id="settingsUpscale" type="button" aria-pressed="false" aria-label="Enable two times high resolution rendering"><span aria-hidden="true">2×</span><strong id="settingsUpscaleLabel">Upscale</strong></button>
@@ -86,6 +87,7 @@
     <div id="live" class="sr-live" role="status" aria-live="polite"></div>
   </section>
 </main>
-<script src="./prototype.js?v=20260920-canonical-roleplay-1"></script>
+<script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
+<script src="./prototype.js?v=20260920-desktop-input-1"></script>
 </body>
 </html>
