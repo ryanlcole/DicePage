@@ -41,12 +41,18 @@ def test_mmo_and_sandbox_world_navigation_are_separate():
     assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in gate
     assert "SHAELVIEN MMO · PROPERTY SPACE" not in gate
 
-    assert "MMO WORLD" in shell
+    assert "LandingWorldSelectorLabel" in shell
     assert "SELECT MMO WORLD" in shell
+    assert "SELECT SANDBOX WORLD" in shell
     assert "directory.Worlds.Where(WorldSession.IsMmoWorldReference)" in shell
+    assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in shell
     assert "CREATE / IMPORT…" not in shell
     assert "SANDBOX WORLDS" in shell
 
-    assert "await EnterMmoLandingAsync();" in authenticated
+    assert "Choose Your Environment" in authenticated
+    assert "EnterShaelvienAsync" in authenticated
+    assert "EnterSandboxAsync" in authenticated
+    assert "_launchSandboxWorlds" in authenticated
     assert "directory.Worlds.Where(WorldSession.IsMmoWorldReference)" in authenticated
+    assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in authenticated
     assert 'RequireSelection="true"' not in authenticated
