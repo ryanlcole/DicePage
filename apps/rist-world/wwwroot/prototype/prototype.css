@@ -78,7 +78,10 @@
     .stage.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + env(safe-area-inset-bottom))}
     .region-enhance-canvas{position:absolute;z-index:9;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .12s linear;will-change:opacity}
     .region-enhance-canvas.active{opacity:1}
-    .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
+    .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none;background:
+      radial-gradient(circle at 50% 42%,rgba(27,101,131,.72),rgba(2,24,37,.98) 72%),
+      repeating-linear-gradient(0deg,rgba(178,221,236,.045) 0 1px,transparent 1px calc(100% / 30)),
+      repeating-linear-gradient(90deg,rgba(178,221,236,.045) 0 1px,transparent 1px calc(100% / 30))}
     .region-world-source-ocean{position:absolute;inset:0;z-index:90;pointer-events:none;background:
       radial-gradient(circle at 50% 42%,rgba(24,89,114,.48),rgba(3,25,38,.94) 72%),
       repeating-linear-gradient(0deg,rgba(176,218,232,.055) 0 1px,transparent 1px calc(100% / 30)),
@@ -116,6 +119,9 @@
     .stage.region-cropped .region-definition-grid{opacity:0;pointer-events:none}
     .stage.region-cropped.region-build-mode .region-definition-grid{opacity:.28;pointer-events:none}
     .stage.region-cropped.region-build-mode .region-definition-cell{border-color:rgba(188,216,228,.22)!important;background:transparent!important}
+    .region-claim-outline{position:absolute;z-index:980;pointer-events:none;border:4px solid rgba(244,207,104,.96);box-shadow:0 0 0 2px rgba(6,12,16,.92),0 0 22px rgba(244,207,104,.48),inset 0 0 22px rgba(244,207,104,.14);border-radius:3px}
+    .region-claim-outline::after{content:attr(data-label);position:absolute;left:50%;top:0;transform:translate(-50%,-115%);padding:4px 7px;border:1px solid rgba(230,194,100,.82);border-radius:999px;background:rgba(4,11,15,.9);color:#ffe39a;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap}
+    .stage.region-cropped .region-claim-outline{border-width:3px}
     .plane{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none;transform-origin:50% 50%;will-change:transform,opacity;transition:opacity .16s linear}
     .plane.base{z-index:100;opacity:1}
     .plane.highlands{z-index:200}
