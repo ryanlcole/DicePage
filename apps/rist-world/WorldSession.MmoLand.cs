@@ -182,6 +182,7 @@ public sealed partial class WorldSession
         var authority = new AwsAuthorityClient(http, auth);
         await authority.InitializeAsync();
         AwsAuthorityClient.MmoParcel? claimed = null;
+        string committedTokenId = "";
 
         for (var attempt = 0; attempt < 2 && claimed is null; attempt++)
         {
@@ -193,6 +194,7 @@ public sealed partial class WorldSession
             {
                 claimed = await authority.ClaimMmoParcelAsync(WorldId, cellIndex, displayName, tokenId)
                     ?? throw new InvalidOperationException("The Shaelvien property-space claim was not accepted.");
+                committedTokenId = tokenId;
             }
             catch (HttpRequestException ex)
             {
@@ -239,10 +241,30 @@ public sealed partial class WorldSession
         if (claimed is null)
             throw new InvalidOperationException("The Shaelvien property-space claim could not be completed.");
 
-        await RefreshMmoLandAsync();
-        await LoadRegionsAsync();
-        if (!string.IsNullOrWhiteSpace(claimed.RegionId))
-            SetActiveRegion(claimed.RegionId);
+        // The POST response is the authoritative committed parcel. Reflect it
+        // immediately in the client before doing any secondary region/directory
+        // reads. A slow follow-up read must never make a successful claim look
+        // unspent or leave the claim dialog open.
+        var parcelIndex = _mmoParcels.FindIndex(parcel =>
+            string.Equals(parcel.ParcelId, claimed.ParcelId, StringComparison.Ordinal));
+        if (parcelIndex >= 0)
+            _mmoParcels[parcelIndex] = claimed;
+        else
+            _mmoParcels.Add(claimed);
+
+        var tokenIndex = _mmoWorldTokens.FindIndex(token =>
+            string.Equals(token.TokenId, committedTokenId, StringComparison.Ordinal));
+        if (tokenIndex >= 0)
+        {
+            var token = _mmoWorldTokens[tokenIndex];
+            _mmoWorldTokens[tokenIndex] = token with
+            {
+                Status = "spent",
+                PurchasedWorldId = WorldId,
+                ParcelId = claimed.ParcelId,
+                BindingHash = claimed.BindingHash
+            };
+        }
 
         _mmoLandStatus = $"{claimed.DisplayName} property space claimed · {claimed.PixelWidth}×{claimed.PixelHeight} px · {claimed.MaxHeight} layers.";
         Notify();
