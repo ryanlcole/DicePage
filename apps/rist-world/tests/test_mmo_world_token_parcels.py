@@ -47,7 +47,7 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert "return response(200, public_parcel(existing_parcel))" in backend
     assert "latest_token = world_token_for_parcel(user_id, parcel_id)" in backend
     assert "def normalize_unspent_world_token(user_id, token):" in backend
-    assert "token = normalize_unspent_world_token(user_id, token)" in backend
+    assert "normalize_unspent_world_token(user_id, item)" in backend
     assert '"ConditionExpression": "#status = :unspent"' in backend
     assert '"#status = :unspent AND tokenId = :tokenId"' not in backend
     assert '"#status = :unspent AND holderUserId = :userId"' not in backend
@@ -56,6 +56,11 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert "ensure_parcel_region(world_id, parcel_item, now)" in claim_block
     assert "ensure_parcel_region(world_id, existing_parcel, now)" in claim_block
     assert "region_item" not in claim_block.split("claim_transaction = [", 1)[1].split("claim_committed = False", 1)[0]
+    transaction_block = claim_block.split("claim_transaction = [", 1)[1].split("claim_committed = False", 1)[0]
+    assert '"Update": {' not in transaction_block
+    assert "spent_token = {" in claim_block
+    assert '"Item": _ddb_map(dynamo_safe(spent_token))' in transaction_block
+    assert transaction_block.count('"Put": {') == 2
 
 
 def test_claimed_parcel_cannot_be_taken_or_grown_by_region_save():
