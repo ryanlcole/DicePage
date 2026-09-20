@@ -75,7 +75,7 @@ public sealed partial class WorldSession
 
     public int CountOwnedCommercialWorlds(IEnumerable<AccountWorldReference> worlds) =>
         worlds.Count(world =>
-            !string.Equals(world.WorldId, GeonaphWorldId, StringComparison.Ordinal) &&
+            IsSandboxWorldReference(world) &&
             string.Equals(world.Relationship, "owner", StringComparison.OrdinalIgnoreCase));
 
     public bool CanCreateAdditionalOwnedWorld(IEnumerable<AccountWorldReference> worlds)
