@@ -37,30 +37,46 @@
  </section>
 
  <footer class="perceiver-footer">
-  <div class="perceiver-controls" aria-label="Playback controls">
-   <button type="button" @onclick="PreviousAsync" aria-label="Previous tier combination">◀ PREV</button>
+  <div class="perceiver-control-row perceiver-transport" aria-label="Playback controls">
+   <button type="button" @onclick="PreviousAsync" aria-label="Previous layer view">◀</button>
    <button type="button" @onclick="PlayAsync">PLAY</button>
    <button type="button" @onclick="PauseAsync">PAUSE</button>
-   <button type="button" @onclick="RestartAsync">RESTART</button>
-   <button type="button" @onclick="NextAsync" aria-label="Next tier combination">NEXT ▶</button>
+   <button type="button" @onclick="RestartAsync">↺</button>
+   <button type="button" @onclick="NextAsync" aria-label="Next layer view">▶</button>
+  </div>
+
+  <div class="perceiver-control-row perceiver-view-controls" aria-label="View controls">
    <button type="button" @onclick="ZoomOutAsync" aria-label="Zoom out">−</button>
    <button type="button" @onclick="ZoomInAsync" aria-label="Zoom in">+</button>
    <button type="button" @onclick="FitAsync" aria-label="Fit the current Perceiver scene">FIT</button>
+   <button type="button" data-perceiver-fullscreen-button>FULL SCREEN</button>
+   <button type="button" data-perceiver-motion-button>TILT</button>
+  </div>
+
+  <div class="perceiver-control-row perceiver-source-controls">
    <button type="button" data-perceiver-upload-button>UPLOAD VIDEO</button>
    <button type="button" data-perceiver-endemar-button>ENDEMAR</button>
-   <button type="button" data-perceiver-fullscreen-button>FULL SCREEN</button>
-   <button type="button" data-perceiver-motion-button>TILT / MOTION</button>
+   <div class="perceiver-speed">
+    <label for="perceiver-speed-select">Speed</label>
+    <select id="perceiver-speed-select" @onchange="SetSpeedAsync" aria-label="Perceiver playback speed">
+     <option value="0.5">0.5x</option>
+     <option value="1" selected>1x</option>
+     <option value="1.5">1.5x</option>
+     <option value="2">2x</option>
+    </select>
+   </div>
    <input type="file" accept="video/*" data-perceiver-video-input hidden aria-label="Choose a video for spectral conversion" />
   </div>
 
-  <div class="perceiver-speed">
-   <label for="perceiver-speed-select">Speed</label>
-   <select id="perceiver-speed-select" @onchange="SetSpeedAsync" aria-label="Perceiver playback speed">
-    <option value="0.5">0.5x</option>
-    <option value="1" selected>1x</option>
-    <option value="1.5">1.5x</option>
-    <option value="2">2x</option>
-   </select>
+  <div class="perceiver-layer-strip" data-perceiver-layer-strip hidden aria-label="Spectral video layers">
+   <button type="button" data-perceiver-layer="all" aria-pressed="false">ALL</button>
+   <button type="button" data-perceiver-layer="1" aria-pressed="false">1 VIO</button>
+   <button type="button" data-perceiver-layer="2" aria-pressed="false">2 BLU</button>
+   <button type="button" data-perceiver-layer="3" aria-pressed="false">3 CYN</button>
+   <button type="button" data-perceiver-layer="4" aria-pressed="false">4 GRN</button>
+   <button type="button" data-perceiver-layer="5" aria-pressed="false">5 YLW</button>
+   <button type="button" data-perceiver-layer="6" aria-pressed="false">6 ORG</button>
+   <button type="button" data-perceiver-layer="7" aria-pressed="false">7 RED</button>
   </div>
 
   <p class="perceiver-proof-note"><span data-perceiver-mode-note>1 → 2 → 3 → 1+2 → 1+3 → 2+3 → 1+2+3 → repeat</span></p>
@@ -76,12 +92,19 @@
  .perceiver-toolbar-button:hover,.perceiver-controls button:hover{border-color:#c6a253}.perceiver-controls button:focus-visible,.perceiver-toolbar-button:focus-visible,.perceiver-speed select:focus-visible,.perceiver-canvas:focus-visible{outline:2px solid #e4c369;outline-offset:2px}
  .perceiver-readout-line{display:flex;gap:6px;align-items:center;color:#9fb4bd;font:700 9px/1 system-ui;text-transform:uppercase;letter-spacing:.08em}.perceiver-readout-line b{color:#f0d389}.perceiver-source{color:#7897a4;font:800 8px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
  .perceiver-stage-shell{min-width:0;min-height:0;padding:10px}.perceiver-stage{position:relative;width:100%;height:100%;min-height:320px;border:1px solid rgba(174,142,73,.38);border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 38%,rgba(38,95,128,.14),transparent 36%),linear-gradient(180deg,#04090d,#071118 52%,#03070b);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 14px 42px rgba(0,0,0,.34)}
- .perceiver-canvas{position:absolute;inset:0;overflow:hidden;touch-action:none}
- .perceiver-footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:9px 12px;border-top:1px solid rgba(170,138,69,.28);background:rgba(4,10,14,.86)}
- .perceiver-controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.perceiver-speed{display:flex;gap:8px;align-items:center;justify-content:center}.perceiver-speed label{color:#8fb6c7;font:800 10px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
- .perceiver-proof-note{justify-self:end;margin:0;color:#a9b8bf;font:700 10px/1.3 system-ui;text-align:right}
- @@media(max-width:900px){.perceiver-toolbar{grid-template-columns:1fr;justify-items:center;text-align:center}.perceiver-toolbar-left,.perceiver-toolbar-right{justify-content:center}.perceiver-footer{grid-template-columns:1fr;justify-items:center;text-align:center}.perceiver-controls{justify-content:center}.perceiver-proof-note{justify-self:center;text-align:center}}
- @@media(max-width:560px){.perceiver-stage-shell{padding:6px}.perceiver-stage{min-height:260px}.perceiver-controls button{min-height:42px;padding:0 9px;font-size:10px}.perceiver-toolbar{padding:7px}.perceiver-footer{padding:7px}}
+ .perceiver-canvas{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;touch-action:none}
+ .perceiver-footer{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:7px;padding:7px 10px;border-top:1px solid rgba(170,138,69,.28);background:rgba(4,10,14,.90)}
+ .perceiver-control-row{display:flex;gap:5px;align-items:center;min-width:0}.perceiver-control-row button,.perceiver-layer-strip button{min-height:34px;border:1px solid #5b6e77;border-radius:7px;background:#0f1a20;color:#ecd9a5;padding:0 9px;font:800 9px/1 system-ui;touch-action:manipulation;white-space:nowrap}
+ .perceiver-control-row button:hover,.perceiver-layer-strip button:hover{border-color:#c6a253}.perceiver-source-controls{justify-self:end}.perceiver-speed{display:flex;gap:5px;align-items:center;justify-content:center}.perceiver-speed label{color:#8fb6c7;font:800 9px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
+ .perceiver-layer-strip{grid-column:1/-1;display:flex;gap:4px;align-items:center;justify-content:center;overflow-x:auto;padding:1px 0 0;scrollbar-width:none}.perceiver-layer-strip[hidden]{display:none}.perceiver-layer-strip::-webkit-scrollbar{display:none}.perceiver-layer-strip button{min-width:52px;padding:0 7px}.perceiver-layer-strip button.active{border-color:#e2bd61;background:#2a210d;color:#ffe39b}
+ .perceiver-proof-note{grid-column:1/-1;justify-self:center;margin:0;color:#8ea4ae;font:700 9px/1.2 system-ui;text-align:center}
+ .perceiver-workspace:fullscreen,.perceiver-workspace.perceiver-pseudo-fullscreen{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;background:#02070a}
+ .perceiver-workspace:fullscreen{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+ .perceiver-workspace.perceiver-pseudo-fullscreen{position:fixed!important;inset:0!important;z-index:2147483000!important;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+ .perceiver-workspace:fullscreen .perceiver-stage-shell,.perceiver-workspace.perceiver-pseudo-fullscreen .perceiver-stage-shell{padding:3px}
+ .perceiver-workspace:fullscreen .perceiver-stage,.perceiver-workspace.perceiver-pseudo-fullscreen .perceiver-stage{border-radius:6px;min-height:0}
+ @@media(max-width:900px){.perceiver-toolbar{grid-template-columns:1fr;justify-items:center;text-align:center;padding:6px}.perceiver-toolbar-left,.perceiver-toolbar-right{justify-content:center}.perceiver-footer{grid-template-columns:1fr 1fr;gap:5px;padding:5px 6px}.perceiver-transport,.perceiver-view-controls{justify-content:center}.perceiver-source-controls{grid-column:1/-1;justify-self:center}.perceiver-layer-strip,.perceiver-proof-note{grid-column:1/-1}.perceiver-source{display:none}}
+ @@media(max-width:560px){.perceiver-stage-shell{padding:4px}.perceiver-stage{min-height:300px}.perceiver-toolbar-center small{font-size:8px}.perceiver-readout-line{font-size:8px}.perceiver-control-row button,.perceiver-layer-strip button{min-height:32px;padding:0 7px;font-size:8px}.perceiver-footer{padding:4px}.perceiver-proof-note{font-size:8px}.perceiver-layer-strip{justify-content:flex-start;padding-inline:2px}}
  @@media(prefers-reduced-motion:reduce){.perceiver-proof-note::after{content:" · reduced motion";}}
 </style>
 
@@ -178,7 +201,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-center-fullscreen-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-seven-layer-video-1");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
@@ -187,9 +210,13 @@
    sceneTitle = "Endemar Three-Tier Parallax Proof",
    spectralBands = new[]
    {
-    new { tier = 1, label = "FAST · SHORT WAVELENGTH · VIOLET / BLUE" },
-    new { tier = 2, label = "MID · GREEN / YELLOW" },
-    new { tier = 3, label = "SLOW · LONG WAVELENGTH · ORANGE / RED" }
+    new { tier = 1, label = "VIOLET · FASTEST · SHORTEST" },
+    new { tier = 2, label = "BLUE" },
+    new { tier = 3, label = "CYAN" },
+    new { tier = 4, label = "GREEN · STRUCTURAL MID" },
+    new { tier = 5, label = "YELLOW" },
+    new { tier = 6, label = "ORANGE" },
+    new { tier = 7, label = "RED · SLOWEST · LONGEST" }
    }
   });
  }
