@@ -1,0 +1,78 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def read(relative):
+    return (ROOT / relative).read_text(encoding="utf-8")
+
+
+def test_perceiver_is_live_on_shaelvien_landing_hub_without_replacing_immersion_builder():
+    shell = read("Components/PublicAlphaShell.razor")
+    router = read("Components/TaskWorkspaceRouter.razor")
+
+    assert '<strong>PERCEIVER</strong>' in shell
+    assert '@onclick="OpenPerceiver"' in shell
+    assert 'void OpenPerceiver(){if(!WorldReady||!Session.IsGeonaphWorld)return;' in shell
+    assert '"perceiver"' in shell
+    assert '<PerceiverWorkspace OnStartMenu="OnStartMenu" OnHome="OnHome" />' in router
+
+    # Perceiver is playback. ImmersionBuilder remains its separate authoring surface.
+    assert '<strong>IMMERSIONBUILDER</strong>' in shell
+    assert '<ImmersionBuilderWorkspace />' in router
+
+
+def test_perceiver_reads_three_canonical_tiers_from_world_database_before_fallback():
+    workspace = read("Components/PerceiverWorkspace.razor")
+
+    assert "Session.LoadWorldBuilderSourceAsync()" in workspace
+    assert 'state.TryGetProperty("tierImages"' in workspace
+    assert ".Take(3)" in workspace
+    assert "if(found.Length == 3)" in workspace
+    assert '_sourceBadge = "DATABASE SOURCE"' in workspace
+
+    # Failure to hydrate the database must not strand the landing experience.
+    assert "CanonicalFallbackTierImages" in workspace
+    assert "DATABASE UNAVAILABLE · CANONICAL FALLBACK" in workspace
+
+
+def test_perceiver_proof_sequence_and_reactive_depth_contract():
+    player = read("wwwroot/perceiver-player.js")
+
+    expected = [
+        "{ label: 'Tier 1', tiers: [0] }",
+        "{ label: 'Tier 2', tiers: [1] }",
+        "{ label: 'Tier 3', tiers: [2] }",
+        "{ label: 'Tier 1 + Tier 2', tiers: [0, 1] }",
+        "{ label: 'Tier 1 + Tier 3', tiers: [0, 2] }",
+        "{ label: 'Tier 2 + Tier 3', tiers: [1, 2] }",
+        "{ label: 'Tier 1 + Tier 2 + Tier 3', tiers: [0, 1, 2] }",
+    ]
+    positions = [player.index(item) for item in expected]
+    assert positions == sorted(positions)
+
+    assert "const DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);" in player
+    assert "deviceorientation" in player
+    assert "screenAdjusted" in player
+    assert "applyPointerTarget" in player
+    assert "lastMotionAt" in player
+    assert "motionIsLive" in player
+    assert "requestAnimationFrame" in player
+
+    # A visual movie step changes visibility only; it never flattens tiers together.
+    assert "state.layers.forEach" in player
+    assert "image.style.opacity = visible ? '1' : '0';" in player
+    assert "translate3d" in player
+
+
+def test_perceiver_has_playback_and_accessibility_controls():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    for label in ["PLAY", "PAUSE", "RESTART", "NEXT ▶", "◀ PREV", "TILT / MOTION"]:
+        assert label in workspace
+
+    assert "prefers-reduced-motion: reduce" in player
+    assert "prefers-reduced-motion:reduce" in workspace
+    assert "tabindex=\"0\"" in workspace
+    assert 'aria-label="Perceiver tiered movie player"' in workspace
