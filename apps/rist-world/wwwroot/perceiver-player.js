@@ -10,13 +10,22 @@ const STEP_SEQUENCE = Object.freeze([
   Object.freeze({ label: 'Tier 1 + Tier 2 + Tier 3', tiers: [0, 1, 2] })
 ]);
 
-const DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);
-const SPECTRAL_MAX_PIXELS = 640 * 360;
+const SPECTRAL_STEP_SEQUENCE = Object.freeze([
+  Object.freeze({ label: 'T1 Violet · Fastest', tiers: [0] }),
+  Object.freeze({ label: 'T2 Blue', tiers: [1] }),
+  Object.freeze({ label: 'T3 Cyan', tiers: [2] }),
+  Object.freeze({ label: 'T4 Green · Structure', tiers: [3] }),
+  Object.freeze({ label: 'T5 Yellow', tiers: [4] }),
+  Object.freeze({ label: 'T6 Orange', tiers: [5] }),
+  Object.freeze({ label: 'T7 Red · Slowest', tiers: [6] }),
+  Object.freeze({ label: 'All 7 Spectral Layers', tiers: [0, 1, 2, 3, 4, 5, 6] })
+]);
+
+const ENDEMAR_DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);
+const SPECTRAL_DEPTH_FACTORS = Object.freeze([1.00, 0.88, 0.76, 0.64, 0.52, 0.40, 0.30]);
+const SPECTRAL_OVERSCAN = Object.freeze([1.24, 1.20, 1.16, 1.13, 1.10, 1.07, 1.04]);
+const SPECTRAL_MAX_PIXELS = 512 * 288;
 const SPECTRAL_FRAME_INTERVAL_MS = 1000 / 30;
-const SPECTRAL_FAST_MIN = 185;
-const SPECTRAL_FAST_MAX = 315;
-const SPECTRAL_MID_MIN = 65;
-const SPECTRAL_MID_MAX = 185;
 const MIN_CAMERA_SCALE = 1;
 const MAX_CAMERA_SCALE = 256;
 const ZOOM_STEP = 1.22;
@@ -32,23 +41,41 @@ function setText(node, value) {
   if (node && node.textContent !== value) node.textContent = value;
 }
 
+function sequenceFor(state) {
+  return state.mode === 'spectral' ? SPECTRAL_STEP_SEQUENCE : STEP_SEQUENCE;
+}
+
+function updateLayerButtons(state) {
+  const spectral = state.mode === 'spectral';
+  if (state.layerStrip) state.layerStrip.hidden = !spectral;
+  state.layerButtons.forEach(button => {
+    const value = button.dataset.perceiverLayer || '';
+    const targetStep = value === 'all' ? SPECTRAL_STEP_SEQUENCE.length - 1 : Math.max(0, Number(value) - 1);
+    const active = spectral && targetStep === state.currentStep;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+}
+
 function updateReadout(state) {
-  setText(
-    state.labelNode,
-    state.mode === 'spectral' ? `Spectral · ${STEP_SEQUENCE[state.currentStep].label}` : STEP_SEQUENCE[state.currentStep].label
-  );
+  const sequence = sequenceFor(state);
+  const step = sequence[state.currentStep] || sequence[sequence.length - 1];
+  setText(state.labelNode, state.mode === 'spectral' ? `Spectral · ${step.label}` : step.label);
   setText(state.playStateNode, state.playing ? 'Playing' : 'Paused');
   setText(state.motionNode, state.motionEnabled ? 'Tilt Ready' : 'Pointer');
   setText(state.zoomNode, `${Math.round(state.cameraScale * 100)}%`);
   if (state.mode === 'spectral') {
-    setText(state.modeNoteNode, 'T1 FAST · VIOLET/BLUE  ·  T2 MID · GREEN/YELLOW  ·  T3 SLOW · ORANGE/RED');
+    setText(state.modeNoteNode, '7 bands · low tiers enlarged · violet → blue → cyan → green → yellow → orange → red');
   } else {
     setText(state.modeNoteNode, '1 → 2 → 3 → 1+2 → 1+3 → 2+3 → 1+2+3 → repeat');
   }
+  updateLayerButtons(state);
 }
 
 function renderStep(state) {
-  const active = new Set(STEP_SEQUENCE[state.currentStep].tiers);
+  const sequence = sequenceFor(state);
+  const step = sequence[state.currentStep] || sequence[sequence.length - 1];
+  const active = new Set(step.tiers);
   state.layers.forEach((layer, index) => {
     const visible = active.has(index);
     layer.style.opacity = visible ? '1' : '0';
@@ -59,7 +86,8 @@ function renderStep(state) {
 }
 
 function advance(state, delta) {
-  const total = STEP_SEQUENCE.length;
+  const sequence = sequenceFor(state);
+  const total = sequence.length;
   state.currentStep = (state.currentStep + delta + total) % total;
   state.lastAdvance = performance.now();
   renderStep(state);
@@ -214,16 +242,17 @@ function spectralTierForPixel(r, g, b) {
   const spectral = rgbHue(r, g, b);
 
   // Neutral pixels have no visible-spectrum wavelength. Keep them in the
-  // middle tier as the structural reference instead of inventing a frequency.
-  if (spectral.saturation < 0.10) return 1;
+  // center structural layer instead of inventing a frequency.
+  if (spectral.saturation < 0.10) return 3;
 
-  if (spectral.hue >= SPECTRAL_FAST_MIN && spectral.hue < SPECTRAL_FAST_MAX) {
-    return 0; // Short wavelength / fastest in this experiment.
-  }
-  if (spectral.hue >= SPECTRAL_MID_MIN && spectral.hue < SPECTRAL_MID_MAX) {
-    return 1;
-  }
-  return 2; // Long wavelength / slowest in this experiment.
+  const hue = spectral.hue;
+  if (hue >= 315 || hue < 20) return 6; // Red · longest / slowest.
+  if (hue < 45) return 5;               // Orange.
+  if (hue < 80) return 4;               // Yellow.
+  if (hue < 165) return 3;              // Green / structural center.
+  if (hue < 205) return 2;              // Cyan.
+  if (hue < 255) return 1;              // Blue.
+  return 0;                              // Violet · shortest / fastest.
 }
 
 function setVideoStatus(state, value) {
@@ -440,7 +469,7 @@ async function loadSpectralVideo(state, file) {
   state.video.load();
 
   state.mode = 'spectral';
-  state.currentStep = 6;
+  state.currentStep = SPECTRAL_STEP_SEQUENCE.length - 1;
   state.playing = false;
   state.endemarLayers.forEach(layer => { layer.style.display = 'none'; });
   state.spectralLayers.forEach(layer => { layer.style.display = ''; });
@@ -500,12 +529,15 @@ function animate(state, now) {
   const idleX = state.reducedMotion ? 0 : Math.sin(now * 0.00052) * 0.08;
   const idleY = state.reducedMotion ? 0 : Math.cos(now * 0.00039) * 0.06;
 
-  state.layers.forEach((image, index) => {
-    const depth = DEPTH_FACTORS[index] ?? 1;
-    const x = (state.currentX + idleX) * 26 * depth;
-    const y = (state.currentY + idleY) * 19 * depth;
-    const scale = 1.005 + depth * 0.018;
-    image.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) scale(${scale.toFixed(4)})`;
+  const depths = state.mode === 'spectral' ? SPECTRAL_DEPTH_FACTORS : ENDEMAR_DEPTH_FACTORS;
+  state.layers.forEach((layer, index) => {
+    const depth = depths[index] ?? depths[depths.length - 1] ?? 1;
+    const x = (state.currentX + idleX) * (state.mode === 'spectral' ? 32 : 26) * depth;
+    const y = (state.currentY + idleY) * (state.mode === 'spectral' ? 24 : 19) * depth;
+    const scale = state.mode === 'spectral'
+      ? (SPECTRAL_OVERSCAN[index] ?? 1.04)
+      : 1.005 + depth * 0.018;
+    layer.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) scale(${scale.toFixed(4)})`;
   });
 
   state.raf = requestAnimationFrame(frame => animate(state, frame));
@@ -592,6 +624,8 @@ export function attach(root, config = {}) {
     videoInput: root.querySelector('[data-perceiver-video-input]'),
     videoStatusNode: root.querySelector('[data-perceiver-video-status]'),
     modeNoteNode: root.querySelector('[data-perceiver-mode-note]'),
+    layerStrip: root.querySelector('[data-perceiver-layer-strip]'),
+    layerButtons: [...root.querySelectorAll('[data-perceiver-layer]')],
     mode: 'endemar',
     endemarLayers: [],
     spectralLayers: [],
@@ -617,6 +651,7 @@ export function attach(root, config = {}) {
     onUploadClick: null,
     onVideoChange: null,
     onEndemarClick: null,
+    onLayerClick: null,
     onVideoPlay: null,
     onVideoPause: null,
     onVideoSeeked: null,
@@ -652,7 +687,7 @@ export function attach(root, config = {}) {
 
   state.layers = state.endemarLayers;
 
-  state.spectralLayers = [0, 1, 2].map(index => {
+  state.spectralLayers = [0, 1, 2, 3, 4, 5, 6].map(index => {
     const layer = makeSpectralLayer(index);
     layer.style.display = 'none';
     camera.appendChild(layer);
@@ -858,6 +893,14 @@ export function attach(root, config = {}) {
     if (event.target) event.target.value = '';
   };
   state.onEndemarClick = () => resetEndemarLayers(state);
+  state.onLayerClick = event => {
+    if (state.mode !== 'spectral') return;
+    const value = event.currentTarget?.dataset?.perceiverLayer || '';
+    state.currentStep = value === 'all'
+      ? SPECTRAL_STEP_SEQUENCE.length - 1
+      : clamp(Number(value) - 1, 0, 6);
+    renderStep(state);
+  };
   state.onVideoPlay = () => {
     if (state.mode !== 'spectral') return;
     state.playing = true;
@@ -898,6 +941,7 @@ export function attach(root, config = {}) {
   document.addEventListener('webkitfullscreenchange', state.onFullscreenChange);
   state.uploadButton?.addEventListener('click', state.onUploadClick);
   state.endemarButton?.addEventListener('click', state.onEndemarClick);
+  state.layerButtons.forEach(button => button.addEventListener('click', state.onLayerClick));
   state.videoInput?.addEventListener('change', state.onVideoChange);
   state.video.addEventListener('play', state.onVideoPlay);
   state.video.addEventListener('pause', state.onVideoPause);
@@ -1015,6 +1059,7 @@ export function detach(root) {
   exitPseudoFullscreen(state);
   state.uploadButton?.removeEventListener('click', state.onUploadClick);
   state.endemarButton?.removeEventListener('click', state.onEndemarClick);
+  state.layerButtons.forEach(button => button.removeEventListener('click', state.onLayerClick));
   state.videoInput?.removeEventListener('change', state.onVideoChange);
   state.video?.removeEventListener('play', state.onVideoPlay);
   state.video?.removeEventListener('pause', state.onVideoPause);
