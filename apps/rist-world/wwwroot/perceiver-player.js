@@ -11,6 +11,9 @@ const STEP_SEQUENCE = Object.freeze([
 ]);
 
 const DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);
+const MIN_CAMERA_SCALE = 1;
+const MAX_CAMERA_SCALE = 256;
+const ZOOM_STEP = 1.22;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function stateFor(root) {
@@ -27,6 +30,7 @@ function updateReadout(state) {
   setText(state.labelNode, STEP_SEQUENCE[state.currentStep].label);
   setText(state.playStateNode, state.playing ? 'Playing' : 'Paused');
   setText(state.motionNode, state.motionEnabled ? 'Tilt Ready' : 'Pointer');
+  setText(state.zoomNode, `${Math.round(state.cameraScale * 100)}%`);
 }
 
 function renderStep(state) {
@@ -67,6 +71,42 @@ function applyPointerTarget(state, clientX, clientY) {
     state.targetX = state.pointerX;
     state.targetY = state.pointerY;
   }
+}
+
+function applyCamera(state) {
+  state.camera.style.transform =
+    `translate3d(${state.cameraX.toFixed(2)}px,${state.cameraY.toFixed(2)}px,0) scale(${state.cameraScale.toFixed(5)})`;
+  updateReadout(state);
+}
+
+function fitCameraState(state) {
+  state.cameraScale = 1;
+  state.cameraX = 0;
+  state.cameraY = 0;
+  applyCamera(state);
+}
+
+function zoomAt(state, clientX, clientY, factor) {
+  const rect = state.canvas.getBoundingClientRect();
+  if (rect.width < 1 || rect.height < 1) return;
+
+  const sx = clientX - rect.left;
+  const sy = clientY - rect.top;
+  const oldScale = state.cameraScale;
+  const nextScale = clamp(oldScale * factor, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
+  if (Math.abs(nextScale - oldScale) < 0.00001) return;
+
+  const worldX = (sx - state.cameraX) / oldScale;
+  const worldY = (sy - state.cameraY) / oldScale;
+  state.cameraScale = nextScale;
+  state.cameraX = sx - worldX * nextScale;
+  state.cameraY = sy - worldY * nextScale;
+  applyCamera(state);
+}
+
+function zoomCenter(state, factor) {
+  const rect = state.canvas.getBoundingClientRect();
+  zoomAt(state, rect.left + rect.width / 2, rect.top + rect.height / 2, factor);
 }
 
 function makeLayer(src, index) {
@@ -178,6 +218,16 @@ export function attach(root, config = {}) {
   });
   canvas.appendChild(stack);
 
+  const camera = document.createElement('div');
+  camera.className = 'perceiver-camera';
+  Object.assign(camera.style, {
+    position: 'absolute',
+    inset: '0',
+    transformOrigin: '0 0',
+    willChange: 'transform'
+  });
+  stack.appendChild(camera);
+
   const urls = Array.isArray(config.tierImages)
     ? config.tierImages.map(value => String(value || '').trim()).slice(0, 3)
     : [];
@@ -191,6 +241,7 @@ export function attach(root, config = {}) {
     root,
     canvas,
     stack,
+    camera,
     layers: [],
     currentStep: 0,
     playing: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -198,6 +249,12 @@ export function attach(root, config = {}) {
     speed: 1,
     stepDurationMs: Math.max(400, Number(config.stepDurationMs) || 2000),
     lastAdvance: performance.now(),
+    cameraScale: 1,
+    cameraX: 0,
+    cameraY: 0,
+    pointers: new Map(),
+    panStart: null,
+    pinchStart: null,
     pointerX: 0,
     pointerY: 0,
     targetX: 0,
@@ -212,15 +269,17 @@ export function attach(root, config = {}) {
     destroyed: false,
     raf: 0,
     dragging: false,
-    activePointerId: null,
     labelNode: root.querySelector('[data-perceiver-label]'),
     playStateNode: root.querySelector('[data-perceiver-play-state]'),
     motionNode: root.querySelector('[data-perceiver-motion-state]'),
+    zoomNode: root.querySelector('[data-perceiver-zoom]'),
     motionButton: root.querySelector('[data-perceiver-motion-button]'),
     onPointerMove: null,
     onPointerDown: null,
     onPointerUp: null,
     onPointerLeave: null,
+    onWheel: null,
+    onKeyDown: null,
     onDeviceOrientation: null,
     onMotionClick: null,
     onOrientationChange: null
@@ -245,7 +304,7 @@ export function attach(root, config = {}) {
     image.addEventListener('load', () => {
       image.dataset.loadState = image.dataset.fallbackActive === 'true' ? 'fallback-ready' : 'ready';
     });
-    stack.appendChild(image);
+    camera.appendChild(image);
     return image;
   });
 
@@ -261,23 +320,96 @@ export function attach(root, config = {}) {
   canvas.appendChild(vignette);
 
   state.onPointerMove = event => {
-    if (event.pointerType === 'mouse' || state.dragging) {
+    if (state.pointers.has(event.pointerId)) {
+      if (event.cancelable) event.preventDefault();
+      state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+      if (state.pointers.size === 1 && state.panStart) {
+        state.cameraX = state.panStart.x + (event.clientX - state.panStart.pointerX);
+        state.cameraY = state.panStart.y + (event.clientY - state.panStart.pointerY);
+        applyCamera(state);
+        return;
+      }
+
+      if (state.pointers.size === 2 && state.pinchStart) {
+        const [a, b] = [...state.pointers.values()];
+        const rect = canvas.getBoundingClientRect();
+        const cx = (a.x + b.x) / 2 - rect.left;
+        const cy = (a.y + b.y) / 2 - rect.top;
+        const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        const nextScale = clamp(
+          state.pinchStart.scale * (distance / state.pinchStart.distance),
+          MIN_CAMERA_SCALE,
+          MAX_CAMERA_SCALE
+        );
+        state.cameraScale = nextScale;
+        state.cameraX = cx - state.pinchStart.worldX * nextScale;
+        state.cameraY = cy - state.pinchStart.worldY * nextScale;
+        applyCamera(state);
+        return;
+      }
+    }
+
+    if (event.pointerType === 'mouse') {
       applyPointerTarget(state, event.clientX, event.clientY);
     }
   };
 
   state.onPointerDown = event => {
-    state.dragging = true;
-    state.activePointerId = event.pointerId;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (event.cancelable) event.preventDefault();
+    canvas.focus({ preventScroll: true });
     try { canvas.setPointerCapture(event.pointerId); } catch {}
-    applyPointerTarget(state, event.clientX, event.clientY);
+
+    state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    state.dragging = true;
+
+    if (state.pointers.size === 1) {
+      state.panStart = {
+        pointerX: event.clientX,
+        pointerY: event.clientY,
+        x: state.cameraX,
+        y: state.cameraY
+      };
+      state.pinchStart = null;
+    } else if (state.pointers.size === 2) {
+      const [a, b] = [...state.pointers.values()];
+      const rect = canvas.getBoundingClientRect();
+      const cx = (a.x + b.x) / 2 - rect.left;
+      const cy = (a.y + b.y) / 2 - rect.top;
+      const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      state.pinchStart = {
+        distance,
+        scale: state.cameraScale,
+        worldX: (cx - state.cameraX) / state.cameraScale,
+        worldY: (cy - state.cameraY) / state.cameraScale
+      };
+      state.panStart = null;
+    }
   };
 
   state.onPointerUp = event => {
-    if (state.activePointerId !== null && event.pointerId !== state.activePointerId) return;
-    state.dragging = false;
-    state.activePointerId = null;
-    try { canvas.releasePointerCapture(event.pointerId); } catch {}
+    if (!state.pointers.has(event.pointerId)) return;
+    state.pointers.delete(event.pointerId);
+    try {
+      if (canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    } catch {}
+
+    if (state.pointers.size === 0) {
+      state.dragging = false;
+      state.panStart = null;
+      state.pinchStart = null;
+    } else if (state.pointers.size === 1) {
+      const remaining = [...state.pointers.values()][0];
+      state.dragging = true;
+      state.panStart = {
+        pointerX: remaining.x,
+        pointerY: remaining.y,
+        x: state.cameraX,
+        y: state.cameraY
+      };
+      state.pinchStart = null;
+    }
   };
 
   state.onPointerLeave = () => {
@@ -288,6 +420,43 @@ export function attach(root, config = {}) {
     state.pointerY = 0;
     state.targetX = 0;
     state.targetY = 0;
+  };
+
+  state.onWheel = event => {
+    if (!event.deltaY) return;
+    event.preventDefault();
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1;
+    const delta = clamp(event.deltaY * unit, -240, 240);
+    zoomAt(state, event.clientX, event.clientY, Math.exp(-delta * 0.0015));
+  };
+
+  state.onKeyDown = event => {
+    if (event.key === '+' || event.key === '=') {
+      event.preventDefault();
+      zoomCenter(state, ZOOM_STEP);
+    } else if (event.key === '-' || event.key === '_') {
+      event.preventDefault();
+      zoomCenter(state, 1 / ZOOM_STEP);
+    } else if (event.key === '0' || event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      fitCameraState(state);
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      state.cameraX += 40;
+      applyCamera(state);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      state.cameraX -= 40;
+      applyCamera(state);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      state.cameraY += 40;
+      applyCamera(state);
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      state.cameraY -= 40;
+      applyCamera(state);
+    }
   };
 
   state.onDeviceOrientation = event => {
@@ -314,11 +483,14 @@ export function attach(root, config = {}) {
     state.targetY = state.motionEnabled ? 0 : state.pointerY;
   };
 
-  canvas.addEventListener('pointermove', state.onPointerMove, { passive: true });
-  canvas.addEventListener('pointerdown', state.onPointerDown, { passive: true });
-  canvas.addEventListener('pointerup', state.onPointerUp, { passive: true });
-  canvas.addEventListener('pointercancel', state.onPointerUp, { passive: true });
+  canvas.addEventListener('pointermove', state.onPointerMove, { passive: false });
+  canvas.addEventListener('pointerdown', state.onPointerDown, { passive: false });
+  canvas.addEventListener('pointerup', state.onPointerUp, { passive: false });
+  canvas.addEventListener('pointercancel', state.onPointerUp, { passive: false });
+  canvas.addEventListener('lostpointercapture', state.onPointerUp, { passive: false });
   canvas.addEventListener('pointerleave', state.onPointerLeave, { passive: true });
+  canvas.addEventListener('wheel', state.onWheel, { passive: false });
+  canvas.addEventListener('keydown', state.onKeyDown);
   state.motionButton?.addEventListener('click', state.onMotionClick);
   window.addEventListener('orientationchange', state.onOrientationChange, { passive: true });
   screen.orientation?.addEventListener?.('change', state.onOrientationChange);
@@ -334,6 +506,7 @@ export function attach(root, config = {}) {
   }
 
   STATES.set(root, state);
+  fitCameraState(state);
   renderStep(state);
   state.raf = requestAnimationFrame(frame => animate(state, frame));
 }
@@ -366,6 +539,18 @@ export function next(root) {
   advance(stateFor(root), 1);
 }
 
+export function zoomIn(root) {
+  zoomCenter(stateFor(root), ZOOM_STEP);
+}
+
+export function zoomOut(root) {
+  zoomCenter(stateFor(root), 1 / ZOOM_STEP);
+}
+
+export function fit(root) {
+  fitCameraState(stateFor(root));
+}
+
 export function setSpeed(root, speed) {
   const state = stateFor(root);
   const value = Number(speed);
@@ -388,7 +573,10 @@ export function detach(root) {
   state.canvas.removeEventListener('pointerdown', state.onPointerDown);
   state.canvas.removeEventListener('pointerup', state.onPointerUp);
   state.canvas.removeEventListener('pointercancel', state.onPointerUp);
+  state.canvas.removeEventListener('lostpointercapture', state.onPointerUp);
   state.canvas.removeEventListener('pointerleave', state.onPointerLeave);
+  state.canvas.removeEventListener('wheel', state.onWheel);
+  state.canvas.removeEventListener('keydown', state.onKeyDown);
   state.motionButton?.removeEventListener('click', state.onMotionClick);
   window.removeEventListener('orientationchange', state.onOrientationChange);
   screen.orientation?.removeEventListener?.('change', state.onOrientationChange);
