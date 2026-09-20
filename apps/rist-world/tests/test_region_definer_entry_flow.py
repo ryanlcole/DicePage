@@ -34,6 +34,9 @@ def test_new_region_uses_database_world_source_and_swipe_tier_preview():
     assert "REQUESTED_REGION_ID" in prototype
     assert "function showRegionTierPreview()" in prototype
     assert "function stepRegionTierPreview(delta)" in prototype
+    assert "if(REGION_FLOW==='new'&&!READ_ONLY)showRegionTierPreview();" in prototype
+    assert "stage.classList.add('region-tier-previewing')" in prototype
+    assert prototype.index("if(REGION_FLOW==='new'&&!READ_ONLY)showRegionTierPreview();") < prototype.index("queueMicrotask(()=>{ensureRegionSelectionOverlay();postRegionMessage('ready')})")
     assert "Swipe through the world tiers" in prototype
     assert "if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];" in prototype
 

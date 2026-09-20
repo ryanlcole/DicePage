@@ -64,6 +64,12 @@ if(REGION_DEFINER){
   persistentSave.setAttribute('aria-label','Save authorized region changes to the canonical map');
   imageUploadToggle?.setAttribute('aria-label','Add regional image');
   const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
+  // A new-region flow is tier choice first. Hide viewer chrome from the first JS paint
+  // instead of exposing the canonical viewer while the database source hydrates.
+  if(REGION_FLOW==='new'&&!READ_ONLY){
+    stage.classList.add('region-tier-previewing');
+    stage.dataset.regionEntry='tier-preview';
+  }
 }
 const planeByKey={surface,highlands,mountains};
 const CANONICAL_PLANE_KEYS=Object.freeze(['surface','highlands','mountains']);
@@ -1960,12 +1966,14 @@ function showRegionTierPreview(){
   if(viewerTier==='all')viewerTier='sea';
   updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();fitMap();updateRegionSelectionOverlay();
   stage.classList.add('region-tier-previewing');stage.classList.remove('region-selection-only','region-build-mode');
+  stage.dataset.regionEntry='tier-preview';
   const panel=ensureRegionTierPreview();if(panel){panel.hidden=false;refreshRegionTierPreview()}
   if(!keyboard.hidden)closeKeyboard();
 }
 function hideRegionTierPreview(){
   if(regionTierPreview)regionTierPreview.hidden=true;
   stage.classList.remove('region-tier-previewing');
+  stage.dataset.regionEntry='selection';
 }
 function confirmRegionTierPreview(){
   if(!REGION_DEFINER||READ_ONLY)return;
@@ -2177,6 +2185,10 @@ async function handleRegionHostMessage(event){
 }
 if(REGION_DEFINER){
   window.addEventListener('message',handleRegionHostMessage);
+  // Build the tier chooser immediately from the canonical/base tier sources. The
+  // database message may refine those images/layers later, but it must not gate
+  // the first visible step of the new-region workflow.
+  if(REGION_FLOW==='new'&&!READ_ONLY)showRegionTierPreview();
   queueMicrotask(()=>{ensureRegionSelectionOverlay();postRegionMessage('ready')});
 }else if(LIVE_WORLDBUILDER&&window.parent!==window){
   window.addEventListener('message',handleWorldBuilderHostMessage);
