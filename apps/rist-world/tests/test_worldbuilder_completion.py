@@ -80,3 +80,16 @@ def test_image_and_tile_can_be_full_world_or_adjustable_layers():
     assert "World Map always fills 100% by 100% of the world." in script
     assert ".user-image-placement.full-world-placement" in style
     assert "width:100%!important;height:100%!important" in style
+
+
+def test_empty_world_starts_with_sea_level_reference():
+    prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
+    script = (ROOT / "wwwroot/prototype/prototype.js").read_text()
+    assert "20260920-sea-level-reference-1" in prototype
+    assert "DEFAULT_SEA_LEVEL_REFERENCE" in script
+    assert "tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg" in script
+    assert "stage.dataset.seaLevelReference='ocean'" in script
+    assert "surface.dataset.referenceOnly='true'" in script
+    assert "surface.src=DEFAULT_SEA_LEVEL_REFERENCE" in script
+    assert "Sea Level ocean reference ready." in script
+    assert "intentionally not serialized as authored world content" in script
