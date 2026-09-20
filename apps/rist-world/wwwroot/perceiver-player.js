@@ -35,7 +35,7 @@ function setText(node, value) {
 function updateReadout(state) {
   setText(
     state.labelNode,
-    state.mode === 'spectral' ? 'Spectral · Tier 1 + Tier 2 + Tier 3' : STEP_SEQUENCE[state.currentStep].label
+    state.mode === 'spectral' ? `Spectral · ${STEP_SEQUENCE[state.currentStep].label}` : STEP_SEQUENCE[state.currentStep].label
   );
   setText(state.playStateNode, state.playing ? 'Playing' : 'Paused');
   setText(state.motionNode, state.motionEnabled ? 'Tilt Ready' : 'Pointer');
@@ -48,9 +48,7 @@ function updateReadout(state) {
 }
 
 function renderStep(state) {
-  const active = state.mode === 'spectral'
-    ? new Set([0, 1, 2])
-    : new Set(STEP_SEQUENCE[state.currentStep].tiers);
+  const active = new Set(STEP_SEQUENCE[state.currentStep].tiers);
   state.layers.forEach((layer, index) => {
     const visible = active.has(index);
     layer.style.opacity = visible ? '1' : '0';
@@ -285,8 +283,13 @@ function makeSpectralLayer(index) {
 }
 
 function resetEndemarLayers(state) {
-  if (state.video) state.video.pause();
   state.mode = 'endemar';
+  if (state.video) {
+    state.video.pause();
+    state.video.removeAttribute('src');
+    state.video.load();
+  }
+  stopSpectralObjectUrl(state);
   state.currentStep = 0;
   state.playing = !state.reducedMotion;
   state.lastAdvance = performance.now();
@@ -376,6 +379,7 @@ async function loadSpectralVideo(state, file) {
   state.video.load();
 
   state.mode = 'spectral';
+  state.currentStep = 6;
   state.playing = false;
   state.endemarLayers.forEach(layer => { layer.style.display = 'none'; });
   state.spectralLayers.forEach(layer => { layer.style.display = ''; });
@@ -874,22 +878,11 @@ export function restart(root) {
 }
 
 export function previous(root) {
-  const state = stateFor(root);
-  if (state.mode === 'spectral' && state.video) {
-    state.video.currentTime = Math.max(0, state.video.currentTime - 5);
-    return;
-  }
-  advance(state, -1);
+  advance(stateFor(root), -1);
 }
 
 export function next(root) {
-  const state = stateFor(root);
-  if (state.mode === 'spectral' && state.video) {
-    const duration = Number.isFinite(state.video.duration) ? state.video.duration : state.video.currentTime + 5;
-    state.video.currentTime = Math.min(duration, state.video.currentTime + 5);
-    return;
-  }
-  advance(state, 1);
+  advance(stateFor(root), 1);
 }
 
 export function zoomIn(root) {
