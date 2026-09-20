@@ -29,11 +29,14 @@ def test_perceiver_reads_three_canonical_tiers_from_world_database_before_fallba
     assert 'state.TryGetProperty("tierImages"' in workspace
     assert ".Take(3)" in workspace
     assert "if(found.Length == 3)" in workspace
-    assert '_sourceBadge = "DATABASE SOURCE"' in workspace
+    assert '_sourceBadge = "DATABASE SOURCE · TRANSPARENT REPRESENTATION"' in workspace
+    assert "CanonicalTransparentTierImages" in workspace
+    assert "IsCanonicalEndemarTierSet(found)" in workspace
+    assert "fallbackTierImages = _sourceTierImages" in workspace
 
     # Failure to hydrate the database must not strand the landing experience.
     assert "CanonicalFallbackTierImages" in workspace
-    assert "DATABASE UNAVAILABLE · CANONICAL FALLBACK" in workspace
+    assert "DATABASE UNAVAILABLE · TRANSPARENT FALLBACK" in workspace
 
 
 def test_perceiver_proof_sequence_and_reactive_depth_contract():
@@ -76,3 +79,25 @@ def test_perceiver_has_playback_and_accessibility_controls():
     assert "prefers-reduced-motion:reduce" in workspace
     assert "tabindex=\"0\"" in workspace
     assert 'aria-label="Perceiver tiered movie player"' in workspace
+
+
+def test_perceiver_transparency_is_a_derived_representation_not_a_canonical_asset_mutation():
+    prepare = read("prepare_public_data.py")
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    assert "build_geonaph_perceiver_representations" in prepare
+    assert "assets' / 'perceiver" in prepare
+    assert "source-alpha-preserved" in prepare
+    assert "delta-alpha" in prepare
+    assert "ImageChops.difference" in prepare
+    assert "ImageChops.multiply" in prepare
+    assert "transparentRatio" in prepare
+    assert "'canonical': False" in prepare
+
+    assert "endemar_tier_1_perceiver_v001.png" in workspace
+    assert "endemar_tier_2_perceiver_v001.png" in workspace
+    assert "endemar_tier_3_perceiver_v001.png" in workspace
+
+    assert "fallbackTierImages" in player
+    assert "fallbackActive" in player
