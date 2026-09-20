@@ -1,0 +1,57 @@
+{
+  "zoneId": "sunken-tundra",
+  "displayName": "The Sunken Tundra",
+  "worldId": "shaelvien-geonaph-alpha-001",
+  "tier": 0,
+  "tierLabel": "Sea Level",
+  "surfaceLayer": 6,
+  "coordinatePolicy": "use-existing-claimed-parcel",
+  "layers": [
+    {
+      "layer": 0,
+      "name": "Abyss Floor",
+      "file": "00-abyss-floor.webp",
+      "opaque": true
+    },
+    {
+      "layer": 1,
+      "name": "Vent Currents",
+      "file": "01-vent-currents.webp",
+      "opaque": false
+    },
+    {
+      "layer": 2,
+      "name": "Floating Ruins",
+      "file": "02-floating-ruins.webp",
+      "opaque": false
+    },
+    {
+      "layer": 3,
+      "name": "Biolume Gardens",
+      "file": "03-biolume-gardens.webp",
+      "opaque": false
+    },
+    {
+      "layer": 4,
+      "name": "Current Fauna",
+      "file": "04-current-fauna.webp",
+      "opaque": false
+    },
+    {
+      "layer": 5,
+      "name": "Shallow Shelf",
+      "file": "05-shallow-shelf.webp",
+      "opaque": false
+    },
+    {
+      "layer": 6,
+      "name": "Sea Surface",
+      "file": "06-sea-surface.webp",
+      "opaque": false
+    }
+  ],
+  "notes": [
+    "Layer 6 is the sea-level surface representation.",
+    "The pack is anchored to an already-claimed Shaelvien parcel so world coordinates remain connected to Endemar."
+  ]
+}
