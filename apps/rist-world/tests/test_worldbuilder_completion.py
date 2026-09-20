@@ -102,7 +102,8 @@ def test_sandbox_owner_can_edit_while_authority_refresh_is_transient():
     assert "HasLoadedSandboxOwnerAuthority" in relationships
     assert "HasWorldBuilderEditAuthority" in relationships
     assert '_activeWorldRelationship = "owner"' in relationships
-    assert "HasWorldBuilderEditAuthority" in source
+    assert "privateOwnerAtEntry" in source
+    assert "HasOwnedPrivateWorldDescriptorAsync" in source
     assert 'var access=Session.HasWorldBuilderEditAuthority?"edit":"view";' in host
 
 
