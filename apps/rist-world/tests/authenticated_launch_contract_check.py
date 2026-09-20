@@ -34,7 +34,8 @@ def main() -> None:
     auth_template = (ROOT.parents[1] / "infra" / "aws" / "rist-discord-storage.yml").read_text(encoding="utf-8")
     auth_workflow = (ROOT.parents[1] / ".github" / "workflows" / "deploy-rist-discord-auth.yml").read_text(encoding="utf-8")
 
-    # Provider session -> Press Start -> mandatory world choice -> landing.
+    # Provider session -> Press Start -> Shaelvien MMO landing. Sandbox world
+    # creation/import is a separate environment and never participates in MMO navigation.
     require(authenticated, "@if(!_launchStarted)", "authenticated shell must show Press Start")
     require(authenticated, "PRESS START", "authenticated shell must expose the start user gesture")
     require(authenticated, "ristPrivacy.set", "Press Start must present storage/privacy choice")
@@ -60,14 +61,13 @@ def main() -> None:
     require(rist, "Math.max(48", "legal consent authority must tolerate mobile scroll rounding and momentum")
     require(authenticated, "ristLaunch.pressStart", "Press Start must use the canonical launch authority")
     forbid(authenticated, "HARD REFRESH", "authenticated Press Start must stay focused on launch and permissions")
-    require(authenticated, "else if(!_launchWorldChosen)", "world choice must follow Press Start")
-    require(
-        authenticated,
-        '<WorldGate Open="true" RequireSelection="true" OnClose="CompleteWorldChoiceAsync" />',
-        "authenticated shell must own the mandatory world gate",
-    )
-    require(authenticated, '<PublicAlphaShell @ref="_alphaShell" />', "landing shell must render only after world choice")
-    require(authenticated, "_launchWorldChosen=true;", "successful world selection must unlock landing")
+    require(authenticated, "else if(!_launchWorldChosen)", "MMO landing load state must follow Press Start")
+    require(authenticated, "await EnterMmoLandingAsync();", "Press Start must enter the Shaelvien MMO environment directly")
+    require(authenticated, "directory.Worlds.Where(WorldSession.IsMmoWorldReference)", "authenticated entry must select only MMO world references")
+    require(authenticated, "await Session.LoadWorldAsync(world);", "authenticated entry must navigate to the selected MMO world")
+    forbid(authenticated, 'RequireSelection="true"', "Press Start must not force the sandbox world chooser")
+    require(authenticated, '<PublicAlphaShell @ref="_alphaShell" />', "landing shell must render after MMO navigation is ready")
+    require(authenticated, "_launchWorldChosen=true;", "successful MMO navigation must unlock landing")
     require(rist, "pressStart:async", "base runtime must own Press Start activation")
     require(rist, "ristDeviceCapabilities", "Press Start must use the device capability authority")
     require(device, "initializeAtStart", "device settings must initialize saved/default experience preferences")
@@ -86,7 +86,8 @@ def main() -> None:
     require(gate, "await RefreshWorldsAsync();", "world chooser must load its directory after first paint")
     forbid(gate, "protected override async Task OnParametersSetAsync()", "world chooser must not block first paint")
 
-    # Landing starts at hub for the selected world.
+    # Landing starts inside Shaelvien. Its selector is MMO navigation only;
+    # sandbox creation/import remains isolated in the sandbox chooser.
     require(shell, "_workspaceOpen=false;", "landing must start at hub")
     require(shell, "_worldGateOpen=false;", "landing must not open a second initial world gate")
     require(shell, 'await PersistWorkspaceAsync("hub");', "landing must persist hub as launch workspace")
@@ -100,6 +101,14 @@ def main() -> None:
     require(shell, 'Navigation.NavigateTo("/Play/index.html",forceLoad:true);', "Switch User must return to account selection")
     require(shell, 'Navigation.NavigateTo("/",forceLoad:true);', "Sign Out must return to the public home")
     require(shell, "await Auth.LogoutAsync();", "landing account actions must clear the provider session")
+    require(shell, 'aria-label="Shaelvien MMO world navigation"', "landing selector must identify itself as MMO navigation")
+    require(shell, "SELECT MMO WORLD", "landing selector must offer MMO world navigation")
+    require(shell, "directory.Worlds.Where(WorldSession.IsMmoWorldReference)", "landing selector must exclude sandbox worlds")
+    forbid(shell, "CREATE / IMPORT…", "MMO landing selector must not create or import sandbox worlds")
+    require(shell, "SANDBOX WORLDS", "landing must expose sandbox worlds as a separate environment")
+    require(gate, "CHOOSE A SANDBOX WORLD", "world gate must be the sandbox chooser")
+    require(gate, "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)", "sandbox chooser must exclude MMO worlds")
+    forbid(gate, "SHAELVIEN MMO · PROPERTY SPACE", "sandbox chooser must not present MMO property-space controls")
 
     # Experience activation belongs to Press Start; landing stays clean.
     require(index, '<script src="device-settings.js"></script>', "device settings authority must load before Blazor")
@@ -154,7 +163,7 @@ def main() -> None:
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
-    print("Authenticated launch contract verified: provider session -> Press Start -> world choice -> landing -> selected-world workspace.")
+    print("Authenticated launch contract verified: provider session -> Press Start -> MMO landing; sandbox worlds remain a separate environment.")
 
 
 if __name__ == "__main__":
