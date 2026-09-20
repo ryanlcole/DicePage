@@ -304,7 +304,8 @@ public sealed record WorldRegion(
     double CanonicalMaxX = 0,
     double CanonicalMaxY = 0,
     int CanonicalZMin = 0,
-    int CanonicalZMax = 0)
+    int CanonicalZMax = 0,
+    string Description = "")
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
