@@ -54,7 +54,7 @@ def test_perceiver_proof_sequence_and_reactive_depth_contract():
     positions = [player.index(item) for item in expected]
     assert positions == sorted(positions)
 
-    assert "const DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);" in player
+    assert "const ENDEMAR_DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);" in player
     assert "deviceorientation" in player
     assert "screenAdjusted" in player
     assert "applyPointerTarget" in player
@@ -141,26 +141,27 @@ def test_perceiver_phone_video_spectral_converter_is_local_and_reactive():
     assert "data-perceiver-upload-button" in workspace
     assert "data-perceiver-video-input" in workspace
     assert "data-perceiver-endemar-button" in workspace
-    assert "FAST · SHORT WAVELENGTH · VIOLET / BLUE" in workspace
-    assert "SLOW · LONG WAVELENGTH · ORANGE / RED" in workspace
+    assert "VIOLET · FASTEST · SHORTEST" in workspace
+    assert "RED · SLOWEST · LONGEST" in workspace
 
     assert "URL.createObjectURL(file)" in player
     assert "URL.revokeObjectURL" in player
-    assert "SPECTRAL_MAX_PIXELS = 640 * 360" in player
+    assert "SPECTRAL_MAX_PIXELS = 512 * 288" in player
     assert "spectralTierForPixel" in player
     assert "rgbHue" in player
     assert "getImageData" in player
     assert "putImageData" in player
     assert "state.mode = 'spectral'" in player
-    assert "state.currentStep = 6" in player
+    assert "state.currentStep = SPECTRAL_STEP_SEQUENCE.length - 1" in player
     assert "state.layers = state.spectralLayers" in player
     assert "renderSpectralFrame" in player
     assert "CONVERTING LIVE" in player
     assert "LOCAL" in player
 
-    # Existing parallax transform is reused for the three live video canvases.
+    # Existing parallax transform is reused for seven live spectral canvases.
     assert "state.layers.forEach" in player
-    assert "DEPTH_FACTORS[index]" in player
+    assert "SPECTRAL_DEPTH_FACTORS" in player
+    assert "SPECTRAL_OVERSCAN" in player
     assert "deviceorientation" in player
 
 
@@ -183,3 +184,25 @@ def test_perceiver_centers_spectral_video_and_supports_fullscreen_with_ios_fallb
     assert "EXIT FULL SCREEN" in player
     assert "fullscreenchange" in player
     assert "webkitfullscreenchange" in player
+
+
+def test_perceiver_video_import_uses_seven_frequency_layers_with_lower_tier_overscan():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    assert "const SPECTRAL_STEP_SEQUENCE" in player
+    for tier in range(1, 8):
+        assert f"data-perceiver-layer=\"{tier}\"" in workspace
+
+    assert "data-perceiver-layer=\"all\"" in workspace
+    assert "state.spectralLayers = [0, 1, 2, 3, 4, 5, 6].map" in player
+    assert "SPECTRAL_DEPTH_FACTORS = Object.freeze([1.00, 0.88, 0.76, 0.64, 0.52, 0.40, 0.30])" in player
+    assert "SPECTRAL_OVERSCAN = Object.freeze([1.24, 1.20, 1.16, 1.13, 1.10, 1.07, 1.04])" in player
+
+    # Lowest/fastest spectral tiers move more and are deliberately enlarged more.
+    assert "SPECTRAL_OVERSCAN[index]" in player
+    assert "Violet · fastest" in player
+    assert "Red · slowest" in player
+
+    # Neutral/no-hue pixels remain a structural reference in the middle layer.
+    assert "if (spectral.saturation < 0.10) return 3;" in player
