@@ -2,7 +2,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    public const int IncludedOwnedWorldSlots = 1;
+    public const int IncludedOwnedWorldSlots = 5; // Public-alpha testing allowance for private/sandbox worlds. The Shaelvien MMO world is excluded below.
     public const int IncludedSurfaceWorldPixels = 2048;
 
     private bool _commerceProfileLoaded;
@@ -88,7 +88,7 @@ public sealed partial class WorldSession
     {
         if (CanCreateAdditionalOwnedWorld(worlds)) return;
         throw new InvalidOperationException(
-            "Your included world slot is already in use. Additional worlds require an additional world-slot entitlement.");
+            "Your included private/sandbox world allowance is already in use. Additional worlds require an additional world-slot entitlement.");
     }
 
     public void RequireSurfaceWorldPixels(int requestedPixels)

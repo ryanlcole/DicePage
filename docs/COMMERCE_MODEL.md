@@ -1,7 +1,7 @@
 # ReLiCGameMaster Commerce Model
 
 Status: **IMPLEMENTATION BASELINE / NOT A REVENUE FORECAST**  
-Updated: 2026-09-19.
+Updated: 2026-09-20.
 
 This document records the commerce facts currently encoded on the active
 `live-alpha-rist-blazor-world` branch. It separates implemented facts from
@@ -53,6 +53,20 @@ Examples are arithmetic scenarios, not forecasts:
 These figures are gross billing before payment processing, refunds, taxes,
 chargebacks, discounts, creator revenue share, infrastructure, payroll, support,
 marketing, insurance, legal/accounting costs, or other expenses.
+
+## Private / sandbox world testing allowance
+
+During the current public-alpha testing period, each authenticated account includes
+up to **5 owned private/sandbox worlds** without an additional world-slot
+entitlement. The canonical Shaelvien MMO world does **not** consume one of these
+five testing slots. A sixth owned private/sandbox world still requires a
+server-granted world-slot entitlement unless the account has an unlimited or
+platform-owner override.
+
+This is a temporary testing allowance, not a published long-term pricing
+commitment. Each included private/sandbox world still starts with the currently
+implemented 2048 × 2048 pixel surface allowance unless a larger-surface
+entitlement or override applies.
 
 ## Shaelvien Tokens
 
