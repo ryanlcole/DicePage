@@ -994,9 +994,13 @@ def handler(event, context):
         return response(200, public_world_token(token))
 
     if method == "GET" and path == "/authority/world-tokens":
+        tokens = [
+            normalize_unspent_world_token(user_id, item)
+            for item in query_world_tokens(user_id)
+        ]
         return response(
             200,
-            [public_world_token(item) for item in query_world_tokens(user_id)],
+            [public_world_token(item) for item in tokens],
         )
 
     if method == "GET" and path == "/authority/me":
@@ -1760,7 +1764,6 @@ def handler(event, context):
 
         requested_token_id = str(req.get("tokenId") or "").strip()
         token = spendable_world_token(user_id, requested_token_id)
-        token = normalize_unspent_world_token(user_id, token)
         token_key = (
             {"pk": str(token.get("pk")), "sk": str(token.get("sk"))}
             if token
@@ -1835,7 +1838,15 @@ def handler(event, context):
         world_half = secrets.token_hex(32)
         account_half = str(token.get("accountHalfCode") or "")
         if not account_half:
-            return response(409, {"error": "Shaelvien Token account binding is unavailable; refresh your account and try again"})
+            return response(
+                409,
+                {
+                    "error": (
+                        "This legacy Shaelvien Token needs one account refresh before it can be spent. "
+                        "Close and reopen the property claim screen, then try again."
+                    )
+                },
+            )
         binding_hash = hashlib.sha256(
             f"{account_half}:{world_half}:{world_id}:{parcel_id}".encode()
         ).hexdigest()
