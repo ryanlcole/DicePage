@@ -1,8 +1,15 @@
 window.ristLegalConsent={
  atEnd:el=>{
   if(!el)return false;
+  const end=el.querySelector?.('.rist-policy-end');
+  if(end){
+   const scrollRect=el.getBoundingClientRect();
+   const endRect=end.getBoundingClientRect();
+   if(endRect.bottom<=scrollRect.bottom+24)return true;
+  }
   const remaining=el.scrollHeight-el.clientHeight-el.scrollTop;
-  return remaining<=12;
+  const tolerance=Math.max(48,Math.min(96,el.clientHeight*.08));
+  return remaining<=tolerance;
  }
 };
 
