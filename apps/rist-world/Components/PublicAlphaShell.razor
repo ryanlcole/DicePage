@@ -59,7 +59,7 @@
    <button type="button" class="launcher-card world" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":Session.IsGeonaphWorld?"Explore Shaelvien from Endemar, claim a world square, or enter one you can build.":"Build access required for this world.")</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>@(CanBuildWorld?"Define regions from published world tiles.":"View the RegionDefiner layout as a read-only reference.")</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
-   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
+   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>@(Session.IsGeonaphWorld?"Open the Shaelvien map, choose a zone, join a party and chat.":"Characters, dice, encounters and play.")</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":Session.IsGeonaphWorld?"View the Endemar GameMaster layout as a read-only reference.":"Build access required for this world.")</small></button>
    @if(WorldReady)
    {
@@ -610,7 +610,7 @@ else
  void OpenViewer()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD → REGION → LOCAL");
  void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGNS","WORLD → CAMPAIGN → SESSION → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
- void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
+ void OpenRoleplay()=>OpenWorkspace("roleplay",Session.IsGeonaphWorld?"ENTER SHAELVIEN":"ROLEPLAY",Session.IsGeonaphWorld?"WORLD MAP → ZONE → PARTY → CHAT":"CHARACTER → DICE → ENCOUNTER → REPLAY");
  void OpenCharacters()=>OpenWorkspace("roleplay","CHARACTERS","CHARACTER → SHEET → EQUIPMENT");
  void OpenDiceTools()=>OpenWorkspace("tools","DICE & TOOLS","DICE → CARDS → TOOLS");
  void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;}
