@@ -19,6 +19,8 @@ def main() -> None:
     shell = (COMPONENTS / "PublicAlphaShell.razor").read_text(encoding="utf-8")
     gate = (COMPONENTS / "WorldGate.razor").read_text(encoding="utf-8")
     router = (COMPONENTS / "TaskWorkspaceRouter.razor").read_text(encoding="utf-8")
+    perceiver = (COMPONENTS / "PerceiverWorkspace.razor").read_text(encoding="utf-8")
+    perceiver_player = (ROOT / "wwwroot" / "perceiver-player.js").read_text(encoding="utf-8")
     host = (COMPONENTS / "WorldBuilderGeonaphHost.razor").read_text(encoding="utf-8")
     ticker = (COMPONENTS / "SiteTicker.razor").read_text(encoding="utf-8")
     index = (ROOT / "wwwroot" / "index.html").read_text(encoding="utf-8")
@@ -145,10 +147,18 @@ def main() -> None:
     require(rist, "caches.keys()", "hard refresh must clear app Cache Storage")
     require(rist, "cache:'reload'", "hard refresh must revalidate stable app resources")
 
-    # Unpublished prototypes must stay out of production navigation.
-    forbid(marketing_home, "/perceiver/", "public home must not link the unpublished Perceiver prototype")
-    forbid(shell, "OpenPerceiver", "authenticated launcher must not expose the unpublished Perceiver prototype")
-    forbid(shell, "<strong>PERCEIVER</strong>", "authenticated launcher must not render a Perceiver card")
+    # The archived static Perceiver prototype stays unpublished. The authenticated
+    # application may expose the live Perceiver workspace, which must consume the
+    # canonical world/database tier source rather than the archived static route.
+    forbid(marketing_home, "/perceiver/", "public home must not link the archived Perceiver prototype")
+    require(shell, "OpenPerceiver", "authenticated launcher must expose the live Perceiver workspace")
+    require(shell, "<strong>PERCEIVER</strong>", "authenticated launcher must render a Perceiver card")
+    require(router, '<PerceiverWorkspace OnStartMenu="OnStartMenu" OnHome="OnHome" />', "Perceiver must route through the authenticated workspace router")
+    require(perceiver, "Session.LoadWorldBuilderSourceAsync()", "Perceiver must source canonical world tiers from the database")
+    require(perceiver, 'TryGetProperty("tierImages"', "Perceiver must consume database tier image references")
+    require(perceiver_player, "STEP_SEQUENCE", "Perceiver must own a deterministic tier playback sequence")
+    require(perceiver_player, "Tier 1 + Tier 2 + Tier 3", "Perceiver proof must include the all-tier state")
+    require(perceiver_player, "deviceorientation", "Perceiver must react to device tilt when permission is available")
 
     # One universal World Builder. Geonaph differs only by seed data.
     require(router, '<WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" OnHome="OnHome" />', "all worlds must use the universal builder host and return Home without reloading Press Start")
