@@ -298,6 +298,149 @@ def build_geonaph_upscale_representations():
 
 geonaph_upscales = build_geonaph_upscale_representations()
 
+
+def build_geonaph_perceiver_representations():
+    """Build transparent tier representations for Perceiver without changing canonical world art."""
+    if os.environ.get('GITHUB_ACTIONS', '').lower() != 'true':
+        return []
+
+    Image = _load_pillow()
+    from PIL import ImageChops, ImageFilter
+
+    asset_base = os.environ.get(
+        'ASSET_BASE_URL',
+        'https://d2d6rnm6fnsp89.cloudfront.net/'
+    ).rstrip('/') + '/'
+    source_prefix = 'library/terrains/standard/world/whole_maps/geonaph/'
+    files = (
+        'geonaph_full_static_canonical_surface_v001.png',
+        'geonaph_full_static_highlands_rivers_v001.png',
+        'geonaph_full_static_mountain_volcanic_archipelago_v001.png',
+    )
+    output_names = (
+        'endemar_tier_1_perceiver_v001.png',
+        'endemar_tier_2_perceiver_v001.png',
+        'endemar_tier_3_perceiver_v001.png',
+    )
+    output_root = web / 'assets' / 'perceiver'
+    if output_root.exists():
+        shutil.rmtree(output_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    prepared = []
+    source_urls = []
+    for filename in files:
+        source_url = asset_base + source_prefix + filename
+        source_urls.append(source_url)
+        request = urllib.request.Request(
+            source_url,
+            headers={'User-Agent': 'Shaelvien-Perceiver-Transparency/1.0'}
+        )
+        with urllib.request.urlopen(request, timeout=45) as response:
+            payload = response.read()
+
+        with Image.open(io.BytesIO(payload)) as opened:
+            source = opened.convert('RGBA')
+            source_width, source_height = source.size
+            factor = min(2.0, 4096 / max(source_width, source_height))
+            if factor > 1.0:
+                source = source.resize(
+                    (
+                        max(1, round(source_width * factor)),
+                        max(1, round(source_height * factor)),
+                    ),
+                    Image.Resampling.LANCZOS,
+                )
+            prepared.append(source.copy())
+
+    manifest = []
+    previous = None
+    for index, current in enumerate(prepared):
+        if index == 0:
+            layer = current.copy()
+            method = 'base-preserved'
+        else:
+            alpha = current.getchannel('A')
+            histogram = alpha.histogram()
+            total = max(1, current.width * current.height)
+            opaque_ratio = histogram[255] / total
+
+            if opaque_ratio < 0.90:
+                # Already-authored transparency is world art intent; preserve it.
+                layer = current.copy()
+                method = 'source-alpha-preserved'
+            else:
+                # Canonical tier maps are full-frame representations. Perceiver needs
+                # only the visual delta from the tier directly beneath this one.
+                under = previous
+                if under is None:
+                    under = prepared[index - 1]
+                if under.size != current.size:
+                    under = under.resize(current.size, Image.Resampling.LANCZOS)
+
+                delta = ImageChops.difference(
+                    current.convert('RGB'),
+                    under.convert('RGB')
+                )
+                dr, dg, db = delta.split()
+                mask = ImageChops.lighter(ImageChops.lighter(dr, dg), db)
+
+                # Suppress tiny resampling/compression changes, feather real changes,
+                # and expand by one pixel so moving layers do not show cut seams.
+                low = 10
+                high = 42
+                mask = mask.point(
+                    lambda value: (
+                        0 if value <= low
+                        else 255 if value >= high
+                        else round((value - low) * 255 / (high - low))
+                    )
+                )
+                mask = mask.filter(ImageFilter.MaxFilter(3))
+                mask = mask.filter(ImageFilter.GaussianBlur(radius=0.6))
+                mask = ImageChops.multiply(mask, current.getchannel('A'))
+
+                layer = current.copy()
+                layer.putalpha(mask)
+                method = 'delta-alpha'
+
+        output_name = output_names[index]
+        output_path = output_root / output_name
+        layer.save(output_path, 'PNG', optimize=True)
+
+        alpha_histogram = layer.getchannel('A').histogram()
+        total = max(1, layer.width * layer.height)
+        transparent_pixels = total - alpha_histogram[255]
+        transparent_ratio = transparent_pixels / total
+        digest = hashlib.sha256(output_path.read_bytes()).hexdigest()
+
+        manifest.append({
+            'tier': index + 1,
+            'source': source_urls[index],
+            'derived': f'assets/perceiver/{output_name}',
+            'width': layer.width,
+            'height': layer.height,
+            'method': method,
+            'transparentRatio': round(transparent_ratio, 6),
+            'canonical': False,
+            'sha256': digest,
+        })
+        print(
+            f'perceiver-alpha tier={index + 1} method={method} '
+            f'transparent={transparent_ratio:.1%} '
+            f'{layer.width}x{layer.height}'
+        )
+        previous = current
+
+    (output_root / 'manifest.json').write_text(
+        json.dumps(manifest, separators=(',', ':')),
+        encoding='utf-8'
+    )
+    return manifest
+
+
+geonaph_perceiver_layers = build_geonaph_perceiver_representations()
+
 # 000012.python.prepare_public_data.line213.comment The Drive/AWS catalog is the canonical Shaelvien asset registry for both
 # 000013.python.prepare_public_data.line214.comment visitors and authenticated users. Do not rebuild a second public catalog
 # 000014.python.prepare_public_data.line215.comment from the old tactical prototype registries.
@@ -397,6 +540,7 @@ print(
     f'unique_normalized={unique_normalized} '
     f'duplicate_imports={duplicate_imports} '
     f'geonaph_upscales={len(geonaph_upscales)} '
+    f'geonaph_perceiver_layers={len(geonaph_perceiver_layers)} '
     'legacy_asset_catalog=disabled '
     'homepage_paypal=official-art '
     'footer_mark=transparent'
