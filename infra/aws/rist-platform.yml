@@ -311,8 +311,7 @@ Resources:
     Properties:
       FunctionName: !Ref SunkenTundraSeedFunction
       Action: lambda:InvokeFunction
-      Principal: cloudformation.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+      Principal: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ReLiC-CloudFormation-Execution
 
   SunkenTundraSeed:
     Type: Custom::SunkenTundraSeed
