@@ -2083,7 +2083,24 @@ def handler(event, context):
                     str(reason.get("Code") or "None")
                     for reason in cancellation_reasons
                 ]
+                reason_messages = [
+                    str(reason.get("Message") or "").strip()
+                    for reason in cancellation_reasons
+                ]
                 safe_reason = ",".join(reason_codes[:3]) if reason_codes else "unknown"
+                first_message = next(
+                    (message for message in reason_messages if message),
+                    str((exc.response.get("Error") or {}).get("Message") or "").strip(),
+                )
+                if len(first_message) > 280:
+                    first_message = first_message[:277] + "..."
+                token_shape = {
+                    "pkLength": len(str(token_key.get("pk") or "")),
+                    "skLength": len(str(token_key.get("sk") or "")),
+                    "tokenIdPresent": bool(str(token.get("tokenId") or "")),
+                    "accountHalfPresent": bool(str(token.get("accountHalfCode") or "")),
+                    "status": str(token.get("status") or ""),
+                }
                 print(
                     "Shaelvien claim transaction canceled",
                     {
@@ -2092,17 +2109,21 @@ def handler(event, context):
                         "parcelId": parcel_id,
                         "attempt": claim_attempt + 1,
                         "reasons": safe_reason,
+                        "messages": reason_messages[:3],
+                        "tokenShape": token_shape,
                     },
                 )
+                detail = first_message or safe_reason
                 return response(
                     409,
                     {
                         "error": (
                             "The ownership transaction was canceled before anything was spent. "
                             "The selected token is still unspent and the property is still available. "
-                            f"Diagnostic: {safe_reason}."
+                            f"AWS diagnostic: {detail}"
                         ),
                         "claimConflict": safe_reason,
+                        "claimConflictMessage": first_message,
                     },
                 )
 
