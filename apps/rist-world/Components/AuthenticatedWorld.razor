@@ -46,15 +46,15 @@ else if (_canEnter)
  }
  else if(!_launchWorldChosen)
  {
-  <main class="rist-world-choice-root" aria-label="Choose Shaelvien or a sandbox">
+  <main class="rist-world-choice-root" aria-label="Choose Shaelvien or RIST">
    <section class="rist-environment-choice">
-    <p class="rist-auth-kicker">RIST</p>
+    <p class="rist-auth-kicker">ReLiC</p>
     <h1>Choose Your Environment</h1>
-    <p class="rist-environment-copy">Enter Shaelvien for the shared MMO, or continue inside one of your private sandbox worlds.</p>
+    <p class="rist-environment-copy">Shaelvien is the shared MMO. RIST is your private sandbox environment.</p>
 
     @if(_launchWorldsLoading)
     {
-     <p class="rist-environment-status" role="status">Loading your worlds…</p>
+     <p class="rist-environment-status" role="status">Loading Shaelvien…</p>
     }
     else if(!string.IsNullOrWhiteSpace(_launchWorldsError))
     {
@@ -64,24 +64,17 @@ else if (_canEnter)
     else
     {
      <button type="button" class="rist-environment-option shaelvien" disabled="@(_launchBusy||_launchMmoWorlds.Count==0)" @onclick="EnterShaelvienAsync">
-      <span><strong>SHAELVIEN</strong><small>MMO · enter Shaelvien, then choose an MMO world inside it</small></span>
+      <span><strong>SHAELVIEN</strong><small>MMO · remain inside Shaelvien and navigate its worlds</small></span>
       <b>ENTER</b>
      </button>
 
-     @foreach(var world in _launchSandboxWorlds)
-     {
-      <button type="button" class="rist-environment-option sandbox" disabled="@_launchBusy" @onclick="()=>EnterSandboxAsync(world)">
-       <span><strong>@world.DisplayName</strong><small>SANDBOX · private world</small></span>
-       <b>ENTER</b>
-      </button>
-     }
-
-     @if(_launchSandboxWorlds.Count==0)
-     {
-      <p class="rist-environment-empty">You do not have any sandbox worlds yet. Sandbox creation remains separate from Shaelvien.</p>
-     }
+     <button type="button" class="rist-environment-option rist" disabled="@_launchBusy" @onclick="OpenRistSandboxChooser">
+      <span><strong>RIST</strong><small>SANDBOX · choose, create, or import a private world</small></span>
+      <b>ENTER</b>
+     </button>
     }
    </section>
+   <WorldGate Open="@_launchSandboxChooserOpen" RequireSelection="false" OnClose="CloseLaunchSandboxChooser" OnContinue="CompleteLaunchSandboxSelectionAsync" />
   </main>
  }
  else
@@ -220,9 +213,9 @@ else
  bool _launchWorldChosen;
  bool _launchWorldsLoading;
  bool _launchBusy;
+ bool _launchSandboxChooserOpen;
  string _launchWorldsError="";
  readonly List<AccountWorldReference> _launchMmoWorlds=[];
- readonly List<AccountWorldReference> _launchSandboxWorlds=[];
  string _launchActiveWorldId="";
  string _privacyChoice="";
  bool _termsRequired;
@@ -275,8 +268,6 @@ else
    _launchActiveWorldId=directory.ActiveWorldId;
    _launchMmoWorlds.Clear();
    _launchMmoWorlds.AddRange(directory.Worlds.Where(WorldSession.IsMmoWorldReference));
-   _launchSandboxWorlds.Clear();
-   _launchSandboxWorlds.AddRange(directory.Worlds.Where(WorldSession.IsSandboxWorldReference));
   }
   catch(Exception ex)
   {
@@ -299,7 +290,32 @@ else
   await EnterLaunchWorldAsync(world);
  }
 
- Task EnterSandboxAsync(AccountWorldReference world)=>EnterLaunchWorldAsync(world);
+ void OpenRistSandboxChooser()
+ {
+  if(_launchBusy)return;
+  _launchWorldsError="";
+  _launchSandboxChooserOpen=true;
+ }
+
+ async Task CloseLaunchSandboxChooser()
+ {
+  _launchSandboxChooserOpen=false;
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task CompleteLaunchSandboxSelectionAsync()
+ {
+  _launchSandboxChooserOpen=false;
+  if(!Session.HasActiveWorld||Session.IsGeonaphWorld)
+  {
+   _launchWorldsError="Choose or create a RIST sandbox world to continue.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+  await Session.RefreshTrustedWorldAuthorityAsync();
+  _launchWorldChosen=true;
+  await InvokeAsync(StateHasChanged);
+ }
 
  async Task EnterLaunchWorldAsync(AccountWorldReference world)
  {
