@@ -1827,9 +1827,10 @@ def handler(event, context):
 
         requested_token_id = str(req.get("tokenId") or "").strip()
         token = spendable_world_token(user_id, requested_token_id)
+        token_sk = token.get("sk") if token and isinstance(token.get("sk"), str) else ""
         token_key = (
-            {"pk": str(token.get("pk")), "sk": str(token.get("sk"))}
-            if token
+            {"pk": "USER#" + user_id, "sk": token_sk}
+            if token and token_sk.startswith(WORLD_TOKEN_SK_PREFIX)
             else None
         )
         existing_parcel = world.get_item(
@@ -1981,17 +1982,29 @@ def handler(event, context):
         # preserves atomicity without relying on a fragile UpdateExpression.
         spent_token = {
             **token,
+            # Always overwrite the physical DynamoDB key from authenticated
+            # authority. A legacy token payload may carry stale/malformed key
+            # metadata, but ownership lives in USER#<authenticated-user>.
+            "pk": token_key["pk"],
+            "sk": token_key["sk"],
             "status": "spent",
             "purchasedWorldId": world_id,
             "parcelId": parcel_id,
             "bindingHash": binding_hash,
             "spentAtUtc": stamp,
         }
+        spent_token_ddb = _ddb_map(dynamo_safe(spent_token))
+        parcel_item_ddb = _ddb_map(dynamo_safe(parcel_item))
+        if "S" not in spent_token_ddb.get("pk", {}) or "S" not in spent_token_ddb.get("sk", {}):
+            return response(500, {"error": "Shaelvien Token storage key could not be normalized to string authority."})
+        if "S" not in parcel_item_ddb.get("pk", {}) or "S" not in parcel_item_ddb.get("sk", {}):
+            return response(500, {"error": "Shaelvien property storage key could not be normalized to string authority."})
+
         claim_transaction = [
                     {
                         "Put": {
                             "TableName": users.name,
-                            "Item": _ddb_map(dynamo_safe(spent_token)),
+                            "Item": spent_token_ddb,
                             "ConditionExpression": "#status = :unspent",
                             "ExpressionAttributeNames": {"#status": "status"},
                             "ExpressionAttributeValues": _ddb_map(
@@ -2002,7 +2015,7 @@ def handler(event, context):
                     {
                         "Put": {
                             "TableName": world.name,
-                            "Item": _ddb_map(dynamo_safe(parcel_item)),
+                            "Item": parcel_item_ddb,
                             "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
                         }
                     },
