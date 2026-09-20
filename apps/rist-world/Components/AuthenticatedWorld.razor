@@ -86,9 +86,10 @@ else if (_canEnter)
     {
      <div class="rist-policy-scroll" @ref="_policyScroll" @onscroll="OnPolicyScrollAsync" tabindex="0" aria-label="Terms of Service and Privacy Policy. Read the policies and continue to the end.">
       @((MarkupString)_policyHtml)
-      <div class="rist-policy-end" aria-hidden="true">END OF POLICIES</div>
+      <div class="rist-policy-end">END OF POLICIES</div>
+      <button type="button" class="rist-policy-complete" @onclick="ConfirmPoliciesReadAsync">I REACHED THE END — UNLOCK AGREEMENT</button>
      </div>
-     <p class="rist-policy-status" aria-live="polite">@(_policiesRead ? "✓ Policies complete. You may now agree." : "Please continue reading to the end.")</p>
+     <p class="rist-policy-status" aria-live="polite">@(_policiesRead ? "✓ Policies complete. You may now agree." : "Continue to END OF POLICIES, then tap UNLOCK AGREEMENT.")</p>
     }
     <label class="rist-terms-agree">
      <input type="checkbox" checked="@_termsChecked" @onchange="OnTermsChangedAsync" required />
@@ -158,7 +159,9 @@ else
  .rist-policy-scroll .notice{padding:10px;border-left:4px solid #8d7440;background:#fff9e8}
  .rist-policy-scroll a{color:#57400f}
  .rist-policy-separator{height:1px;margin:28px 0;border:0;background:#9c8d6c}
- .rist-policy-end{margin-top:24px;padding:14px 8px 2px;border-top:2px solid #8d7440;color:#6a5422;font:900 11px/1 system-ui;letter-spacing:.12em;text-align:center}
+ .rist-policy-end{margin-top:24px;padding:14px 8px 8px;border-top:2px solid #8d7440;color:#6a5422;font:900 11px/1 system-ui;letter-spacing:.12em;text-align:center}
+ .rist-policy-complete{display:block!important;width:100%!important;min-height:48px!important;margin:8px 0 4px!important;border:2px solid #8d7440!important;border-radius:8px!important;background:#fff9e8!important;color:#3b2b0f!important;font:900 12px/1.2 system-ui!important;letter-spacing:.05em!important;touch-action:manipulation!important}
+ .rist-policy-complete:focus-visible{outline:3px solid #5a3e00!important;outline-offset:2px}
  .rist-policy-status{margin:0!important;color:#d4c49c!important;font-size:11px!important;line-height:1.35!important;text-align:center}
  .rist-terms-card .rist-terms-agree{display:flex;align-items:flex-start;gap:10px;margin:14px 0 8px;color:#d7c58f;font-weight:800}
  .rist-terms-card .rist-terms-agree[aria-disabled="true"]{opacity:.52}
@@ -351,6 +354,14 @@ else
   await RefreshPolicyReadAsync();
   if(_policiesRead)
    await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ConfirmPoliciesReadAsync()
+ {
+  if(!_policyLoaded)return;
+  _policiesRead=true;
+  _termsError="";
+  await InvokeAsync(StateHasChanged);
  }
 
  async Task OnTermsChangedAsync(ChangeEventArgs e)
