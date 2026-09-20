@@ -65,6 +65,7 @@
    {
     <button type="button" class="launcher-card world" @onclick="OpenTickerAsync"><span class="card-icon">⋯</span><strong>TICKER</strong><small>Customize this world's automatic top ticker.</small></button>
    }
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady||!Session.IsGeonaphWorld)" @onclick="OpenPerceiver"><span class="card-icon">◎</span><strong>PERCEIVER</strong><small>Play the Endemar three-tier movie proof with reactive parallax and device tilt.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
    <button type="button" class="launcher-card campaign coming-soon" disabled aria-disabled="true" title="Coming Soon"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
@@ -261,7 +262,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","viewer","immersion","campaign","assets","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","viewer","perceiver","immersion","campaign","assets","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -330,6 +331,7 @@ else
   {
    case "accessibility":_workspaceMode="accessibility";_workspaceLabel="ACCESSIBILITY SHELL";_workspaceHint="DESCRIBE → NAVIGATE → ACT → BUILD";break;
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD → REGION → LOCAL";break;
+   case "perceiver":_workspaceMode="perceiver";_workspaceLabel="PERCEIVER";_workspaceHint="TIERED MOVIE → PARALLAX → TILT";break;
    case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
    case "assets":_workspaceMode="assets";_workspaceLabel="ASSET DESIGNER";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
@@ -571,6 +573,7 @@ else
   await PersistWorkspaceAsync("hub");
   await InvokeAsync(StateHasChanged);
  }
+ void OpenPerceiver(){if(!WorldReady||!Session.IsGeonaphWorld)return;OpenWorkspace("perceiver","PERCEIVER","TIERED MOVIE → PARALLAX → TILT");}
  void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
  async Task OpenRegionDefiner()
  {
