@@ -72,7 +72,7 @@ def test_perceiver_has_playback_and_accessibility_controls():
     workspace = read("Components/PerceiverWorkspace.razor")
     player = read("wwwroot/perceiver-player.js")
 
-    for label in ["PLAY", "PAUSE", "RESTART", "NEXT ▶", "◀ PREV", "TILT / MOTION"]:
+    for label in ["PLAY", "PAUSE", "RESTART", "NEXT ▶", "◀ PREV", "TILT / MOTION", "FIT"]:
         assert label in workspace
 
     assert "prefers-reduced-motion: reduce" in player
@@ -101,3 +101,31 @@ def test_perceiver_transparency_is_a_derived_representation_not_a_canonical_asse
 
     assert "fallbackTierImages" in player
     assert "fallbackActive" in player
+
+
+def test_perceiver_camera_matches_worldbuilder_interaction_model():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+    prototype = read("wwwroot/prototype/prototype.js")
+
+    assert "stage.addEventListener('wheel'" in prototype
+    assert "pointers.size===2&&pinchStart" in prototype
+    assert "zoomAt(e.clientX,e.clientY" in prototype
+
+    assert "MIN_CAMERA_SCALE = 1" in player
+    assert "MAX_CAMERA_SCALE = 256" in player
+    assert "canvas.addEventListener('wheel'" in player
+    assert "state.pointers.size === 2 && state.pinchStart" in player
+    assert "zoomAt(state, event.clientX, event.clientY" in player
+    assert "state.cameraX = state.panStart.x + (event.clientX - state.panStart.pointerX)" in player
+    assert "export function zoomIn" in player
+    assert "export function zoomOut" in player
+    assert "export function fit" in player
+    assert "data-perceiver-zoom" in workspace
+    assert '@onclick="ZoomInAsync"' in workspace
+    assert '@onclick="ZoomOutAsync"' in workspace
+    assert '@onclick="FitAsync"' in workspace
+
+    # Camera movement and tilt/parallax remain separate transforms.
+    assert "state.camera.style.transform" in player
+    assert "image.style.transform" in player
