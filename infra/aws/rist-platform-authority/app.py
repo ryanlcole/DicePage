@@ -1878,7 +1878,12 @@ def handler(event, context):
                                 "SET #status = :spent, purchasedWorldId = :worldId, "
                                 "parcelId = :parcelId, bindingHash = :binding, spentAtUtc = :spentAt"
                             ),
-                            "ConditionExpression": "#status = :unspent AND holderUserId = :userId",
+                            # The token key is already inside the authenticated
+                            # USER#<user_id> partition. Legacy holderUserId metadata can
+                            # be stale even when the token is genuinely owned by this
+                            # account, so do not let that redundant field veto the
+                            # atomic spend. Pin the exact token identity instead.
+                            "ConditionExpression": "#status = :unspent AND tokenId = :tokenId",
                             "ExpressionAttributeNames": {"#status": "status"},
                             "ExpressionAttributeValues": _ddb_map(
                                 {
@@ -1888,7 +1893,7 @@ def handler(event, context):
                                     ":binding": binding_hash,
                                     ":spentAt": stamp,
                                     ":unspent": "unspent",
-                                    ":userId": user_id,
+                                    ":tokenId": str(token.get("tokenId") or ""),
                                 }
                             ),
                         }
