@@ -53,6 +53,21 @@ public sealed partial class WorldSession
 
     public bool HasEditableMmoParcel => EditableMmoParcel is not null;
 
+    public bool CanAccessMmoParcel(AwsAuthorityClient.MmoParcel? parcel)
+    {
+        if (parcel is null || !IsLoggedIn) return false;
+        if (HasTrustedWorldBuilderAuthority) return true;
+
+        var userId = auth.Profile?.UserId?.Trim() ?? "";
+        if (userId.Length > 0 && string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal))
+            return true;
+
+        return string.Equals(parcel.EffectivePermission, "View", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(parcel.EffectivePermission, "Edit", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(parcel.EffectivePermission, "Manage", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase);
+    }
+
     public bool CanEditMmoParcel(AwsAuthorityClient.MmoParcel? parcel)
     {
         if (parcel is null || !IsLoggedIn) return false;
