@@ -7,6 +7,13 @@ public sealed partial class WorldSession
     public const string MmoWorldEnvironment = "mmo";
     public const string SandboxWorldEnvironment = "sandbox";
 
+    string _activeWorldRelationship = "";
+    public string ActiveWorldRelationship => _activeWorldRelationship;
+    public bool HasLoadedSandboxOwnerAuthority =>
+        IsLoggedIn && HasActiveWorld && !IsGeonaphWorld &&
+        string.Equals(_activeWorldRelationship, "owner", StringComparison.OrdinalIgnoreCase);
+    public bool HasWorldBuilderEditAuthority => HasLoadedSandboxOwnerAuthority || HasTrustedWorldBuilderAuthority;
+
     public string WorldDirectoryKey => $"{WorldsStoragePrefix}/index.json";
     public string WorldDescriptorKey => $"{WorldStoragePrefix}/world.json";
 
@@ -101,6 +108,7 @@ public sealed partial class WorldSession
 
         var worldId = NewWorldId(displayName);
         SetActiveWorldIdentity(worldId, displayName);
+        _activeWorldRelationship = "owner";
         ResetToCanonicalOrigin();
         RestoreOperatingMode("sandbox");
         await SavePrivateCheckpointAsync(showSuccess: false);
@@ -129,6 +137,7 @@ public sealed partial class WorldSession
         }
 
         SetActiveWorldIdentity(world.WorldId, displayName);
+        _activeWorldRelationship = world.Relationship?.Trim() ?? "";
 
         if (IsGeonaphWorld && !await HasGeonaphOwnerAuthorityAsync(accountId))
         {
@@ -169,6 +178,7 @@ public sealed partial class WorldSession
         if (HasActiveWorld) await AutoSavePrivateAsync();
         var worldId = NewWorldId(displayName);
         SetActiveWorldIdentity(worldId, displayName);
+        _activeWorldRelationship = "owner";
         ResetToCanonicalOrigin();
         imported.WorldId = worldId;
         imported.WorldName = displayName;
