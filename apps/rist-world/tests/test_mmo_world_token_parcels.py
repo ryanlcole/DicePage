@@ -97,6 +97,8 @@ def test_parcel_permissions_delegate_without_transferring_ownership():
     assert 'PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}' in backend
     assert 'path == "/world/parcels/delegate"' in backend
     assert 'parcel_permission(world_id, parcel_id, user_id) == "Manage"' in backend
+    assert "CanAccessMmoParcel" in session
+    assert '"View", StringComparison.OrdinalIgnoreCase' in session
     assert "CanManageMmoParcel" in session
     assert "DelegateMmoParcelAsync" in session
     assert "string ParcelId = """ in regions
@@ -116,6 +118,8 @@ def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     assert "Shaelvien property space" in host
     assert "RegionDefinerWorkspace" in host
     assert "Session.SetActiveRegion(parcel.RegionId)" in host
+    assert "Session.CanAccessMmoParcel(parcel)" in host
+    assert "_enterParcel=selected is not null&&Session.CanAccessMmoParcel(selected);" in host
     client = text("apps/rist-world/AwsAuthorityClient.cs")
     session = text("apps/rist-world/WorldSession.MmoLand.cs")
     assert "AuthorityError" in client
@@ -158,11 +162,13 @@ def test_worldbuilder_and_regiondefiner_fill_parent_workspace_not_raw_device_vie
     assert ".task-workspace-router{box-sizing:border-box;position:relative;width:100%;height:100%;" in router
 
 
-def test_world_gate_mobile_layout_keeps_token_and_private_world_sections_separate():
+def test_world_gate_mobile_layout_keeps_sandbox_management_separate_from_mmo():
     gate = text("apps/rist-world/Components/WorldGate.razor")
     assert "display:flex;flex-direction:column;overflow:auto" in gate
     assert "grid-template-rows:auto minmax(0,1fr)" not in gate
-    assert "SHAELVIEN MMO · PROPERTY SPACE" in gate
+    assert "CHOOSE A SANDBOX WORLD" in gate
+    assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in gate
+    assert "SHAELVIEN MMO · PROPERTY SPACE" not in gate
     assert "world-gate-create{display:grid;gap:10px;margin:10px 16px 6px" in gate
 
 
