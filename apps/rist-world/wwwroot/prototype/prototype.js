@@ -119,7 +119,7 @@ const REGION_ENHANCE_ENTER=4.25;
 const REGION_ENHANCE_EXIT=3.6;
 const REGION_ENHANCE_DELAY=140;
 const REGION_ENHANCE_MAX_DPR=2;
-const IMAGE_PASS_COVERAGE=1;
+const MAX_VIEW_ZOOM_RATIO=256;
 const IMAGE_RETURN_COVERAGE=.9;
 const regionSourceCache=new Map();
 let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnhanceActive=false,regionEnhanceRendering=false,regionCameraRevision=0;
@@ -201,13 +201,11 @@ function restorePassedImages(targetScale){
   return restored;
 }
 function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
+  // A placed image remains part of the current representation at every camera
+  // zoom. Filling the viewport is not a semantic boundary and must not make the
+  // image disappear. Scale/layer transitions are explicit viewer operations.
   const restored=nextScale<oldScale?restorePassedImages(nextScale):false;
-  let hit=restored?collisionAt(clientX,clientY):(existing??collisionAt(clientX,clientY));
-  if(nextScale>oldScale&&hit?.kind==='user'&&userImageCoverageAtScale(hit.item,oldScale)>=IMAGE_PASS_COVERAGE){
-    passUserImage(hit.item);
-    hit=collisionAt(clientX,clientY);
-  }
-  return hit;
+  return restored?collisionAt(clientX,clientY):(existing??collisionAt(clientX,clientY));
 }
 function userCollision(item,clientX,clientY){
   if(!item?.node||item.zoomPassed||item.kind==='label')return null;
@@ -718,7 +716,7 @@ async function buildUpscaledRepresentation(asset){
 }
 async function applyUpscalePreference(){
   updateUpscaleControl();
-  maxScale=upscaleEnabled?24:12;
+  recomputeMaxViewScale();
   if(!BASE_WORLD_ASSETS.length)return;
   if(!upscaleEnabled){
     for(const asset of BASE_WORLD_ASSETS){const node=planeByKey[asset.key];node.dataset.derivedUpscale='0';node.dataset.renderFactor='1';if(node.src!==ASSET_ROOT+asset.file)node.src=ASSET_ROOT+asset.file}
@@ -1235,6 +1233,9 @@ function applyTransform(){
   updateReadouts();
   scheduleRegionEnhancement();
 }
+function recomputeMaxViewScale(){
+  maxScale=Math.max(minScale*MAX_VIEW_ZOOM_RATIO,8);
+}
 function fitMap(){
   if(!naturalWidth||!naturalHeight)return;
   if(REGION_DEFINER&&regionClaimedRegion&&regionClaimBounds(regionClaimedRegion)){fitClaimedRegion(regionClaimedRegion);return}
@@ -1244,7 +1245,7 @@ function fitMap(){
   viewerSize={width:r.width,height:r.height};
   minScale=Math.min(r.width/naturalWidth,r.height/naturalHeight);
   scale=minScale;
-  maxScale=Math.max(minScale*24,8);
+  recomputeMaxViewScale();
   x=fitX=(r.width-naturalWidth*scale)/2;
   y=fitY=(r.height-naturalHeight*scale)/2;
   applyTransform();
