@@ -596,8 +596,16 @@ export function attach(root, config = {}) {
   state.video.playsInline = true;
   state.video.preload = 'metadata';
   state.video.controls = false;
-  state.video.style.display = 'none';
   state.video.setAttribute('playsinline', '');
+  Object.assign(state.video.style, {
+    position: 'absolute',
+    left: '0',
+    top: '0',
+    width: '1px',
+    height: '1px',
+    opacity: '0',
+    pointerEvents: 'none'
+  });
   canvas.appendChild(state.video);
 
   state.sourceCanvas = document.createElement('canvas');
