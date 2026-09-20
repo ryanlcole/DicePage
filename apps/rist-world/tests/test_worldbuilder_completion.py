@@ -48,14 +48,33 @@ def test_action_failure_keeps_dialog_open():
     assert "catch{}close()" not in script
 
 
-def test_roleplay_uses_canonical_prototype_viewer_and_alpha_assets_revalidate():
+def test_mmo_roleplay_uses_visual_front_while_sandbox_keeps_light_viewer():
     workspace = (ROOT / "Components/WorkspaceSurface.razor").read_text()
     host = (ROOT / "Components/WorldBuilderGeonaphHost.razor").read_text()
+    front = (ROOT / "Components/ShaelvienMmoFront.razor").read_text()
+    router = (ROOT / "Components/TaskWorkspaceRouter.razor").read_text()
+    shell = (ROOT / "Components/PublicAlphaShell.razor").read_text()
     prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
     workflow = (ROOT.parents[1] / ".github/workflows/deploy-rist-frontend-aws.yml").read_text()
+
+    # Sandbox/light roleplay keeps the existing canonical viewer path.
     assert '<WorldBuilderGeonaphHost EmbeddedRoleplay="true" OnHome="OnHome" OnStartMenu="OnStartMenu" />' in workspace
-    router = (ROOT / "Components/TaskWorkspaceRouter.razor").read_text()
     assert '<WorkspaceSurface Mode="@Mode" OnHome="OnHome" OnStartMenu="OnStartMenu" />' in router
+
+    # Shaelvien MMO enters a distinct visual/social front instead of turning the
+    # Worldbuilder into the roleplay shell.
+    assert 'Mode == "roleplay" && Session.IsGeonaphWorld' in router
+    assert '<ShaelvienMmoFront />' in router
+    assert "geonaph_full_static_canonical_surface_v001.png" in front
+    assert "Hire GameMaster" in front
+    assert "Recruit Players" in front
+    assert ">Campaigns<" in front
+    assert ">Modules<" in front
+    assert "JOIN PARTY" in front
+    assert 'aria-label="Zone chat"' in front
+    assert "MESSAGE GM" in front
+    assert "WORLD MAP → ZONE → PARTY → CHAT" in shell
+
     assert '[Parameter] public EventCallback OnHome' in workspace
     assert ".ws-table-host{box-sizing:border-box;position:relative;" in workspace
     assert "[Parameter] public bool EmbeddedRoleplay" in host
