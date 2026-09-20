@@ -26,7 +26,7 @@ function setText(node, value) {
 function updateReadout(state) {
   setText(state.labelNode, STEP_SEQUENCE[state.currentStep].label);
   setText(state.playStateNode, state.playing ? 'Playing' : 'Paused');
-  setText(state.motionNode, state.motionEnabled ? 'Tilt On' : 'Pointer');
+  setText(state.motionNode, state.motionEnabled ? 'Tilt Ready' : 'Pointer');
 }
 
 function renderStep(state) {
@@ -34,7 +34,7 @@ function renderStep(state) {
   state.layers.forEach((image, index) => {
     const visible = active.has(index);
     image.style.opacity = visible ? '1' : '0';
-    image.style.visibility = visible ? 'visible' : 'hidden';
+    image.dataset.active = visible ? 'true' : 'false';
     image.setAttribute('aria-hidden', visible ? 'false' : 'true');
   });
   updateReadout(state);
@@ -62,7 +62,8 @@ function applyPointerTarget(state, clientX, clientY) {
   const ny = ((clientY - rect.top) / rect.height - 0.5) * 2;
   state.pointerX = clamp(nx, -1, 1);
   state.pointerY = clamp(ny, -1, 1);
-  if (!state.motionEnabled) {
+  const motionIsLive = state.motionEnabled && (performance.now() - state.lastMotionAt) < 650;
+  if (state.dragging || !motionIsLive) {
     state.targetX = state.pointerX;
     state.targetY = state.pointerY;
   }
@@ -83,7 +84,7 @@ function makeLayer(src, index) {
     objectFit: 'contain',
     objectPosition: 'center',
     opacity: '0',
-    visibility: 'hidden',
+    visibility: 'visible',
     transition: 'opacity 260ms ease',
     willChange: 'transform, opacity',
     pointerEvents: 'none',
@@ -203,6 +204,7 @@ export function attach(root, config = {}) {
     baselineGamma: null,
     motionEnabled: false,
     motionListenerAttached: false,
+    lastMotionAt: 0,
     destroyed: false,
     raf: 0,
     dragging: false,
@@ -265,7 +267,9 @@ export function attach(root, config = {}) {
   };
 
   state.onPointerLeave = () => {
-    if (state.dragging || state.motionEnabled) return;
+    if (state.dragging) return;
+    const motionIsLive = state.motionEnabled && (performance.now() - state.lastMotionAt) < 650;
+    if (motionIsLive) return;
     state.pointerX = 0;
     state.pointerY = 0;
     state.targetX = 0;
@@ -275,6 +279,7 @@ export function attach(root, config = {}) {
   state.onDeviceOrientation = event => {
     if (!state.motionEnabled || event.beta == null || event.gamma == null) return;
     const adjusted = screenAdjusted(Number(event.beta), Number(event.gamma));
+    state.lastMotionAt = performance.now();
 
     if (state.baselineBeta == null || state.baselineGamma == null) {
       state.baselineBeta = adjusted.beta;
