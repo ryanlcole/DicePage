@@ -24,13 +24,14 @@
     <span aria-hidden="true">·</span>
     <span data-perceiver-motion-state>Pointer</span>
    </span>
+   <span class="perceiver-readout-line">ZOOM <b data-perceiver-zoom>100%</b></span>
    <span class="perceiver-source">@_sourceBadge</span>
   </div>
  </header>
 
  <section class="perceiver-stage-shell">
   <div class="perceiver-stage">
-   <div class="perceiver-canvas" tabindex="0" aria-label="Reactive three-tier Endemar movie proof. Move the pointer or enable device tilt to change parallax."></div>
+   <div class="perceiver-canvas" tabindex="0" aria-label="Reactive three-tier Endemar movie proof. Drag to pan, use the mouse wheel or pinch to zoom, and enable device tilt for depth reaction."></div>
   </div>
  </section>
 
@@ -41,6 +42,9 @@
    <button type="button" @onclick="PauseAsync">PAUSE</button>
    <button type="button" @onclick="RestartAsync">RESTART</button>
    <button type="button" @onclick="NextAsync" aria-label="Next tier combination">NEXT ▶</button>
+   <button type="button" @onclick="ZoomOutAsync" aria-label="Zoom out">−</button>
+   <button type="button" @onclick="ZoomInAsync" aria-label="Zoom in">+</button>
+   <button type="button" @onclick="FitAsync" aria-label="Fit Endemar to the Perceiver viewer">FIT</button>
    <button type="button" data-perceiver-motion-button>TILT / MOTION</button>
   </div>
 
@@ -169,7 +173,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-tier-movie-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-camera-alpha-2");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
@@ -223,6 +227,21 @@
  async Task NextAsync()
  {
   if(_module is not null)await _module.InvokeVoidAsync("next", _root);
+ }
+
+ async Task ZoomInAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("zoomIn", _root);
+ }
+
+ async Task ZoomOutAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("zoomOut", _root);
+ }
+
+ async Task FitAsync()
+ {
+  if(_module is not null)await _module.InvokeVoidAsync("fit", _root);
  }
 
  async Task SetSpeedAsync(ChangeEventArgs e)
