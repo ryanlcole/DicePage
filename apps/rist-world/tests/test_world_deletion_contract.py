@@ -13,6 +13,9 @@ def test_world_delete_requires_exact_user_phrase_and_owner():
     phrase = "I Approve The Loss Of All Data For This World."
     assert phrase in source
     assert 'StringComparison.Ordinal' in source
+    assert "WorldDeletionConfirmationMatches" in source
+    assert "NormalizationForm.FormKC" in source
+    assert "StringSplitOptions.RemoveEmptyEntries" in source
     assert 'world.Relationship, "owner"' in source
     assert 'GeonaphWorldId' in source
     assert 'POST' not in source or 'HttpMethod.Post' in source
@@ -24,6 +27,7 @@ def test_world_gate_exposes_delete_only_through_confirmation_dialog():
     assert "Session.CanDeleteWorld(world)" in source
     assert "WorldSession.WorldDeletionConfirmationPhrase" in source
     assert "DeleteApprovalMatches" in source
+    assert "WorldDeletionConfirmationMatches(_deleteApproval)" in source
     assert "DELETE WORLD" in source
     assert "PERMANENT WORLD DELETION" in source
 
