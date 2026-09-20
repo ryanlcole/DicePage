@@ -36,25 +36,7 @@ def test_mmo_and_sandbox_world_navigation_are_separate():
     assert 'imported.OperatingMode = "sandbox";' in relationships
     assert 'IsGeonaphWorld ? "Shaelvien" : "RIST Sandbox"' in relationships
 
-    assert "CHOOSE A SANDBOX WORLD" in gate
-    assert "SANDBOX WORLDS" in gate
-    assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in gate
-    assert "SHAELVIEN MMO · PROPERTY SPACE" not in gate
-
-    assert 'label for="landing-world-select">WORLD</label>' in shell
-    assert '<option value="shaelvien">SHAELVIEN</option>' in shell
-    assert '$"sandbox:{world.WorldId}"' in shell
-    assert "launcher-mmo-selectbar" in shell
-    assert "SHAELVIEN · ENDEMAR" in shell
-    assert "AccessibleMmoWorlds" in shell
-    assert "Session.MmoParcels" in shell
-    assert "Session.CanAccessMmoParcel" in shell
-    assert "_sandboxWorlds.AddRange(directory.Worlds" in shell
-    assert ".Where(WorldSession.IsSandboxWorldReference)" in shell
-    assert "_shaelvienWorld=directory.Worlds.FirstOrDefault(WorldSession.IsMmoWorldReference)" in shell
-    assert "CREATE / IMPORT…" not in shell
-    assert "SANDBOX WORLDS" in shell
-
+    # Startup chooses the environment, not an MMO world.
     assert "Choose Your Environment" in authenticated
     assert "EnterShaelvienAsync" in authenticated
     assert "EnterSandboxAsync" in authenticated
@@ -62,3 +44,25 @@ def test_mmo_and_sandbox_world_navigation_are_separate():
     assert "directory.Worlds.Where(WorldSession.IsMmoWorldReference)" in authenticated
     assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in authenticated
     assert 'RequireSelection="true"' not in authenticated
+
+    # Once inside Shaelvien, navigation is between MMO property worlds only.
+    assert 'aria-label="Navigate between MMO worlds inside Shaelvien"' in shell
+    assert "MMO WORLD" in shell
+    assert "AccessibleMmoWorlds" in shell
+    assert "Session.MmoParcels" in shell
+    assert "SelectLandingMmoWorldAsync" in shell
+
+    # Once inside a sandbox, navigation is between sandboxes only.
+    assert 'aria-label="Navigate between your sandbox worlds"' in shell
+    assert "SANDBOX WORLD" in shell
+    assert "SELECT SANDBOX WORLD" in shell
+    assert "SelectLandingSandboxWorldAsync" in shell
+    assert "directory.Worlds" in shell
+    assert ".Where(WorldSession.IsSandboxWorldReference)" in shell
+
+    # Creation/import is sandbox management, never an MMO-world action.
+    assert "CHOOSE A SANDBOX WORLD" in gate
+    assert "SANDBOX WORLDS" in gate
+    assert "directory.Worlds.Where(WorldSession.IsSandboxWorldReference)" in gate
+    assert "SHAELVIEN MMO · PROPERTY SPACE" not in gate
+    assert "CREATE / IMPORT…" not in shell
