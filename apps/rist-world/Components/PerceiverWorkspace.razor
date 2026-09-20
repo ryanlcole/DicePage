@@ -7,11 +7,6 @@
 
 <div class="perceiver-workspace" @ref="_root" data-perceiver-source="@_sourceKind" aria-label="Perceiver tiered movie player">
  <header class="perceiver-toolbar">
-  <div class="perceiver-toolbar-left">
-   <button type="button" class="perceiver-toolbar-button" @onclick="GoHomeAsync">⌂ HOME</button>
-   <button type="button" class="perceiver-toolbar-button" @onclick="OpenStartMenuAsync">☰ MENU</button>
-  </div>
-
   <div class="perceiver-toolbar-center">
    <strong>PERCEIVER</strong>
    <small>ENDEMAR PARALLAX · SPECTRAL VIDEO CONVERTER</small>
@@ -85,11 +80,11 @@
 
 <style>
  .perceiver-workspace{box-sizing:border-box;width:100%;height:100%;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:radial-gradient(circle at 18% 14%,rgba(51,122,160,.18),transparent 24rem),radial-gradient(circle at 82% 20%,rgba(201,152,58,.12),transparent 22rem),linear-gradient(180deg,#050b10,#08131a 48%,#04080c);color:#eadfc8;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
- .perceiver-toolbar{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:9px 12px;border-bottom:1px solid rgba(170,138,69,.34);background:rgba(4,10,14,.86);backdrop-filter:blur(8px)}
- .perceiver-toolbar-left,.perceiver-toolbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.perceiver-toolbar-right{justify-content:flex-end}
- .perceiver-toolbar-center{display:grid;justify-items:center;text-align:center;gap:3px}.perceiver-toolbar-center strong{color:#f0d389;font:900 14px/1 system-ui;letter-spacing:.15em}.perceiver-toolbar-center small{color:#8fb6c7;font:800 9px/1 system-ui;letter-spacing:.10em}
- .perceiver-toolbar-button,.perceiver-controls button,.perceiver-speed select{min-height:40px;border:1px solid #5b6e77;border-radius:8px;background:#0f1a20;color:#ecd9a5;padding:0 12px;font:800 11px/1 system-ui;touch-action:manipulation}
- .perceiver-toolbar-button:hover,.perceiver-controls button:hover{border-color:#c6a253}.perceiver-controls button:focus-visible,.perceiver-toolbar-button:focus-visible,.perceiver-speed select:focus-visible,.perceiver-canvas:focus-visible{outline:2px solid #e4c369;outline-offset:2px}
+ .perceiver-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 10px;border-bottom:1px solid rgba(170,138,69,.34);background:rgba(4,10,14,.86);backdrop-filter:blur(8px)}
+ .perceiver-toolbar-right{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+ .perceiver-toolbar-center{display:grid;justify-items:start;text-align:left;gap:3px}.perceiver-toolbar-center strong{color:#f0d389;font:900 14px/1 system-ui;letter-spacing:.15em}.perceiver-toolbar-center small{color:#8fb6c7;font:800 9px/1 system-ui;letter-spacing:.10em}
+ .perceiver-speed select{min-height:34px;border:1px solid #5b6e77;border-radius:8px;background:#0f1a20;color:#ecd9a5;padding:0 8px;font:800 10px/1 system-ui;touch-action:manipulation}
+ .perceiver-speed select:focus-visible,.perceiver-canvas:focus-visible{outline:2px solid #e4c369;outline-offset:2px}
  .perceiver-readout-line{display:flex;gap:6px;align-items:center;color:#9fb4bd;font:700 9px/1 system-ui;text-transform:uppercase;letter-spacing:.08em}.perceiver-readout-line b{color:#f0d389}.perceiver-source{color:#7897a4;font:800 8px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
  .perceiver-stage-shell{min-width:0;min-height:0;padding:10px}.perceiver-stage{position:relative;width:100%;height:100%;min-height:320px;border:1px solid rgba(174,142,73,.38);border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 38%,rgba(38,95,128,.14),transparent 36%),linear-gradient(180deg,#04090d,#071118 52%,#03070b);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 14px 42px rgba(0,0,0,.34)}
  .perceiver-canvas{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;touch-action:none}
@@ -103,7 +98,7 @@
  .perceiver-workspace.perceiver-pseudo-fullscreen{position:fixed!important;inset:0!important;z-index:2147483000!important;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
  .perceiver-workspace:fullscreen .perceiver-stage-shell,.perceiver-workspace.perceiver-pseudo-fullscreen .perceiver-stage-shell{padding:3px}
  .perceiver-workspace:fullscreen .perceiver-stage,.perceiver-workspace.perceiver-pseudo-fullscreen .perceiver-stage{border-radius:6px;min-height:0}
- @@media(max-width:900px){.perceiver-toolbar{grid-template-columns:1fr;justify-items:center;text-align:center;padding:6px}.perceiver-toolbar-left,.perceiver-toolbar-right{justify-content:center}.perceiver-footer{grid-template-columns:1fr 1fr;gap:5px;padding:5px 6px}.perceiver-transport,.perceiver-view-controls{justify-content:center}.perceiver-source-controls{grid-column:1/-1;justify-self:center}.perceiver-layer-strip,.perceiver-proof-note{grid-column:1/-1}.perceiver-source{display:none}}
+ @@media(max-width:900px){.perceiver-toolbar{grid-template-columns:1fr;justify-items:center;text-align:center;padding:5px 6px}.perceiver-toolbar-center{justify-items:center;text-align:center}.perceiver-toolbar-right{justify-content:center}.perceiver-footer{grid-template-columns:1fr 1fr;gap:5px;padding:5px 6px}.perceiver-transport,.perceiver-view-controls{justify-content:center}.perceiver-source-controls{grid-column:1/-1;justify-self:center}.perceiver-layer-strip,.perceiver-proof-note{grid-column:1/-1}.perceiver-source{display:none}}
  @@media(max-width:560px){.perceiver-stage-shell{padding:4px}.perceiver-stage{min-height:300px}.perceiver-toolbar-center small{font-size:8px}.perceiver-readout-line{font-size:8px}.perceiver-control-row button,.perceiver-layer-strip button{min-height:32px;padding:0 7px;font-size:8px}.perceiver-footer{padding:4px}.perceiver-proof-note{font-size:8px}.perceiver-layer-strip{justify-content:flex-start;padding-inline:2px}}
  @@media(prefers-reduced-motion:reduce){.perceiver-proof-note::after{content:" · reduced motion";}}
 </style>
