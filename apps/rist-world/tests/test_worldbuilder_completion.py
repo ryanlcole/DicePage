@@ -93,3 +93,29 @@ def test_empty_world_starts_with_sea_level_reference():
     assert "surface.src=DEFAULT_SEA_LEVEL_REFERENCE" in script
     assert "Sea Level ocean reference ready." in script
     assert "intentionally not serialized as authored world content" in script
+
+
+def test_sandbox_owner_can_edit_while_authority_refresh_is_transient():
+    relationships = (ROOT / "WorldSession.WorldRelationships.cs").read_text()
+    source = (ROOT / "WorldSession.WorldBuilderSource.cs").read_text()
+    host = (ROOT / "Components/WorldBuilderGeonaphHost.razor").read_text()
+    assert "HasLoadedSandboxOwnerAuthority" in relationships
+    assert "HasWorldBuilderEditAuthority" in relationships
+    assert '_activeWorldRelationship = "owner"' in relationships
+    assert "HasWorldBuilderEditAuthority" in source
+    assert 'var access=Session.HasWorldBuilderEditAuthority?"edit":"view";' in host
+
+
+def test_empty_world_and_claimed_region_are_visually_actionable():
+    prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
+    script = (ROOT / "wwwroot/prototype/prototype.js").read_text()
+    style = (ROOT / "wwwroot/prototype/prototype.css").read_text()
+    assert "20260920-don-blockers-1" in prototype
+    assert "world.style.transformOrigin='0 0'" in script
+    assert "function syncClaimedRegionOutline(region)" in script
+    assert "REGION_FLOW==='existing'&&ACCESS_MODE==='edit'" in script
+    assert "if(editableExisting)keyboardMode='Tiles'" in script
+    assert "if(keyboard.hidden)openKeyboard()" in script
+    assert "point=REGION_DEFINER?snapRegionPoint" in script
+    assert ".region-claim-outline" in style
+    assert "radial-gradient(circle at 50% 42%" in style
