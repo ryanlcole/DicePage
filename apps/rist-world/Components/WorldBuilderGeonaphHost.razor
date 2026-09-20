@@ -306,6 +306,8 @@ else
    var parcel=await Session.ClaimMmoParcelAsync(_selectedCell,_worldName);
    _status=$"{parcel.DisplayName} is now exclusively claimed.";
    _claimOpen=false;
+   _selectedCell=-1;
+   await InvokeAsync(StateHasChanged);
    await EnterParcelAsync(parcel);
   }
   catch(Exception ex){_status="Claim failed: "+ex.Message;}
