@@ -232,38 +232,10 @@ jobs:
             --content-type 'application/json; charset=utf-8' \
             --only-show-errors
 
-      - name: Seed The Sunken Tundra into the claimed Shaelvien zone
+      - name: Verify The Sunken Tundra asset pack
         shell: bash
         run: |
           set -euo pipefail
-          WORLD_TABLE=$(aws cloudformation describe-stacks \
-            --stack-name "$PLATFORM_STACK" \
-            --query "Stacks[0].Outputs[?OutputKey=='WorldStateTableName'].OutputValue" \
-            --output text)
-          if [ -z "$WORLD_TABLE" ] || [ "$WORLD_TABLE" = "None" ]; then
-            echo "Could not resolve the canonical Shaelvien world-state table."
-            exit 1
-          fi
-
-          OWNER_USER_ID=$(python - <<'PY'
-          import json
-          import uuid
-          from pathlib import Path
-
-          cfg = json.loads(Path("apps/rist-world/wwwroot/auth-config.json").read_text(encoding="utf-8"))
-          discord_id = str(cfg.get("ownerDiscordUserId") or "").strip()
-          if not discord_id.isdigit():
-              raise SystemExit("auth-config.json must contain a numeric ownerDiscordUserId")
-          print(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
-          PY
-          )
-
-          python scripts/seed_sunken_tundra.py \
-            --table "$WORLD_TABLE" \
-            --owner-user-id "$OWNER_USER_ID" \
-            --asset-base-url "https://relicgamemaster.com/Game/assets/zones/sunken-tundra" \
-            --region "$AWS_REGION"
-
           for asset in \
             00-abyss-floor.webp \
             01-vent-currents.webp \
@@ -276,7 +248,7 @@ jobs:
             curl --fail --location --retry 6 --retry-delay 3 --output /dev/null \
               "https://relicgamemaster.com/Game/assets/zones/sunken-tundra/$asset"
           done
-          echo "The Sunken Tundra zone pack is published and bound to its claimed Shaelvien parcel."
+          echo "The Sunken Tundra zone artwork is published."
 
       - name: Invalidate and verify AWS frontend surfaces
         shell: bash
