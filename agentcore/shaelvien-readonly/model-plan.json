@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "decision": "local-first-open-weight-ei",
+  "status": "development",
+  "primaryDevelopmentModel": {
+    "family": "Qwen3",
+    "variant": "Qwen3-4B-Instruct-2507",
+    "license": "Apache-2.0",
+    "selectionReason": [
+      "small enough to test on the existing 16 GB development laptop with quantization",
+      "designed for instruction following and tool use",
+      "available as an open-weight Apache-2.0 model",
+      "also represented in AWS SageMaker JumpStart if later cloud hosting is justified"
+    ]
+  },
+  "developmentRuntime": {
+    "provider": "LM Studio",
+    "endpoint": "http://127.0.0.1:1234/v1",
+    "networkExposure": "localhost-only",
+    "cloudInferenceCost": "none"
+  },
+  "awsRuntime": {
+    "agentcoreSecurityLayer": "planned",
+    "openWeightGpuEndpoint": "disabled-until-explicit-budget-approval",
+    "sagemakerEndpoint": "not-deployed",
+    "ec2GpuEndpoint": "not-deployed",
+    "reason": "avoid idle GPU/endpoint spend before project revenue or cloud credits exist"
+  },
+  "authority": {
+    "modelMayMutateAuthoritativeState": false,
+    "defaultDecision": "DENY",
+    "projectTruthRemainsServerSide": true,
+    "provenance": "SHAELVIEN_EI"
+  }
+}
