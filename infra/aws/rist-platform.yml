@@ -13,6 +13,11 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional RIST internal user UUID with platform-owner authority
+  ParcelReleaseRefundsEnabled:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Issue a replacement Shaelvien Token when an owner releases MMO property during pre-purchase testing
 
 Globals:
   Function:
@@ -180,6 +185,7 @@ Resources:
           USER_DATA_KEY_ARN: !GetAtt UserDataKey.Arn
           OWNER_USER_ID: !Ref OwnerUserId
           FRONTEND_ORIGIN: !Ref FrontendOrigin
+          PARCEL_RELEASE_REFUNDS_ENABLED: !Ref ParcelReleaseRefundsEnabled
       Policies:
         - DynamoDBReadPolicy: { TableName: !Ref IdentityTableName }
         - DynamoDBCrudPolicy: { TableName: !Ref UsersTable }
@@ -276,6 +282,12 @@ Resources:
         ParcelClaim:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/claim, Method: POST }
+        GhostZonesGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/ghost-zones, Method: GET }
+        ParcelRelease:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/release, Method: POST }
         ParcelDelegate:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/delegate, Method: POST }
