@@ -17,9 +17,9 @@ owner_user_id = os.environ.get("OWNER_USER_ID", "").strip()
 owner_released = os.environ.get("OWNER_RELEASED", "false").strip().lower() == "true"
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
 
-POLICY_VERSION = "2026-09-10.2"
-AI_RULESET_VERSION = "AI-RULESET-2026-09-10.2"
-POLICY_SOURCE = "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy — canonical baseline 2026-09-10"
+POLICY_VERSION = "2026-09-20.1"
+AI_RULESET_VERSION = "AI-RULESET-2026-09-20.1"
+POLICY_SOURCE = "ReLiC/RIST AI Participation, Canon, Resource, Content & Commerce Access Policy — canonical baseline 2026-09-20"
 TIME_AUTHORITY = "UTC"
 # 000047.python.rist_external_ai_gateway.line24.comment Canonical implementation constant: mean Gregorian year (365.2425 SI days),
 # 000048.python.rist_external_ai_gateway.line25.comment divided by 360 and rounded down to a whole second.
@@ -34,6 +34,8 @@ REQUIRED_RULES = [
     "player-creation-non-interference",
     "beneficial-contribution-no-circumvention",
     "resource-yield-required",
+    "human-population-ratio",
+    "all-audiences-default",
     "session-cap-87658-seconds",
     "bounded-world-builder-allocation",
     "canon-boundary",
@@ -60,7 +62,7 @@ def response(status, body=None):
             "access-control-allow-methods": "GET,POST,OPTIONS",
             "cache-control": "no-store",
             "content-type": "application/json",
-            "link": '</Game/ai-policy.json>; rel="ai-policy", </Game/.well-known/relic-ai-policy.json>; rel="alternate"',
+            "link": '</Game/ai-policy.json>; rel="ai-policy", </Game/.well-known/relic-ai-policy.json>; rel="alternate", </ai-purchase/commerce.json>; rel="payment"',
             "x-relic-ai-policy-version": POLICY_VERSION,
             "x-relic-ai-ruleset-version": AI_RULESET_VERSION,
             "x-relic-time-authority": TIME_AUTHORITY,
@@ -156,6 +158,26 @@ def public_policy():
             "required": True,
             "humanAccessAndSystemHealthPriority": True,
             "platformMayEnforceAutomatically": True,
+        },
+        "humanPopulationCapacity": {
+            "humanUsersPerExternalAiSlot": 10,
+            "activeAiSlotsFormula": "floor(connected_humans / 10)",
+            "humanAccessPriority": True,
+            "paymentDoesNotBypassCapacity": True,
+            "serverAuthoritativePresenceRequired": True,
+        },
+        "contentRating": {
+            "defaultForAi": "all-audiences",
+            "aiAgeDoesNotGrantAdditionalContentEntitlement": True,
+            "higherRatingRequiresExplicitRelicCompanyAuthorization": True,
+        },
+        "commerce": {
+            "publicFront": "/ai-purchase/",
+            "machineManifest": "/ai-purchase/commerce.json",
+            "discovery": "/.well-known/relic-ai-commerce.json",
+            "pricingFormula": "verified_service_cost_usd * 1.80",
+            "paymentDoesNotGrantAuthority": True,
+            "automaticEntitlement": False,
         },
         "session": {
             "maximumSeconds": SESSION_SECONDS,
