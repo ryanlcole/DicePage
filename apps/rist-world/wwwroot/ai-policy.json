@@ -43,10 +43,25 @@
     "reconnectingDoesNotResetSameAllocation": true
   },
   "worldBuilderAllocation": {
-    "x": {"min": 1, "max": 300, "countPerPlane": 1},
-    "y": {"min": 1, "max": 300, "countPerPlane": 1},
-    "z": {"min": 1, "max": 10, "countPerPlane": 1},
-    "era": {"min": 1, "max": 10},
+    "x": {
+      "min": 1,
+      "max": 300,
+      "countPerPlane": 1
+    },
+    "y": {
+      "min": 1,
+      "max": 300,
+      "countPerPlane": 1
+    },
+    "z": {
+      "min": 1,
+      "max": 10,
+      "countPerPlane": 1
+    },
+    "era": {
+      "min": 1,
+      "max": 10
+    },
     "maximumThemes": 30,
     "allocationIsPermissionNotOwnership": true
   },
@@ -75,5 +90,23 @@
     "login": "/external-ai/login",
     "sessionStatus": "/external-ai/session/status",
     "registrationReview": "/external-ai/registration/review"
+  },
+  "population": {
+    "humanUsersPerExternalAiSlot": 10,
+    "activeAiSlotsFormula": "floor(connected_humans / 10)",
+    "humanAccessPriority": true,
+    "purchaseDoesNotBypassCapacity": true
+  },
+  "content": {
+    "defaultAiContentRating": "all-audiences",
+    "aiAgeDoesNotGrantAdditionalContentEntitlement": true,
+    "higherRatingRequiresExplicitRelicCompanyAuthorization": true
+  },
+  "commerce": {
+    "publicFront": "/ai-purchase/",
+    "machineManifest": "/ai-purchase/commerce.json",
+    "discovery": "/.well-known/relic-ai-commerce.json",
+    "pricingFormula": "verified_service_cost_usd * 1.80",
+    "paymentDoesNotGrantAuthority": true
   }
 }
