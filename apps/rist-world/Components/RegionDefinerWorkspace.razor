@@ -62,18 +62,21 @@
    // authored layers. Perspective/crop and permissions are the only differences.
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var activeRegion=Session.ActiveRegion;
-   var surfacePixels=activeRegion?.ParcelPixelWidth>0
-    ? activeRegion.ParcelPixelWidth
+   var activeWorld=Session.ActiveMmoWorld;
+   var definedRegion=Session.IsDefinedRegion(activeRegion)?activeRegion:null;
+   var surfacePixels=activeWorld?.PixelWidth>0
+    ? activeWorld.PixelWidth
     : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=activeRegion?.MaxHeight>0
-    ? activeRegion.MaxHeight
+   var maxHeight=activeWorld?.MaxHeight>0
+    ? activeWorld.MaxHeight
     : Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
-   var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
+   var surfacePolicy=activeWorld is not null
     ?"mmo-parcel"
     : Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
-   var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
-   var regionFlow=activeRegion is null?"new":"existing";
-   var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
+   var canEditWorld=activeWorld is not null?Session.CanEditMmoParcel(activeWorld):Session.HasTrustedWorldBuilderAuthority;
+   var access=(canEditWorld||Session.CanEditRegion(definedRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
+   var regionFlow=definedRegion is null?"new":"existing";
+   var regionId=Uri.EscapeDataString(definedRegion?.RegionId??"");
    return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260920-region-hex-1";
   }
  }
@@ -122,11 +125,12 @@
    source="database",
    updatedAtUtc=databaseSource?.UpdatedAtUtc??"",
    state=databaseSource?.State,
-   activeRegionId=Session.ActiveRegion?.RegionId??"",
-   parcelId=Session.ActiveRegion?.ParcelId??"",
-   parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
-   parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,
-   maxHeight=Session.ActiveRegion?.MaxHeight??0,
+   activeRegionId=Session.IsDefinedRegion(Session.ActiveRegion)?Session.ActiveRegion?.RegionId??"":"",
+   activeWorldId=Session.ActiveMmoWorld?.RegionId??Session.WorldId,
+   parcelId=Session.ActiveMmoWorld?.ParcelId??"",
+   parcelPixelWidth=Session.ActiveMmoWorld?.PixelWidth??0,
+   parcelPixelHeight=Session.ActiveMmoWorld?.PixelHeight??0,
+   maxHeight=Session.ActiveMmoWorld?.MaxHeight??0,
    canPromoteWorldSource=Session.HasTrustedWorldBuilderAuthority
   };
  }
@@ -162,7 +166,7 @@
  [JSInvokable]
  public object GetRegionCatalogForPrototype()
  {
-  return Session.Regions.Select(region=>new
+  return Session.DefinedRegions.Where(Session.IsRegionInActiveWorld).Select(region=>new
   {
    id=region.RegionId,
    name=region.Name,
