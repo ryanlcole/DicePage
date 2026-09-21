@@ -36,7 +36,7 @@
   </header>
 
   <section class="mmo-map-shell" aria-label="Shaelvien world zone viewer">
-   <div class="mmo-map-frame">
+   <div class="mmo-map-viewport" @onwheel="MapWheel" @onwheel:preventDefault="true" @onpointerdown="MapPointerDown" @onpointermove="MapPointerMove" @onpointerup="MapPointerUp" @onpointercancel="MapPointerUp">\n    <div class="mmo-map-frame" style="@MapTransformStyle">
     <img class="mmo-world-map" src="@CanonicalMapUrl" alt="Shaelvien world map" draggable="false" />
     <div class="mmo-zone-layer" aria-label="Selectable Shaelvien zones">
      <button type="button"
@@ -125,9 +125,9 @@
  .mmo-front-main{box-sizing:border-box;display:grid;grid-template-rows:auto minmax(0,1fr) 92px;min-width:0;min-height:0;overflow:hidden}
  .mmo-party-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:8px 12px;border-bottom:1px solid #725d30;background:linear-gradient(90deg,#0b151c,#17140d);overflow:hidden}.mmo-party-bar>div:first-child{display:grid;gap:2px;min-width:0}.mmo-party-bar small{color:#83a9ba;font-size:8px;font-weight:900;letter-spacing:.16em}.mmo-party-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f0d78f;font:700 16px Georgia,serif}.mmo-party-actions{display:flex;align-items:center;gap:7px}.mmo-party-actions span{padding:5px 7px;border:1px solid #3c515c;border-radius:999px;color:#95a8b1;font-size:7px;font-weight:900;letter-spacing:.08em;white-space:nowrap}.mmo-party-actions button,.mmo-zone-actions button,.mmo-zone-actions a,.mmo-chat-compose button{min-height:34px;padding:0 10px;border:1px solid #a78438;border-radius:7px;background:#261e0d;color:#f6db8d;font-size:9px;font-weight:900;letter-spacing:.05em;text-decoration:none;display:grid;place-items:center;white-space:nowrap}
  .mmo-map-shell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;overflow:hidden;background:radial-gradient(circle at 50% 48%,#0b1820 0,#03080b 64%)}
- .mmo-map-frame{position:relative;width:min(82%,760px);max-height:88%;aspect-ratio:1/1}.mmo-world-map{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 34px #000c);user-select:none;-webkit-user-drag:none}
+ .mmo-map-viewport{position:absolute;inset:0;overflow:hidden;touch-action:none}.mmo-map-frame{position:absolute;left:50%;top:50%;width:min(82%,760px);aspect-ratio:1/1;transform-origin:center;will-change:transform}.mmo-world-map{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 34px #000c);user-select:none;-webkit-user-drag:none}
  .mmo-zone-layer{position:absolute;inset:0}.mmo-zone-hotspot{position:absolute;transform:translate(-50%,-50%);width:clamp(20px,3vw,34px);height:clamp(20px,3vw,34px);display:grid;place-items:center;padding:0;border:1px solid #6fc1e8;border-radius:7px;background:#062536d9;color:#e8f8ff;box-shadow:0 3px 12px #000a;font-size:7px;font-weight:900;touch-action:manipulation}.mmo-zone-hotspot.endemar{border-color:#e4bd58;background:#4d330bd9;color:#ffe7a0}.mmo-zone-hotspot.ghost{border-style:dashed;border-color:#839298;background:#172026d9;color:#bac7cc}.mmo-zone-hotspot.selected{outline:2px solid #ffe08a;outline-offset:2px;z-index:3;transform:translate(-50%,-50%) scale(1.12)}.mmo-zone-hotspot span{overflow:hidden;max-width:95%;text-overflow:ellipsis;white-space:nowrap}
- .mmo-zone-card{position:absolute;z-index:5;right:12px;bottom:12px;width:min(340px,48%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:11px 12px;border:1px solid #7d6732;border-radius:10px;background:#071117eb;box-shadow:0 12px 30px #000b;backdrop-filter:blur(7px)}.mmo-zone-copy{min-width:0}.mmo-zone-copy small{color:#83a9ba;font-size:7px;font-weight:900;letter-spacing:.14em}.mmo-zone-copy h2{margin:3px 0 5px;color:#f0d78f;font:700 17px Georgia,serif}.mmo-zone-copy p{margin:0;color:#aab9bf;font-size:9px;line-height:1.4}.mmo-zone-actions{display:grid;align-content:center;gap:6px}.mmo-zone-actions button:disabled{opacity:.42}.mmo-zone-actions .zone-enter{border-color:#6b8b9b;background:#0b1c25;color:#cce9f6}
+ .mmo-map-controls{position:absolute;z-index:7;left:12px;bottom:12px;display:flex;gap:6px}.mmo-map-controls button{min-width:40px;min-height:40px;border:1px solid #8a7135;border-radius:8px;background:#09151b;color:#f0d78f;font-weight:900;touch-action:manipulation}.mmo-zone-card{position:absolute;z-index:5;right:12px;bottom:12px;width:min(340px,48%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:11px 12px;border:1px solid #7d6732;border-radius:10px;background:#071117eb;box-shadow:0 12px 30px #000b;backdrop-filter:blur(7px)}.mmo-zone-copy{min-width:0}.mmo-zone-copy small{color:#83a9ba;font-size:7px;font-weight:900;letter-spacing:.14em}.mmo-zone-copy h2{margin:3px 0 5px;color:#f0d78f;font:700 17px Georgia,serif}.mmo-zone-copy p{margin:0;color:#aab9bf;font-size:9px;line-height:1.4}.mmo-zone-actions{display:grid;align-content:center;gap:6px}.mmo-zone-actions button:disabled{opacity:.42}.mmo-zone-actions .zone-enter{border-color:#6b8b9b;background:#0b1c25;color:#cce9f6}
  .mmo-zone-chat{box-sizing:border-box;display:grid;grid-template-rows:minmax(0,1fr) 42px;min-width:0;min-height:0;border-top:1px solid #725d30;background:#071015}.mmo-chat-history{display:flex;align-items:center;gap:10px;min-width:0;padding:5px 10px;overflow-x:auto;color:#a6b5bc;font-size:8px}.mmo-chat-history span{white-space:nowrap}.mmo-chat-history b{color:#e8ce87}.mmo-chat-empty{color:#748a94!important;font-weight:800;letter-spacing:.05em}.mmo-chat-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:5px 8px;border-top:1px solid #243740}.mmo-chat-compose input{box-sizing:border-box;width:100%;min-width:0;border:1px solid #4d626c;border-radius:7px;background:#0b161d;color:#f2ead7;padding:0 10px;font-size:11px;outline:none}.mmo-chat-compose input:focus{border-color:#c39c4b}.mmo-chat-compose button:disabled{opacity:.35}
  @@media(max-width:700px){.shaelvien-mmo-front{grid-template-columns:96px minmax(0,1fr)}.mmo-front-left{padding:8px 6px}.mmo-front-brand strong{font-size:16px}.mmo-front-left nav button{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:44px;padding:5px}.mmo-front-left nav button span{width:26px;height:26px;font-size:13px}.mmo-front-left nav button b{font-size:7px}.mmo-front-tool-note{display:none}.mmo-party-bar{min-height:50px;padding:6px 8px}.mmo-party-bar strong{font-size:13px}.mmo-party-actions span{display:none}.mmo-party-actions button{min-height:32px;padding:0 7px;font-size:7px}.mmo-front-main{grid-template-rows:auto minmax(0,1fr) 82px}.mmo-map-frame{width:96%;max-height:82%}.mmo-zone-card{left:7px;right:7px;bottom:7px;width:auto;grid-template-columns:minmax(0,1fr) auto;padding:8px}.mmo-zone-copy h2{font-size:14px}.mmo-zone-copy p{font-size:8px;max-height:34px;overflow:hidden}.mmo-zone-actions a,.mmo-zone-actions button{min-height:30px;padding:0 7px;font-size:7px}.mmo-chat-history{padding:3px 7px}.mmo-chat-compose{padding:4px 6px}.mmo-chat-compose input{font-size:10px}}
 </style>
@@ -136,7 +136,7 @@
  const string EndemarZoneId="__endemar__";
  const string CanonicalMapUrl="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
 
- string _selectedParcelId=EndemarZoneId;
+ string _selectedParcelId=EndemarZoneId;\n double _mapScale=1,_mapX=0,_mapY=0;\n long? _mapPointerId; double _mapPointerX,_mapPointerY,_mapStartX,_mapStartY;
  string _selectedTool="";
  string _joinedZoneId="";
  string _chatDraft="";
@@ -174,7 +174,17 @@
  string ToolClass(string tool)=>string.Equals(_selectedTool,tool,StringComparison.Ordinal)?"active":"";
  void SelectEndemar(){_selectedParcelId=EndemarZoneId;_chatLines.Clear();_chatDraft="";}
  void SelectZone(string parcelId){_selectedParcelId=parcelId;_chatLines.Clear();_chatDraft="";}
- void SelectGhost(string ghostId){_selectedParcelId=ghostId;_chatLines.Clear();_chatDraft="";}
+ void SelectGhost(string ghostId){_selectedParcelId=ghostId;_chatLines.Clear();_chatDraft="";var g=Session.MmoGhostZones.FirstOrDefault(x=>string.Equals(x.GhostId,ghostId,StringComparison.Ordinal));if(g is not null)CenterSelectedZone(g.Column,g.Row);}
+ string MapTransformStyle=>$"transform:translate(calc(-50% + {_mapX:0.##}px),calc(-50% + {_mapY:0.##}px)) scale({_mapScale:0.###})";
+ void ZoomIn()=>SetMapZoom(_mapScale*1.35);
+ void ZoomOut()=>SetMapZoom(_mapScale/1.35);
+ void FitMap(){_mapScale=1;_mapX=0;_mapY=0;}
+ void SetMapZoom(double value)=>_mapScale=Math.Clamp(value,1,12);
+ void CenterSelectedZone(int column,int row){_mapScale=Math.Max(_mapScale,2.25);_mapX=(.5-(column+.5)/WorldSession.MmoParcelGridColumns)*520*_mapScale;_mapY=(.5-(row+.5)/WorldSession.MmoParcelGridRows)*520*_mapScale;}
+ void MapWheel(WheelEventArgs e)=>SetMapZoom(_mapScale*(e.DeltaY<0?1.2:1/1.2));
+ void MapPointerDown(PointerEventArgs e){if(_mapPointerId is not null)return;_mapPointerId=e.PointerId;_mapPointerX=e.ClientX;_mapPointerY=e.ClientY;_mapStartX=_mapX;_mapStartY=_mapY;}
+ void MapPointerMove(PointerEventArgs e){if(_mapPointerId!=e.PointerId)return;_mapX=_mapStartX+(e.ClientX-_mapPointerX);_mapY=_mapStartY+(e.ClientY-_mapPointerY);}
+ void MapPointerUp(PointerEventArgs e){if(_mapPointerId==e.PointerId)_mapPointerId=null;}
  void JoinSelectedZone(){if(SelectedGhost is null)_joinedZoneId=_selectedParcelId;}
  string ZoneShortLabel(AwsAuthorityClient.MmoParcel parcel)
  {
