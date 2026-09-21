@@ -850,6 +850,33 @@ def query_world_prefix(world_id, prefix):
     return result.get("Items", [])
 
 
+def can_discover_mmo_parcel(world_id, parcel, user_id):
+    """Server-authoritative Shaelvien zone discovery.
+
+    Draft user-created zones are private to the creator, Shaelvien managers/GMs,
+    explicit invite/delegation recipients, and users with recorded visit access.
+    Published/open-player zones are discoverable by all authenticated players.
+    """
+    if not parcel:
+        return False
+    parcel_id = str(parcel.get("parcelId") or "")
+    if str(parcel.get("ownerUserId") or "") == user_id:
+        return True
+    if user_id in manager_user_ids(world_id):
+        return True
+    if parcel_permission(world_id, parcel_id, user_id) in ("View", "Edit", "Manage"):
+        return True
+    if bool(parcel.get("published")) or bool(parcel.get("openToPlayers")):
+        return True
+    visit = world.get_item(
+        Key={
+            "pk": world_partition(world_id),
+            "sk": f"PARCELVISIT#{parcel_id}#USER#{user_id}",
+        }
+    ).get("Item")
+    return bool(visit)
+
+
 def manager_user_ids(world_id):
     ids = set()
     if owner_user_id:
@@ -1817,7 +1844,12 @@ def handler(event, context):
         world_id = safe_id(q.get("worldId"), "worldId")
         if not is_geonaph(world_id):
             return response(400, {"error": "MMO parcel claims belong to Shaelvien"})
-        parcels = [public_parcel(item) for item in query_world_prefix(world_id, "PARCEL#")]
+        parcel_items = [
+            item
+            for item in query_world_prefix(world_id, "PARCEL#")
+            if can_discover_mmo_parcel(world_id, item, user_id)
+        ]
+        parcels = [public_parcel(item) for item in parcel_items]
         parcels = [item for item in parcels if item is not None]
         for parcel in parcels:
             if parcel["ownerUserId"] == user_id:
@@ -1969,6 +2001,10 @@ def handler(event, context):
             "worldHalfHash": hashlib.sha256(world_half.encode()).hexdigest(),
             "bindingHash": binding_hash,
             "claimedAtUtc": stamp,
+            # User-created Shaelvien zones are private-by-default. Publication
+            # and open-player discovery are explicit later actions.
+            "published": False,
+            "openToPlayers": False,
         }
         region_state = {
             "regionId": region_id,
