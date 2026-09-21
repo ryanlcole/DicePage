@@ -333,9 +333,19 @@ Resources:
 
             if route == "GET /auth/callback":
                 code, state = query.get("code"), query.get("state")
+                # Discord returns error=access_denied when the user presses Cancel.
+                # Cancellation must consume the OAuth state and can never fall
+                # through to an older authorization code/session.
+                oauth_error = str(query.get("error") or "").strip()
                 state_key = {"pk": "state#" + (state or "")}
                 saved_state = ddb.get_item(Key=state_key).get("Item")
+                if oauth_error:
+                    if saved_state:
+                        ddb.delete_item(Key=state_key)
+                    return frontend_error("oauth_cancelled" if oauth_error == "access_denied" else "oauth_" + oauth_error)
                 if not code or not saved_state or int(saved_state.get("expiresAt", 0)) <= now:
+                    if saved_state:
+                        ddb.delete_item(Key=state_key)
                     return frontend_error("invalid_state")
                 ddb.delete_item(Key=state_key)
                 stage = "token"
