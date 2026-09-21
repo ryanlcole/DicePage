@@ -93,8 +93,12 @@ public sealed record ExternalAiAdmissionDecision(bool Allowed, string Reason)
 
 public sealed class ExternalAiAccessPolicy
 {
-    public const int MinimumHumansForAiZone = 2;
-    public const int MaximumExternalAiPerAiZone = 1;
+    // Human population remains the capacity authority for external AI.
+    // One AI slot opens for each complete group of ten connected humans.
+    public const int MinimumHumansPerExternalAi = 10;
+
+    public static int AllowedExternalAiSlots(int humanConnectedCount)
+        => Math.Max(0, humanConnectedCount) / MinimumHumansPerExternalAi;
 
     public ExternalAiAdmissionDecision Evaluate(ExternalAiAdmissionRequest request, AiZonePresence presence)
     {
@@ -107,10 +111,11 @@ public sealed class ExternalAiAccessPolicy
         if (!string.Equals(request.CubeId, presence.CubeId, StringComparison.Ordinal) ||
             !string.Equals(request.ZoneId, presence.ZoneId, StringComparison.Ordinal))
             return ExternalAiAdmissionDecision.Deny("The admission request does not match this cube and AI zone.");
-        if (presence.HumanConnectedCount < MinimumHumansForAiZone)
-            return ExternalAiAdmissionDecision.Deny("At least two connected human users are required before an AI slot opens.");
-        if (presence.ExternalAiConnectedCount >= MaximumExternalAiPerAiZone)
-            return ExternalAiAdmissionDecision.Deny("This AI zone already has its single external-AI participant.");
+        var allowedAiSlots = AllowedExternalAiSlots(presence.HumanConnectedCount);
+        if (allowedAiSlots < 1)
+            return ExternalAiAdmissionDecision.Deny("At least ten connected human users are required before the first external-AI slot opens.");
+        if (presence.ExternalAiConnectedCount >= allowedAiSlots)
+            return ExternalAiAdmissionDecision.Deny($"The current human population supports {allowedAiSlots} external-AI slot{(allowedAiSlots == 1 ? "" : "s")}, and all supported slots are already occupied.");
         if (!request.CanonComprehension.IsCurrentAndPassing ||
             !string.Equals(request.AgentId, request.CanonComprehension.AgentId, StringComparison.Ordinal))
             return ExternalAiAdmissionDecision.Deny("The external AI has not passed the current canon contract under UTC authority.");
@@ -121,8 +126,8 @@ public sealed class ExternalAiAccessPolicy
         ExternalAiRelease.OwnerReleased &&
         presence.CubeIsOpen &&
         presence.IsAiZone &&
-        presence.HumanConnectedCount >= MinimumHumansForAiZone &&
-        presence.ExternalAiConnectedCount <= MaximumExternalAiPerAiZone;
+        AllowedExternalAiSlots(presence.HumanConnectedCount) >= 1 &&
+        presence.ExternalAiConnectedCount <= AllowedExternalAiSlots(presence.HumanConnectedCount);
 }
 
 public enum NpcSubmissionStatus

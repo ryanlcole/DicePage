@@ -231,6 +231,18 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json; charset=utf-8' \
             --only-show-errors
+          aws s3 cp site/relic-home/ai-purchase/index.html "s3://${BUCKET}/ai-purchase/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/ai-purchase/commerce.json "s3://${BUCKET}/ai-purchase/commerce.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/.well-known/relic-ai-commerce.json "s3://${BUCKET}/.well-known/relic-ai-commerce.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json; charset=utf-8' \
+            --only-show-errors
 
       - name: Verify The Sunken Tundra asset pack
         shell: bash
@@ -256,7 +268,7 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/ai-purchase/*' '/.well-known/relic-ai-commerce.json' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
@@ -264,6 +276,21 @@ jobs:
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
           grep -q 'site-language' /tmp/relic-home.html
           grep -q 'href="/store/"' /tmp/relic-home.html
+          grep -q 'relic-ai-commerce.json' /tmp/relic-home.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai-commerce.html "${URL}ai-purchase/"
+          grep -q 'Agent Commerce' /tmp/relic-ai-commerce.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai-commerce.json "${URL}ai-purchase/commerce.json"
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-ai-commerce.json'))
+          assert data.get('pricing', {}).get('multiplier') == 1.8, data
+          assert data.get('population', {}).get('minimumHumansPerExternalAi') == 10, data
+          btc=data.get('paymentMethods', {}).get('bitcoin', {})
+          assert btc.get('network') == 'bitcoin', data
+          assert btc.get('address') == 'bc1q8r5vscvdc0t7rxch056wjs7hstpndcs80jflwe', data
+          assert data.get('fulfillment', {}).get('automaticEntitlement') is False, data
+          print('AI commerce front verified:', data.get('version'))
+          PY
           if grep -q 'href="/kickstarter/' /tmp/relic-home.html; then
             echo "Unpublished Kickstarter preparation link is still present on the public home page."
             exit 1

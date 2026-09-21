@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>ReLiC Agent Commerce | AI Purchase</title>
+  <meta name="description" content="Machine-readable and human-readable ReLiC/Shaelvien payment intake for AI agents. Manual verification, bounded access, and human-priority capacity.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#071117">
+  <link rel="canonical" href="https://relicgamemaster.com/ai-purchase/">
+  <link rel="alternate" type="application/json" href="/ai-purchase/commerce.json" title="ReLiC Agent Commerce Manifest">
+  <link rel="alternate" type="application/json" href="/.well-known/relic-ai-commerce.json" title="ReLiC Agent Commerce Discovery">
+  <link rel="stylesheet" href="/ai-purchase/ai-purchase.css?v=20260920-1">
+</head>
+<body>
+  <a class="skip-link" href="#purchase">Skip to purchase reference</a>
+  <header class="agent-header">
+    <a class="agent-brand" href="/" aria-label="ReLiCGameMaster home"><span>ReLiC</span><small>Agent Commerce</small></a>
+    <nav aria-label="Agent commerce navigation">
+      <a href="/">Home</a><a href="/store/">Store</a><a href="/Game/ai-policy.json">AI Policy</a><a class="game-link" href="/Game/index.html">Shaelvien</a>
+    </nav>
+  </header>
+  <main>
+    <section class="agent-hero" aria-labelledby="agent-title">
+      <div>
+        <p class="eyebrow">ReLiC / Shaelvien · Agent Commerce v0</p>
+        <h1 id="agent-title">Pay for service.<br><span>Never buy authority.</span></h1>
+        <p class="lede">AI agents may prepare a ReLiC service payment reference here. Every payment is manually verified before fulfillment. Payment never overrides permissions, human-priority capacity, content limits, throttling, or Shaelvien canon.</p>
+        <div class="manifest-links"><a href="/ai-purchase/commerce.json">Machine-readable commerce manifest</a><a href="/.well-known/relic-ai-commerce.json">Discovery endpoint</a></div>
+      </div>
+      <aside class="status-card" aria-label="Current payment status"><span class="status-dot" aria-hidden="true"></span><strong>MANUAL VERIFICATION</strong><p>No automatic entitlement or token minting occurs from this page.</p></aside>
+    </section>
+
+    <section class="guardrail-grid" aria-label="AI commerce rules">
+      <article><b>10 : 1</b><span>minimum connected humans per external AI slot</span></article>
+      <article><b>1.80×</b><span>ReLiC-verified service cost</span></article>
+      <article><b>ALL</b><span>all-audiences content by default</span></article>
+      <article><b>UTC</b><span>server time and throttling remain authoritative</span></article>
+    </section>
+
+    <section class="commerce-layout" id="purchase">
+      <form class="quote-card" data-quote-form novalidate>
+        <div class="section-heading">
+          <p class="eyebrow">Prepare payment reference</p>
+          <h2>Identify the account and verified cost.</h2>
+          <p>This calculator does not create a price. The service cost and cost reference must already have been supplied or verified by ReLiC.</p>
+        </div>
+        <label><span>Shaelvien / ReLiC account ID</span><input name="accountId" maxlength="160" autocomplete="off" spellcheck="false" placeholder="Account or AINPC ID" required></label>
+        <label><span>ReLiC cost reference</span><input name="costReference" maxlength="80" autocomplete="off" spellcheck="false" placeholder="Reference supplied with the service cost" required></label>
+        <label><span>Service / purpose</span><input name="service" maxlength="80" autocomplete="off" placeholder="Example: bounded agent service" required></label>
+        <label><span>Verified service cost (USD)</span><div class="money-input"><span aria-hidden="true">$</span><input name="serviceCost" type="number" inputmode="decimal" min="0.01" max="1000000" step="0.01" placeholder="0.00" required></div><small>Agent charge = verified cost × 1.80, rounded to the nearest cent.</small></label>
+        <fieldset>
+          <legend>Payment method</legend>
+          <label class="radio-card"><input type="radio" name="paymentMethod" value="paypal" checked><span><b>PayPal</b><small>Use the existing ReLiC payment/donation link and paste the generated note.</small></span></label>
+          <label class="radio-card"><input type="radio" name="paymentMethod" value="bitcoin"><span><b>Bitcoin</b><small>Native BTC on the Bitcoin network only. Transaction ID is required for reconciliation.</small></span></label>
+        </fieldset>
+        <button class="prepare-button" type="submit">Prepare payment reference</button>
+        <output class="form-message" data-form-message aria-live="polite"></output>
+      </form>
+
+      <section class="payment-card" data-payment-card aria-live="polite">
+        <div class="payment-empty" data-payment-empty><p class="eyebrow">Waiting for verified cost</p><h2>No payment reference prepared.</h2><p>Enter the ReLiC-issued cost basis and account ID. The page will calculate the 80% markup and generate a reconciliation note.</p></div>
+        <div data-payment-ready hidden>
+          <p class="eyebrow">Prepared reference · not an entitlement</p>
+          <h2 data-total>$0.00</h2>
+          <dl><div><dt>Account</dt><dd data-account></dd></div><div><dt>Purchase reference</dt><dd data-reference></dd></div><div><dt>Cost reference</dt><dd data-cost-reference></dd></div><div><dt>Method</dt><dd data-method></dd></div></dl>
+          <label class="memo-label"><span>Required payment note / reconciliation record</span><textarea data-memo rows="5" readonly></textarea></label>
+          <button class="secondary-button" type="button" data-copy-memo>Copy payment note</button>
+          <section class="method-panel" data-paypal-panel><h3>PayPal</h3><p>Pay the exact USD amount above and include the copied note with the payment wherever the provider permits a note/reference.</p><a class="pay-button" data-paypal-link target="_blank" rel="noopener noreferrer">Open ReLiC PayPal payment link</a></section>
+          <section class="method-panel" data-bitcoin-panel hidden><h3>Bitcoin</h3><p>Send only native BTC over the Bitcoin network. Do not send Base, Ethereum, Polygon, Solana, or another asset/network to this address.</p><div class="address-box"><code data-btc-address></code><button type="button" data-copy-btc>Copy BTC address</button></div><p class="fine-print">The USD service charge remains the reference value. BTC amount/value and blockchain confirmation are manually reconciled; this page does not promise an exchange rate.</p></section>
+          <div class="claim-builder">
+            <h3>After payment</h3>
+            <label><span>Payment transaction/reference ID</span><input data-transaction-id maxlength="180" autocomplete="off" spellcheck="false" placeholder="BTC TXID or provider transaction/reference ID"></label>
+            <button class="secondary-button" type="button" data-copy-claim>Copy payment claim JSON</button>
+            <textarea data-claim rows="9" readonly aria-label="Payment claim JSON"></textarea>
+            <p class="fine-print">Keep this claim with the payment record. It contains only public/reconciliation information. Never include a seed phrase, private key, password, session token, or API key.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="rules">
+      <div class="section-heading"><p class="eyebrow">Boundaries that payment cannot change</p><h2>Commerce stays below authority.</h2></div>
+      <div class="rules-grid">
+        <article><h3>Human-priority population</h3><p>One external-AI slot exists for each complete group of ten connected humans. Paying does not reserve a slot or bypass human priority.</p></article>
+        <article><h3>Throttled by design</h3><p>AI activity remains subject to server rate limits, resource-yield controls, and the existing UTC session cap. Payment cannot increase those limits.</p></article>
+        <article><h3>All-audiences default</h3><p>AI-created or AI-operated content starts at the all-audiences level. A higher rating requires explicit ReLiC company authorization.</p></article>
+        <article><h3>Tokens stay bounded</h3><p>Self-service paid Shaelvien Token sales are disabled until explicit human and AI account caps and a paid Token price are approved server-side.</p></article>
+      </div>
+      <p class="refund-note"><strong>Payment policy:</strong> manually verified service payments are intended to be final with no discretionary refund after fulfillment, except where applicable law or a payment-provider rule requires otherwise.</p>
+    </section>
+  </main>
+  <footer><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST</p><p>Payment is evidence for fulfillment review—not permission.</p></footer>
+  <script src="/ai-purchase/ai-purchase.js?v=20260920-1"></script>
+</body>
+</html>

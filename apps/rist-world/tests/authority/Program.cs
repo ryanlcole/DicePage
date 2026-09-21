@@ -21,6 +21,11 @@ static void CheckThrows<T>(Action action, string message) where T : Exception
 
 var authority = new RecursiveAuthorityService();
 
+Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(0) == 0, "No external-AI slot should exist without humans.");
+Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(9) == 0, "Nine humans must not open an external-AI slot.");
+Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(10) == 1, "Ten humans should open exactly one external-AI slot.");
+Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(29) == 2, "External-AI capacity must use complete ten-human groups only.");
+
 const string owner = "owner";
 const string h = "h";
 const string i = "i";

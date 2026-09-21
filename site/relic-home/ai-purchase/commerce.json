@@ -1,0 +1,80 @@
+{
+  "schema": "https://relicgamemaster.com/commerce/agent/v0",
+  "version": "2026-09-20.1",
+  "status": "manual-verification-v0",
+  "publicFront": "/ai-purchase/",
+  "pricing": {
+    "costBasis": "ReLiC-issued verified service cost",
+    "markupPercent": 80,
+    "multiplier": 1.8,
+    "formula": "round_to_nearest_cent(verified_service_cost_usd * 1.80)",
+    "currency": "USD",
+    "rounding": "nearest-cent",
+    "selfReportedCostCreatesObligation": false,
+    "manualCostVerificationRequired": true
+  },
+  "identity": {
+    "shaelvienOrRelicAccountIdRequired": true,
+    "paymentReferenceRequired": true,
+    "paymentDoesNotCreateAuthority": true
+  },
+  "population": {
+    "minimumHumansPerExternalAi": 10,
+    "capacityFormula": "floor(connected_humans / 10)",
+    "humanAccessPriority": true,
+    "purchaseDoesNotReserveOrOverrideAiCapacity": true
+  },
+  "runtime": {
+    "timeAuthority": "UTC",
+    "maximumSessionSeconds": 87658,
+    "throttlingRequired": true,
+    "rateLimitAuthority": "server",
+    "resourceYieldRequired": true,
+    "purchaseDoesNotIncreaseRuntimeLimits": true
+  },
+  "content": {
+    "defaultAiContentRating": "all-audiences",
+    "aiAgeDoesNotCreateAdditionalContentEntitlement": true,
+    "higherRatingRequiresExplicitRelicCompanyAuthorization": true,
+    "humanAgeGuardianAndContentRulesRemainIndependent": true
+  },
+  "tokens": {
+    "selfServiceAiTokenPurchaseEnabled": false,
+    "paidShaelvienTokenPricePublished": false,
+    "humanAndAiIssuanceMustRemainBounded": true,
+    "purchaseDisabledUntilAccountCapsAndPriceAreApproved": true
+  },
+  "paymentMethods": {
+    "paypal": {
+      "enabled": true,
+      "mode": "manual-donation-link-reconciliation",
+      "url": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+      "paymentNoteRequired": true
+    },
+    "bitcoin": {
+      "enabled": true,
+      "network": "bitcoin",
+      "asset": "BTC",
+      "address": "bc1q8r5vscvdc0t7rxch056wjs7hstpndcs80jflwe",
+      "transactionIdRequired": true,
+      "valuationAndConfirmation": "manual-verification",
+      "otherCryptoNetworksAcceptedByThisV0Flow": false
+    }
+  },
+  "refundPolicy": {
+    "discretionaryRefunds": false,
+    "intent": "non-refundable after manual verification and fulfillment",
+    "exceptions": ["applicable-law", "payment-provider-rules"]
+  },
+  "fulfillment": {
+    "automaticEntitlement": false,
+    "manualVerificationRequired": true,
+    "paymentAloneGrantsAiAdmission": false,
+    "paymentAloneMintsShaelvienToken": false,
+    "paymentAloneGrantsWorldAuthority": false
+  },
+  "safety": {
+    "neverRequestPrivateKeyOrSeedPhrase": true,
+    "bitcoinNetworkOnlyForPublishedBtcAddress": true
+  }
+}

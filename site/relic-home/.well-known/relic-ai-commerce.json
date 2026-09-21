@@ -1,0 +1,8 @@
+{
+  "service": "ReLiC Agent Commerce",
+  "version": "2026-09-20.1",
+  "front": "/ai-purchase/",
+  "manifest": "/ai-purchase/commerce.json",
+  "status": "manual-verification-v0",
+  "authorityRule": "payment-is-evidence-not-permission"
+}

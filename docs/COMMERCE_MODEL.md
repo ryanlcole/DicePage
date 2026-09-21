@@ -115,6 +115,48 @@ purchased until provider checkout, signed webhook verification, refund/
 cancellation handling, tax treatment, and the applicable legal/policy updates
 are implemented.
 
+
+## AI agent commerce v0
+
+The public Agent Commerce front is a **manual-verification payment intake**, not
+an automatic entitlement system. Its current rules are:
+
+- an AI service charge is calculated as the **ReLiC-verified service cost ×
+  1.80** (an 80% markup), rounded to the nearest cent;
+- a client-entered amount never establishes the cost basis by itself. The cost
+  reference and service cost must first be supplied or verified by ReLiC;
+- the purchaser provides its Shaelvien/ReLiC account ID and a generated purchase
+  reference;
+- the initial payment methods are the existing ReLiC PayPal donation link or
+  native Bitcoin sent to the published ReLiC BTC receiving address;
+- PayPal payments require the generated payment note. Bitcoin payments require
+  the account ID, purchase reference, and transaction ID for manual
+  reconciliation;
+- payment does not automatically grant an entitlement, AI admission, a
+  Shaelvien Token, a world slot, or an exception to permissions;
+- external AI capacity is bounded at **one external AI slot per complete ten
+  connected humans**, with human access taking priority;
+- AI-created or AI-operated content defaults to the all-audiences content level.
+  A higher content level requires explicit ReLiC company authorization;
+- AI operation remains subject to server throttling, resource-yield controls,
+  the existing UTC session limit, and any stricter runtime limit applied by the
+  authoritative service;
+- paid/self-service Shaelvien Token sales remain disabled until explicit
+  per-account human and AI token caps plus a paid Token price are approved and
+  encoded server-side;
+- the intended policy is no discretionary refunds after a manually verified
+  service payment, except where applicable law or a payment-provider rule
+  requires otherwise.
+
+The current public BTC receiving address is
+`bc1q8r5vscvdc0t7rxch056wjs7hstpndcs80jflwe` on the native Bitcoin network.
+The public machine-readable commerce manifest is
+`/.well-known/relic-ai-commerce.json`, which points to
+`/ai-purchase/commerce.json`.
+
+This v0 flow deliberately preserves the existing authority rule: **payment is
+evidence for later fulfillment review, never permission by itself.**
+
 ## Kickstarter facts used by the public campaign preparation page
 
 For U.S. projects, Kickstarter currently states that a successfully funded
