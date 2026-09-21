@@ -32,6 +32,7 @@ DEFAULT_WORLD_SLOTS = 1
 DEFAULT_SURFACE_WORLD_PIXELS = 2048
 CLAIM_REQUEST_PERMISSIONS = {"Restricted", "Limited", "Cooperative"}
 CLAIM_DECISION_PERMISSIONS = CLAIM_REQUEST_PERMISSIONS | {"Blocked", "ReleaseOwnership"}
+PARCEL_RELEASE_REFUNDS_ENABLED = str(os.environ.get("PARCEL_RELEASE_REFUNDS_ENABLED", "true")).strip().lower() not in {"0", "false", "no", "off"}
 
 # Shaelvien MMO land is an exclusive 30x30 claim lattice centered on Endemar.
 # A completed RIST profile receives one genesis Shaelvien Token. Spending it
@@ -324,6 +325,36 @@ def parcel_acl_key(world_id, parcel_id, user_id):
     return {
         "pk": world_partition(world_id),
         "sk": f"PARCELACL#{parcel_id}#USER#{user_id}",
+    }
+
+
+def ghost_zone_key(world_id, ghost_id):
+    return {
+        "pk": world_partition(world_id),
+        "sk": "GHOSTZONE#" + safe_id(ghost_id, "ghostId"),
+    }
+
+
+def active_ghost_zones(world_id):
+    return [
+        item
+        for item in query_world_prefix(world_id, "GHOSTZONE#")
+        if not str(item.get("reclaimedAtUtc") or "")
+    ]
+
+
+def public_ghost_zone(item, user_id=""):
+    if not item:
+        return None
+    return {
+        "ghostId": str(item.get("ghostId") or ""),
+        "worldId": str(item.get("worldId") or ""),
+        "cellIndex": int(item.get("cellIndex") or 0),
+        "column": int(item.get("column") or 0),
+        "row": int(item.get("row") or 0),
+        "releasedAtUtc": str(item.get("releasedAtUtc") or ""),
+        "status": "ghost",
+        "ownedByYou": bool(user_id and str(item.get("ownerUserId") or "") == user_id),
     }
 
 
