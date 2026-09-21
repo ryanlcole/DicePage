@@ -51,11 +51,21 @@ public sealed partial class WorldSession
 
         if (catalog is not null && string.Equals(catalog.WorldId, WorldId, StringComparison.Ordinal))
         {
-            _regions.AddRange((catalog.Regions ?? [])
+            // The authority database is canonical. Older local/recovery catalogs may
+            // contain another representation of the same parcel/cell, so collapse
+            // those by world coordinates as well as RegionId before presenting them.
+            // Never collapse adjacent cells or records owned by different parcels.
+            var canonicalRegions = (catalog.Regions ?? [])
                 .Where(x => string.Equals(x.WorldId, WorldId, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(x.RegionId))
                 .GroupBy(x => x.RegionId, StringComparer.Ordinal)
                 .Select(g => g.OrderByDescending(x => x.UpdatedAtUtc).First())
-                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase));
+                .GroupBy(RegionSlotIdentity, StringComparer.Ordinal)
+                .Select(g => g
+                    .OrderByDescending(x => !string.IsNullOrWhiteSpace(x.ParcelId))
+                    .ThenByDescending(x => x.UpdatedAtUtc)
+                    .First())
+                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+            _regions.AddRange(canonicalRegions);
             _activeRegionId = !string.IsNullOrWhiteSpace(requestedActiveRegionId)
                 && _regions.Any(x => string.Equals(x.RegionId, requestedActiveRegionId, StringComparison.Ordinal))
                 ? requestedActiveRegionId
@@ -245,6 +255,21 @@ public sealed partial class WorldSession
         var parcel = _mmoParcels.FirstOrDefault(item =>
             string.Equals(item.ParcelId, region.ParcelId, StringComparison.Ordinal));
         return CanEditMmoParcel(parcel);
+    }
+
+    static string RegionSlotIdentity(WorldRegion region)
+    {
+        if (!string.IsNullOrWhiteSpace(region.ParcelId))
+            return "parcel:" + region.ParcelId.Trim();
+
+        var cells = (region.SelectedCells ?? [])
+            .Where(x => x >= 0 && x < GridColumns * GridRows)
+            .Distinct()
+            .Order()
+            .ToArray();
+        return cells.Length > 0
+            ? $"cell:{region.TierIndex}:{string.Join(',', cells)}"
+            : $"bounds:{region.TierIndex}:{region.MinColumn}:{region.MinRow}:{region.MaxColumn}:{region.MaxRow}";
     }
 
     static string NormalizeRegionName(string? name)
