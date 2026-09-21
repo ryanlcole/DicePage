@@ -529,7 +529,7 @@ async function restoreSavedWorldBuilder(){
       // a base image finishes loading; the host bridge hydrates canonical map truth.
     }else{
       userLayers.splice(0,userLayers.length);
-      world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
+      world.querySelectorAll('.user-image-placement,.progressive-parallax-placement').forEach(node=>node.remove());
       const state=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
       if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
       for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
@@ -1101,6 +1101,57 @@ function renderLabelsKeyboard(){
     toolKey('DELETE','label',removeSelectedImage)
   );
 }
+function progressiveParallaxEligible(item){
+  return !!item&&!isWorldMapItem(item)&&item.kind!=='label';
+}
+function ensureProgressiveParallaxSlices(item){
+  if(!progressiveParallaxEligible(item)||!item?.node)return null;
+  let host=item.progressiveParallaxHost;
+  if(host?.isConnected)return host;
+  host=document.createElement('div');
+  host.className='progressive-parallax-placement';
+  host.setAttribute('aria-hidden','true');
+  const slices=[];
+  const count=12;
+  for(let i=0;i<count;i++){
+    const slice=document.createElement('img');
+    slice.className='progressive-parallax-slice';
+    slice.draggable=false;
+    const top=(i/count)*100,bottom=100-((i+1)/count)*100;
+    slice.style.clipPath=`inset(${top}% 0 ${bottom}% 0)`;
+    host.appendChild(slice);slices.push(slice);
+  }
+  item.node.parentElement?.insertBefore(host,item.node);
+  item.progressiveParallaxHost=host;item.progressiveParallaxSlices=slices;
+  return host;
+}
+function refreshProgressiveParallax(item){
+  if(!progressiveParallaxEligible(item)||!item?.node)return false;
+  const host=ensureProgressiveParallaxSlices(item);if(!host)return false;
+  const slices=item.progressiveParallaxSlices||[],desired=item.renderedSrc||item.node.currentSrc||item.node.src;
+  host.style.left=item.node.style.left;host.style.top=item.node.style.top;
+  host.style.width=item.node.style.width;host.style.opacity=item.node.style.opacity;
+  host.style.setProperty('--rist-rotation',`${Number(item.rotation)||0}deg`);
+  host.style.setProperty('--rist-size',String(Number(item.size)||1));
+  const baseX=Number(item.parallaxX)||0,baseY=Number(item.parallaxY)||0;
+  const selectionFrozen=REGION_DEFINER&&regionClaimPhase==='select'&&regionSelectionEnabled;
+  const nextDepth=selectionFrozen?(Number(item.tier)||0):Math.min(TIERS.length-1,(Number(item.tier)||0)+1);
+  const depthDelta=Math.max(0,nextDepth-(Number(item.tier)||0));
+  const dx=x-fitX,dy=y-fitY;
+  const nextX=((-dx*(nextDepth*.022))+(tiltX*(nextDepth*.48)))/Math.max(scale,.00001);
+  const nextY=((-dy*(nextDepth*.022))+(tiltY*(nextDepth*.48)))/Math.max(scale,.00001);
+  slices.forEach((slice,i)=>{
+    if(slice.src!==desired)slice.src=desired;
+    // Images are sliced from top to bottom. Top approaches the next tier;
+    // bottom remains planted on the item's current map/tier.
+    const vertical=1-((i+.5)/Math.max(1,slices.length));
+    const influence=depthDelta?vertical:0;
+    const px=baseX+((nextX-baseX)*influence),py=baseY+((nextY-baseY)*influence);
+    slice.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(var(--rist-rotation)) scale(var(--rist-size))`;
+  });
+  item.node.style.visibility='hidden';
+  return true;
+}
 function refreshUserImage(item){
   if(!item?.node)return;
   if(item.kind==='label'){refreshUserLabel(item);return}
@@ -1123,6 +1174,7 @@ function refreshUserImage(item){
   item.node.style.transformOrigin='50% 50%';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
+  refreshProgressiveParallax(item);
 }function selectUserImage(item){
   if(item?.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const previous=selectedImage;
@@ -1539,7 +1591,7 @@ async function applyCanonicalWorldBuilderSnapshot(state,options={}){
   }
 
   userLayers.splice(0,userLayers.length);
-  world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
+  world.querySelectorAll('.user-image-placement,.progressive-parallax-placement').forEach(node=>node.remove());
   for(const raw of sourceLayers)await attachRestoredLayer(raw);
   return{loaded:true,sourceLayers,tierImages,hydration:Promise.resolve(sourceLayers.length)};
 }
