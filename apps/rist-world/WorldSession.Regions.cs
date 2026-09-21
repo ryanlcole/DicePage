@@ -9,7 +9,14 @@ public sealed partial class WorldSession
     string _activeRegionId = "";
 
     public IReadOnlyList<WorldRegion> Regions => _regions;
+    // Parcel-backed REGION# rows are legacy zone/world bindings. They remain
+    // available internally while alpha data migrates, but Region Definer must
+    // only expose actual child regions of the currently entered world/zone.
+    public IReadOnlyList<WorldRegion> DefinedRegions => _regions.Where(IsDefinedRegion).ToList();
     public WorldRegion? ActiveRegion => _regions.FirstOrDefault(x => string.Equals(x.RegionId, _activeRegionId, StringComparison.Ordinal));
+    public AwsAuthorityClient.MmoParcel? ActiveMmoWorld => ActiveRegion is { ParcelId.Length: > 0 } binding
+        ? _mmoParcels.FirstOrDefault(x => string.Equals(x.ParcelId, binding.ParcelId, StringComparison.Ordinal))
+        : null;
     public string RegionDirectoryKey => $"{WorldStoragePrefix}/regions/index.json";
     public string RegionLocalSaveKey => $"rist.regions.v1.{WorldId}";
 
@@ -90,6 +97,22 @@ public sealed partial class WorldSession
         }
     }
 
+    public bool IsDefinedRegion(WorldRegion? region) =>
+        region is not null && string.IsNullOrWhiteSpace(region.ParcelId);
+
+    public bool IsRegionInActiveWorld(WorldRegion? region)
+    {
+        if (!IsDefinedRegion(region)) return false;
+        var parent = region!.ParentNodeId?.Trim() ?? "";
+        var activeWorld = ActiveMmoWorld;
+        if (activeWorld is not null)
+            return string.Equals(parent, $"zone:{activeWorld.ParcelId}", StringComparison.Ordinal)
+                || string.Equals(parent, $"world:{activeWorld.RegionId}", StringComparison.Ordinal);
+
+        // Private/sandbox worlds have no MMO parcel parent.
+        return string.Equals(parent, $"world:{WorldId}", StringComparison.Ordinal);
+    }
+
     public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0, IEnumerable<int>? sourceLayerOffsets = null, string gridShape = "square")
     {
         if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
@@ -134,7 +157,7 @@ public sealed partial class WorldSession
             SourceLayerOffsets: sourceLayers,
             GridShape: gridShape,
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
-            ParentNodeId: $"world:{WorldId}",
+            ParentNodeId: ActiveMmoWorld is { } parentWorld ? $"zone:{parentWorld.ParcelId}" : $"world:{WorldId}",
             CoordinateSpace: "world-normalized-v1",
             CanonicalMinX: minColumn / (double)GridColumns,
             CanonicalMinY: minRow / (double)GridRows,
