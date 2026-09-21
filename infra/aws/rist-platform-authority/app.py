@@ -1964,7 +1964,7 @@ def handler(event, context):
             "pixelHeight": MMO_PARCEL_PIXELS,
             "maxHeight": MMO_PARCEL_MAX_HEIGHT,
             # The world half never leaves the server. Its binding digest is safe
-            # to expose and proves which account token was irreversibly paired.
+            # to expose and proves which account token was paired for this claim.
             "worldHalfCode": world_half,
             "worldHalfHash": hashlib.sha256(world_half.encode()).hexdigest(),
             "bindingHash": binding_hash,
@@ -2802,9 +2802,10 @@ def handler(event, context):
         if not owner:
             owner = user_id
 
-        # A token-purchased MMO parcel is permanent world truth. Region editors may
-        # change its contents, but may not enlarge its square, raise its height,
-        # rewrite its token binding, or transfer ownership through a region save.
+        # A claimed MMO parcel is exclusive world truth until its owner releases it.
+        # Region editors may change its contents, but may not enlarge its square,
+        # raise its height, rewrite its token binding, transfer ownership, or release
+        # it through an ordinary region save.
         current_state = dict((current or {}).get("state") or {})
         current_parcel_id = str(
             (current or {}).get("parcelId")
