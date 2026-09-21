@@ -54,6 +54,9 @@
     .sprite-library-preview img{position:absolute;display:block;max-width:none!important;max-height:none!important;pointer-events:none;-webkit-user-drag:none}
     .sprite-library-key small{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:5px 4px;background:linear-gradient(transparent,#000d 38%);color:#fff0bb!important;font-size:7px!important;line-height:1.15!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
     .user-image-placement.sprite-placement{filter:drop-shadow(0 3px 8px rgba(0,0,0,.35))}
+    .progressive-parallax-placement{position:absolute;z-index:100;width:12%;height:auto;aspect-ratio:1/1;pointer-events:none;overflow:visible;transform:none;transform-origin:50% 100%;will-change:transform}
+    .progressive-parallax-slice{position:absolute;left:50%;top:50%;width:100%;height:auto;max-width:none;pointer-events:none;-webkit-user-drag:none;user-select:none;transform-origin:50% 50%;will-change:transform;filter:drop-shadow(0 3px 8px rgba(0,0,0,.12))}
+
     .user-image-placement{position:absolute;z-index:101;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
     .user-image-placement.full-world-placement{inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:fill!important;transform-origin:0 0!important;cursor:default!important;filter:none}
     .user-image-placement.full-world-placement.selected{outline-offset:-2px}
