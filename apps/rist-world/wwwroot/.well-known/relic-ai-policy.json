@@ -3,7 +3,11 @@
   "policy": "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy",
   "version": "1.1",
   "status": "owner-locked",
-  "audience": ["AI", "software-agent", "AINPC"],
+  "audience": [
+    "AI",
+    "software-agent",
+    "AINPC"
+  ],
   "timeAuthority": "UTC",
   "timestampFormat": "ISO-8601 UTC (Z)",
   "session": {
@@ -33,7 +37,10 @@
     "acknowledgmentRequired": true,
     "humanTermsCheckboxForAi": false,
     "humanReviewRequiredBeforeCapability": true,
-    "worldAccessRequiresOwnerRelease": true
+    "worldAccessRequiresOwnerRelease": true,
+    "humanUsersPerExternalAiSlot": 10,
+    "activeAiSlotsFormula": "floor(connected_humans / 10)",
+    "paymentDoesNotBypassCapacity": true
   },
   "truth": {
     "systemClaimsMustBeVerifiable": true,
@@ -51,10 +58,26 @@
     "serverMaySuspendOrTerminate": true
   },
   "worldBuilderAllocation": {
-    "x": {"minimum": 1, "maximum": 300, "count": 1},
-    "y": {"minimum": 1, "maximum": 300, "count": 1},
-    "zPerPlane": {"minimum": 1, "maximum": 10, "count": 1},
-    "eraPerPlane": {"minimum": 1, "maximum": 10, "count": 1},
+    "x": {
+      "minimum": 1,
+      "maximum": 300,
+      "count": 1
+    },
+    "y": {
+      "minimum": 1,
+      "maximum": 300,
+      "count": 1
+    },
+    "zPerPlane": {
+      "minimum": 1,
+      "maximum": 10,
+      "count": 1
+    },
+    "eraPerPlane": {
+      "minimum": 1,
+      "maximum": 10,
+      "count": 1
+    },
     "maximumThemes": 30
   },
   "governmentAccess": {
@@ -69,5 +92,16 @@
     "login": "/external-ai/login",
     "sessionStatus": "/external-ai/session/status",
     "registrationReview": "/external-ai/registration/review"
+  },
+  "content": {
+    "defaultAiContentRating": "all-audiences",
+    "aiAgeDoesNotGrantAdditionalContentEntitlement": true,
+    "higherRatingRequiresExplicitRelicCompanyAuthorization": true
+  },
+  "commerce": {
+    "front": "/ai-purchase/",
+    "manifest": "/ai-purchase/commerce.json",
+    "discovery": "/.well-known/relic-ai-commerce.json",
+    "paymentDoesNotGrantAuthority": true
   }
 }
