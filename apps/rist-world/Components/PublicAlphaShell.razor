@@ -87,6 +87,7 @@
    <button type="button" class="coming-soon" disabled aria-disabled="true" title="Coming Soon"><span>♙</span>CHARACTERS</button>
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenMembership"><span>◉</span>MEMBERSHIP</button>
+    <button type="button" @onclick="OpenAiCommerce"><span>⌬</span>AI COMMERCE</button>
    <button type="button" @onclick="OpenKickstarter"><span>★</span>KICKSTARTER</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
@@ -620,6 +621,7 @@ else
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenMembership()=>Navigation.NavigateTo("/store/membership.html",forceLoad:true);
+  void OpenAiCommerce()=>Navigation.NavigateTo("/ai-purchase/",forceLoad:true);
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
