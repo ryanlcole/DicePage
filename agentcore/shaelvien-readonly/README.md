@@ -45,6 +45,49 @@ Suggested record families:
 
 Each item may include `text`, `title`, `visibility`, `updatedAt`, and source/provenance metadata.
 
+
+## Zero-idle-cost development model
+
+Because the project is pre-revenue, the first EI model runs locally instead of
+creating a continuously billed AWS GPU endpoint.
+
+Recommended development model: **Qwen3-4B-Instruct-2507** (Apache-2.0).
+
+The model choice is recorded in `model-plan.json`. AWS remains the authority,
+policy, knowledge, and deployment environment; only development inference is
+local until a cloud-model budget or credits are explicitly approved.
+
+With LM Studio:
+
+1. Download/load a quantized Qwen3 4B instruct model.
+2. Open **Developer** and start the local server.
+3. Keep it bound to `127.0.0.1`; do not expose it publicly.
+4. From this directory run:
+
+```bash
+python local_ei_smoke.py
+```
+
+If more than one model is loaded, set the exact identifier returned by LM
+Studio:
+
+```bash
+export EI_MODEL='<model-id>'
+python local_ei_smoke.py
+```
+
+The smoke test exposes only a local `health` tool. It verifies that the model
+obeys the Shaelvien authority prompt and can perform a tool call before any AWS
+gateway or project data is involved. It does not read AWS credentials and it
+cannot mutate RIST state.
+
+### AWS open-weight hosting later
+
+AWS SageMaker JumpStart supports Qwen3-family Apache-2.0 models, including
+Qwen3-4B. Amazon Bedrock Custom Model Import also supports Qwen architectures.
+Those are valid future hosting paths, but this prototype deliberately does not
+create a GPU endpoint while the project is pre-revenue.
+
 ## Deploy the read-only data/tool layer
 
 Prerequisites:
