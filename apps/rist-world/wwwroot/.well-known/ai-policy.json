@@ -15,5 +15,11 @@
   "resourceYieldRequiredWhenDirected": true,
   "systemClaimsMustBeProvable": true,
   "playerCreationsProtected": true,
-  "governmentIdentityGrantsPrivilegedAccess": false
+  "governmentIdentityGrantsPrivilegedAccess": false,
+  "humanUsersPerExternalAiSlot": 10,
+  "activeAiSlotsFormula": "floor(connected_humans / 10)",
+  "defaultAiContentRating": "all-audiences",
+  "higherContentRatingRequiresCompanyAuthorization": true,
+  "aiCommerce": "/ai-purchase/",
+  "aiCommerceManifest": "/ai-purchase/commerce.json"
 }
