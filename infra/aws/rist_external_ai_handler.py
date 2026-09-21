@@ -17,7 +17,7 @@ owner_released = os.environ.get("OWNER_RELEASED", "false").strip().lower() == "t
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
 
 MAX_LIFE_TOKENS = 10
-MIN_HUMANS = 2
+MIN_HUMANS = 10
 MAX_EXTERNAL_AI = 1
 
 
@@ -306,6 +306,8 @@ def human_handler(event, context):
                 "ownerReleased": owner_released,
                 "minimumHumans": MIN_HUMANS,
                 "maximumExternalAi": MAX_EXTERNAL_AI,
+                "humanUsersPerExternalAiSlot": MIN_HUMANS,
+                "capacityFormula": "floor(connected_humans / 10)",
                 "worldId": world_id,
                 "cubeId": cube_id,
                 "zoneId": zone_id,
