@@ -1243,7 +1243,8 @@ function tierMix(){
   };
 }
 function applyParallax(){
-  const dx=x-fitX,dy=y-fitY,mix=tierMix(),worldMap=customWorldMap();
+  const selectionFrozen=REGION_DEFINER&&regionClaimPhase==='select'&&regionSelectionEnabled;
+  const dx=selectionFrozen?0:x-fitX,dy=selectionFrozen?0:y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
   const builtins=[
     {node:surface,key:'surface',tier:0,layer:0,sceneZ:0,alpha:worldMap?0:mix.surface},
@@ -1256,7 +1257,7 @@ function applyParallax(){
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
-    const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    const px=selectionFrozen?0:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=selectionFrozen?0:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
@@ -1274,8 +1275,8 @@ function applyParallax(){
     }
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
-    item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
-    item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    item.parallaxX=selectionFrozen?0:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
+    item.parallaxY=selectionFrozen?0:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);
   }
 }
@@ -1773,8 +1774,8 @@ function toggleRegionSelectionMode(){
   if(!REGION_DEFINER||READ_ONLY||regionClaimPhase!=='select')return;
   regionSelectionEnabled=!regionSelectionEnabled;
   pointers.clear();panStart=pinchStart=null;stage.classList.remove('dragging');
-  updateRegionSelectionOverlay();renderKeyboardKeys();
-  announce(regionSelectionEnabled?'Selection locked. Zoom and pan are frozen; tap hexes to select them.':'Selection released. Map zoom and pan are available again.');
+  applyParallax();updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce(regionSelectionEnabled?'Selection locked. Zoom, pan, and parallax are frozen. Unselected hexes are black and white; tap hexes to select them.':'Selection released. Map zoom, pan, and parallax are available again.');
 }
 function toggleRegionCell(cell){
   if(!REGION_DEFINER||READ_ONLY||keyboardMode!=='Select'||!regionSelectionEnabled||regionClaimPhase!=='select')return;
@@ -1828,6 +1829,27 @@ function regionCellsForTier(){
   }
   return map;
 }
+function regionCellCoordinateText(cell){
+  return `column ${regionCellColumn(cell)}, row ${regionCellRow(cell)}, cell ${cell}`;
+}
+function regionTopTileDescription(cell){
+  const column=regionCellColumn(cell),row=regionCellRow(cell);
+  const px=(column+.5)/REGION_GRID_COLUMNS,py=(row+.5)/REGION_GRID_ROWS;
+  const authored=[...userLayers].reverse().find(item=>{
+    if(item.kind==='label')return false;
+    const footprint=Math.max(1,Math.trunc(Number(item.footprint)||1)),half=(footprint/REGION_GRID_COLUMNS)/2;
+    return Math.abs(Number(item.x)-px)<=half&&Math.abs(Number(item.y)-py)<=half;
+  });
+  if(authored)return String(authored.name||authored.folder||authored.kind||'authored terrain').trim();
+  const source=[...regionWorldSourceTiles].reverse().find(item=>{
+    const ix=Number(item.x),iy=Number(item.y),span=Math.max(1,Number(item.footprint)||1)/REGION_GRID_COLUMNS;
+    return px>=ix&&px<=ix+span&&py>=iy&&py<=iy+span;
+  });
+  return source?String(source.name||source.folder||'world terrain').trim():'canonical world terrain';
+}
+function regionCellAccessibilityText(cell){
+  return `${regionCellCoordinateText(cell)}. Top tile beneath: ${regionTopTileDescription(cell)}.`;
+}
 function ensureRegionSelectionOverlay(){
   if(!REGION_DEFINER)return null;
   if(regionSelectionOverlay?.isConnected)return regionSelectionOverlay;
@@ -1835,7 +1857,9 @@ function ensureRegionSelectionOverlay(){
   for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
     const button=document.createElement('button');button.type='button';button.className='region-definition-cell';button.dataset.cell=String(cell);
     const column=cell%REGION_GRID_COLUMNS,row=Math.floor(cell/REGION_GRID_COLUMNS);
-    button.setAttribute('aria-label',`Region tile X ${column+1}, Y ${row+1}`);
+    button.dataset.coordinate=regionCellCoordinateText(cell);
+    button.dataset.terrainDescription=regionTopTileDescription(cell);
+    button.setAttribute('aria-label',regionCellAccessibilityText(cell));
     button.setAttribute('role','gridcell');
     button.addEventListener('pointerdown',event=>{if(keyboardMode==='Select'&&regionSelectionEnabled){event.preventDefault();event.stopPropagation()}});
     button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleRegionCell(cell)});
@@ -1865,7 +1889,11 @@ function updateRegionSelectionOverlay(){
     button.classList.toggle('selected',selected);
     button.classList.toggle('existing',names.length>0);
     button.setAttribute('aria-selected',String(selected));
-    button.title=names.length?`Existing: ${names.join(', ')}`:'';
+    button.dataset.coordinate=regionCellCoordinateText(cell);
+    button.dataset.terrainDescription=regionTopTileDescription(cell);
+    const accessible=regionCellAccessibilityText(cell);
+    button.setAttribute('aria-label',accessible);
+    button.title=names.length?`${accessible} Existing: ${names.join(', ')}`:accessible;
     if(regionGridShape==='hex'){
       button.style.left=`${column*cellWidth*.75}%`;
       button.style.top=`${(row+(column%2?0.5:0))*cellHeight}%`;
@@ -1922,7 +1950,7 @@ function regionMaskSvg(region){
   for(const cell of cells){
     const row=regionCellRow(cell),column=regionCellColumn(cell);
     if(shape==='hex'){
-      const x=column+(row%2?0.5:0),y=row;
+      const x=column*.75,y=row+(column%2?0.5:0);
       figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
     }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
   }
@@ -1934,9 +1962,15 @@ function regionClaimBounds(region){
   const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape);
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
   for(const cell of cells){
-    const row=regionCellRow(cell),column=regionCellColumn(cell),offset=shape==='hex'&&(row%2)?0.5:0;
-    minX=Math.min(minX,column+offset);maxX=Math.max(maxX,column+offset+1);
-    minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
+    const row=regionCellRow(cell),column=regionCellColumn(cell);
+    if(shape==='hex'){
+      const hx=column*.75,hy=row+(column%2?0.5:0);
+      minX=Math.min(minX,hx);maxX=Math.max(maxX,hx+1);
+      minY=Math.min(minY,hy);maxY=Math.max(maxY,hy+1);
+    }else{
+      minX=Math.min(minX,column);maxX=Math.max(maxX,column+1);
+      minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
+    }
   }
   minX=clamp(minX,0,REGION_GRID_COLUMNS);maxX=clamp(maxX,0,REGION_GRID_COLUMNS);
   minY=clamp(minY,0,REGION_GRID_ROWS);maxY=clamp(maxY,0,REGION_GRID_ROWS);
