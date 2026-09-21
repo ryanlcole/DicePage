@@ -68,20 +68,19 @@ AWS recommends the current AgentCore CLI for new projects:
 
 ```bash
 npm install -g @aws/agentcore
-agentcore create --project-name RistShaelvienAgent --name ShaelvienReadOnlyAgent \
-  --language Python --framework Strands --model-provider Bedrock --memory none
+agentcore --version
+
+agentcore create --name RistShaelvien --no-agent
+cd RistShaelvien
 ```
 
 Use the generated project as the runtime shell. Add a gateway and the Lambda target using `tools.json`:
 
 ```bash
-agentcore add policy-engine --name RistReadOnlyPolicyEngine
-
 agentcore add gateway \
   --name RistReadOnlyGateway \
-  --authorizer-type CUSTOM_JWT \
-  --policy-engine RistReadOnlyPolicyEngine \
-  --policy-engine-mode ENFORCE
+  --authorizer-type AWS_IAM \
+  --no-semantic-search
 
 agentcore add gateway-target \
   --name RistReadOnlyKnowledge \
@@ -89,9 +88,20 @@ agentcore add gateway-target \
   --lambda-arn <ToolFunctionArn> \
   --tool-schema-file tools.json \
   --gateway RistReadOnlyGateway
+
+agentcore add policy-engine \
+  --name RistReadOnlyPolicyEngine \
+  --attach-to-gateways RistReadOnlyGateway \
+  --attach-mode ENFORCE
+
+agentcore add agent \
+  --name ShaelvienReadOnlyAgent \
+  --framework Strands \
+  --model-provider Bedrock \
+  --memory none
 ```
 
-Configure the gateway's JWT discovery URL and allowed client IDs for the identity provider used by the runtime before deploying.
+AWS_IAM keeps the first internal prototype private to authenticated AWS callers. When the website is ready to call the gateway directly, replace this with CUSTOM_JWT and the site's verified identity provider configuration.
 
 Then deploy:
 
