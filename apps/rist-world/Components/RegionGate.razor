@@ -32,13 +32,13 @@
     {
      <p class="region-gate-note">Loading regions…</p>
     }
-    else if(Session.Regions.Count==0)
+    else if(VisibleRegions.Count==0)
     {
      <p class="region-gate-note">No regions have been defined for this world yet.</p>
     }
     else
     {
-     @foreach(var region in Session.Regions)
+     @foreach(var region in VisibleRegions)
      {
       <button type="button" class="region-gate-region" disabled="@_busy" @onclick="()=>SelectAsync(region)">
        <span>
@@ -118,6 +118,10 @@
  List<AwsAuthorityClient.WorldClaimRequest> _myClaims=[];
 
  bool CanDefineRegion=>Session.HasTrustedWorldBuilderAuthority||Session.CanRequestWorldClaim;
+ IReadOnlyList<WorldRegion> VisibleRegions => Session.DefinedRegions
+  .Where(Session.IsRegionInActiveWorld)
+  .OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase)
+  .ToList();
 
  protected override void OnParametersSet()
  {
