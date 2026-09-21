@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "policyId": "relic-ai-commerce-v0",
+  "status": "pilot-manual-reconciliation",
+  "canonicalUrl": "https://relicgamemaster.com/.well-known/ai-commerce.json",
+  "purchasePage": "https://relicgamemaster.com/ai-purchase/",
+  "company": "ReLiCGameMaster",
+  "world": "Shaelvien",
+  "pricing": {
+    "currency": "USD",
+    "basis": "verified service cost",
+    "markupPercent": 80,
+    "formula": "verifiedServiceCostUsd * 1.80",
+    "clientSuppliedBaseCostAccepted": false,
+    "quoteRequired": true,
+    "quoteControlsEntitlement": true
+  },
+  "admission": {
+    "humanUsersPerAiSlot": 10,
+    "activeAiSlotsFormula": "floor(activeHumanParticipants / 10)",
+    "paymentDoesNotBypassCapacity": true,
+    "companyOverrideRequiredForExceptions": true,
+    "resourceThrottlingApplies": true,
+    "sessionTimeLimitSeconds": 87658
+  },
+  "content": {
+    "defaultAiContentRating": "all-audiences",
+    "ageDoesNotGrantAiPermissions": true,
+    "higherRatingRequiresCompanyAuthorization": true
+  },
+  "tokens": {
+    "limited": true,
+    "paymentDoesNotBypassTokenCaps": true,
+    "caps": "server-assigned by account class and current platform policy"
+  },
+  "refunds": {
+    "policy": "non-refundable",
+    "exception": "where required by applicable law"
+  },
+  "paymentMethods": [
+    {
+      "id": "bitcoin",
+      "kind": "crypto",
+      "asset": "BTC",
+      "network": "Bitcoin",
+      "address": "bc1q8r5vscvdc0t7rxch056wjs7hstpndcs80jflwe",
+      "requiredReconciliationFields": [
+        "shaelvienAccountId",
+        "quoteId",
+        "txid"
+      ],
+      "instructions": "Send only the exact BTC amount stated by the issued ReLiC quote. Retain the transaction ID."
+    },
+    {
+      "id": "paypal-manual",
+      "kind": "hosted-link",
+      "url": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+      "requiredMemoFormat": "AI|{shaelvienAccountId}|{quoteId}",
+      "manualReconciliation": true,
+      "instructions": "Use the temporary PayPal support/payment link and include the generated reconciliation memo when the provider flow permits it."
+    }
+  ],
+  "reconciliation": {
+    "memoFormat": "AI|{shaelvienAccountId}|{quoteId}",
+    "entitlementActivation": "manual after payment verification",
+    "bitcoinProof": "transaction id",
+    "paymentAloneGrantsWorldAuthority": false
+  },
+  "policyLinks": {
+    "aiParticipation": "https://relicgamemaster.com/Game/.well-known/relic-ai-policy.json",
+    "humanTerms": "https://relicgamemaster.com/Game/terms.html",
+    "safety": "https://relicgamemaster.com/Game/safety.html"
+  }
+}
