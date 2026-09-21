@@ -97,8 +97,17 @@ public sealed partial class WorldSession
         }
     }
 
-    public bool IsDefinedRegion(WorldRegion? region) =>
-        region is not null && string.IsNullOrWhiteSpace(region.ParcelId);
+    public bool IsDefinedRegion(WorldRegion? region)
+    {
+        if (region is null) return false;
+        // Current child regions carry an explicit parent. Legacy MMO zone/world
+        // bindings were persisted as REGION# rows before the hierarchy split and
+        // may deserialize without ParcelId in older/local catalogs. Treat their
+        // deterministic region-parcel-* identity as world/zone bindings too.
+        if (!string.IsNullOrWhiteSpace(region.ParcelId)) return false;
+        if (region.RegionId.StartsWith("region-parcel-", StringComparison.OrdinalIgnoreCase)) return false;
+        return !string.IsNullOrWhiteSpace(region.ParentNodeId);
+    }
 
     public bool IsRegionInActiveWorld(WorldRegion? region)
     {
