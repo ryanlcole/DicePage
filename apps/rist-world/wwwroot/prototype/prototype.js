@@ -1769,12 +1769,52 @@ function clearRegionSelection(announceChange=true){
   regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
   if(announceChange)announce('Region selection cleared.');
 }
+function toggleRegionSelectionMode(){
+  if(!REGION_DEFINER||READ_ONLY||regionClaimPhase!=='select')return;
+  regionSelectionEnabled=!regionSelectionEnabled;
+  pointers.clear();panStart=pinchStart=null;stage.classList.remove('dragging');
+  updateRegionSelectionOverlay();renderKeyboardKeys();
+  announce(regionSelectionEnabled?'Selection locked. Zoom and pan are frozen; tap hexes to select them.':'Selection released. Map zoom and pan are available again.');
+}
 function toggleRegionCell(cell){
   if(!REGION_DEFINER||READ_ONLY||keyboardMode!=='Select'||!regionSelectionEnabled||regionClaimPhase!=='select')return;
   cell=Math.trunc(Number(cell));if(cell<0||cell>=REGION_GRID_COLUMNS*REGION_GRID_ROWS)return;
   if(!regionSelectedCells.delete(cell))regionSelectedCells.add(cell);
   updateRegionSelectionOverlay();renderKeyboardKeys();
   announce(`${regionSelectedCells.size} region tile${regionSelectedCells.size===1?'':'s'} selected on Tier ${currentRegionTierIndex()+1}.`);
+}
+function regionHexNeighbors(cell){
+  const c=regionCellColumn(cell),r=regionCellRow(cell),odd=c&1;
+  return [[c-1,r-1+odd],[c-1,r+odd],[c,r-1],[c,r+1],[c+1,r-1+odd],[c+1,r+odd]]
+    .filter(([x,y])=>x>=0&&x<REGION_GRID_COLUMNS&&y>=0&&y<REGION_GRID_ROWS)
+    .map(([x,y])=>y*REGION_GRID_COLUMNS+x);
+}
+function enclosedRegionCells(){
+  if(regionGridShape!=='hex'||regionSelectedCells.size<6)return[];
+  const outside=new Set(),queue=[];
+  for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
+    const c=regionCellColumn(cell),r=regionCellRow(cell);
+    if((c===0||r===0||c===REGION_GRID_COLUMNS-1||r===REGION_GRID_ROWS-1)&&!regionSelectedCells.has(cell)){
+      outside.add(cell);queue.push(cell);
+    }
+  }
+  while(queue.length){
+    const cell=queue.shift();
+    for(const next of regionHexNeighbors(cell))if(!regionSelectedCells.has(next)&&!outside.has(next)){outside.add(next);queue.push(next)}
+  }
+  const inside=[];
+  for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++)if(!regionSelectedCells.has(cell)&&!outside.has(cell))inside.push(cell);
+  return inside;
+}
+function claimRegionSelection(){
+  if(!regionSelectedCells.size){announce('Select at least one hex before claiming.');return}
+  const enclosed=enclosedRegionCells();
+  if(enclosed.length){
+    const whole=window.confirm(`Your selected hexes close a loop around ${enclosed.length} additional tile${enclosed.length===1?'':'s'}.\n\nOK = claim the whole enclosed area\nCancel = claim only the selected border`);
+    if(whole)for(const cell of enclosed)regionSelectedCells.add(cell);
+  }
+  regionSelectionEnabled=false;
+  previewRegionCrop();
 }
 function regionCellsForTier(){
   const tier=currentRegionTierIndex(),map=new Map();
@@ -1814,7 +1854,11 @@ function updateRegionSelectionOverlay(){
   overlay.dataset.tier=String(currentRegionTierIndex());
   overlay.dataset.gridShape=regionGridShape;
   overlay.setAttribute('aria-hidden',String(!active&&!regionCropPreview));
-  const existing=regionCellsForTier(),cellWidth=100/REGION_GRID_COLUMNS,cellHeight=100/REGION_GRID_ROWS;
+  const existing=regionCellsForTier();
+  // Flat-top hexes overlap horizontally by 25% and alternate columns shift
+  // vertically by half a hex. This keeps the coordinate lattice aligned
+  // instead of incorrectly shifting alternate rows sideways.
+  const cellWidth=100/(REGION_GRID_COLUMNS*.75+.25),cellHeight=100/(REGION_GRID_ROWS+.5);
   for(const button of overlay.children){
     const cell=Math.trunc(Number(button.dataset.cell)),row=regionCellRow(cell),column=regionCellColumn(cell);
     const selected=regionSelectedCells.has(cell),names=existing.get(cell)||[];
@@ -1823,10 +1867,10 @@ function updateRegionSelectionOverlay(){
     button.setAttribute('aria-selected',String(selected));
     button.title=names.length?`Existing: ${names.join(', ')}`:'';
     if(regionGridShape==='hex'){
-      button.style.left=`${(column+(row%2?0.5:0))*cellWidth}%`;
-      button.style.top=`${row*cellHeight}%`;
-      button.style.width=`${cellWidth*1.02}%`;
-      button.style.height=`${cellHeight*1.08}%`;
+      button.style.left=`${column*cellWidth*.75}%`;
+      button.style.top=`${(row+(column%2?0.5:0))*cellHeight}%`;
+      button.style.width=`${cellWidth*1.01}%`;
+      button.style.height=`${cellHeight*1.01}%`;
     }else{
       button.style.left='';button.style.top='';button.style.width='';button.style.height='';
     }
@@ -2120,7 +2164,7 @@ function chooseRegionClaimTier(key){
   if(!REGION_DEFINER)return;
   hideRegionTierPreview();
   setViewerTier(key);
-  regionClaimPhase='select';regionSelectionEnabled=true;regionCropPreview=false;regionSelectedCells.clear();
+  regionClaimPhase='select';regionSelectionEnabled=false;regionCropPreview=false;regionSelectedCells.clear();
   keyboardMode='Select';
   stage.classList.add('region-selection-only');stage.classList.remove('region-build-mode');
   // Refit after the modal preview disappears and explicitly re-apply the
@@ -2131,7 +2175,7 @@ function chooseRegionClaimTier(key){
   applyParallax();
   updateRegionSelectionOverlay();renderKeyboardTabs();renderKeyboardKeys();
   if(keyboard.hidden)openKeyboard();
-  announce(`Tier ${currentRegionTierIndex()+1}, ${tierLabel(tierByKey(viewerTier))}, selected. Hex grid ready. Select at least one tile to define the regional footprint.`);
+  announce(`Tier ${currentRegionTierIndex()+1}, ${tierLabel(tierByKey(viewerTier))}, selected. Position and zoom the map, then press Select to freeze the view and choose hexes.`);
 }
 function cancelRegionClaim(){
   if(!REGION_DEFINER)return;
@@ -2208,9 +2252,11 @@ function renderRegionSelectKeyboard(){
   }
   if(regionClaimPhase==='select'){
     keyboardKeys.append(
-      toolKey('−','zoom',()=>zoomCenter(1/1.22)),
-      toolKey('+','zoom',()=>zoomCenter(1.22)),
-      toolKey('⛶','fit map',fitMap),
+      toolKey(regionSelectionEnabled?'DESELECT':'SELECT',regionSelectionEnabled?'unlock map zoom and pan':'freeze map and select hexes',toggleRegionSelectionMode),
+      toolKey('CLAIM',regionSelectedCells.size?'claim selected coordinates':'select hexes first',claimRegionSelection,!regionSelectedCells.size),
+      toolKey('−','zoom',()=>zoomCenter(1/1.22),regionSelectionEnabled),
+      toolKey('+','zoom',()=>zoomCenter(1.22),regionSelectionEnabled),
+      toolKey('⛶','fit map',fitMap,regionSelectionEnabled),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       readoutKey(regionGridShape.toUpperCase(),'selection grid'),
       readoutKey(`${regionSelectedCells.size} TILES`,regionSelectedCells.size?'selected footprint':'select at least 1'),
@@ -2218,7 +2264,7 @@ function renderRegionSelectKeyboard(){
       toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','change selection grid',cycleRegionGridShape),
       toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),
       toolKey('CHOOSE TIER','restart tier preview',showRegionTierPreview),
-      toolKey('CROP','preview selected region as the full regional map',previewRegionCrop,!regionSelectedCells.size)
+      toolKey('CLAIM','claim selected coordinates',claimRegionSelection,!regionSelectedCells.size)
     );return;
   }
   if(regionClaimPhase==='crop'){
@@ -3127,6 +3173,7 @@ spriteDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfe
 $('keyboardClose').addEventListener('click',closeKeyboard);
 
 stage.addEventListener('wheel',e=>{
+  if(REGION_DEFINER&&regionClaimPhase==='select'&&regionSelectionEnabled)return;
   if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
   if(!e.deltaY)return;
   e.preventDefault();
@@ -3134,6 +3181,7 @@ stage.addEventListener('wheel',e=>{
   zoomAt(e.clientX,e.clientY,Math.exp(-clamp(e.deltaY*unit,-240,240)*.0015));
 },{passive:false});
 stage.addEventListener('pointerdown',e=>{
+  if(REGION_DEFINER&&regionClaimPhase==='select'&&regionSelectionEnabled)return;
   if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
   if(e.target instanceof Element&&e.target.closest('button,input,select,textarea,a[href],[contenteditable]:not([contenteditable="false"])'))return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
