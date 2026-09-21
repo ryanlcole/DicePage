@@ -1829,6 +1829,18 @@ def handler(event, context):
         parcels.sort(key=lambda item: (item["row"], item["column"]))
         return response(200, parcels)
 
+    if method == "GET" and path == "/world/ghost-zones":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        if not is_geonaph(world_id):
+            return response(400, {"error": "Ghost zones belong to Shaelvien"})
+        ghosts = [
+            public_ghost_zone(item, user_id)
+            for item in active_ghost_zones(world_id)
+        ]
+        ghosts = [item for item in ghosts if item is not None]
+        ghosts.sort(key=lambda item: (item["row"], item["column"], item["releasedAtUtc"]))
+        return response(200, ghosts)
+
     if method == "POST" and path == "/world/parcels/claim":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
@@ -2179,6 +2191,23 @@ def handler(event, context):
         # binding rather than allowing representation state to veto ownership.
         ensure_parcel_region(world_id, parcel_item, now)
 
+        # A newly claimed parcel replaces the public ghost placeholder at this
+        # coordinate, while the private preservation archive remains untouched.
+        try:
+            for ghost in active_ghost_zones(world_id):
+                if int(ghost.get("cellIndex") or -1) != cell_index:
+                    continue
+                world.update_item(
+                    Key=ghost_zone_key(world_id, str(ghost.get("ghostId") or "")),
+                    UpdateExpression="SET reclaimedAtUtc = :stamp, reclaimedByParcelId = :parcelId",
+                    ExpressionAttributeValues={
+                        ":stamp": stamp,
+                        ":parcelId": parcel_id,
+                    },
+                )
+        except Exception as exc:
+            print("Ghost-zone representation reconciliation failed", str(exc)[:280])
+
         audit_write(
             world_id,
             user_id,
@@ -2194,6 +2223,322 @@ def handler(event, context):
             },
         )
         return response(200, public_parcel(parcel_item))
+
+    if method == "POST" and path == "/world/parcels/release":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        parcel_id = safe_id(req.get("parcelId"), "parcelId")
+        if not is_geonaph(world_id):
+            return response(400, {"error": "Only Shaelvien MMO property space can be released"})
+
+        parcel = world.get_item(
+            Key=parcel_key(world_id, parcel_id),
+            ConsistentRead=True,
+        ).get("Item")
+
+        # Release is idempotent. If the authoritative parcel is already gone,
+        # return the existing ghost archive for this owner's prior release rather
+        # than issuing another replacement key.
+        if not parcel:
+            prior = next(
+                (
+                    item
+                    for item in query_world_prefix(world_id, "GHOSTZONE#")
+                    if str(item.get("formerParcelId") or "") == parcel_id
+                    and str(item.get("ownerUserId") or "") == user_id
+                ),
+                None,
+            )
+            if prior:
+                refund_token_id = str(prior.get("refundTokenId") or "")
+                refund_token = world_token_by_id(user_id, refund_token_id) if refund_token_id else None
+                return response(
+                    200,
+                    {
+                        "ok": True,
+                        "ghostZone": public_ghost_zone(prior, user_id),
+                        "refundIssued": bool(refund_token),
+                        "refundToken": public_world_token(refund_token),
+                        "alreadyReleased": True,
+                    },
+                )
+            return response(404, {"error": "Shaelvien property space not found"})
+
+        if str(parcel.get("ownerUserId") or "") != user_id:
+            return response(403, {"error": "Only the property owner may release this Shaelvien property space"})
+
+        region_id = str(parcel.get("regionId") or ("region-" + parcel_id))
+        region_item = world.get_item(
+            Key=region_key(world_id, region_id),
+            ConsistentRead=True,
+        ).get("Item")
+        source_item = world.get_item(
+            Key=world_source_key(world_id),
+            ConsistentRead=True,
+        ).get("Item")
+        source_state = dict((source_item or {}).get("state") or {})
+        existing_layers = source_state.get("userLayers") or []
+        if not isinstance(existing_layers, list):
+            existing_layers = []
+        archived_layers = [
+            item
+            for item in existing_layers
+            if isinstance(item, dict) and str(item.get("regionId") or "") == region_id
+        ]
+        remaining_layers = [
+            item
+            for item in existing_layers
+            if not isinstance(item, dict) or str(item.get("regionId") or "") != region_id
+        ]
+        delegations = query_world_prefix(world_id, "PARCELACL#" + parcel_id + "#USER#")
+
+        spent_token = world_token_for_parcel(user_id, parcel_id)
+        if not spent_token:
+            return response(
+                409,
+                {
+                    "error": (
+                        "The property binding token record is missing. "
+                        "The property was left untouched so no content or ownership can be lost."
+                    )
+                },
+            )
+
+        stamp = utc_stamp()
+        binding_hash = str(parcel.get("bindingHash") or "")
+        ghost_seed = f"{world_id}:{parcel_id}:{binding_hash}:{str(parcel.get('claimedAtUtc') or '')}"
+        ghost_id = "ghost-" + hashlib.sha256(ghost_seed.encode()).hexdigest()[:24]
+        refund_token = (
+            _new_world_token_item(
+                user_id,
+                "release-refund",
+                f"{world_id}:{parcel_id}:{ghost_id}",
+                user_id,
+            )
+            if PARCEL_RELEASE_REFUNDS_ENABLED
+            else None
+        )
+        refund_token_id = str((refund_token or {}).get("tokenId") or "")
+
+        archive = {
+            "format": "RIST_GHOST_ZONE_ARCHIVE_V1",
+            "worldId": world_id,
+            "ghostId": ghost_id,
+            "ownerUserId": user_id,
+            "releasedAtUtc": stamp,
+            "contentUsePolicy": "preserve-only",
+            "published": False,
+            "parcel": {
+                "parcelId": parcel_id,
+                "regionId": region_id,
+                "displayName": str(parcel.get("displayName") or ""),
+                "cellIndex": int(parcel.get("cellIndex") or 0),
+                "column": int(parcel.get("column") or 0),
+                "row": int(parcel.get("row") or 0),
+                "pixelWidth": int(parcel.get("pixelWidth") or MMO_PARCEL_PIXELS),
+                "pixelHeight": int(parcel.get("pixelHeight") or MMO_PARCEL_PIXELS),
+                "maxHeight": int(parcel.get("maxHeight") or MMO_PARCEL_MAX_HEIGHT),
+                "bindingHash": binding_hash,
+                "claimedAtUtc": str(parcel.get("claimedAtUtc") or ""),
+            },
+            "regionState": dict((region_item or {}).get("state") or {}),
+            "userLayers": archived_layers,
+            "delegations": [
+                {
+                    "userId": str(item.get("userId") or ""),
+                    "permission": str(item.get("permission") or "None"),
+                    "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
+                }
+                for item in delegations
+            ],
+        }
+        archive_bytes = json.dumps(
+            archive,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=_json_default,
+        ).encode("utf-8")
+        archive_key = f"users/{user_id}/ghost-zones/{world_id}/{ghost_id}.json"
+        archive_sha = hashlib.sha256(archive_bytes).hexdigest()
+
+        # Preserve first, then unpublish. An interrupted release can leave an
+        # extra private archive version, but can never remove the live content
+        # before a durable preservation copy exists.
+        s3.put_object(
+            Bucket=bucket,
+            Key=archive_key,
+            Body=archive_bytes,
+            ContentType="application/json",
+            ServerSideEncryption="aws:kms",
+            SSEKMSKeyId=kms_key,
+        )
+
+        ghost_item = {
+            **ghost_zone_key(world_id, ghost_id),
+            "entityType": "ghostZone",
+            "ghostId": ghost_id,
+            "worldId": world_id,
+            "ownerUserId": user_id,
+            "formerParcelId": parcel_id,
+            "formerRegionId": region_id,
+            "cellIndex": int(parcel.get("cellIndex") or 0),
+            "column": int(parcel.get("column") or 0),
+            "row": int(parcel.get("row") or 0),
+            "releasedAtUtc": stamp,
+            "reclaimedAtUtc": "",
+            "reclaimedByParcelId": "",
+            "published": False,
+            "contentUsePolicy": "preserve-only",
+            "archiveKey": archive_key,
+            "archiveSha256": archive_sha,
+            "archiveBytes": len(archive_bytes),
+            "refundIssued": bool(refund_token),
+            "refundTokenId": refund_token_id,
+        }
+
+        released_token = {
+            **spent_token,
+            "status": "released",
+            "releasedAtUtc": stamp,
+            "releaseGhostId": ghost_id,
+            "replacementTokenId": refund_token_id,
+        }
+
+        release_transaction = [
+            {
+                "Put": {
+                    "TableName": world.name,
+                    "Item": dynamo_safe(ghost_item),
+                    "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                }
+            },
+            {
+                "Put": {
+                    "TableName": users.name,
+                    "Item": dynamo_safe(released_token),
+                    "ConditionExpression": "#status = :spent AND parcelId = :parcelId",
+                    "ExpressionAttributeNames": {"#status": "status"},
+                    "ExpressionAttributeValues": {
+                        ":spent": "spent",
+                        ":parcelId": parcel_id,
+                    },
+                }
+            },
+            {
+                "Delete": {
+                    "TableName": world.name,
+                    "Key": parcel_key(world_id, parcel_id),
+                    "ConditionExpression": "ownerUserId = :owner",
+                    "ExpressionAttributeValues": {":owner": user_id},
+                }
+            },
+        ]
+
+        if region_item:
+            release_transaction.append(
+                {
+                    "Delete": {
+                        "TableName": world.name,
+                        "Key": region_key(world_id, region_id),
+                        "ConditionExpression": "parcelId = :parcelId",
+                        "ExpressionAttributeValues": {":parcelId": parcel_id},
+                    }
+                }
+            )
+
+        if refund_token:
+            release_transaction.append(
+                {
+                    "Put": {
+                        "TableName": users.name,
+                        "Item": dynamo_safe(refund_token),
+                        "ConditionExpression": "attribute_not_exists(pk) AND attribute_not_exists(sk)",
+                    }
+                }
+            )
+
+        if source_item and archived_layers:
+            updated_source_state = dict(source_state)
+            updated_source_state["userLayers"] = remaining_layers
+            updated_source_state["savedAt"] = stamp
+            updated_source_item = {
+                **source_item,
+                "state": dynamo_safe(updated_source_state),
+                "updatedAtUtc": stamp,
+                "updatedByUserId": user_id,
+            }
+            expected_source_stamp = str(source_item.get("updatedAtUtc") or "")
+            source_put = {
+                "TableName": world.name,
+                "Item": dynamo_safe(updated_source_item),
+            }
+            if expected_source_stamp:
+                source_put["ConditionExpression"] = "updatedAtUtc = :expected"
+                source_put["ExpressionAttributeValues"] = {":expected": expected_source_stamp}
+            else:
+                source_put["ConditionExpression"] = "attribute_not_exists(updatedAtUtc)"
+            release_transaction.append({"Put": source_put})
+
+        try:
+            ddb.meta.client.transact_write_items(TransactItems=release_transaction)
+        except ClientError as exc:
+            code = (exc.response.get("Error") or {}).get("Code")
+            if code in ("TransactionCanceledException", "ConditionalCheckFailedException"):
+                return response(
+                    409,
+                    {
+                        "error": (
+                            "The property changed while release was being prepared. "
+                            "Nothing was unpublished or refunded; refresh and try again."
+                        )
+                    },
+                )
+            raise
+
+        # ACLs are no longer live authority once the parcel record is gone. Their
+        # prior values remain inside the private ghost archive for loss prevention.
+        for delegation in delegations:
+            key = {
+                "pk": str(delegation.get("pk") or ""),
+                "sk": str(delegation.get("sk") or ""),
+            }
+            if key["pk"] and key["sk"]:
+                world.delete_item(Key=key)
+
+        audit_write(
+            world_id,
+            user_id,
+            "parcel.release",
+            parcel_id,
+            {
+                "ghostId": ghost_id,
+                "cellIndex": ghost_item["cellIndex"],
+                "refundIssued": bool(refund_token),
+                "refundTokenId": refund_token_id,
+                "archiveSha256": archive_sha,
+            },
+        )
+        notify_user(
+            user_id,
+            "parcel.released",
+            world_id,
+            {
+                "parcelId": parcel_id,
+                "ghostId": ghost_id,
+                "refundIssued": bool(refund_token),
+                "refundTokenId": refund_token_id,
+            },
+        )
+        return response(
+            200,
+            {
+                "ok": True,
+                "ghostZone": public_ghost_zone(ghost_item, user_id),
+                "refundIssued": bool(refund_token),
+                "refundToken": public_world_token(refund_token),
+                "alreadyReleased": False,
+            },
+        )
 
     if method == "POST" and path == "/world/parcels/delegate":
         req = body(event)
