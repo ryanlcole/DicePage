@@ -185,10 +185,12 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         }
 
         var ranked=combined
-            .Select(x=>(Evidence:_documents[x.Key],Score:x.Value))
-            .OrderByDescending(x=>x.Score)
+            .Select(x=>(Evidence:_documents[x.Key],Score:x.Value,Direct:directScores.ContainsKey(x.Key)))
+            .OrderByDescending(x=>x.Direct)
+            .ThenByDescending(x=>x.Score)
             .ThenBy(x=>x.Evidence.Evidence.Title,StringComparer.OrdinalIgnoreCase)
             .Take(Math.Clamp(topK,1,16))
+            .Select(x=>(x.Evidence,x.Score))
             .ToList();
 
         var hits=ranked.Select(x=>
@@ -222,8 +224,13 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             };
         }).ToList();
 
-        var truthDomains=hits.Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
-        var truthSummary=truthDomains.Length==1?truthDomains[0]:"MIXED";
+        var truthDomains=hits.Where(h=>h.DirectMatch).Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
+        var truthSummary=truthDomains.Length switch
+        {
+            0=>"UNKNOWN",
+            1=>truthDomains[0],
+            _=>"MIXED"
+        };
         var directExcerpts=hits.Where(h=>h.DirectMatch).Select(h=>h.Excerpt)
             .Where(x=>!string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
