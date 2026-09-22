@@ -212,7 +212,7 @@ def test_perceiver_imports_self_contained_ristmovie_sprite_scenes():
     workspace = read("Components/PerceiverWorkspace.razor")
     player = read("wwwroot/perceiver-player.js")
 
-    assert "OPEN .RISTMOVIE" in workspace
+    assert "OPEN MOVIE FILE" in workspace
     assert "data-perceiver-movie-input" in workspace
     assert 'accept=".ristmovie,application/json"' not in workspace
     assert "data-perceiver-movie-button" in workspace
