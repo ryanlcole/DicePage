@@ -59,6 +59,22 @@ The generator includes only sources whose visibility starts with `public`. It de
 
 The source-controlled public corpus remains evidence. It is not a permission grant, live deployment verification, or automatic canon promotion.
 
+### Current repository overlay
+
+The Project Knowledge snapshot is intentionally durable and may lag the current branch. To keep ReLiC aware of important current work without exposing the entire repository, the seed builder has a small explicit public-source allowlist.
+
+If an allowlisted repository file has the same SHA-256 as the corresponding Project Knowledge source, ReLiC does not duplicate it. If it is new or has changed, the builder emits bounded overlay records with current source hashes.
+
+The allowlist includes current semantic/authority contracts, the ReLiC Observer implementation and architecture, and selected historical ReLiC prototypes such as `relic_core.py`, `relic_analyzer.py`, `glyph_ai_core.py`, and `shaelvien_ai_adapter.py`. Historical prototype material is labeled UNKNOWN/historical rather than silently treated as current architecture.
+
+Arbitrary repository discovery is forbidden for this browser seed. New public source files must be deliberately added to the allowlist.
+
+### Evidence packet
+
+A returned answer can be copied as a compact `relic.observer.evidence-packet`. The packet contains only the bounded returned evidence excerpts and their source/truth/provenance metadata, plus retrieval trace, intent, context state, and explicit conflict state. It does not export the complete private corpus.
+
+This packet is the handoff boundary for a future optional reasoner: a model or external process can receive the small evidence packet instead of receiving the entire project database.
+
 ## Private project memory
 
 Authenticated private imports use the existing `DiscordAuthClient` private-storage path:
