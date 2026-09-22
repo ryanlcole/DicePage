@@ -1,0 +1,290 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Text
+@implements IDisposable
+@inject ReLiCObserverService Observer
+
+<div class="observer-shell">
+ <header class="observer-header">
+  <div class="observer-nav">
+   <button type="button" @onclick="OnHome" aria-label="Home">⌂ HOME</button>
+   <button type="button" @onclick="OnStartMenu" aria-label="Open Start Menu">☰ MENU</button>
+  </div>
+  <div class="observer-title">
+   <p>ReLiC · OBSERVER</p>
+   <h1>Project Intelligence</h1>
+   <span>Source-grounded retrieval without a required paid model.</span>
+  </div>
+  <div class="observer-state" aria-live="polite">
+   <strong>@(Observer.Loaded?"READY":"LOADING")</strong>
+   <span>@Observer.Status</span>
+  </div>
+ </header>
+
+ <main class="observer-main">
+  <section class="observer-query-panel" aria-labelledby="observer-query-heading">
+   <div class="observer-section-head">
+    <div>
+     <p class="observer-eyebrow">QUERY</p>
+     <h2 id="observer-query-heading">Ask the work, not a blank model</h2>
+    </div>
+    <div class="observer-ledger" aria-label="Loaded evidence">
+     <span><strong>@Observer.PublicSourceCount</strong> public sources</span>
+     <span><strong>@Observer.PublicRecordCount</strong> project records</span>
+     <span><strong>@Observer.PrivateDocuments.Count</strong> private imports</span>
+     <span><strong>@Observer.IndexedEvidenceCount</strong> indexed units</span>
+    </div>
+   </div>
+
+   <form class="observer-query-form" @onsubmit="RunQueryAsync" @onsubmit:preventDefault="true">
+    <label for="observer-query">Question or search</label>
+    <div class="observer-query-row">
+     <input id="observer-query" type="search" @bind="_query" placeholder="Example: What is authoritative about SHAEP provenance?" autocomplete="off" disabled="@(!Observer.Loaded)" />
+     <button type="submit" disabled="@(!Observer.Loaded||string.IsNullOrWhiteSpace(_query))">QUERY</button>
+    </div>
+   </form>
+
+   <div class="observer-principle">
+    <strong>Observer rule</strong>
+    <span>Evidence is not permission. Retrieval does not promote UNKNOWN, HYPOTHESIS, or FICTION into FACT, and this engine does not repurpose Rune, Glyph, CHID, or SHAEP identities.</span>
+   </div>
+  </section>
+
+  @if(_answer is not null)
+  {
+   <section class="observer-answer" aria-labelledby="observer-answer-heading" aria-live="polite">
+    <div class="observer-answer-head">
+     <div>
+      <p class="observer-eyebrow">RESPONSE</p>
+      <h2 id="observer-answer-heading">@_answer.TruthSummary</h2>
+     </div>
+     <div class="observer-trace" aria-label="Query trace">
+      <span>RETRIEVE</span><b>→</b><span>RANK</span><b>→</b><span>BOUND EVIDENCE</span><b>→</b><span>OBSERVE</span>
+     </div>
+    </div>
+    <div class="observer-answer-text">@_answer.Answer</div>
+
+    @if(_answer.Hits.Count>0)
+    {
+     <details class="observer-evidence" open>
+      <summary>Evidence trace · @_answer.Hits.Count ranked records</summary>
+      <div class="observer-hit-list">
+       @foreach(var hit in _answer.Hits)
+       {
+        <article class="observer-hit">
+         <div class="observer-hit-head">
+          <span class="observer-truth" data-domain="@hit.TruthDomain">@hit.TruthDomain</span>
+          <span class="observer-score">score @hit.Score.ToString("0.000")</span>
+         </div>
+         <h3>@hit.Title</h3>
+         <p class="observer-hit-meta">@hit.Category · @hit.Status · @hit.Scope</p>
+         <p class="observer-excerpt">@hit.Excerpt</p>
+         <div class="observer-source-row">
+          @foreach(var source in hit.Sources)
+          {
+           var safe=SafeUri(source.Uri);
+           if(safe is not null)
+           {
+            <a href="@safe" target="_blank" rel="noopener noreferrer">@source.Title</a>
+           }
+           else
+           {
+            <span>@source.Title</span>
+           }
+          }
+         </div>
+         <p class="observer-provenance">@hit.Provenance</p>
+        </article>
+       }
+      </div>
+     </details>
+    }
+   </section>
+  }
+
+  <section class="observer-import" aria-labelledby="observer-import-heading">
+   <div class="observer-section-head">
+    <div>
+     <p class="observer-eyebrow">PRIVATE MEMORY</p>
+     <h2 id="observer-import-heading">Add material without publishing it</h2>
+    </div>
+    <span class="observer-private-badge">AUTHENTICATED ACCOUNT STORAGE</span>
+   </div>
+   <p class="observer-copy">Imported text is stored through the existing private account-storage path. It is never copied into the public project seed. Code is indexed as text and is never executed. A Shaelvien Project Knowledge JSON export is recognized and its record truth domains and source links are preserved.</p>
+
+   <div class="observer-import-grid">
+    <div class="observer-file-import">
+     <label>Import text/code/project corpus</label>
+     <InputFile OnChange="ImportFilesAsync" multiple accept=".txt,.md,.json,.csv,.cs,.razor,.py,.js,.ts,.html,.css,.sql,.xml,.yaml,.yml,text/plain,application/json" />
+     <small>Up to 12 files per selection · 2 MB each · private corpus capped at 5 million characters.</small>
+    </div>
+
+    <form class="observer-paste" @onsubmit="ImportPasteAsync" @onsubmit:preventDefault="true">
+     <label for="observer-source-title">Source title</label>
+     <input id="observer-source-title" @bind="_pasteTitle" placeholder="Example: Design notebook September 2026" />
+     <label for="observer-source-text">Paste source text</label>
+     <textarea id="observer-source-text" @bind="_pasteText" rows="6" placeholder="Paste notes, requirements, lore, code, or another text source…"></textarea>
+     <button type="submit" disabled="@_importBusy">ADD PRIVATE SOURCE</button>
+    </form>
+   </div>
+
+   @if(!string.IsNullOrWhiteSpace(_importStatus))
+   {
+    <p class="observer-import-status" role="status">@_importStatus</p>
+   }
+
+   @if(Observer.PrivateDocuments.Count>0)
+   {
+    <div class="observer-private-list" aria-label="Private imported sources">
+     @foreach(var document in Observer.PrivateDocuments.OrderByDescending(x=>x.ImportedAtUtc))
+     {
+      <div class="observer-private-item">
+       <div>
+        <strong>@document.Title</strong>
+        <span>@document.Content.Length.ToString("N0") chars · @document.ImportedAtUtc.ToLocalTime().ToString("g")</span>
+        <small>Source origin @document.SourceOrigin · handling @document.ProvenanceHandling</small>
+       </div>
+       <button type="button" @onclick="()=>RemovePrivateAsync(document.Id)" disabled="@_importBusy" aria-label="@($"Remove {document.Title} from ReLiC Observer")">REMOVE</button>
+      </div>
+     }
+    </div>
+   }
+  </section>
+
+  <footer class="observer-footer">
+   <span>PUBLIC SEED @(!string.IsNullOrWhiteSpace(Observer.SnapshotDate)?Observer.SnapshotDate:"UNAVAILABLE")</span>
+   <span>PRIVATE DATA STAYS OUT OF THE PUBLIC REPOSITORY</span>
+   <span>REPRESENTATION ≠ TRUTH</span>
+  </footer>
+ </main>
+</div>
+
+<style>
+ .observer-shell{box-sizing:border-box;width:100%;height:100%;min-height:0;overflow:auto;background:radial-gradient(circle at 18% -10%,#18303a 0,#071015 34rem,#04090c 100%);color:#e9ece8;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+ .observer-header{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(221,190,116,.35);background:rgba(5,12,16,.94);backdrop-filter:blur(12px)}
+ .observer-nav{display:flex;gap:6px}.observer-nav button,.observer-query-row button,.observer-paste button,.observer-private-item button{min-height:40px;border:1px solid #66552f;border-radius:7px;background:#101a20;color:#ead59d;font:900 10px/1 system-ui;letter-spacing:.08em;touch-action:manipulation}.observer-nav button{padding:0 10px}
+ .observer-title p,.observer-eyebrow{margin:0;color:#8ebaca;font-size:9px;font-weight:900;letter-spacing:.18em}.observer-title h1{margin:1px 0;color:#e8d19a;font:600 21px/1.05 Georgia,"Times New Roman",serif}.observer-title>span{color:#8fa1a9;font-size:9px}
+ .observer-state{display:grid;justify-items:end;gap:2px;text-align:right}.observer-state strong{color:#9fd3b1;font-size:10px;letter-spacing:.12em}.observer-state span{max-width:260px;color:#82959d;font-size:8px}
+ .observer-main{box-sizing:border-box;width:min(1180px,100%);min-height:100%;margin:0 auto;padding:20px;display:grid;gap:16px}.observer-query-panel,.observer-answer,.observer-import{border:1px solid rgba(126,151,159,.3);border-radius:14px;background:linear-gradient(180deg,rgba(12,27,34,.92),rgba(6,17,22,.94));box-shadow:0 16px 36px rgba(0,0,0,.24);padding:18px}
+ .observer-section-head,.observer-answer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.observer-section-head h2,.observer-answer-head h2{margin:3px 0;color:#e8d19a;font:600 22px/1.12 Georgia,"Times New Roman",serif}
+ .observer-ledger{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.observer-ledger span{padding:6px 8px;border:1px solid #314b56;border-radius:999px;background:#08151b;color:#91a8b2;font-size:8px;font-weight:800;white-space:nowrap}.observer-ledger strong{color:#f1dcaa}
+ .observer-query-form{margin-top:16px}.observer-query-form label,.observer-file-import label,.observer-paste label{display:block;margin:0 0 5px;color:#a9bac1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.observer-query-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px}.observer-query-row input,.observer-paste input,.observer-paste textarea{box-sizing:border-box;width:100%;border:1px solid #425e69;border-radius:8px;background:#050d11;color:#f0eee7;font:600 13px/1.45 system-ui;padding:11px}.observer-query-row input{min-height:46px}.observer-query-row input:focus-visible,.observer-paste input:focus-visible,.observer-paste textarea:focus-visible,.observer-nav button:focus-visible,.observer-query-row button:focus-visible,.observer-paste button:focus-visible,.observer-private-item button:focus-visible{outline:3px solid #f2dda6;outline-offset:2px}.observer-query-row button:disabled,.observer-paste button:disabled,.observer-private-item button:disabled{opacity:.45}
+ .observer-principle{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;margin-top:12px;padding:9px 11px;border-left:3px solid #bf9e56;background:rgba(191,158,86,.08);font-size:9px;line-height:1.45}.observer-principle strong{color:#e6cb8b}.observer-principle span{color:#9dacb2}
+ .observer-trace{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.observer-trace span{padding:4px 7px;border:1px solid #38505a;border-radius:999px;color:#a7bcc5;font-size:7px;font-weight:900;letter-spacing:.07em}.observer-trace b{color:#766c4a;font-size:9px}
+ .observer-answer-text{white-space:pre-wrap;margin-top:14px;padding:14px;border:1px solid rgba(225,196,126,.28);border-radius:9px;background:#071217;color:#e3e8e4;font:500 13px/1.65 system-ui}.observer-evidence{margin-top:12px}.observer-evidence summary{cursor:pointer;color:#d7c18d;font-size:10px;font-weight:900;letter-spacing:.06em}.observer-hit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.observer-hit{min-width:0;padding:12px;border:1px solid #2d454f;border-radius:9px;background:#08161c}.observer-hit-head{display:flex;justify-content:space-between;gap:8px}.observer-truth{display:inline-flex;padding:3px 6px;border:1px solid #55707a;border-radius:999px;color:#d4e4e9;font-size:7px;font-weight:900;letter-spacing:.1em}.observer-truth[data-domain="FACT"]{border-color:#5a8767}.observer-truth[data-domain="FICTION"]{border-color:#7561a0}.observer-truth[data-domain="HYPOTHESIS"]{border-color:#a47d42}.observer-score{color:#6f858e;font-size:7px}.observer-hit h3{margin:8px 0 2px;color:#e8d7ac;font:600 14px/1.2 Georgia,serif}.observer-hit-meta,.observer-provenance{margin:0;color:#758a93;font-size:7px}.observer-excerpt{margin:8px 0;color:#bac8cb;font-size:10px;line-height:1.5}.observer-source-row{display:flex;gap:5px;flex-wrap:wrap}.observer-source-row a,.observer-source-row span{max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:3px 5px;border-radius:4px;background:#0d222b;color:#9fd3e0;font-size:7px;white-space:nowrap}.observer-provenance{margin-top:7px}
+ .observer-private-badge{padding:5px 8px;border:1px solid #516a58;border-radius:999px;color:#a9d3b1;font-size:7px;font-weight:900;letter-spacing:.08em}.observer-copy{max-width:900px;margin:9px 0 15px;color:#9dafb5;font-size:10px;line-height:1.55}.observer-import-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px}.observer-file-import,.observer-paste{padding:12px;border:1px solid #304852;border-radius:9px;background:#08151b}.observer-file-import input[type=file]{box-sizing:border-box;width:100%;min-height:46px;padding:9px;border:1px dashed #526b75;border-radius:7px;color:#aebdc2;background:#050c10}.observer-file-import small{display:block;margin-top:8px;color:#738890;font-size:8px;line-height:1.4}.observer-paste{display:grid;gap:6px}.observer-paste label{margin:2px 0 0}.observer-paste textarea{resize:vertical;min-height:112px}.observer-paste button{justify-self:end;padding:0 12px}
+ .observer-import-status{margin:10px 0 0;color:#cbd9d2;font-size:9px}.observer-private-list{display:grid;gap:6px;margin-top:12px}.observer-private-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid #293f48;border-radius:8px;background:#071219}.observer-private-item>div{min-width:0;display:grid;gap:2px}.observer-private-item strong{overflow:hidden;text-overflow:ellipsis;color:#d9c89e;font-size:10px}.observer-private-item span,.observer-private-item small{color:#778b93;font-size:7px}.observer-private-item button{min-height:32px;padding:0 8px;color:#d8b6a0;border-color:#6d4b3b}
+ .observer-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 2px 20px;color:#5f747d;font-size:7px;font-weight:900;letter-spacing:.08em}
+ @@media(max-width:760px){.observer-header{grid-template-columns:auto minmax(0,1fr);padding:9px}.observer-state{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;text-align:left}.observer-main{padding:9px}.observer-query-panel,.observer-answer,.observer-import{padding:12px;border-radius:10px}.observer-section-head,.observer-answer-head{display:grid}.observer-ledger,.observer-trace{justify-content:flex-start}.observer-query-row{grid-template-columns:1fr}.observer-query-row button{min-height:44px}.observer-hit-list,.observer-import-grid{grid-template-columns:1fr}.observer-title>span{display:none}.observer-title h1{font-size:18px}.observer-principle{grid-template-columns:1fr}.observer-private-item{align-items:flex-start}}
+ @@media(prefers-reduced-motion:reduce){.observer-shell *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnHome { get; set; }
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ static readonly HashSet<string> AllowedExtensions=new(StringComparer.OrdinalIgnoreCase)
+ {
+  ".txt",".md",".json",".csv",".cs",".razor",".py",".js",".ts",".html",".css",".sql",".xml",".yaml",".yml"
+ };
+
+ string _query="";
+ string _pasteTitle="";
+ string _pasteText="";
+ string _importStatus="";
+ bool _importBusy;
+ ObserverAnswer? _answer;
+
+ protected override async Task OnInitializedAsync()
+ {
+  Observer.Changed+=ObserverChanged;
+  await Observer.InitializeAsync();
+ }
+
+ void ObserverChanged()=>_ = InvokeAsync(StateHasChanged);
+
+ Task RunQueryAsync()
+ {
+  _answer=Observer.Query(_query);
+  return Task.CompletedTask;
+ }
+
+ async Task ImportFilesAsync(InputFileChangeEventArgs args)
+ {
+  _importBusy=true;
+  _importStatus="";
+  var imported=0;
+  var rejected=new List<string>();
+  try
+  {
+   foreach(var file in args.GetMultipleFiles(12))
+   {
+    var extension=Path.GetExtension(file.Name);
+    if(!AllowedExtensions.Contains(extension))
+    {
+     rejected.Add($"{file.Name} (unsupported type)");
+     continue;
+    }
+    try
+    {
+     await using var stream=file.OpenReadStream(2_100_000);
+     using var reader=new StreamReader(stream,Encoding.UTF8,detectEncodingFromByteOrderMarks:true);
+     var text=await reader.ReadToEndAsync();
+     await Observer.ImportPrivateTextAsync(Path.GetFileNameWithoutExtension(file.Name),text,file.Name);
+     imported++;
+    }
+    catch(Exception ex)
+    {
+     rejected.Add($"{file.Name} ({ex.Message})");
+    }
+   }
+   _importStatus=$"Imported {imported} private source{(imported==1?"":"s")}.";
+   if(rejected.Count>0)_importStatus+=" Rejected: "+string.Join("; ",rejected);
+  }
+  finally
+  {
+   _importBusy=false;
+  }
+ }
+
+ async Task ImportPasteAsync()
+ {
+  if(string.IsNullOrWhiteSpace(_pasteTitle)||string.IsNullOrWhiteSpace(_pasteText))
+  {
+   _importStatus="Add both a source title and source text.";
+   return;
+  }
+  _importBusy=true;
+  try
+  {
+   await Observer.ImportPrivateTextAsync(_pasteTitle,_pasteText);
+   _importStatus=$"Imported privately: {_pasteTitle.Trim()}";
+   _pasteTitle="";
+   _pasteText="";
+  }
+  catch(Exception ex)
+  {
+   _importStatus=ex.Message;
+  }
+  finally
+  {
+   _importBusy=false;
+  }
+ }
+
+ async Task RemovePrivateAsync(string id)
+ {
+  _importBusy=true;
+  try{await Observer.RemovePrivateDocumentAsync(id);}
+  catch(Exception ex){_importStatus=ex.Message;}
+  finally{_importBusy=false;}
+ }
+
+ static string? SafeUri(string? value)
+ {
+  if(string.IsNullOrWhiteSpace(value))return null;
+  if(!Uri.TryCreate(value,UriKind.Absolute,out var uri))return null;
+  return uri.Scheme is "https" or "http"?uri.ToString():null;
+ }
+
+ public void Dispose()=>Observer.Changed-=ObserverChanged;
+}
