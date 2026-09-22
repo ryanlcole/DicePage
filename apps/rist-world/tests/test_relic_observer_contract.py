@@ -67,7 +67,8 @@ def test_relic_observer_associative_recall_is_sparse_bounded_and_visible():
     assert "foreach(var seed in seeds)" in service
     assert "ASSOCIATED via" in service
     assert "AssociationEdgeCount" in service
-    assert 'hit.DirectMatch?"DIRECT":"ASSOCIATED"' in workspace
+    assert 'data-kind="@hit.RetrievalKind"' in workspace
+    assert "@hit.RetrievalKind" in workspace
     assert "sparse associations" in workspace
     assert "There is deliberately no unrestricted recursive walk." in architecture
 
