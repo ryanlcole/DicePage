@@ -128,3 +128,18 @@ def test_relic_observer_intent_routing_and_conflict_visibility_are_deterministic
     assert "does not select a winner" in service
     assert "UNRESOLVED SOURCE CONFLICT PRESENT" in workspace
     assert "Deterministic intent shaping" in architecture
+
+
+def test_relic_observer_evidence_scope_is_explicit_and_clears_follow_up_context():
+    service = (APP / "ReLiCObserverService.cs").read_text(encoding="utf-8")
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    architecture = (ROOT / "docs" / "RELIC_OBSERVER_ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    assert 'string evidenceFilter="all"' in service
+    assert '"current"=>!historical' in service
+    assert '"historical"=>historical' in service
+    assert '"public"=>evidence.Visibility.StartsWith("public"' in service
+    assert '"private"=>evidence.Visibility.StartsWith("private"' in service
+    assert 'id="observer-filter"' in workspace
+    assert "Observer.ClearConversationContext();" in workspace
+    assert "Explicit evidence scope" in architecture
