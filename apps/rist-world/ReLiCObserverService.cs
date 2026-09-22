@@ -158,17 +158,17 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
 
         var hits=ranked.Select(x=>new ObserverHit
         {
-            RecordId=x.Evidence.RecordId,
-            Title=x.Evidence.Title,
-            Category=x.Evidence.Category,
-            Status=x.Evidence.Status,
-            TruthDomain=NormalizeTruthDomain(x.Evidence.TruthDomain),
-            Scope=x.Evidence.Scope,
-            Visibility=x.Evidence.Visibility,
-            Provenance=x.Evidence.Provenance,
+            RecordId=x.Evidence.Evidence.RecordId,
+            Title=x.Evidence.Evidence.Title,
+            Category=x.Evidence.Evidence.Category,
+            Status=x.Evidence.Evidence.Status,
+            TruthDomain=NormalizeTruthDomain(x.Evidence.Evidence.TruthDomain),
+            Scope=x.Evidence.Evidence.Scope,
+            Visibility=x.Evidence.Evidence.Visibility,
+            Provenance=x.Evidence.Evidence.Provenance,
             Score=Math.Round(x.Score,3),
-            Excerpt=BestExcerpt(x.Evidence.Text,queryTerms),
-            Sources=x.Evidence.Sources
+            Excerpt=BestExcerpt(x.Evidence.Evidence.Text,queryTerms),
+            Sources=x.Evidence.Evidence.Sources
         }).ToList();
 
         var truthDomains=hits.Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
