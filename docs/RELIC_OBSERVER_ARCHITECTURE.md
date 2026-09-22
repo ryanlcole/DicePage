@@ -118,7 +118,20 @@ The prior turn is consulted only when the new query contains explicit follow-up 
 
 Only the last four turns are retained, and only the immediately prior turn supplies retrieval terms. This provides conversational continuity without turning the whole conversation into an unbounded prompt or silently contaminating unrelated questions.
 
-This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, follow only a few precomputed associations, retain only a tiny explicit conversation window, and spend computation only on the requested terms.
+### Deterministic intent shaping
+
+The first version also detects a few narrow query intents from the user's own words:
+
+- **SOURCE** — source, origin, provenance, or citation questions produce a source trace.
+- **STATUS** — current/live/implemented questions summarize record status, truth domain, and scope.
+- **HISTORY** — old/original/previous/prototype questions separate historical evidence from current or non-historical evidence.
+- **GENERAL** — all other questions use the ordinary evidence synthesis path.
+
+This is routing, not hidden model reasoning. The detected intent is displayed in the response and copied into the evidence packet.
+
+If grounded records explicitly carry a source-conflict status, ReLiC surfaces that conflict and does not select a winner. Mixed evidence is not silently flattened into a single confident answer.
+
+This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, follow only a few precomputed associations, retain only a tiny explicit conversation window, route a handful of deterministic intents, and spend computation only on the requested terms.
 
 ## Privacy and authority
 
