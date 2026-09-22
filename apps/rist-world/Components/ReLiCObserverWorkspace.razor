@@ -178,7 +178,7 @@
     <div class="observer-file-import">
      <label>Import text/code/project corpus</label>
      <InputFile OnChange="ImportFilesAsync" multiple accept=".txt,.md,.json,.csv,.cs,.razor,.py,.js,.ts,.html,.css,.sql,.xml,.yaml,.yml,text/plain,application/json" />
-     <small>Up to 12 files per selection · 2 MB each · private corpus capped at 5 million characters.</small>
+     <small>Up to 12 files per selection · private source bundles up to 5 MB · individual sources capped at 2 million characters · private corpus capped at 5 million characters.</small>
     </div>
 
     <form class="observer-paste" @onsubmit="ImportPasteAsync" @onsubmit:preventDefault="true">
@@ -330,11 +330,11 @@
     }
     try
     {
-     await using var stream=file.OpenReadStream(2_100_000);
+     await using var stream=file.OpenReadStream(5_500_000);
      using var reader=new StreamReader(stream,Encoding.UTF8,detectEncodingFromByteOrderMarks:true);
      var text=await reader.ReadToEndAsync();
-     await Observer.ImportPrivateTextAsync(Path.GetFileNameWithoutExtension(file.Name),text,file.Name);
-     imported++;
+     var result=await Observer.ImportPrivatePayloadAsync(Path.GetFileNameWithoutExtension(file.Name),text,file.Name);
+     imported+=result.DocumentsAdded;
     }
     catch(Exception ex)
     {
@@ -360,8 +360,8 @@
   _importBusy=true;
   try
   {
-   await Observer.ImportPrivateTextAsync(_pasteTitle,_pasteText);
-   _importStatus=$"Imported privately: {_pasteTitle.Trim()}";
+   var result=await Observer.ImportPrivatePayloadAsync(_pasteTitle,_pasteText);
+   _importStatus=result.Message;
    _pasteTitle="";
    _pasteText="";
   }
