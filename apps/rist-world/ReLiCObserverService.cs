@@ -25,6 +25,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     const double AssociationExpansionFactor = 0.28;
     const int MaxConversationTurns = 4;
     const double ConversationContextFactor = 0.22;
+    const double SemanticAliasFactor = 0.36;
+    const int MaxSemanticAliasTerms = 12;
 
     static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -61,6 +63,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     public int PublicRecordCount => _public.Records.Count;
     public int RepositoryOverlaySourceCount => _public.OverlaySourceCount;
     public int RepositoryOverlayRecordCount => _public.OverlayRecordCount;
+    public int SemanticAliasGroupCount => _public.SemanticAliasGroups.Count;
     public IReadOnlyList<ObserverPrivateDocument> PrivateDocuments => _private.Documents;
     public int IndexedEvidenceCount => _documents.Count;
     public int AssociationEdgeCount => _associations.Sum(x=>x.Value.Count)/2;
@@ -142,9 +145,12 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         var contextTerms=contextApplied?BuildConversationTerms():[];
         if(contextTerms.Length==0)contextApplied=false;
 
+        var semanticExpansion=BuildSemanticAliasExpansion(queryTerms);
+        var aliasTerms=semanticExpansion.Terms;
         var normalizedPhrase=NormalizeForPhrase(query);
         var directScores=new Dictionary<int,double>();
         var contextScores=new Dictionary<int,double>();
+        var aliasScores=new Dictionary<int,double>();
 
         foreach(var document in _documents)
         {
@@ -162,13 +168,21 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 var contextual=ScoreTerms(document,contextOnly,ConversationContextFactor);
                 if(contextual>0)contextScores[document.Index]=contextual;
             }
+
+            if(aliasTerms.Length>0)
+            {
+                var aliasScore=ScoreTerms(document,aliasTerms,SemanticAliasFactor);
+                if(aliasScore>0)aliasScores[document.Index]=aliasScore;
+            }
         }
 
         var combined=new Dictionary<int,double>();
         foreach(var pair in directScores)
-            combined[pair.Key]=pair.Value+(contextScores.TryGetValue(pair.Key,out var extra)?extra:0);
+            combined[pair.Key]=pair.Value;
         foreach(var pair in contextScores)
-            if(!combined.ContainsKey(pair.Key))combined[pair.Key]=pair.Value;
+            combined[pair.Key]=combined.TryGetValue(pair.Key,out var currentContext)?currentContext+pair.Value:pair.Value;
+        foreach(var pair in aliasScores)
+            combined[pair.Key]=combined.TryGetValue(pair.Key,out var currentAlias)?currentAlias+pair.Value:pair.Value;
 
         if(combined.Count==0)
         {
@@ -183,13 +197,15 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 PrivateDocumentCount=_private.Documents.Count,
                 AssociationEdgeCount=AssociationEdgeCount,
                 ContextApplied=contextApplied,
+                SemanticAliasApplied=semanticExpansion.UnitIds.Length>0,
+                SemanticAliasUnits=semanticExpansion.UnitIds.ToList(),
                 ConversationTurnCount=_conversation.Count,
-                RetrievalTrace=$"0 direct matches · {(contextApplied?contextScores.Count:0)} context matches · 0 bounded associations"
+                RetrievalTrace=$"0 direct matches · {(contextApplied?contextScores.Count:0)} context matches · {aliasScores.Count} semantic candidates · 0 bounded associations"
             };
         }
 
         var associatedFrom=new Dictionary<int,(int Seed,string Reason,double Strength)>();
-        var seedScores=directScores.Count>0?directScores:contextScores;
+        var seedScores=directScores.Count>0?directScores:contextScores.Count>0?contextScores:aliasScores;
         var seeds=seedScores
             .OrderByDescending(x=>x.Value)
             .ThenBy(x=>_documents[x.Key].Evidence.Title,StringComparer.OrdinalIgnoreCase)
@@ -214,7 +230,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             }
         }
 
-        int Priority(int index)=>directScores.ContainsKey(index)?2:contextScores.ContainsKey(index)?1:0;
+        int Priority(int index)=>directScores.ContainsKey(index)?3:contextScores.ContainsKey(index)?2:aliasScores.ContainsKey(index)?1:0;
         var ranked=combined
             .Select(x=>(Evidence:_documents[x.Key],Score:x.Value,Priority:Priority(x.Key)))
             .OrderByDescending(x=>x.Priority)
@@ -228,21 +244,26 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         {
             var isDirect=directScores.ContainsKey(x.Evidence.Index);
             var isContext=!isDirect&&contextScores.ContainsKey(x.Evidence.Index);
+            var isAlias=!isDirect&&!isContext&&aliasScores.ContainsKey(x.Evidence.Index);
             var association=associatedFrom.TryGetValue(x.Evidence.Index,out var found)?found:default;
-            var kind=isDirect?"DIRECT":isContext?"CONTEXT":"ASSOCIATED";
+            var kind=isDirect?"DIRECT":isContext?"CONTEXT":isAlias?"ALIAS":"ASSOCIATED";
             var path=isDirect
                 ?"DIRECT"
                 :isContext
                     ?"FOLLOW-UP CONTEXT"
-                    :associatedFrom.ContainsKey(x.Evidence.Index)
-                        ?$"ASSOCIATED via {_documents[association.Seed].Evidence.Title}"
-                        :"ASSOCIATED";
+                    :isAlias
+                        ?"REGISTERED SEMANTIC CANDIDATE"
+                        :associatedFrom.ContainsKey(x.Evidence.Index)
+                            ?$"ASSOCIATED via {_documents[association.Seed].Evidence.Title}"
+                            :"ASSOCIATED";
             var reason=isDirect
                 ?"lexical/phrase evidence match"
                 :isContext
                     ?"bounded terms retained from the previous grounded turn"
-                    :association.Reason??"bounded association";
-            var excerptTerms=isDirect?queryTerms:isContext?contextTerms:queryTerms.Concat(contextTerms).Distinct(StringComparer.Ordinal).Take(24).ToArray();
+                    :isAlias
+                        ?$"candidate recall via {string.Join(", ",semanticExpansion.UnitIds)}; registered form conditions still apply"
+                        :association.Reason??"bounded association";
+            var excerptTerms=isDirect?queryTerms:isContext?contextTerms:isAlias?aliasTerms:queryTerms.Concat(contextTerms).Concat(aliasTerms).Distinct(StringComparer.Ordinal).Take(24).ToArray();
             return new ObserverHit
             {
                 RecordId=x.Evidence.Evidence.RecordId,
@@ -260,11 +281,15 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 RetrievalPath=path,
                 RetrievalReason=reason,
                 DirectMatch=isDirect,
-                ContextMatch=isContext
+                ContextMatch=isContext,
+                AliasMatch=isAlias,
+                AliasUnitIds=isAlias?semanticExpansion.UnitIds.ToList():[]
             };
         }).ToList();
 
         var groundingHits=hits.Where(h=>h.DirectMatch||h.ContextMatch).ToArray();
+        var aliasHits=hits.Where(h=>h.AliasMatch).ToArray();
+        var aliasOnly=groundingHits.Length==0&&aliasHits.Length>0;
         var truthDomains=groundingHits.Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
         var truthSummary=truthDomains.Length switch
         {
@@ -293,7 +318,13 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         if(contextApplied)
             answer.Append("Follow-up context was applied from the previous grounded turn.\n\n");
 
-        if(intent=="SOURCE")
+        if(aliasOnly)
+        {
+            answer.Append("UNKNOWN — no direct or explicit follow-up evidence matched the wording. ReLiC found registered semantic recall candidates; these are retrieval leads, not identity or truth equivalence:");
+            foreach(var hit in aliasHits.Take(4))
+                answer.Append("\n\n• ").Append(hit.Title).Append(" — ").Append(hit.Excerpt);
+        }
+        else if(intent=="SOURCE")
         {
             answer.Append("Source trace for the strongest grounded evidence:");
             foreach(var hit in groundingHits.Take(5))
@@ -354,8 +385,10 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             PrivateDocumentCount=_private.Documents.Count,
             AssociationEdgeCount=AssociationEdgeCount,
             ContextApplied=contextApplied,
+            SemanticAliasApplied=semanticExpansion.UnitIds.Length>0,
+            SemanticAliasUnits=semanticExpansion.UnitIds.ToList(),
             ConversationTurnCount=_conversation.Count+1,
-            RetrievalTrace=$"{directScores.Count} direct matches · {(contextApplied?contextScores.Count:0)} context matches · {associatedFrom.Count} bounded associations · {hits.Count} returned"
+            RetrievalTrace=$"{directScores.Count} direct matches · {(contextApplied?contextScores.Count:0)} context matches · {aliasScores.Count} semantic candidates · {associatedFrom.Count} bounded associations · {hits.Count} returned"
         };
 
         RememberConversationTurn(query,queryTerms,ranked
@@ -365,6 +398,32 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             .ToArray());
         result.ConversationTurnCount=_conversation.Count;
         return result;
+    }
+
+    SemanticAliasExpansion BuildSemanticAliasExpansion(IReadOnlyCollection<string> queryTerms)
+    {
+        if(_public.SemanticAliasGroups.Count==0||queryTerms.Count==0)
+            return new SemanticAliasExpansion([],[]);
+
+        var query=queryTerms.ToHashSet(StringComparer.Ordinal);
+        var terms=new List<string>();
+        var units=new List<string>();
+        foreach(var group in _public.SemanticAliasGroups)
+        {
+            if(!group.Terms.Any(query.Contains))continue;
+            units.Add(group.UnitId);
+            foreach(var term in group.Terms)
+            {
+                if(query.Contains(term)||StopWords.Contains(term)||term.Length<2)continue;
+                if(!terms.Contains(term,StringComparer.Ordinal))terms.Add(term);
+                if(terms.Count>=MaxSemanticAliasTerms)break;
+            }
+            if(terms.Count>=MaxSemanticAliasTerms)break;
+        }
+
+        return new SemanticAliasExpansion(
+            terms.Take(MaxSemanticAliasTerms).ToArray(),
+            units.Distinct(StringComparer.Ordinal).Take(6).ToArray());
     }
 
     double ScoreTerms(IndexedEvidence document,IEnumerable<string> terms,double factor)
@@ -480,6 +539,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             indexedEvidenceCount=answer.IndexedEvidenceCount,
             associationEdgeCount=answer.AssociationEdgeCount,
             contextApplied=answer.ContextApplied,
+            semanticAliasApplied=answer.SemanticAliasApplied,
+            semanticAliasUnits=answer.SemanticAliasUnits,
             conversationTurnCount=answer.ConversationTurnCount,
             evidence=answer.Hits.Select(hit=>new
             {
@@ -492,6 +553,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 visibility=hit.Visibility,
                 direct=hit.DirectMatch,
                 context=hit.ContextMatch,
+                semanticAlias=hit.AliasMatch,
+                aliasUnitIds=hit.AliasUnitIds,
                 retrievalKind=hit.RetrievalKind,
                 retrievalPath=hit.RetrievalPath,
                 retrievalReason=hit.RetrievalReason,
@@ -968,6 +1031,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     }
 
     sealed record AssociationEdge(int TargetIndex,double Strength,string Reason);
+    sealed record SemanticAliasExpansion(string[] Terms,string[] UnitIds);
 
     sealed class ObserverConversationTurn
     {
@@ -1000,8 +1064,20 @@ public sealed class ObserverPublicCorpus
     public string ExtractionProvenance { get; set; } = "";
     public int OverlaySourceCount { get; set; }
     public int OverlayRecordCount { get; set; }
+    public int SemanticAliasGroupCount { get; set; }
+    public List<ObserverSemanticAliasGroup> SemanticAliasGroups { get; set; } = [];
     public List<ObserverPublicSource> Sources { get; set; } = [];
     public List<ObserverPublicRecord> Records { get; set; } = [];
+}
+
+public sealed class ObserverSemanticAliasGroup
+{
+    public string UnitId { get; set; } = "";
+    public string Kind { get; set; } = "";
+    public string Name { get; set; } = "";
+    public List<string> Terms { get; set; } = [];
+    public List<string> Relations { get; set; } = [];
+    public List<string> Conditions { get; set; } = [];
 }
 
 public sealed class ObserverPublicSource
@@ -1078,6 +1154,8 @@ public sealed class ObserverHit
     public string RetrievalReason { get; set; } = "";
     public bool DirectMatch { get; set; }
     public bool ContextMatch { get; set; }
+    public bool AliasMatch { get; set; }
+    public List<string> AliasUnitIds { get; set; } = []
 }
 
 public sealed class ObserverAnswer
@@ -1093,6 +1171,8 @@ public sealed class ObserverAnswer
     public int PrivateDocumentCount { get; set; }
     public int AssociationEdgeCount { get; set; }
     public bool ContextApplied { get; set; }
+    public bool SemanticAliasApplied { get; set; }
+    public List<string> SemanticAliasUnits { get; set; } = [];
     public int ConversationTurnCount { get; set; }
     public string RetrievalTrace { get; set; } = "";
     public List<ObserverHit> Hits { get; set; } = [];
