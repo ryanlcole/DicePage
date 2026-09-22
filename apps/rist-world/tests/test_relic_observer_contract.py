@@ -143,3 +143,13 @@ def test_relic_observer_evidence_scope_is_explicit_and_clears_follow_up_context(
     assert 'id="observer-filter"' in workspace
     assert "Observer.ClearConversationContext();" in workspace
     assert "Explicit evidence scope" in architecture
+
+
+def test_relic_observer_exposes_a_visible_bounded_chat_transcript():
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    assert 'aria-label="ReLiC conversation"' in workspace
+    assert 'MaxVisibleChatTurns=12' in workspace
+    assert '_chatTurns.Add(new ObserverChatTurn(query,_answer))' in workspace
+    assert 'while(_chatTurns.Count>MaxVisibleChatTurns)_chatTurns.RemoveAt(0)' in workspace
+    assert 'CLEAR CHAT' in workspace
+    assert '_chatTurns.Clear()' in workspace
