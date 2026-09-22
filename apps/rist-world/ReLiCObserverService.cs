@@ -270,6 +270,48 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         };
     }
 
+    public string BuildEvidencePacket(ObserverAnswer answer)
+    {
+        ArgumentNullException.ThrowIfNull(answer);
+        var packet=new
+        {
+            contract="relic.observer.evidence-packet",
+            version=1,
+            generatedAtUtc=DateTimeOffset.UtcNow,
+            query=answer.Query,
+            truthSummary=answer.TruthSummary,
+            retrievalTrace=answer.RetrievalTrace,
+            indexedEvidenceCount=answer.IndexedEvidenceCount,
+            associationEdgeCount=answer.AssociationEdgeCount,
+            evidence=answer.Hits.Select(hit=>new
+            {
+                recordId=hit.RecordId,
+                title=hit.Title,
+                category=hit.Category,
+                status=hit.Status,
+                truthDomain=hit.TruthDomain,
+                scope=hit.Scope,
+                visibility=hit.Visibility,
+                direct=hit.DirectMatch,
+                retrievalPath=hit.RetrievalPath,
+                retrievalReason=hit.RetrievalReason,
+                score=hit.Score,
+                excerpt=hit.Excerpt,
+                provenance=hit.Provenance,
+                sources=hit.Sources.Select(source=>new
+                {
+                    sourceId=source.SourceId,
+                    title=source.Title,
+                    uri=source.Uri,
+                    status=source.Status,
+                    visibility=source.Visibility,
+                    sourceOrigin=source.SourceOrigin
+                })
+            })
+        };
+        return JsonSerializer.Serialize(packet,JsonOptions);
+    }
+
     public async Task<ObserverPrivateDocument> ImportPrivateTextAsync(string title,string content,string? fileName=null)
     {
         title=(title??"").Trim();
