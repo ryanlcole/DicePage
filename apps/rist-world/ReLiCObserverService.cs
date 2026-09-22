@@ -120,9 +120,10 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         }
     }
 
-    public ObserverAnswer Query(string rawQuery, int topK=8)
+    public ObserverAnswer Query(string rawQuery, int topK=8, string evidenceFilter="all")
     {
         var query=(rawQuery??"").Trim();
+        evidenceFilter=NormalizeEvidenceFilter(evidenceFilter);
         if(query.Length==0)
             return ObserverAnswer.Empty("Enter a question or search phrase.");
 
@@ -147,6 +148,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
 
         foreach(var document in _documents)
         {
+            if(!AllowsEvidenceFilter(document.Evidence,evidenceFilter))continue;
             var direct=ScoreTerms(document,queryTerms,1.0);
             if(normalizedPhrase.Length>3 && document.NormalizedText.Contains(normalizedPhrase,StringComparison.Ordinal))
                 direct+=4.0;
@@ -173,6 +175,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             return new ObserverAnswer
             {
                 Query=query,
+                EvidenceFilter=evidenceFilter,
                 TruthSummary="UNKNOWN",
                 Answer="UNKNOWN — no loaded evidence supports an answer to this query. ReLiC will not invent a missing source.",
                 IndexedEvidenceCount=_documents.Count,
@@ -340,6 +343,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         var result=new ObserverAnswer
         {
             Query=query,
+            EvidenceFilter=evidenceFilter,
             Intent=intent,
             TruthSummary=truthSummary,
             ExplicitConflict=explicitConflict,
@@ -379,6 +383,27 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             if(document.TitleTerms.Contains(term))score+=factor*idf*1.35;
         }
         return score;
+    }
+
+    static string NormalizeEvidenceFilter(string value)
+    {
+        var normalized=(value??"").Trim().ToLowerInvariant();
+        return normalized is "current" or "historical" or "public" or "private" ? normalized : "all";
+    }
+
+    static bool AllowsEvidenceFilter(ObserverEvidence evidence,string filter)
+    {
+        var historical=evidence.Status.Contains("historical",StringComparison.OrdinalIgnoreCase)
+            ||evidence.Category.Contains("historical",StringComparison.OrdinalIgnoreCase)
+            ||evidence.Scope.Contains("historical",StringComparison.OrdinalIgnoreCase);
+        return filter switch
+        {
+            "current"=>!historical,
+            "historical"=>historical,
+            "public"=>evidence.Visibility.StartsWith("public",StringComparison.OrdinalIgnoreCase),
+            "private"=>evidence.Visibility.StartsWith("private",StringComparison.OrdinalIgnoreCase),
+            _=>true
+        };
     }
 
     static string DetectIntent(string query,IReadOnlyCollection<string> rawTerms)
@@ -447,6 +472,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             version=1,
             generatedAtUtc=DateTimeOffset.UtcNow,
             query=answer.Query,
+            evidenceFilter=answer.EvidenceFilter,
             intent=answer.Intent,
             truthSummary=answer.TruthSummary,
             explicitConflict=answer.ExplicitConflict,
@@ -1057,6 +1083,7 @@ public sealed class ObserverHit
 public sealed class ObserverAnswer
 {
     public string Query { get; set; } = "";
+    public string EvidenceFilter { get; set; } = "all";
     public string Intent { get; set; } = "GENERAL";
     public string TruthSummary { get; set; } = "UNKNOWN";
     public bool ExplicitConflict { get; set; }
