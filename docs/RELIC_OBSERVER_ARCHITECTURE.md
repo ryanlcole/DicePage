@@ -106,6 +106,14 @@ Characteristics:
 - Source-linked evidence cards for every response.
 - FACT, HYPOTHESIS, FICTION, UNKNOWN remain explicit.
 
+### Registered semantic candidate recall
+
+The public seed compiles a tiny retrieval-alias table from the authoritative `.code-index/semantic_units.json` registry. A query that uses a registered surface form can therefore recall evidence filed under the corresponding semantic unit without requiring embeddings or a model.
+
+For example, a registered surface such as `SELECT` or `get` can point retrieval toward `rune.retrieve`. This is deliberately labeled **ALIAS** / **REGISTERED SEMANTIC CANDIDATE** rather than exact identity. Form conditions and relation types still apply; alias recall is a search lead, never proof that two expressions are interchangeable in the active context.
+
+Alias expansion is damped below direct lexical evidence, capped to a small number of terms and semantic units, and included in the evidence packet so a later reasoner can see exactly why the candidate was retrieved. ReLiC never invents aliases that are absent from the registered semantic-unit ledger.
+
 ### Bounded associative recall
 
 ReLiC also builds a sparse, reusable association graph when the corpus changes. This is **not** a semantic-identity graph and it does not mint Rune/Glyph/CHID/SHAEP identities. It is only a retrieval aid.
