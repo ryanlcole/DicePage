@@ -43,6 +43,8 @@ def test_relic_observer_is_authenticated_workspace_not_public_private_dump():
     architecture = (ROOT / "docs" / "RELIC_OBSERVER_ARCHITECTURE.md").read_text(encoding="utf-8")
 
     assert "RELIC OBSERVER" in shell
+    assert 'TryRequestedWorkspace(out var requested)' in shell
+    assert '"workspace"' in shell
     assert 'Mode == "observer"' in router
     assert "<ReLiCObserverWorkspace" in router
     assert 'relic-observer/corpus.v1.json' in service
