@@ -332,7 +332,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         }
 
         if(explicitConflict)
-            answer.Append("\n\n⚠ The grounded evidence includes an explicitly unresolved source conflict. ReLiC is surfacing the conflict rather than selecting a winner.");
+            answer.Append("\n\n⚠ The grounded evidence includes an explicitly unresolved source conflict. ReLiC surfaces the conflict and does not select a winner.");
 
         var associatedCount=hits.Count(h=>h.RetrievalKind=="ASSOCIATED");
         if(associatedCount>0)
