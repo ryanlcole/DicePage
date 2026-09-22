@@ -33,6 +33,14 @@ This feature does **not** mint new Rune, Glyph, CHID, or SHAEP identities.
 
 This corrects older experimental language that used “Shaep state” as a generic bounded memory concept. Current repository authority is SHAEP v2.
 
+## Query location
+
+The Observer lives inside the authenticated Game application rather than a public static page. After deployment it can be opened directly with:
+
+`/Game/?workspace=observer`
+
+The ordinary authenticated launcher also exposes a **RELIC OBSERVER** card. The query parameter requests a workspace; it does not bypass authentication or create authority.
+
 ## Public project seed
 
 Source of truth:
