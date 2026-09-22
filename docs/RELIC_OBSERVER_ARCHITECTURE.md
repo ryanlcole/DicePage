@@ -126,9 +126,11 @@ At query time ReLiC:
 
 There is deliberately no unrestricted recursive walk. A one-hop, capped graph prevents broad topic drift and preserves the scarce-compute design.
 
-### Bounded conversational follow-up
+### Visible chat + bounded conversational follow-up
 
-ReLiC keeps a tiny in-memory conversation window for follow-up questions. It is not written to account storage and is cleared whenever the evidence index is rebuilt or the user selects **Clear Context**.
+The Observer now presents queries and responses as a visible chat transcript in the authenticated workspace. The visible transcript is page-memory only and keeps at most 12 turns; it is not silently written into account storage. **Clear Chat** clears the visible transcript and the retrieval follow-up context.
+
+ReLiC separately keeps a tiny in-memory conversation window for follow-up questions. It is not written to account storage and is cleared whenever the evidence index is rebuilt or the user selects **Clear Context**.
 
 The prior turn is consulted only when the new query contains explicit follow-up language such as “what about…”, “that”, “this”, “same”, “previous”, or similar references. Previous query terms and a few grounded evidence titles are scored at a heavily damped weight. Context-derived records are labeled **CONTEXT** in the UI and remain distinct from DIRECT matches and ASSOCIATED graph neighbors.
 
