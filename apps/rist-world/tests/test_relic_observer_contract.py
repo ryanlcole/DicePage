@@ -53,3 +53,20 @@ def test_relic_observer_is_authenticated_workspace_not_public_private_dump():
     assert "public repository" in architecture
     assert "A query working set is **not a SHAEP**" in architecture
     assert "eval(" not in service.lower()
+
+
+def test_relic_observer_associative_recall_is_sparse_bounded_and_visible():
+    service = (APP / "ReLiCObserverService.cs").read_text(encoding="utf-8")
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    architecture = (ROOT / "docs" / "RELIC_OBSERVER_ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    assert "const int MaxAssociationNeighbors = 6;" in service
+    assert "const int AssociationSeedCount = 6;" in service
+    assert "const double AssociationExpansionFactor = 0.28;" in service
+    assert "BuildAssociations();" in service
+    assert "foreach(var seed in seeds)" in service
+    assert "ASSOCIATED via" in service
+    assert "AssociationEdgeCount" in service
+    assert 'hit.DirectMatch?"DIRECT":"ASSOCIATED"' in workspace
+    assert "sparse associations" in workspace
+    assert "There is deliberately no unrestricted recursive walk." in architecture
