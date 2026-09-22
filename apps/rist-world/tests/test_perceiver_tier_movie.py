@@ -72,7 +72,7 @@ def test_perceiver_has_playback_and_accessibility_controls():
     workspace = read("Components/PerceiverWorkspace.razor")
     player = read("wwwroot/perceiver-player.js")
 
-    for label in ["PLAY", "PAUSE", "RESTART", "NEXT ▶", "◀ PREV", "TILT / MOTION", "FIT", "FULL SCREEN"]:
+    for label in ["PLAY", "PAUSE", "↺", "Previous layer view", "Next layer view", "TILT", "FIT", "FULL SCREEN"]:
         assert label in workspace
 
     assert "prefers-reduced-motion: reduce" in player
@@ -206,3 +206,25 @@ def test_perceiver_video_import_uses_seven_frequency_layers_with_lower_tier_over
 
     # Neutral/no-hue pixels remain a structural reference in the middle layer.
     assert "if (spectral.saturation < 0.10) return 3;" in player
+
+
+def test_perceiver_imports_self_contained_ristmovie_sprite_scenes():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    assert "OPEN .RISTMOVIE" in workspace
+    assert 'accept=".ristmovie,application/json"' in workspace
+    assert "data-perceiver-movie-input" in workspace
+    assert "data-perceiver-movie-button" in workspace
+
+    assert "async function loadRistMovie" in player
+    assert "movie?.format !== 'ristmovie'" in player
+    assert "Number(movie?.version) !== 1" in player
+    assert "state.mode = 'scene'" in player
+    assert "SCENE_DEFAULT_DEPTHS" in player
+    assert "background → environment FX → actors → foreground" in player
+    assert "createSpriteRecord" in player
+    assert "drawSceneSprite" in player
+    assert "renderSceneFrame" in player
+    assert "state.sceneSprites" in player
+    assert "state.movieInput?.addEventListener('change', state.onMovieChange)" in player
