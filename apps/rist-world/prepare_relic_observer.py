@@ -16,10 +16,12 @@ from pathlib import Path
 import hashlib
 import json
 import os
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "knowledge" / "project" / "public.json"
 TARGET = ROOT / "apps" / "rist-world" / "wwwroot" / "data" / "relic-observer-seed.json"
+SEMANTIC_UNITS = ROOT / ".code-index" / "semantic_units.json"
 ALLOWED_TRUTH = {"FACT", "HYPOTHESIS", "FICTION", "UNKNOWN"}
 OVERLAY_CHUNK_CHARACTERS = 1800
 OVERLAY_CHUNK_OVERLAP = 160
@@ -189,6 +191,71 @@ def _repository_uri(path: str) -> str:
     return f"https://github.com/ryanlcole/DicePage/blob/{ref}/{path}"
 
 
+def _semantic_alias_groups() -> list[dict]:
+    """Compile bounded retrieval aliases from the registered semantic-unit ledger.
+
+    These are candidate recall hints only. They do not assert exact identity between
+    every surface form and do not mint new semantic units.
+    """
+    if not SEMANTIC_UNITS.is_file():
+        return []
+
+    data = json.loads(SEMANTIC_UNITS.read_text(encoding="utf-8"))
+    units = {str(item.get("unit_id", "")).strip(): item for item in data.get("units", [])}
+    forms_by_unit: dict[str, list[dict]] = {}
+    for form in data.get("forms", []):
+        unit_id = str(form.get("unit_id", "")).strip()
+        if unit_id in units:
+            forms_by_unit.setdefault(unit_id, []).append(form)
+
+    ignored = {"init", "condition", "step", "body", "media", "generic", "cstyle", "sql"}
+    groups = []
+    for unit_id, unit in sorted(units.items()):
+        terms = set()
+        name = str(unit.get("name", "")).strip().lower()
+        if name:
+            terms.add(name)
+            terms.update(part for part in re.split(r"[_\-\s]+", name) if len(part) >= 2)
+
+        suffix = unit_id.rsplit(".", 1)[-1].lower()
+        if suffix:
+            terms.add(suffix)
+            terms.update(part for part in re.split(r"[_\-]+", suffix) if len(part) >= 2)
+
+        form_rows = forms_by_unit.get(unit_id, [])
+        conditions = []
+        relations = set()
+        for form in form_rows:
+            surface = str(form.get("surface", "")).strip().lower()
+            relation = str(form.get("relation", "")).strip()
+            condition = str(form.get("conditions", "")).strip()
+            if relation:
+                relations.add(relation)
+            if condition:
+                conditions.append(condition)
+            if surface.startswith(".") and re.fullmatch(r"\.[a-z0-9]{2,8}", surface):
+                terms.add(surface[1:])
+            elif re.fullmatch(r"[a-z_][a-z0-9_.-]{1,31}", surface):
+                terms.add(surface)
+            else:
+                for token in re.findall(r"[a-z_][a-z0-9_-]*", surface):
+                    if len(token) >= 2 and token not in ignored:
+                        terms.add(token)
+
+        terms = sorted(term for term in terms if len(term) >= 2 and term not in ignored)
+        if len(terms) < 2:
+            continue
+        groups.append({
+            "unitId": unit_id,
+            "kind": str(unit.get("kind", "")).strip().upper(),
+            "name": str(unit.get("name", "")).strip(),
+            "terms": terms[:24],
+            "relations": sorted(relations),
+            "conditions": conditions[:8],
+        })
+    return groups
+
+
 def _overlay_rows(existing_sources: list[dict]) -> tuple[list[dict], list[dict]]:
     existing_by_title = {_text(item.get("title")): item for item in existing_sources}
     sources = []
@@ -299,6 +366,7 @@ def build_seed(source_path: Path = SOURCE) -> dict:
 
     public_sources.sort(key=lambda item: (item["title"].casefold(), item["sourceId"]))
     public_records.sort(key=lambda item: (item["category"].casefold(), item["title"].casefold(), item["recordId"]))
+    semantic_alias_groups = _semantic_alias_groups()
 
     return {
         "schemaVersion": 1,
@@ -310,6 +378,8 @@ def build_seed(source_path: Path = SOURCE) -> dict:
         "recordCount": len(public_records),
         "overlaySourceCount": len(overlay_sources),
         "overlayRecordCount": len(overlay_records),
+        "semanticAliasGroupCount": len(semantic_alias_groups),
+        "semanticAliasGroups": semantic_alias_groups,
         "sources": public_sources,
         "records": public_records,
     }
@@ -320,6 +390,7 @@ def validate_seed(seed: dict):
         raise ValueError("Observer seed schema mismatch")
     sources = seed.get("sources") or []
     records = seed.get("records") or []
+    alias_groups = seed.get("semanticAliasGroups") or []
     if not sources or not records:
         raise ValueError("Observer seed is empty")
     ids = {item["sourceId"] for item in sources}
@@ -330,6 +401,16 @@ def validate_seed(seed: dict):
         raise ValueError("Non-public source attempted to enter Observer seed")
     if any("content" in item for item in sources):
         raise ValueError("Raw source body field must not enter Observer seed")
+    seen_alias_units = set()
+    for group in alias_groups:
+        unit_id = str(group.get("unitId", "")).strip()
+        terms = group.get("terms") or []
+        if not unit_id or unit_id in seen_alias_units:
+            raise ValueError("Invalid or duplicate semantic alias unit")
+        if len(terms) < 2 or len(terms) > 24 or len(set(terms)) != len(terms):
+            raise ValueError("Invalid bounded semantic alias group")
+        seen_alias_units.add(unit_id)
+
     for record in records:
         if record.get("truthDomain") not in ALLOWED_TRUTH:
             raise ValueError("Invalid truth domain")
@@ -354,5 +435,6 @@ if __name__ == "__main__":
     print(
         f"relic-observer-seed sources={len(seed['sources'])} "
         f"records={len(seed['records'])} overlays={seed['overlaySourceCount']}/"
-        f"{seed['overlayRecordCount']} snapshot={seed['snapshotDate']}"
+        f"{seed['overlayRecordCount']} aliases={seed['semanticAliasGroupCount']} "
+        f"snapshot={seed['snapshotDate']}"
     )
