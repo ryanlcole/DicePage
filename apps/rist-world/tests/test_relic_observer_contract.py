@@ -112,3 +112,18 @@ def test_relic_observer_follow_up_context_is_bounded_and_explicit():
     assert "CLEAR CONTEXT" in workspace
     assert "ConversationContextAvailable" in workspace
     assert "Only the last four turns are retained" in architecture
+
+
+def test_relic_observer_intent_routing_and_conflict_visibility_are_deterministic():
+    service = (APP / "ReLiCObserverService.cs").read_text(encoding="utf-8")
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    architecture = (ROOT / "docs" / "RELIC_OBSERVER_ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    assert 'return "SOURCE";' in service
+    assert 'return "STATUS";' in service
+    assert 'return "HISTORY";' in service
+    assert 'return "GENERAL";' in service
+    assert "ExplicitConflict=explicitConflict" in service
+    assert "does not select a winner" in service
+    assert "UNRESOLVED SOURCE CONFLICT PRESENT" in workspace
+    assert "Deterministic intent shaping" in architecture
