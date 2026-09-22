@@ -70,3 +70,28 @@ def test_relic_observer_associative_recall_is_sparse_bounded_and_visible():
     assert 'hit.DirectMatch?"DIRECT":"ASSOCIATED"' in workspace
     assert "sparse associations" in workspace
     assert "There is deliberately no unrestricted recursive walk." in architecture
+
+
+def test_relic_observer_seed_observes_selected_current_and_historical_repo_sources():
+    builder = load_builder()
+    seed = builder.build_seed()
+    titles = {source["title"] for source in seed["sources"]}
+    assert seed["overlaySourceCount"] > 0
+    assert seed["overlayRecordCount"] > 0
+    assert "relic_core.py" in titles
+    assert "relic_analyzer.py" in titles
+    assert "glyph_ai_core.py" in titles
+    assert "shaelvien_ai_adapter.py" in titles
+    assert "docs/RELIC_OBSERVER_ARCHITECTURE.md" in titles
+    assert all(source["visibility"] == "public-existing-source" for source in seed["sources"])
+    assert all("content" not in source for source in seed["sources"])
+
+
+def test_relic_observer_evidence_packet_is_bounded_to_returned_evidence():
+    service = (APP / "ReLiCObserverService.cs").read_text(encoding="utf-8")
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    assert 'contract="relic.observer.evidence-packet"' in service
+    assert "evidence=answer.Hits.Select" in service
+    assert "excerpt=hit.Excerpt" in service
+    assert "BuildEvidencePacket(_answer)" in workspace
+    assert "COPY EVIDENCE PACKET" in workspace
