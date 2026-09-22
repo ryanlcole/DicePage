@@ -323,6 +323,7 @@ def validate_seed(seed: dict):
     if not sources or not records:
         raise ValueError("Observer seed is empty")
     ids = {item["sourceId"] for item in sources}
+    overlay_ids = {item["sourceId"] for item in sources if item.get("kind") == "repository_overlay"}
     if len(ids) != len(sources):
         raise ValueError("Duplicate Observer source IDs")
     if any(not item.get("visibility", "").startswith("public") for item in sources):
@@ -334,8 +335,9 @@ def validate_seed(seed: dict):
             raise ValueError("Invalid truth domain")
         if not record.get("sourceIds") or any(source_id not in ids for source_id in record["sourceIds"]):
             raise ValueError("Observer record has an unresolved source")
-        if len(record.get("text", "")) > OVERLAY_CHUNK_CHARACTERS + OVERLAY_CHUNK_OVERLAP + 400:
-            raise ValueError("Observer record exceeds bounded evidence size")
+        is_overlay = any(source_id in overlay_ids for source_id in record["sourceIds"])
+        if is_overlay and len(record.get("text", "")) > OVERLAY_CHUNK_CHARACTERS + OVERLAY_CHUNK_OVERLAP + 400:
+            raise ValueError("Repository overlay record exceeds bounded evidence size")
     return True
 
 
