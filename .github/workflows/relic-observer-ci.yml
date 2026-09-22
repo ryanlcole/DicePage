@@ -1,0 +1,56 @@
+name: ReLiC Observer CI
+
+on:
+  pull_request:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/ReLiCObserverService.cs'
+      - 'apps/rist-world/Components/ReLiCObserverWorkspace.razor'
+      - 'apps/rist-world/Components/PublicAlphaShell.razor'
+      - 'apps/rist-world/Components/TaskWorkspaceRouter.razor'
+      - 'apps/rist-world/prepare_relic_observer.py'
+      - 'apps/rist-world/tests/test_relic_observer_contract.py'
+      - 'apps/rist-world/RistWorld.csproj'
+      - 'knowledge/project/public.json'
+      - 'docs/RELIC_OBSERVER_ARCHITECTURE.md'
+      - 'site/relic-home/relicquery/**'
+      - 'site/relic-home/.well-known/relic-observer.json'
+      - '.github/workflows/relic-observer-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  observer-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build public evidence seed
+        run: python apps/rist-world/prepare_relic_observer.py
+
+      - name: Verify Observer evidence contract
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pytest -q apps/rist-world/tests/test_relic_observer_contract.py
+
+      - name: Compile authenticated Observer workspace
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/relic-observer
+
+      - name: Verify published Observer assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f build/relic-observer/wwwroot/data/relic-observer-seed.json
+          grep -q '"datasetId":"shaelvien-project-knowledge"' build/relic-observer/wwwroot/data/relic-observer-seed.json
+          grep -q 'ReLiCGameMaster RIST WORLD' build/relic-observer/wwwroot/index.html
+          grep -q '/Game/?workspace=observer' site/relic-home/relicquery/index.html
+          grep -q 'OPEN PERSONAL OBSERVER' site/relic-home/relicquery/index.html
+          grep -q '"contract": "relic.observer.discovery"' site/relic-home/.well-known/relic-observer.json
+          grep -q '"queryUrl": "/Game/?workspace=observer"' site/relic-home/.well-known/relic-observer.json

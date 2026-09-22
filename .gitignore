@@ -49,3 +49,6 @@ venv/
 knowledge/project/private*
 project-knowledge-preflight.json
 project-knowledge-required-access.json
+
+# ReLiC Observer public seed is a deterministic build artifact.
+apps/rist-world/wwwroot/data/relic-observer-seed.json

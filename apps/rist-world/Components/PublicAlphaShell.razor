@@ -59,6 +59,7 @@
    <button type="button" class="launcher-card world" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(!WorldReady?"Select a world above first.":CanBuildWorld?"Build the selected world.":Session.IsGeonaphWorld?"Explore Shaelvien from Endemar, claim a world square, or enter one you can build.":"Build access required for this world.")</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>@(CanBuildWorld?"Define regions from published world tiles.":"View the RegionDefiner layout as a read-only reference.")</small></button>
    <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
+   <button type="button" class="launcher-card rules" @onclick="OpenObserver"><span class="card-icon" aria-hidden="true">⌕</span><strong>RELIC OBSERVER</strong><small>Query project knowledge and your private imported sources with visible evidence and provenance.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>@(Session.IsGeonaphWorld?"Open the Shaelvien map, choose a zone, join a party and chat.":"Characters, dice, encounters and play.")</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>@(CanBuildWorld?"Build, manage and run campaigns.":Session.IsGeonaphWorld?"View the Endemar GameMaster layout as a read-only reference.":"Build access required for this world.")</small></button>
    @if(WorldReady)
@@ -263,7 +264,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","viewer","perceiver","immersion","campaign","assets","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","observer","viewer","perceiver","immersion","campaign","assets","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -317,13 +318,36 @@ else
  {
   if(!firstRender||_workspaceRestored)return;
   _workspaceRestored=true;
-  _workspaceOpen=false;
   _worldGateOpen=false;
-  await PersistWorkspaceAsync("hub");
+  if(TryRequestedWorkspace(out var requested))
+  {
+   ApplyWorkspace(requested);
+   _workspaceOpen=true;
+   await PersistWorkspaceAsync(requested);
+  }
+  else
+  {
+   _workspaceOpen=false;
+   await PersistWorkspaceAsync("hub");
+  }
   await RefreshMotionStateAsync();
   await RefreshExperienceStateAsync();
   await RefreshLandingWorldsAsync();
   await InvokeAsync(StateHasChanged);
+ }
+
+ bool TryRequestedWorkspace(out string mode)
+ {
+  mode="";
+  var query=new Uri(Navigation.Uri).Query.TrimStart('?');
+  foreach(var pair in query.Split('&',StringSplitOptions.RemoveEmptyEntries))
+  {
+   var parts=pair.Split('=',2);
+   if(parts.Length!=2||!string.Equals(Uri.UnescapeDataString(parts[0]),"workspace",StringComparison.OrdinalIgnoreCase))continue;
+   var candidate=Uri.UnescapeDataString(parts[1]).Trim().ToLowerInvariant();
+   if(RestorableWorkspaces.Contains(candidate)){mode=candidate;return true;}
+  }
+  return false;
  }
 
  void ApplyWorkspace(string mode)
@@ -331,6 +355,7 @@ else
   switch(mode)
   {
    case "accessibility":_workspaceMode="accessibility";_workspaceLabel="ACCESSIBILITY SHELL";_workspaceHint="DESCRIBE → NAVIGATE → ACT → BUILD";break;
+   case "observer":_workspaceMode="observer";_workspaceLabel="RELIC OBSERVER";_workspaceHint="QUERY → EVIDENCE → PROVENANCE → OBSERVE";break;
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD → REGION → LOCAL";break;
    case "perceiver":_workspaceMode="perceiver";_workspaceLabel="PERCEIVER";_workspaceHint="TIERED MOVIE → PARALLAX → TILT";break;
    case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
@@ -554,6 +579,7 @@ else
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
+ void OpenObserver()=>OpenWorkspace("observer","RELIC OBSERVER","QUERY → EVIDENCE → PROVENANCE → OBSERVE");
  void OpenWorldbuilding(){if(!CanOpenWorldBuilder)return;OpenWorkspace("world","WORLDBUILDER",CanBuildWorld?"WORLD → TIER → LAYER → CUBE":"ENDEMAR → VIEW ONLY → REFERENCE");}
  async Task CloseWorldGate(){
   _worldGateOpen=false;

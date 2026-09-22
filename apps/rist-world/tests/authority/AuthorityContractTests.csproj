@@ -8,5 +8,6 @@
   <ItemGroup>
     <Compile Include="../../RecursiveAuthority.cs" Link="RecursiveAuthority.cs" />
     <Compile Include="../../ContentAllowancePolicy.cs" Link="ContentAllowancePolicy.cs" />
+    <Compile Include="../../ExternalAiAccess.cs" Link="ExternalAiAccess.cs" />
   </ItemGroup>
 </Project>

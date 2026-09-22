@@ -1,0 +1,28 @@
+{
+  "contract": "relic.observer.discovery",
+  "version": 1,
+  "status": "alpha",
+  "queryUrl": "/Game/?workspace=observer",
+  "publicEvidenceUrl": "/Game/data/relic-observer-seed.json",
+  "authenticationRequiredForQueryWorkspace": true,
+  "privateEvidence": {
+    "storage": "authenticated-account-storage",
+    "publishedInPublicEvidence": false,
+    "automaticExternalSharing": false
+  },
+  "retrieval": {
+    "remoteModelRequired": false,
+    "lexicalRanking": "BM25-style",
+    "associationWalk": "one-hop-bounded",
+    "conversationWindowTurns": 4,
+    "followUpContext": "explicit-reference-only"
+  },
+  "truthDomains": ["FACT", "HYPOTHESIS", "FICTION", "UNKNOWN"],
+  "provenanceRule": "Evidence retains source and visibility metadata. Retrieval is not authority or canon promotion.",
+  "semanticBoundary": "Observer retrieval does not mint or redefine Rune, Glyph, CHID, CCTV, or SHAEP identities.",
+  "evidencePacket": {
+    "contract": "relic.observer.evidence-packet",
+    "containsRawPrivateCorpus": false,
+    "containsReturnedEvidenceExcerpts": true
+  }
+}

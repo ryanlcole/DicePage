@@ -45,6 +45,7 @@ jobs:
           rm -rf "$PYDEPS"
           python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
           PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
+          python apps/rist-world/prepare_relic_observer.py
 
       - name: Verify authenticated launch contract
         run: python apps/rist-world/tests/authenticated_launch_contract_check.py
@@ -333,6 +334,17 @@ jobs:
               exit 1
             fi
           fi
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-observer-seed.json "${URL}Game/data/relic-observer-seed.json"
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-observer-seed.json'))
+          assert data.get('datasetId') == 'shaelvien-project-knowledge', data.get('datasetId')
+          assert data.get('recordCount', 0) > 0, data.get('recordCount')
+          assert all(str(x.get('visibility','')).startswith('public') for x in data.get('sources',[]))
+          assert all('content' not in x for x in data.get('sources',[]))
+          print('ReLiC Observer public seed verified:', data.get('recordCount'))
+          PY
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
