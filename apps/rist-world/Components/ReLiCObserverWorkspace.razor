@@ -39,6 +39,17 @@
    </div>
 
    <form class="observer-query-form" @onsubmit="RunQueryAsync" @onsubmit:preventDefault="true">
+    <div class="observer-query-options">
+     <label for="observer-filter">Evidence scope
+      <select id="observer-filter" value="@_evidenceFilter" @onchange="EvidenceFilterChanged">
+       <option value="all">All loaded evidence</option>
+       <option value="current">Current / non-historical</option>
+       <option value="historical">Historical only</option>
+       <option value="public">Public only</option>
+       <option value="private">Private only</option>
+      </select>
+     </label>
+    </div>
     <label for="observer-query">Question or search</label>
     <div class="observer-query-row">
      <input id="observer-query" type="search" @bind="_query" placeholder="Example: What is authoritative about SHAEP provenance?" autocomplete="off" disabled="@(!Observer.Loaded)" />
@@ -191,7 +202,7 @@
  .observer-main{box-sizing:border-box;width:min(1180px,100%);min-height:100%;margin:0 auto;padding:20px;display:grid;gap:16px}.observer-query-panel,.observer-answer,.observer-import{border:1px solid rgba(126,151,159,.3);border-radius:14px;background:linear-gradient(180deg,rgba(12,27,34,.92),rgba(6,17,22,.94));box-shadow:0 16px 36px rgba(0,0,0,.24);padding:18px}
  .observer-section-head,.observer-answer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.observer-section-head h2,.observer-answer-head h2{margin:3px 0;color:#e8d19a;font:600 22px/1.12 Georgia,"Times New Roman",serif}.observer-conflict{display:inline-flex;margin-top:4px;padding:4px 7px;border:1px solid #8f623f;border-radius:999px;color:#edc49d;font-size:7px;font-weight:900;letter-spacing:.08em}
  .observer-ledger{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.observer-ledger span{padding:6px 8px;border:1px solid #314b56;border-radius:999px;background:#08151b;color:#91a8b2;font-size:8px;font-weight:800;white-space:nowrap}.observer-ledger strong{color:#f1dcaa}
- .observer-query-form{margin-top:16px}.observer-query-form label,.observer-file-import label,.observer-paste label{display:block;margin:0 0 5px;color:#a9bac1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.observer-query-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px}.observer-query-row input,.observer-paste input,.observer-paste textarea{box-sizing:border-box;width:100%;border:1px solid #425e69;border-radius:8px;background:#050d11;color:#f0eee7;font:600 13px/1.45 system-ui;padding:11px}.observer-query-row input{min-height:46px}.observer-query-row input:focus-visible,.observer-paste input:focus-visible,.observer-paste textarea:focus-visible,.observer-nav button:focus-visible,.observer-query-row button:focus-visible,.observer-paste button:focus-visible,.observer-private-item button:focus-visible{outline:3px solid #f2dda6;outline-offset:2px}.observer-query-row button:disabled,.observer-paste button:disabled,.observer-private-item button:disabled{opacity:.45}
+ .observer-query-form{margin-top:16px}.observer-query-form label,.observer-file-import label,.observer-paste label{display:block;margin:0 0 5px;color:#a9bac1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.observer-query-options{display:flex;justify-content:flex-end;margin-bottom:7px}.observer-query-options label{display:flex;align-items:center;gap:7px}.observer-query-options select{min-height:32px;border:1px solid #405b66;border-radius:7px;background:#071319;color:#dce5e5;padding:0 8px;font:700 9px system-ui;text-transform:none;letter-spacing:0}.observer-query-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px}.observer-query-row input,.observer-paste input,.observer-paste textarea{box-sizing:border-box;width:100%;border:1px solid #425e69;border-radius:8px;background:#050d11;color:#f0eee7;font:600 13px/1.45 system-ui;padding:11px}.observer-query-row input{min-height:46px}.observer-query-row input:focus-visible,.observer-paste input:focus-visible,.observer-paste textarea:focus-visible,.observer-nav button:focus-visible,.observer-query-row button:focus-visible,.observer-paste button:focus-visible,.observer-private-item button:focus-visible{outline:3px solid #f2dda6;outline-offset:2px}.observer-query-row button:disabled,.observer-paste button:disabled,.observer-private-item button:disabled{opacity:.45}
  .observer-context-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;border:1px solid #2d4650;border-radius:8px;background:#07151b;color:#81959d;font-size:8px}.observer-context-bar strong{color:#c7d7db}.observer-context-bar button{min-height:30px;padding:0 8px}.observer-principle{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;margin-top:12px;padding:9px 11px;border-left:3px solid #bf9e56;background:rgba(191,158,86,.08);font-size:9px;line-height:1.45}.observer-principle strong{color:#e6cb8b}.observer-principle span{color:#9dacb2}
  .observer-trace{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.observer-trace span{padding:4px 7px;border:1px solid #38505a;border-radius:999px;color:#a7bcc5;font-size:7px;font-weight:900;letter-spacing:.07em}.observer-trace b{color:#766c4a;font-size:9px}
  .observer-answer-text{white-space:pre-wrap;margin-top:14px;padding:14px;border:1px solid rgba(225,196,126,.28);border-radius:9px;background:#071217;color:#e3e8e4;font:500 13px/1.65 system-ui}.observer-retrieval-summary{margin:7px 2px 0;color:#748c95;font-size:8px;font-weight:800;letter-spacing:.03em}.observer-answer-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}.observer-answer-actions button{min-height:34px;padding:0 10px}.observer-answer-actions span{color:#8ca2aa;font-size:8px}.observer-evidence{margin-top:12px}.observer-evidence summary{cursor:pointer;color:#d7c18d;font-size:10px;font-weight:900;letter-spacing:.06em}.observer-hit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.observer-hit{min-width:0;padding:12px;border:1px solid #2d454f;border-radius:9px;background:#08161c}.observer-hit-head{display:flex;justify-content:space-between;gap:8px}.observer-hit-badges{display:flex;gap:5px;flex-wrap:wrap}.observer-truth{display:inline-flex;padding:3px 6px;border:1px solid #55707a;border-radius:999px;color:#d4e4e9;font-size:7px;font-weight:900;letter-spacing:.1em}.observer-truth[data-domain="FACT"]{border-color:#5a8767}.observer-truth[data-domain="FICTION"]{border-color:#7561a0}.observer-truth[data-domain="HYPOTHESIS"]{border-color:#a47d42}.observer-path{display:inline-flex;padding:3px 6px;border:1px solid #625b43;border-radius:999px;color:#c7bb90;font-size:7px;font-weight:900;letter-spacing:.08em}.observer-path[data-kind="DIRECT"]{border-color:#456b78;color:#a8d6e4}.observer-path[data-kind="CONTEXT"]{border-color:#6d5e8a;color:#c9b8e7}.observer-score{color:#6f858e;font-size:7px}.observer-hit h3{margin:8px 0 2px;color:#e8d7ac;font:600 14px/1.2 Georgia,serif}.observer-hit-meta,.observer-provenance{margin:0;color:#758a93;font-size:7px}.observer-retrieval-path{margin:5px 0 0;color:#8ea4ac;font-size:7px;line-height:1.35}.observer-excerpt{margin:8px 0;color:#bac8cb;font-size:10px;line-height:1.5}.observer-source-row{display:flex;gap:5px;flex-wrap:wrap}.observer-source-row a,.observer-source-row span{max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:3px 5px;border-radius:4px;background:#0d222b;color:#9fd3e0;font-size:7px;white-space:nowrap}.observer-provenance{margin-top:7px}
@@ -212,6 +223,7 @@
  };
 
  string _query="";
+ string _evidenceFilter="all";
  string _pasteTitle="";
  string _pasteText="";
  string _importStatus="";
@@ -230,8 +242,16 @@
  Task RunQueryAsync()
  {
   _copyStatus="";
-  _answer=Observer.Query(_query);
+  _answer=Observer.Query(_query,evidenceFilter:_evidenceFilter);
   return Task.CompletedTask;
+ }
+
+ void EvidenceFilterChanged(ChangeEventArgs args)
+ {
+  _evidenceFilter=(args.Value?.ToString()??"all").Trim().ToLowerInvariant();
+  Observer.ClearConversationContext();
+  _answer=null;
+  _copyStatus="Evidence scope changed; follow-up context cleared.";
  }
 
  void ClearContext()
