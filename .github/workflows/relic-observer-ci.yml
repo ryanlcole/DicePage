@@ -15,6 +15,7 @@ on:
       - 'knowledge/project/public.json'
       - 'docs/RELIC_OBSERVER_ARCHITECTURE.md'
       - 'site/relic-home/relicquery/**'
+      - 'site/relic-home/.well-known/relic-observer.json'
       - '.github/workflows/relic-observer-ci.yml'
   workflow_dispatch:
 
@@ -51,3 +52,5 @@ jobs:
           grep -q 'ReLiCGameMaster RIST WORLD' build/relic-observer/wwwroot/index.html
           grep -q '/Game/?workspace=observer' site/relic-home/relicquery/index.html
           grep -q 'OPEN PERSONAL OBSERVER' site/relic-home/relicquery/index.html
+          grep -q '"contract": "relic.observer.discovery"' site/relic-home/.well-known/relic-observer.json
+          grep -q '"queryUrl": "/Game/?workspace=observer"' site/relic-home/.well-known/relic-observer.json
