@@ -23,6 +23,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     const int MaxSourceAssociationGroup = 24;
     const int AssociationSeedCount = 6;
     const double AssociationExpansionFactor = 0.28;
+    const int MaxConversationTurns = 4;
+    const double ConversationContextFactor = 0.22;
 
     static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -37,11 +39,17 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         "when","where","which","who","why","will","with","would","you","your"
     };
 
+    static readonly HashSet<string> FollowUpMarkers = new(StringComparer.Ordinal)
+    {
+        "it","that","this","those","they","them","same","previous","earlier","above","again"
+    };
+
     ObserverPublicCorpus _public = new();
     ObserverPrivateCorpus _private = new();
     readonly List<IndexedEvidence> _documents = [];
     readonly Dictionary<string,int> _documentFrequency = new(StringComparer.Ordinal);
     readonly Dictionary<int,List<AssociationEdge>> _associations = [];
+    readonly List<ObserverConversationTurn> _conversation = [];
     double _averageLength = 1;
     bool _initializing;
 
@@ -56,7 +64,16 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     public IReadOnlyList<ObserverPrivateDocument> PrivateDocuments => _private.Documents;
     public int IndexedEvidenceCount => _documents.Count;
     public int AssociationEdgeCount => _associations.Sum(x=>x.Value.Count)/2;
+    public bool ConversationContextAvailable => _conversation.Count>0;
+    public int ConversationTurnCount => _conversation.Count;
     public string SnapshotDate => _public.SnapshotDate;
+
+    public void ClearConversationContext()
+    {
+        if(_conversation.Count==0)return;
+        _conversation.Clear();
+        Changed?.Invoke();
+    }
 
     public async Task InitializeAsync()
     {
@@ -112,40 +129,46 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         if(!Loaded)
             return ObserverAnswer.Empty("ReLiC Observer is still loading.");
 
-        var queryTerms=Tokenize(query).Where(t=>!StopWords.Contains(t)).Distinct(StringComparer.Ordinal).Take(24).ToArray();
+        var rawTerms=Tokenize(query).Distinct(StringComparer.Ordinal).Take(32).ToArray();
+        var queryTerms=rawTerms.Where(t=>!StopWords.Contains(t)).Take(24).ToArray();
         if(queryTerms.Length==0)
-            queryTerms=Tokenize(query).Distinct(StringComparer.Ordinal).Take(12).ToArray();
+            queryTerms=rawTerms.Take(12).ToArray();
 
         if(queryTerms.Length==0)
             return ObserverAnswer.Empty("UNKNOWN — the query contains no searchable terms.");
 
+        var contextApplied=_conversation.Count>0&&ShouldUseConversationContext(query,rawTerms);
+        var contextTerms=contextApplied?BuildConversationTerms():[];
+        if(contextTerms.Length==0)contextApplied=false;
+
         var normalizedPhrase=NormalizeForPhrase(query);
         var directScores=new Dictionary<int,double>();
+        var contextScores=new Dictionary<int,double>();
+
         foreach(var document in _documents)
         {
-            double score=0;
-            foreach(var term in queryTerms)
-            {
-                if(!document.TermFrequency.TryGetValue(term,out var tf) || tf<=0)continue;
-                var df=_documentFrequency.TryGetValue(term,out var found)?found:0;
-                var idf=Math.Log(1.0+((_documents.Count-df+0.5)/(df+0.5)));
-                const double k1=1.25;
-                const double b=0.72;
-                var denominator=tf+k1*(1-b+b*(document.TokenCount/_averageLength));
-                score+=idf*((tf*(k1+1))/Math.Max(denominator,0.001));
-
-                if(document.TitleTerms.Contains(term))score+=idf*1.35;
-            }
-
+            var direct=ScoreTerms(document,queryTerms,1.0);
             if(normalizedPhrase.Length>3 && document.NormalizedText.Contains(normalizedPhrase,StringComparison.Ordinal))
-                score+=4.0;
+                direct+=4.0;
             if(normalizedPhrase.Length>3 && document.NormalizedTitle.Contains(normalizedPhrase,StringComparison.Ordinal))
-                score+=5.5;
+                direct+=5.5;
+            if(direct>0)directScores[document.Index]=direct;
 
-            if(score>0)directScores[document.Index]=score;
+            if(contextApplied)
+            {
+                var contextOnly=contextTerms.Where(term=>!queryTerms.Contains(term,StringComparer.Ordinal)).ToArray();
+                var contextual=ScoreTerms(document,contextOnly,ConversationContextFactor);
+                if(contextual>0)contextScores[document.Index]=contextual;
+            }
         }
 
-        if(directScores.Count==0)
+        var combined=new Dictionary<int,double>();
+        foreach(var pair in directScores)
+            combined[pair.Key]=pair.Value+(contextScores.TryGetValue(pair.Key,out var extra)?extra:0);
+        foreach(var pair in contextScores)
+            if(!combined.ContainsKey(pair.Key))combined[pair.Key]=pair.Value;
+
+        if(combined.Count==0)
         {
             return new ObserverAnswer
             {
@@ -156,13 +179,15 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 PublicSourceCount=PublicSourceCount,
                 PrivateDocumentCount=_private.Documents.Count,
                 AssociationEdgeCount=AssociationEdgeCount,
-                RetrievalTrace="0 direct matches · 0 bounded associations"
+                ContextApplied=contextApplied,
+                ConversationTurnCount=_conversation.Count,
+                RetrievalTrace=$"0 direct matches · {(contextApplied?contextScores.Count:0)} context matches · 0 bounded associations"
             };
         }
 
-        var combined=new Dictionary<int,double>(directScores);
         var associatedFrom=new Dictionary<int,(int Seed,string Reason,double Strength)>();
-        var seeds=directScores
+        var seedScores=directScores.Count>0?directScores:contextScores;
+        var seeds=seedScores
             .OrderByDescending(x=>x.Value)
             .ThenBy(x=>_documents[x.Key].Evidence.Title,StringComparer.OrdinalIgnoreCase)
             .Take(AssociationSeedCount)
@@ -186,9 +211,10 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             }
         }
 
+        int Priority(int index)=>directScores.ContainsKey(index)?2:contextScores.ContainsKey(index)?1:0;
         var ranked=combined
-            .Select(x=>(Evidence:_documents[x.Key],Score:x.Value,Direct:directScores.ContainsKey(x.Key)))
-            .OrderByDescending(x=>x.Direct)
+            .Select(x=>(Evidence:_documents[x.Key],Score:x.Value,Priority:Priority(x.Key)))
+            .OrderByDescending(x=>x.Priority)
             .ThenByDescending(x=>x.Score)
             .ThenBy(x=>x.Evidence.Evidence.Title,StringComparer.OrdinalIgnoreCase)
             .Take(Math.Clamp(topK,1,16))
@@ -198,15 +224,22 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         var hits=ranked.Select(x=>
         {
             var isDirect=directScores.ContainsKey(x.Evidence.Index);
+            var isContext=!isDirect&&contextScores.ContainsKey(x.Evidence.Index);
             var association=associatedFrom.TryGetValue(x.Evidence.Index,out var found)?found:default;
+            var kind=isDirect?"DIRECT":isContext?"CONTEXT":"ASSOCIATED";
             var path=isDirect
                 ?"DIRECT"
-                :association.Seed>=0
-                    ?$"ASSOCIATED via {_documents[association.Seed].Evidence.Title}"
-                    :"ASSOCIATED";
+                :isContext
+                    ?"FOLLOW-UP CONTEXT"
+                    :associatedFrom.ContainsKey(x.Evidence.Index)
+                        ?$"ASSOCIATED via {_documents[association.Seed].Evidence.Title}"
+                        :"ASSOCIATED";
             var reason=isDirect
                 ?"lexical/phrase evidence match"
-                :association.Reason??"bounded association";
+                :isContext
+                    ?"bounded terms retained from the previous grounded turn"
+                    :association.Reason??"bounded association";
+            var excerptTerms=isDirect?queryTerms:isContext?contextTerms:queryTerms.Concat(contextTerms).Distinct(StringComparer.Ordinal).Take(24).ToArray();
             return new ObserverHit
             {
                 RecordId=x.Evidence.Evidence.RecordId,
@@ -218,22 +251,25 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 Visibility=x.Evidence.Evidence.Visibility,
                 Provenance=x.Evidence.Evidence.Provenance,
                 Score=Math.Round(x.Score,3),
-                Excerpt=BestExcerpt(x.Evidence.Evidence.Text,queryTerms),
+                Excerpt=BestExcerpt(x.Evidence.Evidence.Text,excerptTerms),
                 Sources=x.Evidence.Evidence.Sources,
+                RetrievalKind=kind,
                 RetrievalPath=path,
                 RetrievalReason=reason,
-                DirectMatch=isDirect
+                DirectMatch=isDirect,
+                ContextMatch=isContext
             };
         }).ToList();
 
-        var truthDomains=hits.Where(h=>h.DirectMatch).Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
+        var groundingHits=hits.Where(h=>h.DirectMatch||h.ContextMatch).ToArray();
+        var truthDomains=groundingHits.Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
         var truthSummary=truthDomains.Length switch
         {
             0=>"UNKNOWN",
             1=>truthDomains[0],
             _=>"MIXED"
         };
-        var directExcerpts=hits.Where(h=>h.DirectMatch).Select(h=>h.Excerpt)
+        var directExcerpts=groundingHits.Select(h=>h.Excerpt)
             .Where(x=>!string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Take(4)
@@ -249,16 +285,18 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         };
 
         var answer=new StringBuilder(prefix);
+        if(contextApplied)
+            answer.Append("\n\nFollow-up context was applied from the previous grounded turn.");
         foreach(var excerpt in directExcerpts)
             answer.Append("\n\n• ").Append(excerpt);
 
-        var associatedCount=hits.Count(h=>!h.DirectMatch);
+        var associatedCount=hits.Count(h=>h.RetrievalKind=="ASSOCIATED");
         if(associatedCount>0)
             answer.Append($"\n\nReLiC also followed {associatedCount} bounded association{(associatedCount==1?"":"s")} to nearby evidence. Associated evidence is context, not proof of the query itself.");
 
         answer.Append("\n\nReLiC is reporting loaded evidence, not granting authority or silently promoting a source to canon.");
 
-        return new ObserverAnswer
+        var result=new ObserverAnswer
         {
             Query=query,
             TruthSummary=truthSummary,
@@ -268,8 +306,76 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             PublicSourceCount=PublicSourceCount,
             PrivateDocumentCount=_private.Documents.Count,
             AssociationEdgeCount=AssociationEdgeCount,
-            RetrievalTrace=$"{directScores.Count} direct matches · {associatedFrom.Count} bounded associations · {hits.Count} returned"
+            ContextApplied=contextApplied,
+            ConversationTurnCount=_conversation.Count+1,
+            RetrievalTrace=$"{directScores.Count} direct matches · {(contextApplied?contextScores.Count:0)} context matches · {associatedFrom.Count} bounded associations · {hits.Count} returned"
         };
+
+        RememberConversationTurn(query,queryTerms,ranked
+            .Where(x=>directScores.ContainsKey(x.Evidence.Index)||contextScores.ContainsKey(x.Evidence.Index))
+            .Select(x=>x.Evidence.Index)
+            .Take(4)
+            .ToArray());
+        result.ConversationTurnCount=_conversation.Count;
+        return result;
+    }
+
+    double ScoreTerms(IndexedEvidence document,IEnumerable<string> terms,double factor)
+    {
+        if(factor<=0)return 0;
+        double score=0;
+        foreach(var term in terms)
+        {
+            if(!document.TermFrequency.TryGetValue(term,out var tf)||tf<=0)continue;
+            var df=_documentFrequency.TryGetValue(term,out var found)?found:0;
+            var idf=Math.Log(1.0+((_documents.Count-df+0.5)/(df+0.5)));
+            const double k1=1.25;
+            const double b=0.72;
+            var denominator=tf+k1*(1-b+b*(document.TokenCount/_averageLength));
+            score+=factor*idf*((tf*(k1+1))/Math.Max(denominator,0.001));
+            if(document.TitleTerms.Contains(term))score+=factor*idf*1.35;
+        }
+        return score;
+    }
+
+    static bool ShouldUseConversationContext(string query,IReadOnlyCollection<string> rawTerms)
+    {
+        var normalized=NormalizeForPhrase(query);
+        if(normalized.StartsWith("what about ",StringComparison.Ordinal)
+           ||normalized.StartsWith("how about ",StringComparison.Ordinal)
+           ||normalized.StartsWith("and ",StringComparison.Ordinal)
+           ||normalized.StartsWith("also ",StringComparison.Ordinal))
+            return true;
+        return rawTerms.Any(FollowUpMarkers.Contains);
+    }
+
+    string[] BuildConversationTerms()
+    {
+        if(_conversation.Count==0)return [];
+        var last=_conversation[^1];
+        var terms=new List<string>(last.QueryTerms);
+        foreach(var index in last.EvidenceIndexes)
+        {
+            if(index<0||index>=_documents.Count)continue;
+            terms.AddRange(_documents[index].TitleTerms);
+            terms.AddRange(Tokenize(_documents[index].Evidence.Category));
+        }
+        return terms.Where(t=>!StopWords.Contains(t))
+            .Distinct(StringComparer.Ordinal)
+            .Take(18)
+            .ToArray();
+    }
+
+    void RememberConversationTurn(string query,IReadOnlyCollection<string> queryTerms,IReadOnlyCollection<int> evidenceIndexes)
+    {
+        _conversation.Add(new ObserverConversationTurn
+        {
+            Query=query,
+            QueryTerms=queryTerms.Take(18).ToArray(),
+            EvidenceIndexes=evidenceIndexes.Distinct().Take(4).ToArray()
+        });
+        if(_conversation.Count>MaxConversationTurns)
+            _conversation.RemoveRange(0,_conversation.Count-MaxConversationTurns);
     }
 
     public string BuildEvidencePacket(ObserverAnswer answer)
@@ -285,6 +391,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             retrievalTrace=answer.RetrievalTrace,
             indexedEvidenceCount=answer.IndexedEvidenceCount,
             associationEdgeCount=answer.AssociationEdgeCount,
+            contextApplied=answer.ContextApplied,
+            conversationTurnCount=answer.ConversationTurnCount,
             evidence=answer.Hits.Select(hit=>new
             {
                 recordId=hit.RecordId,
@@ -295,6 +403,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 scope=hit.Scope,
                 visibility=hit.Visibility,
                 direct=hit.DirectMatch,
+                context=hit.ContextMatch,
+                retrievalKind=hit.RetrievalKind,
                 retrievalPath=hit.RetrievalPath,
                 retrievalReason=hit.RetrievalReason,
                 score=hit.Score,
@@ -382,6 +492,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     {
         _documents.Clear();
         _documentFrequency.Clear();
+        _conversation.Clear();
 
         var publicSources=_public.Sources.ToDictionary(x=>x.SourceId,StringComparer.Ordinal);
         foreach(var record in _public.Records)
@@ -770,6 +881,13 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
 
     sealed record AssociationEdge(int TargetIndex,double Strength,string Reason);
 
+    sealed class ObserverConversationTurn
+    {
+        public string Query { get; init; } = "";
+        public string[] QueryTerms { get; init; } = [];
+        public int[] EvidenceIndexes { get; init; } = [];
+    }
+
     sealed class ObserverEvidence
     {
         public string RecordId { get; init; } = "";
@@ -867,9 +985,11 @@ public sealed class ObserverHit
     public double Score { get; set; }
     public string Excerpt { get; set; } = "";
     public List<ObserverSourceRef> Sources { get; set; } = [];
+    public string RetrievalKind { get; set; } = "DIRECT";
     public string RetrievalPath { get; set; } = "DIRECT";
     public string RetrievalReason { get; set; } = "";
     public bool DirectMatch { get; set; }
+    public bool ContextMatch { get; set; }
 }
 
 public sealed class ObserverAnswer
@@ -881,6 +1001,8 @@ public sealed class ObserverAnswer
     public int PublicSourceCount { get; set; }
     public int PrivateDocumentCount { get; set; }
     public int AssociationEdgeCount { get; set; }
+    public bool ContextApplied { get; set; }
+    public int ConversationTurnCount { get; set; }
     public string RetrievalTrace { get; set; } = "";
     public List<ObserverHit> Hits { get; set; } = [];
 
