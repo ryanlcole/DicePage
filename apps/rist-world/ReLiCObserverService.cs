@@ -16,6 +16,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     const int MaxPrivateCharacters = 5_000_000;
     const int MaxDocumentCharacters = 2_000_000;
     const int MaxProjectKnowledgeRecordsPerDocument = 3000;
+    const int MaxPrivateBundleSources = 40;
+    const string PrivateBundleContract = "relic.observer.private-source-bundle";
     const int ChunkCharacters = 1400;
     const int ChunkOverlap = 180;
     const int MaxAssociationNeighbors = 6;
@@ -575,6 +577,122 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         return JsonSerializer.Serialize(packet,JsonOptions);
     }
 
+    public async Task<ObserverPrivateImportResult> ImportPrivatePayloadAsync(string title,string content,string? fileName=null)
+    {
+        title=(title??"").Trim();
+        content=NormalizeImportedText(content??"");
+        if(title.Length==0)throw new InvalidOperationException("A source title is required.");
+        if(content.Length==0)throw new InvalidOperationException("The source is empty.");
+
+        if(!TryParsePrivateBundle(content,out var bundleSources))
+        {
+            var before=_private.Documents.Count;
+            var document=await ImportPrivateTextAsync(title,content,fileName);
+            return new ObserverPrivateImportResult
+            {
+                BundleDetected=false,
+                DocumentsAdded=_private.Documents.Count>before?1:0,
+                DocumentsPresent=1,
+                Message=_private.Documents.Count>before
+                    ?$"Imported privately · {document.Title}"
+                    :$"Already present · {document.Title}"
+            };
+        }
+
+        var prepared=new List<ObserverPrivateDocument>();
+        var known=_private.Documents.Select(x=>x.Id).ToHashSet(StringComparer.Ordinal);
+        foreach(var source in bundleSources)
+        {
+            var sourceTitle=(source.Title??"").Trim();
+            var sourceContent=NormalizeImportedText(source.Content??"");
+            if(sourceTitle.Length==0||sourceContent.Length==0)
+                throw new InvalidOperationException("Every private bundle source needs a title and content.");
+            if(sourceContent.Length>MaxDocumentCharacters)
+                throw new InvalidOperationException($"Private bundle source '{sourceTitle}' exceeds 2,000,000 characters.");
+
+            var id=StableId(sourceTitle,sourceContent);
+            if(known.Contains(id))continue;
+            known.Add(id);
+            prepared.Add(new ObserverPrivateDocument
+            {
+                Id=id,
+                Title=sourceTitle,
+                FileName=(source.FileName??"").Trim(),
+                ImportedAtUtc=DateTimeOffset.UtcNow,
+                Content=sourceContent,
+                SourceOrigin="UNKNOWN",
+                ProvenanceHandling="OUTSIDER_AI/RED",
+                Visibility="private-account-storage",
+                ProviderHint=LimitText(source.Provider,80),
+                ProviderReference=LimitText(source.ProviderReference,256)
+            });
+        }
+
+        var currentCharacters=_private.Documents.Sum(x=>x.Content.Length);
+        if(_private.Documents.Count+prepared.Count>MaxPrivateDocuments)
+            throw new InvalidOperationException($"Private source limit reached ({MaxPrivateDocuments}). Remove sources before importing this bundle.");
+        if(currentCharacters+prepared.Sum(x=>x.Content.Length)>MaxPrivateCharacters)
+            throw new InvalidOperationException("Private corpus limit reached. Remove older material before importing this bundle.");
+
+        if(prepared.Count>0)
+        {
+            _private.Documents.AddRange(prepared);
+            await SavePrivateCorpusAsync();
+            RebuildIndex();
+            Status=$"Imported private bundle · {prepared.Count} source{(prepared.Count==1?"":"s")}";
+            Changed?.Invoke();
+        }
+
+        return new ObserverPrivateImportResult
+        {
+            BundleDetected=true,
+            DocumentsAdded=prepared.Count,
+            DocumentsPresent=bundleSources.Count,
+            Message=prepared.Count>0
+                ?$"Imported {prepared.Count} private bundle source{(prepared.Count==1?"":"s")}."
+                :"Private bundle sources are already present."
+        };
+    }
+
+    static bool TryParsePrivateBundle(string content,out List<ObserverPrivateBundleSource> sources)
+    {
+        sources=[];
+        if(!content.TrimStart().StartsWith('{'))return false;
+        try
+        {
+            using var json=JsonDocument.Parse(content);
+            var root=json.RootElement;
+            if(!root.TryGetProperty("contract",out var contract)
+               ||!string.Equals(contract.GetString(),PrivateBundleContract,StringComparison.Ordinal))
+                return false;
+
+            var version=root.TryGetProperty("version",out var versionNode)&&versionNode.TryGetInt32(out var parsedVersion)
+                ?parsedVersion:0;
+            if(version!=1)throw new InvalidOperationException("Unsupported ReLiC private source bundle version.");
+            if(!root.TryGetProperty("sources",out var sourceArray)||sourceArray.ValueKind!=JsonValueKind.Array)
+                throw new InvalidOperationException("Private source bundle is missing its sources array.");
+            if(sourceArray.GetArrayLength()==0||sourceArray.GetArrayLength()>MaxPrivateBundleSources)
+                throw new InvalidOperationException($"Private source bundle must contain 1 to {MaxPrivateBundleSources} sources.");
+
+            foreach(var source in sourceArray.EnumerateArray())
+            {
+                sources.Add(new ObserverPrivateBundleSource
+                {
+                    Title=JsonString(source,"title"),
+                    FileName=JsonString(source,"fileName"),
+                    Content=JsonString(source,"content"),
+                    Provider=JsonString(source,"provider"),
+                    ProviderReference=JsonString(source,"providerReference")
+                });
+            }
+            return true;
+        }
+        catch(JsonException)
+        {
+            return false;
+        }
+    }
+
     public async Task<ObserverPrivateDocument> ImportPrivateTextAsync(string title,string content,string? fileName=null)
     {
         title=(title??"").Trim();
@@ -602,7 +720,9 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             Content=content,
             SourceOrigin="UNKNOWN",
             ProvenanceHandling="OUTSIDER_AI/RED",
-            Visibility="private-account-storage"
+            Visibility="private-account-storage",
+            ProviderHint="",
+            ProviderReference=""
         };
         _private.Documents.Add(document);
         await SavePrivateCorpusAsync();
@@ -692,7 +812,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                     TruthDomain="UNKNOWN",
                     Scope="private-owner",
                     Visibility=document.Visibility,
-                    Provenance=$"{document.SourceOrigin}; handled as {document.ProvenanceHandling}",
+                    Provenance=PrivateProvenance(document),
                     Sources=
                     [
                         new ObserverSourceRef
@@ -993,6 +1113,18 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     static string NormalizeImportedText(string text)
         => text.Replace("\0","").Replace("\r\n","\n").Replace('\r','\n').Trim();
 
+    static string LimitText(string? value,int max)
+    {
+        var text=(value??"").Trim();
+        return text.Length<=max?text:text[..max];
+    }
+
+    static string PrivateProvenance(ObserverPrivateDocument document)
+    {
+        var provider=string.IsNullOrWhiteSpace(document.ProviderHint)?"":$"; provider hint {document.ProviderHint}";
+        return $"{document.SourceOrigin}; handled as {document.ProvenanceHandling}{provider}";
+    }
+
     static string StableId(string title,string content)
     {
         var bytes=Encoding.UTF8.GetBytes(title+"\n"+content);
@@ -1124,6 +1256,25 @@ public sealed class ObserverPrivateDocument
     public string SourceOrigin { get; set; } = "UNKNOWN";
     public string ProvenanceHandling { get; set; } = "OUTSIDER_AI/RED";
     public string Visibility { get; set; } = "private-account-storage";
+    public string ProviderHint { get; set; } = "";
+    public string ProviderReference { get; set; } = "";
+}
+
+public sealed class ObserverPrivateBundleSource
+{
+    public string Title { get; set; } = "";
+    public string FileName { get; set; } = "";
+    public string Content { get; set; } = "";
+    public string Provider { get; set; } = "";
+    public string ProviderReference { get; set; } = "";
+}
+
+public sealed class ObserverPrivateImportResult
+{
+    public bool BundleDetected { get; set; }
+    public int DocumentsAdded { get; set; }
+    public int DocumentsPresent { get; set; }
+    public string Message { get; set; } = "";
 }
 
 public sealed class ObserverSourceRef
