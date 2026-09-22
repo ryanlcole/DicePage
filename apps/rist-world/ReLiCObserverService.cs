@@ -275,6 +275,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             .Take(4)
             .ToArray();
 
+        var intent=DetectIntent(query,rawTerms);
+        var explicitConflict=groundingHits.Any(hit=>hit.Status.Contains("conflict",StringComparison.OrdinalIgnoreCase));
         var prefix=truthSummary switch
         {
             "FACT"=>"The strongest loaded FACT evidence says:",
@@ -284,11 +286,50 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             _=>"The strongest loaded evidence spans multiple truth domains:"
         };
 
-        var answer=new StringBuilder(prefix);
+        var answer=new StringBuilder();
         if(contextApplied)
-            answer.Append("\n\nFollow-up context was applied from the previous grounded turn.");
-        foreach(var excerpt in directExcerpts)
-            answer.Append("\n\n• ").Append(excerpt);
+            answer.Append("Follow-up context was applied from the previous grounded turn.\n\n");
+
+        if(intent=="SOURCE")
+        {
+            answer.Append("Source trace for the strongest grounded evidence:");
+            foreach(var hit in groundingHits.Take(5))
+            {
+                var names=hit.Sources.Select(source=>source.Title).Where(name=>!string.IsNullOrWhiteSpace(name)).Distinct(StringComparer.OrdinalIgnoreCase).Take(4);
+                answer.Append("\n\n• ").Append(hit.Title).Append(" — ").Append(string.Join("; ",names));
+            }
+        }
+        else if(intent=="STATUS")
+        {
+            answer.Append("Current loaded status evidence:");
+            foreach(var hit in groundingHits.Take(5))
+                answer.Append("\n\n• ").Append(hit.Title).Append(" — ").Append(hit.Status).Append(" · ").Append(hit.TruthDomain).Append(" · ").Append(hit.Scope);
+        }
+        else if(intent=="HISTORY")
+        {
+            var historical=groundingHits.Where(IsHistoricalHit).Take(4).ToArray();
+            var current=groundingHits.Where(hit=>!IsHistoricalHit(hit)).Take(4).ToArray();
+            answer.Append("Loaded historical/current evidence:");
+            if(historical.Length>0)
+            {
+                answer.Append("\n\nHistorical:");
+                foreach(var hit in historical)answer.Append("\n• ").Append(hit.Title).Append(" — ").Append(hit.Excerpt);
+            }
+            if(current.Length>0)
+            {
+                answer.Append("\n\nCurrent or non-historical:");
+                foreach(var hit in current)answer.Append("\n• ").Append(hit.Title).Append(" — ").Append(hit.Excerpt);
+            }
+        }
+        else
+        {
+            answer.Append(prefix);
+            foreach(var excerpt in directExcerpts)
+                answer.Append("\n\n• ").Append(excerpt);
+        }
+
+        if(explicitConflict)
+            answer.Append("\n\n⚠ The grounded evidence includes an explicitly unresolved source conflict. ReLiC is surfacing the conflict rather than selecting a winner.");
 
         var associatedCount=hits.Count(h=>h.RetrievalKind=="ASSOCIATED");
         if(associatedCount>0)
@@ -299,7 +340,9 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         var result=new ObserverAnswer
         {
             Query=query,
+            Intent=intent,
             TruthSummary=truthSummary,
+            ExplicitConflict=explicitConflict,
             Answer=answer.ToString(),
             Hits=hits,
             IndexedEvidenceCount=_documents.Count,
@@ -337,6 +380,23 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         }
         return score;
     }
+
+    static string DetectIntent(string query,IReadOnlyCollection<string> rawTerms)
+    {
+        var terms=rawTerms.ToHashSet(StringComparer.Ordinal);
+        if(terms.Overlaps(["source","sources","origin","origins","provenance","citation","citations"]))
+            return "SOURCE";
+        if(terms.Overlaps(["status","current","currently","implemented","implementation","live","working","deployed"]))
+            return "STATUS";
+        if(terms.Overlaps(["history","historical","old","older","original","previous","earlier","evolve","evolved","evolution","prototype","prototypes"]))
+            return "HISTORY";
+        return "GENERAL";
+    }
+
+    static bool IsHistoricalHit(ObserverHit hit)
+        => hit.Status.Contains("historical",StringComparison.OrdinalIgnoreCase)
+           ||hit.Category.Contains("historical",StringComparison.OrdinalIgnoreCase)
+           ||hit.Scope.Contains("historical",StringComparison.OrdinalIgnoreCase);
 
     static bool ShouldUseConversationContext(string query,IReadOnlyCollection<string> rawTerms)
     {
@@ -387,7 +447,9 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             version=1,
             generatedAtUtc=DateTimeOffset.UtcNow,
             query=answer.Query,
+            intent=answer.Intent,
             truthSummary=answer.TruthSummary,
+            explicitConflict=answer.ExplicitConflict,
             retrievalTrace=answer.RetrievalTrace,
             indexedEvidenceCount=answer.IndexedEvidenceCount,
             associationEdgeCount=answer.AssociationEdgeCount,
@@ -995,7 +1057,9 @@ public sealed class ObserverHit
 public sealed class ObserverAnswer
 {
     public string Query { get; set; } = "";
+    public string Intent { get; set; } = "GENERAL";
     public string TruthSummary { get; set; } = "UNKNOWN";
+    public bool ExplicitConflict { get; set; }
     public string Answer { get; set; } = "";
     public int IndexedEvidenceCount { get; set; }
     public int PublicSourceCount { get; set; }
