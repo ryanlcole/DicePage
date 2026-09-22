@@ -145,6 +145,10 @@ The first version also detects a few narrow query intents from the user's own wo
 
 This is routing, not hidden model reasoning. The detected intent is displayed in the response and copied into the evidence packet.
 
+### Explicit evidence scope
+
+The user can constrain retrieval to **All**, **Current/non-historical**, **Historical**, **Public**, or **Private** evidence. The selected scope is applied before lexical scoring, follow-up context scoring, and graph expansion. Changing the scope clears conversational follow-up context so terms from a previous evidence class cannot silently bleed into the new one. The chosen scope is preserved in the evidence packet.
+
 If grounded records explicitly carry a source-conflict status, ReLiC surfaces that conflict and does not select a winner. Mixed evidence is not silently flattened into a single confident answer.
 
 This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, follow only a few precomputed associations, retain only a tiny explicit conversation window, route a handful of deterministic intents, and spend computation only on the requested terms.
