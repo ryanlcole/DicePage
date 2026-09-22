@@ -11,6 +11,7 @@ builder.Services.AddScoped<AssetRatingClient>();
 builder.Services.AddScoped<AwsAuthorityClient>();
 builder.Services.AddScoped<PrivateCardLibrary>();
 builder.Services.AddScoped<RecursiveAuthorityService>();
+builder.Services.AddScoped<ReLiCObserverService>();
 
 // External AI remains owner-locked. These registrations build the defensive runtime without
 // exposing a login or granting browser state authority over presence/security decisions.
