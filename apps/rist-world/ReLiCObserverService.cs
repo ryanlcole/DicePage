@@ -139,7 +139,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
 
         var ranked=scored
             .OrderByDescending(x=>x.Score)
-            .ThenBy(x=>x.Evidence.Title,StringComparer.OrdinalIgnoreCase)
+            .ThenBy(x=>x.Evidence.Evidence.Title,StringComparer.OrdinalIgnoreCase)
             .Take(Math.Clamp(topK,1,16))
             .ToList();
 
