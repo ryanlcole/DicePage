@@ -230,14 +230,16 @@ def test_perceiver_imports_self_contained_ristmovie_sprite_scenes():
     assert "state.movieInput?.addEventListener('change', state.onMovieChange)" in player
 
 
-def test_perceiver_mobile_controls_stay_inside_phone_viewport():
+def test_perceiver_mobile_controls_use_one_swipeable_slider():
     workspace = read("Components/PerceiverWorkspace.razor")
 
-    assert "@@media(max-width:560px)" in workspace
-    assert "grid-template-columns:minmax(0,1fr)" in workspace
-    assert ".perceiver-transport,.perceiver-view-controls{" in workspace
-    assert "grid-template-columns:repeat(5,minmax(0,1fr))" in workspace
-    assert ".perceiver-source-controls{" in workspace
-    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in workspace
+    assert 'class="perceiver-control-slider"' in workspace
+    assert "overflow-x:auto" in workspace
+    assert "-webkit-overflow-scrolling:touch" in workspace
+    assert "scroll-snap-type:x proximity" in workspace
+    assert "touch-action:pan-x" in workspace
+    assert ".perceiver-control-slider::-webkit-scrollbar{display:none}" in workspace
+    assert "min-width:max-content" in workspace
+    assert "flex:0 0 auto" in workspace
     assert "padding:4px 4px max(8px,env(safe-area-inset-bottom))" in workspace
-    assert ".perceiver-stage{min-height:220px}" in workspace
+    assert ".perceiver-stage{min-height:260px}" in workspace
