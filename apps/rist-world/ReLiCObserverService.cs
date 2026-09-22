@@ -18,6 +18,11 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     const int MaxProjectKnowledgeRecordsPerDocument = 3000;
     const int ChunkCharacters = 1400;
     const int ChunkOverlap = 180;
+    const int MaxAssociationNeighbors = 6;
+    const int MaxRareTermDocumentFrequency = 10;
+    const int MaxSourceAssociationGroup = 24;
+    const int AssociationSeedCount = 6;
+    const double AssociationExpansionFactor = 0.28;
 
     static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -36,6 +41,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     ObserverPrivateCorpus _private = new();
     readonly List<IndexedEvidence> _documents = [];
     readonly Dictionary<string,int> _documentFrequency = new(StringComparer.Ordinal);
+    readonly Dictionary<int,List<AssociationEdge>> _associations = [];
     double _averageLength = 1;
     bool _initializing;
 
@@ -47,6 +53,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     public int PublicRecordCount => _public.Records.Count;
     public IReadOnlyList<ObserverPrivateDocument> PrivateDocuments => _private.Documents;
     public int IndexedEvidenceCount => _documents.Count;
+    public int AssociationEdgeCount => _associations.Sum(x=>x.Value.Count)/2;
     public string SnapshotDate => _public.SnapshotDate;
 
     public async Task InitializeAsync()
@@ -111,8 +118,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             return ObserverAnswer.Empty("UNKNOWN — the query contains no searchable terms.");
 
         var normalizedPhrase=NormalizeForPhrase(query);
-        var scored=new List<(IndexedEvidence Evidence,double Score)>();
-
+        var directScores=new Dictionary<int,double>();
         foreach(var document in _documents)
         {
             double score=0;
@@ -134,16 +140,10 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             if(normalizedPhrase.Length>3 && document.NormalizedTitle.Contains(normalizedPhrase,StringComparison.Ordinal))
                 score+=5.5;
 
-            if(score>0)scored.Add((document,score));
+            if(score>0)directScores[document.Index]=score;
         }
 
-        var ranked=scored
-            .OrderByDescending(x=>x.Score)
-            .ThenBy(x=>x.Evidence.Evidence.Title,StringComparer.OrdinalIgnoreCase)
-            .Take(Math.Clamp(topK,1,16))
-            .ToList();
-
-        if(ranked.Count==0)
+        if(directScores.Count==0)
         {
             return new ObserverAnswer
             {
@@ -152,28 +152,79 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
                 Answer="UNKNOWN — no loaded evidence supports an answer to this query. ReLiC will not invent a missing source.",
                 IndexedEvidenceCount=_documents.Count,
                 PublicSourceCount=PublicSourceCount,
-                PrivateDocumentCount=_private.Documents.Count
+                PrivateDocumentCount=_private.Documents.Count,
+                AssociationEdgeCount=AssociationEdgeCount,
+                RetrievalTrace="0 direct matches · 0 bounded associations"
             };
         }
 
-        var hits=ranked.Select(x=>new ObserverHit
+        var combined=new Dictionary<int,double>(directScores);
+        var associatedFrom=new Dictionary<int,(int Seed,string Reason,double Strength)>();
+        var seeds=directScores
+            .OrderByDescending(x=>x.Value)
+            .ThenBy(x=>_documents[x.Key].Evidence.Title,StringComparer.OrdinalIgnoreCase)
+            .Take(AssociationSeedCount)
+            .ToArray();
+
+        foreach(var seed in seeds)
         {
-            RecordId=x.Evidence.Evidence.RecordId,
-            Title=x.Evidence.Evidence.Title,
-            Category=x.Evidence.Evidence.Category,
-            Status=x.Evidence.Evidence.Status,
-            TruthDomain=NormalizeTruthDomain(x.Evidence.Evidence.TruthDomain),
-            Scope=x.Evidence.Evidence.Scope,
-            Visibility=x.Evidence.Evidence.Visibility,
-            Provenance=x.Evidence.Evidence.Provenance,
-            Score=Math.Round(x.Score,3),
-            Excerpt=BestExcerpt(x.Evidence.Evidence.Text,queryTerms),
-            Sources=x.Evidence.Evidence.Sources
+            if(!_associations.TryGetValue(seed.Key,out var edges))continue;
+            foreach(var edge in edges)
+            {
+                var expansion=seed.Value*edge.Strength*AssociationExpansionFactor;
+                if(expansion<=0)continue;
+                if(combined.TryGetValue(edge.TargetIndex,out var existing))
+                {
+                    combined[edge.TargetIndex]=existing+expansion;
+                    continue;
+                }
+
+                combined[edge.TargetIndex]=expansion;
+                associatedFrom[edge.TargetIndex]=(seed.Key,edge.Reason,edge.Strength);
+            }
+        }
+
+        var ranked=combined
+            .Select(x=>(Evidence:_documents[x.Key],Score:x.Value))
+            .OrderByDescending(x=>x.Score)
+            .ThenBy(x=>x.Evidence.Evidence.Title,StringComparer.OrdinalIgnoreCase)
+            .Take(Math.Clamp(topK,1,16))
+            .ToList();
+
+        var hits=ranked.Select(x=>
+        {
+            var isDirect=directScores.ContainsKey(x.Evidence.Index);
+            var association=associatedFrom.TryGetValue(x.Evidence.Index,out var found)?found:default;
+            var path=isDirect
+                ?"DIRECT"
+                :association.Seed>=0
+                    ?$"ASSOCIATED via {_documents[association.Seed].Evidence.Title}"
+                    :"ASSOCIATED";
+            var reason=isDirect
+                ?"lexical/phrase evidence match"
+                :association.Reason??"bounded association";
+            return new ObserverHit
+            {
+                RecordId=x.Evidence.Evidence.RecordId,
+                Title=x.Evidence.Evidence.Title,
+                Category=x.Evidence.Evidence.Category,
+                Status=x.Evidence.Evidence.Status,
+                TruthDomain=NormalizeTruthDomain(x.Evidence.Evidence.TruthDomain),
+                Scope=x.Evidence.Evidence.Scope,
+                Visibility=x.Evidence.Evidence.Visibility,
+                Provenance=x.Evidence.Evidence.Provenance,
+                Score=Math.Round(x.Score,3),
+                Excerpt=BestExcerpt(x.Evidence.Evidence.Text,queryTerms),
+                Sources=x.Evidence.Evidence.Sources,
+                RetrievalPath=path,
+                RetrievalReason=reason,
+                DirectMatch=isDirect
+            };
         }).ToList();
 
         var truthDomains=hits.Select(h=>h.TruthDomain).Distinct(StringComparer.Ordinal).ToArray();
         var truthSummary=truthDomains.Length==1?truthDomains[0]:"MIXED";
-        var excerpts=hits.Select(h=>h.Excerpt)
+        var directExcerpts=hits.Where(h=>h.DirectMatch).Select(h=>h.Excerpt)
             .Where(x=>!string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Take(4)
@@ -189,8 +240,13 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         };
 
         var answer=new StringBuilder(prefix);
-        foreach(var excerpt in excerpts)
+        foreach(var excerpt in directExcerpts)
             answer.Append("\n\n• ").Append(excerpt);
+
+        var associatedCount=hits.Count(h=>!h.DirectMatch);
+        if(associatedCount>0)
+            answer.Append($"\n\nReLiC also followed {associatedCount} bounded association{(associatedCount==1?"":"s")} to nearby evidence. Associated evidence is context, not proof of the query itself.");
+
         answer.Append("\n\nReLiC is reporting loaded evidence, not granting authority or silently promoting a source to canon.");
 
         return new ObserverAnswer
@@ -201,7 +257,9 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
             Hits=hits,
             IndexedEvidenceCount=_documents.Count,
             PublicSourceCount=PublicSourceCount,
-            PrivateDocumentCount=_private.Documents.Count
+            PrivateDocumentCount=_private.Documents.Count,
+            AssociationEdgeCount=AssociationEdgeCount,
+            RetrievalTrace=$"{directScores.Count} direct matches · {associatedFrom.Count} bounded associations · {hits.Count} returned"
         };
     }
 
@@ -341,6 +399,106 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         foreach(var document in _documents)
             foreach(var term in document.TermFrequency.Keys)
                 _documentFrequency[term]=_documentFrequency.TryGetValue(term,out var count)?count+1:1;
+
+        BuildAssociations();
+    }
+
+    void BuildAssociations()
+    {
+        _associations.Clear();
+        if(_documents.Count<2)return;
+
+        var pairScores=new Dictionary<(int Left,int Right),AssociationAccumulator>();
+
+        void AddPair(int first,int second,double weight,string reason)
+        {
+            if(first==second||weight<=0)return;
+            var key=first<second?(first,second):(second,first);
+            if(!pairScores.TryGetValue(key,out var accumulator))
+            {
+                accumulator=new AssociationAccumulator();
+                pairScores[key]=accumulator;
+            }
+            accumulator.Score+=weight;
+            if(accumulator.Reasons.Count<3 && !accumulator.Reasons.Contains(reason,StringComparer.OrdinalIgnoreCase))
+                accumulator.Reasons.Add(reason);
+        }
+
+        var sourceGroups=new Dictionary<string,List<int>>(StringComparer.Ordinal);
+        foreach(var document in _documents)
+        {
+            foreach(var sourceId in document.Evidence.Sources.Select(x=>x.SourceId).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal))
+            {
+                if(!sourceGroups.TryGetValue(sourceId,out var group))
+                {
+                    group=[];
+                    sourceGroups[sourceId]=group;
+                }
+                group.Add(document.Index);
+            }
+        }
+
+        foreach(var group in sourceGroups.Values)
+        {
+            var members=group.Distinct().Take(MaxSourceAssociationGroup+1).ToArray();
+            if(members.Length<2||members.Length>MaxSourceAssociationGroup)continue;
+            for(var i=0;i<members.Length;i++)
+                for(var j=i+1;j<members.Length;j++)
+                    AddPair(members[i],members[j],1.6,"shared source");
+        }
+
+        var rareTermGroups=new Dictionary<string,List<int>>(StringComparer.Ordinal);
+        foreach(var document in _documents)
+        {
+            foreach(var term in document.TermFrequency.Keys)
+            {
+                if(!_documentFrequency.TryGetValue(term,out var df)||df<2||df>MaxRareTermDocumentFrequency)continue;
+                if(!rareTermGroups.TryGetValue(term,out var group))
+                {
+                    group=[];
+                    rareTermGroups[term]=group;
+                }
+                group.Add(document.Index);
+            }
+        }
+
+        foreach(var pair in rareTermGroups)
+        {
+            var members=pair.Value.Distinct().ToArray();
+            var df=members.Length;
+            if(df<2||df>MaxRareTermDocumentFrequency)continue;
+            var weight=Math.Min(0.8,1.5/df);
+            var reason=$"rare term: {pair.Key}";
+            for(var i=0;i<members.Length;i++)
+                for(var j=i+1;j<members.Length;j++)
+                    AddPair(members[i],members[j],weight,reason);
+        }
+
+        var candidateEdges=new Dictionary<int,List<AssociationEdge>>();
+        foreach(var pair in pairScores)
+        {
+            var strength=Math.Clamp(pair.Value.Score/2.6,0.05,1.0);
+            var reason=string.Join(" + ",pair.Value.Reasons);
+            if(!candidateEdges.TryGetValue(pair.Key.Left,out var left))
+            {
+                left=[];
+                candidateEdges[pair.Key.Left]=left;
+            }
+            if(!candidateEdges.TryGetValue(pair.Key.Right,out var right))
+            {
+                right=[];
+                candidateEdges[pair.Key.Right]=right;
+            }
+            left.Add(new AssociationEdge(pair.Key.Right,strength,reason));
+            right.Add(new AssociationEdge(pair.Key.Left,strength,reason));
+        }
+
+        foreach(var pair in candidateEdges)
+            _associations[pair.Key]=pair.Value
+                .OrderByDescending(x=>x.Strength)
+                .ThenBy(x=>_documents[x.TargetIndex].Evidence.Title,StringComparer.OrdinalIgnoreCase)
+                .Take(MaxAssociationNeighbors)
+                .ToList();
     }
 
     bool TryAddProjectKnowledgeDocument(ObserverPrivateDocument document)
@@ -433,6 +591,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
 
         _documents.Add(new IndexedEvidence
         {
+            Index=_documents.Count,
             Evidence=evidence,
             TermFrequency=frequencies,
             TitleTerms=Tokenize(evidence.Title).ToHashSet(StringComparer.Ordinal),
@@ -543,6 +702,7 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
 
     sealed class IndexedEvidence
     {
+        public int Index { get; init; }
         public ObserverEvidence Evidence { get; init; } = new();
         public Dictionary<string,int> TermFrequency { get; init; } = new(StringComparer.Ordinal);
         public HashSet<string> TitleTerms { get; init; } = new(StringComparer.Ordinal);
@@ -550,6 +710,14 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
         public string NormalizedTitle { get; init; } = "";
         public string NormalizedText { get; init; } = "";
     }
+
+    sealed class AssociationAccumulator
+    {
+        public double Score { get; set; }
+        public List<string> Reasons { get; } = [];
+    }
+
+    sealed record AssociationEdge(int TargetIndex,double Strength,string Reason);
 
     sealed class ObserverEvidence
     {
@@ -646,6 +814,9 @@ public sealed class ObserverHit
     public double Score { get; set; }
     public string Excerpt { get; set; } = "";
     public List<ObserverSourceRef> Sources { get; set; } = [];
+    public string RetrievalPath { get; set; } = "DIRECT";
+    public string RetrievalReason { get; set; } = "";
+    public bool DirectMatch { get; set; }
 }
 
 public sealed class ObserverAnswer
@@ -656,6 +827,8 @@ public sealed class ObserverAnswer
     public int IndexedEvidenceCount { get; set; }
     public int PublicSourceCount { get; set; }
     public int PrivateDocumentCount { get; set; }
+    public int AssociationEdgeCount { get; set; }
+    public string RetrievalTrace { get; set; } = "";
     public List<ObserverHit> Hits { get; set; } = [];
 
     public static ObserverAnswer Empty(string message)=>new(){Answer=message,TruthSummary="UNKNOWN"};
