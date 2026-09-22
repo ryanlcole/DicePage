@@ -89,6 +89,16 @@ A private Shaelvien Project Knowledge JSON export is recognized by `dataset_id =
 
 Uploading a source does not establish authorship. Generic private imports therefore retain `UNKNOWN` source origin and are handled at the `OUTSIDER_AI/RED` boundary until provenance is explicitly established by a future provenance workflow.
 
+### Portable private source bundles
+
+Observer also accepts a private multi-source JSON bundle with contract:
+
+`relic.observer.private-source-bundle` version 1.
+
+A bundle may carry multiple text sources plus optional provider/provider-reference hints so material exported from Google Drive, local archives, or another owner-authorized source can be moved into the private corpus in one import. Bundle-provided authorship, truth, visibility, or authority claims are **not trusted**. Every imported source remains private account storage with `UNKNOWN` source origin and `OUTSIDER_AI/RED` handling until a separate verified provenance workflow exists.
+
+Bundles are capped, imported atomically after capacity checks, deduplicated by source title + content hash, and never become part of the public Observer seed.
+
 ## Retrieval
 
 The engine builds an in-memory inverted index once when the corpus changes.
