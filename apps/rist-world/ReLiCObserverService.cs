@@ -1155,7 +1155,7 @@ public sealed class ObserverHit
     public bool DirectMatch { get; set; }
     public bool ContextMatch { get; set; }
     public bool AliasMatch { get; set; }
-    public List<string> AliasUnitIds { get; set; } = []
+    public List<string> AliasUnitIds { get; set; } = [];
 }
 
 public sealed class ObserverAnswer
