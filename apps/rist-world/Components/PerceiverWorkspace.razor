@@ -50,6 +50,7 @@
 
   <div class="perceiver-control-row perceiver-source-controls">
    <button type="button" data-perceiver-upload-button>UPLOAD VIDEO</button>
+   <button type="button" data-perceiver-movie-button>OPEN .RISTMOVIE</button>
    <button type="button" data-perceiver-endemar-button>ENDEMAR</button>
    <div class="perceiver-speed">
     <label for="perceiver-speed-select">Speed</label>
@@ -61,6 +62,7 @@
     </select>
    </div>
    <input type="file" accept="video/*" data-perceiver-video-input hidden aria-label="Choose a video for spectral conversion" />
+   <input type="file" accept=".ristmovie,application/json" data-perceiver-movie-input hidden aria-label="Choose a RIST movie scene package" />
   </div>
 
   <div class="perceiver-layer-strip" data-perceiver-layer-strip hidden aria-label="Spectral video layers">
@@ -196,7 +198,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260920-seven-layer-video-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260922-ristmovie-sprites-1");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
