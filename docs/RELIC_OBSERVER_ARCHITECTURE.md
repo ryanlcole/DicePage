@@ -110,7 +110,15 @@ At query time ReLiC:
 
 There is deliberately no unrestricted recursive walk. A one-hop, capped graph prevents broad topic drift and preserves the scarce-compute design.
 
-This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, follow only a few precomputed associations, and spend computation only on the requested terms.
+### Bounded conversational follow-up
+
+ReLiC keeps a tiny in-memory conversation window for follow-up questions. It is not written to account storage and is cleared whenever the evidence index is rebuilt or the user selects **Clear Context**.
+
+The prior turn is consulted only when the new query contains explicit follow-up language such as “what about…”, “that”, “this”, “same”, “previous”, or similar references. Previous query terms and a few grounded evidence titles are scored at a heavily damped weight. Context-derived records are labeled **CONTEXT** in the UI and remain distinct from DIRECT matches and ASSOCIATED graph neighbors.
+
+Only the last four turns are retained, and only the immediately prior turn supplies retrieval terms. This provides conversational continuity without turning the whole conversation into an unbounded prompt or silently contaminating unrelated questions.
+
+This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, follow only a few precomputed associations, retain only a tiny explicit conversation window, and spend computation only on the requested terms.
 
 ## Privacy and authority
 
