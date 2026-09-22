@@ -61,7 +61,7 @@
    {
     <div class="observer-context-bar">
      <span><strong>@Observer.ConversationTurnCount</strong> bounded conversation turn@(Observer.ConversationTurnCount==1?"":"s") retained for explicit follow-ups.</span>
-     <button type="button" @onclick="ClearContext">CLEAR CONTEXT</button>
+     <button type="button" @onclick="ClearContext">CLEAR CHAT</button>
     </div>
    }
 
@@ -70,6 +70,33 @@
     <span>Evidence is not permission. Retrieval does not promote UNKNOWN, HYPOTHESIS, or FICTION into FACT, and this engine does not repurpose Rune, Glyph, CHID, or SHAEP identities.</span>
    </div>
   </section>
+
+  @if(_chatTurns.Count>0)
+  {
+   <section class="observer-chat" aria-label="ReLiC conversation" aria-live="polite">
+    <div class="observer-chat-head">
+     <div>
+      <p class="observer-eyebrow">CHAT</p>
+      <h2>Conversation</h2>
+     </div>
+     <span>@_chatTurns.Count turn@(_chatTurns.Count==1?"":"s") · page-memory only</span>
+    </div>
+    <div class="observer-chat-log">
+     @foreach(var turn in _chatTurns)
+     {
+      <article class="observer-message observer-message-user">
+       <span>YOU</span>
+       <p>@turn.Query</p>
+      </article>
+      <article class="observer-message observer-message-relic">
+       <span>RELIC · @turn.Answer.Intent · @turn.Answer.TruthSummary</span>
+       <p>@turn.Answer.Answer</p>
+       <small>@turn.Answer.RetrievalTrace</small>
+      </article>
+     }
+    </div>
+   </section>
+  }
 
   @if(_answer is not null)
   {
@@ -199,7 +226,7 @@
  .observer-nav{display:flex;gap:6px}.observer-nav button,.observer-query-row button,.observer-paste button,.observer-private-item button,.observer-answer-actions button,.observer-context-bar button{min-height:40px;border:1px solid #66552f;border-radius:7px;background:#101a20;color:#ead59d;font:900 10px/1 system-ui;letter-spacing:.08em;touch-action:manipulation}.observer-nav button{padding:0 10px}
  .observer-title p,.observer-eyebrow{margin:0;color:#8ebaca;font-size:9px;font-weight:900;letter-spacing:.18em}.observer-title h1{margin:1px 0;color:#e8d19a;font:600 21px/1.05 Georgia,"Times New Roman",serif}.observer-title>span{color:#8fa1a9;font-size:9px}
  .observer-state{display:grid;justify-items:end;gap:2px;text-align:right}.observer-state strong{color:#9fd3b1;font-size:10px;letter-spacing:.12em}.observer-state span{max-width:260px;color:#82959d;font-size:8px}
- .observer-main{box-sizing:border-box;width:min(1180px,100%);min-height:100%;margin:0 auto;padding:20px;display:grid;gap:16px}.observer-query-panel,.observer-answer,.observer-import{border:1px solid rgba(126,151,159,.3);border-radius:14px;background:linear-gradient(180deg,rgba(12,27,34,.92),rgba(6,17,22,.94));box-shadow:0 16px 36px rgba(0,0,0,.24);padding:18px}
+ .observer-main{box-sizing:border-box;width:min(1180px,100%);min-height:100%;margin:0 auto;padding:20px;display:grid;gap:16px}.observer-query-panel,.observer-chat,.observer-answer,.observer-import{border:1px solid rgba(126,151,159,.3);border-radius:14px;background:linear-gradient(180deg,rgba(12,27,34,.92),rgba(6,17,22,.94));box-shadow:0 16px 36px rgba(0,0,0,.24);padding:18px}.observer-chat{display:grid;gap:12px}.observer-chat-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}.observer-chat-head h2{margin:3px 0 0;color:#e8d19a;font:600 22px/1.12 Georgia,"Times New Roman",serif}.observer-chat-head>span{color:#70868f;font-size:8px}.observer-chat-log{display:grid;gap:8px}.observer-message{max-width:min(86%,820px);padding:10px 12px;border-radius:12px}.observer-message>span{display:block;margin-bottom:4px;font-size:7px;font-weight:900;letter-spacing:.1em}.observer-message p{margin:0;white-space:pre-wrap;font-size:11px;line-height:1.55}.observer-message small{display:block;margin-top:7px;color:#728891;font-size:7px}.observer-message-user{justify-self:end;border:1px solid #66552f;background:#18170f;color:#f0e1b5}.observer-message-user>span{color:#bda467}.observer-message-relic{justify-self:start;border:1px solid #365866;background:#071820;color:#dce7e8}.observer-message-relic>span{color:#8fc2d1}
  .observer-section-head,.observer-answer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.observer-section-head h2,.observer-answer-head h2{margin:3px 0;color:#e8d19a;font:600 22px/1.12 Georgia,"Times New Roman",serif}.observer-conflict{display:inline-flex;margin-top:4px;padding:4px 7px;border:1px solid #8f623f;border-radius:999px;color:#edc49d;font-size:7px;font-weight:900;letter-spacing:.08em}
  .observer-ledger{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.observer-ledger span{padding:6px 8px;border:1px solid #314b56;border-radius:999px;background:#08151b;color:#91a8b2;font-size:8px;font-weight:800;white-space:nowrap}.observer-ledger strong{color:#f1dcaa}
  .observer-query-form{margin-top:16px}.observer-query-form label,.observer-file-import label,.observer-paste label{display:block;margin:0 0 5px;color:#a9bac1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.observer-query-options{display:flex;justify-content:flex-end;margin-bottom:7px}.observer-query-options label{display:flex;align-items:center;gap:7px}.observer-query-options select{min-height:32px;border:1px solid #405b66;border-radius:7px;background:#071319;color:#dce5e5;padding:0 8px;font:700 9px system-ui;text-transform:none;letter-spacing:0}.observer-query-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px}.observer-query-row input,.observer-paste input,.observer-paste textarea{box-sizing:border-box;width:100%;border:1px solid #425e69;border-radius:8px;background:#050d11;color:#f0eee7;font:600 13px/1.45 system-ui;padding:11px}.observer-query-row input{min-height:46px}.observer-query-row input:focus-visible,.observer-paste input:focus-visible,.observer-paste textarea:focus-visible,.observer-nav button:focus-visible,.observer-query-row button:focus-visible,.observer-paste button:focus-visible,.observer-private-item button:focus-visible{outline:3px solid #f2dda6;outline-offset:2px}.observer-query-row button:disabled,.observer-paste button:disabled,.observer-private-item button:disabled{opacity:.45}
@@ -209,7 +236,7 @@
  .observer-private-badge{padding:5px 8px;border:1px solid #516a58;border-radius:999px;color:#a9d3b1;font-size:7px;font-weight:900;letter-spacing:.08em}.observer-copy{max-width:900px;margin:9px 0 15px;color:#9dafb5;font-size:10px;line-height:1.55}.observer-import-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px}.observer-file-import,.observer-paste{padding:12px;border:1px solid #304852;border-radius:9px;background:#08151b}.observer-file-import input[type=file]{box-sizing:border-box;width:100%;min-height:46px;padding:9px;border:1px dashed #526b75;border-radius:7px;color:#aebdc2;background:#050c10}.observer-file-import small{display:block;margin-top:8px;color:#738890;font-size:8px;line-height:1.4}.observer-paste{display:grid;gap:6px}.observer-paste label{margin:2px 0 0}.observer-paste textarea{resize:vertical;min-height:112px}.observer-paste button{justify-self:end;padding:0 12px}
  .observer-import-status{margin:10px 0 0;color:#cbd9d2;font-size:9px}.observer-private-list{display:grid;gap:6px;margin-top:12px}.observer-private-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid #293f48;border-radius:8px;background:#071219}.observer-private-item>div{min-width:0;display:grid;gap:2px}.observer-private-item strong{overflow:hidden;text-overflow:ellipsis;color:#d9c89e;font-size:10px}.observer-private-item span,.observer-private-item small{color:#778b93;font-size:7px}.observer-private-item button{min-height:32px;padding:0 8px;color:#d8b6a0;border-color:#6d4b3b}
  .observer-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 2px 20px;color:#5f747d;font-size:7px;font-weight:900;letter-spacing:.08em}
- @@media(max-width:760px){.observer-header{grid-template-columns:auto minmax(0,1fr);padding:9px}.observer-state{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;text-align:left}.observer-main{padding:9px}.observer-query-panel,.observer-answer,.observer-import{padding:12px;border-radius:10px}.observer-section-head,.observer-answer-head{display:grid}.observer-ledger,.observer-trace{justify-content:flex-start}.observer-query-row{grid-template-columns:1fr}.observer-query-row button{min-height:44px}.observer-hit-list,.observer-import-grid{grid-template-columns:1fr}.observer-title>span{display:none}.observer-title h1{font-size:18px}.observer-principle{grid-template-columns:1fr}.observer-private-item{align-items:flex-start}}
+ @@media(max-width:760px){.observer-header{grid-template-columns:auto minmax(0,1fr);padding:9px}.observer-state{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;text-align:left}.observer-main{padding:9px}.observer-query-panel,.observer-chat,.observer-answer,.observer-import{padding:12px;border-radius:10px}.observer-section-head,.observer-answer-head,.observer-chat-head{display:grid}.observer-ledger,.observer-trace{justify-content:flex-start}.observer-query-row{grid-template-columns:1fr}.observer-query-row button{min-height:44px}.observer-hit-list,.observer-import-grid{grid-template-columns:1fr}.observer-message{max-width:94%}.observer-title>span{display:none}.observer-title h1{font-size:18px}.observer-principle{grid-template-columns:1fr}.observer-private-item{align-items:flex-start}}
  @@media(prefers-reduced-motion:reduce){.observer-shell *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 
@@ -230,6 +257,8 @@
  string _copyStatus="";
  bool _importBusy;
  ObserverAnswer? _answer;
+ readonly List<ObserverChatTurn> _chatTurns=[];
+ const int MaxVisibleChatTurns=12;
 
  protected override async Task OnInitializedAsync()
  {
@@ -241,8 +270,13 @@
 
  Task RunQueryAsync()
  {
+  var query=_query.Trim();
+  if(query.Length==0)return Task.CompletedTask;
   _copyStatus="";
-  _answer=Observer.Query(_query,evidenceFilter:_evidenceFilter);
+  _answer=Observer.Query(query,evidenceFilter:_evidenceFilter);
+  _chatTurns.Add(new ObserverChatTurn(query,_answer));
+  while(_chatTurns.Count>MaxVisibleChatTurns)_chatTurns.RemoveAt(0);
+  _query="";
   return Task.CompletedTask;
  }
 
@@ -250,14 +284,17 @@
  {
   _evidenceFilter=(args.Value?.ToString()??"all").Trim().ToLowerInvariant();
   Observer.ClearConversationContext();
+  _chatTurns.Clear();
   _answer=null;
-  _copyStatus="Evidence scope changed; follow-up context cleared.";
+  _copyStatus="Evidence scope changed; chat context cleared.";
  }
 
  void ClearContext()
  {
   Observer.ClearConversationContext();
-  _copyStatus="Follow-up context cleared.";
+  _chatTurns.Clear();
+  _answer=null;
+  _copyStatus="Chat and follow-up context cleared.";
  }
 
  async Task CopyEvidencePacketAsync()
@@ -351,6 +388,8 @@
   if(!Uri.TryCreate(value,UriKind.Absolute,out var uri))return null;
   return uri.Scheme is "https" or "http"?uri.ToString():null;
  }
+
+ sealed record ObserverChatTurn(string Query,ObserverAnswer Answer);
 
  public void Dispose()=>Observer.Changed-=ObserverChanged;
 }
