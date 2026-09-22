@@ -95,3 +95,20 @@ def test_relic_observer_evidence_packet_is_bounded_to_returned_evidence():
     assert "excerpt=hit.Excerpt" in service
     assert "BuildEvidencePacket(_answer)" in workspace
     assert "COPY EVIDENCE PACKET" in workspace
+
+
+def test_relic_observer_follow_up_context_is_bounded_and_explicit():
+    service = (APP / "ReLiCObserverService.cs").read_text(encoding="utf-8")
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    architecture = (ROOT / "docs" / "RELIC_OBSERVER_ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    assert "const int MaxConversationTurns = 4;" in service
+    assert "const double ConversationContextFactor = 0.22;" in service
+    assert "ShouldUseConversationContext" in service
+    assert "BuildConversationTerms" in service
+    assert "ClearConversationContext" in service
+    assert 'RetrievalKind=kind' in service
+    assert '"CONTEXT"' in service
+    assert "CLEAR CONTEXT" in workspace
+    assert "ConversationContextAvailable" in workspace
+    assert "Only the last four turns are retained" in architecture
