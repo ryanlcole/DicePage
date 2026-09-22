@@ -90,7 +90,27 @@ Characteristics:
 - Source-linked evidence cards for every response.
 - FACT, HYPOTHESIS, FICTION, UNKNOWN remain explicit.
 
-This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, and spend computation only on the requested terms.
+### Bounded associative recall
+
+ReLiC also builds a sparse, reusable association graph when the corpus changes. This is **not** a semantic-identity graph and it does not mint Rune/Glyph/CHID/SHAEP identities. It is only a retrieval aid.
+
+Edges are formed from cheap evidence relationships:
+
+- records that share the same declared source;
+- records that share rare indexed terms;
+- each evidence unit retains only its strongest bounded neighbor set.
+
+At query time ReLiC:
+
+1. retrieves direct lexical/phrase matches;
+2. selects only the strongest direct seeds;
+3. follows one bounded association hop with a damped score;
+4. marks every returned record as DIRECT or ASSOCIATED and states why it was reached;
+5. never treats association as proof of the query.
+
+There is deliberately no unrestricted recursive walk. A one-hop, capped graph prevents broad topic drift and preserves the scarce-compute design.
+
+This is deliberately closer to software written under scarce compute: pre-index reusable state, retrieve a bounded working set, follow only a few precomputed associations, and spend computation only on the requested terms.
 
 ## Privacy and authority
 
