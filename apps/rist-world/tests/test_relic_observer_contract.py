@@ -179,3 +179,22 @@ def test_relic_observer_semantic_aliases_are_registry_derived_and_candidate_only
     assert 'data-kind="ALIAS"' in workspace
     assert "REGISTERED SEMANTIC CANDIDATE" in architecture
     assert "never proof that two expressions are interchangeable" in architecture
+
+
+def test_relic_observer_private_bundle_is_bounded_private_and_cannot_self_assert_provenance():
+    service = (APP / "ReLiCObserverService.cs").read_text(encoding="utf-8")
+    workspace = (APP / "Components" / "ReLiCObserverWorkspace.razor").read_text(encoding="utf-8")
+    architecture = (ROOT / "docs" / "RELIC_OBSERVER_ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    assert 'PrivateBundleContract = "relic.observer.private-source-bundle"' in service
+    assert "const int MaxPrivateBundleSources = 40;" in service
+    assert "ImportPrivatePayloadAsync" in service
+    assert "TryParsePrivateBundle" in service
+    assert 'SourceOrigin="UNKNOWN"' in service
+    assert 'ProvenanceHandling="OUTSIDER_AI/RED"' in service
+    assert 'Visibility="private-account-storage"' in service
+    assert "ProviderHint=LimitText(source.Provider,80)" in service
+    assert "ProviderReference=LimitText(source.ProviderReference,256)" in service
+    assert "ImportPrivatePayloadAsync" in workspace
+    assert "private source bundles up to 5 MB" in workspace
+    assert "Bundle-provided authorship, truth, visibility, or authority claims are **not trusted**." in architecture
