@@ -32,6 +32,7 @@
      <span><strong>@Observer.PublicRecordCount</strong> project records</span>
      <span><strong>@Observer.PrivateDocuments.Count</strong> private imports</span>
      <span><strong>@Observer.IndexedEvidenceCount</strong> indexed units</span>
+     <span><strong>@Observer.AssociationEdgeCount</strong> sparse associations</span>
     </div>
    </div>
 
@@ -58,10 +59,14 @@
       <h2 id="observer-answer-heading">@_answer.TruthSummary</h2>
      </div>
      <div class="observer-trace" aria-label="Query trace">
-      <span>RETRIEVE</span><b>→</b><span>RANK</span><b>→</b><span>BOUND EVIDENCE</span><b>→</b><span>OBSERVE</span>
+      <span>RETRIEVE</span><b>→</b><span>RANK</span><b>→</b><span>ASSOCIATE</span><b>→</b><span>BOUND EVIDENCE</span><b>→</b><span>OBSERVE</span>
      </div>
     </div>
     <div class="observer-answer-text">@_answer.Answer</div>
+    @if(!string.IsNullOrWhiteSpace(_answer.RetrievalTrace))
+    {
+     <p class="observer-retrieval-summary">@_answer.RetrievalTrace · @_answer.AssociationEdgeCount sparse graph edges available</p>
+    }
 
     @if(_answer.Hits.Count>0)
     {
@@ -72,10 +77,14 @@
        {
         <article class="observer-hit">
          <div class="observer-hit-head">
-          <span class="observer-truth" data-domain="@hit.TruthDomain">@hit.TruthDomain</span>
+          <div class="observer-hit-badges">
+           <span class="observer-truth" data-domain="@hit.TruthDomain">@hit.TruthDomain</span>
+           <span class="observer-path" data-direct="@hit.DirectMatch.ToString().ToLowerInvariant()">@(hit.DirectMatch?"DIRECT":"ASSOCIATED")</span>
+          </div>
           <span class="observer-score">score @hit.Score.ToString("0.000")</span>
          </div>
          <h3>@hit.Title</h3>
+         <p class="observer-retrieval-path">@hit.RetrievalPath · @hit.RetrievalReason</p>
          <p class="observer-hit-meta">@hit.Category · @hit.Status · @hit.Scope</p>
          <p class="observer-excerpt">@hit.Excerpt</p>
          <div class="observer-source-row">
@@ -170,7 +179,7 @@
  .observer-query-form{margin-top:16px}.observer-query-form label,.observer-file-import label,.observer-paste label{display:block;margin:0 0 5px;color:#a9bac1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.observer-query-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px}.observer-query-row input,.observer-paste input,.observer-paste textarea{box-sizing:border-box;width:100%;border:1px solid #425e69;border-radius:8px;background:#050d11;color:#f0eee7;font:600 13px/1.45 system-ui;padding:11px}.observer-query-row input{min-height:46px}.observer-query-row input:focus-visible,.observer-paste input:focus-visible,.observer-paste textarea:focus-visible,.observer-nav button:focus-visible,.observer-query-row button:focus-visible,.observer-paste button:focus-visible,.observer-private-item button:focus-visible{outline:3px solid #f2dda6;outline-offset:2px}.observer-query-row button:disabled,.observer-paste button:disabled,.observer-private-item button:disabled{opacity:.45}
  .observer-principle{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;margin-top:12px;padding:9px 11px;border-left:3px solid #bf9e56;background:rgba(191,158,86,.08);font-size:9px;line-height:1.45}.observer-principle strong{color:#e6cb8b}.observer-principle span{color:#9dacb2}
  .observer-trace{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.observer-trace span{padding:4px 7px;border:1px solid #38505a;border-radius:999px;color:#a7bcc5;font-size:7px;font-weight:900;letter-spacing:.07em}.observer-trace b{color:#766c4a;font-size:9px}
- .observer-answer-text{white-space:pre-wrap;margin-top:14px;padding:14px;border:1px solid rgba(225,196,126,.28);border-radius:9px;background:#071217;color:#e3e8e4;font:500 13px/1.65 system-ui}.observer-evidence{margin-top:12px}.observer-evidence summary{cursor:pointer;color:#d7c18d;font-size:10px;font-weight:900;letter-spacing:.06em}.observer-hit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.observer-hit{min-width:0;padding:12px;border:1px solid #2d454f;border-radius:9px;background:#08161c}.observer-hit-head{display:flex;justify-content:space-between;gap:8px}.observer-truth{display:inline-flex;padding:3px 6px;border:1px solid #55707a;border-radius:999px;color:#d4e4e9;font-size:7px;font-weight:900;letter-spacing:.1em}.observer-truth[data-domain="FACT"]{border-color:#5a8767}.observer-truth[data-domain="FICTION"]{border-color:#7561a0}.observer-truth[data-domain="HYPOTHESIS"]{border-color:#a47d42}.observer-score{color:#6f858e;font-size:7px}.observer-hit h3{margin:8px 0 2px;color:#e8d7ac;font:600 14px/1.2 Georgia,serif}.observer-hit-meta,.observer-provenance{margin:0;color:#758a93;font-size:7px}.observer-excerpt{margin:8px 0;color:#bac8cb;font-size:10px;line-height:1.5}.observer-source-row{display:flex;gap:5px;flex-wrap:wrap}.observer-source-row a,.observer-source-row span{max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:3px 5px;border-radius:4px;background:#0d222b;color:#9fd3e0;font-size:7px;white-space:nowrap}.observer-provenance{margin-top:7px}
+ .observer-answer-text{white-space:pre-wrap;margin-top:14px;padding:14px;border:1px solid rgba(225,196,126,.28);border-radius:9px;background:#071217;color:#e3e8e4;font:500 13px/1.65 system-ui}.observer-retrieval-summary{margin:7px 2px 0;color:#748c95;font-size:8px;font-weight:800;letter-spacing:.03em}.observer-evidence{margin-top:12px}.observer-evidence summary{cursor:pointer;color:#d7c18d;font-size:10px;font-weight:900;letter-spacing:.06em}.observer-hit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.observer-hit{min-width:0;padding:12px;border:1px solid #2d454f;border-radius:9px;background:#08161c}.observer-hit-head{display:flex;justify-content:space-between;gap:8px}.observer-hit-badges{display:flex;gap:5px;flex-wrap:wrap}.observer-truth{display:inline-flex;padding:3px 6px;border:1px solid #55707a;border-radius:999px;color:#d4e4e9;font-size:7px;font-weight:900;letter-spacing:.1em}.observer-truth[data-domain="FACT"]{border-color:#5a8767}.observer-truth[data-domain="FICTION"]{border-color:#7561a0}.observer-truth[data-domain="HYPOTHESIS"]{border-color:#a47d42}.observer-path{display:inline-flex;padding:3px 6px;border:1px solid #625b43;border-radius:999px;color:#c7bb90;font-size:7px;font-weight:900;letter-spacing:.08em}.observer-path[data-direct="true"]{border-color:#456b78;color:#a8d6e4}.observer-score{color:#6f858e;font-size:7px}.observer-hit h3{margin:8px 0 2px;color:#e8d7ac;font:600 14px/1.2 Georgia,serif}.observer-hit-meta,.observer-provenance{margin:0;color:#758a93;font-size:7px}.observer-retrieval-path{margin:5px 0 0;color:#8ea4ac;font-size:7px;line-height:1.35}.observer-excerpt{margin:8px 0;color:#bac8cb;font-size:10px;line-height:1.5}.observer-source-row{display:flex;gap:5px;flex-wrap:wrap}.observer-source-row a,.observer-source-row span{max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:3px 5px;border-radius:4px;background:#0d222b;color:#9fd3e0;font-size:7px;white-space:nowrap}.observer-provenance{margin-top:7px}
  .observer-private-badge{padding:5px 8px;border:1px solid #516a58;border-radius:999px;color:#a9d3b1;font-size:7px;font-weight:900;letter-spacing:.08em}.observer-copy{max-width:900px;margin:9px 0 15px;color:#9dafb5;font-size:10px;line-height:1.55}.observer-import-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px}.observer-file-import,.observer-paste{padding:12px;border:1px solid #304852;border-radius:9px;background:#08151b}.observer-file-import input[type=file]{box-sizing:border-box;width:100%;min-height:46px;padding:9px;border:1px dashed #526b75;border-radius:7px;color:#aebdc2;background:#050c10}.observer-file-import small{display:block;margin-top:8px;color:#738890;font-size:8px;line-height:1.4}.observer-paste{display:grid;gap:6px}.observer-paste label{margin:2px 0 0}.observer-paste textarea{resize:vertical;min-height:112px}.observer-paste button{justify-self:end;padding:0 12px}
  .observer-import-status{margin:10px 0 0;color:#cbd9d2;font-size:9px}.observer-private-list{display:grid;gap:6px;margin-top:12px}.observer-private-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid #293f48;border-radius:8px;background:#071219}.observer-private-item>div{min-width:0;display:grid;gap:2px}.observer-private-item strong{overflow:hidden;text-overflow:ellipsis;color:#d9c89e;font-size:10px}.observer-private-item span,.observer-private-item small{color:#778b93;font-size:7px}.observer-private-item button{min-height:32px;padding:0 8px;color:#d8b6a0;border-color:#6d4b3b}
  .observer-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 2px 20px;color:#5f747d;font-size:7px;font-weight:900;letter-spacing:.08em}
