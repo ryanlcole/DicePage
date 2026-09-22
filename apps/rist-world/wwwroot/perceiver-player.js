@@ -21,7 +21,12 @@ const SPECTRAL_STEP_SEQUENCE = Object.freeze([
   Object.freeze({ label: 'All 7 Spectral Layers', tiers: [0, 1, 2, 3, 4, 5, 6] })
 ]);
 
+const SCENE_STEP_SEQUENCE = Object.freeze([
+  Object.freeze({ label: 'Sprite Scene', tiers: [0, 1, 2, 3] })
+]);
+
 const ENDEMAR_DEPTH_FACTORS = Object.freeze([0.28, 0.60, 1.0]);
+const SCENE_DEFAULT_DEPTHS = Object.freeze([0.22, 0.48, 0.76, 1.0]);
 const SPECTRAL_DEPTH_FACTORS = Object.freeze([1.00, 0.88, 0.76, 0.64, 0.52, 0.40, 0.30]);
 const SPECTRAL_OVERSCAN = Object.freeze([1.24, 1.20, 1.16, 1.13, 1.10, 1.07, 1.04]);
 const SPECTRAL_MAX_PIXELS = 512 * 288;
@@ -42,7 +47,9 @@ function setText(node, value) {
 }
 
 function sequenceFor(state) {
-  return state.mode === 'spectral' ? SPECTRAL_STEP_SEQUENCE : STEP_SEQUENCE;
+  if (state.mode === 'spectral') return SPECTRAL_STEP_SEQUENCE;
+  if (state.mode === 'scene') return SCENE_STEP_SEQUENCE;
+  return STEP_SEQUENCE;
 }
 
 function updateLayerButtons(state) {
@@ -60,12 +67,19 @@ function updateLayerButtons(state) {
 function updateReadout(state) {
   const sequence = sequenceFor(state);
   const step = sequence[state.currentStep] || sequence[sequence.length - 1];
-  setText(state.labelNode, state.mode === 'spectral' ? `Spectral · ${step.label}` : step.label);
+  const label = state.mode === 'spectral'
+    ? `Spectral · ${step.label}`
+    : state.mode === 'scene'
+      ? `Scene · ${state.sceneTitle || 'RISTMOVIE'}`
+      : step.label;
+  setText(state.labelNode, label);
   setText(state.playStateNode, state.playing ? 'Playing' : 'Paused');
   setText(state.motionNode, state.motionEnabled ? 'Tilt Ready' : 'Pointer');
   setText(state.zoomNode, `${Math.round(state.cameraScale * 100)}%`);
   if (state.mode === 'spectral') {
     setText(state.modeNoteNode, '7 bands · low tiers enlarged · violet → blue → cyan → green → yellow → orange → red');
+  } else if (state.mode === 'scene') {
+    setText(state.modeNoteNode, 'background → environment FX → actors → foreground · sprite sheets + reactive parallax');
   } else {
     setText(state.modeNoteNode, '1 → 2 → 3 → 1+2 → 1+3 → 2+3 → 1+2+3 → repeat');
   }
@@ -372,6 +386,229 @@ function makeSpectralLayer(index) {
   return wrapper;
 }
 
+
+function sceneWrapper(className) {
+  const wrapper = document.createElement('div');
+  wrapper.className = className;
+  wrapper.setAttribute('aria-hidden', 'false');
+  Object.assign(wrapper.style, {
+    position: 'absolute',
+    inset: '0',
+    overflow: 'hidden',
+    opacity: '1',
+    visibility: 'visible',
+    willChange: 'transform, opacity',
+    pointerEvents: 'none'
+  });
+  return wrapper;
+}
+
+function sceneImageLayer(src, className) {
+  const wrapper = sceneWrapper(className);
+  const image = document.createElement('img');
+  image.alt = '';
+  image.draggable = false;
+  image.src = String(src || '');
+  Object.assign(image.style, {
+    position: 'absolute',
+    inset: '0',
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    objectPosition: '50% 50%',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    WebkitUserDrag: 'none'
+  });
+  wrapper.appendChild(image);
+  return wrapper;
+}
+
+function waitForImage(image) {
+  return new Promise((resolve, reject) => {
+    if (image.complete && image.naturalWidth > 0) {
+      resolve(image);
+      return;
+    }
+    image.addEventListener('load', () => resolve(image), { once: true });
+    image.addEventListener('error', () => reject(new Error('RISTMOVIE sprite image failed to load.')), { once: true });
+  });
+}
+
+function normalizeSpriteSpec(spec = {}) {
+  return {
+    columns: Math.max(1, Math.floor(Number(spec.columns) || 1)),
+    rows: Math.max(1, Math.floor(Number(spec.rows) || 1)),
+    frameCount: Math.max(1, Math.floor(Number(spec.frameCount) || 1)),
+    frameMs: Math.max(40, Number(spec.frameMs) || 160),
+    phase: Math.max(0, Math.floor(Number(spec.phase) || 0))
+  };
+}
+
+async function createSpriteRecord(spec, canvas, stretch = false) {
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = String(spec?.src || '');
+  await waitForImage(image);
+  const normalized = normalizeSpriteSpec(spec);
+  const frameWidth = Math.max(1, Math.floor(image.naturalWidth / normalized.columns));
+  const frameHeight = Math.max(1, Math.floor(image.naturalHeight / normalized.rows));
+  canvas.width = stretch ? 960 : frameWidth;
+  canvas.height = stretch ? 540 : frameHeight;
+  const context = canvas.getContext('2d', { alpha: true });
+  return { image, canvas, context, frameWidth, frameHeight, stretch, ...normalized };
+}
+
+function drawSceneSprite(record, clockMs) {
+  if (!record?.context || !record?.image) return;
+  const frame = (Math.floor(clockMs / record.frameMs) + record.phase) % record.frameCount;
+  const column = frame % record.columns;
+  const row = Math.floor(frame / record.columns) % record.rows;
+  const sx = column * record.frameWidth;
+  const sy = row * record.frameHeight;
+  record.context.clearRect(0, 0, record.canvas.width, record.canvas.height);
+  record.context.drawImage(
+    record.image,
+    sx,
+    sy,
+    record.frameWidth,
+    record.frameHeight,
+    0,
+    0,
+    record.canvas.width,
+    record.canvas.height
+  );
+}
+
+function clearSceneLayers(state) {
+  state.sceneLayers.forEach(layer => layer.remove());
+  state.sceneLayers = [];
+  state.sceneSprites = [];
+  state.sceneDepths = [...SCENE_DEFAULT_DEPTHS];
+  state.sceneTitle = '';
+  state.sceneClockMs = 0;
+  state.sceneLastAt = performance.now();
+}
+
+async function loadRistMovie(state, file) {
+  if (!file) return;
+  if (Number(file.size || 0) > 20 * 1024 * 1024) {
+    setVideoStatus(state, 'RISTMOVIE TOO LARGE · 20 MB MAX');
+    return;
+  }
+
+  let movie;
+  try {
+    movie = JSON.parse(await file.text());
+  } catch {
+    setVideoStatus(state, 'RISTMOVIE INVALID JSON');
+    return;
+  }
+
+  if (movie?.format !== 'ristmovie' || Number(movie?.version) !== 1 || !movie?.layers) {
+    setVideoStatus(state, 'RISTMOVIE FORMAT NOT SUPPORTED');
+    return;
+  }
+
+  if (state.video) {
+    state.video.pause();
+    state.video.removeAttribute('src');
+    state.video.load();
+  }
+  stopSpectralObjectUrl(state);
+  clearSceneLayers(state);
+
+  const layers = movie.layers || {};
+  const backgroundSpec = layers.background || {};
+  const effectsSpec = layers.effects || {};
+  const actorsSpec = layers.actors || {};
+  const foregroundSpec = layers.foreground || {};
+
+  const background = sceneImageLayer(backgroundSpec.src, 'perceiver-scene-background');
+  const effects = sceneWrapper('perceiver-scene-effects');
+  const actors = sceneWrapper('perceiver-scene-actors');
+  const foreground = sceneImageLayer(foregroundSpec.src, 'perceiver-scene-foreground');
+
+  state.camera.append(background, effects, actors, foreground);
+  state.sceneLayers = [background, effects, actors, foreground];
+  state.sceneDepths = [
+    Number(backgroundSpec.depth) || SCENE_DEFAULT_DEPTHS[0],
+    Number(effectsSpec.depth) || SCENE_DEFAULT_DEPTHS[1],
+    Number(actorsSpec.depth) || SCENE_DEFAULT_DEPTHS[2],
+    Number(foregroundSpec.depth) || SCENE_DEFAULT_DEPTHS[3]
+  ];
+
+  const spritePromises = [];
+  if (effectsSpec.src) {
+    const canvas = document.createElement('canvas');
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      inset: '0',
+      width: '100%',
+      height: '100%',
+      opacity: String(clamp(Number(effectsSpec.opacity) || 1, 0, 1)),
+      pointerEvents: 'none'
+    });
+    effects.appendChild(canvas);
+    spritePromises.push(
+      createSpriteRecord(effectsSpec, canvas, true).then(record => state.sceneSprites.push(record))
+    );
+  }
+
+  const actorItems = Array.isArray(actorsSpec.items) ? actorsSpec.items.slice(0, 12) : [];
+  actorItems.forEach(item => {
+    if (!item?.src) return;
+    const canvas = document.createElement('canvas');
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      left: `${clamp(Number(item.x) || 0, -0.5, 1.5) * 100}%`,
+      top: `${clamp(Number(item.y) || 0, -0.5, 1.5) * 100}%`,
+      width: `${clamp(Number(item.w) || 0.35, 0.05, 1.5) * 100}%`,
+      height: `${clamp(Number(item.h) || 0.35, 0.05, 1.5) * 100}%`,
+      objectFit: 'contain',
+      pointerEvents: 'none'
+    });
+    actors.appendChild(canvas);
+    spritePromises.push(
+      createSpriteRecord(item, canvas, false).then(record => state.sceneSprites.push(record))
+    );
+  });
+
+  state.endemarLayers.forEach(layer => { layer.style.display = 'none'; });
+  state.spectralLayers.forEach(layer => { layer.style.display = 'none'; });
+  state.sceneLayers.forEach(layer => { layer.style.display = ''; });
+  state.layers = state.sceneLayers;
+  state.mode = 'scene';
+  state.currentStep = 0;
+  state.sceneTitle = String(movie.title || file.name || 'RISTMOVIE');
+  state.sceneClockMs = 0;
+  state.sceneLastAt = performance.now();
+  state.playing = !state.reducedMotion;
+  fitCameraState(state);
+  renderStep(state);
+  setVideoStatus(state, `${state.sceneTitle} · LOADING SPRITES · LOCAL`);
+
+  try {
+    await Promise.all(spritePromises);
+    state.sceneSprites.forEach(record => drawSceneSprite(record, 0));
+    setVideoStatus(state, `${state.sceneTitle} · ${actorItems.length} ACTORS · LOCAL`);
+  } catch {
+    setVideoStatus(state, `${state.sceneTitle} · SPRITE LOAD ERROR`);
+  }
+  updateReadout(state);
+}
+
+function renderSceneFrame(state, now = performance.now()) {
+  if (state.mode !== 'scene') return;
+  if (state.playing) {
+    const delta = Math.max(0, now - state.sceneLastAt);
+    state.sceneClockMs += delta * state.speed;
+  }
+  state.sceneLastAt = now;
+  state.sceneSprites.forEach(record => drawSceneSprite(record, state.sceneClockMs));
+}
+
+
 function resetEndemarLayers(state) {
   state.mode = 'endemar';
   if (state.video) {
@@ -385,6 +622,7 @@ function resetEndemarLayers(state) {
   state.lastAdvance = performance.now();
 
   state.spectralLayers.forEach(layer => { layer.style.display = 'none'; });
+  state.sceneLayers.forEach(layer => { layer.style.display = 'none'; });
   state.endemarLayers.forEach(layer => { layer.style.display = ''; });
   state.layers = state.endemarLayers;
 
@@ -472,6 +710,7 @@ async function loadSpectralVideo(state, file) {
   state.currentStep = SPECTRAL_STEP_SEQUENCE.length - 1;
   state.playing = false;
   state.endemarLayers.forEach(layer => { layer.style.display = 'none'; });
+  state.sceneLayers.forEach(layer => { layer.style.display = 'none'; });
   state.spectralLayers.forEach(layer => { layer.style.display = ''; });
   state.layers = state.spectralLayers;
   setVideoStatus(state, 'LOADING · LOCAL ONLY');
@@ -518,6 +757,8 @@ function animate(state, now) {
 
   if (state.mode === 'spectral') {
     renderSpectralFrame(state, now);
+  } else if (state.mode === 'scene') {
+    renderSceneFrame(state, now);
   } else {
     const duration = state.stepDurationMs / state.speed;
     if (state.playing && now - state.lastAdvance >= duration) advance(state, 1);
@@ -529,14 +770,22 @@ function animate(state, now) {
   const idleX = state.reducedMotion ? 0 : Math.sin(now * 0.00052) * 0.08;
   const idleY = state.reducedMotion ? 0 : Math.cos(now * 0.00039) * 0.06;
 
-  const depths = state.mode === 'spectral' ? SPECTRAL_DEPTH_FACTORS : ENDEMAR_DEPTH_FACTORS;
+  const depths = state.mode === 'spectral'
+    ? SPECTRAL_DEPTH_FACTORS
+    : state.mode === 'scene'
+      ? state.sceneDepths
+      : ENDEMAR_DEPTH_FACTORS;
   state.layers.forEach((layer, index) => {
     const depth = depths[index] ?? depths[depths.length - 1] ?? 1;
-    const x = (state.currentX + idleX) * (state.mode === 'spectral' ? 32 : 26) * depth;
-    const y = (state.currentY + idleY) * (state.mode === 'spectral' ? 24 : 19) * depth;
+    const xStrength = state.mode === 'spectral' ? 32 : state.mode === 'scene' ? 30 : 26;
+    const yStrength = state.mode === 'spectral' ? 24 : state.mode === 'scene' ? 22 : 19;
+    const x = (state.currentX + idleX) * xStrength * depth;
+    const y = (state.currentY + idleY) * yStrength * depth;
     const scale = state.mode === 'spectral'
       ? (SPECTRAL_OVERSCAN[index] ?? 1.04)
-      : 1.005 + depth * 0.018;
+      : state.mode === 'scene'
+        ? 1.008 + depth * 0.026
+        : 1.005 + depth * 0.018;
     layer.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) scale(${scale.toFixed(4)})`;
   });
 
@@ -620,7 +869,9 @@ export function attach(root, config = {}) {
     motionButton: root.querySelector('[data-perceiver-motion-button]'),
     fullscreenButton: root.querySelector('[data-perceiver-fullscreen-button]'),
     uploadButton: root.querySelector('[data-perceiver-upload-button]'),
+    movieButton: root.querySelector('[data-perceiver-movie-button]'),
     endemarButton: root.querySelector('[data-perceiver-endemar-button]'),
+    movieInput: root.querySelector('[data-perceiver-movie-input]'),
     videoInput: root.querySelector('[data-perceiver-video-input]'),
     videoStatusNode: root.querySelector('[data-perceiver-video-status]'),
     modeNoteNode: root.querySelector('[data-perceiver-mode-note]'),
@@ -629,6 +880,12 @@ export function attach(root, config = {}) {
     mode: 'endemar',
     endemarLayers: [],
     spectralLayers: [],
+    sceneLayers: [],
+    sceneSprites: [],
+    sceneDepths: [...SCENE_DEFAULT_DEPTHS],
+    sceneTitle: '',
+    sceneClockMs: 0,
+    sceneLastAt: performance.now(),
     spectralBuffers: [],
     spectralWidth: 0,
     spectralHeight: 0,
@@ -649,7 +906,9 @@ export function attach(root, config = {}) {
     onFullscreenClick: null,
     onFullscreenChange: null,
     onUploadClick: null,
+    onMovieClick: null,
     onVideoChange: null,
+    onMovieChange: null,
     onEndemarClick: null,
     onLayerClick: null,
     onVideoPlay: null,
@@ -887,9 +1146,15 @@ export function attach(root, config = {}) {
     requestAnimationFrame(() => fitCameraState(state));
   };
   state.onUploadClick = () => state.videoInput?.click();
+  state.onMovieClick = () => state.movieInput?.click();
   state.onVideoChange = event => {
     const file = event.target?.files?.[0];
     if (file) void loadSpectralVideo(state, file);
+    if (event.target) event.target.value = '';
+  };
+  state.onMovieChange = event => {
+    const file = event.target?.files?.[0];
+    if (file) void loadRistMovie(state, file);
     if (event.target) event.target.value = '';
   };
   state.onEndemarClick = () => resetEndemarLayers(state);
@@ -940,7 +1205,9 @@ export function attach(root, config = {}) {
   document.addEventListener('fullscreenchange', state.onFullscreenChange);
   document.addEventListener('webkitfullscreenchange', state.onFullscreenChange);
   state.uploadButton?.addEventListener('click', state.onUploadClick);
+  state.movieButton?.addEventListener('click', state.onMovieClick);
   state.endemarButton?.addEventListener('click', state.onEndemarClick);
+  state.movieInput?.addEventListener('change', state.onMovieChange);
   state.layerButtons.forEach(button => button.addEventListener('click', state.onLayerClick));
   state.videoInput?.addEventListener('change', state.onVideoChange);
   state.video.addEventListener('play', state.onVideoPlay);
@@ -969,6 +1236,12 @@ export function attach(root, config = {}) {
 
 export function play(root) {
   const state = stateFor(root);
+  if (state.mode === 'scene') {
+    state.playing = true;
+    state.sceneLastAt = performance.now();
+    updateReadout(state);
+    return;
+  }
   if (state.mode === 'spectral' && state.video) {
     void state.video.play().catch(() => {
       state.playing = false;
@@ -984,6 +1257,11 @@ export function play(root) {
 
 export function pause(root) {
   const state = stateFor(root);
+  if (state.mode === 'scene') {
+    state.playing = false;
+    updateReadout(state);
+    return;
+  }
   if (state.mode === 'spectral' && state.video) {
     state.video.pause();
     return;
@@ -994,6 +1272,13 @@ export function pause(root) {
 
 export function restart(root) {
   const state = stateFor(root);
+  if (state.mode === 'scene') {
+    state.sceneClockMs = 0;
+    state.sceneLastAt = performance.now();
+    state.sceneSprites.forEach(record => drawSceneSprite(record, 0));
+    updateReadout(state);
+    return;
+  }
   if (state.mode === 'spectral' && state.video) {
     state.video.currentTime = 0;
     renderSpectralFrame(state, performance.now(), true);
@@ -1058,7 +1343,9 @@ export function detach(root) {
   document.removeEventListener('webkitfullscreenchange', state.onFullscreenChange);
   exitPseudoFullscreen(state);
   state.uploadButton?.removeEventListener('click', state.onUploadClick);
+  state.movieButton?.removeEventListener('click', state.onMovieClick);
   state.endemarButton?.removeEventListener('click', state.onEndemarClick);
+  state.movieInput?.removeEventListener('change', state.onMovieChange);
   state.layerButtons.forEach(button => button.removeEventListener('click', state.onLayerClick));
   state.videoInput?.removeEventListener('change', state.onVideoChange);
   state.video?.removeEventListener('play', state.onVideoPlay);
@@ -1071,6 +1358,7 @@ export function detach(root) {
     state.video.load();
   }
   stopSpectralObjectUrl(state);
+  clearSceneLayers(state);
   window.removeEventListener('orientationchange', state.onOrientationChange);
   screen.orientation?.removeEventListener?.('change', state.onOrientationChange);
   removeMotionListener(state);
