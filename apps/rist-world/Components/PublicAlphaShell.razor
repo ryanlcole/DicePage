@@ -318,13 +318,36 @@ else
  {
   if(!firstRender||_workspaceRestored)return;
   _workspaceRestored=true;
-  _workspaceOpen=false;
   _worldGateOpen=false;
-  await PersistWorkspaceAsync("hub");
+  if(TryRequestedWorkspace(out var requested))
+  {
+   ApplyWorkspace(requested);
+   _workspaceOpen=true;
+   await PersistWorkspaceAsync(requested);
+  }
+  else
+  {
+   _workspaceOpen=false;
+   await PersistWorkspaceAsync("hub");
+  }
   await RefreshMotionStateAsync();
   await RefreshExperienceStateAsync();
   await RefreshLandingWorldsAsync();
   await InvokeAsync(StateHasChanged);
+ }
+
+ bool TryRequestedWorkspace(out string mode)
+ {
+  mode="";
+  var query=new Uri(Navigation.Uri).Query.TrimStart('?');
+  foreach(var pair in query.Split('&',StringSplitOptions.RemoveEmptyEntries))
+  {
+   var parts=pair.Split('=',2);
+   if(parts.Length!=2||!string.Equals(Uri.UnescapeDataString(parts[0]),"workspace",StringComparison.OrdinalIgnoreCase))continue;
+   var candidate=Uri.UnescapeDataString(parts[1]).Trim().ToLowerInvariant();
+   if(RestorableWorkspaces.Contains(candidate)){mode=candidate;return true;}
+  }
+  return false;
  }
 
  void ApplyWorkspace(string mode)
