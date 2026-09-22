@@ -51,6 +51,8 @@ public sealed class ReLiCObserverService(HttpClient http, DiscordAuthClient auth
     public string Status { get; private set; } = "Not loaded";
     public int PublicSourceCount => _public.Sources.Count;
     public int PublicRecordCount => _public.Records.Count;
+    public int RepositoryOverlaySourceCount => _public.OverlaySourceCount;
+    public int RepositoryOverlayRecordCount => _public.OverlayRecordCount;
     public IReadOnlyList<ObserverPrivateDocument> PrivateDocuments => _private.Documents;
     public int IndexedEvidenceCount => _documents.Count;
     public int AssociationEdgeCount => _associations.Sum(x=>x.Value.Count)/2;
@@ -790,6 +792,8 @@ public sealed class ObserverPublicCorpus
     public string SnapshotDate { get; set; } = "";
     public string CorpusSha256 { get; set; } = "";
     public string ExtractionProvenance { get; set; } = "";
+    public int OverlaySourceCount { get; set; }
+    public int OverlayRecordCount { get; set; }
     public List<ObserverPublicSource> Sources { get; set; } = [];
     public List<ObserverPublicRecord> Records { get; set; } = [];
 }
