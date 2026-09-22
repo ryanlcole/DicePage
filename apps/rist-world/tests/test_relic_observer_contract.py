@@ -110,7 +110,7 @@ def test_relic_observer_follow_up_context_is_bounded_and_explicit():
     assert "ClearConversationContext" in service
     assert 'RetrievalKind=kind' in service
     assert '"CONTEXT"' in service
-    assert "CLEAR CONTEXT" in workspace
+    assert "CLEAR CHAT" in workspace
     assert "ConversationContextAvailable" in workspace
     assert "Only the last four turns are retained" in architecture
 
