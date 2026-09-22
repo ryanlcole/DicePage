@@ -43,6 +43,7 @@ jobs:
           rm -rf "$PYDEPS"
           python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
           PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
+          python apps/rist-world/prepare_relic_observer.py
 
       - name: Verify world coordinate authority
         run: node apps/rist-world/tests/world-coordinate-authority.test.mjs
@@ -149,6 +150,10 @@ jobs:
           grep -q 'id="signup"' site/relic-home/Play/index.html
           ! grep -q 'id="preview"' site/relic-home/Play/index.html
           test -f build/rist/wwwroot/index.html
+          test -f build/rist/wwwroot/data/relic-observer-seed.json
+          grep -q '"datasetId":"shaelvien-project-knowledge"' build/rist/wwwroot/data/relic-observer-seed.json
+          grep -q 'ReLiCObserverWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
+          grep -q 'RELIC OBSERVER' apps/rist-world/Components/PublicAlphaShell.razor
           test -f build/rist/wwwroot/css/worldbuilding-p0-authority.css
           test -f build/rist/wwwroot/world-coordinate-authority.js
           test -f build/rist/wwwroot/shaelvien-navigation-authority.js
