@@ -14,6 +14,7 @@ on:
       - 'apps/rist-world/RistWorld.csproj'
       - 'knowledge/project/public.json'
       - 'docs/RELIC_OBSERVER_ARCHITECTURE.md'
+      - 'site/relic-home/relicquery/**'
       - '.github/workflows/relic-observer-ci.yml'
   workflow_dispatch:
 
@@ -48,3 +49,5 @@ jobs:
           test -f build/relic-observer/wwwroot/data/relic-observer-seed.json
           grep -q '"datasetId":"shaelvien-project-knowledge"' build/relic-observer/wwwroot/data/relic-observer-seed.json
           grep -q 'ReLiCGameMaster RIST WORLD' build/relic-observer/wwwroot/index.html
+          grep -q '/Game/?workspace=observer' site/relic-home/relicquery/index.html
+          grep -q 'OPEN PERSONAL OBSERVER' site/relic-home/relicquery/index.html
