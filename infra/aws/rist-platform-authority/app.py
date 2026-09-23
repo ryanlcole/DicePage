@@ -14,6 +14,7 @@ from botocore.exceptions import ClientError
 
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
 from region_geometry import region_cell_for_point
+from region_projection import project as project_region_source
 
 
 ddb = boto3.resource("dynamodb")
@@ -183,6 +184,10 @@ def region_key(world_id, region_id):
 
 def world_source_key(world_id):
     return {"pk": world_partition(world_id), "sk": "WORLDSOURCE"}
+
+
+def region_map_key(world_id, region_id):
+    return {"pk": world_partition(world_id), "sk": "REGIONMAP#" + region_id}
 
 
 def world_token_key(user_id):
@@ -807,16 +812,21 @@ def validate_region_map_layer(region_state, layer):
     cell = region_cell_for_point(x, y, region_state.get("gridShape", "square"), MMO_PARCEL_GRID_COLUMNS, MMO_PARCEL_GRID_ROWS)
     if selected and cell not in selected:
         raise PermissionError("Region map layer is outside the authorized region")
-    region_tier = int(region_state.get("tierIndex") or 0)
-    if tier != region_tier:
-        raise PermissionError("Region map layer is outside the authorized tier")
-    allowed_layers = {
-        int(value)
-        for value in (region_state.get("sourceLayerOffsets") or range(10))
-        if isinstance(value, (int, float, Decimal))
-    }
-    if layer_offset not in allowed_layers:
-        raise PermissionError("Region map layer is outside the authorized layer range")
+    parent_tier = int(region_state.get("tierIndex") or 0)
+    relative_tier = int(layer.get("relativeTier", 0))
+    # Legacy saved cities carried the parent's tier number. New regional
+    # tiers are child-relative; never confuse one with the other.
+    if "relativeTier" not in layer and tier == parent_tier:
+        relative_tier = 0
+    if not 0 <= relative_tier < 10:
+        raise PermissionError("Regional tier must be between 0 and 9")
+    if not 0 <= layer_offset < 10:
+        raise PermissionError("Region child layer must be between 0 and 9")
+    layer["tier"] = relative_tier
+    layer["relativeTier"] = relative_tier
+    layer["parentTierIndex"] = parent_tier
+    layer["parentNodeId"] = region_state.get("parentNodeId") or ""
+    layer["parallaxMode"] = "anchored" if relative_tier == 0 else "tier"
 
 
 def mmo_parcel_claimable(cell_index, parcels):
@@ -2728,6 +2738,38 @@ def handler(event, context):
             },
         )
 
+    if method == "GET" and path == "/world/source/region":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        region_id = safe_id(q.get("regionId"), "regionId")
+        if not can_view(world_id, user_id):
+            return response(403, {"error": "World access required"})
+        deed = world.get_item(
+            Key=region_key(world_id, region_id), ConsistentRead=True
+        ).get("Item")
+        if not deed:
+            return response(404, {"error": "Region deed not found"})
+        parent = world.get_item(
+            Key=world_source_key(world_id), ConsistentRead=True
+        ).get("Item")
+        if not parent or not isinstance(parent.get("state"), dict):
+            return response(409, {"error": "Canonical parent map is not published"})
+        child = world.get_item(
+            Key=region_map_key(world_id, region_id), ConsistentRead=True
+        ).get("Item")
+        try:
+            projected = project_region_source(
+                world_id, region_id, deed.get("state") or {},
+                parent.get("state") or {}, (child or {}).get("state") or {},
+            )
+        except (ValueError, TypeError) as exc:
+            return response(409, {"error": str(exc)})
+        return response(200, {
+            "worldId": world_id, "regionId": region_id,
+            "projection": "region-child-v1", "state": projected,
+            "updatedAtUtc": str((child or {}).get("updatedAtUtc")
+                                or parent.get("updatedAtUtc") or ""),
+        })
+
     if method == "POST" and path == "/world/source/region":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
@@ -2735,71 +2777,62 @@ def handler(event, context):
         region_state = editable_region_state(world_id, region_id, user_id)
         if region_state is None:
             return response(403, {"error": "Region edit authority required"})
-        incoming = req.get("userLayers") or []
+        incoming = req.get("userLayers")
         if not isinstance(incoming, list):
             return response(400, {"error": "userLayers must be an array"})
-
+        if len(incoming) > 250:
+            return response(413, {"error": "Regional layer limit exceeded"})
+        relative_tiers = req.get("relativeTiers") or [
+            {"id": region_id + ":tier:0", "index": 0, "label": "Region Base"}
+        ]
+        if not isinstance(relative_tiers, list) or not 1 <= len(relative_tiers) <= 10:
+            return response(400, {"error": "Invalid regional tiers"})
+        indices = [int(item.get("index", -1)) for item in relative_tiers
+                   if isinstance(item, dict)]
+        if len(indices) != len(relative_tiers) or sorted(set(indices)) != sorted(indices) or 0 not in indices or any(i < 0 or i > 9 for i in indices):
+            return response(400, {"error": "Regional tiers must have distinct indexes 0..9 including base tier 0"})
         canonical = world.get_item(
             Key=world_source_key(world_id), ConsistentRead=True
         ).get("Item")
         if not canonical or not isinstance(canonical.get("state"), dict):
-            return response(409, {"error": "Save the world map in World Builder before editing a region"})
-
+            return response(409, {"error": "Publish the world source before editing a region"})
         normalized = []
         try:
             for raw in incoming:
                 layer = dict(raw)
                 validate_region_map_layer(region_state, layer)
+                if layer["relativeTier"] not in indices:
+                    raise ValueError("Object targets a regional tier that has not been created")
                 layer["regionId"] = region_id
                 normalized.append(layer)
         except PermissionError as exc:
             return response(403, {"error": str(exc)})
         except (TypeError, ValueError) as exc:
             return response(400, {"error": str(exc)})
-
-        state = dict(canonical.get("state") or {})
-        existing_layers = state.get("userLayers") or []
-        if not isinstance(existing_layers, list):
-            existing_layers = []
-        state["userLayers"] = [
-            item
-            for item in existing_layers
-            if not isinstance(item, dict) or str(item.get("regionId") or "") != region_id
-        ] + normalized
-        state["savedAt"] = datetime.now(timezone.utc).isoformat()
-        encoded_size = len(
-            json.dumps(state, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-        )
+        state = {
+            "worldId": world_id, "regionId": region_id,
+            "parentNodeId": str(region_state.get("parentNodeId") or ""),
+            "parentTierIndex": int(region_state.get("tierIndex") or 0),
+            "sourceCells": sorted(int(i) for i in region_state.get("selectedCells") or []),
+            "userLayers": normalized,
+            "relativeTiers": relative_tiers,
+        }
+        encoded_size = len(json.dumps(state, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
         if encoded_size > 320000:
-            return response(413, {"error": "World map metadata is too large for the database"})
+            return response(413, {"error": "Regional metadata exceeds database capacity"})
         updated_at = datetime.now(timezone.utc).isoformat()
-        safe_state = dynamo_safe(state)
-        world.put_item(
-            Item={
-                **world_source_key(world_id),
-                "entityType": "worldMap",
-                "worldId": world_id,
-                "state": safe_state,
-                "updatedAtUtc": updated_at,
-                "updatedByUserId": user_id,
-            }
-        )
-        audit_write(
-            world_id,
-            user_id,
-            "world.map.region.save",
-            region_id,
-            {"layers": len(normalized), "bytes": encoded_size},
-        )
-        return response(
-            200,
-            {
-                "worldId": world_id,
-                "regionId": region_id,
-                "state": safe_state,
-                "updatedAtUtc": updated_at,
-            },
-        )
+        world.put_item(Item={
+            **region_map_key(world_id, region_id),
+            "entityType": "regionMap", "worldId": world_id, "regionId": region_id,
+            "parentNodeId": state["parentNodeId"], "state": dynamo_safe(state),
+            "updatedAtUtc": updated_at, "updatedByUserId": user_id,
+        })
+        audit_write(world_id, user_id, "region.child.save", region_id,
+                    {"layers": len(normalized), "tiers": len(relative_tiers), "bytes": encoded_size})
+        return response(200, {
+            "worldId": world_id, "regionId": region_id,
+            "updatedAtUtc": updated_at, "childTierCount": len(relative_tiers),
+        })
 
     if method == "GET" and path == "/world/regions":
         world_id = safe_id(q.get("worldId"), "worldId")

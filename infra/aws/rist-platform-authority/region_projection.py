@@ -3,12 +3,13 @@
 This module reads no AWS services. A region is a view/child of selected tiles
 on exactly one parent world tier; it never receives an entire parent bitmap.
 """
+from decimal import Decimal
 from region_geometry import region_cell_for_point
 
 
 def canonical_cells(region, columns=30, rows=30):
     cells = region.get("selectedCells") or []
-    result = sorted({int(i) for i in cells if isinstance(i, int) and not isinstance(i, bool)
+    result = sorted({int(i) for i in cells if isinstance(i, (int, Decimal)) and not isinstance(i, bool)
                      and 0 <= i < columns * rows})
     if not result:
         raise ValueError("Region deed has no valid source tile cells")
