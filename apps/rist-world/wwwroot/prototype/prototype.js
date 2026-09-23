@@ -1232,6 +1232,11 @@ function refreshUserImage(item){
   previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
   if(selectedImage)refreshUserImage(selectedImage);
+  if(REGION_DEFINER&&regionDeedIsComplete()&&selectedImage&&keyboardMode==='Select'){
+    keyboardMode=selectedImage.kind==='label'?'Labels':'Image';
+    renderKeyboardTabs();
+    announce(`${selectedImage.name||'Region object'} selected. Editing controls are open.`);
+  }
   renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
 function deselectUserImage(announceChange=false){
@@ -1487,16 +1492,32 @@ function currentRegionTierIndex(){return tierByKey(viewerTier==='all'?'sea':view
 function normalizeRegionGridShape(value){return String(value||'').toLowerCase()==='hex'?'hex':'square'}
 function regionCellRow(cell){return Math.floor(cell/REGION_GRID_COLUMNS)}
 function regionCellColumn(cell){return cell%REGION_GRID_COLUMNS}
+function regionGridExtents(shape=regionGridShape){
+  return normalizeRegionGridShape(shape)==='hex'
+    ?{width:REGION_GRID_COLUMNS*.75+.25,height:REGION_GRID_ROWS+.5}
+    :{width:REGION_GRID_COLUMNS,height:REGION_GRID_ROWS};
+}
 function regionCellCenter(cell,shape=regionGridShape){
-  const row=regionCellRow(cell),column=regionCellColumn(cell);
-  const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
-  return{x:clamp((column+0.5+offset)/REGION_GRID_COLUMNS,0,1),y:clamp((row+0.5)/REGION_GRID_ROWS,0,1)};
+  const row=regionCellRow(cell),column=regionCellColumn(cell),extent=regionGridExtents(shape);
+  if(normalizeRegionGridShape(shape)==='hex')
+    return{x:(column*.75+.5)/extent.width,y:(row+(column%2)*.5+.5)/extent.height};
+  return{x:(column+.5)/extent.width,y:(row+.5)/extent.height};
 }
 function regionCellFromPoint(x,y,shape=regionGridShape){
-  const row=clamp(Math.floor(clamp(y,0,.999999)*REGION_GRID_ROWS),0,REGION_GRID_ROWS-1);
-  const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
-  const column=clamp(Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset),0,REGION_GRID_COLUMNS-1);
-  return row*REGION_GRID_COLUMNS+column;
+  const px=clamp(Number(x)||0,0,1),py=clamp(Number(y)||0,0,1);
+  if(normalizeRegionGridShape(shape)!=='hex'){
+    const col=clamp(Math.floor(Math.min(px,.999999)*REGION_GRID_COLUMNS),0,REGION_GRID_COLUMNS-1);
+    const row=clamp(Math.floor(Math.min(py,.999999)*REGION_GRID_ROWS),0,REGION_GRID_ROWS-1);
+    return row*REGION_GRID_COLUMNS+col;
+  }
+  // Claim hitboxes, displayed cells, deed mask and placement use the same
+  // column-staggered flat-top hexes (not the old row-offset approximation).
+  let best=0,bestDistance=Infinity;
+  for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
+    const center=regionCellCenter(cell,'hex'),dx=center.x-px,dy=center.y-py,d=dx*dx+dy*dy;
+    if(d<bestDistance){bestDistance=d;best=cell}
+  }
+  return best;
 }
 function regionActiveCellSet(){
   const cells=regionClaimedRegion?.selectedCells;
@@ -1949,7 +1970,7 @@ function regionCellCoordinateText(cell){
 }
 function regionTopTileDescription(cell){
   const column=regionCellColumn(cell),row=regionCellRow(cell);
-  const px=(column+.5)/REGION_GRID_COLUMNS,py=(row+.5)/REGION_GRID_ROWS;
+  const {x:px,y:py}=regionCellCenter(cell);
   const authored=[...userLayers].reverse().find(item=>{
     if(item.kind==='label')return false;
     const footprint=Math.max(1,Math.trunc(Number(item.footprint)||1)),half=(footprint/REGION_GRID_COLUMNS)/2;
@@ -2019,7 +2040,7 @@ function updateRegionSelectionOverlay(){
   // Flat-top hexes overlap horizontally by 25% and alternate columns shift
   // vertically by half a hex. This keeps the coordinate lattice aligned
   // instead of incorrectly shifting alternate rows sideways.
-  const cellWidth=100/(REGION_GRID_COLUMNS*.75+.25),cellHeight=100/(REGION_GRID_ROWS+.5);
+  const extents=regionGridExtents('hex'),cellWidth=100/extents.width,cellHeight=100/extents.height;
   for(const button of overlay.children){
     const cell=Math.trunc(Number(button.dataset.cell)),row=regionCellRow(cell),column=regionCellColumn(cell);
     const selected=regionSelectedCells.has(cell),names=existing.get(cell)||[];
@@ -2069,10 +2090,11 @@ function syncClaimedRegionOutline(region){
     regionClaimOutline.setAttribute('aria-hidden','true');
     world.appendChild(regionClaimOutline);
   }
-  regionClaimOutline.style.left=`${(bounds.minX/REGION_GRID_COLUMNS)*100}%`;
-  regionClaimOutline.style.top=`${(bounds.minY/REGION_GRID_ROWS)*100}%`;
-  regionClaimOutline.style.width=`${(bounds.width/REGION_GRID_COLUMNS)*100}%`;
-  regionClaimOutline.style.height=`${(bounds.height/REGION_GRID_ROWS)*100}%`;
+  const extents=regionGridExtents(region.gridShape);
+  regionClaimOutline.style.left=`${(bounds.minX/extents.width)*100}%`;
+  regionClaimOutline.style.top=`${(bounds.minY/extents.height)*100}%`;
+  regionClaimOutline.style.width=`${(bounds.width/extents.width)*100}%`;
+  regionClaimOutline.style.height=`${(bounds.height/extents.height)*100}%`;
   regionClaimOutline.dataset.label=String(region?.name||'YOUR CLAIM').toUpperCase();
 }
 function clearClaimedRegionCrop(refit=true){
@@ -2092,7 +2114,8 @@ function regionMaskSvg(region){
       figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
     }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}" preserveAspectRatio="none">${figures.join('')}</svg>`;
+  const extents=regionGridExtents(shape);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${extents.width} ${extents.height}" preserveAspectRatio="none">${figures.join('')}</svg>`;
 }
 function regionClaimBounds(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
@@ -2110,15 +2133,17 @@ function regionClaimBounds(region){
       minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
     }
   }
-  minX=clamp(minX,0,REGION_GRID_COLUMNS);maxX=clamp(maxX,0,REGION_GRID_COLUMNS);
-  minY=clamp(minY,0,REGION_GRID_ROWS);maxY=clamp(maxY,0,REGION_GRID_ROWS);
+  const extent=regionGridExtents(shape);
+  minX=clamp(minX,0,extent.width);maxX=clamp(maxX,0,extent.width);
+  minY=clamp(minY,0,extent.height);maxY=clamp(maxY,0,extent.height);
   return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
 }
 function fitClaimedRegion(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
   suspendRegionEnhancement();
-  const r=stage.getBoundingClientRect(),cropX=(bounds.minX/REGION_GRID_COLUMNS)*naturalWidth,cropY=(bounds.minY/REGION_GRID_ROWS)*naturalHeight;
-  const cropW=(bounds.width/REGION_GRID_COLUMNS)*naturalWidth,cropH=(bounds.height/REGION_GRID_ROWS)*naturalHeight;
+  const extent=regionGridExtents(region.gridShape);
+  const r=stage.getBoundingClientRect(),cropX=(bounds.minX/extent.width)*naturalWidth,cropY=(bounds.minY/extent.height)*naturalHeight;
+  const cropW=(bounds.width/extent.width)*naturalWidth,cropH=(bounds.height/extent.height)*naturalHeight;
   const tiltHeight=cropH*Math.cos(15*Math.PI/180);
   scale=Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
   scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
@@ -2131,7 +2156,8 @@ function claimedRegionFitScale(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return 0;
   const r=stage.getBoundingClientRect();
   if(r.width<=0||r.height<=0)return 0;
-  const cropW=(bounds.width/REGION_GRID_COLUMNS)*naturalWidth,cropH=(bounds.height/REGION_GRID_ROWS)*naturalHeight;
+  const extent=regionGridExtents(region.gridShape);
+  const cropW=(bounds.width/extent.width)*naturalWidth,cropH=(bounds.height/extent.height)*naturalHeight;
   const tiltHeight=cropH*Math.cos(15*Math.PI/180);
   return Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
 }
@@ -3423,6 +3449,7 @@ window.ShaelvienPrototype=Object.freeze({
   save:saveWorldBuilder,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
+  regionGeometry:REGION_DEFINER?Object.freeze({extents:regionGridExtents,center:regionCellCenter,cellAt:regionCellFromPoint}):null,
   getViewerState:()=>({
     workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
     viewerTier,viewerLayer,

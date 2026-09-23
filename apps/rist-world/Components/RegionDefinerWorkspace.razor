@@ -77,7 +77,7 @@
    var access=(canEditWorld||Session.CanEditRegion(definedRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=definedRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(definedRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260923-region-tier-edit-3";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260923-region-hex-geometry-4";
   }
  }
 

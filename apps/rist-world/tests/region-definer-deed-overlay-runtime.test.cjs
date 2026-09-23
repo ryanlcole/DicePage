@@ -109,3 +109,48 @@ test('base world city stays locked; distinct city registered as regional overlay
     assert.equal(layer.hidden,false);
   }finally{f.close()}
 });
+
+
+test('hex hitbox and snap coordinates share the same column-staggered geometry',()=>{
+  const f=fixture('new');try{
+    const geometry=f.w.ShaelvienPrototype.regionGeometry;
+    assert.ok(geometry);
+    assert.equal(geometry.extents('hex').width,22.75);
+    assert.equal(geometry.extents('hex').height,30.5);
+    f.d.querySelector('[data-tier-select]').click();
+    for(const cell of [0,31,319,899]){
+      const button=f.d.querySelector('.region-definition-cell[data-cell="'+cell+'"]');
+      assert.ok(button);
+      const center=geometry.center(cell,'hex'),extent=geometry.extents('hex');
+      assert.ok(Math.abs((parseFloat(button.style.left)+50/extent.width)/100-center.x)<1e-9);
+      assert.ok(Math.abs((parseFloat(button.style.top)+50/extent.height)/100-center.y)<1e-9);
+      assert.equal(geometry.cellAt(center.x,center.y,'hex'),cell);
+    }
+    assert.equal(geometry.cellAt(.5,.5,'square'),15*30+15);
+  }finally{f.close()}
+});
+
+test('choosing a placed city in the mobile select menu immediately opens the editor',async()=>{
+  const f=fixture('existing');try{
+    host(f,'catalog',{regions:[deed]});
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',activeRegionId:'region-test',
+      state:{worldId:'deed-runtime-test',userLayers:[
+        {kind:'image',id:'city',regionId:'region-test',name:'Editable city',
+         originalSrc:'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs',
+         tier:0,layer:1,x:.1,y:.1,committed:true}
+      ]}
+    }});
+    await tick();await tick();
+    tab(f,'Select');
+    const picker=f.d.querySelector('.placed-content-select');
+    assert.ok(picker);
+    picker.value='city';picker.dispatchEvent(new f.w.Event('change',{bubbles:true}));
+    const imageTab=Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='Image');
+    assert.equal(imageTab?.getAttribute('aria-selected'),'true');
+    assert.ok(Array.from(f.d.querySelectorAll('#keyboardKeys button')).some(x=>x.textContent.includes('SIZE +')));
+    const image=f.d.querySelector('.region-edit-layer img.user-image-placement');
+    assert.ok(image);assert.equal(image.style.visibility,'visible');
+    assert.equal(image.style.pointerEvents,'auto');
+  }finally{f.close()}
+});
