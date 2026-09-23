@@ -6,13 +6,18 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     readonly List<WorldRegion> _regions = [];
+    // A chooser, the viewer bridge and world/session entry can request a load
+    // at the same time. Serialize those reads; otherwise each continuation can
+    // append the same rows after another caller has already cleared the list.
+    readonly SemaphoreSlim _regionLoadGate = new(1, 1);
+    long _regionLocalRevision;
     string _activeRegionId = "";
 
     public IReadOnlyList<WorldRegion> Regions => _regions;
     // Parcel-backed REGION# rows are legacy zone/world bindings. They remain
     // available internally while alpha data migrates, but Region Definer must
     // only expose actual child regions of the currently entered world/zone.
-    public IReadOnlyList<WorldRegion> DefinedRegions => _regions.Where(IsDefinedRegion).ToList();
+    public IReadOnlyList<WorldRegion> DefinedRegions => CanonicalRegionRows(_regions).Where(IsDefinedRegion).ToList();
     public WorldRegion? ActiveRegion => _regions.FirstOrDefault(x => string.Equals(x.RegionId, _activeRegionId, StringComparison.Ordinal));
     public AwsAuthorityClient.MmoParcel? ActiveMmoWorld => ActiveRegion is { ParcelId.Length: > 0 } binding
         ? _mmoParcels.FirstOrDefault(x => string.Equals(x.ParcelId, binding.ParcelId, StringComparison.Ordinal))
@@ -20,66 +25,103 @@ public sealed partial class WorldSession
     public string RegionDirectoryKey => $"{WorldStoragePrefix}/regions/index.json";
     public string RegionLocalSaveKey => $"rist.regions.v1.{WorldId}";
 
+    // The returned catalog is canonical for its world. Do not mutate _regions
+    // while a database/network read is still in flight. Concurrent loads must
+    // not multiply rows, and a stale world/account response must be discarded.
     public async Task LoadRegionsAsync()
     {
-        var requestedActiveRegionId = _activeRegionId;
-        _regions.Clear();
-        _activeRegionId = "";
-        if (!HasActiveWorld) { Notify(); return; }
-
-        WorldRegionCatalog? catalog = null;
-        if (IsLoggedIn)
+        await _regionLoadGate.WaitAsync();
+        try
         {
-            try
+            if (!HasActiveWorld)
             {
-                var authority = await GetClaimAuthorityClientAsync();
-                var databaseRegions = authority is null ? null : await authority.GetRegionsAsync(WorldId);
-                if (databaseRegions is not null)
-                    catalog = new WorldRegionCatalog(WorldId, databaseRegions, DateTimeOffset.UtcNow);
+                _regions.Clear();
+                _activeRegionId = "";
+                Notify();
+                return;
             }
-            catch { }
+
+            var requestedWorldId = WorldId;
+            var requestedUserId = auth.Profile?.UserId?.Trim() ?? "";
+            var directoryKey = RegionDirectoryKey;
+            var localSaveKey = RegionLocalSaveKey;
+            var startingRevision = _regionLocalRevision;
+            WorldRegionCatalog? catalog = null;
+
+            if (IsLoggedIn)
+            {
+                try
+                {
+                    var authority = await GetClaimAuthorityClientAsync();
+                    var databaseRegions = authority is null
+                        ? null
+                        : await authority.GetRegionsAsync(requestedWorldId);
+                    if (databaseRegions is not null)
+                        catalog = new WorldRegionCatalog(requestedWorldId, databaseRegions, DateTimeOffset.UtcNow);
+                }
+                catch { }
+
+                if (catalog is null)
+                {
+                    try { catalog = await auth.DownloadJsonAsync<WorldRegionCatalog>(directoryKey); }
+                    catch { }
+                }
+            }
 
             if (catalog is null)
             {
-                try { catalog = await auth.DownloadJsonAsync<WorldRegionCatalog>(RegionDirectoryKey); }
+                try
+                {
+                    var local = await js.InvokeAsync<string?>("localStorage.getItem", localSaveKey);
+                    if (!string.IsNullOrWhiteSpace(local))
+                        catalog = JsonSerializer.Deserialize<WorldRegionCatalog>(local, MapReadOptions);
+                }
                 catch { }
             }
-        }
 
-        if (catalog is null)
-        {
-            try
-            {
-                var local = await js.InvokeAsync<string?>("localStorage.getItem", RegionLocalSaveKey);
-                if (!string.IsNullOrWhiteSpace(local)) catalog = JsonSerializer.Deserialize<WorldRegionCatalog>(local, MapReadOptions);
-            }
-            catch { }
-        }
+            // An older fetch must never erase a newly saved deed or replace the
+            // catalog of a world/account selected while that fetch was awaiting.
+            if (!HasActiveWorld
+                || !string.Equals(WorldId, requestedWorldId, StringComparison.Ordinal)
+                || !string.Equals(auth.Profile?.UserId?.Trim() ?? "", requestedUserId, StringComparison.Ordinal)
+                || startingRevision != _regionLocalRevision)
+                return;
 
-        if (catalog is not null && string.Equals(catalog.WorldId, WorldId, StringComparison.Ordinal))
-        {
-            // The authority database is canonical. Older local/recovery catalogs may
-            // contain another representation of the same parcel/cell, so collapse
-            // those by world coordinates as well as RegionId before presenting them.
-            // Never collapse adjacent cells or records owned by different parcels.
-            var canonicalRegions = (catalog.Regions ?? [])
-                .Where(x => string.Equals(x.WorldId, WorldId, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(x.RegionId))
-                .GroupBy(x => x.RegionId, StringComparer.Ordinal)
-                .Select(g => g.OrderByDescending(x => x.UpdatedAtUtc).First())
-                .GroupBy(RegionSlotIdentity, StringComparer.Ordinal)
-                .Select(g => g
-                    .OrderByDescending(x => !string.IsNullOrWhiteSpace(x.ParcelId))
-                    .ThenByDescending(x => x.UpdatedAtUtc)
-                    .First())
-                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+            var canonicalRegions = catalog is not null
+                && string.Equals(catalog.WorldId, requestedWorldId, StringComparison.Ordinal)
+                    ? CanonicalRegionRows(catalog.Regions ?? [])
+                    : [];
+
+            _regions.Clear();
             _regions.AddRange(canonicalRegions);
-            _activeRegionId = !string.IsNullOrWhiteSpace(requestedActiveRegionId)
-                && _regions.Any(x => string.Equals(x.RegionId, requestedActiveRegionId, StringComparison.Ordinal))
-                ? requestedActiveRegionId
-                : "";
-        }
+            if (!string.IsNullOrWhiteSpace(_activeRegionId)
+                && !_regions.Any(x => string.Equals(x.RegionId, _activeRegionId, StringComparison.Ordinal)))
+                _activeRegionId = "";
 
-        Notify();
+            Notify();
+        }
+        finally
+        {
+            _regionLoadGate.Release();
+        }
+    }
+
+    // Dedupe database/local row representations without collapsing adjacent
+    // parcels, different owners, or separate zones sharing local coordinates.
+    // Also used by DefinedRegions as a defensive read boundary.
+    static List<WorldRegion> CanonicalRegionRows(IEnumerable<WorldRegion> source)
+    {
+        return source
+            .Where(x => !string.IsNullOrWhiteSpace(x.RegionId))
+            .GroupBy(x => x.RegionId, StringComparer.Ordinal)
+            .Select(g => g.OrderByDescending(x => x.UpdatedAtUtc).First())
+            .GroupBy(RegionSlotIdentity, StringComparer.Ordinal)
+            .Select(g => g
+                .OrderByDescending(x => !string.IsNullOrWhiteSpace(x.ParcelId))
+                .ThenByDescending(x => x.UpdatedAtUtc)
+                .First())
+            .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     public void SetActiveRegion(string regionId)
@@ -176,6 +218,7 @@ public sealed partial class WorldSession
             CanonicalZMax: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Max() + 1 : LayersPerTier));
 
         _regions.Add(region);
+        _regionLocalRevision++;
         _activeRegionId = region.RegionId;
         await SaveRegionsAsync();
         return region;
@@ -223,6 +266,7 @@ public sealed partial class WorldSession
             CropHeight: asset.CropHeight));
         region = region with { OverlayTiles = overlays, UpdatedAtUtc = DateTimeOffset.UtcNow };
         _regions[index] = region;
+        _regionLocalRevision++;
         _activeRegionId = region.RegionId;
         await SaveRegionsAsync();
         return true;
@@ -237,6 +281,7 @@ public sealed partial class WorldSession
         var overlays = region.OverlayTiles.Where(x => !string.Equals(x.Id, overlayId, StringComparison.Ordinal)).ToList();
         if (overlays.Count == region.OverlayTiles.Count) return;
         _regions[index] = region with { OverlayTiles = overlays, UpdatedAtUtc = DateTimeOffset.UtcNow };
+        _regionLocalRevision++;
         await SaveRegionsAsync();
     }
 
@@ -292,16 +337,18 @@ public sealed partial class WorldSession
     static string RegionSlotIdentity(WorldRegion region)
     {
         if (!string.IsNullOrWhiteSpace(region.ParcelId))
-            return "parcel:" + region.ParcelId.Trim();
+            return "parcel:" + region.WorldId + ":" + region.ParcelId.Trim();
 
+        var scope = region.WorldId + ":" + (region.ParentNodeId ?? "").Trim()
+            + ":" + (region.OwnerUserId ?? "").Trim() + ":";
         var cells = (region.SelectedCells ?? [])
             .Where(x => x >= 0 && x < GridColumns * GridRows)
             .Distinct()
             .Order()
             .ToArray();
         return cells.Length > 0
-            ? $"cell:{region.TierIndex}:{string.Join(',', cells)}"
-            : $"bounds:{region.TierIndex}:{region.MinColumn}:{region.MinRow}:{region.MaxColumn}:{region.MaxRow}";
+            ? $"{scope}cell:{region.TierIndex}:{string.Join(',', cells)}"
+            : $"{scope}bounds:{region.TierIndex}:{region.MinColumn}:{region.MinRow}:{region.MaxColumn}:{region.MaxRow}";
     }
 
     static string NormalizeRegionName(string? name)
