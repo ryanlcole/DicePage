@@ -13,6 +13,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
+from region_geometry import region_cell_for_point
 
 
 ddb = boto3.resource("dynamodb")
@@ -803,9 +804,8 @@ def validate_region_map_layer(region_state, layer):
         for value in (region_state.get("selectedCells") or [])
         if isinstance(value, (int, float, Decimal))
     }
-    column = min(MMO_PARCEL_GRID_COLUMNS - 1, max(0, int(x * MMO_PARCEL_GRID_COLUMNS)))
-    row = min(MMO_PARCEL_GRID_ROWS - 1, max(0, int(y * MMO_PARCEL_GRID_ROWS)))
-    if selected and row * MMO_PARCEL_GRID_COLUMNS + column not in selected:
+    cell = region_cell_for_point(x, y, region_state.get("gridShape", "square"), MMO_PARCEL_GRID_COLUMNS, MMO_PARCEL_GRID_ROWS)
+    if selected and cell not in selected:
         raise PermissionError("Region map layer is outside the authorized region")
     region_tier = int(region_state.get("tierIndex") or 0)
     if tier != region_tier:

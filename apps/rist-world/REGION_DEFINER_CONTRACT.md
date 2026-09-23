@@ -76,3 +76,9 @@ There are no separate "player maps" that overwrite truth. The server projects th
 A GM may reveal a node or a chosen recursion depth to a user, party, or session. Knowledge does not automatically leak between parties. A visitor can attend one session with only that session's revealed map and return later without gaining discoveries made by another party. Party/user/session reveal grants are separate from ownership and edit authority.
 
 The GM may later reveal a changed region upward at different detail levels: for example only a landmark at WORLD view, a road network at REGION view, or full interiors only when the viewer has permission to recurse that far.
+
+## Exact hex territory and city editing
+
+RegionDefiner's 30×30 flat-top hexes use a column-staggered lattice: visible width 22.75 and height 30.5. Displayed claim buttons, deed SVG masks, fitted claim boundaries, object snapping and the server's region edit permission check must resolve the same cell ID. A saved deed retains its original selected-cell IDs: a geometry correction must never silently change ownership, assign another region or grant territory. If a legacy claim is incorrect, its owner must inspect and explicitly request a boundary correction.
+
+The parent world's selected tier is immutable in RegionDefiner. Region-authored city images/sprites/labels are individually editable objects above it. Choosing one in the Select dropdown opens the appropriate editor without another off-screen EDIT action.
