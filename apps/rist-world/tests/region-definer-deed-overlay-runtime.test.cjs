@@ -136,7 +136,7 @@ test('choosing a placed city in the mobile select menu immediately opens the edi
     host(f,'world-source',{worldSource:{
       worldId:'deed-runtime-test',activeRegionId:'region-test',
       state:{worldId:'deed-runtime-test',userLayers:[
-        {kind:'image',id:'city',regionId:'region-test',name:'Editable city',
+        {kind:'image',id:'city',regionId:'region-test',assetId:'test-city-asset',name:'Editable city',
          originalSrc:'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs',
          tier:0,layer:1,x:.1,y:.1,committed:true}
       ]}
