@@ -57,9 +57,8 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // Region Definer is another viewer over the exact same world map as World Builder.
-   // The seed chooses the shared base-map loader; database WORLDSOURCE adds the same
-   // authored layers. Perspective/crop and permissions are the only differences.
+   // New claims inspect the parent map. Existing claims load their selected
+   // source cells plus region-owned child tiers from the database.
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var activeRegion=Session.ActiveRegion;
    var activeWorld=Session.ActiveMmoWorld;
@@ -113,7 +112,10 @@
  [JSInvokable]
  public async Task<object> GetWorldSourceForPrototype()
  {
-  var databaseSource=await Session.LoadWorldBuilderSourceAsync();
+  var active=Session.IsDefinedRegion(Session.ActiveRegion)?Session.ActiveRegion:null;
+  var databaseSource=active is null
+   ? await Session.LoadWorldBuilderSourceAsync()
+   : await Session.LoadRegionSourceAsync(active.RegionId);
   return new
   {
    worldId=Session.WorldId,
@@ -136,9 +138,25 @@
  }
 
  [JSInvokable]
- public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers)
+ public async Task<object> GetRegionSourceForPrototypeAsync(string regionId)
  {
-  var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers);
+  var source=await Session.LoadRegionSourceAsync(regionId);
+  return new
+  {
+   worldId=source?.WorldId??Session.WorldId,
+   regionId,
+   worldName=Session.WorldDisplayName,
+   state=source?.State,
+   updatedAtUtc=source?.UpdatedAtUtc??"",
+   activeRegionId=regionId,
+   source="database"
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers,System.Text.Json.JsonElement relativeTiers)
+ {
+  var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers,relativeTiers);
   return new
   {
    success=saved is not null,

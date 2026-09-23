@@ -67,13 +67,17 @@ export function attach(frame,dotnet){
         const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
         const region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
         post(frame,{type:"region-created",region});
+        // Switch from parent-world preview to the server-projected child source.
+        const regionSource=await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",String(region?.id||""));
+        post(frame,{type:"world-source",worldSource:regionSource});
         return;
       }
       if(data.type==="save-map-region"){
         const requestId=String(data.requestId||"");
         const regionId=String(data.regionId||"").trim();
         const layers=Array.isArray(data.userLayers)?data.userLayers:[];
-        const result=await dotnet.invokeMethodAsync("SaveRegionMapLayersFromPrototypeAsync",regionId,layers);
+        const relativeTiers=Array.isArray(data.relativeTiers)?data.relativeTiers:[{id:regionId+":tier:0",index:0,label:"Region Base"}];
+        const result=await dotnet.invokeMethodAsync("SaveRegionMapLayersFromPrototypeAsync",regionId,layers,relativeTiers);
         post(frame,{type:"map-region-saved",requestId,result});
         return;
       }
