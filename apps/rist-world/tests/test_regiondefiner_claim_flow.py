@@ -45,6 +45,21 @@ def test_new_and_claim_region_share_tier_swipe_and_select_only_flow():
     assert "applyParallax();" in prototype
 
 
+def test_deed_confirmation_is_minimal_and_editable_deed_reuses_worldbuilder_controls():
+    prototype = text("wwwroot/prototype/prototype.js")
+    crop = prototype[prototype.index("if(regionClaimPhase==='crop'){"):prototype.index("if(regionClaimPhase==='requested'){")]
+
+    assert "regionNameInput()" in crop
+    assert "toolKey('BACK'" in crop
+    assert "'CLAIM DEED'" in crop
+    assert "readoutKey(" not in crop
+    assert "SAVE REGION" not in crop
+    assert "BUILD REGION" not in prototype
+    assert "const editableRegion=ACCESS_MODE==='edit';" in prototype
+    assert "if(editableRegion)keyboardMode='Viewer';" in prototype
+    assert "if(REGION_DEFINER&&regionClaimPhase!=='build'){renderRegionSelectKeyboard();return}" in prototype
+
+
 def test_new_region_starts_deselected_on_hex_grid_and_requires_a_tile():
     prototype = text("wwwroot/prototype/prototype.js")
     styles = text("wwwroot/prototype/prototype.css")

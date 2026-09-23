@@ -70,13 +70,19 @@ def test_workspace_home_returns_to_authenticated_landing_without_game_reload():
     assert "location.replace" not in home_block
 
 
-def test_save_region_crops_then_unlocks_remaining_ui():
+def test_claim_deed_crops_then_enters_region_scoped_worldbuilder():
     prototype = (ROOT / "wwwroot" / "prototype" / "prototype.js").read_text(encoding="utf-8")
     regions = (ROOT / "WorldSession.Regions.cs").read_text(encoding="utf-8")
 
-    assert "SAVE REGION" in prototype
+    assert "CLAIM DEED" in prototype
+    assert "SAVE REGION" not in prototype
+    assert "BUILD REGION" not in prototype
+    assert "const editableRegion=ACCESS_MODE==='edit';" in prototype
+    assert "if(editableRegion)keyboardMode='Viewer';" in prototype
     assert "applyClaimedRegionCrop(claimed)" in prototype
-    assert "stage.classList.remove('region-build-mode','region-tier-previewing','region-selection-only')" in prototype
+    assert "world.style.maskImage=regionClaimMaskUrl" in prototype
+    assert "stage.dataset.regionContext='world'" not in prototype
+    assert "if(REGION_DEFINER&&regionClaimPhase!=='build'){renderRegionSelectKeyboard();return}" in prototype
     assert "persistentSave?.addEventListener('click',()=>{" in prototype
     assert "createRegionDefinition();return" in prototype
     assert "requestedActiveRegionId" in regions

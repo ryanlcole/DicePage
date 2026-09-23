@@ -13,10 +13,10 @@ RegionDefiner is derived from WorldBuilder, but it does not become another autho
 7. The viewer supports **Hex** and **Square** selection grids. Hex is the default for every new region; Square remains available. A new region starts with no selected cells, and at least one tile must be selected before Crop/Save can proceed. The chosen geometry also becomes the placement snap grid for later regional assets.
 8. The user selects the region footprint on the 30×30 source grid, then chooses **Crop**. RegionDefiner does not permit the definition to be saved directly from raw selection mode.
 9. Crop preview immediately hides everything outside the selected footprint and fits that footprint as the full regional-map presentation. This is still a view over canonical world coordinates, not a copied map.
-10. In crop preview the user names the region and chooses **Save Region**, or submits a **Claim Request** when GM approval is required.
-11. Saving stores the region definition, reapplies the persisted crop, and exposes **Build Region**. A malformed legacy region with no selected cells must never produce an all-black mask.
-12. **Build Region** opens the regional asset workflow against that cropped map.
-13. Within the active Tier, each of the ten locked World source layers may be independently shown/hidden after the region is saved. Layer visibility never unlocks or mutates WorldBuilder source assets.
+10. In crop preview the user names the region. After naming, the contextual deed row contains only **Back** and **Claim Deed** beside the name field; the Tier/tile/grid readouts are removed from this confirmation step.
+11. **Claim Deed** stores the region definition for an owner/GM, or submits the same deed footprint as a **Claim Request** when GM approval is required. A malformed legacy region with no selected cells must never produce an all-black mask.
+12. A successful editable deed immediately becomes the regional WorldBuilder surface. There is no intermediate **Build Region** step: the normal WorldBuilder tool modes open against the claimed coordinates, while the deed mask permanently hides world space outside the region. A request-only user does not receive edit authority until GM approval.
+13. Within the active Tier, each of the ten locked World source layers may be independently shown/hidden after the deed is active. Layer visibility never unlocks or mutates WorldBuilder source assets.
 14. Asset-library filters resolve to **REGION** assets while RegionDefiner is active. Region-authored items keep region provenance but are written through the canonical world source; there is no second regional map truth.
 15. Region metadata is stored under the selected World identity. Authorized regional map edits are written to the canonical database map with region permission checks and must not create an independent terrain copy.
 

@@ -73,6 +73,16 @@ def test_regiondefiner_is_permissioned_view_of_same_canonical_database_map():
     assert "stage.dataset.worldSource='database'" in prototype
 
 
+def test_claimed_region_never_reveals_world_outside_deed_at_any_zoom():
+    prototype = text("wwwroot/prototype/prototype.js")
+    block = prototype[prototype.index("function syncClaimedRegionContextMask()"):prototype.index("function applyRegionMask(")]
+
+    assert "world.style.maskImage=regionClaimMaskUrl" in block
+    assert "stage.dataset.regionContext='region'" in block
+    assert "stage.dataset.regionContext='world'" not in block
+    assert "world-context" not in block
+
+
 def test_platform_authority_exposes_world_source_database_routes():
     app = (REPO / "infra" / "aws" / "rist-platform-authority" / "app.py").read_text(encoding="utf-8")
     template = (REPO / "infra" / "aws" / "rist-platform.yml").read_text(encoding="utf-8")
@@ -114,8 +124,8 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
     assert 'InvokeVoidAsync("refresh"' in workspace
     assert "async function sendState" in bridge
     assert 'type:"map-load-error"' in bridge
-    assert "./prototype.js?v=20260920-region-entry-2" in index
-    assert "renderer=20260920-region-entry-2" in workspace
+    assert "./prototype.js?v=20260922-region-deed-1" in index
+    assert "renderer=20260922-region-deed-1" in workspace
     assert "./region-definer-host.js?v=20260920-region-entry-2" in workspace
 
 

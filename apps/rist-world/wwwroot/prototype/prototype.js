@@ -2053,18 +2053,11 @@ function syncClaimedRegionContextMask(){
   if(!REGION_DEFINER||!regionClaimedRegion||!regionClaimMaskUrl)return;
   const focusScale=claimedRegionFitScale(regionClaimedRegion);
   if(!(focusScale>0))return;
-  // Region Definer is a permission-scoped view of the same canonical world.
-  // Close work keeps the claim isolated; zooming out restores the surrounding
-  // world so the claimed zone remains visibly connected to Endemar.
-  const threshold=Math.max(minScale*2.5,focusScale*.48);
-  const focused=scale>threshold;
-  if(focused){
-    world.style.maskImage=regionClaimMaskUrl;world.style.webkitMaskImage=regionClaimMaskUrl;
-    stage.dataset.regionContext='region';stage.dataset.cropMode='visibility-mask';
-  }else{
-    world.style.maskImage='none';world.style.webkitMaskImage='none';
-    stage.dataset.regionContext='world';stage.dataset.cropMode='world-context';
-  }
+  // A claimed RegionDefiner view is permanently scoped to the deed footprint.
+  // Zoom and pan may change representation, but they must never reveal or edit
+  // canonical world space outside the claimed region.
+  world.style.maskImage=regionClaimMaskUrl;world.style.webkitMaskImage=regionClaimMaskUrl;
+  stage.dataset.regionContext='region';stage.dataset.cropMode='visibility-mask';
 }
 function applyRegionMask(region,cropMode='visibility-mask',saved=false){
   if(!REGION_DEFINER||!region)return false;
@@ -2091,12 +2084,12 @@ function applyClaimedRegionCrop(region){
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
   regionCropPreview=false;regionSelectionEnabled=false;syncClaimedRegionOutline(region);updateRegionSelectionOverlay();
-  const editableExisting=REGION_FLOW==='existing'&&ACCESS_MODE==='edit';
-  regionClaimPhase=editableExisting?'build':'saved';
-  stage.classList.toggle('region-build-mode',editableExisting);
-  if(editableExisting)keyboardMode='Tiles';
+  const editableRegion=ACCESS_MODE==='edit';
+  regionClaimPhase=editableRegion?'build':'saved';
+  stage.classList.toggle('region-build-mode',editableRegion);
+  if(editableRegion)keyboardMode='Viewer';
   if(!applyRegionMask(region,'visibility-mask',true))requestAnimationFrame(()=>fitMap());
-  if(editableExisting)queueMicrotask(()=>{renderKeyboardTabs();renderKeyboardKeys();if(keyboard.hidden)openKeyboard()});
+  if(editableRegion)queueMicrotask(()=>{renderKeyboardTabs();renderKeyboardKeys();if(keyboard.hidden)openKeyboard()});
 }
 function ensureRegionTierPreview(){
   if(!REGION_DEFINER)return null;
@@ -2313,13 +2306,6 @@ function createRegionDefinition(){
   if(!sent){regionCreatePending=false;renderKeyboardKeys();announce('Region persistence bridge is unavailable.');return}
   announce(CLAIM_ONLY?'Sending the selected world footprint to the GM for permission review.':`Saving ${name}. This defines the regional view and authority only; the canonical world map remains intact.`);
 }
-function buildClaimedRegion(){
-  if(!REGION_DEFINER||!regionClaimedRegion||CLAIM_ONLY)return;
-  regionClaimPhase='build';regionSelectionEnabled=false;regionCropPreview=false;keyboardMode='Tiles';
-  stage.classList.add('region-build-mode');stage.classList.remove('region-selection-only','region-tier-previewing');
-  renderKeyboardTabs();renderKeyboardKeys();updateRegionSelectionOverlay();
-  announce(`Building ${regionClaimedRegion.name||'region'}. ${regionGridShape==='hex'?'Hex':'Square'} placement snapping is active.`);
-}
 function renderRegionSelectKeyboard(){
   const visibleWorldLayers=[...regionWorldLayerSet()].sort((a,b)=>a-b);
   if(regionClaimPhase==='tier-preview'){
@@ -2356,11 +2342,8 @@ function renderRegionSelectKeyboard(){
   if(regionClaimPhase==='crop'){
     keyboardKeys.append(
       regionNameInput(),
-      readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
-      readoutKey(`${regionSelectedCells.size} TILES`,'crop footprint'),
-      readoutKey(regionGridShape.toUpperCase(),'region grid'),
       toolKey('BACK','edit selected tiles',returnToRegionSelection),
-      toolKey(regionCreatePending?(CLAIM_ONLY?'SENDING…':'SAVING…'):(CLAIM_ONLY?'REQUEST':'SAVE REGION'),CLAIM_ONLY?'send to GM for permission review':'crop and save selected map',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
+      toolKey(regionCreatePending?'CLAIMING…':'CLAIM DEED',CLAIM_ONLY?'submit deed to GM for approval':'claim selected region',createRegionDefinition,READ_ONLY||regionCreatePending||!regionSelectedCells.size)
     );return;
   }
   if(regionClaimPhase==='requested'){
@@ -2373,12 +2356,10 @@ function renderRegionSelectKeyboard(){
   }
   const region=regionClaimedRegion;
   keyboardKeys.append(
-    readoutKey(String(region?.name||'REGION').toUpperCase(),regionClaimPhase==='build'?'building regional map':'saved cropped region'),
+    readoutKey(String(region?.name||'REGION').toUpperCase(),'claimed regional map'),
     readoutKey(`TIER ${Math.trunc(Number(region?.tierIndex)||currentRegionTierIndex())+1}`,tierLabel(tierByIndex(Math.trunc(Number(region?.tierIndex)||currentRegionTierIndex())))),
     readoutKey(normalizeRegionGridShape(region?.gridShape||regionGridShape).toUpperCase(),'placement grid'),
-    readoutKey(`${Array.isArray(region?.selectedCells)?region.selectedCells.length:0} TILES`,'full regional map'),
-    toolKey(regionClaimPhase==='build'?'BUILDING ✓':'BUILD REGION','open regional assets',buildClaimedRegion,READ_ONLY||CLAIM_ONLY),
-    toolKey('NEW REGION','define another region',startRegionClaim,READ_ONLY)
+    readoutKey(`${Array.isArray(region?.selectedCells)?region.selectedCells.length:0} TILES`,'full regional map')
   );
 }
 async function handleRegionHostMessage(event){
@@ -2421,7 +2402,7 @@ async function handleRegionHostMessage(event){
     if(claimed)applyClaimedRegionCrop(claimed);
     regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
     await persistRegionClaimWorkspace();
-    announce(`${savedName} saved. The viewer now hides everything outside the region; the underlying canonical world map is unchanged.`);return;
+    announce(`${savedName} claimed. Region editing is open with only the deed footprint visible; the underlying canonical world map remains unchanged.`);return;
   }
   if(data.type==='map-region-saved'||data.type==='map-region-save-error'){
     const requestId=String(data.requestId||''),waiter=regionMapSaveWaiters.get(requestId);
@@ -2918,7 +2899,7 @@ function renderKeyboardKeysContent(){
       toolKey('⛶','camera',fitMap),
       toolKey('⌁','reset tilt',resetTilt)
     );
-    if(REGION_DEFINER)keyboardKeys.append(
+    if(REGION_DEFINER&&regionClaimPhase!=='build')keyboardKeys.append(
       readoutKey(regionClaimedRegion?'REGION':'WORLD MAP',regionClaimedRegion?'claimed full map':'claim source'),
       regionClaimedRegion
         ? readoutKey(regionGridShape.toUpperCase(),'saved placement grid')
@@ -3077,7 +3058,7 @@ function renderKeyboardKeysContent(){
     );return;
   }
   if(keyboardMode==='Select'){
-    if(REGION_DEFINER){renderRegionSelectKeyboard();return}
+    if(REGION_DEFINER&&regionClaimPhase!=='build'){renderRegionSelectKeyboard();return}
     const items=selectablePlacedContent();
     keyboardKeys.append(
       toolKey('‹','previous image',()=>cyclePlacedSelection(-1),!items.length),
