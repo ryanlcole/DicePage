@@ -78,7 +78,7 @@ def test_new_region_starts_deselected_on_hex_grid_and_requires_a_tile():
 
 def test_shared_region_catalog_is_database_first_and_claim_owner_is_scoped():
     regions = text("WorldSession.Regions.cs")
-    assert "await authority.GetRegionsAsync(WorldId)" in regions
+    assert "await authority.GetRegionsAsync(requestedWorldId)" in regions
     assert "await authority.SaveRegionAsync(WorldId, region)" in regions
     assert "CanEditRegion(WorldRegion? region)" in regions
     assert "if (!CanEditRegion(region)) return false;" in regions
