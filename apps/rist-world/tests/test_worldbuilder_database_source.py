@@ -124,8 +124,8 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
     assert 'InvokeVoidAsync("refresh"' in workspace
     assert "async function sendState" in bridge
     assert 'type:"map-load-error"' in bridge
-    assert "./prototype.js?v=20260923-region-deed-overlay-2" in index
-    assert "renderer=20260923-region-deed-overlay-2" in workspace
+    assert "./prototype.js?v=20260923-region-tier-edit-3" in index
+    assert "renderer=20260923-region-tier-edit-3" in workspace
     assert "./region-definer-host.js?v=20260920-region-entry-2" in workspace
 
 
