@@ -62,6 +62,19 @@ def project(world_id, region_id, region, world_state, child_state=None):
     ]
     tier_images = state.get("tierImages") or []
     has_full_bitmap = bool(tier_images[tier]) if isinstance(tier_images, list) and len(tier_images) > tier else False
+    # Public Geonaph tiles were extracted from canonical terrain during the
+    # frontend build. The URL pattern is safe to expose: only selected cell
+    # URLs are constructed by the child viewer, never full-world PNG URLs.
+    official_files = (
+        "geonaph_full_static_canonical_surface_v001",
+        "geonaph_full_static_highlands_rivers_v001",
+        "geonaph_full_static_mountain_volcanic_archipelago_v001",
+    )
+    full_source = str(tier_images[tier] or "") if has_full_bitmap else ""
+    official = (world_id == "shaelvien-geonaph-alpha-001"
+                and (not has_full_bitmap or official_files[tier] in full_source))
+    tile_pattern = (f"/Game/prototype/region-cells/geonaph/{{shape}}/{tier}/{{cell}}.webp"
+                    if official else None)
     return {
         "projection": "region-child-v1",
         "worldId": world_id,
@@ -77,6 +90,7 @@ def project(world_id, region_id, region, world_state, child_state=None):
         "relativeTiers": relative_tiers,
         "gridColumns": columns,
         "gridRows": rows,
-        "requiresRasterIndex": has_full_bitmap and len(indexed) < len(chosen),
+        "requiresRasterIndex": has_full_bitmap and len(indexed) < len(chosen) and not official,
+        "publicTilePattern": tile_pattern,
         "sourceBitmapWasOmitted": has_full_bitmap,
     }
