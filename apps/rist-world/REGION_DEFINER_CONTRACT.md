@@ -1,5 +1,10 @@
 # RegionDefiner Contract
 
+> Governing recursive-world specification: [RECURSIVE_ZOOM_CONTRACT.md](RECURSIVE_ZOOM_CONTRACT.md).
+> The current full-world load and client-side deed mask are transitional.
+> The approved target is one continuously zoomable world with child-relative
+> tier stacks and only selected source tiles delivered after a deed is claimed.
+
 RegionDefiner is derived from WorldBuilder, but it does not become another authority over the world.
 
 ## Canonical flow
