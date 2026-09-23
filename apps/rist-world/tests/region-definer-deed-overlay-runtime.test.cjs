@@ -135,3 +135,60 @@ test('hex hitbox and snap coordinates share the same column-staggered geometry',
   }finally{f.close()}
 });
 
+
+
+test('canonical lake persists under an editable city attached to the SAME world tier',async()=>{
+  const f=fixture('existing');try{
+    host(f,'catalog',{regions:[deed]});
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',activeRegionId:'region-test',
+      state:{worldId:'deed-runtime-test',tiles:[
+        {id:'lake-source',name:'Lake',image:'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs',
+         tierIndex:0,layerOffset:2,x:.07,y:.07,placementZoom:1}
+      ],userLayers:[
+        {id:'test-city',regionId:'region-test',assetId:'city-registered-asset',name:'Regional City',
+         kind:'image',originalSrc:'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs',
+         tier:0,layer:3,x:.088,y:.082,committed:true}
+      ]}
+    }});
+    await tick();await tick();
+    const lake=f.d.querySelector('.region-world-source-tile[aria-label="Lake"]');
+    const city=f.d.querySelector('.region-edit-layer img.user-image-placement');
+    assert.ok(lake,'the full canonical source includes its lake tile');
+    assert.ok(city,'the placed city is a separate editable overlay');
+    assert.equal(lake.style.display,'block','source lake must remain visible at the selected tier');
+    assert.equal(lake.dataset.sourceLocked,'true','the lake belongs to the locked world map');
+    assert.equal(city.dataset.tier,'0');
+    assert.equal(city.dataset.layer,'3');
+    assert.equal(city.style.pointerEvents,'auto');
+    assert.equal(city.style.visibility,'visible');
+    assert.equal(f.d.querySelector('.region-edit-layer').dataset.tier,'0');
+    const initial=f.w.ShaelvienPrototype.getViewerState().userLayers.find(x=>x.id==='test-city');
+    assert.equal(initial.parallaxMode,'anchored');
+    assert.equal(initial.parallaxX,0);
+    assert.equal(initial.parallaxY,0);
+    // Move the camera like an iPhone swipe. Neither the lake nor the city
+    // receives independent parallax while editing the same parent world tier.
+    const pointer=(kind,cx,cy)=>{
+      const event=new f.w.Event(kind,{bubbles:true,cancelable:true});
+      for(const [name,value] of Object.entries({pointerType:'touch',pointerId:71,button:0,clientX:cx,clientY:cy}))
+        Object.defineProperty(event,name,{value});
+      f.stage.dispatchEvent(event);
+    };
+    pointer('pointerdown',220,210);
+    pointer('pointermove',352,272);
+    pointer('pointerup',352,272);
+    const moved=f.w.ShaelvienPrototype.getViewerState().userLayers.find(x=>x.id==='test-city');
+    assert.equal(moved.parallaxMode,'anchored');
+    assert.equal(moved.parallaxX,0);
+    assert.equal(moved.parallaxY,0);
+    assert.equal(f.d.getElementById('surfacePlane').dataset.parallaxX,'0.0000');
+    assert.equal(lake.style.display,'block','camera movement must not hide world lakes');
+    tab(f,'Select');
+    const select=f.d.querySelector('.placed-content-select');
+    assert.ok(select);select.value='test-city';
+    select.dispatchEvent(new f.w.Event('change',{bubbles:true}));
+    assert.ok(f.d.getElementById('keyboardKeys').textContent.includes('MAP ATTACHED'));
+    assert.ok(f.d.getElementById('keyboardKeys').textContent.includes('LAYER 4'));
+  }finally{f.close()}
+});

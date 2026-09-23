@@ -131,3 +131,24 @@ def test_seed_can_read_customer_key_encrypted_world_state():
     assert "DynamoDBCrudPolicy" in seed
     assert "Action: [kms:Decrypt, kms:GenerateDataKey]" in seed
     assert "Resource: !GetAtt UserDataKey.Arn" in seed
+
+
+def test_region_city_default_map_attached_with_parallax_only_on_explicit_tier_change():
+    prototype = text("wwwroot/prototype/prototype.js")
+    assert "function itemParallaxMode(" in prototype
+    assert "if(!item.parallaxMode)item.parallaxMode='anchored';" in prototype
+    assert "selectedImage.parallaxMode=selectedImage.tier===itemAnchorTier(selectedImage)?'anchored':'tier';" in prototype
+    assert "regionReferenceFrozen=REGION_DEFINER&&regionDeedIsComplete();" in prototype
+    assert "itemParallaxMode(item)==='anchored'" in prototype
+    assert "parallaxMode:itemParallaxMode(item)" in prototype
+    assert "parallaxMode:restoredParallaxMode(raw,regionOverlay)" in prototype
+
+
+def test_complete_parent_source_layer_and_canonical_lake_reference_remain_visible():
+    prototype = text("wwwroot/prototype/prototype.js")
+    assert "function revealCompleteRegionWorldReference()" in prototype
+    assert "for(let layer=0;layer<10;layer++)layers.add(layer);" in prototype
+    assert "function syncRegionReferenceImage(tier,src)" in prototype
+    assert "syncRegionReferenceImage(tier,resolved);" in prototype
+    assert "const attached=regionReferenceFrozen||itemParallaxMode(item)==='anchored';" in prototype
+    assert "item.parallaxX=selectionFrozen?0:attached?reference.x:" in prototype
