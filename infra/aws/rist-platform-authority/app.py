@@ -795,6 +795,9 @@ def validate_region_map_layer(region_state, layer):
         raise ValueError("Region map layer position is invalid")
     if x < 0 or x > 1 or y < 0 or y > 1:
         raise ValueError("Region map layer is outside the world map")
+    # Region objects live above the parent world; they cannot replace its map.
+    if layer.get("fullWorld") or layer.get("placementRole") == "world-map":
+        raise PermissionError("Region objects cannot replace the parent world map")
     selected = {
         int(value)
         for value in (region_state.get("selectedCells") or [])
