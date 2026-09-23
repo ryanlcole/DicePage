@@ -110,7 +110,7 @@ def test_region_is_independently_editable_above_locked_selected_world_tier():
     assert "layer.style.zIndex=String(tierStackBase(tier)+80);" in prototype
     assert "item.node.hidden=!active" in prototype
     assert "item.regionOverlay" in prototype
-    assert "item.tier===Number(regionClaimedRegion?.tierIndex)" in prototype
+    assert "item.tier<=regionRelativeTierIndex" in prototype
     assert "if(REGION_DEFINER&&item.regionOverlay){" in prototype
     assert ".region-edit-layer .user-image-placement{pointer-events:auto" in css
     assert ".region-edit-layer[hidden]{display:none!important}" in css
@@ -152,3 +152,25 @@ def test_complete_parent_source_layer_and_canonical_lake_reference_remain_visibl
     assert "syncRegionReferenceImage(tier,resolved);" in prototype
     assert "const attached=regionReferenceFrozen||itemParallaxMode(item)==='anchored';" in prototype
     assert "item.parallaxX=selectionFrozen?0:attached?reference.x:" in prototype
+
+
+def test_region_child_projection_never_transfers_full_parent_map():
+    backend=(ROOT.parents[1]/"infra"/"aws"/"rist-platform-authority"/"app.py").read_text(encoding="utf-8")
+    projector=(ROOT.parents[1]/"infra"/"aws"/"rist-platform-authority"/"region_projection.py").read_text(encoding="utf-8")
+    viewer=text("wwwroot/prototype/prototype.js")
+    host=text("wwwroot/region-definer-host.js")
+    assert 'path == "/world/source/region"' in backend
+    assert 'project_region_source(' in backend
+    assert '"tierImages"' not in projector[projector.index('return {'):]
+    assert "GetRegionSourceForPrototypeAsync" in host
+    assert "async function renderRegionProjection(payload)" in viewer
+    assert "state.projection==='region-child-v1'" in viewer
+    assert "stage.dataset.sourceScope='selected-parent-cells'" in viewer
+
+
+def test_region_can_add_its_own_tiers_without_changing_world_tier():
+    viewer=text("wwwroot/prototype/prototype.js")
+    assert "function createRegionWorkingTier()" in viewer
+    assert "relativeTiers:regionRelativeTiers" in viewer
+    assert "regionRelativeTierIndex" in viewer
+    assert "selectedImage.parallaxMode=next===0?'anchored':'tier';" in viewer

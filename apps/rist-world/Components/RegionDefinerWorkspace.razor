@@ -76,7 +76,7 @@
    var access=(canEditWorld||Session.CanEditRegion(definedRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=definedRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(definedRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260923-region-map-anchor-5";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260923-region-recursive-6";
   }
  }
 
@@ -86,7 +86,7 @@
 
   // Attach the canonical-map bridge before loading region/claim metadata.
   // Viewer rendering must never wait on permission metadata or MMO claim refresh.
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260920-region-entry-2");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260923-region-recursive-6");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;

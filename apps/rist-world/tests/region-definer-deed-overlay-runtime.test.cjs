@@ -108,9 +108,15 @@ test('base world city stays locked; distinct city registered as regional overlay
     assert.equal(event.defaultPrevented,true);
     // Same selection path auto-opens the editor; image/sprite choose Image.
     assert.equal(Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='Labels')?.getAttribute('aria-selected'),'true');
-    tier(f,'Hills / Low Clouds');
-    assert.equal(layer.hidden,true);
-    tier(f,'Sea Level');
+    // Region tiers are independent of world tiers. A new regional cake
+    // leaves the base city attached to the same immutable parent terrain.
+    tab(f,'Tiers');
+    const addTier=Array.from(f.d.querySelectorAll('#keyboardKeys button')).find(b=>b.textContent.includes('NEW TIER'));
+    assert.ok(addTier);addTier.click();
+    tier(f,'Region Tier 2');
+    assert.equal(layer.hidden,false);
+    assert.equal(region.hidden,false,'base city persists below the upper regional tier');
+    tier(f,'Region Base');
     assert.equal(layer.hidden,false);
   }finally{f.close()}
 });
@@ -192,5 +198,53 @@ test('canonical lake persists under an editable city attached to the SAME world 
     select.dispatchEvent(new f.w.Event('change',{bubbles:true}));
     assert.ok(f.d.getElementById('keyboardKeys').textContent.includes('MAP ATTACHED'));
     assert.ok(f.d.getElementById('keyboardKeys').textContent.includes('LAYER 4'));
+  }finally{f.close()}
+});
+
+
+test('claimed projection renders only selected parent cells, not full-world PNGs',async()=>{
+  const f=fixture('existing');try{
+    host(f,'catalog',{regions:[deed]});
+    const image='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs';
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',regionId:'region-test',activeRegionId:'region-test',
+      state:{
+        projection:'region-child-v1',worldId:'deed-runtime-test',regionId:'region-test',
+        parentTierIndex:0,gridShape:'hex',sourcePixelWidth:300,sourcePixelHeight:300,
+        selectedCells:[32,33,62,63],
+        sourceCells:[32,33,62,63].map(cell=>({id:'source-'+cell,cellIndex:cell})),
+        sourceTileIndex:[{id:'source-32',cellIndex:32,layerOffset:0,image}],
+        publicTilePattern:'/Game/prototype/region-cells/geonaph/{shape}/0/{cell}.webp',
+        tiles:[{id:'lake',name:'Lake',image,tierIndex:0,layerOffset:1,x:.1,y:.1}],
+        userLayers:[
+          {id:'base-city',regionId:'region-test',assetId:'city-fixture',name:'Base City',kind:'image',originalSrc:image,
+           tier:0,relativeTier:0,layer:2,x:.1,y:.1,committed:true},
+          {id:'upper-city',regionId:'region-test',assetId:'city-fixture',name:'Upper City',kind:'image',originalSrc:image,
+           tier:1,relativeTier:1,layer:2,x:.1,y:.1,committed:true}
+        ],
+        relativeTiers:[{id:'region-test:tier:0',index:0,label:'Region Base'},
+                       {id:'region-test:tier:1',index:1,label:'Region Tier 2'}]
+      }
+    }});
+    await tick();await tick();
+    assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
+    assert.equal(f.stage.dataset.sourceCellCount,'4');
+    assert.equal(f.d.querySelectorAll('.region-world-source-tier-image').length,0);
+    assert.equal(f.d.getElementById('surfacePlane').getAttribute('src'),null);
+    const sourceCells=Array.from(f.d.querySelectorAll('.region-world-source-cell'));
+    assert.equal(sourceCells.length,4);
+    assert.deepEqual(sourceCells.map(n=>Number(n.dataset.cell)).sort((a,b)=>a-b),[32,33,62,63]);
+    assert.ok(!f.d.documentElement.innerHTML.includes('secret-99.webp'));
+    const base=f.d.querySelector('.region-edit-layer [alt="Base City"]');
+    const upper=f.d.querySelector('.region-edit-layer [alt="Upper City"]');
+    assert.ok(base);assert.ok(upper);
+    assert.equal(upper.hidden,true,'new regional tier does not appear before selection');
+    const info=f.w.ShaelvienPrototype.getViewerState().regionChild;
+    assert.equal(info.parentTierIndex,0);
+    assert.equal(info.relativeTiers.length,2);
+    tab(f,'Tiers');tier(f,'Region Tier 2');
+    assert.equal(base.hidden,false);
+    assert.equal(upper.hidden,false);
+    assert.equal(f.d.querySelector('.region-world-source-tile[aria-label="Lake"]').dataset.sourceLocked,'true');
   }finally{f.close()}
 });
