@@ -114,3 +114,20 @@ def test_region_is_independently_editable_above_locked_selected_world_tier():
     assert "if(REGION_DEFINER&&item.regionOverlay){" in prototype
     assert ".region-edit-layer .user-image-placement{pointer-events:auto" in css
     assert ".region-edit-layer[hidden]{display:none!important}" in css
+
+
+def test_new_hex_region_metadata_uses_displayed_column_staggered_extent():
+    regions = text("WorldSession.Regions.cs")
+    assert "var spanX = hex ? GridColumns * .75 + .25 : GridColumns;" in regions
+    assert "var spanY = hex ? GridRows + .5 : GridRows;" in regions
+    assert "var hx = hex ? col * .75 : col;" in regions
+    assert "var hy = hex ? row + (col % 2) * .5 : row;" in regions
+    assert "CanonicalMinX: Math.Clamp(positions.Min(p => p.MinX), 0, 1)" in regions
+
+
+def test_seed_can_read_customer_key_encrypted_world_state():
+    template = (ROOT.parents[1] / "infra" / "aws" / "rist-platform.yml").read_text(encoding="utf-8")
+    seed = template[template.index("  SunkenTundraSeedFunction:"):template.index("  SunkenTundraSeedInvokePermission:")]
+    assert "DynamoDBCrudPolicy" in seed
+    assert "Action: [kms:Decrypt, kms:GenerateDataKey]" in seed
+    assert "Resource: !GetAtt UserDataKey.Arn" in seed

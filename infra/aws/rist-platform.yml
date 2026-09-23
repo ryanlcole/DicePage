@@ -317,6 +317,12 @@ Resources:
           ASSET_BASE_URL: !Sub '${FrontendOrigin}/Game/assets/zones/sunken-tundra'
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref WorldStateTable }
+        # This table uses the customer-managed UserDataKey, so a seed write
+        # requires key-use permission as well as DynamoDB CRUD.
+        - Statement:
+            - Effect: Allow
+              Action: [kms:Decrypt, kms:GenerateDataKey]
+              Resource: !GetAtt UserDataKey.Arn
 
   SunkenTundraSeedInvokePermission:
     Type: AWS::Lambda::Permission

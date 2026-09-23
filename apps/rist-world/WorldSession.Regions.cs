@@ -188,6 +188,25 @@ public sealed partial class WorldSession
         var maxColumn = columns.Max();
         var minRow = rows.Min();
         var maxRow = rows.Max();
+        // Region bounds are canonical WORLD-normalized extents, computed from
+        // the same column-staggered hexes shown by RegionDefiner. Row/column
+        // indices stay untouched for permission identity and existing deeds.
+        var hex = gridShape == "hex";
+        var spanX = hex ? GridColumns * .75 + .25 : GridColumns;
+        var spanY = hex ? GridRows + .5 : GridRows;
+        var positions = cells.Select(cell =>
+        {
+            var col = cell % GridColumns;
+            var row = cell / GridColumns;
+            var hx = hex ? col * .75 : col;
+            var hy = hex ? row + (col % 2) * .5 : row;
+            return new {
+                MinX = hx / spanX,
+                MaxX = (hx + 1) / spanX,
+                MinY = hy / spanY,
+                MaxY = (hy + 1) / spanY
+            };
+        }).ToList();
         // A region is authority/view metadata over the canonical world map.
         // It never stores a cropped or transformed copy of the map.
         var now = DateTimeOffset.UtcNow;
@@ -210,10 +229,10 @@ public sealed partial class WorldSession
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
             ParentNodeId: ActiveMmoWorld is { } parentWorld ? $"zone:{parentWorld.ParcelId}" : $"world:{WorldId}",
             CoordinateSpace: "world-normalized-v1",
-            CanonicalMinX: minColumn / (double)GridColumns,
-            CanonicalMinY: minRow / (double)GridRows,
-            CanonicalMaxX: (maxColumn + 1) / (double)GridColumns,
-            CanonicalMaxY: (maxRow + 1) / (double)GridRows,
+            CanonicalMinX: Math.Clamp(positions.Min(p => p.MinX), 0, 1),
+            CanonicalMinY: Math.Clamp(positions.Min(p => p.MinY), 0, 1),
+            CanonicalMaxX: Math.Clamp(positions.Max(p => p.MaxX), 0, 1),
+            CanonicalMaxY: Math.Clamp(positions.Max(p => p.MaxY), 0, 1),
             CanonicalZMin: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Min() : 0),
             CanonicalZMax: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Max() + 1 : LayersPerTier));
 
