@@ -2292,7 +2292,7 @@ function createRegionDefinition(){
   if(!REGION_DEFINER||READ_ONLY||regionCreatePending)return;
   if(regionClaimPhase!=='crop'){announce('Preview the crop before saving the region.');return}
   const name=String(regionNameDraft||'').trim();
-  if(!name){announce('Name the region before saving or requesting it.');return}
+  if(!name){announce('Name the region before claiming the deed.');return}
   if(!regionSelectedCells.size){announce('Select at least one world tile for the region.');return}
   regionCreatePending=true;renderKeyboardKeys();
   const payload={

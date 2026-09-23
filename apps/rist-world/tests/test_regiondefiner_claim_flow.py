@@ -35,8 +35,8 @@ def test_new_and_claim_region_share_tier_swipe_and_select_only_flow():
     assert "ensureRegionTierPreview" in prototype
     assert "Swipe left or right across the map to preview tiers." in prototype
     assert "if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select']" in prototype
-    assert "if(!name){announce('Name the region before saving or requesting it.');return}" in prototype
-    assert prototype.count("regionNameInput(),") >= 2
+    assert "if(!name){announce('Name the region before claiming the deed.');return}" in prototype
+    assert prototype.count("regionNameInput(),") == 1
     assert "toolKey('−','zoom'" in prototype
     assert "toolKey('+','zoom'" in prototype
     assert "const renderedTierImages=regionTierPreviewSources().slice(0,TIERS.length);" in prototype
