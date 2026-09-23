@@ -32,7 +32,7 @@ test('deed acceptance fully detaches the grid and keyboard rerenders do not revi
     vm.runInContext(`applyClaimedRegionCrop(${JSON.stringify(deed)})`,f.ctx);
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
     assert.ok(f.stage.classList.contains('region-cropped'),'canonical deed mask remains');
-    assert.match(f.d.getElementById('world').style.maskImage,/url\\(/);
+    assert.equal(f.stage.dataset.cropMode,'visibility-mask');
     vm.runInContext("keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();updateRegionSelectionOverlay()",f.ctx);
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
     assert.ok(f.d.getElementById('keyboardTabs').textContent.includes('Tiles'),'WorldBuilder tools are active');
@@ -47,5 +47,39 @@ test('opening an existing deed never creates the grid, including before metadata
     vm.runInContext(`applyClaimedRegionCrop(${JSON.stringify(deed)})`,f.ctx);
     vm.runInContext("renderKeyboardTabs();renderKeyboardKeys();updateRegionSelectionOverlay()",f.ctx);
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
+  }finally{f.close()}
+});
+
+
+test('editable region objects render above their selected tier while the world remains locked',async()=>{
+  const f=fixture('existing');try{
+    vm.runInContext(`applyClaimedRegionCrop(${JSON.stringify(deed)})`,f.ctx);
+    const base=await vm.runInContext(`attachRestoredLayer({
+      kind:'label',id:'world-city',name:'World city',text:'World city',tier:0,layer:1,x:.15,y:.15,committed:true
+    },{sourceLocked:true,regionOverlay:false,canonicalSource:true})`,f.ctx);
+    const region=await vm.runInContext(`attachRestoredLayer({
+      kind:'label',id:'region-city',regionId:'region-test',name:'Region city',text:'Region city',
+      tier:0,layer:1,x:.15,y:.15,committed:true
+    },{sourceLocked:false,regionOverlay:true,canonicalSource:true})`,f.ctx);
+    vm.runInContext('updateLayerOrder();applyParallax()',f.ctx);
+    const layer=f.d.querySelector('.region-edit-layer');
+    assert.ok(layer&&!layer.hidden);
+    assert.equal(layer.dataset.tier,'0');
+    assert.equal(layer.style.zIndex,'180');
+    assert.equal(region.node.parentElement,layer);
+    assert.equal(base.node.parentElement,f.d.getElementById('world'));
+    assert.equal(base.node.style.pointerEvents,'none');
+    assert.equal(region.node.style.pointerEvents,'auto');
+    assert.deepEqual(Array.from(vm.runInContext('selectablePlacedContent().map(item=>item.id)',f.ctx)),['region-city']);
+    const event=new f.w.Event('pointerdown',{bubbles:true,cancelable:true});
+    for(const [key,value] of Object.entries({pointerType:'touch',pointerId:42,button:0,clientX:160,clientY:160}))
+      Object.defineProperty(event,key,{value});
+    region.node.dispatchEvent(event);
+    assert.equal(vm.runInContext('selectedImage?.id',f.ctx),'region-city');
+    assert.equal(event.defaultPrevented,true);
+    vm.runInContext("setViewerTier('hills')",f.ctx);
+    assert.equal(layer.hidden,true,'overlay belongs to its deed tier only');
+    vm.runInContext("setViewerTier('sea')",f.ctx);
+    assert.equal(layer.hidden,false);
   }finally{f.close()}
 });
