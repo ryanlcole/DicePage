@@ -892,8 +892,15 @@ function adjustSelectedSize(direction){
 }
 function moveSelectedTier(delta){
   if(READ_ONLY)return;
-  if(REGION_DEFINER){announce('Choose the working tier from the Tiers keyboard. Regional assets stay on that tier.');return}
   if(!selectedImage)return;
+  if(REGION_DEFINER){
+    const next=selectedImage.tier+Math.sign(delta);
+    if(!regionRelativeTiers.some(t=>t.index===next)){announce('Create the next regional tier before moving this object.');return}
+    selectedImage.tier=next;selectedImage.anchorTier=0;selectedImage.parallaxMode=next===0?'anchored':'tier';
+    regionRelativeTierIndex=Math.max(regionRelativeTierIndex,next);
+    updateTierButton();renderTierMenu();updateLayerOrder();applyParallax();renderKeyboardKeys();
+    announce(`Object moved to ${regionTierLabel(next)}.`);return;
+  }
   if(isWorldMapItem(selectedImage)){announce('World Map is locked to Sea Level.');return}
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
   selectedImage.parallaxMode=selectedImage.tier===itemAnchorTier(selectedImage)?'anchored':'tier';
@@ -906,7 +913,6 @@ function moveSelectedLayer(delta){
   if(!selectedImage)return;
   if(isWorldMapItem(selectedImage)){announce('World Map is the Sea Level base layer.');return}
   if(REGION_DEFINER){
-    selectedImage.tier=currentRegionTierIndex();
     selectedImage.layer=clamp(selectedImage.layer+delta,0,9);
   }else{
     const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
@@ -1276,7 +1282,7 @@ function refreshUserImage(item){
 }function selectUserImage(item){
   if(item?.sourceLocked||(REGION_DEFINER&&item&&(!item.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()
-    ||item.tier!==Number(regionClaimedRegion?.tierIndex)))){
+    ||item.tier>regionRelativeTierIndex))){
     announce('The parent world tier is locked. Select a regional object above it.');return;
   }
   const previous=selectedImage;
@@ -1307,7 +1313,7 @@ function selectablePlacedContent(){
   return userLayers.filter(item=>item?.node&&(!REGION_DEFINER
     ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay
       &&String(item.regionId||'')===activeRegionMapId()
-      &&item.tier===Number(regionClaimedRegion?.tierIndex))));
+      &&item.tier<=regionRelativeTierIndex)));
 }
 function cyclePlacedSelection(delta=1){
   const items=selectablePlacedContent();
@@ -1338,7 +1344,7 @@ function beginImageDrag(event,item){
   if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
   if(REGION_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()
-    ||item.tier!==Number(regionClaimedRegion?.tierIndex)))return;
+    ||item.tier>regionRelativeTierIndex))return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
   const alreadySelected=selectedImage===item;
   if(item?.committed&&!alreadySelected&&REGION_DEFINER){
@@ -1451,12 +1457,13 @@ function applyParallax(){
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
     const visible=REGION_DEFINER
-      ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
+      ? regionProjectionLoaded?(item.regionOverlay?item.tier<=regionRelativeTierIndex:false)
+        :(item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
       : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
-    const attached=regionReferenceFrozen||itemParallaxMode(item)==='anchored';
+    const attached=itemParallaxMode(item)==='anchored';
     const reference=attached?parentTierOffset(item.tier):null;
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
@@ -2185,7 +2192,9 @@ function syncClaimedRegionOutline(region){
 }
 function clearClaimedRegionCrop(refit=true){
   if(!REGION_DEFINER)return;
-  regionClaimedRegion=null;pendingClaimedRegionId='';syncClaimedRegionOutline(null);
+  regionClaimedRegion=null;pendingClaimedRegionId='';regionProjectionLoaded=false;
+  regionRelativeTierIndex=0;regionRelativeTiers=[{id:'region:tier:0',index:0,label:'Region Base'}];
+  syncClaimedRegionOutline(null);
   syncRegionEditLayer();
   clearRegionMask(refit);
 }
@@ -2279,6 +2288,8 @@ function applyClaimedRegionCrop(region){
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
   stage.classList.remove('region-tier-previewing','region-selection-only');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
+  regionRelativeTierIndex=0;
+  regionRelativeTiers=[{id:`${region.id}:tier:0`,index:0,label:'Region Base'}];
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;
   revealCompleteRegionWorldReference();
@@ -2287,6 +2298,7 @@ function applyClaimedRegionCrop(region){
   const editableRegion=ACCESS_MODE==='edit';
   regionClaimPhase=editableRegion?'build':'saved';
   stage.classList.toggle('region-build-mode',editableRegion);
+  updateTierButton();renderTierMenu();
   retireRegionSelectionOverlay();
   syncClaimedRegionOutline(region);
   updateRegionSelectionOverlay();
@@ -3113,6 +3125,16 @@ function renderKeyboardKeysContent(){
     return;
   }
   if(keyboardMode==='Tiers'){
+    if(REGION_DEFINER&&regionDeedIsComplete()){
+      keyboardKeys.append(
+        readoutKey(`WORLD TIER ${Number(regionClaimedRegion.tierIndex)+1}`,'immutable parent terrain'),
+        ...regionRelativeTiers.map(t=>toolKey(`REGION T${t.index+1}${regionRelativeTierIndex===t.index?' ✓':''}`,
+          t.label,()=>setViewerTier(`region-tier-${t.index}`))),
+        toolKey('NEW TIER','add a regional cake',createRegionWorkingTier,READ_ONLY||regionRelativeTiers.length>=10),
+        toolKey('WORK L −',`Layer ${viewerLayer+1}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState()}),
+        toolKey('WORK L +',`Layer ${viewerLayer+1}`,()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState()})
+      );return;
+    }
     if(!REGION_DEFINER){
       keyboardKeys.append(
         toolKey('≋','All Parallax',()=>setViewerTier('all')),
