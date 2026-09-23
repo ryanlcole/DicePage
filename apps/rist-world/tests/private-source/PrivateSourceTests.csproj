@@ -8,5 +8,6 @@
   <ItemGroup>
     <Compile Include="../../PrivateWorldSourcePolicy.cs" Link="PrivateWorldSourcePolicy.cs" />
     <Compile Include="../../WorldSession.WorldBuilderSource.cs" Link="WorldSession.WorldBuilderSource.cs" />
+    <Compile Include="../../RegionSourceProjector.cs" Link="RegionSourceProjector.cs" />
   </ItemGroup>
 </Project>

@@ -30,7 +30,51 @@ session.Auth.OnDescriptorRead = () => session.WorldId = "different-world";
 try { await session.SaveWorldBuilderSourceAsync(document.RootElement); throw new Exception("world-switch race accepted"); }
 catch (UnauthorizedAccessException) { }
 Check(session.Authority.Writes == 0, "race wrote to shared world");
-Console.WriteLine("Private source ownership, isolation, persistence, and world-switch checks passed.");
+using var parentDocument = JsonDocument.Parse("""
+{
+    "worldId":"private-test",
+    "tierImages":["full-private-world.png"],
+    "sourceTileIndex":[
+        {"cellIndex":31,"tierIndex":0,"layerOffset":0,"image":"claimed.webp"},
+        {"cellIndex":32,"tierIndex":0,"layerOffset":0,"image":"unclaimed.webp"}
+    ],
+    "userLayers":[
+        {"id":"private-city","regionId":"private-region","tier":0},
+        {"id":"foreign-city","regionId":"another-region","tier":0}
+    ]
+}
+""");
+var projected = RegionSourceProjector.Project(
+    "private-test", "private-region", "world:private-test", 0,
+    [31], "square", [0], parentDocument.RootElement);
+Check(projected.GetProperty("projection").GetString() == "region-child-v1", "private region projection not versioned");
+Check(projected.GetProperty("sourceTileIndex").GetArrayLength() == 1, "private projection leaked unclaimed tile");
+Check(projected.GetProperty("sourceTileIndex")[0].GetProperty("image").GetString() == "claimed.webp", "wrong private cell selected");
+Check(!projected.TryGetProperty("tierImages", out _), "private projection leaked full world bitmap");
+Check(projected.GetProperty("userLayers").GetArrayLength() == 1, "private projection leaked another region's object");
+Check(projected.GetProperty("requiresRasterIndex").GetBoolean() == false, "indexed private claim incorrectly rejected");
+using var editedLayers = JsonDocument.Parse("""
+[{"id":"private-city","x":0.05,"y":0.05,"tier":0,"relativeTier":0,"layer":1,"regionId":"private-region"}]
+""");
+using var childTiers = JsonDocument.Parse("""
+[{"id":"private-region:tier:0","index":0,"label":"Region Base"}]
+""");
+var privateChild = RegionSourceProjector.NormalizeChild(
+    "private-test", "private-region", "world:private-test", 0,
+    [31], "square", editedLayers.RootElement, childTiers.RootElement);
+Check(privateChild.GetProperty("userLayers")[0].GetProperty("parallaxMode").GetString() == "anchored",
+    "base-tier city received parallax");
+using var leakedLayers = JsonDocument.Parse("""
+[{"id":"foreign-placement","x":0.95,"y":0.95,"relativeTier":0,"layer":1}]
+""");
+try
+{
+    RegionSourceProjector.NormalizeChild("private-test","private-region","world:private-test",0,
+        [31],"square",leakedLayers.RootElement,childTiers.RootElement);
+    throw new Exception("private object escaped claimed source-cell boundary");
+}
+catch (UnauthorizedAccessException) { }
+Console.WriteLine("Private source, selected-tile projection and regional edit isolation checks passed.");
 
 namespace RistWorld
 {

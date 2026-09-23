@@ -28,8 +28,9 @@ public static class RegionSourceProjector
                 NumberValue(tile, "x", 0), NumberValue(tile, "y", 0), shape))).ToArray();
         var saved = child.HasValue && child.Value.ValueKind == JsonValueKind.Object ? child.Value : default;
         var hasSaved = saved.ValueKind == JsonValueKind.Object && StringValue(saved, "regionId") == regionId;
-        var childLayers = hasSaved ? ArrayEntries(saved, "userLayers") :
-            ArrayEntries(parent, "userLayers").Where(x => StringValue(x, "regionId") == regionId).ToArray();
+        var childLayers = hasSaved
+            ? ArrayEntries(saved, "userLayers").Where(x => StringValue(x, "regionId") == regionId).ToArray()
+            : ArrayEntries(parent, "userLayers").Where(x => StringValue(x, "regionId") == regionId).ToArray();
         var normalized = childLayers.Select(raw =>
         {
             var values = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(raw.GetRawText())!;
