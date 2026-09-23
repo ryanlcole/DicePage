@@ -27,7 +27,7 @@ const TIERS=Object.freeze([
   Object.freeze({key:'hills',label:'Hills / Low Clouds',index:1,glyph:'⌁'}),
   Object.freeze({key:'mountains',label:'Mountains / Weather',index:2,glyph:'▲'})
 ]);
-const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
+const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED&&REGION_FLOW!=='existing'?[
   Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
   Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
   Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
@@ -428,7 +428,7 @@ function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
       id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
-      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
@@ -443,7 +443,7 @@ function serializableUserLayer(item){
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
-    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
@@ -497,7 +497,7 @@ async function attachRestoredLayer(raw,options={}){
   if(kind==='label'){
     const item={
       id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
-      x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+      x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
@@ -533,7 +533,7 @@ async function attachRestoredLayer(raw,options={}){
     spriteSourceWidth:Number(raw.spriteSourceWidth)||null,spriteSourceHeight:Number(raw.spriteSourceHeight)||null,spriteCropX:Number(raw.spriteCropX)||0,spriteCropY:Number(raw.spriteCropY)||0,
     spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,
     frameSources,currentFrame:0,playing:false,
-    x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+    x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
     opacity:clamp(Number(raw.opacity)||1,.01,1),parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
@@ -954,7 +954,7 @@ function appendPlacementRoleControls(){
   );
 }
 function placementAddress(tier,layerDelta=1){
-  tier=clamp(tier,0,TIERS.length-1);
+  tier=clamp(tier,0,REGION_DEFINER&&regionDeedIsComplete()?9:TIERS.length-1);
   if(REGION_DEFINER)return{tier,layer:clamp(viewerLayer+layerDelta,0,9)};
   const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((tier*10)+viewerLayer+layerDelta,0,maxSceneZ);
   return{tier:Math.floor(sceneZ/10),layer:sceneZ%10};
@@ -977,7 +977,7 @@ function openImageUpload(){
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
   announce(currentAssetPlacementRole()==='world-map'
     ?'Image upload opened. World Map will fill Sea Level at 100% by 100%.'
-    :`Image upload opened. Adjustable layer defaults to ${tierLabel(tierByIndex(currentTierIndex()))}.`);
+    :`Image upload opened. Adjustable layer defaults to ${REGION_DEFINER&&regionDeedIsComplete()?regionTierLabel(currentTierIndex()):tierLabel(tierByIndex(currentTierIndex()))}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
@@ -1378,7 +1378,7 @@ async function placeUploadedImage(file){
   const originalSrc=await fileDataUrl(file),transparentSrc=await transparencyCandidate(originalSrc);
   const placementRole=requestedPlacementRole(imagePlacementRole?.value||currentAssetPlacementRole());
   const address=placementAddress(currentTierIndex(),1);
-  const tier=placementRole==='world-map'?0:(REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||address.tier),0,TIERS.length-1));
+  const tier=placementRole==='world-map'?0:(REGION_DEFINER?currentTierIndex():clamp(Math.trunc(Number(imageTier.value)||address.tier),0,TIERS.length-1));
   const layer=placementRole==='world-map'?0:clamp(Math.trunc(Number(imageLayer.value)||address.layer),0,9);
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
   const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint);
@@ -2807,7 +2807,9 @@ function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
 function selectedPositionSummary(item){
   if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,x:'0.000',y:'0.000'};
-  const tier=tierDisplay(item.tier);
+  const tier=REGION_DEFINER&&regionDeedIsComplete()
+    ?{number:(Number(item.tier)||0)+1,label:regionTierLabel(Number(item.tier)||0)}
+    :tierDisplay(item.tier);
   return{tier:tier.number,tierLabel:tier.label,layer:layerDisplay(item.layer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
 }
 function personalSessionToken(){
@@ -3717,6 +3719,15 @@ window.ShaelvienPrototype=Object.freeze({
     workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length,
+    regionChild:REGION_DEFINER&&regionDeedIsComplete()?{
+      sourceScope:stage.dataset.sourceScope||'pending',
+      parentTierIndex:Number(regionClaimedRegion.tierIndex)||0,
+      relativeTierIndex:regionRelativeTierIndex,
+      relativeTiers:regionRelativeTiers.map(t=>({id:t.id,index:t.index,label:t.label})),
+      sourceCellCount:Number(stage.dataset.sourceCellCount)||0,
+      loadedCellCount:Number(stage.dataset.loadedCellCount)||0,
+      rasterIndexMissing:regionRasterIndexMissing
+    }:null,
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,parallaxMode:itemParallaxMode(item),parallaxX:Number(item.parallaxX)||0,parallaxY:Number(item.parallaxY)||0,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
