@@ -99,6 +99,17 @@ let regionWorldSourceOcean=null;
 let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
+let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionRelativeTierIndex=0;
+let regionRelativeTiers=[{id:'region:tier:0',index:0,label:'Region Base'}];
+function regionTierLabel(index){return regionRelativeTiers.find(t=>t.index===index)?.label||`Region Tier ${index+1}`}
+function createRegionWorkingTier(){
+  if(!REGION_DEFINER||!regionDeedIsComplete()||READ_ONLY||regionRelativeTiers.length>=10)return;
+  const index=Math.max(...regionRelativeTiers.map(t=>t.index))+1;
+  regionRelativeTiers.push({id:`${activeRegionMapId()}:tier:${index}`,index,label:`Region Tier ${index+1}`});
+  regionRelativeTierIndex=index;viewerLayer=0;
+  updateTierButton();renderTierMenu();updateLayerOrder();applyParallax();renderKeyboardKeys();
+  announce(`Region Tier ${index+1} created. Save to persist the new cake.`);
+}
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
@@ -367,7 +378,7 @@ function saveRegionMapToDatabase(userLayers){
       reject(new Error('Canonical world map save timed out.'));
     },12000);
     regionMapSaveWaiters.set(requestId,{resolve,reject,timeout});
-    if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers})){
+    if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers,relativeTiers:regionRelativeTiers})){
       clearTimeout(timeout);regionMapSaveWaiters.delete(requestId);
       reject(new Error('Region map database bridge is unavailable.'));
     }
@@ -448,8 +459,7 @@ async function saveWorldBuilder(){
     }
     const editableLayers=REGION_DEFINER
       ? userLayers.filter(item=>!item.sourceLocked&&item.regionOverlay
-        &&String(item.regionId||'')===activeRegionMapId()
-        &&item.tier===Number(regionClaimedRegion?.tierIndex))
+        &&String(item.regionId||'')===activeRegionMapId())
       : userLayers;
     const serializedLayers=editableLayers.map(item=>{
       if(REGION_DEFINER&&!item.regionId)item.regionId=activeRegionMapId();
@@ -471,7 +481,7 @@ async function saveWorldBuilder(){
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
     announce(REGION_DEFINER
-      ? `Saved ${serializedLayers.length} regional item${serializedLayers.length===1?'':'s'} directly onto the canonical world map. Perspective and permissions changed; the map did not.`
+      ? `Saved ${serializedLayers.length} items in ${regionRelativeTiers.length} regional tiers. The parent world tier remains immutable.`
       : `World Builder saved. ${serializedLayers.length} placed item${serializedLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
     return true;
   }catch(error){
@@ -779,7 +789,7 @@ function renameViewerTier(){
   try{localStorage.setItem(TIER_NAMES_KEY,JSON.stringify(tierNames))}catch{}
   updateTierButton();renderTierMenu();announce(value?`Tier named ${value}.`:'Custom tier name cleared.');
 }
-function currentTierIndex(){return viewerTier==='all'?0:tierByKey(viewerTier).index}
+function currentTierIndex(){return REGION_DEFINER&&regionDeedIsComplete()?regionRelativeTierIndex:(viewerTier==='all'?0:tierByKey(viewerTier).index)}
 function tierStackBase(tier){return 100+(clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*100)}
 function ensureRegionEditLayer(){
   if(!REGION_DEFINER)return world;
@@ -796,23 +806,24 @@ function ensureRegionEditLayer(){
 function mountUserPlacement(item){
   // Newly placed objects attach to their selected map tier. Existing saved
   // items preserve their explicit / legacy parallax mode on hydration.
-  if(!item.parallaxMode)item.parallaxMode='anchored';
-  if(item.anchorTier==null)item.anchorTier=item.tier;
+  if(!item.parallaxMode)item.parallaxMode=REGION_DEFINER&&item.regionOverlay&&item.tier>0?'tier':'anchored';
+  if(item.anchorTier==null)item.anchorTier=REGION_DEFINER&&item.regionOverlay?0:item.tier;
   const parent=REGION_DEFINER&&item.regionOverlay?ensureRegionEditLayer():world;
   parent.appendChild(item.node);
 }
 function syncRegionEditLayer(){
   if(!REGION_DEFINER)return;
   const layer=ensureRegionEditLayer(),deed=regionClaimedRegion;
-  const tier=clamp(Math.trunc(Number(deed?.tierIndex)||0),0,TIERS.length-1);
-  const active=regionDeedIsComplete()&&currentRegionTierIndex()===tier;
+  const parentTier=clamp(Math.trunc(Number(deed?.tierIndex)||0),0,TIERS.length-1);
+  const active=regionDeedIsComplete();
   layer.dataset.regionId=String(deed?.id||'');
-  layer.dataset.tier=String(tier);
-  layer.style.zIndex=String(tierStackBase(tier)+80);
+  layer.dataset.tier=String(parentTier);
+  layer.dataset.relativeTier=String(regionRelativeTierIndex);
+  layer.style.zIndex=String(tierStackBase(0)+80);
   layer.hidden=!active;
   for(const item of userLayers){
     if(!item.regionOverlay||!item.node)continue;
-    item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'')||item.tier!==tier;
+    item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'')||item.tier>regionRelativeTierIndex;
   }
 }
 function updateLayerOrder(){
@@ -825,7 +836,7 @@ function updateLayerOrder(){
     item.stackOrder=index;
     const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
     item.node.style.zIndex=String(REGION_DEFINER&&item.regionOverlay
-      ? 1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100)
+      ? 1+(Math.max(0,Math.trunc(Number(item.tier)||0))*100)+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100)
       : isWorldMapItem(item)?tierStackBase(0)+1:(item.committed?committedZ:1000+(index/100)));
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
@@ -837,17 +848,31 @@ function updateLayerOrder(){
 function closeTierMenu(){tierMenu.hidden=true;tierToggle.setAttribute('aria-expanded','false')}
 function renderTierMenu(){
   tierMenu.replaceChildren();
-  const options=REGION_DEFINER?[...TIERS]:[{key:'all',label:'All Parallax',glyph:'≋'},...TIERS];
+  const options=REGION_DEFINER&&regionDeedIsComplete()
+    ?regionRelativeTiers.map(t=>({key:`region-tier-${t.index}`,label:t.label,index:t.index,glyph:t.index===0?'▣':'▤'}))
+    :REGION_DEFINER?[...TIERS]:[{key:'all',label:'All Parallax',glyph:'≋'},...TIERS];
   for(const option of options){
     const button=document.createElement('button');button.type='button';button.role='menuitemradio';button.textContent=option.glyph;button.setAttribute('aria-label',option.key==='all'?option.label:tierLabel(option));
-    const selected=viewerTier===option.key;button.setAttribute('aria-checked',String(selected));button.setAttribute('aria-current',String(selected));
+    const selected=REGION_DEFINER&&regionDeedIsComplete()?regionRelativeTierIndex===option.index:viewerTier===option.key;button.setAttribute('aria-checked',String(selected));button.setAttribute('aria-current',String(selected));
     button.addEventListener('click',()=>{setViewerTier(option.key);closeTierMenu();tierToggle.focus()});tierMenu.appendChild(button);
   }
 }
 function updateTierButton(){
+  if(REGION_DEFINER&&regionDeedIsComplete()){
+    tierGlyph.textContent=regionRelativeTierIndex===0?'▣':'▤';
+    tierToggle.setAttribute('aria-label',`${regionTierLabel(regionRelativeTierIndex)} on immutable World Tier ${Number(regionClaimedRegion.tierIndex)+1}. Open regional tiers`);
+    return;
+  }
   const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${viewerTier==='all'?option.label:tierLabel(option)}. Open tier selector`);
 }
 function setViewerTier(key){
+  if(REGION_DEFINER&&regionDeedIsComplete()){
+    const index=String(key).startsWith('region-tier-')?Number(String(key).slice(12)):Number.NaN;
+    if(!regionRelativeTiers.some(t=>t.index===index))return;
+    regionRelativeTierIndex=index;viewerLayer=0;deselectUserImage(false);
+    updateTierButton();renderTierMenu();syncRegionEditLayer();applyTransform();renderKeyboardKeys();
+    announce(`${regionTierLabel(index)} selected. Source World Tier ${Number(regionClaimedRegion.tierIndex)+1} stays locked.`);return;
+  }
   const previous=viewerTier;
   viewerTier=REGION_DEFINER?(key==='all'?'sea':tierByKey(key).key):(key==='all'?'all':tierByKey(key).key);
   viewerLayer=0;
