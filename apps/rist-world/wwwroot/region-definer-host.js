@@ -6,7 +6,12 @@ function post(frame,message){
 
 async function sendState(frame,dotnet){
   try{
-    const worldSource=await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
+    // Existing claims always request their exact source subset. No unfiltered
+    // world image leaves the parent bridge while permissions are refreshing.
+    const regionId=new URL(frame.getAttribute("src"),location.origin).searchParams.get("regionId")||"";
+    const worldSource=regionId
+      ?await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",regionId)
+      :await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
     post(frame,{type:"world-source",worldSource:worldSource||null});
   }catch(error){
     post(frame,{type:"map-load-error",message:String(error?.message||error||"Canonical map database is unavailable")});
