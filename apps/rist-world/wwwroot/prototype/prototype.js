@@ -1902,8 +1902,25 @@ function regionTopTileDescription(cell){
 function regionCellAccessibilityText(cell){
   return `${regionCellCoordinateText(cell)}. Top tile beneath: ${regionTopTileDescription(cell)}.`;
 }
+function retireRegionSelectionOverlay(){
+  // A deed's selected cells remain in canonical region metadata / its clip mask,
+  // not in a second hit-testable grid above WorldBuilder's assets.
+  if(regionSelectionOverlay){
+    regionSelectionOverlay.remove();
+    regionSelectionOverlay=null;
+  }
+}
+function regionDeedIsComplete(){
+  return !!regionClaimedRegion&&(regionClaimPhase==='saved'||regionClaimPhase==='build');
+}
 function ensureRegionSelectionOverlay(){
   if(!REGION_DEFINER)return null;
+  // Saved regions never instantiate the selection overlay, including after
+  // a keyboard change or viewer rerender. Existing deeds wait for catalog load.
+  if(regionDeedIsComplete()||(REGION_FLOW==='existing'&&!!pendingClaimedRegionId)){
+    retireRegionSelectionOverlay();
+    return null;
+  }
   if(regionSelectionOverlay?.isConnected)return regionSelectionOverlay;
   const overlay=document.createElement('div');overlay.className='region-definition-grid hex';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
   for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
@@ -1921,6 +1938,11 @@ function ensureRegionSelectionOverlay(){
 }
 function updateRegionSelectionOverlay(){
   if(!REGION_DEFINER)return;
+  if(regionDeedIsComplete()){
+    retireRegionSelectionOverlay();
+    stage.classList.remove('region-crop-preview');
+    return;
+  }
   const overlay=ensureRegionSelectionOverlay();if(!overlay)return;
   const selecting=regionClaimPhase==='select';
   const active=keyboardMode==='Select'&&!keyboard.hidden&&!READ_ONLY&&regionSelectionEnabled&&selecting;
@@ -2083,10 +2105,13 @@ function applyClaimedRegionCrop(region){
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
-  regionCropPreview=false;regionSelectionEnabled=false;syncClaimedRegionOutline(region);updateRegionSelectionOverlay();
+  regionCropPreview=false;regionSelectionEnabled=false;
   const editableRegion=ACCESS_MODE==='edit';
   regionClaimPhase=editableRegion?'build':'saved';
   stage.classList.toggle('region-build-mode',editableRegion);
+  retireRegionSelectionOverlay();
+  syncClaimedRegionOutline(region);
+  updateRegionSelectionOverlay();
   if(editableRegion)keyboardMode='Viewer';
   if(!applyRegionMask(region,'visibility-mask',true))requestAnimationFrame(()=>fitMap());
   if(editableRegion)queueMicrotask(()=>{renderKeyboardTabs();renderKeyboardKeys();if(keyboard.hidden)openKeyboard()});

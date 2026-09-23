@@ -83,3 +83,20 @@ def test_shared_region_catalog_is_database_first_and_claim_owner_is_scoped():
     assert "CanEditRegion(WorldRegion? region)" in regions
     assert "if (!CanEditRegion(region)) return false;" in regions
     assert "_regions.Where(CanEditRegion)" in regions
+
+
+def test_completed_deed_removes_selection_overlay_without_losing_claim_mask():
+    prototype = text("wwwroot/prototype/prototype.js")
+    styles = text("wwwroot/prototype/prototype.css")
+    contract = text("REGION_DEFINER_CONTRACT.md")
+    handoff = prototype[prototype.index("function applyClaimedRegionCrop("):prototype.index("function ensureRegionTierPreview(")]
+    ensure = prototype[prototype.index("function ensureRegionSelectionOverlay("):prototype.index("function regionNameInput()")]
+
+    assert "retireRegionSelectionOverlay();" in handoff
+    assert "regionClaimPhase=editableRegion?'build':'saved';" in handoff
+    assert "retireRegionSelectionOverlay();" in ensure
+    assert "if(regionDeedIsComplete()" in ensure
+    assert "regionSelectionOverlay.remove();" in prototype
+    assert ".stage.region-cropped .region-definition-grid{display:none!important;" in styles
+    assert "applyRegionMask(region,'visibility-mask',true)" in handoff
+    assert "remove the selection-grid DOM" in contract

@@ -121,9 +121,8 @@
     .region-definition-cell.existing.selected{background-color:rgba(216,173,66,.42)!important;border-color:#f0d178!important}
     .stage.region-crop-preview .region-definition-grid{opacity:1}
     .stage.region-crop-preview .region-definition-cell:not(.selected){background-color:rgba(0,5,8,.72)!important;border-color:rgba(35,54,63,.34)!important}
-    .stage.region-cropped .region-definition-grid{opacity:0;pointer-events:none}
-    .stage.region-cropped.region-build-mode .region-definition-grid{opacity:.28;pointer-events:none}
-    .stage.region-cropped.region-build-mode .region-definition-cell{border-color:rgba(188,216,228,.22)!important;background:transparent!important}
+    .stage.region-cropped .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}
+    .region-definition-grid[hidden]{display:none!important;pointer-events:none!important}
     .region-claim-outline{position:absolute;z-index:980;pointer-events:none;border:4px solid rgba(244,207,104,.96);box-shadow:0 0 0 2px rgba(6,12,16,.92),0 0 22px rgba(244,207,104,.48),inset 0 0 22px rgba(244,207,104,.14);border-radius:3px}
     .region-claim-outline::after{content:attr(data-label);position:absolute;left:50%;top:0;transform:translate(-50%,-115%);padding:4px 7px;border:1px solid rgba(230,194,100,.82);border-radius:999px;background:rgba(4,11,15,.9);color:#ffe39a;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap}
     .stage.region-cropped .region-claim-outline{border-width:3px}
