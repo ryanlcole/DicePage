@@ -50,11 +50,11 @@ jobs:
       - name: Verify authenticated launch contract
         run: python apps/rist-world/tests/authenticated_launch_contract_check.py
 
-      - name: Verify canonical viewer input
+      - name: Verify canonical viewer input and claimed deed overlay
         run: |
           npm install --prefix "$RUNNER_TEMP/rist-viewer-tests" --no-audit --no-fund jsdom@26.1.0
           node --check apps/rist-world/wwwroot/prototype/prototype.js
-          NODE_PATH="$RUNNER_TEMP/rist-viewer-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs
+          NODE_PATH="$RUNNER_TEMP/rist-viewer-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs apps/rist-world/tests/region-definer-deed-overlay-runtime.test.cjs
 
       - name: Verify private canonical source isolation
         run: dotnet run --project apps/rist-world/tests/private-source/PrivateSourceTests.csproj -c Release
