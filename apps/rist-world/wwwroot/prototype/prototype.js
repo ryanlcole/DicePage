@@ -400,12 +400,25 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
     });
   }finally{db.close()}
 }
+function itemParallaxMode(item){
+  return item?.parallaxMode==='anchored'||item?.parallaxMode==='tier'
+    ?item.parallaxMode
+    :(REGION_DEFINER&&item?.regionOverlay?'anchored':'tier');
+}
+function restoredParallaxMode(raw,regionOverlay){
+  return raw?.parallaxMode==='anchored'||raw?.parallaxMode==='tier'
+    ?raw.parallaxMode
+    :(regionOverlay?'anchored':'tier');
+}
+function itemAnchorTier(item){
+  return clamp(Math.trunc(Number(item?.anchorTier??item?.tier)||0),0,TIERS.length-1);
+}
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
       id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
-      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
+      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
       plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),committed:true
@@ -420,7 +433,7 @@ function serializableUserLayer(item){
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
-    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),size:clamp(Number(item.size)||1,.05,20),
+    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
 }
@@ -479,6 +492,7 @@ async function attachRestoredLayer(raw,options={}){
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
       plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),
+      parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),
       committed:raw.committed!==false,renderOpacity:1,parallaxX:0,parallaxY:0,node:null
     };
     const node=document.createElement('div');node.className='user-image-placement user-label-placement';node.setAttribute('role','text');node.setAttribute('aria-label',`World label: ${item.text}`);item.node=node;
@@ -511,7 +525,7 @@ async function attachRestoredLayer(raw,options={}){
     frameSources,currentFrame:0,playing:false,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
-    opacity:clamp(Number(raw.opacity)||1,.01,1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    opacity:clamp(Number(raw.opacity)||1,.01,1),parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -780,6 +794,10 @@ function ensureRegionEditLayer(){
   return layer;
 }
 function mountUserPlacement(item){
+  // Newly placed objects attach to their selected map tier. Existing saved
+  // items preserve their explicit / legacy parallax mode on hydration.
+  if(!item.parallaxMode)item.parallaxMode='anchored';
+  if(item.anchorTier==null)item.anchorTier=item.tier;
   const parent=REGION_DEFINER&&item.regionOverlay?ensureRegionEditLayer():world;
   parent.appendChild(item.node);
 }
@@ -853,6 +871,7 @@ function moveSelectedTier(delta){
   if(!selectedImage)return;
   if(isWorldMapItem(selectedImage)){announce('World Map is locked to Sea Level.');return}
   selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
+  selectedImage.parallaxMode=selectedImage.tier===itemAnchorTier(selectedImage)?'anchored':'tier';
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
   announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
@@ -1165,9 +1184,16 @@ function ensureProgressiveParallaxSlices(item){
 }
 function refreshProgressiveParallax(item){
   if(!progressiveParallaxEligible(item)||!item?.node)return false;
-  // The region-owned image itself must remain visible and hit-testable.
-  // Progressive slices are pointer-transparent and would hide the target.
+  // Map-attached images are ordinary editable layers, not floating depth
+  // slices. Region-owned imagery also stays directly hit-testable on mobile.
   if(REGION_DEFINER&&item.regionOverlay){
+    item.progressiveParallaxHost?.remove();
+    item.progressiveParallaxHost=null;
+    item.progressiveParallaxSlices=[];
+    item.node.style.visibility='visible';
+    return false;
+  }
+  if(itemParallaxMode(item)==='anchored'){
     item.progressiveParallaxHost?.remove();
     item.progressiveParallaxHost=null;
     item.progressiveParallaxSlices=[];
@@ -1362,8 +1388,20 @@ function tierMix(){
     mountains:layerReady.mountains?clamp(.82*(1-peakToHighlands),0,1):0
   };
 }
+function parentTierOffset(tier){
+  // The tier reference and all same-tier images must use the exact same
+  // camera displacement, never independent per-object parallax.
+  if(REGION_DEFINER&&regionDeedIsComplete())return{x:0,y:0};
+  const key=CANONICAL_PLANE_KEYS[clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)];
+  const plane=planeByKey[key];
+  return{x:Number(plane?.dataset.parallaxX)||0,y:Number(plane?.dataset.parallaxY)||0};
+}
 function applyParallax(){
   const selectionFrozen=REGION_DEFINER&&regionClaimPhase==='select'&&regionSelectionEnabled;
+  // RegionDefiner is an orthographic editing view over the chosen parent
+  // map, not a second parallax stack. Keep every source plane, lake tile and
+  // same-tier object aligned while editing the deed.
+  const regionReferenceFrozen=REGION_DEFINER&&regionDeedIsComplete();
   const dx=selectionFrozen?0:x-fitX,dy=selectionFrozen?0:y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
   const builtins=[
@@ -1377,7 +1415,7 @@ function applyParallax(){
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
-    const px=selectionFrozen?0:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=selectionFrozen?0:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    const px=selectionFrozen||regionReferenceFrozen?0:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=selectionFrozen||regionReferenceFrozen?0:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
@@ -1393,10 +1431,12 @@ function applyParallax(){
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
+    const attached=regionReferenceFrozen||itemParallaxMode(item)==='anchored';
+    const reference=attached?parentTierOffset(item.tier):null;
     const depth=item.tier;
     const panStrength=depth*.022,tiltStrength=depth*.48;
-    item.parallaxX=selectionFrozen?0:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
-    item.parallaxY=selectionFrozen?0:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    item.parallaxX=selectionFrozen?0:attached?reference.x:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
+    item.parallaxY=selectionFrozen?0:attached?reference.y:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);
   }
 }
@@ -1585,6 +1625,17 @@ async function hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,revision
 function regionSourceNumber(value,fallback=0){
   const n=Number(value);return Number.isFinite(n)?n:fallback;
 }
+function syncRegionReferenceImage(tier,src){
+  if(!REGION_DEFINER||!src)return;
+  // A late successful database probe must replace BOTH the working plane
+  // and its reference copy. Otherwise a stale fallback could cover geography
+  // such as lakes even after the canonical world image has loaded.
+  for(const entry of regionWorldTierImages){
+    if(entry.tier!==tier||entry.src===src)continue;
+    entry.src=src;
+    entry.node.src=src;
+  }
+}
 function applyDatabaseTierImages(tierImages){
   // WORLDSOURCE is authoritative for the canonical tier image references.
   // Never blank a working plane while validating a database URL: probe first,
@@ -1605,6 +1656,7 @@ function applyDatabaseTierImages(tierImages){
       node.dataset.referenceOnly='false';
       regionCanonicalTierImages[tier]=resolved;
       stage.dataset.canonicalPlaneSource='database';
+      syncRegionReferenceImage(tier,resolved);
       refreshRegionTierPreview();
       return;
     }
@@ -1612,6 +1664,7 @@ function applyDatabaseTierImages(tierImages){
     const probe=new Image();
     probe.onload=()=>{
       regionCanonicalTierImages[tier]=resolved;
+      syncRegionReferenceImage(tier,resolved);
       node.dataset.databaseSource='true';
       node.dataset.referenceOnly='false';
       stage.dataset.canonicalPlaneSource='database';
@@ -1839,6 +1892,14 @@ async function renderRegionWorldSource(payload){
     if(hydrationRevision!==canonicalHydrationRevision)return;
     stage.dataset.canonicalHydrationError=String(error?.message||error||'unknown error').slice(0,160);
   });
+}
+function revealCompleteRegionWorldReference(){
+  // A newly opened deed should never inherit hidden world layers from an
+  // unrelated session. The underlying canonical tier is reference-only.
+  for(const layers of regionWorldLayerVisibility){
+    layers.clear();
+    for(let layer=0;layer<10;layer++)layers.add(layer);
+  }
 }
 function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
@@ -2194,7 +2255,9 @@ function applyClaimedRegionCrop(region){
   stage.classList.remove('region-tier-previewing','region-selection-only');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
-  viewerTier=tierByIndex(savedTier).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
+  viewerTier=tierByIndex(savedTier).key;viewerLayer=0;
+  revealCompleteRegionWorldReference();
+  updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
   regionCropPreview=false;regionSelectionEnabled=false;
   const editableRegion=ACCESS_MODE==='edit';
   regionClaimPhase=editableRegion?'build':'saved';
@@ -3155,7 +3218,9 @@ function renderKeyboardKeysContent(){
     const pos=selectedPositionSummary(selectedImage);
     keyboardKeys.append(
       readoutKey(`TIER ${pos.tier}`,pos.tierLabel),
-      readoutKey(`LAYER ${pos.layer}`,'current layer'),
+      readoutKey(`LAYER ${pos.layer}`,REGION_DEFINER?'above locked parent map':'current layer'),
+      readoutKey(itemParallaxMode(selectedImage)==='anchored'?'MAP ATTACHED':'PARALLAX',
+        itemParallaxMode(selectedImage)==='anchored'?'moves with parent world tier':'explicit separate tier'),
       readoutKey(`X ${pos.x}`,'world position'),
       readoutKey(`Y ${pos.y}`,'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
@@ -3454,7 +3519,7 @@ window.ShaelvienPrototype=Object.freeze({
     workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
     viewerTier,viewerLayer,
     layerCount:BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length,
-    userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
+    userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,parallaxMode:itemParallaxMode(item),parallaxX:Number(item.parallaxX)||0,parallaxY:Number(item.parallaxY)||0,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
     regionDefinition:REGION_DEFINER?{

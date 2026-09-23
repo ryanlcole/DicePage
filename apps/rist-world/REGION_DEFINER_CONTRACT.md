@@ -82,3 +82,10 @@ The GM may later reveal a changed region upward at different detail levels: for 
 RegionDefiner's 30×30 flat-top hexes use a column-staggered lattice: visible width 22.75 and height 30.5. Displayed claim buttons, deed SVG masks, fitted claim boundaries, object snapping and the server's region edit permission check must resolve the same cell ID. A saved deed retains its original selected-cell IDs: a geometry correction must never silently change ownership, assign another region or grant territory. If a legacy claim is incorrect, its owner must inspect and explicitly request a boundary correction.
 
 The parent world's selected tier is immutable in RegionDefiner. Region-authored city images/sprites/labels are individually editable objects above it. Choosing one in the Select dropdown opens the appropriate editor without another off-screen EDIT action.
+
+
+## Same-tier image anchoring and complete world reference
+
+An image, city, sprite or label first placed on a world map is an editable layer attached to the currently selected tier; its depth motion is inherited exactly from its parent tier (zero independent parallax). Moving it to a **different tier** in WorldBuilder explicitly enables tier parallax. Returning to its initial tier reattaches it. Existing legacy WorldBuilder layers without a stored parallax mode retain their prior depth representation. RegionDefiner never grants edits to the canonical source or another tier.
+
+Opening a saved deed resets only the viewer's optional layer-visibility filters, so every parent source layer is visible below the owned overlay. Successful asynchronous database tier-image validation must refresh the matching reference-plane copy; otherwise an outdated preview can conceal a lake or other canonical feature. Do not alter deed coordinates or any existing world records when fixing rendering. A lake outside a deed's cell mask remains outside its editable view.
