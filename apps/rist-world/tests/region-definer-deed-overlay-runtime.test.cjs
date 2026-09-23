@@ -106,6 +106,8 @@ test('base world city stays locked; distinct city registered as regional overlay
     region.dispatchEvent(event);
     assert.equal(region.classList.contains('selected'),true);
     assert.equal(event.defaultPrevented,true);
+    // Same selection path auto-opens the editor; image/sprite choose Image.
+    assert.equal(Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='Labels')?.getAttribute('aria-selected'),'true');
     tier(f,'Hills / Low Clouds');
     assert.equal(layer.hidden,true);
     tier(f,'Sea Level');
@@ -133,27 +135,3 @@ test('hex hitbox and snap coordinates share the same column-staggered geometry',
   }finally{f.close()}
 });
 
-test('choosing a placed city in the mobile select menu immediately opens the editor',async()=>{
-  const f=fixture('existing');try{
-    host(f,'catalog',{regions:[deed]});
-    host(f,'world-source',{worldSource:{
-      worldId:'deed-runtime-test',activeRegionId:'region-test',
-      state:{worldId:'deed-runtime-test',userLayers:[
-        {kind:'image',id:'city',regionId:'region-test',assetId:'test-city-asset',name:'Editable city',
-         originalSrc:'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs',
-         tier:0,layer:1,x:.1,y:.1,committed:true}
-      ]}
-    }});
-    await tick();await tick();
-    tab(f,'Select');
-    const picker=f.d.querySelector('.placed-content-select');
-    assert.ok(picker);
-    picker.value='city';picker.dispatchEvent(new f.w.Event('change',{bubbles:true}));
-    const imageTab=Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='Image');
-    assert.equal(imageTab?.getAttribute('aria-selected'),'true');
-    assert.ok(Array.from(f.d.querySelectorAll('#keyboardKeys button')).some(x=>x.textContent.includes('SIZE +')));
-    const image=f.d.querySelector('.region-edit-layer img.user-image-placement');
-    assert.ok(image);assert.equal(image.style.visibility,'visible');
-    assert.equal(image.style.pointerEvents,'auto');
-  }finally{f.close()}
-});

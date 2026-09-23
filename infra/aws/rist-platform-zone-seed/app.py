@@ -70,6 +70,10 @@ def query_world_prefix(table, prefix: str) -> list[dict]:
     return items
 
 
+class SeedPrerequisiteUnavailable(RuntimeError):
+    """Optional artwork seed waits for an explicitly owned empty parcel."""
+
+
 def choose_target(table, owner_user_id: str, world_layers: list):
     parcels = [
         item
@@ -77,7 +81,7 @@ def choose_target(table, owner_user_id: str, world_layers: list):
         if str(item.get("ownerUserId") or "") == owner_user_id
     ]
     if not parcels:
-        raise RuntimeError("No owner Shaelvien parcel exists to receive The Sunken Tundra.")
+        raise SeedPrerequisiteUnavailable("No owner Shaelvien parcel exists to receive The Sunken Tundra.")
 
     exact = []
     empty = []
@@ -103,7 +107,7 @@ def choose_target(table, owner_user_id: str, world_layers: list):
 
     pool = exact or empty
     if not pool:
-        raise RuntimeError(
+        raise SeedPrerequisiteUnavailable(
             "No empty owner parcel is available. Refusing to overwrite authored Shaelvien content."
         )
 
@@ -153,7 +157,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
     source_key = {"pk": WORLD_PK, "sk": "WORLDSOURCE"}
     source_item = table.get_item(Key=source_key, ConsistentRead=True).get("Item")
     if not source_item or not isinstance(source_item.get("state"), dict):
-        raise RuntimeError(
+        raise SeedPrerequisiteUnavailable(
             "Canonical Geonaph WORLDSOURCE is missing; refusing to invent a replacement world map."
         )
 
@@ -292,6 +296,13 @@ def handler(event, context):
 
         result = seed_zone(table, owner_user_id, asset_base_url)
         print(json.dumps(result, sort_keys=True))
+        send_cloudformation_response(event, context, "SUCCESS", result)
+    except SeedPrerequisiteUnavailable as exc:
+        # Optional artwork must never block deploying map permission fixes or
+        # fabricate an owner parcel. This is explicitly deferred, not seeded;
+        # a future deliberate Revision change can retry after prerequisites exist.
+        result = {"seeded": False, "deferred": True, "reason": str(exc)}
+        print(f"Sunken Tundra seed deferred: {exc}")
         send_cloudformation_response(event, context, "SUCCESS", result)
     except Exception as exc:
         print(f"Sunken Tundra seed failed: {exc}")
