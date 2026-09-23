@@ -100,3 +100,17 @@ def test_completed_deed_removes_selection_overlay_without_losing_claim_mask():
     assert ".stage.region-cropped .region-definition-grid{display:none!important;" in styles
     assert "applyRegionMask(region,'visibility-mask',true)" in handoff
     assert "remove the selection-grid DOM" in contract
+
+
+def test_region_is_independently_editable_above_locked_selected_world_tier():
+    prototype = text("wwwroot/prototype/prototype.js")
+    css = text("wwwroot/prototype/prototype.css")
+    assert "function ensureRegionEditLayer()" in prototype
+    assert "function mountUserPlacement(item)" in prototype
+    assert "layer.style.zIndex=String(tierStackBase(tier)+80);" in prototype
+    assert "item.node.hidden=!active" in prototype
+    assert "item.regionOverlay" in prototype
+    assert "item.tier===Number(regionClaimedRegion?.tierIndex)" in prototype
+    assert "if(REGION_DEFINER&&item.regionOverlay){" in prototype
+    assert ".region-edit-layer .user-image-placement{pointer-events:auto" in css
+    assert ".region-edit-layer[hidden]{display:none!important}" in css
