@@ -114,13 +114,26 @@ legacy deeds when their saved footprint is ambiguous.
    tier to Instance at 45°. Round-trip all the way back to World without any
    positional drift or loss of source provenance.
 
-## Current implementation gap
+## Implementation and outstanding work
 
-The existing runtime reads the full WorldBuilder source for RegionDefiner and
-clips it with a deed mask. Some region-authored assets are saved into the
-world-source `userLayers` array and are limited by the claimed parent tier.
-These are **transitional behaviors, not the target architecture**. The next
-coding stage must first add source tile indexing, permission-filtered child
-projection and child-relative tier persistence. Only then should the viewer
-switch to child-table rendering and recursive zoom. Do not claim those runtime
-behaviors are shipped merely because this contract is documented.
+The RegionDefiner child projection endpoint filters saved deeds to exact selected
+source cells, parent tier and source layers. Region-owned objects and independently
+authored regional tier stacks persist under child nodes in the same world graph.
+The approved Geonaph source tiers are pre-indexed into individual hex/square WebP
+source cells, and individually authored source tiles can be projected by their
+cell addresses. Private Sandbox worlds can project independently published
+source tiles using owner-scoped storage; parent world images are never returned
+whole to claimed-region viewers.
+
+Legacy full-world bitmap art in a non-Geonaph world still needs an index/export
+pass before its terrain is visible in the claimed-region view. The editor
+reports that missing index rather than downloading the full parent world and
+masking other territory. Exact deed IDs, parent coordinates and ownership
+must remain unchanged during asset migration.
+
+Continuous camera crossing from WorldBuilder into RegionDefiner and then
+Local (30°) and Instance (45°) is later integration work. The regional child
+workspace and relative tiers are in the present build; do not claim completed
+cross-level continuous zoom or Local/Instance editing prematurely. CI plus
+interactive mobile verification of a claimed lake and editable city remain
+release acceptance gates.
