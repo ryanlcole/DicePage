@@ -116,7 +116,7 @@ test('base world city stays locked; distinct city registered as regional overlay
 });
 
 
-test('hex hitbox and snap coordinates share the same column-staggered geometry',()=>{
+test('hex hitbox and snap coordinates share the same column-staggered geometry',async()=>{
   const f=fixture('new');try{
     const geometry=f.w.ShaelvienPrototype.regionGeometry;
     assert.ok(geometry);
@@ -132,6 +132,8 @@ test('hex hitbox and snap coordinates share the same column-staggered geometry',
       assert.equal(geometry.cellAt(center.x,center.y,'hex'),cell);
     }
     assert.equal(geometry.cellAt(.5,.5,'square'),15*30+15);
+    // Let fit/preview requestAnimationFrame work finish while JSDOM is alive.
+    await tick();await tick();await tick();
   }finally{f.close()}
 });
 
