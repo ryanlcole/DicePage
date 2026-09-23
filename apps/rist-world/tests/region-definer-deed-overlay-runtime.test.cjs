@@ -17,6 +17,9 @@ function fixture(flow='new'){
   stage.getBoundingClientRect=()=>({x:0,y:0,left:0,top:0,right:800,bottom:600,width:800,height:600});
   w.HTMLElement.prototype.getClientRects=function(){return this.closest('[hidden]')?[]:[{}]};
   w.matchMedia=()=>({matches:false});
+  // Prevent real asynchronous image collision fetches outliving JSDOM.close();
+  // these tests exercise interaction geometry, not external asset decoding.
+  w.fetch=async()=>({ok:false});
   w.ResizeObserver=class{observe(){}disconnect(){}};
   for(const file of ['viewer-input.js','prototype.js']){
     vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),dom.getInternalVMContext(),{filename:file});
