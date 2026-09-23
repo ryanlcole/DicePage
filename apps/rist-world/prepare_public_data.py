@@ -298,6 +298,14 @@ def build_geonaph_upscale_representations():
 
 geonaph_upscales = build_geonaph_upscale_representations()
 
+# Immutable, source-addressable tiles let claimed regions load only the
+# selected cells rather than transferring a masked full-world image.
+if os.environ.get('GITHUB_ACTIONS', '').lower() == 'true':
+    from region_source_tiles import build_public_geonaph_tiles
+    geonaph_region_tiles = build_public_geonaph_tiles(web)
+else:
+    geonaph_region_tiles = 0
+
 
 def build_geonaph_perceiver_representations():
     """Build transparent tier representations for Perceiver without changing canonical world art."""
