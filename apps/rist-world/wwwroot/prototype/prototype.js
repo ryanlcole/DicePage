@@ -1782,10 +1782,151 @@ function regionSourceCropStyle(image,tile){
     image.style.width='100%';image.style.height='100%';image.style.left='0';image.style.top='0';image.style.objectFit='cover';
   }
 }
+// Claimed children use the exact source-cell projection returned by the
+// authority. Unlike the pre-claim preview, this path never mounts parent
+// world-tier PNGs or off-deed assets.
+async function renderRegionProjection(payload){
+  const envelope=payload&&typeof payload==='object'?payload:{};
+  const state=envelope.state&&typeof envelope.state==='object'?envelope.state:{};
+  if(state.projection!=='region-child-v1')throw new Error('Unexpected regional source format');
+  const revision=++canonicalHydrationRevision;
+  clearRegionWorldSource();
+  const projectedId=String(state.regionId||envelope.regionId||REQUESTED_REGION_ID||'');
+  const savedDeed=regionCatalog.find(region=>String(region.id||'')===projectedId);
+  if(!regionClaimedRegion||regionClaimedRegion.id!==projectedId){
+    const deed=savedDeed||{
+      id:projectedId,name:'Region',tierIndex:Number(state.parentTierIndex)||0,
+      gridShape:state.gridShape||'hex',selectedCells:state.selectedCells||[]
+    };
+    applyClaimedRegionCrop(deed);
+  }
+  regionProjectionLoaded=true;
+  regionRelativeTiers=(Array.isArray(state.relativeTiers)?state.relativeTiers:[])
+    .filter(t=>t&&Number.isInteger(Number(t.index))&&Number(t.index)>=0&&Number(t.index)<10)
+    .map(t=>({id:String(t.id||`${projectedId}:tier:${t.index}`),index:Number(t.index),label:String(t.label||`Region Tier ${Number(t.index)+1}`)}))
+    .sort((a,b)=>a.index-b.index);
+  if(!regionRelativeTiers.some(t=>t.index===0))regionRelativeTiers.unshift({id:`${projectedId}:tier:0`,index:0,label:'Region Base'});
+  regionRelativeTierIndex=0;
+  const sourceCells=Array.isArray(state.sourceCells)?state.sourceCells:[];
+  const expected=new Set((state.selectedCells||[]).map(Number));
+  const parentTier=Number(state.parentTierIndex)||0;
+  naturalWidth=Math.max(1,Number(state.sourcePixelWidth)||2508);
+  naturalHeight=Math.max(1,Number(state.sourcePixelHeight)||2508);
+  regionWorldSourceMeta={
+    worldId:String(state.worldId||WORLD_ID),worldName:String(envelope.worldName||WORLD_NAME),
+    gridColumns:REGION_GRID_COLUMNS,gridRows:REGION_GRID_ROWS,gridStyle:String(state.gridShape||'hex'),
+    planeIndex:parentTier,updatedAtUtc:String(envelope.updatedAtUtc||'')
+  };
+  // Do not leave the parent PNG in the DOM as a hidden, fetched full-world
+  // source. The browser gets selected cells only, and these replace the preview.
+  for(const key of CANONICAL_PLANE_KEYS){
+    const plane=planeByKey[key];
+    layerReady[key]=false;
+    plane.removeAttribute('src');
+    plane.style.display='none';plane.style.opacity='0';
+  }
+  regionCanonicalTierImages=[];
+  for(let i=userLayers.length-1;i>=0;i--){
+    if(!userLayers[i].regionOverlay)continue;
+    stopSpriteMotion(userLayers[i]);
+    userLayers[i].node?.remove();
+    userLayers.splice(i,1);
+  }
+  selectedImage=null;
+  const shape=normalizeRegionGridShape(state.gridShape||'hex');
+  const extents=regionGridExtents(shape);
+  let indexedCount=0;
+  const indexed=Array.isArray(state.sourceTileIndex)?state.sourceTileIndex:[];
+  const knownCells=new Set(indexed.filter(raw=>Number(raw.layerOffset||0)===0).map(raw=>Number(raw.cellIndex)));
+  const slices=sourceCells.flatMap(cell=>{
+    const index=Number(cell.cellIndex);
+    if(!expected.has(index))return[];
+    const indexedCell=indexed.filter(raw=>Number(raw.cellIndex)===index);
+    const staticPattern=String(state.publicTilePattern||'');
+    const official=staticPattern&&!knownCells.has(index)?[{
+      cellIndex:index,layerOffset:0,id:String(cell.id||''),name:'Locked parent terrain',
+      image:staticPattern.replace('{shape}',shape).replace('{cell}',String(index).padStart(3,'0'))
+    }]:[];
+    return[...official,...indexedCell];
+  });
+  for(const raw of slices){
+    const cell=Number(raw.cellIndex);
+    if(!expected.has(cell)||!raw.image)continue;
+    const col=cell%REGION_GRID_COLUMNS,row=Math.floor(cell/REGION_GRID_COLUMNS);
+    const gx=shape==='hex'?col*.75:col,gy=shape==='hex'?row+(col%2)*.5:row;
+    const node=document.createElement('img');
+    node.className='region-world-source-tile region-world-source-cell';
+    node.src=String(raw.image);
+    node.alt='';
+    node.draggable=false;
+    node.dataset.sourceCellId=String(raw.id||sourceCells.find(c=>Number(c.cellIndex)===cell)?.id||'');
+    node.dataset.sourceLocked='true';
+    node.dataset.cell=String(cell);
+    node.dataset.parentTier=String(parentTier);
+    node.dataset.tier='0';node.dataset.layer=String(Number(raw.layerOffset)||0);
+    node.style.left=`${(gx/extents.width*100).toFixed(5)}%`;
+    node.style.top=`${(gy/extents.height*100).toFixed(5)}%`;
+    node.style.width=`${(100/extents.width).toFixed(5)}%`;
+    node.style.height=`${(100/extents.height).toFixed(5)}%`;
+    node.style.zIndex=String(tierStackBase(0)-20+(Number(raw.layerOffset)||0));
+    node.style.objectFit='fill';
+    world.appendChild(node);
+    regionWorldSourceTiles.push({node,image:node,tier:0,layer:Number(raw.layerOffset)||0,id:node.dataset.sourceCellId,name:String(raw.name||''),assetKind:'source-cell'});
+    indexedCount++;
+  }
+  // Additional authored world terrain tiles were already filtered by exact
+  // source-cell IDs in the database, not by a client-side visibility mask.
+  for(const raw of Array.isArray(state.tiles)?state.tiles:[]){
+    const node=document.createElement('div'),layer=Number(raw.layerOffset)||0;
+    node.className='region-world-source-tile';
+    node.dataset.sourceLocked='true';node.dataset.parentTier=String(parentTier);
+    node.dataset.tier='0';node.dataset.layer=String(layer);
+    node.setAttribute('aria-label',String(raw.name||'Locked parent terrain'));
+    const zoom=Math.max(Number(raw.placementZoom)||1,1/REGION_GRID_COLUMNS);
+    node.style.left=`${(Number(raw.x||0)*100).toFixed(5)}%`;
+    node.style.top=`${(Number(raw.y||0)*100).toFixed(5)}%`;
+    node.style.width=`${(100/REGION_GRID_COLUMNS/zoom).toFixed(5)}%`;
+    node.style.height=`${(100/REGION_GRID_ROWS/zoom).toFixed(5)}%`;
+    node.style.zIndex=String(tierStackBase(0)+layer);
+    const frame=document.createElement('span');frame.className='region-world-source-crop';
+    const img=document.createElement('img');img.alt='';img.src=String(raw.image||'');
+    regionSourceCropStyle(img,raw);frame.appendChild(img);node.appendChild(frame);world.appendChild(node);
+    regionWorldSourceTiles.push({node,image:img,tier:0,layer,id:String(raw.id||''),name:String(raw.name||''),assetKind:'parent-tile'});
+  }
+  regionRasterIndexMissing=!!state.requiresRasterIndex&&indexedCount<expected.size;
+  stage.dataset.sourceScope='selected-parent-cells';
+  stage.dataset.parentTier=String(parentTier);
+  stage.dataset.sourceCellCount=String(expected.size);
+  stage.dataset.loadedCellCount=String(indexedCount);
+  stage.dataset.rasterIndex=regionRasterIndexMissing?'incomplete':'selected-only';
+  if(regionRasterIndexMissing){
+    announce('This parent world bitmap needs a source-cell index. Its other territory has not been fetched.');
+  }
+  const owned=(Array.isArray(state.userLayers)?state.userLayers:[])
+    .filter(raw=>String(raw?.regionId||'')===projectedId);
+  const pending=owned.map(async raw=>{
+    const item=await attachRestoredLayer(raw,{sourceLocked:READ_ONLY,regionOverlay:true,canonicalSource:false});
+    if(revision!==canonicalHydrationRevision){discardCanonicalHydrationItem(item);return null}
+    updateLayerOrder();applyParallax();return item;
+  });
+  stage.dataset.renderer='region-child-projection';
+  world.dataset.emptyWorld=regionWorldSourceTiles.length?'false':'true';
+  updateTierButton();renderTierMenu();updateLayerOrder();updateRegionWorldSourceVisibility();
+  loading.hidden=true;fitClaimedRegion(regionClaimedRegion);renderKeyboardTabs();renderKeyboardKeys();applyParallax();
+  await Promise.all(pending);
+  if(revision!==canonicalHydrationRevision)return;
+  updateLayerOrder();applyParallax();
+  announce(`${regionClaimedRegion.name} ready. ${expected.size} source cells on locked World Tier ${parentTier+1}; edit regional layers above them.`);
+}
 async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
   const envelope=payload&&typeof payload==='object'?payload:{};
   let snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
+  if(snapshot.projection==='region-child-v1'){
+    await renderRegionProjection(envelope);return;
+  }
+  // An older pre-claim load must never replace a loaded child projection.
+  if(regionProjectionLoaded)return;
   let tiles=Array.isArray(snapshot.tiles)?snapshot.tiles:Array.isArray(envelope.tiles)?envelope.tiles:[];
   let sourceLayers=Array.isArray(snapshot.userLayers)?snapshot.userLayers:[];
   let tierImages=Array.isArray(snapshot.tierImages)?snapshot.tierImages.map(String).filter(Boolean):[];
@@ -1935,6 +2076,13 @@ function revealCompleteRegionWorldReference(){
 }
 function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
+  if(regionProjectionLoaded){
+    const parentTier=Number(regionClaimedRegion?.tierIndex)||0;
+    for(const entry of regionWorldSourceTiles){
+      entry.node.style.display=regionSourceLayerVisible(parentTier,entry.layer)?'block':'none';
+    }
+    return;
+  }
   const tier=currentRegionTierIndex();
   if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=regionWorldTierImages.length?(tier===0?'.18':'.08'):(tier===0?'1':'.32');
   for(const item of regionWorldTierImages)item.node.style.opacity=item.tier<=tier?'1':'0';
@@ -2606,6 +2754,9 @@ async function handleRegionHostMessage(event){
     if(pendingClaimedRegionId&&!regionClaimedRegion){
       const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
       if(claimed)applyClaimedRegionCrop(claimed)
+    }else if(regionClaimedRegion){
+      const canonical=regionCatalog.find(region=>String(region?.id||'')===String(regionClaimedRegion.id||''));
+      if(canonical){regionClaimedRegion=canonical;syncClaimedRegionOutline(canonical)}
     }
     updateRegionSelectionOverlay();renderKeyboardKeys();return;
   }
