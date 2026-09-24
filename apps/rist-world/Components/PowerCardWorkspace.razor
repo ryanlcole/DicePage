@@ -1,0 +1,261 @@
+@using System.Text.Json
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@inject WorldSession Session
+
+<div class="power-workspace" aria-label="Power card workspace">
+ <header class="power-header">
+  <div>
+   <small>RIST POWER CARDS · CARD-CONTAINED EFFECTS</small>
+   <h2>@_config.SectionName</h2>
+   <p>Cards carry activation, targeting, joined effects, resolution, representation and spawning.</p>
+  </div>
+  <div class="power-actions">
+   @if(IsGameMaster){<button type="button" @onclick="NewPower">+ POWER</button>}
+   <button type="button" @onclick="SaveAsync">@(_saved?"SAVED":"SAVE")</button>
+  </div>
+ </header>
+
+ <div class="power-layout">
+  <aside class="power-list">
+   @if(IsGameMaster)
+   {
+    <section class="power-system">
+     <strong>SYSTEM NAMES</strong>
+     <label><span>SECTION</span><input @bind="_config.SectionName" /></label>
+     <label><span>@_config.SourceLabel</span><input @bind="_config.SourceLabel" aria-label="Source label" /></label>
+     <label><span>@_config.FamilyLabel</span><input @bind="_config.FamilyLabel" aria-label="Family label" /></label>
+     <label><span>@_config.ResourceLabel</span><input @bind="_config.ResourceLabel" aria-label="Resource label" /></label>
+     <label><span>@_config.CostLabel</span><input @bind="_config.CostLabel" aria-label="Cost label" /></label>
+     <div class="power-family-add">
+      <input @bind="_newFamily" placeholder="Add family: Magic, Psionic, Tech…" />
+      <button type="button" @onclick="AddFamily">+</button>
+     </div>
+     <div class="power-family-tags">
+      @foreach(var family in _config.Families)
+      {
+       <button type="button" @onclick="()=>RemoveFamily(family)">@family ×</button>
+      }
+     </div>
+    </section>
+   }
+
+   <strong>POWER CARDS</strong>
+   @foreach(var card in _cards)
+   {
+    <button type="button" class="@(card.Id==_selectedId?"selected":"")" @onclick="()=>Select(card.Id)">
+     <b>@card.Name</b>
+     <small>@card.Power.Family · @card.Behavior.Targeting.Selector · @card.Behavior.Targeting.Geometry</small>
+    </button>
+   }
+  </aside>
+
+  @if(Selected is { } card)
+  {
+   <main class="power-editor">
+    <section class="power-card-preview">
+     <small>POWER CARD</small>
+     <h3>@card.Name</h3>
+     <p>@card.Power.Family · @card.Power.Source</p>
+     <dl>
+      <div><dt>ACTIVATE</dt><dd>@card.Behavior.Activation.Mode</dd></div>
+      <div><dt>TARGET</dt><dd>@card.Behavior.Targeting.Selector / @card.Behavior.Targeting.Geometry</dd></div>
+      <div><dt>EFFECTS</dt><dd>@card.Behavior.Effects.Count</dd></div>
+      <div><dt>VISUAL</dt><dd>@card.Behavior.Representation.Mode</dd></div>
+      <div><dt>SPAWNS</dt><dd>@card.Behavior.Spawns.Count</dd></div>
+     </dl>
+     <button type="button" @onclick="UseSelected">USE POWER</button>
+     @if(!string.IsNullOrWhiteSpace(_lastUse)){<p class="power-use-status">@_lastUse</p>}
+    </section>
+
+    @if(IsGameMaster)
+    {
+     <section class="power-form">
+      <h3>IDENTITY</h3>
+      <div class="power-grid">
+       <label><span>NAME</span><input @bind="card.Name" /></label>
+       <label><span>@_config.FamilyLabel</span><select @bind="card.Power.Family">@foreach(var family in _config.Families){<option>@family</option>}</select></label>
+       <label><span>@_config.SourceLabel</span><input @bind="card.Power.Source" placeholder="Aether, Life Force, Divine…" /></label>
+       <label><span>DISCIPLINE</span><input @bind="card.Power.Discipline" placeholder="Sorcery, Craft, Technique…" /></label>
+       <label><span>@_config.ResourceLabel</span><select @bind="card.Power.ResourceJoin"><option value="">None</option>@foreach(var join in _joins){<option value="@join.SharedJoin">@join.Name</option>}</select></label>
+       <label><span>@_config.CostLabel</span><input type="number" step="0.1" @bind="card.Behavior.Activation.Cost" /></label>
+      </div>
+
+      <h3>ACTIVATION</h3>
+      <div class="power-grid">
+       <label><span>MODE</span><select @bind="card.Behavior.Activation.Mode"><option>ACTION</option><option>PASSIVE</option><option>REACTION</option><option>TRIGGER</option><option>TOGGLE</option><option>EVENT</option></select></label>
+       <label><span>TRIGGER</span><input @bind="card.Behavior.Activation.Trigger" /></label>
+       <label><span>CHARGES</span><input type="number" min="0" @bind="card.Behavior.Activation.Charges" /></label>
+       <label><span>COOLDOWN</span><input type="number" min="0" @bind="card.Behavior.Activation.Cooldown" /></label>
+      </div>
+
+      <h3>TARGETING / INSTANCE GEOMETRY</h3>
+      <div class="power-grid">
+       <label><span>SELECT</span><select @bind="card.Behavior.Targeting.Selector"><option>SELF</option><option>SELECTED</option><option>MULTI</option><option>PARTY</option><option>POINT</option><option>OBJECT</option><option>AREA</option><option>PATH</option><option>ENCOUNTER</option></select></label>
+       <label><span>GEOMETRY</span><select @bind="card.Behavior.Targeting.Geometry"><option>NONE</option><option>POINT</option><option>CELL</option><option>LINE</option><option>CONE</option><option>DISC</option><option>SPHERE</option><option>CYLINDER</option><option>BOX</option><option>WALL</option><option>CHAIN</option><option>POLYGON</option><option>PATH</option><option>VOLUME</option></select></label>
+       <label><span>RANGE</span><input type="number" min="0" step="0.1" @bind="card.Behavior.Targeting.Range" disabled="@card.Behavior.Targeting.UnboundedRange" /></label>
+       <label class="check"><input type="checkbox" @bind="card.Behavior.Targeting.UnboundedRange" /><span>UNBOUNDED</span></label>
+       <label><span>RADIUS</span><input type="number" min="0" step="0.1" @bind="card.Behavior.Targeting.Radius" /></label>
+       <label><span>WIDTH</span><input type="number" min="0" step="0.1" @bind="card.Behavior.Targeting.Width" /></label>
+       <label><span>HEIGHT / Z</span><input type="number" min="0" step="0.1" @bind="card.Behavior.Targeting.Height" /></label>
+       <label><span>ANGLE °</span><input type="number" min="0" max="360" step="1" @bind="card.Behavior.Targeting.AngleDegrees" /></label>
+       <label class="check"><input type="checkbox" @bind="card.Behavior.Targeting.UsesZ" /><span>USE X/Y/Z</span></label>
+       <label class="check"><input type="checkbox" @bind="card.Behavior.Targeting.FollowTarget" /><span>FOLLOW TARGET</span></label>
+      </div>
+
+      <h3>JOINED EFFECTS</h3>
+      @foreach(var effect in card.Behavior.Effects)
+      {
+       <div class="power-effect">
+        <label><span>TARGET JOIN</span><select @bind="effect.TargetJoin"><option value="">Choose…</option>@foreach(var join in _joins){<option value="@join.SharedJoin">@join.Name</option>}</select></label>
+        <label><span>SLOT</span><select @bind="effect.TargetSlot"><option>CURRENT</option><option>BASE</option><option>MAX</option><option>VALUE</option></select></label>
+        <label><span>OPERATION</span><select @bind="effect.Operation"><option>ADD</option><option>SUBTRACT</option><option>MULTIPLY</option><option>SET</option><option>CLAMP</option><option>GRANT</option><option>REMOVE</option><option>REPLACE</option><option>TOGGLE</option><option>MOVE</option><option>SPAWN</option><option>DESTROY</option></select></label>
+        <label><span>AMOUNT</span><input type="number" step="0.1" @bind="effect.Amount" /></label>
+        <label><span>RESOLUTION</span><select @bind="effect.Resolution"><option>AUTO</option><option>ROLL</option><option>OPPOSED</option><option>SAVE</option><option>THRESHOLD</option><option>GM</option></select></label>
+        <label><span>ROLL</span><input @bind="effect.RollFormula" placeholder="1d20" /></label>
+        <label><span>DIFFICULTY JOIN</span><select @bind="effect.DifficultyJoin"><option value="">Static / none</option>@foreach(var join in _joins){<option value="@join.SharedJoin">@join.Name</option>}</select></label>
+        <label><span>STATIC DIFFICULTY</span><input type="number" step="0.1" @bind="effect.Difficulty" /></label>
+        <label><span>DURATION</span><input type="number" min="0" @bind="effect.Duration" /></label>
+        <label><span>UNIT</span><select @bind="effect.DurationUnit"><option>Instant</option><option>Turns</option><option>Rounds</option><option>Minutes</option><option>Hours</option><option>Scenes</option><option>Until Rest</option></select></label>
+        <label><span>STACKING</span><select @bind="effect.Stacking"><option>ADD</option><option>INTENSITY</option><option>DURATION</option><option>REPLACE</option><option>HIGHEST</option><option>LOWEST</option><option>EXCLUSIVE</option></select></label>
+        <button type="button" class="danger" @onclick="()=>RemoveEffect(effect.EffectDefinitionId)">REMOVE EFFECT</button>
+       </div>
+      }
+      <button type="button" @onclick="AddEffect">+ EFFECT</button>
+
+      <h3>REPRESENTATION</h3>
+      <div class="power-grid">
+       <label><span>MODE</span><select @bind="card.Behavior.Representation.Mode"><option>NONE</option><option>SPRITE</option><option>IMAGE</option><option>DRAW</option></select></label>
+       @if(card.Behavior.Representation.Mode=="SPRITE")
+       {
+        <label><span>SPRITE CHAIN</span><input @bind="card.Behavior.Representation.SpriteChainId" placeholder="My Sprites chain ID" /></label>
+       }
+       else if(card.Behavior.Representation.Mode=="IMAGE")
+       {
+        <label><span>IMAGE ASSET</span><input @bind="card.Behavior.Representation.AssetId" placeholder="Asset ID" /></label>
+       }
+       else if(card.Behavior.Representation.Mode=="DRAW")
+       {
+        <label><span>DRAW</span><input @bind="card.Behavior.Representation.AssetId" placeholder="Draw preset / draw on use" /></label>
+       }
+       <label class="check"><input type="checkbox" @bind="card.Behavior.Representation.FlashAffectedBorders" /><span>FLASH AFFECTED GRID BORDERS</span></label>
+      </div>
+
+      <h3>SPAWN</h3>
+      @foreach(var spawn in card.Behavior.Spawns)
+      {
+       <div class="power-spawn">
+        <label><span>ENTITY</span><select @bind="spawn.EntityType"><option>NPC</option><option>CHARACTER</option><option>CREATURE</option><option>OBJECT</option><option>TERRAIN</option><option>HAZARD</option><option>ITEM</option><option>EFFECT</option></select></label>
+        <label><span>TEMPLATE CARD</span><input @bind="spawn.TemplateCardId" /></label>
+        <label><span>TOKEN ASSET</span><input @bind="spawn.TokenAssetId" /></label>
+        <label><span>CHARACTER/NPC CARD</span><input @bind="spawn.CharacterCardId" /></label>
+        <label><span>QTY</span><input type="number" min="1" @bind="spawn.Quantity" /></label>
+        <label class="check"><input type="checkbox" @bind="spawn.Persistent" /><span>PERSISTENT</span></label>
+        <button type="button" class="danger" @onclick="()=>RemoveSpawn(spawn.SpawnDefinitionId)">REMOVE SPAWN</button>
+       </div>
+      }
+      <button type="button" @onclick="AddSpawn">+ SPAWN</button>
+     </section>
+    }
+   </main>
+  }
+ </div>
+</div>
+
+<style>
+ .power-workspace{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:#050a0e;color:#e6ddc9;font-family:Inter,system-ui,-apple-system,sans-serif}.power-header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid #745f32;background:linear-gradient(90deg,#08131a,#161109)}.power-header small{color:#7ca4b6;font-size:7px;font-weight:900;letter-spacing:.12em}.power-header h2{margin:2px 0;color:#efd38f;font:600 19px Georgia,serif}.power-header p{margin:2px 0;color:#9aabb2;font-size:9px}.power-actions{display:flex;gap:6px}.power-actions button,.power-form button{min-height:34px;border:1px solid #5c7079;border-radius:7px;background:#0d1920;color:#eadbb6;padding:0 9px;font:900 8px system-ui}.power-layout{min-height:0;display:grid;grid-template-columns:225px minmax(0,1fr)}.power-list{min-height:0;overflow:auto;padding:9px;border-right:1px solid #344952;background:#081117;display:grid;align-content:start;gap:6px}.power-list>strong,.power-system>strong{color:#d7bd78;font:900 8px system-ui;letter-spacing:.1em}.power-list>button{min-height:46px;padding:6px 7px;border:1px solid #344a54;border-radius:7px;background:#0b171e;color:#dce2dd;display:grid;text-align:left}.power-list>button.selected{border-color:#c9a652;background:#1c190e}.power-list button b{font-size:9px}.power-list button small{color:#80949d;font-size:7px}.power-system{display:grid;gap:6px;margin-bottom:10px;padding:8px;border:1px solid #5c5031;border-radius:8px;background:#11140d}.power-system label,.power-form label{display:grid;gap:3px}.power-system label span,.power-form label span{color:#8399a3;font:900 6px system-ui;letter-spacing:.08em}.power-system input,.power-form input,.power-form select{box-sizing:border-box;width:100%;min-height:32px;border:1px solid #4d616a;border-radius:6px;background:#0b161c;color:#eadfbd;padding:4px 6px;font:800 8px system-ui}.power-family-add{display:grid;grid-template-columns:1fr 32px;gap:4px}.power-family-add button,.power-family-tags button{border:1px solid #566d66;border-radius:5px;background:#0c1815;color:#cfe6d9}.power-family-tags{display:flex;flex-wrap:wrap;gap:4px}.power-family-tags button{min-height:25px;font-size:7px}.power-editor{min-width:0;min-height:0;display:grid;grid-template-columns:minmax(220px,34%) minmax(0,1fr);overflow:hidden}.power-card-preview{margin:14px;align-self:start;box-sizing:border-box;aspect-ratio:2.5/3.5;padding:14px;border:2px solid #aa8844;border-radius:16px;background:linear-gradient(150deg,#162733,#0c151b 64%,#18120a);box-shadow:0 20px 50px #000a;display:grid;align-content:start;gap:8px}.power-card-preview>small{color:#83a5b4;font:900 7px system-ui;letter-spacing:.12em}.power-card-preview h3{margin:0;color:#f1d797;font:600 22px Georgia,serif}.power-card-preview p{margin:0;color:#a7b4b8;font-size:9px}.power-card-preview dl{display:grid;gap:6px;margin:8px 0}.power-card-preview dl div{display:grid;grid-template-columns:70px 1fr;gap:6px}.power-card-preview dt{color:#829aa5;font:900 6px system-ui}.power-card-preview dd{margin:0;color:#e6dcc1;font-size:8px}.power-card-preview button{margin-top:auto;min-height:38px;border:1px solid #b08c45;border-radius:8px;background:#211a0c;color:#ffe19d;font-weight:900}.power-use-status{color:#a9d8c1!important}.power-form{min-height:0;overflow:auto;padding:12px;border-left:1px solid #2e424a;background:#081117}.power-form h3{margin:9px 0 6px;color:#d7bc75;font:900 8px system-ui;letter-spacing:.1em}.power-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.power-form label.check{display:flex;align-items:center;gap:6px;align-self:end;min-height:32px}.power-form label.check input{width:16px;height:16px;min-height:0}.power-effect,.power-spawn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:7px;padding:8px;border:1px solid #3c515a;border-radius:8px;background:#0a151b}.power-form button.danger{border-color:#744b42;color:#e4b3a7;background:#1a100e}
+ @@media(max-width:760px){.power-header p{display:none}.power-layout{grid-template-columns:105px minmax(0,1fr)}.power-system{display:none}.power-list{padding:5px}.power-list>button small{display:none}.power-editor{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.power-card-preview{width:min(72vw,300px);margin:8px auto;max-height:34dvh;aspect-ratio:auto}.power-card-preview dl{display:none}.power-form{border-left:0;border-top:1px solid #2e424a;padding:7px}.power-grid,.power-effect,.power-spawn{grid-template-columns:1fr 1fr}}
+</style>
+
+@code {
+ readonly List<PowerCardDraft> _cards=[];
+ readonly List<JoinRule> _joins=[];
+ PowerSystemConfig _config=new();
+ string _selectedId="",_newFamily="",_lastUse="";
+ bool _loaded,_saved;
+
+ bool IsGameMaster=>string.Equals(Session.Role,"GM",StringComparison.OrdinalIgnoreCase);
+ string ConfigKey=>$"rist.power-system.v1.{Session.WorldId}";
+ string CardsKey=>$"rist.power-definitions.v1.{Session.WorldId}";
+ string RequirementsKey=>$"rist.character-card-requirements.v1.{Session.WorldId}";
+ PowerCardDraft? Selected=>_cards.FirstOrDefault(x=>x.Id==_selectedId);
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_loaded)return;_loaded=true;
+  await LoadAsync();
+  if(_cards.Count==0)NewPower();
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task LoadAsync()
+ {
+  try{
+   var configRaw=await JS.InvokeAsync<string?>("localStorage.getItem",ConfigKey);
+   if(!string.IsNullOrWhiteSpace(configRaw))_config=JsonSerializer.Deserialize<PowerSystemConfig>(configRaw)??new();
+   var cardsRaw=await JS.InvokeAsync<string?>("localStorage.getItem",CardsKey);
+   if(!string.IsNullOrWhiteSpace(cardsRaw)){var cards=JsonSerializer.Deserialize<List<PowerCardDraft>>(cardsRaw);if(cards is not null)_cards.AddRange(cards);}
+   var joinsRaw=await JS.InvokeAsync<string?>("localStorage.getItem",RequirementsKey);
+   if(!string.IsNullOrWhiteSpace(joinsRaw)){var joins=JsonSerializer.Deserialize<List<JoinRule>>(joinsRaw);if(joins is not null)_joins.AddRange(joins.Where(x=>!string.IsNullOrWhiteSpace(x.SharedJoin)));}
+  }catch{}
+  _selectedId=_cards.FirstOrDefault()?.Id??"";
+ }
+
+ void NewPower()
+ {
+  if(!IsGameMaster&&_cards.Count>0)return;
+  var card=new PowerCardDraft{Name=$"Power {_cards.Count+1}"};
+  card.Power.Family=_config.Families.FirstOrDefault()??"Magic";
+  card.Behavior.Power=card.Power;
+  card.Behavior.Effects.Add(new());
+  _cards.Add(card);_selectedId=card.Id;_saved=false;
+ }
+ void Select(string id){_selectedId=id;}
+ void AddFamily(){var value=(_newFamily??"").Trim();if(value.Length==0)return;if(!_config.Families.Contains(value,StringComparer.OrdinalIgnoreCase))_config.Families.Add(value);_newFamily="";_saved=false;}
+ void RemoveFamily(string value){if(_config.Families.Count<=1)return;_config.Families.RemoveAll(x=>string.Equals(x,value,StringComparison.OrdinalIgnoreCase));foreach(var card in _cards.Where(x=>string.Equals(x.Power.Family,value,StringComparison.OrdinalIgnoreCase)))card.Power.Family=_config.Families[0];_saved=false;}
+ void AddEffect(){if(Selected is { } card)card.Behavior.Effects.Add(new());_saved=false;}
+ void RemoveEffect(string id){if(Selected is { } card&&card.Behavior.Effects.Count>1)card.Behavior.Effects.RemoveAll(x=>x.EffectDefinitionId==id);_saved=false;}
+ void AddSpawn(){if(Selected is { } card)card.Behavior.Spawns.Add(new());_saved=false;}
+ void RemoveSpawn(string id){if(Selected is { } card)card.Behavior.Spawns.RemoveAll(x=>x.SpawnDefinitionId==id);_saved=false;}
+
+ void UseSelected()
+ {
+  if(Selected is not { } card)return;
+  var targeting=card.Behavior.Targeting;
+  _lastUse=targeting.Selector switch{
+   "SELF"=>"Ready to resolve on self.",
+   "AREA" or "POINT" or "PATH"=>$"Ready for {targeting.Geometry} placement in the active Instance.",
+   _=>$"Ready to select {targeting.Selector.ToLowerInvariant()} target(s)."
+  };
+ }
+
+ async Task SaveAsync()
+ {
+  try{
+   foreach(var card in _cards)card.Behavior.Power=card.Power;
+   if(IsGameMaster)await JS.InvokeVoidAsync("localStorage.setItem",ConfigKey,JsonSerializer.Serialize(_config));
+   await JS.InvokeVoidAsync("localStorage.setItem",CardsKey,JsonSerializer.Serialize(_cards));
+   _saved=true;
+  }catch{_saved=false;}
+ }
+
+ sealed class PowerSystemConfig{
+  public string SectionName{get;set;}="POWERS";
+  public string SourceLabel{get;set;}="SOURCE";
+  public string FamilyLabel{get;set;}="FAMILY";
+  public string ResourceLabel{get;set;}="RESOURCE";
+  public string CostLabel{get;set;}="COST";
+  public List<string> Families{get;set;}=["Magic","Divine","Psionic","Technique","Technology","Other"];
+ }
+ sealed class PowerCardDraft{
+  public string Id{get;set;}=Guid.NewGuid().ToString("N");
+  public string Name{get;set;}="Power";
+  public RistCardBehavior Behavior{get;set;}=new();
+  public RistPowerDefinition Power{get;set;}=new();
+ }
+ sealed class JoinRule{
+  public string Name{get;set;}="";
+  public string SharedJoin{get;set;}="";
+  public string Kind{get;set;}="";
+ }
+}
