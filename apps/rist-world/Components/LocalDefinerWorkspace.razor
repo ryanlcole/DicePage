@@ -50,7 +50,7 @@
    var maxHeight=activeWorld?.MaxHeight>0
     ?activeWorld.MaxHeight
     :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-object-2";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-anchor-v3";
   }
  }
 
@@ -65,7 +65,7 @@
   }
   catch{}
 
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-object-2");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-anchor-v3");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -196,11 +196,11 @@
 
   var state=System.Text.Json.JsonSerializer.SerializeToElement(new
   {
-   format="RIST_LOCAL_MAP_V1",
+   format="RIST_LOCAL_MAP_V2",
    worldId=Session.WorldId,
    regionId=local.RegionId,
    localId=local.LocalId,
-   coordinateSpace="canonical-world-xy+hierarchical-depth-v1",
+   coordinateSpace="local-anchor-normalized-v2",
    anchor=new
    {
     id=local.AnchorObjectId,
@@ -215,7 +215,19 @@
     worldLayer=local.WorldLayer,
     regionTier=local.RegionTier,
     regionLayer=local.RegionLayer,
-    rotation=local.Rotation
+    rotation=local.Rotation,
+    coordinateSpace="region-parent-anchor-v1"
+   },
+   hierarchy=new
+   {
+    worldTier=local.WorldTier,
+    worldLayer=local.WorldLayer,
+    regionTier=local.RegionTier,
+    regionLayer=local.RegionLayer,
+    localTier=local.LocalTier,
+    localLayer=local.LocalLayer,
+    instanceTier=local.InstanceTier,
+    instanceLayer=local.InstanceLayer
    },
    userLayers
   });
