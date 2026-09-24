@@ -81,6 +81,39 @@ class RegionProjectionTests(unittest.TestCase):
         self.assertEqual(result["userLayers"][0]["z100"], 201)
         self.assertEqual(result["userLayers"][0]["parallaxMode"], "anchored")
 
+    def test_regionmap_child_state_overrides_legacy_parent_overlay(self):
+        child = {
+            "format": "RIST_REGION_MAP_V1",
+            "worldId": "world-a",
+            "regionId": "region-a",
+            "userLayers": [{
+                "id": "child-city",
+                "regionId": "region-a",
+                "tier": 1,
+                "worldLayer": 3,
+                "layer": 3,
+                "regionLayer": 2,
+                "z100": 302,
+                "x": 1.5 / 30,
+                "y": 1.5 / 30,
+                "kind": "image",
+                "originalSrc": "child.webp",
+            }],
+        }
+        result = project("world-a", "region-a", self.deed, self.world, child)
+        self.assertEqual([x["id"] for x in result["userLayers"]], ["child-city"])
+        self.assertEqual(result["userLayers"][0]["z100"], 302)
+
+    def test_existing_empty_regionmap_clears_legacy_parent_overlay(self):
+        child = {
+            "format": "RIST_REGION_MAP_V1",
+            "worldId": "world-a",
+            "regionId": "region-a",
+            "userLayers": [],
+        }
+        result = project("world-a", "region-a", self.deed, self.world, child)
+        self.assertEqual(result["userLayers"], [])
+
     def test_region_z_is_exact_hundredth_above_world_z(self):
         self.assertEqual(region_z100(0, 1), 1)
         self.assertEqual(region_z100(0, 9), 9)
