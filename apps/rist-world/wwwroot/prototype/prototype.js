@@ -628,7 +628,7 @@ async function attachRestoredLayer(raw,options={}){
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:String(freshPersonalSrc||raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
-    spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
+    spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?clamp(Number(raw.spriteFps)||6,1,60):null,
     spriteSourceWidth:Number(raw.spriteSourceWidth)||null,spriteSourceHeight:Number(raw.spriteSourceHeight)||null,spriteCropX:Number(raw.spriteCropX)||0,spriteCropY:Number(raw.spriteCropY)||0,
     spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,
     frameSources,currentFrame:0,playing:false,
@@ -1655,7 +1655,6 @@ function typedPlacedContentSelect(mode){
 function appendCommonAssetEditControls(mode,item){
   if(!item||!assetModeMatches(item,mode)||isWorldMapItem(item))return;
   keyboardKeys.append(
-    typedPlacedContentSelect(mode),
     toolKey('SIZE −',`${selectedSizeValue(item).toFixed(2)}×`,()=>adjustSelectedSize(-1),selectedSizeValue(item)<=.05),
     toolKey('SIZE +',`${selectedSizeValue(item).toFixed(2)}×`,()=>adjustSelectedSize(1),selectedSizeValue(item)>=20),
     sizeNumberInput(item),sizeRangeInput(item),
@@ -3634,7 +3633,7 @@ async function placeSpriteDefinition(definition){
   const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
   const item={
     id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
-    spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:Math.max(1,Number(definition.fps)||6),
+    spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:clamp(Number(definition.fps)||6,1,60),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
     spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,spriteMotionOnly:definition.motionOnly===true,
     frameSources:[firstFrame],currentFrame:0,playing:false,spriteReady:false,originalSrc:firstFrame,transparentSrc:firstFrame,transparent:true,
@@ -3643,7 +3642,7 @@ async function placeSpriteDefinition(definition){
   const node=document.createElement('img');node.className='user-image-placement sprite-placement';node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);mountUserPlacement(item);void primeCollisionMask(firstFrame);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
-  keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   announce(`${item.name} placed using frame 1. It stays above the map while positioning; Save commits it to Tier ${selectedPositionSummary(item).tier}, Layer ${selectedPositionSummary(item).layer} and begins motion.`);
 
   item.spriteReadyPromise=extractSpriteFrames(definition.sheetSrc,extractOptions).then(frames=>{
@@ -3678,7 +3677,7 @@ async function placeUploadedSprite(file){
       }).catch(error=>{announce(`${item.name} is placed, but My Sprites could not save it: ${String(error?.message||error)}`);return null})
     );
     closeSpriteUpload(false);
-    keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
+    keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
   }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
 }
 async function placeLibrarySprite(asset){
