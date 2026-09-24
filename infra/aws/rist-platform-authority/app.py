@@ -63,6 +63,15 @@ COMMERCE_INVITES_PK = "COMMERCE#INVITES"
 COMMERCE_INVITE_SK_PREFIX = "INVITE#"
 COMMERCE_INVITE_MAX_DAYS = 3650
 COMMERCE_INVITE_MAX_TOKENS = 5
+
+# Campaign collaboration directory. Codes connect two authenticated identities
+# without credential sharing. The resulting linked user IDs may then be used by
+# recursive permission pickers for worlds, assets, cards, regions, locals, etc.
+COLLAB_INVITES_PK = "COLLAB#INVITES"
+COLLAB_INVITE_SK_PREFIX = "INVITE#"
+COLLAB_CONNECTION_SK_PREFIX = "CONNECTION#"
+COLLAB_INVITE_TTL_SECONDS = 7 * 24 * 60 * 60
+
 COMMERCE_PLANS = {
     "dedicated-roleplayer": {
         "displayName": "Dedicated Roleplayer",
@@ -773,6 +782,56 @@ def commerce_summary(user_id, profile=None):
     }
 
 
+def collaboration_invite_key(invite_id):
+    return {
+        "pk": COLLAB_INVITES_PK,
+        "sk": COLLAB_INVITE_SK_PREFIX + safe_id(invite_id, "inviteId"),
+    }
+
+
+def collaboration_connection_key(user_id, linked_user_id):
+    return {
+        "pk": "USER#" + safe_id(user_id, "userId"),
+        "sk": COLLAB_CONNECTION_SK_PREFIX + safe_id(linked_user_id, "linkedUserId"),
+    }
+
+
+def parse_collaboration_code(code):
+    code = str(code or "").strip()
+    parts = code.split("_")
+    if len(parts) != 3 or parts[0] != "rcc":
+        raise ValueError("Invalid connection code")
+    invite_id = safe_id(parts[1], "inviteId")
+    if len(parts[2]) < 24:
+        raise ValueError("Invalid connection code")
+    return invite_id, code
+
+
+def user_directory_label(user_id):
+    profile = users.get_item(
+        Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
+        ConsistentRead=True,
+    ).get("Item") or {}
+    return str(
+        profile.get("playerAlias")
+        or profile.get("displayName")
+        or profile.get("profileAlias")
+        or "Connected player"
+    )[:80]
+
+
+def public_collaboration_connection(item):
+    if not item:
+        return None
+    return {
+        "connectionId": str(item.get("connectionId") or ""),
+        "linkedUserId": str(item.get("linkedUserId") or ""),
+        "displayName": str(item.get("displayName") or "Connected player"),
+        "connectedAtUtc": str(item.get("connectedAtUtc") or ""),
+        "defaultAssetPermission": "Waiting for GM",
+    }
+
+
 def commerce_invite_key(invite_id):
     return {
         "pk": COMMERCE_INVITES_PK,
@@ -1196,6 +1255,232 @@ def handler(event, context):
             },
         )
 
+
+    if method == "GET" and path == "/authority/connections":
+        result = users.query(
+            KeyConditionExpression=Key("pk").eq("USER#" + user_id)
+            & Key("sk").begins_with(COLLAB_CONNECTION_SK_PREFIX),
+            ScanIndexForward=True,
+            Limit=250,
+        )
+        connections = [
+            public_collaboration_connection(item)
+            for item in result.get("Items", [])
+            if not str(item.get("revokedAtUtc") or "")
+        ]
+        return response(200, connections)
+
+    if method == "POST" and path == "/authority/connections/invites":
+        req = body(event)
+        invite_id = uuid.uuid4().hex[:16]
+        code = f"rcc_{invite_id}_{secrets.token_hex(18)}"
+        expires_at = now + COLLAB_INVITE_TTL_SECONDS
+        item = {
+            **collaboration_invite_key(invite_id),
+            "inviteId": invite_id,
+            "codeHash": hashlib.sha256(code.encode()).hexdigest(),
+            "createdByUserId": user_id,
+            "createdByDisplayName": user_directory_label(user_id),
+            "label": str(req.get("label") or "")[:120],
+            "createdAtUtc": utc_stamp(),
+            "createdAtEpoch": now,
+            "expiresAtEpoch": expires_at,
+            "redeemedAtUtc": "",
+            "redeemedByUserId": "",
+            "revokedAtUtc": "",
+        }
+        users.put_item(
+            Item=item,
+            ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+        )
+        audit_write(
+            "connections",
+            user_id,
+            "connection.invite.create",
+            invite_id,
+            {"expiresAtEpoch": expires_at},
+        )
+        return response(
+            200,
+            {
+                "inviteId": invite_id,
+                "code": code,
+                "expiresAtEpoch": expires_at,
+                "createdAtUtc": item["createdAtUtc"],
+            },
+        )
+
+    if method == "POST" and path == "/authority/connections/redeem":
+        req = body(event)
+        try:
+            invite_id, code = parse_collaboration_code(req.get("code"))
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+        key = collaboration_invite_key(invite_id)
+        invite = users.get_item(Key=key, ConsistentRead=True).get("Item")
+        if not invite or not secrets.compare_digest(
+            str(invite.get("codeHash") or ""),
+            hashlib.sha256(code.encode()).hexdigest(),
+        ):
+            return response(404, {"error": "Connection code is not recognized"})
+        creator = str(invite.get("createdByUserId") or "")
+        if not creator:
+            return response(409, {"error": "Connection code has no valid creator"})
+        if creator == user_id:
+            return response(409, {"error": "You cannot connect an account to itself"})
+        if str(invite.get("revokedAtUtc") or ""):
+            return response(409, {"error": "This connection code has been revoked"})
+        expiry = int(invite.get("expiresAtEpoch") or 0)
+        if expiry and expiry <= now:
+            return response(409, {"error": "This connection code has expired"})
+        redeemed_by = str(invite.get("redeemedByUserId") or "")
+        if redeemed_by:
+            if redeemed_by == user_id:
+                existing = users.get_item(
+                    Key=collaboration_connection_key(user_id, creator),
+                    ConsistentRead=True,
+                ).get("Item")
+                return response(
+                    200,
+                    {
+                        "ok": True,
+                        "alreadyConnected": True,
+                        "connection": public_collaboration_connection(existing),
+                    },
+                )
+            return response(409, {"error": "This connection code has already been used"})
+
+        connection_id = "conn_" + hashlib.sha256(
+            "|".join(sorted([creator, user_id])).encode()
+        ).hexdigest()[:24]
+        stamp = utc_stamp()
+        creator_label = str(invite.get("createdByDisplayName") or user_directory_label(creator))[:80]
+        redeemer_label = user_directory_label(user_id)
+        creator_item = {
+            **collaboration_connection_key(creator, user_id),
+            "connectionId": connection_id,
+            "linkedUserId": user_id,
+            "displayName": redeemer_label,
+            "connectedAtUtc": stamp,
+            "revokedAtUtc": "",
+        }
+        redeemer_item = {
+            **collaboration_connection_key(user_id, creator),
+            "connectionId": connection_id,
+            "linkedUserId": creator,
+            "displayName": creator_label,
+            "connectedAtUtc": stamp,
+            "revokedAtUtc": "",
+        }
+        try:
+            ddb.meta.client.transact_write_items(
+                TransactItems=[
+                    {
+                        "Update": {
+                            "TableName": users.name,
+                            "Key": key,
+                            "UpdateExpression": "SET redeemedAtUtc = :stamp, redeemedByUserId = :uid",
+                            "ConditionExpression": (
+                                "(attribute_not_exists(redeemedByUserId) OR redeemedByUserId = :empty) "
+                                "AND (attribute_not_exists(revokedAtUtc) OR revokedAtUtc = :empty) "
+                                "AND expiresAtEpoch > :now"
+                            ),
+                            "ExpressionAttributeValues": {
+                                ":stamp": stamp,
+                                ":uid": user_id,
+                                ":empty": "",
+                                ":now": now,
+                            },
+                        }
+                    },
+                    {
+                        "Put": {
+                            "TableName": users.name,
+                            "Item": dynamo_safe(creator_item),
+                        }
+                    },
+                    {
+                        "Put": {
+                            "TableName": users.name,
+                            "Item": dynamo_safe(redeemer_item),
+                        }
+                    },
+                ]
+            )
+        except ClientError as exc:
+            if (exc.response.get("Error") or {}).get("Code") in (
+                "TransactionCanceledException",
+                "ConditionalCheckFailedException",
+            ):
+                return response(409, {"error": "Connection code changed before redemption completed"})
+            raise
+
+        notify_user(
+            creator,
+            "connection.created",
+            "connections",
+            {
+                "connectionId": connection_id,
+                "linkedUserId": user_id,
+                "displayName": redeemer_label,
+            },
+        )
+        audit_write(
+            "connections",
+            user_id,
+            "connection.redeem",
+            connection_id,
+            {"creatorUserId": creator},
+        )
+        return response(
+            200,
+            {
+                "ok": True,
+                "alreadyConnected": False,
+                "connection": public_collaboration_connection(redeemer_item),
+            },
+        )
+
+    if method == "POST" and path == "/authority/connections/revoke":
+        req = body(event)
+        try:
+            linked_user_id = safe_id(req.get("linkedUserId"), "linkedUserId")
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+        own_key = collaboration_connection_key(user_id, linked_user_id)
+        own = users.get_item(Key=own_key, ConsistentRead=True).get("Item")
+        if not own:
+            return response(404, {"error": "Connection not found"})
+        peer_key = collaboration_connection_key(linked_user_id, user_id)
+        stamp = utc_stamp()
+        ddb.meta.client.transact_write_items(
+            TransactItems=[
+                {
+                    "Update": {
+                        "TableName": users.name,
+                        "Key": own_key,
+                        "UpdateExpression": "SET revokedAtUtc = :stamp, revokedByUserId = :actor",
+                        "ExpressionAttributeValues": {":stamp": stamp, ":actor": user_id},
+                    }
+                },
+                {
+                    "Update": {
+                        "TableName": users.name,
+                        "Key": peer_key,
+                        "UpdateExpression": "SET revokedAtUtc = :stamp, revokedByUserId = :actor",
+                        "ExpressionAttributeValues": {":stamp": stamp, ":actor": user_id},
+                    }
+                },
+            ]
+        )
+        audit_write(
+            "connections",
+            user_id,
+            "connection.revoke",
+            str(own.get("connectionId") or ""),
+            {"linkedUserId": linked_user_id},
+        )
+        return response(200, {"ok": True})
 
     if method == "GET" and path == "/authority/commerce":
         profile = users.get_item(
