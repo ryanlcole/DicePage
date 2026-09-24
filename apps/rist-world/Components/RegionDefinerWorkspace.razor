@@ -86,7 +86,7 @@
 
   // Attach the canonical-map bridge before loading region/claim metadata.
   // Viewer rendering must never wait on permission metadata or MMO claim refresh.
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-asset-tools-1");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-asset-tools-2");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
