@@ -3446,8 +3446,15 @@ async function handleRegionHostMessage(event){
     localCreatePending=false;
     const local=data.local||{};
     if(local?.id)localCatalog=[...localCatalog.filter(item=>String(item?.id||'')!==String(local.id)),local];
-    renderKeyboardKeys();
-    announce(`${local.name||'Local'} created from ${local.anchorName||selectedImage?.name||'the selected object'}. Local representation is 30 degrees.`);
+    await enterLocalBuild(local,data.localSource||null);
+    return;
+  }
+  if(data.type==='local-opened'){
+    localCreatePending=false;
+    const localId=String(data.localId||'');
+    const local=localCatalog.find(item=>String(item?.id||'')===localId);
+    if(local)await enterLocalBuild(local,data.localSource||null);
+    else{renderKeyboardKeys();announce('The selected Local could not be matched to the Region catalog.');}
     return;
   }
   if(data.type==='catalog'){
@@ -3476,6 +3483,30 @@ async function handleRegionHostMessage(event){
     keyboardMode='Viewer';renderKeyboardTabs();renderKeyboardKeys();
     if(keyboard.hidden)openKeyboard();
     announce(`${savedName} claimed. Region editing is open with only the deed footprint visible; the underlying canonical world map remains unchanged.`);return;
+  }
+  if(data.type==='map-local-saved'||data.type==='map-local-save-error'){
+    const requestId=String(data.requestId||''),waiter=localMapSaveWaiters.get(requestId);
+    if(!waiter)return;
+    clearTimeout(waiter.timeout);localMapSaveWaiters.delete(requestId);
+    if(data.type==='map-local-saved'&&data.result?.success!==false){
+      const persisted=new Set((Array.isArray(data.persistedIds)?data.persistedIds:[]).map(String));
+      const missing=(waiter.expectedIds||[]).filter(id=>!persisted.has(String(id)));
+      const readbackLocalId=String(data.localId||data.result?.localId||'');
+      const sameLocal=!readbackLocalId||readbackLocalId===String(waiter.localId||'');
+      const countMatches=persisted.size===Number(waiter.expectedCount||0);
+      if(data.verified===true&&sameLocal&&countMatches&&!missing.length){
+        waiter.resolve({verified:true,result:data.result,persistedIds:[...persisted]});
+      }else{
+        waiter.reject(new Error(missing.length
+          ?`Local database verification is missing ${missing.length} saved object${missing.length===1?'':'s'}.`
+          :!sameLocal
+            ?'Local database readback returned a different Local.'
+            :!countMatches
+              ?'Local database verification count did not match the saved payload.'
+              :'Local database readback could not verify the saved objects.'));
+      }
+    }else waiter.reject(new Error(String(data.message||'Local map database save failed.')));
+    return;
   }
   if(data.type==='map-region-saved'||data.type==='map-region-save-error'){
     const requestId=String(data.requestId||''),waiter=regionMapSaveWaiters.get(requestId);
