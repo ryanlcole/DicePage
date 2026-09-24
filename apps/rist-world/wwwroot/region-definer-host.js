@@ -87,10 +87,15 @@ export function attach(frame,dotnet){
           : Array.from({length:10},(_,index)=>index);
         const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
         const region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
-        post(frame,{type:"region-created",region});
-        // Switch from parent-world preview to the server-projected child source.
-        const regionSource=await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",String(region?.id||""));
-        post(frame,{type:"world-source",worldSource:regionSource});
+        // The deed and its projected child source are handed back together so
+        // the claim screen becomes the editor immediately instead of requiring
+        // the user to leave and reopen RegionDefiner.
+        let regionSource=null;
+        try{
+          regionSource=await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",String(region?.id||""));
+        }catch{}
+        post(frame,{type:"region-created",region,worldSource:regionSource});
+        if(!regionSource)post(frame,{type:"map-load-error",message:"The deed was saved, but its regional source could not be loaded yet."});
         return;
       }
       if(data.type==="save-map-region"){
