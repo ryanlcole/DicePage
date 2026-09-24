@@ -1411,6 +1411,8 @@ function applySelectedSize(item,value,{announceChange=false}={}){
   return true;
 }
 function sizeNumberInput(item){
+  const field=document.createElement('label');field.className='asset-size-field';
+  const caption=document.createElement('span');caption.textContent=item.kind==='label'?'FONT PX':'SIZE ×';
   const input=document.createElement('input');
   input.type='number';input.className='asset-size-number';
   input.min=item.kind==='label'?'12':'0.05';
@@ -1421,9 +1423,11 @@ function sizeNumberInput(item){
   const commit=()=>{if(applySelectedSize(item,input.value,{announceChange:true})){input.value=item.kind==='label'?String(Math.round(selectedSizeValue(item))):selectedSizeValue(item).toFixed(2)}};
   input.addEventListener('change',commit);
   input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();commit();input.blur()}});
-  return input;
+  field.append(caption,input);return field;
 }
 function sizeRangeInput(item){
+  const field=document.createElement('label');field.className='asset-size-range-field';
+  const caption=document.createElement('span');caption.textContent='FINE SIZE';
   const input=document.createElement('input');
   input.type='range';input.className='asset-size-range';
   input.min=item.kind==='label'?'12':'0.05';
@@ -1433,7 +1437,7 @@ function sizeRangeInput(item){
   input.setAttribute('aria-label',item.kind==='label'?'Fine label size':'Fine asset size');
   input.addEventListener('input',()=>applySelectedSize(item,input.value));
   input.addEventListener('change',()=>applySelectedSize(item,input.value,{announceChange:true}));
-  return input;
+  field.append(caption,input);return field;
 }
 function removeAssetResizeOverlay(){
   assetResizeDrag=null;
