@@ -96,6 +96,16 @@ Do not use `eval`, dynamic arbitrary source execution, or obscurity as security.
 
 The language may be public; authority determines what it is allowed to do.
 
+## Recursive spatial representation discovery
+
+Before changing WorldBuilder, RegionDefiner, Local staging, Instance Builder, recursive zoom, map perspective, nested Z/depth addressing, object-to-Local anchoring, or spatial streaming, read:
+
+1. `apps/rist-world/RECURSIVE_ZOOM_CONTRACT.md` — governing World 0° → Region 15° → Local 30° → separate Instance 45° representation contract.
+2. `apps/rist-world/REGION_DEFINER_CONTRACT.md` — claimed Region source, exact Z, immutable parent terrain, and Region editing rules.
+3. `apps/rist-world/AUTHORITY_SYSTEM.md` — recursive authority and perception constraints.
+
+World/Region/Local are representations of one canonical outdoor ancestry; do not create unrelated duplicate map truth. A Local is anchored to a selected placed Region object rather than claiming arbitrary World cells. Instance is a separate scalable interior/spatial representation anchored back to its parent object.
+
 ## Card / effect engine discovery
 
 Before changing card execution, Powers/Magic, feats, buffs, conditions, equipment effects, targeting, spatial effect geometry, summons/spawns, encounter joins, or effect perception, read:
