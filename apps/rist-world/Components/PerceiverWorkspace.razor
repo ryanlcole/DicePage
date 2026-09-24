@@ -74,8 +74,11 @@
    <label class="wide"><span>FINE SIZE</span><input data-perceiver-sprite-size-range type="range" min="0.05" max="8" step="0.01" value="1" /></label>
    <label><span>X %</span><input data-perceiver-sprite-x type="number" min="-100" max="100" step="0.1" inputmode="decimal" value="0" /></label>
    <label><span>Y %</span><input data-perceiver-sprite-y type="number" min="-100" max="100" step="0.1" inputmode="decimal" value="0" /></label>
+   <label><span>DEPTH %</span><input data-perceiver-sprite-depth type="number" min="0" max="200" step="1" inputmode="numeric" value="50" /></label>
    <label><span>OPACITY %</span><input data-perceiver-sprite-opacity type="number" min="0" max="100" step="1" inputmode="numeric" value="100" /></label>
    <label><span>FPS</span><input data-perceiver-sprite-fps type="number" min="1" max="60" step="1" inputmode="numeric" value="60" /></label>
+   <label><span>SEPARATION %</span><input data-perceiver-sprite-separation type="number" min="0" max="400" step="5" inputmode="numeric" value="100" /></label>
+   <label class="wide"><span>FINE SEPARATION</span><input data-perceiver-sprite-separation-range type="range" min="0" max="400" step="1" value="100" /></label>
    <button type="button" data-perceiver-sprite-motion-only aria-pressed="false">MOTION ONLY</button>
    <button type="button" data-perceiver-sprite-reset>RESET SPRITE</button>
   </div>
@@ -273,7 +276,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-sprite-editor-2");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-sprite-editor-3");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
