@@ -367,3 +367,18 @@ def test_perceiver_sprite_editor_is_local_precise_and_motion_aware():
     assert "1000 / 60" in player
     assert "root.addEventListener('contextmenu'" in player
     assert "sprite-editor-3" in workspace
+
+
+def test_perceiver_sprite_depth_and_separation_are_user_adjustable():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    assert "data-perceiver-sprite-depth" in workspace
+    assert "data-perceiver-sprite-separation" in workspace
+    assert "data-perceiver-sprite-separation-range" in workspace
+    assert "spriteDepthInput" in player
+    assert "spriteSeparationInput" in player
+    assert "spriteSeparationRange" in player
+    assert "spriteDefaultDepths" in player
+    assert "spriteSeparation: 1" in player
+    assert "0.5 + (rawDepth - 0.5) * state.spriteSeparation" in player
