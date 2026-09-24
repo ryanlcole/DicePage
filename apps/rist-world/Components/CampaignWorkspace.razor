@@ -15,12 +15,12 @@
  </header>
 
  <nav class="campaign-tabs" aria-label="Campaign sections">
-  <button type="button" class="@TabClass("story")" @onclick="()=>_tab="story"">STORY ARC</button>
-  <button type="button" class="@TabClass("sessions")" @onclick="()=>_tab="sessions"">SESSIONS</button>
-  <button type="button" class="@TabClass("scenes")" @onclick="()=>_tab="scenes"">SCENES</button>
-  <button type="button" class="@TabClass("actors")" @onclick="()=>_tab="actors"">ACTORS</button>
-  <button type="button" class="@TabClass("connections") conspirators" @onclick="()=>_tab="connections"">VICTIMS &amp; CO‑CONSPIRATORS</button>
-  <button type="button" class="@TabClass("notes")" @onclick="()=>_tab="notes"">NOTES</button>
+  <button type="button" class="@TabClass("story")" @onclick="OpenStory">STORY ARC</button>
+  <button type="button" class="@TabClass("sessions")" @onclick="OpenSessions">SESSIONS</button>
+  <button type="button" class="@TabClass("scenes")" @onclick="OpenScenes">SCENES</button>
+  <button type="button" class="@TabClass("actors")" @onclick="OpenActors">ACTORS</button>
+  <button type="button" class="@ConnectionTabClass" @onclick="OpenConnections">VICTIMS &amp; CO‑CONSPIRATORS</button>
+  <button type="button" class="@TabClass("notes")" @onclick="OpenNotes">NOTES</button>
  </nav>
 
  @if(_tab=="connections")
@@ -136,6 +136,13 @@
  readonly List<AwsAuthorityClient.CollaborationConnection> _connections=[];
 
  string TabClass(string tab)=>_tab==tab?"active":"";
+ string ConnectionTabClass=>TabClass("connections")+" conspirators";
+ void OpenStory()=>_tab="story";
+ void OpenSessions()=>_tab="sessions";
+ void OpenScenes()=>_tab="scenes";
+ void OpenActors()=>_tab="actors";
+ void OpenConnections()=>_tab="connections";
+ void OpenNotes()=>_tab="notes";
  string TabTitle=>_tab switch{"story"=>"Story Arc","sessions"=>"Sessions","scenes"=>"Scenes","actors"=>"Actors","notes"=>"Notes",_=>"Campaign"};
  string InviteExpiry=>_invite is null?"":DateTimeOffset.FromUnixTimeSeconds(_invite.ExpiresAtEpoch).ToLocalTime().ToString("MMM d, h:mm tt");
  static string Initial(string value)=>string.IsNullOrWhiteSpace(value)?"?":value.Trim()[0].ToString().ToUpperInvariant();
