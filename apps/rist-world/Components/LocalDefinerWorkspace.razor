@@ -50,7 +50,7 @@
    var maxHeight=activeWorld?.MaxHeight>0
     ?activeWorld.MaxHeight
     :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-object-1";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-object-2";
   }
  }
 
@@ -65,7 +65,7 @@
   }
   catch{}
 
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-object-1");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-object-2");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -155,6 +155,72 @@
     rotation=local.Rotation,
     updatedAtUtc=local.UpdatedAtUtc
    }).ToList();
+ }
+
+ [JSInvokable]
+ public async Task<object?> GetLocalSourceForPrototypeAsync(string localId)
+ {
+  localId=(localId??"").Trim();
+  if(localId.Length==0)return null;
+  var local=Session.DefinedLocals.FirstOrDefault(item=>string.Equals(item.LocalId,localId,StringComparison.Ordinal));
+  if(local is null||!string.Equals(local.RegionId,Region?.RegionId,StringComparison.Ordinal))
+   throw new InvalidOperationException("The requested Local does not belong to the active Region.");
+  Session.SetActiveLocal(local.LocalId);
+  var source=await Session.LoadLocalMapAsync(local.LocalId);
+  return new
+  {
+   worldId=Session.WorldId,
+   regionId=local.RegionId,
+   localId=local.LocalId,
+   anchorObjectId=local.AnchorObjectId,
+   state=source?.State,
+   updatedAtUtc=source?.UpdatedAtUtc.ToString("O")??"",
+   source=source is null?"empty":"database"
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveLocalMapLayersFromPrototypeAsync(string localId,System.Text.Json.JsonElement layers)
+ {
+  localId=(localId??"").Trim();
+  var local=Session.DefinedLocals.FirstOrDefault(item=>string.Equals(item.LocalId,localId,StringComparison.Ordinal))
+   ??throw new InvalidOperationException("Choose a Local before saving Local content.");
+  if(!string.Equals(local.RegionId,Region?.RegionId,StringComparison.Ordinal))
+   throw new InvalidOperationException("The Local parent Region does not match the active Region.");
+
+  var userLayers=new List<System.Text.Json.JsonElement>();
+  if(layers.ValueKind==System.Text.Json.JsonValueKind.Array)
+  {
+   foreach(var layer in layers.EnumerateArray())userLayers.Add(layer.Clone());
+  }
+
+  var state=System.Text.Json.JsonSerializer.SerializeToElement(new
+  {
+   format="RIST_LOCAL_MAP_V1",
+   worldId=Session.WorldId,
+   regionId=local.RegionId,
+   localId=local.LocalId,
+   coordinateSpace="canonical-world-xy+hierarchical-depth-v1",
+   anchor=new
+   {
+    id=local.AnchorObjectId,
+    assetId=local.AnchorAssetId,
+    name=local.AnchorName,
+    kind=local.AnchorKind,
+    x=local.X,
+    y=local.Y,
+    width=local.Width,
+    height=local.Height,
+    worldTier=local.WorldTier,
+    worldLayer=local.WorldLayer,
+    regionTier=local.RegionTier,
+    regionLayer=local.RegionLayer,
+    rotation=local.Rotation
+   },
+   userLayers
+  });
+  var saved=await Session.SaveLocalMapAsync(local.LocalId,state);
+  return new{success=true,localId=local.LocalId,savedLayerCount=userLayers.Count,updatedAtUtc=saved.UpdatedAtUtc.ToString("O")};
  }
 
  [JSInvokable]
