@@ -224,7 +224,7 @@ public sealed record WorldLocal(
     // Tier/Layer remain the persisted legacy names for World tier/layer.
     public int WorldTier => Tier;
     public int WorldLayer => Layer;
-    public RistHierarchicalAddress Address => new(
+    public RistHierarchicalAddress Address => new RistHierarchicalAddress(
         WorldTier,
         WorldLayer,
         RegionTier,
