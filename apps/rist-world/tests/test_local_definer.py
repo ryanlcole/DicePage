@@ -202,3 +202,24 @@ def test_local_and_future_instance_depth_participate_in_renderer_order():
     assert "clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100" in player
     assert "Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10" in player
     assert "clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)" in player
+
+
+def test_local_catalog_deduplicates_by_region_anchor_and_supports_guarded_delete():
+    model = read("WorldSession.Locals.cs")
+    gate = read("Components/LocalGate.razor")
+    shell = read("Components/PublicAlphaShell.razor")
+
+    assert "static List<WorldLocal> CanonicalLocals" in model
+    assert '"ANCHOR\\u001f{regionId}\\u001f{anchorId}"' in model
+    assert "CanonicalLocals(catalog.Locals ?? [])" in model
+    assert "var canonical = CanonicalLocals(_locals);" in model
+    assert "public async Task<int> DeleteLocalAsync(WorldLocal local)" in model
+    assert "Region edit authority is required to delete this Local." in model
+    assert "localStorage.removeItem" in model
+
+    assert "OnDelete" in gate
+    assert "DELETE?" in gate
+    assert "Tap DELETE? again" in gate
+    assert "DeleteAsync(WorldLocal local)" in gate
+    assert 'OnDelete="DeleteSavedLocal"' in shell
+    assert "await Session.DeleteLocalAsync(local);" in shell
