@@ -9,9 +9,9 @@
 <div class="character-card-designer" @ref="_root" aria-label="Character Card Designer">
  <header class="ccd-header">
   <div>
-   <small>GAMEMASTER · REQUIRED CHARACTER TEMPLATE</small>
+   <small>@(IsGameMaster?"GAMEMASTER · REQUIRED CHARACTER TEMPLATE":"ROLEPLAY · CHARACTER CARD LAYOUT")</small>
    <h2>CHARACTER CARD DESIGNER</h2>
-   <p>GM fields define the required sheet. Character values remain separate from the card graphic.</p>
+   <p>@(IsGameMaster?"Choose required fields and name them. Players may arrange them, but cannot remove or redefine them.":"Arrange your character cards and optional fields. GM-required fields remain mandatory.")</p>
   </div>
   <div class="ccd-actions">
    <button type="button" @onclick="AddCard">+ CARD</button>
@@ -22,6 +22,29 @@
  <div class="ccd-workspace">
   <aside class="ccd-library" aria-label="Character asset library">
    <strong>CHARACTER ASSETS</strong>
+   @if(IsGameMaster)
+   {
+    <section class="ccd-requirements" aria-label="GameMaster required character fields">
+     <header><b>REQUIRED FIELDS</b><small>CHECK → NAME → PLAYER MUST KEEP</small></header>
+     @foreach(var option in Catalog)
+     {
+      var enabled=IsRequirementEnabled(option);
+      <div class="ccd-requirement-row">
+       <input type="checkbox"
+              checked="@enabled"
+              @onchange="e=>ToggleRequirement(option,e)"
+              aria-label="Require @option.Name" />
+       <span>@FriendlyKind(option.Kind)</span>
+       <input type="text"
+              maxlength="64"
+              disabled="@(!enabled)"
+              value="@RequirementName(option)"
+              @onchange="e=>RenameRequirement(option,e)"
+              aria-label="Required field name for @option.Name" />
+      </div>
+     }
+    </section>
+   }
    <label class="ccd-search">
     <span>SEARCH FOR A FIELD</span>
     <input value="@_search" @oninput="SearchChanged" placeholder="Strength, health, equipment, language…" autocomplete="off" />
@@ -51,7 +74,7 @@
    {
     <section class="ccd-card-canvas" style="@PreviewStyle" data-ccd-card aria-label="@card.Title character card">
      <header class="ccd-card-title">
-      <small>GM REQUIRED CARD · @(_selectedCard+1) / @_cards.Count</small>
+      <small>@(IsGameMaster?"GM TEMPLATE CARD":"CHARACTER CARD") · @(_selectedCard+1) / @_cards.Count</small>
       <input maxlength="48" value="@card.Title" @oninput="RenameCard" aria-label="Card title" />
      </header>
      <div class="ccd-field-surface">
@@ -137,7 +160,7 @@
      @RenderRuntimeEditor(selected)
     </section>
 
-    <button type="button" class="ccd-delete" @onclick="DeleteSelectedField">DELETE FIELD</button>
+    <button type="button" class="ccd-delete" disabled="@IsProtectedRequired(selected)" @onclick="DeleteSelectedField">@(IsProtectedRequired(selected)?"GM REQUIRED · CANNOT DELETE":"DELETE FIELD")</button>
    }
    else
    {
