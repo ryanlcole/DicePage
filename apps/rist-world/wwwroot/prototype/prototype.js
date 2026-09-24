@@ -1248,29 +1248,33 @@ function adjustSelectedSize(direction){
 }
 function moveSelectedTier(delta){
   if(READ_ONLY||!selectedImage)return;
+  const members=linkedSelectionMembers(selectedImage);
   if(LOCAL_DEFINER&&selectedImage.localOverlay){
     const next=Math.max(0,Math.trunc(Number(selectedImage.localTier)||0)+Math.sign(delta));
-    selectedImage.localTier=next;localTierIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer??0}. Local X/Y retained; World projection is derived from the Region anchor.`);return;
+    for(const member of members)member.localTier=next;
+    localTierIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
+    announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer??0}. ${members.length>1?'Linked pieces remain together. ':''}Local X/Y retained; World projection is derived from the Region anchor.`);return;
   }
   if(REGION_DEFINER){
     const next=clamp(regionWorldLayer(selectedImage)+Math.sign(delta),0,9);
-    selectedImage.worldLayer=next;selectedImage.layer=next;selectedImage.z100=regionZ100(next,regionOverlayLayer(selectedImage));
+    for(const member of members){member.worldLayer=next;member.layer=next;member.z100=regionZ100(next,regionOverlayLayer(member))}
     viewerLayer=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
     announce(`World Z ${next}; exact regional Z ${regionZLabel(selectedImage)}.`);return;
   }
   if(isWorldMapItem(selectedImage)){announce('World Map is locked to Sea Level.');return}
-  selectedImage.tier=clamp(selectedImage.tier+delta,0,TIERS.length-1);
-  selectedImage.parallaxMode=selectedImage.tier===itemAnchorTier(selectedImage)?'anchored':'tier';
+  for(const member of members){
+    member.tier=clamp(member.tier+delta,0,TIERS.length-1);
+    member.parallaxMode=member.tier===itemAnchorTier(member)?'anchored':'tier';
+  }
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
-  announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
+  announce(`${members.length>1?'Linked selection':selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function moveSelectedRegionTier(delta){
   if(READ_ONLY||!selectedImage||!REGION_DEFINER)return;
-  if(LOCAL_DEFINER){announce('Region tier is inherited from the selected Local anchor.');return;}
-  const next=Math.max(0,regionOverlayTier(selectedImage)+Math.sign(delta));
-  selectedImage.regionTier=next;
+  if(LOCAL_DEFINER){announce('Region tier is inherited from the selected Local anchor.');return}
+  const members=linkedSelectionMembers(selectedImage),next=Math.max(0,regionOverlayTier(selectedImage)+Math.sign(delta));
+  for(const member of members)member.regionTier=next;
   regionTierIndex=next;
   updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
   announce(`Region Tier ${next}, Layer ${regionOverlayLayer(selectedImage)}.`);
@@ -1278,22 +1282,27 @@ function moveSelectedRegionTier(delta){
 function moveSelectedLayer(delta){
   if(READ_ONLY||!selectedImage)return;
   if(isWorldMapItem(selectedImage)){announce('World Map is the Sea Level base layer.');return}
+  const members=linkedSelectionMembers(selectedImage);
   if(LOCAL_DEFINER&&selectedImage.localOverlay){
     const next=clamp(Math.trunc(Number(selectedImage.localLayer)||0)+Math.sign(delta),0,9);
-    selectedImage.localLayer=next;localLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. Local X/Y retained; World projection is derived from the Region anchor.`);return;
+    for(const member of members)member.localLayer=next;
+    localLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
+    announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. ${members.length>1?'Linked pieces remain together. ':''}Local X/Y retained; World projection is derived from the Region anchor.`);return;
   }
   if(REGION_DEFINER){
     const next=clamp(regionOverlayLayer(selectedImage)+Math.sign(delta),1,9);
-    selectedImage.regionLayer=next;selectedImage.z100=regionZ100(regionWorldLayer(selectedImage),next);
+    for(const member of members){member.regionLayer=next;member.z100=regionZ100(regionWorldLayer(member),next)}
     regionLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
     announce(`Region layer ${next}; exact Z ${regionZLabel(selectedImage)}.`);return;
   }
-  const maxSceneZ=(TIERS.length*10)-1,currentSceneZ=(selectedImage.tier*10)+selectedImage.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
-  selectedImage.tier=Math.floor(nextSceneZ/10);selectedImage.layer=nextSceneZ%10;
+  const maxSceneZ=(TIERS.length*10)-1;
+  for(const member of members){
+    const currentSceneZ=(member.tier*10)+member.layer,nextSceneZ=clamp(currentSceneZ+delta,0,maxSceneZ);
+    member.tier=Math.floor(nextSceneZ/10);member.layer=nextSceneZ%10;
+  }
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
-  announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
+  announce(`${members.length>1?'Linked selection':selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 
 function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fullWorld===true}
