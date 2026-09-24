@@ -629,7 +629,11 @@ function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
       id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
-      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
+      localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined,
+      localX:item.localOverlay?clamp(Number(item.x)||0,0,1):undefined,localY:item.localOverlay?clamp(Number(item.y)||0,0,1):undefined,
+      projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined,projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined,
+      tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
       worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
       regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
@@ -659,7 +663,11 @@ function serializableUserLayer(item){
       sourceWidth:page.sourceWidth||0,sourceHeight:page.sourceHeight||0,cropX:page.cropX||0,cropY:page.cropY||0,
       cropWidth:page.cropWidth||0,cropHeight:page.cropHeight||0,whiteTransparent:page.whiteTransparent!==false
     })):null,
-    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
+    localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined,
+    localX:item.localOverlay?clamp(Number(item.x)||0,0,1):undefined,localY:item.localOverlay?clamp(Number(item.y)||0,0,1):undefined,
+    projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined,projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined,
+    tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
     worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
     regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
@@ -736,7 +744,8 @@ async function attachRestoredLayer(raw,options={}){
     : '';
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,
+      localCoordinateSpace:String(raw.localCoordinateSpace||''),localX:Number(raw.localX),localY:Number(raw.localY),projectedWorldX:Number(raw.projectedWorldX),projectedWorldY:Number(raw.projectedWorldY),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
       worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
@@ -792,7 +801,8 @@ async function attachRestoredLayer(raw,options={}){
   const firstPage=resolvedSpritePages[0]||null;
   const first=isSprite?(frameSources[0]||String(firstPage?.sheetSrc||freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,
+    localCoordinateSpace:String(raw.localCoordinateSpace||''),localX:Number(raw.localX),localY:Number(raw.localY),projectedWorldX:Number(raw.projectedWorldX),projectedWorldY:Number(raw.projectedWorldY),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:String(first||freshPersonalSrc||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
     spritePages:isSprite?resolvedSpritePages:null,
