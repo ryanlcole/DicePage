@@ -27,7 +27,7 @@ class CharacterCardDesignerContract(unittest.TestCase):
     def test_field_creation_follows_search_type_asset_value_place(self):
         self.assertIn('SEARCH → TYPE → ASSET → VALUE → PLACE', self.source)
         self.assertIn('SAVE &amp; PLACE', self.source)
-        self.assertIn('MatchingAssets=>Assets.Where', self.source)
+        self.assertIn('MatchingAssets=>FieldAssets.Where', self.source)
         self.assertIn('BeginField(FieldOption option)', self.source)
         self.assertIn('SaveAndPlace()', self.source)
         self.assertIn('CharacterValueDraft', self.source)
