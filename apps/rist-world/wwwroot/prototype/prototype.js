@@ -451,8 +451,10 @@ function serializableUserLayer(item){
   return{
     id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
-    originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
-    spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
+    // Personal-library URLs are short-lived signed URLs. Persist the stable key,
+    // not the temporary transport URL; reload resolves a fresh URL from the key.
+    originalSrc:item.personalAssetKey?'':(item.originalSrc||''),transparentSrc:item.personalAssetKey?'':(item.transparentSrc||''),transparent:!!item.transparent,
+    spriteSheetSrc:item.personalAssetKey?null:(item.spriteSheetSrc||null),spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
@@ -507,6 +509,10 @@ async function saveWorldBuilder(){
 async function attachRestoredLayer(raw,options={}){
   const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay,canonicalSource=!!options.canonicalSource;
   const kind=String(raw?.kind||'image').toLowerCase();
+  const personalAssetKey=String(raw?.personalAssetKey||'').trim();
+  const freshPersonalSrc=personalAssetKey
+    ? await personalDownloadUrl(personalAssetKey).catch(()=> '')
+    : '';
   if(kind==='label'){
     const item={
       id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
@@ -522,11 +528,11 @@ async function attachRestoredLayer(raw,options={}){
     node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
     userLayers.push(item);mountUserPlacement(item);refreshUserLabel(item);return item;
   }
-  if(!raw?.originalSrc&&!raw?.spriteSheetSrc)return null;
+  if(!freshPersonalSrc&&!raw?.originalSrc&&!raw?.spriteSheetSrc)return null;
   const isSprite=kind==='sprite';
   let frameSources=[];
   if(isSprite){
-    const sheet=String(raw.spriteSheetSrc||raw.originalSrc||'');
+    const sheet=String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||'');
     try{
       frameSources=await extractSpriteFrames(sheet,{
         columns:raw.spriteColumns||1,rows:raw.spriteRows||1,frameCount:raw.spriteFrameCount||1,
@@ -536,12 +542,12 @@ async function attachRestoredLayer(raw,options={}){
       });
     }catch{frameSources=[String(raw.originalSrc||sheet)]}
   }
-  const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
+  const first=isSprite?(frameSources[0]||String(freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
   const item={
     id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
-    originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
-    spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
+    originalSrc:first,transparentSrc:String(freshPersonalSrc||raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
+    spriteSheetSrc:isSprite?String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
     spriteSourceWidth:Number(raw.spriteSourceWidth)||null,spriteSourceHeight:Number(raw.spriteSourceHeight)||null,spriteCropX:Number(raw.spriteCropX)||0,spriteCropY:Number(raw.spriteCropY)||0,
     spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,
@@ -3191,7 +3197,7 @@ function placeLibraryTile(asset){
   userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${asset.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`)}
-  else announce(REGION_DEFINER?`${asset.name} placed inside ${regionClaimedRegion?.name||'the claimed region'} and snapped to its grid.`:`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
+  else announce(REGION_DEFINER?`${asset.name} placed inside ${regionClaimedRegion?.name||'the claimed region'} with free placement inside the deed.`:`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
 }
 function libraryTileKey(asset){
   const button=document.createElement('button'),role=currentAssetPlacementRole();button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Tap to place this tile as ${role==='world-map'?'the full Sea Level World Map':'an adjustable layer'}.`);
