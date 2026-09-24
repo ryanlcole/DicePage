@@ -97,6 +97,7 @@ test('successful deed removes selection grid and transitions directly into the e
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
     assert.ok(f.stage.classList.contains('region-cropped'));
     assert.ok(f.stage.classList.contains('region-build-mode'));
+    assert.ok(f.stage.classList.contains('region-free-placement'));
     assert.equal(f.stage.dataset.cropMode,'selected-source-cells');
     assert.equal(f.stage.dataset.regionEntry,'editor');
     assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
@@ -163,6 +164,13 @@ test('region placement stays continuous inside the deed instead of snapping to c
     const constrained=geometry.constrain(outside.x,outside.y);
     assert.ok(deed.selectedCells.includes(geometry.cellAt(constrained.x,constrained.y,'hex')));
   }finally{f.close()}
+});
+
+test('RegionDefiner build controls stay lifted and the claim grid cannot cover asset editing',()=>{
+  const css=fs.readFileSync(path.join(root,'prototype.css'),'utf8');
+  assert.ok(css.includes('.stage.region-definer-mode .keyboard{bottom:var(--region-control-lift)}'));
+  assert.ok(css.includes('.stage.region-definer-mode.keyboard-open .bottom-slider{bottom:calc(min(36vh,290px) + var(--region-control-lift))}'));
+  assert.ok(css.includes('.stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}'));
 });
 
 test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps parent content locked',async()=>{
