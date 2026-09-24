@@ -160,8 +160,8 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
             "/world/source/region?worldId=" + Uri.EscapeDataString(worldId) +
             "&regionId=" + Uri.EscapeDataString(regionId));
 
-    public async Task<WorldSource?> SaveWorldRegionMapAsync(string worldId, string regionId, JsonElement userLayers, JsonElement relativeTiers)
-        => await SendAsync<WorldSource>(HttpMethod.Post, "/world/source/region", new { worldId, regionId, userLayers, relativeTiers });
+    public async Task<WorldSource?> SaveWorldRegionMapAsync(string worldId, string regionId, JsonElement userLayers)
+        => await SendAsync<WorldSource>(HttpMethod.Post, "/world/source/region", new { worldId, regionId, userLayers });
 
     public async Task<List<WorldRegion>?> GetRegionsAsync(string worldId)
         => await SendAsync<List<WorldRegion>>(HttpMethod.Get,
