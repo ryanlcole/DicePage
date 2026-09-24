@@ -96,7 +96,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=0,localPersistenceDbCount=null;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -162,10 +162,25 @@ function localAnchorBounds(local=activeLocal){
     width,height,cx,cy
   };
 }
+function worldPointToLocal(x,y,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return{
+    x:clamp(((Number(x)||0)-bounds.minX)/Math.max(bounds.width,.000001),0,1),
+    y:clamp(((Number(y)||0)-bounds.minY)/Math.max(bounds.height,.000001),0,1)
+  };
+}
+function localPointToWorld(x,y,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return{
+    x:clamp(bounds.minX+clamp(Number(x)||0,0,1)*bounds.width,0,1),
+    y:clamp(bounds.minY+clamp(Number(y)||0,0,1)*bounds.height,0,1)
+  };
+}
 function constrainLocalPoint(x,y){
-  const bounds=localAnchorBounds();
-  if(!bounds)return constrainRegionPoint(x,y);
-  return{x:clamp(x,bounds.minX,bounds.maxX),y:clamp(y,bounds.minY,bounds.maxY)};
+  if(localIsOpen())return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return constrainRegionPoint(x,y);
 }
 function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   if(!LOCAL_DEFINER||!localIsOpen()||!item)return item;
@@ -180,9 +195,15 @@ function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));
   item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);
   item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));
-  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);
+  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||0),0,9);
   item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier)||0));
   item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer)||0),0,9);
+  item.localCoordinateSpace='local-anchor-normalized-v2';
+  item.localX=clamp(Number(item.x)||0,0,1);
+  item.localY=clamp(Number(item.y)||0,0,1);
+  const projected=localPointToWorld(item.localX,item.localY);
+  item.projectedWorldX=projected.x;
+  item.projectedWorldY=projected.y;
   item.z100=regionZ100(item.worldLayer,item.regionLayer);
   item.parentTierIndex=item.worldTier;
   item.parallaxMode='anchored';
