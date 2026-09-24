@@ -10,8 +10,13 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional us-east-1 ACM certificate covering the apex and www host
+  McpApiDomainName:
+    Type: String
+    Default: ''
+    Description: Optional execute-api hostname for the ReLiC MCP origin, without scheme or path.
 
 Conditions:
+  HasMcpApi: !Not [!Equals [!Ref McpApiDomainName, '']]
   HasCustomDomain: !And
     - !Not [!Equals [!Ref DomainName, '']]
     - !Not [!Equals [!Ref CertificateArn, '']]
@@ -171,6 +176,26 @@ Resources:
             OriginAccessControlId: !GetAtt FrontendOac.Id
             S3OriginConfig:
               OriginAccessIdentity: ''
+          - !If
+            - HasMcpApi
+            - Id: mcp-api
+              DomainName: !Ref McpApiDomainName
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+                OriginSSLProtocols: [TLSv1.2]
+            - !Ref AWS::NoValue
+        CacheBehaviors: !If
+          - HasMcpApi
+          - - PathPattern: /mcp
+              TargetOriginId: mcp-api
+              ViewerProtocolPolicy: redirect-to-https
+              Compress: true
+              AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+              CachedMethods: [GET, HEAD, OPTIONS]
+              CachePolicyId: 4135ea2d-6df8-44a3-9fa7-77b2c461a850
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+              ResponseHeadersPolicyId: !Ref SecurityHeaders
+          - !Ref AWS::NoValue
         DefaultCacheBehavior:
           TargetOriginId: frontend
           ViewerProtocolPolicy: redirect-to-https
