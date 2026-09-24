@@ -14,6 +14,7 @@ class RegionMapPersistenceContract(unittest.TestCase):
         self.assertIn("region_map_key(world_id, region_id)", block)
         self.assertIn('":entityType": "regionMap"', block)
         self.assertIn('"format": "RIST_REGION_MAP_V1"', block)
+        self.assertIn('"legacyImportComplete": True', block)
         self.assertNotIn("world.update_item(\n            Key=world_source_key(world_id)", block)
 
     def test_region_get_reads_regionmap_with_legacy_fallback(self):
@@ -23,6 +24,7 @@ class RegionMapPersistenceContract(unittest.TestCase):
         self.assertIn("Key=region_map_key(world_id, region_id)", block)
         self.assertIn("region_map_state = None", block)
         self.assertIn("parent_state, region_map_state", block)
+        self.assertIn("region_map_state = None", block)
 
     def test_parcel_release_archives_and_deletes_regionmap(self):
         self.assertIn("region_map_item = world.get_item(", self.source)
