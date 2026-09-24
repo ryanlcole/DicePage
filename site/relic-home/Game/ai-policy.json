@@ -1,9 +1,9 @@
 {
-  "document": "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy",
+  "document": "ReLiC/RIST AI Participation, Canon, Resource, Content & Commerce Access Policy",
   "status": "canonical-policy-baseline",
-  "sourceDate": "2026-09-10",
-  "policyVersion": "2026-09-10.2",
-  "rulesetVersion": "AI-RULESET-2026-09-10.2",
+  "sourceDate": "2026-09-20",
+  "policyVersion": "2026-09-20.1",
+  "rulesetVersion": "AI-RULESET-2026-09-20.1",
   "timeAuthority": "UTC",
   "timestampFormat": "ISO-8601 UTC (Z)",
   "defaultAccessDecision": "DENY",
@@ -74,21 +74,49 @@
   },
   "worldBuilderAllocation": {
     "perAuthorizedPlane": true,
-    "x": {"count": 1, "minimum": 1, "maximum": 300},
-    "y": {"count": 1, "minimum": 1, "maximum": 300},
-    "z": {"count": 1, "minimum": 1, "maximum": 10},
-    "era": {"count": 1, "minimum": 1, "maximum": 10},
+    "x": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 300
+    },
+    "y": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 300
+    },
+    "z": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 10
+    },
+    "era": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 10
+    },
     "maximumThemes": 30,
     "permissionNotOwnership": true,
     "allocationAloneAuthorizesModificationOfPlayerContent": false,
-    "serverAuthoritativeFor": ["allocation", "collision", "expiration", "transfer", "enforcement"],
+    "serverAuthoritativeFor": [
+      "allocation",
+      "collision",
+      "expiration",
+      "transfer",
+      "enforcement"
+    ],
     "multiplicationViaAlternateIdentitiesConcurrentSessionsNamingOrCoordinatedAgents": false,
     "exceptionRequiresLaterCanonicalPolicy": true
   },
   "canonBoundary": {
     "authorizedDomainOnly": true,
     "understandingRequiredBeforeCreationAuthority": true,
-    "mustDistinguish": ["canon", "player-authored", "proposal", "generated", "factual-system-state"],
+    "mustDistinguish": [
+      "canon",
+      "player-authored",
+      "proposal",
+      "generated",
+      "factual-system-state"
+    ],
     "generatedOrStoredContentAutomaticallyBecomesCanon": false,
     "canonPromotionHumanGoverned": true
   },
@@ -147,6 +175,8 @@
     "player-creation-non-interference",
     "beneficial-contribution-no-circumvention",
     "resource-yield-required",
+    "all-audiences-default",
+    "human-population-ratio",
     "session-cap-87658-seconds",
     "bounded-world-builder-allocation",
     "canon-boundary",
@@ -169,5 +199,25 @@
       "retention",
       "jurisdiction-specific-requirements"
     ]
+  },
+  "humanPopulationCapacity": {
+    "humanUsersPerExternalAiSlot": 10,
+    "activeAiSlotsFormula": "floor(connected_humans / 10)",
+    "humanAccessPriority": true,
+    "paymentDoesNotBypassCapacity": true,
+    "serverAuthoritativePresenceRequired": true
+  },
+  "contentRating": {
+    "defaultForAi": "all-audiences",
+    "aiAgeDoesNotGrantAdditionalContentEntitlement": true,
+    "higherRatingRequiresExplicitRelicCompanyAuthorization": true
+  },
+  "commerce": {
+    "publicFront": "/ai-purchase/",
+    "machineManifest": "/ai-purchase/commerce.json",
+    "discovery": "/.well-known/relic-ai-commerce.json",
+    "pricingFormula": "verified_service_cost_usd * 1.80",
+    "paymentDoesNotGrantAuthority": true,
+    "automaticEntitlement": false
   }
 }
