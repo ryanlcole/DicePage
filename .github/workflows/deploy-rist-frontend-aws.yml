@@ -16,6 +16,10 @@ permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: rist-frontend-production
+  cancel-in-progress: true
+
 env:
   AWS_REGION: us-east-1
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
