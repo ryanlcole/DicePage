@@ -96,6 +96,16 @@ Do not use `eval`, dynamic arbitrary source execution, or obscurity as security.
 
 The language may be public; authority determines what it is allowed to do.
 
+## Card / effect engine discovery
+
+Before changing card execution, Powers/Magic, feats, buffs, conditions, equipment effects, targeting, spatial effect geometry, summons/spawns, encounter joins, or effect perception, read:
+
+1. `apps/rist-world/CARD_EFFECT_ENGINE_CONTRACT.md` — foundational locked contract for card-contained behavior, Card Definition/Card Instance/Effect Instance/Spawned Entity identity, shared GM-named joins, targeting geometry, representation, perception, Powers, and summon/spawn behavior.
+2. `apps/rist-world/AUTHORITY_SYSTEM.md` — authority and visibility constraints.
+3. `apps/rist-world/CARD_PRINT_CONTRACT.md` — card identity across print/render representations.
+
+Do not move effect truth into sprites, images, hex highlights, or other representations. Do not split summoned token identity from its Character/NPC card identity. Do not create a separate Magic runtime when the Power/effect engine is sufficient.
+
 ## Change discipline
 
 Executable repository behavior remains runtime truth until the semantic compiler/runtime is explicitly promoted to authoritative execution. If the contract/manifest/reference and working implementation disagree, preserve working behavior, identify the mismatch, and reconcile the semantic layer rather than silently changing behavior.
