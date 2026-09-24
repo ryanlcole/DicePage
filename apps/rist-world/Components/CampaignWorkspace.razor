@@ -15,12 +15,12 @@
  </header>
 
  <nav class="campaign-tabs" aria-label="Campaign sections">
-  <button type="button" class="@TabClass("story")" @onclick="OpenStory">STORY ARC</button>
-  <button type="button" class="@TabClass("sessions")" @onclick="OpenSessions">SESSIONS</button>
-  <button type="button" class="@TabClass("scenes")" @onclick="OpenScenes">SCENES</button>
-  <button type="button" class="@TabClass("actors")" @onclick="OpenActors">ACTORS</button>
+  <button type="button" class="@StoryTabClass" @onclick="OpenStory">STORY ARC</button>
+  <button type="button" class="@SessionsTabClass" @onclick="OpenSessions">SESSIONS</button>
+  <button type="button" class="@ScenesTabClass" @onclick="OpenScenes">SCENES</button>
+  <button type="button" class="@ActorsTabClass" @onclick="OpenActors">ACTORS</button>
   <button type="button" class="@ConnectionTabClass" @onclick="OpenConnections">VICTIMS &amp; CO‑CONSPIRATORS</button>
-  <button type="button" class="@TabClass("notes")" @onclick="OpenNotes">NOTES</button>
+  <button type="button" class="@NotesTabClass" @onclick="OpenNotes">NOTES</button>
  </nav>
 
  @if(_tab=="connections")
@@ -136,6 +136,11 @@
  readonly List<AwsAuthorityClient.CollaborationConnection> _connections=[];
 
  string TabClass(string tab)=>_tab==tab?"active":"";
+ string StoryTabClass=>TabClass("story");
+ string SessionsTabClass=>TabClass("sessions");
+ string ScenesTabClass=>TabClass("scenes");
+ string ActorsTabClass=>TabClass("actors");
+ string NotesTabClass=>TabClass("notes");
  string ConnectionTabClass=>TabClass("connections")+" conspirators";
  void OpenStory()=>_tab="story";
  void OpenSessions()=>_tab="sessions";
