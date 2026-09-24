@@ -43,11 +43,12 @@
    var regionId=Uri.EscapeDataString(region?.RegionId??"");
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var access=region is not null&&Session.CanEditRegion(region)?"edit":"view";
-   var surfacePixels=Session.ActiveMmoWorld?.PixelWidth>0
-    ?Session.ActiveMmoWorld.PixelWidth
+   var activeWorld=Session.ActiveMmoWorld;
+   var surfacePixels=activeWorld?.PixelWidth>0
+    ?activeWorld.PixelWidth
     :Session.SurfaceWorldPixelLimit??WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=Session.ActiveMmoWorld?.MaxHeight>0
-    ?Session.ActiveMmoWorld.MaxHeight
+   var maxHeight=activeWorld?.MaxHeight>0
+    ?activeWorld.MaxHeight
     :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
    return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-object-1";
   }
