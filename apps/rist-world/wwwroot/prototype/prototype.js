@@ -1861,9 +1861,10 @@ async function renderRegionProjection(payload){
   }
   regionCanonicalTierImages=[];
   for(let i=userLayers.length-1;i>=0;i--){
-    if(!userLayers[i].regionOverlay)continue;
-    stopSpriteMotion(userLayers[i]);
-    userLayers[i].node?.remove();
+    const item=userLayers[i];
+    if(!(item.regionOverlay||item.sourceLocked||item.canonicalSource))continue;
+    stopSpriteMotion(item);
+    item.node?.remove();
     userLayers.splice(i,1);
   }
   selectedImage=null;
@@ -3799,7 +3800,17 @@ window.ShaelvienPrototype=Object.freeze({
       loadedCellCount:Number(stage.dataset.loadedCellCount)||0,
       rasterIndexMissing:regionRasterIndexMissing
     }:null,
-    userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,parallaxMode:itemParallaxMode(item),parallaxX:Number(item.parallaxX)||0,parallaxY:Number(item.parallaxY)||0,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
+    userLayers:userLayers.map(item=>({
+      id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,
+      tier:item.tier,layer:item.layer,
+      worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,
+      regionLayer:REGION_DEFINER&&item.regionOverlay?regionOverlayLayer(item):0,
+      z100:REGION_DEFINER?(item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100):undefined,
+      sourceLocked:!!item.sourceLocked,regionOverlay:!!item.regionOverlay,
+      x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,
+      parallaxMode:itemParallaxMode(item),parallaxX:Number(item.parallaxX)||0,parallaxY:Number(item.parallaxY)||0,
+      committed:!!item.committed,zoomPassed:!!item.zoomPassed
+    })),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
     tileLibrary:{loaded:tileCatalog.length,folder:tileLibraryFolder,page:tileLibraryPage,count:tileCatalog.length,error:tileLibraryError||null},
     regionDefinition:REGION_DEFINER?{
