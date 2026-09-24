@@ -705,7 +705,8 @@ async function saveWorldBuilder(){
   }
 }
 async function attachRestoredLayer(raw,options={}){
-  const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay,canonicalSource=!!options.canonicalSource;
+  const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay,localOverlay=!!options.localOverlay,canonicalSource=!!options.canonicalSource;
+  const restoredLocalId=String(options.localId||raw?.localId||'');
   const kind=String(raw?.kind||'image').toLowerCase();
   const personalAssetKey=String(raw?.personalAssetKey||'').trim();
   const savedPersonalFallback=String(raw?.originalSrc||raw?.transparentSrc||raw?.spriteSheetSrc||'');
@@ -714,7 +715,7 @@ async function attachRestoredLayer(raw,options={}){
     : '';
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
       worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
@@ -770,7 +771,7 @@ async function attachRestoredLayer(raw,options={}){
   const firstPage=resolvedSpritePages[0]||null;
   const first=isSprite?(frameSources[0]||String(firstPage?.sheetSrc||freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:String(first||freshPersonalSrc||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
     spritePages:isSprite?resolvedSpritePages:null,
