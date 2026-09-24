@@ -174,7 +174,7 @@ test('RegionDefiner build controls stay lifted and the claim grid cannot cover a
   assert.ok(css.includes('.stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}'));
 });
 
-test('saved personal region assets keep stable identity, fallback URL, and retry authenticated hydration',async()=>{
+test('saved personal region assets keep stable identity and retry authenticated hydration',async()=>{
   let storageAttempts=0;
   const f=fixture('existing',{
     sessionToken:'test-session',
@@ -188,7 +188,7 @@ test('saved personal region assets keep stable identity, fallback URL, and retry
         if(storageAttempts===1)throw new Error('auth bridge still warming');
         return{ok:true,status:200,json:async()=>({url:'https://signed.test/city.png'})};
       }
-      return{ok:false,status:404,blob:async()=>new f.w.Blob([])};
+      return{ok:false,status:404,blob:async()=>({})};
     }
   });
   try{
