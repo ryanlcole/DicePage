@@ -81,13 +81,13 @@ class RegionProjectionTests(unittest.TestCase):
         self.assertEqual(result["userLayers"][0]["z100"], 201)
         self.assertEqual(result["userLayers"][0]["parallaxMode"], "anchored")
 
-    def test_regionmap_child_state_overrides_legacy_parent_overlay(self):
+    def test_regionmap_child_state_overrides_same_legacy_identity(self):
         child = {
             "format": "RIST_REGION_MAP_V1",
             "worldId": "world-a",
             "regionId": "region-a",
             "userLayers": [{
-                "id": "child-city",
+                "id": "city",
                 "regionId": "region-a",
                 "tier": 1,
                 "worldLayer": 3,
@@ -101,10 +101,37 @@ class RegionProjectionTests(unittest.TestCase):
             }],
         }
         result = project("world-a", "region-a", self.deed, self.world, child)
-        self.assertEqual([x["id"] for x in result["userLayers"]], ["child-city"])
+        self.assertEqual([x["id"] for x in result["userLayers"]], ["city"])
         self.assertEqual(result["userLayers"][0]["z100"], 302)
+        self.assertFalse(result["legacyRegionImportPending"])
 
-    def test_existing_empty_regionmap_clears_legacy_parent_overlay(self):
+    def test_incomplete_regionmap_imports_missing_legacy_objects_non_destructively(self):
+        child = {
+            "format": "RIST_REGION_MAP_V1",
+            "worldId": "world-a",
+            "regionId": "region-a",
+            "userLayers": [{
+                "id": "region-label",
+                "regionId": "region-a",
+                "tier": 1,
+                "worldLayer": 2,
+                "layer": 2,
+                "regionLayer": 2,
+                "z100": 202,
+                "x": 1.5 / 30,
+                "y": 1.5 / 30,
+                "kind": "label",
+                "text": "Atsumaritas",
+            }],
+        }
+        result = project("world-a", "region-a", self.deed, self.world, child)
+        self.assertEqual(
+            [x["id"] for x in result["userLayers"]],
+            ["region-label", "city"],
+        )
+        self.assertTrue(result["legacyRegionImportPending"])
+
+    def test_unmarked_empty_regionmap_recovers_legacy_parent_overlay(self):
         child = {
             "format": "RIST_REGION_MAP_V1",
             "worldId": "world-a",
@@ -112,7 +139,20 @@ class RegionProjectionTests(unittest.TestCase):
             "userLayers": [],
         }
         result = project("world-a", "region-a", self.deed, self.world, child)
+        self.assertEqual([x["id"] for x in result["userLayers"]], ["city"])
+        self.assertTrue(result["legacyRegionImportPending"])
+
+    def test_completed_empty_regionmap_respects_intentional_delete(self):
+        child = {
+            "format": "RIST_REGION_MAP_V1",
+            "worldId": "world-a",
+            "regionId": "region-a",
+            "legacyImportComplete": True,
+            "userLayers": [],
+        }
+        result = project("world-a", "region-a", self.deed, self.world, child)
         self.assertEqual(result["userLayers"], [])
+        self.assertFalse(result["legacyRegionImportPending"])
 
     def test_region_z_is_exact_hundredth_above_world_z(self):
         self.assertEqual(region_z100(0, 1), 1)
