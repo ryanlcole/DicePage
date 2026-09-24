@@ -97,7 +97,9 @@ def test_platform_authority_exposes_world_source_database_routes():
     assert 'SaveWorldSourceAsync' in client
     assert 'SaveWorldRegionMapAsync' in client
     assert 'path == "/world/source/region"' in app
+    assert 'Path: /world/source/region, Method: GET' in template
     assert 'Path: /world/source/region, Method: POST' in template
+    assert 'if is_geonaph(world_id):' in app
 
 
 def test_region_records_define_permissions_not_a_second_map():

@@ -2751,15 +2751,23 @@ def handler(event, context):
         parent = world.get_item(
             Key=world_source_key(world_id), ConsistentRead=True
         ).get("Item")
-        if not parent or not isinstance(parent.get("state"), dict):
-            return response(409, {"error": "Canonical parent map is not published"})
+        parent_state = (parent or {}).get("state")
+        if not isinstance(parent_state, dict):
+            if is_geonaph(world_id):
+                # Geonaph's immutable parent terrain is published as
+                # build-time source-cell assets. Region projection does not
+                # require a duplicate WORLDSOURCE row just to address them.
+                parent = {"state": {}, "updatedAtUtc": ""}
+                parent_state = {}
+            else:
+                return response(409, {"error": "Canonical parent map is not published"})
         child = world.get_item(
             Key=region_map_key(world_id, region_id), ConsistentRead=True
         ).get("Item")
         try:
             projected = project_region_source(
                 world_id, region_id, deed.get("state") or {},
-                parent.get("state") or {}, (child or {}).get("state") or {},
+                parent_state, (child or {}).get("state") or {},
             )
         except (ValueError, TypeError) as exc:
             return response(409, {"error": str(exc)})
@@ -2794,7 +2802,7 @@ def handler(event, context):
         canonical = world.get_item(
             Key=world_source_key(world_id), ConsistentRead=True
         ).get("Item")
-        if not canonical or not isinstance(canonical.get("state"), dict):
+        if (not canonical or not isinstance(canonical.get("state"), dict)) and not is_geonaph(world_id):
             return response(409, {"error": "Publish the world source before editing a region"})
         normalized = []
         try:

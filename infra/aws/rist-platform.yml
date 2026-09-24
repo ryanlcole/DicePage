@@ -267,6 +267,9 @@ Resources:
         WorldSourceSave:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/source, Method: POST }
+        WorldRegionMapGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/source/region, Method: GET }
         WorldRegionMapSave:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/source/region, Method: POST }
