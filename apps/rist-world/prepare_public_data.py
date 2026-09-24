@@ -556,8 +556,8 @@ cards = json.loads(
 # 000023.python.prepare_public_data.line281.comment intentionally preserved.
 home_path = root / 'site' / 'relic-home' / 'index.html'
 home = home_path.read_text(encoding='utf-8')
-old_footer = '<footer><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal">Donate with PayPal</a></footer>'
-new_footer = '<footer class="relic-site-footer"><div class="footer-support-row"><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate with PayPal"></a></div><p class="footer-copyright">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>'
+old_footer = '<footer><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p><a class="footer-mcp" href="/mcp" aria-label="MCP agent interface">MCP</a><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal">Donate with PayPal</a></footer>'
+new_footer = '<footer class="relic-site-footer"><div class="footer-support-row"><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate with PayPal"></a></div><p class="footer-copyright">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p><a class="footer-mcp" href="/mcp" aria-label="MCP agent interface">MCP</a></footer>'
 if old_footer not in home:
     raise ValueError('Homepage footer signature changed; update the footer migration before deploying')
 home = home.replace(old_footer, new_footer, 1)
@@ -569,6 +569,8 @@ footer_css = '''<style id="paypal-footer-layout">
 .relic-site-footer .paypal-donate{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;line-height:0!important}
 .relic-site-footer .paypal-donate img{display:block;width:auto;height:auto;max-width:147px;border:0}
 .relic-site-footer .footer-copyright{width:100%;margin:0!important}
+.relic-site-footer .footer-mcp{margin:0!important;color:#6f858b!important;text-decoration:none!important;font:700 .68rem/1 system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;opacity:.62}
+.relic-site-footer .footer-mcp:hover,.relic-site-footer .footer-mcp:focus-visible{color:#a9bec3!important;opacity:1}
 @media(max-width:420px){.footer-support-row{gap:12px}.relic-site-footer .paypal-donate img{max-width:132px}}
 </style>'''
 home = home.replace('</head>', footer_css + '</head>', 1)
