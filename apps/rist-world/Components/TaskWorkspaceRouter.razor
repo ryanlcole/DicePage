@@ -36,6 +36,10 @@
  {
   <LocalDefinerWorkspace OnStartMenu="OnStartMenu" OnHome="OnHome" />
  }
+ else if (Mode == "campaign")
+ {
+  <CampaignWorkspace />
+ }
  else if (Mode == "manage")
  {
   <WorldManagementWorkspace />
@@ -75,7 +79,7 @@
 </div>
 
 <style>
- .task-workspace-router{box-sizing:border-box;position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface,.task-workspace-router>.worldbuilder-studio,.task-workspace-router>.worldbuilder-rune-test,.task-workspace-router>.accessibility-shell,.task-workspace-router>.observer-shell,.task-workspace-router>.immersion-builder,.task-workspace-router>.perceiver-workspace,.task-workspace-router>.card-index-workspace,.task-workspace-router>.dice-tools-workspace,.task-workspace-router>.character-card-designer,.task-workspace-router>.power-workspace,.task-workspace-router>.gm-report-workspace,.task-workspace-router>.region-definer,.task-workspace-router>.local-definer-host{width:100%!important;height:100%!important;min-width:0!important;min-height:0!important}
+ .task-workspace-router{box-sizing:border-box;position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface,.task-workspace-router>.worldbuilder-studio,.task-workspace-router>.worldbuilder-rune-test,.task-workspace-router>.accessibility-shell,.task-workspace-router>.observer-shell,.task-workspace-router>.campaign-workspace,.task-workspace-router>.immersion-builder,.task-workspace-router>.perceiver-workspace,.task-workspace-router>.card-index-workspace,.task-workspace-router>.dice-tools-workspace,.task-workspace-router>.character-card-designer,.task-workspace-router>.power-workspace,.task-workspace-router>.gm-report-workspace,.task-workspace-router>.region-definer,.task-workspace-router>.local-definer-host{width:100%!important;height:100%!important;min-width:0!important;min-height:0!important}
 </style>
 
 @code {
