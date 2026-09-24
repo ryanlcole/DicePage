@@ -38,6 +38,18 @@ async function sendState(frame,dotnet){
     post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
   }
 }
+  const mode=(new URL(frame.getAttribute("src"),location.origin).searchParams.get("mode")||"").toLowerCase();
+  if(mode==="localdefiner"){
+    try{
+      const locals=await dotnet.invokeMethodAsync("GetLocalCatalogForPrototype");
+      if(!isCurrentStateRequest(frame,revision))return;
+      post(frame,{type:"local-catalog",locals:Array.isArray(locals)?locals:[]});
+    }catch(error){
+      if(!isCurrentStateRequest(frame,revision))return;
+      post(frame,{type:"local-catalog-error",message:String(error?.message||error||"Local catalog is unavailable")});
+    }
+  }
+}
 
 export async function refresh(frame,dotnet){
   await sendState(frame,dotnet);
@@ -96,6 +108,17 @@ export function attach(frame,dotnet){
         }catch{}
         post(frame,{type:"region-created",region,worldSource:regionSource});
         if(!regionSource)post(frame,{type:"map-load-error",message:"The deed was saved, but its regional source could not be loaded yet."});
+        return;
+      }
+      if(data.type==="create-local"){
+        const name=String(data.name||"").trim();
+        const anchor=data.anchor&&typeof data.anchor==="object"?data.anchor:{};
+        const local=await dotnet.invokeMethodAsync("CreateLocalFromPrototypeAsync",name,anchor);
+        post(frame,{type:"local-created",local});
+        try{
+          const locals=await dotnet.invokeMethodAsync("GetLocalCatalogForPrototype");
+          post(frame,{type:"local-catalog",locals:Array.isArray(locals)?locals:[]});
+        }catch{}
         return;
       }
       if(data.type==="save-map-region"){
