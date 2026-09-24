@@ -300,7 +300,9 @@ function refreshRegionPersistenceStatus(dbCount=regionPersistenceDbCount){
     return !!item.node&&(item.node.hidden||item.node.style.visibility==='hidden'||Number(item.renderOpacity)<=.001);
   }).length;
   const visible=Math.max(0,items.length-pending-hidden);
-  const db=Number.isFinite(Number(dbCount))?Math.max(0,Math.trunc(Number(dbCount))):'?';
+  const db=dbCount!==null&&dbCount!==undefined&&Number.isFinite(Number(dbCount))
+    ?Math.max(0,Math.trunc(Number(dbCount)))
+    :'?';
   regionPersistenceStatus.hidden=false;
   regionPersistenceStatus.classList.remove('ok','waiting','hidden-assets','error');
   let text=`DB ${db} · VISIBLE ${visible}`;
