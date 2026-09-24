@@ -219,7 +219,7 @@ test('RegionDefiner save serializes objects mounted in the active deed even with
   assert.ok(prototype.includes('function regionSaveCandidates()'));
   assert.ok(prototype.includes('item.regionId=regionId;'));
   assert.ok(prototype.includes('regionEditLayer&&item.node.parentElement!==regionEditLayer'));
-  assert.ok(prototype.includes('Region save payload was empty while'));
+  assert.ok(prototype.includes("${LOCAL_DEFINER?'Local':'Region'} save payload was empty while"));
   assert.ok(prototype.includes('countMatches=persisted.size===Number(waiter.expectedCount||0)'));
 });
 
