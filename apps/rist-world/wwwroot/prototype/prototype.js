@@ -77,7 +77,7 @@ const CANONICAL_PLANE_KEYS=Object.freeze(['surface','highlands','mountains']);
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let viewerSize=null;
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 let regionEditLayer=null;
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
@@ -154,6 +154,16 @@ let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnh
 const collisionMasks=new Map();
 const COLLISION_MASK_MAX=512;
 
+function stableAssetAspect(item){
+  if(item?.kind==='sprite'){
+    const width=Number(item.spriteCropWidth)||((Number(item.spriteSourceWidth)||0)/Math.max(1,Number(item.spriteColumns)||1));
+    const height=Number(item.spriteCropHeight)||((Number(item.spriteSourceHeight)||0)/Math.max(1,Number(item.spriteRows)||1));
+    if(width>0&&height>0)return width/height;
+  }
+  const node=item?.node;
+  if(node?.naturalWidth>0&&node?.naturalHeight>0)return node.naturalWidth/node.naturalHeight;
+  return 1;
+}
 function collisionSource(node){return String(node?.currentSrc||node?.src||'')}
 async function primeCollisionMask(src){
   src=String(src||'');
@@ -240,7 +250,7 @@ function userCollision(item,clientX,clientY){
   const visible=(viewerTier==='all'||item.tier===tierByKey(viewerTier).index)&&(!REGION_DEFINER||!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer));
   if(!visible||!(Number(item.opacity)>0))return null;
   const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
-  const baseW=naturalWidth*.12,aspect=(item.node.naturalWidth>0&&item.node.naturalHeight>0)?item.node.naturalHeight/item.node.naturalWidth:1,baseH=baseW*aspect;
+  const baseW=naturalWidth*.12,aspect=1/Math.max(stableAssetAspect(item),.00001),baseH=baseW*aspect;
   const centerX=(item.x*naturalWidth)+(Number(item.parallaxX)||0),centerY=(item.y*naturalHeight)+(Number(item.parallaxY)||0);
   const rad=-(Number(item.rotation)||0)*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad),size=Math.max(Number(item.size)||1,.00001);
   const dx=(worldX-centerX)/size,dy=(worldY-centerY)/size;
@@ -264,7 +274,7 @@ function collisionScreenPoint(hit){
   }
   const item=hit.item,node=item?.node;
   if(!node)return null;
-  const baseW=naturalWidth*.12,aspect=(node.naturalWidth>0&&node.naturalHeight>0)?node.naturalHeight/node.naturalWidth:1,baseH=baseW*aspect,size=Math.max(Number(item.size)||1,.00001);
+  const baseW=naturalWidth*.12,aspect=1/Math.max(stableAssetAspect(item),.00001),baseH=baseW*aspect,size=Math.max(Number(item.size)||1,.00001);
   let lx=(hit.nx-.5)*baseW*size,ly=(hit.ny-.5)*baseH*size;
   const rad=(Number(item.rotation)||0)*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad),rx=(lx*c)-(ly*s),ry=(lx*s)+(ly*c);
   const wx=(item.x*naturalWidth)+(Number(item.parallaxX)||0)+rx,wy=(item.y*naturalHeight)+(Number(item.parallaxY)||0)+ry,r=stage.getBoundingClientRect();
@@ -984,9 +994,8 @@ function adjustSelectedSize(direction){
   if(isWorldMapItem(selectedImage)){announce('World Map always fills 100% by 100% of the world.');return}
   const current=Math.max(.2,Number(selectedImage.size)||1);
   const step=current<2?.1:current<6?.25:.5;
-  selectedImage.size=clamp(current+(Math.sign(direction||1)*step),.2,20);
-  refreshUserImage(selectedImage);scheduleRegionEnhancement(20);renderKeyboardKeys();
-  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} size ${selectedImage.size.toFixed(selectedImage.size<2?1:2)}.`);
+  applySelectedSize(selectedImage,clamp(current+(Math.sign(direction||1)*step),.2,20),{announceChange:true});
+  renderKeyboardKeys();
 }
 function moveSelectedTier(delta){
   if(READ_ONLY||!selectedImage)return;
@@ -1151,6 +1160,9 @@ async function extractSpriteFrames(sheetSrc,options={}){
     if(options.whiteTransparent!==false){const image=ctx.getImageData(0,0,cropWidth,cropHeight);ctx.putImageData(whitenToAlpha(image),0,0)}
     frames.push(canvas.toDataURL('image/png'));
   }
+  // Decode the fixed-size frames before playback so animation does not
+  // alternate between layout/redecode states on mobile Safari.
+  await Promise.all(frames.map(src=>loadDataImage(src).catch(()=>null)));
   return frames;
 }
 function stopSpriteMotion(item){
@@ -1203,6 +1215,7 @@ function refreshUserLabel(item){
   item.node.classList.toggle('plate',!!item.plate);
   const px=(Number(item.parallaxX)||0)+(Number(item.offsetX)||0),py=(Number(item.parallaxY)||0)+(Number(item.offsetY)||0);
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg)`;
+  if(item===selectedImage)requestAnimationFrame(()=>refreshAssetResizeOverlay(item));
 }
 function labelInput(value,placeholder,onInput,onEnter){
   const input=document.createElement('input');input.type='text';input.className='label-text-input';input.maxLength=120;input.value=String(value||'');input.placeholder=placeholder||'Label text';
@@ -1276,6 +1289,7 @@ function renderLabelsKeyboard(){
       :[readoutKey(`TIER ${pos.tier}`,pos.tierLabel),readoutKey(`LAYER ${pos.layer}`,'label layer')]),
     toolKey('A−',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(-1),selected.fontSize<=12),
     toolKey('A+',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(1),selected.fontSize>=180),
+    sizeNumberInput(selected),sizeRangeInput(selected),
     toolKey(selected.bold?'B ✓':'B','bold',()=>{selected.bold=!selected.bold;refreshUserLabel(selected);renderKeyboardKeys()}),
     toolKey(selected.italic?'I ✓':'I','italic',()=>{selected.italic=!selected.italic;refreshUserLabel(selected);renderKeyboardKeys()}),
     toolKey('COLOR',String(selected.color||LABEL_COLORS[0]),cycleLabelColor),
@@ -1372,6 +1386,138 @@ function refreshProgressiveParallax(item){
   item.node.style.visibility='hidden';
   return true;
 }
+function selectedSizeValue(item){
+  return item?.kind==='label'
+    ?clamp(Number(item.fontSize)||48,12,180)
+    :clamp(Number(item?.size)||1,.05,20);
+}
+function applySelectedSize(item,value,{announceChange=false}={}){
+  if(READ_ONLY||!item||item.sourceLocked||isWorldMapItem(item))return false;
+  if(item.kind==='label'){
+    item.fontSize=clamp(Number(value)||48,12,180);
+    refreshUserLabel(item);
+  }else{
+    item.size=clamp(Number(value)||1,.05,20);
+    refreshUserImage(item);
+  }
+  refreshAssetResizeOverlay(item);
+  scheduleRegionEnhancement(20);
+  if(announceChange){
+    const valueNow=selectedSizeValue(item);
+    announce(item.kind==='label'
+      ?`Label size ${Math.round(valueNow)} pixels.`
+      :`${item.kind==='sprite'?'Sprite':'Asset'} size ${valueNow.toFixed(2)} times.`);
+  }
+  return true;
+}
+function sizeNumberInput(item){
+  const input=document.createElement('input');
+  input.type='number';input.className='asset-size-number';
+  input.min=item.kind==='label'?'12':'0.05';
+  input.max=item.kind==='label'?'180':'20';
+  input.step=item.kind==='label'?'1':'0.01';
+  input.value=item.kind==='label'?String(Math.round(selectedSizeValue(item))):selectedSizeValue(item).toFixed(2);
+  input.setAttribute('aria-label',item.kind==='label'?'Label size in pixels':'Asset size multiplier');
+  const commit=()=>{if(applySelectedSize(item,input.value,{announceChange:true})){input.value=item.kind==='label'?String(Math.round(selectedSizeValue(item))):selectedSizeValue(item).toFixed(2)}};
+  input.addEventListener('change',commit);
+  input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();commit();input.blur()}});
+  return input;
+}
+function sizeRangeInput(item){
+  const input=document.createElement('input');
+  input.type='range';input.className='asset-size-range';
+  input.min=item.kind==='label'?'12':'0.05';
+  input.max=item.kind==='label'?'180':'20';
+  input.step=item.kind==='label'?'1':'0.01';
+  input.value=String(selectedSizeValue(item));
+  input.setAttribute('aria-label',item.kind==='label'?'Fine label size':'Fine asset size');
+  input.addEventListener('input',()=>applySelectedSize(item,input.value));
+  input.addEventListener('change',()=>applySelectedSize(item,input.value,{announceChange:true}));
+  return input;
+}
+function removeAssetResizeOverlay(){
+  assetResizeDrag=null;
+  assetResizeOverlay?.remove();
+  assetResizeOverlay=null;
+}
+function ensureAssetResizeOverlay(){
+  if(assetResizeOverlay?.isConnected)return assetResizeOverlay;
+  const overlay=document.createElement('div');
+  overlay.className='asset-resize-overlay';
+  overlay.setAttribute('aria-hidden','false');
+  for(const corner of ['nw','ne','sw','se']){
+    const handle=document.createElement('button');
+    handle.type='button';handle.className=`asset-resize-handle ${corner}`;
+    handle.dataset.corner=corner;
+    handle.setAttribute('aria-label',`Resize selected asset from ${corner.toUpperCase()} corner`);
+    handle.addEventListener('pointerdown',beginAssetResize);
+    handle.addEventListener('pointermove',moveAssetResize);
+    handle.addEventListener('pointerup',endAssetResize);
+    handle.addEventListener('pointercancel',endAssetResize);
+    overlay.appendChild(handle);
+  }
+  assetResizeOverlay=overlay;
+  return overlay;
+}
+function refreshAssetResizeOverlay(item=selectedImage){
+  if(!item||item.sourceLocked||isWorldMapItem(item)||!item.node?.isConnected){
+    removeAssetResizeOverlay();return;
+  }
+  const overlay=ensureAssetResizeOverlay();
+  const parent=item.node.parentElement;
+  if(overlay.parentElement!==parent)parent?.appendChild(overlay);
+  overlay.dataset.kind=String(item.kind||'image');
+  overlay.style.left=item.node.style.left;
+  overlay.style.top=item.node.style.top;
+  overlay.style.zIndex='4095';
+  if(item.kind==='label'){
+    overlay.style.width=`${Math.max(20,item.node.offsetWidth)}px`;
+    overlay.style.height=`${Math.max(20,item.node.offsetHeight)}px`;
+    overlay.style.aspectRatio='';
+    const px=(Number(item.parallaxX)||0)+(Number(item.offsetX)||0),py=(Number(item.parallaxY)||0)+(Number(item.offsetY)||0);
+    overlay.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg)`;
+  }else{
+    overlay.style.width=`${12*selectedSizeValue(item)}%`;
+    overlay.style.height='auto';
+    overlay.style.aspectRatio=String(stableAssetAspect(item));
+    const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
+    overlay.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg)`;
+  }
+}
+function beginAssetResize(event){
+  const item=selectedImage;
+  if(READ_ONLY||!item||item.sourceLocked||isWorldMapItem(item))return;
+  event.preventDefault();event.stopPropagation();
+  const overlay=assetResizeOverlay;if(!overlay)return;
+  const rect=overlay.getBoundingClientRect(),centerX=rect.left+rect.width/2,centerY=rect.top+rect.height/2;
+  const distance=Math.max(8,Math.hypot(event.clientX-centerX,event.clientY-centerY));
+  const resumeSprite=item.kind==='sprite'&&item.playing;
+  if(resumeSprite)stopSpriteMotion(item);
+  event.currentTarget.setPointerCapture?.(event.pointerId);
+  assetResizeDrag={id:event.pointerId,item,handle:event.currentTarget,centerX,centerY,startDistance:distance,startValue:selectedSizeValue(item),resumeSprite};
+  stage.classList.add('asset-resizing');
+  suspendRegionEnhancement();
+}
+function moveAssetResize(event){
+  if(!assetResizeDrag||assetResizeDrag.id!==event.pointerId)return;
+  event.preventDefault();event.stopPropagation();
+  const drag=assetResizeDrag;
+  const distance=Math.max(4,Math.hypot(event.clientX-drag.centerX,event.clientY-drag.centerY));
+  applySelectedSize(drag.item,drag.startValue*(distance/drag.startDistance));
+  const number=keyboardKeys.querySelector('.asset-size-number'),range=keyboardKeys.querySelector('.asset-size-range');
+  if(number)number.value=drag.item.kind==='label'?String(Math.round(selectedSizeValue(drag.item))):selectedSizeValue(drag.item).toFixed(2);
+  if(range)range.value=String(selectedSizeValue(drag.item));
+}
+function endAssetResize(event){
+  if(!assetResizeDrag||assetResizeDrag.id!==event.pointerId)return;
+  const drag=assetResizeDrag;assetResizeDrag=null;
+  stage.classList.remove('asset-resizing');
+  if(drag.handle?.hasPointerCapture?.(event.pointerId))drag.handle.releasePointerCapture(event.pointerId);
+  refreshAssetResizeOverlay(drag.item);
+  scheduleRegionEnhancement(40);
+  if(drag.resumeSprite&&drag.item.committed)startSpriteMotion(drag.item);
+  applySelectedSize(drag.item,selectedSizeValue(drag.item),{announceChange:true});
+}
 function refreshUserImage(item){
   if(!item?.node)return;
   if(item.kind==='label'){refreshUserLabel(item);return}
@@ -1382,7 +1528,10 @@ function refreshUserImage(item){
     item.node.style.visibility='hidden';
   }else{
     item.node.dataset.assetPending='false';
-    if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired;void primeCollisionMask(desired)}
+    if(item.renderedSrc!==desired){
+      item.node.src=desired;item.renderedSrc=desired;
+      if(item.kind!=='sprite')void primeCollisionMask(desired);
+    }
     if(!item.progressiveSlices?.length)item.node.style.visibility='';
   }
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
@@ -1396,6 +1545,7 @@ function refreshUserImage(item){
     item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
   }
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
+  item.node.style.aspectRatio=item.kind==='sprite'?String(stableAssetAspect(item)):'';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.pointerEvents=item.sourceLocked?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
   item.node.style.transformOrigin='50% 50%';
@@ -1403,6 +1553,7 @@ function refreshUserImage(item){
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
   if(!desired){item.node.style.visibility='hidden';return}
   refreshProgressiveParallax(item);
+  if(item===selectedImage)refreshAssetResizeOverlay(item);
 }function selectUserImage(item){
   if(item?.sourceLocked||(REGION_DEFINER&&item&&(!item.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()))){
@@ -1412,6 +1563,7 @@ function refreshUserImage(item){
   previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
   if(selectedImage)refreshUserImage(selectedImage);
+  if(selectedImage)refreshAssetResizeOverlay(selectedImage);else removeAssetResizeOverlay();
   if(REGION_DEFINER&&regionDeedIsComplete()&&selectedImage&&keyboardMode==='Select'){
     keyboardMode=selectedImage.kind==='label'?'Labels':'Image';
     renderKeyboardTabs();
@@ -1422,7 +1574,7 @@ function refreshUserImage(item){
 function deselectUserImage(announceChange=false){
   if(!selectedImage)return false;
   const previous=selectedImage;
-  previous.node?.classList.remove('selected');selectedImage=null;refreshUserImage(previous);renderKeyboardKeys();scheduleRegionEnhancement(20);
+  previous.node?.classList.remove('selected');selectedImage=null;removeAssetResizeOverlay();refreshUserImage(previous);renderKeyboardKeys();scheduleRegionEnhancement(20);
   if(announceChange)announce('Selection cleared.');
   return true;
 }
@@ -1461,7 +1613,7 @@ function placedContentSelect(){
 function removeSelectedImage(){
   if(READ_ONLY)return;if(!selectedImage)return;
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
-  const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
+  const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;removeAssetResizeOverlay();updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
   if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
   if(REGION_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
@@ -1475,8 +1627,10 @@ function beginImageDrag(event,item){
   if(item?.committed&&!alreadySelected)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   if(REGION_DEFINER)stage.classList.add('region-asset-moving');
+  const resumeSprite=item.kind==='sprite'&&item.playing;
+  if(resumeSprite)stopSpriteMotion(item);
   suspendRegionEnhancement();
-  imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y};
+  imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y,resumeSprite};
 }
 function moveImageDrag(event){
   if(READ_ONLY)return;
@@ -1485,7 +1639,7 @@ function moveImageDrag(event){
   const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
   const bounded=REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY};
   imageDrag.item.x=bounded.x;imageDrag.item.y=bounded.y;
-  refreshUserImage(imageDrag.item);
+  refreshUserImage(imageDrag.item);refreshAssetResizeOverlay(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
 function endImageDrag(event){
@@ -1493,7 +1647,9 @@ function endImageDrag(event){
   const drag=imageDrag;imageDrag=null;
   stage.classList.remove('region-asset-moving');
   if(drag.item.node.hasPointerCapture?.(event.pointerId))drag.item.node.releasePointerCapture(event.pointerId);
+  refreshAssetResizeOverlay(drag.item);
   scheduleRegionEnhancement(40);
+  if(drag.resumeSprite&&drag.item.committed)startSpriteMotion(drag.item);
 }
 async function placeUploadedImage(file){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -3655,6 +3811,7 @@ function renderKeyboardKeysContent(){
       readoutKey(`Y ${pos.y}`,'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
       toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
+      sizeNumberInput(selectedImage),sizeRangeInput(selectedImage),
       toolKey('↺','rotate',()=>{selectedImage.rotation-=15;refreshUserImage(selectedImage)}),
       toolKey('↻','rotate',()=>{selectedImage.rotation+=15;refreshUserImage(selectedImage)}),
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
@@ -3875,6 +4032,16 @@ stage.addEventListener('wheel',e=>{
   const unit=e.deltaMode===1?16:e.deltaMode===2?stage.clientHeight:1;
   zoomAt(e.clientX,e.clientY,Math.exp(-clamp(e.deltaY*unit,-240,240)*.0015));
 },{passive:false});
+stage.addEventListener('contextmenu',event=>{
+  if(event.target instanceof Element&&event.target.closest('.user-image-placement,.asset-resize-overlay')){
+    event.preventDefault();event.stopPropagation();
+  }
+},{capture:true});
+stage.addEventListener('dragstart',event=>{
+  if(event.target instanceof Element&&event.target.closest('.user-image-placement')){
+    event.preventDefault();event.stopPropagation();
+  }
+},{capture:true});
 stage.addEventListener('pointerdown',e=>{
   if(REGION_DEFINER&&regionClaimPhase==='select'&&regionSelectionEnabled)return;
   if(e.target instanceof Element&&e.target.closest('[data-ui]'))return;
@@ -3920,10 +4087,11 @@ function release(e){
 }
 stage.addEventListener('pointerup',release);
 stage.addEventListener('pointercancel',release);
-stage.addEventListener('lostpointercapture',event=>{release(event);endImageDrag(event)});
+stage.addEventListener('lostpointercapture',event=>{release(event);endImageDrag(event);endAssetResize(event)});
 window.addEventListener('blur',()=>{
   for(const pointerId of [...pointers.keys()])release({pointerId});
   if(imageDrag)endImageDrag({pointerId:imageDrag.id});
+  if(assetResizeDrag)endAssetResize({pointerId:assetResizeDrag.id});
 });
 // Observe the actual host, including its first nonzero layout, without resetting
 // the user's zoom or world point under the viewport center on every resize.
