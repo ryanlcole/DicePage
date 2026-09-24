@@ -8,10 +8,8 @@ public sealed partial class WorldSession
     string _activeLocalId = "";
 
     public IReadOnlyList<WorldLocal> Locals => _locals;
-    public IReadOnlyList<WorldLocal> DefinedLocals => _locals
-        .Where(local => string.Equals(local.WorldId, WorldId, StringComparison.Ordinal))
-        .OrderBy(local => local.Name, StringComparer.OrdinalIgnoreCase)
-        .ToList();
+    public IReadOnlyList<WorldLocal> DefinedLocals => CanonicalLocals(_locals
+        .Where(local => string.Equals(local.WorldId, WorldId, StringComparison.Ordinal)));
     public WorldLocal? ActiveLocal => _locals.FirstOrDefault(local =>
         string.Equals(local.LocalId, _activeLocalId, StringComparison.Ordinal));
 
@@ -50,10 +48,7 @@ public sealed partial class WorldSession
 
         if (catalog is not null && string.Equals(catalog.WorldId, WorldId, StringComparison.Ordinal))
         {
-            _locals.AddRange((catalog.Locals ?? [])
-                .Where(local => !string.IsNullOrWhiteSpace(local.LocalId))
-                .GroupBy(local => local.LocalId, StringComparer.Ordinal)
-                .Select(group => group.OrderByDescending(local => local.UpdatedAtUtc).First()));
+            _locals.AddRange(CanonicalLocals(catalog.Locals ?? []));
         }
 
         if (!string.IsNullOrWhiteSpace(_activeLocalId)
@@ -117,9 +112,9 @@ public sealed partial class WorldSession
         if (anchorObjectId.Length == 0)
             throw new InvalidOperationException("Select a placed regional object for the Local.");
 
-        var duplicate = _locals.FirstOrDefault(local =>
-            string.Equals(local.RegionId, region.RegionId, StringComparison.Ordinal)
-            && string.Equals(local.AnchorObjectId, anchorObjectId, StringComparison.Ordinal));
+        var duplicate = CanonicalLocals(_locals).FirstOrDefault(local =>
+            string.Equals(local.RegionId, region.RegionId, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(local.AnchorObjectId, anchorObjectId, StringComparison.OrdinalIgnoreCase));
         if (duplicate is not null)
         {
             _activeLocalId = duplicate.LocalId;
@@ -229,6 +224,9 @@ public sealed partial class WorldSession
     public async Task SaveLocalsAsync()
     {
         if (!HasActiveWorld) return;
+        var canonical = CanonicalLocals(_locals);
+        _locals.Clear();
+        _locals.AddRange(canonical);
         var catalog = new WorldLocalCatalog(WorldId, _locals.ToList(), DateTimeOffset.UtcNow);
         var json = JsonSerializer.Serialize(catalog, MapWriteOptions);
         await js.InvokeVoidAsync("localStorage.setItem", LocalLocalSaveKey, json);
@@ -237,6 +235,73 @@ public sealed partial class WorldSession
             await auth.UploadTextAsync(LocalDirectoryKey, json, "application/json");
 
         Notify();
+    }
+
+    static List<WorldLocal> CanonicalLocals(IEnumerable<WorldLocal> locals)
+    {
+        // Local identity is the parent Region + the placed regional object used
+        // as the Local anchor. Older builds could mint more than one LocalId for
+        // the same anchor; collapse those aliases deterministically to the most
+        // recently updated record while keeping unrelated Locals intact.
+        return locals
+            .Where(local => local is not null
+                && !string.IsNullOrWhiteSpace(local.LocalId)
+                && !string.IsNullOrWhiteSpace(local.WorldId))
+            .GroupBy(local => local.LocalId.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.OrderByDescending(local => local.UpdatedAtUtc).First())
+            .GroupBy(local =>
+            {
+                var regionId = (local.RegionId ?? "").Trim();
+                var anchorId = (local.AnchorObjectId ?? "").Trim();
+                return anchorId.Length == 0
+                    ? $"LOCAL\u001f{local.LocalId.Trim()}"
+                    : $"ANCHOR\u001f{regionId}\u001f{anchorId}";
+            }, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group
+                .OrderByDescending(local => local.UpdatedAtUtc)
+                .ThenBy(local => local.LocalId, StringComparer.OrdinalIgnoreCase)
+                .First())
+            .OrderBy(local => local.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(local => local.LocalId, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    public async Task<int> DeleteLocalAsync(WorldLocal local)
+    {
+        if (!HasActiveWorld || local is null) return 0;
+
+        var region = _regions.FirstOrDefault(item =>
+            string.Equals(item.RegionId, local.RegionId, StringComparison.OrdinalIgnoreCase));
+        if (region is null || !IsRegionInActiveWorld(region))
+            throw new InvalidOperationException("The Local parent Region is unavailable.");
+        if (!CanEditRegion(region))
+            throw new UnauthorizedAccessException("Region edit authority is required to delete this Local.");
+
+        var regionId = (local.RegionId ?? "").Trim();
+        var anchorId = (local.AnchorObjectId ?? "").Trim();
+        var removed = _locals
+            .Where(item =>
+                string.Equals(item.WorldId, WorldId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(item.RegionId, regionId, StringComparison.OrdinalIgnoreCase)
+                && (anchorId.Length > 0
+                    ? string.Equals(item.AnchorObjectId, anchorId, StringComparison.OrdinalIgnoreCase)
+                    : string.Equals(item.LocalId, local.LocalId, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        if (removed.Count == 0) return 0;
+
+        foreach (var item in removed)
+        {
+            _locals.Remove(item);
+            try { await js.InvokeVoidAsync("localStorage.removeItem", LocalMapLocalSaveKey(item.LocalId)); }
+            catch { }
+        }
+
+        if (removed.Any(item => string.Equals(item.LocalId, _activeLocalId, StringComparison.OrdinalIgnoreCase)))
+            _activeLocalId = "";
+
+        await SaveLocalsAsync();
+        return removed.Count;
     }
 
     static string NormalizeLocalName(string? name)
