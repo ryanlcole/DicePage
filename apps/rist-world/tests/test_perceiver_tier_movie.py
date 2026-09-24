@@ -312,6 +312,27 @@ def test_perceiver_sprite_exports_reenter_the_normal_sprite_library():
     assert "CropHeight:spriteMeta.Value.FrameHeight" in asset_library
 
 
+def test_perceiver_sprite_separation_is_user_controlled():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    for marker in [
+        'data-perceiver-sprite-depth',
+        'data-perceiver-sprite-separation',
+        'data-perceiver-sprite-separation-range',
+        'SEPARATION %',
+        'FINE SEPARATION',
+    ]:
+        assert marker in workspace
+
+    assert "spriteSeparation: 1" in player
+    assert "state.spriteSeparation = clamp(" in player
+    assert "0.5 + (rawDepth - 0.5) * state.spriteSeparation" in player
+    assert "state.spriteDepths[state.selectedSpriteIndex]" in player
+    assert "spriteDefaultDepths" in player
+    assert "spriteSeparationRange?.addEventListener('input'" in player
+
+
 def test_perceiver_sprite_editor_is_local_precise_and_motion_aware():
     workspace = read("Components/PerceiverWorkspace.razor")
     player = read("wwwroot/perceiver-player.js")
