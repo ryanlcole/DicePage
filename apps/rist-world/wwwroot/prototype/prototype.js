@@ -98,7 +98,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false,requestedLocalOpenPending=false;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false,requestedLocalOpenPending=false,localRegionSourceReady=false;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -154,7 +154,7 @@ function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayer
 }
 function localIsOpen(){return !!(LOCAL_DEFINER&&activeLocal?.id)}
 function maybeOpenRequestedLocal(){
-  if(!LOCAL_DEFINER||!REQUESTED_LOCAL_ID||localIsOpen()||requestedLocalOpenPending||!regionProjectionLoaded)return;
+  if(!LOCAL_DEFINER||!REQUESTED_LOCAL_ID||localIsOpen()||requestedLocalOpenPending||!localRegionSourceReady)return;
   const local=localCatalog.find(item=>String(item?.id||'')===REQUESTED_LOCAL_ID);
   if(!local)return;
   requestedLocalOpenPending=true;
@@ -2603,6 +2603,7 @@ async function renderRegionProjection(payload){
   await Promise.all([...inheritedPending,...pending]);
   if(revision!==canonicalHydrationRevision)return;
   updateLayerOrder();applyParallax();ensureActiveRegionOverlaysShown(projectedId);refreshRegionPersistenceStatus();
+  if(LOCAL_DEFINER)localRegionSourceReady=true;
   maybeOpenRequestedLocal();
   announce(`${regionClaimedRegion.name} ready. ${expected.size} claimed coordinates from World Tier ${parentTier+1}. ${owned.length} saved regional overlay${owned.length===1?'':'s'} loaded. World Z 0–9 is locked; regional overlays use .01–.09 above each World Z.`);
 }
@@ -2749,6 +2750,7 @@ async function renderRegionWorldSource(payload){
     applyParallax();
     updateReadouts();
     renderKeyboardKeys();
+    if(LOCAL_DEFINER){localRegionSourceReady=true;maybeOpenRequestedLocal()}
   }).catch(error=>{
     if(hydrationRevision!==canonicalHydrationRevision)return;
     stage.dataset.canonicalHydrationError=String(error?.message||error||'unknown error').slice(0,160);
@@ -3352,7 +3354,7 @@ function stepLocalRegionPreview(delta){
 }
 function clearLocalRegionSelection(){
   if(!LOCAL_DEFINER)return;
-  activeLocal=null;localAnchorItem=null;localRegionEditable=false;localCreatePending=false;
+  activeLocal=null;localAnchorItem=null;localRegionEditable=false;localCreatePending=false;localRegionSourceReady=false;
   deselectUserImage(false);
   for(let index=userLayers.length-1;index>=0;index--){
     const item=userLayers[index];
@@ -3711,6 +3713,7 @@ async function handleRegionHostMessage(event){
     pendingClaimedRegionId=String(region.id);
     regionClaimedRegion=null;
     regionProjectionLoaded=false;
+    localRegionSourceReady=false;
     hideLocalRegionPreview();
     if(data.worldSource)await renderRegionWorldSource(data.worldSource);
     else{refreshLocalRegionPreview();announce('The selected Region map is unavailable.');return}
@@ -3751,7 +3754,10 @@ async function handleRegionHostMessage(event){
       }
     }else if(regionClaimedRegion){
       const canonical=regionCatalog.find(region=>String(region?.id||'')===String(regionClaimedRegion.id||''));
-      if(canonical){regionClaimedRegion=canonical;syncClaimedRegionOutline(canonical)}
+      if(canonical){
+        if(LOCAL_DEFINER)localRegionEditable=canonical.canEdit===true;
+        regionClaimedRegion=canonical;syncClaimedRegionOutline(canonical);
+      }
     }
     updateRegionSelectionOverlay();renderKeyboardKeys();return;
   }
@@ -3830,7 +3836,12 @@ async function handleRegionHostMessage(event){
     }
     return;
   }
-  if(data.type==='error'){regionCreatePending=false;renderKeyboardKeys();announce(String(data.message||'Region operation failed.'))}
+  if(data.type==='error'){
+    regionCreatePending=false;
+    requestedLocalOpenPending=false;
+    if(localRegionSelectPending){localRegionSelectPending=false;refreshLocalRegionPreview()}
+    renderKeyboardKeys();announce(String(data.message||'Region operation failed.'));
+  }
 }
 if(REGION_DEFINER){
   window.addEventListener('message',handleRegionHostMessage);
