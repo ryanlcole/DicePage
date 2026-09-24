@@ -2366,7 +2366,7 @@ function syncClaimedRegionOutline(region){
 function clearClaimedRegionCrop(refit=true){
   if(!REGION_DEFINER)return;
   regionClaimedRegion=null;pendingClaimedRegionId='';regionProjectionLoaded=false;
-  regionRelativeTierIndex=0;regionRelativeTiers=[{id:'region:tier:0',index:0,label:'Region Base'}];
+  regionLayerIndex=1;
   syncClaimedRegionOutline(null);
   syncRegionEditLayer();
   clearRegionMask(refit);
@@ -2461,8 +2461,7 @@ function applyClaimedRegionCrop(region){
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
   stage.classList.remove('region-tier-previewing','region-selection-only');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
-  regionRelativeTierIndex=0;
-  regionRelativeTiers=[{id:`${region.id}:tier:0`,index:0,label:'Region Base'}];
+  regionLayerIndex=1;
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;
   revealCompleteRegionWorldReference();
@@ -2477,7 +2476,11 @@ function applyClaimedRegionCrop(region){
   updateRegionSelectionOverlay();
   if(editableRegion)keyboardMode='Viewer';
   updateLayerOrder();
-  if(!applyRegionMask(region,'visibility-mask',true))requestAnimationFrame(()=>fitMap());
+  clearRegionMask(false);
+  stage.classList.add('region-cropped');
+  stage.dataset.cropMode='selected-source-cells';
+  stage.dataset.regionContext='region';
+  requestAnimationFrame(()=>fitClaimedRegion(region));
   if(editableRegion)queueMicrotask(()=>{renderKeyboardTabs();renderKeyboardKeys();if(keyboard.hidden)openKeyboard()});
 }
 function ensureRegionTierPreview(){
@@ -2836,10 +2839,12 @@ if(REGION_DEFINER){
 function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
 function selectedPositionSummary(item){
-  if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,x:'0.000',y:'0.000'};
-  const tier=REGION_DEFINER&&regionDeedIsComplete()
-    ?{number:(Number(item.tier)||0)+1,label:regionTierLabel(Number(item.tier)||0)}
-    :tierDisplay(item.tier);
+  if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,worldZ:0,regionLayer:1,z:'0.01',x:'0.000',y:'0.000'};
+  const tier=tierDisplay(item.tier);
+  if(REGION_DEFINER&&regionDeedIsComplete()){
+    const worldZ=regionWorldLayer(item),regionLayer=regionOverlayLayer(item);
+    return{tier:tier.number,tierLabel:tier.label,layer:worldZ+1,worldZ,regionLayer,z:regionZLabel(worldZ,regionLayer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
+  }
   return{tier:tier.number,tierLabel:tier.label,layer:layerDisplay(item.layer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
 }
 function personalSessionToken(){
@@ -3310,12 +3315,13 @@ function renderKeyboardKeysContent(){
   if(keyboardMode==='Tiers'){
     if(REGION_DEFINER&&regionDeedIsComplete()){
       keyboardKeys.append(
-        readoutKey(`WORLD TIER ${Number(regionClaimedRegion.tierIndex)+1}`,'immutable parent terrain'),
-        ...regionRelativeTiers.map(t=>toolKey(`REGION T${t.index+1}${regionRelativeTierIndex===t.index?' ✓':''}`,
-          t.label,()=>setViewerTier(`region-tier-${t.index}`))),
-        toolKey('NEW TIER','add a regional cake',createRegionWorkingTier,READ_ONLY||regionRelativeTiers.length>=10),
-        toolKey('WORK L −',`Layer ${viewerLayer+1}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);renderState()}),
-        toolKey('WORK L +',`Layer ${viewerLayer+1}`,()=>{viewerLayer=clamp(viewerLayer+1,0,9);renderState()})
+        readoutKey(`WORLD TIER ${Number(regionClaimedRegion.tierIndex)+1}`,'fixed by the deed'),
+        readoutKey(`WORLD Z ${viewerLayer}`,`WorldBuilder Layer ${viewerLayer+1}`),
+        readoutKey(`REGION L ${regionLayerIndex}`,`Exact Z ${regionZLabel(viewerLayer,regionLayerIndex)}`),
+        toolKey('WORLD Z −',`Z ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Z ${viewerLayer}.`)} ,viewerLayer<=0),
+        toolKey('WORLD Z +',`Z ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer+1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Z ${viewerLayer}.`)} ,viewerLayer>=9),
+        toolKey('REGION L −',`.${String(regionLayerIndex).padStart(2,'0')}`,()=>{regionLayerIndex=clamp(regionLayerIndex-1,1,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()} ,regionLayerIndex<=1),
+        toolKey('REGION L +',`.${String(regionLayerIndex).padStart(2,'0')}`,()=>{regionLayerIndex=clamp(regionLayerIndex+1,1,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()} ,regionLayerIndex>=9)
       );return;
     }
     if(!REGION_DEFINER){
@@ -3752,8 +3758,10 @@ window.ShaelvienPrototype=Object.freeze({
     regionChild:REGION_DEFINER&&regionDeedIsComplete()?{
       sourceScope:stage.dataset.sourceScope||'pending',
       parentTierIndex:Number(regionClaimedRegion.tierIndex)||0,
-      relativeTierIndex:regionRelativeTierIndex,
-      relativeTiers:regionRelativeTiers.map(t=>({id:t.id,index:t.index,label:t.label})),
+      worldZ:viewerLayer,
+      regionLayer:regionLayerIndex,
+      exactZ:regionZLabel(viewerLayer,regionLayerIndex),
+      zModel:'world-integer-region-hundredth-v1',
       sourceCellCount:Number(stage.dataset.sourceCellCount)||0,
       loadedCellCount:Number(stage.dataset.loadedCellCount)||0,
       rasterIndexMissing:regionRasterIndexMissing
