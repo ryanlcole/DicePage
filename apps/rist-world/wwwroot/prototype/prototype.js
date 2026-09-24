@@ -42,7 +42,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),regionPersistenceStatus=$('regionPersistenceStatus'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 if(READ_ONLY){
   stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
   persistentSave.disabled=true;persistentSave.title='Read-only world reference';
@@ -99,7 +99,7 @@ let regionWorldSourceOcean=null;
 let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
-let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionLayerIndex=1;
+let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionLayerIndex=1,regionPersistenceDbCount=null;
 function regionWorldLayer(item){return clamp(Math.trunc(Number(item?.worldLayer??item?.layer??0)||0),0,9)}
 function regionOverlayLayer(item){return clamp(Math.trunc(Number(item?.regionLayer??1)||1),1,9)}
 function regionZ100(worldLayer,regionLayer){
@@ -281,6 +281,49 @@ function settleCollisionAnchor(hit,clientX,clientY){
   stage.dataset.zoomCollision=hit.kind==='user'?'user-image':hit.key;
 }
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
+function activeRegionOverlayItems(regionId=activeRegionMapId()){
+  const id=String(regionId||'');
+  return userLayers.filter(item=>item?.regionOverlay&&String(item.regionId||'')===id);
+}
+function refreshRegionPersistenceStatus(dbCount=regionPersistenceDbCount){
+  if(!REGION_DEFINER||!regionPersistenceStatus)return;
+  if(!regionDeedIsComplete()&&!REQUESTED_REGION_ID){
+    regionPersistenceStatus.hidden=true;return;
+  }
+  const items=activeRegionOverlayItems();
+  const pending=items.filter(item=>item.personalAssetKey&&(
+    item.node?.dataset.assetPending==='true'||(!item.renderedSrc&&!item.node?.currentSrc)
+  )).length;
+  const unsaved=items.filter(item=>item.committed===false).length;
+  const hidden=items.filter(item=>{
+    if(item.personalAssetKey&&(item.node?.dataset.assetPending==='true'||(!item.renderedSrc&&!item.node?.currentSrc)))return false;
+    return !!item.node&&(item.node.hidden||item.node.style.visibility==='hidden'||Number(item.renderOpacity)<=.001);
+  }).length;
+  const visible=Math.max(0,items.length-pending-hidden);
+  const db=Number.isFinite(Number(dbCount))?Math.max(0,Math.trunc(Number(dbCount))):'?';
+  regionPersistenceStatus.hidden=false;
+  regionPersistenceStatus.classList.remove('ok','waiting','hidden-assets','error');
+  let text=`DB ${db} · VISIBLE ${visible}`;
+  if(pending){text+=` · MY IMAGES WAITING ${pending}`;regionPersistenceStatus.classList.add('waiting')}
+  if(hidden){text+=` · HIDDEN ${hidden}`;regionPersistenceStatus.classList.add('hidden-assets')}
+  if(unsaved)text+=` · UNSAVED ${unsaved}`;
+  if(!pending&&!hidden&&unsaved===0&&db!=='?')regionPersistenceStatus.classList.add('ok');
+  regionPersistenceStatus.textContent=text;
+  stage.dataset.regionDbCount=String(db);
+  stage.dataset.regionVisibleCount=String(visible);
+  stage.dataset.regionPendingAssetCount=String(pending);
+  stage.dataset.regionHiddenAssetCount=String(hidden);
+  stage.dataset.regionUnsavedCount=String(unsaved);
+}
+function ensureActiveRegionOverlaysShown(regionId=activeRegionMapId()){
+  if(!REGION_DEFINER||!regionDeedIsComplete())return;
+  const id=String(regionId||'');
+  const layer=ensureRegionEditLayer();
+  layer.hidden=false;
+  for(const item of activeRegionOverlayItems(id)){
+    if(item.node)item.node.hidden=false;
+  }
+}
 function postWorldBuilderHostMessage(type,payload={}){
   if(REGION_DEFINER||window.parent===window)return false;
   try{window.parent.postMessage({source:'shaelvien-worldbuilder',type,...payload},location.origin);return true}catch{return false}
@@ -485,6 +528,7 @@ async function saveWorldBuilder(){
     if(REGION_DEFINER){
       const verification=await saveRegionMapToDatabase(serializedLayers);
       if(!verification?.verified)throw new Error('Region save could not be verified after writing.');
+      regionPersistenceDbCount=verification.persistedIds.length;
     }else{
       if(LIVE_WORLDBUILDER&&window.parent!==window)await saveWorldSourceToDatabase(state);
       await writeSavedWorldBuilder(state,WORLD_SOURCE_SAVE_KEY);
@@ -494,6 +538,7 @@ async function saveWorldBuilder(){
       if(item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length>1)startSpriteMotion(item);
     }
     updateLayerOrder();applyParallax();
+    if(REGION_DEFINER){ensureActiveRegionOverlaysShown();refreshRegionPersistenceStatus()}
     deselectUserImage(false);
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
@@ -502,6 +547,12 @@ async function saveWorldBuilder(){
       : `World Builder saved. ${serializedLayers.length} placed item${serializedLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
     return true;
   }catch(error){
+    if(REGION_DEFINER&&regionPersistenceStatus){
+      regionPersistenceStatus.hidden=false;
+      regionPersistenceStatus.classList.remove('ok','waiting','hidden-assets');
+      regionPersistenceStatus.classList.add('error');
+      regionPersistenceStatus.textContent='SAVE FAILED · '+String(error?.message||error||'unknown error');
+    }
     announce(`Save failed: ${String(error?.message||error||'unknown error')}`);
     return false;
   }finally{
@@ -851,6 +902,7 @@ function syncRegionEditLayer(){
     if(!item.regionOverlay||!item.node)continue;
     item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'');
   }
+  if(active)refreshRegionPersistenceStatus();
 }
 function updateLayerOrder(){
   // Tier is the committed parallax/depth boundary. Unsaved placements float above
@@ -1971,6 +2023,8 @@ async function renderRegionProjection(payload){
   });
   const owned=(Array.isArray(state.userLayers)?state.userLayers:[])
     .filter(raw=>String(raw?.regionId||'')===projectedId);
+  regionPersistenceDbCount=owned.length;
+  refreshRegionPersistenceStatus();
   const pending=owned.map(async raw=>{
     const item=await attachRestoredLayer(raw,{sourceLocked:READ_ONLY,regionOverlay:true,canonicalSource:false});
     if(revision!==canonicalHydrationRevision){discardCanonicalHydrationItem(item);return null}
@@ -1982,8 +2036,8 @@ async function renderRegionProjection(payload){
   loading.hidden=true;fitClaimedRegion(regionClaimedRegion);renderKeyboardTabs();renderKeyboardKeys();applyParallax();
   await Promise.all([...inheritedPending,...pending]);
   if(revision!==canonicalHydrationRevision)return;
-  updateLayerOrder();applyParallax();
-  announce(`${regionClaimedRegion.name} ready. ${expected.size} claimed coordinates from World Tier ${parentTier+1}. World Z 0–9 is locked; regional overlays use .01–.09 above each World Z.`);
+  updateLayerOrder();applyParallax();ensureActiveRegionOverlaysShown(projectedId);refreshRegionPersistenceStatus();
+  announce(`${regionClaimedRegion.name} ready. ${expected.size} claimed coordinates from World Tier ${parentTier+1}. ${owned.length} saved regional overlay${owned.length===1?'':'s'} loaded. World Z 0–9 is locked; regional overlays use .01–.09 above each World Z.`);
 }
 async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
@@ -2993,10 +3047,11 @@ function schedulePersonalAssetHydration(item,attempt=0){
         item.renderedSrc='';
         item.node.dataset.assetPending='false';
         item.node.style.visibility='';
-        refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30);
+        refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30);refreshRegionPersistenceStatus();
         return;
       }
     }catch{}
+    refreshRegionPersistenceStatus();
     schedulePersonalAssetHydration(item,attempt+1);
   },wait);
 }
@@ -3153,6 +3208,7 @@ function placePersonalImage(asset){
   const node=document.createElement('img');node.className=`user-image-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(asset.url);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
+  if(REGION_DEFINER)refreshRegionPersistenceStatus();
   personalFolderType=null;keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${item.name} is now the Sea Level World Map at 100% by 100%.`)}
   else announce(`${item.name} placed from My Images as an adjustable layer. Save commits this instance.`);
