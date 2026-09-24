@@ -8,7 +8,7 @@ def read(relative):
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_local_staging_is_live_and_reuses_region_projection():
+def test_local_staging_enters_local_definer_before_region_selection():
     shell = read("Components/PublicAlphaShell.razor")
     router = read("Components/TaskWorkspaceRouter.razor")
     local = read("Components/LocalDefinerWorkspace.razor")
@@ -16,27 +16,49 @@ def test_local_staging_is_live_and_reuses_region_projection():
     assert '<strong>LOCAL STAGING</strong>' in shell
     assert '@onclick="OpenLocalStaging"' in shell
     assert 'case "local"' in shell
-    assert 'OpenWorkspace("local","LOCAL DEFINER"' in shell
+    assert '"world","local","accessibility"' in shell
+    assert 'Session.SetActiveRegion("");' in shell
+    assert 'Session.SetActiveLocal("");' in shell
+    assert 'OpenWorkspace("local","LOCAL DEFINER","REGION → ASSET → LOCAL · 30°")' in shell
+    assert '_localRegionGateOpen' not in shell
+    assert 'SelectionOnly="true"' not in shell
     assert 'Mode == "local"' in router
     assert "<LocalDefinerWorkspace" in router
     assert "Session.LoadRegionSourceAsync(region.RegionId)" in local
     assert "mode=localdefiner" in local
-    assert "regionFlow=existing" in local
+    assert "regionFlow=existing&regionId=" in local
 
 
-def test_local_selects_one_existing_regional_object_not_region_cells():
+def test_local_selects_region_then_asset_instead_of_parent_region_gate():
     player = read("wwwroot/prototype/prototype.js")
     local = read("Components/LocalDefinerWorkspace.razor")
+    bridge = read("wwwroot/region-definer-host.js")
 
     assert "const LOCAL_DEFINER=WORKSPACE_MODE==='localdefiner';" in player
-    assert "select one placed regional object" in player
-    assert "Select regional object for Local" in player
+    assert "function ensureLocalRegionPreview()" in player
+    assert "Choose the Region, then select the asset that becomes the Local zone." in player
+    assert "postRegionMessage('open-local-region'" in player
+    assert "data.type==='local-region-opened'" in player
+    assert "Select Region asset for Local zone" in player
+    assert "select one asset to become the Local zone" in player
     assert "createSelectedLocal" in player
     assert "localAnchorPayload" in player
-    assert "data.type==='local-created'" in player
+    assert 'data.type==="open-local-region"' in bridge
+    assert "OpenLocalRegionForPrototypeAsync" in local
+    assert "LocalRegions.Select(DescribeRegion).ToList()" in local
     assert "CreateLocalFromPrototypeAsync" in local
     assert "Session.CreateLocalAsync" in local
     assert "SubmitRegionClaimRequestFromPrototypeAsync" not in local
+
+
+def test_local_parent_region_assets_are_locked_but_selectable_as_local_anchors():
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "sourceLocked:LOCAL_DEFINER||READ_ONLY" in player
+    assert "function isLocalAnchorCandidate(item)" in player
+    assert "item.sourceLocked&&!isLocalAnchorCandidate(item)?'none'" in player
+    assert "const localAnchorCandidate=isLocalAnchorCandidate(item);" in player
+    assert "if(LOCAL_DEFINER&&!localIsOpen()){event.preventDefault();event.stopPropagation();selectUserImage(item);return;}" in player
 
 
 def test_representation_ladder_is_world_0_region_15_local_30():
@@ -137,9 +159,10 @@ def test_local_map_is_persisted_separately_from_region_map():
 def test_local_opens_full_regiondefiner_asset_toolset_after_anchor_selection():
     player = read("wwwroot/prototype/prototype.js")
 
-    assert "if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select'];" in player
+    assert "if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);" in player
     assert "OPEN LOCAL" in player
     assert "CREATE LOCAL" in player
+    assert "toolKey('REGIONS','change Region'" in player
     assert "await enterLocalBuild(local,data.localSource||null)" in player
     assert "item.localOverlay=true" in player
     assert "ensureLocalEditLayer" in player
