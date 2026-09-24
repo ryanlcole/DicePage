@@ -96,7 +96,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=0,localPersistenceDbCount=null;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -1103,11 +1103,17 @@ function syncRegionEditLayer(){
   layer.dataset.regionLayer=String(regionLayerIndex);
   layer.style.zIndex='';
   layer.hidden=!active;
+  const localAnchorId=LOCAL_DEFINER&&localIsOpen()?String(activeLocal?.anchorObjectId||''):'';
   for(const item of userLayers){
     if(!item.regionOverlay||!item.node)continue;
-    item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'');
+    if(LOCAL_DEFINER&&localIsOpen()){
+      if(item.localOverlay)continue;
+      item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'')||String(item.id||'')!==localAnchorId;
+    }else{
+      item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'');
+    }
   }
-  if(active)refreshRegionPersistenceStatus();
+  if(active&&!LOCAL_DEFINER)refreshRegionPersistenceStatus();
 }
 function syncLocalEditLayer(){
   if(!LOCAL_DEFINER)return;
@@ -1133,7 +1139,7 @@ function updateLayerOrder(){
     const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
     const regionZ=item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100;
     const localZ=item.localOverlay
-      ?(regionZ*10000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*1000)+(clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100)
+      ?(regionZ*10000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*1000)+(clamp(Math.trunc(Number(item.localLayer)||0),0,9)*100)
         +(Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10)+clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)
       :regionZ;
     item.node.style.zIndex=String(REGION_DEFINER
@@ -1156,6 +1162,7 @@ function updateLayerOrder(){
     item.node.dataset.placementPreview=item.committed?'false':'true';
   });
   if(REGION_DEFINER)syncRegionEditLayer();
+  if(LOCAL_DEFINER)syncLocalEditLayer();
 }
 function closeTierMenu(){tierMenu.hidden=true;tierToggle.setAttribute('aria-expanded','false')}
 function renderTierMenu(){
@@ -2701,6 +2708,12 @@ function revealCompleteRegionWorldReference(){
 }
 function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
+  if(LOCAL_DEFINER&&localIsOpen()){
+    if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity='0';
+    for(const item of regionWorldTierImages)item.node.style.opacity='0';
+    for(const entry of regionWorldSourceTiles)entry.node.style.display='none';
+    return;
+  }
   if(regionProjectionLoaded){
     const parentTier=Number(regionClaimedRegion?.tierIndex)||0;
     for(const entry of regionWorldSourceTiles){
