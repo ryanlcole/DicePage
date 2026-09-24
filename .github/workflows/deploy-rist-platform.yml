@@ -105,15 +105,33 @@ jobs:
           echo "OWNER_USER_ID=$OWNER_USER_ID" >> "$GITHUB_ENV"
           echo "Resolved authenticated platform-owner authority."
 
-      - name: Recover failed platform stack shell
+      - name: Wait for stable platform stack and recover failed shell
         shell: bash
         run: |
           set -euo pipefail
           if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            for attempt in $(seq 1 60); do
+              STACK_STATUS=$(aws cloudformation describe-stacks \
+                --stack-name "$STACK_NAME" \
+                --query 'Stacks[0].StackStatus' \
+                --output text)
+              if [[ "$STACK_STATUS" != *_IN_PROGRESS ]]; then
+                break
+              fi
+              echo "$STACK_NAME is $STACK_STATUS; waiting for the in-flight deployment to finish..."
+              sleep 10
+            done
+
             STACK_STATUS=$(aws cloudformation describe-stacks \
               --stack-name "$STACK_NAME" \
               --query 'Stacks[0].StackStatus' \
               --output text)
+
+            if [[ "$STACK_STATUS" == *_IN_PROGRESS ]]; then
+              echo "$STACK_NAME did not reach a stable state within 10 minutes."
+              exit 1
+            fi
+
             if [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
               echo "$STACK_NAME is ROLLBACK_COMPLETE; deleting failed shell before clean redeploy..."
               aws cloudformation delete-stack --stack-name "$STACK_NAME"
