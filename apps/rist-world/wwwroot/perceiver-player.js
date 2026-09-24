@@ -35,7 +35,7 @@ const SPRITE_EXPORT_MAX_PIXELS = 256 * 144;
 const SPRITE_EXPORT_COLUMNS = 6;
 const SPRITE_EXPORT_ROWS = 6;
 const SPRITE_EXPORT_FRAMES_PER_PAGE = SPRITE_EXPORT_COLUMNS * SPRITE_EXPORT_ROWS;
-const SPRITE_DEFAULT_FPS = 8;
+const SPRITE_DEFAULT_FPS = 60;
 const MIN_CAMERA_SCALE = 1;
 const MAX_CAMERA_SCALE = 256;
 const ZOOM_STEP = 1.22;
@@ -450,7 +450,7 @@ function normalizeSpriteSpec(spec = {}) {
     columns: Math.max(1, Math.floor(Number(spec.columns) || 1)),
     rows: Math.max(1, Math.floor(Number(spec.rows) || 1)),
     frameCount: Math.max(1, Math.floor(Number(spec.frameCount) || 1)),
-    frameMs: Math.max(40, Number(spec.frameMs) || 160),
+    frameMs: Math.max(1000 / 60, Number(spec.frameMs) || (1000 / SPRITE_DEFAULT_FPS)),
     phase: Math.max(0, Math.floor(Number(spec.phase) || 0))
   };
 }
@@ -681,7 +681,7 @@ function parseSpriteFilename(name) {
     return {
       kind: 'sheet',
       frameCount: Math.max(1, Number(normal[1]) || 1),
-      fps: Math.max(0.1, Number(normal[2]) || SPRITE_DEFAULT_FPS),
+      fps: clamp(Number(normal[2]) || SPRITE_DEFAULT_FPS, 0.1, 60),
       columns: Math.max(1, Number(normal[3]) || 1),
       rows: Math.max(1, Number(normal[4]) || 1)
     };
@@ -692,7 +692,7 @@ function parseSpriteFilename(name) {
     return {
       kind: 'parallax-page',
       tier: clamp(Number(exported[1]) || 1, 1, 7),
-      fps: Math.max(0.1, Number(exported[2]) || 30),
+      fps: clamp(Number(exported[2]) || 30, 0.1, 60),
       frameWidth: Math.max(1, Number(exported[3]) || 1),
       frameHeight: Math.max(1, Number(exported[4]) || 1),
       columns: Math.max(1, Number(exported[5]) || 1),
@@ -979,7 +979,7 @@ async function loadSpriteFiles(state, fileList) {
       state.camera.appendChild(layer);
       return layer;
     });
-    state.spriteParallax = { tiers, fps: fps || 30, frameCount };
+    state.spriteParallax = { tiers, fps: clamp(fps || SPRITE_DEFAULT_FPS, 0.1, 60), frameCount };
     state.spriteDepths = [...SPECTRAL_DEPTH_FACTORS];
   } else {
     state.spriteLayers = decoded.slice(0, 7).map((item, index) => {
@@ -1025,7 +1025,7 @@ async function loadSpriteFiles(state, fileList) {
         columns,
         rows,
         frameCount,
-        frameMs: 1000 / Math.max(0.1, meta.fps || SPRITE_DEFAULT_FPS),
+        frameMs: 1000 / clamp(meta.fps || SPRITE_DEFAULT_FPS, 0.1, 60),
         phase: item.file.name.toLowerCase().includes('dragon_celestial')
           ? 2
           : item.file.name.toLowerCase().includes('dragon_night')
@@ -1611,6 +1611,8 @@ export function attach(root, config = {}) {
     onPointerDown: null,
     onPointerUp: null,
     onPointerLeave: null,
+    onContextMenu: null,
+    onDragStart: null,
     onWheel: null,
     onKeyDown: null,
     onDeviceOrientation: null,
@@ -1803,6 +1805,21 @@ export function attach(root, config = {}) {
     state.targetY = 0;
   };
 
+  state.onContextMenu = event => {
+    if (event.target instanceof Element &&
+        event.target.closest('.perceiver-canvas,.perceiver-layer,.perceiver-sprite-layer,canvas,img')) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+  state.onDragStart = event => {
+    if (event.target instanceof Element &&
+        event.target.closest('.perceiver-canvas,.perceiver-layer,.perceiver-sprite-layer,canvas,img')) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
   state.onWheel = event => {
     if (!event.deltaY) return;
     event.preventDefault();
@@ -1948,6 +1965,8 @@ export function attach(root, config = {}) {
   canvas.addEventListener('pointerleave', state.onPointerLeave, { passive: true });
   canvas.addEventListener('wheel', state.onWheel, { passive: false });
   canvas.addEventListener('keydown', state.onKeyDown);
+  root.addEventListener('contextmenu', state.onContextMenu, { capture: true });
+  root.addEventListener('dragstart', state.onDragStart, { capture: true });
   state.motionButton?.addEventListener('click', state.onMotionClick);
   state.fullscreenButton?.addEventListener('click', state.onFullscreenClick);
   document.addEventListener('fullscreenchange', state.onFullscreenChange);
@@ -2104,6 +2123,8 @@ export function detach(root) {
   state.canvas.removeEventListener('pointerleave', state.onPointerLeave);
   state.canvas.removeEventListener('wheel', state.onWheel);
   state.canvas.removeEventListener('keydown', state.onKeyDown);
+  root.removeEventListener('contextmenu', state.onContextMenu, { capture: true });
+  root.removeEventListener('dragstart', state.onDragStart, { capture: true });
   state.motionButton?.removeEventListener('click', state.onMotionClick);
   state.fullscreenButton?.removeEventListener('click', state.onFullscreenClick);
   document.removeEventListener('fullscreenchange', state.onFullscreenChange);
