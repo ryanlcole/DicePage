@@ -45,24 +45,28 @@ addresses, not new World Tiers and not independent parallax planes.
 The database stores exact integer hundredths (`z100`) rather than using a raw
 floating-point decimal as spatial truth.
 
-## Local — 30° future stage
+## Local — 30° object-anchored representation
 
-Local repeats the same idea one representation deeper while keeping the same
-world identity and X/Y ancestry.
+Local repeats the recursive representation one level deeper while keeping the
+same world and Region ancestry.
 
-Local depth occupies tenths across the same World Z range:
+A Local is defined by selecting one already-placed Region object such as a city,
+landmark, ruin, building cluster, ship, fortress, portal, or other local-bearing
+object. Local definition does **not** claim another arbitrary set of world cells.
 
-- 0.1–0.9;
-- 1.1–1.9;
-- …
-- 9.1–9.9.
+The Local records a stable parent Region ID plus the selected object's stable
+identity, asset identity, Region-normalized X/Y footprint, rotation, parent
+World Tier, World Z, Region Layer, and exact parent `z100`. The selected object
+is therefore the Local's canonical anchor.
 
-Local is presented at 30°. Its implementation must preserve reversible parent
-coordinates so zooming out returns to the same region/world location without
-drift.
+Local is presented at **30°**. Unlike RegionDefiner's shallow 15° editing view,
+Local may visually express the depth already authored in the Region hierarchy.
+That visual separation is representation only; it does not rewrite the Region
+object's canonical coordinates.
 
-The exact Local storage representation will be specified before implementation;
-the conceptual decimal notation must not force floating-point storage.
+Future Local-owned detail may occupy a deeper exact address model, but the
+implementation must define that storage explicitly rather than infer truth from
+display decimals or visual parallax.
 
 ## Instance — separate 45° builder
 
@@ -85,8 +89,8 @@ the outdoor World/Region/Local address.
 
 The intended traversal is:
 
-**WORLD → REGION (15°) → LOCAL (30°) → INSTANCE BUILDER (45° when entering an
-instance-bearing object).**
+**WORLD (0° overhead) → REGION (15°) → LOCAL (30°) → INSTANCE BUILDER (45°
+when entering an instance-bearing object).**
 
 For World → Region → Local, zoom changes detail and representation while
 preserving the same world position.
@@ -107,8 +111,9 @@ Zooming back out must recover:
 Objects carry stable identity and parent provenance.
 
 WorldBuilder terrain remains canonical. Region overlays are stored as
-region-owned entries in the same WorldBuilder source state. Local will extend
-that same address model rather than create an unrelated map truth.
+region-owned entries in the same WorldBuilder source state. Local definitions
+are anchored to selected Region objects and preserve that parent address rather
+than creating an unrelated outdoor map truth.
 
 Instance content has its own internal spatial graph but remains anchored to the
 canonical parent object that is entered.
@@ -142,9 +147,19 @@ Implemented in RegionDefiner:
 - shared WorldBuilder-source persistence;
 - 15° representation.
 
+Implemented in Local staging:
+
+- parent Region chooser with no new-Region/claim action;
+- selection of one placed Region object rather than arbitrary map cells;
+- stable Local identity anchored to that object's Region identity and coordinates;
+- 30° Local representation;
+- Local view may expose regional World-Z / Region-Layer depth as parallax while
+  RegionDefiner remains map-attached at 15°.
+
 Not yet implemented:
 
-- Local at 30° using tenths;
+- Local-owned child authoring/persistence above the selected anchor;
+- the final exact Local child-depth storage model;
 - continuous camera handoff from Region into Local;
 - Instance Builder at 45°;
 - continuous entrance/exit transitions for arbitrary interiors.
