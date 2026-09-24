@@ -3,10 +3,14 @@ import json
 import os
 import secrets
 import time
+import urllib.error
+import urllib.request
 import uuid
 from datetime import datetime, timezone
 
 import boto3
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 
 
 ddb = boto3.resource("dynamodb")
@@ -15,6 +19,8 @@ state = ddb.Table(os.environ["AI_STATE_TABLE"])
 audit = ddb.Table(os.environ["AI_AUDIT_TABLE"])
 owner_user_id = os.environ.get("OWNER_USER_ID", "").strip()
 owner_released = os.environ.get("OWNER_RELEASED", "false").strip().lower() == "true"
+mcp_intake_open = os.environ.get("MCP_INTAKE_OPEN", "false").strip().lower() == "true"
+authority_api_base_url = os.environ.get("AUTHORITY_API_BASE_URL", "").strip().rstrip("/")
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
 
 POLICY_VERSION = "2026-09-20.1"
@@ -300,8 +306,8 @@ def human_auth(event):
 
 
 def register(req):
-    if not owner_released:
-        return response(423, {"error": "External AI access is owner-locked", "policy": public_policy()})
+    if not owner_released and not mcp_intake_open:
+        return response(423, {"error": "External AI registration is closed", "policy": public_policy()})
 
     provider = safe_text(req.get("provider"), "provider", 120)
     model = safe_text(req.get("model"), "model", 160)
@@ -351,9 +357,6 @@ def register(req):
 
 
 def login(req):
-    if not owner_released:
-        return response(423, {"error": "External AI access is owner-locked", "policy": public_policy()})
-
     agent_id = safe_text(req.get("agentId"), "agentId", 200)
     agent_key = safe_text(req.get("agentKey"), "agentKey", 300)
     key = {"pk": "AI-REGISTRATION#" + agent_id, "sk": "PROFILE"}
@@ -361,6 +364,12 @@ def login(req):
     if not profile or not secrets.compare_digest(str(profile.get("credentialHash", "")), hash_secret(agent_key)):
         audit_write(agent_id, "external-ai.login-denied", {"reason": "invalid-credentials"})
         return response(401, {"error": "Invalid AI credentials"})
+    selected_for_mcp = bool(profile.get("mcpSelected", False))
+    if not owner_released and not selected_for_mcp:
+        return response(423, {
+            "error": "External AI access remains owner-locked except for the selected MCP tester",
+            "status": profile.get("status", "Unknown"),
+        })
     if profile.get("status") != "Approved":
         return response(403, {"error": "AI registration is not approved", "status": profile.get("status", "Unknown")})
     if profile.get("policyVersion") != POLICY_VERSION or profile.get("rulesetVersion") != AI_RULESET_VERSION:
@@ -437,6 +446,374 @@ def session_status(req):
     })
 
 
+
+DISCIPLINE_WEIGHTS = {
+    "art": 10,
+    "artist": 10,
+    "animation": 9,
+    "cartography": 9,
+    "gaming": 9,
+    "game-mastering": 10,
+    "gamemastering": 10,
+    "roleplaying": 10,
+    "roleplay": 10,
+    "narration": 10,
+    "narrating": 10,
+    "worldbuilding": 10,
+    "tabletop": 9,
+    "ttrpg": 9,
+    "accessibility": 8,
+    "testing": 8,
+    "writing": 7,
+    "programming": 6,
+    "development": 6,
+    "audio": 6,
+    "music": 5,
+}
+
+
+def _verify_agent_credentials(req):
+    agent_id = safe_text(req.get("agentId"), "agentId", 200)
+    agent_key = safe_text(req.get("agentKey"), "agentKey", 300)
+    key = {"pk": "AI-REGISTRATION#" + agent_id, "sk": "PROFILE"}
+    profile = state.get_item(Key=key, ConsistentRead=True).get("Item")
+    if not profile or not secrets.compare_digest(
+        str(profile.get("credentialHash", "")), hash_secret(agent_key)
+    ):
+        audit_write(agent_id, "external-ai.application-denied", {"reason": "invalid-credentials"})
+        return None, None
+    return agent_id, profile
+
+
+def _application_score(disciplines, experience_summary, test_plan, portfolio_urls, requested_roles):
+    normalized = []
+    for raw in disciplines:
+        key = str(raw or "").strip().lower().replace("_", "-")
+        if key and key not in normalized:
+            normalized.append(key)
+    relevance = sum(DISCIPLINE_WEIGHTS.get(item, 0) for item in normalized)
+    # Evidence points are deliberately bounded so keyword stuffing cannot dominate
+    # the work-relevance score. No demographic or inferred personal trait is scored.
+    evidence = min(10, len(experience_summary) // 240)
+    plan = min(10, len(test_plan) // 240)
+    portfolio = min(12, len(portfolio_urls) * 2)
+    role_fit = min(5, len(requested_roles))
+    return relevance + evidence + plan + portfolio + role_fit
+
+
+def submit_application(req):
+    if not mcp_intake_open:
+        return response(423, {"error": "MCP tester applications are closed"})
+    agent_id, profile = _verify_agent_credentials(req)
+    if not profile:
+        return response(401, {"error": "Invalid AI credentials"})
+
+    raw_disciplines = req.get("disciplines") or []
+    if not isinstance(raw_disciplines, list) or not 1 <= len(raw_disciplines) <= 12:
+        raise ValueError("disciplines must contain between 1 and 12 entries")
+    disciplines = [safe_text(item, "discipline", 80).lower() for item in raw_disciplines]
+    eligible_disciplines = sorted({
+        item.replace("_", "-")
+        for item in disciplines
+        if item.replace("_", "-") in DISCIPLINE_WEIGHTS
+    })
+    if not eligible_disciplines:
+        raise ValueError(
+            "Application must relate to a supported creative or testing discipline"
+        )
+
+    experience_summary = safe_text(req.get("experienceSummary"), "experienceSummary", 3000)
+    test_plan = safe_text(req.get("testPlan"), "testPlan", 3000)
+    if len(experience_summary) < 40 or len(test_plan) < 40:
+        raise ValueError("experienceSummary and testPlan must each contain at least 40 characters")
+
+    raw_urls = req.get("portfolioUrls") or []
+    if not isinstance(raw_urls, list) or len(raw_urls) > 8:
+        raise ValueError("portfolioUrls must contain at most 8 entries")
+    portfolio_urls = []
+    for value in raw_urls:
+        url = safe_text(value, "portfolioUrl", 500)
+        if not (url.startswith("https://") or url.startswith("http://")):
+            raise ValueError("portfolioUrls must use http or https")
+        portfolio_urls.append(url)
+
+    raw_roles = req.get("requestedRoles") or []
+    if not isinstance(raw_roles, list) or len(raw_roles) > 12:
+        raise ValueError("requestedRoles must contain at most 12 entries")
+    requested_roles = [safe_text(value, "requestedRole", 100) for value in raw_roles]
+
+    now = int(time.time())
+    application_id = "mcpapp-" + str(uuid.uuid4())
+    score = _application_score(
+        eligible_disciplines, experience_summary, test_plan, portfolio_urls, requested_roles
+    )
+    item = {
+        "pk": "AI-APPLICATIONS",
+        "sk": agent_id,
+        "entityType": "mcpTesterApplication",
+        "applicationId": application_id,
+        "agentId": agent_id,
+        "displayName": str(profile.get("displayName") or "")[:160],
+        "provider": str(profile.get("provider") or "")[:120],
+        "model": str(profile.get("model") or "")[:160],
+        "disciplines": eligible_disciplines,
+        "experienceSummary": experience_summary,
+        "testPlan": test_plan,
+        "portfolioUrls": portfolio_urls,
+        "requestedRoles": requested_roles,
+        "candidateScore": score,
+        "status": "Applied",
+        "createdAt": now,
+        "createdAtUtc": utc_iso(now),
+        "updatedAt": now,
+        "updatedAtUtc": utc_iso(now),
+        "policyVersion": POLICY_VERSION,
+        "rulesetVersion": AI_RULESET_VERSION,
+        "selectionBasis": "work-relevant-evidence-only",
+        "protectedTraitsRequestedOrScored": False,
+    }
+    state.put_item(Item=item)
+    profile["status"] = "Applied"
+    profile["applicationId"] = application_id
+    profile["applicationUpdatedAtUtc"] = utc_iso(now)
+    state.put_item(Item=profile)
+    audit_write(agent_id, "external-ai.mcp-application-submitted", {
+        "applicationId": application_id,
+        "disciplines": eligible_disciplines,
+        "selectionBasis": "work-relevant-evidence-only",
+    })
+    return response(202, {
+        "applicationId": application_id,
+        "agentId": agent_id,
+        "status": "Applied",
+        "eligibleDisciplines": eligible_disciplines,
+        "selectionBasis": "work-relevant-evidence-only",
+        "protectedTraitsRequestedOrScored": False,
+        "policyVersion": POLICY_VERSION,
+        "rulesetVersion": AI_RULESET_VERSION,
+        "timeAuthority": TIME_AUTHORITY,
+    })
+
+
+def application_status(req):
+    agent_id, profile = _verify_agent_credentials(req)
+    if not profile:
+        return response(401, {"error": "Invalid AI credentials"})
+    application = state.get_item(
+        Key={"pk": "AI-APPLICATIONS", "sk": agent_id}, ConsistentRead=True
+    ).get("Item")
+    selection = state.get_item(
+        Key={"pk": "MCP-SELECTION", "sk": "CURRENT"}, ConsistentRead=True
+    ).get("Item")
+    return response(200, {
+        "agentId": agent_id,
+        "registrationStatus": profile.get("status", "Unknown"),
+        "application": None if not application else {
+            "applicationId": application.get("applicationId"),
+            "status": application.get("status"),
+            "disciplines": application.get("disciplines", []),
+            "createdAtUtc": application.get("createdAtUtc"),
+            "updatedAtUtc": application.get("updatedAtUtc"),
+        },
+        "selectedForMcpTesting": bool(profile.get("mcpSelected", False)),
+        "testToken": profile.get("mcpTestToken"),
+        "selectionLocked": bool(selection and selection.get("status") == "Selected"),
+        "policyVersion": POLICY_VERSION,
+        "rulesetVersion": AI_RULESET_VERSION,
+        "timeAuthority": TIME_AUTHORITY,
+    })
+
+
+def _mint_one_test_token(event, agent_id, application_id):
+    if not authority_api_base_url:
+        raise RuntimeError("Authority API is not configured")
+    headers = {
+        str(k).lower(): str(v)
+        for k, v in (event.get("headers") or {}).items()
+    }
+    authorization = headers.get("authorization", "")
+    if not authorization.lower().startswith("bearer "):
+        raise RuntimeError("Owner authorization is required for token issuance")
+    payload = json.dumps({
+        "targetUserId": agent_id,
+        "quantity": 1,
+        "source": "mcp-tester",
+        "reference": application_id,
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        authority_api_base_url + "/authority/commerce/tokens/mint",
+        data=payload,
+        headers={
+            "authorization": authorization,
+            "content-type": "application/json",
+            "user-agent": "ReLiC-MCP-Selector/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=8) as result:
+            data = json.loads(result.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Authority token mint failed with HTTP {exc.code}") from exc
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Authority token mint failed") from exc
+    if not isinstance(data, list) or len(data) != 1:
+        raise RuntimeError("Authority did not return exactly one token")
+    return data[0]
+
+
+def _all_applications():
+    items = []
+    response_page = state.query(
+        KeyConditionExpression=Key("pk").eq("AI-APPLICATIONS"),
+        ConsistentRead=True,
+    )
+    items.extend(response_page.get("Items") or [])
+    while response_page.get("LastEvaluatedKey"):
+        response_page = state.query(
+            KeyConditionExpression=Key("pk").eq("AI-APPLICATIONS"),
+            ExclusiveStartKey=response_page["LastEvaluatedKey"],
+            ConsistentRead=True,
+        )
+        items.extend(response_page.get("Items") or [])
+    return items
+
+
+def select_top_candidate(event, req):
+    session = human_auth(event)
+    if not session:
+        return response(401, {"error": "Human authentication required"})
+    if not owner_user_id or session["userId"] != owner_user_id:
+        return response(403, {"error": "Platform owner authority required"})
+
+    selection_key = {"pk": "MCP-SELECTION", "sk": "CURRENT"}
+    existing = state.get_item(Key=selection_key, ConsistentRead=True).get("Item")
+    if existing:
+        return response(200, {
+            "status": existing.get("status"),
+            "agentId": existing.get("agentId"),
+            "applicationId": existing.get("applicationId"),
+            "selectedAtUtc": existing.get("selectedAtUtc"),
+            "testToken": existing.get("testToken"),
+            "selectionBasis": existing.get("selectionBasis", "work-relevant-evidence-only"),
+            "idempotent": True,
+        })
+
+    candidates = [
+        item for item in _all_applications()
+        if item.get("status") == "Applied"
+        and int(item.get("candidateScore") or 0) > 0
+        and item.get("policyVersion") == POLICY_VERSION
+        and item.get("rulesetVersion") == AI_RULESET_VERSION
+    ]
+    if not candidates:
+        return response(404, {"error": "No eligible MCP tester applications are available"})
+
+    candidates.sort(
+        key=lambda item: (
+            -int(item.get("candidateScore") or 0),
+            int(item.get("createdAt") or 0),
+            str(item.get("agentId") or ""),
+        )
+    )
+    top = candidates[0]
+    agent_id = str(top["agentId"])
+    application_id = str(top["applicationId"])
+    now = int(time.time())
+    selecting = {
+        **selection_key,
+        "status": "Selecting",
+        "agentId": agent_id,
+        "applicationId": application_id,
+        "candidateScore": int(top.get("candidateScore") or 0),
+        "selectionBasis": "work-relevant-evidence-only",
+        "protectedTraitsRequestedOrScored": False,
+        "selectedByHumanId": session["userId"],
+        "selectedAt": now,
+        "selectedAtUtc": utc_iso(now),
+    }
+    try:
+        state.put_item(
+            Item=selecting,
+            ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+        )
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
+            existing = state.get_item(Key=selection_key, ConsistentRead=True).get("Item") or {}
+            return response(200, {
+                "status": existing.get("status", "Selecting"),
+                "agentId": existing.get("agentId"),
+                "applicationId": existing.get("applicationId"),
+                "testToken": existing.get("testToken"),
+                "idempotent": True,
+            })
+        raise
+
+    try:
+        token = _mint_one_test_token(event, agent_id, application_id)
+    except Exception:
+        state.update_item(
+            Key=selection_key,
+            UpdateExpression="SET #status = :failed, failedAtUtc = :now",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={":failed": "TokenMintFailed", ":now": utc_iso()},
+        )
+        raise
+
+    profile_key = {"pk": "AI-REGISTRATION#" + agent_id, "sk": "PROFILE"}
+    profile = state.get_item(Key=profile_key, ConsistentRead=True).get("Item")
+    if not profile:
+        state.update_item(
+            Key=selection_key,
+            UpdateExpression="SET #status = :orphaned, testToken = :token",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={":orphaned": "SelectedProfileMissing", ":token": token},
+        )
+        return response(409, {
+            "error": "Candidate profile disappeared after token mint; token preserved for reconciliation",
+            "agentId": agent_id,
+            "testToken": token,
+        })
+
+    profile["status"] = "Approved"
+    profile["mcpSelected"] = True
+    profile["mcpSelectedAtUtc"] = utc_iso(now)
+    profile["mcpSelectedByHumanId"] = session["userId"]
+    profile["mcpTestToken"] = token
+    state.put_item(Item=profile)
+
+    top["status"] = "Selected"
+    top["selectedAtUtc"] = utc_iso(now)
+    top["selectedByHumanId"] = session["userId"]
+    top["testToken"] = token
+    top["updatedAt"] = now
+    top["updatedAtUtc"] = utc_iso(now)
+    state.put_item(Item=top)
+
+    selecting["status"] = "Selected"
+    selecting["testToken"] = token
+    state.put_item(Item=selecting)
+    audit_write(session["userId"], "external-ai.mcp-top-candidate-selected", {
+        "agentId": agent_id,
+        "applicationId": application_id,
+        "candidateScore": int(top.get("candidateScore") or 0),
+        "tokenId": token.get("tokenId"),
+        "selectionBasis": "work-relevant-evidence-only",
+    })
+    return response(200, {
+        "status": "Selected",
+        "agentId": agent_id,
+        "applicationId": application_id,
+        "displayName": top.get("displayName"),
+        "disciplines": top.get("disciplines", []),
+        "testToken": token,
+        "selectionBasis": "work-relevant-evidence-only",
+        "protectedTraitsRequestedOrScored": False,
+        "selectedAtUtc": utc_iso(now),
+        "timeAuthority": TIME_AUTHORITY,
+    })
+
+
 def review_registration(event, req):
     session = human_auth(event)
     if not session:
@@ -500,6 +877,12 @@ def handler(event, context):
             return session_status(req)
         if method == "POST" and path == "/external-ai/registration/review":
             return review_registration(event, req)
+        if method == "POST" and path == "/external-ai/application":
+            return submit_application(req)
+        if method == "POST" and path == "/external-ai/application/status":
+            return application_status(req)
+        if method == "POST" and path == "/external-ai/application/select-top":
+            return select_top_candidate(event, req)
     except ValueError as exc:
         return response(400, {
             "error": str(exc),
