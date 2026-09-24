@@ -3,6 +3,7 @@
 const QUERY=new URLSearchParams(location.search);
 const LIVE_WORLDBUILDER=QUERY.get('live-worldbuilder')==='1';
 const WORKSPACE_MODE=String(QUERY.get('mode')||'worldbuilder').toLowerCase();
+const IMMERSION_BUILDER=WORKSPACE_MODE==='immersion';
 const LOCAL_DEFINER=WORKSPACE_MODE==='localdefiner';
 const REGION_DEFINER=WORKSPACE_MODE==='regiondefiner'||LOCAL_DEFINER;
 const REPRESENTATION_ANGLE_DEGREES=LOCAL_DEFINER?30:REGION_DEFINER?15:0;
@@ -49,7 +50,7 @@ if(READ_ONLY){
   stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
   persistentSave.disabled=true;persistentSave.title='Read-only world reference';
   imageUploadToggle.disabled=true;imageUploadToggle.title='Read-only world reference';
-  const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent='VIEW ONLY · WORLD REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
+  const banner=document.createElement('div');banner.className='read-only-reference';banner.textContent=IMMERSION_BUILDER?'IMMERSIONBUILDER · ZOOM TRANSITION AUTHORING':'VIEW ONLY · WORLD REFERENCE';banner.setAttribute('role','status');stage.appendChild(banner);
 }else if(CLAIM_ONLY){
   stage.dataset.access='claim';
   persistentSave.disabled=true;persistentSave.title='Claim requests do not directly edit the world';
@@ -2150,6 +2151,20 @@ function fitMap(){
   x=fitX=(r.width-naturalWidth*scale)/2;
   y=fitY=(r.height-naturalHeight*scale)/2;
   applyTransform();
+}
+function focusNormalizedBounds(bounds={}){
+  if(!naturalWidth||!naturalHeight)return false;
+  const cx=clamp(Number(bounds.x)||.5,0,1),cy=clamp(Number(bounds.y)||.5,0,1);
+  const width=clamp(Number(bounds.width)||1,.0001,1),height=clamp(Number(bounds.height)||1,.0001,1);
+  const r=stage.getBoundingClientRect();
+  if(r.width<=0||r.height<=0)return false;
+  suspendRegionEnhancement();
+  const targetScale=Math.min(r.width/(naturalWidth*width),r.height/(naturalHeight*height))*.84;
+  scale=clamp(targetScale,Math.max(minScale,MIN_VIEW_SCALE),maxScale);
+  x=(r.width/2)-(cx*naturalWidth*scale);
+  y=(r.height/2)-(cy*naturalHeight*scale);
+  applyTransform();scheduleRegionEnhancement(50);
+  return true;
 }
 function zoomAt(cx,cy,factor){
   suspendRegionEnhancement();
@@ -4913,6 +4928,8 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.
 window.ShaelvienPrototype=Object.freeze({
   world:Object.freeze({id:WORLD_ID,name:DISPLAY_WORLD_NAME,continent:CONTINENT_NAME,seed:WORLD_SEED,surfacePixels:SURFACE_WORLD_PIXELS,surfacePolicy:SURFACE_POLICY}),
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
+  fitWorld:()=>{fitMap();return true},
+  focusNormalizedBounds,
   save:saveWorldBuilder,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
