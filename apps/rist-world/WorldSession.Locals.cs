@@ -1,0 +1,207 @@
+using System.Text.Json;
+
+namespace RistWorld;
+
+public sealed partial class WorldSession
+{
+    readonly List<WorldLocal> _locals = [];
+    string _activeLocalId = "";
+
+    public IReadOnlyList<WorldLocal> Locals => _locals;
+    public IReadOnlyList<WorldLocal> DefinedLocals => _locals
+        .Where(local => string.Equals(local.WorldId, WorldId, StringComparison.Ordinal))
+        .OrderBy(local => local.Name, StringComparer.OrdinalIgnoreCase)
+        .ToList();
+    public WorldLocal? ActiveLocal => _locals.FirstOrDefault(local =>
+        string.Equals(local.LocalId, _activeLocalId, StringComparison.Ordinal));
+
+    public string LocalDirectoryKey => $"{WorldStoragePrefix}/locals/index.json";
+    public string LocalLocalSaveKey => $"rist.locals.v1.{WorldId}";
+
+    public async Task LoadLocalsAsync()
+    {
+        _locals.Clear();
+        if (!HasActiveWorld)
+        {
+            _activeLocalId = "";
+            Notify();
+            return;
+        }
+
+        WorldLocalCatalog? catalog = null;
+        if (IsLoggedIn)
+        {
+            try { catalog = await auth.DownloadJsonAsync<WorldLocalCatalog>(LocalDirectoryKey); }
+            catch { }
+        }
+
+        if (catalog is null)
+        {
+            try
+            {
+                var raw = await js.InvokeAsync<string?>("localStorage.getItem", LocalLocalSaveKey);
+                if (!string.IsNullOrWhiteSpace(raw))
+                    catalog = JsonSerializer.Deserialize<WorldLocalCatalog>(raw, MapReadOptions);
+            }
+            catch { }
+        }
+
+        if (catalog is not null && string.Equals(catalog.WorldId, WorldId, StringComparison.Ordinal))
+        {
+            _locals.AddRange((catalog.Locals ?? [])
+                .Where(local => !string.IsNullOrWhiteSpace(local.LocalId))
+                .GroupBy(local => local.LocalId, StringComparer.Ordinal)
+                .Select(group => group.OrderByDescending(local => local.UpdatedAtUtc).First()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(_activeLocalId)
+            && !_locals.Any(local => string.Equals(local.LocalId, _activeLocalId, StringComparison.Ordinal)))
+            _activeLocalId = "";
+
+        Notify();
+    }
+
+    public void SetActiveLocal(string localId)
+    {
+        localId = (localId ?? "").Trim();
+        if (localId.Length == 0)
+        {
+            _activeLocalId = "";
+            Notify();
+            return;
+        }
+
+        if (_locals.Any(local => string.Equals(local.LocalId, localId, StringComparison.Ordinal)))
+        {
+            _activeLocalId = localId;
+            Notify();
+        }
+    }
+
+    public async Task<WorldLocal> CreateLocalAsync(
+        string name,
+        string regionId,
+        string anchorObjectId,
+        string anchorAssetId,
+        string anchorName,
+        string anchorKind,
+        double x,
+        double y,
+        double width,
+        double height,
+        int tier,
+        int layer,
+        int regionLayer,
+        int z100,
+        double rotation)
+    {
+        if (!HasActiveWorld)
+            throw new InvalidOperationException("Choose a world before defining a Local.");
+
+        var region = _regions.FirstOrDefault(item =>
+            string.Equals(item.RegionId, (regionId ?? "").Trim(), StringComparison.Ordinal));
+        if (region is null || !IsRegionInActiveWorld(region))
+            throw new InvalidOperationException("Choose a Region before defining a Local.");
+        if (!CanEditRegion(region))
+            throw new UnauthorizedAccessException("Region edit authority is required to define a Local.");
+
+        name = NormalizeLocalName(name);
+        anchorObjectId = (anchorObjectId ?? "").Trim();
+        if (anchorObjectId.Length == 0)
+            throw new InvalidOperationException("Select a placed regional object for the Local.");
+
+        var duplicate = _locals.FirstOrDefault(local =>
+            string.Equals(local.RegionId, region.RegionId, StringComparison.Ordinal)
+            && string.Equals(local.AnchorObjectId, anchorObjectId, StringComparison.Ordinal));
+        if (duplicate is not null)
+        {
+            _activeLocalId = duplicate.LocalId;
+            return duplicate;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var local = new WorldLocal(
+            LocalId: NewLocalId(name),
+            WorldId: WorldId,
+            RegionId: region.RegionId,
+            Name: name,
+            AnchorObjectId: anchorObjectId,
+            AnchorAssetId: (anchorAssetId ?? "").Trim(),
+            AnchorName: string.IsNullOrWhiteSpace(anchorName) ? name : anchorName.Trim(),
+            AnchorKind: string.IsNullOrWhiteSpace(anchorKind) ? "image" : anchorKind.Trim().ToLowerInvariant(),
+            X: Math.Clamp(x, 0, 1),
+            Y: Math.Clamp(y, 0, 1),
+            Width: Math.Clamp(width, 0.0001, 1),
+            Height: Math.Clamp(height, 0.0001, 1),
+            Tier: Math.Clamp(tier, 0, 2),
+            Layer: Math.Clamp(layer, 0, 9),
+            RegionLayer: Math.Clamp(regionLayer, 1, 9),
+            Z100: Math.Max(0, z100),
+            Rotation: rotation,
+            OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
+            ParentNodeId: $"region:{region.RegionId}",
+            CoordinateSpace: "region-normalized-v1",
+            CreatedAtUtc: now,
+            UpdatedAtUtc: now);
+
+        _locals.Add(local);
+        _activeLocalId = local.LocalId;
+        await SaveLocalsAsync();
+        return local;
+    }
+
+    public async Task SaveLocalsAsync()
+    {
+        if (!HasActiveWorld) return;
+        var catalog = new WorldLocalCatalog(WorldId, _locals.ToList(), DateTimeOffset.UtcNow);
+        var json = JsonSerializer.Serialize(catalog, MapWriteOptions);
+        await js.InvokeVoidAsync("localStorage.setItem", LocalLocalSaveKey, json);
+
+        if (IsLoggedIn)
+            await auth.UploadTextAsync(LocalDirectoryKey, json, "application/json");
+
+        Notify();
+    }
+
+    static string NormalizeLocalName(string? name)
+    {
+        var value = (name ?? "").Trim();
+        if (value.Length == 0) throw new InvalidOperationException("Enter a Local Name.");
+        if (value.Length > 80) throw new InvalidOperationException("Local Name must be 80 characters or fewer.");
+        return value;
+    }
+
+    static string NewLocalId(string name)
+    {
+        var segment = AssetPathSegment(name);
+        if (segment.Length > 36) segment = segment[..36].TrimEnd('-');
+        return $"local-{segment}-{Guid.NewGuid():N}";
+    }
+}
+
+public sealed record WorldLocalCatalog(string WorldId, List<WorldLocal> Locals, DateTimeOffset UpdatedAtUtc);
+
+public sealed record WorldLocal(
+    string LocalId,
+    string WorldId,
+    string RegionId,
+    string Name,
+    string AnchorObjectId,
+    string AnchorAssetId,
+    string AnchorName,
+    string AnchorKind,
+    double X,
+    double Y,
+    double Width,
+    double Height,
+    int Tier,
+    int Layer,
+    int RegionLayer,
+    int Z100,
+    double Rotation,
+    string OwnerUserId,
+    string ParentNodeId,
+    string CoordinateSpace,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    string Description = "");
