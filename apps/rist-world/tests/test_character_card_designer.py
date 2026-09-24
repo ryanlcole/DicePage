@@ -13,12 +13,16 @@ class CharacterCardDesignerContract(unittest.TestCase):
         cls.source = COMPONENT.read_text(encoding="utf-8")
         cls.player = PLAYER.read_text(encoding="utf-8")
 
-    def test_gm_template_and_character_values_are_separate(self):
-        self.assertIn('rist.character-card-template.v2.', self.source)
+    def test_gm_requirements_layout_and_character_values_are_separate(self):
+        self.assertIn('rist.character-card-requirements.v1.', self.source)
+        self.assertIn('rist.character-card-layout.v1.', self.source)
         self.assertIn('rist.character-card-values.v1.', self.source)
-        self.assertIn('TemplateStorageKey', self.source)
+        self.assertIn('RequirementStorageKey', self.source)
+        self.assertIn('LayoutStorageKey', self.source)
         self.assertIn('ValueStorageKey', self.source)
         self.assertIn('Required=true,Authority="GM"', self.source)
+        self.assertIn('SharedJoin=rule.SharedJoin', self.source)
+        self.assertIn('GM REQUIRED · CANNOT DELETE', self.source)
 
     def test_field_creation_follows_search_type_asset_value_place(self):
         self.assertIn('SEARCH → TYPE → ASSET → VALUE → PLACE', self.source)
@@ -30,7 +34,7 @@ class CharacterCardDesignerContract(unittest.TestCase):
 
     def test_existing_universal_character_field_types_are_supported(self):
         for kind in (
-            "ATTRIBUTE", "TRACKER", "LIMIT", "VALUE", "FLARE", "TEXT",
+            "ATTRIBUTE", "TRACKER", "LIMIT", "VALUE", "FLARE", "MAGIC", "TEXT",
             "LONGTEXT", "PORTRAIT", "EQUIPMENT", "CONDITIONS",
             "LANGUAGE", "LINKED", "DICE",
         ):
@@ -49,6 +53,39 @@ class CharacterCardDesignerContract(unittest.TestCase):
         self.assertIn("invokeMethodAsync('CommitFieldTransform'", self.player)
         self.assertIn("invokeMethodAsync('SelectFieldFromJs'", self.player)
         self.assertIn("root.addEventListener('contextmenu'", self.player)
+
+    def test_required_field_name_becomes_stable_shared_join(self):
+        self.assertIn("NormalizeJoin", self.source)
+        self.assertIn("SharedJoin", self.source)
+        self.assertIn("UniqueRequirementName", self.source)
+        self.assertIn("RequirementId", self.source)
+        self.assertIn("CHECK → NAME → PLAYER MUST KEEP", self.source)
+
+    def test_joined_effects_support_activation_duration_and_effective_values(self):
+        for marker in (
+            "JOINED EFFECTS", "TARGET JOIN", "Requires activation",
+            "RemainingDuration", "EffectiveNumeric", "ModifierIsActive",
+            "ModifierCount",
+        ):
+            self.assertIn(marker, self.source)
+        self.assertIn("BaseValue", self.source)
+        self.assertIn("Current", self.source)
+        self.assertIn("Max", self.source)
+
+    def test_magic_reuses_join_effect_engine_with_resolution(self):
+        for marker in (
+            '"MAGIC"', "Spell / Magic", "TARGETING", "RESOLUTION",
+            "Roll decides", "GM decides / alters", "TargetMode",
+            "ResolutionMode", "AttemptState", "RollFormula",
+            "Difficulty", "GmOverrideAmount", "ModifierResolutionAllows",
+        ):
+            self.assertIn(marker, self.source)
+
+    def test_character_save_publishes_effective_shared_report_row(self):
+        self.assertIn("rist.character-report-row.v1.", self.source)
+        self.assertIn("BuildReportRow()", self.source)
+        self.assertIn("ReportCellFrom", self.source)
+        self.assertIn("Effective=effective", self.source)
 
     def test_custom_graphic_is_definition_not_runtime_value(self):
         self.assertIn('AssetDataUrl', self.source)
