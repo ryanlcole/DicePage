@@ -3,14 +3,18 @@
 @if(Open)
 {
  <section class="region-gate-backdrop" role="presentation" @onclick="CloseAsync">
-  <div class="region-gate" role="dialog" aria-modal="true" aria-label="Choose a region" @onclick:stopPropagation="true">
+  <div class="region-gate" role="dialog" aria-modal="true" aria-label="@(SelectionOnly?"Choose a parent Region":"Choose a region")" @onclick:stopPropagation="true">
    <header>
-    <span><small>@Session.WorldDisplayName</small><strong>CHOOSE A REGION</strong></span>
+    <span><small>@Session.WorldDisplayName</small><strong>@(SelectionOnly?"CHOOSE PARENT REGION":"CHOOSE A REGION")</strong></span>
     <button type="button" @onclick="CloseAsync" aria-label="Close region chooser">×</button>
    </header>
 
    <section class="region-gate-create">
-    @if(Session.HasTrustedWorldBuilderAuthority)
+    @if(SelectionOnly)
+    {
+     <div><strong>PARENT REGION</strong><small>Local Staging selects one existing regional object such as a city, landmark, ruin, or building cluster.</small></div>
+    }
+    else if(Session.HasTrustedWorldBuilderAuthority)
     {
      <div><strong>NEW REGION</strong><small>Choose a world tier, select the region, then save the cropped regional map.</small></div>
      <button type="button" class="region-gate-primary" disabled="@_busy" @onclick="NewAsync">NEW</button>
@@ -51,7 +55,7 @@
     }
    </section>
 
-   @if(!Session.HasTrustedWorldBuilderAuthority && _myClaims.Count>0)
+   @if(!SelectionOnly&&!Session.HasTrustedWorldBuilderAuthority && _myClaims.Count>0)
    {
     <div class="region-gate-divider"><span>MY CLAIMS</span></div>
     <section class="region-gate-regions" aria-label="My region claims">
@@ -65,7 +69,7 @@
     </section>
    }
 
-   @if(Session.HasTrustedWorldBuilderAuthority && _pendingClaims.Count>0)
+   @if(!SelectionOnly&&Session.HasTrustedWorldBuilderAuthority && _pendingClaims.Count>0)
    {
     <div class="region-gate-divider"><span>CLAIM NOTIFICATIONS</span></div>
     <section class="region-gate-regions" aria-label="Pending region claims">
@@ -108,6 +112,7 @@
  [Parameter] public EventCallback OnClose { get; set; }
  [Parameter] public EventCallback OnNew { get; set; }
  [Parameter] public EventCallback<WorldRegion> OnSelect { get; set; }
+ [Parameter] public bool SelectionOnly { get; set; }
 
  bool _wasOpen;
  bool _loading;
@@ -142,12 +147,12 @@
   {
    await Session.RefreshTrustedWorldAuthorityAsync();
    await Session.LoadRegionsAsync();
-   _pendingClaims=Session.HasTrustedWorldBuilderAuthority
+   _pendingClaims=!SelectionOnly&&Session.HasTrustedWorldBuilderAuthority
     ? (await Session.LoadPendingWorldClaimRequestsAsync()).ToList()
     : [];
-   _myClaims=Session.HasTrustedWorldBuilderAuthority
-    ? []
-    : (await Session.LoadMyWorldClaimRequestsAsync("all")).ToList();
+   _myClaims=!SelectionOnly&&!Session.HasTrustedWorldBuilderAuthority
+    ? (await Session.LoadMyWorldClaimRequestsAsync("all")).ToList()
+    : [];
   }
   catch(Exception ex){_status="Region list could not be loaded: "+ex.Message;}
   finally{_loading=false;}
