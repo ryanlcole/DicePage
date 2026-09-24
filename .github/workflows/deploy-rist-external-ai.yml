@@ -199,8 +199,8 @@ jobs:
           python - <<'PY'
           import json
           data=json.load(open('/tmp/ai-policy.json'))
-          assert data.get('policyVersion') == '2026-09-10.2', data
-          assert data.get('rulesetVersion') == 'AI-RULESET-2026-09-10.2', data
+          assert data.get('policyVersion') == '2026-09-20.1', data
+          assert data.get('rulesetVersion') == 'AI-RULESET-2026-09-20.1', data
           assert data.get('defaultDecision') == 'DENY', data
           assert data.get('ownerReleased') is False, data
           assert data.get('session', {}).get('maximumSeconds') == 87658, data
@@ -210,7 +210,8 @@ jobs:
           expected={
               'human-terms-notice','canon-understanding-gate','ainpc-visible-identity','truth-and-provenance',
               'player-creation-non-interference','beneficial-contribution-no-circumvention','resource-yield-required',
-              'session-cap-87658-seconds','bounded-world-builder-allocation','canon-boundary','no-government-backdoor',
+              'human-population-ratio','all-audiences-default','session-cap-87658-seconds',
+              'bounded-world-builder-allocation','canon-boundary','no-government-backdoor',
               'controlled-lawful-disclosure','capability-scoped-technical-enforcement','failure-and-revocation',
               'human-authority-and-applicable-law','deny-by-default-capabilities'
           }
@@ -273,7 +274,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","policyVersion":"2026-09-10.2","rulesetVersion":"AI-RULESET-2026-09-10.2","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$EXTERNAL_AI_API" > external-ai-config.json
+          printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","policyVersion":"2026-09-20.1","rulesetVersion":"AI-RULESET-2026-09-20.1","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$EXTERNAL_AI_API" > external-ai-config.json
           printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":5,"vision":true,"naturalCoding":true,"visualAudioImagination":true,"domainKnowledge":"eios-domain-teaching-2026-09-11-r1","knowledge":"drive-snapshot","canon":"SCR-001 r1.0","aiPolicy":"ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
           cat external-ai-config.json
           cat eios-config.json
@@ -312,7 +313,7 @@ jobs:
           python - <<'PY'
           import json
           data=json.load(open('/tmp/static-ai-policy.json'))
-          assert data.get('rulesetVersion') == 'AI-RULESET-2026-09-10.2', data
+          assert data.get('rulesetVersion') == 'AI-RULESET-2026-09-20.1', data
           assert data.get('session', {}).get('maximumActiveSeconds') == 87658, data
           assert data.get('technicalEnforcement', {}).get('denyByDefault') is True, data
           print('Static AI policy verified:', data['rulesetVersion'])
