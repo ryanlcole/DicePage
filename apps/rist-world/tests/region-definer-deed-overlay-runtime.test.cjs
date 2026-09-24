@@ -49,8 +49,8 @@ function tab(f,name){
   button.click();
 }
 function clickKey(f,text){
-  const button=Array.from(f.d.querySelectorAll('#keyboardKeys button')).find(x=>x.textContent.trim()===text);
-  assert.ok(button,`Missing keyboard key ${text}`);
+  const button=Array.from(f.d.querySelectorAll('#keyboardKeys button')).find(x=>x.textContent.includes(text));
+  assert.ok(button,`Missing keyboard key containing ${text}`);
   button.click();
 }
 function projectedState(overrides={}){
