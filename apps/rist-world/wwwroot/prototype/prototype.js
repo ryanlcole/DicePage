@@ -616,10 +616,19 @@ function regionSaveCandidates(){
     return true;
   });
 }
+function assetAuthorityResourceId(item){
+  if(!item)return'';
+  const existing=String(item.authorityResourceId||'').trim();
+  if(existing)return existing;
+  const id=String(item.id||crypto.randomUUID?.()||Date.now()).trim();
+  item.id=id;
+  item.authorityResourceId=`asset:${id}`;
+  return item.authorityResourceId;
+}
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,authorityResourceId:assetAuthorityResourceId(item),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
       tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
@@ -634,7 +643,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,authorityResourceId:assetAuthorityResourceId(item),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     // Personal-library URLs are short-lived capabilities. Persist only the stable
     // asset identity; reload resolves a fresh URL after authenticated storage is ready.
@@ -729,7 +738,7 @@ async function attachRestoredLayer(raw,options={}){
     : '';
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),authorityResourceId:String(raw.authorityResourceId||''),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
       worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
@@ -749,7 +758,7 @@ async function attachRestoredLayer(raw,options={}){
     };
     const node=document.createElement('div');node.className='user-image-placement user-label-placement';node.setAttribute('role','text');node.setAttribute('aria-label',`World label: ${item.text}`);item.node=node;
     node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-    userLayers.push(item);mountUserPlacement(item);refreshUserLabel(item);return item;
+    assetAuthorityResourceId(item);assetAuthorityResourceId(item);userLayers.push(item);mountUserPlacement(item);refreshUserLabel(item);return item;
   }
   const isSprite=kind==='sprite';
   const rawSpritePages=isSprite&&Array.isArray(raw?.spritePages)?raw.spritePages:[];
@@ -785,7 +794,7 @@ async function attachRestoredLayer(raw,options={}){
   const firstPage=resolvedSpritePages[0]||null;
   const first=isSprite?(frameSources[0]||String(firstPage?.sheetSrc||freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),authorityResourceId:String(raw.authorityResourceId||''),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:String(first||freshPersonalSrc||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
     spritePages:isSprite?resolvedSpritePages:null,
@@ -4950,7 +4959,7 @@ window.ShaelvienPrototype=Object.freeze({
       rasterIndexMissing:regionRasterIndexMissing
     }:null,
     userLayers:userLayers.map(item=>({
-      id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,
+      id:item.id,authorityResourceId:assetAuthorityResourceId(item),kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,
       tier:item.tier,layer:item.layer,
       worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,
       regionLayer:REGION_DEFINER&&item.regionOverlay?regionOverlayLayer(item):0,
