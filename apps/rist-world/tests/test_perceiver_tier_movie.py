@@ -342,4 +342,7 @@ def test_perceiver_sprite_editor_is_local_precise_and_motion_aware():
     assert "setSelectedSpriteFps(state" in player
     assert "clamp(Number(fps) || 1, 1, 60)" in player
     assert "canvas.addEventListener('contextmenu'" in player
-    assert "sprite-editor-1" in workspace
+    assert "SPRITE_DEFAULT_FPS = 60" in player
+    assert "1000 / 60" in player
+    assert "root.addEventListener('contextmenu'" in player
+    assert "sprite-editor-2" in workspace
