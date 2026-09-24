@@ -70,7 +70,7 @@ if(REGION_DEFINER){
   persistentSave.setAttribute('aria-label',LOCAL_DEFINER?'Save selected Local object':'Save authorized region changes to the canonical map');
   if(LOCAL_DEFINER)persistentSave.hidden=true;
   if(LOCAL_DEFINER)imageUploadToggle.hidden=true;else imageUploadToggle?.setAttribute('aria-label','Add regional image');
-  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent=LOCAL_DEFINER?'LOCAL DEFINER · SELECT REGIONAL OBJECT · 30° VIEW':'REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
+  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent=LOCAL_DEFINER?'LOCAL DEFINER · REGION → ASSET → LOCAL · 30° VIEW':'REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
   // A new-region flow is tier choice first. Hide viewer chrome from the first JS paint
   // instead of exposing the canonical viewer while the database source hydrates.
   if(!LOCAL_DEFINER&&REGION_FLOW==='new'&&!READ_ONLY){
@@ -97,7 +97,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -1498,7 +1498,7 @@ function refreshUserLabel(item){
   item.node.style.left=`${item.x*naturalWidth}px`;
   item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity??1);
-  item.node.style.pointerEvents=item.sourceLocked?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
+  item.node.style.pointerEvents=item.sourceLocked&&!isLocalAnchorCandidate(item)?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.anchor='world';
   item.node.dataset.presentationOffsetX=String(Number(item.offsetX)||0);
@@ -1856,7 +1856,7 @@ function refreshUserImage(item){
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.aspectRatio=item.kind==='sprite'?String(stableAssetAspect(item)):'';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
-  item.node.style.pointerEvents=item.sourceLocked?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
+  item.node.style.pointerEvents=item.sourceLocked&&!isLocalAnchorCandidate(item)?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
   item.node.style.transformOrigin='50% 50%';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
@@ -1864,7 +1864,8 @@ function refreshUserImage(item){
   refreshProgressiveParallax(item);
   if(item===selectedImage)refreshAssetResizeOverlay(item);
 }function selectUserImage(item){
-  if(item?.sourceLocked||(REGION_DEFINER&&item&&(!item.regionOverlay
+  const localAnchorCandidate=isLocalAnchorCandidate(item);
+  if((item?.sourceLocked&&!localAnchorCandidate)||(REGION_DEFINER&&item&&(!item.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()))){
     announce('The parent world tier is locked. Select a regional object above it.');return;
   }
@@ -1903,7 +1904,7 @@ function selectablePlacedContent(){
       const localId=activeLocalMapId();
       return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.localOverlay&&String(item.localId||'')===localId);
     }
-    return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay&&String(item.regionId||'')===activeRegionMapId());
+    return userLayers.filter(item=>isLocalAnchorCandidate(item));
   }
   return userLayers.filter(item=>item?.node&&(!REGION_DEFINER
     ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay
@@ -2208,7 +2209,7 @@ function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){
   if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
-  if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select'];
+  if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
   if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
   if(READ_ONLY)return['Viewer','Tiers'];
   if(CLAIM_ONLY)return['Select'];
@@ -2303,7 +2304,7 @@ function discardCanonicalHydrationItem(item){
 async function hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,revision){
   const tasks=sourceLayers.map(async raw=>{
     const belongsToActiveRegion=!!activeRegionId&&String(raw?.regionId||'')===activeRegionId;
-    const editable=ACCESS_MODE==='edit'&&belongsToActiveRegion;
+    const editable=!LOCAL_DEFINER&&ACCESS_MODE==='edit'&&belongsToActiveRegion;
     const item=await attachRestoredLayer(raw,{sourceLocked:!editable,regionOverlay:belongsToActiveRegion,canonicalSource:true});
     if(!item)return null;
     if(revision!==canonicalHydrationRevision){
@@ -2578,7 +2579,7 @@ async function renderRegionProjection(payload){
   regionPersistenceDbCount=owned.length;
   refreshRegionPersistenceStatus();
   const pending=owned.map(async raw=>{
-    const item=await attachRestoredLayer(raw,{sourceLocked:READ_ONLY,regionOverlay:true,canonicalSource:false});
+    const item=await attachRestoredLayer(raw,{sourceLocked:LOCAL_DEFINER||READ_ONLY,regionOverlay:true,canonicalSource:false});
     if(revision!==canonicalHydrationRevision){discardCanonicalHydrationItem(item);return null}
     updateLayerOrder();applyParallax();return item;
   });
@@ -2921,6 +2922,10 @@ function regionDeedIsComplete(){
 }
 function ensureRegionSelectionOverlay(){
   if(!REGION_DEFINER)return null;
+  if(LOCAL_DEFINER){
+    retireRegionSelectionOverlay();
+    return null;
+  }
   // Saved regions never instantiate the selection overlay, including after
   // a keyboard change or viewer rerender. Existing deeds wait for catalog load.
   if(regionDeedIsComplete()||(REGION_FLOW==='existing'&&!!pendingClaimedRegionId)){
@@ -3243,6 +3248,137 @@ function applyClaimedRegionCrop(region){
   requestAnimationFrame(()=>fitClaimedRegion(region));
   if(editableRegion)queueMicrotask(()=>{renderKeyboardTabs();renderKeyboardKeys();if(keyboard.hidden)openKeyboard()});
 }
+function selectedLocalRegion(){
+  if(!regionCatalog.length)return null;
+  localRegionPreviewIndex=clamp(Math.trunc(Number(localRegionPreviewIndex)||0),0,regionCatalog.length-1);
+  return regionCatalog[localRegionPreviewIndex]||null;
+}
+function ensureLocalRegionPreview(){
+  if(!LOCAL_DEFINER)return null;
+  if(localRegionPreview?.isConnected)return localRegionPreview;
+  const panel=document.createElement('section');
+  panel.className='region-tier-preview local-region-preview';
+  panel.hidden=true;
+  panel.setAttribute('role','dialog');
+  panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label','Choose a Region for the Local zone');
+  panel.innerHTML=`
+    <div class="region-tier-preview-copy">
+      <small>LOCAL DEFINER · REGION</small>
+      <strong data-local-region-title>SELECT REGION</strong>
+      <span data-local-region-help>Choose the Region, then select the asset that becomes the Local zone.</span>
+    </div>
+    <div class="region-tier-preview-map" aria-hidden="true">
+      <div class="local-region-preview-card">
+        <small>REGION</small>
+        <strong data-local-region-name>LOADING REGIONS…</strong>
+        <span data-local-region-meta></span>
+        <span data-local-region-authority></span>
+      </div>
+    </div>
+    <div class="region-tier-preview-actions">
+      <button type="button" data-local-region-prev aria-label="Previous Region">‹</button>
+      <div class="region-tier-preview-dots" data-local-region-dots aria-hidden="true"></div>
+      <button type="button" data-local-region-next aria-label="Next Region">›</button>
+    </div>
+    <button type="button" class="region-tier-preview-select" data-local-region-select>SELECT REGION</button>`;
+  stage.appendChild(panel);
+  panel.querySelector('[data-local-region-prev]')?.addEventListener('click',()=>stepLocalRegionPreview(-1));
+  panel.querySelector('[data-local-region-next]')?.addEventListener('click',()=>stepLocalRegionPreview(1));
+  panel.querySelector('[data-local-region-select]')?.addEventListener('click',confirmLocalRegionPreview);
+  panel.addEventListener('pointerdown',event=>{
+    if(event.target instanceof Element&&event.target.closest('button'))return;
+    localRegionPreviewPointer={id:event.pointerId,x:event.clientX,y:event.clientY};
+    try{panel.setPointerCapture(event.pointerId)}catch{}
+  });
+  panel.addEventListener('pointerup',event=>{
+    if(!localRegionPreviewPointer||localRegionPreviewPointer.id!==event.pointerId)return;
+    const dx=event.clientX-localRegionPreviewPointer.x,dy=event.clientY-localRegionPreviewPointer.y;
+    localRegionPreviewPointer=null;
+    if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.15)stepLocalRegionPreview(dx<0?1:-1);
+  });
+  panel.addEventListener('pointercancel',()=>{localRegionPreviewPointer=null});
+  localRegionPreview=panel;
+  refreshLocalRegionPreview();
+  return panel;
+}
+function refreshLocalRegionPreview(){
+  const panel=ensureLocalRegionPreview();if(!panel)return;
+  const region=selectedLocalRegion();
+  const title=panel.querySelector('[data-local-region-title]');
+  const name=panel.querySelector('[data-local-region-name]');
+  const meta=panel.querySelector('[data-local-region-meta]');
+  const authority=panel.querySelector('[data-local-region-authority]');
+  const dots=panel.querySelector('[data-local-region-dots]');
+  const select=panel.querySelector('[data-local-region-select]');
+  const prev=panel.querySelector('[data-local-region-prev]');
+  const next=panel.querySelector('[data-local-region-next]');
+  if(!region){
+    if(title)title.textContent='NO REGIONS AVAILABLE';
+    if(name)name.textContent='DEFINE A REGION FIRST';
+    if(meta)meta.textContent='Local zones are created from assets placed inside Regions.';
+    if(authority)authority.textContent='';
+    if(dots)dots.innerHTML='';
+    if(select){select.disabled=true;select.textContent='NO REGION TO SELECT'}
+    if(prev)prev.disabled=true;if(next)next.disabled=true;
+    return;
+  }
+  if(title)title.textContent=String(region.name||'Region').toUpperCase();
+  if(name)name.textContent=String(region.name||'Region');
+  const cells=Array.isArray(region.selectedCells)?region.selectedCells.length:0;
+  if(meta)meta.textContent=`WORLD TIER ${Math.trunc(Number(region.tierIndex)||0)+1} · ${String(region.gridShape||'grid').toUpperCase()} · ${cells} CELLS · ${Number(region.localCount)||0} LOCALS`;
+  if(authority)authority.textContent=region.canEdit===false?'VIEW ONLY':'EDITABLE · SELECT AN ASSET NEXT';
+  if(dots)dots.innerHTML=regionCatalog.map((item,index)=>`<i class="${index===localRegionPreviewIndex?'active':''}"></i>`).join('');
+  if(select){select.disabled=localRegionSelectPending;select.textContent=localRegionSelectPending?'OPENING REGION…':'SELECT REGION'}
+  if(prev)prev.disabled=localRegionSelectPending||regionCatalog.length<2;
+  if(next)next.disabled=localRegionSelectPending||regionCatalog.length<2;
+}
+function stepLocalRegionPreview(delta){
+  if(!LOCAL_DEFINER||!regionCatalog.length||localRegionSelectPending)return;
+  localRegionPreviewIndex=(localRegionPreviewIndex+Number(delta)+regionCatalog.length)%regionCatalog.length;
+  refreshLocalRegionPreview();
+}
+function clearLocalRegionSelection(){
+  if(!LOCAL_DEFINER)return;
+  activeLocal=null;localAnchorItem=null;localRegionEditable=false;localCreatePending=false;
+  deselectUserImage(false);
+  for(let index=userLayers.length-1;index>=0;index--){
+    const item=userLayers[index];
+    if(!item?.regionOverlay||item.localOverlay)continue;
+    stopSpriteMotion(item);item.node?.remove();userLayers.splice(index,1);
+  }
+  clearRegionWorldSource();
+  clearClaimedRegionCrop(false);
+  regionClaimPhase='idle';
+  stage.dataset.localContext='region-selection';
+  renderKeyboardTabs();renderKeyboardKeys();
+}
+function showLocalRegionPreview(resetRegion=false){
+  if(!LOCAL_DEFINER||localIsOpen())return;
+  if(resetRegion)clearLocalRegionSelection();
+  stage.classList.add('region-tier-previewing');
+  stage.dataset.localEntry='region-selection';
+  const panel=ensureLocalRegionPreview();
+  if(panel){panel.hidden=false;refreshLocalRegionPreview()}
+  if(!keyboard.hidden)closeKeyboard();
+  announce(regionCatalog.length?'Choose a Region. Then Local Definer will show that Region so you can select its asset.':'No Regions are available for this world yet.');
+}
+function hideLocalRegionPreview(){
+  if(localRegionPreview)localRegionPreview.hidden=true;
+  stage.classList.remove('region-tier-previewing');
+  stage.dataset.localEntry='asset-selection';
+}
+function confirmLocalRegionPreview(){
+  if(!LOCAL_DEFINER||localRegionSelectPending)return;
+  const region=selectedLocalRegion();
+  if(!region){announce('No Region is available to select.');return}
+  localRegionSelectPending=true;refreshLocalRegionPreview();
+  if(!postRegionMessage('open-local-region',{regionId:String(region.id||'')})){
+    localRegionSelectPending=false;refreshLocalRegionPreview();announce('Local Region selector bridge is unavailable.');return;
+  }
+  announce(`Opening ${region.name||'Region'} for Local asset selection.`);
+}
+
 function ensureRegionTierPreview(){
   if(!REGION_DEFINER)return null;
   if(regionTierPreview?.isConnected)return regionTierPreview;
@@ -3551,6 +3687,25 @@ async function handleRegionHostMessage(event){
     announce(String(data.message||'Local catalog is unavailable.'));
     return;
   }
+  if(data.type==='local-region-opened'){
+    localRegionSelectPending=false;
+    const region=data.region||null;
+    if(!region?.id){
+      refreshLocalRegionPreview();announce('The selected Region could not be opened.');return;
+    }
+    localRegionEditable=data.canEdit===true;
+    localCatalog=Array.isArray(data.locals)?data.locals:[];
+    pendingClaimedRegionId=String(region.id);
+    regionClaimedRegion=null;
+    regionProjectionLoaded=false;
+    hideLocalRegionPreview();
+    if(data.worldSource)await renderRegionWorldSource(data.worldSource);
+    else{refreshLocalRegionPreview();announce('The selected Region map is unavailable.');return}
+    keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();
+    if(keyboard.hidden)openKeyboard();
+    announce(`${region.name||'Region'} selected. Now select the Region asset that becomes the Local zone.`);
+    return;
+  }
   if(data.type==='local-created'){
     localCreatePending=false;
     const local=data.local||{};
@@ -3568,6 +3723,12 @@ async function handleRegionHostMessage(event){
   }
   if(data.type==='catalog'){
     regionCatalog=Array.isArray(data.regions)?data.regions:[];
+    if(LOCAL_DEFINER&&!pendingClaimedRegionId&&!regionClaimedRegion){
+      localRegionPreviewIndex=clamp(localRegionPreviewIndex,0,Math.max(0,regionCatalog.length-1));
+      showLocalRegionPreview(false);
+      renderKeyboardKeys();
+      return;
+    }
     if(pendingClaimedRegionId&&!regionClaimedRegion){
       const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
       if(claimed)applyClaimedRegionCrop(claimed)
@@ -4341,8 +4502,11 @@ function spriteLibraryKey(asset){
 function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibraryPage=0;renderKeyboardKeys();announce(`${folder} sprite folder opened.`)}
 function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
+function isLocalAnchorCandidate(item){
+  return !!(LOCAL_DEFINER&&!localIsOpen()&&item?.node&&item.kind!=='label'&&!isWorldMapItem(item)&&item.regionOverlay&&!item.localOverlay&&String(item.regionId||'')===activeRegionMapId());
+}
 function localAnchorItems(){
-  return selectablePlacedContent().filter(item=>item&&item.kind!=='label'&&!isWorldMapItem(item)&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay&&String(item.regionId||'')===activeRegionMapId());
+  return selectablePlacedContent().filter(isLocalAnchorCandidate);
 }
 function localAnchorSelect(items=localAnchorItems()){
   const select=document.createElement('select');
@@ -4382,6 +4546,7 @@ function localAnchorPayload(item){
 }
 function createSelectedLocal(){
   if(!LOCAL_DEFINER||!selectedImage||localCreatePending)return;
+  if(!localRegionEditable){announce('This Region is view only. Edit permission is required to create or open a Local zone here.');return}
   const existing=localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||''));
   localCreatePending=true;renderKeyboardKeys();
   if(existing){
@@ -4641,15 +4806,24 @@ function renderKeyboardKeysContent(){
     );return;
   }
   if(keyboardMode==='Select'){
+    if(LOCAL_DEFINER&&!activeRegionMapId()){
+      keyboardKeys.append(
+        readoutKey('REGION','select the Region containing the Local zone'),
+        readoutKey(`${regionCatalog.length} SAVED`,'available Regions'),
+        toolKey(regionCatalog.length?'CHOOSE REGION':'NO REGIONS','Region selector',()=>showLocalRegionPreview(false),!regionCatalog.length)
+      );
+      return;
+    }
     if(LOCAL_DEFINER&&!localIsOpen()){
       const items=localAnchorItems();
       const existing=selectedImage?localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||'')):null;
       keyboardKeys.append(
-        readoutKey('LOCAL','select one placed regional object'),
-        toolKey('‹','previous object',()=>cycleLocalAnchorSelection(items,-1),!items.length),
-        toolKey('›','next object',()=>cycleLocalAnchorSelection(items,1),!items.length),
+        readoutKey(String(regionClaimedRegion?.name||'REGION').toUpperCase(),'select one asset to become the Local zone'),
+        toolKey('REGIONS','change Region',()=>showLocalRegionPreview(true)),
+        toolKey('‹','previous asset',()=>cycleLocalAnchorSelection(items,-1),!items.length),
+        toolKey('›','next asset',()=>cycleLocalAnchorSelection(items,1),!items.length),
         localAnchorSelect(items),
-        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||'selected landmark / object',createSelectedLocal,!selectedImage||localCreatePending),
+        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||'selected Region asset',createSelectedLocal,!selectedImage||localCreatePending||!localRegionEditable),
         toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
       );
       return;
