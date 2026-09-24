@@ -1064,13 +1064,31 @@ function ensureRegionEditLayer(){
   regionEditLayer=layer;
   return layer;
 }
+function ensureLocalEditLayer(){
+  if(!LOCAL_DEFINER)return ensureRegionEditLayer();
+  if(localEditLayer?.isConnected)return localEditLayer;
+  const layer=document.createElement('div');
+  layer.className='region-edit-layer local-edit-layer';
+  layer.setAttribute('aria-label','Editable Local objects above locked selected Region asset');
+  layer.dataset.authority='local';
+  layer.hidden=true;
+  world.appendChild(layer);
+  localEditLayer=layer;
+  return layer;
+}
 function mountUserPlacement(item){
-  // Newly placed objects attach to their selected map tier. Existing saved
-  // items preserve their explicit / legacy parallax mode on hydration.
-  if(REGION_DEFINER&&item.regionOverlay)applyRegionAddress(item,item.worldLayer??item.layer, item.regionLayer??regionLayerIndex);
+  // Local content inherits the selected Region anchor's canonical X/Y space and
+  // only adds Local tier/layer depth. The camera may crop/zoom; coordinates do not.
+  if(LOCAL_DEFINER&&localIsOpen()&&!item.sourceLocked&&!item.canonicalSource&&!item.localAnchor){
+    item.localOverlay=true;
+    item.localId=activeLocalMapId();
+    applyLocalAddress(item,item.localTier??localTierIndex,item.localLayer??localLayerIndex);
+  }else if(REGION_DEFINER&&item.regionOverlay){
+    applyRegionAddress(item,item.worldLayer??item.layer,item.regionLayer??regionLayerIndex);
+  }
   if(!item.parallaxMode)item.parallaxMode='anchored';
   if(item.anchorTier==null)item.anchorTier=item.tier;
-  const parent=REGION_DEFINER&&item.regionOverlay?ensureRegionEditLayer():world;
+  const parent=item.localOverlay?ensureLocalEditLayer():(REGION_DEFINER&&item.regionOverlay?ensureRegionEditLayer():world);
   parent.appendChild(item.node);
 }
 function syncRegionEditLayer(){
@@ -1090,6 +1108,19 @@ function syncRegionEditLayer(){
     item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'');
   }
   if(active)refreshRegionPersistenceStatus();
+}
+function syncLocalEditLayer(){
+  if(!LOCAL_DEFINER)return;
+  const layer=ensureLocalEditLayer(),localId=activeLocalMapId(),active=localIsOpen();
+  layer.dataset.localId=localId;
+  layer.dataset.regionId=String(activeLocal?.regionId||'');
+  layer.dataset.localTier=String(localTierIndex);
+  layer.dataset.localLayer=String(localLayerIndex);
+  layer.hidden=!active;
+  for(const item of userLayers){
+    if(!item.localOverlay||!item.node)continue;
+    item.node.hidden=!active||String(item.localId||'')!==localId;
+  }
 }
 function updateLayerOrder(){
   // Tier is the committed parallax/depth boundary. Unsaved placements float above
