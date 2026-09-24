@@ -391,7 +391,8 @@ function saveRegionMapToDatabase(userLayers){
       regionMapSaveWaiters.delete(requestId);
       reject(new Error('Canonical world map save timed out.'));
     },12000);
-    regionMapSaveWaiters.set(requestId,{resolve,reject,timeout});
+    const expectedIds=userLayers.map(item=>String(item?.id||'')).filter(Boolean);
+    regionMapSaveWaiters.set(requestId,{resolve,reject,timeout,expectedIds});
     if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers})){
       clearTimeout(timeout);regionMapSaveWaiters.delete(requestId);
       reject(new Error('Region map database bridge is unavailable.'));
@@ -451,10 +452,10 @@ function serializableUserLayer(item){
   return{
     id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
-    // Personal-library URLs are short-lived signed URLs. Persist the stable key,
-    // not the temporary transport URL; reload resolves a fresh URL from the key.
-    originalSrc:item.personalAssetKey?'':(item.originalSrc||''),transparentSrc:item.personalAssetKey?'':(item.transparentSrc||''),transparent:!!item.transparent,
-    spriteSheetSrc:item.personalAssetKey?null:(item.spriteSheetSrc||null),spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
+    // Keep both identities. personalAssetKey is authoritative; the latest signed
+    // URL is only a short-lived fallback while the authenticated store reconnects.
+    originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
+    spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
@@ -482,7 +483,8 @@ async function saveWorldBuilder(){
     });
     const state=REGION_DEFINER?null:worldBuilderSourceState(editableLayers);
     if(REGION_DEFINER){
-      await saveRegionMapToDatabase(serializedLayers);
+      const verification=await saveRegionMapToDatabase(serializedLayers);
+      if(!verification?.verified)throw new Error('Region save could not be verified after writing.');
     }else{
       if(LIVE_WORLDBUILDER&&window.parent!==window)await saveWorldSourceToDatabase(state);
       await writeSavedWorldBuilder(state,WORLD_SOURCE_SAVE_KEY);
@@ -510,8 +512,9 @@ async function attachRestoredLayer(raw,options={}){
   const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay,canonicalSource=!!options.canonicalSource;
   const kind=String(raw?.kind||'image').toLowerCase();
   const personalAssetKey=String(raw?.personalAssetKey||'').trim();
+  const savedPersonalFallback=String(raw?.originalSrc||raw?.transparentSrc||raw?.spriteSheetSrc||'');
   const freshPersonalSrc=personalAssetKey
-    ? await personalDownloadUrl(personalAssetKey).catch(()=> '')
+    ? await resolvePersonalAssetSource(personalAssetKey,savedPersonalFallback)
     : '';
   if(kind==='label'){
     const item={
@@ -528,7 +531,7 @@ async function attachRestoredLayer(raw,options={}){
     node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
     userLayers.push(item);mountUserPlacement(item);refreshUserLabel(item);return item;
   }
-  if(!freshPersonalSrc&&!raw?.originalSrc&&!raw?.spriteSheetSrc)return null;
+  if(!freshPersonalSrc&&!raw?.originalSrc&&!raw?.spriteSheetSrc&&!personalAssetKey)return null;
   const isSprite=kind==='sprite';
   let frameSources=[];
   if(isSprite){
@@ -558,8 +561,10 @@ async function attachRestoredLayer(raw,options={}){
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  node.addEventListener('load',()=>{refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
+  node.addEventListener('load',()=>{item.node.dataset.assetPending='false';item.node.style.visibility='';refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
+  node.addEventListener('error',()=>{if(item.personalAssetKey)schedulePersonalAssetHydration(item,0)});
   userLayers.push(item);mountUserPlacement(item);refreshUserImage(item);
+  if(item.personalAssetKey&&!first)schedulePersonalAssetHydration(item,0);
   if(item.committed&&isSprite&&frameSources.length>1)startSpriteMotion(item);
   if(!item.sourceLocked&&!item.personalAssetKey&&!item.assetId){
     item.personalUploadPromise=trackPersonalUpload(
@@ -1304,7 +1309,14 @@ function refreshUserImage(item){
   if(item.kind==='label'){refreshUserLabel(item);return}
   const spriteFrame=item.kind==='sprite'&&Array.isArray(item.frameSources)&&item.frameSources.length?item.frameSources[clamp(Math.trunc(Number(item.currentFrame)||0),0,item.frameSources.length-1)]:null;
   const desired=spriteFrame||(item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc);
-  if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired;void primeCollisionMask(desired)}
+  if(!desired){
+    item.node.dataset.assetPending=item.personalAssetKey?'true':'false';
+    item.node.style.visibility='hidden';
+  }else{
+    item.node.dataset.assetPending='false';
+    if(item.renderedSrc!==desired){item.node.src=desired;item.renderedSrc=desired;void primeCollisionMask(desired)}
+    if(!item.progressiveSlices?.length)item.node.style.visibility='';
+  }
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
@@ -2843,8 +2855,14 @@ async function handleRegionHostMessage(event){
     const requestId=String(data.requestId||''),waiter=regionMapSaveWaiters.get(requestId);
     if(!waiter)return;
     clearTimeout(waiter.timeout);regionMapSaveWaiters.delete(requestId);
-    if(data.type==='map-region-saved'&&data.result?.success!==false)waiter.resolve(data.result||true);
-    else waiter.reject(new Error(String(data.message||'Canonical world map save failed.')));
+    if(data.type==='map-region-saved'&&data.result?.success!==false){
+      const persisted=new Set((Array.isArray(data.persistedIds)?data.persistedIds:[]).map(String));
+      const missing=(waiter.expectedIds||[]).filter(id=>!persisted.has(String(id)));
+      if(data.verified===true&&!missing.length)waiter.resolve({verified:true,result:data.result,persistedIds:[...persisted]});
+      else waiter.reject(new Error(missing.length
+        ? `Region database verification is missing ${missing.length} saved object${missing.length===1?'':'s'}.`
+        :'Region database verification did not confirm the save.'));
+    }else waiter.reject(new Error(String(data.message||'Canonical world map save failed.')));
     return;
   }
   if(data.type==='claim-requested'){
@@ -2931,6 +2949,55 @@ async function personalDownloadUrl(key){
   const response=await personalApi('/storage/download?key='+encodeURIComponent(key));
   const payload=await response.json();
   return String(payload?.url||payload?.Url||'');
+}
+function personalHydrationDelay(attempt){
+  return [0,120,350,800,1600,3000,5000][clamp(Math.trunc(Number(attempt)||0),0,6)];
+}
+async function resolvePersonalAssetSource(key,fallback='',attempts=3){
+  const stable=String(key||'').trim();
+  if(!stable)return String(fallback||'');
+  for(let attempt=0;attempt<Math.max(1,attempts);attempt++){
+    const wait=personalHydrationDelay(attempt);
+    if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
+    try{
+      const url=await personalDownloadUrl(stable);
+      if(url)return url;
+    }catch{}
+  }
+  return String(fallback||'');
+}
+function schedulePersonalAssetHydration(item,attempt=0){
+  if(!item?.personalAssetKey||!item?.node?.isConnected||attempt>6)return;
+  if(item.personalHydrationTimer)return;
+  item.node.dataset.assetPending='true';
+  const wait=Math.max(120,personalHydrationDelay(attempt+1));
+  item.personalHydrationTimer=setTimeout(async()=>{
+    item.personalHydrationTimer=0;
+    if(!item?.node?.isConnected)return;
+    try{
+      const fresh=await personalDownloadUrl(item.personalAssetKey);
+      if(fresh){
+        item.originalSrc=fresh;
+        item.transparentSrc=fresh;
+        if(item.kind==='sprite'){
+          item.spriteSheetSrc=fresh;
+          const frames=await extractSpriteFrames(fresh,{
+            columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,
+            sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,
+            cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,
+            whiteTransparent:item.spriteWhiteTransparent!==false
+          }).catch(()=>[]);
+          if(frames.length){item.frameSources=frames;item.currentFrame=0}
+        }
+        item.renderedSrc='';
+        item.node.dataset.assetPending='false';
+        item.node.style.visibility='';
+        refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30);
+        return;
+      }
+    }catch{}
+    schedulePersonalAssetHydration(item,attempt+1);
+  },wait);
 }
 async function readPersonalCatalog(){
   try{
