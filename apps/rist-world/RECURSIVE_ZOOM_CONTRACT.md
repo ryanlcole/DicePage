@@ -6,23 +6,52 @@ Shaelvien is one persistent spatial world. WorldBuilder, RegionDefiner, Local,
 and Instance are different representations encountered as the viewer zooms
 deeper, but they do not replace canonical identity.
 
-## WorldBuilder
+## Canonical hierarchical address
 
-WorldBuilder owns the complete world map, terrain, World Tiers, and source
-objects.
+The authoritative nested vertical address is not one flattened Z number.
 
-A World Tier contains integer World Z positions 0 through 9:
+Every address may carry:
 
-- Z 0 = Layer 1;
-- …
-- Z 9 = Layer 10.
+```text
+WorldTier / WorldLayer
+RegionTier / RegionLayer
+LocalTier / LocalLayer
+InstanceTier / InstanceLayer
+```
 
-WorldBuilder is the authoritative source from which Region and Local views are
-addressed.
+or compactly:
 
-## RegionDefiner — 15°
+```text
+W(T,L) → R(T,L) → L(T,L) → I(T,L)
+```
 
-RegionDefiner is a filtered WorldBuilder view, not a second map engine.
+Each Layer is independently 0–9 inside its own Tier. Each Tier may increase
+without overwriting the parent level's Tier/Layer pair.
+
+The canonical runtime model is `RistHierarchicalAddress` in
+`SpatialAddressModels.cs`.
+
+Legacy values such as Region `z100` may remain as compatibility/projection
+indexes for existing renderers and persistence migrations. They are **not** the
+complete nested spatial truth and must never replace the hierarchical address.
+
+## WorldBuilder — World address
+
+WorldBuilder owns the complete world map, terrain, World Tier/Layer addressing,
+and source objects.
+
+World placement establishes:
+
+- World X/Y;
+- World Tier;
+- World Layer 0–9.
+
+Region, Local, and Instance addresses are initially zero until the object enters
+those child contexts.
+
+## RegionDefiner — 15° Region address
+
+RegionDefiner is a filtered WorldBuilder view, not a second unrelated world.
 
 A deed chooses:
 
@@ -30,60 +59,107 @@ A deed chooses:
 - exact source X/Y cells from that tier.
 
 Only those coordinates are needed after the deed is claimed. They become the
-working table while retaining their WorldBuilder identity.
+working Region table while retaining World identity.
 
-Regional detail occupies exact hundredths above the integer World Z:
+Region-authored content adds its own independent:
 
-- 0.01–0.09 above World Z 0;
-- 1.01–1.09 above World Z 1;
-- …
-- 9.01–9.09 above World Z 9.
+- Region Tier;
+- Region Layer 0–9.
 
-Regional objects remain attached to the map. These hundredths are depth/layer
-addresses, not new World Tiers and not independent parallax planes.
+The current renderer may still project World Layer + Region Layer into `z100`
+for visual ordering/readback compatibility. That projection is derived from the
+hierarchical address; it does not define Region identity.
 
-The database stores exact integer hundredths (`z100`) rather than using a raw
-floating-point decimal as spatial truth.
+Parent World terrain is immutable inside RegionDefiner. Region-owned content may
+be moved/resized/edited only under Region authority.
 
-## Local — 30° object-anchored representation
+## Local — 30° Region-asset-anchored representation
 
-Local repeats the recursive representation one level deeper while keeping the
-same world and Region ancestry.
+Local repeats the recursive representation one level deeper while preserving
+the same World and Region ancestry.
 
 A Local is defined by selecting one already-placed Region object such as a city,
-landmark, ruin, building cluster, ship, fortress, portal, or other local-bearing
-object. Local definition does **not** claim another arbitrary set of world cells.
+landmark, ruin, building cluster, ship, fortress, portal, or other
+Local-bearing object.
 
-The Local records a stable parent Region ID plus the selected object's stable
-identity, asset identity, Region-normalized X/Y footprint, rotation, parent
-World Tier, World Z, Region Layer, and exact parent `z100`. The selected object
-is therefore the Local's canonical anchor.
+Local definition does **not** claim arbitrary World cells.
 
-Local is presented at **30°**. Unlike RegionDefiner's shallow 15° editing view,
-Local may visually express the depth already authored in the Region hierarchy.
-That visual separation is representation only; it does not rewrite the Region
-object's canonical coordinates.
+### Parent anchor rule
 
-Future Local-owned detail may occupy a deeper exact address model, but the
-implementation must define that storage explicitly rather than infer truth from
-display decimals or visual parallax.
+The selected Region object remains a Region object with its original:
 
-## Instance — separate 45° builder
+- stable object/asset identity;
+- Region X/Y footprint;
+- World Tier/Layer;
+- Region Tier/Layer;
+- rotation and provenance.
 
-Instance is intentionally different from Region and Local.
+When that object is opened as a Local, its graphic becomes the locked
+**100% × 100% Local base canvas**.
 
-When the viewer recurses into a building, landmark, portal, structure, or other
-instance-bearing object, the system opens **Instance Builder**: a WorldBuilder-
-style interior/world workspace at 45°.
+This is a representation change, not an identity rewrite.
 
-The exterior footprint does not define the possible size of the interior.
-A building may contain a room, a dungeon, a city-sized interior, another realm,
-or any arbitrarily deep constructed space. Therefore Instance receives its own
-internal tier/layer system and canonical transform back to its entrance/parent
-object.
+### Local coordinate rule
 
-Instance Builder is not implemented merely by squeezing more fractional Z into
-the outdoor World/Region/Local address.
+Local-owned placements use a new child coordinate frame:
+
+- Local X/Y are normalized 0–1 inside the selected Region asset;
+- Local Tier is independent from Region Tier;
+- Local Layer is 0–9 inside the Local Tier.
+
+The system retains a reversible projection from Local X/Y back through the
+selected Region anchor into World/Region space. Local editing therefore does
+not require the user to manipulate tiny World-normalized coordinates.
+
+A Local child carries parent ancestry plus its own child address:
+
+```text
+World X/Y
+W(T,L)
+R(T,L)
+Local X/Y
+L(T,L)
+```
+
+The Local save format declares `local-anchor-normalized-v2`.
+
+Legacy Local saves that stored child positions directly in World-normalized X/Y
+may be migrated into the Local anchor frame on load.
+
+## Instance — 45° Local-asset-anchored representation
+
+Instance follows the same recursive selection rule one level deeper.
+
+An Instance begins from one selected Local object/anchor. That Local object keeps
+its Local identity and becomes the locked parent/base representation for the
+Instance context.
+
+Instance-owned placements then receive:
+
+- Instance-local X/Y/geometry;
+- Instance Tier;
+- Instance Layer 0–9.
+
+The canonical ancestry becomes:
+
+```text
+World → Region → Local → Instance
+W(T,L)  R(T,L)  L(T,L)  I(T,L)
+```
+
+Instance may represent interiors, dungeons, ships, portals, nested realms, or
+other spaces whose internal size is not limited by the exterior object's
+displayed footprint. Its transform back to the Local parent anchor must remain
+stable.
+
+The same parent/child rule applies recursively:
+
+- Region selects/claims World source;
+- Local selects a Region asset;
+- Instance selects a Local asset.
+
+A child editor may never silently mutate its parent asset's authored coordinates
+or Tier/Layer address.
 
 ## Continuous zoom
 
@@ -139,30 +215,43 @@ Implemented in RegionDefiner:
 - selection of exact WorldBuilder cells on one parent World Tier;
 - selected-cell source projection;
 - immutable inherited WorldBuilder content;
-- editable region-owned overlays;
-- integer World Z 0–9;
-- regional hundredth layers .01–.09 above each World Z;
-- exact integer `z100` storage;
+- editable Region-owned overlays;
+- explicit World Tier/Layer + Region Tier/Layer metadata;
+- legacy `z100` Region projection for compatibility;
 - map-attached/no-independent-parallax regional overlays;
-- shared WorldBuilder-source persistence;
+- dedicated RegionMap persistence;
 - 15° representation.
 
-Implemented in Local staging:
+Implemented in Local:
 
-- parent Region chooser with no new-Region/claim action;
-- selection of one placed Region object rather than arbitrary map cells;
-- stable Local identity anchored to that object's Region identity and coordinates;
-- 30° Local representation;
-- Local view may expose regional World-Z / Region-Layer depth as parallax while
-  RegionDefiner remains map-attached at 15°.
+- parent Region only; no new World/Region claim action;
+- selection of one placed Region object as Local anchor;
+- stable Local identity anchored to the Region object's identity/provenance;
+- selected Region asset rebased visually to the locked 100% Local canvas;
+- Local-normalized child X/Y coordinates;
+- reversible Local → Region/World projection metadata;
+- explicit Local Tier/Layer 0–9 controls;
+- Local-owned image/tile/sprite/label authoring;
+- separate LocalMap persistence using `RIST_LOCAL_MAP_V2`;
+- legacy World-X/Y Local save migration;
+- 30° representation.
+
+Reserved/partially modeled for Instance:
+
+- `InstanceTier` and `InstanceLayer` already exist in
+  `RistHierarchicalAddress` and Local persistence;
+- Instance must select a Local object as parent anchor;
+- selected Local asset becomes the locked Instance base representation;
+- Instance children use Instance-local geometry plus `I(T,L)`;
+- Instance content must persist separately from Local content while retaining
+  complete parent ancestry.
 
 Not yet implemented:
 
-- Local-owned child authoring/persistence above the selected anchor;
-- the final exact Local child-depth storage model;
-- continuous camera handoff from Region into Local;
-- Instance Builder at 45°;
-- continuous entrance/exit transitions for arbitrary interiors.
+- full Instance Builder UI/runtime;
+- continuous camera transition from Local into Instance;
+- generalized recursive coordinate transforms beyond Local → parent projection;
+- server-authoritative spatial-effect intersection across all nested contexts.
 
-Those later systems should reuse this provenance and coordinate discipline
-rather than reintroduce independent copies of the outdoor world.
+Those systems must extend this hierarchy rather than flattening nested Tier/Layer
+pairs into a single Z scalar.
