@@ -173,6 +173,14 @@ test('RegionDefiner build controls stay lifted and the claim grid cannot cover a
   assert.ok(css.includes('.stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}'));
 });
 
+test('saved personal region assets persist stable identity and refresh signed URLs on reload',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  assert.ok(source.includes("originalSrc:item.personalAssetKey?'':(item.originalSrc||'')"));
+  assert.ok(source.includes("const freshPersonalSrc=personalAssetKey"));
+  assert.ok(source.includes("await personalDownloadUrl(personalAssetKey).catch(()=> '')"));
+  assert.ok(source.includes("String(freshPersonalSrc||raw.originalSrc||'')"));
+});
+
 test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps parent content locked',async()=>{
   const f=fixture('existing');
   try{
