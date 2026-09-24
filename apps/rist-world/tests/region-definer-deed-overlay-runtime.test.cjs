@@ -79,17 +79,30 @@ function projectedState(overrides={}){
   };
 }
 
-test('successful deed removes selection grid and turns selected source cells into the working table',async()=>{
+test('successful deed removes selection grid and transitions directly into the editor',async()=>{
   const f=fixture('new');
   try{
     f.d.querySelector('[data-tier-select]').click();
     assert.ok(f.d.querySelector('.region-definition-grid'),'new deed must expose selection grid');
-    host(f,'region-created',{region:deed});
-    await tick();
+    host(f,'region-created',{
+      region:deed,
+      worldSource:{
+        worldId:'deed-runtime-test',
+        regionId:'region-test',
+        activeRegionId:'region-test',
+        state:projectedState()
+      }
+    });
+    await tick();await tick();
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
     assert.ok(f.stage.classList.contains('region-cropped'));
+    assert.ok(f.stage.classList.contains('region-build-mode'));
     assert.equal(f.stage.dataset.cropMode,'selected-source-cells');
+    assert.equal(f.stage.dataset.regionEntry,'editor');
+    assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
     assert.equal(f.d.getElementById('world').style.maskImage,'none');
+    assert.equal(f.d.getElementById('viewerKeyboard').hidden,false);
+    assert.ok(Array.from(f.d.querySelectorAll('#keyboardTabs button')).some(x=>x.textContent==='Image'));
   }finally{f.close()}
 });
 
@@ -122,6 +135,33 @@ test('hex selection uses the same canonical cell geometry as the claimed coordin
       assert.equal(geometry.cellAt(center.x,center.y,'hex'),cell);
     }
     await tick();
+  }finally{f.close()}
+});
+
+test('region placement stays continuous inside the deed instead of snapping to cell centers',async()=>{
+  const f=fixture('existing');
+  try{
+    host(f,'catalog',{regions:[deed]});
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',
+      regionId:'region-test',
+      activeRegionId:'region-test',
+      state:projectedState()
+    }});
+    await tick();await tick();
+
+    const geometry=f.w.ShaelvienPrototype.regionGeometry;
+    const center=geometry.center(32,'hex');
+    const free={x:center.x+.003,y:center.y+.004};
+    assert.equal(geometry.cellAt(free.x,free.y,'hex'),32);
+    const kept=geometry.constrain(free.x,free.y);
+    assert.ok(Math.abs(kept.x-free.x)<1e-12);
+    assert.ok(Math.abs(kept.y-free.y)<1e-12);
+    assert.ok(Math.abs(kept.x-center.x)>.001,'valid placement must not be recentered');
+
+    const outside=geometry.center(400,'hex');
+    const constrained=geometry.constrain(outside.x,outside.y);
+    assert.ok(deed.selectedCells.includes(geometry.cellAt(constrained.x,constrained.y,'hex')));
   }finally{f.close()}
 });
 
