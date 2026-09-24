@@ -15,7 +15,6 @@ from botocore.exceptions import ClientError
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
 from region_geometry import region_cell_for_point
 from region_projection import (
-    merge_region_layers,
     normalize_region_layer,
     project as project_region_source,
 )
@@ -2802,17 +2801,37 @@ def handler(event, context):
                 parent_state = {}
             else:
                 return response(409, {"error": "Canonical parent map is not published"})
+
+        region_map = world.get_item(
+            Key=region_map_key(world_id, region_id), ConsistentRead=True
+        ).get("Item")
+        if region_map:
+            raw_region_map_state = region_map.get("state")
+            region_map_state = (
+                dict(raw_region_map_state)
+                if isinstance(raw_region_map_state, dict)
+                else {}
+            )
+        else:
+            # Migration compatibility: absence of a REGIONMAP record means
+            # project any legacy regionId-tagged overlays from WORLDSOURCE.
+            region_map_state = None
+
         try:
             projected = project_region_source(
                 world_id, region_id, deed.get("state") or {},
-                parent_state,
+                parent_state, region_map_state,
             )
         except (ValueError, TypeError) as exc:
             return response(409, {"error": str(exc)})
         return response(200, {
             "worldId": world_id, "regionId": region_id,
             "projection": "region-world-z-v2", "state": projected,
-            "updatedAtUtc": str(parent.get("updatedAtUtc") or ""),
+            "updatedAtUtc": str(
+                (region_map or {}).get("updatedAtUtc")
+                or parent.get("updatedAtUtc")
+                or ""
+            ),
         })
 
     if method == "POST" and path == "/world/source/region":
@@ -2828,37 +2847,42 @@ def handler(event, context):
         if len(incoming) > 250:
             return response(413, {"error": "Regional overlay limit exceeded"})
 
-        key = world_source_key(world_id)
-        canonical = world.get_item(Key=key, ConsistentRead=True).get("Item")
-        if canonical and isinstance(canonical.get("state"), dict):
-            state = dict(canonical["state"])
-        elif is_geonaph(world_id):
-            state = {"worldId": world_id, "userLayers": []}
-        else:
-            return response(409, {"error": "Publish the WorldBuilder source before editing a region"})
-
         try:
-            state, normalized = merge_region_layers(state, region_state, region_id, incoming)
+            normalized = [
+                normalize_region_layer(region_state, dict(item), region_id)
+                for item in incoming
+            ]
         except PermissionError as exc:
             return response(403, {"error": str(exc)})
         except (TypeError, ValueError) as exc:
             return response(400, {"error": str(exc)})
 
-        encoded_size = len(json.dumps(state, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
+        region_map_state = {
+            "format": "RIST_REGION_MAP_V1",
+            "worldId": world_id,
+            "regionId": region_id,
+            "zModel": REGION_Z_MODEL,
+            "userLayers": normalized,
+        }
+        encoded_size = len(json.dumps(
+            region_map_state, separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8"))
         if encoded_size > 360000:
-            return response(413, {"error": "WorldBuilder source metadata exceeds database capacity"})
+            return response(413, {"error": "Region map metadata exceeds database capacity"})
+
         updated_at = datetime.now(timezone.utc).isoformat()
         world.update_item(
-            Key=key,
+            Key=region_map_key(world_id, region_id),
             UpdateExpression=(
-                "SET entityType = :entityType, worldId = :worldId, "
+                "SET entityType = :entityType, worldId = :worldId, regionId = :regionId, "
                 "#state = :state, updatedAtUtc = :updatedAtUtc, updatedByUserId = :updatedBy"
             ),
             ExpressionAttributeNames={"#state": "state"},
             ExpressionAttributeValues={
-                ":entityType": "worldSource",
+                ":entityType": "regionMap",
                 ":worldId": world_id,
-                ":state": dynamo_safe(state),
+                ":regionId": region_id,
+                ":state": dynamo_safe(region_map_state),
                 ":updatedAtUtc": updated_at,
                 ":updatedBy": user_id,
             },
@@ -2867,14 +2891,17 @@ def handler(event, context):
             "layers": len(normalized),
             "parentTierIndex": int(region_state.get("tierIndex") or 0),
             "zModel": REGION_Z_MODEL,
+            "storage": "REGIONMAP",
             "bytes": encoded_size,
         })
         return response(200, {
             "worldId": world_id,
             "regionId": region_id,
+            "state": region_map_state,
             "updatedAtUtc": updated_at,
             "savedLayerCount": len(normalized),
             "zModel": REGION_Z_MODEL,
+            "storage": "REGIONMAP",
         })
 
     if method == "GET" and path == "/world/regions":
