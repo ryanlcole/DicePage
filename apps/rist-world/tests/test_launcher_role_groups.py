@@ -26,7 +26,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
     def test_roleplay_group_contains_requested_tools(self):
         for label in (
             "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
-            "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS", "ASSET DESIGNER",
+            "CAMPAIGN", "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS", "ASSET DESIGNER",
             "PERCEIVER", "ReLiC OBSERVER", "ACCESSIBILITY",
         ):
             self.assertIn(f"<strong>{label}</strong>", self.source)
@@ -47,7 +47,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         self.assertIn("ROLEPLAY TOOLS", gm)
         labels = (
             "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
-            "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS",
+            "CAMPAIGN", "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS",
             "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
             "ACCESSIBILITY",
         )
@@ -72,6 +72,17 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         self.assertIn("RequirementStorageKey", designer)
         self.assertIn("LayoutStorageKey", designer)
         self.assertIn("ValueStorageKey", designer)
+
+    def test_campaign_is_shared_roleplay_and_gamemaster_workspace(self):
+        router = (
+            Path(__file__).resolve().parents[1]
+            / "Components"
+            / "TaskWorkspaceRouter.razor"
+        ).read_text(encoding="utf-8")
+        self.assertGreaterEqual(self.source.count('@onclick="OpenCampaign"'), 2)
+        self.assertIn('case "campaign"', self.source)
+        self.assertIn('Mode == "campaign"', router)
+        self.assertIn("<CampaignWorkspace />", router)
 
     def test_powers_is_shared_roleplay_and_gamemaster_workspace(self):
         router = (
