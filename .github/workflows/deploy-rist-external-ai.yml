@@ -9,6 +9,7 @@ on:
       - 'infra/aws/rist-external-ai.yml'
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
+      - 'infra/aws/rist_mcp_gateway.py'
       - 'infra/aws/rist_eios_bridge.py'
       - 'infra/aws/rist_eios_context.py'
       - 'infra/aws/rist_eios_domain_knowledge.py'
@@ -32,6 +33,7 @@ env:
   STACK_NAME: rist-external-ai
   AUTH_STACK: rist-discord-storage
   FRONTEND_STACK: rist-frontend
+  PLATFORM_STACK: rist-platform
   PRODUCTION_ORIGIN: https://relicgamemaster.com
 
 jobs:
@@ -49,6 +51,7 @@ jobs:
         run: |
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
+          python -m py_compile infra/aws/rist_mcp_gateway.py
           python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_domain_knowledge.py
           python -m py_compile infra/aws/rist_eios_bridge.py
@@ -72,6 +75,16 @@ jobs:
           test -n "$IDENTITY_TABLE"
           test "$IDENTITY_TABLE" != "None"
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
+
+      - name: Resolve RIST platform authority API
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTHORITY_API=$(aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='AuthorityApiBaseUrl'].OutputValue" --output text)
+          test -n "$AUTHORITY_API"
+          test "$AUTHORITY_API" != "None"
+          echo "AUTHORITY_API=$AUTHORITY_API" >> "$GITHUB_ENV"
 
       - name: Stabilize and recover external AI stack
         shell: bash
@@ -125,6 +138,8 @@ jobs:
             "IdentityTableName=$IDENTITY_TABLE"
             "FrontendOrigin=$PRODUCTION_ORIGIN"
             "OwnerReleased=false"
+            "McpIntakeOpen=true"
+            "AuthorityApiBaseUrl=$AUTHORITY_API"
             "EiosModelId=us.amazon.nova-lite-v1:0"
           )
           if [ -n "${OWNER_USER_ID:-}" ]; then
@@ -148,6 +163,29 @@ jobs:
           RELEASED=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiOwnerReleased'].OutputValue" --output text)
           test "$RELEASED" = "false"
+
+      - name: Verify MCP governance entrance
+        shell: bash
+        run: |
+          set -euo pipefail
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
+          test -n "$API"
+          test "$API" != "None"
+          curl --fail --silent --show-error "$API/mcp" > /tmp/relic-mcp.html
+          grep -q 'Enter through governance' /tmp/relic-mcp.html
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"deploy-smoke","version":"1"}}}' \
+            "$API/mcp" > /tmp/relic-mcp-init.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-mcp-init.json'))
+          result=data.get('result') or {}
+          assert result.get('protocolVersion') == '2025-11-25', data
+          assert result.get('serverInfo', {}).get('name') == 'ReLiCGameMaster MCP', data
+          print('MCP endpoint verified:', result['serverInfo'])
+          PY
 
       - name: Verify locked AI policy gateway
         shell: bash
