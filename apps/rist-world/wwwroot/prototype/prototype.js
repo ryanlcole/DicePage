@@ -4511,8 +4511,8 @@ function localAnchorItems(){
 function localAnchorSelect(items=localAnchorItems()){
   const select=document.createElement('select');
   select.className='placed-content-select';
-  select.setAttribute('aria-label','Select regional object for Local');
-  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=items.length?'Select landmark / object…':'No placed regional objects';select.append(placeholder);
+  select.setAttribute('aria-label','Select Region asset for Local zone');
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=items.length?'Select Region asset…':'No Region assets available';select.append(placeholder);
   items.forEach((item,index)=>{
     const option=document.createElement('option');option.value=String(item.id||index);option.textContent=item.name||item.assetId||`Object ${index+1}`;select.append(option);
   });
