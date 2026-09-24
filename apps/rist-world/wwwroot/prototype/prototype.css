@@ -61,11 +61,18 @@
     .region-edit-layer[hidden]{display:none!important}
     .region-edit-layer .user-image-placement{pointer-events:auto;touch-action:none;cursor:move}
     .region-edit-layer .user-image-placement[hidden]{display:none!important;pointer-events:none!important}
-    .user-image-placement{position:absolute;z-index:101;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
+    .user-image-placement{position:absolute;z-index:101;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4));user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}
     .user-image-placement.full-world-placement{inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:fill!important;transform-origin:0 0!important;cursor:default!important;filter:none}
     .user-image-placement.full-world-placement.selected{outline-offset:-2px}
     .user-image-placement.selected{outline:2px solid #f0cc69;outline-offset:2px}
-    .user-label-placement{width:auto!important;height:auto!important;max-width:58%;min-width:0;padding:3px 7px;border:1px solid transparent;border-radius:5px;background:transparent;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.05;font-family:Georgia,"Times New Roman",serif;text-shadow:0 1px 2px #000,0 0 5px rgba(0,0,0,.65);filter:none;user-select:none;-webkit-user-select:none}
+    .asset-resize-overlay{position:absolute;box-sizing:border-box;border:1px solid rgba(240,204,105,.9);outline:1px solid rgba(0,0,0,.42);transform-origin:50% 50%;pointer-events:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+    .asset-resize-handle{position:absolute;width:20px;height:20px;min-width:20px;min-height:20px;margin:0;padding:0;border:2px solid #0b1720;border-radius:50%;background:#f0cc69;box-shadow:0 1px 5px #000b;pointer-events:auto;touch-action:none;-webkit-touch-callout:none}
+    .asset-resize-handle.nw{left:0;top:0;transform:translate(-50%,-50%);cursor:nwse-resize}
+    .asset-resize-handle.ne{right:0;top:0;transform:translate(50%,-50%);cursor:nesw-resize}
+    .asset-resize-handle.sw{left:0;bottom:0;transform:translate(-50%,50%);cursor:nesw-resize}
+    .asset-resize-handle.se{right:0;bottom:0;transform:translate(50%,50%);cursor:nwse-resize}
+    .stage.asset-resizing .user-image-placement.selected{outline-style:dashed}
+    .user-label-placement{width:auto!important;height:auto!important;max-width:58%;min-width:0;padding:3px 7px;border:1px solid transparent;border-radius:5px;background:transparent;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.05;font-family:Georgia,"Times New Roman",serif;text-shadow:0 1px 2px #000,0 0 5px rgba(0,0,0,.65);filter:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
     .user-label-placement.plate{padding:5px 9px;border-color:rgba(226,195,116,.48);background:rgba(6,12,16,.72);box-shadow:0 3px 12px rgba(0,0,0,.35);text-shadow:0 1px 2px #000}
     .user-label-placement.selected{border-color:#f0cc69;outline:2px solid rgba(240,204,105,.9);outline-offset:3px}
     .stage{position:fixed;z-index:1;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;background:#05090c}
@@ -172,6 +179,9 @@
     .keyboard-keys .placed-content-select{min-height:48px;grid-column:span 2;min-width:0;padding:0 34px 0 10px;border:1px solid #8c6b2d;border-radius:8px;background:#0c1820;color:#f3deb0;font:800 9px/1.2 system-ui;touch-action:manipulation}
     .keyboard-keys .label-text-input{box-sizing:border-box;min-height:48px;grid-column:span 2;min-width:0;padding:0 12px;border:1px solid #8c6b2d;border-radius:8px;background:#0c1820;color:#fff3c7;font:800 16px/1.2 system-ui;touch-action:manipulation}
     .keyboard-keys .label-text-input::placeholder{color:#78909a;font-weight:700}
+    .keyboard-keys .asset-size-number{box-sizing:border-box;min-height:48px;min-width:0;padding:0 10px;border:1px solid #8c6b2d;border-radius:8px;background:#0c1820;color:#fff3c7;font:900 15px/1 system-ui;text-align:center;touch-action:manipulation}
+    .keyboard-keys .asset-size-number:focus-visible,.keyboard-keys .asset-size-range:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
+    .keyboard-keys .asset-size-range{grid-column:span 2;width:100%;min-width:0;min-height:48px;margin:0;accent-color:#d7b85f;touch-action:pan-x}
     .keyboard-keys .region-name-input{box-sizing:border-box;min-height:48px;grid-column:span 2;min-width:0;padding:0 12px;border:1px solid #527f94;border-radius:8px;background:#0a1820;color:#dff4ff;font:800 16px/1.2 system-ui;touch-action:manipulation}
     .keyboard-keys .region-name-input::placeholder{color:#718d9a;font-weight:700}
     /* Keep deed confirmation controls above mobile browser chrome. */
@@ -218,7 +228,7 @@
       .region-tier-preview-map{padding-left:4px;padding-right:4px}
       .region-tier-preview-map-stack{width:min(88vw,470px)}
       .image-position-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .keyboard-keys .label-text-input,.keyboard-keys .region-name-input,.keyboard-keys .placed-content-select{grid-column:1/-1}
+      .keyboard-keys .label-text-input,.keyboard-keys .region-name-input,.keyboard-keys .placed-content-select,.keyboard-keys .asset-size-range{grid-column:1/-1}
       .user-label-placement{max-width:72%}
     }
     @media(prefers-reduced-motion:reduce){.plane{transition:none}}
