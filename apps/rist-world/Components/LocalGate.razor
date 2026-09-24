@@ -43,13 +43,22 @@
        <div class="local-gate-locals">
         @foreach(var local in group.Locals)
         {
-         <button type="button" class="local-gate-local" disabled="@_busy" @onclick="()=>SelectAsync(local)">
-          <span>
-           <strong>@local.Name</strong>
-           <small>@(string.IsNullOrWhiteSpace(local.AnchorName)?"Region asset":local.AnchorName) · @local.AnchorKind</small>
-          </span>
-          <b>OPEN</b>
-         </button>
+         <div class="local-gate-local-row">
+          <button type="button" class="local-gate-local" disabled="@_busy" @onclick="()=>SelectAsync(local)">
+           <span>
+            <strong>@local.Name</strong>
+            <small>@(string.IsNullOrWhiteSpace(local.AnchorName)?"Region asset":local.AnchorName) · @local.AnchorKind</small>
+           </span>
+           <b>OPEN</b>
+          </button>
+          <button type="button"
+                  class="@($"local-gate-delete {(_deleteConfirmId==local.LocalId?"confirm":"")}")"
+                  disabled="@_busy"
+                  @onclick="()=>DeleteAsync(local)"
+                  aria-label="@(_deleteConfirmId==local.LocalId?$"Confirm delete {local.Name}":$"Delete {local.Name}")">
+           @(_deleteConfirmId==local.LocalId?"DELETE?":"DELETE")
+          </button>
+         </div>
         }
        </div>
       </section>
@@ -70,7 +79,7 @@
  .local-gate-primary{min-height:42px;padding:0 16px;border:1px solid #a48138;border-radius:9px;background:#261f10;color:#f1d58d;font:900 9px/1 system-ui;letter-spacing:.08em;white-space:nowrap}.local-gate-primary:disabled{opacity:.4}
  .local-gate-groups{min-height:0;overflow:auto;padding:12px 18px 18px;display:grid;gap:12px;-webkit-overflow-scrolling:touch}
  .local-gate-group{display:grid;gap:7px;padding:10px;border:1px solid #344b55;border-radius:11px;background:#09151c}.local-gate-group>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 7px;border-bottom:1px solid #2b414a}.local-gate-group>header strong{color:#e5cc88;font:800 11px system-ui}.local-gate-group>header small{color:#7fa0ae;font:900 7px system-ui;letter-spacing:.08em}
- .local-gate-locals{display:grid;gap:6px}.local-gate-local{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid #405964;border-radius:9px;background:#0b1820;color:#e9dfc6;text-align:left}.local-gate-local span{display:grid;gap:4px;min-width:0}.local-gate-local strong{overflow:hidden;text-overflow:ellipsis;color:#ead59c;font-size:12px}.local-gate-local small{color:#87a0aa;font-size:8px}.local-gate-local b{color:#7bc5ed;font:900 8px system-ui;letter-spacing:.08em}
+ .local-gate-locals{display:grid;gap:6px}.local-gate-local-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}.local-gate-local{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid #405964;border-radius:9px;background:#0b1820;color:#e9dfc6;text-align:left}.local-gate-local span{display:grid;gap:4px;min-width:0}.local-gate-local strong{overflow:hidden;text-overflow:ellipsis;color:#ead59c;font-size:12px}.local-gate-local small{color:#87a0aa;font-size:8px}.local-gate-local b{color:#7bc5ed;font:900 8px system-ui;letter-spacing:.08em}.local-gate-delete{min-width:66px;padding:0 9px;border:1px solid #57464b;border-radius:9px;background:#120d10;color:#9c858b;font:900 7px/1 system-ui;letter-spacing:.08em}.local-gate-delete.confirm{border-color:#b05959;background:#351417;color:#ffd1c9}.local-gate-delete:disabled{opacity:.45}
  .local-gate-note,.local-gate-status{margin:16px 22px;color:#91a5ad;font-size:10px}.local-gate-status{color:#e5ba70}
  @@media(max-width:600px){.local-gate-backdrop{padding:8px}.local-gate{width:100%;max-height:94dvh}.local-gate>header{padding:12px}.local-gate-create{padding:13px;align-items:flex-start}.local-gate-create{flex-direction:column}.local-gate-primary{width:100%}.local-gate-groups{padding:9px 12px 14px}}
 </style>
@@ -80,12 +89,14 @@
  [Parameter] public EventCallback OnClose { get; set; }
  [Parameter] public EventCallback OnNew { get; set; }
  [Parameter] public EventCallback<WorldLocal> OnSelect { get; set; }
+ [Parameter] public EventCallback<WorldLocal> OnDelete { get; set; }
 
  bool _wasOpen;
  bool _loading;
  bool _busy;
  bool _loadRequested;
  string _status="";
+ string _deleteConfirmId="";
 
  bool CanDefineLocal=>Session.DefinedRegions.Any(region=>Session.IsRegionInActiveWorld(region)&&Session.CanEditRegion(region));
 
@@ -106,6 +117,7 @@
   if(Open&&!_wasOpen)
   {
    _status="";
+   _deleteConfirmId="";
    _loading=true;
    _loadRequested=true;
   }
@@ -143,8 +155,31 @@
  async Task SelectAsync(WorldLocal local)
  {
   if(_busy)return;
+  _deleteConfirmId="";
   _busy=true;
   try{if(OnSelect.HasDelegate)await OnSelect.InvokeAsync(local);}
+  finally{_busy=false;}
+ }
+
+ async Task DeleteAsync(WorldLocal local)
+ {
+  if(_busy)return;
+  if(!string.Equals(_deleteConfirmId,local.LocalId,StringComparison.Ordinal))
+  {
+   _deleteConfirmId=local.LocalId;
+   _status=$"Tap DELETE? again to remove {local.Name}.";
+   return;
+  }
+
+  _busy=true;
+  try
+  {
+   if(OnDelete.HasDelegate)await OnDelete.InvokeAsync(local);
+   _deleteConfirmId="";
+   _status="";
+   await Session.LoadLocalsAsync();
+  }
+  catch(Exception ex){_status="Local could not be deleted: "+ex.Message;}
   finally{_busy=false;}
  }
 
