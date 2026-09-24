@@ -984,7 +984,7 @@ function viewerCenterPosition(){
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
   const wy=((r.height/2)-y)/Math.max(scale,.00001);
   const point={x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
-  return REGION_DEFINER?snapRegionPoint(point.x,point.y):point;
+  return REGION_DEFINER?constrainRegionPoint(point.x,point.y):point;
 }
 function openImageUpload(){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -1395,7 +1395,7 @@ function moveImageDrag(event){
   if(!imageDrag||imageDrag.id!==event.pointerId)return;event.preventDefault();event.stopPropagation();
   const rawX=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
-  const snapped=REGION_DEFINER?snapRegionPoint(rawX,rawY):{x:rawX,y:rawY};
+  const snapped=REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY};
   imageDrag.item.x=snapped.x;imageDrag.item.y=snapped.y;
   refreshUserImage(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
@@ -1415,7 +1415,7 @@ async function placeUploadedImage(file){
   const tier=placementRole==='world-map'?0:(REGION_DEFINER?currentTierIndex():clamp(Math.trunc(Number(imageTier.value)||address.tier),0,TIERS.length-1));
   const layer=placementRole==='world-map'?0:clamp(Math.trunc(Number(imageLayer.value)||address.layer),0,9);
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
-  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint);
+  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(REGION_DEFINER?constrainRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -1642,11 +1642,16 @@ function nearestAllowedRegionCell(cell,allowed){
   }
   return best;
 }
-function snapRegionPoint(x,y){
-  if(!REGION_DEFINER)return{x:clamp(x,0,1),y:clamp(y,0,1)};
-  let cell=regionCellFromPoint(x,y);
-  cell=nearestAllowedRegionCell(cell,regionActiveCellSet());
-  return regionCellCenter(cell);
+function constrainRegionPoint(x,y){
+  const point={x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  if(!REGION_DEFINER)return point;
+  const allowed=regionActiveCellSet();
+  if(!allowed||!allowed.size)return point;
+  const cell=regionCellFromPoint(point.x,point.y);
+  // Placement inside the deed is continuous. The grid defines ownership only;
+  // it must not snap authored cities, labels, sprites, or images to cell centers.
+  if(allowed.has(cell))return point;
+  return regionCellCenter(nearestAllowedRegionCell(cell,allowed));
 }
 function clearRegionWorldSource(){
   for(const item of regionWorldSourceTiles)item.node?.remove();
@@ -2475,7 +2480,7 @@ function applyRegionMask(region,cropMode='visibility-mask',saved=false){
 function applyClaimedRegionCrop(region){
   if(!REGION_DEFINER||!region)return;
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
-  stage.classList.remove('region-tier-previewing','region-selection-only');
+  stage.classList.remove('region-tier-previewing','region-selection-only','region-claim-confirming');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   regionLayerIndex=1;
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
@@ -2625,7 +2630,7 @@ function showRegionTierPreview(){
   viewerLayer=0;
   if(viewerTier==='all')viewerTier='sea';
   updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();fitMap();updateRegionSelectionOverlay();
-  stage.classList.add('region-tier-previewing');stage.classList.remove('region-selection-only','region-build-mode');
+  stage.classList.add('region-tier-previewing');stage.classList.remove('region-selection-only','region-build-mode','region-claim-confirming');
   stage.dataset.regionEntry='tier-preview';
   const panel=ensureRegionTierPreview();if(panel){panel.hidden=false;refreshRegionTierPreview()}
   if(!keyboard.hidden)closeKeyboard();
@@ -2653,7 +2658,7 @@ function chooseRegionClaimTier(key){
   setViewerTier(key);
   regionClaimPhase='select';regionSelectionEnabled=false;regionCropPreview=false;regionSelectedCells.clear();
   keyboardMode='Select';
-  stage.classList.add('region-selection-only');stage.classList.remove('region-build-mode');
+  stage.classList.add('region-selection-only');stage.classList.remove('region-build-mode','region-claim-confirming');
   // Refit after the modal preview disappears and explicitly re-apply the
   // canonical tier visibility. Mobile browsers can otherwise retain the preview
   // frame while the underlying transformed world remains outside the viewport.
@@ -2678,7 +2683,7 @@ function previewRegionCrop(){
     tierIndex:currentRegionTierIndex()
   };
   regionClaimPhase='crop';regionCropPreview=true;regionSelectionEnabled=false;
-  stage.classList.add('region-selection-only');
+  stage.classList.add('region-selection-only','region-claim-confirming');
   updateRegionSelectionOverlay();
   applyRegionMask(preview,'selection-preview',false);
   renderKeyboardKeys();
@@ -2687,7 +2692,7 @@ function previewRegionCrop(){
 function returnToRegionSelection(){
   if(!REGION_DEFINER)return;
   clearRegionMask(false);
-  regionClaimPhase='select';regionCropPreview=false;regionSelectionEnabled=true;stage.classList.add('region-selection-only');
+  regionClaimPhase='select';regionCropPreview=false;regionSelectionEnabled=true;stage.classList.add('region-selection-only');stage.classList.remove('region-claim-confirming');
   updateRegionSelectionOverlay();fitMap();renderKeyboardKeys();
   announce('Region selection reopened.');
 }
@@ -2816,8 +2821,13 @@ async function handleRegionHostMessage(event){
     const savedName=String(claimed?.name||regionNameDraft||'Region');
     regionNameDraft='';regionClaimPhase='saved';
     if(claimed)applyClaimedRegionCrop(claimed);
-    regionSelectedCells.clear();updateRegionSelectionOverlay();renderKeyboardKeys();
+    regionSelectedCells.clear();updateRegionSelectionOverlay();
+    stage.classList.remove('region-claim-confirming');
+    stage.dataset.regionEntry='editor';
     await persistRegionClaimWorkspace();
+    if(data.worldSource)await renderRegionWorldSource(data.worldSource);
+    keyboardMode='Viewer';renderKeyboardTabs();renderKeyboardKeys();
+    if(keyboard.hidden)openKeyboard();
     announce(`${savedName} claimed. Region editing is open with only the deed footprint visible; the underlying canonical world map remains unchanged.`);return;
   }
   if(data.type==='map-region-saved'||data.type==='map-region-save-error'){
@@ -2832,7 +2842,7 @@ async function handleRegionHostMessage(event){
     regionCreatePending=false;
     const result=data.result||{};
     if(result.success){
-      regionClaimPhase='requested';regionCropPreview=false;regionSelectionEnabled=false;updateRegionSelectionOverlay();renderKeyboardKeys();
+      regionClaimPhase='requested';regionCropPreview=false;regionSelectionEnabled=false;stage.classList.remove('region-claim-confirming');updateRegionSelectionOverlay();renderKeyboardKeys();
       announce(String(result.message||'Claim request sent to the GM. No build authority has been granted yet.'));
     }else{
       renderKeyboardKeys();announce(String(result.message||'The claim request was not accepted. Nothing was granted.'));
@@ -3055,7 +3065,7 @@ function personalPageAssets(type){
 function placePersonalImage(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
-  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?snapRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1);
+  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?constrainRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1);
   const item={
     id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -3164,7 +3174,7 @@ function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30)
 function placeLibraryTile(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.image)return;
-  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?snapRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1),item={
+  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?constrainRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
     assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -3784,7 +3794,7 @@ window.ShaelvienPrototype=Object.freeze({
   save:saveWorldBuilder,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
-  regionGeometry:REGION_DEFINER?Object.freeze({extents:regionGridExtents,center:regionCellCenter,cellAt:regionCellFromPoint}):null,
+  regionGeometry:REGION_DEFINER?Object.freeze({extents:regionGridExtents,center:regionCellCenter,cellAt:regionCellFromPoint,constrain:constrainRegionPoint}):null,
   getViewerState:()=>({
     workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
     viewerTier,viewerLayer,
