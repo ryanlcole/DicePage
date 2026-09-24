@@ -53,6 +53,8 @@ ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
 PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}
+RESOURCE_PERMISSION_VALUES = {"View", "Edit", "Public", "Deny", "None"}
+RESOURCE_PUBLIC_PRINCIPAL = "EVERYONE"
 
 # Commerce is deliberately authority-first. Paid providers may fulfill these
 # records later, but a browser can never manufacture a subscription, access
@@ -409,6 +411,21 @@ def parcel_acl_key(world_id, parcel_id, user_id):
         "pk": world_partition(world_id),
         "sk": f"PARCELACL#{parcel_id}#USER#{user_id}",
     }
+
+
+def resource_acl_key(world_id, resource_id, user_id):
+    return {
+        "pk": world_partition(world_id),
+        "sk": f"RESOURCEACL#{safe_id(resource_id, 'resourceId')}#USER#{safe_id(user_id, 'userId')}",
+    }
+
+
+def active_collaboration_connection(user_id, linked_user_id):
+    item = users.get_item(
+        Key=collaboration_connection_key(user_id, linked_user_id),
+        ConsistentRead=True,
+    ).get("Item")
+    return bool(item and not str(item.get("revokedAtUtc") or ""))
 
 
 def ghost_zone_key(world_id, ghost_id):
@@ -1481,6 +1498,93 @@ def handler(event, context):
             {"linkedUserId": linked_user_id},
         )
         return response(200, {"ok": True})
+
+    if method == "GET" and path == "/world/resources/permissions":
+        world_id = safe_id(q.get("worldId"), "worldId")
+        resource_id = safe_id(q.get("resourceId"), "resourceId")
+        if not can_manage(world_id, user_id):
+            return response(403, {"error": "GameMaster permission authority required"})
+        items = query_world_prefix(
+            world_id, f"RESOURCEACL#{resource_id}#USER#"
+        )
+        items.sort(key=lambda item: str(item.get("userId") or ""))
+        return response(
+            200,
+            [
+                {
+                    "resourceId": resource_id,
+                    "userId": str(item.get("userId") or ""),
+                    "permission": str(item.get("permission") or "None"),
+                    "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
+                    "updatedByUserId": str(item.get("updatedByUserId") or ""),
+                }
+                for item in items
+            ],
+        )
+
+    if method == "POST" and path == "/world/resources/permissions":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        resource_id = safe_id(req.get("resourceId"), "resourceId")
+        if not can_manage(world_id, user_id):
+            return response(403, {"error": "GameMaster permission authority required"})
+
+        permission = str(req.get("permission") or "None").strip().title()
+        if permission not in RESOURCE_PERMISSION_VALUES:
+            return response(400, {"error": "Invalid resource permission"})
+
+        target = str(req.get("targetUserId") or "").strip()
+        if permission == "Public":
+            target = RESOURCE_PUBLIC_PRINCIPAL
+        else:
+            target = safe_id(target, "targetUserId")
+            if target != RESOURCE_PUBLIC_PRINCIPAL and not active_collaboration_connection(user_id, target):
+                return response(
+                    409,
+                    {
+                        "error": (
+                            "Connect this account in Campaign → Victims & Co-Conspirators "
+                            "before assigning resource permissions."
+                        )
+                    },
+                )
+
+        if target == RESOURCE_PUBLIC_PRINCIPAL and permission not in ("Public", "None"):
+            return response(400, {"error": "EVERYONE may only receive Public or None"})
+
+        key = resource_acl_key(world_id, resource_id, target)
+        if permission == "None":
+            world.delete_item(Key=key)
+        else:
+            world.put_item(
+                Item={
+                    **key,
+                    "entityType": "resourcePermission",
+                    "worldId": world_id,
+                    "resourceId": resource_id,
+                    "userId": target,
+                    "permission": permission,
+                    "updatedAtUtc": utc_stamp(),
+                    "updatedByUserId": user_id,
+                }
+            )
+        audit_write(
+            world_id,
+            user_id,
+            "resource.permission",
+            resource_id,
+            {"target": target, "permission": permission},
+        )
+        return response(
+            200,
+            {
+                "ok": True,
+                "worldId": world_id,
+                "resourceId": resource_id,
+                "userId": target,
+                "permission": permission,
+            },
+        )
 
     if method == "GET" and path == "/authority/commerce":
         profile = users.get_item(
