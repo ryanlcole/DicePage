@@ -529,6 +529,14 @@ function serializableUserLayer(item){
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,spriteMotionOnly:!!item.spriteMotionOnly,
+    spritePages:item.kind==='sprite'&&Array.isArray(item.spritePages)?item.spritePages.map((page,index)=>({
+      index,
+      personalAssetKey:page.personalAssetKey||null,assetId:page.assetId||null,name:page.name||`Sprite page ${index+1}`,
+      sheetSrc:page.personalAssetKey?'':String(page.sheetSrc||''),
+      columns:page.columns||item.spriteColumns||1,rows:page.rows||item.spriteRows||1,frameCount:page.frameCount||1,
+      sourceWidth:page.sourceWidth||0,sourceHeight:page.sourceHeight||0,cropX:page.cropX||0,cropY:page.cropY||0,
+      cropWidth:page.cropWidth||0,cropHeight:page.cropHeight||0,whiteTransparent:page.whiteTransparent!==false
+    })):null,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,regionLayer:REGION_DEFINER?regionOverlayLayer(item):undefined,z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
@@ -609,29 +617,51 @@ async function attachRestoredLayer(raw,options={}){
     node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
     userLayers.push(item);mountUserPlacement(item);refreshUserLabel(item);return item;
   }
-  if(!freshPersonalSrc&&!raw?.originalSrc&&!raw?.spriteSheetSrc&&!personalAssetKey)return null;
   const isSprite=kind==='sprite';
-  let frameSources=[];
+  const rawSpritePages=isSprite&&Array.isArray(raw?.spritePages)?raw.spritePages:[];
+  if(!freshPersonalSrc&&!raw?.originalSrc&&!raw?.spriteSheetSrc&&!personalAssetKey&&!rawSpritePages.length)return null;
+  let frameSources=[],resolvedSpritePages=[];
   if(isSprite){
-    const sheet=String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||'');
     try{
-      frameSources=await extractSpriteFrames(sheet,{
-        columns:raw.spriteColumns||1,rows:raw.spriteRows||1,frameCount:raw.spriteFrameCount||1,
-        sourceWidth:raw.spriteSourceWidth||0,sourceHeight:raw.spriteSourceHeight||0,
-        cropX:raw.spriteCropX||0,cropY:raw.spriteCropY||0,cropWidth:raw.spriteCropWidth||0,cropHeight:raw.spriteCropHeight||0,
-        whiteTransparent:raw.spriteWhiteTransparent!==false,motionOnly:raw.spriteMotionOnly===true
-      });
-    }catch{frameSources=[String(raw.originalSrc||sheet)]}
+      if(rawSpritePages.length){
+        for(let index=0;index<rawSpritePages.length;index++){
+          const pageRaw=rawSpritePages[index]||{};
+          const key=String(pageRaw.personalAssetKey||'').trim();
+          const fallback=String(pageRaw.sheetSrc||'');
+          const sheetSrc=key?await resolvePersonalAssetSource(key,fallback):fallback;
+          if(!sheetSrc)continue;
+          resolvedSpritePages.push(normalizedSpritePage({...pageRaw,sheetSrc,personalAssetKey:key||null},index));
+        }
+      }else{
+        const sheet=String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||'');
+        if(sheet)resolvedSpritePages=[normalizedSpritePage({
+          name:raw.name||'Sprite page 1',sheetSrc:sheet,personalAssetKey:personalAssetKey||null,assetId:raw.assetId||null,
+          columns:raw.spriteColumns||1,rows:raw.spriteRows||1,frameCount:raw.spriteFrameCount||1,
+          sourceWidth:raw.spriteSourceWidth||0,sourceHeight:raw.spriteSourceHeight||0,
+          cropX:raw.spriteCropX||0,cropY:raw.spriteCropY||0,cropWidth:raw.spriteCropWidth||0,cropHeight:raw.spriteCropHeight||0,
+          whiteTransparent:raw.spriteWhiteTransparent!==false
+        },0)];
+      }
+      frameSources=await extractSpriteChainFrames(resolvedSpritePages,{motionOnly:raw.spriteMotionOnly===true});
+    }catch{
+      const fallback=String(raw.originalSrc||freshPersonalSrc||raw.spriteSheetSrc||'');
+      if(fallback)frameSources=[fallback];
+    }
   }
-  const first=isSprite?(frameSources[0]||String(freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
+  const firstPage=resolvedSpritePages[0]||null;
+  const first=isSprite?(frameSources[0]||String(firstPage?.sheetSrc||freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
   const item={
     id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
-    originalSrc:first,transparentSrc:String(freshPersonalSrc||raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
-    spriteSheetSrc:isSprite?String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
-    spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?clamp(Number(raw.spriteFps)||6,1,60):null,
-    spriteSourceWidth:Number(raw.spriteSourceWidth)||null,spriteSourceHeight:Number(raw.spriteSourceHeight)||null,spriteCropX:Number(raw.spriteCropX)||0,spriteCropY:Number(raw.spriteCropY)||0,
-    spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,
+    originalSrc:first,transparentSrc:String(first||freshPersonalSrc||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
+    spritePages:isSprite?resolvedSpritePages:null,
+    spriteSheetSrc:isSprite?String(firstPage?.sheetSrc||freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||''):null,
+    spriteColumns:isSprite?(Number(firstPage?.columns)||Number(raw.spriteColumns)||1):null,spriteRows:isSprite?(Number(firstPage?.rows)||Number(raw.spriteRows)||1):null,
+    spriteFrameCount:isSprite?(frameSources.length||Number(raw.spriteFrameCount)||1):null,spriteFps:isSprite?clamp(Number(raw.spriteFps)||6,1,60):null,
+    spriteSourceWidth:isSprite?(Number(firstPage?.sourceWidth)||Number(raw.spriteSourceWidth)||null):null,spriteSourceHeight:isSprite?(Number(firstPage?.sourceHeight)||Number(raw.spriteSourceHeight)||null):null,
+    spriteCropX:isSprite?(Number(firstPage?.cropX)||Number(raw.spriteCropX)||0):0,spriteCropY:isSprite?(Number(firstPage?.cropY)||Number(raw.spriteCropY)||0):0,
+    spriteCropWidth:isSprite?(Number(firstPage?.cropWidth)||Number(raw.spriteCropWidth)||null):null,spriteCropHeight:isSprite?(Number(firstPage?.cropHeight)||Number(raw.spriteCropHeight)||null):null,
+    spriteWhiteTransparent:isSprite?(firstPage?firstPage.whiteTransparent!==false:raw.spriteWhiteTransparent!==false):raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,
     frameSources,currentFrame:0,playing:false,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
@@ -3297,14 +3327,29 @@ function schedulePersonalAssetHydration(item,attempt=0){
         item.originalSrc=fresh;
         item.transparentSrc=fresh;
         if(item.kind==='sprite'){
-          item.spriteSheetSrc=fresh;
-          const frames=await extractSpriteFrames(fresh,{
-            columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,
-            sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,
-            cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,
-            whiteTransparent:item.spriteWhiteTransparent!==false,motionOnly:item.spriteMotionOnly===true
-          }).catch(()=>[]);
-          if(frames.length){item.frameSources=frames;item.currentFrame=0}
+          if(item.spritePages?.length){
+            const refreshed=[];
+            for(let index=0;index<item.spritePages.length;index++){
+              const page=item.spritePages[index],key=String(page.personalAssetKey||'').trim();
+              const sheetSrc=key?await resolvePersonalAssetSource(key,page.sheetSrc||'',1):String(page.sheetSrc||'');
+              if(sheetSrc)refreshed.push(normalizedSpritePage({...page,sheetSrc},index));
+            }
+            if(refreshed.length){
+              item.spritePages=refreshed;
+              item.spriteSheetSrc=refreshed[0].sheetSrc;
+              const frames=await extractSpriteChainFrames(refreshed,{motionOnly:item.spriteMotionOnly===true}).catch(()=>[]);
+              if(frames.length){item.frameSources=frames;item.spriteFrameCount=frames.length;item.currentFrame=0}
+            }
+          }else{
+            item.spriteSheetSrc=fresh;
+            const frames=await extractSpriteFrames(fresh,{
+              columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,
+              sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,
+              cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,
+              whiteTransparent:item.spriteWhiteTransparent!==false,motionOnly:item.spriteMotionOnly===true
+            }).catch(()=>[]);
+            if(frames.length){item.frameSources=frames;item.currentFrame=0}
+          }
         }
         item.renderedSrc='';
         item.node.dataset.assetPending='false';
@@ -3643,17 +3688,19 @@ function fitSelectedAssetToDeed(item=selectedImage){
 }
 async function rebuildSelectedSpriteMotionOnly(enabled){
   const item=selectedImage;
-  if(!item||item.kind!=='sprite'||!item.spriteSheetSrc){announce('Select a sprite with its source sheet available.');return false}
+  if(!item||item.kind!=='sprite'||(!item.spritePages?.length&&!item.spriteSheetSrc)){announce('Select a sprite with its source page(s) available.');return false}
   const wasPlaying=item.playing;stopSpriteMotion(item);
   item.spriteMotionOnly=!!enabled;
-  announce(item.spriteMotionOnly?'Building motion-only sprite frames…':'Restoring full sprite frames…');
+  announce(item.spriteMotionOnly?'Building motion-only sprite chain…':'Restoring full sprite chain…');
   try{
-    const frames=await extractSpriteFrames(item.spriteSheetSrc,{
+    const pages=item.spritePages?.length?item.spritePages:[normalizedSpritePage({
+      name:item.name||'Sprite page 1',sheetSrc:item.spriteSheetSrc,personalAssetKey:item.personalAssetKey||null,assetId:item.assetId||null,
       columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,
       sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,
       cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,
-      whiteTransparent:item.spriteWhiteTransparent!==false,motionOnly:item.spriteMotionOnly
-    });
+      whiteTransparent:item.spriteWhiteTransparent!==false
+    },0)];
+    const frames=await extractSpriteChainFrames(pages,{motionOnly:item.spriteMotionOnly});
     if(!frames.length)throw new Error('No sprite frames were produced.');
     item.frameSources=frames;item.spriteFrameCount=frames.length;item.currentFrame=0;item.spriteReady=true;
     item.originalSrc=frames[0];item.transparentSrc=frames[0];item.renderedSrc='';
