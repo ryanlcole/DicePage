@@ -100,9 +100,10 @@ The language may be public; authority determines what it is allowed to do.
 
 Before changing WorldBuilder, RegionDefiner, Local staging, Instance Builder, recursive zoom, map perspective, nested Z/depth addressing, object-to-Local anchoring, or spatial streaming, read:
 
-1. `apps/rist-world/RECURSIVE_ZOOM_CONTRACT.md` — governing World 0° → Region 15° → Local 30° → separate Instance 45° representation contract.
-2. `apps/rist-world/REGION_DEFINER_CONTRACT.md` — claimed Region source, exact Z, immutable parent terrain, and Region editing rules.
-3. `apps/rist-world/AUTHORITY_SYSTEM.md` — recursive authority and perception constraints.
+1. `apps/rist-world/SPATIAL_HIERARCHY_CONTRACT.md` — locked World → Region → Local → Instance parent-object hierarchy and independent World/Region/Local/Instance tier/layer pairs.
+2. `apps/rist-world/RECURSIVE_ZOOM_CONTRACT.md` — governing World 0° → Region 15° → Local 30° → separate Instance 45° representation contract.
+3. `apps/rist-world/REGION_DEFINER_CONTRACT.md` — claimed Region source, exact Z, immutable parent terrain, and Region editing rules.
+4. `apps/rist-world/AUTHORITY_SYSTEM.md` — recursive authority and perception constraints.
 
 World/Region/Local are representations of one canonical outdoor ancestry; do not create unrelated duplicate map truth. A Local is anchored to a selected placed Region object rather than claiming arbitrary World cells. Instance is a separate scalable interior/spatial representation anchored back to its parent object.
 
