@@ -18,7 +18,7 @@ function fixture(flow='new',options={}){
   w.HTMLElement.prototype.getClientRects=function(){return this.closest('[hidden]')?[]:[{}]};
   w.matchMedia=()=>({matches:false});
   if(options.sessionToken)w.sessionStorage.setItem('rist.session',options.sessionToken);
-  w.fetch=options.fetch||async()=>({ok:false,status:404});
+  w.fetch=options.fetch||(async()=>({ok:false,status:404}));
   w.ResizeObserver=class{observe(){}disconnect(){}};
   for(const file of ['viewer-input.js','prototype.js']){
     vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),dom.getInternalVMContext(),{filename:file});
