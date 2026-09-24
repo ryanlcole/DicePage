@@ -106,9 +106,22 @@ let regionWorldSourceOcean=null;
 let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
-let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionLayerIndex=1,regionPersistenceDbCount=null;
+let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionTierIndex=0,regionLayerIndex=1,regionPersistenceDbCount=null;
 function regionWorldLayer(item){return clamp(Math.trunc(Number(item?.worldLayer??item?.layer??0)||0),0,9)}
+function regionOverlayTier(item){return Math.max(0,Math.trunc(Number(item?.regionTier??0)||0))}
 function regionOverlayLayer(item){return clamp(Math.trunc(Number(item?.regionLayer??1)||1),1,9)}
+function nestedVerticalAddress(item={}){
+  return{
+    worldTier:Math.max(0,Math.trunc(Number(item?.worldTier??item?.tier??regionClaimedRegion?.tierIndex??0)||0)),
+    worldLayer:regionWorldLayer(item),
+    regionTier:regionOverlayTier(item),
+    regionLayer:regionOverlayLayer(item),
+    localTier:Math.max(0,Math.trunc(Number(item?.localTier??0)||0)),
+    localLayer:clamp(Math.trunc(Number(item?.localLayer??0)||0),0,9),
+    instanceTier:Math.max(0,Math.trunc(Number(item?.instanceTier??0)||0)),
+    instanceLayer:clamp(Math.trunc(Number(item?.instanceLayer??0)||0),0,9)
+  };
+}
 function regionZ100(worldLayer,regionLayer){
   return clamp(Math.trunc(Number(worldLayer)||0),0,9)*100+clamp(Math.trunc(Number(regionLayer)||1),1,9);
 }
@@ -122,9 +135,15 @@ function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayer
   if(!REGION_DEFINER||!item?.regionOverlay)return item;
   const parentTier=clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1);
   item.tier=parentTier;
+  item.worldTier=parentTier;
   item.worldLayer=clamp(Math.trunc(Number(item.worldLayer??worldLayer)||0),0,9);
   item.layer=item.worldLayer;
+  item.regionTier=Math.max(0,Math.trunc(Number(item.regionTier??regionTierIndex)||0));
   item.regionLayer=clamp(Math.trunc(Number(item.regionLayer??overlayLayer)||1),1,9);
+  item.localTier=Math.max(0,Math.trunc(Number(item.localTier??0)||0));
+  item.localLayer=clamp(Math.trunc(Number(item.localLayer??0)||0),0,9);
+  item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier??0)||0));
+  item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer??0)||0),0,9);
   item.z100=regionZ100(item.worldLayer,item.regionLayer);
   item.parentTierIndex=parentTier;
   item.parallaxMode='anchored';
@@ -958,6 +977,7 @@ function syncRegionEditLayer(){
   layer.dataset.regionId=String(deed?.id||'');
   layer.dataset.tier=String(parentTier);
   layer.dataset.worldZ=String(viewerLayer);
+  layer.dataset.regionTier=String(regionTierIndex);
   layer.dataset.regionLayer=String(regionLayerIndex);
   layer.style.zIndex='';
   layer.hidden=!active;
@@ -983,8 +1003,14 @@ function updateLayerOrder(){
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
     if(REGION_DEFINER){
+      item.node.dataset.worldTier=String(item.worldTier??item.tier??0);
       item.node.dataset.worldLayer=String(regionWorldLayer(item));
+      item.node.dataset.regionTier=String(item.regionOverlay?regionOverlayTier(item):0);
       item.node.dataset.regionLayer=String(item.regionOverlay?regionOverlayLayer(item):0);
+      item.node.dataset.localTier=String(item.localTier??0);
+      item.node.dataset.localLayer=String(item.localLayer??0);
+      item.node.dataset.instanceTier=String(item.instanceTier??0);
+      item.node.dataset.instanceLayer=String(item.instanceLayer??0);
       item.node.dataset.z100=String(item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100);
     }
     item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
@@ -1008,14 +1034,14 @@ function updateTierButton(){
   if(REGION_DEFINER&&regionDeedIsComplete()){
     const parent=tierByIndex(clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1));
     tierGlyph.textContent=parent.glyph;
-    tierToggle.setAttribute('aria-label',`${tierLabel(parent)} locked. World Z ${viewerLayer}, Region layer ${regionLayerIndex}, exact Z ${regionZLabel(viewerLayer,regionLayerIndex)}`);
+    tierToggle.setAttribute('aria-label',`${tierLabel(parent)} locked. World layer ${viewerLayer}; Region tier ${regionTierIndex}, layer ${regionLayerIndex}.`);
     return;
   }
   const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${viewerTier==='all'?option.label:tierLabel(option)}. Open tier selector`);
 }
 function setViewerTier(key){
   if(REGION_DEFINER&&regionDeedIsComplete()){
-    announce(`World Tier ${Number(regionClaimedRegion.tierIndex)+1} is fixed by the deed. Use World Z and Region Layer controls for depth.`);
+    announce(`World Tier ${Number(regionClaimedRegion.tierIndex)+1} is fixed by the deed. Use World Layer, Region Tier, and Region Layer controls for nested depth.`);
     return;
   }
   const previous=viewerTier;
@@ -1048,6 +1074,14 @@ function moveSelectedTier(delta){
   updateLayerOrder();applyParallax();renderKeyboardKeys();
   const pos=selectedPositionSummary(selectedImage);
   announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
+}
+function moveSelectedRegionTier(delta){
+  if(READ_ONLY||!selectedImage||!REGION_DEFINER)return;
+  const next=Math.max(0,regionOverlayTier(selectedImage)+Math.sign(delta));
+  selectedImage.regionTier=next;
+  regionTierIndex=next;
+  updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
+  announce(`Region Tier ${next}, Layer ${regionOverlayLayer(selectedImage)}.`);
 }
 function moveSelectedLayer(delta){
   if(READ_ONLY||!selectedImage)return;
@@ -3272,11 +3306,11 @@ if(REGION_DEFINER){
 function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
 function selectedPositionSummary(item){
-  if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,worldZ:0,regionLayer:1,z:'0.01',x:'0.000',y:'0.000'};
+  if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,worldZ:0,regionTier:0,regionLayer:1,localTier:0,localLayer:0,instanceTier:0,instanceLayer:0,z:'0.01',x:'0.000',y:'0.000'};
   const tier=tierDisplay(item.tier);
   if(REGION_DEFINER&&regionDeedIsComplete()){
-    const worldZ=regionWorldLayer(item),regionLayer=regionOverlayLayer(item);
-    return{tier:tier.number,tierLabel:tier.label,layer:worldZ+1,worldZ,regionLayer,z:regionZLabel(worldZ,regionLayer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
+    const address=nestedVerticalAddress(item),worldZ=address.worldLayer,regionLayer=address.regionLayer;
+    return{tier:tier.number,tierLabel:tier.label,layer:worldZ+1,worldZ,regionTier:address.regionTier,regionLayer,localTier:address.localTier,localLayer:address.localLayer,instanceTier:address.instanceTier,instanceLayer:address.instanceLayer,z:regionZLabel(worldZ,regionLayer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
   }
   return{tier:tier.number,tierLabel:tier.label,layer:layerDisplay(item.layer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
 }
@@ -3977,7 +4011,11 @@ function localAnchorPayload(item){
     id:String(item?.id||''),assetId:String(item?.assetId||''),name:String(item?.name||item?.assetId||'Local object'),kind:String(item?.kind||'image'),
     x:clamp(Number(item?.x)||0,0,1),y:clamp(Number(item?.y)||0,0,1),width,height,
     tier:clamp(Math.trunc(Number(item?.tier)||0),0,2),layer:clamp(Math.trunc(Number(item?.layer)||0),0,9),
-    regionLayer:regionOverlayLayer(item),z100:regionZ100(regionWorldLayer(item),regionOverlayLayer(item)),rotation:Number(item?.rotation)||0
+    worldTier:nestedVerticalAddress(item).worldTier,worldLayer:nestedVerticalAddress(item).worldLayer,
+    regionTier:nestedVerticalAddress(item).regionTier,regionLayer:nestedVerticalAddress(item).regionLayer,
+    localTier:nestedVerticalAddress(item).localTier,localLayer:nestedVerticalAddress(item).localLayer,
+    instanceTier:nestedVerticalAddress(item).instanceTier,instanceLayer:nestedVerticalAddress(item).instanceLayer,
+    z100:regionZ100(regionWorldLayer(item),regionOverlayLayer(item)),rotation:Number(item?.rotation)||0
   };
 }
 function createSelectedLocal(){
