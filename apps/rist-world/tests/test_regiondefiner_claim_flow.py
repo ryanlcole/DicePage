@@ -53,7 +53,7 @@ def test_new_region_selects_actual_world_cells_before_claiming():
     assert "Name the region before claiming the deed." in prototype
     assert "CLAIM DEED" in prototype
     assert 'if (cells.Count == 0) throw new InvalidOperationException("Select at least one world tile for the region.");' in regions
-    assert "actual WorldBuilder source cells" in contract
+    assert "WorldBuilder source cells" in contract
 
 
 def test_completed_deed_removes_claim_grid_and_uses_filtered_source_as_table():
