@@ -25,9 +25,9 @@ class LauncherRoleGroupingContract(unittest.TestCase):
 
     def test_roleplay_group_contains_requested_tools(self):
         for label in (
-            "CHARACTERS", "JOURNAL", "CARD INDEX", "DICE &amp; TOOLS",
-            "RULEBOOKS", "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
-            "ACCESSIBILITY",
+            "CHARACTERS", "CHARACTER CARD DESIGNER", "JOURNAL",
+            "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS", "ASSET DESIGNER",
+            "PERCEIVER", "ReLiC OBSERVER", "ACCESSIBILITY",
         ):
             self.assertIn(f"<strong>{label}</strong>", self.source)
 
@@ -46,16 +46,14 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         gm = self.source[gm_start:gm_end]
         self.assertIn("ROLEPLAY TOOLS", gm)
         labels = (
-            "CHARACTERS", "JOURNAL", "CARD INDEX", "DICE &amp; TOOLS",
-            "RULEBOOKS", "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
+            "CHARACTERS", "CHARACTER CARD DESIGNER", "JOURNAL",
+            "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS",
+            "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
             "ACCESSIBILITY",
         )
         positions = [gm.index(f"<strong>{label}</strong>") for label in labels]
         self.assertEqual(positions, sorted(positions))
-        self.assertLess(
-            gm.index("<strong>CHARACTER CARD DESIGNER</strong>"),
-            gm.index("ROLEPLAY TOOLS"),
-        )
+        self.assertLess(gm.index("ROLEPLAY TOOLS"), positions[0])
 
     def test_character_card_designer_has_dedicated_workspace(self):
         router = (
@@ -70,8 +68,21 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn('Mode == "charactercards"', router)
         self.assertIn("<CharacterCardDesignerWorkspace />", router)
-        self.assertIn("Build a character sheet as an ordered deck of cards.", designer)
-        self.assertIn('const string StorageKey="rist.character-card-designer.v1"', designer)
+        self.assertIn("CHARACTER CARD DESIGNER", designer)
+        self.assertIn("RequirementStorageKey", designer)
+        self.assertIn("LayoutStorageKey", designer)
+        self.assertIn("ValueStorageKey", designer)
+
+    def test_tracker_is_live_gamemaster_report_workspace(self):
+        router = (
+            Path(__file__).resolve().parents[1]
+            / "Components"
+            / "TaskWorkspaceRouter.razor"
+        ).read_text(encoding="utf-8")
+        self.assertIn('@onclick="OpenTracker"', self.source)
+        self.assertIn('case "tracker"', self.source)
+        self.assertIn('Mode == "tracker"', router)
+        self.assertIn("<GmReportWorkspace />", router)
 
     def test_tool_groups_keep_two_column_pair_layout(self):
         self.assertIn(
