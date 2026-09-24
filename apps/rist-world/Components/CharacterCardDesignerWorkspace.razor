@@ -299,6 +299,7 @@
  string LayoutStorageKey=>$"rist.character-card-layout.v1.{Session.WorldId}.{Session.ActiveCharacterNumber}";
  string LegacyTemplateStorageKey=>$"rist.character-card-template.v2.{Session.WorldId}";
  string ValueStorageKey=>$"rist.character-card-values.v1.{Session.WorldId}.{Session.ActiveCharacterNumber}";
+ string ReportRowStorageKey=>$"rist.character-report-row.v1.{Session.WorldId}.{NormalizeStorageToken(Session.DiscordDisplayName)}.{Session.ActiveCharacterNumber}";
  CardDraft? SelectedCard=>_cards.Count==0?null:_cards[Math.Clamp(_selectedCard,0,_cards.Count-1)];
  FieldDefinition? SelectedField=>SelectedCard?.Fields.FirstOrDefault(x=>x.Id==_selectedFieldId);
  IEnumerable<FieldOption> SearchResults
@@ -372,6 +373,11 @@
  {
   var chars=(value??"").Trim().ToUpperInvariant().Where(ch=>char.IsLetterOrDigit(ch)||ch==' '||ch=='_'||ch=='-').ToArray();
   return string.Join("_",new string(chars).Split(' ',StringSplitOptions.RemoveEmptyEntries));
+ }
+ static string NormalizeStorageToken(string value)
+ {
+  var token=NormalizeJoin(value);
+  return string.IsNullOrWhiteSpace(token)?"LOCAL_USER":token;
  }
  RequiredFieldRule? RequirementFor(FieldOption option)=>_requirements.FirstOrDefault(x=>x.Key==RequirementKey(option));
  bool IsRequirementEnabled(FieldOption option)=>RequirementFor(option) is not null;
@@ -552,12 +558,29 @@
  [JSInvokable] public void SelectFieldFromJs(string id){if(SelectedCard?.Fields.Any(x=>x.Id==id)==true){_selectedFieldId=id;_saved=false;InvokeAsync(StateHasChanged);}}
  [JSInvokable] public void CommitFieldTransform(string id,double x,double y,double width,double height){var field=SelectedCard?.Fields.FirstOrDefault(x=>x.Id==id);if(field is null)return;field.X=Clamp(x,0,100);field.Y=Clamp(y,0,100);field.Width=Clamp(width,5,100);field.Height=Clamp(height,5,100);_selectedFieldId=id;_saved=false;InvokeAsync(StateHasChanged);}
 
+ CharacterReportRow BuildReportRow()
+ {
+  var row=new CharacterReportRow{
+   RowId=$"{NormalizeStorageToken(Session.DiscordDisplayName)}:{Session.ActiveCharacterNumber}",
+   SourceType="Character",
+   Player=string.IsNullOrWhiteSpace(Session.DiscordDisplayName)?"Local User":Session.DiscordDisplayName,
+   Character=string.IsNullOrWhiteSpace(Session.CharacterName)?$"Character {Session.ActiveCharacterNumber}":Session.CharacterName
+  };
+  foreach(var field in _cards.SelectMany(card=>card.Fields).Where(field=>field.Required&&!string.IsNullOrWhiteSpace(field.SharedJoin)))
+  {
+   var value=ValueFor(field.Id);
+   row.Values[field.SharedJoin]=ReportCell.From(field,value);
+  }
+  return row;
+ }
+
  async Task SaveAsync()
  {
   try{
    if(IsGameMaster)await JS.InvokeVoidAsync("localStorage.setItem",RequirementStorageKey,JsonSerializer.Serialize(_requirements));
    await JS.InvokeVoidAsync("localStorage.setItem",LayoutStorageKey,JsonSerializer.Serialize(new DesignerState{CardSize=_cardSize,Cards=_cards}));
    await JS.InvokeVoidAsync("localStorage.setItem",ValueStorageKey,JsonSerializer.Serialize(_values));
+   await JS.InvokeVoidAsync("localStorage.setItem",ReportRowStorageKey,JsonSerializer.Serialize(BuildReportRow()));
    _saved=true;
   }catch{_saved=false;}
  }
@@ -574,6 +597,23 @@
   public string Id{get;set;}=Guid.NewGuid().ToString("N");public string Name{get;set;}="Field";public string Kind{get;set;}="TEXT";public string Group{get;set;}="Custom";public bool Required{get;set;}public string Authority{get;set;}="PLAYER";public string RequirementId{get;set;}="";public string SharedJoin{get;set;}="";
   public string AssetId{get;set;}="blank";public string AssetName{get;set;}="Blank Field";public string AssetDataUrl{get;set;}="";
   public double X{get;set;}=50;public double Y{get;set;}=50;public double Width{get;set;}=36;public double Height{get;set;}=15;
+ }
+ sealed class CharacterReportRow{
+  public string RowId{get;set;}="";
+  public string SourceType{get;set;}="Character";
+  public string Player{get;set;}="";
+  public string Character{get;set;}="";
+  public Dictionary<string,ReportCell> Values{get;set;}=new(StringComparer.OrdinalIgnoreCase);
+ }
+ sealed class ReportCell{
+  public string Kind{get;set;}="TEXT";
+  public string Text{get;set;}="";
+  public double? Number{get;set;}
+  public static ReportCell From(FieldDefinition field,CharacterValueDraft value)=>field.Kind switch{
+   "ATTRIBUTE" or "TRACKER" or "LIMIT" or "VALUE"=>new(){Kind=field.Kind,Text=value.Current.ToString(),Number=value.Current},
+   "LANGUAGE"=>new(){Kind=field.Kind,Text=$"{value.Proficiency}%",Number=value.Proficiency},
+   _=>new(){Kind=field.Kind,Text=value.Text??"",Number=null}
+  };
  }
  sealed class CharacterValueDraft{public string Text{get;set;}="";public int BaseValue{get;set;}public int Current{get;set;}public int Max{get;set;}=999;public int Proficiency{get;set;}=100;}
 }
