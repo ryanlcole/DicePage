@@ -27,6 +27,8 @@
  IJSObjectReference? _module;
  DotNetObjectReference<LocalDefinerWorkspace>? _self;
  bool _bridgeAttached;
+ string _initialRegionId="";
+ string _initialLocalId="";
 
  [Parameter] public EventCallback OnStartMenu { get; set; }
  [Parameter] public EventCallback OnHome { get; set; }
@@ -43,8 +45,11 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
+   var regionId=Uri.EscapeDataString(_initialRegionId);
+   var localId=Uri.EscapeDataString(_initialLocalId);
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
-   var access=LocalRegions.Any(Session.CanEditRegion)?"edit":"view";
+   var initialRegion=FindLocalRegion(_initialRegionId);
+   var access=(initialRegion is not null?Session.CanEditRegion(initialRegion):LocalRegions.Any(Session.CanEditRegion))?"edit":"view";
    var activeWorld=Session.ActiveMmoWorld;
    var surfacePixels=activeWorld?.PixelWidth>0
     ?activeWorld.PixelWidth
@@ -52,7 +57,7 @@
    var maxHeight=activeWorld?.MaxHeight>0
     ?activeWorld.MaxHeight
     :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId=&renderer=20260924-local-region-selector-v7";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&localId={localId}&renderer=20260924-local-region-selector-v8";
   }
  }
 
@@ -63,6 +68,18 @@
    if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
    await Session.LoadRegionsAsync();
    await Session.LoadLocalsAsync();
+   if(Session.ActiveLocal is { } local
+      &&string.Equals(local.WorldId,Session.WorldId,StringComparison.Ordinal))
+   {
+    _initialLocalId=local.LocalId;
+    _initialRegionId=local.RegionId;
+    Session.SetActiveRegion(local.RegionId);
+   }
+   else
+   {
+    _initialLocalId="";
+    _initialRegionId="";
+   }
   }
   catch{}
  }
@@ -70,7 +87,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_bridgeAttached)return;
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-region-selector-v7");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-region-selector-v8");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
