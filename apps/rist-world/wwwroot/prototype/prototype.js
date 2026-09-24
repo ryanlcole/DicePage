@@ -1235,7 +1235,7 @@ function moveSelectedTier(delta){
   if(LOCAL_DEFINER&&selectedImage.localOverlay){
     const next=Math.max(0,Math.trunc(Number(selectedImage.localTier)||0)+Math.sign(delta));
     selectedImage.localTier=next;localTierIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer||1}. Canonical X/Y unchanged.`);return;
+    announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer??0}. Local X/Y retained; World projection is derived from the Region anchor.`);return;
   }
   if(REGION_DEFINER){
     const next=clamp(regionWorldLayer(selectedImage)+Math.sign(delta),0,9);
@@ -1263,9 +1263,9 @@ function moveSelectedLayer(delta){
   if(READ_ONLY||!selectedImage)return;
   if(isWorldMapItem(selectedImage)){announce('World Map is the Sea Level base layer.');return}
   if(LOCAL_DEFINER&&selectedImage.localOverlay){
-    const next=clamp(Math.trunc(Number(selectedImage.localLayer)||1)+Math.sign(delta),1,9);
+    const next=clamp(Math.trunc(Number(selectedImage.localLayer)||0)+Math.sign(delta),0,9);
     selectedImage.localLayer=next;localLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. Canonical X/Y unchanged.`);return;
+    announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. Local X/Y retained; World projection is derived from the Region anchor.`);return;
   }
   if(REGION_DEFINER){
     const next=clamp(regionOverlayLayer(selectedImage)+Math.sign(delta),1,9);
@@ -4401,11 +4401,11 @@ function renderKeyboardKeysContent(){
         readoutKey(`REGION L ${regionLayerIndex}`,LOCAL_DEFINER?'inherited from selected regional object':'regional layer'),
         ...(LOCAL_DEFINER?[
           readoutKey(`LOCAL T ${localTierIndex}`,localIsOpen()?'editable Local tier':'new Local starts at Local Tier 0'),
-          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 1'),
+          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 0'),
           ...(localIsOpen()?[
             toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(0,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=0),
             toolKey('LOCAL T +',`T ${localTierIndex}`,()=>{localTierIndex+=1;syncLocalEditLayer();renderKeyboardKeys()}),
-            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=1),
+            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,0,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=0),
             toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
           ]:[])
         ]:[
@@ -4576,8 +4576,8 @@ function renderKeyboardKeysContent(){
           readoutKey(itemParallaxMode(selectedImage)==='anchored'?'MAP ATTACHED':'PARALLAX',
             itemParallaxMode(selectedImage)==='anchored'?'moves with parent world tier':'explicit separate tier')
         ]),
-      readoutKey(`X ${pos.x}`,'world position'),
-      readoutKey(`Y ${pos.y}`,'world position'),
+      readoutKey(`X ${pos.x}`,LOCAL_DEFINER?'Local position':'world position'),
+      readoutKey(`Y ${pos.y}`,LOCAL_DEFINER?'Local position':'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
       toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
       sizeNumberInput(selectedImage),sizeRangeInput(selectedImage),
