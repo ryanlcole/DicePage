@@ -3617,6 +3617,50 @@ async function ensureSpriteLibrary(force=false){
   }catch(error){spriteCatalog=[];spriteLibraryError=String(error?.message||error||'Sprite library unavailable.')}
   finally{spriteLibraryLoading=false;if(keyboardMode==='Sprites')renderKeyboardKeys()}
 }
+function fitSelectedAssetToDeed(item=selectedImage){
+  if(!REGION_DEFINER||!regionClaimedRegion||!item||item.sourceLocked||isWorldMapItem(item))return false;
+  const bounds=regionClaimBounds(regionClaimedRegion);if(!bounds)return false;
+  const extent=regionGridExtents(regionClaimedRegion.gridShape);
+  const claimW=bounds.width/Math.max(extent.width,.00001),claimH=bounds.height/Math.max(extent.height,.00001);
+  const aspect=Math.max(stableAssetAspect(item),.00001);
+  const sizeByWidth=claimW/.12,sizeByHeight=(claimH*aspect)/.12;
+  item.x=(bounds.minX+(bounds.width/2))/extent.width;
+  item.y=(bounds.minY+(bounds.height/2))/extent.height;
+  item.rotation=0;
+  applySelectedSize(item,Math.min(sizeByWidth,sizeByHeight));
+  if(item.kind==='label')refreshUserLabel(item);else refreshUserImage(item);
+  refreshAssetResizeOverlay(item);applyParallax();
+  announce(`${item.name||'Asset'} fitted to the claimed deed bounds.`);
+  return true;
+}
+async function rebuildSelectedSpriteMotionOnly(enabled){
+  const item=selectedImage;
+  if(!item||item.kind!=='sprite'||!item.spriteSheetSrc){announce('Select a sprite with its source sheet available.');return false}
+  const wasPlaying=item.playing;stopSpriteMotion(item);
+  item.spriteMotionOnly=!!enabled;
+  announce(item.spriteMotionOnly?'Building motion-only sprite frames…':'Restoring full sprite frames…');
+  try{
+    const frames=await extractSpriteFrames(item.spriteSheetSrc,{
+      columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,
+      sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,
+      cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,
+      whiteTransparent:item.spriteWhiteTransparent!==false,motionOnly:item.spriteMotionOnly
+    });
+    if(!frames.length)throw new Error('No sprite frames were produced.');
+    item.frameSources=frames;item.spriteFrameCount=frames.length;item.currentFrame=0;item.spriteReady=true;
+    item.originalSrc=frames[0];item.transparentSrc=frames[0];item.renderedSrc='';
+    refreshUserImage(item);refreshAssetResizeOverlay(item);
+    if(wasPlaying&&item.committed)startSpriteMotion(item);
+    renderKeyboardKeys();
+    announce(item.spriteMotionOnly?'Motion-only overlay ready. Static frame content is transparent.':'Full sprite frames restored.');
+    return true;
+  }catch(error){
+    item.spriteMotionOnly=!enabled;
+    if(wasPlaying&&item.committed)startSpriteMotion(item);
+    announce(`Sprite rebuild failed: ${String(error?.message||error||'unknown error')}`);
+    return false;
+  }
+}
 function spriteLibraryFolders(){return[...new Set(spriteCatalog.map(asset=>asset.folder).filter(Boolean))].sort((a,b)=>a.localeCompare(b))}
 function currentSpriteLibraryAssets(){return spriteLibraryFolder?spriteCatalog.filter(asset=>asset.folder===spriteLibraryFolder):[]}
 function spriteLibraryPageCount(){return Math.max(1,Math.ceil(currentSpriteLibraryAssets().length/SPRITE_LIBRARY_PAGE_SIZE))}
@@ -3629,14 +3673,15 @@ async function placeSpriteDefinition(definition){
     sourceWidth:definition.sourceWidth||0,sourceHeight:definition.sourceHeight||0,cropX:definition.cropX||0,cropY:definition.cropY||0,
     cropWidth:definition.cropWidth||0,cropHeight:definition.cropHeight||0,whiteTransparent:definition.whiteTransparent!==false,motionOnly:definition.motionOnly===true
   };
-  announce(`Preparing frame 1 of ${definition.name||'sprite'} for placement.`);
-  const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
+  announce(`Preparing ${definition.motionOnly===true?'motion-only ':' '}frames for ${definition.name||'sprite'}.`);
+  const preparedFrames=definition.motionOnly===true?await extractSpriteFrames(definition.sheetSrc,extractOptions):null;
+  const firstFrame=preparedFrames?.[0]||await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
   const item={
     id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:clamp(Number(definition.fps)||6,1,60),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
     spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,spriteMotionOnly:definition.motionOnly===true,
-    frameSources:[firstFrame],currentFrame:0,playing:false,spriteReady:false,originalSrc:firstFrame,transparentSrc:firstFrame,transparent:true,
+    frameSources:preparedFrames||[firstFrame],currentFrame:0,playing:false,spriteReady:!!preparedFrames,originalSrc:firstFrame,transparentSrc:firstFrame,transparent:true,
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className='user-image-placement sprite-placement';node.alt=item.name;node.draggable=false;item.node=node;
@@ -3645,7 +3690,7 @@ async function placeSpriteDefinition(definition){
   keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   announce(`${item.name} placed using frame 1. It stays above the map while positioning; Save commits it to Tier ${selectedPositionSummary(item).tier}, Layer ${selectedPositionSummary(item).layer} and begins motion.`);
 
-  item.spriteReadyPromise=extractSpriteFrames(definition.sheetSrc,extractOptions).then(frames=>{
+  item.spriteReadyPromise=(preparedFrames?Promise.resolve(preparedFrames):extractSpriteFrames(definition.sheetSrc,extractOptions)).then(frames=>{
     if(!item.node?.isConnected||!frames.length)return item;
     item.frameSources=frames;item.spriteFrameCount=frames.length;item.spriteReady=true;item.currentFrame=0;
     item.originalSrc=frames[0];item.transparentSrc=frames[0];refreshUserImage(item);
@@ -3826,7 +3871,9 @@ function renderKeyboardKeysContent(){
         toolKey('FPS −',`${Math.max(1,Number(selectedSprite.spriteFps)||6)} fps`,()=>{selectedSprite.spriteFps=clamp((Number(selectedSprite.spriteFps)||6)-1,1,60);if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
         toolKey('FPS +',`${Math.max(1,Number(selectedSprite.spriteFps)||6)} fps`,()=>{selectedSprite.spriteFps=clamp((Number(selectedSprite.spriteFps)||6)+1,1,60);if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
         toolKey('FPS 60','real-time',()=>{selectedSprite.spriteFps=60;if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
-        toolKey(selectedSprite.playing?'PAUSE':'PLAY','motion',()=>{if(selectedSprite.playing)stopSpriteMotion(selectedSprite);else if(selectedSprite.committed)startSpriteMotion(selectedSprite);else announce('Save the sprite first to begin world motion.');renderKeyboardKeys()})
+        toolKey(selectedSprite.playing?'PAUSE':'PLAY','motion',()=>{if(selectedSprite.playing)stopSpriteMotion(selectedSprite);else if(selectedSprite.committed)startSpriteMotion(selectedSprite);else announce('Save the sprite first to begin world motion.');renderKeyboardKeys()}),
+        toolKey(selectedSprite.spriteMotionOnly?'FX ONLY ✓':'FX ONLY','changing pixels only',()=>void rebuildSelectedSpriteMotionOnly(!selectedSprite.spriteMotionOnly)),
+        toolKey('FIT DEED','align to claim',()=>fitSelectedAssetToDeed(selectedSprite),!REGION_DEFINER||!regionClaimedRegion)
       );
     }
     if(spriteLibraryLoading){keyboardKeys.append(toolKey('LOADING','Sprite library',()=>{},true));return}
