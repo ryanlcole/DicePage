@@ -273,7 +273,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-sprite-editor-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-sprite-editor-2");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
