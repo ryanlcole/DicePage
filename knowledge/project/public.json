@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "dataset_id": "shaelvien-project-knowledge",
-  "snapshot_date": "2026-09-18",
-  "repository_snapshot": "6dadd9f8232a4b9c22ff435617ce7801c8d8a362",
+  "snapshot_date": "2026-09-24",
+  "repository_snapshot": "785cabe494a99842c6e578cb919e5104496b5e1b",
   "sources": [
     {
       "source_id": "source.c3da6063bd244e4ba254",
@@ -351,6 +351,18 @@
       "sha256": "b692ed6db063476a9d677cdfe65cf687b80f208e3362227bf7c2e52fea975485",
       "source_origin": "UNKNOWN",
       "content": "Comparison of explicitly identified repository contract sections."
+    },
+    {
+      "source_id": "source.card-effect-engine-contract",
+      "title": "apps/rist-world/CARD_EFFECT_ENGINE_CONTRACT.md",
+      "kind": "repository_contract",
+      "uri": "https://github.com/ryanlcole/DicePage/blob/88237420d1ab8d7e41526a0b2c41dfbeb2a42e12/apps/rist-world/CARD_EFFECT_ENGINE_CONTRACT.md",
+      "status": "repository-document",
+      "visibility": "public-existing-source",
+      "observed_at": "2026-09-24",
+      "sha256": "88625afaca526ad2c10e4c9f3caa364b3e1b72bb646ba3ca51407aa671defd0b",
+      "source_origin": "UNKNOWN",
+      "content": "# Shaelvien / RIST Card Effect Engine Contract\n\nStatus: **FOUNDATIONAL / LOCKED**\n\nThis contract defines the canonical relationship between cards, powers, joined effects, spatial targeting, representation, perception, and spawned entities in Shaelvien/RIST.\n\nIt applies to Roleplay, GameMaster, Character Card Designer, Powers, Encounters, Instances, tactical representation, weather/anomalies, items, feats, conditions, equipment, abilities, spells, summoned entities, and future systems that invoke the same mechanics.\n\n## Core rule\n\n**The card is the effect package.**\n\nA player should not have to hunt through unrelated effect libraries, condition menus, targeting menus, sprite browsers, or calculation screens after choosing a card. A card carries or references the activation, targeting, resolution, joins/effects, representation, spawning, and lifecycle instructions required to use it.\n\nThe system may expose progressive choices contained by the card, but those choices resolve the card's authored behavior rather than requiring the player to reconstruct that behavior manually.\n\n## Stable identities\n\nThe following identities are distinct and must not be collapsed:\n\n1. **Card Definition** — the authored reusable behavior/template.\n2. **Card Instance** — one owned, granted, equipped, prepared, drawn, or otherwise available copy/use of the definition.\n3. **Effect Instance** — the runtime consequence created when the card is activated/resolved.\n4. **Spawned Entity** — any persistent or temporary entity created by the effect.\n\nEditing a Card Definition does not silently rewrite an Effect Instance that is already active. Runtime values and effect state do not rewrite the card graphic or authored layout.\n\n## Shared joins\n\nGameMasters define required/shared field names in the same way character-card requirements are defined. The displayed GM name becomes the shared relational join used across compatible characters, NPCs, encounters, powers, equipment, conditions, effects, and reports.\n\nExamples include HEALTH, ARMOR, STRENGTH, MOVE, MANA, TOUGHNESS, or any GM-authored term.\n\nThe requirement identity remains stable internally so renaming a displayed field does not destroy its relationship. The join provides interoperability; it does not make unrelated fields identical unless the GM explicitly assigns them to the same shared meaning.\n\nPlayers should not be required to perform cross-sheet lookup or manual difficulty arithmetic when the necessary joins are available.\n\n## Universal effect flow\n\nCards may use this common pipeline:\n\n```text\nCard Definition / Card Instance\n        ↓\nActivation / Trigger\n        ↓\nRequirements / Cost\n        ↓\nTarget selection\n        ↓\nSpatial geometry or entity target\n        ↓\nShared join(s)\n        ↓\nOperation(s)\n        ↓\nResolution\n        ↓\nOutcome\n        ↓\nEffect Instance\n        ↓\nDuration / stacking / activation state\n        ↓\nEffective values and/or spawned entities\n        ↓\nAuthorized perception / representation\n```\n\nThe engine is source-neutral. A feat, item, condition, spell, power, weapon, weather event, trap, environmental event, or encounter mechanic may use the same joined-effect machinery.\n\n## Activation\n\nA card may declare one or more activation modes, including:\n\n- passive;\n- action;\n- reaction;\n- trigger;\n- toggle;\n- scheduled/event-driven activation.\n\nActivation state is runtime data. Toggling or expiring an effect does not edit the card artwork or layout.\n\n## Requirements and costs\n\nA card may define requirements or costs including:\n\n- resource expenditure;\n- charges, slots, or uses;\n- cooldown;\n- prerequisite state;\n- position/range requirements;\n- equipment or inventory requirements;\n- concentration/sustain requirements;\n- GM-defined custom joined requirements.\n\nThe GameMaster may name these concepts according to the active system.\n\n## Targeting\n\nA card may define:\n\n- self;\n- one selected target;\n- multiple selected targets;\n- party/group;\n- point;\n- object;\n- location;\n- area;\n- path;\n- encounter;\n- GM-defined target selectors.\n\n**Select Target** attaches the attempt/effect to one or more entities.\n\n**Select Area** creates or selects spatial geometry.\n\nA card may combine both, for example an aura attached to a selected character or a moving anomaly attached to a path.\n\nWhen a card requiring spatial selection is used, the targeting/grid representation may appear regardless of the current map representation. The canonical target is the selected entity or world/instance geometry, not the screen pixels or hex graphics used to choose it.\n\n## Spatial geometry\n\nSpatial effects are stored as geometry in canonical world/instance coordinates. The map or grid is a representation of that geometry.\n\nSupported geometry may include:\n\n- point;\n- cell/hex selection;\n- line/ray;\n- segment;\n- cone;\n- circle/disc;\n- sphere;\n- cylinder;\n- box/volume;\n- plane/wall;\n- chain between targets;\n- polygon;\n- path;\n- moving volume;\n- GM-defined geometry.\n\nA sphere is a true X/Y/Z volume. A line/ray may use direction, yaw/pitch, length, and width. Geometry may cross Z levels.\n\nRange may be finite or unbounded within the applicable world/instance authority. Unbounded never means scanning unrelated worlds; it means no additional authored range limit inside the effect's valid spatial scope.\n\n## Spatial perception\n\nAffected cells/hexes are derived from the Effect Instance and current geometry. They are not the authoritative effect itself.\n\nWhen appropriate, the current grid may flash or otherwise highlight the affected border/area for:\n\n- the GameMaster; and\n- users whose authorized perception allows them to perceive that effect.\n\nHidden effects remain hidden from unauthorized perception even if they mechanically exist.\n\nA persistent/moving effect retains a stable Effect ID. As it moves, grows, shrinks, follows a target, crosses Z, expires, or is dispelled, its geometry is recomputed and its permitted representations update.\n\n## Representation\n\nEvery card/effect may provide independent optional representation choices:\n\n- **Sprite** — animated visual/effect representation, including chained sprite sets.\n- **Image** — static visual/decal/template.\n- **Draw** — authored or runtime drawn representation.\n- **None** — mechanically real with no visible representation.\n\nRepresentation is not truth. Removing or replacing a sprite/image does not silently remove the Effect Instance.\n\n## Joined operations\n\nA card may read or modify one or more shared joins.\n\nInitial operations include:\n\n- add;\n- subtract;\n- multiply;\n- set/override;\n- clamp;\n- grant;\n- remove;\n- replace/convert;\n- toggle;\n- move;\n- spawn;\n- destroy.\n\nBase/runtime field values remain distinct from calculated effective values.\n\nEffects such as feats, buffs, conditions, equipment, and powers may target another shared field and contribute differences without rewriting the target's stored base value.\n\n## Resolution\n\nResolution may be:\n\n- automatic;\n- roll versus difficulty;\n- opposed roll;\n- save/defense;\n- threshold;\n- GameMaster decision/override;\n- GM-defined resolver.\n\nAn attempted effect can have states such as Ready, Pending, Applied, Rejected, Expired, or Removed.\n\nA roll or GameMaster decision determines whether the proposed change becomes active. The GameMaster may alter an applied amount when the system grants that authority.\n\n## Powers and magic\n\nThe internal mechanic is **POWER**, not hard-coded MAGIC.\n\nMagic is one possible GM-named family/category of Power. Other families may include divine, psionic, technique, technology, mutation, alchemy, song, rune, prayer, program, or any GM-defined family.\n\nA Power may define source, family, discipline, resource, cost, availability, target, joined effects, resolution, duration, representation, and spawning. The GameMaster names these concepts according to the active system.\n\nSpells and other Powers use the same card/effect engine rather than a separate magic runtime.\n\n## Duration, activation, and stacking\n\nEffects may be:\n\n- instant;\n- persistent;\n- active/inactive;\n- time-limited;\n- turn/round/scene limited;\n- concentration/sustain limited;\n- attached to a source or target;\n- moving along a path.\n\nStacking policy is authored and may include:\n\n- add;\n- intensity stacking;\n- duration stacking;\n- replace;\n- highest/lowest wins;\n- exclusive;\n- GM-defined behavior.\n\nCounter/removal policy may include expiration, cleanse, dispel, interruption, condition end, resource exhaustion, leaving the area, source destruction, or GameMaster termination.\n\n## Card-contained effects\n\nCards should carry the effect instructions needed for play.\n\nExamples:\n\n- a weapon card carries its attack targeting, joins, resolution, and optional line/cone geometry;\n- a feat card carries its passive or activated joined modifiers;\n- a spell/power card carries targeting, costs, joins, resolution, duration, sprite/image/draw representation, and spawning;\n- a weather/anomaly card can carry a moving spatial volume/path and chained sprite representation;\n- an encounter card can publish joins used by the GameMaster Tracker and difficulty comparison.\n\nThe player selects/uses the card and supplies only the choices the card requires.\n\n## Summoning and spawning\n\n**Summon is a spawn effect.**\n\nA summon card may generate a runtime entity whose representations include:\n\n- a map token;\n- a Character/NPC card;\n- shared join/stat state;\n- permissions/ownership;\n- duration/lifecycle;\n- abilities/cards;\n- sprite/image representation.\n\nThe token and Character/NPC card are two representations of the **same spawned entity identity**, not manually synchronized independent objects.\n\nA spawned entity may be temporary or persistent. Multiple spawned entities may share a reusable definition while retaining distinct runtime identity and state.\n\nThe generalized spawn mechanism may also create:\n\n- objects;\n- terrain;\n- walls;\n- hazards;\n- item cards;\n- effect cards;\n- map geometry;\n- other explicitly allowed entity types.\n\n## Instances and encounters\n\nCards/effects connect to the active Instance through canonical identity and coordinates rather than through one particular map UI.\n\nAn Effect Instance records enough context to resolve its scope, including as applicable:\n\n- World;\n- Region;\n- Local;\n- Instance;\n- Encounter;\n- source entity;\n- target entity/entities;\n- canonical X/Y/Z geometry;\n- Effect ID;\n- start/time state.\n\nThe same effect may therefore be perceived in different map scales or representations without changing its identity.\n\n## GameMaster reporting\n\nShared joins provide the bridge between character state, encounter state, and GameMaster reports.\n\nEffective values should be available to reporting while preserving base/current/max values and modifier provenance.\n\nThe GameMaster can use common joins to compare characters, parties, NPCs, and encounters without asking players to manually reconcile temporary buffs, feats, conditions, equipment, or powers first.\n\n## Authority\n\nAll card use, target selection, state mutation, spawning, visibility, and GameMaster override remain subject to Recursive Authority and applicable content/perception policy.\n\nThe client requests an action. Authoritative state changes require validated server-side identity, permissions, rules, and target scope.\n\n## Locked invariants\n\n1. **The card is the effect package.**\n2. **Card Definition, Card Instance, Effect Instance, and Spawned Entity are distinct identities.**\n3. **Shared GM-named joins connect compatible systems and remove unnecessary manual arithmetic.**\n4. **Base values are not silently rewritten by temporary effects; effective values are derived.**\n5. **Target geometry is canonical; grids/hexes are representations.**\n6. **Spatial effects may use X/Y/Z and may cross representation layers.**\n7. **Sprite/image/draw are optional representations, not effect truth.**\n8. **Perception controls who sees effect geometry/highlights.**\n9. **Summoned token and Character/NPC card represent one spawned entity identity.**\n10. **Powers, including Magic, reuse this engine rather than creating a separate runtime.**\n11. **Cards carry their own activation/targeting/effect behavior so players do not hunt across unrelated tools during play.**\n12. **Changes to these invariants require an explicit contract revision; do not silently reinterpret them.**\n"
     }
   ],
   "records": [
@@ -8875,6 +8887,189 @@
         "meanings",
         "shaep",
         "stabilization"
+      ]
+    },
+    {
+      "record_id": "project.card-effect-engine-core",
+      "title": "Card Effect Engine — card-contained behavior and stable identities",
+      "text": "The card is the effect package. A Card Definition, Card Instance, Effect Instance, and Spawned Entity are distinct identities. Cards carry or reference activation, targeting, resolution, joins/effects, representation, spawning, and lifecycle instructions so players do not reconstruct behavior manually. Editing a definition does not silently rewrite an already-active Effect Instance.",
+      "category": "card-effect-engine",
+      "truth_domain": "FACT",
+      "status": "documented-contract",
+      "scope": "project-specification",
+      "source_ids": [
+        "source.card-effect-engine-contract"
+      ],
+      "source_locator": "Core rule; Stable identities",
+      "recorded_at": "2026-09-24",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "source-extraction-or-summary",
+        "source_origin": "UNKNOWN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "card",
+        "effect",
+        "identity",
+        "definition",
+        "instance",
+        "spawn",
+        "locked"
+      ]
+    },
+    {
+      "record_id": "project.card-effect-engine-joins",
+      "title": "Card Effect Engine — GM-named shared joins and effective values",
+      "text": "GameMaster-defined shared field names connect compatible characters, NPCs, encounters, powers, equipment, conditions, effects, and reports. Base/runtime values remain distinct from derived effective values. Temporary effects contribute through shared joins without silently rewriting the target's stored base value, removing unnecessary manual cross-sheet arithmetic.",
+      "category": "card-effect-engine",
+      "truth_domain": "FACT",
+      "status": "documented-contract",
+      "scope": "project-specification",
+      "source_ids": [
+        "source.card-effect-engine-contract"
+      ],
+      "source_locator": "Shared joins; Joined operations; GameMaster reporting",
+      "recorded_at": "2026-09-24",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "source-extraction-or-summary",
+        "source_origin": "UNKNOWN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "joins",
+        "gamemaster",
+        "effective-values",
+        "reporting",
+        "modifiers",
+        "locked"
+      ]
+    },
+    {
+      "record_id": "project.card-effect-engine-spatial",
+      "title": "Card Effect Engine — canonical spatial targeting and perception",
+      "text": "Spatial effects store canonical world/instance geometry rather than hex graphics. Targeting may select entities, points, areas, paths, lines, cones, spheres and other X/Y/Z geometry, including unbounded range inside the applicable authority scope. Hex/grid flashes are authorized perceptions of the Effect Instance and are shown only to the GameMaster and users permitted to perceive the effect.",
+      "category": "card-effect-engine",
+      "truth_domain": "FACT",
+      "status": "documented-contract",
+      "scope": "project-specification",
+      "source_ids": [
+        "source.card-effect-engine-contract"
+      ],
+      "source_locator": "Targeting; Spatial geometry; Spatial perception",
+      "recorded_at": "2026-09-24",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "source-extraction-or-summary",
+        "source_origin": "UNKNOWN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "spatial",
+        "targeting",
+        "geometry",
+        "hex",
+        "perception",
+        "xyz",
+        "locked"
+      ]
+    },
+    {
+      "record_id": "project.card-effect-engine-power",
+      "title": "Card Effect Engine — Power is system-neutral; Magic is a family",
+      "text": "The internal mechanic is POWER rather than a hard-coded Magic runtime. Magic is one possible GameMaster-named Power family alongside divine, psionic, technique, technology, mutation, alchemy, song, rune, prayer, program, or custom families. Powers reuse the common activation, targeting, shared-join, resolution, duration, representation and spawn engine.",
+      "category": "card-effect-engine",
+      "truth_domain": "FACT",
+      "status": "documented-contract",
+      "scope": "project-specification",
+      "source_ids": [
+        "source.card-effect-engine-contract"
+      ],
+      "source_locator": "Powers and magic",
+      "recorded_at": "2026-09-24",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "source-extraction-or-summary",
+        "source_origin": "UNKNOWN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "power",
+        "magic",
+        "system-neutral",
+        "family",
+        "spells",
+        "locked"
+      ]
+    },
+    {
+      "record_id": "project.card-effect-engine-spawn",
+      "title": "Card Effect Engine — summon/spawn identity",
+      "text": "Summon is a spawn effect. A summon may create a runtime entity with a map token, Character/NPC card, shared join state, permissions, duration, abilities and visual representation. The token and Character/NPC card are representations of the same spawned entity identity, not independent objects requiring manual synchronization.",
+      "category": "card-effect-engine",
+      "truth_domain": "FACT",
+      "status": "documented-contract",
+      "scope": "project-specification",
+      "source_ids": [
+        "source.card-effect-engine-contract"
+      ],
+      "source_locator": "Summoning and spawning",
+      "recorded_at": "2026-09-24",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "source-extraction-or-summary",
+        "source_origin": "UNKNOWN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "summon",
+        "spawn",
+        "token",
+        "npc",
+        "character-card",
+        "identity",
+        "locked"
+      ]
+    },
+    {
+      "record_id": "project.card-effect-engine-representation",
+      "title": "Card Effect Engine — effect representations",
+      "text": "Every card/effect may optionally use Sprite, Image, Draw, or None representation. Chained sprites are supported. Representation is not truth: removing or replacing a sprite/image does not remove the authoritative Effect Instance. Persistent effects retain stable Effect IDs while geometry and permitted representations update.",
+      "category": "card-effect-engine",
+      "truth_domain": "FACT",
+      "status": "documented-contract",
+      "scope": "project-specification",
+      "source_ids": [
+        "source.card-effect-engine-contract"
+      ],
+      "source_locator": "Representation; Spatial perception",
+      "recorded_at": "2026-09-24",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "source-extraction-or-summary",
+        "source_origin": "UNKNOWN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "sprite",
+        "image",
+        "draw",
+        "representation",
+        "effect-id",
+        "locked"
       ]
     }
   ],
