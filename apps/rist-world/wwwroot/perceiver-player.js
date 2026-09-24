@@ -1095,6 +1095,7 @@ function startVideoFramePump(state) {
 
 function resetEndemarLayers(state) {
   state.mode = 'endemar';
+  stopVideoFramePump(state);
   if (state.video) {
     state.video.pause();
     state.video.removeAttribute('src');
@@ -1760,13 +1761,6 @@ export function play(root) {
     updateReadout(state);
     return;
   }
-  if (state.mode === 'sprite') {
-    state.spriteClockMs = 0;
-    state.spriteLastAt = performance.now();
-    renderSpriteFrame(state, performance.now());
-    updateReadout(state);
-    return;
-  }
   if (state.mode === 'spectral' && state.video) {
     void state.video.play().catch(() => {
       state.playing = false;
@@ -1801,6 +1795,13 @@ export function restart(root) {
     state.sceneClockMs = 0;
     state.sceneLastAt = performance.now();
     state.sceneSprites.forEach(record => drawSceneSprite(record, 0));
+    updateReadout(state);
+    return;
+  }
+  if (state.mode === 'sprite') {
+    state.spriteClockMs = 0;
+    state.spriteLastAt = performance.now();
+    renderSpriteFrame(state, performance.now());
     updateReadout(state);
     return;
   }
