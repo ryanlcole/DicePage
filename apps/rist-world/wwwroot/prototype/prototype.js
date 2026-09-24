@@ -96,7 +96,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=0,localPersistenceDbCount=null;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -160,6 +160,14 @@ function localAnchorBounds(local=activeLocal){
     minX:clamp(cx-width/2,0,1),maxX:clamp(cx+width/2,0,1),
     minY:clamp(cy-height/2,0,1),maxY:clamp(cy+height/2,0,1),
     width,height,cx,cy
+  };
+}
+function localPointToWorld(x,y,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return{
+    x:clamp(bounds.minX+clamp(Number(x)||0,0,1)*bounds.width,0,1),
+    y:clamp(bounds.minY+clamp(Number(y)||0,0,1)*bounds.height,0,1)
   };
 }
 function constrainLocalPoint(x,y){
@@ -3032,14 +3040,17 @@ function regionClaimBounds(region){
 }
 
 function fitLocalAnchor(local=activeLocal){
-  if(!local||!naturalWidth||!naturalHeight)return;
+  const bounds=localAnchorBounds(local);if(!bounds||!naturalWidth||!naturalHeight)return;
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect();if(r.width<=0||r.height<=0)return;
-  const tiltHeight=naturalHeight*Math.cos(REPRESENTATION_ANGLE_DEGREES*Math.PI/180);
-  scale=Math.min(r.width/naturalWidth,r.height/Math.max(tiltHeight,1))*.94;
+  const cropX=bounds.minX*naturalWidth,cropY=bounds.minY*naturalHeight;
+  const cropW=Math.max(1,bounds.width*naturalWidth),cropH=Math.max(1,bounds.height*naturalHeight);
+  const tiltHeight=cropH*Math.cos(REPRESENTATION_ANGLE_DEGREES*Math.PI/180);
+  scale=Math.min(r.width/cropW,r.height/Math.max(tiltHeight,1))*.90;
   scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
-  x=fitX=(r.width/2)-(naturalWidth*scale/2);
-  y=fitY=(r.height/2)-(naturalHeight*scale/2);
+  const centerX=cropX+cropW/2,centerY=cropY+cropH/2;
+  x=fitX=(r.width/2)-(centerX*scale);
+  y=fitY=(r.height/2)-(centerY*scale);
   applyTransform();
 }
 function isolateLocalContext(){
@@ -3079,7 +3090,7 @@ function isolateLocalContext(){
 async function enterLocalBuild(local,sourceEnvelope=null){
   if(!LOCAL_DEFINER||!local?.id)return;
   activeLocal=local;
-  localTierIndex=0;localLayerIndex=0;
+  localTierIndex=0;localLayerIndex=1;
   localCreatePending=false;
   removeAssetResizeOverlay();selectedImage=null;
 
@@ -3093,28 +3104,28 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   isolateLocalContext();
   const state=sourceEnvelope?.state&&typeof sourceEnvelope.state==='object'?sourceEnvelope.state:null;
   const saved=Array.isArray(state?.userLayers)?state.userLayers:[];
-  const nestedLocalSpace=String(state?.coordinateSpace||'')==='local-anchor-normalized-v2';
+  const sourceWasLocalNormalized=String(state?.coordinateSpace||'')==='local-anchor-normalized-v2';
   localPersistenceDbCount=saved.length;
   for(const raw of saved){
-    const normalizedRaw=nestedLocalSpace||String(raw?.localCoordinateSpace||'')==='local-anchor-normalized-v2'
-      ?raw
-      :(()=>{
-        const point=worldPointToLocal(raw?.x,raw?.y,local);
+    const canonicalRaw=sourceWasLocalNormalized||String(raw?.localCoordinateSpace||'')==='local-anchor-normalized-v2'
+      ?(()=>{
+        const point=localPointToWorld(raw?.x,raw?.y,local);
         const bounds=localAnchorBounds(local);
         return{
           ...raw,
           x:point.x,y:point.y,
-          size:bounds?Math.min(20,Math.max(.05,(Number(raw?.size)||1)/Math.max(bounds.width,.0001))):raw?.size,
-          localCoordinateSpace:'local-anchor-normalized-v2'
+          size:bounds?Math.max(.05,(Number(raw?.size)||1)*Math.max(bounds.width,.0001)):raw?.size,
+          localCoordinateSpace:undefined,localX:undefined,localY:undefined,projectedWorldX:undefined,projectedWorldY:undefined
         };
-      })();
-    const item=await attachRestoredLayer(normalizedRaw,{
+      })()
+      :raw;
+    const item=await attachRestoredLayer(canonicalRaw,{
       sourceLocked:READ_ONLY,
       regionOverlay:true,
       localOverlay:true,
       localId:String(local.id)
     });
-    if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??0);
+    if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??1);
   }
   syncLocalEditLayer();
   persistentSave.hidden=READ_ONLY;
@@ -3123,7 +3134,7 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   renderKeyboardTabs();renderKeyboardKeys();updateLayerOrder();applyParallax();
   fitLocalAnchor(local);
   if(keyboard.hidden)openKeyboard();
-  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'}. The Region asset is the locked 100% Local base; new content uses Local X/Y plus Local tier/layer depth.`);
+  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'}. The camera is framed to that Region asset; canonical X/Y are retained and new content adds Local tier/layer depth.`);
 }
 function fitClaimedRegion(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
@@ -4394,7 +4405,7 @@ function renderKeyboardKeysContent(){
         readoutKey(`REGION L ${regionLayerIndex}`,LOCAL_DEFINER?'inherited from selected regional object':'regional layer'),
         ...(LOCAL_DEFINER?[
           readoutKey(`LOCAL T ${localTierIndex}`,localIsOpen()?'editable Local tier':'new Local starts at Local Tier 0'),
-          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 0'),
+          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 1'),
           ...(localIsOpen()?[
             toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(0,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=0),
             toolKey('LOCAL T +',`T ${localTierIndex}`,()=>{localTierIndex+=1;syncLocalEditLayer();renderKeyboardKeys()}),
@@ -4569,8 +4580,8 @@ function renderKeyboardKeysContent(){
           readoutKey(itemParallaxMode(selectedImage)==='anchored'?'MAP ATTACHED':'PARALLAX',
             itemParallaxMode(selectedImage)==='anchored'?'moves with parent world tier':'explicit separate tier')
         ]),
-      readoutKey(`X ${pos.x}`,LOCAL_DEFINER?'Local position':'world position'),
-      readoutKey(`Y ${pos.y}`,LOCAL_DEFINER?'Local position':'world position'),
+      readoutKey(`X ${pos.x}`,LOCAL_DEFINER?'canonical X within Local anchor':'world position'),
+      readoutKey(`Y ${pos.y}`,LOCAL_DEFINER?'canonical Y within Local anchor':'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
       toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
       sizeNumberInput(selectedImage),sizeRangeInput(selectedImage),
