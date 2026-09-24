@@ -366,4 +366,4 @@ def test_perceiver_sprite_editor_is_local_precise_and_motion_aware():
     assert "SPRITE_DEFAULT_FPS = 60" in player
     assert "1000 / 60" in player
     assert "root.addEventListener('contextmenu'" in player
-    assert "sprite-editor-2" in workspace
+    assert "sprite-editor-3" in workspace
