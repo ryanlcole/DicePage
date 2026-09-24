@@ -494,7 +494,7 @@ async function saveWorldBuilder(){
     persistentSave.classList.add('saved');
     setTimeout(()=>persistentSave?.classList.remove('saved'),900);
     announce(REGION_DEFINER
-      ? `Saved ${serializedLayers.length} items in ${regionRelativeTiers.length} regional tiers. The parent world tier remains immutable.`
+      ? `Saved ${serializedLayers.length} regional overlay${serializedLayers.length===1?'':'s'} on locked World Tier ${Number(regionClaimedRegion?.tierIndex||0)+1}.`
       : `World Builder saved. ${serializedLayers.length} placed item${serializedLayers.length===1?'':'s'} committed. Use Select or the matching keyboard to edit saved content.`);
     return true;
   }catch(error){
@@ -510,8 +510,8 @@ async function attachRestoredLayer(raw,options={}){
   if(kind==='label'){
     const item={
       id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
-      x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
-      layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
+      x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+      layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
       plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),
@@ -546,8 +546,8 @@ async function attachRestoredLayer(raw,options={}){
     spriteSourceWidth:Number(raw.spriteSourceWidth)||null,spriteSourceHeight:Number(raw.spriteSourceHeight)||null,spriteCropX:Number(raw.spriteCropX)||0,spriteCropY:Number(raw.spriteCropY)||0,
     spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,
     frameSources,currentFrame:0,playing:false,
-    x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
-    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
+    x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
     opacity:clamp(Number(raw.opacity)||1,.01,1),parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
