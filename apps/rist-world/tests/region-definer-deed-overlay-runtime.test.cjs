@@ -231,6 +231,26 @@ test('RegionDefiner save bridge performs canonical read-after-write verification
   assert.ok(prototype.includes('Region database verification did not confirm the save.'));
 });
 
+test('placed assets suppress native long-press menus and expose precise resizing',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  const css=fs.readFileSync(path.join(root,'prototype.css'),'utf8');
+  assert.ok(source.includes("stage.addEventListener('contextmenu'"));
+  assert.ok(source.includes("function ensureAssetResizeOverlay()"));
+  assert.ok(source.includes("asset-resize-handle"));
+  assert.ok(source.includes("input.type='number';input.className='asset-size-number'"));
+  assert.ok(source.includes("input.type='range';input.className='asset-size-range'"));
+  assert.ok(css.includes('-webkit-touch-callout:none'));
+  assert.ok(css.includes('.asset-resize-handle'));
+});
+
+test('sprite playback keeps a stable frame box and predecodes extracted frames',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  assert.ok(source.includes('function stableAssetAspect(item)'));
+  assert.ok(source.includes("item.node.style.aspectRatio=item.kind==='sprite'?String(stableAssetAspect(item)):''"));
+  assert.ok(source.includes('await Promise.all(frames.map(src=>loadDataImage(src).catch(()=>null)))'));
+  assert.ok(source.includes("if(item.kind!=='sprite')void primeCollisionMask(desired)"));
+});
+
 test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps parent content locked',async()=>{
   const f=fixture('existing');
   try{
