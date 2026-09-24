@@ -8,13 +8,21 @@ def read(relative):
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_local_staging_enters_local_definer_before_region_selection():
+def test_local_staging_chooses_local_zone_grouped_by_region():
     shell = read("Components/PublicAlphaShell.razor")
     router = read("Components/TaskWorkspaceRouter.razor")
     local = read("Components/LocalDefinerWorkspace.razor")
+    gate = read("Components/LocalGate.razor")
 
     assert '<strong>LOCAL STAGING</strong>' in shell
     assert '@onclick="OpenLocalStaging"' in shell
+    assert '<LocalGate Open="@_localGateOpen"' in shell
+    assert '<h1>CHOOSE A LOCAL ZONE</h1>' in gate
+    assert "NEW LOCAL" in gate
+    assert "LocalGroups" in gate
+    assert "new LocalGroup(" in gate
+    assert "OpenSavedLocal(WorldLocal local)" in shell
+    assert "Session.SetActiveLocal(local.LocalId);" in shell
     assert 'case "local"' in shell
     assert '"world","local","accessibility"' in shell
     assert 'Session.SetActiveRegion("");' in shell
@@ -61,6 +69,23 @@ def test_local_parent_region_assets_are_locked_but_selectable_as_local_anchors()
     assert "item.sourceLocked&&!isLocalAnchorCandidate(item)?'none'" in player
     assert "const localAnchorCandidate=isLocalAnchorCandidate(item);" in player
     assert "if(LOCAL_DEFINER&&!localIsOpen()){event.preventDefault();event.stopPropagation();selectUserImage(item);return;}" in player
+
+
+def test_saved_local_rehydrates_parent_region_before_opening_anchor():
+    shell = read("Components/PublicAlphaShell.razor")
+    local = read("Components/LocalDefinerWorkspace.razor")
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "Session.SetActiveRegion(local.RegionId);" in shell
+    assert "Session.SetActiveLocal(local.LocalId);" in shell
+    assert "_initialLocalId=local.LocalId;" in local
+    assert "_initialRegionId=local.RegionId;" in local
+    assert "localId={localId}" in local
+    assert "const REQUESTED_LOCAL_ID=String(QUERY.get('localId')||'');" in player
+    assert "function maybeOpenRequestedLocal()" in player
+    assert "localRegionSourceReady" in player
+    assert "if(LOCAL_DEFINER)localRegionSourceReady=true;" in player
+    assert "postRegionMessage('open-local',{localId:REQUESTED_LOCAL_ID})" in player
 
 
 def test_representation_ladder_is_world_0_region_15_local_30():
