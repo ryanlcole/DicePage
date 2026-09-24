@@ -310,3 +310,36 @@ def test_perceiver_sprite_exports_reenter_the_normal_sprite_library():
     assert "FramesPerSecond:spriteMeta.Value.Fps" in asset_library
     assert "CropWidth:spriteMeta.Value.FrameWidth" in asset_library
     assert "CropHeight:spriteMeta.Value.FrameHeight" in asset_library
+
+
+def test_perceiver_sprite_editor_is_local_precise_and_motion_aware():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    for marker in [
+        "data-perceiver-sprite-editor",
+        "data-perceiver-sprite-select",
+        "data-perceiver-sprite-size",
+        "data-perceiver-sprite-size-range",
+        "data-perceiver-sprite-x",
+        "data-perceiver-sprite-y",
+        "data-perceiver-sprite-opacity",
+        "data-perceiver-sprite-fps",
+        "data-perceiver-sprite-motion-only",
+        "data-perceiver-sprite-reset",
+    ]:
+        assert marker in workspace
+
+    assert 'max="60"' in workspace
+    assert "function spriteEdit(state, index)" in player
+    assert "function refreshSpriteEditor(state)" in player
+    assert "function applySpriteEditInputs(state)" in player
+    assert "function buildMotionOnlyFrames(record)" in player
+    assert "record.motionOnly && record.motionFrames?.[frame]" in player
+    assert "edit.x * state.canvas.clientWidth" in player
+    assert "edit.y * state.canvas.clientHeight" in player
+    assert "const scale = baseScale * edit.scale" in player
+    assert "setSelectedSpriteFps(state" in player
+    assert "clamp(Number(fps) || 1, 1, 60)" in player
+    assert "canvas.addEventListener('contextmenu'" in player
+    assert "sprite-editor-1" in workspace
