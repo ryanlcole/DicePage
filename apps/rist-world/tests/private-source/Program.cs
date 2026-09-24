@@ -39,42 +39,51 @@ using var parentDocument = JsonDocument.Parse("""
         {"cellIndex":32,"tierIndex":0,"layerOffset":0,"image":"unclaimed.webp"}
     ],
     "userLayers":[
-        {"id":"private-city","regionId":"private-region","tier":0},
-        {"id":"foreign-city","regionId":"another-region","tier":0}
+        {"id":"world-road","tier":0,"layer":0,"x":0.05,"y":0.05,"kind":"image","originalSrc":"road.webp"},
+        {"id":"private-city","regionId":"private-region","tier":0,"worldLayer":0,"layer":0,"regionLayer":1,"z100":1,"x":0.05,"y":0.05,"kind":"image","originalSrc":"city.webp"},
+        {"id":"foreign-city","regionId":"another-region","tier":0,"worldLayer":0,"layer":0,"regionLayer":1,"z100":1,"x":0.05,"y":0.05}
     ]
 }
 """);
 var projected = RegionSourceProjector.Project(
     "private-test", "private-region", "world:private-test", 0,
     [31], "square", [0], parentDocument.RootElement);
-Check(projected.GetProperty("projection").GetString() == "region-child-v1", "private region projection not versioned");
+Check(projected.GetProperty("projection").GetString() == "region-world-z-v2", "private region projection version is wrong");
 Check(projected.GetProperty("sourceTileIndex").GetArrayLength() == 1, "private projection leaked unclaimed tile");
 Check(projected.GetProperty("sourceTileIndex")[0].GetProperty("image").GetString() == "claimed.webp", "wrong private cell selected");
 Check(!projected.TryGetProperty("tierImages", out _), "private projection leaked full world bitmap");
-Check(projected.GetProperty("userLayers").GetArrayLength() == 1, "private projection leaked another region's object");
+Check(projected.GetProperty("sourceUserLayers").GetArrayLength() == 1, "private projection lost locked WorldBuilder layer");
+Check(projected.GetProperty("userLayers").GetArrayLength() == 1, "private projection leaked another region's overlay");
+Check(projected.GetProperty("userLayers")[0].GetProperty("z100").GetInt32() == 1, "private region exact Z is wrong");
+Check(projected.GetProperty("userLayers")[0].GetProperty("parallaxMode").GetString() == "anchored",
+    "private region overlay received independent parallax");
 Check(projected.GetProperty("requiresRasterIndex").GetBoolean() == false, "indexed private claim incorrectly rejected");
+
 using var editedLayers = JsonDocument.Parse("""
-[{"id":"private-city","x":0.05,"y":0.05,"tier":0,"relativeTier":0,"layer":1,"regionId":"private-region"}]
+[{"id":"private-city","x":0.05,"y":0.05,"tier":0,"worldLayer":4,"layer":4,"regionLayer":7,"z100":407,"regionId":"private-region"}]
 """);
-using var childTiers = JsonDocument.Parse("""
-[{"id":"private-region:tier:0","index":0,"label":"Region Base"}]
-""");
-var privateChild = RegionSourceProjector.NormalizeChild(
+var merged = RegionSourceProjector.MergeRegionLayers(
     "private-test", "private-region", "world:private-test", 0,
-    [31], "square", editedLayers.RootElement, childTiers.RootElement);
-Check(privateChild.GetProperty("userLayers")[0].GetProperty("parallaxMode").GetString() == "anchored",
-    "base-tier city received parallax");
+    [31], "square", parentDocument.RootElement, editedLayers.RootElement);
+var mergedRegion = merged.GetProperty("userLayers").EnumerateArray()
+    .Single(x => x.TryGetProperty("regionId", out var id) && id.GetString() == "private-region");
+Check(mergedRegion.GetProperty("z100").GetInt32() == 407, "private region hundredth Z did not persist");
+Check(mergedRegion.GetProperty("worldLayer").GetInt32() == 4, "private region World Z did not persist");
+Check(mergedRegion.GetProperty("regionLayer").GetInt32() == 7, "private region fractional layer did not persist");
+Check(mergedRegion.GetProperty("parallaxMode").GetString() == "anchored", "private region overlay drifted into parallax");
+
 using var leakedLayers = JsonDocument.Parse("""
-[{"id":"foreign-placement","x":0.95,"y":0.95,"relativeTier":0,"layer":1}]
+[{"id":"foreign-placement","x":0.95,"y":0.95,"tier":0,"worldLayer":0,"layer":0,"regionLayer":1,"z100":1}]
 """);
 try
 {
-    RegionSourceProjector.NormalizeChild("private-test","private-region","world:private-test",0,
-        [31],"square",leakedLayers.RootElement,childTiers.RootElement);
+    RegionSourceProjector.MergeRegionLayers(
+        "private-test","private-region","world:private-test",0,
+        [31],"square",parentDocument.RootElement,leakedLayers.RootElement);
     throw new Exception("private object escaped claimed source-cell boundary");
 }
 catch (UnauthorizedAccessException) { }
-Console.WriteLine("Private source, selected-tile projection and regional edit isolation checks passed.");
+Console.WriteLine("Private source, selected-coordinate projection and exact region Z isolation checks passed.");
 
 namespace RistWorld
 {
