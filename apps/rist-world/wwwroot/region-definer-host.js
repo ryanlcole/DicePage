@@ -16,10 +16,11 @@ function post(frame,message){
 
 async function sendState(frame,dotnet){
   const revision=beginStateRequest(frame);
+  const url=new URL(frame.getAttribute("src"),location.origin);
+  const regionId=url.searchParams.get("regionId")||"";
+  const mode=(url.searchParams.get("mode")||"").toLowerCase();
+
   try{
-    // Existing claims always request their exact source subset. No unfiltered
-    // world image leaves the parent bridge while permissions are refreshing.
-    const regionId=new URL(frame.getAttribute("src"),location.origin).searchParams.get("regionId")||"";
     const worldSource=regionId
       ?await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",regionId)
       :await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
@@ -29,6 +30,7 @@ async function sendState(frame,dotnet){
     if(!isCurrentStateRequest(frame,revision))return;
     post(frame,{type:"map-load-error",message:String(error?.message||error||"Canonical map database is unavailable")});
   }
+
   try{
     const regions=await dotnet.invokeMethodAsync("GetRegionCatalogForPrototype");
     if(!isCurrentStateRequest(frame,revision))return;
@@ -37,8 +39,7 @@ async function sendState(frame,dotnet){
     if(!isCurrentStateRequest(frame,revision))return;
     post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
   }
-}
-  const mode=(new URL(frame.getAttribute("src"),location.origin).searchParams.get("mode")||"").toLowerCase();
+
   if(mode==="localdefiner"){
     try{
       const locals=await dotnet.invokeMethodAsync("GetLocalCatalogForPrototype");
@@ -114,11 +115,39 @@ export function attach(frame,dotnet){
         const name=String(data.name||"").trim();
         const anchor=data.anchor&&typeof data.anchor==="object"?data.anchor:{};
         const local=await dotnet.invokeMethodAsync("CreateLocalFromPrototypeAsync",name,anchor);
-        post(frame,{type:"local-created",local});
+        let localSource=null;
+        try{localSource=await dotnet.invokeMethodAsync("GetLocalSourceForPrototypeAsync",String(local?.id||""))}catch{}
+        post(frame,{type:"local-created",local,localSource});
         try{
           const locals=await dotnet.invokeMethodAsync("GetLocalCatalogForPrototype");
           post(frame,{type:"local-catalog",locals:Array.isArray(locals)?locals:[]});
         }catch{}
+        return;
+      }
+      if(data.type==="open-local"){
+        const localId=String(data.localId||"").trim();
+        const localSource=await dotnet.invokeMethodAsync("GetLocalSourceForPrototypeAsync",localId);
+        post(frame,{type:"local-opened",localId,localSource});
+        return;
+      }
+      if(data.type==="save-map-local"){
+        const requestId=String(data.requestId||"");
+        const localId=String(data.localId||"").trim();
+        const layers=Array.isArray(data.userLayers)?data.userLayers:[];
+        const result=await dotnet.invokeMethodAsync("SaveLocalMapLayersFromPrototypeAsync",localId,layers);
+        let verified=false,persistedIds=[];
+        if(result?.success){
+          try{
+            const readback=await dotnet.invokeMethodAsync("GetLocalSourceForPrototypeAsync",localId);
+            const state=readback?.state&&typeof readback.state==="object"?readback.state:{};
+            const saved=Array.isArray(state.userLayers)?state.userLayers:[];
+            persistedIds=saved.map(item=>String(item?.id||"")).filter(Boolean);
+            const wanted=layers.map(item=>String(item?.id||"")).filter(Boolean);
+            const persisted=new Set(persistedIds);
+            verified=wanted.every(id=>persisted.has(id));
+          }catch{}
+        }
+        post(frame,{type:"map-local-saved",requestId,result,verified,persistedIds});
         return;
       }
       if(data.type==="save-map-region"){
@@ -158,6 +187,8 @@ export function attach(frame,dotnet){
     }catch(error){
       if(data?.type==="save-map-region"){
         post(frame,{type:"map-region-save-error",requestId:String(data?.requestId||""),message:String(error?.message||error||"Map save failed")});
+      }else if(data?.type==="save-map-local"){
+        post(frame,{type:"map-local-save-error",requestId:String(data?.requestId||""),message:String(error?.message||error||"Local map save failed")});
       }else{
         post(frame,{type:"error",message:String(error?.message||error||"Region operation failed")});
       }
