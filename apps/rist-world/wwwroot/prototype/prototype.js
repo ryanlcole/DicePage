@@ -520,6 +520,24 @@ function saveRegionMapToDatabase(userLayers){
     }
   });
 }
+function saveLocalMapToDatabase(userLayers){
+  if(!LOCAL_DEFINER||window.parent===window)return Promise.resolve(false);
+  const localId=activeLocalMapId();
+  if(!localId)return Promise.reject(new Error('Select or create a Local before saving Local content.'));
+  const requestId=crypto.randomUUID?.()||('local-map-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+  return new Promise((resolve,reject)=>{
+    const timeout=setTimeout(()=>{
+      localMapSaveWaiters.delete(requestId);
+      reject(new Error('Local map save timed out.'));
+    },12000);
+    const expectedIds=userLayers.map(item=>String(item?.id||'')).filter(Boolean);
+    localMapSaveWaiters.set(requestId,{resolve,reject,timeout,expectedIds,localId,expectedCount:userLayers.length});
+    if(!postRegionMessage('save-map-local',{requestId,localId,userLayers})){
+      clearTimeout(timeout);localMapSaveWaiters.delete(requestId);
+      reject(new Error('Local map database bridge is unavailable.'));
+    }
+  });
+}
 function openSaveDb(){
   return new Promise((resolve,reject)=>{
     if(!('indexedDB'in window)){reject(new Error('IndexedDB unavailable'));return}
@@ -559,15 +577,28 @@ function restoredParallaxMode(raw,regionOverlay){
 function itemAnchorTier(item){
   return clamp(Math.trunc(Number(item?.anchorTier??item?.tier)||0),0,TIERS.length-1);
 }
+function localSaveCandidates(){
+  const localId=activeLocalMapId();
+  if(!LOCAL_DEFINER||!localId)return[];
+  return userLayers.filter(item=>{
+    if(!item||item.sourceLocked||!item.localOverlay||!item.node?.isConnected)return false;
+    if(String(item.localId||'')!==localId)return false;
+    if(localEditLayer&&item.node.parentElement!==localEditLayer)return false;
+    item.regionId=String(activeLocal?.regionId||activeRegionMapId());
+    item.localId=localId;
+    return true;
+  });
+}
 function regionSaveCandidates(){
   if(!REGION_DEFINER)return userLayers;
+  if(LOCAL_DEFINER)return localSaveCandidates();
   const regionId=activeRegionMapId();
   if(!regionId)return[];
   // The active edit layer is the UI truth for this deed. Normalize the region
   // identity before filtering so a stale/blank item.regionId cannot make a
   // visible authored object disappear from the save payload.
   return userLayers.filter(item=>{
-    if(!item||item.sourceLocked||!item.regionOverlay||!item.node?.isConnected)return false;
+    if(!item||item.sourceLocked||!item.regionOverlay||item.localOverlay||!item.node?.isConnected)return false;
     if(regionEditLayer&&item.node.parentElement!==regionEditLayer)return false;
     item.regionId=regionId;
     return true;
@@ -576,7 +607,7 @@ function regionSaveCandidates(){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
       worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
@@ -590,7 +621,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     // Personal-library URLs are short-lived capabilities. Persist only the stable
     // asset identity; reload resolves a fresh URL after authenticated storage is ready.
@@ -627,15 +658,19 @@ async function saveWorldBuilder(){
       await Promise.allSettled([...pendingPersonalUploads]);
     }
     const authoredRegionLayers=REGION_DEFINER
-      ? userLayers.filter(item=>item&&!item.sourceLocked&&item.regionOverlay&&item.node?.isConnected)
+      ? userLayers.filter(item=>item&&!item.sourceLocked&&item.regionOverlay&&(!LOCAL_DEFINER||item.localOverlay)&&item.node?.isConnected)
       : [];
     const editableLayers=REGION_DEFINER?regionSaveCandidates():userLayers;
     if(REGION_DEFINER&&authoredRegionLayers.length>0&&editableLayers.length===0){
-      throw new Error(`Region save payload was empty while ${authoredRegionLayers.length} authored object${authoredRegionLayers.length===1?' is':'s are'} still on the map.`);
+      throw new Error(`${LOCAL_DEFINER?'Local':'Region'} save payload was empty while ${authoredRegionLayers.length} authored object${authoredRegionLayers.length===1?' is':'s are'} still on the map.`);
     }
     const serializedLayers=editableLayers.map(serializableUserLayer);
     const state=REGION_DEFINER?null:worldBuilderSourceState(editableLayers);
-    if(REGION_DEFINER){
+    if(LOCAL_DEFINER){
+      const verification=await saveLocalMapToDatabase(serializedLayers);
+      if(!verification?.verified)throw new Error('Local save could not be verified after writing.');
+      localPersistenceDbCount=verification.persistedIds.length;
+    }else if(REGION_DEFINER){
       const verification=await saveRegionMapToDatabase(serializedLayers);
       if(!verification?.verified)throw new Error('Region save could not be verified after writing.');
       regionPersistenceDbCount=verification.persistedIds.length;
