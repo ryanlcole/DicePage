@@ -1823,7 +1823,9 @@ function refreshUserImage(item){
     renderKeyboardTabs();
     announce(`${selectedImage.name||'Region object'} selected. Editing controls are open.`);
   }else if(LOCAL_DEFINER&&selectedImage){
-    announce(`${selectedImage.name||'Regional object'} selected as a Local anchor candidate.`);
+    announce(localIsOpen()
+      ?`${selectedImage.name||'Local object'} selected for Local editing.`
+      :`${selectedImage.name||'Regional object'} selected as a Local anchor candidate.`);
   }
   renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
@@ -1841,8 +1843,15 @@ function placedContentLabel(item,index){
   return `${index+1}. ${name} · T${pos.tier} L${pos.layer} · X${pos.x} Y${pos.y}`;
 }
 function selectablePlacedContent(){
+  if(LOCAL_DEFINER){
+    if(localIsOpen()){
+      const localId=activeLocalMapId();
+      return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.localOverlay&&String(item.localId||'')===localId);
+    }
+    return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay&&!item.canonicalSource&&String(item.regionId||'')===activeRegionMapId());
+  }
   return userLayers.filter(item=>item?.node&&(!REGION_DEFINER
-    ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay
+    ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay
       &&String(item.regionId||'')===activeRegionMapId())));
 }
 function assetModeMatches(item,mode){
@@ -1902,9 +1911,10 @@ function removeSelectedImage(){
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;removeAssetResizeOverlay();updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
-  if(LOCAL_DEFINER){event.preventDefault();event.stopPropagation();selectUserImage(item);return;}
+  if(LOCAL_DEFINER&&!localIsOpen()){event.preventDefault();event.stopPropagation();selectUserImage(item);return;}
   if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
-  if(REGION_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
+  if(LOCAL_DEFINER&&localIsOpen()&&(!item?.localOverlay||String(item.localId||'')!==activeLocalMapId()))return;
+  if(REGION_DEFINER&&!LOCAL_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()))return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
   const alreadySelected=selectedImage===item;
@@ -1925,7 +1935,7 @@ function moveImageDrag(event){
   if(!imageDrag||imageDrag.id!==event.pointerId)return;event.preventDefault();event.stopPropagation();
   const rawX=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
-  const bounded=REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY};
+  const bounded=LOCAL_DEFINER&&localIsOpen()?constrainLocalPoint(rawX,rawY):(REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY});
   imageDrag.item.x=bounded.x;imageDrag.item.y=bounded.y;
   refreshUserImage(imageDrag.item);refreshAssetResizeOverlay(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
