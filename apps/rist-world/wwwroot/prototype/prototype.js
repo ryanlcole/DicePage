@@ -162,25 +162,13 @@ function localAnchorBounds(local=activeLocal){
     width,height,cx,cy
   };
 }
-function worldPointToLocal(x,y,local=activeLocal){
-  const bounds=localAnchorBounds(local);
-  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
-  return{
-    x:clamp(((Number(x)||0)-bounds.minX)/Math.max(bounds.width,.000001),0,1),
-    y:clamp(((Number(y)||0)-bounds.minY)/Math.max(bounds.height,.000001),0,1)
-  };
-}
-function localPointToWorld(x,y,local=activeLocal){
-  const bounds=localAnchorBounds(local);
-  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
-  return{
-    x:clamp(bounds.minX+clamp(Number(x)||0,0,1)*bounds.width,0,1),
-    y:clamp(bounds.minY+clamp(Number(y)||0,0,1)*bounds.height,0,1)
-  };
-}
 function constrainLocalPoint(x,y){
-  if(localIsOpen())return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
-  return constrainRegionPoint(x,y);
+  const bounds=localAnchorBounds();
+  if(!bounds)return constrainRegionPoint(x,y);
+  return{
+    x:clamp(Number(x)||0,bounds.minX,bounds.maxX),
+    y:clamp(Number(y)||0,bounds.minY,bounds.maxY)
+  };
 }
 function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   if(!LOCAL_DEFINER||!localIsOpen()||!item)return item;
@@ -195,15 +183,9 @@ function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));
   item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);
   item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));
-  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||0),0,9);
+  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);
   item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier)||0));
   item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer)||0),0,9);
-  item.localCoordinateSpace='local-anchor-normalized-v2';
-  item.localX=clamp(Number(item.x)||0,0,1);
-  item.localY=clamp(Number(item.y)||0,0,1);
-  const projected=localPointToWorld(item.localX,item.localY);
-  item.projectedWorldX=projected.x;
-  item.projectedWorldY=projected.y;
   item.z100=regionZ100(item.worldLayer,item.regionLayer);
   item.parentTierIndex=item.worldTier;
   item.parallaxMode='anchored';
@@ -630,9 +612,6 @@ function serializableUserLayer(item){
     return{
       id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
-      localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined,
-      localX:item.localOverlay?clamp(Number(item.x)||0,0,1):undefined,localY:item.localOverlay?clamp(Number(item.y)||0,0,1):undefined,
-      projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined,projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined,
       tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
       worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
@@ -664,9 +643,6 @@ function serializableUserLayer(item){
       cropWidth:page.cropWidth||0,cropHeight:page.cropHeight||0,whiteTransparent:page.whiteTransparent!==false
     })):null,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
-    localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined,
-    localX:item.localOverlay?clamp(Number(item.x)||0,0,1):undefined,localY:item.localOverlay?clamp(Number(item.y)||0,0,1):undefined,
-    projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined,projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined,
     tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
     worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
@@ -1168,7 +1144,7 @@ function updateLayerOrder(){
     const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
     const regionZ=item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100;
     const localZ=item.localOverlay
-      ?(regionZ*10000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*1000)+(clamp(Math.trunc(Number(item.localLayer)||0),0,9)*100)
+      ?(regionZ*10000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*1000)+(clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100)
         +(Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10)+clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)
       :regionZ;
     item.node.style.zIndex=String(REGION_DEFINER
@@ -1858,12 +1834,7 @@ function refreshUserImage(item){
     item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
     item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
   }
-  if(LOCAL_DEFINER&&localIsOpen()&&item.localAnchor){
-    item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
-    item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
-    item.node.style.aspectRatio='';item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';
-    item.parallaxX=0;item.parallaxY=0;return;
-  }
+
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.aspectRatio=item.kind==='sprite'?String(stableAssetAspect(item)):'';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
@@ -2044,7 +2015,7 @@ async function placeUploadedImage(file){
     assetPlacementRole='layer';
     announce(`${item.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`);
   }else announce(LOCAL_DEFINER&&localIsOpen()
-    ?`Image placed at Local Tier ${item.localTier||0}, Local Layer ${item.localLayer??0}; canonical X/Y ${item.x.toFixed(3)}, ${item.y.toFixed(3)} retained.`
+    ?`Image placed at Local Tier ${item.localTier||0}, Local Layer ${item.localLayer||1}; canonical X/Y ${item.x.toFixed(3)}, ${item.y.toFixed(3)} retained.`
     :REGION_DEFINER
     ?`Image placed at World Z ${regionWorldLayer(item)}, Region layer ${regionOverlayLayer(item)}, exact Z ${regionZLabel(item)}.`
     :`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
@@ -2119,7 +2090,7 @@ function applyParallax(){
     const attached=itemParallaxMode(item)==='anchored'&&!LOCAL_DEFINER;
     const reference=attached?parentTierOffset(item.tier):null;
     const depth=LOCAL_DEFINER&&item.localOverlay
-      ? Math.max(0,Number(item.localTier)||0)+(clamp(Number(item.localLayer)||0,0,9)/10)
+      ? Math.max(0,Number(item.localTier)||0)+(clamp(Number(item.localLayer)||1,1,9)/10)
       : item.tier;
     const representationDepth=LOCAL_DEFINER?2:1;
     const panStrength=depth*.022*representationDepth,tiltStrength=depth*.48*representationDepth;
@@ -3059,14 +3030,7 @@ function regionClaimBounds(region){
   minY=clamp(minY,0,extent.height);maxY=clamp(maxY,0,extent.height);
   return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
 }
-function setLocalCanvasFromAnchor(item){
-  if(!item?.node)return;
-  const aspect=Math.max(stableAssetAspect(item),.00001);
-  const width=Math.max(1,Number(item.node.naturalWidth)||Number(item.spriteCropWidth)||2048);
-  const height=Math.max(1,Number(item.node.naturalHeight)||Number(item.spriteCropHeight)||Math.round(width/aspect));
-  naturalWidth=width;naturalHeight=height;
-  world.style.width=naturalWidth+'px';world.style.height=naturalHeight+'px';
-}
+
 function fitLocalAnchor(local=activeLocal){
   if(!local||!naturalWidth||!naturalHeight)return;
   suspendRegionEnhancement();
@@ -3096,7 +3060,6 @@ function isolateLocalContext(){
       item.regionAnchorX=Number(item.x)||0;
       item.regionAnchorY=Number(item.y)||0;
       item.regionAnchorSize=Number(item.size)||1;
-      setLocalCanvasFromAnchor(item);
       item.node.classList.add('local-parent-anchor');
       item.node.dataset.authority='region-parent';
       item.node.dataset.regionTier=String(item.regionTier??0);
@@ -4435,8 +4398,8 @@ function renderKeyboardKeysContent(){
           ...(localIsOpen()?[
             toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(0,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=0),
             toolKey('LOCAL T +',`T ${localTierIndex}`,()=>{localTierIndex+=1;syncLocalEditLayer();renderKeyboardKeys()}),
-            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,0,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=0),
-            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,0,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
+            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=1),
+            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
           ]:[])
         ]:[
           toolKey('WORLD L −',`L ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Layer ${viewerLayer}.`)} ,viewerLayer<=0),
