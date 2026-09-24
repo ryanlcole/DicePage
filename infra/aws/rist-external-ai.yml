@@ -88,7 +88,7 @@ Resources:
     Properties:
       CorsConfiguration:
         AllowOrigins: [!Ref FrontendOrigin]
-        AllowHeaders: [authorization, content-type]
+        AllowHeaders: [authorization, content-type, mcp-protocol-version, mcp-session-id, mcp-method, mcp-name]
         AllowMethods: [GET, POST, OPTIONS]
         MaxAge: 300
       DefaultRouteSettings:
