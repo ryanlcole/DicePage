@@ -1822,7 +1822,7 @@ function tierMix(){
 function parentTierOffset(tier){
   // The tier reference and all same-tier images must use the exact same
   // camera displacement, never independent per-object parallax.
-  if(REGION_DEFINER&&regionDeedIsComplete())return{x:0,y:0};
+  if(REGION_DEFINER&&!LOCAL_DEFINER&&regionDeedIsComplete())return{x:0,y:0};
   const key=CANONICAL_PLANE_KEYS[clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)];
   const plane=planeByKey[key];
   return{x:Number(plane?.dataset.parallaxX)||0,y:Number(plane?.dataset.parallaxY)||0};
@@ -1832,7 +1832,7 @@ function applyParallax(){
   // RegionDefiner is an orthographic editing view over the chosen parent
   // map, not a second parallax stack. Keep every source plane, lake tile and
   // same-tier object aligned while editing the deed.
-  const regionReferenceFrozen=REGION_DEFINER&&regionDeedIsComplete();
+  const regionReferenceFrozen=REGION_DEFINER&&!LOCAL_DEFINER&&regionDeedIsComplete();
   const dx=selectionFrozen?0:x-fitX,dy=selectionFrozen?0:y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
   const builtins=[
@@ -1864,10 +1864,13 @@ function applyParallax(){
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
-    const attached=itemParallaxMode(item)==='anchored';
+    const attached=itemParallaxMode(item)==='anchored'&&!LOCAL_DEFINER;
     const reference=attached?parentTierOffset(item.tier):null;
-    const depth=item.tier;
-    const panStrength=depth*.022,tiltStrength=depth*.48;
+    const depth=LOCAL_DEFINER
+      ? (Number(item.tier)||0)+(regionWorldLayer(item)*.10)+(regionOverlayLayer(item)*.01)
+      : item.tier;
+    const representationDepth=LOCAL_DEFINER?2:1;
+    const panStrength=depth*.022*representationDepth,tiltStrength=depth*.48*representationDepth;
     item.parallaxX=selectionFrozen?0:attached?reference.x:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=selectionFrozen?0:attached?reference.y:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);
