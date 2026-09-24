@@ -1188,7 +1188,13 @@ function renderLabelsKeyboard(){
   const editor=labelInput(selected.text,'Edit label text',value=>{selected.text=String(value||'').slice(0,120);selected.name=selected.text||'Label';refreshUserLabel(selected)},()=>{selected.node?.focus?.();announce('Label text updated.')});
   keyboardKeys.append(
     editor,labelSelection(),
-    readoutKey(`TIER ${pos.tier}`,pos.tierLabel),readoutKey(`LAYER ${pos.layer}`,'label layer'),
+    ...(REGION_DEFINER
+      ?[
+        readoutKey(`WORLD TIER ${pos.tier}`,pos.tierLabel),
+        readoutKey(`WORLD Z ${pos.worldZ}`,`WorldBuilder Layer ${pos.layer}`),
+        readoutKey(`REGION L ${pos.regionLayer}`,`Exact Z ${pos.z}`)
+      ]
+      :[readoutKey(`TIER ${pos.tier}`,pos.tierLabel),readoutKey(`LAYER ${pos.layer}`,'label layer')]),
     toolKey('A−',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(-1),selected.fontSize<=12),
     toolKey('A+',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(1),selected.fontSize>=180),
     toolKey(selected.bold?'B ✓':'B','bold',()=>{selected.bold=!selected.bold;refreshUserLabel(selected);renderKeyboardKeys()}),
@@ -1203,10 +1209,19 @@ function renderLabelsKeyboard(){
     toolKey('←','offset',()=>nudgeLabelOffset(-8,0)),toolKey('→','offset',()=>nudgeLabelOffset(8,0)),
     toolKey('↑','offset',()=>nudgeLabelOffset(0,-8)),toolKey('↓','offset',()=>nudgeLabelOffset(0,8)),
     toolKey('OFFSET 0','reset',()=>{selected.offsetX=0;selected.offsetY=0;refreshUserLabel(selected)}),
-    toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),REGION_DEFINER||selected.tier<=0),
-    toolKey('TIER +',`T${pos.tier}`,()=>moveSelectedTier(1),REGION_DEFINER||selected.tier>=TIERS.length-1),
-    toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selected.tier<=0&&selected.layer<=0),
-    toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selected.tier>=TIERS.length-1&&selected.layer>=9),
+    ...(REGION_DEFINER
+      ?[
+        toolKey('WORLD Z −',`Z ${pos.worldZ}`,()=>moveSelectedTier(-1),pos.worldZ<=0),
+        toolKey('WORLD Z +',`Z ${pos.worldZ}`,()=>moveSelectedTier(1),pos.worldZ>=9),
+        toolKey('REGION L −',`L ${pos.regionLayer}`,()=>moveSelectedLayer(-1),pos.regionLayer<=1),
+        toolKey('REGION L +',`L ${pos.regionLayer}`,()=>moveSelectedLayer(1),pos.regionLayer>=9)
+      ]
+      :[
+        toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),selected.tier<=0),
+        toolKey('TIER +',`T${pos.tier}`,()=>moveSelectedTier(1),selected.tier>=TIERS.length-1),
+        toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selected.tier<=0&&selected.layer<=0),
+        toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selected.tier>=TIERS.length-1&&selected.layer>=9)
+      ]),
     toolKey('NEW','label',()=>{deselectUserImage(false);renderKeyboardKeys()}),
     toolKey('DELETE','label',removeSelectedImage)
   );
@@ -3453,10 +3468,19 @@ function renderKeyboardKeysContent(){
     }
     const pos=selectedPositionSummary(selectedImage);
     keyboardKeys.append(
-      readoutKey(`TIER ${pos.tier}`,pos.tierLabel),
-      readoutKey(`LAYER ${pos.layer}`,REGION_DEFINER?'above locked parent map':'current layer'),
-      readoutKey(itemParallaxMode(selectedImage)==='anchored'?'MAP ATTACHED':'PARALLAX',
-        itemParallaxMode(selectedImage)==='anchored'?'moves with parent world tier':'explicit separate tier'),
+      ...(REGION_DEFINER
+        ?[
+          readoutKey(`WORLD TIER ${pos.tier}`,pos.tierLabel),
+          readoutKey(`WORLD Z ${pos.worldZ}`,`WorldBuilder Layer ${pos.layer}`),
+          readoutKey(`REGION L ${pos.regionLayer}`,`Exact Z ${pos.z}`),
+          readoutKey('MAP ATTACHED','same WorldBuilder tier; no independent parallax')
+        ]
+        :[
+          readoutKey(`TIER ${pos.tier}`,pos.tierLabel),
+          readoutKey(`LAYER ${pos.layer}`,'current layer'),
+          readoutKey(itemParallaxMode(selectedImage)==='anchored'?'MAP ATTACHED':'PARALLAX',
+            itemParallaxMode(selectedImage)==='anchored'?'moves with parent world tier':'explicit separate tier')
+        ]),
       readoutKey(`X ${pos.x}`,'world position'),
       readoutKey(`Y ${pos.y}`,'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
@@ -3466,10 +3490,19 @@ function renderKeyboardKeysContent(){
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
-      toolKey('TIER −',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(-1),REGION_DEFINER||selectedImage.tier<=0),
-      toolKey('TIER +',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(1),REGION_DEFINER||selectedImage.tier>=TIERS.length-1),
-      toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
-      toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
+      ...(REGION_DEFINER
+        ?[
+          toolKey('WORLD Z −',`Z ${pos.worldZ}`,()=>moveSelectedTier(-1),pos.worldZ<=0),
+          toolKey('WORLD Z +',`Z ${pos.worldZ}`,()=>moveSelectedTier(1),pos.worldZ>=9),
+          toolKey('REGION L −',`L ${pos.regionLayer}`,()=>moveSelectedLayer(-1),pos.regionLayer<=1),
+          toolKey('REGION L +',`L ${pos.regionLayer}`,()=>moveSelectedLayer(1),pos.regionLayer>=9)
+        ]
+        :[
+          toolKey('TIER −',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(-1),selectedImage.tier<=0),
+          toolKey('TIER +',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(1),selectedImage.tier>=TIERS.length-1),
+          toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
+          toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9)
+        ]),
       toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
       toolKey('DELETE','image',removeSelectedImage)
     );return;
