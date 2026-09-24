@@ -1132,8 +1132,11 @@ function updateLayerOrder(){
     item.stackOrder=index;
     const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
     const regionZ=item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100;
+    const localZ=item.localOverlay
+      ?(regionZ*1000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*100)+(clamp(Math.trunc(Number(item.localLayer)||1),1,9)*10)
+      :regionZ;
     item.node.style.zIndex=String(REGION_DEFINER
-      ? regionZ+(index/1000)
+      ? (LOCAL_DEFINER&&item.localOverlay?localZ:regionZ)+(index/1000)
       : isWorldMapItem(item)?tierStackBase(0)+1:(item.committed?committedZ:1000+(index/100)));
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
@@ -1302,7 +1305,9 @@ function openImageUpload(){
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
   announce(currentAssetPlacementRole()==='world-map'
     ?'Image upload opened. World Map will fill Sea Level at 100% by 100%.'
-    :REGION_DEFINER&&regionDeedIsComplete()
+    :LOCAL_DEFINER&&localIsOpen()
+      ?`Image upload opened inside ${activeLocal?.name||'Local'} at Local Tier ${localTierIndex}, Local Layer ${localLayerIndex}. Canonical X/Y remain unchanged.`
+      :REGION_DEFINER&&regionDeedIsComplete()
       ?`Image upload opened at World Z ${viewerLayer}, Region layer ${regionLayerIndex}, exact Z ${regionZLabel(viewerLayer,regionLayerIndex)}.`
       :`Image upload opened. Adjustable layer defaults to ${tierLabel(tierByIndex(currentTierIndex()))}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
@@ -1976,7 +1981,7 @@ async function placeUploadedImage(file){
   const tier=placementRole==='world-map'?0:(REGION_DEFINER?currentTierIndex():clamp(Math.trunc(Number(imageTier.value)||address.tier),0,TIERS.length-1));
   const layer=placementRole==='world-map'?0:clamp(Math.trunc(Number(imageLayer.value)||address.layer),0,9);
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
-  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(REGION_DEFINER?constrainRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint);
+  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(LOCAL_DEFINER&&localIsOpen()?constrainLocalPoint(requestedPoint.x,requestedPoint.y):(REGION_DEFINER?constrainRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint));
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -1995,7 +2000,9 @@ async function placeUploadedImage(file){
   if(isWorldMapItem(item)){
     assetPlacementRole='layer';
     announce(`${item.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`);
-  }else announce(REGION_DEFINER
+  }else announce(LOCAL_DEFINER&&localIsOpen()
+    ?`Image placed at Local Tier ${item.localTier||0}, Local Layer ${item.localLayer||1}; canonical X/Y ${item.x.toFixed(3)}, ${item.y.toFixed(3)} retained.`
+    :REGION_DEFINER
     ?`Image placed at World Z ${regionWorldLayer(item)}, Region layer ${regionOverlayLayer(item)}, exact Z ${regionZLabel(item)}.`
     :`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
 }
