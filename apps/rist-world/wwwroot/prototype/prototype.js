@@ -241,6 +241,7 @@ const IMAGE_RETURN_COVERAGE=.9;
 const regionSourceCache=new Map();
 let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnhanceActive=false,regionEnhanceRendering=false,regionCameraRevision=0;
 const collisionMasks=new Map();
+const alphaComponentCache=new Map();
 const COLLISION_MASK_MAX=512;
 
 function stableAssetAspect(item){
@@ -658,7 +659,7 @@ function serializableUserLayer(item){
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     // Personal-library URLs are short-lived capabilities. Persist only the stable
     // asset identity; reload resolves a fresh URL after authenticated storage is ready.
-    originalSrc:item.personalAssetKey?'':(item.originalSrc||''),transparentSrc:item.personalAssetKey?'':(item.transparentSrc||''),transparent:!!item.transparent,
+    originalSrc:item.personalAssetKey?'':(item.originalSrc||''),transparentSrc:item.personalAssetKey?'':(item.transparentSrc||''),transparent:!!item.transparent,alphaCrop:normalizeAlphaCrop(item.alphaCrop),alphaComponentSeed:normalizeAlphaSeed(item.alphaComponentSeed),linkGroupId:String(item.linkGroupId||''),linkGroupIndex:Number.isFinite(Number(item.linkGroupIndex))?Math.trunc(Number(item.linkGroupIndex)):null,linkGroupCount:Number.isFinite(Number(item.linkGroupCount))?Math.trunc(Number(item.linkGroupCount)):null,
     spriteSheetSrc:item.personalAssetKey?null:(item.spriteSheetSrc||null),spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
@@ -804,10 +805,15 @@ async function attachRestoredLayer(raw,options={}){
   }
   const firstPage=resolvedSpritePages[0]||null;
   const first=isSprite?(frameSources[0]||String(firstPage?.sheetSrc||freshPersonalSrc||raw.originalSrc||raw.spriteSheetSrc||'')):String(freshPersonalSrc||raw.originalSrc||'');
+  const restoredTransparentSrc=!isSprite&&first
+    ?await preparedImageSource(first,{transparent:!!raw.transparent,alphaCrop:raw.alphaCrop,alphaComponentSeed:raw.alphaComponentSeed}).catch(()=>String(raw.transparentSrc||first))
+    :first;
   const item={
     id:String(raw.id||crypto.randomUUID?.()||Date.now()),authorityResourceId:String(raw.authorityResourceId||''),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
-    originalSrc:first,transparentSrc:String(first||freshPersonalSrc||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
+    originalSrc:first,transparentSrc:isSprite?String(first||freshPersonalSrc||raw.transparentSrc||''):String(restoredTransparentSrc||first||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
+    alphaCrop:isSprite?null:normalizeAlphaCrop(raw.alphaCrop),alphaComponentSeed:isSprite?null:normalizeAlphaSeed(raw.alphaComponentSeed),
+    linkGroupId:String(raw.linkGroupId||''),linkGroupIndex:Number.isFinite(Number(raw.linkGroupIndex))?Math.trunc(Number(raw.linkGroupIndex)):null,linkGroupCount:Number.isFinite(Number(raw.linkGroupCount))?Math.trunc(Number(raw.linkGroupCount)):null,
     spritePages:isSprite?resolvedSpritePages:null,
     spriteSheetSrc:isSprite?String(firstPage?.sheetSrc||freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||''):null,
     spriteColumns:isSprite?(Number(firstPage?.columns)||Number(raw.spriteColumns)||1):null,spriteRows:isSprite?(Number(firstPage?.rows)||Number(raw.spriteRows)||1):null,
@@ -1502,6 +1508,187 @@ async function transparencyCandidate(src){
   for(let i=0;i<px.length;i+=4){const d=Math.hypot(px[i]-r,px[i+1]-g,px[i+2]-b);if(d<threshold)px[i+3]=0;else if(d<threshold*1.5)px[i+3]=Math.round(255*(d-threshold)/(threshold*.5))}
   ctx.putImageData(data,0,0);return canvas.toDataURL('image/png');
 }
+function normalizeAlphaCrop(raw){
+  if(!raw||typeof raw!=='object')return null;
+  const x=clamp(Number(raw.x)||0,0,1),y=clamp(Number(raw.y)||0,0,1),width=clamp(Number(raw.width)||0,0,1),height=clamp(Number(raw.height)||0,0,1);
+  if(!(width>0&&height>0))return null;
+  return{x,y,width,height};
+}
+function normalizeAlphaSeed(raw){
+  if(!raw||typeof raw!=='object')return null;
+  const x=clamp(Number(raw.x)||0,0,1),y=clamp(Number(raw.y)||0,0,1);
+  return{x,y};
+}
+async function cropImageSource(src,crop){
+  crop=normalizeAlphaCrop(crop);if(!crop)return String(src||'');
+  const img=await loadDataImage(src),w=Math.max(1,img.naturalWidth||img.width||1),h=Math.max(1,img.naturalHeight||img.height||1);
+  const sx=clamp(Math.floor(crop.x*w),0,w-1),sy=clamp(Math.floor(crop.y*h),0,h-1);
+  const sw=clamp(Math.ceil(crop.width*w),1,w-sx),sh=clamp(Math.ceil(crop.height*h),1,h-sy);
+  const canvas=document.createElement('canvas');canvas.width=sw;canvas.height=sh;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,sw,sh);ctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+  return canvas.toDataURL('image/png');
+}
+async function alphaComponentAnalysis(source){
+  source=String(source||'');if(!source)return{source:'',transparentSrc:'',pieces:[]};
+  if(alphaComponentCache.has(source))return alphaComponentCache.get(source);
+  const task=(async()=>{
+    const transparentSrc=await transparencyCandidate(source),img=await loadDataImage(transparentSrc);
+    const sourceWidth=Math.max(1,img.naturalWidth||img.width||1),sourceHeight=Math.max(1,img.naturalHeight||img.height||1);
+    const max=1536,ratio=Math.min(1,max/Math.max(sourceWidth,sourceHeight)),width=Math.max(1,Math.round(sourceWidth*ratio)),height=Math.max(1,Math.round(sourceHeight*ratio));
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,width,height);ctx.drawImage(img,0,0,width,height);
+    const image=ctx.getImageData(0,0,width,height),px=image.data,count=width*height,labels=new Int32Array(count),queue=new Int32Array(count);
+    const minimumArea=Math.max(16,Math.floor(count*.00004)),components=[];let label=0;
+    for(let start=0;start<count;start++){
+      if(labels[start]||px[start*4+3]<=8)continue;
+      label++;let head=0,tail=0,minX=width,minY=height,maxX=-1,maxY=-1;
+      labels[start]=label;queue[tail++]=start;
+      while(head<tail){
+        const p=queue[head++],x=p%width,y=(p/width)|0;
+        if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;
+        for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){
+          if(!ox&&!oy)continue;const nx=x+ox,ny=y+oy;
+          if(nx<0||nx>=width||ny<0||ny>=height)continue;
+          const n=ny*width+nx;if(labels[n]||px[n*4+3]<=8)continue;
+          labels[n]=label;queue[tail++]=n;
+        }
+      }
+      if(tail>=minimumArea)components.push({label,area:tail,minX,minY,maxX,maxY,seed:queue[Math.floor(tail/2)]});
+    }
+    components.sort((a,b)=>b.area-a.area);
+    const kept=components.slice(0,64),pieces=[];
+    for(const component of kept){
+      const pad=1,minX=Math.max(0,component.minX-pad),minY=Math.max(0,component.minY-pad),maxX=Math.min(width-1,component.maxX+pad),maxY=Math.min(height-1,component.maxY+pad);
+      const cw=maxX-minX+1,ch=maxY-minY+1,out=document.createElement('canvas');out.width=cw;out.height=ch;
+      const outCtx=out.getContext('2d',{willReadFrequently:true}),crop=ctx.getImageData(minX,minY,cw,ch),cp=crop.data;
+      for(let yy=0;yy<ch;yy++)for(let xx=0;xx<cw;xx++){
+        const global=(minY+yy)*width+(minX+xx);
+        if(labels[global]!==component.label)cp[(yy*cw+xx)*4+3]=0;
+      }
+      outCtx.putImageData(crop,0,0);
+      const seedIndex=component.seed,seedX=(seedIndex%width+.5)/width,seedY=(((seedIndex/width)|0)+.5)/height;
+      pieces.push({
+        src:out.toDataURL('image/png'),
+        crop:{x:minX/width,y:minY/height,width:cw/width,height:ch/height},
+        seed:{x:seedX,y:seedY},
+        area:component.area
+      });
+    }
+    return{source,transparentSrc,sourceWidth,sourceHeight,width,height,pieces};
+  })().catch(error=>{alphaComponentCache.delete(source);throw error});
+  alphaComponentCache.set(source,task);return task;
+}
+async function preparedImageSource(source,{transparent=false,alphaCrop=null,alphaComponentSeed=null}={}){
+  source=String(source||'');if(!source)return'';
+  const seed=normalizeAlphaSeed(alphaComponentSeed);
+  if(seed){
+    const analysis=await alphaComponentAnalysis(source);
+    if(analysis.pieces.length){
+      let best=analysis.pieces[0],bestDistance=Infinity;
+      for(const piece of analysis.pieces){
+        const dx=piece.seed.x-seed.x,dy=piece.seed.y-seed.y,d=(dx*dx)+(dy*dy);
+        if(d<bestDistance){bestDistance=d;best=piece}
+      }
+      return best.src;
+    }
+  }
+  let visible=transparent?await transparencyCandidate(source):source;
+  if(alphaCrop)visible=await cropImageSource(visible,alphaCrop);
+  return visible;
+}
+function linkedSelectionMembers(item=selectedImage){
+  const group=String(item?.linkGroupId||'').trim();
+  if(!group)return item?[item]:[];
+  return userLayers.filter(entry=>String(entry?.linkGroupId||'')===group&&entry?.node?.isConnected);
+}
+function refreshLinkedSelectionClasses(){
+  for(const item of userLayers)item?.node?.classList.remove('linked-selected');
+  if(!selectedImage)return;
+  const members=linkedSelectionMembers(selectedImage);
+  if(members.length>1)for(const item of members)item.node?.classList.add('linked-selected');
+}
+function linkedSelectionCenter(members){
+  if(!members?.length)return{x:0,y:0};
+  let x=0,y=0;for(const item of members){x+=(Number(item.x)||0)*naturalWidth;y+=(Number(item.y)||0)*naturalHeight}
+  return{x:x/members.length,y:y/members.length};
+}
+function rotateLinkedSelection(item,delta){
+  const members=linkedSelectionMembers(item);if(!members.length)return;
+  if(members.length===1){item.rotation=(Number(item.rotation)||0)+delta;refreshUserImage(item);return}
+  const center=linkedSelectionCenter(members),rad=delta*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad);
+  for(const member of members){
+    const px=(Number(member.x)||0)*naturalWidth-center.x,py=(Number(member.y)||0)*naturalHeight-center.y;
+    member.x=clamp((center.x+(px*c)-(py*s))/Math.max(naturalWidth,1),0,1);
+    member.y=clamp((center.y+(px*s)+(py*c))/Math.max(naturalHeight,1),0,1);
+    member.rotation=(Number(member.rotation)||0)+delta;refreshUserImage(member);
+  }
+  refreshAssetResizeOverlay(item);scheduleRegionEnhancement(20);
+}
+function adjustLinkedOpacity(item,delta){
+  for(const member of linkedSelectionMembers(item)){member.opacity=clamp((Number(member.opacity)||1)+delta,.1,1);refreshUserImage(member)}
+}
+function toggleLinkedTransparency(item){
+  const next=!item.transparent;
+  for(const member of linkedSelectionMembers(item)){member.transparent=next;member.renderedSrc='';refreshUserImage(member)}
+  renderKeyboardKeys();scheduleRegionEnhancement(20);
+}
+function unlinkSelectedGroup(){
+  const members=linkedSelectionMembers(selectedImage);
+  if(members.length<2){announce('This image is already independent.');return false}
+  for(const item of members){item.linkGroupId='';item.linkGroupIndex=null;item.linkGroupCount=null;item.node?.classList.remove('linked-selected')}
+  refreshLinkedSelectionClasses();renderKeyboardKeys();announce(`Unlinked ${members.length} pieces. Each piece can now move independently.`);return true;
+}
+async function splitImageByAlpha(item=selectedImage){
+  if(READ_ONLY||!item||item.kind!=='image'||item.sourceLocked||isWorldMapItem(item))return false;
+  try{
+    if(item.personalUploadPromise)await item.personalUploadPromise.catch(()=>null);
+    let source=String(item.originalSrc||'');
+    if(item.personalAssetKey)source=await resolvePersonalAssetSource(item.personalAssetKey,source);
+    if(!source){announce('The image source is unavailable.');return false}
+    announce('Cutting transparent sections into linked pieces…');
+    const analysis=await alphaComponentAnalysis(source);
+    if(!analysis.pieces.length){announce('No visible image sections were found.');return false}
+    const oldSize=Math.max(Number(item.size)||1,.00001),oldX=Number(item.x)||0,oldY=Number(item.y)||0,baseW=naturalWidth*.12,baseH=baseW*(analysis.sourceHeight/Math.max(analysis.sourceWidth,1));
+    const makeGeometry=piece=>{
+      const crop=piece.crop,localDx=((crop.x+(crop.width/2))-.5)*baseW*oldSize,localDy=((crop.y+(crop.height/2))-.5)*baseH*oldSize;
+      const rad=(Number(item.rotation)||0)*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad),worldDx=(localDx*c)-(localDy*s),worldDy=(localDx*s)+(localDy*c);
+      return{
+        x:clamp(oldX+(worldDx/Math.max(naturalWidth,1)),0,1),
+        y:clamp(oldY+(worldDy/Math.max(naturalHeight,1)),0,1),
+        size:clamp(oldSize*crop.width,.05,20)
+      };
+    };
+    if(analysis.pieces.length===1){
+      const piece=analysis.pieces[0],geometry=makeGeometry(piece);
+      item.originalSrc=source;item.transparentSrc=piece.src;item.transparent=true;item.alphaCrop=piece.crop;item.alphaComponentSeed=piece.seed;
+      item.x=geometry.x;item.y=geometry.y;item.size=geometry.size;item.renderedSrc='';item.committed=false;
+      refreshUserImage(item);refreshAssetResizeOverlay(item);renderKeyboardKeys();scheduleRegionEnhancement(20);
+      announce('Transparent outer pixels were cut away. The visible image remains one object.');return true;
+    }
+    const groupId=`alpha-group:${crypto.randomUUID?.()||Date.now()}`,originalIndex=Math.max(0,userLayers.indexOf(item)),members=[];
+    for(let index=0;index<analysis.pieces.length;index++){
+      const piece=analysis.pieces[index],geometry=makeGeometry(piece),member={
+        ...item,
+        id:`alpha-piece:${crypto.randomUUID?.()||Date.now()}:${index}`,authorityResourceId:'',
+        name:`${item.name||'Image'} · piece ${index+1}/${analysis.pieces.length}`,
+        originalSrc:source,transparentSrc:piece.src,transparent:true,alphaCrop:piece.crop,alphaComponentSeed:piece.seed,
+        linkGroupId:groupId,linkGroupIndex:index,linkGroupCount:analysis.pieces.length,
+        x:geometry.x,y:geometry.y,size:geometry.size,committed:false,renderOpacity:1,renderedSrc:'',zoomPassed:false,zoomPassScale:null,
+        progressiveSlices:null,node:null
+      };
+      const node=document.createElement('img');node.className='user-image-placement';node.alt=member.name;node.draggable=false;member.node=node;
+      node.addEventListener('pointerdown',event=>beginImageDrag(event,member));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+      members.push(member);
+    }
+    stopSpriteMotion(item);item.node?.remove();const oldIndex=userLayers.indexOf(item);if(oldIndex>=0)userLayers.splice(oldIndex,1);
+    userLayers.splice(originalIndex,0,...members);
+    for(const member of members){mountUserPlacement(member);refreshUserImage(member)}
+    updateLayerOrder();selectUserImage(members[0]);applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(20);
+    announce(`Cut image into ${members.length} linked pieces. They move together until you choose UNLINK.`);return true;
+  }catch(error){
+    announce(`Image split failed: ${String(error?.message||error||'unknown error')}`);return false;
+  }
+}
 const LABEL_COLORS=Object.freeze(['#fff2c7','#ffffff','#f0cc69','#a9d8ff','#b7f0c2','#ffb7b7','#d6c2ff','#121820']);
 function refreshUserLabel(item){
   if(!item?.node)return;
@@ -1712,16 +1899,26 @@ function applySelectedSize(item,value,{announceChange=false}={}){
     item.fontSize=clamp(Number(value)||48,12,180);
     refreshUserLabel(item);
   }else{
-    item.size=clamp(Number(value)||1,.05,20);
-    refreshUserImage(item);
+    const next=clamp(Number(value)||1,.05,20),members=linkedSelectionMembers(item);
+    if(members.length>1){
+      const current=Math.max(Number(item.size)||1,.00001),factor=next/current,center=linkedSelectionCenter(members);
+      for(const member of members){
+        const px=(Number(member.x)||0)*naturalWidth-center.x,py=(Number(member.y)||0)*naturalHeight-center.y;
+        member.x=clamp((center.x+(px*factor))/Math.max(naturalWidth,1),0,1);
+        member.y=clamp((center.y+(py*factor))/Math.max(naturalHeight,1),0,1);
+        member.size=clamp((Number(member.size)||1)*factor,.05,20);refreshUserImage(member);
+      }
+    }else{
+      item.size=next;refreshUserImage(item);
+    }
   }
   refreshAssetResizeOverlay(item);
   scheduleRegionEnhancement(20);
   if(announceChange){
-    const valueNow=selectedSizeValue(item);
+    const valueNow=selectedSizeValue(item),count=linkedSelectionMembers(item).length;
     announce(item.kind==='label'
       ?`Label size ${Math.round(valueNow)} pixels.`
-      :`${item.kind==='sprite'?'Sprite':'Asset'} size ${valueNow.toFixed(2)} times.`);
+      :count>1?`Linked selection size changed (${count} pieces).`:`${item.kind==='sprite'?'Sprite':'Asset'} size ${valueNow.toFixed(2)} times.`);
   }
   return true;
 }
@@ -1881,7 +2078,7 @@ function refreshUserImage(item){
     announce('The parent world tier is locked. Select a regional object above it.');return;
   }
   const previous=selectedImage;
-  previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');
+  previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');refreshLinkedSelectionClasses();
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
   if(selectedImage)refreshUserImage(selectedImage);
   if(selectedImage)refreshAssetResizeOverlay(selectedImage);else removeAssetResizeOverlay();
@@ -1899,7 +2096,7 @@ function refreshUserImage(item){
 function deselectUserImage(announceChange=false){
   if(!selectedImage)return false;
   const previous=selectedImage;
-  previous.node?.classList.remove('selected');selectedImage=null;removeAssetResizeOverlay();refreshUserImage(previous);renderKeyboardKeys();scheduleRegionEnhancement(20);
+  previous.node?.classList.remove('selected');selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();refreshUserImage(previous);renderKeyboardKeys();scheduleRegionEnhancement(20);
   if(announceChange)announce('Selection cleared.');
   return true;
 }
@@ -1976,7 +2173,11 @@ function placedContentSelect(){
 function removeSelectedImage(){
   if(READ_ONLY)return;if(!selectedImage)return;
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
-  const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;removeAssetResizeOverlay();updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
+  const doomed=linkedSelectionMembers(selectedImage);
+  for(const item of doomed){stopSpriteMotion(item);item.node?.remove();const index=userLayers.indexOf(item);if(index>=0)userLayers.splice(index,1)}
+  selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();updateLayerOrder();applyParallax();renderKeyboardKeys();
+  announce(doomed.length>1?`Linked selection removed (${doomed.length} pieces).`:'Placed content removed from the layer stack.');
+}
 function beginImageDrag(event,item){
   if(LOCAL_DEFINER&&!localIsOpen()){event.preventDefault();event.stopPropagation();selectUserImage(item);return;}
   if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
@@ -1995,7 +2196,8 @@ function beginImageDrag(event,item){
   const resumeSprite=item.kind==='sprite'&&item.playing;
   if(resumeSprite)stopSpriteMotion(item);
   suspendRegionEnhancement();
-  imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y,resumeSprite};
+  const linked=linkedSelectionMembers(item).filter(member=>!member.sourceLocked);
+  imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y,resumeSprite,members:linked.map(member=>({item:member,x:Number(member.x)||0,y:Number(member.y)||0}))};
 }
 function moveImageDrag(event){
   if(READ_ONLY)return;
@@ -2003,8 +2205,18 @@ function moveImageDrag(event){
   const rawX=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
   const bounded=LOCAL_DEFINER&&localIsOpen()?constrainLocalPoint(rawX,rawY):(REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY});
-  imageDrag.item.x=bounded.x;imageDrag.item.y=bounded.y;
-  refreshUserImage(imageDrag.item);refreshAssetResizeOverlay(imageDrag.item);
+  const dx=bounded.x-imageDrag.x,dy=bounded.y-imageDrag.y,members=imageDrag.members?.length?imageDrag.members:[{item:imageDrag.item,x:imageDrag.x,y:imageDrag.y}];
+  let blocked=false,next=[];
+  for(const entry of members){
+    const px=clamp(entry.x+dx,0,1),py=clamp(entry.y+dy,0,1);
+    const constrained=LOCAL_DEFINER&&localIsOpen()?constrainLocalPoint(px,py):(REGION_DEFINER?constrainRegionPoint(px,py):{x:px,y:py});
+    if(Math.abs(constrained.x-px)>.000001||Math.abs(constrained.y-py)>.000001){blocked=true;break}
+    next.push({item:entry.item,x:px,y:py});
+  }
+  if(!blocked){
+    for(const entry of next){entry.item.x=entry.x;entry.item.y=entry.y;refreshUserImage(entry.item)}
+    refreshAssetResizeOverlay(imageDrag.item);
+  }
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
 function endImageDrag(event){
@@ -3943,8 +4155,8 @@ function schedulePersonalAssetHydration(item,attempt=0){
       const fresh=await personalDownloadUrl(item.personalAssetKey);
       if(fresh){
         item.originalSrc=fresh;
-        item.transparentSrc=fresh;
         if(item.kind==='sprite'){
+          item.transparentSrc=fresh;
           if(item.spritePages?.length){
             const refreshed=[];
             for(let index=0;index<item.spritePages.length;index++){
@@ -3968,6 +4180,8 @@ function schedulePersonalAssetHydration(item,attempt=0){
             }).catch(()=>[]);
             if(frames.length){item.frameSources=frames;item.currentFrame=0}
           }
+        }else{
+          item.transparentSrc=await preparedImageSource(fresh,{transparent:!!item.transparent,alphaCrop:item.alphaCrop,alphaComponentSeed:item.alphaComponentSeed});
         }
         item.renderedSrc='';
         item.node.dataset.assetPending='false';
@@ -4802,11 +5016,14 @@ function renderKeyboardKeysContent(){
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
       toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
       sizeNumberInput(selectedImage),sizeRangeInput(selectedImage),
-      toolKey('↺','rotate',()=>{selectedImage.rotation-=15;refreshUserImage(selectedImage)}),
-      toolKey('↻','rotate',()=>{selectedImage.rotation+=15;refreshUserImage(selectedImage)}),
-      toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
-      toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
-      toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
+      toolKey('↺','rotate',()=>rotateLinkedSelection(selectedImage,-15)),
+      toolKey('↻','rotate',()=>rotateLinkedSelection(selectedImage,15)),
+      toolKey('OP −','opacity',()=>adjustLinkedOpacity(selectedImage,-.1)),
+      toolKey('OP +','opacity',()=>adjustLinkedOpacity(selectedImage,.1)),
+      toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>toggleLinkedTransparency(selectedImage)),
+      ...(linkedSelectionMembers(selectedImage).length>1
+        ?[readoutKey(`LINKED ${linkedSelectionMembers(selectedImage).length}`,'moves as one selection'),toolKey('UNLINK','move pieces separately',unlinkSelectedGroup)]
+        :[toolKey('SPLIT ALPHA','cut transparent sections',()=>void splitImageByAlpha(selectedImage))]),
       ...(LOCAL_DEFINER
         ?[
           toolKey('LOCAL T −',`T ${pos.localTier}`,()=>moveSelectedTier(-1),pos.localTier<=0),
@@ -5167,7 +5384,7 @@ window.ShaelvienPrototype=Object.freeze({
       regionLayer:REGION_DEFINER&&item.regionOverlay?regionOverlayLayer(item):0,
       z100:REGION_DEFINER?(item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100):undefined,
       sourceLocked:!!item.sourceLocked,regionOverlay:!!item.regionOverlay,
-      x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,
+      x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,linkGroupId:item.linkGroupId||'',linkGroupIndex:item.linkGroupIndex??null,linkGroupCount:item.linkGroupCount??null,
       parallaxMode:itemParallaxMode(item),parallaxX:Number(item.parallaxX)||0,parallaxY:Number(item.parallaxY)||0,
       committed:!!item.committed,zoomPassed:!!item.zoomPassed
     })),
