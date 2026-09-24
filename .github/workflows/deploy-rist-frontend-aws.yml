@@ -26,6 +26,7 @@ env:
   CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   FRONTEND_STACK: rist-frontend
   PLATFORM_STACK: rist-platform
+  EXTERNAL_AI_STACK: rist-external-ai
   TRANSLATION_STACK: rist-translation
   PRODUCTION_DOMAIN: relicgamemaster.com
   PRODUCTION_CERTIFICATE_ARN: arn:aws:acm:us-east-1:797661578124:certificate/e25800ef-28bc-43e3-8b75-aaefc0528375
@@ -100,6 +101,33 @@ jobs:
             fi
           done
 
+      - name: Resolve MCP API origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          MCP_API_DOMAIN=""
+          if aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" >/dev/null 2>&1; then
+            MCP_API=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
+              --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
+            if [ -n "$MCP_API" ] && [ "$MCP_API" != "None" ]; then
+              MCP_API_DOMAIN=$(python - "$MCP_API" <<'PY'
+          import sys
+          from urllib.parse import urlparse
+          parsed=urlparse(sys.argv[1])
+          if not parsed.netloc:
+              raise SystemExit("External AI API URL has no hostname")
+          print(parsed.netloc)
+          PY
+              )
+            fi
+          fi
+          echo "MCP_API_DOMAIN=$MCP_API_DOMAIN" >> "$GITHUB_ENV"
+          if [ -z "$MCP_API_DOMAIN" ]; then
+            echo "::warning::MCP API origin is unavailable; /mcp will remain on the static origin for this deployment."
+          else
+            echo "MCP API origin resolved."
+          fi
+
       - name: Validate frontend stack
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
 
@@ -115,6 +143,7 @@ jobs:
             --parameter-overrides \
               DomainName="$PRODUCTION_DOMAIN" \
               CertificateArn="$PRODUCTION_CERTIFICATE_ARN" \
+              McpApiDomainName="$MCP_API_DOMAIN" \
             --no-fail-on-empty-changeset; then
             echo "CloudFormation deployment failed. Recent failed resource events:"
             aws cloudformation describe-stack-events \
@@ -274,10 +303,14 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/ai-purchase/*' '/.well-known/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/ai-purchase/*' '/.well-known/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/mcp' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
+          if [ -n "$MCP_API_DOMAIN" ]; then
+            curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-mcp.html "${URL}mcp"
+            grep -q 'Enter through governance' /tmp/relic-mcp.html
+          fi
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
           grep -q 'site-language' /tmp/relic-home.html
