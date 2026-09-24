@@ -155,7 +155,7 @@
 
   <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
   <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
-  <LocalGate Open="@_localGateOpen" OnClose="CloseLocalGate" OnNew="OpenNewLocal" OnSelect="OpenSavedLocal" />
+  <LocalGate Open="@_localGateOpen" OnClose="CloseLocalGate" OnNew="OpenNewLocal" OnSelect="OpenSavedLocal" OnDelete="DeleteSavedLocal" />
   <CommerceAdminPanel Open="@_commerceAdminOpen" OnClose="CloseCommerceAdmin" />
 
   <footer class="launcher-footer">
@@ -705,6 +705,11 @@ else
   var region=Session.DefinedRegions.FirstOrDefault(item=>string.Equals(item.RegionId,local.RegionId,StringComparison.Ordinal));
   var groupName=region?.Name??"REGION";
   OpenWorkspace("local","LOCAL DEFINER",$"{groupName.ToUpperInvariant()} → {local.Name.ToUpperInvariant()} · 30°");
+ }
+ async Task DeleteSavedLocal(WorldLocal local)
+ {
+  await Session.DeleteLocalAsync(local);
+  await InvokeAsync(StateHasChanged);
  }
  void OpenNewRegion()
  {
