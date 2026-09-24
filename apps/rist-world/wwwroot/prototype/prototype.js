@@ -1197,6 +1197,11 @@ function adjustSelectedSize(direction){
 }
 function moveSelectedTier(delta){
   if(READ_ONLY||!selectedImage)return;
+  if(LOCAL_DEFINER&&selectedImage.localOverlay){
+    const next=Math.max(0,Math.trunc(Number(selectedImage.localTier)||0)+Math.sign(delta));
+    selectedImage.localTier=next;localTierIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
+    announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer||1}. Canonical X/Y unchanged.`);return;
+  }
   if(REGION_DEFINER){
     const next=clamp(regionWorldLayer(selectedImage)+Math.sign(delta),0,9);
     selectedImage.worldLayer=next;selectedImage.layer=next;selectedImage.z100=regionZ100(next,regionOverlayLayer(selectedImage));
@@ -1212,6 +1217,7 @@ function moveSelectedTier(delta){
 }
 function moveSelectedRegionTier(delta){
   if(READ_ONLY||!selectedImage||!REGION_DEFINER)return;
+  if(LOCAL_DEFINER){announce('Region tier is inherited from the selected Local anchor.');return;}
   const next=Math.max(0,regionOverlayTier(selectedImage)+Math.sign(delta));
   selectedImage.regionTier=next;
   regionTierIndex=next;
@@ -1221,6 +1227,11 @@ function moveSelectedRegionTier(delta){
 function moveSelectedLayer(delta){
   if(READ_ONLY||!selectedImage)return;
   if(isWorldMapItem(selectedImage)){announce('World Map is the Sea Level base layer.');return}
+  if(LOCAL_DEFINER&&selectedImage.localOverlay){
+    const next=clamp(Math.trunc(Number(selectedImage.localLayer)||1)+Math.sign(delta),1,9);
+    selectedImage.localLayer=next;localLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
+    announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. Canonical X/Y unchanged.`);return;
+  }
   if(REGION_DEFINER){
     const next=clamp(regionOverlayLayer(selectedImage)+Math.sign(delta),1,9);
     selectedImage.regionLayer=next;selectedImage.z100=regionZ100(regionWorldLayer(selectedImage),next);
@@ -1552,7 +1563,14 @@ function renderLabelsKeyboard(){
     toolKey('←','offset',()=>nudgeLabelOffset(-8,0)),toolKey('→','offset',()=>nudgeLabelOffset(8,0)),
     toolKey('↑','offset',()=>nudgeLabelOffset(0,-8)),toolKey('↓','offset',()=>nudgeLabelOffset(0,8)),
     toolKey('OFFSET 0','reset',()=>{selected.offsetX=0;selected.offsetY=0;refreshUserLabel(selected)}),
-    ...(REGION_DEFINER
+    ...(LOCAL_DEFINER
+      ?[
+        toolKey('LOCAL T −',`T ${pos.localTier}`,()=>moveSelectedTier(-1),pos.localTier<=0),
+        toolKey('LOCAL T +',`T ${pos.localTier}`,()=>moveSelectedTier(1)),
+        toolKey('LOCAL L −',`L ${pos.localLayer}`,()=>moveSelectedLayer(-1),pos.localLayer<=1),
+        toolKey('LOCAL L +',`L ${pos.localLayer}`,()=>moveSelectedLayer(1),pos.localLayer>=9)
+      ]
+      :REGION_DEFINER
       ?[
         toolKey('WORLD Z −',`Z ${pos.worldZ}`,()=>moveSelectedTier(-1),pos.worldZ<=0),
         toolKey('WORLD Z +',`Z ${pos.worldZ}`,()=>moveSelectedTier(1),pos.worldZ>=9),
@@ -4319,8 +4337,14 @@ function renderKeyboardKeysContent(){
         readoutKey(`REGION T ${regionTierIndex}`,LOCAL_DEFINER?'inherited from selected regional object':'regional tier'),
         readoutKey(`REGION L ${regionLayerIndex}`,LOCAL_DEFINER?'inherited from selected regional object':'regional layer'),
         ...(LOCAL_DEFINER?[
-          readoutKey('LOCAL T 0','new Local starts at Local Tier 0'),
-          readoutKey('LOCAL L 0','new Local starts at Local Layer 0')
+          readoutKey(`LOCAL T ${localTierIndex}`,localIsOpen()?'editable Local tier':'new Local starts at Local Tier 0'),
+          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 1'),
+          ...(localIsOpen()?[
+            toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(0,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=0),
+            toolKey('LOCAL T +',`T ${localTierIndex}`,()=>{localTierIndex+=1;syncLocalEditLayer();renderKeyboardKeys()}),
+            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=1),
+            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
+          ]:[])
         ]:[
           toolKey('WORLD L −',`L ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Layer ${viewerLayer}.`)} ,viewerLayer<=0),
           toolKey('WORLD L +',`L ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer+1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Layer ${viewerLayer}.`)} ,viewerLayer>=9),
@@ -4499,7 +4523,14 @@ function renderKeyboardKeysContent(){
       toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
       toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
-      ...(REGION_DEFINER
+      ...(LOCAL_DEFINER
+        ?[
+          toolKey('LOCAL T −',`T ${pos.localTier}`,()=>moveSelectedTier(-1),pos.localTier<=0),
+          toolKey('LOCAL T +',`T ${pos.localTier}`,()=>moveSelectedTier(1)),
+          toolKey('LOCAL L −',`L ${pos.localLayer}`,()=>moveSelectedLayer(-1),pos.localLayer<=1),
+          toolKey('LOCAL L +',`L ${pos.localLayer}`,()=>moveSelectedLayer(1),pos.localLayer>=9)
+        ]
+        :REGION_DEFINER
         ?[
           toolKey('WORLD L −',`L ${pos.worldZ}`,()=>moveSelectedTier(-1),pos.worldZ<=0),
           toolKey('WORLD L +',`L ${pos.worldZ}`,()=>moveSelectedTier(1),pos.worldZ>=9),
