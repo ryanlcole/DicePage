@@ -1,0 +1,152 @@
+@inject WorldSession Session
+
+@if(Open)
+{
+ <section class="local-gate-backdrop" role="presentation" @onclick="CloseAsync">
+  <div class="local-gate" role="dialog" aria-modal="true" aria-label="Choose a Local zone" @onclick:stopPropagation="true">
+   <header>
+    <div><small>SHAELVIEN</small><h1>CHOOSE A LOCAL ZONE</h1></div>
+    <button type="button" class="local-gate-close" @onclick="CloseAsync" aria-label="Close">×</button>
+   </header>
+
+   <section class="local-gate-create">
+    <div>
+     <strong>LOCAL ZONE</strong>
+     <small>Open an existing Local below, or create a new one by choosing a Region and then a Region asset.</small>
+    </div>
+    <button type="button" class="local-gate-primary" disabled="@(_busy||!CanDefineLocal)" @onclick="NewAsync">NEW LOCAL</button>
+   </section>
+
+   @if(!string.IsNullOrWhiteSpace(_status))
+   {
+    <p class="local-gate-status" role="status">@_status</p>
+   }
+
+   @if(_loading)
+   {
+    <p class="local-gate-note">Loading Local zones…</p>
+   }
+   else if(LocalGroups.Count==0)
+   {
+    <p class="local-gate-note">No Local zones have been defined yet. Choose NEW LOCAL to select a Region and anchor asset.</p>
+   }
+   else
+   {
+    <div class="local-gate-groups">
+     @foreach(var group in LocalGroups)
+     {
+      <section class="local-gate-group" aria-label="@($"{group.Region.Name} Local zones")">
+       <header>
+        <strong>@group.Region.Name</strong>
+        <small>@group.Locals.Count LOCAL@(group.Locals.Count==1?"":"S")</small>
+       </header>
+       <div class="local-gate-locals">
+        @foreach(var local in group.Locals)
+        {
+         <button type="button" class="local-gate-local" disabled="@_busy" @onclick="()=>SelectAsync(local)">
+          <span>
+           <strong>@local.Name</strong>
+           <small>@(string.IsNullOrWhiteSpace(local.AnchorName)?"Region asset":local.AnchorName) · @local.AnchorKind</small>
+          </span>
+          <b>OPEN</b>
+         </button>
+        }
+       </div>
+      </section>
+     }
+    </div>
+   }
+  </div>
+ </section>
+}
+
+<style>
+ .local-gate-backdrop{position:fixed;inset:0;z-index:2147482400;display:grid;place-items:center;padding:16px;box-sizing:border-box;background:rgba(1,6,9,.82);backdrop-filter:blur(7px)}
+ .local-gate{width:min(720px,96vw);max-height:min(86dvh,820px);display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;border:1px solid #9b7831;border-radius:18px;background:#071219;color:#e9dfc6;box-shadow:0 28px 80px #000d;font-family:Inter,system-ui,-apple-system,sans-serif}
+ .local-gate>header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 24px;border-bottom:1px solid #665126;background:linear-gradient(90deg,#0a1720,#171207)}
+ .local-gate>header small{color:#87aec0;font:900 8px/1 system-ui;letter-spacing:.17em}.local-gate h1{margin:5px 0 0;color:#f0d58c;font:700 clamp(20px,5vw,29px)/1 Georgia,serif;letter-spacing:.06em}
+ .local-gate-close{width:48px;height:48px;border:1px solid #5b6f78;border-radius:12px;background:#0b171e;color:#eadfca;font:300 35px/1 system-ui}
+ .local-gate-create{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-bottom:1px solid #263b44}.local-gate-create div{display:grid;gap:5px}.local-gate-create strong{color:#ead59d;font-size:15px}.local-gate-create small{max-width:470px;color:#93a6ae;font-size:10px;line-height:1.45}
+ .local-gate-primary{min-height:42px;padding:0 16px;border:1px solid #a48138;border-radius:9px;background:#261f10;color:#f1d58d;font:900 9px/1 system-ui;letter-spacing:.08em;white-space:nowrap}.local-gate-primary:disabled{opacity:.4}
+ .local-gate-groups{min-height:0;overflow:auto;padding:12px 18px 18px;display:grid;gap:12px;-webkit-overflow-scrolling:touch}
+ .local-gate-group{display:grid;gap:7px;padding:10px;border:1px solid #344b55;border-radius:11px;background:#09151c}.local-gate-group>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 7px;border-bottom:1px solid #2b414a}.local-gate-group>header strong{color:#e5cc88;font:800 11px system-ui}.local-gate-group>header small{color:#7fa0ae;font:900 7px system-ui;letter-spacing:.08em}
+ .local-gate-locals{display:grid;gap:6px}.local-gate-local{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid #405964;border-radius:9px;background:#0b1820;color:#e9dfc6;text-align:left}.local-gate-local span{display:grid;gap:4px;min-width:0}.local-gate-local strong{overflow:hidden;text-overflow:ellipsis;color:#ead59c;font-size:12px}.local-gate-local small{color:#87a0aa;font-size:8px}.local-gate-local b{color:#7bc5ed;font:900 8px system-ui;letter-spacing:.08em}
+ .local-gate-note,.local-gate-status{margin:16px 22px;color:#91a5ad;font-size:10px}.local-gate-status{color:#e5ba70}
+ @media(max-width:600px){.local-gate-backdrop{padding:8px}.local-gate{width:100%;max-height:94dvh}.local-gate>header{padding:12px}.local-gate-create{padding:13px;align-items:flex-start}.local-gate-create{flex-direction:column}.local-gate-primary{width:100%}.local-gate-groups{padding:9px 12px 14px}}
+</style>
+
+@code {
+ [Parameter] public bool Open { get; set; }
+ [Parameter] public EventCallback OnClose { get; set; }
+ [Parameter] public EventCallback OnNew { get; set; }
+ [Parameter] public EventCallback<WorldLocal> OnSelect { get; set; }
+
+ bool _wasOpen;
+ bool _loading;
+ bool _busy;
+ bool _loadRequested;
+ string _status="";
+
+ bool CanDefineLocal=>Session.DefinedRegions.Any(region=>Session.IsRegionInActiveWorld(region)&&Session.CanEditRegion(region));
+
+ IReadOnlyList<LocalGroup> LocalGroups=>Session.DefinedRegions
+  .Where(Session.IsRegionInActiveWorld)
+  .OrderBy(region=>region.Name,StringComparer.OrdinalIgnoreCase)
+  .Select(region=>new LocalGroup(
+   region,
+   Session.DefinedLocals
+    .Where(local=>string.Equals(local.RegionId,region.RegionId,StringComparison.Ordinal))
+    .OrderBy(local=>local.Name,StringComparer.OrdinalIgnoreCase)
+    .ToList()))
+  .Where(group=>group.Locals.Count>0)
+  .ToList();
+
+ protected override void OnParametersSet()
+ {
+  if(Open&&!_wasOpen)
+  {
+   _status="";
+   _loading=true;
+   _loadRequested=true;
+  }
+  _wasOpen=Open;
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!_loadRequested)return;
+  _loadRequested=false;
+  try
+  {
+   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+   await Session.LoadLocalsAsync();
+  }
+  catch(Exception ex){_status="Local list could not be loaded: "+ex.Message;}
+  finally{_loading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task CloseAsync()
+ {
+  if(_busy)return;
+  if(OnClose.HasDelegate)await OnClose.InvokeAsync();
+ }
+
+ async Task NewAsync()
+ {
+  if(_busy||!CanDefineLocal)return;
+  _busy=true;
+  try{if(OnNew.HasDelegate)await OnNew.InvokeAsync();}
+  finally{_busy=false;}
+ }
+
+ async Task SelectAsync(WorldLocal local)
+ {
+  if(_busy)return;
+  _busy=true;
+  try{if(OnSelect.HasDelegate)await OnSelect.InvokeAsync(local);}
+  finally{_busy=false;}
+ }
+
+ sealed record LocalGroup(WorldRegion Region,IReadOnlyList<WorldLocal> Locals);
+}
