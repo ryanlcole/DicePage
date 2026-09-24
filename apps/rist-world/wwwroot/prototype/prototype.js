@@ -9,6 +9,7 @@ const REGION_DEFINER=WORKSPACE_MODE==='regiondefiner'||LOCAL_DEFINER;
 const REPRESENTATION_ANGLE_DEGREES=LOCAL_DEFINER?30:REGION_DEFINER?15:0;
 const REGION_FLOW=String(QUERY.get('regionFlow')||'').toLowerCase();
 const REQUESTED_REGION_ID=String(QUERY.get('regionId')||'');
+const REQUESTED_LOCAL_ID=String(QUERY.get('localId')||'');
 const WORLD_ID=QUERY.get('worldId')||'';
 const WORLD_NAME=QUERY.get('worldName')||'';
 const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
@@ -97,7 +98,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false,requestedLocalOpenPending=false;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -152,6 +153,16 @@ function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayer
   return item;
 }
 function localIsOpen(){return !!(LOCAL_DEFINER&&activeLocal?.id)}
+function maybeOpenRequestedLocal(){
+  if(!LOCAL_DEFINER||!REQUESTED_LOCAL_ID||localIsOpen()||requestedLocalOpenPending||!regionProjectionLoaded)return;
+  const local=localCatalog.find(item=>String(item?.id||'')===REQUESTED_LOCAL_ID);
+  if(!local)return;
+  requestedLocalOpenPending=true;
+  if(!postRegionMessage('open-local',{localId:REQUESTED_LOCAL_ID})){
+    requestedLocalOpenPending=false;
+    announce('Saved Local could not be opened because the Local database bridge is unavailable.');
+  }
+}
 function activeLocalMapId(){return String(activeLocal?.id||'').trim()}
 function localAnchorBounds(local=activeLocal){
   if(!local)return null;
@@ -2592,6 +2603,7 @@ async function renderRegionProjection(payload){
   await Promise.all([...inheritedPending,...pending]);
   if(revision!==canonicalHydrationRevision)return;
   updateLayerOrder();applyParallax();ensureActiveRegionOverlaysShown(projectedId);refreshRegionPersistenceStatus();
+  maybeOpenRequestedLocal();
   announce(`${regionClaimedRegion.name} ready. ${expected.size} claimed coordinates from World Tier ${parentTier+1}. ${owned.length} saved regional overlay${owned.length===1?'':'s'} loaded. World Z 0–9 is locked; regional overlays use .01–.09 above each World Z.`);
 }
 async function renderRegionWorldSource(payload){
@@ -3681,6 +3693,7 @@ async function handleRegionHostMessage(event){
   if(data.type==='local-catalog'){
     localCatalog=Array.isArray(data.locals)?data.locals:[];
     renderKeyboardKeys();
+    maybeOpenRequestedLocal();
     return;
   }
   if(data.type==='local-catalog-error'){
@@ -3715,6 +3728,7 @@ async function handleRegionHostMessage(event){
   }
   if(data.type==='local-opened'){
     localCreatePending=false;
+    requestedLocalOpenPending=false;
     const localId=String(data.localId||'');
     const local=localCatalog.find(item=>String(item?.id||'')===localId);
     if(local)await enterLocalBuild(local,data.localSource||null);
@@ -3731,7 +3745,10 @@ async function handleRegionHostMessage(event){
     }
     if(pendingClaimedRegionId&&!regionClaimedRegion){
       const claimed=regionCatalog.find(region=>String(region?.id||'')===pendingClaimedRegionId);
-      if(claimed)applyClaimedRegionCrop(claimed)
+      if(claimed){
+        if(LOCAL_DEFINER)localRegionEditable=claimed.canEdit===true;
+        applyClaimedRegionCrop(claimed);
+      }
     }else if(regionClaimedRegion){
       const canonical=regionCatalog.find(region=>String(region?.id||'')===String(regionClaimedRegion.id||''));
       if(canonical){regionClaimedRegion=canonical;syncClaimedRegionOutline(canonical)}
