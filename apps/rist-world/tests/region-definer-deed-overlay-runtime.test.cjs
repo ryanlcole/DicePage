@@ -251,6 +251,29 @@ test('sprite playback keeps a stable frame box and predecodes extracted frames',
   assert.ok(source.includes("if(item.kind!=='sprite')void primeCollisionMask(desired)"));
 });
 
+test('shared Worldbuilder and RegionDefiner asset keyboards filter selection by asset type',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  assert.ok(source.includes('function selectablePlacedContentForMode(mode)'));
+  assert.ok(source.includes("if(mode==='Sprites')return item.kind==='sprite'"));
+  assert.ok(source.includes("if(mode==='Labels')return item.kind==='label'"));
+  assert.ok(source.includes("if(mode==='Tiles')return !!item.libraryTile"));
+  assert.ok(source.includes("typedPlacedContentSelect('Sprites')"));
+  assert.ok(source.includes("typedPlacedContentSelect('Tiles')"));
+  assert.ok(source.includes("typedPlacedContentSelect('Image')"));
+  assert.ok(source.includes("toolKey('DELETE',mode.toLowerCase(),removeSelectedImage)"));
+});
+
+test('shared sprite editor supports motion-only overlays and 60fps playback',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  assert.ok(html.includes('id="spriteMotionOnly"'));
+  assert.ok(html.includes('max="60"'));
+  assert.ok(source.includes('function isolateSpriteMotion('));
+  assert.ok(source.includes('motionOnly:definition.motionOnly===true'));
+  assert.ok(source.includes('requestAnimationFrame(step)'));
+  assert.ok(source.includes("toolKey('FPS 60'"));
+});
+
 test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps parent content locked',async()=>{
   const f=fixture('existing');
   try{
