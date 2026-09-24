@@ -3,7 +3,9 @@
 const QUERY=new URLSearchParams(location.search);
 const LIVE_WORLDBUILDER=QUERY.get('live-worldbuilder')==='1';
 const WORKSPACE_MODE=String(QUERY.get('mode')||'worldbuilder').toLowerCase();
-const REGION_DEFINER=WORKSPACE_MODE==='regiondefiner';
+const LOCAL_DEFINER=WORKSPACE_MODE==='localdefiner';
+const REGION_DEFINER=WORKSPACE_MODE==='regiondefiner'||LOCAL_DEFINER;
+const REPRESENTATION_ANGLE_DEGREES=LOCAL_DEFINER?30:REGION_DEFINER?15:0;
 const REGION_FLOW=String(QUERY.get('regionFlow')||'').toLowerCase();
 const REQUESTED_REGION_ID=String(QUERY.get('regionId')||'');
 const WORLD_ID=QUERY.get('worldId')||'';
@@ -17,7 +19,7 @@ const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
 const CLAIM_ONLY=ACCESS_MODE==='claim';
 const READ_ONLY=ACCESS_MODE==='view';
 const MAP_AUTHORITY_SCOPED=REGION_DEFINER;
-const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
+const ASSET_SCALE=LOCAL_DEFINER?'LOCAL':REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const MIN_VIEW_SCALE=1e-6;
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
@@ -55,19 +57,22 @@ if(READ_ONLY){
   const banner=document.createElement('div');banner.className='claim-request-reference';banner.textContent='CLAIM REQUEST MODE · GM APPROVAL REQUIRED';banner.setAttribute('role','status');stage.appendChild(banner);
 }else stage.dataset.access='edit';
 if(REGION_DEFINER){
-  document.title='Shaelvien Region Definer';
+  document.title=LOCAL_DEFINER?'Shaelvien Local Definer':'Shaelvien Region Definer';
   stage.classList.add('region-definer-mode');
-  stage.dataset.workspace='regiondefiner';
-  stage.dataset.mapAuthority='region-scoped';
-  keyboard?.setAttribute('aria-label','Region Definer contextual keyboard');
-  keyboardToggle?.setAttribute('aria-label','Open Region Definer keyboard');
-  persistentSave.title='Save authorized changes to the canonical map';
-  persistentSave.setAttribute('aria-label','Save authorized region changes to the canonical map');
-  imageUploadToggle?.setAttribute('aria-label','Add regional image');
-  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent='REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
+  if(LOCAL_DEFINER)stage.classList.add('local-definer-mode');
+  stage.dataset.workspace=LOCAL_DEFINER?'localdefiner':'regiondefiner';
+  stage.dataset.mapAuthority=LOCAL_DEFINER?'local-object-anchor':'region-scoped';
+  stage.dataset.representationAngle=String(REPRESENTATION_ANGLE_DEGREES);
+  keyboard?.setAttribute('aria-label',LOCAL_DEFINER?'Local Definer contextual keyboard':'Region Definer contextual keyboard');
+  keyboardToggle?.setAttribute('aria-label',LOCAL_DEFINER?'Open Local Definer keyboard':'Open Region Definer keyboard');
+  persistentSave.title=LOCAL_DEFINER?'Local definitions are saved from selected objects':'Save authorized changes to the canonical map';
+  persistentSave.setAttribute('aria-label',LOCAL_DEFINER?'Save selected Local object':'Save authorized region changes to the canonical map');
+  if(LOCAL_DEFINER)persistentSave.hidden=true;
+  if(LOCAL_DEFINER)imageUploadToggle.hidden=true;else imageUploadToggle?.setAttribute('aria-label','Add regional image');
+  const banner=document.createElement('div');banner.className='region-mode-reference';banner.textContent=LOCAL_DEFINER?'LOCAL DEFINER · SELECT REGIONAL OBJECT · 30° VIEW':'REGION DEFINER · CANONICAL MAP · 15° VIEW';banner.setAttribute('role','status');stage.appendChild(banner);
   // A new-region flow is tier choice first. Hide viewer chrome from the first JS paint
   // instead of exposing the canonical viewer while the database source hydrates.
-  if(REGION_FLOW==='new'&&!READ_ONLY){
+  if(!LOCAL_DEFINER&&REGION_FLOW==='new'&&!READ_ONLY){
     stage.classList.add('region-tier-previewing');
     stage.dataset.regionEntry='tier-preview';
   }
@@ -91,6 +96,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
+let localCatalog=[],localCreatePending=false;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -1643,10 +1649,12 @@ function refreshUserImage(item){
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
   if(selectedImage)refreshUserImage(selectedImage);
   if(selectedImage)refreshAssetResizeOverlay(selectedImage);else removeAssetResizeOverlay();
-  if(REGION_DEFINER&&regionDeedIsComplete()&&selectedImage&&keyboardMode==='Select'){
+  if(REGION_DEFINER&&regionDeedIsComplete()&&selectedImage&&keyboardMode==='Select'&&!LOCAL_DEFINER){
     keyboardMode=selectedImage.kind==='label'?'Labels':'Image';
     renderKeyboardTabs();
     announce(`${selectedImage.name||'Region object'} selected. Editing controls are open.`);
+  }else if(LOCAL_DEFINER&&selectedImage){
+    announce(`${selectedImage.name||'Regional object'} selected as a Local anchor candidate.`);
   }
   renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
@@ -1725,6 +1733,7 @@ function removeSelectedImage(){
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;removeAssetResizeOverlay();updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
+  if(LOCAL_DEFINER){event.preventDefault();event.stopPropagation();selectUserImage(item);return;}
   if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
   if(REGION_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()))return;
@@ -1869,6 +1878,7 @@ function updateReadouts(){
   stage.dataset.worldSeed=WORLD_SEED;
   stage.dataset.viewerTier=viewerTier;
   stage.dataset.viewerLayer=String(viewerLayer);
+  stage.dataset.representationAngle=String(REPRESENTATION_ANGLE_DEGREES);
   stage.dataset.layerCount=String(BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length);
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
   const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
@@ -1881,8 +1891,8 @@ function applyTransform(){
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
   world.style.transformOrigin='0 0';
-  world.style.transform=REGION_DEFINER
-    ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
+  world.style.transform=REPRESENTATION_ANGLE_DEGREES>0
+    ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(${REPRESENTATION_ANGLE_DEGREES}deg)`
     : `translate3d(${x}px,${y}px,0) scale(${scale})`;
   if(REGION_DEFINER)syncClaimedRegionContextMask();
   applyParallax();
@@ -1939,6 +1949,7 @@ function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){
   if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
+  if(LOCAL_DEFINER)return['Viewer','Tiers','Select'];
   if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
   if(READ_ONLY)return['Viewer','Tiers'];
   if(CLAIM_ONLY)return['Select'];
@@ -2315,7 +2326,9 @@ async function renderRegionProjection(payload){
   stage.dataset.renderer='region-world-z-v2';
   world.dataset.emptyWorld=regionWorldSourceTiles.length?'false':'true';
   updateTierButton();renderTierMenu();updateLayerOrder();updateRegionWorldSourceVisibility();
-  loading.hidden=true;fitClaimedRegion(regionClaimedRegion);renderKeyboardTabs();renderKeyboardKeys();applyParallax();
+  loading.hidden=true;fitClaimedRegion(regionClaimedRegion);
+  if(LOCAL_DEFINER)keyboardMode='Select';
+  renderKeyboardTabs();renderKeyboardKeys();applyParallax();
   await Promise.all([...inheritedPending,...pending]);
   if(revision!==canonicalHydrationRevision)return;
   updateLayerOrder();applyParallax();ensureActiveRegionOverlaysShown(projectedId);refreshRegionPersistenceStatus();
@@ -2847,13 +2860,13 @@ function applyClaimedRegionCrop(region){
   regionCropPreview=false;regionSelectionEnabled=false;
   const editableRegion=ACCESS_MODE==='edit';
   regionClaimPhase=editableRegion?'build':'saved';
-  stage.classList.toggle('region-build-mode',editableRegion);
-  stage.classList.toggle('region-free-placement',editableRegion);
+  stage.classList.toggle('region-build-mode',editableRegion&&!LOCAL_DEFINER);
+  stage.classList.toggle('region-free-placement',editableRegion&&!LOCAL_DEFINER);
   updateTierButton();renderTierMenu();
   retireRegionSelectionOverlay();
   syncClaimedRegionOutline(region);
   updateRegionSelectionOverlay();
-  if(editableRegion)keyboardMode='Viewer';
+  if(editableRegion)keyboardMode=LOCAL_DEFINER?'Select':'Viewer';
   updateLayerOrder();
   clearRegionMask(false);
   stage.classList.add('region-cropped');
@@ -3161,6 +3174,23 @@ async function handleRegionHostMessage(event){
     announce('The map is available, but Region permissions could not be refreshed yet.');
     return;
   }
+  if(data.type==='local-catalog'){
+    localCatalog=Array.isArray(data.locals)?data.locals:[];
+    renderKeyboardKeys();
+    return;
+  }
+  if(data.type==='local-catalog-error'){
+    announce(String(data.message||'Local catalog is unavailable.'));
+    return;
+  }
+  if(data.type==='local-created'){
+    localCreatePending=false;
+    const local=data.local||{};
+    if(local?.id)localCatalog=[...localCatalog.filter(item=>String(item?.id||'')!==String(local.id)),local];
+    renderKeyboardKeys();
+    announce(`${local.name||'Local'} created from ${local.anchorName||selectedImage?.name||'the selected object'}. Local representation is 30 degrees.`);
+    return;
+  }
   if(data.type==='catalog'){
     regionCatalog=Array.isArray(data.regions)?data.regions:[];
     if(pendingClaimedRegionId&&!regionClaimedRegion){
@@ -3230,7 +3260,7 @@ if(REGION_DEFINER){
   // Build the tier chooser immediately from the canonical/base tier sources. The
   // database message may refine those images/layers later, but it must not gate
   // the first visible step of the new-region workflow.
-  if(REGION_FLOW==='new'&&!READ_ONLY)showRegionTierPreview();
+  if(!LOCAL_DEFINER&&REGION_FLOW==='new'&&!READ_ONLY)showRegionTierPreview();
   queueMicrotask(()=>{ensureRegionSelectionOverlay();postRegionMessage('ready')});
 }else if(LIVE_WORLDBUILDER&&window.parent!==window){
   window.addEventListener('message',handleWorldBuilderHostMessage);
@@ -3912,6 +3942,51 @@ function spriteLibraryKey(asset){
 function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibraryPage=0;renderKeyboardKeys();announce(`${folder} sprite folder opened.`)}
 function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
+function localAnchorItems(){
+  return selectablePlacedContent().filter(item=>item&&item.kind!=='label'&&!isWorldMapItem(item)&&!item.sourceLocked&&!item.canonicalSource);
+}
+function localAnchorSelect(items=localAnchorItems()){
+  const select=document.createElement('select');
+  select.className='placed-content-select';
+  select.setAttribute('aria-label','Select regional object for Local');
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=items.length?'Select landmark / object…':'No placed regional objects';select.append(placeholder);
+  items.forEach((item,index)=>{
+    const option=document.createElement('option');option.value=String(item.id||index);option.textContent=item.name||item.assetId||`Object ${index+1}`;select.append(option);
+  });
+  if(selectedImage&&items.includes(selectedImage))select.value=String(selectedImage.id||items.indexOf(selectedImage));
+  select.addEventListener('change',()=>{
+    const chosen=items.find((item,index)=>String(item.id||index)===select.value);
+    if(chosen)selectUserImage(chosen);else deselectUserImage(false);
+  });
+  return select;
+}
+function cycleLocalAnchorSelection(items=localAnchorItems(),delta=1){
+  if(!items.length)return;
+  const current=Math.max(-1,items.indexOf(selectedImage));
+  const next=(current+delta+items.length)%items.length;
+  selectUserImage(items[next]);renderKeyboardKeys();
+}
+function localAnchorPayload(item){
+  const aspect=Math.max(stableAssetAspect(item),.00001);
+  const width=clamp(.12*Math.max(Number(item?.size)||1,.00001),.0001,1);
+  const height=clamp(width/aspect,.0001,1);
+  return{
+    id:String(item?.id||''),assetId:String(item?.assetId||''),name:String(item?.name||item?.assetId||'Local object'),kind:String(item?.kind||'image'),
+    x:clamp(Number(item?.x)||0,0,1),y:clamp(Number(item?.y)||0,0,1),width,height,
+    tier:clamp(Math.trunc(Number(item?.tier)||0),0,2),layer:clamp(Math.trunc(Number(item?.layer)||0),0,9),
+    regionLayer:regionOverlayLayer(item),z100:regionZ100(regionWorldLayer(item),regionOverlayLayer(item)),rotation:Number(item?.rotation)||0
+  };
+}
+function createSelectedLocal(){
+  if(!LOCAL_DEFINER||!selectedImage||localCreatePending)return;
+  const proposed=String(selectedImage.name||'Local').trim();
+  const name=String(prompt('Name this Local',proposed)||'').trim();
+  if(!name)return;
+  localCreatePending=true;renderKeyboardKeys();
+  if(!postRegionMessage('create-local',{name,anchor:localAnchorPayload(selectedImage)})){
+    localCreatePending=false;renderKeyboardKeys();announce('Local database bridge is unavailable.');
+  }
+}
 function renderKeyboardTabs(){RistViewerInput.preserveFocus(keyboardTabs,renderKeyboardTabsContent,keyboardToggle)}
 function renderKeyboardTabsContent(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){RistViewerInput.preserveFocus(keyboardKeys,renderKeyboardKeysContent,keyboardToggle)}
@@ -4131,6 +4206,18 @@ function renderKeyboardKeysContent(){
     );return;
   }
   if(keyboardMode==='Select'){
+    if(LOCAL_DEFINER){
+      const items=selectablePlacedContent().filter(item=>item&&item.kind!=='label'&&!isWorldMapItem(item)&&!item.sourceLocked&&!item.canonicalSource);
+      keyboardKeys.append(
+        readoutKey('LOCAL','select one placed regional object'),
+        toolKey('‹','previous object',()=>cycleLocalAnchorSelection(items,-1),!items.length),
+        toolKey('›','next object',()=>cycleLocalAnchorSelection(items,1),!items.length),
+        localAnchorSelect(items),
+        toolKey('CREATE LOCAL','selected landmark / object',createSelectedLocal,!selectedImage||localCreatePending),
+        toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
+      );
+      return;
+    }
     if(REGION_DEFINER&&regionClaimPhase!=='build'){renderRegionSelectKeyboard();return}
     const items=selectablePlacedContent();
     if(REGION_DEFINER&&regionDeedIsComplete()&&!items.length){
