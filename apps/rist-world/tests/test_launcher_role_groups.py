@@ -36,8 +36,42 @@ class LauncherRoleGroupingContract(unittest.TestCase):
             "WORLDBUILDER", "REGION DEFINER", "LOCAL STAGING", "INSTANCES",
             "HISTORY", "LORE", "WEATHER", "GEOLOGICAL EVENTS", "ASTRONOMY",
             "ASTROLOGY", "TICKER", "TRACKER", "GUEST CHARACTERS", "ENCOUNTERS",
+            "CHARACTER CARD DESIGNER",
         ):
             self.assertIn(f"<strong>{label}</strong>", self.source)
+
+    def test_gamemaster_appends_roleplay_tools_in_roleplay_order(self):
+        gm_start = self.source.index('id="launcher-gamemaster-tools"')
+        gm_end = self.source.index("</div>", gm_start)
+        gm = self.source[gm_start:gm_end]
+        self.assertIn("ROLEPLAY TOOLS", gm)
+        labels = (
+            "CHARACTERS", "JOURNAL", "CARD INDEX", "DICE &amp; TOOLS",
+            "RULEBOOKS", "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
+            "ACCESSIBILITY",
+        )
+        positions = [gm.index(f"<strong>{label}</strong>") for label in labels]
+        self.assertEqual(positions, sorted(positions))
+        self.assertLess(
+            gm.index("<strong>CHARACTER CARD DESIGNER</strong>"),
+            gm.index("ROLEPLAY TOOLS"),
+        )
+
+    def test_character_card_designer_has_dedicated_workspace(self):
+        router = (
+            Path(__file__).resolve().parents[1]
+            / "Components"
+            / "TaskWorkspaceRouter.razor"
+        ).read_text(encoding="utf-8")
+        designer = (
+            Path(__file__).resolve().parents[1]
+            / "Components"
+            / "CharacterCardDesignerWorkspace.razor"
+        ).read_text(encoding="utf-8")
+        self.assertIn('Mode == "charactercards"', router)
+        self.assertIn("<CharacterCardDesignerWorkspace />", router)
+        self.assertIn("Build a character sheet as an ordered deck of cards.", designer)
+        self.assertIn('const string StorageKey="rist.character-card-designer.v1"', designer)
 
     def test_tool_groups_keep_two_column_pair_layout(self):
         self.assertIn(
