@@ -3046,17 +3046,14 @@ function regionClaimBounds(region){
   return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
 }
 function fitLocalAnchor(local=activeLocal){
-  const bounds=localAnchorBounds(local);if(!bounds||!naturalWidth||!naturalHeight)return;
+  if(!local||!naturalWidth||!naturalHeight)return;
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect();if(r.width<=0||r.height<=0)return;
-  const cropX=bounds.minX*naturalWidth,cropY=bounds.minY*naturalHeight;
-  const cropW=Math.max(1,bounds.width*naturalWidth),cropH=Math.max(1,bounds.height*naturalHeight);
-  const tiltHeight=cropH*Math.cos(REPRESENTATION_ANGLE_DEGREES*Math.PI/180);
-  scale=Math.min(r.width/cropW,r.height/Math.max(tiltHeight,1))*.90;
+  const tiltHeight=naturalHeight*Math.cos(REPRESENTATION_ANGLE_DEGREES*Math.PI/180);
+  scale=Math.min(r.width/naturalWidth,r.height/Math.max(tiltHeight,1))*.94;
   scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
-  const centerX=cropX+cropW/2,centerY=cropY+cropH/2;
-  x=fitX=(r.width/2)-(centerX*scale);
-  y=fitY=(r.height/2)-(centerY*scale);
+  x=fitX=(r.width/2)-(naturalWidth*scale/2);
+  y=fitY=(r.height/2)-(naturalHeight*scale/2);
   applyTransform();
 }
 function isolateLocalContext(){
@@ -3074,8 +3071,14 @@ function isolateLocalContext(){
     item.node.hidden=!isAnchor;
     if(isAnchor){
       item.sourceLocked=true;
+      item.regionAnchorX=Number(item.x)||0;
+      item.regionAnchorY=Number(item.y)||0;
+      item.regionAnchorSize=Number(item.size)||1;
       item.node.classList.add('local-parent-anchor');
       item.node.dataset.authority='region-parent';
+      item.node.dataset.regionTier=String(item.regionTier??0);
+      item.node.dataset.regionLayer=String(item.regionLayer??1);
+      refreshUserImage(item);
     }
   }
   for(const entry of regionWorldSourceTiles)if(entry?.node)entry.node.hidden=true;
@@ -3088,7 +3091,7 @@ function isolateLocalContext(){
 async function enterLocalBuild(local,sourceEnvelope=null){
   if(!LOCAL_DEFINER||!local?.id)return;
   activeLocal=local;
-  localTierIndex=0;localLayerIndex=1;
+  localTierIndex=0;localLayerIndex=0;
   localCreatePending=false;
   removeAssetResizeOverlay();selectedImage=null;
 
@@ -3102,15 +3105,28 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   isolateLocalContext();
   const state=sourceEnvelope?.state&&typeof sourceEnvelope.state==='object'?sourceEnvelope.state:null;
   const saved=Array.isArray(state?.userLayers)?state.userLayers:[];
+  const nestedLocalSpace=String(state?.coordinateSpace||'')==='local-anchor-normalized-v2';
   localPersistenceDbCount=saved.length;
   for(const raw of saved){
-    const item=await attachRestoredLayer(raw,{
+    const normalizedRaw=nestedLocalSpace||String(raw?.localCoordinateSpace||'')==='local-anchor-normalized-v2'
+      ?raw
+      :(()=>{
+        const point=worldPointToLocal(raw?.x,raw?.y,local);
+        const bounds=localAnchorBounds(local);
+        return{
+          ...raw,
+          x:point.x,y:point.y,
+          size:bounds?Math.min(20,Math.max(.05,(Number(raw?.size)||1)/Math.max(bounds.width,.0001))):raw?.size,
+          localCoordinateSpace:'local-anchor-normalized-v2'
+        };
+      })();
+    const item=await attachRestoredLayer(normalizedRaw,{
       sourceLocked:READ_ONLY,
       regionOverlay:true,
       localOverlay:true,
       localId:String(local.id)
     });
-    if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??1);
+    if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??0);
   }
   syncLocalEditLayer();
   persistentSave.hidden=READ_ONLY;
@@ -3119,7 +3135,7 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   renderKeyboardTabs();renderKeyboardKeys();updateLayerOrder();applyParallax();
   fitLocalAnchor(local);
   if(keyboard.hidden)openKeyboard();
-  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'}. X/Y remain canonical; new content uses Local tier/layer depth.`);
+  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'}. The Region asset is the locked 100% Local base; new content uses Local X/Y plus Local tier/layer depth.`);
 }
 function fitClaimedRegion(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
