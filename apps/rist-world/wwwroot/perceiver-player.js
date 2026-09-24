@@ -101,7 +101,8 @@ function renderStep(state) {
   const active = new Set(step.tiers);
   state.layers.forEach((layer, index) => {
     const visible = active.has(index);
-    layer.style.opacity = visible ? '1' : '0';
+    const editOpacity = state.mode === 'sprite' ? spriteEdit(state, index).opacity : 1;
+    layer.style.opacity = visible ? String(editOpacity) : '0';
     layer.dataset.active = visible ? 'true' : 'false';
     layer.setAttribute('aria-hidden', visible ? 'false' : 'true');
   });
@@ -476,6 +477,11 @@ function drawSceneSprite(record, clockMs) {
   const sx = column * record.frameWidth;
   const sy = row * record.frameHeight;
   record.context.clearRect(0, 0, record.canvas.width, record.canvas.height);
+  const motionFrame = record.motionOnly && record.motionFrames?.[frame];
+  if (motionFrame) {
+    record.context.drawImage(motionFrame, 0, 0, record.canvas.width, record.canvas.height);
+    return;
+  }
   record.context.drawImage(
     record.image,
     sx,
@@ -487,6 +493,40 @@ function drawSceneSprite(record, clockMs) {
     record.canvas.width,
     record.canvas.height
   );
+}
+
+async function buildMotionOnlyFrames(record) {
+  if (!record?.image || record.frameCount < 2) return [];
+  if (record.motionFrames?.length === record.frameCount) return record.motionFrames;
+  const images = [], canvases = [];
+  for (let frame = 0; frame < record.frameCount; frame += 1) {
+    const column = frame % record.columns;
+    const row = Math.floor(frame / record.columns) % record.rows;
+    const canvas = document.createElement('canvas');
+    canvas.width = record.frameWidth;
+    canvas.height = record.frameHeight;
+    const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true });
+    ctx.drawImage(record.image, column * record.frameWidth, row * record.frameHeight,
+      record.frameWidth, record.frameHeight, 0, 0, record.frameWidth, record.frameHeight);
+    canvases.push({ canvas, ctx });
+    images.push(ctx.getImageData(0, 0, record.frameWidth, record.frameHeight));
+  }
+  const pixels = images[0].data.length;
+  for (let i = 0; i < pixels; i += 4) {
+    let minR = 255, minG = 255, minB = 255, maxR = 0, maxG = 0, maxB = 0;
+    for (const image of images) {
+      const d = image.data;
+      minR = Math.min(minR, d[i]); maxR = Math.max(maxR, d[i]);
+      minG = Math.min(minG, d[i + 1]); maxG = Math.max(maxG, d[i + 1]);
+      minB = Math.min(minB, d[i + 2]); maxB = Math.max(maxB, d[i + 2]);
+    }
+    const delta = Math.max(maxR - minR, maxG - minG, maxB - minB);
+    const alphaScale = clamp((delta - 18) / 54, 0, 1);
+    for (const image of images) image.data[i + 3] = Math.round(image.data[i + 3] * alphaScale);
+  }
+  canvases.forEach((entry, index) => entry.ctx.putImageData(images[index], 0, 0));
+  record.motionFrames = canvases.map(entry => entry.canvas);
+  return record.motionFrames;
 }
 
 function clearSceneLayers(state) {
@@ -716,10 +756,101 @@ function clearSpritePlayback(state) {
   state.spriteRecords = [];
   state.spriteParallax = null;
   state.spriteDepths = [...SPECTRAL_DEPTH_FACTORS];
+  state.spriteEdits = [];
+  state.selectedSpriteIndex = 0;
   state.spriteClockMs = 0;
   state.spriteLastAt = performance.now();
   state.spriteObjectUrls.forEach(url => URL.revokeObjectURL(url));
   state.spriteObjectUrls = [];
+}
+
+function spriteEdit(state, index) {
+  while (state.spriteEdits.length <= index) state.spriteEdits.push({ scale: 1, x: 0, y: 0, opacity: 1 });
+  return state.spriteEdits[index];
+}
+
+function spriteRecordForIndex(state, index) {
+  return state.spriteRecords.find(record => Number(record.layerIndex) === Number(index)) || null;
+}
+
+function selectedSpriteFps(state) {
+  if (state.spriteParallax) return clamp(Number(state.spriteParallax.fps) || 30, 1, 60);
+  const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
+  return record ? clamp(1000 / Math.max(1, Number(record.frameMs) || 1000 / SPRITE_DEFAULT_FPS), 1, 60) : 60;
+}
+
+function setSelectedSpriteFps(state, fps) {
+  fps = clamp(Number(fps) || 1, 1, 60);
+  if (state.spriteParallax) state.spriteParallax.fps = fps;
+  else {
+    const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
+    if (record) record.frameMs = 1000 / fps;
+  }
+}
+
+function spriteLayerName(state, index) {
+  const record = spriteRecordForIndex(state, index);
+  return record?.name || `Sprite ${index + 1}`;
+}
+
+function refreshSpriteEditor(state) {
+  const editor = state.spriteEditor;
+  if (!editor) return;
+  const active = state.mode === 'sprite' && state.spriteLayers.length > 0;
+  editor.hidden = !active;
+  if (!active) return;
+
+  const select = state.spriteSelect;
+  if (select) {
+    const previous = String(state.selectedSpriteIndex);
+    select.innerHTML = '';
+    state.spriteLayers.forEach((layer, index) => {
+      if (layer.style.display === 'none' && !spriteRecordForIndex(state, index)) return;
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = spriteLayerName(state, index);
+      select.appendChild(option);
+    });
+    if ([...select.options].some(option => option.value === previous)) select.value = previous;
+    else if (select.options.length) {
+      select.selectedIndex = 0;
+      state.selectedSpriteIndex = Number(select.value) || 0;
+    }
+  }
+
+  const edit = spriteEdit(state, state.selectedSpriteIndex);
+  if (state.spriteSizeInput) state.spriteSizeInput.value = edit.scale.toFixed(2);
+  if (state.spriteSizeRange) state.spriteSizeRange.value = String(edit.scale);
+  if (state.spriteXInput) state.spriteXInput.value = (edit.x * 100).toFixed(1);
+  if (state.spriteYInput) state.spriteYInput.value = (edit.y * 100).toFixed(1);
+  if (state.spriteOpacityInput) state.spriteOpacityInput.value = String(Math.round(edit.opacity * 100));
+  if (state.spriteFpsInput) state.spriteFpsInput.value = String(Math.round(selectedSpriteFps(state)));
+  const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
+  if (state.spriteMotionOnlyButton) {
+    state.spriteMotionOnlyButton.disabled = !record || record.frameCount < 2;
+    state.spriteMotionOnlyButton.setAttribute('aria-pressed', record?.motionOnly ? 'true' : 'false');
+  }
+}
+
+function applySpriteEditInputs(state) {
+  const edit = spriteEdit(state, state.selectedSpriteIndex);
+  edit.scale = clamp(Number(state.spriteSizeInput?.value ?? state.spriteSizeRange?.value) || edit.scale, 0.05, 8);
+  edit.x = clamp((Number(state.spriteXInput?.value) || 0) / 100, -1, 1);
+  edit.y = clamp((Number(state.spriteYInput?.value) || 0) / 100, -1, 1);
+  edit.opacity = clamp((Number(state.spriteOpacityInput?.value) || 0) / 100, 0, 1);
+  setSelectedSpriteFps(state, state.spriteFpsInput?.value);
+  if (state.spriteSizeRange) state.spriteSizeRange.value = String(edit.scale);
+  if (state.spriteSizeInput) state.spriteSizeInput.value = edit.scale.toFixed(2);
+  renderStep(state);
+}
+
+function resetSelectedSpriteEdit(state) {
+  state.spriteEdits[state.selectedSpriteIndex] = { scale: 1, x: 0, y: 0, opacity: 1 };
+  setSelectedSpriteFps(state, state.spriteParallax ? state.spriteParallax.fps : SPRITE_DEFAULT_FPS);
+  const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
+  if (record) record.motionOnly = false;
+  refreshSpriteEditor(state);
+  renderStep(state);
 }
 
 function makeSpritePlaybackLayer(index) {
@@ -883,6 +1014,8 @@ async function loadSpriteFiles(state, fileList) {
       canvas.width = Math.max(1, Math.floor(item.image.naturalWidth / columns));
       canvas.height = Math.max(1, Math.floor(item.image.naturalHeight / rows));
       state.spriteRecords.push({
+        name: item.file.name || `Sprite ${index + 1}`,
+        layerIndex: index,
         image: item.image,
         canvas,
         context: canvas.getContext('2d', { alpha: true }),
@@ -905,6 +1038,8 @@ async function loadSpriteFiles(state, fileList) {
   state.endemarLayers.forEach(layer => { layer.style.display = 'none'; });
   state.spectralLayers.forEach(layer => { layer.style.display = 'none'; });
   state.spriteLayers.forEach(layer => { if (layer.style.display !== 'none') layer.style.display = ''; });
+  state.spriteEdits = state.spriteLayers.map(() => ({ scale: 1, x: 0, y: 0, opacity: 1 }));
+  state.selectedSpriteIndex = Math.max(0, state.spriteLayers.findIndex(layer => layer.style.display !== 'none'));
   state.layers = state.spriteLayers;
   state.mode = 'sprite';
   state.currentStep = SPECTRAL_STEP_SEQUENCE.length - 1;
@@ -921,6 +1056,7 @@ async function loadSpriteFiles(state, fileList) {
       : state.spriteLayers.length + ' SPRITE LAYERS · LOCAL'
   );
   updateReadout(state);
+  refreshSpriteEditor(state);
 }
 
 function renderSpriteFrame(state, now = performance.now()) {
@@ -1328,13 +1464,15 @@ function animate(state, now) {
     const depth = depths[index] ?? depths[depths.length - 1] ?? 1;
     const xStrength = state.mode === 'spectral' || state.mode === 'sprite' ? 32 : state.mode === 'scene' ? 30 : 26;
     const yStrength = state.mode === 'spectral' || state.mode === 'sprite' ? 24 : state.mode === 'scene' ? 22 : 19;
-    const x = (state.currentX + idleX) * xStrength * depth;
-    const y = (state.currentY + idleY) * yStrength * depth;
-    const scale = state.mode === 'spectral' || state.mode === 'sprite'
+    const edit = state.mode === 'sprite' ? spriteEdit(state, index) : { scale: 1, x: 0, y: 0 };
+    const x = (state.currentX + idleX) * xStrength * depth + edit.x * state.canvas.clientWidth;
+    const y = (state.currentY + idleY) * yStrength * depth + edit.y * state.canvas.clientHeight;
+    const baseScale = state.mode === 'spectral' || state.mode === 'sprite'
       ? (SPECTRAL_OVERSCAN[index] ?? 1.04)
       : state.mode === 'scene'
         ? 1.008 + depth * 0.026
         : 1.005 + depth * 0.018;
+    const scale = baseScale * edit.scale;
     layer.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) scale(${scale.toFixed(4)})`;
   });
 
@@ -1422,6 +1560,16 @@ export function attach(root, config = {}) {
     saveSpritesButton: root.querySelector('[data-perceiver-save-sprites-button]'),
     endemarButton: root.querySelector('[data-perceiver-endemar-button]'),
     spriteInput: root.querySelector('[data-perceiver-sprite-input]'),
+    spriteEditor: root.querySelector('[data-perceiver-sprite-editor]'),
+    spriteSelect: root.querySelector('[data-perceiver-sprite-select]'),
+    spriteSizeInput: root.querySelector('[data-perceiver-sprite-size]'),
+    spriteSizeRange: root.querySelector('[data-perceiver-sprite-size-range]'),
+    spriteXInput: root.querySelector('[data-perceiver-sprite-x]'),
+    spriteYInput: root.querySelector('[data-perceiver-sprite-y]'),
+    spriteOpacityInput: root.querySelector('[data-perceiver-sprite-opacity]'),
+    spriteFpsInput: root.querySelector('[data-perceiver-sprite-fps]'),
+    spriteMotionOnlyButton: root.querySelector('[data-perceiver-sprite-motion-only]'),
+    spriteResetButton: root.querySelector('[data-perceiver-sprite-reset]'),
     videoInput: root.querySelector('[data-perceiver-video-input]'),
     videoStatusNode: root.querySelector('[data-perceiver-video-status]'),
     modeNoteNode: root.querySelector('[data-perceiver-mode-note]'),
@@ -1439,6 +1587,8 @@ export function attach(root, config = {}) {
     spriteLayers: [],
     spriteRecords: [],
     spriteParallax: null,
+    spriteEdits: [],
+    selectedSpriteIndex: 0,
     spriteDepths: [...SPECTRAL_DEPTH_FACTORS],
     spriteClockMs: 0,
     spriteLastAt: performance.now(),
@@ -1472,6 +1622,10 @@ export function attach(root, config = {}) {
     onSaveSpritesClick: null,
     onVideoChange: null,
     onSpriteChange: null,
+    onSpriteEditorChange: null,
+    onSpriteSizeRange: null,
+    onSpriteMotionOnly: null,
+    onSpriteReset: null,
     onEndemarClick: null,
     onLayerClick: null,
     onVideoPlay: null,
@@ -1721,7 +1875,30 @@ export function attach(root, config = {}) {
     if (files?.length) void loadSpriteFiles(state, files);
     if (event.target) event.target.value = '';
   };
-  state.onEndemarClick = () => resetEndemarLayers(state);
+  state.onSpriteEditorChange = event => {
+    if (event.currentTarget === state.spriteSelect) {
+      state.selectedSpriteIndex = clamp(Number(state.spriteSelect.value) || 0, 0, Math.max(0, state.spriteLayers.length - 1));
+      refreshSpriteEditor(state);
+      return;
+    }
+    applySpriteEditInputs(state);
+  };
+  state.onSpriteSizeRange = () => {
+    const edit = spriteEdit(state, state.selectedSpriteIndex);
+    edit.scale = clamp(Number(state.spriteSizeRange?.value) || 1, 0.05, 8);
+    if (state.spriteSizeInput) state.spriteSizeInput.value = edit.scale.toFixed(2);
+  };
+  state.onSpriteMotionOnly = () => {
+    const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
+    if (!record || record.frameCount < 2) return;
+    void buildMotionOnlyFrames(record).then(() => {
+      record.motionOnly = !record.motionOnly;
+      refreshSpriteEditor(state);
+      renderSpriteFrame(state, performance.now());
+    });
+  };
+  state.onSpriteReset = () => resetSelectedSpriteEdit(state);
+    state.onEndemarClick = () => resetEndemarLayers(state);
   state.onLayerClick = event => {
     if (state.mode !== 'spectral' && state.mode !== 'sprite') return;
     const value = event.currentTarget?.dataset?.perceiverLayer || '';
@@ -1761,6 +1938,8 @@ export function attach(root, config = {}) {
     state.targetY = state.motionEnabled ? 0 : state.pointerY;
   };
 
+  canvas.addEventListener('contextmenu', event => { event.preventDefault(); event.stopPropagation(); });
+  canvas.addEventListener('dragstart', event => { event.preventDefault(); event.stopPropagation(); });
   canvas.addEventListener('pointermove', state.onPointerMove, { passive: false });
   canvas.addEventListener('pointerdown', state.onPointerDown, { passive: false });
   canvas.addEventListener('pointerup', state.onPointerUp, { passive: false });
@@ -1778,6 +1957,16 @@ export function attach(root, config = {}) {
   state.saveSpritesButton?.addEventListener('click', state.onSaveSpritesClick);
   state.endemarButton?.addEventListener('click', state.onEndemarClick);
   state.spriteInput?.addEventListener('change', state.onSpriteChange);
+  state.spriteSelect?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteSizeInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteSizeRange?.addEventListener('input', state.onSpriteSizeRange);
+  state.spriteSizeRange?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteXInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteYInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteOpacityInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteFpsInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteMotionOnlyButton?.addEventListener('click', state.onSpriteMotionOnly);
+  state.spriteResetButton?.addEventListener('click', state.onSpriteReset);
   state.layerButtons.forEach(button => button.addEventListener('click', state.onLayerClick));
   state.videoInput?.addEventListener('change', state.onVideoChange);
   state.video.addEventListener('play', state.onVideoPlay);
@@ -1925,6 +2114,16 @@ export function detach(root) {
   state.saveSpritesButton?.removeEventListener('click', state.onSaveSpritesClick);
   state.endemarButton?.removeEventListener('click', state.onEndemarClick);
   state.spriteInput?.removeEventListener('change', state.onSpriteChange);
+  state.spriteSelect?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteSizeInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteSizeRange?.removeEventListener('input', state.onSpriteSizeRange);
+  state.spriteSizeRange?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteXInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteYInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteOpacityInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteFpsInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteMotionOnlyButton?.removeEventListener('click', state.onSpriteMotionOnly);
+  state.spriteResetButton?.removeEventListener('click', state.onSpriteReset);
   state.layerButtons.forEach(button => button.removeEventListener('click', state.onLayerClick));
   state.videoInput?.removeEventListener('change', state.onVideoChange);
   state.video?.removeEventListener('play', state.onVideoPlay);
