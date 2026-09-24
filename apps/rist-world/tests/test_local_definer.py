@@ -70,17 +70,17 @@ def test_local_camera_frames_region_asset_without_creating_a_new_xy_plane():
     assert "function localAnchorBounds(local=activeLocal)" in player
     assert "function constrainLocalPoint(x,y)" in player
     assert "function fitLocalAnchor(local=activeLocal)" in player
-    assert "Canonical X/Y unchanged." in player
-    for forbidden in (
-        "worldPointToLocal",
-        "localPointToWorld",
-        "local-anchor-normalized-v2",
-        "localCoordinateSpace",
-        "projectedWorldX",
-        "projectedWorldY",
-        "setLocalCanvasFromAnchor",
-    ):
-        assert forbidden not in player
+    assert "const cropX=bounds.minX*naturalWidth" in player
+    assert "const cropY=bounds.minY*naturalHeight" in player
+    assert "const cropW=Math.max(1,bounds.width*naturalWidth)" in player
+    assert "canonical X within Local anchor" in player
+    # Local does not create a second active X/Y authority. The one remaining
+    # localPointToWorld helper exists only to migrate a short-lived experimental
+    # local-normalized save format back into canonical World X/Y.
+    assert "worldPointToLocal" not in player
+    assert "function localPointToWorld(x,y,local=activeLocal)" in player
+    assert "sourceWasLocalNormalized" in player
+    assert "setLocalCanvasFromAnchor" not in player
 
 
 def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
