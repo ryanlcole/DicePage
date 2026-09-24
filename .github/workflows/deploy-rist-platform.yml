@@ -140,6 +140,94 @@ jobs:
             --no-fail-on-empty-changeset \
             --parameter-overrides "${PARAMS[@]}"
 
+      - name: Apply requested RegionDefiner exact-Z reset
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORLD_TABLE=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='WorldStateTableName'].OutputValue" \
+            --output text)
+          test -n "$WORLD_TABLE"
+          test "$WORLD_TABLE" != "None"
+          export WORLD_TABLE
+          python - <<'PY'
+          import os
+          from datetime import datetime, timezone
+
+          import boto3
+          from boto3.dynamodb.conditions import Key
+
+          table = boto3.resource("dynamodb").Table(os.environ["WORLD_TABLE"])
+          world_id = "shaelvien-geonaph-alpha-001"
+          pk = "WORLD#" + world_id
+          marker_sk = "MIGRATION#20260924_REGION_Z100_RESET_V1"
+          marker = table.get_item(
+              Key={"pk": pk, "sk": marker_sk},
+              ConsistentRead=True,
+          ).get("Item")
+          if marker:
+              print("RegionDefiner exact-Z reset already applied.")
+              raise SystemExit(0)
+
+          removed_records = 0
+          with table.batch_writer() as batch:
+              for prefix in ("REGION#", "REGIONMAP#"):
+                  last = None
+                  while True:
+                      kwargs = {
+                          "KeyConditionExpression": Key("pk").eq(pk) & Key("sk").begins_with(prefix),
+                      }
+                      if last:
+                          kwargs["ExclusiveStartKey"] = last
+                      result = table.query(**kwargs)
+                      for item in result.get("Items", []):
+                          batch.delete_item(Key={"pk": item["pk"], "sk": item["sk"]})
+                          removed_records += 1
+                      last = result.get("LastEvaluatedKey")
+                      if not last:
+                          break
+
+          source_key = {"pk": pk, "sk": "WORLDSOURCE"}
+          source = table.get_item(Key=source_key, ConsistentRead=True).get("Item")
+          removed_layers = 0
+          if source and isinstance(source.get("state"), dict):
+              state = dict(source["state"])
+              layers = state.get("userLayers") or []
+              if isinstance(layers, list):
+                  kept = [
+                      item for item in layers
+                      if not (isinstance(item, dict) and str(item.get("regionId") or ""))
+                  ]
+                  removed_layers = len(layers) - len(kept)
+                  if removed_layers:
+                      state["userLayers"] = kept
+                      table.update_item(
+                          Key=source_key,
+                          UpdateExpression="SET #state = :state, updatedAtUtc = :updated, updatedByUserId = :by",
+                          ExpressionAttributeNames={"#state": "state"},
+                          ExpressionAttributeValues={
+                              ":state": state,
+                              ":updated": datetime.now(timezone.utc).isoformat(),
+                              ":by": "deployment:region-z100-reset",
+                          },
+                      )
+
+          table.put_item(Item={
+              "pk": pk,
+              "sk": marker_sk,
+              "entityType": "migration",
+              "migration": marker_sk,
+              "removedRegionRecords": removed_records,
+              "removedRegionLayers": removed_layers,
+              "createdAtUtc": datetime.now(timezone.utc).isoformat(),
+          })
+          print(
+              f"RegionDefiner reset complete: {removed_records} region records and "
+              f"{removed_layers} region-owned WorldBuilder overlays removed."
+          )
+          PY
+
       - name: Verify deployed platform owner authority
         shell: bash
         run: |
