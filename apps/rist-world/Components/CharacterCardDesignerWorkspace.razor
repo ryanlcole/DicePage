@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Rendering
 @using Microsoft.JSInterop
 @using System.Text.Json
 @implements IAsyncDisposable
@@ -282,7 +283,7 @@
   }
  }
  IEnumerable<FieldAssetOption> MatchingAssets=>Assets.Where(x=>x.Kinds.Contains("*")||x.Kinds.Contains(_wizardKind));
- bool CanPlaceWizard=>!string.IsNullOrWhiteSpace(_wizardName)&&MatchingAssets.Any(x=>x.Id==_wizardAssetId)||!string.IsNullOrWhiteSpace(_wizardAssetDataUrl);
+ bool CanPlaceWizard=>!string.IsNullOrWhiteSpace(_wizardName)&&(MatchingAssets.Any(x=>x.Id==_wizardAssetId)||!string.IsNullOrWhiteSpace(_wizardAssetDataUrl));
  string PreviewStyle=>_cardSize switch{"tarot"=>"--card-ratio:2.75/4.75","index"=>"--card-ratio:3/5",_=>"--card-ratio:2.5/3.5"};
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
