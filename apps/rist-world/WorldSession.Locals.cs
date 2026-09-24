@@ -93,7 +93,12 @@ public sealed partial class WorldSession
         int layer,
         int regionLayer,
         int z100,
-        double rotation)
+        double rotation,
+        int regionTier = 0,
+        int localTier = 0,
+        int localLayer = 0,
+        int instanceTier = 0,
+        int instanceLayer = 0)
     {
         if (!HasActiveWorld)
             throw new InvalidOperationException("Choose a world before defining a Local.");
@@ -135,14 +140,19 @@ public sealed partial class WorldSession
             Height: Math.Clamp(height, 0.0001, 1),
             Tier: Math.Clamp(tier, 0, 2),
             Layer: Math.Clamp(layer, 0, 9),
-            RegionLayer: Math.Clamp(regionLayer, 1, 9),
+            RegionLayer: Math.Clamp(regionLayer, 0, 9),
             Z100: Math.Max(0, z100),
             Rotation: rotation,
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
             ParentNodeId: $"region:{region.RegionId}",
-            CoordinateSpace: "region-normalized-v1",
+            CoordinateSpace: "hierarchical-vertical-v1",
             CreatedAtUtc: now,
-            UpdatedAtUtc: now);
+            UpdatedAtUtc: now,
+            RegionTier: Math.Max(0, regionTier),
+            LocalTier: Math.Max(0, localTier),
+            LocalLayer: Math.Clamp(localLayer, 0, 9),
+            InstanceTier: Math.Max(0, instanceTier),
+            InstanceLayer: Math.Clamp(instanceLayer, 0, 9));
 
         _locals.Add(local);
         _activeLocalId = local.LocalId;
@@ -204,4 +214,23 @@ public sealed record WorldLocal(
     string CoordinateSpace,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    string Description = "");
+    string Description = "",
+    int RegionTier = 0,
+    int LocalTier = 0,
+    int LocalLayer = 0,
+    int InstanceTier = 0,
+    int InstanceLayer = 0)
+{
+    // Tier/Layer remain the persisted legacy names for World tier/layer.
+    public int WorldTier => Tier;
+    public int WorldLayer => Layer;
+    public RistHierarchicalAddress Address => new(
+        WorldTier,
+        WorldLayer,
+        RegionTier,
+        RegionLayer,
+        LocalTier,
+        LocalLayer,
+        InstanceTier,
+        InstanceLayer).Normalized();
+}
