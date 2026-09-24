@@ -291,9 +291,13 @@
  ];
 
  readonly List<CardDraft> _cards=[];
+ readonly List<RequiredFieldRule> _requirements=[];
  readonly Dictionary<string,CharacterValueDraft> _values=new();
 
- string TemplateStorageKey=>$"rist.character-card-template.v2.{Session.WorldId}";
+ bool IsGameMaster=>string.Equals(Session.Role,"GM",StringComparison.OrdinalIgnoreCase);
+ string RequirementStorageKey=>$"rist.character-card-requirements.v1.{Session.WorldId}";
+ string LayoutStorageKey=>$"rist.character-card-layout.v1.{Session.WorldId}.{Session.ActiveCharacterNumber}";
+ string LegacyTemplateStorageKey=>$"rist.character-card-template.v2.{Session.WorldId}";
  string ValueStorageKey=>$"rist.character-card-values.v1.{Session.WorldId}.{Session.ActiveCharacterNumber}";
  CardDraft? SelectedCard=>_cards.Count==0?null:_cards[Math.Clamp(_selectedCard,0,_cards.Count-1)];
  FieldDefinition? SelectedField=>SelectedCard?.Fields.FirstOrDefault(x=>x.Id==_selectedFieldId);
@@ -314,7 +318,7 @@
   if(!firstRender||_loaded)return;
   _loaded=true;
   await LoadAsync();
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./character-card-designer.js?v=20260924-character-cards-1");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./character-card-designer.js?v=20260924-character-cards-2");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_root,_self);
   await InvokeAsync(StateHasChanged);
