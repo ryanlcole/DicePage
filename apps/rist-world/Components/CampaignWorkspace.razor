@@ -67,6 +67,10 @@
      {
       <p class="connection-status" role="status">@_status</p>
      }
+     @if(!string.IsNullOrWhiteSpace(_permissionStatus))
+     {
+      <p class="connection-status" role="status">@_permissionStatus</p>
+     }
 
      <section class="permission-directory" aria-label="Permissions directory">
       <header>
@@ -104,6 +108,89 @@
       }
      </section>
 
+     <section class="asset-permission-panel" aria-label="Asset permissions">
+      <header>
+       <div><strong>ASSET PERMISSIONS</strong><small>World, Region, and Local placements use one stable permission identity.</small></div>
+       <button type="button" disabled="@(_busy||_assetPermissionsLoading)" @onclick="LoadAssetResourcesAsync">REFRESH ASSETS</button>
+      </header>
+
+      @if(_assetPermissionsLoading)
+      {
+       <div class="connection-empty"><strong>LOADING ASSETS…</strong></div>
+      }
+      else if(_assetResources.Count==0)
+      {
+       <div class="connection-empty"><strong>NO SAVED ASSETS YET</strong><span>Save placed content in Worldbuilder, Region Definer, or Local first.</span></div>
+      }
+      else
+      {
+       <div class="asset-permission-form">
+        <label>
+         <span>ASSET</span>
+         <select value="@_selectedResourceId" @onchange="ChangeAssetResourceAsync">
+          <option value="">Choose asset…</option>
+          @foreach(var asset in _assetResources)
+          {
+           <option value="@asset.ResourceId">@asset.Scope · @asset.Name · @asset.Kind</option>
+          }
+         </select>
+        </label>
+
+        <label>
+         <span>VICTIM / CO‑CONSPIRATOR</span>
+         <select @bind="_permissionPrincipal">
+          <option value="EVERYONE">EVERYONE · public authority</option>
+          @foreach(var connection in _connections)
+          {
+           <option value="@connection.LinkedUserId">@connection.DisplayName</option>
+          }
+         </select>
+        </label>
+
+        <label>
+         <span>PERMISSION</span>
+         <select @bind="_permissionGrant">
+          <option value="None">Waiting for GM</option>
+          <option value="View">View</option>
+          <option value="Edit">Edit</option>
+          <option value="Public">Public</option>
+          <option value="Deny">Deny</option>
+         </select>
+        </label>
+
+        <button type="button" class="primary" disabled="@(!CanSaveAssetPermission||_busy)" @onclick="SaveAssetPermissionAsync">SAVE ASSET PERMISSION</button>
+       </div>
+
+       @if(SelectedAssetResource is { } selectedAsset)
+       {
+        <div class="selected-asset-permission">
+         <strong>@selectedAsset.Name</strong>
+         <small>@selectedAsset.Scope · @selectedAsset.Kind</small>
+         <code>@selectedAsset.ResourceId</code>
+         <span>CURRENT FOR SELECTION · <b>@SelectedPrincipalPermission</b></span>
+        </div>
+       }
+
+       @if(_resourcePermissions.Count>0)
+       {
+        <div class="resource-permission-list">
+         @foreach(var permission in _resourcePermissions)
+         {
+          <article>
+           <strong>@PrincipalLabel(permission.UserId)</strong>
+           <span>@permission.Permission</span>
+           <small>@PermissionDate(permission.UpdatedAtUtc)</small>
+          </article>
+         }
+        </div>
+       }
+       else if(!string.IsNullOrWhiteSpace(_selectedResourceId))
+       {
+        <div class="connection-empty"><strong>WAITING FOR GM</strong><span>No explicit grants exist for this asset.</span></div>
+       }
+      }
+     </section>
+
      <aside class="permission-rule">
       <strong>DEFAULT RULE</strong>
       <p>Every asset is permission-bearing. A connected player with no explicit or inherited grant is shown as <b>@PermissionPresentation.WaitingForGameMaster</b>. Connecting an account never silently grants View or Edit.</p>
@@ -124,16 +211,19 @@
 </section>
 
 <style>
- .campaign-workspace{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;background:#05090d;color:#e7dfcd;font-family:Inter,system-ui,-apple-system,sans-serif}.campaign-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 15px;border-bottom:1px solid #6d592f;background:linear-gradient(90deg,#09141b,#171209)}.campaign-header small{color:#80a2b2;font-size:7px;font-weight:900;letter-spacing:.14em}.campaign-header h1{margin:2px 0;color:#edd393;font:600 20px/1 Georgia,serif;letter-spacing:.07em}.campaign-header p{margin:4px 0 0;color:#96a9b1;font-size:9px}.campaign-world{padding:6px 9px;border:1px solid #596a72;border-radius:999px;color:#c8d6dc;font:900 8px system-ui;white-space:nowrap}.campaign-tabs{display:flex;gap:5px;padding:7px 8px;border-bottom:1px solid #293e48;background:#071118;overflow-x:auto}.campaign-tabs button{flex:0 0 auto;min-height:35px;padding:0 9px;border:1px solid #344a55;border-radius:7px;background:#0a161d;color:#97a9b1;font:900 7px system-ui;letter-spacing:.06em;white-space:nowrap}.campaign-tabs button.active{border-color:#b18b43;background:#1e190e;color:#efd795}.campaign-tabs button.conspirators.active{box-shadow:0 0 0 1px #b18b4333 inset}.campaign-connection-layout{min-height:0;overflow:auto;padding:12px}.connection-panel{width:min(1100px,100%);margin:0 auto;display:grid;gap:12px}.connection-panel>header{display:flex;justify-content:space-between;align-items:center;gap:10px}.connection-panel>header small{color:#759aac;font-size:7px;font-weight:900;letter-spacing:.12em}.connection-panel>header h2{margin:2px 0;color:#efd394;font:600 19px Georgia,serif}.connection-panel>header>span{padding:5px 7px;border:1px solid #52656d;border-radius:999px;color:#98b1bc;font:900 7px system-ui}.connection-intro{margin:0;color:#a4b2b7;font-size:9px;line-height:1.5}.connection-code-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.connection-code-grid>section{display:grid;align-content:start;gap:7px;padding:11px;border:1px solid #40545d;border-radius:9px;background:#08131a}.connection-code-grid>section>strong{color:#e1c67e;font-size:9px;letter-spacing:.08em}.connection-code-grid>section>small{color:#849aa4;font-size:8px}.connection-code-grid label{display:grid;gap:4px}.connection-code-grid label>span{color:#8197a1;font:900 7px system-ui;letter-spacing:.08em}.connection-code-grid label em{font-weight:500;color:#657a84}.connection-code-grid input{box-sizing:border-box;width:100%;min-height:37px;border:1px solid #465b65;border-radius:7px;background:#0b171e;color:#eadfbe;padding:6px 8px;font:800 10px system-ui;-webkit-user-select:text;user-select:text}.connection-code-grid button,.permission-directory button{min-height:35px;border:1px solid #536873;border-radius:7px;background:#0d1920;color:#dfd7c1;padding:0 9px;font:900 8px system-ui}.connection-code-grid button.primary{border-color:#96763a;background:#211b0d;color:#f2d892}.connection-code{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:8px;border:1px solid #6d5a32;border-radius:7px;background:#16140c}.connection-code code{overflow:auto;color:#f2dc9e;font-size:9px;-webkit-user-select:text;user-select:text}.connection-code small{grid-column:1/-1;color:#8d947c;font-size:7px}.connection-status{margin:0;padding:8px 10px;border:1px solid #476659;border-radius:7px;background:#0a1712;color:#bde1ce;font-size:9px}.permission-directory{display:grid;gap:8px;padding:11px;border:1px solid #4d6069;border-radius:10px;background:#071118}.permission-directory>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.permission-directory>header div{display:grid;gap:2px}.permission-directory>header strong{color:#e0c67d;font-size:9px;letter-spacing:.09em}.permission-directory>header small{color:#8499a2;font-size:8px}.connection-list{display:grid;gap:6px}.connection-list article{display:grid;grid-template-columns:38px minmax(0,1fr) minmax(120px,180px) auto;gap:8px;align-items:center;padding:7px;border:1px solid #31464f;border-radius:8px;background:#0a151c}.connection-avatar{display:grid;place-items:center;width:36px;height:36px;border:1px solid #806a3c;border-radius:50%;background:#171a14;color:#e8cc83;font:700 14px Georgia,serif}.connection-copy{display:grid;gap:2px;min-width:0}.connection-copy strong{color:#e7dfca;font-size:10px;overflow:hidden;text-overflow:ellipsis}.connection-copy small{color:#768c96;font-size:7px}.connection-permission{display:grid;gap:2px}.connection-permission span{color:#768b94;font:900 6px system-ui;letter-spacing:.07em}.connection-permission b{color:#e0be69;font-size:8px}.disconnect{border-color:#70493f!important;color:#dda99b!important;background:#1a100e!important}.permission-rule{display:grid;gap:6px;padding:10px;border:1px dashed #665630;border-radius:8px;background:#11120d}.permission-rule>strong{color:#d7bb70;font-size:8px;letter-spacing:.1em}.permission-rule p{margin:0;color:#9ca7a5;font-size:8px;line-height:1.45}.permission-rule p b{color:#e2c46f}.permission-rule>div{display:flex;flex-wrap:wrap;gap:5px}.permission-rule>div span{padding:4px 6px;border:1px solid #48585c;border-radius:999px;color:#8ea0a5;font:900 6px system-ui}.connection-empty,.campaign-placeholder{display:grid;gap:5px;padding:20px;border:1px dashed #526671;border-radius:10px;text-align:center;color:#8398a2}.connection-empty strong,.campaign-placeholder h2{color:#d9c17e}.connection-empty span,.campaign-placeholder p{color:#879aa3;font-size:9px}.campaign-placeholder{margin:20px;place-self:start stretch}.campaign-placeholder small{color:#7896a5;font:900 7px system-ui;letter-spacing:.12em}.campaign-placeholder h2{margin:0;font:600 18px Georgia,serif}.campaign-placeholder p{margin:0}
- @@media(max-width:720px){.campaign-header p{display:none}.campaign-header h1{font-size:16px}.campaign-connection-layout{padding:7px}.connection-code-grid{grid-template-columns:1fr}.connection-list article{grid-template-columns:34px minmax(0,1fr) auto}.connection-permission{grid-column:2}.connection-list article .disconnect{grid-column:3;grid-row:1/3}.campaign-tabs{padding:5px}.campaign-tabs button{min-height:32px;padding:0 7px;font-size:6px}}
+ .campaign-workspace{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;background:#05090d;color:#e7dfcd;font-family:Inter,system-ui,-apple-system,sans-serif}.campaign-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 15px;border-bottom:1px solid #6d592f;background:linear-gradient(90deg,#09141b,#171209)}.campaign-header small{color:#80a2b2;font-size:7px;font-weight:900;letter-spacing:.14em}.campaign-header h1{margin:2px 0;color:#edd393;font:600 20px/1 Georgia,serif;letter-spacing:.07em}.campaign-header p{margin:4px 0 0;color:#96a9b1;font-size:9px}.campaign-world{padding:6px 9px;border:1px solid #596a72;border-radius:999px;color:#c8d6dc;font:900 8px system-ui;white-space:nowrap}.campaign-tabs{display:flex;gap:5px;padding:7px 8px;border-bottom:1px solid #293e48;background:#071118;overflow-x:auto}.campaign-tabs button{flex:0 0 auto;min-height:35px;padding:0 9px;border:1px solid #344a55;border-radius:7px;background:#0a161d;color:#97a9b1;font:900 7px system-ui;letter-spacing:.06em;white-space:nowrap}.campaign-tabs button.active{border-color:#b18b43;background:#1e190e;color:#efd795}.campaign-tabs button.conspirators.active{box-shadow:0 0 0 1px #b18b4333 inset}.campaign-connection-layout{min-height:0;overflow:auto;padding:12px}.connection-panel{width:min(1100px,100%);margin:0 auto;display:grid;gap:12px}.connection-panel>header{display:flex;justify-content:space-between;align-items:center;gap:10px}.connection-panel>header small{color:#759aac;font-size:7px;font-weight:900;letter-spacing:.12em}.connection-panel>header h2{margin:2px 0;color:#efd394;font:600 19px Georgia,serif}.connection-panel>header>span{padding:5px 7px;border:1px solid #52656d;border-radius:999px;color:#98b1bc;font:900 7px system-ui}.connection-intro{margin:0;color:#a4b2b7;font-size:9px;line-height:1.5}.connection-code-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.connection-code-grid>section{display:grid;align-content:start;gap:7px;padding:11px;border:1px solid #40545d;border-radius:9px;background:#08131a}.connection-code-grid>section>strong{color:#e1c67e;font-size:9px;letter-spacing:.08em}.connection-code-grid>section>small{color:#849aa4;font-size:8px}.connection-code-grid label{display:grid;gap:4px}.connection-code-grid label>span{color:#8197a1;font:900 7px system-ui;letter-spacing:.08em}.connection-code-grid label em{font-weight:500;color:#657a84}.connection-code-grid input{box-sizing:border-box;width:100%;min-height:37px;border:1px solid #465b65;border-radius:7px;background:#0b171e;color:#eadfbe;padding:6px 8px;font:800 10px system-ui;-webkit-user-select:text;user-select:text}.connection-code-grid button,.permission-directory button{min-height:35px;border:1px solid #536873;border-radius:7px;background:#0d1920;color:#dfd7c1;padding:0 9px;font:900 8px system-ui}.connection-code-grid button.primary{border-color:#96763a;background:#211b0d;color:#f2d892}.connection-code{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:8px;border:1px solid #6d5a32;border-radius:7px;background:#16140c}.connection-code code{overflow:auto;color:#f2dc9e;font-size:9px;-webkit-user-select:text;user-select:text}.connection-code small{grid-column:1/-1;color:#8d947c;font-size:7px}.connection-status{margin:0;padding:8px 10px;border:1px solid #476659;border-radius:7px;background:#0a1712;color:#bde1ce;font-size:9px}.permission-directory{display:grid;gap:8px;padding:11px;border:1px solid #4d6069;border-radius:10px;background:#071118}.permission-directory>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.permission-directory>header div{display:grid;gap:2px}.permission-directory>header strong{color:#e0c67d;font-size:9px;letter-spacing:.09em}.permission-directory>header small{color:#8499a2;font-size:8px}.connection-list{display:grid;gap:6px}.connection-list article{display:grid;grid-template-columns:38px minmax(0,1fr) minmax(120px,180px) auto;gap:8px;align-items:center;padding:7px;border:1px solid #31464f;border-radius:8px;background:#0a151c}.connection-avatar{display:grid;place-items:center;width:36px;height:36px;border:1px solid #806a3c;border-radius:50%;background:#171a14;color:#e8cc83;font:700 14px Georgia,serif}.connection-copy{display:grid;gap:2px;min-width:0}.connection-copy strong{color:#e7dfca;font-size:10px;overflow:hidden;text-overflow:ellipsis}.connection-copy small{color:#768c96;font-size:7px}.connection-permission{display:grid;gap:2px}.connection-permission span{color:#768b94;font:900 6px system-ui;letter-spacing:.07em}.connection-permission b{color:#e0be69;font-size:8px}.disconnect{border-color:#70493f!important;color:#dda99b!important;background:#1a100e!important}.asset-permission-panel{display:grid;gap:8px;padding:11px;border:1px solid #5e5638;border-radius:10px;background:#0b120f}.asset-permission-panel>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.asset-permission-panel>header div{display:grid;gap:2px}.asset-permission-panel>header strong{color:#e2c879;font-size:9px;letter-spacing:.09em}.asset-permission-panel>header small{color:#87999f;font-size:8px}.asset-permission-panel button{min-height:35px;border:1px solid #536873;border-radius:7px;background:#0d1920;color:#dfd7c1;padding:0 9px;font:900 8px system-ui}.asset-permission-panel button.primary{border-color:#96763a;background:#211b0d;color:#f2d892}.asset-permission-form{display:grid;grid-template-columns:1.35fr 1fr .72fr auto;gap:7px;align-items:end}.asset-permission-form label{display:grid;gap:4px}.asset-permission-form label>span{color:#8197a1;font:900 7px system-ui;letter-spacing:.08em}.asset-permission-form select{box-sizing:border-box;width:100%;min-height:37px;border:1px solid #465b65;border-radius:7px;background:#0b171e;color:#eadfbe;padding:5px 7px;font:800 9px system-ui}.selected-asset-permission{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px;border:1px solid #3d514f;border-radius:7px;background:#081511}.selected-asset-permission strong{color:#e8d9a9;font-size:10px}.selected-asset-permission small{justify-self:end;color:#81949b;font-size:7px}.selected-asset-permission code{grid-column:1/-1;color:#789ba8;font-size:7px;overflow:auto;-webkit-user-select:text;user-select:text}.selected-asset-permission span{grid-column:1/-1;color:#8fa49e;font:800 7px system-ui}.selected-asset-permission b{color:#dfbd66}.resource-permission-list{display:grid;gap:4px}.resource-permission-list article{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:6px 7px;border:1px solid #31464a;border-radius:6px;background:#091418}.resource-permission-list strong{color:#dce1d8;font-size:9px}.resource-permission-list span{color:#e0bd68;font:900 7px system-ui}.resource-permission-list small{color:#71888f;font-size:7px}.permission-rule{display:grid;gap:6px;padding:10px;border:1px dashed #665630;border-radius:8px;background:#11120d}.permission-rule>strong{color:#d7bb70;font-size:8px;letter-spacing:.1em}.permission-rule p{margin:0;color:#9ca7a5;font-size:8px;line-height:1.45}.permission-rule p b{color:#e2c46f}.permission-rule>div{display:flex;flex-wrap:wrap;gap:5px}.permission-rule>div span{padding:4px 6px;border:1px solid #48585c;border-radius:999px;color:#8ea0a5;font:900 6px system-ui}.connection-empty,.campaign-placeholder{display:grid;gap:5px;padding:20px;border:1px dashed #526671;border-radius:10px;text-align:center;color:#8398a2}.connection-empty strong,.campaign-placeholder h2{color:#d9c17e}.connection-empty span,.campaign-placeholder p{color:#879aa3;font-size:9px}.campaign-placeholder{margin:20px;place-self:start stretch}.campaign-placeholder small{color:#7896a5;font:900 7px system-ui;letter-spacing:.12em}.campaign-placeholder h2{margin:0;font:600 18px Georgia,serif}.campaign-placeholder p{margin:0}
+ @@media(max-width:720px){.asset-permission-form{grid-template-columns:1fr}.selected-asset-permission{grid-template-columns:1fr}.selected-asset-permission small{justify-self:start}.campaign-header p{display:none}.campaign-header h1{font-size:16px}.campaign-connection-layout{padding:7px}.connection-code-grid{grid-template-columns:1fr}.connection-list article{grid-template-columns:34px minmax(0,1fr) auto}.connection-permission{grid-column:2}.connection-list article .disconnect{grid-column:3;grid-row:1/3}.campaign-tabs{padding:5px}.campaign-tabs button{min-height:32px;padding:0 7px;font-size:6px}}
 </style>
 
 @code {
  string _tab="connections";
  string _inviteLabel="",_redeemCode="",_status="";
- bool _busy,_loading=true;
+ string _selectedResourceId="",_permissionPrincipal="EVERYONE",_permissionGrant="None",_permissionStatus="";
+ bool _busy,_loading=true,_assetPermissionsLoading;
  AwsAuthorityClient.CollaborationInvite? _invite;
  readonly List<AwsAuthorityClient.CollaborationConnection> _connections=[];
+ readonly List<AssetPermissionResource> _assetResources=[];
+ readonly List<AwsAuthorityClient.ResourcePermission> _resourcePermissions=[];
 
  string TabClass(string tab)=>_tab==tab?"active":"";
  string StoryTabClass=>TabClass("story");
@@ -153,10 +243,29 @@
  static string Initial(string value)=>string.IsNullOrWhiteSpace(value)?"?":value.Trim()[0].ToString().ToUpperInvariant();
  static string ConnectedDate(AwsAuthorityClient.CollaborationConnection value)=>DateTimeOffset.TryParse(value.ConnectedAtUtc,out var date)?date.ToLocalTime().ToString("MMM d, yyyy"):value.ConnectedAtUtc;
 
+ AssetPermissionResource? SelectedAssetResource=>_assetResources.FirstOrDefault(x=>x.ResourceId==_selectedResourceId);
+ bool CanSaveAssetPermission=>!string.IsNullOrWhiteSpace(_selectedResourceId)
+  &&(_permissionPrincipal=="EVERYONE"
+   ?_permissionGrant is "Public" or "None"
+   :_permissionGrant!="Public");
+ string SelectedPrincipalPermission
+ {
+  get
+  {
+   var explicitGrant=_resourcePermissions.FirstOrDefault(x=>string.Equals(x.UserId,_permissionPrincipal,StringComparison.Ordinal));
+   return explicitGrant is null?PermissionPresentation.WaitingForGameMaster:PermissionPresentation.Label(ParsePermission(explicitGrant.Permission));
+  }
+ }
+ static PermissionGrant ParsePermission(string value)=>value switch{
+  "Public"=>PermissionGrant.Public,"View"=>PermissionGrant.View,"Edit"=>PermissionGrant.Edit,"Deny"=>PermissionGrant.Deny,_=>PermissionGrant.None};
+ string PrincipalLabel(string userId)=>userId=="EVERYONE"?"EVERYONE":_connections.FirstOrDefault(x=>x.LinkedUserId==userId)?.DisplayName??userId;
+ static string PermissionDate(string value)=>DateTimeOffset.TryParse(value,out var date)?date.ToLocalTime().ToString("MMM d, h:mm tt"):value;
+
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
   await LoadConnectionsAsync();
+  await LoadAssetResourcesAsync();
  }
 
  async Task LoadConnectionsAsync()
@@ -169,6 +278,107 @@
   }
   catch(Exception ex){_status="DIRECTORY ERROR · "+ex.Message;}
   finally{_loading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task LoadAssetResourcesAsync()
+ {
+  if(!Session.IsLoggedIn)return;
+  _assetPermissionsLoading=true;
+  try
+  {
+   _assetResources.Clear();
+   try{await Session.LoadRegionsAsync();await Session.LoadLocalsAsync();}catch{}
+
+   var worldSource=await Session.LoadWorldBuilderSourceAsync();
+   CollectAssetResources(worldSource?.State,"World",Session.WorldDisplayName);
+
+   foreach(var region in Session.DefinedRegions)
+   {
+    try
+    {
+     var source=await Session.LoadRegionSourceAsync(region.RegionId);
+     CollectAssetResources(source?.State,"Region",region.Name);
+    }
+    catch{}
+   }
+
+   foreach(var local in Session.DefinedLocals)
+   {
+    try
+    {
+     var source=await Session.LoadLocalMapAsync(local.LocalId);
+     CollectAssetResources(source?.State,"Local",local.Name);
+    }
+    catch{}
+   }
+
+   var unique=_assetResources
+    .GroupBy(x=>x.ResourceId,StringComparer.Ordinal)
+    .Select(group=>group.First())
+    .OrderBy(x=>x.Scope,StringComparer.OrdinalIgnoreCase)
+    .ThenBy(x=>x.Name,StringComparer.OrdinalIgnoreCase)
+    .ToList();
+   _assetResources.Clear();_assetResources.AddRange(unique);
+   if(_selectedResourceId.Length>0&&_assetResources.All(x=>x.ResourceId!=_selectedResourceId))_selectedResourceId="";
+   if(_selectedResourceId.Length==0)_selectedResourceId=_assetResources.FirstOrDefault()?.ResourceId??"";
+   await LoadSelectedResourcePermissionsAsync();
+  }
+  catch(Exception ex){_status="ASSET DIRECTORY ERROR · "+ex.Message;}
+  finally{_assetPermissionsLoading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ void CollectAssetResources(System.Text.Json.JsonElement? state,string scope,string parentName)
+ {
+  if(state is not {ValueKind:System.Text.Json.JsonValueKind.Object} root)return;
+  if(!root.TryGetProperty("userLayers",out var layers)||layers.ValueKind!=System.Text.Json.JsonValueKind.Array)return;
+  foreach(var layer in layers.EnumerateArray())
+  {
+   if(layer.ValueKind!=System.Text.Json.JsonValueKind.Object)continue;
+   var id=layer.TryGetProperty("id",out var idNode)&&idNode.ValueKind==System.Text.Json.JsonValueKind.String?idNode.GetString()??"":"";
+   if(string.IsNullOrWhiteSpace(id))continue;
+   var resourceId=layer.TryGetProperty("authorityResourceId",out var authorityNode)&&authorityNode.ValueKind==System.Text.Json.JsonValueKind.String
+    ?authorityNode.GetString()??"":"";
+   if(string.IsNullOrWhiteSpace(resourceId))resourceId="asset:"+id;
+   var name=layer.TryGetProperty("name",out var nameNode)&&nameNode.ValueKind==System.Text.Json.JsonValueKind.String?nameNode.GetString()??"":"";
+   if(string.IsNullOrWhiteSpace(name)&&layer.TryGetProperty("text",out var textNode)&&textNode.ValueKind==System.Text.Json.JsonValueKind.String)name=textNode.GetString()??"";
+   if(string.IsNullOrWhiteSpace(name))name="Unnamed asset";
+   var kind=layer.TryGetProperty("kind",out var kindNode)&&kindNode.ValueKind==System.Text.Json.JsonValueKind.String?kindNode.GetString()??"asset":"asset";
+   _assetResources.Add(new(resourceId,name,kind,scope,parentName));
+  }
+ }
+
+ async Task ChangeAssetResourceAsync(ChangeEventArgs e)
+ {
+  _selectedResourceId=e.Value?.ToString()??"";
+  await LoadSelectedResourcePermissionsAsync();
+ }
+
+ async Task LoadSelectedResourcePermissionsAsync()
+ {
+  _resourcePermissions.Clear();
+  if(string.IsNullOrWhiteSpace(_selectedResourceId)||!Session.IsLoggedIn)return;
+  try
+  {
+   var rows=await Authority.GetResourcePermissionsAsync(Session.WorldId,_selectedResourceId)??[];
+   _resourcePermissions.AddRange(rows);
+  }
+  catch(Exception ex){_permissionStatus="PERMISSION LOAD ERROR · "+ex.Message;}
+ }
+
+ async Task SaveAssetPermissionAsync()
+ {
+  if(!CanSaveAssetPermission||_busy)return;
+  _busy=true;_permissionStatus="";
+  try
+  {
+   var result=await Authority.SetResourcePermissionAsync(Session.WorldId,_selectedResourceId,_permissionPrincipal,_permissionGrant);
+   _permissionStatus=result?.Ok==true
+    ?(_permissionGrant=="None"?"Explicit permission removed · Waiting for GM applies.":"Asset permission saved.")
+    :"Asset permission could not be saved.";
+   await LoadSelectedResourcePermissionsAsync();
+  }
+  catch(Exception ex){_permissionStatus="ASSET PERMISSION ERROR · "+ex.Message;}
+  finally{_busy=false;await InvokeAsync(StateHasChanged);}
  }
 
  async Task CreateInviteAsync()
@@ -216,5 +426,7 @@
   finally{_busy=false;}
  }
 
- public ValueTask DisposeAsync()=>ValueTask.CompletedTask;
+ sealed record AssetPermissionResource(string ResourceId,string Name,string Kind,string Scope,string ParentName);
+
+  public ValueTask DisposeAsync()=>ValueTask.CompletedTask;
 }
