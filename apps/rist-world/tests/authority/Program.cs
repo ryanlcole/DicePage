@@ -21,6 +21,12 @@ static void CheckThrows<T>(Action action, string message) where T : Exception
 
 var authority = new RecursiveAuthorityService();
 
+Check(PermissionPresentation.Label(PermissionGrant.None) == PermissionPresentation.WaitingForGameMaster,
+    "An ungranted player asset permission must present as Waiting for GM.");
+Check(PermissionPresentation.Label(PermissionGrant.View) == "View"
+      && PermissionPresentation.Label(PermissionGrant.Edit) == "Edit",
+    "Explicit asset permissions must keep their visible grant labels.");
+
 Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(0) == 0, "No external-AI slot should exist without humans.");
 Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(9) == 0, "Nine humans must not open an external-AI slot.");
 Check(ExternalAiAccessPolicy.AllowedExternalAiSlots(10) == 1, "Ten humans should open exactly one external-AI slot.");
