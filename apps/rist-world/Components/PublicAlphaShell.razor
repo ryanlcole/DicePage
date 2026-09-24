@@ -155,6 +155,7 @@
 
   <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
   <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
+  <LocalGate Open="@_localGateOpen" OnClose="CloseLocalGate" OnNew="OpenNewLocal" OnSelect="OpenSavedLocal" />
   <CommerceAdminPanel Open="@_commerceAdminOpen" OnClose="CloseCommerceAdmin" />
 
   <footer class="launcher-footer">
@@ -320,6 +321,7 @@ else
  string _tickerEditor="";
  bool _worldGateOpen;
  bool _regionGateOpen;
+ bool _localGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -427,6 +429,7 @@ else
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _regionGateOpen=false;
+  _localGateOpen=false;
   
   _=PersistWorkspaceAsync(mode);
  }
@@ -677,6 +680,7 @@ else
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _regionGateOpen=false;
+  _localGateOpen=true;
   try
   {
    if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
@@ -684,9 +688,23 @@ else
    await Session.LoadLocalsAsync();
   }
   catch{}
+ }
+ void CloseLocalGate()=>_localGateOpen=false;
+ void OpenNewLocal()
+ {
+  _localGateOpen=false;
   Session.SetActiveRegion("");
   Session.SetActiveLocal("");
   OpenWorkspace("local","LOCAL DEFINER","REGION → ASSET → LOCAL · 30°");
+ }
+ void OpenSavedLocal(WorldLocal local)
+ {
+  _localGateOpen=false;
+  Session.SetActiveRegion(local.RegionId);
+  Session.SetActiveLocal(local.LocalId);
+  var region=Session.DefinedRegions.FirstOrDefault(item=>string.Equals(item.RegionId,local.RegionId,StringComparison.Ordinal));
+  var groupName=region?.Name??"REGION";
+  OpenWorkspace("local","LOCAL DEFINER",$"{groupName.ToUpperInvariant()} → {local.Name.ToUpperInvariant()} · 30°");
  }
  void OpenNewRegion()
  {
@@ -724,6 +742,6 @@ else
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
