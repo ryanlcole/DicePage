@@ -155,7 +155,7 @@ def test_perceiver_phone_video_spectral_converter_is_local_and_reactive():
     assert "state.currentStep = SPECTRAL_STEP_SEQUENCE.length - 1" in player
     assert "state.layers = state.spectralLayers" in player
     assert "renderSpectralFrame" in player
-    assert "CONVERTING LIVE" in player
+    assert "CAPTURING PARALLAX SPRITES" in player
     assert "LOCAL" in player
 
     # Existing parallax transform is reused for seven live spectral canvases.
@@ -208,27 +208,58 @@ def test_perceiver_video_import_uses_seven_frequency_layers_with_lower_tier_over
     assert "if (spectral.saturation < 0.10) return 3;" in player
 
 
-def test_perceiver_imports_self_contained_ristmovie_sprite_scenes():
+def test_perceiver_uses_standard_sprite_sheets_for_movies():
     workspace = read("Components/PerceiverWorkspace.razor")
     player = read("wwwroot/perceiver-player.js")
 
-    assert "OPEN MOVIE FILE" in workspace
-    assert "data-perceiver-movie-input" in workspace
-    assert 'accept=".ristmovie,application/json"' not in workspace
-    assert "data-perceiver-movie-button" in workspace
+    assert "VIDEO → SPRITES" in workspace
+    assert "OPEN SPRITES" in workspace
+    assert "SAVE SPRITES" in workspace
+    assert "data-perceiver-sprite-button" in workspace
+    assert "data-perceiver-save-sprites-button" in workspace
+    assert "data-perceiver-sprite-input" in workspace
+    assert 'accept="image/png,image/webp,image/jpeg"' in workspace
+    assert "multiple data-perceiver-sprite-input" in workspace
+    assert "OPEN MOVIE FILE" not in workspace
+    assert "data-perceiver-movie-input" not in workspace
 
-    assert "async function loadRistMovie" in player
-    assert "movie?.format !== 'ristmovie'" in player
-    assert "Number(movie?.version) !== 1" in player
-    assert "state.mode = 'scene'" in player
-    assert "SCENE_DEFAULT_DEPTHS" in player
-    assert "background → environment FX → actors → foreground" in player
-    assert "createSpriteRecord" in player
-    assert "drawSceneSprite" in player
-    assert "renderSceneFrame" in player
-    assert "state.sceneSprites" in player
-    assert "state.movieInput?.addEventListener('change', state.onMovieChange)" in player
+    # Existing normal sprite sheets are inferred directly, including the
+    # generated 4x2 / 8-frame dragon and effect sheets.
+    assert "parseSpriteFilename" in player
+    assert "inferSpriteMeta" in player
+    assert "frameCount: 8" in player
+    assert "columns: 4" in player
+    assert "rows: 2" in player
+    assert "loadSpriteFiles" in player
+    assert "renderSpriteFrame" in player
+    assert "state.mode = 'sprite'" in player
 
+    # Uploaded video is captured on presented video frames, split into the
+    # seven parallax tiers, and exported as ordinary WebP sprite sheets.
+    assert "requestVideoFrameCallback" in player
+    assert "captureParallaxFrame" in player
+    assert "finishVideoSpriteCapture" in player
+    assert "canvas.toBlob(blob => resolve(blob), 'image/webp'" in player
+    assert "__tier" in player
+    assert "__fps" in player
+    assert "__fw" in player
+    assert "__fh" in player
+    assert "__fc" in player
+    assert "__page" in player
+    assert "captureFps" in player
+    assert "median(capture && capture.frameDeltas" in player
+    assert "SPRITES READY" in player
+
+
+def test_perceiver_keeps_legacy_ristmovie_reader_off_the_active_ui():
+    workspace = read("Components/PerceiverWorkspace.razor")
+    player = read("wwwroot/perceiver-player.js")
+
+    # Backward compatibility may remain in code, but the user-facing path is
+    # ordinary image sprite sheets so mobile file pickers need no custom type.
+    assert "loadRistMovie" in player
+    assert "data-perceiver-movie-button" not in workspace
+    assert "data-perceiver-movie-input" not in workspace
 
 def test_perceiver_mobile_controls_use_one_swipeable_slider():
     workspace = read("Components/PerceiverWorkspace.razor")
