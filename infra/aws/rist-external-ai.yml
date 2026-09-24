@@ -18,6 +18,15 @@ Parameters:
     Default: 'false'
     AllowedValues: ['false', 'true']
     Description: Master external-agent release. Deployment workflow intentionally pins this false.
+  McpIntakeOpen:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['false', 'true']
+    Description: Allow governed MCP registration and tester applications while general external-AI access remains owner-locked.
+  AuthorityApiBaseUrl:
+    Type: String
+    Default: ''
+    Description: Existing RIST platform authority API used for owner-authorized single-token tester grants.
   EiosModelId:
     Type: String
     Default: us.amazon.nova-lite-v1:0
@@ -36,6 +45,8 @@ Globals:
         AI_AUDIT_TABLE: !Ref ExternalAiAuditTable
         OWNER_USER_ID: !Ref OwnerUserId
         OWNER_RELEASED: !Ref OwnerReleased
+        MCP_INTAKE_OPEN: !Ref McpIntakeOpen
+        AUTHORITY_API_BASE_URL: !Ref AuthorityApiBaseUrl
         FRONTEND_ORIGIN: !Ref FrontendOrigin
 
 Resources:
@@ -141,6 +152,32 @@ Resources:
         RegistrationReview:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/registration/review, Method: POST }
+        Application:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/application, Method: POST }
+        ApplicationStatus:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/application/status, Method: POST }
+        ApplicationSelectTop:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/application/select-top, Method: POST }
+
+  RelicMcpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: rist_mcp_gateway.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref IdentityTableName }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
+      Events:
+        McpGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /mcp, Method: GET }
+        McpPost:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /mcp, Method: POST }
 
   EiosLabFunction:
     Type: AWS::Serverless::Function
@@ -191,6 +228,12 @@ Outputs:
   ExternalAiSessionStatusPath:
     Description: AI UTC session status endpoint
     Value: /external-ai/session/status
+  McpPath:
+    Description: ReLiC Model Context Protocol entrance
+    Value: /mcp
+  McpIntakeOpen:
+    Description: Whether governed MCP registration and tester applications are open
+    Value: !Ref McpIntakeOpen
   ExternalAiSecurityFunctionArn:
     Description: Internal-only classified security-event conversion Lambda; intentionally has no public route
     Value: !GetAtt ExternalAiSecurityFunction.Arn
