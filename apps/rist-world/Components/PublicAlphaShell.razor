@@ -104,6 +104,19 @@
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⌁</span><strong>TRACKER</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">♟</span><strong>GUEST CHARACTERS</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⚔</span><strong>ENCOUNTERS</strong></button>
+
+     <button type="button" class="launcher-tool-button launcher-tool-wide character-card-designer" @onclick="OpenCharacterCardDesigner"><span aria-hidden="true">▥</span><strong>CHARACTER CARD DESIGNER</strong></button>
+
+     <div class="launcher-tool-separator launcher-tool-wide" role="separator" aria-label="Roleplay tools available to GameMasters"><span>ROLEPLAY TOOLS</span></div>
+     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">♙</span><strong>CHARACTERS</strong></button>
+     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">✎</span><strong>JOURNAL</strong></button>
+     <button type="button" class="launcher-tool-button" @onclick="OpenCardIndex"><span aria-hidden="true">▧</span><strong>CARD INDEX</strong></button>
+     <button type="button" class="launcher-tool-button" @onclick="OpenDiceTools"><span aria-hidden="true">◆</span><strong>DICE &amp; TOOLS</strong></button>
+     <button type="button" class="launcher-tool-button" @onclick="OpenRulebooks"><span aria-hidden="true">▤</span><strong>RULEBOOKS</strong></button>
+     <button type="button" class="launcher-tool-button" @onclick="OpenAssets"><span aria-hidden="true">✥</span><strong>ASSET DESIGNER</strong></button>
+     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady||!Session.IsGeonaphWorld)" @onclick="OpenPerceiver"><span aria-hidden="true">◎</span><strong>PERCEIVER</strong></button>
+     <button type="button" class="launcher-tool-button" @onclick="OpenObserver"><span aria-hidden="true">⌕</span><strong>ReLiC OBSERVER</strong></button>
+     <button type="button" class="launcher-tool-button launcher-tool-wide" @onclick="OpenAccessibilityShell"><span aria-hidden="true">⌨</span><strong>ACCESSIBILITY</strong></button>
     </div>
    }
   </section>
@@ -288,7 +301,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","observer","viewer","perceiver","immersion","campaign","assets","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -386,6 +399,7 @@ else
    case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
    case "assets":_workspaceMode="assets";_workspaceLabel="ASSET DESIGNER";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
+   case "charactercards":_workspaceMode="charactercards";_workspaceLabel="CHARACTER CARD DESIGNER";_workspaceHint="SHEET → CARDS → FIELDS → SYSTEM";break;
    case "roleplay":_workspaceMode="roleplay";_workspaceLabel="ROLEPLAY";_workspaceHint="CHARACTER → DICE → ENCOUNTER → REPLAY";break;
    case "tools":_workspaceMode="tools";_workspaceLabel="DICE & TOOLS";_workspaceHint="DICE → CARDS → TOOLS";break;
    case "manage":_workspaceMode="manage";_workspaceLabel="MY WORLDS";_workspaceHint="SAVE → SYNC → SHARE → EXPORT";break;
@@ -668,6 +682,7 @@ else
  void OpenViewer()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD → REGION → LOCAL");
  void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGNS","WORLD → CAMPAIGN → SESSION → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
+ void OpenCharacterCardDesigner()=>OpenWorkspace("charactercards","CHARACTER CARD DESIGNER","SHEET → CARDS → FIELDS → SYSTEM");
  void OpenRoleplay()=>OpenWorkspace("roleplay",Session.IsGeonaphWorld?"ENTER SHAELVIEN":"ROLEPLAY",Session.IsGeonaphWorld?"WORLD MAP → ZONE → PARTY → CHAT":"CHARACTER → DICE → ENCOUNTER → REPLAY");
  void OpenCharacters()=>OpenWorkspace("roleplay","CHARACTERS","CHARACTER → SHEET → EQUIPMENT");
  void OpenDiceTools()=>OpenWorkspace("tools","DICE & TOOLS","DICE → CARDS → TOOLS");
