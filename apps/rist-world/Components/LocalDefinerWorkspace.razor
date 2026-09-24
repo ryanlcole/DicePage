@@ -32,17 +32,19 @@
  [Parameter] public EventCallback OnHome { get; set; }
 
  WorldRegion? Region => Session.IsDefinedRegion(Session.ActiveRegion) ? Session.ActiveRegion : null;
+ IReadOnlyList<WorldRegion> LocalRegions => Session.DefinedRegions
+  .Where(Session.IsRegionInActiveWorld)
+  .OrderBy(region=>region.Name,StringComparer.OrdinalIgnoreCase)
+  .ToList();
 
  string BuilderSrc
  {
   get
   {
-   var region=Region;
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   var regionId=Uri.EscapeDataString(region?.RegionId??"");
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
-   var access=region is not null&&Session.CanEditRegion(region)?"edit":"view";
+   var access=LocalRegions.Any(Session.CanEditRegion)?"edit":"view";
    var activeWorld=Session.ActiveMmoWorld;
    var surfacePixels=activeWorld?.PixelWidth>0
     ?activeWorld.PixelWidth
@@ -50,13 +52,12 @@
    var maxHeight=activeWorld?.MaxHeight>0
     ?activeWorld.MaxHeight
     :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-anchor-v6";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId=&renderer=20260924-local-region-selector-v7";
   }
  }
 
- protected override async Task OnAfterRenderAsync(bool firstRender)
+ protected override async Task OnInitializedAsync()
  {
-  if(!firstRender||_bridgeAttached)return;
   try
   {
    if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
@@ -64,8 +65,12 @@
    await Session.LoadLocalsAsync();
   }
   catch{}
+ }
 
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-anchor-v6");
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_bridgeAttached)return;
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-region-selector-v7");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -78,12 +83,32 @@
   if(OnHome.HasDelegate)await OnHome.InvokeAsync();
  }
 
- [JSInvokable]
- public async Task<object> GetRegionSourceForPrototypeAsync(string regionId)
+ WorldRegion? FindLocalRegion(string regionId)
  {
-  var region=Region;
-  if(region is null||!string.Equals(region.RegionId,regionId,StringComparison.Ordinal))
-   throw new InvalidOperationException("Choose a Region before opening Local Staging.");
+  regionId=(regionId??"").Trim();
+  return LocalRegions.FirstOrDefault(region=>string.Equals(region.RegionId,regionId,StringComparison.Ordinal));
+ }
+
+ object DescribeRegion(WorldRegion region)=>new
+ {
+  id=region.RegionId,
+  name=region.Name,
+  tierIndex=region.TierIndex,
+  minColumn=region.MinColumn,
+  minRow=region.MinRow,
+  maxColumn=region.MaxColumn,
+  maxRow=region.MaxRow,
+  selectedCells=region.SelectedCells,
+  sourceLayerOffsets=region.SourceLayerOffsets,
+  gridShape=region.GridShape,
+  ownerUserId=region.OwnerUserId,
+  updatedAtUtc=region.UpdatedAtUtc,
+  canEdit=Session.CanEditRegion(region),
+  localCount=Session.DefinedLocals.Count(local=>string.Equals(local.RegionId,region.RegionId,StringComparison.Ordinal))
+ };
+
+ async Task<object> RegionSourceEnvelopeAsync(WorldRegion region)
+ {
   var source=await Session.LoadRegionSourceAsync(region.RegionId);
   return new
   {
@@ -98,27 +123,33 @@
  }
 
  [JSInvokable]
- public object GetRegionCatalogForPrototype()
+ public async Task<object> GetRegionSourceForPrototypeAsync(string regionId)
  {
-  var region=Region;
-  if(region is null)return Array.Empty<object>();
-  return new[]
+  var region=FindLocalRegion(regionId)
+   ??throw new InvalidOperationException("Choose a Region inside Local Definer.");
+  Session.SetActiveRegion(region.RegionId);
+  return await RegionSourceEnvelopeAsync(region);
+ }
+
+ [JSInvokable]
+ public object GetRegionCatalogForPrototype()
+  =>LocalRegions.Select(DescribeRegion).ToList();
+
+ [JSInvokable]
+ public async Task<object> OpenLocalRegionForPrototypeAsync(string regionId)
+ {
+  var region=FindLocalRegion(regionId)
+   ??throw new InvalidOperationException("The selected Region is not available in this world.");
+  Session.SetActiveRegion(region.RegionId);
+  Session.SetActiveLocal("");
+  var worldSource=await RegionSourceEnvelopeAsync(region);
+  var locals=GetLocalCatalogForPrototype();
+  return new
   {
-   new
-   {
-    id=region.RegionId,
-    name=region.Name,
-    tierIndex=region.TierIndex,
-    minColumn=region.MinColumn,
-    minRow=region.MinRow,
-    maxColumn=region.MaxColumn,
-    maxRow=region.MaxRow,
-    selectedCells=region.SelectedCells,
-    sourceLayerOffsets=region.SourceLayerOffsets,
-    gridShape=region.GridShape,
-    ownerUserId=region.OwnerUserId,
-    updatedAtUtc=region.UpdatedAtUtc
-   }
+   region=DescribeRegion(region),
+   worldSource,
+   locals,
+   canEdit=Session.CanEditRegion(region)
   };
  }
 
