@@ -1,29 +1,288 @@
-<main class="immersion-builder" aria-label="RIST ImmersionBuilder">
- <header>
-  <p>RIST STUDIO</p>
-  <h1>IMMERSIONBUILDER</h1>
-  <span>Design how a world is experienced without changing the world itself.</span>
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<div class="immersion-builder" aria-label="RIST ImmersionBuilder">
+ <header class="ib-header">
+  <div>
+   <small>RIST · REPRESENTATION TRANSITION AUTHORING</small>
+   <h1>IMMERSIONBUILDER</h1>
+   <p>WorldBuilder owns what exists. ImmersionBuilder defines when the viewer hands off from World → Region → Local representation while zooming.</p>
+  </div>
+  <div class="ib-state @CurrentRepresentation.ToLowerInvariant()">
+   <span>NOW SHOWING</span><strong>@CurrentRepresentation</strong><small>@_zoomRatio.ToString("0.00")× world fit</small>
+  </div>
  </header>
 
- <section class="immersion-intro">
-  <strong>IMMERSION PROFILE</strong>
-  <p>ImmersionBuilder will read the current World ID and world coordinates, then attach presentation and device-experience settings without redefining terrain, regions, tiers, layers, objects, or spatial identity.</p>
- </section>
+ <div class="ib-layout">
+  <aside class="ib-controls">
+   <section>
+    <strong>DESTINATION PATH</strong>
+    <label>
+     <span>REGION</span>
+     <select value="@_regionId" @onchange="ChangeRegionAsync">
+      <option value="">Choose Region…</option>
+      @foreach(var region in Regions)
+      {
+       <option value="@region.RegionId">@region.Name</option>
+      }
+     </select>
+    </label>
+    <label>
+     <span>LOCAL</span>
+     <select value="@_localId" @onchange="ChangeLocalAsync" disabled="@string.IsNullOrWhiteSpace(_regionId)">
+      <option value="">Region only / choose Local…</option>
+      @foreach(var local in LocalsForRegion)
+      {
+       <option value="@local.LocalId">@local.Name · @local.AnchorName</option>
+      }
+     </select>
+    </label>
+   </section>
 
- <section class="immersion-grid" aria-label="ImmersionBuilder planned systems">
-  <article><span>◫</span><div><strong>PARALLAX</strong><p>Build visual depth from the world's existing tier, layer, and Z coordinates. This will become the first functional ImmersionBuilder module.</p></div><small>FIRST BUILD</small></article>
-  <article><span>⌖</span><div><strong>AUGMENTED REALITY</strong><p>Anchor compatible world content into physical space while preserving the same world identity and scale.</p></div><small>PLANNED</small></article>
-  <article><span>◉</span><div><strong>SPATIAL AUDIO</strong><p>Place ambience, voices, effects, and environmental sound within world space using distance and direction.</p></div><small>PLANNED</small></article>
-  <article><span>✧</span><div><strong>HIGH RESOLUTION ASSETS</strong><p>Select higher-detail representations for capable devices and close viewing without changing the underlying asset identity.</p></div><small>PLANNED</small></article>
-  <article><span>≋</span><div><strong>HAPTIC FEEDBACK</strong><p>Translate boundaries, materials, events, and accessibility cues into supported touch and controller feedback.</p></div><small>PLANNED</small></article>
- </section>
+   <section class="ib-thresholds">
+    <strong>HANDOFF THRESHOLDS</strong>
+    <article class="@SwitchClass("REGION")">
+     <header><span>WORLD → REGION</span><b>@_worldToRegion.ToString("0.00")×</b></header>
+     <p>The World remains authoritative below this zoom. At/above it, use the selected Region representation.</p>
+     <button type="button" disabled="@(!CanSetRegion)" @onclick="SetRegionSwitch">SET REGION SWITCH HERE</button>
+    </article>
 
- <section class="immersion-rule">
-  <strong>AUTHORITY RULE</strong>
-  <p>ImmersionBuilder may read World ID, regions, coordinates, tiers, layers, objects, and events. It may never redefine them. WorldBuilder owns what exists; ImmersionBuilder owns how it is experienced.</p>
- </section>
-</main>
+    <article class="@SwitchClass("LOCAL")">
+     <header><span>REGION → LOCAL</span><b>@_regionToLocal.ToString("0.00")×</b></header>
+     <p>The Region remains visible until this zoom. At/above it, use the selected Local representation.</p>
+     <button type="button" disabled="@(!CanSetLocal)" @onclick="SetLocalSwitch">SET LOCAL SWITCH HERE</button>
+    </article>
+   </section>
+
+   <section class="ib-camera-tools">
+    <strong>CAMERA</strong>
+    <button type="button" @onclick="FitWorldAsync">FIT WORLD</button>
+    <button type="button" disabled="@(!CanSetRegion)" @onclick="FocusRegionAsync">FOCUS REGION</button>
+    <button type="button" disabled="@(!CanSetLocal)" @onclick="FocusLocalAsync">FOCUS LOCAL</button>
+   </section>
+
+   <section class="ib-actions">
+    <button type="button" disabled="@(!CanSetRegion)" @onclick="ResetDefaults">RESET DEFAULTS</button>
+    <button type="button" class="save" disabled="@(!CanSetRegion||_saving)" @onclick="SaveAsync">@(_saving?"SAVING…":_saved?"SAVED":"SAVE PROFILE")</button>
+    @if(!string.IsNullOrWhiteSpace(_status)){<p>@_status</p>}
+   </section>
+  </aside>
+
+  <main class="ib-preview">
+   <div class="ib-preview-hud">
+    <span>WORLD</span>
+    <i class="@HudClass("REGION")">REGION @(_worldToRegion.ToString("0.0"))×</i>
+    <i class="@HudClass("LOCAL")">LOCAL @(_regionToLocal.ToString("0.0"))×</i>
+   </div>
+   <iframe @ref="_frame"
+           class="ib-frame"
+           src="@BuilderSrc"
+           title="Immersion zoom transition preview"
+           loading="eager"
+           allow="fullscreen"></iframe>
+   <div class="ib-current-cue @CurrentRepresentation.ToLowerInvariant()">
+    <strong>@CurrentRepresentation</strong>
+    <small>@CurrentPath</small>
+   </div>
+  </main>
+ </div>
+</div>
 
 <style>
- .immersion-builder{box-sizing:border-box;height:100%;overflow:auto;padding:clamp(18px,4vw,42px);background:radial-gradient(circle at 50% 0,#13212a 0,#081117 45%,#04080b 100%);color:#e9e1ce;font-family:system-ui,-apple-system,sans-serif}.immersion-builder header{max-width:900px;margin:0 auto 20px;text-align:center}.immersion-builder header p{margin:0;color:#8fb8d3;font-size:11px;font-weight:900;letter-spacing:.18em}.immersion-builder h1{margin:7px 0 5px;color:#e5c878;font-size:clamp(28px,7vw,56px);letter-spacing:.06em}.immersion-builder header span{color:#aebbc2;font-size:clamp(12px,2.8vw,16px)}.immersion-intro,.immersion-rule{box-sizing:border-box;max-width:900px;margin:0 auto 18px;padding:16px 18px;border:1px solid #6f5c31;border-radius:12px;background:#0b141ad9}.immersion-intro strong,.immersion-rule strong{color:#e5c878;font-size:12px;letter-spacing:.12em}.immersion-intro p,.immersion-rule p{margin:7px 0 0;color:#b8c3c8;line-height:1.5}.immersion-grid{max-width:900px;margin:0 auto 18px;display:grid;gap:10px}.immersion-grid article{box-sizing:border-box;display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #344750;border-radius:11px;background:#0a1218e8}.immersion-grid article>span{display:grid;place-items:center;width:42px;height:42px;border:1px solid #7d6939;border-radius:50%;color:#e5c878;font-size:22px}.immersion-grid strong{color:#e6d7ae;font-size:13px;letter-spacing:.06em}.immersion-grid p{margin:4px 0 0;color:#9fb0b8;font-size:11px;line-height:1.4}.immersion-grid small{align-self:start;padding:5px 7px;border:1px solid #41545d;border-radius:999px;color:#8fa5b0;font-size:8px;font-weight:900;letter-spacing:.08em}.immersion-grid article:first-child{border-color:#8b7340;background:#17170fe8}.immersion-grid article:first-child small{border-color:#9f8446;color:#e5c878}.immersion-rule{border-color:#41545d}.immersion-rule strong{color:#8fb8d3}@@media(max-width:560px){.immersion-grid article{grid-template-columns:40px 1fr}.immersion-grid small{grid-column:2;justify-self:start}.immersion-grid article>span{width:38px;height:38px}}
+ .immersion-builder{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;background:#04090c;color:#e8dfca;font-family:Inter,system-ui,-apple-system,sans-serif}.ib-header{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:10px 14px;border-bottom:1px solid #6d5a31;background:linear-gradient(90deg,#07131a,#151109)}.ib-header small{color:#7fa9bd;font-size:7px;font-weight:900;letter-spacing:.13em}.ib-header h1{margin:2px 0;color:#ecd18b;font:600 20px/1 Georgia,serif}.ib-header p{margin:4px 0 0;max-width:760px;color:#9dacb3;font-size:9px;line-height:1.35}.ib-state{min-width:120px;padding:7px 10px;border:1px solid #50636b;border-radius:9px;background:#0b151b;display:grid;text-align:right}.ib-state span{color:#7f969f;font-size:6px;font-weight:900;letter-spacing:.1em}.ib-state strong{color:#dce5e8;font-size:13px}.ib-state small{color:#8899a0;font-size:7px}.ib-state.region,.ib-current-cue.region{border-color:#9b7d3d}.ib-state.local,.ib-current-cue.local{border-color:#5a8d7e}.ib-layout{min-height:0;display:grid;grid-template-columns:270px minmax(0,1fr)}.ib-controls{min-height:0;overflow:auto;padding:9px;border-right:1px solid #31464f;background:#071117;display:grid;align-content:start;gap:9px}.ib-controls section{padding:9px;border:1px solid #314650;border-radius:8px;background:#09141a}.ib-controls section>strong{display:block;margin-bottom:7px;color:#d9be77;font-size:8px;letter-spacing:.1em}.ib-controls label{display:grid;gap:3px;margin-top:6px}.ib-controls label span{color:#8198a2;font-size:7px;font-weight:900}.ib-controls select{box-sizing:border-box;width:100%;min-height:34px;border:1px solid #475e68;border-radius:6px;background:#0c1820;color:#e5dcc1;padding:4px 6px;font:800 8px system-ui}.ib-thresholds{display:grid;gap:7px}.ib-thresholds>strong{margin:0!important}.ib-thresholds article{padding:8px;border:1px solid #3b5059;border-radius:7px;background:#0b171d}.ib-thresholds article.active{border-color:#d2aa55;box-shadow:0 0 0 1px #d2aa5533 inset}.ib-thresholds article header{display:flex;justify-content:space-between;gap:8px;color:#dfcc98;font-size:8px}.ib-thresholds article p{margin:5px 0 7px;color:#82979f;font-size:7px;line-height:1.35}.ib-controls button{box-sizing:border-box;width:100%;min-height:34px;margin-top:5px;border:1px solid #4d646e;border-radius:6px;background:#0c1820;color:#e2dbc4;font:900 8px system-ui;letter-spacing:.04em;touch-action:manipulation}.ib-controls button:disabled{opacity:.34}.ib-camera-tools{display:grid;grid-template-columns:1fr 1fr;gap:5px}.ib-camera-tools>strong{grid-column:1/-1}.ib-camera-tools button:first-of-type{grid-column:1/-1}.ib-actions .save{border-color:#98793d;color:#f0d58e;background:#1e190d}.ib-actions p{margin:6px 0 0;color:#8fbba9;font-size:7px;line-height:1.35}.ib-preview{position:relative;min-width:0;min-height:0;overflow:hidden;background:#020609}.ib-frame{display:block;width:100%;height:100%;border:0;background:#020609}.ib-preview-hud{position:absolute;z-index:4;left:10px;top:10px;display:flex;gap:5px;align-items:center;pointer-events:none}.ib-preview-hud span,.ib-preview-hud i{padding:5px 7px;border:1px solid #495f68;border-radius:999px;background:#061016dd;color:#9dafb7;font:900 7px/1 system-ui;font-style:normal}.ib-preview-hud i.active{border-color:#d1a951;color:#f0d690;background:#211a0ddd}.ib-current-cue{position:absolute;z-index:4;right:10px;bottom:10px;min-width:155px;padding:7px 9px;border:1px solid #51656e;border-radius:8px;background:#061016e8;pointer-events:none;display:grid}.ib-current-cue strong{color:#f0d690;font-size:11px}.ib-current-cue small{margin-top:2px;color:#90a2aa;font-size:7px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ @@media(max-width:760px){.ib-header{padding:7px 9px}.ib-header p{display:none}.ib-header h1{font-size:15px}.ib-state{min-width:94px;padding:5px 7px}.ib-layout{grid-template-columns:118px minmax(0,1fr)}.ib-controls{padding:5px;gap:5px}.ib-controls section{padding:5px}.ib-controls label span,.ib-thresholds article p{display:none}.ib-controls select,.ib-controls button{font-size:7px;padding:3px}.ib-thresholds article{padding:5px}.ib-thresholds article header{display:grid}.ib-camera-tools{grid-template-columns:1fr}.ib-camera-tools>*{grid-column:1!important}.ib-preview-hud{left:5px;top:5px;gap:3px}.ib-preview-hud span,.ib-preview-hud i{padding:4px;font-size:6px}.ib-current-cue{right:5px;bottom:5px;min-width:90px}}
 </style>
+
+@code {
+ ElementReference _frame;
+ IJSObjectReference? _module;
+ DotNetObjectReference<ImmersionBuilderWorkspace>? _self;
+ string _regionId="",_localId="",_status="";
+ double _zoomRatio=1,_worldToRegion=3,_regionToLocal=8;
+ bool _saving,_saved,_loaded;
+
+ IReadOnlyList<WorldRegion> Regions=>Session.DefinedRegions.OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToList();
+ IReadOnlyList<WorldLocal> LocalsForRegion=>Session.DefinedLocals
+  .Where(x=>string.Equals(x.RegionId,_regionId,StringComparison.Ordinal))
+  .OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToList();
+ WorldRegion? SelectedRegion=>Regions.FirstOrDefault(x=>string.Equals(x.RegionId,_regionId,StringComparison.Ordinal));
+ WorldLocal? SelectedLocal=>LocalsForRegion.FirstOrDefault(x=>string.Equals(x.LocalId,_localId,StringComparison.Ordinal));
+ bool CanSetRegion=>SelectedRegion is not null;
+ bool CanSetLocal=>SelectedLocal is not null;
+ string CurrentRepresentation=>CanSetLocal&&_zoomRatio>=_regionToLocal?"LOCAL":CanSetRegion&&_zoomRatio>=_worldToRegion?"REGION":"WORLD";
+ string CurrentPath=>SelectedLocal is not null?$"{Session.WorldDisplayName} → {SelectedRegion?.Name} → {SelectedLocal.Name}":SelectedRegion is not null?$"{Session.WorldDisplayName} → {SelectedRegion.Name}":Session.WorldDisplayName;
+ string BuilderSrc
+ {
+  get
+  {
+   var worldId=Uri.EscapeDataString(Session.WorldId??"");
+   var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
+   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   var activeWorld=Session.ActiveMmoWorld;
+   var surfacePixels=activeWorld?.PixelWidth>0?activeWorld.PixelWidth:Session.SurfaceWorldPixelLimit??WorldSession.IncludedSurfaceWorldPixels;
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=immersion&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy=immersion-profile&access=view&renderer=20260924-immersion-switch-1";
+  }
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_loaded)return;
+  _loaded=true;
+  try
+  {
+   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+   await Session.LoadLocalsAsync();
+  }
+  catch{}
+
+  _regionId=Session.IsDefinedRegion(Session.ActiveRegion)?Session.ActiveRegion!.RegionId:Regions.FirstOrDefault()?.RegionId??"";
+  _localId=Session.ActiveLocal is { } active&&string.Equals(active.RegionId,_regionId,StringComparison.Ordinal)?active.LocalId:LocalsForRegion.FirstOrDefault()?.LocalId??"";
+  await LoadOrDefaultProfileAsync();
+
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./immersion-builder-host.js?v=20260924-immersion-switch-1");
+  _self=DotNetObjectReference.Create(this);
+  await _module.InvokeVoidAsync("attach",_frame,_self);
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ChangeRegionAsync(ChangeEventArgs e)
+ {
+  _regionId=e.Value?.ToString()??"";
+  _localId=LocalsForRegion.FirstOrDefault()?.LocalId??"";
+  _saved=false;
+  await LoadOrDefaultProfileAsync();
+  await FocusRegionAsync();
+ }
+
+ async Task ChangeLocalAsync(ChangeEventArgs e)
+ {
+  _localId=e.Value?.ToString()??"";
+  _saved=false;
+  await LoadOrDefaultProfileAsync();
+  if(CanSetLocal)await FocusLocalAsync();
+ }
+
+ async Task LoadOrDefaultProfileAsync()
+ {
+  if(!CanSetRegion){_worldToRegion=3;_regionToLocal=8;return;}
+  try
+  {
+   var saved=await Session.LoadImmersionProfileAsync(_regionId,_localId);
+   if(saved is not null)
+   {
+    _worldToRegion=saved.WorldToRegionZoom;
+    _regionToLocal=saved.RegionToLocalZoom;
+    _status="Loaded saved immersion profile.";
+    _saved=true;
+    return;
+   }
+  }
+  catch{}
+  ResetDefaults();
+ }
+
+ void ResetDefaults()
+ {
+  var region=SelectedRegion;
+  if(region is null){_worldToRegion=3;_regionToLocal=8;return;}
+  var rw=Math.Clamp((region.MaxColumn-region.MinColumn+1)/30d,.001,1);
+  var rh=Math.Clamp((region.MaxRow-region.MinRow+1)/30d,.001,1);
+  _worldToRegion=Math.Clamp(.72/Math.Max(rw,rh),1.25,180);
+  var local=SelectedLocal;
+  _regionToLocal=local is null
+   ?Math.Clamp(_worldToRegion*2.5,_worldToRegion+0.25,256)
+   :Math.Clamp(.72/Math.Max(Math.Max(local.Width,.0001),Math.Max(local.Height,.0001)),_worldToRegion+0.25,256);
+  _saved=false;_status="Default handoffs calculated from the selected Region/Local footprint.";
+ }
+
+ void SetRegionSwitch()
+ {
+  if(!CanSetRegion)return;
+  _worldToRegion=Math.Clamp(_zoomRatio,1.01,255.5);
+  if(_regionToLocal<=_worldToRegion)_regionToLocal=Math.Min(256,_worldToRegion+Math.Max(.25,_worldToRegion*.35));
+  _saved=false;_status=$"World → Region switch set at {_worldToRegion:0.00}×.";
+ }
+
+ void SetLocalSwitch()
+ {
+  if(!CanSetLocal)return;
+  if(_zoomRatio<=_worldToRegion)
+  {
+   _status=$"Zoom beyond the Region switch ({_worldToRegion:0.00}×) before setting Local.";
+   return;
+  }
+  _regionToLocal=Math.Clamp(_zoomRatio,_worldToRegion+.01,256);
+  _saved=false;_status=$"Region → Local switch set at {_regionToLocal:0.00}×.";
+ }
+
+ async Task FitWorldAsync(){if(_module is not null)await _module.InvokeVoidAsync("fitWorld",_frame);}
+ async Task FocusRegionAsync()
+ {
+  var region=SelectedRegion;if(region is null||_module is null)return;
+  var width=Math.Clamp((region.MaxColumn-region.MinColumn+1)/30d,.001,1);
+  var height=Math.Clamp((region.MaxRow-region.MinRow+1)/30d,.001,1);
+  var x=(region.MinColumn+(region.MaxColumn-region.MinColumn+1)/2d)/30d;
+  var y=(region.MinRow+(region.MaxRow-region.MinRow+1)/2d)/30d;
+  await _module.InvokeVoidAsync("focusBounds",_frame,x,y,width,height);
+ }
+ async Task FocusLocalAsync()
+ {
+  var local=SelectedLocal;if(local is null||_module is null)return;
+  await _module.InvokeVoidAsync("focusBounds",_frame,local.X,local.Y,Math.Max(local.Width,.0001),Math.Max(local.Height,.0001));
+ }
+
+ async Task SaveAsync()
+ {
+  var region=SelectedRegion;if(region is null)return;
+  _saving=true;_saved=false;_status="";
+  try
+  {
+   var local=SelectedLocal;
+   var focus=local is not null?(x:local.X,y:local.Y):RegionCenter(region);
+   var existing=await Session.LoadImmersionProfileAsync(region.RegionId,local?.LocalId??"");
+   var profile=new WorldImmersionProfile(
+    existing?.ProfileId??$"immersion-{Guid.NewGuid():N}",
+    Session.WorldId,
+    region.RegionId,
+    local?.LocalId??"",
+    _worldToRegion,
+    _regionToLocal,
+    focus.x,
+    focus.y,
+    "zoom-threshold-handoff",
+    DateTimeOffset.UtcNow);
+   var saved=await Session.SaveImmersionProfileAsync(profile);
+   _worldToRegion=saved.WorldToRegionZoom;
+   _regionToLocal=saved.RegionToLocalZoom;
+   _saved=true;_status="Immersion handoff profile saved to the world database.";
+  }
+  catch(Exception ex){_status=$"Save failed: {ex.Message}";}
+  finally{_saving=false;}
+ }
+
+ static (double x,double y) RegionCenter(WorldRegion region)
+  =>((region.MinColumn+(region.MaxColumn-region.MinColumn+1)/2d)/30d,(region.MinRow+(region.MaxRow-region.MinRow+1)/2d)/30d);
+
+ string SwitchClass(string level)=>string.Equals(CurrentRepresentation,level,StringComparison.Ordinal)?"active":"";
+ string HudClass(string level)=>string.Equals(CurrentRepresentation,level,StringComparison.Ordinal)?"active":"";
+
+ [JSInvokable]
+ public Task UpdateCameraFromPrototypeAsync(double zoomRatio)
+ {
+  _zoomRatio=Math.Clamp(zoomRatio,.000001,256);
+  return InvokeAsync(StateHasChanged);
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  if(_module is not null)
+  {
+   try{await _module.InvokeVoidAsync("detach",_frame);}catch{}
+   await _module.DisposeAsync();
+  }
+  _self?.Dispose();
+ }
+}
