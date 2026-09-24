@@ -452,10 +452,10 @@ function serializableUserLayer(item){
   return{
     id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
-    // Keep both identities. personalAssetKey is authoritative; the latest signed
-    // URL is only a short-lived fallback while the authenticated store reconnects.
-    originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
-    spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
+    // Personal-library URLs are short-lived capabilities. Persist only the stable
+    // asset identity; reload resolves a fresh URL after authenticated storage is ready.
+    originalSrc:item.personalAssetKey?'':(item.originalSrc||''),transparentSrc:item.personalAssetKey?'':(item.transparentSrc||''),transparent:!!item.transparent,
+    spriteSheetSrc:item.personalAssetKey?null:(item.spriteSheetSrc||null),spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
