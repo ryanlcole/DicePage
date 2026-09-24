@@ -437,7 +437,7 @@ function saveRegionMapToDatabase(userLayers){
       reject(new Error('Canonical world map save timed out.'));
     },12000);
     const expectedIds=userLayers.map(item=>String(item?.id||'')).filter(Boolean);
-    regionMapSaveWaiters.set(requestId,{resolve,reject,timeout,expectedIds});
+    regionMapSaveWaiters.set(requestId,{resolve,reject,timeout,expectedIds,regionId,expectedCount:userLayers.length});
     if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers})){
       clearTimeout(timeout);regionMapSaveWaiters.delete(requestId);
       reject(new Error('Region map database bridge is unavailable.'));
@@ -483,6 +483,20 @@ function restoredParallaxMode(raw,regionOverlay){
 function itemAnchorTier(item){
   return clamp(Math.trunc(Number(item?.anchorTier??item?.tier)||0),0,TIERS.length-1);
 }
+function regionSaveCandidates(){
+  if(!REGION_DEFINER)return userLayers;
+  const regionId=activeRegionMapId();
+  if(!regionId)return[];
+  // The active edit layer is the UI truth for this deed. Normalize the region
+  // identity before filtering so a stale/blank item.regionId cannot make a
+  // visible authored object disappear from the save payload.
+  return userLayers.filter(item=>{
+    if(!item||item.sourceLocked||!item.regionOverlay||!item.node?.isConnected)return false;
+    if(regionEditLayer&&item.node.parentElement!==regionEditLayer)return false;
+    item.regionId=regionId;
+    return true;
+  });
+}
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
@@ -518,14 +532,14 @@ async function saveWorldBuilder(){
       announce(`Saving ${pendingPersonalUploads.size} personal upload${pendingPersonalUploads.size===1?'':'s'} before committing the ${REGION_DEFINER?'region':'world'}…`);
       await Promise.allSettled([...pendingPersonalUploads]);
     }
-    const editableLayers=REGION_DEFINER
-      ? userLayers.filter(item=>!item.sourceLocked&&item.regionOverlay
-        &&String(item.regionId||'')===activeRegionMapId())
-      : userLayers;
-    const serializedLayers=editableLayers.map(item=>{
-      if(REGION_DEFINER&&!item.regionId)item.regionId=activeRegionMapId();
-      return serializableUserLayer(item);
-    });
+    const authoredRegionLayers=REGION_DEFINER
+      ? userLayers.filter(item=>item&&!item.sourceLocked&&item.regionOverlay&&item.node?.isConnected)
+      : [];
+    const editableLayers=REGION_DEFINER?regionSaveCandidates():userLayers;
+    if(REGION_DEFINER&&authoredRegionLayers.length>0&&editableLayers.length===0){
+      throw new Error(`Region save payload was empty while ${authoredRegionLayers.length} authored object${authoredRegionLayers.length===1?' is':'s are'} still on the map.`);
+    }
+    const serializedLayers=editableLayers.map(serializableUserLayer);
     const state=REGION_DEFINER?null:worldBuilderSourceState(editableLayers);
     if(REGION_DEFINER){
       const verification=await saveRegionMapToDatabase(serializedLayers);
@@ -2915,10 +2929,20 @@ async function handleRegionHostMessage(event){
     if(data.type==='map-region-saved'&&data.result?.success!==false){
       const persisted=new Set((Array.isArray(data.persistedIds)?data.persistedIds:[]).map(String));
       const missing=(waiter.expectedIds||[]).filter(id=>!persisted.has(String(id)));
-      if(data.verified===true&&!missing.length)waiter.resolve({verified:true,result:data.result,persistedIds:[...persisted]});
-      else waiter.reject(new Error(missing.length
-        ? `Region database verification is missing ${missing.length} saved object${missing.length===1?'':'s'}.`
-        :'Region database verification did not confirm the save.'));
+      const readbackRegionId=String(data.regionId||data.result?.regionId||'');
+      const sameRegion=!readbackRegionId||readbackRegionId===String(waiter.regionId||'');
+      const countMatches=persisted.size===Number(waiter.expectedCount||0);
+      if(data.verified===true&&sameRegion&&countMatches&&!missing.length){
+        waiter.resolve({verified:true,result:data.result,persistedIds:[...persisted]});
+      }else{
+        waiter.reject(new Error(missing.length
+          ? `Region database verification is missing ${missing.length} saved object${missing.length===1?'':'s'}.`
+          :!sameRegion
+            ?'Region database readback returned a different deed.'
+            :!countMatches
+              ?`Region database readback count ${persisted.size} did not match save count ${waiter.expectedCount||0}.`
+              :'Region database verification did not confirm the save.'));
+      }
     }else waiter.reject(new Error(String(data.message||'Canonical world map save failed.')));
     return;
   }
