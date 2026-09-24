@@ -41,11 +41,11 @@
    }
 
    <strong>POWER CARDS</strong>
-   @foreach(var card in _cards)
+   @foreach(var powerCard in _cards)
    {
-    <button type="button" class="@(card.Id==_selectedId?"selected":"")" @onclick="()=>Select(card.Id)">
-     <b>@card.Name</b>
-     <small>@card.Power.Family · @card.Behavior.Targeting.Selector · @card.Behavior.Targeting.Geometry</small>
+    <button type="button" class="@(powerCard.Id==_selectedId?"selected":"")" @onclick="()=>Select(powerCard.Id)">
+     <b>@powerCard.Name</b>
+     <small>@powerCard.Power.Family · @powerCard.Behavior.Targeting.Selector · @powerCard.Behavior.Targeting.Geometry</small>
     </button>
    }
   </aside>
