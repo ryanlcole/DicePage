@@ -42,7 +42,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
 
     def test_gamemaster_appends_roleplay_tools_in_roleplay_order(self):
         gm_start = self.source.index('id="launcher-gamemaster-tools"')
-        gm_end = self.source.index("</div>", gm_start)
+        gm_end = self.source.index("</section>", gm_start)
         gm = self.source[gm_start:gm_end]
         self.assertIn("ROLEPLAY TOOLS", gm)
         labels = (
