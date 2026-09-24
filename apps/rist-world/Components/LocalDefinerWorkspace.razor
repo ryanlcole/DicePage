@@ -143,7 +143,14 @@
     height=local.Height,
     tier=local.Tier,
     layer=local.Layer,
+    worldTier=local.WorldTier,
+    worldLayer=local.WorldLayer,
+    regionTier=local.RegionTier,
     regionLayer=local.RegionLayer,
+    localTier=local.LocalTier,
+    localLayer=local.LocalLayer,
+    instanceTier=local.InstanceTier,
+    instanceLayer=local.InstanceLayer,
     z100=local.Z100,
     rotation=local.Rotation,
     updatedAtUtc=local.UpdatedAtUtc
@@ -173,11 +180,16 @@
    Number("y"),
    Number("width",.12),
    Number("height",.12),
-   Integer("tier"),
-   Integer("layer"),
+   Integer("worldTier",Integer("tier")),
+   Integer("worldLayer",Integer("layer")),
    Integer("regionLayer",1),
    Integer("z100"),
-   Number("rotation"));
+   Number("rotation"),
+   regionTier:Integer("regionTier"),
+   localTier:Integer("localTier"),
+   localLayer:Integer("localLayer"),
+   instanceTier:Integer("instanceTier"),
+   instanceLayer:Integer("instanceLayer"));
 
   return new
   {
@@ -194,7 +206,14 @@
    height=local.Height,
    tier=local.Tier,
    layer=local.Layer,
+   worldTier=local.WorldTier,
+   worldLayer=local.WorldLayer,
+   regionTier=local.RegionTier,
    regionLayer=local.RegionLayer,
+   localTier=local.LocalTier,
+   localLayer=local.LocalLayer,
+   instanceTier=local.InstanceTier,
+   instanceLayer=local.InstanceLayer,
    z100=local.Z100,
    rotation=local.Rotation,
    updatedAtUtc=local.UpdatedAtUtc
