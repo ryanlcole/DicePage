@@ -1627,9 +1627,15 @@ function rotateLinkedSelection(item,delta){
 function adjustLinkedOpacity(item,delta){
   for(const member of linkedSelectionMembers(item)){member.opacity=clamp((Number(member.opacity)||1)+delta,.1,1);refreshUserImage(member)}
 }
-function toggleLinkedTransparency(item){
-  const next=!item.transparent;
-  for(const member of linkedSelectionMembers(item)){member.transparent=next;member.renderedSrc='';refreshUserImage(member)}
+async function toggleLinkedTransparency(item){
+  const next=!item.transparent,members=linkedSelectionMembers(item);
+  for(const member of members){
+    member.transparent=next;
+    if(next&&member.originalSrc){
+      member.transparentSrc=await preparedImageSource(member.originalSrc,{transparent:true,alphaCrop:member.alphaCrop,alphaComponentSeed:member.alphaComponentSeed}).catch(()=>member.transparentSrc||member.originalSrc);
+    }
+    member.renderedSrc='';refreshUserImage(member);
+  }
   renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
 function unlinkSelectedGroup(){
@@ -1669,8 +1675,12 @@ async function splitImageByAlpha(item=selectedImage){
     for(let index=0;index<analysis.pieces.length;index++){
       const piece=analysis.pieces[index],geometry=makeGeometry(piece),member={
         ...item,
-        id:`alpha-piece:${crypto.randomUUID?.()||Date.now()}:${index}`,authorityResourceId:'',
-        name:`${item.name||'Image'} · piece ${index+1}/${analysis.pieces.length}`,
+        // Preserve the original object identity on the lead piece so existing
+        // Local anchors and other stable references do not break when an image
+        // is separated into linked visible sections.
+        id:index===0?String(item.id||`alpha-piece:${Date.now()}:0`):`alpha-piece:${crypto.randomUUID?.()||Date.now()}:${index}`,
+        authorityResourceId:index===0?String(item.authorityResourceId||''):'',
+        name:index===0?String(item.name||'Image'):`${item.name||'Image'} · piece ${index+1}/${analysis.pieces.length}`,
         originalSrc:source,transparentSrc:piece.src,transparent:true,alphaCrop:piece.crop,alphaComponentSeed:piece.seed,
         linkGroupId:groupId,linkGroupIndex:index,linkGroupCount:analysis.pieces.length,
         x:geometry.x,y:geometry.y,size:geometry.size,committed:false,renderOpacity:1,renderedSrc:'',zoomPassed:false,zoomPassScale:null,
@@ -5020,7 +5030,7 @@ function renderKeyboardKeysContent(){
       toolKey('↻','rotate',()=>rotateLinkedSelection(selectedImage,15)),
       toolKey('OP −','opacity',()=>adjustLinkedOpacity(selectedImage,-.1)),
       toolKey('OP +','opacity',()=>adjustLinkedOpacity(selectedImage,.1)),
-      toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>toggleLinkedTransparency(selectedImage)),
+      toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>void toggleLinkedTransparency(selectedImage)),
       ...(linkedSelectionMembers(selectedImage).length>1
         ?[readoutKey(`LINKED ${linkedSelectionMembers(selectedImage).length}`,'moves as one selection'),toolKey('UNLINK','move pieces separately',unlinkSelectedGroup)]
         :[toolKey('SPLIT ALPHA','cut transparent sections',()=>void splitImageByAlpha(selectedImage))]),
