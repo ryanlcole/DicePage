@@ -18,7 +18,7 @@ def test_every_placed_asset_persists_stable_authority_resource_identity():
 def test_campaign_is_the_asset_permission_management_surface():
     campaign = read("Components/CampaignWorkspace.razor")
     assert "ASSET PERMISSIONS" in campaign
-    assert "VICTIM / CO‑CONSPIRATOR" in campaign
+    assert "ALLY" in campaign
     assert "Waiting for GM" in campaign
     assert "GetResourcePermissionsAsync" in campaign
     assert "SetResourcePermissionAsync" in campaign
@@ -42,5 +42,5 @@ def test_resource_permissions_are_server_authoritative_and_connection_scoped():
     assert 'RESOURCE_PUBLIC_PRINCIPAL = "EVERYONE"' in authority
     assert "active_collaboration_connection" in authority
     assert "GameMaster permission authority required" in authority
-    assert "Victims & Co-Conspirators" in authority
+    assert "Campaign → Allies" in authority
     assert '"resource.permission"' in authority
