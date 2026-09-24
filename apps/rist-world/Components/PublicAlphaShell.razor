@@ -94,7 +94,7 @@
     <div id="launcher-gamemaster-tools" class="launcher-tool-grid gamemaster-tools" aria-label="GameMaster tools">
      <button type="button" class="launcher-tool-button" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span aria-hidden="true">◈</span><strong>WORLDBUILDER</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span aria-hidden="true">▦</span><strong>REGION DEFINER</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
+     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLocalStaging"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⌖</span><strong>INSTANCES</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">◷</span><strong>HISTORY</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLore"><span aria-hidden="true">✦</span><strong>LORE</strong></button>
@@ -152,6 +152,7 @@
 
   <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
   <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
+  <RegionGate Open="@_localRegionGateOpen" SelectionOnly="true" OnClose="CloseLocalRegionGate" OnSelect="OpenLocalRegion" />
   <CommerceAdminPanel Open="@_commerceAdminOpen" OnClose="CloseCommerceAdmin" />
 
   <footer class="launcher-footer">
@@ -303,7 +304,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","observer","viewer","local","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -317,6 +318,7 @@ else
  string _tickerEditor="";
  bool _worldGateOpen;
  bool _regionGateOpen;
+ bool _localRegionGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -396,7 +398,8 @@ else
   {
    case "accessibility":_workspaceMode="accessibility";_workspaceLabel="ACCESSIBILITY SHELL";_workspaceHint="DESCRIBE → NAVIGATE → ACT → BUILD";break;
    case "observer":_workspaceMode="observer";_workspaceLabel="RELIC OBSERVER";_workspaceHint="QUERY → EVIDENCE → PROVENANCE → OBSERVE";break;
-   case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD → REGION → LOCAL";break;
+   case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD 0° → REGION 15° → LOCAL";break;
+   case "local":_workspaceMode="local";_workspaceLabel="LOCAL DEFINER";_workspaceHint="REGION 15° → OBJECT → LOCAL 30° → INSTANCE 45°";break;
    case "perceiver":_workspaceMode="perceiver";_workspaceLabel="PERCEIVER";_workspaceHint="TIERED MOVIE → PARALLAX → TILT";break;
    case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
@@ -423,6 +426,7 @@ else
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _regionGateOpen=false;
+  _localRegionGateOpen=false;
   _=PersistWorkspaceAsync(mode);
  }
 
@@ -664,15 +668,39 @@ else
   catch{}
  }
  void CloseRegionGate()=>_regionGateOpen=false;
+ async Task OpenLocalStaging()
+ {
+  if(!WorldReady)return;
+  _settingsOpen=false;
+  _tickerOpen=false;
+  _cardIndexOpen=false;
+  _worldGateOpen=false;
+  _regionGateOpen=false;
+  _localRegionGateOpen=true;
+  try
+  {
+   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+   await Session.LoadLocalsAsync();
+  }
+  catch{}
+ }
+ void CloseLocalRegionGate()=>_localRegionGateOpen=false;
+ void OpenLocalRegion(WorldRegion region)
+ {
+  Session.SetActiveRegion(region.RegionId);
+  Session.SetActiveLocal("");
+  OpenWorkspace("local","LOCAL DEFINER",$"{region.Name.ToUpperInvariant()} · 15° → SELECT OBJECT → LOCAL · 30°");
+ }
  void OpenNewRegion()
  {
   Session.SetActiveRegion("");
-  OpenWorkspace("viewer","REGIONDEFINER","WORLD → TIER → SELECT → REGION");
+  OpenWorkspace("viewer","REGIONDEFINER","WORLD 0° → TIER → SELECT → REGION 15°");
  }
  void OpenSavedRegion(WorldRegion region)
  {
   Session.SetActiveRegion(region.RegionId);
-  OpenWorkspace("viewer","REGIONDEFINER",$"{region.Name.ToUpperInvariant()} → REGION → LOCAL");
+  OpenWorkspace("viewer","REGIONDEFINER",$"{region.Name.ToUpperInvariant()} · REGION 15° → LOCAL");
  }
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
  void OpenInstance()=>OpenWorkspace("roleplay","INSTANCE","LOCAL → INSTANCE → ENCOUNTER");
@@ -700,6 +728,6 @@ else
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localRegionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localRegionGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
