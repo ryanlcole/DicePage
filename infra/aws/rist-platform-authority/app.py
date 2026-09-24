@@ -194,6 +194,71 @@ def region_map_key(world_id, region_id):
     return {"pk": world_partition(world_id), "sk": "REGIONMAP#" + region_id}
 
 
+REGION_Z_MODEL = "world-int-region-hundredth-v1"
+REGION_Z_RESET_MARKER = "MIGRATION#20260924_REGION_Z100_RESET_V1"
+_region_z_reset_checked = False
+
+
+def ensure_region_z_reset():
+    """One-time project-owner-authorized reset of old Geonaph regions."""
+    global _region_z_reset_checked
+    if _region_z_reset_checked:
+        return
+
+    marker_key = {
+        "pk": world_partition(GEONAPH_WORLD_ID),
+        "sk": REGION_Z_RESET_MARKER,
+    }
+    if world.get_item(Key=marker_key, ConsistentRead=True).get("Item"):
+        _region_z_reset_checked = True
+        return
+
+    removed_records = 0
+    with world.batch_writer() as batch:
+        for prefix in ("REGION#", "REGIONMAP#"):
+            for item in query_world_prefix(GEONAPH_WORLD_ID, prefix):
+                batch.delete_item(Key={"pk": item["pk"], "sk": item["sk"]})
+                removed_records += 1
+
+    removed_layers = 0
+    source_key = world_source_key(GEONAPH_WORLD_ID)
+    source = world.get_item(Key=source_key, ConsistentRead=True).get("Item")
+    if source and isinstance(source.get("state"), dict):
+        state = dict(source["state"])
+        layers = state.get("userLayers") or []
+        if isinstance(layers, list):
+            kept = [
+                item for item in layers
+                if not (isinstance(item, dict) and str(item.get("regionId") or ""))
+            ]
+            removed_layers = len(layers) - len(kept)
+            if removed_layers:
+                state["userLayers"] = kept
+                world.update_item(
+                    Key=source_key,
+                    UpdateExpression=(
+                        "SET #state = :state, updatedAtUtc = :updated, "
+                        "updatedByUserId = :by"
+                    ),
+                    ExpressionAttributeNames={"#state": "state"},
+                    ExpressionAttributeValues={
+                        ":state": dynamo_safe(state),
+                        ":updated": datetime.now(timezone.utc).isoformat(),
+                        ":by": "system:region-z100-reset",
+                    },
+                )
+
+    world.put_item(Item={
+        **marker_key,
+        "entityType": "migration",
+        "migration": REGION_Z_RESET_MARKER,
+        "removedRegionRecords": removed_records,
+        "removedRegionLayers": removed_layers,
+        "createdAtUtc": datetime.now(timezone.utc).isoformat(),
+    })
+    _region_z_reset_checked = True
+
+
 def world_token_key(user_id):
     """Legacy genesis token key retained for compatibility."""
     return {"pk": "USER#" + user_id, "sk": GENESIS_WORLD_TOKEN_SK}
@@ -1066,6 +1131,7 @@ def handler(event, context):
     session = auth(event)
     if not session:
         return response(401, {"error": "Authentication required"})
+    ensure_region_z_reset()
     user_id = session["userId"]
     q = event.get("queryStringParameters") or {}
     now = int(time.time())
@@ -2743,7 +2809,7 @@ def handler(event, context):
             return response(409, {"error": str(exc)})
         return response(200, {
             "worldId": world_id, "regionId": region_id,
-            "projection": "region-child-v1", "state": projected,
+            "projection": "region-world-z-v2", "state": projected,
             "updatedAtUtc": str(parent.get("updatedAtUtc") or ""),
         })
 
@@ -2798,7 +2864,7 @@ def handler(event, context):
         audit_write(world_id, user_id, "region.overlay.save", region_id, {
             "layers": len(normalized),
             "parentTierIndex": int(region_state.get("tierIndex") or 0),
-            "zModel": "world-int-region-hundredth-v1",
+            "zModel": REGION_Z_MODEL,
             "bytes": encoded_size,
         })
         return response(200, {
@@ -2806,7 +2872,7 @@ def handler(event, context):
             "regionId": region_id,
             "updatedAtUtc": updated_at,
             "savedLayerCount": len(normalized),
-            "zModel": "world-int-region-hundredth-v1",
+            "zModel": REGION_Z_MODEL,
         })
 
     if method == "GET" and path == "/world/regions":
