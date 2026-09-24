@@ -97,8 +97,7 @@ export function attach(frame,dotnet){
         const requestId=String(data.requestId||"");
         const regionId=String(data.regionId||"").trim();
         const layers=Array.isArray(data.userLayers)?data.userLayers:[];
-        const relativeTiers=Array.isArray(data.relativeTiers)?data.relativeTiers:[{id:regionId+":tier:0",index:0,label:"Region Base"}];
-        const result=await dotnet.invokeMethodAsync("SaveRegionMapLayersFromPrototypeAsync",regionId,layers,relativeTiers);
+        const result=await dotnet.invokeMethodAsync("SaveRegionMapLayersFromPrototypeAsync",regionId,layers);
         post(frame,{type:"map-region-saved",requestId,result});
         return;
       }
