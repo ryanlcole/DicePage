@@ -9,7 +9,7 @@
  <header class="perceiver-toolbar">
   <div class="perceiver-toolbar-center">
    <strong>PERCEIVER</strong>
-   <small>ENDEMAR PARALLAX · SPECTRAL VIDEO CONVERTER</small>
+   <small>PARALLAX SPRITE MOVIE PLAYER · VIDEO → SPRITES</small>
   </div>
 
   <div class="perceiver-toolbar-right" aria-live="polite">
@@ -50,9 +50,9 @@
   </div>
 
   <div class="perceiver-control-row perceiver-source-controls">
-   <button type="button" data-perceiver-upload-button>UPLOAD VIDEO</button>
-   <button type="button" data-perceiver-movie-button>OPEN MOVIE FILE</button>
-   <button type="button" data-perceiver-endemar-button>ENDEMAR</button>
+   <button type="button" data-perceiver-upload-button>VIDEO → SPRITES</button>
+   <button type="button" data-perceiver-sprite-button>OPEN SPRITES</button>
+   <button type="button" data-perceiver-save-sprites-button>SAVE SPRITES</button>\n   <button type="button" data-perceiver-endemar-button>ENDEMAR</button>
    <div class="perceiver-speed">
     <label for="perceiver-speed-select">Speed</label>
     <select id="perceiver-speed-select" @onchange="SetSpeedAsync" aria-label="Perceiver playback speed">
@@ -63,7 +63,7 @@
     </select>
    </div>
    <input type="file" accept="video/*" data-perceiver-video-input hidden aria-label="Choose a video for spectral conversion" />
-   <input type="file" data-perceiver-movie-input hidden aria-label="Choose a RIST movie scene package" />
+   <input type="file" accept="image/png,image/webp,image/jpeg" multiple data-perceiver-sprite-input hidden aria-label="Choose one or more sprite sheet images" />
    </div>
   </div>
 
@@ -252,7 +252,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260922-ristmovie-sprites-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-video-sprite-atlas-1");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
