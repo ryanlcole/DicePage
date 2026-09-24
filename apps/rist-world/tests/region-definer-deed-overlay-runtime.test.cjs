@@ -269,7 +269,8 @@ test('shared sprite editor supports motion-only overlays and 60fps playback',()=
   assert.ok(html.includes('id="spriteMotionOnly"'));
   assert.ok(html.includes('max="60"'));
   assert.ok(source.includes('function isolateSpriteMotion('));
-  assert.ok(source.includes('motionOnly:definition.motionOnly===true'));
+  assert.ok(source.includes('spriteMotionOnly:definition.motionOnly===true'));
+  assert.ok(source.includes('extractSpriteChainFrames(pages,{motionOnly:item.spriteMotionOnly})'));
   assert.ok(source.includes('requestAnimationFrame(step)'));
   assert.ok(source.includes("toolKey('FPS 60'"));
 });
