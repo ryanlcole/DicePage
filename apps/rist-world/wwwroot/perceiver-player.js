@@ -676,6 +676,15 @@ function inferSpriteMeta(fileName, image) {
   return { kind: 'sheet', frameCount: 1, fps: 1, columns: 1, rows: 1 };
 }
 
+function spriteRoleWeight(fileName) {
+  const name = String(fileName || '').toLowerCase();
+  if (name.includes('background')) return 0;
+  if (/(effect|aurora|cloud|water|light|weather)/.test(name)) return 1;
+  if (/(dragon|actor|character|creature|npc)/.test(name)) return 2;
+  if (name.includes('foreground')) return 3;
+  return 2;
+}
+
 function clearSpritePlayback(state) {
   state.spriteLayers.forEach(layer => layer.remove());
   state.spriteLayers = [];
@@ -777,6 +786,8 @@ async function loadSpriteFiles(state, fileList) {
       decoded.push({ file, image, meta: inferSpriteMeta(file.name, image) });
     } catch {}
   }
+
+  decoded.sort((a, b) => spriteRoleWeight(a.file.name) - spriteRoleWeight(b.file.name));
 
   const parallaxFiles = decoded.filter(item => item.meta && item.meta.kind === 'parallax-page');
   if (parallaxFiles.length) {
