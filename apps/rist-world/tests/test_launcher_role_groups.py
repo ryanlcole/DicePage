@@ -25,7 +25,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
 
     def test_roleplay_group_contains_requested_tools(self):
         for label in (
-            "CHARACTERS", "CHARACTER CARD DESIGNER", "JOURNAL",
+            "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
             "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS", "ASSET DESIGNER",
             "PERCEIVER", "ReLiC OBSERVER", "ACCESSIBILITY",
         ):
@@ -36,7 +36,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
             "WORLDBUILDER", "REGION DEFINER", "LOCAL STAGING", "INSTANCES",
             "HISTORY", "LORE", "WEATHER", "GEOLOGICAL EVENTS", "ASTRONOMY",
             "ASTROLOGY", "TICKER", "TRACKER", "GUEST CHARACTERS", "ENCOUNTERS",
-            "CHARACTER CARD DESIGNER",
+            "CHARACTER CARD DESIGNER", "POWERS",
         ):
             self.assertIn(f"<strong>{label}</strong>", self.source)
 
@@ -46,7 +46,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         gm = self.source[gm_start:gm_end]
         self.assertIn("ROLEPLAY TOOLS", gm)
         labels = (
-            "CHARACTERS", "CHARACTER CARD DESIGNER", "JOURNAL",
+            "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
             "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS",
             "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
             "ACCESSIBILITY",
@@ -72,6 +72,17 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         self.assertIn("RequirementStorageKey", designer)
         self.assertIn("LayoutStorageKey", designer)
         self.assertIn("ValueStorageKey", designer)
+
+    def test_powers_is_shared_roleplay_and_gamemaster_workspace(self):
+        router = (
+            Path(__file__).resolve().parents[1]
+            / "Components"
+            / "TaskWorkspaceRouter.razor"
+        ).read_text(encoding="utf-8")
+        self.assertGreaterEqual(self.source.count('@onclick="OpenPowers"'), 2)
+        self.assertIn('case "powers"', self.source)
+        self.assertIn('Mode == "powers"', router)
+        self.assertIn("<PowerCardWorkspace />", router)
 
     def test_tracker_is_live_gamemaster_report_workspace(self):
         router = (
