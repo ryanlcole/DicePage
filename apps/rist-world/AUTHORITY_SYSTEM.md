@@ -234,3 +234,40 @@ Persistence/UI/API integrations must consume this shared evaluator rather than r
 ## Security posture
 
 This system is defense-in-depth, not a claim of perfect security. Production deployment should pair it with server-side enforcement, hardware-backed MFA for privileged staff, short-lived sessions, durable append-only audit storage, least privilege, and a tightly controlled emergency recovery process.
+
+
+## Campaign connected-identity directory
+
+Status: **LOCKED**
+
+Campaign includes a human identity directory presented as **Victims & Co-Conspirators**.
+
+- An authenticated user may generate a one-use connection code and send it to another authenticated user.
+- The recipient may redeem that code to create a reciprocal account connection.
+- Connection codes are secrets; the server stores only their cryptographic hashes and enforces expiry and one-use redemption.
+- Connecting two identities never shares credentials and never delegates identity.
+- Connecting two identities never grants World, Region, Local, Instance, card, asset, campaign, claim, or other resource access by itself.
+- The connection exists only to make the linked authenticated identity selectable in permission-management interfaces.
+- Either connected identity may unlink the relationship. Unlinking removes the directory relationship but does not silently reinterpret historical audit records.
+- Resource permission remains explicit, inherited through authorized containment, or public according to the normal Recursive Authority rules.
+
+### Asset permission default
+
+Every asset is permission-bearing.
+
+For a non-owner/non-GM user with no explicit or inherited permission:
+
+**visible state = `Waiting for GM`**
+
+This is the presentation of the absence of a grant. It does **not** imply View.
+
+The explicit permission vocabulary remains:
+
+- `Public`
+- `View`
+- `Edit`
+- `Deny`
+
+`Waiting for GM` is the default pending presentation before an applicable grant exists.
+
+Campaign permission pickers should source authenticated user identities from the connected-identity directory rather than requiring the GM to type raw account/user IDs.
