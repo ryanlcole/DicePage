@@ -1,203 +1,432 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
 @using System.Text.Json
+@implements IAsyncDisposable
 @inject IJSRuntime JS
+@inject WorldSession Session
 
-<div class="character-card-designer" aria-label="Character Card Designer">
+<div class="character-card-designer" @ref="_root" aria-label="Character Card Designer">
  <header class="ccd-header">
   <div>
-   <small>GAMEMASTER · CHARACTER SYSTEM</small>
+   <small>GAMEMASTER · REQUIRED CHARACTER TEMPLATE</small>
    <h2>CHARACTER CARD DESIGNER</h2>
-   <p>Build a character sheet as an ordered deck of cards.</p>
+   <p>GM fields define the required sheet. Character values remain separate from the card graphic.</p>
   </div>
   <div class="ccd-actions">
    <button type="button" @onclick="AddCard">+ CARD</button>
-   <button type="button" @onclick="SaveAsync">@(_saved?"SAVED":"SAVE DRAFT")</button>
+   <button type="button" @onclick="SaveAsync">@(_saved?"SAVED":"SAVE")</button>
   </div>
  </header>
 
  <div class="ccd-workspace">
-  <aside class="ccd-deck" aria-label="Character card deck">
-   <strong>DECK</strong>
-   @for(var i=0;i<_cards.Count;i++)
-   {
-    var index=i;
-    var card=_cards[index];
-    <button type="button"
-            class="@(index==_selected?"selected":"")"
-            aria-pressed="@(index==_selected)"
-            @onclick="()=>SelectCard(index)">
-     <span>@(index+1)</span>
-     <b>@card.Title</b>
-     <small>@card.Fields.Count field@(card.Fields.Count==1?"":"s")</small>
-    </button>
-   }
+  <aside class="ccd-library" aria-label="Character asset library">
+   <strong>CHARACTER ASSETS</strong>
+   <label class="ccd-search">
+    <span>SEARCH FOR A FIELD</span>
+    <input value="@_search" @oninput="SearchChanged" placeholder="Strength, health, equipment, language…" autocomplete="off" />
+   </label>
+   <div class="ccd-search-results">
+    @foreach(var option in SearchResults)
+    {
+     <button type="button" @onclick="()=>BeginField(option)"><b>@option.Name</b><small>@option.Group · @FriendlyKind(option.Kind)</small></button>
+    }
+   </div>
+   <button type="button" class="ccd-custom-field" @onclick="BeginCustomField">+ CUSTOM FIELD</button>
+
+   <div class="ccd-deck-heading"><span>CARDS</span><small>@_cards.Count</small></div>
+   <div class="ccd-deck">
+    @for(var i=0;i<_cards.Count;i++)
+    {
+     var index=i;
+     <button type="button" class="@(index==_selectedCard?"selected":"")" @onclick="()=>SelectCard(index)">
+      <span>@(index+1)</span><b>@_cards[index].Title</b><small>@_cards[index].Fields.Count field@(_cards[index].Fields.Count==1?"":"s")</small>
+     </button>
+    }
+   </div>
   </aside>
 
   <main class="ccd-preview-area">
    @if(SelectedCard is { } card)
    {
-    <section class="ccd-card-preview" style="@PreviewStyle" aria-label="Selected character card preview">
-     <header>
-      <small>CARD @(_selected+1) / @_cards.Count</small>
-      <strong>@card.Title</strong>
+    <section class="ccd-card-canvas" style="@PreviewStyle" data-ccd-card aria-label="@card.Title character card">
+     <header class="ccd-card-title">
+      <small>GM REQUIRED CARD · @(_selectedCard+1) / @_cards.Count</small>
+      <input maxlength="48" value="@card.Title" @oninput="RenameCard" aria-label="Card title" />
      </header>
-     <div class="ccd-card-fields">
+     <div class="ccd-field-surface">
       @foreach(var field in card.Fields)
       {
-       <div>
-        <span>@field</span>
-        <i></i>
-       </div>
-      }
-      @if(card.Fields.Count==0)
-      {
-       <p>ADD FIELDS TO THIS CARD</p>
+       var value=ValueFor(field.Id);
+       <article class="ccd-field-node @AssetClass(field) @(field.Id==_selectedFieldId?"selected":"")"
+                data-ccd-field="@field.Id"
+                data-x="@field.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                data-y="@field.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                data-w="@field.Width.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                data-h="@field.Height.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                style="@FieldStyle(field)"
+                @onclick="()=>SelectField(field.Id)">
+        @if(!string.IsNullOrWhiteSpace(field.AssetDataUrl))
+        {
+         <img src="@field.AssetDataUrl" alt="" draggable="false" />
+        }
+        <div class="ccd-field-content">
+         <small>@field.Name</small>
+         @if(field.Required){<em>REQUIRED</em>}
+         <strong>@DisplayValue(field,value)</strong>
+        </div>
+        @if(field.Id==_selectedFieldId)
+        {
+         <button type="button" class="ccd-resize-handle nw" data-ccd-resize="nw" aria-label="Resize from top left"></button>
+         <button type="button" class="ccd-resize-handle ne" data-ccd-resize="ne" aria-label="Resize from top right"></button>
+         <button type="button" class="ccd-resize-handle sw" data-ccd-resize="sw" aria-label="Resize from bottom left"></button>
+         <button type="button" class="ccd-resize-handle se" data-ccd-resize="se" aria-label="Resize from bottom right"></button>
+        }
+       </article>
       }
      </div>
     </section>
    }
   </main>
 
-  <aside class="ccd-inspector" aria-label="Character card inspector">
-   @if(SelectedCard is { } selected)
-   {
-    <label>
-     <span>CARD TITLE</span>
-     <input maxlength="48" value="@selected.Title" @oninput="RenameSelected" />
-    </label>
-    <label>
-     <span>CARD SIZE</span>
-     <select value="@_cardSize" @onchange="ChangeCardSize">
-      <option value="poker">Poker · 2.5 × 3.5</option>
-      <option value="tarot">Tarot · 2.75 × 4.75</option>
-      <option value="index">Index · 3 × 5</option>
-     </select>
-    </label>
+  <aside class="ccd-inspector" aria-label="Selected character field">
+   <label>
+    <span>SELECT · CHARACTER FIELDS</span>
+    <select value="@_selectedFieldId" @onchange="SelectFieldChanged">
+     <option value="">Select field…</option>
+     @if(SelectedCard is { } selectedCard)
+     {
+      @foreach(var field in selectedCard.Fields)
+      {
+       <option value="@field.Id">@field.Name · @FriendlyKind(field.Kind)</option>
+      }
+     }
+    </select>
+   </label>
 
-    <div class="ccd-reorder">
-     <button type="button" disabled="@(_selected<=0)" @onclick="MoveLeft">← EARLIER</button>
-     <button type="button" disabled="@(_selected>=_cards.Count-1)" @onclick="MoveRight">LATER →</button>
+   @if(SelectedField is { } selected)
+   {
+    <div class="ccd-selected-summary">
+     <b>@selected.Name</b><small>@FriendlyKind(selected.Kind) · @selected.AssetName</small>
+     <span>GM REQUIRED</span>
     </div>
 
-    <section class="ccd-field-editor">
-     <strong>FIELDS</strong>
-     @for(var i=0;i<selected.Fields.Count;i++)
-     {
-      var fieldIndex=i;
-      <div>
-       <span>@selected.Fields[fieldIndex]</span>
-       <button type="button" aria-label="Remove @selected.Fields[fieldIndex]" @onclick="()=>RemoveField(fieldIndex)">×</button>
-      </div>
-     }
-    </section>
+    <div class="ccd-step-grid">
+     <button type="button" @onclick="()=>NudgeSize(-1)">SIZE −</button>
+     <button type="button" @onclick="()=>NudgeSize(1)">SIZE +</button>
+    </div>
+
+    <div class="ccd-number-grid">
+     <label><span>X %</span><input type="number" min="0" max="100" step="0.1" value="@F(selected.X)" @onchange="e=>SetNumber(e,0)" /></label>
+     <label><span>Y %</span><input type="number" min="0" max="100" step="0.1" value="@F(selected.Y)" @onchange="e=>SetNumber(e,1)" /></label>
+     <label><span>WIDTH %</span><input type="number" min="5" max="100" step="0.1" value="@F(selected.Width)" @onchange="e=>SetNumber(e,2)" /></label>
+     <label><span>HEIGHT %</span><input type="number" min="5" max="100" step="0.1" value="@F(selected.Height)" @onchange="e=>SetNumber(e,3)" /></label>
+    </div>
 
     <label>
-     <span>ADD FIELD</span>
-     <select @bind="_fieldToAdd">
-      @foreach(var field in FieldChoices)
-      {
-       <option value="@field">@field</option>
-      }
-     </select>
+     <span>FINE WIDTH</span>
+     <input type="range" min="5" max="100" step="0.1" value="@F(selected.Width)" @oninput="SetWidthRange" />
     </label>
-    <button type="button" class="ccd-add-field" @onclick="AddField">+ ADD FIELD</button>
-    <button type="button" class="ccd-delete" disabled="@(_cards.Count<=1)" @onclick="DeleteSelected">DELETE CARD</button>
+    <label>
+     <span>FINE HEIGHT</span>
+     <input type="range" min="5" max="100" step="0.1" value="@F(selected.Height)" @oninput="SetHeightRange" />
+    </label>
+
+    <section class="ccd-runtime-preview">
+     <strong>CHARACTER VALUE · SEPARATE FROM GRAPHIC</strong>
+     @RenderRuntimeEditor(selected)
+    </section>
+
+    <button type="button" class="ccd-delete" @onclick="DeleteSelectedField">DELETE FIELD</button>
    }
+   else
+   {
+    <p class="ccd-help">Search for a character field, choose its type and matching asset, enter its initial value, then Save & Place.</p>
+   }
+
+   <label>
+    <span>CARD SIZE</span>
+    <select value="@_cardSize" @onchange="ChangeCardSize">
+     <option value="poker">Poker · 2.5 × 3.5</option>
+     <option value="tarot">Tarot · 2.75 × 4.75</option>
+     <option value="index">Index · 3 × 5</option>
+    </select>
+   </label>
   </aside>
  </div>
+
+ @if(_wizardOpen)
+ {
+  <div class="ccd-modal-backdrop" @onclick="CloseWizard">
+   <section class="ccd-field-wizard" role="dialog" aria-modal="true" aria-label="Add character field" @onclick:stopPropagation="true">
+    <header><div><small>SEARCH → TYPE → ASSET → VALUE → PLACE</small><strong>@_wizardName</strong></div><button type="button" @onclick="CloseWizard" aria-label="Close">×</button></header>
+
+    <label>
+     <span>FIELD NAME</span>
+     <input maxlength="64" @bind="_wizardName" />
+    </label>
+
+    <fieldset>
+     <legend>FIELD TYPE</legend>
+     <div class="ccd-type-grid">
+      @foreach(var type in FieldTypes)
+      {
+       <button type="button" class="@(type.Kind==_wizardKind?"selected":"")" @onclick="()=>ChooseType(type)"><b>@type.Label</b><small>@type.Group</small></button>
+      }
+     </div>
+    </fieldset>
+
+    <fieldset>
+     <legend>MATCHING CHARACTER ASSET</legend>
+     <div class="ccd-asset-grid">
+      @foreach(var asset in MatchingAssets)
+      {
+       <button type="button" class="ccd-asset-choice @asset.CssClass @(asset.Id==_wizardAssetId?"selected":"")" @onclick="()=>ChooseAsset(asset)"><span></span><b>@asset.Label</b></button>
+      }
+      <label class="ccd-upload-asset"><span>CREATE YOUR OWN</span><InputFile OnChange="LoadWizardAsset" accept="image/png,image/jpeg,image/webp" /></label>
+     </div>
+     @if(!string.IsNullOrWhiteSpace(_wizardAssetDataUrl))
+     {
+      <div class="ccd-custom-preview"><img src="@_wizardAssetDataUrl" alt="Custom field asset preview" /></div>
+     }
+    </fieldset>
+
+    <fieldset>
+     <legend>INITIAL CHARACTER VALUE</legend>
+     <div class="ccd-value-grid">
+      @if(_wizardKind=="ATTRIBUTE")
+      {
+       <label><span>BASE</span><input type="number" @bind="_wizardBase" /></label>
+       <label><span>CURRENT</span><input type="number" @bind="_wizardCurrent" /></label>
+       <label><span>MAX</span><input type="number" @bind="_wizardMax" /></label>
+      }
+      else if(_wizardKind is "TRACKER" or "LIMIT" or "VALUE")
+      {
+       <label><span>CURRENT</span><input type="number" @bind="_wizardCurrent" /></label>
+       <label><span>MAX</span><input type="number" @bind="_wizardMax" /></label>
+      }
+      else if(_wizardKind=="LANGUAGE")
+      {
+       <label><span>PROFICIENCY %</span><input type="number" min="0" max="100" @bind="_wizardProficiency" /></label>
+      }
+      else if(_wizardKind=="PORTRAIT")
+      {
+       <span class="ccd-value-note">Portrait value is supplied by the character. The frame graphic remains GM-defined.</span>
+      }
+      else
+      {
+       <label class="wide"><span>VALUE / TEXT</span><textarea rows="3" @bind="_wizardText"></textarea></label>
+      }
+     </div>
+    </fieldset>
+
+    <footer><button type="button" @onclick="CloseWizard">CANCEL</button><button type="button" class="primary" disabled="@(!CanPlaceWizard)" @onclick="SaveAndPlace">SAVE &amp; PLACE</button></footer>
+   </section>
+  </div>
+ }
 </div>
 
 <style>
- .character-card-designer{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:radial-gradient(circle at 50% 0,#132432 0,transparent 34%),#050a0e;color:#e8dfca;font-family:Inter,system-ui,-apple-system,sans-serif;overflow:hidden}
- .ccd-header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 16px;border-bottom:1px solid #765f31;background:linear-gradient(90deg,#08121a,#151109)}.ccd-header small{color:#7fa5b8;font-size:8px;font-weight:900;letter-spacing:.14em}.ccd-header h2{margin:2px 0;color:#efd493;font:600 20px/1.1 Georgia,serif;letter-spacing:.05em}.ccd-header p{margin:4px 0 0;color:#9dafb7;font-size:10px}.ccd-actions{display:flex;gap:7px}.ccd-actions button,.ccd-reorder button,.ccd-add-field,.ccd-delete{min-height:36px;padding:0 10px;border:1px solid #586d78;border-radius:7px;background:#0c1820;color:#e7dcbf;font:900 9px/1 system-ui;letter-spacing:.05em;touch-action:manipulation}.ccd-actions button:last-child{border-color:#9b7b39;color:#ffe3a0}
- .ccd-workspace{min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr) 250px}.ccd-deck,.ccd-inspector{min-height:0;overflow:auto;padding:10px;background:#081117}.ccd-deck{border-right:1px solid #344b58}.ccd-inspector{border-left:1px solid #344b58}.ccd-deck>strong,.ccd-field-editor>strong{display:block;margin:0 0 8px;color:#8ea4af;font-size:8px;letter-spacing:.13em}.ccd-deck>button{width:100%;min-height:54px;margin-bottom:7px;padding:7px;border:1px solid #394e59;border-radius:7px;background:#0d1820;color:#dce2df;display:grid;grid-template-columns:24px 1fr;grid-template-rows:auto auto;text-align:left;touch-action:manipulation}.ccd-deck>button>span{grid-row:1/3;align-self:center;color:#d6b65d;font:700 16px Georgia,serif}.ccd-deck b{font:700 10px system-ui}.ccd-deck small{color:#81949e;font-size:8px}.ccd-deck button.selected{border-color:#d0aa55;background:#19180f;box-shadow:0 0 0 1px #d0aa5544}
- .ccd-preview-area{min-width:0;min-height:0;display:grid;place-items:center;padding:18px;overflow:auto;background:radial-gradient(circle,#13212a 0,#071016 65%,#04090d 100%)}.ccd-card-preview{box-sizing:border-box;width:min(62vw,390px);aspect-ratio:var(--card-ratio);display:grid;grid-template-rows:auto 1fr;padding:16px;border:2px solid #b18a3e;border-radius:16px;background:linear-gradient(155deg,#182632,#0c141a 62%,#171109);box-shadow:0 22px 54px #000b,0 0 0 1px #f0ce7440 inset}.ccd-card-preview header{padding-bottom:10px;border-bottom:1px solid #64522e}.ccd-card-preview header small{display:block;color:#779bab;font-size:7px;font-weight:900;letter-spacing:.12em}.ccd-card-preview header strong{display:block;margin-top:3px;color:#f0d79a;font:600 clamp(17px,3vw,28px)/1.1 Georgia,serif}.ccd-card-fields{display:grid;align-content:start;gap:10px;padding-top:13px}.ccd-card-fields>div{display:grid;grid-template-columns:minmax(90px,.42fr) 1fr;align-items:center;gap:10px}.ccd-card-fields span{color:#d8c99f;font-size:9px;font-weight:900;letter-spacing:.06em}.ccd-card-fields i{height:1px;background:linear-gradient(90deg,#617580,#2f3d44)}.ccd-card-fields p{margin:auto;color:#607681;font-size:9px;font-weight:900;letter-spacing:.12em}
- .ccd-inspector{display:grid;align-content:start;gap:10px}.ccd-inspector label{display:grid;gap:4px}.ccd-inspector label>span{color:#829aa6;font-size:8px;font-weight:900;letter-spacing:.1em}.ccd-inspector input,.ccd-inspector select{box-sizing:border-box;width:100%;min-height:36px;border:1px solid #4a606b;border-radius:7px;background:#0d1820;color:#ecdfbd;padding:6px 8px;font:800 10px system-ui}.ccd-reorder{display:grid;grid-template-columns:1fr 1fr;gap:6px}.ccd-reorder button:disabled,.ccd-delete:disabled{opacity:.35}.ccd-field-editor{padding:9px;border:1px solid #324752;border-radius:8px;background:#0a151c}.ccd-field-editor>div{display:grid;grid-template-columns:1fr 28px;align-items:center;gap:4px;min-height:31px;border-bottom:1px solid #273b45;color:#d7d8cf;font-size:9px}.ccd-field-editor>div:last-child{border-bottom:0}.ccd-field-editor button{width:27px;height:27px;border:1px solid #664f47;border-radius:5px;background:#1a1110;color:#e6b4a6}.ccd-add-field{border-color:#4e796a;color:#c8eadc}.ccd-delete{margin-top:5px;border-color:#71483f;color:#e8b1a4;background:#1c100e}
- @media(max-width:760px){.ccd-header{padding:8px 10px}.ccd-header h2{font-size:15px}.ccd-header p{display:none}.ccd-workspace{grid-template-columns:92px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.ccd-deck{grid-row:1/3;padding:6px}.ccd-deck>button{grid-template-columns:1fr;min-height:44px;padding:5px}.ccd-deck>button>span{display:none}.ccd-deck b{font-size:8px}.ccd-inspector{grid-column:2;grid-row:2;max-height:33dvh;border-left:0;border-top:1px solid #344b58;padding:7px;grid-template-columns:1fr 1fr}.ccd-inspector label,.ccd-field-editor{min-width:0}.ccd-field-editor{grid-row:span 2}.ccd-preview-area{padding:8px}.ccd-card-preview{width:min(70vw,320px);padding:10px}.ccd-actions button{min-height:32px;padding:0 7px;font-size:8px}}
+ .character-card-designer{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:#050a0e;color:#e8dfca;font-family:Inter,system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}.ccd-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #765f31;background:linear-gradient(90deg,#08121a,#151109)}.ccd-header small{color:#7fa5b8;font-size:8px;font-weight:900;letter-spacing:.14em}.ccd-header h2{margin:2px 0;color:#efd493;font:600 19px/1.1 Georgia,serif}.ccd-header p{margin:3px 0 0;color:#9dafb7;font-size:9px}.ccd-actions{display:flex;gap:6px}.ccd-actions button,.ccd-step-grid button,.ccd-delete,.ccd-custom-field{min-height:36px;padding:0 10px;border:1px solid #586d78;border-radius:7px;background:#0c1820;color:#e7dcbf;font:900 9px/1 system-ui;letter-spacing:.05em;touch-action:manipulation}.ccd-actions button:last-child{border-color:#9b7b39;color:#ffe3a0}
+ .ccd-workspace{min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr) 250px}.ccd-library,.ccd-inspector{min-height:0;overflow:auto;padding:10px;background:#081117}.ccd-library{border-right:1px solid #344b58}.ccd-inspector{border-left:1px solid #344b58;display:grid;align-content:start;gap:9px}.ccd-library>strong,.ccd-deck-heading{color:#8ea4af;font-size:8px;font-weight:900;letter-spacing:.13em}.ccd-search,.ccd-inspector label{display:grid;gap:4px;margin-top:9px}.ccd-search span,.ccd-inspector label>span,.ccd-number-grid label>span,.ccd-runtime-preview>strong{color:#829aa6;font-size:7px;font-weight:900;letter-spacing:.1em}.ccd-search input,.ccd-inspector input,.ccd-inspector select,.ccd-field-wizard input,.ccd-field-wizard textarea{box-sizing:border-box;width:100%;min-height:35px;border:1px solid #4a606b;border-radius:7px;background:#0d1820;color:#ecdfbd;padding:6px 8px;font:800 10px system-ui;-webkit-user-select:text;user-select:text}.ccd-search-results{display:grid;gap:4px;margin-top:7px}.ccd-search-results button{min-height:43px;padding:6px 8px;border:1px solid #314651;border-radius:6px;background:#0a151c;color:#dce3df;display:grid;text-align:left}.ccd-search-results b{font-size:9px}.ccd-search-results small{color:#78909b;font-size:7px}.ccd-custom-field{width:100%;margin-top:7px;border-color:#4c7468}.ccd-deck-heading{display:flex;justify-content:space-between;margin:16px 0 6px}.ccd-deck{display:grid;gap:5px}.ccd-deck button{min-height:46px;padding:6px;border:1px solid #394e59;border-radius:7px;background:#0d1820;color:#dce2df;display:grid;grid-template-columns:22px 1fr;grid-template-rows:auto auto;text-align:left}.ccd-deck button>span{grid-row:1/3;align-self:center;color:#d6b65d;font:700 15px Georgia,serif}.ccd-deck b{font-size:9px}.ccd-deck small{color:#81949e;font-size:7px}.ccd-deck button.selected{border-color:#d0aa55;background:#19180f}
+ .ccd-preview-area{min-width:0;min-height:0;display:grid;place-items:center;padding:14px;overflow:auto;background:radial-gradient(circle,#14242e 0,#071016 68%,#04090d 100%)}.ccd-card-canvas{position:relative;box-sizing:border-box;width:min(62vw,430px);aspect-ratio:var(--card-ratio);border:2px solid #b18a3e;border-radius:16px;background:linear-gradient(155deg,#182632,#0c141a 62%,#171109);box-shadow:0 22px 54px #000b;overflow:hidden;touch-action:none;-webkit-touch-callout:none}.ccd-card-title{box-sizing:border-box;height:15%;padding:9px 12px;border-bottom:1px solid #64522e;background:#091218cc}.ccd-card-title small{display:block;color:#779bab;font-size:6px;font-weight:900;letter-spacing:.1em}.ccd-card-title input{width:100%;border:0;background:transparent;color:#f0d79a;font:600 clamp(15px,2.2vw,24px)/1.1 Georgia,serif;outline:0;-webkit-user-select:text;user-select:text}.ccd-field-surface{position:absolute;inset:15% 0 0}
+ .ccd-field-node{position:absolute;box-sizing:border-box;display:grid;place-items:stretch;border:1px solid #526975;border-radius:7px;background:linear-gradient(145deg,#16242d,#0d161b);color:#e7dec6;touch-action:none;-webkit-touch-callout:none;cursor:move;overflow:visible}.ccd-field-node>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;border-radius:inherit;pointer-events:none}.ccd-field-content{position:relative;z-index:1;box-sizing:border-box;width:100%;height:100%;padding:5px;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr;align-items:center;background:rgba(4,10,14,.24);overflow:hidden}.ccd-field-content small{color:#cdbd94;font-size:7px;font-weight:900;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ccd-field-content em{color:#d0a94f;font:900 5px/1 system-ui;letter-spacing:.08em}.ccd-field-content strong{grid-column:1/-1;align-self:center;color:#f3e5bd;font:800 clamp(9px,1.5vw,16px)/1.1 system-ui;white-space:pre-wrap;overflow:hidden}.ccd-field-node.selected{outline:2px solid #f0cc69;outline-offset:2px;z-index:30}.ccd-field-node.asset-slider{border-radius:999px}.ccd-field-node.asset-dial{border-radius:50%}.ccd-field-node.asset-text-panel{background:linear-gradient(145deg,#111b21,#17140e)}.ccd-field-node.asset-portrait-frame{border-width:3px;border-color:#a88643}.ccd-field-node.asset-meter{background:linear-gradient(90deg,#173445,#172116)}
+ .ccd-resize-handle{position:absolute;z-index:5;width:18px;height:18px;padding:0;border:2px solid #071018;border-radius:50%;background:#f0cc69;touch-action:none}.ccd-resize-handle.nw{left:0;top:0;transform:translate(-50%,-50%)}.ccd-resize-handle.ne{right:0;top:0;transform:translate(50%,-50%)}.ccd-resize-handle.sw{left:0;bottom:0;transform:translate(-50%,50%)}.ccd-resize-handle.se{right:0;bottom:0;transform:translate(50%,50%)}
+ .ccd-inspector select{box-sizing:border-box;width:100%;min-height:35px;border:1px solid #4a606b;border-radius:7px;background:#0d1820;color:#ecdfbd;padding:5px}.ccd-selected-summary{display:grid;gap:2px;padding:8px;border:1px solid #5d6f76;border-radius:7px;background:#101a20}.ccd-selected-summary b{color:#efd493;font:600 14px Georgia,serif}.ccd-selected-summary small{color:#8fa3ac;font-size:8px}.ccd-selected-summary span{justify-self:start;margin-top:3px;padding:3px 5px;border:1px solid #8b7037;border-radius:999px;color:#e8c978;font:900 6px/1 system-ui}.ccd-step-grid,.ccd-number-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.ccd-number-grid label{display:grid;gap:3px}.ccd-runtime-preview{display:grid;gap:6px;padding:8px;border:1px solid #34594d;border-radius:7px;background:#091913}.ccd-runtime-preview input,.ccd-runtime-preview textarea{box-sizing:border-box;width:100%;min-height:34px;border:1px solid #48695e;border-radius:6px;background:#0b1713;color:#d9f0e5;padding:5px 7px;-webkit-user-select:text;user-select:text}.ccd-delete{border-color:#71483f;color:#e8b1a4;background:#1c100e}.ccd-help{margin:0;color:#91a5ae;font-size:9px;line-height:1.5}
+ .ccd-modal-backdrop{position:fixed;z-index:2147483400;inset:0;display:grid;place-items:center;padding:12px;background:#020609e8;backdrop-filter:blur(6px)}.ccd-field-wizard{box-sizing:border-box;width:min(96vw,780px);max-height:94dvh;overflow:auto;display:grid;gap:10px;padding:14px;border:1px solid #9b7b3e;border-radius:13px;background:#071117;color:#e9dfc8;box-shadow:0 20px 70px #000e}.ccd-field-wizard>header{display:flex;justify-content:space-between;align-items:center}.ccd-field-wizard header div{display:grid}.ccd-field-wizard header small{color:#78a9c5;font-size:7px;font-weight:900;letter-spacing:.12em}.ccd-field-wizard header strong{color:#f0d28a;font:600 18px Georgia,serif}.ccd-field-wizard header button{width:36px;height:36px;border:1px solid #526671;border-radius:7px;background:#0d1820;color:#eee4cf;font-size:22px}.ccd-field-wizard>label{display:grid;gap:4px}.ccd-field-wizard>label>span,.ccd-field-wizard legend,.ccd-value-grid label span{color:#8ba0aa;font-size:7px;font-weight:900;letter-spacing:.1em}.ccd-field-wizard fieldset{margin:0;padding:9px;border:1px solid #344a55;border-radius:8px}.ccd-type-grid,.ccd-asset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.ccd-type-grid button,.ccd-asset-choice{min-height:50px;padding:6px;border:1px solid #425863;border-radius:7px;background:#0c1820;color:#dce3df;display:grid;text-align:left}.ccd-type-grid button.selected,.ccd-asset-choice.selected{border-color:#d0aa55;background:#211b0e}.ccd-type-grid b,.ccd-asset-choice b{font-size:8px}.ccd-type-grid small{color:#78909b;font-size:7px}.ccd-asset-choice span{height:18px;border:1px solid #617985;border-radius:4px;background:#172630}.ccd-asset-choice.asset-slider span{border-radius:999px;background:linear-gradient(90deg,#4b6b7b,#d0aa55,#4b6b7b)}.ccd-asset-choice.asset-dial span{width:18px;border-radius:50%;background:#152630;border:3px solid #b18a3e}.ccd-asset-choice.asset-meter span{background:linear-gradient(90deg,#315a6d 65%,#172630 65%)}.ccd-asset-choice.asset-text-panel span{background:#17140e}.ccd-asset-choice.asset-portrait-frame span{border:3px double #b18a3e}.ccd-upload-asset{min-height:50px;padding:6px;border:1px dashed #67818d;border-radius:7px;background:#0a151c;color:#d5e0e4;display:grid;place-items:center;text-align:center;font:900 7px system-ui}.ccd-upload-asset input{max-width:100%;font-size:7px}.ccd-custom-preview{margin-top:6px;height:70px;display:grid;place-items:center;background:#04090c}.ccd-custom-preview img{max-width:100%;max-height:100%}.ccd-value-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ccd-value-grid label{display:grid;gap:3px}.ccd-value-grid label.wide{grid-column:1/-1}.ccd-value-note{grid-column:1/-1;color:#91a6af;font-size:9px}.ccd-field-wizard footer{display:flex;justify-content:flex-end;gap:7px}.ccd-field-wizard footer button{min-height:38px;padding:0 12px;border:1px solid #526671;border-radius:7px;background:#0d1820;color:#ddd}.ccd-field-wizard footer button.primary{border-color:#a8843e;background:#2a210f;color:#ffe2a0}
+ @media(max-width:760px){.ccd-header{padding:7px 9px}.ccd-header h2{font-size:14px}.ccd-header p{display:none}.ccd-workspace{grid-template-columns:98px minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(150px,34dvh)}.ccd-library{grid-row:1/3;padding:6px}.ccd-library>strong,.ccd-search span,.ccd-deck-heading small{display:none}.ccd-search input{font-size:8px;padding:4px}.ccd-search-results button{min-height:38px;padding:4px}.ccd-search-results small{display:none}.ccd-custom-field{font-size:7px;padding:0 4px}.ccd-deck button{grid-template-columns:1fr;min-height:38px}.ccd-deck button>span,.ccd-deck small{display:none}.ccd-inspector{grid-column:2;grid-row:2;border-left:0;border-top:1px solid #344b58;padding:6px;grid-template-columns:1fr 1fr}.ccd-selected-summary,.ccd-runtime-preview{grid-column:1/-1}.ccd-number-grid{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}.ccd-preview-area{padding:7px}.ccd-card-canvas{width:min(73vw,330px)}.ccd-type-grid,.ccd-asset-grid{grid-template-columns:1fr 1fr}.ccd-value-grid{grid-template-columns:1fr 1fr}.ccd-field-wizard{padding:10px}}
 </style>
 
 @code {
- const string StorageKey="rist.character-card-designer.v1";
- static readonly string[] FieldChoices=["Name","Portrait","Concept","Attributes","Skills","Health","Conditions","Equipment","Inventory","Abilities","Languages","Notes","Custom"];
- readonly List<CardDraft> _cards=[];
- int _selected;
- string _fieldToAdd="Attributes";
- string _cardSize="poker";
- bool _loaded;
- bool _saved;
+ ElementReference _root;
+ IJSObjectReference? _module;
+ DotNetObjectReference<CharacterCardDesignerWorkspace>? _self;
+ bool _loaded,_saved,_wizardOpen;
+ int _selectedCard;
+ string _selectedFieldId="",_search="",_cardSize="poker";
+ string _wizardName="",_wizardKind="ATTRIBUTE",_wizardGroup="Attributes",_wizardAssetId="numeric-plate",_wizardAssetName="Numeric Plate",_wizardAssetDataUrl="",_wizardText="";
+ int _wizardBase=10,_wizardCurrent,_wizardMax=10,_wizardProficiency=100;
 
- CardDraft? SelectedCard=>_cards.Count==0?null:_cards[Math.Clamp(_selected,0,_cards.Count-1)];
- string PreviewStyle=>_cardSize switch
+ static readonly FieldOption[] Catalog=[
+  new("Name","TEXT","Identity"),new("Portrait","PORTRAIT","Identity"),new("Concept","TEXT","Identity"),
+  new("Attribute","ATTRIBUTE","Attributes"),new("Health","TRACKER","Trackers"),new("Resource","TRACKER","Trackers"),
+  new("Limit","LIMIT","Limits"),new("Skill","VALUE","Skills"),new("Ability","FLARE","Flare"),new("Feat","FLARE","Feats"),
+  new("Description","LONGTEXT","Profile"),new("Background","LONGTEXT","Profile"),new("Equipment","EQUIPMENT","Equipment"),
+  new("Inventory","EQUIPMENT","Equipment"),new("Anatomy","LONGTEXT","Equipment"),new("Conditions","CONDITIONS","Status"),
+  new("Language","LANGUAGE","Languages"),new("Notes","LONGTEXT","Notes"),new("Linked Reference","LINKED","Linked"),new("Dice Bag","DICE","Dice")
+ ];
+ static readonly FieldTypeOption[] FieldTypes=[
+  new("ATTRIBUTE","Attribute","Attributes"),new("TRACKER","Tracker / Pool","Trackers"),new("LIMIT","Limit","Limits"),new("VALUE","Skill / Value","Skills"),
+  new("FLARE","Flare / Ability","Flare"),new("TEXT","Text","Identity"),new("LONGTEXT","Long Text","Notes"),new("PORTRAIT","Portrait","Identity"),
+  new("EQUIPMENT","Equipment / Inventory","Equipment"),new("CONDITIONS","Conditions","Status"),new("LANGUAGE","Language / Proficiency","Languages"),new("LINKED","Linked Reference","Linked"),new("DICE","Dice Bag","Dice")
+ ];
+ static readonly FieldAssetOption[] Assets=[
+  new("blank","Blank Field","asset-blank",["*"]),new("numeric-plate","Numeric Plate","asset-numeric",["ATTRIBUTE","VALUE","LIMIT"]),
+  new("slider","Equalizer Slider","asset-slider",["ATTRIBUTE","VALUE","TRACKER","LIMIT"]),new("meter","Resource Meter","asset-meter",["TRACKER","LIMIT"]),
+  new("dial","Resource Dial","asset-dial",["TRACKER","LIMIT"]),new("text-panel","Writing Panel","asset-text-panel",["TEXT","LONGTEXT","FLARE","EQUIPMENT","CONDITIONS","LANGUAGE","LINKED","DICE"]),
+  new("portrait-frame","Portrait Frame","asset-portrait-frame",["PORTRAIT"])
+ ];
+
+ readonly List<CardDraft> _cards=[];
+ readonly Dictionary<string,CharacterValueDraft> _values=new();
+
+ string TemplateStorageKey=>$"rist.character-card-template.v2.{Session.WorldId}";
+ string ValueStorageKey=>$"rist.character-card-values.v1.{Session.WorldId}.{Session.ActiveCharacterNumber}";
+ CardDraft? SelectedCard=>_cards.Count==0?null:_cards[Math.Clamp(_selectedCard,0,_cards.Count-1)];
+ FieldDefinition? SelectedField=>SelectedCard?.Fields.FirstOrDefault(x=>x.Id==_selectedFieldId);
+ IEnumerable<FieldOption> SearchResults
  {
-  "tarot"=>"--card-ratio:2.75/4.75",
-  "index"=>"--card-ratio:3/5",
-  _=>"--card-ratio:2.5/3.5"
- };
+  get
+  {
+   var term=(_search??"").Trim();
+   return Catalog.Where(x=>term.Length==0||x.Name.Contains(term,StringComparison.OrdinalIgnoreCase)||x.Group.Contains(term,StringComparison.OrdinalIgnoreCase)||FriendlyKind(x.Kind).Contains(term,StringComparison.OrdinalIgnoreCase)).Take(term.Length==0?6:12);
+  }
+ }
+ IEnumerable<FieldAssetOption> MatchingAssets=>Assets.Where(x=>x.Kinds.Contains("*")||x.Kinds.Contains(_wizardKind));
+ bool CanPlaceWizard=>!string.IsNullOrWhiteSpace(_wizardName)&&MatchingAssets.Any(x=>x.Id==_wizardAssetId)||!string.IsNullOrWhiteSpace(_wizardAssetDataUrl);
+ string PreviewStyle=>_cardSize switch{"tarot"=>"--card-ratio:2.75/4.75","index"=>"--card-ratio:3/5",_=>"--card-ratio:2.5/3.5"};
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_loaded)return;
   _loaded=true;
+  await LoadAsync();
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./character-card-designer.js?v=20260924-character-cards-1");
+  _self=DotNetObjectReference.Create(this);
+  await _module.InvokeVoidAsync("attach",_root,_self);
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task LoadAsync()
+ {
   try
   {
-   var raw=await JS.InvokeAsync<string?>("localStorage.getItem",StorageKey);
+   var raw=await JS.InvokeAsync<string?>("localStorage.getItem",TemplateStorageKey);
    if(!string.IsNullOrWhiteSpace(raw))
    {
-    var saved=JsonSerializer.Deserialize<DesignerState>(raw);
-    if(saved?.Cards is {Count:>0})
-    {
-     _cards.Clear();
-     _cards.AddRange(saved.Cards);
-     _cardSize=string.IsNullOrWhiteSpace(saved.CardSize)?"poker":saved.CardSize;
-    }
+    var state=JsonSerializer.Deserialize<DesignerState>(raw);
+    if(state?.Cards is {Count:>0}){_cards.Clear();_cards.AddRange(state.Cards);_cardSize=state.CardSize??"poker";}
+   }
+   var valuesRaw=await JS.InvokeAsync<string?>("localStorage.getItem",ValueStorageKey);
+   if(!string.IsNullOrWhiteSpace(valuesRaw))
+   {
+    var values=JsonSerializer.Deserialize<Dictionary<string,CharacterValueDraft>>(valuesRaw);
+    if(values is not null)foreach(var pair in values)_values[pair.Key]=pair.Value;
    }
   }
   catch{}
   if(_cards.Count==0)SeedStarterDeck();
-  await InvokeAsync(StateHasChanged);
  }
 
  void SeedStarterDeck()
  {
   _cards.Clear();
-  _cards.Add(new("Identity",["Name","Portrait","Concept"]));
-  _cards.Add(new("Attributes",["Attributes","Skills"]));
-  _cards.Add(new("Status",["Health","Conditions"]));
-  _cards.Add(new("Equipment",["Equipment","Inventory"]));
-  _cards.Add(new("Notes",["Languages","Notes"]));
-  _selected=0;
+  _cards.Add(new(){Title="Identity"});_cards.Add(new(){Title="Attributes"});_cards.Add(new(){Title="Status"});_cards.Add(new(){Title="Equipment"});_cards.Add(new(){Title="Notes"});
+  _selectedCard=0;
  }
 
- void SelectCard(int index){_selected=Math.Clamp(index,0,Math.Max(0,_cards.Count-1));_saved=false;}
- void AddCard(){_cards.Add(new($"Card {_cards.Count+1}",[]));_selected=_cards.Count-1;_saved=false;}
- void DeleteSelected(){if(_cards.Count<=1)return;_cards.RemoveAt(_selected);_selected=Math.Clamp(_selected,0,_cards.Count-1);_saved=false;}
- void MoveLeft(){if(_selected<=0)return;(_cards[_selected-1],_cards[_selected])=(_cards[_selected],_cards[_selected-1]);_selected--;_saved=false;}
- void MoveRight(){if(_selected>=_cards.Count-1)return;(_cards[_selected+1],_cards[_selected])=(_cards[_selected],_cards[_selected+1]);_selected++;_saved=false;}
- void RenameSelected(ChangeEventArgs e){if(SelectedCard is not { } card)return;card.Title=(e.Value?.ToString()??"").TrimStart();_saved=false;}
+ void SearchChanged(ChangeEventArgs e){_search=e.Value?.ToString()??"";}
+ void BeginField(FieldOption option){_wizardName=option.Name;_wizardKind=option.Kind;_wizardGroup=option.Group;ResetWizardValues();ChooseDefaultAsset();_wizardOpen=true;}
+ void BeginCustomField(){_wizardName=_search.Trim();if(_wizardName.Length==0)_wizardName="Custom Field";_wizardKind="TEXT";_wizardGroup="Custom";ResetWizardValues();ChooseDefaultAsset();_wizardOpen=true;}
+ void CloseWizard(){_wizardOpen=false;_wizardAssetDataUrl="";}
+ void ChooseType(FieldTypeOption type){_wizardKind=type.Kind;_wizardGroup=type.Group;ResetWizardValues();ChooseDefaultAsset();}
+ void ChooseDefaultAsset(){var asset=MatchingAssets.FirstOrDefault(x=>x.Id!="blank")??Assets[0];_wizardAssetId=asset.Id;_wizardAssetName=asset.Label;_wizardAssetDataUrl="";}
+ void ChooseAsset(FieldAssetOption asset){_wizardAssetId=asset.Id;_wizardAssetName=asset.Label;_wizardAssetDataUrl="";}
+ void ResetWizardValues(){_wizardBase=_wizardKind=="ATTRIBUTE"?10:0;_wizardCurrent=0;_wizardMax=_wizardKind=="TRACKER"?100:_wizardKind is "ATTRIBUTE" or "LIMIT"?10:999;_wizardProficiency=100;_wizardText="";}
+
+ async Task LoadWizardAsset(InputFileChangeEventArgs e)
+ {
+  var file=e.File;if(file is null)return;
+  await using var stream=file.OpenReadStream(8*1024*1024);using var memory=new MemoryStream();await stream.CopyToAsync(memory);
+  _wizardAssetDataUrl=$"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}";
+  _wizardAssetId="custom";_wizardAssetName=file.Name;
+ }
+
+ void SaveAndPlace()
+ {
+  if(SelectedCard is not { } card||string.IsNullOrWhiteSpace(_wizardName))return;
+  var field=new FieldDefinition{
+   Name=_wizardName.Trim(),Kind=_wizardKind,Group=_wizardGroup,Required=true,Authority="GM",AssetId=_wizardAssetId,AssetName=_wizardAssetName,AssetDataUrl=_wizardAssetDataUrl,
+   X=50,Y=50,Width=_wizardKind=="PORTRAIT"?30:_wizardKind is "LONGTEXT" or "EQUIPMENT" or "CONDITIONS"?52:36,Height=_wizardKind=="PORTRAIT"?32:_wizardKind is "LONGTEXT" or "EQUIPMENT" or "CONDITIONS"?24:15
+  };
+  card.Fields.Add(field);
+  _values[field.Id]=new(){Text=_wizardText,BaseValue=_wizardBase,Current=_wizardCurrent,Max=_wizardMax,Proficiency=_wizardProficiency};
+  _selectedFieldId=field.Id;_wizardOpen=false;_wizardAssetDataUrl="";_search="";_saved=false;
+ }
+
+ CharacterValueDraft ValueFor(string id){if(!_values.TryGetValue(id,out var value)){value=new();_values[id]=value;}return value;}
+ RenderFragment RenderRuntimeEditor(FieldDefinition field)=>builder=>{
+  var value=ValueFor(field.Id);var seq=0;
+  if(field.Kind=="ATTRIBUTE"){
+   builder.OpenElement(seq++,"div");builder.AddAttribute(seq++,"class","ccd-value-inline");
+   NumberInput(builder,ref seq,"BASE",value.BaseValue,v=>value.BaseValue=v);
+   NumberInput(builder,ref seq,"CURRENT",value.Current,v=>value.Current=v);
+   NumberInput(builder,ref seq,"MAX",value.Max,v=>value.Max=v);
+   builder.CloseElement();
+  }else if(field.Kind is "TRACKER" or "LIMIT" or "VALUE"){
+   builder.OpenElement(seq++,"div");builder.AddAttribute(seq++,"class","ccd-value-inline");
+   NumberInput(builder,ref seq,"CURRENT",value.Current,v=>value.Current=v);
+   NumberInput(builder,ref seq,"MAX",value.Max,v=>value.Max=v);
+   builder.CloseElement();
+  }else if(field.Kind=="LANGUAGE"){
+   NumberInput(builder,ref seq,"PROFICIENCY %",value.Proficiency,v=>value.Proficiency=Math.Clamp(v,0,100));
+  }else if(field.Kind=="PORTRAIT"){
+   builder.OpenElement(seq++,"small");builder.AddContent(seq++,"Portrait data changes the character value only; the GM frame stays fixed.");builder.CloseElement();
+  }else{
+   builder.OpenElement(seq++,"textarea");builder.AddAttribute(seq++,"value",value.Text);builder.AddAttribute(seq++,"onchange",EventCallback.Factory.Create<ChangeEventArgs>(this,e=>{value.Text=e.Value?.ToString()??"";_saved=false;}));builder.CloseElement();
+  }
+ };
+ void NumberInput(RenderTreeBuilder builder,ref int seq,string label,int value,Action<int> set){
+  builder.OpenElement(seq++,"label");builder.OpenElement(seq++,"span");builder.AddContent(seq++,label);builder.CloseElement();builder.OpenElement(seq++,"input");builder.AddAttribute(seq++,"type","number");builder.AddAttribute(seq++,"value",value);builder.AddAttribute(seq++,"onchange",EventCallback.Factory.Create<ChangeEventArgs>(this,e=>{if(int.TryParse(e.Value?.ToString(),out var v)){set(v);_saved=false;}}));builder.CloseElement();builder.CloseElement();
+ }
+
+ string DisplayValue(FieldDefinition field,CharacterValueDraft value)=>field.Kind switch{
+  "ATTRIBUTE"=>$"{value.Current} / {value.Max}",
+  "TRACKER" or "LIMIT" or "VALUE"=>$"{value.Current} / {value.Max}",
+  "LANGUAGE"=>$"{value.Proficiency}%",
+  "PORTRAIT"=>"PORTRAIT",
+  _=>string.IsNullOrWhiteSpace(value.Text)?"—":value.Text
+ };
+ static string FriendlyKind(string kind)=>kind switch{"ATTRIBUTE"=>"Attribute","TRACKER"=>"Tracker / Pool","LIMIT"=>"Limit","VALUE"=>"Skill / Value","FLARE"=>"Flare / Ability","LONGTEXT"=>"Long Text","PORTRAIT"=>"Portrait","EQUIPMENT"=>"Equipment / Inventory","CONDITIONS"=>"Conditions","LANGUAGE"=>"Language / Proficiency","LINKED"=>"Linked Reference","DICE"=>"Dice Bag",_=>"Text"};
+ static string AssetClass(FieldDefinition field)=>field.AssetId=="custom"?"asset-custom":Assets.FirstOrDefault(x=>x.Id==field.AssetId)?.CssClass??"asset-blank";
+ static string F(double value)=>value.ToString("0.0",System.Globalization.CultureInfo.InvariantCulture);
+ static double Clamp(double value,double min,double max)=>Math.Max(min,Math.Min(max,value));
+ string FieldStyle(FieldDefinition field)=>$"left:{F(field.X)}%;top:{F(field.Y)}%;width:{F(field.Width)}%;height:{F(field.Height)}%;transform:translate(-50%,-50%);";
+
+ void SelectCard(int index){_selectedCard=Math.Clamp(index,0,Math.Max(0,_cards.Count-1));_selectedFieldId="";_saved=false;}
+ void AddCard(){_cards.Add(new(){Title=$"Card {_cards.Count+1}"});_selectedCard=_cards.Count-1;_selectedFieldId="";_saved=false;}
+ void RenameCard(ChangeEventArgs e){if(SelectedCard is not { } card)return;card.Title=e.Value?.ToString()??"";_saved=false;}
+ void SelectField(string id){_selectedFieldId=id;_saved=false;}
+ void SelectFieldChanged(ChangeEventArgs e){_selectedFieldId=e.Value?.ToString()??"";}
+ void DeleteSelectedField(){if(SelectedCard is not { } card||SelectedField is not { } field)return;card.Fields.Remove(field);_values.Remove(field.Id);_selectedFieldId="";_saved=false;}
+ void NudgeSize(int direction){if(SelectedField is not { } field)return;field.Width=Clamp(field.Width+direction,5,100);field.Height=Clamp(field.Height+direction*.6,5,100);_saved=false;}
+ void SetNumber(ChangeEventArgs e,int slot){if(SelectedField is not { } field||!double.TryParse(e.Value?.ToString(),out var value))return;if(slot==0)field.X=Clamp(value,0,100);else if(slot==1)field.Y=Clamp(value,0,100);else if(slot==2)field.Width=Clamp(value,5,100);else field.Height=Clamp(value,5,100);_saved=false;}
+ void SetWidthRange(ChangeEventArgs e){if(SelectedField is { } field&&double.TryParse(e.Value?.ToString(),out var value)){field.Width=Clamp(value,5,100);_saved=false;}}
+ void SetHeightRange(ChangeEventArgs e){if(SelectedField is { } field&&double.TryParse(e.Value?.ToString(),out var value)){field.Height=Clamp(value,5,100);_saved=false;}}
  void ChangeCardSize(ChangeEventArgs e){_cardSize=e.Value?.ToString()??"poker";_saved=false;}
- void AddField(){if(SelectedCard is not { } card||string.IsNullOrWhiteSpace(_fieldToAdd))return;card.Fields.Add(_fieldToAdd);_saved=false;}
- void RemoveField(int index){if(SelectedCard is not { } card||index<0||index>=card.Fields.Count)return;card.Fields.RemoveAt(index);_saved=false;}
+
+ [JSInvokable] public void SelectFieldFromJs(string id){if(SelectedCard?.Fields.Any(x=>x.Id==id)==true){_selectedFieldId=id;_saved=false;InvokeAsync(StateHasChanged);}}
+ [JSInvokable] public void CommitFieldTransform(string id,double x,double y,double width,double height){var field=SelectedCard?.Fields.FirstOrDefault(x=>x.Id==id);if(field is null)return;field.X=Clamp(x,0,100);field.Y=Clamp(y,0,100);field.Width=Clamp(width,5,100);field.Height=Clamp(height,5,100);_selectedFieldId=id;_saved=false;InvokeAsync(StateHasChanged);}
 
  async Task SaveAsync()
  {
-  try
-  {
-   var state=new DesignerState{CardSize=_cardSize,Cards=_cards};
-   await JS.InvokeVoidAsync("localStorage.setItem",StorageKey,JsonSerializer.Serialize(state));
+  try{
+   await JS.InvokeVoidAsync("localStorage.setItem",TemplateStorageKey,JsonSerializer.Serialize(new DesignerState{CardSize=_cardSize,Cards=_cards}));
+   await JS.InvokeVoidAsync("localStorage.setItem",ValueStorageKey,JsonSerializer.Serialize(_values));
    _saved=true;
-  }
-  catch{_saved=false;}
+  }catch{_saved=false;}
  }
 
- sealed class CardDraft
- {
-  public CardDraft(){}
-  public CardDraft(string title,List<string> fields){Title=title;Fields=fields;}
-  public string Title{get;set;}="";
-  public List<string> Fields{get;set;}=[];
+ public async ValueTask DisposeAsync(){if(_module is not null){try{await _module.InvokeVoidAsync("detach",_root);}catch{}await _module.DisposeAsync();}_self?.Dispose();}
+
+ sealed record FieldOption(string Name,string Kind,string Group);
+ sealed record FieldTypeOption(string Kind,string Label,string Group);
+ sealed record FieldAssetOption(string Id,string Label,string CssClass,string[] Kinds);
+ sealed class DesignerState{public string? CardSize{get;set;}="poker";public List<CardDraft> Cards{get;set;}=[];}
+ sealed class CardDraft{public string Id{get;set;}=Guid.NewGuid().ToString("N");public string Title{get;set;}="Card";public List<FieldDefinition> Fields{get;set;}=[];}
+ sealed class FieldDefinition{
+  public string Id{get;set;}=Guid.NewGuid().ToString("N");public string Name{get;set;}="Field";public string Kind{get;set;}="TEXT";public string Group{get;set;}="Custom";public bool Required{get;set;}=true;public string Authority{get;set;}="GM";
+  public string AssetId{get;set;}="blank";public string AssetName{get;set;}="Blank Field";public string AssetDataUrl{get;set;}="";
+  public double X{get;set;}=50;public double Y{get;set;}=50;public double Width{get;set;}=36;public double Height{get;set;}=15;
  }
- sealed class DesignerState
- {
-  public string CardSize{get;set;}="poker";
-  public List<CardDraft> Cards{get;set;}=[];
- }
+ sealed class CharacterValueDraft{public string Text{get;set;}="";public int BaseValue{get;set;}public int Current{get;set;}public int Max{get;set;}=999;public int Proficiency{get;set;}=100;}
 }
