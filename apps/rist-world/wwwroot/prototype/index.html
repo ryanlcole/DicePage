@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20260924-region-persistence-4" />
+  <link rel="stylesheet" href="./prototype.css?v=20260924-region-persistence-5" />
 </head>
 <body>
 <main class="shell" aria-label="Shaelvien World Builder">
@@ -13,6 +13,7 @@
     <button id="persistentSave" class="persistent-save" type="button" aria-label="Save World Builder" title="Save World Builder" data-ui>
       <img src="../assets/ui/icons/save.svg" alt="" aria-hidden="true" draggable="false" />
     </button>
+    <div id="regionPersistenceStatus" class="region-persistence-status" role="status" aria-live="polite" hidden data-ui>DB ?</div>
     <div id="world" class="world" aria-live="off">
       <img id="surfacePlane" class="plane base" alt="Sea level world representation" draggable="false" />
       <img id="highlandsPlane" class="plane highlands" alt="Hills and low clouds world representation" draggable="false" />
@@ -89,6 +90,6 @@
   </section>
 </main>
 <script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
-<script src="./prototype.js?v=20260924-region-persistence-4"></script>
+<script src="./prototype.js?v=20260924-region-persistence-5"></script>
 </body>
 </html>
