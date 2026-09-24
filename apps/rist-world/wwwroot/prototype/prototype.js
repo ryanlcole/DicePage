@@ -96,7 +96,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false;
+let localCatalog=[],localCreatePending=false,activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -150,6 +150,45 @@ function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayer
   item.anchorTier=parentTier;
   return item;
 }
+function localIsOpen(){return !!(LOCAL_DEFINER&&activeLocal?.id)}
+function activeLocalMapId(){return String(activeLocal?.id||'').trim()}
+function localAnchorBounds(local=activeLocal){
+  if(!local)return null;
+  const width=clamp(Number(local.width)||.0001,.0001,1),height=clamp(Number(local.height)||.0001,.0001,1);
+  const cx=clamp(Number(local.x)||0,0,1),cy=clamp(Number(local.y)||0,0,1);
+  return{
+    minX:clamp(cx-width/2,0,1),maxX:clamp(cx+width/2,0,1),
+    minY:clamp(cy-height/2,0,1),maxY:clamp(cy+height/2,0,1),
+    width,height,cx,cy
+  };
+}
+function constrainLocalPoint(x,y){
+  const bounds=localAnchorBounds();
+  if(!bounds)return constrainRegionPoint(x,y);
+  return{x:clamp(x,bounds.minX,bounds.maxX),y:clamp(y,bounds.minY,bounds.maxY)};
+}
+function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
+  if(!LOCAL_DEFINER||!localIsOpen()||!item)return item;
+  item.regionOverlay=true;
+  item.localOverlay=true;
+  item.regionId=String(activeLocal.regionId||activeRegionMapId());
+  item.localId=activeLocalMapId();
+  item.tier=clamp(Math.trunc(Number(activeLocal.worldTier??activeLocal.tier)||0),0,TIERS.length-1);
+  item.worldTier=item.tier;
+  item.worldLayer=clamp(Math.trunc(Number(activeLocal.worldLayer??activeLocal.layer)||0),0,9);
+  item.layer=item.worldLayer;
+  item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));
+  item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);
+  item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));
+  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);
+  item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier)||0));
+  item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer)||0),0,9);
+  item.z100=regionZ100(item.worldLayer,item.regionLayer);
+  item.parentTierIndex=item.worldTier;
+  item.parallaxMode='anchored';
+  item.anchorTier=item.worldTier;
+  return item;
+}
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
 const TILE_LIBRARY_PAGE_SIZE=12;
@@ -168,6 +207,7 @@ let worldSourceDatabaseMissing=false;
 let localWorldBuilderRestoreComplete=false;
 const worldSourceSaveWaiters=new Map();
 const regionMapSaveWaiters=new Map();
+const localMapSaveWaiters=new Map();
 const spriteTimers=new Map();
 const REGION_ENHANCE_ENTER=4.25;
 const REGION_ENHANCE_EXIT=3.6;
