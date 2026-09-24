@@ -154,7 +154,7 @@ def test_hex_claim_geometry_uses_same_column_staggered_addressing_everywhere():
 def test_requested_region_reset_is_scoped_to_geonaph_regions_not_worldbuilder_terrain():
     app = authority_text()
 
-    assert 'REGION_Z100_RESET_MARKER = "MIGRATION#20260924_REGION_Z100_RESET_V1"' in app
+    assert 'REGION_Z_RESET_MARKER = "MIGRATION#20260924_REGION_Z100_RESET_V1"' in app
     reset = app[
         app.index("def ensure_region_z100_reset():"):
         app.index("def handler(event, context):")
