@@ -69,7 +69,7 @@
     .user-label-placement.plate{padding:5px 9px;border-color:rgba(226,195,116,.48);background:rgba(6,12,16,.72);box-shadow:0 3px 12px rgba(0,0,0,.35);text-shadow:0 1px 2px #000}
     .user-label-placement.selected{border-color:#f0cc69;outline:2px solid rgba(240,204,105,.9);outline-offset:3px}
     .stage{position:fixed;z-index:1;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;background:#05090c}
-    .stage.region-definer-mode{perspective:1600px;perspective-origin:50% 58%}
+    .stage.region-definer-mode{--region-control-lift:clamp(18px,3vh,30px);perspective:1600px;perspective-origin:50% 58%}
     .stage.region-definer-mode .world{transform-style:preserve-3d;will-change:transform}
     .stage.read-only .user-image-placement{pointer-events:none!important;cursor:default!important;outline:none!important}
     .stage.read-only .persistent-save,.stage.read-only #imageUploadToggle{opacity:.4!important;cursor:not-allowed!important;filter:grayscale(.55)}
@@ -188,6 +188,15 @@
       min-height:48px;
     }
     .stage.region-claim-confirming.keyboard-open .bottom-slider{bottom:min(32vh,220px)}
+    /* Keep Region Definer controls clear of phone/browser chrome and the viewport edge. */
+    .stage.region-definer-mode .bottom-slider{bottom:var(--region-control-lift)}
+    .stage.region-definer-mode .keyboard{bottom:var(--region-control-lift)}
+    .stage.region-definer-mode.keyboard-open .bottom-slider{bottom:calc(min(36vh,290px) + var(--region-control-lift))}
+    .stage.region-definer-mode.region-claim-confirming.keyboard-open .bottom-slider{bottom:calc(min(32vh,220px) + var(--region-control-lift))}
+    .stage.region-definer-mode .persistent-save{bottom:calc(60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode.region-claim-confirming.keyboard-open .persistent-save{bottom:calc(min(32vh,220px) + 60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}
     .keyboard-keys .placed-content-select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
     .keyboard-keys .placed-content-select:disabled{opacity:.45}
     .keyboard-keys .library-tile-key{position:relative;min-height:72px;padding:0;overflow:hidden;display:block;background:#071018;border-color:#7b6331}
