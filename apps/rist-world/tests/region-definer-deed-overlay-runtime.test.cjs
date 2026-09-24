@@ -214,6 +214,15 @@ test('saved personal region assets keep stable identity and retry authenticated 
   }finally{f.close()}
 });
 
+test('RegionDefiner save serializes objects mounted in the active deed even with stale item region ids',()=>{
+  const prototype=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  assert.ok(prototype.includes('function regionSaveCandidates()'));
+  assert.ok(prototype.includes('item.regionId=regionId;'));
+  assert.ok(prototype.includes('regionEditLayer&&item.node.parentElement!==regionEditLayer'));
+  assert.ok(prototype.includes('Region save payload was empty while'));
+  assert.ok(prototype.includes('countMatches=persisted.size===Number(waiter.expectedCount||0)'));
+});
+
 test('RegionDefiner save bridge performs canonical read-after-write verification',()=>{
   const hostSource=fs.readFileSync(path.join(root,'../region-definer-host.js'),'utf8');
   assert.ok(hostSource.includes('GetRegionSourceForPrototypeAsync'));
