@@ -19,7 +19,8 @@ public enum RistCardType
     ArmorSet,
     Weapon,
     Enchantment,
-    Spell,
+    Power,
+    Spell, // legacy/specialized Power family; retained for backwards compatibility
     Lore,
     AssetPack
 }
@@ -50,7 +51,7 @@ public sealed class RistCardFace
 public sealed class RistCardEnvelope
 {
     public string Format { get; set; } = "RISTCARD";
-    public int Version { get; set; } = 3;
+    public int Version { get; set; } = 4;
     public string CardId { get; set; } = "";
     public RistCardType CardType { get; set; }
     public string OwnerAccountId { get; set; } = "";
@@ -68,6 +69,7 @@ public sealed class RistCardEnvelope
     public string ManifestHash { get; set; } = "";
     public RistCardLanguage Language { get; set; } = new();
     public RistCardFace Face { get; set; } = new();
+    public RistCardBehavior Behavior { get; set; } = new();
     public List<RistCardReference> References { get; set; } = [];
     public List<string> AssetPackIds { get; set; } = [];
     public JsonElement Payload { get; set; }
@@ -125,6 +127,7 @@ public sealed partial class WorldSession
         card.UpdatedAtUtc = DateTimeOffset.UtcNow;
         card.Language ??= new RistCardLanguage();
         card.Face ??= new RistCardFace();
+        card.Behavior ??= new RistCardBehavior();
         card.ManifestHash = ComputeCardManifestHash(new
         {
             card.CardId,
@@ -138,6 +141,7 @@ public sealed partial class WorldSession
             card.ArtAssetId,
             card.Language,
             card.Face,
+            card.Behavior,
             card.References,
             card.AssetPackIds,
             card.Payload
