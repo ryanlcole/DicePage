@@ -9,6 +9,20 @@ public enum PermissionGrant
     Deny = 4
 }
 
+public static class PermissionPresentation
+{
+    public const string WaitingForGameMaster = "Waiting for GM";
+
+    public static string Label(PermissionGrant grant) => grant switch
+    {
+        PermissionGrant.Public => "Public",
+        PermissionGrant.View => "View",
+        PermissionGrant.Edit => "Edit",
+        PermissionGrant.Deny => "Deny",
+        _ => WaitingForGameMaster
+    };
+}
+
 public enum AuthorityResourceAction
 {
     View,
