@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20260924-asset-tools-2" />
+  <link rel="stylesheet" href="./prototype.css?v=20260924-asset-tools-3" />
 </head>
 <body>
 <main class="shell" aria-label="Shaelvien World Builder">
@@ -73,12 +73,12 @@
           <label><span>Frames</span><input id="spriteFrameCount" type="number" min="1" max="256" step="1" inputmode="numeric" value="6" /></label>
         </div>
         <label class="image-transparency"><input id="spriteMotionOnly" type="checkbox" checked /> <span>Motion-only overlay · remove pixels that do not change between frames</span></label>
-        <p class="sprite-upload-note">Frame 1 is used while placing. Save commits the sprite to the world and starts its motion. 60 FPS playback is supported; more unique frames produce smoother motion.</p>
+        <p class="sprite-upload-note">Choose one or more sprite sheets. Multiple sheets become one ordered animation chain: Page 1 → Page 2 → … → loop. Save commits the chain and starts motion.</p>
         <div id="spriteDropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Drop a sprite sheet here or browse for a sprite sheet">
-          <strong>DROP SPRITE SHEET HERE</strong>
+          <strong>DROP SPRITE SHEET(S) HERE</strong>
           <span>or</span>
           <label id="spriteBrowse" class="file-browse-button" for="spriteFile" role="button" tabindex="0">BROWSE</label>
-          <input id="spriteFile" type="file" accept="image/*" hidden />
+          <input id="spriteFile" type="file" accept="image/*" multiple hidden />
         </div>
       </div>
     </section>
@@ -91,6 +91,6 @@
   </section>
 </main>
 <script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
-<script src="./prototype.js?v=20260924-asset-tools-2"></script>
+<script src="./prototype.js?v=20260924-asset-tools-3"></script>
 </body>
 </html>
