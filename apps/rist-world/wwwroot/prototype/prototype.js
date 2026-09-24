@@ -997,7 +997,9 @@ function openImageUpload(){
   imageTransparency.checked=true;imageUploadPanel.hidden=false;stage.classList.add('image-upload-open');imageDropzone.focus();
   announce(currentAssetPlacementRole()==='world-map'
     ?'Image upload opened. World Map will fill Sea Level at 100% by 100%.'
-    :`Image upload opened. Adjustable layer defaults to ${REGION_DEFINER&&regionDeedIsComplete()?regionTierLabel(currentTierIndex()):tierLabel(tierByIndex(currentTierIndex()))}.`);
+    :REGION_DEFINER&&regionDeedIsComplete()
+      ?`Image upload opened at World Z ${viewerLayer}, Region layer ${regionLayerIndex}, exact Z ${regionZLabel(viewerLayer,regionLayerIndex)}.`
+      :`Image upload opened. Adjustable layer defaults to ${tierLabel(tierByIndex(currentTierIndex()))}.`);
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
@@ -1301,8 +1303,7 @@ function refreshUserImage(item){
   refreshProgressiveParallax(item);
 }function selectUserImage(item){
   if(item?.sourceLocked||(REGION_DEFINER&&item&&(!item.regionOverlay
-    ||String(item.regionId||'')!==activeRegionMapId()
-    ||item.tier>regionRelativeTierIndex))){
+    ||String(item.regionId||'')!==activeRegionMapId()))){
     announce('The parent world tier is locked. Select a regional object above it.');return;
   }
   const previous=selectedImage;
@@ -1332,8 +1333,7 @@ function placedContentLabel(item,index){
 function selectablePlacedContent(){
   return userLayers.filter(item=>item?.node&&(!REGION_DEFINER
     ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay
-      &&String(item.regionId||'')===activeRegionMapId()
-      &&item.tier<=regionRelativeTierIndex)));
+      &&String(item.regionId||'')===activeRegionMapId())));
 }
 function cyclePlacedSelection(delta=1){
   const items=selectablePlacedContent();
@@ -1363,8 +1363,7 @@ function removeSelectedImage(){
 function beginImageDrag(event,item){
   if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
   if(REGION_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
-    ||String(item.regionId||'')!==activeRegionMapId()
-    ||item.tier>regionRelativeTierIndex))return;
+    ||String(item.regionId||'')!==activeRegionMapId()))return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
   const alreadySelected=selectedImage===item;
   if(item?.committed&&!alreadySelected&&REGION_DEFINER){
@@ -1420,7 +1419,9 @@ async function placeUploadedImage(file){
   if(isWorldMapItem(item)){
     assetPlacementRole='layer';
     announce(`${item.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`);
-  }else announce(`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
+  }else announce(REGION_DEFINER
+    ?`Image placed at World Z ${regionWorldLayer(item)}, Region layer ${regionOverlayLayer(item)}, exact Z ${regionZLabel(item)}.`
+    :`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
 }
 function tierMix(){
   if(viewerTier!=='all'){
@@ -1477,7 +1478,8 @@ function applyParallax(){
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
     const visible=REGION_DEFINER
-      ? regionProjectionLoaded?(item.regionOverlay?item.tier<=regionRelativeTierIndex:false)
+      ? regionProjectionLoaded
+        ?(item.regionOverlay?String(item.regionId||'')===activeRegionMapId():!!item.sourceLocked)
         :(item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
       : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     if(isWorldMapItem(item)){
