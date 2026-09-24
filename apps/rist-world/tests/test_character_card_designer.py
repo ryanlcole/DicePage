@@ -34,7 +34,7 @@ class CharacterCardDesignerContract(unittest.TestCase):
 
     def test_existing_universal_character_field_types_are_supported(self):
         for kind in (
-            "ATTRIBUTE", "TRACKER", "LIMIT", "VALUE", "FLARE", "MAGIC", "TEXT",
+            "ATTRIBUTE", "TRACKER", "LIMIT", "VALUE", "FLARE", "POWER", "TEXT",
             "LONGTEXT", "PORTRAIT", "EQUIPMENT", "CONDITIONS",
             "LANGUAGE", "LINKED", "DICE",
         ):
@@ -72,9 +72,9 @@ class CharacterCardDesignerContract(unittest.TestCase):
         self.assertIn("Current", self.source)
         self.assertIn("Max", self.source)
 
-    def test_magic_reuses_join_effect_engine_with_resolution(self):
+    def test_power_reuses_join_effect_engine_with_resolution(self):
         for marker in (
-            '"MAGIC"', "Spell / Magic", "TARGETING", "RESOLUTION",
+            '"POWER"', "Power", "TARGETING", "RESOLUTION",
             "Roll decides", "GM decides / alters", "TargetMode",
             "ResolutionMode", "AttemptState", "RollFormula",
             "Difficulty", "GmOverrideAmount", "ModifierResolutionAllows",
