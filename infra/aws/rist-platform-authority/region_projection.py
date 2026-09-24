@@ -89,8 +89,9 @@ def merge_region_layers(world_state, region, region_id, incoming):
     return state, normalized
 
 
-def project(world_id, region_id, region, world_state, _legacy_child_state=None):
+def project(world_id, region_id, region, world_state, region_map_state=None):
     state = world_state if isinstance(world_state, dict) else {}
+    child_state = region_map_state if isinstance(region_map_state, dict) else None
     tier = int(region.get("tierIndex") or 0)
     shape = region.get("gridShape") if region.get("gridShape") in ("square", "hex") else "square"
     chosen = canonical_cells(region)
@@ -132,9 +133,20 @@ def project(world_id, region_id, region, world_state, _legacy_child_state=None):
         and region_cell_for_point(item.get("x", 0), item.get("y", 0), shape, COLUMNS, ROWS) in chosen_set
     ]
 
+    # REGIONMAP is the canonical child persistence boundary. Legacy worlds may
+    # still have regional overlays embedded in WORLDSOURCE, so fall back only
+    # when no REGIONMAP record exists. An existing empty REGIONMAP deliberately
+    # means the region has no overlays.
+    region_layer_source = (
+        child_state.get("userLayers") or []
+        if child_state is not None
+        else state.get("userLayers") or []
+    )
     region_layers = []
-    for item in (state.get("userLayers") or []):
-        if not isinstance(item, dict) or str(item.get("regionId") or "") != region_id:
+    for item in region_layer_source:
+        if not isinstance(item, dict):
+            continue
+        if child_state is None and str(item.get("regionId") or "") != region_id:
             continue
         try:
             region_layers.append(normalize_region_layer(region, item, region_id))
