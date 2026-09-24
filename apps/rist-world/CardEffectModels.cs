@@ -122,6 +122,7 @@ public sealed class RistEffectInstance
     public string LocalId { get; set; } = "";
     public string InstanceId { get; set; } = "";
     public string EncounterId { get; set; } = "";
+    public RistHierarchicalAddress Address { get; set; } = new();
     public RistSpatialEffectGeometry Geometry { get; set; } = new();
     public string State { get; set; } = "READY"; // READY | PENDING | APPLIED | REJECTED | EXPIRED | REMOVED
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
