@@ -162,10 +162,25 @@ function localAnchorBounds(local=activeLocal){
     width,height,cx,cy
   };
 }
+function worldPointToLocal(x,y,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return{
+    x:clamp(((Number(x)||0)-bounds.minX)/Math.max(bounds.width,.000001),0,1),
+    y:clamp(((Number(y)||0)-bounds.minY)/Math.max(bounds.height,.000001),0,1)
+  };
+}
+function localPointToWorld(x,y,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return{
+    x:clamp(bounds.minX+clamp(Number(x)||0,0,1)*bounds.width,0,1),
+    y:clamp(bounds.minY+clamp(Number(y)||0,0,1)*bounds.height,0,1)
+  };
+}
 function constrainLocalPoint(x,y){
-  const bounds=localAnchorBounds();
-  if(!bounds)return constrainRegionPoint(x,y);
-  return{x:clamp(Number(x)||0,bounds.minX,bounds.maxX),y:clamp(Number(y)||0,bounds.minY,bounds.maxY)};
+  if(localIsOpen())return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
+  return constrainRegionPoint(x,y);
 }
 function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   if(!LOCAL_DEFINER||!localIsOpen()||!item)return item;
@@ -180,9 +195,15 @@ function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));
   item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);
   item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));
-  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);
+  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||0),0,9);
   item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier)||0));
   item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer)||0),0,9);
+  item.localCoordinateSpace='local-anchor-normalized-v2';
+  item.localX=clamp(Number(item.x)||0,0,1);
+  item.localY=clamp(Number(item.y)||0,0,1);
+  const projected=localPointToWorld(item.localX,item.localY);
+  item.projectedWorldX=projected.x;
+  item.projectedWorldY=projected.y;
   item.z100=regionZ100(item.worldLayer,item.regionLayer);
   item.parentTierIndex=item.worldTier;
   item.parallaxMode='anchored';
@@ -608,7 +629,11 @@ function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
       id:item.id,regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
-      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+      x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
+      localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined,
+      localX:item.localOverlay?clamp(Number(item.x)||0,0,1):undefined,localY:item.localOverlay?clamp(Number(item.y)||0,0,1):undefined,
+      projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined,projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined,
+      tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
       worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
       regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
@@ -638,7 +663,11 @@ function serializableUserLayer(item){
       sourceWidth:page.sourceWidth||0,sourceHeight:page.sourceHeight||0,cropX:page.cropX||0,cropY:page.cropY||0,
       cropWidth:page.cropWidth||0,cropHeight:page.cropHeight||0,whiteTransparent:page.whiteTransparent!==false
     })):null,
-    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
+    x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
+    localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined,
+    localX:item.localOverlay?clamp(Number(item.x)||0,0,1):undefined,localY:item.localOverlay?clamp(Number(item.y)||0,0,1):undefined,
+    projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined,projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined,
+    tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
     worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
     regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
@@ -1829,6 +1858,12 @@ function refreshUserImage(item){
     item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
     item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
   }
+  if(LOCAL_DEFINER&&localIsOpen()&&item.localAnchor){
+    item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
+    item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
+    item.node.style.aspectRatio='';item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';
+    item.parallaxX=0;item.parallaxY=0;return;
+  }
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.aspectRatio=item.kind==='sprite'?String(stableAssetAspect(item)):'';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
@@ -1879,7 +1914,7 @@ function selectablePlacedContent(){
       const localId=activeLocalMapId();
       return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.localOverlay&&String(item.localId||'')===localId);
     }
-    return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay&&!item.canonicalSource&&String(item.regionId||'')===activeRegionMapId());
+    return userLayers.filter(item=>item?.node&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay&&String(item.regionId||'')===activeRegionMapId());
   }
   return userLayers.filter(item=>item?.node&&(!REGION_DEFINER
     ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay
@@ -2009,7 +2044,7 @@ async function placeUploadedImage(file){
     assetPlacementRole='layer';
     announce(`${item.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`);
   }else announce(LOCAL_DEFINER&&localIsOpen()
-    ?`Image placed at Local Tier ${item.localTier||0}, Local Layer ${item.localLayer||1}; canonical X/Y ${item.x.toFixed(3)}, ${item.y.toFixed(3)} retained.`
+    ?`Image placed at Local Tier ${item.localTier||0}, Local Layer ${item.localLayer??0}; canonical X/Y ${item.x.toFixed(3)}, ${item.y.toFixed(3)} retained.`
     :REGION_DEFINER
     ?`Image placed at World Z ${regionWorldLayer(item)}, Region layer ${regionOverlayLayer(item)}, exact Z ${regionZLabel(item)}.`
     :`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
@@ -2068,18 +2103,23 @@ function applyParallax(){
     // as read-only context while Region Definer edits the selected tier.
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
-    const visible=REGION_DEFINER
-      ? regionProjectionLoaded
-        ?(item.regionOverlay?String(item.regionId||'')===activeRegionMapId():!!item.sourceLocked)
-        :(item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
-      : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
+    const visible=LOCAL_DEFINER&&localIsOpen()
+      ? !!item.localAnchor||(!!item.localOverlay&&String(item.localId||'')===activeLocalMapId())
+      : REGION_DEFINER
+        ? regionProjectionLoaded
+          ?(item.regionOverlay?String(item.regionId||'')===activeRegionMapId():!!item.sourceLocked)
+          :(item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
+        : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
+    if(LOCAL_DEFINER&&localIsOpen()&&item.localAnchor){
+      item.parallaxX=0;item.parallaxY=0;item.renderOpacity=item.opacity;refreshUserImage(item);continue;
+    }
     const attached=itemParallaxMode(item)==='anchored'&&!LOCAL_DEFINER;
     const reference=attached?parentTierOffset(item.tier):null;
-    const depth=LOCAL_DEFINER
-      ? (Number(item.tier)||0)+(regionWorldLayer(item)*.10)+(regionOverlayLayer(item)*.01)
+    const depth=LOCAL_DEFINER&&item.localOverlay
+      ? Math.max(0,Number(item.localTier)||0)+(clamp(Number(item.localLayer)||0,0,9)/10)
       : item.tier;
     const representationDepth=LOCAL_DEFINER?2:1;
     const panStrength=depth*.022*representationDepth,tiltStrength=depth*.48*representationDepth;
@@ -3019,6 +3059,14 @@ function regionClaimBounds(region){
   minY=clamp(minY,0,extent.height);maxY=clamp(maxY,0,extent.height);
   return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
 }
+function setLocalCanvasFromAnchor(item){
+  if(!item?.node)return;
+  const aspect=Math.max(stableAssetAspect(item),.00001);
+  const width=Math.max(1,Number(item.node.naturalWidth)||Number(item.spriteCropWidth)||2048);
+  const height=Math.max(1,Number(item.node.naturalHeight)||Number(item.spriteCropHeight)||Math.round(width/aspect));
+  naturalWidth=width;naturalHeight=height;
+  world.style.width=naturalWidth+'px';world.style.height=naturalHeight+'px';
+}
 function fitLocalAnchor(local=activeLocal){
   if(!local||!naturalWidth||!naturalHeight)return;
   suspendRegionEnhancement();
@@ -3048,6 +3096,7 @@ function isolateLocalContext(){
       item.regionAnchorX=Number(item.x)||0;
       item.regionAnchorY=Number(item.y)||0;
       item.regionAnchorSize=Number(item.size)||1;
+      setLocalCanvasFromAnchor(item);
       item.node.classList.add('local-parent-anchor');
       item.node.dataset.authority='region-parent';
       item.node.dataset.regionTier=String(item.regionTier??0);
@@ -3057,6 +3106,8 @@ function isolateLocalContext(){
   }
   for(const entry of regionWorldSourceTiles)if(entry?.node)entry.node.hidden=true;
   for(const plane of [surface,highlands,mountains])if(plane)plane.style.visibility='hidden';
+  world.style.maskImage='none';world.style.webkitMaskImage='none';
+  world.style.maskSize='';world.style.webkitMaskSize='';
   stage.dataset.localContext='asset';
   stage.dataset.localId=activeLocalMapId();
   stage.dataset.localAnchorObjectId=anchorId;
@@ -3136,6 +3187,11 @@ function claimedRegionFitScale(region){
 }
 function syncClaimedRegionContextMask(){
   if(!REGION_DEFINER||!regionClaimedRegion||!regionClaimMaskUrl)return;
+  if(LOCAL_DEFINER&&localIsOpen()){
+    world.style.maskImage='none';world.style.webkitMaskImage='none';
+    world.style.maskSize='';world.style.webkitMaskSize='';
+    return;
+  }
   const focusScale=claimedRegionFitScale(regionClaimedRegion);
   if(!(focusScale>0))return;
   // A claimed RegionDefiner view is permanently scoped to the deed footprint.
@@ -4288,7 +4344,7 @@ function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibrar
 function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
 function localAnchorItems(){
-  return selectablePlacedContent().filter(item=>item&&item.kind!=='label'&&!isWorldMapItem(item)&&!item.sourceLocked&&!item.canonicalSource);
+  return selectablePlacedContent().filter(item=>item&&item.kind!=='label'&&!isWorldMapItem(item)&&!item.sourceLocked&&item.regionOverlay&&!item.localOverlay&&String(item.regionId||'')===activeRegionMapId());
 }
 function localAnchorSelect(items=localAnchorItems()){
   const select=document.createElement('select');
@@ -4380,7 +4436,7 @@ function renderKeyboardKeysContent(){
             toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(0,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=0),
             toolKey('LOCAL T +',`T ${localTierIndex}`,()=>{localTierIndex+=1;syncLocalEditLayer();renderKeyboardKeys()}),
             toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,0,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=0),
-            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
+            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,0,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
           ]:[])
         ]:[
           toolKey('WORLD L −',`L ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Layer ${viewerLayer}.`)} ,viewerLayer<=0),
