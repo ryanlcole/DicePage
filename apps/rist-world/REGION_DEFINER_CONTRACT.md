@@ -38,9 +38,10 @@ independent world. Their WorldBuilder identity and X/Y position remain canonical
 7. The confirmation row contains **Back** and **Claim Deed**.
 8. A direct-authority user creates the deed; a request-only user submits the
    same footprint for approval.
-9. After claim, the selection grid is removed. The selected source cells
-   themselves are the working table.
-10. The parent World Tier and inherited WorldBuilder content remain untouchable;
+9. After claim, the selection grid is removed and the same session transitions
+   directly into the RegionDefiner editor. The user does not reopen the deed.
+10. The selected source cells themselves are the working table.
+11. The parent World Tier and inherited WorldBuilder content remain untouchable;
     RegionDefiner can add and edit only region-owned overlays inside the deed.
 
 Camera zoom, pan, tilt, viewport size, or phone orientation must never change
@@ -129,6 +130,12 @@ The inherited WorldBuilder table is locked.
 Only objects with the active `regionId` are selectable, draggable, editable,
 or removable in RegionDefiner. A WorldBuilder object visible underneath may be
 used as context but does not enter the editable Select dropdown.
+
+The deed grid is an authority boundary, not a placement snap grid. Region-owned
+cities, labels, images, sprites, and other overlays move continuously within the
+claimed footprint. Placement must not jump to source-cell centers. If a drag
+crosses outside the deed, it may be constrained back into the nearest allowed
+claimed cell, but valid in-deed coordinates remain unchanged.
 
 All server writes verify:
 
