@@ -3265,14 +3265,60 @@ def handler(event, context):
         except (TypeError, ValueError) as exc:
             return response(400, {"error": str(exc)})
 
+        # Complete the legacy WORLDSOURCE -> REGIONMAP migration on the server,
+        # not in the browser. A stale client must never be able to save an
+        # incomplete child map and thereby strand an older city/object forever.
+        existing_region_map = world.get_item(
+            Key=region_map_key(world_id, region_id), ConsistentRead=True
+        ).get("Item")
+        existing_region_state = (
+            existing_region_map.get("state")
+            if isinstance(existing_region_map, dict)
+            and isinstance(existing_region_map.get("state"), dict)
+            else {}
+        )
+        migration_complete = existing_region_state.get("legacyImportComplete") is True
+        migrated_legacy_count = 0
+        if not migration_complete:
+            parent_item = world.get_item(
+                Key=world_source_key(world_id), ConsistentRead=True
+            ).get("Item") or {}
+            parent_state = (
+                parent_item.get("state")
+                if isinstance(parent_item.get("state"), dict)
+                else {}
+            )
+            incoming_ids = {
+                str(item.get("id") or "").strip()
+                for item in normalized
+                if str(item.get("id") or "").strip()
+            }
+            for legacy in parent_state.get("userLayers") or []:
+                if not isinstance(legacy, dict):
+                    continue
+                if str(legacy.get("regionId") or "") != region_id:
+                    continue
+                legacy_id = str(legacy.get("id") or "").strip()
+                if legacy_id and legacy_id in incoming_ids:
+                    continue
+                try:
+                    recovered = normalize_region_layer(
+                        region_state, dict(legacy), region_id
+                    )
+                except (PermissionError, TypeError, ValueError):
+                    continue
+                normalized.append(recovered)
+                if legacy_id:
+                    incoming_ids.add(legacy_id)
+                migrated_legacy_count += 1
+
         region_map_state = {
             "format": "RIST_REGION_MAP_V1",
             "worldId": world_id,
             "regionId": region_id,
-            # A successful child save completes the one-way migration from
-            # legacy regionId-tagged WORLDSOURCE overlays. Future reads must
-            # respect intentional REGIONMAP deletions instead of resurrecting
-            # old parent records.
+            # The first successful save imports any missing legacy objects
+            # server-side, then closes the bridge. Later explicit deletes stay
+            # deleted and cannot be resurrected from the parent world source.
             "legacyImportComplete": True,
             "zModel": REGION_Z_MODEL,
             "userLayers": normalized,
@@ -3305,6 +3351,7 @@ def handler(event, context):
             "parentTierIndex": int(region_state.get("tierIndex") or 0),
             "zModel": REGION_Z_MODEL,
             "storage": "REGIONMAP",
+            "legacyObjectsRecovered": migrated_legacy_count,
             "bytes": encoded_size,
         })
         return response(200, {
@@ -3313,6 +3360,7 @@ def handler(event, context):
             "state": region_map_state,
             "updatedAtUtc": updated_at,
             "savedLayerCount": len(normalized),
+            "legacyObjectsRecovered": migrated_legacy_count,
             "zModel": REGION_Z_MODEL,
             "storage": "REGIONMAP",
         })
