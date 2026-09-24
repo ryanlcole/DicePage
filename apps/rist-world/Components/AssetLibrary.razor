@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Text.RegularExpressions
 @implements IDisposable
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
@@ -213,7 +214,22 @@
     if(rating is null)throw new InvalidOperationException($"{file.Name} uploaded but its required content rating could not be registered.");
     _ratings[key]=rating;
     entries.RemoveAll(x=>string.Equals(x.Key,key,StringComparison.Ordinal));
-    entries.Add(new UserAssetCatalogEntry(key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow));
+    var spriteMeta=category=="Sprites"?SpriteMetadataFromFileName(file.Name):null;
+    entries.Add(spriteMeta is null
+      ? new UserAssetCatalogEntry(key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow)
+      : new UserAssetCatalogEntry(
+          key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow,
+          AssetKind:"sprite",
+          SpriteColumns:spriteMeta.Value.Columns,
+          SpriteRows:spriteMeta.Value.Rows,
+          FrameCount:spriteMeta.Value.FrameCount,
+          FramesPerSecond:spriteMeta.Value.Fps,
+          SourceWidth:spriteMeta.Value.FrameWidth*spriteMeta.Value.Columns,
+          SourceHeight:spriteMeta.Value.FrameHeight*spriteMeta.Value.Rows,
+          CropX:0,
+          CropY:0,
+          CropWidth:spriteMeta.Value.FrameWidth,
+          CropHeight:spriteMeta.Value.FrameHeight));
     uploaded++;
    }
    await Session.SaveUserAssetCatalogAsync(new UserAssetCatalog(entries,DateTimeOffset.UtcNow));
@@ -312,6 +328,26 @@
   }
   catch(Exception ex){_status="Rating report failed: "+ex.Message;}
   finally{_reporting=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ readonly record struct SpriteFileMetadata(int FrameCount,double Fps,int Columns,int Rows,int FrameWidth,int FrameHeight);
+
+ static SpriteFileMetadata? SpriteMetadataFromFileName(string name)
+ {
+  var file=Path.GetFileNameWithoutExtension(name);
+  var match=Regex.Match(
+   file,
+   @"__tier\d+__fps(?<fps>[0-9]+(?:\.[0-9]+)?)__fw(?<fw>\d+)__fh(?<fh>\d+)__c(?<c>\d+)__r(?<r>\d+)__fc(?<fc>\d+)__page\d+$",
+   RegexOptions.IgnoreCase|RegexOptions.CultureInvariant);
+  if(!match.Success)return null;
+  if(!double.TryParse(match.Groups["fps"].Value,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var fps))return null;
+  if(!int.TryParse(match.Groups["fw"].Value,out var fw)
+     ||!int.TryParse(match.Groups["fh"].Value,out var fh)
+     ||!int.TryParse(match.Groups["c"].Value,out var columns)
+     ||!int.TryParse(match.Groups["r"].Value,out var rows)
+     ||!int.TryParse(match.Groups["fc"].Value,out var frameCount))return null;
+  if(fps<=0||fw<=0||fh<=0||columns<=0||rows<=0||frameCount<=0||frameCount>columns*rows)return null;
+  return new SpriteFileMetadata(frameCount,fps,columns,rows,fw,fh);
  }
 
  static string? NormalizeImageType(string? type,string name)
