@@ -274,6 +274,20 @@ test('shared sprite editor supports motion-only overlays and 60fps playback',()=
   assert.ok(source.includes("toolKey('FPS 60'"));
 });
 
+test('sprite chains persist ordered pages across Worldbuilder and RegionDefiner',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  assert.ok(html.includes('id="spriteFile" type="file" accept="image/*" multiple'));
+  assert.ok(source.includes('function normalizedSpritePages(definition)'));
+  assert.ok(source.includes('async function extractSpriteChainFrames('));
+  assert.ok(source.includes('spritePages:item.kind===\'sprite\''));
+  assert.ok(source.includes('spriteChainId:item.spriteChainId||null'));
+  assert.ok(source.includes("toolKey('ADD PAGE','append sprite set(s)'"));
+  assert.ok(source.includes('item.frameSources=[...(item.frameSources||[]),...frames]'));
+  assert.ok(source.includes('chainId:String(personalEntryValue(entry,\'ChainId\',\'\'))'));
+  assert.ok(source.includes('chainIndex:Math.max(0,Math.trunc(Number(personalEntryValue(entry,\'ChainIndex\',0))||0))'));
+});
+
 test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps parent content locked',async()=>{
   const f=fixture('existing');
   try{
