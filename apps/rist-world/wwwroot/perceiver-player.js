@@ -823,8 +823,11 @@ function refreshSpriteEditor(state) {
   if (state.spriteSizeRange) state.spriteSizeRange.value = String(edit.scale);
   if (state.spriteXInput) state.spriteXInput.value = (edit.x * 100).toFixed(1);
   if (state.spriteYInput) state.spriteYInput.value = (edit.y * 100).toFixed(1);
+  if (state.spriteDepthInput) state.spriteDepthInput.value = String(Math.round((state.spriteDepths[state.selectedSpriteIndex] ?? 0.5) * 100));
   if (state.spriteOpacityInput) state.spriteOpacityInput.value = String(Math.round(edit.opacity * 100));
   if (state.spriteFpsInput) state.spriteFpsInput.value = String(Math.round(selectedSpriteFps(state)));
+  if (state.spriteSeparationInput) state.spriteSeparationInput.value = String(Math.round(state.spriteSeparation * 100));
+  if (state.spriteSeparationRange) state.spriteSeparationRange.value = String(Math.round(state.spriteSeparation * 100));
   const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
   if (state.spriteMotionOnlyButton) {
     state.spriteMotionOnlyButton.disabled = !record || record.frameCount < 2;
@@ -837,15 +840,19 @@ function applySpriteEditInputs(state) {
   edit.scale = clamp(Number(state.spriteSizeInput?.value ?? state.spriteSizeRange?.value) || edit.scale, 0.05, 8);
   edit.x = clamp((Number(state.spriteXInput?.value) || 0) / 100, -1, 1);
   edit.y = clamp((Number(state.spriteYInput?.value) || 0) / 100, -1, 1);
+  state.spriteDepths[state.selectedSpriteIndex] = clamp((Number(state.spriteDepthInput?.value) || 0) / 100, 0, 2);
   edit.opacity = clamp((Number(state.spriteOpacityInput?.value) || 0) / 100, 0, 1);
   setSelectedSpriteFps(state, state.spriteFpsInput?.value);
+  state.spriteSeparation = clamp((Number(state.spriteSeparationInput?.value) || 0) / 100, 0, 4);
   if (state.spriteSizeRange) state.spriteSizeRange.value = String(edit.scale);
   if (state.spriteSizeInput) state.spriteSizeInput.value = edit.scale.toFixed(2);
+  if (state.spriteSeparationRange) state.spriteSeparationRange.value = String(Math.round(state.spriteSeparation * 100));
   renderStep(state);
 }
 
 function resetSelectedSpriteEdit(state) {
   state.spriteEdits[state.selectedSpriteIndex] = { scale: 1, x: 0, y: 0, opacity: 1 };
+  state.spriteDepths[state.selectedSpriteIndex] = state.spriteDefaultDepths[state.selectedSpriteIndex] ?? 0.5;
   setSelectedSpriteFps(state, state.spriteParallax ? state.spriteParallax.fps : SPRITE_DEFAULT_FPS);
   const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
   if (record) record.motionOnly = false;
@@ -981,6 +988,7 @@ async function loadSpriteFiles(state, fileList) {
     });
     state.spriteParallax = { tiers, fps: clamp(fps || SPRITE_DEFAULT_FPS, 0.1, 60), frameCount };
     state.spriteDepths = [...SPECTRAL_DEPTH_FACTORS];
+    state.spriteDefaultDepths = [...state.spriteDepths];
   } else {
     state.spriteLayers = decoded.slice(0, 7).map((item, index) => {
       const layer = makeSpritePlaybackLayer(index);
@@ -993,6 +1001,7 @@ async function loadSpriteFiles(state, fileList) {
       if (state.spriteLayers.length <= 1) return 0.72;
       return 0.25 + (index / (state.spriteLayers.length - 1)) * 0.75;
     });
+    state.spriteDefaultDepths = [...state.spriteDepths];
 
     for (let index = 0; index < state.spriteLayers.length; index += 1) {
       const item = decoded[index];
@@ -1039,6 +1048,7 @@ async function loadSpriteFiles(state, fileList) {
   state.spectralLayers.forEach(layer => { layer.style.display = 'none'; });
   state.spriteLayers.forEach(layer => { if (layer.style.display !== 'none') layer.style.display = ''; });
   state.spriteEdits = state.spriteLayers.map(() => ({ scale: 1, x: 0, y: 0, opacity: 1 }));
+  state.spriteSeparation = 1;
   state.selectedSpriteIndex = Math.max(0, state.spriteLayers.findIndex(layer => layer.style.display !== 'none'));
   state.layers = state.spriteLayers;
   state.mode = 'sprite';
@@ -1461,7 +1471,10 @@ function animate(state, now) {
         ? state.sceneDepths
         : ENDEMAR_DEPTH_FACTORS;
   state.layers.forEach((layer, index) => {
-    const depth = depths[index] ?? depths[depths.length - 1] ?? 1;
+    const rawDepth = depths[index] ?? depths[depths.length - 1] ?? 1;
+    const depth = state.mode === 'sprite'
+      ? 0.5 + (rawDepth - 0.5) * state.spriteSeparation
+      : rawDepth;
     const xStrength = state.mode === 'spectral' || state.mode === 'sprite' ? 32 : state.mode === 'scene' ? 30 : 26;
     const yStrength = state.mode === 'spectral' || state.mode === 'sprite' ? 24 : state.mode === 'scene' ? 22 : 19;
     const edit = state.mode === 'sprite' ? spriteEdit(state, index) : { scale: 1, x: 0, y: 0 };
@@ -1566,8 +1579,11 @@ export function attach(root, config = {}) {
     spriteSizeRange: root.querySelector('[data-perceiver-sprite-size-range]'),
     spriteXInput: root.querySelector('[data-perceiver-sprite-x]'),
     spriteYInput: root.querySelector('[data-perceiver-sprite-y]'),
+    spriteDepthInput: root.querySelector('[data-perceiver-sprite-depth]'),
     spriteOpacityInput: root.querySelector('[data-perceiver-sprite-opacity]'),
     spriteFpsInput: root.querySelector('[data-perceiver-sprite-fps]'),
+    spriteSeparationInput: root.querySelector('[data-perceiver-sprite-separation]'),
+    spriteSeparationRange: root.querySelector('[data-perceiver-sprite-separation-range]'),
     spriteMotionOnlyButton: root.querySelector('[data-perceiver-sprite-motion-only]'),
     spriteResetButton: root.querySelector('[data-perceiver-sprite-reset]'),
     videoInput: root.querySelector('[data-perceiver-video-input]'),
@@ -1590,6 +1606,8 @@ export function attach(root, config = {}) {
     spriteEdits: [],
     selectedSpriteIndex: 0,
     spriteDepths: [...SPECTRAL_DEPTH_FACTORS],
+    spriteDefaultDepths: [...SPECTRAL_DEPTH_FACTORS],
+    spriteSeparation: 1,
     spriteClockMs: 0,
     spriteLastAt: performance.now(),
     spriteObjectUrls: [],
@@ -1905,6 +1923,11 @@ export function attach(root, config = {}) {
     edit.scale = clamp(Number(state.spriteSizeRange?.value) || 1, 0.05, 8);
     if (state.spriteSizeInput) state.spriteSizeInput.value = edit.scale.toFixed(2);
   };
+  state.onSpriteSeparationRange = () => {
+    state.spriteSeparation = clamp((Number(state.spriteSeparationRange?.value) || 0) / 100, 0, 4);
+    if (state.spriteSeparationInput) state.spriteSeparationInput.value = String(Math.round(state.spriteSeparation * 100));
+    renderStep(state);
+  };
   state.onSpriteMotionOnly = () => {
     const record = spriteRecordForIndex(state, state.selectedSpriteIndex);
     if (!record || record.frameCount < 2) return;
@@ -1979,11 +2002,14 @@ export function attach(root, config = {}) {
   state.spriteSelect?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteSizeInput?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteSizeRange?.addEventListener('input', state.onSpriteSizeRange);
+  state.spriteSeparationRange?.addEventListener('input', state.onSpriteSeparationRange);
   state.spriteSizeRange?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteXInput?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteYInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteDepthInput?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteOpacityInput?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteFpsInput?.addEventListener('change', state.onSpriteEditorChange);
+  state.spriteSeparationInput?.addEventListener('change', state.onSpriteEditorChange);
   state.spriteMotionOnlyButton?.addEventListener('click', state.onSpriteMotionOnly);
   state.spriteResetButton?.addEventListener('click', state.onSpriteReset);
   state.layerButtons.forEach(button => button.addEventListener('click', state.onLayerClick));
@@ -2138,11 +2164,14 @@ export function detach(root) {
   state.spriteSelect?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteSizeInput?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteSizeRange?.removeEventListener('input', state.onSpriteSizeRange);
+  state.spriteSeparationRange?.removeEventListener('input', state.onSpriteSeparationRange);
   state.spriteSizeRange?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteXInput?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteYInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteDepthInput?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteOpacityInput?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteFpsInput?.removeEventListener('change', state.onSpriteEditorChange);
+  state.spriteSeparationInput?.removeEventListener('change', state.onSpriteEditorChange);
   state.spriteMotionOnlyButton?.removeEventListener('click', state.onSpriteMotionOnly);
   state.spriteResetButton?.removeEventListener('click', state.onSpriteReset);
   state.layerButtons.forEach(button => button.removeEventListener('click', state.onLayerClick));
