@@ -1387,6 +1387,7 @@ function beginImageDrag(event,item){
   }
   if(item?.committed&&!alreadySelected)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
+  if(REGION_DEFINER)stage.classList.add('region-asset-moving');
   suspendRegionEnhancement();
   imageDrag={id:event.pointerId,item,startX:event.clientX,startY:event.clientY,x:item.x,y:item.y};
 }
@@ -1395,14 +1396,15 @@ function moveImageDrag(event){
   if(!imageDrag||imageDrag.id!==event.pointerId)return;event.preventDefault();event.stopPropagation();
   const rawX=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
-  const snapped=REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY};
-  imageDrag.item.x=snapped.x;imageDrag.item.y=snapped.y;
+  const bounded=REGION_DEFINER?constrainRegionPoint(rawX,rawY):{x:rawX,y:rawY};
+  imageDrag.item.x=bounded.x;imageDrag.item.y=bounded.y;
   refreshUserImage(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
 function endImageDrag(event){
   if(!imageDrag||imageDrag.id!==event.pointerId)return;
   const drag=imageDrag;imageDrag=null;
+  stage.classList.remove('region-asset-moving');
   if(drag.item.node.hasPointerCapture?.(event.pointerId))drag.item.node.releasePointerCapture(event.pointerId);
   scheduleRegionEnhancement(40);
 }
@@ -2142,7 +2144,7 @@ function setRegionGridShape(shape){
   if(regionClaimedRegion&&(regionClaimPhase==='saved'||regionClaimPhase==='build')){announce('This region grid is fixed by its saved claim. Start a new claim to choose a different grid.');return}
   regionGridShape=normalizeRegionGridShape(shape);
   updateRegionSelectionOverlay();renderKeyboardKeys();
-  announce(`${regionGridShape==='hex'?'Hex':'Square'} grid selected for region selection and placement.`);
+  announce(`${regionGridShape==='hex'?'Hex':'Square'} claim grid selected. Region assets remain free-placement inside the deed.`);
 }
 function cycleRegionGridShape(){setRegionGridShape(regionGridShape==='square'?'hex':'square')}
 function regionWorldLayerSet(tier=currentRegionTierIndex()){
@@ -2491,6 +2493,7 @@ function applyClaimedRegionCrop(region){
   const editableRegion=ACCESS_MODE==='edit';
   regionClaimPhase=editableRegion?'build':'saved';
   stage.classList.toggle('region-build-mode',editableRegion);
+  stage.classList.toggle('region-free-placement',editableRegion);
   updateTierButton();renderTierMenu();
   retireRegionSelectionOverlay();
   syncClaimedRegionOutline(region);
@@ -2771,7 +2774,7 @@ function renderRegionSelectKeyboard(){
   keyboardKeys.append(
     readoutKey(String(region?.name||'REGION').toUpperCase(),'claimed regional map'),
     readoutKey(`TIER ${Math.trunc(Number(region?.tierIndex)||currentRegionTierIndex())+1}`,tierLabel(tierByIndex(Math.trunc(Number(region?.tierIndex)||currentRegionTierIndex())))),
-    readoutKey(normalizeRegionGridShape(region?.gridShape||regionGridShape).toUpperCase(),'placement grid'),
+    readoutKey(normalizeRegionGridShape(region?.gridShape||regionGridShape).toUpperCase(),'claim grid · placement free'),
     readoutKey(`${Array.isArray(region?.selectedCells)?region.selectedCells.length:0} TILES`,'full regional map')
   );
 }
