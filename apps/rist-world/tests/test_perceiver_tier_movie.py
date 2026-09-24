@@ -281,3 +281,32 @@ def test_perceiver_mobile_controls_use_one_swipeable_slider():
     assert "flex:0 0 auto" in workspace
     assert "padding:4px 4px max(8px,env(safe-area-inset-bottom))" in workspace
     assert ".perceiver-stage{min-height:260px}" in workspace
+
+
+def test_perceiver_sprite_exports_reenter_the_normal_sprite_library():
+    player = read("wwwroot/perceiver-player.js")
+    asset_library = read("Components/AssetLibrary.razor")
+
+    # Perceiver exports ordinary WebP sprite pages with all playback geometry
+    # encoded in their filenames instead of requiring a proprietary container.
+    assert "'image/webp'" in player
+    assert "__tier" in player
+    assert "__fps" in player
+    assert "__fw" in player
+    assert "__fh" in player
+    assert "__c" in player
+    assert "__r" in player
+    assert "__fc" in player
+    assert "__page" in player
+
+    # The existing private Uploads -> Sprites path preserves those values in
+    # the canonical user asset catalog so the normal sprite player can replay it.
+    assert "SpriteMetadataFromFileName" in asset_library
+    assert 'category=="Sprites"?SpriteMetadataFromFileName(file.Name):null' in asset_library
+    assert 'AssetKind:"sprite"' in asset_library
+    assert "SpriteColumns:spriteMeta.Value.Columns" in asset_library
+    assert "SpriteRows:spriteMeta.Value.Rows" in asset_library
+    assert "FrameCount:spriteMeta.Value.FrameCount" in asset_library
+    assert "FramesPerSecond:spriteMeta.Value.Fps" in asset_library
+    assert "CropWidth:spriteMeta.Value.FrameWidth" in asset_library
+    assert "CropHeight:spriteMeta.Value.FrameHeight" in asset_library
