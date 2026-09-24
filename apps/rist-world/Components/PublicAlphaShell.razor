@@ -95,6 +95,7 @@
      <button type="button" class="launcher-tool-button" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span aria-hidden="true">◈</span><strong>WORLDBUILDER</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span aria-hidden="true">▦</span><strong>REGION DEFINER</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLocalStaging"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
+     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span aria-hidden="true">◫</span><strong>IMMERSION BUILDER</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⌖</span><strong>INSTANCES</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">◷</span><strong>HISTORY</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLore"><span aria-hidden="true">✦</span><strong>LORE</strong></button>
@@ -401,7 +402,7 @@ else
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD 0° → REGION 15° → LOCAL";break;
    case "local":_workspaceMode="local";_workspaceLabel="LOCAL DEFINER";_workspaceHint="REGION 15° → OBJECT → LOCAL 30° → INSTANCE 45°";break;
    case "perceiver":_workspaceMode="perceiver";_workspaceLabel="PERCEIVER";_workspaceHint="TIERED MOVIE → PARALLAX → TILT";break;
-   case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
+   case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → REGION HANDOFF → LOCAL HANDOFF → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
    case "assets":_workspaceMode="assets";_workspaceLabel="ASSET DESIGNER";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
    case "charactercards":_workspaceMode="charactercards";_workspaceLabel="CHARACTER CARD DESIGNER";_workspaceHint="SHEET → CARDS → FIELDS → SYSTEM";break;
@@ -651,7 +652,7 @@ else
   await InvokeAsync(StateHasChanged);
  }
  void OpenPerceiver(){if(!WorldReady||!Session.IsGeonaphWorld)return;OpenWorkspace("perceiver","PERCEIVER","TIERED MOVIE → PARALLAX → TILT");}
- void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
+ void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → REGION HANDOFF → LOCAL HANDOFF → EXPERIENCE");
  async Task OpenRegionDefiner()
  {
   if(!WorldReady)return;
