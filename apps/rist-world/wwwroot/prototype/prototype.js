@@ -1333,6 +1333,7 @@ function refreshUserImage(item){
   item.node.style.transformOrigin='50% 50%';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
+  if(!desired){item.node.style.visibility='hidden';return}
   refreshProgressiveParallax(item);
 }function selectUserImage(item){
   if(item?.sourceLocked||(REGION_DEFINER&&item&&(!item.regionOverlay
