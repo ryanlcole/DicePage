@@ -101,30 +101,38 @@ This is a representation change, not an identity rewrite.
 
 ### Local coordinate rule
 
-Local-owned placements use a new child coordinate frame:
+**X/Y remain canonical across World → Region → Local → Instance.**
 
-- Local X/Y are normalized 0–1 inside the selected Region asset;
-- Local Tier is independent from Region Tier;
-- Local Layer is 0–9 inside the Local Tier.
+Entering Local does not create a second X/Y truth. Instead, the camera and
+working extent crop/fit to the selected Region asset so that asset visually
+becomes the Local map.
 
-The system retains a reversible projection from Local X/Y back through the
-selected Region anchor into World/Region space. Local editing therefore does
-not require the user to manipulate tiny World-normalized coordinates.
+Local-owned placements therefore keep:
 
-A Local child carries parent ancestry plus its own child address:
+- canonical World X/Y inside the selected Region asset's footprint;
+- inherited World Tier/Layer;
+- inherited Region Tier/Layer;
+- independent Local Tier;
+- Local child Layer 1–9 above the inherited parent representation.
+
+A Local child carries:
 
 ```text
-World X/Y
+canonical X/Y
 W(T,L)
 R(T,L)
-Local X/Y
 L(T,L)
 ```
 
-The Local save format declares `local-anchor-normalized-v2`.
+The selected Region anchor remains authored at its Region address and is not
+rescaled or rewritten in persistence simply because the Local viewer zooms to
+it.
 
-Legacy Local saves that stored child positions directly in World-normalized X/Y
-may be migrated into the Local anchor frame on load.
+The Local save format declares
+`canonical-world-xy+hierarchical-depth-v1`.
+
+Any transient/legacy Local save that used Local-normalized X/Y must be migrated
+back into canonical X/Y using the persisted Region anchor footprint.
 
 ## Instance — 45° Local-asset-anchored representation
 
@@ -227,13 +235,12 @@ Implemented in Local:
 - parent Region only; no new World/Region claim action;
 - selection of one placed Region object as Local anchor;
 - stable Local identity anchored to the Region object's identity/provenance;
-- selected Region asset rebased visually to the locked 100% Local canvas;
-- Local-normalized child X/Y coordinates;
-- reversible Local → Region/World projection metadata;
-- explicit Local Tier/Layer 0–9 controls;
+- camera/working extent framed to the selected Region asset while preserving its canonical X/Y;
+- canonical X/Y retained for Local children;
+- explicit Local Tier plus Local child Layer 1–9 controls;
 - Local-owned image/tile/sprite/label authoring;
 - separate LocalMap persistence using `RIST_LOCAL_MAP_V2`;
-- legacy World-X/Y Local save migration;
+- migration support for transient Local-normalized saves back to canonical X/Y;
 - 30° representation.
 
 Reserved/partially modeled for Instance:
