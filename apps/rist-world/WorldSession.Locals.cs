@@ -17,6 +17,8 @@ public sealed partial class WorldSession
 
     public string LocalDirectoryKey => $"{WorldStoragePrefix}/locals/index.json";
     public string LocalLocalSaveKey => $"rist.locals.v1.{WorldId}";
+    public string LocalMapStorageKey(string localId) => $"{WorldStoragePrefix}/locals/{AssetPathSegment(localId)}/map.json";
+    public string LocalMapLocalSaveKey(string localId) => $"rist.local.map.v1.{WorldId}.{localId}";
 
     public async Task LoadLocalsAsync()
     {
@@ -160,6 +162,70 @@ public sealed partial class WorldSession
         return local;
     }
 
+    public async Task<WorldLocalMapSource?> LoadLocalMapAsync(string localId)
+    {
+        localId = (localId ?? "").Trim();
+        var local = _locals.FirstOrDefault(item =>
+            string.Equals(item.LocalId, localId, StringComparison.Ordinal)
+            && string.Equals(item.WorldId, WorldId, StringComparison.Ordinal));
+        if (local is null) return null;
+
+        WorldLocalMapSource? source = null;
+        if (IsLoggedIn)
+        {
+            try { source = await auth.DownloadJsonAsync<WorldLocalMapSource>(LocalMapStorageKey(localId)); }
+            catch { }
+        }
+
+        if (source is null)
+        {
+            try
+            {
+                var raw = await js.InvokeAsync<string?>("localStorage.getItem", LocalMapLocalSaveKey(localId));
+                if (!string.IsNullOrWhiteSpace(raw))
+                    source = JsonSerializer.Deserialize<WorldLocalMapSource>(raw, MapReadOptions);
+            }
+            catch { }
+        }
+
+        if (source is null
+            || !string.Equals(source.WorldId, WorldId, StringComparison.Ordinal)
+            || !string.Equals(source.RegionId, local.RegionId, StringComparison.Ordinal)
+            || !string.Equals(source.LocalId, local.LocalId, StringComparison.Ordinal))
+            return null;
+
+        return source;
+    }
+
+    public async Task<WorldLocalMapSource> SaveLocalMapAsync(string localId, JsonElement state)
+    {
+        localId = (localId ?? "").Trim();
+        var local = _locals.FirstOrDefault(item =>
+            string.Equals(item.LocalId, localId, StringComparison.Ordinal)
+            && string.Equals(item.WorldId, WorldId, StringComparison.Ordinal))
+            ?? throw new InvalidOperationException("Choose a Local before saving Local content.");
+
+        var region = _regions.FirstOrDefault(item =>
+            string.Equals(item.RegionId, local.RegionId, StringComparison.Ordinal))
+            ?? throw new InvalidOperationException("The Local parent Region is unavailable.");
+        if (!CanEditRegion(region))
+            throw new UnauthorizedAccessException("Region edit authority is required to save this Local.");
+
+        var source = new WorldLocalMapSource(
+            WorldId,
+            local.RegionId,
+            local.LocalId,
+            local.AnchorObjectId,
+            state.Clone(),
+            DateTimeOffset.UtcNow);
+
+        var json = JsonSerializer.Serialize(source, MapWriteOptions);
+        await js.InvokeVoidAsync("localStorage.setItem", LocalMapLocalSaveKey(localId), json);
+        if (IsLoggedIn)
+            await auth.UploadTextAsync(LocalMapStorageKey(localId), json, "application/json");
+        return source;
+    }
+
     public async Task SaveLocalsAsync()
     {
         if (!HasActiveWorld) return;
@@ -190,6 +256,14 @@ public sealed partial class WorldSession
 }
 
 public sealed record WorldLocalCatalog(string WorldId, List<WorldLocal> Locals, DateTimeOffset UpdatedAtUtc);
+
+public sealed record WorldLocalMapSource(
+    string WorldId,
+    string RegionId,
+    string LocalId,
+    string AnchorObjectId,
+    JsonElement State,
+    DateTimeOffset UpdatedAtUtc);
 
 public sealed record WorldLocal(
     string LocalId,
