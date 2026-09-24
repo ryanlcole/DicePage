@@ -82,7 +82,13 @@
     .persistent-save img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:sepia(.35) saturate(1.15) brightness(1.18)}
     .persistent-save.saving{opacity:.72}
     .persistent-save.saved{box-shadow:0 0 0 2px rgba(240,204,105,.72),0 6px 20px rgba(0,0,0,.34)}
+    .region-persistence-status{position:absolute;z-index:141;right:max(66px,calc(env(safe-area-inset-right) + 66px));bottom:calc(69px + env(safe-area-inset-bottom));max-width:min(68vw,320px);padding:6px 9px;border:1px solid rgba(104,157,181,.78);border-radius:999px;background:rgba(5,15,21,.9);color:#ccecff;font:900 8px/1 system-ui;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 4px 14px #0008}
+    .region-persistence-status.ok{border-color:rgba(103,190,133,.8);color:#c9f3d4}.region-persistence-status.waiting{border-color:rgba(213,173,85,.86);color:#f3dca0}.region-persistence-status.hidden-assets{border-color:rgba(197,128,80,.86);color:#ffd0a8}.region-persistence-status.error{border-color:rgba(205,87,87,.88);color:#ffd0d0}
+    .region-persistence-status[hidden]{display:none!important}
     .stage.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode .region-persistence-status{bottom:calc(69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode.keyboard-open .region-persistence-status{bottom:calc(min(36vh,290px) + 69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode.region-claim-confirming.keyboard-open .region-persistence-status{bottom:calc(min(32vh,220px) + 69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
     .region-enhance-canvas{position:absolute;z-index:9;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .12s linear;will-change:opacity}
     .region-enhance-canvas.active{opacity:1}
     .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none;background:
