@@ -1278,7 +1278,7 @@ function viewerCenterPosition(){
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
   const wy=((r.height/2)-y)/Math.max(scale,.00001);
   const point={x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
-  return REGION_DEFINER?constrainRegionPoint(point.x,point.y):point;
+  return LOCAL_DEFINER&&localIsOpen()?constrainLocalPoint(point.x,point.y):(REGION_DEFINER?constrainRegionPoint(point.x,point.y):point);
 }
 function openImageUpload(){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -2086,6 +2086,7 @@ function recomputeMaxViewScale(){
 }
 function fitMap(){
   if(!naturalWidth||!naturalHeight)return;
+  if(LOCAL_DEFINER&&localIsOpen()){fitLocalAnchor(activeLocal);return}
   if(REGION_DEFINER&&regionClaimedRegion&&regionClaimBounds(regionClaimedRegion)){fitClaimedRegion(regionClaimedRegion);return}
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect();
@@ -2978,6 +2979,82 @@ function regionClaimBounds(region){
   minX=clamp(minX,0,extent.width);maxX=clamp(maxX,0,extent.width);
   minY=clamp(minY,0,extent.height);maxY=clamp(maxY,0,extent.height);
   return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
+}
+function fitLocalAnchor(local=activeLocal){
+  const bounds=localAnchorBounds(local);if(!bounds||!naturalWidth||!naturalHeight)return;
+  suspendRegionEnhancement();
+  const r=stage.getBoundingClientRect();if(r.width<=0||r.height<=0)return;
+  const cropX=bounds.minX*naturalWidth,cropY=bounds.minY*naturalHeight;
+  const cropW=Math.max(1,bounds.width*naturalWidth),cropH=Math.max(1,bounds.height*naturalHeight);
+  const tiltHeight=cropH*Math.cos(REPRESENTATION_ANGLE_DEGREES*Math.PI/180);
+  scale=Math.min(r.width/cropW,r.height/Math.max(tiltHeight,1))*.90;
+  scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
+  const centerX=cropX+cropW/2,centerY=cropY+cropH/2;
+  x=fitX=(r.width/2)-(centerX*scale);
+  y=fitY=(r.height/2)-(centerY*scale);
+  applyTransform();
+}
+function isolateLocalContext(){
+  if(!LOCAL_DEFINER||!localIsOpen())return;
+  const anchorId=String(activeLocal?.anchorObjectId||'');
+  localAnchorItem=userLayers.find(item=>String(item?.id||'')===anchorId)||localAnchorItem;
+  for(const item of userLayers){
+    if(!item?.node)continue;
+    if(item.localOverlay){
+      item.node.hidden=String(item.localId||'')!==activeLocalMapId();
+      continue;
+    }
+    const isAnchor=String(item.id||'')===anchorId;
+    item.localAnchor=isAnchor;
+    item.node.hidden=!isAnchor;
+    if(isAnchor){
+      item.sourceLocked=true;
+      item.node.classList.add('local-parent-anchor');
+      item.node.dataset.authority='region-parent';
+    }
+  }
+  for(const entry of regionWorldSourceTiles)if(entry?.node)entry.node.hidden=true;
+  for(const plane of [surface,highlands,mountains])if(plane)plane.style.visibility='hidden';
+  stage.dataset.localContext='asset';
+  stage.dataset.localId=activeLocalMapId();
+  stage.dataset.localAnchorObjectId=anchorId;
+  syncLocalEditLayer();
+}
+async function enterLocalBuild(local,sourceEnvelope=null){
+  if(!LOCAL_DEFINER||!local?.id)return;
+  activeLocal=local;
+  localTierIndex=0;localLayerIndex=1;
+  localCreatePending=false;
+  removeAssetResizeOverlay();selectedImage=null;
+
+  // Remove any previously hydrated Local child layers before loading this Local.
+  for(let index=userLayers.length-1;index>=0;index--){
+    const item=userLayers[index];
+    if(!item?.localOverlay)continue;
+    stopSpriteMotion(item);item.node?.remove();userLayers.splice(index,1);
+  }
+
+  isolateLocalContext();
+  const state=sourceEnvelope?.state&&typeof sourceEnvelope.state==='object'?sourceEnvelope.state:null;
+  const saved=Array.isArray(state?.userLayers)?state.userLayers:[];
+  localPersistenceDbCount=saved.length;
+  for(const raw of saved){
+    const item=await attachRestoredLayer(raw,{
+      sourceLocked:READ_ONLY,
+      regionOverlay:true,
+      localOverlay:true,
+      localId:String(local.id)
+    });
+    if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??1);
+  }
+  syncLocalEditLayer();
+  persistentSave.hidden=READ_ONLY;
+  imageUploadToggle.hidden=READ_ONLY;
+  keyboardMode='Viewer';
+  renderKeyboardTabs();renderKeyboardKeys();updateLayerOrder();applyParallax();
+  fitLocalAnchor(local);
+  if(keyboard.hidden)openKeyboard();
+  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'}. X/Y remain canonical; new content uses Local tier/layer depth.`);
 }
 function fitClaimedRegion(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
@@ -4165,10 +4242,17 @@ function localAnchorPayload(item){
 }
 function createSelectedLocal(){
   if(!LOCAL_DEFINER||!selectedImage||localCreatePending)return;
+  const existing=localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||''));
+  localCreatePending=true;renderKeyboardKeys();
+  if(existing){
+    if(!postRegionMessage('open-local',{localId:String(existing.id||'')})){
+      localCreatePending=false;renderKeyboardKeys();announce('Local database bridge is unavailable.');
+    }
+    return;
+  }
   const proposed=String(selectedImage.name||'Local').trim();
   const name=String(prompt('Name this Local',proposed)||'').trim();
-  if(!name)return;
-  localCreatePending=true;renderKeyboardKeys();
+  if(!name){localCreatePending=false;renderKeyboardKeys();return}
   if(!postRegionMessage('create-local',{name,anchor:localAnchorPayload(selectedImage)})){
     localCreatePending=false;renderKeyboardKeys();announce('Local database bridge is unavailable.');
   }
