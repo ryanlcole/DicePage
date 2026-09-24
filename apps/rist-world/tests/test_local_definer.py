@@ -19,7 +19,6 @@ def test_local_staging_is_live_and_reuses_region_projection():
     assert 'OpenWorkspace("local","LOCAL DEFINER"' in shell
     assert 'Mode == "local"' in router
     assert "<LocalDefinerWorkspace" in router
-
     assert "Session.LoadRegionSourceAsync(region.RegionId)" in local
     assert "mode=localdefiner" in local
     assert "regionFlow=existing" in local
@@ -50,32 +49,38 @@ def test_representation_ladder_is_world_0_region_15_local_30():
     assert "WORLD 0° → REGION 15°" in shell
 
 
-def test_local_identity_is_region_object_anchored_and_uses_nested_local_xy():
+def test_local_identity_is_region_object_anchored_and_uses_constant_canonical_xy():
     model = read("WorldSession.Locals.cs")
     local = read("Components/LocalDefinerWorkspace.razor")
 
     assert "AnchorObjectId" in model
     assert "AnchorAssetId" in model
     assert 'ParentNodeId: $"region:{region.RegionId}"' in model
-    assert '"local-anchor-normalized-v2"' in model
-    assert 'coordinateSpace="local-anchor-normalized-v2"' in local
-    assert 'coordinateSpace="region-parent-anchor-v1"' in local
+    assert '"canonical-world-xy+hierarchical-depth-v1"' in model
+    assert 'coordinateSpace="canonical-world-xy+hierarchical-depth-v1"' in local
+    assert 'coordinateSpace="canonical-world-xy+region-depth-v1"' in local
     assert "X: Math.Clamp(x, 0, 1)" in model
     assert "Y: Math.Clamp(y, 0, 1)" in model
     assert "Select a placed regional object for the Local." in model
 
 
-def test_local_rebases_selected_region_asset_to_full_local_canvas():
+def test_local_camera_frames_region_asset_without_creating_a_new_xy_plane():
     player = read("wwwroot/prototype/prototype.js")
 
     assert "function localAnchorBounds(local=activeLocal)" in player
-    assert "function worldPointToLocal(x,y,local=activeLocal)" in player
-    assert "function localPointToWorld(x,y,local=activeLocal)" in player
+    assert "function constrainLocalPoint(x,y)" in player
     assert "function fitLocalAnchor(local=activeLocal)" in player
-    assert "local-anchor-normalized-v2" in player
-    assert "item.node.style.width='100%'" in player
-    assert "item.node.style.height='100%'" in player
-    assert "The Region asset is the locked 100% Local base" in player
+    assert "Canonical X/Y unchanged." in player
+    for forbidden in (
+        "worldPointToLocal",
+        "localPointToWorld",
+        "local-anchor-normalized-v2",
+        "localCoordinateSpace",
+        "projectedWorldX",
+        "projectedWorldY",
+        "setLocalCanvasFromAnchor",
+    ):
+        assert forbidden not in player
 
 
 def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
@@ -85,22 +90,21 @@ def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
     assert "item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));" in player
     assert "item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);" in player
     assert "item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));" in player
-    assert "item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||0),0,9);" in player
+    assert "item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);" in player
     assert "toolKey('LOCAL T −'" in player
     assert "toolKey('LOCAL T +'" in player
     assert "toolKey('LOCAL L −'" in player
     assert "toolKey('LOCAL L +'" in player
 
 
-def test_local_children_persist_local_xy_plus_derived_world_projection():
+def test_local_children_persist_canonical_xy_plus_full_hierarchical_depth():
     player = read("wwwroot/prototype/prototype.js")
     local = read("Components/LocalDefinerWorkspace.razor")
 
-    assert "localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined" in player
-    assert "projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined" in player
-    assert "projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined" in player
+    assert "x:clamp(Number(item.x)||0,0,1)" in player
+    assert "y:clamp(Number(item.y)||0,0,1)" in player
     assert 'format="RIST_LOCAL_MAP_V2"' in local
-    assert 'coordinateSpace="local-anchor-normalized-v2"' in local
+    assert 'coordinateSpace="canonical-world-xy+hierarchical-depth-v1"' in local
     assert "hierarchy=new" in local
     for field in (
         "worldTier=local.WorldTier",
@@ -130,7 +134,7 @@ def test_local_map_is_persisted_separately_from_region_map():
     assert "map-local-saved" in player
 
 
-def test_local_opens_full_asset_toolset_after_region_anchor_selection():
+def test_local_opens_full_regiondefiner_asset_toolset_after_anchor_selection():
     player = read("wwwroot/prototype/prototype.js")
 
     assert "if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select'];" in player
@@ -145,6 +149,6 @@ def test_local_and_future_instance_depth_participate_in_renderer_order():
     player = read("wwwroot/prototype/prototype.js")
 
     assert "Math.max(0,Math.trunc(Number(item.localTier)||0))*1000" in player
-    assert "clamp(Math.trunc(Number(item.localLayer)||0),0,9)*100" in player
+    assert "clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100" in player
     assert "Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10" in player
     assert "clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)" in player
