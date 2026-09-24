@@ -12,7 +12,7 @@ class RegionMapPersistenceContract(unittest.TestCase):
         end = self.source.index('if method == "GET" and path == "/world/regions":', start)
         block = self.source[start:end]
         self.assertIn("region_map_key(world_id, region_id)", block)
-        self.assertIn('"entityType": "regionMap"', block)
+        self.assertIn('":entityType": "regionMap"', block)
         self.assertIn('"format": "RIST_REGION_MAP_V1"', block)
         self.assertNotIn("world.update_item(\n            Key=world_source_key(world_id)", block)
 
