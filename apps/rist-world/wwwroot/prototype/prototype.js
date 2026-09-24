@@ -2131,7 +2131,7 @@ function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){
   if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
-  if(LOCAL_DEFINER)return['Viewer','Tiers','Select'];
+  if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select'];
   if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
   if(READ_ONLY)return['Viewer','Tiers'];
   if(CLAIM_ONLY)return['Select'];
@@ -4404,14 +4404,15 @@ function renderKeyboardKeysContent(){
     );return;
   }
   if(keyboardMode==='Select'){
-    if(LOCAL_DEFINER){
-      const items=selectablePlacedContent().filter(item=>item&&item.kind!=='label'&&!isWorldMapItem(item)&&!item.sourceLocked&&!item.canonicalSource);
+    if(LOCAL_DEFINER&&!localIsOpen()){
+      const items=localAnchorItems();
+      const existing=selectedImage?localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||'')):null;
       keyboardKeys.append(
         readoutKey('LOCAL','select one placed regional object'),
         toolKey('‹','previous object',()=>cycleLocalAnchorSelection(items,-1),!items.length),
         toolKey('›','next object',()=>cycleLocalAnchorSelection(items,1),!items.length),
         localAnchorSelect(items),
-        toolKey('CREATE LOCAL','selected landmark / object',createSelectedLocal,!selectedImage||localCreatePending),
+        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||'selected landmark / object',createSelectedLocal,!selectedImage||localCreatePending),
         toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
       );
       return;
