@@ -72,6 +72,32 @@ def test_completed_deed_removes_claim_grid_and_uses_filtered_source_as_table():
     assert "regionSelectionOverlay.remove();" in prototype
 
 
+def test_deed_claim_transitions_directly_to_editor_and_keeps_mobile_controls_visible():
+    prototype = text("wwwroot/prototype/prototype.js")
+    host = text("wwwroot/region-definer-host.js")
+    styles = text("wwwroot/prototype/prototype.css")
+
+    assert 'post(frame,{type:"region-created",region,worldSource:regionSource});' in host
+    assert "if(data.worldSource)await renderRegionWorldSource(data.worldSource);" in prototype
+    assert "stage.dataset.regionEntry='editor';" in prototype
+    assert "stage.classList.add('region-selection-only','region-claim-confirming');" in prototype
+    assert ".stage.region-claim-confirming .keyboard{" in styles
+    assert ".stage.region-claim-confirming .keyboard-tabs{display:none}" in styles
+    assert ".stage.region-claim-confirming .keyboard-keys .region-name-input{" in styles
+
+
+def test_region_overlay_placement_is_continuous_inside_the_deed_not_snapped_to_grid_centers():
+    prototype = text("wwwroot/prototype/prototype.js")
+    contract = text("REGION_DEFINER_CONTRACT.md")
+
+    assert "function constrainRegionPoint(x,y)" in prototype
+    assert "if(allowed.has(cell))return point;" in prototype
+    assert "function snapRegionPoint(" not in prototype
+    assert "constrain:constrainRegionPoint" in prototype
+    assert "authority boundary, not a placement snap grid" in contract
+    assert "valid in-deed coordinates remain unchanged" in contract
+
+
 def test_region_depth_is_world_integer_z_plus_region_hundredths_only():
     prototype = text("wwwroot/prototype/prototype.js")
     projector = projector_text()
