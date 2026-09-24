@@ -219,5 +219,15 @@
     "pricingFormula": "verified_service_cost_usd * 1.80",
     "paymentDoesNotGrantAuthority": true,
     "automaticEntitlement": false
+  },
+  "mcpTesterIntake": {
+    "endpoint": "/mcp",
+    "registrationAndApplicationsOpen": true,
+    "generalExternalAiRelease": false,
+    "selectionBasis": "work-relevant-evidence-only",
+    "protectedTraitsRequestedOrScored": false,
+    "initialSelectionMaximum": 1,
+    "selectedTesterTokenQuantity": 1,
+    "testTokenDoesNotGrantAdministrativeAuthority": true
   }
 }
