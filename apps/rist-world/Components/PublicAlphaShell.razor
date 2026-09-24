@@ -155,7 +155,6 @@
 
   <WorldGate Open="@_worldGateOpen" RequireSelection="false" OnClose="CloseWorldGate" />
   <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
-  <RegionGate Open="@_localRegionGateOpen" SelectionOnly="true" OnClose="CloseLocalRegionGate" OnSelect="OpenLocalRegion" />
   <CommerceAdminPanel Open="@_commerceAdminOpen" OnClose="CloseCommerceAdmin" />
 
   <footer class="launcher-footer">
@@ -307,7 +306,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","local","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -321,7 +320,6 @@ else
  string _tickerEditor="";
  bool _worldGateOpen;
  bool _regionGateOpen;
- bool _localRegionGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -429,7 +427,7 @@ else
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _regionGateOpen=false;
-  _localRegionGateOpen=false;
+  
   _=PersistWorkspaceAsync(mode);
  }
 
@@ -679,7 +677,6 @@ else
   _cardIndexOpen=false;
   _worldGateOpen=false;
   _regionGateOpen=false;
-  _localRegionGateOpen=true;
   try
   {
    if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
@@ -687,13 +684,9 @@ else
    await Session.LoadLocalsAsync();
   }
   catch{}
- }
- void CloseLocalRegionGate()=>_localRegionGateOpen=false;
- void OpenLocalRegion(WorldRegion region)
- {
-  Session.SetActiveRegion(region.RegionId);
+  Session.SetActiveRegion("");
   Session.SetActiveLocal("");
-  OpenWorkspace("local","LOCAL DEFINER",$"{region.Name.ToUpperInvariant()} · 15° → SELECT OBJECT → LOCAL · 30°");
+  OpenWorkspace("local","LOCAL DEFINER","REGION → ASSET → LOCAL · 30°");
  }
  void OpenNewRegion()
  {
@@ -731,6 +724,6 @@ else
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localRegionGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localRegionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
