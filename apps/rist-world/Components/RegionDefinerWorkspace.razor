@@ -154,9 +154,9 @@
  }
 
  [JSInvokable]
- public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers,System.Text.Json.JsonElement relativeTiers)
+ public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers)
  {
-  var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers,relativeTiers);
+  var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers);
   return new
   {
    success=saved is not null,
