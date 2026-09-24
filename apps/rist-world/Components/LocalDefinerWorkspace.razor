@@ -1,0 +1,212 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<div class="local-definer-host"
+     data-world-id="@Session.WorldId"
+     data-region-id="@Session.ActiveRegion?.RegionId"
+     aria-label="Local Definer">
+ <iframe
+  @ref="_frame"
+  class="local-definer-frame"
+  src="@BuilderSrc"
+  title="Local Definer"
+  loading="eager"
+  allow="fullscreen"
+ ></iframe>
+</div>
+
+<style>
+ .local-definer-host{box-sizing:border-box;position:absolute;inset:0;z-index:2147481000;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#05090c;contain:layout size}
+ .local-definer-frame{display:block;width:100%;height:100%;border:0;margin:0;padding:0;background:#05090c}
+</style>
+
+@code {
+ ElementReference _frame;
+ IJSObjectReference? _module;
+ DotNetObjectReference<LocalDefinerWorkspace>? _self;
+ bool _bridgeAttached;
+
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+ [Parameter] public EventCallback OnHome { get; set; }
+
+ WorldRegion? Region => Session.IsDefinedRegion(Session.ActiveRegion) ? Session.ActiveRegion : null;
+
+ string BuilderSrc
+ {
+  get
+  {
+   var region=Region;
+   var worldId=Uri.EscapeDataString(Session.WorldId??"");
+   var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
+   var regionId=Uri.EscapeDataString(region?.RegionId??"");
+   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   var access=region is not null&&Session.CanEditRegion(region)?"edit":"view";
+   var surfacePixels=Session.ActiveMmoWorld?.PixelWidth>0
+    ?Session.ActiveMmoWorld.PixelWidth
+    :Session.SurfaceWorldPixelLimit??WorldSession.IncludedSurfaceWorldPixels;
+   var maxHeight=Session.ActiveMmoWorld?.MaxHeight>0
+    ?Session.ActiveMmoWorld.MaxHeight
+    :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=localdefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy=local-anchor&access={access}&regionFlow=existing&regionId={regionId}&renderer=20260924-local-object-1";
+  }
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_bridgeAttached)return;
+  try
+  {
+   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+   await Session.LoadLocalsAsync();
+  }
+  catch{}
+
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260924-local-object-1");
+  _self=DotNetObjectReference.Create(this);
+  await _module.InvokeVoidAsync("attach",_frame,_self);
+  _bridgeAttached=true;
+  try{await _module.InvokeVoidAsync("refresh",_frame,_self);}catch{}
+ }
+
+ [JSInvokable]
+ public async Task RequestHomeFromPrototypeAsync()
+ {
+  if(OnHome.HasDelegate)await OnHome.InvokeAsync();
+ }
+
+ [JSInvokable]
+ public async Task<object> GetRegionSourceForPrototypeAsync(string regionId)
+ {
+  var region=Region;
+  if(region is null||!string.Equals(region.RegionId,regionId,StringComparison.Ordinal))
+   throw new InvalidOperationException("Choose a Region before opening Local Staging.");
+  var source=await Session.LoadRegionSourceAsync(region.RegionId);
+  return new
+  {
+   worldId=source?.WorldId??Session.WorldId,
+   regionId=region.RegionId,
+   worldName=Session.WorldDisplayName,
+   state=source?.State,
+   updatedAtUtc=source?.UpdatedAtUtc??"",
+   activeRegionId=region.RegionId,
+   source="database"
+  };
+ }
+
+ [JSInvokable]
+ public object GetRegionCatalogForPrototype()
+ {
+  var region=Region;
+  if(region is null)return Array.Empty<object>();
+  return new[]
+  {
+   new
+   {
+    id=region.RegionId,
+    name=region.Name,
+    tierIndex=region.TierIndex,
+    minColumn=region.MinColumn,
+    minRow=region.MinRow,
+    maxColumn=region.MaxColumn,
+    maxRow=region.MaxRow,
+    selectedCells=region.SelectedCells,
+    sourceLayerOffsets=region.SourceLayerOffsets,
+    gridShape=region.GridShape,
+    ownerUserId=region.OwnerUserId,
+    updatedAtUtc=region.UpdatedAtUtc
+   }
+  };
+ }
+
+ [JSInvokable]
+ public object GetLocalCatalogForPrototype()
+ {
+  var regionId=Region?.RegionId??"";
+  return Session.DefinedLocals
+   .Where(local=>string.Equals(local.RegionId,regionId,StringComparison.Ordinal))
+   .Select(local=>new
+   {
+    id=local.LocalId,
+    name=local.Name,
+    regionId=local.RegionId,
+    anchorObjectId=local.AnchorObjectId,
+    anchorAssetId=local.AnchorAssetId,
+    anchorName=local.AnchorName,
+    anchorKind=local.AnchorKind,
+    x=local.X,
+    y=local.Y,
+    width=local.Width,
+    height=local.Height,
+    tier=local.Tier,
+    layer=local.Layer,
+    regionLayer=local.RegionLayer,
+    z100=local.Z100,
+    rotation=local.Rotation,
+    updatedAtUtc=local.UpdatedAtUtc
+   }).ToList();
+ }
+
+ [JSInvokable]
+ public async Task<object> CreateLocalFromPrototypeAsync(string name,System.Text.Json.JsonElement anchor)
+ {
+  var region=Region??throw new InvalidOperationException("Choose a Region before defining a Local.");
+  string Text(string property,string fallback="")
+   =>anchor.TryGetProperty(property,out var value)&&value.ValueKind==System.Text.Json.JsonValueKind.String
+    ?value.GetString()??fallback:fallback;
+  double Number(string property,double fallback=0)
+   =>anchor.TryGetProperty(property,out var value)&&value.TryGetDouble(out var parsed)?parsed:fallback;
+  int Integer(string property,int fallback=0)
+   =>anchor.TryGetProperty(property,out var value)&&value.TryGetInt32(out var parsed)?parsed:fallback;
+
+  var local=await Session.CreateLocalAsync(
+   name,
+   region.RegionId,
+   Text("id"),
+   Text("assetId"),
+   Text("name"),
+   Text("kind"),
+   Number("x"),
+   Number("y"),
+   Number("width",.12),
+   Number("height",.12),
+   Integer("tier"),
+   Integer("layer"),
+   Integer("regionLayer",1),
+   Integer("z100"),
+   Number("rotation"));
+
+  return new
+  {
+   id=local.LocalId,
+   name=local.Name,
+   regionId=local.RegionId,
+   anchorObjectId=local.AnchorObjectId,
+   anchorAssetId=local.AnchorAssetId,
+   anchorName=local.AnchorName,
+   anchorKind=local.AnchorKind,
+   x=local.X,
+   y=local.Y,
+   width=local.Width,
+   height=local.Height,
+   tier=local.Tier,
+   layer=local.Layer,
+   regionLayer=local.RegionLayer,
+   z100=local.Z100,
+   rotation=local.Rotation,
+   updatedAtUtc=local.UpdatedAtUtc
+  };
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  if(_module is not null)
+  {
+   try{await _module.InvokeVoidAsync("detach",_frame);}catch{}
+   await _module.DisposeAsync();
+  }
+  _self?.Dispose();
+ }
+}
