@@ -66,6 +66,57 @@ def test_local_identity_is_object_anchored_and_persistent():
     assert "AnchorObjectId" in model
     assert "AnchorAssetId" in model
     assert 'ParentNodeId: $"region:{region.RegionId}"' in model
-    assert '"region-normalized-v1"' in model
+    assert '"canonical-world-xy+hierarchical-depth-v1"' in model
     assert "Select a placed regional object for the Local." in model
     assert "SaveLocalsAsync" in model
+
+
+def test_local_claim_uses_region_asset_footprint_without_rebasing_xy():
+    player = read("wwwroot/prototype/prototype.js")
+    model = read("WorldSession.Locals.cs")
+
+    assert "function localAnchorBounds(local=activeLocal)" in player
+    assert "function constrainLocalPoint(x,y)" in player
+    assert "function fitLocalAnchor(local=activeLocal)" in player
+    assert "Canonical X/Y unchanged." in player
+    assert "canonical-world-xy+hierarchical-depth-v1" in model
+    assert "X: Math.Clamp(x, 0, 1)" in model
+    assert "Y: Math.Clamp(y, 0, 1)" in model
+
+
+def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex)" in player
+    assert "item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));" in player
+    assert "item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);" in player
+    assert "item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));" in player
+    assert "item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);" in player
+    assert "toolKey('LOCAL T −'" in player
+    assert "toolKey('LOCAL L +'" in player
+
+
+def test_local_map_is_persisted_separately_from_region_map():
+    local = read("Components/LocalDefinerWorkspace.razor")
+    model = read("WorldSession.Locals.cs")
+    bridge = read("wwwroot/region-definer-host.js")
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "GetLocalSourceForPrototypeAsync" in local
+    assert "SaveLocalMapLayersFromPrototypeAsync" in local
+    assert "LoadLocalMapAsync" in model
+    assert "SaveLocalMapAsync" in model
+    assert 'data.type==="save-map-local"' in bridge
+    assert "function saveLocalMapToDatabase(userLayers)" in player
+    assert "map-local-saved" in player
+
+
+def test_local_opens_full_asset_toolset_after_region_anchor_selection():
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select'];" in player
+    assert "OPEN LOCAL" in player
+    assert "CREATE LOCAL" in player
+    assert "await enterLocalBuild(local,data.localSource||null)" in player
+    assert "item.localOverlay=true" in player
+    assert "ensureLocalEditLayer" in player
