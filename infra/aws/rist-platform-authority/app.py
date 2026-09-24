@@ -2361,6 +2361,10 @@ def handler(event, context):
             Key=region_key(world_id, region_id),
             ConsistentRead=True,
         ).get("Item")
+        region_map_item = world.get_item(
+            Key=region_map_key(world_id, region_id),
+            ConsistentRead=True,
+        ).get("Item")
         source_item = world.get_item(
             Key=world_source_key(world_id),
             ConsistentRead=True,
@@ -2369,11 +2373,16 @@ def handler(event, context):
         existing_layers = source_state.get("userLayers") or []
         if not isinstance(existing_layers, list):
             existing_layers = []
-        archived_layers = [
+        legacy_region_layers = [
             item
             for item in existing_layers
             if isinstance(item, dict) and str(item.get("regionId") or "") == region_id
         ]
+        region_map_state = dict((region_map_item or {}).get("state") or {})
+        map_layers = region_map_state.get("userLayers") or []
+        if not isinstance(map_layers, list):
+            map_layers = []
+        archived_layers = map_layers if region_map_item is not None else legacy_region_layers
         remaining_layers = [
             item
             for item in existing_layers
@@ -2531,6 +2540,16 @@ def handler(event, context):
                         "Key": region_key(world_id, region_id),
                         "ConditionExpression": "parcelId = :parcelId",
                         "ExpressionAttributeValues": {":parcelId": parcel_id},
+                    }
+                }
+            )
+
+        if region_map_item:
+            release_transaction.append(
+                {
+                    "Delete": {
+                        "TableName": world.name,
+                        "Key": region_map_key(world_id, region_id),
                     }
                 }
             )
