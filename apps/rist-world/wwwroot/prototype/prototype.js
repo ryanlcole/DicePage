@@ -99,16 +99,30 @@ let regionWorldSourceOcean=null;
 let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
-let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionRelativeTierIndex=0;
-let regionRelativeTiers=[{id:'region:tier:0',index:0,label:'Region Base'}];
-function regionTierLabel(index){return regionRelativeTiers.find(t=>t.index===index)?.label||`Region Tier ${index+1}`}
-function createRegionWorkingTier(){
-  if(!REGION_DEFINER||!regionDeedIsComplete()||READ_ONLY||regionRelativeTiers.length>=10)return;
-  const index=Math.max(...regionRelativeTiers.map(t=>t.index))+1;
-  regionRelativeTiers.push({id:`${activeRegionMapId()}:tier:${index}`,index,label:`Region Tier ${index+1}`});
-  regionRelativeTierIndex=index;viewerLayer=0;
-  updateTierButton();renderTierMenu();updateLayerOrder();applyParallax();renderKeyboardKeys();
-  announce(`Region Tier ${index+1} created. Save to persist the new cake.`);
+let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionLayerIndex=1;
+function regionWorldLayer(item){return clamp(Math.trunc(Number(item?.worldLayer??item?.layer??0)||0),0,9)}
+function regionOverlayLayer(item){return clamp(Math.trunc(Number(item?.regionLayer??1)||1),1,9)}
+function regionZ100(worldLayer,regionLayer){
+  return clamp(Math.trunc(Number(worldLayer)||0),0,9)*100+clamp(Math.trunc(Number(regionLayer)||1),1,9);
+}
+function regionZLabel(itemOrWorldLayer,overlayLayer){
+  const z=typeof itemOrWorldLayer==='object'
+    ?regionZ100(regionWorldLayer(itemOrWorldLayer),regionOverlayLayer(itemOrWorldLayer))
+    :regionZ100(itemOrWorldLayer,overlayLayer);
+  return (z/100).toFixed(2);
+}
+function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayerIndex){
+  if(!REGION_DEFINER||!item?.regionOverlay)return item;
+  const parentTier=clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1);
+  item.tier=parentTier;
+  item.worldLayer=clamp(Math.trunc(Number(item.worldLayer??worldLayer)||0),0,9);
+  item.layer=item.worldLayer;
+  item.regionLayer=clamp(Math.trunc(Number(item.regionLayer??overlayLayer)||1),1,9);
+  item.z100=regionZ100(item.worldLayer,item.regionLayer);
+  item.parentTierIndex=parentTier;
+  item.parallaxMode='anchored';
+  item.anchorTier=parentTier;
+  return item;
 }
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
 const TILE_LIBRARY_URL='../assets/drive-tiles/catalog.json?v=20260918-tiles-keyboard-1';
@@ -378,7 +392,7 @@ function saveRegionMapToDatabase(userLayers){
       reject(new Error('Canonical world map save timed out.'));
     },12000);
     regionMapSaveWaiters.set(requestId,{resolve,reject,timeout});
-    if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers,relativeTiers:regionRelativeTiers})){
+    if(!postRegionMessage('save-map-region',{requestId,regionId,userLayers})){
       clearTimeout(timeout);regionMapSaveWaiters.delete(requestId);
       reject(new Error('Region map database bridge is unavailable.'));
     }
@@ -412,9 +426,8 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
   }finally{db.close()}
 }
 function itemParallaxMode(item){
-  return item?.parallaxMode==='anchored'||item?.parallaxMode==='tier'
-    ?item.parallaxMode
-    :(REGION_DEFINER&&item?.regionOverlay?'anchored':'tier');
+  if(REGION_DEFINER)return'anchored';
+  return item?.parallaxMode==='anchored'||item?.parallaxMode==='tier'?item.parallaxMode:'tier';
 }
 function restoredParallaxMode(raw,regionOverlay){
   return raw?.parallaxMode==='anchored'||raw?.parallaxMode==='tier'
@@ -429,7 +442,7 @@ function serializableUserLayer(item){
     return{
       id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
-      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
+      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,regionLayer:REGION_DEFINER?regionOverlayLayer(item):undefined,z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
       plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),committed:true
@@ -444,7 +457,7 @@ function serializableUserLayer(item){
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,REGION_DEFINER?9:TIERS.length-1),
-    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
+    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,regionLayer:REGION_DEFINER?regionOverlayLayer(item):undefined,z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
 }
@@ -789,7 +802,7 @@ function renameViewerTier(){
   try{localStorage.setItem(TIER_NAMES_KEY,JSON.stringify(tierNames))}catch{}
   updateTierButton();renderTierMenu();announce(value?`Tier named ${value}.`:'Custom tier name cleared.');
 }
-function currentTierIndex(){return REGION_DEFINER&&regionDeedIsComplete()?regionRelativeTierIndex:(viewerTier==='all'?0:tierByKey(viewerTier).index)}
+function currentTierIndex(){return REGION_DEFINER&&regionDeedIsComplete()?clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1):(viewerTier==='all'?0:tierByKey(viewerTier).index)}
 function tierStackBase(tier){return 100+(clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*100)}
 function ensureRegionEditLayer(){
   if(!REGION_DEFINER)return world;
@@ -806,8 +819,9 @@ function ensureRegionEditLayer(){
 function mountUserPlacement(item){
   // Newly placed objects attach to their selected map tier. Existing saved
   // items preserve their explicit / legacy parallax mode on hydration.
-  if(!item.parallaxMode)item.parallaxMode=REGION_DEFINER&&item.regionOverlay&&item.tier>0?'tier':'anchored';
-  if(item.anchorTier==null)item.anchorTier=REGION_DEFINER&&item.regionOverlay?0:item.tier;
+  if(REGION_DEFINER&&item.regionOverlay)applyRegionAddress(item,item.worldLayer??item.layer, item.regionLayer??regionLayerIndex);
+  if(!item.parallaxMode)item.parallaxMode='anchored';
+  if(item.anchorTier==null)item.anchorTier=item.tier;
   const parent=REGION_DEFINER&&item.regionOverlay?ensureRegionEditLayer():world;
   parent.appendChild(item.node);
 }
@@ -954,8 +968,10 @@ function appendPlacementRoleControls(){
   );
 }
 function placementAddress(tier,layerDelta=1){
-  tier=clamp(tier,0,REGION_DEFINER&&regionDeedIsComplete()?9:TIERS.length-1);
-  if(REGION_DEFINER)return{tier,layer:clamp(viewerLayer+layerDelta,0,9)};
+  if(REGION_DEFINER&&regionDeedIsComplete()){
+    return{tier:clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1),layer:clamp(viewerLayer,0,9)};
+  }
+  tier=clamp(tier,0,TIERS.length-1);
   const maxSceneZ=(TIERS.length*10)-1,sceneZ=clamp((tier*10)+viewerLayer+layerDelta,0,maxSceneZ);
   return{tier:Math.floor(sceneZ/10),layer:sceneZ%10};
 }
