@@ -103,7 +103,22 @@ export function attach(frame,dotnet){
         const regionId=String(data.regionId||"").trim();
         const layers=Array.isArray(data.userLayers)?data.userLayers:[];
         const result=await dotnet.invokeMethodAsync("SaveRegionMapLayersFromPrototypeAsync",regionId,layers);
-        post(frame,{type:"map-region-saved",requestId,result});
+        let verified=false,persistedIds=[];
+        if(result?.success){
+          try{
+            const readback=await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",regionId);
+            const state=readback?.state&&typeof readback.state==="object"?readback.state:{};
+            const saved=Array.isArray(state.userLayers)?state.userLayers:[];
+            persistedIds=saved
+              .filter(item=>String(item?.regionId||"")===regionId)
+              .map(item=>String(item?.id||""))
+              .filter(Boolean);
+            const wanted=layers.map(item=>String(item?.id||"")).filter(Boolean);
+            const persisted=new Set(persistedIds);
+            verified=wanted.every(id=>persisted.has(id));
+          }catch{}
+        }
+        post(frame,{type:"map-region-saved",requestId,result,verified,persistedIds});
         return;
       }
       if(data.type==="promote-world-source"){
