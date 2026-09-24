@@ -55,6 +55,8 @@ def test_local_parent_region_assets_are_locked_but_selectable_as_local_anchors()
     player = read("wwwroot/prototype/prototype.js")
 
     assert "sourceLocked:LOCAL_DEFINER||READ_ONLY" in player
+    assert "sourceLocked:READ_ONLY||!localRegionEditable" in player
+    assert "persistentSave.hidden=READ_ONLY||!localRegionEditable" in player
     assert "function isLocalAnchorCandidate(item)" in player
     assert "item.sourceLocked&&!isLocalAnchorCandidate(item)?'none'" in player
     assert "const localAnchorCandidate=isLocalAnchorCandidate(item);" in player
@@ -159,7 +161,7 @@ def test_local_map_is_persisted_separately_from_region_map():
 def test_local_opens_full_regiondefiner_asset_toolset_after_anchor_selection():
     player = read("wwwroot/prototype/prototype.js")
 
-    assert "if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);" in player
+    assert "if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);" in player
     assert "OPEN LOCAL" in player
     assert "CREATE LOCAL" in player
     assert "toolKey('REGIONS','change Region'" in player
