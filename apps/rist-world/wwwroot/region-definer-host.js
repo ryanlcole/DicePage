@@ -20,15 +20,17 @@ async function sendState(frame,dotnet){
   const regionId=url.searchParams.get("regionId")||"";
   const mode=(url.searchParams.get("mode")||"").toLowerCase();
 
-  try{
-    const worldSource=regionId
-      ?await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",regionId)
-      :await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
-    if(!isCurrentStateRequest(frame,revision))return;
-    post(frame,{type:"world-source",worldSource:worldSource||null});
-  }catch(error){
-    if(!isCurrentStateRequest(frame,revision))return;
-    post(frame,{type:"map-load-error",message:String(error?.message||error||"Canonical map database is unavailable")});
+  if(!(mode==="localdefiner"&&!regionId)){
+    try{
+      const worldSource=regionId
+        ?await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",regionId)
+        :await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
+      if(!isCurrentStateRequest(frame,revision))return;
+      post(frame,{type:"world-source",worldSource:worldSource||null});
+    }catch(error){
+      if(!isCurrentStateRequest(frame,revision))return;
+      post(frame,{type:"map-load-error",message:String(error?.message||error||"Canonical map database is unavailable")});
+    }
   }
 
   try{
@@ -109,6 +111,21 @@ export function attach(frame,dotnet){
         }catch{}
         post(frame,{type:"region-created",region,worldSource:regionSource});
         if(!regionSource)post(frame,{type:"map-load-error",message:"The deed was saved, but its regional source could not be loaded yet."});
+        return;
+      }
+      if(data.type==="open-local-region"){
+        const regionId=String(data.regionId||"").trim();
+        if(!regionId)throw new Error("Choose a Region before selecting a Local asset.");
+        const revision=beginStateRequest(frame);
+        const result=await dotnet.invokeMethodAsync("OpenLocalRegionForPrototypeAsync",regionId);
+        if(!isCurrentStateRequest(frame,revision))return;
+        post(frame,{
+          type:"local-region-opened",
+          region:result?.region||null,
+          worldSource:result?.worldSource||null,
+          locals:Array.isArray(result?.locals)?result.locals:[],
+          canEdit:result?.canEdit===true
+        });
         return;
       }
       if(data.type==="create-local"){
