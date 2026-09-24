@@ -79,6 +79,7 @@ const pointers=new Map();
 let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
+let spriteChainTarget=null;
 let regionEditLayer=null;
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
 const WORLDBUILDER_SAVE_STORE='worlds';
@@ -1091,14 +1092,21 @@ function openImageUpload(){
 }function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
-function openSpriteUpload(){
+function openSpriteUpload(target=null){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
-  spriteColumns.value='2';spriteRows.value='2';spriteFps.value='60';spriteFrameCount.value='4';if(spriteMotionOnly)spriteMotionOnly.checked=REGION_DEFINER;
+  spriteChainTarget=target?.kind==='sprite'?target:null;
+  spriteColumns.value=String(spriteChainTarget?.spriteColumns||2);
+  spriteRows.value=String(spriteChainTarget?.spriteRows||2);
+  spriteFps.value=String(spriteChainTarget?.spriteFps||60);
+  spriteFrameCount.value=String((spriteChainTarget?.spriteColumns||2)*(spriteChainTarget?.spriteRows||2));
+  if(spriteMotionOnly)spriteMotionOnly.checked=spriteChainTarget?!!spriteChainTarget.spriteMotionOnly:REGION_DEFINER;
   spriteUploadPanel.hidden=false;stage.classList.add('image-upload-open');spriteDropzone.focus();
-  announce('Sprite upload opened. Frame one will be used for placement. Save will start animation.');
+  announce(spriteChainTarget
+    ?`Add one or more sprite pages to ${spriteChainTarget.name}. Pages will play in file order after the existing chain.`
+    :'Sprite chain upload opened. Select one or more sheets; they will play in file order as one animation.');
 }
 function closeSpriteUpload(returnToSprites=true){
-  spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');
+  spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');spriteChainTarget=null;
   if(returnToSprites){keyboardMode='Sprites';renderKeyboardTabs();renderKeyboardKeys()}
   keyboardToggle.focus();
 }
@@ -3665,22 +3673,78 @@ function spriteLibraryFolders(){return[...new Set(spriteCatalog.map(asset=>asset
 function currentSpriteLibraryAssets(){return spriteLibraryFolder?spriteCatalog.filter(asset=>asset.folder===spriteLibraryFolder):[]}
 function spriteLibraryPageCount(){return Math.max(1,Math.ceil(currentSpriteLibraryAssets().length/SPRITE_LIBRARY_PAGE_SIZE))}
 function spriteLibraryPageAssets(){spriteLibraryPage=clamp(spriteLibraryPage,0,spriteLibraryPageCount()-1);const start=spriteLibraryPage*SPRITE_LIBRARY_PAGE_SIZE;return currentSpriteLibraryAssets().slice(start,start+SPRITE_LIBRARY_PAGE_SIZE)}
+function normalizedSpritePage(definition,index=0){
+  const columns=clamp(Math.trunc(Number(definition.columns)||1),1,32);
+  const rows=clamp(Math.trunc(Number(definition.rows)||1),1,32);
+  return{
+    index,
+    sheetSrc:String(definition.sheetSrc||''),
+    personalAssetKey:String(definition.personalAssetKey||'')||null,
+    assetId:definition.assetId||null,
+    name:String(definition.name||`Sprite page ${index+1}`),
+    columns,rows,
+    frameCount:clamp(Math.trunc(Number(definition.frameCount)||columns*rows),1,columns*rows),
+    sourceWidth:Number(definition.sourceWidth)||0,sourceHeight:Number(definition.sourceHeight)||0,
+    cropX:Number(definition.cropX)||0,cropY:Number(definition.cropY)||0,
+    cropWidth:Number(definition.cropWidth)||0,cropHeight:Number(definition.cropHeight)||0,
+    whiteTransparent:definition.whiteTransparent!==false
+  };
+}
+function normalizedSpritePages(definition){
+  const supplied=Array.isArray(definition?.pages)&&definition.pages.length?definition.pages:[definition];
+  return supplied.map((page,index)=>normalizedSpritePage({...definition,...page},index)).filter(page=>page.sheetSrc||page.personalAssetKey);
+}
+async function spritePageSource(page){
+  if(page.personalAssetKey)return resolvePersonalAssetSource(page.personalAssetKey,page.sheetSrc||'');
+  return String(page.sheetSrc||'');
+}
+async function extractSpriteChainFrames(pages,{motionOnly=false}={}){
+  const all=[];
+  for(const page of pages){
+    const src=await spritePageSource(page);
+    if(!src)continue;
+    const frames=await extractSpriteFrames(src,{
+      columns:page.columns,rows:page.rows,frameCount:page.frameCount,
+      sourceWidth:page.sourceWidth,sourceHeight:page.sourceHeight,
+      cropX:page.cropX,cropY:page.cropY,cropWidth:page.cropWidth,cropHeight:page.cropHeight,
+      whiteTransparent:page.whiteTransparent!==false,motionOnly
+    });
+    all.push(...frames);
+  }
+  return all;
+}
+async function appendSpriteChainPages(item,pages){
+  if(!item||item.kind!=='sprite')throw new Error('Select a sprite before adding pages.');
+  const normalized=pages.map((page,index)=>normalizedSpritePage(page,(item.spritePages?.length||0)+index));
+  const frames=await extractSpriteChainFrames(normalized,{motionOnly:!!item.spriteMotionOnly});
+  if(!frames.length)throw new Error('No frames were found in the added sprite pages.');
+  item.spritePages=[...(item.spritePages||[]),...normalized].map((page,index)=>({...page,index}));
+  item.frameSources=[...(item.frameSources||[]),...frames];
+  item.spriteFrameCount=item.frameSources.length;
+  item.currentFrame=clamp(Number(item.currentFrame)||0,0,Math.max(0,item.frameSources.length-1));
+  item.committed=false;
+  refreshUserImage(item);renderKeyboardKeys();
+  announce(`${normalized.length} sprite page${normalized.length===1?'':'s'} added. Chain now has ${item.spritePages.length} pages / ${item.frameSources.length} frames. Save to commit it.`);
+  return normalized;
+}
 async function placeSpriteDefinition(definition){
   if(READ_ONLY)throw new Error('World reference mode is view only.');
   const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
-  const extractOptions={
-    columns:definition.columns,rows:definition.rows,frameCount:definition.frameCount,
-    sourceWidth:definition.sourceWidth||0,sourceHeight:definition.sourceHeight||0,cropX:definition.cropX||0,cropY:definition.cropY||0,
-    cropWidth:definition.cropWidth||0,cropHeight:definition.cropHeight||0,whiteTransparent:definition.whiteTransparent!==false,motionOnly:definition.motionOnly===true
-  };
-  announce(`Preparing ${definition.motionOnly===true?'motion-only ':' '}frames for ${definition.name||'sprite'}.`);
-  const preparedFrames=definition.motionOnly===true?await extractSpriteFrames(definition.sheetSrc,extractOptions):null;
-  const firstFrame=preparedFrames?.[0]||await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
+  const pages=normalizedSpritePages(definition);
+  if(!pages.length)throw new Error('Sprite chain has no pages.');
+  announce(`Preparing ${definition.motionOnly===true?'motion-only ':''}${pages.length}-page sprite chain for ${definition.name||'sprite'}.`);
+  const preparedFrames=definition.motionOnly===true?await extractSpriteChainFrames(pages,{motionOnly:true}):null;
+  const firstPage=pages[0],firstPageSrc=await spritePageSource(firstPage);
+  const firstFrame=preparedFrames?.[0]||await extractSpriteFrame(firstPageSrc,{
+    columns:firstPage.columns,rows:firstPage.rows,frameCount:firstPage.frameCount,
+    sourceWidth:firstPage.sourceWidth,sourceHeight:firstPage.sourceHeight,cropX:firstPage.cropX,cropY:firstPage.cropY,
+    cropWidth:firstPage.cropWidth,cropHeight:firstPage.cropHeight,whiteTransparent:firstPage.whiteTransparent
+  },0);
   const item={
     id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
-    spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:clamp(Number(definition.fps)||6,1,60),
-    spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
-    spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,spriteMotionOnly:definition.motionOnly===true,
+    spritePages:pages,spriteSheetSrc:firstPageSrc,spriteColumns:firstPage.columns,spriteRows:firstPage.rows,spriteFrameCount:preparedFrames?.length||pages.reduce((sum,page)=>sum+page.frameCount,0),spriteFps:clamp(Number(definition.fps)||6,1,60),
+    spriteSourceWidth:firstPage.sourceWidth||null,spriteSourceHeight:firstPage.sourceHeight||null,spriteCropX:firstPage.cropX||0,spriteCropY:firstPage.cropY||0,
+    spriteCropWidth:firstPage.cropWidth||null,spriteCropHeight:firstPage.cropHeight||null,spriteWhiteTransparent:firstPage.whiteTransparent!==false,spriteMotionOnly:definition.motionOnly===true,
     frameSources:preparedFrames||[firstFrame],currentFrame:0,playing:false,spriteReady:!!preparedFrames,originalSrc:firstFrame,transparentSrc:firstFrame,transparent:true,
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
@@ -3690,13 +3754,13 @@ async function placeSpriteDefinition(definition){
   keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   announce(`${item.name} placed using frame 1. It stays above the map while positioning; Save commits it to Tier ${selectedPositionSummary(item).tier}, Layer ${selectedPositionSummary(item).layer} and begins motion.`);
 
-  item.spriteReadyPromise=(preparedFrames?Promise.resolve(preparedFrames):extractSpriteFrames(definition.sheetSrc,extractOptions)).then(frames=>{
+  item.spriteReadyPromise=(preparedFrames?Promise.resolve(preparedFrames):extractSpriteChainFrames(pages,{motionOnly:false})).then(frames=>{
     if(!item.node?.isConnected||!frames.length)return item;
     item.frameSources=frames;item.spriteFrameCount=frames.length;item.spriteReady=true;item.currentFrame=0;
     item.originalSrc=frames[0];item.transparentSrc=frames[0];refreshUserImage(item);
     frames.forEach(frame=>void primeCollisionMask(frame));
     if(item.committed&&frames.length>1)startSpriteMotion(item);
-    announce(`${item.name} sprite set ready with ${frames.length} frames.`);
+    announce(`${item.name} sprite chain ready with ${item.spritePages.length} page${item.spritePages.length===1?'':'s'} / ${frames.length} frames.`);
     return item;
   }).catch(error=>{
     item.spriteReady=false;item.spriteLoadError=String(error?.message||error||'frame preparation failed');
@@ -3705,25 +3769,52 @@ async function placeSpriteDefinition(definition){
   });
   return item;
 }
-async function placeUploadedSprite(file){
+async function placeUploadedSprites(files){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
-  if(!file?.type?.startsWith('image/')){announce('Choose a sprite sheet image.');return}
+  const list=[...(files||[])].filter(file=>file?.type?.startsWith('image/'));
+  if(!list.length){announce('Choose one or more sprite sheet images.');return}
   try{
-    const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
+    const columns=clamp(Math.trunc(Number(spriteColumns.value)||2),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
     const frameCount=clamp(Math.trunc(Number(spriteFrameCount.value)||columns*rows),1,columns*rows),fps=clamp(Number(spriteFps.value)||60,1,60),motionOnly=!!spriteMotionOnly?.checked;
-    const item=await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true,motionOnly});
+    const pages=[];
+    for(let index=0;index<list.length;index++){
+      pages.push({name:list[index].name||`Sprite page ${index+1}`,sheetSrc:await fileDataUrl(list[index]),columns,rows,frameCount,whiteTransparent:true});
+    }
+
+    const target=spriteChainTarget?.kind==='sprite'?spriteChainTarget:null;
+    let item=target;
+    let appendedPages;
+    if(target){
+      appendedPages=await appendSpriteChainPages(target,pages);
+    }else{
+      item=await placeSpriteDefinition({
+        name:list.length===1?(list[0].name||'Uploaded sprite'):`${String(list[0].name||'Sprite').replace(/\.[^.]+$/,'')} chain`,
+        pages,columns,rows,frameCount,fps,whiteTransparent:true,motionOnly
+      });
+      appendedPages=item.spritePages;
+    }
+
+    const startIndex=Math.max(0,(item.spritePages?.length||appendedPages.length)-appendedPages.length);
+    const uploads=list.map((file,index)=>saveFileToPersonalLibrary(file,{
+      category:'Sprites',folder:'My Sprites',assetKind:'sprite',name:String(file.name||`Sprite page ${index+1}`).replace(/\.[^.]+$/,''),
+      columns,rows,frameCount,fps,whiteTransparent:true,motionOnly,
+      chainIndex:startIndex+index,chainLength:(item.spritePages?.length||appendedPages.length)
+    }).then(asset=>{
+      const page=item.spritePages?.[startIndex+index];
+      if(page){page.personalAssetKey=asset.key;page.assetId=`private:${asset.key}`}
+      if(startIndex+index===0){item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key}
+      return asset;
+    }));
     item.personalUploadPromise=trackPersonalUpload(
-      saveFileToPersonalLibrary(file,{
-        category:'Sprites',folder:'My Sprites',assetKind:'sprite',name:String(file.name||'Uploaded sprite').replace(/\.[^.]+$/,''),
-        columns,rows,frameCount,fps,whiteTransparent:true,motionOnly
-      }).then(asset=>{
-        item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;
-        announce(`${item.name} added to My Sprites.`);return asset;
-      }).catch(error=>{announce(`${item.name} is placed, but My Sprites could not save it: ${String(error?.message||error)}`);return null})
+      Promise.allSettled(uploads).then(results=>{
+        const saved=results.filter(result=>result.status==='fulfilled').length;
+        announce(`${saved}/${list.length} sprite chain page${list.length===1?'':'s'} saved to My Sprites.`);
+        return results;
+      })
     );
-    closeSpriteUpload(false);
+    spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');spriteChainTarget=null;
     keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
-  }catch(error){announce(`Sprite upload failed: ${String(error?.message||error||'unknown error')}`)}
+  }catch(error){announce(`Sprite chain upload failed: ${String(error?.message||error||'unknown error')}`)}
 }
 async function placeLibrarySprite(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -3871,6 +3962,8 @@ function renderKeyboardKeysContent(){
         toolKey('FPS −',`${Math.max(1,Number(selectedSprite.spriteFps)||6)} fps`,()=>{selectedSprite.spriteFps=clamp((Number(selectedSprite.spriteFps)||6)-1,1,60);if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
         toolKey('FPS +',`${Math.max(1,Number(selectedSprite.spriteFps)||6)} fps`,()=>{selectedSprite.spriteFps=clamp((Number(selectedSprite.spriteFps)||6)+1,1,60);if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
         toolKey('FPS 60','real-time',()=>{selectedSprite.spriteFps=60;if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
+        toolKey(`PAGES ${Math.max(1,selectedSprite.spritePages?.length||1)}`,`${selectedSprite.frameSources?.length||selectedSprite.spriteFrameCount||1} frames chained`,()=>{},true),
+        toolKey('ADD PAGE','append sprite set(s)',()=>openSpriteUpload(selectedSprite)),
         toolKey(selectedSprite.playing?'PAUSE':'PLAY','motion',()=>{if(selectedSprite.playing)stopSpriteMotion(selectedSprite);else if(selectedSprite.committed)startSpriteMotion(selectedSprite);else announce('Save the sprite first to begin world motion.');renderKeyboardKeys()}),
         toolKey(selectedSprite.spriteMotionOnly?'FX ONLY ✓':'FX ONLY','changing pixels only',()=>void rebuildSelectedSpriteMotionOnly(!selectedSprite.spriteMotionOnly)),
         toolKey('FIT DEED','align to claim',()=>fitSelectedAssetToDeed(selectedSprite),!REGION_DEFINER||!regionClaimedRegion)
@@ -4144,13 +4237,13 @@ for(const type of ['dragleave','drop'])imageDropzone.addEventListener(type,event
 imageDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedImage(file)});
 bindTap(spriteUploadClose,closeSpriteUpload);
 spriteBrowse.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();spriteFile.click()}});
-spriteFile.addEventListener('change',()=>{const file=spriteFile.files?.[0];if(file)void placeUploadedSprite(file);spriteFile.value=''});
+spriteFile.addEventListener('change',()=>{const files=[...(spriteFile.files||[])].filter(file=>file.type.startsWith('image/'));if(files.length)void placeUploadedSprites(files);spriteFile.value=''});
 spriteColumns.addEventListener('input',syncSpriteFrameCount);spriteRows.addEventListener('input',syncSpriteFrameCount);
 spriteDropzone.addEventListener('click',event=>{if(event.target===spriteDropzone)spriteFile.click()});
 spriteDropzone.addEventListener('keydown',event=>{if(event.target===spriteDropzone&&(event.key==='Enter'||event.key===' ')){event.preventDefault();spriteFile.click()}});
 for(const type of ['dragenter','dragover'])spriteDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();spriteDropzone.classList.add('dragover')});
 for(const type of ['dragleave','drop'])spriteDropzone.addEventListener(type,event=>{event.preventDefault();event.stopPropagation();spriteDropzone.classList.remove('dragover')});
-spriteDropzone.addEventListener('drop',event=>{const file=[...(event.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file)void placeUploadedSprite(file)});
+spriteDropzone.addEventListener('drop',event=>{const files=[...(event.dataTransfer?.files||[])].filter(file=>file.type.startsWith('image/'));if(files.length)void placeUploadedSprites(files)});
 $('keyboardClose').addEventListener('click',closeKeyboard);
 
 stage.addEventListener('wheel',e=>{
