@@ -2209,7 +2209,7 @@ function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){
   if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
-  if(LOCAL_DEFINER)return localIsOpen()?BASE_KEYBOARD_MODES:(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
+  if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
   if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
   if(READ_ONLY)return['Viewer','Tiers'];
   if(CLAIM_ONLY)return['Select'];
@@ -3149,7 +3149,7 @@ async function enterLocalBuild(local,sourceEnvelope=null){
       })()
       :raw;
     const item=await attachRestoredLayer(canonicalRaw,{
-      sourceLocked:READ_ONLY,
+      sourceLocked:READ_ONLY||!localRegionEditable,
       regionOverlay:true,
       localOverlay:true,
       localId:String(local.id)
@@ -3157,8 +3157,8 @@ async function enterLocalBuild(local,sourceEnvelope=null){
     if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??1);
   }
   syncLocalEditLayer();
-  persistentSave.hidden=READ_ONLY;
-  imageUploadToggle.hidden=READ_ONLY;
+  persistentSave.hidden=READ_ONLY||!localRegionEditable;
+  imageUploadToggle.hidden=READ_ONLY||!localRegionEditable;
   keyboardMode='Viewer';
   renderKeyboardTabs();renderKeyboardKeys();updateLayerOrder();applyParallax();
   fitLocalAnchor(local);
@@ -4546,8 +4546,8 @@ function localAnchorPayload(item){
 }
 function createSelectedLocal(){
   if(!LOCAL_DEFINER||!selectedImage||localCreatePending)return;
-  if(!localRegionEditable){announce('This Region is view only. Edit permission is required to create or open a Local zone here.');return}
   const existing=localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||''));
+  if(!existing&&!localRegionEditable){announce('This Region is view only. Edit permission is required to create a Local zone here.');return}
   localCreatePending=true;renderKeyboardKeys();
   if(existing){
     if(!postRegionMessage('open-local',{localId:String(existing.id||'')})){
@@ -4823,7 +4823,7 @@ function renderKeyboardKeysContent(){
         toolKey('‹','previous asset',()=>cycleLocalAnchorSelection(items,-1),!items.length),
         toolKey('›','next asset',()=>cycleLocalAnchorSelection(items,1),!items.length),
         localAnchorSelect(items),
-        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||'selected Region asset',createSelectedLocal,!selectedImage||localCreatePending||!localRegionEditable),
+        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||'selected Region asset',createSelectedLocal,!selectedImage||localCreatePending||(!existing&&!localRegionEditable)),
         toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
       );
       return;
