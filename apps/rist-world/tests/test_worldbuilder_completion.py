@@ -84,6 +84,16 @@ def test_mmo_roleplay_uses_visual_front_while_sandbox_keeps_light_viewer():
     assert "--cache-control 'public,max-age=0,must-revalidate'" in workflow
 
 
+def test_worldbuilder_uses_shared_asset_tools_renderer():
+    host = (ROOT / "Components/WorldBuilderGeonaphHost.razor").read_text()
+    prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text()
+    assert "renderer=20260924-asset-tools-2" in host
+    assert "function selectablePlacedContentForMode(mode)" in prototype
+    assert "function ensureAssetResizeOverlay()" in prototype
+    assert "function isolateSpriteMotion(" in prototype
+    assert "toolKey('FPS 60'" in prototype
+
+
 def test_image_and_tile_can_be_full_world_or_adjustable_layers():
     prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
     script = (ROOT / "wwwroot/prototype/prototype.js").read_text()
@@ -130,7 +140,7 @@ def test_empty_world_and_claimed_region_are_visually_actionable():
     prototype = (ROOT / "wwwroot/prototype/index.html").read_text()
     script = (ROOT / "wwwroot/prototype/prototype.js").read_text()
     style = (ROOT / "wwwroot/prototype/prototype.css").read_text()
-    assert "20260920-don-blockers-1" in prototype
+    assert "20260924-asset-tools-2" in prototype
     assert "world.style.transformOrigin='0 0'" in script
     assert "function syncClaimedRegionOutline(region)" in script
     assert "REGION_FLOW==='existing'&&ACCESS_MODE==='edit'" in script
