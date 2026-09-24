@@ -668,12 +668,37 @@ function inferSpriteMeta(fileName, image) {
   const parsed = parseSpriteFilename(fileName);
   if (parsed) return parsed;
 
+  const name = String(fileName || '').toLowerCase();
+  if (name.includes('dragon_water')) {
+    return { kind: 'sheet', frameCount: 8, fps: 1000 / 170, columns: 4, rows: 2 };
+  }
+  if (name.includes('dragon_celestial')) {
+    return { kind: 'sheet', frameCount: 8, fps: 1000 / 190, columns: 4, rows: 2 };
+  }
+  if (name.includes('dragon_night')) {
+    return { kind: 'sheet', frameCount: 8, fps: 1000 / 175, columns: 4, rows: 2 };
+  }
+  if (name.includes('effects')) {
+    return { kind: 'sheet', frameCount: 8, fps: 1000 / 180, columns: 4, rows: 2 };
+  }
+
   const ratio = image.naturalWidth / Math.max(1, image.naturalHeight);
-  const animatedHint = /(sprite|dragon|effect|aurora|cloud|water|fire|smoke|wave)/i.test(String(fileName || ''));
+  const animatedHint = /(sprite|dragon|effect|aurora|cloud|water|fire|smoke|wave)/i.test(name);
   if (animatedHint && ratio > 1.75 && ratio < 2.25) {
     return { kind: 'sheet', frameCount: 8, fps: SPRITE_DEFAULT_FPS, columns: 4, rows: 2 };
   }
   return { kind: 'sheet', frameCount: 1, fps: 1, columns: 1, rows: 1 };
+}
+
+function knownSpriteLayout(fileName) {
+  const name = String(fileName || '').toLowerCase();
+  if (name.includes('background')) return { depth: 0.22, x: 0, y: 0, w: 1, h: 1, opacity: 1 };
+  if (name.includes('effects')) return { depth: 0.48, x: 0, y: 0, w: 1, h: 1, opacity: 0.44 };
+  if (name.includes('dragon_water')) return { depth: 0.76, x: 0.02, y: 0.18, w: 0.46, h: 0.63, opacity: 1 };
+  if (name.includes('dragon_celestial')) return { depth: 0.78, x: 0.29, y: 0.02, w: 0.42, h: 0.58, opacity: 1 };
+  if (name.includes('dragon_night')) return { depth: 0.80, x: 0.55, y: 0.23, w: 0.44, h: 0.62, opacity: 1 };
+  if (name.includes('foreground')) return { depth: 1.0, x: 0, y: 0, w: 1, h: 1, opacity: 1 };
+  return null;
 }
 
 function spriteRoleWeight(fileName) {
@@ -832,6 +857,8 @@ async function loadSpriteFiles(state, fileList) {
       return layer;
     });
     state.spriteDepths = state.spriteLayers.map((_, index) => {
+      const layout = knownSpriteLayout(decoded[index]?.file?.name);
+      if (layout) return layout.depth;
       if (state.spriteLayers.length <= 1) return 0.72;
       return 0.25 + (index / (state.spriteLayers.length - 1)) * 0.75;
     });
@@ -840,6 +867,16 @@ async function loadSpriteFiles(state, fileList) {
       const item = decoded[index];
       const meta = item.meta;
       const canvas = state.spriteLayers[index]._spriteCanvas;
+      const layout = knownSpriteLayout(item.file.name);
+      if (layout) {
+        Object.assign(canvas.style, {
+          left: (layout.x * 100) + '%',
+          top: (layout.y * 100) + '%',
+          width: (layout.w * 100) + '%',
+          height: (layout.h * 100) + '%',
+          opacity: String(layout.opacity)
+        });
+      }
       const columns = Math.max(1, meta.columns || 1);
       const rows = Math.max(1, meta.rows || 1);
       const frameCount = Math.max(1, Math.min(meta.frameCount || 1, columns * rows));
@@ -856,7 +893,11 @@ async function loadSpriteFiles(state, fileList) {
         rows,
         frameCount,
         frameMs: 1000 / Math.max(0.1, meta.fps || SPRITE_DEFAULT_FPS),
-        phase: index % Math.max(1, frameCount)
+        phase: item.file.name.toLowerCase().includes('dragon_celestial')
+          ? 2
+          : item.file.name.toLowerCase().includes('dragon_night')
+            ? 4
+            : 0
       });
     }
   }
