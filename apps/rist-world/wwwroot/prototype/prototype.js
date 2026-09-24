@@ -538,7 +538,12 @@ function serializableUserLayer(item){
     return{
       id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
-      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,regionLayer:REGION_DEFINER?regionOverlayLayer(item):undefined,z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
+      layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
+      worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
+      regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
+      localTier:REGION_DEFINER?nestedVerticalAddress(item).localTier:undefined,localLayer:REGION_DEFINER?nestedVerticalAddress(item).localLayer:undefined,
+      instanceTier:REGION_DEFINER?nestedVerticalAddress(item).instanceTier:undefined,instanceLayer:REGION_DEFINER?nestedVerticalAddress(item).instanceLayer:undefined,
+      z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
       plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),committed:true
@@ -563,7 +568,12 @@ function serializableUserLayer(item){
       cropWidth:page.cropWidth||0,cropHeight:page.cropHeight||0,whiteTransparent:page.whiteTransparent!==false
     })):null,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
-    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,regionLayer:REGION_DEFINER?regionOverlayLayer(item):undefined,z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
+    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
+    worldTier:REGION_DEFINER?nestedVerticalAddress(item).worldTier:undefined,worldLayer:REGION_DEFINER?nestedVerticalAddress(item).worldLayer:undefined,
+    regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
+    localTier:REGION_DEFINER?nestedVerticalAddress(item).localTier:undefined,localLayer:REGION_DEFINER?nestedVerticalAddress(item).localLayer:undefined,
+    instanceTier:REGION_DEFINER?nestedVerticalAddress(item).instanceTier:undefined,instanceLayer:REGION_DEFINER?nestedVerticalAddress(item).instanceLayer:undefined,
+    z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
 }
@@ -631,7 +641,16 @@ async function attachRestoredLayer(raw,options={}){
     const item={
       id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
-      layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
+      layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
+      worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
+      worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,
+      regionTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.regionTier)||0)):undefined,
+      regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,
+      localTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.localTier)||0)):undefined,
+      localLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.localLayer)||0),0,9):undefined,
+      instanceTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.instanceTier)||0)):undefined,
+      instanceLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.instanceLayer)||0),0,9):undefined,
+      z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
       plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),
@@ -689,7 +708,16 @@ async function attachRestoredLayer(raw,options={}){
     spriteWhiteTransparent:isSprite?(firstPage?firstPage.whiteTransparent!==false:raw.spriteWhiteTransparent!==false):raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,spriteChainId:String(raw.spriteChainId||''),
     frameSources,currentFrame:0,playing:false,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
-    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
+    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
+    worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
+    worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,
+    regionTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.regionTier)||0)):undefined,
+    regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,
+    localTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.localTier)||0)):undefined,
+    localLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.localLayer)||0),0,9):undefined,
+    instanceTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.instanceTier)||0)):undefined,
+    instanceLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.instanceLayer)||0),0,9):undefined,
+    z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
     opacity:clamp(Number(raw.opacity)||1,.01,1),parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
