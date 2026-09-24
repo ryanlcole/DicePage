@@ -1543,7 +1543,7 @@ def handler(event, context):
                     409,
                     {
                         "error": (
-                            "Connect this account in Campaign → Victims & Co-Conspirators "
+                            "Connect this account in Campaign → Allies "
                             "before assigning resource permissions."
                         )
                     },
