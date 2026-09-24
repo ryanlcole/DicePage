@@ -3269,6 +3269,11 @@ def handler(event, context):
             "format": "RIST_REGION_MAP_V1",
             "worldId": world_id,
             "regionId": region_id,
+            # A successful child save completes the one-way migration from
+            # legacy regionId-tagged WORLDSOURCE overlays. Future reads must
+            # respect intentional REGIONMAP deletions instead of resurrecting
+            # old parent records.
+            "legacyImportComplete": True,
             "zModel": REGION_Z_MODEL,
             "userLayers": normalized,
         }
