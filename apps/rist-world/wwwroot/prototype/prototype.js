@@ -42,7 +42,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),regionPersistenceStatus=$('regionPersistenceStatus'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),regionPersistenceStatus=$('regionPersistenceStatus'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),spriteMotionOnly=$('spriteMotionOnly'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 if(READ_ONLY){
   stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
   persistentSave.disabled=true;persistentSave.title='Read-only world reference';
@@ -527,7 +527,7 @@ function serializableUserLayer(item){
     spriteSheetSrc:item.personalAssetKey?null:(item.spriteSheetSrc||null),spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
-    spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
+    spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,spriteMotionOnly:!!item.spriteMotionOnly,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,regionLayer:REGION_DEFINER?regionOverlayLayer(item):undefined,z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
@@ -618,7 +618,7 @@ async function attachRestoredLayer(raw,options={}){
         columns:raw.spriteColumns||1,rows:raw.spriteRows||1,frameCount:raw.spriteFrameCount||1,
         sourceWidth:raw.spriteSourceWidth||0,sourceHeight:raw.spriteSourceHeight||0,
         cropX:raw.spriteCropX||0,cropY:raw.spriteCropY||0,cropWidth:raw.spriteCropWidth||0,cropHeight:raw.spriteCropHeight||0,
-        whiteTransparent:raw.spriteWhiteTransparent!==false
+        whiteTransparent:raw.spriteWhiteTransparent!==false,motionOnly:raw.spriteMotionOnly===true
       });
     }catch{frameSources=[String(raw.originalSrc||sheet)]}
   }
@@ -630,7 +630,7 @@ async function attachRestoredLayer(raw,options={}){
     spriteSheetSrc:isSprite?String(freshPersonalSrc||raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
     spriteSourceWidth:Number(raw.spriteSourceWidth)||null,spriteSourceHeight:Number(raw.spriteSourceHeight)||null,spriteCropX:Number(raw.spriteCropX)||0,spriteCropY:Number(raw.spriteCropY)||0,
-    spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,
+    spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,
     frameSources,currentFrame:0,playing:false,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
@@ -1093,7 +1093,7 @@ function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=ne
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 function openSpriteUpload(){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
-  spriteColumns.value='3';spriteRows.value='2';spriteFps.value='6';spriteFrameCount.value='6';
+  spriteColumns.value='2';spriteRows.value='2';spriteFps.value='60';spriteFrameCount.value='4';if(spriteMotionOnly)spriteMotionOnly.checked=REGION_DEFINER;
   spriteUploadPanel.hidden=false;stage.classList.add('image-upload-open');spriteDropzone.focus();
   announce('Sprite upload opened. Frame one will be used for placement. Save will start animation.');
 }
@@ -1126,6 +1126,28 @@ function whitenToAlpha(data){
   }
   return data;
 }
+function isolateSpriteMotion(frameImages,low=32,high=96){
+  if(!Array.isArray(frameImages)||frameImages.length<2)return frameImages;
+  const count=frameImages.length,pixels=frameImages[0]?.data?.length||0;
+  if(!pixels)return frameImages;
+  for(let i=0;i<pixels;i+=4){
+    let minR=255,minG=255,minB=255,maxR=0,maxG=0,maxB=0,maxA=0;
+    for(const frame of frameImages){
+      const d=frame.data,r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
+      if(r<minR)minR=r;if(g<minG)minG=g;if(b<minB)minB=b;
+      if(r>maxR)maxR=r;if(g>maxG)maxG=g;if(b>maxB)maxB=b;
+      if(a>maxA)maxA=a;
+    }
+    const delta=Math.max(maxR-minR,maxG-minG,maxB-minB);
+    const motion=clamp((delta-low)/Math.max(1,high-low),0,1);
+    const alpha=Math.round(255*motion);
+    for(const frame of frameImages){
+      const d=frame.data;
+      d[i+3]=Math.min(d[i+3],alpha,maxA);
+    }
+  }
+  return frameImages;
+}
 async function extractSpriteFrame(sheetSrc,options={},frameIndex=0){
   const img=await loadDataImage(sheetSrc);
   const columns=clamp(Math.trunc(Number(options.columns)||1),1,32),rows=clamp(Math.trunc(Number(options.rows)||1),1,32);
@@ -1152,32 +1174,47 @@ async function extractSpriteFrames(sheetSrc,options={}){
   const cropX=Math.max(0,Math.trunc(Number(options.cropX)||0)),cropY=Math.max(0,Math.trunc(Number(options.cropY)||0));
   const cropWidth=Math.max(1,Math.trunc(Number(options.cropWidth)||Math.floor(sourceWidth/columns)));
   const cropHeight=Math.max(1,Math.trunc(Number(options.cropHeight)||Math.floor(sourceHeight/rows)));
-  const frames=[];
+  const canvases=[],images=[];
   for(let frame=0;frame<frameCount;frame++){
     const column=frame%columns,row=Math.floor(frame/columns),sx=cropX+(column*cropWidth),sy=cropY+(row*cropHeight);
     const canvas=document.createElement('canvas');canvas.width=cropWidth;canvas.height=cropHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,cropWidth,cropHeight);ctx.drawImage(img,sx,sy,cropWidth,cropHeight,0,0,cropWidth,cropHeight);
-    if(options.whiteTransparent!==false){const image=ctx.getImageData(0,0,cropWidth,cropHeight);ctx.putImageData(whitenToAlpha(image),0,0)}
-    frames.push(canvas.toDataURL('image/png'));
+    let image=ctx.getImageData(0,0,cropWidth,cropHeight);
+    if(options.whiteTransparent!==false)image=whitenToAlpha(image);
+    canvases.push({canvas,ctx});images.push(image);
   }
+  if(options.motionOnly===true)isolateSpriteMotion(images);
+  const frames=canvases.map((entry,index)=>{
+    entry.ctx.putImageData(images[index],0,0);
+    return entry.canvas.toDataURL('image/png');
+  });
   // Decode the fixed-size frames before playback so animation does not
   // alternate between layout/redecode states on mobile Safari.
   await Promise.all(frames.map(src=>loadDataImage(src).catch(()=>null)));
   return frames;
 }
 function stopSpriteMotion(item){
-  const timer=spriteTimers.get(item?.id);if(timer)clearTimeout(timer);if(item?.id)spriteTimers.delete(item.id);if(item)item.playing=false;
+  const timer=spriteTimers.get(item?.id);
+  if(timer){cancelAnimationFrame(timer);clearTimeout(timer)}
+  if(item?.id)spriteTimers.delete(item.id);
+  if(item)item.playing=false;
 }
 function startSpriteMotion(item){
   if(!item||item.kind!=='sprite'||!Array.isArray(item.frameSources)||item.frameSources.length<2)return;
   stopSpriteMotion(item);item.playing=true;
-  const step=()=>{
+  let last=performance.now();
+  const step=now=>{
     if(!item.playing||!item.committed||!item.node?.isConnected){stopSpriteMotion(item);return}
-    item.currentFrame=((Number(item.currentFrame)||0)+1)%item.frameSources.length;
-    refreshUserImage(item);
-    spriteTimers.set(item.id,setTimeout(step,1000/Math.max(1,Number(item.spriteFps)||6)));
+    const fps=clamp(Number(item.spriteFps)||6,1,60),interval=1000/fps,elapsed=now-last;
+    if(elapsed>=interval){
+      const advance=Math.max(1,Math.floor(elapsed/interval));
+      last+=advance*interval;
+      item.currentFrame=((Number(item.currentFrame)||0)+advance)%item.frameSources.length;
+      refreshUserImage(item);
+    }
+    spriteTimers.set(item.id,requestAnimationFrame(step));
   };
-  spriteTimers.set(item.id,setTimeout(step,1000/Math.max(1,Number(item.spriteFps)||6)));
+  spriteTimers.set(item.id,requestAnimationFrame(step));
 }
 async function transparencyCandidate(src){
   const img=await loadDataImage(src),max=2048,ratio=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*ratio)),h=Math.max(1,Math.round(img.naturalHeight*ratio));
@@ -1592,6 +1629,38 @@ function selectablePlacedContent(){
   return userLayers.filter(item=>item?.node&&(!REGION_DEFINER
     ||(regionDeedIsComplete()&&!item.sourceLocked&&item.regionOverlay
       &&String(item.regionId||'')===activeRegionMapId())));
+}
+function assetModeMatches(item,mode){
+  if(!item)return false;
+  if(mode==='Sprites')return item.kind==='sprite';
+  if(mode==='Labels')return item.kind==='label';
+  if(mode==='Tiles')return !!item.libraryTile&&item.kind!=='sprite'&&item.kind!=='label';
+  if(mode==='Image')return item.kind!=='sprite'&&item.kind!=='label'&&!item.libraryTile;
+  return true;
+}
+function selectablePlacedContentForMode(mode){
+  return selectablePlacedContent().filter(item=>assetModeMatches(item,mode));
+}
+function typedPlacedContentSelect(mode){
+  const select=document.createElement('select');
+  select.className='placed-content-select';
+  select.setAttribute('aria-label',`Select placed ${mode.toLowerCase()} asset`);
+  const items=selectablePlacedContentForMode(mode);
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=items.length?`Select ${mode.toLowerCase()}…`:`No ${mode.toLowerCase()} assets yet`;placeholder.selected=!selectedImage||!assetModeMatches(selectedImage,mode);select.appendChild(placeholder);
+  items.forEach((item,index)=>{const option=document.createElement('option');option.value=String(item.id);option.textContent=placedContentLabel(item,index);option.selected=item===selectedImage;select.appendChild(option)});
+  select.disabled=!items.length;
+  select.addEventListener('change',()=>{const item=items.find(entry=>String(entry.id)===select.value);if(item){selectUserImage(item);renderKeyboardKeys();announce(`${placedContentLabel(item,userLayers.indexOf(item))} selected.`)}});
+  return select;
+}
+function appendCommonAssetEditControls(mode,item){
+  if(!item||!assetModeMatches(item,mode)||isWorldMapItem(item))return;
+  keyboardKeys.append(
+    typedPlacedContentSelect(mode),
+    toolKey('SIZE −',`${selectedSizeValue(item).toFixed(2)}×`,()=>adjustSelectedSize(-1),selectedSizeValue(item)<=.05),
+    toolKey('SIZE +',`${selectedSizeValue(item).toFixed(2)}×`,()=>adjustSelectedSize(1),selectedSizeValue(item)>=20),
+    sizeNumberInput(item),sizeRangeInput(item),
+    toolKey('DELETE',mode.toLowerCase(),removeSelectedImage)
+  );
 }
 function cyclePlacedSelection(delta=1){
   const items=selectablePlacedContent();
@@ -3226,7 +3295,7 @@ function schedulePersonalAssetHydration(item,attempt=0){
             columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,
             sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,
             cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,
-            whiteTransparent:item.spriteWhiteTransparent!==false
+            whiteTransparent:item.spriteWhiteTransparent!==false,motionOnly:item.spriteMotionOnly===true
           }).catch(()=>[]);
           if(frames.length){item.frameSources=frames;item.currentFrame=0}
         }
@@ -3290,7 +3359,7 @@ function normalizePersonalAsset(entry,url=''){
     cropY:Math.max(0,Number(personalEntryValue(entry,'CropY',0))||0),
     cropWidth:Math.max(0,Number(personalEntryValue(entry,'CropWidth',0))||0),
     cropHeight:Math.max(0,Number(personalEntryValue(entry,'CropHeight',0))||0),
-    whiteTransparent:!!personalEntryValue(entry,'WhiteTransparent',false)
+    whiteTransparent:!!personalEntryValue(entry,'WhiteTransparent',false),motionOnly:!!personalEntryValue(entry,'MotionOnly',false)
   };
 }
 async function ensurePersonalAssets(force=false){
@@ -3332,7 +3401,7 @@ async function saveFileToPersonalLibrary(file,metadata={}){
     SourceWidth:Math.max(0,Math.trunc(Number(metadata.sourceWidth)||0)),SourceHeight:Math.max(0,Math.trunc(Number(metadata.sourceHeight)||0)),
     CropX:Math.max(0,Math.trunc(Number(metadata.cropX)||0)),CropY:Math.max(0,Math.trunc(Number(metadata.cropY)||0)),
     CropWidth:Math.max(0,Math.trunc(Number(metadata.cropWidth)||0)),CropHeight:Math.max(0,Math.trunc(Number(metadata.cropHeight)||0)),
-    WhiteTransparent:!!metadata.whiteTransparent
+    WhiteTransparent:!!metadata.whiteTransparent,MotionOnly:!!metadata.motionOnly
   };
   items.push(entry);await writePersonalCatalog({...catalog,Items:items});
   const asset=normalizePersonalAsset(entry,await personalDownloadUrl(key));
@@ -3360,7 +3429,7 @@ async function promoteRestoredLayerToPersonal(item){
     category,folder,assetKind:item.kind==='sprite'?'sprite':'image',name:item.name||base,
     columns:item.spriteColumns||1,rows:item.spriteRows||1,frameCount:item.spriteFrameCount||1,fps:item.spriteFps||0,
     sourceWidth:item.spriteSourceWidth||0,sourceHeight:item.spriteSourceHeight||0,cropX:item.spriteCropX||0,cropY:item.spriteCropY||0,
-    cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,whiteTransparent:item.spriteWhiteTransparent!==false
+    cropWidth:item.spriteCropWidth||0,cropHeight:item.spriteCropHeight||0,whiteTransparent:item.spriteWhiteTransparent!==false,motionOnly:!!item.spriteMotionOnly
   });
   item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;
   announce(`${item.name||'Saved upload'} migrated into ${folder}.`);
@@ -3405,7 +3474,7 @@ async function placePersonalSprite(asset){
   const item=await placeSpriteDefinition({
     id:`private-sprite:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,name:asset.name,sheetSrc:asset.url,
     columns:asset.columns,rows:asset.rows,frameCount:asset.frameCount,fps:asset.fps||6,sourceWidth:asset.sourceWidth,sourceHeight:asset.sourceHeight,
-    cropX:asset.cropX,cropY:asset.cropY,cropWidth:asset.cropWidth,cropHeight:asset.cropHeight,whiteTransparent:asset.whiteTransparent
+    cropX:asset.cropX,cropY:asset.cropY,cropWidth:asset.cropWidth,cropHeight:asset.cropHeight,whiteTransparent:asset.whiteTransparent,motionOnly:asset.motionOnly
   });
   item.personalAssetKey=asset.key;personalFolderType=null;return item;
 }
@@ -3505,7 +3574,7 @@ function placeLibraryTile(asset){
   const node=document.createElement('img');node.className=`user-image-placement library-tile-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=asset.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
-  keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  keyboardMode='Tiles';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${asset.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`)}
   else announce(REGION_DEFINER?`${asset.name} placed inside ${regionClaimedRegion?.name||'the claimed region'} with free placement inside the deed.`:`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
 }
@@ -3559,7 +3628,7 @@ async function placeSpriteDefinition(definition){
   const extractOptions={
     columns:definition.columns,rows:definition.rows,frameCount:definition.frameCount,
     sourceWidth:definition.sourceWidth||0,sourceHeight:definition.sourceHeight||0,cropX:definition.cropX||0,cropY:definition.cropY||0,
-    cropWidth:definition.cropWidth||0,cropHeight:definition.cropHeight||0,whiteTransparent:definition.whiteTransparent!==false
+    cropWidth:definition.cropWidth||0,cropHeight:definition.cropHeight||0,whiteTransparent:definition.whiteTransparent!==false,motionOnly:definition.motionOnly===true
   };
   announce(`Preparing frame 1 of ${definition.name||'sprite'} for placement.`);
   const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
@@ -3567,7 +3636,7 @@ async function placeSpriteDefinition(definition){
     id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:Math.max(1,Number(definition.fps)||6),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
-    spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,
+    spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,spriteMotionOnly:definition.motionOnly===true,
     frameSources:[firstFrame],currentFrame:0,playing:false,spriteReady:false,originalSrc:firstFrame,transparentSrc:firstFrame,transparent:true,
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
@@ -3597,12 +3666,12 @@ async function placeUploadedSprite(file){
   if(!file?.type?.startsWith('image/')){announce('Choose a sprite sheet image.');return}
   try{
     const sheetSrc=await fileDataUrl(file),columns=clamp(Math.trunc(Number(spriteColumns.value)||3),1,16),rows=clamp(Math.trunc(Number(spriteRows.value)||2),1,16);
-    const frameCount=clamp(Math.trunc(Number(spriteFrameCount.value)||columns*rows),1,columns*rows),fps=clamp(Number(spriteFps.value)||6,1,30);
-    const item=await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true});
+    const frameCount=clamp(Math.trunc(Number(spriteFrameCount.value)||columns*rows),1,columns*rows),fps=clamp(Number(spriteFps.value)||60,1,60),motionOnly=!!spriteMotionOnly?.checked;
+    const item=await placeSpriteDefinition({name:file.name||'Uploaded sprite',sheetSrc,columns,rows,frameCount,fps,whiteTransparent:true,motionOnly});
     item.personalUploadPromise=trackPersonalUpload(
       saveFileToPersonalLibrary(file,{
         category:'Sprites',folder:'My Sprites',assetKind:'sprite',name:String(file.name||'Uploaded sprite').replace(/\.[^.]+$/,''),
-        columns,rows,frameCount,fps,whiteTransparent:true
+        columns,rows,frameCount,fps,whiteTransparent:true,motionOnly
       }).then(asset=>{
         item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;
         announce(`${item.name} added to My Sprites.`);return asset;
@@ -3704,6 +3773,9 @@ function renderKeyboardKeysContent(){
   }
   if(keyboardMode==='Tiles'){
     if(personalFolderType==='Tiles'){renderPersonalFolder('Tiles','MY TILES');return}
+    const selectedTile=assetModeMatches(selectedImage,'Tiles')?selectedImage:null;
+    keyboardKeys.append(typedPlacedContentSelect('Tiles'));
+    if(selectedTile)appendCommonAssetEditControls('Tiles',selectedTile);
     if(personalFolderType==='Uploads'){renderPersonalFolder('Uploads','MY ASSETS');return}
     appendPlacementRoleControls();
     if(!tileCatalog.length&&!tileLibraryLoading&&!tileLibraryError)void ensureTileLibrary();
@@ -3742,16 +3814,20 @@ function renderKeyboardKeysContent(){
   if(keyboardMode==='Sprites'){
     if(personalFolderType==='Sprites'){renderPersonalFolder('Sprites','MY SPRITES');return}
     if(!spriteCatalog.length&&!spriteLibraryLoading&&!spriteLibraryError)void ensureSpriteLibrary();
+    const selectedSprite=assetModeMatches(selectedImage,'Sprites')?selectedImage:null;
     keyboardKeys.append(
+      typedPlacedContentSelect('Sprites'),
       toolKey('UPLOAD','sprite set',openSpriteUpload),
       toolKey('MY SPRITES','Personal folder',()=>openPersonalFolder('Sprites')),
       toolKey(ASSET_SCALE,'Sprite library filter',()=>{},true)
     );
-    if(selectedImage?.kind==='sprite'){
+    if(selectedSprite){
+      appendCommonAssetEditControls('Sprites',selectedSprite);
       keyboardKeys.append(
-        toolKey('FPS −',`${Math.max(1,Number(selectedImage.spriteFps)||6)} fps`,()=>{selectedImage.spriteFps=clamp((Number(selectedImage.spriteFps)||6)-1,1,30);if(selectedImage.playing)startSpriteMotion(selectedImage);renderKeyboardKeys()}),
-        toolKey('FPS +',`${Math.max(1,Number(selectedImage.spriteFps)||6)} fps`,()=>{selectedImage.spriteFps=clamp((Number(selectedImage.spriteFps)||6)+1,1,30);if(selectedImage.playing)startSpriteMotion(selectedImage);renderKeyboardKeys()}),
-        toolKey(selectedImage.playing?'PAUSE':'PLAY','motion',()=>{if(selectedImage.playing)stopSpriteMotion(selectedImage);else if(selectedImage.committed)startSpriteMotion(selectedImage);else announce('Save the sprite first to begin world motion.');renderKeyboardKeys()})
+        toolKey('FPS −',`${Math.max(1,Number(selectedSprite.spriteFps)||6)} fps`,()=>{selectedSprite.spriteFps=clamp((Number(selectedSprite.spriteFps)||6)-1,1,60);if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
+        toolKey('FPS +',`${Math.max(1,Number(selectedSprite.spriteFps)||6)} fps`,()=>{selectedSprite.spriteFps=clamp((Number(selectedSprite.spriteFps)||6)+1,1,60);if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
+        toolKey('FPS 60','real-time',()=>{selectedSprite.spriteFps=60;if(selectedSprite.playing)startSpriteMotion(selectedSprite);renderKeyboardKeys()}),
+        toolKey(selectedSprite.playing?'PAUSE':'PLAY','motion',()=>{if(selectedSprite.playing)stopSpriteMotion(selectedSprite);else if(selectedSprite.committed)startSpriteMotion(selectedSprite);else announce('Save the sprite first to begin world motion.');renderKeyboardKeys()})
       );
     }
     if(spriteLibraryLoading){keyboardKeys.append(toolKey('LOADING','Sprite library',()=>{},true));return}
@@ -3778,13 +3854,16 @@ function renderKeyboardKeysContent(){
   }
   if(keyboardMode==='Image'){
     if(personalFolderType==='Images'){renderPersonalFolder('Images','MY IMAGES');return}
-    if(!selectedImage){
+    const selectedImageAsset=assetModeMatches(selectedImage,'Image')?selectedImage:null;
+    keyboardKeys.append(typedPlacedContentSelect('Image'));
+    if(!selectedImageAsset){
       appendPlacementRoleControls();
       keyboardKeys.append(
         toolKey('UPLOAD','image',openImageUpload),
         toolKey('MY IMAGES','Personal folder',()=>openPersonalFolder('Images'))
       );return;
     }
+    selectedImage=selectedImageAsset;
     if(isWorldMapItem(selectedImage)){
       keyboardKeys.append(
         readoutKey('WORLD MAP','Sea Level · 100% × 100%'),
