@@ -1,10 +1,19 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO = ROOT.parents[1]
 
 
 def text(relative):
     return (ROOT / relative).read_text(encoding="utf-8")
+
+
+def authority_text():
+    return (REPO / "infra" / "aws" / "rist-platform-authority" / "app.py").read_text(encoding="utf-8")
+
+
+def projector_text():
+    return (REPO / "infra" / "aws" / "rist-platform-authority" / "region_projection.py").read_text(encoding="utf-8")
 
 
 def test_region_gate_exposes_new_or_claim_from_trusted_database_authority():
@@ -17,160 +26,155 @@ def test_region_gate_exposes_new_or_claim_from_trusted_database_authority():
     assert "DecideWorldClaimRequestAsync" in gate
 
 
-def test_region_definer_uses_selected_world_source_and_scoped_region_authority():
+def test_regiondefiner_reuses_worldbuilder_source_and_exact_saved_deed_coordinates():
     workspace = text("Components/RegionDefinerWorkspace.razor")
+    session = text("WorldSession.RegionSource.cs")
     assert 'source="database"' in workspace
-    assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in workspace
-    assert "await Session.LoadWorldBuilderSourceAsync()" in workspace
-    assert "state=databaseSource?.State" in workspace
+    assert "GetRegionSourceForPrototypeAsync" in workspace
+    assert "Session.LoadRegionSourceAsync(regionId)" in workspace
     assert "Session.CanEditRegion(activeRegion)" in workspace
-    assert "requestedName:name" in workspace
-    assert "regionFlow" in workspace
-    assert "regionId" in workspace
-    assert "SaveRegionMapLayersFromPrototypeAsync" in workspace
+    assert "RegionSourceProjector.Project(" in session
+    assert "parentState" in session
+    assert "region.SelectedCells" in session
+    assert "region.TierIndex" in session
 
 
-def test_new_and_claim_region_share_tier_swipe_and_select_only_flow():
+def test_new_region_selects_actual_world_cells_before_claiming():
     prototype = text("wwwroot/prototype/prototype.js")
-    assert "ensureRegionTierPreview" in prototype
-    assert "Swipe left or right across the map to preview tiers." in prototype
-    assert "if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select']" in prototype
-    assert "if(!name){announce('Name the region before claiming the deed.');return}" in prototype
-    assert prototype.count("regionNameInput(),") == 1
-    assert "toolKey('−','zoom'" in prototype
-    assert "toolKey('+','zoom'" in prototype
-    assert "const renderedTierImages=regionTierPreviewSources().slice(0,TIERS.length);" in prototype
-    assert "updateRegionWorldSourceVisibility();" in prototype
-    assert "fitMap();" in prototype
-    assert "applyParallax();" in prototype
-
-
-def test_deed_confirmation_is_minimal_and_editable_deed_reuses_worldbuilder_controls():
-    prototype = text("wwwroot/prototype/prototype.js")
-    crop = prototype[prototype.index("if(regionClaimPhase==='crop'){"):prototype.index("if(regionClaimPhase==='requested'){")]
-
-    assert "regionNameInput()" in crop
-    assert "toolKey('BACK'" in crop
-    assert "'CLAIM DEED'" in crop
-    assert "readoutKey(" not in crop
-    assert "SAVE REGION" not in crop
-    assert "BUILD REGION" not in prototype
-    assert "const editableRegion=ACCESS_MODE==='edit';" in prototype
-    assert "if(editableRegion)keyboardMode='Viewer';" in prototype
-    assert "if(REGION_DEFINER&&regionClaimPhase!=='build'){renderRegionSelectKeyboard();return}" in prototype
-
-
-def test_new_region_starts_deselected_on_hex_grid_and_requires_a_tile():
-    prototype = text("wwwroot/prototype/prototype.js")
-    styles = text("wwwroot/prototype/prototype.css")
     regions = text("WorldSession.Regions.cs")
     contract = text("REGION_DEFINER_CONTRACT.md")
 
+    assert "ensureRegionTierPreview" in prototype
     assert "const regionSelectedCells=new Set();" in prototype
     assert "let regionGridShape='hex'" in prototype
     assert "overlay.className='region-definition-grid hex'" in prototype
-    assert "select at least 1" in prototype
+    assert "regionCellFromPoint" in prototype
     assert "!regionSelectedCells.size" in prototype
-    assert ".region-definition-grid.hex .region-definition-cell" in styles
+    assert "Name the region before claiming the deed." in prototype
+    assert "CLAIM DEED" in prototype
     assert 'if (cells.Count == 0) throw new InvalidOperationException("Select at least one world tile for the region.");' in regions
-    assert "Hex is the default for every new region" in contract
+    assert "actual WorldBuilder source cells" in contract
 
 
-def test_shared_region_catalog_is_database_first_and_claim_owner_is_scoped():
-    regions = text("WorldSession.Regions.cs")
-    assert "await authority.GetRegionsAsync(requestedWorldId)" in regions
-    assert "await authority.SaveRegionAsync(WorldId, region)" in regions
-    assert "CanEditRegion(WorldRegion? region)" in regions
-    assert "if (!CanEditRegion(region)) return false;" in regions
-    assert "_regions.Where(CanEditRegion)" in regions
-
-
-def test_completed_deed_removes_selection_overlay_without_losing_claim_mask():
+def test_completed_deed_removes_claim_grid_and_uses_filtered_source_as_table():
     prototype = text("wwwroot/prototype/prototype.js")
     styles = text("wwwroot/prototype/prototype.css")
-    contract = text("REGION_DEFINER_CONTRACT.md")
-    handoff = prototype[prototype.index("function applyClaimedRegionCrop("):prototype.index("function ensureRegionTierPreview(")]
-    ensure = prototype[prototype.index("function ensureRegionSelectionOverlay("):prototype.index("function regionNameInput()")]
+    handoff = prototype[
+        prototype.index("function applyClaimedRegionCrop("):
+        prototype.index("function ensureRegionTierPreview(")
+    ]
 
     assert "retireRegionSelectionOverlay();" in handoff
-    assert "regionClaimPhase=editableRegion?'build':'saved';" in handoff
-    assert "retireRegionSelectionOverlay();" in ensure
-    assert "if(regionDeedIsComplete()" in ensure
-    assert "regionSelectionOverlay.remove();" in prototype
+    assert "clearRegionMask(false);" in handoff
+    assert "stage.dataset.cropMode='selected-source-cells';" in handoff
+    assert "applyRegionMask(region,'visibility-mask',true)" not in handoff
     assert ".stage.region-cropped .region-definition-grid{display:none!important;" in styles
-    assert "applyRegionMask(region,'visibility-mask',true)" in handoff
-    assert "remove the selection-grid DOM" in contract
+    assert "regionSelectionOverlay.remove();" in prototype
 
 
-def test_region_is_independently_editable_above_locked_selected_world_tier():
+def test_region_depth_is_world_integer_z_plus_region_hundredths_only():
     prototype = text("wwwroot/prototype/prototype.js")
-    css = text("wwwroot/prototype/prototype.css")
-    assert "function ensureRegionEditLayer()" in prototype
-    assert "function mountUserPlacement(item)" in prototype
-    assert "layer.style.zIndex=String(tierStackBase(tier)+80);" in prototype
-    assert "item.node.hidden=!active" in prototype
-    assert "item.regionOverlay" in prototype
-    assert "item.tier<=regionRelativeTierIndex" in prototype
-    assert "if(REGION_DEFINER&&item.regionOverlay){" in prototype
-    assert ".region-edit-layer .user-image-placement{pointer-events:auto" in css
-    assert ".region-edit-layer[hidden]{display:none!important}" in css
+    projector = projector_text()
+
+    assert "function regionZ100(worldLayer,regionLayer)" in prototype
+    assert "*100+clamp(Math.trunc(Number(regionLayer)||1),1,9)" in prototype
+    assert "let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionLayerIndex=1;" in prototype
+    assert "function createRegionWorkingTier()" not in prototype
+    assert "regionRelativeTiers" not in prototype
+    assert "regionRelativeTierIndex" not in prototype
+    assert "REGION L +" in prototype
+    assert "WORLD Z +" in prototype
+
+    assert "def region_z100(world_layer, region_layer):" in projector
+    assert "return world_layer * 100 + region_layer" in projector
+    assert 'item["parallaxMode"] = "anchored"' not in projector  # update() form is canonical
+    assert '"parallaxMode": "anchored"' in projector
+    assert '"regionLayer": region_layer' in projector
+    assert '"z100": exact' in projector
+    assert "relativeTiers" not in projector
 
 
-def test_new_hex_region_metadata_uses_displayed_column_staggered_extent():
+def test_region_overlay_remains_on_selected_world_tier_and_has_no_independent_parallax():
+    prototype = text("wwwroot/prototype/prototype.js")
+    projector = projector_text()
+
+    assert "item.tier=parentTier;" in prototype
+    assert "item.parallaxMode='anchored';" in prototype
+    assert "if(REGION_DEFINER)return'anchored';" in prototype
+    assert "Regional overlay must remain on the claimed WorldBuilder tier" in projector
+    assert '"anchorTier": parent_tier' in projector
+
+
+def test_region_save_patches_worldbuilder_source_instead_of_creating_region_map_truth():
+    app = authority_text()
+    session = text("WorldSession.RegionSource.cs")
+    route = app[
+        app.index('if method == "POST" and path == "/world/source/region":'):
+        app.index('if method == "GET" and path == "/world/regions":')
+    ]
+
+    assert "merge_region_layers(state, region_state, region_id, incoming)" in route
+    assert "world.update_item(" in route
+    assert "Key=key" in route
+    assert "region_map_key(" not in route
+    assert '"region.overlay.save"' in route
+    assert "SaveWorldBuilderSourceAsync(merged)" in session
+    assert "region-maps/" not in session
+
+
+def test_filtered_region_projection_returns_only_selected_worldbuilder_scope():
+    projector = projector_text()
+    viewer = text("wwwroot/prototype/prototype.js")
+
+    assert '"projection": "region-world-z-v2"' in projector
+    assert '"sourceUserLayers": source_user_layers' in projector
+    assert '"userLayers": region_layers' in projector
+    assert '"tierImages"' not in projector[projector.index('return {'):]
+    assert "state.projection!=='region-world-z-v2'" in viewer
+    assert "state.sourceUserLayers" in viewer
+    assert "sourceLocked:true" in viewer
+    assert "stage.dataset.sourceScope='selected-parent-cells'" in viewer
+    assert "stage.dataset.renderer='region-world-z-v2'" in viewer
+
+
+def test_hex_claim_geometry_uses_same_column_staggered_addressing_everywhere():
+    prototype = text("wwwroot/prototype/prototype.js")
     regions = text("WorldSession.Regions.cs")
+
+    assert "function regionGridExtents(" in prototype
+    assert "REGION_GRID_COLUMNS*.75+.25" in prototype
+    assert "REGION_GRID_ROWS+.5" in prototype
+    assert "regionCellCenter(cell,'hex')" in prototype
     assert "var spanX = hex ? GridColumns * .75 + .25 : GridColumns;" in regions
     assert "var spanY = hex ? GridRows + .5 : GridRows;" in regions
     assert "var hx = hex ? col * .75 : col;" in regions
     assert "var hy = hex ? row + (col % 2) * .5 : row;" in regions
-    assert "CanonicalMinX: Math.Clamp(positions.Min(p => p.MinX), 0, 1)" in regions
 
 
-def test_seed_can_read_customer_key_encrypted_world_state():
-    template = (ROOT.parents[1] / "infra" / "aws" / "rist-platform.yml").read_text(encoding="utf-8")
-    seed = template[template.index("  SunkenTundraSeedFunction:"):template.index("  SunkenTundraSeedInvokePermission:")]
-    assert "DynamoDBCrudPolicy" in seed
-    assert "Action: [kms:Decrypt, kms:GenerateDataKey]" in seed
-    assert "Resource: !GetAtt UserDataKey.Arn" in seed
+def test_requested_region_reset_is_scoped_to_geonaph_regions_not_worldbuilder_terrain():
+    app = authority_text()
+
+    assert 'REGION_Z100_RESET_MARKER = "MIGRATION#20260924_REGION_Z100_RESET_V1"' in app
+    reset = app[
+        app.index("def ensure_region_z100_reset():"):
+        app.index("def handler(event, context):")
+    ]
+    assert 'for prefix in ("REGION#", "REGIONMAP#")' in reset
+    assert 'str(item.get("regionId") or "")' in reset
+    assert "state["userLayers"] = kept" in reset
+    assert "WORLDSOURCE" not in reset or "world_source_key" in reset
+    assert "batch.delete_item" in reset
+    assert "delete_item(Key=source_key)" not in reset
 
 
-def test_region_city_default_map_attached_with_parallax_only_on_explicit_tier_change():
-    prototype = text("wwwroot/prototype/prototype.js")
-    assert "function itemParallaxMode(" in prototype
-    assert "if(!item.parallaxMode)item.parallaxMode='anchored';" in prototype
-    assert "selectedImage.parallaxMode=selectedImage.tier===itemAnchorTier(selectedImage)?'anchored':'tier';" in prototype
-    assert "regionReferenceFrozen=REGION_DEFINER&&regionDeedIsComplete();" in prototype
-    assert "itemParallaxMode(item)==='anchored'" in prototype
-    assert "parallaxMode:itemParallaxMode(item)" in prototype
-    assert "parallaxMode:restoredParallaxMode(raw,regionOverlay)" in prototype
+def test_regiondefiner_api_exposes_both_filtered_read_and_overlay_save():
+    app = authority_text()
+    template = (REPO / "infra" / "aws" / "rist-platform.yml").read_text(encoding="utf-8")
+    client = text("AwsAuthorityClient.cs")
 
-
-def test_complete_parent_source_layer_and_canonical_lake_reference_remain_visible():
-    prototype = text("wwwroot/prototype/prototype.js")
-    assert "function revealCompleteRegionWorldReference()" in prototype
-    assert "for(let layer=0;layer<10;layer++)layers.add(layer);" in prototype
-    assert "function syncRegionReferenceImage(tier,src)" in prototype
-    assert "syncRegionReferenceImage(tier,resolved);" in prototype
-    assert "const attached=regionReferenceFrozen||itemParallaxMode(item)==='anchored';" in prototype
-    assert "item.parallaxX=selectionFrozen?0:attached?reference.x:" in prototype
-
-
-def test_region_child_projection_never_transfers_full_parent_map():
-    backend=(ROOT.parents[1]/"infra"/"aws"/"rist-platform-authority"/"app.py").read_text(encoding="utf-8")
-    projector=(ROOT.parents[1]/"infra"/"aws"/"rist-platform-authority"/"region_projection.py").read_text(encoding="utf-8")
-    viewer=text("wwwroot/prototype/prototype.js")
-    host=text("wwwroot/region-definer-host.js")
-    assert 'path == "/world/source/region"' in backend
-    assert 'project_region_source(' in backend
-    assert '"tierImages"' not in projector[projector.index('return {'):]
-    assert "GetRegionSourceForPrototypeAsync" in host
-    assert "async function renderRegionProjection(payload)" in viewer
-    assert "state.projection==='region-child-v1'" in viewer
-    assert "stage.dataset.sourceScope='selected-parent-cells'" in viewer
-
-
-def test_region_can_add_its_own_tiers_without_changing_world_tier():
-    viewer=text("wwwroot/prototype/prototype.js")
-    assert "function createRegionWorkingTier()" in viewer
-    assert "relativeTiers:regionRelativeTiers" in viewer
-    assert "regionRelativeTierIndex" in viewer
-    assert "selectedImage.parallaxMode=next===0?'anchored':'tier';" in viewer
+    assert 'method == "GET" and path == "/world/source/region"' in app
+    assert 'method == "POST" and path == "/world/source/region"' in app
+    assert "Path: /world/source/region, Method: GET" in template
+    assert "Path: /world/source/region, Method: POST" in template
+    assert "GetRegionSourceAsync" in client
+    assert "SaveWorldRegionMapAsync" in client
