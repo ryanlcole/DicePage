@@ -60,6 +60,22 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         return result?.Ok == true;
     }
 
+    public async Task<List<ResourcePermission>?> GetResourcePermissionsAsync(string worldId, string resourceId)
+        => await SendAsync<List<ResourcePermission>>(
+            HttpMethod.Get,
+            "/world/resources/permissions?worldId=" + Uri.EscapeDataString(worldId) +
+            "&resourceId=" + Uri.EscapeDataString(resourceId));
+
+    public async Task<ResourcePermissionUpdate?> SetResourcePermissionAsync(
+        string worldId,
+        string resourceId,
+        string targetUserId,
+        string permission)
+        => await SendAsync<ResourcePermissionUpdate>(
+            HttpMethod.Post,
+            "/world/resources/permissions",
+            new { worldId, resourceId, targetUserId, permission });
+
     public async Task<CommerceSummary?> GetCommerceSummaryAsync()
         => await SendAsync<CommerceSummary>(HttpMethod.Get, "/authority/commerce");
 
@@ -261,6 +277,20 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         CollaborationConnection? Connection);
 
     public sealed record ConnectionMutationResult(bool Ok);
+
+    public sealed record ResourcePermission(
+        string ResourceId,
+        string UserId,
+        string Permission,
+        string UpdatedAtUtc = "",
+        string UpdatedByUserId = "");
+
+    public sealed record ResourcePermissionUpdate(
+        bool Ok,
+        string WorldId,
+        string ResourceId,
+        string UserId,
+        string Permission);
 
     public sealed record CommerceSummary(
         List<string>? Entitlements = null,
