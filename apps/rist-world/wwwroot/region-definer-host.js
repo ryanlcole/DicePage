@@ -1,10 +1,21 @@
 const bridges=new WeakMap();
+const stateRevisions=new WeakMap();
+
+function beginStateRequest(frame){
+  const revision=(stateRevisions.get(frame)||0)+1;
+  stateRevisions.set(frame,revision);
+  return revision;
+}
+function isCurrentStateRequest(frame,revision){
+  return stateRevisions.get(frame)===revision;
+}
 
 function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}
 }
 
 async function sendState(frame,dotnet){
+  const revision=beginStateRequest(frame);
   try{
     // Existing claims always request their exact source subset. No unfiltered
     // world image leaves the parent bridge while permissions are refreshing.
@@ -12,14 +23,18 @@ async function sendState(frame,dotnet){
     const worldSource=regionId
       ?await dotnet.invokeMethodAsync("GetRegionSourceForPrototypeAsync",regionId)
       :await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
+    if(!isCurrentStateRequest(frame,revision))return;
     post(frame,{type:"world-source",worldSource:worldSource||null});
   }catch(error){
+    if(!isCurrentStateRequest(frame,revision))return;
     post(frame,{type:"map-load-error",message:String(error?.message||error||"Canonical map database is unavailable")});
   }
   try{
     const regions=await dotnet.invokeMethodAsync("GetRegionCatalogForPrototype");
+    if(!isCurrentStateRequest(frame,revision))return;
     post(frame,{type:"catalog",regions:Array.isArray(regions)?regions:[]});
   }catch(error){
+    if(!isCurrentStateRequest(frame,revision))return;
     post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
   }
 }
@@ -33,6 +48,7 @@ export function detach(frame){
   if(!existing)return;
   window.removeEventListener("message",existing);
   bridges.delete(frame);
+  stateRevisions.delete(frame);
 }
 
 export function attach(frame,dotnet){

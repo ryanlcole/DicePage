@@ -248,3 +248,31 @@ test('claimed projection renders only selected parent cells, not full-world PNGs
     assert.equal(f.d.querySelector('.region-world-source-tile[aria-label="Lake"]').dataset.sourceLocked,'true');
   }finally{f.close()}
 });
+
+
+test('stale database error cannot cover an already loaded claimed projection',async()=>{
+  const f=fixture('existing');try{
+    host(f,'catalog',{regions:[deed]});
+    const image='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs';
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',regionId:'region-test',activeRegionId:'region-test',
+      state:{
+        projection:'region-child-v1',worldId:'deed-runtime-test',regionId:'region-test',
+        parentTierIndex:0,gridShape:'hex',sourcePixelWidth:300,sourcePixelHeight:300,
+        selectedCells:[32,33,62,63],
+        sourceCells:[32,33,62,63].map(cell=>({id:'source-'+cell,cellIndex:cell})),
+        sourceTileIndex:[{id:'source-32',cellIndex:32,layerOffset:0,image}],
+        publicTilePattern:'/Game/prototype/region-cells/geonaph/{shape}/0/{cell}.webp',
+        tiles:[],userLayers:[],relativeTiers:[{id:'region-test:tier:0',index:0,label:'Region Base'}]
+      }
+    }});
+    await tick();await tick();
+    const loading=f.d.getElementById('loading');
+    assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
+    assert.equal(loading.hidden,true);
+    host(f,'map-load-error',{message:'stale initial request failed'});
+    await tick();
+    assert.equal(loading.hidden,true,'a stale refresh error must not cover valid region cells');
+    assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
+  }finally{f.close()}
+});

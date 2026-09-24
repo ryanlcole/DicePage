@@ -2735,6 +2735,11 @@ async function handleRegionHostMessage(event){
     return;
   }
   if(data.type==='map-load-error'){
+    if(regionProjectionLoaded){
+      loading.hidden=true;
+      announce('The loaded regional source remains available. A background database refresh failed and can be retried.');
+      return;
+    }
     if(BASE_WORLD_ASSETS.length){
       loading.hidden=true;
       announce('The canonical base map is visible. Database-authored layers are temporarily unavailable.');

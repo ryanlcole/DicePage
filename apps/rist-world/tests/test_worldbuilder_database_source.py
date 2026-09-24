@@ -124,8 +124,8 @@ def test_regiondefiner_viewer_never_presents_the_map_as_a_second_locked_source()
     assert 'InvokeVoidAsync("refresh"' in workspace
     assert "async function sendState" in bridge
     assert 'type:"map-load-error"' in bridge
-    assert "./prototype.js?v=20260923-region-recursive-6" in index
-    assert "renderer=20260923-region-recursive-6" in workspace
+    assert "./prototype.js?v=20260923-region-recursive-7" in index
+    assert "renderer=20260923-region-recursive-7" in workspace
     assert "./region-definer-host.js?v=20260920-region-entry-2" in workspace
 
 
@@ -142,3 +142,17 @@ def test_regiondefiner_claim_flow_is_linear_and_crop_is_real():
     assert 'viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}"' in prototype
     assert "regionClaimedRegion&&regionClaimBounds(regionClaimedRegion)" in prototype
     assert ".stage.region-selection-only .persistent-save{display:none!important}" in css
+
+
+def test_regiondefiner_ignores_stale_initial_source_errors_after_metadata_refresh():
+    bridge = text("wwwroot/region-definer-host.js")
+    prototype = text("wwwroot/prototype/prototype.js")
+    workspace = text("Components/RegionDefinerWorkspace.razor")
+
+    assert "const stateRevisions=new WeakMap();" in bridge
+    assert "const revision=beginStateRequest(frame);" in bridge
+    assert bridge.count("if(!isCurrentStateRequest(frame,revision))return;") >= 4
+    assert "stateRevisions.delete(frame);" in bridge
+    assert "if(regionProjectionLoaded){" in prototype
+    assert "loading.hidden=true;" in prototype[prototype.index("if(data.type==='map-load-error')"):prototype.index("if(data.type==='catalog-error')")]
+    assert "20260923-region-recursive-7" in workspace
