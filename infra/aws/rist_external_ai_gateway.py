@@ -185,6 +185,16 @@ def public_policy():
             "paymentDoesNotGrantAuthority": True,
             "automaticEntitlement": False,
         },
+        "mcpTesterIntake": {
+            "endpoint": "/mcp",
+            "registrationAndApplicationsOpen": mcp_intake_open,
+            "generalExternalAiRelease": owner_released,
+            "selectionBasis": "work-relevant-evidence-only",
+            "protectedTraitsRequestedOrScored": False,
+            "initialSelectionMaximum": 1,
+            "selectedTesterTokenQuantity": 1,
+            "testTokenDoesNotGrantAdministrativeAuthority": True,
+        },
         "session": {
             "maximumSeconds": SESSION_SECONDS,
             "basis": "1/360 of a mean Gregorian Earth orbital year; rounded down to a whole SI second",
