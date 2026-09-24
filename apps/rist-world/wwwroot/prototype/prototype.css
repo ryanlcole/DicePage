@@ -64,6 +64,7 @@
     .user-image-placement{position:absolute;z-index:101;width:12%;height:auto;transform-origin:50% 50%;pointer-events:auto;touch-action:none;cursor:move;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4));user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}
     .user-image-placement.full-world-placement{inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:fill!important;transform-origin:0 0!important;cursor:default!important;filter:none}
     .user-image-placement.full-world-placement.selected{outline-offset:-2px}
+    .user-image-placement.linked-selected{outline:1px dashed rgba(143,197,212,.92);outline-offset:2px}
     .user-image-placement.selected{outline:2px solid #f0cc69;outline-offset:2px}
     .asset-resize-overlay{position:absolute;box-sizing:border-box;border:1px solid rgba(240,204,105,.9);outline:1px solid rgba(0,0,0,.42);transform-origin:50% 50%;pointer-events:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
     .asset-resize-handle{position:absolute;width:20px;height:20px;min-width:20px;min-height:20px;margin:0;padding:0;border:2px solid #0b1720;border-radius:50%;background:#f0cc69;box-shadow:0 1px 5px #000b;pointer-events:auto;touch-action:none;-webkit-touch-callout:none}
