@@ -133,25 +133,64 @@ def project(world_id, region_id, region, world_state, region_map_state=None):
         and region_cell_for_point(item.get("x", 0), item.get("y", 0), shape, COLUMNS, ROWS) in chosen_set
     ]
 
-    # REGIONMAP is the canonical child persistence boundary. Legacy worlds may
-    # still have regional overlays embedded in WORLDSOURCE, so fall back only
-    # when no REGIONMAP record exists. An existing empty REGIONMAP deliberately
-    # means the region has no overlays.
-    region_layer_source = (
-        child_state.get("userLayers") or []
+    # REGIONMAP is the canonical child persistence boundary. During the
+    # WORLDSOURCE -> REGIONMAP migration, however, a REGIONMAP could be created
+    # before every legacy region-owned object had been copied into it. Treat an
+    # unmarked REGIONMAP as migration-incomplete: child objects win by stable id,
+    # while still-valid legacy region objects fill only missing identities.
+    #
+    # The next successful REGIONMAP save stamps legacyImportComplete=True. From
+    # then on the child record is fully authoritative, so an intentional delete
+    # cannot resurrect a legacy object.
+    legacy_region_layers = [
+        dict(item) for item in (state.get("userLayers") or [])
+        if isinstance(item, dict)
+        and str(item.get("regionId") or "") == region_id
+    ]
+    child_region_layers = (
+        [dict(item) for item in (child_state.get("userLayers") or []) if isinstance(item, dict)]
         if child_state is not None
-        else state.get("userLayers") or []
+        else []
     )
+    legacy_import_complete = bool(
+        child_state is not None and child_state.get("legacyImportComplete") is True
+    )
+
+    if child_state is None:
+        region_layer_source = legacy_region_layers
+        legacy_region_import_pending = False
+    elif legacy_import_complete:
+        region_layer_source = child_region_layers
+        legacy_region_import_pending = False
+    else:
+        child_ids = {
+            str(item.get("id") or "").strip()
+            for item in child_region_layers
+            if str(item.get("id") or "").strip()
+        }
+        merged_legacy = [
+            item for item in legacy_region_layers
+            if not str(item.get("id") or "").strip()
+            or str(item.get("id") or "").strip() not in child_ids
+        ]
+        region_layer_source = child_region_layers + merged_legacy
+        legacy_region_import_pending = bool(merged_legacy)
+
     region_layers = []
+    seen_ids = set()
     for item in region_layer_source:
         if not isinstance(item, dict):
             continue
-        if child_state is None and str(item.get("regionId") or "") != region_id:
-            continue
         try:
-            region_layers.append(normalize_region_layer(region, item, region_id))
+            normalized = normalize_region_layer(region, item, region_id)
         except (ValueError, PermissionError):
             continue
+        item_id = str(normalized.get("id") or "").strip()
+        if item_id and item_id in seen_ids:
+            continue
+        if item_id:
+            seen_ids.add(item_id)
+        region_layers.append(normalized)
 
     tier_images = state.get("tierImages") or []
     has_full_bitmap = bool(tier_images[tier]) if isinstance(tier_images, list) and len(tier_images) > tier else False
@@ -186,6 +225,7 @@ def project(world_id, region_id, region, world_state, region_map_state=None):
         "sourceTileIndex": indexed,
         "sourceUserLayers": source_user_layers,
         "userLayers": region_layers,
+        "legacyRegionImportPending": legacy_region_import_pending,
         "gridColumns": COLUMNS,
         "gridRows": ROWS,
         "zModel": {
