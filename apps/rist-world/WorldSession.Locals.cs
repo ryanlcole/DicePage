@@ -147,7 +147,7 @@ public sealed partial class WorldSession
             Rotation: rotation,
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
             ParentNodeId: $"region:{region.RegionId}",
-            CoordinateSpace: "hierarchical-vertical-v1",
+            CoordinateSpace: "canonical-world-xy+hierarchical-depth-v1",
             CreatedAtUtc: now,
             UpdatedAtUtc: now,
             RegionTier: Math.Max(0, regionTier),
