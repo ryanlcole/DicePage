@@ -7,7 +7,7 @@ const {JSDOM}=require('jsdom');
 
 const root=path.join(__dirname,'../wwwroot/prototype');
 
-function fixture(flow='new'){
+function fixture(flow='new',options={}){
   const dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{
     url:`https://viewer.test/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&seed=empty&worldId=deed-runtime-test&access=edit&regionFlow=${flow}&regionId=${flow==='existing'?'region-test':''}`,
     runScripts:'outside-only',
@@ -17,7 +17,8 @@ function fixture(flow='new'){
   stage.getBoundingClientRect=()=>({x:0,y:0,left:0,top:0,right:800,bottom:600,width:800,height:600});
   w.HTMLElement.prototype.getClientRects=function(){return this.closest('[hidden]')?[]:[{}]};
   w.matchMedia=()=>({matches:false});
-  w.fetch=async()=>({ok:false});
+  if(options.sessionToken)w.sessionStorage.setItem('rist.session',options.sessionToken);
+  w.fetch=options.fetch||async()=>({ok:false,status:404});
   w.ResizeObserver=class{observe(){}disconnect(){}};
   for(const file of ['viewer-input.js','prototype.js']){
     vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),dom.getInternalVMContext(),{filename:file});
@@ -173,12 +174,52 @@ test('RegionDefiner build controls stay lifted and the claim grid cannot cover a
   assert.ok(css.includes('.stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}'));
 });
 
-test('saved personal region assets persist stable identity and refresh signed URLs on reload',()=>{
-  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
-  assert.ok(source.includes("originalSrc:item.personalAssetKey?'':(item.originalSrc||'')"));
-  assert.ok(source.includes("const freshPersonalSrc=personalAssetKey"));
-  assert.ok(source.includes("await personalDownloadUrl(personalAssetKey).catch(()=> '')"));
-  assert.ok(source.includes("String(freshPersonalSrc||raw.originalSrc||'')"));
+test('saved personal region assets keep stable identity, fallback URL, and retry authenticated hydration',async()=>{
+  let storageAttempts=0;
+  const f=fixture('existing',{
+    sessionToken:'test-session',
+    fetch:async url=>{
+      const href=String(url||'');
+      if(href.includes('auth-config.json'))return{
+        ok:true,status:200,json:async()=>({apiBaseUrl:'https://storage.test'})
+      };
+      if(href.startsWith('https://storage.test/storage/download')){
+        storageAttempts++;
+        if(storageAttempts===1)throw new Error('auth bridge still warming');
+        return{ok:true,status:200,json:async()=>({url:'https://signed.test/city.png'})};
+      }
+      return{ok:false,status:404,blob:async()=>new f.w.Blob([])};
+    }
+  });
+  try{
+    host(f,'catalog',{regions:[deed]});
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',
+      regionId:'region-test',
+      activeRegionId:'region-test',
+      state:projectedState({userLayers:[{
+        kind:'image',id:'saved-city',regionId:'region-test',name:'Saved City',
+        assetId:'private:uploads/images/my-images/city.png',
+        personalAssetKey:'uploads/images/my-images/city.png',
+        originalSrc:'',transparentSrc:'',transparent:false,
+        tier:0,worldLayer:0,layer:0,regionLayer:1,z100:1,x:.1,y:.1,size:1,rotation:0,opacity:1,committed:true
+      }]})
+    }});
+    await new Promise(resolve=>setTimeout(resolve,650));
+    const city=Array.from(f.d.querySelectorAll('img.user-image-placement')).find(node=>node.alt==='Saved City');
+    assert.ok(city,'saved personal image must remain in the restored layer list while auth reconnects');
+    assert.equal(city.dataset.assetPending,'false');
+    assert.ok(city.src.includes('https://signed.test/city.png'));
+    assert.ok(storageAttempts>=2,'personal asset hydration must retry after an early auth/storage failure');
+  }finally{f.close()}
+});
+
+test('RegionDefiner save bridge performs canonical read-after-write verification',()=>{
+  const hostSource=fs.readFileSync(path.join(root,'../region-definer-host.js'),'utf8');
+  assert.ok(hostSource.includes('GetRegionSourceForPrototypeAsync'));
+  assert.ok(hostSource.includes('verified=wanted.every(id=>persisted.has(id))'));
+  const prototype=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  assert.ok(prototype.includes('Region database verification did not confirm the save.'));
 });
 
 test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps parent content locked',async()=>{
