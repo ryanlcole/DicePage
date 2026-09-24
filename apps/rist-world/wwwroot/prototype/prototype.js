@@ -528,7 +528,7 @@ function serializableUserLayer(item){
     spriteSheetSrc:item.personalAssetKey?null:(item.spriteSheetSrc||null),spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
-    spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,spriteMotionOnly:!!item.spriteMotionOnly,
+    spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,spriteMotionOnly:!!item.spriteMotionOnly,spriteChainId:item.spriteChainId||null,
     spritePages:item.kind==='sprite'&&Array.isArray(item.spritePages)?item.spritePages.map((page,index)=>({
       index,
       personalAssetKey:page.personalAssetKey||null,assetId:page.assetId||null,name:page.name||`Sprite page ${index+1}`,
@@ -661,7 +661,7 @@ async function attachRestoredLayer(raw,options={}){
     spriteSourceWidth:isSprite?(Number(firstPage?.sourceWidth)||Number(raw.spriteSourceWidth)||null):null,spriteSourceHeight:isSprite?(Number(firstPage?.sourceHeight)||Number(raw.spriteSourceHeight)||null):null,
     spriteCropX:isSprite?(Number(firstPage?.cropX)||Number(raw.spriteCropX)||0):0,spriteCropY:isSprite?(Number(firstPage?.cropY)||Number(raw.spriteCropY)||0):0,
     spriteCropWidth:isSprite?(Number(firstPage?.cropWidth)||Number(raw.spriteCropWidth)||null):null,spriteCropHeight:isSprite?(Number(firstPage?.cropHeight)||Number(raw.spriteCropHeight)||null):null,
-    spriteWhiteTransparent:isSprite?(firstPage?firstPage.whiteTransparent!==false:raw.spriteWhiteTransparent!==false):raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,
+    spriteWhiteTransparent:isSprite?(firstPage?firstPage.whiteTransparent!==false:raw.spriteWhiteTransparent!==false):raw.spriteWhiteTransparent!==false,spriteMotionOnly:raw.spriteMotionOnly===true,spriteChainId:String(raw.spriteChainId||''),
     frameSources,currentFrame:0,playing:false,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),worldLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.worldLayer??raw.layer)||0),0,9):undefined,regionLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.regionLayer)||1),1,9):undefined,z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
@@ -3411,7 +3411,10 @@ function normalizePersonalAsset(entry,url=''){
     cropY:Math.max(0,Number(personalEntryValue(entry,'CropY',0))||0),
     cropWidth:Math.max(0,Number(personalEntryValue(entry,'CropWidth',0))||0),
     cropHeight:Math.max(0,Number(personalEntryValue(entry,'CropHeight',0))||0),
-    whiteTransparent:!!personalEntryValue(entry,'WhiteTransparent',false),motionOnly:!!personalEntryValue(entry,'MotionOnly',false)
+    whiteTransparent:!!personalEntryValue(entry,'WhiteTransparent',false),motionOnly:!!personalEntryValue(entry,'MotionOnly',false),
+    chainId:String(personalEntryValue(entry,'ChainId','')),
+    chainIndex:Math.max(0,Math.trunc(Number(personalEntryValue(entry,'ChainIndex',0))||0)),
+    chainLength:Math.max(1,Math.trunc(Number(personalEntryValue(entry,'ChainLength',1))||1))
   };
 }
 async function ensurePersonalAssets(force=false){
@@ -3453,7 +3456,8 @@ async function saveFileToPersonalLibrary(file,metadata={}){
     SourceWidth:Math.max(0,Math.trunc(Number(metadata.sourceWidth)||0)),SourceHeight:Math.max(0,Math.trunc(Number(metadata.sourceHeight)||0)),
     CropX:Math.max(0,Math.trunc(Number(metadata.cropX)||0)),CropY:Math.max(0,Math.trunc(Number(metadata.cropY)||0)),
     CropWidth:Math.max(0,Math.trunc(Number(metadata.cropWidth)||0)),CropHeight:Math.max(0,Math.trunc(Number(metadata.cropHeight)||0)),
-    WhiteTransparent:!!metadata.whiteTransparent,MotionOnly:!!metadata.motionOnly
+    WhiteTransparent:!!metadata.whiteTransparent,MotionOnly:!!metadata.motionOnly,
+    ChainId:String(metadata.chainId||''),ChainIndex:Math.max(0,Math.trunc(Number(metadata.chainIndex)||0)),ChainLength:Math.max(1,Math.trunc(Number(metadata.chainLength)||1))
   };
   items.push(entry);await writePersonalCatalog({...catalog,Items:items});
   const asset=normalizePersonalAsset(entry,await personalDownloadUrl(key));
@@ -3488,7 +3492,7 @@ async function promoteRestoredLayerToPersonal(item){
   return asset;
 }
 function personalAssetsFor(type){
-  if(type==='Sprites')return personalAssets.filter(asset=>asset.assetKind==='sprite'||asset.category==='Sprites');
+  if(type==='Sprites')return personalAssets.filter(asset=>(asset.assetKind==='sprite'||asset.category==='Sprites')&&(!asset.chainId||asset.chainIndex===0));
   if(type==='Images')return personalAssets.filter(asset=>asset.category==='Images'&&asset.assetKind!=='sprite');
   if(type==='Tiles')return personalAssets.filter(asset=>asset.category==='Tiles');
   if(type==='Uploads')return personalAssets.filter(asset=>asset.category!=='Images'&&asset.category!=='Sprites');
@@ -3523,12 +3527,33 @@ function placePersonalImage(asset){
 async function placePersonalSprite(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
+  const chain=asset.chainId
+    ?personalAssets.filter(entry=>(entry.assetKind==='sprite'||entry.category==='Sprites')&&entry.chainId===asset.chainId)
+      .sort((a,b)=>a.chainIndex-b.chainIndex)
+    :[asset];
+  const pages=chain.map((entry,index)=>({
+    index,name:entry.name,sheetSrc:entry.url,personalAssetKey:entry.key,assetId:`private:${entry.key}`,
+    columns:entry.columns,rows:entry.rows,frameCount:entry.frameCount,sourceWidth:entry.sourceWidth,sourceHeight:entry.sourceHeight,
+    cropX:entry.cropX,cropY:entry.cropY,cropWidth:entry.cropWidth,cropHeight:entry.cropHeight,whiteTransparent:entry.whiteTransparent
+  }));
+  const first=chain[0]||asset;
   const item=await placeSpriteDefinition({
-    id:`private-sprite:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,name:asset.name,sheetSrc:asset.url,
-    columns:asset.columns,rows:asset.rows,frameCount:asset.frameCount,fps:asset.fps||6,sourceWidth:asset.sourceWidth,sourceHeight:asset.sourceHeight,
-    cropX:asset.cropX,cropY:asset.cropY,cropWidth:asset.cropWidth,cropHeight:asset.cropHeight,whiteTransparent:asset.whiteTransparent,motionOnly:asset.motionOnly
+    id:`private-sprite:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${first.key}`,
+    name:asset.chainId?`${first.name} chain`:first.name,pages,chainId:asset.chainId||'',
+    columns:first.columns,rows:first.rows,frameCount:first.frameCount,fps:first.fps||6,
+    whiteTransparent:first.whiteTransparent,motionOnly:first.motionOnly
   });
-  item.personalAssetKey=asset.key;personalFolderType=null;return item;
+  item.personalAssetKey=first.key;
+  item.spriteChainId=asset.chainId||'';
+  item.spritePages.forEach((page,index)=>{
+    const entry=chain[index];
+    if(entry){page.personalAssetKey=entry.key;page.assetId=`private:${entry.key}`}
+  });
+  personalFolderType=null;
+  announce(asset.chainId
+    ?`${item.name} placed from My Sprites with ${pages.length} chained pages / ${item.frameSources.length} frames.`
+    :`${item.name} placed from My Sprites.`);
+  return item;
 }
 function placePersonalTile(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -3540,7 +3565,7 @@ function placePersonalTile(asset){
 function personalAssetKey(asset,type){
   const button=document.createElement('button');button.type='button';button.className='library-tile-key';button.setAttribute('aria-label',`${asset.name}. Personal ${type.toLowerCase()} upload.`);
   const image=document.createElement('img');image.src=asset.url;image.alt='';image.loading='lazy';image.decoding='async';image.draggable=false;image.style.width='100%';image.style.height='100%';image.style.objectFit='cover';
-  const label=document.createElement('small');label.textContent=asset.name;button.append(image,label);
+  const label=document.createElement('small');label.textContent=asset.chainId&&asset.chainLength>1?`${asset.name} · ${asset.chainLength} pages`:asset.name;button.append(image,label);
   button.addEventListener('click',()=>{if(type==='Sprites')void placePersonalSprite(asset);else if(type==='Images')placePersonalImage(asset);else placePersonalTile(asset)});
   return button;
 }
@@ -3788,7 +3813,7 @@ async function placeSpriteDefinition(definition){
     cropWidth:firstPage.cropWidth,cropHeight:firstPage.cropHeight,whiteTransparent:firstPage.whiteTransparent
   },0);
   const item={
-    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',spriteChainId:String(definition.chainId||''),
     spritePages:pages,spriteSheetSrc:firstPageSrc,spriteColumns:firstPage.columns,spriteRows:firstPage.rows,spriteFrameCount:preparedFrames?.length||pages.reduce((sum,page)=>sum+page.frameCount,0),spriteFps:clamp(Number(definition.fps)||6,1,60),
     spriteSourceWidth:firstPage.sourceWidth||null,spriteSourceHeight:firstPage.sourceHeight||null,spriteCropX:firstPage.cropX||0,spriteCropY:firstPage.cropY||0,
     spriteCropWidth:firstPage.cropWidth||null,spriteCropHeight:firstPage.cropHeight||null,spriteWhiteTransparent:firstPage.whiteTransparent!==false,spriteMotionOnly:definition.motionOnly===true,
@@ -3829,6 +3854,8 @@ async function placeUploadedSprites(files){
     }
 
     const target=spriteChainTarget?.kind==='sprite'?spriteChainTarget:null;
+    const chainId=String(target?.spriteChainId||crypto.randomUUID?.()||Date.now());
+    if(target)target.spriteChainId=chainId;
     let item=target;
     let appendedPages;
     if(target){
@@ -3836,7 +3863,7 @@ async function placeUploadedSprites(files){
     }else{
       item=await placeSpriteDefinition({
         name:list.length===1?(list[0].name||'Uploaded sprite'):`${String(list[0].name||'Sprite').replace(/\.[^.]+$/,'')} chain`,
-        pages,columns,rows,frameCount,fps,whiteTransparent:true,motionOnly
+        pages,columns,rows,frameCount,fps,whiteTransparent:true,motionOnly,chainId
       });
       appendedPages=item.spritePages;
     }
@@ -3845,7 +3872,7 @@ async function placeUploadedSprites(files){
     const uploads=list.map((file,index)=>saveFileToPersonalLibrary(file,{
       category:'Sprites',folder:'My Sprites',assetKind:'sprite',name:String(file.name||`Sprite page ${index+1}`).replace(/\.[^.]+$/,''),
       columns,rows,frameCount,fps,whiteTransparent:true,motionOnly,
-      chainIndex:startIndex+index,chainLength:(item.spritePages?.length||appendedPages.length)
+      chainId,chainIndex:startIndex+index,chainLength:(item.spritePages?.length||appendedPages.length)
     }).then(asset=>{
       const page=item.spritePages?.[startIndex+index];
       if(page){page.personalAssetKey=asset.key;page.assetId=`private:${asset.key}`}
