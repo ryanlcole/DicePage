@@ -61,14 +61,14 @@
             class="launcher-mode-toggle roleplay @(_launcherMenu=="roleplay"?"selected":"")"
             aria-expanded="@(_launcherMenu=="roleplay")"
             aria-controls="launcher-roleplay-tools"
-            @onclick='()=>ToggleLauncherMenu("roleplay")'>
+            @onclick="ToggleRoleplayMenu">
      <span aria-hidden="true">♙</span><strong>ROLEPLAY</strong>
     </button>
     <button type="button"
             class="launcher-mode-toggle gamemaster @(_launcherMenu=="gamemaster"?"selected":"")"
             aria-expanded="@(_launcherMenu=="gamemaster")"
             aria-controls="launcher-gamemaster-tools"
-            @onclick='()=>ToggleLauncherMenu("gamemaster")'>
+            @onclick="ToggleGameMasterMenu">
      <span aria-hidden="true">♜</span><strong>GAMEMASTER</strong>
     </button>
    </div>
@@ -602,6 +602,8 @@ else
  void OpenCardIndex(){_settingsOpen=false;_tickerOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
  void CloseCardIndex()=>_cardIndexOpen=false;
  void ToggleLauncherMenu(string menu)=>_launcherMenu=string.Equals(_launcherMenu,menu,StringComparison.Ordinal)?"":menu;
+ void ToggleRoleplayMenu()=>ToggleLauncherMenu("roleplay");
+ void ToggleGameMasterMenu()=>ToggleLauncherMenu("gamemaster");
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
