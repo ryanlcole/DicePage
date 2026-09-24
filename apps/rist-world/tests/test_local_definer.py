@@ -29,13 +29,12 @@ def test_local_selects_one_existing_regional_object_not_region_cells():
     player = read("wwwroot/prototype/prototype.js")
     local = read("Components/LocalDefinerWorkspace.razor")
 
-    assert "const LOCAL_DEFINER=WORKSPACE_MODE===\'localdefiner\';" in player
+    assert "const LOCAL_DEFINER=WORKSPACE_MODE==='localdefiner';" in player
     assert "select one placed regional object" in player
     assert "Select regional object for Local" in player
     assert "createSelectedLocal" in player
     assert "localAnchorPayload" in player
-    assert "data.type===\'local-created\'" in player
-
+    assert "data.type==='local-created'" in player
     assert "CreateLocalFromPrototypeAsync" in local
     assert "Session.CreateLocalAsync" in local
     assert "SubmitRegionClaimRequestFromPrototypeAsync" not in local
@@ -51,42 +50,33 @@ def test_representation_ladder_is_world_0_region_15_local_30():
     assert "WORLD 0° → REGION 15°" in shell
 
 
-def test_local_exposes_region_z_depth_instead_of_flat_region_editing():
-    player = read("wwwroot/prototype/prototype.js")
-
-    assert "REGION_DEFINER&&!LOCAL_DEFINER&&regionDeedIsComplete()" in player
-    assert "regionWorldLayer(item)*.10" in player
-    assert "regionOverlayLayer(item)*.01" in player
-    assert "const representationDepth=LOCAL_DEFINER?2:1;" in player
-
-
-def test_local_identity_is_object_anchored_and_persistent():
+def test_local_identity_is_region_object_anchored_and_uses_canonical_xy():
     model = read("WorldSession.Locals.cs")
+    local = read("Components/LocalDefinerWorkspace.razor")
 
     assert "AnchorObjectId" in model
     assert "AnchorAssetId" in model
     assert 'ParentNodeId: $"region:{region.RegionId}"' in model
-    assert '"local-anchor-normalized-v2"' in model
-    assert "Select a placed regional object for the Local." in model
-    assert "SaveLocalsAsync" in model
-
-
-def test_local_claim_rebases_selected_region_asset_to_full_local_canvas():
-    player = read("wwwroot/prototype/prototype.js")
-    local = read("Components/LocalDefinerWorkspace.razor")
-    model = read("WorldSession.Locals.cs")
-
-    assert "function localAnchorBounds(local=activeLocal)" in player
-    assert "function worldPointToLocal(x,y,local=activeLocal)" in player
-    assert "function localPointToWorld(x,y,local=activeLocal)" in player
-    assert "local-anchor-normalized-v2" in player
-    assert "item.node.style.width='100%'" in player
-    assert "item.node.style.height='100%'" in player
-    assert "The Region asset is the locked 100% Local base" in player
-    assert 'coordinateSpace="local-anchor-normalized-v2"' in local
-    assert '"local-anchor-normalized-v2"' in model
+    assert '"canonical-world-xy+hierarchical-depth-v1"' in model
+    assert 'coordinateSpace="canonical-world-xy+hierarchical-depth-v1"' in local
+    assert 'coordinateSpace="canonical-world-xy+region-depth-v1"' in local
     assert "X: Math.Clamp(x, 0, 1)" in model
     assert "Y: Math.Clamp(y, 0, 1)" in model
+    assert "Select a placed regional object for the Local." in model
+
+
+def test_local_camera_frames_anchor_without_rebasing_xy():
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "function localAnchorBounds(local=activeLocal)" in player
+    assert "function constrainLocalPoint(x,y)" in player
+    assert "function fitLocalAnchor(local=activeLocal)" in player
+    assert "Canonical X/Y unchanged." in player
+    assert "worldPointToLocal" not in player
+    assert "localPointToWorld" not in player
+    assert "local-anchor-normalized-v2" not in player
+    assert "projectedWorldX" not in player
+    assert "projectedWorldY" not in player
 
 
 def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
@@ -96,18 +86,21 @@ def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
     assert "item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));" in player
     assert "item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);" in player
     assert "item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));" in player
-    assert "item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||0),0,9);" in player
+    assert "item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);" in player
     assert "toolKey('LOCAL T −'" in player
+    assert "toolKey('LOCAL T +'" in player
+    assert "toolKey('LOCAL L −'" in player
     assert "toolKey('LOCAL L +'" in player
 
 
-def test_local_children_persist_local_xy_and_derived_world_projection():
+def test_local_children_persist_canonical_xy_plus_full_hierarchical_depth():
     player = read("wwwroot/prototype/prototype.js")
     local = read("Components/LocalDefinerWorkspace.razor")
 
-    assert "localCoordinateSpace:item.localOverlay?'local-anchor-normalized-v2':undefined" in player
-    assert "projectedWorldX:item.localOverlay?localPointToWorld(item.x,item.y).x:undefined" in player
-    assert "projectedWorldY:item.localOverlay?localPointToWorld(item.x,item.y).y:undefined" in player
+    assert "x:clamp(Number(item.x)||0,0,1)" in player
+    assert "y:clamp(Number(item.y)||0,0,1)" in player
+    assert "localCoordinateSpace:" not in player
+    assert "projectedWorldX:" not in player
     assert 'format="RIST_LOCAL_MAP_V2"' in local
     assert "hierarchy=new" in local
     for field in (
@@ -147,3 +140,12 @@ def test_local_opens_full_asset_toolset_after_region_anchor_selection():
     assert "await enterLocalBuild(local,data.localSource||null)" in player
     assert "item.localOverlay=true" in player
     assert "ensureLocalEditLayer" in player
+
+
+def test_local_and_future_instance_depth_participate_in_renderer_order():
+    player = read("wwwroot/prototype/prototype.js")
+
+    assert "Math.max(0,Math.trunc(Number(item.localTier)||0))*1000" in player
+    assert "clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100" in player
+    assert "Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10" in player
+    assert "clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)" in player
