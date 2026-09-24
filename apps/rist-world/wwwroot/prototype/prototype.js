@@ -1810,7 +1810,7 @@ function regionSourceCropStyle(image,tile){
 async function renderRegionProjection(payload){
   const envelope=payload&&typeof payload==='object'?payload:{};
   const state=envelope.state&&typeof envelope.state==='object'?envelope.state:{};
-  if(state.projection!=='region-child-v1')throw new Error('Unexpected regional source format');
+  if(state.projection!=='region-world-z-v2')throw new Error('Unexpected regional source format');
   const revision=++canonicalHydrationRevision;
   clearRegionWorldSource();
   const projectedId=String(state.regionId||envelope.regionId||REQUESTED_REGION_ID||'');
@@ -1823,12 +1823,9 @@ async function renderRegionProjection(payload){
     applyClaimedRegionCrop(deed);
   }
   regionProjectionLoaded=true;
-  regionRelativeTiers=(Array.isArray(state.relativeTiers)?state.relativeTiers:[])
-    .filter(t=>t&&Number.isInteger(Number(t.index))&&Number(t.index)>=0&&Number(t.index)<10)
-    .map(t=>({id:String(t.id||`${projectedId}:tier:${t.index}`),index:Number(t.index),label:String(t.label||`Region Tier ${Number(t.index)+1}`)}))
-    .sort((a,b)=>a.index-b.index);
-  if(!regionRelativeTiers.some(t=>t.index===0))regionRelativeTiers.unshift({id:`${projectedId}:tier:0`,index:0,label:'Region Base'});
-  regionRelativeTierIndex=0;
+  regionLayerIndex=1;
+  viewerLayer=0;
+  viewerTier=tierByIndex(clamp(Math.trunc(Number(state.parentTierIndex)||0),0,TIERS.length-1)).key;
   const sourceCells=Array.isArray(state.sourceCells)?state.sourceCells:[];
   const expected=new Set((state.selectedCells||[]).map(Number));
   const parentTier=Number(state.parentTierIndex)||0;
@@ -1885,15 +1882,15 @@ async function renderRegionProjection(payload){
     node.dataset.sourceLocked='true';
     node.dataset.cell=String(cell);
     node.dataset.parentTier=String(parentTier);
-    node.dataset.tier='0';node.dataset.layer=String(Number(raw.layerOffset)||0);
+    node.dataset.tier=String(parentTier);node.dataset.layer=String(Number(raw.layerOffset)||0);
     node.style.left=`${(gx/extents.width*100).toFixed(5)}%`;
     node.style.top=`${(gy/extents.height*100).toFixed(5)}%`;
     node.style.width=`${(100/extents.width).toFixed(5)}%`;
     node.style.height=`${(100/extents.height).toFixed(5)}%`;
-    node.style.zIndex=String(tierStackBase(0)-20+(Number(raw.layerOffset)||0));
+    node.style.zIndex=String((Number(raw.layerOffset)||0)*100);
     node.style.objectFit='fill';
     world.appendChild(node);
-    regionWorldSourceTiles.push({node,image:node,tier:0,layer:Number(raw.layerOffset)||0,id:node.dataset.sourceCellId,name:String(raw.name||''),assetKind:'source-cell'});
+    regionWorldSourceTiles.push({node,image:node,tier:parentTier,layer:Number(raw.layerOffset)||0,id:node.dataset.sourceCellId,name:String(raw.name||''),assetKind:'source-cell'});
     indexedCount++;
   }
   // Additional authored world terrain tiles were already filtered by exact
@@ -1902,18 +1899,18 @@ async function renderRegionProjection(payload){
     const node=document.createElement('div'),layer=Number(raw.layerOffset)||0;
     node.className='region-world-source-tile';
     node.dataset.sourceLocked='true';node.dataset.parentTier=String(parentTier);
-    node.dataset.tier='0';node.dataset.layer=String(layer);
+    node.dataset.tier=String(parentTier);node.dataset.layer=String(layer);
     node.setAttribute('aria-label',String(raw.name||'Locked parent terrain'));
     const zoom=Math.max(Number(raw.placementZoom)||1,1/REGION_GRID_COLUMNS);
     node.style.left=`${(Number(raw.x||0)*100).toFixed(5)}%`;
     node.style.top=`${(Number(raw.y||0)*100).toFixed(5)}%`;
     node.style.width=`${(100/REGION_GRID_COLUMNS/zoom).toFixed(5)}%`;
     node.style.height=`${(100/REGION_GRID_ROWS/zoom).toFixed(5)}%`;
-    node.style.zIndex=String(tierStackBase(0)+layer);
+    node.style.zIndex=String(layer*100);
     const frame=document.createElement('span');frame.className='region-world-source-crop';
     const img=document.createElement('img');img.alt='';img.src=String(raw.image||'');
     regionSourceCropStyle(img,raw);frame.appendChild(img);node.appendChild(frame);world.appendChild(node);
-    regionWorldSourceTiles.push({node,image:img,tier:0,layer,id:String(raw.id||''),name:String(raw.name||''),assetKind:'parent-tile'});
+    regionWorldSourceTiles.push({node,image:img,tier:parentTier,layer,id:String(raw.id||''),name:String(raw.name||''),assetKind:'parent-tile'});
   }
   regionRasterIndexMissing=!!state.requiresRasterIndex&&indexedCount<expected.size;
   stage.dataset.sourceScope='selected-parent-cells';
@@ -1924,6 +1921,12 @@ async function renderRegionProjection(payload){
   if(regionRasterIndexMissing){
     announce('This parent world bitmap needs a source-cell index. Its other territory has not been fetched.');
   }
+  const inherited=Array.isArray(state.sourceUserLayers)?state.sourceUserLayers:[];
+  const inheritedPending=inherited.map(async raw=>{
+    const item=await attachRestoredLayer(raw,{sourceLocked:true,regionOverlay:false,canonicalSource:true});
+    if(revision!==canonicalHydrationRevision){discardCanonicalHydrationItem(item);return null}
+    updateLayerOrder();applyParallax();return item;
+  });
   const owned=(Array.isArray(state.userLayers)?state.userLayers:[])
     .filter(raw=>String(raw?.regionId||'')===projectedId);
   const pending=owned.map(async raw=>{
@@ -1931,20 +1934,20 @@ async function renderRegionProjection(payload){
     if(revision!==canonicalHydrationRevision){discardCanonicalHydrationItem(item);return null}
     updateLayerOrder();applyParallax();return item;
   });
-  stage.dataset.renderer='region-child-projection';
+  stage.dataset.renderer='region-world-z-v2';
   world.dataset.emptyWorld=regionWorldSourceTiles.length?'false':'true';
   updateTierButton();renderTierMenu();updateLayerOrder();updateRegionWorldSourceVisibility();
   loading.hidden=true;fitClaimedRegion(regionClaimedRegion);renderKeyboardTabs();renderKeyboardKeys();applyParallax();
-  await Promise.all(pending);
+  await Promise.all([...inheritedPending,...pending]);
   if(revision!==canonicalHydrationRevision)return;
   updateLayerOrder();applyParallax();
-  announce(`${regionClaimedRegion.name} ready. ${expected.size} source cells on locked World Tier ${parentTier+1}; edit regional layers above them.`);
+  announce(`${regionClaimedRegion.name} ready. ${expected.size} claimed coordinates from World Tier ${parentTier+1}. World Z 0–9 is locked; regional overlays use .01–.09 above each World Z.`);
 }
 async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
   const envelope=payload&&typeof payload==='object'?payload:{};
   let snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
-  if(snapshot.projection==='region-child-v1'){
+  if(snapshot.projection==='region-world-z-v2'){
     await renderRegionProjection(envelope);return;
   }
   // An older pre-claim load must never replace a loaded child projection.
