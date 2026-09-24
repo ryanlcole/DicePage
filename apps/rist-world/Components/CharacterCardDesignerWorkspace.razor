@@ -347,20 +347,20 @@
  static readonly FieldOption[] Catalog=[
   new("Name","TEXT","Identity"),new("Portrait","PORTRAIT","Identity"),new("Concept","TEXT","Identity"),
   new("Attribute","ATTRIBUTE","Attributes"),new("Health","TRACKER","Trackers"),new("Resource","TRACKER","Trackers"),
-  new("Limit","LIMIT","Limits"),new("Skill","VALUE","Skills"),new("Ability","FLARE","Flare"),new("Feat","FLARE","Feats"),new("Spell","MAGIC","Magic"),
+  new("Limit","LIMIT","Limits"),new("Skill","VALUE","Skills"),new("Ability","FLARE","Flare"),new("Feat","FLARE","Feats"),new("Power","POWER","Powers"),
   new("Description","LONGTEXT","Profile"),new("Background","LONGTEXT","Profile"),new("Equipment","EQUIPMENT","Equipment"),
   new("Inventory","EQUIPMENT","Equipment"),new("Anatomy","LONGTEXT","Equipment"),new("Conditions","CONDITIONS","Status"),
   new("Language","LANGUAGE","Languages"),new("Notes","LONGTEXT","Notes"),new("Linked Reference","LINKED","Linked"),new("Dice Bag","DICE","Dice")
  ];
  static readonly FieldTypeOption[] FieldTypes=[
   new("ATTRIBUTE","Attribute","Attributes"),new("TRACKER","Tracker / Pool","Trackers"),new("LIMIT","Limit","Limits"),new("VALUE","Skill / Value","Skills"),
-  new("FLARE","Flare / Ability","Flare"),new("MAGIC","Spell / Magic","Magic"),new("TEXT","Text","Identity"),new("LONGTEXT","Long Text","Notes"),new("PORTRAIT","Portrait","Identity"),
+  new("FLARE","Flare / Ability","Flare"),new("POWER","Power","Powers"),new("TEXT","Text","Identity"),new("LONGTEXT","Long Text","Notes"),new("PORTRAIT","Portrait","Identity"),
   new("EQUIPMENT","Equipment / Inventory","Equipment"),new("CONDITIONS","Conditions","Status"),new("LANGUAGE","Language / Proficiency","Languages"),new("LINKED","Linked Reference","Linked"),new("DICE","Dice Bag","Dice")
  ];
  static readonly FieldAssetOption[] FieldAssets=[
   new("blank","Blank Field","asset-blank",["*"]),new("numeric-plate","Numeric Plate","asset-numeric",["ATTRIBUTE","VALUE","LIMIT"]),
   new("slider","Equalizer Slider","asset-slider",["ATTRIBUTE","VALUE","TRACKER","LIMIT"]),new("meter","Resource Meter","asset-meter",["TRACKER","LIMIT"]),
-  new("dial","Resource Dial","asset-dial",["TRACKER","LIMIT"]),new("text-panel","Writing Panel","asset-text-panel",["TEXT","LONGTEXT","FLARE","MAGIC","EQUIPMENT","CONDITIONS","LANGUAGE","LINKED","DICE"]),
+  new("dial","Resource Dial","asset-dial",["TRACKER","LIMIT"]),new("text-panel","Writing Panel","asset-text-panel",["TEXT","LONGTEXT","FLARE","POWER","EQUIPMENT","CONDITIONS","LANGUAGE","LINKED","DICE"]),
   new("portrait-frame","Portrait Frame","asset-portrait-frame",["PORTRAIT"])
  ];
 
@@ -673,7 +673,7 @@
   "PORTRAIT"=>"PORTRAIT",
   _=>string.IsNullOrWhiteSpace(value.Text)?"—":value.Text
  };
- static string FriendlyKind(string kind)=>kind switch{"ATTRIBUTE"=>"Attribute","TRACKER"=>"Tracker / Pool","LIMIT"=>"Limit","VALUE"=>"Skill / Value","FLARE"=>"Flare / Ability","MAGIC"=>"Spell / Magic","LONGTEXT"=>"Long Text","PORTRAIT"=>"Portrait","EQUIPMENT"=>"Equipment / Inventory","CONDITIONS"=>"Conditions","LANGUAGE"=>"Language / Proficiency","LINKED"=>"Linked Reference","DICE"=>"Dice Bag",_=>"Text"};
+ static string FriendlyKind(string kind)=>kind switch{"ATTRIBUTE"=>"Attribute","TRACKER"=>"Tracker / Pool","LIMIT"=>"Limit","VALUE"=>"Skill / Value","FLARE"=>"Flare / Ability","POWER"=>"Power","MAGIC"=>"Power (legacy)","LONGTEXT"=>"Long Text","PORTRAIT"=>"Portrait","EQUIPMENT"=>"Equipment / Inventory","CONDITIONS"=>"Conditions","LANGUAGE"=>"Language / Proficiency","LINKED"=>"Linked Reference","DICE"=>"Dice Bag",_=>"Text"};
  static string AssetClass(FieldDefinition field)=>field.AssetId=="custom"?"asset-custom":FieldAssets.FirstOrDefault(x=>x.Id==field.AssetId)?.CssClass??"asset-blank";
  static string F(double value)=>value.ToString("0.0",System.Globalization.CultureInfo.InvariantCulture);
  static double Clamp(double value,double min,double max)=>Math.Max(min,Math.Min(max,value));
