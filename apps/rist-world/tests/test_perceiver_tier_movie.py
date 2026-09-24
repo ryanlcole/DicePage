@@ -233,6 +233,13 @@ def test_perceiver_uses_standard_sprite_sheets_for_movies():
     assert "loadSpriteFiles" in player
     assert "renderSpriteFrame" in player
     assert "state.mode = 'sprite'" in player
+    assert "knownSpriteLayout" in player
+    assert "dragon_water" in player
+    assert "dragon_celestial" in player
+    assert "dragon_night" in player
+    assert "foreground" in player
+    assert "background" in player
+    assert "effects" in player
 
     # Uploaded video is captured on presented video frames, split into the
     # seven parallax tiers, and exported as ordinary WebP sprite sheets.
