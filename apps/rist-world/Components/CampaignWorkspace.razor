@@ -1,0 +1,208 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject AwsAuthorityClient Authority
+@inject IJSRuntime JS
+
+<section class="campaign-workspace" aria-label="Campaign">
+ <header class="campaign-header">
+  <div>
+   <small>CAMPAIGN · AUTHORITY · PEOPLE</small>
+   <h1>CAMPAIGN</h1>
+   <p>Plan the campaign, connect the people in it, then grant only the permissions they need.</p>
+  </div>
+  <span class="campaign-world">@Session.WorldDisplayName</span>
+ </header>
+
+ <nav class="campaign-tabs" aria-label="Campaign sections">
+  <button type="button" class="@TabClass("story")" @onclick="()=>_tab="story"">STORY ARC</button>
+  <button type="button" class="@TabClass("sessions")" @onclick="()=>_tab="sessions"">SESSIONS</button>
+  <button type="button" class="@TabClass("scenes")" @onclick="()=>_tab="scenes"">SCENES</button>
+  <button type="button" class="@TabClass("actors")" @onclick="()=>_tab="actors"">ACTORS</button>
+  <button type="button" class="@TabClass("connections") conspirators" @onclick="()=>_tab="connections"">VICTIMS &amp; CO‑CONSPIRATORS</button>
+  <button type="button" class="@TabClass("notes")" @onclick="()=>_tab="notes"">NOTES</button>
+ </nav>
+
+ @if(_tab=="connections")
+ {
+  <div class="campaign-connection-layout">
+   <section class="connection-panel">
+    <header>
+     <div><small>ACCOUNT LINK</small><h2>VICTIMS &amp; CO‑CONSPIRATORS</h2></div>
+     <span>@_connections.Count CONNECTED</span>
+    </header>
+    <p class="connection-intro">Connect authenticated RIST accounts with a one-use code. Connecting an account does not grant access by itself; it adds that identity to the permissions directory.</p>
+
+    @if(!Session.IsLoggedIn)
+    {
+     <div class="connection-empty"><strong>SIGN IN REQUIRED</strong><span>Account connections are server-authoritative and cannot be created from an anonymous browser session.</span></div>
+    }
+    else
+    {
+     <div class="connection-code-grid">
+      <section>
+       <strong>SEND A CODE</strong>
+       <small>Create a one-use connection code and send it to the other person.</small>
+       <label><span>NOTE <em>optional</em></span><input maxlength="120" @bind="_inviteLabel" placeholder="Saturday group, co-GM, playtester…" /></label>
+       <button type="button" class="primary" disabled="@_busy" @onclick="CreateInviteAsync">@(_busy?"WORKING…":"GENERATE CODE")</button>
+       @if(_invite is not null)
+       {
+        <div class="connection-code">
+         <code>@_invite.Code</code>
+         <button type="button" @onclick="CopyCodeAsync">COPY</button>
+         <small>One use · expires @InviteExpiry</small>
+        </div>
+       }
+      </section>
+
+      <section>
+       <strong>HAVE A CODE?</strong>
+       <small>Enter a code another authenticated user sent you.</small>
+       <label><span>CONNECTION CODE</span><input maxlength="160" autocomplete="off" autocapitalize="off" spellcheck="false" @bind="_redeemCode" placeholder="rcc_…" /></label>
+       <button type="button" class="primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_redeemCode))" @onclick="RedeemAsync">@(_busy?"WORKING…":"CONNECT ACCOUNTS")</button>
+      </section>
+     </div>
+
+     @if(!string.IsNullOrWhiteSpace(_status))
+     {
+      <p class="connection-status" role="status">@_status</p>
+     }
+
+     <section class="permission-directory" aria-label="Permissions directory">
+      <header>
+       <div><strong>PERMISSIONS DIRECTORY</strong><small>These authenticated identities can now be selected when assigning campaign or asset permissions.</small></div>
+       <button type="button" disabled="@_busy" @onclick="LoadConnectionsAsync">REFRESH</button>
+      </header>
+
+      @if(_loading)
+      {
+       <div class="connection-empty"><strong>LOADING DIRECTORY…</strong></div>
+      }
+      else if(_connections.Count==0)
+      {
+       <div class="connection-empty"><strong>NO CO‑CONSPIRATORS YET</strong><span>Generate a code or redeem one to connect another account.</span></div>
+      }
+      else
+      {
+       <div class="connection-list">
+        @foreach(var connection in _connections)
+        {
+         <article>
+          <div class="connection-avatar" aria-hidden="true">@Initial(connection.DisplayName)</div>
+          <div class="connection-copy">
+           <strong>@connection.DisplayName</strong>
+           <small>CONNECTED @ConnectedDate(connection)</small>
+          </div>
+          <div class="connection-permission">
+           <span>DEFAULT ASSET STATE</span>
+           <b>@PermissionPresentation.WaitingForGameMaster</b>
+          </div>
+          <button type="button" class="disconnect" disabled="@_busy" @onclick="()=>DisconnectAsync(connection)">UNLINK</button>
+         </article>
+        }
+       </div>
+      }
+     </section>
+
+     <aside class="permission-rule">
+      <strong>DEFAULT RULE</strong>
+      <p>Every asset is permission-bearing. A connected player with no explicit or inherited grant is shown as <b>@PermissionPresentation.WaitingForGameMaster</b>. Connecting an account never silently grants View or Edit.</p>
+      <div><span>WAITING FOR GM</span><span>VIEW</span><span>EDIT</span><span>PUBLIC</span><span>DENY</span></div>
+     </aside>
+    }
+   </section>
+  </div>
+ }
+ else
+ {
+  <section class="campaign-placeholder">
+   <small>@_tab.ToUpperInvariant()</small>
+   <h2>@TabTitle</h2>
+   <p>This Campaign section remains available for the campaign workflow. Victims &amp; Co‑Conspirators is active now because it is the identity source for recursive permissions.</p>
+  </section>
+ }
+</section>
+
+<style>
+ .campaign-workspace{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;background:#05090d;color:#e7dfcd;font-family:Inter,system-ui,-apple-system,sans-serif}.campaign-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 15px;border-bottom:1px solid #6d592f;background:linear-gradient(90deg,#09141b,#171209)}.campaign-header small{color:#80a2b2;font-size:7px;font-weight:900;letter-spacing:.14em}.campaign-header h1{margin:2px 0;color:#edd393;font:600 20px/1 Georgia,serif;letter-spacing:.07em}.campaign-header p{margin:4px 0 0;color:#96a9b1;font-size:9px}.campaign-world{padding:6px 9px;border:1px solid #596a72;border-radius:999px;color:#c8d6dc;font:900 8px system-ui;white-space:nowrap}.campaign-tabs{display:flex;gap:5px;padding:7px 8px;border-bottom:1px solid #293e48;background:#071118;overflow-x:auto}.campaign-tabs button{flex:0 0 auto;min-height:35px;padding:0 9px;border:1px solid #344a55;border-radius:7px;background:#0a161d;color:#97a9b1;font:900 7px system-ui;letter-spacing:.06em;white-space:nowrap}.campaign-tabs button.active{border-color:#b18b43;background:#1e190e;color:#efd795}.campaign-tabs button.conspirators.active{box-shadow:0 0 0 1px #b18b4333 inset}.campaign-connection-layout{min-height:0;overflow:auto;padding:12px}.connection-panel{width:min(1100px,100%);margin:0 auto;display:grid;gap:12px}.connection-panel>header{display:flex;justify-content:space-between;align-items:center;gap:10px}.connection-panel>header small{color:#759aac;font-size:7px;font-weight:900;letter-spacing:.12em}.connection-panel>header h2{margin:2px 0;color:#efd394;font:600 19px Georgia,serif}.connection-panel>header>span{padding:5px 7px;border:1px solid #52656d;border-radius:999px;color:#98b1bc;font:900 7px system-ui}.connection-intro{margin:0;color:#a4b2b7;font-size:9px;line-height:1.5}.connection-code-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.connection-code-grid>section{display:grid;align-content:start;gap:7px;padding:11px;border:1px solid #40545d;border-radius:9px;background:#08131a}.connection-code-grid>section>strong{color:#e1c67e;font-size:9px;letter-spacing:.08em}.connection-code-grid>section>small{color:#849aa4;font-size:8px}.connection-code-grid label{display:grid;gap:4px}.connection-code-grid label>span{color:#8197a1;font:900 7px system-ui;letter-spacing:.08em}.connection-code-grid label em{font-weight:500;color:#657a84}.connection-code-grid input{box-sizing:border-box;width:100%;min-height:37px;border:1px solid #465b65;border-radius:7px;background:#0b171e;color:#eadfbe;padding:6px 8px;font:800 10px system-ui;-webkit-user-select:text;user-select:text}.connection-code-grid button,.permission-directory button{min-height:35px;border:1px solid #536873;border-radius:7px;background:#0d1920;color:#dfd7c1;padding:0 9px;font:900 8px system-ui}.connection-code-grid button.primary{border-color:#96763a;background:#211b0d;color:#f2d892}.connection-code{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:8px;border:1px solid #6d5a32;border-radius:7px;background:#16140c}.connection-code code{overflow:auto;color:#f2dc9e;font-size:9px;-webkit-user-select:text;user-select:text}.connection-code small{grid-column:1/-1;color:#8d947c;font-size:7px}.connection-status{margin:0;padding:8px 10px;border:1px solid #476659;border-radius:7px;background:#0a1712;color:#bde1ce;font-size:9px}.permission-directory{display:grid;gap:8px;padding:11px;border:1px solid #4d6069;border-radius:10px;background:#071118}.permission-directory>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.permission-directory>header div{display:grid;gap:2px}.permission-directory>header strong{color:#e0c67d;font-size:9px;letter-spacing:.09em}.permission-directory>header small{color:#8499a2;font-size:8px}.connection-list{display:grid;gap:6px}.connection-list article{display:grid;grid-template-columns:38px minmax(0,1fr) minmax(120px,180px) auto;gap:8px;align-items:center;padding:7px;border:1px solid #31464f;border-radius:8px;background:#0a151c}.connection-avatar{display:grid;place-items:center;width:36px;height:36px;border:1px solid #806a3c;border-radius:50%;background:#171a14;color:#e8cc83;font:700 14px Georgia,serif}.connection-copy{display:grid;gap:2px;min-width:0}.connection-copy strong{color:#e7dfca;font-size:10px;overflow:hidden;text-overflow:ellipsis}.connection-copy small{color:#768c96;font-size:7px}.connection-permission{display:grid;gap:2px}.connection-permission span{color:#768b94;font:900 6px system-ui;letter-spacing:.07em}.connection-permission b{color:#e0be69;font-size:8px}.disconnect{border-color:#70493f!important;color:#dda99b!important;background:#1a100e!important}.permission-rule{display:grid;gap:6px;padding:10px;border:1px dashed #665630;border-radius:8px;background:#11120d}.permission-rule>strong{color:#d7bb70;font-size:8px;letter-spacing:.1em}.permission-rule p{margin:0;color:#9ca7a5;font-size:8px;line-height:1.45}.permission-rule p b{color:#e2c46f}.permission-rule>div{display:flex;flex-wrap:wrap;gap:5px}.permission-rule>div span{padding:4px 6px;border:1px solid #48585c;border-radius:999px;color:#8ea0a5;font:900 6px system-ui}.connection-empty,.campaign-placeholder{display:grid;gap:5px;padding:20px;border:1px dashed #526671;border-radius:10px;text-align:center;color:#8398a2}.connection-empty strong,.campaign-placeholder h2{color:#d9c17e}.connection-empty span,.campaign-placeholder p{color:#879aa3;font-size:9px}.campaign-placeholder{margin:20px;place-self:start stretch}.campaign-placeholder small{color:#7896a5;font:900 7px system-ui;letter-spacing:.12em}.campaign-placeholder h2{margin:0;font:600 18px Georgia,serif}.campaign-placeholder p{margin:0}
+ @@media(max-width:720px){.campaign-header p{display:none}.campaign-header h1{font-size:16px}.campaign-connection-layout{padding:7px}.connection-code-grid{grid-template-columns:1fr}.connection-list article{grid-template-columns:34px minmax(0,1fr) auto}.connection-permission{grid-column:2}.connection-list article .disconnect{grid-column:3;grid-row:1/3}.campaign-tabs{padding:5px}.campaign-tabs button{min-height:32px;padding:0 7px;font-size:6px}}
+</style>
+
+@code {
+ string _tab="connections";
+ string _inviteLabel="",_redeemCode="",_status="";
+ bool _busy,_loading=true;
+ AwsAuthorityClient.CollaborationInvite? _invite;
+ readonly List<AwsAuthorityClient.CollaborationConnection> _connections=[];
+
+ string TabClass(string tab)=>_tab==tab?"active":"";
+ string TabTitle=>_tab switch{"story"=>"Story Arc","sessions"=>"Sessions","scenes"=>"Scenes","actors"=>"Actors","notes"=>"Notes",_=>"Campaign"};
+ string InviteExpiry=>_invite is null?"":DateTimeOffset.FromUnixTimeSeconds(_invite.ExpiresAtEpoch).ToLocalTime().ToString("MMM d, h:mm tt");
+ static string Initial(string value)=>string.IsNullOrWhiteSpace(value)?"?":value.Trim()[0].ToString().ToUpperInvariant();
+ static string ConnectedDate(AwsAuthorityClient.CollaborationConnection value)=>DateTimeOffset.TryParse(value.ConnectedAtUtc,out var date)?date.ToLocalTime().ToString("MMM d, yyyy"):value.ConnectedAtUtc;
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender)return;
+  await LoadConnectionsAsync();
+ }
+
+ async Task LoadConnectionsAsync()
+ {
+  if(!Session.IsLoggedIn){_loading=false;return;}
+  _loading=true;
+  try{
+   var rows=await Authority.GetConnectionsAsync()??[];
+   _connections.Clear();_connections.AddRange(rows.OrderBy(x=>x.DisplayName,StringComparer.OrdinalIgnoreCase));
+  }
+  catch(Exception ex){_status="DIRECTORY ERROR · "+ex.Message;}
+  finally{_loading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task CreateInviteAsync()
+ {
+  if(_busy||!Session.IsLoggedIn)return;_busy=true;_status="";
+  try{
+   _invite=await Authority.CreateConnectionInviteAsync(_inviteLabel.Trim());
+   _status=_invite is null?"CODE CREATION FAILED":"CODE READY · send it to the person you want to connect.";
+  }
+  catch(Exception ex){_status="CODE ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task CopyCodeAsync()
+ {
+  if(_invite is null)return;
+  try{await JS.InvokeVoidAsync("navigator.clipboard.writeText",_invite.Code);_status="CODE COPIED";}
+  catch{_status="COPY NOT AVAILABLE · select the code and copy it manually.";}
+ }
+
+ async Task RedeemAsync()
+ {
+  if(_busy||string.IsNullOrWhiteSpace(_redeemCode)||!Session.IsLoggedIn)return;_busy=true;_status="";
+  try{
+   var result=await Authority.RedeemConnectionInviteAsync(_redeemCode.Trim());
+   if(result?.Ok==true){
+    _status=result.AlreadyConnected?"ALREADY CONNECTED":"ACCOUNTS CONNECTED · identity added to the permissions directory.";
+    _redeemCode="";
+    await LoadConnectionsAsync();
+   }else _status="CONNECTION FAILED";
+  }
+  catch(Exception ex){_status="CONNECTION ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task DisconnectAsync(AwsAuthorityClient.CollaborationConnection connection)
+ {
+  if(_busy)return;_busy=true;_status="";
+  try{
+   var ok=await Authority.RevokeConnectionAsync(connection.LinkedUserId);
+   _status=ok?"ACCOUNTS UNLINKED":"UNLINK FAILED";
+   if(ok)await LoadConnectionsAsync();
+  }
+  catch(Exception ex){_status="UNLINK ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ public ValueTask DisposeAsync()=>ValueTask.CompletedTask;
+}
