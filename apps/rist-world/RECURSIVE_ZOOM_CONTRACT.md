@@ -1,139 +1,119 @@
 # Shaelvien recursive zoom — governing spatial contract
 
-**Status: canonical design requirement.** This contract governs the next
-RegionDefiner → Local → Instance refactor; it is not a claim that the present
-runtime has implemented every requirement.
+**Status: canonical design requirement.**
 
-## One world, continuously traversed
+## One connected world
 
-WorldBuilder, RegionDefiner, Local and Instance are **levels of representation
-of the same persistent world**, not independent or duplicated maps. Every
-object retains stable identity, ancestry, canonical parent coordinates, layer
-provenance and permissions as a camera zooms down or back up. The database
-stores one recursively addressable spatial graph; clients load only the nodes
-and asset subsets needed for the currently authorized view.
+WorldBuilder, RegionDefiner, Local, and Instance are connected levels of representation, not duplicated realities. X/Y identity and ancestry survive every recursion and every zoom transition.
 
-The world view owns its own tiers. Each deeper editing view starts from an
-*exact chosen parent tier* and *exact chosen parent source tiles*. That selection
-becomes the child's base working surface (the "table"), upon which the child
-builds its own **relative** layers and tiers (the next cakes). A child's first
-editable layer is not another parent-world tier.
+The first three scales share one exact external spatial address:
 
-### WorldBuilder — source world
+**World → Region → Local**
 
-WorldBuilder authors the full world terrain, water, lakes, source tiles and
-world tiers. Region creation selects actual source tile identities and
-addresses **on a chosen world tier**, not visual hexes or positions projected
-from the browser viewport. A selectable grid is allowed as the UI, but each
-hit must resolve to one canonical source tile identity and must round-trip
-through the exact parent map coordinate transform. Camera zoom, tilt, crop or
-screen size must not change which world tile is selected.
+Instance is different: entering a building or landmark opens a new interior world whose external anchor is the object or landmark that contains it.
 
-### RegionDefiner — 15-degree representation
+## WorldBuilder — integer Z
 
-On deed approval, the claimed source tile subset of the selected world tier
-becomes the **immutable regional base**. The region's selected tiles are
-streamed from the canonical source: unselected world tile data, artwork and
-unrevealed locations are not loaded into the editing view. A full-world image
-can be used in the *pre-claim world selection* preview, but a claimed region
-must use indexed/cropped source assets instead of silently transferring full
-world tier images to mask client-side. Any legacy bitmap-only world tier needs
-an indexing/extraction path before this guarantee is true.
+WorldBuilder is the full world map and terrain authoring system.
 
-Regional objects such as cities, lakeside buildings, roads and sprites occupy
-editable layers **relative to that regional base**. The terrain and lakes
-inherited from the selected parent source tier remain visible and immutable.
-A new city placed on the base moves with its terrain: it does not get independent
-parallax and is not silently promoted into another parent-world tier. Only
-placing an object into an explicitly created *regional* higher tier introduces
-relative depth/parallax. A parent world tier and a child regional tier are
-distinct identifiers, even when their ordinal numbers happen to match.
+Within a selected World tier, World depth is integer Z `0 … 9`:
 
-### Local — 30-degree representation
+- `0` = World layer 1
+- …
+- `9` = World layer 10
 
-Select source tiles and a tier from the region's authored spatial graph. The
-selected regional subset becomes the local base. Local adds its own editable
-relative layers and tiers while keeping the source region objects and parent
-relationships intact. Local terrain is not an independent copy of a world
-image.
+World terrain, lakes, roads, and world-scale authored objects occupy this integer structure.
 
-### Instance — 45-degree representation
+Region claims select exact X/Y coordinates from one World tier. Claiming never creates a replacement map.
 
-Select source tiles and a tier from Local. Its base can represent a structure
-or location; its editable layers and tiers provide interiors and finer detail.
-The same identity, permission, source-selection and coordinate rules apply.
+## RegionDefiner — hundredth Z, 15°
 
-## Coordinates and identity
+RegionDefiner is WorldBuilder filtered to the selected World tier and selected claimed coordinates.
 
-- Parent nodes have immutable world-scoped IDs. Children persist
-  `worldId`, `parentNodeId`, `parentTierId` and the exact ordered
-  `sourceTileIds` or validated equivalent canonical cell addresses.
-- A child's local XY is mapped into its selected source tile footprint through
-  an explicit, reversible parent/child transform. Relative depth uses the
-  child's own tier/layer address and does not overwrite parent Z.
-- Child edits persist under the child's identity within the same canonical
-  world graph, with parent linkage and exact permission scope. Independent
-  recovery caches are not additional world truth.
-- A client requesting RegionDefiner, Local or Instance gets the authorized
-  selected source subset plus child-owned layers, not a full parent-world
-  snapshot with an obscuring opacity mask.
+The selected WorldBuilder source cells become the RegionDefiner table and are immutable. Regional detail is placed directly above World integer Z at hundredths:
+
+- `0.01 … 0.09`
+- `1.01 … 1.09`
+- …
+- `9.01 … 9.09`
+
+Regional objects stay attached to the parent map. They do **not** receive independent parallax merely because they are regional.
+
+Storage uses exact components rather than binary floating point:
+
+- parent World tier
+- `worldLayer` 0–9
+- `regionLayer` 1–9
+- `z100 = worldLayer * 100 + regionLayer`
+- canonical X/Y
+- region identity and parent provenance
+
+## Local — tenth Z, 30°
+
+Local reuses the same parent coordinate model at the next visual scale.
+
+Local detail occupies tenths:
+
+- `0.1 … 0.9`
+- `1.1 … 1.9`
+- …
+- `9.1 … 9.9`
+
+This is a finer representation of the same place, shown at 30°. Local does not copy or replace the World or Region truth.
+
+Exact storage must preserve scale separately so `0.1` is not confused with `0.10` as a floating-point artifact. The renderer may display decimal Z, but identity is structured.
+
+## Instance Builder — separate interior world, 45°
+
+Instance is not merely another decimal band of the exterior map.
+
+Recursing into a building, landmark, dungeon entrance, vessel, portal, or similar object opens an **Instance Builder**. Instance Builder is a WorldBuilder-style authoring system for the inner world anchored to that exterior object.
+
+Its important properties are:
+
+- 45° representation;
+- independent interior X/Y extent;
+- tier after tier and layer after layer may be built;
+- interior size is not required to match exterior footprint;
+- the instance keeps a stable parent anchor to the exterior object;
+- exiting the instance resolves back to the same exterior identity and coordinates.
+
+This allows a hut, tower, cave, ship, portal, or magical landmark to contain an interior world of any required size without corrupting exterior scale.
 
 ## Continuous zoom
 
-The camera moves across World → Region → Local → Instance representation
-boundaries without changing the underlying world or replacing an object's
-identity. The renderer may change tilt (world native angle, 15°, 30°, 45°),
-scale, assets, spatial resolution and interaction scope at each boundary.
-Zooming back out resolves the same parent node and original location.
-Parallax is **relative to the owning tier**, not a side effect of moving
-between editor pages or cropping the viewport.
+World → Region → Local remains one continuously connected exterior spatial system.
 
-Permission-filtered streaming is part of the traversal: the viewer receives
-only authorized ancestors, selected parent source tiles and the currently
-permitted child depth. Existing region deeds must not be silently remapped
-when tile indexing or transform code changes; explicitly review and migrate
-legacy deeds when their saved footprint is ambiguous.
+Camera scale and representation may change while identity stays fixed:
 
-## Mandatory end-to-end acceptance
+- World: native WorldBuilder representation
+- Region: 15°
+- Local: 30°
+- Instance: enter separate anchored 45° interior system
 
-1. Select one WorldBuilder tier and exact source tiles covering a lake. Confirm
-   that panning, zooming and selection overlay position cannot change their IDs.
-2. Claim those tiles. The region loader requests only that source subset and
-   resolves the lake in the immutable regional base. No neighboring world
-   tiles or entire full-world tier PNG are transferred after the claim.
-3. Place a city on the region base and edit it by touch and mouse. With camera
-   pan, zoom and tilt, the city stays attached to the same terrain/lake position
-   and has no independent parallax.
-4. Add an explicit higher regional tier and place an object there. That object
-   may exhibit parallax relative to the regional base; the world source tier
-   remains unchanged.
-5. Zoom back out to World and back into the region. Verify the same IDs,
-   coordinates, lake, city, relative depth and permissions, with no duplicate
-   world or region records.
-6. Repeat from a chosen region tier to Local at 30°, then from a chosen Local
-   tier to Instance at 45°. Round-trip all the way back to World without any
-   positional drift or loss of source provenance.
+Zooming back out must resolve the same parent object, coordinates, permissions, and authored state.
 
-## Implementation and outstanding work
+## Permission-filtered streaming
 
-The RegionDefiner child projection endpoint filters saved deeds to exact selected
-source cells, parent tier and source layers. Region-owned objects and independently
-authored regional tier stacks persist under child nodes in the same world graph.
-The approved Geonaph source tiers are pre-indexed into individual hex/square WebP
-source cells, and individually authored source tiles can be projected by their
-cell addresses. Private Sandbox worlds can project independently published
-source tiles using owner-scoped storage; parent world images are never returned
-whole to claimed-region viewers.
+Clients receive only the currently authorized subset.
 
-Legacy full-world bitmap art in a non-Geonaph world still needs an index/export
-pass before its terrain is visible in the claimed-region view. The editor
-reports that missing index rather than downloading the full parent world and
-masking other territory. Exact deed IDs, parent coordinates and ownership
-must remain unchanged during asset migration.
+A claimed Region receives only its selected World coordinates and permitted source layers. A Local view receives only the permitted subset needed for that Local representation. Instance receives the authorized interior node and its descendants.
 
-Continuous camera crossing from WorldBuilder into RegionDefiner and then
-Local (30°) and Instance (45°) is later integration work. The regional child
-workspace and relative tiers are in the present build; do not claim completed
-cross-level continuous zoom or Local/Instance editing prematurely. CI plus
-interactive mobile verification of a claimed lake and editable city remain
-release acceptance gates.
+Permission filtering changes what is delivered; it does not create another truth.
+
+## Mandatory acceptance
+
+1. Select a World tier and exact cells that include recognizable terrain such as a lake.
+2. Claim them and confirm RegionDefiner loads those exact coordinates only.
+3. Confirm inherited lake/terrain remains visible and untouchable.
+4. Place a city at `0.01`, move/edit it, and verify it stays attached to the parent map with no independent parallax.
+5. Move regional placement through `.01 … .09` and World Z `0 … 9` without changing the claimed World tier or X/Y authority.
+6. Reopen the region and confirm the same coordinates, exact Z, identities, and edits.
+7. Build Local at 30° using the tenth-depth address model and verify round-trip back to Region and World.
+8. Enter a building/landmark into the 45° Instance Builder, build an interior larger or smaller than the exterior footprint, then exit to the same exterior anchor.
+
+## Current implementation boundary
+
+RegionDefiner now targets the filtered-WorldBuilder model with integer World Z and hundredth Region overlays. Previous independent regional child-tier state is obsolete.
+
+Local tenth-depth rendering and the separate 45° Instance Builder are the next implementation stages. Do not represent them as production-complete until their own runtime and round-trip acceptance tests pass.
