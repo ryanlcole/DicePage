@@ -68,6 +68,18 @@
    </div>
   </div>
 
+  <div class="perceiver-sprite-editor" data-perceiver-sprite-editor hidden aria-label="Sprite editing laboratory">
+   <label><span>SPRITE</span><select data-perceiver-sprite-select aria-label="Select sprite layer"></select></label>
+   <label><span>SIZE ×</span><input data-perceiver-sprite-size type="number" min="0.05" max="8" step="0.01" inputmode="decimal" value="1" /></label>
+   <label class="wide"><span>FINE SIZE</span><input data-perceiver-sprite-size-range type="range" min="0.05" max="8" step="0.01" value="1" /></label>
+   <label><span>X %</span><input data-perceiver-sprite-x type="number" min="-100" max="100" step="0.1" inputmode="decimal" value="0" /></label>
+   <label><span>Y %</span><input data-perceiver-sprite-y type="number" min="-100" max="100" step="0.1" inputmode="decimal" value="0" /></label>
+   <label><span>OPACITY %</span><input data-perceiver-sprite-opacity type="number" min="0" max="100" step="1" inputmode="numeric" value="100" /></label>
+   <label><span>FPS</span><input data-perceiver-sprite-fps type="number" min="1" max="60" step="1" inputmode="numeric" value="60" /></label>
+   <button type="button" data-perceiver-sprite-motion-only aria-pressed="false">MOTION ONLY</button>
+   <button type="button" data-perceiver-sprite-reset>RESET SPRITE</button>
+  </div>
+
   <div class="perceiver-layer-strip" data-perceiver-layer-strip hidden aria-label="Spectral video layers">
    <button type="button" data-perceiver-layer="all" aria-pressed="false">ALL</button>
    <button type="button" data-perceiver-layer="1" aria-pressed="false">1 VIO</button>
@@ -100,7 +112,14 @@
  .perceiver-control-row button,.perceiver-layer-strip button{min-height:34px;border:1px solid #5b6e77;border-radius:7px;background:#0f1a20;color:#ecd9a5;padding:0 9px;font:800 9px/1 system-ui;touch-action:manipulation;white-space:nowrap}
  .perceiver-control-row button:hover,.perceiver-layer-strip button:hover{border-color:#c6a253}.perceiver-source-controls{justify-self:auto}.perceiver-speed{display:flex;gap:5px;align-items:center;justify-content:center}.perceiver-speed label{color:#8fb6c7;font:800 9px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
  .perceiver-layer-strip{grid-column:1/-1;display:flex;gap:4px;align-items:center;justify-content:center;overflow-x:auto;padding:1px 0 0;scrollbar-width:none}.perceiver-layer-strip[hidden]{display:none}.perceiver-layer-strip::-webkit-scrollbar{display:none}.perceiver-layer-strip button{min-width:52px;padding:0 7px}.perceiver-layer-strip button.active{border-color:#e2bd61;background:#2a210d;color:#ffe39b}
- .perceiver-proof-note{grid-column:1/-1;justify-self:center;margin:0;color:#8ea4ae;font:700 9px/1.2 system-ui;text-align:center}
+ .perceiver-sprite-editor{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:6px;border:1px solid rgba(174,142,73,.36);border-radius:9px;background:rgba(4,10,14,.78)}
+ .perceiver-sprite-editor[hidden]{display:none!important}
+ .perceiver-sprite-editor label{display:grid;gap:3px;min-width:0;color:#8fb6c7;font:800 7px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
+ .perceiver-sprite-editor label.wide{grid-column:span 2}
+ .perceiver-sprite-editor input,.perceiver-sprite-editor select,.perceiver-sprite-editor button{box-sizing:border-box;min-width:0;min-height:34px;border:1px solid #5b6e77;border-radius:7px;background:#0f1a20;color:#ecd9a5;padding:4px 7px;font:800 9px/1 system-ui;touch-action:manipulation}
+ .perceiver-sprite-editor input[type=range]{padding:0;accent-color:#d9b75e}
+ .perceiver-sprite-editor button[aria-pressed=true]{border-color:#d6b45e;background:#2b220e;color:#ffe49b}
+  .perceiver-proof-note{grid-column:1/-1;justify-self:center;margin:0;color:#8ea4ae;font:700 9px/1.2 system-ui;text-align:center}
  .perceiver-workspace:fullscreen,.perceiver-workspace.perceiver-pseudo-fullscreen{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;background:#02070a}
  .perceiver-workspace:fullscreen{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
  .perceiver-workspace.perceiver-pseudo-fullscreen{position:fixed!important;inset:0!important;z-index:2147483000!important;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -149,6 +168,7 @@
    min-width:72px;
    width:auto
   }
+  .perceiver-sprite-editor{grid-template-columns:1fr 1fr}.perceiver-sprite-editor label.wide{grid-column:1/-1}
   .perceiver-proof-note{font-size:8px}
   .perceiver-layer-strip{
    grid-column:1;
@@ -253,7 +273,7 @@
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
-  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-video-sprite-atlas-1");
+  _module = await JS.InvokeAsync<IJSObjectReference>("import", "./perceiver-player.js?v=20260924-sprite-editor-1");
   await _module.InvokeVoidAsync("attach", _root, new
   {
    tierImages = _tierImages,
