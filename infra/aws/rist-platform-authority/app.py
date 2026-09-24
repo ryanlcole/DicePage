@@ -1131,7 +1131,9 @@ def handler(event, context):
     session = auth(event)
     if not session:
         return response(401, {"error": "Authentication required"})
-    ensure_region_z_reset()
+    # The exact-Z reset was a one-time migration, not request-time behavior.
+    # Never run destructive region cleanup from an authenticated API request:
+    # newly authored deeds/overlays must survive Lambda cold starts.
     user_id = session["userId"]
     q = event.get("queryStringParameters") or {}
     now = int(time.time())
