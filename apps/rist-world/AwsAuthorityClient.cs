@@ -36,6 +36,30 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<List<WorldToken>?> GetWorldTokensAsync()
         => await SendAsync<List<WorldToken>>(HttpMethod.Get, "/authority/world-tokens");
 
+    public async Task<List<CollaborationConnection>?> GetConnectionsAsync()
+        => await SendAsync<List<CollaborationConnection>>(HttpMethod.Get, "/authority/connections");
+
+    public async Task<CollaborationInvite?> CreateConnectionInviteAsync(string label = "")
+        => await SendAsync<CollaborationInvite>(
+            HttpMethod.Post,
+            "/authority/connections/invites",
+            new { label });
+
+    public async Task<CollaborationRedeemResult?> RedeemConnectionInviteAsync(string code)
+        => await SendAsync<CollaborationRedeemResult>(
+            HttpMethod.Post,
+            "/authority/connections/redeem",
+            new { code });
+
+    public async Task<bool> RevokeConnectionAsync(string linkedUserId)
+    {
+        var result = await SendAsync<ConnectionMutationResult>(
+            HttpMethod.Post,
+            "/authority/connections/revoke",
+            new { linkedUserId });
+        return result?.Ok == true;
+    }
+
     public async Task<CommerceSummary?> GetCommerceSummaryAsync()
         => await SendAsync<CommerceSummary>(HttpMethod.Get, "/authority/commerce");
 
@@ -217,6 +241,26 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         string SpentAtUtc = "",
         string Source = "",
         string SourceReference = "");
+
+    public sealed record CollaborationConnection(
+        string ConnectionId,
+        string LinkedUserId,
+        string DisplayName,
+        string ConnectedAtUtc,
+        string DefaultAssetPermission = "Waiting for GM");
+
+    public sealed record CollaborationInvite(
+        string InviteId,
+        string Code,
+        long ExpiresAtEpoch,
+        string CreatedAtUtc);
+
+    public sealed record CollaborationRedeemResult(
+        bool Ok,
+        bool AlreadyConnected,
+        CollaborationConnection? Connection);
+
+    public sealed record ConnectionMutationResult(bool Ok);
 
     public sealed record CommerceSummary(
         List<string>? Entitlements = null,
