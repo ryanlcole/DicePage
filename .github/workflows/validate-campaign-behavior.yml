@@ -1,0 +1,60 @@
+name: Validate Recursive Campaign Behavior
+
+on:
+  push:
+    branches:
+      - validation/campaign-behavior-2026-09-25
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify World recursive contract
+        run: python apps/rist-world/tests/test_recursive_scope_worldbuilder_contract.py
+
+      - name: Verify Region recursive contract
+        run: python apps/rist-world/tests/test_recursive_scope_region_contract.py
+
+      - name: Verify Local recursive contract
+        run: python apps/rist-world/tests/test_recursive_scope_local_contract.py
+
+      - name: Verify Instance recursive contract
+        run: python apps/rist-world/tests/test_recursive_scope_instance_contract.py
+
+      - name: Verify Campaign behavior contract
+        run: python apps/rist-world/tests/test_campaign_behavior_contract.py
+
+      - name: Exercise Campaign behavior identity boundary
+        run: dotnet run --project apps/rist-world/tests/campaign-behavior/CampaignBehaviorTests.csproj -c Release
+
+      - name: Verify Local workflow regression
+        run: python apps/rist-world/tests/test_local_definer.py
+
+      - name: Verify private source recursive projection
+        run: dotnet run --project apps/rist-world/tests/private-source/PrivateSourceTests.csproj -c Release
+
+      - name: Verify shared Region Local runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/rist-campaign-tests" --no-audit --no-fund jsdom@26.1.0
+          NODE_PATH="$RUNNER_TEMP/rist-campaign-tests/node_modules" node --test apps/rist-world/tests/region-definer-deed-overlay-runtime.test.cjs
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check apps/rist-world/wwwroot/prototype/prototype.js
+          node --check apps/rist-world/wwwroot/region-definer-host.js
+          node --check apps/rist-world/wwwroot/worldbuilder-z-axis-core.js
+          node --check apps/rist-world/wwwroot/worldbuilder-z-axis.js
+          node --check apps/rist-world/wwwroot/worldbuilder-view-controls.js
+
+      - name: Build RIST WORLD
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
