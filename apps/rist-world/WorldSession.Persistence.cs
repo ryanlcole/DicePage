@@ -39,6 +39,8 @@ public sealed partial class WorldSession
    PlaneIndex,
    TierIndex,
    LayerOffset,
+   RecursiveScopeFormat,
+   RecursiveScopePlacements=ExportRecursiveScopePlacements(),
    Pieces=pieces,
    TileItems=terrain,
    Tiles=terrain,
@@ -213,6 +215,7 @@ public sealed partial class WorldSession
   ViewZoom=1;
   Pieces=[];
   PlacedTiles=[];
+  ImportRecursiveScopePlacements([]);
   ResetTopologyToCanonicalOrigin();
   EnsureGeonaphOriginLayerInvariant();
   MapLocked=true;
@@ -239,7 +242,13 @@ public sealed partial class WorldSession
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
+
+  // Keep the legacy topology intact during migration, then restore only
+  // explicitly versioned recursive-scope truth. An old save with no recursive
+  // records remains legacy; visual similarity never creates child scopes.
   ImportSpatialContent(save.Tiles??[],pieces);
+  ImportRecursiveScopePlacements(save.RecursiveScopePlacements,save.RecursiveScopeFormat);
+
   MapLocked=true;CloseHeaderMenus();Notify();
  }
 
