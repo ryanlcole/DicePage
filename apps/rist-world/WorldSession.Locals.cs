@@ -95,7 +95,8 @@ public sealed partial class WorldSession
         int localTier = 0,
         int localLayer = 0,
         int instanceTier = 0,
-        int instanceLayer = 0)
+        int instanceLayer = 0,
+        int parentRegionLayer = 0)
     {
         if (!HasActiveWorld)
             throw new InvalidOperationException("Choose a world before defining a Local.");
@@ -137,19 +138,28 @@ public sealed partial class WorldSession
             Height: Math.Clamp(height, 0.0001, 1),
             Tier: Math.Clamp(tier, 0, 2),
             Layer: Math.Clamp(layer, 0, 9),
-            RegionLayer: Math.Clamp(regionLayer, 0, 9),
+            RegionLayer: Math.Clamp(regionLayer, 1, 9),
             Z100: Math.Max(0, z100),
             Rotation: rotation,
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
             ParentNodeId: $"region:{region.RegionId}",
-            CoordinateSpace: "canonical-world-xy+hierarchical-depth-v1",
+            CoordinateSpace: "local-root-recursive-v1",
             CreatedAtUtc: now,
             UpdatedAtUtc: now,
-            RegionTier: Math.Max(0, regionTier),
-            LocalTier: Math.Max(0, localTier),
-            LocalLayer: Math.Clamp(localLayer, 0, 9),
+            RegionTier: Math.Max(1, regionTier),
+            // LOCAL depth restarts at the scope boundary. Incoming legacy
+            // localTier/localLayer values are intentionally not promoted into
+            // canonical truth for a newly created Local.
+            LocalTier: 1,
+            LocalLayer: 1,
             InstanceTier: Math.Max(0, instanceTier),
-            InstanceLayer: Math.Clamp(instanceLayer, 0, 9));
+            InstanceLayer: Math.Clamp(instanceLayer, 0, 9),
+            RecursiveScopeFormat: RecursiveScopeFormat,
+            ViewDegrees: 30,
+            ParentScopeId: region.RegionId,
+            ParentAssetId: anchorObjectId,
+            ParentRegionTier: Math.Max(1, regionTier),
+            ParentRegionLayer: Math.Max(1, parentRegionLayer > 0 ? parentRegionLayer : regionLayer));
 
         _locals.Add(local);
         _activeLocalId = local.LocalId;
@@ -358,11 +368,21 @@ public sealed record WorldLocal(
     int LocalTier = 0,
     int LocalLayer = 0,
     int InstanceTier = 0,
-    int InstanceLayer = 0)
+    int InstanceLayer = 0,
+    string RecursiveScopeFormat = "",
+    int ViewDegrees = 30,
+    string ParentScopeId = "",
+    string ParentAssetId = "",
+    int ParentRegionTier = 1,
+    int ParentRegionLayer = 1)
 {
     // Tier/Layer remain the persisted legacy names for World tier/layer.
     public int WorldTier => Tier;
     public int WorldLayer => Layer;
+    [JsonIgnore] public bool HasRecursiveLocalScope =>
+        string.Equals(RecursiveScopeFormat, WorldSession.RecursiveScopeFormat, StringComparison.Ordinal);
+    [JsonIgnore] public int CanonicalLocalTier => HasRecursiveLocalScope ? Math.Max(1, LocalTier) : Math.Max(1, LocalTier + 1);
+    [JsonIgnore] public int CanonicalLocalLayer => HasRecursiveLocalScope ? Math.Max(1, LocalLayer) : Math.Max(1, LocalLayer);
     public RistHierarchicalAddress Address => new RistHierarchicalAddress(
         WorldTier,
         WorldLayer,
