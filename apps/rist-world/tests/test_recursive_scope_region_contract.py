@@ -107,7 +107,8 @@ def test_overlapping_assets_auto_stack_within_same_region_tier():
 def test_region_save_and_restore_carries_recursive_envelope():
     source = prototype()
     assert "recursive:REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item)" in source
-    assert "recursive:raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined" in source
+    assert "const restoredRecursive=raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined;" in source
+    assert "recursive:restoredRecursive" in source
     assert "state.projection!=='region-recursive-scope-v1'&&state.projection!=='region-world-z-v2'" in source
     assert "snapshot.projection==='region-recursive-scope-v1'||snapshot.projection==='region-world-z-v2'" in source
 
@@ -170,14 +171,40 @@ def test_region_list_visibility_lock_and_opacity_are_recursive_appearance_state(
     assert "opacity:clamp(Number(item.opacity??1),0,1)" in source
 
 
-def test_region_list_permission_is_identity_projection_not_geometry():
+def test_region_list_permissions_project_server_authority_for_one_principal():
     source = prototype()
+    host = read("wwwroot/region-definer-host.js")
+    workspace = read("Components/RegionDefinerWorkspace.razor")
     panel = source.split("function renderRecursiveAssetList()", 1)[1].split(
         "function syncRegionEditLayer", 1
     )[0]
-    assert "permissionResourceId" in panel
-    assert "Authority remains server controlled." in panel
-    assert "Permission identity" in panel
+
+    assert "PERMISSION FOR" in panel
+    assert "regionPermissionPrincipal" in panel
+    assert "regionPermissionPrincipals" in panel
+    assert "requestRegionPermissionEditor" in panel
+    assert "saveRegionPermissionEditor" in source
+    assert "request-resource-permissions" in source
+    assert "set-resource-permission" in source
+
+    assert 'data.type==="request-resource-permissions"' in host
+    assert 'data.type==="set-resource-permission"' in host
+    assert '"GetResourcePermissionsForPrototypeAsync"' in host
+    assert '"SetResourcePermissionFromPrototypeAsync"' in host
+
+    assert "GetPermissionDirectoryForPrototypeAsync" in workspace
+    assert "GetResourcePermissionsForPrototypeAsync" in workspace
+    assert "SetResourcePermissionFromPrototypeAsync" in workspace
+    assert "Authority.GetConnectionsAsync()" in workspace
+    assert "Authority.GetResourcePermissionsAsync" in workspace
+    assert "Authority.SetResourcePermissionAsync" in workspace
+
+    # The recursive envelope stores only the stable authority identity; grants
+    # stay on the server and are selected one principal at a time in the UI.
+    assert "permissionResourceId:authority" in source
+    assert "permissions=" not in source.split("function syncRegionRecursiveEnvelope", 1)[1].split(
+        "function nestedVerticalAddress", 1
+    )[0]
 
 if __name__ == "__main__":
     tests = [
