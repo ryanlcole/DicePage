@@ -1,6 +1,7 @@
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject WorldSession Session
+@inject AwsAuthorityClient Authority
 @inject IJSRuntime JS
 
 <div class="local-definer-host"
@@ -201,6 +202,12 @@
     instanceLayer=local.InstanceLayer,
     z100=local.Z100,
     rotation=local.Rotation,
+    recursiveScopeFormat=local.RecursiveScopeFormat,
+    viewDegrees=local.ViewDegrees,
+    parentScopeId=local.ParentScopeId,
+    parentAssetId=local.ParentAssetId,
+    parentRegionTier=local.ParentRegionTier,
+    parentRegionLayer=local.ParentRegionLayer,
     updatedAtUtc=local.UpdatedAtUtc
    }).ToList();
  }
@@ -244,29 +251,58 @@
 
   var state=System.Text.Json.JsonSerializer.SerializeToElement(new
   {
-   format="RIST_LOCAL_MAP_V2",
+   format="RIST_LOCAL_MAP_V3",
+   recursiveScopeFormat=WorldSession.RecursiveScopeFormat,
    worldId=Session.WorldId,
    regionId=local.RegionId,
    localId=local.LocalId,
-   coordinateSpace="canonical-world-xy+hierarchical-depth-v1",
+   coordinateSpace="local-root-recursive-v1",
+   recursiveScope=new
+   {
+    kind="LOCAL",
+    scopeId=local.LocalId,
+    parentScopeId=local.RegionId,
+    parentAssetId=local.AnchorObjectId,
+    viewDegrees=30
+   },
    anchor=new
    {
     id=local.AnchorObjectId,
     assetId=local.AnchorAssetId,
     name=local.AnchorName,
     kind=local.AnchorKind,
+    // Parent projection retained for the migration renderer only.
     x=local.X,
     y=local.Y,
     width=local.Width,
     height=local.Height,
     worldTier=local.WorldTier,
     worldLayer=local.WorldLayer,
-    regionTier=local.RegionTier,
-    regionLayer=local.RegionLayer,
+    regionTier=local.ParentRegionTier,
+    regionLayer=local.ParentRegionLayer,
     rotation=local.Rotation,
-    coordinateSpace="canonical-world-xy+region-depth-v1"
+    coordinateSpace="parent-region-projection-v1",
+    recursive=new
+    {
+     format=WorldSession.RecursiveScopeFormat,
+     assetId=local.AnchorObjectId,
+     scopeKind="LOCAL",
+     scopeId=local.LocalId,
+     parentScopeId=local.RegionId,
+     parentAssetId=local.AnchorObjectId,
+     x=0,
+     y=0,
+     tier=1,
+     layer=1,
+     viewDegrees=30,
+     opacity=1,
+     visible=true,
+     locked=true,
+     linkedGroupId="",
+     permissionResourceId=WorldSession.RecursivePermissionResourceId(local.AnchorObjectId)
+    }
    },
-   hierarchy=new
+   legacyHierarchy=new
    {
     worldTier=local.WorldTier,
     worldLayer=local.WorldLayer,
@@ -294,6 +330,18 @@
    =>anchor.TryGetProperty(property,out var value)&&value.TryGetDouble(out var parsed)?parsed:fallback;
   int Integer(string property,int fallback=0)
    =>anchor.TryGetProperty(property,out var value)&&value.TryGetInt32(out var parsed)?parsed:fallback;
+  var anchorRecursive=anchor.TryGetProperty("recursive",out var recursiveValue)
+   &&recursiveValue.ValueKind==System.Text.Json.JsonValueKind.Object
+    ?recursiveValue
+    :default;
+  int RecursiveInteger(string property,int fallback)
+   =>anchorRecursive.ValueKind==System.Text.Json.JsonValueKind.Object
+      &&anchorRecursive.TryGetProperty(property,out var value)
+      &&value.TryGetInt32(out var parsed)
+    ?parsed
+    :fallback;
+  var parentRegionTier=Math.Max(1,RecursiveInteger("tier",Integer("regionTier",1)));
+  var parentRegionLayer=Math.Max(1,RecursiveInteger("layer",Integer("regionLayer",1)));
 
   var local=await Session.CreateLocalAsync(
    name,
@@ -311,11 +359,12 @@
    Integer("regionLayer",1),
    Integer("z100"),
    Number("rotation"),
-   regionTier:Integer("regionTier"),
-   localTier:Integer("localTier"),
-   localLayer:Integer("localLayer"),
+   regionTier:parentRegionTier,
+   localTier:1,
+   localLayer:1,
    instanceTier:Integer("instanceTier"),
-   instanceLayer:Integer("instanceLayer"));
+   instanceLayer:Integer("instanceLayer"),
+   parentRegionLayer:parentRegionLayer);
 
   return new
   {
@@ -342,8 +391,83 @@
    instanceLayer=local.InstanceLayer,
    z100=local.Z100,
    rotation=local.Rotation,
+   recursiveScopeFormat=local.RecursiveScopeFormat,
+   viewDegrees=local.ViewDegrees,
+   parentScopeId=local.ParentScopeId,
+   parentAssetId=local.ParentAssetId,
+   parentRegionTier=local.ParentRegionTier,
+   parentRegionLayer=local.ParentRegionLayer,
+   root=new
+   {
+    x=0,
+    y=0,
+    tier=1,
+    layer=1,
+    viewDegrees=30
+   },
    updatedAtUtc=local.UpdatedAtUtc
   };
+ }
+
+ [JSInvokable]
+ public async Task<object> GetPermissionDirectoryForPrototypeAsync()
+ {
+  var principals=new List<object>{new{id="EVERYONE",label="EVERYONE",kind="public"}};
+  if(Session.IsLoggedIn)
+  {
+   try
+   {
+    var rows=await Authority.GetConnectionsAsync()??[];
+    principals.AddRange(rows
+     .Where(row=>!string.IsNullOrWhiteSpace(row.LinkedUserId))
+     .OrderBy(row=>row.DisplayName,StringComparer.OrdinalIgnoreCase)
+     .Select(row=>(object)new
+     {
+      id=row.LinkedUserId,
+      label=string.IsNullOrWhiteSpace(row.DisplayName)?row.LinkedUserId:row.DisplayName,
+      kind="user"
+     }));
+   }
+   catch{}
+  }
+  return new { principals };
+ }
+
+ [JSInvokable]
+ public async Task<object> GetResourcePermissionsForPrototypeAsync(string resourceId)
+ {
+  resourceId=WorldSession.RecursivePermissionResourceId(resourceId);
+  if(string.IsNullOrWhiteSpace(resourceId)||!Session.IsLoggedIn)
+   return new { resourceId, permissions=Array.Empty<AwsAuthorityClient.ResourcePermission>() };
+  var rows=await Authority.GetResourcePermissionsAsync(Session.WorldId,resourceId)??[];
+  return new { resourceId, permissions=rows };
+ }
+
+ [JSInvokable]
+ public async Task<object> SetResourcePermissionFromPrototypeAsync(
+  string resourceId,
+  string targetUserId,
+  string permission)
+ {
+  resourceId=WorldSession.RecursivePermissionResourceId(resourceId);
+  targetUserId=(targetUserId??"").Trim();
+  permission=(permission??"None").Trim();
+  if(string.IsNullOrWhiteSpace(resourceId)||string.IsNullOrWhiteSpace(targetUserId)||!Session.IsLoggedIn)
+   return new { ok=false, resourceId, targetUserId, permission="None" };
+
+  if(string.Equals(targetUserId,"EVERYONE",StringComparison.Ordinal))
+   permission=string.Equals(permission,"Public",StringComparison.Ordinal)?"Public":"None";
+  else if(permission is not ("View" or "Edit" or "Deny"))
+   permission="None";
+
+  var result=await Authority.SetResourcePermissionAsync(
+   Session.WorldId,
+   resourceId,
+   targetUserId,
+   permission);
+  return result is null
+   ?new { ok=false, resourceId, targetUserId, permission }
+   :new { ok=result.Ok, resourceId=result.ResourceId, targetUserId=result.UserId, permission=result.Permission };
  }
 
  public async ValueTask DisposeAsync()
