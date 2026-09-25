@@ -389,7 +389,8 @@ test('Region Tier drives parallax while visual Layer alone drives composition',a
     state=f.w.ShaelvienPrototype.getViewerState();
     city=state.userLayers.find(x=>x.id==='region-city');
     assert.equal(city.recursive.layer,10,'canonical visual Layer is 1-based and not capped at the legacy 1..9 window');
-    assert.equal(city.regionLayer,9,'legacy regionLayer remains a bounded compatibility projection');
+    assert.equal(city.regionLayer,10,'Region diagnostics report canonical visual Layer');
+    assert.equal(city.legacyRegionLayer,9,'legacy regionLayer remains a bounded compatibility projection');
     assert.equal(city.z100,209,'legacy z100 clamps only its compatibility layer component');
   }finally{f.close()}
 });
