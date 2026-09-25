@@ -151,7 +151,7 @@ def test_recursive_permission_identity_reuses_server_asset_acl_namespace():
     assert "RecursivePermissionResourceId(tile.PlacementId)" in bridge
     assert "Authority.GetResourcePermissionsAsync" in permissions
     assert "Authority.SetResourcePermissionAsync" in permissions
-    assert "_scopePermissionPrincipal = "EVERYONE"" in permissions
+    assert '_scopePermissionPrincipal = "EVERYONE"' in permissions
 
 
 def test_map_card_recursive_version_default_matches_writer():
