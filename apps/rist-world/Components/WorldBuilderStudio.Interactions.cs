@@ -185,13 +185,22 @@ public partial class WorldBuilderStudio
             PlacementTreatment=NormalizeTreatment(treatment)
         };
 
+        int? requestedCanonicalTier=null;
         if(upperTier)
         {
-            moved=moved with
+            if(canonical)
             {
-                TierIndex=tile.TierIndex+1,
-                LayerOffset=canonical?0:tile.LayerOffset
-            };
+                var placement=Session.RecursiveWorldPlacement(tile);
+                requestedCanonicalTier=(placement?.Tier??(tile.TierIndex+1))+1;
+            }
+            else
+            {
+                moved=moved with
+                {
+                    TierIndex=tile.TierIndex+1,
+                    LayerOffset=tile.LayerOffset
+                };
+            }
         }
         else if(upperLayer && !canonical)
         {
@@ -202,13 +211,17 @@ public partial class WorldBuilderStudio
         }
 
         ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);
-        if(Session.IsPureStateNoOp(tile,moved) && !(canonical && upperLayer))
+        if(Session.IsPureStateNoOp(tile,moved) && !(canonical && upperLayer) && requestedCanonicalTier is null)
             return _selectedPlacedTileIndices.Order().ToArray();
 
         PushWorldBuilderUndo();
         Session.PlacedTiles[index]=moved;
         if(canonical)
+        {
             Session.SyncRecursiveWorldTile(moved.PlacementId, bringForward: upperLayer);
+            if(requestedCanonicalTier is not null)
+                Session.SetRecursiveWorldTileTier(moved.PlacementId,requestedCanonicalTier.Value);
+        }
         Session.RecordPureStateCommit();
         Session.Notify();
         await PersistWorldBuilderAsync();
