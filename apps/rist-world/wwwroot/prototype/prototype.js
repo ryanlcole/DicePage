@@ -4515,13 +4515,15 @@ function selectedPositionSummary(item){
     if(!LOCAL_DEFINER&&item.regionOverlay){
       const recursive=recursiveRegionEnvelope(item);
       const local=recursive?{x:Number(recursive.x)||0,y:Number(recursive.y)||0}:regionLocalPoint(item.x,item.y);
+      const canonicalLayer=regionOverlayLayer(item);
       return{
-        tier:address.regionTier,tierLabel:'Region parallax depth',layer:address.regionLayer,
+        tier:address.regionTier,tierLabel:'Region parallax depth',layer:canonicalLayer,
         worldTier:tier.number,worldTierLabel:tier.label,worldZ,
-        regionTier:address.regionTier,regionLayer:address.regionLayer,
+        regionTier:address.regionTier,regionLayer:canonicalLayer,
+        legacyRegionLayer:compatibilityRegionLayer(item),
         localTier:address.localTier,localLayer:address.localLayer,
         instanceTier:address.instanceTier,instanceLayer:address.instanceLayer,
-        z:regionZLabel(worldZ,clamp(address.regionLayer,1,9)),
+        z:regionZLabel(item),
         x:local.x.toFixed(3),y:local.y.toFixed(3)
       };
     }
