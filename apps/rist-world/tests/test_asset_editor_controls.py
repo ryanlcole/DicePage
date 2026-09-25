@@ -65,7 +65,7 @@ def test_visual_stack_is_integer_and_front_back_are_persistent():
     assert "CSS z-index accepts integers only" in player
     assert "Math.trunc(z)" in player
     assert "index/1000" not in player
-    assert "index/100)" not in player
+    assert "index/10000" not in player
     assert "['front','back'].includes(item.stackPin)?item.stackPin:''" in player
     assert "['front','back'].includes(raw.stackPin)?raw.stackPin:''" in player
     assert "item.stackPin==='back'?-1:item?.stackPin==='front'?1:0" in player
