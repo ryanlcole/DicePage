@@ -1093,7 +1093,7 @@ function renameViewerTier(){
   updateTierButton();renderTierMenu();announce(value?`Tier named ${value}.`:'Custom tier name cleared.');
 }
 function currentTierIndex(){return REGION_DEFINER&&regionDeedIsComplete()?clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1):(viewerTier==='all'?0:tierByKey(viewerTier).index)}
-function tierStackBase(tier){return 100+(clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*100)}
+function tierStackBase(tier){return 1000+(clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*1000)}
 function ensureRegionEditLayer(){
   if(!REGION_DEFINER)return world;
   if(regionEditLayer?.isConnected)return regionEditLayer;
@@ -1159,7 +1159,7 @@ function syncRegionEditLayer(){
   layer.dataset.worldZ=String(viewerLayer);
   layer.dataset.regionTier=String(regionTierIndex);
   layer.dataset.regionLayer=String(regionLayerIndex);
-  layer.style.zIndex='';
+  layer.style.zIndex='8000';
   layer.hidden=!active;
   const localAnchorId=LOCAL_DEFINER&&localIsOpen()?String(activeLocal?.anchorObjectId||''):'';
   for(const item of userLayers){
@@ -1180,30 +1180,37 @@ function syncLocalEditLayer(){
   layer.dataset.regionId=String(activeLocal?.regionId||'');
   layer.dataset.localTier=String(localTierIndex);
   layer.dataset.localLayer=String(localLayerIndex);
+  layer.style.zIndex='9000';
   layer.hidden=!active;
   for(const item of userLayers){
     if(!item.localOverlay||!item.node)continue;
     item.node.hidden=!active||String(item.localId||'')!==localId;
   }
 }
+function assetSemanticStackTuple(item,index){
+  const pin=item?.stackPin==='back'?-1:item?.stackPin==='front'?1:0;
+  if(LOCAL_DEFINER&&item?.localOverlay){
+    return[pin,regionWorldLayer(item),regionOverlayTier(item),regionOverlayLayer(item),Math.max(0,Math.trunc(Number(item.localTier)||0)),clamp(Math.trunc(Number(item.localLayer)||1),1,9),Math.max(0,Math.trunc(Number(item.instanceTier)||0)),clamp(Math.trunc(Number(item.instanceLayer)||0),0,9),index];
+  }
+  if(REGION_DEFINER&&item?.regionOverlay){
+    return[pin,regionWorldLayer(item),regionOverlayTier(item),regionOverlayLayer(item),index];
+  }
+  return[pin,clamp(Math.trunc(Number(item?.tier)||0),0,TIERS.length-1),clamp(Math.trunc(Number(item?.layer)||0),0,9),index];
+}
+function compareStackTuple(a,b){
+  const length=Math.max(a.length,b.length);
+  for(let i=0;i<length;i++){const delta=(Number(a[i])||0)-(Number(b[i])||0);if(delta)return delta}
+  return 0;
+}
 function updateLayerOrder(){
-  // Tier is the committed parallax/depth boundary. Unsaved placements float above
-  // the stack only while the user is positioning them; Save drops them into truth.
+  // CSS z-index accepts integers only. Encode semantic depth with integer slots;
+  // never append fractional DOM-order values because browsers discard them.
   surface.style.zIndex=String(tierStackBase(0));
   highlands.style.zIndex=String(tierStackBase(1));
   mountains.style.zIndex=String(tierStackBase(2));
+
   userLayers.forEach((item,index)=>{
     item.stackOrder=index;
-    const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
-    const regionZ=item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100;
-    const localZ=item.localOverlay
-      ?(regionZ*10000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*1000)+(clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100)
-        +(Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10)+clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)
-      :regionZ;
-    const stackPin=item.stackPin==='front'?900000:item.stackPin==='back'?-900000:0;
-    item.node.style.zIndex=String((REGION_DEFINER
-      ? (LOCAL_DEFINER&&item.localOverlay?localZ:regionZ)+(index/1000)
-      : isWorldMapItem(item)?tierStackBase(0)+1:(item.committed?committedZ:1000+(index/100)))+stackPin);
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
     if(REGION_DEFINER){
@@ -1220,6 +1227,34 @@ function updateLayerOrder(){
     item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
     item.node.dataset.placementPreview=item.committed?'false':'true';
   });
+
+  if(!REGION_DEFINER){
+    const sameSlotCount=new Map();
+    userLayers.forEach((item,index)=>{
+      if(isWorldMapItem(item)){item.node.style.zIndex=String(tierStackBase(0)+1);return}
+      const tier=clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1);
+      const layer=clamp(Math.trunc(Number(item.layer)||0),0,9);
+      const slotKey=`${tier}:${layer}:${item.stackPin||'normal'}`;
+      const ordinal=sameSlotCount.get(slotKey)||0;sameSlotCount.set(slotKey,ordinal+1);
+      const base=tierStackBase(tier);
+      const pinOffset=item.stackPin==='back'?1:item.stackPin==='front'?900:(10+(layer*80));
+      const z=item.committed?base+pinOffset+Math.min(ordinal,79):9000+index;
+      item.node.style.zIndex=String(Math.trunc(z));
+    });
+  }else{
+    const groups=new Map();
+    userLayers.forEach((item,index)=>{
+      if(!item?.node)return;
+      const parent=item.node.parentElement;
+      if(!parent)return;
+      if(!groups.has(parent))groups.set(parent,[]);
+      groups.get(parent).push({item,index,tuple:assetSemanticStackTuple(item,index)});
+    });
+    for(const entries of groups.values()){
+      entries.sort((a,b)=>compareStackTuple(a.tuple,b.tuple));
+      entries.forEach((entry,rank)=>{entry.item.node.style.zIndex=String(10+rank)});
+    }
+  }
   if(REGION_DEFINER)syncRegionEditLayer();
   if(LOCAL_DEFINER)syncLocalEditLayer();
 }
