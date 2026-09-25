@@ -103,10 +103,10 @@
       }
       @if(WorldScopePlacements.Count==0){<p class="scope-empty">No RIST_RECURSIVE_SCOPE_V1 assets have been placed in this World yet.</p>}
      </div>
-     @if(ScopePermissionEditorPlacement is { } permissionPlacement || LegacyWorldTileCount>0 || !string.IsNullOrWhiteSpace(_scopePermissionStatus))
+     @if(ScopePermissionEditorPlacement is not null || LegacyWorldTileCount>0 || !string.IsNullOrWhiteSpace(_scopePermissionStatus))
      {
       <footer>
-       @if(permissionPlacement is not null)
+       @if(ScopePermissionEditorPlacement is { } permissionPlacement)
        {
         var permissionTile=TileForPlacement(permissionPlacement);
         <section class="scope-permission-editor">
