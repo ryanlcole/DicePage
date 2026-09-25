@@ -1,0 +1,44 @@
+name: Validate Recursive Region Refactor V2
+
+on:
+  push:
+    branches:
+      - validation/recursive-region-v2-2026-09-25
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify recursive scope contract
+        run: python apps/rist-world/tests/test_recursive_scope_worldbuilder_contract.py
+
+      - name: Verify private source recursive projection
+        run: dotnet run --project apps/rist-world/tests/private-source/PrivateSourceTests.csproj -c Release
+
+      - name: Verify server Region recursive projection
+        run: python infra/aws/rist-platform-authority/tests/test_region_projection.py
+
+      - name: Verify RegionDefiner recursive runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/rist-region-tests" --no-audit --no-fund jsdom@26.1.0
+          NODE_PATH="$RUNNER_TEMP/rist-region-tests/node_modules" node --test apps/rist-world/tests/region-definer-deed-overlay-runtime.test.cjs
+
+      - name: Check recursive editor JavaScript syntax
+        run: |
+          node --check apps/rist-world/wwwroot/worldbuilder-z-axis-core.js
+          node --check apps/rist-world/wwwroot/worldbuilder-z-axis.js
+          node --check apps/rist-world/wwwroot/worldbuilder-view-controls.js
+          node --check apps/rist-world/wwwroot/prototype/prototype.js
+
+      - name: Build RIST WORLD
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
