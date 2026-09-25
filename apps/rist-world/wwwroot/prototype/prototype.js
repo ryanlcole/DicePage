@@ -3132,7 +3132,7 @@ async function renderRegionWorldSource(payload){
     node.style.left=`${(clamp(regionSourceNumber(raw.x,0),0,1)*100).toFixed(5)}%`;
     node.style.top=`${(clamp(regionSourceNumber(raw.y,0),0,1)*100).toFixed(5)}%`;
     node.style.width=`${(width*100).toFixed(5)}%`;node.style.height=`${(height*100).toFixed(5)}%`;
-    node.style.zIndex=String(tierStackBase(tier)+layer+(index/10000));
+    node.style.zIndex=String(tierStackBase(tier)+1+(layer*70)+Math.min(index,69));
     node.style.transform=`rotate(${Math.trunc(regionSourceNumber(raw.rotationQuarterTurns,0))*90}deg)`;
     node.dataset.tier=String(tier);node.dataset.layer=String(layer);node.dataset.sourceLocked='true';
     node.setAttribute('aria-label',String(raw.name||'Locked world source'));
