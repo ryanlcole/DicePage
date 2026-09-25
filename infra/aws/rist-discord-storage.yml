@@ -333,7 +333,7 @@ Resources:
                 })
                 ddb.update_item(
                     Key={"pk": content_pk},
-                    UpdateExpression="ADD refCount :one SET updatedAt = :now",
+                    UpdateExpression="SET updatedAt = :now ADD refCount :one",
                     ExpressionAttributeValues={":one": 1, ":now": now}
                 )
             else:
