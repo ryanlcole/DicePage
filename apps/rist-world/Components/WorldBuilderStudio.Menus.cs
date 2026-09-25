@@ -17,7 +17,14 @@ public partial class WorldBuilderStudio
 
     [JSInvokable]
     public Task<WorldBuilderDepthState> GetWorldBuilderDepthState() =>
-        Task.FromResult(new WorldBuilderDepthState(Session.SceneZ, Session.TierIndex, Session.LayerOffset, _zLocked));
+        // Compatibility DTO for the existing JS bridge. Recursive Worldbuilder
+        // view depth is Tier-only; visual Layer is edited per asset and is never
+        // projected into this viewer address.
+        Task.FromResult(new WorldBuilderDepthState(
+            WorldSession.SceneZOf(Session.TierIndex, 0),
+            Session.TierIndex,
+            0,
+            _zLocked));
 
     [JSInvokable]
     public Task<IReadOnlyList<WorldBuilderTierShortcut>> GetWorldBuilderTierShortcuts() =>
@@ -42,7 +49,8 @@ public partial class WorldBuilderStudio
     {
         if (_zLocked) return await GetWorldBuilderDepthState();
 
-        Session.SetSceneZ(Math.Clamp(sceneZ, -500, 500));
+        var (tier, _) = WorldSession.SplitSceneZ(Math.Clamp(sceneZ, -500, 500));
+        Session.SetSceneZ(WorldSession.SceneZOf(tier, 0));
         await InvokeAsync(StateHasChanged);
         return await GetWorldBuilderDepthState();
     }
@@ -52,7 +60,7 @@ public partial class WorldBuilderStudio
     {
         if (_zLocked || delta == 0) return await GetWorldBuilderDepthState();
 
-        Session.MoveSceneZ(Math.Clamp(delta, -100, 100));
+        Session.SetSceneZ(WorldSession.SceneZOf(Session.TierIndex + Math.Sign(delta), 0));
         await InvokeAsync(StateHasChanged);
         return await GetWorldBuilderDepthState();
     }
@@ -70,12 +78,14 @@ public partial class WorldBuilderStudio
         return await GetWorldBuilderDepthState();
     }
 
-    // Compatibility entry points remain aliases of the single SceneZ authority.
+    // Compatibility entry points for older JS callers. Tier may move the
+    // viewer's spatial depth. "Add Layer" is intentionally a no-op because
+    // visual Layer belongs to a placed asset, not to global Z.
     [JSInvokable]
     public Task<WorldBuilderDepthState> AddTierAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
 
     [JSInvokable]
-    public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
+    public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => GetWorldBuilderDepthState();
 
     [JSInvokable] public Task<double> SetDistancePerSquareKmAtZ0FromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
     [JSInvokable] public Task<double> GetDistancePerSquareKmAtZ0FromJs() => Task.FromResult(CanonicalKilometersPerCell);
