@@ -48,15 +48,24 @@ using var parentDocument = JsonDocument.Parse("""
 var projected = RegionSourceProjector.Project(
     "private-test", "private-region", "world:private-test", 0,
     [31], "square", [0], parentDocument.RootElement);
-Check(projected.GetProperty("projection").GetString() == "region-world-z-v2", "private region projection version is wrong");
+Check(projected.GetProperty("projection").GetString() == "region-recursive-scope-v1", "private region recursive projection version is wrong");
+Check(projected.GetProperty("legacyProjection").GetString() == "region-world-z-v2", "private region compatibility projection version is wrong");
+Check(projected.GetProperty("recursiveScopeFormat").GetString() == WorldSession.RecursiveScopeFormat, "private region recursive format is wrong");
 Check(projected.GetProperty("sourceTileIndex").GetArrayLength() == 1, "private projection leaked unclaimed tile");
 Check(projected.GetProperty("sourceTileIndex")[0].GetProperty("image").GetString() == "claimed.webp", "wrong private cell selected");
 Check(!projected.TryGetProperty("tierImages", out _), "private projection leaked full world bitmap");
 Check(projected.GetProperty("sourceUserLayers").GetArrayLength() == 1, "private projection lost locked WorldBuilder layer");
 Check(projected.GetProperty("userLayers").GetArrayLength() == 1, "private projection leaked another region's overlay");
 Check(projected.GetProperty("userLayers")[0].GetProperty("z100").GetInt32() == 1, "private region exact Z is wrong");
-Check(projected.GetProperty("userLayers")[0].GetProperty("parallaxMode").GetString() == "anchored",
-    "private region overlay received independent parallax");
+var projectedRecursive = projected.GetProperty("userLayers")[0].GetProperty("recursive");
+Check(projectedRecursive.GetProperty("scopeKind").GetString() == "REGION", "private overlay lost REGION scope");
+Check(projectedRecursive.GetProperty("scopeId").GetString() == "private-region", "private overlay lost region identity");
+Check(projectedRecursive.GetProperty("tier").GetInt32() == 1, "private overlay did not restart Region Tier at 1");
+Check(projectedRecursive.GetProperty("layer").GetInt32() == 1, "private overlay did not restart Region Layer at 1");
+Check(Math.Abs(projectedRecursive.GetProperty("x").GetDouble() - 0.5) < 0.000001, "private overlay REGION-local X is wrong");
+Check(Math.Abs(projectedRecursive.GetProperty("y").GetDouble() - 0.5) < 0.000001, "private overlay REGION-local Y is wrong");
+Check(projected.GetProperty("userLayers")[0].GetProperty("parallaxMode").GetString() == "recursive-region",
+    "private region overlay did not use recursive Region projection");
 Check(projected.GetProperty("requiresRasterIndex").GetBoolean() == false, "indexed private claim incorrectly rejected");
 
 using var editedLayers = JsonDocument.Parse("""
@@ -70,7 +79,10 @@ var mergedRegion = merged.GetProperty("userLayers").EnumerateArray()
 Check(mergedRegion.GetProperty("z100").GetInt32() == 407, "private region hundredth Z did not persist");
 Check(mergedRegion.GetProperty("worldLayer").GetInt32() == 4, "private region World Z did not persist");
 Check(mergedRegion.GetProperty("regionLayer").GetInt32() == 7, "private region fractional layer did not persist");
-Check(mergedRegion.GetProperty("parallaxMode").GetString() == "anchored", "private region overlay drifted into parallax");
+Check(mergedRegion.GetProperty("parallaxMode").GetString() == "recursive-region", "private region overlay lost recursive projection");
+var mergedRecursive = mergedRegion.GetProperty("recursive");
+Check(mergedRecursive.GetProperty("tier").GetInt32() == 1, "legacy private overlay did not migrate to Region Tier 1");
+Check(mergedRecursive.GetProperty("layer").GetInt32() == 7, "legacy private overlay did not preserve visual layer");
 
 using var leakedLayers = JsonDocument.Parse("""
 [{"id":"foreign-placement","x":0.95,"y":0.95,"tier":0,"worldLayer":0,"layer":0,"regionLayer":1,"z100":1}]
@@ -106,6 +118,7 @@ namespace RistWorld
         private bool CanEditRegion(TestRegion region) => false;
         private Task<AwsAuthorityClient?> GetClaimAuthorityClientAsync() => Task.FromResult<AwsAuthorityClient?>(Authority);
         private static readonly JsonSerializerOptions MapWriteOptions = new();
+        private void Notify() { }
     }
     public sealed class FakeAuth
     {
