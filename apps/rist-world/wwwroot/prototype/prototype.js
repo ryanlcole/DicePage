@@ -3554,7 +3554,7 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   if(!LOCAL_DEFINER||!local?.id)return;
   activeLocal=local;
   localTierIndex=0;localLayerIndex=1;
-  localCreatePending=false;
+  localCreatePending=false;localNameDraft='';localNameAnchorId='';
   removeAssetResizeOverlay();selectedImage=null;
 
   // Remove any previously hydrated Local child layers before loading this Local.
