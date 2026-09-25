@@ -98,75 +98,73 @@ def test_representation_ladder_is_world_0_region_15_local_30():
     assert "WORLD 0° → REGION 15°" in shell
 
 
-def test_local_identity_is_region_object_anchored_and_uses_constant_canonical_xy():
+
+def test_local_identity_is_region_object_anchored_and_restarts_recursive_coordinates():
     model = read("WorldSession.Locals.cs")
     local = read("Components/LocalDefinerWorkspace.razor")
 
     assert "AnchorObjectId" in model
     assert "AnchorAssetId" in model
     assert 'ParentNodeId: $"region:{region.RegionId}"' in model
-    assert '"canonical-world-xy+hierarchical-depth-v1"' in model
-    assert 'coordinateSpace="canonical-world-xy+hierarchical-depth-v1"' in local
-    assert 'coordinateSpace="canonical-world-xy+region-depth-v1"' in local
-    assert "X: Math.Clamp(x, 0, 1)" in model
-    assert "Y: Math.Clamp(y, 0, 1)" in model
+    assert '"local-root-recursive-v1"' in model
+    assert "RecursiveScopeFormat: RecursiveScopeFormat" in model
+    assert "ViewDegrees: 30" in model
+    assert "ParentScopeId: region.RegionId" in model
+    assert "ParentAssetId: anchorObjectId" in model
+    assert 'coordinateSpace="local-root-recursive-v1"' in local
+    assert 'scopeKind="LOCAL"' in local
+    assert "x=0" in local
+    assert "y=0" in local
+    assert "tier=1" in local
+    assert "layer=1" in local
     assert "Select a placed regional object for the Local." in model
 
 
-def test_local_camera_frames_region_asset_without_creating_a_new_xy_plane():
+def test_local_camera_frames_region_asset_but_recursive_local_xy_is_authoritative():
     player = read("wwwroot/prototype/prototype.js")
 
     assert "function localAnchorBounds(local=activeLocal)" in player
     assert "function constrainLocalPoint(x,y)" in player
     assert "function fitLocalAnchor(local=activeLocal)" in player
-    assert "const cropX=bounds.minX*naturalWidth" in player
-    assert "const cropY=bounds.minY*naturalHeight" in player
-    assert "const cropW=Math.max(1,bounds.width*naturalWidth)" in player
-    assert "canonical X within Local anchor" in player
-    # Local does not create a second active X/Y authority. The one remaining
-    # localPointToWorld helper exists only to migrate a short-lived experimental
-    # local-normalized save format back into canonical World X/Y.
-    assert "worldPointToLocal" not in player
+    assert "function localRecursivePoint(worldX,worldY,local=activeLocal)" in player
+    assert "function localRecursiveWorldPoint(localX,localY,local=activeLocal)" in player
+    assert "(Number(worldX)-bounds.cx)/Math.max(bounds.width,.0001)" in player
+    assert "(Number(worldY)-bounds.cy)/Math.max(bounds.height,.0001)" in player
+    assert "sourceIsRecursiveLocal" in player
+    assert "localRecursiveWorldPoint(recursive.x,recursive.y,local)" in player
+    # The older 0..1 anchor-normalized format remains read-only migration input.
     assert "function localPointToWorld(x,y,local=activeLocal)" in player
     assert "sourceWasLocalNormalized" in player
-    assert "setLocalCanvasFromAnchor" not in player
 
 
-def test_local_parent_region_depth_is_inherited_and_children_use_local_depth():
+def test_local_parent_region_depth_is_reference_only_and_children_use_local_recursive_depth():
     player = read("wwwroot/prototype/prototype.js")
 
     assert "function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex)" in player
-    assert "item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));" in player
-    assert "item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);" in player
-    assert "item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));" in player
-    assert "item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);" in player
+    assert "function syncLocalRecursiveEnvelope" in player
+    assert "item.regionTier=Math.max(1" in player
+    assert "const recursiveTier=existing?localOverlayTier(item):Math.max(1" in player
+    assert "nextLocalVisualLayer(item,recursiveTier)" in player
+    assert "syncLocalRecursiveEnvelope(item,recursiveTier,recursiveLayer)" in player
     assert "toolKey('LOCAL T −'" in player
     assert "toolKey('LOCAL T +'" in player
     assert "toolKey('LOCAL L −'" in player
     assert "toolKey('LOCAL L +'" in player
 
 
-def test_local_children_persist_canonical_xy_plus_full_hierarchical_depth():
+def test_local_children_persist_recursive_xy_tier_layer_with_legacy_projection_beside_it():
     player = read("wwwroot/prototype/prototype.js")
     local = read("Components/LocalDefinerWorkspace.razor")
 
-    assert "x:clamp(Number(item.x)||0,0,1)" in player
-    assert "y:clamp(Number(item.y)||0,0,1)" in player
-    assert 'format="RIST_LOCAL_MAP_V2"' in local
-    assert 'coordinateSpace="canonical-world-xy+hierarchical-depth-v1"' in local
-    assert "hierarchy=new" in local
-    for field in (
-        "worldTier=local.WorldTier",
-        "worldLayer=local.WorldLayer",
-        "regionTier=local.RegionTier",
-        "regionLayer=local.RegionLayer",
-        "localTier=local.LocalTier",
-        "localLayer=local.LocalLayer",
-        "instanceTier=local.InstanceTier",
-        "instanceLayer=local.InstanceLayer",
-    ):
-        assert field in local
-
+    serialization = player.split("function serializableUserLayer", 1)[1].split(
+        "async function saveWorldBuilder", 1
+    )[0]
+    assert "LOCAL_DEFINER&&item.localOverlay?syncLocalRecursiveEnvelope(item)" in serialization
+    assert 'format="RIST_LOCAL_MAP_V3"' in local
+    assert 'recursiveScopeFormat=WorldSession.RecursiveScopeFormat' in local
+    assert 'coordinateSpace="local-root-recursive-v1"' in local
+    assert "recursiveScope=new" in local
+    assert "legacyHierarchy=new" in local
 
 def test_local_map_is_persisted_separately_from_region_map():
     local = read("Components/LocalDefinerWorkspace.razor")
@@ -195,14 +193,23 @@ def test_local_opens_full_regiondefiner_asset_toolset_after_anchor_selection():
     assert "ensureLocalEditLayer" in player
 
 
-def test_local_and_future_instance_depth_participate_in_renderer_order():
+
+def test_local_visual_order_uses_layer_only_and_tier_is_parallax_only():
     player = read("wwwroot/prototype/prototype.js")
 
-    assert "Math.max(0,Math.trunc(Number(item.localTier)||0))*1000" in player
-    assert "clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100" in player
-    assert "Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10" in player
-    assert "clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)" in player
+    stack = player.split("function assetSemanticStackTuple", 1)[1].split(
+        "function compareStackTuple", 1
+    )[0]
+    local_branch = stack.split("if(LOCAL_DEFINER&&item?.localOverlay)", 1)[1].split(
+        "if(REGION_DEFINER&&item?.regionOverlay)", 1
+    )[0]
+    assert "return[pin,localOverlayLayer(item),index]" in local_branch
+    assert "localOverlayTier(item)" not in local_branch
 
+    parallax = player.split("function applyParallax()", 1)[1].split(
+        "function updateReadouts", 1
+    )[0]
+    assert "Math.max(0,localOverlayTier(item)-1)" in parallax
 
 def test_local_catalog_deduplicates_by_region_anchor_and_supports_guarded_delete():
     model = read("WorldSession.Locals.cs")
