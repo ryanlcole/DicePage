@@ -9,6 +9,7 @@ public partial class WorldMap:IDisposable
 {
  [Inject] public WorldSession Session{get;set;}=default!;
  [Inject] public IJSRuntime JS{get;set;}=default!;
+ [Parameter] public bool UseRecursiveWorldComposition{get;set;}
  readonly MapGestureState G=new();
  ElementReference MapElement;
  AtlasTile? AtlasDragging;
@@ -35,6 +36,11 @@ public partial class WorldMap:IDisposable
  bool FilterStateLoaded;
  const string FilterSaveKey="rist.tile.filters.v1";
  bool Dragging=>AtlasDragging is not null||TrayDragging is not null||PieceDragging is not null||TileDragging is not null;
+ IReadOnlyList<TileItem> RenderTiles=>UseRecursiveWorldComposition?Session.GetRecursiveWorldRenderTiles():Session.PlacedTiles;
+ string RecursiveAppearanceStyle(TileItem tile)=>UseRecursiveWorldComposition
+  ?$"opacity:{Session.RecursiveWorldTileOpacity(tile).ToString("0.###",CultureInfo.InvariantCulture)};"
+  :"";
+ bool RecursiveEditingLocked(TileItem tile)=>UseRecursiveWorldComposition&&Session.RecursiveWorldTileLocked(tile);
 
  IEnumerable<string> BrowserLayers=>Session.AtlasTiles.Select(x=>x.Layer).Distinct(StringComparer.OrdinalIgnoreCase).Order();
  IEnumerable<AtlasTile> LayerTiles=>Session.AtlasTiles.Where(x=>x.Layer.Equals(BrowserLayer,StringComparison.OrdinalIgnoreCase));
@@ -106,6 +112,7 @@ public partial class WorldMap:IDisposable
  {
   if(!Session.CanEditTiles||Session.MapLocked)return;
   if(Session.RecursiveRegionSelectionMode){Session.ToggleRecursiveRegionTile(tile);return;}
+  if(RecursiveEditingLocked(tile))return;
   if(tile.Locked){Session.SelectTileZone(tile);return;}
   AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;await StartDrag(e);
  }
@@ -141,13 +148,46 @@ public partial class WorldMap:IDisposable
   var inside=p.Length>=3&&p[0]>.5;
   var overPallet=await JS.InvokeAsync<bool>("ristWorld.overPallet",e.ClientX,e.ClientY);
   if(AtlasDragging is not null){if(overPallet)Session.StageTile(AtlasDragging);}
-  else if(TrayDragging is not null){if(inside)Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);else if(!overPallet)Session.RemoveStaged(TrayDragging.Key);}
+  else if(TrayDragging is not null)
+  {
+   if(inside)
+   {
+    var known=UseRecursiveWorldComposition
+     ?Session.PlacedTiles.Where(tile=>!string.IsNullOrWhiteSpace(tile.PlacementId)).Select(tile=>tile.PlacementId).ToHashSet(StringComparer.Ordinal)
+     :null;
+    Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);
+    if(UseRecursiveWorldComposition&&TrayDragging.Kind=="tile")
+    {
+     for(var index=0;index<Session.PlacedTiles.Count;index++)
+     {
+      var candidate=Session.PlacedTiles[index];
+      if(string.IsNullOrWhiteSpace(candidate.PlacementId)||known!.Contains(candidate.PlacementId))continue;
+      var placement=Session.RegisterNewWorldTilePlacement(index);
+      if(placement is not null)Session.SetRecursiveWorldTileTier(placement.AssetId,placement.Tier);
+     }
+    }
+   }
+   else if(!overPallet)Session.RemoveStaged(TrayDragging.Key);
+  }
   else if(PieceDragging is not null)
   {
    if(inside)await Session.MovePieceAuthorizedAsync(PieceDragging,p[1],p[2]);
    else await Session.RemovePieceAuthorizedAsync(PieceDragging);
   }
-  else if(TileDragging is not null){if(inside)Session.MoveTile(TileDragging,p[1],p[2]);else Session.RemoveTile(TileDragging);}
+  else if(TileDragging is not null)
+  {
+   if(inside)
+   {
+    Session.MoveTile(TileDragging,p[1],p[2]);
+    if(UseRecursiveWorldComposition&&!string.IsNullOrWhiteSpace(TileDragging.PlacementId))
+     Session.SyncRecursiveWorldTile(TileDragging.PlacementId);
+   }
+   else
+   {
+    if(UseRecursiveWorldComposition)Session.RemoveRecursiveWorldPlacement(TileDragging);
+    Session.RemoveTile(TileDragging);
+   }
+  }
   ClearDrag();
   await InvokeAsync(StateHasChanged);
  }
