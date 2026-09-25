@@ -67,7 +67,8 @@ def test_measurement_reuses_world_authority_without_rewriting_steps():
     assert "elevationSteps * InstanceElevationUnitsPerStep" in formatter
     assert "MeasurementUnitName(value)" in formatter
     assert "ElevationSteps" not in formatter
-    assert "InstanceElevationUnitsPerStep => Math.Max(MinMeasurementPerCell, GridDistance) / 10d;" in model
+    assert "InstanceElevationUnitsPerStep => Math.Max(MinMeasurementPerCell, GridDistance);" in model
+    assert "the 10-step parallax band rule is" in model
     assert "Session.InstanceElevationStepSummary" in component
     assert "Session.MeasurementCellSummary" in component
     assert "Session.FormatInstanceElevationForCurrentMeasurement(_cellElevation)" in component
