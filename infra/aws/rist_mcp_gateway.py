@@ -46,6 +46,8 @@ This MCP endpoint is an experimental machine-facing entrance for external AI tes
 
 ACCESSIBILITY_TEXT = """Shaelvien/RIST treats accessibility as co-equal development. Every future user-facing change must preserve the same authoritative state, semantic identity, permissions, and rules across its default and accessible representations. Essential actions may not exist only as drag, hover, precise pointer motion, color, hearing, speech, animation, or vision. Keyboard/alternate input, semantic names/roles/states, focus, reduced motion, non-color information, captions/text alternatives, zoom/reflow, and assistive presentation are part of normal feature completion. Assistive AI may invoke only the same authorized semantic actions available to the user and gains no additional authority."""
 
+ACCESSIBILITY_ADDONS_TEXT = """ReLiC's default accessibility developer add-ons are A11y Toolkit 3.20.0, Playwright MCP 0.0.82, and WCAG MCP 2.0.0. They provide accessibility auditing/regression evidence, structured accessibility-tree browser interaction, and WCAG 2.2 reference data. Munim Computer Use, mcp-whisper, and Piper MCP Server are supported as optional local integrations only: desktop control requires explicit local opt-in, while speech-to-text and text-to-speech require local model/runtime configuration. Accessibility tools receive no additional user, GameMaster, moderation, hidden-world, or administrative authority. Automated results are evidence, not proof of conformance."""
+
 REGULATION_TEXT = """External-AI intake is governed by the current ReLiC/RIST AI Participation, Canon, Resource, Content & Commerce Access Policy. Important enforced boundaries include: visible AINPC identity; verifiable provenance; player-content non-interference; human-priority resource yielding; one external-AI slot per ten connected humans; all-audiences content by default; bounded sessions; bounded worldbuilding allocation; no automatic canon promotion; least privilege; and immediate suspension/revocation when required. Payment or a test token does not purchase authority."""
 
 APPLICATION_TEXT = """Application order:
@@ -87,6 +89,11 @@ RESOURCE_DATA = {
         "name": "Accessibility Development Contract",
         "description": "Project-wide rule for accessible-equivalent development against the same semantic truth and authority.",
         "text": ACCESSIBILITY_TEXT,
+    },
+    "relic://accessibility/addons": {
+        "name": "Accessibility MCP Add-ons",
+        "description": "Pinned free/local accessibility tooling and least-privilege enablement rules.",
+        "text": ACCESSIBILITY_ADDONS_TEXT,
     },
     "relic://applications/process": {
         "name": "Tester Application Process",
@@ -156,6 +163,11 @@ def _tool_definitions() -> list[dict[str, Any]]:
         {
             "name": "read_accessibility_development",
             "description": "Read the project-wide rule that normal development and accessibility development are one process.",
+            "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+        {
+            "name": "list_accessibility_addons",
+            "description": "Read ReLiC's pinned accessibility MCP add-ons and their least-privilege enablement rules.",
             "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
         },
         {
@@ -262,6 +274,8 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         }
     if name == "read_accessibility_development":
         return {"content": [{"type": "text", "text": ACCESSIBILITY_TEXT}], "isError": False}
+    if name == "list_accessibility_addons":
+        return {"content": [{"type": "text", "text": ACCESSIBILITY_ADDONS_TEXT}], "isError": False}
     if name == "about_relic":
         return {"content": [{"type": "text", "text": ABOUT_TEXT}], "isError": False}
     if name == "register_agent":
@@ -372,7 +386,7 @@ def handler(event, context):
                 "instructions": (
                     "Start by reading relic://governance/laws, relic://governance/rules, "
                     "relic://governance/regulations, and relic://governance/memoranda. "
-                    "Then read relic://site/about and relic://accessibility/development before registration or application."
+                    "Then read relic://site/about, relic://accessibility/development, and relic://accessibility/addons before registration or application."
                 ),
             },
         )

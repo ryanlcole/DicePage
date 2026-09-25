@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "munim-computer-use": {
+      "command": "npx",
+      "args": ["-y", "munim-computer-use"]
+    }
+  }
+}

@@ -8,6 +8,7 @@ Before changing runtime behavior, authority, AI/EI behavior, user data handling,
 
 1. `docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md` — foundational engineering constraint for law, human/AI policy, safety, consent, privacy, accessibility, ownership, lawful process, and non-bypass behavior.
 2. `docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md` — project-wide rule that every future change is normal development and accessibility development against the same semantic truth.
+3. `knowledge/project/accessibility-addons.json` — pinned free/local accessibility MCP add-ons and their least-privilege enablement status.
 2. `apps/rist-world/AUTHORITY_SYSTEM.md` — foundational Recursive Authority & Supervision contract.
 3. `apps/rist-world/wwwroot/ai-policy.json` — deployed AI-access policy.
 4. The deployed legal/safety surfaces under `apps/rist-world/wwwroot/`, including `terms.html`, `privacy.html`, `safety.html`, `dmca.html`, and `accessibility.html`.

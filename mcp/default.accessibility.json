@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "a11y-toolkit": {
+      "command": "uvx",
+      "args": ["--from", "a11y-toolkit==3.20.0", "a11y-toolkit-mcp"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.0.82", "--headless"]
+    },
+    "wcag": {
+      "command": "npx",
+      "args": ["-y", "wcag-guidelines-mcp@2.0.0"]
+    }
+  }
+}

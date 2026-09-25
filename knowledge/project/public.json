@@ -2,7 +2,7 @@
   "schema_version": 1,
   "dataset_id": "shaelvien-project-knowledge",
   "snapshot_date": "2026-09-25",
-  "repository_snapshot": "586168e4294315a74e2a0fb972e3ffc8fe0d0a34",
+  "repository_snapshot": "a585aa1086e8301ac7037afff4bd0f66af3eaa6a",
   "sources": [
     {
       "source_id": "source.c3da6063bd244e4ba254",
@@ -375,6 +375,18 @@
       "sha256": "ffd33553139c78599ae81d63f90ebdc342cedd93b9d868ff0382451b203b36b0",
       "source_origin": "HUMAN",
       "content": "{\n  \"contract\": \"shaelvien.accessibility-development\",\n  \"version\": \"1.0.0\",\n  \"status\": \"project-wide-owner-directed-rule\",\n  \"effectiveDate\": \"2026-09-25\",\n  \"coreRule\": \"Every future Shaelvien/RIST change is both normal development and accessibility development.\",\n  \"sameTruth\": true,\n  \"separateAccessibilityAuthority\": false,\n  \"defaultRequirement\": \"user-facing changes require an accessibility-equivalent representation/input path appropriate to the capability\",\n  \"required\": {\n    \"keyboard\": true,\n    \"pointerIndependentEssentialActions\": true,\n    \"semanticNamesRolesStates\": true,\n    \"visibleFocus\": true,\n    \"logicalFocusOrder\": true,\n    \"nonColorInformation\": true,\n    \"reducedMotion\": true,\n    \"zoomReflow\": true,\n    \"textAlternativesForEssentialAudio\": true,\n    \"audioOrSemanticAlternativesForEssentialVisualInformation\": true,\n    \"accessibleStatusAnnouncements\": true,\n    \"sharedAuthoritativeState\": true,\n    \"sharedRecursiveAuthority\": true\n  },\n  \"aiAssist\": {\n    \"allowed\": true,\n    \"authorityGain\": false,\n    \"rule\": \"Assistive AI may invoke only the same authorized semantic actions available to the user.\"\n  },\n  \"verification\": {\n    \"automatedEvidenceNotProof\": true,\n    \"humanAssistiveTechnologyTestingRequiredWhereAutomationCannotEstablishBehavior\": true,\n    \"preferredDeveloperChecks\": [\n      \"accessibility-tree inspection\",\n      \"keyboard-only traversal\",\n      \"focus-order and focus-visibility checks\",\n      \"semantic names/roles/states\",\n      \"contrast and non-color-state checks\",\n      \"reduced-motion checks\",\n      \"zoom/reflow checks\",\n      \"captions/transcripts/text alternatives\",\n      \"pointer-independent action checks\"\n    ]\n  },\n  \"canonicalHumanReference\": \"docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md\",\n  \"semanticClient\": \"apps/rist-world/Components/AccessibilityShell.razor\"\n}\n"
+    },
+    {
+      "source_id": "source.accessibility-addons-20260925",
+      "title": "knowledge/project/accessibility-addons.json",
+      "kind": "repository_contract",
+      "uri": "https://github.com/ryanlcole/DicePage/blob/live-alpha-rist-blazor-world/knowledge/project/accessibility-addons.json",
+      "status": "operational-tooling-manifest",
+      "visibility": "public-existing-source",
+      "observed_at": "2026-09-25",
+      "sha256": "e7d82eff053f58c1f3ba9b1b47a16a0c069e9bec0de34d8eee58288514f2df18",
+      "source_origin": "OUTSIDER_AI",
+      "content": "{\n  \"schemaVersion\": 1,\n  \"status\": \"operational\",\n  \"effectiveDate\": \"2026-09-25\",\n  \"principle\": \"free/local-first accessibility tooling; least privilege; automated evidence is not conformance proof\",\n  \"addons\": [\n    {\n      \"id\": \"a11y-toolkit\",\n      \"role\": \"developer accessibility audit, regression evidence, keyboard/reflow/forms/contrast checks\",\n      \"defaultEnabled\": true,\n      \"transport\": \"stdio\",\n      \"package\": \"a11y-toolkit==3.20.0\",\n      \"license\": \"MIT\",\n      \"source\": \"https://github.com/kinti/a11y-toolkit\",\n      \"command\": [\n        \"uvx\",\n        \"--from\",\n        \"a11y-toolkit==3.20.0\",\n        \"a11y-toolkit-mcp\"\n      ]\n    },\n    {\n      \"id\": \"playwright-mcp\",\n      \"role\": \"browser interaction through structured accessibility snapshots\",\n      \"defaultEnabled\": true,\n      \"transport\": \"stdio\",\n      \"package\": \"@playwright/mcp@0.0.82\",\n      \"license\": \"Apache-2.0\",\n      \"source\": \"https://github.com/microsoft/playwright-mcp\",\n      \"command\": [\n        \"npx\",\n        \"-y\",\n        \"@playwright/mcp@0.0.82\",\n        \"--headless\"\n      ]\n    },\n    {\n      \"id\": \"wcag-mcp\",\n      \"role\": \"WCAG 2.2 criteria, techniques, glossary, and implementation reference\",\n      \"defaultEnabled\": true,\n      \"transport\": \"stdio\",\n      \"package\": \"wcag-guidelines-mcp@2.0.0\",\n      \"license\": \"MIT\",\n      \"source\": \"https://github.com/joe-watkins/wcag-mcp\",\n      \"command\": [\n        \"npx\",\n        \"-y\",\n        \"wcag-guidelines-mcp@2.0.0\"\n      ]\n    },\n    {\n      \"id\": \"munim-computer-use\",\n      \"role\": \"optional local accessibility-tree desktop interaction for advanced alternate-input assistance\",\n      \"defaultEnabled\": false,\n      \"transport\": \"stdio\",\n      \"package\": \"munim-computer-use\",\n      \"license\": \"open-source; verify release license before redistribution\",\n      \"source\": \"https://github.com/munimtechnologies/munim-computer-use\",\n      \"command\": [\n        \"npx\",\n        \"-y\",\n        \"munim-computer-use\"\n      ],\n      \"reasonOptional\": \"desktop-control capability is privileged and must be explicitly enabled on the user's machine\"\n    },\n    {\n      \"id\": \"mcp-whisper\",\n      \"role\": \"optional local speech-to-text/captions/transcripts through whisper.cpp\",\n      \"defaultEnabled\": false,\n      \"transport\": \"stdio-or-authenticated-local-http\",\n      \"license\": \"MIT\",\n      \"source\": \"https://github.com/MarcusTseng/mcp-whisper\",\n      \"reasonOptional\": \"requires local whisper.cpp/audio infrastructure and model storage\"\n    },\n    {\n      \"id\": \"piper-mcp-server\",\n      \"role\": \"optional local text-to-speech/read-aloud output\",\n      \"defaultEnabled\": false,\n      \"transport\": \"stdio-or-authenticated-local-http\",\n      \"license\": \"MIT\",\n      \"source\": \"https://github.com/nizovtsevnv/piper-mcp-server\",\n      \"reasonOptional\": \"requires local voice model and espeak-ng; voice-model licenses must be checked separately\"\n    }\n  ],\n  \"rules\": {\n    \"noAccessibilityAuthorityEscalation\": true,\n    \"sameSemanticActionsAsUser\": true,\n    \"defaultDeveloperToolsMayObserveAndTest\": true,\n    \"desktopControlRequiresExplicitLocalOptIn\": true,\n    \"speechServicesRemainLocalByDefault\": true,\n    \"doNotClaimAutomatedConformance\": true\n  }\n}\n"
     }
   ],
   "records": [
@@ -9111,6 +9123,37 @@
         "semantic-equivalence",
         "same-truth",
         "future-changes"
+      ]
+    },
+    {
+      "record_id": "project.accessibility-addons-20260925",
+      "title": "Accessibility MCP add-on stack",
+      "text": "Default developer accessibility add-ons are A11y Toolkit 3.20.0, Playwright MCP 0.0.82, and WCAG MCP 2.0.0. Munim Computer Use, mcp-whisper, and Piper MCP Server are optional local integrations. All remain subordinate to the same semantic truth and Recursive Authority; assistive tooling grants no additional authority and automated evidence is not proof of accessibility conformance.",
+      "category": "accessibility",
+      "truth_domain": "FACT",
+      "status": "operational-tooling-manifest",
+      "scope": "development-and-optional-local-assistive-tooling",
+      "source_ids": [
+        "source.accessibility-addons-20260925"
+      ],
+      "source_locator": "addons; rules",
+      "recorded_at": "2026-09-25",
+      "visibility": "public-existing-source",
+      "provenance": {
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
+        "transformation": "verified-public-tooling-selection-and-project-integration",
+        "source_origin": "OUTSIDER_AI",
+        "canon_promotion": false
+      },
+      "tags": [
+        "accessibility",
+        "mcp",
+        "playwright",
+        "wcag",
+        "speech",
+        "local-first",
+        "least-privilege"
       ]
     }
   ],

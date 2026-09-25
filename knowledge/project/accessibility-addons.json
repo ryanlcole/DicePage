@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "status": "operational",
+  "effectiveDate": "2026-09-25",
+  "principle": "free/local-first accessibility tooling; least privilege; automated evidence is not conformance proof",
+  "addons": [
+    {
+      "id": "a11y-toolkit",
+      "role": "developer accessibility audit, regression evidence, keyboard/reflow/forms/contrast checks",
+      "defaultEnabled": true,
+      "transport": "stdio",
+      "package": "a11y-toolkit==3.20.0",
+      "license": "MIT",
+      "source": "https://github.com/kinti/a11y-toolkit",
+      "command": [
+        "uvx",
+        "--from",
+        "a11y-toolkit==3.20.0",
+        "a11y-toolkit-mcp"
+      ]
+    },
+    {
+      "id": "playwright-mcp",
+      "role": "browser interaction through structured accessibility snapshots",
+      "defaultEnabled": true,
+      "transport": "stdio",
+      "package": "@playwright/mcp@0.0.82",
+      "license": "Apache-2.0",
+      "source": "https://github.com/microsoft/playwright-mcp",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@0.0.82",
+        "--headless"
+      ]
+    },
+    {
+      "id": "wcag-mcp",
+      "role": "WCAG 2.2 criteria, techniques, glossary, and implementation reference",
+      "defaultEnabled": true,
+      "transport": "stdio",
+      "package": "wcag-guidelines-mcp@2.0.0",
+      "license": "MIT",
+      "source": "https://github.com/joe-watkins/wcag-mcp",
+      "command": [
+        "npx",
+        "-y",
+        "wcag-guidelines-mcp@2.0.0"
+      ]
+    },
+    {
+      "id": "munim-computer-use",
+      "role": "optional local accessibility-tree desktop interaction for advanced alternate-input assistance",
+      "defaultEnabled": false,
+      "transport": "stdio",
+      "package": "munim-computer-use",
+      "license": "open-source; verify release license before redistribution",
+      "source": "https://github.com/munimtechnologies/munim-computer-use",
+      "command": [
+        "npx",
+        "-y",
+        "munim-computer-use"
+      ],
+      "reasonOptional": "desktop-control capability is privileged and must be explicitly enabled on the user's machine"
+    },
+    {
+      "id": "mcp-whisper",
+      "role": "optional local speech-to-text/captions/transcripts through whisper.cpp",
+      "defaultEnabled": false,
+      "transport": "stdio-or-authenticated-local-http",
+      "license": "MIT",
+      "source": "https://github.com/MarcusTseng/mcp-whisper",
+      "reasonOptional": "requires local whisper.cpp/audio infrastructure and model storage"
+    },
+    {
+      "id": "piper-mcp-server",
+      "role": "optional local text-to-speech/read-aloud output",
+      "defaultEnabled": false,
+      "transport": "stdio-or-authenticated-local-http",
+      "license": "MIT",
+      "source": "https://github.com/nizovtsevnv/piper-mcp-server",
+      "reasonOptional": "requires local voice model and espeak-ng; voice-model licenses must be checked separately"
+    }
+  ],
+  "rules": {
+    "noAccessibilityAuthorityEscalation": true,
+    "sameSemanticActionsAsUser": true,
+    "defaultDeveloperToolsMayObserveAndTest": true,
+    "desktopControlRequiresExplicitLocalOptIn": true,
+    "speechServicesRemainLocalByDefault": true,
+    "doNotClaimAutomatedConformance": true
+  }
+}

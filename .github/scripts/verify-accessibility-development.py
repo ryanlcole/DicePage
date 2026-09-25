@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = ROOT / "knowledge/project/accessibility-development.json"
+ADDONS = ROOT / "knowledge/project/accessibility-addons.json"
 
 
 def fail(message: str) -> None:
@@ -49,6 +50,22 @@ for phrase in (
 ):
     if phrase not in agents:
         fail("AGENTS.md no longer carries the accessibility development rule: " + phrase)
+
+if not ADDONS.is_file():
+    fail("accessibility add-on manifest is missing")
+addons = json.loads(ADDONS.read_text(encoding="utf-8"))
+if addons.get("status") != "operational":
+    fail("accessibility add-ons are not operational")
+by_id = {item.get("id"): item for item in addons.get("addons") or []}
+for addon_id in ("a11y-toolkit", "playwright-mcp", "wcag-mcp"):
+    if by_id.get(addon_id, {}).get("defaultEnabled") is not True:
+        fail("default developer accessibility add-on is not enabled: " + addon_id)
+for addon_id in ("munim-computer-use", "mcp-whisper", "piper-mcp-server"):
+    if by_id.get(addon_id, {}).get("defaultEnabled") is not False:
+        fail("privileged/local-model accessibility add-on must remain opt-in: " + addon_id)
+rules = addons.get("rules") or {}
+if rules.get("noAccessibilityAuthorityEscalation") is not True or rules.get("doNotClaimAutomatedConformance") is not True:
+    fail("accessibility add-on authority/conformance boundary changed")
 
 shell = (ROOT / "apps/rist-world/Components/AccessibilityShell.razor").read_text(encoding="utf-8")
 for phrase in (
