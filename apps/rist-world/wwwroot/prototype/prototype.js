@@ -851,6 +851,7 @@ async function saveWorldBuilder(){
 }
 async function attachRestoredLayer(raw,options={}){
   const sourceLocked=!!options.sourceLocked,regionOverlay=!!options.regionOverlay,localOverlay=!!options.localOverlay,canonicalSource=!!options.canonicalSource;
+  const restoredRecursive=raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined;
   const restoredLocalId=String(options.localId||raw?.localId||'');
   const kind=String(raw?.kind||'image').toLowerCase();
   const personalAssetKey=String(raw?.personalAssetKey||'').trim();
@@ -860,7 +861,7 @@ async function attachRestoredLayer(raw,options={}){
     : '';
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),authorityResourceId:String(raw.authorityResourceId||''),recursive:raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined,regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),authorityResourceId:String(raw.authorityResourceId||''),recursive:restoredRecursive,regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
       worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
@@ -871,10 +872,10 @@ async function attachRestoredLayer(raw,options={}){
       localLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.localLayer)||0),0,9):undefined,
       instanceTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.instanceTier)||0)):undefined,
       instanceLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.instanceLayer)||0),0,9):undefined,
-      z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
+      z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,rotation:Number(raw.rotation)||0,opacity:clamp(Number(restoredRecursive?.opacity??raw.opacity??1),0,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
-      plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),positionLocked:!!raw.positionLocked,stackPin:['front','back'].includes(raw.stackPin)?raw.stackPin:'',
+      plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),positionLocked:!!(restoredRecursive?.locked??raw.positionLocked),stackPin:['front','back'].includes(raw.stackPin)?raw.stackPin:'',
       parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),
       committed:raw.committed!==false,renderOpacity:1,parallaxX:0,parallaxY:0,node:null
     };
@@ -919,7 +920,7 @@ async function attachRestoredLayer(raw,options={}){
     ?await preparedImageSource(first,{transparent:!!raw.transparent,alphaCrop:raw.alphaCrop,alphaComponentSeed:raw.alphaComponentSeed}).catch(()=>String(raw.transparentSrc||first))
     :first;
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),authorityResourceId:String(raw.authorityResourceId||''),recursive:raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined,regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),authorityResourceId:String(raw.authorityResourceId||''),recursive:restoredRecursive,regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:isSprite?String(first||freshPersonalSrc||raw.transparentSrc||''):String(restoredTransparentSrc||first||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
     alphaCrop:isSprite?null:normalizeAlphaCrop(raw.alphaCrop),alphaComponentSeed:isSprite?null:normalizeAlphaSeed(raw.alphaComponentSeed),
@@ -944,7 +945,7 @@ async function attachRestoredLayer(raw,options={}){
     instanceTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.instanceTier)||0)):undefined,
     instanceLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.instanceLayer)||0),0,9):undefined,
     z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
-    opacity:clamp(Number(raw.opacity)||1,.01,1),positionLocked:!!raw.positionLocked,stackPin:['front','back'].includes(raw.stackPin)?raw.stackPin:'',parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    opacity:clamp(Number(restoredRecursive?.opacity??raw.opacity??1),0,1),positionLocked:!!(restoredRecursive?.locked??raw.positionLocked),stackPin:['front','back'].includes(raw.stackPin)?raw.stackPin:'',parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
@@ -1334,12 +1335,12 @@ function renderRecursiveAssetList(){
     const opacityText=document.createElement('span');opacityText.textContent=`${Math.round((Number(item.opacity??1))*100)}%`;
     const opacityInput=document.createElement('input');opacityInput.type='range';opacityInput.min='0';opacityInput.max='1';opacityInput.step='.05';opacityInput.value=String(clamp(Number(item.opacity??1),0,1));opacityInput.setAttribute('aria-label',`Opacity for ${item.name||'asset'}`);opacityInput.addEventListener('change',()=>updateRegionAssetFromList(item,'opacity',opacityInput.value));opacity.append(opacityText,opacityInput);
 
-    const layer=document.createElement('div');layer.className='recursive-stepper';
+    const layer=document.createElement('div');layer.className='recursive-stepper recursive-layer';
     const layerDown=document.createElement('button');layerDown.type='button';layerDown.textContent='−';layerDown.disabled=regionOverlayLayer(item)<=1;layerDown.setAttribute('aria-label','Move back one visual layer');layerDown.addEventListener('click',()=>updateRegionAssetFromList(item,'layer',-1));
     const layerValue=document.createElement('span');layerValue.textContent=String(regionOverlayLayer(item));
     const layerUp=document.createElement('button');layerUp.type='button';layerUp.textContent='+';layerUp.setAttribute('aria-label','Move forward one visual layer');layerUp.addEventListener('click',()=>updateRegionAssetFromList(item,'layer',1));layer.append(layerDown,layerValue,layerUp);
 
-    const tier=document.createElement('div');tier.className='recursive-stepper';
+    const tier=document.createElement('div');tier.className='recursive-stepper recursive-tier';
     const tierDown=document.createElement('button');tierDown.type='button';tierDown.textContent='−';tierDown.disabled=regionOverlayTier(item)<=1;tierDown.setAttribute('aria-label','Move one Region Tier nearer');tierDown.addEventListener('click',()=>updateRegionAssetFromList(item,'tier',-1));
     const tierValue=document.createElement('span');tierValue.textContent=String(regionOverlayTier(item));
     const tierUp=document.createElement('button');tierUp.type='button';tierUp.textContent='+';tierUp.setAttribute('aria-label','Move one Region Tier farther');tierUp.addEventListener('click',()=>updateRegionAssetFromList(item,'tier',1));tier.append(tierDown,tierValue,tierUp);
@@ -1375,7 +1376,8 @@ function syncRegionEditLayer(){
       if(item.localOverlay)continue;
       item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'')||String(item.id||'')!==localAnchorId;
     }else{
-      item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'');
+      const recursiveVisible=recursiveRegionEnvelope(item)?.visible!==false;
+      item.node.hidden=!active||String(item.regionId||'')!==String(deed?.id||'')||!recursiveVisible;
     }
   }
   if(active&&!LOCAL_DEFINER)refreshRegionPersistenceStatus();
@@ -2740,13 +2742,14 @@ function applyParallax(){
     // as read-only context while Region Definer edits the selected tier.
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
-    const visible=LOCAL_DEFINER&&localIsOpen()
+    const recursiveVisible=!(REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay)||recursiveRegionEnvelope(item)?.visible!==false;
+    const visible=recursiveVisible&&(LOCAL_DEFINER&&localIsOpen()
       ? !!item.localAnchor||(!!item.localOverlay&&String(item.localId||'')===activeLocalMapId())
       : REGION_DEFINER
         ? regionProjectionLoaded
           ?(item.regionOverlay?String(item.regionId||'')===activeRegionMapId():!!item.sourceLocked)
           :(item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
-        : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
+        : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index));
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
