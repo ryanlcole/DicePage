@@ -247,7 +247,7 @@ public sealed partial class WorldSession
 public sealed class MapCardDocument
 {
     public string Format { get; set; } = "RISTMAPCARD";
-    public int Version { get; set; } = 4;
+    public int Version { get; set; } = 5;
     public string CardId { get; set; } = "";
     public string OwnerAccountId { get; set; } = "";
     public string CreatorProvenanceId { get; set; } = "";
