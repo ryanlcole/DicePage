@@ -13,6 +13,13 @@ def test_instance_scope_is_registered_at_45_degrees():
     assert '"ENCOUNTER" or "TACTICAL" => "INSTANCE"' in scope
 
 
+def test_instance_builder_only_uses_named_marker_kinds():
+    model = read("WorldSession.Instances.cs")
+    component = read("Components/InstanceBuilderWorkspace.razor")
+    assert 'return value is "label" or "pin" or "marker";' in model
+    assert "WorldSession.IsInstanceMarkerKind(item.Kind)" in component
+
+
 def test_instance_contract_uses_explicit_marker_and_touched_asset_root():
     contract = read("INSTANCE_RECURSIVE_SCOPE_CONTRACT.md")
     model = read("WorldSession.Instances.cs")
@@ -20,7 +27,8 @@ def test_instance_contract_uses_explicit_marker_and_touched_asset_root():
     assert "TouchedAssetId" in model
     assert "MarkerAssetId" in model
     assert "The marker and touched asset must be separate stable identities." in model
-    assert "The named marker is not a saved asset in the selected Local." in model
+    assert "Choose a saved Local label, pin, or marker as the named Instance marker." in model
+    assert "IsInstanceMarkerKind(item.Kind)" in model
     assert "The touched asset is not part of the selected Local." in model
 
 
@@ -56,9 +64,11 @@ def test_measurement_reuses_world_authority_without_rewriting_steps():
     formatter = model.split("public string FormatInstanceElevationForCurrentMeasurement", 1)[1].split(
         "public static bool IsInstanceMarkerKind", 1
     )[0]
-    assert "GridDistance" in formatter
+    assert "elevationSteps * InstanceElevationUnitsPerStep" in formatter
     assert "MeasurementUnitName(value)" in formatter
     assert "ElevationSteps" not in formatter
+    assert "InstanceElevationUnitsPerStep => Math.Max(MinMeasurementPerCell, GridDistance) / 10d;" in model
+    assert "Session.InstanceElevationStepSummary" in component
     assert "Session.MeasurementCellSummary" in component
     assert "Session.FormatInstanceElevationForCurrentMeasurement(_cellElevation)" in component
     assert "SaveMeasurementAsync" not in component
