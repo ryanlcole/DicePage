@@ -1,0 +1,109 @@
+name: Deploy RIST Discord Storage
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-discord-storage.yml'
+      - '.github/workflows/deploy-rist-discord-storage.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: rist-discord-storage-production
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  STACK_NAME: rist-discord-storage
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/setup-sam@v2
+
+      - name: Validate private storage template
+        run: sam validate --lint --template-file infra/aws/rist-discord-storage.yml
+
+      - name: Build private storage stack
+        run: sam build --template-file infra/aws/rist-discord-storage.yml --build-dir .aws-sam/discord-storage
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Reuse deployed auth parameters
+        shell: bash
+        run: |
+          set -euo pipefail
+          param() {
+            aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Parameters[?ParameterKey=='$1'].ParameterValue | [0]" \
+              --output text
+          }
+
+          DISCORD_CLIENT_ID="$(param DiscordClientId)"
+          DISCORD_SECRET_ARN="$(param DiscordClientSecretArn)"
+          FRONTEND_ORIGIN="$(param FrontendOrigin)"
+          FRONTEND_URL="$(param FrontendUrl)"
+          SESSION_HOURS="$(param SessionHours)"
+
+          for value in "$DISCORD_CLIENT_ID" "$DISCORD_SECRET_ARN" "$FRONTEND_ORIGIN" "$FRONTEND_URL" "$SESSION_HOURS"; do
+            test -n "$value"
+            test "$value" != "None"
+          done
+
+          {
+            echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID"
+            echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN"
+            echo "FRONTEND_ORIGIN=$FRONTEND_ORIGIN"
+            echo "FRONTEND_URL=$FRONTEND_URL"
+            echo "SESSION_HOURS=$SESSION_HOURS"
+          } >> "$GITHUB_ENV"
+
+      - name: Deploy private content-addressed storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          sam deploy \
+            --template-file .aws-sam/discord-storage/template.yaml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/$STACK_NAME" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              "DiscordClientId=$DISCORD_CLIENT_ID" \
+              "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
+              "FrontendOrigin=$FRONTEND_ORIGIN" \
+              "FrontendUrl=$FRONTEND_URL" \
+              "SessionHours=$SESSION_HOURS"
+
+      - name: Verify deployed storage authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query 'Stacks[0].StackStatus' --output text)
+          [[ "$STATUS" == *"_COMPLETE" ]]
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='ApiBaseUrl'].OutputValue" --output text)
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='PrivateStorageBucketName'].OutputValue" --output text)
+          test -n "$API" && test "$API" != "None"
+          test -n "$BUCKET" && test "$BUCKET" != "None"
+          CODE=$(curl --silent --output /tmp/me.json --write-out '%{http_code}' "$API/me")
+          test "$CODE" = "401"
+          echo "Private storage authority deployed and authentication boundary verified."
