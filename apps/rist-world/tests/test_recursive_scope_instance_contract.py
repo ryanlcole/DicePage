@@ -43,12 +43,12 @@ def test_instance_catalog_references_local_without_copying_parent_geometry():
 def test_instance_cells_own_signed_elevation_and_terrain_rules():
     model = read("WorldSession.Instances.cs")
     assert "int ElevationSteps = 0" in model
-    assert "string TerrainType = """ in model
+    assert 'string TerrainType = ""' in model
     assert "double MovementCost = 1" in model
     assert "bool BlocksMovement = false" in model
     assert "bool BlocksSight = false" in model
-    assert "string Tags = """ in model
-    assert "string Notes = """ in model
+    assert 'string Tags = ""' in model
+    assert 'string Notes = ""' in model
 
 
 def test_every_ten_elevation_steps_crosses_one_parallax_band():
