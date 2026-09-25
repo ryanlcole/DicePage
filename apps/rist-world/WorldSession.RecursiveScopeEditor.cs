@@ -61,11 +61,20 @@ public sealed partial class WorldSession
             Visible: true,
             Locked: false,
             LinkedGroupId: "",
-            PermissionResourceId: identity);
+            PermissionResourceId: RecursivePermissionResourceId(identity));
     }
 
     public static int NormalizeScopeTier(int tier) => Math.Max(1, tier);
     public static int NormalizeScopeLayer(int layer) => Math.Max(1, layer);
+
+    public static string RecursivePermissionResourceId(string? assetId)
+    {
+        var identity = (assetId ?? "").Trim();
+        if (identity.Length == 0) return "";
+        return identity.StartsWith("asset:", StringComparison.Ordinal)
+            ? identity
+            : "asset:" + identity;
+    }
 
     public static int NextVisualLayer(IEnumerable<RecursiveScopePlacement> placements, int tier)
     {
@@ -259,8 +268,8 @@ public sealed record RecursiveScopePlacement(
             Opacity = Math.Clamp(Opacity, 0, 1),
             LinkedGroupId = (LinkedGroupId ?? "").Trim(),
             PermissionResourceId = string.IsNullOrWhiteSpace(PermissionResourceId)
-                ? assetId
-                : PermissionResourceId.Trim()
+                ? WorldSession.RecursivePermissionResourceId(assetId)
+                : WorldSession.RecursivePermissionResourceId(PermissionResourceId)
         };
     }
 }
