@@ -112,6 +112,17 @@ public sealed partial class WorldSession
             string.Equals(item.AssetId, asset, StringComparison.Ordinal));
     }
 
+    public RecursiveScopePlacement? RecursiveScopeRoot(string scopeKind, string scopeId)
+    {
+        var kind = NormalizeEditorScope(scopeKind);
+        var id = (scopeId ?? "").Trim();
+        // Insertion order is semantic here: the first successfully authored
+        // placement defines x=0,y=0 for this recursive scope.
+        return _recursiveScopePlacements.FirstOrDefault(item =>
+            string.Equals(item.ScopeKind, kind, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(item.ScopeId, id, StringComparison.Ordinal));
+    }
+
     public void UpsertRecursiveScopePlacement(RecursiveScopePlacement placement)
     {
         if (UpsertRecursiveScopePlacementCore(placement))
