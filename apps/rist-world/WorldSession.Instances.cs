@@ -209,8 +209,10 @@ public sealed partial class WorldSession
 
         var references = await LoadLocalInstanceReferencesAsync(local.LocalId);
         var marker = references.FirstOrDefault(item =>
-            !item.IsLocalRoot && string.Equals(item.AssetId, markerAssetId, StringComparison.Ordinal))
-            ?? throw new InvalidOperationException("The named marker is not a saved asset in the selected Local.");
+            !item.IsLocalRoot
+            && IsInstanceMarkerKind(item.Kind)
+            && string.Equals(item.AssetId, markerAssetId, StringComparison.Ordinal))
+            ?? throw new InvalidOperationException("Choose a saved Local label, pin, or marker as the named Instance marker.");
         var touched = references.FirstOrDefault(item =>
             string.Equals(item.AssetId, touchedAssetId, StringComparison.Ordinal))
             ?? throw new InvalidOperationException("The touched asset is not part of the selected Local.");
@@ -497,10 +499,26 @@ public sealed partial class WorldSession
 
     public static string FormatInstanceElevation(WorldInstanceMapState state, int elevationSteps)
     {
+        // Compatibility formatter for saved display preferences. Canonical
+        // elevation remains ElevationSteps regardless of presentation unit.
         if (string.Equals(state.MeasurementUnit, "steps", StringComparison.OrdinalIgnoreCase))
             return $"{elevationSteps} step{(Math.Abs(elevationSteps) == 1 ? "" : "s")}";
         var value = elevationSteps * state.MeasurementPerStep;
         return $"{value.ToString("0.###", CultureInfo.InvariantCulture)} {state.MeasurementUnit}";
+    }
+
+    public string FormatInstanceElevationForCurrentMeasurement(int elevationSteps)
+    {
+        // The world's measurement authority translates Instance height only
+        // for display. It never mutates signed cell elevation truth.
+        var value = elevationSteps * GridDistance;
+        return $"{FormatMeasurementNumber(value)} {MeasurementUnitName(value)}";
+    }
+
+    public static bool IsInstanceMarkerKind(string? kind)
+    {
+        var value = (kind ?? "").Trim().ToLowerInvariant();
+        return value is "label" or "pin" or "marker";
     }
 
     public static string NormalizeInstanceGridShape(string? value)
