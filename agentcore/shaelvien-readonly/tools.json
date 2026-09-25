@@ -1,0 +1,55 @@
+[
+  {
+    "name": "health",
+    "description": "Check the Shaelvien read-only knowledge service. This tool never mutates state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_record",
+    "description": "Read one exact record from the non-authoritative RIST AI knowledge projection by partition and sort key.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pk": {
+          "type": "string",
+          "description": "Exact DynamoDB partition key in the curated AI knowledge projection."
+        },
+        "sk": {
+          "type": "string",
+          "description": "Exact DynamoDB sort key in the curated AI knowledge projection."
+        }
+      },
+      "required": ["pk", "sk"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "query_scope",
+    "description": "Read a bounded set of records under one partition key, optionally restricted by a sort-key prefix. No scan and no write operations are available.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pk": {
+          "type": "string",
+          "description": "Exact partition key."
+        },
+        "skPrefix": {
+          "type": "string",
+          "description": "Optional sort-key prefix."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 25,
+          "description": "Maximum records to return."
+        }
+      },
+      "required": ["pk"],
+      "additionalProperties": false
+    }
+  }
+]
