@@ -208,6 +208,7 @@ function syncRegionRecursiveEnvelope(item,tier=regionOverlayTier(item),layer=reg
   };
   item.regionTier=item.recursive.tier;
   item.regionLayer=clamp(item.recursive.layer,1,9);
+  item.z100=regionZ100(regionWorldLayer(item),item.regionLayer);
   return item.recursive;
 }
 function nestedVerticalAddress(item={}){
