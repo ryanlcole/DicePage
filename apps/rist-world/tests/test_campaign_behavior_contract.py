@@ -37,7 +37,7 @@ def test_campaign_rule_identity_and_target_identity_are_stable_fields():
     assert "string TargetKind" in model
     assert "string TargetId" in model
     assert 'RuleId: $"campaign-rule-{Guid.NewGuid():N}"' in model
-    assert "TargetId = (rule.TargetId ?? "").Trim()" in model
+    assert 'TargetId = (rule.TargetId ?? "").Trim()' in model
 
 
 def test_campaign_target_kinds_cover_recursive_identity_graph():
