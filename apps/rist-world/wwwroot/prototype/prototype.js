@@ -112,6 +112,8 @@ let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
 let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionTierIndex=1,regionLayerIndex=1,regionPersistenceDbCount=null;
+let regionPermissionPrincipals=[{id:'EVERYONE',label:'EVERYONE',kind:'public'}],regionPermissionPrincipal='EVERYONE',regionPermissionEditorAssetId='',regionPermissionGrant='None',regionPermissionStatus='',regionPermissionBusy=false;
+const regionPermissionCache=new Map();
 function regionWorldLayer(item){return clamp(Math.trunc(Number(item?.worldLayer??item?.layer??0)||0),0,9)}
 function recursiveRegionEnvelope(item){
   const raw=item?.recursive;
@@ -1269,6 +1271,41 @@ function regionEditableAssetRows(){
     .filter(item=>item?.regionOverlay&&!item.localOverlay&&!item.sourceLocked&&String(item.regionId||'')===regionId&&item.node?.isConnected)
     .sort((a,b)=>regionOverlayLayer(b)-regionOverlayLayer(a)||userLayers.indexOf(b)-userLayers.indexOf(a));
 }
+function permissionCacheKey(resourceId,principal=regionPermissionPrincipal){
+  return String(resourceId||'')+'\u001f'+String(principal||'EVERYONE');
+}
+function regionPermissionLabel(permission){
+  return permission==='Public'?'PUBLIC':permission==='View'?'VIEW':permission==='Edit'?'EDIT':permission==='Deny'?'DENY':'WAITING';
+}
+function regionPermissionForItem(item){
+  const resourceId=recursiveRegionEnvelope(item)?.permissionResourceId||assetAuthorityResourceId(item);
+  return regionPermissionCache.has(permissionCacheKey(resourceId))
+    ?regionPermissionLabel(regionPermissionCache.get(permissionCacheKey(resourceId)))
+    :'SET';
+}
+function regionPermissionEditorItem(){
+  return userLayers.find(item=>String(item?.id||'')===regionPermissionEditorAssetId)||null;
+}
+function requestRegionPermissionEditor(item){
+  if(!item||LOCAL_DEFINER)return;
+  const resourceId=recursiveRegionEnvelope(item)?.permissionResourceId||assetAuthorityResourceId(item);
+  regionPermissionEditorAssetId=String(item.id||'');
+  regionPermissionGrant=regionPermissionCache.get(permissionCacheKey(resourceId))||'None';
+  regionPermissionStatus='Loading server authority…';
+  regionPermissionBusy=true;
+  renderRecursiveAssetList();
+  if(!postRegionMessage('request-resource-permissions',{resourceId})){
+    regionPermissionBusy=false;regionPermissionStatus='Permission bridge unavailable.';renderRecursiveAssetList();
+  }
+}
+function saveRegionPermissionEditor(){
+  const item=regionPermissionEditorItem();if(!item||regionPermissionBusy)return;
+  const resourceId=recursiveRegionEnvelope(item)?.permissionResourceId||assetAuthorityResourceId(item);
+  regionPermissionBusy=true;regionPermissionStatus='Saving server authority…';renderRecursiveAssetList();
+  if(!postRegionMessage('set-resource-permission',{resourceId,targetUserId:regionPermissionPrincipal,permission:regionPermissionGrant})){
+    regionPermissionBusy=false;regionPermissionStatus='Permission bridge unavailable.';renderRecursiveAssetList();
+  }
+}
 function ensureRecursiveAssetList(){
   if(recursiveAssetListPanel?.isConnected)return recursiveAssetListPanel;
   const panel=document.createElement('section');
@@ -1310,12 +1347,22 @@ function renderRecursiveAssetList(){
   panel.replaceChildren();
 
   const header=document.createElement('header');
-  const title=document.createElement('div');
+  const title=document.createElement('div');title.className='recursive-asset-title';
   const strong=document.createElement('strong');strong.textContent='REGION · 15°';
   const small=document.createElement('small');small.textContent='Layer = appearance · Tier = depth · X/Y local to deed';
   title.append(strong,small);
+
+  const principal=document.createElement('label');principal.className='recursive-principal';
+  const principalLabel=document.createElement('span');principalLabel.textContent='PERMISSION FOR';
+  const principalSelect=document.createElement('select');principalSelect.setAttribute('aria-label','Permission principal');
+  for(const entry of regionPermissionPrincipals){
+    const option=document.createElement('option');option.value=String(entry.id||'');option.textContent=String(entry.label||entry.id||'');option.selected=String(entry.id||'')===regionPermissionPrincipal;principalSelect.appendChild(option);
+  }
+  principalSelect.addEventListener('change',()=>{regionPermissionPrincipal=principalSelect.value||'EVERYONE';regionPermissionEditorAssetId='';regionPermissionStatus='';renderRecursiveAssetList()});
+  principal.append(principalLabel,principalSelect);
+
   const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Close Region asset list');close.addEventListener('click',()=>{closeRecursiveAssetList();keyboardMode='Viewer';renderKeyboardTabs();renderKeyboardKeys()});
-  header.append(title,close);panel.appendChild(header);
+  header.append(title,principal,close);panel.appendChild(header);
 
   const headings=document.createElement('div');headings.className='recursive-asset-head';
   for(const label of ['V','L','Asset','Opacity','Layer','Tier','Link','Permission']){const span=document.createElement('span');span.textContent=label;headings.appendChild(span)}
@@ -1352,11 +1399,34 @@ function renderRecursiveAssetList(){
 
     const linked=document.createElement('span');linked.className='recursive-link';linked.textContent=item.linkGroupId?'LINKED':'—';linked.title=String(item.linkGroupId||'');
 
-    const permission=document.createElement('button');permission.type='button';permission.className='recursive-permission';permission.textContent='PERM';permission.title=String(recursive?.permissionResourceId||assetAuthorityResourceId(item));permission.setAttribute('aria-label',`Permission identity for ${item.name||'asset'}`);permission.addEventListener('click',()=>announce(`Permission resource ${recursive?.permissionResourceId||assetAuthorityResourceId(item)}. Authority remains server controlled.`));
+    const permission=document.createElement('button');permission.type='button';permission.className='recursive-permission';permission.textContent=regionPermissionForItem(item);permission.title=String(recursive?.permissionResourceId||assetAuthorityResourceId(item));permission.setAttribute('aria-label',`Permission for ${item.name||'asset'} and ${regionPermissionPrincipal}`);permission.addEventListener('click',()=>requestRegionPermissionEditor(item));
 
     row.append(visible,locked,asset,opacity,layer,tier,linked,permission);body.appendChild(row);
   }
   panel.appendChild(body);
+
+  const editorItem=regionPermissionEditorItem();
+  if(editorItem){
+    const recursive=syncRegionRecursiveEnvelope(editorItem);
+    const footer=document.createElement('footer');footer.className='recursive-permission-editor';
+    const copy=document.createElement('div');
+    const editorName=document.createElement('strong');editorName.textContent=String(editorItem.name||editorItem.text||'Region asset');
+    const editorId=document.createElement('small');editorId.textContent=`${regionPermissionPrincipal} · ${recursive?.permissionResourceId||assetAuthorityResourceId(editorItem)}`;
+    copy.append(editorName,editorId);
+
+    const grant=document.createElement('select');grant.setAttribute('aria-label','Permission');
+    const values=regionPermissionPrincipal==='EVERYONE'
+      ?[['None','Waiting / inherited'],['Public','Public']]
+      :[['None','Waiting / inherited'],['View','View'],['Edit','Edit'],['Deny','Deny']];
+    for(const [value,label] of values){const option=document.createElement('option');option.value=value;option.textContent=label;option.selected=value===regionPermissionGrant;grant.appendChild(option)}
+    grant.addEventListener('change',()=>{regionPermissionGrant=grant.value});
+
+    const save=document.createElement('button');save.type='button';save.textContent=regionPermissionBusy?'SAVING…':'SAVE';save.disabled=regionPermissionBusy;save.addEventListener('click',saveRegionPermissionEditor);
+    const closeEditor=document.createElement('button');closeEditor.type='button';closeEditor.textContent='×';closeEditor.setAttribute('aria-label','Close permission editor');closeEditor.addEventListener('click',()=>{regionPermissionEditorAssetId='';regionPermissionStatus='';renderRecursiveAssetList()});
+    footer.append(copy,grant,save,closeEditor);
+    if(regionPermissionStatus){const status=document.createElement('span');status.className='recursive-permission-status';status.setAttribute('role','status');status.textContent=regionPermissionStatus;footer.appendChild(status)}
+    panel.appendChild(footer);
+  }
   panel.hidden=false;
 }
 function syncRegionEditLayer(){
@@ -4319,6 +4389,42 @@ async function handleRegionHostMessage(event){
   if(!REGION_DEFINER||event.origin!==location.origin||event.source!==window.parent)return;
   const data=event.data;if(!data||data.source!=='shaelvien-regiondefiner-host')return;
   if(data.type==='bridge-ready'){postRegionMessage('ready');return}
+  if(data.type==='permission-directory'){
+    const incoming=Array.isArray(data.principals)?data.principals:[];
+    regionPermissionPrincipals=incoming.length?incoming:[{id:'EVERYONE',label:'EVERYONE',kind:'public'}];
+    if(!regionPermissionPrincipals.some(item=>String(item?.id||'')===regionPermissionPrincipal))regionPermissionPrincipal='EVERYONE';
+    if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();
+    return;
+  }
+  if(data.type==='resource-permissions'){
+    const resourceId=String(data.resourceId||'');
+    const permissions=Array.isArray(data.permissions)?data.permissions:[];
+    const row=permissions.find(item=>String(item?.userId??item?.UserId??'')===regionPermissionPrincipal);
+    regionPermissionGrant=String(row?.permission??row?.Permission??'None');
+    if(regionPermissionPrincipal==='EVERYONE'&&regionPermissionGrant!=='Public')regionPermissionGrant='None';
+    regionPermissionCache.set(permissionCacheKey(resourceId),regionPermissionGrant);
+    regionPermissionBusy=false;regionPermissionStatus='';
+    if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();
+    return;
+  }
+  if(data.type==='resource-permission-saved'){
+    const resourceId=String(data.resourceId||'');
+    const principal=String(data.targetUserId||regionPermissionPrincipal);
+    const permission=String(data.permission||'None');
+    if(data.ok===true){
+      regionPermissionCache.set(permissionCacheKey(resourceId,principal),permission);
+      if(principal===regionPermissionPrincipal)regionPermissionGrant=permission;
+      regionPermissionStatus=permission==='None'?'Explicit grant removed; inherited/default authority applies.':'Permission saved.';
+    }else regionPermissionStatus='Permission was not changed.';
+    regionPermissionBusy=false;
+    if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();
+    return;
+  }
+  if(data.type==='resource-permission-error'){
+    regionPermissionBusy=false;regionPermissionStatus=String(data.message||'Permission operation failed.');
+    if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();
+    return;
+  }
   if(data.type==='world-source'){
     await renderRegionWorldSource(data.worldSource||{});
     return;
