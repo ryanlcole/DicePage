@@ -1230,6 +1230,9 @@ function syncRegionEditLayer(){
   layer.dataset.worldZ=String(viewerLayer);
   layer.dataset.regionTier=String(regionTierIndex);
   layer.dataset.regionLayer=String(regionLayerIndex);
+  layer.dataset.recursiveScope=LOCAL_DEFINER?'LOCAL':'REGION';
+  layer.dataset.recursiveScopeFormat=RECURSIVE_SCOPE_FORMAT;
+  layer.dataset.representationAngle=String(REPRESENTATION_ANGLE_DEGREES);
   layer.style.zIndex='8000';
   layer.hidden=!active;
   const localAnchorId=LOCAL_DEFINER&&localIsOpen()?String(activeLocal?.anchorObjectId||''):'';
@@ -1501,9 +1504,10 @@ function openImageUpload(){
     :LOCAL_DEFINER&&localIsOpen()
       ?`Image upload opened inside ${activeLocal?.name||'Local'} at Local Tier ${localTierIndex}, Local Layer ${localLayerIndex}. Canonical X/Y remain unchanged.`
       :REGION_DEFINER&&regionDeedIsComplete()
-      ?`Image upload opened at World Z ${viewerLayer}, Region layer ${regionLayerIndex}, exact Z ${regionZLabel(viewerLayer,regionLayerIndex)}.`
+      ?`Image upload opened at Region Tier ${regionTierIndex}, visual Layer ${regionLayerIndex}. Position is stored in Region-local X/Y.`
       :`Image upload opened. Adjustable layer defaults to ${tierLabel(tierByIndex(currentTierIndex()))}.`);
-}function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
+}
+function closeImageUpload(){imageUploadPanel.hidden=true;stage.classList.remove('image-upload-open');imageUploadToggle.focus()}
 function fileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 function loadDataImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 function openSpriteUpload(target=null){
@@ -2539,7 +2543,7 @@ async function placeUploadedImage(file){
   }else announce(LOCAL_DEFINER&&localIsOpen()
     ?`Image placed at Local Tier ${item.localTier||0}, Local Layer ${item.localLayer||1}; canonical X/Y ${item.x.toFixed(3)}, ${item.y.toFixed(3)} retained.`
     :REGION_DEFINER
-    ?`Image placed at World Z ${regionWorldLayer(item)}, Region layer ${regionOverlayLayer(item)}, exact Z ${regionZLabel(item)}.`
+    ?(()=>{const pos=selectedPositionSummary(item);return `Image placed at Region Tier ${pos.regionTier}, visual Layer ${pos.regionLayer}; local X/Y ${pos.x}, ${pos.y}.`})()
     :`Image placed above ${tierLabel(tierByIndex(tier))} as adjustable layer ${layer}.`);
 }
 function tierMix(){
@@ -4351,10 +4355,24 @@ if(REGION_DEFINER){
 function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
 function selectedPositionSummary(item){
-  if(!item)return{tier:1,tierLabel:tierLabel(TIERS[0]),layer:1,worldZ:0,regionTier:0,regionLayer:1,localTier:0,localLayer:0,instanceTier:0,instanceLayer:0,z:'0.01',x:'0.000',y:'0.000'};
+  if(!item)return{tier:1,tierLabel:'Region parallax depth',layer:1,worldZ:0,regionTier:1,regionLayer:1,localTier:0,localLayer:0,instanceTier:0,instanceLayer:0,z:'0.01',x:'0.000',y:'0.000'};
   const tier=tierDisplay(item.tier);
   if(REGION_DEFINER&&regionDeedIsComplete()){
-    const address=nestedVerticalAddress(item),worldZ=address.worldLayer,regionLayer=address.regionLayer;
+    const address=nestedVerticalAddress(item),worldZ=address.worldLayer;
+    if(!LOCAL_DEFINER&&item.regionOverlay){
+      const recursive=recursiveRegionEnvelope(item);
+      const local=recursive?{x:Number(recursive.x)||0,y:Number(recursive.y)||0}:regionLocalPoint(item.x,item.y);
+      return{
+        tier:address.regionTier,tierLabel:'Region parallax depth',layer:address.regionLayer,
+        worldTier:tier.number,worldTierLabel:tier.label,worldZ,
+        regionTier:address.regionTier,regionLayer:address.regionLayer,
+        localTier:address.localTier,localLayer:address.localLayer,
+        instanceTier:address.instanceTier,instanceLayer:address.instanceLayer,
+        z:regionZLabel(worldZ,clamp(address.regionLayer,1,9)),
+        x:local.x.toFixed(3),y:local.y.toFixed(3)
+      };
+    }
+    const regionLayer=address.regionLayer;
     return{tier:tier.number,tierLabel:tier.label,layer:worldZ+1,worldZ,regionTier:address.regionTier,regionLayer,localTier:address.localTier,localLayer:address.localLayer,instanceTier:address.instanceTier,instanceLayer:address.instanceLayer,z:regionZLabel(worldZ,regionLayer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
   }
   return{tier:tier.number,tierLabel:tier.label,layer:layerDisplay(item.layer),x:(Number(item.x)||0).toFixed(3),y:(Number(item.y)||0).toFixed(3)};
