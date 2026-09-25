@@ -303,7 +303,7 @@ test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps par
 
     assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
     assert.equal(f.stage.dataset.sourceCellCount,'4');
-    assert.equal(f.stage.dataset.renderer,'region-world-z-v2');
+    assert.equal(f.stage.dataset.renderer,'region-world-z-v2-legacy','legacy fixture must be marked compatibility-only');
     assert.equal(f.d.querySelectorAll('.region-world-source-tier-image').length,0);
     assert.equal(f.d.getElementById('surfacePlane').getAttribute('src'),null);
 
