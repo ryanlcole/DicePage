@@ -127,43 +127,19 @@ flowchart LR
   chid_003605["chid.003605\nROOT\nvariable"]
   chid_003607["chid.003607\nOUTPUT\nvariable"]
   chid_003609["chid.003609\nIMPORT_RE\nvariable"]
-  chid_003612["chid.003612\ninline_imports\nfunction"]
-  chid_003613["chid.003613\ntext\nparameter"]
-  chid_003614["chid.003614\nstack\nparameter"]
-  chid_003615["chid.003615\nreplace\nfunction"]
-  chid_003616["chid.003616\nmatch\nparameter"]
-  chid_003617["chid.003617\nraw\nvariable"]
-  chid_003618["chid.003618\nname\nvariable"]
-  chid_003619["chid.003619\npath\nvariable"]
-  chid_003621["chid.003621\nmain\nfunction"]
-  chid_003622["chid.003622\nsections\nvariable"]
-  chid_003623["chid.003623\npath\nvariable"]
-  chid_003624["chid.003624\nbody\nvariable"]
-  chid_003625["chid.003625\noutput\nvariable"]
-  chid_003626["chid.003626\nPath\nimport"]
-  chid_003632["chid.003632\nsubprocess\nimport"]
-  chid_003633["chid.003633\nsys\nimport"]
-  chid_003634["chid.003634\nroot\nvariable"]
-  chid_003635["chid.003635\ntactical\nvariable"]
-  chid_003636["chid.003636\nweb\nvariable"]
-  chid_003637["chid.003637\ndata_dir\nvariable"]
-  chid_003640["chid.003640\n_load_pillow\nfunction"]
-  chid_003641["chid.003641\nImage\nimport"]
   chid_009715["chid.009715\nsorted\nvariable"]
   chid_012251["chid.012251\nforbidden\nvariable"]
   chid_074530["chid.074530\nBytesIO\nimport"]
   chid_086937["chid.086937\nquote\nvariable"]
+  chid_095960["chid.095960\ncheck_output\nimport"]
   chid_097514["chid.097514\nsort\nmethod"]
   chid_103037["chid.103037\ncasefold\nmethod"]
   chid_103611["chid.103611\nlstrip\nfunction"]
   chid_103614["chid.103614\nrstrip\nfunction"]
-  chid_107386["chid.107386\ncheck_call\nvariable"]
   chid_110174["chid.110174\nis_file\nmethod"]
   chid_113186["chid.113186\nint\nfunction"]
   chid_118651["chid.118651\nwrite_text\nmethod"]
   chid_153590["chid.153590\nprint\nfunction"]
-  chid_167604["chid.167604\nFINAL_AUTHORITY\nimport"]
-  chid_167605["chid.167605\nSOURCES\nimport"]
   chid_167606["chid.167606\nCSS_SOURCE_DIR\nvariable"]
   chid_167607["chid.167607\nsource_path\nfunction"]
   chid_167608["chid.167608\nname\nparameter"]
@@ -171,6 +147,87 @@ flowchart LR
   chid_167610["chid.167610\ncandidate\nvariable"]
   chid_167611["chid.167611\nroot\nvariable"]
   chid_168358["chid.168358\nprobe\nvariable"]
+  chid_174378["chid.174378\njson\nimport"]
+  chid_174379["chid.174379\nsubprocess\nimport"]
+  chid_174380["chid.174380\nPath\nimport"]
+  chid_174381["chid.174381\nROOT\nvariable"]
+  chid_174382["chid.174382\nCONTRACT\nvariable"]
+  chid_174383["chid.174383\nfail\nfunction"]
+  chid_174384["chid.174384\nmessage\nparameter"]
+  chid_174385["chid.174385\ndata\nvariable"]
+  chid_174386["chid.174386\nrequired\nvariable"]
+  chid_174387["chid.174387\nagents\nvariable"]
+  chid_174388["chid.174388\nshell\nvariable"]
+  chid_174389["chid.174389\nparent\nvariable"]
+  chid_174390["chid.174390\nchanged\nvariable"]
+  chid_174391["chid.174391\nruntime_ext\nvariable"]
+  chid_174392["chid.174392\nruntime\nvariable"]
+  chid_174393["chid.174393\naccessibility_path\nvariable"]
+  chid_174394["chid.174394\ndiff\nvariable"]
+  chid_174395["chid.174395\nadded\nvariable"]
+  chid_174396["chid.174396\naccessibility_marker\nvariable"]
+  chid_174381 -->|call| chid_174380
+  chid_174381 -->|read| chid_174380
+  chid_174382 -->|read| chid_174381
+  chid_174383 -->|read| chid_174384
+  chid_174384 -->|call| chid_110174
+  chid_174384 -->|read| chid_174382
+  chid_174384 -->|call| chid_174383
+  chid_174384 -->|read| chid_174383
+  chid_174385 -->|read| chid_174378
+  chid_174385 -->|read| chid_174382
+  chid_174385 -->|read| chid_174385
+  chid_174385 -->|call| chid_174383
+  chid_174385 -->|read| chid_174383
+  chid_174385 -->|read| chid_174385
+  chid_174385 -->|call| chid_174383
+  chid_174385 -->|read| chid_174383
+  chid_174385 -->|read| chid_174385
+  chid_174385 -->|read| chid_174385
+  chid_174385 -->|call| chid_174383
+  chid_174385 -->|read| chid_174383
+  chid_174386 -->|read| chid_174385
+  chid_174386 -->|read| chid_174386
+  chid_174386 -->|call| chid_174383
+  chid_174386 -->|read| chid_174383
+  chid_174387 -->|read| chid_174381
+  chid_174387 -->|read| chid_174387
+  chid_174387 -->|call| chid_174383
+  chid_174387 -->|read| chid_174383
+  chid_174388 -->|read| chid_174381
+  chid_174388 -->|read| chid_174388
+  chid_174388 -->|call| chid_174383
+  chid_174388 -->|read| chid_174383
+  chid_174389 -->|call| chid_095960
+  chid_174389 -->|read| chid_174379
+  chid_174389 -->|read| chid_174381
+  chid_174389 -->|read| chid_174379
+  chid_174389 -->|read| chid_174379
+  chid_174389 -->|read| chid_174389
+  chid_174390 -->|call| chid_095960
+  chid_174390 -->|read| chid_174379
+  chid_174390 -->|read| chid_174389
+  chid_174390 -->|read| chid_174381
+  chid_174392 -->|read| chid_174390
+  chid_174392 -->|call| chid_174380
+  chid_174392 -->|read| chid_174380
+  chid_174392 -->|read| chid_174391
+  chid_174392 -->|read| chid_174392
+  chid_174393 -->|read| chid_174390
+  chid_174394 -->|call| chid_095960
+  chid_174394 -->|read| chid_174379
+  chid_174394 -->|read| chid_174389
+  chid_174394 -->|read| chid_174392
+  chid_174394 -->|read| chid_174381
+  chid_174395 -->|read| chid_174394
+  chid_174396 -->|read| chid_174395
+  chid_174396 -->|read| chid_174393
+  chid_174396 -->|read| chid_174396
+  chid_174396 -->|call| chid_174383
+  chid_174396 -->|read| chid_174383
+  chid_174396 -->|read| chid_174392
+  chid_174396 -->|call| chid_153590
+  chid_174396 -->|read| chid_153590
   chid_000013 -->|call| chid_000012
   chid_000013 -->|read| chid_000012
   chid_000014 -->|read| chid_000013
@@ -207,6 +264,8 @@ flowchart LR
   chid_000024 -->|read| chid_000023
   chid_000024 -->|read| chid_000024
   chid_000024 -->|read| chid_000024
+  chid_000024 -->|call| chid_000017
+  chid_000024 -->|read| chid_000017
   chid_000024 -->|call| chid_000017
   chid_000024 -->|read| chid_000017
   chid_000024 -->|call| chid_000017
@@ -607,67 +666,3 @@ flowchart LR
   chid_167607 -->|read| chid_167610
   chid_167607 -->|read| chid_167611
   chid_167607 -->|read| chid_167611
-  chid_167607 -->|read| chid_167610
-  chid_167607 -->|read| chid_167608
-  chid_167607 -->|read| chid_167610
-  chid_003615 -->|read| chid_003616
-  chid_003615 -->|read| chid_003617
-  chid_003615 -->|read| chid_003617
-  chid_003615 -->|call| chid_103611
-  chid_003615 -->|read| chid_003617
-  chid_003615 -->|read| chid_003618
-  chid_003615 -->|read| chid_003614
-  chid_003615 -->|read| chid_003614
-  chid_003615 -->|read| chid_003618
-  chid_003615 -->|call| chid_167607
-  chid_003615 -->|read| chid_167607
-  chid_003615 -->|read| chid_003618
-  chid_003615 -->|read| chid_003619
-  chid_003615 -->|call| chid_110174
-  chid_003615 -->|read| chid_003619
-  chid_003615 -->|read| chid_003619
-  chid_003615 -->|call| chid_003612
-  chid_003615 -->|read| chid_003612
-  chid_003615 -->|read| chid_003619
-  chid_003615 -->|read| chid_003614
-  chid_003615 -->|read| chid_003618
-  chid_003612 -->|read| chid_003609
-  chid_003612 -->|read| chid_003615
-  chid_003612 -->|read| chid_003613
-  chid_003621 -->|read| chid_167605
-  chid_003621 -->|call| chid_167607
-  chid_003621 -->|read| chid_167607
-  chid_003621 -->|read| chid_003623
-  chid_003621 -->|call| chid_110174
-  chid_003621 -->|read| chid_003623
-  chid_003621 -->|read| chid_003623
-  chid_003621 -->|call| chid_003612
-  chid_003621 -->|read| chid_003612
-  chid_003621 -->|read| chid_003623
-  chid_003621 -->|read| chid_003622
-  chid_003621 -->|read| chid_003624
-  chid_003621 -->|read| chid_003622
-  chid_003621 -->|read| chid_167604
-  chid_003621 -->|call| chid_103614
-  chid_003621 -->|read| chid_003622
-  chid_003621 -->|read| chid_003625
-  chid_003621 -->|call| chid_118651
-  chid_003621 -->|read| chid_003607
-  chid_003621 -->|read| chid_003625
-  chid_003621 -->|call| chid_153590
-  chid_003621 -->|read| chid_153590
-  chid_003621 -->|read| chid_003607
-  chid_003621 -->|read| chid_167605
-  chid_003621 -->|read| chid_167606
-  chid_003625 -->|call| chid_003621
-  chid_003625 -->|read| chid_003621
-  chid_003634 -->|call| chid_003626
-  chid_003634 -->|read| chid_003626
-  chid_003635 -->|read| chid_003634
-  chid_003636 -->|read| chid_003634
-  chid_003637 -->|read| chid_003636
-  chid_003637 -->|read| chid_003637
-  chid_003640 -->|read| chid_003641
-  chid_003640 -->|call| chid_107386
-  chid_003640 -->|read| chid_003632
-  chid_003640 -->|read| chid_003633
