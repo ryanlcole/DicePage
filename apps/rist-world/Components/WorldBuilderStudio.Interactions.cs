@@ -4,10 +4,11 @@ namespace RistWorld.Components;
 
 public partial class WorldBuilderStudio
 {
-    readonly Stack<List<TileItem>> _worldBuilderUndo = new();
+    readonly Stack<WorldBuilderSnapshot> _worldBuilderUndo = new();
     readonly HashSet<int> _selectedPlacedTileIndices = [];
     string _historyContext = "";
     List<TileItem>? _historyExpected;
+    List<RecursiveScopePlacement>? _historyExpectedRecursive;
     string HistoryContext => $"{Session.WorldId}|{Session.ActiveMapCardId}|{Session.Layer}|{Session.CubeX},{Session.CubeY},{Session.CubeZ}|{Session.PlaneIndex}|{Session.TierIndex},{Session.LayerOffset}";
     void ResetWorldBuilderHistory()
     {
@@ -15,17 +16,23 @@ public partial class WorldBuilderStudio
         ClearWorldBuilderSelection();
         _historyContext = HistoryContext;
         _historyExpected = Session.PlacedTiles.ToList();
+        _historyExpectedRecursive = Session.ExportRecursiveScopePlacements();
     }
     void EnsureWorldBuilderHistory()
     {
-        if (_historyContext != HistoryContext || (_historyExpected is not null && !_historyExpected.SequenceEqual(Session.PlacedTiles))) ResetWorldBuilderHistory();
+        if (_historyContext != HistoryContext ||
+            (_historyExpected is not null && !_historyExpected.SequenceEqual(Session.PlacedTiles)) ||
+            (_historyExpectedRecursive is not null && !_historyExpectedRecursive.SequenceEqual(Session.ExportRecursiveScopePlacements())))
+            ResetWorldBuilderHistory();
     }
     bool EditableTile(int index) => Session.CanEditTiles && index >= 0 && index < Session.PlacedTiles.Count &&
-        !Session.PlacedTiles[index].Locked;
+        !Session.PlacedTiles[index].Locked &&
+        !Session.RecursiveWorldTileLocked(Session.PlacedTiles[index]);
 
     async Task PersistWorldBuilderAsync()
     {
         _historyExpected = Session.PlacedTiles.ToList();
+        _historyExpectedRecursive = Session.ExportRecursiveScopePlacements();
         await Session.SaveAsync();
         await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id));
     }
@@ -33,7 +40,9 @@ public partial class WorldBuilderStudio
     void PushWorldBuilderUndo()
     {
         EnsureWorldBuilderHistory();
-        _worldBuilderUndo.Push(new List<TileItem>(Session.PlacedTiles));
+        _worldBuilderUndo.Push(new WorldBuilderSnapshot(
+            new List<TileItem>(Session.PlacedTiles),
+            Session.ExportRecursiveScopePlacements()));
         while (_worldBuilderUndo.Count > 30)
         {
             var keep = _worldBuilderUndo.Take(30).Reverse().ToArray();
@@ -68,16 +77,19 @@ public partial class WorldBuilderStudio
         var y = row / (double)WorldSession.GridRows;
         var placementZoom = 1.0 / footprint;
 
-        // The GM's raised square construction grid is placement authority. Asset
-        // metadata may describe where an asset was authored, but it must never
-        // teleport a newly placed tile away from the grid the GM is holding.
+        // New Worldbuilder content starts on RIST_RECURSIVE_SCOPE_V1. Tier is
+        // projected to legacy TierIndex only so the existing renderer can show
+        // parallax while it is replaced. Visual Layer never enters LayerOffset.
         return new TileItem(tile.Id,tile.Name,tile.Image,x,y,tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,placementZoom)
         {
             CubeX = Session.CubeX, CubeY = Session.CubeY, CubeZ = Session.CubeZ, PlaneIndex = Session.PlaneIndex,
-            TierIndex = Session.TierIndex, LayerOffset = Session.LayerOffset,
+            TierIndex = Session.TierIndex, LayerOffset = 0,
             RotationQuarterTurns = 0, PlacementTreatment = NormalizeTreatment(treatment),
             AssetKind = tile.AssetKind, AuthoredDepth = tile.AuthoredDepth,
             FrameCount = Math.Max(1, tile.FrameCount), FramesPerSecond = Math.Max(0, tile.FramesPerSecond),
+            PlacementId = $"tile-{Guid.NewGuid():N}",
+            TypeId = tile.TypeId,
+            GroupId = tile.GroupId,
             ShaepId = Session.ResolveShaepId(tile)
         };
     }
@@ -87,19 +99,16 @@ public partial class WorldBuilderStudio
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
 
         if (upperTier)
-        {
-            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = Session.LayerOffset };
-        }
-        else if (upperLayer)
-        {
-            var address = SceneAddress(Session.SceneZ + 1);
-            placed = placed with { TierIndex = address.Tier, LayerOffset = address.Layer };
-        }
+            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = 0 };
 
-        // World building deliberately permits unsupported / mid-air placement.
-        // The raised GM construction grid is the exact placement plane. Overlap
-        // is legal and never infers another layer or gravity/support behavior.
+        // "Upper Layer" is now a GIMP-style composition request. It deliberately
+        // does not alter legacy Z. Automatic overlap layering is calculated by the
+        // recursive WORLD bridge after the tile has a stable placement identity.
         Session.AddPlacedTileAtGridDepth(placed);
+        var index = Session.PlacedTiles.FindIndex(item =>
+            string.Equals(item.PlacementId, placed.PlacementId, StringComparison.Ordinal));
+        if (index >= 0)
+            Session.RegisterNewWorldTilePlacement(index, forceFront: upperLayer);
     }
 
     async Task<(int Column,int Row)?> ViewerCell(double clientX, double clientY, double footprint)
@@ -116,9 +125,36 @@ public partial class WorldBuilderStudio
 
     [JSInvokable] public Task<int[]> TogglePlacedTileSelection(int index,bool additive){EnsureWorldBuilderHistory();if(index<0||index>=Session.PlacedTiles.Count)return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());if(!additive)_selectedPlacedTileIndices.Clear();if(!_selectedPlacedTileIndices.Add(index)&&additive)_selectedPlacedTileIndices.Remove(index);return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());}
 
-    [JSInvokable] public async Task<bool> UndoWorldBuilderFromJs(){EnsureWorldBuilderHistory();if(!Session.CanEditTiles||_worldBuilderUndo.Count==0)return false;var previous=_worldBuilderUndo.Pop();Session.PlacedTiles.Clear();Session.PlacedTiles.AddRange(previous);ClearWorldBuilderSelection();Session.Notify();await PersistWorldBuilderAsync();return true;}
+    [JSInvokable]
+    public async Task<bool> UndoWorldBuilderFromJs()
+    {
+        EnsureWorldBuilderHistory();
+        if(!Session.CanEditTiles||_worldBuilderUndo.Count==0)return false;
+        var previous=_worldBuilderUndo.Pop();
+        Session.PlacedTiles.Clear();
+        Session.PlacedTiles.AddRange(previous.Tiles);
+        Session.ImportRecursiveScopePlacements(previous.RecursivePlacements);
+        ClearWorldBuilderSelection();
+        Session.Notify();
+        await PersistWorldBuilderAsync();
+        return true;
+    }
 
-    [JSInvokable] public async Task<int[]> RemoveSelectedTilesFromJs(){EnsureWorldBuilderHistory();if(!_selectedPlacedTileIndices.Any(EditableTile))return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(EditableTile).OrderDescending())Session.PlacedTiles.RemoveAt(index);ClearWorldBuilderSelection();Session.Notify();await PersistWorldBuilderAsync();return Array.Empty<int>();}
+    [JSInvokable]
+    public async Task<int[]> RemoveSelectedTilesFromJs()
+    {
+        EnsureWorldBuilderHistory();
+        var removable=_selectedPlacedTileIndices.Where(EditableTile).OrderDescending().ToArray();
+        if(removable.Length==0)return Array.Empty<int>();
+        PushWorldBuilderUndo();
+        var removed=removable.Select(index=>Session.PlacedTiles[index]).ToList();
+        foreach(var index in removable)Session.PlacedTiles.RemoveAt(index);
+        foreach(var tile in removed)Session.RemoveRecursiveWorldPlacement(tile);
+        ClearWorldBuilderSelection();
+        Session.Notify();
+        await PersistWorldBuilderAsync();
+        return Array.Empty<int>();
+    }
 
     [JSInvokable]
     public async Task<bool> PlaceQuickTileFromJs(int quickIndex,double clientX,double clientY)
@@ -139,26 +175,44 @@ public partial class WorldBuilderStudio
     {
         EnsureWorldBuilderHistory();
         if(!EditableTile(index))return _selectedPlacedTileIndices.Order().ToArray();
-        var tile=Session.PlacedTiles[index];var cell=await ViewerCell(clientX,clientY,FootprintFor(tile));if(cell is null)return _selectedPlacedTileIndices.Order().ToArray();
+        var tile=Session.PlacedTiles[index];
+        var canonical=Session.HasRecursiveWorldPlacement(tile);
+        var cell=await ViewerCell(clientX,clientY,FootprintFor(tile));if(cell is null)return _selectedPlacedTileIndices.Order().ToArray();
         var moved=tile with
         {
             X=cell.Value.Column/(double)WorldSession.GridColumns,
             Y=cell.Value.Row/(double)WorldSession.GridRows,
             PlacementTreatment=NormalizeTreatment(treatment)
         };
+
         if(upperTier)
-            moved=moved with { TierIndex=tile.TierIndex+1,LayerOffset=tile.LayerOffset };
-        else if(upperLayer)
         {
+            moved=moved with
+            {
+                TierIndex=tile.TierIndex+1,
+                LayerOffset=canonical?0:tile.LayerOffset
+            };
+        }
+        else if(upperLayer && !canonical)
+        {
+            // Legacy content retains its historical SceneZ behavior until it is
+            // deliberately migrated. New recursive content never takes this path.
             var address=SceneAddress(WorldSession.SceneZOf(tile)+1);
             moved=moved with { TierIndex=address.Tier,LayerOffset=address.Layer };
         }
 
         ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);
-        if(Session.IsPureStateNoOp(tile,moved))return _selectedPlacedTileIndices.Order().ToArray();
+        if(Session.IsPureStateNoOp(tile,moved) && !(canonical && upperLayer))
+            return _selectedPlacedTileIndices.Order().ToArray();
 
         PushWorldBuilderUndo();
-        Session.PlacedTiles[index]=moved;Session.RecordPureStateCommit();Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();
+        Session.PlacedTiles[index]=moved;
+        if(canonical)
+            Session.SyncRecursiveWorldTile(moved.PlacementId, bringForward: upperLayer);
+        Session.RecordPureStateCommit();
+        Session.Notify();
+        await PersistWorldBuilderAsync();
+        return _selectedPlacedTileIndices.Order().ToArray();
     }
 
     [JSInvokable] public Task<int[]> MovePlacedTileFromJs(int index,double clientX,double clientY)=>MovePlacedTileCore(index,clientX,clientY,false,false,"normal");
@@ -190,6 +244,10 @@ public partial class WorldBuilderStudio
 
     [JSInvokable] public async Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals(){var visuals=Session.PlacedTiles.Select((tile,index)=>new WorldBuilderTileVisual(index,tile.RotationQuarterTurns,tile.TierIndex,tile.LayerOffset)).ToArray();try{await JS.InvokeVoidAsync("ristDepth.set",visuals);}catch{}return visuals;}
     [JSInvokable] public Task<WorldBuilderCommandState> GetWorldBuilderCommandState(){EnsureWorldBuilderHistory();return Task.FromResult(new WorldBuilderCommandState("Single",Session.CanEditTiles&&_worldBuilderUndo.Count>0,_selectedPlacedTileIndices.Count));}
+
+    sealed record WorldBuilderSnapshot(
+        List<TileItem> Tiles,
+        List<RecursiveScopePlacement> RecursivePlacements);
 }
 
 public sealed record PlacementChoice(bool UpperLayer,bool UpperTier,string Treatment);
