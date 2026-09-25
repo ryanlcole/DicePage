@@ -441,7 +441,12 @@ public sealed partial class WorldSession
         int row,
         string face,
         int elevationStep)
-        => $"{InstanceCellId(instanceId, column, row)}:surface:{NormalizeInstanceSurfaceFace(face)}:{elevationStep}";
+    {
+        var normalizedFace = NormalizeInstanceSurfaceFace(face);
+        return string.Equals(normalizedFace, "top", StringComparison.Ordinal)
+            ? $"{InstanceCellId(instanceId, column, row)}:surface:top"
+            : $"{InstanceCellId(instanceId, column, row)}:surface:{normalizedFace}:step:{elevationStep}";
+    }
 
     public static IReadOnlyList<WorldInstanceSurface> InstanceSurfacesForCell(
         WorldInstanceMapState state,
