@@ -67,7 +67,11 @@ class RegionProjectionTests(unittest.TestCase):
 
     def test_only_selected_worldbuilder_coordinates_cross_projection(self):
         result = project("world-a", "region-a", self.deed, self.world)
-        self.assertEqual(result["projection"], "region-world-z-v2")
+        self.assertEqual(result["projection"], "region-recursive-scope-v1")
+        self.assertEqual(result["legacyProjection"], "region-world-z-v2")
+        self.assertEqual(result["recursiveScopeFormat"], "RIST_RECURSIVE_SCOPE_V1")
+        self.assertEqual(result["recursiveScope"]["kind"], "REGION")
+        self.assertEqual(result["recursiveScope"]["viewDegrees"], 15)
         self.assertEqual([x["id"] for x in result["tiles"]], ["lake"])
         self.assertEqual(
             [x["image"] for x in result["sourceTileIndex"]],
@@ -79,7 +83,13 @@ class RegionProjectionTests(unittest.TestCase):
         self.assertEqual([x["id"] for x in result["sourceUserLayers"]], ["world-road"])
         self.assertEqual([x["id"] for x in result["userLayers"]], ["city"])
         self.assertEqual(result["userLayers"][0]["z100"], 201)
-        self.assertEqual(result["userLayers"][0]["parallaxMode"], "anchored")
+        self.assertEqual(result["userLayers"][0]["parallaxMode"], "recursive-region")
+        self.assertEqual(
+            result["userLayers"][0]["recursive"]["format"],
+            "RIST_RECURSIVE_SCOPE_V1",
+        )
+        self.assertEqual(result["userLayers"][0]["recursive"]["scopeKind"], "REGION")
+        self.assertEqual(result["userLayers"][0]["recursive"]["tier"], 1)
 
     def test_regionmap_child_state_overrides_same_legacy_identity(self):
         child = {
@@ -153,6 +163,53 @@ class RegionProjectionTests(unittest.TestCase):
         result = project("world-a", "region-a", self.deed, self.world, child)
         self.assertEqual(result["userLayers"], [])
         self.assertFalse(result["legacyRegionImportPending"])
+
+    def test_recursive_region_coordinates_restart_at_claim_boundary(self):
+        result = project("world-a", "region-a", self.deed, self.world)
+        city = result["userLayers"][0]
+        recursive = city["recursive"]
+        self.assertEqual(recursive["viewDegrees"], 15)
+        self.assertEqual(recursive["scopeId"], "region-a")
+        self.assertEqual(recursive["parentScopeId"], "world-a")
+        self.assertEqual(recursive["tier"], 1)
+        self.assertEqual(recursive["layer"], 1)
+        self.assertGreaterEqual(recursive["x"], 0)
+        self.assertLessEqual(recursive["x"], 1)
+        self.assertGreaterEqual(recursive["y"], 0)
+        self.assertLessEqual(recursive["y"], 1)
+
+    def test_recursive_tier_never_rewrites_legacy_world_depth(self):
+        incoming = [{
+            "id": "recursive-city",
+            "worldLayer": 4,
+            "regionLayer": 2,
+            "x": 1.5 / 30,
+            "y": 1.5 / 30,
+            "recursive": {
+                "format": "RIST_RECURSIVE_SCOPE_V1",
+                "scopeKind": "REGION",
+                "scopeId": "region-a",
+                "x": 0.25,
+                "y": 0.25,
+                "tier": 7,
+                "layer": 12,
+                "opacity": 0.5,
+            },
+        }]
+        merged, normalized = merge_region_layers(
+            {**self.world, "worldId": "world-a"},
+            self.deed,
+            "region-a",
+            incoming,
+        )
+        item = normalized[0]
+        self.assertEqual(item["recursive"]["tier"], 7)
+        self.assertEqual(item["recursive"]["layer"], 12)
+        self.assertEqual(item["worldLayer"], 4)
+        self.assertEqual(item["regionLayer"], 9)
+        self.assertEqual(item["z100"], 409)
+        self.assertEqual(item["recursive"]["permissionResourceId"], "asset:recursive-city")
+        self.assertIn(item, merged["userLayers"])
 
     def test_region_z_is_exact_hundredth_above_world_z(self):
         self.assertEqual(region_z100(0, 1), 1)
