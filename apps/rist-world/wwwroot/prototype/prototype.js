@@ -758,7 +758,7 @@ function serializableUserLayer(item){
       regionTier:REGION_DEFINER?nestedVerticalAddress(item).regionTier:undefined,regionLayer:REGION_DEFINER?nestedVerticalAddress(item).regionLayer:undefined,
       localTier:REGION_DEFINER?nestedVerticalAddress(item).localTier:undefined,localLayer:REGION_DEFINER?nestedVerticalAddress(item).localLayer:undefined,
       instanceTier:REGION_DEFINER?nestedVerticalAddress(item).instanceTier:undefined,instanceLayer:REGION_DEFINER?nestedVerticalAddress(item).instanceLayer:undefined,
-      z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
+      z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity??1),0,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
       plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),positionLocked:!!item.positionLocked,stackPin:['front','back'].includes(item.stackPin)?item.stackPin:'',committed:true
@@ -790,7 +790,7 @@ function serializableUserLayer(item){
     localTier:REGION_DEFINER?nestedVerticalAddress(item).localTier:undefined,localLayer:REGION_DEFINER?nestedVerticalAddress(item).localLayer:undefined,
     instanceTier:REGION_DEFINER?nestedVerticalAddress(item).instanceTier:undefined,instanceLayer:REGION_DEFINER?nestedVerticalAddress(item).instanceLayer:undefined,
     z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
-    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),positionLocked:!!item.positionLocked,stackPin:['front','back'].includes(item.stackPin)?item.stackPin:'',committed:true
+    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity??1),0,1),positionLocked:!!item.positionLocked,stackPin:['front','back'].includes(item.stackPin)?item.stackPin:'',committed:true
   };
 }
 async function saveWorldBuilder(){
@@ -2495,6 +2495,7 @@ function refreshUserImage(item){
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
   if(selectedImage)refreshUserImage(selectedImage);
   if(selectedImage)refreshAssetResizeOverlay(selectedImage);else removeAssetResizeOverlay();
+  if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();
   if(REGION_DEFINER&&regionDeedIsComplete()&&selectedImage&&keyboardMode==='Select'&&!LOCAL_DEFINER){
     keyboardMode=selectedImage.kind==='label'?'Labels':'Image';
     renderKeyboardTabs();
@@ -2593,7 +2594,7 @@ function removeSelectedImage(){
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=linkedSelectionMembers(selectedImage);
   for(const item of doomed){stopSpriteMotion(item);item.node?.remove();const index=userLayers.indexOf(item);if(index>=0)userLayers.splice(index,1)}
-  selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();updateLayerOrder();applyParallax();renderKeyboardKeys();
+  selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();updateLayerOrder();applyParallax();if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();renderKeyboardKeys();
   announce(doomed.length>1?`Linked selection removed (${doomed.length} pieces).`:'Placed content removed from the layer stack.');
 }
 function beginImageDrag(event,item){
