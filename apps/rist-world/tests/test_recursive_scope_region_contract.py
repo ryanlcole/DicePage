@@ -162,10 +162,12 @@ def test_region_list_visibility_lock_and_opacity_are_recursive_appearance_state(
     editor = source.split("function updateRegionAssetFromList", 1)[1].split(
         "function renderRecursiveAssetList", 1
     )[0]
+    assert "const current=recursiveEditorEnvelope(item)" in editor
     assert "item.recursive={...current,visible:" in editor
     assert "item.positionLocked=!item.positionLocked" in editor
     assert "item.opacity=clamp(Number(value),0,1)" in editor
-    assert "syncRegionRecursiveEnvelope(item)" in editor
+    assert "syncRegionRecursiveEnvelope(item,Math.max(1,regionOverlayTier(item)+Number(value||0)),regionOverlayLayer(item))" in editor
+    assert "syncRegionRecursiveEnvelope(item,regionOverlayTier(item),Math.max(1,regionOverlayLayer(item)+Number(value||0)))" in editor
     parallax = source.split("function applyParallax()", 1)[1].split(
         "function updateReadouts", 1
     )[0]
