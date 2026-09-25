@@ -211,6 +211,12 @@ def normalize_region_layer(region, raw, region_id, world_id="", parent_node_id="
 
 def merge_region_layers(world_state, region, region_id, incoming, world_id="", parent_node_id=""):
     state = dict(world_state) if isinstance(world_state, dict) else {}
+    world_id = str(world_id or state.get("worldId") or region.get("worldId") or "")
+    parent_node_id = str(
+        parent_node_id
+        or region.get("parentNodeId")
+        or (("world:" + world_id) if world_id else "")
+    )
     preserved = [
         dict(item) for item in (state.get("userLayers") or [])
         if isinstance(item, dict) and str(item.get("regionId") or "") != region_id
