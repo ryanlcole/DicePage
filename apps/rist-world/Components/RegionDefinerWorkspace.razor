@@ -2,6 +2,7 @@
 @implements IAsyncDisposable
 @inject WorldSession Session
 @inject IJSRuntime JS
+@inject AwsAuthorityClient Authority
 
 <div class="region-definer-host"
      data-world-id="@Session.WorldId"
@@ -164,6 +165,70 @@
    regionId,
    updatedAtUtc=saved?.UpdatedAtUtc??""
   };
+ }
+
+ [JSInvokable]
+ public async Task<object> GetPermissionDirectoryForPrototypeAsync()
+ {
+  var principals=new List<object>
+  {
+   new { id="EVERYONE", label="EVERYONE", kind="public" }
+  };
+  if(Session.IsLoggedIn)
+  {
+   try
+   {
+    var rows=await Authority.GetConnectionsAsync()??[];
+    principals.AddRange(rows
+     .Where(row=>!string.IsNullOrWhiteSpace(row.LinkedUserId))
+     .OrderBy(row=>row.DisplayName,StringComparer.OrdinalIgnoreCase)
+     .Select(row=>(object)new
+     {
+      id=row.LinkedUserId,
+      label=string.IsNullOrWhiteSpace(row.DisplayName)?row.LinkedUserId:row.DisplayName,
+      kind="user"
+     }));
+   }
+   catch{}
+  }
+  return new { principals };
+ }
+
+ [JSInvokable]
+ public async Task<object> GetResourcePermissionsForPrototypeAsync(string resourceId)
+ {
+  resourceId=WorldSession.RecursivePermissionResourceId(resourceId);
+  if(string.IsNullOrWhiteSpace(resourceId)||!Session.IsLoggedIn)
+   return new { resourceId, permissions=Array.Empty<AwsAuthorityClient.ResourcePermission>() };
+  var rows=await Authority.GetResourcePermissionsAsync(Session.WorldId,resourceId)??[];
+  return new { resourceId, permissions=rows };
+ }
+
+ [JSInvokable]
+ public async Task<object> SetResourcePermissionFromPrototypeAsync(
+  string resourceId,
+  string targetUserId,
+  string permission)
+ {
+  resourceId=WorldSession.RecursivePermissionResourceId(resourceId);
+  targetUserId=(targetUserId??"").Trim();
+  permission=(permission??"None").Trim();
+  if(string.IsNullOrWhiteSpace(resourceId)||string.IsNullOrWhiteSpace(targetUserId)||!Session.IsLoggedIn)
+   return new { ok=false, resourceId, targetUserId, permission="None" };
+
+  if(string.Equals(targetUserId,"EVERYONE",StringComparison.Ordinal))
+   permission=string.Equals(permission,"Public",StringComparison.Ordinal)?"Public":"None";
+  else if(permission is not ("View" or "Edit" or "Deny"))
+   permission="None";
+
+  var result=await Authority.SetResourcePermissionAsync(
+   Session.WorldId,
+   resourceId,
+   targetUserId,
+   permission);
+  return result is null
+   ?new { ok=false, resourceId, targetUserId, permission }
+   :new { ok=result.Ok, resourceId=result.ResourceId, targetUserId=result.UserId, permission=result.Permission };
  }
 
  [JSInvokable]
