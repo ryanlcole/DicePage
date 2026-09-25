@@ -57,8 +57,11 @@ Every 10 elevation steps crosses one parallax distance:
 - +10 steps => +1 elevation parallax band;
 - -10 steps => -1 elevation parallax band.
 
-The GM measurement preference translates steps for display only. Changing feet,
-meters, or units-per-step never changes ElevationSteps.
+The GM measurement preference translates steps for display only. Instance Builder
+reuses the world's existing physical/Measurefict measurement authority rather than
+creating a second geometry unit system. Changing display measurement never changes
+ElevationSteps. Legacy/per-map measurement fields, when encountered, are compatibility
+presentation metadata only.
 
 ## Cell surfaces
 
