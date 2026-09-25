@@ -864,7 +864,7 @@ function assetAuthorityResourceId(item){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,authorityResourceId:assetAuthorityResourceId(item),recursive:REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item):(item.recursive||undefined),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,authorityResourceId:assetAuthorityResourceId(item),recursive:LOCAL_DEFINER&&item.localOverlay?syncLocalRecursiveEnvelope(item):REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item):(item.recursive||undefined),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
       tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
@@ -879,7 +879,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,authorityResourceId:assetAuthorityResourceId(item),recursive:REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item):(item.recursive||undefined),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,authorityResourceId:assetAuthorityResourceId(item),recursive:LOCAL_DEFINER&&item.localOverlay?syncLocalRecursiveEnvelope(item):REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item):(item.recursive||undefined),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     // Personal-library URLs are short-lived capabilities. Persist only the stable
     // asset identity; reload resolves a fresh URL after authenticated storage is ready.
@@ -2361,10 +2361,10 @@ function renderLabelsKeyboard(){
     toolKey('OFFSET 0','reset',()=>{selected.offsetX=0;selected.offsetY=0;refreshUserLabel(selected)}),
     ...(LOCAL_DEFINER
       ?[
-        toolKey('LOCAL T −',`T ${pos.localTier}`,()=>moveSelectedTier(-1),pos.localTier<=0),
+        toolKey('LOCAL T −',`T ${pos.localTier}`,()=>moveSelectedTier(-1),pos.localTier<=1),
         toolKey('LOCAL T +',`T ${pos.localTier}`,()=>moveSelectedTier(1)),
         toolKey('LOCAL L −',`L ${pos.localLayer}`,()=>moveSelectedLayer(-1),pos.localLayer<=1),
-        toolKey('LOCAL L +',`L ${pos.localLayer}`,()=>moveSelectedLayer(1),pos.localLayer>=9)
+        toolKey('LOCAL L +',`L ${pos.localLayer}`,()=>moveSelectedLayer(1))
       ]
       :REGION_DEFINER
       ?[
@@ -4734,10 +4734,25 @@ if(REGION_DEFINER){
 function tierDisplay(index){const tier=tierByIndex(clamp(Math.trunc(Number(index)||0),0,TIERS.length-1));return{number:tier.index+1,label:tierLabel(tier)}}
 function layerDisplay(index){return clamp(Math.trunc(Number(index)||0),0,9)+1}
 function selectedPositionSummary(item){
-  if(!item)return{tier:1,tierLabel:'Region parallax depth',layer:1,worldZ:0,regionTier:1,regionLayer:1,localTier:0,localLayer:0,instanceTier:0,instanceLayer:0,z:'0.01',x:'0.000',y:'0.000'};
+  if(!item)return{tier:1,tierLabel:'Recursive parallax depth',layer:1,worldZ:0,regionTier:1,regionLayer:1,localTier:1,localLayer:1,instanceTier:0,instanceLayer:0,z:'0.01',x:'0.000',y:'0.000'};
   const tier=tierDisplay(item.tier);
   if(REGION_DEFINER&&regionDeedIsComplete()){
     const address=nestedVerticalAddress(item),worldZ=address.worldLayer;
+    if(LOCAL_DEFINER&&item.localOverlay){
+      const recursive=recursiveLocalEnvelope(item);
+      const local=recursive?{x:Number(recursive.x)||0,y:Number(recursive.y)||0}:localRecursivePoint(item.x,item.y);
+      const canonicalLayer=localOverlayLayer(item);
+      return{
+        tier:localOverlayTier(item),tierLabel:'Local parallax depth',layer:canonicalLayer,
+        worldTier:tier.number,worldTierLabel:tier.label,worldZ,
+        regionTier:regionOverlayTier(item),regionLayer:regionOverlayLayer(item),
+        localTier:localOverlayTier(item),localLayer:canonicalLayer,
+        legacyLocalLayer:compatibilityLocalLayer(item),
+        instanceTier:address.instanceTier,instanceLayer:address.instanceLayer,
+        z:regionZLabel(item),
+        x:local.x.toFixed(3),y:local.y.toFixed(3)
+      };
+    }
     if(!LOCAL_DEFINER&&item.regionOverlay){
       const recursive=recursiveRegionEnvelope(item);
       const local=recursive?{x:Number(recursive.x)||0,y:Number(recursive.y)||0}:regionLocalPoint(item.x,item.y);
@@ -5454,6 +5469,7 @@ function cycleLocalAnchorSelection(items=localAnchorItems(),delta=1){
 }
 function localAnchorPayload(item){
   const aspect=Math.max(stableAssetAspect(item),.00001);
+  const recursive=recursiveRegionEnvelope(item)||syncRegionRecursiveEnvelope(item);
   const width=clamp(.12*Math.max(Number(item?.size)||1,.00001),.0001,1);
   const height=clamp(width/aspect,.0001,1);
   return{
@@ -5462,7 +5478,8 @@ function localAnchorPayload(item){
     tier:clamp(Math.trunc(Number(item?.tier)||0),0,2),layer:clamp(Math.trunc(Number(item?.layer)||0),0,9),
     worldTier:nestedVerticalAddress(item).worldTier,worldLayer:nestedVerticalAddress(item).worldLayer,
     regionTier:nestedVerticalAddress(item).regionTier,regionLayer:nestedVerticalAddress(item).regionLayer,
-    localTier:nestedVerticalAddress(item).localTier,localLayer:nestedVerticalAddress(item).localLayer,
+    recursive:recursive?{...recursive}:undefined,
+    localTier:1,localLayer:1,
     instanceTier:nestedVerticalAddress(item).instanceTier,instanceLayer:nestedVerticalAddress(item).instanceLayer,
     z100:regionZ100(regionWorldLayer(item),regionOverlayLayer(item)),rotation:Number(item?.rotation)||0
   };
@@ -5544,13 +5561,13 @@ function renderKeyboardKeysContent(){
           readoutKey(`WORLD L ${viewerLayer}`,'legacy parent representation'),
           readoutKey(`REGION T ${regionTierIndex}`,'inherited from selected regional object'),
           readoutKey(`REGION L ${regionLayerIndex}`,'inherited from selected regional object'),
-          readoutKey(`LOCAL T ${localTierIndex}`,localIsOpen()?'editable Local tier':'new Local starts at Local Tier 0'),
-          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 1'),
+          readoutKey(`LOCAL T ${localTierIndex}`,localIsOpen()?'placement default · parallax depth':'new Local starts at Local Tier 1'),
+          readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'placement default · appearance order':'new Local starts at Local Layer 1'),
           ...(localIsOpen()?[
-            toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(0,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=0),
+            toolKey('LOCAL T −',`T ${localTierIndex}`,()=>{localTierIndex=Math.max(1,localTierIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localTierIndex<=1),
             toolKey('LOCAL T +',`T ${localTierIndex}`,()=>{localTierIndex+=1;syncLocalEditLayer();renderKeyboardKeys()}),
-            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=1),
-            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
+            toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=Math.max(1,localLayerIndex-1);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=1),
+            toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex+=1;syncLocalEditLayer();renderKeyboardKeys()})
           ]:[])
         );
       }else{
