@@ -46,8 +46,9 @@ export function attach(element,dotnet){
   `;document.head.appendChild(style);
  }
  const tiles=()=>studio?[...studio.querySelectorAll('.world-stage .tile-cell')]:[];
- const applySelection=selected=>{const set=new Set((selected||[]).map(Number));tiles().forEach((tile,index)=>tile.classList.toggle('wb-selected',set.has(index)));return[...set]};
- const applyVisuals=async()=>{try{const visuals=await dotnet.invokeMethodAsync('GetWorldBuilderTileVisuals');const rotations=new Map((visuals||[]).map(v=>[Number(v.index??v.Index),Number(v.rotationQuarterTurns??v.RotationQuarterTurns??0)]));tiles().forEach((tile,index)=>tile.style.setProperty('--wb-rotation',`${((rotations.get(index)||0)%4+4)%4*90}deg`))}catch{}};
+ const tileIndex=(tile,fallback)=>{const value=Number(tile?.dataset?.wbIndex);return Number.isInteger(value)&&value>=0?value:fallback};
+ const applySelection=selected=>{const set=new Set((selected||[]).map(Number));tiles().forEach((tile,index)=>tile.classList.toggle('wb-selected',set.has(tileIndex(tile,index))));return[...set]};
+ const applyVisuals=async()=>{try{const visuals=await dotnet.invokeMethodAsync('GetWorldBuilderTileVisuals');const rotations=new Map((visuals||[]).map(v=>[Number(v.index??v.Index),Number(v.rotationQuarterTurns??v.RotationQuarterTurns??0)]));tiles().forEach((tile,index)=>{const sessionIndex=tileIndex(tile,index);tile.style.setProperty('--wb-rotation',`${((rotations.get(sessionIndex)||0)%4+4)%4*90}deg`)})}catch{}};
  const rail=()=>studio?.querySelector('.studio-command-rail');
  async function syncCommands(){
   if(disposed||syncing)return;syncing=true;
