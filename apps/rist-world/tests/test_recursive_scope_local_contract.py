@@ -143,6 +143,15 @@ def test_new_local_catalog_records_recursive_scope_contract():
 
 
 
+def test_local_viewer_diagnostics_expose_canonical_and_legacy_layer_separately():
+    source = prototype()
+    viewer = source.split("getViewerState:()=>({", 1)[1]
+    assert "localTier:LOCAL_DEFINER&&item.localOverlay?localOverlayTier(item):0" in viewer
+    assert "localLayer:LOCAL_DEFINER&&item.localOverlay?localOverlayLayer(item):0" in viewer
+    assert "legacyLocalLayer:LOCAL_DEFINER&&item.localOverlay?compatibilityLocalLayer(item):0" in viewer
+    assert "LOCAL_DEFINER&&item.localOverlay&&recursiveLocalEnvelope(item)" in viewer
+
+
 def test_local_asset_list_includes_locked_root_reference_and_layers_tab():
     source = prototype()
     assert "function appendLocalRootReferenceRow(body)" in source
