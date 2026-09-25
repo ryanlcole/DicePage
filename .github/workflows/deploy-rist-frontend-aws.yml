@@ -59,6 +59,9 @@ jobs:
       - name: Verify recursive scope editor contract
         run: python apps/rist-world/tests/test_recursive_scope_worldbuilder_contract.py
 
+      - name: Verify recursive Region scope contract
+        run: python apps/rist-world/tests/test_recursive_scope_region_contract.py
+
       - name: Verify canonical viewer input and claimed deed overlay
         run: |
           npm install --prefix "$RUNNER_TEMP/rist-viewer-tests" --no-audit --no-fund jsdom@26.1.0
