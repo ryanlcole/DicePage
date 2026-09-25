@@ -4,7 +4,8 @@ namespace RistWorld;
 /// SHAEP is Shaelvien's hot audiovisual archive contract. Native uploads remain
 /// preserved as source truth, while SHAEP conversion creates a hot, indexed
 /// archive representation for immediate viewer/runtime access. ShaepId is the
-/// persistent identity and does not change when source or archive bytes move.
+/// persistent asset-lineage identity. Names, metadata, users, permissions, and
+/// representation changes never create a second physical identity by themselves.
 /// </summary>
 public static class ShaepFormat
 {
@@ -47,7 +48,8 @@ public sealed record ShaepManifest(
 /// A payload is an object reference, never implicit identity. Source is the
 /// preserved native upload. Canonical is the best currently usable payload:
 /// source while conversion is pending/failed, then the .shaep hot archive once
-/// conversion succeeds. SHA-256 is integrity evidence, not object identity.
+/// conversion succeeds. SHA-256 fingerprints exact revision bytes so identical
+/// content can be stored once; lineage identity remains ShaepId.
 /// </summary>
 public sealed record ShaepPayload(
     string ObjectKey,

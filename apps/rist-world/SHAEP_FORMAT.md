@@ -14,11 +14,17 @@ The server preserves the source, the SHAEP identity, world placement truth, andâ
 
 A world is not saved as one giant pre-rendered bitmap. A viewer positions its bounded camera over world coordinates, resolves intersecting SHAEP identities, requests only the needed archive planes/chunks, stacks them by depth, and rasterizes only what the current screen can perceive.
 
-## Identity is not the checksum
+## Identity, revision, and content
 
-`ShaepId` is an opaque persistent identity (`shaep-<guid>`). `Sha256` is optional integrity evidence for a particular source or archive payload. Two distinct SHAEP objects may contain byte-identical payloads and therefore share a checksum without becoming the same object.
+`ShaepId` is the persistent identity of one asset lineage. A filename, folder, user, label, metadata value, or permission grant never creates a second physical asset.
 
-Conversion, re-indexing, moving objects, rebuilding caches, or changing the archive encoder does not change `ShaepId`.
+`Sha256` identifies the exact payload bytes of a revision. When the database already contains those exact bytes, the system reuses the existing stored payload instead of storing another copy. Different users may hold different names, metadata, permissions, or visible revisions while still referring to the same SHAEP lineage and underlying content.
+
+A changed image is a revision, not a new asset. Pixel edits, crops, metadata changes, recolors, transforms, and other derived states remain connected to their parent revision when the database has an edit/provenance relationship. The changed bytes may require a new content payload, but they do not require a new lineage.
+
+Permissions are relationships to a SHAEP lineage or revision. They determine which version a principal can view or edit; they never justify duplicating the payload.
+
+Conversion, re-indexing, moving objects, rebuilding caches, changing the archive encoder, renaming, or changing permissions does not change `ShaepId`.
 
 ## v2 object layout
 

@@ -53,6 +53,9 @@ jobs:
           python apps/rist-world/prepare_relic_observer.py
           PYTHONPATH="$PYDEPS" python apps/rist-world/tests/test_region_source_tiles.py
 
+      - name: Verify asset content identity deduplication
+        run: python apps/rist-world/tests/test_asset_content_deduplication.py
+
       - name: Verify authenticated launch contract
         run: python apps/rist-world/tests/authenticated_launch_contract_check.py
 
