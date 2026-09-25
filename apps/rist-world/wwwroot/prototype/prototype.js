@@ -1801,8 +1801,11 @@ function refreshUserLabel(item){
   item.node.style.left=`${item.x*naturalWidth}px`;
   item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity??1);
-  item.node.style.pointerEvents=item.sourceLocked&&!isLocalAnchorCandidate(item)?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
+  item.node.style.pointerEvents=item.sourceLocked&&!isLocalAnchorCandidate(item)?'none':'auto';
   item.node.dataset.committed=item.committed?'true':'false';
+  item.node.dataset.positionLocked=item.positionLocked?'true':'false';
+  item.node.dataset.interactionMode=assetInteractionMode;
+  item.node.setAttribute('aria-label',`${item.name||item.text||'Placed label'}. ${item.positionLocked?'Position locked. ':''}${selectedImage===item?'Selected. ':''}Press Enter to select; use Move mode and arrow keys to move.`);
   item.node.dataset.anchor='world';
   item.node.dataset.presentationOffsetX=String(Number(item.offsetX)||0);
   item.node.dataset.presentationOffsetY=String(Number(item.offsetY)||0);
@@ -2158,6 +2161,9 @@ function refreshUserImage(item){
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
+  item.node.dataset.positionLocked=item.positionLocked?'true':'false';
+  item.node.dataset.interactionMode=assetInteractionMode;
+  item.node.setAttribute('aria-label',`${item.name||item.assetId||'Placed asset'}. ${item.positionLocked?'Position locked. ':''}${selectedImage===item?'Selected. ':''}Press Enter to select; use Move mode and arrow keys to move.`);
   item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
   item.node.classList.toggle('full-world-placement',isWorldMapItem(item));
   if(isWorldMapItem(item)){
@@ -2169,7 +2175,7 @@ function refreshUserImage(item){
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.aspectRatio=item.kind==='sprite'?String(stableAssetAspect(item)):'';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
-  item.node.style.pointerEvents=item.sourceLocked&&!isLocalAnchorCandidate(item)?'none':(REGION_DEFINER&&item.regionOverlay?'auto':(item.committed&&selectedImage!==item?'none':'auto'));
+  item.node.style.pointerEvents=item.sourceLocked&&!isLocalAnchorCandidate(item)?'none':'auto';
   item.node.style.transformOrigin='50% 50%';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
@@ -2247,6 +2253,7 @@ function typedPlacedContentSelect(mode){
 }
 function appendCommonAssetEditControls(mode,item){
   if(!item||!assetModeMatches(item,mode)||isWorldMapItem(item))return;
+  appendAssetInteractionControls(item);
   keyboardKeys.append(
     toolKey('SIZE −',`${selectedSizeValue(item).toFixed(2)}×`,()=>adjustSelectedSize(-1),selectedSizeValue(item)<=.05),
     toolKey('SIZE +',`${selectedSizeValue(item).toFixed(2)}×`,()=>adjustSelectedSize(1),selectedSizeValue(item)>=20),
@@ -2290,13 +2297,21 @@ function beginImageDrag(event,item){
   if(REGION_DEFINER&&!LOCAL_DEFINER&&(!regionDeedIsComplete()||!item?.regionOverlay
     ||String(item.regionId||'')!==activeRegionMapId()))return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
+  event.preventDefault();event.stopPropagation();
   const alreadySelected=selectedImage===item;
-  if(item?.committed&&!alreadySelected&&REGION_DEFINER){
-    // Tap once to select a saved region object. A later gesture may drag it.
-    event.preventDefault();event.stopPropagation();selectUserImage(item);return;
+  if(!alreadySelected){
+    selectUserImage(item);item.node?.focus?.({preventScroll:true});
+    return;
   }
-  if(item?.committed&&!alreadySelected)return;
-  event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
+  if(assetInteractionMode!=='move'){
+    selectUserImage(item);
+    return;
+  }
+  if(item.positionLocked){
+    announce(`${item.name||'Selected asset'} position is locked. Choose UNLOCK before moving it.`);
+    return;
+  }
+  selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   if(REGION_DEFINER)stage.classList.add('region-asset-moving');
   const resumeSprite=item.kind==='sprite'&&item.playing;
   if(resumeSprite)stopSpriteMotion(item);
