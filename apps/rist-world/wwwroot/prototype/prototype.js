@@ -1885,6 +1885,7 @@ function renderLabelsKeyboard(){
   }
   const pos=selectedPositionSummary(selected);
   const editor=labelInput(selected.text,'Edit label text',value=>{selected.text=String(value||'').slice(0,120);selected.name=selected.text||'Label';refreshUserLabel(selected)},()=>{selected.node?.focus?.();announce('Label text updated.')});
+  appendAssetInteractionControls(selected);
   keyboardKeys.append(
     editor,labelSelection(),
     ...(REGION_DEFINER
@@ -5119,6 +5120,7 @@ function renderKeyboardKeysContent(){
       );return;
     }
     const pos=selectedPositionSummary(selectedImage);
+    appendAssetInteractionControls(selectedImage);
     keyboardKeys.append(
       ...(REGION_DEFINER
         ?[
