@@ -130,6 +130,11 @@ function regionOverlayLayer(item){
   if(recursive)return Math.max(1,Math.trunc(Number(recursive.layer)||1));
   return Math.max(1,Math.trunc(Number(item?.regionLayer)||1));
 }
+function compatibilityRegionLayer(item){
+  // Legacy regionLayer/z100 remain a bounded projection only. Canonical visual
+  // Layer lives in recursive.layer and may grow beyond the old 1..9 window.
+  return clamp(Math.trunc(Number(item?.regionLayer)||regionOverlayLayer(item)||1),1,9);
+}
 function regionScopeFrame(region=regionClaimedRegion){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
   if(!cells.length)return{left:0,top:0,right:1,bottom:1,width:1,height:1};
@@ -216,7 +221,7 @@ function nestedVerticalAddress(item={}){
     worldTier:Math.max(0,Math.trunc(Number(item?.worldTier??item?.tier??regionClaimedRegion?.tierIndex??0)||0)),
     worldLayer:regionWorldLayer(item),
     regionTier:regionOverlayTier(item),
-    regionLayer:regionOverlayLayer(item),
+    regionLayer:compatibilityRegionLayer(item),
     localTier:Math.max(0,Math.trunc(Number(item?.localTier??0)||0)),
     localLayer:clamp(Math.trunc(Number(item?.localLayer??0)||0),0,9),
     instanceTier:Math.max(0,Math.trunc(Number(item?.instanceTier??0)||0)),
@@ -228,7 +233,7 @@ function regionZ100(worldLayer,regionLayer){
 }
 function regionZLabel(itemOrWorldLayer,overlayLayer){
   const z=typeof itemOrWorldLayer==='object'
-    ?regionZ100(regionWorldLayer(itemOrWorldLayer),clamp(regionOverlayLayer(itemOrWorldLayer),1,9))
+    ?regionZ100(regionWorldLayer(itemOrWorldLayer),compatibilityRegionLayer(itemOrWorldLayer))
     :regionZ100(itemOrWorldLayer,overlayLayer);
   return (z/100).toFixed(2);
 }
@@ -5871,10 +5876,10 @@ window.ShaelvienPrototype=Object.freeze({
       tier:item.tier,layer:item.layer,
       worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,
       regionTier:REGION_DEFINER&&item.regionOverlay?regionOverlayTier(item):0,
-      regionLayer:REGION_DEFINER&&item.regionOverlay?regionOverlayLayer(item):0,
+      regionLayer:REGION_DEFINER&&item.regionOverlay?compatibilityRegionLayer(item):0,
       legacyRegionLayer:REGION_DEFINER&&item.regionOverlay?clamp(Math.trunc(Number(item.regionLayer)||1),1,9):0,
       recursive:REGION_DEFINER&&item.regionOverlay&&recursiveRegionEnvelope(item)?{...recursiveRegionEnvelope(item)}:undefined,
-      z100:REGION_DEFINER?(item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100):undefined,
+      z100:REGION_DEFINER?(item.regionOverlay?regionZ100(regionWorldLayer(item),compatibilityRegionLayer(item)):regionWorldLayer(item)*100):undefined,
       sourceLocked:!!item.sourceLocked,regionOverlay:!!item.regionOverlay,
       x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,linkGroupId:item.linkGroupId||'',linkGroupIndex:item.linkGroupIndex??null,linkGroupCount:item.linkGroupCount??null,
       parallaxMode:itemParallaxMode(item),parallaxX:Number(item.parallaxX)||0,parallaxY:Number(item.parallaxY)||0,
