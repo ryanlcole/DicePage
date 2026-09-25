@@ -19,11 +19,108 @@
   <button type="button" class="@SessionsTabClass" @onclick="OpenSessions">SESSIONS</button>
   <button type="button" class="@ScenesTabClass" @onclick="OpenScenes">SCENES</button>
   <button type="button" class="@ActorsTabClass" @onclick="OpenActors">ACTORS</button>
+  <button type="button" class="@BehaviorsTabClass" @onclick="OpenBehaviorsAsync">BEHAVIORS</button>
   <button type="button" class="@ConnectionTabClass" @onclick="OpenConnections">ALLIES</button>
   <button type="button" class="@NotesTabClass" @onclick="OpenNotes">NOTES</button>
  </nav>
 
- @if(_tab=="connections")
+ @if(_tab=="behaviors")
+ {
+  <div class="campaign-behavior-layout">
+   <section class="campaign-behavior-editor">
+    <header>
+     <div><small>STABLE TARGET → BEHAVIOR</small><h2>BEHAVIORS</h2></div>
+     <span>@(_behaviorState?.Rules.Count??0) RULES</span>
+    </header>
+    <p class="behavior-boundary">Campaign references geometry; it does not own it. X/Y, elevation, Tier, Layer, grid shape, and visual composition remain in their recursive builders.</p>
+
+    @if(_behaviorLoading)
+    {
+     <div class="connection-empty"><strong>LOADING CAMPAIGN BEHAVIOR…</strong></div>
+    }
+    else
+    {
+     <div class="behavior-form">
+      <label>
+       <span>QUICK TARGET</span>
+       <select value="@_behaviorQuickTarget" @onchange="ChooseBehaviorTarget">
+        <option value="">Choose stable identity…</option>
+        @foreach(var target in _behaviorTargets)
+        {
+         <option value="@target.Key">@target.Kind · @target.Label</option>
+        }
+       </select>
+      </label>
+
+      <div class="behavior-target-row">
+       <label>
+        <span>TARGET KIND</span>
+        <select @bind="_behaviorTargetKind">
+         <option value="WORLD">WORLD</option><option value="REGION">REGION</option><option value="LOCAL">LOCAL</option>
+         <option value="INSTANCE">INSTANCE</option><option value="ASSET">ASSET</option><option value="CELL">CELL</option><option value="SURFACE">SURFACE</option>
+        </select>
+       </label>
+       <label><span>TARGET ID</span><input @bind="_behaviorTargetId" placeholder="stable identity" /></label>
+      </div>
+
+      <div class="behavior-target-row">
+       <label>
+        <span>BEHAVIOR</span>
+        <select @bind="_behaviorKind">
+         @foreach(var kind in WorldSession.CampaignBehaviorKinds){<option value="@kind">@kind.Replace('_',' ')</option>}
+        </select>
+       </label>
+       <label><span>NAME</span><input maxlength="120" @bind="_behaviorName" placeholder="Hidden pressure plate" /></label>
+      </div>
+
+      <label><span>THRESHOLD</span><input maxlength="240" @bind="_behaviorThreshold" placeholder="Perception 15, HP &lt; 50%, party size ≥ 4…" /></label>
+      <label><span>TRIGGER</span><textarea rows="3" maxlength="1000" @bind="_behaviorTrigger" placeholder="When a character enters this cell…"></textarea></label>
+      <label><span>ACTION / RESULT</span><textarea rows="4" maxlength="2000" @bind="_behaviorAction" placeholder="Reveal clue, start encounter, apply trap, present initiative…"></textarea></label>
+      <label><span>PAYLOAD REFERENCE</span><input @bind="_behaviorPayloadRefId" placeholder="NPC / encounter / loot / card stable ID" /></label>
+      <label><span>NOTES</span><textarea rows="3" maxlength="4000" @bind="_behaviorNotes"></textarea></label>
+      <label class="behavior-enabled"><input type="checkbox" @bind="_behaviorEnabled" /><span>ENABLED</span></label>
+
+      <div class="behavior-actions">
+       <button type="button" class="primary" disabled="@(!CanSaveBehavior||_behaviorLoading)" @onclick="SaveBehaviorAsync">@(_behaviorEditRuleId.Length>0?"UPDATE RULE":"ADD RULE")</button>
+       @if(_behaviorEditRuleId.Length>0){<button type="button" @onclick="ResetBehaviorEditor">CANCEL EDIT</button>}
+      </div>
+     </div>
+
+     @if(!string.IsNullOrWhiteSpace(_behaviorStatus)){<p class="connection-status" role="status">@_behaviorStatus</p>}
+
+     <section class="behavior-rules">
+      @if(_behaviorState is null||_behaviorState.Rules.Count==0)
+      {
+       <div class="connection-empty"><strong>NO BEHAVIOR RULES YET</strong><span>Attach behavior to a stable identity without changing its geometry.</span></div>
+      }
+      else
+      {
+       @foreach(var rule in _behaviorState.Rules.OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ThenBy(x=>x.RuleId,StringComparer.Ordinal))
+       {
+        <article class="@(!rule.Enabled?"disabled":"")">
+         <header>
+          <div><strong>@(string.IsNullOrWhiteSpace(rule.Name)?rule.BehaviorKind.Replace('_',' '):rule.Name)</strong><small>@rule.BehaviorKind.Replace('_',' ') · @rule.TargetKind</small></div>
+          <span>@(rule.Enabled?"ENABLED":"DISABLED")</span>
+         </header>
+         <code>@rule.TargetId</code>
+         @if(!string.IsNullOrWhiteSpace(rule.Threshold)){<p><b>THRESHOLD</b> @rule.Threshold</p>}
+         @if(!string.IsNullOrWhiteSpace(rule.Trigger)){<p><b>TRIGGER</b> @rule.Trigger</p>}
+         @if(!string.IsNullOrWhiteSpace(rule.Action)){<p><b>ACTION</b> @rule.Action</p>}
+         @if(!string.IsNullOrWhiteSpace(rule.PayloadRefId)){<p><b>PAYLOAD</b> @rule.PayloadRefId</p>}
+         <footer>
+          <button type="button" @onclick="()=>EditBehavior(rule)">EDIT</button>
+          <button type="button" @onclick="()=>ToggleBehaviorAsync(rule)">@((rule.Enabled)?"DISABLE":"ENABLE")</button>
+          <button type="button" class="disconnect" @onclick="()=>DeleteBehaviorAsync(rule)">DELETE</button>
+         </footer>
+        </article>
+       }
+      }
+     </section>
+    }
+   </section>
+  </div>
+ }
+ else if(_tab=="connections")
  {
   <div class="campaign-connection-layout">
    <section class="connection-panel">
