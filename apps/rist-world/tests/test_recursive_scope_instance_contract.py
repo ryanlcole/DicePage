@@ -48,16 +48,21 @@ def test_every_ten_elevation_steps_crosses_one_parallax_band():
     assert "public static int InstanceElevationParallaxBand(int elevationSteps) => elevationSteps / 10;" in model
 
 
-def test_measurement_translates_display_without_rewriting_steps():
+def test_measurement_reuses_world_authority_without_rewriting_steps():
     model = read("WorldSession.Instances.cs")
     component = read("Components/InstanceBuilderWorkspace.razor")
-    assert "var value = elevationSteps * state.MeasurementPerStep;" in model
-    measurement = component.split("async Task SaveMeasurementAsync", 1)[1].split(
-        "async Task PlaceReferenceAsync", 1
+    contract = read("INSTANCE_RECURSIVE_SCOPE_CONTRACT.md")
+    assert "FormatInstanceElevationForCurrentMeasurement" in model
+    formatter = model.split("public string FormatInstanceElevationForCurrentMeasurement", 1)[1].split(
+        "public static bool IsInstanceMarkerKind", 1
     )[0]
-    assert "MeasurementUnit=" in measurement
-    assert "MeasurementPerStep=" in measurement
-    assert "ElevationSteps" not in measurement
+    assert "GridDistance" in formatter
+    assert "MeasurementUnitName(value)" in formatter
+    assert "ElevationSteps" not in formatter
+    assert "Session.MeasurementCellSummary" in component
+    assert "Session.FormatInstanceElevationForCurrentMeasurement(_cellElevation)" in component
+    assert "SaveMeasurementAsync" not in component
+    assert "reuses the world's existing physical/Measurefict measurement authority" in contract
 
 
 def test_top_surface_identity_is_stable_and_exposed_sides_are_step_addressed():
