@@ -60,7 +60,7 @@
      @if(Session.IsLoggedIn){<button type="button" @onclick='()=>Session.SetRole("GM")'>Enter build mode</button>}
     </div>
    }
-   <WorldMap />
+   <WorldMap UseRecursiveWorldComposition="true" />
    <AssetLibrary />
    <div class="studio-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
    @if(_libraryRailOpen){<div class="studio-library-shade" aria-hidden="true"></div>}
@@ -68,13 +68,39 @@
    {
     <section class="studio-load-panel" role="dialog" aria-modal="true" aria-label="Load world"><header><strong>Load</strong><button type="button" @onclick="()=>_loadOpen=false" aria-label="Close">×</button></header><button type="button" @onclick="LoadLocalAsync"><strong>Saved World</strong><small>Load this device's current save</small></button>@if(Session.IsLoggedIn){<button type="button" @onclick="LoadPrivateAsync"><strong>Private AWS Save</strong><small>Load your synced world checkpoint</small></button>}<button type="button" disabled><strong>Published Worlds</strong><small>Published-region registry plugs in here</small></button></section>
    }
-   @if(_layerOpen)
+   @if(_layerOpen||_tierOpen)
    {
-    <section class="studio-mini-panel" role="dialog" aria-label="Layer controls"><button type="button" disabled="@_zLocked" @onclick="()=>MoveLayer(-1)">Layer Down</button><span>Layer @Session.LayerOffset · Z @Session.SceneZ</span><button type="button" disabled="@_zLocked" @onclick="()=>MoveLayer(1)">Layer Up</button></section>
-   }
-   @if(_tierOpen)
-   {
-    <section class="studio-mini-panel" role="dialog" aria-label="Tier controls"><button type="button" disabled="@_zLocked" @onclick="()=>MoveTier(-1)">Tier Down</button><span>Tier @Session.TierIndex</span><button type="button" disabled="@_zLocked" @onclick="()=>MoveTier(1)">Tier Up</button></section>
+    <section class="studio-scope-list" role="dialog" aria-label="World asset layer and tier editor">
+     <header>
+      <div><strong>WORLD · 0°</strong><small>Layer = appearance · Tier = depth</small></div>
+      <button type="button" @onclick="CloseScopeList" aria-label="Close asset list">×</button>
+     </header>
+     <div class="scope-list-head" aria-hidden="true"><span>V</span><span>L</span><span>Asset</span><span>Opacity</span><span>Layer</span><span>Tier</span><span>Link</span><span>Permission</span></div>
+     <div class="scope-list-rows">
+      @foreach(var placement in WorldScopePlacements)
+      {
+       var tile=TileForPlacement(placement);
+       if(tile is not null)
+       {
+        <div class="scope-row" data-placement-id="@placement.AssetId">
+         <button type="button" class="scope-icon @(placement.Visible?"on":"")" @onclick="()=>ToggleWorldVisibilityAsync(placement)" aria-label="@(placement.Visible?"Hide":"Show") @tile.Name">@(placement.Visible?"◉":"○")</button>
+         <button type="button" class="scope-icon @(placement.Locked?"on":"")" @onclick="()=>ToggleWorldLockAsync(placement)" aria-label="@(placement.Locked?"Unlock":"Lock") @tile.Name">@(placement.Locked?"🔒":"🔓")</button>
+         <div class="scope-asset"><span class="scope-thumb"><img src="@tile.Image" alt="" /></span><span><strong>@tile.Name</strong><small>@placement.AssetId</small></span></div>
+         <label class="scope-opacity"><span>@Math.Round(placement.Opacity*100)%</span><input type="range" min="0" max="1" step=".05" value="@placement.Opacity.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture)" @onchange="e=>SetWorldOpacityAsync(placement,e)" aria-label="Opacity for @tile.Name" /></label>
+         <div class="scope-stepper"><button type="button" @onclick="()=>MoveWorldLayerAsync(placement,-1)" aria-label="Move @tile.Name back one visual layer">−</button><input type="number" min="1" value="@placement.Layer" @onchange="e=>SetWorldLayerAsync(placement,e)" aria-label="Visual layer for @tile.Name" /><button type="button" @onclick="()=>MoveWorldLayerAsync(placement,1)" aria-label="Move @tile.Name forward one visual layer">+</button></div>
+         <div class="scope-stepper"><button type="button" @onclick="()=>MoveWorldTierAsync(placement,-1)" aria-label="Move @tile.Name one tier nearer">−</button><input type="number" min="1" value="@placement.Tier" @onchange="e=>SetWorldTierAsync(placement,e)" aria-label="Depth tier for @tile.Name" /><button type="button" @onclick="()=>MoveWorldTierAsync(placement,1)" aria-label="Move @tile.Name one tier farther">+</button></div>
+         <span class="scope-link" title="@placement.LinkedGroupId">@(string.IsNullOrWhiteSpace(placement.LinkedGroupId)?"—":"Linked")</span>
+         <span class="scope-permission" title="Permission resource: @placement.PermissionResourceId">PERM</span>
+        </div>
+       }
+      }
+      @if(WorldScopePlacements.Count==0){<p class="scope-empty">No RIST_RECURSIVE_SCOPE_V1 assets have been placed in this World yet.</p>}
+     </div>
+     @if(LegacyWorldTileCount>0)
+     {
+      <footer><strong>@LegacyWorldTileCount legacy asset@(LegacyWorldTileCount==1?"":"s") preserved.</strong><span>They keep their old coordinates until deliberate migration; this editor will not infer Layer or Tier from appearance.</span></footer>
+     }
+    </section>
    }
    @if(_publishMode){<div class="studio-publish-banner" role="status">REGION PUBLISH · select world tiles for the region, then apply them to the regional grid.</div>}
   </div>
@@ -88,9 +114,9 @@
     <button type="button" @onclick="ToggleLibrary"><strong>Library</strong><small>Assets</small></button>
     <button type="button" @onclick="OpenLibraryRail"><strong>Sprite Library</strong><small>Animated Assets</small></button>
     <button type="button" class="tile-size-button" data-footprint="@_tileFootprint" @onclick="CycleTileFootprint" title="Tile footprint: @_tileFootprint by @_tileFootprint viewer squares" aria-label="Tile size @_tileFootprint squared"><strong>@_tileFootprint<sup>2</sup></strong></button>
-    <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLock"><strong>Z-Lock</strong><small>@(_zLocked?"Locked":"Unlocked")</small></button>
-    <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayers"><strong>Layers</strong><small>@Session.LayerOffset / Z @Session.SceneZ</small></button>
-    <button type="button" class="@(_tierOpen?"active":"")" @onclick="ToggleTiers"><strong>Tiers</strong><small>Tier @Session.TierIndex</small></button>
+    <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLock"><strong>Depth View</strong><small>@(_zLocked?"Locked":"Unlocked")</small></button>
+    <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayers"><strong>Layers</strong><small>@WorldScopePlacements.Count visual assets</small></button>
+    <button type="button" class="@(_tierOpen?"active":"")" @onclick="ToggleTiers"><strong>Tiers</strong><small>World depth · 0°</small></button>
     <button type="button" @onclick="ToggleView"><strong>View</strong><small>Grid @(_viewerGrid?"On":"Off")</small></button>
     <button type="button" @onclick="SaveAsync"><strong>Save</strong><small>World</small></button>
     <button type="button" class="@(_loadOpen?"active":"")" @onclick="ToggleLoad"><strong>Load</strong><small>Saved / Published</small></button>
@@ -107,6 +133,8 @@
  .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d;touch-action:none;container-type:size;--viewer-frame:24px}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.studio-viewer-canvas .table-workspace{position:absolute!important;inset:0!important}.studio-viewer-canvas .table-workspace>.staging-tray,.studio-viewer-canvas .table-workspace>.tile-browser,.studio-viewer-canvas .table-workspace>.card-browser{display:none!important}.studio-viewer-canvas .map-shell{position:absolute!important;inset:0!important;display:block!important}.studio-viewer-canvas .map{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.studio-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;aspect-ratio:auto!important;transform:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.studio-viewer-canvas .base.ocean-world{background-size:calc((100cqw - (2 * var(--viewer-frame))) / 30) calc((100cqw - (2 * var(--viewer-frame))) / 30)!important;background-repeat:repeat!important;background-position:var(--viewer-frame) var(--viewer-frame)!important}.studio-viewer-canvas .status,.studio-viewer-canvas .coordinate-system,.studio-viewer-canvas .grid-coordinates{display:none!important}.studio-viewer-canvas .rist-coordinate-frame{z-index:35!important;pointer-events:none!important}.studio-viewer-canvas .rist-coordinate-axis{background:#071015!important}.studio-viewer-grid{position:absolute;inset:var(--viewer-frame);z-index:30;pointer-events:none;border:1px solid rgba(215,199,145,.64);background-image:linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px);background-size:calc((100cqw - (2 * var(--viewer-frame))) / 30) calc((100cqw - (2 * var(--viewer-frame))) / 30);background-position:0 0;background-repeat:repeat}.studio-viewer-grid.off{display:none}.studio-library-shade{position:absolute;inset:0;z-index:55;pointer-events:auto;background:rgba(2,7,11,.58);backdrop-filter:grayscale(.65) brightness(.58);-webkit-backdrop-filter:grayscale(.65) brightness(.58)}
  .studio-command-slider{position:relative;z-index:60;min-width:0;overflow:hidden;border-top:1px solid #715b2d;background:#0a1117;padding:6px;transform:translateY(-4px)}.studio-command-rail{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-command-rail::-webkit-scrollbar{display:none}.studio-command-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}.studio-command-rail button strong{font:900 12px/1 system-ui;color:#f0ddb0}.studio-command-rail button small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}.studio-command-rail button.active{border-color:#d0aa56;background:#201b10}.studio-command-rail button.publish{border-color:#7e6a43}.studio-command-rail button:disabled{opacity:.38}.studio-command-slider.library-open{padding:0}.studio-command-slider.library-open .studio-library-deck{height:100%}
  .studio-mini-panel,.studio-load-panel{position:absolute;z-index:80;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #846c39;border-radius:10px;background:#081117;box-shadow:0 8px 26px #000b}.studio-mini-panel button,.studio-load-panel button{min-height:34px;border:1px solid #536771;border-radius:7px;background:#0e1a21;color:#e7d39a;font-weight:800}.studio-load-panel{width:min(92%,520px);display:grid}.studio-load-panel header{display:flex;align-items:center;justify-content:space-between}.studio-load-panel header button{min-width:34px}.studio-load-panel>button{display:grid;text-align:left;padding:8px 10px}.studio-load-panel small{color:#9babb3}.studio-publish-banner{position:absolute;z-index:75;left:50%;top:8px;transform:translateX(-50%);padding:5px 10px;border:1px solid #836c3f;border-radius:10px;background:#0a1117;color:#f0d69a;font:800 8px/1 system-ui;letter-spacing:.05em;white-space:nowrap}
+ .studio-scope-list{position:absolute;z-index:92;top:8px;right:8px;width:min(760px,calc(100% - 16px));max-height:calc(100% - 16px);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;border:1px solid #846c39;border-radius:12px;background:#071016f2;box-shadow:0 12px 32px #000d;overflow:hidden;backdrop-filter:blur(8px)}.studio-scope-list>header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #3d4e57}.studio-scope-list>header div{display:grid;gap:2px}.studio-scope-list>header strong{font:900 12px/1 system-ui;color:#f1d88c}.studio-scope-list>header small{font:700 8px/1 system-ui;color:#9fb0b8}.studio-scope-list>header button{width:34px;height:34px;border:1px solid #526773;border-radius:7px;background:#101b22;color:#f4dfaa;font-size:20px}.scope-list-head,.scope-row{display:grid;grid-template-columns:34px 34px minmax(150px,1fr) 100px 122px 122px 64px 70px;align-items:center;gap:5px}.scope-list-head{padding:5px 8px;border-bottom:1px solid #24343d;color:#7f949e;font:800 7px/1 system-ui;text-transform:uppercase}.scope-list-rows{min-height:0;overflow:auto;padding:4px}.scope-row{min-height:52px;padding:4px;border-bottom:1px solid #1b2a31}.scope-row:last-child{border-bottom:0}.scope-icon{width:32px;height:32px;border:1px solid #40545e;border-radius:6px;background:#0c171d;color:#7f949e}.scope-icon.on{border-color:#9b7c3c;color:#f0d58b}.scope-asset{min-width:0;display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;gap:6px}.scope-thumb{width:38px;height:38px;border:1px solid #34464f;border-radius:5px;overflow:hidden;background:#020608}.scope-thumb img{width:100%;height:100%;object-fit:cover}.scope-asset>span:last-child{min-width:0;display:grid;gap:2px}.scope-asset strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:800 10px/1.2 system-ui;color:#e7dcbf}.scope-asset small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 6px/1 system-ui;color:#6f858f}.scope-opacity{display:grid;gap:2px}.scope-opacity span{font:700 7px/1 system-ui;color:#aebdc4}.scope-opacity input{width:100%}.scope-stepper{display:grid;grid-template-columns:28px 1fr 28px;gap:3px}.scope-stepper button,.scope-stepper input{box-sizing:border-box;min-width:0;height:32px;border:1px solid #40545e;border-radius:5px;background:#0c171d;color:#e7dcbf;text-align:center;font:800 10px/1 system-ui}.scope-stepper input{width:100%;padding:0 2px}.scope-link,.scope-permission{font:800 7px/1 system-ui;text-align:center;color:#8fa4ad}.scope-permission{padding:6px 3px;border:1px solid #34464f;border-radius:5px;color:#d6bd7b}.scope-empty{padding:18px;text-align:center;color:#8fa4ad;font-size:10px}.studio-scope-list>footer{display:grid;gap:2px;padding:7px 10px;border-top:1px solid #3d4e57;background:#0b141a}.studio-scope-list>footer strong{font:800 8px/1 system-ui;color:#d8c289}.studio-scope-list>footer span{font:600 7px/1.25 system-ui;color:#8fa4ad}
+ @@media(max-width:760px){.studio-scope-list{top:auto;right:4px;bottom:4px;left:4px;width:auto;max-height:76%;}.scope-list-head{display:none}.scope-row{grid-template-columns:34px 34px minmax(100px,1fr) 82px 104px 104px;grid-template-areas:"vis lock asset opacity layer tier" "link permission asset opacity layer tier";}.scope-row>.scope-icon:first-child{grid-area:vis}.scope-row>.scope-icon:nth-child(2){grid-area:lock}.scope-asset{grid-area:asset}.scope-opacity{grid-area:opacity}.scope-row>.scope-stepper:nth-of-type(3){grid-area:layer}.scope-row>.scope-stepper:nth-of-type(4){grid-area:tier}.scope-link{grid-area:link}.scope-permission{grid-area:permission}}
  @@media(max-width:760px){.worldbuilder-studio{grid-template-rows:20px 58px minmax(0,1fr) 58px}.studio-workbench{padding:5px}.studio-top-slider button,.quick-slot{height:44px}.studio-command-slider{padding:5px;transform:translateY(-3px)}.studio-command-rail button{height:44px;min-width:94px;padding:4px 9px}.studio-viewer-canvas{--viewer-frame:24px}}
  .worldbuilder-studio{grid-template-rows:36px 62px minmax(0,1fr) 62px}
  .studio-header{grid-template-columns:44px minmax(0,1fr) 44px}
@@ -145,6 +173,11 @@
  DotNetObjectReference<WorldBuilderStudio>? _self;
  [Parameter] public EventCallback OnStartMenu{get;set;}
  IReadOnlyList<AtlasTile> VisibleQuickTiles=>_quickTiles.Where(ToolModeMatch).ToList();
+ IReadOnlyList<RecursiveScopePlacement> WorldScopePlacements=>Session.HasActiveWorld
+  ?Session.RecursivePlacementsForScope("WORLD",Session.WorldId).OrderByDescending(item=>item.Layer).ThenBy(item=>item.Tier).ThenBy(item=>item.AssetId,StringComparer.Ordinal).ToList()
+  :[];
+ int LegacyWorldTileCount=>Session.PlacedTiles.Count(tile=>!Session.HasRecursiveWorldPlacement(tile));
+ TileItem? TileForPlacement(RecursiveScopePlacement placement)=>Session.PlacedTiles.FirstOrDefault(tile=>string.Equals(tile.PlacementId,placement.AssetId,StringComparison.Ordinal));
  void OpenStartMenu()=>OnStartMenu.InvokeAsync();
  void SelectTool(string mode){_toolMode=Modes.Contains(mode,StringComparer.Ordinal)?mode:"All";_toolsOpen=false;}
  void ToggleLibrary(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();_spriteLibraryMode=false;_libraryRailOpen=true;_toolsOpen=false;}
@@ -172,10 +205,57 @@
  async Task ClearQuickTiles(){_quickTiles.Clear();await PersistQuickSlotsAsync();}
  void CycleTileFootprint(){_tileFootprint=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,16=>30,_=>1};}
  void ToggleZLock()=>_zLocked=!_zLocked;
- void MoveLayer(int delta){if(!_zLocked)Session.MoveLayer(delta);}
- void MoveTier(int delta){if(!_zLocked)Session.MoveTier(delta);}
- void ToggleLayers()=>_layerOpen=!_layerOpen;
- void ToggleTiers()=>_tierOpen=!_tierOpen;
+ void ToggleLayers(){_layerOpen=!_layerOpen;_tierOpen=false;}
+ void ToggleTiers(){_tierOpen=!_tierOpen;_layerOpen=false;}
+ void CloseScopeList(){_layerOpen=false;_tierOpen=false;}
+
+ async Task ToggleWorldVisibilityAsync(RecursiveScopePlacement placement)
+ {
+  PushWorldBuilderUndo();
+  Session.SetRecursiveWorldTileVisible(placement.AssetId,!placement.Visible);
+  await PersistWorldBuilderAsync();
+ }
+ async Task ToggleWorldLockAsync(RecursiveScopePlacement placement)
+ {
+  PushWorldBuilderUndo();
+  Session.SetRecursiveWorldTileLocked(placement.AssetId,!placement.Locked);
+  ClearWorldBuilderSelection();
+  await PersistWorldBuilderAsync();
+ }
+ async Task SetWorldOpacityAsync(RecursiveScopePlacement placement,ChangeEventArgs e)
+ {
+  if(!double.TryParse(e.Value?.ToString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var opacity))return;
+  PushWorldBuilderUndo();
+  Session.SetRecursiveWorldTileOpacity(placement.AssetId,opacity);
+  await PersistWorldBuilderAsync();
+ }
+ async Task SetWorldLayerAsync(RecursiveScopePlacement placement,ChangeEventArgs e)
+ {
+  if(!int.TryParse(e.Value?.ToString(),out var layer))return;
+  PushWorldBuilderUndo();
+  Session.SetRecursiveWorldTileLayer(placement.AssetId,layer);
+  await PersistWorldBuilderAsync();
+ }
+ Task MoveWorldLayerAsync(RecursiveScopePlacement placement,int delta)=>SetWorldLayerValueAsync(placement,placement.Layer+delta);
+ async Task SetWorldLayerValueAsync(RecursiveScopePlacement placement,int layer)
+ {
+  PushWorldBuilderUndo();
+  Session.SetRecursiveWorldTileLayer(placement.AssetId,layer);
+  await PersistWorldBuilderAsync();
+ }
+ async Task SetWorldTierAsync(RecursiveScopePlacement placement,ChangeEventArgs e)
+ {
+  if(!int.TryParse(e.Value?.ToString(),out var tier))return;
+  await SetWorldTierValueAsync(placement,tier);
+ }
+ Task MoveWorldTierAsync(RecursiveScopePlacement placement,int delta)=>SetWorldTierValueAsync(placement,placement.Tier+delta);
+ async Task SetWorldTierValueAsync(RecursiveScopePlacement placement,int tier)
+ {
+  PushWorldBuilderUndo();
+  Session.SetRecursiveWorldTileTier(placement.AssetId,tier);
+  ClearWorldBuilderSelection();
+  await PersistWorldBuilderAsync();
+ }
  void ToggleView()=>_viewerGrid=!_viewerGrid;
  void TogglePublish()=>_publishMode=!_publishMode;
  void ToggleLoad()=>_loadOpen=!_loadOpen;
@@ -284,6 +364,6 @@
   _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260915-completion-1");
   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_viewerElement,_self);
  }
- [JSInvokable] public Task StepZ(int delta){if(!_zLocked)Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}
+ [JSInvokable] public Task StepZ(int delta){if(!_zLocked&&delta!=0)Session.SetSceneZ(WorldSession.SceneZOf(Session.TierIndex+Math.Sign(delta),0));return InvokeAsync(StateHasChanged);}
  public async ValueTask DisposeAsync(){if(_zBinding is not null)try{await _zBinding.InvokeVoidAsync("dispose");}catch{} if(_zBinding is not null)await _zBinding.DisposeAsync();if(_zModule is not null)await _zModule.DisposeAsync();_self?.Dispose();}
 }
