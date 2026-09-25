@@ -108,6 +108,12 @@ Resources:
             - Effect: Allow
               Action: secretsmanager:GetSecretValue
               Resource: !Ref DiscordClientSecretArn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObjectVersion
+                - s3:DeleteObjectVersion
+              Resource: !Sub '${PrivateStorageBucket.Arn}/*'
       Events:
         Login:
           Type: HttpApi
@@ -154,6 +160,9 @@ Resources:
         Upload:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /storage/upload, Method: POST }
+        FinalizeUpload:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /storage/finalize, Method: POST }
         Download:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /storage/download, Method: GET }
@@ -164,7 +173,7 @@ Resources:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /account/delete, Method: POST }
       InlineCode: |
-        import base64, boto3, hashlib, json, os, re, secrets, time, urllib.error, urllib.parse, urllib.request, uuid
+        import base64, boto3, botocore.exceptions, hashlib, json, os, re, secrets, time, urllib.error, urllib.parse, urllib.request, uuid
 
         ddb = boto3.resource("dynamodb").Table(os.environ["IDENTITY_TABLE"])
         s3 = boto3.client("s3")
@@ -259,6 +268,101 @@ Resources:
             if not value or len(value) > 512:
                 raise ValueError("Invalid asset ID")
             return value
+
+        def safe_sha256(raw):
+            value = str(raw or "").strip().lower()
+            if not re.fullmatch(r"[0-9a-f]{64}", value):
+                raise ValueError("Invalid SHA-256")
+            return value
+
+        def content_object_key(sha256):
+            return "content/sha256/{}/{}".format(sha256[:2], sha256)
+
+        def content_record_key(sha256):
+            return "content#" + sha256
+
+        def content_ref_key(user_id, relative_key):
+            digest = hashlib.sha256((user_id + ":" + relative_key).encode()).hexdigest()
+            return "contentref#" + digest
+
+        def head_object_or_none(key):
+            try:
+                return s3.head_object(Bucket=BUCKET, Key=key)
+            except botocore.exceptions.ClientError as exc:
+                code = str((exc.response.get("Error") or {}).get("Code") or "")
+                if code in ("404", "NoSuchKey", "NotFound"):
+                    return None
+                raise
+
+        def hash_object(key):
+            obj = s3.get_object(Bucket=BUCKET, Key=key)
+            digest = hashlib.sha256()
+            body = obj["Body"]
+            while True:
+                block = body.read(1024 * 1024)
+                if not block:
+                    break
+                digest.update(block)
+            return digest.hexdigest()
+
+        def add_content_reference(user_id, relative_key, sha256, content_type, size_bytes, now, source_version_id=""):
+            ref_key = content_ref_key(user_id, relative_key)
+            existing_ref = ddb.get_item(Key={"pk": ref_key}).get("Item")
+            content_pk = content_record_key(sha256)
+            existing_content = ddb.get_item(Key={"pk": content_pk}).get("Item")
+            if not existing_content:
+                ddb.put_item(Item={
+                    "pk": content_pk,
+                    "sha256": sha256,
+                    "objectKey": content_object_key(sha256),
+                    "contentType": content_type,
+                    "sizeBytes": int(size_bytes),
+                    "refCount": 0,
+                    "createdAt": now,
+                    "updatedAt": now
+                })
+            if not existing_ref:
+                ddb.put_item(Item={
+                    "pk": ref_key,
+                    "userId": user_id,
+                    "relativeKey": relative_key,
+                    "sha256": sha256,
+                    "sourceVersionId": source_version_id or "",
+                    "createdAt": now,
+                    "updatedAt": now
+                })
+                ddb.update_item(
+                    Key={"pk": content_pk},
+                    UpdateExpression="ADD refCount :one SET updatedAt = :now",
+                    ExpressionAttributeValues={":one": 1, ":now": now}
+                )
+            else:
+                ddb.update_item(
+                    Key={"pk": ref_key},
+                    UpdateExpression="SET sha256 = :sha, updatedAt = :now, sourceVersionId = :version",
+                    ExpressionAttributeValues={":sha": sha256, ":now": now, ":version": source_version_id or ""}
+                )
+
+        def release_content_reference(user_id, relative_key, sha256, now):
+            ref_key = content_ref_key(user_id, relative_key)
+            existing_ref = ddb.get_item(Key={"pk": ref_key}).get("Item")
+            if not existing_ref:
+                return
+            ddb.delete_item(Key={"pk": ref_key})
+            content_pk = content_record_key(sha256)
+            content = ddb.get_item(Key={"pk": content_pk}).get("Item")
+            if not content:
+                return
+            remaining = max(0, int(content.get("refCount", 0)) - 1)
+            if remaining == 0:
+                s3.delete_object(Bucket=BUCKET, Key=content_object_key(sha256))
+                ddb.delete_item(Key={"pk": content_pk})
+            else:
+                ddb.update_item(
+                    Key={"pk": content_pk},
+                    UpdateExpression="SET refCount = :count, updatedAt = :now",
+                    ExpressionAttributeValues={":count": remaining, ":now": now}
+                )
 
         def rating_key(asset_id):
             return "assetrating#" + hashlib.sha256(asset_id.encode()).hexdigest()
@@ -656,6 +760,14 @@ Resources:
                         args["ContinuationToken"] = continuation
                     result = s3.list_objects_v2(**args)
                     objects = [{"Key": item["Key"]} for item in result.get("Contents", [])]
+                    for item in result.get("Contents", []):
+                        object_key = item["Key"]
+                        head = head_object_or_none(object_key)
+                        metadata = (head or {}).get("Metadata") or {}
+                        sha256 = metadata.get("rist-content-sha256") or ""
+                        if sha256:
+                            relative_key = object_key[len(prefix):]
+                            release_content_reference(session["userId"], relative_key, sha256, now)
                     if objects:
                         s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects, "Quiet": True})
                     if not result.get("IsTruncated"):
@@ -683,6 +795,69 @@ Resources:
                     ], ExpiresIn=300
                 )
                 return response(200, post)
+
+            if route == "POST /storage/finalize":
+                body = json_body(event)
+                relative_key = safe_key(body.get("key"))
+                if not (relative_key.startswith("uploads/") or relative_key.startswith("assets/")):
+                    return response(400, {"error": "Only user asset uploads may be content-addressed"})
+                declared_sha256 = safe_sha256(body.get("sha256"))
+                key = prefix + relative_key
+                head = head_object_or_none(key)
+                if not head:
+                    return response(404, {"error": "Uploaded object was not found"})
+                content_type = str(body.get("contentType") or head.get("ContentType") or "application/octet-stream")
+                if content_type not in ALLOWED_TYPES or not content_type.startswith("image/"):
+                    return response(400, {"error": "Only supported image assets may be finalized"})
+                actual_sha256 = hash_object(key)
+                if actual_sha256 != declared_sha256:
+                    return response(409, {"error": "Content hash did not match uploaded bytes"})
+                canonical_key = content_object_key(actual_sha256)
+                canonical = head_object_or_none(canonical_key)
+                deduplicated = canonical is not None
+                source_version_id = str(head.get("VersionId") or "")
+                if canonical is None:
+                    source = {"Bucket": BUCKET, "Key": key}
+                    if source_version_id and source_version_id != "null":
+                        source["VersionId"] = source_version_id
+                    s3.copy_object(
+                        Bucket=BUCKET,
+                        Key=canonical_key,
+                        CopySource=source,
+                        ContentType=content_type,
+                        MetadataDirective="REPLACE",
+                        Metadata={"rist-sha256": actual_sha256}
+                    )
+                size_bytes = int(head.get("ContentLength") or 0)
+                add_content_reference(
+                    session["userId"], relative_key, actual_sha256,
+                    content_type, size_bytes, now, source_version_id
+                )
+                marker = {
+                    "type": "shaelvien-content-reference",
+                    "sha256": actual_sha256,
+                    "contentType": content_type,
+                    "sizeBytes": size_bytes
+                }
+                s3.put_object(
+                    Bucket=BUCKET,
+                    Key=key,
+                    Body=json.dumps(marker, separators=(",", ":")).encode(),
+                    ContentType="application/vnd.shaelvien.content-ref+json",
+                    Metadata={
+                        "rist-content-sha256": actual_sha256,
+                        "rist-content-type": content_type,
+                        "rist-content-bytes": str(size_bytes)
+                    }
+                )
+                if source_version_id and source_version_id != "null":
+                    s3.delete_object(Bucket=BUCKET, Key=key, VersionId=source_version_id)
+                return response(200, {
+                    "key": relative_key,
+                    "sha256": actual_sha256,
+                    "deduplicated": deduplicated,
+                    "sizeBytes": size_bytes
+                })
 
             if route == "GET /storage/download":
                 key = prefix + safe_key(query.get("key"))
