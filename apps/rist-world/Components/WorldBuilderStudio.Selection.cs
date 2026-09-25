@@ -9,11 +9,11 @@ public partial class WorldBuilderStudio
     int _stackPickCursor;
 
     /// <summary>
-    /// Resolve a viewer tap against canonical world-space tile footprints.
-    /// X/Y are normalized to the fixed viewer grid; Z is resolved from the
-    /// tile's tier/layer through WorldSession.SceneZOf. The frontmost visible
-    /// tile wins on the first tap. Repeated taps at the same world point cycle
-    /// down through every visible tile in the stack, then wrap to the top.
+    /// Resolve a viewer tap against world-space tile footprints. For
+    /// RIST_RECURSIVE_SCOPE_V1 content, visual Layer is the front/back
+    /// authority and Tier is deliberately excluded from ordinary draw order.
+    /// Legacy content keeps its historical SceneZ ordering until migration.
+    /// Repeated taps at the same world point cycle through the visible stack.
     /// </summary>
     [JSInvokable]
     public Task<int[]> SelectPlacedTileAtWorldPoint(double x, double y, bool additive)
@@ -27,7 +27,7 @@ public partial class WorldBuilderStudio
         }
 
         var viewerSceneZ = Session.SceneZ;
-        var hits = new List<(int Index, int SceneZ)>();
+        var hits = new List<WorldBuilderPickHit>();
 
         for (var index = 0; index < Session.PlacedTiles.Count; index++)
         {
@@ -39,12 +39,15 @@ public partial class WorldBuilderStudio
                 tile.PlaneIndex != Session.PlaneIndex)
                 continue;
 
+            var recursive = Session.RecursiveWorldPlacement(tile);
+            if (recursive is { Visible: false })
+                continue;
+
             var sceneZ = WorldSession.SceneZOf(tile);
 
-            // Composite Z view renders the whole visible stack, including tiles
-            // above the viewer's current Z. Those rendered tiles must remain
-            // directly selectable/movable. In a single-Z view, preserve the
-            // normal viewer-depth cutoff.
+            // Composite view renders the full depth stack. In a single-depth
+            // compatibility view the viewer cutoff still determines whether a
+            // tile can be hit, but never determines canonical visual front/back.
             if (!Session.CompositeZView && sceneZ > viewerSceneZ)
                 continue;
 
@@ -57,13 +60,27 @@ public partial class WorldBuilderStudio
                 y + epsilon < tile.Y || y - epsilon > tile.Y + height)
                 continue;
 
-            hits.Add((index, sceneZ));
+            hits.Add(new WorldBuilderPickHit(
+                index,
+                recursive?.Layer ?? 1,
+                sceneZ,
+                recursive is not null));
         }
 
         hits.Sort((a, b) =>
         {
-            var depth = b.SceneZ.CompareTo(a.SceneZ);
-            return depth != 0 ? depth : b.Index.CompareTo(a.Index);
+            var visual = b.VisualLayer.CompareTo(a.VisualLayer);
+            if (visual != 0) return visual;
+
+            // Only two legacy hits at the same compatibility Layer consult
+            // SceneZ. Canonical Tier never participates in visual ordering.
+            if (!a.Canonical && !b.Canonical)
+            {
+                var legacyDepth = b.LegacySceneZ.CompareTo(a.LegacySceneZ);
+                if (legacyDepth != 0) return legacyDepth;
+            }
+
+            return b.Index.CompareTo(a.Index);
         });
 
         if (!additive)
@@ -108,4 +125,10 @@ public partial class WorldBuilderStudio
         _lastStackPickY = double.NaN;
         _stackPickCursor = 0;
     }
+
+    sealed record WorldBuilderPickHit(
+        int Index,
+        int VisualLayer,
+        int LegacySceneZ,
+        bool Canonical);
 }
