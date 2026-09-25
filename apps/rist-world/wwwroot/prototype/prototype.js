@@ -1614,6 +1614,71 @@ function linkedSelectionMembers(item=selectedImage){
   if(!group)return item?[item]:[];
   return userLayers.filter(entry=>String(entry?.linkGroupId||'')===group&&entry?.node?.isConnected);
 }
+function setAssetInteractionMode(mode){
+  assetInteractionMode=mode==='move'?'move':'select';
+  stage.dataset.assetInteraction=assetInteractionMode;
+  renderKeyboardKeys();
+  announce(assetInteractionMode==='move'
+    ?'Move mode on. Only the selected unlocked asset or linked selection can move.'
+    :'Select mode on. Tapping assets changes selection without moving them.');
+}
+function selectionPositionLocked(item=selectedImage){
+  const members=linkedSelectionMembers(item);
+  return !!members.length&&members.every(member=>!!member.positionLocked);
+}
+function toggleSelectedPositionLock(){
+  if(!selectedImage)return false;
+  const members=linkedSelectionMembers(selectedImage).filter(member=>!member.sourceLocked);
+  if(!members.length)return false;
+  const next=!selectionPositionLocked(selectedImage);
+  for(const member of members){member.positionLocked=next;refreshUserImage(member)}
+  if(next)assetInteractionMode='select';
+  renderKeyboardKeys();
+  announce(next
+    ?`Position locked for ${members.length>1?members.length+' linked assets':selectedImage.name||'selected asset'}.`
+    :`Position unlocked for ${members.length>1?members.length+' linked assets':selectedImage.name||'selected asset'}.`);
+  return true;
+}
+function pinSelectedToFront(){
+  if(!selectedImage)return false;
+  const members=linkedSelectionMembers(selectedImage).filter(member=>!member.sourceLocked);
+  if(!members.length)return false;
+  const next=members.some(member=>member.stackPin!=='front')?'front':'';
+  for(const member of members)member.stackPin=next;
+  updateLayerOrder();renderKeyboardKeys();
+  announce(next
+    ?'Selected asset pinned visually in front. Tier and layer identity were not changed.'
+    :'Front pin cleared. Normal tier, layer, and stack order restored.');
+  return true;
+}
+function nudgeSelectedByPixels(dx,dy){
+  if(!selectedImage||selectionPositionLocked(selectedImage))return false;
+  const members=linkedSelectionMembers(selectedImage).filter(member=>!member.sourceLocked&&!member.positionLocked);
+  if(!members.length)return false;
+  const nx=Number(dx||0)/Math.max(naturalWidth,1),ny=Number(dy||0)/Math.max(naturalHeight,1);
+  for(const member of members){
+    const target={x:clamp((Number(member.x)||0)+nx,0,1),y:clamp((Number(member.y)||0)+ny,0,1)};
+    const bounded=LOCAL_DEFINER&&localIsOpen()?constrainLocalPoint(target.x,target.y):(REGION_DEFINER?constrainRegionPoint(target.x,target.y):target);
+    member.x=bounded.x;member.y=bounded.y;refreshUserImage(member);
+  }
+  refreshAssetResizeOverlay(selectedImage);renderKeyboardKeys();scheduleRegionEnhancement(20);
+  const amount=Math.max(Math.abs(Number(dx)||0),Math.abs(Number(dy)||0));
+  announce(`Moved selected ${members.length>1?'group':'asset'} ${amount} pixels.`);
+  return true;
+}
+function appendAssetInteractionControls(item=selectedImage){
+  if(!item||isWorldMapItem(item))return;
+  keyboardKeys.append(
+    toolKey(assetInteractionMode==='select'?'SELECT ✓':'SELECT','tap assets without moving',()=>setAssetInteractionMode('select')),
+    toolKey(assetInteractionMode==='move'?'MOVE ✓':'MOVE',selectionPositionLocked(item)?'unlock position first':'move selected asset only',()=>setAssetInteractionMode('move'),selectionPositionLocked(item)),
+    toolKey(selectionPositionLocked(item)?'UNLOCK':'LOCK',selectionPositionLocked(item)?'allow movement':'protect position',toggleSelectedPositionLock),
+    toolKey(item.stackPin==='front'?'FRONT ✓':'FRONT',item.stackPin==='front'?'pinned above other assets':'pin visually above other assets',pinSelectedToFront),
+    toolKey('←','nudge 8 px',()=>nudgeSelectedByPixels(-8,0),selectionPositionLocked(item)),
+    toolKey('→','nudge 8 px',()=>nudgeSelectedByPixels(8,0),selectionPositionLocked(item)),
+    toolKey('↑','nudge 8 px',()=>nudgeSelectedByPixels(0,-8),selectionPositionLocked(item)),
+    toolKey('↓','nudge 8 px',()=>nudgeSelectedByPixels(0,8),selectionPositionLocked(item))
+  );
+}
 function refreshLinkedSelectionClasses(){
   for(const item of userLayers)item?.node?.classList.remove('linked-selected');
   if(!selectedImage)return;
