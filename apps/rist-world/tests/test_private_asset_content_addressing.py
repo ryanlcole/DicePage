@@ -17,5 +17,6 @@ assert 'Path: /storage/finalize' in backend
 assert '"content/sha256/{}/{}"' in backend
 assert '"rist-content-sha256"' in backend
 assert 'target_key = content_object_key(sha256) if sha256 else key' in backend
+assert 'SET updatedAt = :now ADD refCount :one' in backend
 
 print("Private asset content-addressing contract verified.")
