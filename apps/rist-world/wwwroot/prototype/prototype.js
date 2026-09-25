@@ -652,7 +652,7 @@ function serializableUserLayer(item){
       z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(item.textAlign)?item.textAlign:'center',letterSpacing:clamp(Number(item.letterSpacing)||0,-2,12),
-      plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),committed:true
+      plate:!!item.plate,offsetX:clamp(Number(item.offsetX)||0,-400,400),offsetY:clamp(Number(item.offsetY)||0,-400,400),positionLocked:!!item.positionLocked,stackPin:item.stackPin==='front'?'front':'',committed:true
     };
   }
   return{
@@ -681,7 +681,7 @@ function serializableUserLayer(item){
     localTier:REGION_DEFINER?nestedVerticalAddress(item).localTier:undefined,localLayer:REGION_DEFINER?nestedVerticalAddress(item).localLayer:undefined,
     instanceTier:REGION_DEFINER?nestedVerticalAddress(item).instanceTier:undefined,instanceLayer:REGION_DEFINER?nestedVerticalAddress(item).instanceLayer:undefined,
     z100:REGION_DEFINER?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):undefined,parallaxMode:itemParallaxMode(item),anchorTier:itemAnchorTier(item),size:clamp(Number(item.size)||1,.05,20),
-    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
+    rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),positionLocked:!!item.positionLocked,stackPin:item.stackPin==='front'?'front':'',committed:true
   };
 }
 async function saveWorldBuilder(){
@@ -765,7 +765,7 @@ async function attachRestoredLayer(raw,options={}){
       z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
       textAlign:['left','center','right'].includes(raw.textAlign)?raw.textAlign:'center',letterSpacing:clamp(Number(raw.letterSpacing)||0,-2,12),
-      plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),
+      plate:!!raw.plate,offsetX:clamp(Number(raw.offsetX)||0,-400,400),offsetY:clamp(Number(raw.offsetY)||0,-400,400),positionLocked:!!raw.positionLocked,stackPin:raw.stackPin==='front'?'front':'',
       parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),
       committed:raw.committed!==false,renderOpacity:1,parallaxX:0,parallaxY:0,node:null
     };
@@ -835,7 +835,7 @@ async function attachRestoredLayer(raw,options={}){
     instanceTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.instanceTier)||0)):undefined,
     instanceLayer:REGION_DEFINER?clamp(Math.trunc(Number(raw.instanceLayer)||0),0,9):undefined,
     z100:REGION_DEFINER?Math.trunc(Number(raw.z100)||0):undefined,size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
-    opacity:clamp(Number(raw.opacity)||1,.01,1),parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
+    opacity:clamp(Number(raw.opacity)||1,.01,1),positionLocked:!!raw.positionLocked,stackPin:raw.stackPin==='front'?'front':'',parallaxMode:restoredParallaxMode(raw,regionOverlay),anchorTier:clamp(Math.trunc(Number(raw.anchorTier??raw.tier)||0),0,TIERS.length-1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
