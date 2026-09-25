@@ -90,7 +90,7 @@ let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=
 const userLayers=[];
 stage.dataset.assetInteraction=assetInteractionMode;
 let spriteChainTarget=null;
-let regionEditLayer=null;
+let regionEditLayer=null,recursiveAssetListPanel=null;
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
 const WORLDBUILDER_SAVE_STORE='worlds';
 const WORLD_SOURCE_SAVE_KEY=WORLD_ID||WORLD_SEED||'prototype';
@@ -202,7 +202,7 @@ function syncRegionRecursiveEnvelope(item,tier=regionOverlayTier(item),layer=reg
     viewDegrees:15,
     opacity:clamp(Number(item.opacity??existing?.opacity)||1,0,1),
     visible:existing?.visible!==false,
-    locked:!!(existing?.locked||item.positionLocked),
+    locked:!!item.positionLocked,
     linkedGroupId:String(item.linkGroupId||existing?.linkedGroupId||''),
     permissionResourceId:authority
   };
@@ -1256,6 +1256,102 @@ function mountUserPlacement(item){
       event.preventDefault();event.stopPropagation();nudgeSelectedByPixels(dx,dy);
     });
   }
+}
+function regionEditableAssetRows(){
+  const regionId=activeRegionMapId();
+  return userLayers
+    .filter(item=>item?.regionOverlay&&!item.localOverlay&&!item.sourceLocked&&String(item.regionId||'')===regionId&&item.node?.isConnected)
+    .sort((a,b)=>regionOverlayLayer(b)-regionOverlayLayer(a)||userLayers.indexOf(b)-userLayers.indexOf(a));
+}
+function ensureRecursiveAssetList(){
+  if(recursiveAssetListPanel?.isConnected)return recursiveAssetListPanel;
+  const panel=document.createElement('section');
+  panel.className='recursive-asset-list';
+  panel.hidden=true;
+  panel.setAttribute('role','dialog');
+  panel.setAttribute('aria-label','Region asset layer list');
+  stage.appendChild(panel);
+  recursiveAssetListPanel=panel;
+  return panel;
+}
+function closeRecursiveAssetList(){
+  if(recursiveAssetListPanel)recursiveAssetListPanel.hidden=true;
+}
+function updateRegionAssetFromList(item,kind,value){
+  if(!item||READ_ONLY||LOCAL_DEFINER)return;
+  if(kind==='visible'){
+    const current=syncRegionRecursiveEnvelope(item);
+    item.recursive={...current,visible:current?.visible===false};
+  }else if(kind==='locked'){
+    item.positionLocked=!item.positionLocked;
+    syncRegionRecursiveEnvelope(item);
+  }else if(kind==='opacity'){
+    item.opacity=clamp(Number(value),0,1);
+    syncRegionRecursiveEnvelope(item);
+  }else if(kind==='tier'){
+    syncRegionRecursiveEnvelope(item,Math.max(1,regionOverlayTier(item)+Number(value||0)),regionOverlayLayer(item));
+    if(item===selectedImage)regionTierIndex=regionOverlayTier(item);
+  }else if(kind==='layer'){
+    syncRegionRecursiveEnvelope(item,regionOverlayTier(item),Math.max(1,regionOverlayLayer(item)+Number(value||0)));
+    if(item===selectedImage)regionLayerIndex=regionOverlayLayer(item);
+  }
+  refreshUserImage(item);updateLayerOrder();applyParallax();renderRecursiveAssetList();renderKeyboardKeys();updateTierButton();
+}
+function renderRecursiveAssetList(){
+  if(!REGION_DEFINER||LOCAL_DEFINER||!regionDeedIsComplete())return closeRecursiveAssetList();
+  const panel=ensureRecursiveAssetList();
+  const rows=regionEditableAssetRows();
+  panel.replaceChildren();
+
+  const header=document.createElement('header');
+  const title=document.createElement('div');
+  const strong=document.createElement('strong');strong.textContent='REGION · 15°';
+  const small=document.createElement('small');small.textContent='Layer = appearance · Tier = depth · X/Y local to deed';
+  title.append(strong,small);
+  const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Close Region asset list');close.addEventListener('click',()=>{closeRecursiveAssetList();keyboardMode='Viewer';renderKeyboardTabs();renderKeyboardKeys()});
+  header.append(title,close);panel.appendChild(header);
+
+  const headings=document.createElement('div');headings.className='recursive-asset-head';
+  for(const label of ['V','L','Asset','Opacity','Layer','Tier','Link','Permission']){const span=document.createElement('span');span.textContent=label;headings.appendChild(span)}
+  panel.appendChild(headings);
+
+  const body=document.createElement('div');body.className='recursive-asset-rows';
+  if(!rows.length){
+    const empty=document.createElement('p');empty.className='recursive-asset-empty';empty.textContent='No Region assets yet. Add an image, tile, sprite, or label inside the claimed deed.';body.appendChild(empty);
+  }
+  for(const item of rows){
+    const recursive=syncRegionRecursiveEnvelope(item);
+    const row=document.createElement('div');row.className='recursive-asset-row'+(item===selectedImage?' selected':'');
+    row.dataset.assetId=String(item.id||'');
+
+    const visible=document.createElement('button');visible.type='button';visible.className='recursive-icon';visible.textContent=recursive?.visible===false?'○':'◉';visible.setAttribute('aria-pressed',String(recursive?.visible!==false));visible.setAttribute('aria-label',recursive?.visible===false?`Show ${item.name||'asset'}`:`Hide ${item.name||'asset'}`);visible.addEventListener('click',()=>updateRegionAssetFromList(item,'visible'));
+
+    const locked=document.createElement('button');locked.type='button';locked.className='recursive-icon';locked.textContent=item.positionLocked?'🔒':'🔓';locked.setAttribute('aria-pressed',String(!!item.positionLocked));locked.setAttribute('aria-label',item.positionLocked?`Unlock ${item.name||'asset'}`:`Lock ${item.name||'asset'}`);locked.addEventListener('click',()=>updateRegionAssetFromList(item,'locked'));
+
+    const asset=document.createElement('button');asset.type='button';asset.className='recursive-asset-name';asset.innerHTML=`<strong>${String(item.name||item.text||item.assetId||'Region asset')}</strong><small>${String(item.id||'')}</small>`;asset.addEventListener('click',()=>{selectUserImage(item);renderRecursiveAssetList()});
+
+    const opacity=document.createElement('label');opacity.className='recursive-opacity';
+    const opacityText=document.createElement('span');opacityText.textContent=`${Math.round((Number(item.opacity??1))*100)}%`;
+    const opacityInput=document.createElement('input');opacityInput.type='range';opacityInput.min='0';opacityInput.max='1';opacityInput.step='.05';opacityInput.value=String(clamp(Number(item.opacity??1),0,1));opacityInput.setAttribute('aria-label',`Opacity for ${item.name||'asset'}`);opacityInput.addEventListener('change',()=>updateRegionAssetFromList(item,'opacity',opacityInput.value));opacity.append(opacityText,opacityInput);
+
+    const layer=document.createElement('div');layer.className='recursive-stepper';
+    const layerDown=document.createElement('button');layerDown.type='button';layerDown.textContent='−';layerDown.disabled=regionOverlayLayer(item)<=1;layerDown.setAttribute('aria-label','Move back one visual layer');layerDown.addEventListener('click',()=>updateRegionAssetFromList(item,'layer',-1));
+    const layerValue=document.createElement('span');layerValue.textContent=String(regionOverlayLayer(item));
+    const layerUp=document.createElement('button');layerUp.type='button';layerUp.textContent='+';layerUp.setAttribute('aria-label','Move forward one visual layer');layerUp.addEventListener('click',()=>updateRegionAssetFromList(item,'layer',1));layer.append(layerDown,layerValue,layerUp);
+
+    const tier=document.createElement('div');tier.className='recursive-stepper';
+    const tierDown=document.createElement('button');tierDown.type='button';tierDown.textContent='−';tierDown.disabled=regionOverlayTier(item)<=1;tierDown.setAttribute('aria-label','Move one Region Tier nearer');tierDown.addEventListener('click',()=>updateRegionAssetFromList(item,'tier',-1));
+    const tierValue=document.createElement('span');tierValue.textContent=String(regionOverlayTier(item));
+    const tierUp=document.createElement('button');tierUp.type='button';tierUp.textContent='+';tierUp.setAttribute('aria-label','Move one Region Tier farther');tierUp.addEventListener('click',()=>updateRegionAssetFromList(item,'tier',1));tier.append(tierDown,tierValue,tierUp);
+
+    const linked=document.createElement('span');linked.className='recursive-link';linked.textContent=item.linkGroupId?'LINKED':'—';linked.title=String(item.linkGroupId||'');
+
+    const permission=document.createElement('button');permission.type='button';permission.className='recursive-permission';permission.textContent='PERM';permission.title=String(recursive?.permissionResourceId||assetAuthorityResourceId(item));permission.setAttribute('aria-label',`Permission identity for ${item.name||'asset'}`);permission.addEventListener('click',()=>announce(`Permission resource ${recursive?.permissionResourceId||assetAuthorityResourceId(item)}. Authority remains server controlled.`));
+
+    row.append(visible,locked,asset,opacity,layer,tier,linked,permission);body.appendChild(row);
+  }
+  panel.appendChild(body);
+  panel.hidden=false;
 }
 function syncRegionEditLayer(){
   if(!REGION_DEFINER)return;
@@ -2761,13 +2857,14 @@ function bindTap(button,fn){
 
 function renderState(){applyTransform();renderKeyboardKeys()}
 const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
+const REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){
   if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
   if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
   if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
   if(READ_ONLY)return['Viewer','Tiers'];
   if(CLAIM_ONLY)return['Select'];
-  return BASE_KEYBOARD_MODES;
+  return REGION_KEYBOARD_MODES;
 }
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('data-focus-key',label);b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
@@ -5188,6 +5285,20 @@ function renderKeyboardKeysContent(){
     );
     return;
   }
+  if(keyboardMode==='Layers'){
+    if(REGION_DEFINER&&!LOCAL_DEFINER&&regionDeedIsComplete()){
+      renderRecursiveAssetList();
+      const count=regionEditableAssetRows().length;
+      keyboardKeys.append(
+        readoutKey(`REGION ASSETS ${count}`,'GIMP-style appearance list · Shaelvien depth'),
+        readoutKey(`T ${regionTierIndex} · L ${regionLayerIndex}`,'placement defaults'),
+        toolKey('CLOSE LIST','return to viewer',()=>{closeRecursiveAssetList();keyboardMode='Viewer';renderKeyboardTabs();renderKeyboardKeys()})
+      );
+      return;
+    }
+    keyboardMode='Viewer';closeRecursiveAssetList();
+  }
+  if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden&&keyboardMode!=='Layers')closeRecursiveAssetList();
   if(keyboardMode==='Tiers'){
     if(REGION_DEFINER&&regionDeedIsComplete()){
       if(LOCAL_DEFINER){
