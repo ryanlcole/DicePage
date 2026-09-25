@@ -124,19 +124,11 @@
      </section>
 
      <section class="instance-toolbar">
-      <label>
-       <span>ELEVATION DISPLAY</span>
-       <select @bind="_measurementUnit">
-        <option value="ft">Feet</option>
-        <option value="m">Meters</option>
-        <option value="steps">Steps</option>
-       </select>
-      </label>
-      <label>
-       <span>PER STEP</span>
-       <input type="number" min=".001" max="100000" step=".001" disabled="@(_measurementUnit=="steps")" @bind="_measurementPerStep" />
-      </label>
-      <button type="button" disabled="@_busy" @onclick="SaveMeasurementAsync">SAVE DISPLAY</button>
+      <div class="instance-measure-authority">
+       <small>ELEVATION DISPLAY · WORLD MEASUREMENT</small>
+       <strong>@Session.MeasurementCellSummary</strong>
+       <span>Display translation only · signed elevation steps remain unchanged</span>
+      </div>
       <div><small>GEOMETRY</small><strong>SIGNED STEPS</strong><span>Every 10 steps = 1 parallax band</span></div>
      </section>
 
@@ -173,7 +165,7 @@
        </header>
 
        <section class="elevation-controls">
-        <div><span>ELEVATION</span><strong>@WorldSession.FormatInstanceElevation(_map,_cellElevation)</strong></div>
+        <div><span>ELEVATION</span><strong>@Session.FormatInstanceElevationForCurrentMeasurement(_cellElevation)</strong></div>
         <div class="elevation-buttons">
          <button type="button" @onclick="()=>AdjustElevation(-10)">−10</button>
          <button type="button" @onclick="()=>AdjustElevation(-1)">−1</button>
@@ -322,9 +314,6 @@
  string _cellNotes="";
  string _selectedSurfaceId="";
 
- string _measurementUnit="ft";
- double _measurementPerStep=5;
-
  string _placementSourceAssetId="";
  int _placementTier=1;
  int _placementLayer=1;
@@ -342,7 +331,7 @@
   .Where(item=>string.Equals(item.LocalId,_localId,StringComparison.Ordinal))
   .OrderBy(item=>item.Name,StringComparer.OrdinalIgnoreCase)
   .ToList();
- IEnumerable<LocalInstanceAnchorReference> MarkerReferences=>_references.Where(item=>!item.IsLocalRoot);
+ IEnumerable<LocalInstanceAnchorReference> MarkerReferences=>_references.Where(item=>!item.IsLocalRoot&&WorldSession.IsInstanceMarkerKind(item.Kind));
  IEnumerable<LocalInstanceAnchorReference> TouchedReferences=>_references.Where(item=>!string.Equals(item.AssetId,_markerAssetId,StringComparison.Ordinal));
  bool CanCreateInstance=>!string.IsNullOrWhiteSpace(_localId)&&!string.IsNullOrWhiteSpace(_newInstanceName)&&!string.IsNullOrWhiteSpace(_markerAssetId)&&!string.IsNullOrWhiteSpace(_touchedAssetId)&&!string.Equals(_markerAssetId,_touchedAssetId,StringComparison.Ordinal);
  IReadOnlyList<WorldInstanceSurface> SelectedSurfaces=>_map is null?[]:WorldSession.InstanceSurfacesForCell(_map,_selectedColumn,_selectedRow);
@@ -427,8 +416,6 @@
    await LoadLocalReferencesAsync();
    var source=await Session.LoadInstanceMapAsync(instance.InstanceId);
    _map=source?.State??WorldSession.DefaultInstanceMapState(instance);
-   _measurementUnit=_map.MeasurementUnit;
-   _measurementPerStep=_map.MeasurementPerStep;
    SelectCell(0,0);
   }
   catch(Exception ex){_status="INSTANCE OPEN ERROR · "+ex.Message;}
@@ -490,23 +477,6 @@
   finally{_busy=false;}
  }
 
- async Task SaveMeasurementAsync()
- {
-  if(_map is null||Active is null||_busy)return;
-  _busy=true;
-  try
-  {
-   _map=_map with{
-    MeasurementUnit=WorldSession.NormalizeInstanceMeasurementUnit(_measurementUnit),
-    MeasurementPerStep=Math.Clamp(_measurementPerStep,.001,100000)
-   };
-   await PersistMapAsync();
-   _measurementUnit=_map.MeasurementUnit;_measurementPerStep=_map.MeasurementPerStep;
-   _status="Display measurement updated. Signed elevation steps were not changed.";
-  }
-  catch(Exception ex){_status="MEASUREMENT SAVE ERROR · "+ex.Message;}
-  finally{_busy=false;}
- }
 
  async Task PlaceReferenceAsync()
  {
