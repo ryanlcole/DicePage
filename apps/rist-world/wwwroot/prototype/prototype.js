@@ -2011,11 +2011,18 @@ function renderLabelsKeyboard(){
   appendAssetInteractionControls(selected);
   keyboardKeys.append(
     editor,labelSelection(),
-    ...(REGION_DEFINER
+    ...(LOCAL_DEFINER
       ?[
         readoutKey(`WORLD TIER ${pos.tier}`,pos.tierLabel),
         readoutKey(`WORLD Z ${pos.worldZ}`,`WorldBuilder Layer ${pos.layer}`),
-        readoutKey(`REGION L ${pos.regionLayer}`,`Exact Z ${pos.z}`)
+        readoutKey(`REGION L ${pos.regionLayer}`,`Legacy projection ${pos.z}`)
+      ]
+      :REGION_DEFINER
+      ?[
+        readoutKey(`REGION T ${pos.regionTier}`,'parallax depth'),
+        readoutKey(`VISUAL L ${pos.regionLayer}`,'appearance order'),
+        readoutKey(`X ${pos.x}`,'Region-local coordinate'),
+        readoutKey(`Y ${pos.y}`,'Region-local coordinate')
       ]
       :[readoutKey(`TIER ${pos.tier}`,pos.tierLabel),readoutKey(`LAYER ${pos.layer}`,'label layer')]),
     toolKey('A−',`${Math.round(selected.fontSize||48)} px`,()=>adjustSelectedLabelFont(-1),selected.fontSize<=12),
@@ -2042,10 +2049,10 @@ function renderLabelsKeyboard(){
       ]
       :REGION_DEFINER
       ?[
-        toolKey('WORLD Z −',`Z ${pos.worldZ}`,()=>moveSelectedTier(-1),pos.worldZ<=0),
-        toolKey('WORLD Z +',`Z ${pos.worldZ}`,()=>moveSelectedTier(1),pos.worldZ>=9),
-        toolKey('REGION L −',`L ${pos.regionLayer}`,()=>moveSelectedLayer(-1),pos.regionLayer<=1),
-        toolKey('REGION L +',`L ${pos.regionLayer}`,()=>moveSelectedLayer(1),pos.regionLayer>=9)
+        toolKey('REGION T −',`T ${pos.regionTier}`,()=>moveSelectedRegionTier(-1),pos.regionTier<=1),
+        toolKey('REGION T +',`T ${pos.regionTier}`,()=>moveSelectedRegionTier(1)),
+        toolKey('LAYER −',`L ${pos.regionLayer}`,()=>moveSelectedLayer(-1),pos.regionLayer<=1),
+        toolKey('LAYER +',`L ${pos.regionLayer}`,()=>moveSelectedLayer(1))
       ]
       :[
         toolKey('TIER −',`T${pos.tier}`,()=>moveSelectedTier(-1),selected.tier<=0),
@@ -2613,12 +2620,15 @@ function applyParallax(){
     if(LOCAL_DEFINER&&localIsOpen()&&item.localAnchor){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=item.opacity;refreshUserImage(item);continue;
     }
+    const recursiveRegion=REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay;
     const attached=itemParallaxMode(item)==='anchored'&&!LOCAL_DEFINER;
     const reference=attached?parentTierOffset(item.tier):null;
-    const depth=LOCAL_DEFINER&&item.localOverlay
-      ? Math.max(0,Number(item.localTier)||0)+(clamp(Number(item.localLayer)||1,1,9)/10)
-      : item.tier;
-    const representationDepth=LOCAL_DEFINER?2:1;
+    const depth=recursiveRegion
+      ? Math.max(0,regionOverlayTier(item)-1)
+      : LOCAL_DEFINER&&item.localOverlay
+        ? Math.max(0,Number(item.localTier)||0)+(clamp(Number(item.localLayer)||1,1,9)/10)
+        : item.tier;
+    const representationDepth=LOCAL_DEFINER?2:recursiveRegion?1.5:1;
     const panStrength=depth*.022*representationDepth,tiltStrength=depth*.48*representationDepth;
     item.parallaxX=selectionFrozen?0:attached?reference.x:((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=selectionFrozen?0:attached?reference.y:((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
@@ -5143,12 +5153,12 @@ function renderKeyboardKeysContent(){
   }
   if(keyboardMode==='Tiers'){
     if(REGION_DEFINER&&regionDeedIsComplete()){
-      keyboardKeys.append(
-        readoutKey(`WORLD TIER ${Number(regionClaimedRegion.tierIndex)+1}`,'fixed by the deed'),
-        readoutKey(`WORLD L ${viewerLayer}`,'World layer inherited from Worldbuilder'),
-        readoutKey(`REGION T ${regionTierIndex}`,LOCAL_DEFINER?'inherited from selected regional object':'regional tier'),
-        readoutKey(`REGION L ${regionLayerIndex}`,LOCAL_DEFINER?'inherited from selected regional object':'regional layer'),
-        ...(LOCAL_DEFINER?[
+      if(LOCAL_DEFINER){
+        keyboardKeys.append(
+          readoutKey(`WORLD TIER ${Number(regionClaimedRegion.tierIndex)+1}`,'fixed by the deed'),
+          readoutKey(`WORLD L ${viewerLayer}`,'legacy parent representation'),
+          readoutKey(`REGION T ${regionTierIndex}`,'inherited from selected regional object'),
+          readoutKey(`REGION L ${regionLayerIndex}`,'inherited from selected regional object'),
           readoutKey(`LOCAL T ${localTierIndex}`,localIsOpen()?'editable Local tier':'new Local starts at Local Tier 0'),
           readoutKey(`LOCAL L ${localLayerIndex}`,localIsOpen()?'editable Local layer':'new Local starts at Local Layer 1'),
           ...(localIsOpen()?[
@@ -5157,15 +5167,20 @@ function renderKeyboardKeysContent(){
             toolKey('LOCAL L −',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex-1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex<=1),
             toolKey('LOCAL L +',`L ${localLayerIndex}`,()=>{localLayerIndex=clamp(localLayerIndex+1,1,9);syncLocalEditLayer();renderKeyboardKeys()},localLayerIndex>=9)
           ]:[])
-        ]:[
-          toolKey('WORLD L −',`L ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer-1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Layer ${viewerLayer}.`)} ,viewerLayer<=0),
-          toolKey('WORLD L +',`L ${viewerLayer}`,()=>{viewerLayer=clamp(viewerLayer+1,0,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys();announce(`Placement World Layer ${viewerLayer}.`)} ,viewerLayer>=9),
-          toolKey('REGION T −',`T ${regionTierIndex}`,()=>{regionTierIndex=Math.max(0,regionTierIndex-1);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()} ,regionTierIndex<=0),
+        );
+      }else{
+        keyboardKeys.append(
+          readoutKey(`PARENT WORLD TIER ${Number(regionClaimedRegion.tierIndex)+1}`,'fixed by deed · read only'),
+          readoutKey('REGION VIEW','15° · local X/Y'),
+          readoutKey(`REGION T ${regionTierIndex}`,'parallax depth'),
+          readoutKey(`VISUAL L ${regionLayerIndex}`,'appearance order'),
+          toolKey('REGION T −',`T ${regionTierIndex}`,()=>{regionTierIndex=Math.max(1,regionTierIndex-1);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()},regionTierIndex<=1),
           toolKey('REGION T +',`T ${regionTierIndex}`,()=>{regionTierIndex+=1;updateTierButton();syncRegionEditLayer();renderKeyboardKeys()}),
-          toolKey('REGION L −',`L ${regionLayerIndex}`,()=>{regionLayerIndex=clamp(regionLayerIndex-1,1,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()} ,regionLayerIndex<=1),
-          toolKey('REGION L +',`L ${regionLayerIndex}`,()=>{regionLayerIndex=clamp(regionLayerIndex+1,1,9);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()} ,regionLayerIndex>=9)
-        ])
-      );return;
+          toolKey('LAYER −',`L ${regionLayerIndex}`,()=>{regionLayerIndex=Math.max(1,regionLayerIndex-1);updateTierButton();syncRegionEditLayer();renderKeyboardKeys()},regionLayerIndex<=1),
+          toolKey('LAYER +',`L ${regionLayerIndex}`,()=>{regionLayerIndex+=1;updateTierButton();syncRegionEditLayer();renderKeyboardKeys()})
+        );
+      }
+      return;
     }
     if(!REGION_DEFINER){
       keyboardKeys.append(
@@ -5311,14 +5326,22 @@ function renderKeyboardKeysContent(){
     const pos=selectedPositionSummary(selectedImage);
     appendAssetInteractionControls(selectedImage);
     keyboardKeys.append(
-      ...(REGION_DEFINER
+      ...(LOCAL_DEFINER
         ?[
           readoutKey(`WORLD TIER ${pos.tier}`,pos.tierLabel),
-          readoutKey(`WORLD L ${pos.worldZ}`,`World Tier ${pos.tier}`),
-          readoutKey(`REGION T ${pos.regionTier}`,'regional tier'),
-          readoutKey(`REGION L ${pos.regionLayer}`,'regional layer'),
-          ...(LOCAL_DEFINER?[readoutKey(`LOCAL T ${pos.localTier}`,'local tier'),readoutKey(`LOCAL L ${pos.localLayer}`,'local layer')]:[]),
+          readoutKey(`WORLD L ${pos.worldZ}`,'legacy parent representation'),
+          readoutKey(`REGION T ${pos.regionTier}`,'inherited Region tier'),
+          readoutKey(`REGION L ${pos.regionLayer}`,'inherited Region layer'),
+          readoutKey(`LOCAL T ${pos.localTier}`,'local tier'),
+          readoutKey(`LOCAL L ${pos.localLayer}`,'local layer'),
           readoutKey('MAP ATTACHED','nested coordinates retained independently')
+        ]
+        :REGION_DEFINER
+        ?[
+          readoutKey(`REGION T ${pos.regionTier}`,'parallax depth'),
+          readoutKey(`VISUAL L ${pos.regionLayer}`,'appearance order'),
+          readoutKey(`PARENT WORLD T ${pos.worldTier}`,pos.worldTierLabel||'fixed deed context'),
+          readoutKey('REGION 15°','recursive local scope')
         ]
         :[
           readoutKey(`TIER ${pos.tier}`,pos.tierLabel),
@@ -5326,8 +5349,8 @@ function renderKeyboardKeysContent(){
           readoutKey(itemParallaxMode(selectedImage)==='anchored'?'MAP ATTACHED':'PARALLAX',
             itemParallaxMode(selectedImage)==='anchored'?'moves with parent world tier':'explicit separate tier')
         ]),
-      readoutKey(`X ${pos.x}`,LOCAL_DEFINER?'canonical X within Local anchor':'world position'),
-      readoutKey(`Y ${pos.y}`,LOCAL_DEFINER?'canonical Y within Local anchor':'world position'),
+      readoutKey(`X ${pos.x}`,LOCAL_DEFINER?'canonical X within Local anchor':REGION_DEFINER?'Region-local coordinate':'world position'),
+      readoutKey(`Y ${pos.y}`,LOCAL_DEFINER?'canonical Y within Local anchor':REGION_DEFINER?'Region-local coordinate':'world position'),
       toolKey('SIZE −',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(-1),selectedImage.size<=.2),
       toolKey('SIZE +',`${selectedImage.size.toFixed(selectedImage.size<2?1:2)}×`,()=>adjustSelectedSize(1),selectedImage.size>=20),
       sizeNumberInput(selectedImage),sizeRangeInput(selectedImage),
@@ -5348,12 +5371,10 @@ function renderKeyboardKeysContent(){
         ]
         :REGION_DEFINER
         ?[
-          toolKey('WORLD L −',`L ${pos.worldZ}`,()=>moveSelectedTier(-1),pos.worldZ<=0),
-          toolKey('WORLD L +',`L ${pos.worldZ}`,()=>moveSelectedTier(1),pos.worldZ>=9),
-          toolKey('REGION T −',`T ${pos.regionTier}`,()=>moveSelectedRegionTier(-1),pos.regionTier<=0),
+          toolKey('REGION T −',`T ${pos.regionTier}`,()=>moveSelectedRegionTier(-1),pos.regionTier<=1),
           toolKey('REGION T +',`T ${pos.regionTier}`,()=>moveSelectedRegionTier(1)),
-          toolKey('REGION L −',`L ${pos.regionLayer}`,()=>moveSelectedLayer(-1),pos.regionLayer<=1),
-          toolKey('REGION L +',`L ${pos.regionLayer}`,()=>moveSelectedLayer(1),pos.regionLayer>=9)
+          toolKey('LAYER −',`L ${pos.regionLayer}`,()=>moveSelectedLayer(-1),pos.regionLayer<=1),
+          toolKey('LAYER +',`L ${pos.regionLayer}`,()=>moveSelectedLayer(1))
         ]
         :[
           toolKey('TIER −',`T${pos.tier} · ${pos.tierLabel}`,()=>moveSelectedTier(-1),selectedImage.tier<=0),
