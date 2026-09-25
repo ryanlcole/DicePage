@@ -142,6 +142,19 @@ def test_new_local_catalog_records_recursive_scope_contract():
     assert "ParentAssetId: anchorObjectId" in model
 
 
+
+def test_local_asset_list_includes_locked_root_reference_and_layers_tab():
+    source = prototype()
+    assert "function appendLocalRootReferenceRow(body)" in source
+    assert "row.dataset.root='true'" in source
+    assert "visible.disabled=true" in source
+    assert "locked.disabled=true" in source
+    assert "layerValue.textContent='1'" in source
+    assert "tierValue.textContent='1'" in source
+    assert "permission.textContent='PARENT'" in source
+    assert "?REGION_KEYBOARD_MODES:['Viewer','Tiers','Select']" in source
+
+
 def test_local_asset_list_reuses_gimp_editor_and_server_acl():
     source = prototype()
     local = read("Components/LocalDefinerWorkspace.razor")
