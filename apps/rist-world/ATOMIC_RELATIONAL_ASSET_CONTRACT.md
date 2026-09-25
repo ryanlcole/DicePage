@@ -45,6 +45,10 @@ A principal may have View, Edit, Public, or Deny against a Shaep or a specific r
 
 Permission inheritance follows the existing recursive authority system. Removing access removes the relationship, not necessarily the underlying shared payload.
 
+## Accessibility law
+
+Accessibility representations consume the same asset lineage and revision truth. Alt text, semantic descriptions, nonvisual descriptions, contrast treatments, reduced-motion alternatives, and other accessibility metadata are Glyph relationships or representations of the same Shaep; they do not fork asset identity or create duplicate payload authority.
+
 ## Storage law
 
 1. Exact content match -> one physical payload.
