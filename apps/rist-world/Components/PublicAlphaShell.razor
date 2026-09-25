@@ -97,7 +97,7 @@
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span aria-hidden="true">▦</span><strong>REGION DEFINER</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLocalStaging"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span aria-hidden="true">◫</span><strong>IMMERSION BUILDER</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenInstance"><span aria-hidden="true">⌖</span><strong>INSTANCES</strong></button>
+     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenInstance"><span aria-hidden="true">⌖</span><strong>INSTANCE BUILDER</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">◷</span><strong>HISTORY</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLore"><span aria-hidden="true">✦</span><strong>LORE</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">☁</span><strong>WEATHER</strong></button>
@@ -731,7 +731,7 @@ else
   OpenWorkspace("viewer","REGIONDEFINER",$"{region.Name.ToUpperInvariant()} · REGION 15° → LOCAL");
  }
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
- void OpenInstance()=>OpenWorkspace("instance","INSTANCE BUILDER","LOCAL 30° → MARKER + ASSET → INSTANCE 45°");
+ void OpenInstance()=>OpenWorkspace("instance","INSTANCE BUILDER","LOCAL 30° → MARKER + TOUCHED ASSET → INSTANCE 45° → CELLS");
  void OpenWeather()=>OpenWorkspace("world","WEATHER","SKY → WEATHER → WORLD");
  void OpenGeology()=>OpenWorkspace("world","GEOLOGICAL EVENTS","TERRAIN → EVENT → HISTORY");
  void OpenHistory()=>OpenWorkspace("campaign","HISTORY","ERA → EVENT → CHRONOLOGY");
