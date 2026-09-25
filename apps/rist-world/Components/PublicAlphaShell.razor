@@ -97,7 +97,7 @@
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span aria-hidden="true">▦</span><strong>REGION DEFINER</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLocalStaging"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span aria-hidden="true">◫</span><strong>IMMERSION BUILDER</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⌖</span><strong>INSTANCES</strong></button>
+     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenInstance"><span aria-hidden="true">⌖</span><strong>INSTANCES</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">◷</span><strong>HISTORY</strong></button>
      <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLore"><span aria-hidden="true">✦</span><strong>LORE</strong></button>
      <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">☁</span><strong>WEATHER</strong></button>
@@ -312,7 +312,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","local","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","local","instance","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -409,6 +409,7 @@ else
    case "observer":_workspaceMode="observer";_workspaceLabel="RELIC OBSERVER";_workspaceHint="QUERY → EVIDENCE → PROVENANCE → OBSERVE";break;
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD 0° → REGION 15° → LOCAL";break;
    case "local":_workspaceMode="local";_workspaceLabel="LOCAL DEFINER";_workspaceHint="REGION 15° → OBJECT → LOCAL 30° → INSTANCE 45°";break;
+   case "instance":_workspaceMode="instance";_workspaceLabel="INSTANCE BUILDER";_workspaceHint="LOCAL 30° → MARKER + ASSET → INSTANCE 45°";break;
    case "perceiver":_workspaceMode="perceiver";_workspaceLabel="PERCEIVER";_workspaceHint="TIERED MOVIE → PARALLAX → TILT";break;
    case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → REGION HANDOFF → LOCAL HANDOFF → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
@@ -730,7 +731,7 @@ else
   OpenWorkspace("viewer","REGIONDEFINER",$"{region.Name.ToUpperInvariant()} · REGION 15° → LOCAL");
  }
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
- void OpenInstance()=>OpenWorkspace("roleplay","INSTANCE","LOCAL → INSTANCE → ENCOUNTER");
+ void OpenInstance()=>OpenWorkspace("instance","INSTANCE BUILDER","LOCAL 30° → MARKER + ASSET → INSTANCE 45°");
  void OpenWeather()=>OpenWorkspace("world","WEATHER","SKY → WEATHER → WORLD");
  void OpenGeology()=>OpenWorkspace("world","GEOLOGICAL EVENTS","TERRAIN → EVENT → HISTORY");
  void OpenHistory()=>OpenWorkspace("campaign","HISTORY","ERA → EVENT → CHRONOLOGY");
