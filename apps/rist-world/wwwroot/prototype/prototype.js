@@ -1250,7 +1250,17 @@ function updateLayerOrder(){
       if(!groups.has(parent))groups.set(parent,[]);
       groups.get(parent).push({item,index,tuple:assetSemanticStackTuple(item,index)});
     });
-    for(const entries of groups.values()){
+    for(const [parent,entries] of groups.entries()){
+      if(parent===world){
+        const sameSlotCount=new Map();
+        for(const entry of entries){
+          const item=entry.item,tier=clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),layer=clamp(Math.trunc(Number(item.layer)||0),0,9);
+          if(isWorldMapItem(item)){item.node.style.zIndex=String(tierStackBase(0)+1);continue}
+          const slotKey=`${tier}:${layer}`,ordinal=sameSlotCount.get(slotKey)||0;sameSlotCount.set(slotKey,ordinal+1);
+          item.node.style.zIndex=String(tierStackBase(tier)+10+(layer*80)+Math.min(ordinal,79));
+        }
+        continue;
+      }
       entries.sort((a,b)=>compareStackTuple(a.tuple,b.tuple));
       entries.forEach((entry,rank)=>{entry.item.node.style.zIndex=String(10+rank)});
     }
