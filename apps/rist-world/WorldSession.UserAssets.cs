@@ -98,6 +98,7 @@ public sealed partial class WorldSession
                 entry.Name,
                 entry.Key,
                 ShaepCodec.MediaTypeForObjectKey(entry.Key),
+                sha256: entry.Sha256,
                 originalFileName: Path.GetFileName(entry.Key),
                 provenanceOrigin: "HUMAN");
             await SaveShaepManifestAsync(manifest);

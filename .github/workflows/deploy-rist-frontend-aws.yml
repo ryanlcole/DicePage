@@ -56,6 +56,9 @@ jobs:
       - name: Verify asset content identity deduplication
         run: python apps/rist-world/tests/test_asset_content_deduplication.py
 
+      - name: Verify private asset content addressing
+        run: python apps/rist-world/tests/test_private_asset_content_addressing.py
+
       - name: Verify authenticated launch contract
         run: python apps/rist-world/tests/authenticated_launch_contract_check.py
 

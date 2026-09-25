@@ -209,16 +209,17 @@
     await stream.CopyToAsync(memory);
     var safe=SafeFileName(file.Name);
     var key=$"uploads/{WorldSession.AssetPathSegment(category)}/{WorldSession.AssetPathSegment(folder)}/{Guid.NewGuid():N}-{safe}";
-    await Auth.UploadBytesAsync(key,memory.ToArray(),contentType);
+    var finalized=await Auth.UploadContentAddressedBytesAsync(key,memory.ToArray(),contentType);
     var rating=await Ratings.RegisterAsync(key,_providerDescriptors,_providerGeneral);
     if(rating is null)throw new InvalidOperationException($"{file.Name} uploaded but its required content rating could not be registered.");
     _ratings[key]=rating;
     entries.RemoveAll(x=>string.Equals(x.Key,key,StringComparison.Ordinal));
     var spriteMeta=category=="Sprites"?SpriteMetadataFromFileName(file.Name):null;
     entries.Add(spriteMeta is null
-      ? new UserAssetCatalogEntry(key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow)
+      ? new UserAssetCatalogEntry(key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow,Sha256:finalized.Sha256)
       : new UserAssetCatalogEntry(
           key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow,
+          Sha256:finalized.Sha256,
           AssetKind:"sprite",
           SpriteColumns:spriteMeta.Value.Columns,
           SpriteRows:spriteMeta.Value.Rows,

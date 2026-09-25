@@ -504,6 +504,20 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         result.EnsureSuccessStatusCode();
     }
 
+    public async Task<ContentAddressedUpload> UploadContentAddressedBytesAsync(string key, byte[] bytes, string contentType)
+    {
+        await UploadBytesAsync(key, bytes, contentType);
+        var sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+        var finalized = await SendAsync<ContentAddressedUpload>(
+            HttpMethod.Post,
+            "/storage/finalize",
+            new FinalizeUploadRequest(key, contentType, sha256))
+            ?? throw new InvalidOperationException("Private asset content could not be finalized.");
+        if (!string.Equals(finalized.Sha256, sha256, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Finalized asset hash did not match the uploaded bytes.");
+        return finalized;
+    }
+
     public async Task<StorageList?> ListAsync(string prefix = "maps/")
         => await SendAsync<StorageList>(HttpMethod.Get, "/storage/list?prefix=" + Uri.EscapeDataString(prefix));
 
@@ -595,6 +609,8 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public sealed record GuardianConsentRequest(string ChildUserId, string ChildAccountId, string ChildAlias, string[] RequestedDescriptors, DateTimeOffset RequestedAtUtc, string ConsentVersion, string RequestKind = "content", string? TermsVersion = null);
     public sealed record GuardianStatus(bool Approved, string? ChildAccountId, string[] ApprovedDescriptors, DateTimeOffset? ConsentedAtUtc, string? ConsentVersion, bool TermsApproved = false, DateTimeOffset? TermsConsentedAtUtc = null, string? TermsVersion = null);
     public sealed record UploadRequest(string Key, string ContentType);
+    public sealed record FinalizeUploadRequest(string Key, string ContentType, string Sha256);
+    public sealed record ContentAddressedUpload(string Key, string Sha256, bool Deduplicated, long SizeBytes);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
     public sealed record StorageItem(string Key, long Size, DateTimeOffset LastModified);
