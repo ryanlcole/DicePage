@@ -509,15 +509,17 @@ public sealed partial class WorldSession
         return $"{value.ToString("0.###", CultureInfo.InvariantCulture)} {state.MeasurementUnit}";
     }
 
-    public double InstanceElevationUnitsPerStep => Math.Max(MinMeasurementPerCell, GridDistance) / 10d;
+    public double InstanceElevationUnitsPerStep => Math.Max(MinMeasurementPerCell, GridDistance);
 
     public string InstanceElevationStepSummary =>
         $"1 elevation step = {FormatMeasurementNumber(InstanceElevationUnitsPerStep)} {MeasurementUnitName(InstanceElevationUnitsPerStep)}";
 
     public string FormatInstanceElevationForCurrentMeasurement(int elevationSteps)
     {
-        // Ten signed elevation steps equal one horizontal grid-distance for
-        // display translation. ElevationSteps remains the geometry authority.
+        // Measurement and parallax are independent projections of the same
+        // signed step truth. The world's configured measurement translates
+        // each elevation step for display; the 10-step parallax band rule is
+        // calculated separately by InstanceElevationParallaxBand().
         var value = elevationSteps * InstanceElevationUnitsPerStep;
         return $"{FormatMeasurementNumber(value)} {MeasurementUnitName(value)}";
     }
