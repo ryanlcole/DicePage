@@ -7,6 +7,7 @@ const IMMERSION_BUILDER=WORKSPACE_MODE==='immersion';
 const LOCAL_DEFINER=WORKSPACE_MODE==='localdefiner';
 const REGION_DEFINER=WORKSPACE_MODE==='regiondefiner'||LOCAL_DEFINER;
 const REPRESENTATION_ANGLE_DEGREES=LOCAL_DEFINER?30:REGION_DEFINER?15:0;
+const RECURSIVE_SCOPE_FORMAT='RIST_RECURSIVE_SCOPE_V1';
 const REGION_FLOW=String(QUERY.get('regionFlow')||'').toLowerCase();
 const REQUESTED_REGION_ID=String(QUERY.get('regionId')||'');
 const REQUESTED_LOCAL_ID=String(QUERY.get('localId')||'');
@@ -110,10 +111,74 @@ let regionWorldSourceOcean=null;
 let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
-let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionTierIndex=0,regionLayerIndex=1,regionPersistenceDbCount=null;
+let regionProjectionLoaded=false,regionRasterIndexMissing=false,regionTierIndex=1,regionLayerIndex=1,regionPersistenceDbCount=null;
 function regionWorldLayer(item){return clamp(Math.trunc(Number(item?.worldLayer??item?.layer??0)||0),0,9)}
-function regionOverlayTier(item){return Math.max(0,Math.trunc(Number(item?.regionTier??0)||0))}
-function regionOverlayLayer(item){return clamp(Math.trunc(Number(item?.regionLayer??1)||1),1,9)}
+function recursiveRegionEnvelope(item){
+  const raw=item?.recursive;
+  return raw&&typeof raw==='object'
+    &&String(raw.format||'')===RECURSIVE_SCOPE_FORMAT
+    &&String(raw.scopeKind||'').toUpperCase()==='REGION'
+    ?raw:null;
+}
+function regionOverlayTier(item){
+  const recursive=recursiveRegionEnvelope(item);
+  if(recursive)return Math.max(1,Math.trunc(Number(recursive.tier)||1));
+  return Math.max(1,Math.trunc(Number(item?.regionTier)||0)+1);
+}
+function regionOverlayLayer(item){
+  const recursive=recursiveRegionEnvelope(item);
+  if(recursive)return Math.max(1,Math.trunc(Number(recursive.layer)||1));
+  return Math.max(1,Math.trunc(Number(item?.regionLayer)||1));
+}
+function regionScopeFrame(region=regionClaimedRegion){
+  const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
+  if(!cells.length)return{left:0,top:0,right:1,bottom:1,width:1,height:1};
+  const columns=cells.map(cell=>cell%REGION_GRID_COLUMNS),rows=cells.map(cell=>Math.floor(cell/REGION_GRID_COLUMNS));
+  const left=Math.min(...columns)/REGION_GRID_COLUMNS,top=Math.min(...rows)/REGION_GRID_ROWS;
+  const right=(Math.max(...columns)+1)/REGION_GRID_COLUMNS,bottom=(Math.max(...rows)+1)/REGION_GRID_ROWS;
+  return{left,top,right,bottom,width:Math.max(1/REGION_GRID_COLUMNS,right-left),height:Math.max(1/REGION_GRID_ROWS,bottom-top)};
+}
+function regionLocalPoint(worldX,worldY,region=regionClaimedRegion){
+  const frame=regionScopeFrame(region);
+  return{
+    x:clamp((Number(worldX)-frame.left)/frame.width,0,1),
+    y:clamp((Number(worldY)-frame.top)/frame.height,0,1)
+  };
+}
+function regionWorldPoint(localX,localY,region=regionClaimedRegion){
+  const frame=regionScopeFrame(region);
+  return{
+    x:clamp(frame.left+clamp(Number(localX)||0,0,1)*frame.width,0,1),
+    y:clamp(frame.top+clamp(Number(localY)||0,0,1)*frame.height,0,1)
+  };
+}
+function syncRegionRecursiveEnvelope(item,tier=regionOverlayTier(item),layer=regionOverlayLayer(item)){
+  if(!item?.regionOverlay||LOCAL_DEFINER)return item?.recursive||null;
+  const regionId=String(item.regionId||activeRegionMapId()||'');
+  const point=regionLocalPoint(item.x,item.y);
+  const authority=assetAuthorityResourceId(item);
+  const existing=recursiveRegionEnvelope(item);
+  item.recursive={
+    format:RECURSIVE_SCOPE_FORMAT,
+    assetId:String(item.id||''),
+    scopeKind:'REGION',
+    scopeId:regionId,
+    parentScopeId:WORLD_ID,
+    parentAssetId:String(regionClaimedRegion?.parentNodeId||('world:'+WORLD_ID)),
+    x:point.x,y:point.y,
+    tier:Math.max(1,Math.trunc(Number(tier)||1)),
+    layer:Math.max(1,Math.trunc(Number(layer)||1)),
+    viewDegrees:15,
+    opacity:clamp(Number(item.opacity??existing?.opacity)||1,0,1),
+    visible:existing?.visible!==false,
+    locked:!!(existing?.locked||item.positionLocked),
+    linkedGroupId:String(item.linkGroupId||existing?.linkedGroupId||''),
+    permissionResourceId:authority
+  };
+  item.regionTier=item.recursive.tier;
+  item.regionLayer=clamp(item.recursive.layer,1,9);
+  return item.recursive;
+}
 function nestedVerticalAddress(item={}){
   return{
     worldTier:Math.max(0,Math.trunc(Number(item?.worldTier??item?.tier??regionClaimedRegion?.tierIndex??0)||0)),
@@ -131,7 +196,7 @@ function regionZ100(worldLayer,regionLayer){
 }
 function regionZLabel(itemOrWorldLayer,overlayLayer){
   const z=typeof itemOrWorldLayer==='object'
-    ?regionZ100(regionWorldLayer(itemOrWorldLayer),regionOverlayLayer(itemOrWorldLayer))
+    ?regionZ100(regionWorldLayer(itemOrWorldLayer),clamp(regionOverlayLayer(itemOrWorldLayer),1,9))
     :regionZ100(itemOrWorldLayer,overlayLayer);
   return (z/100).toFixed(2);
 }
@@ -142,16 +207,20 @@ function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayer
   item.worldTier=parentTier;
   item.worldLayer=clamp(Math.trunc(Number(item.worldLayer??worldLayer)||0),0,9);
   item.layer=item.worldLayer;
-  item.regionTier=Math.max(0,Math.trunc(Number(item.regionTier??regionTierIndex)||0));
-  item.regionLayer=clamp(Math.trunc(Number(item.regionLayer??overlayLayer)||1),1,9);
+  const existing=recursiveRegionEnvelope(item);
+  const recursiveTier=existing?regionOverlayTier(item):Math.max(1,Math.trunc(Number(regionTierIndex)||1));
+  const recursiveLayer=existing?regionOverlayLayer(item):Math.max(1,Math.trunc(Number(overlayLayer)||1));
+  item.regionTier=recursiveTier;
+  item.regionLayer=clamp(recursiveLayer,1,9);
   item.localTier=Math.max(0,Math.trunc(Number(item.localTier??0)||0));
   item.localLayer=clamp(Math.trunc(Number(item.localLayer??0)||0),0,9);
   item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier??0)||0));
   item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer??0)||0),0,9);
   item.z100=regionZ100(item.worldLayer,item.regionLayer);
   item.parentTierIndex=parentTier;
-  item.parallaxMode='anchored';
+  item.parallaxMode=LOCAL_DEFINER?'anchored':'recursive-region';
   item.anchorTier=parentTier;
+  if(!LOCAL_DEFINER)syncRegionRecursiveEnvelope(item,recursiveTier,recursiveLayer);
   return item;
 }
 function localIsOpen(){return !!(LOCAL_DEFINER&&activeLocal?.id)}
@@ -592,13 +661,15 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
   }finally{db.close()}
 }
 function itemParallaxMode(item){
+  if(REGION_DEFINER&&!LOCAL_DEFINER&&item?.regionOverlay)return'recursive-region';
   if(REGION_DEFINER)return'anchored';
   return item?.parallaxMode==='anchored'||item?.parallaxMode==='tier'?item.parallaxMode:'tier';
 }
 function restoredParallaxMode(raw,regionOverlay){
+  if(raw?.parallaxMode==='recursive-region')return'recursive-region';
   return raw?.parallaxMode==='anchored'||raw?.parallaxMode==='tier'
     ?raw.parallaxMode
-    :(regionOverlay?'anchored':'tier');
+    :(regionOverlay?(LOCAL_DEFINER?'anchored':'recursive-region'):'tier');
 }
 function itemAnchorTier(item){
   return clamp(Math.trunc(Number(item?.anchorTier??item?.tier)||0),0,TIERS.length-1);
@@ -1193,7 +1264,9 @@ function assetSemanticStackTuple(item,index){
     return[pin,regionWorldLayer(item),regionOverlayTier(item),regionOverlayLayer(item),Math.max(0,Math.trunc(Number(item.localTier)||0)),clamp(Math.trunc(Number(item.localLayer)||1),1,9),Math.max(0,Math.trunc(Number(item.instanceTier)||0)),clamp(Math.trunc(Number(item.instanceLayer)||0),0,9),index];
   }
   if(REGION_DEFINER&&item?.regionOverlay){
-    return[pin,regionWorldLayer(item),regionOverlayTier(item),regionOverlayLayer(item),index];
+    // Visual Layer is the only ordinary composition authority. Recursive Tier
+    // changes parallax distance, never front/back order.
+    return[pin,regionOverlayLayer(item),index];
   }
   return[pin,clamp(Math.trunc(Number(item?.tier)||0),0,TIERS.length-1),clamp(Math.trunc(Number(item?.layer)||0),0,9),index];
 }
