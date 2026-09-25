@@ -319,12 +319,19 @@ function localOverlayLayer(item){
 function compatibilityLocalLayer(item){
   return clamp(Math.trunc(Number(item?.localLayer)||localOverlayLayer(item)||1),1,9);
 }
+function stableRecursiveCoordinate(value){
+  // Recursive scope coordinates are persisted identity, not transient render
+  // math. Quantize harmless IEEE-754 tail noise so save/reload and diagnostics
+  // reproduce the same coordinate value exactly.
+  const n=Number(value);
+  return Number.isFinite(n)?Math.round(n*1e12)/1e12:0;
+}
 function localRecursivePoint(worldX,worldY,local=activeLocal){
   const bounds=localAnchorBounds(local);
   if(!bounds)return{x:0,y:0};
   return{
-    x:(Number(worldX)-bounds.cx)/Math.max(bounds.width,.0001),
-    y:(Number(worldY)-bounds.cy)/Math.max(bounds.height,.0001)
+    x:stableRecursiveCoordinate((Number(worldX)-bounds.cx)/Math.max(bounds.width,.0001)),
+    y:stableRecursiveCoordinate((Number(worldY)-bounds.cy)/Math.max(bounds.height,.0001))
   };
 }
 function localRecursiveWorldPoint(localX,localY,local=activeLocal){
