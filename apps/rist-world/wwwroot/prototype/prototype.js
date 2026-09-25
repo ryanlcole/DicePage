@@ -713,7 +713,7 @@ function assetAuthorityResourceId(item){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,authorityResourceId:assetAuthorityResourceId(item),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,authorityResourceId:assetAuthorityResourceId(item),recursive:REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item):(item.recursive||undefined),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),
       tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
@@ -728,7 +728,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,authorityResourceId:assetAuthorityResourceId(item),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,authorityResourceId:assetAuthorityResourceId(item),recursive:REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item):(item.recursive||undefined),regionId:String(item.regionId||''),localId:String(item.localId||''),localOverlay:!!item.localOverlay,assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     // Personal-library URLs are short-lived capabilities. Persist only the stable
     // asset identity; reload resolves a fresh URL after authenticated storage is ready.
@@ -823,7 +823,7 @@ async function attachRestoredLayer(raw,options={}){
     : '';
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),authorityResourceId:String(raw.authorityResourceId||''),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),authorityResourceId:String(raw.authorityResourceId||''),recursive:raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined,regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),
       worldTier:REGION_DEFINER?Math.max(0,Math.trunc(Number(raw.worldTier??raw.tier)||0)):undefined,
@@ -882,7 +882,7 @@ async function attachRestoredLayer(raw,options={}){
     ?await preparedImageSource(first,{transparent:!!raw.transparent,alphaCrop:raw.alphaCrop,alphaComponentSeed:raw.alphaComponentSeed}).catch(()=>String(raw.transparentSrc||first))
     :first;
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),authorityResourceId:String(raw.authorityResourceId||''),regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),authorityResourceId:String(raw.authorityResourceId||''),recursive:raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined,regionId:String(raw.regionId||''),localId:restoredLocalId,localOverlay:localOverlay||!!raw.localOverlay,assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:isSprite?String(first||freshPersonalSrc||raw.transparentSrc||''):String(restoredTransparentSrc||first||raw.transparentSrc||''),transparent:isSprite?true:!!raw.transparent,
     alphaCrop:isSprite?null:normalizeAlphaCrop(raw.alphaCrop),alphaComponentSeed:isSprite?null:normalizeAlphaSeed(raw.alphaComponentSeed),
@@ -2960,7 +2960,7 @@ function regionSourceCropStyle(image,tile){
 async function renderRegionProjection(payload){
   const envelope=payload&&typeof payload==='object'?payload:{};
   const state=envelope.state&&typeof envelope.state==='object'?envelope.state:{};
-  if(state.projection!=='region-world-z-v2')throw new Error('Unexpected regional source format');
+  if(state.projection!=='region-recursive-scope-v1'&&state.projection!=='region-world-z-v2')throw new Error('Unexpected regional source format');
   const revision=++canonicalHydrationRevision;
   clearRegionWorldSource();
   const projectedId=String(state.regionId||envelope.regionId||REQUESTED_REGION_ID||'');
@@ -2973,6 +2973,7 @@ async function renderRegionProjection(payload){
     applyClaimedRegionCrop(deed);
   }
   regionProjectionLoaded=true;
+  regionTierIndex=1;
   regionLayerIndex=1;
   viewerLayer=0;
   viewerTier=tierByIndex(clamp(Math.trunc(Number(state.parentTierIndex)||0),0,TIERS.length-1)).key;
@@ -3087,7 +3088,7 @@ async function renderRegionProjection(payload){
     if(revision!==canonicalHydrationRevision){discardCanonicalHydrationItem(item);return null}
     updateLayerOrder();applyParallax();return item;
   });
-  stage.dataset.renderer='region-world-z-v2';
+  stage.dataset.renderer=state.projection==='region-recursive-scope-v1'?'region-recursive-scope-v1':'region-world-z-v2-legacy';
   world.dataset.emptyWorld=regionWorldSourceTiles.length?'false':'true';
   updateTierButton();renderTierMenu();updateLayerOrder();updateRegionWorldSourceVisibility();
   loading.hidden=true;fitClaimedRegion(regionClaimedRegion);
@@ -3098,13 +3099,13 @@ async function renderRegionProjection(payload){
   updateLayerOrder();applyParallax();ensureActiveRegionOverlaysShown(projectedId);refreshRegionPersistenceStatus();
   if(LOCAL_DEFINER)localRegionSourceReady=true;
   maybeOpenRequestedLocal();
-  announce(`${regionClaimedRegion.name} ready. ${expected.size} claimed coordinates from World Tier ${parentTier+1}. ${owned.length} saved regional overlay${owned.length===1?'':'s'} loaded. World Z 0–9 is locked; regional overlays use .01–.09 above each World Z.`);
+  announce(`${regionClaimedRegion.name} ready at 15°. ${expected.size} claimed coordinates loaded. ${owned.length} saved regional overlay${owned.length===1?'':'s'} restored. Region coordinates restart inside the deed; Region Tier and visual Layer start at 1/1.`);
 }
 async function renderRegionWorldSource(payload){
   if(!REGION_DEFINER)return;
   const envelope=payload&&typeof payload==='object'?payload:{};
   let snapshot=envelope.state&&typeof envelope.state==='object'?envelope.state:envelope;
-  if(snapshot.projection==='region-world-z-v2'){
+  if(snapshot.projection==='region-recursive-scope-v1'||snapshot.projection==='region-world-z-v2'){
     await renderRegionProjection(envelope);return;
   }
   // An older pre-claim load must never replace a loaded child projection.
@@ -3732,6 +3733,7 @@ function applyClaimedRegionCrop(region){
   regionClaimedRegion=region;pendingClaimedRegionId=String(region.id||'');
   stage.classList.remove('region-tier-previewing','region-selection-only','region-claim-confirming');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
+  regionTierIndex=1;
   regionLayerIndex=1;
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(savedTier).key;viewerLayer=0;
