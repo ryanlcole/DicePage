@@ -1478,6 +1478,31 @@ function updateRegionAssetFromList(item,kind,value){
   }
   refreshUserImage(item);updateLayerOrder();applyParallax();renderRecursiveAssetList();renderKeyboardKeys();updateTierButton();
 }
+function appendLocalRootReferenceRow(body){
+  if(!LOCAL_DEFINER||!localIsOpen())return;
+  const root=localAnchorItem||userLayers.find(item=>String(item?.id||'')===String(activeLocal?.anchorObjectId||''));
+  const row=document.createElement('div');row.className='recursive-asset-row recursive-root-row';
+  row.dataset.assetId=String(activeLocal?.anchorObjectId||'');
+  row.dataset.root='true';
+
+  const visible=document.createElement('button');visible.type='button';visible.className='recursive-icon';visible.textContent='◉';visible.disabled=true;visible.setAttribute('aria-pressed','true');visible.setAttribute('aria-label','Local root visible');
+  const locked=document.createElement('button');locked.type='button';locked.className='recursive-icon';locked.textContent='🔒';locked.disabled=true;locked.setAttribute('aria-pressed','true');locked.setAttribute('aria-label','Local root locked');
+
+  const asset=document.createElement('div');asset.className='recursive-asset-name';
+  const name=String(activeLocal?.anchorName||root?.name||root?.text||'Local root');
+  const strong=document.createElement('strong');strong.textContent=name;
+  const small=document.createElement('small');small.textContent=`ROOT · ${String(activeLocal?.anchorObjectId||'')}`;
+  asset.append(strong,small);
+
+  const opacity=document.createElement('div');opacity.className='recursive-opacity';opacity.textContent='100%';
+  const layer=document.createElement('div');layer.className='recursive-stepper recursive-layer';const layerValue=document.createElement('span');layerValue.textContent='1';layer.appendChild(layerValue);
+  const tier=document.createElement('div');tier.className='recursive-stepper recursive-tier';const tierValue=document.createElement('span');tierValue.textContent='1';tier.appendChild(tierValue);
+  const linked=document.createElement('span');linked.className='recursive-link';linked.textContent='ROOT';
+  const permission=document.createElement('span');permission.className='recursive-permission';permission.textContent='PARENT';permission.title='Authority remains on the parent Region asset';
+
+  row.append(visible,locked,asset,opacity,layer,tier,linked,permission);
+  body.appendChild(row);
+}
 function renderRecursiveAssetList(){
   if(!REGION_DEFINER||!regionDeedIsComplete()||(LOCAL_DEFINER&&!localIsOpen()))return closeRecursiveAssetList();
   const panel=ensureRecursiveAssetList();
@@ -1512,6 +1537,7 @@ function renderRecursiveAssetList(){
   panel.appendChild(headings);
 
   const body=document.createElement('div');body.className='recursive-asset-rows';
+  appendLocalRootReferenceRow(body);
   if(!rows.length){
     const empty=document.createElement('p');empty.className='recursive-asset-empty';empty.textContent=LOCAL_DEFINER
       ?'No Local assets yet. Add an image, tile, sprite, or label around the selected Region asset.'
@@ -3087,7 +3113,7 @@ const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','S
 const REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
 function keyboardModes(){
   if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
-  if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?BASE_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
+  if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?REGION_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
   if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
   if(READ_ONLY)return['Viewer','Tiers'];
   if(CLAIM_ONLY)return['Select'];
