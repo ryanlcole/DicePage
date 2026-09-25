@@ -251,3 +251,14 @@
   .image-dropzone{min-height:132px;padding:12px}
   .sprite-upload-note{font-size:10px;line-height:1.35}
 }
+
+
+/* Shared asset interaction: touch-first, keyboard/screen-reader friendly. */
+.stage[data-asset-interaction="select"] .user-image-placement:not([data-source-locked="true"]){cursor:pointer}
+.stage[data-asset-interaction="move"] .user-image-placement.selected:not([data-position-locked="true"]){cursor:move}
+.user-image-placement[data-position-locked="true"]{cursor:not-allowed}
+.keyboard-keys .local-name-input{grid-column:1/-1;min-height:48px;font-size:16px}
+@media(max-width:620px){
+  .keyboard-keys button,.keyboard-keys select,.keyboard-keys input{min-height:48px}
+  .keyboard-keys .local-name-input{grid-column:1/-1;width:100%}
+}
