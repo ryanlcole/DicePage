@@ -129,3 +129,32 @@ def test_legacy_content_is_never_silently_promoted():
     persistence = read("WorldSession.Persistence.cs")
     assert "Never silently migrate legacy content." in bridge
     assert "visual similarity never creates child scopes" in persistence
+
+
+def test_world_scope_origin_is_first_authored_asset_not_canvas_position():
+    editor = read("WorldSession.RecursiveScopeEditor.cs")
+    bridge = read("WorldSession.RecursiveWorldBuilder.cs")
+    assert "RecursiveScopeRoot" in editor
+    assert "the first successfully authored" in editor
+    assert "var localX = rootTile is null ? 0 : tile.X - rootTile.X;" in bridge
+    assert "var localY = rootTile is null ? 0 : tile.Y - rootTile.Y;" in bridge
+    assert "SyncRecursiveWorldCoordinates()" in bridge
+    assert "X = tile.X - rootTile.X" in bridge
+    assert "Y = tile.Y - rootTile.Y" in bridge
+
+
+def test_recursive_permission_identity_reuses_server_asset_acl_namespace():
+    editor = read("WorldSession.RecursiveScopeEditor.cs")
+    bridge = read("WorldSession.RecursiveWorldBuilder.cs")
+    permissions = read("Components/WorldBuilderStudio.Permissions.cs")
+    assert '"asset:" + identity' in editor
+    assert "RecursivePermissionResourceId(tile.PlacementId)" in bridge
+    assert "Authority.GetResourcePermissionsAsync" in permissions
+    assert "Authority.SetResourcePermissionAsync" in permissions
+    assert "_scopePermissionPrincipal = "EVERYONE"" in permissions
+
+
+def test_map_card_recursive_version_default_matches_writer():
+    cards = read("WorldSession.MapCards.cs")
+    assert "const int MapCardVersion = 5" in cards
+    assert "public int Version { get; set; } = 5;" in cards
