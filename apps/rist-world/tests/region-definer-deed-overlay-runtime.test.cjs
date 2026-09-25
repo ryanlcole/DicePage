@@ -334,7 +334,7 @@ test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps par
   }finally{f.close()}
 });
 
-test('region overlays use exact hundredths and stay map-attached while World Z remains integer',async()=>{
+test('Region Tier drives parallax while visual Layer alone drives composition',async()=>{
   const f=fixture('existing');
   try{
     host(f,'catalog',{regions:[deed]});
@@ -357,28 +357,40 @@ test('region overlays use exact hundredths and stay map-attached while World Z r
 
     let state=f.w.ShaelvienPrototype.getViewerState();
     let city=state.userLayers.find(x=>x.id==='region-city');
-    assert.equal(city.worldLayer,2);
-    assert.equal(city.regionLayer,1);
-    assert.equal(city.z100,201);
-    assert.equal(city.parallaxMode,'anchored');
-    assert.equal(city.parallaxX,0);
-    assert.equal(city.parallaxY,0);
+    assert.equal(city.worldLayer,2,'legacy World Z remains compatibility context');
+    assert.equal(city.z100,201,'legacy exact-Z projection remains readable');
+    assert.equal(city.parallaxMode,'recursive-region');
+    assert.equal(city.recursive?.format,'RIST_RECURSIVE_SCOPE_V1');
+    assert.equal(city.recursive?.scopeKind,'REGION');
+    assert.equal(city.recursive?.scopeId,'region-test');
+    assert.equal(city.recursive?.tier,1);
+    assert.equal(city.recursive?.layer,1);
+    assert.equal(city.recursive?.viewDegrees,15);
 
-    clickKey(f,'REGION L +');
+    const initialTier=city.recursive.tier;
+    clickKey(f,'LAYER +');
     state=f.w.ShaelvienPrototype.getViewerState();
     city=state.userLayers.find(x=>x.id==='region-city');
-    assert.equal(city.worldLayer,2);
-    assert.equal(city.regionLayer,2);
-    assert.equal(city.z100,202);
+    assert.equal(city.recursive.layer,2);
+    assert.equal(city.recursive.tier,initialTier,'Layer must not mutate Region Tier');
+    assert.equal(city.worldLayer,2,'Layer must not mutate legacy parent depth');
+    assert.equal(city.z100,202,'z100 is only a compatibility projection of visual Layer');
 
-    clickKey(f,'WORLD Z +');
+    clickKey(f,'REGION T +');
     state=f.w.ShaelvienPrototype.getViewerState();
     city=state.userLayers.find(x=>x.id==='region-city');
-    assert.equal(city.worldLayer,3);
-    assert.equal(city.regionLayer,2);
-    assert.equal(city.z100,302);
-    assert.equal(city.tier,0,'fractional region depth must not promote object to a new WorldBuilder tier');
-    assert.equal(city.parallaxMode,'anchored');
+    assert.equal(city.recursive.tier,2);
+    assert.equal(city.recursive.layer,2,'Tier must not mutate visual Layer');
+    assert.equal(city.worldLayer,2,'Region Tier must not rewrite parent World depth');
+    assert.equal(city.z100,202,'Region Tier must not feed legacy z100');
+    assert.equal(city.tier,0,'Region depth must not promote the parent World Tier');
+
+    for(let i=0;i<8;i++)clickKey(f,'LAYER +');
+    state=f.w.ShaelvienPrototype.getViewerState();
+    city=state.userLayers.find(x=>x.id==='region-city');
+    assert.equal(city.recursive.layer,10,'canonical visual Layer is 1-based and not capped at the legacy 1..9 window');
+    assert.equal(city.regionLayer,9,'legacy regionLayer remains a bounded compatibility projection');
+    assert.equal(city.z100,209,'legacy z100 clamps only its compatibility layer component');
   }finally{f.close()}
 });
 
