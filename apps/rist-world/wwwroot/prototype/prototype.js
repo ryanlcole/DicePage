@@ -87,6 +87,7 @@ const pointers=new Map();
 let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',assetInteractionMode='select',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
+stage.dataset.assetInteraction=assetInteractionMode;
 let spriteChainTarget=null;
 let regionEditLayer=null;
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
@@ -1810,6 +1811,7 @@ function refreshUserLabel(item){
   item.node.dataset.positionLocked=item.positionLocked?'true':'false';
   item.node.dataset.interactionMode=assetInteractionMode;
   item.node.setAttribute('aria-label',`${item.name||item.text||'Placed label'}. ${item.positionLocked?'Position locked. ':''}${selectedImage===item?'Selected. ':''}Press Enter to select; use Move mode and arrow keys to move.`);
+  ensureAssetNodeAccessibility(item);
   item.node.dataset.anchor='world';
   item.node.dataset.presentationOffsetX=String(Number(item.offsetX)||0);
   item.node.dataset.presentationOffsetY=String(Number(item.offsetY)||0);
@@ -2147,6 +2149,37 @@ function endAssetResize(event){
   if(drag.resumeSprite&&drag.item.committed)startSpriteMotion(drag.item);
   applySelectedSize(drag.item,selectedSizeValue(drag.item),{announceChange:true});
 }
+function ensureAssetNodeAccessibility(item){
+  const node=item?.node;if(!node)return;
+  const selectable=!isWorldMapItem(item)&&!(item.sourceLocked&&!isLocalAnchorCandidate(item));
+  node.tabIndex=selectable?0:-1;
+  if(selectable){
+    node.setAttribute('role','button');
+    node.setAttribute('aria-pressed',String(selectedImage===item));
+  }else{
+    node.removeAttribute('aria-pressed');
+  }
+  if(node.dataset.assetKeyboardBound==='true')return;
+  node.dataset.assetKeyboardBound='true';
+  node.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key===' '){
+      event.preventDefault();event.stopPropagation();selectUserImage(item);return;
+    }
+    if(event.key==='Escape'&&selectedImage===item){
+      event.preventDefault();event.stopPropagation();deselectUserImage(true);stage.focus?.({preventScroll:true});return;
+    }
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+    event.preventDefault();event.stopPropagation();
+    if(selectedImage!==item){selectUserImage(item);announce('Asset selected. Choose Move mode before using arrow keys to reposition it.');return}
+    if(assetInteractionMode!=='move'){announce('Select mode is active. Choose Move before repositioning the asset.');return}
+    if(selectionPositionLocked(item)){announce('Asset position is locked. Choose Unlock before moving it.');return}
+    const amount=event.shiftKey?1:8;
+    if(event.key==='ArrowLeft')nudgeSelectedByPixels(-amount,0);
+    else if(event.key==='ArrowRight')nudgeSelectedByPixels(amount,0);
+    else if(event.key==='ArrowUp')nudgeSelectedByPixels(0,-amount);
+    else nudgeSelectedByPixels(0,amount);
+  });
+}
 function refreshUserImage(item){
   if(!item?.node)return;
   if(item.kind==='label'){refreshUserLabel(item);return}
@@ -2169,6 +2202,7 @@ function refreshUserImage(item){
   item.node.dataset.positionLocked=item.positionLocked?'true':'false';
   item.node.dataset.interactionMode=assetInteractionMode;
   item.node.setAttribute('aria-label',`${item.name||item.assetId||'Placed asset'}. ${item.positionLocked?'Position locked. ':''}${selectedImage===item?'Selected. ':''}Press Enter to select; use Move mode and arrow keys to move.`);
+  ensureAssetNodeAccessibility(item);
   item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
   item.node.classList.toggle('full-world-placement',isWorldMapItem(item));
   if(isWorldMapItem(item)){
@@ -2203,6 +2237,10 @@ function refreshUserImage(item){
     renderKeyboardTabs();
     announce(`${selectedImage.name||'Region object'} selected. Editing controls are open.`);
   }else if(LOCAL_DEFINER&&selectedImage){
+    if(!localIsOpen()){
+      const anchorId=String(selectedImage.id||'');
+      if(localNameAnchorId!==anchorId){localNameAnchorId=anchorId;localNameDraft=String(selectedImage.name||'Local').trim()||'Local';}
+    }
     announce(localIsOpen()
       ?`${selectedImage.name||'Local object'} selected for Local editing.`
       :`${selectedImage.name||'Regional object'} selected as a Local anchor candidate.`);
@@ -3691,7 +3729,7 @@ function stepLocalRegionPreview(delta){
 }
 function clearLocalRegionSelection(){
   if(!LOCAL_DEFINER)return;
-  activeLocal=null;localAnchorItem=null;localRegionEditable=false;localCreatePending=false;localRegionSourceReady=false;
+  activeLocal=null;localAnchorItem=null;localRegionEditable=false;localCreatePending=false;localNameDraft='';localNameAnchorId='';localRegionSourceReady=false;
   deselectUserImage(false);
   for(let index=userLayers.length-1;index>=0;index--){
     const item=userLayers[index];
@@ -4911,20 +4949,34 @@ function localAnchorPayload(item){
     z100:regionZ100(regionWorldLayer(item),regionOverlayLayer(item)),rotation:Number(item?.rotation)||0
   };
 }
+function localNameInput(item=selectedImage){
+  const input=document.createElement('input');input.type='text';input.className='region-name-input local-name-input';input.maxLength=120;
+  const anchorId=String(item?.id||'');
+  if(localNameAnchorId!==anchorId){localNameAnchorId=anchorId;localNameDraft=String(item?.name||'Local').trim()||'Local';}
+  input.value=localNameDraft;input.placeholder='Name this Local';input.setAttribute('aria-label','Local zone name');input.setAttribute('data-focus-key','local-name');
+  input.addEventListener('input',()=>{localNameDraft=String(input.value||'').slice(0,120)});
+  input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();createSelectedLocal()}});
+  return input;
+}
 function createSelectedLocal(){
   if(!LOCAL_DEFINER||!selectedImage||localCreatePending)return;
   const existing=localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||''));
   if(!existing&&!localRegionEditable){announce('This Region is view only. Edit permission is required to create a Local zone here.');return}
-  localCreatePending=true;renderKeyboardKeys();
   if(existing){
+    localCreatePending=true;renderKeyboardKeys();
     if(!postRegionMessage('open-local',{localId:String(existing.id||'')})){
       localCreatePending=false;renderKeyboardKeys();announce('Local database bridge is unavailable.');
     }
     return;
   }
-  const proposed=String(selectedImage.name||'Local').trim();
-  const name=String(prompt('Name this Local',proposed)||'').trim();
-  if(!name){localCreatePending=false;renderKeyboardKeys();return}
+  if(localNameAnchorId!==String(selectedImage.id||'')){localNameAnchorId=String(selectedImage.id||'');localNameDraft=String(selectedImage.name||'Local').trim()||'Local';}
+  const name=String(localNameDraft||'').trim();
+  if(!name){
+    announce('Enter a Local name before creating the zone.');
+    requestAnimationFrame(()=>keyboardKeys.querySelector('.local-name-input')?.focus());
+    return;
+  }
+  localCreatePending=true;renderKeyboardKeys();
   if(!postRegionMessage('create-local',{name,anchor:localAnchorPayload(selectedImage)})){
     localCreatePending=false;renderKeyboardKeys();announce('Local database bridge is unavailable.');
   }
@@ -5194,7 +5246,8 @@ function renderKeyboardKeysContent(){
         toolKey('‹','previous asset',()=>cycleLocalAnchorSelection(items,-1),!items.length),
         toolKey('›','next asset',()=>cycleLocalAnchorSelection(items,1),!items.length),
         localAnchorSelect(items),
-        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||'selected Region asset',createSelectedLocal,!selectedImage||localCreatePending||(!existing&&!localRegionEditable)),
+        ...(!existing&&selectedImage?[localNameInput(selectedImage)]:[]),
+        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||(localNameDraft||'name required'),createSelectedLocal,!selectedImage||localCreatePending||(!existing&&!localRegionEditable)),
         toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
       );
       return;
