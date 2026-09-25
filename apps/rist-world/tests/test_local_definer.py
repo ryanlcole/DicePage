@@ -24,7 +24,7 @@ def test_local_staging_chooses_local_zone_grouped_by_region():
     assert "OpenSavedLocal(WorldLocal local)" in shell
     assert "Session.SetActiveLocal(local.LocalId);" in shell
     assert 'case "local"' in shell
-    assert '"world","local","accessibility"' in shell
+    assert '"world","local","instance","accessibility"' in shell
     assert 'Session.SetActiveRegion("");' in shell
     assert 'Session.SetActiveLocal("");' in shell
     assert 'OpenWorkspace("local","LOCAL DEFINER","REGION → ASSET → LOCAL · 30°")' in shell
