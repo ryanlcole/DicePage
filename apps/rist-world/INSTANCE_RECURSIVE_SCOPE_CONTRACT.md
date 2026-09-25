@@ -59,9 +59,11 @@ Every 10 elevation steps crosses one parallax distance:
 
 The GM measurement preference translates steps for display only. Instance Builder
 reuses the world's existing physical/Measurefict measurement authority rather than
-creating a second geometry unit system. Changing display measurement never changes
-ElevationSteps. Legacy/per-map measurement fields, when encountered, are compatibility
-presentation metadata only.
+creating a second geometry unit system. Parallax-band math and measurement translation
+are independent: the 10-step band threshold does not divide, multiply, or redefine the
+GM's measurement scale. Changing display measurement never changes ElevationSteps.
+Legacy/per-map measurement fields, when encountered, are compatibility presentation
+metadata only.
 
 ## Cell surfaces
 
