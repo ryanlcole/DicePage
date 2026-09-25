@@ -1504,6 +1504,7 @@ function startSpriteMotion(item){
   spriteTimers.set(item.id,requestAnimationFrame(step));
 }
 async function transparencyCandidate(src){
+  if(IMAGE_ENGINE?.makeTransparent)return IMAGE_ENGINE.makeTransparent(src);
   const img=await loadDataImage(src),max=2048,ratio=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*ratio)),h=Math.max(1,Math.round(img.naturalHeight*ratio));
   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
   const data=ctx.getImageData(0,0,w,h),px=data.data;
@@ -1531,6 +1532,7 @@ function normalizeAlphaSeed(raw){
 }
 async function cropImageSource(src,crop){
   crop=normalizeAlphaCrop(crop);if(!crop)return String(src||'');
+  if(IMAGE_ENGINE?.crop)return IMAGE_ENGINE.crop(src,crop);
   const img=await loadDataImage(src),w=Math.max(1,img.naturalWidth||img.width||1),h=Math.max(1,img.naturalHeight||img.height||1);
   const sx=clamp(Math.floor(crop.x*w),0,w-1),sy=clamp(Math.floor(crop.y*h),0,h-1);
   const sw=clamp(Math.ceil(crop.width*w),1,w-sx),sh=clamp(Math.ceil(crop.height*h),1,h-sy);
@@ -1542,6 +1544,7 @@ async function alphaComponentAnalysis(source){
   source=String(source||'');if(!source)return{source:'',transparentSrc:'',pieces:[]};
   if(alphaComponentCache.has(source))return alphaComponentCache.get(source);
   const task=(async()=>{
+    if(IMAGE_ENGINE?.components)return IMAGE_ENGINE.components(source);
     const transparentSrc=await transparencyCandidate(source),img=await loadDataImage(transparentSrc);
     const sourceWidth=Math.max(1,img.naturalWidth||img.width||1),sourceHeight=Math.max(1,img.naturalHeight||img.height||1);
     const max=1536,ratio=Math.min(1,max/Math.max(sourceWidth,sourceHeight)),width=Math.max(1,Math.round(sourceWidth*ratio)),height=Math.max(1,Math.round(sourceHeight*ratio));
