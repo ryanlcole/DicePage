@@ -143,7 +143,9 @@ def test_region_has_shared_gimp_style_asset_list():
     style = read("wwwroot/prototype/prototype.css")
     assert "const REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers'" in source
     assert "function renderRecursiveAssetList()" in source
-    assert "REGION · 15°" in source
+    assert "const scope=LOCAL_DEFINER?'LOCAL':'REGION';" in source
+    assert "const degrees=LOCAL_DEFINER?30:15;" in source
+    assert "strong.textContent=`${scope} · ${degrees}°`" in source
     assert "Layer = appearance · Tier = depth · X/Y local to deed" in source
     assert "recursive-icon" in source
     assert "recursive-opacity" in source
