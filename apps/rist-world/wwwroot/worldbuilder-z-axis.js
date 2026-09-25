@@ -28,11 +28,12 @@ export function attach(element,dotnet){
  const tiles=()=>studio?[...studio.querySelectorAll('.world-stage .tile-cell')]:[];
  const rail=()=>studio?.querySelector('.studio-command-rail');
  const byText=text=>[...(rail()?.querySelectorAll('button')||[])].find(b=>(b.querySelector('strong')?.textContent||'').trim()===text);
- const blocked=t=>!!t?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit,.locked-tile-menu,.recursive-region-actions,.wb-modal,.asset-preview-stage,.wb-context-keyboard,.wb-keyboard-launcher,.wb-tier-shortcut-hud,.wb-focus-hierarchy');
+ const blocked=t=>!!t?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-scope-list,.studio-library-shade,.recursion-cockpit,.locked-tile-menu,.recursive-region-actions,.wb-modal,.asset-preview-stage,.wb-context-keyboard,.wb-keyboard-launcher,.wb-tier-shortcut-hud,.wb-focus-hierarchy');
  const tileAt=(x,y)=>{const list=tiles();for(let i=list.length-1;i>=0;i--){const r=list[i].getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return list[i]}return null};
  const point=(x,y)=>{const s=stage();if(!s)return null;const r=s.getBoundingClientRect();if(r.width<1||r.height<1)return null;const px=(x-r.left)/r.width,py=(y-r.top)/r.height;return px<0||px>1||py<0||py>1?null:[px,py]};
  const cellsFor=tile=>{const s=stage(),sr=s?.getBoundingClientRect(),tr=tile?.getBoundingClientRect();if(!sr||!tr||sr.width<1)return 1;return Math.max(1,Math.min(30,Math.round(tr.width/(sr.width/30))))};
- const applySelection=selected=>{const set=new Set((selected||[]).map(Number));tiles().forEach((t,i)=>t.classList.toggle('wb-selected',set.has(i)));for(const n of ['rotate','remove']){const b=studio?.querySelector(`[data-wb-command="${n}"]`);if(b)b.disabled=set.size<1}const small=studio?.querySelector('[data-wb-command="remove"] small');if(small)small.textContent=`${set.size} Selected`;return[...set]};
+ const tileIndex=(tile,fallback)=>{const value=Number(tile?.dataset?.wbIndex);return Number.isInteger(value)&&value>=0?value:fallback};
+ const applySelection=selected=>{const set=new Set((selected||[]).map(Number));tiles().forEach((t,i)=>t.classList.toggle('wb-selected',set.has(tileIndex(t,i))));for(const n of ['rotate','remove']){const b=studio?.querySelector(`[data-wb-command="${n}"]`);if(b)b.disabled=set.size<1}const small=studio?.querySelector('[data-wb-command="remove"] small');if(small)small.textContent=`${set.size} Selected`;return[...set]};
  const pick=async(x,y,additive)=>{const p=point(x,y);if(!p)return[];try{return applySelection(await dotnet.invokeMethodAsync('SelectPlacedTileAtWorldPoint',p[0],p[1],!!additive)||[])}catch{return[]}};
  const stop=e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()};
 
@@ -100,12 +101,11 @@ export function attach(element,dotnet){
   if(disposed||syncingUi)return;syncingUi=true;
   try{
    const r=rail();if(!r)return;
-   for(const n of ['Layers','Tiers']){const b=byText(n);if(b)b.dataset.wbHidden='true'}
    const resize=r.querySelector('[data-wb-command="resize"]');if(resize)resize.dataset.wbHidden='true';
    const size=r.querySelector('.tile-size-button');if(size){let small=size.querySelector('small');if(!small){small=document.createElement('small');size.append(small)}small.textContent='Tile Size'}
    let custom=r.querySelector('[data-wb-command="custom-size"]');if(!custom&&size){custom=document.createElement('button');custom.type='button';custom.className='wb-injected-command';custom.dataset.wbCommand='custom-size';custom.innerHTML=`<strong>Custom</strong><small>${customMapScale} / square</small>`;custom.onclick=openCustomSize;size.insertAdjacentElement('afterend',custom)}else if(custom)custom.querySelector('small').textContent=`${customMapScale} / square`;
    await updateDepth();
-   const lock=byText('Z-Lock')||byText('Lock')||byText('Unlock');if(lock){wire(lock,async()=>{try{viewerLocked=await dotnet.invokeMethodAsync('ToggleViewerLockFromJs');localStorage.setItem('rist.world.viewerLocked',String(viewerLocked));window.ristViewerNavigation?.resync?.();await updateDepth()}catch{viewerLocked=!viewerLocked;publishDepth()}scheduleUi()});const strong=lock.querySelector('strong'),small=lock.querySelector('small');if(strong)strong.textContent=viewerLocked?'Unlock':'Lock';if(small)small.textContent=viewerLocked?'Viewer Locked':'Viewer Unlocked';lock.classList.toggle('active',viewerLocked);lock.setAttribute('aria-pressed',viewerLocked?'true':'false')}
+   const lock=byText('Depth View')||byText('Z-Lock')||byText('Lock')||byText('Unlock');if(lock){wire(lock,async()=>{try{viewerLocked=await dotnet.invokeMethodAsync('ToggleViewerLockFromJs');localStorage.setItem('rist.world.viewerLocked',String(viewerLocked));window.ristViewerNavigation?.resync?.();await updateDepth()}catch{viewerLocked=!viewerLocked;publishDepth()}scheduleUi()});const strong=lock.querySelector('strong'),small=lock.querySelector('small');if(strong)strong.textContent=viewerLocked?'Unlock':'Lock';if(small)small.textContent=viewerLocked?'Viewer Locked':'Viewer Unlocked';lock.classList.toggle('active',viewerLocked);lock.setAttribute('aria-pressed',viewerLocked?'true':'false')}
    const rotate=r.querySelector('[data-wb-command="rotate"]');if(lock&&rotate&&lock.nextElementSibling!==rotate)r.insertBefore(lock,rotate);
    const view=byText('View'),undo=r.querySelector('[data-wb-command="undo"]'),remove=r.querySelector('[data-wb-command="remove"]');if(view){if(undo)r.insertBefore(undo,view);if(remove)r.insertBefore(remove,view)}
    wire(byText('Save'),openSave);wire(byText('Load'),openLoad);wire(byText('Publish'),openPublish);
