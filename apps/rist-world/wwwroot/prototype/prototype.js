@@ -101,7 +101,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let localCatalog=[],localCreatePending=false,localNameDraft='',localNameAnchorId='',activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=0,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false,requestedLocalOpenPending=false,localRegionSourceReady=false;
+let localCatalog=[],localCreatePending=false,localNameDraft='',localNameAnchorId='',activeLocal=null,localAnchorItem=null,localEditLayer=null,localTierIndex=1,localLayerIndex=1,localPersistenceDbCount=null,localRegionPreview=null,localRegionPreviewPointer=null,localRegionPreviewIndex=0,localRegionSelectPending=false,localRegionEditable=false,requestedLocalOpenPending=false,localRegionSourceReady=false;
 let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
@@ -224,8 +224,8 @@ function nestedVerticalAddress(item={}){
     worldLayer:regionWorldLayer(item),
     regionTier:regionOverlayTier(item),
     regionLayer:compatibilityRegionLayer(item),
-    localTier:Math.max(0,Math.trunc(Number(item?.localTier??0)||0)),
-    localLayer:clamp(Math.trunc(Number(item?.localLayer??0)||0),0,9),
+    localTier:item?.localOverlay?localOverlayTier(item):Math.max(0,Math.trunc(Number(item?.localTier??0)||0)),
+    localLayer:item?.localOverlay?compatibilityLocalLayer(item):clamp(Math.trunc(Number(item?.localLayer??0)||0),0,9),
     instanceTier:Math.max(0,Math.trunc(Number(item?.instanceTier??0)||0)),
     instanceLayer:clamp(Math.trunc(Number(item?.instanceLayer??0)||0),0,9)
   };
@@ -290,12 +290,103 @@ function localAnchorBounds(local=activeLocal){
   };
 }
 function localPointToWorld(x,y,local=activeLocal){
+  // Legacy v2 adapter: old experimental Local saves normalized the anchor box
+  // from 0..1. Keep this helper only to read that format.
   const bounds=localAnchorBounds(local);
   if(!bounds)return{x:clamp(Number(x)||0,0,1),y:clamp(Number(y)||0,0,1)};
   return{
     x:clamp(bounds.minX+clamp(Number(x)||0,0,1)*bounds.width,0,1),
     y:clamp(bounds.minY+clamp(Number(y)||0,0,1)*bounds.height,0,1)
   };
+}
+function recursiveLocalEnvelope(item){
+  const raw=item?.recursive;
+  return raw&&typeof raw==='object'
+    &&String(raw.format||'')===RECURSIVE_SCOPE_FORMAT
+    &&String(raw.scopeKind||'').toUpperCase()==='LOCAL'
+    ?raw:null;
+}
+function localOverlayTier(item){
+  const recursive=recursiveLocalEnvelope(item);
+  if(recursive)return Math.max(1,Math.trunc(Number(recursive.tier)||1));
+  return Math.max(1,Math.trunc(Number(item?.localTier)||1));
+}
+function localOverlayLayer(item){
+  const recursive=recursiveLocalEnvelope(item);
+  if(recursive)return Math.max(1,Math.trunc(Number(recursive.layer)||1));
+  return Math.max(1,Math.trunc(Number(item?.localLayer)||1));
+}
+function compatibilityLocalLayer(item){
+  return clamp(Math.trunc(Number(item?.localLayer)||localOverlayLayer(item)||1),1,9);
+}
+function localRecursivePoint(worldX,worldY,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:0,y:0};
+  return{
+    x:(Number(worldX)-bounds.cx)/Math.max(bounds.width,.0001),
+    y:(Number(worldY)-bounds.cy)/Math.max(bounds.height,.0001)
+  };
+}
+function localRecursiveWorldPoint(localX,localY,local=activeLocal){
+  const bounds=localAnchorBounds(local);
+  if(!bounds)return{x:clamp(Number(localX)||0,0,1),y:clamp(Number(localY)||0,0,1)};
+  return{
+    x:clamp(bounds.cx+(Number(localX)||0)*bounds.width,bounds.minX,bounds.maxX),
+    y:clamp(bounds.cy+(Number(localY)||0)*bounds.height,bounds.minY,bounds.maxY)
+  };
+}
+function localPlacementBounds(item){
+  const anchor=localAnchorBounds();
+  const center=localRecursivePoint(item?.x,item?.y);
+  const size=Math.max(.05,Number(item?.size)||1);
+  const worldWidth=item?.kind==='label'?.08:.12*size;
+  const aspect=item?.kind==='label'?2.4:Math.max(.05,stableAssetAspect(item));
+  const worldHeight=(worldWidth/aspect)*(Math.max(naturalWidth,1)/Math.max(naturalHeight,1));
+  const width=worldWidth/Math.max(anchor?.width||1,.0001);
+  const height=worldHeight/Math.max(anchor?.height||1,.0001);
+  return{left:center.x-width/2,right:center.x+width/2,top:center.y-height/2,bottom:center.y+height/2};
+}
+function nextLocalVisualLayer(item,tier){
+  const bounds=localPlacementBounds(item);
+  const localId=String(item?.localId||activeLocalMapId()||'');
+  // The locked root reference is LOCAL Tier 1 / Layer 1, so a Tier-1 child
+  // overlapping the root begins above it.
+  let highest=tier===1?1:0;
+  for(const other of userLayers){
+    if(other===item||!other?.localOverlay||other.sourceLocked)continue;
+    if(String(other.localId||'')!==localId)continue;
+    const recursive=recursiveLocalEnvelope(other);
+    if(recursive?.visible===false)continue;
+    if(localOverlayTier(other)!==tier)continue;
+    if(!regionBoundsOverlap(bounds,localPlacementBounds(other)))continue;
+    highest=Math.max(highest,localOverlayLayer(other));
+  }
+  return Math.max(1,highest+1);
+}
+function syncLocalRecursiveEnvelope(item,tier=localOverlayTier(item),layer=localOverlayLayer(item)){
+  if(!LOCAL_DEFINER||!localIsOpen()||!item?.localOverlay)return item?.recursive||null;
+  const existing=recursiveLocalEnvelope(item);
+  const point=localRecursivePoint(item.x,item.y);
+  item.recursive={
+    format:RECURSIVE_SCOPE_FORMAT,
+    assetId:String(item.id||''),
+    scopeKind:'LOCAL',
+    scopeId:activeLocalMapId(),
+    parentScopeId:String(activeLocal?.regionId||activeRegionMapId()||''),
+    parentAssetId:String(activeLocal?.anchorObjectId||''),
+    x:point.x,y:point.y,
+    tier:Math.max(1,Math.trunc(Number(tier)||1)),
+    layer:Math.max(1,Math.trunc(Number(layer)||1)),
+    viewDegrees:30,
+    opacity:clamp(Number(item.opacity??existing?.opacity)||1,0,1),
+    visible:existing?.visible!==false,
+    locked:!!item.positionLocked,
+    linkedGroupId:String(item.linkGroupId||existing?.linkedGroupId||''),
+    permissionResourceId:assetAuthorityResourceId(item)
+  };
+  item.localTier=item.recursive.tier;
+  item.localLayer=clamp(item.recursive.layer,1,9);
+  return item.recursive;
 }
 function constrainLocalPoint(x,y){
   const bounds=localAnchorBounds();
@@ -311,20 +402,34 @@ function applyLocalAddress(item,tier=localTierIndex,layer=localLayerIndex){
   item.localOverlay=true;
   item.regionId=String(activeLocal.regionId||activeRegionMapId());
   item.localId=activeLocalMapId();
+
+  // Parent World/Region fields are compatibility projection only. LOCAL owns
+  // its own recursive X/Y, Tier and Layer.
   item.tier=clamp(Math.trunc(Number(activeLocal.worldTier??activeLocal.tier)||0),0,TIERS.length-1);
   item.worldTier=item.tier;
   item.worldLayer=clamp(Math.trunc(Number(activeLocal.worldLayer??activeLocal.layer)||0),0,9);
   item.layer=item.worldLayer;
-  item.regionTier=Math.max(0,Math.trunc(Number(activeLocal.regionTier)||0));
+  item.regionTier=Math.max(1,Math.trunc(Number(activeLocal.parentRegionTier??activeLocal.regionTier)||1));
   item.regionLayer=clamp(Math.trunc(Number(activeLocal.regionLayer)||1),1,9);
-  item.localTier=Math.max(0,Math.trunc(Number(item.localTier??tier)||0));
-  item.localLayer=clamp(Math.trunc(Number(item.localLayer??layer)||1),1,9);
+
+  const existing=recursiveLocalEnvelope(item);
+  const recursiveTier=existing?localOverlayTier(item):Math.max(1,Math.trunc(Number(tier)||1));
+  const requestedLayer=Math.max(1,Math.trunc(Number(layer)||1));
+  const recursiveLayer=existing
+    ?localOverlayLayer(item)
+    :requestedLayer!==1
+      ?requestedLayer
+      :nextLocalVisualLayer(item,recursiveTier);
+
+  item.localTier=recursiveTier;
+  item.localLayer=clamp(recursiveLayer,1,9);
   item.instanceTier=Math.max(0,Math.trunc(Number(item.instanceTier)||0));
   item.instanceLayer=clamp(Math.trunc(Number(item.instanceLayer)||0),0,9);
   item.z100=regionZ100(item.worldLayer,item.regionLayer);
   item.parentTierIndex=item.worldTier;
-  item.parallaxMode='anchored';
+  item.parallaxMode='recursive-local';
   item.anchorTier=item.worldTier;
+  syncLocalRecursiveEnvelope(item,recursiveTier,recursiveLayer);
   return item;
 }
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
@@ -705,15 +810,17 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
   }finally{db.close()}
 }
 function itemParallaxMode(item){
+  if(LOCAL_DEFINER&&item?.localOverlay)return'recursive-local';
   if(REGION_DEFINER&&!LOCAL_DEFINER&&item?.regionOverlay)return'recursive-region';
   if(REGION_DEFINER)return'anchored';
   return item?.parallaxMode==='anchored'||item?.parallaxMode==='tier'?item.parallaxMode:'tier';
 }
 function restoredParallaxMode(raw,regionOverlay){
+  if(raw?.parallaxMode==='recursive-local')return'recursive-local';
   if(raw?.parallaxMode==='recursive-region')return'recursive-region';
   return raw?.parallaxMode==='anchored'||raw?.parallaxMode==='tier'
     ?raw.parallaxMode
-    :(regionOverlay?(LOCAL_DEFINER?'anchored':'recursive-region'):'tier');
+    :(regionOverlay?(LOCAL_DEFINER?'recursive-local':'recursive-region'):'tier');
 }
 function itemAnchorTier(item){
   return clamp(Math.trunc(Number(item?.anchorTier??item?.tier)||0),0,TIERS.length-1);
@@ -1474,7 +1581,9 @@ function syncLocalEditLayer(){
 function assetSemanticStackTuple(item,index){
   const pin=item?.stackPin==='back'?-1:item?.stackPin==='front'?1:0;
   if(LOCAL_DEFINER&&item?.localOverlay){
-    return[pin,regionWorldLayer(item),regionOverlayTier(item),regionOverlayLayer(item),Math.max(0,Math.trunc(Number(item.localTier)||0)),clamp(Math.trunc(Number(item.localLayer)||1),1,9),Math.max(0,Math.trunc(Number(item.instanceTier)||0)),clamp(Math.trunc(Number(item.instanceLayer)||0),0,9),index];
+    // LOCAL visual Layer is the sole ordinary composition authority. LOCAL
+    // Tier changes parallax only.
+    return[pin,localOverlayLayer(item),index];
   }
   if(REGION_DEFINER&&item?.regionOverlay){
     // Visual Layer is the only ordinary composition authority. Recursive Tier
@@ -1504,8 +1613,8 @@ function updateLayerOrder(){
       item.node.dataset.worldLayer=String(regionWorldLayer(item));
       item.node.dataset.regionTier=String(item.regionOverlay?regionOverlayTier(item):0);
       item.node.dataset.regionLayer=String(item.regionOverlay?regionOverlayLayer(item):0);
-      item.node.dataset.localTier=String(item.localTier??0);
-      item.node.dataset.localLayer=String(item.localLayer??0);
+      item.node.dataset.localTier=String(item.localOverlay?localOverlayTier(item):(item.localTier??0));
+      item.node.dataset.localLayer=String(item.localOverlay?localOverlayLayer(item):(item.localLayer??0));
       item.node.dataset.instanceTier=String(item.instanceTier??0);
       item.node.dataset.instanceLayer=String(item.instanceLayer??0);
       item.node.dataset.z100=String(item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100);
@@ -1604,10 +1713,10 @@ function moveSelectedTier(delta){
   if(READ_ONLY||!selectedImage)return;
   const members=linkedSelectionMembers(selectedImage);
   if(LOCAL_DEFINER&&selectedImage.localOverlay){
-    const next=Math.max(0,Math.trunc(Number(selectedImage.localTier)||0)+Math.sign(delta));
-    for(const member of members)member.localTier=next;
+    const next=Math.max(1,localOverlayTier(selectedImage)+Math.sign(delta));
+    for(const member of members)syncLocalRecursiveEnvelope(member,next,localOverlayLayer(member));
     localTierIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer??0}. ${members.length>1?'Linked pieces remain together. ':''}Local X/Y retained; World projection is derived from the Region anchor.`);return;
+    announce(`Local Tier ${next}; visual Layer ${localOverlayLayer(selectedImage)} unchanged. Local X/Y retained.`);return;
   }
   if(REGION_DEFINER&&!LOCAL_DEFINER){moveSelectedRegionTier(delta);return;}
   if(isWorldMapItem(selectedImage)){announce('World Map is locked to Sea Level.');return}
@@ -1633,10 +1742,10 @@ function moveSelectedLayer(delta){
   if(isWorldMapItem(selectedImage)){announce('World Map is the Sea Level base layer.');return}
   const members=linkedSelectionMembers(selectedImage);
   if(LOCAL_DEFINER&&selectedImage.localOverlay){
-    const next=clamp(Math.trunc(Number(selectedImage.localLayer)||0)+Math.sign(delta),0,9);
-    for(const member of members)member.localLayer=next;
+    const next=Math.max(1,localOverlayLayer(selectedImage)+Math.sign(delta));
+    for(const member of members)syncLocalRecursiveEnvelope(member,localOverlayTier(member),next);
     localLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. ${members.length>1?'Linked pieces remain together. ':''}Local X/Y retained; World projection is derived from the Region anchor.`);return;
+    announce(`Visual Layer ${next}; Local Tier ${localOverlayTier(selectedImage)} unchanged. Local X/Y retained.`);return;
   }
   if(REGION_DEFINER&&!LOCAL_DEFINER){
     const next=Math.max(1,regionOverlayLayer(selectedImage)+Math.sign(delta));
@@ -2838,7 +2947,7 @@ function applyParallax(){
     const depth=recursiveRegion
       ? Math.max(0,regionOverlayTier(item)-1)
       : LOCAL_DEFINER&&item.localOverlay
-        ? Math.max(0,Number(item.localTier)||0)+(clamp(Number(item.localLayer)||1,1,9)/10)
+        ? Math.max(0,localOverlayTier(item)-1)
         : item.tier;
     const representationDepth=LOCAL_DEFINER?2:recursiveRegion?1.5:1;
     const panStrength=depth*.022*representationDepth,tiltStrength=depth*.48*representationDepth;
@@ -3853,7 +3962,7 @@ function isolateLocalContext(){
 async function enterLocalBuild(local,sourceEnvelope=null){
   if(!LOCAL_DEFINER||!local?.id)return;
   activeLocal=local;
-  localTierIndex=0;localLayerIndex=1;
+  localTierIndex=1;localLayerIndex=1;
   localCreatePending=false;localNameDraft='';localNameAnchorId='';
   removeAssetResizeOverlay();selectedImage=null;
 
@@ -3868,27 +3977,38 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   const state=sourceEnvelope?.state&&typeof sourceEnvelope.state==='object'?sourceEnvelope.state:null;
   const saved=Array.isArray(state?.userLayers)?state.userLayers:[];
   const sourceWasLocalNormalized=String(state?.coordinateSpace||'')==='local-anchor-normalized-v2';
+  const sourceIsRecursiveLocal=String(state?.recursiveScopeFormat||'')===RECURSIVE_SCOPE_FORMAT
+    ||String(state?.format||'')==='RIST_LOCAL_MAP_V3';
   localPersistenceDbCount=saved.length;
   for(const raw of saved){
-    const canonicalRaw=sourceWasLocalNormalized||String(raw?.localCoordinateSpace||'')==='local-anchor-normalized-v2'
+    const recursive=raw?.recursive&&typeof raw.recursive==='object'
+      &&String(raw.recursive.format||'')===RECURSIVE_SCOPE_FORMAT
+      &&String(raw.recursive.scopeKind||'').toUpperCase()==='LOCAL'
+      ?raw.recursive:null;
+    const canonicalRaw=sourceIsRecursiveLocal&&recursive
       ?(()=>{
-        const point=localPointToWorld(raw?.x,raw?.y,local);
-        const bounds=localAnchorBounds(local);
-        return{
-          ...raw,
-          x:point.x,y:point.y,
-          size:bounds?Math.max(.05,(Number(raw?.size)||1)*Math.max(bounds.width,.0001)):raw?.size,
-          localCoordinateSpace:undefined,localX:undefined,localY:undefined,projectedWorldX:undefined,projectedWorldY:undefined
-        };
+        const point=localRecursiveWorldPoint(recursive.x,recursive.y,local);
+        return{...raw,x:point.x,y:point.y};
       })()
-      :raw;
+      :sourceWasLocalNormalized||String(raw?.localCoordinateSpace||'')==='local-anchor-normalized-v2'
+        ?(()=>{
+          const point=localPointToWorld(raw?.x,raw?.y,local);
+          const bounds=localAnchorBounds(local);
+          return{
+            ...raw,
+            x:point.x,y:point.y,
+            size:bounds?Math.max(.05,(Number(raw?.size)||1)*Math.max(bounds.width,.0001)):raw?.size,
+            localCoordinateSpace:undefined,localX:undefined,localY:undefined,projectedWorldX:undefined,projectedWorldY:undefined
+          };
+        })()
+        :raw;
     const item=await attachRestoredLayer(canonicalRaw,{
       sourceLocked:READ_ONLY||!localRegionEditable,
       regionOverlay:true,
       localOverlay:true,
       localId:String(local.id)
     });
-    if(item)applyLocalAddress(item,item.localTier??0,item.localLayer??1);
+    if(item)applyLocalAddress(item,localOverlayTier(item),localOverlayLayer(item));
   }
   syncLocalEditLayer();
   persistentSave.hidden=READ_ONLY||!localRegionEditable;
@@ -3897,7 +4017,7 @@ async function enterLocalBuild(local,sourceEnvelope=null){
   renderKeyboardTabs();renderKeyboardKeys();updateLayerOrder();applyParallax();
   fitLocalAnchor(local);
   if(keyboard.hidden)openKeyboard();
-  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'}. The camera is framed to that Region asset; canonical X/Y are retained and new content adds Local tier/layer depth.`);
+  announce(`${local.name||'Local'} opened from ${local.anchorName||'the selected Region asset'} at 30 degrees. The root is Local 0,0 / Tier 1 / Layer 1; child X/Y are local to that root.`);
 }
 function fitClaimedRegion(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
