@@ -436,6 +436,15 @@ public sealed partial class WorldSession
 
     public static int InstanceElevationParallaxBand(int elevationSteps) => elevationSteps / 10;
 
+    public double InstanceElevationUnitsPerStep =>
+        Math.Max(MinMeasurementPerCell, GridDistance) / 10d;
+
+    public string FormatInstanceElevation(int elevationSteps)
+    {
+        var value = elevationSteps * InstanceElevationUnitsPerStep;
+        return $"{FormatMeasurementNumber(value)} {MeasurementUnitName(value)}";
+    }
+
     public static string InstanceCellId(string instanceId, int column, int row)
         => $"instance:{AssetPathSegment(instanceId)}:cell:{column}:{row}";
 
