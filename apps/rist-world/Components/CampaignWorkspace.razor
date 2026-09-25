@@ -207,7 +207,7 @@
 
      <section class="asset-permission-panel" aria-label="Asset permissions">
       <header>
-       <div><strong>ASSET PERMISSIONS</strong><small>World, Region, and Local placements use one stable permission identity.</small></div>
+       <div><strong>ASSET PERMISSIONS</strong><small>World, Region, Local, and Instance placements use one stable permission identity.</small></div>
        <button type="button" disabled="@(_busy||_assetPermissionsLoading)" @onclick="LoadAssetResourcesAsync">REFRESH ASSETS</button>
       </header>
 
@@ -418,12 +418,18 @@
    {
     var source=await Session.LoadInstanceMapAsync(instance.InstanceId);
     if(source is null)continue;
-    foreach(var cell in source.State.Cells)
+    // Every grid cell has stable identity even when it still has default terrain.
+    // Campaign must be able to target those cells without forcing Instance to
+    // manufacture a hidden rule object first.
+    for(var row=0;row<source.State.GridRows;row++)
     {
-     var cellId=WorldSession.InstanceCellId(instance.InstanceId,cell.Column,cell.Row);
-     AddBehaviorTarget("CELL",cellId,$"{instance.Name} · cell {cell.Column},{cell.Row}");
-     foreach(var surface in WorldSession.InstanceSurfacesForCell(source.State,cell.Column,cell.Row))
-      AddBehaviorTarget("SURFACE",surface.SurfaceId,$"{instance.Name} · {cell.Column},{cell.Row} · {surface.Face}");
+     for(var column=0;column<source.State.GridColumns;column++)
+     {
+      var cellId=WorldSession.InstanceCellId(instance.InstanceId,column,row);
+      AddBehaviorTarget("CELL",cellId,$"{instance.Name} · cell {column},{row}");
+      foreach(var surface in WorldSession.InstanceSurfacesForCell(source.State,column,row))
+       AddBehaviorTarget("SURFACE",surface.SurfaceId,$"{instance.Name} · {column},{row} · {surface.Face}");
+     }
     }
     foreach(var asset in source.State.Assets)
      AddBehaviorTarget("ASSET",asset.PlacementId,$"{instance.Name} · {asset.Name}");
@@ -594,7 +600,7 @@
   try
   {
    _assetResources.Clear();
-   try{await Session.LoadRegionsAsync();await Session.LoadLocalsAsync();}catch{}
+   try{await Session.LoadRegionsAsync();await Session.LoadLocalsAsync();await Session.LoadInstancesAsync();}catch{}
 
    var worldSource=await Session.LoadWorldBuilderSourceAsync();
    CollectAssetResources(worldSource?.State,"World",Session.WorldDisplayName);
@@ -615,6 +621,16 @@
     {
      var source=await Session.LoadLocalMapAsync(local.LocalId);
      CollectAssetResources(source?.State,"Local",local.Name);
+    }
+    catch{}
+   }
+
+   foreach(var instance in Session.DefinedInstances)
+   {
+    try
+    {
+     var source=await Session.LoadInstanceMapAsync(instance.InstanceId);
+     if(source is not null)CollectInstanceAssetResources(source.State,instance.Name);
     }
     catch{}
    }
@@ -651,6 +667,23 @@
    if(string.IsNullOrWhiteSpace(name))name="Unnamed asset";
    var kind=layer.TryGetProperty("kind",out var kindNode)&&kindNode.ValueKind==System.Text.Json.JsonValueKind.String?kindNode.GetString()??"asset":"asset";
    _assetResources.Add(new(resourceId,name,kind,scope,parentName));
+  }
+ }
+
+ void CollectInstanceAssetResources(WorldInstanceMapState state,string parentName)
+ {
+  foreach(var asset in state.Assets)
+  {
+   if(string.IsNullOrWhiteSpace(asset.PlacementId))continue;
+   var resourceId=string.IsNullOrWhiteSpace(asset.PermissionResourceId)
+    ?WorldSession.RecursivePermissionResourceId(asset.PlacementId)
+    :asset.PermissionResourceId;
+   _assetResources.Add(new(
+    resourceId,
+    string.IsNullOrWhiteSpace(asset.Name)?"Unnamed Instance asset":asset.Name,
+    string.IsNullOrWhiteSpace(asset.Kind)?"asset":asset.Kind,
+    "Instance",
+    parentName));
   }
  }
 
