@@ -6191,7 +6191,14 @@ window.ShaelvienPrototype=Object.freeze({
       regionTier:REGION_DEFINER&&item.regionOverlay?regionOverlayTier(item):0,
       regionLayer:REGION_DEFINER&&item.regionOverlay?regionOverlayLayer(item):0,
       legacyRegionLayer:REGION_DEFINER&&item.regionOverlay?clamp(Math.trunc(Number(item.regionLayer)||1),1,9):0,
-      recursive:REGION_DEFINER&&item.regionOverlay&&recursiveRegionEnvelope(item)?{...recursiveRegionEnvelope(item)}:undefined,
+      localTier:LOCAL_DEFINER&&item.localOverlay?localOverlayTier(item):0,
+      localLayer:LOCAL_DEFINER&&item.localOverlay?localOverlayLayer(item):0,
+      legacyLocalLayer:LOCAL_DEFINER&&item.localOverlay?compatibilityLocalLayer(item):0,
+      recursive:LOCAL_DEFINER&&item.localOverlay&&recursiveLocalEnvelope(item)
+        ?{...recursiveLocalEnvelope(item)}
+        :REGION_DEFINER&&item.regionOverlay&&recursiveRegionEnvelope(item)
+          ?{...recursiveRegionEnvelope(item)}
+          :undefined,
       z100:REGION_DEFINER?(item.regionOverlay?regionZ100(regionWorldLayer(item),compatibilityRegionLayer(item)):regionWorldLayer(item)*100):undefined,
       sourceLocked:!!item.sourceLocked,regionOverlay:!!item.regionOverlay,
       x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,linkGroupId:item.linkGroupId||'',linkGroupIndex:item.linkGroupIndex??null,linkGroupCount:item.linkGroupCount??null,
