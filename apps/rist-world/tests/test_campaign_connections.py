@@ -15,8 +15,8 @@ class CampaignConnectionsContract(unittest.TestCase):
         cls.router = ROUTER.read_text(encoding="utf-8")
         cls.authority = AUTHORITY.read_text(encoding="utf-8")
 
-    def test_victims_and_co_conspirators_is_campaign_section(self):
-        self.assertIn("VICTIMS &amp; CO‑CONSPIRATORS", self.source)
+    def test_allies_is_campaign_identity_section(self):
+        self.assertIn(">ALLIES</button>", self.source)
         self.assertIn("PERMISSIONS DIRECTORY", self.source)
         self.assertIn('Mode == "campaign"', self.router)
         self.assertIn("<CampaignWorkspace />", self.router)
