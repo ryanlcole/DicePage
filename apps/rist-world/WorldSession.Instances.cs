@@ -370,8 +370,10 @@ public sealed partial class WorldSession
             GridColumns: instance.GridColumns,
             GridRows: instance.GridRows,
             GridShape: NormalizeInstanceGridShape(instance.GridShape),
-            MeasurementUnit: "ft",
-            MeasurementPerStep: 5,
+            // Compatibility display fields only. New Instance Builder uses the
+            // world's canonical physical/Measurefict measurement authority.
+            MeasurementUnit: "steps",
+            MeasurementPerStep: 1,
             Cells: [],
             Assets: []);
 
