@@ -24,8 +24,9 @@ public sealed partial class WorldSession
         if (!HasActiveWorld || tileIndex < 0 || tileIndex >= PlacedTiles.Count)
             return null;
 
-        var tile = NormalizePlacedTileIdentity(PlacedTiles[tileIndex]);
-        if (!ReferenceEquals(tile, PlacedTiles[tileIndex]) && tile != PlacedTiles[tileIndex])
+        var originalTile = PlacedTiles[tileIndex];
+        var tile = NormalizePlacedTileIdentity(originalTile);
+        if (tile != originalTile)
             PlacedTiles[tileIndex] = tile;
 
         var existing = RecursiveWorldPlacement(tile);
@@ -65,7 +66,7 @@ public sealed partial class WorldSession
             Visible = true,
             Opacity = 1,
             LinkedGroupId = tile.GroupId ?? "",
-            PermissionResourceId = tile.PlacementId
+            PermissionResourceId = RecursivePermissionResourceId(tile.PlacementId)
         };
 
         UpsertRecursiveScopePlacement(placement);
@@ -184,8 +185,33 @@ public sealed partial class WorldSession
 
         if (tile != nextTile)
         {
-            PlacedTiles[index] = nextTile;
+            // Relocate by stable placement identity directly in the legacy
+            // storage adapter. This is independent of CompositeZView so a
+            // canonical Tier edit cannot be flattened back onto the current
+            // legacy page by StoreCurrentSpatialPage().
             StoreCurrentSpatialPage();
+            foreach (var address in _terrainByAddress.Keys.ToList())
+            {
+                var page = _terrainByAddress[address];
+                page.RemoveAll(candidate =>
+                    string.Equals(candidate.PlacementId, placementId, StringComparison.Ordinal));
+                if (page.Count == 0)
+                    _terrainByAddress.Remove(address);
+            }
+
+            var target = new SpatialAddress(
+                nextTile.CubeX,
+                nextTile.CubeY,
+                nextTile.CubeZ,
+                nextTile.PlaneIndex,
+                nextTile.TierIndex,
+                0);
+            if (!_terrainByAddress.TryGetValue(target, out var targetPage))
+            {
+                targetPage = [];
+                _terrainByAddress[target] = targetPage;
+            }
+            targetPage.Add(nextTile);
             LoadCurrentSpatialPage();
         }
 
