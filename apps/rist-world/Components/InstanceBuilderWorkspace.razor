@@ -1,0 +1,662 @@
+@inject WorldSession Session
+@inject AwsAuthorityClient Authority
+
+<section class="instance-builder" aria-label="Instance Builder">
+ <header class="instance-header">
+  <div>
+   <small>SHAELVIEN · RECURSIVE AUTHORING</small>
+   <h1>INSTANCE · 45°</h1>
+   <p>Local marker + touched asset → grid → signed elevation → surfaces. Layer = appearance. Tier = depth.</p>
+  </div>
+  <div class="instance-header-actions">
+   @if(OnHome.HasDelegate){<button type="button" @onclick="()=>OnHome.InvokeAsync()">⌂ HOME</button>}
+   @if(OnStartMenu.HasDelegate){<button type="button" @onclick="()=>OnStartMenu.InvokeAsync()">☰ MENU</button>}
+  </div>
+ </header>
+
+ @if(!string.IsNullOrWhiteSpace(_status))
+ {
+  <div class="instance-status" role="status">@_status</div>
+ }
+
+ @if(_loading)
+ {
+  <div class="instance-empty"><strong>LOADING INSTANCE AUTHORITY…</strong></div>
+ }
+ else if(Session.DefinedLocals.Count==0)
+ {
+  <div class="instance-empty">
+   <strong>CREATE A LOCAL FIRST</strong>
+   <span>Instance Builder starts at a named marker inside a saved Local and an explicit asset that marker touches.</span>
+  </div>
+ }
+ else
+ {
+  <div class="instance-shell">
+   <aside class="instance-directory">
+    <section class="instance-local-picker">
+     <label>
+      <span>LOCAL ROOT</span>
+      <select value="@_localId" @onchange="ChangeLocalAsync" disabled="@_busy">
+       @foreach(var local in Session.DefinedLocals.OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase))
+       {
+        <option value="@local.LocalId">@local.Name</option>
+       }
+      </select>
+     </label>
+     <small>Only stable saved Local assets can become Instance root identities.</small>
+    </section>
+
+    <section class="instance-create">
+     <header><strong>NEW INSTANCE</strong><small>Explicit root pair</small></header>
+     <label><span>NAME</span><input maxlength="80" @bind="_newInstanceName" placeholder="Old Tavern" /></label>
+     <label>
+      <span>NAMED MARKER</span>
+      <select @bind="_markerAssetId">
+       <option value="">Choose Local marker…</option>
+       @foreach(var item in MarkerReferences)
+       {
+        <option value="@item.AssetId">@item.Name · @item.Kind</option>
+       }
+      </select>
+     </label>
+     <label>
+      <span>TOUCHED ASSET</span>
+      <select @bind="_touchedAssetId">
+       <option value="">Choose touched asset…</option>
+       @foreach(var item in TouchedReferences)
+       {
+        <option value="@item.AssetId">@((item.IsLocalRoot?"ROOT · ":"")+item.Name) · @item.Kind</option>
+       }
+      </select>
+     </label>
+     <div class="instance-grid-create">
+      <label><span>COLUMNS</span><input type="number" min="2" max="64" @bind="_newColumns" /></label>
+      <label><span>ROWS</span><input type="number" min="2" max="64" @bind="_newRows" /></label>
+      <label><span>GRID</span><select @bind="_newGridShape"><option value="square">Square</option><option value="hex">Hex</option></select></label>
+     </div>
+     <button type="button" class="primary" disabled="@(!CanCreateInstance||_busy)" @onclick="CreateInstanceAsync">CREATE INSTANCE</button>
+    </section>
+
+    <section class="instance-saved">
+     <header><strong>SAVED INSTANCES</strong><small>@LocalInstances.Count</small></header>
+     @if(LocalInstances.Count==0)
+     {
+      <p>No Instances use this Local yet.</p>
+     }
+     else
+     {
+      @foreach(var item in LocalInstances)
+      {
+       <article class="@(Active?.InstanceId==item.InstanceId?"active":"")">
+        <button type="button" class="instance-open" disabled="@_busy" @onclick="()=>OpenInstanceAsync(item)">
+         <span><strong>@item.Name</strong><small>@item.MarkerName → @item.TouchedAssetName</small></span>
+         <b>OPEN</b>
+        </button>
+        <button type="button" class="instance-delete" disabled="@_busy" @onclick="()=>DeleteInstanceAsync(item)">×</button>
+       </article>
+      }
+     }
+    </section>
+   </aside>
+
+   <main class="instance-editor">
+    @if(Active is null || _map is null)
+    {
+     <div class="instance-empty editor-empty">
+      <strong>CHOOSE OR CREATE AN INSTANCE</strong>
+      <span>The Instance root is a stable Local marker + touched asset pair. No parent geometry is copied.</span>
+     </div>
+    }
+    else
+    {
+     <section class="instance-root-card">
+      <div>
+       <small>INSTANCE ROOT · RIST_RECURSIVE_SCOPE_V1</small>
+       <h2>@Active.Name</h2>
+       <p><b>@Active.MarkerName</b> → <b>@Active.TouchedAssetName</b></p>
+      </div>
+      <div class="root-facts">
+       <span>LOCAL <b>@LocalName(Active.LocalId)</b></span>
+       <span>VIEW <b>45°</b></span>
+       <span>GRID <b>@_map.GridColumns × @_map.GridRows @_map.GridShape.ToUpperInvariant()</b></span>
+      </div>
+     </section>
+
+     <section class="instance-toolbar">
+      <label>
+       <span>ELEVATION DISPLAY</span>
+       <select @bind="_measurementUnit">
+        <option value="ft">Feet</option>
+        <option value="m">Meters</option>
+        <option value="steps">Steps</option>
+       </select>
+      </label>
+      <label>
+       <span>PER STEP</span>
+       <input type="number" min=".001" max="100000" step=".001" disabled="@(_measurementUnit=="steps")" @bind="_measurementPerStep" />
+      </label>
+      <button type="button" disabled="@_busy" @onclick="SaveMeasurementAsync">SAVE DISPLAY</button>
+      <div><small>GEOMETRY</small><strong>SIGNED STEPS</strong><span>Every 10 steps = 1 parallax band</span></div>
+     </section>
+
+     <div class="instance-work-area">
+      <section class="instance-board-shell" aria-label="45 degree Instance grid">
+       <div class="instance-board-plane">
+        <div class="instance-board @($"shape-{_map.GridShape}")" style="@BoardGridStyle">
+         @for(var row=0;row<_map.GridRows;row++)
+         {
+          @for(var column=0;column<_map.GridColumns;column++)
+          {
+           var c=column;var r=row;
+           var cell=WorldSession.InstanceCellAt(_map,c,r);
+           var assetCount=AssetsAtCell(c,r);
+           <button type="button"
+                   class="@CellClass(c,r,cell)"
+                   style="@CellStyle(cell)"
+                   aria-label="@CellAria(cell,assetCount)"
+                   @onclick="()=>SelectCell(c,r)">
+            <span>@c,@r</span>
+            <b>@(cell.ElevationSteps>=0?"+":"")@cell.ElevationSteps</b>
+            @if(assetCount>0){<i>@assetCount</i>}
+           </button>
+          }
+         }
+        </div>
+       </div>
+      </section>
+
+      <aside class="instance-cell-editor">
+       <header>
+        <div><small>CELL</small><strong>@_selectedColumn,@_selectedRow</strong></div>
+        <div><small>PARALLAX BAND</small><strong>@WorldSession.InstanceElevationParallaxBand(_cellElevation)</strong></div>
+       </header>
+
+       <section class="elevation-controls">
+        <div><span>ELEVATION</span><strong>@WorldSession.FormatInstanceElevation(_map,_cellElevation)</strong></div>
+        <div class="elevation-buttons">
+         <button type="button" @onclick="()=>AdjustElevation(-10)">−10</button>
+         <button type="button" @onclick="()=>AdjustElevation(-1)">−1</button>
+         <button type="button" @onclick="()=>AdjustElevation(1)">+1</button>
+         <button type="button" @onclick="()=>AdjustElevation(10)">+10</button>
+        </div>
+       </section>
+
+       <section class="terrain-editor">
+        <label><span>TERRAIN</span><input @bind="_cellTerrain" placeholder="stone floor" /></label>
+        <label><span>MOVEMENT COST</span><input type="number" min="0" max="1000" step=".25" @bind="_cellMovementCost" /></label>
+        <label class="check"><input type="checkbox" @bind="_cellBlocksMovement" /><span>Blocks movement</span></label>
+        <label class="check"><input type="checkbox" @bind="_cellBlocksSight" /><span>Blocks sight</span></label>
+        <label><span>TAGS</span><input @bind="_cellTags" placeholder="wet, stairs, cover" /></label>
+        <label><span>NOTES</span><textarea rows="3" @bind="_cellNotes"></textarea></label>
+        <button type="button" class="primary" disabled="@_busy" @onclick="SaveCellAsync">SAVE CELL RULES</button>
+       </section>
+
+       <section class="surface-editor">
+        <header><strong>VALID SURFACES</strong><small>@SelectedSurfaces.Count</small></header>
+        <div class="surface-list">
+         @foreach(var surface in SelectedSurfaces)
+         {
+          <button type="button" class="@(_selectedSurfaceId==surface.SurfaceId?"selected":"")" @onclick="()=>_selectedSurfaceId=surface.SurfaceId">
+           <strong>@surface.Face.ToUpperInvariant()</strong>
+           <small>@(surface.IsTop?"stable top":$"exposed step {surface.ElevationStep}")</small>
+          </button>
+         }
+        </div>
+       </section>
+
+       <section class="instance-place-asset">
+        <header><strong>PLACE ASSET REFERENCE</strong><small>New Instance placement identity</small></header>
+        <label>
+         <span>SOURCE</span>
+         <select @bind="_placementSourceAssetId">
+          <option value="">Choose Local asset…</option>
+          @foreach(var item in _references)
+          {
+           <option value="@item.AssetId">@item.Name · @item.Kind</option>
+          }
+         </select>
+        </label>
+        <div class="instance-placement-address">
+         <label><span>TIER</span><input type="number" min="1" @bind="_placementTier" /></label>
+         <label><span>LAYER</span><input type="number" min="1" @bind="_placementLayer" /></label>
+        </div>
+        <button type="button" disabled="@(!CanPlaceReference||_busy)" @onclick="PlaceReferenceAsync">PLACE ON SELECTED SURFACE</button>
+       </section>
+      </aside>
+     </div>
+
+     <section class="instance-assets" aria-label="Instance asset layer list">
+      <header>
+       <div><strong>INSTANCE ASSETS · 45°</strong><small>Layer = appearance · Tier = depth</small></div>
+       <label>
+        <span>PERMISSION FOR</span>
+        <select value="@_permissionPrincipal" @onchange="ChangePermissionPrincipal">
+         @foreach(var principal in _principals){<option value="@principal.Id">@principal.Label</option>}
+        </select>
+       </label>
+      </header>
+      <div class="instance-asset-head"><span>V</span><span>L</span><span>ASSET</span><span>OPACITY</span><span>LAYER</span><span>TIER</span><span>SURFACE</span><span>PERMISSION</span></div>
+      <div class="instance-asset-rows">
+       @if(_map.Assets.Count==0)
+       {
+        <p>No Instance-owned placements yet. Place a Local asset reference onto a cell surface above.</p>
+       }
+       @foreach(var asset in _map.Assets.OrderByDescending(x=>x.Layer).ThenBy(x=>x.PlacementId,StringComparer.Ordinal))
+       {
+        <div class="instance-asset-row">
+         <button type="button" class="icon" aria-pressed="@asset.Visible" @onclick="()=>TogglePlacementVisibleAsync(asset)">@(asset.Visible?"◉":"○")</button>
+         <button type="button" class="icon" aria-pressed="@asset.Locked" @onclick="()=>TogglePlacementLockAsync(asset)">@(asset.Locked?"🔒":"🔓")</button>
+         <div class="asset-name"><strong>@asset.Name</strong><small>@asset.PlacementId</small></div>
+         <label class="asset-opacity"><span>@($"{Math.Round(asset.Opacity*100)}%")</span><input type="range" min="0" max="1" step=".05" value="@asset.Opacity" @onchange="e=>SetPlacementOpacityAsync(asset,e)" /></label>
+         <div class="stepper"><button type="button" disabled="@(asset.Layer<=1)" @onclick="()=>MovePlacementLayerAsync(asset,-1)">−</button><span>@asset.Layer</span><button type="button" @onclick="()=>MovePlacementLayerAsync(asset,1)">+</button></div>
+         <div class="stepper"><button type="button" disabled="@(asset.Tier<=1)" @onclick="()=>MovePlacementTierAsync(asset,-1)">−</button><span>@asset.Tier</span><button type="button" @onclick="()=>MovePlacementTierAsync(asset,1)">+</button></div>
+         <code title="@asset.SurfaceId">@SurfaceShort(asset.SurfaceId)</code>
+         <button type="button" class="permission" @onclick="()=>OpenPermissionAsync(asset)">@PermissionCell(asset)</button>
+        </div>
+       }
+      </div>
+      @if(PermissionPlacement is { } permissionAsset)
+      {
+       <footer class="instance-permission-editor">
+        <div><strong>@permissionAsset.Name</strong><small>@_permissionPrincipal · @permissionAsset.PermissionResourceId</small></div>
+        <select @bind="_permissionGrant">
+         <option value="None">Waiting / inherited</option>
+         @if(_permissionPrincipal=="EVERYONE"){<option value="Public">Public</option>}
+         else{<option value="View">View</option><option value="Edit">Edit</option><option value="Deny">Deny</option>}
+        </select>
+        <button type="button" disabled="@_permissionBusy" @onclick="SavePermissionAsync">SAVE</button>
+        <button type="button" @onclick="ClosePermission">×</button>
+        @if(!string.IsNullOrWhiteSpace(_permissionStatus)){<span role="status">@_permissionStatus</span>}
+       </footer>
+      }
+     </section>
+    }
+   </main>
+  </div>
+ }
+</section>
+
+<style>
+ .instance-builder{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;background:#05090d;color:#e8dfc9;font-family:Inter,system-ui,-apple-system,sans-serif}
+ .instance-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid #735d30;background:linear-gradient(90deg,#08141b,#191307)}.instance-header small{color:#7fa9bb;font:900 7px/1 system-ui;letter-spacing:.14em}.instance-header h1{margin:3px 0;color:#efd695;font:600 21px/1 Georgia,serif;letter-spacing:.07em}.instance-header p{margin:4px 0 0;color:#9babb1;font-size:8px}.instance-header-actions{display:flex;gap:5px}.instance-header-actions button,.instance-toolbar button{min-height:34px;border:1px solid #4c626c;border-radius:7px;background:#0b171e;color:#d8c48e;font:900 7px system-ui;padding:0 10px}
+ .instance-status{padding:6px 12px;border-bottom:1px solid #3d4e57;background:#171209;color:#e6bc72;font-size:8px}
+ .instance-shell{min-height:0;display:grid;grid-template-columns:minmax(230px,310px) minmax(0,1fr);overflow:hidden}.instance-directory{min-height:0;overflow:auto;border-right:1px solid #30434c;background:#071219;padding:9px;display:grid;align-content:start;gap:9px}.instance-directory section{border:1px solid #314750;border-radius:9px;background:#09161d;padding:9px;display:grid;gap:8px}.instance-directory header,.instance-saved article{display:flex;justify-content:space-between;align-items:center;gap:6px}.instance-directory strong{color:#e6cd8d;font-size:9px}.instance-directory small,.instance-directory span{color:#849da8;font-size:7px;line-height:1.35}.instance-directory label,.instance-toolbar label,.terrain-editor label,.instance-place-asset label{display:grid;gap:4px}.instance-directory label>span,.instance-toolbar label>span,.terrain-editor label>span,.instance-place-asset label>span{color:#7e9aa6;font:900 6px system-ui;letter-spacing:.08em}.instance-directory input,.instance-directory select,.instance-toolbar input,.instance-toolbar select,.terrain-editor input,.terrain-editor textarea,.instance-place-asset input,.instance-place-asset select,.instance-assets select{box-sizing:border-box;width:100%;min-height:32px;border:1px solid #40545e;border-radius:5px;background:#071219;color:#e8dfc9;font:700 9px system-ui;padding:5px 7px}.instance-grid-create,.instance-placement-address{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}.instance-placement-address{grid-template-columns:1fr 1fr}.primary{min-height:36px;border:1px solid #a48138;border-radius:7px;background:#261f10;color:#f0d48c;font:900 8px system-ui}.primary:disabled{opacity:.4}
+ .instance-saved p,.instance-empty{color:#8ea2aa;font-size:9px}.instance-saved article{display:grid;grid-template-columns:minmax(0,1fr) 32px}.instance-open{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:7px;border:1px solid #344b55;border-radius:7px;background:#0a171e;color:#ded7c5;text-align:left;padding:7px}.instance-open span{display:grid;gap:3px}.instance-open b{color:#74bce3;font-size:7px}.instance-saved article.active .instance-open{border-color:#a37f37;background:#17150d}.instance-delete{height:100%;border:1px solid #553f45;border-radius:7px;background:#140d10;color:#a88b91}.instance-editor{min-width:0;min-height:0;overflow:auto;padding:10px;display:grid;align-content:start;gap:9px}.instance-empty{display:grid;place-content:center;justify-items:center;gap:7px;min-height:180px;text-align:center}.instance-empty strong{color:#dbc886}.editor-empty{height:100%}
+ .instance-root-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid #594b2c;border-radius:10px;background:#0b1419}.instance-root-card small{color:#769aa9;font:900 6px system-ui}.instance-root-card h2{margin:3px 0;color:#edd492;font:600 19px Georgia,serif}.instance-root-card p{margin:0;color:#aeb9b8;font-size:8px}.root-facts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.root-facts span{padding:5px 7px;border:1px solid #3d5058;border-radius:999px;color:#8ca4ae;font:700 6px system-ui}.root-facts b{color:#dfca8e}
+ .instance-toolbar{display:flex;align-items:end;gap:6px;flex-wrap:wrap;padding:8px;border:1px solid #30434c;border-radius:8px;background:#071219}.instance-toolbar label{width:120px}.instance-toolbar>div{display:grid;gap:2px;margin-left:auto}.instance-toolbar>div small{color:#7693a0;font-size:6px}.instance-toolbar>div strong{color:#dfc887;font-size:8px}.instance-toolbar>div span{color:#81959d;font-size:6px}
+ .instance-work-area{min-height:420px;display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,300px);gap:9px}.instance-board-shell{min-width:0;overflow:auto;display:grid;place-items:start center;padding:40px 24px 90px;border:1px solid #283b44;border-radius:10px;background:radial-gradient(circle at 50% 10%,#10202a,#05090d 65%);perspective:1200px}.instance-board-plane{transform:rotateX(45deg);transform-origin:center top;transform-style:preserve-3d}.instance-board{display:grid;gap:3px;min-width:max-content;padding:10px;border:1px solid #607078;background:#071117;box-shadow:0 30px 60px #000c}.instance-cell{position:relative;width:46px;height:46px;border:1px solid #405964;background:#0b1920;color:#98adb5;display:grid;place-content:center;gap:1px;transition:transform .12s,border-color .12s,background .12s;transform:translateY(calc(var(--elev) * -1.5px));box-shadow:0 calc(var(--rise) * 1px) 0 #172a34}.instance-cell span{font:700 5px system-ui}.instance-cell b{color:#dbc37d;font:900 8px system-ui}.instance-cell i{position:absolute;right:2px;top:2px;min-width:12px;height:12px;border-radius:999px;background:#1d5f7c;color:white;font:900 6px/12px system-ui;font-style:normal}.instance-cell.selected{border-color:#f0ce72;background:#25200f;outline:2px solid #f0ce7244}.instance-cell.has-rules{box-shadow:inset 0 0 0 1px #568697,0 calc(var(--rise) * 1px) 0 #172a34}.shape-hex .instance-cell{clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%)}
+ .instance-cell-editor{min-height:0;display:grid;align-content:start;gap:8px}.instance-cell-editor>header,.surface-editor>header,.instance-place-asset>header{display:flex;justify-content:space-between;gap:8px;padding:8px;border:1px solid #334952;border-radius:8px;background:#09161d}.instance-cell-editor>header div{display:grid;gap:2px}.instance-cell-editor small{color:#7895a1;font-size:6px}.instance-cell-editor strong{color:#e2ca88;font-size:9px}.elevation-controls,.terrain-editor,.surface-editor,.instance-place-asset{display:grid;gap:7px;padding:8px;border:1px solid #30434c;border-radius:8px;background:#08141a}.elevation-controls>div:first-child{display:flex;justify-content:space-between;color:#8ba0a9;font-size:7px}.elevation-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.elevation-buttons button,.surface-list button,.instance-place-asset>button{min-height:32px;border:1px solid #40545e;border-radius:5px;background:#0c1920;color:#dcc687;font:900 7px system-ui}.terrain-editor .check{grid-template-columns:auto 1fr;align-items:center}.terrain-editor .check input{width:auto;min-height:auto}.terrain-editor textarea{resize:vertical}.surface-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.surface-list button{display:grid;gap:2px;text-align:left;padding:5px}.surface-list button.selected{border-color:#d8b85b;background:#211c0e}.surface-list small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .instance-assets{border:1px solid #334952;border-radius:9px;background:#071219;overflow:hidden}.instance-assets>header{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,230px);gap:8px;align-items:center;padding:8px;border-bottom:1px solid #334952}.instance-assets>header>div{display:grid;gap:2px}.instance-assets>header strong{color:#e5cd8c;font-size:9px}.instance-assets>header small{color:#8098a3;font-size:6px}.instance-assets>header label{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px}.instance-assets>header label span{color:#75919d;font:900 6px system-ui}.instance-asset-head,.instance-asset-row{display:grid;grid-template-columns:32px 32px minmax(130px,1.2fr) minmax(90px,.8fr) 100px 100px minmax(100px,1fr) 80px;gap:4px;align-items:center}.instance-asset-head{padding:5px 7px;border-bottom:1px solid #263a43;color:#708c98;font:900 6px system-ui}.instance-asset-rows{max-height:250px;overflow:auto}.instance-asset-rows>p{padding:10px;color:#8298a1;font-size:8px}.instance-asset-row{padding:5px 7px;border-bottom:1px solid #1e3038}.instance-asset-row .icon,.instance-asset-row .permission,.stepper button{height:30px;border:1px solid #3b505a;border-radius:5px;background:#0a171e;color:#d9c485}.asset-name{min-width:0;display:grid;gap:2px}.asset-name strong,.asset-name small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asset-name strong{color:#d9ccb0;font-size:8px}.asset-name small{color:#718b96;font-size:5px}.asset-opacity{display:grid;grid-template-columns:34px minmax(0,1fr);gap:3px;align-items:center}.asset-opacity span{font-size:6px;color:#8fa4ad}.asset-opacity input{width:100%}.stepper{display:grid;grid-template-columns:30px 1fr 30px;align-items:center;text-align:center}.stepper span{font:900 8px system-ui;color:#d8c383}.instance-asset-row code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7895a1;font-size:5px}.instance-asset-row .permission{font:900 6px system-ui}
+ .instance-permission-editor{display:grid;grid-template-columns:minmax(0,1fr) 180px 60px 34px;gap:5px;align-items:center;padding:7px;border-top:1px solid #334952}.instance-permission-editor>div{display:grid;gap:2px;min-width:0}.instance-permission-editor strong,.instance-permission-editor small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.instance-permission-editor select,.instance-permission-editor button{height:32px;border:1px solid #40545e;border-radius:5px;background:#0a171e;color:#e4cf91}.instance-permission-editor>span{grid-column:1/-1;color:#8fb59c;font-size:7px}
+ @@media(max-width:900px){.instance-shell{grid-template-columns:1fr;overflow:auto}.instance-directory{border-right:0;border-bottom:1px solid #30434c;max-height:none}.instance-work-area{grid-template-columns:1fr}.instance-board-shell{min-height:420px}.instance-asset-head{display:none}.instance-asset-row{grid-template-columns:32px 32px minmax(0,1fr) 80px;grid-template-areas:"vis lock name permission" "opacity opacity layer tier" "surface surface surface surface"}.instance-asset-row>.icon:first-child{grid-area:vis}.instance-asset-row>.icon:nth-child(2){grid-area:lock}.asset-name{grid-area:name}.asset-opacity{grid-area:opacity}.instance-asset-row>.stepper:nth-of-type(1){grid-area:layer}.instance-asset-row>.stepper:nth-of-type(2){grid-area:tier}.instance-asset-row code{grid-area:surface}.instance-asset-row .permission{grid-area:permission}.instance-permission-editor{grid-template-columns:1fr 34px}.instance-permission-editor>div,.instance-permission-editor select,.instance-permission-editor>button:first-of-type{grid-column:1}.instance-permission-editor>button:last-of-type{grid-column:2;grid-row:1}}
+ @@media(max-width:600px){.instance-header{align-items:flex-start}.instance-header p{display:none}.instance-header-actions{flex-direction:column}.instance-editor{padding:5px}.instance-root-card{align-items:flex-start;flex-direction:column}.root-facts{justify-content:flex-start}.instance-board-shell{padding-left:10px;padding-right:10px}.instance-cell{width:40px;height:40px}.instance-assets>header{grid-template-columns:1fr}.instance-toolbar>div{margin-left:0;width:100%}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+ [Parameter] public EventCallback OnHome { get; set; }
+
+ bool _loading=true;
+ bool _busy;
+ string _status="";
+ string _localId="";
+ List<LocalInstanceAnchorReference> _references=[];
+ WorldInstanceMapState? _map;
+
+ string _newInstanceName="";
+ string _markerAssetId="";
+ string _touchedAssetId="";
+ int _newColumns=12;
+ int _newRows=12;
+ string _newGridShape="square";
+
+ int _selectedColumn;
+ int _selectedRow;
+ int _cellElevation;
+ string _cellTerrain="";
+ double _cellMovementCost=1;
+ bool _cellBlocksMovement;
+ bool _cellBlocksSight;
+ string _cellTags="";
+ string _cellNotes="";
+ string _selectedSurfaceId="";
+
+ string _measurementUnit="ft";
+ double _measurementPerStep=5;
+
+ string _placementSourceAssetId="";
+ int _placementTier=1;
+ int _placementLayer=1;
+
+ readonly List<PermissionPrincipal> _principals=[new("EVERYONE","EVERYONE")];
+ readonly Dictionary<string,string> _permissionCache=new(StringComparer.Ordinal);
+ string _permissionPrincipal="EVERYONE";
+ string _permissionPlacementId="";
+ string _permissionGrant="None";
+ string _permissionStatus="";
+ bool _permissionBusy;
+
+ WorldInstance? Active=>Session.ActiveInstance;
+ IReadOnlyList<WorldInstance> LocalInstances=>Session.DefinedInstances
+  .Where(item=>string.Equals(item.LocalId,_localId,StringComparison.Ordinal))
+  .OrderBy(item=>item.Name,StringComparer.OrdinalIgnoreCase)
+  .ToList();
+ IEnumerable<LocalInstanceAnchorReference> MarkerReferences=>_references.Where(item=>!item.IsLocalRoot);
+ IEnumerable<LocalInstanceAnchorReference> TouchedReferences=>_references.Where(item=>!string.Equals(item.AssetId,_markerAssetId,StringComparison.Ordinal));
+ bool CanCreateInstance=>!string.IsNullOrWhiteSpace(_localId)&&!string.IsNullOrWhiteSpace(_newInstanceName)&&!string.IsNullOrWhiteSpace(_markerAssetId)&&!string.IsNullOrWhiteSpace(_touchedAssetId)&&!string.Equals(_markerAssetId,_touchedAssetId,StringComparison.Ordinal);
+ IReadOnlyList<WorldInstanceSurface> SelectedSurfaces=>_map is null?[]:WorldSession.InstanceSurfacesForCell(_map,_selectedColumn,_selectedRow);
+ bool CanPlaceReference=>_map is not null&&!string.IsNullOrWhiteSpace(_placementSourceAssetId)&&!string.IsNullOrWhiteSpace(_selectedSurfaceId);
+ string BoardGridStyle=>_map is null?"":$"grid-template-columns:repeat({_map.GridColumns},46px)";
+ WorldInstanceAssetPlacement? PermissionPlacement=>_map?.Assets.FirstOrDefault(item=>string.Equals(item.PlacementId,_permissionPlacementId,StringComparison.Ordinal));
+
+ protected override async Task OnInitializedAsync()
+ {
+  try
+  {
+   await Session.LoadRegionsAsync();
+   await Session.LoadLocalsAsync();
+   await Session.LoadInstancesAsync();
+   await LoadPermissionDirectoryAsync();
+
+   if(Session.ActiveInstance is { } active)
+   {
+    _localId=active.LocalId;
+    await LoadLocalReferencesAsync();
+    await OpenInstanceAsync(active);
+   }
+   else
+   {
+    _localId=Session.ActiveLocal?.LocalId
+     ??Session.DefinedLocals.FirstOrDefault()?.LocalId
+     ??"";
+    await LoadLocalReferencesAsync();
+   }
+  }
+  catch(Exception ex){_status="INSTANCE LOAD ERROR · "+ex.Message;}
+  finally{_loading=false;}
+ }
+
+ async Task ChangeLocalAsync(ChangeEventArgs e)
+ {
+  _localId=e.Value?.ToString()?.Trim()??"";
+  Session.SetActiveLocal(_localId);
+  Session.SetActiveInstance("");
+  _map=null;
+  _markerAssetId="";
+  _touchedAssetId="";
+  _placementSourceAssetId="";
+  await LoadLocalReferencesAsync();
+ }
+
+ async Task LoadLocalReferencesAsync()
+ {
+  _references=_localId.Length==0
+   ?[]
+   :(await Session.LoadLocalInstanceReferencesAsync(_localId)).ToList();
+  if(_placementSourceAssetId.Length>0&&_references.All(x=>x.AssetId!=_placementSourceAssetId))_placementSourceAssetId="";
+ }
+
+ async Task CreateInstanceAsync()
+ {
+  if(!CanCreateInstance||_busy)return;
+  _busy=true;_status="";
+  try
+  {
+   var instance=await Session.CreateInstanceAsync(
+    _newInstanceName,_localId,_markerAssetId,_touchedAssetId,_newColumns,_newRows,_newGridShape);
+   _newInstanceName="";
+   _markerAssetId="";
+   _touchedAssetId="";
+   await OpenInstanceAsync(instance);
+   _status="Instance created from explicit Local root identities.";
+  }
+  catch(Exception ex){_status="INSTANCE CREATE ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task OpenInstanceAsync(WorldInstance instance)
+ {
+  _busy=true;_status="";
+  try
+  {
+   _localId=instance.LocalId;
+   Session.SetActiveRegion(instance.RegionId);
+   Session.SetActiveLocal(instance.LocalId);
+   Session.SetActiveInstance(instance.InstanceId);
+   await LoadLocalReferencesAsync();
+   var source=await Session.LoadInstanceMapAsync(instance.InstanceId);
+   _map=source?.State??WorldSession.DefaultInstanceMapState(instance);
+   _measurementUnit=_map.MeasurementUnit;
+   _measurementPerStep=_map.MeasurementPerStep;
+   SelectCell(0,0);
+  }
+  catch(Exception ex){_status="INSTANCE OPEN ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task DeleteInstanceAsync(WorldInstance instance)
+ {
+  if(_busy)return;
+  _busy=true;
+  try
+  {
+   await Session.DeleteInstanceAsync(instance);
+   if(Active is null)_map=null;
+  }
+  catch(Exception ex){_status="INSTANCE DELETE ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ void SelectCell(int column,int row)
+ {
+  if(_map is null)return;
+  _selectedColumn=Math.Clamp(column,0,_map.GridColumns-1);
+  _selectedRow=Math.Clamp(row,0,_map.GridRows-1);
+  var cell=WorldSession.InstanceCellAt(_map,_selectedColumn,_selectedRow);
+  _cellElevation=cell.ElevationSteps;
+  _cellTerrain=cell.TerrainType;
+  _cellMovementCost=cell.MovementCost;
+  _cellBlocksMovement=cell.BlocksMovement;
+  _cellBlocksSight=cell.BlocksSight;
+  _cellTags=cell.Tags;
+  _cellNotes=cell.Notes;
+  _selectedSurfaceId=WorldSession.InstanceSurfaceId(_map.InstanceId,_selectedColumn,_selectedRow,"top",_cellElevation);
+  _placementLayer=NextPlacementLayer(_placementTier);
+ }
+
+ void AdjustElevation(int delta)
+ {
+  _cellElevation=Math.Clamp(_cellElevation+delta,-1000,1000);
+ }
+
+ async Task SaveCellAsync()
+ {
+  if(_map is null||Active is null||_busy)return;
+  _busy=true;_status="";
+  try
+  {
+   var cell=WorldSession.NormalizeInstanceCell(new(
+    _selectedColumn,_selectedRow,_cellElevation,_cellTerrain,_cellMovementCost,
+    _cellBlocksMovement,_cellBlocksSight,_cellTags,_cellNotes));
+   var cells=_map.Cells.Where(item=>item.Column!=_selectedColumn||item.Row!=_selectedRow).ToList();
+   if(!cell.IsDefault)cells.Add(cell);
+   _map=_map with{Cells=cells};
+   await PersistMapAsync();
+   _selectedSurfaceId=WorldSession.InstanceSurfaceId(_map.InstanceId,_selectedColumn,_selectedRow,"top",_cellElevation);
+   _status="Cell geometry and terrain rules saved.";
+  }
+  catch(Exception ex){_status="CELL SAVE ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task SaveMeasurementAsync()
+ {
+  if(_map is null||Active is null||_busy)return;
+  _busy=true;
+  try
+  {
+   _map=_map with{
+    MeasurementUnit=WorldSession.NormalizeInstanceMeasurementUnit(_measurementUnit),
+    MeasurementPerStep=Math.Clamp(_measurementPerStep,.001,100000)
+   };
+   await PersistMapAsync();
+   _measurementUnit=_map.MeasurementUnit;_measurementPerStep=_map.MeasurementPerStep;
+   _status="Display measurement updated. Signed elevation steps were not changed.";
+  }
+  catch(Exception ex){_status="MEASUREMENT SAVE ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task PlaceReferenceAsync()
+ {
+  if(!CanPlaceReference||_map is null||Active is null||_busy)return;
+  var source=_references.FirstOrDefault(item=>string.Equals(item.AssetId,_placementSourceAssetId,StringComparison.Ordinal));
+  if(source is null)return;
+  _busy=true;
+  try
+  {
+   var tier=Math.Max(1,_placementTier);
+   var layer=Math.Max(1,_placementLayer);
+   var placementId=$"instance:{Active.InstanceId}:placement:{Guid.NewGuid():N}";
+   var placement=new WorldInstanceAssetPlacement(
+    placementId,source.AssetId,source.Name,source.Kind,
+    _selectedColumn,_selectedRow,_selectedSurfaceId,tier,layer,
+    1,true,false,"",WorldSession.RecursivePermissionResourceId(placementId));
+   var assets=_map.Assets.ToList();assets.Add(placement);
+   _map=_map with{Assets=assets};
+   await PersistMapAsync();
+   _placementLayer=NextPlacementLayer(tier);
+   _status="Instance placement added to stable cell surface.";
+  }
+  catch(Exception ex){_status="PLACEMENT ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ int NextPlacementLayer(int tier)
+  =>Math.Max(1,(_map?.Assets.Where(item=>item.Visible&&item.Tier==Math.Max(1,tier)).Select(item=>item.Layer).DefaultIfEmpty(0).Max()??0)+1);
+
+ async Task PersistMapAsync()
+ {
+  if(_map is null||Active is null)return;
+  var saved=await Session.SaveInstanceMapAsync(Active.InstanceId,_map);
+  _map=saved.State;
+ }
+
+ int AssetsAtCell(int column,int row)=>_map?.Assets.Count(item=>item.Visible&&item.Column==column&&item.Row==row)??0;
+ string CellClass(int column,int row,WorldInstanceCellState cell)
+  =>$"instance-cell {(column==_selectedColumn&&row==_selectedRow?"selected ":"")}{(!cell.IsDefault?"has-rules":"")}";
+ string CellStyle(WorldInstanceCellState cell)
+  =>$"--elev:{Math.Clamp(cell.ElevationSteps,-40,40)};--rise:{Math.Clamp(Math.Abs(cell.ElevationSteps),0,20)}";
+ string CellAria(WorldInstanceCellState cell,int assetCount)
+  =>$"Cell {cell.Column}, {cell.Row}. Elevation {cell.ElevationSteps} steps. Parallax band {WorldSession.InstanceElevationParallaxBand(cell.ElevationSteps)}. {assetCount} assets.";
+ string LocalName(string localId)=>Session.DefinedLocals.FirstOrDefault(item=>item.LocalId==localId)?.Name??localId;
+ static string SurfaceShort(string value)
+ {
+  value=(value??"").Trim();
+  var index=value.IndexOf(":surface:",StringComparison.Ordinal);
+  return index>=0?value[(index+9)..]:value;
+ }
+
+ async Task TogglePlacementVisibleAsync(WorldInstanceAssetPlacement asset)
+  =>await ReplacePlacementAsync(asset,asset with{Visible=!asset.Visible});
+ async Task TogglePlacementLockAsync(WorldInstanceAssetPlacement asset)
+  =>await ReplacePlacementAsync(asset,asset with{Locked=!asset.Locked});
+ async Task MovePlacementLayerAsync(WorldInstanceAssetPlacement asset,int delta)
+  =>await ReplacePlacementAsync(asset,asset with{Layer=Math.Max(1,asset.Layer+Math.Sign(delta))});
+ async Task MovePlacementTierAsync(WorldInstanceAssetPlacement asset,int delta)
+  =>await ReplacePlacementAsync(asset,asset with{Tier=Math.Max(1,asset.Tier+Math.Sign(delta))});
+ async Task SetPlacementOpacityAsync(WorldInstanceAssetPlacement asset,ChangeEventArgs e)
+ {
+  var parsed=double.TryParse(e.Value?.ToString(),out var value)?value:asset.Opacity;
+  await ReplacePlacementAsync(asset,asset with{Opacity=Math.Clamp(parsed,0,1)});
+ }
+ async Task ReplacePlacementAsync(WorldInstanceAssetPlacement current,WorldInstanceAssetPlacement next)
+ {
+  if(_map is null||Active is null||_busy)return;
+  _busy=true;
+  try
+  {
+   var assets=_map.Assets.Select(item=>item.PlacementId==current.PlacementId?next:item).ToList();
+   _map=_map with{Assets=assets};
+   await PersistMapAsync();
+  }
+  catch(Exception ex){_status="INSTANCE ASSET ERROR · "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task LoadPermissionDirectoryAsync()
+ {
+  if(!Session.IsLoggedIn)return;
+  try
+  {
+   var rows=await Authority.GetConnectionsAsync()??[];
+   _principals.Clear();_principals.Add(new("EVERYONE","EVERYONE"));
+   _principals.AddRange(rows
+    .Where(row=>!string.IsNullOrWhiteSpace(row.LinkedUserId))
+    .OrderBy(row=>row.DisplayName,StringComparer.OrdinalIgnoreCase)
+    .Select(row=>new PermissionPrincipal(row.LinkedUserId,string.IsNullOrWhiteSpace(row.DisplayName)?row.LinkedUserId:row.DisplayName)));
+  }
+  catch{}
+ }
+
+ void ChangePermissionPrincipal(ChangeEventArgs e)
+ {
+  _permissionPrincipal=e.Value?.ToString()?.Trim()??"EVERYONE";
+  if(!_principals.Any(item=>item.Id==_permissionPrincipal))_permissionPrincipal="EVERYONE";
+  _permissionPlacementId="";
+  _permissionGrant="None";
+  _permissionStatus="";
+ }
+
+ string PermissionCell(WorldInstanceAssetPlacement asset)
+ {
+  var key=PermissionKey(asset.PermissionResourceId);
+  return _permissionCache.TryGetValue(key,out var value)?PermissionLabel(value):"SET";
+ }
+ string PermissionKey(string resourceId)=>resourceId+"\u001f"+_permissionPrincipal;
+ static string PermissionLabel(string value)=>value switch{"Public"=>"PUBLIC","View"=>"VIEW","Edit"=>"EDIT","Deny"=>"DENY",_=>"WAITING"};
+
+ async Task OpenPermissionAsync(WorldInstanceAssetPlacement asset)
+ {
+  if(!Session.IsLoggedIn){_permissionStatus="Sign in to edit permissions.";return;}
+  _permissionBusy=true;_permissionPlacementId=asset.PlacementId;_permissionStatus="";
+  try
+  {
+   var rows=await Authority.GetResourcePermissionsAsync(Session.WorldId,asset.PermissionResourceId)??[];
+   var current=rows.FirstOrDefault(item=>string.Equals(item.UserId,_permissionPrincipal,StringComparison.Ordinal));
+   _permissionGrant=current?.Permission??"None";
+   if(_permissionPrincipal=="EVERYONE"&&_permissionGrant!="Public")_permissionGrant="None";
+   _permissionCache[PermissionKey(asset.PermissionResourceId)]=_permissionGrant;
+  }
+  catch(Exception ex){_permissionStatus="PERMISSION LOAD ERROR · "+ex.Message;}
+  finally{_permissionBusy=false;}
+ }
+
+ async Task SavePermissionAsync()
+ {
+  var asset=PermissionPlacement;
+  if(asset is null||!Session.IsLoggedIn||_permissionBusy)return;
+  _permissionBusy=true;
+  try
+  {
+   var grant=_permissionPrincipal=="EVERYONE"
+    ?(_permissionGrant=="Public"?"Public":"None")
+    :(_permissionGrant is "View" or "Edit" or "Deny"?_permissionGrant:"None");
+   var result=await Authority.SetResourcePermissionAsync(Session.WorldId,asset.PermissionResourceId,_permissionPrincipal,grant);
+   if(result?.Ok==true)
+   {
+    _permissionGrant=result.Permission;
+    _permissionCache[PermissionKey(asset.PermissionResourceId)]=result.Permission;
+    _permissionStatus=result.Permission=="None"?"Explicit grant removed; inherited/default authority applies.":"Permission saved.";
+   }
+   else _permissionStatus="Permission was not changed.";
+  }
+  catch(Exception ex){_permissionStatus="PERMISSION SAVE ERROR · "+ex.Message;}
+  finally{_permissionBusy=false;}
+ }
+
+ void ClosePermission(){_permissionPlacementId="";_permissionStatus="";}
+
+ sealed record PermissionPrincipal(string Id,string Label);
+}
