@@ -109,7 +109,6 @@ public partial class WorldBuilderStudio
         };
         placed = placed with
         {
-            PlacementId = string.IsNullOrWhiteSpace(placed.PlacementId) ? Guid.NewGuid().ToString("N") : placed.PlacementId,
             TypeId = asset.TypeId,
             GroupId = asset.GroupId,
             Metadata = new AssetByMetadata(
@@ -121,21 +120,22 @@ public partial class WorldBuilderStudio
         };
 
         if (choice.UpperTier)
-        {
-            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = Session.LayerOffset };
-        }
-        else if (choice.UpperLayer)
-        {
-            var address = SceneAddress(Session.SceneZ + 1);
-            placed = placed with { TierIndex = address.Tier, LayerOffset = address.Layer };
-        }
+            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = 0 };
 
+        // UpperLayer no longer moves Z. It becomes an explicit composition
+        // request when the recursive WORLD placement is registered below.
         PushWorldBuilderUndo();
         ClearWorldBuilderSelection();
         Session.AddPlacedTileAtGridDepth(placed);
+
+        var index = Session.PlacedTiles.FindIndex(item =>
+            string.Equals(item.PlacementId, placed.PlacementId, StringComparison.Ordinal));
+        if (index >= 0)
+            Session.RegisterNewWorldTilePlacement(index, forceFront: choice.UpperLayer);
+
         Session.Notify();
         await PersistWorldBuilderAsync();
-        return Session.PlacedTiles.Count - 1;
+        return index;
     }
 }
 
