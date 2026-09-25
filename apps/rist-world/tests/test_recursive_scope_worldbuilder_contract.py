@@ -176,3 +176,13 @@ def test_layer_list_never_uses_tier_as_secondary_visual_order():
     assert "ThenBy(item=>item.Tier)" not in visual_order
     assert 'aria-pressed="@placement.Visible"' in studio
     assert 'aria-pressed="@placement.Locked"' in studio
+
+
+if __name__ == "__main__":
+    tests = [
+        value for name, value in sorted(globals().items())
+        if name.startswith("test_") and callable(value)
+    ]
+    for test in tests:
+        test()
+    print(f"recursive scope contract: {len(tests)} checks passed")
