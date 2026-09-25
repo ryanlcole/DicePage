@@ -158,6 +158,9 @@ Resources:
         ApplicationStatus:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/application/status, Method: POST }
+        ApplicationAdminSummary:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/application/admin-summary, Method: GET }
         ApplicationSelectTop:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/application/select-top, Method: POST }

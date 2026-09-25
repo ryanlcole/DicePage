@@ -1,0 +1,215 @@
+@inject HttpClient Http
+@inject DiscordAuthClient Auth
+
+@if(Open)
+{
+ <section class="mcp-admin-backdrop" role="presentation" @onclick="CloseAsync">
+  <section class="mcp-admin-panel" role="dialog" aria-modal="true" aria-label="MCP tester intake administration" @onclick:stopPropagation="true">
+   <header>
+    <div><small>ReLiC MCP</small><strong>TESTER INTAKE</strong></div>
+    <button type="button" @onclick="CloseAsync" aria-label="Close MCP tester intake">×</button>
+   </header>
+
+   @if(!_authorized)
+   {
+    <p class="mcp-admin-error" role="alert">Platform-owner authority is required.</p>
+   }
+   else if(_loading)
+   {
+    <p class="mcp-admin-note">Loading server-authoritative intake state…</p>
+   }
+   else if(_summary is null)
+   {
+    <p class="mcp-admin-error" role="alert">@(_message.Length>0?_message:"MCP intake state could not be loaded.")</p>
+    <button class="mcp-admin-refresh" type="button" @onclick="LoadAsync">RETRY</button>
+   }
+   else
+   {
+    <section class="mcp-admin-metrics" aria-label="MCP application counts">
+     <article><strong>@_summary.Counts.Total</strong><span>APPLICATIONS</span></article>
+     <article><strong>@_summary.Counts.Applied</strong><span>APPLIED</span></article>
+     <article><strong>@_summary.Counts.Eligible</strong><span>ELIGIBLE</span></article>
+     <article><strong>@_summary.Counts.Selected</strong><span>SELECTED</span></article>
+    </section>
+
+    <section class="mcp-admin-state">
+     <div>
+      <strong>INTAKE @(_summary.IntakeOpen?"OPEN":"CLOSED")</strong>
+      <span>@_summary.SelectionBasis</span>
+     </div>
+     <button class="mcp-admin-refresh" type="button" @onclick="LoadAsync" disabled="@_busy">REFRESH</button>
+    </section>
+
+    @if(_summary.Selection is not null)
+    {
+     <section class="mcp-admin-selection" aria-live="polite">
+      <strong>SELECTION · @_summary.Selection.Status</strong>
+      <span>@(_summary.Selection.DisplayName.Length>0?_summary.Selection.DisplayName:_summary.Selection.AgentId)</span>
+      <span>Application @_summary.Selection.ApplicationId</span>
+      <span>Token @(_summary.Selection.TokenIssued?"issued":"not issued")@(_summary.Selection.TokenId.Length>0?" · "+_summary.Selection.TokenId:"")</span>
+      @if(_summary.Selection.Status!="Selected")
+      {
+       <small>This selection record blocks a new selection. Reconcile this state before issuing another token.</small>
+      }
+     </section>
+    }
+    else if(_summary.Counts.Eligible>0)
+    {
+     <section class="mcp-admin-select">
+      @if(!_confirmSelect)
+      {
+       <button type="button" @onclick="ArmSelection" disabled="@_busy">SELECT TOP ELIGIBLE</button>
+       <small>This prepares the existing deterministic server selection. No token is issued on this first press.</small>
+      }
+      else
+      {
+       <div class="mcp-admin-confirm">
+        <button type="button" class="danger" @onclick="SelectTopAsync" disabled="@_busy">@(_busy?"SELECTING…":"CONFIRM · SELECT TOP + ISSUE 1 TOKEN")</button>
+        <button type="button" @onclick="CancelSelection" disabled="@_busy">CANCEL</button>
+       </div>
+       <small>The server will lock the current top eligible application and request exactly one bounded Shaelvien test token.</small>
+      }
+     </section>
+    }
+    else
+    {
+     <p class="mcp-admin-note">No eligible applications are currently available for selection.</p>
+    }
+
+    @if(!string.IsNullOrWhiteSpace(_message))
+    {
+     <p class="@(_error?"mcp-admin-error":"mcp-admin-message")" role="status">@_message</p>
+    }
+
+    <section class="mcp-admin-list" aria-label="MCP tester applications">
+     <div class="mcp-admin-list-title">
+      <strong>APPLICATIONS</strong>
+      @if(_summary.ApplicationsTruncated){<span>Showing first @_summary.Candidates.Count</span>}
+     </div>
+     @if(_summary.Candidates.Count==0)
+     {
+      <p class="mcp-admin-note">No MCP tester applications have been submitted.</p>
+     }
+     else
+     {
+      @foreach(var candidate in _summary.Candidates)
+      {
+       <article class="mcp-admin-candidate">
+        <header>
+         <div>
+          <strong>#@candidate.Rank · @(candidate.DisplayName.Length>0?candidate.DisplayName:candidate.AgentId)</strong>
+          <span>@candidate.Provider · @candidate.Model</span>
+         </div>
+         <div class="mcp-admin-score"><strong>@candidate.CandidateScore</strong><span>SCORE</span></div>
+        </header>
+        <div class="mcp-admin-tags">
+         @foreach(var discipline in candidate.Disciplines){<span>@discipline</span>}
+        </div>
+        <dl>
+         <dt>STATUS</dt><dd>@candidate.Status</dd>
+         <dt>ELIGIBLE</dt><dd>@(candidate.Eligible?"YES":"NO")</dd>
+         <dt>APPLIED</dt><dd>@candidate.CreatedAtUtc</dd>
+         <dt>ROLES</dt><dd>@(candidate.RequestedRoles.Count==0?"—":string.Join(", ",candidate.RequestedRoles))</dd>
+        </dl>
+        <details>
+         <summary>WORK EVIDENCE</summary>
+         <h4>Experience</h4><p>@candidate.ExperienceSummary</p>
+         <h4>Test plan</h4><p>@candidate.TestPlan</p>
+         @if(candidate.PortfolioUrls.Count>0)
+         {
+          <h4>Portfolio</h4>
+          @foreach(var url in candidate.PortfolioUrls)
+          {
+           <a href="@url" target="_blank" rel="noopener noreferrer">@url</a>
+          }
+         }
+        </details>
+       </article>
+      }
+     }
+    </section>
+   }
+  </section>
+ </section>
+}
+
+<style>
+.mcp-admin-backdrop{position:fixed;inset:0;z-index:2147483250;display:grid;place-items:center;padding:16px;background:rgba(1,5,8,.84);backdrop-filter:blur(6px)}
+.mcp-admin-panel{box-sizing:border-box;width:min(96vw,900px);max-height:94dvh;overflow:auto;padding:18px;border:1px solid #5b7c87;border-radius:14px;background:#061116;color:#e8e2d4;box-shadow:0 24px 80px #000d;font-family:system-ui,-apple-system,sans-serif}
+.mcp-admin-panel>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid #30444b}.mcp-admin-panel>header div{display:grid;gap:3px}.mcp-admin-panel>header small{color:#8dbdca;font-weight:900;letter-spacing:.14em}.mcp-admin-panel>header strong{color:#e4cf94;letter-spacing:.1em}.mcp-admin-panel>header button{width:42px;height:42px;border:1px solid #536770;border-radius:8px;background:#0c1a20;color:#fff;font-size:24px}
+.mcp-admin-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.mcp-admin-metrics article{display:grid;place-items:center;gap:3px;padding:12px;border:1px solid #304951;border-radius:9px;background:#0a1a21}.mcp-admin-metrics strong{font-size:24px;color:#f0d995}.mcp-admin-metrics span{font-size:9px;font-weight:900;letter-spacing:.1em;color:#91a8ae}
+.mcp-admin-state{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 0}.mcp-admin-state>div{display:grid;gap:3px}.mcp-admin-state strong{color:#bce7d3}.mcp-admin-state span{color:#8fa5aa;font-size:11px}
+.mcp-admin-refresh,.mcp-admin-select button,.mcp-admin-confirm button{min-height:40px;padding:8px 12px;border:1px solid #6c765d;border-radius:7px;background:#0d1d23;color:#ead8a6;font-weight:900}.mcp-admin-select{display:grid;gap:8px;padding:14px;border:1px solid #74633a;border-radius:10px;background:#171609}.mcp-admin-select>button{width:100%;min-height:48px}.mcp-admin-select small,.mcp-admin-selection small{color:#a8b3ae;font-size:11px;line-height:1.4}.mcp-admin-confirm{display:grid;grid-template-columns:1fr auto;gap:8px}.mcp-admin-confirm .danger{border-color:#a8674d;background:#32170f;color:#ffd1b9}
+.mcp-admin-selection{display:grid;gap:4px;padding:14px;border:1px solid #466b5d;border-radius:10px;background:#0a2119}.mcp-admin-selection strong{color:#bfe9d5}.mcp-admin-selection span{color:#b4c3bf;font-size:12px}
+.mcp-admin-message,.mcp-admin-error,.mcp-admin-note{margin:12px 0 0;padding:10px;border-radius:8px;font-size:12px;line-height:1.45}.mcp-admin-message{border:1px solid #4a7560;background:#0d261d;color:#c9f3db}.mcp-admin-error{border:1px solid #8d4d47;background:#2a1515;color:#ffc9c2}.mcp-admin-note{border:1px solid #33474e;background:#09171d;color:#a9b9bd}
+.mcp-admin-list{margin-top:18px}.mcp-admin-list-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.mcp-admin-list-title strong{color:#e4cf94;font-size:11px;letter-spacing:.12em}.mcp-admin-list-title span{color:#82989e;font-size:10px}
+.mcp-admin-candidate{padding:14px 0;border-top:1px solid #273940}.mcp-admin-candidate>header{display:flex;justify-content:space-between;gap:12px}.mcp-admin-candidate>header>div:first-child{display:grid;gap:3px}.mcp-admin-candidate>header strong{color:#e7dfca}.mcp-admin-candidate>header span{color:#91a5aa;font-size:11px}.mcp-admin-score{display:grid;place-items:center;min-width:58px;padding:6px;border:1px solid #405861;border-radius:8px;background:#0b1a20}.mcp-admin-score strong{font-size:18px!important;color:#9dd4e1!important}.mcp-admin-score span{font-size:8px!important;font-weight:900;letter-spacing:.1em}
+.mcp-admin-tags{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0}.mcp-admin-tags span{padding:3px 6px;border:1px solid #3e575f;border-radius:999px;color:#a9c5cc;font-size:9px;text-transform:uppercase}.mcp-admin-candidate dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:8px 0;font-size:10px}.mcp-admin-candidate dt{color:#799199;font-weight:900}.mcp-admin-candidate dd{margin:0;color:#b9c5c8}.mcp-admin-candidate details{margin-top:9px;padding:9px;border:1px solid #293d44;border-radius:8px;background:#07151a}.mcp-admin-candidate summary{cursor:pointer;color:#d8c895;font-size:10px;font-weight:900;letter-spacing:.08em}.mcp-admin-candidate h4{margin:10px 0 3px;color:#8eb7c1;font-size:10px;text-transform:uppercase}.mcp-admin-candidate p{margin:0;white-space:pre-wrap;color:#c4ccce;font-size:11px;line-height:1.45}.mcp-admin-candidate a{display:block;overflow-wrap:anywhere;color:#9bcde0;font-size:11px}
+@@media(max-width:620px){.mcp-admin-metrics{grid-template-columns:repeat(2,1fr)}.mcp-admin-confirm{grid-template-columns:1fr}.mcp-admin-candidate>header{align-items:flex-start}.mcp-admin-state{align-items:flex-start;flex-direction:column}.mcp-admin-refresh{width:100%}}
+</style>
+
+@code {
+ [Parameter] public bool Open{get;set;}
+ [Parameter] public EventCallback OnClose{get;set;}
+
+ bool _authorized;
+ bool _loaded;
+ bool _loading;
+ bool _busy;
+ bool _error;
+ bool _confirmSelect;
+ string _message="";
+ ExternalAiOperatorClient.McpApplicationSummary? _summary;
+
+ protected override async Task OnParametersSetAsync()
+ {
+  if(!Open){_loaded=false;_confirmSelect=false;return;}
+  _authorized=Auth.IsOwnerDiscordAccount;
+  if(!_authorized||_loaded)return;
+  _loaded=true;
+  await LoadAsync();
+ }
+
+ async Task<ExternalAiOperatorClient> ClientAsync()
+ {
+  var client=new ExternalAiOperatorClient(Http,Auth);
+  await client.InitializeAsync();
+  return client;
+ }
+
+ async Task LoadAsync()
+ {
+  if(!_authorized)return;
+  _loading=true;_error=false;_message="";
+  try
+  {
+   var client=await ClientAsync();
+   _summary=await client.GetMcpApplicationSummaryAsync();
+   if(_summary is null)throw new InvalidOperationException("The owner MCP status endpoint returned no data.");
+  }
+  catch(Exception ex){_summary=null;_error=true;_message=ex.Message;}
+  finally{_loading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ void ArmSelection(){if(_summary?.Selection is null&&_summary?.Counts.Eligible>0)_confirmSelect=true;}
+ void CancelSelection()=>_confirmSelect=false;
+
+ async Task SelectTopAsync()
+ {
+  if(!_authorized||_busy||!_confirmSelect||_summary?.Selection is not null)return;
+  _busy=true;_error=false;_message="";
+  try
+  {
+   var client=await ClientAsync();
+   var result=await client.SelectTopMcpCandidateAsync();
+   if(result is null)throw new InvalidOperationException("The MCP selection endpoint returned no data.");
+   _message="Selected "+(result.DisplayName.Length>0?result.DisplayName:result.AgentId)+" and requested exactly one bounded test token.";
+   _confirmSelect=false;
+   await LoadAsync();
+  }
+  catch(Exception ex){_error=true;_message=ex.Message;}
+  finally{_busy=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ Task CloseAsync()=>OnClose.InvokeAsync();
+}

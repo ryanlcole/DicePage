@@ -138,6 +138,10 @@
    {
     <button type="button" @onclick="OpenCommerceAdmin"><span>⌁</span>ACCESS ADMIN</button>
    }
+   @if(Auth.IsOwnerDiscordAccount)
+   {
+    <button type="button" @onclick="OpenMcpAdmin"><span>◇</span>MCP ADMIN</button>
+   }
    @if(Session.IsLoggedIn)
    {
     <button type="button" @onclick="SwitchUserAsync"><span>⇄</span>SWITCH USER</button>
@@ -157,6 +161,7 @@
   <RegionGate Open="@_regionGateOpen" OnClose="CloseRegionGate" OnNew="OpenNewRegion" OnSelect="OpenSavedRegion" />
   <LocalGate Open="@_localGateOpen" OnClose="CloseLocalGate" OnNew="OpenNewLocal" OnSelect="OpenSavedLocal" OnDelete="DeleteSavedLocal" />
   <CommerceAdminPanel Open="@_commerceAdminOpen" OnClose="CloseCommerceAdmin" />
+  <McpAdminPanel Open="@_mcpAdminOpen" OnClose="CloseMcpAdmin" />
 
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
@@ -312,6 +317,7 @@ else
  bool _workspaceRestored;
  bool _settingsOpen;
  bool _commerceAdminOpen;
+ bool _mcpAdminOpen;
  bool _tickerOpen;
  bool _cardIndexOpen;
  string _launcherMenu="";
@@ -606,20 +612,22 @@ else
   _tickerOpen=false;
   Navigation.NavigateTo(Navigation.Uri,forceLoad:true);
  }
- public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_commerceAdminOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshExperienceStateAsync();}
+ public void OpenStartMenu(){_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshExperienceStateAsync();}
  void OpenSettings()=>OpenStartMenu();
- void OpenCommerceAdmin(){if(!Session.HasPlatformCommercialOverride)return;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=true;}
+ void OpenCommerceAdmin(){if(!Session.HasPlatformCommercialOverride)return;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_mcpAdminOpen=false;_commerceAdminOpen=true;}
  void CloseCommerceAdmin()=>_commerceAdminOpen=false;
+ void OpenMcpAdmin(){if(!Auth.IsOwnerDiscordAccount)return;_settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=true;}
+ void CloseMcpAdmin()=>_mcpAdminOpen=false;
  async Task SwitchUserAsync()
  {
-  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;
+  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;
   await Auth.LogoutAsync();
   Session.AdoptAuthentication(null);
   Navigation.NavigateTo("/Play/index.html",forceLoad:true);
  }
  async Task SignOutAsync()
  {
-  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;
+  _settingsOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;
   await Auth.LogoutAsync();
   Session.AdoptAuthentication(null);
   Navigation.NavigateTo("/",forceLoad:true);
@@ -747,6 +755,6 @@ else
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }

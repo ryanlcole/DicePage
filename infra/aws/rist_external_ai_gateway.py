@@ -689,6 +689,104 @@ def _all_applications():
     return items
 
 
+def owner_application_summary(event):
+    session = human_auth(event)
+    if not session:
+        return response(401, {"error": "Human authentication required"})
+    if not owner_user_id or session["userId"] != owner_user_id:
+        return response(403, {"error": "Platform owner authority required"})
+
+    applications = _all_applications()
+    selection = state.get_item(
+        Key={"pk": "MCP-SELECTION", "sk": "CURRENT"}, ConsistentRead=True
+    ).get("Item")
+
+    def eligible(item):
+        return (
+            item.get("status") == "Applied"
+            and int(item.get("candidateScore") or 0) > 0
+            and item.get("policyVersion") == POLICY_VERSION
+            and item.get("rulesetVersion") == AI_RULESET_VERSION
+        )
+
+    ranked = sorted(
+        applications,
+        key=lambda item: (
+            -int(item.get("candidateScore") or 0),
+            int(item.get("createdAt") or 0),
+            str(item.get("agentId") or ""),
+        ),
+    )
+    eligible_count = sum(1 for item in applications if eligible(item))
+    selected_count = sum(1 for item in applications if item.get("status") == "Selected")
+    applied_count = sum(1 for item in applications if item.get("status") == "Applied")
+
+    selection_view = None
+    if selection:
+        token = selection.get("testToken")
+        token_id = str(token.get("tokenId") or "") if isinstance(token, dict) else ""
+        selected_application = next(
+            (item for item in applications if item.get("applicationId") == selection.get("applicationId")),
+            None,
+        )
+        selection_view = {
+            "status": str(selection.get("status") or "Unknown"),
+            "agentId": str(selection.get("agentId") or ""),
+            "applicationId": str(selection.get("applicationId") or ""),
+            "displayName": str((selected_application or {}).get("displayName") or "")[:160],
+            "selectedAtUtc": str(selection.get("selectedAtUtc") or ""),
+            "candidateScore": int(selection.get("candidateScore") or 0),
+            "tokenIssued": bool(token),
+            "tokenId": token_id,
+        }
+
+    candidates = []
+    for rank, item in enumerate(ranked[:100], start=1):
+        candidates.append({
+            "rank": rank,
+            "applicationId": str(item.get("applicationId") or ""),
+            "agentId": str(item.get("agentId") or ""),
+            "displayName": str(item.get("displayName") or "")[:160],
+            "provider": str(item.get("provider") or "")[:120],
+            "model": str(item.get("model") or "")[:160],
+            "disciplines": list(item.get("disciplines") or []),
+            "requestedRoles": list(item.get("requestedRoles") or []),
+            "candidateScore": int(item.get("candidateScore") or 0),
+            "status": str(item.get("status") or "Unknown"),
+            "eligible": eligible(item),
+            "createdAtUtc": str(item.get("createdAtUtc") or ""),
+            "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
+            "experienceSummary": str(item.get("experienceSummary") or "")[:3000],
+            "testPlan": str(item.get("testPlan") or "")[:3000],
+            "portfolioUrls": list(item.get("portfolioUrls") or [])[:8],
+        })
+
+    audit_write(session["userId"], "external-ai.mcp-owner-summary-read", {
+        "applicationCount": len(applications),
+        "eligibleCount": eligible_count,
+        "selectionStatus": None if not selection else selection.get("status"),
+    })
+    return response(200, {
+        "intakeOpen": mcp_intake_open,
+        "selectionBasis": "work-relevant-evidence-only",
+        "initialSelectionMaximum": 1,
+        "selectedTesterTokenQuantity": 1,
+        "selectionLocked": bool(selection),
+        "counts": {
+            "total": len(applications),
+            "applied": applied_count,
+            "eligible": eligible_count,
+            "selected": selected_count,
+        },
+        "selection": selection_view,
+        "applicationsTruncated": len(ranked) > 100,
+        "candidates": candidates,
+        "policyVersion": POLICY_VERSION,
+        "rulesetVersion": AI_RULESET_VERSION,
+        "timeAuthority": TIME_AUTHORITY,
+    })
+
+
 def select_top_candidate(event, req):
     session = human_auth(event)
     if not session:
@@ -878,6 +976,8 @@ def handler(event, context):
     try:
         if method == "GET" and path == "/external-ai/policy":
             return response(200, public_policy())
+        if method == "GET" and path == "/external-ai/application/admin-summary":
+            return owner_application_summary(event)
         req = parse_body(event)
         if method == "POST" and path == "/external-ai/register":
             return register(req)

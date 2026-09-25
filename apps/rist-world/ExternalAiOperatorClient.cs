@@ -72,6 +72,12 @@ public sealed class ExternalAiOperatorClient(HttpClient http, DiscordAuthClient 
             canonicalNpcId
         });
 
+    public Task<McpApplicationSummary?> GetMcpApplicationSummaryAsync()
+        => SendAsync<McpApplicationSummary>(HttpMethod.Get, "/external-ai/application/admin-summary");
+
+    public Task<McpSelectionResult?> SelectTopMcpCandidateAsync()
+        => SendAsync<McpSelectionResult>(HttpMethod.Post, "/external-ai/application/select-top", new { });
+
     private async Task<T?> SendAsync<T>(HttpMethod method, string path, object? body = null)
     {
         if (!IsConfigured) return default;
@@ -103,4 +109,58 @@ public sealed class ExternalAiOperatorClient(HttpClient http, DiscordAuthClient 
         int LifeTokens,
         bool CanAct,
         bool InfrastructureLimitsChanged);
+
+    public sealed record McpApplicationCounts(
+        int Total,
+        int Applied,
+        int Eligible,
+        int Selected);
+
+    public sealed record McpApplicationSelection(
+        string Status,
+        string AgentId,
+        string ApplicationId,
+        string DisplayName,
+        string SelectedAtUtc,
+        int CandidateScore,
+        bool TokenIssued,
+        string TokenId);
+
+    public sealed record McpApplicationCandidate(
+        int Rank,
+        string ApplicationId,
+        string AgentId,
+        string DisplayName,
+        string Provider,
+        string Model,
+        List<string> Disciplines,
+        List<string> RequestedRoles,
+        int CandidateScore,
+        string Status,
+        bool Eligible,
+        string CreatedAtUtc,
+        string UpdatedAtUtc,
+        string ExperienceSummary,
+        string TestPlan,
+        List<string> PortfolioUrls);
+
+    public sealed record McpApplicationSummary(
+        bool IntakeOpen,
+        string SelectionBasis,
+        int InitialSelectionMaximum,
+        int SelectedTesterTokenQuantity,
+        bool SelectionLocked,
+        McpApplicationCounts Counts,
+        McpApplicationSelection? Selection,
+        bool ApplicationsTruncated,
+        List<McpApplicationCandidate> Candidates);
+
+    public sealed record McpSelectionResult(
+        string Status,
+        string AgentId,
+        string ApplicationId,
+        string DisplayName,
+        List<string> Disciplines,
+        string SelectionBasis,
+        string SelectedAtUtc);
 }
