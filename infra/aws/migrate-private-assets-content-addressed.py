@@ -188,7 +188,7 @@ def main() -> int:
         head = s3.head_object(Bucket=bucket, Key=full_key)
         metadata = head.get("Metadata") or {}
         existing_sha = (metadata.get("rist-content-sha256") or "").lower()
-        source_version = str(head.get("VersionId") or "")
+        current_version = str(head.get("VersionId") or "")
         content_type = infer_content_type(full_key, head.get("ContentType"))
 
         if existing_sha:
@@ -196,7 +196,10 @@ def main() -> int:
             size_bytes = int(metadata.get("rist-content-bytes") or 0)
             canonical = content_key(sha)
             state = "already-reference"
+            existing_ref = table.get_item(Key={"pk": ref_pk(user_id, relative_key)}).get("Item")
+            source_version = str((existing_ref or {}).get("sourceVersionId") or "")
         else:
+            source_version = current_version
             obj = s3.get_object(Bucket=bucket, Key=full_key)
             sha = sha256_stream(obj["Body"])
             size_bytes = int(head.get("ContentLength") or item.get("Size") or 0)
@@ -275,6 +278,17 @@ def main() -> int:
                 row["sourceVersionPurged"] = True
             else:
                 row["sourceVersionPurged"] = False
+
+        elif args.purge_source_version and source_version and source_version != "null":
+            try:
+                s3.delete_object(Bucket=bucket, Key=full_key, VersionId=source_version)
+                row["sourceVersionPurged"] = True
+            except ClientError as exc:
+                code = str((exc.response.get("Error") or {}).get("Code") or "")
+                if code in {"NoSuchVersion", "NoSuchKey", "404", "NotFound"}:
+                    row["sourceVersionPurged"] = True
+                else:
+                    raise
 
         row["stateAfter"] = "content-reference"
 
