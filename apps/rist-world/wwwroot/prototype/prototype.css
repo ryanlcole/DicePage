@@ -262,3 +262,85 @@
   .keyboard-keys button,.keyboard-keys select,.keyboard-keys input{min-height:48px}
   .keyboard-keys .local-name-input{grid-column:1/-1;width:100%}
 }
+
+
+/* RIST_RECURSIVE_SCOPE_V1 Region asset list.
+   Appearance uses GIMP-style row controls; Tier remains Shaelvien spatial depth. */
+.recursive-asset-list{
+  position:absolute;z-index:12500;top:10px;right:10px;bottom:10px;
+  width:min(780px,calc(100% - 20px));min-width:0;
+  display:grid;grid-template-rows:auto auto minmax(0,1fr);
+  border:1px solid #876d35;border-radius:12px;
+  background:rgba(5,13,18,.96);box-shadow:0 18px 48px rgba(0,0,0,.68);
+  color:#e9dec0;overflow:hidden;backdrop-filter:blur(10px);
+}
+.recursive-asset-list[hidden]{display:none!important}
+.recursive-asset-list>header{
+  display:grid;grid-template-columns:minmax(0,1fr) 38px;gap:8px;align-items:center;
+  padding:9px 10px;border-bottom:1px solid #334750;background:#09141a;
+}
+.recursive-asset-list>header>div{display:grid;gap:3px;min-width:0}
+.recursive-asset-list>header strong{font:900 12px/1 system-ui;color:#f0d68e;letter-spacing:.05em}
+.recursive-asset-list>header small{font:700 8px/1.2 system-ui;color:#91a7b0}
+.recursive-asset-list>header>button{
+  width:38px;height:38px;border:1px solid #50636c;border-radius:7px;
+  background:#101c22;color:#f0dba5;font-size:22px;
+}
+.recursive-asset-head,.recursive-asset-row{
+  display:grid;grid-template-columns:38px 38px minmax(150px,1fr) 105px 126px 126px 66px 72px;
+  gap:5px;align-items:center;
+}
+.recursive-asset-head{
+  padding:6px 8px;border-bottom:1px solid #25363e;
+  color:#80959e;font:900 7px/1 system-ui;text-transform:uppercase;
+}
+.recursive-asset-rows{min-height:0;overflow:auto;padding:4px}
+.recursive-asset-row{
+  min-height:56px;padding:5px 4px;border-bottom:1px solid #1d2c33;
+}
+.recursive-asset-row.selected{background:rgba(196,151,61,.09);box-shadow:inset 2px 0 #c59a45}
+.recursive-icon,.recursive-permission,.recursive-stepper button,.recursive-asset-name{
+  border:1px solid #40545e;border-radius:6px;background:#0c171d;color:#d9d4c4;
+}
+.recursive-icon{width:36px;height:36px;font-size:15px}
+.recursive-asset-name{
+  min-width:0;min-height:42px;padding:5px 7px;display:grid;text-align:left;gap:2px;
+}
+.recursive-asset-name strong,.recursive-asset-name small{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.recursive-asset-name strong{font:800 10px/1.2 system-ui;color:#e8dec4}
+.recursive-asset-name small{font:600 6px/1 system-ui;color:#70868f}
+.recursive-opacity{display:grid;gap:3px}
+.recursive-opacity span{font:800 7px/1 system-ui;color:#a8b8bf}
+.recursive-opacity input{width:100%;min-height:26px}
+.recursive-stepper{display:grid;grid-template-columns:34px minmax(32px,1fr) 34px;gap:3px;align-items:center}
+.recursive-stepper button{height:36px;font:900 14px/1 system-ui;color:#e5cf91}
+.recursive-stepper button:disabled{opacity:.35}
+.recursive-stepper span{
+  min-width:0;height:34px;display:grid;place-items:center;
+  border:1px solid #334850;border-radius:5px;background:#071116;
+  font:900 10px/1 system-ui;color:#e8dec4;
+}
+.recursive-link{font:900 7px/1 system-ui;text-align:center;color:#8ea2aa}
+.recursive-permission{min-height:34px;font:900 7px/1 system-ui;color:#d8bd76}
+.recursive-asset-empty{margin:0;padding:20px;text-align:center;color:#899da6;font:700 10px/1.4 system-ui}
+
+@media(max-width:760px){
+  .recursive-asset-list{top:4px;right:4px;bottom:4px;left:4px;width:auto}
+  .recursive-asset-head{display:none}
+  .recursive-asset-row{
+    grid-template-columns:38px 38px minmax(110px,1fr) 84px 104px 104px;
+    grid-template-areas:
+      "visible lock asset opacity layer tier"
+      "link permission asset opacity layer tier";
+  }
+  .recursive-asset-row>.recursive-icon:nth-child(1){grid-area:visible}
+  .recursive-asset-row>.recursive-icon:nth-child(2){grid-area:lock}
+  .recursive-asset-name{grid-area:asset}
+  .recursive-opacity{grid-area:opacity}
+  .recursive-asset-row>.recursive-stepper:nth-of-type(4){grid-area:layer}
+  .recursive-asset-row>.recursive-stepper:nth-of-type(5){grid-area:tier}
+  .recursive-link{grid-area:link}
+  .recursive-permission{grid-area:permission}
+}
