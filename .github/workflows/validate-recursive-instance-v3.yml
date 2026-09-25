@@ -31,6 +31,9 @@ jobs:
       - name: Verify Instance recursive contract
         run: python apps/rist-world/tests/test_recursive_scope_instance_contract.py
 
+      - name: Verify executable Instance geometry
+        run: dotnet run --project apps/rist-world/tests/instance-geometry/InstanceGeometryTests.csproj -c Release
+
       - name: Verify Local workflow regression
         run: python apps/rist-world/tests/test_local_definer.py
 
