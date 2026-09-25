@@ -138,7 +138,7 @@ def test_instance_launcher_and_router_use_dedicated_workspace():
     shell = read("Components/PublicAlphaShell.razor")
     router = read("Components/TaskWorkspaceRouter.razor")
     assert '@onclick="OpenInstance"' in shell
-    assert 'OpenWorkspace("instance","INSTANCE BUILDER","LOCAL 30° → MARKER + ASSET → INSTANCE 45°")' in shell
+    assert 'OpenWorkspace("instance","INSTANCE BUILDER","LOCAL 30° → MARKER + TOUCHED ASSET → INSTANCE 45° → CELLS")' in shell
     assert '"world","local","instance","accessibility"' in shell
     assert 'case "instance":_workspaceMode="instance"' in shell
     assert 'else if (Mode == "instance")' in router
@@ -153,6 +153,7 @@ def test_instance_builder_exposes_cell_rules_surfaces_and_gimp_asset_controls():
         "PLACE ON SELECTED SURFACE",
         "INSTANCE ASSETS · 45°",
         "PERMISSION FOR",
+        "LINK",
         "ELEVATION DISPLAY",
         "Every 10 steps = 1 parallax band",
     ):
