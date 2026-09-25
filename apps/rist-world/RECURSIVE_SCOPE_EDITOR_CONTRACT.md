@@ -7,8 +7,8 @@ Date: 2026-09-25
 
 The editor MUST keep these concepts independent:
 
-- **Layer** = GIMP-style visual composition order inside the current scope.
-- **Tier** = Shaelvien parallax/depth distance inside the current scope.
+- **Layer** = GIMP-style ordinary visual composition order inside the current scope. Layer never changes spatial depth.
+- **Tier** = Shaelvien parallax/depth distance inside the current scope. Tier never participates in ordinary draw-order sorting.
 - **Coordinates** = recursive coordinates local to the current scope.
 - **View** = scope representation angle; it is not a layer and not a tier.
 - **Permissions** = per-asset authority/visibility state; they do not alter geometry.
@@ -26,7 +26,7 @@ Every placed asset uses one recursive envelope:
 - x, y: coordinates local to the current scope.
 - viewDegrees: representation angle inherited from scope unless explicitly overridden.
 - tier: parallax/depth plane inside current scope.
-- layer: visual compositing order inside current tier.
+- layer: scope-local visual compositing order. Its value is independent of tier.
 - opacity / transparency / visibility.
 - linkedGroupId: optional visual grouping.
 - permissionResourceId: stable authority identity.
@@ -42,7 +42,7 @@ The first asset defines the scope's local origin. The camera may center it visua
 
 ## 3. GIMP-style layer behavior
 
-Within one scope and tier:
+Within one scope, Layer is the ordinary appearance stack and Tier is excluded from that stack's sort key. Tier may be used when choosing a placement default, but it never becomes an implicit draw-order component:
 
 1. Placing an asset that overlaps an existing asset assigns:
    layer = highest overlapping visible layer + 1.
@@ -51,8 +51,8 @@ Within one scope and tier:
 4. LAYER - decrements layer only, minimum 1.
 5. TIER + increments tier only.
 6. TIER - decrements tier only, minimum 1.
-7. Tier distance drives parallax.
-8. Layer order drives compositing.
+7. Tier distance drives parallax only.
+8. Layer order drives ordinary compositing only; assets are not sorted by Tier for ordinary draw order.
 9. FRONT/BACK is a layer-list operation, never a tier mutation.
 
 The layer panel is GIMP-inspired, not a copy of GIMP code or branding. Each row can expose:
