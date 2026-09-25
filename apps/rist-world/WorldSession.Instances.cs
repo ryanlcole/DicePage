@@ -509,11 +509,16 @@ public sealed partial class WorldSession
         return $"{value.ToString("0.###", CultureInfo.InvariantCulture)} {state.MeasurementUnit}";
     }
 
+    public double InstanceElevationUnitsPerStep => Math.Max(MinMeasurementPerCell, GridDistance) / 10d;
+
+    public string InstanceElevationStepSummary =>
+        $"1 elevation step = {FormatMeasurementNumber(InstanceElevationUnitsPerStep)} {MeasurementUnitName(InstanceElevationUnitsPerStep)}";
+
     public string FormatInstanceElevationForCurrentMeasurement(int elevationSteps)
     {
-        // The world's measurement authority translates Instance height only
-        // for display. It never mutates signed cell elevation truth.
-        var value = elevationSteps * GridDistance;
+        // Ten signed elevation steps equal one horizontal grid-distance for
+        // display translation. ElevationSteps remains the geometry authority.
+        var value = elevationSteps * InstanceElevationUnitsPerStep;
         return $"{FormatMeasurementNumber(value)} {MeasurementUnitName(value)}";
     }
 
