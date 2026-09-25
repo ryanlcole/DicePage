@@ -322,20 +322,39 @@
  readonly List<AssetPermissionResource> _assetResources=[];
  readonly List<AwsAuthorityClient.ResourcePermission> _resourcePermissions=[];
 
+ CampaignBehaviorState? _behaviorState;
+ readonly List<CampaignBehaviorTargetOption> _behaviorTargets=[];
+ bool _behaviorLoading;
+ string _behaviorStatus="";
+ string _behaviorQuickTarget="";
+ string _behaviorEditRuleId="";
+ string _behaviorName="";
+ string _behaviorKind="CONTEXTUAL_INTERACTION";
+ string _behaviorTargetKind="ASSET";
+ string _behaviorTargetId="";
+ string _behaviorThreshold="";
+ string _behaviorTrigger="";
+ string _behaviorAction="";
+ string _behaviorPayloadRefId="";
+ string _behaviorNotes="";
+ bool _behaviorEnabled=true;
+
  string TabClass(string tab)=>_tab==tab?"active":"";
  string StoryTabClass=>TabClass("story");
  string SessionsTabClass=>TabClass("sessions");
  string ScenesTabClass=>TabClass("scenes");
  string ActorsTabClass=>TabClass("actors");
+ string BehaviorsTabClass=>TabClass("behaviors");
  string NotesTabClass=>TabClass("notes");
  string ConnectionTabClass=>TabClass("connections")+" allies";
  void OpenStory()=>_tab="story";
  void OpenSessions()=>_tab="sessions";
  void OpenScenes()=>_tab="scenes";
  void OpenActors()=>_tab="actors";
+ async Task OpenBehaviorsAsync(){_tab="behaviors";await LoadBehaviorAsync();}
  void OpenConnections()=>_tab="connections";
  void OpenNotes()=>_tab="notes";
- string TabTitle=>_tab switch{"story"=>"Story Arc","sessions"=>"Sessions","scenes"=>"Scenes","actors"=>"Actors","notes"=>"Notes",_=>"Campaign"};
+ string TabTitle=>_tab switch{"story"=>"Story Arc","sessions"=>"Sessions","scenes"=>"Scenes","actors"=>"Actors","behaviors"=>"Behaviors","notes"=>"Notes",_=>"Campaign"};
  string InviteExpiry=>_invite is null?"":DateTimeOffset.FromUnixTimeSeconds(_invite.ExpiresAtEpoch).ToLocalTime().ToString("MMM d, h:mm tt");
  static string Initial(string value)=>string.IsNullOrWhiteSpace(value)?"?":value.Trim()[0].ToString().ToUpperInvariant();
  static string ConnectedDate(AwsAuthorityClient.CollaborationConnection value)=>DateTimeOffset.TryParse(value.ConnectedAtUtc,out var date)?date.ToLocalTime().ToString("MMM d, yyyy"):value.ConnectedAtUtc;
@@ -363,6 +382,197 @@
   if(!firstRender)return;
   await LoadConnectionsAsync();
   await LoadAssetResourcesAsync();
+ }
+
+ bool CanSaveBehavior=>!string.IsNullOrWhiteSpace(_behaviorTargetId)
+  &&WorldSession.CampaignBehaviorKinds.Contains(WorldSession.NormalizeCampaignBehaviorKind(_behaviorKind),StringComparer.Ordinal);
+
+ async Task LoadBehaviorAsync()
+ {
+  if(_behaviorLoading)return;
+  _behaviorLoading=true;_behaviorStatus="";
+  try
+  {
+   _behaviorState=await Session.LoadCampaignBehaviorAsync();
+   await LoadBehaviorTargetsAsync();
+  }
+  catch(Exception ex){_behaviorStatus="BEHAVIOR LOAD ERROR · "+ex.Message;}
+  finally{_behaviorLoading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task LoadBehaviorTargetsAsync()
+ {
+  _behaviorTargets.Clear();
+  if(!Session.HasActiveWorld)return;
+  try{await Session.LoadRegionsAsync();await Session.LoadLocalsAsync();await Session.LoadInstancesAsync();}catch{}
+
+  AddBehaviorTarget("WORLD",$"world:{Session.WorldId}",Session.WorldDisplayName);
+  foreach(var region in Session.DefinedRegions)
+   AddBehaviorTarget("REGION",region.RegionId,region.Name);
+  foreach(var local in Session.DefinedLocals)
+   AddBehaviorTarget("LOCAL",local.LocalId,local.Name);
+  foreach(var instance in Session.DefinedInstances)
+  {
+   AddBehaviorTarget("INSTANCE",instance.InstanceId,instance.Name);
+   try
+   {
+    var source=await Session.LoadInstanceMapAsync(instance.InstanceId);
+    if(source is null)continue;
+    foreach(var cell in source.State.Cells)
+    {
+     var cellId=WorldSession.InstanceCellId(instance.InstanceId,cell.Column,cell.Row);
+     AddBehaviorTarget("CELL",cellId,$"{instance.Name} · cell {cell.Column},{cell.Row}");
+     foreach(var surface in WorldSession.InstanceSurfacesForCell(source.State,cell.Column,cell.Row))
+      AddBehaviorTarget("SURFACE",surface.SurfaceId,$"{instance.Name} · {cell.Column},{cell.Row} · {surface.Face}");
+    }
+    foreach(var asset in source.State.Assets)
+     AddBehaviorTarget("ASSET",asset.PlacementId,$"{instance.Name} · {asset.Name}");
+   }
+   catch{}
+  }
+
+  try
+  {
+   var worldSource=await Session.LoadWorldBuilderSourceAsync();
+   CollectBehaviorAssetTargets(worldSource?.State,"World",Session.WorldDisplayName);
+  }
+  catch{}
+  foreach(var region in Session.DefinedRegions)
+  {
+   try{var source=await Session.LoadRegionSourceAsync(region.RegionId);CollectBehaviorAssetTargets(source?.State,"Region",region.Name);}catch{}
+  }
+  foreach(var local in Session.DefinedLocals)
+  {
+   try{var source=await Session.LoadLocalMapAsync(local.LocalId);CollectBehaviorAssetTargets(source?.State,"Local",local.Name);}catch{}
+  }
+
+  var unique=_behaviorTargets
+   .GroupBy(item=>item.Key,StringComparer.Ordinal)
+   .Select(group=>group.First())
+   .OrderBy(item=>item.Kind,StringComparer.Ordinal)
+   .ThenBy(item=>item.Label,StringComparer.OrdinalIgnoreCase)
+   .ToList();
+  _behaviorTargets.Clear();_behaviorTargets.AddRange(unique);
+ }
+
+ void CollectBehaviorAssetTargets(System.Text.Json.JsonElement? state,string scope,string parentName)
+ {
+  if(state is not {ValueKind:System.Text.Json.JsonValueKind.Object} root)return;
+  if(!root.TryGetProperty("userLayers",out var layers)||layers.ValueKind!=System.Text.Json.JsonValueKind.Array)return;
+  foreach(var layer in layers.EnumerateArray())
+  {
+   if(layer.ValueKind!=System.Text.Json.JsonValueKind.Object)continue;
+   var id=layer.TryGetProperty("id",out var idNode)&&idNode.ValueKind==System.Text.Json.JsonValueKind.String?idNode.GetString()??"":"";
+   if(string.IsNullOrWhiteSpace(id))continue;
+   var name=layer.TryGetProperty("name",out var nameNode)&&nameNode.ValueKind==System.Text.Json.JsonValueKind.String?nameNode.GetString()??"":"";
+   if(string.IsNullOrWhiteSpace(name)&&layer.TryGetProperty("text",out var textNode)&&textNode.ValueKind==System.Text.Json.JsonValueKind.String)name=textNode.GetString()??"";
+   if(string.IsNullOrWhiteSpace(name))name="Unnamed asset";
+   AddBehaviorTarget("ASSET",id,$"{scope} · {parentName} · {name}");
+  }
+ }
+
+ void AddBehaviorTarget(string kind,string id,string label)
+ {
+  kind=WorldSession.NormalizeCampaignTargetKind(kind);
+  id=(id??"").Trim();if(id.Length==0)return;
+  _behaviorTargets.Add(new(kind+"\u001f"+id,kind,id,(label??id).Trim()));
+ }
+
+ void ChooseBehaviorTarget(ChangeEventArgs e)
+ {
+  _behaviorQuickTarget=e.Value?.ToString()??"";
+  var target=_behaviorTargets.FirstOrDefault(item=>string.Equals(item.Key,_behaviorQuickTarget,StringComparison.Ordinal));
+  if(target is null)return;
+  _behaviorTargetKind=target.Kind;
+  _behaviorTargetId=target.Id;
+ }
+
+ async Task SaveBehaviorAsync()
+ {
+  if(!CanSaveBehavior||_behaviorLoading)return;
+  _behaviorLoading=true;_behaviorStatus="";
+  try
+  {
+   var rule=new CampaignBehaviorRule(
+    RuleId:_behaviorEditRuleId.Length>0?_behaviorEditRuleId:$"campaign-rule-{Guid.NewGuid():N}",
+    Name:_behaviorName,
+    BehaviorKind:_behaviorKind,
+    TargetKind:_behaviorTargetKind,
+    TargetId:_behaviorTargetId,
+    Threshold:_behaviorThreshold,
+    Trigger:_behaviorTrigger,
+    Action:_behaviorAction,
+    PayloadRefId:_behaviorPayloadRefId,
+    Notes:_behaviorNotes,
+    Enabled:_behaviorEnabled,
+    UpdatedAtUtc:DateTimeOffset.UtcNow);
+   await Session.UpsertCampaignBehaviorRuleAsync(rule);
+   _behaviorState=Session.CampaignBehavior;
+   ResetBehaviorEditor();
+   _behaviorStatus="Campaign behavior saved without changing map geometry.";
+  }
+  catch(Exception ex){_behaviorStatus="BEHAVIOR SAVE ERROR · "+ex.Message;}
+  finally{_behaviorLoading=false;}
+ }
+
+ void EditBehavior(CampaignBehaviorRule rule)
+ {
+  _behaviorEditRuleId=rule.RuleId;
+  _behaviorName=rule.Name;
+  _behaviorKind=rule.BehaviorKind;
+  _behaviorTargetKind=rule.TargetKind;
+  _behaviorTargetId=rule.TargetId;
+  _behaviorThreshold=rule.Threshold;
+  _behaviorTrigger=rule.Trigger;
+  _behaviorAction=rule.Action;
+  _behaviorPayloadRefId=rule.PayloadRefId;
+  _behaviorNotes=rule.Notes;
+  _behaviorEnabled=rule.Enabled;
+  _behaviorQuickTarget=_behaviorTargets.FirstOrDefault(item=>item.Kind==rule.TargetKind&&item.Id==rule.TargetId)?.Key??"";
+ }
+
+ void ResetBehaviorEditor()
+ {
+  _behaviorQuickTarget="";
+  _behaviorEditRuleId="";
+  _behaviorName="";
+  _behaviorKind="CONTEXTUAL_INTERACTION";
+  _behaviorTargetKind="ASSET";
+  _behaviorTargetId="";
+  _behaviorThreshold="";
+  _behaviorTrigger="";
+  _behaviorAction="";
+  _behaviorPayloadRefId="";
+  _behaviorNotes="";
+  _behaviorEnabled=true;
+ }
+
+ async Task ToggleBehaviorAsync(CampaignBehaviorRule rule)
+ {
+  if(_behaviorLoading)return;
+  _behaviorLoading=true;
+  try
+  {
+   await Session.UpsertCampaignBehaviorRuleAsync(rule with{Enabled=!rule.Enabled,UpdatedAtUtc=DateTimeOffset.UtcNow});
+   _behaviorState=Session.CampaignBehavior;
+  }
+  catch(Exception ex){_behaviorStatus="BEHAVIOR UPDATE ERROR · "+ex.Message;}
+  finally{_behaviorLoading=false;}
+ }
+
+ async Task DeleteBehaviorAsync(CampaignBehaviorRule rule)
+ {
+  if(_behaviorLoading)return;
+  _behaviorLoading=true;
+  try
+  {
+   await Session.DeleteCampaignBehaviorRuleAsync(rule.RuleId);
+   _behaviorState=Session.CampaignBehavior;
+   if(_behaviorEditRuleId==rule.RuleId)ResetBehaviorEditor();
+   _behaviorStatus="Campaign behavior removed. Referenced geometry was not changed.";
+  }
+  catch(Exception ex){_behaviorStatus="BEHAVIOR DELETE ERROR · "+ex.Message;}
+  finally{_behaviorLoading=false;}
  }
 
  async Task LoadConnectionsAsync()
