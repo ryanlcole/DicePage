@@ -16,6 +16,13 @@ def test_recursive_scope_format_and_scope_angles_are_canonical():
     assert '["INSTANCE"] = new("INSTANCE", 45, "LOCAL")' in source
 
 
+def test_parent_contract_excludes_tier_from_visual_sorting():
+    contract = read("RECURSIVE_SCOPE_EDITOR_CONTRACT.md")
+    assert "Layer never changes spatial depth." in contract
+    assert "Tier never participates in ordinary draw-order sorting." in contract
+    assert "Layer order drives ordinary compositing only; assets are not sorted by Tier for ordinary draw order." in contract
+
+
 def test_layer_tier_and_coordinates_have_independent_mutators():
     source = read("WorldSession.RecursiveScopeEditor.cs")
     assert "SetRecursivePlacementPosition" in source
