@@ -339,8 +339,8 @@
   .recursive-asset-row>.recursive-icon:nth-child(2){grid-area:lock}
   .recursive-asset-name{grid-area:asset}
   .recursive-opacity{grid-area:opacity}
-  .recursive-asset-row>.recursive-stepper:nth-of-type(4){grid-area:layer}
-  .recursive-asset-row>.recursive-stepper:nth-of-type(5){grid-area:tier}
+  .recursive-layer{grid-area:layer}
+  .recursive-tier{grid-area:tier}
   .recursive-link{grid-area:link}
   .recursive-permission{grid-area:permission}
 }
