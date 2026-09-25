@@ -1,5 +1,18 @@
 # RegionDefiner Contract
 
+> **Migration status — 2026-09-25:** The recursive authoring authority is now
+> [RECURSIVE_SCOPE_EDITOR_CONTRACT.md](RECURSIVE_SCOPE_EDITOR_CONTRACT.md).
+> The historical World-Z/region-hundredth rules below remain only as a
+> compatibility reference while existing prototype data is adapted. New Region
+> truth uses **REGION-local X/Y**, **Region Tier**, **visual Layer**, and a fixed
+> **15°** view under `RIST_RECURSIVE_SCOPE_V1`. Region Tier/Layer numbering
+> restarts at **1/1** and does not reuse World Tier/Layer addresses.
+>
+> The deed/claim remains the REGION scope boundary and inherited World content
+> remains read-only. Legacy `worldLayer`, `regionLayer`, and `z100` fields
+> may be emitted beside recursive truth during migration, but they are not the
+> new spatial authority.
+
 > Governing spatial model: [RECURSIVE_ZOOM_CONTRACT.md](RECURSIVE_ZOOM_CONTRACT.md).
 
 RegionDefiner is **WorldBuilder restricted to a claimed coordinate footprint**.
