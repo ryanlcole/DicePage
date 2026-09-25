@@ -34,6 +34,13 @@ public sealed partial class WorldSession
             return existing;
 
         var tier = NormalizeScopeTier(tile.TierIndex + 1);
+        var root = RecursiveScopeRoot(WorldEditorScopeKind, WorldId);
+        var rootTile = root is null
+            ? null
+            : PlacedTiles.FirstOrDefault(candidate =>
+                string.Equals(candidate.PlacementId, root.AssetId, StringComparison.Ordinal));
+        var localX = rootTile is null ? 0 : tile.X - rootTile.X;
+        var localY = rootTile is null ? 0 : tile.Y - rootTile.Y;
         var scopePlacements = RecursivePlacementsForScope(WorldEditorScopeKind, WorldId);
         var overlapping = scopePlacements
             .Where(item => item.Visible && item.Tier == tier)
@@ -58,8 +65,8 @@ public sealed partial class WorldSession
             WorldEditorScopeKind,
             WorldId) with
         {
-            X = tile.X,
-            Y = tile.Y,
+            X = localX,
+            Y = localY,
             Tier = tier,
             Layer = NormalizeScopeLayer(layer),
             Locked = false,
@@ -87,6 +94,9 @@ public sealed partial class WorldSession
         if (current is null)
             return null; // Never silently migrate legacy content.
 
+        SyncRecursiveWorldCoordinates();
+        current = RecursiveWorldPlacement(tile) ?? current;
+
         var tier = NormalizeScopeTier(tile.TierIndex + 1);
         var layer = current.Layer;
         if (bringForward)
@@ -98,14 +108,43 @@ public sealed partial class WorldSession
 
         var next = current with
         {
-            X = tile.X,
-            Y = tile.Y,
             Tier = tier,
             Layer = layer,
             LinkedGroupId = tile.GroupId ?? current.LinkedGroupId
         };
         UpsertRecursiveScopePlacement(next);
         return next.Normalize();
+    }
+
+    public bool SyncRecursiveWorldCoordinates()
+    {
+        if (!HasActiveWorld) return false;
+        var root = RecursiveScopeRoot(WorldEditorScopeKind, WorldId);
+        if (root is null) return false;
+
+        var rootTile = PlacedTiles.FirstOrDefault(tile =>
+            string.Equals(tile.PlacementId, root.AssetId, StringComparison.Ordinal));
+        if (rootTile is null) return false;
+
+        var changed = false;
+        foreach (var placement in RecursivePlacementsForScope(WorldEditorScopeKind, WorldId))
+        {
+            var tile = PlacedTiles.FirstOrDefault(candidate =>
+                string.Equals(candidate.PlacementId, placement.AssetId, StringComparison.Ordinal));
+            if (tile is null) continue;
+
+            var next = placement with
+            {
+                X = tile.X - rootTile.X,
+                Y = tile.Y - rootTile.Y
+            };
+            if (next == placement) continue;
+            UpsertRecursiveScopePlacementCore(next);
+            changed = true;
+        }
+
+        if (changed) Notify();
+        return changed;
     }
 
     public IReadOnlyList<TileItem> GetRecursiveWorldRenderTiles()
@@ -222,6 +261,21 @@ public sealed partial class WorldSession
     {
         if (string.IsNullOrWhiteSpace(tile.PlacementId))
             return false;
-        return RemoveRecursiveScopePlacement(WorldEditorScopeKind, WorldId, tile.PlacementId);
+
+        var wasRoot = string.Equals(
+            RecursiveScopeRoot(WorldEditorScopeKind, WorldId)?.AssetId,
+            tile.PlacementId,
+            StringComparison.Ordinal);
+        var removed = RemoveRecursiveScopePlacement(
+            WorldEditorScopeKind,
+            WorldId,
+            tile.PlacementId);
+
+        // If the authored origin is deleted, the next surviving authored asset
+        // becomes the new local x=0,y=0 root and the remaining coordinates
+        // rebase without changing their legacy screen positions.
+        if (removed && wasRoot)
+            SyncRecursiveWorldCoordinates();
+        return removed;
     }
 }
