@@ -5872,6 +5872,7 @@ window.ShaelvienPrototype=Object.freeze({
       worldLayer:REGION_DEFINER?regionWorldLayer(item):undefined,
       regionTier:REGION_DEFINER&&item.regionOverlay?regionOverlayTier(item):0,
       regionLayer:REGION_DEFINER&&item.regionOverlay?regionOverlayLayer(item):0,
+      legacyRegionLayer:REGION_DEFINER&&item.regionOverlay?clamp(Math.trunc(Number(item.regionLayer)||1),1,9):0,
       recursive:REGION_DEFINER&&item.regionOverlay&&recursiveRegionEnvelope(item)?{...recursiveRegionEnvelope(item)}:undefined,
       z100:REGION_DEFINER?(item.regionOverlay?regionZ100(regionWorldLayer(item),regionOverlayLayer(item)):regionWorldLayer(item)*100):undefined,
       sourceLocked:!!item.sourceLocked,regionOverlay:!!item.regionOverlay,
