@@ -56,6 +56,9 @@ jobs:
       - name: Verify authenticated launch contract
         run: python apps/rist-world/tests/authenticated_launch_contract_check.py
 
+      - name: Verify recursive scope editor contract
+        run: python apps/rist-world/tests/test_recursive_scope_worldbuilder_contract.py
+
       - name: Verify canonical viewer input and claimed deed overlay
         run: |
           npm install --prefix "$RUNNER_TEMP/rist-viewer-tests" --no-audit --no-fund jsdom@26.1.0
