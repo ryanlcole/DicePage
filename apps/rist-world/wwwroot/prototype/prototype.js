@@ -1131,6 +1131,22 @@ function mountUserPlacement(item){
   if(item.anchorTier==null)item.anchorTier=item.tier;
   const parent=item.localOverlay?ensureLocalEditLayer():(REGION_DEFINER&&item.regionOverlay?ensureRegionEditLayer():world);
   parent.appendChild(item.node);
+  if(item.node&&!item.node.dataset.ristAccessibilityBound){
+    item.node.dataset.ristAccessibilityBound='true';
+    item.node.setAttribute('tabindex','0');
+    item.node.setAttribute('role','button');
+    item.node.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){
+        event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.focus({preventScroll:true});return;
+      }
+      if(selectedImage!==item||assetInteractionMode!=='move'||item.positionLocked)return;
+      const step=event.shiftKey?24:8;
+      const dx=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;
+      const dy=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;
+      if(!dx&&!dy)return;
+      event.preventDefault();event.stopPropagation();nudgeSelectedByPixels(dx,dy);
+    });
+  }
 }
 function syncRegionEditLayer(){
   if(!REGION_DEFINER)return;
@@ -1183,9 +1199,10 @@ function updateLayerOrder(){
       ?(regionZ*10000)+(Math.max(0,Math.trunc(Number(item.localTier)||0))*1000)+(clamp(Math.trunc(Number(item.localLayer)||1),1,9)*100)
         +(Math.max(0,Math.trunc(Number(item.instanceTier)||0))*10)+clamp(Math.trunc(Number(item.instanceLayer)||0),0,9)
       :regionZ;
-    item.node.style.zIndex=String(REGION_DEFINER
+    const frontPin=item.stackPin==='front'?900000:0;
+    item.node.style.zIndex=String((REGION_DEFINER
       ? (LOCAL_DEFINER&&item.localOverlay?localZ:regionZ)+(index/1000)
-      : isWorldMapItem(item)?tierStackBase(0)+1:(item.committed?committedZ:1000+(index/100)));
+      : isWorldMapItem(item)?tierStackBase(0)+1:(item.committed?committedZ:1000+(index/100)))+frontPin);
     item.node.dataset.tier=String(item.tier);
     item.node.dataset.layer=String(item.layer);
     if(REGION_DEFINER){
