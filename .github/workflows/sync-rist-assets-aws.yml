@@ -87,30 +87,36 @@ jobs:
             --delete \
             --exclude 'sprites/pangea/registered/*' \
             --only-show-errors
-      - name: Restore registered Pangea sprites from frontend mirror
+      - name: Verify registered Pangea sprites in asset authority
         shell: bash
         run: |
           set -euo pipefail
-          FRONTEND_BUCKET=$(aws cloudformation describe-stacks \
-            --stack-name "$FRONTEND_STACK" \
-            --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
-            --output text)
-          test -n "$FRONTEND_BUCKET"
-          test "$FRONTEND_BUCKET" != "None"
-          aws s3 sync \
-            "s3://${FRONTEND_BUCKET}/Game/assets/sprites/pangea/registered/" \
-            "s3://${ASSET_BUCKET}/assets/sprites/pangea/registered/" \
-            --only-show-errors
-
+          FRONTEND_BUCKET=""
           for name in \
             geonaph_geo_x00_y00_t00_l00_ocean_floor_v001.png \
             geonaph_geo_x00_y00_t00_l09_ocean_surface_v001.png
           do
-            source_key="Game/assets/sprites/pangea/registered/GEO_X00_Y00/${name}"
             target_key="assets/sprites/pangea/registered/GEO_X00_Y00/${name}"
-            aws s3api head-object --bucket "$FRONTEND_BUCKET" --key "$source_key" >/dev/null
+            if ! aws s3api head-object --bucket "$ASSET_BUCKET" --key "$target_key" >/dev/null 2>&1; then
+              echo "::warning::Registered sprite missing from asset authority: $target_key"
+              if [ -z "$FRONTEND_BUCKET" ]; then
+                FRONTEND_BUCKET=$(aws cloudformation describe-stacks \
+                  --stack-name "$FRONTEND_STACK" \
+                  --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
+                  --output text)
+              fi
+              source_key="Game/assets/sprites/pangea/registered/GEO_X00_Y00/${name}"
+              if [ -n "$FRONTEND_BUCKET" ] && [ "$FRONTEND_BUCKET" != "None" ] && \
+                 aws s3api head-object --bucket "$FRONTEND_BUCKET" --key "$source_key" >/dev/null 2>&1; then
+                aws s3 cp "s3://${FRONTEND_BUCKET}/${source_key}" "s3://${ASSET_BUCKET}/${target_key}" --only-show-errors
+                echo "Restored registered sprite from legacy frontend mirror: $name"
+              else
+                echo "::error::Registered sprite is absent from both asset authority and legacy frontend mirror: $name"
+                exit 1
+              fi
+            fi
             aws s3api head-object --bucket "$ASSET_BUCKET" --key "$target_key" >/dev/null
-            echo "Verified registered sprite mirror: $name"
+            echo "Verified registered sprite authority: $name"
           done
       - name: Stage world atlas and card assets
         run: python apps/rist-world/prepare_aws_assets.py
