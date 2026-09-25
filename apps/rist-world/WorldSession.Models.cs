@@ -66,6 +66,37 @@ public sealed class MixerChannel(string name,int current,int max){public string 
 
 public sealed class SavedWorld
 {
- public string WorldId{get;set;}="";public string WorldName{get;set;}="";public string Reset{get;set;}="";public string OperatingMode{get;set;}="mmo";public string Role{get;set;}="GM";public string Layer{get;set;}="WORLD";public string GridStyle{get;set;}="square";public string DistanceUnit{get;set;}="mi";public string MeasurementKind{get;set;}="";public string MeasurefictSingular{get;set;}="";public string MeasurefictPlural{get;set;}="";public string MeasurefictAbbreviation{get;set;}="";public int GridDiameter{get;set;}=48;public double GridDistance{get;set;}=1;public double GridCalibrationZoom{get;set;}=1;public int CubeX{get;set;}public int CubeY{get;set;}public int CubeZ{get;set;}public WorldCubeRole CubeRole{get;set;}=WorldCubeRole.GameMaster;public int PlaneIndex{get;set;}public int TierIndex{get;set;}public int LayerOffset{get;set;}public List<PieceItem> Pieces{get;set;}=[];public List<TileItem> Tiles{get;set;}=[];public List<NpcBoundaryExchange> NpcBoundaryExchanges{get;set;}=[];
+ public string WorldId{get;set;}="";
+ public string WorldName{get;set;}="";
+ public string Reset{get;set;}="";
+ public string OperatingMode{get;set;}="mmo";
+ public string Role{get;set;}="GM";
+ public string Layer{get;set;}="WORLD";
+ public string GridStyle{get;set;}="square";
+ public string DistanceUnit{get;set;}="mi";
+ public string MeasurementKind{get;set;}="";
+ public string MeasurefictSingular{get;set;}="";
+ public string MeasurefictPlural{get;set;}="";
+ public string MeasurefictAbbreviation{get;set;}="";
+ public int GridDiameter{get;set;}=48;
+ public double GridDistance{get;set;}=1;
+ public double GridCalibrationZoom{get;set;}=1;
+ public int CubeX{get;set;}
+ public int CubeY{get;set;}
+ public int CubeZ{get;set;}
+ public WorldCubeRole CubeRole{get;set;}=WorldCubeRole.GameMaster;
+ public int PlaneIndex{get;set;}
+ public int TierIndex{get;set;}
+ public int LayerOffset{get;set;}
+ public List<PieceItem> Pieces{get;set;}=[];
+ public List<TileItem> Tiles{get;set;}=[];
+ public List<NpcBoundaryExchange> NpcBoundaryExchanges{get;set;}=[];
+
+ // RIST_RECURSIVE_SCOPE_V1 is persisted beside the legacy topology during
+ // migration. Missing values mean "legacy save not converted", never "infer
+ // recursive coordinates from appearance".
+ public string RecursiveScopeFormat{get;set;}="";
+ public List<RecursiveScopePlacement> RecursiveScopePlacements{get;set;}=[];
+
  public List<string> WorldBuilderQuickTileIds{get;set;}=[];
 }
