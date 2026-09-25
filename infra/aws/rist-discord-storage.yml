@@ -861,8 +861,16 @@ Resources:
 
             if route == "GET /storage/download":
                 key = prefix + safe_key(query.get("key"))
+                head = head_object_or_none(key)
+                if not head:
+                    return response(404, {"error": "Stored object not found"})
+                metadata = head.get("Metadata") or {}
+                sha256 = metadata.get("rist-content-sha256") or ""
+                target_key = content_object_key(sha256) if sha256 else key
+                if sha256 and not head_object_or_none(target_key):
+                    return response(409, {"error": "Content reference target is unavailable"})
                 url = s3.generate_presigned_url(
-                    "get_object", Params={"Bucket": BUCKET, "Key": key}, ExpiresIn=300
+                    "get_object", Params={"Bucket": BUCKET, "Key": target_key}, ExpiresIn=300
                 )
                 return response(200, {"url": url})
 
