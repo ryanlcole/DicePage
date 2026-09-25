@@ -90,8 +90,8 @@
        if(tile is not null)
        {
         <div class="scope-row" data-placement-id="@placement.AssetId">
-         <button type="button" class="scope-icon @(placement.Visible?"on":"")" @onclick="()=>ToggleWorldVisibilityAsync(placement)" aria-label="@(placement.Visible?"Hide":"Show") @tile.Name">@(placement.Visible?"◉":"○")</button>
-         <button type="button" class="scope-icon @(placement.Locked?"on":"")" @onclick="()=>ToggleWorldLockAsync(placement)" aria-label="@(placement.Locked?"Unlock":"Lock") @tile.Name">@(placement.Locked?"🔒":"🔓")</button>
+         <button type="button" class="scope-icon @(placement.Visible?"on":"")" aria-pressed="@placement.Visible" @onclick="()=>ToggleWorldVisibilityAsync(placement)" aria-label="@(placement.Visible?"Hide":"Show") @tile.Name">@(placement.Visible?"◉":"○")</button>
+         <button type="button" class="scope-icon @(placement.Locked?"on":"")" aria-pressed="@placement.Locked" @onclick="()=>ToggleWorldLockAsync(placement)" aria-label="@(placement.Locked?"Unlock":"Lock") @tile.Name">@(placement.Locked?"🔒":"🔓")</button>
          <div class="scope-asset"><span class="scope-thumb"><img src="@tile.Image" alt="" /></span><span><strong>@tile.Name</strong><small>@placement.AssetId</small></span></div>
          <label class="scope-opacity"><span>@Math.Round(placement.Opacity*100)%</span><input type="range" min="0" max="1" step=".05" value="@placement.Opacity.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture)" @onchange="e=>SetWorldOpacityAsync(placement,e)" aria-label="Opacity for @tile.Name" /></label>
          <div class="scope-stepper scope-layer"><button type="button" @onclick="()=>MoveWorldLayerAsync(placement,-1)" aria-label="Move @tile.Name back one visual layer">−</button><input type="number" min="1" value="@placement.Layer" @onchange="e=>SetWorldLayerAsync(placement,e)" aria-label="Visual layer for @tile.Name" /><button type="button" @onclick="()=>MoveWorldLayerAsync(placement,1)" aria-label="Move @tile.Name forward one visual layer">+</button></div>
@@ -198,7 +198,7 @@
  [Parameter] public EventCallback OnStartMenu{get;set;}
  IReadOnlyList<AtlasTile> VisibleQuickTiles=>_quickTiles.Where(ToolModeMatch).ToList();
  IReadOnlyList<RecursiveScopePlacement> WorldScopePlacements=>Session.HasActiveWorld
-  ?Session.RecursivePlacementsForScope("WORLD",Session.WorldId).OrderByDescending(item=>item.Layer).ThenBy(item=>item.Tier).ThenBy(item=>item.AssetId,StringComparer.Ordinal).ToList()
+  ?Session.RecursivePlacementsForScope("WORLD",Session.WorldId).OrderByDescending(item=>item.Layer).ThenBy(item=>item.AssetId,StringComparer.Ordinal).ToList()
   :[];
  int LegacyWorldTileCount=>Session.PlacedTiles.Count(tile=>!Session.HasRecursiveWorldPlacement(tile));
  TileItem? TileForPlacement(RecursiveScopePlacement placement)=>Session.PlacedTiles.FirstOrDefault(tile=>string.Equals(tile.PlacementId,placement.AssetId,StringComparison.Ordinal));
