@@ -7,7 +7,7 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     const string MapCardFormat = "RISTMAPCARD";
-    const int MapCardVersion = 4;
+    const int MapCardVersion = 5;
     readonly List<string> _activeMapCardQuickSlotTileIds = [];
     string _activeMapCardLanguageMode = "user";
     string _activeMapCardDisplayLanguage = "und";
@@ -68,16 +68,19 @@ public sealed partial class WorldSession
             Published = isPublished,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
             Tiles = tiles,
+            RecursiveScopeFormat = RecursiveScopeFormat,
+            RecursiveScopePlacements = ExportRecursiveScopePlacements(),
             QuickSlotTileIds = _activeMapCardQuickSlotTileIds.ToList(),
             RequiredAssetIds = requiredAssets,
-            PreviewSvg = BuildMapCardPreviewSvg(tiles),
+            PreviewSvg = BuildMapCardPreviewSvg(GetRecursiveWorldRenderTiles()),
             Language = language,
             Face = face
         };
         card.ManifestHash = ComputeCardManifestHash(new
         {
             card.CardId, card.CreatorProvenanceId, card.WorldId, card.MapName, card.Cartographer, card.Published,
-            card.Language, card.Face, card.Tiles, card.QuickSlotTileIds, card.RequiredAssetIds, card.AssetPackIds
+            card.Language, card.Face, card.Tiles, card.RecursiveScopeFormat, card.RecursiveScopePlacements,
+            card.QuickSlotTileIds, card.RequiredAssetIds, card.AssetPackIds
         });
         card.ArtDataMark = ComputeArtDataMark(card.CardId, RistCardType.World, card.ManifestHash);
         return card;
@@ -187,6 +190,7 @@ public sealed partial class WorldSession
     {
         PlacedTiles.Clear();
         PlacedTiles.AddRange(card.Tiles ?? []);
+        ImportRecursiveScopePlacements(card.RecursiveScopePlacements, card.RecursiveScopeFormat);
         _activeMapCardQuickSlotTileIds.Clear();
         _activeMapCardQuickSlotTileIds.AddRange((card.QuickSlotTileIds ?? []).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).Take(12));
         ActiveMapCardPublished = card.Published;
@@ -263,4 +267,6 @@ public sealed class MapCardDocument
     public List<string> RequiredAssetIds { get; set; } = [];
     public List<string> AssetPackIds { get; set; } = [];
     public List<TileItem> Tiles { get; set; } = [];
+    public string RecursiveScopeFormat { get; set; } = "";
+    public List<RecursiveScopePlacement> RecursiveScopePlacements { get; set; } = [];
 }
