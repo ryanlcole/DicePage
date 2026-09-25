@@ -42,7 +42,7 @@ async function sendState(frame,dotnet){
     post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
   }
 
-  if(mode==="regiondefiner"){
+  if(mode==="regiondefiner"||mode==="localdefiner"){
     try{
       const directory=await dotnet.invokeMethodAsync("GetPermissionDirectoryForPrototypeAsync");
       if(!isCurrentStateRequest(frame,revision))return;
