@@ -62,6 +62,26 @@ jobs:
       - name: Verify recursive Region scope contract
         run: python apps/rist-world/tests/test_recursive_scope_region_contract.py
 
+      - name: Verify recursive Local scope contract
+        run: python apps/rist-world/tests/test_recursive_scope_local_contract.py
+
+      - name: Verify recursive Instance scope contract
+        run: python apps/rist-world/tests/test_recursive_scope_instance_contract.py
+
+      - name: Verify Campaign behavior geometry boundary
+        run: python apps/rist-world/tests/test_campaign_behavior_contract.py
+
+      - name: Verify recursive executable models
+        run: |
+          dotnet run --project apps/rist-world/tests/instance-geometry/InstanceGeometryTests.csproj -c Release
+          dotnet run --project apps/rist-world/tests/campaign-behavior/CampaignBehaviorTests.csproj -c Release
+
+      - name: Verify Local and Campaign regressions
+        run: |
+          python apps/rist-world/tests/test_local_definer.py
+          python apps/rist-world/tests/test_campaign_connections.py
+          python apps/rist-world/tests/test_campaign_asset_permissions.py
+
       - name: Verify canonical viewer input and claimed deed overlay
         run: |
           npm install --prefix "$RUNNER_TEMP/rist-viewer-tests" --no-audit --no-fund jsdom@26.1.0
