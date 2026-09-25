@@ -158,3 +158,21 @@ def test_map_card_recursive_version_default_matches_writer():
     cards = read("WorldSession.MapCards.cs")
     assert "const int MapCardVersion = 5" in cards
     assert "public int Version { get; set; } = 5;" in cards
+
+
+def test_first_world_asset_forces_recursive_tier_one():
+    bridge = read("WorldSession.RecursiveWorldBuilder.cs")
+    assert "var isFirstAsset = root is null;" in bridge
+    assert "var tier = isFirstAsset ? 1" in bridge
+    assert "SetRecursiveWorldTileTier(tile.PlacementId, 1)" in bridge
+
+
+def test_layer_list_never_uses_tier_as_secondary_visual_order():
+    studio = read("Components/WorldBuilderStudio.razor")
+    visual_order = studio.split("WorldScopePlacements=>", 1)[1].split(
+        "int LegacyWorldTileCount", 1
+    )[0]
+    assert "OrderByDescending(item=>item.Layer)" in visual_order
+    assert "ThenBy(item=>item.Tier)" not in visual_order
+    assert 'aria-pressed="@placement.Visible"' in studio
+    assert 'aria-pressed="@placement.Locked"' in studio
