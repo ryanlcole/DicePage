@@ -136,6 +136,49 @@ def test_region_source_projector_writes_recursive_truth_beside_legacy_adapter():
     assert "status = \"legacy-compatibility-only\"" in source
 
 
+
+def test_region_has_shared_gimp_style_asset_list():
+    source = prototype()
+    style = read("wwwroot/prototype/prototype.css")
+    assert "const REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers'" in source
+    assert "function renderRecursiveAssetList()" in source
+    assert "REGION · 15°" in source
+    assert "Layer = appearance · Tier = depth · X/Y local to deed" in source
+    assert "recursive-icon" in source
+    assert "recursive-opacity" in source
+    assert "recursive-layer" in source
+    assert "recursive-tier" in source
+    assert "recursive-link" in source
+    assert "recursive-permission" in source
+    assert ".recursive-asset-list{" in style
+    assert "@media(max-width:760px)" in style
+
+
+def test_region_list_visibility_lock_and_opacity_are_recursive_appearance_state():
+    source = prototype()
+    editor = source.split("function updateRegionAssetFromList", 1)[1].split(
+        "function renderRecursiveAssetList", 1
+    )[0]
+    assert "item.recursive={...current,visible:" in editor
+    assert "item.positionLocked=!item.positionLocked" in editor
+    assert "item.opacity=clamp(Number(value),0,1)" in editor
+    assert "syncRegionRecursiveEnvelope(item)" in editor
+    parallax = source.split("function applyParallax()", 1)[1].split(
+        "function updateReadouts", 1
+    )[0]
+    assert "recursiveRegionEnvelope(item)?.visible!==false" in parallax
+    assert "opacity:clamp(Number(item.opacity??1),0,1)" in source
+
+
+def test_region_list_permission_is_identity_projection_not_geometry():
+    source = prototype()
+    panel = source.split("function renderRecursiveAssetList()", 1)[1].split(
+        "function syncRegionEditLayer", 1
+    )[0]
+    assert "permissionResourceId" in panel
+    assert "Authority remains server controlled." in panel
+    assert "Permission identity" in panel
+
 if __name__ == "__main__":
     tests = [
         value for name, value in sorted(globals().items())
