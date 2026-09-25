@@ -230,3 +230,13 @@ def test_local_catalog_deduplicates_by_region_anchor_and_supports_guarded_delete
     assert "DeleteAsync(WorldLocal local)" in gate
     assert 'OnDelete="DeleteSavedLocal"' in shell
     assert "await Session.DeleteLocalAsync(local);" in shell
+
+
+if __name__ == "__main__":
+    tests = [
+        value for name, value in sorted(globals().items())
+        if name.startswith("test_") and callable(value)
+    ]
+    for test in tests:
+        test()
+    print(f"Local Definer regression: {len(tests)} checks passed")
