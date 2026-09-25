@@ -33,8 +33,9 @@ public sealed partial class WorldSession
         if (existing is not null)
             return existing;
 
-        var tier = NormalizeScopeTier(tile.TierIndex + 1);
         var root = RecursiveScopeRoot(WorldEditorScopeKind, WorldId);
+        var isFirstAsset = root is null;
+        var tier = isFirstAsset ? 1 : NormalizeScopeTier(tile.TierIndex + 1);
         var rootTile = root is null
             ? null
             : PlacedTiles.FirstOrDefault(candidate =>
@@ -77,7 +78,15 @@ public sealed partial class WorldSession
         };
 
         UpsertRecursiveScopePlacement(placement);
-        return placement.Normalize();
+
+        // The first recursive WORLD asset defines the new scope origin and its
+        // initial depth. Project it onto legacy TierIndex 0 regardless of where
+        // the compatibility viewer happened to be when the scope was created.
+        if (isFirstAsset && (tile.TierIndex != 0 || tile.LayerOffset != 0))
+            SetRecursiveWorldTileTier(tile.PlacementId, 1);
+
+        return FindRecursiveScopePlacement(WorldEditorScopeKind, WorldId, tile.PlacementId)
+            ?? placement.Normalize();
     }
 
     public RecursiveScopePlacement? SyncRecursiveWorldTile(string placementId, bool bringForward = false)
@@ -222,7 +231,8 @@ public sealed partial class WorldSession
             LayerOffset = 0
         };
 
-        if (tile != nextTile)
+        var compatibilityChanged = tile != nextTile;
+        if (compatibilityChanged)
         {
             // Relocate by stable placement identity directly in the legacy
             // storage adapter. This is independent of CompositeZView so a
@@ -254,7 +264,12 @@ public sealed partial class WorldSession
             LoadCurrentSpatialPage();
         }
 
-        return SetRecursivePlacementTier(WorldEditorScopeKind, WorldId, placementId, canonicalTier);
+        var recursiveChanged = SetRecursivePlacementTier(
+            WorldEditorScopeKind,
+            WorldId,
+            placementId,
+            canonicalTier);
+        return compatibilityChanged || recursiveChanged;
     }
 
     public bool RemoveRecursiveWorldPlacement(TileItem tile)
