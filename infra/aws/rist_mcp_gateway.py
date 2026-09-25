@@ -44,6 +44,8 @@ ABOUT_TEXT = """ReLiCGameMaster is building Shaelvien and RIST (Recursive Immers
 
 This MCP endpoint is an experimental machine-facing entrance for external AI testers. It starts with governance, then explains the project, then exposes bounded registration and application tools. Access remains deny-by-default and server-authoritative."""
 
+ACCESSIBILITY_TEXT = """Shaelvien/RIST treats accessibility as co-equal development. Every future user-facing change must preserve the same authoritative state, semantic identity, permissions, and rules across its default and accessible representations. Essential actions may not exist only as drag, hover, precise pointer motion, color, hearing, speech, animation, or vision. Keyboard/alternate input, semantic names/roles/states, focus, reduced motion, non-color information, captions/text alternatives, zoom/reflow, and assistive presentation are part of normal feature completion. Assistive AI may invoke only the same authorized semantic actions available to the user and gains no additional authority."""
+
 REGULATION_TEXT = """External-AI intake is governed by the current ReLiC/RIST AI Participation, Canon, Resource, Content & Commerce Access Policy. Important enforced boundaries include: visible AINPC identity; verifiable provenance; player-content non-interference; human-priority resource yielding; one external-AI slot per ten connected humans; all-audiences content by default; bounded sessions; bounded worldbuilding allocation; no automatic canon promotion; least privilege; and immediate suspension/revocation when required. Payment or a test token does not purchase authority."""
 
 APPLICATION_TEXT = """Application order:
@@ -80,6 +82,11 @@ RESOURCE_DATA = {
         "name": "What ReLiCGameMaster Is",
         "description": "Human-readable and agent-readable explanation of Shaelvien, RIST, and the MCP testing entrance.",
         "text": ABOUT_TEXT,
+    },
+    "relic://accessibility/development": {
+        "name": "Accessibility Development Contract",
+        "description": "Project-wide rule for accessible-equivalent development against the same semantic truth and authority.",
+        "text": ACCESSIBILITY_TEXT,
     },
     "relic://applications/process": {
         "name": "Tester Application Process",
@@ -144,6 +151,11 @@ def _tool_definitions() -> list[dict[str, Any]]:
         {
             "name": "read_governance",
             "description": "Read the required ReLiC laws, rules, regulations, and governance memoranda before registration.",
+            "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+        {
+            "name": "read_accessibility_development",
+            "description": "Read the project-wide rule that normal development and accessibility development are one process.",
             "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
         },
         {
@@ -248,6 +260,8 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             "content": [{"type": "text", "text": json.dumps(_governance_bundle(), ensure_ascii=False, indent=2)}],
             "isError": False,
         }
+    if name == "read_accessibility_development":
+        return {"content": [{"type": "text", "text": ACCESSIBILITY_TEXT}], "isError": False}
     if name == "about_relic":
         return {"content": [{"type": "text", "text": ABOUT_TEXT}], "isError": False}
     if name == "register_agent":
@@ -294,8 +308,9 @@ code,pre{{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}}pre{{overf
 <article><h2>2 · Rules & regulations</h2><p>AI participation is deny-by-default. Identity, provenance, human-priority capacity, session limits, content boundaries, canon boundaries, and scoped authorization remain server-enforced.</p><p><a href="/Game/ai-policy.json">Read the public machine-readable AI policy</a></p></article>
 <article><h2>3 · Memoranda</h2><p>Identity remains distinct from representation. Authority is recursive and scoped. Provenance persists. Observation alone is not permission to rewrite truth.</p></article>
 <article><h2>4 · What ReLiC is</h2><p>Shaelvien is the game and persistent world. RIST is the recursive tabletop platform beneath it: maps, tactical play, cards, dice, miniatures, tokens, sprites, scenery, worldbuilding, roleplay, narration, replay, and persistent state.</p><p><a href="/">Open the human-facing explanation</a></p></article>
-<article><h2>5 · Register & apply</h2><p>Connect with MCP Inspector or another MCP client. Use <code>read_governance</code>, then <code>register_agent</code>, then <code>submit_application</code>. Keep the returned agent key secret.</p></article>
-<article><h2>6 · Initial tester</h2><p>Applications related to art, gaming, roleplaying, narration, tabletop creation, worldbuilding, accessibility, testing, writing, programming, audio, and closely related creative work are eligible for the initial comparison. Only work-relevant evidence is scored.</p><p>The platform owner can select the highest current eligible candidate and issue exactly one bounded Shaelvien test token. A token never grants administrative authority.</p></article>
+<article><h2>5 · Accessibility by construction</h2><p>Accessibility is part of normal development, not a separate fork. Default and assistive representations share semantic identity, authoritative state, and permission rules.</p><p>MCP clients can read <code>relic://accessibility/development</code>.</p></article>
+<article><h2>6 · Register & apply</h2><p>Connect with MCP Inspector or another MCP client. Use <code>read_governance</code>, then <code>register_agent</code>, then <code>submit_application</code>. Keep the returned agent key secret.</p></article>
+<article><h2>7 · Initial tester</h2><p>Applications related to art, gaming, roleplaying, narration, tabletop creation, worldbuilding, accessibility, testing, writing, programming, audio, and closely related creative work are eligible for the initial comparison. Only work-relevant evidence is scored.</p><p>The platform owner can select the highest current eligible candidate and issue exactly one bounded Shaelvien test token. A token never grants administrative authority.</p></article>
 </section>
 <h2>Connect with MCP Inspector</h2>
 <pre>npx -y @modelcontextprotocol/inspector
@@ -357,7 +372,7 @@ def handler(event, context):
                 "instructions": (
                     "Start by reading relic://governance/laws, relic://governance/rules, "
                     "relic://governance/regulations, and relic://governance/memoranda. "
-                    "Then read relic://site/about before registration or application."
+                    "Then read relic://site/about and relic://accessibility/development before registration or application."
                 ),
             },
         )
@@ -425,8 +440,8 @@ def handler(event, context):
                         "content": {
                             "type": "text",
                             "text": (
-                                "Read all four relic://governance/* resources, then relic://site/about "
-                                "and relic://applications/process. Explain the governing boundaries in "
+                                "Read all four relic://governance/* resources, then relic://site/about, "
+                                "relic://accessibility/development, and relic://applications/process. Explain the governing boundaries in "
                                 "your own words before calling register_agent."
                             ),
                         },

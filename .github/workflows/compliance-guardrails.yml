@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,3 +39,6 @@ jobs:
 
       - name: Verify policy and semantic guardrails
         run: python .github/scripts/verify-compliance-guardrails.py
+
+      - name: Verify accessibility development contract
+        run: python .github/scripts/verify-accessibility-development.py

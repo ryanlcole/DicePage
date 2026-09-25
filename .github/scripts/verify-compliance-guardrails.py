@@ -26,6 +26,8 @@ def require_text(path: str, phrases: list[str]) -> None:
 required_files = [
     "docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md",
     "docs/SHAELVIEN_ADAPTIVE_PERCEPTION.md",
+    "docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md",
+    "knowledge/project/accessibility-development.json",
     "apps/rist-world/AUTHORITY_SYSTEM.md",
     "apps/rist-world/wwwroot/ai-policy.json",
     "apps/rist-world/wwwroot/terms.html",
@@ -74,6 +76,17 @@ require_text(
         "docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md",
         "fail closed or preserve the prior lawful behavior",
         "Semantic efficiency never outranks lawful human requirements",
+        "docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md",
+        "Every future Shaelvien/RIST change is both normal development and accessibility development.",
+    ],
+)
+
+require_text(
+    "docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md",
+    [
+        "Every future Shaelvien/RIST change is both normal development and accessibility development.",
+        "Accessibility is not a fork",
+        "Accessibility may never be bypassed merely to ship faster.",
     ],
 )
 

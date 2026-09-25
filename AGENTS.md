@@ -7,6 +7,7 @@ This repository contains an experimental semantic programming and transport lang
 Before changing runtime behavior, authority, AI/EI behavior, user data handling, perception, input, deployment, monetization, accessibility, or any semantic execution path, read:
 
 1. `docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md` — foundational engineering constraint for law, human/AI policy, safety, consent, privacy, accessibility, ownership, lawful process, and non-bypass behavior.
+2. `docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md` — project-wide rule that every future change is normal development and accessibility development against the same semantic truth.
 2. `apps/rist-world/AUTHORITY_SYSTEM.md` — foundational Recursive Authority & Supervision contract.
 3. `apps/rist-world/wwwroot/ai-policy.json` — deployed AI-access policy.
 4. The deployed legal/safety surfaces under `apps/rist-world/wwwroot/`, including `terms.html`, `privacy.html`, `safety.html`, `dmca.html`, and `accessibility.html`.
@@ -119,6 +120,8 @@ Before changing card execution, Powers/Magic, feats, buffs, conditions, equipmen
 Do not move effect truth into sprites, images, hex highlights, or other representations. Do not split summoned token identity from its Character/NPC card identity. Do not create a separate Magic runtime when the Power/effect engine is sufficient.
 
 ## Change discipline
+
+Every future Shaelvien/RIST change is both normal development and accessibility development. A user-facing change is not complete until its accessibility impact has been considered and any necessary equivalent path uses the same authoritative state, semantic identity, permissions, and rules. Do not create visual-only, pointer-only, audio-only, motion-only, or color-only essential authority paths.
 
 Executable repository behavior remains runtime truth until the semantic compiler/runtime is explicitly promoted to authoritative execution. If the contract/manifest/reference and working implementation disagree, preserve working behavior, identify the mismatch, and reconcile the semantic layer rather than silently changing behavior.
 

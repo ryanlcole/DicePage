@@ -1,0 +1,47 @@
+{
+  "contract": "shaelvien.accessibility-development",
+  "version": "1.0.0",
+  "status": "project-wide-owner-directed-rule",
+  "effectiveDate": "2026-09-25",
+  "coreRule": "Every future Shaelvien/RIST change is both normal development and accessibility development.",
+  "sameTruth": true,
+  "separateAccessibilityAuthority": false,
+  "defaultRequirement": "user-facing changes require an accessibility-equivalent representation/input path appropriate to the capability",
+  "required": {
+    "keyboard": true,
+    "pointerIndependentEssentialActions": true,
+    "semanticNamesRolesStates": true,
+    "visibleFocus": true,
+    "logicalFocusOrder": true,
+    "nonColorInformation": true,
+    "reducedMotion": true,
+    "zoomReflow": true,
+    "textAlternativesForEssentialAudio": true,
+    "audioOrSemanticAlternativesForEssentialVisualInformation": true,
+    "accessibleStatusAnnouncements": true,
+    "sharedAuthoritativeState": true,
+    "sharedRecursiveAuthority": true
+  },
+  "aiAssist": {
+    "allowed": true,
+    "authorityGain": false,
+    "rule": "Assistive AI may invoke only the same authorized semantic actions available to the user."
+  },
+  "verification": {
+    "automatedEvidenceNotProof": true,
+    "humanAssistiveTechnologyTestingRequiredWhereAutomationCannotEstablishBehavior": true,
+    "preferredDeveloperChecks": [
+      "accessibility-tree inspection",
+      "keyboard-only traversal",
+      "focus-order and focus-visibility checks",
+      "semantic names/roles/states",
+      "contrast and non-color-state checks",
+      "reduced-motion checks",
+      "zoom/reflow checks",
+      "captions/transcripts/text alternatives",
+      "pointer-independent action checks"
+    ]
+  },
+  "canonicalHumanReference": "docs/ACCESSIBILITY_DEVELOPMENT_CONTRACT.md",
+  "semanticClient": "apps/rist-world/Components/AccessibilityShell.razor"
+}
