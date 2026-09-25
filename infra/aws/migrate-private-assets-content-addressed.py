@@ -10,6 +10,7 @@ import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Optional, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -44,7 +45,7 @@ def ref_pk(user_id: str, relative_key: str) -> str:
     return "contentref#" + digest
 
 
-def split_user_key(key: str) -> tuple[str, str] | None:
+def split_user_key(key: str) -> Optional[Tuple[str, str]]:
     parts = key.split("/", 2)
     if len(parts) != 3 or parts[0] != "users":
         return None
@@ -59,7 +60,7 @@ def is_user_image(relative_key: str) -> bool:
     )
 
 
-def infer_content_type(key: str, current: str | None) -> str:
+def infer_content_type(key: str, current: Optional[str]) -> str:
     if current and current.startswith("image/"):
         return current
     guessed = mimetypes.guess_type(key)[0]
