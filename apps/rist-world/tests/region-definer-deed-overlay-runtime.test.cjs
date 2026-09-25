@@ -8,8 +8,11 @@ const {JSDOM}=require('jsdom');
 const root=path.join(__dirname,'../wwwroot/prototype');
 
 function fixture(flow='new',options={}){
+  const mode=String(options.mode||'regiondefiner');
+  const regionId=options.regionId!==undefined?String(options.regionId):(flow==='existing'?'region-test':'');
+  const localId=options.localId!==undefined?String(options.localId):'';
   const dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{
-    url:`https://viewer.test/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&seed=empty&worldId=deed-runtime-test&access=edit&regionFlow=${flow}&regionId=${flow==='existing'?'region-test':''}`,
+    url:`https://viewer.test/Game/prototype/index.html?live-worldbuilder=1&mode=${mode}&seed=empty&worldId=deed-runtime-test&access=edit&regionFlow=${flow}&regionId=${regionId}&localId=${localId}`,
     runScripts:'outside-only',
     pretendToBeVisual:true
   });
@@ -392,6 +395,104 @@ test('Region Tier drives parallax while visual Layer alone drives composition',a
     assert.equal(city.regionLayer,10,'Region diagnostics report canonical visual Layer');
     assert.equal(city.legacyRegionLayer,9,'legacy regionLayer remains a bounded compatibility projection');
     assert.equal(city.z100,209,'legacy z100 clamps only its compatibility layer component');
+  }finally{f.close()}
+});
+
+test('Local scope restarts at root and keeps Tier separate from visual Layer',async()=>{
+  const f=fixture('existing',{mode:'localdefiner',regionId:'region-test'});
+  try{
+    const region={...deed,canEdit:true};
+    const regionAnchor={
+      kind:'label',id:'region-city',regionId:'region-test',name:'Region City',text:'Region City',
+      tier:0,worldLayer:2,layer:2,regionLayer:1,z100:201,x:.1,y:.1,committed:true,
+      recursive:{
+        format:'RIST_RECURSIVE_SCOPE_V1',assetId:'region-city',scopeKind:'REGION',scopeId:'region-test',
+        parentScopeId:'deed-runtime-test',parentAssetId:'world:deed-runtime-test',
+        x:.5,y:.5,tier:1,layer:1,viewDegrees:15,opacity:1,visible:true,locked:false,
+        linkedGroupId:'',permissionResourceId:'asset:region-city'
+      }
+    };
+    host(f,'catalog',{regions:[region]});
+    host(f,'world-source',{worldSource:{
+      worldId:'deed-runtime-test',regionId:'region-test',activeRegionId:'region-test',
+      state:projectedState({userLayers:[regionAnchor]})
+    }});
+    await tick();await tick();
+
+    const local={
+      id:'local-test',name:'Old Tavern',regionId:'region-test',
+      anchorObjectId:'region-city',anchorAssetId:'',anchorName:'Region City',anchorKind:'label',
+      x:.1,y:.1,width:.12,height:.12,tier:0,layer:2,
+      worldTier:0,worldLayer:2,regionTier:1,regionLayer:1,
+      localTier:1,localLayer:1,instanceTier:0,instanceLayer:0,
+      recursiveScopeFormat:'RIST_RECURSIVE_SCOPE_V1',viewDegrees:30,
+      parentScopeId:'region-test',parentAssetId:'region-city',
+      parentRegionTier:1,parentRegionLayer:1
+    };
+    host(f,'local-catalog',{locals:[local]});
+    host(f,'local-opened',{
+      localId:'local-test',
+      localSource:{
+        worldId:'deed-runtime-test',regionId:'region-test',localId:'local-test',
+        state:{
+          format:'RIST_LOCAL_MAP_V3',
+          recursiveScopeFormat:'RIST_RECURSIVE_SCOPE_V1',
+          coordinateSpace:'local-root-recursive-v1',
+          userLayers:[{
+            kind:'label',id:'local-child',regionId:'region-test',localId:'local-test',localOverlay:true,
+            name:'Table',text:'Table',tier:0,worldTier:0,worldLayer:2,regionTier:1,regionLayer:1,
+            localTier:1,localLayer:2,x:.1,y:.1,committed:true,
+            recursive:{
+              format:'RIST_RECURSIVE_SCOPE_V1',assetId:'local-child',scopeKind:'LOCAL',scopeId:'local-test',
+              parentScopeId:'region-test',parentAssetId:'region-city',
+              x:.2,y:0,tier:1,layer:2,viewDegrees:30,opacity:1,visible:true,locked:false,
+              linkedGroupId:'',permissionResourceId:'asset:local-child'
+            }
+          }]
+        }
+      }
+    });
+    await tick();await tick();
+
+    let state=f.w.ShaelvienPrototype.getViewerState();
+    let child=state.userLayers.find(x=>x.id==='local-child');
+    assert.ok(child,'Local child must restore');
+    assert.equal(child.recursive?.scopeKind,'LOCAL');
+    assert.equal(child.recursive?.scopeId,'local-test');
+    assert.equal(child.recursive?.parentAssetId,'region-city');
+    assert.equal(child.recursive?.viewDegrees,30);
+    assert.equal(child.recursive?.x,.2);
+    assert.equal(child.recursive?.y,0);
+    assert.equal(child.localTier,1);
+    assert.equal(child.localLayer,2);
+    assert.equal(child.legacyLocalLayer,2);
+
+    tab(f,'Layers');
+    const rootRow=f.d.querySelector('.recursive-root-row');
+    assert.ok(rootRow,'Local list must expose the locked parent root');
+    assert.equal(rootRow.dataset.root,'true');
+    assert.ok(rootRow.textContent.includes('ROOT'));
+    const rootButtons=Array.from(rootRow.querySelectorAll('button'));
+    assert.ok(rootButtons.length>=2&&rootButtons.every(button=>button.disabled),'Local root row must be read only');
+
+    const childRow=()=>f.d.querySelector('.recursive-asset-row[data-asset-id="local-child"]');
+    assert.ok(childRow(),'Local child must appear in recursive asset list');
+    for(let i=0;i<8;i++)childRow().querySelector('.recursive-layer button:last-of-type').click();
+
+    state=f.w.ShaelvienPrototype.getViewerState();
+    child=state.userLayers.find(x=>x.id==='local-child');
+    assert.equal(child.recursive.layer,10,'Local visual Layer is unbounded by legacy window');
+    assert.equal(child.localLayer,10,'Local diagnostics report canonical visual Layer');
+    assert.equal(child.legacyLocalLayer,9,'legacy Local layer remains bounded');
+    assert.equal(child.recursive.tier,1,'Layer changes must not mutate Local Tier');
+
+    childRow().querySelector('.recursive-tier button:last-of-type').click();
+    state=f.w.ShaelvienPrototype.getViewerState();
+    child=state.userLayers.find(x=>x.id==='local-child');
+    assert.equal(child.recursive.tier,2,'Local Tier changes spatial depth');
+    assert.equal(child.recursive.layer,10,'Tier changes must not mutate visual Layer');
+    assert.equal(child.recursive.x,.2,'Tier changes must not mutate Local X');
+    assert.equal(child.recursive.y,0,'Tier changes must not mutate Local Y');
   }finally{f.close()}
 });
 
