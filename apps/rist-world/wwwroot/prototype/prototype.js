@@ -152,6 +152,37 @@ function regionWorldPoint(localX,localY,region=regionClaimedRegion){
     y:clamp(frame.top+clamp(Number(localY)||0,0,1)*frame.height,0,1)
   };
 }
+function regionPlacementBounds(item){
+  const frame=regionScopeFrame();
+  const center=regionLocalPoint(item?.x,item?.y);
+  const size=Math.max(.05,Number(item?.size)||1);
+  const worldWidth=item?.kind==='label'?.08:.12*size;
+  const aspect=item?.kind==='label'?2.4:Math.max(.05,stableAssetAspect(item));
+  const worldHeight=(worldWidth/aspect)*(Math.max(naturalWidth,1)/Math.max(naturalHeight,1));
+  const width=Math.max(.002,worldWidth/frame.width),height=Math.max(.002,worldHeight/frame.height);
+  return{
+    left:center.x-width/2,right:center.x+width/2,
+    top:center.y-height/2,bottom:center.y+height/2
+  };
+}
+function regionBoundsOverlap(a,b){
+  return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+}
+function nextRegionVisualLayer(item,tier){
+  const bounds=regionPlacementBounds(item);
+  const regionId=String(item?.regionId||activeRegionMapId()||'');
+  let highest=0;
+  for(const other of userLayers){
+    if(other===item||!other?.regionOverlay||other.localOverlay||other.sourceLocked)continue;
+    if(String(other.regionId||'')!==regionId)continue;
+    const recursive=recursiveRegionEnvelope(other);
+    if(recursive?.visible===false)continue;
+    if(regionOverlayTier(other)!==tier)continue;
+    if(!regionBoundsOverlap(bounds,regionPlacementBounds(other)))continue;
+    highest=Math.max(highest,regionOverlayLayer(other));
+  }
+  return Math.max(1,highest+1);
+}
 function syncRegionRecursiveEnvelope(item,tier=regionOverlayTier(item),layer=regionOverlayLayer(item)){
   if(!item?.regionOverlay||LOCAL_DEFINER)return item?.recursive||null;
   const regionId=String(item.regionId||activeRegionMapId()||'');
@@ -209,7 +240,12 @@ function applyRegionAddress(item,worldLayer=viewerLayer,overlayLayer=regionLayer
   item.layer=item.worldLayer;
   const existing=recursiveRegionEnvelope(item);
   const recursiveTier=existing?regionOverlayTier(item):Math.max(1,Math.trunc(Number(regionTierIndex)||1));
-  const recursiveLayer=existing?regionOverlayLayer(item):Math.max(1,Math.trunc(Number(overlayLayer)||1));
+  const requestedLayer=Math.max(1,Math.trunc(Number(overlayLayer)||1));
+  const recursiveLayer=existing
+    ?regionOverlayLayer(item)
+    :requestedLayer!==1
+      ?requestedLayer
+      :nextRegionVisualLayer(item,recursiveTier);
   item.regionTier=recursiveTier;
   item.regionLayer=clamp(recursiveLayer,1,9);
   item.localTier=Math.max(0,Math.trunc(Number(item.localTier??0)||0));
