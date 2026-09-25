@@ -6,7 +6,7 @@
   "files_by_classification": {
     "asset": 448,
     "config": 5,
-    "docs": 132,
+    "docs": 133,
     "generated": 96,
     "source": 3201,
     "vendor": 154
@@ -14,6 +14,6 @@
   "indexed_records": 550813,
   "next_id": 557454,
   "stale_or_generated_candidates": 96,
-  "tracked_files": 4036,
+  "tracked_files": 4037,
   "version": 1
 }
