@@ -42,6 +42,14 @@ async function sendState(frame,dotnet){
     post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
   }
 
+  if(mode==="regiondefiner"){
+    try{
+      const directory=await dotnet.invokeMethodAsync("GetPermissionDirectoryForPrototypeAsync");
+      if(!isCurrentStateRequest(frame,revision))return;
+      post(frame,{type:"permission-directory",principals:Array.isArray(directory?.principals)?directory.principals:[]});
+    }catch{}
+  }
+
   if(mode==="localdefiner"){
     try{
       const locals=await dotnet.invokeMethodAsync("GetLocalCatalogForPrototype");
@@ -190,6 +198,35 @@ export function attach(frame,dotnet){
         post(frame,{type:"map-region-saved",requestId,result,verified,persistedIds});
         return;
       }
+      if(data.type==="request-resource-permissions"){
+        const resourceId=String(data.resourceId||"").trim();
+        const result=await dotnet.invokeMethodAsync("GetResourcePermissionsForPrototypeAsync",resourceId);
+        post(frame,{
+          type:"resource-permissions",
+          resourceId:String(result?.resourceId||resourceId),
+          permissions:Array.isArray(result?.permissions)?result.permissions:[]
+        });
+        return;
+      }
+      if(data.type==="set-resource-permission"){
+        const resourceId=String(data.resourceId||"").trim();
+        const targetUserId=String(data.targetUserId||"").trim();
+        const permission=String(data.permission||"None");
+        const result=await dotnet.invokeMethodAsync(
+          "SetResourcePermissionFromPrototypeAsync",
+          resourceId,
+          targetUserId,
+          permission
+        );
+        post(frame,{
+          type:"resource-permission-saved",
+          resourceId:String(result?.resourceId||resourceId),
+          targetUserId:String(result?.targetUserId||targetUserId),
+          permission:String(result?.permission||"None"),
+          ok:result?.ok===true
+        });
+        return;
+      }
       if(data.type==="promote-world-source"){
         const state=data.state&&typeof data.state==="object"?data.state:{};
         const result=await dotnet.invokeMethodAsync("PromoteWorldSourceFromPrototypeAsync",state);
@@ -202,7 +239,9 @@ export function attach(frame,dotnet){
         return;
       }
     }catch(error){
-      if(data?.type==="save-map-region"){
+      if(data?.type==="request-resource-permissions"||data?.type==="set-resource-permission"){
+        post(frame,{type:"resource-permission-error",resourceId:String(data?.resourceId||""),message:String(error?.message||error||"Permission operation failed")});
+      }else if(data?.type==="save-map-region"){
         post(frame,{type:"map-region-save-error",requestId:String(data?.requestId||""),message:String(error?.message||error||"Map save failed")});
       }else if(data?.type==="save-map-local"){
         post(frame,{type:"map-local-save-error",requestId:String(data?.requestId||""),message:String(error?.message||error||"Local map save failed")});
