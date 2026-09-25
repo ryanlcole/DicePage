@@ -461,8 +461,8 @@ test('Local scope restarts at root and keeps Tier separate from visual Layer',as
     assert.equal(child.recursive?.scopeId,'local-test');
     assert.equal(child.recursive?.parentAssetId,'region-city');
     assert.equal(child.recursive?.viewDegrees,30);
-    assert.equal(child.recursive?.x,.2);
-    assert.equal(child.recursive?.y,0);
+    assert.ok(Math.abs(Number(child.recursive?.x)-.2)<1e-9,'Local X must survive parent projection round-trip');
+    assert.ok(Math.abs(Number(child.recursive?.y)-0)<1e-9,'Local Y must survive parent projection round-trip');
     assert.equal(child.localTier,1);
     assert.equal(child.localLayer,2);
     assert.equal(child.legacyLocalLayer,2);
@@ -491,8 +491,8 @@ test('Local scope restarts at root and keeps Tier separate from visual Layer',as
     child=state.userLayers.find(x=>x.id==='local-child');
     assert.equal(child.recursive.tier,2,'Local Tier changes spatial depth');
     assert.equal(child.recursive.layer,10,'Tier changes must not mutate visual Layer');
-    assert.equal(child.recursive.x,.2,'Tier changes must not mutate Local X');
-    assert.equal(child.recursive.y,0,'Tier changes must not mutate Local Y');
+    assert.ok(Math.abs(Number(child.recursive.x)-.2)<1e-9,'Tier changes must not mutate Local X');
+    assert.ok(Math.abs(Number(child.recursive.y)-0)<1e-9,'Tier changes must not mutate Local Y');
   }finally{f.close()}
 });
 
