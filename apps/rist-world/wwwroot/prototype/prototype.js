@@ -1357,14 +1357,18 @@ function updateTierButton(){
   if(REGION_DEFINER&&regionDeedIsComplete()){
     const parent=tierByIndex(clamp(Math.trunc(Number(regionClaimedRegion?.tierIndex)||0),0,TIERS.length-1));
     tierGlyph.textContent=parent.glyph;
-    tierToggle.setAttribute('aria-label',`${tierLabel(parent)} locked. World layer ${viewerLayer}; Region tier ${regionTierIndex}, layer ${regionLayerIndex}.`);
+    tierToggle.setAttribute('aria-label',LOCAL_DEFINER
+      ?`${tierLabel(parent)} parent fixed. Region Tier ${regionTierIndex}, Region Layer ${regionLayerIndex}; Local Tier ${localTierIndex}, Local Layer ${localLayerIndex}.`
+      :`${tierLabel(parent)} parent fixed by the deed. Region Tier ${regionTierIndex}; visual Layer ${regionLayerIndex}. 15 degree Region view.`);
     return;
   }
   const option=viewerTier==='all'?{label:'All Parallax',glyph:'≋'}:tierByKey(viewerTier);tierGlyph.textContent=option.glyph;tierToggle.setAttribute('aria-label',`${viewerTier==='all'?option.label:tierLabel(option)}. Open tier selector`);
 }
 function setViewerTier(key){
   if(REGION_DEFINER&&regionDeedIsComplete()){
-    announce(`World Tier ${Number(regionClaimedRegion.tierIndex)+1} is fixed by the deed. Use World Layer, Region Tier, and Region Layer controls for nested depth.`);
+    announce(LOCAL_DEFINER
+      ?`World Tier ${Number(regionClaimedRegion.tierIndex)+1} is inherited from the Region anchor.`
+      :`The claimed World parent is fixed. Region Tier controls parallax depth; visual Layer controls appearance order.`);
     return;
   }
   const previous=viewerTier;
@@ -1392,12 +1396,7 @@ function moveSelectedTier(delta){
     localTierIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
     announce(`Local Tier ${next}, Local Layer ${selectedImage.localLayer??0}. ${members.length>1?'Linked pieces remain together. ':''}Local X/Y retained; World projection is derived from the Region anchor.`);return;
   }
-  if(REGION_DEFINER){
-    const next=clamp(regionWorldLayer(selectedImage)+Math.sign(delta),0,9);
-    for(const member of members){member.worldLayer=next;member.layer=next;member.z100=regionZ100(next,regionOverlayLayer(member))}
-    viewerLayer=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`World Z ${next}; exact regional Z ${regionZLabel(selectedImage)}.`);return;
-  }
+  if(REGION_DEFINER&&!LOCAL_DEFINER){moveSelectedRegionTier(delta);return;}
   if(isWorldMapItem(selectedImage)){announce('World Map is locked to Sea Level.');return}
   for(const member of members){
     member.tier=clamp(member.tier+delta,0,TIERS.length-1);
@@ -1409,12 +1408,12 @@ function moveSelectedTier(delta){
 }
 function moveSelectedRegionTier(delta){
   if(READ_ONLY||!selectedImage||!REGION_DEFINER)return;
-  if(LOCAL_DEFINER){announce('Region tier is inherited from the selected Local anchor.');return}
-  const members=linkedSelectionMembers(selectedImage),next=Math.max(0,regionOverlayTier(selectedImage)+Math.sign(delta));
-  for(const member of members)member.regionTier=next;
+  if(LOCAL_DEFINER){announce('Region Tier is inherited from the selected Local anchor.');return}
+  const members=linkedSelectionMembers(selectedImage),next=Math.max(1,regionOverlayTier(selectedImage)+Math.sign(delta));
+  for(const member of members)syncRegionRecursiveEnvelope(member,next,regionOverlayLayer(member));
   regionTierIndex=next;
   updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-  announce(`Region Tier ${next}, Layer ${regionOverlayLayer(selectedImage)}.`);
+  announce(`Region Tier ${next}; visual Layer ${regionOverlayLayer(selectedImage)} unchanged.`);
 }
 function moveSelectedLayer(delta){
   if(READ_ONLY||!selectedImage)return;
@@ -1426,11 +1425,11 @@ function moveSelectedLayer(delta){
     localLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
     announce(`Local Layer ${next}, Local Tier ${selectedImage.localTier||0}. ${members.length>1?'Linked pieces remain together. ':''}Local X/Y retained; World projection is derived from the Region anchor.`);return;
   }
-  if(REGION_DEFINER){
-    const next=clamp(regionOverlayLayer(selectedImage)+Math.sign(delta),1,9);
-    for(const member of members){member.regionLayer=next;member.z100=regionZ100(regionWorldLayer(member),next)}
+  if(REGION_DEFINER&&!LOCAL_DEFINER){
+    const next=Math.max(1,regionOverlayLayer(selectedImage)+Math.sign(delta));
+    for(const member of members)syncRegionRecursiveEnvelope(member,regionOverlayTier(member),next);
     regionLayerIndex=next;updateLayerOrder();applyParallax();renderKeyboardKeys();updateTierButton();
-    announce(`Region layer ${next}; exact Z ${regionZLabel(selectedImage)}.`);return;
+    announce(`Visual Layer ${next}; Region Tier ${regionOverlayTier(selectedImage)} unchanged.`);return;
   }
   const maxSceneZ=(TIERS.length*10)-1;
   for(const member of members){
