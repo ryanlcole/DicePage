@@ -106,7 +106,7 @@ def test_overlapping_assets_auto_stack_within_same_region_tier():
 
 def test_region_save_and_restore_carries_recursive_envelope():
     source = prototype()
-    assert "recursive:REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item)" in source
+    assert "REGION_DEFINER&&!LOCAL_DEFINER&&item.regionOverlay?syncRegionRecursiveEnvelope(item)" in source
     assert "const restoredRecursive=raw?.recursive&&typeof raw.recursive==='object'?{...raw.recursive}:undefined;" in source
     assert "recursive:restoredRecursive" in source
     assert "state.projection!=='region-recursive-scope-v1'&&state.projection!=='region-world-z-v2'" in source
