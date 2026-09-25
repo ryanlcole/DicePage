@@ -41,6 +41,15 @@ public partial class WorldMap:IDisposable
   ?$"opacity:{Session.RecursiveWorldTileOpacity(tile).ToString("0.###",CultureInfo.InvariantCulture)};"
   :"";
  bool RecursiveEditingLocked(TileItem tile)=>UseRecursiveWorldComposition&&Session.RecursiveWorldTileLocked(tile);
+ int TileSessionIndex(TileItem tile)
+ {
+  if(!string.IsNullOrWhiteSpace(tile.PlacementId))
+  {
+   var identified=Session.PlacedTiles.FindIndex(candidate=>string.Equals(candidate.PlacementId,tile.PlacementId,StringComparison.Ordinal));
+   if(identified>=0)return identified;
+  }
+  return Session.PlacedTiles.IndexOf(tile);
+ }
 
  IEnumerable<string> BrowserLayers=>Session.AtlasTiles.Select(x=>x.Layer).Distinct(StringComparer.OrdinalIgnoreCase).Order();
  IEnumerable<AtlasTile> LayerTiles=>Session.AtlasTiles.Where(x=>x.Layer.Equals(BrowserLayer,StringComparison.OrdinalIgnoreCase));
