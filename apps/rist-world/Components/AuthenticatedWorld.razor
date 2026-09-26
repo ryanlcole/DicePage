@@ -46,7 +46,7 @@ else if (_canEnter)
  }
  else if(_experimentsOpen)
  {
-  <ExperimentsWorkspace OnExit="CloseExperimentsAsync" />
+  <ExperimentsWorkspace Worlds="_launchWorlds" OnExit="CloseExperimentsAsync" />
  }
  else if(!_launchWorldChosen)
  {
@@ -226,6 +226,7 @@ else
  bool _launchSandboxChooserOpen;
  bool _experimentsOpen;
  string _launchWorldsError="";
+ readonly List<AccountWorldReference> _launchWorlds=[];
  readonly List<AccountWorldReference> _launchMmoWorlds=[];
  string _launchActiveWorldId="";
  string _privacyChoice="";
@@ -277,6 +278,8 @@ else
   {
    var directory=await Session.LoadWorldDirectoryAsync();
    _launchActiveWorldId=directory.ActiveWorldId;
+   _launchWorlds.Clear();
+   _launchWorlds.AddRange(directory.Worlds);
    _launchMmoWorlds.Clear();
    _launchMmoWorlds.AddRange(directory.Worlds.Where(WorldSession.IsMmoWorldReference));
   }
@@ -285,15 +288,18 @@ else
    // A missing per-account storage object means "no saved directory yet", not a
    // broken environment. Keep the canonical shared MMO available and allow the
    // sandbox chooser to initialize an empty account directory.
+   _launchWorlds.Clear();
    _launchMmoWorlds.Clear();
-   _launchMmoWorlds.Add(new AccountWorldReference(
+   var fallbackWorld=new AccountWorldReference(
     WorldSession.GeonaphWorldId,
     WorldSession.GeonaphDisplayName,
     Auth.IsOwnerDiscordAccount ? "owner" : "viewer",
     $"worlds/{WorldSession.GeonaphWorldId}/world.json",
     $"worlds/{WorldSession.GeonaphWorldId}/current.ristmap",
     DateTimeOffset.UtcNow,
-    WorldSession.MmoWorldEnvironment));
+    WorldSession.MmoWorldEnvironment);
+   _launchWorlds.Add(fallbackWorld);
+   _launchMmoWorlds.Add(fallbackWorld);
    _launchWorldsError="";
   }
   catch(Exception ex)
