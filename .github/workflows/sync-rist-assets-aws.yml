@@ -177,4 +177,15 @@ jobs:
           verify_asset assets/sprites/pangea/registered/GEO_X00_Y00/geonaph_geo_x00_y00_t00_l00_ocean_floor_v001.png 1000
           verify_asset assets/sprites/pangea/registered/GEO_X00_Y00/geonaph_geo_x00_y00_t00_l09_ocean_surface_v001.png 1000
 
+          # Pixel tools draw CDN imagery into Canvas; production assets therefore
+          # must explicitly permit the ReLiC origin or transparency/cut operations
+          # would be blocked by the browser's canvas security boundary.
+          CORS=$(curl --silent --show-error --fail --head \
+            -H 'Origin: https://relicgamemaster.com' \
+            "${ASSET_BASE_URL}assets/ui/map-pin.svg" \
+            | tr -d '\r' \
+            | awk 'BEGIN{IGNORECASE=1} /^access-control-allow-origin:/ {print $2}')
+          test "$CORS" = "https://relicgamemaster.com"
+          echo "Verified CDN Canvas/CORS access for relicgamemaster.com."
+
 # Deployment trigger: OIDC trust repaired 2026-08-27
