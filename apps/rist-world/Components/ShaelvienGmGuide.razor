@@ -1,0 +1,177 @@
+@inject WorldSession Session
+
+<section class="shaelvien-gm-guide" aria-label="Shaelvien GameMaster guide">
+ <header class="sgm-header">
+  <button type="button" class="sgm-home" @onclick="OnHome">⌂ HOME</button>
+  <div>
+   <small>SHAELVIEN · GAMEMASTER PATH</small>
+   <strong>BUILD TONIGHT. DISCOVER TOMORROW.</strong>
+  </div>
+ </header>
+
+ <nav class="sgm-progress" aria-label="GameMaster creation steps">
+  @for(var i=0;i<Steps.Length;i++)
+  {
+   var step=i;
+   <button type="button" class="@StepClass(step)" @onclick="()=>SetStep(step)">
+    <span>@(step+1)</span>
+    <b>@Steps[step]</b>
+   </button>
+  }
+ </nav>
+
+ <main class="sgm-body">
+  @if(_step==0)
+  {
+   <section class="sgm-card">
+    <p class="sgm-kicker">ONE THING MATTERS FIRST</p>
+    <h1>What are the players trying to accomplish?</h1>
+    <p class="sgm-lead">Do not build a world yet. Give the group one clear reason to act. The rest of the world can grow from what happens.</p>
+    <label>
+     <span>OBJECTIVE</span>
+     <textarea @bind="_objective" rows="4" placeholder="Example: Rescue the missing courier before the storm reaches the pass."></textarea>
+    </label>
+    <div class="sgm-row">
+     <label>
+      <span>PLAYERS</span>
+      <select @bind="_partySize">
+       <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+       <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+       <option value="7">7</option><option value="8">8+</option>
+      </select>
+     </label>
+     <label>
+      <span>FEEL</span>
+      <select @bind="_tone">
+       <option>Adventure</option><option>Mystery</option><option>Danger</option>
+       <option>Wonder</option><option>Social</option><option>Survival</option>
+      </select>
+     </label>
+    </div>
+   </section>
+  }
+  else if(_step==1)
+  {
+   <section class="sgm-card">
+    <p class="sgm-kicker">PUT THE OBJECTIVE SOMEWHERE</p>
+    <h1>Choose the scene.</h1>
+    <p class="sgm-lead">Experienced GMs usually prep what is immediately usable at the table: a strong start, a place, people or threats, and enough information to improvise.</p>
+    <label><span>WHERE ARE THEY?</span><input @bind="_location" placeholder="Old bridge, crowded market, ruined watchtower..." /></label>
+    <label><span>WHAT HAPPENS FIRST?</span><textarea @bind="_opening" rows="3" placeholder="Something changes, arrives, breaks, threatens, asks, or reveals itself."></textarea></label>
+    <label><span>IF THEY DO NOTHING...</span><textarea @bind="_pressure" rows="3" placeholder="What changes without the players?"></textarea></label>
+   </section>
+  }
+  else if(_step==2)
+  {
+   <section class="sgm-card">
+    <p class="sgm-kicker">GIVE THEM SOMETHING TO RESPOND TO</p>
+    <h1>Choose the encounters.</h1>
+    <p class="sgm-lead">An encounter is any meaningful situation that asks for a choice: conversation, discovery, obstacle, hazard, or combat.</p>
+    <div class="sgm-encounters" role="group" aria-label="Encounter type">
+     @foreach(var kind in EncounterTypes)
+     {
+      <button type="button" class="@EncounterClass(kind)" @onclick="()=>_encounterType=kind">@kind</button>
+     }
+    </div>
+    <div class="sgm-row">
+     <label>
+      <span>PRESSURE</span>
+      <select @bind="_difficulty">
+       <option>Gentle</option><option>Standard</option><option>Hard</option><option>Deadly only if chosen</option>
+      </select>
+     </label>
+     <label>
+      <span>RULESET</span>
+      <input @bind="_ruleset" placeholder="Optional: D&D, PF1e, custom..." />
+     </label>
+    </div>
+    <label><span>WHAT STANDS IN THEIR WAY?</span><textarea @bind="_encounter" rows="4" placeholder="Describe the creature, person, puzzle, hazard, or conflict."></textarea></label>
+    <aside class="sgm-guidance">
+     <strong>BALANCE GUIDE</strong>
+     <p>Start with @_partySize player@(_partySize=="1"?"":"s") and the chosen pressure: @_difficulty. If a ruleset is supplied, use that ruleset's encounter budget rather than guessing from another game's math. For a first session, one clear threat plus room to talk, retreat, improvise, or solve differently is usually easier to run than a crowded battlefield.</p>
+    </aside>
+   </section>
+  }
+  else if(_step==3)
+  {
+   <section class="sgm-card sgm-ready">
+    <p class="sgm-kicker">YOU HAVE ENOUGH TO PLAY</p>
+    <h1>Run the small thing.</h1>
+    <div class="sgm-summary">
+     <div><span>OBJECTIVE</span><b>@Fallback(_objective,"Give the players one concrete objective.")</b></div>
+     <div><span>SCENE</span><b>@Fallback(_location,"Choose one place.")</b></div>
+     <div><span>OPENING</span><b>@Fallback(_opening,"Make something happen.")</b></div>
+     <div><span>ENCOUNTER</span><b>@_encounterType · @Fallback(_encounter,"Add one meaningful obstacle or interaction.")</b></div>
+     <div><span>PRESSURE</span><b>@Fallback(_pressure,"Decide what changes if nobody acts.")</b></div>
+    </div>
+    <p class="sgm-lead">You do not need the outside world yet. Run this. Let player choices tell you what deserves to exist next.</p>
+    <button type="button" class="sgm-primary" @onclick='()=>Go("roleplay")'>▶ RUN / PLAY</button>
+   </section>
+  }
+  else
+  {
+   <section class="sgm-card">
+    <p class="sgm-kicker">AFTER PLAY</p>
+    <h1>What changed?</h1>
+    <p class="sgm-lead">Consequences are how Shaelvien grows outward. Record the result, then build only the next layer the game actually needs.</p>
+    <label><span>CONSEQUENCE</span><textarea @bind="_consequence" rows="4" placeholder="Who changed? What became true? What new question did the players create?"></textarea></label>
+    <div class="sgm-grow-grid">
+     <button type="button" @onclick="NextScene"><strong>NEXT SCENE</strong><small>Continue from the consequence</small></button>
+     <button type="button" @onclick='()=>Go("campaign")'><strong>CAMPAIGN NOTES</strong><small>Keep people, clues and history</small></button>
+     <button type="button" @onclick='()=>Go("local")'><strong>LOCAL</strong><small>Connect nearby scenes and places</small></button>
+     <button type="button" @onclick='()=>Go("world")'><strong>WORLD</strong><small>Expand only when the outside matters</small></button>
+    </div>
+   </section>
+  }
+ </main>
+
+ <footer class="sgm-actions">
+  <button type="button" @onclick="Previous" disabled="@(_step==0)">← BACK</button>
+  <span>OBJECTIVE → SCENE → ENCOUNTERS → PLAY → CONSEQUENCE</span>
+  <button type="button" @onclick="Next" disabled="@(_step==Steps.Length-1)">NEXT →</button>
+ </footer>
+</section>
+
+<style>
+ .shaelvien-gm-guide{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;overflow:hidden;background:
+ radial-gradient(circle at 18% 0%,rgba(20,91,128,.24),transparent 38%),
+ radial-gradient(circle at 82% 0%,rgba(166,111,28,.2),transparent 40%),#030a0e;color:#e9e3d5;font-family:system-ui,-apple-system,sans-serif}
+ .sgm-header{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid #6d592d;background:#081219}.sgm-header>div{display:grid;gap:2px}.sgm-header small{font-size:9px;font-weight:900;letter-spacing:.17em;color:#8ebdd3}.sgm-header strong{font:800 15px/1.1 Georgia,serif;letter-spacing:.06em;color:#f0d486}.sgm-home{min-width:92px;min-height:42px;border:1px solid #8b7037;border-radius:8px;background:#111b20;color:#f0d486;font-weight:900}
+ .sgm-progress{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 10px;border-bottom:1px solid #273b45;background:#061016}.sgm-progress button{min-width:0;min-height:48px;border:1px solid #405762;border-radius:8px;background:#0a151b;color:#8fa0a8;display:flex;align-items:center;justify-content:center;gap:7px;font-size:9px;font-weight:900;letter-spacing:.08em}.sgm-progress button span{display:grid;place-items:center;width:24px;height:24px;border:1px solid currentColor;border-radius:999px}.sgm-progress button.active{border-color:#d0a83e;color:#f3d783;background:#1b170e}.sgm-progress button.done{color:#88b7a6;border-color:#456d61}
+ .sgm-body{min-height:0;overflow:auto;padding:clamp(12px,3vw,28px);display:grid;place-items:start center}.sgm-card{box-sizing:border-box;width:min(820px,100%);display:grid;gap:16px;padding:clamp(18px,4vw,34px);border:1px solid #526a75;border-radius:16px;background:rgba(5,15,21,.94);box-shadow:0 18px 50px #0008}.sgm-kicker{margin:0;color:#8ebdd3;font-size:10px;font-weight:900;letter-spacing:.18em}.sgm-card h1{margin:0;color:#f0d486;font:700 clamp(30px,6vw,54px)/.98 Georgia,serif;max-width:700px}.sgm-lead{margin:0;color:#b3c0c6;font-size:15px;line-height:1.55;max-width:720px}
+ .sgm-card label{display:grid;gap:7px}.sgm-card label>span,.sgm-summary span,.sgm-guidance strong{color:#8ebdd3;font-size:9px;font-weight:900;letter-spacing:.15em}.sgm-card input,.sgm-card textarea,.sgm-card select{box-sizing:border-box;width:100%;min-height:46px;padding:11px 12px;border:1px solid #4c6570;border-radius:9px;background:#071117;color:#f0eadf;font:700 14px/1.45 system-ui}.sgm-card textarea{resize:vertical;min-height:92px}.sgm-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ .sgm-encounters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.sgm-encounters button{min-height:48px;border:1px solid #4a616c;border-radius:9px;background:#0b161c;color:#b8c4ca;font-weight:900}.sgm-encounters button.active{border-color:#d0a83e;background:#211b0d;color:#f0d486;box-shadow:inset 0 0 0 1px #d0a83e55}
+ .sgm-guidance{padding:14px;border-left:4px solid #d0a83e;background:#11191c}.sgm-guidance p{margin:6px 0 0;color:#c1c9cc;font-size:13px;line-height:1.5}.sgm-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sgm-summary div{display:grid;gap:5px;padding:12px;border:1px solid #314852;border-radius:9px;background:#081218}.sgm-summary b{font-size:13px;line-height:1.4;color:#e6e0d4}.sgm-primary{min-height:58px;border:1px solid #d4ab3f;border-radius:10px;background:linear-gradient(#5f4316,#33220d);color:#ffe4a0;font-weight:1000;letter-spacing:.12em;font-size:16px}
+ .sgm-grow-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sgm-grow-grid button{min-height:76px;padding:12px;border:1px solid #4d6570;border-radius:10px;background:#0a151b;color:#eee6d7;display:grid;gap:4px;text-align:left}.sgm-grow-grid strong{color:#f0d486}.sgm-grow-grid small{color:#9eb0b8}
+ .sgm-actions{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid #6d592d;background:#081219}.sgm-actions button{min-width:96px;min-height:42px;border:1px solid #6a7c84;border-radius:8px;background:#101b21;color:#f0d486;font-weight:900}.sgm-actions button:disabled{opacity:.35}.sgm-actions span{text-align:center;color:#84969f;font-size:9px;font-weight:900;letter-spacing:.12em}
+ @@media(max-width:680px){.sgm-header strong{font-size:12px}.sgm-progress{grid-template-columns:repeat(5,minmax(44px,1fr));overflow-x:auto}.sgm-progress button{display:grid;gap:2px;padding:5px}.sgm-progress button b{font-size:7px}.sgm-row,.sgm-summary,.sgm-grow-grid{grid-template-columns:1fr}.sgm-encounters{grid-template-columns:1fr 1fr}.sgm-card{padding:18px}.sgm-card h1{font-size:34px}.sgm-actions span{display:none}.sgm-actions{grid-template-columns:1fr 1fr}.sgm-actions button{width:100%}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnHome { get; set; }
+ [Parameter] public EventCallback<string> OnWorkspace { get; set; }
+
+ static readonly string[] Steps=["OBJECTIVE","SCENE","ENCOUNTERS","PLAY","GROW"];
+ static readonly string[] EncounterTypes=["Conversation","Discovery","Obstacle","Hazard","Combat"];
+ int _step;
+ string _objective="";
+ string _partySize="4";
+ string _tone="Adventure";
+ string _location="";
+ string _opening="";
+ string _pressure="";
+ string _encounterType="Discovery";
+ string _difficulty="Standard";
+ string _ruleset="";
+ string _encounter="";
+ string _consequence="";
+
+ string StepClass(int step)=>step==_step?"active":step<_step?"done":"";
+ string EncounterClass(string kind)=>string.Equals(kind,_encounterType,StringComparison.Ordinal)?"active":"";
+ static string Fallback(string value,string fallback)=>string.IsNullOrWhiteSpace(value)?fallback:value.Trim();
+ void SetStep(int step)=>_step=Math.Clamp(step,0,Steps.Length-1);
+ void Previous()=>SetStep(_step-1);
+ void Next()=>SetStep(_step+1);
+ void NextScene(){_step=0;_opening="";_encounter="";_consequence="";}
+ Task Go(string mode)=>OnWorkspace.InvokeAsync(mode);
+}
