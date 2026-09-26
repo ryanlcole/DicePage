@@ -2804,26 +2804,23 @@ function refreshUserImage(item){
   if(selectedImage)refreshUserImage(selectedImage);
   if(selectedImage)refreshAssetResizeOverlay(selectedImage);else removeAssetResizeOverlay();
   if(recursiveAssetListPanel&&!recursiveAssetListPanel.hidden)renderRecursiveAssetList();
-  if(REGION_DEFINER&&regionDeedIsComplete()&&selectedImage&&keyboardMode==='Select'&&!LOCAL_DEFINER){
-    keyboardMode=selectedImage.kind==='label'?'Labels':'Image';
-    renderKeyboardTabs();
-    announce(`${selectedImage.name||'Region object'} selected. Editing controls are open.`);
-  }else if(LOCAL_DEFINER&&selectedImage){
-    if(!localIsOpen()){
-      const anchorId=String(selectedImage.id||'');
-      if(localNameAnchorId!==anchorId){localNameAnchorId=anchorId;localNameDraft=String(selectedImage.name||'Local').trim()||'Local';}
-    }
-    announce(localIsOpen()
-      ?`${selectedImage.name||'Local object'} selected for Local editing.`
-      :`${selectedImage.name||'Regional object'} selected as a Local anchor candidate.`);
+  if(LOCAL_DEFINER&&selectedImage&&!localIsOpen()){
+    const anchorId=String(selectedImage.id||'');
+    if(localNameAnchorId!==anchorId){localNameAnchorId=anchorId;localNameDraft=String(selectedImage.name||'Local').trim()||'Local';}
+    keyboardMode='Edit';editFlow='root';adaptiveDeleteArmed=false;renderKeyboardTabs();
+    announce(`${selectedImage.name||'Regional object'} selected as a Local anchor. Focused view opened.`);
+  }else if(selectedImage&&!guidedRegionSelectionFlow()&&!READ_ONLY){
+    keyboardMode='Edit';editFlow='root';adaptiveDeleteArmed=false;renderKeyboardTabs();
+    announce(`${selectedImage.name||'Object'} selected. Relevant editing actions are open.`);
   }
+  if(selectedImage)focusSelectedAsset(selectedImage);
   renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
 function deselectUserImage(announceChange=false){
   if(!selectedImage)return false;
   const previous=selectedImage;
-  previous.node?.classList.remove('selected');selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();refreshUserImage(previous);renderKeyboardKeys();scheduleRegionEnhancement(20);
-  if(announceChange)announce('Selection cleared.');
+  previous.node?.classList.remove('selected');selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();refreshUserImage(previous);restoreSelectionCamera();editFlow='root';adaptiveDeleteArmed=false;renderKeyboardKeys();scheduleRegionEnhancement(20);
+  if(announceChange)announce('Selection cleared. Normal view restored.');
   return true;
 }
 function placedContentLabel(item,index){
