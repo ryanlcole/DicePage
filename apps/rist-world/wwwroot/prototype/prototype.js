@@ -3682,7 +3682,7 @@ async function renderRegionProjection(payload){
   world.dataset.emptyWorld=regionWorldSourceTiles.length?'false':'true';
   updateTierButton();renderTierMenu();updateLayerOrder();updateRegionWorldSourceVisibility();
   loading.hidden=true;fitClaimedRegion(regionClaimedRegion);
-  if(LOCAL_DEFINER)keyboardMode='Select';
+  if(LOCAL_DEFINER){flowParent='Edit';keyboardMode='Edit';editFlow='root';}
   renderKeyboardTabs();renderKeyboardKeys();applyParallax();
   await Promise.all([...inheritedPending,...pending]);
   if(revision!==canonicalHydrationRevision)return;
@@ -4349,7 +4349,7 @@ function applyClaimedRegionCrop(region){
   retireRegionSelectionOverlay();
   syncClaimedRegionOutline(region);
   updateRegionSelectionOverlay();
-  if(editableRegion)keyboardMode=LOCAL_DEFINER?'Select':'Viewer';
+  if(editableRegion){keyboardMode=LOCAL_DEFINER?'Edit':'Viewer';flowParent=LOCAL_DEFINER?'Edit':'View';editFlow='root';}
   updateLayerOrder();
   clearRegionMask(false);
   stage.classList.add('region-cropped');
@@ -4849,9 +4849,9 @@ async function handleRegionHostMessage(event){
     hideLocalRegionPreview();
     if(data.worldSource)await renderRegionWorldSource(data.worldSource);
     else{refreshLocalRegionPreview();announce('The selected Region map is unavailable.');return}
-    keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();
+    flowParent='Edit';keyboardMode='Edit';editFlow='root';renderKeyboardTabs();renderKeyboardKeys();
     if(keyboard.hidden)openKeyboard();
-    announce(`${region.name||'Region'} selected. Now select the Region asset that becomes the Local zone.`);
+    announce(`${region.name||'Region'} selected. Now choose the Region object that becomes the Local zone.`);
     return;
   }
   if(data.type==='local-created'){
