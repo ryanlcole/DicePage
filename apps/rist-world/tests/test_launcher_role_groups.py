@@ -2,130 +2,62 @@ from pathlib import Path
 import unittest
 
 
-class LauncherRoleGroupingContract(unittest.TestCase):
+class LauncherLearningPathContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.source = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "PublicAlphaShell.razor"
-        ).read_text(encoding="utf-8")
-        cls.css = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "PublicAlphaShell.razor.css"
-        ).read_text(encoding="utf-8")
+        root = Path(__file__).resolve().parents[1]
+        cls.shell = (root / "Components" / "PublicAlphaShell.razor").read_text(encoding="utf-8")
+        cls.router = (root / "Components" / "TaskWorkspaceRouter.razor").read_text(encoding="utf-8")
+        cls.guide = (root / "Components" / "ShaelvienGmGuide.razor").read_text(encoding="utf-8")
 
-    def test_primary_launcher_is_collapsed_role_selector(self):
-        self.assertIn('class="launcher-mode-toggle roleplay', self.source)
-        self.assertIn('class="launcher-mode-toggle gamemaster', self.source)
-        self.assertIn('@if(_launcherMenu=="roleplay")', self.source)
-        self.assertIn('else if(_launcherMenu=="gamemaster")', self.source)
-        self.assertNotIn('<section class="launcher-primary" aria-label="Shaelvien categories">', self.source)
+    def test_shaelvien_is_guided_and_role_first(self):
+        self.assertIn("SHAELVIEN · GUIDED", self.shell)
+        self.assertIn("START SMALL. GROW THROUGH PLAY.", self.shell)
+        self.assertIn("ROLEPLAYER", self.shell)
+        self.assertIn("GAMEMASTER", self.shell)
+        for label in ("LOOK", "BASICS", "PLAY", "GROW"):
+            self.assertIn(f"<li>{label}</li>", self.shell)
+        for label in ("OBJECTIVE", "SCENE", "ENCOUNTERS", "PLAY", "GROW"):
+            self.assertIn(f"<li>{label}</li>", self.shell)
 
-    def test_roleplay_group_contains_requested_tools(self):
-        for label in (
-            "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
-            "CAMPAIGN", "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS", "ASSET DESIGNER",
-            "PERCEIVER", "ReLiC OBSERVER", "ACCESSIBILITY",
+    def test_rist_is_direct_and_exposes_gm_quick_tools(self):
+        self.assertIn("RIST · DIRECT", self.shell)
+        self.assertIn("YOU KNOW WHAT YOU WANT. HERE ARE THE TOOLS.", self.shell)
+        self.assertIn("Character. Game. Track.", self.shell)
+        self.assertIn("Your GM desk.", self.shell)
+        for label in ("DOCUMENTS", "TRACK", "ASSETS", "WORLD"):
+            self.assertIn(f"<strong>{label}</strong>", self.shell)
+
+    def test_shaelvien_gm_uses_guided_workspace_instead_of_creative_workbench(self):
+        self.assertIn('OpenWorkspace("guidedgm","SHAELVIEN GAMEMASTER"', self.shell)
+        self.assertIn('Mode == "guidedgm"', self.router)
+        self.assertIn("<ShaelvienGmGuide", self.router)
+
+    def test_guided_gm_teaches_inside_out_preparation(self):
+        for phrase in (
+            "What are the players trying to accomplish?",
+            "Choose the scene.",
+            "Choose the encounters.",
+            "Run the small thing.",
+            "What changed?",
+            "OBJECTIVE → SCENE → ENCOUNTERS → PLAY → CONSEQUENCE",
         ):
-            self.assertIn(f"<strong>{label}</strong>", self.source)
+            self.assertIn(phrase, self.guide)
 
-    def test_gamemaster_group_starts_with_simple_create_world_play_studio_front_door(self):
-        for label in ("CREATE", "WORLD", "RUN / PLAY", "STUDIO TOOLS"):
-            self.assertIn(f"<strong>{label}</strong>", self.source)
-        self.assertIn("launcher-gm-core", self.source)
-        self.assertIn("@if(_gmStudioToolsOpen)", self.source)
+    def test_guided_gm_keeps_encounter_guidance_system_agnostic(self):
+        self.assertIn("If a ruleset is supplied, use that ruleset's encounter budget", self.guide)
+        for kind in ("Conversation", "Discovery", "Obstacle", "Hazard", "Combat"):
+            self.assertIn(f'"{kind}"', self.guide)
 
-    def test_gamemaster_specialized_tools_are_preserved_behind_studio_tools(self):
-        for label in (
-            "WORLDBUILDER", "REGION DEFINER", "LOCAL STAGING", "INSTANCE BUILDER",
-            "HISTORY", "LORE", "WEATHER", "GEOLOGICAL EVENTS", "ASTRONOMY",
-            "ASTROLOGY", "TICKER", "TRACKER", "GUEST CHARACTERS", "ENCOUNTERS",
-            "CHARACTER CARD DESIGNER", "POWERS",
-        ):
-            self.assertIn(f"<strong>{label}</strong>", self.source)
+    def test_riskier_depth_is_still_available_without_being_front_door(self):
+        for workspace in ("campaign", "tracker", "assets", "world", "create", "roleplay"):
+            self.assertIn(f'"{workspace}"', self.shell)
+        self.assertIn('<CreativeWorkbenchWorkspace', self.router)
 
-    def test_gamemaster_keeps_shared_tools_in_familiar_roleplay_order(self):
-        gm_start = self.source.index('id="launcher-gamemaster-tools"')
-        gm_end = self.source.index("</section>", gm_start)
-        gm = self.source[gm_start:gm_end]
-        self.assertIn("SHARED TOOLS", gm)
-        labels = (
-            "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
-            "CAMPAIGN", "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS",
-            "ASSET DESIGNER", "PERCEIVER", "ReLiC OBSERVER",
-            "ACCESSIBILITY",
-        )
-        positions = [gm.index(f"<strong>{label}</strong>") for label in labels]
-        self.assertEqual(positions, sorted(positions))
-        self.assertLess(gm.index("SHARED TOOLS"), positions[0])
-
-    def test_character_card_designer_has_dedicated_workspace(self):
-        router = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "TaskWorkspaceRouter.razor"
-        ).read_text(encoding="utf-8")
-        designer = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "CharacterCardDesignerWorkspace.razor"
-        ).read_text(encoding="utf-8")
-        self.assertIn('Mode == "charactercards"', router)
-        self.assertIn("<CharacterCardDesignerWorkspace />", router)
-        self.assertIn("CHARACTER CARD DESIGNER", designer)
-        self.assertIn("RequirementStorageKey", designer)
-        self.assertIn("LayoutStorageKey", designer)
-        self.assertIn("ValueStorageKey", designer)
-
-    def test_campaign_is_shared_roleplay_and_gamemaster_workspace(self):
-        router = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "TaskWorkspaceRouter.razor"
-        ).read_text(encoding="utf-8")
-        self.assertGreaterEqual(self.source.count('@onclick="OpenCampaign"'), 2)
-        self.assertIn('case "campaign"', self.source)
-        self.assertIn('Mode == "campaign"', router)
-        self.assertIn("<CampaignWorkspace />", router)
-
-    def test_powers_is_shared_roleplay_and_gamemaster_workspace(self):
-        router = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "TaskWorkspaceRouter.razor"
-        ).read_text(encoding="utf-8")
-        self.assertGreaterEqual(self.source.count('@onclick="OpenPowers"'), 2)
-        self.assertIn('case "powers"', self.source)
-        self.assertIn('Mode == "powers"', router)
-        self.assertIn("<PowerCardWorkspace />", router)
-
-    def test_tracker_is_live_gamemaster_report_workspace(self):
-        router = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "TaskWorkspaceRouter.razor"
-        ).read_text(encoding="utf-8")
-        self.assertIn('@onclick="OpenTracker"', self.source)
-        self.assertIn('case "tracker"', self.source)
-        self.assertIn('Mode == "tracker"', router)
-        self.assertIn("<GmReportWorkspace />", router)
-
-    def test_tool_groups_keep_simple_primary_grid_and_two_column_specialized_layout(self):
-        self.assertIn(".launcher-gm-core{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))", self.css)
-        self.assertIn(".launcher-tool-grid{display:grid;grid-template-columns:1fr 1fr", self.css)
-        self.assertIn(".launcher-tool-wide{grid-column:1/-1}", self.css)
-
-    def test_create_has_dedicated_private_workbench_route(self):
-        router = (
-            Path(__file__).resolve().parents[1]
-            / "Components"
-            / "TaskWorkspaceRouter.razor"
-        ).read_text(encoding="utf-8")
-        self.assertIn('Mode == "create"', router)
-        self.assertIn("<CreativeWorkbenchWorkspace", router)
-        self.assertIn('"create","world","local"', self.source)
+    def test_mobile_layout_collapses_without_horizontal_dependency(self):
+        self.assertIn("@@media(max-width:720px)", self.shell)
+        self.assertIn("grid-template-columns:1fr", self.shell)
+        self.assertIn("@@media(max-width:680px)", self.guide)
 
 
 if __name__ == "__main__":
