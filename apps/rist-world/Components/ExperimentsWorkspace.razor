@@ -8,7 +8,7 @@
   <div class="experiments-viewer-world" aria-hidden="true"></div>
   <div class="experiments-viewer-shade" aria-hidden="true"></div>
   <div class="experiments-viewer-label">VIEWER</div>
-  <div class="experiments-reticle @(_selected ? "selected" : "")" style="@ReticleStyle" aria-hidden="true">
+  <div class="experiments-reticle @(!string.IsNullOrWhiteSpace(_role) ? "selected" : "")" style="@ReticleStyle" aria-hidden="true">
    <span></span>
   </div>
  </section>
@@ -21,8 +21,8 @@
    </div>
    <button type="button"
            class="experiments-action"
-           aria-pressed="@_selected"
-           @onclick="ToggleSelect">SELECT</button>
+           aria-pressed="@(string.Equals(_role, "roleplay", StringComparison.Ordinal))"
+           @onclick="ChooseRoleplay">ROLEPLAY</button>
    <div class="experiments-y-slider-wrap">
     <input class="experiments-slider experiments-slider-y"
            type="range"
@@ -39,7 +39,7 @@
    <div class="experiments-tool-grid" aria-hidden="true"></div>
    <div class="experiments-tool-content">
     <small>DISPLAY</small>
-    <strong>@(_running ? "RUNNING" : _selected ? "SELECTED" : "READY")</strong>
+    <strong>@RoleLabel</strong>
     <div class="experiments-coordinates">
      <span>X @_x</span>
      <span>Y @_y</span>
@@ -55,8 +55,8 @@
    </div>
    <button type="button"
            class="experiments-action experiments-start"
-           aria-pressed="@_running"
-           @onclick="ToggleStart">START</button>
+           aria-pressed="@(string.Equals(_role, "gamemaster", StringComparison.Ordinal))"
+           @onclick="ChooseGameMaster">GAMEMASTER</button>
    <div class="experiments-x-slider-wrap">
     <input class="experiments-slider experiments-slider-x"
            type="range"
@@ -253,14 +253,14 @@
   touch-action:none;
  }
  .experiments-slider-y{
-  width:12dvh;
-  min-width:80px;
-  max-width:150px;
+  width:14dvh;
+  min-width:92px;
+  max-width:168px;
   transform:rotate(-90deg);
   transform-origin:center;
  }
  .experiments-slider-x{
-  width:min(88%,240px);
+  width:min(96%,280px);
  }
  .experiments-slider:focus-visible{
   outline:2px solid #ffe7a9;
@@ -326,7 +326,7 @@
   .experiments-axis{padding:6px 5px}
   .experiments-axis-y{grid-template-columns:1fr 40px}
   .experiments-action{min-height:34px;padding:5px 6px}
-  .experiments-slider-y{min-width:68px;width:10dvh}
+  .experiments-slider-y{min-width:80px;width:13dvh}
   .experiments-tool-content p{display:none}
  }
  @@media(max-width:430px){
@@ -354,18 +354,24 @@
 
  int _x;
  int _y;
- bool _selected;
- bool _running;
+ string _role="";
+ 
+ string ReticleStyle => $"left:{50 + (_x * 0.45):0.##}%;top:{50 - (_y * 0.45):0.##}%;";
+ string RoleLabel => _role switch
+ {
+  "roleplay" => "ROLEPLAY",
+  "gamemaster" => "GAMEMASTER",
+  _ => "READY"
+ };
+ string ToolMessage => _role switch
+ {
+  "roleplay" => "Roleplay controller active.",
+  "gamemaster" => "GameMaster controller active.",
+  _ => "Choose Roleplay or GameMaster."
+ };
 
- string ReticleStyle => $"left:{50 + (_x * 0.35):0.##}%;top:{50 - (_y * 0.35):0.##}%;";
- string ToolMessage => _running
-  ? "Controller output active."
-  : _selected
-   ? "Selection held for tool input."
-   : "Tools ready.";
-
- void ToggleSelect() => _selected = !_selected;
- void ToggleStart() => _running = !_running;
+ void ChooseRoleplay() => _role="roleplay";
+ void ChooseGameMaster() => _role="gamemaster";
 
  async Task HandleKeyDown(KeyboardEventArgs e)
  {
