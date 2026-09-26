@@ -23,7 +23,7 @@ function fixture(flow='new',options={}){
   if(options.sessionToken)w.sessionStorage.setItem('rist.session',options.sessionToken);
   w.fetch=options.fetch||(async()=>({ok:false,status:404}));
   w.ResizeObserver=class{observe(){}disconnect(){}};
-  for(const file of ['viewer-input.js','prototype.js']){
+  for(const file of ['viewer-input.js','image-engine.js','prototype.js']){
     vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),dom.getInternalVMContext(),{filename:file});
   }
   return{w,d,stage,close(){w.close()}};
