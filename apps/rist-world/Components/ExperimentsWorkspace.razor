@@ -1,394 +1,681 @@
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject WorldSession Session
 
 <section class="experiments-shell"
          tabindex="0"
+         @ref="_shell"
          @onkeydown="HandleKeyDown"
-         aria-label="Shaelvien experiments">
- <section class="experiments-viewer" aria-label="Viewer">
-  <div class="experiments-viewer-world" aria-hidden="true"></div>
-  <div class="experiments-viewer-shade" aria-hidden="true"></div>
-  <div class="experiments-viewer-label">VIEWER</div>
-  <div class="experiments-reticle @(!string.IsNullOrWhiteSpace(_role) ? "selected" : "")" style="@ReticleStyle" aria-hidden="true">
-   <span></span>
-  </div>
+         aria-label="RIST universal GameMaster Suite experiment">
+ <section class="experiments-display left-display" aria-label="Left contextual display">
+  <header><span>LEFT DISPLAY</span><small>@LeftAxisHint</small></header>
+  @if(_stage==Stage.GameMasterHub)
+  {
+   <div class="world-selector" role="listbox" aria-label="World selector">
+    <span>@PreviousWorld</span>
+    <strong role="option" aria-selected="true">@CurrentWorld</strong>
+    <span>@NextWorld</span>
+   </div>
+  }
+  else if(_stage==Stage.SoftwareHub)
+  {
+   <div class="software-selector" role="listbox" aria-label="Software capability selector">
+    <span>@PreviousSoftware</span>
+    <strong role="option" aria-selected="true">@CurrentSoftware</strong>
+    <span>@NextSoftware</span>
+   </div>
+  }
+  else
+  {
+   <div class="display-copy">
+    <small>@LeftEyebrow</small>
+    <strong>@LeftLabel</strong>
+    <p>@LeftDetail</p>
+   </div>
+  }
  </section>
 
- <section class="experiments-controller" aria-label="Controller">
-  <div class="experiments-axis experiments-axis-y">
-   <div class="experiments-axis-copy">
-    <strong>Y AXIS</strong>
-    <small>UP ↕ DOWN</small>
+ <main class="experiments-viewer" aria-label="Viewer">
+  <div class="viewer-world @ViewerClass" aria-hidden="true"></div>
+  <div class="viewer-shade" aria-hidden="true"></div>
+
+  @if(IsDepthStage)
+  {
+   <div class="glass-stage" aria-hidden="true">
+    @for(var sheet=0;sheet<VisibleGlassSheets;sheet++)
+    {
+     <span class="glass-sheet" style="@GlassSheetStyle(sheet)"></span>
+    }
    </div>
-   <button type="button"
-           class="experiments-action"
-           aria-pressed="@IsRoleplay"
-           @onclick="ChooseRoleplay">ROLEPLAY</button>
-   <div class="experiments-y-slider-wrap">
-    <input class="experiments-slider experiments-slider-y"
-           type="range"
-           min="-100"
-           max="100"
-           step="1"
-           aria-label="Y axis, up and down"
-           @bind="_y"
-           @bind:event="oninput" />
+  }
+
+  @if(IsAssetTransformStage)
+  {
+   <div class="asset-preview @(_assetKind=="SPRITE"?"sprite":"image")"
+        style="@AssetPreviewStyle"
+        aria-hidden="true">
+    <span>@_assetKind</span>
    </div>
+  }
+
+  @if(_savedAsset)
+  {
+   <div class="ironed-asset" aria-hidden="true"><span>@_assetKind</span></div>
+  }
+
+  <header class="viewer-title">
+   <span>VIEWER</span>
+   <small>BEGINNER · X / Y / LEFT / RIGHT</small>
+  </header>
+
+  <div class="viewer-status" role="status" aria-live="polite">
+   <strong>@ViewerTitle</strong>
+   <span>@_message</span>
   </div>
 
-  <div class="experiments-tool-display" role="status" aria-live="polite">
-   <div class="experiments-tool-grid" aria-hidden="true"></div>
-   <div class="experiments-tool-content">
-    <small>DISPLAY</small>
-    <strong>@RoleLabel</strong>
-    <div class="experiments-coordinates">
-     <span>X @_x</span>
-     <span>Y @_y</span>
-    </div>
-    <p>@ToolMessage</p>
-   </div>
-  </div>
+  <footer class="viewer-readout">
+   <span>X @_xPulse</span>
+   <span>Y @_yPulse</span>
+   <span>@StagePath</span>
+  </footer>
+ </main>
 
-  <div class="experiments-axis experiments-axis-x">
-   <div class="experiments-axis-copy">
-    <strong>X AXIS</strong>
-    <small>LEFT ↔ RIGHT</small>
+ <section class="experiments-display right-display" aria-label="Right contextual display">
+  <header><span>RIGHT DISPLAY</span><small>@RightAxisHint</small></header>
+  @if(_stage==Stage.GameMasterHub)
+  {
+   <div class="settings-selector" role="listbox" aria-label="GameMaster options">
+    <span>@PreviousSetting</span>
+    <strong role="option" aria-selected="true">@CurrentSetting</strong>
+    <span>@NextSetting</span>
    </div>
-   <button type="button"
-           class="experiments-action experiments-start"
-           aria-pressed="@IsGameMaster"
-           @onclick="ChooseGameMaster">GAMEMASTER</button>
-   <div class="experiments-x-slider-wrap">
-    <input class="experiments-slider experiments-slider-x"
-           type="range"
-           min="-100"
-           max="100"
-           step="1"
-           aria-label="X axis, left and right"
-           @bind="_x"
-           @bind:event="oninput" />
+  }
+  else if(_stage==Stage.SoftwareHub)
+  {
+   <div class="display-copy">
+    <small>ADAPTER LAYER</small>
+    <strong>OPEN TOOL</strong>
+    <p>RIST owns the controls. Specialized software supplies the capability through an adapter.</p>
    </div>
+  }
+  else
+  {
+   <div class="display-copy">
+    <small>@RightEyebrow</small>
+    <strong>@RightLabel</strong>
+    <p>@RightDetail</p>
+   </div>
+  }
+ </section>
+
+ <section class="experiments-controls left-controls" aria-label="Left universal controls">
+  <div class="axis-title"><strong>Y</strong><small>W / S · ↑ / ↓ · STICK</small></div>
+  <div class="y-pad" aria-label="Y axis">
+   <button type="button" class="axis-key" @onclick="()=>ApplyY(1)" aria-label="Y up">▲</button>
+   <div class="axis-rail" aria-hidden="true"><span></span></div>
+   <button type="button" class="axis-key" @onclick="()=>ApplyY(-1)" aria-label="Y down">▼</button>
   </div>
+  <button type="button" class="action-button left-action" @onclick="PressLeft">
+   <small>LEFT BUTTON · Q · PAD A</small>
+   <strong>@LeftButtonLabel</strong>
+  </button>
+ </section>
+
+ <section class="experiments-controls right-controls" aria-label="Right universal controls">
+  <div class="axis-title"><strong>X</strong><small>A / D · ← / → · STICK</small></div>
+  <div class="x-pad" aria-label="X axis">
+   <button type="button" class="axis-key" @onclick="()=>ApplyX(-1)" aria-label="X left">◀</button>
+   <div class="axis-rail horizontal" aria-hidden="true"><span></span></div>
+   <button type="button" class="axis-key" @onclick="()=>ApplyX(1)" aria-label="X right">▶</button>
+  </div>
+  <button type="button" class="action-button right-action" @onclick="PressRight">
+   <small>RIGHT BUTTON · E · PAD B</small>
+   <strong>@RightButtonLabel</strong>
+  </button>
  </section>
 </section>
-
-<style>
- .experiments-shell{
-  position:fixed;
-  inset:0;
-  z-index:2147483200;
-  box-sizing:border-box;
-  width:100vw;
-  height:100dvh;
-  padding:2.5dvh 2.5vw;
-  display:grid;
-  grid-template-rows:75dvh 20dvh;
-  background:
-   radial-gradient(circle at 18% 8%,rgba(26,83,151,.20),transparent 32%),
-   radial-gradient(circle at 82% 9%,rgba(176,119,34,.18),transparent 31%),
-   #02070d;
-  color:#efe6cf;
-  overflow:hidden;
-  outline:none;
- }
- .experiments-viewer,
- .experiments-controller{
-  position:relative;
-  box-sizing:border-box;
-  min-width:0;
-  min-height:0;
-  border:1px solid #c99f48;
-  background:#050d14;
-  box-shadow:inset 0 0 0 1px rgba(255,223,150,.08),0 12px 34px #0008;
- }
- .experiments-viewer{
-  overflow:hidden;
-  border-radius:18px 18px 8px 8px;
- }
- .experiments-viewer-world{
-  position:absolute;
-  inset:0;
-  background:
-   linear-gradient(180deg,rgba(1,5,12,.02),rgba(1,5,12,.18)),
-   url('assets/branding/shaelvien-dragon-creation-startup-screen.png') center/cover no-repeat;
-  transform:scale(1.015);
- }
- .experiments-viewer-shade{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:
-   linear-gradient(180deg,rgba(0,0,0,.15),transparent 12%,transparent 84%,rgba(0,0,0,.24)),
-   radial-gradient(circle at center,transparent 54%,rgba(1,6,12,.25) 100%);
- }
- .experiments-viewer-label{
-  position:absolute;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  padding:5px 18px 6px;
-  border:1px solid rgba(211,172,91,.72);
-  border-radius:999px;
-  background:rgba(4,12,19,.78);
-  color:#f1dc9f;
-  font:800 clamp(9px,1vw,13px)/1 system-ui,-apple-system,sans-serif;
-  letter-spacing:.28em;
-  pointer-events:none;
- }
- .experiments-reticle{
-  position:absolute;
-  width:clamp(38px,4vw,62px);
-  aspect-ratio:1;
-  border:1px solid rgba(112,211,255,.84);
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  box-shadow:0 0 22px rgba(59,167,255,.42);
-  pointer-events:none;
-  transition:left .08s linear,top .08s linear;
- }
- .experiments-reticle:before,
- .experiments-reticle:after{
-  content:"";
-  position:absolute;
-  background:rgba(112,211,255,.8);
- }
- .experiments-reticle:before{left:50%;top:-12px;bottom:-12px;width:1px}
- .experiments-reticle:after{top:50%;left:-12px;right:-12px;height:1px}
- .experiments-reticle span{
-  position:absolute;
-  inset:36%;
-  border-radius:50%;
-  background:#73dcff;
-  box-shadow:0 0 14px #2aa9ff;
- }
- .experiments-reticle.selected{
-  border-color:#f4d784;
-  box-shadow:0 0 0 2px rgba(244,215,132,.16),0 0 28px rgba(244,215,132,.55);
- }
- .experiments-controller{
-  border-top:0;
-  border-radius:8px 8px 18px 18px;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(180px,1.15fr) minmax(0,1fr);
-  align-items:stretch;
-  overflow:hidden;
- }
- .experiments-axis,
- .experiments-tool-display{
-  min-width:0;
-  min-height:0;
- }
- .experiments-axis{
-  position:relative;
-  display:grid;
-  align-items:center;
-  justify-items:center;
-  gap:4px;
-  padding:7px 10px;
-  background:
-   radial-gradient(circle at center,rgba(19,84,137,.16),transparent 64%),
-   rgba(3,10,16,.92);
- }
- .experiments-axis-y{
-  grid-template-columns:minmax(88px,1fr) minmax(46px,.48fr);
-  grid-template-rows:auto 1fr;
-  border-right:1px solid rgba(201,159,72,.48);
- }
- .experiments-axis-x{
-  grid-template-columns:1fr;
-  grid-template-rows:auto auto 1fr;
-  border-left:1px solid rgba(201,159,72,.48);
- }
- .experiments-axis-copy{
-  display:grid;
-  justify-items:center;
-  gap:2px;
-  color:#f0d99d;
-  text-align:center;
- }
- .experiments-axis-y .experiments-axis-copy{grid-column:1;grid-row:1}
- .experiments-axis-copy strong{
-  font:700 clamp(10px,1.15vw,16px)/1 Georgia,serif;
-  letter-spacing:.14em;
- }
- .experiments-axis-copy small{
-  color:#d9b655;
-  font:800 clamp(7px,.8vw,10px)/1 system-ui,-apple-system,sans-serif;
-  letter-spacing:.11em;
- }
- .experiments-action{
-  width:min(100%,150px);
-  min-height:30px;
-  padding:5px 10px;
-  border:1px solid #d0aa59;
-  border-radius:8px;
-  background:linear-gradient(180deg,#1c3454,#0a1730);
-  color:#f1d98d;
-  font:900 clamp(9px,.95vw,13px)/1 system-ui,-apple-system,sans-serif;
-  letter-spacing:.11em;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
-  touch-action:manipulation;
- }
- .experiments-action[aria-pressed="true"]{
-  color:#8fe7ff;
-  border-color:#6ddcff;
-  box-shadow:0 0 18px rgba(75,194,255,.35),inset 0 0 0 1px rgba(255,255,255,.08);
- }
- .experiments-axis-y .experiments-action{grid-column:1;grid-row:2;align-self:start}
- .experiments-y-slider-wrap{
-  grid-column:2;
-  grid-row:1/3;
-  width:100%;
-  height:100%;
-  display:grid;
-  place-items:center;
- }
- .experiments-x-slider-wrap{
-  width:100%;
-  display:grid;
-  place-items:center;
-  align-self:center;
- }
- .experiments-slider{
-  accent-color:#45c6ff;
-  touch-action:none;
- }
- .experiments-slider-y{
-  width:14dvh;
-  min-width:92px;
-  max-width:168px;
-  transform:rotate(-90deg);
-  transform-origin:center;
- }
- .experiments-slider-x{
-  width:min(96%,280px);
- }
- .experiments-slider:focus-visible{
-  outline:2px solid #ffe7a9;
-  outline-offset:4px;
- }
- .experiments-tool-display{
-  position:relative;
-  margin:7px;
-  border:1px solid #3da9e8;
-  border-radius:10px;
-  overflow:hidden;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(180deg,#071932,#03111f);
-  box-shadow:inset 0 0 22px rgba(29,117,181,.24),0 0 16px rgba(17,105,173,.15);
- }
- .experiments-tool-grid{
-  position:absolute;
-  inset:0;
-  opacity:.32;
-  background-image:
-   linear-gradient(rgba(72,183,255,.18) 1px,transparent 1px),
-   linear-gradient(90deg,rgba(72,183,255,.18) 1px,transparent 1px);
-  background-size:18px 18px;
- }
- .experiments-tool-content{
-  position:relative;
-  z-index:1;
-  width:100%;
-  height:100%;
-  box-sizing:border-box;
-  display:grid;
-  place-content:center;
-  justify-items:center;
-  gap:3px;
-  padding:8px;
-  text-align:center;
- }
- .experiments-tool-content>small{
-  color:#72ccff;
-  font:800 8px/1 system-ui,-apple-system,sans-serif;
-  letter-spacing:.2em;
- }
- .experiments-tool-content>strong{
-  color:#e7d18d;
-  font:800 clamp(11px,1.2vw,16px)/1 system-ui,-apple-system,sans-serif;
-  letter-spacing:.12em;
- }
- .experiments-coordinates{
-  display:flex;
-  gap:12px;
-  color:#95dbff;
-  font:800 clamp(8px,.85vw,11px)/1 ui-monospace,SFMono-Regular,Menlo,monospace;
- }
- .experiments-tool-content p{
-  margin:0;
-  color:#a8bac5;
-  font:700 clamp(7px,.75vw,9px)/1.25 system-ui,-apple-system,sans-serif;
- }
- @@media(max-width:700px){
-  .experiments-shell{padding:2.5dvh 2.5vw}
-  .experiments-controller{grid-template-columns:minmax(0,.95fr) minmax(112px,1.1fr) minmax(0,.95fr)}
-  .experiments-axis{padding:6px 5px}
-  .experiments-axis-y{grid-template-columns:1fr 40px}
-  .experiments-action{min-height:34px;padding:5px 6px}
-  .experiments-slider-y{min-width:80px;width:13dvh}
-  .experiments-tool-content p{display:none}
- }
- @@media(max-width:430px){
-  .experiments-controller{grid-template-columns:minmax(0,.92fr) minmax(92px,1fr) minmax(0,.92fr)}
-  .experiments-axis-copy strong{font-size:9px}
-  .experiments-axis-copy small{font-size:6px;letter-spacing:.04em}
-  .experiments-action{font-size:8px;letter-spacing:.05em}
-  .experiments-coordinates{flex-direction:column;gap:2px}
-  .experiments-tool-content>small{font-size:6px}
-  .experiments-tool-content>strong{font-size:9px}
- }
- @@media(orientation:landscape) and (max-height:560px){
-  .experiments-viewer-label{top:5px;padding:3px 12px;font-size:8px}
-  .experiments-action{min-height:24px}
-  .experiments-axis{padding:3px 6px}
-  .experiments-tool-display{margin:3px}
- }
- @@media(prefers-reduced-motion:reduce){
-  .experiments-reticle{transition:none}
- }
-</style>
 
 @code {
  [Parameter] public EventCallback OnExit { get; set; }
 
- int _x;
- int _y;
- string _role="";
- bool IsRoleplay => string.Equals(_role,"roleplay",StringComparison.Ordinal);
- bool IsGameMaster => string.Equals(_role,"gamemaster",StringComparison.Ordinal);
- 
- string ReticleStyle => $"left:{50 + (_x * 0.45):0.##}%;top:{50 - (_y * 0.45):0.##}%;";
- string RoleLabel => _role switch
+ enum Stage
  {
-  "roleplay" => "ROLEPLAY",
-  "gamemaster" => "GAMEMASTER",
-  _ => "READY"
- };
- string ToolMessage => _role switch
+  Environment,
+  Role,
+  GameMasterHub,
+  GameMasterScope,
+  SoftwareHub,
+  WorldBuilderTier,
+  WorldBuilderLayer,
+  AssetKind,
+  AssetMode,
+  BrowsePlace,
+  Scale,
+  Rotate,
+  Move,
+  SaveCancel
+ }
+
+ ElementReference _shell;
+ DotNetObjectReference<ExperimentsWorkspace>? _selfRef;
+ Stage _stage=Stage.Environment;
+ int _worldIndex;
+ int _settingIndex;
+ int _scopeIndex;
+ int _softwareIndex;
+ int _tier;
+ int _layer;
+ int _xPulse;
+ int _yPulse;
+ double _assetScale=1;
+ int _assetRotation;
+ int _assetX;
+ int _assetY;
+ string _assetKind="IMAGE";
+ string _assetMode="ADD";
+ bool _savedAsset;
+ string _message="Choose an environment. Hardware translates into the same X, Y, left and right semantic controls.";
+
+ static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
+ static readonly string[] Scopes=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE","TABLETOP","SOFTWARE"];
+ static readonly string[] SoftwareCapabilities=["IMAGE EDITOR","STREAM / RECORD","NOTES / DATABASE","AUDIO","BROWSER","COMMUNICATION","AUTOMATION"];
+
+ string[] Worlds=>Session.HasActiveWorld
+  ? [Session.WorldDisplayName.ToUpperInvariant(),"NEW WORLD"]
+  : ["NEW WORLD"];
+
+ int WorldIndex=>Math.Clamp(_worldIndex,0,Worlds.Length-1);
+ string CurrentWorld=>Worlds[WorldIndex];
+ string PreviousWorld=>Worlds[(WorldIndex-1+Worlds.Length)%Worlds.Length];
+ string NextWorld=>Worlds[(WorldIndex+1)%Worlds.Length];
+ string CurrentSetting=>Settings[_settingIndex];
+ string PreviousSetting=>Settings[(_settingIndex-1+Settings.Length)%Settings.Length];
+ string NextSetting=>Settings[(_settingIndex+1)%Settings.Length];
+ string CurrentScope=>Scopes[_scopeIndex];
+ string CurrentSoftware=>SoftwareCapabilities[_softwareIndex];
+ string PreviousSoftware=>SoftwareCapabilities[(_softwareIndex-1+SoftwareCapabilities.Length)%SoftwareCapabilities.Length];
+ string NextSoftware=>SoftwareCapabilities[(_softwareIndex+1)%SoftwareCapabilities.Length];
+
+ bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
+ bool IsAssetTransformStage=>_stage is Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
+ int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
+ string ViewerClass=>IsDepthStage||_stage is Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel?"builder":"";
+
+ string LeftAxisHint=>_stage switch
  {
-  "roleplay" => "Roleplay controller active.",
-  "gamemaster" => "GameMaster controller active.",
-  _ => "Choose Roleplay or GameMaster."
+  Stage.GameMasterHub=>"Y · WORLDS",
+  Stage.GameMasterScope=>"Y · SUITES",
+  Stage.SoftwareHub=>"Y · CAPABILITIES",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"Y · DEPTH",
+  Stage.Scale=>"Y · SCALE",
+  Stage.Move=>"Y · MOVE",
+  _=>"Y · NAVIGATE"
  };
 
- void ChooseRoleplay() => _role="roleplay";
- void ChooseGameMaster() => _role="gamemaster";
+ string RightAxisHint=>_stage switch
+ {
+  Stage.GameMasterHub=>"X · OPTIONS",
+  Stage.Rotate=>"X · ROTATE",
+  Stage.Move=>"X · MOVE",
+  _=>"X · NAVIGATE"
+ };
+
+ string LeftEyebrow=>_stage switch
+ {
+  Stage.Environment=>"ENVIRONMENT",
+  Stage.Role=>"SHAELVIEN",
+  Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
+  Stage.AssetKind=>"ASSET TYPE",
+  Stage.AssetMode=>"ASSET ACTION",
+  Stage.BrowsePlace=>"SOURCE",
+  Stage.Scale or Stage.Rotate or Stage.Move=>"TRANSFORM",
+  Stage.SaveCancel=>"COMMIT",
+  _=>"LEFT"
+ };
+
+ string LeftLabel=>_stage switch
+ {
+  Stage.Environment=>"SHAELVIEN",
+  Stage.Role=>"ROLEPLAYER",
+  Stage.GameMasterScope=>CurrentScope,
+  Stage.WorldBuilderTier=>$"TIER {_tier}",
+  Stage.WorldBuilderLayer=>$"LAYER {_layer}",
+  Stage.AssetKind=>"IMAGE",
+  Stage.AssetMode=>"EDIT",
+  Stage.BrowsePlace=>"BROWSE",
+  Stage.Scale=>"ENLARGE / REDUCE",
+  Stage.Rotate=>"ROTATE",
+  Stage.Move=>"MOVE",
+  Stage.SaveCancel=>"SAVE",
+  _=>""
+ };
+
+ string RightEyebrow=>_stage switch
+ {
+  Stage.Environment=>"ENVIRONMENT",
+  Stage.Role=>"SHAELVIEN",
+  Stage.GameMasterScope=>"NAVIGATION",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"CONFIRM",
+  Stage.AssetKind=>"ASSET TYPE",
+  Stage.AssetMode=>"ASSET ACTION",
+  Stage.BrowsePlace=>"PLACEMENT",
+  Stage.Scale or Stage.Rotate or Stage.Move=>"CONFIRM",
+  Stage.SaveCancel=>"COMMIT",
+  _=>"RIGHT"
+ };
+
+ string RightLabel=>_stage switch
+ {
+  Stage.Environment=>"RIST",
+  Stage.Role=>"GAMEMASTER",
+  Stage.GameMasterScope=>"BACK",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"ENTER",
+  Stage.AssetKind=>"SPRITE",
+  Stage.AssetMode=>"ADD",
+  Stage.BrowsePlace=>"PLACE",
+  Stage.Scale or Stage.Rotate or Stage.Move=>"SET",
+  Stage.SaveCancel=>"CANCEL",
+  _=>""
+ };
+
+ string LeftDetail=>_stage switch
+ {
+  Stage.Environment=>"Shared Shaelvien MMO environment.",
+  Stage.Role=>"Player-facing role.",
+  Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
+  Stage.WorldBuilderTier=>"Y raises or lowers the tier. Tier changes create a visible depth gap.",
+  Stage.WorldBuilderLayer=>"Y adds or removes closely stacked glass layers.",
+  Stage.AssetKind=>"Static visual asset.",
+  Stage.AssetMode=>"Choose an existing asset to transform.",
+  Stage.BrowsePlace=>"Browse is an adapter request; no external editor is embedded here.",
+  Stage.Scale=>"Y changes preview size without changing asset identity.",
+  Stage.Rotate=>"X changes preview rotation.",
+  Stage.Move=>"X/Y move the preview representation.",
+  Stage.SaveCancel=>"Save irons the preview into this experiment and returns to depth.",
+  _=>""
+ };
+
+ string RightDetail=>_stage switch
+ {
+  Stage.Environment=>"Private/universal RIST environment.",
+  Stage.Role=>"Enter the GameMaster Suite.",
+  Stage.GameMasterScope=>"Return to world and settings selection.",
+  Stage.WorldBuilderTier=>"Confirm the tier and continue to Layer.",
+  Stage.WorldBuilderLayer=>"Confirm the layer and continue to asset type.",
+  Stage.AssetKind=>"Animated visual asset using the same placement pipeline.",
+  Stage.AssetMode=>"Add a new asset.",
+  Stage.BrowsePlace=>"Place the current representation on the selected Tier/Layer.",
+  Stage.Scale=>"Accept current scale.",
+  Stage.Rotate=>"Accept current rotation.",
+  Stage.Move=>"Accept current position.",
+  Stage.SaveCancel=>"Discard preview and return to World Builder depth.",
+  _=>""
+ };
+
+ string LeftButtonLabel=>_stage switch
+ {
+  Stage.GameMasterHub=>"SELECT WORLD",
+  Stage.SoftwareHub=>"SELECT TOOL",
+  _=>LeftLabel
+ };
+
+ string RightButtonLabel=>_stage switch
+ {
+  Stage.GameMasterHub=>"OPEN OPTION",
+  Stage.SoftwareHub=>"BACK",
+  _=>RightLabel
+ };
+
+ string ViewerTitle=>_stage switch
+ {
+  Stage.Environment=>"RIST UNIVERSAL VIEWER",
+  Stage.Role=>"SHAELVIEN",
+  Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
+  Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
+  Stage.WorldBuilderTier=>"WORLD BUILDER · TIER",
+  Stage.WorldBuilderLayer=>"WORLD BUILDER · LAYER",
+  Stage.AssetKind=>"WORLD BUILDER · ASSET TYPE",
+  Stage.AssetMode=>$"WORLD BUILDER · {_assetKind}",
+  Stage.BrowsePlace=>$"{_assetKind} · {_assetMode}",
+  Stage.Scale=>$"{_assetKind} · SCALE {_assetScale:0.00}×",
+  Stage.Rotate=>$"{_assetKind} · ROTATE {_assetRotation}°",
+  Stage.Move=>$"{_assetKind} · MOVE {_assetX},{_assetY}",
+  Stage.SaveCancel=>$"{_assetKind} · READY",
+  _=>"VIEWER"
+ };
+
+ string StagePath=>_stage switch
+ {
+  Stage.Environment=>"START",
+  Stage.Role=>"SHAELVIEN → ROLE",
+  Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
+  Stage.GameMasterScope=>"GAMEMASTER → SUITE",
+  Stage.SoftwareHub=>"GAMEMASTER → SOFTWARE",
+  Stage.WorldBuilderTier=>"WORLD BUILDER → TIER",
+  Stage.WorldBuilderLayer=>"WORLD BUILDER → LAYER",
+  Stage.AssetKind=>"WORLD BUILDER → ASSET",
+  Stage.AssetMode=>$"WORLD BUILDER → {_assetKind}",
+  Stage.BrowsePlace=>$"{_assetKind} → {_assetMode}",
+  Stage.Scale=>$"{_assetKind} → SCALE",
+  Stage.Rotate=>$"{_assetKind} → ROTATE",
+  Stage.Move=>$"{_assetKind} → MOVE",
+  Stage.SaveCancel=>$"{_assetKind} → SAVE",
+  _=>""
+ };
+
+ string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.00}) rotate({_assetRotation}deg);";
+
+ string GlassSheetStyle(int sheet)
+ {
+  var tierGap=_tier*44;
+  var layerGap=sheet*11;
+  var y=-(_tier*7+sheet*5);
+  return $"transform:translateY({y}px) translateZ({tierGap+layerGap}px) rotateX(58deg);opacity:{Math.Max(.28,1-sheet*.07):0.00};";
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender)return;
+  _selfRef=DotNetObjectReference.Create(this);
+  try
+  {
+   await JS.InvokeVoidAsync("ristExperimentsUniversalInput.start",_selfRef);
+   await _shell.FocusAsync();
+  }
+  catch(JSException)
+  {
+   _message="Universal keyboard, pointer and touch controls are ready. Gamepad adapter could not start.";
+   StateHasChanged();
+  }
+ }
+
+ void ApplyY(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _yPulse=Math.Clamp(_yPulse+direction,-99,99);
+
+  switch(_stage)
+  {
+   case Stage.GameMasterHub:
+    _worldIndex=Wrap(_worldIndex+direction,Worlds.Length);
+    _message=$"World selector: {CurrentWorld}.";
+    break;
+   case Stage.GameMasterScope:
+    _scopeIndex=Wrap(_scopeIndex+direction,Scopes.Length);
+    _message=$"GameMaster suite: {CurrentScope}.";
+    break;
+   case Stage.SoftwareHub:
+    _softwareIndex=Wrap(_softwareIndex+direction,SoftwareCapabilities.Length);
+    _message=$"Capability adapter: {CurrentSoftware}.";
+    break;
+   case Stage.WorldBuilderTier:
+    _tier=Math.Clamp(_tier+direction,0,9);
+    _message=$"Tier {_tier}. The glass stack is separated by a tier gap.";
+    break;
+   case Stage.WorldBuilderLayer:
+    _layer=Math.Clamp(_layer+direction,0,99);
+    _message=$"Layer {_layer}. Nearby layers stack as glass sheets.";
+    break;
+   case Stage.Scale:
+    _assetScale=Math.Clamp(_assetScale+(direction*.1),.25,4);
+    _message=$"Preview scale {_assetScale:0.00}×.";
+    break;
+   case Stage.Move:
+    _assetY=Math.Clamp(_assetY-(direction*8),-160,160);
+    _message=$"Preview position {_assetX},{_assetY}.";
+    break;
+   default:
+    _message="Y is available; this Shaep does not currently bind it to another action.";
+    break;
+  }
+ }
+
+ void ApplyX(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _xPulse=Math.Clamp(_xPulse+direction,-99,99);
+
+  switch(_stage)
+  {
+   case Stage.GameMasterHub:
+    _settingIndex=Wrap(_settingIndex+direction,Settings.Length);
+    _message=$"Option: {CurrentSetting}.";
+    break;
+   case Stage.Rotate:
+    _assetRotation=NormalizeDegrees(_assetRotation+(direction*5));
+    _message=$"Preview rotation {_assetRotation}°.";
+    break;
+   case Stage.Move:
+    _assetX=Math.Clamp(_assetX+(direction*8),-200,200);
+    _message=$"Preview position {_assetX},{_assetY}.";
+    break;
+   default:
+    _message="X is available; this Shaep does not currently bind it to another action.";
+    break;
+  }
+ }
+
+ Task PressLeft()
+ {
+  switch(_stage)
+  {
+   case Stage.Environment:
+    _stage=Stage.Role;
+    _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
+    break;
+   case Stage.Role:
+    _message="Roleplayer is reserved for the player-facing branch of this experiment.";
+    break;
+   case Stage.GameMasterHub:
+    _stage=Stage.GameMasterScope;
+    _scopeIndex=0;
+    _message=CurrentWorld=="NEW WORLD"
+     ?"New World selected. Choose the GameMaster suite that will define it."
+     :$"{CurrentWorld} selected. Choose a GameMaster suite.";
+    break;
+   case Stage.GameMasterScope:
+    EnterScope();
+    break;
+   case Stage.SoftwareHub:
+    _message=$"{CurrentSoftware} selected. Adapter contract placeholder only; no third-party UI or copied design is embedded.";
+    break;
+   case Stage.AssetKind:
+    _assetKind="IMAGE";
+    _stage=Stage.AssetMode;
+    _message="Image selected. Choose Edit or Add.";
+    break;
+   case Stage.AssetMode:
+    _assetMode="EDIT";
+    _stage=Stage.BrowsePlace;
+    _message="Edit selected. Browse requests a source through the future image-tool adapter.";
+    break;
+   case Stage.BrowsePlace:
+    _message="Browse requested. This prototype deliberately does not embed or imitate an external editor.";
+    break;
+   case Stage.SaveCancel:
+    _savedAsset=true;
+    ResetAssetTransform();
+    _stage=Stage.WorldBuilderTier;
+    _message="Asset ironed into the experimental viewer. Returned to World Builder Tier.";
+    break;
+   case Stage.WorldBuilderTier:
+    _message="Y changes Tier; Right/Enter confirms it.";
+    break;
+   case Stage.WorldBuilderLayer:
+    _message="Y changes Layer; Right/Enter confirms it.";
+    break;
+   case Stage.Scale:
+    _message="Y enlarges or reduces; Right/Set confirms.";
+    break;
+   case Stage.Rotate:
+    _message="X rotates; Right/Set confirms.";
+    break;
+   case Stage.Move:
+    _message="X/Y move; Right/Set confirms.";
+    break;
+  }
+  return Task.CompletedTask;
+ }
+
+ Task PressRight()
+ {
+  switch(_stage)
+  {
+   case Stage.Environment:
+    _message="RIST selected. The universal/private environment branch is reserved for the next experiment.";
+    break;
+   case Stage.Role:
+    _stage=Stage.GameMasterHub;
+    _message="GameMaster selected. Y cycles worlds; X cycles options.";
+    break;
+   case Stage.GameMasterHub:
+    _message=$"{CurrentSetting} selected. Settings will use the same contextual-control pattern.";
+    break;
+   case Stage.GameMasterScope:
+    _stage=Stage.GameMasterHub;
+    _message="Returned to worlds and GameMaster options.";
+    break;
+   case Stage.SoftwareHub:
+    _stage=Stage.GameMasterScope;
+    _message="Returned to the GameMaster suite selector.";
+    break;
+   case Stage.WorldBuilderTier:
+    _stage=Stage.WorldBuilderLayer;
+    _message=$"Tier {_tier} set for this experiment. Choose Layer.";
+    break;
+   case Stage.WorldBuilderLayer:
+    _stage=Stage.AssetKind;
+    _message=$"Tier {_tier}, Layer {_layer}. Choose Image or Sprite.";
+    break;
+   case Stage.AssetKind:
+    _assetKind="SPRITE";
+    _stage=Stage.AssetMode;
+    _message="Sprite selected. Static images and animated sprites stay distinct but share placement controls.";
+    break;
+   case Stage.AssetMode:
+    _assetMode="ADD";
+    _stage=Stage.BrowsePlace;
+    _message=$"Add {_assetKind.ToLowerInvariant()} selected. Browse or Place.";
+    break;
+   case Stage.BrowsePlace:
+    _stage=Stage.Scale;
+    _message="Representation placed in preview. Use Y to enlarge or reduce.";
+    break;
+   case Stage.Scale:
+    _stage=Stage.Rotate;
+    _message="Scale set. Use X to rotate.";
+    break;
+   case Stage.Rotate:
+    _stage=Stage.Move;
+    _message="Rotation set. Use X/Y to move.";
+    break;
+   case Stage.Move:
+    _stage=Stage.SaveCancel;
+    _message="Position set. Save or Cancel.";
+    break;
+   case Stage.SaveCancel:
+    ResetAssetTransform();
+    _stage=Stage.WorldBuilderTier;
+    _message="Preview cancelled. Returned to World Builder Tier.";
+    break;
+  }
+  return Task.CompletedTask;
+ }
+
+ void EnterScope()
+ {
+  switch(CurrentScope)
+  {
+   case "WORLD BUILDER":
+    _stage=Stage.WorldBuilderTier;
+    _message="World Builder. Y changes Tier; Right confirms and advances to Layer.";
+    break;
+   case "SOFTWARE":
+    _stage=Stage.SoftwareHub;
+    _softwareIndex=0;
+    _message="Software capability adapters. RIST controls stay consistent while engines remain replaceable.";
+    break;
+   default:
+    _message=$"{CurrentScope} is registered in the GameMaster flowchart; its beginner Shaeps are not wired in this experiment yet.";
+    break;
+  }
+ }
+
+ void ResetAssetTransform()
+ {
+  _assetScale=1;
+  _assetRotation=0;
+  _assetX=0;
+  _assetY=0;
+ }
+
+ static int Wrap(int value,int length)
+ {
+  if(length<=0)return 0;
+  var result=value%length;
+  return result<0?result+length:result;
+ }
+
+ static int NormalizeDegrees(int value)
+ {
+  var result=value%360;
+  return result<0?result+360:result;
+ }
 
  async Task HandleKeyDown(KeyboardEventArgs e)
  {
-  if (e.Key == "Escape" && OnExit.HasDelegate)
+  if(e.Key=="Escape")
   {
-   await OnExit.InvokeAsync();
+   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
    return;
   }
 
   switch(e.Key)
   {
-   case "ArrowLeft": _x = Math.Max(-100, _x - 1); break;
-   case "ArrowRight": _x = Math.Min(100, _x + 1); break;
-   case "ArrowUp": _y = Math.Min(100, _y + 1); break;
-   case "ArrowDown": _y = Math.Max(-100, _y - 1); break;
+   case "ArrowLeft":
+   case "a":
+   case "A": ApplyX(-1); break;
+   case "ArrowRight":
+   case "d":
+   case "D": ApplyX(1); break;
+   case "ArrowUp":
+   case "w":
+   case "W": ApplyY(1); break;
+   case "ArrowDown":
+   case "s":
+   case "S": ApplyY(-1); break;
+   case "q":
+   case "Q": await PressLeft(); break;
+   case "e":
+   case "E": await PressRight(); break;
   }
+ }
+
+ [JSInvokable]
+ public Task ReceiveUniversalInput(string control,int direction)
+ {
+  return InvokeAsync(async () =>
+  {
+   switch(control)
+   {
+    case "x": ApplyX(direction); break;
+    case "y": ApplyY(direction); break;
+    case "left": await PressLeft(); break;
+    case "right": await PressRight(); break;
+   }
+   StateHasChanged();
+  });
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  try{await JS.InvokeVoidAsync("ristExperimentsUniversalInput.stop");}catch(JSException){}
+  _selfRef?.Dispose();
  }
 }
