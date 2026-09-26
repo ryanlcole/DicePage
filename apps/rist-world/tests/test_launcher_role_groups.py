@@ -30,7 +30,7 @@ class LauncherLearningPathContract(unittest.TestCase):
             self.assertIn(f"<strong>{label}</strong>", self.shell)
 
     def test_environment_switching_returns_to_role_hubs(self):
-        self.assertIn("@onclick="OpenShaelvienHubAsync"", self.shell)
+        self.assertIn('@onclick="OpenShaelvienHubAsync"', self.shell)
         self.assertIn('_worldGateIntent="rist-hub"', self.shell)
         self.assertIn('string.Equals(intent,"rist-hub",StringComparison.Ordinal)', self.shell)
         rist_method = self.shell[self.shell.index("async Task OpenRistAsync()"):self.shell.index("void OpenCreate()")]
