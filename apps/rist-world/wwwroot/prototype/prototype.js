@@ -3104,6 +3104,7 @@ function applyTransform(){
   if(REGION_DEFINER)syncClaimedRegionContextMask();
   applyParallax();
   updateReadouts();
+  if(selectedImage&&selectionUnderlayVisible)scheduleSelectionUnderlay();
   scheduleRegionEnhancement();
 }
 function recomputeMaxViewScale(){
@@ -3137,6 +3138,95 @@ function focusNormalizedBounds(bounds={}){
   y=(r.height/2)-(cy*naturalHeight*scale);
   applyTransform();scheduleRegionEnhancement(50);
   return true;
+}
+function selectedAssetNormalizedBounds(item=selectedImage){
+  if(!item||isWorldMapItem(item))return null;
+  if(item.kind==='label'){
+    const width=clamp(Math.max(24,item.node?.offsetWidth||24)/Math.max(naturalWidth,1),.002,1);
+    const height=clamp(Math.max(24,item.node?.offsetHeight||24)/Math.max(naturalHeight,1),.002,1);
+    return{x:clamp(Number(item.x)||.5,0,1),y:clamp(Number(item.y)||.5,0,1),width:clamp(width*1.45,.02,1),height:clamp(height*1.45,.02,1)};
+  }
+  const width=clamp(.12*Math.max(Number(item.size)||1,.05),.004,1);
+  const height=clamp(width/Math.max(stableAssetAspect(item),.05),.004,1);
+  return{x:clamp(Number(item.x)||.5,0,1),y:clamp(Number(item.y)||.5,0,1),width:clamp(width*1.35,.03,1),height:clamp(height*1.35,.03,1)};
+}
+function ensureSelectionUnderlayPreview(){
+  if(selectionUnderlayNode?.isConnected)return selectionUnderlayNode;
+  const node=document.createElement('div');node.className='selection-underlay-preview';node.hidden=true;node.setAttribute('aria-hidden','true');
+  stage.appendChild(node);selectionUnderlayNode=node;return node;
+}
+function clearSelectionUnderlay(){
+  if(selectionUnderlayFrame){cancelAnimationFrame(selectionUnderlayFrame);selectionUnderlayFrame=0}
+  selectionUnderlaySourceName='';
+  if(selectionUnderlayNode)selectionUnderlayNode.hidden=true;
+}
+function selectionUnderlayCandidate(item){
+  if(!item?.node?.isConnected)return null;
+  const rect=item.node.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const members=linkedSelectionMembers(item),saved=members.map(member=>({node:member.node,visibility:member.node?.style.visibility||''}));
+  for(const entry of saved)if(entry.node)entry.node.style.visibility='hidden';
+  let target=document.elementFromPoint?.(cx,cy)||null;
+  for(const entry of saved)if(entry.node)entry.node.style.visibility=entry.visibility;
+  while(target&&target!==stage){
+    if(target instanceof HTMLImageElement&&!target.closest('[data-ui]'))return target;
+    target=target.parentElement;
+  }
+  return null;
+}
+function refreshSelectionUnderlay(){
+  selectionUnderlayFrame=0;
+  const preview=ensureSelectionUnderlayPreview(),item=selectedImage;
+  if(!selectionUnderlayVisible||!item?.node?.isConnected||isWorldMapItem(item)){preview.hidden=true;selectionUnderlaySourceName='';return}
+  const under=selectionUnderlayCandidate(item);
+  const src=String(under?.currentSrc||under?.src||'');
+  if(!under||!src){preview.hidden=true;selectionUnderlaySourceName='';return}
+  const stageRect=stage.getBoundingClientRect(),selectedRect=item.node.getBoundingClientRect(),underRect=under.getBoundingClientRect();
+  const left=Math.max(stageRect.left,selectedRect.left),top=Math.max(stageRect.top,selectedRect.top);
+  const right=Math.min(stageRect.right,selectedRect.right),bottom=Math.min(stageRect.bottom,selectedRect.bottom);
+  if(right-left<2||bottom-top<2){preview.hidden=true;selectionUnderlaySourceName='';return}
+  preview.style.left=`${left-stageRect.left}px`;preview.style.top=`${top-stageRect.top}px`;
+  preview.style.width=`${right-left}px`;preview.style.height=`${bottom-top}px`;
+  preview.style.backgroundImage=`url("${src.replace(/"/g,'\\\"')}")`;
+  preview.style.backgroundSize=`${Math.max(1,underRect.width)}px ${Math.max(1,underRect.height)}px`;
+  preview.style.backgroundPosition=`${underRect.left-left}px ${underRect.top-top}px`;
+  selectionUnderlaySourceName=String(under.alt||under.dataset?.name||'lower layer').trim()||'lower layer';
+  preview.hidden=false;
+}
+function scheduleSelectionUnderlay(){
+  if(selectionUnderlayFrame)return;
+  selectionUnderlayFrame=requestAnimationFrame(refreshSelectionUnderlay);
+}
+function focusSelectedAsset(item=selectedImage){
+  if(!selectionAutoFocus||!item||isWorldMapItem(item))return false;
+  const bounds=selectedAssetNormalizedBounds(item);if(!bounds)return false;
+  if(!selectionCameraSnapshot)selectionCameraSnapshot={scale,x,y};
+  const focused=focusNormalizedBounds(bounds);
+  if(focused)scheduleSelectionUnderlay();
+  return focused;
+}
+function restoreSelectionCamera(){
+  clearSelectionUnderlay();
+  if(!selectionCameraSnapshot)return false;
+  const camera=selectionCameraSnapshot;selectionCameraSnapshot=null;
+  scale=clamp(Number(camera.scale)||scale,MIN_VIEW_SCALE,maxScale);x=Number(camera.x)||0;y=Number(camera.y)||0;
+  applyTransform();return true;
+}
+function toggleSelectionUnderlay(){
+  selectionUnderlayVisible=!selectionUnderlayVisible;saveControlPrefs();
+  if(selectionUnderlayVisible){scheduleSelectionUnderlay();announce(selectionUnderlaySourceName?`Underlay visible: ${selectionUnderlaySourceName}.`:'Underlay preview enabled.')}
+  else{clearSelectionUnderlay();announce('Underlay preview hidden.')}
+  renderKeyboardKeys();
+}
+function toggleSelectionAutoFocus(){
+  selectionAutoFocus=!selectionAutoFocus;saveControlPrefs();
+  if(selectionAutoFocus&&selectedImage)focusSelectedAsset(selectedImage);
+  announce(`Auto focus on selection ${selectionAutoFocus?'on':'off'}.`);renderKeyboardKeys();
+}
+function toggleLargeControls(){
+  largeControls=!largeControls;stage.classList.toggle('large-controls',largeControls);saveControlPrefs();announce(`Large controls ${largeControls?'on':'off'}.`);renderKeyboardKeys();
+}
+function toggleHighContrastControls(){
+  highContrastControls=!highContrastControls;stage.classList.toggle('high-contrast',highContrastControls);saveControlPrefs();announce(`High contrast controls ${highContrastControls?'on':'off'}.`);renderKeyboardKeys();
 }
 function zoomAt(cx,cy,factor){
   suspendRegionEnhancement();
