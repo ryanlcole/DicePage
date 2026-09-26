@@ -1,0 +1,670 @@
+{
+  "format": "SHAELVIEN_RIST_STRUCTURAL_PLAN_V1",
+  "status": "owner_requested_structural_plan",
+  "created_at": "2026-09-26",
+  "repository": {
+    "name": "ryanlcole/DicePage",
+    "branch": "live-alpha-rist-blazor-world",
+    "inspected_head": "2ec35657ab39f770be680956aefe143048aa6dc4",
+    "safety_branch": "backup/pre-guided-shell-20260926",
+    "current_change_lineage": {
+      "ahead_of_safety_branch": 5,
+      "behind_safety_branch": 0
+    }
+  },
+  "source_database_snapshot": {
+    "code_index": {
+      "tracked_files": 4043,
+      "source_files": 3205,
+      "docs": 135,
+      "assets": 448,
+      "symbols": 174783,
+      "references": 430610,
+      "resolved_references": 298600,
+      "error_events": 8,
+      "error_signatures": 8,
+      "regressions_recorded": 0,
+      "repeated_errors_recorded": 0,
+      "exact_duplicate_groups": 8,
+      "exact_source_duplicate_groups": 4
+    },
+    "authoritative_contracts": [
+      "CREATIVE_WORKPLACE_CONTRACT.md",
+      "ADAPTIVE_CONTROL_FLOW_CONTRACT.md",
+      "SPATIAL_HIERARCHY_CONTRACT.md",
+      "RECURSIVE_SCOPE_EDITOR_CONTRACT.md",
+      "CAMPAIGN_BEHAVIOR_CONTRACT.md",
+      "AUTHORITY_SYSTEM.md"
+    ],
+    "current_surfaces": [
+      "PublicAlphaShell.razor",
+      "ShaelvienGmGuide.razor",
+      "CreativeWorkbenchWorkspace.razor",
+      "TaskWorkspaceRouter.razor",
+      "ShaelvienMmoFront.razor",
+      "CampaignWorkspace.razor",
+      "GmReportWorkspace.razor",
+      "WorldBuilderGeonaphHost.razor"
+    ],
+    "verification_boundary": "Repository state is implementation evidence. No current combined status checks or workflow runs were returned for the inspected head; deployed runtime behavior is not verified by this dataset."
+  },
+  "non_negotiable_invariants": [
+    {
+      "id": "INV-001",
+      "rule": "One underlying truth, multiple presentations.",
+      "consequence": "Shaelvien and RIST may expose different workflows but must not maintain contradictory character, campaign, or world state."
+    },
+    {
+      "id": "INV-002",
+      "rule": "Representation is not semantic truth.",
+      "consequence": "A guided view, expert dashboard, crop, zoom, angle, or simplified label never creates a second canonical identity."
+    },
+    {
+      "id": "INV-003",
+      "rule": "Spatial truth remains WORLD -> REGION -> LOCAL -> INSTANCE -> ENCOUNTER.",
+      "consequence": "Inside-out learning begins as private prep/campaign data; canonical geometry is created only through valid parent identities and authority."
+    },
+    {
+      "id": "INV-004",
+      "rule": "Draft, campaign behavior, runtime play, and world geometry remain separate data classes.",
+      "consequence": "A novice answer does not silently become published/canonical world truth."
+    },
+    {
+      "id": "INV-005",
+      "rule": "Permissions remain server-authoritative.",
+      "consequence": "Guided workflows may prepare a claim or promotion but never manufacture edit rights in Shaelvien MMO."
+    },
+    {
+      "id": "INV-006",
+      "rule": "Existing working advanced tools are preserved.",
+      "consequence": "Progressive disclosure hides complexity; it does not delete WorldBuilder, Region, Local, Instance, Campaign, Asset, card, tracker, accessibility, or advanced controls."
+    },
+    {
+      "id": "INV-007",
+      "rule": "All essential actions share one action graph across touch, mouse, keyboard, controller, speech, switch input, and accessibility surfaces.",
+      "consequence": "No guided or expert path may depend on precision drag, hover, or one device class."
+    },
+    {
+      "id": "INV-008",
+      "rule": "Errors become regression law.",
+      "consequence": "New structural failures require a test or invariant before the feature is considered stable."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "BLK-001",
+      "severity": "critical",
+      "area": "guided_gm_persistence",
+      "finding": "ShaelvienGmGuide stores objective, scene, encounter, pressure, and consequence only in component fields.",
+      "impact": "Leaving the component for play disposes the draft; the user's prep is not durable.",
+      "required_fix": "Create a versioned world/account-scoped Guided GM draft model with local fallback and private authenticated persistence."
+    },
+    {
+      "id": "BLK-002",
+      "severity": "critical",
+      "area": "play_loop",
+      "finding": "RUN / PLAY routes to generic roleplay/ShaelvienMmoFront rather than a runtime session bound to the prepared situation.",
+      "impact": "The displayed OBJECTIVE -> SCENE -> ENCOUNTERS -> PLAY -> CONSEQUENCE loop is not actually closed.",
+      "required_fix": "Introduce a stable PrepId/SessionId handoff into a run surface and a return path to post-play consequence capture."
+    },
+    {
+      "id": "BLK-003",
+      "severity": "critical",
+      "area": "promotion",
+      "finding": "Guided GM answers do not map to Creative Workbench, Campaign behavior, recursive spatial scopes, or a promotion record.",
+      "impact": "The promise that play grows the world is currently presentation text only.",
+      "required_fix": "Add explicit promotion actions from private prep -> prepared session -> play record -> accepted consequences -> campaign/world references."
+    },
+    {
+      "id": "BLK-004",
+      "severity": "critical",
+      "area": "environment_switch",
+      "finding": "OPEN RIST from Shaelvien invokes the WorldGate; selecting a sandbox world currently auto-opens WorldBuilder. ENTER SHAELVIEN from RIST invokes OpenShaelvien and immediately enters roleplay.",
+      "impact": "The new Shaelvien-guided versus RIST-direct launcher distinction can be bypassed during environment switching.",
+      "required_fix": "Separate environment selection intent from workspace-opening intent. Environment switches return to the appropriate role-choice hub."
+    },
+    {
+      "id": "BLK-005",
+      "severity": "high",
+      "area": "shaelvien_player",
+      "finding": "The Shaelvien Roleplayer card describes LOOK -> BASICS -> PLAY -> GROW but routes directly to roleplay.",
+      "impact": "The player learning path is not implemented.",
+      "required_fix": "Create a guided character seed flow that saves appearance/basic identity first, then unlocks remaining growth through explicit play-derived choices."
+    },
+    {
+      "id": "BLK-006",
+      "severity": "high",
+      "area": "rist_gm",
+      "finding": "OPEN GM DESK routes to the Creative Workbench. The expert user still lacks one operational GM desk centered on documents, tracking, people/NPCs, world, encounters, assets, rules, and run.",
+      "impact": "RIST remains partly organized by internal production concepts rather than the experienced GM's table routine.",
+      "required_fix": "Create a RIST GM Desk router that surfaces existing workspaces directly without duplicating their data."
+    },
+    {
+      "id": "BLK-007",
+      "severity": "high",
+      "area": "shared_world_authority",
+      "finding": "The guided GM copy implies the outside world can grow directly, but Shaelvien MMO world/region/local edits require explicit authority and valid recursive parents.",
+      "impact": "A novice path could imply permissions the user does not possess.",
+      "required_fix": "Keep novice prep private/campaign-scoped by default. Offer world promotion only when a valid owned/authorized scope exists; otherwise offer practice/private RIST placement or a claim request."
+    },
+    {
+      "id": "BLK-008",
+      "severity": "medium",
+      "area": "encounter_balance",
+      "finding": "Current guidance uses party size and a qualitative pressure label but has no ruleset-specific level/power/budget adapter.",
+      "impact": "It cannot truthfully claim mathematical encounter balance for arbitrary systems.",
+      "required_fix": "Rename generic output to difficulty intent. Add pluggable ruleset adapters that declare required inputs and calculations."
+    },
+    {
+      "id": "BLK-009",
+      "severity": "medium",
+      "area": "verification",
+      "finding": "No combined status checks or workflow runs were returned for the inspected current head.",
+      "impact": "Compile, test, deployment, and live interaction success are unverified.",
+      "required_fix": "Make structural-plan tests, component contract tests, build, and mobile smoke verification explicit release gates."
+    },
+    {
+      "id": "BLK-010",
+      "severity": "medium",
+      "area": "error_observability",
+      "finding": "The code index reports eight error events/signatures while its configured repository error sources KNOWN_ERRORS.md and .code-index/runtime_errors.jsonl are not present at the inspected branch paths.",
+      "impact": "The error count is not self-explanatory from the active tree and cannot serve as a complete live blocker feed by itself.",
+      "required_fix": "Materialize or link the authoritative error ledger and runtime error stream into a discoverable governed source, without duplicating authority."
+    }
+  ],
+  "product_matrix": {
+    "SHAELVIEN": {
+      "purpose": "guided emergence",
+      "player": {
+        "promise": "Learn the game by becoming a character and growing through play.",
+        "primary_flow": [
+          "LOOK",
+          "BASICS",
+          "PLAY",
+          "GROW"
+        ],
+        "default_depth": "foundation",
+        "complexity_policy": "Reveal fields and tools when play creates a reason for them."
+      },
+      "gamemaster": {
+        "promise": "Learn GameMastering by preparing and running one useful situation at a time.",
+        "first_campaign_setup": [
+          "TABLE",
+          "PLAYERS",
+          "RULESET",
+          "TONE_AND_BOUNDARIES"
+        ],
+        "per_session_flow": [
+          "OBJECTIVE",
+          "STRONG_START_SCENE",
+          "SITUATION_COMPONENTS",
+          "RUN",
+          "CONSEQUENCE",
+          "NEXT_HORIZON"
+        ],
+        "default_depth": "foundation",
+        "complexity_policy": "Ask one decision at a time; expose advanced studios only when the current task needs them."
+      }
+    },
+    "RIST": {
+      "purpose": "direct construction and operation",
+      "player": {
+        "promise": "Design the character, enter the game, track what matters.",
+        "primary_flow": [
+          "DESIGN",
+          "ENTER",
+          "TRACK"
+        ],
+        "default_depth": "direct"
+      },
+      "gamemaster": {
+        "promise": "Open the GM desk and work in the order the table already uses.",
+        "primary_surfaces": [
+          "TONIGHT",
+          "DOCUMENTS",
+          "PEOPLE",
+          "ENCOUNTERS",
+          "TRACK",
+          "WORLD",
+          "ASSETS",
+          "RULES",
+          "RUN"
+        ],
+        "default_depth": "direct",
+        "complexity_policy": "No mandatory tutorial funnel; preserve shortcuts and dense controls."
+      }
+    }
+  },
+  "shared_domain_model": {
+    "core_atom": {
+      "name": "PlayableSituation",
+      "purpose": "The smallest complete unit that can be prepared, run, observed, and continued.",
+      "fields": [
+        "SituationId",
+        "WorldId",
+        "CampaignId",
+        "OwnerUserId",
+        "Objective",
+        "StrongStart",
+        "Scene",
+        "PressureIfIgnored",
+        "PlayerHooks",
+        "EncounterPlans",
+        "SecretsAndClues",
+        "People",
+        "Rewards",
+        "RulesetId",
+        "DifficultyIntent",
+        "SpatialReference",
+        "Status",
+        "CreatedAtUtc",
+        "UpdatedAtUtc"
+      ]
+    },
+    "supporting_records": [
+      {
+        "name": "CampaignSetup",
+        "role": "Reusable table-level facts: players, ruleset, tone, boundaries, house rules, accessibility/preferences."
+      },
+      {
+        "name": "EncounterPlan",
+        "role": "Conversation, discovery, obstacle, hazard, combat, or system-specific encounter information."
+      },
+      {
+        "name": "RunSession",
+        "role": "Binds one or more PlayableSituation records to actual play without changing world geometry."
+      },
+      {
+        "name": "PlayRecord",
+        "role": "What actually happened during play: decisions, outcomes, discovered information, defeated/changed entities, and unresolved threads."
+      },
+      {
+        "name": "ConsequenceRecord",
+        "role": "Human-reviewed statement of what became true after play."
+      },
+      {
+        "name": "PromotionRecord",
+        "role": "Explicitly records movement from private draft/campaign truth into canonical world or recursive-scope truth, including authority checks and target identity."
+      },
+      {
+        "name": "CharacterSeed",
+        "role": "Minimum Shaelvien player identity: appearance, name/identity, and only the initial stats required to enter play."
+      },
+      {
+        "name": "CharacterGrowthEvent",
+        "role": "One earned/unlocked character choice with provenance to play or explicit GM/system grant."
+      }
+    ]
+  },
+  "truth_lifecycle": [
+    {
+      "state": "PRIVATE_DRAFT",
+      "authority": "creator",
+      "description": "Safe unfinished work. Not world canon."
+    },
+    {
+      "state": "PREPARED",
+      "authority": "creator/campaign",
+      "description": "Ready to run. Still not world geometry."
+    },
+    {
+      "state": "IN_PLAY",
+      "authority": "runtime",
+      "description": "Active session state. Observed outcomes are provisional until resolved."
+    },
+    {
+      "state": "PLAY_RECORDED",
+      "authority": "session record",
+      "description": "What occurred is retained with provenance."
+    },
+    {
+      "state": "CONSEQUENCE_ACCEPTED",
+      "authority": "authorized human",
+      "description": "The table/GM accepts what became true for campaign continuity."
+    },
+    {
+      "state": "PROMOTED",
+      "authority": "authorized world/campaign owner",
+      "description": "Selected facts or authored geometry are explicitly attached to stable campaign/world identities."
+    }
+  ],
+  "inside_out_growth_rules": [
+    "A beginner may create a scene before knowing its final place in the canonical spatial hierarchy.",
+    "That early scene remains a PlayableSituation/private campaign object, not an orphaned canonical Instance.",
+    "When spatial placement becomes necessary, the system asks whether the scene belongs in an existing authorized Local/Region/World or needs a new authorized parent chain.",
+    "Creating a Local still requires an eligible placed Region anchor; creating an Instance still requires an eligible Local anchor/marker.",
+    "If the user lacks Shaelvien shared-world authority, the system keeps the material private, offers an appropriate claim/request path, or allows placement in an owned RIST world.",
+    "World growth is a projection of accepted play and explicit authorship; it is never inferred solely from text or visual similarity."
+  ],
+  "shaelvien_gm_flow": {
+    "campaign_once": {
+      "screen": "TABLE",
+      "questions": [
+        "Who is playing?",
+        "Which ruleset or rules style?",
+        "What kind of experience does the group want?",
+        "What boundaries/accessibility needs matter?"
+      ],
+      "output": "CampaignSetup"
+    },
+    "repeatable_session": [
+      {
+        "step": "OBJECTIVE",
+        "asks": [
+          "What are the players trying to accomplish?",
+          "Why does it matter now?"
+        ],
+        "writes": [
+          "PlayableSituation.Objective",
+          "PlayableSituation.PlayerHooks"
+        ]
+      },
+      {
+        "step": "SCENE",
+        "asks": [
+          "Where does play start?",
+          "What happens immediately?",
+          "What changes if nobody acts?"
+        ],
+        "writes": [
+          "PlayableSituation.Scene",
+          "PlayableSituation.StrongStart",
+          "PlayableSituation.PressureIfIgnored"
+        ]
+      },
+      {
+        "step": "SITUATION",
+        "asks": [
+          "Who or what is here?",
+          "What can be discovered?",
+          "What meaningful choices or conflicts may occur?",
+          "What reward or consequence is possible?"
+        ],
+        "writes": [
+          "People",
+          "SecretsAndClues",
+          "EncounterPlans",
+          "Rewards"
+        ]
+      },
+      {
+        "step": "READY",
+        "behavior": "Validate only the minimum required to run. Offer optional ruleset balance calculation when supported.",
+        "writes": [
+          "Status=PREPARED"
+        ]
+      },
+      {
+        "step": "RUN",
+        "behavior": "Open a run surface bound to SituationId and create RunSession.",
+        "writes": [
+          "Status=IN_PLAY"
+        ]
+      },
+      {
+        "step": "AFTER",
+        "asks": [
+          "What actually happened?",
+          "What became true?",
+          "What remains unresolved?",
+          "What do the players care about next?"
+        ],
+        "writes": [
+          "PlayRecord",
+          "ConsequenceRecord"
+        ]
+      },
+      {
+        "step": "GROW",
+        "behavior": "Offer only contextually valid next actions: next scene, connect people/clues, attach to existing place, request/claim space, create authorized child scope, or move to owned RIST world.",
+        "writes": [
+          "PromotionRecord when explicitly accepted"
+        ]
+      }
+    ]
+  },
+  "rist_gm_desk": {
+    "layout": {
+      "top": [
+        "ACTIVE_WORLD",
+        "CAMPAIGN",
+        "SESSION",
+        "SEARCH",
+        "QUICK_RUN"
+      ],
+      "primary": [
+        {
+          "id": "TONIGHT",
+          "routes_to": "session prep / run queue"
+        },
+        {
+          "id": "DOCUMENTS",
+          "routes_to": "CampaignWorkspace"
+        },
+        {
+          "id": "PEOPLE",
+          "routes_to": "campaign NPC/connected identity view"
+        },
+        {
+          "id": "ENCOUNTERS",
+          "routes_to": "campaign behavior encounter view"
+        },
+        {
+          "id": "TRACK",
+          "routes_to": "GmReportWorkspace"
+        },
+        {
+          "id": "WORLD",
+          "routes_to": "WorldBuilder/Region/Local/Instance navigator"
+        },
+        {
+          "id": "ASSETS",
+          "routes_to": "AssetDesigner"
+        },
+        {
+          "id": "RULES",
+          "routes_to": "Rulebooks/Card systems"
+        },
+        {
+          "id": "RUN",
+          "routes_to": "tabletop/runtime"
+        }
+      ],
+      "secondary": [
+        "Creative Workbench",
+        "Perceiver",
+        "ReLiC Observer",
+        "specialized studios",
+        "settings",
+        "accessibility"
+      ]
+    },
+    "principle": "The desk is a router and status surface. It must reuse existing authoritative workspaces, not copy their data into a new dashboard database."
+  },
+  "player_structure": {
+    "shaelvien": {
+      "seed": [
+        "LOOK",
+        "IDENTITY",
+        "MINIMUM_REQUIRED_STATS"
+      ],
+      "enter_condition": "CharacterSeed is valid for the selected ruleset/world.",
+      "growth": "Additional stats, powers, equipment, relationships, and specializations are unlocked or chosen through explicit CharacterGrowthEvent records."
+    },
+    "rist": {
+      "direct": [
+        "CHARACTER_DESIGNER",
+        "ENTER_GAME",
+        "TRACK"
+      ],
+      "principle": "Experienced/private play can expose the full sheet immediately."
+    }
+  },
+  "ruleset_adapter_contract": {
+    "generic_mode": {
+      "label": "DIFFICULTY INTENT",
+      "inputs": [
+        "party_size",
+        "desired_pressure"
+      ],
+      "guarantee": "No mathematical balance claim."
+    },
+    "adapter_mode": {
+      "required_interface": [
+        "RulesetId",
+        "RequiredCharacterInputs",
+        "RequiredEncounterInputs",
+        "CalculateBudget",
+        "ExplainResult",
+        "SourceReference"
+      ],
+      "examples_of_required_inputs": [
+        "character level/power",
+        "party size",
+        "enemy difficulty/CR or equivalent",
+        "environmental modifiers"
+      ],
+      "rule": "If required inputs are missing, report that balance is unresolved rather than inventing a budget."
+    }
+  },
+  "navigation_contract": {
+    "environment_switch": [
+      "Select environment first.",
+      "Select/load an appropriate world if required.",
+      "Return to that environment's role-choice hub.",
+      "Only a subsequent role/action choice opens a workspace."
+    ],
+    "home": "HOME returns to the active environment hub without changing world authority or silently switching environments.",
+    "back": "BACK changes presentation/history only and does not undo authored state.",
+    "run_return": "A run launched from a prepared SituationId can return to its AFTER step with the same persisted situation."
+  },
+  "accessibility_contract": {
+    "target_min_css_px": 44,
+    "requirements": [
+      "No essential drag-only action.",
+      "No hover-only disclosure.",
+      "Visible focus.",
+      "Semantic names reflect outcomes.",
+      "State is not color-only.",
+      "Narrow layouts reflow instead of hiding primary actions.",
+      "Screen reader and visual interfaces reference the same canonical state."
+    ]
+  },
+  "implementation_sequence": [
+    {
+      "phase": 0,
+      "name": "VERIFY_AND_FREEZE",
+      "goal": "Keep the safety branch immutable; capture current head and blockers; add dataset validation.",
+      "exit_gate": "Plan dataset loads and invariant test passes."
+    },
+    {
+      "phase": 1,
+      "name": "FOUNDATION_MODE_AND_NAVIGATION",
+      "goal": "Make Shaelvien/RIST environment state and role hubs deterministic without changing deep tools.",
+      "work": [
+        "Fix environment switch intent.",
+        "Stop WorldGate from auto-opening WorldBuilder when it was opened only to choose a RIST world.",
+        "Return RIST -> Shaelvien switch to Shaelvien hub instead of roleplay.",
+        "Add regression tests for hub switching."
+      ],
+      "exit_gate": "Phone can switch Shaelvien <-> RIST repeatedly without landing in the wrong workspace."
+    },
+    {
+      "phase": 2,
+      "name": "GUIDED_GM_DATA",
+      "goal": "Persist the novice GM loop before adding more UI.",
+      "work": [
+        "Add GuidedCampaignSetup/PlayableSituation/EncounterPlan/PlayRecord/ConsequenceRecord models.",
+        "Add local + private authenticated storage following Creative Workbench precedent.",
+        "Give each draft stable IDs and world/campaign scope.",
+        "Migrate current ShaelvienGmGuide fields to the persisted model."
+      ],
+      "exit_gate": "Refresh, Home, and workspace navigation preserve the same draft."
+    },
+    {
+      "phase": 3,
+      "name": "GUIDED_GM_RUN_LOOP",
+      "goal": "Close PREP -> RUN -> AFTER.",
+      "work": [
+        "Pass SituationId into a runtime/session launcher.",
+        "Record play/session identity.",
+        "Return to consequence capture.",
+        "Never auto-promote consequences."
+      ],
+      "exit_gate": "A complete preparation can be run and returned to without losing identity or content."
+    },
+    {
+      "phase": 4,
+      "name": "PROMOTION_AND_RECURSION",
+      "goal": "Let accepted play grow campaign/world truth without violating spatial or authority contracts.",
+      "work": [
+        "Attach accepted facts to Campaign behavior/notes.",
+        "Offer spatial placement only with valid parent identities.",
+        "Use explicit promotion records.",
+        "Offer claim/request or owned RIST placement when shared Shaelvien authority is absent."
+      ],
+      "exit_gate": "No path can create an orphan Local/Instance or bypass permissions."
+    },
+    {
+      "phase": 5,
+      "name": "SHAELVIEN_PLAYER_PATH",
+      "goal": "Implement LOOK -> BASICS -> PLAY -> GROW.",
+      "exit_gate": "A new player can enter with a minimal valid character and later add one explicit growth event at a time."
+    },
+    {
+      "phase": 6,
+      "name": "RIST_GM_DESK",
+      "goal": "Replace the expert GM front door with an operational router/status desk.",
+      "exit_gate": "Documents, People, Encounters, Track, World, Assets, Rules, and Run are one tap/click from the GM desk and use existing authoritative workspaces."
+    },
+    {
+      "phase": 7,
+      "name": "RULESET_ADAPTERS",
+      "goal": "Add truthful balance calculators one ruleset at a time.",
+      "exit_gate": "Unsupported systems remain qualitative; supported systems expose source-backed calculations."
+    },
+    {
+      "phase": 8,
+      "name": "HARDEN_AND_DEPLOY",
+      "goal": "Regression, accessibility, device, authority, persistence, and deployment verification.",
+      "exit_gate": "Automated checks plus live phone/desktop smoke tests pass before the safety branch is retired."
+    }
+  ],
+  "acceptance_tests": [
+    "Shaelvien hub always offers Roleplayer and GameMaster before opening a deep workspace.",
+    "RIST hub always offers direct Player and GameMaster paths after an owned/private world is selected.",
+    "Environment switching never implicitly enters Roleplay or WorldBuilder.",
+    "Guided GM draft survives refresh and Home.",
+    "RUN preserves SituationId and returns to AFTER.",
+    "Consequence capture never silently writes canonical world geometry.",
+    "Unauthorized Shaelvien users cannot promote geometry into protected shared scopes.",
+    "Local and Instance creation still obey canonical parent-anchor requirements.",
+    "RIST GM Desk reuses existing workspaces rather than duplicating their truth.",
+    "Shaelvien player minimal character can enter play without exposing the entire advanced sheet.",
+    "All primary actions are usable by touch and keyboard with visible focus and >=44px practical targets.",
+    "No build is called verified until compile/tests/deployment and live runtime are separately checked."
+  ],
+  "external_research_validation": [
+    {
+      "source": "D&D Beyond — Starting Strong at Your First Dungeons & Dragons Game as Dungeon Master",
+      "role": "non-canonical validation",
+      "supports": "New DMs benefit from simple scenarios, character focus, meaningful choices, problems to solve, and not needing every rule first."
+    },
+    {
+      "source": "D&D Beyond — 2024 Basic Rules, Preparing a Session",
+      "role": "non-canonical validation",
+      "supports": "Session prep prioritizes likely encounters, maps, NPC goals/tactics, clues, and player motivations with bounded preparation."
+    },
+    {
+      "source": "Sly Flourish — Using the Lazy DM's Eight Steps At the Table",
+      "role": "non-canonical validation",
+      "supports": "Experienced prep is component-based and intended to support improvisation: characters, strong start, scenes, secrets/clues, locations, NPCs, monsters, rewards."
+    },
+    {
+      "source": "Sly Flourish — Thinking Two Horizons Out",
+      "role": "non-canonical validation",
+      "supports": "Spiral campaign development builds around where characters are now and expands outward as needed."
+    }
+  ],
+  "build_rule": "Do not add more launcher concepts until Phase 1 and Phase 2 data/navigation foundations are complete. The shell is presentation; persistence, identity, authority, and return paths come first."
+}
