@@ -18,12 +18,16 @@ const backends=new Map();
 let preferred='auto';
 
 function loadImage(src){
+  src=String(src||'');
   return new Promise((resolve,reject)=>{
     const img=new Image();
     img.decoding='async';
+    // Image processing reads pixels through Canvas. Remote CDN/presigned images
+    // must opt into CORS before src is assigned or the canvas becomes tainted.
+    if(src&&!src.startsWith('data:')&&!src.startsWith('blob:'))img.crossOrigin='anonymous';
     img.onload=()=>resolve(img);
     img.onerror=()=>reject(new Error('Image could not be decoded'));
-    img.src=String(src||'');
+    img.src=src;
   });
 }
 
@@ -43,33 +47,53 @@ async function makeTransparent(src){
   const out=canvas();out.width=w;out.height=h;
   const ctx=out.getContext('2d',{willReadFrequently:true});
   ctx.clearRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
-  const data=ctx.getImageData(0,0,w,h),px=data.data;
+  const data=ctx.getImageData(0,0,w,h),px=data.data,count=w*h;
 
-  // Respect authored alpha. Do not recompute transparency for images that
-  // already contain meaningful transparent pixels.
-  for(let i=3;i<px.length;i+=4)if(px[i]<245)return src;
+  // Preserve genuinely authored alpha while ignoring a tiny anti-aliased fringe.
+  // A single translucent pixel must not disable background removal for an
+  // otherwise opaque PNG.
+  let authoredAlpha=0;
+  for(let i=3;i<px.length;i+=4)if(px[i]<224)authoredAlpha++;
+  if(authoredAlpha/Math.max(count,1)>.01)return src;
 
-  const samples=[],step=Math.max(1,Math.floor(Math.min(w,h)/48));
-  for(let xx=0;xx<w;xx+=step){samples.push(xx*4,((h-1)*w+xx)*4)}
-  for(let yy=0;yy<h;yy+=step){samples.push((yy*w)*4,(yy*w+w-1)*4)}
-  let r=0,g=0,b=0;
-  for(const i of samples){r+=px[i];g+=px[i+1];b+=px[i+2]}
-  r/=samples.length;g/=samples.length;b/=samples.length;
-  let variance=0;
-  for(const i of samples)variance+=(px[i]-r)**2+(px[i+1]-g)**2+(px[i+2]-b)**2;
-  variance/=samples.length;
-  if(variance>1500)return src;
+  // Model GIMP-style "select background from the border": find the dominant
+  // border colour, then remove only pixels connected to the image boundary.
+  // This avoids deleting matching colours inside the artwork.
+  const samples=[],step=Math.max(1,Math.floor(Math.min(w,h)/192));
+  for(let x=0;x<w;x+=step){samples.push(x,(h-1)*w+x)}
+  for(let y=0;y<h;y+=step){samples.push(y*w,y*w+w-1)}
+  const buckets=new Map();
+  for(const p of samples){
+    const i=p*4,a=px[i+3];if(a<32)continue;
+    const key=`${px[i]>>4}:${px[i+1]>>4}:${px[i+2]>>4}`;
+    let bucket=buckets.get(key);if(!bucket){bucket={count:0,r:0,g:0,b:0};buckets.set(key,bucket)}
+    bucket.count++;bucket.r+=px[i];bucket.g+=px[i+1];bucket.b+=px[i+2];
+  }
+  let dominant=null;
+  for(const bucket of buckets.values())if(!dominant||bucket.count>dominant.count)dominant=bucket;
+  if(!dominant||dominant.count/Math.max(samples.length,1)<.12)return src;
+  const br=dominant.r/dominant.count,bg=dominant.g/dominant.count,bb=dominant.b/dominant.count;
+  const distanceAt=p=>{const i=p*4;return Math.hypot(px[i]-br,px[i+1]-bg,px[i+2]-bb)};
+  const threshold=64,seen=new Uint8Array(count),queue=new Int32Array(count);let head=0,tail=0;
+  const enqueue=p=>{
+    if(p<0||p>=count||seen[p]||px[p*4+3]<8||distanceAt(p)>threshold)return;
+    seen[p]=1;queue[tail++]=p;
+  };
+  for(let x=0;x<w;x++){enqueue(x);enqueue((h-1)*w+x)}
+  for(let y=0;y<h;y++){enqueue(y*w);enqueue(y*w+w-1)}
+  while(head<tail){
+    const p=queue[head++],x=p%w,y=(p/w)|0;
+    if(x>0)enqueue(p-1);if(x+1<w)enqueue(p+1);if(y>0)enqueue(p-w);if(y+1<h)enqueue(p+w);
+  }
+  if(tail/Math.max(count,1)<.001)return src;
 
-  const threshold=48;
-  for(let i=0;i<px.length;i+=4){
-    const distance=Math.hypot(px[i]-r,px[i+1]-g,px[i+2]-b);
-    if(distance<threshold)px[i+3]=0;
-    else if(distance<threshold*1.5)px[i+3]=Math.round(255*(distance-threshold)/(threshold*.5));
+  for(let n=0;n<tail;n++){
+    const p=queue[n],i=p*4,d=distanceAt(p);
+    px[i+3]=d<threshold*.72?0:Math.min(px[i+3],Math.round(255*(d-threshold*.72)/(threshold*.28)));
   }
   ctx.putImageData(data,0,0);
   return out.toDataURL('image/png');
 }
-
 function normalizeCrop(raw){
   if(!raw||typeof raw!=='object')return null;
   const x=clamp(Number(raw.x)||0,0,1);
