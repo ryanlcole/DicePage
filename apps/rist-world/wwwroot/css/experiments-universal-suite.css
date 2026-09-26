@@ -963,3 +963,210 @@
  background:#6f4920!important;
  box-shadow:0 4px 11px #000a,0 0 12px rgba(216,181,94,.36)!important;
 }
+
+/* Single-analog authority — 2026-09-26.
+   One 2D analog carries X and Y; the left and right displays are the two buttons.
+   Default order is LEFT DISPLAY · ANALOG · RIGHT DISPLAY. */
+.experiments-shell{
+ grid-template-rows:minmax(0,1fr) clamp(170px,25dvh,238px)!important;
+}
+.experiments-controller.single-analog-deck{
+ box-sizing:border-box!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) clamp(112px,24vw,168px) minmax(0,1fr)!important;
+ grid-template-rows:minmax(0,1fr)!important;
+ grid-template-areas:"leftDisplay analog rightDisplay"!important;
+ align-items:stretch!important;
+ gap:8px!important;
+ padding:8px!important;
+ overflow:hidden!important;
+ border:1px solid rgba(201,159,72,.82)!important;
+ border-top:0!important;
+ border-radius:8px 8px 18px 18px!important;
+ background:
+  linear-gradient(rgba(76,177,234,.06) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(76,177,234,.06) 1px,transparent 1px),
+  #030a10!important;
+ background-size:18px 18px!important;
+ box-shadow:inset 0 0 0 1px rgba(255,223,150,.04),0 12px 34px #0008!important;
+}
+.experiments-controller.single-analog-deck.analog-left{
+ grid-template-areas:"analog leftDisplay rightDisplay"!important;
+}
+.experiments-controller.single-analog-deck.analog-center{
+ grid-template-areas:"leftDisplay analog rightDisplay"!important;
+}
+.experiments-controller.single-analog-deck.analog-right{
+ grid-template-areas:"leftDisplay rightDisplay analog"!important;
+}
+.single-analog-deck .control-display-left{grid-area:leftDisplay!important}
+.single-analog-deck .control-display-right{grid-area:rightDisplay!important}
+.single-analog-deck .analog-control-xy{
+ grid-area:analog!important;
+ position:relative!important;
+ z-index:4!important;
+ box-sizing:border-box!important;
+ min-width:0!important;
+ min-height:0!important;
+ display:grid!important;
+ place-items:center!important;
+ overflow:visible!important;
+ touch-action:none!important;
+ user-select:none!important;
+ -webkit-user-select:none!important;
+}
+.single-analog-deck .analog-pad{
+ position:relative!important;
+ width:min(100%,138px)!important;
+ max-width:min(100%,19dvh)!important;
+ aspect-ratio:1!important;
+ border:2px solid #c7a34f!important;
+ border-radius:50%!important;
+ background:
+  radial-gradient(circle at center,#0b1720 0 18%,#07121a 19% 53%,#10100c 54% 100%)!important;
+ box-shadow:
+  inset 0 0 0 2px rgba(99,211,255,.16),
+  inset 0 0 24px #000b,
+  0 0 16px rgba(208,168,70,.15)!important;
+}
+.single-analog-deck .analog-pad:before{
+ content:""!important;
+ position:absolute!important;
+ inset:-3px!important;
+ border-radius:50%!important;
+ padding:2px!important;
+ background:conic-gradient(
+  from -45deg,
+  #65d6ff 0 25%,
+  #cba64f 25% 50%,
+  #cba64f 50% 75%,
+  #65d6ff 75% 100%
+ )!important;
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;
+ -webkit-mask-composite:xor!important;
+ mask-composite:exclude!important;
+ pointer-events:none!important;
+}
+.single-analog-deck .analog-crosshair{
+ position:absolute!important;
+ inset:12%!important;
+ border-radius:50%!important;
+ pointer-events:none!important;
+ opacity:.68!important;
+ background:
+  linear-gradient(90deg,transparent calc(50% - .5px),rgba(207,187,126,.52) calc(50% - .5px),rgba(207,187,126,.52) calc(50% + .5px),transparent calc(50% + .5px)),
+  linear-gradient(transparent calc(50% - .5px),rgba(114,210,249,.54) calc(50% - .5px),rgba(114,210,249,.54) calc(50% + .5px),transparent calc(50% + .5px))!important;
+}
+.single-analog-deck .analog-knob{
+ position:absolute!important;
+ left:50%!important;
+ top:50%!important;
+ width:42%!important;
+ aspect-ratio:1!important;
+ border:2px solid #ead394!important;
+ border-radius:50%!important;
+ transform:translate(-50%,-50%)!important;
+ background:
+  radial-gradient(circle at 36% 30%,#fff1bd 0 7%,transparent 8%),
+  radial-gradient(circle at 35% 36%,#2f7597 0 28%,#3d3421 48%,#18120a 72%)!important;
+ box-shadow:
+  0 7px 15px #000b,
+  0 0 13px rgba(99,211,255,.22),
+  0 0 13px rgba(216,181,94,.18),
+  inset 0 0 0 2px rgba(255,255,255,.06)!important;
+ will-change:transform!important;
+ pointer-events:none!important;
+}
+.single-analog-deck .analog-direction{
+ position:absolute!important;
+ z-index:5!important;
+ color:#d9c486!important;
+ font:900 7px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.08em!important;
+ text-shadow:0 1px 4px #000!important;
+ pointer-events:none!important;
+}
+.single-analog-deck .analog-up{
+ top:2px!important;
+ left:50%!important;
+ transform:translateX(-50%)!important;
+ color:#8edfff!important;
+}
+.single-analog-deck .analog-down{
+ bottom:2px!important;
+ left:50%!important;
+ transform:translateX(-50%)!important;
+ color:#8edfff!important;
+}
+.single-analog-deck .analog-left{
+ left:1px!important;
+ top:50%!important;
+ transform:translateY(-50%)!important;
+ color:#f0cf7a!important;
+}
+.single-analog-deck .analog-right{
+ right:1px!important;
+ top:50%!important;
+ transform:translateY(-50%)!important;
+ color:#f0cf7a!important;
+}
+.single-analog-deck .control-display-button{
+ min-height:0!important;
+ height:100%!important;
+ border-radius:14px!important;
+ padding:10px 8px!important;
+}
+.single-analog-deck .control-display-button strong{
+ font-size:clamp(13px,1.45vw,20px)!important;
+}
+@media(max-width:700px) and (orientation:portrait){
+ .experiments-shell{
+  grid-template-rows:minmax(0,1fr) clamp(160px,23dvh,204px)!important;
+  padding:8px 8px max(10px,env(safe-area-inset-bottom))!important;
+ }
+ .experiments-controller.single-analog-deck{
+  grid-template-columns:minmax(0,1fr) clamp(104px,29vw,132px) minmax(0,1fr)!important;
+  gap:6px!important;
+  padding:6px!important;
+ }
+ .single-analog-deck .analog-pad{
+  width:min(100%,118px)!important;
+  max-width:min(100%,15.5dvh)!important;
+ }
+ .single-analog-deck .control-display-button{
+  padding:7px 5px!important;
+  gap:4px!important;
+ }
+ .single-analog-deck .control-display-button small{font-size:6px!important}
+ .single-analog-deck .control-display-button strong{font-size:clamp(11px,3vw,16px)!important}
+ .single-analog-deck .control-display-button span{font-size:5.5px!important}
+}
+@media(max-width:430px) and (orientation:portrait){
+ .experiments-shell{grid-template-rows:minmax(0,1fr) clamp(154px,22dvh,194px)!important}
+ .experiments-controller.single-analog-deck{
+  grid-template-columns:minmax(0,1fr) clamp(96px,28vw,116px) minmax(0,1fr)!important;
+  gap:5px!important;
+  padding:5px!important;
+ }
+ .single-analog-deck .analog-pad{
+  width:min(100%,108px)!important;
+  max-width:min(100%,14.5dvh)!important;
+ }
+ .single-analog-deck .analog-direction{font-size:6px!important}
+ .single-analog-deck .control-display-button strong{font-size:clamp(10px,2.8vw,14px)!important}
+}
+@media(orientation:landscape) and (max-height:560px){
+ .experiments-shell{grid-template-rows:minmax(0,1fr) clamp(126px,35dvh,168px)!important}
+ .experiments-controller.single-analog-deck{
+  grid-template-columns:minmax(0,1fr) clamp(94px,18vw,122px) minmax(0,1fr)!important;
+  gap:5px!important;
+  padding:5px!important;
+ }
+ .single-analog-deck .analog-pad{width:min(100%,104px)!important}
+ .single-analog-deck .control-display-button{padding:5px!important;gap:3px!important}
+ .single-analog-deck .control-display-button strong{font-size:11px!important}
+ .single-analog-deck .control-display-button span{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .single-analog-deck .analog-knob{transition:none!important}
+}
