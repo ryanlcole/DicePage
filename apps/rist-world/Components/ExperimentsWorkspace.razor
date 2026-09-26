@@ -110,30 +110,44 @@
   }
  </section>
 
- <section class="experiments-controls left-controls" aria-label="Left universal controls">
-  <div class="axis-title"><strong>Y</strong><small>W / S · ↑ / ↓ · STICK</small></div>
-  <div class="y-pad" aria-label="Y axis">
-   <button type="button" class="axis-key" @onclick="()=>ApplyY(1)" aria-label="Y up">▲</button>
-   <div class="axis-rail" aria-hidden="true"><span></span></div>
-   <button type="button" class="axis-key" @onclick="()=>ApplyY(-1)" aria-label="Y down">▼</button>
+ <section class="experiments-controls experiments-axis experiments-axis-y left-controls" aria-label="Left universal controls">
+  <div class="experiments-axis-copy">
+   <strong>Y AXIS</strong>
+   <small>UP ↕ DOWN</small>
   </div>
-  <button type="button" class="action-button left-action" @onclick="PressLeft">
-   <small>LEFT BUTTON · Q · PAD A</small>
-   <strong>@LeftButtonLabel</strong>
-  </button>
+  <button type="button"
+          class="experiments-action"
+          @onclick="PressLeft">@LeftButtonLabel</button>
+  <div class="experiments-y-slider-wrap">
+   <input class="experiments-slider experiments-slider-y"
+          type="range"
+          min="-100"
+          max="100"
+          step="1"
+          value="@_yControl"
+          @oninput="HandleYSlider"
+          aria-label="Y axis, up and down" />
+  </div>
  </section>
 
- <section class="experiments-controls right-controls" aria-label="Right universal controls">
-  <div class="axis-title"><strong>X</strong><small>A / D · ← / → · STICK</small></div>
-  <div class="x-pad" aria-label="X axis">
-   <button type="button" class="axis-key" @onclick="()=>ApplyX(-1)" aria-label="X left">◀</button>
-   <div class="axis-rail horizontal" aria-hidden="true"><span></span></div>
-   <button type="button" class="axis-key" @onclick="()=>ApplyX(1)" aria-label="X right">▶</button>
+ <section class="experiments-controls experiments-axis experiments-axis-x right-controls" aria-label="Right universal controls">
+  <div class="experiments-axis-copy">
+   <strong>X AXIS</strong>
+   <small>LEFT ↔ RIGHT</small>
   </div>
-  <button type="button" class="action-button right-action" @onclick="PressRight">
-   <small>RIGHT BUTTON · E · PAD B</small>
-   <strong>@RightButtonLabel</strong>
-  </button>
+  <button type="button"
+          class="experiments-action experiments-start"
+          @onclick="PressRight">@RightButtonLabel</button>
+  <div class="experiments-x-slider-wrap">
+   <input class="experiments-slider experiments-slider-x"
+          type="range"
+          min="-100"
+          max="100"
+          step="1"
+          value="@_xControl"
+          @oninput="HandleXSlider"
+          aria-label="X axis, left and right" />
+  </div>
  </section>
 </section>
 
@@ -170,6 +184,8 @@
  int _layer;
  int _xPulse;
  int _yPulse;
+ int _xControl;
+ int _yControl;
  double _assetScale=1;
  int _assetRotation;
  int _assetX;
@@ -407,6 +423,24 @@
    _message="Universal keyboard, pointer and touch controls are ready. Gamepad adapter could not start.";
    StateHasChanged();
   }
+ }
+
+ void HandleYSlider(ChangeEventArgs e)
+ {
+  if(!int.TryParse(e.Value?.ToString(),out var next))return;
+  next=Math.Clamp(next,-100,100);
+  var direction=Math.Sign(next-_yControl);
+  _yControl=next;
+  if(direction!=0)ApplyY(direction);
+ }
+
+ void HandleXSlider(ChangeEventArgs e)
+ {
+  if(!int.TryParse(e.Value?.ToString(),out var next))return;
+  next=Math.Clamp(next,-100,100);
+  var direction=Math.Sign(next-_xControl);
+  _xControl=next;
+  if(direction!=0)ApplyX(direction);
  }
 
  void ApplyY(int direction)
