@@ -63,6 +63,11 @@ else if (_canEnter)
     }
     else
     {
+     <button type="button" class="rist-environment-option tutorial" disabled="@(_launchBusy||_launchMmoWorlds.Count==0)" @onclick="EnterTutorialAsync">
+      <span><strong>TUTORIAL</strong><small>GUIDED · learn by helping build Endemar with the real worldbuilding tools</small></span>
+      <b>START</b>
+     </button>
+
      <button type="button" class="rist-environment-option shaelvien" disabled="@(_launchBusy||_launchMmoWorlds.Count==0)" @onclick="EnterShaelvienAsync">
       <span><strong>SHAELVIEN</strong><small>MMO · remain inside Shaelvien and navigate its worlds</small></span>
       <b>ENTER</b>
@@ -166,7 +171,8 @@ else
  .rist-environment-choice h1{margin:0;color:#e4ca83;font:700 clamp(24px,5vw,38px)/1.1 Georgia,serif}
  .rist-environment-copy{margin:0 0 6px;color:#b7c3c8;font:600 11px/1.5 system-ui}
  .rist-environment-option{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #53646d;border-radius:10px;background:#0d1820;color:#e9dfc4;text-align:left;touch-action:manipulation}
- .rist-environment-option.shaelvien,.rist-environment-option.rist-sandbox{border-color:#9b7a34;background:linear-gradient(135deg,#211b0e,#0c1820)}
+ .rist-environment-option.tutorial,.rist-environment-option.shaelvien,.rist-environment-option.rist-sandbox{border-color:#9b7a34;background:linear-gradient(135deg,#211b0e,#0c1820)}
+ .rist-environment-option.tutorial{border-color:#c79a47;background:linear-gradient(135deg,#2c220f,#0c1820)}
  .rist-environment-option span{display:grid;gap:5px;min-width:0}.rist-environment-option strong{color:#f2d990;font:900 14px/1.1 system-ui;letter-spacing:.05em}.rist-environment-option small{color:#9eafb7;font:700 9px/1.35 system-ui}.rist-environment-option b{color:#75bde9;font:900 9px/1 system-ui;letter-spacing:.08em}
  .rist-environment-option:disabled{opacity:.45}.rist-environment-status,.rist-environment-empty{margin:4px 0;color:#aebbc0;font:700 11px/1.45 system-ui}.rist-environment-error{margin:4px 0;color:#ffb3a6;font:700 11px/1.45 system-ui}.rist-environment-retry{min-height:44px;border:1px solid #8d7440;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}
  @@media(max-width:520px){.rist-environment-choice{width:100%;max-height:92dvh;padding:16px}.rist-environment-option{min-height:66px}}
@@ -278,6 +284,18 @@ else
    _launchWorldsLoading=false;
   }
   await InvokeAsync(StateHasChanged);
+ }
+
+ async Task EnterTutorialAsync()
+ {
+  if(_launchBusy)return;
+  var world=_launchMmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,_launchActiveWorldId,StringComparison.Ordinal))
+     ??_launchMmoWorlds.FirstOrDefault(item=>string.Equals(item.WorldId,Session.WorldId,StringComparison.Ordinal))
+     ??_launchMmoWorlds.FirstOrDefault();
+  if(world is null){_launchWorldsError="No Shaelvien MMO world is currently available.";return;}
+  try{await JS.InvokeVoidAsync("localStorage.removeItem",$"rist.endemar.tutorial.complete.{world.WorldId}");}catch{}
+  Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("workspace","world"),replace:true);
+  await EnterLaunchWorldAsync(world);
  }
 
  async Task EnterShaelvienAsync()
