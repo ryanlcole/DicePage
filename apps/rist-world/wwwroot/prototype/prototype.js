@@ -3164,30 +3164,60 @@ function clearSelectionUnderlay(){
   selectionUnderlaySourceName='';
   if(selectionUnderlayNode)selectionUnderlayNode.hidden=true;
 }
+function underlayVisualRank(node){
+  let rank=0,weight=1,current=node;
+  while(current&&current!==stage){
+    const z=Number.parseInt(getComputedStyle(current).zIndex,10);
+    if(Number.isFinite(z))rank+=z*weight;
+    weight*=100000;
+    current=current.parentElement;
+  }
+  return rank;
+}
+function underlayNodeVisible(node){
+  if(!node?.isConnected||node.hidden)return false;
+  let current=node;
+  while(current&&current!==stage){
+    const style=getComputedStyle(current);
+    if(style.display==='none'||style.visibility==='hidden'||Number(style.opacity)<=.001)return false;
+    current=current.parentElement;
+  }
+  return true;
+}
 function selectionUnderlayCandidate(item){
   if(!item?.node?.isConnected)return null;
-  const rect=item.node.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
-  const members=linkedSelectionMembers(item),saved=members.map(member=>({node:member.node,visibility:member.node?.style.visibility||''}));
-  const preview=selectionUnderlayNode,previewWasHidden=preview?.hidden;
-  if(preview)preview.hidden=true;
-  for(const entry of saved)if(entry.node)entry.node.style.visibility='hidden';
-  let target=document.elementFromPoint?.(cx,cy)||null;
-  for(const entry of saved)if(entry.node)entry.node.style.visibility=entry.visibility;
-  if(preview)preview.hidden=!!previewWasHidden;
-  while(target&&target!==stage){
-    if(target instanceof HTMLImageElement&&!target.closest('[data-ui]'))return target;
-    target=target.parentElement;
-  }
-  return null;
+  const selectedRect=item.node.getBoundingClientRect(),selectedRank=underlayVisualRank(item.node);
+  const excluded=new Set(linkedSelectionMembers(item).map(member=>member?.node).filter(Boolean));
+  const candidates=[];
+  const add=(node,name='')=>{
+    if(!node||excluded.has(node)||!underlayNodeVisible(node))return;
+    const rect=node.getBoundingClientRect();
+    const overlapW=Math.min(selectedRect.right,rect.right)-Math.max(selectedRect.left,rect.left);
+    const overlapH=Math.min(selectedRect.bottom,rect.bottom)-Math.max(selectedRect.top,rect.top);
+    if(overlapW<=2||overlapH<=2)return;
+    const rank=underlayVisualRank(node);
+    if(rank>=selectedRank)return;
+    const image=node instanceof HTMLImageElement?node:node.querySelector?.('img');
+    const src=String(image?.currentSrc||image?.src||'');
+    if(!image||!src)return;
+    candidates.push({node:image,name:String(name||image.alt||node.dataset?.name||'lower layer'),rank,area:overlapW*overlapH});
+  };
+  for(const other of userLayers)if(other!==item)add(other?.node,other?.name||other?.text||other?.assetId||'lower layer');
+  for(const entry of regionWorldSourceTiles)add(entry?.image||entry?.node,entry?.name||'parent world layer');
+  add(surface,'sea level');
+  add(highlands,'highlands');
+  add(mountains,'mountains');
+  candidates.sort((a,b)=>(b.rank-a.rank)||(b.area-a.area));
+  return candidates[0]||null;
 }
 function refreshSelectionUnderlay(){
   selectionUnderlayFrame=0;
   const preview=ensureSelectionUnderlayPreview(),item=selectedImage;
   if(!selectionUnderlayVisible||!item?.node?.isConnected||isWorldMapItem(item)){preview.hidden=true;selectionUnderlaySourceName='';return}
-  const under=selectionUnderlayCandidate(item);
-  const src=String(under?.currentSrc||under?.src||'');
-  if(!under||!src){preview.hidden=true;selectionUnderlaySourceName='';return}
-  const stageRect=stage.getBoundingClientRect(),selectedRect=item.node.getBoundingClientRect(),underRect=under.getBoundingClientRect();
+  const under=selectionUnderlayCandidate(item),underNode=under?.node;
+  const src=String(underNode?.currentSrc||underNode?.src||'');
+  if(!underNode||!src){preview.hidden=true;selectionUnderlaySourceName='';return}
+  const stageRect=stage.getBoundingClientRect(),selectedRect=item.node.getBoundingClientRect(),underRect=underNode.getBoundingClientRect();
   const left=Math.max(stageRect.left,selectedRect.left),top=Math.max(stageRect.top,selectedRect.top);
   const right=Math.min(stageRect.right,selectedRect.right),bottom=Math.min(stageRect.bottom,selectedRect.bottom);
   if(right-left<2||bottom-top<2){preview.hidden=true;selectionUnderlaySourceName='';return}
@@ -3196,7 +3226,7 @@ function refreshSelectionUnderlay(){
   preview.style.backgroundImage=`url("${src.replace(/"/g,'\\\"')}")`;
   preview.style.backgroundSize=`${Math.max(1,underRect.width)}px ${Math.max(1,underRect.height)}px`;
   preview.style.backgroundPosition=`${underRect.left-left}px ${underRect.top-top}px`;
-  selectionUnderlaySourceName=String(under.alt||under.dataset?.name||'lower layer').trim()||'lower layer';
+  selectionUnderlaySourceName=String(under.name||underNode.alt||'lower layer').trim()||'lower layer';
   preview.hidden=false;
 }
 function scheduleSelectionUnderlay(){
