@@ -188,4 +188,5 @@ jobs:
           test "$CORS" = "https://relicgamemaster.com"
           echo "Verified CDN Canvas/CORS access for relicgamemaster.com."
 
+# Deployment trigger: image-editor CORS reconciliation after LocalDefiner build repair 2026-09-26
 # Deployment trigger: OIDC trust repaired 2026-08-27
