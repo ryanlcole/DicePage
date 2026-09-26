@@ -430,12 +430,6 @@
  {
   if(!firstRender)return;
   await EnsureWorldAtlasAsync();
-  if(Session.IsGeonaphWorld&&Session.CanEditTiles)
-  {
-   try{_endemarTutorialOpen=!string.Equals(await JS.InvokeAsync<string?>("localStorage.getItem",$"rist.endemar.tutorial.complete.{Session.WorldId}"),"1",StringComparison.Ordinal);}catch{}
-   _endemarTutorialPlacementBaseline=Session.PlacedTiles.Count;
-   if(_endemarTutorialOpen)await LoadCurrentEndemarPresetAsync();
-  }
   var restored=await Session.LoadActiveMapCardAsync();
   if(restored)
   {
@@ -450,6 +444,12 @@
   else if(Session.IsLoggedIn)
   {
    await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
+  }
+  if(Session.IsGeonaphWorld&&Session.CanEditTiles)
+  {
+   try{_endemarTutorialOpen=!string.Equals(await JS.InvokeAsync<string?>("localStorage.getItem",$"rist.endemar.tutorial.complete.{Session.WorldId}"),"1",StringComparison.Ordinal);}catch{}
+   _endemarTutorialPlacementBaseline=Session.PlacedTiles.Count;
+   if(_endemarTutorialOpen)await LoadCurrentEndemarPresetAsync();
   }
   _self=DotNetObjectReference.Create(this);
   _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260915-completion-1");
