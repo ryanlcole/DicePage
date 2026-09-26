@@ -133,14 +133,35 @@
       <button type="button" disabled="@(!WorldReady)" @onclick="OpenCreate">OPEN GM DESK →</button>
      </article>
     </div>
-    <div class="launcher-pro-tools" aria-label="RIST GameMaster quick tools">
+    <div class="launcher-pro-tools" aria-label="RIST GameMaster desk">
      <button type="button" @onclick="OpenCampaign"><span>▤</span><strong>DOCUMENTS</strong><small>Campaign and session material</small></button>
      <button type="button" @onclick="OpenTracker"><span>⌁</span><strong>TRACK</strong><small>Live reports and joins</small></button>
      <button type="button" @onclick="OpenAssets"><span>✥</span><strong>ASSETS</strong><small>Find, make and place material</small></button>
      <button type="button" @onclick="OpenWorldbuilding" disabled="@(!CanOpenWorldBuilder)" aria-label="Open World Builder"><span>◇</span><strong>WORLD</strong><small>Build directly at world scale</small></button>
-     <button type="button" @onclick="OpenInstance" aria-label="Open Instance Builder"><span>⊕</span><strong>INSTANCE</strong><small>Open the 45° local encounter space</small></button>
-     <button type="button" @onclick="OpenPerceiver" disabled="@(!Session.IsGeonaphWorld)" aria-label="Open Perceiver"><span>◎</span><strong>PERCEIVER</strong><small>Inspect the live tiered world view</small></button>
+     <button type="button" @onclick="OpenCreate"><span>✦</span><strong>CREATE</strong><small>Private workbench and production prep</small></button>
+     <button type="button" @onclick="OpenRoleplay"><span>▶</span><strong>RUN / PLAY</strong><small>Enter the active table</small></button>
+     <button type="button" @onclick="ToggleGmStudioTools" aria-expanded="@_gmStudioToolsOpen" aria-controls="rist-studio-tools"><span>⌘</span><strong>STUDIO TOOLS</strong><small>Open specialized instruments</small></button>
     </div>
+    @if(_gmStudioToolsOpen)
+    {
+     <section id="rist-studio-tools" class="launcher-studio-tools" aria-label="RIST specialized GameMaster tools">
+      <button type="button" @onclick="OpenWorldbuilding" disabled="@(!CanOpenWorldBuilder)"><strong>WORLDBUILDER</strong><small>World · tier · layer · cube</small></button>
+      <button type="button" @onclick="OpenRegionDefiner"><strong>REGION DEFINER</strong><small>Claim and define a Region</small></button>
+      <button type="button" @onclick="OpenLocalStaging"><strong>LOCAL STAGING</strong><small>Choose and build a Local</small></button>
+      <button type="button" @onclick="OpenInstance"><strong>INSTANCE BUILDER</strong><small>Build the 45° encounter space</small></button>
+      <button type="button" @onclick="OpenImmersionBuilder"><strong>IMMERSION BUILDER</strong><small>Connect world, region, local and experience</small></button>
+      <button type="button" @onclick="OpenPerceiver" disabled="@(!Session.IsGeonaphWorld)"><strong>PERCEIVER</strong><small>Inspect the live tiered world view</small></button>
+      <button type="button" @onclick="OpenCharacterCardDesigner"><strong>CHARACTER CARD DESIGNER</strong><small>Sheet, cards, fields and system</small></button>
+      <button type="button" @onclick="OpenPowers"><strong>POWERS</strong><small>Cards, targets and effects</small></button>
+      <button type="button" @onclick="OpenHistory"><strong>HISTORY</strong><small>Era, event and chronology</small></button>
+      <button type="button" @onclick="OpenLore"><strong>LORE</strong><small>Open the rulebook and knowledge surface</small></button>
+      <button type="button" @onclick="OpenWeather"><strong>WEATHER</strong><small>Sky, weather and world state</small></button>
+      <button type="button" @onclick="OpenGeology"><strong>GEOLOGICAL EVENTS</strong><small>Terrain, event and history</small></button>
+      <button type="button" @onclick="OpenAstronomy"><strong>ASTRONOMY</strong><small>Stars, sky and celestial structure</small></button>
+      <button type="button" @onclick="OpenAstrology"><strong>ASTROLOGY</strong><small>Celestial influence and world</small></button>
+      <button type="button" @onclick="OpenTickerAsync" disabled="@(!WorldReady)"><strong>TICKER</strong><small>World-scoped automatic controls</small></button>
+     </section>
+    }
     <div class="launcher-journey-foot">
      <p>Want the system to teach the process instead of exposing the workshop?</p>
      <button type="button" class="launcher-switch" @onclick="OpenShaelvienHubAsync">ENTER SHAELVIEN →</button>
@@ -155,7 +176,8 @@
    .launcher-destiny-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.launcher-destiny{display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr auto;gap:12px;padding:18px;border:1px solid #4e6671;border-radius:13px;background:#081219}.launcher-destiny.roleplayer{border-color:#42766d}.launcher-destiny.gamemaster{border-color:#775783}.launcher-destiny-icon{grid-row:1;font-size:32px;color:#e6c76f}.launcher-destiny-copy{display:grid;align-content:start;gap:7px}.launcher-destiny-copy small{color:#8fbdd2;font:900 9px/1 system-ui;letter-spacing:.17em}.launcher-destiny-copy h2{margin:0;color:#eee5d3;font:700 25px/1.05 Georgia,serif}.launcher-destiny-copy p{margin:0;color:#aab8bf;font:600 12px/1.48 system-ui}.launcher-destiny-copy ol{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 0;padding:0;list-style:none}.launcher-destiny-copy li{padding:4px 7px;border:1px solid #3c515b;border-radius:999px;color:#9eb0b8;font:900 7px/1 system-ui;letter-spacing:.08em}.launcher-destiny>button{grid-column:1/-1;min-height:48px;border:1px solid #a98635;border-radius:9px;background:#1d190f;color:#f1d785;font-weight:1000;letter-spacing:.08em}.launcher-destiny>button:disabled{opacity:.35}
    .launcher-journey-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;padding:2px 2px 0}.launcher-journey-foot p{flex:1;margin:0;color:#879ba4;font:600 10px/1.4 system-ui}.launcher-journey-foot button{min-height:40px;padding:0 12px;border:1px solid #536b75;border-radius:8px;background:#0b161c;color:#dfe5e7;font-weight:900;font-size:9px;letter-spacing:.08em}.launcher-journey-foot .launcher-switch{border-color:#9a7934;color:#f0d486}.launcher-journey-foot .launcher-learn{border-color:#4c6c78;color:#a9d2e3}
    .launcher-pro-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.launcher-pro-tools button{min-height:70px;padding:10px;border:1px solid #465f69;border-radius:9px;background:#071117;color:#e6dfd1;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:2px 8px;text-align:left}.launcher-pro-tools button>span{grid-row:1/3;align-self:center;color:#e2c269;font-size:20px}.launcher-pro-tools strong{font-size:10px;letter-spacing:.08em}.launcher-pro-tools small{color:#83969f;font-size:8px;line-height:1.25}.launcher-pro-tools button:disabled{opacity:.35}
-   @@media(max-width:720px){.launcher-journey{width:calc(100% - 18px);padding:10px}.launcher-journey-head{align-items:start}.launcher-journey-head>span{display:none}.launcher-destiny-grid{grid-template-columns:1fr}.launcher-destiny{padding:14px}.launcher-destiny-copy h2{font-size:22px}.launcher-pro-tools{grid-template-columns:1fr 1fr}.launcher-journey-foot{align-items:stretch;flex-direction:column}.launcher-journey-foot p{text-align:center}.launcher-journey-foot button{width:100%}}
+   .launcher-studio-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;padding:10px;border:1px solid #374e59;border-radius:11px;background:#050d12}.launcher-studio-tools button{min-height:62px;padding:10px;border:1px solid #425b66;border-radius:8px;background:#0a151b;color:#e7dfcf;display:grid;gap:4px;text-align:left}.launcher-studio-tools strong{font-size:9px;letter-spacing:.08em;color:#ebcf7c}.launcher-studio-tools small{font-size:8px;line-height:1.3;color:#8499a2}.launcher-studio-tools button:disabled{opacity:.35}.launcher-pro-tools button:focus-visible,.launcher-studio-tools button:focus-visible{outline:3px solid #8dd8ff;outline-offset:2px}
+   @@media(max-width:720px){.launcher-journey{width:calc(100% - 18px);padding:10px}.launcher-journey-head{align-items:start}.launcher-journey-head>span{display:none}.launcher-destiny-grid{grid-template-columns:1fr}.launcher-destiny{padding:14px}.launcher-destiny-copy h2{font-size:22px}.launcher-pro-tools{grid-template-columns:1fr 1fr}.launcher-studio-tools{grid-template-columns:1fr 1fr}.launcher-journey-foot{align-items:stretch;flex-direction:column}.launcher-journey-foot p{text-align:center}.launcher-journey-foot button{width:100%}}
   </style>
 
   <section class="launcher-secondary" aria-label="Quick access">
