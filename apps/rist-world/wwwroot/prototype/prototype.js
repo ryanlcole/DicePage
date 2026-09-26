@@ -2956,7 +2956,7 @@ function moveImageDrag(event){
     for(const entry of next){entry.item.x=entry.x;entry.item.y=entry.y;refreshUserImage(entry.item)}
     refreshAssetResizeOverlay(imageDrag.item);
   }
-  if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
+  if((keyboardMode==='Image'||keyboardMode==='Labels'||keyboardMode==='Edit')&&selectedImage===imageDrag.item)renderKeyboardKeys();
 }
 function endImageDrag(event){
   if(!imageDrag||imageDrag.id!==event.pointerId)return;
@@ -6057,7 +6057,7 @@ function renderPixelsKeyboard(){
   if(!selected){
     keyboardKeys.append(
       readoutKey('PIXELS','select an image to edit alpha pixels'),
-      toolKey('SELECT IMAGE','choose placed content',()=>{keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys()})
+      toolKey('SELECT IMAGE','choose placed content',()=>setPrimaryKeyboardMode('Edit'))
     );
     return;
   }
@@ -6080,8 +6080,8 @@ function renderPixelsKeyboard(){
     );
   }
   keyboardKeys.append(
-    toolKey('IMAGE','transform / placement',()=>{keyboardMode='Image';renderKeyboardTabs();renderKeyboardKeys()}),
-    ...(REGION_DEFINER?[toolKey('LAYERS','opacity / order / depth',()=>{keyboardMode='Layers';renderKeyboardTabs();renderKeyboardKeys()})]:[])
+    toolKey('EDIT','object actions',()=>setPrimaryKeyboardMode('Edit')),
+    toolKey('LAYERS','opacity / order / depth',()=>setPrimaryKeyboardMode('Layers'))
   );
 }
 function renderKeyboardKeysContent(){
@@ -6104,7 +6104,11 @@ function renderKeyboardKeysContent(){
       regionClaimedRegion
         ? readoutKey(regionGridShape.toUpperCase(),'saved placement grid')
         : toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','selection + placement grid',cycleRegionGridShape),
-      toolKey(regionClaimedRegion?'REGION':(regionWorldSourceMeta?'CLAIM':'LOADING…'),regionClaimedRegion?'open claimed region':(regionWorldSourceMeta?'open Select tools':'waiting for selected world'),()=>{if(!regionClaimedRegion&&!regionWorldSourceMeta)return;keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce(regionClaimedRegion?'Claimed Region controls opened.':'Claim Region controls opened.')},!regionClaimedRegion&&!regionWorldSourceMeta)
+      toolKey(regionClaimedRegion?'EDIT REGION':(regionWorldSourceMeta?'CLAIM':'LOADING…'),regionClaimedRegion?'choose or edit regional objects':(regionWorldSourceMeta?'open guided claim flow':'waiting for selected world'),()=>{
+        if(!regionClaimedRegion&&!regionWorldSourceMeta)return;
+        if(regionClaimedRegion){setPrimaryKeyboardMode('Edit');return}
+        flowParent='Edit';keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce('Claim Region controls opened.');
+      },!regionClaimedRegion&&!regionWorldSourceMeta)
     );
     return;
   }
