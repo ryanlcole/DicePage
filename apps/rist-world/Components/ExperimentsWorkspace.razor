@@ -320,7 +320,7 @@
   color:#a8bac5;
   font:700 clamp(7px,.75vw,9px)/1.25 system-ui,-apple-system,sans-serif;
  }
- @media(max-width:700px){
+ @@media(max-width:700px){
   .experiments-shell{padding:2.5dvh 2.5vw}
   .experiments-controller{grid-template-columns:minmax(0,.95fr) minmax(112px,1.1fr) minmax(0,.95fr)}
   .experiments-axis{padding:6px 5px}
@@ -329,7 +329,7 @@
   .experiments-slider-y{min-width:68px;width:10dvh}
   .experiments-tool-content p{display:none}
  }
- @media(max-width:430px){
+ @@media(max-width:430px){
   .experiments-controller{grid-template-columns:minmax(0,.92fr) minmax(92px,1fr) minmax(0,.92fr)}
   .experiments-axis-copy strong{font-size:9px}
   .experiments-axis-copy small{font-size:6px;letter-spacing:.04em}
@@ -338,13 +338,13 @@
   .experiments-tool-content>small{font-size:6px}
   .experiments-tool-content>strong{font-size:9px}
  }
- @media(orientation:landscape) and (max-height:560px){
+ @@media(orientation:landscape) and (max-height:560px){
   .experiments-viewer-label{top:5px;padding:3px 12px;font-size:8px}
   .experiments-action{min-height:24px}
   .experiments-axis{padding:3px 6px}
   .experiments-tool-display{margin:3px}
  }
- @media(prefers-reduced-motion:reduce){
+ @@media(prefers-reduced-motion:reduce){
   .experiments-reticle{transition:none}
  }
 </style>
