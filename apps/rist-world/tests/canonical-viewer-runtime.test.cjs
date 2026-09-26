@@ -83,10 +83,10 @@ test('actual resize integration retains camera center and scale without fitting 
     f.resize({width:900,height:700});assert.equal(f.camera().scale,before.scale);
   }finally{f.close()}
 });
-test('tool-tab rerenders retain focus; closing keyboard restores focus to toggle',()=>{
+test('adaptive control-tab rerenders retain focus; closing controls restores focus to toggle',()=>{
   const f=fixture();try{
-    f.d.getElementById('keyboardToggle').click();const tab=Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='Image');tab.focus();tab.click();
-    assert.equal(f.d.activeElement.textContent,'Image');assert.ok(f.d.activeElement.isConnected);
+    f.d.getElementById('keyboardToggle').click();const tab=Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='EDIT');assert.ok(tab);tab.focus();tab.click();
+    assert.equal(f.d.activeElement.textContent,'EDIT');assert.ok(f.d.activeElement.isConnected);
     f.key(f.d.activeElement,'Escape');assert.equal(f.d.getElementById('viewerKeyboard').hidden,true);assert.equal(f.d.activeElement.id,'keyboardToggle');
   }finally{f.close()}
 });
