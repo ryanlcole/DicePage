@@ -47,31 +47,113 @@
    <p class="launcher-kicker">SHAELVIEN · RIST</p>
    <h1>SHAELVIEN</h1>
    <p class="launcher-subtitle">A LIVING WORLD AWAITS</p>
-   <p class="launcher-tagline">BUILD THE WORLD.<br />THEN STEP INSIDE IT.</p>
+   @if(Session.IsGeonaphWorld)
+   {
+    <p class="launcher-tagline">LEARN THROUGH PLAY.<br />LET THE WORLD GROW AROUND YOU.</p>
+   }
+   else
+   {
+    <p class="launcher-tagline">YOUR WORLD. YOUR RULES.<br />THE WORKSHOP IS OPEN.</p>
+   }
    @if(WorldReady)
    {
     <p class="launcher-world-loaded">@LandingLoadedLabel</p>
    }
-   <button type="button" class="launcher-enter" disabled="@(!WorldReady)" @onclick="OpenRoleplay">@(Session.IsGeonaphWorld?"ENTER SHAELVIEN":"ENTER SANDBOX")</button>
+   <p class="launcher-destiny-label">CHOOSE YOUR PATH</p>
   </section>
 
-  <section class="launcher-paths" aria-label="Choose how to begin">
-   <button type="button" class="launcher-path tutorial" @onclick="OpenTutorial">
-    <span aria-hidden="true">✦</span><strong>TUTORIAL</strong><small>Learn by helping build Endemar</small>
-   </button>
-   <button type="button" class="launcher-path shaelvien" @onclick="OpenShaelvien">
-    <span aria-hidden="true">◈</span><strong>SHAELVIEN</strong><small>Enter the shared living world</small>
-   </button>
-   <button type="button" class="launcher-path rist" @onclick="OpenRistAsync">
-    <span aria-hidden="true">⌘</span><strong>RIST</strong><small>Create and play your own way</small>
-   </button>
-  </section>
+  @if(Session.IsGeonaphWorld)
+  {
+   <section class="launcher-journey shaelvien-journey" aria-label="Choose your Shaelvien destiny">
+    <header class="launcher-journey-head">
+     <div>
+      <small>SHAELVIEN · GUIDED</small>
+      <strong>START SMALL. GROW THROUGH PLAY.</strong>
+     </div>
+     <span>NEW &amp; RETURNING PLAYERS</span>
+    </header>
+    <div class="launcher-destiny-grid">
+     <article class="launcher-destiny roleplayer">
+      <div class="launcher-destiny-icon" aria-hidden="true">♙</div>
+      <div class="launcher-destiny-copy">
+       <small>ROLEPLAYER</small>
+       <h2>Become someone.</h2>
+       <p>Choose your look. Choose only the basics you need. Enter the world. Earn the rest one meaningful choice at a time.</p>
+       <ol><li>LOOK</li><li>BASICS</li><li>PLAY</li><li>GROW</li></ol>
+      </div>
+      <button type="button" disabled="@(!WorldReady)" @onclick="OpenShaelvien">START ROLEPLAYING →</button>
+     </article>
+     <article class="launcher-destiny gamemaster">
+      <div class="launcher-destiny-icon" aria-hidden="true">♜</div>
+      <div class="launcher-destiny-copy">
+       <small>GAMEMASTER</small>
+       <h2>Build tonight's adventure.</h2>
+       <p>Choose one objective, one scene, and the encounters that matter now. Play it. Let consequences tell you what part of the outside world deserves to exist next.</p>
+       <ol><li>OBJECTIVE</li><li>SCENE</li><li>ENCOUNTERS</li><li>PLAY</li><li>GROW</li></ol>
+      </div>
+      <button type="button" disabled="@(!WorldReady)" @onclick='()=>OpenWorkspace("guidedgm","SHAELVIEN GAMEMASTER","OBJECTIVE → SCENE → ENCOUNTERS → PLAY → CONSEQUENCE")'>START GAMEMASTERING →</button>
+     </article>
+    </div>
+    <div class="launcher-journey-foot">
+     <button type="button" class="launcher-learn" @onclick="OpenTutorial">✦ GUIDED TUTORIAL</button>
+     <p>Already know how you like to build? RIST exposes the workshop instead of the lesson.</p>
+     <button type="button" class="launcher-switch" @onclick="OpenRistAsync">OPEN RIST →</button>
+    </div>
+   </section>
+  }
+  else
+  {
+   <section class="launcher-journey rist-journey" aria-label="Choose your RIST role">
+    <header class="launcher-journey-head">
+     <div>
+      <small>RIST · DIRECT</small>
+      <strong>YOU KNOW WHAT YOU WANT. HERE ARE THE TOOLS.</strong>
+     </div>
+     <span>EXPERIENCED TABLES &amp; DESIGNERS</span>
+    </header>
+    <div class="launcher-destiny-grid">
+     <article class="launcher-destiny roleplayer">
+      <div class="launcher-destiny-icon" aria-hidden="true">♙</div>
+      <div class="launcher-destiny-copy">
+       <small>PLAYER</small>
+       <h2>Character. Game. Track.</h2>
+       <p>Open your character, enter the table, and keep the information you need during play close at hand.</p>
+       <ol><li>DESIGN</li><li>ENTER</li><li>TRACK</li></ol>
+      </div>
+      <button type="button" disabled="@(!WorldReady)" @onclick="OpenRoleplay">ENTER GAME →</button>
+     </article>
+     <article class="launcher-destiny gamemaster">
+      <div class="launcher-destiny-icon" aria-hidden="true">♜</div>
+      <div class="launcher-destiny-copy">
+       <small>GAMEMASTER</small>
+       <h2>Your GM desk.</h2>
+       <p>No tutorial funnel. Open the campaign material, reports, assets, or world directly and work in the order your table already uses.</p>
+       <ol><li>DOCUMENT</li><li>TRACK</li><li>PEOPLE</li><li>WORLD</li><li>RUN</li></ol>
+      </div>
+      <button type="button" disabled="@(!WorldReady)" @onclick="OpenCreate">OPEN GM DESK →</button>
+     </article>
+    </div>
+    <div class="launcher-pro-tools" aria-label="RIST GameMaster quick tools">
+     <button type="button" @onclick="OpenCampaign"><span>▤</span><strong>DOCUMENTS</strong><small>Campaign and session material</small></button>
+     <button type="button" @onclick="OpenTracker"><span>⌁</span><strong>TRACK</strong><small>Live reports and joins</small></button>
+     <button type="button" @onclick="OpenAssets"><span>✥</span><strong>ASSETS</strong><small>Find, make and place material</small></button>
+     <button type="button" @onclick="OpenWorldbuilding" disabled="@(!CanOpenWorldBuilder)"><span>◇</span><strong>WORLD</strong><small>Build directly at world scale</small></button>
+    </div>
+    <div class="launcher-journey-foot">
+     <p>Want the system to teach the process instead of exposing the workshop?</p>
+     <button type="button" class="launcher-switch" @onclick="OpenShaelvien">ENTER SHAELVIEN →</button>
+    </div>
+   </section>
+  }
+
   <style>
-   .launcher-paths{position:relative;z-index:3;width:min(940px,calc(100% - 28px));margin:14px auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-   .launcher-path{min-height:104px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-align:left;padding:16px;border:1px solid #5a707b;border-radius:12px;background:#09141a;color:#dce5e8;box-shadow:0 8px 24px #0007;touch-action:manipulation}
-   .launcher-path>span{grid-row:1/3;font-size:30px;color:#e8c96e}.launcher-path strong{font-size:16px;letter-spacing:.12em;color:#f0d487}.launcher-path small{font-size:11px;color:#9fb0b8;line-height:1.35}
-   .launcher-path:hover,.launcher-path:focus-visible{border-color:#d2a83e;outline:2px solid transparent;box-shadow:0 0 0 2px #d2a83e55,0 8px 24px #0008}
-   @media(max-width:680px){.launcher-paths{grid-template-columns:1fr;gap:8px}.launcher-path{min-height:76px;padding:12px 14px}.launcher-path>span{font-size:24px}}
+   .launcher-destiny-label{width:max-content;margin:10px auto 0;color:#90adbb;font:900 9px/1 system-ui;letter-spacing:.18em}
+   .launcher-journey{position:relative;z-index:3;box-sizing:border-box;width:min(980px,calc(100% - 28px));margin:14px auto;padding:14px;border:1px solid #526873;border-radius:16px;background:rgba(5,14,19,.9);box-shadow:0 18px 48px #0008}
+   .launcher-journey-head{display:flex;justify-content:space-between;align-items:end;gap:14px;padding:4px 4px 12px;border-bottom:1px solid #2f4650}.launcher-journey-head>div{display:grid;gap:4px}.launcher-journey-head small{color:#8dbbd1;font:900 8px/1 system-ui;letter-spacing:.17em}.launcher-journey-head strong{color:#f0d486;font:800 clamp(14px,2.5vw,20px)/1.1 Georgia,serif;letter-spacing:.06em}.launcher-journey-head>span{color:#7f929b;font:800 8px/1.2 system-ui;letter-spacing:.1em;text-align:right}
+   .launcher-destiny-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.launcher-destiny{display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr auto;gap:12px;padding:18px;border:1px solid #4e6671;border-radius:13px;background:#081219}.launcher-destiny.roleplayer{border-color:#42766d}.launcher-destiny.gamemaster{border-color:#775783}.launcher-destiny-icon{grid-row:1;font-size:32px;color:#e6c76f}.launcher-destiny-copy{display:grid;align-content:start;gap:7px}.launcher-destiny-copy small{color:#8fbdd2;font:900 9px/1 system-ui;letter-spacing:.17em}.launcher-destiny-copy h2{margin:0;color:#eee5d3;font:700 25px/1.05 Georgia,serif}.launcher-destiny-copy p{margin:0;color:#aab8bf;font:600 12px/1.48 system-ui}.launcher-destiny-copy ol{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 0;padding:0;list-style:none}.launcher-destiny-copy li{padding:4px 7px;border:1px solid #3c515b;border-radius:999px;color:#9eb0b8;font:900 7px/1 system-ui;letter-spacing:.08em}.launcher-destiny>button{grid-column:1/-1;min-height:48px;border:1px solid #a98635;border-radius:9px;background:#1d190f;color:#f1d785;font-weight:1000;letter-spacing:.08em}.launcher-destiny>button:disabled{opacity:.35}
+   .launcher-journey-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;padding:2px 2px 0}.launcher-journey-foot p{flex:1;margin:0;color:#879ba4;font:600 10px/1.4 system-ui}.launcher-journey-foot button{min-height:40px;padding:0 12px;border:1px solid #536b75;border-radius:8px;background:#0b161c;color:#dfe5e7;font-weight:900;font-size:9px;letter-spacing:.08em}.launcher-journey-foot .launcher-switch{border-color:#9a7934;color:#f0d486}.launcher-journey-foot .launcher-learn{border-color:#4c6c78;color:#a9d2e3}
+   .launcher-pro-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.launcher-pro-tools button{min-height:70px;padding:10px;border:1px solid #465f69;border-radius:9px;background:#071117;color:#e6dfd1;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:2px 8px;text-align:left}.launcher-pro-tools button>span{grid-row:1/3;align-self:center;color:#e2c269;font-size:20px}.launcher-pro-tools strong{font-size:10px;letter-spacing:.08em}.launcher-pro-tools small{color:#83969f;font-size:8px;line-height:1.25}.launcher-pro-tools button:disabled{opacity:.35}
+   @@media(max-width:720px){.launcher-journey{width:calc(100% - 18px);padding:10px}.launcher-journey-head{align-items:start}.launcher-journey-head>span{display:none}.launcher-destiny-grid{grid-template-columns:1fr}.launcher-destiny{padding:14px}.launcher-destiny-copy h2{font-size:22px}.launcher-pro-tools{grid-template-columns:1fr 1fr}.launcher-journey-foot{align-items:stretch;flex-direction:column}.launcher-journey-foot p{text-align:center}.launcher-journey-foot button{width:100%}}
   </style>
 
   <section class="launcher-secondary" aria-label="Quick access">
