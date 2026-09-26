@@ -22,6 +22,26 @@ Resources:
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
+  AssetCorsResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub '${AWS::StackName}-asset-cors'
+        Comment: Allow the ReLiC frontend to read asset pixels for local image editing
+        CorsConfig:
+          AccessControlAllowCredentials: false
+          AccessControlAllowHeaders:
+            Items: ['*']
+          AccessControlAllowMethods:
+            Items: [GET, HEAD, OPTIONS]
+          AccessControlAllowOrigins:
+            Items:
+              - https://relicgamemaster.com
+          AccessControlExposeHeaders:
+            Items: [ETag]
+          AccessControlMaxAgeSec: 600
+          OriginOverride: true
+
   Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -42,6 +62,7 @@ Resources:
           AllowedMethods: [GET, HEAD, OPTIONS]
           CachedMethods: [GET, HEAD, OPTIONS]
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ResponseHeadersPolicyId: !Ref AssetCorsResponseHeadersPolicy
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
