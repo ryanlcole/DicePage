@@ -95,6 +95,16 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         => await SendAsync<List<MmoParcel>>(HttpMethod.Get,
             "/world/parcels?worldId=" + Uri.EscapeDataString(worldId));
 
+    public async Task<List<MmoGhostZone>?> GetMmoGhostZonesAsync(string worldId)
+        => await SendAsync<List<MmoGhostZone>>(HttpMethod.Get,
+            "/world/ghost-zones?worldId=" + Uri.EscapeDataString(worldId));
+
+    public async Task<ParcelReleaseResult?> ReleaseMmoParcelAsync(string worldId, string parcelId)
+        => await SendAsync<ParcelReleaseResult>(
+            HttpMethod.Post,
+            "/world/parcels/release",
+            new { worldId, parcelId });
+
     public async Task<MmoParcel?> ClaimMmoParcelAsync(string worldId, int cellIndex, string displayName, string tokenId = "")
         => await SendAsync<MmoParcel>(HttpMethod.Post, "/world/parcels/claim", new { worldId, cellIndex, displayName, tokenId });
 
@@ -264,6 +274,23 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         string BindingHash = "",
         string ClaimedAtUtc = "",
         string EffectivePermission = "None");
+
+    public sealed record MmoGhostZone(
+        string GhostId,
+        string WorldId,
+        int CellIndex,
+        int Column,
+        int Row,
+        string ReleasedAtUtc = "",
+        string Status = "ghost",
+        bool OwnedByYou = false);
+
+    public sealed record ParcelReleaseResult(
+        bool Ok,
+        MmoGhostZone GhostZone,
+        bool RefundIssued = false,
+        WorldToken? RefundToken = null,
+        bool AlreadyReleased = false);
 
     public sealed record ParcelDelegation(
         string ParcelId,

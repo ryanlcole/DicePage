@@ -18,10 +18,12 @@ public sealed partial class WorldSession
 
     readonly List<AwsAuthorityClient.WorldToken> _mmoWorldTokens = [];
     readonly List<AwsAuthorityClient.MmoParcel> _mmoParcels = [];
+    readonly List<AwsAuthorityClient.MmoGhostZone> _mmoGhostZones = [];
     string _mmoLandStatus = "";
 
     public IReadOnlyList<AwsAuthorityClient.WorldToken> MmoWorldTokens => _mmoWorldTokens;
     public IReadOnlyList<AwsAuthorityClient.MmoParcel> MmoParcels => _mmoParcels;
+    public IReadOnlyList<AwsAuthorityClient.MmoGhostZone> MmoGhostZones => _mmoGhostZones;
     public string MmoLandStatus => _mmoLandStatus;
 
     public AwsAuthorityClient.WorldToken? UnspentMmoWorldToken =>
@@ -96,6 +98,9 @@ public sealed partial class WorldSession
     public bool IsMmoParcelClaimed(int cellIndex) =>
         _mmoParcels.Any(parcel => parcel.CellIndex == cellIndex);
 
+    public bool IsMmoGhostZone(int cellIndex) =>
+        _mmoGhostZones.Any(ghost => ghost.CellIndex == cellIndex);
+
     public bool IsMmoParcelOwnedByCurrentUser(int cellIndex)
     {
         var userId = auth.Profile?.UserId?.Trim() ?? "";
@@ -133,6 +138,7 @@ public sealed partial class WorldSession
         {
             _mmoWorldTokens.Clear();
             _mmoParcels.Clear();
+            _mmoGhostZones.Clear();
             _mmoLandStatus = "";
             Notify();
             return;
@@ -165,6 +171,10 @@ public sealed partial class WorldSession
                 var parcels = await authority.GetMmoParcelsAsync(WorldId) ?? [];
                 _mmoParcels.Clear();
                 _mmoParcels.AddRange(parcels);
+
+                var ghosts = await authority.GetMmoGhostZonesAsync(WorldId) ?? [];
+                _mmoGhostZones.Clear();
+                _mmoGhostZones.AddRange(ghosts);
             }
 
             _mmoLandStatus = HasUnspentMmoWorldToken
@@ -284,6 +294,38 @@ public sealed partial class WorldSession
         _mmoLandStatus = $"{claimed.DisplayName} property space claimed · {claimed.PixelWidth}×{claimed.PixelHeight} px · {claimed.MaxHeight} layers.";
         Notify();
         return claimed;
+    }
+
+    public async Task<AwsAuthorityClient.ParcelReleaseResult> ReleaseOwnedMmoParcelAsync(string parcelId)
+    {
+        parcelId = (parcelId ?? "").Trim();
+        if (!IsLoggedIn) throw new InvalidOperationException("Log in before releasing Shaelvien property.");
+        if (!IsGeonaphWorld) throw new InvalidOperationException("Only Shaelvien MMO property can be released.");
+
+        var currentUserId = auth.Profile?.UserId?.Trim() ?? "";
+        var owned = _mmoParcels.FirstOrDefault(parcel =>
+            string.Equals(parcel.ParcelId, parcelId, StringComparison.Ordinal) &&
+            string.Equals(parcel.OwnerUserId, currentUserId, StringComparison.Ordinal));
+        if (owned is null)
+            throw new InvalidOperationException("Only the property owner may release this Shaelvien property space.");
+
+        var authority = new AwsAuthorityClient(http, auth);
+        await authority.InitializeAsync();
+        var result = await authority.ReleaseMmoParcelAsync(WorldId, parcelId)
+            ?? throw new InvalidOperationException("The Shaelvien property release was not accepted.");
+
+        if (!result.Ok)
+            throw new InvalidOperationException("The Shaelvien property release did not complete.");
+
+        SetActiveRegion("");
+        await RefreshMmoLandAsync();
+        await LoadRegionsAsync();
+
+        _mmoLandStatus = result.RefundIssued
+            ? "Property released. Its content is unpublished and preserved as a ghost zone; a new Shaelvien Token was issued for testing."
+            : "Property released. Its content is unpublished and preserved as a ghost zone.";
+        Notify();
+        return result;
     }
 
     public async Task<bool> DelegateMmoParcelAsync(string parcelId, string userId, string permission)

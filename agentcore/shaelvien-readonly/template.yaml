@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RIST Shaelvien AgentCore read-only knowledge projection and tool target
+
+Parameters:
+  TableName:
+    Type: String
+    Default: rist-agent-knowledge
+    Description: Dedicated non-authoritative knowledge projection for the read-only agent.
+
+Resources:
+  AgentKnowledgeTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+
+  ReadOnlyToolFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: readonly_tools.lambda_handler
+      CodeUri: lambda/
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          KNOWLEDGE_TABLE: !Ref AgentKnowledgeTable
+          MAX_QUERY_ITEMS: '25'
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: ReadKnowledgeOnly
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt AgentKnowledgeTable.Arn
+      Tags:
+        RISTAuthority: read-only
+        RISTProvenance: SHAELVIEN_EI
+
+  ReadOnlyToolLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ReadOnlyToolFunction}'
+      RetentionInDays: 30
+
+Outputs:
+  KnowledgeTableName:
+    Value: !Ref AgentKnowledgeTable
+  ToolFunctionArn:
+    Value: !GetAtt ReadOnlyToolFunction.Arn
+  ToolFunctionName:
+    Value: !Ref ReadOnlyToolFunction

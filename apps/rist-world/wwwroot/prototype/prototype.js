@@ -89,7 +89,7 @@ const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
+let regionGridShape='hex',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
 const regionWorldSourceTiles=[];
@@ -1791,7 +1791,7 @@ function regionCellsForTier(){
 function ensureRegionSelectionOverlay(){
   if(!REGION_DEFINER)return null;
   if(regionSelectionOverlay?.isConnected)return regionSelectionOverlay;
-  const overlay=document.createElement('div');overlay.className='region-definition-grid square';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
+  const overlay=document.createElement('div');overlay.className='region-definition-grid hex';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
   for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
     const button=document.createElement('button');button.type='button';button.className='region-definition-cell';button.dataset.cell=String(cell);
     const column=cell%REGION_GRID_COLUMNS,row=Math.floor(cell/REGION_GRID_COLUMNS);
@@ -2131,7 +2131,7 @@ function chooseRegionClaimTier(key){
   applyParallax();
   updateRegionSelectionOverlay();renderKeyboardTabs();renderKeyboardKeys();
   if(keyboard.hidden)openKeyboard();
-  announce(`Tier ${currentRegionTierIndex()+1}, ${tierLabel(tierByKey(viewerTier))}, selected. Zoom the map and use Select to mark the regional footprint.`);
+  announce(`Tier ${currentRegionTierIndex()+1}, ${tierLabel(tierByKey(viewerTier))}, selected. Hex grid ready. Select at least one tile to define the regional footprint.`);
 }
 function cancelRegionClaim(){
   if(!REGION_DEFINER)return;
@@ -2213,7 +2213,7 @@ function renderRegionSelectKeyboard(){
       toolKey('⛶','fit map',fitMap),
       readoutKey(`TIER ${currentRegionTierIndex()+1}`,tierLabel(tierByIndex(currentRegionTierIndex()))),
       readoutKey(regionGridShape.toUpperCase(),'selection grid'),
-      readoutKey(`${regionSelectedCells.size} TILES`,'selected footprint'),
+      readoutKey(`${regionSelectedCells.size} TILES`,regionSelectedCells.size?'selected footprint':'select at least 1'),
       readoutKey(`${visibleWorldLayers.length}/10 WORLD`,'source layers included'),
       toolKey(regionGridShape==='square'?'SQUARE ✓':'HEX ✓','change selection grid',cycleRegionGridShape),
       toolKey('CLEAR','selection',()=>clearRegionSelection(true),!regionSelectedCells.size),

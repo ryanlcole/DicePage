@@ -127,6 +127,7 @@ jobs:
             "IdentityTableName=$IDENTITY_TABLE"
             "FrontendOrigin=$PRODUCTION_ORIGIN"
             "OwnerUserId=$OWNER_USER_ID"
+            "ParcelReleaseRefundsEnabled=true"
           )
           sam deploy \
             --template-file .aws-sam/platform/template.yaml \

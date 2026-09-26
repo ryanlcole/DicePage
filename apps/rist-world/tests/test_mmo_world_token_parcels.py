@@ -90,6 +90,41 @@ def test_claimed_parcel_cannot_be_taken_or_grown_by_region_save():
     assert "Region state is a representation of" in backend
 
 
+def test_owner_can_release_property_into_private_ghost_archive_with_test_refund():
+    backend = text("infra/aws/rist-platform-authority/app.py")
+    client = text("apps/rist-world/AwsAuthorityClient.cs")
+    session = text("apps/rist-world/WorldSession.MmoLand.cs")
+    host = text("apps/rist-world/Components/WorldBuilderGeonaphHost.razor")
+    front = text("apps/rist-world/Components/ShaelvienMmoFront.razor")
+    template = text("infra/aws/rist-platform.yml")
+
+    assert 'path == "/world/parcels/release"' in backend
+    assert 'path == "/world/ghost-zones"' in backend
+    assert 'contentUsePolicy": "preserve-only"' in backend
+    assert '"published": False' in backend
+    assert 'ghost-zones/{world_id}/{ghost_id}.json' in backend
+    assert 'ServerSideEncryption="aws:kms"' in backend
+    assert 'PARCEL_RELEASE_REFUNDS_ENABLED' in backend
+    assert '"release-refund"' in backend
+    assert '"status": "released"' in backend
+    assert '"refundToken": public_world_token(refund_token)' in backend
+    assert 'Only the property owner may release this Shaelvien property space' in backend
+    assert 'remaining_layers' in backend
+    assert '"parcel.release"' in backend
+    assert "ReleaseMmoParcelAsync" in client
+    assert "GetMmoGhostZonesAsync" in client
+    assert "ReleaseOwnedMmoParcelAsync" in session
+    assert "MmoGhostZones" in session
+    assert "SAFE RELEASE · NO CONTENT REUSE" in host
+    assert "RELEASE & REFUND KEY" in host
+    assert "Shaelvien does not republish or reuse that archived content." in host
+    assert "Ghost Zone" in front
+    assert "does not reuse or republish it" in front
+    assert "ParcelReleaseRefundsEnabled" in template
+    assert "Path: /world/parcels/release" in template
+    assert "Path: /world/ghost-zones" in template
+
+
 def test_parcel_permissions_delegate_without_transferring_ownership():
     backend = text("infra/aws/rist-platform-authority/app.py")
     session = text("apps/rist-world/WorldSession.MmoLand.cs")

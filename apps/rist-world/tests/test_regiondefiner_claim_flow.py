@@ -45,6 +45,22 @@ def test_new_and_claim_region_share_tier_swipe_and_select_only_flow():
     assert "applyParallax();" in prototype
 
 
+def test_new_region_starts_deselected_on_hex_grid_and_requires_a_tile():
+    prototype = text("wwwroot/prototype/prototype.js")
+    styles = text("wwwroot/prototype/prototype.css")
+    regions = text("WorldSession.Regions.cs")
+    contract = text("REGION_DEFINER_CONTRACT.md")
+
+    assert "const regionSelectedCells=new Set();" in prototype
+    assert "let regionGridShape='hex'" in prototype
+    assert "overlay.className='region-definition-grid hex'" in prototype
+    assert "select at least 1" in prototype
+    assert "!regionSelectedCells.size" in prototype
+    assert ".region-definition-grid.hex .region-definition-cell" in styles
+    assert 'if (cells.Count == 0) throw new InvalidOperationException("Select at least one world tile for the region.");' in regions
+    assert "Hex is the default for every new region" in contract
+
+
 def test_shared_region_catalog_is_database_first_and_claim_owner_is_scoped():
     regions = text("WorldSession.Regions.cs")
     assert "await authority.GetRegionsAsync(WorldId)" in regions

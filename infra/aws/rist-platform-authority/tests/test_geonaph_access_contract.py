@@ -82,7 +82,7 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn('path == "/world/parcels/claim"', self.source)
         self.assertIn("transact_write_items(", self.source)
 
-    def test_mmo_parcel_ownership_is_immutable_but_permissions_can_be_handed_off(self):
+    def test_mmo_parcel_is_exclusive_while_owned_and_owner_can_release_to_ghost(self):
         self.assertIn('path == "/world/parcels/delegate"', self.source)
         self.assertIn('PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}', self.source)
         self.assertIn('parcel_permission(world_id, parcel_id, user_id) == "Manage"', self.source)
@@ -94,6 +94,13 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn('region["canonicalMinX"] = column / MMO_PARCEL_GRID_COLUMNS', self.source)
         self.assertIn('region["canonicalZMax"] = MMO_PARCEL_MAX_HEIGHT', self.source)
         self.assertIn('region["ownerUserId"] = owner', self.source)
+        self.assertIn('path == "/world/parcels/release"', self.source)
+        self.assertIn('Only the property owner may release this Shaelvien property space', self.source)
+        self.assertIn('"entityType": "ghostZone"', self.source)
+        self.assertIn('"contentUsePolicy": "preserve-only"', self.source)
+        self.assertIn('"published": False', self.source)
+        self.assertIn('"status": "released"', self.source)
+        self.assertIn('"release-refund"', self.source)
 
 if __name__ == "__main__":
     unittest.main()
