@@ -5,9 +5,9 @@
  box-sizing:border-box;
  width:100vw;
  height:100dvh;
- padding:2.5dvh 2.5vw;
+ padding:max(8px,1.5dvh) max(8px,2.5vw) max(12px,calc(env(safe-area-inset-bottom) + 6px));
  display:grid;
- grid-template-rows:75dvh 20dvh;
+ grid-template-rows:minmax(0,2.35fr) minmax(210px,1fr);
  color:#efe6cf;
  background:
   radial-gradient(circle at 12% 5%,rgba(27,85,135,.18),transparent 28%),
@@ -199,18 +199,16 @@
 .right-controls{border-left:1px solid rgba(201,159,72,.48)}
 .experiments-axis{
  display:grid;
+ grid-template-columns:minmax(0,1fr);
+ grid-template-rows:auto minmax(0,1fr) auto;
  align-items:center;
- justify-items:center;
- gap:4px;
- padding:7px 10px;
+ justify-items:stretch;
+ gap:5px;
+ padding:7px 8px;
 }
-.experiments-axis-y{
- grid-template-columns:minmax(88px,1fr) minmax(48px,.48fr);
- grid-template-rows:auto 1fr;
-}
-.experiments-axis-x{
- grid-template-columns:1fr;
- grid-template-rows:auto auto 1fr;
+.experiments-axis-y,.experiments-axis-x{
+ grid-template-columns:minmax(0,1fr);
+ grid-template-rows:auto minmax(0,1fr) auto;
 }
 .experiments-axis-copy{
  position:relative;
@@ -221,7 +219,7 @@
  color:#f0d99d;
  text-align:center;
 }
-.experiments-axis-y .experiments-axis-copy{grid-column:1;grid-row:1}
+.experiments-axis-y .experiments-axis-copy,.experiments-axis-x .experiments-axis-copy{grid-column:1;grid-row:1}
 .experiments-axis-copy strong{
  font:700 clamp(10px,1.15vw,16px)/1 Georgia,serif;
  letter-spacing:.14em;
@@ -233,62 +231,108 @@
  letter-spacing:.08em;
  white-space:nowrap;
 }
-.experiments-action{
+.experiments-rocker{
  position:relative;
- z-index:1;
- width:min(100%,170px);
- min-height:34px;
- padding:5px 8px;
- border:1px solid #d0aa59;
- border-radius:8px;
- background:linear-gradient(180deg,#1c3454,#0a1730);
- color:#f1d98d;
- font:900 clamp(8px,.9vw,12px)/1 system-ui,-apple-system,sans-serif;
- letter-spacing:.08em;
- box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
- touch-action:manipulation;
-}
-.experiments-start{background:linear-gradient(180deg,#3b2a18,#171008)}
-.experiments-action:active{transform:translateY(1px);filter:brightness(1.2)}
-.experiments-action:focus-visible,.experiments-slider:focus-visible{
- outline:2px solid #ffe7a9;
- outline-offset:3px;
-}
-.experiments-axis-y .experiments-action{
+ z-index:2;
  grid-column:1;
  grid-row:2;
- align-self:start;
-}
-.experiments-y-slider-wrap{
- position:relative;
- z-index:1;
- grid-column:2;
- grid-row:1/3;
  width:100%;
- height:100%;
+ min-width:0;
+ align-self:stretch;
+ display:grid;
+ place-items:stretch;
+ gap:4px;
+}
+.experiments-rocker-y{
+ grid-template-columns:1fr;
+ grid-template-rows:minmax(46px,1fr) 20px minmax(46px,1fr);
+}
+.experiments-rocker-x{
+ grid-template-columns:minmax(44px,1fr) 20px minmax(44px,1fr);
+ grid-template-rows:1fr;
+ align-items:stretch;
+}
+.axis-step{
+ box-sizing:border-box;
+ min-width:44px;
+ min-height:46px;
+ padding:4px;
  display:grid;
  place-items:center;
+ align-content:center;
+ gap:2px;
+ border:2px solid #62ccff;
+ border-radius:10px;
+ background:linear-gradient(180deg,#10314b,#071723);
+ color:#e9f8ff;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 12px rgba(54,171,231,.16);
+ font:900 18px/1 system-ui,-apple-system,sans-serif;
+ touch-action:manipulation;
 }
-.experiments-x-slider-wrap{
- position:relative;
- z-index:1;
- width:100%;
+.axis-step small{
+ color:#8edbff;
+ font:900 7px/1 system-ui,-apple-system,sans-serif;
+ letter-spacing:.09em;
+}
+.axis-id-badge{
+ min-width:20px;
+ min-height:20px;
  display:grid;
  place-items:center;
  align-self:center;
+ justify-self:center;
+ border:1px solid rgba(112,211,255,.75);
+ border-radius:999px;
+ background:#06131f;
+ color:#8edbff;
+ font:900 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+ box-shadow:0 0 10px rgba(54,171,231,.18);
 }
-.experiments-slider{
- accent-color:#45c6ff;
- touch-action:none;
+.experiments-action{
+ position:relative;
+ z-index:2;
+ grid-column:1;
+ grid-row:3;
+ width:100%;
+ min-height:50px;
+ padding:6px 7px;
+ display:grid;
+ place-items:center;
+ align-content:center;
+ gap:3px;
+ border:2px solid #d7b45e;
+ border-radius:10px;
+ background:linear-gradient(180deg,#1c3454,#0a1730);
+ color:#f6e2a6;
+ font:900 clamp(9px,1vw,13px)/1 system-ui,-apple-system,sans-serif;
+ letter-spacing:.06em;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 0 12px rgba(211,169,76,.14);
+ touch-action:manipulation;
 }
-.experiments-slider-y{
- width:15dvh;
- min-width:98px;
- max-width:178px;
- transform:rotate(-90deg);
- transform-origin:center;
+.experiments-action .control-identity{
+ display:block;
+ color:#7fd7ff;
+ font:900 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+ letter-spacing:.18em;
 }
-.experiments-slider-x{width:min(96%,300px)}
+.experiments-action strong{
+ display:block;
+ max-width:100%;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+ font:900 inherit;
+}
+.experiments-action-left{background:linear-gradient(180deg,#163b5b,#081a29)}
+.experiments-start,.experiments-action-right{background:linear-gradient(180deg,#4a3219,#1a1108)}
+.experiments-action-right .control-identity{color:#f1cc70}
+.axis-step:active,.experiments-action:active{transform:translateY(1px);filter:brightness(1.22)}
+.axis-step:focus-visible,.experiments-action:focus-visible,.experiments-slider:focus-visible{
+ outline:3px solid #fff0b7;
+ outline-offset:2px;
+}
+.experiments-y-slider-wrap,.experiments-x-slider-wrap{display:none!important}
+.experiments-slider{accent-color:#45c6ff;touch-action:none}
 .experiments-center-display{
  margin:7px;
  overflow:hidden;
@@ -362,11 +406,14 @@
 }
 @media(max-width:700px){
  .experiments-shell{padding:2.5dvh 2.5vw}
- .experiments-controller{grid-template-columns:minmax(0,.95fr) minmax(112px,1.1fr) minmax(0,.95fr)}
- .experiments-axis{padding:5px 4px}
- .experiments-axis-y{grid-template-columns:minmax(72px,1fr) 42px}
- .experiments-action{min-height:34px;padding:5px 5px}
- .experiments-slider-y{min-width:88px;width:14dvh}
+ .experiments-shell{padding:8px 8px max(12px,calc(env(safe-area-inset-bottom) + 6px))}
+ .experiments-controller{grid-template-columns:minmax(0,1fr) minmax(72px,.62fr) minmax(0,1fr)}
+ .experiments-axis{padding:5px 4px;gap:4px}
+ .experiments-action{min-height:48px;padding:5px 4px}
+ .experiments-rocker-y{grid-template-rows:minmax(44px,1fr) 18px minmax(44px,1fr)}
+ .experiments-rocker-x{grid-template-columns:minmax(42px,1fr) 18px minmax(42px,1fr)}
+ .axis-step{min-width:42px;min-height:44px;font-size:16px;border-radius:9px}
+ .axis-id-badge{min-width:18px;min-height:18px;font-size:9px}
  .experiments-axis-copy strong{font-size:9px}
  .experiments-axis-copy small{font-size:6px;letter-spacing:.03em}
  .experiments-center-display{margin:5px}
@@ -374,9 +421,11 @@
  .viewer-title{top:8px;padding:5px 14px}
 }
 @media(max-width:430px){
- .experiments-controller{grid-template-columns:minmax(0,.92fr) minmax(92px,1fr) minmax(0,.92fr)}
- .experiments-axis-copy small{font-size:5.5px}
- .experiments-action{font-size:7.5px;letter-spacing:.04em}
+ .experiments-controller{grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr)}
+ .experiments-axis-copy small{font-size:6px}
+ .experiments-action{font-size:8px;letter-spacing:.035em}
+ .experiments-action .control-identity{font-size:7px}
+ .axis-step small{font-size:6px}
  .display-coordinates{flex-direction:column;gap:1px}
  .center-display-content>small{font-size:5.5px}
  .center-display-content>strong{font-size:8px}
@@ -384,11 +433,14 @@
  .viewer-readout{font-size:5.5px;gap:7px}
 }
 @media(orientation:landscape) and (max-height:560px){
- .experiments-shell{padding:2.5dvh 2.5vw}
+ .experiments-shell{padding:6px max(8px,2vw) max(8px,env(safe-area-inset-bottom));grid-template-rows:minmax(0,1fr) minmax(148px,.9fr)}
  .viewer-title{top:5px;padding:3px 11px}
- .experiments-axis{padding:3px 5px}
- .experiments-action{min-height:25px;font-size:7.5px}
- .experiments-slider-y{min-width:72px;width:13dvh}
+ .experiments-axis{padding:3px 4px;gap:3px}
+ .experiments-action{min-height:38px;font-size:7.5px}
+ .experiments-rocker-y{grid-template-rows:minmax(36px,1fr) 16px minmax(36px,1fr)}
+ .experiments-rocker-x{grid-template-columns:minmax(38px,1fr) 16px minmax(38px,1fr)}
+ .axis-step{min-height:36px;min-width:38px;font-size:14px}
+ .axis-id-badge{min-height:16px;min-width:16px;font-size:8px}
  .experiments-center-display{margin:3px}
  .center-display-content p{display:none}
 }
