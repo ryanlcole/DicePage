@@ -46,11 +46,11 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         ):
             self.assertIn(f"<strong>{label}</strong>", self.source)
 
-    def test_gamemaster_appends_roleplay_tools_in_roleplay_order(self):
+    def test_gamemaster_keeps_shared_tools_in_familiar_roleplay_order(self):
         gm_start = self.source.index('id="launcher-gamemaster-tools"')
         gm_end = self.source.index("</section>", gm_start)
         gm = self.source[gm_start:gm_end]
-        self.assertIn("ROLEPLAY TOOLS", gm)
+        self.assertIn("SHARED TOOLS", gm)
         labels = (
             "CHARACTERS", "CHARACTER CARD DESIGNER", "POWERS", "JOURNAL",
             "CAMPAIGN", "CARD INDEX", "DICE &amp; TOOLS", "RULEBOOKS",
@@ -59,7 +59,7 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         )
         positions = [gm.index(f"<strong>{label}</strong>") for label in labels]
         self.assertEqual(positions, sorted(positions))
-        self.assertLess(gm.index("ROLEPLAY TOOLS"), positions[0])
+        self.assertLess(gm.index("SHARED TOOLS"), positions[0])
 
     def test_character_card_designer_has_dedicated_workspace(self):
         router = (
