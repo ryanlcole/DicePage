@@ -48,7 +48,8 @@ function host(f,type,data={}){
 }
 function tick(){return new Promise(resolve=>setTimeout(resolve,20))}
 function tab(f,name){
-  const button=Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(x=>x.textContent===name);
+  const wanted=String(name||'').toUpperCase();
+  const button=Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(x=>String(x.textContent||'').toUpperCase()===wanted);
   assert.ok(button,`Missing ${name} tab`);
   button.click();
 }
@@ -107,7 +108,7 @@ test('successful deed removes selection grid and transitions directly into the e
     assert.equal(f.stage.dataset.sourceScope,'selected-parent-cells');
     assert.equal(f.d.getElementById('world').style.maskImage,'none');
     assert.equal(f.d.getElementById('viewerKeyboard').hidden,false);
-    assert.ok(Array.from(f.d.querySelectorAll('#keyboardTabs button')).some(x=>x.textContent==='Image'));
+    assert.deepEqual(Array.from(f.d.querySelectorAll('#keyboardTabs button')).map(x=>x.textContent),['VIEW','BUILD','EDIT','LAYERS','MORE']);
   }finally{f.close()}
 });
 
@@ -117,7 +118,7 @@ test('opening an existing deed never creates a second selectable grid',async()=>
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
     host(f,'catalog',{regions:[deed]});
     await tick();
-    tab(f,'Select');
+    tab(f,'Edit');
     assert.equal(f.d.querySelector('.region-definition-grid'),null);
     assert.ok(f.stage.classList.contains('region-cropped'));
   }finally{f.close()}
@@ -173,7 +174,7 @@ test('region placement stays continuous inside the deed instead of snapping to c
 test('RegionDefiner build controls stay lifted and the claim grid cannot cover asset editing',()=>{
   const css=fs.readFileSync(path.join(root,'prototype.css'),'utf8');
   assert.ok(css.includes('.stage.region-definer-mode .keyboard{bottom:var(--region-control-lift)}'));
-  assert.ok(css.includes('.stage.region-definer-mode.keyboard-open .bottom-slider{bottom:calc(min(36vh,290px) + var(--region-control-lift))}'));
+  assert.ok(css.includes('.stage.region-definer-mode.keyboard-open .bottom-slider{bottom:calc(min(40vh,320px) + var(--region-control-lift))}'));
   assert.ok(css.includes('.stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}'));
 });
 
@@ -266,6 +267,34 @@ test('shared Worldbuilder and RegionDefiner asset keyboards filter selection by 
   assert.ok(source.includes("toolKey('DELETE',mode.toLowerCase(),removeSelectedImage)"));
 });
 
+test('adaptive controls expose five primary nodes while preserving advanced tools',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  const css=fs.readFileSync(path.join(root,'prototype.css'),'utf8');
+  assert.ok(html.includes('id="keyboardFlow"'));
+  assert.ok(source.includes("const PRIMARY_KEYBOARD_MODES=['View','Build','Edit','Layers','More']"));
+  assert.ok(source.includes("function renderAdaptiveEditKeyboard()"));
+  assert.ok(source.includes("function renderAdaptiveLayersKeyboard()"));
+  assert.ok(source.includes("function renderMoreKeyboard()"));
+  assert.ok(source.includes("toolKey('UNDO'"));
+  assert.ok(source.includes("editFlow==='delete'"));
+  assert.ok(css.includes('grid-template-columns:repeat(5,minmax(0,1fr))'));
+  assert.ok(css.includes('.stage.large-controls .keyboard-keys'));
+  assert.ok(css.includes('.stage.high-contrast .user-image-placement.selected'));
+});
+
+test('selected-object focus and underlay stay local to the selected footprint',()=>{
+  const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
+  const css=fs.readFileSync(path.join(root,'prototype.css'),'utf8');
+  assert.ok(source.includes('function selectedAssetNormalizedBounds('));
+  assert.ok(source.includes('function focusSelectedAsset('));
+  assert.ok(source.includes('const usableHeight=Math.max(120,r.height-controlsHeight-12)'));
+  assert.ok(source.includes('function selectionUnderlayCandidate('));
+  assert.ok(source.includes('function refreshSelectionUnderlay('));
+  assert.ok(source.includes("toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY'"));
+  assert.ok(css.includes('.selection-underlay-preview{position:absolute'));
+});
+
 test('shared sprite editor supports motion-only overlays and 60fps playback',()=>{
   const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
@@ -328,7 +357,7 @@ test('claimed RegionDefiner loads only selected WorldBuilder cells and keeps par
     assert.equal(regionLabel.dataset.z100,'201');
     assert.equal(regionLabel.dataset.tier,'0','regional overlay never creates a new WorldBuilder tier');
 
-    tab(f,'Select');
+    tab(f,'Edit');
     const picker=f.d.querySelector('.placed-content-select');
     assert.ok(picker);
     const labels=Array.from(picker.options).map(x=>x.textContent);
@@ -349,15 +378,16 @@ test('Region Tier drives parallax while visual Layer alone drives composition',a
     }});
     await tick();await tick();
 
-    tab(f,'Select');
+    tab(f,'Edit');
     const picker=f.d.querySelector('.placed-content-select');
     picker.value='region-city';
     picker.dispatchEvent(new f.w.Event('change',{bubbles:true}));
     assert.equal(
-      Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='Labels')?.getAttribute('aria-selected'),
+      Array.from(f.d.querySelectorAll('#keyboardTabs button')).find(b=>b.textContent==='EDIT')?.getAttribute('aria-selected'),
       'true'
     );
 
+    clickKey(f,'DEPTH');
     let state=f.w.ShaelvienPrototype.getViewerState();
     let city=state.userLayers.find(x=>x.id==='region-city');
     assert.equal(city.worldLayer,2,'legacy World Z remains compatibility context');
@@ -379,7 +409,7 @@ test('Region Tier drives parallax while visual Layer alone drives composition',a
     assert.equal(city.worldLayer,2,'Layer must not mutate legacy parent depth');
     assert.equal(city.z100,202,'z100 is only a compatibility projection of visual Layer');
 
-    clickKey(f,'REGION T +');
+    clickKey(f,'DEPTH +');
     state=f.w.ShaelvienPrototype.getViewerState();
     city=state.userLayers.find(x=>x.id==='region-city');
     assert.equal(city.recursive.tier,2);
