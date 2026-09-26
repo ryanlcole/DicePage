@@ -597,8 +597,9 @@ else
   if(Session.IsGeonaphWorld&&WorldReady)return;
   try
   {
-   await Session.LoadWorldDirectoryAsync();
-   var shaelvien=new AccountWorldReference(WorldSession.GeonaphWorldId,WorldSession.ShaelvienDisplayName,"mmo",DateTimeOffset.UtcNow);
+   var directory=await Session.LoadWorldDirectoryAsync();
+   var shaelvien=directory.Worlds.FirstOrDefault(world=>string.Equals(world.WorldId,WorldSession.GeonaphWorldId,StringComparison.Ordinal));
+   if(shaelvien is null)return;
    await Session.LoadWorldAsync(shaelvien);
    await Session.RefreshTrustedWorldAuthorityAsync();
    await Session.RefreshMmoLandAsync();
