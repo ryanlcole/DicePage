@@ -522,7 +522,37 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         => await SendAsync<StorageList>(HttpMethod.Get, "/storage/list?prefix=" + Uri.EscapeDataString(prefix));
 
     public async Task<string?> DownloadUrlAsync(string key)
-        => (await SendAsync<DownloadResponse>(HttpMethod.Get, "/storage/download?key=" + Uri.EscapeDataString(key)))?.Url;
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            _apiBaseUrl + "/storage/download?key=" + Uri.EscapeDataString(key));
+        if (!string.IsNullOrWhiteSpace(_sessionToken))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _sessionToken);
+
+        using var response = await http.SendAsync(request);
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) return default;
+
+        // The storage API intentionally returns 404 when an optional object does not
+        // exist yet (for example worlds/index.json on a first launch). That is an
+        // empty-state signal, not a broken environment. Only swallow the canonical
+        // missing-object response; an unknown 404 still surfaces as a deployment error.
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            try
+            {
+                var missing = await response.Content.ReadFromJsonAsync<StorageError>();
+                if (string.Equals(missing?.Error, "Stored object not found", StringComparison.Ordinal))
+                    return default;
+            }
+            catch
+            {
+                // Preserve malformed or unexpected 404 responses below.
+            }
+        }
+
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<DownloadResponse>())?.Url;
+    }
 
     public async Task<T?> DownloadJsonAsync<T>(string key)
     {
@@ -613,6 +643,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public sealed record ContentAddressedUpload(string Key, string Sha256, bool Deduplicated, long SizeBytes);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
+    public sealed record StorageError(string Error);
     public sealed record StorageItem(string Key, long Size, DateTimeOffset LastModified);
     public sealed record StorageList(List<StorageItem> Items, bool Truncated);
 }
