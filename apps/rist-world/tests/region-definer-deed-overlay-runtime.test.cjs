@@ -267,6 +267,16 @@ test('shared Worldbuilder and RegionDefiner asset keyboards filter selection by 
   assert.ok(source.includes("toolKey('DELETE',mode.toLowerCase(),removeSelectedImage)"));
 });
 
+test('adaptive control contract preserves flow semantics and input independence',()=>{
+  const contract=fs.readFileSync(path.join(__dirname,'../ADAPTIVE_CONTROL_FLOW_CONTRACT.md'),'utf8');
+  assert.ok(contract.includes('VIEW — camera, zoom, fit, tilt, selection focus.'));
+  assert.ok(contract.includes('BACK returns to the previous decision level'));
+  assert.ok(contract.includes('UNDO reverses the most recent supported edit'));
+  assert.ok(contract.includes('DONE finishes the current object'));
+  assert.ok(contract.includes('No essential action may require drag, hover, multi-touch, device tilt'));
+  assert.ok(contract.includes('approximately 44 by 44 CSS pixels'));
+});
+
 test('adaptive controls expose five primary nodes while preserving advanced tools',()=>{
   const source=fs.readFileSync(path.join(root,'prototype.js'),'utf8');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
