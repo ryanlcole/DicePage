@@ -13,7 +13,10 @@
  <main class="experiments-viewer" aria-label="Viewer">
   <div class="viewer-world @ViewerClass" aria-hidden="true"></div>
   <div class="viewer-shade" aria-hidden="true"></div>
-  <div class="viewer-reticle" style="@ReticleStyle" aria-hidden="true"><span></span></div>
+  @if(CursorMode)
+  {
+   <div class="viewer-reticle" style="@ReticleStyle" aria-hidden="true"><span></span></div>
+  }
 
   @if(IsDepthStage)
   {
@@ -55,25 +58,8 @@
   </footer>
  </main>
 
- <section class="experiments-controller four-control-deck" aria-label="Four universal controls">
-  <label class="analog-control analog-control-y" aria-label="Vertical analog control">
-   <strong>UP</strong>
-   <span class="analog-track analog-track-y">
-    <input class="analog-stick analog-stick-y"
-           type="range"
-           min="-100"
-           max="100"
-           step="1"
-           value="@_yControl"
-           @oninput="HandleYSlider"
-           @onpointerup="ReleaseYStick"
-           @onpointercancel="ReleaseYStick"
-           @onkeydown:stopPropagation="true"
-           aria-label="Up and down analog control" />
-   </span>
-   <strong>DOWN</strong>
-  </label>
-
+ <section class="experiments-controller single-analog-deck @AnalogPlacementClass"
+          aria-label="Universal analog and display controls">
   <button type="button"
           class="control-display-button control-display-left"
           @onclick="PressLeft"
@@ -83,6 +69,20 @@
    <span>@LeftDisplayPrompt</span>
   </button>
 
+  <div class="analog-control analog-control-xy"
+       @ref="_analog"
+       role="group"
+       aria-label="Universal analog stick. Up and down controls the left display when it has multiple options. Left and right controls the right display when it has multiple options. Otherwise the stick controls the viewer cursor.">
+   <span class="analog-direction analog-up" aria-hidden="true">UP</span>
+   <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
+   <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
+   <span class="analog-direction analog-right" aria-hidden="true">RIGHT</span>
+   <div class="analog-pad" aria-hidden="true">
+    <span class="analog-crosshair"></span>
+    <span class="analog-knob"></span>
+   </div>
+  </div>
+
   <button type="button"
           class="control-display-button control-display-right"
           @onclick="PressRight"
@@ -91,24 +91,6 @@
    <strong>@RightDisplayValue</strong>
    <span>@RightDisplayPrompt</span>
   </button>
-
-  <label class="analog-control analog-control-x" aria-label="Horizontal analog control">
-   <strong>LEFT</strong>
-   <span class="analog-track analog-track-x">
-    <input class="analog-stick analog-stick-x"
-           type="range"
-           min="-100"
-           max="100"
-           step="1"
-           value="@_xControl"
-           @oninput="HandleXSlider"
-           @onpointerup="ReleaseXStick"
-           @onpointercancel="ReleaseXStick"
-           @onkeydown:stopPropagation="true"
-           aria-label="Left and right analog control" />
-   </span>
-   <strong>RIGHT</strong>
-  </label>
  </section></section>
 
 @code {
@@ -122,6 +104,7 @@
   GameMasterHub,
   GameMasterScope,
   SoftwareHub,
+  ControlSettings,
   WorldBuilderTier,
   WorldBuilderLayer,
   AssetKind,
@@ -133,7 +116,9 @@
   SaveCancel
  }
 
+ const string AnalogPlacementStorageKey="rist.experiments.analogPlacement.v1";
  ElementReference _shell;
+ ElementReference _analog;
  DotNetObjectReference<ExperimentsWorkspace>? _selfRef;
  Stage _stage=Stage.Environment;
  int _worldIndex;
@@ -146,6 +131,10 @@
  int _yPulse;
  int _xControl;
  int _yControl;
+ int _cursorX;
+ int _cursorY;
+ string _analogPlacement="center";
+ int _analogPlacementDraft=1;
  double _assetScale=1;
  int _assetRotation;
  int _assetX;
@@ -153,11 +142,12 @@
  string _assetKind="IMAGE";
  string _assetMode="ADD";
  bool _savedAsset;
- string _message="Choose an environment. Hardware translates into the same X, Y, left and right semantic controls.";
+ string _message="One analog carries X and Y. The two displays are buttons. When either display has multiple options, the analog selects them and the viewer cursor is hidden.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
  static readonly string[] Scopes=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE","TABLETOP","SOFTWARE"];
  static readonly string[] SoftwareCapabilities=["IMAGE EDITOR","STREAM / RECORD","NOTES / DATABASE","AUDIO","BROWSER","COMMUNICATION","AUTOMATION"];
+ static readonly string[] AnalogPlacements=["LEFT","CENTER","RIGHT"];
 
  string[] WorldChoices
  {
@@ -190,6 +180,30 @@
  string PreviousSoftware=>SoftwareCapabilities[(_softwareIndex-1+SoftwareCapabilities.Length)%SoftwareCapabilities.Length];
  string NextSoftware=>SoftwareCapabilities[(_softwareIndex+1)%SoftwareCapabilities.Length];
 
+ string CurrentAnalogPlacementDraft=>AnalogPlacements[Math.Clamp(_analogPlacementDraft,0,AnalogPlacements.Length-1)];
+ string AnalogPlacementClass=>$"analog-{_analogPlacement}";
+
+ int LeftDisplayOptionCount=>_stage switch
+ {
+  Stage.GameMasterHub=>WorldChoices.Length,
+  Stage.GameMasterScope=>Scopes.Length,
+  Stage.SoftwareHub=>SoftwareCapabilities.Length,
+  Stage.ControlSettings=>AnalogPlacements.Length,
+  Stage.WorldBuilderTier=>10,
+  Stage.WorldBuilderLayer=>100,
+  Stage.Scale=>38,
+  _=>1
+ };
+
+ int RightDisplayOptionCount=>_stage switch
+ {
+  Stage.GameMasterHub=>Settings.Length,
+  Stage.Rotate=>72,
+  _=>1
+ };
+
+ bool CursorMode=>LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
  int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
@@ -219,6 +233,7 @@
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>"SHAELVIEN",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.ControlSettings=>"CONTROLS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
   Stage.AssetKind=>"ASSET TYPE",
   Stage.AssetMode=>"ASSET ACTION",
@@ -233,6 +248,7 @@
   Stage.Environment=>"SHAELVIEN",
   Stage.Role=>"ROLEPLAYER",
   Stage.GameMasterScope=>CurrentScope,
+  Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
   Stage.AssetKind=>"IMAGE",
@@ -250,6 +266,7 @@
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>"SHAELVIEN",
   Stage.GameMasterScope=>"NAVIGATION",
+  Stage.ControlSettings=>"SETTINGS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"CONFIRM",
   Stage.AssetKind=>"ASSET TYPE",
   Stage.AssetMode=>"ASSET ACTION",
@@ -264,6 +281,7 @@
   Stage.Environment=>"RIST",
   Stage.Role=>"GAMEMASTER",
   Stage.GameMasterScope=>"BACK",
+  Stage.ControlSettings=>"BACK",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"ENTER",
   Stage.AssetKind=>"SPRITE",
   Stage.AssetMode=>"ADD",
@@ -278,6 +296,7 @@
   Stage.Environment=>"Shared Shaelvien MMO environment.",
   Stage.Role=>"Player-facing role.",
   Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
+  Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
   Stage.WorldBuilderTier=>"Y raises or lowers the tier. Tier changes create a visible depth gap.",
   Stage.WorldBuilderLayer=>"Y adds or removes closely stacked glass layers.",
   Stage.AssetKind=>"Static visual asset.",
@@ -295,6 +314,7 @@
   Stage.Environment=>"Private/universal RIST environment.",
   Stage.Role=>"Enter the GameMaster Suite.",
   Stage.GameMasterScope=>"Return to world and settings selection.",
+  Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
   Stage.WorldBuilderTier=>"Confirm the tier and continue to Layer.",
   Stage.WorldBuilderLayer=>"Confirm the layer and continue to asset type.",
   Stage.AssetKind=>"Animated visual asset using the same placement pipeline.",
@@ -325,12 +345,16 @@
  {
   Stage.GameMasterHub=>CurrentWorld,
   Stage.SoftwareHub=>CurrentSoftware,
+  Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
+  Stage.Scale=>$"{_assetScale:0.00}×",
   _=>LeftLabel
  };
 
  string RightDisplayValue=>_stage switch
  {
   Stage.GameMasterHub=>CurrentSetting,
+  Stage.ControlSettings=>"BACK",
+  Stage.Rotate=>$"{_assetRotation}°",
   _=>RightLabel
  };
 
@@ -338,6 +362,8 @@
  {
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
+  Stage.ControlSettings=>"TOUCH · SAVE",
+  Stage.Scale=>"Y · ADJUST",
   _=>"TOUCH · ACTIVATE"
  };
 
@@ -345,6 +371,8 @@
  {
   Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
   Stage.SoftwareHub=>"TOUCH · BACK",
+  Stage.ControlSettings=>"TOUCH · CANCEL",
+  Stage.Rotate=>"X · ADJUST · TOUCH SET",
   _=>"TOUCH · ACTIVATE"
  };
 
@@ -355,6 +383,7 @@
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
+  Stage.ControlSettings=>"CONTROLS · ANALOG PLACEMENT",
   Stage.WorldBuilderTier=>"WORLD BUILDER · TIER",
   Stage.WorldBuilderLayer=>"WORLD BUILDER · LAYER",
   Stage.AssetKind=>"WORLD BUILDER · ASSET TYPE",
@@ -374,6 +403,7 @@
   Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
   Stage.GameMasterScope=>"GAMEMASTER → SUITE",
   Stage.SoftwareHub=>"GAMEMASTER → SOFTWARE",
+  Stage.ControlSettings=>"GAMEMASTER → CONTROLS",
   Stage.WorldBuilderTier=>"WORLD BUILDER → TIER",
   Stage.WorldBuilderLayer=>"WORLD BUILDER → LAYER",
   Stage.AssetKind=>"WORLD BUILDER → ASSET",
@@ -386,7 +416,7 @@
   _=>""
  };
 
- string ReticleStyle=>$"left:{50+(_xControl*.45):0.##}%;top:{50-(_yControl*.45):0.##}%;";
+ string ReticleStyle=>$"left:{50+(_cursorX*.45):0.##}%;top:{50-(_cursorY*.45):0.##}%;";
  string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.00}) rotate({_assetRotation}deg);";
 
  string GlassSheetStyle(int sheet)
@@ -403,8 +433,19 @@
   _selfRef=DotNetObjectReference.Create(this);
   try
   {
-   await JS.InvokeVoidAsync("ristExperimentsUniversalInput.start",_selfRef);
+   await JS.InvokeVoidAsync("ristExperimentsUniversalInput.start",_selfRef,_analog);
+   try
+   {
+    var stored=await JS.InvokeAsync<string?>("localStorage.getItem",AnalogPlacementStorageKey);
+    if(stored is "left" or "center" or "right")
+    {
+     _analogPlacement=stored;
+     _analogPlacementDraft=Array.IndexOf(AnalogPlacements,stored.ToUpperInvariant());
+    }
+   }
+   catch{}
    await _shell.FocusAsync();
+   await InvokeAsync(StateHasChanged);
   }
   catch(JSException)
   {
@@ -413,39 +454,23 @@
   }
  }
 
- void HandleYSlider(ChangeEventArgs e)
- {
-  if(!int.TryParse(e.Value?.ToString(),out var next))return;
-  next=Math.Clamp(next,-100,100);
-  var direction=Math.Sign(next-_yControl);
-  _yControl=next;
-  if(direction!=0)ApplyY(direction);
- }
-
- void HandleXSlider(ChangeEventArgs e)
- {
-  if(!int.TryParse(e.Value?.ToString(),out var next))return;
-  next=Math.Clamp(next,-100,100);
-  var direction=Math.Sign(next-_xControl);
-  _xControl=next;
-  if(direction!=0)ApplyX(direction);
- }
-
- void ReleaseYStick(PointerEventArgs _)
- {
-  _yControl=0;
- }
-
- void ReleaseXStick(PointerEventArgs _)
- {
-  _xControl=0;
- }
-
  void StepY(int direction)
  {
   direction=Math.Sign(direction);
   if(direction==0)return;
-  _yControl=Math.Clamp(_yControl+(direction*12),-100,100);
+  _yControl=Math.Clamp(direction*100,-100,100);
+  if(CursorMode)
+  {
+   _yPulse=Math.Clamp(_yPulse+direction,-99,99);
+   _cursorY=Math.Clamp(_cursorY+(direction*7),-100,100);
+   if(_stage==Stage.Move)
+   {
+    _assetY=Math.Clamp(_assetY-(direction*8),-160,160);
+    _message=$"Cursor {_cursorX},{_cursorY}. Preview position {_assetX},{_assetY}.";
+   }
+   else _message=$"Cursor {_cursorX},{_cursorY}.";
+   return;
+  }
   ApplyY(direction);
  }
 
@@ -453,7 +478,19 @@
  {
   direction=Math.Sign(direction);
   if(direction==0)return;
-  _xControl=Math.Clamp(_xControl+(direction*12),-100,100);
+  _xControl=Math.Clamp(direction*100,-100,100);
+  if(CursorMode)
+  {
+   _xPulse=Math.Clamp(_xPulse+direction,-99,99);
+   _cursorX=Math.Clamp(_cursorX+(direction*7),-100,100);
+   if(_stage==Stage.Move)
+   {
+    _assetX=Math.Clamp(_assetX+(direction*8),-200,200);
+    _message=$"Cursor {_cursorX},{_cursorY}. Preview position {_assetX},{_assetY}.";
+   }
+   else _message=$"Cursor {_cursorX},{_cursorY}.";
+   return;
+  }
   ApplyX(direction);
  }
 
@@ -476,6 +513,10 @@
    case Stage.SoftwareHub:
     _softwareIndex=Wrap(_softwareIndex+direction,SoftwareCapabilities.Length);
     _message=$"Capability adapter: {CurrentSoftware}.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacementDraft=Wrap(_analogPlacementDraft+direction,AnalogPlacements.Length);
+    _message=$"Analog placement: {CurrentAnalogPlacementDraft}.";
     break;
    case Stage.WorldBuilderTier:
     _tier=Math.Clamp(_tier+direction,0,9);
@@ -549,6 +590,12 @@
    case Stage.SoftwareHub:
     _message=$"{CurrentSoftware} selected. Adapter contract placeholder only; no third-party UI or copied design is embedded.";
     break;
+   case Stage.ControlSettings:
+    _analogPlacement=CurrentAnalogPlacementDraft.ToLowerInvariant();
+    _=PersistAnalogPlacementAsync();
+    _stage=Stage.GameMasterHub;
+    _message=$"Analog placement saved: {CurrentAnalogPlacementDraft}.";
+    break;
    case Stage.AssetKind:
     _assetKind="IMAGE";
     _stage=Stage.AssetMode;
@@ -599,7 +646,20 @@
     _message="GameMaster selected. Y cycles worlds; X cycles options.";
     break;
    case Stage.GameMasterHub:
-    _message=$"{CurrentSetting} selected. Settings will use the same contextual-control pattern.";
+    if(CurrentSetting=="CONTROLS")
+    {
+     _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
+     if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+     _stage=Stage.ControlSettings;
+     _message="Controls. Move the analog up or down to choose LEFT, CENTER, or RIGHT placement. Center is the default.";
+    }
+    else _message=$"{CurrentSetting} selected. Settings will use the same contextual-control pattern.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
+    if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+    _stage=Stage.GameMasterHub;
+    _message="Analog placement unchanged.";
     break;
    case Stage.GameMasterScope:
     _stage=Stage.GameMasterHub;
@@ -669,6 +729,11 @@
     _message=$"{CurrentScope} is registered in the GameMaster flowchart; its beginner Shaeps are not wired in this experiment yet.";
     break;
   }
+ }
+
+ async Task PersistAnalogPlacementAsync()
+ {
+  try{await JS.InvokeVoidAsync("localStorage.setItem",AnalogPlacementStorageKey,_analogPlacement);}catch{}
  }
 
  void ResetAssetTransform()
