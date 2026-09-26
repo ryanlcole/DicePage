@@ -174,8 +174,42 @@
  .studio-edit-mode button{min-height:36px;border:1px solid #715b2d;border-radius:5px;background:#18252e;color:#fff1bd}
 </style>
 
+ @if(_endemarTutorialOpen && Session.IsGeonaphWorld && Session.CanEditTiles)
+ {
+  <aside class="endemar-build-tutorial" role="dialog" aria-label="Build Endemar tutorial" aria-live="polite">
+   <div class="endemar-tutorial-progress">BUILD ENDEMAR · @(_endemarTutorialStep+1)/@EndemarTutorialPresets.Length</div>
+   <strong>@CurrentEndemarPreset.Title</strong>
+   <p>@CurrentEndemarPreset.Instruction</p>
+   <div class="endemar-tutorial-actions">
+    <button type="button" @onclick="LoadCurrentEndemarPresetAsync">LOAD PRESET</button>
+    <button type="button" @onclick="AdvanceEndemarTutorialAsync" disabled="@(!EndemarStepPlaced)">NEXT</button>
+    <button type="button" class="quiet" @onclick="CloseEndemarTutorialAsync">QUIET</button>
+   </div>
+   <small>Drag the highlighted quick asset onto the map. These Endemar presets are teaching assets; your own claimed zone uses the same placement workflow.</small>
+  </aside>
+ }
+ <style>
+ .endemar-build-tutorial{position:absolute;z-index:45;left:max(10px,env(safe-area-inset-left));bottom:max(10px,calc(env(safe-area-inset-bottom) + 8px));width:min(360px,calc(100% - 20px));box-sizing:border-box;padding:12px;border:1px solid #b98b31;border-radius:12px;background:#081218f2;color:#dce5e8;box-shadow:0 10px 30px #000b}
+ .endemar-build-tutorial strong{display:block;color:#f0d487;font:700 20px Georgia,serif;margin:3px 0 5px}.endemar-build-tutorial p{margin:0 0 9px;color:#c3d0d5;font-size:12px;line-height:1.4}.endemar-tutorial-progress{color:#85a8b8;font-size:9px;font-weight:900;letter-spacing:.12em}.endemar-tutorial-actions{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:7px}.endemar-tutorial-actions button{min-height:42px;border:1px solid #a77e2f;border-radius:8px;background:#241b0b;color:#f5d986;font-size:10px;font-weight:900;touch-action:manipulation}.endemar-tutorial-actions button:disabled{opacity:.4}.endemar-tutorial-actions .quiet{border-color:#42545d;background:#0a151b;color:#aab9c0}.endemar-build-tutorial small{display:block;color:#82969f;font-size:9px;line-height:1.35}
+ @media(max-width:600px){.endemar-build-tutorial{left:8px;right:8px;width:auto;bottom:max(8px,env(safe-area-inset-bottom));}.endemar-tutorial-actions{grid-template-columns:1fr 1fr auto}}
+ </style>
+
 @code {
  const int QuickSlotCount=6;
+ sealed record EndemarTutorialPreset(string Title,string Folder,string Instruction);
+ static readonly EndemarTutorialPreset[] EndemarTutorialPresets=[
+  new("Lay the sea","Ocean","Start with the water. Load the preset, then drag the quick asset onto Endemar where the sea belongs."),
+  new("Shape the coast","Coast","Add the transition between water and land. Place the coast so the shoreline reads clearly."),
+  new("Raise the plains","Plains","Build the first inhabitable ground. Place the plains inside the coast."),
+  new("Grow the forests","Forest","Add living terrain. Place forest where travel, shelter, and resources should matter."),
+  new("Lift the hills","Hills","Give the land elevation and routes. Place hills between low ground and the high country."),
+  new("Crown the mountains","Mountains","Finish the foundation with the highest terrain. This same preset-to-map loop is what builders use in their own claimed zones.")
+ ];
+ int _endemarTutorialStep;
+ int _endemarTutorialPlacementBaseline;
+ bool _endemarTutorialOpen=true;
+ EndemarTutorialPreset CurrentEndemarPreset=>EndemarTutorialPresets[Math.Clamp(_endemarTutorialStep,0,EndemarTutorialPresets.Length-1)];
+ bool EndemarStepPlaced=>Session.PlacedTiles.Count>_endemarTutorialPlacementBaseline;
  static readonly string[] Modes=["All","Uploads","Sprites","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"];
  readonly List<AtlasTile> _quickTiles=[];
  bool _toolsOpen;
@@ -225,6 +259,33 @@
   catch{}
  }
  async Task PersistQuickSlotsAsync()=>await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
+ async Task LoadCurrentEndemarPresetAsync()
+ {
+  if(!Session.IsGeonaphWorld||!Session.CanEditTiles)return;
+  var preset=CurrentEndemarPreset;
+  var tile=Session.AtlasTiles.FirstOrDefault(x=>string.Equals(x.Folder,preset.Folder,StringComparison.OrdinalIgnoreCase))
+   ??Session.AtlasTiles.FirstOrDefault(x=>$"{x.Directory} {x.Folder} {x.Name}".Contains(preset.Folder,StringComparison.OrdinalIgnoreCase));
+  if(tile is null)return;
+  _quickTiles.Clear();
+  _quickTiles.Add(tile);
+  _toolMode="All";
+  _toolsOpen=false;
+  _endemarTutorialPlacementBaseline=Session.PlacedTiles.Count;
+  await PersistQuickSlotsAsync();
+ }
+ async Task AdvanceEndemarTutorialAsync()
+ {
+  if(!EndemarStepPlaced)return;
+  if(_endemarTutorialStep>=EndemarTutorialPresets.Length-1){await CloseEndemarTutorialAsync();return;}
+  _endemarTutorialStep++;
+  _endemarTutorialPlacementBaseline=Session.PlacedTiles.Count;
+  await LoadCurrentEndemarPresetAsync();
+ }
+ async Task CloseEndemarTutorialAsync()
+ {
+  _endemarTutorialOpen=false;
+  try{await JS.InvokeVoidAsync("localStorage.setItem",$"rist.endemar.tutorial.complete.{Session.WorldId}","1");}catch{}
+ }
  async Task RemoveQuickTile(AtlasTile tile){_quickTiles.RemoveAll(x=>x.Id==tile.Id);await PersistQuickSlotsAsync();}
  async Task ClearQuickTiles(){_quickTiles.Clear();await PersistQuickSlotsAsync();}
  void CycleTileFootprint(){_tileFootprint=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,16=>30,_=>1};}
@@ -369,6 +430,12 @@
  {
   if(!firstRender)return;
   await EnsureWorldAtlasAsync();
+  if(Session.IsGeonaphWorld&&Session.CanEditTiles)
+  {
+   try{_endemarTutorialOpen=!string.Equals(await JS.InvokeAsync<string?>("localStorage.getItem",$"rist.endemar.tutorial.complete.{Session.WorldId}"),"1",StringComparison.Ordinal);}catch{}
+   _endemarTutorialPlacementBaseline=Session.PlacedTiles.Count;
+   if(_endemarTutorialOpen)await LoadCurrentEndemarPresetAsync();
+  }
   var restored=await Session.LoadActiveMapCardAsync();
   if(restored)
   {
