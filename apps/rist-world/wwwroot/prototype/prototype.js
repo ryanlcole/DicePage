@@ -48,7 +48,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const IMAGE_ENGINE=window.ReLiCImageEngine||null;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),regionPersistenceStatus=$('regionPersistenceStatus'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),spriteMotionOnly=$('spriteMotionOnly'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),regionPersistenceStatus=$('regionPersistenceStatus'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),spriteMotionOnly=$('spriteMotionOnly'),keyboardTabs=$('keyboardTabs'),keyboardFlow=$('keyboardFlow'),keyboardKeys=$('keyboardKeys'),live=$('live');
 if(READ_ONLY){
   stage.classList.add('read-only');stage.setAttribute('aria-readonly','true');stage.dataset.access='view';
   persistentSave.disabled=true;persistentSave.title='Read-only world reference';
@@ -89,6 +89,16 @@ let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',assetInteractionMode='select',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 let imageProcessingBusy=false,imageProcessingStatus='';
+let editFlow='root',selectionCameraSnapshot=null,selectionUnderlayNode=null,selectionUnderlayFrame=0,selectionUnderlaySourceName='';
+let adaptiveUndoStack=[],adaptiveDeleteArmed=false;
+const CONTROL_PREF_KEY='rist.adaptiveControls.v1';
+const controlPrefs=(()=>{try{return JSON.parse(localStorage.getItem(CONTROL_PREF_KEY)||'{}')||{}}catch{return{}}})();
+let selectionAutoFocus=controlPrefs.autoFocus!==false;
+let selectionUnderlayVisible=controlPrefs.underlay!==false;
+let largeControls=controlPrefs.largeControls===true;
+let highContrastControls=controlPrefs.highContrast===true;
+stage.classList.toggle('large-controls',largeControls);
+stage.classList.toggle('high-contrast',highContrastControls);
 stage.dataset.assetInteraction=assetInteractionMode;
 let spriteChainTarget=null;
 let regionEditLayer=null,recursiveAssetListPanel=null;
@@ -3158,16 +3168,40 @@ function bindTap(button,fn){
 }
 
 function renderState(){applyTransform();renderKeyboardKeys()}
-const BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
-const REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
-function keyboardModes(){
-  if(!REGION_DEFINER)return READ_ONLY?['Viewer','Tiers']:CLAIM_ONLY?['Viewer','Tiers','Select']:BASE_KEYBOARD_MODES;
-  if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?REGION_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);
-  if(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested')return['Select'];
-  if(READ_ONLY)return['Viewer','Tiers'];
-  if(CLAIM_ONLY)return['Select'];
-  return REGION_KEYBOARD_MODES;
+const LEGACY_BASE_KEYBOARD_MODES=['Viewer','Tiers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
+const LEGACY_REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers','Select','Image','Pixels','Tiles','Sprites','Labels','Litch','CAD','Stylus','Tethers','Metadata'];
+const PRIMARY_KEYBOARD_MODES=['View','Build','Edit','Layers','More'];
+function guidedRegionSelectionFlow(){
+  return !!(REGION_DEFINER&&!LOCAL_DEFINER&&(regionClaimPhase==='tier-preview'||regionClaimPhase==='select'||regionClaimPhase==='crop'||regionClaimPhase==='requested'));
 }
+function primaryKeyboardModes(){
+  if(guidedRegionSelectionFlow()||CLAIM_ONLY)return['Select'];
+  if(READ_ONLY)return['View','More'];
+  if(LOCAL_DEFINER&&!localIsOpen())return['View','Edit','More'];
+  return PRIMARY_KEYBOARD_MODES;
+}
+function primaryModeFor(mode=keyboardMode){
+  if(mode==='Viewer'||mode==='View')return'View';
+  if(mode==='Build')return'Build';
+  if(mode==='Layers')return'Layers';
+  if(mode==='Edit'||mode==='Select'||mode==='Image'||mode==='Pixels'||mode==='Labels')return'Edit';
+  if(mode==='Tiles'||mode==='Sprites')return selectedImage?'Edit':'Build';
+  if(mode==='More'||mode==='Tiers'||mode==='Litch'||mode==='CAD'||mode==='Stylus'||mode==='Tethers'||mode==='Metadata')return'More';
+  return'View';
+}
+function internalModeForPrimary(mode){
+  return mode==='View'?'Viewer':mode==='Build'?'Build':mode==='Edit'?'Edit':mode==='Layers'?'Layers':mode==='More'?'More':mode;
+}
+function saveControlPrefs(){
+  try{localStorage.setItem(CONTROL_PREF_KEY,JSON.stringify({autoFocus:selectionAutoFocus,underlay:selectionUnderlayVisible,largeControls,highContrast:highContrastControls}))}catch{}
+}
+function setPrimaryKeyboardMode(mode){
+  personalFolderType=null;editFlow='root';adaptiveDeleteArmed=false;
+  keyboardMode=internalModeForPrimary(mode);
+  renderKeyboardTabs();renderKeyboardKeys();
+  announce(`${mode} controls opened.`);
+}
+
 function toolKey(label,sub,fn,disabled=false){const b=document.createElement('button');b.type='button';b.disabled=disabled;b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('data-focus-key',label);b.setAttribute('aria-label',label==='⛶'?'Fit map to screen':`${label}: ${sub}`);b.addEventListener('click',fn);return b}
 function readoutKey(label,sub){
   const b=document.createElement('button');b.type='button';b.disabled=true;b.className='readout';b.innerHTML=`<strong>${label}</strong><small>${sub}</small>`;b.setAttribute('aria-label',`${label}: ${sub}`);return b;
