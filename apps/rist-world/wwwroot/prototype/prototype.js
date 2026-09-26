@@ -2811,8 +2811,14 @@ function refreshUserImage(item){
     keyboardMode='Edit';editFlow='root';adaptiveDeleteArmed=false;renderKeyboardTabs();
     announce(`${selectedImage.name||'Regional object'} selected as a Local anchor. Focused view opened.`);
   }else if(selectedImage&&!guidedRegionSelectionFlow()&&!READ_ONLY){
-    keyboardMode='Edit';editFlow='root';adaptiveDeleteArmed=false;renderKeyboardTabs();
-    announce(`${selectedImage.name||'Object'} selected. Relevant editing actions are open.`);
+    if(keyboardMode==='Layers'||flowParent==='Layers'){
+      keyboardMode='Layers';flowParent='Layers';
+      announce(`${selectedImage.name||'Object'} selected in Layers. Use Edit when you want object actions.`);
+    }else{
+      keyboardMode='Edit';flowParent='Edit';editFlow='root';adaptiveDeleteArmed=false;
+      announce(`${selectedImage.name||'Object'} selected. Relevant editing actions are open.`);
+    }
+    renderKeyboardTabs();
   }
   if(selectedImage)focusSelectedAsset(selectedImage);
   renderKeyboardKeys();scheduleRegionEnhancement(20);
