@@ -88,6 +88,7 @@ const pointers=new Map();
 let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',assetInteractionMode='select',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
+let imageProcessingBusy=false,imageProcessingStatus='';
 stage.dataset.assetInteraction=assetInteractionMode;
 let spriteChainTarget=null;
 let regionEditLayer=null,recursiveAssetListPanel=null;
@@ -2240,15 +2241,42 @@ function adjustLinkedOpacity(item,delta){
   for(const member of linkedSelectionMembers(item)){member.opacity=clamp((Number(member.opacity)||1)+delta,.1,1);refreshUserImage(member)}
 }
 async function toggleLinkedTransparency(item){
-  const next=!item.transparent,members=linkedSelectionMembers(item);
-  for(const member of members){
-    member.transparent=next;
-    if(next&&member.originalSrc){
-      member.transparentSrc=await preparedImageSource(member.originalSrc,{transparent:true,alphaCrop:member.alphaCrop,alphaComponentSeed:member.alphaComponentSeed}).catch(()=>member.transparentSrc||member.originalSrc);
-    }
-    member.renderedSrc='';refreshUserImage(member);
+  if(imageProcessingBusy||!item)return false;
+  const members=linkedSelectionMembers(item);
+  if(!members.length)return false;
+  const next=!item.transparent;
+  if(!next&&members.length>1){
+    imageProcessingStatus='Cut pieces keep alpha until unlinked.';
+    announce('Cut pieces require transparency while linked. Unlink them before returning individual pieces to original pixels.');
+    renderKeyboardKeys();return false;
   }
-  renderKeyboardKeys();scheduleRegionEnhancement(20);
+  imageProcessingBusy=true;
+  imageProcessingStatus=next?'Generating transparency…':'Showing original pixels…';
+  renderKeyboardKeys();
+  try{
+    let changed=false;
+    for(const member of members){
+      member.transparent=next;
+      if(next&&member.originalSrc){
+        const processed=await preparedImageSource(member.originalSrc,{transparent:true,alphaCrop:member.alphaCrop,alphaComponentSeed:member.alphaComponentSeed});
+        member.transparentSrc=processed||member.originalSrc;
+        changed=changed||member.transparentSrc!==member.originalSrc;
+      }
+      member.renderedSrc='';refreshUserImage(member);
+    }
+    imageProcessingStatus=next
+      ?changed?'Transparent background generated.':'Source already has alpha, or no removable border background was detected.'
+      :'Original pixels restored.';
+    announce(imageProcessingStatus);
+    return true;
+  }catch(error){
+    imageProcessingStatus='Transparency failed.';
+    announce(`Transparency failed: ${String(error?.message||error||'unknown image error')}`);
+    return false;
+  }finally{
+    imageProcessingBusy=false;
+    renderKeyboardKeys();scheduleRegionEnhancement(20);
+  }
 }
 function unlinkSelectedGroup(){
   const members=linkedSelectionMembers(selectedImage);
@@ -2257,15 +2285,25 @@ function unlinkSelectedGroup(){
   refreshLinkedSelectionClasses();renderKeyboardKeys();announce(`Unlinked ${members.length} pieces. Each piece can now move independently.`);return true;
 }
 async function splitImageByAlpha(item=selectedImage){
-  if(READ_ONLY||!item||item.kind!=='image'||item.sourceLocked||isWorldMapItem(item))return false;
-  try{
-    if(item.personalUploadPromise)await item.personalUploadPromise.catch(()=>null);
+  if(imageProcessingBusy||READ_ONLY||!item||item.kind!=='image'||item.sourceLocked||isWorldMapItem(item))return false;
+  imageProcessingBusy=true;
+  imageProcessingStatus='Finding alpha-connected sections…';
+  renderKeyboardKeys();
+  try{    if(item.personalUploadPromise)await item.personalUploadPromise.catch(()=>null);
     let source=String(item.originalSrc||'');
     if(item.personalAssetKey)source=await resolvePersonalAssetSource(item.personalAssetKey,source);
     if(!source){announce('The image source is unavailable.');return false}
     announce('Cutting transparent sections into linked pieces…');
     const analysis=await alphaComponentAnalysis(source);
-    if(!analysis.pieces.length){announce('No visible image sections were found.');return false}
+    if(!analysis.pieces.length){imageProcessingStatus='No visible alpha sections found.';announce(imageProcessingStatus);return false}
+    if(analysis.pieces.length===1){
+      const crop=analysis.pieces[0].crop;
+      if(crop.x<.006&&crop.y<.006&&crop.width>.988&&crop.height>.988){
+        imageProcessingStatus='No separable transparent boundary found.';
+        announce('Cut Alpha found one continuous full-size image. Make the background transparent first, then cut again.');
+        return false;
+      }
+    }
     const oldSize=Math.max(Number(item.size)||1,.00001),oldX=Number(item.x)||0,oldY=Number(item.y)||0,baseW=naturalWidth*.12,baseH=baseW*(analysis.sourceHeight/Math.max(analysis.sourceWidth,1));
     const makeGeometry=piece=>{
       const crop=piece.crop,localDx=((crop.x+(crop.width/2))-.5)*baseW*oldSize,localDy=((crop.y+(crop.height/2))-.5)*baseH*oldSize;
@@ -2308,7 +2346,11 @@ async function splitImageByAlpha(item=selectedImage){
     updateLayerOrder();selectUserImage(members[0]);applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(20);
     announce(`Cut image into ${members.length} linked pieces. They move together until you choose UNLINK.`);return true;
   }catch(error){
+    imageProcessingStatus='Cut Alpha failed.';
     announce(`Image split failed: ${String(error?.message||error||'unknown error')}`);return false;
+  }finally{
+    imageProcessingBusy=false;
+    renderKeyboardKeys();scheduleRegionEnhancement(20);
   }
 }
 const LABEL_COLORS=Object.freeze(['#fff2c7','#ffffff','#f0cc69','#a9d8ff','#b7f0c2','#ffb7b7','#d6c2ff','#121820']);
@@ -5591,6 +5633,39 @@ function createSelectedLocal(){
 function renderKeyboardTabs(){RistViewerInput.preserveFocus(keyboardTabs,renderKeyboardTabsContent,keyboardToggle)}
 function renderKeyboardTabsContent(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){RistViewerInput.preserveFocus(keyboardKeys,renderKeyboardKeysContent,keyboardToggle)}
+function renderPixelsKeyboard(){
+  const selected=assetModeMatches(selectedImage,'Image')?selectedImage:null;
+  keyboardKeys.append(typedPlacedContentSelect('Image'));
+  if(!selected){
+    keyboardKeys.append(
+      readoutKey('PIXELS','select an image to edit alpha pixels'),
+      toolKey('SELECT IMAGE','choose placed content',()=>{keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys()})
+    );
+    return;
+  }
+  selectedImage=selected;
+  const engine=IMAGE_ENGINE?.status?.()||{backend:'canvas',kind:'browser-fallback'};
+  const members=linkedSelectionMembers(selectedImage);
+  keyboardKeys.append(
+    readoutKey(String(engine.backend||'canvas').toUpperCase(),String(engine.kind||'local image engine')),
+    readoutKey(imageProcessingBusy?'PROCESSING…':selectedImage.transparent?'ALPHA ON':'ALPHA OFF',imageProcessingStatus||'processing stays on this device')
+  );
+  if(members.length>1){
+    keyboardKeys.append(
+      readoutKey(`CUT GROUP ${members.length}`,'linked alpha pieces'),
+      toolKey('UNLINK','move pieces separately',unlinkSelectedGroup,imageProcessingBusy)
+    );
+  }else{
+    keyboardKeys.append(
+      toolKey(selectedImage.transparent?'TRANSPARENCY ✓':'MAKE TRANSPARENT','remove connected border background',()=>void toggleLinkedTransparency(selectedImage),imageProcessingBusy),
+      toolKey('CUT ALPHA','separate transparent sections',()=>void splitImageByAlpha(selectedImage),imageProcessingBusy||selectedImage.sourceLocked||isWorldMapItem(selectedImage))
+    );
+  }
+  keyboardKeys.append(
+    toolKey('IMAGE','transform / placement',()=>{keyboardMode='Image';renderKeyboardTabs();renderKeyboardKeys()}),
+    ...(REGION_DEFINER?[toolKey('LAYERS','opacity / order / depth',()=>{keyboardMode='Layers';renderKeyboardTabs();renderKeyboardKeys()})]:[])
+  );
+}
 function renderKeyboardKeysContent(){
   if(!keyboardKeys)return;
   keyboardKeys.replaceChildren();
@@ -5795,7 +5870,7 @@ function renderKeyboardKeysContent(){
         readoutKey('BASE','full world footprint'),
         toolKey('OP −','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity-.1,.1,1);refreshUserImage(selectedImage)}),
         toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
-        toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
+        toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>void toggleLinkedTransparency(selectedImage),imageProcessingBusy),
         toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
         toolKey('DELETE','world map',removeSelectedImage)
       );return;
@@ -5835,10 +5910,10 @@ function renderKeyboardKeysContent(){
       toolKey('↻','rotate',()=>rotateLinkedSelection(selectedImage,15)),
       toolKey('OP −','opacity',()=>adjustLinkedOpacity(selectedImage,-.1)),
       toolKey('OP +','opacity',()=>adjustLinkedOpacity(selectedImage,.1)),
-      toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>void toggleLinkedTransparency(selectedImage)),
+      toolKey('PIXELS',selectedImage.transparent?'alpha enabled':'transparency / cut',()=>{keyboardMode='Pixels';renderKeyboardTabs();renderKeyboardKeys()}),
       ...(linkedSelectionMembers(selectedImage).length>1
         ?[readoutKey(`LINKED ${linkedSelectionMembers(selectedImage).length}`,'moves as one selection'),toolKey('UNLINK','move pieces separately',unlinkSelectedGroup)]
-        :[toolKey('SPLIT ALPHA','cut transparent sections',()=>void splitImageByAlpha(selectedImage))]),
+        :[]),
       ...(LOCAL_DEFINER
         ?[
           toolKey('LOCAL T −',`T ${pos.localTier}`,()=>moveSelectedTier(-1),pos.localTier<=0),
@@ -5906,7 +5981,8 @@ function renderKeyboardKeysContent(){
     );return;
   }
   if(keyboardMode==='Labels'){renderLabelsKeyboard();return}
-  const sets={Pixels:['Select','Paint','Erase','Fill'],Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
+  if(keyboardMode==='Pixels'){renderPixelsKeyboard();return}
+  const sets={Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
 function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Close Region Definer keyboard':'Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();if(REGION_DEFINER)updateRegionSelectionOverlay();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
