@@ -88,6 +88,7 @@ jobs:
           python apps/rist-world/tests/test_campaign_connections.py
           python apps/rist-world/tests/test_campaign_asset_permissions.py
           python apps/rist-world/tests/test_launcher_role_groups.py
+          python apps/rist-world/tests/test_structural_plan_dataset.py
           python apps/rist-world/tests/test_creative_workbench.py
 
       - name: Verify canonical viewer input and claimed deed overlay
