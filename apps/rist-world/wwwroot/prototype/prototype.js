@@ -5753,9 +5753,286 @@ function createSelectedLocal(){
     localCreatePending=false;renderKeyboardKeys();announce('Local database bridge is unavailable.');
   }
 }
-function renderKeyboardTabs(){RistViewerInput.preserveFocus(keyboardTabs,renderKeyboardTabsContent,keyboardToggle)}
-function renderKeyboardTabsContent(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
-function renderKeyboardKeys(){RistViewerInput.preserveFocus(keyboardKeys,renderKeyboardKeysContent,keyboardToggle)}
+function mutableItemSnapshot(item){
+  return{
+    x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,tier:item.tier,layer:item.layer,
+    worldTier:item.worldTier,worldLayer:item.worldLayer,regionTier:item.regionTier,regionLayer:item.regionLayer,
+    localTier:item.localTier,localLayer:item.localLayer,instanceTier:item.instanceTier,instanceLayer:item.instanceLayer,
+    recursive:item.recursive?JSON.parse(JSON.stringify(item.recursive)):item.recursive,
+    transparent:item.transparent,transparentSrc:item.transparentSrc,originalSrc:item.originalSrc,
+    stackPin:item.stackPin,positionLocked:item.positionLocked,parallaxMode:item.parallaxMode,anchorTier:item.anchorTier,
+    offsetX:item.offsetX,offsetY:item.offsetY,fontSize:item.fontSize,bold:item.bold,italic:item.italic,color:item.color,
+    textAlign:item.textAlign,letterSpacing:item.letterSpacing,plate:item.plate
+  };
+}
+function captureAdaptiveUndo(label,item=selectedImage){
+  if(!item)return null;
+  const members=linkedSelectionMembers(item).filter(member=>member?.node?.isConnected);
+  if(!members.length)return null;
+  const entry={label:String(label||'change'),selectedId:String(item.id||''),members:members.map(member=>({id:String(member.id||''),state:mutableItemSnapshot(member)}))};
+  adaptiveUndoStack.push(entry);
+  if(adaptiveUndoStack.length>30)adaptiveUndoStack.shift();
+  return entry;
+}
+function undoAdaptiveChange(){
+  const entry=adaptiveUndoStack.pop();
+  if(!entry){announce('Nothing to undo for this selection.');renderKeyboardKeys();return false}
+  for(const saved of entry.members){
+    const item=userLayers.find(candidate=>String(candidate?.id||'')===saved.id);
+    if(!item)continue;
+    Object.assign(item,saved.state);
+    if(saved.state.recursive)item.recursive=JSON.parse(JSON.stringify(saved.state.recursive));
+    item.renderedSrc='';
+    refreshUserImage(item);
+  }
+  updateLayerOrder();applyParallax();refreshLinkedSelectionClasses();
+  const selected=userLayers.find(candidate=>String(candidate?.id||'')===entry.selectedId);
+  if(selected){selectedImage=selected;selected.node?.classList.add('selected');refreshAssetResizeOverlay(selected)}
+  scheduleSelectionUnderlay();renderKeyboardKeys();
+  announce(`Undid ${entry.label}.`);
+  return true;
+}
+function runAdaptiveChange(label,fn){
+  captureAdaptiveUndo(label);
+  const result=fn();
+  renderKeyboardKeys();
+  return result;
+}
+function renderKeyboardFlow(){
+  if(!keyboardFlow)return;
+  const scope=LOCAL_DEFINER?'LOCAL':REGION_DEFINER?'REGION':'WORLD';
+  const primary=guidedRegionSelectionFlow()?'SELECT':primaryModeFor().toUpperCase();
+  const parts=[scope,primary];
+  if(selectedImage)parts.push(String(selectedImage.name||selectedImage.text||selectedImage.assetId||'OBJECT').slice(0,32).toUpperCase());
+  if(primary==='EDIT'&&editFlow!=='root')parts.push(editFlow.toUpperCase());
+  const advanced=!['Viewer','View','Build','Edit','Layers','More','Select'].includes(keyboardMode)?keyboardMode:'';
+  if(advanced)parts.push(String(advanced).toUpperCase());
+  keyboardFlow.textContent=parts.join(' › ');
+}
+function renderKeyboardTabs(){RistViewerInput.preserveFocus(keyboardTabs,renderKeyboardTabsContent,keyboardToggle);renderKeyboardFlow()}
+function renderKeyboardTabsContent(){
+  const modes=primaryKeyboardModes(),active=guidedRegionSelectionFlow()?'Select':primaryModeFor();
+  keyboardTabs.replaceChildren();
+  modes.forEach(mode=>{
+    const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode.toUpperCase();
+    const selected=mode===active;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected));
+    b.setAttribute('aria-label',mode==='More'?'More and advanced controls':`${mode} controls`);
+    b.addEventListener('click',()=>{
+      if(mode==='Select'){flowParent='Edit';keyboardMode='Select';renderKeyboardTabs();renderKeyboardKeys();announce('Region selection controls opened.');return}
+      setPrimaryKeyboardMode(mode);
+    });
+    keyboardTabs.append(b);
+  });
+}
+function renderKeyboardKeys(){RistViewerInput.preserveFocus(keyboardKeys,renderKeyboardKeysContent,keyboardToggle);renderKeyboardFlow()}
+function openLegacyMode(mode,message='',parent=flowParent){
+  personalFolderType=null;flowParent=PRIMARY_KEYBOARD_MODES.includes(parent)?parent:'More';keyboardMode=mode;
+  renderKeyboardTabs();renderKeyboardKeys();announce(message||`${mode} controls opened.`);
+}
+function adaptiveBack(){editFlow='root';adaptiveDeleteArmed=false;renderKeyboardKeys();announce('Back to selected object actions.')}
+function adaptiveDone(){
+  const name=String(selectedImage?.name||selectedImage?.text||'object');
+  deselectUserImage(false);flowParent='View';keyboardMode='Viewer';editFlow='root';renderKeyboardTabs();renderKeyboardKeys();announce(`${name} editing finished. Normal view restored.`);
+}
+function renderBuildKeyboard(){
+  keyboardKeys.append(
+    readoutKey(LOCAL_DEFINER?'ADD TO LOCAL':REGION_DEFINER?'ADD TO REGION':'ADD TO WORLD','choose what you want to place'),
+    toolKey('IMAGE','add a picture',()=>openLegacyMode('Image','Image choices opened.','Build')),
+    toolKey('TILE','add terrain or object tile',()=>openLegacyMode('Tiles','Tile library opened.','Build')),
+    toolKey('SPRITE','add animated art',()=>openLegacyMode('Sprites','Sprite library opened.','Build')),
+    toolKey('LABEL','add words to the map',()=>openLegacyMode('Labels','Label tools opened.','Build')),
+    toolKey('DRAW','drawing tools',()=>openLegacyMode('Stylus','Drawing tools opened.','Build')),
+    toolKey('MORE','advanced build tools',()=>setPrimaryKeyboardMode('More'))
+  );
+}
+function selectedAdvancedMode(item=selectedImage){
+  if(!item)return'Select';
+  if(item.kind==='label')return'Labels';
+  if(item.kind==='sprite')return'Sprites';
+  if(item.libraryTile)return'Tiles';
+  return'Image';
+}
+function renderAdaptiveEditKeyboard(){
+  if(LOCAL_DEFINER&&!localIsOpen()){
+    const items=localAnchorItems(),existing=selectedImage?localCatalog.find(local=>String(local?.anchorObjectId||'')===String(selectedImage.id||'')):null;
+    keyboardKeys.append(
+      readoutKey('CHOOSE LOCAL ANCHOR','tap an object or use previous / next'),
+      toolKey('‹','previous object',()=>cycleLocalAnchorSelection(items,-1),!items.length),
+      toolKey('›','next object',()=>cycleLocalAnchorSelection(items,1),!items.length),
+      localAnchorSelect(items)
+    );
+    if(selectedImage){
+      keyboardKeys.append(
+        readoutKey(String(selectedImage.name||'OBJECT').toUpperCase(),selectionAutoFocus?'focused to screen':'selected'),
+        toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY','show only the lower layer inside this object',toggleSelectionUnderlay),
+        toolKey(selectionAutoFocus?'AUTO FIT ✓':'AUTO FIT','fit selection to usable viewer',toggleSelectionAutoFocus),
+        ...(!existing?[localNameInput(selectedImage)]:[]),
+        toolKey(existing?'OPEN LOCAL':'CREATE LOCAL',existing?.name||(localNameDraft||'name required'),createSelectedLocal,localCreatePending||(!existing&&!localRegionEditable)),
+        toolKey('DONE','clear selection',adaptiveDone)
+      );
+    }
+    return;
+  }
+
+  const items=selectablePlacedContent();
+  if(!selectedImage){
+    keyboardKeys.append(
+      readoutKey('CHOOSE SOMETHING','tap the map or select from the list'),
+      toolKey('‹','previous object',()=>cyclePlacedSelection(-1),!items.length),
+      toolKey('›','next object',()=>cyclePlacedSelection(1),!items.length),
+      placedContentSelect(),
+      toolKey('BUILD','add something new',()=>setPrimaryKeyboardMode('Build'))
+    );
+    return;
+  }
+
+  const item=selectedImage,name=String(item.name||item.text||item.assetId||'OBJECT').toUpperCase();
+  const isEditable=!READ_ONLY&&!item.sourceLocked&&!isWorldMapItem(item);
+  if(editFlow==='move'){
+    keyboardKeys.append(
+      readoutKey(name,selectionPositionLocked(item)?'position locked':'move selected object'),
+      toolKey(assetInteractionMode==='move'?'MOVE ✓':'MOVE','drag or use arrow buttons',()=>setAssetInteractionMode('move'),selectionPositionLocked(item)),
+      toolKey(selectionPositionLocked(item)?'UNLOCK':'LOCK',selectionPositionLocked(item)?'allow movement':'protect position',()=>runAdaptiveChange('position lock',toggleSelectedPositionLock)),
+      toolKey('←','move left',()=>runAdaptiveChange('move',()=>nudgeSelectedByPixels(-8,0)),selectionPositionLocked(item)),
+      toolKey('→','move right',()=>runAdaptiveChange('move',()=>nudgeSelectedByPixels(8,0)),selectionPositionLocked(item)),
+      toolKey('↑','move up',()=>runAdaptiveChange('move',()=>nudgeSelectedByPixels(0,-8)),selectionPositionLocked(item)),
+      toolKey('↓','move down',()=>runAdaptiveChange('move',()=>nudgeSelectedByPixels(0,8)),selectionPositionLocked(item)),
+      toolKey('BACK','previous choices',adaptiveBack),
+      toolKey('DONE','finish object',adaptiveDone),
+      toolKey('UNDO',adaptiveUndoStack.length?adaptiveUndoStack[adaptiveUndoStack.length-1].label:'nothing yet',undoAdaptiveChange,!adaptiveUndoStack.length)
+    );return;
+  }
+  if(editFlow==='size'){
+    keyboardKeys.append(
+      readoutKey(name,'size and rotation'),
+      toolKey('SIZE −',`${selectedSizeValue(item).toFixed(2)}×`,()=>runAdaptiveChange('resize',()=>adjustSelectedSize(-1)),selectedSizeValue(item)<=.05),
+      toolKey('SIZE +',`${selectedSizeValue(item).toFixed(2)}×`,()=>runAdaptiveChange('resize',()=>adjustSelectedSize(1)),selectedSizeValue(item)>=20),
+      toolKey('↺','rotate left',()=>runAdaptiveChange('rotation',()=>rotateLinkedSelection(item,-15))),
+      toolKey('↻','rotate right',()=>runAdaptiveChange('rotation',()=>rotateLinkedSelection(item,15))),
+      sizeNumberInput(item),sizeRangeInput(item),
+      toolKey('BACK','previous choices',adaptiveBack),
+      toolKey('DONE','finish object',adaptiveDone),
+      toolKey('UNDO',adaptiveUndoStack.length?adaptiveUndoStack[adaptiveUndoStack.length-1].label:'nothing yet',undoAdaptiveChange,!adaptiveUndoStack.length)
+    );return;
+  }
+  if(editFlow==='appearance'){
+    const imageLike=item.kind==='image'&&!item.libraryTile;
+    const pieces=linkedSelectionMembers(item);
+    keyboardKeys.append(
+      readoutKey(name,imageProcessingBusy?'processing image…':'appearance'),
+      toolKey('OPACITY −',`${Math.round((Number(item.opacity??1))*100)}%`,()=>runAdaptiveChange('opacity',()=>adjustLinkedOpacity(item,-.1)),Number(item.opacity)<=.1),
+      toolKey('OPACITY +',`${Math.round((Number(item.opacity??1))*100)}%`,()=>runAdaptiveChange('opacity',()=>adjustLinkedOpacity(item,.1)),Number(item.opacity)>=1),
+      toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY',selectionUnderlaySourceName||'lower layer inside selection',toggleSelectionUnderlay)
+    );
+    if(imageLike){
+      keyboardKeys.append(
+        toolKey(item.transparent?'BACKGROUND ✓':'REMOVE BACKGROUND',item.transparent?'transparent pixels active':'make exterior background transparent',async()=>{
+          captureAdaptiveUndo('background');
+          const ok=await toggleLinkedTransparency(item);
+          if(!ok)adaptiveUndoStack.pop();
+          editFlow='appearance';renderKeyboardKeys();
+        },imageProcessingBusy),
+        toolKey('CUT APART',item.transparent?'separate transparent sections':'remove background first',async()=>{
+          if(!item.transparent){announce('Remove the background first, then Cut Apart becomes available.');return}
+          const ok=await splitImageByAlpha(item);if(ok){editFlow='appearance';renderKeyboardKeys()}
+        },imageProcessingBusy||!item.transparent)
+      );
+    }
+    if(pieces.length>1)keyboardKeys.append(toolKey('UNLINK',`${pieces.length} linked pieces`,unlinkSelectedGroup,imageProcessingBusy));
+    keyboardKeys.append(
+      toolKey('BACK','previous choices',adaptiveBack),
+      toolKey('DONE','finish object',adaptiveDone),
+      toolKey('ADVANCED','full object controls',()=>openLegacyMode(selectedAdvancedMode(item),'Advanced object controls opened.','Edit'))
+    );return;
+  }
+  if(editFlow==='depth'){
+    const pos=selectedPositionSummary(item);
+    keyboardKeys.append(
+      readoutKey(name,'what is in front, behind, nearer or farther'),
+      toolKey(item.stackPin==='front'?'FRONT ✓':'FRONT','pin visually above peers',()=>runAdaptiveChange('front/back order',()=>setSelectedStackPin('front'))),
+      toolKey(item.stackPin==='back'?'BACK ✓':'BEHIND','pin visually behind peers',()=>runAdaptiveChange('front/back order',()=>setSelectedStackPin('back'))),
+      toolKey('LAYER −',`L ${LOCAL_DEFINER?pos.localLayer:REGION_DEFINER?pos.regionLayer:pos.layer}`,()=>runAdaptiveChange('layer',()=>moveSelectedLayer(-1))),
+      toolKey('LAYER +',`L ${LOCAL_DEFINER?pos.localLayer:REGION_DEFINER?pos.regionLayer:pos.layer}`,()=>runAdaptiveChange('layer',()=>moveSelectedLayer(1))),
+      toolKey('DEPTH −','nearer',()=>runAdaptiveChange('depth',()=>moveSelectedTier(-1))),
+      toolKey('DEPTH +','farther',()=>runAdaptiveChange('depth',()=>moveSelectedTier(1))),
+      toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY',selectionUnderlaySourceName||'show lower layer locally',toggleSelectionUnderlay),
+      toolKey('BACK','previous choices',adaptiveBack),
+      toolKey('DONE','finish object',adaptiveDone),
+      toolKey('UNDO',adaptiveUndoStack.length?adaptiveUndoStack[adaptiveUndoStack.length-1].label:'nothing yet',undoAdaptiveChange,!adaptiveUndoStack.length)
+    );return;
+  }
+  if(editFlow==='delete'){
+    keyboardKeys.append(
+      readoutKey('DELETE?',name),
+      readoutKey('CONFIRM','this removes the selected object from the current layer stack'),
+      toolKey('CANCEL','keep object',adaptiveBack),
+      toolKey('DELETE NOW','cannot be undone here',()=>{adaptiveDeleteArmed=true;removeSelectedImage();editFlow='root';flowParent='View';keyboardMode='Viewer';renderKeyboardTabs();renderKeyboardKeys();})
+    );return;
+  }
+
+  keyboardKeys.append(
+    readoutKey(name,item.kind==='label'?'label selected':item.kind==='sprite'?'sprite selected':'object selected'),
+    toolKey('MOVE','position without dragging',()=>{editFlow='move';renderKeyboardKeys()},!isEditable),
+    toolKey('SIZE','size and rotate',()=>{editFlow='size';renderKeyboardKeys()},!isEditable),
+    toolKey('APPEARANCE',item.kind==='image'?'opacity · background · cut':'opacity and styling',()=>{editFlow='appearance';renderKeyboardKeys()},!isEditable),
+    toolKey('DEPTH','layer · near/far · underlay',()=>{editFlow='depth';renderKeyboardKeys()},!isEditable),
+    toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY',selectionUnderlaySourceName||'lower layer inside selection',toggleSelectionUnderlay),
+    toolKey(selectionAutoFocus?'FIT ✓':'FIT','fit selected object to viewer',()=>{selectionAutoFocus=true;saveControlPrefs();focusSelectedAsset(item);renderKeyboardKeys()}),
+    toolKey('ADVANCED','full object controls',()=>openLegacyMode(selectedAdvancedMode(item),'Advanced object controls opened.','Edit')),
+    toolKey('DELETE','confirm before removing',()=>{editFlow='delete';renderKeyboardKeys()},!isEditable),
+    toolKey('DONE','finish object',adaptiveDone),
+    toolKey('UNDO',adaptiveUndoStack.length?adaptiveUndoStack[adaptiveUndoStack.length-1].label:'nothing yet',undoAdaptiveChange,!adaptiveUndoStack.length)
+  );
+}
+function renderAdaptiveLayersKeyboard(){
+  if(REGION_DEFINER&&regionDeedIsComplete()&&(!LOCAL_DEFINER||localIsOpen())){
+    renderRecursiveAssetList();
+    const count=recursiveEditableAssetRows().length,scope=LOCAL_DEFINER?'LOCAL':'REGION';
+    keyboardKeys.append(
+      readoutKey(`${scope} LAYERS ${count}`,'visibility · order · opacity · depth · permissions'),
+      selectedImage?readoutKey(String(selectedImage.name||'SELECTED').toUpperCase(),'selected layer') : readoutKey('NO SELECTION','tap a layer name to select'),
+      toolKey('EDIT','edit selected layer',()=>setPrimaryKeyboardMode('Edit'),!selectedImage),
+      toolKey('VIEW','return to map controls',()=>setPrimaryKeyboardMode('View'))
+    );
+    return;
+  }
+  const items=selectablePlacedContent();
+  keyboardKeys.append(
+    readoutKey(`LAYERS ${items.length}`,'choose an object, then adjust its depth'),
+    toolKey('‹','previous layer',()=>cyclePlacedSelection(-1),!items.length),
+    toolKey('›','next layer',()=>cyclePlacedSelection(1),!items.length),
+    placedContentSelect()
+  );
+  if(selectedImage){
+    const pos=selectedPositionSummary(selectedImage);
+    keyboardKeys.append(
+      readoutKey(String(selectedImage.name||'SELECTED').toUpperCase(),`T ${pos.tier} · L ${pos.layer}`),
+      toolKey('OPACITY −',`${Math.round((Number(selectedImage.opacity??1))*100)}%`,()=>runAdaptiveChange('opacity',()=>adjustLinkedOpacity(selectedImage,-.1))),
+      toolKey('OPACITY +',`${Math.round((Number(selectedImage.opacity??1))*100)}%`,()=>runAdaptiveChange('opacity',()=>adjustLinkedOpacity(selectedImage,.1))),
+      toolKey('LAYER −','back one visual layer',()=>runAdaptiveChange('layer',()=>moveSelectedLayer(-1))),
+      toolKey('LAYER +','forward one visual layer',()=>runAdaptiveChange('layer',()=>moveSelectedLayer(1))),
+      toolKey('DEPTH −','nearer',()=>runAdaptiveChange('depth',()=>moveSelectedTier(-1))),
+      toolKey('DEPTH +','farther',()=>runAdaptiveChange('depth',()=>moveSelectedTier(1))),
+      toolKey('EDIT','context actions',()=>setPrimaryKeyboardMode('Edit'))
+    );
+  }
+}
+function renderMoreKeyboard(){
+  keyboardKeys.append(
+    readoutKey('ADVANCED','technical tools stay available without crowding the main flow'),
+    toolKey('DEPTH / TIERS','technical tier and layer values',()=>openLegacyMode('Tiers','Technical depth controls opened.','More')),
+    toolKey('PIXELS','image alpha tools',()=>openLegacyMode('Pixels','Pixel tools opened.','More'),!selectedImage||selectedImage.kind!=='image'),
+    toolKey('LIGHT','lighting tools',()=>openLegacyMode('Litch','Lighting tools opened.','More')),
+    toolKey('CAD','measure and shape tools',()=>openLegacyMode('CAD','CAD tools opened.','More')),
+    toolKey('STYLUS','drawing tools',()=>openLegacyMode('Stylus','Stylus tools opened.','More')),
+    toolKey('LINKS','object relationships',()=>openLegacyMode('Tethers','Relationship tools opened.','More')),
+    toolKey('INFO','identity and provenance',()=>openLegacyMode('Metadata','Metadata tools opened.','More')),
+    toolKey(selectionAutoFocus?'AUTO FIT ✓':'AUTO FIT','focus selection automatically',toggleSelectionAutoFocus),
+    toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY','show lower layer only inside selected area',toggleSelectionUnderlay,!selectedImage),
+    toolKey(largeControls?'LARGE ✓':'LARGE','larger touch and switch targets',toggleLargeControls),
+    toolKey(highContrastControls?'CONTRAST ✓':'CONTRAST','stronger focus and selection outlines',toggleHighContrastControls)
+  );
+}
 function renderPixelsKeyboard(){
   const selected=assetModeMatches(selectedImage,'Image')?selectedImage:null;
   keyboardKeys.append(typedPlacedContentSelect('Image'));
