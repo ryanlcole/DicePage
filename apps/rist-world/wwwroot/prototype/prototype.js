@@ -2300,8 +2300,8 @@ async function splitImageByAlpha(item=selectedImage){
   imageProcessingStatus='Finding alpha-connected sections…';
   renderKeyboardKeys();
   try{    if(item.personalUploadPromise)await item.personalUploadPromise.catch(()=>null);
-    let source=String(item.originalSrc||'');
-    if(item.personalAssetKey)source=await resolvePersonalAssetSource(item.personalAssetKey,source);
+    let source=String(item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc||'');
+    if(item.personalAssetKey&&!source)source=await resolvePersonalAssetSource(item.personalAssetKey,String(item.originalSrc||''));
     if(!source){imageProcessingStatus='Image source unavailable.';announce('The image source is unavailable.');return false}
     announce('Cutting transparent sections into linked pieces…');
     const analysis=await alphaComponentAnalysis(source);
@@ -2799,6 +2799,7 @@ function refreshUserImage(item){
     announce('The parent world tier is locked. Select a regional object above it.');return;
   }
   const previous=selectedImage;
+  if(previous&&previous!==item)adaptiveUndoStack=[];
   previous?.node?.classList.remove('selected');selectedImage=item||null;selectedImage?.node?.classList.add('selected');refreshLinkedSelectionClasses();
   if(previous&&previous!==selectedImage)refreshUserImage(previous);
   if(selectedImage)refreshUserImage(selectedImage);
@@ -3194,12 +3195,19 @@ function scheduleSelectionUnderlay(){
   selectionUnderlayFrame=requestAnimationFrame(refreshSelectionUnderlay);
 }
 function focusSelectedAsset(item=selectedImage){
-  if(!selectionAutoFocus||!item||isWorldMapItem(item))return false;
+  if(!selectionAutoFocus||!item||isWorldMapItem(item)||!naturalWidth||!naturalHeight)return false;
   const bounds=selectedAssetNormalizedBounds(item);if(!bounds)return false;
+  const r=stage.getBoundingClientRect();if(r.width<=0||r.height<=0)return false;
   if(!selectionCameraSnapshot)selectionCameraSnapshot={scale,x,y};
-  const focused=focusNormalizedBounds(bounds);
-  if(focused)scheduleSelectionUnderlay();
-  return focused;
+  const controlsHeight=keyboard&&!keyboard.hidden?Math.max(0,keyboard.getBoundingClientRect().height):0;
+  const usableHeight=Math.max(120,r.height-controlsHeight-12);
+  const targetScale=Math.min(r.width/(naturalWidth*bounds.width),usableHeight/(naturalHeight*bounds.height))*.82;
+  suspendRegionEnhancement();
+  scale=clamp(targetScale,Math.max(minScale,MIN_VIEW_SCALE),maxScale);
+  x=(r.width/2)-(bounds.x*naturalWidth*scale);
+  y=(usableHeight/2)-(bounds.y*naturalHeight*scale);
+  applyTransform();scheduleRegionEnhancement(50);scheduleSelectionUnderlay();
+  return true;
 }
 function restoreSelectionCamera(){
   clearSelectionUnderlay();
@@ -6070,6 +6078,10 @@ function renderKeyboardKeysContent(){
   if(!keyboardKeys)return;
   keyboardKeys.replaceChildren();
   if(REGION_DEFINER)updateRegionSelectionOverlay();
+  if(keyboardMode==='Build'){renderBuildKeyboard();return}
+  if(keyboardMode==='Edit'){renderAdaptiveEditKeyboard();return}
+  if(keyboardMode==='More'){renderMoreKeyboard();return}
+  if(keyboardMode==='Layers'){renderAdaptiveLayersKeyboard();return}
   if(keyboardMode==='Viewer'){
     keyboardKeys.append(
       toolKey('−','zoom',()=>zoomCenter(1/1.22)),
