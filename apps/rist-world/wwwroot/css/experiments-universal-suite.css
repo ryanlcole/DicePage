@@ -920,3 +920,46 @@
 @media(prefers-reduced-motion:reduce){
  .four-control-deck .control-display-button:active{transform:none!important}
 }
+
+/* Four-control polish: center the vertical analog in its lane and
+   give the horizontal analog the same brown/gold family as the right display button. */
+.four-control-deck .analog-track-y{
+ overflow:visible!important;
+}
+.four-control-deck .analog-track-y .analog-stick-y{
+ position:absolute!important;
+ left:50%!important;
+ top:50%!important;
+ transform:translate(-50%,-50%) rotate(-90deg)!important;
+ transform-origin:center center!important;
+}
+.four-control-deck .analog-control-x{
+ color:#f2cf79!important;
+}
+.four-control-deck .analog-control-x>strong{
+ color:#f2cf79!important;
+}
+.four-control-deck .analog-control-x .analog-stick{
+ accent-color:#d8b55e!important;
+}
+.four-control-deck .analog-control-x .analog-stick::-webkit-slider-runnable-track{
+ border-color:#9a6f2f!important;
+ background:linear-gradient(180deg,#4a321b,#1b1008)!important;
+ box-shadow:inset 0 1px 3px #000b,0 0 10px rgba(216,181,94,.14)!important;
+}
+.four-control-deck .analog-control-x .analog-stick::-webkit-slider-thumb{
+ border-color:#f0cf7a!important;
+ background:
+  radial-gradient(circle at 36% 30%,#fff1bd 0 8%,transparent 9%),
+  radial-gradient(circle,#8c6129 0 35%,#4a321b 36% 72%,#1b1008 73%)!important;
+ box-shadow:0 4px 11px #000a,0 0 12px rgba(216,181,94,.36),inset 0 0 0 2px rgba(255,255,255,.06)!important;
+}
+.four-control-deck .analog-control-x .analog-stick::-moz-range-track{
+ border-color:#9a6f2f!important;
+ background:#2f1e10!important;
+}
+.four-control-deck .analog-control-x .analog-stick::-moz-range-thumb{
+ border-color:#f0cf7a!important;
+ background:#6f4920!important;
+ box-shadow:0 4px 11px #000a,0 0 12px rgba(216,181,94,.36)!important;
+}
