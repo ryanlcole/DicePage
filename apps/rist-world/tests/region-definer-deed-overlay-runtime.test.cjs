@@ -301,8 +301,12 @@ test('selected-object focus and underlay stay local to the selected footprint',(
   assert.ok(source.includes('const usableHeight=Math.max(120,r.height-controlsHeight-12)'));
   assert.ok(source.includes('function selectionUnderlayCandidate('));
   assert.ok(source.includes('function refreshSelectionUnderlay('));
+  assert.ok(source.includes('function ensureSelectionFocusMask()'));
+  assert.ok(source.includes('function updateSelectionFocusMask('));
   assert.ok(source.includes("toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY'"));
+  assert.ok(css.includes('.selection-focus-mask{position:absolute'));
   assert.ok(css.includes('.selection-underlay-preview{position:absolute'));
+  assert.equal(css.includes('\\n    .asset-resize-handle::after'),false,'CSS must not contain a literal \\n escape between rules');
 });
 
 test('shared sprite editor supports motion-only overlays and 60fps playback',()=>{

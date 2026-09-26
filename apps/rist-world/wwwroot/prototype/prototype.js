@@ -89,7 +89,7 @@ let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',assetInteractionMode='select',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 let imageProcessingBusy=false,imageProcessingStatus='';
-let editFlow='root',flowParent='View',selectionCameraSnapshot=null,selectionUnderlayNode=null,selectionUnderlayFrame=0,selectionUnderlaySourceName='';
+let editFlow='root',flowParent='View',selectionCameraSnapshot=null,selectionUnderlayNode=null,selectionFocusMaskNode=null,selectionUnderlayFrame=0,selectionUnderlaySourceName='';
 let adaptiveUndoStack=[],adaptiveDeleteArmed=false;
 const CONTROL_PREF_KEY='rist.adaptiveControls.v1';
 const controlPrefs=(()=>{try{return JSON.parse(localStorage.getItem(CONTROL_PREF_KEY)||'{}')||{}}catch{return{}}})();
@@ -2791,7 +2791,7 @@ function refreshUserImage(item){
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
   if(!desired){item.node.style.visibility='hidden';return}
   refreshProgressiveParallax(item);
-  if(item===selectedImage)refreshAssetResizeOverlay(item);
+  if(item===selectedImage){refreshAssetResizeOverlay(item);scheduleSelectionUnderlay();}
 }function selectUserImage(item){
   const localAnchorCandidate=isLocalAnchorCandidate(item);
   if((item?.sourceLocked&&!localAnchorCandidate)||(REGION_DEFINER&&item&&(!item.regionOverlay
@@ -3161,10 +3161,37 @@ function ensureSelectionUnderlayPreview(){
   const node=document.createElement('div');node.className='selection-underlay-preview';node.hidden=true;node.setAttribute('aria-hidden','true');
   stage.appendChild(node);selectionUnderlayNode=node;return node;
 }
+function ensureSelectionFocusMask(){
+  if(selectionFocusMaskNode?.isConnected)return selectionFocusMaskNode;
+  const node=document.createElement('div');node.className='selection-focus-mask';node.hidden=true;node.setAttribute('aria-hidden','true');
+  for(const side of ['top','right','bottom','left']){
+    const piece=document.createElement('div');piece.className='selection-focus-mask-piece';piece.dataset.side=side;node.appendChild(piece);
+  }
+  stage.appendChild(node);selectionFocusMaskNode=node;return node;
+}
+function hideSelectionFocusMask(){if(selectionFocusMaskNode)selectionFocusMaskNode.hidden=true}
+function updateSelectionFocusMask(stageRect,selectedRect){
+  const mask=ensureSelectionFocusMask();
+  if(!selectionCameraSnapshot||!selectedImage?.node?.isConnected){mask.hidden=true;return}
+  const left=clamp(selectedRect.left-stageRect.left,0,stageRect.width);
+  const top=clamp(selectedRect.top-stageRect.top,0,stageRect.height);
+  const right=clamp(selectedRect.right-stageRect.left,0,stageRect.width);
+  const bottom=clamp(selectedRect.bottom-stageRect.top,0,stageRect.height);
+  if(right-left<2||bottom-top<2){mask.hidden=true;return}
+  const pieces=Object.fromEntries([...mask.children].map(piece=>[piece.dataset.side,piece]));
+  Object.assign(pieces.top.style,{left:'0px',top:'0px',width:`${stageRect.width}px`,height:`${top}px`});
+  Object.assign(pieces.bottom.style,{left:'0px',top:`${bottom}px`,width:`${stageRect.width}px`,height:`${Math.max(0,stageRect.height-bottom)}px`});
+  Object.assign(pieces.left.style,{left:'0px',top:`${top}px`,width:`${left}px`,height:`${Math.max(0,bottom-top)}px`});
+  Object.assign(pieces.right.style,{left:`${right}px`,top:`${top}px`,width:`${Math.max(0,stageRect.width-right)}px`,height:`${Math.max(0,bottom-top)}px`});
+  mask.hidden=false;
+}
 function clearSelectionUnderlay(){
   if(selectionUnderlayFrame){cancelAnimationFrame(selectionUnderlayFrame);selectionUnderlayFrame=0}
   selectionUnderlaySourceName='';
   if(selectionUnderlayNode)selectionUnderlayNode.hidden=true;
+}
+function clearSelectionFocusVisuals(){
+  clearSelectionUnderlay();hideSelectionFocusMask();
 }
 function underlayVisualRank(node){
   let rank=0,weight=1,current=node;
@@ -3215,11 +3242,14 @@ function selectionUnderlayCandidate(item){
 function refreshSelectionUnderlay(){
   selectionUnderlayFrame=0;
   const preview=ensureSelectionUnderlayPreview(),item=selectedImage;
-  if(!selectionUnderlayVisible||!item?.node?.isConnected||isWorldMapItem(item)){preview.hidden=true;selectionUnderlaySourceName='';return}
+  if(!item?.node?.isConnected||isWorldMapItem(item)){preview.hidden=true;selectionUnderlaySourceName='';hideSelectionFocusMask();return}
+  const stageRect=stage.getBoundingClientRect(),selectedRect=item.node.getBoundingClientRect();
+  updateSelectionFocusMask(stageRect,selectedRect);
+  if(!selectionUnderlayVisible){preview.hidden=true;selectionUnderlaySourceName='';return}
   const under=selectionUnderlayCandidate(item),underNode=under?.node;
   const src=String(underNode?.currentSrc||underNode?.src||'');
   if(!underNode||!src){preview.hidden=true;selectionUnderlaySourceName='';return}
-  const stageRect=stage.getBoundingClientRect(),selectedRect=item.node.getBoundingClientRect(),underRect=underNode.getBoundingClientRect();
+  const underRect=underNode.getBoundingClientRect();
   const left=Math.max(stageRect.left,selectedRect.left),top=Math.max(stageRect.top,selectedRect.top);
   const right=Math.min(stageRect.right,selectedRect.right),bottom=Math.min(stageRect.bottom,selectedRect.bottom);
   if(right-left<2||bottom-top<2){preview.hidden=true;selectionUnderlaySourceName='';return}
@@ -3251,7 +3281,7 @@ function focusSelectedAsset(item=selectedImage){
   return true;
 }
 function restoreSelectionCamera(){
-  clearSelectionUnderlay();
+  clearSelectionFocusVisuals();
   if(!selectionCameraSnapshot)return false;
   const camera=selectionCameraSnapshot;selectionCameraSnapshot=null;
   scale=clamp(Number(camera.scale)||scale,MIN_VIEW_SCALE,maxScale);x=Number(camera.x)||0;y=Number(camera.y)||0;
@@ -3259,13 +3289,15 @@ function restoreSelectionCamera(){
 }
 function toggleSelectionUnderlay(){
   selectionUnderlayVisible=!selectionUnderlayVisible;saveControlPrefs();
-  if(selectionUnderlayVisible){scheduleSelectionUnderlay();announce(selectionUnderlaySourceName?`Underlay visible: ${selectionUnderlaySourceName}.`:'Underlay preview enabled.')}
-  else{clearSelectionUnderlay();announce('Underlay preview hidden.')}
+  scheduleSelectionUnderlay();
+  if(selectionUnderlayVisible)announce(selectionUnderlaySourceName?`Underlay visible: ${selectionUnderlaySourceName}.`:'Underlay preview enabled.');
+  else announce('Underlay preview hidden. Focus isolation remains on while the selected object is fitted.')
   renderKeyboardKeys();
 }
 function toggleSelectionAutoFocus(){
   selectionAutoFocus=!selectionAutoFocus;saveControlPrefs();
   if(selectionAutoFocus&&selectedImage)focusSelectedAsset(selectedImage);
+  else if(!selectionAutoFocus&&selectedImage)restoreSelectionCamera();
   announce(`Auto focus on selection ${selectionAutoFocus?'on':'off'}.`);renderKeyboardKeys();
 }
 function toggleLargeControls(){

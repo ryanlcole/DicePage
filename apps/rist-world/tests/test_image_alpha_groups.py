@@ -80,4 +80,4 @@ def test_pixels_keyboard_owns_transparency_and_cut_tools():
     assert "remove connected border background" in player
     assert "toolKey('PIXELS',selectedImage.transparent?'alpha enabled':'transparency / cut'" in player
     assert "image-engine-v2" in index
-    assert "adaptive-controls-v15" in index
+    assert "adaptive-controls-v16" in index
