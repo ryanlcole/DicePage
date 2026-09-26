@@ -13,6 +13,7 @@
  <main class="experiments-viewer" aria-label="Viewer">
   <div class="viewer-world @ViewerClass" aria-hidden="true"></div>
   <div class="viewer-shade" aria-hidden="true"></div>
+  <div class="viewer-reticle" style="@ReticleStyle" aria-hidden="true"><span></span></div>
 
   @if(IsDepthStage)
   {
@@ -95,9 +96,10 @@
      <span>@LeftLabel · @RightLabel</span>
     }
     <div class="display-coordinates">
-     <b>X @_xPulse</b>
-     <b>Y @_yPulse</b>
+     <b>X @_xControl</b>
+     <b>Y @_yControl</b>
     </div>
+    <p>@_message</p>
    </div>
   </section>
 
@@ -371,6 +373,7 @@
   _=>""
  };
 
+ string ReticleStyle=>$"left:{50+(_xControl*.45):0.##}%;top:{50-(_yControl*.45):0.##}%;";
  string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.00}) rotate({_assetRotation}deg);";
 
  string GlassSheetStyle(int sheet)
