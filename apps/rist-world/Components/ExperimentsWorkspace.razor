@@ -139,6 +139,7 @@
 
 @code {
  [Parameter] public EventCallback OnExit { get; set; }
+ [Parameter] public IReadOnlyList<AccountWorldReference> Worlds { get; set; } = Array.Empty<AccountWorldReference>();
 
  enum Stage
  {
@@ -182,14 +183,29 @@
  static readonly string[] Scopes=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE","TABLETOP","SOFTWARE"];
  static readonly string[] SoftwareCapabilities=["IMAGE EDITOR","STREAM / RECORD","NOTES / DATABASE","AUDIO","BROWSER","COMMUNICATION","AUTOMATION"];
 
- string[] Worlds=>Session.HasActiveWorld
-  ? [Session.WorldDisplayName.ToUpperInvariant(),"NEW WORLD"]
-  : ["NEW WORLD"];
+ string[] WorldChoices
+ {
+  get
+  {
+   var names=Worlds
+    .Where(world=>!string.IsNullOrWhiteSpace(world.DisplayName))
+    .OrderByDescending(world=>world.UpdatedAtUtc)
+    .Select(world=>world.DisplayName.Trim().ToUpperInvariant())
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToList();
 
- int WorldIndex=>Math.Clamp(_worldIndex,0,Worlds.Length-1);
- string CurrentWorld=>Worlds[WorldIndex];
- string PreviousWorld=>Worlds[(WorldIndex-1+Worlds.Length)%Worlds.Length];
- string NextWorld=>Worlds[(WorldIndex+1)%Worlds.Length];
+   if(Session.HasActiveWorld&&!names.Any(name=>string.Equals(name,Session.WorldDisplayName,StringComparison.OrdinalIgnoreCase)))
+    names.Insert(0,Session.WorldDisplayName.ToUpperInvariant());
+
+   names.Add("NEW WORLD");
+   return names.ToArray();
+  }
+ }
+
+ int WorldIndex=>Math.Clamp(_worldIndex,0,WorldChoices.Length-1);
+ string CurrentWorld=>WorldChoices[WorldIndex];
+ string PreviousWorld=>WorldChoices[(WorldIndex-1+WorldChoices.Length)%WorldChoices.Length];
+ string NextWorld=>WorldChoices[(WorldIndex+1)%WorldChoices.Length];
  string CurrentSetting=>Settings[_settingIndex];
  string PreviousSetting=>Settings[(_settingIndex-1+Settings.Length)%Settings.Length];
  string NextSetting=>Settings[(_settingIndex+1)%Settings.Length];
@@ -402,7 +418,7 @@
   switch(_stage)
   {
    case Stage.GameMasterHub:
-    _worldIndex=Wrap(_worldIndex+direction,Worlds.Length);
+    _worldIndex=Wrap(_worldIndex+direction,WorldChoices.Length);
     _message=$"World selector: {CurrentWorld}.";
     break;
    case Stage.GameMasterScope:
