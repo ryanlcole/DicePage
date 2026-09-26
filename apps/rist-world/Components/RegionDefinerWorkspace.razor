@@ -77,8 +77,8 @@
    var access=(canEditWorld||Session.CanEditRegion(definedRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=definedRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(definedRegion?.RegionId??"");
-   // Accessibility: adaptive controls preserve keyboard, touch, switch-device, and semantic action parity.
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260926-adaptive-controls-v14";
+   // Accessibility: adaptive v15 controls preserve keyboard, touch, switch-device, and semantic action parity.
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260926-adaptive-controls-v15";
   }
  }
 
