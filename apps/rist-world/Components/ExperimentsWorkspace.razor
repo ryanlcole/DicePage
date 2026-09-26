@@ -9,33 +9,6 @@
          @ref="_shell"
          @onkeydown="HandleKeyDown"
          aria-label="RIST universal GameMaster Suite experiment">
- <section class="experiments-display left-display" aria-label="Left contextual display">
-  <header><span>LEFT DISPLAY</span><small>@LeftAxisHint</small></header>
-  @if(_stage==Stage.GameMasterHub)
-  {
-   <div class="world-selector" role="listbox" aria-label="World selector">
-    <span>@PreviousWorld</span>
-    <strong role="option" aria-selected="true">@CurrentWorld</strong>
-    <span>@NextWorld</span>
-   </div>
-  }
-  else if(_stage==Stage.SoftwareHub)
-  {
-   <div class="software-selector" role="listbox" aria-label="Software capability selector">
-    <span>@PreviousSoftware</span>
-    <strong role="option" aria-selected="true">@CurrentSoftware</strong>
-    <span>@NextSoftware</span>
-   </div>
-  }
-  else
-  {
-   <div class="display-copy">
-    <small>@LeftEyebrow</small>
-    <strong>@LeftLabel</strong>
-    <p>@LeftDetail</p>
-   </div>
-  }
- </section>
 
  <main class="experiments-viewer" aria-label="Viewer">
   <div class="viewer-world @ViewerClass" aria-hidden="true"></div>
@@ -67,7 +40,6 @@
 
   <header class="viewer-title">
    <span>VIEWER</span>
-   <small>BEGINNER · X / Y / LEFT / RIGHT</small>
   </header>
 
   <div class="viewer-status" role="status" aria-live="polite">
@@ -82,72 +54,72 @@
   </footer>
  </main>
 
- <section class="experiments-display right-display" aria-label="Right contextual display">
-  <header><span>RIGHT DISPLAY</span><small>@RightAxisHint</small></header>
-  @if(_stage==Stage.GameMasterHub)
-  {
-   <div class="settings-selector" role="listbox" aria-label="GameMaster options">
-    <span>@PreviousSetting</span>
-    <strong role="option" aria-selected="true">@CurrentSetting</strong>
-    <span>@NextSetting</span>
+ <section class="experiments-controller" aria-label="Controller">
+  <section class="experiments-controls experiments-axis experiments-axis-y left-controls" aria-label="Left universal controls">
+   <div class="experiments-axis-copy">
+    <strong>Y AXIS</strong>
+    <small>@LeftAxisHint</small>
    </div>
-  }
-  else if(_stage==Stage.SoftwareHub)
-  {
-   <div class="display-copy">
-    <small>ADAPTER LAYER</small>
-    <strong>OPEN TOOL</strong>
-    <p>RIST owns the controls. Specialized software supplies the capability through an adapter.</p>
+   <button type="button"
+           class="experiments-action"
+           @onclick="PressLeft">@LeftButtonLabel</button>
+   <div class="experiments-y-slider-wrap">
+    <input class="experiments-slider experiments-slider-y"
+           type="range"
+           min="-100"
+           max="100"
+           step="1"
+           value="@_yControl"
+           @oninput="HandleYSlider"
+           aria-label="Y axis, up and down" />
    </div>
-  }
-  else
-  {
-   <div class="display-copy">
-    <small>@RightEyebrow</small>
-    <strong>@RightLabel</strong>
-    <p>@RightDetail</p>
-   </div>
-  }
- </section>
+  </section>
 
- <section class="experiments-controls experiments-axis experiments-axis-y left-controls" aria-label="Left universal controls">
-  <div class="experiments-axis-copy">
-   <strong>Y AXIS</strong>
-   <small>UP ↕ DOWN</small>
-  </div>
-  <button type="button"
-          class="experiments-action"
-          @onclick="PressLeft">@LeftButtonLabel</button>
-  <div class="experiments-y-slider-wrap">
-   <input class="experiments-slider experiments-slider-y"
-          type="range"
-          min="-100"
-          max="100"
-          step="1"
-          value="@_yControl"
-          @oninput="HandleYSlider"
-          aria-label="Y axis, up and down" />
-  </div>
- </section>
+  <section class="experiments-center-display" aria-label="Context display" role="status" aria-live="polite">
+   <div class="display-grid" aria-hidden="true"></div>
+   <div class="center-display-content">
+    <small>DISPLAY</small>
+    @if(_stage==Stage.GameMasterHub)
+    {
+     <strong>@CurrentWorld</strong>
+     <span>@CurrentSetting</span>
+    }
+    else if(_stage==Stage.SoftwareHub)
+    {
+     <strong>@CurrentSoftware</strong>
+     <span>CAPABILITY ADAPTER</span>
+    }
+    else
+    {
+     <strong>@ViewerTitle</strong>
+     <span>@LeftLabel · @RightLabel</span>
+    }
+    <div class="display-coordinates">
+     <b>X @_xPulse</b>
+     <b>Y @_yPulse</b>
+    </div>
+   </div>
+  </section>
 
- <section class="experiments-controls experiments-axis experiments-axis-x right-controls" aria-label="Right universal controls">
-  <div class="experiments-axis-copy">
-   <strong>X AXIS</strong>
-   <small>LEFT ↔ RIGHT</small>
-  </div>
-  <button type="button"
-          class="experiments-action experiments-start"
-          @onclick="PressRight">@RightButtonLabel</button>
-  <div class="experiments-x-slider-wrap">
-   <input class="experiments-slider experiments-slider-x"
-          type="range"
-          min="-100"
-          max="100"
-          step="1"
-          value="@_xControl"
-          @oninput="HandleXSlider"
-          aria-label="X axis, left and right" />
-  </div>
+  <section class="experiments-controls experiments-axis experiments-axis-x right-controls" aria-label="Right universal controls">
+   <div class="experiments-axis-copy">
+    <strong>X AXIS</strong>
+    <small>@RightAxisHint</small>
+   </div>
+   <button type="button"
+           class="experiments-action experiments-start"
+           @onclick="PressRight">@RightButtonLabel</button>
+   <div class="experiments-x-slider-wrap">
+    <input class="experiments-slider experiments-slider-x"
+           type="range"
+           min="-100"
+           max="100"
+           step="1"
+           value="@_xControl"
+           @oninput="HandleXSlider"
+           aria-label="X axis, left and right" />
+   </div>
+  </section>
  </section>
 </section>
 
