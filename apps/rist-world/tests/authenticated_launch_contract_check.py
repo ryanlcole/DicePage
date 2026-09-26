@@ -191,6 +191,10 @@ def main() -> None:
     require(authenticated, "await Session.RefreshTrustedWorldAuthorityAsync();\n  _launchWorldChosen=true;", "initial launcher must wait for trusted authority resolution")
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
+    require(auth_template, 'return response(404, {"error": "Stored object not found"})', "storage API must identify a missing optional object explicitly")
+    require(discord, 'response.StatusCode == System.Net.HttpStatusCode.NotFound', "account client must recognize missing private storage")
+    require(discord, 'missing?.Error, "Stored object not found"', "account client must only treat the canonical missing-object 404 as an empty state")
+    forbid(discord, '=> (await SendAsync<DownloadResponse>(HttpMethod.Get, "/storage/download?key="', "storage downloads must not turn a missing optional object into a fatal launch error")
 
     print("Authenticated launch contract verified: provider session -> Press Start -> Shaelvien-or-sandbox choice -> nested MMO navigation inside Shaelvien.")
 
