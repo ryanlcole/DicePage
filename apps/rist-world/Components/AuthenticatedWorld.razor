@@ -60,13 +60,14 @@ else if (_canEnter)
     {
      <p class="rist-environment-status" role="status">Loading Shaelvien…</p>
     }
-    else if(!string.IsNullOrWhiteSpace(_launchWorldsError))
-    {
-     <p class="rist-environment-error" role="alert">@_launchWorldsError</p>
-     <button type="button" class="rist-environment-retry" @onclick="LoadLaunchWorldsAsync">RETRY</button>
-    }
     else
     {
+     @if(!string.IsNullOrWhiteSpace(_launchWorldsError))
+     {
+      <p class="rist-environment-error" role="alert">@_launchWorldsError</p>
+      <button type="button" class="rist-environment-retry" @onclick="LoadLaunchWorldsAsync">RETRY</button>
+     }
+
      <button type="button" class="rist-environment-option shaelvien" disabled="@(_launchBusy||_launchMmoWorlds.Count==0)" @onclick="EnterShaelvienAsync">
       <span><strong>SHAELVIEN</strong><small>MMO · remain inside Shaelvien and navigate its worlds</small></span>
       <b>ENTER</b>
@@ -278,6 +279,22 @@ else
    _launchActiveWorldId=directory.ActiveWorldId;
    _launchMmoWorlds.Clear();
    _launchMmoWorlds.AddRange(directory.Worlds.Where(WorldSession.IsMmoWorldReference));
+  }
+  catch(HttpRequestException ex) when (ex.StatusCode==System.Net.HttpStatusCode.NotFound)
+  {
+   // A missing per-account storage object means "no saved directory yet", not a
+   // broken environment. Keep the canonical shared MMO available and allow the
+   // sandbox chooser to initialize an empty account directory.
+   _launchMmoWorlds.Clear();
+   _launchMmoWorlds.Add(new AccountWorldReference(
+    WorldSession.GeonaphWorldId,
+    WorldSession.GeonaphDisplayName,
+    Auth.IsOwnerDiscordAccount ? "owner" : "viewer",
+    $"worlds/{WorldSession.GeonaphWorldId}/world.json",
+    $"worlds/{WorldSession.GeonaphWorldId}/current.ristmap",
+    DateTimeOffset.UtcNow,
+    WorldSession.MmoWorldEnvironment));
+   _launchWorldsError="";
   }
   catch(Exception ex)
   {
