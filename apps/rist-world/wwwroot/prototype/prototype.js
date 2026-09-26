@@ -2820,7 +2820,11 @@ function refreshUserImage(item){
     }
     renderKeyboardTabs();
   }
-  if(selectedImage)focusSelectedAsset(selectedImage);
+  // Local Definer anchor selection is a definition action, not a camera
+  // navigation action. Keep the Region framing stable while the user chooses
+  // the object that will become a Local. Auto-focus remains useful after a
+  // Local is actually open, and in the other builders.
+  if(selectedImage&&(!LOCAL_DEFINER||localIsOpen()))focusSelectedAsset(selectedImage);
   renderKeyboardKeys();scheduleRegionEnhancement(20);
 }
 function deselectUserImage(announceChange=false){
