@@ -105,9 +105,9 @@
       {
        <section>
         <strong>@profile.Discipline</strong>
-        <label>Strength <input type="range" min="0" max="4" value="@profile.Strength" @onchange="e=>SetProfileMetricAsync(profile.Discipline,"strength",e)" /></label>
-        <label>Enjoyment <input type="range" min="0" max="4" value="@profile.Enjoyment" @onchange="e=>SetProfileMetricAsync(profile.Discipline,"enjoyment",e)" /></label>
-        <label>Want to learn <input type="range" min="0" max="4" value="@profile.GrowthInterest" @onchange="e=>SetProfileMetricAsync(profile.Discipline,"growth",e)" /></label>
+        <label>Strength <input type="range" min="0" max="4" value="@profile.Strength" @onchange='e=>SetProfileMetricAsync(profile.Discipline,"strength",e)' /></label>
+        <label>Enjoyment <input type="range" min="0" max="4" value="@profile.Enjoyment" @onchange='e=>SetProfileMetricAsync(profile.Discipline,"enjoyment",e)' /></label>
+        <label>Want to learn <input type="range" min="0" max="4" value="@profile.GrowthInterest" @onchange='e=>SetProfileMetricAsync(profile.Discipline,"growth",e)' /></label>
         <label>Assistance
          <select value="@profile.AssistanceMode" @onchange="e=>ChangeAssistanceAsync(profile.Discipline,e)">
           @foreach(var mode in AssistanceModes){<option value="@mode">@mode</option>}
@@ -157,7 +157,7 @@
    <button type="button" @onclick="TableSelectedAsync">TABLE</button>
    <button type="button" @onclick="DiscardSelectedAsync">DISCARD</button>
    <button type="button" class="primary" @onclick="MoveForwardAsync">@ForwardLabel</button>
-   <button type="button" disabled="@string.IsNullOrWhiteSpace(StudioTarget)" @onclick="OpenStudioAsync">@StudioLabel</button>
+   <button type="button" disabled="@(string.IsNullOrWhiteSpace(StudioTarget))" @onclick="OpenStudioAsync">@StudioLabel</button>
   }
  </footer>
 </div>
