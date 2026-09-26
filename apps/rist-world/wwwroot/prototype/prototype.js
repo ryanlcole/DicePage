@@ -2292,7 +2292,7 @@ async function splitImageByAlpha(item=selectedImage){
   try{    if(item.personalUploadPromise)await item.personalUploadPromise.catch(()=>null);
     let source=String(item.originalSrc||'');
     if(item.personalAssetKey)source=await resolvePersonalAssetSource(item.personalAssetKey,source);
-    if(!source){announce('The image source is unavailable.');return false}
+    if(!source){imageProcessingStatus='Image source unavailable.';announce('The image source is unavailable.');return false}
     announce('Cutting transparent sections into linked pieces…');
     const analysis=await alphaComponentAnalysis(source);
     if(!analysis.pieces.length){imageProcessingStatus='No visible alpha sections found.';announce(imageProcessingStatus);return false}
@@ -2319,7 +2319,7 @@ async function splitImageByAlpha(item=selectedImage){
       item.originalSrc=source;item.transparentSrc=piece.src;item.transparent=true;item.alphaCrop=piece.crop;item.alphaComponentSeed=piece.seed;
       item.x=geometry.x;item.y=geometry.y;item.size=geometry.size;item.renderedSrc='';item.committed=false;
       refreshUserImage(item);refreshAssetResizeOverlay(item);renderKeyboardKeys();scheduleRegionEnhancement(20);
-      announce('Transparent outer pixels were cut away. The visible image remains one object.');return true;
+      imageProcessingStatus='Transparent outer pixels trimmed.';announce('Transparent outer pixels were cut away. The visible image remains one object.');return true;
     }
     const groupId=`alpha-group:${crypto.randomUUID?.()||Date.now()}`,originalIndex=Math.max(0,userLayers.indexOf(item)),members=[];
     for(let index=0;index<analysis.pieces.length;index++){
@@ -2344,7 +2344,7 @@ async function splitImageByAlpha(item=selectedImage){
     userLayers.splice(originalIndex,0,...members);
     for(const member of members){mountUserPlacement(member);refreshUserImage(member)}
     updateLayerOrder();selectUserImage(members[0]);applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(20);
-    announce(`Cut image into ${members.length} linked pieces. They move together until you choose UNLINK.`);return true;
+    imageProcessingStatus=`Cut into ${members.length} linked alpha pieces.`;announce(`Cut image into ${members.length} linked pieces. They move together until you choose UNLINK.`);return true;
   }catch(error){
     imageProcessingStatus='Cut Alpha failed.';
     announce(`Image split failed: ${String(error?.message||error||'unknown error')}`);return false;
