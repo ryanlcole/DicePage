@@ -1,6 +1,7 @@
 @inject WorldSession Session
 
-<div class="creative-workbench">
+<div class="creative-workbench" aria-label="Creative Workbench" aria-describedby="cw-a11y-summary">
+ <p id="cw-a11y-summary" class="cw-sr-only">Creative drafts use the same controls and saved state for keyboard, touch, mouse, switch scanning, and assistive technology. Use Tab to move between instruments, stages, drafts, and actions; Enter or Space activates focused controls.</p>
  <header class="cw-header">
   <div class="cw-title">
    <span class="cw-kicker">CREATE · PRIVATE WORKBENCH</span>
@@ -10,7 +11,7 @@
   <nav class="cw-stage-tabs" aria-label="Creative workflow">
    @foreach(var stage in MacroStages)
    {
-    <button type="button" class="@(stage.Id==_view?"active":"")" aria-pressed="@(stage.Id==_view)" @onclick="()=>SetView(stage.Id)">
+    <button type="button" class="@(stage.Id==_view?"active":"")" aria-pressed="@(stage.Id==_view)" aria-label="@($"{stage.Label} creative stage")" @onclick="()=>SetView(stage.Id)">
      <span aria-hidden="true">@stage.Icon</span><strong>@stage.Label</strong>
     </button>
    }
@@ -18,7 +19,7 @@
   <div class="cw-assist" aria-label="Assistance level">
    @foreach(var mode in AssistanceModes)
    {
-    <button type="button" class="@(mode==CurrentAssistance?"active":"")" aria-pressed="@(mode==CurrentAssistance)" @onclick="()=>SetCurrentAssistanceAsync(mode)">@mode</button>
+    <button type="button" class="@(mode==CurrentAssistance?"active":"")" aria-pressed="@(mode==CurrentAssistance)" aria-label="@($"{mode} assistance for {CurrentDiscipline}")" @onclick="()=>SetCurrentAssistanceAsync(mode)">@mode</button>
    }
   </div>
  </header>
@@ -163,6 +164,7 @@
 </div>
 
 <style>
+ .cw-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
  .creative-workbench{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-columns:152px minmax(0,1fr) 230px;grid-template-rows:auto minmax(0,1fr) auto;background:#050a0e;color:#e9e2d4;font-family:Inter,system-ui,-apple-system,sans-serif;overflow:hidden}
  .cw-header{grid-column:1/-1;display:grid;grid-template-columns:minmax(210px,.8fr) minmax(420px,1.4fr) minmax(280px,.9fr);gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid #6f5b32;background:linear-gradient(90deg,#09131b,#111922 56%,#17130c)}
  .cw-title{min-width:0;display:grid;gap:2px}.cw-title strong{color:#efd58d;font:600 18px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cw-title small{color:#8fa2ad;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cw-kicker,.cw-rail-label,.cw-eyebrow{color:#8fa6b3;font-size:8px;font-weight:900;letter-spacing:.14em}
