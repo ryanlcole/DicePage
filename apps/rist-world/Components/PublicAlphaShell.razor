@@ -138,6 +138,7 @@
      <button type="button" @onclick="OpenTracker"><span>⌁</span><strong>TRACK</strong><small>Live reports and joins</small></button>
      <button type="button" @onclick="OpenAssets"><span>✥</span><strong>ASSETS</strong><small>Find, make and place material</small></button>
      <button type="button" @onclick="OpenWorldbuilding" disabled="@(!CanOpenWorldBuilder)"><span>◇</span><strong>WORLD</strong><small>Build directly at world scale</small></button>
+     <button type="button" @onclick="OpenPerceiver" disabled="@(!Session.IsGeonaphWorld)"><span>◎</span><strong>PERCEIVER</strong><small>Inspect the live tiered world view</small></button>
     </div>
     <div class="launcher-journey-foot">
      <p>Want the system to teach the process instead of exposing the workshop?</p>
