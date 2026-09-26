@@ -3152,7 +3152,9 @@ function selectedAssetNormalizedBounds(item=selectedImage){
   }
   const width=clamp(.12*Math.max(Number(item.size)||1,.05),.004,1);
   const height=clamp(width/Math.max(stableAssetAspect(item),.05),.004,1);
-  return{x:clamp(Number(item.x)||.5,0,1),y:clamp(Number(item.y)||.5,0,1),width:clamp(width*1.35,.03,1),height:clamp(height*1.35,.03,1)};
+  const radians=(Number(item.rotation)||0)*Math.PI/180,c=Math.abs(Math.cos(radians)),s=Math.abs(Math.sin(radians));
+  const rotatedWidth=(width*c)+(height*s),rotatedHeight=(width*s)+(height*c);
+  return{x:clamp(Number(item.x)||.5,0,1),y:clamp(Number(item.y)||.5,0,1),width:clamp(rotatedWidth*1.35,.03,1),height:clamp(rotatedHeight*1.35,.03,1)};
 }
 function ensureSelectionUnderlayPreview(){
   if(selectionUnderlayNode?.isConnected)return selectionUnderlayNode;
