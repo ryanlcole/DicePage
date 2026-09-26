@@ -21,7 +21,7 @@
    </div>
    <button type="button"
            class="experiments-action"
-           aria-pressed="@(string.Equals(_role, "roleplay", StringComparison.Ordinal))"
+           aria-pressed="@IsRoleplay"
            @onclick="ChooseRoleplay">ROLEPLAY</button>
    <div class="experiments-y-slider-wrap">
     <input class="experiments-slider experiments-slider-y"
@@ -55,7 +55,7 @@
    </div>
    <button type="button"
            class="experiments-action experiments-start"
-           aria-pressed="@(string.Equals(_role, "gamemaster", StringComparison.Ordinal))"
+           aria-pressed="@IsGameMaster"
            @onclick="ChooseGameMaster">GAMEMASTER</button>
    <div class="experiments-x-slider-wrap">
     <input class="experiments-slider experiments-slider-x"
@@ -355,6 +355,8 @@
  int _x;
  int _y;
  string _role="";
+ bool IsRoleplay => string.Equals(_role,"roleplay",StringComparison.Ordinal);
+ bool IsGameMaster => string.Equals(_role,"gamemaster",StringComparison.Ordinal);
  
  string ReticleStyle => $"left:{50 + (_x * 0.45):0.##}%;top:{50 - (_y * 0.45):0.##}%;";
  string RoleLabel => _role switch
