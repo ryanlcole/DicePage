@@ -141,7 +141,7 @@
     </div>
     <div class="launcher-journey-foot">
      <p>Want the system to teach the process instead of exposing the workshop?</p>
-     <button type="button" class="launcher-switch" @onclick="OpenShaelvien">ENTER SHAELVIEN →</button>
+     <button type="button" class="launcher-switch" @onclick="OpenShaelvienHubAsync">ENTER SHAELVIEN →</button>
     </div>
    </section>
   }
@@ -342,7 +342,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"create","world","local","instance","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"create","guidedgm","world","local","instance","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -356,6 +356,7 @@ else
  bool _worldDirectoryLoaded;
  bool _worldSelectionBusy;
  string _tickerEditor="";
+ string _worldGateIntent="";
  bool _worldGateOpen;
  bool _regionGateOpen;
  bool _localGateOpen;
@@ -437,6 +438,7 @@ else
   switch(mode)
   {
    case "create":_workspaceMode="create";_workspaceLabel="CREATE";_workspaceHint="CAPTURE → SHAPE → COMPARE → REFINE → IRON IN → PRODUCE → PLAY";break;
+   case "guidedgm":_workspaceMode="guidedgm";_workspaceLabel="SHAELVIEN GAMEMASTER";_workspaceHint="OBJECTIVE → SCENE → ENCOUNTERS → PLAY → CONSEQUENCE";break;
    case "accessibility":_workspaceMode="accessibility";_workspaceLabel="ACCESSIBILITY SHELL";_workspaceHint="DESCRIBE → NAVIGATE → ACT → BUILD";break;
    case "observer":_workspaceMode="observer";_workspaceLabel="RELIC OBSERVER";_workspaceHint="QUERY → EVIDENCE → PROVENANCE → OBSERVE";break;
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD 0° → REGION 15° → LOCAL";break;
@@ -704,35 +706,76 @@ else
   Session.SetActiveRegion("");
   OpenWorkspace("roleplay","SHAELVIEN","ENDEMAR → CAMPAIGNS → WORLD → CLAIM");
  }
+
+ async Task OpenShaelvienHubAsync()
+ {
+  await EnsureShaelvienAsync();
+  if(!WorldReady)return;
+  Session.SetActiveRegion("");
+  _workspaceOpen=false;
+  _settingsOpen=false;
+  _tickerOpen=false;
+  _cardIndexOpen=false;
+  _worldGateOpen=false;
+  _regionGateOpen=false;
+  _localGateOpen=false;
+  _worldGateIntent="";
+  await PersistWorkspaceAsync("hub");
+  await InvokeAsync(StateHasChanged);
+ }
+
  async Task OpenRistAsync()
  {
   if(Session.IsGeonaphWorld||!WorldReady)
   {
-   _settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;
+   _settingsOpen=false;
+   _cardIndexOpen=false;
+   _worldGateIntent="rist-hub";
+   _worldGateOpen=true;
    await InvokeAsync(StateHasChanged);
    return;
   }
-  OpenWorkspace("create","RIST","CREATE → WORLD → PLAY / RUN");
+
+  _workspaceOpen=false;
+  _settingsOpen=false;
+  _tickerOpen=false;
+  _cardIndexOpen=false;
+  _worldGateIntent="";
+  await PersistWorkspaceAsync("hub");
+  await InvokeAsync(StateHasChanged);
  }
  void OpenCreate(){if(!WorldReady)return;OpenWorkspace("create","CREATE","CAPTURE → SHAPE → COMPARE → REFINE → IRON IN → PRODUCE → PLAY");}
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
  void OpenObserver()=>OpenWorkspace("observer","RELIC OBSERVER","QUERY → EVIDENCE → PROVENANCE → OBSERVE");
  void OpenWorldbuilding(){if(!CanOpenWorldBuilder)return;OpenWorkspace("world","WORLDBUILDER",CanBuildWorld?"WORLD → TIER → LAYER → CUBE":"ENDEMAR → VIEW ONLY → REFERENCE");}
  async Task CloseWorldGate(){
+  var intent=_worldGateIntent;
+  _worldGateIntent="";
   _worldGateOpen=false;
   if(!Session.HasActiveWorld)
   {
    await InvokeAsync(StateHasChanged);
    return;
   }
+
   await Session.RefreshTrustedWorldAuthorityAsync();
   await RefreshLandingWorldsAsync();
+
   if(!Session.IsGeonaphWorld)
   {
+   if(string.Equals(intent,"rist-hub",StringComparison.Ordinal))
+   {
+    _workspaceOpen=false;
+    await PersistWorkspaceAsync("hub");
+    await InvokeAsync(StateHasChanged);
+    return;
+   }
+
    OpenWorkspace("world","WORLDBUILDER","SANDBOX → TIER → LAYER → CUBE");
    await InvokeAsync(StateHasChanged);
    return;
   }
+
   _workspaceOpen=false;
   await PersistWorkspaceAsync("hub");
   await InvokeAsync(StateHasChanged);
@@ -834,7 +877,7 @@ else
  void OpenRoleplay()=>OpenWorkspace("roleplay",Session.IsGeonaphWorld?"ENTER SHAELVIEN":"ROLEPLAY",Session.IsGeonaphWorld?"WORLD MAP → ZONE → PARTY → CHAT":"CHARACTER → DICE → ENCOUNTER → REPLAY");
  void OpenCharacters()=>OpenWorkspace("roleplay","CHARACTERS","CHARACTER → SHEET → EQUIPMENT");
  void OpenDiceTools()=>OpenWorkspace("tools","DICE & TOOLS","DICE → CARDS → TOOLS");
- void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;}
+ void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateIntent="worldbuilder";_worldGateOpen=true;}
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenMembership()=>Navigation.NavigateTo("/store/membership.html",forceLoad:true);
