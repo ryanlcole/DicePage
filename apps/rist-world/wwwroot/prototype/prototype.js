@@ -89,7 +89,7 @@ let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',assetInteractionMode='select',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,assetResizeOverlay=null,assetResizeDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 const userLayers=[];
 let imageProcessingBusy=false,imageProcessingStatus='';
-let editFlow='root',selectionCameraSnapshot=null,selectionUnderlayNode=null,selectionUnderlayFrame=0,selectionUnderlaySourceName='';
+let editFlow='root',flowParent='View',selectionCameraSnapshot=null,selectionUnderlayNode=null,selectionUnderlayFrame=0,selectionUnderlaySourceName='';
 let adaptiveUndoStack=[],adaptiveDeleteArmed=false;
 const CONTROL_PREF_KEY='rist.adaptiveControls.v1';
 const controlPrefs=(()=>{try{return JSON.parse(localStorage.getItem(CONTROL_PREF_KEY)||'{}')||{}}catch{return{}}})();
@@ -3270,10 +3270,12 @@ function primaryKeyboardModes(){
 function primaryModeFor(mode=keyboardMode){
   if(mode==='Viewer'||mode==='View')return'View';
   if(mode==='Build')return'Build';
+  if(mode==='Edit')return'Edit';
   if(mode==='Layers')return'Layers';
-  if(mode==='Edit'||mode==='Select'||mode==='Image'||mode==='Pixels'||mode==='Labels')return'Edit';
-  if(mode==='Tiles'||mode==='Sprites')return selectedImage?'Edit':'Build';
-  if(mode==='More'||mode==='Tiers'||mode==='Litch'||mode==='CAD'||mode==='Stylus'||mode==='Tethers'||mode==='Metadata')return'More';
+  if(mode==='More')return'More';
+  if(mode==='Select'&&guidedRegionSelectionFlow())return'Select';
+  if(['Image','Pixels','Tiles','Sprites','Labels','Tiers','Litch','CAD','Stylus','Tethers','Metadata','Select'].includes(mode))
+    return PRIMARY_KEYBOARD_MODES.includes(flowParent)?flowParent:(selectedImage?'Edit':'More');
   return'View';
 }
 function internalModeForPrimary(mode){
@@ -3283,7 +3285,7 @@ function saveControlPrefs(){
   try{localStorage.setItem(CONTROL_PREF_KEY,JSON.stringify({autoFocus:selectionAutoFocus,underlay:selectionUnderlayVisible,largeControls,highContrast:highContrastControls}))}catch{}
 }
 function setPrimaryKeyboardMode(mode){
-  personalFolderType=null;editFlow='root';adaptiveDeleteArmed=false;
+  personalFolderType=null;editFlow='root';adaptiveDeleteArmed=false;flowParent=mode;
   keyboardMode=internalModeForPrimary(mode);
   renderKeyboardTabs();renderKeyboardKeys();
   announce(`${mode} controls opened.`);
