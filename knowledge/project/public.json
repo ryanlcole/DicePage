@@ -358,10 +358,11 @@
       "kind": "owner_directive",
       "uri": "owner-directive:2026-09-26:gamemaster-suite-os",
       "status": "current-owner-directive",
-      "visibility": "public-project-architecture",
+      "visibility": "public-existing-source",
       "observed_at": "2026-09-26",
       "source_origin": "HUMAN",
-      "content": "GameMaster Suite is intended to function as an OS-like universal operating environment for game masters who use many kinds of software. The beginner interaction layer is X axis, Y axis, left button, right button, with richer control tiers layered above it. Specialized software capabilities should plug into the same Rune → Glyph → SHAEP interaction environment through adapters/services instead of forcing separate interface models. Long-term deployment goal: allow a user's PC to boot into a minimal client that connects to a server and loads only the RIST/Shaelvien universal environment rather than a conventional desktop. This is a planned architecture target, not currently implemented functionality."
+      "content": "GameMaster Suite is intended to function as an OS-like universal operating environment for game masters who use many kinds of software. The beginner interaction layer is X axis, Y axis, left button, right button, with richer control tiers layered above it. Specialized software capabilities should plug into the same Rune → Glyph → SHAEP interaction environment through adapters/services instead of forcing separate interface models. Long-term deployment goal: allow a user's PC to boot into a minimal client that connects to a server and loads only the RIST/Shaelvien universal environment rather than a conventional desktop. This is a planned architecture target, not currently implemented functionality.",
+      "sha256": "9851226e217511e1f46bede98940275e31d9c5c2e15b4cfd7059ae64de1e643f"
     }
   ],
   "records": [
@@ -8901,10 +8902,10 @@
       ],
       "source_locator": "owner-directive:2026-09-26",
       "recorded_at": "2026-09-26",
-      "visibility": "public-project-architecture",
+      "visibility": "public-existing-source",
       "provenance": {
-        "origin": "HUMAN",
-        "zone": "OWNER_DIRECTIVE",
+        "origin": "OUTSIDER_AI",
+        "zone": "RED",
         "transformation": "direct-owner-requirement-normalized-for-project-knowledge",
         "source_origin": "HUMAN",
         "canon_promotion": false
