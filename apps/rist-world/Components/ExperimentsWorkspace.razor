@@ -56,24 +56,26 @@
  </main>
 
  <section class="experiments-controller" aria-label="Controller">
-  <section class="experiments-controls experiments-axis experiments-axis-y left-controls" aria-label="Left universal controls">
+  <section class="experiments-controls experiments-axis experiments-axis-y left-controls" aria-label="Y axis and left action control">
    <div class="experiments-axis-copy">
     <strong>Y AXIS</strong>
     <small>@LeftAxisHint</small>
    </div>
-   <button type="button"
-           class="experiments-action"
-           @onclick="PressLeft">@LeftButtonLabel</button>
-   <div class="experiments-y-slider-wrap">
-    <input class="experiments-slider experiments-slider-y"
-           type="range"
-           min="-100"
-           max="100"
-           step="1"
-           value="@_yControl"
-           @oninput="HandleYSlider"
-           aria-label="Y axis, up and down" />
+   <div class="experiments-rocker experiments-rocker-y" role="group" aria-label="Y axis">
+    <button type="button" class="axis-step axis-y-up" @onclick="()=>StepY(1)" aria-label="Y axis up">
+     <span aria-hidden="true">▲</span><small>UP</small>
+    </button>
+    <div class="axis-id-badge" aria-hidden="true">Y</div>
+    <button type="button" class="axis-step axis-y-down" @onclick="()=>StepY(-1)" aria-label="Y axis down">
+     <span aria-hidden="true">▼</span><small>DOWN</small>
+    </button>
    </div>
+   <button type="button"
+           class="experiments-action experiments-action-left"
+           @onclick="PressLeft">
+    <span class="control-identity">LEFT</span>
+    <strong>@LeftButtonLabel</strong>
+   </button>
   </section>
 
   <section class="experiments-center-display" aria-label="Context display" role="status" aria-live="polite">
@@ -103,24 +105,26 @@
    </div>
   </section>
 
-  <section class="experiments-controls experiments-axis experiments-axis-x right-controls" aria-label="Right universal controls">
+  <section class="experiments-controls experiments-axis experiments-axis-x right-controls" aria-label="X axis and right action control">
    <div class="experiments-axis-copy">
     <strong>X AXIS</strong>
     <small>@RightAxisHint</small>
    </div>
-   <button type="button"
-           class="experiments-action experiments-start"
-           @onclick="PressRight">@RightButtonLabel</button>
-   <div class="experiments-x-slider-wrap">
-    <input class="experiments-slider experiments-slider-x"
-           type="range"
-           min="-100"
-           max="100"
-           step="1"
-           value="@_xControl"
-           @oninput="HandleXSlider"
-           aria-label="X axis, left and right" />
+   <div class="experiments-rocker experiments-rocker-x" role="group" aria-label="X axis">
+    <button type="button" class="axis-step axis-x-left" @onclick="()=>StepX(-1)" aria-label="X axis left">
+     <span aria-hidden="true">◀</span><small>LEFT</small>
+    </button>
+    <div class="axis-id-badge" aria-hidden="true">X</div>
+    <button type="button" class="axis-step axis-x-right" @onclick="()=>StepX(1)" aria-label="X axis right">
+     <span aria-hidden="true">▶</span><small>RIGHT</small>
+    </button>
    </div>
+   <button type="button"
+           class="experiments-action experiments-start experiments-action-right"
+           @onclick="PressRight">
+    <span class="control-identity">RIGHT</span>
+    <strong>@RightButtonLabel</strong>
+   </button>
   </section>
  </section>
 </section>
@@ -418,6 +422,22 @@
   if(direction!=0)ApplyX(direction);
  }
 
+ void StepY(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _yControl=Math.Clamp(_yControl+(direction*12),-100,100);
+  ApplyY(direction);
+ }
+
+ void StepX(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _xControl=Math.Clamp(_xControl+(direction*12),-100,100);
+  ApplyX(direction);
+ }
+
  void ApplyY(int direction)
  {
   direction=Math.Sign(direction);
@@ -665,16 +685,16 @@
   {
    case "ArrowLeft":
    case "a":
-   case "A": ApplyX(-1); break;
+   case "A": StepX(-1); break;
    case "ArrowRight":
    case "d":
-   case "D": ApplyX(1); break;
+   case "D": StepX(1); break;
    case "ArrowUp":
    case "w":
-   case "W": ApplyY(1); break;
+   case "W": StepY(1); break;
    case "ArrowDown":
    case "s":
-   case "S": ApplyY(-1); break;
+   case "S": StepY(-1); break;
    case "q":
    case "Q": await PressLeft(); break;
    case "e":
@@ -689,8 +709,8 @@
   {
    switch(control)
    {
-    case "x": ApplyX(direction); break;
-    case "y": ApplyY(direction); break;
+    case "x": StepX(direction); break;
+    case "y": StepY(direction); break;
     case "left": await PressLeft(); break;
     case "right": await PressRight(); break;
    }
