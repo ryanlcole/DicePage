@@ -31,9 +31,15 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         ):
             self.assertIn(f"<strong>{label}</strong>", self.source)
 
-    def test_gamemaster_group_contains_requested_tools(self):
+    def test_gamemaster_group_starts_with_simple_create_world_play_studio_front_door(self):
+        for label in ("CREATE", "WORLD", "RUN / PLAY", "STUDIO TOOLS"):
+            self.assertIn(f"<strong>{label}</strong>", self.source)
+        self.assertIn("launcher-gm-core", self.source)
+        self.assertIn("@if(_gmStudioToolsOpen)", self.source)
+
+    def test_gamemaster_specialized_tools_are_preserved_behind_studio_tools(self):
         for label in (
-            "WORLDBUILDER", "REGION DEFINER", "LOCAL STAGING", "INSTANCES",
+            "WORLDBUILDER", "REGION DEFINER", "LOCAL STAGING", "INSTANCE BUILDER",
             "HISTORY", "LORE", "WEATHER", "GEOLOGICAL EVENTS", "ASTRONOMY",
             "ASTROLOGY", "TICKER", "TRACKER", "GUEST CHARACTERS", "ENCOUNTERS",
             "CHARACTER CARD DESIGNER", "POWERS",
@@ -106,12 +112,20 @@ class LauncherRoleGroupingContract(unittest.TestCase):
         self.assertIn('Mode == "tracker"', router)
         self.assertIn("<GmReportWorkspace />", router)
 
-    def test_tool_groups_keep_two_column_pair_layout(self):
-        self.assertIn(
-            ".launcher-tool-grid{display:grid;grid-template-columns:1fr 1fr",
-            self.css,
-        )
+    def test_tool_groups_keep_simple_primary_grid_and_two_column_specialized_layout(self):
+        self.assertIn(".launcher-gm-core{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))", self.css)
+        self.assertIn(".launcher-tool-grid{display:grid;grid-template-columns:1fr 1fr", self.css)
         self.assertIn(".launcher-tool-wide{grid-column:1/-1}", self.css)
+
+    def test_create_has_dedicated_private_workbench_route(self):
+        router = (
+            Path(__file__).resolve().parents[1]
+            / "Components"
+            / "TaskWorkspaceRouter.razor"
+        ).read_text(encoding="utf-8")
+        self.assertIn('Mode == "create"', router)
+        self.assertIn("<CreativeWorkbenchWorkspace", router)
+        self.assertIn('"create","world","local"', self.source)
 
 
 if __name__ == "__main__":

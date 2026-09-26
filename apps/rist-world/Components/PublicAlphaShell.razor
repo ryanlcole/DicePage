@@ -92,36 +92,49 @@
    }
    else if(_launcherMenu=="gamemaster")
    {
-    <div id="launcher-gamemaster-tools" class="launcher-tool-grid gamemaster-tools" aria-label="GameMaster tools">
-     <button type="button" class="launcher-tool-button" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span aria-hidden="true">◈</span><strong>WORLDBUILDER</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span aria-hidden="true">▦</span><strong>REGION DEFINER</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLocalStaging"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span aria-hidden="true">◫</span><strong>IMMERSION BUILDER</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenInstance"><span aria-hidden="true">⌖</span><strong>INSTANCE BUILDER</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">◷</span><strong>HISTORY</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLore"><span aria-hidden="true">✦</span><strong>LORE</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">☁</span><strong>WEATHER</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">△</span><strong>GEOLOGICAL EVENTS</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">★</span><strong>ASTRONOMY</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">☿</span><strong>ASTROLOGY</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenTickerAsync"><span aria-hidden="true">⋯</span><strong>TICKER</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenTracker"><span aria-hidden="true">⌁</span><strong>TRACKER</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">♟</span><strong>GUEST CHARACTERS</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⚔</span><strong>ENCOUNTERS</strong></button>
+    <div id="launcher-gamemaster-tools" class="launcher-gm-shell" aria-label="GameMaster tools">
+     <div class="launcher-gm-core">
+      <button type="button" class="launcher-gm-primary create" disabled="@(!WorldReady)" @onclick="OpenCreate"><span aria-hidden="true">✦</span><strong>CREATE</strong><small>Ideas → drafts → production</small></button>
+      <button type="button" class="launcher-gm-primary world" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span aria-hidden="true">◈</span><strong>WORLD</strong><small>Place and relate what you make</small></button>
+      <button type="button" class="launcher-gm-primary play" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span aria-hidden="true">▶</span><strong>RUN / PLAY</strong><small>Stage, test, run, replay</small></button>
+      <button type="button" class="launcher-gm-primary studio" aria-expanded="@_gmStudioToolsOpen" @onclick="ToggleGmStudioTools"><span aria-hidden="true">⌘</span><strong>STUDIO TOOLS</strong><small>Open a specialized instrument</small></button>
+     </div>
+     <p class="launcher-gm-guidance">Start with what you already do well. Use specialized studios only when the work needs them.</p>
 
-     <div class="launcher-tool-separator launcher-tool-wide" role="separator" aria-label="Roleplay tools available to GameMasters"><span>ROLEPLAY TOOLS</span></div>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">♙</span><strong>CHARACTERS</strong></button>
-     <button type="button" class="launcher-tool-button character-card-designer" @onclick="OpenCharacterCardDesigner"><span aria-hidden="true">▥</span><strong>CHARACTER CARD DESIGNER</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenPowers"><span aria-hidden="true">✧</span><strong>POWERS</strong></button>
-     <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">✎</span><strong>JOURNAL</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenCampaign"><span aria-hidden="true">♣</span><strong>CAMPAIGN</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenCardIndex"><span aria-hidden="true">▧</span><strong>CARD INDEX</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenDiceTools"><span aria-hidden="true">◆</span><strong>DICE &amp; TOOLS</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenRulebooks"><span aria-hidden="true">▤</span><strong>RULEBOOKS</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenAssets"><span aria-hidden="true">✥</span><strong>ASSET DESIGNER</strong></button>
-     <button type="button" class="launcher-tool-button" disabled="@(!WorldReady||!Session.IsGeonaphWorld)" @onclick="OpenPerceiver"><span aria-hidden="true">◎</span><strong>PERCEIVER</strong></button>
-     <button type="button" class="launcher-tool-button" @onclick="OpenObserver"><span aria-hidden="true">⌕</span><strong>ReLiC OBSERVER</strong></button>
-     <button type="button" class="launcher-tool-button launcher-tool-wide" @onclick="OpenAccessibilityShell"><span aria-hidden="true">⌨</span><strong>ACCESSIBILITY</strong></button>
+     @if(_gmStudioToolsOpen)
+     {
+      <div class="launcher-tool-grid gamemaster-tools launcher-studio-tools" aria-label="Specialized GameMaster studios">
+       <button type="button" class="launcher-tool-button" disabled="@(!CanOpenWorldBuilder)" @onclick="OpenWorldbuilding"><span aria-hidden="true">◈</span><strong>WORLDBUILDER</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span aria-hidden="true">▦</span><strong>REGION DEFINER</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLocalStaging"><span aria-hidden="true">▱</span><strong>LOCAL STAGING</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span aria-hidden="true">◫</span><strong>IMMERSION BUILDER</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenInstance"><span aria-hidden="true">⌖</span><strong>INSTANCE BUILDER</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">◷</span><strong>HISTORY</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenLore"><span aria-hidden="true">✦</span><strong>LORE</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">☁</span><strong>WEATHER</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">△</span><strong>GEOLOGICAL EVENTS</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">★</span><strong>ASTRONOMY</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">☿</span><strong>ASTROLOGY</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady)" @onclick="OpenTickerAsync"><span aria-hidden="true">⋯</span><strong>TICKER</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenTracker"><span aria-hidden="true">⌁</span><strong>TRACKER</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">♟</span><strong>GUEST CHARACTERS</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">⚔</span><strong>ENCOUNTERS</strong></button>
+
+       <div class="launcher-tool-separator launcher-tool-wide" role="separator" aria-label="Shared roleplay and production tools"><span>SHARED TOOLS</span></div>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">♙</span><strong>CHARACTERS</strong></button>
+       <button type="button" class="launcher-tool-button character-card-designer" @onclick="OpenCharacterCardDesigner"><span aria-hidden="true">▥</span><strong>CHARACTER CARD DESIGNER</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenPowers"><span aria-hidden="true">✧</span><strong>POWERS</strong></button>
+       <button type="button" class="launcher-tool-button coming-soon" disabled aria-disabled="true" title="Coming Soon"><span aria-hidden="true">✎</span><strong>JOURNAL</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenCampaign"><span aria-hidden="true">♣</span><strong>CAMPAIGN</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenCardIndex"><span aria-hidden="true">▧</span><strong>CARD INDEX</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenDiceTools"><span aria-hidden="true">◆</span><strong>DICE &amp; TOOLS</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenRulebooks"><span aria-hidden="true">▤</span><strong>RULEBOOKS</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenAssets"><span aria-hidden="true">✥</span><strong>ASSET DESIGNER</strong></button>
+       <button type="button" class="launcher-tool-button" disabled="@(!WorldReady||!Session.IsGeonaphWorld)" @onclick="OpenPerceiver"><span aria-hidden="true">◎</span><strong>PERCEIVER</strong></button>
+       <button type="button" class="launcher-tool-button" @onclick="OpenObserver"><span aria-hidden="true">⌕</span><strong>ReLiC OBSERVER</strong></button>
+       <button type="button" class="launcher-tool-button launcher-tool-wide" @onclick="OpenAccessibilityShell"><span aria-hidden="true">⌨</span><strong>ACCESSIBILITY</strong></button>
+      </div>
+     }
     </div>
    }
   </section>
@@ -182,7 +195,7 @@ else
    </div>
   }
   @if(WorkspaceReferenceOnly){<div class="workspace-reference-banner" role="status">VIEW ONLY · ENDEMAR REFERENCE</div>}
-  <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="OpenStartMenu" OnHome="ReturnToHub" />
+  <TaskWorkspaceRouter Mode="@_workspaceMode" OnStartMenu="OpenStartMenu" OnHome="ReturnToHub" OnWorkspace="OpenWorkspaceFromChild" />
  </div>
 }
 
@@ -312,7 +325,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
- static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","local","instance","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"create","world","local","instance","accessibility","observer","viewer","perceiver","immersion","campaign","assets","charactercards","powers","tracker","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -321,6 +334,7 @@ else
  bool _tickerOpen;
  bool _cardIndexOpen;
  string _launcherMenu="";
+ bool _gmStudioToolsOpen;
  readonly List<AccountWorldReference> _sandboxWorlds=[];
  bool _worldDirectoryLoaded;
  bool _worldSelectionBusy;
@@ -405,6 +419,7 @@ else
  {
   switch(mode)
   {
+   case "create":_workspaceMode="create";_workspaceLabel="CREATE";_workspaceHint="CAPTURE → SHAPE → COMPARE → REFINE → IRON IN → PRODUCE → PLAY";break;
    case "accessibility":_workspaceMode="accessibility";_workspaceLabel="ACCESSIBILITY SHELL";_workspaceHint="DESCRIBE → NAVIGATE → ACT → BUILD";break;
    case "observer":_workspaceMode="observer";_workspaceLabel="RELIC OBSERVER";_workspaceHint="QUERY → EVIDENCE → PROVENANCE → OBSERVE";break;
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD 0° → REGION 15° → LOCAL";break;
@@ -638,9 +653,11 @@ else
  void CloseCardIndex()=>_cardIndexOpen=false;
  void ToggleLauncherMenu(string menu)=>_launcherMenu=string.Equals(_launcherMenu,menu,StringComparison.Ordinal)?"":menu;
  void ToggleRoleplayMenu()=>ToggleLauncherMenu("roleplay");
- void ToggleGameMasterMenu()=>ToggleLauncherMenu("gamemaster");
+ void ToggleGameMasterMenu(){ToggleLauncherMenu("gamemaster");if(_launcherMenu!="gamemaster")_gmStudioToolsOpen=false;}
+ void ToggleGmStudioTools()=>_gmStudioToolsOpen=!_gmStudioToolsOpen;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
+ void OpenCreate(){if(!WorldReady)return;OpenWorkspace("create","CREATE","CAPTURE → SHAPE → COMPARE → REFINE → IRON IN → PRODUCE → PLAY");}
  void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
  void OpenObserver()=>OpenWorkspace("observer","RELIC OBSERVER","QUERY → EVIDENCE → PROVENANCE → OBSERVE");
  void OpenWorldbuilding(){if(!CanOpenWorldBuilder)return;OpenWorkspace("world","WORLDBUILDER",CanBuildWorld?"WORLD → TIER → LAYER → CUBE":"ENDEMAR → VIEW ONLY → REFERENCE");}
@@ -745,6 +762,18 @@ else
  void OpenCharacterCardDesigner()=>OpenWorkspace("charactercards","CHARACTER CARD DESIGNER","SHEET → CARDS → FIELDS → SYSTEM");
  void OpenPowers()=>OpenWorkspace("powers","POWERS","CARD → TARGET → JOIN → RESOLVE → EFFECT");
  void OpenTracker()=>OpenWorkspace("tracker","TRACKER","JOINS → REPORT → AGGREGATE → COMPARE");
+ async Task OpenWorkspaceFromChild(string mode)
+ {
+  switch((mode??"").Trim().ToLowerInvariant())
+  {
+   case "world":OpenWorldbuilding();break;
+   case "campaign":OpenCampaign();break;
+   case "assets":OpenAssets();break;
+   case "powers":OpenPowers();break;
+   case "create":OpenCreate();break;
+   default:ApplyWorkspace(mode);_workspaceOpen=true;await PersistWorkspaceAsync(mode);break;
+  }
+ }
  void OpenRoleplay()=>OpenWorkspace("roleplay",Session.IsGeonaphWorld?"ENTER SHAELVIEN":"ROLEPLAY",Session.IsGeonaphWorld?"WORLD MAP → ZONE → PARTY → CHAT":"CHARACTER → DICE → ENCOUNTER → REPLAY");
  void OpenCharacters()=>OpenWorkspace("roleplay","CHARACTERS","CHARACTER → SHEET → EQUIPMENT");
  void OpenDiceTools()=>OpenWorkspace("tools","DICE & TOOLS","DICE → CARDS → TOOLS");
@@ -756,6 +785,6 @@ else
  void OpenKickstarter()=>Navigation.NavigateTo("/kickstarter/index.html",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void GoHome(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
- void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_settingsOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void GoHome(){_workspaceOpen=false;_launcherMenu="";_gmStudioToolsOpen=false;_settingsOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_launcherMenu="";_gmStudioToolsOpen=false;_settingsOpen=false;_commerceAdminOpen=false;_mcpAdminOpen=false;_tickerOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_regionGateOpen=false;_localGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }

@@ -93,3 +93,20 @@ Adaptive and accessibility transports must never bypass recursive permissions, o
 ## Preservation rule
 
 Working advanced controls remain available while the adaptive surface replaces their discoverability burden. Refactoring presentation must not delete working authoring mechanisms merely because they are hidden behind MORE or ADVANCED.
+
+
+## Creator-shell hierarchy — 2026-09-26
+
+The five-node VIEW / BUILD / EDIT / LAYERS / MORE surface remains a working contextual canvas control model and compatibility layer. It is **not** the entire creator-facing information architecture.
+
+At the broader creator/workbench level, Shaelvien uses a stable spatial grammar:
+
+- left = instrument/tool selection
+- center = current authored work
+- right = material, asset, draft, or alternative selection
+- bottom = contextual actions
+- top = persistent modifiers and assistance state
+
+CREATE / WORLD / PLAY are the major creator-facing destinations. Specialized studios remain available as instruments instead of requiring a new GM to understand the whole internal tool taxonomy before making useful content.
+
+The Creative Workplace Contract governs assistance, drafts, creative fit, progressive depth, and promotion from private work into production.

@@ -1,0 +1,400 @@
+@inject WorldSession Session
+
+<div class="creative-workbench">
+ <header class="cw-header">
+  <div class="cw-title">
+   <span class="cw-kicker">CREATE · PRIVATE WORKBENCH</span>
+   <strong>@Session.WorldDisplayName</strong>
+   <small>Capture anything. Nothing becomes production truth until you move it forward.</small>
+  </div>
+  <nav class="cw-stage-tabs" aria-label="Creative workflow">
+   @foreach(var stage in MacroStages)
+   {
+    <button type="button" class="@(stage.Id==_view?"active":"")" aria-pressed="@(stage.Id==_view)" @onclick="()=>SetView(stage.Id)">
+     <span aria-hidden="true">@stage.Icon</span><strong>@stage.Label</strong>
+    </button>
+   }
+  </nav>
+  <div class="cw-assist" aria-label="Assistance level">
+   @foreach(var mode in AssistanceModes)
+   {
+    <button type="button" class="@(mode==CurrentAssistance?"active":"")" aria-pressed="@(mode==CurrentAssistance)" @onclick="()=>SetCurrentAssistanceAsync(mode)">@mode</button>
+   }
+  </div>
+ </header>
+
+ <aside class="cw-left" aria-label="Start with what you have">
+  <span class="cw-rail-label">START WITH</span>
+  @foreach(var medium in Mediums)
+  {
+   <button type="button" class="@(_activeMedium==medium.Id?"active":"")" title="@medium.Help" aria-label="@medium.Label — @medium.Help" @onclick="()=>CreateDraftAsync(medium.Id)">
+    <span aria-hidden="true">@medium.Icon</span><strong>@medium.Label</strong>
+   </button>
+  }
+ </aside>
+
+ <main class="cw-center">
+  @if(!_loaded)
+  {
+   <section class="cw-empty"><strong>Loading your private workbench…</strong></section>
+  }
+  else if(Selected is null)
+  {
+   <section class="cw-welcome">
+    <p class="cw-eyebrow">WHAT DO YOU HAVE?</p>
+    <h1>Start where you think best.</h1>
+    <p>A sentence, sketch, sound, map, mechanic, or half-formed idea is enough. Choose an instrument on the left. Shaelvien keeps every medium in the same production path.</p>
+    <div class="cw-principles">
+     <span>CAPTURE</span><b>→</b><span>SHAPE</span><b>→</b><span>COMPARE</span><b>→</b><span>REFINE</span><b>→</b><span>IRON IN</span><b>→</b><span>PRODUCE</span><b>→</b><span>PLAY</span>
+    </div>
+    <p class="cw-status">@_status</p>
+   </section>
+  }
+  else
+  {
+   <section class="cw-editor" aria-label="Creative draft editor">
+    <header>
+     <div>
+      <p class="cw-eyebrow">@MediumLabel(Selected.Medium) · @Selected.Stage</p>
+      <input class="cw-title-input" @bind="_titleDraft" @bind:event="oninput" aria-label="Draft title" />
+     </div>
+     <div class="cw-badges">
+      @if(Selected.Placeholder){<span>PLACEHOLDER</span>}
+      <span>@Selected.Disposition.ToUpperInvariant()</span>
+     </div>
+    </header>
+
+    @if(CurrentAssistance!="Quiet")
+    {
+     <aside class="cw-guidance" aria-live="polite">
+      <strong>@GuidanceTitle</strong>
+      <p>@GuidanceText</p>
+      @if(!string.IsNullOrWhiteSpace(BridgeText)){<small>@BridgeText</small>}
+     </aside>
+    }
+
+    <label class="cw-field"><span>WORKING NOTES</span><textarea @bind="_notesDraft" @bind:event="oninput" placeholder="Rough is allowed. Capture the useful part first."></textarea></label>
+
+    <div class="cw-evaluation">
+     <label class="cw-field"><span>PROS · one per line</span><textarea @bind="_prosDraft" @bind:event="oninput" placeholder="What is working?"></textarea></label>
+     <label class="cw-field"><span>CONS · one per line</span><textarea @bind="_consDraft" @bind:event="oninput" placeholder="What needs work?"></textarea></label>
+    </div>
+
+    @if(CompareItems.Count>=2)
+    {
+     <section class="cw-compare" aria-label="Compare drafts">
+      <header><strong>COMPARE</strong><span>@CompareItems.Count drafts</span></header>
+      <div>
+       @foreach(var item in CompareItems)
+       {
+        <article>
+         <strong>@item.Title</strong><small>@MediumLabel(item.Medium) · @item.Stage</small>
+         <p>@(string.IsNullOrWhiteSpace(item.Notes)?"No notes yet.":item.Notes)</p>
+         <dl><dt>PROS</dt><dd>@(item.Pros.Length==0?"—":string.Join(" · ",item.Pros))</dd><dt>CONS</dt><dd>@(item.Cons.Length==0?"—":string.Join(" · ",item.Cons))</dd></dl>
+        </article>
+       }
+      </div>
+     </section>
+    }
+
+    <details class="cw-profile">
+     <summary>MY CREATIVE FIT · optional</summary>
+     <p>Strength, enjoyment, and learning interest are separate. Shaelvien never treats difficulty in one craft as lack of value.</p>
+     <div class="cw-profile-grid">
+      @foreach(var profile in _board.Disciplines)
+      {
+       <section>
+        <strong>@profile.Discipline</strong>
+        <label>Strength <input type="range" min="0" max="4" value="@profile.Strength" @onchange="e=>SetProfileMetricAsync(profile.Discipline,"strength",e)" /></label>
+        <label>Enjoyment <input type="range" min="0" max="4" value="@profile.Enjoyment" @onchange="e=>SetProfileMetricAsync(profile.Discipline,"enjoyment",e)" /></label>
+        <label>Want to learn <input type="range" min="0" max="4" value="@profile.GrowthInterest" @onchange="e=>SetProfileMetricAsync(profile.Discipline,"growth",e)" /></label>
+        <label>Assistance
+         <select value="@profile.AssistanceMode" @onchange="e=>ChangeAssistanceAsync(profile.Discipline,e)">
+          @foreach(var mode in AssistanceModes){<option value="@mode">@mode</option>}
+         </select>
+        </label>
+       </section>
+      }
+     </div>
+    </details>
+    <p class="cw-status" role="status">@_status</p>
+   </section>
+  }
+ </main>
+
+ <aside class="cw-right" aria-label="Draft shelf">
+  <header><span class="cw-rail-label">@ViewLabel</span><strong>@VisibleItems.Count</strong></header>
+  <div class="cw-drafts">
+   @foreach(var item in VisibleItems)
+   {
+    <article class="@(item.Id==_selectedId?"selected":"") @(item.Disposition.ToLowerInvariant())">
+     <button class="cw-draft-main" type="button" @onclick="()=>SelectItem(item)">
+      <span aria-hidden="true">@MediumIcon(item.Medium)</span>
+      <strong>@item.Title</strong><small>@item.Stage</small>
+     </button>
+     <button type="button" class="@(_compareIds.Contains(item.Id)?"active":"")" aria-pressed="@_compareIds.Contains(item.Id)" @onclick="()=>ToggleCompare(item.Id)">⇄<span>Compare</span></button>
+    </article>
+   }
+   @if(VisibleItems.Count==0){<p class="cw-none">Nothing here yet.</p>}
+  </div>
+ </aside>
+
+ <footer class="cw-actions" aria-label="Context actions">
+  @if(Selected is null)
+  {
+   <span>Choose a medium on the left or a draft on the right.</span>
+  }
+  else if(IsShelved(Selected))
+  {
+   <button type="button" @onclick="RestoreSelectedAsync">RESTORE</button>
+   <button type="button" @onclick="DeletePermanentlyAsync">DELETE PERMANENTLY</button>
+  }
+  else
+  {
+   <button type="button" @onclick="SaveEditorAsync">SAVE DRAFT</button>
+   <button type="button" class="@(_compareIds.Contains(Selected.Id)?"active":"")" @onclick="()=>ToggleCompare(Selected.Id)">COMPARE</button>
+   <button type="button" @onclick="TogglePlaceholderAsync">@(Selected.Placeholder?"REAL CONTENT":"PLACEHOLDER")</button>
+   <button type="button" @onclick="TableSelectedAsync">TABLE</button>
+   <button type="button" @onclick="DiscardSelectedAsync">DISCARD</button>
+   <button type="button" class="primary" @onclick="MoveForwardAsync">@ForwardLabel</button>
+   <button type="button" disabled="@string.IsNullOrWhiteSpace(StudioTarget)" @onclick="OpenStudioAsync">@StudioLabel</button>
+  }
+ </footer>
+</div>
+
+<style>
+ .creative-workbench{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-columns:152px minmax(0,1fr) 230px;grid-template-rows:auto minmax(0,1fr) auto;background:#050a0e;color:#e9e2d4;font-family:Inter,system-ui,-apple-system,sans-serif;overflow:hidden}
+ .cw-header{grid-column:1/-1;display:grid;grid-template-columns:minmax(210px,.8fr) minmax(420px,1.4fr) minmax(280px,.9fr);gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid #6f5b32;background:linear-gradient(90deg,#09131b,#111922 56%,#17130c)}
+ .cw-title{min-width:0;display:grid;gap:2px}.cw-title strong{color:#efd58d;font:600 18px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cw-title small{color:#8fa2ad;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cw-kicker,.cw-rail-label,.cw-eyebrow{color:#8fa6b3;font-size:8px;font-weight:900;letter-spacing:.14em}
+ .cw-stage-tabs,.cw-assist{display:grid;gap:4px}.cw-stage-tabs{grid-template-columns:repeat(5,1fr)}.cw-assist{grid-template-columns:repeat(5,1fr)}
+ .cw-stage-tabs button,.cw-assist button,.cw-left button,.cw-actions button,.cw-draft-main,.cw-drafts article>button:last-child{min-height:44px;border:1px solid #435966;border-radius:7px;background:#0b151c;color:#d7e0e4;font-weight:900;touch-action:manipulation}
+ .cw-stage-tabs button{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px;padding:4px 6px;font-size:8px}.cw-stage-tabs button span{color:#ddbd6d;font-size:15px}.cw-stage-tabs button.active,.cw-assist button.active,.cw-left button.active,.cw-drafts button.active{border-color:#d3ae58;background:#262012;color:#ffe4a2}
+ .cw-assist button{min-height:34px;padding:3px;font-size:7px;letter-spacing:.05em}
+ .cw-left,.cw-right{min-height:0;overflow:auto;background:#081117}.cw-left{grid-column:1;grid-row:2;padding:8px;border-right:1px solid #3d515c;display:grid;align-content:start;gap:7px}.cw-left .cw-rail-label{padding:4px 2px}
+ .cw-left button{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:7px;padding:7px;text-align:left}.cw-left button span{color:#e2c16e;font:700 23px/1 Georgia,serif;text-align:center}.cw-left button strong{font-size:9px;letter-spacing:.05em}
+ .cw-center{grid-column:2;grid-row:2;min-width:0;min-height:0;overflow:auto;padding:14px;background:radial-gradient(circle at 50% 15%,#10202b55,transparent 45%),#050a0e}
+ .cw-welcome,.cw-empty{min-height:100%;display:grid;place-items:center;align-content:center;text-align:center;padding:20px}.cw-welcome h1{margin:5px 0;color:#efd593;font:600 clamp(26px,4vw,50px) Georgia,serif}.cw-welcome p{max-width:720px;color:#aebcc3;line-height:1.55}.cw-principles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:15px;color:#e2c478;font-size:9px;font-weight:900;letter-spacing:.08em}.cw-principles b{color:#5d7380}
+ .cw-editor{max-width:1000px;margin:0 auto;display:grid;gap:12px}.cw-editor>header{display:flex;justify-content:space-between;gap:10px;align-items:start}.cw-title-input{box-sizing:border-box;width:min(70vw,680px);max-width:100%;padding:7px 2px;border:0;border-bottom:1px solid #556b76;background:transparent;color:#f2dfaa;font:600 clamp(20px,3vw,34px) Georgia,serif}.cw-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.cw-badges span{padding:5px 7px;border:1px solid #766336;border-radius:999px;color:#e9ce83;font-size:7px;font-weight:900}
+ .cw-guidance{padding:10px 12px;border-left:3px solid #c9a851;background:#101920}.cw-guidance strong{color:#efd28a}.cw-guidance p{margin:5px 0;color:#c2cdd2;font-size:11px;line-height:1.45}.cw-guidance small{display:block;color:#90b3c4;font-size:10px;line-height:1.45}
+ .cw-field{display:grid;gap:5px}.cw-field>span{color:#8ea4af;font-size:8px;font-weight:900;letter-spacing:.1em}.cw-field textarea{box-sizing:border-box;width:100%;min-height:150px;padding:10px;border:1px solid #425966;border-radius:8px;background:#081117;color:#e8e0d1;font:12px/1.55 system-ui;resize:vertical}.cw-evaluation{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cw-evaluation textarea{min-height:95px}
+ .cw-compare{padding:10px;border:1px solid #6d5b35;border-radius:9px;background:#0a1218}.cw-compare>header{display:flex;justify-content:space-between;color:#e5c979}.cw-compare>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px}.cw-compare article{padding:9px;border:1px solid #3e535f;border-radius:7px;background:#0d171e}.cw-compare article strong,.cw-compare article small{display:block}.cw-compare article small{color:#8ca1ad;font-size:8px}.cw-compare article p{color:#b7c2c8;font-size:10px;line-height:1.4}.cw-compare dl{display:grid;grid-template-columns:auto 1fr;gap:5px 8px;font-size:9px}.cw-compare dt{color:#d2b76e}.cw-compare dd{margin:0;color:#aab9c0}
+ .cw-profile{padding:9px;border:1px solid #344a55;border-radius:8px;background:#081116}.cw-profile summary{cursor:pointer;color:#d6bb74;font-size:9px;font-weight:900}.cw-profile>p{color:#94a7b1;font-size:10px}.cw-profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.cw-profile-grid section{display:grid;gap:5px;padding:8px;border:1px solid #30434d;border-radius:6px;background:#0c171d}.cw-profile-grid section>strong{color:#e2ca8b}.cw-profile-grid label{display:grid;grid-template-columns:1fr 90px;align-items:center;gap:5px;color:#9aadb6;font-size:8px}.cw-profile-grid select{min-height:32px;background:#071016;color:#e7dec9;border:1px solid #485c67}
+ .cw-right{grid-column:3;grid-row:2;border-left:1px solid #3d515c}.cw-right>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;padding:10px;background:#081117;border-bottom:1px solid #344955}.cw-right>header strong{color:#e3c97d}.cw-drafts{display:grid;gap:6px;padding:7px}.cw-drafts article{display:grid;grid-template-columns:minmax(0,1fr) 50px;border:1px solid #334a56;border-radius:7px;overflow:hidden}.cw-drafts article.selected{border-color:#d1ac57;box-shadow:0 0 0 1px #d1ac5733}.cw-draft-main{border:0!important;border-radius:0!important;display:grid;grid-template-columns:28px minmax(0,1fr);grid-template-rows:auto auto;column-gap:5px;padding:7px;text-align:left}.cw-draft-main>span{grid-row:1/3;align-self:center;color:#dabb70;font-size:20px}.cw-draft-main strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}.cw-draft-main small{color:#8198a4;font-size:7px}.cw-drafts article>button:last-child{border:0;border-left:1px solid #334a56;border-radius:0;font-size:16px}.cw-drafts article>button:last-child span{display:block;font-size:6px}.cw-none{padding:12px;color:#758b97;font-size:9px;text-align:center}
+ .cw-actions{grid-column:1/-1;grid-row:3;min-height:58px;display:flex;align-items:center;gap:6px;padding:7px 10px;border-top:1px solid #6c5931;background:#081117;overflow-x:auto}.cw-actions>span{color:#8fa1aa;font-size:10px}.cw-actions button{flex:0 0 auto;min-width:90px;padding:0 9px;font-size:8px;letter-spacing:.05em}.cw-actions button.primary{border-color:#d4ad52;background:#332814;color:#ffe4a4}.cw-actions button:disabled{opacity:.38}.cw-status{min-height:16px;margin:0;color:#8fc2a0;font-size:9px}
+ @@media(max-width:900px){.creative-workbench{grid-template-columns:82px minmax(0,1fr) 112px}.cw-header{grid-template-columns:1fr;gap:5px}.cw-title small{display:none}.cw-title{display:none}.cw-stage-tabs button{grid-template-columns:1fr;text-align:center}.cw-stage-tabs button span{display:none}.cw-left button{grid-template-columns:1fr;padding:5px}.cw-left button span{font-size:25px}.cw-left button strong{font-size:7px;text-align:center}.cw-right>header{padding:7px}.cw-drafts article{grid-template-columns:1fr}.cw-drafts article>button:last-child{border-left:0;border-top:1px solid #334a56;min-height:36px}.cw-draft-main{grid-template-columns:1fr;text-align:center}.cw-draft-main>span{grid-row:auto;font-size:18px}.cw-draft-main small{display:none}.cw-evaluation{grid-template-columns:1fr}.cw-profile-grid{grid-template-columns:1fr 1fr}.cw-center{padding:9px}}
+ @@media(max-width:600px){.creative-workbench{grid-template-columns:64px minmax(0,1fr) 78px}.cw-header{padding:5px}.cw-stage-tabs{gap:2px}.cw-stage-tabs button{min-height:38px;padding:2px;font-size:6px}.cw-assist{gap:2px}.cw-assist button{min-height:30px;font-size:6px}.cw-left{padding:4px;gap:4px}.cw-left button{min-height:52px}.cw-left .cw-rail-label{font-size:6px;text-align:center}.cw-right>header .cw-rail-label{font-size:6px}.cw-center{padding:6px}.cw-editor{gap:8px}.cw-title-input{width:100%;font-size:20px}.cw-badges{display:none}.cw-guidance{padding:8px}.cw-field textarea{min-height:130px}.cw-profile-grid{grid-template-columns:1fr}.cw-actions{min-height:54px;padding:5px}.cw-actions button{min-width:78px;min-height:44px;font-size:7px}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnHome { get; set; }
+ [Parameter] public EventCallback<string> OnOpenWorkspace { get; set; }
+
+ sealed record MediumChoice(string Id,string Icon,string Label,string Discipline,string Help);
+ sealed record MacroStage(string Id,string Icon,string Label);
+
+ static readonly MediumChoice[] Mediums =
+ [
+  new("idea","✦","IDEA","Story","Capture a rough thought without choosing a medium yet."),
+  new("words","¶","WORDS","Story","Narrative, dialogue, lore, scripts, or notes."),
+  new("picture","▧","PICTURE","Visual","Sketches, images, composition, or visual references."),
+  new("sound","♪","SOUND","Audio","Voice, ambience, music, rhythm, or a sound concept."),
+  new("map","⌖","MAP","Visual","Spatial layout, geography, rooms, or tactical composition."),
+  new("mechanic","⌘","MECHANIC","Systems","Rules, triggers, conditions, encounters, or responsive logic."),
+  new("playable","▶","PLAYABLE","Production","Start from something already close to a playable scene.")
+ ];
+ static readonly MacroStage[] MacroStages =
+ [
+  new("ideas","✦","IDEAS"),new("work","✎","WORK"),new("production","◆","PRODUCTION"),new("play","▶","PLAY"),new("shelf","▤","SHELF")
+ ];
+ static readonly string[] AssistanceModes=["Teach","Help","Suggest","Predict","Quiet"];
+ static readonly string[] Pipeline=["Capture","Shape","Compare","Refine","Combine","Produce","Play"];
+
+ CreativeWorkbenchBoard _board=CreativeWorkbenchBoard.CreateDefault("");
+ bool _loaded;
+ string _view="ideas",_activeMedium="idea",_selectedId="",_titleDraft="",_notesDraft="",_prosDraft="",_consDraft="",_status="";
+ readonly HashSet<string> _compareIds=new(StringComparer.Ordinal);
+
+ CreativeWorkItem? Selected=>_board.Items.FirstOrDefault(item=>item.Id==_selectedId);
+ List<CreativeWorkItem> CompareItems=>_board.Items.Where(item=>_compareIds.Contains(item.Id)).Take(3).ToList();
+ string CurrentDiscipline=>DisciplineFor(Selected?.Medium??_activeMedium);
+ CreativeDisciplineProfile CurrentProfile=>_board.Disciplines.FirstOrDefault(p=>p.Discipline==CurrentDiscipline)??new(CurrentDiscipline,0,0,0,"Suggest");
+ string CurrentAssistance=>CurrentProfile.AssistanceMode;
+ string ViewLabel=>MacroStages.First(x=>x.Id==_view).Label;
+ List<CreativeWorkItem> VisibleItems=>_board.Items.Where(IsVisibleInCurrentView).OrderByDescending(x=>x.UpdatedAtUtc).ToList();
+ string GuidanceTitle=>CurrentAssistance switch{"Teach"=>"TEACH ME","Help"=>"HELP ME","Suggest"=>"OPTIONAL NEXT STEPS","Predict"=>"LIKELY NEXT MOVE",_=>""};
+ string GuidanceText=>GuidanceFor(Selected,CurrentAssistance);
+ string BridgeText=>StrengthBridge(Selected);
+ string ForwardLabel=>Selected is null?"MOVE FORWARD":Selected.Stage=="Refine"?"IRON IN":Selected.Stage=="Produce"?"READY TO PLAY":Selected.Stage=="Play"?"PLAY READY":"MOVE FORWARD";
+ string StudioTarget=>Selected?.Medium switch{"picture"=>"assets","map"=>"world","mechanic"=>"powers","playable"=>"campaign","words"=>"campaign","idea"=>"campaign",_=>""};
+ string StudioLabel=>string.IsNullOrWhiteSpace(StudioTarget)?"NO STUDIO YET":"OPEN STUDIO";
+
+ protected override async Task OnInitializedAsync()
+ {
+  _board=await Session.LoadCreativeWorkbenchAsync();
+  _loaded=true;
+  _status=_board.Items.Length==0?"Choose what you already have. Rough work is welcome.":"Private workbench loaded.";
+ }
+
+ void SetView(string view){_view=view;_selectedId="";_status="";}
+
+ async Task CreateDraftAsync(string medium)
+ {
+  _activeMedium=medium;
+  var choice=Mediums.First(x=>x.Id==medium);
+  var stage=medium=="playable"?"Produce":"Capture";
+  var now=DateTimeOffset.UtcNow;
+  var item=new CreativeWorkItem($"draft-{Guid.NewGuid():N}",$"New {choice.Label.ToLowerInvariant()} draft",medium,stage,"Active","",[],[],false,now,now);
+  _board=_board with{Items=[item,.._board.Items],UpdatedAtUtc=now};
+  SelectItem(item);
+  _view=MacroFor(item);
+  _board=await Session.SaveCreativeWorkbenchAsync(_board);
+  _status="Draft captured privately.";
+ }
+
+ void SelectItem(CreativeWorkItem item)
+ {
+  _selectedId=item.Id;_activeMedium=item.Medium;
+  _titleDraft=item.Title;_notesDraft=item.Notes;
+  _prosDraft=string.Join("\n",item.Pros);_consDraft=string.Join("\n",item.Cons);
+ }
+
+ async Task SaveEditorAsync()
+ {
+  if(Selected is null)return;
+  ReplaceSelected(item=>item with{
+   Title=string.IsNullOrWhiteSpace(_titleDraft)?"Untitled draft":_titleDraft.Trim(),
+   Notes=_notesDraft,
+   Pros=Lines(_prosDraft),
+   Cons=Lines(_consDraft),
+   UpdatedAtUtc=DateTimeOffset.UtcNow});
+  await SaveBoardAsync("Draft saved.");
+ }
+
+ async Task MoveForwardAsync()
+ {
+  if(Selected is null)return;
+  await SaveEditorAsync();
+  var item=Selected;if(item is null)return;
+  var index=Array.IndexOf(Pipeline,item.Stage);
+  if(index<0||index>=Pipeline.Length-1){_status="This work is already at Play.";return;}
+  var next=Pipeline[index+1];
+  ReplaceSelected(x=>x with{
+   Stage=next,
+   Disposition=next=="Produce"?"Promoted":x.Disposition=="Promoted"?"Promoted":"Active",
+   UpdatedAtUtc=DateTimeOffset.UtcNow});
+  _view=MacroFor(Selected!);
+  await SaveBoardAsync(next=="Combine"?"Ironed into the working composition.":next=="Produce"?"Moved to production.":next=="Play"?"Ready for play and testing.":$"Moved to {next}.");
+ }
+
+ async Task TableSelectedAsync(){if(Selected is null)return;ReplaceSelected(x=>x with{Disposition="Tabled",UpdatedAtUtc=DateTimeOffset.UtcNow});_view="shelf";await SaveBoardAsync("Tabled without deleting it.");}
+ async Task DiscardSelectedAsync(){if(Selected is null)return;ReplaceSelected(x=>x with{Disposition="Discarded",UpdatedAtUtc=DateTimeOffset.UtcNow});_view="shelf";await SaveBoardAsync("Discarded from active work. It remains recoverable on the Shelf.");}
+ async Task RestoreSelectedAsync(){if(Selected is null)return;ReplaceSelected(x=>x with{Disposition=x.Placeholder?"Placeholder":"Active",UpdatedAtUtc=DateTimeOffset.UtcNow});_view=MacroFor(Selected!);await SaveBoardAsync("Restored to active work.");}
+ async Task TogglePlaceholderAsync(){if(Selected is null)return;var next=!Selected.Placeholder;ReplaceSelected(x=>x with{Placeholder=next,Disposition=next?"Placeholder":"Active",UpdatedAtUtc=DateTimeOffset.UtcNow});await SaveBoardAsync(next?"Marked as a legitimate temporary placeholder.":"Marked as authored content.");}
+
+ async Task DeletePermanentlyAsync()
+ {
+  if(Selected is null)return;
+  var id=Selected.Id;
+  _board=_board with{Items=_board.Items.Where(x=>x.Id!=id).ToArray(),UpdatedAtUtc=DateTimeOffset.UtcNow};
+  _compareIds.Remove(id);_selectedId="";
+  await SaveBoardAsync("Permanently deleted from this private workbench.");
+ }
+
+ void ToggleCompare(string id)
+ {
+  if(!_compareIds.Add(id))_compareIds.Remove(id);
+  while(_compareIds.Count>3)_compareIds.Remove(_compareIds.First());
+  _status=_compareIds.Count<2?"Choose one more draft to compare.":"Comparison ready.";
+ }
+
+ async Task SetCurrentAssistanceAsync(string mode)=>await SetAssistanceAsync(CurrentDiscipline,mode);
+ async Task ChangeAssistanceAsync(string discipline,ChangeEventArgs e)=>await SetAssistanceAsync(discipline,e.Value?.ToString()??"Suggest");
+
+ async Task SetAssistanceAsync(string discipline,string mode)
+ {
+  if(!AssistanceModes.Contains(mode,StringComparer.Ordinal))mode="Suggest";
+  _board=_board with{Disciplines=_board.Disciplines.Select(p=>p.Discipline==discipline?p with{AssistanceMode=mode}:p).ToArray(),UpdatedAtUtc=DateTimeOffset.UtcNow};
+  await SaveBoardAsync($"{discipline} assistance set to {mode}.");
+ }
+
+ async Task SetProfileMetricAsync(string discipline,string metric,ChangeEventArgs e)
+ {
+  var value=int.TryParse(e.Value?.ToString(),out var parsed)?Math.Clamp(parsed,0,4):0;
+  _board=_board with{Disciplines=_board.Disciplines.Select(p=>p.Discipline!=discipline?p:metric switch{
+   "strength"=>p with{Strength=value},
+   "enjoyment"=>p with{Enjoyment=value},
+   "growth"=>p with{GrowthInterest=value},
+   _=>p}).ToArray(),UpdatedAtUtc=DateTimeOffset.UtcNow};
+  await SaveBoardAsync($"{discipline} creative fit updated.");
+ }
+
+ async Task OpenStudioAsync()
+ {
+  if(string.IsNullOrWhiteSpace(StudioTarget))return;
+  await SaveEditorAsync();
+  await OnOpenWorkspace.InvokeAsync(StudioTarget);
+ }
+
+ void ReplaceSelected(Func<CreativeWorkItem,CreativeWorkItem> update)
+ {
+  if(Selected is null)return;
+  var id=Selected.Id;
+  _board=_board with{Items=_board.Items.Select(item=>item.Id==id?update(item):item).ToArray(),UpdatedAtUtc=DateTimeOffset.UtcNow};
+  var changed=Selected;
+  if(changed is not null){_titleDraft=changed.Title;_notesDraft=changed.Notes;_prosDraft=string.Join("\n",changed.Pros);_consDraft=string.Join("\n",changed.Cons);}
+ }
+
+ async Task SaveBoardAsync(string status)
+ {
+  _board=await Session.SaveCreativeWorkbenchAsync(_board);
+  _status=status;
+ }
+
+ bool IsVisibleInCurrentView(CreativeWorkItem item)
+ {
+  if(_view=="shelf")return IsShelved(item);
+  if(IsShelved(item))return false;
+  return _view switch{
+   "ideas"=>item.Stage is "Capture" or "Shape" or "Compare",
+   "work"=>item.Stage is "Refine" or "Combine",
+   "production"=>item.Stage=="Produce",
+   "play"=>item.Stage=="Play",
+   _=>true};
+ }
+ static bool IsShelved(CreativeWorkItem item)=>item.Disposition is "Tabled" or "Discarded";
+ static string MacroFor(CreativeWorkItem item)=>IsShelved(item)?"shelf":item.Stage switch{"Capture" or "Shape" or "Compare"=>"ideas","Refine" or "Combine"=>"work","Produce"=>"production","Play"=>"play",_=>"ideas"};
+ static string[] Lines(string raw)=>raw.Split(['\r','\n'],StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Trim()).Where(x=>x.Length>0).Take(24).ToArray();
+ static string DisciplineFor(string medium)=>medium switch{"picture" or "map"=>"Visual","sound"=>"Audio","mechanic"=>"Systems","playable"=>"Production",_=>"Story"};
+ static string MediumLabel(string medium)=>Mediums.FirstOrDefault(x=>x.Id==medium)?.Label??medium.ToUpperInvariant();
+ static string MediumIcon(string medium)=>Mediums.FirstOrDefault(x=>x.Id==medium)?.Icon??"✦";
+
+ string GuidanceFor(CreativeWorkItem? item,string mode)
+ {
+  if(item is null)return "";
+  var medium=MediumLabel(item.Medium).ToLowerInvariant();
+  return mode switch{
+   "Teach"=>$"You are working in {item.Stage}. Keep the {medium} rough enough to change. First state what it must accomplish, then make one version, then test whether the result actually communicates that purpose.",
+   "Help"=>$"Work the immediate obstacle only. Save the useful part of this {medium}, name the problem that is blocking you, and use the bottom actions to move, table, compare, or open the specialized studio.",
+   "Suggest"=>$"Optional: make one deliberately different alternative before polishing this {medium}. Compare the versions by what each does well, not by which looks most finished.",
+   "Predict"=>$"Based on this stage, the likely next useful operation is {ForwardLabel}. It is prepared as a visible action below, but Shaelvien will not perform it until you choose it.",
+   _=>""
+  };
+ }
+
+ string StrengthBridge(CreativeWorkItem? item)
+ {
+  if(item is null)return "";
+  var current=CurrentProfile;
+  var strongest=_board.Disciplines.OrderByDescending(p=>p.Strength).ThenByDescending(p=>p.Enjoyment).FirstOrDefault();
+  if(strongest is null||strongest.Strength<=current.Strength||strongest.Strength==0||strongest.Discipline==current.Discipline)return "";
+  return (strongest.Discipline,current.Discipline) switch{
+   ("Visual","Story")=>"Use your visual strength as the bridge: sketch the scene as panels, then describe what changes between panels as story beats.",
+   ("Story","Visual")=>"Use your story strength as the bridge: describe foreground, focus, conflict, and consequence, then place visual elements to serve those beats.",
+   ("Audio","Story")=>"Use your audio strength as the bridge: map quiet, tension, impact, release, and silence into narrative pacing.",
+   ("Systems","Story")=>"Use your systems strength as the bridge: express the scene as state → choice → consequence, then turn those transitions into beats.",
+   ("Story","Systems")=>"Use your story strength as the bridge: identify each meaningful choice in the scene, then formalize what changes after it.",
+   ("Performance","Story")=>"Use your performance strength as the bridge: speak the scene first, keep the lines that feel alive, then edit the transcript.",
+   _=>$"Use your {strongest.Discipline.ToLowerInvariant()} strength as a bridge while developing {current.Discipline.ToLowerInvariant()}."
+  };
+ }
+}
