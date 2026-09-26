@@ -6096,8 +6096,14 @@ function renderKeyboardKeysContent(){
     keyboardKeys.append(
       toolKey('−','zoom',()=>zoomCenter(1/1.22)),
       toolKey('+','zoom',()=>zoomCenter(1.22)),
-      toolKey('⛶','camera',fitMap),
+      toolKey('⛶','fit map',fitMap),
       toolKey('⌁','reset tilt',resetTilt)
+    );
+    if(selectedImage)keyboardKeys.append(
+      readoutKey(String(selectedImage.name||selectedImage.text||'SELECTED').toUpperCase(),'selection remains active while viewing'),
+      toolKey('FOCUS','fit selected object',()=>focusSelectedAsset(selectedImage)),
+      toolKey(selectionUnderlayVisible?'UNDERLAY ✓':'UNDERLAY',selectionUnderlaySourceName||'lower layer inside selection',toggleSelectionUnderlay),
+      toolKey('EDIT','return to object actions',()=>setPrimaryKeyboardMode('Edit'))
     );
     if(REGION_DEFINER&&regionClaimPhase!=='build')keyboardKeys.append(
       readoutKey(regionClaimedRegion?'REGION':'WORLD MAP',regionClaimedRegion?'claimed full map':'claim source'),
