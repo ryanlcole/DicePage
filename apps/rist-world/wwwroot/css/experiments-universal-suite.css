@@ -26,16 +26,63 @@
 .asset-preview{position:absolute;z-index:5;left:50%;top:50%;width:120px;height:90px;display:grid;place-items:center;border:2px solid rgba(245,211,126,.9);border-radius:10px;background:linear-gradient(135deg,rgba(199,153,67,.34),rgba(65,139,171,.27)),repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 6px,transparent 6px 12px);box-shadow:0 14px 38px rgba(0,0,0,.45);transform-origin:center}
 .asset-preview.sprite{border-style:dashed}.asset-preview span,.ironed-asset span{color:#f6e1a8;font:900 10px/1 system-ui;letter-spacing:.18em}
 .ironed-asset{position:absolute;z-index:2;left:34%;top:56%;width:110px;height:82px;display:grid;place-items:center;border:1px solid rgba(229,197,118,.48);border-radius:8px;background:linear-gradient(135deg,rgba(139,106,48,.32),rgba(38,92,116,.2));transform:rotate(-5deg);opacity:.72}
-.experiments-controls{z-index:4;display:grid;align-content:center;justify-items:center;gap:8px;padding:10px;background:radial-gradient(circle at center,rgba(22,82,117,.15),transparent 65%),linear-gradient(180deg,#07121a,#03090e)}
-.axis-title{position:relative;z-index:1;display:flex;align-items:baseline;gap:8px}.axis-title strong{color:#f0d58b;font:900 18px/1 Georgia,serif}.axis-title small{color:#7897a8;font:800 7px/1 system-ui;letter-spacing:.04em}
-.y-pad,.x-pad{position:relative;z-index:1;display:grid;align-items:center;justify-items:center;gap:5px}.y-pad{grid-template-rows:auto 36px auto}.x-pad{grid-template-columns:auto minmax(42px,92px) auto}
-.axis-key{width:34px;height:30px;padding:0;border:1px solid #517184;border-radius:7px;background:#0a1a24;color:#9edfff;font:900 13px/1 system-ui;touch-action:manipulation}
-.axis-key:focus-visible,.action-button:focus-visible{outline:2px solid #ffe3a0;outline-offset:2px}
-.axis-rail{position:relative;width:8px;height:36px;border:1px solid #395b6b;border-radius:999px;background:#03080b}.axis-rail.horizontal{width:100%;height:8px}
-.axis-rail span{position:absolute;left:50%;top:50%;width:14px;height:14px;border:1px solid #79cdf2;border-radius:50%;background:#12364a;transform:translate(-50%,-50%);box-shadow:0 0 12px rgba(73,190,237,.38)}
-.action-button{position:relative;z-index:1;width:min(100%,210px);min-height:54px;display:grid;place-content:center;gap:4px;padding:7px 9px;border:1px solid #d0aa59;border-radius:10px;background:linear-gradient(180deg,#1a314a,#081624);color:#f3d989;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);touch-action:manipulation}
-.right-action{background:linear-gradient(180deg,#3b2a18,#171008)}.action-button small{color:#789db0;font:800 6px/1 system-ui;letter-spacing:.04em}.action-button strong{font:900 clamp(10px,1.2vw,15px)/1 system-ui;letter-spacing:.08em}.action-button:active,.axis-key:active{transform:translateY(1px);filter:brightness(1.2)}
-@media(max-width:900px) and (orientation:landscape){.experiments-shell{grid-template-columns:minmax(145px,23vw) minmax(0,1fr) minmax(145px,23vw);grid-template-rows:minmax(0,1fr) minmax(132px,37dvh);gap:5px;padding:5px}.experiments-display,.experiments-viewer,.experiments-controls{border-radius:9px}.experiments-display>header{padding:5px 7px}.display-copy{inset:27px 5px 5px}.display-copy p{display:none}.experiments-controls{padding:5px;gap:4px}.action-button{min-height:42px}.axis-title small{font-size:6px}.viewer-status{bottom:31px;padding:6px 8px}.viewer-readout{bottom:6px;font-size:6px}}
-@media(orientation:portrait){.experiments-shell{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(104px,20dvh) minmax(148px,27dvh);grid-template-areas:"viewer viewer" "leftDisplay rightDisplay" "leftControls rightControls";gap:6px}.display-copy{inset:28px 5px 5px;gap:4px}.display-copy strong{font-size:clamp(12px,4vw,20px)}.display-copy p{display:none}.world-selector,.software-selector,.settings-selector{inset:28px 4px 4px}.world-selector strong,.software-selector strong{font-size:clamp(11px,3.6vw,18px)}.experiments-controls{padding:6px;gap:5px}.axis-title small{display:none}.action-button{min-height:48px}.action-button small{font-size:5px}.viewer-status{bottom:34px}}
-@media(max-width:430px) and (orientation:portrait){.experiments-shell{grid-template-rows:minmax(0,1fr) 96px 142px;padding:4px;gap:4px}.experiments-display>header small{display:none}.viewer-title{top:5px;padding:4px 9px}.viewer-title small{display:none}.viewer-status strong{font-size:12px}.viewer-status span{font-size:7px}.viewer-readout{font-size:5px;gap:7px}.action-button strong{font-size:9px}}
+.experiments-controls{z-index:4;min-width:0;min-height:0}
+.experiments-axis{position:relative;display:grid;align-items:center;justify-items:center;gap:4px;padding:7px 10px;background:radial-gradient(circle at center,rgba(19,84,137,.16),transparent 64%),rgba(3,10,16,.92)}
+.experiments-axis-y{grid-template-columns:minmax(88px,1fr) minmax(46px,.48fr);grid-template-rows:auto 1fr}
+.experiments-axis-x{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+.experiments-axis-copy{position:relative;z-index:1;display:grid;justify-items:center;gap:2px;color:#f0d99d;text-align:center}
+.experiments-axis-y .experiments-axis-copy{grid-column:1;grid-row:1}
+.experiments-axis-copy strong{font:700 clamp(10px,1.15vw,16px)/1 Georgia,serif;letter-spacing:.14em}
+.experiments-axis-copy small{color:#d9b655;font:800 clamp(7px,.8vw,10px)/1 system-ui,-apple-system,sans-serif;letter-spacing:.11em}
+.experiments-action{position:relative;z-index:1;width:min(100%,150px);min-height:30px;padding:5px 10px;border:1px solid #d0aa59;border-radius:8px;background:linear-gradient(180deg,#1c3454,#0a1730);color:#f1d98d;font:900 clamp(9px,.95vw,13px)/1 system-ui,-apple-system,sans-serif;letter-spacing:.11em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);touch-action:manipulation}
+.experiments-start{background:linear-gradient(180deg,#3b2a18,#171008)}
+.experiments-action:active{transform:translateY(1px);filter:brightness(1.2)}
+.experiments-action:focus-visible,.experiments-slider:focus-visible{outline:2px solid #ffe7a9;outline-offset:4px}
+.experiments-axis-y .experiments-action{grid-column:1;grid-row:2;align-self:start}
+.experiments-y-slider-wrap{position:relative;z-index:1;grid-column:2;grid-row:1/3;width:100%;height:100%;display:grid;place-items:center}
+.experiments-x-slider-wrap{position:relative;z-index:1;width:100%;display:grid;place-items:center;align-self:center}
+.experiments-slider{accent-color:#45c6ff;touch-action:none}
+.experiments-slider-y{width:14dvh;min-width:92px;max-width:168px;transform:rotate(-90deg);transform-origin:center}
+.experiments-slider-x{width:min(96%,280px)}
+@media(max-width:900px) and (orientation:landscape){
+ .experiments-shell{grid-template-columns:minmax(145px,23vw) minmax(0,1fr) minmax(145px,23vw);grid-template-rows:minmax(0,1fr) minmax(132px,37dvh);gap:5px;padding:5px}
+ .experiments-display,.experiments-viewer,.experiments-controls{border-radius:9px}
+ .experiments-display>header{padding:5px 7px}
+ .display-copy{inset:27px 5px 5px}
+ .display-copy p{display:none}
+ .experiments-axis{padding:4px 6px}
+ .experiments-axis-y{grid-template-columns:minmax(72px,1fr) 40px}
+ .experiments-action{min-height:28px;padding:4px 6px;font-size:8px}
+ .experiments-slider-y{min-width:78px;width:13dvh}
+ .experiments-axis-copy strong{font-size:9px}
+ .experiments-axis-copy small{font-size:6px;letter-spacing:.05em}
+ .viewer-status{bottom:31px;padding:6px 8px}
+ .viewer-readout{bottom:6px;font-size:6px}
+}
+@media(orientation:portrait){
+ .experiments-shell{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(104px,20dvh) minmax(148px,27dvh);grid-template-areas:"viewer viewer" "leftDisplay rightDisplay" "leftControls rightControls";gap:6px}
+ .display-copy{inset:28px 5px 5px;gap:4px}
+ .display-copy strong{font-size:clamp(12px,4vw,20px)}
+ .display-copy p{display:none}
+ .world-selector,.software-selector,.settings-selector{inset:28px 4px 4px}
+ .world-selector strong,.software-selector strong{font-size:clamp(11px,3.6vw,18px)}
+ .experiments-axis{padding:6px 5px}
+ .experiments-axis-y{grid-template-columns:minmax(72px,1fr) 40px}
+ .experiments-action{min-height:34px;padding:5px 6px}
+ .experiments-slider-y{min-width:80px;width:13dvh}
+ .experiments-axis-copy strong{font-size:9px}
+ .experiments-axis-copy small{font-size:6px;letter-spacing:.04em}
+ .viewer-status{bottom:34px}
+}
+@media(max-width:430px) and (orientation:portrait){
+ .experiments-shell{grid-template-rows:minmax(0,1fr) 96px 142px;padding:4px;gap:4px}
+ .experiments-display>header small{display:none}
+ .viewer-title{top:5px;padding:4px 9px}
+ .viewer-title small{display:none}
+ .viewer-status strong{font-size:12px}
+ .viewer-status span{font-size:7px}
+ .viewer-readout{font-size:5px;gap:7px}
+ .experiments-action{font-size:8px;letter-spacing:.05em}
+ .experiments-axis-copy small{display:none}
+}
 @media(prefers-reduced-motion:reduce){.asset-preview,.glass-sheet{transition:none!important}}
