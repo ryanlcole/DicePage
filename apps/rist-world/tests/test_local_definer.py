@@ -181,10 +181,12 @@ def test_local_map_is_persisted_separately_from_region_map():
     assert "map-local-saved" in player
 
 
-def test_local_opens_full_regiondefiner_asset_toolset_after_anchor_selection():
+def test_local_opens_adaptive_asset_flow_after_anchor_selection():
     player = read("wwwroot/prototype/prototype.js")
 
-    assert "if(LOCAL_DEFINER)return localIsOpen()?((localRegionEditable&&!READ_ONLY)?REGION_KEYBOARD_MODES:['Viewer','Tiers','Select']):(activeRegionMapId()?['Viewer','Tiers','Select']:['Select']);" in player
+    assert "if(LOCAL_DEFINER&&!localIsOpen())return['View','Edit','More'];" in player
+    assert "const PRIMARY_KEYBOARD_MODES=['View','Build','Edit','Layers','More']" in player
+    assert "function renderMoreKeyboard()" in player
     assert "OPEN LOCAL" in player
     assert "CREATE LOCAL" in player
     assert "toolKey('REGIONS','change Region'" in player

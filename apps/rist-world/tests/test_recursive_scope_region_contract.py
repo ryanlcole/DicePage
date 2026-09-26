@@ -141,7 +141,8 @@ def test_region_source_projector_writes_recursive_truth_beside_legacy_adapter():
 def test_region_has_shared_gimp_style_asset_list():
     source = prototype()
     style = read("wwwroot/prototype/prototype.css")
-    assert "const REGION_KEYBOARD_MODES=['Viewer','Tiers','Layers'" in source
+    assert "const PRIMARY_KEYBOARD_MODES=['View','Build','Edit','Layers','More']" in source
+    assert "function renderAdaptiveLayersKeyboard()" in source
     assert "function renderRecursiveAssetList()" in source
     assert "const scope=LOCAL_DEFINER?'LOCAL':'REGION';" in source
     assert "const degrees=LOCAL_DEFINER?30:15;" in source

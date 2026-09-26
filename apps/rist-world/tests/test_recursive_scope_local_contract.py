@@ -161,7 +161,8 @@ def test_local_asset_list_includes_locked_root_reference_and_layers_tab():
     assert "layerValue.textContent='1'" in source
     assert "tierValue.textContent='1'" in source
     assert "permission.textContent='PARENT'" in source
-    assert "?REGION_KEYBOARD_MODES:['Viewer','Tiers','Select']" in source
+    assert "if(LOCAL_DEFINER&&!localIsOpen())return['View','Edit','More'];" in source
+    assert "function renderAdaptiveLayersKeyboard()" in source
 
 
 def test_local_asset_list_reuses_gimp_editor_and_server_acl():
