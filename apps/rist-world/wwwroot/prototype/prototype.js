@@ -2422,7 +2422,7 @@ function placeLabel(text){
   };
   const node=document.createElement('div');node.className='user-image-placement user-label-placement';node.setAttribute('role','text');node.setAttribute('aria-label',`World label: ${text}`);item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);mountUserPlacement(item);updateLayerOrder();refreshUserLabel(item);selectUserImage(item);keyboardMode='Labels';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
+  userLayers.push(item);mountUserPlacement(item);updateLayerOrder();refreshUserLabel(item);selectUserImage(item);flowParent='Edit';keyboardMode='Edit';editFlow='root';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();
   announce(`${text} placed at Tier ${tierDisplay(item.tier).number}, Layer ${layerDisplay(item.layer)}. Drag to move the world anchor; Save commits it.`);
   return item;
 }
@@ -2772,7 +2772,7 @@ function refreshUserImage(item){
   item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
   item.node.dataset.positionLocked=item.positionLocked?'true':'false';
   item.node.dataset.interactionMode=assetInteractionMode;
-  item.node.setAttribute('aria-label',`${item.name||item.assetId||'Placed asset'}. ${item.positionLocked?'Position locked. ':''}${selectedImage===item?'Selected. ':''}Press Enter to select; use Move mode and arrow keys to move.`);
+  item.node.setAttribute('aria-label',`${item.name||item.assetId||'Placed asset'}. ${item.positionLocked?'Position locked. ':''}${selectedImage===item?`Selected. ${selectionUnderlayVisible?'Underlay preview on. ':''}`:''}Press Enter to select; use Move controls or arrow keys to move.`);
   ensureAssetNodeAccessibility(item);
   item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
   item.node.classList.toggle('full-world-placement',isWorldMapItem(item));
@@ -2820,7 +2820,7 @@ function refreshUserImage(item){
 function deselectUserImage(announceChange=false){
   if(!selectedImage)return false;
   const previous=selectedImage;
-  previous.node?.classList.remove('selected');selectedImage=null;refreshLinkedSelectionClasses();removeAssetResizeOverlay();refreshUserImage(previous);restoreSelectionCamera();editFlow='root';adaptiveDeleteArmed=false;renderKeyboardKeys();scheduleRegionEnhancement(20);
+  previous.node?.classList.remove('selected');selectedImage=null;adaptiveUndoStack=[];refreshLinkedSelectionClasses();removeAssetResizeOverlay();refreshUserImage(previous);restoreSelectionCamera();editFlow='root';adaptiveDeleteArmed=false;renderKeyboardKeys();scheduleRegionEnhancement(20);
   if(announceChange)announce('Selection cleared. Normal view restored.');
   return true;
 }
@@ -2980,7 +2980,7 @@ async function placeUploadedImage(file){
   if(isWorldMapItem(item))removeCustomWorldMap(item);
   const node=document.createElement('img');node.className=`user-image-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
-  userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(originalSrc);if(transparentSrc!==originalSrc)void primeCollisionMask(transparentSrc);updateLayerOrder();refreshUserImage(item);selectUserImage(item);closeImageUpload();flowParent='Edit';keyboardMode='Edit';editFlow='root';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   item.personalUploadPromise=trackPersonalUpload(
     saveFileToPersonalLibrary(file,{category:'Images',folder:'My Images',assetKind:'image',name:item.name})
       .then(asset=>{item.assetId=`private:${asset.key}`;item.personalAssetKey=asset.key;announce(`${item.name} added to My Images.`);return asset})
@@ -3162,9 +3162,12 @@ function selectionUnderlayCandidate(item){
   if(!item?.node?.isConnected)return null;
   const rect=item.node.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
   const members=linkedSelectionMembers(item),saved=members.map(member=>({node:member.node,visibility:member.node?.style.visibility||''}));
+  const preview=selectionUnderlayNode,previewWasHidden=preview?.hidden;
+  if(preview)preview.hidden=true;
   for(const entry of saved)if(entry.node)entry.node.style.visibility='hidden';
   let target=document.elementFromPoint?.(cx,cy)||null;
   for(const entry of saved)if(entry.node)entry.node.style.visibility=entry.visibility;
+  if(preview)preview.hidden=!!previewWasHidden;
   while(target&&target!==stage){
     if(target instanceof HTMLImageElement&&!target.closest('[data-ui]'))return target;
     target=target.parentElement;
@@ -3294,6 +3297,7 @@ function saveControlPrefs(){
 }
 function setPrimaryKeyboardMode(mode){
   personalFolderType=null;editFlow='root';adaptiveDeleteArmed=false;flowParent=mode;
+  if(mode!=='Layers')closeRecursiveAssetList();
   keyboardMode=internalModeForPrimary(mode);
   renderKeyboardTabs();renderKeyboardKeys();
   announce(`${mode} controls opened.`);
@@ -5293,7 +5297,7 @@ function placePersonalImage(asset){
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(asset.url);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
   if(REGION_DEFINER)refreshRegionPersistenceStatus();
-  personalFolderType=null;keyboardMode='Image';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  personalFolderType=null;flowParent='Edit';keyboardMode='Edit';editFlow='root';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${item.name} is now the Sea Level World Map at 100% by 100%.`)}
   else announce(`${item.name} placed from My Images as an adjustable layer. Save commits this instance.`);
 }
@@ -5424,7 +5428,7 @@ function placeLibraryTile(asset){
   const node=document.createElement('img');node.className=`user-image-placement library-tile-placement${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=asset.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);mountUserPlacement(item);world.dataset.emptyWorld='false';void primeCollisionMask(asset.image);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
-  keyboardMode='Tiles';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  flowParent='Edit';keyboardMode='Edit';editFlow='root';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   if(isWorldMapItem(item)){assetPlacementRole='layer';announce(`${asset.name} is now the Sea Level World Map at 100% by 100%. Future images and tiles default to adjustable layers.`)}
   else announce(REGION_DEFINER?`${asset.name} placed inside ${regionClaimedRegion?.name||'the claimed region'} with free placement inside the deed.`:`${asset.name} placed at the viewer center as an adjustable layer above Sea Level.`);
 }
@@ -5596,7 +5600,7 @@ async function placeSpriteDefinition(definition){
   const node=document.createElement('img');node.className='user-image-placement sprite-placement';node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);mountUserPlacement(item);void primeCollisionMask(firstFrame);updateLayerOrder();refreshUserImage(item);selectUserImage(item);
-  keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
+  flowParent='Edit';keyboardMode='Edit';editFlow='root';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();applyParallax();scheduleRegionEnhancement(30);
   announce(`${item.name} placed using frame 1. It stays above the map while positioning; Save commits it to Tier ${selectedPositionSummary(item).tier}, Layer ${selectedPositionSummary(item).layer} and begins motion.`);
 
   item.spriteReadyPromise=(preparedFrames?Promise.resolve(preparedFrames):extractSpriteChainFrames(pages,{motionOnly:false})).then(frames=>{
@@ -5660,7 +5664,7 @@ async function placeUploadedSprites(files){
       })
     );
     spriteUploadPanel.hidden=true;stage.classList.remove('image-upload-open');spriteChainTarget=null;
-    keyboardMode='Sprites';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
+    flowParent='Edit';keyboardMode='Edit';editFlow='root';openKeyboard();renderKeyboardTabs();renderKeyboardKeys();selectUserImage(item);
   }catch(error){announce(`Sprite chain upload failed: ${String(error?.message||error||'unknown error')}`)}
 }
 async function placeLibrarySprite(asset){
@@ -6397,8 +6401,8 @@ function renderKeyboardKeysContent(){
   const sets={Litch:['Light','Shadow','Intensity','Falloff'],CAD:['Line','Shape','Measure','Snap'],Stylus:['Draw','Pressure','Erase','Sample'],Tethers:['Link','Unlink','Anchor','Trace'],Metadata:['Inspect','Identity','Provenance','Relations']};
   (sets[keyboardMode]||['Inspect']).forEach(name=>keyboardKeys.append(toolKey(name,keyboardMode.toLowerCase(),()=>setTool(name))));
 }
-function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Close Region Definer keyboard':'Close World Builder keyboard');renderKeyboardTabs();renderKeyboardKeys();if(REGION_DEFINER)updateRegionSelectionOverlay();announce(`${keyboardMode} keyboard opened over viewer. Viewer size unchanged.`)}
-function closeKeyboard(){const restoreFocus=keyboard.contains(document.activeElement);keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label',REGION_DEFINER?'Open Region Definer keyboard':'Open World Builder keyboard');if(REGION_DEFINER)updateRegionSelectionOverlay();if(restoreFocus)keyboardToggle.focus();announce('Keyboard hidden. Viewer unobstructed.')}
+function openKeyboard(){keyboard.hidden=false;stage.classList.add('keyboard-open');keyboardToggle.setAttribute('aria-expanded','true');keyboardToggle.setAttribute('aria-label','Close adaptive controls');renderKeyboardTabs();renderKeyboardKeys();if(REGION_DEFINER)updateRegionSelectionOverlay();if(selectedImage&&selectionAutoFocus)requestAnimationFrame(()=>focusSelectedAsset(selectedImage));announce(`${primaryModeFor()} controls opened over the viewer.`)}
+function closeKeyboard(){const restoreFocus=keyboard.contains(document.activeElement);keyboard.hidden=true;stage.classList.remove('keyboard-open');keyboardToggle.setAttribute('aria-expanded','false');keyboardToggle.setAttribute('aria-label','Open adaptive controls');if(REGION_DEFINER)updateRegionSelectionOverlay();if(restoreFocus)keyboardToggle.focus();announce('Controls hidden. Viewer unobstructed.')}
 
 BASE_WORLD_ASSETS.forEach(asset=>{
   const node=planeByKey[asset.key];
