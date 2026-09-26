@@ -66,6 +66,9 @@
     .user-image-placement.full-world-placement.selected{outline-offset:-2px}
     .user-image-placement.linked-selected{outline:1px dashed rgba(143,197,212,.92);outline-offset:2px}
     .user-image-placement.selected{outline:2px solid #f0cc69;outline-offset:2px}
+    .selection-underlay-preview{position:absolute;z-index:63;overflow:hidden;pointer-events:none;border:1px dashed rgba(153,211,233,.88);background-repeat:no-repeat;background-color:rgba(4,13,18,.72);box-shadow:inset 0 0 0 1px rgba(2,7,10,.72);opacity:.78}
+    .selection-underlay-preview[hidden]{display:none!important}
+    .selection-underlay-preview::after{content:"UNDERLAY";position:absolute;right:4px;bottom:3px;padding:2px 4px;border-radius:4px;background:rgba(4,12,16,.8);color:#d7edf4;font:900 7px/1 system-ui;letter-spacing:.08em}
     .asset-resize-overlay{position:absolute;box-sizing:border-box;border:1px solid rgba(240,204,105,.9);outline:1px solid rgba(0,0,0,.42);transform-origin:50% 50%;pointer-events:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
     .asset-resize-handle{position:absolute;width:20px;height:20px;min-width:20px;min-height:20px;margin:0;padding:0;border:2px solid #0b1720;border-radius:50%;background:#f0cc69;box-shadow:0 1px 5px #000b;pointer-events:auto;touch-action:none;-webkit-touch-callout:none}
     .asset-resize-handle.nw{left:0;top:0;transform:translate(-50%,-50%);cursor:nwse-resize}
@@ -93,9 +96,9 @@
     .region-persistence-status{position:absolute;z-index:141;right:max(66px,calc(env(safe-area-inset-right) + 66px));bottom:calc(69px + env(safe-area-inset-bottom));max-width:min(68vw,320px);padding:6px 9px;border:1px solid rgba(104,157,181,.78);border-radius:999px;background:rgba(5,15,21,.9);color:#ccecff;font:900 8px/1 system-ui;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 4px 14px #0008}
     .region-persistence-status.ok{border-color:rgba(103,190,133,.8);color:#c9f3d4}.region-persistence-status.waiting{border-color:rgba(213,173,85,.86);color:#f3dca0}.region-persistence-status.hidden-assets{border-color:rgba(197,128,80,.86);color:#ffd0a8}.region-persistence-status.error{border-color:rgba(205,87,87,.88);color:#ffd0d0}
     .region-persistence-status[hidden]{display:none!important}
-    .stage.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + env(safe-area-inset-bottom))}
+    .stage.keyboard-open .persistent-save{bottom:calc(min(40vh,320px) + 60px + env(safe-area-inset-bottom))}
     .stage.region-definer-mode .region-persistence-status{bottom:calc(69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
-    .stage.region-definer-mode.keyboard-open .region-persistence-status{bottom:calc(min(36vh,290px) + 69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode.keyboard-open .region-persistence-status{bottom:calc(min(40vh,320px) + 69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
     .stage.region-definer-mode.region-claim-confirming.keyboard-open .region-persistence-status{bottom:calc(min(32vh,220px) + 69px + var(--region-control-lift) + env(safe-area-inset-bottom))}
     .region-enhance-canvas{position:absolute;z-index:9;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .12s linear;will-change:opacity}
     .region-enhance-canvas.active{opacity:1}
@@ -171,15 +174,17 @@
     .battle-instance strong{font-size:15px;letter-spacing:.14em;color:#ffe3a0}
     .battle-instance span{max-width:82%;font-size:8px;line-height:1.45;text-align:center;color:#b9c5ca}
     .square-action{flex:0 0 44px;width:44px;height:44px;padding:0;border:1px solid rgba(115,95,50,.72);border-radius:10px;background:rgba(7,14,19,.18);box-shadow:0 4px 14px rgba(0,0,0,.12);color:#f0d68e;font-size:21px;font-weight:900;touch-action:manipulation;backdrop-filter:none}
-    .stage.keyboard-open .bottom-slider{bottom:min(36vh,290px)}
-    .keyboard{position:absolute;z-index:70;left:0;right:0;bottom:0;height:min(36vh,290px);display:grid;grid-template-rows:34px 42px minmax(0,1fr);background:transparent;border-top:0;box-shadow:none;backdrop-filter:none}
+    .stage.keyboard-open .bottom-slider{bottom:min(40vh,320px)}
+    .keyboard{position:absolute;z-index:70;left:0;right:0;bottom:0;height:min(40vh,320px);display:grid;grid-template-rows:34px 30px 48px minmax(0,1fr);background:transparent;border-top:0;box-shadow:none;backdrop-filter:none}
     .keyboard[hidden]{display:none}
     .keyboard-head{display:flex;align-items:center;justify-content:space-between;padding:0 8px;border-bottom:1px solid rgba(38,55,64,.55);background:transparent}
     .keyboard-head strong{font-size:8px;letter-spacing:.13em;color:#e6cb83}
     .keyboard-head button{width:32px;height:26px;border:1px solid #53636b;border-radius:6px;background:#101a20;color:#e9ddbe}
-    .keyboard-tabs{display:flex;gap:4px;align-items:center;overflow-x:auto;padding:4px 7px;scrollbar-width:none;border-bottom:1px solid rgba(37,51,58,.55);background:transparent}
+    .keyboard-flow{display:flex;align-items:center;min-width:0;padding:0 10px;border-bottom:1px solid rgba(37,51,58,.5);background:rgba(5,13,18,.58);color:#bed7e2;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .keyboard-flow::before{content:"FLOW";flex:0 0 auto;margin-right:7px;color:#e7c976;font-size:7px;letter-spacing:.12em}
+    .keyboard-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;align-items:center;overflow:visible;padding:3px 7px;border-bottom:1px solid rgba(37,51,58,.55);background:transparent}
     .keyboard-tabs::-webkit-scrollbar{display:none}
-    .keyboard-tabs button{flex:0 0 auto;height:30px;padding:0 10px;border:1px solid #42535b;border-radius:7px;background:#0d171d;color:#9fb1ba;font-size:8px;font-weight:900;touch-action:manipulation}
+    .keyboard-tabs button{min-width:0;height:42px;padding:0 5px;border:1px solid #42535b;border-radius:8px;background:#0d171d;color:#aebdc4;font-size:9px;font-weight:900;letter-spacing:.035em;touch-action:manipulation;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .keyboard-tabs button.active{border-color:#d0aa56;background:#211b0f;color:#f7df9f}
     .keyboard-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));grid-auto-rows:minmax(48px,1fr);gap:6px;overflow:auto;padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left))}
     .keyboard-keys button{min-height:48px;border:1px solid #425861;border-radius:8px;background:#0c1820;color:#dae2e5;display:grid;place-items:center;align-content:center;gap:3px;font-weight:900;touch-action:manipulation}
@@ -202,6 +207,7 @@
       background:linear-gradient(180deg,rgba(5,10,14,.9),rgba(5,10,14,.97));
     }
     .stage.region-claim-confirming .keyboard-tabs{display:none}
+    .stage.region-claim-confirming .keyboard-flow{display:none}
     .stage.region-claim-confirming .keyboard-keys{
       grid-template-columns:minmax(0,1.6fr) minmax(82px,.8fr) minmax(104px,1fr);
       grid-auto-rows:minmax(48px,48px);
@@ -218,10 +224,10 @@
     /* Keep Region Definer controls clear of phone/browser chrome and the viewport edge. */
     .stage.region-definer-mode .bottom-slider{bottom:var(--region-control-lift)}
     .stage.region-definer-mode .keyboard{bottom:var(--region-control-lift)}
-    .stage.region-definer-mode.keyboard-open .bottom-slider{bottom:calc(min(36vh,290px) + var(--region-control-lift))}
+    .stage.region-definer-mode.keyboard-open .bottom-slider{bottom:calc(min(40vh,320px) + var(--region-control-lift))}
     .stage.region-definer-mode.region-claim-confirming.keyboard-open .bottom-slider{bottom:calc(min(32vh,220px) + var(--region-control-lift))}
     .stage.region-definer-mode .persistent-save{bottom:calc(60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
-    .stage.region-definer-mode.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
+    .stage.region-definer-mode.keyboard-open .persistent-save{bottom:calc(min(40vh,320px) + 60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
     .stage.region-definer-mode.region-claim-confirming.keyboard-open .persistent-save{bottom:calc(min(32vh,220px) + 60px + var(--region-control-lift) + env(safe-area-inset-bottom))}
     .stage.region-build-mode .region-definition-grid,.stage.region-asset-moving .region-definition-grid{display:none!important;opacity:0!important;pointer-events:none!important}
     .keyboard-keys .placed-content-select:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
@@ -232,6 +238,12 @@
     .library-tile-placement{image-rendering:auto}
     .sr-live{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid #f1d884;outline-offset:2px}
+    .stage.large-controls .keyboard-tabs button{height:48px;font-size:11px}
+    .stage.large-controls .keyboard-keys{grid-template-columns:repeat(auto-fit,minmax(108px,1fr));grid-auto-rows:minmax(58px,1fr);gap:8px}
+    .stage.large-controls .keyboard-keys button,.stage.large-controls .keyboard-keys .placed-content-select,.stage.large-controls .keyboard-keys .label-text-input{min-height:58px}
+    .stage.high-contrast .keyboard-tabs button,.stage.high-contrast .keyboard-keys button,.stage.high-contrast .keyboard-keys select,.stage.high-contrast .keyboard-keys input{border-width:2px}
+    .stage.high-contrast .keyboard-tabs button.active{outline:2px solid #fff;outline-offset:1px}
+    .stage.high-contrast .user-image-placement.selected{outline:4px solid #fff;outline-offset:3px}
     .stage:focus-visible{outline-offset:-3px}
     #viewerShortcuts{max-width:36rem;margin:0;color:#dae2e5;font:13px/1.45 system-ui}
     @media(max-width:620px){
