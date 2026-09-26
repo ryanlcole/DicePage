@@ -351,6 +351,17 @@
       "sha256": "b692ed6db063476a9d677cdfe65cf687b80f208e3362227bf7c2e52fea975485",
       "source_origin": "UNKNOWN",
       "content": "Comparison of explicitly identified repository contract sections."
+    },
+    {
+      "source_id": "source.owner-gamemaster-suite-os-20260926",
+      "title": "Owner directive — GameMaster Suite universal operating environment",
+      "kind": "owner_directive",
+      "uri": "owner-directive:2026-09-26:gamemaster-suite-os",
+      "status": "current-owner-directive",
+      "visibility": "public-project-architecture",
+      "observed_at": "2026-09-26",
+      "source_origin": "HUMAN",
+      "content": "GameMaster Suite is intended to function as an OS-like universal operating environment for game masters who use many kinds of software. The beginner interaction layer is X axis, Y axis, left button, right button, with richer control tiers layered above it. Specialized software capabilities should plug into the same Rune → Glyph → SHAEP interaction environment through adapters/services instead of forcing separate interface models. Long-term deployment goal: allow a user's PC to boot into a minimal client that connects to a server and loads only the RIST/Shaelvien universal environment rather than a conventional desktop. This is a planned architecture target, not currently implemented functionality."
     }
   ],
   "records": [
@@ -8876,6 +8887,44 @@
         "shaep",
         "stabilization"
       ]
+    },
+    {
+      "record_id": "project.owner-gamemaster-suite-os-20260926",
+      "title": "GameMaster Suite as universal operating environment",
+      "text": "Planned owner directive: treat GameMaster Suite as an OS-like universal operating environment rather than a single application. The universal Rune → Glyph → SHAEP control layer should mediate native RIST/Shaelvien tools and adapters to specialized external/open-source software capabilities. Beginner input remains X, Y, left button, right button; richer control tiers expand without changing semantic actions. Long-term deployment may support a thin-client/boot-to-server mode where a PC loads directly into the RIST/Shaelvien environment instead of a conventional desktop. This is a future architecture goal and is not evidence of an implemented boot system, server image, or deployed OS.",
+      "category": "architecture",
+      "truth_domain": "HYPOTHESIS",
+      "status": "planned-owner-directive",
+      "scope": "future-product-architecture",
+      "source_ids": [
+        "source.owner-gamemaster-suite-os-20260926"
+      ],
+      "source_locator": "owner-directive:2026-09-26",
+      "recorded_at": "2026-09-26",
+      "visibility": "public-project-architecture",
+      "provenance": {
+        "origin": "HUMAN",
+        "zone": "OWNER_DIRECTIVE",
+        "transformation": "direct-owner-requirement-normalized-for-project-knowledge",
+        "source_origin": "HUMAN",
+        "canon_promotion": false
+      },
+      "tags": [
+        "gamemaster",
+        "suite",
+        "operating-environment",
+        "os-like",
+        "thin-client",
+        "boot-to-server",
+        "universal-input",
+        "rune",
+        "glyph",
+        "shaep",
+        "adapters"
+      ],
+      "original_id": "GAMEMASTER-SUITE-OS-ARCHITECTURE-2026-09-26",
+      "reported_source": "Current owner directive",
+      "reported_classification": "future-product-architecture"
     }
   ],
   "relationships": [],
