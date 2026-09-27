@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "relic": {
+      "type": "http",
+      "url": "https://relicgamemaster.com/mcp"
+    }
+  }
+}
