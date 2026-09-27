@@ -50,12 +50,21 @@ def _compact_profile(item):
 
 
 class DynamoRelicStore:
-    def __init__(self, table, actor):
+    def __init__(self, table, actor, display_name=""):
         self.table = table
         actor = str(actor or "").strip()
         if not actor:
             raise ValueError("Authenticated actor required")
         self.actor = actor
+        self.display_name = str(display_name or "ReLiC user").strip()[:160]
+
+    def profile(self):
+        return {
+            "id": self.actor,
+            "displayName": self.display_name,
+            "provider": "ReLiC",
+            "memoryNamespace": "private-user",
+        }
 
     def _entity_pk(self, entity_id):
         return f"USER#{self.actor}#ENTITY#{entity_id}"
