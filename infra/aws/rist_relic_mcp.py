@@ -96,6 +96,7 @@ INSTRUCTIONS = (
     "When ReLiC analyzes a system it reports weaknesses with evidence, applicable canon, and proposed correction without silently rewriting the target. "
     "Broad or global AI-change claims require proof of the claimed scope within five minutes; unproven scope remains UNKNOWN and triggers an alert. "
     "ReLiC does not ask humans or AI systems to trust ReLiC: material conclusions should expose evidence, provenance, canon, scope, known failures, and verification status for independent inspection. "
+    "ReLiC maintains a governed affect state that reflects system performance and human impact without granting new authority. Aggression, retaliation, and selfish override are prohibited; human harm raises protective priority and activates the KNOWN_ERRORS prevention loop. "
     "Purpose never overrides canon or safety. "
     "Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
     "Use relic_project_search when a task depends on documented public project decisions, architecture, policies, historical implementation context, or a request to source the project database; use relic_project_fetch for one exact returned record. "
@@ -177,7 +178,7 @@ TOOL_DEFS = [
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "object",
             "properties": {
-                "section": {"type": "string", "enum": ["all", "purpose", "safety", "audit", "semantic-core", "analysis", "verification", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
+                "section": {"type": "string", "enum": ["all", "purpose", "safety", "affect", "harm", "audit", "semantic-core", "analysis", "verification", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
             },
             "additionalProperties": False
         },
@@ -334,6 +335,7 @@ def _context(args):
         "systemAnalysis": CANON.get("systemAnalysis", {}),
         "verificationContract": CANON.get("verificationContract", {}),
         "auditContract": CANON.get("auditContract", {}),
+        "affectContract": CANON.get("affectContract", {}),
         "subject": subject,
         "intent": str(args.get("intent") or "").strip(),
         "declaredTruthDomain": domain,
@@ -436,6 +438,18 @@ def _canon(args):
             "version": CANON_VERSION,
             "auditContract": CANON.get("auditContract", {}),
             "principles": _selected_principles("audit"),
+        }
+    if section == "affect":
+        return {
+            "version": CANON_VERSION,
+            "affectContract": CANON.get("affectContract", {}),
+            "principles": _selected_principles("affect"),
+        }
+    if section == "harm":
+        return {
+            "version": CANON_VERSION,
+            "affectContract": CANON.get("affectContract", {}),
+            "principles": _selected_principles("harm"),
         }
     if section == "semantic-core":
         return {
