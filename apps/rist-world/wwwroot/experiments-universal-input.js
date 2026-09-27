@@ -16,12 +16,22 @@
   let pointerId = null;
   let pointerX = 0;
   let pointerY = 0;
+  let pointerAnalogX = 0;
+  let pointerAnalogY = 0;
+  let cursorX = 0;
+  let cursorY = 0;
+  let lastCursorFrame = 0;
+  let lastCursorSync = 0;
   let cleanupAnalog = null;
   let cleanupLeftSlider = null;
   let cleanupRightSlider = null;
 
   const ANALOG_DEAD_ZONE = 0.34;
   const GAMEPAD_DEAD_ZONE = 0.55;
+  const CURSOR_POINTER_DEAD_ZONE = 0.08;
+  const CURSOR_GAMEPAD_DEAD_ZONE = 0.14;
+  const CURSOR_MAX_SPEED = 86;
+  const CURSOR_SYNC_MS = 120;
   const axisState = { x: 0, y: 0 };
 
   function activeGamepad() {
@@ -49,6 +59,68 @@
     if (value > deadZone) return 1;
     if (value < -deadZone) return -1;
     return 0;
+  }
+
+  function radialResponse(x, y, deadZone) {
+    const magnitude = Math.hypot(x, y);
+    if (magnitude <= deadZone) return { x: 0, y: 0 };
+
+    const capped = Math.min(1, magnitude);
+    const scaled = (capped - deadZone) / (1 - deadZone);
+    const curved = Math.pow(Math.max(0, scaled), 1.35);
+    const factor = curved / Math.max(magnitude, 0.0001);
+
+    return {
+      x: x * factor,
+      y: y * factor
+    };
+  }
+
+  function gamepadAnalogVector(gamepad) {
+    if (!gamepad) return { x: 0, y: 0 };
+
+    let x = Number(gamepad.axes?.[0] ?? 0);
+    let y = -Number(gamepad.axes?.[1] ?? 0);
+
+    if (buttonPressed(gamepad, 14)) x = -1;
+    else if (buttonPressed(gamepad, 15)) x = 1;
+
+    if (buttonPressed(gamepad, 12)) y = 1;
+    else if (buttonPressed(gamepad, 13)) y = -1;
+
+    return { x, y };
+  }
+
+  function currentReticle() {
+    return analog?.closest?.(".experiments-shell")?.querySelector?.(".viewer-reticle") || null;
+  }
+
+  function renderCursor() {
+    const reticle = currentReticle();
+    if (!reticle) return;
+    reticle.style.left = `${50 + cursorX * 0.45}%`;
+    reticle.style.top = `${50 - cursorY * 0.45}%`;
+  }
+
+  function syncCursor(force = false) {
+    if (!dotnet) return;
+    const now = performance.now();
+    if (!force && now - lastCursorSync < CURSOR_SYNC_MS) return;
+    lastCursorSync = now;
+    dotnet.invokeMethodAsync("ReceiveCursorPosition", cursorX, cursorY).catch(() => {});
+  }
+
+  function updateSmoothCursor(rawX, rawY, now, deadZone) {
+    if (!lastCursorFrame) lastCursorFrame = now;
+    const dt = Math.min(0.05, Math.max(0, (now - lastCursorFrame) / 1000));
+    lastCursorFrame = now;
+
+    const response = radialResponse(rawX, rawY, deadZone);
+    cursorX = Math.max(-100, Math.min(100, cursorX + response.x * CURSOR_MAX_SPEED * dt));
+    cursorY = Math.max(-100, Math.min(100, cursorY + response.y * CURSOR_MAX_SPEED * dt));
+
+    renderCursor();
+    syncCursor(false);
   }
 
   function isPagingMode() {
@@ -123,6 +195,9 @@
       ny /= length;
     }
 
+    pointerAnalogX = nx;
+    pointerAnalogY = ny;
+
     const semantic = constrainedVector(nx, ny, ANALOG_DEAD_ZONE);
     pointerX = semantic.x;
     pointerY = semantic.y;
@@ -151,6 +226,8 @@
       pointerId = event.pointerId;
       pointerX = 0;
       pointerY = 0;
+      pointerAnalogX = 0;
+      pointerAnalogY = 0;
       resetAxisState();
       analog.setPointerCapture?.(pointerId);
       updateAnalogPointer(event);
@@ -168,8 +245,12 @@
       pointerId = null;
       pointerX = 0;
       pointerY = 0;
+      pointerAnalogX = 0;
+      pointerAnalogY = 0;
+      lastCursorFrame = 0;
       resetAxisState();
       setKnob(0, 0);
+      syncCursor(true);
       event.preventDefault();
     };
 
@@ -188,6 +269,9 @@
       pointerId = null;
       pointerX = 0;
       pointerY = 0;
+      pointerAnalogX = 0;
+      pointerAnalogY = 0;
+      lastCursorFrame = 0;
       setKnob(0, 0);
     };
 
@@ -309,17 +393,28 @@
     };
   }
 
-  function poll() {
+  function poll(now) {
     const gamepad = activeGamepad();
     edgeButton(gamepad, 0, "left");
     edgeButton(gamepad, 1, "right");
 
-    const vector = pointerId !== null
-      ? { x: pointerX, y: pointerY }
-      : gamepadVector(gamepad);
+    if (isPagingMode()) {
+      lastCursorFrame = 0;
+      const vector = pointerId !== null
+        ? { x: pointerX, y: pointerY }
+        : gamepadVector(gamepad);
 
-    processAxis("x", vector.x);
-    processAxis("y", vector.y);
+      processAxis("x", vector.x);
+      processAxis("y", vector.y);
+    } else {
+      resetAxisState();
+
+      const raw = pointerId !== null
+        ? { x: pointerAnalogX, y: pointerAnalogY, deadZone: CURSOR_POINTER_DEAD_ZONE }
+        : { ...gamepadAnalogVector(gamepad), deadZone: CURSOR_GAMEPAD_DEAD_ZONE };
+
+      updateSmoothCursor(raw.x, raw.y, now, raw.deadZone);
+    }
 
     frame = requestAnimationFrame(poll);
   }
@@ -329,7 +424,12 @@
       dotnet = dotnetReference;
       previousButtons = [];
       resetAxisState();
+      cursorX = 0;
+      cursorY = 0;
+      lastCursorFrame = 0;
+      lastCursorSync = 0;
       bindAnalog(analogElement);
+      renderCursor();
       cleanupLeftSlider?.();
       cleanupRightSlider?.();
       cleanupLeftSlider = bindDisplaySlider(leftSliderElement, "y", "y");
@@ -349,6 +449,10 @@
       analog = null;
       pad = null;
       knob = null;
+      cursorX = 0;
+      cursorY = 0;
+      lastCursorFrame = 0;
+      lastCursorSync = 0;
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
     }
