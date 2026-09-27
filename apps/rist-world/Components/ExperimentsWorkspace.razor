@@ -582,6 +582,12 @@
     _analogPlacementDraft=Wrap(_analogPlacementDraft+direction,AnalogPlacements.Length);
     _message=$"Analog placement: {CurrentAnalogPlacementDraft}.";
     break;
+   case Stage.AssetKind:
+    _assetKindIndex=Wrap(_assetKindIndex+direction,AssetKinds.Length);
+    _assetKind=AssetKinds[_assetKindIndex];
+    _assetSourceIndex=0;
+    _message=$"{_assetKind}. Right source: {CurrentAssetSource}.";
+    break;
    case Stage.WorldBuilderTier:
     _tier=Math.Clamp(_tier+direction,0,9);
     _message=$"Tier {_tier}. The glass stack is separated by a tier gap.";
@@ -615,6 +621,10 @@
    case Stage.GameMasterHub:
     _settingIndex=Wrap(_settingIndex+direction,Settings.Length);
     _message=$"Option: {CurrentSetting}.";
+    break;
+   case Stage.AssetKind:
+    _assetSourceIndex=Wrap(_assetSourceIndex+direction,AssetSources.Length);
+    _message=$"{_assetKind} source: {CurrentAssetSource}.";
     break;
    case Stage.Rotate:
     _assetRotation=NormalizeDegrees(_assetRotation+(direction*5));
@@ -661,9 +671,7 @@
     _message=$"Analog placement saved: {CurrentAnalogPlacementDraft}.";
     break;
    case Stage.AssetKind:
-    _assetKind="IMAGE";
-    _stage=Stage.AssetMode;
-    _message="Image selected. Choose Edit or Add.";
+    _message=$"{_assetKind} selected. Slide the right display left or right for {CurrentAssetSource}, then touch the right display to open it.";
     break;
    case Stage.AssetMode:
     _assetMode="EDIT";
@@ -671,7 +679,8 @@
     _message="Edit selected. Browse requests a source through the future image-tool adapter.";
     break;
    case Stage.BrowsePlace:
-    _message="Browse requested. This prototype deliberately does not embed or imitate an external editor.";
+    _stage=Stage.Scale;
+    _message=$"{_assetSource} {_assetKind.ToLowerInvariant()} selected. Use Y or slide the left display to set scale.";
     break;
    case Stage.SaveCancel:
     _savedAsset=true;
@@ -680,13 +689,19 @@
     _message="Asset ironed into the experimental viewer. Returned to World Builder Tier.";
     break;
    case Stage.WorldBuilderTier:
-    _message="Y changes Tier; Right/Enter confirms it.";
+    _stage=Stage.WorldBuilderLayer;
+    _message=$"Tier {_tier} selected. Choose Layer.";
     break;
    case Stage.WorldBuilderLayer:
-    _message="Y changes Layer; Right/Enter confirms it.";
+    _stage=Stage.AssetKind;
+    _assetKindIndex=Array.IndexOf(AssetKinds,_assetKind);
+    if(_assetKindIndex<0)_assetKindIndex=0;
+    _assetSourceIndex=0;
+    _message=$"Tier {_tier}, Layer {_layer}. Slide the left display for Image or Sprite; slide the right display for its source.";
     break;
    case Stage.Scale:
-    _message="Y enlarges or reduces; Right/Set confirms.";
+    _stage=Stage.Rotate;
+    _message=$"Scale {_assetScale:0.00}× selected. Use X or slide the right display to rotate.";
     break;
    case Stage.Rotate:
     _message="X rotates; Right/Set confirms.";
@@ -698,8 +713,79 @@
   return Task.CompletedTask;
  }
 
+ void GoBack()
+ {
+  switch(_stage)
+  {
+   case Stage.Role:
+    _stage=Stage.Environment;
+    _message="Returned to environment selection.";
+    break;
+   case Stage.GameMasterHub:
+    _stage=Stage.Role;
+    _message="Returned to Shaelvien role selection.";
+    break;
+   case Stage.GameMasterScope:
+    _stage=Stage.GameMasterHub;
+    _message="Returned to worlds and GameMaster options.";
+    break;
+   case Stage.SoftwareHub:
+    _stage=Stage.GameMasterScope;
+    _message="Returned to the GameMaster suite selector.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
+    if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+    _stage=Stage.GameMasterHub;
+    _message="Analog placement unchanged.";
+    break;
+   case Stage.WorldBuilderTier:
+    _stage=Stage.GameMasterScope;
+    _message="Returned to the GameMaster suite selector.";
+    break;
+   case Stage.WorldBuilderLayer:
+    _stage=Stage.WorldBuilderTier;
+    _message=$"Returned to Tier {_tier}.";
+    break;
+   case Stage.AssetKind:
+    _stage=Stage.WorldBuilderLayer;
+    _message=$"Returned to Layer {_layer}.";
+    break;
+   case Stage.AssetMode:
+    _stage=Stage.AssetKind;
+    _message="Returned to asset type and source.";
+    break;
+   case Stage.BrowsePlace:
+    _stage=Stage.AssetKind;
+    _message=$"Returned from {_assetSource} to {_assetKind} source selection.";
+    break;
+   case Stage.Scale:
+    _stage=Stage.BrowsePlace;
+    _message=$"Returned to {_assetSource} explorer.";
+    break;
+   case Stage.Rotate:
+    _stage=Stage.Scale;
+    _message=$"Returned to scale {_assetScale:0.00}×.";
+    break;
+   case Stage.Move:
+    _stage=Stage.Rotate;
+    _message=$"Returned to rotation {_assetRotation}°.";
+    break;
+   case Stage.SaveCancel:
+    _stage=Stage.Move;
+    _message="Returned to placement.";
+    break;
+  }
+ }
+
  Task PressRight()
  {
+  if(RightActsAsBack)
+  {
+   GoBack();
+   return Task.CompletedTask;
+  }
+
   switch(_stage)
   {
    case Stage.Environment:
@@ -734,17 +820,15 @@
     _message="Returned to the GameMaster suite selector.";
     break;
    case Stage.WorldBuilderTier:
-    _stage=Stage.WorldBuilderLayer;
-    _message=$"Tier {_tier} set for this experiment. Choose Layer.";
-    break;
    case Stage.WorldBuilderLayer:
-    _stage=Stage.AssetKind;
-    _message=$"Tier {_tier}, Layer {_layer}. Choose Image or Sprite.";
+    GoBack();
     break;
    case Stage.AssetKind:
-    _assetKind="SPRITE";
-    _stage=Stage.AssetMode;
-    _message="Sprite selected. Static images and animated sprites stay distinct but share placement controls.";
+    _assetSource=CurrentAssetSource;
+    _stage=Stage.BrowsePlace;
+    _message=_assetSource=="UPLOAD"
+     ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Use the cursor or touch; left display selects and right display returns."
+     :$"{_assetSource} explorer opened. Use the cursor or touch; left display selects and right display returns.";
     break;
    case Stage.AssetMode:
     _assetMode="ADD";
@@ -752,12 +836,10 @@
     _message=$"Add {_assetKind.ToLowerInvariant()} selected. Browse or Place.";
     break;
    case Stage.BrowsePlace:
-    _stage=Stage.Scale;
-    _message="Representation placed in preview. Use Y to enlarge or reduce.";
+    GoBack();
     break;
    case Stage.Scale:
-    _stage=Stage.Rotate;
-    _message="Scale set. Use X to rotate.";
+    GoBack();
     break;
    case Stage.Rotate:
     _stage=Stage.Move;
@@ -782,7 +864,7 @@
   {
    case "WORLD BUILDER":
     _stage=Stage.WorldBuilderTier;
-    _message="World Builder. Y changes Tier; Right confirms and advances to Layer.";
+    _message="World Builder. Y or a vertical slide changes Tier. Touch the left display to select it; the right display is Back.";
     break;
    case "SOFTWARE":
     _stage=Stage.SoftwareHub;
