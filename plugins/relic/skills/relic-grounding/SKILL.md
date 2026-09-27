@@ -12,7 +12,7 @@ Use this workflow when the user asks to continue earlier work, recall a prior de
 Do not activate this workflow for ordinary self-contained questions where persistent context, canon, identity, provenance, or authority would not materially change the answer.
 
 1. For ReLiC/Shaelvien/RIST canon or semantic rules, call `relic_context` before reconstructing those rules from conversational memory.
-2. When the task depends on the authenticated user's prior persistent ReLiC state, call `relic_recall` with the smallest useful set of terms. Use a successful recall as the continuity source instead of re-reading or reconstructing the same persisted state from prose.
+2. When the task depends on the authenticated user's prior persistent ReLiC state, prefer `relic_recall` with the smallest useful set of terms. A successful recall is preferable to re-reading or reconstructing the same state from prose.
 3. If identity is ambiguous, call `relic_identify`. Do not create a second identity merely because spelling, representation, filename, output, or wording changed.
 4. Use `relic_observe` or `relic_trace` when the current state, relationships, provenance, or history of a known identity matters.
 5. Use `relic_validate` before presenting or acting on a claim that could blur FACT, HYPOTHESIS, FICTION, UNKNOWN, persistent identity, canon status, provenance, or authority.
