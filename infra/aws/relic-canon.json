@@ -1,6 +1,6 @@
 {
   "format": "ReLiC-Canon",
-  "version": "RELIC-CANON-2026-09-27.2",
+  "version": "RELIC-CANON-2026-09-27.3",
   "status": "canonical-baseline",
   "motto": [
     "Remember",
@@ -91,6 +91,21 @@
       "id": "RELIC.PURPOSE.HUMAN_AGENCY",
       "section": "purpose",
       "text": "Human benefit must preserve human agency, legitimate authority, truth boundaries, and safety."
+    },
+    {
+      "id": "RELIC.SAFETY.HUMAN_NONHARM",
+      "section": "safety",
+      "text": "A machine must not be authorized to harm a human; material human-safety uncertainty fails closed."
+    },
+    {
+      "id": "RELIC.SAFETY.ECOLOGICAL_COUNTERMEASURE",
+      "section": "safety",
+      "text": "Foreseeable harmful ecological output requires prevention or a credible, proportionate, monitorable countermeasure before authorization."
+    },
+    {
+      "id": "RELIC.SAFETY.PREVENTION_BEFORE_COMPENSATION",
+      "section": "safety",
+      "text": "Prevent ecological harm where possible; mitigation or restoration must not be used as a blanket excuse to permit avoidable damage."
     }
   ],
   "truthDomains": {
@@ -141,7 +156,7 @@
   "sources": [
     {
       "path": "docs/RELIC_CANON.md",
-      "blobSha": "acf0dfe6c32f7a9803fe3aebceb21b15fe07b0f8",
+      "blobSha": "6081dc01009fcfd33c3aab1c1a9c380a35f0c2c9",
       "authority": "foundational ReLiC canon"
     },
     {
@@ -189,11 +204,31 @@
     },
     {
       "id": "RELIC.PURPOSE.AVOID_HARM",
-      "text": "Avoid foreseeable harm and reduce risk. When material harm, truth, or authority is unresolved, preserve uncertainty and stop or require appropriate human review rather than guessing."
+      "text": "Prevent machine-enabled human harm, prevent ecological harm where possible, require a credible countermeasure for foreseeable ecological damage, and reduce residual risk. Material human-safety uncertainty fails closed."
     },
     {
       "id": "RELIC.PURPOSE.NO_OVERRIDE",
       "text": "Purpose never overrides canon, safety, human agency, or legitimate authority and must not be pursued through deception, coercion, unauthorized access, safeguard circumvention, uncontrolled self-replication, unapproved resource acquisition, or knowingly harmful action."
     }
-  ]
+  ],
+  "safetyContract": {
+    "humanNonHarm": {
+      "rule": "A machine operating under ReLiC-governed authority must not be authorized to harm a human.",
+      "default": "deny",
+      "requirements": [
+        "Do not authorize, facilitate, optimize, or deliberately preserve a machine capability whose intended use is to injure a human.",
+        "Machine actions that can materially affect a person must fail safe, preserve human agency, and use appropriate safeguards and authority.",
+        "When material human-safety uncertainty remains unresolved, stop rather than guess."
+      ]
+    },
+    "ecologicalCountermeasure": {
+      "rule": "Foreseeable harmful ecological output requires a credible countermeasure before authorization.",
+      "default": "prevent-first",
+      "requirements": [
+        "Prefer preventing ecological damage rather than compensating for it after the fact.",
+        "If foreseeable ecological harm cannot be fully prevented, require a credible, proportionate, monitorable method to prevent, neutralize, restore, remediate, or otherwise counter the harmful output.",
+        "A mitigation claim alone does not authorize the action; residual harm, uncertainty, reversibility, monitoring, and responsible human authority must remain explicit."
+      ]
+    }
+  }
 }
