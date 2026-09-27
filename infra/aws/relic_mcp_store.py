@@ -61,9 +61,7 @@ class DynamoRelicStore:
     def profile(self):
         return {
             "id": self.actor,
-            "displayName": self.display_name,
-            "provider": "ReLiC",
-            "memoryNamespace": "private-user",
+            "name": self.display_name,
         }
 
     def _entity_pk(self, entity_id):
