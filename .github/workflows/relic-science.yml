@@ -8,6 +8,7 @@ on:
       - 'relic-freeze-*'
     paths:
       - 'research/relic_science/**'
+      - 'research/relic_falsification/**'
       - 'tests/test_relic_science.py'
       - 'tests/test_relic_core.py'
       - 'relic_core.py'
@@ -35,3 +36,18 @@ jobs:
 
       - name: Print Infoton audit
         run: python research/relic_science/infoton_audit.py --pretty
+
+      - name: Attack frozen ReLiC baseline assumptions
+        run: |
+          mkdir -p artifacts
+          python research/relic_falsification/run_falsification.py \
+            --strict \
+            --output artifacts/relic-falsification-report.json
+
+      - name: Preserve falsification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relic-falsification-report
+          path: artifacts/relic-falsification-report.json
+          if-no-files-found: warn
