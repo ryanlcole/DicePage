@@ -1,6 +1,6 @@
 {
   "format": "ReLiC-Canon",
-  "version": "RELIC-CANON-2026-09-27.4",
+  "version": "RELIC-CANON-2026-09-27.5",
   "status": "canonical-baseline",
   "motto": [
     "Remember",
@@ -151,6 +151,21 @@
       "id": "RELIC.SEMANTICS.RUNE_GLYPH_SHAEP",
       "section": "semantics",
       "text": "ReLiC native reasoning uses Rune -> Glyph -> Shaep: atomic identity, contextual compound, stabilized reasoning structure."
+    },
+    {
+      "id": "RELIC.AUDIT.TRUST_NOT_REQUIRED",
+      "section": "audit",
+      "text": "Material ReLiC claims must be supported by inspectable evidence rather than an instruction to trust ReLiC."
+    },
+    {
+      "id": "RELIC.AUDIT.FAILURES_VISIBLE",
+      "section": "audit",
+      "text": "Failed tests, contradictions, timeouts, rejected predictions, and negative results remain visible in audit history."
+    },
+    {
+      "id": "RELIC.AUDIT.REPRODUCIBLE_WHERE_POSSIBLE",
+      "section": "audit",
+      "text": "Deterministic claims should include enough version, input, method, and output information for independent reproduction; external or nondeterministic limits must be stated."
     }
   ],
   "truthDomains": {
@@ -201,7 +216,7 @@
   "sources": [
     {
       "path": "docs/RELIC_CANON.md",
-      "blobSha": "7af2886b2a5ead6b4be7677032cca2f0c1c03ea8",
+      "blobSha": "db99ec440f78aa38218050416704cd1b3410419e",
       "authority": "foundational ReLiC canon"
     },
     {
@@ -355,5 +370,28 @@
       "updates",
       "alerts"
     ]
+  },
+  "auditContract": {
+    "rule": "ReLiC should not require trust in ReLiC; material claims must be supported by inspectable evidence.",
+    "inspectableFields": [
+      "stable identities",
+      "source/provenance",
+      "observation time",
+      "Rune observations",
+      "Glyph relationships",
+      "Shaep/context",
+      "applicable canon ids",
+      "claimed scope",
+      "observed scope",
+      "assumptions",
+      "UNKNOWNs",
+      "known failures",
+      "contradictory evidence",
+      "verification method",
+      "verification result",
+      "adoption authority"
+    ],
+    "failureVisibility": "Failed tests, contradictions, timeouts, rejected predictions, and negative results remain part of audit history.",
+    "reproducibility": "Deterministic claims should carry enough version, input, method, and output information for independent reproduction."
   }
 }
