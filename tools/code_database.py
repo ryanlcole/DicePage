@@ -57,7 +57,7 @@ ERROR_FILE_LINE_PATTERNS = [
     re.compile(r"(?P<path>[A-Za-z0-9_./\\-]+\.(?:py|cs|razor|js|ts|tsx|jsx|html|css))[:(](?P<line>\d+)"),
     re.compile(r"File \"(?P<path>[^\"]+)\", line (?P<line>\d+)"),
 ]
-ERROR_CODE = re.compile(r"\b(?:CS|TS|NETSDK|NU|MSB|E|ERR)[-_]?[A-Z0-9]{2,8}\b", re.IGNORECASE)
+ERROR_CODE = re.compile(r"\b(?:(?:CS|TS|NETSDK|NU|MSB)[-_]?\d{3,8}|(?:E|ERR)[-_]?[A-Z0-9]*\d[A-Z0-9]*)\b", re.IGNORECASE)
 TIMESTAMP = re.compile(r"\b\d{4}-\d{2}-\d{2}[T ][0-9:.+-]+Z?\b")
 GUID = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE)
 HEXADDR = re.compile(r"0x[0-9a-f]+", re.IGNORECASE)
