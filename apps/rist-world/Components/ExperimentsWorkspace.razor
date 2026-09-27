@@ -42,6 +42,17 @@
    <div class="ironed-asset" aria-hidden="true"><span>@_assetKind</span></div>
   }
 
+  @if(_stage==Stage.BrowsePlace)
+  {
+   <section class="asset-source-explorer" aria-label="@_assetSource explorer">
+    <header><strong>@_assetSource</strong><span>@_assetKind</span></header>
+    <div class="asset-source-explorer-grid" aria-hidden="true">
+     <span></span><span></span><span></span><span></span>
+    </div>
+    <footer>ANALOG CURSOR · TOUCH · LEFT DISPLAY SELECTS</footer>
+   </section>
+  }
+
   <header class="viewer-title">
    <span>VIEWER</span>
   </header>
@@ -60,19 +71,32 @@
 
  <section class="experiments-controller single-analog-deck @AnalogPlacementClass"
           aria-label="Universal analog and display controls">
-  <button type="button"
-          class="control-display-button control-display-left"
-          @onclick="PressLeft"
-          aria-label="Left display button: @LeftDisplayValue">
-   <small>@LeftEyebrow</small>
-   <strong>@LeftDisplayValue</strong>
-   <span>@LeftDisplayPrompt</span>
-  </button>
+  <div class="@LeftSliderClass"
+       @ref="_leftSlider"
+       role="group"
+       aria-label="Left display. Slide up or down to change its selection, then touch the display to activate it.">
+   @if(LeftDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-up" aria-hidden="true"></span>
+   }
+   <button type="button"
+           class="control-display-button control-display-left"
+           @onclick="PressLeft"
+           aria-label="Left display button: @LeftDisplayValue">
+    <small>@LeftEyebrow</small>
+    <strong>@LeftDisplayValue</strong>
+    <span>@LeftDisplayPrompt</span>
+   </button>
+   @if(LeftDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-down" aria-hidden="true"></span>
+   }
+  </div>
 
   <div class="analog-control analog-control-xy"
        @ref="_analog"
        role="group"
-       aria-label="Universal analog stick. Up and down controls the left display when it has multiple options. Left and right controls the right display when it has multiple options. Otherwise the stick controls the viewer cursor.">
+       aria-label="Universal analog paging control. Up and down snap the left display. Left and right snap the right display. When neither display has multiple selections it becomes the viewer cursor.">
    <span class="analog-direction analog-up" aria-hidden="true">UP</span>
    <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
    <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
@@ -83,14 +107,27 @@
    </div>
   </div>
 
-  <button type="button"
-          class="control-display-button control-display-right"
-          @onclick="PressRight"
-          aria-label="Right display button: @RightDisplayValue">
-   <small>@RightEyebrow</small>
-   <strong>@RightDisplayValue</strong>
-   <span>@RightDisplayPrompt</span>
-  </button>
+  <div class="@RightSliderClass"
+       @ref="_rightSlider"
+       role="group"
+       aria-label="Right display. Slide left or right to change its selection, then touch the display to activate it.">
+   @if(RightDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-left" aria-hidden="true"></span>
+   }
+   <button type="button"
+           class="control-display-button control-display-right"
+           @onclick="PressRight"
+           aria-label="Right display button: @RightDisplayValue">
+    <small>@RightDisplayEyebrow</small>
+    <strong>@RightDisplayValue</strong>
+    <span>@RightDisplayPrompt</span>
+   </button>
+   @if(RightDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-right" aria-hidden="true"></span>
+   }
+  </div>
  </section></section>
 
 @code {
@@ -119,12 +156,16 @@
  const string AnalogPlacementStorageKey="rist.experiments.analogPlacement.v1";
  ElementReference _shell;
  ElementReference _analog;
+ ElementReference _leftSlider;
+ ElementReference _rightSlider;
  DotNetObjectReference<ExperimentsWorkspace>? _selfRef;
  Stage _stage=Stage.Environment;
  int _worldIndex;
  int _settingIndex;
  int _scopeIndex;
  int _softwareIndex;
+ int _assetKindIndex;
+ int _assetSourceIndex;
  int _tier;
  int _layer;
  int _xPulse;
@@ -140,14 +181,18 @@
  int _assetX;
  int _assetY;
  string _assetKind="IMAGE";
+ string _assetSource="GAME IMAGES";
  string _assetMode="ADD";
  bool _savedAsset;
- string _message="One analog carries X and Y. The two displays are buttons. When either display has multiple options, the analog selects them and the viewer cursor is hidden.";
+ string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
  static readonly string[] Scopes=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE","TABLETOP","SOFTWARE"];
  static readonly string[] SoftwareCapabilities=["IMAGE EDITOR","STREAM / RECORD","NOTES / DATABASE","AUDIO","BROWSER","COMMUNICATION","AUTOMATION"];
  static readonly string[] AnalogPlacements=["LEFT","CENTER","RIGHT"];
+ static readonly string[] AssetKinds=["IMAGE","SPRITE"];
+ static readonly string[] ImageSources=["GAME IMAGES","MY IMAGES","UPLOAD"];
+ static readonly string[] SpriteSources=["GAME SPRITES","MY SPRITES","UPLOAD"];
 
  string[] WorldChoices
  {
@@ -182,6 +227,10 @@
 
  string CurrentAnalogPlacementDraft=>AnalogPlacements[Math.Clamp(_analogPlacementDraft,0,AnalogPlacements.Length-1)];
  string AnalogPlacementClass=>$"analog-{_analogPlacement}";
+ string[] AssetSources=>_assetKind=="SPRITE"?SpriteSources:ImageSources;
+ string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
+ string LeftSliderClass=>$"display-slider display-slider-left {(LeftDisplayOptionCount>1?"is-scrollable":"is-static")}";
+ string RightSliderClass=>$"display-slider display-slider-right {(RightDisplayOptionCount>1?"is-scrollable":"is-static")}";
 
  int LeftDisplayOptionCount=>_stage switch
  {
@@ -191,6 +240,7 @@
   Stage.ControlSettings=>AnalogPlacements.Length,
   Stage.WorldBuilderTier=>10,
   Stage.WorldBuilderLayer=>100,
+  Stage.AssetKind=>AssetKinds.Length,
   Stage.Scale=>38,
   _=>1
  };
@@ -198,14 +248,16 @@
  int RightDisplayOptionCount=>_stage switch
  {
   Stage.GameMasterHub=>Settings.Length,
+  Stage.AssetKind=>AssetSources.Length,
   Stage.Rotate=>72,
   _=>1
  };
 
+ bool RightActsAsBack=>LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
  bool CursorMode=>LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
- bool IsAssetTransformStage=>_stage is Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
+ bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
  int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
  string ViewerClass=>IsDepthStage||_stage is Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel?"builder":"";
 
@@ -251,9 +303,9 @@
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
-  Stage.AssetKind=>"IMAGE",
+  Stage.AssetKind=>_assetKind,
   Stage.AssetMode=>"EDIT",
-  Stage.BrowsePlace=>"BROWSE",
+  Stage.BrowsePlace=>"SELECT",
   Stage.Scale=>"ENLARGE / REDUCE",
   Stage.Rotate=>"ROTATE",
   Stage.Move=>"MOVE",
@@ -267,8 +319,8 @@
   Stage.Role=>"SHAELVIEN",
   Stage.GameMasterScope=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
-  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"CONFIRM",
-  Stage.AssetKind=>"ASSET TYPE",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"NAVIGATION",
+  Stage.AssetKind=>"SOURCE",
   Stage.AssetMode=>"ASSET ACTION",
   Stage.BrowsePlace=>"PLACEMENT",
   Stage.Scale or Stage.Rotate or Stage.Move=>"CONFIRM",
@@ -282,10 +334,10 @@
   Stage.Role=>"GAMEMASTER",
   Stage.GameMasterScope=>"BACK",
   Stage.ControlSettings=>"BACK",
-  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"ENTER",
-  Stage.AssetKind=>"SPRITE",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"BACK",
+  Stage.AssetKind=>CurrentAssetSource,
   Stage.AssetMode=>"ADD",
-  Stage.BrowsePlace=>"PLACE",
+  Stage.BrowsePlace=>"BACK",
   Stage.Scale or Stage.Rotate or Stage.Move=>"SET",
   Stage.SaveCancel=>"CANCEL",
   _=>""
@@ -297,9 +349,9 @@
   Stage.Role=>"Player-facing role.",
   Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
   Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
-  Stage.WorldBuilderTier=>"Y raises or lowers the tier. Tier changes create a visible depth gap.",
-  Stage.WorldBuilderLayer=>"Y adds or removes closely stacked glass layers.",
-  Stage.AssetKind=>"Static visual asset.",
+  Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
+  Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer.",
+  Stage.AssetKind=>"Y switches asset type. X switches the source shown on the right display.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
   Stage.BrowsePlace=>"Browse is an adapter request; no external editor is embedded here.",
   Stage.Scale=>"Y changes preview size without changing asset identity.",
@@ -315,11 +367,11 @@
   Stage.Role=>"Enter the GameMaster Suite.",
   Stage.GameMasterScope=>"Return to world and settings selection.",
   Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
-  Stage.WorldBuilderTier=>"Confirm the tier and continue to Layer.",
-  Stage.WorldBuilderLayer=>"Confirm the layer and continue to asset type.",
-  Stage.AssetKind=>"Animated visual asset using the same placement pipeline.",
+  Stage.WorldBuilderTier=>"Back to the GameMaster suite selector.",
+  Stage.WorldBuilderLayer=>"Back to Tier.",
+  Stage.AssetKind=>"Choose Game, My, or Upload source for the selected asset type.",
   Stage.AssetMode=>"Add a new asset.",
-  Stage.BrowsePlace=>"Place the current representation on the selected Tier/Layer.",
+  Stage.BrowsePlace=>"Back to Image/Sprite and source selection.",
   Stage.Scale=>"Accept current scale.",
   Stage.Rotate=>"Accept current rotation.",
   Stage.Move=>"Accept current position.",
@@ -346,35 +398,47 @@
   Stage.GameMasterHub=>CurrentWorld,
   Stage.SoftwareHub=>CurrentSoftware,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
+  Stage.AssetKind=>_assetKind,
   Stage.Scale=>$"{_assetScale:0.00}×",
   _=>LeftLabel
  };
 
- string RightDisplayValue=>_stage switch
- {
-  Stage.GameMasterHub=>CurrentSetting,
-  Stage.ControlSettings=>"BACK",
-  Stage.Rotate=>$"{_assetRotation}°",
-  _=>RightLabel
- };
+ string RightDisplayEyebrow=>RightActsAsBack?"NAVIGATION":RightEyebrow;
+
+ string RightDisplayValue=>RightActsAsBack
+  ?"BACK"
+  :_stage switch
+  {
+   Stage.GameMasterHub=>CurrentSetting,
+   Stage.ControlSettings=>"BACK",
+   Stage.AssetKind=>CurrentAssetSource,
+   Stage.Rotate=>$"{_assetRotation}°",
+   _=>RightLabel
+  };
 
  string LeftDisplayPrompt=>_stage switch
  {
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
   Stage.ControlSettings=>"TOUCH · SAVE",
-  Stage.Scale=>"Y · ADJUST",
+  Stage.AssetKind=>"SLIDE ↑↓ · TOUCH TYPE",
+  Stage.BrowsePlace=>"TOUCH · SELECT",
+  Stage.Scale=>"SLIDE ↑↓ · TOUCH SET",
   _=>"TOUCH · ACTIVATE"
  };
 
- string RightDisplayPrompt=>_stage switch
- {
-  Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
-  Stage.SoftwareHub=>"TOUCH · BACK",
-  Stage.ControlSettings=>"TOUCH · CANCEL",
-  Stage.Rotate=>"X · ADJUST · TOUCH SET",
-  _=>"TOUCH · ACTIVATE"
- };
+ string RightDisplayPrompt=>RightActsAsBack
+  ?"TOUCH · BACK"
+  :_stage switch
+  {
+   Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
+   Stage.SoftwareHub=>"TOUCH · BACK",
+   Stage.ControlSettings=>"TOUCH · CANCEL",
+   Stage.AssetKind=>"SLIDE ↔ · TOUCH OPEN",
+   Stage.BrowsePlace=>"TOUCH · BACK",
+   Stage.Rotate=>"SLIDE ↔ · TOUCH SET",
+   _=>"TOUCH · ACTIVATE"
+  };
 
  string ViewerTitle=>_stage switch
  {
@@ -386,9 +450,9 @@
   Stage.ControlSettings=>"CONTROLS · ANALOG PLACEMENT",
   Stage.WorldBuilderTier=>"WORLD BUILDER · TIER",
   Stage.WorldBuilderLayer=>"WORLD BUILDER · LAYER",
-  Stage.AssetKind=>"WORLD BUILDER · ASSET TYPE",
+  Stage.AssetKind=>"WORLD BUILDER · ASSET SOURCE",
   Stage.AssetMode=>$"WORLD BUILDER · {_assetKind}",
-  Stage.BrowsePlace=>$"{_assetKind} · {_assetMode}",
+  Stage.BrowsePlace=>$"{_assetSource} · {_assetKind}",
   Stage.Scale=>$"{_assetKind} · SCALE {_assetScale:0.00}×",
   Stage.Rotate=>$"{_assetKind} · ROTATE {_assetRotation}°",
   Stage.Move=>$"{_assetKind} · MOVE {_assetX},{_assetY}",
@@ -433,7 +497,7 @@
   _selfRef=DotNetObjectReference.Create(this);
   try
   {
-   await JS.InvokeVoidAsync("ristExperimentsUniversalInput.start",_selfRef,_analog);
+   await JS.InvokeVoidAsync("ristExperimentsUniversalInput.start",_selfRef,_analog,_leftSlider,_rightSlider);
    try
    {
     var stored=await JS.InvokeAsync<string?>("localStorage.getItem",AnalogPlacementStorageKey);
