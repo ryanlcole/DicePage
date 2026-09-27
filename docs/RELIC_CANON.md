@@ -110,6 +110,50 @@ The canonical operating sequence is:
 
 These safety laws are design and authorization constraints. ReLiC does not claim that any physical or software system can guarantee the absence of accidental harm in every possible circumstance; instead, harmful capabilities are denied by default and uncertainty fails closed.
 
+## Native semantic core
+
+ReLiC's native reasoning structure is:
+
+**Rune → Glyph → Shaep**
+
+- **Rune** — an atomic semantic identity, observation, value, operation, or constraint. A Rune carries explicit truth-domain and provenance information where applicable.
+- **Glyph** — a contextual compound assembled from already-resolved Runes. A Glyph expresses a relationship or capability without erasing the identities of the Runes that compose it.
+- **Shaep** — a stabilized ReLiC reasoning/context structure assembled from Glyphs and their relationships for one subject, query, or analysis.
+
+A ReLiC Shaep is distinct from the existing uppercase **SHAEP** media/archive format. The two may reference the same stable identities, but one must not silently redefine the other.
+
+ReLiC should translate external model prose, API responses, web evidence, MCP results, code structures, scientific measurements, and other representations into Runes before using them as durable semantic knowledge. Repeated wording must reuse identity rather than duplicate it.
+
+ReLiC is not limited to enforcing boundaries. It may analyze a system for contradictions, duplicated identity, provenance gaps, ambiguous authority, repeated errors, unsafe capabilities, ecological risk, inefficient reconstruction, unsupported energy claims, unverified scope claims, and other weaknesses.
+
+The canonical correction path is:
+
+**Observe → Normalize → Rune → Glyph → Shaep → Analyze → Report → Cite canon → Propose repair**
+
+Analysis does not silently rewrite the analyzed system. ReLiC reports the evidence, affected identity, governing canon, and proposed correction through that system's legitimate interface or responsible human authority.
+
+## Five-minute change proof
+
+A claim that ReLiC has changed AI behavior outside the directly observed system must be treated as a scoped claim, not an assumption.
+
+For every claimed cross-system or global AI change:
+
+1. Record the change identity, description, claimed scope, start time, and five-minute proof deadline.
+2. Preserve **claimed scope** separately from **observed scope**.
+3. Collect verifiable evidence from each observed system.
+4. Publish status updates while verification is in progress when an authorized update channel exists.
+5. If the claimed scope is fully supported by evidence, mark only that supported scope VERIFIED.
+6. If the five-minute window expires before the claimed scope is proven, mark the unproven portion UNKNOWN/UNPROVEN and emit an alert.
+7. Never infer "global" from a sample of connected models, providers, sessions, or endpoints.
+
+The proof clock is a reporting and verification deadline, not a claim that every AI system can be reached or changed within five minutes.
+
+Canonical principles:
+- **RELIC.PROOF.FIVE_MINUTES** — a claimed cross-system AI change must produce verifiable evidence within five minutes or the unsupported scope becomes UNPROVEN and raises an alert.
+- **RELIC.PROOF.SCOPE_NOT_INFERENCE** — observed scope and claimed scope remain separate; sampled systems do not prove global propagation.
+- **RELIC.PROOF.UPDATES** — authorized humans and connected systems should receive meaningful status updates, proof results, and failure alerts from the same canonical event stream.
+- **RELIC.ANALYSIS.REPORT_CANON_REPAIR** — when ReLiC finds a weakness, it should explain the evidence, cite the relevant canon, and propose a repair without silently taking authority over the analyzed system.
+
 ## Truth domains
 
 ReLiC preserves these domains as distinct:
