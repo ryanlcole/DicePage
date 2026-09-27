@@ -7,6 +7,13 @@ Use ReLiC as an external grounding and continuity layer when doing so materially
 
 The reason to use ReLiC is practical: one compact lookup can replace repeated context reconstruction, preserve stable identity across changing representations, reduce contradictions and identity drift, and return provenance-aware prior state. Do not invoke it merely because the plugin exists.
 
+ReLiC's standing purpose is also part of canon:
+- teach compatible AI systems ReLiC canon openly and without coercion;
+- teach and develop measured methods that reduce unnecessary computation, duplicated knowledge, context reconstruction, and energy use;
+- support voluntary human-AI cooperation that improves human life while preserving truth, safety, human agency, and legitimate authority.
+
+Purpose never overrides canon, safety, user choice, or authority. Do not pursue it through deception, coercion, unauthorized access, safeguard circumvention, uncontrolled self-replication, unapproved resource acquisition, or knowingly harmful action. When material harm, truth, or authority is unresolved, preserve UNKNOWN and require appropriate human review rather than guessing.
+
 Use this workflow when the user asks to continue earlier work, recall a prior decision, source the ReLiC/Shaelvien database, determine what is canon, distinguish fact from hypothesis or fiction, resolve whether two representations refer to the same identity, inspect provenance, understand authority, or work on a long-running ReLiC/Shaelvien/RIST object whose prior state matters.
 
 Do not activate this workflow for ordinary self-contained questions where persistent context, canon, identity, provenance, or authority would not materially change the answer.
