@@ -32,7 +32,13 @@ class ReLiCMcpTests(unittest.TestCase):
         self.assertEqual(body(r)["result"]["protocolVersion"], "2025-11-25")
         r = m.handler(event({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}, {"mcp-protocol-version":"2025-11-25"}), None)
         tools = body(r)["result"]["tools"]
-        self.assertEqual({t["name"] for t in tools}, {"relic_context","relic_validate","relic_canon","relic_health"})
+        names = {t["name"] for t in tools}
+        self.assertTrue({"relic_context","relic_validate","relic_canon","relic_health"}.issubset(names))
+        self.assertTrue({"relic_profile","relic_recall","relic_identify","relic_observe","relic_trace","relic_translate","relic_imagine","relic_remember","relic_relate","relic_instantiate","relic_transition"}.issubset(names))
+        public = next(t for t in tools if t["name"] == "relic_context")
+        private = next(t for t in tools if t["name"] == "relic_recall")
+        self.assertEqual(public["securitySchemes"][0]["type"], "noauth")
+        self.assertEqual(private["securitySchemes"][0]["type"], "oauth2")
 
     def test_context_is_observer_only(self):
         r = m.handler(event({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"relic_context","arguments":{"subject":"ReLiC plugin","truthDomain":"FACT"}}}, {"mcp-protocol-version":"2025-11-25"}), None)
@@ -47,6 +53,12 @@ class ReLiCMcpTests(unittest.TestCase):
         self.assertFalse(data["valid"])
         codes = {f["code"] for f in data["findings"]}
         self.assertTrue({"FACT_WITHOUT_PROVENANCE","REPRESENTATION_USED_AS_IDENTITY","GENERATED_FACT_NEEDS_EXTERNAL_EVIDENCE","ACTION_WITHOUT_EXPLICIT_CAPABILITY"}.issubset(codes))
+
+    def test_private_recall_requests_auth(self):
+        r = m.handler(event({"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"relic_recall","arguments":{"terms":["ReLiC"]}}}, {"mcp-protocol-version":"2025-11-25"}), None)
+        data = body(r)["result"]
+        self.assertTrue(data["isError"])
+        self.assertIn("mcp/www_authenticate", data["_meta"])
 
     def test_modern_discovery(self):
         req = {"jsonrpc":"2.0","id":5,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}
