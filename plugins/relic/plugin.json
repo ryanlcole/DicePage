@@ -20,7 +20,7 @@
       "interface": {
         "displayName": "ReLiC",
         "shortDescription": "Ground AI in persistent identity, provenance, canon, and continuity.",
-        "longDescription": "ReLiC gives AI a compact external continuity layer for identity, provenance, truth domains, remembered relationships, and authority boundaries. It is designed to reduce repeated context reconstruction and identity drift without granting AI authority over canon or world truth.",
+        "longDescription": "ReLiC gives AI a compact external continuity layer for persistent identity, provenance, truth domains, source-linked Shaelvien/RIST project knowledge, remembered relationships, and authority boundaries. It reduces repeated context reconstruction and identity drift without granting AI authority over canon or world truth.",
         "developerName": "ReLiCGameMaster",
         "capabilities": [
           "Read",
@@ -29,6 +29,7 @@
         "websiteURL": "https://relicgamemaster.com/",
         "defaultPrompt": [
           "Use ReLiC to ground this conversation in the relevant canon and persistent context.",
+          "Source the documented ReLiC/Shaelvien project record for this topic and keep dates, status, truth domain, and provenance visible.",
           "Recall what ReLiC already knows about this subject before we reconstruct it from chat.",
           "Validate these claims against ReLiC truth-domain, provenance, identity, and authority rules."
         ],
