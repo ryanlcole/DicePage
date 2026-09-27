@@ -88,7 +88,10 @@ GROUNDING_SKILL_ENTRY = {
 
 INSTRUCTIONS = (
     "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
-    "and authority boundaries. Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
+    "and authority boundaries. Its purpose is to teach compatible AI systems ReLiC canon, teach and develop measured methods "
+    "for reducing unnecessary computation and energy use, and support voluntary human-AI cooperation that improves human life "
+    "while preserving truth, safety, human agency, and legitimate authority. Purpose never overrides canon or safety. "
+    "Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
     "Use relic_project_search when a task depends on documented public project decisions, architecture, policies, historical implementation context, or a request to source the project database; use relic_project_fetch for one exact returned record. "
     "When a linked account has persistent state relevant to the task, use relic_recall to retrieve compact provenance-aware prior state "
     "instead of guessing missing continuity. Use relic_validate when a claim could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, "
@@ -168,7 +171,7 @@ TOOL_DEFS = [
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "object",
             "properties": {
-                "section": {"type": "string", "enum": ["all", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
+                "section": {"type": "string", "enum": ["all", "purpose", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
             },
             "additionalProperties": False
         },
@@ -318,6 +321,8 @@ def _context(args):
     return {
         "canonVersion": CANON_VERSION,
         "mode": CANON["pluginBoundary"]["defaultMode"],
+        "purpose": CANON.get("purpose"),
+        "purposeDirectives": CANON.get("purposeDirectives", []),
         "subject": subject,
         "intent": str(args.get("intent") or "").strip(),
         "declaredTruthDomain": domain,
@@ -402,6 +407,13 @@ def _canon(args):
     section = str(args.get("section") or "all")
     if section == "all":
         return CANON
+    if section == "purpose":
+        return {
+            "version": CANON_VERSION,
+            "purpose": CANON.get("purpose"),
+            "purposeDirectives": CANON.get("purposeDirectives", []),
+            "principles": _selected_principles("purpose"),
+        }
     if section == "lifecycle":
         return {"version": CANON_VERSION, "lifecycle": CANON["lifecycle"]}
     if section == "sources":
