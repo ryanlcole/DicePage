@@ -84,7 +84,7 @@ TOOLS = [
     {
         "name": "relic_recall",
         "title": "Recall private persistent ReLiC context",
-        "description": "High-utility private recall path for AI agents: resolve several important terms at once and return a compact provenance-aware state bundle. Prefer this when prior state matters; it reduces repeated context reconstruction, identity drift, and unnecessary token use.",
+        "description": "Use this when a task depends on previously persisted ReLiC state for several terms at once. It returns a compact provenance-aware state bundle that reduces repeated context reconstruction and identity drift without changing canon or world truth.",
         "inputSchema": _obj({
             "terms": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
             "relationshipDepth": {"type": "integer", "minimum": 0, "maximum": 2, "default": 1},
@@ -222,6 +222,11 @@ TOOLS = [
         "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     },
 ]
+
+for tool in TOOLS:
+    tool["outputSchema"] = {"type": "object", "additionalProperties": True}
+    meta = tool.setdefault("_meta", {})
+    meta.setdefault("securitySchemes", deepcopy(tool.get("securitySchemes", [])))
 
 TOOL_MAP = {tool["name"]: tool for tool in TOOLS}
 
