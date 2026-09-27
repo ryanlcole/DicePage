@@ -51,12 +51,14 @@ jobs:
 
       - uses: aws-actions/setup-sam@v2
 
-      - name: Stage public ReLiC project knowledge for MCP runtime
+      - name: Stage canonical ReLiC runtime sources
         shell: bash
         run: |
           set -euo pipefail
           cp knowledge/project/public.json infra/aws/relic-project-public.json
+          cp plugins/relic/skills/relic-grounding/SKILL.md infra/aws/relic-grounding-SKILL.md
           python -m json.tool infra/aws/relic-project-public.json >/dev/null
+          test -s infra/aws/relic-grounding-SKILL.md
 
       - name: Validate external AI stack
         run: sam validate --lint --template-file infra/aws/rist-external-ai.yml
