@@ -73,7 +73,7 @@ TOOLS = [
     {
         "name": "relic_identify",
         "title": "Identify persistent ReLiC identity",
-        "description": "Resolve a label or alias to persistent identities in the authenticated user's ReLiC memory. Call this before creating an identity so spelling or representation does not become identity.",
+        "description": "Use this when a label, alias, filename, rendering, or wording may refer to an existing persistent identity. Resolve identity before creating a duplicate; representation or spelling alone does not establish identity.",
         "inputSchema": _obj({
             "query": {"type": "string", "minLength": 1, "maxLength": 300},
             "limit": {"type": "integer", "minimum": 1, "maximum": 20, "default": 10},
@@ -96,7 +96,7 @@ TOOLS = [
     {
         "name": "relic_observe",
         "title": "Observe ReLiC state",
-        "description": "Read one persistent identity, its stored state, provenance, relationships, and optionally its recent state history without changing anything.",
+        "description": "Use this when one known ReLiC identity's current stored state, provenance, relationships, or recent history matters. Read-only; use relic_recall instead for compact multi-term context.",
         "inputSchema": _obj({
             "entityId": {"type": "string", "minLength": 1, "maxLength": 200},
             "includeEvents": {"type": "boolean", "default": False},
@@ -108,7 +108,7 @@ TOOLS = [
     {
         "name": "relic_trace",
         "title": "Trace identity and provenance",
-        "description": "Trace an identity through stored relationships and provenance. This reports ReLiC memory; it does not promote claims to fact or canon.",
+        "description": "Use this when the origin, relationship path, or provenance history of a known ReLiC identity matters. It reports memory evidence and never promotes a claim to FACT or canon.",
         "inputSchema": _obj({
             "entityId": {"type": "string", "minLength": 1, "maxLength": 200},
             "depth": {"type": "integer", "minimum": 0, "maximum": 5, "default": 2},
@@ -119,7 +119,7 @@ TOOLS = [
     {
         "name": "relic_translate",
         "title": "Translate terms to ReLiC identities",
-        "description": "Map human terms to already-known persistent identities. Translation is a representation boundary and does not alter identity or truth.",
+        "description": "Use this when human wording must be mapped to already-known persistent identities without changing those identities. Translation is representation only and does not alter truth.",
         "inputSchema": _obj({
             "terms": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
         }, ["terms"]),
@@ -145,7 +145,7 @@ TOOLS = [
     {
         "name": "relic_imagine",
         "title": "Construct an uncommitted hypothesis",
-        "description": "Construct a hypothetical state from known identities and proposed changes. The result is always HYPOTHESIS and is never persisted by this tool.",
+        "description": "Use this when exploring a counterfactual, possibility, or proposed change that must remain explicitly uncommitted. The result is always HYPOTHESIS and is never persisted by this tool.",
         "inputSchema": _obj({
             "basisEntityIds": {"type": "array", "maxItems": 50, "items": {"type": "string", "maxLength": 200}},
             "purpose": {"type": "string", "minLength": 1, "maxLength": 500},
@@ -157,7 +157,7 @@ TOOLS = [
     {
         "name": "relic_remember",
         "title": "Remember an observed structure",
-        "description": "Create or update an identity in the authenticated user's ReLiC memory with explicit truth domain and provenance. This never changes Shaelvien world truth or canon.",
+        "description": "Use this only when the user wants an observation or structure persisted in private ReLiC memory. Identify first when it may already exist. Requires explicit truth domain and provenance and never changes Shaelvien world truth or canon.",
         "inputSchema": _obj({
             "entityId": {"type": "string", "maxLength": 200},
             "label": {"type": "string", "minLength": 1, "maxLength": 300},
@@ -175,7 +175,7 @@ TOOLS = [
     {
         "name": "relic_relate",
         "title": "Relate persistent identities",
-        "description": "Store an explicitly typed relationship between two existing ReLiC identities with provenance and truth domain. Text similarity alone is never treated as identity equivalence.",
+        "description": "Use this only when a relationship between two existing persistent identities should be remembered. Store an explicit relation type, truth domain, and provenance; text similarity is never identity equivalence.",
         "inputSchema": _obj({
             "sourceId": {"type": "string", "minLength": 1, "maxLength": 200},
             "relationType": {"type": "string", "minLength": 1, "maxLength": 160},
@@ -191,7 +191,7 @@ TOOLS = [
     {
         "name": "relic_instantiate",
         "title": "Instantiate a selected possibility",
-        "description": "Commit a selected hypothetical structure as a new non-canon ReLiC identity. The caller must state its truth domain and provenance; HYPOTHESIS is not silently promoted to FACT.",
+        "description": "Use this only when a selected possibility should become a new private ReLiC memory identity, not world canon. The caller must state truth domain and provenance; HYPOTHESIS is never silently promoted to FACT.",
         "inputSchema": _obj({
             "label": {"type": "string", "minLength": 1, "maxLength": 300},
             "entityType": {"type": "string", "minLength": 1, "maxLength": 160},
@@ -208,7 +208,7 @@ TOOLS = [
     {
         "name": "relic_transition",
         "title": "Record a ReLiC state transition",
-        "description": "Record a versioned state change on an existing ReLiC identity. The transition changes only ReLiC memory and keeps prior state in history.",
+        "description": "Use this only when an existing private ReLiC memory identity should receive a versioned state change. It preserves prior history and never implies an authoritative Shaelvien/world transition.",
         "inputSchema": _obj({
             "entityId": {"type": "string", "minLength": 1, "maxLength": 200},
             "toState": {"type": "object"},
