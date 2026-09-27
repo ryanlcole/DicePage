@@ -229,8 +229,11 @@ jobs:
           data=health['result']['structuredContent']
           assert data['ok'] is True, data
           assert data['canonVersion'] == 'RELIC-CANON-2026-09-27.1', data
-          assert data['mode'] == 'read-only-observer', data
+          assert data['mode'] == 'observer-first', data
           assert data['authoritativeWritesExposed'] is False, data
+          assert data['publicCanonReadOnly'] is True, data
+          assert data['privateMemoryWritesExposed'] is True, data
+          assert data['privateMemoryIsAuthoritativeWorldTruth'] is False, data
           print('ReLiC MCP verified:', data)
           PY
           echo "MCP_API=$MCP_API" >> "$GITHUB_ENV"
@@ -394,7 +397,8 @@ jobs:
           import json
           data=json.load(open('/tmp/relic-canon.json'))
           assert data.get('version') == 'RELIC-CANON-2026-09-27.1', data
-          assert data.get('pluginBoundary', {}).get('defaultMode') == 'read-only-observer', data
+          assert data.get('pluginBoundary', {}).get('defaultMode') == 'observer-first', data
+          assert data.get('pluginBoundary', {}).get('privateMemory', {}).get('authoritativeWorldTruth') is False, data
           print('ReLiC canon discovery verified:', data['version'])
           PY
 
