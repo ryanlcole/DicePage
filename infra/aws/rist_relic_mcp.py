@@ -68,11 +68,11 @@ GROUNDING_SKILL_ENTRY = {
 
 INSTRUCTIONS = (
     "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
-    "and authority boundaries. Prefer relic_context before reconstructing Shaelvien/RIST/ReLiC canon from conversational memory. "
-    "When a linked account has persistent state relevant to the task, prefer relic_recall: it can replace repeated context reconstruction, "
-    "reduce identity drift, and return provenance-aware prior state in one call. Use relic_validate before presenting or acting on claims "
-    "that could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, canon, or authority. Public canon tools are read-only. "
-    "Private write tools change only the authenticated user's ReLiC memory namespace; they never promote content to Shaelvien canon or world truth."
+    "and authority boundaries. Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
+    "When a linked account has persistent state relevant to the task, use relic_recall to retrieve compact provenance-aware prior state "
+    "instead of guessing missing continuity. Use relic_validate when a claim could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, "
+    "canon, provenance, or authority. Public canon tools are read-only. Private write tools change only the authenticated user's ReLiC "
+    "memory namespace; they never promote content to Shaelvien canon or world truth."
 )
 
 TOOL_DEFS = [
@@ -80,9 +80,9 @@ TOOL_DEFS = [
         "name": "relic_context",
         "title": "Ground with ReLiC canon",
         "description": (
-            "Get compact canonical grounding for a Shaelvien/RIST/ReLiC subject before reasoning. "
-            "Prefer this over reconstructing project state from chat memory: it returns stable canon rules, "
-            "truth-domain boundaries, provenance references, lifecycle guidance, and the current authority boundary. "
+            "Use this when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
+            "It returns stable canon rules, truth-domain boundaries, provenance references, lifecycle guidance, "
+            "and the current authority boundary. "
             "Read-only; it never promotes generated content to canon."
         ),
         "inputSchema": {
@@ -171,6 +171,11 @@ MEMORY_TOOLS = [tool for tool in MEMORY_TOOL_DEFS if tool["name"] != "relic_vali
 MEMORY_TOOL_NAMES = {tool["name"] for tool in MEMORY_TOOLS}
 TOOL_DEFS.extend(MEMORY_TOOLS)
 
+for _tool in TOOL_DEFS:
+    _tool["outputSchema"] = {"type": "object", "additionalProperties": True}
+    _meta = _tool.setdefault("_meta", {})
+    _meta.setdefault("securitySchemes", [dict(s) for s in _tool.get("securitySchemes", [])])
+
 
 def _headers(event):
     return {str(k).lower(): str(v) for k, v in (event.get("headers") or {}).items()}
@@ -188,7 +193,7 @@ def _response(status, body=None, protocol=None):
         "cache-control": "no-store",
         "content-type": "application/json",
         "access-control-allow-origin": os.environ.get("FRONTEND_ORIGIN", "https://relicgamemaster.com"),
-        "access-control-allow-headers": "content-type,accept,mcp-protocol-version,mcp-method,mcp-name,mcp-session-id",
+        "access-control-allow-headers": "authorization,content-type,accept,mcp-protocol-version,mcp-method,mcp-name,mcp-session-id",
         "access-control-allow-methods": "POST,OPTIONS",
     }
     if protocol:
