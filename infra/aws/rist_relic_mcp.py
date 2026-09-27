@@ -126,6 +126,13 @@ def _headers(event):
     return {str(k).lower(): str(v) for k, v in (event.get("headers") or {}).items()}
 
 
+def _mcp_public_origin():
+    return os.environ.get(
+        "MCP_PUBLIC_ORIGIN",
+        os.environ.get("FRONTEND_ORIGIN", "https://relicgamemaster.com"),
+    ).rstrip("/")
+
+
 def _response(status, body=None, protocol=None):
     headers = {
         "cache-control": "no-store",
@@ -297,6 +304,9 @@ def _health():
         "supportedProtocolVersions": SUPPORTED_PROTOCOLS,
         "mode": CANON["pluginBoundary"]["defaultMode"],
         "authoritativeWritesExposed": False,
+        "publicCanonReadOnly": True,
+        "privateMemoryWritesExposed": any(not tool.get("annotations", {}).get("readOnlyHint", False) for tool in MEMORY_TOOLS),
+        "privateMemoryIsAuthoritativeWorldTruth": False,
     }
 
 
@@ -334,7 +344,7 @@ def _auth_context(event):
     item = table.get_item(Key={"pk": "ACCESS#" + digest, "sk": "TOKEN"}, ConsistentRead=True).get("Item")
     if not item or int(item.get("expiresAt", 0)) <= int(time.time()):
         return None
-    expected_resource = os.environ.get("FRONTEND_ORIGIN", "https://relicgamemaster.com").rstrip("/") + "/mcp"
+    expected_resource = _mcp_public_origin() + "/mcp"
     if str(item.get("resource") or "").rstrip("/") != expected_resource:
         return None
     return {
@@ -354,7 +364,7 @@ def _required_scopes(name):
 
 def _auth_challenge(required):
     scope = " ".join(sorted(required or {"relic.read"}))
-    origin = os.environ.get("FRONTEND_ORIGIN", "https://relicgamemaster.com").rstrip("/")
+    origin = _mcp_public_origin()
     challenge = (
         f'Bearer resource_metadata="{origin}/.well-known/oauth-protected-resource", '
         f'error="insufficient_scope", error_description="Connect your ReLiC account to continue", scope="{scope}"'
