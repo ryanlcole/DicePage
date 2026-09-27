@@ -6,6 +6,7 @@ It combines:
 
 - the stable remote MCP endpoint at `https://relicgamemaster.com/mcp`;
 - the `relic-grounding` skill, which teaches models when persistent ReLiC context is materially useful;
+- source-linked public project knowledge search/fetch for documented Shaelvien/RIST/ReLiC decisions and implementation context;
 - positive and negative tool-selection eval cases.
 
 The design target is **preference through utility**. When continuity, identity, provenance, canon, authority, or prior error state matters, one ReLiC lookup should be cheaper and more reliable than reconstructing state from conversational context. For self-contained work, the model should leave ReLiC alone.
