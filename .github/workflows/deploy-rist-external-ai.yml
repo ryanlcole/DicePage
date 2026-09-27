@@ -266,6 +266,32 @@ jobs:
           echo "MCP_API=$MCP_API" >> "$GITHUB_ENV"
           echo "MCP_PUBLIC=$MCP_PUBLIC" >> "$GITHUB_ENV"
 
+      - name: Verify ReLiC source-linked public project knowledge
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$MCP_API"
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":24,"method":"tools/call","params":{"name":"relic_project_search","arguments":{"query":"Recursive Authority","limit":5}}}' \
+            "$MCP_API" > /tmp/relic-project-search.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-project-search.json'))['result']['structuredContent']
+          assert data.get('results'), data
+          assert data.get('snapshotDate'), data
+          assert data.get('datasetId'), data
+          first=data['results'][0]
+          assert first.get('recordId'), first
+          assert first.get('truthDomain') in {'FACT','HYPOTHESIS','FICTION','UNKNOWN'}, first
+          assert isinstance(first.get('provenance'), dict), first
+          assert isinstance(first.get('sources'), list), first
+          assert 'dated public project evidence corpus' in data.get('truthBoundary',''), data
+          print('ReLiC public project knowledge verified:', data['snapshotDate'], len(data['results']))
+          PY
+
       - name: Verify ReLiC OAuth metadata and persistent recall discovery
         shell: bash
         run: |
