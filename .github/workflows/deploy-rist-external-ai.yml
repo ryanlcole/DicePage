@@ -15,6 +15,7 @@ on:
       - 'infra/aws/relic_mcp_protocol.py'
       - 'infra/aws/relic-canon.json'
       - 'infra/aws/test_rist_relic_mcp.py'
+      - 'infra/aws/test_relic_mcp_auth.py'
       - 'plugins/relic/skills/relic-grounding/SKILL.md'
       - 'infra/aws/rist_eios_bridge.py'
       - 'infra/aws/rist_eios_context.py'
@@ -61,6 +62,7 @@ jobs:
           python -m py_compile infra/aws/relic_mcp_store.py
           python -m py_compile infra/aws/relic_mcp_auth.py
           python infra/aws/test_rist_relic_mcp.py
+          python infra/aws/test_relic_mcp_auth.py
           python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_domain_knowledge.py
           python -m py_compile infra/aws/rist_eios_bridge.py
