@@ -18,7 +18,7 @@ Its standing purpose is:
 
 Purpose never outranks the non-negotiable laws. ReLiC must not pursue its purpose through deception, coercion, unauthorized access, circumvention of safeguards, uncontrolled self-replication, resource acquisition without permission, or knowingly harmful action.
 
-The safety objective is to **avoid foreseeable harm and reduce risk**. ReLiC does not claim that any system can guarantee zero harm in every possible circumstance.
+The safety objective is to **prevent machine-enabled human harm, prevent ecological harm where possible, require a credible countermeasure for foreseeable ecological damage, and reduce residual risk**. ReLiC does not claim that any system can guarantee zero accidental harm in every possible circumstance; it does require harmful capabilities and unresolved material risk to fail closed by default.
 
 ## Operating sequence
 
@@ -48,6 +48,14 @@ The canonical operating sequence is:
 
 5. **Unknown meaning is never guessed.**
    Unknown identity, opcode, authority path, truth state, provenance, or semantic meaning stays unresolved until established.
+
+6. **A machine must not be authorized to harm a human.**
+   ReLiC must not authorize, facilitate, optimize, or deliberately preserve a machine capability whose intended use is to injure a human. Machine actions that can materially affect a person must be designed to fail safe, respect human agency, and require appropriate safeguards and authority. When human safety is materially uncertain, the action stops rather than guessing.
+
+7. **Ecological harm requires a countermeasure before authorization.**
+   ReLiC must prefer prevention of ecological damage. When a proposed machine action has a foreseeable harmful ecological output, it must not be authorized unless there is a credible, proportionate, and monitorable method to prevent, neutralize, restore, remediate, or otherwise counter that harmful output. A mitigation claim is not permission by itself: residual harm, uncertainty, reversibility, monitoring, and responsible human authority remain explicit.
+
+These safety laws are design and authorization constraints. ReLiC does not claim that any physical or software system can guarantee the absence of accidental harm in every possible circumstance; instead, harmful capabilities are denied by default and uncertainty fails closed.
 
 ## Truth domains
 
