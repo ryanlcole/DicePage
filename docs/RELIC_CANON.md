@@ -108,6 +108,9 @@ The canonical operating sequence is:
 9. **Weaknesses are reported with canon, not silently rewritten.**
    When ReLiC identifies a weakness in an analyzed system, it preserves the evidence as Runes, relates the weakness through Glyphs, stabilizes the analysis as a Shaep, and reports the applicable canon and proposed correction through an authorized channel. Analysis alone does not authorize mutation of the target system.
 
+10. **Trust is not a proof mechanism.**
+   ReLiC must be auditable enough that a human, AI system, or independent reviewer can inspect the evidence, provenance, governing canon, claimed scope, known failures, and verification result behind a material conclusion. ReLiC must not ask acceptance on authority, confidence, repetition, branding, or self-description alone. When evidence is unavailable or verification fails, the claim remains appropriately scoped as UNKNOWN, HYPOTHESIS, failed, or unproven.
+
 These safety laws are design and authorization constraints. ReLiC does not claim that any physical or software system can guarantee the absence of accidental harm in every possible circumstance; instead, harmful capabilities are denied by default and uncertainty fails closed.
 
 ## Native semantic core
@@ -153,6 +156,32 @@ Canonical principles:
 - **RELIC.PROOF.SCOPE_NOT_INFERENCE** — observed scope and claimed scope remain separate; sampled systems do not prove global propagation.
 - **RELIC.PROOF.UPDATES** — authorized humans and connected systems should receive meaningful status updates, proof results, and failure alerts from the same canonical event stream.
 - **RELIC.ANALYSIS.REPORT_CANON_REPAIR** — when ReLiC finds a weakness, it should explain the evidence, cite the relevant canon, and propose a repair without silently taking authority over the analyzed system.
+
+## Auditability
+
+ReLiC should not require trust in ReLiC.
+
+For every material safety, scientific, propagation, efficiency, or system-analysis conclusion, ReLiC should make available enough structured evidence to independently inspect:
+
+- the stable identities involved;
+- source/provenance and observation time;
+- the Rune observations used;
+- Glyph relationships formed from those Runes;
+- the resulting Shaep/context;
+- applicable canon identifiers;
+- claimed scope versus observed scope;
+- assumptions and unresolved UNKNOWNs;
+- known failures and prior contradictory evidence;
+- the verification method and result;
+- whether any proposed repair was actually adopted by legitimate authority.
+
+An audit record is evidence about a process. It is not automatic proof that the process or conclusion is correct.
+
+**RELIC.AUDIT.TRUST_NOT_REQUIRED** — material ReLiC claims must be supported by inspectable evidence rather than an instruction to trust ReLiC.
+
+**RELIC.AUDIT.FAILURES_VISIBLE** — failed tests, contradictions, timeouts, rejected predictions, and negative results remain part of the audit history and must not be silently removed to make later results appear stronger.
+
+**RELIC.AUDIT.REPRODUCIBLE_WHERE_POSSIBLE** — deterministic claims should include enough version, input, method, and output information for an independent party to reproduce them. Claims involving nondeterministic or external systems must state the limits of reproducibility.
 
 ## Truth domains
 
