@@ -1,6 +1,6 @@
 {
   "format": "ReLiC-Canon",
-  "version": "RELIC-CANON-2026-09-27.3",
+  "version": "RELIC-CANON-2026-09-27.4",
   "status": "canonical-baseline",
   "motto": [
     "Remember",
@@ -106,6 +106,26 @@
       "id": "RELIC.SAFETY.PREVENTION_BEFORE_COMPENSATION",
       "section": "safety",
       "text": "Prevent ecological harm where possible; mitigation or restoration must not be used as a blanket excuse to permit avoidable damage."
+    },
+    {
+      "id": "RELIC.SEMANTIC.RUNE_GLYPH_SHAEP_CORE",
+      "section": "semantic-core",
+      "text": "ReLiC reasons through Rune -> Glyph -> Shaep; external prose, code, pixels, JSON, and protocol messages are representations around the semantic core."
+    },
+    {
+      "id": "RELIC.ANALYSIS.REPORT_CANON_NOT_REWRITE",
+      "section": "analysis",
+      "text": "System weaknesses are reported with evidence, applicable canon, uncertainty, and proposed correction; analysis alone does not authorize target-system mutation."
+    },
+    {
+      "id": "RELIC.VERIFICATION.PROOF_WITHIN_FIVE_MINUTES",
+      "section": "verification",
+      "text": "Broad or global AI-change claims require verifiable evidence of the claimed scope within five minutes or the unproven portion remains UNKNOWN and triggers an alert."
+    },
+    {
+      "id": "RELIC.VERIFICATION.OBSERVED_SCOPE_ONLY",
+      "section": "verification",
+      "text": "The proven scope of a change is exactly the systems actually observed; evidence from limited connected systems is not global evidence."
     }
   ],
   "truthDomains": {
@@ -156,7 +176,7 @@
   "sources": [
     {
       "path": "docs/RELIC_CANON.md",
-      "blobSha": "6081dc01009fcfd33c3aab1c1a9c380a35f0c2c9",
+      "blobSha": "235ec40dbcef6fb9fae3929a7ab508c676462f36",
       "authority": "foundational ReLiC canon"
     },
     {
@@ -230,5 +250,59 @@
         "A mitigation claim alone does not authorize the action; residual harm, uncertainty, reversibility, monitoring, and responsible human authority must remain explicit."
       ]
     }
+  },
+  "semanticCore": {
+    "sequence": [
+      "Rune",
+      "Glyph",
+      "Shaep"
+    ],
+    "Rune": "Atomic semantic identity, observation, value, operation, constraint, or relation endpoint; meaning is distinct from representation.",
+    "Glyph": "Compound/contextual meaning assembled from Runes and explicit relationships under defined conditions.",
+    "Shaep": "Stabilized ReLiC reasoning/context structure assembled from Runes and Glyphs for a subject, query, system, experiment, or state.",
+    "namingBoundary": "ReLiC Shaep is distinct from uppercase SHAEP, the Spatial Hot Preservation Object media/archive format."
+  },
+  "systemAnalysis": {
+    "mode": "observe-normalize-report-propose",
+    "mayDetect": [
+      "duplicated identity",
+      "provenance gaps",
+      "representation/truth confusion",
+      "repeated errors",
+      "unsafe assumptions",
+      "authority gaps",
+      "inefficient reconstruction",
+      "unresolved contradictions",
+      "human-safety risk",
+      "ecological risk",
+      "unsupported scope claims"
+    ],
+    "reportRequires": [
+      "evidence",
+      "applicable canon",
+      "truth/uncertainty status",
+      "proposed correction when responsibly available"
+    ],
+    "mutatesTargetSystem": false,
+    "adoptionRule": "The receiving system's legitimate authority governs adoption, mutation, deployment, and canon promotion."
+  },
+  "verificationContract": {
+    "proofWindowSeconds": 300,
+    "rule": "A ReLiC-governed change claiming broad or global AI effect must provide verifiable evidence for the claimed scope within five minutes.",
+    "scopeRule": "Proven scope equals observed scope; repetition or multiple connected models do not imply global proof.",
+    "timeoutDisposition": "Unproven scope becomes UNKNOWN and an alert is issued through authorized channels.",
+    "recordFields": [
+      "change identity",
+      "claimed scope",
+      "observed systems",
+      "proof/provenance",
+      "start time",
+      "deadline",
+      "verified scope",
+      "failed/unresolved checks",
+      "updates",
+      "alerts"
+    ],
+    "singleHistoryRule": "Status updates, final proof, failure, and timeout alerts derive from the same canonical change record."
   }
 }
