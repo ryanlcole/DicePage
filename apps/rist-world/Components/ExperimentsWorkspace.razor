@@ -1002,7 +1002,8 @@
   }
   catch(Exception ex)
   {
-   _assetLoadError="My Images could not be loaded. "+ex.Message;
+   Console.Error.WriteLine($"My Images load failed: {ex}");
+   _assetLoadError="My Images are temporarily unavailable. Go Back and reopen My Images to retry.";
   }
   finally
   {
@@ -1067,7 +1068,8 @@
   }
   catch(Exception ex)
   {
-   _assetLoadError="Upload failed. "+ex.Message;
+   Console.Error.WriteLine($"Asset upload failed: {ex}");
+   _assetLoadError="Upload failed. Please try again.";
   }
   finally
   {
