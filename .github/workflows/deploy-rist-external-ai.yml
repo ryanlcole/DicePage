@@ -206,9 +206,12 @@ jobs:
         run: |
           set -euo pipefail
           MCP_API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ReLiCMcpOriginUrl'].OutputValue" --output text)
+          MCP_PUBLIC=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='ReLiCMcpUrl'].OutputValue" --output text)
           test -n "$MCP_API"
           test "$MCP_API" != "None"
+          test "$MCP_PUBLIC" = "$PRODUCTION_ORIGIN/mcp"
           curl --fail --silent --show-error \
             -H 'content-type: application/json' \
             -H 'accept: application/json, text/event-stream' \
@@ -237,6 +240,7 @@ jobs:
           print('ReLiC MCP verified:', data)
           PY
           echo "MCP_API=$MCP_API" >> "$GITHUB_ENV"
+          echo "MCP_PUBLIC=$MCP_PUBLIC" >> "$GITHUB_ENV"
 
       - name: Verify ReLiC OAuth metadata and persistent recall discovery
         shell: bash
@@ -246,17 +250,20 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue" --output text)
           test -n "$OAUTH_API"
           test "$OAUTH_API" != "None"
-          export OAUTH_API MCP_API
+          export OAUTH_API MCP_API MCP_PUBLIC
           curl --fail --silent --show-error "$OAUTH_API/.well-known/oauth-protected-resource" > /tmp/relic-resource.json
           python - <<'PY'
           import json
           import os
           data=json.load(open('/tmp/relic-resource.json'))
           oauth=os.environ['OAUTH_API'].rstrip('/')
-          mcp=os.environ['MCP_API']
-          assert mcp == oauth + '/mcp', (mcp, oauth)
-          assert data.get('resource') == mcp, data
-          assert data.get('authorization_servers') == [oauth], data
+          mcp_origin=os.environ['MCP_API']
+          mcp_public=os.environ['MCP_PUBLIC']
+          public_origin=os.environ['PRODUCTION_ORIGIN'].rstrip('/')
+          assert mcp_origin == oauth + '/mcp', (mcp_origin, oauth)
+          assert mcp_public == public_origin + '/mcp', (mcp_public, public_origin)
+          assert data.get('resource') == mcp_public, data
+          assert data.get('authorization_servers') == [public_origin], data
           assert set(data.get('scopes_supported') or []) == {'relic.read','relic.write'}, data
           PY
           curl --fail --silent --show-error \
@@ -337,7 +344,7 @@ jobs:
           set -euo pipefail
           printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","policyVersion":"2026-09-10.2","rulesetVersion":"AI-RULESET-2026-09-10.2","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$EXTERNAL_AI_API" > external-ai-config.json
           printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":5,"vision":true,"naturalCoding":true,"visualAudioImagination":true,"domainKnowledge":"eios-domain-teaching-2026-09-11-r1","knowledge":"drive-snapshot","canon":"SCR-001 r1.0","aiPolicy":"ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
-          printf '{"mcpUrl":"%s","oauthBaseUrl":"%s","canonUrl":"%s/.well-known/relic-canon.json","canonVersion":"RELIC-CANON-2026-09-27.1","mode":"observer-first","publicCanonReadOnly":true,"privateMemoryOAuth":true}\n' "$MCP_API" "$RELIC_OAUTH_API" "$PRODUCTION_ORIGIN" > relic-mcp-config.json
+          printf '{"mcpUrl":"%s","oauthBaseUrl":"%s","originMcpUrl":"%s","originOauthBaseUrl":"%s","canonUrl":"%s/.well-known/relic-canon.json","canonVersion":"RELIC-CANON-2026-09-27.1","mode":"observer-first","publicCanonReadOnly":true,"privateMemoryOAuth":true}\n' "$MCP_PUBLIC" "$PRODUCTION_ORIGIN" "$MCP_API" "$RELIC_OAUTH_API" "$PRODUCTION_ORIGIN" > relic-mcp-config.json
           cat external-ai-config.json
           cat relic-mcp-config.json
           cat eios-config.json
