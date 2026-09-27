@@ -84,7 +84,7 @@
            @onclick="PressLeft"
            aria-label="Left display button: @LeftDisplayValue">
     <small>@LeftEyebrow</small>
-    <strong>@LeftDisplayValue</strong>
+    <strong class="@LeftDisplayTextClass">@LeftDisplayValue</strong>
     <span>@LeftDisplayPrompt</span>
    </button>
    @if(LeftDisplayOptionCount>1)
@@ -120,7 +120,7 @@
            @onclick="PressRight"
            aria-label="Right display button: @RightDisplayValue">
     <small>@RightDisplayEyebrow</small>
-    <strong>@RightDisplayValue</strong>
+    <strong class="@RightDisplayTextClass">@RightDisplayValue</strong>
     <span>@RightDisplayPrompt</span>
    </button>
    @if(RightDisplayOptionCount>1)
@@ -231,6 +231,8 @@
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string LeftSliderClass=>$"display-slider display-slider-left {(LeftDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string RightSliderClass=>$"display-slider display-slider-right {(RightDisplayOptionCount>1?"is-scrollable":"is-static")}";
+ string LeftDisplayTextClass=>DisplayTextClass(LeftDisplayValue);
+ string RightDisplayTextClass=>DisplayTextClass(RightDisplayValue);
 
  int LeftDisplayOptionCount=>_stage switch
  {
@@ -888,6 +890,15 @@
   _assetRotation=0;
   _assetX=0;
   _assetY=0;
+ }
+
+ static string DisplayTextClass(string? value)
+ {
+  var length=(value??string.Empty).Trim().Length;
+  if(length>=18)return "display-text display-text-xs";
+  if(length>=14)return "display-text display-text-sm";
+  if(length>=11)return "display-text display-text-md";
+  return "display-text display-text-lg";
  }
 
  static int Wrap(int value,int length)
