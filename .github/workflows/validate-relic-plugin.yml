@@ -2,6 +2,13 @@ name: Validate ReLiC Plugin Package
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Deploy RIST Frontend to AWS
+    types:
+      - completed
+    branches:
+      - live-alpha-rist-blazor-world
   push:
     branches:
       - live-alpha-rist-blazor-world
@@ -16,9 +23,12 @@ permissions:
 
 jobs:
   validate:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
 
       - name: Validate portable plugin JSON
         run: |
@@ -94,6 +104,13 @@ jobs:
           recall=next(t for t in tools['result']['tools'] if t.get('name') == 'relic_recall')
           assert (context.get('securitySchemes') or [{}])[0].get('type') == 'noauth', context
           assert (recall.get('securitySchemes') or [{}])[0].get('type') == 'oauth2', recall
+          assert 'repeated context reconstruction' in recall.get('description',''), recall
+          profile=next(t for t in tools['result']['tools'] if t.get('name') == 'relic_profile')
+          assert (profile.get('_meta') or {}).get('openai/profile') is True, profile
+          schema=profile.get('outputSchema') or {}
+          assert schema.get('required') == ['id'], profile
+          assert schema.get('additionalProperties') is False, profile
+          assert set((schema.get('properties') or {}).keys()) <= {'id','name','email','nickname'}, profile
           print('Production ReLiC MCP discovery verified:', len(names), 'tools')
           PY
 
