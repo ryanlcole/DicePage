@@ -266,10 +266,12 @@ jobs:
           test "$OAUTH_API" != "None"
           export OAUTH_API MCP_API MCP_PUBLIC
           curl --fail --silent --show-error "$OAUTH_API/.well-known/oauth-protected-resource" > /tmp/relic-resource.json
+          curl --fail --silent --show-error "$OAUTH_API/.well-known/oauth-authorization-server" > /tmp/relic-oauth-metadata.json
           python - <<'PY'
           import json
           import os
           data=json.load(open('/tmp/relic-resource.json'))
+          oauth_meta=json.load(open('/tmp/relic-oauth-metadata.json'))
           oauth=os.environ['OAUTH_API'].rstrip('/')
           mcp_origin=os.environ['MCP_API']
           mcp_public=os.environ['MCP_PUBLIC']
@@ -279,6 +281,9 @@ jobs:
           assert data.get('resource') == mcp_public, data
           assert data.get('authorization_servers') == [public_origin], data
           assert set(data.get('scopes_supported') or []) == {'relic.read','relic.write'}, data
+          assert oauth_meta.get('issuer') == public_origin, oauth_meta
+          assert oauth_meta.get('authorization_response_iss_parameter_supported') is True, oauth_meta
+          assert 'S256' in (oauth_meta.get('code_challenge_methods_supported') or []), oauth_meta
           PY
           curl --fail --silent --show-error \
             -H 'content-type: application/json' \
@@ -298,6 +303,9 @@ jobs:
           assert (recall.get('securitySchemes') or [{}])[0].get('type') == 'oauth2', recall
           public=next(x for x in tools if x.get('name') == 'relic_context')
           assert (public.get('securitySchemes') or [{}])[0].get('type') == 'noauth', public
+          for tool in tools:
+              assert (tool.get('outputSchema') or {}).get('type') == 'object', tool
+              assert (tool.get('_meta') or {}).get('securitySchemes') == tool.get('securitySchemes'), tool
           print('ReLiC public canon + private recall tools verified:', len(tools))
           PY
           curl --fail --silent --show-error \
