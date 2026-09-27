@@ -10,11 +10,21 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional us-east-1 ACM certificate covering the apex and www host
+  McpRuntimeOriginDomainName:
+    Type: String
+    Default: ''
+    Description: Optional API Gateway hostname serving the ReLiC MCP runtime, without scheme or path
+  McpAuthOriginDomainName:
+    Type: String
+    Default: ''
+    Description: Optional API Gateway hostname serving ReLiC OAuth and protected-resource metadata, without scheme or path
 
 Conditions:
   HasCustomDomain: !And
     - !Not [!Equals [!Ref DomainName, '']]
     - !Not [!Equals [!Ref CertificateArn, '']]
+  HasMcpRuntime: !Not [!Equals [!Ref McpRuntimeOriginDomainName, '']]
+  HasMcpAuth: !Not [!Equals [!Ref McpAuthOriginDomainName, '']]
 
 Resources:
   FrontendBucket:
@@ -171,6 +181,83 @@ Resources:
             OriginAccessControlId: !GetAtt FrontendOac.Id
             S3OriginConfig:
               OriginAccessIdentity: ''
+          - !If
+            - HasMcpRuntime
+            - Id: relic-mcp-runtime
+              DomainName: !Ref McpRuntimeOriginDomainName
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+                OriginSSLProtocols: [TLSv1.2]
+            - !Ref AWS::NoValue
+          - !If
+            - HasMcpAuth
+            - Id: relic-mcp-auth
+              DomainName: !Ref McpAuthOriginDomainName
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+                OriginSSLProtocols: [TLSv1.2]
+            - !Ref AWS::NoValue
+        OrderedCacheBehaviors:
+          - !If
+            - HasMcpRuntime
+            - PathPattern: /mcp
+              TargetOriginId: relic-mcp-runtime
+              ViewerProtocolPolicy: https-only
+              Compress: false
+              AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+              CachedMethods: [GET, HEAD, OPTIONS]
+              CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+              ResponseHeadersPolicyId: !Ref SecurityHeaders
+            - !Ref AWS::NoValue
+          - !If
+            - HasMcpAuth
+            - PathPattern: /.well-known/oauth-protected-resource*
+              TargetOriginId: relic-mcp-auth
+              ViewerProtocolPolicy: https-only
+              Compress: false
+              AllowedMethods: [GET, HEAD, OPTIONS]
+              CachedMethods: [GET, HEAD, OPTIONS]
+              CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+              ResponseHeadersPolicyId: !Ref SecurityHeaders
+            - !Ref AWS::NoValue
+          - !If
+            - HasMcpAuth
+            - PathPattern: /.well-known/oauth-authorization-server
+              TargetOriginId: relic-mcp-auth
+              ViewerProtocolPolicy: https-only
+              Compress: false
+              AllowedMethods: [GET, HEAD, OPTIONS]
+              CachedMethods: [GET, HEAD, OPTIONS]
+              CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+              ResponseHeadersPolicyId: !Ref SecurityHeaders
+            - !Ref AWS::NoValue
+          - !If
+            - HasMcpAuth
+            - PathPattern: /.well-known/openid-configuration
+              TargetOriginId: relic-mcp-auth
+              ViewerProtocolPolicy: https-only
+              Compress: false
+              AllowedMethods: [GET, HEAD, OPTIONS]
+              CachedMethods: [GET, HEAD, OPTIONS]
+              CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+              ResponseHeadersPolicyId: !Ref SecurityHeaders
+            - !Ref AWS::NoValue
+          - !If
+            - HasMcpAuth
+            - PathPattern: /oauth/*
+              TargetOriginId: relic-mcp-auth
+              ViewerProtocolPolicy: https-only
+              Compress: false
+              AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+              CachedMethods: [GET, HEAD, OPTIONS]
+              CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+              ResponseHeadersPolicyId: !Ref SecurityHeaders
+            - !Ref AWS::NoValue
         DefaultCacheBehavior:
           TargetOriginId: frontend
           ViewerProtocolPolicy: redirect-to-https
@@ -220,6 +307,9 @@ Outputs:
     Value: !Sub 'https://${FrontendDistribution.DomainName}/'
   FrontendWebAclArn:
     Value: !GetAtt FrontendWebAcl.Arn
+  RelicMcpPublicUrl:
+    Condition: HasMcpRuntime
+    Value: !Sub 'https://${DomainName}/mcp'
   ProductionDomain:
     Condition: HasCustomDomain
     Value: !Sub 'https://${DomainName}/'
