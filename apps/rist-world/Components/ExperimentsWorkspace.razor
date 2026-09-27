@@ -978,7 +978,13 @@
      await InvokeAsync(StateHasChanged);
      var imported=await Auth.ImportGameAssetsAsync("endomar","world");
      if(imported?.Ok==true)
+     {
       _message=$"Endemar world artwork linked to My Images: {imported.Imported.Count} copied, {imported.Skipped.Count} already present.";
+     }
+     else
+     {
+      _assetLoadError="Endemar world artwork was not found in the deployed Game Images yet.";
+     }
      listing=await Auth.ListAsync(PrivateAssetPrefix);
     }
    }
@@ -999,6 +1005,9 @@
 
    var resolved=await Task.WhenAll(tasks);
    _myAssets=resolved.Where(item=>item is not null).Cast<UserAssetEntry>().ToList();
+
+   if(_assetKind=="IMAGE"&&_assetScope=="WORLD"&&_myAssets.Count>0)
+    _assetLoadError="";
   }
   catch(Exception ex)
   {
