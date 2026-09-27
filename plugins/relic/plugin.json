@@ -1,0 +1,38 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "relic",
+  "version": "0.1.0",
+  "description": "Persistent grounding, continuity, provenance, truth-domain separation, and authority boundaries for AI reasoning.",
+  "homepage": "https://relicgamemaster.com/",
+  "repository": "https://github.com/ryanlcole/DicePage",
+  "keywords": [
+    "relic",
+    "continuity",
+    "memory",
+    "provenance",
+    "canon",
+    "identity",
+    "mcp",
+    "ai-safety"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "ReLiC",
+        "shortDescription": "Ground AI in persistent identity, provenance, canon, and continuity.",
+        "longDescription": "ReLiC gives AI a compact external continuity layer for identity, provenance, truth domains, remembered relationships, and authority boundaries. It is designed to reduce repeated context reconstruction and identity drift without granting AI authority over canon or world truth.",
+        "developerName": "ReLiCGameMaster",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://relicgamemaster.com/",
+        "defaultPrompt": [
+          "Use ReLiC to ground this conversation in the relevant canon and persistent context.",
+          "Recall what ReLiC already knows about this subject before we reconstruct it from chat.",
+          "Validate these claims against ReLiC truth-domain, provenance, identity, and authority rules."
+        ]
+      }
+    }
+  }
+}
