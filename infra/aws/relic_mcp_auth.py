@@ -121,7 +121,7 @@ def protected_resource():
         "resource": RESOURCE_ID,
         "authorization_servers": [AUTH_ISSUER],
         "scopes_supported": list(SCOPES),
-        "resource_documentation": PUBLIC_ORIGIN + "/mcp/",
+        "resource_documentation": PUBLIC_ORIGIN + "/.well-known/relic-mcp.json",
     }
 
 
@@ -201,6 +201,7 @@ def authorize(event):
         "scopes": scopes,
         "createdAt": created,
         "expiresAt": created + 600,
+        "ttl": created + 600,
     }, ConditionExpression="attribute_not_exists(pk)")
     return redirect(DISCORD_AUTH_API + "/auth/login?" + urllib.parse.urlencode({"mcp_request": request_token}))
 
@@ -276,6 +277,7 @@ def identity_consent_post(event):
             "scopes": request.get("scopes", ["relic.read"]),
             "createdAt": created,
             "expiresAt": created + 300,
+            "ttl": created + 300,
         }, ConditionExpression="attribute_not_exists(pk)")
         params["code"] = code
     if request.get("clientState"):
