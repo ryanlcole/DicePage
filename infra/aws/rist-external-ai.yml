@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: RIST external-AI defensive runtime plus isolated EIOS semantic perception bridge
+Description: RIST external-AI defensive runtime, ReLiC canon MCP boundary, plus isolated EIOS semantic perception bridge
 
 Parameters:
   IdentityTableName:
@@ -113,7 +113,7 @@ Resources:
     Properties:
       CorsConfiguration:
         AllowOrigins: [!Ref FrontendOrigin]
-        AllowHeaders: [authorization, content-type]
+        AllowHeaders: [authorization, content-type, accept, mcp-protocol-version, mcp-method, mcp-name, mcp-session-id]
         AllowMethods: [GET, POST, OPTIONS]
         MaxAge: 300
       DefaultRouteSettings:
@@ -197,6 +197,19 @@ Resources:
         RegistrationReview:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/registration/review, Method: POST }
+
+
+  ReLiCMcpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: rist_relic_mcp.handler
+      Timeout: 10
+      MemorySize: 256
+      Events:
+        Mcp:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /mcp, Method: ANY }
 
   EiosLabFunction:
     Type: AWS::Serverless::Function
@@ -326,6 +339,12 @@ Outputs:
   ExternalAiSessionStatusPath:
     Description: AI UTC session status endpoint
     Value: /external-ai/session/status
+  ReLiCMcpUrl:
+    Description: Public read-only ReLiC canon MCP endpoint for ChatGPT/Codex and other MCP clients
+    Value: !Sub https://${ExternalAiHumanApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/mcp
+  ReLiCCanonDiscoveryPath:
+    Description: Public machine-readable ReLiC canon discovery path on relicgamemaster.com
+    Value: /.well-known/relic-canon.json
   ExternalAiSecurityFunctionArn:
     Description: Internal-only classified security-event conversion Lambda; intentionally has no public route
     Value: !GetAtt ExternalAiSecurityFunction.Arn

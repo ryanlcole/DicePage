@@ -9,6 +9,9 @@ on:
       - 'infra/aws/rist-external-ai.yml'
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
+      - 'infra/aws/rist_relic_mcp.py'
+      - 'infra/aws/relic-canon.json'
+      - 'infra/aws/test_rist_relic_mcp.py'
       - 'infra/aws/rist_eios_bridge.py'
       - 'infra/aws/rist_eios_context.py'
       - 'infra/aws/rist_eios_domain_knowledge.py'
@@ -49,6 +52,8 @@ jobs:
         run: |
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
+          python -m py_compile infra/aws/rist_relic_mcp.py
+          python infra/aws/test_rist_relic_mcp.py
           python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_domain_knowledge.py
           python -m py_compile infra/aws/rist_eios_bridge.py
@@ -181,6 +186,41 @@ jobs:
           PY
           echo "EXTERNAL_AI_API=$API" >> "$GITHUB_ENV"
 
+
+      - name: Verify ReLiC canon MCP boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          MCP_API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ReLiCMcpUrl'].OutputValue" --output text)
+          test -n "$MCP_API"
+          test "$MCP_API" != "None"
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"rist-deploy-smoke","version":"1"}}}' \
+            "$MCP_API" > /tmp/relic-mcp-init.json
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"relic_health","arguments":{}}}' \
+            "$MCP_API" > /tmp/relic-mcp-health.json
+          python - <<'PY'
+          import json
+          init=json.load(open('/tmp/relic-mcp-init.json'))
+          health=json.load(open('/tmp/relic-mcp-health.json'))
+          assert init['result']['serverInfo']['name'] == 'relic-canon', init
+          data=health['result']['structuredContent']
+          assert data['ok'] is True, data
+          assert data['canonVersion'] == 'RELIC-CANON-2026-09-27.1', data
+          assert data['mode'] == 'read-only-observer', data
+          assert data['authoritativeWritesExposed'] is False, data
+          print('ReLiC MCP verified:', data)
+          PY
+          echo "MCP_API=$MCP_API" >> "$GITHUB_ENV"
+
       - name: Verify EIOS Bedrock bridge
         shell: bash
         run: |
@@ -231,13 +271,15 @@ jobs:
           echo "EIOS_API=$EIOS" >> "$GITHUB_ENV"
           echo "EIOS_MODEL=$MODEL" >> "$GITHUB_ENV"
 
-      - name: Export human, AI gateway, and EIOS config
+      - name: Export human, AI gateway, ReLiC MCP, and EIOS config
         shell: bash
         run: |
           set -euo pipefail
           printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","policyVersion":"2026-09-10.2","rulesetVersion":"AI-RULESET-2026-09-10.2","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$EXTERNAL_AI_API" > external-ai-config.json
           printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":5,"vision":true,"naturalCoding":true,"visualAudioImagination":true,"domainKnowledge":"eios-domain-teaching-2026-09-11-r1","knowledge":"drive-snapshot","canon":"SCR-001 r1.0","aiPolicy":"ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
+          printf '{"mcpUrl":"%s","canonUrl":"%s/.well-known/relic-canon.json","canonVersion":"RELIC-CANON-2026-09-27.1","mode":"read-only-observer"}\n' "$MCP_API" "$PRODUCTION_ORIGIN" > relic-mcp-config.json
           cat external-ai-config.json
+          cat relic-mcp-config.json
           cat eios-config.json
 
       - name: Publish locked gateway, AI policy, and EIOS config to protected origin
@@ -262,12 +304,24 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
+          aws s3 cp infra/aws/relic-canon.json "s3://${BUCKET}/.well-known/relic-canon.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp infra/aws/relic-canon.json "s3://${BUCKET}/Game/.well-known/relic-canon.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp relic-mcp-config.json "s3://${BUCKET}/.well-known/relic-mcp.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
           aws s3 cp eios-config.json "s3://${BUCKET}/eios-lab/eios-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
           INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths \
-            '/Game/external-ai-config.json' '/Game/ai-policy.json' '/Game/.well-known/relic-ai-policy.json' '/eios-lab/eios-config.json' \
+            '/Game/external-ai-config.json' '/Game/ai-policy.json' '/Game/.well-known/relic-ai-policy.json' '/.well-known/relic-canon.json' '/Game/.well-known/relic-canon.json' '/.well-known/relic-mcp.json' '/eios-lab/eios-config.json' \
             --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
           curl --fail --silent --show-error "$PRODUCTION_ORIGIN/Game/ai-policy.json" > /tmp/static-ai-policy.json
@@ -279,12 +333,22 @@ jobs:
           assert data.get('technicalEnforcement', {}).get('denyByDefault') is True, data
           print('Static AI policy verified:', data['rulesetVersion'])
           PY
+          curl --fail --silent --show-error "$PRODUCTION_ORIGIN/.well-known/relic-canon.json" > /tmp/relic-canon.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-canon.json'))
+          assert data.get('version') == 'RELIC-CANON-2026-09-27.1', data
+          assert data.get('pluginBoundary', {}).get('defaultMode') == 'read-only-observer', data
+          print('ReLiC canon discovery verified:', data['version'])
+          PY
 
       - uses: actions/upload-artifact@v4
         with:
           name: rist-external-ai-config
           path: |
             external-ai-config.json
+            relic-mcp-config.json
             eios-config.json
+            infra/aws/relic-canon.json
             site/relic-home/Game/ai-policy.json
           retention-days: 7
