@@ -1,4 +1,5 @@
 import json
+import re
 import os
 import time
 from pathlib import Path
@@ -15,6 +16,43 @@ CANON_PATH = Path(__file__).with_name("relic-canon.json")
 CANON = json.loads(CANON_PATH.read_text(encoding="utf-8"))
 CANON_VERSION = CANON["version"]
 ALLOWED_DOMAINS = set(CANON["truthDomains"])
+
+PROJECT_KNOWLEDGE_PATHS = [
+    Path(__file__).with_name("relic-project-public.json"),
+    Path(__file__).parents[2] / "knowledge" / "project" / "public.json",
+]
+
+
+def _load_project_knowledge():
+    for path in PROJECT_KNOWLEDGE_PATHS:
+        try:
+            if path.exists():
+                return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+    return {
+        "schema_version": None,
+        "dataset_id": None,
+        "snapshot_date": None,
+        "sources": [],
+        "records": [],
+        "relationships": [],
+        "notes": ["public project knowledge unavailable in this runtime"],
+    }
+
+
+PROJECT_KNOWLEDGE = _load_project_knowledge()
+PROJECT_RECORDS = list(PROJECT_KNOWLEDGE.get("records") or [])
+PROJECT_RECORD_BY_ID = {
+    str(item.get("record_id")): item
+    for item in PROJECT_RECORDS
+    if item.get("record_id")
+}
+PROJECT_SOURCE_BY_ID = {
+    str(item.get("source_id")): item
+    for item in (PROJECT_KNOWLEDGE.get("sources") or [])
+    if item.get("source_id")
+}
 
 GROUNDING_SKILL_URI = "skill://relic/relic-grounding/SKILL.md"
 GROUNDING_SKILL_FRONTMATTER = {
@@ -149,6 +187,45 @@ TOOL_DEFS = [
             "properties": {
                 "section": {"type": "string", "enum": ["all", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
             },
+            "additionalProperties": False
+        },
+        "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
+    },
+    {
+        "name": "relic_project_search",
+        "title": "Search public ReLiC project knowledge",
+        "description": (
+            "Use this when a Shaelvien/RIST/ReLiC task depends on documented public project decisions, architecture, "
+            "policies, historical project records, or source-linked implementation context. Searches the dated public "
+            "project corpus and returns truth-domain, status, date, and provenance metadata. Do not use it for private "
+            "user memory, and do not treat a dated record as current truth solely because it was retrieved."
+        ),
+        "inputSchema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "minLength": 1, "maxLength": 500},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 20, "default": 8}
+            },
+            "required": ["query"],
+            "additionalProperties": False
+        },
+        "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
+    },
+    {
+        "name": "relic_project_fetch",
+        "title": "Fetch a public ReLiC project record",
+        "description": (
+            "Use this after relic_project_search when the task needs one exact public project record with its source "
+            "metadata and provenance. Fetches by stable recordId; it does not promote the record to current canon or fact."
+        ),
+        "inputSchema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "recordId": {"type": "string", "minLength": 1, "maxLength": 200}
+            },
+            "required": ["recordId"],
             "additionalProperties": False
         },
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
@@ -351,6 +428,117 @@ def _canon(args):
     return {"version": CANON_VERSION, "section": section, "principles": _selected_principles(section)}
 
 
+def _project_source_summary(source_id):
+    source = PROJECT_SOURCE_BY_ID.get(str(source_id))
+    if not source:
+        return {"sourceId": str(source_id), "status": "UNKNOWN"}
+    return {
+        "sourceId": str(source.get("source_id") or source_id),
+        "title": str(source.get("title") or ""),
+        "kind": str(source.get("kind") or ""),
+        "uri": str(source.get("uri") or ""),
+        "status": str(source.get("status") or ""),
+        "visibility": str(source.get("visibility") or ""),
+        "observedAt": str(source.get("observed_at") or ""),
+        "sourceOrigin": str(source.get("source_origin") or "UNKNOWN"),
+        "sha256": str(source.get("sha256") or ""),
+    }
+
+
+def _project_record_payload(record, score=None):
+    payload = {
+        "recordId": str(record.get("record_id") or ""),
+        "title": str(record.get("title") or ""),
+        "text": str(record.get("text") or "")[:4000],
+        "category": str(record.get("category") or ""),
+        "truthDomain": str(record.get("truth_domain") or "UNKNOWN"),
+        "status": str(record.get("status") or ""),
+        "scope": str(record.get("scope") or ""),
+        "sourceLocator": str(record.get("source_locator") or ""),
+        "recordedAt": str(record.get("recorded_at") or ""),
+        "visibility": str(record.get("visibility") or ""),
+        "provenance": record.get("provenance") or {},
+        "tags": [str(x) for x in (record.get("tags") or [])],
+        "sources": [_project_source_summary(x) for x in (record.get("source_ids") or [])],
+    }
+    if score is not None:
+        payload["score"] = score
+    return payload
+
+
+def _project_search(args):
+    query = str(args.get("query") or "").strip()
+    if not query:
+        raise ValueError("query is required")
+    if len(query) > 500:
+        raise ValueError("query exceeds 500 characters")
+    limit = max(1, min(int(args.get("limit", 8)), 20))
+    normalized = re.sub(r"\s+", " ", query.casefold()).strip()
+    tokens = {
+        token for token in re.findall(r"[a-z0-9_:-]{2,}", normalized)
+        if token not in {"the", "and", "for", "with", "from", "that", "this", "into", "are", "was"}
+    }
+    scored = []
+    for record in PROJECT_RECORDS:
+        title = str(record.get("title") or "").casefold()
+        text_value = str(record.get("text") or "").casefold()
+        category = str(record.get("category") or "").casefold()
+        status = str(record.get("status") or "").casefold()
+        scope = str(record.get("scope") or "").casefold()
+        tags = [str(x).casefold() for x in (record.get("tags") or [])]
+        score = 0
+        if normalized and normalized in title:
+            score += 30
+        if normalized and normalized in text_value:
+            score += 18
+        for token in tokens:
+            if token in title:
+                score += 7
+            if token in tags:
+                score += 8
+            if token in category:
+                score += 4
+            if token in scope:
+                score += 3
+            if token in status:
+                score += 2
+            if token in text_value:
+                score += 2
+        if score:
+            scored.append((score, str(record.get("record_id") or ""), record))
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    return {
+        "datasetId": PROJECT_KNOWLEDGE.get("dataset_id"),
+        "snapshotDate": PROJECT_KNOWLEDGE.get("snapshot_date"),
+        "repositorySnapshot": PROJECT_KNOWLEDGE.get("repository_snapshot"),
+        "query": query,
+        "resultCount": min(limit, len(scored)),
+        "results": [_project_record_payload(record, score) for score, _, record in scored[:limit]],
+        "truthBoundary": (
+            "This is a dated public project evidence corpus. Record truthDomain/status/provenance remain authoritative "
+            "metadata for interpreting the record; retrieval alone does not make a historical record current canon."
+        ),
+    }
+
+
+def _project_fetch(args):
+    record_id = str(args.get("recordId") or "").strip()
+    if not record_id:
+        raise ValueError("recordId is required")
+    record = PROJECT_RECORD_BY_ID.get(record_id)
+    if not record:
+        raise ValueError("Project record not found")
+    return {
+        "datasetId": PROJECT_KNOWLEDGE.get("dataset_id"),
+        "snapshotDate": PROJECT_KNOWLEDGE.get("snapshot_date"),
+        "record": _project_record_payload(record),
+        "truthBoundary": (
+            "Fetched project evidence preserves its recorded date, status, truth domain, and provenance. "
+            "It is not silently promoted to current canon."
+        ),
+    }
+
+
 def _health():
     return {
         "ok": True,
@@ -363,6 +551,12 @@ def _health():
         "publicCanonReadOnly": True,
         "privateMemoryWritesExposed": any(not tool.get("annotations", {}).get("readOnlyHint", False) for tool in MEMORY_TOOLS),
         "privateMemoryIsAuthoritativeWorldTruth": False,
+        "publicProjectKnowledge": {
+            "available": bool(PROJECT_RECORDS),
+            "datasetId": PROJECT_KNOWLEDGE.get("dataset_id"),
+            "snapshotDate": PROJECT_KNOWLEDGE.get("snapshot_date"),
+            "recordCount": len(PROJECT_RECORDS),
+        },
         "persistentRecallAvailable": True,
         "preferredContinuityTool": "relic_recall",
     }
@@ -380,6 +574,10 @@ def _call_tool(name, args):
         return _tool_result(_validate(args))
     if name == "relic_canon":
         return _tool_result(_canon(args))
+    if name == "relic_project_search":
+        return _tool_result(_project_search(args))
+    if name == "relic_project_fetch":
+        return _tool_result(_project_fetch(args))
     if name == "relic_health":
         return _tool_result(_health())
     raise KeyError(name)
