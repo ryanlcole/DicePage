@@ -119,6 +119,122 @@ class Weakness:
         }
 
 
+@dataclass(frozen=True)
+class Update:
+    """One canonical status/proof event."""
+
+    id: str
+    change_id: str
+    status: str
+    message: str
+    observed_scope: tuple[str, ...] = ()
+    evidence: tuple[str, ...] = ()
+    created_at_ms: int = 0
+    alert: bool = False
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "changeId": self.change_id,
+            "status": self.status,
+            "message": self.message,
+            "observedScope": list(self.observed_scope),
+            "evidence": list(self.evidence),
+            "createdAtMs": self.created_at_ms,
+            "alert": self.alert,
+        }
+
+
+@dataclass
+class ChangeProof:
+    """Five-minute proof contract for claimed cross-system AI changes."""
+
+    id: str
+    description: str
+    claimed_scope: tuple[str, ...]
+    started_at_ms: int = field(default_factory=lambda: int(time.time() * 1000))
+    deadline_ms: int = 0
+    observed_scope: set[str] = field(default_factory=set)
+    evidence: list[str] = field(default_factory=list)
+    updates: list[Update] = field(default_factory=list)
+    verified: bool = False
+
+    PROOF_WINDOW_MS = 5 * 60 * 1000
+
+    def __post_init__(self) -> None:
+        if not self.deadline_ms:
+            self.deadline_ms = self.started_at_ms + self.PROOF_WINDOW_MS
+
+    def _update(self, status: str, message: str, now_ms: int, alert: bool = False) -> Update:
+        payload = {
+            "changeId": self.id,
+            "status": status,
+            "observedScope": sorted(self.observed_scope),
+            "evidence": self.evidence,
+            "at": now_ms,
+        }
+        item = Update(
+            id="update." + _stable_digest(payload)[:16],
+            change_id=self.id,
+            status=status,
+            message=message,
+            observed_scope=tuple(sorted(self.observed_scope)),
+            evidence=tuple(self.evidence),
+            created_at_ms=now_ms,
+            alert=alert,
+        )
+        self.updates.append(item)
+        return item
+
+    def add_proof(
+        self,
+        scope: Iterable[str],
+        evidence: Iterable[str],
+        now_ms: int | None = None,
+    ) -> Update:
+        now = int(time.time() * 1000) if now_ms is None else int(now_ms)
+        self.observed_scope.update(str(x) for x in scope if str(x))
+        self.evidence.extend(str(x) for x in evidence if str(x))
+        self.verified = bool(self.claimed_scope) and set(self.claimed_scope).issubset(self.observed_scope)
+        if self.verified:
+            return self._update("VERIFIED", "Claimed scope is verified by supplied evidence.", now)
+        return self._update(
+            "PARTIAL",
+            "Proof received, but the claimed scope is not fully verified.",
+            now,
+        )
+
+    def evaluate(self, now_ms: int | None = None) -> Update:
+        now = int(time.time() * 1000) if now_ms is None else int(now_ms)
+        if self.verified:
+            return self._update("VERIFIED", "Claim remains verified.", now)
+        if now >= self.deadline_ms:
+            return self._update(
+                "UNPROVEN",
+                "Five-minute proof window expired before the claimed scope was verified.",
+                now,
+                alert=True,
+            )
+        return self._update(
+            "PENDING",
+            "Change is inside the proof window and remains unverified.",
+            now,
+        )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "description": self.description,
+            "claimedScope": list(self.claimed_scope),
+            "startedAtMs": self.started_at_ms,
+            "deadlineMs": self.deadline_ms,
+            "observedScope": sorted(self.observed_scope),
+            "evidence": list(self.evidence),
+            "verified": self.verified,
+            "updates": [item.as_dict() for item in self.updates],
+        }
+
+
 @dataclass
 class Shaep:
     """A stabilized active ReLiC reasoning shape.
@@ -133,6 +249,10 @@ class Shaep:
     glyphs: dict[str, Glyph] = field(default_factory=dict)
     weaknesses: list[Weakness] = field(default_factory=list)
     created_at_ms: int = field(default_factory=lambda: int(time.time() * 1000))
+
+    @classmethod
+    def for_subject(cls, subject: str) -> "Shaep":
+        return make_shaep(subject)
 
     def add_rune(self, rune: Rune) -> Rune:
         current = self.runes.get(rune.id)
@@ -175,6 +295,63 @@ class Shaep:
             key: value for key, value in payload.items() if key not in {"createdAtMs", "semanticDigest"}
         })
         return payload
+
+
+def rune(
+    kind: str,
+    value: Any = None,
+    *,
+    identity: str | None = None,
+    truth_domain: str = "UNKNOWN",
+    provenance: str = "UNKNOWN",
+    source: str | None = None,
+) -> Rune:
+    """Create an atomic Rune while keeping representation separate from identity."""
+
+    rune_id = identity or "rune." + _stable_digest({
+        "kind": kind,
+        "value": value,
+        "truthDomain": truth_domain,
+        "provenance": provenance,
+        "source": source,
+    })[:16]
+    return Rune(
+        id=rune_id,
+        value={"kind": kind, "value": value},
+        truth_domain=truth_domain,
+        provenance=provenance,
+        source=source,
+        observed_at_ms=int(time.time() * 1000),
+    )
+
+
+def glyph(
+    relation: str,
+    runes: Iterable[Rune],
+    *,
+    identity: str | None = None,
+    truth_domain: str = "UNKNOWN",
+    conditions: Iterable[str] = (),
+) -> Glyph:
+    """Create a Glyph from already-resolved Rune identities."""
+
+    items = tuple(runes)
+    if not items:
+        raise ValueError("glyph requires at least one Rune")
+    condition_tuple = tuple(str(x) for x in conditions)
+    glyph_id = identity or "glyph." + _stable_digest({
+        "relation": relation,
+        "runeIds": [item.id for item in items],
+        "truthDomain": truth_domain,
+        "conditions": condition_tuple,
+    })[:16]
+    return Glyph(
+        id=glyph_id,
+        rune_ids=tuple(item.id for item in items),
+        relation=relation,
+        truth_domain=truth_domain,
+        conditions=condition_tuple,
+    )
 
 
 def make_shaep(subject: str, runes: Iterable[Rune] = (), glyphs: Iterable[Glyph] = ()) -> Shaep:
