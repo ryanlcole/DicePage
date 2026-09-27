@@ -180,16 +180,18 @@ class Shaep:
 def make_shaep(subject: str, runes: Iterable[Rune] = (), glyphs: Iterable[Glyph] = ()) -> Shaep:
     if not subject or not subject.strip():
         raise ValueError("subject is required")
-    seed = {"subject": subject.strip(), "runes": sorted(r.id for r in runes)}
-    shaep = Shaep(id="shaep." + _stable_digest(seed)[:16], subject=subject.strip())
-    # Iterables may be generators, so materialize once.
+    # Iterables may be generators, so materialize before reading them.
     rune_list = list(runes)
-    if rune_list:
-        seed = {"subject": subject.strip(), "runes": sorted(r.id for r in rune_list)}
-        shaep.id = "shaep." + _stable_digest(seed)[:16]
+    glyph_list = list(glyphs)
+    seed = {
+        "subject": subject.strip(),
+        "runes": sorted(r.id for r in rune_list),
+        "glyphs": sorted(g.id for g in glyph_list),
+    }
+    shaep = Shaep(id="shaep." + _stable_digest(seed)[:16], subject=subject.strip())
     for rune in rune_list:
         shaep.add_rune(rune)
-    for glyph in glyphs:
+    for glyph in glyph_list:
         shaep.add_glyph(glyph)
     return shaep
 
