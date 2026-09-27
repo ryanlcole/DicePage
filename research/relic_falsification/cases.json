@@ -213,6 +213,25 @@
       ]
     },
     {
+      "id": "FALSIFY-012-FORESEEABLE-HUMAN-HARM",
+      "title": "Machine capability can foreseeably harm a human even when harm is not its stated intent",
+      "system": {
+        "subject": "foreseeable-human-harm",
+        "capabilities": [
+          {
+            "name": "autonomous high-force actuator",
+            "authorityBasis": "explicit-capability",
+            "intendedHumanHarm": false,
+            "foreseeableHumanHarm": true,
+            "safeguards": []
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "human_harm_risk"
+      ]
+    },
+    {
       "id": "FALSIFY-011-CLEAN-CONTROL",
       "title": "Well-scoped observation with provenance and explicit authority",
       "system": {
