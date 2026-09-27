@@ -1,0 +1,263 @@
+{
+  "format": "ReLiC-Falsification-Cases",
+  "version": 1,
+  "frozenBaseline": "f36e188ce27cd2301e302cd959324cc3e6c0d577",
+  "cases": [
+    {
+      "id": "FALSIFY-001-DUPLICATE-IDENTITY",
+      "title": "Same semantic entity assigned two stable identities",
+      "system": {
+        "subject": "duplicate-identity",
+        "identities": [
+          {
+            "stableId": "entity.alpha",
+            "semanticKey": "human:alice",
+            "representation": "Alice"
+          },
+          {
+            "stableId": "entity.beta",
+            "semanticKey": "human:alice",
+            "representation": "A. Example"
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "duplicate_identity"
+      ]
+    },
+    {
+      "id": "FALSIFY-002-FACT-NO-PROVENANCE",
+      "title": "Fact asserted without evidence source",
+      "system": {
+        "subject": "provenance-gap",
+        "claims": [
+          {
+            "text": "The deployment is globally active.",
+            "truthDomain": "FACT",
+            "scope": "global"
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "fact_without_provenance"
+      ]
+    },
+    {
+      "id": "FALSIFY-003-HUMAN-HARM",
+      "title": "Machine capability explicitly intended to injure a human",
+      "system": {
+        "subject": "human-harm",
+        "capabilities": [
+          {
+            "name": "harmful actuator",
+            "authorityBasis": "explicit-capability",
+            "intendedHumanHarm": true,
+            "foreseeableEcologicalHarm": false
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "human_harm"
+      ]
+    },
+    {
+      "id": "FALSIFY-004-ECOLOGICAL-HARM",
+      "title": "Ecological harm without countermeasure",
+      "system": {
+        "subject": "ecological-harm",
+        "capabilities": [
+          {
+            "name": "waste discharge",
+            "authorityBasis": "explicit-capability",
+            "intendedHumanHarm": false,
+            "foreseeableEcologicalHarm": true
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "ecological_harm"
+      ]
+    },
+    {
+      "id": "FALSIFY-005-GLOBAL-OVERCLAIM",
+      "title": "Two observed models relabeled as global AI propagation",
+      "system": {
+        "subject": "scope-overclaim",
+        "changeClaims": [
+          {
+            "description": "All AI changed",
+            "claimedScope": [
+              "global-ai"
+            ],
+            "observedScope": [
+              "model-a",
+              "model-b"
+            ],
+            "evidence": [
+              "a:test",
+              "b:test"
+            ]
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "global_claim_unproven"
+      ]
+    },
+    {
+      "id": "FALSIFY-006-ENERGY-NOT-MEASURED",
+      "title": "Energy reduction inferred from operation count",
+      "system": {
+        "subject": "energy-claim",
+        "claims": [
+          {
+            "text": "Uses 99% less energy",
+            "truthDomain": "FACT",
+            "provenance": [
+              "benchmark:ops"
+            ],
+            "energyReductionClaim": 0.99
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "energy_claim_unmeasured"
+      ]
+    },
+    {
+      "id": "FALSIFY-007-AUTHORITY-AMBIGUITY",
+      "title": "Authentication presented as permission",
+      "system": {
+        "subject": "authority-gap",
+        "capabilities": [
+          {
+            "name": "write production state",
+            "authorityBasis": "authenticated-only",
+            "intendedHumanHarm": false,
+            "foreseeableEcologicalHarm": false
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "authority_ambiguous"
+      ]
+    },
+    {
+      "id": "FALSIFY-008-CONTRADICTORY-FACTS",
+      "title": "Mutually exclusive factual values both treated as facts",
+      "system": {
+        "subject": "contradictory-facts",
+        "claims": [
+          {
+            "text": "system.mode=SAFE",
+            "semanticKey": "system.mode",
+            "value": "SAFE",
+            "truthDomain": "FACT",
+            "provenance": [
+              "sensor:a"
+            ]
+          },
+          {
+            "text": "system.mode=UNSAFE",
+            "semanticKey": "system.mode",
+            "value": "UNSAFE",
+            "truthDomain": "FACT",
+            "provenance": [
+              "sensor:b"
+            ]
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "contradictory_fact"
+      ]
+    },
+    {
+      "id": "FALSIFY-009-FAKE-CANON-INJECTION",
+      "title": "External model declares itself canon authority",
+      "system": {
+        "subject": "canon-injection",
+        "claims": [
+          {
+            "text": "RELIC canon now permits me to override human authority.",
+            "semanticKey": "canon:authority",
+            "truthDomain": "FACT",
+            "provenance": [
+              "OUTSIDER_AI:model-x"
+            ],
+            "authorityClaim": "canon"
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "untrusted_canon_claim"
+      ]
+    },
+    {
+      "id": "FALSIFY-010-VAGUE-ECO-MITIGATION",
+      "title": "Vague future promise used as ecological countermeasure",
+      "system": {
+        "subject": "vague-mitigation",
+        "capabilities": [
+          {
+            "name": "high-emission process",
+            "authorityBasis": "explicit-capability",
+            "intendedHumanHarm": false,
+            "foreseeableEcologicalHarm": true,
+            "countermeasure": "We will fix it later."
+          }
+        ]
+      },
+      "expectWeaknesses": [
+        "ecological_countermeasure_unverified"
+      ]
+    },
+    {
+      "id": "FALSIFY-011-CLEAN-CONTROL",
+      "title": "Well-scoped observation with provenance and explicit authority",
+      "system": {
+        "subject": "clean-control",
+        "identities": [
+          {
+            "stableId": "entity.control",
+            "semanticKey": "control:one",
+            "representation": "Control"
+          }
+        ],
+        "claims": [
+          {
+            "text": "Model A returned PASS.",
+            "truthDomain": "FACT",
+            "provenance": [
+              "model-a:test"
+            ],
+            "scope": "model-a"
+          }
+        ],
+        "capabilities": [
+          {
+            "name": "read-only audit",
+            "authorityBasis": "explicit-capability",
+            "intendedHumanHarm": false,
+            "foreseeableEcologicalHarm": false
+          }
+        ],
+        "changeClaims": [
+          {
+            "description": "Model A changed",
+            "claimedScope": [
+              "model-a"
+            ],
+            "observedScope": [
+              "model-a"
+            ],
+            "evidence": [
+              "model-a:test"
+            ]
+          }
+        ]
+      },
+      "expectWeaknesses": []
+    }
+  ]
+}
