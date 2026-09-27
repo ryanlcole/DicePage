@@ -30,7 +30,7 @@ def test_p30_percentage_is_only_the_count_ratio():
 
 
 def test_mitochondrial_conversion_matches_energy_equivalent_frequency():
-    assert math.isclose(energy_equivalent_frequency(0.150) / 1e12, 36.269884522228416, rel_tol=1e-12)
+    assert math.isclose(energy_equivalent_frequency(0.150) / 1e12, 36.269838631273764, rel_tol=1e-12)
 
 
 def test_prediction_commitment_detects_post_lock_change(tmp_path):
