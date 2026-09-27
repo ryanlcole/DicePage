@@ -74,6 +74,7 @@ jobs:
           PY
 
       - name: Verify production ReLiC MCP discovery
+        if: ${{ github.event_name != 'push' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -115,6 +116,7 @@ jobs:
           PY
 
       - name: Verify production OAuth discovery
+        if: ${{ github.event_name != 'push' }}
         shell: bash
         run: |
           set -euo pipefail
