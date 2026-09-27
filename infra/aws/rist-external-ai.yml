@@ -204,8 +204,15 @@ Resources:
     Properties:
       CodeUri: .
       Handler: rist_relic_mcp.handler
-      Timeout: 10
-      MemorySize: 256
+      Timeout: 15
+      MemorySize: 384
+      Environment:
+        Variables:
+          MCP_MEMORY_TABLE: !Ref RelicMcpMemoryTable
+          MCP_AUTH_TABLE: !Ref RelicMcpAuthTable
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref RelicMcpMemoryTable }
+        - DynamoDBReadPolicy: { TableName: !Ref RelicMcpAuthTable }
       Events:
         Mcp:
           Type: HttpApi
@@ -243,29 +250,6 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
         - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
-
-  RelicMcpFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: .
-      Handler: relic_mcp_handler.handler
-      Timeout: 15
-      MemorySize: 384
-      Environment:
-        Variables:
-          MCP_MEMORY_TABLE: !Ref RelicMcpMemoryTable
-          MCP_AUTH_TABLE: !Ref RelicMcpAuthTable
-          PUBLIC_ORIGIN: !Ref FrontendOrigin
-      Policies:
-        - DynamoDBCrudPolicy: { TableName: !Ref RelicMcpMemoryTable }
-        - DynamoDBReadPolicy: { TableName: !Ref RelicMcpAuthTable }
-      Events:
-        McpGet:
-          Type: HttpApi
-          Properties: { ApiId: !Ref RelicMcpApi, Path: /mcp, Method: GET }
-        McpPost:
-          Type: HttpApi
-          Properties: { ApiId: !Ref RelicMcpApi, Path: /mcp, Method: POST }
 
   RelicMcpOauthFunction:
     Type: AWS::Serverless::Function
@@ -313,11 +297,8 @@ Resources:
 
 Outputs:
   RelicMcpApiBaseUrl:
-    Description: ReLiC OAuth-authenticated MCP plugin API
+    Description: ReLiC OAuth authorization API routed behind the public plugin origin
     Value: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
-  RelicMcpPath:
-    Description: ReLiC MCP streamable HTTP endpoint
-    Value: /mcp
   RelicMcpResource:
     Description: Public canonical ReLiC MCP resource identifier
     Value: !Sub ${FrontendOrigin}/mcp
