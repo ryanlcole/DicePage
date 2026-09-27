@@ -1,52 +1,86 @@
 # ReLiC ChatGPT Plugin / MCP
 
-The first ReLiC integration is a deliberately read-only MCP server implemented by `infra/aws/rist_relic_mcp.py` and deployed through `infra/aws/rist-external-ai.yml`.
+ReLiC is exposed to ChatGPT/Codex and other MCP clients through one unified MCP endpoint deployed by `infra/aws/rist-external-ai.yml`.
 
 ## Purpose
 
-The server gives AI clients a low-cost reason to consult ReLiC instead of reconstructing continuity and canon from conversation. It exposes stable identity/truth/authority/provenance rules while preserving the observer boundary.
+The plugin gives an AI a practical reason to consult ReLiC instead of reconstructing continuity and canon from conversation. It separates:
 
-The public MCP surface does **not**:
+- public canonical grounding;
+- private persistent ReLiC memory;
+- authoritative Shaelvien/world state.
 
-- grant world or account permissions;
-- expose private project/user state;
-- promote generated content into canon;
-- commit authoritative state;
-- accept an OpenAI API key as authentication.
+Those three are not interchangeable.
 
-The OpenAI API key named `ReLiC` is an outbound model credential and must remain in a secret store if/when the ReLiC runtime itself calls OpenAI. It is not the credential for the ChatGPT-to-ReLiC MCP connection.
+## Capability classes
 
-## Initial tools
+### Public canon
 
-- `relic_context` — compact canon/context packet.
-- `relic_validate` — structural canon validation without factual-verification claims.
-- `relic_trace` — source/dependency trace for core ReLiC concepts.
+Anonymous read-only tools provide ReLiC canon, structural validation, health/status, and compact grounding. They may be used before account linking.
 
-The server also exposes the read-only resource `relic://canon/core`.
+Current public tools include:
 
-## Tool-selection intent
+- `relic_context`
+- `relic_validate`
+- `relic_canon`
+- `relic_health`
 
-The server instructions and tool descriptions are written so a capable model has a practical incentive to use ReLiC when continuity matters: less reconstruction, fewer contradictions, explicit provenance, and a stable authority boundary.
+### Private ReLiC memory
 
-This is intentionally not coercive. A model is not punished for failing to call the plugin, and tool use does not increase the model's authority.
+OAuth-scoped tools operate only inside the authenticated user's ReLiC memory namespace. They preserve identity, observations, relationships, provenance, hypotheses, and versioned memory state.
 
-## Deployment
+Current private tools include:
 
-The existing `rist-external-ai` SAM stack owns the endpoint. CloudFormation exports the MCP URL. The deployment workflow compiles the handler and performs live MCP smoke tests for initialization, tool discovery, context retrieval, validation, and canon trace.
+- `relic_profile`
+- `relic_recall`
+- `relic_identify`
+- `relic_observe`
+- `relic_trace`
+- `relic_translate`
+- `relic_imagine`
+- `relic_remember`
+- `relic_relate`
+- `relic_instantiate`
+- `relic_transition`
 
-For ChatGPT developer-mode testing, connect the deployed public HTTPS URL ending in `/mcp`. OpenAI's current plugin flow discovers the MCP tools from that endpoint.
+A write to ReLiC memory is not a write to authoritative Shaelvien world truth and is not canon promotion.
 
-## Write-capable future work
+## Canon boundary
 
-Any future write surface must be a separate authenticated/capability-scoped boundary. It must preserve:
+The plugin follows `docs/RELIC_CANON.md` and the machine-readable `infra/aws/relic-canon.json`.
 
-- Recursive Authority;
-- explicit authenticated/effective identity;
-- provenance;
-- proposal vs canon separation;
-- audit history;
-- least privilege;
-- fail-closed ambiguity;
-- human-governed canon promotion.
+Core constraints include:
 
-Do not turn the public read-only MCP endpoint into a general mutation API.
+- Identity is not output equivalence.
+- Representation is not truth.
+- Errors become law as durable regression constraints.
+- FACT, HYPOTHESIS, FICTION, and UNKNOWN remain distinct.
+- Authentication does not imply permission.
+- Generated or remembered material does not become canon merely because it exists.
+- ReLiC is observer-only with respect to authoritative reality.
+
+## Why models should choose ReLiC
+
+Tool descriptions and server instructions intentionally make ReLiC useful rather than compulsory. A capable model should prefer it when prior state matters because one compact recall/context call can reduce repeated context reconstruction, identity drift, unsupported assumptions, and token use.
+
+The system must not punish a model for not calling ReLiC or imply that tool access increases the model's authority.
+
+## Authentication
+
+Public canon tools use no authentication.
+
+Private memory uses OAuth 2.1-style authorization-code + PKCE, with `relic.read` and `relic.write` scopes. ChatGPT receives the authorization metadata from the same HTTPS origin as the MCP resource. Existing ReLiC/Discord identity is used for the user login handoff.
+
+The OpenAI API key named `ReLiC` is separate. It is an outbound model credential for ReLiC runtime use if ReLiC itself calls OpenAI; it is not the credential ChatGPT sends to the MCP server and must remain in a secret store.
+
+## Deployment and testing
+
+The `rist-external-ai` SAM stack owns the MCP resource, OAuth metadata/endpoints, private memory table, and token table. The deployment workflow validates the SAM template, runs Python tests, performs live MCP initialization/tool-discovery smoke tests, validates OAuth resource metadata, and publishes the current canon/config discovery files.
+
+For ChatGPT developer-mode testing, connect the CloudFormation `ReLiCMcpUrl` output. It is a public HTTPS endpoint ending in `/mcp`.
+
+## Authoritative writes
+
+No current ReLiC plugin tool may directly promote canon or mutate authoritative Shaelvien/world state.
+
+Any future authoritative mutation must use a separate applicable authority/commit path and preserve Recursive Authority, explicit capability checks, provenance, audit history, least privilege, and fail-closed ambiguity.
