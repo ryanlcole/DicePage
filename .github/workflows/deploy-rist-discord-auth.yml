@@ -19,6 +19,7 @@ env:
   CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-discord-storage
+  ASSET_STACK_NAME: rist-assets
   PRODUCTION_ORIGIN: https://relicgamemaster.com
   PRODUCTION_ENTRY_URL: https://relicgamemaster.com/Play/index.html
   SESSION_HOURS: 24
@@ -51,14 +52,22 @@ jobs:
           }
           DISCORD_CLIENT_ID=$(get_param DiscordClientId)
           DISCORD_SECRET_ARN=$(get_param DiscordClientSecretArn)
+          PUBLIC_ASSET_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name "$ASSET_STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='AssetBucketName'].OutputValue | [0]" \
+            --output text)
           if [ -z "$DISCORD_CLIENT_ID" ] || [ "$DISCORD_CLIENT_ID" = "None" ]; then
             echo "Could not resolve DiscordClientId from $STACK_NAME"; exit 1
           fi
           if [ -z "$DISCORD_SECRET_ARN" ] || [ "$DISCORD_SECRET_ARN" = "None" ]; then
             echo "Could not resolve DiscordClientSecretArn from $STACK_NAME"; exit 1
           fi
+          if [ -z "$PUBLIC_ASSET_BUCKET" ] || [ "$PUBLIC_ASSET_BUCKET" = "None" ]; then
+            echo "Could not resolve AssetBucketName from $ASSET_STACK_NAME"; exit 1
+          fi
           echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> "$GITHUB_ENV"
           echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN" >> "$GITHUB_ENV"
+          echo "PUBLIC_ASSET_BUCKET=$PUBLIC_ASSET_BUCKET" >> "$GITHUB_ENV"
 
       - name: Deploy production Discord auth return
         shell: bash
@@ -78,7 +87,8 @@ jobs:
               "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
               "FrontendOrigin=$PRODUCTION_ORIGIN" \
               "FrontendUrl=$PRODUCTION_ENTRY_URL" \
-              "SessionHours=$SESSION_HOURS"
+              "SessionHours=$SESSION_HOURS" \
+              "PublicAssetBucketName=$PUBLIC_ASSET_BUCKET"
 
       - name: Verify production return configuration
         shell: bash
@@ -96,7 +106,12 @@ jobs:
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Parameters[?ParameterKey=='SessionHours'].ParameterValue | [0]" \
             --output text)
+          DEPLOYED_ASSET_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='PublicAssetBucketName'].ParameterValue | [0]" \
+            --output text)
           test "$FRONTEND_URL" = "$PRODUCTION_ENTRY_URL"
           test "$FRONTEND_ORIGIN" = "$PRODUCTION_ORIGIN"
           test "$DEPLOYED_SESSION_HOURS" = "$SESSION_HOURS"
-          echo "Discord auth, guardian consent, and asset rating authority return to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
+          test "$DEPLOYED_ASSET_BUCKET" = "$PUBLIC_ASSET_BUCKET"
+          echo "Discord auth, private storage, and game-asset import authority return to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
