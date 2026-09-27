@@ -40,6 +40,18 @@ class ReLiCMcpTests(unittest.TestCase):
         self.assertEqual(public["securitySchemes"][0]["type"], "noauth")
         self.assertEqual(private["securitySchemes"][0]["type"], "oauth2")
 
+    def test_profile_tool_matches_chatgpt_contract(self):
+        profile = next(t for t in m.TOOL_DEFS if t["name"] == "relic_profile")
+        self.assertTrue((profile.get("_meta") or {}).get("openai/profile"))
+        schema = profile.get("outputSchema") or {}
+        self.assertEqual(schema.get("required"), ["id"])
+        self.assertFalse(schema.get("additionalProperties"))
+        self.assertEqual(set((schema.get("properties") or {}).keys()), {"id", "name"})
+
+    def test_packaged_and_runtime_grounding_skill_match(self):
+        packaged = (ROOT.parent.parent / "plugins" / "relic" / "skills" / "relic-grounding" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertEqual(m.GROUNDING_SKILL_TEXT, packaged)
+
     def test_grounding_skill_is_discoverable(self):
         headers = {"mcp-protocol-version":"2025-11-25"}
         r = m.handler(event({"jsonrpc":"2.0","id":20,"method":"skills/list","params":{}}, headers), None)
