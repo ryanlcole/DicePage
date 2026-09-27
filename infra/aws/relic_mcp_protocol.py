@@ -224,7 +224,8 @@ TOOLS = [
 ]
 
 for tool in TOOLS:
-    tool["outputSchema"] = {"type": "object", "additionalProperties": True}
+    if tool["name"] != "relic_profile":
+        tool["outputSchema"] = {"type": "object", "additionalProperties": True}
     meta = tool.setdefault("_meta", {})
     meta.setdefault("securitySchemes", deepcopy(tool.get("securitySchemes", [])))
 
