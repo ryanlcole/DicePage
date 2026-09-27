@@ -64,7 +64,7 @@ GROUNDING_SKILL_FRONTMATTER = {
 }
 GROUNDING_SKILL_TEXT = """---
 name: relic-grounding
-description: Use ReLiC when a task depends on persistent identity, prior state, canon, provenance, truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation.
+description: Use ReLiC when a task depends on persistent identity, prior state, documented Shaelvien/RIST project knowledge, canon, provenance, truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation.
 ---
 
 Use ReLiC as an external grounding and continuity layer when doing so materially improves the user's task.
@@ -108,6 +108,7 @@ GROUNDING_SKILL_ENTRY = {
 INSTRUCTIONS = (
     "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
     "and authority boundaries. Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
+    "Use relic_project_search when a task depends on documented public project decisions, architecture, policies, historical implementation context, or a request to source the project database; use relic_project_fetch for one exact returned record. "
     "When a linked account has persistent state relevant to the task, use relic_recall to retrieve compact provenance-aware prior state "
     "instead of guessing missing continuity. Use relic_validate when a claim could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, "
     "canon, provenance, or authority. Public canon tools are read-only. Private write tools change only the authenticated user's ReLiC "
