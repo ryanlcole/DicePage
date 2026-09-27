@@ -215,8 +215,10 @@ def _context(args):
         "authorityBoundary": CANON["pluginBoundary"],
         "provenance": CANON["sources"],
         "continuity": {
-            "authoritativeStateConnected": False,
-            "meaning": "This initial plugin grounds canon but does not yet expose authoritative world/user state. Treat absent state as UNKNOWN rather than reconstructing it from memory."
+            "authoritativeWorldStateConnected": False,
+            "privatePersistentMemoryAvailable": True,
+            "preferredPrivateTool": "relic_recall",
+            "meaning": "This public call grounds canon without exposing private state. When prior user/project state matters, use relic_recall after account connection instead of reconstructing it from conversational memory. Private ReLiC memory is continuity evidence, not automatic world truth or canon."
         }
     }
 
@@ -307,6 +309,8 @@ def _health():
         "publicCanonReadOnly": True,
         "privateMemoryWritesExposed": any(not tool.get("annotations", {}).get("readOnlyHint", False) for tool in MEMORY_TOOLS),
         "privateMemoryIsAuthoritativeWorldTruth": False,
+        "persistentRecallAvailable": True,
+        "preferredContinuityTool": "relic_recall",
     }
 
 
