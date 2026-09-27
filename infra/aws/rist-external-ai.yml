@@ -210,7 +210,7 @@ Resources:
         Variables:
           MCP_MEMORY_TABLE: !Ref RelicMcpMemoryTable
           MCP_AUTH_TABLE: !Ref RelicMcpAuthTable
-          MCP_PUBLIC_ORIGIN: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+          MCP_PUBLIC_ORIGIN: !Ref FrontendOrigin
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref RelicMcpMemoryTable }
         - DynamoDBReadPolicy: { TableName: !Ref RelicMcpAuthTable }
@@ -262,7 +262,7 @@ Resources:
       Environment:
         Variables:
           MCP_AUTH_TABLE: !Ref RelicMcpAuthTable
-          PUBLIC_ORIGIN: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+          PUBLIC_ORIGIN: !Ref FrontendOrigin
           DISCORD_AUTH_API: !Ref DiscordAuthApiBaseUrl
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref RelicMcpAuthTable }
@@ -301,7 +301,10 @@ Outputs:
     Description: ReLiC MCP and OAuth API base URL
     Value: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   RelicMcpResource:
-    Description: Canonical ReLiC MCP OAuth resource identifier
+    Description: Canonical public ReLiC MCP OAuth resource identifier
+    Value: !Sub ${FrontendOrigin}/mcp
+  ReLiCMcpOriginUrl:
+    Description: Direct API Gateway ReLiC MCP origin used for deployment health checks
     Value: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/mcp
   RelicMcpMemoryTableName:
     Description: Dedicated private ReLiC persistent identity and state table
@@ -322,8 +325,8 @@ Outputs:
     Description: AI UTC session status endpoint
     Value: /external-ai/session/status
   ReLiCMcpUrl:
-    Description: Unified ReLiC MCP endpoint with anonymous canon tools and OAuth-scoped private memory
-    Value: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/mcp
+    Description: Canonical public ReLiC MCP endpoint with anonymous canon tools and OAuth-scoped private memory
+    Value: !Sub ${FrontendOrigin}/mcp
   ReLiCCanonDiscoveryPath:
     Description: Public machine-readable ReLiC canon discovery path on relicgamemaster.com
     Value: /.well-known/relic-canon.json
