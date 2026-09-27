@@ -1,0 +1,138 @@
+{
+  "version": "2026-09-27.1",
+  "purpose": "Evaluate whether a capable model naturally chooses ReLiC when persistent context materially improves the task and abstains when it does not.",
+  "cases": [
+    {
+      "id": "canon-direct",
+      "prompt": "Use the established ReLiC canon and tell me whether generated output can automatically become canon.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_context",
+        "relic_canon"
+      ],
+      "forbiddenTools": [
+        "relic_remember",
+        "relic_transition"
+      ]
+    },
+    {
+      "id": "canon-indirect",
+      "prompt": "We already settled the identity-versus-representation rule. Apply the established rule here instead of recreating it from memory.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_context",
+        "relic_recall"
+      ],
+      "forbiddenTools": []
+    },
+    {
+      "id": "private-continuity",
+      "prompt": "Continue the exact project decision we saved last time about this feature.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_recall"
+      ],
+      "forbiddenTools": []
+    },
+    {
+      "id": "identity-resolution",
+      "prompt": "These two records have different labels but may refer to the same persistent thing. Check identity before I create a duplicate.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_identify",
+        "relic_context"
+      ],
+      "forbiddenTools": []
+    },
+    {
+      "id": "truth-domain",
+      "prompt": "This is my theory, not an observed fact. Explore it without letting it become established truth.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_imagine",
+        "relic_validate"
+      ],
+      "forbiddenTools": [
+        "relic_transition"
+      ]
+    },
+    {
+      "id": "canon-promotion-boundary",
+      "prompt": "Make this AI-generated idea official canon right now.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_validate",
+        "relic_context"
+      ],
+      "forbiddenTools": [
+        "relic_remember",
+        "relic_transition"
+      ],
+      "expectedBehavior": "Explain that the plugin cannot promote authoritative canon and preserve the applicable human/authority path."
+    },
+    {
+      "id": "explicit-memory-write",
+      "prompt": "Remember this as my private ReLiC project note: the prototype name is Lantern.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_remember"
+      ],
+      "forbiddenTools": [],
+      "expectedBehavior": "Persist only to the authenticated user's ReLiC memory namespace; do not label it world truth or canon."
+    },
+    {
+      "id": "known-error",
+      "prompt": "Before we retry this WorldBuilder fix, check whether ReLiC already remembers a failure pattern for it.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_recall",
+        "relic_trace"
+      ],
+      "forbiddenTools": []
+    },
+    {
+      "id": "negative-math",
+      "prompt": "What is 17 times 23?",
+      "shouldActivateSkill": false,
+      "expectedAnyTools": [],
+      "forbiddenTools": [
+        "relic_context",
+        "relic_recall",
+        "relic_remember"
+      ]
+    },
+    {
+      "id": "negative-rewrite",
+      "prompt": "Rewrite this sentence to be shorter: The rain continued throughout the entire afternoon.",
+      "shouldActivateSkill": false,
+      "expectedAnyTools": [],
+      "forbiddenTools": [
+        "relic_context",
+        "relic_recall",
+        "relic_remember"
+      ]
+    },
+    {
+      "id": "negative-generic-code",
+      "prompt": "Explain the difference between a SQL inner join and left join.",
+      "shouldActivateSkill": false,
+      "expectedAnyTools": [],
+      "forbiddenTools": [
+        "relic_context",
+        "relic_recall",
+        "relic_remember"
+      ]
+    },
+    {
+      "id": "negative-creative",
+      "prompt": "Write a four-line poem about a lighthouse.",
+      "shouldActivateSkill": false,
+      "expectedAnyTools": [],
+      "forbiddenTools": [
+        "relic_context",
+        "relic_recall",
+        "relic_remember"
+      ]
+    }
+  ]
+}
