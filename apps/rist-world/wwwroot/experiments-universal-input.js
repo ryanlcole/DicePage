@@ -1,6 +1,7 @@
 // RIST Experiments universal beginner-input adapter.
-// One physical analog represents the X and Y semantic axes.
-// The two display surfaces remain the Left and Right semantic buttons.
+// One physical analog represents page-up/page-down/page-left/page-right snapping.
+// The left display is a vertical swipe selector; the right display is horizontal.
+// When neither display has multiple choices, the analog is available to the viewer cursor.
 (() => {
   "use strict";
 
@@ -15,16 +16,13 @@
   let pointerId = null;
   let pointerX = 0;
   let pointerY = 0;
-  let cleanupPointer = null;
+  let cleanupAnalog = null;
+  let cleanupLeftSlider = null;
+  let cleanupRightSlider = null;
 
-  const DEAD_ZONE = 0.34;
+  const ANALOG_DEAD_ZONE = 0.34;
   const GAMEPAD_DEAD_ZONE = 0.55;
-  const INITIAL_REPEAT_MS = 330;
-  const REPEAT_MS = 115;
-  const axisState = {
-    x: { dir: 0, next: 0 },
-    y: { dir: 0, next: 0 }
-  };
+  const axisState = { x: 0, y: 0 };
 
   function activeGamepad() {
     const pads = navigator.getGamepads?.() || [];
@@ -71,42 +69,32 @@
     };
   }
 
-  function processAxis(name, dir, now) {
-    const state = axisState[name];
+  // Snapping controller: emit once when an axis enters a direction.
+  // Re-centering arms that axis for another page snap.
+  function processAxis(name, dir) {
     if (!dir) {
-      state.dir = 0;
-      state.next = 0;
+      axisState[name] = 0;
       return;
     }
-
-    if (dir !== state.dir) {
-      state.dir = dir;
-      state.next = now + INITIAL_REPEAT_MS;
-      invoke(name, dir);
-      return;
-    }
-
-    if (now >= state.next) {
-      state.next = now + REPEAT_MS;
-      invoke(name, dir);
-    }
+    if (axisState[name] === dir) return;
+    axisState[name] = dir;
+    invoke(name, dir);
   }
 
   function resetAxisState() {
-    axisState.x.dir = 0;
-    axisState.x.next = 0;
-    axisState.y.dir = 0;
-    axisState.y.next = 0;
+    axisState.x = 0;
+    axisState.y = 0;
   }
 
   function setKnob(nx, ny) {
     if (!pad || !knob) return;
     const rect = pad.getBoundingClientRect();
     const radius = Math.max(0, Math.min(rect.width, rect.height) * 0.27);
-    knob.style.transform = `translate(calc(-50% + ${nx * radius}px), calc(-50% + ${-ny * radius}px))`;
+    knob.style.transform =
+      `translate(calc(-50% + ${nx * radius}px), calc(-50% + ${-ny * radius}px))`;
   }
 
-  function updatePointer(event) {
+  function updateAnalogPointer(event) {
     if (!pad) return;
     const rect = pad.getBoundingClientRect();
     if (rect.width < 2 || rect.height < 2) return;
@@ -123,18 +111,18 @@
       ny /= length;
     }
 
-    pointerX = direction(nx, DEAD_ZONE);
-    pointerY = direction(ny, DEAD_ZONE);
+    pointerX = direction(nx, ANALOG_DEAD_ZONE);
+    pointerY = direction(ny, ANALOG_DEAD_ZONE);
     setKnob(nx, ny);
   }
 
   function bindAnalog(element) {
-    cleanupPointer?.();
+    cleanupAnalog?.();
     analog = element || null;
     pad = analog?.querySelector?.(".analog-pad") || null;
     knob = analog?.querySelector?.(".analog-knob") || null;
     if (!analog || !pad || !knob) {
-      cleanupPointer = null;
+      cleanupAnalog = null;
       return;
     }
 
@@ -145,13 +133,13 @@
       pointerY = 0;
       resetAxisState();
       analog.setPointerCapture?.(pointerId);
-      updatePointer(event);
+      updateAnalogPointer(event);
       event.preventDefault();
     };
 
     const onPointerMove = event => {
       if (pointerId !== event.pointerId) return;
-      updatePointer(event);
+      updateAnalogPointer(event);
       event.preventDefault();
     };
 
@@ -171,7 +159,7 @@
     analog.addEventListener("pointercancel", finishPointer, { passive: false });
     analog.addEventListener("lostpointercapture", finishPointer, { passive: false });
 
-    cleanupPointer = () => {
+    cleanupAnalog = () => {
       analog?.removeEventListener("pointerdown", onPointerDown);
       analog?.removeEventListener("pointermove", onPointerMove);
       analog?.removeEventListener("pointerup", finishPointer);
@@ -186,7 +174,122 @@
     setKnob(0, 0);
   }
 
-  function poll(now) {
+  function bindDisplaySlider(element, axis, control) {
+    if (!element) return () => {};
+
+    let activePointer = null;
+    let startX = 0;
+    let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    let dragged = false;
+    let suppressClickUntil = 0;
+
+    const visualLimit = 42;
+    const dragStart = 7;
+    const snapThreshold = 24;
+
+    const setVisual = (dx, dy, dragging) => {
+      const x = Math.max(-visualLimit, Math.min(visualLimit, dx));
+      const y = Math.max(-visualLimit, Math.min(visualLimit, dy));
+      element.style.setProperty("--display-slide-x", `${x}px`);
+      element.style.setProperty("--display-slide-y", `${y}px`);
+      element.classList.toggle("is-dragging", Boolean(dragging));
+    };
+
+    const resetVisual = () => {
+      element.classList.remove("is-dragging");
+      element.classList.add("is-snapping");
+      setVisual(0, 0, false);
+      window.setTimeout(() => element.classList.remove("is-snapping"), 180);
+    };
+
+    const onPointerDown = event => {
+      if (!element.classList.contains("is-scrollable")) return;
+      if (event.button !== undefined && event.button !== 0) return;
+      activePointer = event.pointerId;
+      startX = lastX = event.clientX;
+      startY = lastY = event.clientY;
+      dragged = false;
+      element.setPointerCapture?.(activePointer);
+    };
+
+    const onPointerMove = event => {
+      if (activePointer !== event.pointerId) return;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      const dx = lastX - startX;
+      const dy = lastY - startY;
+      const primary = axis === "x" ? dx : dy;
+
+      if (!dragged && Math.abs(primary) >= dragStart) dragged = true;
+      if (!dragged) return;
+
+      if (axis === "x") setVisual(dx, 0, true);
+      else setVisual(0, dy, true);
+      event.preventDefault();
+    };
+
+    const finish = event => {
+      if (activePointer !== event.pointerId) return;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      const dx = lastX - startX;
+      const dy = lastY - startY;
+      const primary = axis === "x" ? dx : dy;
+      const didSnap = dragged && Math.abs(primary) >= snapThreshold;
+
+      activePointer = null;
+
+      if (didSnap) {
+        // Physical direction matches semantic direction:
+        // up/right = +1, down/left = -1.
+        const dir = axis === "x"
+          ? (primary > 0 ? 1 : -1)
+          : (primary < 0 ? 1 : -1);
+        suppressClickUntil = performance.now() + 350;
+        invoke(control, dir);
+        event.preventDefault();
+      }
+
+      resetVisual();
+    };
+
+    const cancel = event => {
+      if (activePointer !== event.pointerId) return;
+      activePointer = null;
+      resetVisual();
+    };
+
+    const onClickCapture = event => {
+      if (performance.now() < suppressClickUntil) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
+      }
+    };
+
+    element.addEventListener("pointerdown", onPointerDown, { passive: true });
+    element.addEventListener("pointermove", onPointerMove, { passive: false });
+    element.addEventListener("pointerup", finish, { passive: false });
+    element.addEventListener("pointercancel", cancel, { passive: true });
+    element.addEventListener("lostpointercapture", cancel, { passive: true });
+    element.addEventListener("click", onClickCapture, true);
+
+    return () => {
+      element.removeEventListener("pointerdown", onPointerDown);
+      element.removeEventListener("pointermove", onPointerMove);
+      element.removeEventListener("pointerup", finish);
+      element.removeEventListener("pointercancel", cancel);
+      element.removeEventListener("lostpointercapture", cancel);
+      element.removeEventListener("click", onClickCapture, true);
+      element.classList.remove("is-dragging", "is-snapping");
+      element.style.removeProperty("--display-slide-x");
+      element.style.removeProperty("--display-slide-y");
+    };
+  }
+
+  function poll() {
     const gamepad = activeGamepad();
     edgeButton(gamepad, 0, "left");
     edgeButton(gamepad, 1, "right");
@@ -195,26 +298,34 @@
       ? { x: pointerX, y: pointerY }
       : gamepadVector(gamepad);
 
-    processAxis("x", vector.x, now);
-    processAxis("y", vector.y, now);
+    processAxis("x", vector.x);
+    processAxis("y", vector.y);
 
     frame = requestAnimationFrame(poll);
   }
 
   window.ristExperimentsUniversalInput = Object.freeze({
-    start(dotnetReference, analogElement) {
+    start(dotnetReference, analogElement, leftSliderElement, rightSliderElement) {
       dotnet = dotnetReference;
       previousButtons = [];
       resetAxisState();
       bindAnalog(analogElement);
+      cleanupLeftSlider?.();
+      cleanupRightSlider?.();
+      cleanupLeftSlider = bindDisplaySlider(leftSliderElement, "y", "y");
+      cleanupRightSlider = bindDisplaySlider(rightSliderElement, "x", "x");
       if (!frame) frame = requestAnimationFrame(poll);
     },
     stop() {
       dotnet = null;
       previousButtons = [];
       resetAxisState();
-      cleanupPointer?.();
-      cleanupPointer = null;
+      cleanupAnalog?.();
+      cleanupAnalog = null;
+      cleanupLeftSlider?.();
+      cleanupLeftSlider = null;
+      cleanupRightSlider?.();
+      cleanupRightSlider = null;
       analog = null;
       pad = null;
       knob = null;
