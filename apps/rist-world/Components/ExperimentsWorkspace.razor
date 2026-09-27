@@ -172,8 +172,8 @@
  int _yPulse;
  int _xControl;
  int _yControl;
- int _cursorX;
- int _cursorY;
+ double _cursorX;
+ double _cursorY;
  string _analogPlacement="center";
  int _analogPlacementDraft=1;
  double _assetScale=1;
@@ -957,6 +957,14 @@
    }
    StateHasChanged();
   });
+ }
+
+ [JSInvokable]
+ public Task ReceiveCursorPosition(double x,double y)
+ {
+  _cursorX=Math.Clamp(x,-100,100);
+  _cursorY=Math.Clamp(y,-100,100);
+  return Task.CompletedTask;
  }
 
  public async ValueTask DisposeAsync()
