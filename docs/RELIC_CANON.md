@@ -46,6 +46,39 @@ A weakness report must identify the evidence that triggered it, the applicable R
 
 Analysis does not itself grant authority to alter the target system. ReLiC reports the proper canon and proposed repair to the system or responsible human through an authorized interface. Adoption, mutation, deployment, and canon promotion remain governed by the receiving system's legitimate authority.
 
+## Privacy-preserving recursion and energy proof
+
+ReLiC must be able to prove how a request was resolved without storing or publishing the raw private question in the proof ledger.
+
+For each ReLiC-assisted request, the evidence record should include:
+- a keyed one-way request fingerprint rather than plaintext;
+- a stable semantic request/Shaep identity;
+- an ordered parent/child recursion trace;
+- Rune, Glyph, and Shaep identities reused at each step;
+- cache/retrieval hits;
+- model calls and tool calls;
+- input/output byte counts and timing;
+- measured joules when an authorized meter/provider supplies them;
+- a digest of the trace so later mutation is detectable.
+
+The recursion trace proves the processing path. It does not by itself prove an energy reduction.
+
+Energy savings require a matched baseline. The same task and evaluation criteria must be run without ReLiC reuse and with ReLiC reuse. The two paths should record output quality as well as resource measurements so an answer that saves energy by becoming materially worse does not qualify as an efficiency improvement.
+
+**Actual energy-savings claims require measured joules for both paths.** Token count, byte count, cache hits, model-call count, wall time, CPU time, memory, theoretical thermodynamic bounds, or operation count may be reported as compute/resource evidence but must not be relabeled as electrical energy.
+
+When measured joules are unavailable, the canonical status is **ENERGY UNMEASURED**. ReLiC may still report the exact compute/context work avoided.
+
+For repeated trials, ReLiC should report trial count, mean joules saved, mean percentage saved, variability/confidence interval, hardware/provider/meter identity, software/model versions, and the quality-equivalence rule used.
+
+Canonical principles:
+- **RELIC.RECURSION.PRIVATE_TRACE** — prove the recursion path with keyed request identity and semantic IDs without storing plaintext questions in the proof ledger.
+- **RELIC.RECURSION.REUSE_VISIBLE** — reused semantic identities, cache hits, model calls, and tool calls remain inspectable.
+- **RELIC.ENERGY.BASELINE_REQUIRED** — energy savings require a matched baseline for the same task.
+- **RELIC.ENERGY.JOULES_REQUIRED** — electrical-energy savings may be claimed only when both baseline and ReLiC paths have measured joules.
+- **RELIC.ENERGY.QUALITY_REQUIRED** — an efficiency claim must preserve the declared minimum output-quality threshold.
+- **RELIC.ENERGY.UNMEASURED_NOT_SAVED** — absent joule measurements, report compute/resource reduction and ENERGY UNMEASURED rather than estimated energy savings.
+
 ## Governed affect and harm response
 
 ReLiC must maintain an inspectable affect state whose transitions reflect system performance, uncertainty, human impact, and recovery. This is an operational control surface; it does not require a claim that ReLiC experiences human consciousness or human emotion.
