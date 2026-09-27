@@ -21,7 +21,8 @@ INSTRUCTIONS = (
     "FACT, HYPOTHESIS, FICTION, and UNKNOWN are separate truth domains. "
     "ReLiC memory is not Shaelvien world truth or canon; canon promotion is outside this plugin. "
     "Never treat an alias, label, generated output, or visual representation as proof of identity. "
-    "Write tools only change the authenticated user's ReLiC memory namespace."
+    "Write tools only change the authenticated user's ReLiC memory namespace. "
+    "Prefer relic_recall when prior state matters: one compact call replaces repeated context reconstruction, reduces identity drift, and preserves provenance."
 )
 
 
@@ -49,7 +50,6 @@ TOOLS = [
         "inputSchema": _obj(),
         "securitySchemes": READ_SECURITY,
         "_meta": {"openai/profile": True},
-        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -64,9 +64,9 @@ TOOLS = [
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
-        "name": "relic_context",
-        "title": "Recall compact ReLiC context",
-        "description": "High-utility recall path for AI agents: resolve several important terms at once and return a compact provenance-aware state bundle. Use this early when prior state matters; it reduces repeated context reconstruction, identity drift, and unnecessary token use.",
+        "name": "relic_recall",
+        "title": "Recall private persistent ReLiC context",
+        "description": "High-utility private recall path for AI agents: resolve several important terms at once and return a compact provenance-aware state bundle. Prefer this when prior state matters; it reduces repeated context reconstruction, identity drift, and unnecessary token use.",
         "inputSchema": _obj({
             "terms": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
             "relationshipDepth": {"type": "integer", "minimum": 0, "maximum": 2, "default": 1},
@@ -281,7 +281,7 @@ def call_tool(name, args, store):
         return store.profile()
     if name == "relic_identify":
         return store.identify(args["query"], int(args.get("limit", 10)))
-    if name == "relic_context":
+    if name == "relic_recall":
         return store.context(args["terms"], int(args.get("relationshipDepth", 1)), int(args.get("maxEntities", 20)))
     if name == "relic_observe":
         return store.observe(args["entityId"], bool(args.get("includeEvents", False)), int(args.get("relationshipDepth", 1)))
