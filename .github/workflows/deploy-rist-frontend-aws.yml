@@ -2,6 +2,13 @@ name: Deploy RIST Frontend to AWS
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Deploy RIST External AI Defensive Runtime
+    types:
+      - completed
+    branches:
+      - live-alpha-rist-blazor-world
   push:
     branches:
       - live-alpha-rist-blazor-world
@@ -23,15 +30,19 @@ env:
   FRONTEND_STACK: rist-frontend
   PLATFORM_STACK: rist-platform
   TRANSLATION_STACK: rist-translation
+  EXTERNAL_AI_STACK: rist-external-ai
   PRODUCTION_DOMAIN: relicgamemaster.com
   PRODUCTION_CERTIFICATE_ARN: arn:aws:acm:us-east-1:797661578124:certificate/e25800ef-28bc-43e3-8b75-aaefc0528375
   ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -66,6 +77,32 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve optional ReLiC MCP origins
+        shell: bash
+        run: |
+          set -euo pipefail
+          MCP_RUNTIME_URL=""
+          MCP_AUTH_URL=""
+          if aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" >/dev/null 2>&1; then
+            MCP_RUNTIME_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
+              --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue | [0]" \
+              --output text 2>/dev/null || true)
+            MCP_AUTH_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
+              --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue | [0]" \
+              --output text 2>/dev/null || true)
+          fi
+          if [ "$MCP_RUNTIME_URL" = "None" ]; then MCP_RUNTIME_URL=""; fi
+          if [ "$MCP_AUTH_URL" = "None" ]; then MCP_AUTH_URL=""; fi
+          MCP_RUNTIME_DOMAIN=$(printf '%s' "$MCP_RUNTIME_URL" | sed -E 's#^https?://##; s#/$##')
+          MCP_AUTH_DOMAIN=$(printf '%s' "$MCP_AUTH_URL" | sed -E 's#^https?://##; s#/$##')
+          echo "MCP_RUNTIME_DOMAIN=$MCP_RUNTIME_DOMAIN" >> "$GITHUB_ENV"
+          echo "MCP_AUTH_DOMAIN=$MCP_AUTH_DOMAIN" >> "$GITHUB_ENV"
+          if [ -n "$MCP_RUNTIME_DOMAIN" ] && [ -n "$MCP_AUTH_DOMAIN" ]; then
+            echo "ReLiC MCP production-domain routing will be enabled."
+          else
+            echo "::warning::ReLiC MCP origin outputs are not deployed yet; frontend will remain safe without MCP routing. A successful external-AI deployment will trigger this workflow again."
+          fi
 
       - name: Wait for required AWS artwork
         shell: bash
@@ -109,6 +146,8 @@ jobs:
             --parameter-overrides \
               DomainName="$PRODUCTION_DOMAIN" \
               CertificateArn="$PRODUCTION_CERTIFICATE_ARN" \
+              McpRuntimeOriginDomainName="${MCP_RUNTIME_DOMAIN:-}" \
+              McpAuthOriginDomainName="${MCP_AUTH_DOMAIN:-}" \
             --no-fail-on-empty-changeset; then
             echo "CloudFormation deployment failed. Recent failed resource events:"
             aws cloudformation describe-stack-events \
@@ -358,6 +397,29 @@ jobs:
               STORY_MISSING=1
             fi
           done
+
+          if [ -n "${MCP_RUNTIME_DOMAIN:-}" ] && [ -n "${MCP_AUTH_DOMAIN:-}" ]; then
+            curl --fail --silent --show-error \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2025-11-25' \
+              --data '{"jsonrpc":"2.0","id":91,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"production-domain-smoke","version":"1"}}}' \
+              "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-production.json
+            python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-mcp-production.json'))
+          assert (data.get('result') or {}).get('serverInfo',{}).get('name') == 'relic-canon', data
+          print('ReLiC MCP production route verified.')
+          PY
+            curl --fail --silent --show-error \
+              "https://${PRODUCTION_DOMAIN}/.well-known/oauth-protected-resource" > /tmp/relic-mcp-protected-resource.json
+            python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-mcp-protected-resource.json'))
+          assert data.get('resource') == 'https://relicgamemaster.com/mcp', data
+          print('ReLiC OAuth protected-resource discovery verified.')
+          PY
+          fi
 
           echo "ReLiCGameMaster home verified at $URL"
           echo "ReLiC Creator Store verified at ${URL}store/index.html"
