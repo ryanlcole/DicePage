@@ -172,7 +172,8 @@ MEMORY_TOOL_NAMES = {tool["name"] for tool in MEMORY_TOOLS}
 TOOL_DEFS.extend(MEMORY_TOOLS)
 
 for _tool in TOOL_DEFS:
-    _tool["outputSchema"] = {"type": "object", "additionalProperties": True}
+    if _tool["name"] != "relic_profile":
+        _tool["outputSchema"] = {"type": "object", "additionalProperties": True}
     _meta = _tool.setdefault("_meta", {})
     _meta.setdefault("securitySchemes", [dict(s) for s in _tool.get("securitySchemes", [])])
 
