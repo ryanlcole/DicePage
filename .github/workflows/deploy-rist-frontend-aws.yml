@@ -444,7 +444,7 @@ jobs:
           tools=json.load(open('/tmp/relic-mcp-tools.json'))
           listed=(tools.get('result') or {}).get('tools') or []
           names={tool.get('name') for tool in listed}
-          expected={'relic_context','relic_validate','relic_canon','relic_health','relic_profile','relic_recall','relic_identify','relic_observe','relic_trace','relic_translate','relic_imagine','relic_remember','relic_relate','relic_instantiate','relic_transition'}
+          expected={'relic_context','relic_validate','relic_canon','relic_health','relic_project_search','relic_project_fetch','relic_profile','relic_recall','relic_identify','relic_observe','relic_trace','relic_translate','relic_imagine','relic_remember','relic_relate','relic_instantiate','relic_transition'}
           assert expected.issubset(names), (expected-names,names)
           context=next(tool for tool in listed if tool.get('name') == 'relic_context')
           recall=next(tool for tool in listed if tool.get('name') == 'relic_recall')
