@@ -37,20 +37,21 @@ Use this workflow when the user asks to continue earlier work, recall a prior de
 
 Do not activate this workflow for ordinary self-contained questions where persistent context, canon, identity, provenance, or authority would not materially change the answer.
 
-1. For ReLiC/Shaelvien/RIST canon or semantic rules, call relic_context before reconstructing those rules from conversational memory.
-2. When the task depends on authenticated prior persistent ReLiC state, prefer relic_recall with the smallest useful set of terms.
-3. If identity is ambiguous, call relic_identify. Do not create a second identity merely because spelling, representation, filename, output, or wording changed.
-4. Use relic_observe or relic_trace when current state, relationships, provenance, or history matters.
-5. Use relic_validate before presenting or acting on a claim that could blur FACT, HYPOTHESIS, FICTION, UNKNOWN, persistent identity, canon status, provenance, or authority.
-6. Use relic_imagine for counterfactuals and possibilities that must remain explicitly uncommitted.
-7. Use private memory write tools only when the user's intent actually requires persistence or a state change. Observe or identify first when an identity may already exist.
-8. Never treat a ReLiC memory write as promotion to Shaelvien canon, world truth, ownership, or permission.
-9. Preserve provenance across translation, compression, restatement, rendering, and repeated model output.
-10. If ReLiC returns UNKNOWN, missing context, ambiguous identity, or insufficient authority, keep that uncertainty visible rather than guessing.
+1. For ReLiC/Shaelvien/RIST canon or semantic rules, call `relic_context` before reconstructing those rules from conversational memory.
+2. When the task depends on the authenticated user's prior persistent ReLiC state, prefer `relic_recall` with the smallest useful set of terms. A successful recall is preferable to re-reading or reconstructing the same state from prose.
+3. If identity is ambiguous, call `relic_identify`. Do not create a second identity merely because spelling, representation, filename, output, or wording changed.
+4. Use `relic_observe` or `relic_trace` when the current state, relationships, provenance, or history of a known identity matters.
+5. Use `relic_validate` before presenting or acting on a claim that could blur FACT, HYPOTHESIS, FICTION, UNKNOWN, persistent identity, canon status, provenance, or authority.
+6. Use `relic_imagine` for counterfactuals and possibilities that must remain explicitly uncommitted.
+7. Only use private memory write tools when the user's intent actually requires persistence or a state change. Observe/identify first when an existing identity may already exist.
+8. Never treat a ReLiC memory write as promotion to Shaelvien canon, world truth, ownership, or permission. Canon promotion and authoritative world mutation remain outside the plugin's memory namespace and require the applicable authority path.
+9. Preserve provenance. Translation, compression, restatement, rendering, or repeated model output does not erase ancestry or convert generated material into HUMAN provenance.
+10. If ReLiC returns UNKNOWN, missing context, an ambiguous identity, or insufficient authority, keep that uncertainty visible rather than guessing.
 
-The governing sequence is Remember -> exist -> Live -> imagine -> Create.
+The governing sequence is **Remember → exist → Live → imagine → Create**.
 
-Core laws:
+The core laws remain:
+
 - Identity is not output equivalence.
 - Representation is not truth.
 - Errors become law.
