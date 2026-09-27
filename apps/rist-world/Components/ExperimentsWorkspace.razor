@@ -93,7 +93,7 @@
    }
   </div>
 
-  <div class="analog-control analog-control-xy"
+  <div class="analog-control analog-control-xy @(CursorMode?"cursor-mode":"paging-mode")"
        @ref="_analog"
        role="group"
        aria-label="Universal analog paging control. Up and down snap the left display. Left and right snap the right display. When neither display has multiple selections it becomes the viewer cursor.">
@@ -322,7 +322,7 @@
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"NAVIGATION",
   Stage.AssetKind=>"SOURCE",
   Stage.AssetMode=>"ASSET ACTION",
-  Stage.BrowsePlace=>"PLACEMENT",
+  Stage.BrowsePlace=>"NAVIGATION",
   Stage.Scale or Stage.Rotate or Stage.Move=>"CONFIRM",
   Stage.SaveCancel=>"COMMIT",
   _=>"RIGHT"
@@ -353,7 +353,7 @@
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer.",
   Stage.AssetKind=>"Y switches asset type. X switches the source shown on the right display.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
-  Stage.BrowsePlace=>"Browse is an adapter request; no external editor is embedded here.",
+  Stage.BrowsePlace=>"Use the analog cursor or touch. The left display selects the current explorer item.",
   Stage.Scale=>"Y changes preview size without changing asset identity.",
   Stage.Rotate=>"X changes preview rotation.",
   Stage.Move=>"X/Y move the preview representation.",
@@ -372,7 +372,7 @@
   Stage.AssetKind=>"Choose Game, My, or Upload source for the selected asset type.",
   Stage.AssetMode=>"Add a new asset.",
   Stage.BrowsePlace=>"Back to Image/Sprite and source selection.",
-  Stage.Scale=>"Accept current scale.",
+  Stage.Scale=>"Back to the current source explorer.",
   Stage.Rotate=>"Accept current rotation.",
   Stage.Move=>"Accept current position.",
   Stage.SaveCancel=>"Discard preview and return to World Builder depth.",
@@ -472,7 +472,7 @@
   Stage.WorldBuilderLayer=>"WORLD BUILDER → LAYER",
   Stage.AssetKind=>"WORLD BUILDER → ASSET",
   Stage.AssetMode=>$"WORLD BUILDER → {_assetKind}",
-  Stage.BrowsePlace=>$"{_assetKind} → {_assetMode}",
+  Stage.BrowsePlace=>$"{_assetKind} → {_assetSource}",
   Stage.Scale=>$"{_assetKind} → SCALE",
   Stage.Rotate=>$"{_assetKind} → ROTATE",
   Stage.Move=>$"{_assetKind} → MOVE",
