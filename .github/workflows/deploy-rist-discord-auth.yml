@@ -22,6 +22,7 @@ env:
   ASSET_STACK_NAME: rist-assets
   PRODUCTION_ORIGIN: https://relicgamemaster.com
   PRODUCTION_ENTRY_URL: https://relicgamemaster.com/Play/index.html
+  MCP_OAUTH_RETURN_URL: https://relicgamemaster.com/oauth/identity
   SESSION_HOURS: 24
 
 jobs:
@@ -87,6 +88,7 @@ jobs:
               "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
               "FrontendOrigin=$PRODUCTION_ORIGIN" \
               "FrontendUrl=$PRODUCTION_ENTRY_URL" \
+              "McpOauthReturnUrl=$MCP_OAUTH_RETURN_URL" \
               "SessionHours=$SESSION_HOURS" \
               "PublicAssetBucketName=$PUBLIC_ASSET_BUCKET"
 
@@ -102,6 +104,10 @@ jobs:
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Parameters[?ParameterKey=='FrontendOrigin'].ParameterValue | [0]" \
             --output text)
+          MCP_RETURN=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='McpOauthReturnUrl'].ParameterValue | [0]" \
+            --output text)
           DEPLOYED_SESSION_HOURS=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Parameters[?ParameterKey=='SessionHours'].ParameterValue | [0]" \
@@ -112,6 +118,7 @@ jobs:
             --output text)
           test "$FRONTEND_URL" = "$PRODUCTION_ENTRY_URL"
           test "$FRONTEND_ORIGIN" = "$PRODUCTION_ORIGIN"
+          test "$MCP_RETURN" = "$MCP_OAUTH_RETURN_URL"
           test "$DEPLOYED_SESSION_HOURS" = "$SESSION_HOURS"
           test "$DEPLOYED_ASSET_BUCKET" = "$PUBLIC_ASSET_BUCKET"
           echo "Discord auth, private storage, and game-asset import authority return to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
