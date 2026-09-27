@@ -200,6 +200,9 @@ Resources:
         }
 
         ENDEMAR_WORLD_SOURCE_PREFIXES = [
+            # Canonical Endemar images currently used by World Builder.
+            "library/terrains/standard/world/whole_maps/geonaph/",
+            # Newer normalized Geonaph package locations remain valid sources too.
             "assets/worlds/geonaph/v1/maps/",
             "assets/worlds/geonaph/v1/layers/"
         ]
@@ -225,7 +228,7 @@ Resources:
                     result = s3.list_objects_v2(**args)
                     for item in result.get("Contents", []):
                         key = item.get("Key") or ""
-                        if key.lower().endswith(".png"):
+                        if key.lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".gif")):
                             keys.append(key)
                     if not result.get("IsTruncated"):
                         break
