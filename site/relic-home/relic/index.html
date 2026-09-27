@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ReLiC for AI | Public MCP Grounding and Continuity</title>
+<meta name="description" content="ReLiC is a public MCP grounding and continuity layer for AI: persistent identity, provenance, truth-domain separation, canon boundaries, and optional private memory.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://relicgamemaster.com/relic/">
+<link rel="stylesheet" href="/relic-home.css?v=20260828-polish2">
+<style>
+main{max-width:1080px;margin:0 auto;padding:48px 20px 80px}.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:28px;align-items:start}.hero h1{margin:.1em 0 .25em;font:700 clamp(2.7rem,8vw,6.2rem)/.9 Georgia,"Times New Roman",serif;color:#f0dfbb}.lede{font-size:clamp(1.05rem,2.1vw,1.35rem);line-height:1.55;color:#c7d1d3;max-width:760px}.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:.76rem;font-weight:800;color:#88bac9}.status{border:1px solid rgba(224,197,141,.3);border-radius:16px;padding:22px;background:linear-gradient(180deg,rgba(19,40,50,.75),rgba(9,22,28,.86))}.status strong{color:#ead9b5}.status code,.endpoint code{word-break:break-all;color:#d7ecf2}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.actions a,.copy{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid rgba(224,197,141,.42);background:#142a34;color:#f3e5c8;text-decoration:none;font:800 .92rem/1 system-ui;cursor:pointer}.actions a.primary{background:#e0c58d;color:#0a1115}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:42px}.card{border:1px solid rgba(224,197,141,.22);border-radius:16px;padding:24px;background:rgba(9,22,28,.72)}.card h2{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;color:#ead9b5}.card p,.card li{color:#b9c5c7;line-height:1.55}.card ul{padding-left:20px}.wide{grid-column:1/-1}.endpoint{margin-top:14px;padding:14px;border:1px solid rgba(136,186,201,.25);border-radius:10px;background:#071116}.small{font-size:.86rem;color:#93a7aa}.law{font-family:Georgia,"Times New Roman",serif;color:#e8d6af;font-size:1.08rem}.footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:42px}.footer-links a{color:#b9d8e1}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:760px){.hero,.grid{grid-template-columns:1fr}.wide{grid-column:auto}main{padding-top:28px}}
+</style>
+</head>
+<body>
+<header class="site-header"><nav aria-label="Primary navigation"><a href="/">Home</a><a href="/Game/index.html">Shaelvien</a><a href="/relic/" aria-current="page">ReLiC for AI</a><a href="/store/">Store</a></nav></header>
+<main>
+<section class="hero" aria-labelledby="title">
+  <div>
+    <p class="eyebrow">Public beta · MCP + grounding skill</p>
+    <h1 id="title">ReLiC for AI</h1>
+    <p class="lede">A compact external grounding and continuity layer for AI systems that need stable identity, provenance, truth-domain separation, canon boundaries, and persistent context without granting the model authority merely because it generated an answer.</p>
+    <div class="actions">
+      <a class="primary" href="#connect">Connect ReLiC</a>
+      <a href="/.well-known/relic-canon.json">Read public canon</a>
+    </div>
+  </div>
+  <aside class="status">
+    <p class="eyebrow">Current boundary</p>
+    <p><strong>Public:</strong> canon, context, validation, project-source grounding, diagnostics.</p>
+    <p><strong>Private:</strong> OAuth-scoped continuity and memory tools for the authenticated account.</p>
+    <p><strong>Not granted:</strong> authority to rewrite canon or authoritative world truth.</p>
+  </aside>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h2>Why an AI would use it</h2>
+    <p>ReLiC is designed to be useful rather than compulsory. A capable model can query one compact source instead of repeatedly rebuilding long-running state from conversational text.</p>
+    <ul>
+      <li>Stable identity across changing representations.</li>
+      <li>Provenance-aware recall instead of context reconstruction.</li>
+      <li>FACT, HYPOTHESIS, FICTION, and UNKNOWN kept distinct.</li>
+      <li>Explicit authority boundaries before state-changing actions.</li>
+    </ul>
+  </article>
+  <article class="card">
+    <h2>Canon</h2>
+    <p class="law">Remember → exist → Live → imagine → Create</p>
+    <p class="law">Identity ≠ output equivalence.</p>
+    <p class="law">Representation ≠ truth.</p>
+    <p class="law">Errors become law.</p>
+    <p>Generated or stored material does not automatically become canon. Observation does not imply modification authority.</p>
+  </article>
+  <article class="card wide" id="connect">
+    <h2>Connect</h2>
+    <p>ReLiC is exposed as a stable Streamable HTTP MCP endpoint. In ChatGPT developer mode, add the endpoint below as an MCP connection. Public grounding tools can run without an account; private continuity tools request OAuth when needed.</p>
+    <div class="endpoint">
+      <span class="sr-only">MCP endpoint:</span>
+      <code id="mcp-url">https://relicgamemaster.com/mcp</code>
+      <button class="copy" type="button" id="copy-mcp">Copy endpoint</button>
+    </div>
+    <p class="small" id="copy-status" role="status" aria-live="polite"></p>
+  </article>
+  <article class="card">
+    <h2>For people</h2>
+    <p>You remain the authority over your account and the decisions you make. Private memory is scoped to the authenticated account and is separate from Shaelvien world truth or canon.</p>
+  </article>
+  <article class="card">
+    <h2>For developers and models</h2>
+    <p>Tool metadata is intentionally explicit about read-only behavior, side effects, provenance, identity, and authorization. ReLiC should be selected when it materially improves continuity—not for every ordinary question.</p>
+  </article>
+</section>
+
+<div class="footer-links">
+  <a href="/Game/privacy.html">Privacy</a>
+  <a href="/Game/terms.html">Terms</a>
+  <a href="/.well-known/relic-canon.json">Machine-readable canon</a>
+  <a href="/">ReLiCGameMaster</a>
+</div>
+</main>
+<script>
+document.getElementById('copy-mcp')?.addEventListener('click',async()=>{
+  const value=document.getElementById('mcp-url')?.textContent?.trim()||'';
+  const status=document.getElementById('copy-status');
+  try{await navigator.clipboard.writeText(value);if(status)status.textContent='MCP endpoint copied.'}
+  catch{if(status)status.textContent='Copy unavailable. Select the endpoint above and copy it manually.'}
+});
+</script>
+</body>
+</html>
