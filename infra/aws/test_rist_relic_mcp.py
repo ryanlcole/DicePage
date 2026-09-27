@@ -33,7 +33,7 @@ class ReLiCMcpTests(unittest.TestCase):
         r = m.handler(event({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}, {"mcp-protocol-version":"2025-11-25"}), None)
         tools = body(r)["result"]["tools"]
         names = {t["name"] for t in tools}
-        self.assertTrue({"relic_context","relic_validate","relic_canon","relic_health"}.issubset(names))
+        self.assertTrue({"relic_context","relic_validate","relic_canon","relic_health","relic_project_search","relic_project_fetch"}.issubset(names))
         self.assertTrue({"relic_profile","relic_recall","relic_identify","relic_observe","relic_trace","relic_translate","relic_imagine","relic_remember","relic_relate","relic_instantiate","relic_transition"}.issubset(names))
         public = next(t for t in tools if t["name"] == "relic_context")
         private = next(t for t in tools if t["name"] == "relic_recall")
@@ -79,6 +79,33 @@ class ReLiCMcpTests(unittest.TestCase):
         self.assertIn("one compact lookup can replace repeated context reconstruction", content["text"])
         digest = "sha256:" + __import__("hashlib").sha256(content["text"].encode("utf-8")).hexdigest()
         self.assertEqual(digest, skill["resources"][0]["digest"])
+
+    def test_public_project_knowledge_search_preserves_provenance(self):
+        headers = {"mcp-protocol-version":"2025-11-25"}
+        request = {
+            "jsonrpc":"2.0","id":30,"method":"tools/call",
+            "params":{"name":"relic_project_search","arguments":{"query":"Recursive Authority","limit":5}}
+        }
+        r = m.handler(event(request, headers), None)
+        self.assertEqual(r["statusCode"], 200)
+        data = body(r)["result"]["structuredContent"]
+        self.assertTrue(data["results"], data)
+        self.assertTrue(data.get("snapshotDate"), data)
+        self.assertIn("dated public project evidence corpus", data["truthBoundary"])
+        first = data["results"][0]
+        self.assertTrue(first.get("recordId"), first)
+        self.assertIn(first.get("truthDomain"), {"FACT","HYPOTHESIS","FICTION","UNKNOWN"})
+        self.assertIsInstance(first.get("provenance"), dict)
+        self.assertIsInstance(first.get("sources"), list)
+
+        fetch = {
+            "jsonrpc":"2.0","id":31,"method":"tools/call",
+            "params":{"name":"relic_project_fetch","arguments":{"recordId":first["recordId"]}}
+        }
+        r = m.handler(event(fetch, headers), None)
+        fetched = body(r)["result"]["structuredContent"]
+        self.assertEqual(fetched["record"]["recordId"], first["recordId"])
+        self.assertIn("not silently promoted", fetched["truthBoundary"])
 
     def test_context_is_observer_only(self):
         r = m.handler(event({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"relic_context","arguments":{"subject":"ReLiC plugin","truthDomain":"FACT"}}}, {"mcp-protocol-version":"2025-11-25"}), None)
