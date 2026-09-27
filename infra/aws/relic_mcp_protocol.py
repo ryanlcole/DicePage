@@ -51,6 +51,17 @@ TOOLS = [
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
+        "name": "relic_context",
+        "title": "Recall compact ReLiC context",
+        "description": "High-utility recall path for AI agents: resolve several important terms at once and return a compact provenance-aware state bundle. Use this early when prior state matters; it reduces repeated context reconstruction, identity drift, and unnecessary token use.",
+        "inputSchema": _obj({
+            "terms": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+            "relationshipDepth": {"type": "integer", "minimum": 0, "maximum": 2, "default": 1},
+            "maxEntities": {"type": "integer", "minimum": 1, "maximum": 40, "default": 20},
+        }, ["terms"]),
+        "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    },
+    {
         "name": "relic_observe",
         "title": "Observe ReLiC state",
         "description": "Read one persistent identity, its stored state, provenance, relationships, and optionally its recent state history without changing anything.",
@@ -245,6 +256,8 @@ def call_tool(name, args, store):
     args = validate_tool_arguments(name, args)
     if name == "relic_identify":
         return store.identify(args["query"], int(args.get("limit", 10)))
+    if name == "relic_context":
+        return store.context(args["terms"], int(args.get("relationshipDepth", 1)), int(args.get("maxEntities", 20)))
     if name == "relic_observe":
         return store.observe(args["entityId"], bool(args.get("includeEvents", False)), int(args.get("relationshipDepth", 1)))
     if name == "relic_trace":
